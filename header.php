@@ -20,7 +20,7 @@ $usuarioId = get_current_user_id();
 
 use Glory\Components\HeaderRenderer;
 use Glory\Manager\OpcionManager;
-use Glory\Core\Compatibility;
+use Glory\Integration\Compatibility;
 
 ?>
 

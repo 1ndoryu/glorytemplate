@@ -1,7 +1,7 @@
 <?php 
 
-use Glory\Core\AssetManager;
-use Glory\Core\PageManager;
+use Glory\Manager\AssetManager;
+use Glory\Manager\PageManager;
 use Glory\Admin\SyncManager;
 
 define('LOCAL', true);

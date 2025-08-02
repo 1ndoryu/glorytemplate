@@ -1,6 +1,6 @@
 <?php
 
-use Glory\Core\AssetManager;
+use Glory\Manager\AssetManager;
 
 /**
  * Registro de Assets Específicos del Tema

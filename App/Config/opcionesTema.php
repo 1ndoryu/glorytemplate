@@ -1,7 +1,7 @@
 <?php
 
 use Glory\Manager\OpcionManager;
-use Glory\Core\Compatibility;
+use Glory\Integration\Compatibility;
 
 if (Compatibility::avadaActivo()) {
     OpcionManager::register('glory_logo_mode', [
