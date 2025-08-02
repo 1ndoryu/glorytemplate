@@ -19,11 +19,22 @@ $usuarioId = get_current_user_id();
 <?php
 
 use Glory\Components\HeaderRenderer;
+use Glory\Manager\OpcionManager;
+use Glory\Core\Compatibility;
 
 ?>
 
 
 <body>
     <div id="loadingBar"></div>
-    <?php HeaderRenderer::render(); ?>
+    <?php
+    $defaultMode = Compatibility::avadaActivo() ? 'default' : 'image';
+    $configHeader = [
+        'modoLogo'    => OpcionManager::get('glory_logo_mode', $defaultMode),
+        'textoLogo'   => OpcionManager::get('glory_logo_text', get_bloginfo('name', 'display')),
+        'logoImageId' => OpcionManager::get('glory_logo_image'),
+        'idMenu'      => 'main-menu' 
+    ];
+    HeaderRenderer::render($configHeader);
+    ?>
     <main id="main" class="main">

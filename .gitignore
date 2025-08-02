@@ -76,3 +76,5 @@ site.webmanifest
 wp-cli.yml
 wp-mail.php
 wp-options.php
+Glory/
+status.md
