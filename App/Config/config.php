@@ -12,7 +12,7 @@ AssetManager::defineFolder('style', '/assets/css/');
 SyncManager::setAdminBarVisible(true);
 SyncManager::setResetButtonVisible(true);
 
-PageManager::define('home');
+PageManager::define('home', 'Home', 'templates/TemplateHome.php');
 
 # test
 # CreditosManager::init();
