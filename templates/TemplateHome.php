@@ -7,6 +7,7 @@ use Glory\Components\FormBuilder;
 use Glory\Components\TermRender;
 use Glory\Utility\UserUtility;
 
+
 ?>
 
 <style>
@@ -45,6 +46,51 @@ use Glory\Utility\UserUtility;
         flex-direction: column;
         gap: 1rem;
     }
+
+    .lista-libros-contenedor {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 2rem;
+        width: 100%;
+    }
+
+    .libro-item a {
+        text-decoration: none;
+    }
+
+    .libro-card {
+        background-color: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+
+    .libro-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .libro-portada {
+        width: 100%;
+        height: 270px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .libro-info {
+        padding: 1rem;
+    }
+
+    .libro-titulo {
+        font-size: 1rem;
+        margin: 0;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 </style>
 
 <div id="glory-component-examples">
@@ -72,11 +118,26 @@ use Glory\Utility\UserUtility;
         </section>
     <?php endif; ?>
 
+    <section class="seccionComponente">
+        <div class="contenidoSeccionComponente">
+            <h2 style="text-align:center;">Idea Implementada: <code>ContentRender</code> con Libros</h2>
+            <p style="text-align: center; margin-bottom: 1.5rem;">Ejemplo de un listado para el Custom Post Type "Libro", usando una plantilla personalizada y estilo minimalista.</p>
+            <?php
+            ContentRender::print('libro', [
+                'publicacionesPorPagina' => 3,
+                'paginacion'             => false,
+                'plantillaCallback'      => 'plantillaLibro',
+                'claseContenedor'        => 'lista-libros-contenedor',
+                'claseItem'              => 'libro-item'
+            ]);
+            ?>
+        </div>
+    </section>
 
     <section class="seccionComponente">
         <div class="contenidoSeccionComponente">
-            <h2>Ejemplo: <code>ContentRender</code></h2>
-            <p style="text-align: center; margin-bottom: 1.5rem;">Mostrando las últimas 3 entradas del blog.</p>
+            <h2>Ejemplo: <code>ContentRender</code> (Básico)</h2>
+            <p style="text-align: center; margin-bottom: 1.5rem;">Mostrando las últimas 3 entradas del blog con la plantilla por defecto.</p>
             <?php
             ContentRender::print('post', [
                 'publicacionesPorPagina' => 3,
