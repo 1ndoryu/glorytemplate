@@ -1,19 +1,15 @@
 <?php
 
-use Glory\Core\PostTypeManager;
-
-/*
+use Glory\Manager\PostTypeManager;
 
 PostTypeManager::define(
-    'example',
+    'libro',
     [
+        'public' => true,
         'has_archive' => true,
-        'rewrite'     => ['slug' => 'examples'],
-        'menu_icon'   => 'dashicons-media-audio',
-        'supports'    => ['title', 'editor', 'thumbnail', 'excerpt', 'custom-fields'],
+        'supports' => ['title', 'editor', 'thumbnail'],
+        'menu_icon' => 'dashicons-book',
     ],
-    'Example',
-    'Examples'
+    'Libro',
+    'Libros'
 );
-
-*/
