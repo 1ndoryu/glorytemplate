@@ -28,11 +28,13 @@ function incluirArchivos($directorio)
 {
     $ruta_completa = get_template_directory() . "/$directorio";
 
+    // Incluir archivos PHP en el directorio actual
     $archivos = glob($ruta_completa . "*.php");
     foreach ($archivos as $archivo) {
         include_once $archivo;
     }
 
+    // Incluir archivos PHP en subdirectorios recursivamente
     $subdirectorios = glob($ruta_completa . "*/", GLOB_ONLYDIR);
     foreach ($subdirectorios as $subdirectorio) {
         $ruta_relativa = str_replace(get_template_directory() . '/', '', $subdirectorio);
@@ -42,6 +44,7 @@ function incluirArchivos($directorio)
 
 $directorios = [
     'App/',
+    'templates/',
 ];
 
 foreach ($directorios as $directorio) {
