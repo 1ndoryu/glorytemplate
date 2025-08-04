@@ -10,7 +10,7 @@ AssetManager::setThemeVersion('0.1.1');
 SyncManager::setAdminBarVisible(true);
 SyncManager::setResetButtonVisible(true);
 
-PageManager::define('home');
+PageManager::define('home', 'home');
 
 # test
 # CreditosManager::init();
