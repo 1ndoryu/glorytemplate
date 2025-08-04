@@ -126,10 +126,10 @@ function home()
                 <?php
                 ContentRender::print('libro', [
                     'publicacionesPorPagina' => 3,
-                    'paginacion'             => false,
-                    'plantillaCallback'      => 'plantillaLibro',
-                    'claseContenedor'        => 'lista-libros-contenedor',
-                    'claseItem'              => 'libro-item'
+                    'paginacion'             => false, 
+                    'plantillaCallback'      => 'plantillaLibro', // La función que renderiza cada libro.
+                    'claseContenedor'        => 'lista-libros-contenedor', // Clase para el contenedor de la lista.
+                    'claseItem'              => 'libro-item', // Clase para cada elemento de la lista.
                 ]);
                 ?>
             </div>
