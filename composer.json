@@ -18,8 +18,7 @@
         "php": ">=5.6",
         "vlucas/phpdotenv": "^5.6",
         "react/http": "^1.11",
-        "cboden/ratchet": "^0.4.4",
-        "nunomaduro/pokio": "^0.1.0"
+        "cboden/ratchet": "^0.4.4"
     },
     "require-dev": {
         "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",

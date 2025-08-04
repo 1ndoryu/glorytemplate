@@ -30,6 +30,36 @@ function home()
             </div>
         </section>
 
+        <div id="miModalEjemplo" class="modal" style="display:none;">
+            <h3>Ventana Modal de Ejemplo</h3>
+            <p>Este es el contenido de la ventana modal. Puedes cerrarla con la tecla ESC o haciendo clic fuera.</p>
+            <button class="borde" onclick="window.ocultarFondo()">Cerrar</button>
+        </div>
+
+        <section class="seccionComponente">
+            <div class="contenidoSeccionComponente">
+                <h2>Ejemplo: <code>BusquedaRenderer</code> con resultados en Modal </h2>
+                <p>Escribe en el campo y los resultados aparecerán en un modal. Escribe "poder" o "alicia" para ver resultados.</p>
+                <input type="text"
+                    class="busqueda busqueda-modal-input"
+                    data-tipos="post,libro"
+                    data-cantidad="3"
+                    data-target="#resultados-busqueda-modal"
+                    data-renderer="BusquedaRenderer"
+                    data-overlay="true"
+                    data-modal="modalBusquedaEjemplo" data-modal-relative="true"
+                    placeholder="Buscar posts y libros..." />
+            </div>
+        </section>
+
+        <!-- Modal que contendrá solo los resultados -->
+        <div id="modalBusquedaEjemplo" class="modal" style="display:none;">
+            <h3>Resultados de la búsqueda</h3>
+            <div id="resultados-busqueda-modal"></div>
+            <button class="borde" onclick="window.ocultarFondo()">Cerrar</button>
+        </div>
+
+
         <section class="seccionComponente">
             <div class="contenidoSeccionComponente">
 
@@ -125,11 +155,6 @@ function home()
 
     </div>
 
-    <div id="miModalEjemplo" class="modal" style="display:none;">
-        <h3>Ventana Modal de Ejemplo</h3>
-        <p>Este es el contenido de la ventana modal. Puedes cerrarla con la tecla ESC o haciendo clic fuera.</p>
-        <button class="borde" onclick="window.ocultarFondo()">Cerrar</button>
-    </div>
 
     <div id="miSubmenuEjemplo" class="submenu-contextual">
         <button>Opción 1</button>
