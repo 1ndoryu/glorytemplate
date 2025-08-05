@@ -12,7 +12,7 @@ SyncManager::setResetButtonVisible(true);
 
 PageManager::define('home', 'home');
 #PageManager::define('panel', 'renderPanel', null, ['administrator']);
-
+PageManager::define('reservar', 'renderPaginaReservarPublica');
 
 # test
 # CreditosManager::init();

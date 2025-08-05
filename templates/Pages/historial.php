@@ -1,11 +1,9 @@
 <?php
 
-/**
- * Renderiza la página de administración del historial de clientes.
- */
+use Glory\Components\DataGridRenderer;
+
 function renderPaginaHistorial()
 {
-    // --- 1. Obtención de todas las reservas ---
     $consultaReservas = new WP_Query([
         'post_type'      => 'reserva',
         'posts_per_page' => -1,
@@ -24,23 +22,20 @@ function renderPaginaHistorial()
             $nombreCliente   = get_the_title();
             $telefonoCliente = get_post_meta($postId, 'telefono_cliente', true) ?: 'sin-telefono';
 
-            // Usamos el teléfono como identificador único del cliente.
             $identificadorCliente = sanitize_key($nombreCliente . '_' . $telefonoCliente);
 
-            // Si es la primera vez que vemos a este cliente, inicializamos su historial.
             if (!isset($historialClientes[$identificadorCliente])) {
                 $historialClientes[$identificadorCliente] = [
-                    'nombre'             => $nombreCliente,
-                    'telefono'           => $telefonoCliente,
-                    'totalVisitas'       => 0,
-                    'gastoTotal'         => 0,
-                    'ultimaVisita'       => '0000-00-00',
-                    'ultimoServicio'     => '',
-                    'conteoServicios'    => [],
+                    'nombre'            => $nombreCliente,
+                    'telefono'          => $telefonoCliente,
+                    'totalVisitas'      => 0,
+                    'gastoTotal'        => 0,
+                    'ultimaVisita'      => '0000-00-00',
+                    'ultimoServicio'    => '',
+                    'conteoServicios'   => [],
                 ];
             }
 
-            // --- 2. Cálculo de estadísticas por cada reserva ---
             $historialClientes[$identificadorCliente]['totalVisitas']++;
 
             $fechaReserva = get_post_meta($postId, 'fecha_reserva', true);
@@ -56,14 +51,12 @@ function renderPaginaHistorial()
                     $historialClientes[$identificadorCliente]['ultimoServicio'] = $primerServicio->name;
                 }
 
-                // Acumulamos el conteo de servicios para calcular los más frecuentes.
                 $nombreServicio = $primerServicio->name;
                 if (!isset($historialClientes[$identificadorCliente]['conteoServicios'][$nombreServicio])) {
                     $historialClientes[$identificadorCliente]['conteoServicios'][$nombreServicio] = 0;
                 }
                 $historialClientes[$identificadorCliente]['conteoServicios'][$nombreServicio]++;
 
-                // Sumamos el precio del servicio al gasto total.
                 $precio = get_term_meta($primerServicio->term_id, 'precio', true);
                 if (is_numeric($precio)) {
                     $historialClientes[$identificadorCliente]['gastoTotal'] += floatval($precio);
@@ -73,54 +66,51 @@ function renderPaginaHistorial()
     }
     wp_reset_postdata();
 
-    // --- 3. Procesamiento final de estadísticas (servicios más frecuentes) ---
     foreach ($historialClientes as &$cliente) {
-        arsort($cliente['conteoServicios']); // Ordenar servicios por frecuencia
+        arsort($cliente['conteoServicios']);
         $serviciosFrecuentes = array_slice(array_keys($cliente['conteoServicios']), 0, 3);
         $cliente['serviciosFrecuentes'] = implode(', ', $serviciosFrecuentes);
     }
-    unset($cliente); // Romper la referencia
+    unset($cliente);
 
-    // --- 4. Renderizado de la tabla HTML ---
-    // Nota: DataGridRenderer requeriría una adaptación para aceptar un array de datos procesados
-    // en lugar de un objeto WP_Query. Por ahora, se renderiza una tabla estándar de WordPress.
+    $configuracionColumnas = [
+        'columnas' => [
+            [
+                'etiqueta' => 'Nombre del Cliente',
+                'clave'    => 'nombre',
+                'callback' => function ($cliente) {
+                    return '<strong>' . esc_html($cliente['nombre']) . '</strong>';
+                }
+            ],
+            ['etiqueta' => 'Teléfono', 'clave' => 'telefono'],
+            ['etiqueta' => 'Total Visitas', 'clave' => 'totalVisitas'],
+            [
+                'etiqueta' => 'Gasto Total',
+                'clave'    => 'gastoTotal',
+                'callback' => function ($cliente) {
+                    return number_format($cliente['gastoTotal'], 2) . ' €';
+                }
+            ],
+            [
+                'etiqueta' => 'Fecha Última Visita',
+                'clave'    => 'ultimaVisita',
+                'callback' => function ($cliente) {
+                    return esc_html(date_format(date_create($cliente['ultimaVisita']), 'd/m/Y'));
+                }
+            ],
+            ['etiqueta' => 'Último Servicio', 'clave' => 'ultimoServicio'],
+            ['etiqueta' => 'Servicios Frecuentes', 'clave' => 'serviciosFrecuentes'],
+        ],
+        'paginacion' => false,
+    ];
+
 ?>
     <div class="wrap glory-admin-page">
         <h1>Historial de Clientes</h1>
         <p>Un resumen de la actividad y el valor de cada cliente en la barbería.</p>
 
-        <table class="wp-list-table widefat fixed striped">
-            <thead>
-                <tr>
-                    <th scope="col">Nombre del Cliente</th>
-                    <th scope="col">Teléfono</th>
-                    <th scope="col">Total Visitas</th>
-                    <th scope="col">Gasto Total</th>
-                    <th scope="col">Fecha Última Visita</th>
-                    <th scope="col">Último Servicio</th>
-                    <th scope="col">Servicios Frecuentes</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($historialClientes)) : ?>
-                    <?php foreach ($historialClientes as $cliente) : ?>
-                        <tr>
-                            <td><strong><?php echo esc_html($cliente['nombre']); ?></strong></td>
-                            <td><?php echo esc_html($cliente['telefono']); ?></td>
-                            <td><?php echo esc_html($cliente['totalVisitas']); ?></td>
-                            <td><?php echo number_format($cliente['gastoTotal'], 2); ?> €</td>
-                            <td><?php echo esc_html(date_format(date_create($cliente['ultimaVisita']), 'd/m/Y')); ?></td>
-                            <td><?php echo esc_html($cliente['ultimoServicio']); ?></td>
-                            <td><?php echo esc_html($cliente['serviciosFrecuentes']); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else : ?>
-                    <tr>
-                        <td colspan="7">No hay datos de reservas para generar el historial.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+        <?php DataGridRenderer::render(array_values($historialClientes), $configuracionColumnas); ?>
+
     </div>
 <?php
 }
