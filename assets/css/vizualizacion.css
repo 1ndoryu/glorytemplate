@@ -1,0 +1,111 @@
+/* Estilos específicos para el componente de Visualización de Citas (SchedulerRenderer)
+   Mantiene la esencia y tipografía predeterminadas de WordPress.
+*/
+
+/*------------------ Estructura general ------------------*/
+.page-visualizacion {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.page-visualizacion h1 {
+    margin: 0 0 1.5rem;
+    font-size: 28px;
+    line-height: 1.4;
+    color: #23282d; /* Texto estándar WP */
+    text-align: center;
+}
+
+/*------------------ SchedulerRenderer ------------------*/
+.glorySchedulerContenedor {
+    position: relative;
+    overflow-x: auto;
+    font-size: 14px;
+    --alto-celda: 34px; /* altura mínima de fila */
+}
+
+/* Grid principal */
+.glorySchedulerGrid {
+    display: grid;
+    grid-template-columns: repeat(var(--columnas-grid), 1fr);
+    border: 1px solid #ccd0d4;
+}
+
+/* Celdas base */
+.celdaGrid {
+    border: 1px solid #ccd0d4;
+    padding: 4px 6px;
+    min-height: var(--alto-celda);
+    box-sizing: border-box;
+}
+
+/* Columnas de hora */
+.celdaEncabezadoTiempo {
+    background: #f1f1f1;
+    font-weight: 600;
+    position: sticky;
+    left: 0;
+    z-index: 3;
+}
+.celdaTiempo {
+    background: #fafafa;
+    font-weight: 500;
+    text-align: right;
+}
+
+/* Encabezados de recurso (barberos) */
+.celdaEncabezadoRecurso {
+    background: #f1f1f1;
+    font-weight: 600;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+/* Celdas vacías */
+.celdaVacia {
+    background: #fff;
+}
+
+/*------------------ Eventos (renderizados con JS) ------------------*/
+.capaEventos {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% - 2px); /* compensar borde del grid */
+    height: calc(100% - 2px);
+    pointer-events: none;
+}
+
+.scheduler-event {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    font-size: 12px;
+    line-height: 1.2;
+    color: #fff;
+    border-radius: 3px;
+    box-sizing: border-box;
+    pointer-events: all;
+}
+
+/*------------------ Colores por tipo de servicio ------------------*/
+.scheduler-event[data-color] {
+    background-color: var(--event-color, #555d66);
+}
+
+/*------------------ Responsive ------------------*/
+@media (max-width: 600px) {
+    .glorySchedulerGrid {
+        font-size: 12px;
+    }
+    .celdaEncabezadoTiempo,
+    .celdaTiempo {
+        text-align: center;
+    }
+}

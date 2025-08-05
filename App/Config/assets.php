@@ -2,26 +2,49 @@
 
 use Glory\Manager\AssetManager;
 
-/**
- * Registro de Assets Específicos del Tema
- *
- * Este archivo se encarga de definir todos los scripts (JS) y estilos (CSS)
- * que pertenecen exclusivamente al tema activo, separando las responsabilidades
- * del framework Glory.
- */
 
-// Carga todos los archivos CSS de la carpeta /assets/css/ del tema.
+
 AssetManager::defineFolder(
     'style',
     '/assets/css/',
     ['deps' => [], 'media' => 'all'],
-    'tema-'
+    'tema-',
+    ['vizualizacion.css', 'ganancias.css']
 );
 
-// Carga todos los archivos JS de la carpeta /assets/js/ del tema.
+AssetManager::define(
+    'style',
+    'tema-vizualizacion-admin',
+    '/assets/css/vizualizacion.css',
+    ['media' => 'all', 'area' => 'admin']
+);
+
+AssetManager::define(
+    'style',
+    'tema-ganancias-admin',
+    '/assets/css/ganancias.css',
+    ['media' => 'all', 'area' => 'admin']
+);
+
 AssetManager::defineFolder(
     'script',
     '/assets/js/',
     ['deps' => ['jquery'], 'in_footer' => true],
     'tema-'
+);
+
+// SCRIPT FOR AJAX FUNCTIONALITY (Needed by the form modal in admin)
+AssetManager::define(
+    'script',
+    'glory-ajax-admin',
+    '/Glory/assets/js/genericAjax/gloryAjax.js',
+    ['deps' => [], 'in_footer' => true, 'area' => 'admin']
+);
+
+// SCRIPT FOR DYNAMIC TIME SLOTS IN THE RESERVATION MODAL
+AssetManager::define(
+    'script',
+    'tema-reserva-admin-logica',
+    '/assets/js/glory-reserva-publica.js',
+    ['deps' => ['jquery', 'glory-ajax-admin'], 'in_footer' => true, 'area' => 'admin']
 );

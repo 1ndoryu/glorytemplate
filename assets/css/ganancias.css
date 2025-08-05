@@ -1,0 +1,77 @@
+/* Estilos básicos para la página de Ganancias en el admin de WordPress */
+
+.glory-admin-page {
+    font-size: 14px;
+}
+
+/*------------------ Filtros ------------------*/
+.glory-analytics-filters {
+    margin-top: 20px;
+}
+
+.glory-analytics-filters .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+}
+
+/* Cada campo generado por FormBuilder suele estar envuelto en .field o similar, así que aplicamos margen */
+.glory-analytics-filters .form-row > * {
+    flex: 1 1 180px;
+}
+
+.glory-analytics-filters .form-actions {
+    margin-top: 12px;
+}
+
+/*------------------ Resumen ------------------*/
+.glory-analytics-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.summary-card {
+    flex: 1 1 200px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.summary-card h3 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: #23282d;
+}
+
+.summary-card p {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #007cba;
+}
+
+/*------------------ Tabla de detalles ------------------*/
+.glory-analytics-details {
+    margin-top: 24px;
+}
+
+.glory-analytics-details table th,
+.glory-analytics-details table td {
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .glory-analytics-summary {
+        flex-direction: column;
+    }
+    .glory-analytics-filters .form-row {
+        flex-direction: column;
+    }
+}

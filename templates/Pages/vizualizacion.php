@@ -1,12 +1,12 @@
 <?php
+// FILE: templates\Pages\vizualizacion.php
 
 use Glory\Components\SchedulerRenderer;
 
-/**
- * Renderiza la página de visualización de calendario
- */
+
 function renderPaginaVisualizacion()
 {
+    echo '<div class="page-visualizacion">';
     echo '<h1>Visualización de Citas</h1>';
 
     $barberos_terms = get_terms(['taxonomy' => 'barbero', 'hide_empty' => false]);
@@ -53,6 +53,7 @@ function renderPaginaVisualizacion()
 
             $barberos = get_the_terms($post_id, 'barbero');
             $nombre_barbero = (!is_wp_error($barberos) && !empty($barberos)) ? $barberos[0]->name : 'Sin asignar';
+            $exclusividad = get_post_meta($post_id, 'exclusividad', true);
 
             try {
                 $inicio_dt = new DateTime($hora_inicio);
@@ -66,6 +67,7 @@ function renderPaginaVisualizacion()
                     'horaFin' => $fin_dt->format('H:i'),
                     'recurso' => $nombre_barbero,
                     'tipoServicio' => $tipo_servicio_slug,
+                    'exclusividad' => ($exclusividad === '1'),
                 ];
             } catch (Exception $e) {
                 error_log('Error al procesar fecha de reserva para el post ID ' . $post_id . ': ' . $e->getMessage());
@@ -75,21 +77,21 @@ function renderPaginaVisualizacion()
     wp_reset_postdata();
 
     $mapeoColores = [
-        'corte-de-pelo' => '#7ED321', // Verde
-        'corte-extra-degradado' => '#7ED321',
-        'arreglo-de-cuello' => '#7ED321',
-        'corte-al-cero' => '#7ED321',
-        'lavar' => '#7ED321',
-        'lavar-y-peinar' => '#7ED321',
-        'arreglo-y-perfilado-de-barba' => '#F5A623', // Naranja
-        'arreglo-de-barba' => '#F5A623',
-        'corte-y-arreglo-de-barba' => '#D0021B', // Rojo
-        'corte-y-afeitado' => '#D0021B',
-        'afeitado-de-barba' => '#F8E71C', // Amarillo
-        'afeitado-de-cabeza' => '#F8E71C',
-        'tinte-de-pelo' => '#4A90E2', // Azul
-        'tinte-de-barba' => '#4A90E2',
-        'default' => '#9B9B9B', // Gris
+        'corte-de-pelo' => '#2ecc71',
+        'corte-extra-degradado' => '#27ae60',
+        'arreglo-de-cuello' => '#1abc9c',
+        'corte-al-cero' => '#16a085',
+        'lavar' => '#3498db',
+        'lavar-y-peinar' => '#2980b9',
+        'arreglo-y-perfilado-de-barba' => '#e67e22',
+        'arreglo-de-barba' => '#d35400',
+        'corte-y-arreglo-de-barba' => '#e74c3c',
+        'corte-y-afeitado' => '#c0392b',
+        'afeitado-de-barba' => '#f1c40f',
+        'afeitado-de-cabeza' => '#f39c12',
+        'tinte-de-pelo' => '#9b59b6',
+        'tinte-de-barba' => '#8e44ad',
+        'default' => '#7f8c8d'
     ];
 
     $configScheduler = [
@@ -101,4 +103,5 @@ function renderPaginaVisualizacion()
     ];
 
     SchedulerRenderer::render($eventos, $configScheduler);
+    echo '</div>';
 }

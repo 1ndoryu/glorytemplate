@@ -1,10 +1,9 @@
 <?php
 
 use Glory\Components\DataGridRenderer;
+use Glory\Components\FormBuilder;
 
-/**
- * Renderiza la página principal de reservas
- */
+
 function renderPaginaReservas()
 {
     if (isset($_GET['exportar_csv']) && $_GET['exportar_csv'] == 'true' && current_user_can('manage_options')) {
@@ -14,8 +13,59 @@ function renderPaginaReservas()
 
     echo '<h1>Panel de Reservas</h1>';
     $export_url = add_query_arg(['exportar_csv' => 'true'], admin_url('admin.php?page=barberia-reservas'));
-    echo '<a href="' . esc_url($export_url) . '" class="button button-primary" style="margin-bottom: 15px;">Exportar a CSV</a>';
+    echo '<a href="' . esc_url($export_url) . '" class="button button-secondary" style="margin-bottom: 15px;">Exportar a CSV</a>';
+    echo '<button class="button button-primary openModal" data-modal="modalAnadirReserva" style="margin-bottom: 15px; margin-left: 10px;">Añadir Reserva Manual</button>';
 
+
+    $serviciosTerms = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false]);
+    $opcionesServicios = ['' => 'Selecciona un servicio'];
+    if (!is_wp_error($serviciosTerms)) {
+        foreach ($serviciosTerms as $term) {
+            $opcionesServicios[$term->term_id] = $term->name;
+        }
+    }
+
+    $barberosTerms = get_terms(['taxonomy' => 'barbero', 'hide_empty' => false]);
+    $opcionesBarberos = ['' => 'Selecciona un barbero'];
+    if (!is_wp_error($barberosTerms)) {
+        foreach ($barberosTerms as $term) {
+            $opcionesBarberos[$term->term_id] = $term->name;
+        }
+    }
+?>
+    <div id="modalAnadirReserva" class="modal" style="display:none;">
+        <div class="modalContenido" style="max-width: 600px;">
+            <h2>Añadir Nueva Reserva</h2>
+            <?php
+            echo FormBuilder::inicio([
+                'extraClass' => 'formularioBarberia',
+                'atributos'  => [
+                    'data-post-type'   => 'reserva',
+                    'data-post-status' => 'publish',
+                ]
+            ]);
+
+            echo FormBuilder::campoTexto(['nombre' => 'nombre_cliente', 'label' => 'Nombre Cliente', 'obligatorio' => true]);
+            echo FormBuilder::campoTexto(['nombre' => 'telefono_cliente', 'label' => 'Teléfono', 'obligatorio' => true]);
+            echo FormBuilder::campoTexto(['nombre' => 'correo_cliente', 'label' => 'Correo', 'obligatorio' => true]);
+            echo FormBuilder::campoSelect(['nombre' => 'servicio_id', 'label' => 'Servicio', 'opciones' => $opcionesServicios, 'obligatorio' => true, 'extraClassInput' => 'selector-servicio']);
+            echo FormBuilder::campoSelect(['nombre' => 'barbero_id', 'label' => 'Barbero', 'opciones' => $opcionesBarberos, 'obligatorio' => true, 'extraClassInput' => 'selector-barbero']);
+            echo FormBuilder::campoFecha(['nombre' => 'fecha_reserva', 'label' => 'Fecha', 'obligatorio' => true, 'extraClassInput' => 'selector-fecha']);
+            echo FormBuilder::campoSelect([
+                'nombre'          => 'hora_reserva',
+                'label'           => 'Hora',
+                'opciones'        => ['' => 'Selecciona fecha, servicio y barbero'],
+                'obligatorio'     => true,
+                'extraClassInput' => 'selector-hora',
+            ]);
+
+            echo FormBuilder::botonEnviar(['accion' => 'crearReserva', 'texto' => 'Guardar Reserva', 'extraClass' => 'button-primary']);
+
+            echo FormBuilder::fin();
+            ?>
+        </div>
+    </div>
+<?php
     $argsConsulta = [
         'post_type' => 'reserva',
         'posts_per_page' => 20,

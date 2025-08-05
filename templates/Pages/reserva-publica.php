@@ -4,15 +4,12 @@ use Glory\Components\FormBuilder;
 
 function renderPaginaReservarPublica()
 {
-    // --- OBTENER DATOS PARA LOS DESPLEGABLES ---
 
-    // Obtener todos los términos de la taxonomía 'servicio'
     $serviciosTerms = get_terms([
         'taxonomy'   => 'servicio',
         'hide_empty' => false,
     ]);
 
-    // Formatear para el FormBuilder
     $opcionesServicios = ['' => 'Selecciona un servicio'];
     if (!is_wp_error($serviciosTerms)) {
         foreach ($serviciosTerms as $term) {
@@ -20,13 +17,11 @@ function renderPaginaReservarPublica()
         }
     }
 
-    // Obtener todos los términos de la taxonomía 'barbero'
     $barberosTerms = get_terms([
         'taxonomy'   => 'barbero',
         'hide_empty' => false,
     ]);
 
-    // Formatear para el FormBuilder
     $opcionesBarberos = ['' => 'Selecciona un barbero'];
     if (!is_wp_error($barberosTerms)) {
         foreach ($barberosTerms as $term) {
@@ -41,7 +36,6 @@ function renderPaginaReservarPublica()
             <p>Completa el formulario para agendar tu cita en la barbería.</p>
 
             <?php
-            // Iniciar el formulario con el FormBuilder
             echo FormBuilder::inicio([
                 'extraClass' => 'formularioBarberia',
                 'atributos'  => [
@@ -50,10 +44,9 @@ function renderPaginaReservarPublica()
                 ]
             ]);
 
-            // --- CAMPOS DE DATOS DEL CLIENTE ---
             echo '<div class="filaFormulario">';
             echo FormBuilder::campoTexto([
-                'nombre'      => 'nombre_cliente', // Este será el post_title
+                'nombre'      => 'nombre_cliente',
                 'label'       => 'Nombre Completo',
                 'placeholder' => 'Ej: Juan Pérez',
                 'obligatorio' => true,
@@ -73,7 +66,6 @@ function renderPaginaReservarPublica()
             echo '</div>';
 
 
-            // --- CAMPOS DE SELECCIÓN DE CITA ---
             echo '<div class="filaFormulario">';
             echo FormBuilder::campoSelect([
                 'nombre'          => 'servicio_id',
@@ -92,7 +84,6 @@ function renderPaginaReservarPublica()
             echo '</div>';
 
 
-            // --- CAMPOS DE FECHA Y HORA ---
             echo '<div class="filaFormulario">';
             echo FormBuilder::campoFecha([
                 'nombre'          => 'fecha_reserva',
@@ -101,7 +92,6 @@ function renderPaginaReservarPublica()
                 'extraClassInput' => 'selector-fecha'
             ]);
 
-            // Placeholder para los horarios. Se rellenará con JS.
             echo FormBuilder::campoSelect([
                 'nombre'          => 'hora_reserva',
                 'label'           => 'Elige una Hora',
@@ -111,15 +101,18 @@ function renderPaginaReservarPublica()
             ]);
             echo '</div>';
 
+            echo FormBuilder::campoCheckbox([
+                'nombre' => 'exclusividad',
+                'label' => 'Marcar si es un servicio con exclusividad (❤️)',
+                'valorInput' => '1',
+            ]);
 
-            // --- BOTÓN DE ENVÍO ---
             echo FormBuilder::botonEnviar([
                 'accion'     => 'crearReserva',
                 'texto'      => 'Confirmar Reserva',
                 'extraClass' => 'botonPrincipal'
             ]);
 
-            // Cerrar el formulario
             echo FormBuilder::fin();
             ?>
         </div>
