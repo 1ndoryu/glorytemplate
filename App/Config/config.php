@@ -11,6 +11,8 @@ SyncManager::setAdminBarVisible(true);
 SyncManager::setResetButtonVisible(true);
 
 PageManager::define('home', 'home');
+#PageManager::define('panel', 'renderPanel', null, ['administrator']);
+
 
 # test
 # CreditosManager::init();
