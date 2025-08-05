@@ -1,6 +1,5 @@
 <?php
 
-use WP_Query;
 use Glory\Components\DataGridRenderer;
 
 /**

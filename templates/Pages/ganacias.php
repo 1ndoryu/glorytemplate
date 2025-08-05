@@ -2,7 +2,6 @@
 
 use Glory\Components\FormBuilder;
 use Glory\Services\AnalyticsEngine;
-use WP_Query;
 
 function renderPaginaGanancias()
 {

@@ -1,8 +1,5 @@
 <?php
 
-use WP_Query;
-use DateTime;
-use DateInterval;
 use Glory\Components\SchedulerRenderer;
 
 /**
