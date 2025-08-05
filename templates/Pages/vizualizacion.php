@@ -1,8 +1,7 @@
 <?php
-// FILE: templates\Pages\vizualizacion.php
 
 use Glory\Components\SchedulerRenderer;
-
+use Glory\Manager\OpcionManager;
 
 function renderPaginaVisualizacion()
 {
@@ -76,23 +75,29 @@ function renderPaginaVisualizacion()
     }
     wp_reset_postdata();
 
-    $mapeoColores = [
-        'corte-de-pelo' => '#2ecc71',
-        'corte-extra-degradado' => '#27ae60',
-        'arreglo-de-cuello' => '#1abc9c',
-        'corte-al-cero' => '#16a085',
-        'lavar' => '#3498db',
-        'lavar-y-peinar' => '#2980b9',
-        'arreglo-y-perfilado-de-barba' => '#e67e22',
-        'arreglo-de-barba' => '#d35400',
-        'corte-y-arreglo-de-barba' => '#e74c3c',
-        'corte-y-afeitado' => '#c0392b',
-        'afeitado-de-barba' => '#f1c40f',
-        'afeitado-de-cabeza' => '#f39c12',
-        'tinte-de-pelo' => '#9b59b6',
-        'tinte-de-barba' => '#8e44ad',
-        'default' => '#7f8c8d'
+    $mapeoColores = [];
+    $serviciosParaColores = [
+        'corte-de-pelo',
+        'corte-extra-degradado',
+        'arreglo-de-cuello',
+        'corte-al-cero',
+        'lavar',
+        'lavar-y-peinar',
+        'arreglo-y-perfilado-de-barba',
+        'arreglo-de-barba',
+        'corte-y-arreglo-de-barba',
+        'corte-y-afeitado',
+        'afeitado-de-barba',
+        'afeitado-de-cabeza',
+        'tinte-de-pelo',
+        'tinte-de-barba',
+        'default'
     ];
+
+    foreach ($serviciosParaColores as $slug) {
+        $option_key = 'glory_scheduler_color_' . str_replace('-', '_', $slug);
+        $mapeoColores[$slug] = OpcionManager::get($option_key);
+    }
 
     $configScheduler = [
         'recursos' => $recursos,

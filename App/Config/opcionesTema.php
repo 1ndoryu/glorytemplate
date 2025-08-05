@@ -87,3 +87,37 @@ OpcionManager::register('glory_custom_header_scripts', [
     'etiquetaSeccion' => $etiquetaSeccionIntegraciones,
     'subSeccion'      => 'manual_scripts',
 ]);
+
+$seccionScheduler = 'scheduler';
+$etiquetaSeccionScheduler = 'Configuración del Calendario';
+$subSeccionColores = 'colores_servicios';
+
+$serviciosParaColores = [
+    'corte-de-pelo' => ['label' => 'Corte de Pelo', 'default' => '#8BC34A'],
+    'corte-extra-degradado' => ['label' => 'Corte Extra Degradado', 'default' => '#8BC34A'],
+    'arreglo-de-cuello' => ['label' => 'Arreglo de Cuello', 'default' => '#8BC34A'],
+    'corte-al-cero' => ['label' => 'Corte al Cero', 'default' => '#8BC34A'],
+    'lavar' => ['label' => 'Lavar', 'default' => '#8BC34A'],
+    'lavar-y-peinar' => ['label' => 'Lavar y Peinar', 'default' => '#8BC34A'],
+    'arreglo-y-perfilado-de-barba' => ['label' => 'Arreglo y Perfilado de Barba', 'default' => '#FF9800'],
+    'arreglo-de-barba' => ['label' => 'Arreglo de Barba', 'default' => '#FF9800'],
+    'corte-y-arreglo-de-barba' => ['label' => 'Corte y Arreglo de Barba', 'default' => '#F44336'],
+    'corte-y-afeitado' => ['label' => 'Corte y Afeitado', 'default' => '#F44336'],
+    'afeitado-de-barba' => ['label' => 'Afeitado de Barba', 'default' => '#FFEB3B'],
+    'afeitado-de-cabeza' => ['label' => 'Afeitado de Cabeza', 'default' => '#FFEB3B'],
+    'tinte-de-pelo' => ['label' => 'Tinte de Pelo', 'default' => '#2196F3'],
+    'tinte-de-barba' => ['label' => 'Tinte de Barba', 'default' => '#2196F3'],
+    'default' => ['label' => 'Color por Defecto', 'default' => '#9E9E9E'],
+];
+
+foreach ($serviciosParaColores as $slug => $data) {
+    OpcionManager::register('glory_scheduler_color_' . str_replace('-', '_', $slug), [
+        'valorDefault'    => $data['default'],
+        'tipo'            => 'color',
+        'etiqueta'        => 'Color para: ' . $data['label'],
+        'descripcion'     => 'Selecciona el color para el servicio ' . $data['label'] . ' en el calendario.',
+        'seccion'         => $seccionScheduler,
+        'etiquetaSeccion' => $etiquetaSeccionScheduler,
+        'subSeccion'      => $subSeccionColores,
+    ]);
+}

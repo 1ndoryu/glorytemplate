@@ -4,6 +4,7 @@ namespace App\Handler\Form;
 
 use Glory\Core\GloryLogger;
 use Glory\Handler\Form\FormHandlerInterface;
+use Glory\Services\NotificationService;
 
 class CrearReservaHandler implements FormHandlerInterface
 {
@@ -34,10 +35,10 @@ class CrearReservaHandler implements FormHandlerInterface
         }
 
         $datosPost = [
-            'post_title'   => $nombreCliente,
-            'post_status'  => 'publish',
-            'post_type'    => 'reserva',
-            'post_author'  => 1,
+            'post_title'    => $nombreCliente,
+            'post_status'   => 'publish',
+            'post_type'     => 'reserva',
+            'post_author'   => 1,
         ];
         $postId = wp_insert_post($datosPost);
 
@@ -53,6 +54,10 @@ class CrearReservaHandler implements FormHandlerInterface
 
         wp_set_object_terms($postId, $servicioId, 'servicio', false);
         wp_set_object_terms($postId, $barberoId, 'barbero', false);
+
+        // Enviar notificaciones
+        NotificationService::notificarNuevaReservaCliente($postId);
+        NotificationService::notificarNuevaReservaAdmin($postId);
 
         GloryLogger::info('Reserva creada exitosamente desde el formulario público.', ['post_id' => $postId]);
 
