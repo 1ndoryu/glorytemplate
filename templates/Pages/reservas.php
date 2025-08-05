@@ -104,10 +104,10 @@ function renderPaginaReservas()
             }],
             ['etiqueta' => __('Acciones', 'glorytemplate'), 'clave' => 'acciones', 'callback' => function ($post) {
                 $edit_link = get_edit_post_link($post->ID);
-                $delete_link_with_nonce = wp_nonce_url(get_delete_post_link($post->ID, '', false), 'delete_post_' . $post->ID);
+                $delete_link = get_delete_post_link($post->ID);
                 $confirm_message = json_encode(__('¿Estás seguro de que quieres eliminar esta reserva?', 'glorytemplate'));
                 $actions = '<a href="' . esc_url($edit_link) . '">' . __('Editar', 'glorytemplate') . '</a>';
-                $actions .= ' | <a href="' . esc_url($delete_link_with_nonce) . '" onclick="return confirm(' . $confirm_message . ')">' . __('Eliminar', 'glorytemplate') . '</a>';
+                $actions .= ' | <a href="' . esc_url($delete_link) . '" onclick="return confirm(' . $confirm_message . ')">' . __('Eliminar', 'glorytemplate') . '</a>';
                 return $actions;
             }],
         ],

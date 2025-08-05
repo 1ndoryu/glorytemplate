@@ -1,0 +1,96 @@
+.paginaReservaPublica {
+    /* Fondo y colores principales */
+    background-color: #ffffff;
+    color: #000000;
+
+    /* Centrar el contenido */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    /* Espaciado */
+    padding: 150px 1rem 2rem;
+    min-height: 100vh;
+}
+
+.paginaReservaPublica .contenedorFormulario {
+    background-color: #ffffff;
+    color: #000000;
+
+    /* Centrar y limitar ancho */
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+
+    /* Estética */
+    padding: 2.5rem 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.paginaReservaPublica h1,
+.paginaReservaPublica h2,
+.paginaReservaPublica h3,
+.paginaReservaPublica h4,
+.paginaReservaPublica h5,
+.paginaReservaPublica h6 {
+    color: #000000;
+}
+
+/* Inputs y selects en modo blanco */
+.paginaReservaPublica input,
+.paginaReservaPublica select,
+.paginaReservaPublica textarea {
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    padding: 0.8rem 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.paginaReservaPublica input:focus,
+.paginaReservaPublica select:focus,
+.paginaReservaPublica textarea:focus {
+    outline: none;
+    border-color: #6666ff;
+}
+
+.paginaReservaPublica label {
+    color: #000000;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Botón principal */
+.paginaReservaPublica .botonPrincipal {
+    background-color: #000000;
+    color: #ffffff;
+    border: none;
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.paginaReservaPublica .botonPrincipal:hover {
+    background-color: #333333;
+}
+
+/* Organización de filas del formulario */
+.paginaReservaPublica .filaFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 600px) {
+    .paginaReservaPublica .filaFormulario {
+        flex-direction: row;
+        gap: 2rem;
+    }
+    .paginaReservaPublica .filaFormulario > * {
+        flex: 1;
+    }
+}
