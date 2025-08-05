@@ -2,7 +2,6 @@
 
 use Glory\Manager\AdminPageManager;
 
-// Definir las páginas de administración
 AdminPageManager::defineTopLevel(
     'Reservas Barbería',
     'Barbería',
@@ -28,4 +27,13 @@ AdminPageManager::defineSubmenu(
     'manage_options',
     'barberia-ganancias',
     'renderPaginaGanancias'
+);
+
+AdminPageManager::defineSubmenu(
+    'barberia-reservas',
+    'Historial de Clientes',
+    'Historial',
+    'manage_options',
+    'barberia-historial',
+    'renderPaginaHistorial'
 );
