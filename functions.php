@@ -1,6 +1,7 @@
 <?php
 
 use Glory\Handler\FormHandler;
+use Glory\Core\GloryFeatures;
 
 
 $directorioTemaActivo = get_stylesheet_directory();
@@ -10,6 +11,13 @@ if (file_exists($autoloader)) {
     require_once $autoloader;
 } else {
     error_log('Error: Composer autoload no encontrado. Ejecuta "composer install".');
+}
+
+// Cargar el archivo de control de App temprano para que GloryFeatures::disable()
+// se ejecute antes de que Glory registre y encole los assets.
+$control_file = get_template_directory() . '/App/Config/control.php';
+if (file_exists($control_file)) {
+    require_once $control_file;
 }
 
 $glory_loader = get_template_directory() . '/Glory/load.php';
@@ -70,8 +78,11 @@ add_action('rest_api_init', function () {
     ]);
 });
 
-add_action('wp_ajax_glory_verificar_disponibilidad', 'verificarDisponibilidadCallback');
-add_action('wp_ajax_nopriv_glory_verificar_disponibilidad', 'verificarDisponibilidadCallback');
-add_action('admin_init', 'manejarExportacionReservasCsv');
-add_action('wp_ajax_glory_actualizar_color_servicio', 'actualizarColorServicioCallback');
-add_action('wp_ajax_glory_obtener_reserva', 'obtenerReservaCallback');
+// Registrar callbacks AJAX relacionados con "glory" solo si la feature gloryAjax no está desactivada
+if (GloryFeatures::isEnabled('gloryAjax') !== false) {
+    add_action('wp_ajax_glory_verificar_disponibilidad', 'verificarDisponibilidadCallback');
+    add_action('wp_ajax_nopriv_glory_verificar_disponibilidad', 'verificarDisponibilidadCallback');
+    add_action('admin_init', 'manejarExportacionReservasCsv');
+    add_action('wp_ajax_glory_actualizar_color_servicio', 'actualizarColorServicioCallback');
+    add_action('wp_ajax_glory_obtener_reserva', 'obtenerReservaCallback');
+}

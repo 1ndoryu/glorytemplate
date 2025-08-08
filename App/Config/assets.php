@@ -58,7 +58,6 @@ AssetManager::define(
     ]
 );
 
-// SCRIPT: Renderizador del calendario/agenda en el admin
 AssetManager::define(
     'script',
     'glory-scheduler-admin',
@@ -67,5 +66,6 @@ AssetManager::define(
         'deps'      => [],
         'in_footer' => true,
         'area'      => 'admin',
+        'feature'   => 'scheduler',
     ]
 );
