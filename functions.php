@@ -1,7 +1,7 @@
 <?php
-// FILE: functions.php
+
 use Glory\Handler\FormHandler;
-use Glory\Core\OpcionRepository;
+
 
 $directorioTemaActivo = get_stylesheet_directory();
 
@@ -70,12 +70,8 @@ add_action('rest_api_init', function () {
     ]);
 });
 
-// Registrar hooks AJAX que usan las mismas acciones que antes pero con callbacks renombradas
 add_action('wp_ajax_glory_verificar_disponibilidad', 'verificarDisponibilidadCallback');
 add_action('wp_ajax_nopriv_glory_verificar_disponibilidad', 'verificarDisponibilidadCallback');
-
-// La función obtenerHorariosDisponibles ahora se encuentra en App/Utils/reservasFunciones.php
-
 add_action('admin_init', 'manejarExportacionReservasCsv');
 add_action('wp_ajax_glory_actualizar_color_servicio', 'actualizarColorServicioCallback');
 add_action('wp_ajax_glory_obtener_reserva', 'obtenerReservaCallback');
