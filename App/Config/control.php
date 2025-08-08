@@ -8,11 +8,13 @@ GloryFeatures::enable('assetManager');
 GloryFeatures::enable('opcionManagerSync');
 GloryFeatures::enable('syncManager');
 GloryFeatures::enable('gloryLogger');
-GloryFeatures::enable('defaultContentManager');
 GloryFeatures::enable('pageManager');
 GloryFeatures::enable('postTypeManager');
 GloryFeatures::enable('taxonomyMetaManager');
 GloryFeatures::enable('scheduleManager');
+GloryFeatures::enable('defaultContentManager');
+GloryFeatures::disable('licenseManager');
+GloryFeatures::disable('creditosManager');
 
 //UI Components
 GloryFeatures::enable('modales');
