@@ -3,7 +3,7 @@
 use Glory\Core\GloryFeatures;
 
 //Managers
-GloryFeatures::enable('menu');
+GloryFeatures::disable('menu');
 GloryFeatures::enable('assetManager');
 GloryFeatures::enable('opcionManagerSync');
 GloryFeatures::enable('syncManager');
@@ -19,7 +19,7 @@ GloryFeatures::enable('modales');
 GloryFeatures::enable('submenus');
 GloryFeatures::enable('pestanas');
 GloryFeatures::enable('scheduler');
-GloryFeatures::enable('headerAdaptativo');
+GloryFeatures::disable('headerAdaptativo');
 GloryFeatures::enable('alertas');
 GloryFeatures::enable('gestionarPreviews');
 GloryFeatures::enable('paginacion');
@@ -36,15 +36,7 @@ GloryFeatures::disable('logoRenderer');
 GloryFeatures::disable('contentRender');
 GloryFeatures::disable('termRender');
 
-
-
-
-
-
-
-
-
-
-GloryFeatures::disable('titleTag');
-GloryFeatures::disable('postThumbnails');
+//Theme options
+GloryFeatures::enable('titleTag');
+GloryFeatures::enable('postThumbnails');
 
