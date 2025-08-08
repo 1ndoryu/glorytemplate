@@ -26,9 +26,15 @@ function renderPaginaReservas()
             'onclick' => true,
             'class' => true,
             'target' => true,
+            'title' => true,
             'data-modal' => true,
             'data-id' => true,
-            'title' => true,
+            'data-form-mode' => true,
+            'data-fetch-action' => true,
+            'data-object-id' => true,
+            'data-submit-action' => true,
+            'data-submit-text' => true,
+            'data-modal-title-edit' => true,
         ],
         'span' => [
             'class' => true,
@@ -47,23 +53,23 @@ function renderPaginaReservas()
     ];
     $configuracionColumnas['filtros_separados'] = true;
 ?>
-    <h1><?php echo __('Panel de Reservas', 'glorytemplate'); ?></h1>
+    <h1><?php echo 'Panel de Reservas'; ?></h1>
     <div class="acciones-reservas" style="flex-direction: column; gap: 10px; align-items: flex-start;">
         <div>
             <a href="<?php echo esc_url($export_url); ?>" class="button button-secondary">
-                <?php echo __('Exportar a CSV', 'glorytemplate'); ?>
+                <?php echo 'Exportar a CSV'; ?>
             </a>
-            <button class="button button-primary openModal" data-modal="modalAnadirReserva">
-                <?php echo __('Añadir Reserva Manual', 'glorytemplate'); ?>
+            <button class="button button-primary openModal" data-modal="modalAnadirReserva" data-form-mode="create" data-submit-action="crearReserva" data-submit-text="Añadir" data-modal-title-create="<?php echo esc_attr('Añadir Nueva Reserva'); ?>">
+                <?php echo 'Añadir Reserva Manual'; ?>
             </button>
         </div>
         <?php
         BarraFiltrosRenderer::render([
-            ['tipo' => 'search', 'name' => 's', 'label' => __('Cliente', 'glorytemplate'), 'placeholder' => __('Buscar por nombre…', 'glorytemplate')],
-            ['tipo' => 'date', 'name' => 'fecha_desde', 'label' => __('Desde', 'glorytemplate')],
-            ['tipo' => 'date', 'name' => 'fecha_hasta', 'label' => __('Hasta', 'glorytemplate')],
-            ['tipo' => 'select', 'name' => 'filtro_servicio', 'label' => __('Servicio', 'glorytemplate'), 'opciones' => $opcionesServicios],
-            ['tipo' => 'select', 'name' => 'filtro_barbero', 'label' => __('Barbero', 'glorytemplate'), 'opciones' => $opcionesBarberos],
+            ['tipo' => 'search', 'name' => 's', 'label' => 'Cliente', 'placeholder' => 'Buscar por nombre…'],
+            ['tipo' => 'date', 'name' => 'fecha_desde', 'label' => 'Desde'],
+            ['tipo' => 'date', 'name' => 'fecha_hasta', 'label' => 'Hasta'],
+            ['tipo' => 'select', 'name' => 'filtro_servicio', 'label' => 'Servicio', 'opciones' => $opcionesServicios],
+            ['tipo' => 'select', 'name' => 'filtro_barbero', 'label' => 'Barbero', 'opciones' => $opcionesBarberos],
         ], [
             'preservar_keys' => ['orderby', 'order'],
         ]);
@@ -74,5 +80,4 @@ function renderPaginaReservas()
     renderModalReserva($opcionesServicios, $opcionesBarberos);
     DataGridRenderer::render($consultaReservas, $configuracionColumnas);
     imprimirScriptsColoresServicios();
-    imprimirScriptsModalReserva();
 }

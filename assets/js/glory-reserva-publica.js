@@ -24,11 +24,18 @@ function inicializarFormularioReserva() {
         selectorHora.disabled = true;
     }
 
+    // Variables para edición
+    let datosEdicion = null; // { objectId, data: { servicio_id, barbero_id, fecha_reserva, hora_reserva, ... } }
+
 
     function actualizarHorariosDisponibles() {
         const servicioId = selectorServicio.value;
         const barberoId = selectorBarbero.value;
         const fecha = selectorFecha.value;
+        // si estamos editando, el contenedor del formulario trae data-object-id
+        const objectId = formulario.getAttribute('data-object-id');
+        // guardar hora actual (si la hay) antes de resetear opciones
+        const horaActualAntes = selectorHora ? selectorHora.value : '';
 
         // Resetear y deshabilitar
         selectorHora.innerHTML = '<option value="">Cargando...</option>';
@@ -44,6 +51,9 @@ function inicializarFormularioReserva() {
         datos.append('servicio_id', servicioId);
         datos.append('barbero_id', barberoId);
         datos.append('fecha', fecha);
+        if (objectId) {
+            datos.append('exclude_id', objectId);
+        }
 
         gloryAjax('glory_verificar_disponibilidad', datos)
             .then(respuesta => {
@@ -57,6 +67,14 @@ function inicializarFormularioReserva() {
                             selectorHora.appendChild(option);
                         });
                         selectorHora.disabled = false;
+                        // si existe un valor actual de hora (modo edición), re-seleccionarlo
+                        const horaEdit = (datosEdicion && datosEdicion.data && datosEdicion.data.hora_reserva) ? datosEdicion.data.hora_reserva : '';
+                        const horaActual = horaEdit || horaActualAntes || selectorHora.value;
+                        if (horaActual) {
+                            selectorHora.value = horaActual;
+                            // Notificar cambios para que los observadores del formulario habiliten el submit
+                            selectorHora.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
                     } else {
                         selectorHora.innerHTML = '<option value="">No hay horas disponibles</option>';
                     }
@@ -82,6 +100,16 @@ function inicializarFormularioReserva() {
     selectorBarbero.addEventListener('change', actualizarHorariosDisponibles);
     selectorFecha.addEventListener('change', actualizarHorariosDisponibles);
     selectorHora.addEventListener('change', verificarSeleccionHora);
+
+    // Si el modal se abre en modo edición, forzar precarga y habilitar
+    document.addEventListener('gloryFormModal:afterEdit', (ev) => {
+        datosEdicion = ev && ev.detail ? ev.detail : null;
+        actualizarHorariosDisponibles();
+        // habilitar submit si ya hay hora
+        setTimeout(() => {
+            verificarSeleccionHora();
+        }, 0);
+    });
 }
 
 
