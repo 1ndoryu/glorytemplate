@@ -1,0 +1,116 @@
+/* --- Estilos del modal y formulario de reservas (solo área wp-admin) --- */
+
+/* Fondo semitransparente que cubre toda la pantalla */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1006;
+    padding: 30px 20px;
+    overflow-y: auto;
+    box-sizing: border-box;
+
+    /* Centramos el contenido con flexbox */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Contenedor blanco del modal */
+.modalContenido {
+    background: #fff;
+    color: #1d2327; /* Color de texto típico del admin */
+    width: 100%;
+    max-width: 600px;
+    border-radius: 8px;
+    padding: 30px 35px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+/* Encabezado del modal */
+.modalContenido h2 {
+    margin: 0 0 20px 0;
+    font-size: 1.4rem;
+}
+
+/* ------------- Formulario ------------- */
+.formularioBarberia {
+    /* Dos columnas que se adaptan según el ancho */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-column-gap: 20px;
+}
+
+/* Aseguramos que cada bloque de campo esté en columna propia */
+.formularioBarberia .formCampo {
+    display: flex;
+    flex-direction: column;
+}
+
+.formularioBarberia label {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.formularioBarberia input,
+.formularioBarberia select,
+.formularioBarberia textarea {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+.formularioBarberia textarea {
+    min-height: 80px;
+}
+
+/* El botón ocupa toda la fila */
+.formularioBarberia .button-primary {
+    margin-top: 10px;
+    grid-column: 1 / -1; /* Que abarque las columnas disponibles */
+}
+
+/* Botón que abre el modal (en listados) */
+.openModal.button.button-primary {
+    background: #2271b1;
+    border-color: #2271b1;
+    box-shadow: none;
+}
+.openModal.button.button-primary:hover {
+    background: #135e96;
+    border-color: #135e96;
+}
+
+/* Contenedor de acciones en la parte superior del listado de reservas */
+.acciones-reservas {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.glory-analytics-filters .hndle {
+    padding: 20px;
+    margin: 0;
+    padding-bottom: 0;
+}
+
+.js .postbox .hndle, .js .widget .widget-top {
+    cursor: default;
+}
+   
+
+.glory-analytics-filters .inside {
+    margin-top: 0px;
+    padding: 20px;
+    padding-top: 0;
+}

@@ -26,6 +26,13 @@ AssetManager::define(
     ['media' => 'all', 'area' => 'admin']
 );
 
+AssetManager::define(
+    'style',
+    'tema-reservas-admin',
+    '/assets/css/reservas-admin.css',
+    ['media' => 'all', 'area' => 'admin']
+);
+
 AssetManager::defineFolder(
     'script',
     '/assets/js/',
@@ -33,18 +40,20 @@ AssetManager::defineFolder(
     'tema-'
 );
 
-// SCRIPT FOR AJAX FUNCTIONALITY (Needed by the form modal in admin)
-AssetManager::define(
-    'script',
-    'glory-ajax-admin',
-    '/Glory/assets/js/genericAjax/gloryAjax.js',
-    ['deps' => [], 'in_footer' => true, 'area' => 'admin']
-);
-
 // SCRIPT FOR DYNAMIC TIME SLOTS IN THE RESERVATION MODAL
 AssetManager::define(
     'script',
     'tema-reserva-admin-logica',
     '/assets/js/glory-reserva-publica.js',
-    ['deps' => ['jquery', 'glory-ajax-admin'], 'in_footer' => true, 'area' => 'admin']
+    [
+        'deps'      => ['jquery', 'glory-ajax'],
+        'in_footer' => true,
+        'area'      => 'admin',
+        'localize'  => [
+            'nombreObjeto' => 'dataGlobal',
+            'datos'        => [
+                'nonce' => wp_create_nonce('globalNonce')
+            ]
+        ]
+    ]
 );

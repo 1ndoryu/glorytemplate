@@ -1,4 +1,4 @@
-.paginaReservaPublica {
+ .paginaReservaPublica {
     /* Fondo y colores principales */
     background-color: #ffffff;
     color: #000000;
@@ -94,3 +94,50 @@
         flex: 1;
     }
 }
+
+/* ---------------- Checkbox de exclusividad ---------------- */
+/* Estructura generada por FormBuilder:
+   <div class="formCampo">
+      <label class="customCheckbox">
+         <input type="checkbox">  <-- ocultamos
+         <span class="checkmark"></span>  <-- será el icono ♡/❤️
+         Marcar si es un servicio ...
+      </label>
+   </div> */
+
+.customCheckbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 500;
+}
+
+.customCheckbox input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.customCheckbox .checkmark {
+    position: relative;
+    width: 20px;
+    height: 20px;
+}
+
+.customCheckbox .checkmark::before {
+    content: "♡";
+    font-size: 20px;
+    line-height: 20px;
+    color: #aaa;
+    transition: color 0.2s ease;
+}
+
+/* Estado marcado */
+.customCheckbox input[type="checkbox"]:checked + .checkmark::before {
+    content: "❤️";
+    color: #e63946;
+}
+

@@ -109,3 +109,10 @@
         text-align: center;
     }
 }
+
+/* -------- Icono exclusividad (❤️) -------- */
+.bloqueEvento .iconoExclusividad {
+    margin-left: 4px;
+    font-size: 14px;
+    pointer-events: none;
+}

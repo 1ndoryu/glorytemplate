@@ -205,3 +205,18 @@ function obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion)
 
     return $slotsDisponibles;
 }
+
+/**
+ * Maneja la exportación de reservas a CSV de forma temprana antes de que WordPress envíe headers.
+ */
+function glory_manejar_exportacion_reservas_csv() {
+    if (
+        isset($_GET['page']) && $_GET['page'] === 'barberia-reservas' &&
+        isset($_GET['exportar_csv']) && $_GET['exportar_csv'] === 'true' &&
+        current_user_can('manage_options')
+    ) {
+        exportarReservasACsv();
+        exit;
+    }
+}
+add_action('admin_init', 'glory_manejar_exportacion_reservas_csv');
