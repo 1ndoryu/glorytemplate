@@ -1,118 +1,185 @@
-/* Estilos específicos para el componente de Visualización de Citas (SchedulerRenderer)
-   Mantiene la esencia y tipografía predeterminadas de WordPress.
-*/
-
-/*------------------ Estructura general ------------------*/
-.page-visualizacion {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    box-sizing: border-box;
+/* Estilos Generales de la Página */
+.paginaVisual {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
 }
 
-.page-visualizacion h1 {
-    margin: 0 0 1.5rem;
-    font-size: 28px;
-    line-height: 1.4;
-    color: #23282d; /* Texto estándar WP */
-    text-align: center;
+.paginaVisual h1 {
+    margin-bottom: 10px;
 }
 
-/*------------------ SchedulerRenderer ------------------*/
+/* Formulario Selector de Fecha */
+.formDatepicker {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.formDatepicker label {
+    font-weight: bold;
+}
+
+.formDatepicker input[type='date'] {
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid #8c8f94;
+}
+
+/* Contenedor Principal del Calendario */
 .glorySchedulerContenedor {
     position: relative;
+    width: 100%;
     overflow-x: auto;
-    font-size: 14px;
-    --alto-celda: 34px; /* altura mínima de fila */
+    border: 1px solid #c3c4c7;
+    background-color: #fff;
 }
 
-/* Grid principal */
+/* Cuadrícula Base del Calendario */
 .glorySchedulerGrid {
     display: grid;
-    grid-template-columns: repeat(var(--columnas-grid), 1fr);
-    border: 1px solid #ccd0d4;
+    grid-template-columns: 60px repeat(var(--columnas-grid, 3), 1fr);
+    border-collapse: collapse;
 }
 
-/* Celdas base */
 .celdaGrid {
-    border: 1px solid #ccd0d4;
-    padding: 4px 6px;
-    min-height: var(--alto-celda);
-    box-sizing: border-box;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 4px;
+    font-size: 12px;
+    min-height: 30px;
 }
 
-/* Columnas de hora */
-.celdaEncabezadoTiempo {
-    background: #f1f1f1;
-    font-weight: 600;
-    position: sticky;
-    left: 0;
-    z-index: 3;
-}
-.celdaTiempo {
-    background: #fafafa;
-    font-weight: 500;
-    text-align: right;
-}
-
-/* Encabezados de recurso (barberos) */
+/* Celdas de Encabezado */
+.celdaEncabezadoTiempo,
 .celdaEncabezadoRecurso {
-    background: #f1f1f1;
-    font-weight: 600;
-    text-align: center;
+    background-color: #f0f0f1;
+    font-weight: bold;
     position: sticky;
     top: 0;
     z-index: 2;
 }
 
-/* Celdas vacías */
-.celdaVacia {
-    background: #fff;
+.celdaEncabezadoRecurso {
+    text-align: center;
 }
 
-/*------------------ Eventos (renderizados con JS) ------------------*/
+/* Celdas de la Columna de Horas */
+.celdaTiempo {
+    text-align: right;
+    padding-right: 8px;
+    font-size: 11px;
+    color: #50575e;
+    background-color: #f9f9f9;
+}
+
+/* Capa Superpuesta para los Eventos */
 .capaEventos {
     position: absolute;
     top: 0;
     left: 0;
-    width: calc(100% - 2px); /* compensar borde del grid */
-    height: calc(100% - 2px);
+    width: 100%;
+    height: 100%;
+    display: grid;
     pointer-events: none;
 }
 
-.scheduler-event {
-    position: absolute;
+/* Bloques de Evento (Reservas) */
+.bloqueEvento {
+    position: relative;
+    pointer-events: auto;
+    border-radius: 4px;
+    margin: 1px;
+    padding: 6px;
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+    z-index: 1;
+    display: flex;
+}
+
+.eventoContenido {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.eventoTitulo {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 2px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.iconoExclusividad {
+    font-size: 14px;
+}
+
+.eventoDetalle,
+.eventoTelefono,
+.eventoHorario {
+    font-size: 11px;
+    line-height: 1.3;
+    opacity: 0.9;
+    word-break: break-word;
+}
+
+.eventoTelefono {
+    margin-top: 4px;
+}
+
+.eventoHorario {
+    margin-top: auto;
+    padding-top: 4px;
+    font-style: italic;
+}
+
+/* Configurador de colores: oculto por defecto y visible al togglear */
+.form-config-colores {
+    display: none;
+    margin-top: 12px;
+    border: 1px solid #e6e6e6;
+    padding: 12px;
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+.form-config-colores.is-visible {
+    display: flex;
+}
+
+.grid-colores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.color-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 2px 6px;
-    font-size: 12px;
-    line-height: 1.2;
-    color: #fff;
-    border-radius: 3px;
-    box-sizing: border-box;
-    pointer-events: all;
+    gap: 8px;
 }
 
-/*------------------ Colores por tipo de servicio ------------------*/
-.scheduler-event[data-color] {
-    background-color: var(--event-color, #555d66);
+.color-label {
+    flex: 1 1 auto;
+    font-size: 13px;
 }
 
-/*------------------ Responsive ------------------*/
-@media (max-width: 600px) {
-    .glorySchedulerGrid {
-        font-size: 12px;
-    }
-    .celdaEncabezadoTiempo,
-    .celdaTiempo {
-        text-align: center;
-    }
+.botonesVisualizacion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-/* -------- Icono exclusividad (❤️) -------- */
-.bloqueEvento .iconoExclusividad {
-    margin-left: 4px;
-    font-size: 14px;
-    pointer-events: none;
+.rightBotones {
+    display: flex;
+    gap: 10px;
+}
+
+form#formConfigColores {
+    flex-direction: column;
+    gap: 20px;
 }

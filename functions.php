@@ -1,6 +1,7 @@
 <?php
 // FILE: functions.php
 use Glory\Handler\FormHandler;
+use Glory\Core\OpcionRepository;
 
 $directorioTemaActivo = get_stylesheet_directory();
 
@@ -220,3 +221,63 @@ function glory_manejar_exportacion_reservas_csv() {
     }
 }
 add_action('admin_init', 'glory_manejar_exportacion_reservas_csv');
+
+// AJAX: Actualizar color de servicio para el scheduler
+add_action('wp_ajax_glory_actualizar_color_servicio', 'glory_actualizar_color_servicio_callback');
+function glory_actualizar_color_servicio_callback() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['mensaje' => 'Permisos insuficientes.'], 403);
+    }
+    $nonce = $_POST['_wpnonce'] ?? '';
+    if (!wp_verify_nonce($nonce, 'glory_color_servicio')) {
+        wp_send_json_error(['mensaje' => 'Nonce inválido.'], 403);
+    }
+
+    $slug = sanitize_title($_POST['slug'] ?? '');
+    $color = sanitize_hex_color($_POST['color'] ?? '');
+
+    if (empty($slug) || empty($color)) {
+        wp_send_json_error(['mensaje' => 'Datos incompletos.']);
+    }
+
+    $key = 'glory_scheduler_color_' . str_replace('-', '_', $slug);
+    $ok = OpcionRepository::save($key, $color);
+
+    if ($ok) {
+        wp_send_json_success(['mensaje' => 'Color actualizado.', 'key' => $key, 'color' => $color]);
+    } else {
+        wp_send_json_error(['mensaje' => 'No se pudo guardar el color.']);
+    }
+}
+
+// AJAX: Obtener datos de una reserva para edición en modal
+add_action('wp_ajax_glory_obtener_reserva', 'glory_obtener_reserva_callback');
+function glory_obtener_reserva_callback() {
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error(['mensaje' => 'Permisos insuficientes.'], 403);
+    }
+
+    $id = absint($_POST['id'] ?? 0);
+    if (!$id) {
+        wp_send_json_error(['mensaje' => 'ID inválido.'], 400);
+    }
+
+    $post = get_post($id);
+    if (!$post || $post->post_type !== 'reserva') {
+        wp_send_json_error(['mensaje' => 'Reserva no encontrada.'], 404);
+    }
+
+    $servicio = get_the_terms($id, 'servicio');
+    $barbero = get_the_terms($id, 'barbero');
+
+    wp_send_json_success([
+        'id' => $id,
+        'nombre_cliente' => $post->post_title,
+        'telefono_cliente' => get_post_meta($id, 'telefono_cliente', true) ?: '',
+        'correo_cliente' => get_post_meta($id, 'correo_cliente', true) ?: '',
+        'fecha_reserva' => get_post_meta($id, 'fecha_reserva', true) ?: '',
+        'hora_reserva' => get_post_meta($id, 'hora_reserva', true) ?: '',
+        'servicio_id' => is_array($servicio) && !is_wp_error($servicio) && !empty($servicio) ? $servicio[0]->term_id : '',
+        'barbero_id' => is_array($barbero) && !is_wp_error($barbero) && !empty($barbero) ? $barbero[0]->term_id : '',
+    ]);
+}

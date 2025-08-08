@@ -114,3 +114,8 @@
     padding: 20px;
     padding-top: 0;
 }
+
+.gloryDataGridContenedor table.fixed {
+    width: 100%; 
+    max-width: 1150px;
+}
