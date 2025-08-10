@@ -109,4 +109,42 @@ class BarberoHandler implements FormHandlerInterface
 
         return ['error' => 'No se pudo procesar la solicitud.'];
     }
+
+    public static function registerAjaxEndpoints()
+    {
+        add_action('wp_ajax_glory_get_barbero_details', [__CLASS__, 'getBarberoDetailsAjax']);
+        add_action('wp_ajax_nopriv_glory_get_barbero_details', [__CLASS__, 'getBarberoDetailsAjax']);
+    }
+
+    public static function getBarberoDetailsAjax()
+    {
+        if (!isset($_POST['id']) || !is_numeric($_POST['id'])) {
+            wp_send_json_error(['mensaje' => 'ID de barbero no válido.']);
+            return;
+        }
+
+        $term_id = intval($_POST['id']);
+        $term = get_term($term_id, 'barbero');
+
+        if (is_wp_error($term) || !$term) {
+            wp_send_json_error(['mensaje' => 'Barbero no encontrado.']);
+            return;
+        }
+
+        $image_id = get_term_meta($term->term_id, 'image_id', true);
+        $image_url = $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : '';
+        $services_ids = get_term_meta($term->term_id, 'servicios', true);
+
+        $data = [
+            'name' => $term->name,
+            'term_id' => $term->term_id,
+            'image_id' => [
+                'id' => $image_id,
+                'url' => $image_url,
+            ],
+            'services[]' => is_array($services_ids) ? $services_ids : [],
+        ];
+
+        wp_send_json_success($data);
+    }
 }

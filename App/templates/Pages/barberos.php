@@ -1,7 +1,4 @@
 <?php
-if (! defined('ABSPATH')) {
-    exit;
-}
 
 use Glory\Components\DataGridRenderer;
 use Glory\Components\BarraFiltrosRenderer;
@@ -12,14 +9,14 @@ function renderPaginaBarberos()
         wp_die('No autorizado');
     }
 
-    $option_key = 'barberia_barberos';
+    $claveOpcion = 'barberia_barberos';
 
-    processBarberosPost($option_key);
-    list($opcionesServicios, $barberos_merged, $servicios_map_id_to_name) = getBarberosData($option_key);
+    procesarPostBarberos($claveOpcion);
+    list($opcionesServicios, $barberosCombinados, $serviciosMapIdANombre) = obtenerDatosBarberos($claveOpcion);
     wp_enqueue_media();
 
     // Obtener configuración de columnas desde helper
-    $configuracionColumnas = columnasBarberos($opcionesServicios, $servicios_map_id_to_name);
+    $configuracionColumnas = columnasBarberos($opcionesServicios, $serviciosMapIdANombre);
 
 ?>
     <div class="wrap wrap-barberos-admin">
@@ -55,14 +52,14 @@ function renderPaginaBarberos()
         </div>
 
         <?php
-        $barberos_for_render = array_values($barberos_merged);
-        foreach ($barberos_for_render as $k => &$v) {
+        $barberosParaRenderizar = array_values($barberosCombinados);
+        foreach ($barberosParaRenderizar as $k => &$v) {
             $v['index'] = $k;
         }
-        DataGridRenderer::render($barberos_for_render, $configuracionColumnas);
+        DataGridRenderer::render($barberosParaRenderizar, $configuracionColumnas);
 
-        $action = admin_url('admin.php?page=barberia-barberos');
-        renderModalBarbero($opcionesServicios, $barberos_merged, $action);
+        $accion = admin_url('admin.php?page=barberia-barberos');
+        renderizarModalBarbero($opcionesServicios, $barberosCombinados, $accion);
         ?>
     </div>
 <?php
