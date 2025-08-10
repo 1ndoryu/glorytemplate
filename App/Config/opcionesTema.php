@@ -58,6 +58,20 @@ $seccionIntegraciones = 'integrations';
 $etiquetaSeccionIntegraciones = 'Integrations & Tracking';
 $subSeccionCodigos = 'tracking_codes';
 
+// Sub-sección para componentes de integraciones
+$subSeccionComponentes = 'components';
+
+// Registro de la opción que controla el componente "Integrations Manager"
+OpcionManager::register('glory_componente_integrations_manager_activado', [
+    'valorDefault'    => false,
+    'tipo'            => 'checkbox',
+    'etiqueta'        => 'Activar Integrations Manager',
+    'descripcion'     => 'Habilita el componente que gestiona integraciones externas (p. ej. servicios de terceros).',
+    'seccion'         => $seccionIntegraciones,
+    'etiquetaSeccion' => $etiquetaSeccionIntegraciones,
+    'subSeccion'      => $subSeccionComponentes,
+]);
+
 OpcionManager::register('glory_gsc_verification_code', [
     'valorDefault'    => '',
     'tipo'            => 'text',

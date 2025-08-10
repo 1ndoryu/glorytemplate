@@ -19,39 +19,7 @@ function renderPaginaReservas()
     $opcionesBarberos  = gloryOpcionesTaxonomia('barbero', 'Selecciona un barbero');
     $consultaReservas      = consultaReservas();
     $configuracionColumnas = columnasReservas();
-    // Permitir HTML necesario en celdas: puntos de color, picker y enlaces de acción
-    $configuracionColumnas['allowed_html'] = [
-        'a' => [
-            'href' => true,
-            'onclick' => true,
-            'class' => true,
-            'target' => true,
-            'title' => true,
-            'data-modal' => true,
-            'data-id' => true,
-            'data-form-mode' => true,
-            'data-fetch-action' => true,
-            'data-object-id' => true,
-            'data-submit-action' => true,
-            'data-submit-text' => true,
-            'data-modal-title-edit' => true,
-        ],
-        'span' => [
-            'class' => true,
-            'style' => true,
-            'data-color' => true,
-        ],
-        'input' => [
-            'type' => true,
-            'class' => true,
-            'value' => true,
-            'data-slug' => true,
-            'style' => true,
-            'disabled' => true,
-        ],
-        'br' => [],
-    ];
-    $configuracionColumnas['filtros_separados'] = true;
+    // moved: allowed_html and filtros_separados are defined in columnasReservas()
 ?>
     <h1><?php echo 'Panel de Reservas'; ?></h1>
     <div class="acciones-reservas" style="flex-direction: column; gap: 10px; align-items: flex-start;">

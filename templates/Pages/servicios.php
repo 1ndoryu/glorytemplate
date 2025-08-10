@@ -1,0 +1,239 @@
+<?php
+if (! defined('ABSPATH')) {
+    exit;
+}
+
+use Glory\Components\FormularioFluente;
+use Glory\Components\Modal;
+use Glory\Components\FormBuilder;
+
+function renderPaginaServicios()
+{
+    if (! current_user_can('manage_options')) {
+        wp_die('No autorizado');
+    }
+
+    $option_key = 'barberia_servicios';
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['servicios_nonce']) && wp_verify_nonce($_POST['servicios_nonce'], 'servicios_save')) {
+        $servicios = get_option($option_key, []);
+        $action = $_POST['action'] ?? '';
+
+            if ($action === 'delete' && ! empty($_POST['id'])) {
+            $id = intval($_POST['id']);
+            if (isset($servicios[$id])) {
+                // Si existe term_id asociado, eliminar término de la taxonomía
+                if (!empty($servicios[$id]['term_id'])) {
+                    $term_id = intval($servicios[$id]['term_id']);
+                    if (term_exists($term_id, 'servicio')) {
+                        wp_delete_term($term_id, 'servicio');
+                    }
+                }
+                unset($servicios[$id]);
+                update_option($option_key, array_values($servicios));
+            }
+        } else {
+            $name = sanitize_text_field($_POST['name'] ?? '');
+            $price = floatval($_POST['price'] ?? 0);
+            $duration = intval($_POST['duration'] ?? 30);
+
+            $editing = isset($_POST['id']) && $_POST['id'] !== '';
+            if ($editing) {
+                $id = intval($_POST['id']);
+                if (isset($servicios[$id])) {
+                    $servicios[$id]['name'] = $name;
+                    $servicios[$id]['price'] = $price;
+                    $servicios[$id]['duration'] = $duration;
+
+                    // Sincronizar término de taxonomía 'servicio' y meta 'duracion'
+                    $term_id = !empty($servicios[$id]['term_id']) ? intval($servicios[$id]['term_id']) : 0;
+                    if ($term_id && term_exists($term_id, 'servicio')) {
+                        wp_update_term($term_id, 'servicio', ['name' => $name, 'slug' => sanitize_title($name)]);
+                        update_term_meta($term_id, 'duracion', $duration);
+                        update_term_meta($term_id, 'precio', $price);
+                    } else {
+                        $existing = term_exists($name, 'servicio');
+                        if ($existing === 0 || $existing === null) {
+                            $inserted = wp_insert_term($name, 'servicio', ['slug' => sanitize_title($name)]);
+                            if (!is_wp_error($inserted) && isset($inserted['term_id'])) {
+                                $term_id = intval($inserted['term_id']);
+                                $servicios[$id]['term_id'] = $term_id;
+                                update_term_meta($term_id, 'duracion', $duration);
+                                update_term_meta($term_id, 'precio', $price);
+                            }
+                        } else {
+                            $term_id = is_array($existing) ? intval($existing['term_id']) : intval($existing);
+                            $servicios[$id]['term_id'] = $term_id;
+                            update_term_meta($term_id, 'duracion', $duration);
+                            update_term_meta($term_id, 'precio', $price);
+                        }
+                    }
+                }
+            } else {
+                $new_entry = [
+                    'name' => $name,
+                    'price' => $price,
+                    'duration' => $duration,
+                ];
+
+                $existing = term_exists($name, 'servicio');
+                if ($existing === 0 || $existing === null) {
+                    $inserted = wp_insert_term($name, 'servicio', ['slug' => sanitize_title($name)]);
+                    if (!is_wp_error($inserted) && isset($inserted['term_id'])) {
+                        $new_entry['term_id'] = intval($inserted['term_id']);
+                        update_term_meta($new_entry['term_id'], 'duracion', $duration);
+                        update_term_meta($new_entry['term_id'], 'precio', $price);
+                    }
+                } else {
+                    $term_id = is_array($existing) ? intval($existing['term_id']) : intval($existing);
+                    $new_entry['term_id'] = $term_id;
+                    update_term_meta($term_id, 'duracion', $duration);
+                    update_term_meta($term_id, 'precio', $price);
+                }
+
+                $servicios[] = $new_entry;
+            }
+
+            update_option($option_key, array_values($servicios));
+        }
+
+        wp_redirect(admin_url('admin.php?page=barberia-servicios'));
+        exit;
+    }
+
+    // Cargar términos de 'servicio' y combinarlos con opciones guardadas
+    $terminos = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false]);
+    $servicios_from_terms = [];
+    if (!is_wp_error($terminos)) {
+        foreach ($terminos as $term) {
+            $servicios_from_terms[] = [
+                'name' => $term->name,
+                'term_id' => intval($term->term_id),
+                'duration' => intval(get_term_meta($term->term_id, 'duracion', true) ?: 30),
+                'price' => floatval(get_term_meta($term->term_id, 'precio', true) ?: 0),
+            ];
+        }
+    }
+
+    $servicios_options = get_option($option_key, []);
+    $servicios_merged = $servicios_from_terms;
+    if (!empty($servicios_options)) {
+        foreach ($servicios_options as $opt) {
+            $exists = false;
+            if (!empty($opt['term_id'])) {
+                foreach ($servicios_merged as $m) {
+                    if (!empty($m['term_id']) && intval($m['term_id']) === intval($opt['term_id'])) {
+                        $exists = true;
+                        break;
+                    }
+                }
+            }
+            if (!$exists) {
+                $servicios_merged[] = $opt;
+            }
+        }
+    }
+
+    ?>
+    <div class="wrap">
+        <h1>Servicios</h1>
+
+        <div style="margin-bottom:12px;">
+            <button class="button button-primary openModal" data-modal="modalAnadirServicio" data-form-mode="create" data-modal-title-create="<?php echo esc_attr('Añadir Servicio'); ?>">Añadir Servicio</button>
+        </div>
+
+        <table class="widefat fixed striped">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Duración (min)</th>
+                    <th>Precio (€)</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($servicios_merged as $index => $s): ?>
+                    <tr>
+                        <td><?php echo esc_html($s['name']); ?></td>
+                        <td><?php echo intval($s['duration']); ?></td>
+                        <td><?php echo number_format(floatval($s['price']), 2); ?></td>
+                        <td>
+                            <form method="post" style="display:inline">
+                                <?php wp_nonce_field('servicios_save','servicios_nonce'); ?>
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="id" value="<?php echo $index; ?>">
+                                <button class="button button-danger" type="submit">Eliminar</button>
+                            </form>
+                            <a href="#" class="openModal button edit-servicio" data-modal="modalAnadirServicio" data-form-mode="edit" data-id="<?php echo $index; ?>" data-name="<?php echo esc_attr($s['name']); ?>" data-price="<?php echo esc_attr($s['price']); ?>" data-duration="<?php echo intval($s['duration']); ?>" data-term-id="<?php echo intval($s['term_id'] ?? 0); ?>" data-modal-title-edit="<?php echo esc_attr('Editar Servicio'); ?>">Editar</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <?php
+        function renderModalServicio(): void
+        {
+            $action = admin_url('admin.php?page=barberia-servicios');
+            $config = [
+                ['fn' => 'inicio', 'args' => [
+                    'action' => $action,
+                    'method' => 'post',
+                    'extraClass' => 'formularioBarberia',
+                ]],
+                ['fn' => 'campoTexto', 'args' => ['nombre' => 'name', 'label' => 'Nombre', 'obligatorio' => true]],
+                ['fn' => 'campoTexto', 'args' => ['nombre' => 'duration', 'label' => 'Duración (min)']],
+                ['fn' => 'campoTexto', 'args' => ['nombre' => 'price', 'label' => 'Precio']],
+                ['fn' => 'botonEnviar', 'args' => ['accion' => 'guardarServicio', 'texto' => 'Guardar', 'extraClass' => 'button-primary']],
+                ['fn' => 'fin'],
+            ];
+
+            $form = (new FormularioFluente())->agregarDesdeConfig($config);
+            $contenido = wp_nonce_field('servicios_save','servicios_nonce', true, false) . '<input type="hidden" name="id" id="servicio-id" value="">' . $form->renderizar();
+            echo Modal::render('modalAnadirServicio', 'Añadir/Editar Servicio', $contenido);
+        }
+
+        renderModalServicio();
+        ?>
+
+        <script>
+        (function(){
+            document.addEventListener('gloryModal:open', function(e){
+                var trigger = e.detail && e.detail.trigger;
+                if (!trigger) return;
+                var mode = trigger.dataset.formMode || trigger.getAttribute('data-form-mode') || 'create';
+                var modal = document.getElementById(trigger.dataset.modal);
+                if (!modal) return;
+                var title = mode === 'edit' ? (trigger.dataset.modalTitleEdit || trigger.getAttribute('data-modal-title-edit')) : (trigger.dataset.modalTitleCreate || trigger.getAttribute('data-modal-title-create'));
+                if (title) {
+                    var h2 = modal.querySelector('.modalContenido h2');
+                    if (h2) h2.textContent = title;
+                }
+                if (mode === 'edit') {
+                    var id = trigger.dataset.id || '';
+                    var name = trigger.dataset.name || '';
+                    var price = trigger.dataset.price || '';
+                    var duration = trigger.dataset.duration || '';
+                    var termId = trigger.dataset.termId || '';
+                    var form = modal.querySelector('.formularioBarberia');
+                    if (form) {
+                        var elId = form.querySelector('#servicio-id'); if (elId) elId.value = id || termId || '';
+                        var elName = form.querySelector('[name="name"]'); if (elName) elName.value = name;
+                        var elPrice = form.querySelector('[name="price"]'); if (elPrice) elPrice.value = price;
+                        var elDuration = form.querySelector('[name="duration"]'); if (elDuration) elDuration.value = duration;
+                    }
+                } else {
+                    var form = modal.querySelector('.formularioBarberia');
+                    if (form) {
+                        form.querySelectorAll('input[type="text"]').forEach(function(i){ i.value = ''; });
+                        var hid = form.querySelector('#servicio-id'); if (hid) hid.value = '';
+                    }
+                }
+            });
+        })();
+        </script>
+    </div>
+    <?php
+}
+
+

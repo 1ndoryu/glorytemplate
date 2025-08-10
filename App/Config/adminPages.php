@@ -37,3 +37,22 @@ AdminPageManager::defineSubmenu(
     'barberia-historial',
     'renderPaginaHistorial'
 );
+
+// Páginas administrativas adicionales: Barberos y Servicios
+AdminPageManager::defineSubmenu(
+    'barberia-reservas',
+    'Barberos',
+    'Barberos',
+    'manage_options',
+    'barberia-barberos',
+    'renderPaginaBarberos'
+);
+
+AdminPageManager::defineSubmenu(
+    'barberia-reservas',
+    'Servicios',
+    'Servicios',
+    'manage_options',
+    'barberia-servicios',
+    'renderPaginaServicios'
+);

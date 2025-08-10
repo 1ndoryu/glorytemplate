@@ -170,6 +170,39 @@ function columnasReservas(): array
             's' => ['etiqueta' => 'Buscar por Cliente...'],
         ],
         'paginacion' => true,
+        // Permitir HTML necesario en celdas: puntos de color, picker y enlaces de acción
+        'allowed_html' => [
+            'a' => [
+                'href' => true,
+                'onclick' => true,
+                'class' => true,
+                'target' => true,
+                'title' => true,
+                'data-modal' => true,
+                'data-id' => true,
+                'data-form-mode' => true,
+                'data-fetch-action' => true,
+                'data-object-id' => true,
+                'data-submit-action' => true,
+                'data-submit-text' => true,
+                'data-modal-title-edit' => true,
+            ],
+            'span' => [
+                'class' => true,
+                'style' => true,
+                'data-color' => true,
+            ],
+            'input' => [
+                'type' => true,
+                'class' => true,
+                'value' => true,
+                'data-slug' => true,
+                'style' => true,
+                'disabled' => true,
+            ],
+            'br' => [],
+        ],
+        'filtros_separados' => true,
     ];
 }
 

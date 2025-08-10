@@ -16,6 +16,11 @@ function inicializarFormularioReserva() {
     const selectorHora = formulario.querySelector('.selector-hora');
     const botonEnviar = formulario.querySelector('.dataSubir');
 
+    // Si alguno de los elementos críticos no existe, salir silenciosamente
+    if (!selectorServicio || !selectorBarbero || !selectorFecha || !selectorHora) {
+        return;
+    }
+
     // Deshabilitar al inicio hasta que se seleccione una hora
     if (botonEnviar) {
         botonEnviar.disabled = true;

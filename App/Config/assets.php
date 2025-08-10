@@ -69,3 +69,14 @@ AssetManager::define(
         'feature'   => 'scheduler',
     ]
 );
+
+AssetManager::define(
+    'style',
+    'barberos-admin-style',
+    '/assets/css/barberos-admin.css',
+    [
+        'deps' => [],
+        'in_footer' => false,
+        'area' => 'admin',
+    ]
+);
