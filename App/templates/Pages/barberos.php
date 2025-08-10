@@ -14,8 +14,6 @@ function renderPaginaBarberos()
     procesarPostBarberos($claveOpcion);
     list($opcionesServicios, $barberosCombinados, $serviciosMapIdANombre) = obtenerDatosBarberos($claveOpcion);
     wp_enqueue_media();
-
-    // Obtener configuración de columnas desde helper
     $configuracionColumnas = columnasBarberos($opcionesServicios, $serviciosMapIdANombre);
 
 ?>

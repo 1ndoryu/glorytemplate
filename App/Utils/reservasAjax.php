@@ -5,7 +5,8 @@ use Glory\Core\OpcionRepository;
 
 function verificarDisponibilidadCallback()
 {
-    $fecha = sanitize_text_field($_POST['fecha'] ?? '');
+    // Aceptar tanto 'fecha' (antiguo) como 'fecha_reserva' (usado en formularios)
+    $fecha = sanitize_text_field($_POST['fecha'] ?? ($_POST['fecha_reserva'] ?? ''));
     $barberoId = absint($_POST['barbero_id'] ?? 0);
     $servicioId = absint($_POST['servicio_id'] ?? 0);
     $excludeId = absint($_POST['exclude_id'] ?? 0);
@@ -40,7 +41,7 @@ function verificarDisponibilidadCallback()
 
     $horariosDisponibles = obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion, $excludeId);
 
-    wp_send_json_success(['horarios' => $horariosDisponibles]);
+    wp_send_json_success(['options' => $horariosDisponibles]);
 }
 
 function manejarExportacionReservasCsv() {

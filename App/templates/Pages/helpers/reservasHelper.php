@@ -224,7 +224,6 @@ function renderModalReserva(array $opcionesServicios, array $opcionesBarberos): 
             'atributos'  => [
                 'data-post-type'   => 'reserva',
                 'data-post-status' => 'publish',
-                // Reglas declarativas para habilitar submit (Glory agnóstico)
                 'data-fm-submit-enable-when' => 'nombre_cliente,telefono_cliente,correo_cliente,servicio_id,barbero_id,fecha_reserva,hora_reserva',
             ]
         ]],
@@ -240,6 +239,11 @@ function renderModalReserva(array $opcionesServicios, array $opcionesBarberos): 
             'opciones'        => ['' => 'Selecciona fecha, servicio y barbero'],
             'obligatorio'     => true,
             'extraClassInput' => 'selector-hora',
+            'atributosExtra'  => [
+                'data-fm-options-action' => 'glory_verificar_disponibilidad',
+                'data-fm-depends' => 'servicio_id,barbero_id,fecha_reserva',
+                'data-fm-placeholder-disabled' => 'Completa los campos anteriores',
+            ],
         ]],
         ['fn' => 'botonEnviar', 'args' => ['accion' => 'crearReserva', 'texto' => 'Guardar Reserva', 'extraClass' => 'button-primary']],
         ['fn' => 'fin'],
