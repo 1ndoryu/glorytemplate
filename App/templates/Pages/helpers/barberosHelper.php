@@ -7,6 +7,21 @@ use Glory\Components\FormularioFluente;
 use Glory\Components\Modal;
 use App\Handler\Form\BarberoHandler;
 
+if (!function_exists('logBarberosDebug')) {
+    function logBarberosDebug(string $mensaje, $data = null): void
+    {
+        if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+            $prefix = '[Barberos] ';
+            if ($data !== null) {
+                // wp_json_encode maneja arrays y objetos de forma segura
+                # error_log($prefix . $mensaje . ' ' . wp_json_encode($data));
+            } else {
+                # error_log($prefix . $mensaje);
+            }
+        }
+    }
+}
+
 /**
  * Procesa el POST del formulario de barberos: crear/editar/eliminar y redirige.
  * @param string $option_key
@@ -50,42 +65,66 @@ function obtenerDatosBarberos(string $claveOpcion): array
         $serviciosMapIdANombre[intval($st->term_id)] = $st->name;
     }
 
+    // Log servicios disponibles
+    logBarberosDebug('Servicios disponibles', $opcionesServicios);
+
     $barberosDesdeTerminos = [];
     if (! is_wp_error($terminos)) {
         foreach ($terminos as $term) {
+            $services_ids_meta = get_term_meta($term->term_id, 'servicios', true);
+            $services_ids_meta = is_array($services_ids_meta) ? array_map('intval', $services_ids_meta) : [];
+            $services_names_meta = array_map(function ($id) use ($serviciosMapIdANombre) {
+                return $serviciosMapIdANombre[intval($id)] ?? '';
+            }, $services_ids_meta);
+
             $barberosDesdeTerminos[] = [
                 'name' => $term->name,
                 'term_id' => intval($term->term_id),
                 'image_id' => intval(get_term_meta($term->term_id, 'image_id', true)),
-                'services' => [],
+                'services' => array_values(array_filter($services_names_meta)),
+                'services_ids' => $services_ids_meta,
             ];
         }
     }
 
+    logBarberosDebug('Barberos desde términos', $barberosDesdeTerminos);
+
     $barberos_options = get_option($claveOpcion, []);
+    logBarberosDebug('Barberos desde options (resumen)', ['count' => is_array($barberos_options) ? count($barberos_options) : 0]);
     $barberosCombinados = $barberosDesdeTerminos;
     if (! empty($barberos_options)) {
         foreach ($barberos_options as $opt) {
+            $barberoActual = $opt; // Trabajar con una copia para evitar problemas de referencia
+
             $servicesIds = [];
             $servicesNames = [];
-            if (! empty($opt['services'])) {
-                if (is_array($opt['services'])) {
-                    foreach ($opt['services'] as $s) {
+            // Priorizar 'services_ids' si viene desde opciones
+            if (!empty($barberoActual['services_ids']) && is_array($barberoActual['services_ids'])) {
+                $servicesIds = array_map('intval', $barberoActual['services_ids']);
+            } elseif (!empty($barberoActual['term_id'])) {
+                // Si no, intentar desde meta del término
+                $meta_ids = get_term_meta(intval($barberoActual['term_id']), 'servicios', true);
+                if (is_array($meta_ids)) {
+                    $servicesIds = array_map('intval', $meta_ids);
+                }
+            }
+            // Si aún vacío, intentar mapear por nombres
+            if (empty($servicesIds) && ! empty($barberoActual['services'])) {
+                if (is_array($barberoActual['services'])) {
+                    foreach ($barberoActual['services'] as $s) {
                         foreach ($opcionesServicios as $sid => $sname) {
                             if (strcasecmp(trim($sname), trim($s)) === 0) {
-                                $servicesIds[] = $sid;
-                                $servicesNames[] = $sname;
+                                $servicesIds[] = intval($sid);
                                 break;
                             }
                         }
                     }
                 } else {
-                    $parts = array_filter(array_map('trim', explode(',', $opt['services'])));
+                    $parts = array_filter(array_map('trim', explode(',', $barberoActual['services'])));
                     foreach ($parts as $p) {
                         foreach ($opcionesServicios as $sid => $sname) {
                             if (strcasecmp(trim($sname), trim($p)) === 0) {
-                                $servicesIds[] = $sid;
-                                $servicesNames[] = $sname;
+                                $servicesIds[] = intval($sid);
                                 break;
                             }
                         }
@@ -93,27 +132,34 @@ function obtenerDatosBarberos(string $claveOpcion): array
                 }
             }
 
-            $opt['services_ids'] = $servicesIds;
-            if (empty($opt['services']) && ! empty($servicesIds)) {
-                $opt['services'] = array_map(function ($id) use ($serviciosMapIdANombre) {
-                    return $serviciosMapIdANombre[$id] ?? '';
-                }, $servicesIds);
-            }
+            $servicesIds = array_values(array_unique(array_filter($servicesIds)));
+            $barberoActual['services_ids'] = $servicesIds;
+            $barberoActual['services'] = array_map(function ($id) use ($serviciosMapIdANombre) {
+                return $serviciosMapIdANombre[intval($id)] ?? '';
+            }, $servicesIds);
 
-            $exists = false;
-            if (! empty($opt['term_id'])) {
-                foreach ($barberosCombinados as $m) {
-                    if (! empty($m['term_id']) && intval($m['term_id']) === intval($opt['term_id'])) {
-                        $exists = true;
+            $merged = false;
+            if (! empty($barberoActual['term_id'])) {
+                foreach ($barberosCombinados as $idx => $m) {
+                    if (! empty($m['term_id']) && intval($m['term_id']) === intval($barberoActual['term_id'])) {
+                        // Fusionar datos de servicios e imagen en la entrada existente del término
+                        $barberosCombinados[$idx]['services_ids'] = $barberoActual['services_ids'];
+                        $barberosCombinados[$idx]['services'] = $barberoActual['services'];
+                        if (!empty($barberoActual['image_id'])) {
+                            $barberosCombinados[$idx]['image_id'] = intval($barberoActual['image_id']);
+                        }
+                        $merged = true;
                         break;
                     }
                 }
             }
-            if (! $exists) {
-                $barberosCombinados[] = $opt;
+            if (! $merged) {
+                $barberosCombinados[] = $barberoActual;
             }
         }
     }
+
+    logBarberosDebug('Barberos combinados (previo a render)', $barberosCombinados);
 
     return [$opcionesServicios, $barberosCombinados, $serviciosMapIdANombre];
 }
@@ -134,11 +180,13 @@ function renderizarModalBarbero(array $opcionesServicios, array $barberos, strin
             'extraClass' => 'formularioBarberia',
             'atributos' => [
                 // Habilita el submit cuando el campo 'name' (nombre del barbero) esté presente
-                'data-fm-submit-enable-when' => 'name',
+                'data-fm-submit-habilitar-cuando' => 'name',
             ],
         ]],
         ['fn' => 'campoTexto', 'args' => ['nombre' => 'name', 'label' => 'Nombre', 'obligatorio' => true, 'classContainer' => 'name-field']],
-        ['fn' => 'campoCheckboxGrupo', 'args' => ['nombre' => 'services[]', 'label' => 'Servicios', 'opciones' => $opcionesServicios , 'valor' => array_keys($opcionesServicios), 'classContainer' => 'services-field']],
+        // No marcar todos por defecto; se preselecciona en modo edición vía AJAX
+        // Importante: usar unión "+" para NO reindexar keys numéricas (array_merge reindexa)
+        ['fn' => 'campoCheckboxGrupo', 'args' => ['nombre' => 'services[]', 'label' => 'Servicios', 'opciones' => (['all' => 'Todos los servicios'] + $opcionesServicios) , 'valor' => [], 'classContainer' => 'services-field']],
         ['fn' => 'campoImagen', 'args' => ['nombre' => 'image_id', 'label' => 'Imagen', 'valor' => '', 'classContainer' => 'image-field']],
         ['fn' => 'botonEnviar', 'args' => ['accion' => 'barbero', 'texto' => 'Guardar', 'extraClass' => 'button-primary']],
         ['fn' => 'fin'],
@@ -173,16 +221,62 @@ function columnasBarberos(array $opcionesServicios, array $servicios_map_id_to_n
                 return '<img src="' . esc_url($avatar_url) . '" alt="' . esc_attr($b['name'] ?? '') . '" width="80" height="80" class="barbero-avatar-placeholder">';
             }],
             ['etiqueta' => 'Nombre', 'clave' => 'name'],
-            ['etiqueta' => 'Servicios', 'clave' => 'services', 'callback' => function ($b) use ($servicios_map_id_to_name) {
-                $services = [];
-                if (!empty($b['services']) && is_array($b['services'])) {
-                    $services = $b['services'];
-                } elseif (!empty($b['services_ids']) && is_array($b['services_ids'])) {
-                    $services = array_map(function ($id) use ($servicios_map_id_to_name) {
-                        return $servicios_map_id_to_name[intval($id)] ?? '';
-                    }, $b['services_ids']);
+            ['etiqueta' => 'Servicios', 'clave' => 'services', 'callback' => function ($b) use ($servicios_map_id_to_name, $opcionesServicios) {
+                /* Ver logger */
+                logBarberosDebug('Render columna Servicios — entrada', $b);
+
+                // 1) IDs tal cual
+                $ids = [];
+                if (!empty($b['services_ids']) && is_array($b['services_ids'])) {
+                    $ids = array_map('intval', $b['services_ids']);
                 }
-                return esc_html(implode(', ', array_filter($services)));
+
+                // 2) Convertir nombres → IDs cuando no existan IDs
+                if (empty($ids) && !empty($b['services'])) {
+                    $nombresServ = is_array($b['services']) ? array_values(array_filter(array_map('trim', $b['services']))) : array_filter(array_map('trim', explode(',', (string) $b['services'])));
+                    foreach ($nombresServ as $nombreServ) {
+                        foreach ($servicios_map_id_to_name as $sid => $sname) {
+                            if (strcasecmp(trim($sname), trim($nombreServ)) === 0) {
+                                $ids[] = intval($sid);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                $ids = array_values(array_unique(array_filter($ids, static fn($v) => (int)$v !== 0)));
+                logBarberosDebug('Render columna Servicios — IDs normalizados', $ids);
+
+                // Detectar "Todos los servicios"
+                $allServiceIds = array_map('intval', array_keys($opcionesServicios));
+                if (!empty($ids) && empty(array_diff($allServiceIds, $ids))) {
+                    logBarberosDebug('Render columna Servicios — detectado TODOS', ['ids' => $ids]);
+                    return esc_html('Todos los servicios');
+                }
+
+                // Mapear IDs a nombres
+                $names = [];
+                if (!empty($ids)) {
+                    foreach ($ids as $id) {
+                        if (isset($servicios_map_id_to_name[$id])) {
+                            $names[] = $servicios_map_id_to_name[$id];
+                        }
+                    }
+                }
+
+                // Fallback: usar los nombres tal cual estaban en la entrada
+                if (empty($names) && !empty($b['services'])) {
+                    $names = is_array($b['services']) ? array_values(array_filter(array_map('trim', $b['services']))) : array_filter(array_map('trim', explode(',', (string) $b['services'])));
+                }
+
+                $names = array_values(array_filter($names));
+                logBarberosDebug('Render columna Servicios — nombres a mostrar', $names);
+
+                if (empty($names)) {
+                    return '';
+                }
+
+                return esc_html(implode(', ', $names));
             }],
             ['etiqueta' => 'Acciones', 'clave' => 'acciones', 'callback' => function ($b) use ($opcionesServicios) {
                 $objectId = $b['term_id'] ?? ($b['id'] ?? null);
@@ -196,7 +290,7 @@ function columnasBarberos(array $opcionesServicios, array $servicios_map_id_to_n
                     . ' data-form-mode="edit"'
                     . ' data-object-id="' . esc_attr($objectId) . '"'
                     . ' data-fetch-action="glory_get_barbero_details"'
-                    . ' data-submit-action="actualizarBarbero"'
+                    . ' data-submit-action="barbero"'
                     . ' data-submit-text="Guardar Cambios"'
                     . ' data-modal-title-edit="' . esc_attr('Editar Barbero') . '"'
                     . ' title="' . esc_attr('Editar') . '"><span class="dashicons dashicons-edit"></span></a>';

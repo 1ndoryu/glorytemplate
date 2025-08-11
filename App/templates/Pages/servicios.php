@@ -1,7 +1,4 @@
 <?php
-if (! defined('ABSPATH')) {
-    exit;
-}
 
 use Glory\Components\FormularioFluente;
 use Glory\Components\Modal;
@@ -139,7 +136,7 @@ function renderPaginaServicios()
         <h1>Servicios</h1>
 
         <div style="margin-bottom:12px;">
-            <button class="button button-primary openModal" data-modal="modalAnadirServicio" data-form-mode="create" data-modal-title-create="<?php echo esc_attr('Añadir Servicio'); ?>">Añadir Servicio</button>
+            <button class="button button-primary openModal" data-modal="modalAnadirServicio" data-form-mode="create" data-submit-action="guardarServicio" data-submit-text="Guardar" data-modal-title-create="<?php echo esc_attr('Añadir Servicio'); ?>">Añadir Servicio</button>
         </div>
 
         <table class="widefat fixed striped">
@@ -158,13 +155,20 @@ function renderPaginaServicios()
                         <td><?php echo intval($s['duration']); ?></td>
                         <td><?php echo number_format(floatval($s['price']), 2); ?></td>
                         <td>
-                            <form method="post" style="display:inline">
+                            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline">
                                 <?php wp_nonce_field('servicios_save','servicios_nonce'); ?>
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="id" value="<?php echo $index; ?>">
+                                <input type="hidden" name="action" value="glory_delete_servicio">
+                                <input type="hidden" name="term_id" value="<?php echo intval($s['term_id'] ?? 0); ?>">
+                                <input type="hidden" name="name" value="<?php echo esc_attr($s['name']); ?>">
                                 <button class="button button-danger" type="submit">Eliminar</button>
                             </form>
-                            <a href="#" class="openModal button edit-servicio" data-modal="modalAnadirServicio" data-form-mode="edit" data-id="<?php echo $index; ?>" data-name="<?php echo esc_attr($s['name']); ?>" data-price="<?php echo esc_attr($s['price']); ?>" data-duration="<?php echo intval($s['duration']); ?>" data-term-id="<?php echo intval($s['term_id'] ?? 0); ?>" data-modal-title-edit="<?php echo esc_attr('Editar Servicio'); ?>">Editar</a>
+                            <a href="#" class="openModal button edit-servicio"
+                               data-modal="modalAnadirServicio"
+                               data-form-mode="edit"
+                               data-object-id="<?php echo intval($s['term_id'] ?? 0) ?: $index; ?>"
+                               data-fetch-action="glory_get_servicio_details"
+                               data-submit-action="guardarServicio"
+                               data-modal-title-edit="<?php echo esc_attr('Editar Servicio'); ?>">Editar</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -180,6 +184,9 @@ function renderPaginaServicios()
                     'action' => $action,
                     'method' => 'post',
                     'extraClass' => 'formularioBarberia',
+                    'atributos' => [
+                        'data-fm-submit-habilitar-cuando' => 'name',
+                    ],
                 ]],
                 ['fn' => 'campoTexto', 'args' => ['nombre' => 'name', 'label' => 'Nombre', 'obligatorio' => true]],
                 ['fn' => 'campoTexto', 'args' => ['nombre' => 'duration', 'label' => 'Duración (min)']],
@@ -196,42 +203,7 @@ function renderPaginaServicios()
         renderModalServicio();
         ?>
 
-        <script>
-        (function(){
-            document.addEventListener('gloryModal:open', function(e){
-                var trigger = e.detail && e.detail.trigger;
-                if (!trigger) return;
-                var mode = trigger.dataset.formMode || trigger.getAttribute('data-form-mode') || 'create';
-                var modal = document.getElementById(trigger.dataset.modal);
-                if (!modal) return;
-                var title = mode === 'edit' ? (trigger.dataset.modalTitleEdit || trigger.getAttribute('data-modal-title-edit')) : (trigger.dataset.modalTitleCreate || trigger.getAttribute('data-modal-title-create'));
-                if (title) {
-                    var h2 = modal.querySelector('.modalContenido h2');
-                    if (h2) h2.textContent = title;
-                }
-                if (mode === 'edit') {
-                    var id = trigger.dataset.id || '';
-                    var name = trigger.dataset.name || '';
-                    var price = trigger.dataset.price || '';
-                    var duration = trigger.dataset.duration || '';
-                    var termId = trigger.dataset.termId || '';
-                    var form = modal.querySelector('.formularioBarberia');
-                    if (form) {
-                        var elId = form.querySelector('#servicio-id'); if (elId) elId.value = id || termId || '';
-                        var elName = form.querySelector('[name="name"]'); if (elName) elName.value = name;
-                        var elPrice = form.querySelector('[name="price"]'); if (elPrice) elPrice.value = price;
-                        var elDuration = form.querySelector('[name="duration"]'); if (elDuration) elDuration.value = duration;
-                    }
-                } else {
-                    var form = modal.querySelector('.formularioBarberia');
-                    if (form) {
-                        form.querySelectorAll('input[type="text"]').forEach(function(i){ i.value = ''; });
-                        var hid = form.querySelector('#servicio-id'); if (hid) hid.value = '';
-                    }
-                }
-            });
-        })();
-        </script>
+        
     </div>
     <?php
 }

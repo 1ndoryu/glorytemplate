@@ -17,6 +17,9 @@ class BarberoHandler implements FormHandlerInterface
     {
         $barberos = get_option($this->optionKey, []);
         $action = $postDatos['action'] ?? '';
+        if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+            error_log('[Barberos][Handler] POST recibido: ' . wp_json_encode($postDatos));
+        }
 
         if ($action === 'delete' && ! empty($postDatos['id'])) {
             $id = intval($postDatos['id']);
@@ -33,8 +36,60 @@ class BarberoHandler implements FormHandlerInterface
             }
         } else {
             $name = sanitize_text_field($postDatos['name'] ?? '');
-            $services = sanitize_text_field($postDatos['services'] ?? '');
-            $services_arr = array_filter(array_map('trim', explode(',', $services)));
+
+            // Normalizar servicios desde el formulario: aceptar tanto 'services' (string) como 'services' (array de IDs)
+            $servicesIds = [];
+            if (isset($postDatos['services'])) {
+                if (is_array($postDatos['services'])) {
+                    // Grupo de checkboxes name="services[]" → PHP recibe key 'services'
+                    // Soportar opción especial "all" o "*" que indica todos los servicios
+                    if (in_array('all', $postDatos['services'], true) || in_array('*', $postDatos['services'], true)) {
+                        $servicios_terms = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false]);
+                        foreach ($servicios_terms as $st) {
+                            $servicesIds[] = intval($st->term_id);
+                        }
+                    } else {
+                        $servicesIds = array_values(array_unique(array_map('intval', $postDatos['services'])));
+                    }
+                } elseif (is_string($postDatos['services'])) {
+                    // Cadena separada por comas (IDs o nombres)
+                    $parts = array_filter(array_map('trim', explode(',', $postDatos['services'])));
+                    foreach ($parts as $p) {
+                        if (is_numeric($p)) {
+                            $servicesIds[] = intval($p);
+                        } else {
+                            if ($p === 'all' || $p === '*') {
+                                $servicios_terms = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false]);
+                                foreach ($servicios_terms as $st) {
+                                    $servicesIds[] = intval($st->term_id);
+                                }
+                                continue;
+                            }
+                            // Buscar por nombre de servicio si se envió texto
+                            $term = get_term_by('name', $p, 'servicio');
+                            if ($term && !is_wp_error($term)) {
+                                $servicesIds[] = intval($term->term_id);
+                            }
+                        }
+                    }
+                    $servicesIds = array_values(array_unique($servicesIds));
+                }
+            }
+
+            if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                error_log('[Barberos][Handler] servicesIds normalizados: ' . wp_json_encode($servicesIds));
+            }
+
+            // Construir nombres de servicios para almacenamiento legible
+            $services_arr = [];
+            if (!empty($servicesIds)) {
+                foreach ($servicesIds as $sid) {
+                    $t = get_term($sid, 'servicio');
+                    if ($t && !is_wp_error($t)) {
+                        $services_arr[] = $t->name;
+                    }
+                }
+            }
 
             $image_id = 0;
             if (! empty($archivos['image']['name'])) {
@@ -49,41 +104,81 @@ class BarberoHandler implements FormHandlerInterface
                 $image_id = intval($postDatos['image_id']);
             }
 
-            $editing = isset($postDatos['id']) && $postDatos['id'] !== '';
-            if ($editing) {
-                $id = intval($postDatos['id']);
-                if (isset($barberos[$id])) {
-                    $barberos[$id]['name'] = $name;
-                    $barberos[$id]['services'] = $services_arr;
-                    if ($image_id) {
-                        $barberos[$id]['image_id'] = $image_id;
-                    }
-
-                    $term_id = ! empty($barberos[$id]['term_id']) ? intval($barberos[$id]['term_id']) : 0;
-                    if ($term_id && term_exists($term_id, 'barbero')) {
-                        wp_update_term($term_id, 'barbero', ['name' => $name, 'slug' => sanitize_title($name)]);
-                    } else {
-                        $existing = term_exists($name, 'barbero');
-                        if ($existing === 0 || $existing === null) {
-                            $inserted = wp_insert_term($name, 'barbero', ['slug' => sanitize_title($name)]);
-                            if (! is_wp_error($inserted) && isset($inserted['term_id'])) {
-                                $term_id = intval($inserted['term_id']);
-                                $barberos[$id]['term_id'] = $term_id;
-                            }
-                        } else {
-                            $term_id = is_array($existing) ? intval($existing['term_id']) : intval($existing);
-                            $barberos[$id]['term_id'] = $term_id;
+            // Detectar edición: soportar 'id' (índice), 'objectId' (term_id desde el modal), o 'term_id'
+            $editing = false;
+            $indexUpdate = null;
+            $termIdUpdate = 0;
+            if (isset($postDatos['id']) && $postDatos['id'] !== '') {
+                $indexUpdate = intval($postDatos['id']);
+                $editing = isset($barberos[$indexUpdate]);
+            } else {
+                $objectId = isset($postDatos['objectId']) ? intval($postDatos['objectId']) : 0;
+                $termIdPost = isset($postDatos['term_id']) ? intval($postDatos['term_id']) : 0;
+                $termIdUpdate = $objectId ?: $termIdPost;
+                if ($termIdUpdate > 0) {
+                    foreach ($barberos as $idx => $b) {
+                        if (!empty($b['term_id']) && intval($b['term_id']) === $termIdUpdate) {
+                            $indexUpdate = $idx;
+                            $editing = true;
+                            break;
                         }
                     }
+                }
+            }
 
-                    if ($term_id) {
-                        update_term_meta($term_id, 'image_id', $image_id);
+            if ($editing) {
+                $id = ($indexUpdate !== null) ? $indexUpdate : 0;
+                // Si no se encontró entrada existente, crear una nueva asociada al término
+                if (!isset($barberos[$id])) {
+                    $barberos[$id] = [];
+                }
+                $barberos[$id]['name'] = $name;
+                $barberos[$id]['services'] = $services_arr;
+                $barberos[$id]['services_ids'] = $servicesIds;
+                if ($image_id) {
+                    $barberos[$id]['image_id'] = $image_id;
+                }
+
+                $term_id = ! empty($barberos[$id]['term_id']) ? intval($barberos[$id]['term_id']) : 0;
+                if (!$term_id && $termIdUpdate > 0) {
+                    $term_id = $termIdUpdate;
+                    $barberos[$id]['term_id'] = $term_id;
+                }
+                if ($term_id && term_exists($term_id, 'barbero')) {
+                    wp_update_term($term_id, 'barbero', ['name' => $name, 'slug' => sanitize_title($name)]);
+                } else {
+                    $existing = term_exists($name, 'barbero');
+                    if ($existing === 0 || $existing === null) {
+                        $inserted = wp_insert_term($name, 'barbero', ['slug' => sanitize_title($name)]);
+                        if (! is_wp_error($inserted) && isset($inserted['term_id'])) {
+                            $term_id = intval($inserted['term_id']);
+                            $barberos[$id]['term_id'] = $term_id;
+                        }
+                    } else {
+                        $term_id = is_array($existing) ? intval($existing['term_id']) : intval($existing);
+                        $barberos[$id]['term_id'] = $term_id;
+                    }
+                }
+
+                if ($term_id) {
+                    if ($image_id) update_term_meta($term_id, 'image_id', $image_id);
+                    // Si seleccionó todos, marcar bandera para UI
+                    $allIds = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false, 'fields' => 'ids']);
+                    if (is_array($allIds) && !array_diff(array_map('intval', $allIds), $servicesIds)) {
+                        update_term_meta($term_id, 'servicios_all', '1');
+                    } else {
+                        delete_term_meta($term_id, 'servicios_all');
+                    }
+                    update_term_meta($term_id, 'servicios', $servicesIds);
+                    if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                        error_log('[Barberos][Handler] Edit guardado term_id=' . $term_id . ' services=' . wp_json_encode($servicesIds));
                     }
                 }
             } else {
                 $new_entry = [
                     'name' => $name,
                     'services' => $services_arr,
+                    'services_ids' => $servicesIds,
                     'image_id' => $image_id,
                 ];
 
@@ -93,17 +188,41 @@ class BarberoHandler implements FormHandlerInterface
                     if (! is_wp_error($inserted) && isset($inserted['term_id'])) {
                         $new_entry['term_id'] = intval($inserted['term_id']);
                         update_term_meta($new_entry['term_id'], 'image_id', $image_id);
+                        // Bandera de todos
+                        $allIds = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false, 'fields' => 'ids']);
+                        if (is_array($allIds) && !array_diff(array_map('intval', $allIds), $servicesIds)) {
+                            update_term_meta($new_entry['term_id'], 'servicios_all', '1');
+                        } else {
+                            delete_term_meta($new_entry['term_id'], 'servicios_all');
+                        }
+                        update_term_meta($new_entry['term_id'], 'servicios', $servicesIds);
+                        if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                            error_log('[Barberos][Handler] Create guardado term_id=' . $new_entry['term_id'] . ' services=' . wp_json_encode($servicesIds));
+                        }
                     }
                 } else {
                     $term_id = is_array($existing) ? intval($existing['term_id']) : intval($existing);
                     $new_entry['term_id'] = $term_id;
                     update_term_meta($term_id, 'image_id', $image_id);
+                    $allIds = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false, 'fields' => 'ids']);
+                    if (is_array($allIds) && !array_diff(array_map('intval', $allIds), $servicesIds)) {
+                        update_term_meta($term_id, 'servicios_all', '1');
+                    } else {
+                        delete_term_meta($term_id, 'servicios_all');
+                    }
+                    update_term_meta($term_id, 'servicios', $servicesIds);
+                    if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                        error_log('[Barberos][Handler] Link existente term_id=' . $term_id . ' services=' . wp_json_encode($servicesIds));
+                    }
                 }
 
                 $barberos[] = $new_entry;
             }
 
             update_option($this->optionKey, array_values($barberos));
+        if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+            error_log('[Barberos][Handler] Option guardada: total=' . count($barberos));
+        }
             return ['alert' => 'Barbero guardado correctamente.'];
         }
 
@@ -134,7 +253,37 @@ class BarberoHandler implements FormHandlerInterface
         $image_id = get_term_meta($term->term_id, 'image_id', true);
         $image_url = $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : '';
         $services_ids = get_term_meta($term->term_id, 'servicios', true);
+        if (!is_array($services_ids)) {
+            // Fallback: intentar recuperar desde options (para barberos antiguos)
+            $services_ids = [];
+            $barberos = get_option('barberia_barberos', []);
+            $servicios_terms = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false]);
+            $nombre_to_id = [];
+            if (!is_wp_error($servicios_terms)) {
+                foreach ($servicios_terms as $st) {
+                    $nombre_to_id[strtolower(trim($st->name))] = intval($st->term_id);
+                }
+            }
+            foreach ($barberos as $b) {
+                $matches = false;
+                if (!empty($b['term_id']) && intval($b['term_id']) === $term->term_id) $matches = true;
+                if (!$matches && !empty($b['name']) && strcasecmp(trim($b['name']), trim($term->name)) === 0) $matches = true;
+                if ($matches) {
+                    if (!empty($b['services_ids']) && is_array($b['services_ids'])) {
+                        $services_ids = array_map('intval', $b['services_ids']);
+                    } elseif (!empty($b['services'])) {
+                        $names = is_array($b['services']) ? $b['services'] : array_filter(array_map('trim', explode(',', $b['services'])));
+                        foreach ($names as $n) {
+                            $key = strtolower(trim($n));
+                            if (isset($nombre_to_id[$key])) $services_ids[] = $nombre_to_id[$key];
+                        }
+                    }
+                    break;
+                }
+            }
+        }
 
+        $allFlag = get_term_meta($term->term_id, 'servicios_all', true) === '1';
         $data = [
             'name' => $term->name,
             'term_id' => $term->term_id,
@@ -143,6 +292,7 @@ class BarberoHandler implements FormHandlerInterface
                 'url' => $image_url,
             ],
             'services[]' => is_array($services_ids) ? $services_ids : [],
+            'services_all' => $allFlag ? '1' : '0',
         ];
 
         wp_send_json_success($data);

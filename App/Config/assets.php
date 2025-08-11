@@ -43,12 +43,12 @@ AssetManager::defineFolder(
 // SCRIPT FOR DYNAMIC TIME SLOTS IN THE RESERVATION MODAL
 AssetManager::define(
     'script',
-    'tema-reserva-admin-logica',
+    'tema-reserva-frontend-logica',
     '/assets/js/glory-reserva-publica.js',
     [
         'deps'      => ['jquery', 'glory-ajax'],
         'in_footer' => true,
-        'area'      => 'admin',
+        'area'      => 'both',
         'localize'  => [
             'nombreObjeto' => 'dataGlobal',
             'datos'        => [

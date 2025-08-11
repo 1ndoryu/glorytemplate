@@ -103,3 +103,6 @@ OpcionManager::register('glory_custom_header_scripts', [
 ]);
 
 // Colores del scheduler: ahora se registran dinámicamente según los términos de la taxonomía 'servicio'.
+
+// --- Componentes del tema (solo los específicos del proyecto/tema) ---
+// Nota: Las claves core del framework se resuelven ahora con alias dentro de GloryFeatures::isActive().

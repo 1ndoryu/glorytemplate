@@ -219,32 +219,15 @@ function columnasReservas(): array
 function renderModalReserva(array $opcionesServicios, array $opcionesBarberos): void
 {
     $config = [
-        ['fn' => 'inicio', 'args' => [
-            'extraClass' => 'formularioBarberia',
-            'atributos'  => [
-                'data-post-type'   => 'reserva',
-                'data-post-status' => 'publish',
-                'data-fm-submit-enable-when' => 'nombre_cliente,telefono_cliente,correo_cliente,servicio_id,barbero_id,fecha_reserva,hora_reserva',
-            ]
-        ]],
+        ['fn' => 'inicio', 'args' => ['extraClass' => 'formularioBarberia', 'atributos'  => ['data-post-type'   => 'reserva', 'data-post-status' => 'publish', 'data-fm-submit-habilitar-cuando' => 'nombre_cliente,telefono_cliente,correo_cliente,servicio_id,barbero_id,fecha_reserva,hora_reserva']]],
         ['fn' => 'campoTexto', 'args' => ['nombre' => 'nombre_cliente', 'label' => 'Nombre Cliente', 'obligatorio' => true]],
         ['fn' => 'campoTexto', 'args' => ['nombre' => 'telefono_cliente', 'label' => 'Teléfono', 'obligatorio' => true]],
         ['fn' => 'campoTexto', 'args' => ['nombre' => 'correo_cliente', 'label' => 'Correo', 'obligatorio' => true]],
-        ['fn' => 'campoSelect', 'args' => ['nombre' => 'servicio_id', 'label' => 'Servicio', 'opciones' => $opcionesServicios, 'obligatorio' => true, 'extraClassInput' => 'selector-servicio']],
+        // Barbero primero; Servicios depende del barbero seleccionado
         ['fn' => 'campoSelect', 'args' => ['nombre' => 'barbero_id', 'label' => 'Barbero', 'opciones' => $opcionesBarberos, 'obligatorio' => true, 'extraClassInput' => 'selector-barbero']],
+        ['fn' => 'campoSelect', 'args' => ['nombre' => 'servicio_id', 'label' => 'Servicio', 'opciones' => ['' => 'Selecciona un barbero'], 'obligatorio' => true, 'extraClassInput' => 'selector-servicio', 'atributosExtra' => ['data-fm-accion-opciones' => 'glory_servicios_por_barbero', 'data-fm-depende' => 'barbero_id', 'data-fm-placeholder-deshabilitado' => 'Selecciona un barbero']]],
         ['fn' => 'campoFecha', 'args' => ['nombre' => 'fecha_reserva', 'label' => 'Fecha', 'obligatorio' => true, 'extraClassInput' => 'selector-fecha']],
-        ['fn' => 'campoSelect', 'args' => [
-            'nombre'          => 'hora_reserva',
-            'label'           => 'Hora',
-            'opciones'        => ['' => 'Selecciona fecha, servicio y barbero'],
-            'obligatorio'     => true,
-            'extraClassInput' => 'selector-hora',
-            'atributosExtra'  => [
-                'data-fm-options-action' => 'glory_verificar_disponibilidad',
-                'data-fm-depends' => 'servicio_id,barbero_id,fecha_reserva',
-                'data-fm-placeholder-disabled' => 'Completa los campos anteriores',
-            ],
-        ]],
+        ['fn' => 'campoSelect', 'args' => ['nombre' => 'hora_reserva', 'label' => 'Hora', 'opciones' => ['' => 'Selecciona fecha, servicio y barbero'], 'obligatorio' => true, 'extraClassInput' => 'selector-hora', 'atributosExtra' => ['data-fm-accion-opciones' => 'glory_verificar_disponibilidad', 'data-fm-depende' => 'barbero_id,servicio_id,fecha_reserva', 'data-fm-placeholder-deshabilitado' => 'Completa los campos anteriores']]],
         ['fn' => 'botonEnviar', 'args' => ['accion' => 'crearReserva', 'texto' => 'Guardar Reserva', 'extraClass' => 'button-primary']],
         ['fn' => 'fin'],
     ];
@@ -263,32 +246,34 @@ function imprimirScriptsColoresServicios(): void
     $nonce = wp_create_nonce('glory_color_servicio');
 ?>
     <script>
-    jQuery(function($){
-        $(document).on('change', '.glory-color-servicio-picker', function(){
-            var $input = $(this);
-            var slug = $input.data('slug');
-            var color = $input.val();
-            $input.prop('disabled', true);
-            $.post(ajaxurl, {
-                action: 'glory_actualizar_color_servicio',
-                slug: slug,
-                color: color,
-                _wpnonce: '<?php echo esc_js($nonce); ?>'
-            }).done(function(resp){
-                if (resp && resp.success) {
-                    // Actualizar el punto de color adyacente
-                    var $dot = $input.siblings('.glory-servicio-dot');
-                    if ($dot.length) { $dot.css('background-color', color); }
-                } else {
-                    alert((resp && resp.data && resp.data.mensaje) ? resp.data.mensaje : 'No se pudo guardar el color.');
-                }
-            }).fail(function(){
-                alert('Error de red al guardar el color.');
-            }).always(function(){
-                $input.prop('disabled', false);
+        jQuery(function($) {
+            $(document).on('change', '.glory-color-servicio-picker', function() {
+                var $input = $(this);
+                var slug = $input.data('slug');
+                var color = $input.val();
+                $input.prop('disabled', true);
+                $.post(ajaxurl, {
+                    action: 'glory_actualizar_color_servicio',
+                    slug: slug,
+                    color: color,
+                    _wpnonce: '<?php echo esc_js($nonce); ?>'
+                }).done(function(resp) {
+                    if (resp && resp.success) {
+                        // Actualizar el punto de color adyacente
+                        var $dot = $input.siblings('.glory-servicio-dot');
+                        if ($dot.length) {
+                            $dot.css('background-color', color);
+                        }
+                    } else {
+                        alert((resp && resp.data && resp.data.mensaje) ? resp.data.mensaje : 'No se pudo guardar el color.');
+                    }
+                }).fail(function() {
+                    alert('Error de red al guardar el color.');
+                }).always(function() {
+                    $input.prop('disabled', false);
+                });
             });
         });
-    });
     </script>
 <?php
 }

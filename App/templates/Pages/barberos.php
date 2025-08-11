@@ -19,6 +19,9 @@ function renderPaginaBarberos()
 ?>
     <div class="wrap wrap-barberos-admin">
         <h1>Barberos</h1>
+        <?php if (!empty($_GET['deleted'])): ?>
+            <div class="notice notice-success is-dismissible"><p><?php echo esc_html('Barbero eliminado correctamente.'); ?></p></div>
+        <?php endif; ?>
 
         <div style="margin-bottom:12px;">
             <button class="button button-primary openModal" data-modal="modalAnadirBarbero" data-form-mode="create" data-modal-title-create="<?php echo esc_attr('Añadir Barbero'); ?>">Añadir Barbero</button>

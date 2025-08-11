@@ -41,7 +41,7 @@ function renderPaginaReservarPublica()
                 'atributos'  => [
                     'data-post-type'   => 'reserva',
                     'data-post-status' => 'publish',
-                    'data-fm-submit-enable-when' => 'nombre_cliente,telefono_cliente,correo_cliente,servicio_id,barbero_id,fecha_reserva,hora_reserva',
+                    'data-fm-submit-habilitar-cuando' => 'nombre_cliente,telefono_cliente,correo_cliente,servicio_id,barbero_id,fecha_reserva,hora_reserva',
                 ]
             ]);
 
@@ -68,19 +68,25 @@ function renderPaginaReservarPublica()
 
 
             echo '<div class="filaFormulario">';
-            echo FormBuilder::campoSelect([
-                'nombre'          => 'servicio_id',
-                'label'           => 'Elige un Servicio',
-                'opciones'        => $opcionesServicios,
-                'obligatorio'     => true,
-                'extraClassInput' => 'selector-servicio'
-            ]);
+            // Barbero primero; el servicio depende del barbero
             echo FormBuilder::campoSelect([
                 'nombre'          => 'barbero_id',
                 'label'           => 'Elige un Barbero',
                 'opciones'        => $opcionesBarberos,
                 'obligatorio'     => true,
                 'extraClassInput' => 'selector-barbero'
+            ]);
+            echo FormBuilder::campoSelect([
+                'nombre'          => 'servicio_id',
+                'label'           => 'Elige un Servicio',
+                'opciones'        => ['' => 'Selecciona un barbero'],
+                'obligatorio'     => true,
+                'extraClassInput' => 'selector-servicio',
+                'atributosExtra'  => [
+                    'data-fm-accion-opciones' => 'glory_servicios_por_barbero',
+                    'data-fm-depende' => 'barbero_id',
+                    'data-fm-placeholder-deshabilitado' => 'Selecciona un barbero',
+                ]
             ]);
             echo '</div>';
 
@@ -100,9 +106,9 @@ function renderPaginaReservarPublica()
                 'obligatorio'     => true,
                 'extraClassInput' => 'selector-hora',
                 'atributosExtra'  => [
-                    'data-fm-options-action' => 'glory_verificar_disponibilidad',
-                    'data-fm-depends' => 'servicio_id,barbero_id,fecha_reserva',
-                    'data-fm-placeholder-disabled' => 'Completa los campos anteriores',
+                    'data-fm-accion-opciones' => 'glory_verificar_disponibilidad',
+                    'data-fm-depende' => 'barbero_id,servicio_id,fecha_reserva',
+                    'data-fm-placeholder-deshabilitado' => 'Completa los campos anteriores',
                 ]
             ]);
             echo '</div>';
