@@ -31,6 +31,12 @@ function renderPaginaBarberos()
 
             <?php
             $opcionesServiciosFiltro = array_merge(['' => 'Todos los servicios'], $opcionesServicios);
+            $opcionesFiltros = [
+                'preservar_keys' => ['orderby', 'order'],
+            ];
+            if (!is_admin()) {
+                $opcionesFiltros['ajax_action'] = 'glory_filtrar_barberos';
+            }
             BarraFiltrosRenderer::render([
                 [
                     'tipo' => 'search',
@@ -45,9 +51,7 @@ function renderPaginaBarberos()
                     'label' => 'Servicio',
                     'opciones' => $opcionesServiciosFiltro
                 ],
-            ], [
-                'preservar_keys' => ['orderby', 'order'],
-            ]);
+            ], $opcionesFiltros);
             ?>
             
         </div>

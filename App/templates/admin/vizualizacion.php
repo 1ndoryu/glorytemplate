@@ -38,11 +38,13 @@ function renderPaginaVisualizacion()
             'horaInicio' => '09:00',
             'horaFin' => '21:00',
             'intervalo' => 15,
+            'pxPorMinuto' => 2,
             'mapeoColores' => $mapeoColores,
         ];
 
         SchedulerRenderer::render($eventos, $configScheduler);
-        renderizarScriptNavegacionFecha(); ?>
+        renderizarScriptNavegacionFecha();
+        renderizarScriptVerTodo(); ?>
     </div>
 <?php
 }

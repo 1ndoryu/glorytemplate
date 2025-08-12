@@ -1,22 +1,53 @@
 :root {
-    --fondo: #080808; /*Post*/
-    --borde: 1px #161616 solid;
+    --fondo: #070707; /*Post*/
+    --borde: 1px #e5e7eb solid;
     --radius: 5px;
     --bordeBoton: 1px #1f1f1f8c solid;
     --padding: 20px;
     --ancho: 600px;
-    --blanco: #efefef;
+    --blanco: #f5f1e7;
+    --negro: #070707;
+    --font: 'Source Sans 3', Arial, Helvetica, sans-serif !important;
+    --font-serif: 'Source Serif 4', Arial, Helvetica, sans-serif !important;
+    --primero: #1a7b8b;
+    --segundo: #2a4a3c;
+    --tercero: #ebe2d3;
+    --cuarto: #5b4e3d;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Source+Sans+3:wght@200..900&display=swap');
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-x: hidden;
+}
+
+body,
+body p,
+textarea {
+    font-size: 14px;
+    /* line-height: 12px; */
+    display: block;
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    unicode-bidi: isolate;
+    color: var(--negro);
+    line-height: 1.8;
+    font-family: var(--font);
+    letter-spacing: 0px;
+    font-weight: 400px !important;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    text-decoration: none;
+    text-wrap: pretty;
+}
 
 html {
     background: var(--blanco);
-    font-size: 62.5%;
-}
-
-main {
-    width: 100%;
 }
 
 .firefox * {
@@ -63,6 +94,35 @@ img {
     gap: 20px;
 }
 
+.gap10 {
+    gap: 10px;
+}
+
+.gap40 {
+    gap: 40px;
+}
+
+.pa5 {
+    padding: 5px;
+}
+
+.pa20 {
+    padding: 20px;
+}
+
+.pa25 {
+    padding: 25px;
+}
+
+.pa40 {
+    padding: 40px;
+}
+
+a {
+    color: unset;
+    text-decoration: unset;
+}
+
 body.noScroll {
     overflow: hidden;
 }
@@ -95,31 +155,12 @@ body.noScroll {
     width: 50%;
 }
 
-body,
-body p,
-textarea {
-    font-size: 1.2rem;
-    display: block;
-    margin-block-start: 0em;
-    margin-block-end: 0em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-    unicode-bidi: isolate;
-    color: #d4d4d4;
-    line-height: 1.6;
-    font-family: 'Source Sans 3', Arial, Helvetica, sans-serif;
-    letter-spacing: 0px;
-    font-weight: 400px !important;
-    text-decoration: none;
-    text-wrap: pretty;
-    letter-spacing: 0px;
-    font-weight: 400px;
-    font-style: normal;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    text-decoration: none;
-    text-wrap: pretty;
+.row {
+    flex-direction: row;
+}
+
+.column {
+    flex-direction: column;
 }
 
 .firefox *::-webkit-scrollbar {
@@ -170,19 +211,19 @@ textarea {
 }
 
 .appAndroid p {
-    font-size: 1.4rem;
+    font-size: 14px;
 }
 
 .appAndroid button {
-    font-size: 1.4rem !important;
+    font-size: 14px !important;
 }
 
 .appAndroid a {
-    font-size: 1.4rem;
+    font-size: 14px;
 }
 
 .appAndroid .JHVSFW a {
-    font-size: 1.5rem !important;
+    font-size: 15px !important;
 }
 
 .appAndroid .ZVJVZA {
@@ -192,7 +233,7 @@ textarea {
 }
 
 .appAndroid .HQLXWD a {
-    font-size: 1.2rem;
+    font-size: 12px;
 }
 @media (max-width: 640px) {
     ::-webkit-scrollbar {
@@ -211,7 +252,7 @@ textarea {
 .appAndroid span.postTag,
 .appAndroid .badge,
 .appAndroid .postTagToggle {
-    font-size: 1.3rem !important;
+    font-size: 13px !important;
 }
 
 ul {
@@ -227,7 +268,7 @@ textarea {
     border: none;
     padding: 0px;
     margin-bottom: 10px;
-    font-size: 1.2rem;
+    font-size: 12px;
     background: none;
     resize: none;
     width: 100%;
@@ -249,7 +290,7 @@ button {
     display: flex;
     margin: 0px;
     color: #fff;
-    font-size: 1.2rem;
+    font-size: 12px;
     border-radius: 4px;
     cursor: pointer;
     padding: 8px 15px;
@@ -281,15 +322,9 @@ button {
     border: unset;
 }
 
-body {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-}
-
 label {
-    font-size: 1.2rem;
-    color: #a2a2a2;
+    font-size: 14px;
+    color: var(--negro);
 }
 
 * {
@@ -308,7 +343,7 @@ form {
 .heart-animation {
     animation: fade 2s ease forwards;
     color: red;
-    font-size: 3rem;
+    font-size: 30px;
 }
 
 .waveform-container {
@@ -328,7 +363,7 @@ form {
     width: 400px;
     max-width: 90%;
     z-index: 1006;
-    font-size: 1.1rem;
+    font-size: 11px;
     flex-direction: column;
     flex-wrap: nowrap;
     gap: 10px;
@@ -354,11 +389,11 @@ form {
 
 input,
 textarea {
-    background: unset !important;
-    padding: 7px 0px !important;
+    background: unset;
+    padding: 7px 0px;
     border-bottom: var(--borde) !important;
-    font-size: 1.2rem !important;
-    color: #d4d4d4 !important;
+    font-size: 14px;
+    color: var(--negro);
     border-radius: 0px;
     border: none;
     resize: none;
@@ -387,7 +422,7 @@ textarea:focus {
 }
 
 .pestanas button {
-    font-size: 1.3rem;
+    font-size: 13px;
     padding: 0px;
     font-weight: 500;
     opacity: 0.6;
@@ -413,7 +448,7 @@ textarea:focus {
 }
 
 .submenus a {
-    font-size: 1.2rem;
+    font-size: 12px;
     padding: 5px;
     padding-left: 10px;
     cursor: pointer;
@@ -435,4 +470,47 @@ textarea:focus {
     display: flex; /* o flex, grid, etc., según necesites */
 }
 
-/* Evita el scroll en el body cuando un menú está abierto */
+select {
+    border: unset;
+    background: unset;
+    font-family: 'Source Sans 3';
+    padding: 5px;
+    padding-left: 0px;
+    margin: unset;
+    font-size: 14px;
+    border-bottom: var(--borde);
+    outline: none; /* Esto elimina el borde negro al hacer clic */
+}
+
+/* Estilos de la notificación individual (sin posicionamiento) */
+.custom-notification {
+    padding: 15px;
+    border-radius: 5px;
+    background: var(--tercero) !important;
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    font-size: 13px;
+    padding-bottom: 12px;
+    flex-direction: column;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: notification-slide-in 0.3s ease-out forwards;
+    color: #000 !important;
+}
+
+/* ===== Colores dinámicos para iconos del botón de menú ===== */
+header.header.claro .menuToggle,
+header.header.claro .menuToggle svg,
+header.header.claro .icon-menu,
+header.header.claro .icon-close {
+    color: var(--negro);
+    fill: var(--negro);
+}
+
+header.header.oscuro .menuToggle,
+header.header.oscuro .menuToggle svg,
+header.header.oscuro .icon-menu,
+header.header.oscuro .icon-close {
+    color: var(--blanco);
+    fill: var(--blanco);
+}

@@ -9,7 +9,14 @@ AssetManager::defineFolder(
     '/assets/css/',
     ['deps' => [], 'media' => 'all'],
     'tema-',
-    ['vizualizacion.css', 'ganancias.css']
+    ['vizualizacion.css', 'ganancias.css', 'home.css']
+);
+
+AssetManager::define(
+    'style',
+    'tema-home-front',
+    '/assets/css/home.css',
+    ['media' => 'all', 'area' => 'frontend']
 );
 
 AssetManager::define(
@@ -57,6 +64,8 @@ AssetManager::define(
         ]
     ]
 );
+
+// Eliminado: reemplazado por Glory 'glory-gloryfilters'
 
 AssetManager::define(
     'script',

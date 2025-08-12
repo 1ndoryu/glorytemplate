@@ -39,6 +39,7 @@
     display: grid;
     grid-template-columns: 60px repeat(var(--columnas-grid, 3), 1fr);
     border-collapse: collapse;
+    overflow: hidden;
 }
 
 .celdaGrid {
@@ -46,7 +47,7 @@
     border-bottom: 1px solid #e0e0e0;
     padding: 4px;
     font-size: 12px;
-    min-height: 30px;
+    min-height: 22px;
 }
 
 /* Celdas de Encabezado */
@@ -88,7 +89,7 @@
     position: relative;
     pointer-events: auto;
     border-radius: 4px;
-    margin: 1px;
+    margin: 0;
     padding: 6px;
     color: #fff;
     overflow: hidden;
@@ -182,4 +183,16 @@
 form#formConfigColores {
     flex-direction: column;
     gap: 20px;
+}
+
+button.eventoVerTodoBtn {
+    all: unset;
+    white-space: nowrap;
+    padding: 4px 10px;
+    background: white;
+    height: fit-content;
+    border-radius: 50px;
+    margin: auto;
+    cursor: pointer;
+    font-size: 11px;
 }

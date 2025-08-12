@@ -14,6 +14,13 @@ PageManager::define('home', 'home');
 #PageManager::define('panel', 'renderPanel', null, ['administrator']);
 PageManager::define('reservar', 'renderPaginaReservarPublica');
 
-# test
-# CreditosManager::init();
-# CreditosManager::recargaPeriodica(true, 10, 1);
+# Permitir configurar gloryAjaxNav desde el tema (selectors, etc.)
+add_filter('glory/nav_config', function(array $config): array {
+    // Ajusta aquí los selectores por defecto del tema
+    $config['contentSelector'] = '#main';
+    $config['mainScrollSelector'] = '#main';
+    // $config['loadingBarSelector'] = '#loadingBar'; // opcional
+    // $config['cacheEnabled'] = true; // opcional
+    return $config;
+});
+

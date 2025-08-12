@@ -25,6 +25,7 @@ GloryFeatures::disable('headerAdaptativo');
 GloryFeatures::enable('alertas');
 GloryFeatures::enable('gestionarPreviews');
 GloryFeatures::enable('paginacion');
+GloryFeatures::enable('gloryFilters');
 
 //Services
 GloryFeatures::disable('cssCritico');

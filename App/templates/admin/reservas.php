@@ -19,7 +19,6 @@ function renderPaginaReservas()
     $opcionesBarberos  = gloryOpcionesTaxonomia('barbero', 'Selecciona un barbero');
     $consultaReservas      = consultaReservas();
     $configuracionColumnas = columnasReservas();
-    // moved: allowed_html and filtros_separados are defined in columnasReservas()
 ?>
     <h1><?php echo 'Panel de Reservas'; ?></h1>
     <div class="acciones-reservas" style="flex-direction: column; gap: 10px; align-items: flex-start;">
@@ -32,15 +31,19 @@ function renderPaginaReservas()
             </button>
         </div>
         <?php
+        $opcionesFiltros = [
+            'preservar_keys' => ['orderby', 'order'],
+        ];
+        if (!is_admin()) {
+            $opcionesFiltros['ajax_action'] = 'glory_filtrar_reservas';
+        }
         BarraFiltrosRenderer::render([
             ['tipo' => 'search', 'name' => 's', 'label' => 'Cliente', 'placeholder' => 'Buscar por nombre…'],
             ['tipo' => 'date', 'name' => 'fecha_desde', 'label' => 'Desde'],
             ['tipo' => 'date', 'name' => 'fecha_hasta', 'label' => 'Hasta'],
             ['tipo' => 'select', 'name' => 'filtro_servicio', 'label' => 'Servicio', 'opciones' => $opcionesServicios],
             ['tipo' => 'select', 'name' => 'filtro_barbero', 'label' => 'Barbero', 'opciones' => $opcionesBarberos],
-        ], [
-            'preservar_keys' => ['orderby', 'order'],
-        ]);
+        ], $opcionesFiltros);
         ?>
     </div>
 <?php

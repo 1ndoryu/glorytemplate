@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use Glory\Manager\OpcionManager;
 use Glory\Core\OpcionRepository;
@@ -32,19 +32,28 @@ function registrarOpcionesColoresServiciosDinamico(): void
     // Mapeo de colores sugeridos por categorías (según el documento del proyecto)
     $categorias = [
         '#8BC34A' => [
-            'corte-de-pelo', 'corte-extra-degradado', 'arreglo-de-cuello', 'corte-al-cero', 'lavar', 'lavar-y-peinar'
+            'corte-de-pelo',
+            'corte-extra-degradado',
+            'arreglo-de-cuello',
+            'corte-al-cero',
+            'lavar',
+            'lavar-y-peinar'
         ],
         '#FF9800' => [
-            'arreglo-y-perfilado-de-barba', 'arreglo-de-barba'
+            'arreglo-y-perfilado-de-barba',
+            'arreglo-de-barba'
         ],
         '#F44336' => [
-            'corte-y-arreglo-de-barba', 'corte-y-afeitado'
+            'corte-y-arreglo-de-barba',
+            'corte-y-afeitado'
         ],
         '#FFEB3B' => [
-            'afeitado-de-barba', 'afeitado-de-cabeza'
+            'afeitado-de-barba',
+            'afeitado-de-cabeza'
         ],
         '#2196F3' => [
-            'tinte-de-pelo', 'tinte-de-barba'
+            'tinte-de-pelo',
+            'tinte-de-barba'
         ],
     ];
 
@@ -121,19 +130,19 @@ function obtenerFechaSeleccionada()
 
 function renderizarFormularioFecha(string $fecha)
 {
-    ?>
+?>
     <form method="get" class="formDatepicker">
         <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>">
         <input type="date" id="fecha_visualizacion" name="fecha_visualizacion" value="<?php echo esc_attr($fecha); ?>">
         <button type="submit" class="button"><?php echo esc_html('Ver Fecha'); ?></button>
     </form>
-    <?php
+<?php
 }
 
 function renderizarConfiguradorColores(array $definiciones)
 {
-    ?>
-    
+?>
+
 
     <form method="post" id="formConfigColores" class="form-config-colores" style="margin-bottom: 20px;">
         <?php wp_nonce_field('guardar_colores_scheduler'); ?>
@@ -164,48 +173,52 @@ function renderizarConfiguradorColores(array $definiciones)
     </form>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var boton = document.getElementById('toggleConfigColores');
-        var form = document.getElementById('formConfigColores');
-        if (boton && form) {
-            boton.addEventListener('click', function() {
-                form.classList.toggle('is-visible');
-            });
-        }
-    });
+        document.addEventListener('DOMContentLoaded', function() {
+            var boton = document.getElementById('toggleConfigColores');
+            var form = document.getElementById('formConfigColores');
+            if (boton && form) {
+                boton.addEventListener('click', function() {
+                    form.classList.toggle('is-visible');
+                });
+            }
+        });
     </script>
-    <?php
+<?php
 }
 
 function renderizarScriptNavegacionFecha()
 {
-    ?>
+?>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var inputFecha = document.getElementById('fecha_visualizacion');
-        var form = document.querySelector('.formDatepicker');
-        var btnPrev = document.getElementById('diaAnteriorBtn');
-        var btnNext = document.getElementById('diaSiguienteBtn');
+        document.addEventListener('DOMContentLoaded', function() {
+            var inputFecha = document.getElementById('fecha_visualizacion');
+            var form = document.querySelector('.formDatepicker');
+            var btnPrev = document.getElementById('diaAnteriorBtn');
+            var btnNext = document.getElementById('diaSiguienteBtn');
 
-        function cambiarDia(offset) {
-            if (!inputFecha || !form) return;
-            var fechaActual = new Date(inputFecha.value + 'T00:00:00');
-            if (isNaN(fechaActual.getTime())) {
-                fechaActual = new Date();
+            function cambiarDia(offset) {
+                if (!inputFecha || !form) return;
+                var fechaActual = new Date(inputFecha.value + 'T00:00:00');
+                if (isNaN(fechaActual.getTime())) {
+                    fechaActual = new Date();
+                }
+                fechaActual.setDate(fechaActual.getDate() + offset);
+                var y = fechaActual.getFullYear();
+                var m = ('0' + (fechaActual.getMonth() + 1)).slice(-2);
+                var d = ('0' + fechaActual.getDate()).slice(-2);
+                inputFecha.value = y + '-' + m + '-' + d;
+                form.submit();
             }
-            fechaActual.setDate(fechaActual.getDate() + offset);
-            var y = fechaActual.getFullYear();
-            var m = ('0' + (fechaActual.getMonth() + 1)).slice(-2);
-            var d = ('0' + fechaActual.getDate()).slice(-2);
-            inputFecha.value = y + '-' + m + '-' + d;
-            form.submit();
-        }
 
-        if (btnPrev) btnPrev.addEventListener('click', function() { cambiarDia(-1); });
-        if (btnNext) btnNext.addEventListener('click', function() { cambiarDia(1); });
-    });
+            if (btnPrev) btnPrev.addEventListener('click', function() {
+                cambiarDia(-1);
+            });
+            if (btnNext) btnNext.addEventListener('click', function() {
+                cambiarDia(1);
+            });
+        });
     </script>
-    <?php
+<?php
 }
 
 function obtenerRecursos(): array
@@ -309,8 +322,166 @@ function construirMapaColores(array $definiciones): array
 
 function asegurarSinAsignar(array &$recursos, array $eventos)
 {
-    $haySinAsignar = array_reduce($eventos, function($acc, $ev) { return $acc || ($ev['recurso'] === 'Sin asignar'); }, false);
+    $haySinAsignar = array_reduce($eventos, function ($acc, $ev) {
+        return $acc || ($ev['recurso'] === 'Sin asignar');
+    }, false);
     if ($haySinAsignar && !in_array('Sin asignar', $recursos, true)) {
         array_unshift($recursos, 'Sin asignar');
     }
+}
+
+/**
+ * Inserta un script mínimo para asegurar scroll vertical en el contenedor del scheduler.
+ * Mantiene compatibilidad con llamadas existentes en la plantilla.
+ */
+function renderizarScriptVerTodo()
+{
+?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const CONTADOR_MS_POPUP = 4500;
+            const OVERFLOW_RATIO_THRESHOLD = 0.9; // Mostrar botón solo si se ve menos del 90% del contenido
+
+            function crearBotonParaBloque(bloque) {
+                if (!bloque) return;
+                const contenido = bloque.querySelector('.eventoContenido');
+                if (!contenido) return;
+                // Mostrar botón únicamente si el visible/total < 0.9 (tolerancia); si no, remover si existe
+                const total = Math.max(1, contenido.scrollHeight);
+                const visible = contenido.clientHeight;
+                const ratioVisible = visible / total;
+                const debeMostrar = ratioVisible < OVERFLOW_RATIO_THRESHOLD;
+
+                const existente = bloque.querySelector('.eventoVerTodoBtn');
+                if (!debeMostrar) {
+                    if (existente) {
+                        existente.remove();
+                    }
+                    delete bloque.dataset.btnVerTodoAgregado;
+                    return;
+                }
+
+                if (bloque.dataset.btnVerTodoAgregado === '1' && existente) return;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'eventoVerTodoBtn';
+                btn.textContent = 'ver completo';
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    expandirEnSitio(bloque, contenido);
+                });
+                bloque.appendChild(btn);
+                bloque.dataset.btnVerTodoAgregado = '1';
+            }
+
+            function crearBotonesVerTodo() {
+                document.querySelectorAll('.bloqueEvento').forEach(crearBotonParaBloque);
+            }
+
+            function expandirEnSitio(bloque, contenido) {
+                if (!bloque || !contenido) return;
+
+                // Si ya existe overlay, cerrarlo (toggle)
+                const existente = bloque.querySelector('.eventoOverlayExpand');
+                if (existente) {
+                    existente.remove();
+                    // restaurar overflow si lo cambiamos
+                    if (bloque.dataset._overflowPrevio) {
+                        bloque.style.overflow = bloque.dataset._overflowPrevio;
+                        delete bloque.dataset._overflowPrevio;
+                    }
+                    return;
+                }
+
+                // Crear overlay absoluto que expande hacia abajo sin mover el inicio del bloque
+                const overlay = document.createElement('div');
+                overlay.className = 'eventoOverlayExpand';
+                const estiloBloque = getComputedStyle(bloque);
+                overlay.style.position = 'absolute';
+                overlay.style.left = '0';
+                overlay.style.top = '0';
+                overlay.style.width = '100%';
+                overlay.style.minWidth = '220px';
+                overlay.style.padding = '8px';
+                overlay.style.borderRadius = estiloBloque.borderRadius || '4px';
+                // Mantener colores del bloque para coherencia visual
+                overlay.style.background = estiloBloque.backgroundColor || '#fff';
+                overlay.style.color = estiloBloque.color || '#1d2327';
+                overlay.style.boxShadow = '0 4px 16px rgba(0,0,0,0.25)';
+                overlay.style.zIndex = '10000';
+                overlay.style.pointerEvents = 'auto';
+
+                const clon = contenido.cloneNode(true);
+                clon.style.height = 'auto';
+                clon.style.maxHeight = 'none';
+                overlay.appendChild(clon);
+
+                // Permitir que sobresalga del bloque
+                if (!bloque.dataset._overflowPrevio) {
+                    bloque.dataset._overflowPrevio = bloque.style.overflow || '';
+                }
+                bloque.style.overflow = 'visible';
+                bloque.appendChild(overlay);
+
+                // Cerrar al cabo de unos segundos o al segundo click
+                const timeoutId = setTimeout(function() {
+                    overlay.remove();
+                    if (bloque.dataset._overflowPrevio !== undefined) {
+                        bloque.style.overflow = bloque.dataset._overflowPrevio;
+                        delete bloque.dataset._overflowPrevio;
+                    }
+                }, CONTADOR_MS_POPUP);
+
+                // Cancelar el timeout si el usuario cierra manualmente
+                overlay.addEventListener('click', function(ev) {
+                    ev.stopPropagation();
+                    overlay.remove();
+                    clearTimeout(timeoutId);
+                    if (bloque.dataset._overflowPrevio !== undefined) {
+                        bloque.style.overflow = bloque.dataset._overflowPrevio;
+                        delete bloque.dataset._overflowPrevio;
+                    }
+                });
+            }
+
+            // Ejecutar al cargar y reintentar tras el render del scheduler
+            const reintentos = [0, 60, 200, 600];
+            reintentos.forEach(function(delay) {
+                setTimeout(crearBotonesVerTodo, delay);
+            });
+
+            // Mutations: observar cuando la capa de eventos cambie
+            const capas = document.querySelectorAll('.glorySchedulerContenedor .capaEventos');
+            capas.forEach(function(capa) {
+                const obs = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(m) {
+                        m.addedNodes && m.addedNodes.forEach(function(n) {
+                            if (n.nodeType === 1) {
+                                if (n.classList.contains('bloqueEvento')) {
+                                    crearBotonParaBloque(n);
+                                } else {
+                                    // Si se agregan otros nodos, escanear por si acaso
+                                    n.querySelectorAll && n.querySelectorAll('.bloqueEvento').forEach(crearBotonParaBloque);
+                                }
+                            }
+                        });
+                    });
+                });
+                obs.observe(capa, {
+                    childList: true,
+                    subtree: true
+                });
+            });
+
+            // Por si hay listeners externos que disparan una recarga custom
+            document.addEventListener('gloryRecarga', function() {
+                // Asegurar que el layout haya aplicado alturas
+                requestAnimationFrame(function() {
+                    setTimeout(crearBotonesVerTodo, 0);
+                });
+            });
+        });
+    </script>
+<?php
 }

@@ -2,6 +2,8 @@
 // Callbacks AJAX para reservas (antes en funcionesAjax.php)
 
 use Glory\Core\OpcionRepository;
+use Glory\Components\DataGridRenderer;
+use WP_Query;
 
 function verificarDisponibilidadCallback()
 {
@@ -104,6 +106,141 @@ function actualizarColorServicioCallback() {
     } else {
         wp_send_json_error(['mensaje' => 'No se pudo guardar el color.']);
     }
+}
+
+/**
+ * AJAX: Filtrar reservas (frontend, tiempo real)
+ */
+function filtrarReservasAjaxCallback() {
+    // Construir args similares a consultaReservas() pero con $_POST
+    $pagina = isset($_POST['paged']) ? max(1, absint($_POST['paged'])) : 1;
+
+    $args = [
+        'post_type'      => 'reserva',
+        'posts_per_page' => 20,
+        'paged'          => $pagina,
+        'post_status'    => 'publish',
+        'meta_query'     => ['relation' => 'AND'],
+        'tax_query'      => ['relation' => 'AND'],
+    ];
+
+    // Búsqueda por nombre de cliente (título)
+    if (!empty($_POST['s'])) {
+        $args['s'] = sanitize_text_field((string) $_POST['s']);
+    }
+
+    // Filtro por rango de fechas
+    if (!empty($_POST['fecha_desde'])) {
+        $args['meta_query'][] = [
+            'key'     => 'fecha_reserva',
+            'value'   => sanitize_text_field((string) $_POST['fecha_desde']),
+            'compare' => '>=',
+            'type'    => 'DATE',
+        ];
+    }
+    if (!empty($_POST['fecha_hasta'])) {
+        $args['meta_query'][] = [
+            'key'     => 'fecha_reserva',
+            'value'   => sanitize_text_field((string) $_POST['fecha_hasta']),
+            'compare' => '<=',
+            'type'    => 'DATE',
+        ];
+    }
+
+    // Filtro por servicio (taxonomía)
+    if (!empty($_POST['filtro_servicio'])) {
+        $args['tax_query'][] = [
+            'taxonomy' => 'servicio',
+            'field'    => 'term_id',
+            'terms'    => absint((int) $_POST['filtro_servicio']),
+        ];
+    }
+
+    // Filtro por barbero (taxonomía)
+    if (!empty($_POST['filtro_barbero'])) {
+        $args['tax_query'][] = [
+            'taxonomy' => 'barbero',
+            'field'    => 'term_id',
+            'terms'    => absint((int) $_POST['filtro_barbero']),
+        ];
+    }
+
+    // Ordenamiento por columna (limitado a título por ahora)
+    $orderbyParam = isset($_POST['orderby']) ? sanitize_key((string) $_POST['orderby']) : '';
+    $orderParam   = (isset($_POST['order']) && strtolower((string) $_POST['order']) === 'desc') ? 'DESC' : 'ASC';
+    if ($orderbyParam === 'post_title') {
+        $args['orderby'] = 'title';
+        $args['order']   = $orderParam;
+    }
+
+    $query = new WP_Query($args);
+
+    // Reutilizar la configuración de columnas existente
+    if (!function_exists('columnasReservas')) {
+        wp_send_json_error(['mensaje' => 'Configuración no disponible.']);
+        return;
+    }
+    $configuracionColumnas = columnasReservas();
+
+    ob_start();
+    DataGridRenderer::render($query, $configuracionColumnas);
+    $html = ob_get_clean();
+
+    wp_send_json_success(['html' => $html]);
+}
+
+/**
+ * AJAX: Filtrar barberos (frontend, tiempo real)
+ */
+function filtrarBarberosAjaxCallback() {
+    $claveOpcion = 'barberia_barberos';
+
+    if (!function_exists('obtenerDatosBarberos') || !function_exists('columnasBarberos')) {
+        wp_send_json_error(['mensaje' => 'Configuración de barberos no disponible.']);
+        return;
+    }
+
+    list($opcionesServicios, $barberosCombinados, $serviciosMapIdANombre) = obtenerDatosBarberos($claveOpcion);
+
+    $s = isset($_POST['s']) ? sanitize_text_field((string) $_POST['s']) : '';
+    $filtroServicio = isset($_POST['filtro_servicio']) ? absint((int) $_POST['filtro_servicio']) : 0;
+
+    $filtrados = array_filter($barberosCombinados, function ($b) use ($s, $filtroServicio) {
+        // Filtro por nombre
+        if ($s !== '') {
+            $nombre = isset($b['name']) ? (string) $b['name'] : '';
+            if (stripos($nombre, $s) === false) {
+                return false;
+            }
+        }
+
+        // Filtro por servicio
+        if ($filtroServicio) {
+            $ids = [];
+            if (!empty($b['services_ids']) && is_array($b['services_ids'])) {
+                $ids = array_map('intval', $b['services_ids']);
+            }
+            if (!in_array((int) $filtroServicio, $ids, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    });
+
+    $barberosParaRenderizar = array_values($filtrados);
+    foreach ($barberosParaRenderizar as $k => &$v) {
+        $v['index'] = $k;
+    }
+    unset($v);
+
+    $configuracionColumnas = columnasBarberos($opcionesServicios, $serviciosMapIdANombre);
+
+    ob_start();
+    DataGridRenderer::render($barberosParaRenderizar, $configuracionColumnas);
+    $html = ob_get_clean();
+
+    wp_send_json_success(['html' => $html]);
 }
 
 function obtenerReservaCallback() {

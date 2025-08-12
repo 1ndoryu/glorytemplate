@@ -54,6 +54,12 @@ if (Glory\Core\GloryFeatures::isEnabled('gloryAjax') !== false) {
     add_action('admin_init', 'manejarExportacionReservasCsv');
     add_action('wp_ajax_glory_actualizar_color_servicio', 'actualizarColorServicioCallback');
     add_action('wp_ajax_glory_obtener_reserva', 'obtenerReservaCallback');
+
+    // Filtros en tiempo real (frontend)
+    add_action('wp_ajax_glory_filtrar_reservas', 'filtrarReservasAjaxCallback');
+    add_action('wp_ajax_nopriv_glory_filtrar_reservas', 'filtrarReservasAjaxCallback');
+    add_action('wp_ajax_glory_filtrar_barberos', 'filtrarBarberosAjaxCallback');
+    add_action('wp_ajax_nopriv_glory_filtrar_barberos', 'filtrarBarberosAjaxCallback');
 }
 
 // Handler para eliminar barbero desde admin-post.php
