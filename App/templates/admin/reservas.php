@@ -20,9 +20,9 @@ function renderPaginaReservas()
     $consultaReservas      = consultaReservas();
     $configuracionColumnas = columnasReservas();
 ?>
-    <h1><?php echo 'Panel de Reservas'; ?></h1>
-    <div class="acciones-reservas" style="flex-direction: column; gap: 10px; align-items: flex-start;">
-        <div>
+    <div class="acciones-reservas-header">
+        <h1><?php echo 'Panel de Reservas';?></h1>
+        <div class="acciones-reservas-header-buttons">
             <a href="<?php echo esc_url($export_url); ?>" class="button button-secondary">
                 <?php echo 'Exportar a CSV'; ?>
             </a>
@@ -30,6 +30,9 @@ function renderPaginaReservas()
                 <?php echo 'Añadir Reserva Manual'; ?>
             </button>
         </div>
+    </div>
+    <div class="acciones-reservas" style="flex-direction: column; gap: 10px;">
+
         <?php
         $opcionesFiltros = [
             'preservar_keys' => ['orderby', 'order'],
@@ -49,6 +52,12 @@ function renderPaginaReservas()
 <?php
 
     renderModalReserva($opcionesServicios, $opcionesBarberos);
+    if (!is_admin()) {
+        echo '<div class="tablaWrap">';
+    }
     DataGridRenderer::render($consultaReservas, $configuracionColumnas);
+    if (!is_admin()) {
+        echo '</div>';
+    }
     imprimirScriptsColoresServicios();
 }

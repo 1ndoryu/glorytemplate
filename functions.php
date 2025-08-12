@@ -60,6 +60,42 @@ if (Glory\Core\GloryFeatures::isEnabled('gloryAjax') !== false) {
     add_action('wp_ajax_nopriv_glory_filtrar_reservas', 'filtrarReservasAjaxCallback');
     add_action('wp_ajax_glory_filtrar_barberos', 'filtrarBarberosAjaxCallback');
     add_action('wp_ajax_nopriv_glory_filtrar_barberos', 'filtrarBarberosAjaxCallback');
+
+    // Acciones masivas del DataGrid (frontend y admin)
+    add_action('wp_ajax_glory_eliminar_reservas', 'glory_eliminar_reservas_callback');
+    add_action('wp_ajax_nopriv_glory_eliminar_reservas', 'glory_eliminar_reservas_callback');
+}
+
+function glory_eliminar_reservas_callback() {
+    // Requiere login y capacidad apropiada
+    if (!is_user_logged_in() || !current_user_can('delete_posts')) {
+        wp_send_json_error(['mensaje' => 'No autorizado.'], 403);
+    }
+    $idsRaw = $_POST['ids'] ?? '';
+    $ids = array_filter(array_map('absint', explode(',', (string)$idsRaw)));
+    if (empty($ids)) {
+        wp_send_json_error(['mensaje' => 'Sin IDs.']);
+    }
+    foreach ($ids as $id) {
+        $post = get_post($id);
+        if ($post && $post->post_type === 'reserva') {
+            wp_delete_post($id, true);
+        }
+    }
+
+    // Re-renderizar el grid con la misma configuración
+    if (!function_exists('consultaReservas') || !function_exists('columnasReservas')) {
+        wp_send_json_error(['mensaje' => 'Config no disponible.']);
+    }
+    $consultaReservas = consultaReservas();
+    $configuracionColumnas = columnasReservas();
+    ob_start();
+    Glory\Components\DataGridRenderer::render($consultaReservas, $configuracionColumnas);
+    $html = ob_get_clean();
+    if (!is_admin()) {
+        $html = '<div class="tablaWrap">' . $html . '</div>';
+    }
+    wp_send_json_success(['html' => $html]);
 }
 
 // Handler para eliminar barbero desde admin-post.php

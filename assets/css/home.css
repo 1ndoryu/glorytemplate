@@ -1,32 +1,23 @@
-/* --- Estilos FRONT para Home (no afectan wp-admin) --- */
-
-/* Contenedor principal de tabs en Home */
 .homeFront.gloryTabs {
     margin: 30px auto;
     max-width: 1200px;
     padding: 0 16px;
 }
 
-/* Barra de pestañas */
+.homeFront .pestanaContenido.activa {
+    flex-direction: column;
+    gap: 1rem;
+}
+
 .homeFront .pestanas {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    border-bottom: 1px solid #e5e7eb;
-    margin-bottom: 16px;
-}
-
-.homeFront .pestanas button {
-    appearance: none;
-    background: #f3f4f6;
-    border: 1px solid #e5e7eb;
-    border-bottom: none;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    padding: 10px 14px;
-    font-size: 14px;
-    color: #111827;
-    cursor: pointer;
+    padding: 0px 10px;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: var(--borde);
 }
 
 .homeFront .pestanas button.activa {
@@ -35,21 +26,23 @@
     box-shadow: 0 -1px 0 0 #ffffff inset;
 }
 
-.homeFront .pestanaContenido.activa {
-    flex-direction: column;
-    gap: 1rem;
+.homeFront .pestanas button {
+    appearance: none;
+    padding: 6px 15px;
+    font-size: 13px;
+    color: var(--negro);
+    cursor: pointer;
+    border-radius: 130px;
+    background: var(--segundo);
+}
+
+.homeFront .pestanasPaneles {
+    padding: 20px 0px;
 }
 
 .homeFront .acciones-reservas {
     display: flex;
-}
-
-/* Paneles */
-.homeFront .pestanasPaneles {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 16px;
+    align-items: flex-end;
 }
 
 .homeFront .pestanaContenido {
@@ -60,16 +53,38 @@
     display: flex;
 }
 
-/* Ajustes tipográficos generales */
 .homeFront h1,
 .homeFront h2,
 .homeFront h3 {
     color: #111827;
 }
 
+.homeFront .tablaWrap {
+    border: var(--borde);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
 .homeFront table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: none;
+    background: transparent;
+}
+
+/* Evitar doble borde y cortes bruscos: solo líneas internas */
+.homeFront .tablaWrap th,
+.homeFront .tablaWrap td {
+    border: 0;
+}
+.homeFront .tablaWrap tr + tr td,
+.homeFront .tablaWrap tr + tr th {
+    border-top: 1px solid #e5e7eb;
+}
+.homeFront .tablaWrap td + td,
+.homeFront .tablaWrap th + th {
+    border-left: 1px solid #e5e7eb;
 }
 
 .homeFront table th,
@@ -79,34 +94,45 @@
     text-align: left;
 }
 
+.homeFront a.button.button-secondary {
+    background: #e9e9e9;
+    border: unset;
+    border-radius: 100px;
+    color: var(--negro);
+    padding: 6px 15px;
+}
+
 .homeFront .button,
 .homeFront .button-primary {
-    background: #2563eb;
-    border: 1px solid #2563eb;
-    color: #fff;
+    background: var(--negro);
+    border: 1px solid var(--negro);
+    color: var(--blanco);
     border-radius: 6px;
-    padding: 6px 8px;
+    padding: 6px 15px;
     display: inline-block;
     font-size: 12px;
+    border-radius: 100px;
 }
 
 .homeFront .button:hover,
 .homeFront .button-primary:hover {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
+    background: var(--negro);
+    border-color: var(--negro);
 }
 
 .homeFront .glory-analytics-filters .form-row {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 30px;
+    gap: 15px;
 }
-.homeFront .glory-analytics-filters.postbox {
-    padding: 20px;
-    border: var(--borde);
-    border-radius: var(--radius);
-    width: 100%;
+
+.homeFront .glory-analytics-filters label {
+    display: none;
+}
+
+.homeFront .glory-analytics-filters button.button.button-primary {
+    display: none;
 }
 
 .homeFront p.form-field {
@@ -124,5 +150,80 @@
     flex-direction: row;
     align-content: center;
     align-items: center;
-    gap: 30px;
+}
+
+.homeFront .acciones-reservas-header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.homeFront input,
+textarea {
+    border-bottom: unset;
+    border: var(--borde);
+    border-radius: 22px;
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.homeFront select {
+    height: 36px;
+    margin: 4px 0px;
+    border-bottom: unset;
+    border: var(--borde);
+    border-radius: 22px;
+    padding: 6px 12px;
+    font-size: 13px;
+    padding-right: 5px;
+}
+
+.homeFront .acciones-reservas-header-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    align-content: center;
+}
+
+.homeFront .gloryForm.formularioBarberia {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-column-gap: 20px;
+    grid-row-gap: 10px;
+    align-items: center;
+    justify-items: start;
+    align-content: center;
+}
+
+.homeFront .formCampo {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.homeFront .modalContenido {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.homeFront button.dataSubir.button-primary {
+    margin-top: 10px;
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    text-align: center;
+}
+
+/* Indicador de orden en cabeceras del DataGrid (front) */
+.homeFront .gloryDataGridContenedor th.columnaOrdenable a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    color: inherit;
+}
+.homeFront .gloryDataGridContenedor th.columnaOrdenable .indicadorOrden {
+    display: inline-block;
+    line-height: 1;
+    font-size: 12px;
+    opacity: 0.85;
 }

@@ -1,9 +1,7 @@
 <?php
-// Callbacks AJAX para reservas (antes en funcionesAjax.php)
 
 use Glory\Core\OpcionRepository;
 use Glory\Components\DataGridRenderer;
-use WP_Query;
 
 function verificarDisponibilidadCallback()
 {
@@ -46,7 +44,8 @@ function verificarDisponibilidadCallback()
     wp_send_json_success(['options' => $horariosDisponibles]);
 }
 
-function serviciosPorBarberoCallback() {
+function serviciosPorBarberoCallback()
+{
     $barberoId = absint($_POST['barbero_id'] ?? 0);
     if (!$barberoId) {
         wp_send_json_error(['mensaje' => 'Barbero no válido.']);
@@ -71,7 +70,8 @@ function serviciosPorBarberoCallback() {
     wp_send_json_success(['options' => $options]);
 }
 
-function manejarExportacionReservasCsv() {
+function manejarExportacionReservasCsv()
+{
     if (
         isset($_GET['page']) && $_GET['page'] === 'barberia-reservas' &&
         isset($_GET['exportar_csv']) && $_GET['exportar_csv'] === 'true' &&
@@ -82,7 +82,8 @@ function manejarExportacionReservasCsv() {
     }
 }
 
-function actualizarColorServicioCallback() {
+function actualizarColorServicioCallback()
+{
     if (!current_user_can('manage_options')) {
         wp_send_json_error(['mensaje' => 'Permisos insuficientes.'], 403);
     }
@@ -111,7 +112,8 @@ function actualizarColorServicioCallback() {
 /**
  * AJAX: Filtrar reservas (frontend, tiempo real)
  */
-function filtrarReservasAjaxCallback() {
+function filtrarReservasAjaxCallback()
+{
     // Construir args similares a consultaReservas() pero con $_POST
     $pagina = isset($_POST['paged']) ? max(1, absint($_POST['paged'])) : 1;
 
@@ -165,12 +167,20 @@ function filtrarReservasAjaxCallback() {
         ];
     }
 
-    // Ordenamiento por columna (limitado a título por ahora)
+    // Ordenamiento por columna (título, fecha_reserva, hora_reserva)
     $orderbyParam = isset($_POST['orderby']) ? sanitize_key((string) $_POST['orderby']) : '';
     $orderParam   = (isset($_POST['order']) && strtolower((string) $_POST['order']) === 'desc') ? 'DESC' : 'ASC';
     if ($orderbyParam === 'post_title') {
         $args['orderby'] = 'title';
         $args['order']   = $orderParam;
+    } elseif ($orderbyParam === 'fecha_reserva') {
+        $args['meta_key'] = 'fecha_reserva';
+        $args['orderby']  = 'meta_value';
+        $args['order']    = $orderParam;
+    } elseif ($orderbyParam === 'hora_reserva') {
+        $args['meta_key'] = 'hora_reserva';
+        $args['orderby']  = 'meta_value';
+        $args['order']    = $orderParam;
     }
 
     $query = new WP_Query($args);
@@ -185,6 +195,8 @@ function filtrarReservasAjaxCallback() {
     ob_start();
     DataGridRenderer::render($query, $configuracionColumnas);
     $html = ob_get_clean();
+    // Envolver en frontend con un contenedor para aplicar border-radius real
+    $html = '<div class="tablaWrap">' . $html . '</div>';
 
     wp_send_json_success(['html' => $html]);
 }
@@ -192,7 +204,8 @@ function filtrarReservasAjaxCallback() {
 /**
  * AJAX: Filtrar barberos (frontend, tiempo real)
  */
-function filtrarBarberosAjaxCallback() {
+function filtrarBarberosAjaxCallback()
+{
     $claveOpcion = 'barberia_barberos';
 
     if (!function_exists('obtenerDatosBarberos') || !function_exists('columnasBarberos')) {
@@ -239,11 +252,14 @@ function filtrarBarberosAjaxCallback() {
     ob_start();
     DataGridRenderer::render($barberosParaRenderizar, $configuracionColumnas);
     $html = ob_get_clean();
+    // Envolver en frontend con un contenedor para aplicar border-radius real
+    $html = '<div class="tablaWrap">' . $html . '</div>';
 
     wp_send_json_success(['html' => $html]);
 }
 
-function obtenerReservaCallback() {
+function obtenerReservaCallback()
+{
     if (!current_user_can('edit_posts')) {
         wp_send_json_error(['mensaje' => 'Permisos insuficientes.'], 403);
     }
@@ -272,5 +288,3 @@ function obtenerReservaCallback() {
         'barbero_id' => is_array($barbero) && !is_wp_error($barbero) && !empty($barbero) ? $barbero[0]->term_id : '',
     ]);
 }
-
-

@@ -61,7 +61,13 @@ function renderPaginaBarberos()
         foreach ($barberosParaRenderizar as $k => &$v) {
             $v['index'] = $k;
         }
+        if (!is_admin()) {
+            echo '<div class="tablaWrap">';
+        }
         DataGridRenderer::render($barberosParaRenderizar, $configuracionColumnas);
+        if (!is_admin()) {
+            echo '</div>';
+        }
 
         $accion = admin_url('admin.php?page=barberia-barberos');
         renderizarModalBarbero($opcionesServicios, $barberosCombinados, $accion);

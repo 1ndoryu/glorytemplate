@@ -87,12 +87,22 @@ function consultaReservas(): WP_Query
         ];
     }
 
-    // Ordenamiento por columna
+    // Ordenamiento por columna (título, fecha_reserva y meta/hora)
     $orderbyParam = isset($_GET['orderby']) ? sanitize_key((string) $_GET['orderby']) : '';
     $orderParam   = (isset($_GET['order']) && strtolower((string) $_GET['order']) === 'desc') ? 'DESC' : 'ASC';
     if ($orderbyParam === 'post_title') {
         $args['orderby'] = 'title';
         $args['order']   = $orderParam;
+    } elseif ($orderbyParam === 'fecha_reserva') {
+        // Ordenar por meta de fecha_reserva (tipo DATE)
+        $args['meta_key'] = 'fecha_reserva';
+        $args['orderby']  = 'meta_value';
+        $args['order']    = $orderParam;
+    } elseif ($orderbyParam === 'hora_reserva') {
+        // Ordenar por meta de hora_reserva (texto HH:MM)
+        $args['meta_key'] = 'hora_reserva';
+        $args['orderby']  = 'meta_value';
+        $args['order']    = $orderParam;
     }
 
     return new WP_Query($args);
@@ -108,10 +118,10 @@ function columnasReservas(): array
     return [
         'columnas' => [
             ['etiqueta' => 'Cliente', 'clave' => 'post_title', 'ordenable' => true],
-            ['etiqueta' => 'Fecha', 'clave' => 'fecha_reserva', 'callback' => function ($post) {
+            ['etiqueta' => 'Fecha', 'clave' => 'fecha_reserva', 'ordenable' => true, 'callback' => function ($post) {
                 return get_post_meta($post->ID, 'fecha_reserva', true) ?: 'N/A';
             }],
-            ['etiqueta' => 'Hora', 'clave' => 'hora_reserva', 'callback' => function ($post) {
+            ['etiqueta' => 'Hora', 'clave' => 'hora_reserva', 'ordenable' => true, 'callback' => function ($post) {
                 return get_post_meta($post->ID, 'hora_reserva', true) ?: 'N/A';
             }],
             ['etiqueta' => 'Servicio', 'clave' => 'servicio', 'callback' => function ($post) {
@@ -165,6 +175,16 @@ function columnasReservas(): array
                 $actions .= '<a href="' . esc_url($delete_link) . '" onclick="return confirm(' . $confirm_message . ')" title="' . esc_attr('Eliminar') . '"><span class="dashicons dashicons-trash"></span></a>';
                 return $actions;
             }],
+        ],
+        // Activar selección múltiple y acción masiva eliminar (front y admin)
+        'seleccionMultiple' => true,
+        'accionesMasivas' => [
+            [
+                'id' => 'eliminar',
+                'etiqueta' => 'Eliminar',
+                'ajax_action' => 'glory_eliminar_reservas',
+                'confirmacion' => '¿Eliminar las reservas seleccionadas?'
+            ]
         ],
         'filtros' => [
             's' => ['etiqueta' => 'Buscar por Cliente...'],
