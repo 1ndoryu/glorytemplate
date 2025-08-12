@@ -42,8 +42,7 @@ function renderPaginaReservas()
         }
         BarraFiltrosRenderer::render([
             ['tipo' => 'search', 'name' => 's', 'label' => 'Cliente', 'placeholder' => 'Buscar por nombre…'],
-            ['tipo' => 'date', 'name' => 'fecha_desde', 'label' => 'Desde'],
-            ['tipo' => 'date', 'name' => 'fecha_hasta', 'label' => 'Hasta'],
+            ['tipo' => 'date_range', 'name' => 'rango', 'label' => 'Rango de fechas', 'from_name' => 'fecha_desde', 'to_name' => 'fecha_hasta', 'placeholder' => 'Fecha desde — hasta'],
             ['tipo' => 'select', 'name' => 'filtro_servicio', 'label' => 'Servicio', 'opciones' => $opcionesServicios],
             ['tipo' => 'select', 'name' => 'filtro_barbero', 'label' => 'Barbero', 'opciones' => $opcionesBarberos],
         ], $opcionesFiltros);
