@@ -1,5 +1,16 @@
 (function(){
+  let refreshPending = false;
+  let refreshing = false;
+
+  function isModalOpen(){
+    const modal = document.querySelector('.modal');
+    return modal && window.getComputedStyle(modal).display !== 'none';
+  }
+
   function refrescarReservas(){
+    if (refreshing) { refreshPending = true; return; }
+    if (isModalOpen()) { refreshPending = true; return; }
+    refreshing = true;
     if (typeof window.gloryAjax !== 'function') return;
     const filtros = {};
     document.querySelectorAll('.acciones-reservas .glory-filtro [name]').forEach(function(el){
@@ -11,7 +22,8 @@
         if (wrap) { wrap.outerHTML = resp.data.html; }
         document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
       }
-    }).catch(function(err){ /* silencioso */ });
+    }).catch(function(err){ /* silencioso */ })
+      .finally(function(){ refreshing = false; if (refreshPending && !isModalOpen()) { refreshPending = false; refrescarReservas(); } });
   }
 
   function initRealtime(){
@@ -23,6 +35,7 @@
         refrescarReservas();
       }
     });
+    document.addEventListener('gloryModal:close', function(){ if (refreshPending) { const p = refreshPending; refreshPending = false; if (p) refrescarReservas(); } });
     // silencioso por defecto
   }
 
