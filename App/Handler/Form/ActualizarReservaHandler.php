@@ -3,6 +3,7 @@
 namespace App\Handler\Form;
 
 use Glory\Handler\Form\FormHandlerInterface;
+use Glory\Services\EventBus;
 // use Glory\Services\NotificationService;
 
 class ActualizarReservaHandler implements FormHandlerInterface
@@ -46,7 +47,8 @@ class ActualizarReservaHandler implements FormHandlerInterface
         wp_set_object_terms($postId, $servicioId, 'servicio', false);
         wp_set_object_terms($postId, $barberoId, 'barbero', false);
 
-        // Notificación opcional si existe el servicio (desactivado por defecto)
+        // Emitir evento realtime para que el front se actualice
+        EventBus::emit('post_reserva', ['accion' => 'actualizar', 'postId' => $postId]);
 
         return ['alert' => 'Reserva actualizada correctamente.'];
     }

@@ -190,7 +190,8 @@ function renderAccionesReserva(WP_Post $post): string
 
     $menu_id = 'glory-submenu-reserva-' . intval($post->ID);
 
-    $trigger = '<a href="#" class="glory-submenu-trigger" data-submenu="' . esc_attr($menu_id) . '" aria-label="' . esc_attr__('Acciones', 'glorytemplate') . '">⋯</a>';
+    // Añadir clase noAjax para evitar que gloryAjaxNav intercepte este clic
+    $trigger = '<a href="#" class="glory-submenu-trigger noAjax" data-submenu="' . esc_attr($menu_id) . '" aria-label="' . esc_attr__('Acciones', 'glorytemplate') . '">⋯</a>';
 
     $menu  = '<div id="' . esc_attr($menu_id) . '" class="glory-submenu" style="display:none;flex-direction:column;">';
     $menu .= '<a href="#" class="openModal noAjax" data-modal="modalAnadirReserva" data-form-mode="edit" data-fetch-action="glory_obtener_reserva" data-object-id="' . esc_attr($post->ID) . '" data-submit-action="actualizarReserva" data-modal-title-edit="' . esc_attr('Editar Reserva') . '">' . esc_html__('Editar', 'glorytemplate') . '</a>';

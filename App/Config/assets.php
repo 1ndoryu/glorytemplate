@@ -65,8 +65,6 @@ AssetManager::define(
     ]
 );
 
-// Eliminado: reemplazado por Glory 'glory-gloryfilters'
-
 AssetManager::define(
     'script',
     'glory-scheduler-admin',

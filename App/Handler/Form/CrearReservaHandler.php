@@ -5,6 +5,7 @@ namespace App\Handler\Form;
 use Glory\Core\GloryLogger;
 use Glory\Handler\Form\FormHandlerInterface;
 use Glory\Services\NotificationService;
+use Glory\Services\EventBus;
 
 class CrearReservaHandler implements FormHandlerInterface
 {
@@ -60,6 +61,9 @@ class CrearReservaHandler implements FormHandlerInterface
         NotificationService::notificarNuevaReservaAdmin($postId);
 
         GloryLogger::info('Reserva creada exitosamente desde el formulario público.', ['post_id' => $postId]);
+
+        // Emitir evento realtime para reservas
+        EventBus::emit('post_reserva', ['accion' => 'crear', 'postId' => $postId]);
 
         return ['alert' => '¡Tu reserva ha sido confirmada con éxito!'];
     }

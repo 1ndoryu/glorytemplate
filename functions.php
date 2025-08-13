@@ -41,6 +41,7 @@ foreach ($directorios as $directorio) {
 use App\Handler\Form\BarberoHandler;
 use App\Handler\Form\GuardarServicioHandler;
 use Glory\Handler\FormHandler;
+use Glory\Services\EventBus;
 
 FormHandler::registerHandlerNamespace('App\\Handler\\Form\\');
 BarberoHandler::registerAjaxEndpoints();
@@ -89,12 +90,18 @@ function glory_eliminar_reservas_callback() {
     }
     $consultaReservas = consultaReservas();
     $configuracionColumnas = columnasReservas();
+    // Asegurar que, al re-renderizar vía AJAX, respetemos la intención de mostrar
+    // las acciones masivas fuera del DataGrid (coincide con lo que hace la plantilla)
+    $configuracionColumnas['acciones_masivas_separadas'] = true;
     ob_start();
     Glory\Components\DataGridRenderer::render($consultaReservas, $configuracionColumnas);
     $html = ob_get_clean();
     if (!is_admin()) {
         $html = '<div class="tablaWrap">' . $html . '</div>';
     }
+    // Emitir evento realtime para reservas tras eliminación masiva
+    try { EventBus::emit('post_reserva', ['accion' => 'eliminar_masivo', 'ids' => $ids]); } catch (\Throwable $e) {}
+
     wp_send_json_success(['html' => $html]);
 }
 

@@ -5,7 +5,6 @@ use Glory\Components\DataGridRenderer;
 
 function verificarDisponibilidadCallback()
 {
-    // Aceptar tanto 'fecha' (antiguo) como 'fecha_reserva' (usado en formularios)
     $fecha = sanitize_text_field($_POST['fecha'] ?? ($_POST['fecha_reserva'] ?? ''));
     $barberoId = absint($_POST['barbero_id'] ?? 0);
     $servicioId = absint($_POST['servicio_id'] ?? 0);
@@ -191,6 +190,9 @@ function filtrarReservasAjaxCallback()
         return;
     }
     $configuracionColumnas = columnasReservas();
+    // Respetar que las acciones masivas se muestren fuera del DataGrid en las vistas
+    // (la plantilla principal establece esto manualmente en la carga inicial)
+    $configuracionColumnas['acciones_masivas_separadas'] = true;
 
     ob_start();
     DataGridRenderer::render($query, $configuracionColumnas);
@@ -248,11 +250,11 @@ function filtrarBarberosAjaxCallback()
     unset($v);
 
     $configuracionColumnas = columnasBarberos($opcionesServicios, $serviciosMapIdANombre);
+    $configuracionColumnas['acciones_masivas_separadas'] = true;
 
     ob_start();
     DataGridRenderer::render($barberosParaRenderizar, $configuracionColumnas);
     $html = ob_get_clean();
-    // Envolver en frontend con un contenedor para aplicar border-radius real
     $html = '<div class="tablaWrap">' . $html . '</div>';
 
     wp_send_json_success(['html' => $html]);
