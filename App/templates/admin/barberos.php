@@ -24,7 +24,7 @@ function renderPaginaBarberos()
         <?php endif; ?>
 
         <div style="margin-bottom:12px;">
-            <button class="button button-primary openModal" data-modal="modalAnadirBarbero" data-form-mode="create" data-modal-title-create="<?php echo esc_attr('Añadir Barbero'); ?>">Añadir Barbero</button>
+            <button class="button button-primary openModal noAjax" data-modal="modalAnadirBarbero" data-form-mode="create" data-modal-title-create="<?php echo esc_attr('Añadir Barbero'); ?>">Añadir Barbero</button>
         </div>
 
         <div class="acciones-barberos" style="margin-bottom:12px;">

@@ -433,7 +433,7 @@ textarea:focus {
     padding: 10px 18px;
 }
 
-.submenus {
+.submenus, .glory-submenu {
     display: none;
     background: #080808;
     padding: 10px 6px;
@@ -457,8 +457,53 @@ textarea:focus {
 }
 
 /* Muestra el menú cuando está activo */
-.submenus.activo {
+.submenus.activo, .glory-submenu.activo {
     display: flex;
+}
+
+/* Compatibilidad con el componente de Glory: alias para .glory-submenu */
+.glory-submenu {
+    display: none;
+    background: var(--blanco);
+    padding: 10px 6px;
+    border-radius: 5px;
+    width: 150px;
+    overflow: auto;
+    border: var(--borde);
+    z-index: 1010;
+    position: fixed;
+    flex-direction: column;
+}
+.glory-submenu.activo {
+    display: flex;
+}
+.glory-submenu a {
+    font-size: 12px;
+    padding: 5px;
+    padding-left: 10px;
+    cursor: pointer;
+    color: var(--negro);
+    width: -webkit-fill-available;
+    width: -moz-available;
+}
+
+/* Estilo del trigger (3 puntos) */
+.glory-submenu-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: inherit;
+    background: transparent;
+    text-decoration: none;
+    font-size: 20px;
+    line-height: 1;
+}
+.glory-submenu-trigger:hover {
+    background: rgba(0,0,0,0.06);
 }
 
 .arrastrando {

@@ -285,7 +285,7 @@ function columnasBarberos(array $opcionesServicios, array $servicios_map_id_to_n
                 $nonce = wp_nonce_field('barberos_save', 'barberos_nonce', true, false);
 
                 // Icono editar (abre modal)
-                $edit = '<a href="#" class="openModal"'
+                $edit = '<a href="#" class="openModal noAjax"'
                     . ' data-modal="modalAnadirBarbero"'
                     . ' data-form-mode="edit"'
                     . ' data-object-id="' . esc_attr($objectId) . '"'

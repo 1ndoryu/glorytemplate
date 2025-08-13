@@ -43,6 +43,14 @@
 .homeFront .acciones-reservas {
     display: flex;
     align-items: flex-end;
+    justify-content: space-between;
+}
+
+.homeFront .gloryDataGridAccionesMasivas {
+    display: flex;
+    align-items: center;
+    align-content: center;
+    gap: 10px;
 }
 
 .homeFront .pestanaContenido {
@@ -84,12 +92,13 @@
 }
 .homeFront .tablaWrap td + td,
 .homeFront .tablaWrap th + th {
-    border-left: 1px solid #e5e7eb;
+    border-left: none;
 }
 
 .homeFront table th,
 .homeFront table td {
-    border: 1px solid #e5e7eb;
+    border: none;
+    border-top: 1px solid #e5e7eb; /* mantener solo líneas horizontales */
     padding: 8px 10px;
     text-align: left;
 }

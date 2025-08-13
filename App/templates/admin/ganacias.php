@@ -119,7 +119,9 @@ function renderPaginaGanancias()
             <h2 class="hndle"><span>Filtrar Resultados</span></h2>
             <div class="inside">
                 <form method="GET" action="">
-                    <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>">
+                    <?php if (isset($_REQUEST['page'])): ?>
+                    <input type="hidden" name="page" value="<?php echo esc_attr(sanitize_key($_REQUEST['page'])); ?>">
+                    <?php endif; ?>
                     <div class="form-row">
                         <?php
                         echo FormBuilder::campoFecha(['nombre' => 'fecha_desde', 'label' => 'Desde', 'valor' => $fechaDesde]);
@@ -130,7 +132,9 @@ function renderPaginaGanancias()
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="button button-primary">Aplicar Filtros</button>
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . $_REQUEST['page'])); ?>" class="button">Limpiar</a>
+                        <?php if (isset($_REQUEST['page'])): ?>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . sanitize_key($_REQUEST['page']))); ?>" class="button">Limpiar</a>
+                        <?php endif; ?>
                     </div>
                 </form>
             </div>

@@ -132,7 +132,9 @@ function renderizarFormularioFecha(string $fecha)
 {
 ?>
     <form method="get" class="formDatepicker">
-        <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>">
+        <?php if (isset($_REQUEST['page'])): ?>
+        <input type="hidden" name="page" value="<?php echo esc_attr(sanitize_key($_REQUEST['page'])); ?>">
+        <?php endif; ?>
         <input type="date" id="fecha_visualizacion" name="fecha_visualizacion" value="<?php echo esc_attr($fecha); ?>">
         <button type="submit" class="button"><?php echo esc_html('Ver Fecha'); ?></button>
     </form>

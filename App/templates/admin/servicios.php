@@ -136,7 +136,7 @@ function renderPaginaServicios()
         <h1>Servicios</h1>
 
         <div style="margin-bottom:12px;">
-            <button class="button button-primary openModal" data-modal="modalAnadirServicio" data-form-mode="create" data-submit-action="guardarServicio" data-submit-text="Guardar" data-modal-title-create="<?php echo esc_attr('Añadir Servicio'); ?>">Añadir Servicio</button>
+            <button class="button button-primary openModal noAjax" data-modal="modalAnadirServicio" data-form-mode="create" data-submit-action="guardarServicio" data-submit-text="Guardar" data-modal-title-create="<?php echo esc_attr('Añadir Servicio'); ?>">Añadir Servicio</button>
         </div>
 
         <table class="widefat fixed striped">
@@ -162,7 +162,7 @@ function renderPaginaServicios()
                                 <input type="hidden" name="name" value="<?php echo esc_attr($s['name']); ?>">
                                 <button class="button button-danger" type="submit">Eliminar</button>
                             </form>
-                            <a href="#" class="openModal button edit-servicio"
+                            <a href="#" class="openModal button edit-servicio noAjax"
                                data-modal="modalAnadirServicio"
                                data-form-mode="edit"
                                data-object-id="<?php echo intval($s['term_id'] ?? 0) ?: $index; ?>"

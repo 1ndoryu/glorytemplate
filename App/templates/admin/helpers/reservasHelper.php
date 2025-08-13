@@ -165,15 +165,17 @@ function columnasReservas(): array
                 $delete_link = get_delete_post_link($post->ID);
                 $confirm_message = json_encode('¿Estás seguro de que quieres eliminar esta reserva?');
 
-                // Icono editar (abre modal con data-id)
-                $actions = '<a href="#" class="openModal" data-modal="modalAnadirReserva" data-form-mode="edit" data-fetch-action="glory_obtener_reserva" data-object-id="' . esc_attr($post->ID) . '" data-submit-action="actualizarReserva" data-modal-title-edit="' . esc_attr('Editar Reserva') . '" title="' . esc_attr('Editar') . '"><span class="dashicons dashicons-edit"></span></a>';
+                // Usar un trigger que abre el submenu de Glory (3 puntos) con opciones
+                $menu_id = 'glory-submenu-reserva-' . intval($post->ID);
+                $trigger = '<a href="#" class="glory-submenu-trigger" data-submenu="' . esc_attr($menu_id) . '" aria-label="' . esc_attr__('Acciones', 'glorytemplate') . '">⋯</a>';
 
-                // Separador
-                $actions .= ' ';
+                // Menú contextual (se moverá al body por el gestor de submenus)
+                $menu = '<div id="' . esc_attr($menu_id) . '" class="glory-submenu" style="display:none;flex-direction:column;">';
+                $menu .= '<a href="#" class="openModal noAjax" data-modal="modalAnadirReserva" data-form-mode="edit" data-fetch-action="glory_obtener_reserva" data-object-id="' . esc_attr($post->ID) . '" data-submit-action="actualizarReserva" data-modal-title-edit="' . esc_attr('Editar Reserva') . '">' . esc_html__('Editar', 'glorytemplate') . '</a>';
+                $menu .= '<a href="' . esc_url($delete_link) . '" onclick="return confirm(' . $confirm_message . ')" title="' . esc_attr('Eliminar') . '">' . esc_html__('Eliminar', 'glorytemplate') . '</a>';
+                $menu .= '</div>';
 
-                // Icono eliminar (link nativo WP)
-                $actions .= '<a href="' . esc_url($delete_link) . '" onclick="return confirm(' . $confirm_message . ')" title="' . esc_attr('Eliminar') . '"><span class="dashicons dashicons-trash"></span></a>';
-                return $actions;
+                return $trigger . $menu;
             }],
         ],
         // Activar selección múltiple y acción masiva eliminar (front y admin)
@@ -190,7 +192,6 @@ function columnasReservas(): array
             's' => ['etiqueta' => 'Buscar por Cliente...'],
         ],
         'paginacion' => true,
-        // Permitir HTML necesario en celdas: puntos de color, picker y enlaces de acción
         'allowed_html' => [
             'a' => [
                 'href' => true,
@@ -198,6 +199,7 @@ function columnasReservas(): array
                 'class' => true,
                 'target' => true,
                 'title' => true,
+                'aria-label' => true,
                 'data-modal' => true,
                 'data-id' => true,
                 'data-form-mode' => true,
@@ -206,6 +208,14 @@ function columnasReservas(): array
                 'data-submit-action' => true,
                 'data-submit-text' => true,
                 'data-modal-title-edit' => true,
+                'data-submenu' => true,
+                'data-posicion' => true,
+                'data-evento' => true,
+            ],
+            'div' => [
+                'id' => true,
+                'class' => true,
+                'style' => true,
             ],
             'span' => [
                 'class' => true,
@@ -226,8 +236,6 @@ function columnasReservas(): array
     ];
 }
 
-// La implementación de FormularioFluente fue extraída a Glory/src/Components/FormularioFluente.php
-
 
 /**
  * Renderiza el modal de creación de reserva usando la API fluida.
@@ -243,7 +251,6 @@ function renderModalReserva(array $opcionesServicios, array $opcionesBarberos): 
         ['fn' => 'campoTexto', 'args' => ['nombre' => 'nombre_cliente', 'label' => 'Nombre Cliente', 'obligatorio' => true]],
         ['fn' => 'campoTexto', 'args' => ['nombre' => 'telefono_cliente', 'label' => 'Teléfono', 'obligatorio' => true]],
         ['fn' => 'campoTexto', 'args' => ['nombre' => 'correo_cliente', 'label' => 'Correo', 'obligatorio' => true]],
-        // Barbero primero; Servicios depende del barbero seleccionado
         ['fn' => 'campoSelect', 'args' => ['nombre' => 'barbero_id', 'label' => 'Barbero', 'opciones' => $opcionesBarberos, 'obligatorio' => true, 'extraClassInput' => 'selector-barbero']],
         ['fn' => 'campoSelect', 'args' => ['nombre' => 'servicio_id', 'label' => 'Servicio', 'opciones' => ['' => 'Selecciona un barbero'], 'obligatorio' => true, 'extraClassInput' => 'selector-servicio', 'atributosExtra' => ['data-fm-accion-opciones' => 'glory_servicios_por_barbero', 'data-fm-depende' => 'barbero_id', 'data-fm-placeholder-deshabilitado' => 'Selecciona un barbero']]],
         ['fn' => 'campoFecha', 'args' => ['nombre' => 'fecha_reserva', 'label' => 'Fecha', 'obligatorio' => true, 'extraClassInput' => 'selector-fecha']],
@@ -266,6 +273,7 @@ function imprimirScriptsColoresServicios(): void
     $nonce = wp_create_nonce('glory_color_servicio');
 ?>
     <script>
+        var ajaxurl = (typeof window.ajaxurl !== 'undefined') ? window.ajaxurl : '<?php echo esc_js(admin_url('admin-ajax.php')); ?>';
         jQuery(function($) {
             $(document).on('change', '.glory-color-servicio-picker', function() {
                 var $input = $(this);
