@@ -61,13 +61,20 @@ if (Glory\Core\GloryFeatures::isEnabled('gloryAjax') !== false) {
     add_action('wp_ajax_nopriv_glory_filtrar_reservas', 'filtrarReservasAjaxCallback');
     add_action('wp_ajax_glory_filtrar_barberos', 'filtrarBarberosAjaxCallback');
     add_action('wp_ajax_nopriv_glory_filtrar_barberos', 'filtrarBarberosAjaxCallback');
+    add_action('wp_ajax_glory_filtrar_servicios', 'filtrarServiciosAjaxCallback');
+    add_action('wp_ajax_nopriv_glory_filtrar_servicios', 'filtrarServiciosAjaxCallback');
 
     // Acciones masivas del DataGrid (frontend y admin)
     add_action('wp_ajax_glory_eliminar_reservas', 'glory_eliminar_reservas_callback');
     add_action('wp_ajax_nopriv_glory_eliminar_reservas', 'glory_eliminar_reservas_callback');
+    add_action('wp_ajax_glory_eliminar_barberos', 'glory_eliminar_barberos_callback');
+    add_action('wp_ajax_nopriv_glory_eliminar_barberos', 'glory_eliminar_barberos_callback');
+    add_action('wp_ajax_glory_eliminar_servicios', 'glory_eliminar_servicios_callback');
+    add_action('wp_ajax_nopriv_glory_eliminar_servicios', 'glory_eliminar_servicios_callback');
 }
 
 function glory_eliminar_reservas_callback() {
+    error_log('[realtime] glory_eliminar_reservas_callback llamado');
     // Requiere login y capacidad apropiada
     if (!is_user_logged_in() || !current_user_can('delete_posts')) {
         wp_send_json_error(['mensaje' => 'No autorizado.'], 403);
@@ -133,6 +140,46 @@ function glory_delete_barbero_handler() {
 }
 add_action('admin_post_glory_delete_barbero', 'glory_delete_barbero_handler');
 
+function glory_eliminar_barberos_callback() {
+    error_log('[realtime] glory_eliminar_barberos_callback llamado');
+    if (!is_user_logged_in() || !current_user_can('manage_options')) {
+        wp_send_json_error(['mensaje' => 'No autorizado.'], 403);
+    }
+    $idsRaw = $_POST['ids'] ?? '';
+    $ids = array_filter(array_map('absint', explode(',', (string)$idsRaw)));
+    if (empty($ids)) {
+        wp_send_json_error(['mensaje' => 'Sin IDs.']);
+    }
+    $option_key = 'barberia_barberos';
+    $barberos = get_option($option_key, []);
+    foreach ($ids as $term_id) {
+        if (term_exists($term_id, 'barbero')) {
+            wp_delete_term($term_id, 'barbero');
+        }
+        if (is_array($barberos) && !empty($barberos)) {
+            $barberos = array_values(array_filter($barberos, function($b) use ($term_id) {
+                return empty($b['term_id']) || intval($b['term_id']) !== $term_id;
+            }));
+        }
+    }
+    update_option($option_key, $barberos);
+
+    if (!function_exists('obtenerDatosBarberos') || !function_exists('columnasBarberos')) {
+        wp_send_json_error(['mensaje' => 'Config no disponible.']);
+    }
+    list($opcionesServicios, $barberosCombinados, $serviciosMapIdANombre) = obtenerDatosBarberos($option_key);
+    $configuracionColumnas = columnasBarberos($opcionesServicios, $serviciosMapIdANombre);
+    $configuracionColumnas['acciones_masivas_separadas'] = true;
+    ob_start();
+    Glory\Components\DataGridRenderer::render($barberosCombinados, $configuracionColumnas);
+    $html = ob_get_clean();
+    if (!is_admin()) {
+        $html = '<div class="tablaWrap">' . $html . '</div>';
+    }
+    try { Glory\Services\EventBus::emit('term_barbero', ['accion' => 'eliminar_masivo', 'ids' => $ids]); } catch (\Throwable $e) {}
+    wp_send_json_success(['html' => $html]);
+}
+
 // Handler para eliminar servicio desde admin-post.php
 function glory_delete_servicio_handler() {
     if (!current_user_can('manage_options')) {
@@ -170,3 +217,51 @@ function glory_delete_servicio_handler() {
     exit;
 }
 add_action('admin_post_glory_delete_servicio', 'glory_delete_servicio_handler');
+
+function filtrarServiciosAjaxCallback() {
+    error_log('[realtime] filtrarServiciosAjaxCallback llamado');
+    if (!function_exists('obtenerDatosServicios') || !function_exists('columnasServicios')) {
+        wp_send_json_error(['mensaje' => 'Configuración de servicios no disponible.']);
+    }
+    $lista = obtenerDatosServicios();
+    $configuracionColumnas = columnasServicios();
+    $configuracionColumnas['acciones_masivas_separadas'] = true;
+    ob_start();
+    Glory\Components\DataGridRenderer::render($lista, $configuracionColumnas);
+    $html = ob_get_clean();
+    if (!is_admin()) { $html = '<div class="tablaWrap">' . $html . '</div>'; }
+    wp_send_json_success(['html' => $html]);
+}
+
+function glory_eliminar_servicios_callback() {
+    error_log('[realtime] glory_eliminar_servicios_callback llamado');
+    if (!is_user_logged_in() || !current_user_can('manage_options')) {
+        wp_send_json_error(['mensaje' => 'No autorizado.'], 403);
+    }
+    $idsRaw = $_POST['ids'] ?? '';
+    $ids = array_filter(array_map('absint', explode(',', (string)$idsRaw)));
+    if (empty($ids)) { wp_send_json_error(['mensaje' => 'Sin IDs.']); }
+    $option_key = 'barberia_servicios';
+    $servicios = get_option($option_key, []);
+    foreach ($ids as $term_id) {
+        if (term_exists($term_id, 'servicio')) { wp_delete_term($term_id, 'servicio'); }
+        if (is_array($servicios) && !empty($servicios)) {
+            $servicios = array_values(array_filter($servicios, function($s) use ($term_id) {
+                return empty($s['term_id']) || intval($s['term_id']) !== $term_id;
+            }));
+        }
+    }
+    update_option($option_key, $servicios);
+    if (!function_exists('obtenerDatosServicios') || !function_exists('columnasServicios')) {
+        wp_send_json_error(['mensaje' => 'Config no disponible.']);
+    }
+    $lista = obtenerDatosServicios();
+    $configuracionColumnas = columnasServicios();
+    $configuracionColumnas['acciones_masivas_separadas'] = true;
+    ob_start();
+    Glory\Components\DataGridRenderer::render($lista, $configuracionColumnas);
+    $html = ob_get_clean();
+    if (!is_admin()) { $html = '<div class="tablaWrap">' . $html . '</div>'; }
+    try { Glory\Services\EventBus::emit('term_servicio', ['accion' => 'eliminar_masivo', 'ids' => $ids]); } catch (\Throwable $e) {}
+    wp_send_json_success(['html' => $html]);
+}

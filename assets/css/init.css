@@ -299,9 +299,13 @@ button {
 }
 
 .botonprincipal {
-    background: white !important;
-    color: black !important;
-    border: 1px #00000000 solid !important;
+    background: var(--negro) !important;
+    color: var(--blanco) !important;
+    border-radius: 100px;
+}
+
+.botonsecundario {
+    color: var(--negro);
 }
 
 .preview {
@@ -526,11 +530,10 @@ select {
     outline: none; /* Esto elimina el borde negro al hacer clic */
 }
 
-/* Estilos de la notificación individual (sin posicionamiento) */
-.custom-notification {
+.notificacionPersonalizada {
     padding: 15px;
     border-radius: 5px;
-    background: var(--tercero) !important;
+    background: var(--blanco) !important;
     display: flex;
     gap: 10px;
     width: 100%;
@@ -539,7 +542,7 @@ select {
     flex-direction: column;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     animation: notification-slide-in 0.3s ease-out forwards;
-    color: #000 !important;
+    color: var(--negro) !important;
 }
 
 /* ===== Colores dinámicos para iconos del botón de menú ===== */

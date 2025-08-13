@@ -40,6 +40,7 @@
     padding: 20px 0px;
 }
 
+.homeFront .acciones-pagina,
 .homeFront .acciones-reservas {
     display: flex;
     align-items: flex-end;
@@ -161,6 +162,7 @@
     align-items: center;
 }
 
+.homeFront .acciones-pagina-header,
 .homeFront .acciones-reservas-header {
     display: flex;
     justify-content: space-between;
@@ -186,6 +188,7 @@ textarea {
     padding-right: 5px;
 }
 
+.homeFront .acciones-pagina-header-buttons,
 .homeFront .acciones-reservas-header-buttons {
     display: flex;
     gap: 10px;
@@ -235,4 +238,9 @@ textarea {
     line-height: 1;
     font-size: 12px;
     opacity: 0.85;
+}
+
+.homeFront .paginaBarberos .gloryDataGridTabla img {
+    max-width: 40px;
+    max-height: 40px;
 }

@@ -8,27 +8,27 @@ function home()
 
         <div class="pestanasPaneles">
 
-            <section class="pestanaContenido" data-pestana="Reservas">
+            <section class="pestanaContenido paginaReservas" data-pestana="Reservas">
                 <?php echo renderPaginaReservas(); ?>
             </section>
             
-            <section class="pestanaContenido" data-pestana="Barberos">
+            <section class="pestanaContenido paginaBarberos" data-pestana="Barberos">
                 <?php echo renderPaginaBarberos(); ?>
             </section>
 
-            <section class="pestanaContenido" data-pestana="Servicios">
+            <section class="pestanaContenido paginaServicios" data-pestana="Servicios">
                 <?php echo renderPaginaServicios(); ?>
             </section>
 
-            <section class="pestanaContenido" data-pestana="Visualización">
+            <section class="pestanaContenido paginaVisualizacion" data-pestana="Visualización">
                 <?php echo renderPaginaVisualizacion(); ?>
             </section>
 
-            <section class="pestanaContenido" data-pestana="Historial">
+            <section class="pestanaContenido paginaHistorial" data-pestana="Historial">
                 <?php echo renderPaginaHistorial(); ?>
             </section>
 
-            <section class="pestanaContenido" data-pestana="Ganancias">
+            <section class="pestanaContenido paginaGanancias" data-pestana="Ganancias">
                 <?php echo renderPaginaGanancias(); ?>
             </section>
         </div>

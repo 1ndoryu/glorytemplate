@@ -278,43 +278,48 @@ function columnasBarberos(array $opcionesServicios, array $servicios_map_id_to_n
 
                 return esc_html(implode(', ', $names));
             }],
-            ['etiqueta' => 'Acciones', 'clave' => 'acciones', 'callback' => function ($b) use ($opcionesServicios) {
+            ['etiqueta' => 'Acciones', 'clave' => 'acciones', 'callback' => function ($b) {
                 $objectId = $b['term_id'] ?? ($b['id'] ?? null);
                 if (!$objectId) return '';
 
+                $menu_id = 'glory-submenu-barbero-' . intval($objectId);
+                $trigger = '<a href="#" class="glory-submenu-trigger noAjax" data-submenu="' . esc_attr($menu_id) . '" aria-label="' . esc_attr__('Acciones', 'glorytemplate') . '">⋯</a>';
+
                 $nonce = wp_nonce_field('barberos_save', 'barberos_nonce', true, false);
-
-                // Icono editar (abre modal)
-                $edit = '<a href="#" class="openModal noAjax"'
-                    . ' data-modal="modalAnadirBarbero"'
-                    . ' data-form-mode="edit"'
-                    . ' data-object-id="' . esc_attr($objectId) . '"'
-                    . ' data-fetch-action="glory_get_barbero_details"'
-                    . ' data-submit-action="barbero"'
-                    . ' data-submit-text="Guardar Cambios"'
-                    . ' data-modal-title-edit="' . esc_attr('Editar Barbero') . '"'
-                    . ' title="' . esc_attr('Editar') . '"><span class="dashicons dashicons-edit"></span></a>';
-
-                // Icono eliminar (form POST con nonce)
                 $formAction = admin_url('admin-post.php');
-                $form = '<form method="post" action="' . esc_attr($formAction) . '" style="display:inline">'
+
+                $menu  = '<div id="' . esc_attr($menu_id) . '" class="glory-submenu" style="display:none;flex-direction:column;">';
+                $menu .= '<a href="#" class="openModal noAjax" data-modal="modalAnadirBarbero" data-form-mode="edit" data-fetch-action="glory_get_barbero_details" data-object-id="' . esc_attr($objectId) . '" data-submit-action="barbero" data-submit-text="Guardar Cambios" data-modal-title-edit="' . esc_attr('Editar Barbero') . '">' . esc_html__('Editar', 'glorytemplate') . '</a>';
+                // En frontend: AJAX; en admin: fallback a admin-post
+                $menu .= '<a href="#" class="noAjax js-eliminar-barbero" data-term-id="' . esc_attr($objectId) . '">' . esc_html__('Eliminar', 'glorytemplate') . '</a>';
+                $menu .= '<form method="post" action="' . esc_attr($formAction) . '" style="display:none" class="glory-delete-barbero-fallback">'
                     . $nonce
                     . '<input type="hidden" name="action" value="glory_delete_barbero">'
                     . '<input type="hidden" name="term_id" value="' . esc_attr($objectId) . '">'
-                    . '<button class="button-link" type="submit" onclick="return confirm(' . json_encode('¿Estás seguro de que quieres eliminar este barbero?') . ');" title="' . esc_attr('Eliminar') . '">'
-                    . '<span class="dashicons dashicons-trash"></span></button></form>';
+                    . '</form>';
+                $menu .= '</div>';
 
-                return $edit . ' ' . $form;
+                return $trigger . $menu;
             }],
+        ],
+        'seleccionMultiple' => true,
+        'accionesMasivas' => [
+            [
+                'id' => 'eliminar',
+                'etiqueta' => 'Eliminar',
+                'ajax_action' => 'glory_eliminar_barberos',
+                'confirmacion' => '¿Eliminar los barberos seleccionados?'
+            ]
         ],
         'paginacion' => false,
         'allowed_html' => [
-            'a' => ['href' => true, 'class' => true, 'data-modal' => true, 'data-form-mode' => true, 'data-object-id' => true, 'data-fetch-action' => true, 'data-submit-action' => true, 'data-submit-text' => true, 'data-modal-title-edit' => true, 'title' => true],
+            'a' => ['href' => true, 'class' => true, 'data-modal' => true, 'data-form-mode' => true, 'data-object-id' => true, 'data-fetch-action' => true, 'data-submit-action' => true, 'data-submit-text' => true, 'data-modal-title-edit' => true, 'title' => true, 'data-submenu' => true, 'data-posicion' => true, 'data-evento' => true, 'data-term-id' => true],
             'img' => ['src' => true, 'alt' => true, 'width' => true, 'height' => true, 'class' => true],
             'input' => ['type' => true, 'name' => true, 'value' => true],
             'form' => ['method' => true, 'style' => true, 'action' => true],
             'button' => ['type' => true, 'class' => true, 'onclick' => true, 'title' => true],
             'span' => ['class' => true],
+            'div' => ['id' => true, 'class' => true, 'style' => true],
         ],
     ];
 }

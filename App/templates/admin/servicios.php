@@ -3,6 +3,8 @@
 use Glory\Components\FormularioFluente;
 use Glory\Components\Modal;
 use Glory\Components\FormBuilder;
+use Glory\Components\DataGridRenderer;
+use Glory\Components\BarraFiltrosRenderer;
 
 function renderPaginaServicios()
 {
@@ -132,48 +134,29 @@ function renderPaginaServicios()
     }
 
     ?>
-    <div class="wrap">
-        <h1>Servicios</h1>
-
-        <div style="margin-bottom:12px;">
-            <button class="button button-primary openModal noAjax" data-modal="modalAnadirServicio" data-form-mode="create" data-submit-action="guardarServicio" data-submit-text="Guardar" data-modal-title-create="<?php echo esc_attr('Añadir Servicio'); ?>">Añadir Servicio</button>
+    <div class="wrap wrap-servicios-admin">
+        <div class="acciones-pagina-header acciones-servicios-header">
+            <h1>Servicios</h1>
+            <div class="acciones-pagina-header-buttons acciones-servicios-header-buttons">
+                <button class="button button-primary openModal noAjax" data-modal="modalAnadirServicio" data-form-mode="create" data-submit-action="guardarServicio" data-submit-text="Guardar" data-modal-title-create="<?php echo esc_attr('Añadir Servicio'); ?>">Añadir Servicio</button>
+            </div>
         </div>
 
-        <table class="widefat fixed striped">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Duración (min)</th>
-                    <th>Precio (€)</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($servicios_merged as $index => $s): ?>
-                    <tr>
-                        <td><?php echo esc_html($s['name']); ?></td>
-                        <td><?php echo intval($s['duration']); ?></td>
-                        <td><?php echo number_format(floatval($s['price']), 2); ?></td>
-                        <td>
-                            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline">
-                                <?php wp_nonce_field('servicios_save','servicios_nonce'); ?>
-                                <input type="hidden" name="action" value="glory_delete_servicio">
-                                <input type="hidden" name="term_id" value="<?php echo intval($s['term_id'] ?? 0); ?>">
-                                <input type="hidden" name="name" value="<?php echo esc_attr($s['name']); ?>">
-                                <button class="button button-danger" type="submit">Eliminar</button>
-                            </form>
-                            <a href="#" class="openModal button edit-servicio noAjax"
-                               data-modal="modalAnadirServicio"
-                               data-form-mode="edit"
-                               data-object-id="<?php echo intval($s['term_id'] ?? 0) ?: $index; ?>"
-                               data-fetch-action="glory_get_servicio_details"
-                               data-submit-action="guardarServicio"
-                               data-modal-title-edit="<?php echo esc_attr('Editar Servicio'); ?>">Editar</a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="acciones-pagina acciones-servicios" style="margin-bottom:12px;">
+            <?php
+            // Acciones masivas + filtros (si se agregan en el futuro)
+            $configuracionColumnas = columnasServicios();
+            $configuracionColumnas['acciones_masivas_separadas'] = true;
+            DataGridRenderer::renderAccionesMasivasFromConfig($configuracionColumnas);
+            ?>
+        </div>
+
+        <?php
+        $servicios_listado = obtenerDatosServicios();
+        if (!is_admin()) { echo '<div class="tablaWrap">'; }
+        DataGridRenderer::render($servicios_listado, $configuracionColumnas);
+        if (!is_admin()) { echo '</div>'; }
+        ?>
 
         <?php
         function renderModalServicio(): void

@@ -109,6 +109,114 @@ function consultaReservas(): WP_Query
 }
 
 /**
+ * Formatea una fecha ISO (YYYY-MM-DD) a DIA-MES-AÑO para display.
+ */
+function formatearFechaDisplay(string $fecha): string
+{
+    if ($fecha === '') return '';
+    try {
+        $dt = new DateTime($fecha);
+        return $dt->format('d-m-Y');
+    } catch (Exception $e) {
+        return $fecha;
+    }
+}
+
+/**
+ * Construye una lista ordenada de reservas donde primero van las futuras o en curso
+ * y al final las pasadas. Dentro de cada grupo se ordena por fecha y hora descendente.
+ * Si se especifican parámetros de orden en la request, se delega al ordenamiento nativo.
+ *
+ * @return array<int, WP_Post>
+ */
+function consultaReservasOrdenadas(): array
+{
+    // Reutilizar filtros de consultaReservas, pero traer todo para ordenar en memoria
+    $pagina = get_query_var('paged') ? get_query_var('paged') : 1;
+    $args = [
+        'post_type'      => 'reserva',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'meta_query'     => ['relation' => 'AND'],
+        'tax_query'      => ['relation' => 'AND'],
+    ];
+
+    if (!empty($_GET['s'])) {
+        $args['s'] = sanitize_text_field((string) $_GET['s']);
+    }
+    if (!empty($_GET['fecha_desde'])) {
+        $args['meta_query'][] = [
+            'key'     => 'fecha_reserva',
+            'value'   => sanitize_text_field((string) $_GET['fecha_desde']),
+            'compare' => '>=',
+            'type'    => 'DATE',
+        ];
+    }
+    if (!empty($_GET['fecha_hasta'])) {
+        $args['meta_query'][] = [
+            'key'     => 'fecha_reserva',
+            'value'   => sanitize_text_field((string) $_GET['fecha_hasta']),
+            'compare' => '<=',
+            'type'    => 'DATE',
+        ];
+    }
+    if (!empty($_GET['filtro_servicio'])) {
+        $args['tax_query'][] = [
+            'taxonomy' => 'servicio',
+            'field'    => 'term_id',
+            'terms'    => absint((int) $_GET['filtro_servicio']),
+        ];
+    }
+    if (!empty($_GET['filtro_barbero'])) {
+        $args['tax_query'][] = [
+            'taxonomy' => 'barbero',
+            'field'    => 'term_id',
+            'terms'    => absint((int) $_GET['filtro_barbero']),
+        ];
+    }
+
+    $q = new WP_Query($args);
+    $posts = is_array($q->posts) ? $q->posts : [];
+
+    $ahora = new DateTime();
+
+    $leerDuracion = function (int $postId): int {
+        $servicios = get_the_terms($postId, 'servicio');
+        if (!is_wp_error($servicios) && !empty($servicios)) {
+            $dur = get_term_meta($servicios[0]->term_id, 'duracion', true);
+            if (is_numeric($dur)) return max(0, (int) $dur);
+        }
+        return 30; // default
+    };
+
+    $particionar = function (WP_Post $a) use ($ahora, $leerDuracion): array {
+        $fecha = (string) get_post_meta($a->ID, 'fecha_reserva', true);
+        $hora  = (string) get_post_meta($a->ID, 'hora_reserva', true);
+        if (!$fecha || !$hora) return ['grupo' => 2, 'inicio' => null, 'fin' => null];
+        try {
+            $inicio = new DateTime($fecha . ' ' . $hora);
+        } catch (Exception $e) {
+            return ['grupo' => 2, 'inicio' => null, 'fin' => null];
+        }
+        $duracion = $leerDuracion($a->ID);
+        $fin = (clone $inicio)->add(new DateInterval('PT' . $duracion . 'M'));
+        $grupo = ($fin < $ahora) ? 2 : 1; // 1: futuras o en curso, 2: pasadas
+        return ['grupo' => $grupo, 'inicio' => $inicio, 'fin' => $fin];
+    };
+
+    usort($posts, function ($a, $b) use ($particionar) {
+        $pa = $particionar($a);
+        $pb = $particionar($b);
+        if ($pa['grupo'] !== $pb['grupo']) return $pa['grupo'] <=> $pb['grupo'];
+        // dentro del mismo grupo, ordenar por inicio DESC (comparar por timestamp para evitar comparar objetos)
+        if ($pa['inicio'] && $pb['inicio']) return $pb['inicio']->getTimestamp() <=> $pa['inicio']->getTimestamp();
+        return 0;
+    });
+
+    return $posts;
+}
+
+/**
  * Helpers para renderizar columnas de la tabla de reservas
  */
 
@@ -210,9 +318,39 @@ function columnasReservas(): array
 {
     return [
         'columnas' => [
+            ['etiqueta' => 'Estado', 'clave' => 'estado', 'ordenable' => false, 'callback' => function ($post) {
+                $fecha = (string) get_post_meta($post->ID, 'fecha_reserva', true);
+                $hora  = (string) get_post_meta($post->ID, 'hora_reserva', true);
+                if (!$fecha || !$hora) return '<span class="status-badge status-desconocido">—</span>';
+                try {
+                    $inicio = new DateTime($fecha . ' ' . $hora);
+                } catch (Exception $e) {
+                    return '<span class="status-badge status-desconocido">—</span>';
+                }
+                $servicios = get_the_terms($post->ID, 'servicio');
+                $duracion = 30;
+                if (!is_wp_error($servicios) && !empty($servicios)) {
+                    $d = get_term_meta($servicios[0]->term_id, 'duracion', true);
+                    if (is_numeric($d)) $duracion = (int) $d;
+                }
+                $fin = (clone $inicio)->add(new DateInterval('PT' . $duracion . 'M'));
+                $ahora = new DateTime();
+                if ($ahora < $inicio) {
+                    $diff = human_time_diff($ahora->getTimestamp(), $inicio->getTimestamp());
+                    return '<span class="status-badge status-futura" title="Empieza en ' . esc_attr($diff) . '">Futura</span>';
+                } elseif ($ahora >= $inicio && $ahora <= $fin) {
+                    $diff = human_time_diff($ahora->getTimestamp(), $fin->getTimestamp());
+                    return '<span class="status-badge status-en-proceso" title="Termina en ' . esc_attr($diff) . '">En proceso</span>';
+                } else {
+                    $diff = human_time_diff($fin->getTimestamp(), $ahora->getTimestamp());
+                    return '<span class="status-badge status-pasada" title="Terminó hace ' . esc_attr($diff) . '">Pasada</span>';
+                }
+            }],
             ['etiqueta' => 'Cliente', 'clave' => 'post_title', 'ordenable' => true],
             ['etiqueta' => 'Fecha', 'clave' => 'fecha_reserva', 'ordenable' => true, 'callback' => function ($post) {
-                return obtenerMetaONa($post->ID, 'fecha_reserva');
+                $raw = (string) get_post_meta($post->ID, 'fecha_reserva', true);
+                $val = $raw !== '' ? formatearFechaDisplay($raw) : 'N/A';
+                return $val;
             }],
             ['etiqueta' => 'Hora', 'clave' => 'hora_reserva', 'ordenable' => true, 'callback' => function ($post) {
                 return obtenerMetaONa($post->ID, 'hora_reserva');
@@ -274,6 +412,7 @@ function columnasReservas(): array
             'span' => [
                 'class' => true,
                 'style' => true,
+                'title' => true,
                 'data-color' => true,
             ],
             'input' => [
@@ -308,7 +447,15 @@ function renderModalReserva(array $opcionesServicios, array $opcionesBarberos): 
         ['fn' => 'campoSelect', 'args' => ['nombre' => 'barbero_id', 'label' => 'Barbero', 'opciones' => $opcionesBarberos, 'obligatorio' => true, 'extraClassInput' => 'selector-barbero']],
         ['fn' => 'campoSelect', 'args' => ['nombre' => 'servicio_id', 'label' => 'Servicio', 'opciones' => ['' => 'Selecciona un barbero'], 'obligatorio' => true, 'extraClassInput' => 'selector-servicio', 'atributosExtra' => ['data-fm-accion-opciones' => 'glory_servicios_por_barbero', 'data-fm-depende' => 'barbero_id', 'data-fm-placeholder-deshabilitado' => 'Selecciona un barbero']]],
         ['fn' => 'campoFecha', 'args' => ['nombre' => 'fecha_reserva', 'label' => 'Fecha', 'obligatorio' => true, 'extraClassInput' => 'selector-fecha']],
-        ['fn' => 'campoSelect', 'args' => ['nombre' => 'hora_reserva', 'label' => 'Hora', 'opciones' => ['' => 'Selecciona fecha, servicio y barbero'], 'obligatorio' => true, 'extraClassInput' => 'selector-hora', 'atributosExtra' => ['data-fm-accion-opciones' => 'glory_verificar_disponibilidad', 'data-fm-depende' => 'barbero_id,servicio_id,fecha_reserva', 'data-fm-placeholder-deshabilitado' => 'Completa los campos anteriores']]],
+        ['fn' => 'campoSelect', 'args' => ['nombre' => 'hora_reserva', 'label' => 'Hora', 'opciones' => ['' => 'Selecciona fecha, servicio y barbero'], 'obligatorio' => true, 'extraClassInput' => 'selector-hora', 'atributosExtra' => [
+            'data-fm-accion-opciones' => 'glory_verificar_disponibilidad',
+            'data-fm-depende' => 'barbero_id,servicio_id,fecha_reserva',
+            'data-fm-placeholder-deshabilitado' => 'Completa los campos anteriores',
+            // Tema: parametrizar nombre de exclusión para edición (agnóstico en Glory)
+            'data-fm-exclude-param' => 'exclude_id',
+            // Tema: mantener visible el valor actual al entrar en edición
+            'data-fm-keep-current' => '1'
+        ]]],
         ['fn' => 'botonEnviar', 'args' => ['accion' => 'crearReserva', 'texto' => 'Guardar Reserva', 'extraClass' => 'button-primary']],
         ['fn' => 'fin'],
     ];

@@ -17,14 +17,26 @@ function renderPaginaReservas()
     $export_url = add_query_arg(['exportar_csv' => 'true'], admin_url('admin.php?page=barberia-reservas'));
     $opcionesServicios = gloryOpcionesTaxonomia('servicio', 'Selecciona un servicio');
     $opcionesBarberos  = gloryOpcionesTaxonomia('barbero', 'Selecciona un barbero');
-    $consultaReservas      = consultaReservas();
+    // Orden por defecto: futuras y en proceso primero; pasadas al final. Si el usuario ordena por columna, se respeta.
+    $orderbyParam = isset($_GET['orderby']) ? sanitize_key((string) $_GET['orderby']) : '';
+    if ($orderbyParam !== '') {
+        $consultaReservas = consultaReservas();
+    } else {
+        $consultaReservas = new WP_Query([
+            'post_type' => 'reserva',
+            'post__in' => wp_list_pluck(consultaReservasOrdenadas(), 'ID'),
+            'orderby' => 'post__in',
+            'posts_per_page' => 20,
+            'post_status' => 'publish'
+        ]);
+    }
     $configuracionColumnas = columnasReservas();
-    // Queremos que las acciones masivas se muestren fuera del DataGrid (en .acciones-reservas)
+    // Queremos que las acciones masivas se muestren fuera del DataGrid (en .acciones-pagina)
     $configuracionColumnas['acciones_masivas_separadas'] = true;
 ?>
-    <div class="acciones-reservas-header">
+    <div class="acciones-pagina-header acciones-reservas-header">
         <h1><?php echo 'Panel de Reservas'; ?></h1>
-        <div class="acciones-reservas-header-buttons">
+        <div class="acciones-pagina-header-buttons acciones-reservas-header-buttons">
             <a href="<?php echo esc_url($export_url); ?>" class="button button-secondary">
                 <?php echo 'Exportar a CSV'; ?>
             </a>
@@ -33,7 +45,7 @@ function renderPaginaReservas()
             </button>
         </div>
     </div>
-    <div class="acciones-reservas">
+    <div class="acciones-pagina acciones-reservas">
 
         <?php
         $opcionesFiltros = [

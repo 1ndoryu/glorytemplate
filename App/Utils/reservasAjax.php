@@ -18,6 +18,8 @@ function verificarDisponibilidadCallback()
     try {
         $fechaObj = new DateTime($fecha);
         $hoy = new DateTime('today');
+        // En modo edición (exclude_id > 0), permitimos cargar opciones incluso si la fecha es pasada o domingo.
+        if ($excludeId <= 0) {
         if ($fechaObj < $hoy) {
             wp_send_json_error(['mensaje' => 'No puedes reservar en una fecha pasada.']);
             return;
@@ -25,6 +27,7 @@ function verificarDisponibilidadCallback()
         if ($fechaObj->format('N') == 7) { // 7 = Domingo
             wp_send_json_error(['mensaje' => 'No se admiten reservas los domingos.']);
             return;
+            }
         }
     } catch (Exception $e) {
         wp_send_json_error(['mensaje' => 'Formato de fecha inválido.']);
@@ -39,6 +42,14 @@ function verificarDisponibilidadCallback()
     $duracion = get_term_meta($servicio->term_id, 'duracion', true) ?: 30;
 
     $horariosDisponibles = obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion, $excludeId);
+
+    // Si estamos editando, garantizar que la hora actual de la reserva esté presente en las opciones
+    if ($excludeId > 0) {
+        $horaActual = (string) get_post_meta($excludeId, 'hora_reserva', true);
+        if ($horaActual !== '' && !in_array($horaActual, $horariosDisponibles, true)) {
+            array_unshift($horariosDisponibles, $horaActual);
+        }
+    }
 
     wp_send_json_success(['options' => $horariosDisponibles]);
 }
@@ -113,24 +124,21 @@ function actualizarColorServicioCallback()
  */
 function filtrarReservasAjaxCallback()
 {
+    error_log('[realtime] filtrarReservasAjaxCallback llamado');
     // Construir args similares a consultaReservas() pero con $_POST
     $pagina = isset($_POST['paged']) ? max(1, absint($_POST['paged'])) : 1;
 
     $args = [
         'post_type'      => 'reserva',
-        'posts_per_page' => 20,
-        'paged'          => $pagina,
+        'posts_per_page' => -1,
         'post_status'    => 'publish',
         'meta_query'     => ['relation' => 'AND'],
         'tax_query'      => ['relation' => 'AND'],
     ];
 
-    // Búsqueda por nombre de cliente (título)
     if (!empty($_POST['s'])) {
         $args['s'] = sanitize_text_field((string) $_POST['s']);
     }
-
-    // Filtro por rango de fechas
     if (!empty($_POST['fecha_desde'])) {
         $args['meta_query'][] = [
             'key'     => 'fecha_reserva',
@@ -147,8 +155,6 @@ function filtrarReservasAjaxCallback()
             'type'    => 'DATE',
         ];
     }
-
-    // Filtro por servicio (taxonomía)
     if (!empty($_POST['filtro_servicio'])) {
         $args['tax_query'][] = [
             'taxonomy' => 'servicio',
@@ -156,8 +162,6 @@ function filtrarReservasAjaxCallback()
             'terms'    => absint((int) $_POST['filtro_servicio']),
         ];
     }
-
-    // Filtro por barbero (taxonomía)
     if (!empty($_POST['filtro_barbero'])) {
         $args['tax_query'][] = [
             'taxonomy' => 'barbero',
@@ -166,9 +170,11 @@ function filtrarReservasAjaxCallback()
         ];
     }
 
-    // Ordenamiento por columna (título, fecha_reserva, hora_reserva)
     $orderbyParam = isset($_POST['orderby']) ? sanitize_key((string) $_POST['orderby']) : '';
     $orderParam   = (isset($_POST['order']) && strtolower((string) $_POST['order']) === 'desc') ? 'DESC' : 'ASC';
+
+    // Si hay orden explícito, delegar al orden nativo
+    if ($orderbyParam !== '') {
     if ($orderbyParam === 'post_title') {
         $args['orderby'] = 'title';
         $args['order']   = $orderParam;
@@ -181,8 +187,53 @@ function filtrarReservasAjaxCallback()
         $args['orderby']  = 'meta_value';
         $args['order']    = $orderParam;
     }
-
-    $query = new WP_Query($args);
+        $query = new WP_Query(['paged' => $pagina] + $args);
+    } else {
+        // Orden por defecto: futuras y en proceso primero; pasadas al final
+        $qAll = new WP_Query($args);
+        $posts = is_array($qAll->posts) ? $qAll->posts : [];
+        $ahora = new DateTime();
+        $leerDuracion = function (int $postId): int {
+            $servicios = get_the_terms($postId, 'servicio');
+            if (!is_wp_error($servicios) && !empty($servicios)) {
+                $dur = get_term_meta($servicios[0]->term_id, 'duracion', true);
+                if (is_numeric($dur)) return max(0, (int) $dur);
+            }
+            return 30;
+        };
+        $part = function (WP_Post $p) use ($ahora, $leerDuracion): array {
+            $fecha = (string) get_post_meta($p->ID, 'fecha_reserva', true);
+            $hora  = (string) get_post_meta($p->ID, 'hora_reserva', true);
+            if (!$fecha || !$hora) return ['grupo' => 2, 'inicio' => null];
+            try { $inicio = new DateTime($fecha . ' ' . $hora); } catch (Exception $e) { return ['grupo' => 2, 'inicio' => null]; }
+            $fin = (clone $inicio)->add(new DateInterval('PT' . $leerDuracion($p->ID) . 'M'));
+            $grupo = ($fin < $ahora) ? 2 : 1;
+            return ['grupo' => $grupo, 'inicio' => $inicio];
+        };
+        usort($posts, function ($a, $b) use ($part) {
+            $pa = $part($a); $pb = $part($b);
+            if ($pa['grupo'] !== $pb['grupo']) return $pa['grupo'] <=> $pb['grupo'];
+            // Orden dentro del grupo: DESC por fecha/hora de inicio
+            if ($pa['inicio'] && $pb['inicio']) return $pb['inicio']->getTimestamp() <=> $pa['inicio']->getTimestamp();
+            return 0;
+        });
+        // Paginación básica tras ordenar (20 por página)
+        $perPage = 20;
+        $offset = ($pagina - 1) * $perPage;
+        $slice = array_slice($posts, $offset, $perPage);
+        $ids = wp_list_pluck($slice, 'ID');
+        if (empty($ids)) {
+            $query = new WP_Query(['post_type' => 'reserva', 'post__in' => [0]]);
+        } else {
+            $query = new WP_Query([
+                'post_type' => 'reserva',
+                'post__in' => $ids,
+                'orderby' => 'post__in',
+                'posts_per_page' => count($ids),
+                'post_status' => 'publish',
+            ]);
+        }
+    }
 
     // Reutilizar la configuración de columnas existente
     if (!function_exists('columnasReservas')) {
@@ -208,6 +259,7 @@ function filtrarReservasAjaxCallback()
  */
 function filtrarBarberosAjaxCallback()
 {
+    error_log('[realtime] filtrarBarberosAjaxCallback llamado');
     $claveOpcion = 'barberia_barberos';
 
     if (!function_exists('obtenerDatosBarberos') || !function_exists('columnasBarberos')) {
