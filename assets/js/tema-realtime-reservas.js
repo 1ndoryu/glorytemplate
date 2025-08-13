@@ -50,8 +50,11 @@
     console.log('[realtime] iniciando poll de canales', ['post_reserva','term_barbero','term_servicio']);
     var stop = window.gloryRealtimePoll(['post_reserva','term_barbero','term_servicio'], { intervalMs: 3000 });
     window.addEventListener('beforeunload', function(){ try { stop(); } catch(e){} });
-    document.addEventListener('gloryRealtime:update', function(e){
+    var lastRealtimeAt = Date.now();
+
+    function onRealtimeEvent(e){
       try { console.debug('[realtime] evento recibido', e && e.detail ? e.detail : e); } catch(_) {}
+      lastRealtimeAt = Date.now();
       if (!e || !e.detail) return;
       if (e.detail.channel === 'post_reserva') {
         refrescarReservas();
@@ -60,7 +63,29 @@
       } else if (e.detail.channel === 'term_servicio') {
         refrescarServicios();
       }
-    });
+    }
+    // Escuchar en document y en window por compatibilidad
+    document.addEventListener('gloryRealtime:update', onRealtimeEvent);
+    window.addEventListener('gloryRealtime:update', onRealtimeEvent);
+    // Posibles variantes del nombre del evento
+    document.addEventListener('gloryRealtimeUpdate', onRealtimeEvent);
+    window.addEventListener('gloryRealtimeUpdate', onRealtimeEvent);
+    // Fallback: si no llegan eventos en X segundos, refrescar la pestaña activa
+    setInterval(function(){
+      var since = Date.now() - lastRealtimeAt;
+      if (since < 12000) return; // 12s sin eventos
+      var activa = document.querySelector('.pestanaContenido.activa');
+      if (!activa) return;
+      var tab = activa.getAttribute('data-pestana');
+      console.log('[realtime] fallback refresh (sin eventos ~' + Math.round(since/1000) + 's). Pestaña:', tab);
+      if (tab === 'Reservas') {
+        refrescarReservas();
+      } else if (tab === 'Barberos') {
+        refrescarBarberos();
+      } else if (tab === 'Servicios') {
+        refrescarServicios();
+      }
+    }, 10000);
     document.addEventListener('gloryModal:close', function(){ if (refreshPending) { const p = refreshPending; refreshPending = false; if (p) refrescarReservas(); } });
     // silencioso por defecto
   }

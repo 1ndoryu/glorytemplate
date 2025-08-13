@@ -136,9 +136,9 @@ function renderPaginaServicios()
     ?>
     <div class="wrap wrap-servicios-admin">
         <div class="acciones-pagina-header acciones-servicios-header">
-            <h1>Servicios</h1>
+        <h1>Servicios</h1>
             <div class="acciones-pagina-header-buttons acciones-servicios-header-buttons">
-                <button class="button button-primary openModal noAjax" data-modal="modalAnadirServicio" data-form-mode="create" data-submit-action="guardarServicio" data-submit-text="Guardar" data-modal-title-create="<?php echo esc_attr('Añadir Servicio'); ?>">Añadir Servicio</button>
+            <button class="button button-primary openModal noAjax" data-modal="modalAnadirServicio" data-form-mode="create" data-submit-action="guardarServicio" data-submit-text="Guardar" data-modal-title-create="<?php echo esc_attr('Añadir Servicio'); ?>">Añadir Servicio</button>
             </div>
         </div>
 
