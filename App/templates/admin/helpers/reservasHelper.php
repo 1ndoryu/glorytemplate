@@ -109,6 +109,98 @@ function consultaReservas(): WP_Query
 }
 
 /**
+ * Helpers para renderizar columnas de la tabla de reservas
+ */
+
+/**
+ * Devuelve un meta de post o 'N/A' si está vacío.
+ */
+function obtenerMetaONa(int $postId, string $metaKey): string
+{
+    $valor = (string) get_post_meta($postId, $metaKey, true);
+    return $valor !== '' ? $valor : 'N/A';
+}
+
+/**
+ * Obtiene el color configurado para un slug de servicio.
+ */
+function obtenerColorServicioPorSlug(string $slug): string
+{
+    $key = 'glory_scheduler_color_' . str_replace('-', '_', $slug);
+    $color = OpcionRepository::get($key);
+    if ($color === OpcionRepository::getCentinela() || empty($color)) {
+        $colorDefault = OpcionRepository::get('glory_scheduler_color_default');
+        $color = ($colorDefault !== OpcionRepository::getCentinela() && !empty($colorDefault)) ? $colorDefault : '#9E9E9E';
+    }
+    return (string) $color;
+}
+
+/**
+ * Renderiza un item visual de servicio con punto de color y color-picker.
+ */
+function renderServicioItem(WP_Term $term): string
+{
+    $slug  = (string) $term->slug;
+    $color = obtenerColorServicioPorSlug($slug);
+
+    $dot = '<span class="glory-servicio-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' . esc_attr($color) . ';margin-right:6px;vertical-align:middle;"></span>';
+    $picker = '<input type="color" class="glory-color-servicio-picker" value="' . esc_attr($color) . '" data-slug="' . esc_attr($slug) . '" style="width:18px;height:18px;border:none;padding:0;margin-left:6px;vertical-align:middle;">';
+
+    return $dot . esc_html($term->name) . $picker;
+}
+
+/**
+ * Renderiza la lista de servicios de la reserva.
+ */
+function renderServiciosReserva(WP_Post $post): string
+{
+    $servicios = get_the_terms($post->ID, 'servicio');
+    if (!is_array($servicios) || is_wp_error($servicios) || empty($servicios)) {
+        return 'N/A';
+    }
+
+    $items = [];
+    foreach ($servicios as $term) {
+        if ($term instanceof WP_Term) {
+            $items[] = renderServicioItem($term);
+        }
+    }
+    return implode('<br>', $items);
+}
+
+/**
+ * Renderiza la lista de barberos asignados a la reserva.
+ */
+function renderBarberosReserva(WP_Post $post): string
+{
+    $barberos = get_the_terms($post->ID, 'barbero');
+    if (is_array($barberos) && !is_wp_error($barberos)) {
+        return implode(', ', wp_list_pluck($barberos, 'name'));
+    }
+    return 'N/A';
+}
+
+/**
+ * Renderiza el HTML de acciones por fila (submenu trigger + opciones).
+ */
+function renderAccionesReserva(WP_Post $post): string
+{
+    $delete_link = get_delete_post_link($post->ID);
+    $confirm_message = json_encode('¿Estás seguro de que quieres eliminar esta reserva?');
+
+    $menu_id = 'glory-submenu-reserva-' . intval($post->ID);
+
+    $trigger = '<a href="#" class="glory-submenu-trigger" data-submenu="' . esc_attr($menu_id) . '" aria-label="' . esc_attr__('Acciones', 'glorytemplate') . '">⋯</a>';
+
+    $menu  = '<div id="' . esc_attr($menu_id) . '" class="glory-submenu" style="display:none;flex-direction:column;">';
+    $menu .= '<a href="#" class="openModal noAjax" data-modal="modalAnadirReserva" data-form-mode="edit" data-fetch-action="glory_obtener_reserva" data-object-id="' . esc_attr($post->ID) . '" data-submit-action="actualizarReserva" data-modal-title-edit="' . esc_attr('Editar Reserva') . '">' . esc_html__('Editar', 'glorytemplate') . '</a>';
+    $menu .= '<a href="' . esc_url($delete_link) . '" onclick="return confirm(' . $confirm_message . ')" title="' . esc_attr('Eliminar') . '">' . esc_html__('Eliminar', 'glorytemplate') . '</a>';
+    $menu .= '</div>';
+
+    return $trigger . $menu;
+}
+
+/**
  * Configuración de columnas para el DataGrid.
  *
  * @return array
@@ -119,66 +211,27 @@ function columnasReservas(): array
         'columnas' => [
             ['etiqueta' => 'Cliente', 'clave' => 'post_title', 'ordenable' => true],
             ['etiqueta' => 'Fecha', 'clave' => 'fecha_reserva', 'ordenable' => true, 'callback' => function ($post) {
-                return get_post_meta($post->ID, 'fecha_reserva', true) ?: 'N/A';
+                return obtenerMetaONa($post->ID, 'fecha_reserva');
             }],
             ['etiqueta' => 'Hora', 'clave' => 'hora_reserva', 'ordenable' => true, 'callback' => function ($post) {
-                return get_post_meta($post->ID, 'hora_reserva', true) ?: 'N/A';
+                return obtenerMetaONa($post->ID, 'hora_reserva');
             }],
             ['etiqueta' => 'Servicio', 'clave' => 'servicio', 'callback' => function ($post) {
-                $servicios = get_the_terms($post->ID, 'servicio');
-                if (!is_array($servicios) || is_wp_error($servicios) || empty($servicios)) {
-                    return 'N/A';
-                }
-
-                $items = [];
-                foreach ($servicios as $term) {
-                    $slug = $term->slug;
-                    $key = 'glory_scheduler_color_' . str_replace('-', '_', $slug);
-
-                    // Leer directamente de la BD; si no existe, usar default del scheduler o gris.
-                    $color = OpcionRepository::get($key);
-                    if ($color === OpcionRepository::getCentinela() || empty($color)) {
-                        $colorDefault = OpcionRepository::get('glory_scheduler_color_default');
-                        $color = ($colorDefault !== OpcionRepository::getCentinela() && !empty($colorDefault)) ? $colorDefault : '#9E9E9E';
-                    }
-
-                    $dot = '<span class="glory-servicio-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' . esc_attr($color) . ';margin-right:6px;vertical-align:middle;"></span>';
-                    $picker = '<input type="color" class="glory-color-servicio-picker" value="' . esc_attr($color) . '" data-slug="' . esc_attr($slug) . '" style="width:18px;height:18px;border:none;padding:0;margin-left:6px;vertical-align:middle;">';
-                    $items[] = $dot . esc_html($term->name) . $picker;
-                }
-                return implode('<br>', $items);
+                return renderServiciosReserva($post);
             }],
             ['etiqueta' => 'Teléfono', 'clave' => 'telefono_cliente', 'callback' => function ($post) {
-                return get_post_meta($post->ID, 'telefono_cliente', true) ?: 'N/A';
+                return obtenerMetaONa($post->ID, 'telefono_cliente');
             }],
             ['etiqueta' => 'Correo', 'clave' => 'correo_cliente', 'callback' => function ($post) {
-                return get_post_meta($post->ID, 'correo_cliente', true) ?: 'N/A';
+                return obtenerMetaONa($post->ID, 'correo_cliente');
             }],
             ['etiqueta' => 'Barbero', 'clave' => 'barbero', 'callback' => function ($post) {
-                $barberos = get_the_terms($post->ID, 'barbero');
-                if (is_array($barberos) && !is_wp_error($barberos)) {
-                    return implode(', ', wp_list_pluck($barberos, 'name'));
-                }
-                return 'N/A';
+                return renderBarberosReserva($post);
             }],
             ['etiqueta' => 'Acciones', 'clave' => 'acciones', 'callback' => function ($post) {
-                $delete_link = get_delete_post_link($post->ID);
-                $confirm_message = json_encode('¿Estás seguro de que quieres eliminar esta reserva?');
-
-                // Usar un trigger que abre el submenu de Glory (3 puntos) con opciones
-                $menu_id = 'glory-submenu-reserva-' . intval($post->ID);
-                $trigger = '<a href="#" class="glory-submenu-trigger" data-submenu="' . esc_attr($menu_id) . '" aria-label="' . esc_attr__('Acciones', 'glorytemplate') . '">⋯</a>';
-
-                // Menú contextual (se moverá al body por el gestor de submenus)
-                $menu = '<div id="' . esc_attr($menu_id) . '" class="glory-submenu" style="display:none;flex-direction:column;">';
-                $menu .= '<a href="#" class="openModal noAjax" data-modal="modalAnadirReserva" data-form-mode="edit" data-fetch-action="glory_obtener_reserva" data-object-id="' . esc_attr($post->ID) . '" data-submit-action="actualizarReserva" data-modal-title-edit="' . esc_attr('Editar Reserva') . '">' . esc_html__('Editar', 'glorytemplate') . '</a>';
-                $menu .= '<a href="' . esc_url($delete_link) . '" onclick="return confirm(' . $confirm_message . ')" title="' . esc_attr('Eliminar') . '">' . esc_html__('Eliminar', 'glorytemplate') . '</a>';
-                $menu .= '</div>';
-
-                return $trigger . $menu;
+                return renderAccionesReserva($post);
             }],
         ],
-        // Activar selección múltiple y acción masiva eliminar (front y admin)
         'seleccionMultiple' => true,
         'accionesMasivas' => [
             [
