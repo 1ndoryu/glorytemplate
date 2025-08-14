@@ -41,6 +41,16 @@
         document.querySelectorAll('.acciones-pagina .glory-filtro [name], .acciones-reservas .glory-filtro [name]').forEach(function (el) {
             filtros[el.name] = el.value || '';
         });
+		// Preservar selección de checkboxes antes de reemplazar HTML
+		var contenedor = document.querySelector('.pestanaContenido[data-pestana="Reservas"]');
+		var seleccionAntes = new Set();
+		try {
+			if (contenedor) {
+				contenedor.querySelectorAll('.gloryDataGridContenedor input.gloryGridSelect:checked').forEach(function(ch){
+					seleccionAntes.add(String(ch.value));
+				});
+			}
+		} catch (_) {}
         window
             .gloryAjax('glory_filtrar_reservas', filtros)
             .then(function (resp) {
@@ -49,6 +59,15 @@
                     if (wrap) {
                         wrap.outerHTML = resp.data.html;
                     }
+					// Restaurar selección después del reemplazo
+					try {
+						var nuevoCont = document.querySelector('.pestanaContenido[data-pestana="Reservas"]');
+						if (nuevoCont && seleccionAntes.size > 0) {
+							nuevoCont.querySelectorAll('.gloryDataGridContenedor input.gloryGridSelect').forEach(function(ch){
+								if (seleccionAntes.has(String(ch.value))) { ch.checked = true; }
+							});
+						}
+					} catch(_){}
                     document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
                 }
             })
@@ -93,18 +112,37 @@
         }
         refreshing = true;
         lastRefreshAt = now;
-        const filtros = {};
-        document.querySelectorAll('.acciones-pagina .glory-filtro [name], .acciones-barberos .glory-filtro [name]').forEach(function (el) {
-            filtros[el.name] = el.value || '';
-        });
+		const filtros = {};
+		document.querySelectorAll('.acciones-pagina .glory-filtro [name], .acciones-barberos .glory-filtro [name]').forEach(function (el) {
+			filtros[el.name] = el.value || '';
+		});
+		// Preservar selección de checkboxes antes de reemplazar HTML
+		var contenedorBarberos = document.querySelector('.pestanaContenido[data-pestana="Barberos"]');
+		var seleccionAntesBarberos = new Set();
+		try {
+			if (contenedorBarberos) {
+				contenedorBarberos.querySelectorAll('.gloryDataGridContenedor input.gloryGridSelect:checked').forEach(function(ch){
+					seleccionAntesBarberos.add(String(ch.value));
+				});
+			}
+		} catch (_) {}
         window
             .gloryAjax('glory_filtrar_barberos', filtros)
             .then(function (resp) {
                 if (resp && resp.success && resp.data && resp.data.html) {
                     var wrap = document.querySelector('.pestanaContenido[data-pestana="Barberos"] .tablaWrap');
-                    if (wrap) {
-                        wrap.outerHTML = resp.data.html;
-                    }
+					if (wrap) {
+						wrap.outerHTML = resp.data.html;
+					}
+					// Restaurar selección después del reemplazo
+					try {
+						var nuevoContBarberos = document.querySelector('.pestanaContenido[data-pestana="Barberos"]');
+						if (nuevoContBarberos && seleccionAntesBarberos.size > 0) {
+							nuevoContBarberos.querySelectorAll('.gloryDataGridContenedor input.gloryGridSelect').forEach(function(ch){
+								if (seleccionAntesBarberos.has(String(ch.value))) { ch.checked = true; }
+							});
+						}
+					} catch(_){}
                     document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
                 }
             })
@@ -223,18 +261,37 @@
         }
         refreshing = true;
         lastRefreshAt = now;
-        const filtros = {};
-        document.querySelectorAll('.acciones-pagina .glory-filtro [name], .acciones-servicios .glory-filtro [name]').forEach(function (el) {
-            filtros[el.name] = el.value || '';
-        });
+		const filtros = {};
+		document.querySelectorAll('.acciones-pagina .glory-filtro [name], .acciones-servicios .glory-filtro [name]').forEach(function (el) {
+			filtros[el.name] = el.value || '';
+		});
+		// Preservar selección de checkboxes antes de reemplazar HTML
+		var contenedorServicios = document.querySelector('.pestanaContenido[data-pestana="Servicios"]');
+		var seleccionAntesServicios = new Set();
+		try {
+			if (contenedorServicios) {
+				contenedorServicios.querySelectorAll('.gloryDataGridContenedor input.gloryGridSelect:checked').forEach(function(ch){
+					seleccionAntesServicios.add(String(ch.value));
+				});
+			}
+		} catch (_) {}
         window
             .gloryAjax('glory_filtrar_servicios', filtros)
             .then(function (resp) {
                 if (resp && resp.success && resp.data && resp.data.html) {
                     var wrap = document.querySelector('.pestanaContenido[data-pestana="Servicios"] .tablaWrap');
-                    if (wrap) {
-                        wrap.outerHTML = resp.data.html;
-                    }
+					if (wrap) {
+						wrap.outerHTML = resp.data.html;
+					}
+					// Restaurar selección después del reemplazo
+					try {
+						var nuevoContServicios = document.querySelector('.pestanaContenido[data-pestana="Servicios"]');
+						if (nuevoContServicios && seleccionAntesServicios.size > 0) {
+							nuevoContServicios.querySelectorAll('.gloryDataGridContenedor input.gloryGridSelect').forEach(function(ch){
+								if (seleccionAntesServicios.has(String(ch.value))) { ch.checked = true; }
+							});
+						}
+					} catch(_){}
                     document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
                 }
             })
