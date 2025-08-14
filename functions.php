@@ -230,7 +230,8 @@ function filtrarServiciosAjaxCallback() {
     ob_start();
     Glory\Components\DataGridRenderer::render($lista, $configuracionColumnas);
     $html = ob_get_clean();
-    if (!is_admin()) { $html = '<div class="tablaWrap">' . $html . '</div>'; }
+    // Unificar con reservas y barberos: siempre envolver en .tablaWrap para mantener estilos/bordes
+    $html = '<div class="tablaWrap">' . $html . '</div>';
     wp_send_json_success(['html' => $html]);
 }
 
@@ -262,7 +263,8 @@ function glory_eliminar_servicios_callback() {
     ob_start();
     Glory\Components\DataGridRenderer::render($lista, $configuracionColumnas);
     $html = ob_get_clean();
-    if (!is_admin()) { $html = '<div class="tablaWrap">' . $html . '</div>'; }
+    // Unificar con reservas y barberos: siempre envolver en .tablaWrap
+    $html = '<div class="tablaWrap">' . $html . '</div>'; 
     try { Glory\Services\EventBus::emit('term_servicio', ['accion' => 'eliminar_masivo', 'ids' => $ids]); } catch (\Throwable $e) {}
     wp_send_json_success(['html' => $html]);
 }

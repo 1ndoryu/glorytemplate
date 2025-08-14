@@ -257,32 +257,48 @@
 
     // Eliminar servicio desde frontend sin redirección
     if (!window.__gloryRealtimeClicksBound) {
+
+    function confirmarAccion(mensaje, onConfirm) {
+        try {
+            var res = window.confirm(mensaje);
+            if (res && typeof res.then === 'function') {
+                res.then(function (ok) { if (ok) onConfirm(); });
+            } else {
+                if (res) onConfirm();
+            }
+        } catch (e) {
+            // Si confirm falla por algún motivo, no hacemos la acción
+        }
+    }
+
     document.addEventListener('click', function (ev) {
         var a = ev.target.closest('a.js-eliminar-servicio');
         if (!a) return;
         ev.preventDefault();
         var termId = parseInt(a.getAttribute('data-term-id') || '0', 10);
         if (!termId) return;
-        if (!confirm('¿Estás seguro de que quieres eliminar este servicio?')) return;
-        var form = a.parentElement && a.parentElement.querySelector('form.glory-delete-servicio-fallback');
-        if (typeof window.gloryAjax === 'function' && !document.body.classList.contains('wp-admin')) {
-            window
-                .gloryAjax('glory_eliminar_servicios', {ids: String(termId)})
-                .then(function (resp) {
-                    if (resp && resp.success && resp.data && resp.data.html) {
-                        var wrap = document.querySelector('.pestanaContenido[data-pestana="Servicios"] .tablaWrap');
-                        if (wrap) {
-                            wrap.outerHTML = resp.data.html;
+        var ejecutarEliminacion = function () {
+            var form = a.parentElement && a.parentElement.querySelector('form.glory-delete-servicio-fallback');
+            if (typeof window.gloryAjax === 'function' && !document.body.classList.contains('wp-admin')) {
+                window
+                    .gloryAjax('glory_eliminar_servicios', {ids: String(termId)})
+                    .then(function (resp) {
+                        if (resp && resp.success && resp.data && resp.data.html) {
+                            var wrap = document.querySelector('.pestanaContenido[data-pestana="Servicios"] .tablaWrap');
+                            if (wrap) {
+                                wrap.outerHTML = resp.data.html;
+                            }
+                            document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
                         }
-                        document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
-                    }
-                })
-                .catch(function (err) {
-                    console.error('[realtime] error eliminar servicio', err);
-                });
-        } else if (form) {
-            form.submit();
-        }
+                    })
+                    .catch(function (err) {
+                        console.error('[realtime] error eliminar servicio', err);
+                    });
+            } else if (form) {
+                form.submit();
+            }
+        };
+        confirmarAccion('¿Estás seguro de que quieres eliminar este servicio?', ejecutarEliminacion);
     });
 
     if (document.readyState === 'loading') {
@@ -298,21 +314,23 @@
         ev.preventDefault();
         var termId = parseInt(a.getAttribute('data-term-id') || '0', 10);
         if (!termId) return;
-        if (!confirm('¿Estás seguro de que quieres eliminar este barbero?')) return;
-        var form = a.parentElement && a.parentElement.querySelector('form.glory-delete-barbero-fallback');
-        if (typeof window.gloryAjax === 'function' && !document.body.classList.contains('wp-admin')) {
-            window.gloryAjax('glory_eliminar_barberos', {ids: String(termId)}).then(function (resp) {
-                if (resp && resp.success && resp.data && resp.data.html) {
-                    var wrap = document.querySelector('.pestanaContenido[data-pestana="Barberos"] .tablaWrap');
-                    if (wrap) {
-                        wrap.outerHTML = resp.data.html;
+        var ejecutarEliminacionBarbero = function () {
+            var form = a.parentElement && a.parentElement.querySelector('form.glory-delete-barbero-fallback');
+            if (typeof window.gloryAjax === 'function' && !document.body.classList.contains('wp-admin')) {
+                window.gloryAjax('glory_eliminar_barberos', {ids: String(termId)}).then(function (resp) {
+                    if (resp && resp.success && resp.data && resp.data.html) {
+                        var wrap = document.querySelector('.pestanaContenido[data-pestana="Barberos"] .tablaWrap');
+                        if (wrap) {
+                            wrap.outerHTML = resp.data.html;
+                        }
+                        document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
                     }
-                    document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
-                }
-            });
-        } else if (form) {
-            form.submit();
-        }
+                });
+            } else if (form) {
+                form.submit();
+            }
+        };
+        confirmarAccion('¿Estás seguro de que quieres eliminar este barbero?', ejecutarEliminacionBarbero);
     });
     window.__gloryRealtimeClicksBound = true;
     }
