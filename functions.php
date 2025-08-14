@@ -213,6 +213,7 @@ function glory_delete_servicio_handler() {
         update_option($option_key, $servicios);
     }
 
+    try { Glory\Services\EventBus::emit('term_servicio', ['accion' => 'eliminar', 'term_id' => $term_id, 'name' => $name]); } catch (\Throwable $e) {}
     wp_redirect(admin_url('admin.php?page=barberia-servicios&deleted=1'));
     exit;
 }

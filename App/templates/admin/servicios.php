@@ -5,6 +5,7 @@ use Glory\Components\Modal;
 use Glory\Components\FormBuilder;
 use Glory\Components\DataGridRenderer;
 use Glory\Components\BarraFiltrosRenderer;
+use Glory\Services\EventBus;
 
 function renderPaginaServicios()
 {
@@ -30,6 +31,7 @@ function renderPaginaServicios()
                 }
                 unset($servicios[$id]);
                 update_option($option_key, array_values($servicios));
+                try { EventBus::emit('term_servicio', ['accion' => 'eliminar', 'id' => $id]); } catch (\Throwable $e) {}
             }
         } else {
             $name = sanitize_text_field($_POST['name'] ?? '');
@@ -94,6 +96,7 @@ function renderPaginaServicios()
             }
 
             update_option($option_key, array_values($servicios));
+            try { EventBus::emit('term_servicio', ['accion' => ($editing ? 'actualizar' : 'crear')]); } catch (\Throwable $e) {}
         }
 
         wp_redirect(admin_url('admin.php?page=barberia-servicios'));
@@ -134,7 +137,7 @@ function renderPaginaServicios()
     }
 
     ?>
-    <div class="wrap wrap-servicios-admin">
+
         <div class="acciones-pagina-header acciones-servicios-header">
         <h1>Servicios</h1>
             <div class="acciones-pagina-header-buttons acciones-servicios-header-buttons">
@@ -187,7 +190,6 @@ function renderPaginaServicios()
         ?>
 
         
-    </div>
     <?php
 }
 

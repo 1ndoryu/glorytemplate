@@ -41,7 +41,9 @@
 }
 
 .homeFront .acciones-pagina,
-.homeFront .acciones-reservas {
+.homeFront .acciones-reservas,
+.homeFront .acciones-barberos,
+.homeFront .acciones-servicios {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
@@ -163,7 +165,9 @@
 }
 
 .homeFront .acciones-pagina-header,
-.homeFront .acciones-reservas-header {
+.homeFront .acciones-reservas-header,
+.homeFront .acciones-barberos-header,
+.homeFront .acciones-servicios-header {
     display: flex;
     justify-content: space-between;
 }

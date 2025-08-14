@@ -3,6 +3,7 @@
 namespace App\Handler\Form;
 
 use Glory\Handler\Form\FormHandlerInterface;
+use Glory\Services\EventBus;
 
 class GuardarServicioHandler implements FormHandlerInterface
 {
@@ -117,6 +118,8 @@ class GuardarServicioHandler implements FormHandlerInterface
         }
 
         update_option($this->optionKey, array_values($servicios));
+
+        try { EventBus::emit('term_servicio', ['accion' => ($editing ? 'actualizar' : 'crear')]); } catch (\Throwable $e) {}
 
         return ['alert' => 'Servicio guardado correctamente.'];
     }

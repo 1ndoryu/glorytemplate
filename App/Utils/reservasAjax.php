@@ -124,6 +124,7 @@ function actualizarColorServicioCallback()
  */
 function filtrarReservasAjaxCallback()
 {
+    $t0 = microtime(true);
     error_log('[realtime] filtrarReservasAjaxCallback llamado');
     // Construir args similares a consultaReservas() pero con $_POST
     $pagina = isset($_POST['paged']) ? max(1, absint($_POST['paged'])) : 1;
@@ -190,8 +191,9 @@ function filtrarReservasAjaxCallback()
         $query = new WP_Query(['paged' => $pagina] + $args);
     } else {
         // Orden por defecto: futuras y en proceso primero; pasadas al final
-        $qAll = new WP_Query($args);
-        $posts = is_array($qAll->posts) ? $qAll->posts : [];
+        // Optimización: solo traer los IDs para ordenar en PHP y luego cargar la página actual
+        $qAll = new WP_Query($args + ['fields' => 'ids', 'no_found_rows' => true, 'update_post_meta_cache' => false, 'update_post_term_cache' => false]);
+        $posts = is_array($qAll->posts) ? array_map(function($id){ return (object)['ID' => (int)$id]; }, $qAll->posts) : [];
         $ahora = new DateTime();
         $leerDuracion = function (int $postId): int {
             $servicios = get_the_terms($postId, 'servicio');
@@ -201,7 +203,7 @@ function filtrarReservasAjaxCallback()
             }
             return 30;
         };
-        $part = function (WP_Post $p) use ($ahora, $leerDuracion): array {
+        $part = function ($p) use ($ahora, $leerDuracion): array {
             $fecha = (string) get_post_meta($p->ID, 'fecha_reserva', true);
             $hora  = (string) get_post_meta($p->ID, 'hora_reserva', true);
             if (!$fecha || !$hora) return ['grupo' => 2, 'inicio' => null];
@@ -231,6 +233,8 @@ function filtrarReservasAjaxCallback()
                 'orderby' => 'post__in',
                 'posts_per_page' => count($ids),
                 'post_status' => 'publish',
+                'no_found_rows' => true,
+                'ignore_sticky_posts' => true,
             ]);
         }
     }
@@ -251,7 +255,9 @@ function filtrarReservasAjaxCallback()
     // Envolver en frontend con un contenedor para aplicar border-radius real
     $html = '<div class="tablaWrap">' . $html . '</div>';
 
-    wp_send_json_success(['html' => $html]);
+    $t1 = microtime(true);
+    error_log(sprintf('[realtime] filtrarReservasAjaxCallback render ms=%.1f', ($t1-$t0)*1000));
+    wp_send_json_success(['html' => $html, 'renderMs' => (int)(($t1-$t0)*1000)]);
 }
 
 /**
