@@ -248,3 +248,39 @@ textarea {
     max-width: 40px;
     max-height: 40px;
 }
+
+.homeFront .gloryForm.formularioBarberia.formularioBarberos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.homeFront .checkbox-group {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+    row-gap: 10px;
+}
+
+.homeFront .checkbox-group label {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 20px;
+}
+
+.homeFront span.checkbox-visual-wrapper {
+    white-space: nowrap;
+    font-weight: 400;
+    font-size: 14px;
+}
+
+.homeFront .gloryForm label {
+    font-weight: 600;
+    font-size: 15px;
+}

@@ -177,7 +177,7 @@ function renderizarModalBarbero(array $opcionesServicios, array $barberos, strin
         ['fn' => 'inicio', 'args' => [
             'action' => $accion,
             'method' => 'post',
-            'extraClass' => 'formularioBarberia',
+            'extraClass' => 'formularioBarberia formularioBarberos',
             'atributos' => [
                 // Habilita el submit cuando el campo 'name' (nombre del barbero) esté presente
                 'data-fm-submit-habilitar-cuando' => 'name',
