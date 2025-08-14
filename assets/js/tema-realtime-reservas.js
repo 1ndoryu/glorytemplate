@@ -138,7 +138,7 @@
             return;
         }
         window.__gloryRealtimeInited = true;
-        console.log('[realtime] iniciando poll de canales', ['post_reserva', 'term_barbero', 'term_servicio']);
+        // console.log('[realtime] iniciando poll de canales', ['post_reserva', 'term_barbero', 'term_servicio']); // desactivado
         var stop = window.gloryRealtimePoll(['post_reserva', 'term_barbero', 'term_servicio'], {intervalMs: 3000});
         window.addEventListener('beforeunload', function () {
             try {
@@ -174,7 +174,7 @@
             var activa = document.querySelector('.pestanaContenido.activa');
             if (!activa) return;
             var tab = activa.getAttribute('data-pestana');
-            console.log('[realtime] fallback refresh (sin eventos ~' + Math.round(since / 1000) + 's). Pestaña:', tab);
+            // console.log('[realtime] fallback refresh (sin eventos ~' + Math.round(since / 1000) + 's). Pestaña:', tab); // desactivado
             if (tab === 'Reservas') {
                 refrescarReservas();
             } else if (tab === 'Barberos') {

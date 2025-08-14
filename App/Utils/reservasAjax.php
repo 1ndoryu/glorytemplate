@@ -125,7 +125,7 @@ function actualizarColorServicioCallback()
 function filtrarReservasAjaxCallback()
 {
     $t0 = microtime(true);
-    error_log('[realtime] filtrarReservasAjaxCallback llamado');
+    // error_log('[realtime] filtrarReservasAjaxCallback llamado'); // desactivado
     // Construir args similares a consultaReservas() pero con $_POST
     $pagina = isset($_POST['paged']) ? max(1, absint($_POST['paged'])) : 1;
 
@@ -256,7 +256,7 @@ function filtrarReservasAjaxCallback()
     $html = '<div class="tablaWrap">' . $html . '</div>';
 
     $t1 = microtime(true);
-    error_log(sprintf('[realtime] filtrarReservasAjaxCallback render ms=%.1f', ($t1-$t0)*1000));
+    // error_log(sprintf('[realtime] filtrarReservasAjaxCallback render ms=%.1f', ($t1-$t0)*1000)); // desactivado
     wp_send_json_success(['html' => $html, 'renderMs' => (int)(($t1-$t0)*1000)]);
 }
 
