@@ -40,7 +40,6 @@ function renderPaginaBarberos()
         ?>
 
         <?php
-        $opcionesServiciosFiltro = array_merge(['' => 'Todos los servicios'], $opcionesServicios);
         $opcionesFiltros = [
             'preservar_keys' => ['orderby', 'order'],
         ];
@@ -54,12 +53,6 @@ function renderPaginaBarberos()
                 'label' => 'Nombre',
                 'placeholder' =>
                 'Buscar por nombre…'
-            ],
-            [
-                'tipo' => 'select',
-                'name' => 'filtro_servicio',
-                'label' => 'Servicio',
-                'opciones' => $opcionesServiciosFiltro
             ],
         ], $opcionesFiltros);
         ?>
