@@ -38,6 +38,7 @@ function filtrarServiciosAjaxCallback() {
 	$lista = obtenerDatosServicios();
 	$configuracionColumnas = columnasServicios();
 	$configuracionColumnas['acciones_masivas_separadas'] = true;
+	$configuracionColumnas['paginacion'] = true;
 	ob_start();
 	DataGridRenderer::render($lista, $configuracionColumnas);
 	$html = ob_get_clean();

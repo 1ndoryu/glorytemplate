@@ -121,7 +121,8 @@ function renderPaginaGanancias()
                 return number_format($precio, 2) . ' €';
             }],
         ],
-        'paginacion' => false,
+        'paginacion' => true,
+        'per_page' => 20,
     ];
 
     // --- 7. RENDERIZAR LA PÁGINA ---

@@ -92,11 +92,12 @@ function filtrarGananciasAjaxCallback()
 				return number_format($precio, 2) . ' €';
 			}],
 		],
-		'paginacion' => false,
+		'paginacion' => true,
+		'per_page' => 20,
 	];
 
 	ob_start();
-	echo '<div class="ganancias-grid-wrap">';
+	echo '<div class="tablaWrap">';
 	DataGridRenderer::render(array_values($reservasDetalladas), $configuracionColumnas);
 	echo '</div>';
 	$html = ob_get_clean();

@@ -150,7 +150,8 @@ function columnasHistorial(): array
 			['etiqueta' => 'Último Servicio', 'clave' => 'ultimoServicio'],
 			['etiqueta' => 'Servicios Frecuentes', 'clave' => 'serviciosFrecuentes'],
 		],
-		'paginacion' => false,
+		'paginacion' => true,
+		'per_page' => 20,
 	];
 }
 

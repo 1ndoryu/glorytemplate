@@ -76,12 +76,55 @@
     overflow: hidden;
 }
 
+/* Paginación (front) */
+.homeFront .gloryPaginacion {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 10px 12px;
+    border-top: 1px solid #e5e7eb;
+    background: #fff;
+}
+.homeFront .gloryPaginacion a,
+.homeFront .gloryPaginacion span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+.homeFront .gloryPaginacion a {
+    background: var(--segundo);
+    color: var(--negro);
+    text-decoration: none;
+}
+.homeFront .gloryPaginacion a:hover {
+    filter: brightness(0.97);
+}
+.homeFront .gloryPaginacion span.current {
+    background: var(--negro);
+    color: var(--blanco);
+}
+.homeFront .gloryPaginacion .prev,
+.homeFront .gloryPaginacion .next {
+    padding: 0 12px;
+}
+
 .homeFront table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     border: none;
     background: transparent;
+}
+
+/* Asegurar que la paginación quede fuera, pero visualmente unida al bloque */
+.homeFront .gloryDataGridContenedor + .gloryPaginacion {
+    border-top: 1px solid #e5e7eb;
 }
 
 /* Evitar doble borde y cortes bruscos: solo líneas internas */

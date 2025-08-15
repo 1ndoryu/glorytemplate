@@ -197,6 +197,8 @@ function columnasServicios(): array
 			'div' => ['id' => true, 'class' => true, 'style' => true],
 		],
 		'filtros_separados' => true,
+		'paginacion' => true,
+		'per_page' => 20,
 	];
 }
 

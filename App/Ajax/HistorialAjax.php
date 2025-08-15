@@ -28,6 +28,7 @@ function filtrarHistorialAjaxCallback()
 
 	// Renderizado
 	$configuracionColumnas = columnasHistorial();
+	$configuracionColumnas['paginacion'] = true;
 	ob_start();
 	// Envolver con tablaWrap para consistencia visual
 	echo '<div class="tablaWrap">';

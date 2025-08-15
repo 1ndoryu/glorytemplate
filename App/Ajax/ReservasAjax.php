@@ -185,6 +185,10 @@ function filtrarReservasAjaxCallback()
                 'no_found_rows' => true,
                 'ignore_sticky_posts' => true,
             ]);
+            // Ajustar manualmente paginación para el renderer
+            $totalPosts = count($posts);
+            $query->max_num_pages = max(1, (int) ceil($totalPosts / $perPage));
+            $query->set('paged', $pagina);
         }
     }
 

@@ -311,7 +311,9 @@ function columnasBarberos(array $opcionesServicios, array $servicios_map_id_to_n
                 'confirmacion' => '¿Eliminar los barberos seleccionados?'
             ]
         ],
-        'paginacion' => false,
+        'paginacion' => true,
+        // Tamaño de página para arrays
+        'per_page' => 20,
         'allowed_html' => [
             'a' => ['href' => true, 'class' => true, 'data-modal' => true, 'data-form-mode' => true, 'data-object-id' => true, 'data-fetch-action' => true, 'data-submit-action' => true, 'data-submit-text' => true, 'data-modal-title-edit' => true, 'title' => true, 'data-submenu' => true, 'data-posicion' => true, 'data-evento' => true, 'data-term-id' => true],
             'img' => ['src' => true, 'alt' => true, 'width' => true, 'height' => true, 'class' => true],

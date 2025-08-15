@@ -48,6 +48,7 @@ function filtrarBarberosAjaxCallback()
 
     $configuracionColumnas = columnasBarberos($opcionesServicios, $serviciosMapIdANombre);
     $configuracionColumnas['acciones_masivas_separadas'] = true;
+    $configuracionColumnas['paginacion'] = true;
 
     ob_start();
     DataGridRenderer::render($barberosParaRenderizar, $configuracionColumnas);

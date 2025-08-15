@@ -380,6 +380,80 @@
     // Eliminar servicio desde frontend sin redirección
     if (!window.__gloryRealtimeClicksBound) {
 
+	function actualizarParametroUrl(nombre, valor) {
+		try {
+			var url = new URL(window.location.href);
+			if (valor === null || valor === undefined || valor === '' || parseInt(valor, 10) === 1) {
+				url.searchParams.delete(nombre);
+			} else {
+				url.searchParams.set(nombre, String(valor));
+			}
+			history.replaceState({}, '', url.toString());
+		} catch (_) {}
+	}
+
+	// Paginación en tiempo real (todas las pestañas con .gloryPaginacion)
+	document.addEventListener('click', function (ev) {
+		var enlace = ev.target && ev.target.closest('.gloryPaginacion a[data-page]');
+		if (!enlace) return;
+		ev.preventDefault();
+		var pagina = parseInt(enlace.getAttribute('data-page') || '1', 10) || 1;
+		var contenedorActivo = document.querySelector('.pestanaContenido.activa');
+		if (!contenedorActivo) return;
+		var pestaña = contenedorActivo.getAttribute('data-pestana') || '';
+		var filtros = {};
+		var scope = contenedorActivo;
+		try {
+			if (pestaña === 'Reservas') {
+				scope.querySelectorAll('[data-glory-filters] [name], .acciones-reservas form [name], form[data-glory-scope="reservas"] [name]').forEach(function (el) {
+					if (!el.name) return; filtros[el.name] = el.value || '';
+				});
+			} else if (pestaña === 'Barberos') {
+				scope.querySelectorAll('[data-glory-filters] [name], .acciones-barberos form [name], form[data-glory-scope="barberos"] [name]').forEach(function (el) {
+					if (!el.name) return; filtros[el.name] = el.value || '';
+				});
+			} else if (pestaña === 'Servicios') {
+				scope.querySelectorAll('[data-glory-filters] [name], .acciones-servicios form [name], form[data-glory-scope="servicios"] [name]').forEach(function (el) {
+					if (!el.name) return; filtros[el.name] = el.value || '';
+				});
+			} else if (pestaña === 'Historial') {
+				scope.querySelectorAll('[data-glory-filters] [name], .acciones-historial form [name], form[data-glory-scope="historial"] [name]').forEach(function (el) {
+					if (!el.name) return; filtros[el.name] = el.value || '';
+				});
+			} else if (pestaña === 'Ganancias') {
+				scope.querySelectorAll('[data-glory-filters] [name], .acciones-ganancias form [name], form[data-glory-scope="ganancias"] [name]').forEach(function (el) {
+					if (!el.name) return; filtros[el.name] = el.value || '';
+				});
+			}
+			var sp = new URLSearchParams(window.location.search || '');
+			['orderby','order'].forEach(function(k){ if (typeof filtros[k] === 'undefined') { var v = sp.get(k); if (v !== null) filtros[k] = v; }});
+		} catch (_) {}
+		filtros.paged = String(pagina);
+
+		var accion = '';
+		if (pestaña === 'Reservas') accion = 'glory_filtrar_reservas';
+		else if (pestaña === 'Barberos') accion = 'glory_filtrar_barberos';
+		else if (pestaña === 'Servicios') accion = 'glory_filtrar_servicios';
+		else if (pestaña === 'Historial') accion = 'glory_filtrar_historial';
+		else if (pestaña === 'Ganancias') accion = 'glory_filtrar_ganancias';
+		if (!accion || typeof window.gloryAjax !== 'function') return;
+
+		var wrapSelector = '.tablaWrap';
+		window
+			.gloryAjax(accion, filtros)
+			.then(function (resp) {
+				if (resp && resp.success && resp.data && resp.data.html) {
+					var wrap = contenedorActivo.querySelector(wrapSelector);
+					if (wrap) { wrap.outerHTML = resp.data.html; }
+					actualizarParametroUrl('paged', pagina);
+					try { document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true})); } catch(_) {}
+					try { contenedorActivo.querySelector(wrapSelector).scrollIntoView({behavior: 'smooth', block: 'start'}); } catch(_) {}
+				}
+			})
+			.catch(function(err){ console.error('[realtime] error paginación', err); });
+	});
+
+
     function confirmarAccion(mensaje, onConfirm) {
         try {
             var res = window.confirm(mensaje);
