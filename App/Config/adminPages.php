@@ -1,7 +1,7 @@
 <?php
 
 use Glory\Manager\AdminPageManager;
-
+/*
 AdminPageManager::defineTopLevel(
     'Reservas Barbería',
     'Barbería',
@@ -56,3 +56,4 @@ AdminPageManager::defineSubmenu(
     'barberia-servicios',
     'renderPaginaServicios'
 );
+*/
