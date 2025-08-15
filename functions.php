@@ -84,3 +84,7 @@ if (Glory\Core\GloryFeatures::isEnabled('gloryAjax') !== false) {
 
 add_action('admin_post_glory_delete_barbero', 'gloryDeleteBarberoHandler');
 add_action('admin_post_glory_delete_servicio', 'gloryDeleteServicioHandler');
+
+// AJAX: Configuración de API desde Home (solo admin logueado)
+add_action('wp_ajax_glory_api_generar_token', 'gloryApiGenerarTokenCallback');
+add_action('wp_ajax_glory_api_guardar_config', 'gloryApiGuardarConfigCallback');

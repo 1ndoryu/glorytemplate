@@ -28,14 +28,17 @@
     overflow-x: auto;
     border: 1px solid #c3c4c7;
     background-color: #fff;
+    cursor: grab;
 }
 
 /* Cuadrícula Base del Calendario */
 .glorySchedulerGrid {
     display: grid;
-    grid-template-columns: 60px repeat(var(--columnas-grid, 3), 1fr);
+    grid-template-columns: 60px repeat(var(--columnas-grid, 3), minmax(160px, 1fr));
     border-collapse: collapse;
     overflow: hidden;
+    /* Asegurar ancho mínimo basado en cantidad de barberos */
+    min-width: calc(60px + 160px * (var(--columnas-grid, 3) - 1));
 }
 
 .celdaGrid {
@@ -78,6 +81,18 @@
     height: 100%;
     display: grid;
     pointer-events: none;
+}
+
+/* Alinear las columnas de la capa de eventos con la cuadrícula */
+.glorySchedulerContenedor .capaEventos {
+    grid-template-columns: 60px repeat(var(--columnas-grid, 3), minmax(160px, 1fr));
+    /* Igualar el ancho mínimo de la capa de eventos al de la grilla */
+    min-width: calc(60px + 160px * (var(--columnas-grid, 3) - 1));
+}
+
+.glorySchedulerContenedor.is-dragging {
+    cursor: grabbing;
+    user-select: none;
 }
 
 /* Bloques de Evento (Reservas) */

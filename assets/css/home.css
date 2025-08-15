@@ -54,7 +54,6 @@
     border-bottom: var(--borde);
 }
 
-
 .homeFront .perfilUsuario .imagenPerfil img {
     width: 36px;
     height: 36px;
@@ -72,11 +71,13 @@
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
     z-index: 10000;
 }
 
-.homeFront .usuarioSubmenu.activo { display: flex; }
+.homeFront .usuarioSubmenu.activo {
+    display: flex;
+}
 
 .homeFront .usuarioSubmenu .submenuItem {
     padding: 10px 12px;
@@ -152,7 +153,6 @@
     justify-content: flex-end;
     padding: 10px 12px;
     border-top: 1px solid #e5e7eb;
-    background: #fff;
 }
 .homeFront .gloryPaginacion a,
 .homeFront .gloryPaginacion span {
@@ -359,6 +359,7 @@ textarea {
 .homeFront .paginaBarberos .gloryDataGridTabla img {
     max-width: 40px;
     max-height: 40px;
+    border-radius: 100%;
 }
 
 .homeFront .gloryForm.formularioBarberia.formularioBarberos {
@@ -399,4 +400,19 @@ textarea {
 .homeFront .gloryForm label {
     font-weight: 600;
     font-size: 15px;
+}
+
+label.labelApiHabilitada {
+    display: flex;
+    flex-direction: row-reverse;
+    width: fit-content;
+    white-space: nowrap;
+    gap: 20px;
+    align-items: center;
+}
+
+form.glory-api-config-form {
+    margin: 20px 0px;
+    gap: 20px;
+    width: 100%;
 }

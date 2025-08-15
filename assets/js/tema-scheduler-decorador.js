@@ -32,6 +32,7 @@
     function decorarContenedor(cont){
         if (!cont) return;
         cont.querySelectorAll('.bloqueEvento').forEach(renderContenidoDesdeDataset);
+        enableDragScroll(cont);
     }
 
     function onRendered(e){
@@ -46,6 +47,48 @@
         var p = document.createElement('p');
         p.textContent = String(str);
         return p.innerHTML;
+    }
+
+    function enableDragScroll(cont){
+        if (!cont || cont.dataset.dragScroll === '1') return;
+        cont.dataset.dragScroll = '1';
+
+        var isDown = false;
+        var startX = 0;
+        var scrollLeft = 0;
+
+        function start(e){
+            // Solo botón izquierdo para mouse
+            if (e.type === 'mousedown' && e.button !== 0) return;
+            isDown = true;
+            cont.classList.add('is-dragging');
+            startX = (e.touches && e.touches[0] ? e.touches[0].pageX : e.pageX);
+            scrollLeft = cont.scrollLeft;
+        }
+
+        function move(e){
+            if (!isDown) return;
+            if (e.cancelable) e.preventDefault();
+            var x = (e.touches && e.touches[0] ? e.touches[0].pageX : e.pageX);
+            var dx = x - startX;
+            cont.scrollLeft = scrollLeft - dx;
+        }
+
+        function end(){
+            if (!isDown) return;
+            isDown = false;
+            cont.classList.remove('is-dragging');
+        }
+
+        cont.addEventListener('mousedown', start);
+        cont.addEventListener('mousemove', move);
+        cont.addEventListener('mouseup', end);
+        cont.addEventListener('mouseleave', end);
+
+        cont.addEventListener('touchstart', start, { passive: true });
+        cont.addEventListener('touchmove', move, { passive: false });
+        cont.addEventListener('touchend', end, { passive: true });
+        cont.addEventListener('touchcancel', end, { passive: true });
     }
 
     document.addEventListener('DOMContentLoaded', onReady);

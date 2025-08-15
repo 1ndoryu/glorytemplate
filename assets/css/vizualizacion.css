@@ -67,14 +67,19 @@
     border: var(--borde);
     background-color: #fff;
     border-radius: 6px;
-    overflow: hidden;
+    /* Permitir scroll horizontal cuando haya muchas columnas */
+    overflow-y: hidden;
+    cursor: grab;
+    user-select: none;
 }
 
 .glorySchedulerGrid {
     display: grid;
-    grid-template-columns: 60px repeat(var(--columnas-grid, 3), 1fr);
+    grid-template-columns: 60px repeat(var(--columnas-grid, 3), minmax(160px, 1fr));
     border-collapse: collapse;
     overflow: hidden;
+    /* Asegurar ancho mínimo basado en cantidad de barberos */
+    min-width: calc(60px + 160px * (var(--columnas-grid, 3) - 1));
 }
 
 .celdaGrid {
@@ -121,6 +126,17 @@
 /* Compensación en front: alinear eventos con la primera franja de 15 min (2px/min => 30px) */
 .paginaVisual .capaEventos {
     top: 0px;
+}
+
+/* Alinear las columnas de la capa de eventos con la cuadrícula */
+.glorySchedulerContenedor .capaEventos {
+    grid-template-columns: 60px repeat(var(--columnas-grid, 3), minmax(160px, 1fr));
+    /* Igualar el ancho mínimo de la capa de eventos al de la grilla */
+    min-width: calc(60px + 160px * (var(--columnas-grid, 3) - 1));
+}
+
+.glorySchedulerContenedor.is-dragging {
+    cursor: grabbing;
 }
 
 /* Bloques de evento */

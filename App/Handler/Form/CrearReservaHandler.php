@@ -4,8 +4,9 @@ namespace App\Handler\Form;
 
 use Glory\Core\GloryLogger;
 use Glory\Handler\Form\FormHandlerInterface;
-use Glory\Services\NotificationService;
 use Glory\Services\EventBus;
+use function notificarNuevaReservaCliente;
+use function notificarNuevaReservaAdmin;
 
 class CrearReservaHandler implements FormHandlerInterface
 {
@@ -65,15 +66,15 @@ class CrearReservaHandler implements FormHandlerInterface
         wp_set_object_terms($postId, $barberoId, 'barbero', false);
 
         // Enviar notificaciones
-        NotificationService::notificarNuevaReservaCliente($postId);
-        NotificationService::notificarNuevaReservaAdmin($postId);
+        notificarNuevaReservaCliente($postId);
+        notificarNuevaReservaAdmin($postId);
 
         GloryLogger::info('Reserva creada exitosamente desde el formulario público.', ['post_id' => $postId]);
 
         // Emitir evento realtime para reservas
         EventBus::emit('post_reserva', ['accion' => 'crear', 'postId' => $postId]);
 
-        return ['alert' => '¡Tu reserva ha sido confirmada con éxito!'];
+        return ['alert' => '¡Tu reserva ha sido confirmada con éxito!', 'post_id' => $postId];
     }
 
     private function verificarDisponibilidadServidor($fecha, $barberoId, $servicioId, $hora, $duracion): bool

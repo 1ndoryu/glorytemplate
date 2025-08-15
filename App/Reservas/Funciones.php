@@ -1,6 +1,115 @@
 <?php
 // Funciones relacionadas con reservas: disponibilidad, API REST y utilidades
 
+use Glory\Services\TokenManager;
+use Glory\Manager\OpcionManager;
+
+add_action('rest_api_init', function () {
+	register_rest_route('glory/v1', '/reservas', [
+		'methods'             => 'POST',
+		'callback'            => 'crearReservaDesdeApi',
+		'permission_callback' => function ($request) {
+			$habilitada = (bool) OpcionManager::get('glory_api_habilitada', false);
+			if (!$habilitada) {
+				return new WP_Error('api_deshabilitada', 'La API está deshabilitada.', ['status' => 403]);
+			}
+			return tienePermisoApi($request);
+		},
+		'args' => [
+			'nombre_cliente' => [
+				'required' => true,
+				'type'     => 'string',
+			],
+			'telefono_cliente' => [
+				'required' => true,
+				'type'     => 'string',
+			],
+			'correo_cliente' => [
+				'required' => true,
+				'type'     => 'string',
+				'validate_callback' => function ($value) { return is_email($value); }
+			],
+			'servicio_id' => [
+				'required' => true,
+				'type'     => 'integer',
+			],
+			'barbero_id' => [
+				'required' => true,
+				'type'     => 'string', // puede ser 'any' o id numérico
+			],
+			'fecha_reserva' => [
+				'required' => true,
+				'type'     => 'string',
+			],
+			'hora_reserva' => [
+				'required' => true,
+				'type'     => 'string',
+			],
+			'exclusividad' => [
+				'required' => false,
+				'type'     => 'string',
+			],
+		],
+	]);
+
+	// Consultar horas disponibles
+	register_rest_route('glory/v1', '/horas-disponibles', [
+		'methods'             => 'GET',
+		'callback'            => 'obtenerHorasDisponiblesApi',
+		'permission_callback' => function ($request) {
+			$habilitada = (bool) OpcionManager::get('glory_api_habilitada', false);
+			if (!$habilitada) {
+				return new WP_Error('api_deshabilitada', 'La API está deshabilitada.', ['status' => 403]);
+			}
+			return tienePermisoApi($request);
+		},
+		'args' => [
+			'fecha' => [
+				'required' => true,
+				'type'     => 'string',
+			],
+			'servicio_id' => [
+				'required' => true,
+				'type'     => 'integer',
+			],
+			'barbero_id' => [
+				'required' => true,
+				'type'     => 'string', // 'any' o id numérico
+			],
+			'exclude_id' => [
+				'required' => false,
+				'type'     => 'integer',
+			],
+		],
+	]);
+
+	// Consultar servicios que ofrece un barbero
+	register_rest_route('glory/v1', '/barberos/(?P<barbero_id>\\d+)/servicios', [
+		'methods'             => 'GET',
+		'callback'            => 'obtenerServiciosPorBarberoApi',
+		'permission_callback' => function ($request) {
+			$habilitada = (bool) OpcionManager::get('glory_api_habilitada', false);
+			if (!$habilitada) {
+				return new WP_Error('api_deshabilitada', 'La API está deshabilitada.', ['status' => 403]);
+			}
+			return tienePermisoApi($request);
+		},
+	]);
+
+	// Listar barberos (id y nombre) para identificar sus IDs
+	register_rest_route('glory/v1', '/barberos', [
+		'methods'             => 'GET',
+		'callback'            => 'listarBarberosApi',
+		'permission_callback' => function ($request) {
+			$habilitada = (bool) OpcionManager::get('glory_api_habilitada', false);
+			if (!$habilitada) {
+				return new WP_Error('api_deshabilitada', 'La API está deshabilitada.', ['status' => 403]);
+			}
+			return tienePermisoApi($request);
+		},
+	]);
+});
+
 function tienePermisoApi(WP_REST_Request $request) {
 	$authHeader = $request->get_header('Authorization');
 	if (!$authHeader) {
@@ -22,12 +131,133 @@ function tienePermisoApi(WP_REST_Request $request) {
 }
 
 function crearReservaDesdeApi(WP_REST_Request $request) {
+	$params = $request->get_json_params();
+
+	$handler = new \App\Handler\Form\CrearReservaHandler();
+
+	try {
+		$resultado = $handler->procesar($params, []);
+		return new WP_REST_Response([
+			'success' => true,
+			'id'      => isset($resultado['post_id']) ? (int) $resultado['post_id'] : null,
+			'message' => $resultado['alert'] ?? 'Reserva creada exitosamente.',
+		], 201);
+	} catch (\Throwable $e) {
+		return new WP_REST_Response([
+			'success' => false,
+			'error'   => $e->getMessage(),
+		], 400);
+	}
+}
+
+function obtenerHorasDisponiblesApi(WP_REST_Request $request) {
+	$fecha = sanitize_text_field((string) $request->get_param('fecha'));
+	$barberoRaw = sanitize_text_field((string) $request->get_param('barbero_id'));
+	$servicioId = absint((int) $request->get_param('servicio_id'));
+	$excludeId = absint((int) $request->get_param('exclude_id'));
+
+	if (empty($fecha) || empty($barberoRaw) || empty($servicioId)) {
+		return new WP_REST_Response([
+			'success' => false,
+			'error'   => 'Faltan datos para verificar la disponibilidad.'
+		], 400);
+	}
+
+	try {
+		$fechaObj = new DateTime($fecha);
+		$hoy = new DateTime('today');
+		if ($excludeId <= 0) {
+			if ($fechaObj < $hoy) {
+				return new WP_REST_Response(['success' => false, 'error' => 'No puedes reservar en una fecha pasada.'], 400);
+			}
+			if ($fechaObj->format('N') == 7) {
+				return new WP_REST_Response(['success' => false, 'error' => 'No se admiten reservas los domingos.'], 400);
+			}
+		}
+	} catch (Exception $e) {
+		return new WP_REST_Response(['success' => false, 'error' => 'Formato de fecha inválido.'], 400);
+	}
+
+	$servicio = get_term($servicioId, 'servicio');
+	if (is_wp_error($servicio) || !$servicio) {
+		return new WP_REST_Response(['success' => false, 'error' => 'Servicio no válido.'], 400);
+	}
+	$duracion = get_term_meta($servicio->term_id, 'duracion', true) ?: 30;
+
+	if ($barberoRaw === 'any') {
+		$horariosDisponibles = obtenerHorariosDisponiblesCualquierBarbero($fecha, $servicioId, $duracion, $excludeId);
+	} else {
+		$barberoId = is_numeric($barberoRaw) ? absint($barberoRaw) : 0;
+		$horariosDisponibles = obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion, $excludeId);
+	}
 
 	return new WP_REST_Response([
 		'success' => true,
-		'message' => 'Reserva creada exitosamente (simulado).',
-		'data' => $request->get_json_params()
-	], 201);
+		'options' => array_values($horariosDisponibles),
+	]);
+}
+
+function obtenerServiciosPorBarberoApi(WP_REST_Request $request) {
+	$barberoId = absint((int) $request['barbero_id']);
+	if ($barberoId <= 0) {
+		return new WP_REST_Response(['success' => false, 'error' => 'ID de barbero inválido.'], 400);
+	}
+	$barbero = get_term($barberoId, 'barbero');
+	if (is_wp_error($barbero) || !$barbero) {
+		return new WP_REST_Response(['success' => false, 'error' => 'Barbero no encontrado.'], 404);
+	}
+
+	$servicesIds = get_term_meta($barberoId, 'servicios', true);
+	if (!is_array($servicesIds)) $servicesIds = [];
+	$servicesIds = array_map('intval', $servicesIds);
+
+	$servicios = [];
+	foreach ($servicesIds as $sid) {
+		$term = get_term($sid, 'servicio');
+		if (is_wp_error($term) || !$term) continue;
+		$duracion = get_term_meta($term->term_id, 'duracion', true);
+		$precio = get_term_meta($term->term_id, 'precio', true);
+		$servicios[] = [
+			'id' => (int) $term->term_id,
+			'nombre' => (string) $term->name,
+			'slug' => (string) $term->slug,
+			'duracion' => is_numeric($duracion) ? (int) $duracion : null,
+			'precio' => is_numeric($precio) ? (float) $precio : null,
+		];
+	}
+
+	return new WP_REST_Response([
+		'success' => true,
+		'items' => $servicios,
+	]);
+}
+
+function listarBarberosApi(WP_REST_Request $request) {
+	$terms = get_terms([
+		'taxonomy'   => 'barbero',
+		'hide_empty' => false,
+	]);
+
+	if (is_wp_error($terms)) {
+		return new WP_REST_Response([
+			'success' => false,
+			'error'   => 'No se pudo obtener la lista de barberos.'
+		], 500);
+	}
+
+	$items = [];
+	foreach ($terms as $term) {
+		$items[] = [
+			'id'     => (int) $term->term_id,
+			'nombre' => (string) $term->name,
+			'slug'   => (string) $term->slug,
+		];
+	}
+
+	return new WP_REST_Response([
+		'success' => true,
+		'items'   => $items,
+	]);
 }
 
 function obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion, $excludeId = 0)

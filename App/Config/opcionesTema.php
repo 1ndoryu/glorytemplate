@@ -57,6 +57,7 @@ OpcionManager::register('glory_logo_text', [
 $seccionIntegraciones = 'integrations';
 $etiquetaSeccionIntegraciones = 'Integrations & Tracking';
 $subSeccionCodigos = 'tracking_codes';
+$subSeccionApi = 'api_access';
 
 // Sub-sección para componentes de integraciones
 $subSeccionComponentes = 'components';
@@ -100,6 +101,27 @@ OpcionManager::register('glory_custom_header_scripts', [
     'seccion'         => $seccionIntegraciones,
     'etiquetaSeccion' => $etiquetaSeccionIntegraciones,
     'subSeccion'      => 'manual_scripts',
+]);
+
+// --- API para Chatbot ---
+OpcionManager::register('glory_api_habilitada', [
+    'valorDefault'    => false,
+    'tipo'            => 'checkbox',
+    'etiqueta'        => 'Habilitar API para Chatbot',
+    'descripcion'     => 'Permite que un chatbot externo cree reservas mediante la API protegida por token.',
+    'seccion'         => $seccionIntegraciones,
+    'etiquetaSeccion' => $etiquetaSeccionIntegraciones,
+    'subSeccion'      => $subSeccionApi,
+]);
+
+OpcionManager::register('glory_api_token', [
+    'valorDefault'    => '',
+    'tipo'            => 'text',
+    'etiqueta'        => 'API Token (Bearer)',
+    'descripcion'     => 'Token secreto usado por el chatbot para autenticarse. Recomendado mínimo 32 caracteres aleatorios.',
+    'seccion'         => $seccionIntegraciones,
+    'etiquetaSeccion' => $etiquetaSeccionIntegraciones,
+    'subSeccion'      => $subSeccionApi,
 ]);
 
 // Colores del scheduler: ahora se registran dinámicamente según los términos de la taxonomía 'servicio'.

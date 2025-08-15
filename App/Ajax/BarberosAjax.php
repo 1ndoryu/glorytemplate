@@ -4,7 +4,6 @@ use Glory\Components\DataGridRenderer;
 
 function filtrarBarberosAjaxCallback()
 {
-    error_log('[realtime] filtrarBarberosAjaxCallback llamado');
     $claveOpcion = 'barberia_barberos';
 
     if (!function_exists('obtenerDatosBarberos') || !function_exists('columnasBarberos')) {
