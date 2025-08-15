@@ -1,40 +1,75 @@
-/* Estilos Generales de la Página */
 .paginaVisual {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+    max-width: 1200px;
+    width: 100%;
 }
 
-.paginaVisual h1 {
-    margin-bottom: 10px;
+.paginaVisual h1.tituloVisualizacion {
+    margin-bottom: 12px;
+    color: var(--negro);
 }
 
-/* Formulario Selector de Fecha */
-.formDatepicker {
-    margin-bottom: 20px;
+/* Acciones y navegación */
+.paginaVisual .botonesVisualizacion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    border-bottom: var(--borde);
+    padding-bottom: 12px;
+}
+
+.paginaVisual .rightBotones {
+    display: flex;
+    gap: 10px;
+}
+
+.paginaVisual .formDatepicker {
     display: flex;
     gap: 10px;
     align-items: center;
+    flex-direction: row;
+    align-content: center;
 }
 
-.formDatepicker label {
-    font-weight: bold;
+.paginaVisual .formDatepicker input[type='date'] {
+    padding: 6px 10px;
+    border-radius: 22px;
+    border: var(--borde);
+    background: #fff;
+    font-size: 13px;
 }
 
-.formDatepicker input[type='date'] {
-    padding: 5px 8px;
-    border-radius: 4px;
-    border: 1px solid #8c8f94;
+.paginaVisual .button,
+.paginaVisual .button-primary {
+    background: var(--negro);
+    border: 1px solid var(--negro);
+    color: var(--blanco);
+    border-radius: 100px;
+    padding: 6px 15px;
+    font-size: 12px;
+    white-space: nowrap;
 }
 
-/* Contenedor Principal del Calendario */
+.paginaVisual a.button.button-secondary,
+.paginaVisual .button.button-secondary {
+    background: #e9e9e9;
+    border: unset;
+    border-radius: 100px;
+    color: var(--negro);
+    padding: 6px 15px;
+}
+
+/* Scheduler contenedor */
 .glorySchedulerContenedor {
     position: relative;
     width: 100%;
     overflow-x: auto;
-    border: 1px solid #c3c4c7;
+    border: var(--borde);
     background-color: #fff;
+    border-radius: 6px;
+    overflow: hidden;
 }
 
-/* Cuadrícula Base del Calendario */
 .glorySchedulerGrid {
     display: grid;
     grid-template-columns: 60px repeat(var(--columnas-grid, 3), 1fr);
@@ -43,18 +78,18 @@
 }
 
 .celdaGrid {
-    border-right: 1px solid #e0e0e0;
-    border-bottom: 1px solid #e0e0e0;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
     padding: 4px;
     font-size: 12px;
     min-height: 22px;
+    background: #fff;
 }
 
-/* Celdas de Encabezado */
 .celdaEncabezadoTiempo,
 .celdaEncabezadoRecurso {
-    background-color: #f0f0f1;
-    font-weight: bold;
+    background-color: #f8fafc;
+    font-weight: 600;
     position: sticky;
     top: 0;
     z-index: 2;
@@ -64,16 +99,15 @@
     text-align: center;
 }
 
-/* Celdas de la Columna de Horas */
 .celdaTiempo {
     text-align: right;
     padding-right: 8px;
     font-size: 11px;
-    color: #50575e;
-    background-color: #f9f9f9;
+    color: #6b7280;
+    background-color: #f9fafb;
 }
 
-/* Capa Superpuesta para los Eventos */
+/* Capa de eventos */
 .capaEventos {
     position: absolute;
     top: 0;
@@ -84,12 +118,16 @@
     pointer-events: none;
 }
 
-/* Bloques de Evento (Reservas) */
+/* Compensación en front: alinear eventos con la primera franja de 15 min (2px/min => 30px) */
+.paginaVisual .capaEventos {
+    top: 0px;
+}
+
+/* Bloques de evento */
 .bloqueEvento {
     position: relative;
     pointer-events: auto;
-    border-radius: 4px;
-    margin: 0;
+    border-radius: 6px;
     padding: 6px;
     color: #fff;
     overflow: hidden;
@@ -99,6 +137,7 @@
     display: flex;
 }
 
+/* Front: versión en un solo párrafo */
 .eventoContenido {
     display: flex;
     flex-direction: column;
@@ -106,12 +145,11 @@
     width: 100%;
 }
 
-.eventoTitulo {
-    font-weight: bold;
+.paginaVisual .eventoParrafo {
+    margin: 0;
     font-size: 13px;
-    margin-bottom: 2px;
-    display: flex;
-    justify-content: space-between;
+    line-height: 1.3;
+    padding: 5px;
 }
 
 .iconoExclusividad {
@@ -123,7 +161,7 @@
 .eventoHorario {
     font-size: 11px;
     line-height: 1.3;
-    opacity: 0.9;
+    opacity: 0.95;
     word-break: break-word;
 }
 
@@ -137,62 +175,67 @@
     font-style: italic;
 }
 
-/* Configurador de colores: oculto por defecto y visible al togglear */
-.form-config-colores {
+/* Botón ver todo dentro de eventos */
+button.eventoVerTodoBtn {
+    all: unset;
+    white-space: nowrap;
+    padding: 4px 10px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    height: fit-content;
+    border-radius: 999px;
+    margin: auto;
+    cursor: pointer;
+    font-size: 11px;
+    color: #111827;
+}
+
+/* Ocultar el botón en front al usar párrafo compacto */
+/* Flecha ver más en front */
+.paginaVisual .eventoVerTodoFlecha {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 22px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+/* Configurador de colores: oculto por defecto hasta togglear */
+.paginaVisual .form-config-colores {
     display: none;
     margin-top: 12px;
-    border: 1px solid #e6e6e6;
+    border: var(--borde);
     padding: 12px;
     border-radius: 6px;
-    background: #fafafa;
+    background: #ffffff;
 }
 
-.form-config-colores.is-visible {
+.paginaVisual .form-config-colores.is-visible {
     display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.grid-colores {
+.paginaVisual .grid-colores {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
-    margin-top: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
 }
 
-.color-item {
+.paginaVisual .color-item {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.color-label {
+.paginaVisual .color-label {
     flex: 1 1 auto;
     font-size: 13px;
-}
-
-.botonesVisualizacion {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.rightBotones {
-    display: flex;
-    gap: 10px;
-}
-
-form#formConfigColores {
-    flex-direction: column;
-    gap: 20px;
-}
-
-button.eventoVerTodoBtn {
-    all: unset;
-    white-space: nowrap;
-    padding: 4px 10px;
-    background: white;
-    height: fit-content;
-    border-radius: 50px;
-    margin: auto;
-    cursor: pointer;
-    font-size: 11px;
 }

@@ -72,6 +72,10 @@ if (Glory\Core\GloryFeatures::isEnabled('gloryAjax') !== false) {
     add_action('wp_ajax_nopriv_glory_eliminar_barberos', 'gloryEliminarBarberosCallback');
     add_action('wp_ajax_glory_eliminar_servicios', 'gloryEliminarServiciosCallback');
     add_action('wp_ajax_nopriv_glory_eliminar_servicios', 'gloryEliminarServiciosCallback');
+
+    // Visualización dinámica del scheduler por fecha (frontend)
+    add_action('wp_ajax_glory_visualizacion_por_fecha', 'visualizacionPorFechaCallback');
+    add_action('wp_ajax_nopriv_glory_visualizacion_por_fecha', 'visualizacionPorFechaCallback');
 }
 
 add_action('admin_post_glory_delete_barbero', 'gloryDeleteBarberoHandler');

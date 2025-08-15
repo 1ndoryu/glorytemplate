@@ -197,6 +197,77 @@ function renderizarScriptNavegacionFecha()
             var form = document.querySelector('.formDatepicker');
             var btnPrev = document.getElementById('diaAnteriorBtn');
             var btnNext = document.getElementById('diaSiguienteBtn');
+            var contenedorPagina = document.querySelector('.wrap.paginaVisual');
+            var esAdmin = window.location && window.location.pathname && window.location.pathname.indexOf('/wp-admin/') !== -1;
+
+            function formatear(fecha) {
+                var y = fecha.getFullYear();
+                var m = ('0' + (fecha.getMonth() + 1)).slice(-2);
+                var d = ('0' + fecha.getDate()).slice(-2);
+                return y + '-' + m + '-' + d;
+            }
+
+            async function cargarScheduler(fechaStr) {
+                if (!contenedorPagina) return;
+                // Intentar usar gloryAjax si está disponible
+                var usarGloryAjax = (typeof window.gloryAjax === 'function');
+                try {
+                    var resp;
+                    if (usarGloryAjax) {
+                        resp = await window.gloryAjax('glory_visualizacion_por_fecha', { fecha: fechaStr });
+                    } else {
+                        var params = new URLSearchParams({ action: 'glory_visualizacion_por_fecha', fecha: fechaStr });
+                        var url = (typeof window.ajax_params !== 'undefined' && window.ajax_params.ajax_url) ? window.ajax_params.ajax_url : '/wp-admin/admin-ajax.php';
+                        var r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params });
+                        var t = await r.text();
+                        try { resp = JSON.parse(t); } catch (e) { resp = { success: false, message: 'Respuesta no válida' }; }
+                    }
+                    if (resp && resp.success && resp.data && resp.data.html) {
+                        // Reemplazar solo el contenedor del scheduler
+                        var temp = document.createElement('div');
+                        temp.innerHTML = resp.data.html;
+                        var nuevo = temp.querySelector('.glorySchedulerContenedor');
+                        var viejo = document.querySelector('.glorySchedulerContenedor');
+                        if (nuevo && viejo && viejo.parentNode) {
+                            viejo.parentNode.replaceChild(nuevo, viejo);
+                        } else {
+                            // Fallback: insertar completo
+                            var existente = document.querySelector('.glorySchedulerContenedor');
+                            if (existente) existente.outerHTML = resp.data.html; else contenedorPagina.insertAdjacentHTML('beforeend', resp.data.html);
+                        }
+                        // Actualizar input
+                        if (inputFecha) inputFecha.value = fechaStr;
+                        // Actualizar URL para permitir compartir/recargar misma fecha
+                        try {
+                            var url = new URL(window.location.href);
+                            url.searchParams.set('fecha_visualizacion', fechaStr);
+                            window.history.pushState({ path: url.href }, '', url.href);
+                        } catch (e) {}
+                        // Disparar evento de recarga para re-inicializaciones (pestañas, scheduler, verTodo, etc.)
+                        // Retrasar ligeramente para asegurar layout aplicado y alturas correctas
+                        try {
+                            requestAnimationFrame(function(){
+                                setTimeout(function(){
+                                    var ev1 = new CustomEvent('gloryRecarga', { bubbles: true, cancelable: true });
+                                    document.dispatchEvent(ev1);
+                                }, 0);
+                                // Disparo adicional tras un pequeño retraso para casos de fonts/layout tardíos
+                                setTimeout(function(){
+                                    var ev2 = new CustomEvent('gloryRecarga', { bubbles: true, cancelable: true });
+                                    document.dispatchEvent(ev2);
+                                }, 80);
+                            });
+                        } catch(e) {
+                            var ev = new CustomEvent('gloryRecarga', { bubbles: true, cancelable: true });
+                            document.dispatchEvent(ev);
+                        }
+                        return true;
+                    }
+                } catch (err) {
+                    console.error('Error cargando scheduler:', err);
+                }
+                return false;
+            }
 
             function cambiarDia(offset) {
                 if (!inputFecha || !form) return;
@@ -205,11 +276,20 @@ function renderizarScriptNavegacionFecha()
                     fechaActual = new Date();
                 }
                 fechaActual.setDate(fechaActual.getDate() + offset);
-                var y = fechaActual.getFullYear();
-                var m = ('0' + (fechaActual.getMonth() + 1)).slice(-2);
-                var d = ('0' + fechaActual.getDate()).slice(-2);
-                inputFecha.value = y + '-' + m + '-' + d;
-                form.submit();
+                var nueva = formatear(fechaActual);
+
+                if (esAdmin) {
+                    inputFecha.value = nueva;
+                    form.submit();
+                } else {
+                    cargarScheduler(nueva).then(function(exito){
+                        if (!exito) {
+                            // Fallback si falla AJAX en front
+                            inputFecha.value = nueva;
+                            form.submit();
+                        }
+                    });
+                }
             }
 
             if (btnPrev) btnPrev.addEventListener('click', function() {
@@ -341,7 +421,7 @@ function renderizarScriptVerTodo()
 ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const CONTADOR_MS_POPUP = 4500;
+            const CONTADOR_MS_POPUP = 4500; 
             const OVERFLOW_RATIO_THRESHOLD = 0.9; // Mostrar botón solo si se ve menos del 90% del contenido
 
             function crearBotonParaBloque(bloque) {
@@ -354,26 +434,68 @@ function renderizarScriptVerTodo()
                 const ratioVisible = visible / total;
                 const debeMostrar = ratioVisible < OVERFLOW_RATIO_THRESHOLD;
 
-                const existente = bloque.querySelector('.eventoVerTodoBtn');
+                const esAdmin = window.location && window.location.pathname && window.location.pathname.indexOf('/wp-admin/') !== -1;
+                const esFront = !esAdmin;
+                const existenteBtn = bloque.querySelector('.eventoVerTodoBtn');
+                const existenteFlecha = bloque.querySelector('.eventoVerTodoFlecha');
+                const existeControl = existenteBtn || existenteFlecha;
+
                 if (!debeMostrar) {
-                    if (existente) {
-                        existente.remove();
-                    }
+                    if (existeControl) existeControl.remove();
                     delete bloque.dataset.btnVerTodoAgregado;
                     return;
                 }
 
-                if (bloque.dataset.btnVerTodoAgregado === '1' && existente) return;
+                if (bloque.dataset.btnVerTodoAgregado === '1' && existeControl) return;
 
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'eventoVerTodoBtn';
-                btn.textContent = 'ver completo';
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    expandirEnSitio(bloque, contenido);
-                });
-                bloque.appendChild(btn);
+                if (esFront) {
+                    // Crear flecha con overlay degradado
+                    const flecha = document.createElement('div');
+                    flecha.className = 'eventoVerTodoFlecha';
+                    flecha.innerHTML = '<svg data-testid="geist-icon" height="16" stroke-linejoin="round" style="color:currentColor" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.0607 6.74999L11.5303 7.28032L8.7071 10.1035C8.31657 10.4941 7.68341 10.4941 7.29288 10.1035L4.46966 7.28032L3.93933 6.74999L4.99999 5.68933L5.53032 6.21966L7.99999 8.68933L10.4697 6.21966L11 5.68933L12.0607 6.74999Z" fill="currentColor"></path></svg>';
+                    // Colores desde estilos computados del bloque
+                    const estilos = getComputedStyle(bloque);
+                    const fondo = estilos.backgroundColor || 'rgba(0,0,0,0.6)';
+                    const texto = estilos.color || '#111827';
+                    // Intentar crear transparente desde rgb/rgba
+                    let transparente = 'rgba(0,0,0,0)';
+                    try {
+                        const m = fondo.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([0-9\.]+))?\)/);
+                        if (m) {
+                            transparente = `rgba(${m[1]}, ${m[2]}, ${m[3]}, 0)`;
+                        }
+                    } catch (e) {}
+                    flecha.style.position = 'absolute';
+                    flecha.style.left = '0';
+                    flecha.style.right = '0';
+                    flecha.style.bottom = '0';
+                    flecha.style.height = '20px';
+                    flecha.style.display = 'flex';
+                    flecha.style.alignItems = 'flex-end';
+                    flecha.style.justifyContent = 'center';
+                    flecha.style.fontSize = '12px';
+                    flecha.style.lineHeight = '1';
+                    flecha.style.cursor = 'pointer';
+                    flecha.style.color = texto;
+                    flecha.style.background = `linear-gradient(180deg, ${transparente} 0%, ${fondo} 100%)`;
+                    flecha.style.pointerEvents = 'auto';
+                    flecha.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        expandirEnSitio(bloque, contenido);
+                    });
+                    bloque.appendChild(flecha);
+                } else {
+                    // Admin: mantener botón por compatibilidad
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'eventoVerTodoBtn';
+                    btn.textContent = 'ver completo';
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        expandirEnSitio(bloque, contenido);
+                    });
+                    bloque.appendChild(btn);
+                }
                 bloque.dataset.btnVerTodoAgregado = '1';
             }
 

@@ -22,14 +22,21 @@ AssetManager::define(
 AssetManager::define(
     'style',
     'tema-vizualizacion-admin',
-    '/assets/css/vizualizacion.css',
+    '/assets/css/vizualizacion-admin.css',
     ['media' => 'all', 'area' => 'admin']
 );
 
 AssetManager::define(
     'style',
+    'tema-vizualizacion-front',
+    '/assets/css/vizualizacion.css',
+    ['media' => 'all', 'area' => 'frontend']
+);
+
+AssetManager::define(
+    'style',
     'tema-ganancias-admin',
-    '/assets/css/ganancias.css',
+    '/assets/css/ganancias-admin.css',
     ['media' => 'all', 'area' => 'admin']
 );
 
