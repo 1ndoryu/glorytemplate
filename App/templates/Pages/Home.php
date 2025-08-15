@@ -1,7 +1,7 @@
 <?php
 
 use Glory\Components\AutenticacionRenderer;
-use Glory\Components\PerfilRenderer;
+
 
 function home()
 {
@@ -46,9 +46,6 @@ function home()
                     <?php echo renderPaginaGanancias(); ?>
                 </section>
             </div>
-        </div>
-        <div id="submenuUsuario" class="usuarioSubmenu">
-            <a href="<?php echo esc_url( wp_logout_url( home_url('/') ) ); ?>" class="submenuItem">Cerrar sesión</a>
         </div>
     <?php endif; ?>
 <?php
