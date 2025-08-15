@@ -132,7 +132,10 @@ function renderPaginaGanancias()
         <div class="acciones-pagina acciones-ganancias">
             <?php
             $opcionesFiltros = [
-                'preservar_keys' => ['orderby', 'order'],
+                'preservar_keys' => [],
+                'ajax_action' => 'glory_filtrar_ganancias',
+                'target_selector' => '.ganancias-contenido',
+                'scope' => 'ganancias'
             ];
             BarraFiltrosRenderer::render([
                 ['tipo' => 'date_range', 'name' => 'rango', 'label' => 'Rango de fechas', 'from_name' => 'fecha_desde', 'to_name' => 'fecha_hasta', 'placeholder' => 'Fecha desde — hasta'],
@@ -142,15 +145,17 @@ function renderPaginaGanancias()
             ?>
         </div>
 
-        <div class="glory-analytics-summary resumen-ganancias">
-            <div class="summary-card"><h3>Ingresos Totales</h3><p><?php echo number_format($resultados['total_ganado'] ?? 0, 2); ?> €</p></div>
-            <div class="summary-card"><h3>Total de Reservas</h3><p><?php echo $resultados['total_reservas'] ?? 0; ?></p></div>
-            <div class="summary-card"><h3>Media por Reserva</h3><p><?php echo number_format($resultados['promedio_reserva'] ?? 0, 2); ?> €</p></div>
-        </div>
+        <div class="ganancias-contenido">
+            <div class="glory-analytics-summary resumen-ganancias">
+                <div class="summary-card"><h3>Ingresos Totales</h3><p><?php echo number_format($resultados['total_ganado'] ?? 0, 2); ?> €</p></div>
+                <div class="summary-card"><h3>Total de Reservas</h3><p><?php echo $resultados['total_reservas'] ?? 0; ?></p></div>
+                <div class="summary-card"><h3>Media por Reserva</h3><p><?php echo number_format($resultados['promedio_reserva'] ?? 0, 2); ?> €</p></div>
+            </div>
 
-        <?php if (!is_admin()) { echo '<div class="tablaWrap">'; } ?>
-        <?php DataGridRenderer::render(array_values($reservasDetalladas), $configuracionColumnas); ?>
-        <?php if (!is_admin()) { echo '</div>'; } ?>
+            <?php if (!is_admin()) { echo '<div class="tablaWrap">'; } ?>
+            <?php DataGridRenderer::render(array_values($reservasDetalladas), $configuracionColumnas); ?>
+            <?php if (!is_admin()) { echo '</div>'; } ?>
+        </div>
     </div>
 <?php
 }

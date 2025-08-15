@@ -42,6 +42,7 @@ function renderPaginaBarberos()
         <?php
         $opcionesFiltros = [
             'preservar_keys' => ['orderby', 'order'],
+            'scope' => 'barberos',
         ];
         if (!is_admin()) {
             $opcionesFiltros['ajax_action'] = 'glory_filtrar_barberos';

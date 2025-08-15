@@ -39,9 +39,22 @@
         refreshing = true;
         lastRefreshAt = now;
         const filtros = {};
-        document.querySelectorAll('.acciones-pagina .glory-filtro [name], .acciones-reservas .glory-filtro [name]').forEach(function (el) {
+        // Capturar valores únicamente dentro del scope de Reservas
+        var scopeReservas = document.querySelector('.pestanaContenido[data-pestana="Reservas"]') || document.querySelector('.acciones-reservas') || document;
+        scopeReservas.querySelectorAll('[data-glory-filters] [name], .acciones-reservas form [name], form[data-glory-scope="reservas"] [name]').forEach(function (el) {
+            if (!el.name) return;
             filtros[el.name] = el.value || '';
         });
+        // Preservar solo orden/paginación desde la URL para evitar arrastrar filtros entre pestañas
+        try {
+            var sp = new URLSearchParams(window.location.search || '');
+            ['orderby','order','paged'].forEach(function(k){
+                var v = sp.get(k);
+                if (v !== null && typeof filtros[k] === 'undefined') {
+                    filtros[k] = v;
+                }
+            });
+        } catch(_) {}
 		// Preservar selección de checkboxes antes de reemplazar HTML
 		var contenedor = document.querySelector('.pestanaContenido[data-pestana="Reservas"]');
 		var seleccionAntes = new Set();
@@ -114,9 +127,22 @@
         refreshing = true;
         lastRefreshAt = now;
 		const filtros = {};
-		document.querySelectorAll('.acciones-pagina .glory-filtro [name], .acciones-barberos .glory-filtro [name]').forEach(function (el) {
+		// Capturar valores únicamente dentro del scope de Barberos
+		var scopeBarberos = document.querySelector('.pestanaContenido[data-pestana="Barberos"]') || document.querySelector('.acciones-barberos') || document;
+		scopeBarberos.querySelectorAll('[data-glory-filters] [name], .acciones-barberos form [name], form[data-glory-scope="barberos"] [name]').forEach(function (el) {
+			if (!el.name) return;
 			filtros[el.name] = el.value || '';
 		});
+		// Preservar solo orden/paginación desde la URL para evitar arrastrar filtros entre pestañas
+		try {
+			var sp = new URLSearchParams(window.location.search || '');
+			['orderby','order','paged'].forEach(function(k){
+				var v = sp.get(k);
+				if (v !== null && typeof filtros[k] === 'undefined') {
+					filtros[k] = v;
+				}
+			});
+		} catch(_) {}
 		// Preservar selección de checkboxes antes de reemplazar HTML
 		var contenedorBarberos = document.querySelector('.pestanaContenido[data-pestana="Barberos"]');
 		var seleccionAntesBarberos = new Set();
@@ -288,9 +314,22 @@
         refreshing = true;
         lastRefreshAt = now;
 		const filtros = {};
-		document.querySelectorAll('.acciones-pagina .glory-filtro [name], .acciones-servicios .glory-filtro [name]').forEach(function (el) {
+		// Capturar valores únicamente dentro del scope de Servicios
+		var scopeServicios = document.querySelector('.pestanaContenido[data-pestana="Servicios"]') || document.querySelector('.acciones-servicios') || document;
+		scopeServicios.querySelectorAll('[data-glory-filters] [name], .acciones-servicios form [name], form[data-glory-scope="servicios"] [name]').forEach(function (el) {
+			if (!el.name) return;
 			filtros[el.name] = el.value || '';
 		});
+		// Preservar solo orden/paginación desde la URL para evitar arrastrar filtros entre pestañas
+		try {
+			var sp = new URLSearchParams(window.location.search || '');
+			['orderby','order','paged'].forEach(function(k){
+				var v = sp.get(k);
+				if (v !== null && typeof filtros[k] === 'undefined') {
+					filtros[k] = v;
+				}
+			});
+		} catch(_) {}
 		// Preservar selección de checkboxes antes de reemplazar HTML
 		var contenedorServicios = document.querySelector('.pestanaContenido[data-pestana="Servicios"]');
 		var seleccionAntesServicios = new Set();

@@ -1,116 +1,58 @@
 <?php
 
 use Glory\Components\DataGridRenderer;
+use Glory\Components\BarraFiltrosRenderer;
+
+require_once __DIR__ . '/helpers/historialHelper.php';
 
 function renderPaginaHistorial()
 {
-    $consultaReservas = new WP_Query([
-        'post_type'      => 'reserva',
-        'posts_per_page' => -1,
-        'post_status'    => 'publish',
-        'orderby'        => 'meta_value',
-        'meta_key'       => 'fecha_reserva',
-        'order'          => 'DESC',
-    ]);
+	// 1) Construir datos base
+	$clientes = obtenerHistorialClientes();
 
-    $historialClientes = [];
+	// 2) Filtro por nombre (similar a reservas: input 's')
+	$texto = isset($_GET['s']) ? sanitize_text_field((string) $_GET['s']) : '';
+	if ($texto !== '') {
+		$clientes = filtrarHistorialPorNombre($clientes, $texto);
+	}
 
-    if ($consultaReservas->have_posts()) {
-        while ($consultaReservas->have_posts()) {
-            $consultaReservas->the_post();
-            $postId          = get_the_ID();
-            $nombreCliente   = get_the_title();
-            $telefonoCliente = get_post_meta($postId, 'telefono_cliente', true) ?: 'sin-telefono';
+	// 3) Orden: soportar por nombre y por fecha (default fecha desc)
+	$orderby = isset($_GET['orderby']) ? sanitize_key((string) $_GET['orderby']) : '';
+	$order   = (isset($_GET['order']) && strtolower((string) $_GET['order']) === 'asc') ? 'asc' : 'desc';
+	$map = [
+		'post_title'   => 'nombre',
+		'nombre'       => 'nombre',
+		'ultimaVisita' => 'ultimaVisita',
+	];
+	$claveOrden = $map[$orderby] ?? 'ultimaVisita';
+	$clientes = ordenarHistorialClientes($clientes, $claveOrden, $order);
 
-            $identificadorCliente = sanitize_key($nombreCliente . '_' . $telefonoCliente);
-
-            if (!isset($historialClientes[$identificadorCliente])) {
-                $historialClientes[$identificadorCliente] = [
-                    'nombre'            => $nombreCliente,
-                    'telefono'          => $telefonoCliente,
-                    'totalVisitas'      => 0,
-                    'gastoTotal'        => 0,
-                    'ultimaVisita'      => '0000-00-00',
-                    'ultimoServicio'    => '',
-                    'conteoServicios'   => [],
-                ];
-            }
-
-            $historialClientes[$identificadorCliente]['totalVisitas']++;
-
-            $fechaReserva = get_post_meta($postId, 'fecha_reserva', true);
-            if ($fechaReserva && $fechaReserva > $historialClientes[$identificadorCliente]['ultimaVisita']) {
-                $historialClientes[$identificadorCliente]['ultimaVisita'] = $fechaReserva;
-            }
-
-            $servicios = get_the_terms($postId, 'servicio');
-            if (!is_wp_error($servicios) && !empty($servicios)) {
-                $primerServicio = $servicios[0];
-
-                if ($fechaReserva === $historialClientes[$identificadorCliente]['ultimaVisita']) {
-                    $historialClientes[$identificadorCliente]['ultimoServicio'] = $primerServicio->name;
-                }
-
-                $nombreServicio = $primerServicio->name;
-                if (!isset($historialClientes[$identificadorCliente]['conteoServicios'][$nombreServicio])) {
-                    $historialClientes[$identificadorCliente]['conteoServicios'][$nombreServicio] = 0;
-                }
-                $historialClientes[$identificadorCliente]['conteoServicios'][$nombreServicio]++;
-
-                $precio = get_term_meta($primerServicio->term_id, 'precio', true);
-                if (is_numeric($precio)) {
-                    $historialClientes[$identificadorCliente]['gastoTotal'] += floatval($precio);
-                }
-            }
-        }
-    }
-    wp_reset_postdata();
-
-    foreach ($historialClientes as &$cliente) {
-        arsort($cliente['conteoServicios']);
-        $serviciosFrecuentes = array_slice(array_keys($cliente['conteoServicios']), 0, 3);
-        $cliente['serviciosFrecuentes'] = implode(', ', $serviciosFrecuentes);
-    }
-    unset($cliente);
-
-    $configuracionColumnas = [
-        'columnas' => [
-            [
-                'etiqueta' => 'Nombre del Cliente',
-                'clave'    => 'nombre',
-                'callback' => function ($cliente) {
-                    return '<strong>' . esc_html($cliente['nombre']) . '</strong>';
-                }
-            ],
-            ['etiqueta' => 'Teléfono', 'clave' => 'telefono'],
-            ['etiqueta' => 'Total Visitas', 'clave' => 'totalVisitas'],
-            [
-                'etiqueta' => 'Gasto Total',
-                'clave'    => 'gastoTotal',
-                'callback' => function ($cliente) {
-                    return number_format($cliente['gastoTotal'], 2) . ' €';
-                }
-            ],
-            [
-                'etiqueta' => 'Fecha Última Visita',
-                'clave'    => 'ultimaVisita',
-                'callback' => function ($cliente) {
-                    return esc_html(date_format(date_create($cliente['ultimaVisita']), 'd/m/Y'));
-                }
-            ],
-            ['etiqueta' => 'Último Servicio', 'clave' => 'ultimoServicio'],
-            ['etiqueta' => 'Servicios Frecuentes', 'clave' => 'serviciosFrecuentes'],
-        ],
-        'paginacion' => false,
-    ];
+	// 4) Columnas (ordenables en nombre y fecha)
+	$configuracionColumnas = columnasHistorial();
+	// Mostrar filtros arriba externos como en reservas
+	$opcionesFiltros = [
+		'preservar_keys' => ['orderby', 'order'],
+	];
+	// Activar modo AJAX también en admin, como en reservas
+	$opcionesFiltros['ajax_action'] = 'glory_filtrar_historial';
 
 ?>
-    <div class="wrap glory-admin-page">
-        <h1 style="margin-bottom: 20px;">Historial de Clientes</h1>
-        <?php if (!is_admin()) { echo '<div class="tablaWrap">'; } ?>
-        <?php DataGridRenderer::render(array_values($historialClientes), $configuracionColumnas); ?>
-        <?php if (!is_admin()) { echo '</div>'; } ?>
-
+	<div class="acciones-pagina-header">
+		<h1><?php echo 'Historial de Clientes'; ?></h1>
+	</div>
+	<div class="acciones-pagina">
+		<?php
+		BarraFiltrosRenderer::render([
+			['tipo' => 'search', 'name' => 's', 'label' => 'Cliente', 'placeholder' => 'Buscar por nombre…'],
+		], $opcionesFiltros);
+		?>
     </div>
 <?php
+	if (!is_admin()) {
+		echo '<div class="tablaWrap">';
+	}
+	DataGridRenderer::render($clientes, $configuracionColumnas);
+	if (!is_admin()) {
+		echo '</div>';
+	}
 }

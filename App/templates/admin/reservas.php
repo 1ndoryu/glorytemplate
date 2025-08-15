@@ -50,6 +50,7 @@ function renderPaginaReservas()
         <?php
         $opcionesFiltros = [
             'preservar_keys' => ['orderby', 'order'],
+            'scope' => 'reservas',
         ];
         if (!is_admin()) {
             $opcionesFiltros['ajax_action'] = 'glory_filtrar_reservas';

@@ -257,6 +257,10 @@ textarea {
     align-items: stretch;
 }
 
+.glory-analytics-filters.postbox {
+    margin-left: auto;
+}
+
 .homeFront .checkbox-group {
     display: flex;
     flex-direction: row;

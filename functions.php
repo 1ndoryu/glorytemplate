@@ -60,10 +60,14 @@ if (Glory\Core\GloryFeatures::isEnabled('gloryAjax') !== false) {
     // Filtros en tiempo real (frontend)
     add_action('wp_ajax_glory_filtrar_reservas', 'filtrarReservasAjaxCallback');
     add_action('wp_ajax_nopriv_glory_filtrar_reservas', 'filtrarReservasAjaxCallback');
+    add_action('wp_ajax_glory_filtrar_historial', 'filtrarHistorialAjaxCallback');
+    add_action('wp_ajax_nopriv_glory_filtrar_historial', 'filtrarHistorialAjaxCallback');
     add_action('wp_ajax_glory_filtrar_barberos', 'filtrarBarberosAjaxCallback');
     add_action('wp_ajax_nopriv_glory_filtrar_barberos', 'filtrarBarberosAjaxCallback');
     add_action('wp_ajax_glory_filtrar_servicios', 'filtrarServiciosAjaxCallback');
     add_action('wp_ajax_nopriv_glory_filtrar_servicios', 'filtrarServiciosAjaxCallback');
+    add_action('wp_ajax_glory_filtrar_ganancias', 'filtrarGananciasAjaxCallback');
+    add_action('wp_ajax_nopriv_glory_filtrar_ganancias', 'filtrarGananciasAjaxCallback');
 
     // Acciones masivas del DataGrid (frontend y admin)
     add_action('wp_ajax_glory_eliminar_reservas', 'gloryEliminarReservasCallback');
