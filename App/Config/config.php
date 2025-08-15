@@ -4,8 +4,8 @@ use Glory\Manager\AssetManager;
 use Glory\Manager\PageManager;
 use Glory\Admin\SyncManager;
 
-define('LOCAL', true);
-AssetManager::setGlobalDevMode(true);
+define('LOCAL', false);
+AssetManager::setGlobalDevMode(false);
 AssetManager::setThemeVersion('0.1.1');
 SyncManager::setAdminBarVisible(true);
 SyncManager::setResetButtonVisible(true);
