@@ -3,10 +3,11 @@
         return;
     }
     window.__gloryRealtimeScriptLoaded = true;
+    // Usar Glory Core Realtime si está disponible; no redefinir lógica aquí
     let refreshPending = false;
     let refreshing = false;
     var lastRefreshAt = 0;
-    var MIN_REFRESH_GAP_MS = 1000; // evita ráfagas de refrescos consecutivos
+    var MIN_REFRESH_GAP_MS = 500; // evita ráfagas de refrescos consecutivos y reduce latencia percibida
 
     function isModalOpen() {
         const modal = document.querySelector('.modal');
@@ -171,13 +172,21 @@
         if (!tieneContenedor) {
             return; // no estamos en una vista con tabs/listados
         }
-        if (typeof window.gloryRealtimePoll !== 'function') {
-            console.warn('[realtime] gloryRealtimePoll no disponible');
+        var stop = null;
+        if (window.gloryRealtime && typeof window.gloryRealtime.start === 'function') {
+            stop = window.gloryRealtime.start(['post_reserva', 'term_barbero', 'term_servicio'], {
+                intervalMsActive: 1500,
+                intervalMsHidden: 15000,
+                idleMs: 30000,
+                offWhenIdle: true
+            });
+        } else if (typeof window.gloryRealtimePoll === 'function') {
+            stop = window.gloryRealtimePoll(['post_reserva', 'term_barbero', 'term_servicio'], {intervalMs: 1000});
+        } else {
+            console.warn('[realtime] gloryRealtime no disponible');
             return;
         }
         window.__gloryRealtimeInited = true;
-        // console.log('[realtime] iniciando poll de canales', ['post_reserva', 'term_barbero', 'term_servicio']); // desactivado
-        var stop = window.gloryRealtimePoll(['post_reserva', 'term_barbero', 'term_servicio'], {intervalMs: 3000});
         window.addEventListener('beforeunload', function () {
             try {
                 stop();
@@ -235,6 +244,23 @@
                 refrescarServicios();
             }
         });
+        // Bridge agnóstico: tras éxito de formularios, notificar canal según subAccion
+        if (!window.__gloryRealtimeBridgeBound) {
+            document.addEventListener('gloryForm:success', function(ev){
+                try {
+                    var sub = String((ev && ev.detail && ev.detail.subAccion) || '').toLowerCase();
+                    if (!sub || !window.gloryRealtime || typeof window.gloryRealtime.notify !== 'function') return;
+                    if (sub === 'crearreserva' || sub === 'actualizarreserva' || sub === 'eliminarreserva') {
+                        window.gloryRealtime.notify('post_reserva');
+                    } else if (sub === 'barbero') {
+                        window.gloryRealtime.notify('term_barbero');
+                    } else if (sub === 'guardarservicio' || sub === 'servicio' || sub === 'guardarservicios') {
+                        window.gloryRealtime.notify('term_servicio');
+                    }
+                } catch(_){}
+            });
+            window.__gloryRealtimeBridgeBound = true;
+        }
         // silencioso por defecto
     }
     function refrescarServicios() {
@@ -346,6 +372,10 @@
                                 wrap.outerHTML = resp.data.html;
                             }
                             document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
+                            // Notificar a otras pestañas inmediatamente
+                            if (window.gloryRealtime && typeof window.gloryRealtime.notify === 'function') {
+                                try { window.gloryRealtime.notify('term_servicio'); } catch(_){}
+                            }
                         }
                     })
                     .catch(function (err) {
@@ -381,6 +411,10 @@
                             wrap.outerHTML = resp.data.html;
                         }
                         document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
+                        // Notificar a otras pestañas inmediatamente
+                        if (window.gloryRealtime && typeof window.gloryRealtime.notify === 'function') {
+                            try { window.gloryRealtime.notify('term_barbero'); } catch(_){}
+                        }
                     }
                 });
             } else if (form) {

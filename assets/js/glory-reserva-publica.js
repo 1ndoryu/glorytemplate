@@ -133,6 +133,9 @@
           var wrap = document.querySelector('.pestanaContenido[data-pestana="Barberos"] .tablaWrap');
           if (wrap) { wrap.outerHTML = resp.data.html; }
           document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
+          if (window.gloryRealtime && typeof window.gloryRealtime.notify === 'function') {
+            try { window.gloryRealtime.notify('term_barbero'); } catch(_){}
+          }
         }
       });
     } else if (form) {

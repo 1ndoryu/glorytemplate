@@ -65,17 +65,7 @@ AssetManager::define(
     ]
 );
 
-AssetManager::define(
-    'script',
-    'glory-scheduler-admin',
-    '/Glory/assets/js/UI/gloryScheduler.js',
-    [
-        'deps'      => [],
-        'in_footer' => true,
-        'area'      => 'admin',
-        'feature'   => 'scheduler',
-    ]
-);
+//movido la definicion de gloryScheduler y gloryRealtime a Glory/Config/scriptSetup.php donde realmente deberian de estar
 
 AssetManager::define(
     'style',

@@ -1,6 +1,5 @@
 <?php
 
-use Glory\Core\OpcionRepository;
 use Glory\Components\DataGridRenderer;
 
 function verificarDisponibilidadCallback()
@@ -20,13 +19,13 @@ function verificarDisponibilidadCallback()
         $hoy = new DateTime('today');
         // En modo edición (exclude_id > 0), permitimos cargar opciones incluso si la fecha es pasada o domingo.
         if ($excludeId <= 0) {
-        if ($fechaObj < $hoy) {
-            wp_send_json_error(['mensaje' => 'No puedes reservar en una fecha pasada.']);
-            return;
-        }
-        if ($fechaObj->format('N') == 7) { // 7 = Domingo
-            wp_send_json_error(['mensaje' => 'No se admiten reservas los domingos.']);
-            return;
+            if ($fechaObj < $hoy) {
+                wp_send_json_error(['mensaje' => 'No puedes reservar en una fecha pasada.']);
+                return;
+            }
+            if ($fechaObj->format('N') == 7) { // 7 = Domingo
+                wp_send_json_error(['mensaje' => 'No se admiten reservas los domingos.']);
+                return;
             }
         }
     } catch (Exception $e) {
@@ -54,32 +53,6 @@ function verificarDisponibilidadCallback()
     wp_send_json_success(['options' => $horariosDisponibles]);
 }
 
-function serviciosPorBarberoCallback()
-{
-    $barberoId = absint($_POST['barbero_id'] ?? 0);
-    if (!$barberoId) {
-        wp_send_json_error(['mensaje' => 'Barbero no válido.']);
-        return;
-    }
-
-    // Leer IDs de servicios desde meta del término 'barbero'
-    $servicesIds = get_term_meta($barberoId, 'servicios', true);
-    if (!is_array($servicesIds)) {
-        $servicesIds = [];
-    }
-    $servicesIds = array_values(array_unique(array_map('intval', $servicesIds)));
-
-    $options = [];
-    foreach ($servicesIds as $sid) {
-        $term = get_term($sid, 'servicio');
-        if ($term && !is_wp_error($term)) {
-            $options[$term->term_id] = $term->name;
-        }
-    }
-
-    wp_send_json_success(['options' => $options]);
-}
-
 function manejarExportacionReservasCsv()
 {
     if (
@@ -92,40 +65,9 @@ function manejarExportacionReservasCsv()
     }
 }
 
-function actualizarColorServicioCallback()
-{
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(['mensaje' => 'Permisos insuficientes.'], 403);
-    }
-    $nonce = $_POST['_wpnonce'] ?? '';
-    if (!wp_verify_nonce($nonce, 'glory_color_servicio')) {
-        wp_send_json_error(['mensaje' => 'Nonce inválido.'], 403);
-    }
-
-    $slug = sanitize_title($_POST['slug'] ?? '');
-    $color = sanitize_hex_color($_POST['color'] ?? '');
-
-    if (empty($slug) || empty($color)) {
-        wp_send_json_error(['mensaje' => 'Datos incompletos.']);
-    }
-
-    $key = 'glory_scheduler_color_' . str_replace('-', '_', $slug);
-    $ok = OpcionRepository::save($key, $color);
-
-    if ($ok) {
-        wp_send_json_success(['mensaje' => 'Color actualizado.', 'key' => $key, 'color' => $color]);
-    } else {
-        wp_send_json_error(['mensaje' => 'No se pudo guardar el color.']);
-    }
-}
-
-/**
- * AJAX: Filtrar reservas (frontend, tiempo real)
- */
 function filtrarReservasAjaxCallback()
 {
     $t0 = microtime(true);
-    // error_log('[realtime] filtrarReservasAjaxCallback llamado'); // desactivado
     // Construir args similares a consultaReservas() pero con $_POST
     $pagina = isset($_POST['paged']) ? max(1, absint($_POST['paged'])) : 1;
 
@@ -176,24 +118,26 @@ function filtrarReservasAjaxCallback()
 
     // Si hay orden explícito, delegar al orden nativo
     if ($orderbyParam !== '') {
-    if ($orderbyParam === 'post_title') {
-        $args['orderby'] = 'title';
-        $args['order']   = $orderParam;
-    } elseif ($orderbyParam === 'fecha_reserva') {
-        $args['meta_key'] = 'fecha_reserva';
-        $args['orderby']  = 'meta_value';
-        $args['order']    = $orderParam;
-    } elseif ($orderbyParam === 'hora_reserva') {
-        $args['meta_key'] = 'hora_reserva';
-        $args['orderby']  = 'meta_value';
-        $args['order']    = $orderParam;
-    }
+        if ($orderbyParam === 'post_title') {
+            $args['orderby'] = 'title';
+            $args['order']   = $orderParam;
+        } elseif ($orderbyParam === 'fecha_reserva') {
+            $args['meta_key'] = 'fecha_reserva';
+            $args['orderby']  = 'meta_value';
+            $args['order']    = $orderParam;
+        } elseif ($orderbyParam === 'hora_reserva') {
+            $args['meta_key'] = 'hora_reserva';
+            $args['orderby']  = 'meta_value';
+            $args['order']    = $orderParam;
+        }
         $query = new WP_Query(['paged' => $pagina] + $args);
     } else {
         // Orden por defecto: futuras y en proceso primero; pasadas al final
         // Optimización: solo traer los IDs para ordenar en PHP y luego cargar la página actual
         $qAll = new WP_Query($args + ['fields' => 'ids', 'no_found_rows' => true, 'update_post_meta_cache' => false, 'update_post_term_cache' => false]);
-        $posts = is_array($qAll->posts) ? array_map(function($id){ return (object)['ID' => (int)$id]; }, $qAll->posts) : [];
+        $posts = is_array($qAll->posts) ? array_map(function ($id) {
+            return (object)['ID' => (int)$id];
+        }, $qAll->posts) : [];
         $ahora = new DateTime();
         $leerDuracion = function (int $postId): int {
             $servicios = get_the_terms($postId, 'servicio');
@@ -207,13 +151,18 @@ function filtrarReservasAjaxCallback()
             $fecha = (string) get_post_meta($p->ID, 'fecha_reserva', true);
             $hora  = (string) get_post_meta($p->ID, 'hora_reserva', true);
             if (!$fecha || !$hora) return ['grupo' => 2, 'inicio' => null];
-            try { $inicio = new DateTime($fecha . ' ' . $hora); } catch (Exception $e) { return ['grupo' => 2, 'inicio' => null]; }
+            try {
+                $inicio = new DateTime($fecha . ' ' . $hora);
+            } catch (Exception $e) {
+                return ['grupo' => 2, 'inicio' => null];
+            }
             $fin = (clone $inicio)->add(new DateInterval('PT' . $leerDuracion($p->ID) . 'M'));
             $grupo = ($fin < $ahora) ? 2 : 1;
             return ['grupo' => $grupo, 'inicio' => $inicio];
         };
         usort($posts, function ($a, $b) use ($part) {
-            $pa = $part($a); $pb = $part($b);
+            $pa = $part($a);
+            $pb = $part($b);
             if ($pa['grupo'] !== $pb['grupo']) return $pa['grupo'] <=> $pb['grupo'];
             // Orden dentro del grupo: DESC por fecha/hora de inicio
             if ($pa['inicio'] && $pb['inicio']) return $pb['inicio']->getTimestamp() <=> $pa['inicio']->getTimestamp();
@@ -246,7 +195,6 @@ function filtrarReservasAjaxCallback()
     }
     $configuracionColumnas = columnasReservas();
     // Respetar que las acciones masivas se muestren fuera del DataGrid en las vistas
-    // (la plantilla principal establece esto manualmente en la carga inicial)
     $configuracionColumnas['acciones_masivas_separadas'] = true;
 
     ob_start();
@@ -256,66 +204,7 @@ function filtrarReservasAjaxCallback()
     $html = '<div class="tablaWrap">' . $html . '</div>';
 
     $t1 = microtime(true);
-    // error_log(sprintf('[realtime] filtrarReservasAjaxCallback render ms=%.1f', ($t1-$t0)*1000)); // desactivado
-    wp_send_json_success(['html' => $html, 'renderMs' => (int)(($t1-$t0)*1000)]);
-}
-
-/**
- * AJAX: Filtrar barberos (frontend, tiempo real)
- */
-function filtrarBarberosAjaxCallback()
-{
-    error_log('[realtime] filtrarBarberosAjaxCallback llamado');
-    $claveOpcion = 'barberia_barberos';
-
-    if (!function_exists('obtenerDatosBarberos') || !function_exists('columnasBarberos')) {
-        wp_send_json_error(['mensaje' => 'Configuración de barberos no disponible.']);
-        return;
-    }
-
-    list($opcionesServicios, $barberosCombinados, $serviciosMapIdANombre) = obtenerDatosBarberos($claveOpcion);
-
-    $s = isset($_POST['s']) ? sanitize_text_field((string) $_POST['s']) : '';
-    $filtroServicio = isset($_POST['filtro_servicio']) ? absint((int) $_POST['filtro_servicio']) : 0;
-
-    $filtrados = array_filter($barberosCombinados, function ($b) use ($s, $filtroServicio) {
-        // Filtro por nombre
-        if ($s !== '') {
-            $nombre = isset($b['name']) ? (string) $b['name'] : '';
-            if (stripos($nombre, $s) === false) {
-                return false;
-            }
-        }
-
-        // Filtro por servicio
-        if ($filtroServicio) {
-            $ids = [];
-            if (!empty($b['services_ids']) && is_array($b['services_ids'])) {
-                $ids = array_map('intval', $b['services_ids']);
-            }
-            if (!in_array((int) $filtroServicio, $ids, true)) {
-                return false;
-            }
-        }
-
-        return true;
-    });
-
-    $barberosParaRenderizar = array_values($filtrados);
-    foreach ($barberosParaRenderizar as $k => &$v) {
-        $v['index'] = $k;
-    }
-    unset($v);
-
-    $configuracionColumnas = columnasBarberos($opcionesServicios, $serviciosMapIdANombre);
-    $configuracionColumnas['acciones_masivas_separadas'] = true;
-
-    ob_start();
-    DataGridRenderer::render($barberosParaRenderizar, $configuracionColumnas);
-    $html = ob_get_clean();
-    $html = '<div class="tablaWrap">' . $html . '</div>';
-
-    wp_send_json_success(['html' => $html]);
+    wp_send_json_success(['html' => $html, 'renderMs' => (int)(($t1 - $t0) * 1000)]);
 }
 
 function obtenerReservaCallback()

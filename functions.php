@@ -1,5 +1,5 @@
 <?php
-
+//No mover esto de aqui
 $autoloader = get_template_directory() . '/vendor/autoload.php';
 if (file_exists($autoloader)) {
     require_once $autoloader;
@@ -37,6 +37,7 @@ $directorios = [
 foreach ($directorios as $directorio) {
     incluirArchivos($directorio);
 }
+// Hasta aqui no mover
 
 use App\Handler\Form\BarberoHandler;
 use App\Handler\Form\GuardarServicioHandler;
@@ -65,206 +66,13 @@ if (Glory\Core\GloryFeatures::isEnabled('gloryAjax') !== false) {
     add_action('wp_ajax_nopriv_glory_filtrar_servicios', 'filtrarServiciosAjaxCallback');
 
     // Acciones masivas del DataGrid (frontend y admin)
-    add_action('wp_ajax_glory_eliminar_reservas', 'glory_eliminar_reservas_callback');
-    add_action('wp_ajax_nopriv_glory_eliminar_reservas', 'glory_eliminar_reservas_callback');
-    add_action('wp_ajax_glory_eliminar_barberos', 'glory_eliminar_barberos_callback');
-    add_action('wp_ajax_nopriv_glory_eliminar_barberos', 'glory_eliminar_barberos_callback');
-    add_action('wp_ajax_glory_eliminar_servicios', 'glory_eliminar_servicios_callback');
-    add_action('wp_ajax_nopriv_glory_eliminar_servicios', 'glory_eliminar_servicios_callback');
+    add_action('wp_ajax_glory_eliminar_reservas', 'gloryEliminarReservasCallback');
+    add_action('wp_ajax_nopriv_glory_eliminar_reservas', 'gloryEliminarReservasCallback');
+    add_action('wp_ajax_glory_eliminar_barberos', 'gloryEliminarBarberosCallback');
+    add_action('wp_ajax_nopriv_glory_eliminar_barberos', 'gloryEliminarBarberosCallback');
+    add_action('wp_ajax_glory_eliminar_servicios', 'gloryEliminarServiciosCallback');
+    add_action('wp_ajax_nopriv_glory_eliminar_servicios', 'gloryEliminarServiciosCallback');
 }
 
-function glory_eliminar_reservas_callback() {
-    error_log('[realtime] glory_eliminar_reservas_callback llamado');
-    // Requiere login y capacidad apropiada
-    if (!is_user_logged_in() || !current_user_can('delete_posts')) {
-        wp_send_json_error(['mensaje' => 'No autorizado.'], 403);
-    }
-    $idsRaw = $_POST['ids'] ?? '';
-    $ids = array_filter(array_map('absint', explode(',', (string)$idsRaw)));
-    if (empty($ids)) {
-        wp_send_json_error(['mensaje' => 'Sin IDs.']);
-    }
-    foreach ($ids as $id) {
-        $post = get_post($id);
-        if ($post && $post->post_type === 'reserva') {
-            wp_delete_post($id, true);
-        }
-    }
-
-    // Re-renderizar el grid con la misma configuración
-    if (!function_exists('consultaReservas') || !function_exists('columnasReservas')) {
-        wp_send_json_error(['mensaje' => 'Config no disponible.']);
-    }
-    $consultaReservas = consultaReservas();
-    $configuracionColumnas = columnasReservas();
-    // Asegurar que, al re-renderizar vía AJAX, respetemos la intención de mostrar
-    // las acciones masivas fuera del DataGrid (coincide con lo que hace la plantilla)
-    $configuracionColumnas['acciones_masivas_separadas'] = true;
-    ob_start();
-    Glory\Components\DataGridRenderer::render($consultaReservas, $configuracionColumnas);
-    $html = ob_get_clean();
-    if (!is_admin()) {
-        $html = '<div class="tablaWrap">' . $html . '</div>';
-    }
-    // Emitir evento realtime para reservas tras eliminación masiva
-    try { EventBus::emit('post_reserva', ['accion' => 'eliminar_masivo', 'ids' => $ids]); } catch (\Throwable $e) {}
-
-    wp_send_json_success(['html' => $html]);
-}
-
-// Handler para eliminar barbero desde admin-post.php
-function glory_delete_barbero_handler() {
-    if (!current_user_can('manage_options')) {
-        wp_die('No autorizado');
-    }
-    $nonce = $_POST['barberos_nonce'] ?? '';
-    if (!wp_verify_nonce($nonce, 'barberos_save')) {
-        wp_die('Nonce inválido');
-    }
-    $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
-    if ($term_id > 0 && term_exists($term_id, 'barbero')) {
-        // Eliminar término
-        wp_delete_term($term_id, 'barbero');
-        // Limpiar opciones guardadas
-        $option_key = 'barberia_barberos';
-        $barberos = get_option($option_key, []);
-        if (is_array($barberos) && !empty($barberos)) {
-            $barberos = array_values(array_filter($barberos, function($b) use ($term_id) {
-                return empty($b['term_id']) || intval($b['term_id']) !== $term_id;
-            }));
-            update_option($option_key, $barberos);
-        }
-    }
-    wp_redirect(admin_url('admin.php?page=barberia-barberos&deleted=1'));
-    exit;
-}
-add_action('admin_post_glory_delete_barbero', 'glory_delete_barbero_handler');
-
-function glory_eliminar_barberos_callback() {
-    error_log('[realtime] glory_eliminar_barberos_callback llamado');
-    if (!is_user_logged_in() || !current_user_can('manage_options')) {
-        wp_send_json_error(['mensaje' => 'No autorizado.'], 403);
-    }
-    $idsRaw = $_POST['ids'] ?? '';
-    $ids = array_filter(array_map('absint', explode(',', (string)$idsRaw)));
-    if (empty($ids)) {
-        wp_send_json_error(['mensaje' => 'Sin IDs.']);
-    }
-    $option_key = 'barberia_barberos';
-    $barberos = get_option($option_key, []);
-    foreach ($ids as $term_id) {
-        if (term_exists($term_id, 'barbero')) {
-            wp_delete_term($term_id, 'barbero');
-        }
-        if (is_array($barberos) && !empty($barberos)) {
-            $barberos = array_values(array_filter($barberos, function($b) use ($term_id) {
-                return empty($b['term_id']) || intval($b['term_id']) !== $term_id;
-            }));
-        }
-    }
-    update_option($option_key, $barberos);
-
-    if (!function_exists('obtenerDatosBarberos') || !function_exists('columnasBarberos')) {
-        wp_send_json_error(['mensaje' => 'Config no disponible.']);
-    }
-    list($opcionesServicios, $barberosCombinados, $serviciosMapIdANombre) = obtenerDatosBarberos($option_key);
-    $configuracionColumnas = columnasBarberos($opcionesServicios, $serviciosMapIdANombre);
-    $configuracionColumnas['acciones_masivas_separadas'] = true;
-    ob_start();
-    Glory\Components\DataGridRenderer::render($barberosCombinados, $configuracionColumnas);
-    $html = ob_get_clean();
-    if (!is_admin()) {
-        $html = '<div class="tablaWrap">' . $html . '</div>';
-    }
-    try { Glory\Services\EventBus::emit('term_barbero', ['accion' => 'eliminar_masivo', 'ids' => $ids]); } catch (\Throwable $e) {}
-    wp_send_json_success(['html' => $html]);
-}
-
-// Handler para eliminar servicio desde admin-post.php
-function glory_delete_servicio_handler() {
-    if (!current_user_can('manage_options')) {
-        wp_die('No autorizado');
-    }
-
-    $nonce = $_POST['servicios_nonce'] ?? '';
-    if (!wp_verify_nonce($nonce, 'servicios_save')) {
-        wp_die('Nonce inválido');
-    }
-
-    $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
-    $name = isset($_POST['name']) ? sanitize_text_field($_POST['name']) : '';
-
-    if ($term_id > 0 && term_exists($term_id, 'servicio')) {
-        wp_delete_term($term_id, 'servicio');
-    }
-
-    $option_key = 'barberia_servicios';
-    $servicios = get_option($option_key, []);
-    if (is_array($servicios) && !empty($servicios)) {
-        $servicios = array_values(array_filter($servicios, function($s) use ($term_id, $name) {
-            if ($term_id > 0 && !empty($s['term_id'])) {
-                return intval($s['term_id']) !== $term_id;
-            }
-            if ($name !== '' && isset($s['name'])) {
-                return sanitize_text_field($s['name']) !== $name;
-            }
-            return true;
-        }));
-        update_option($option_key, $servicios);
-    }
-
-    try { Glory\Services\EventBus::emit('term_servicio', ['accion' => 'eliminar', 'term_id' => $term_id, 'name' => $name]); } catch (\Throwable $e) {}
-    wp_redirect(admin_url('admin.php?page=barberia-servicios&deleted=1'));
-    exit;
-}
-add_action('admin_post_glory_delete_servicio', 'glory_delete_servicio_handler');
-
-function filtrarServiciosAjaxCallback() {
-    error_log('[realtime] filtrarServiciosAjaxCallback llamado');
-    if (!function_exists('obtenerDatosServicios') || !function_exists('columnasServicios')) {
-        wp_send_json_error(['mensaje' => 'Configuración de servicios no disponible.']);
-    }
-    $lista = obtenerDatosServicios();
-    $configuracionColumnas = columnasServicios();
-    $configuracionColumnas['acciones_masivas_separadas'] = true;
-    ob_start();
-    Glory\Components\DataGridRenderer::render($lista, $configuracionColumnas);
-    $html = ob_get_clean();
-    // Unificar con reservas y barberos: siempre envolver en .tablaWrap para mantener estilos/bordes
-    $html = '<div class="tablaWrap">' . $html . '</div>';
-    wp_send_json_success(['html' => $html]);
-}
-
-function glory_eliminar_servicios_callback() {
-    error_log('[realtime] glory_eliminar_servicios_callback llamado');
-    if (!is_user_logged_in() || !current_user_can('manage_options')) {
-        wp_send_json_error(['mensaje' => 'No autorizado.'], 403);
-    }
-    $idsRaw = $_POST['ids'] ?? '';
-    $ids = array_filter(array_map('absint', explode(',', (string)$idsRaw)));
-    if (empty($ids)) { wp_send_json_error(['mensaje' => 'Sin IDs.']); }
-    $option_key = 'barberia_servicios';
-    $servicios = get_option($option_key, []);
-    foreach ($ids as $term_id) {
-        if (term_exists($term_id, 'servicio')) { wp_delete_term($term_id, 'servicio'); }
-        if (is_array($servicios) && !empty($servicios)) {
-            $servicios = array_values(array_filter($servicios, function($s) use ($term_id) {
-                return empty($s['term_id']) || intval($s['term_id']) !== $term_id;
-            }));
-        }
-    }
-    update_option($option_key, $servicios);
-    if (!function_exists('obtenerDatosServicios') || !function_exists('columnasServicios')) {
-        wp_send_json_error(['mensaje' => 'Config no disponible.']);
-    }
-    $lista = obtenerDatosServicios();
-    $configuracionColumnas = columnasServicios();
-    $configuracionColumnas['acciones_masivas_separadas'] = true;
-    ob_start();
-    Glory\Components\DataGridRenderer::render($lista, $configuracionColumnas);
-    $html = ob_get_clean();
-    // Unificar con reservas y barberos: siempre envolver en .tablaWrap
-    $html = '<div class="tablaWrap">' . $html . '</div>'; 
-    try { Glory\Services\EventBus::emit('term_servicio', ['accion' => 'eliminar_masivo', 'ids' => $ids]); } catch (\Throwable $e) {}
-    wp_send_json_success(['html' => $html]);
-}
+add_action('admin_post_glory_delete_barbero', 'gloryDeleteBarberoHandler');
+add_action('admin_post_glory_delete_servicio', 'gloryDeleteServicioHandler');
