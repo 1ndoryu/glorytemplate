@@ -106,9 +106,7 @@ function renderPaginaHistorial()
 
 ?>
     <div class="wrap glory-admin-page">
-        <h1>Historial de Clientes</h1>
-        <p>Un resumen de la actividad y el valor de cada cliente en la barbería.</p>
-
+        <h1 style="margin-bottom: 20px;">Historial de Clientes</h1>
         <?php if (!is_admin()) { echo '<div class="tablaWrap">'; } ?>
         <?php DataGridRenderer::render(array_values($historialClientes), $configuracionColumnas); ?>
         <?php if (!is_admin()) { echo '</div>'; } ?>

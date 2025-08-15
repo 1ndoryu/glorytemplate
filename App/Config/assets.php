@@ -42,6 +42,13 @@ AssetManager::define(
 
 AssetManager::define(
     'style',
+    'tema-ganancias-front',
+    '/assets/css/ganancias.css',
+    ['media' => 'all', 'area' => 'frontend']
+);
+
+AssetManager::define(
+    'style',
     'tema-reservas-admin',
     '/assets/css/reservas-admin.css',
     ['media' => 'all', 'area' => 'admin']

@@ -1,6 +1,8 @@
 <?php
 
 use Glory\Components\FormBuilder;
+use Glory\Components\DataGridRenderer;
+use Glory\Components\BarraFiltrosRenderer;
 use Glory\Services\AnalyticsEngine;
 
 function renderPaginaGanancias()
@@ -63,7 +65,7 @@ function renderPaginaGanancias()
 
     $consultaReservas = new WP_Query($argsConsulta);
 
-    // --- 4. PROCESAR DATOS PARA EL ANÁLISIS ---
+    // --- 4. PROCESAR DATOS PARA EL ANÁLISIS Y GRID ---
     $datosParaAnalisis = [];
     $reservasDetalladas = [];
 
@@ -83,10 +85,10 @@ function renderPaginaGanancias()
 
                 $reservasDetalladas[] = [
                     'cliente' => get_the_title(),
-                    'fecha' => get_post_meta($postId, 'fecha_reserva', true),
+                    'fecha' => (string) get_post_meta($postId, 'fecha_reserva', true),
                     'servicio' => $primerServicio->name,
                     'barbero' => (is_array($barberosPost) && !empty($barberosPost)) ? $barberosPost[0]->name : 'N/A',
-                    'precio' => number_format($precio, 2) . ' €'
+                    'precio' => $precio,
                 ];
             }
         }
@@ -102,92 +104,53 @@ function renderPaginaGanancias()
             'total_reservas' => 'count(*)',
         ];
         $resultados = $analyticsEngine->calcular($configuracionCalculos);
-        if ($resultados['total_reservas'] > 0) {
-            $resultados['promedio_reserva'] = $resultados['total_ganado'] / $resultados['total_reservas'];
-        } else {
-            $resultados['promedio_reserva'] = 0;
-        }
+        $resultados['promedio_reserva'] = ($resultados['total_reservas'] ?? 0) > 0
+            ? ($resultados['total_ganado'] / $resultados['total_reservas'])
+            : 0;
     }
 
+    // --- 6. CONFIGURACIÓN DE COLUMNAS PARA DATAGRID ---
+    $configuracionColumnas = [
+        'columnas' => [
+            ['etiqueta' => 'Cliente', 'clave' => 'cliente'],
+            ['etiqueta' => 'Fecha', 'clave' => 'fecha'],
+            ['etiqueta' => 'Servicio', 'clave' => 'servicio'],
+            ['etiqueta' => 'Barbero', 'clave' => 'barbero'],
+            ['etiqueta' => 'Precio', 'clave' => 'precio', 'callback' => function ($row) {
+                $precio = isset($row['precio']) ? floatval($row['precio']) : 0;
+                return number_format($precio, 2) . ' €';
+            }],
+        ],
+        'paginacion' => false,
+    ];
 
-    // --- 6. RENDERIZAR LA PÁGINA ---
+    // --- 7. RENDERIZAR LA PÁGINA ---
 ?>
-    <div class="wrap glory-admin-page">
+    <div class="wrap glory-admin-page paginaGanancias">
         <h1>Análisis de Ganancias</h1>
 
-        <div class="glory-analytics-filters postbox">
-            <h2 class="hndle"><span>Filtrar Resultados</span></h2>
-            <div class="inside">
-                <form method="GET" action="">
-                    <?php if (isset($_REQUEST['page'])): ?>
-                    <input type="hidden" name="page" value="<?php echo esc_attr(sanitize_key($_REQUEST['page'])); ?>">
-                    <?php endif; ?>
-                    <div class="form-row">
-                        <?php
-                        echo FormBuilder::campoFecha(['nombre' => 'fecha_desde', 'label' => 'Desde', 'valor' => $fechaDesde]);
-                        echo FormBuilder::campoFecha(['nombre' => 'fecha_hasta', 'label' => 'Hasta', 'valor' => $fechaHasta]);
-                        echo FormBuilder::campoSelect(['nombre' => 'filtro_barbero', 'label' => 'Barbero', 'opciones' => $opcionesBarberos, 'valor' => $barberoId]);
-                        echo FormBuilder::campoSelect(['nombre' => 'filtro_servicio', 'label' => 'Servicio', 'opciones' => $opcionesServicios, 'valor' => $servicioId]);
-                        ?>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="button button-primary">Aplicar Filtros</button>
-                        <?php if (isset($_REQUEST['page'])): ?>
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . sanitize_key($_REQUEST['page']))); ?>" class="button">Limpiar</a>
-                        <?php endif; ?>
-                    </div>
-                </form>
-            </div>
+        <div class="acciones-pagina acciones-ganancias">
+            <?php
+            $opcionesFiltros = [
+                'preservar_keys' => ['orderby', 'order'],
+            ];
+            BarraFiltrosRenderer::render([
+                ['tipo' => 'date_range', 'name' => 'rango', 'label' => 'Rango de fechas', 'from_name' => 'fecha_desde', 'to_name' => 'fecha_hasta', 'placeholder' => 'Fecha desde — hasta'],
+                ['tipo' => 'select', 'name' => 'filtro_servicio', 'label' => 'Servicio', 'opciones' => $opcionesServicios],
+                ['tipo' => 'select', 'name' => 'filtro_barbero', 'label' => 'Barbero', 'opciones' => $opcionesBarberos],
+            ], $opcionesFiltros);
+            ?>
         </div>
 
-        <div class="glory-analytics-summary">
-            <div class="summary-card">
-                <h3>Ingresos Totales</h3>
-                <p><?php echo number_format($resultados['total_ganado'] ?? 0, 2); ?> €</p>
-            </div>
-            <div class="summary-card">
-                <h3>Total de Reservas</h3>
-                <p><?php echo $resultados['total_reservas'] ?? 0; ?></p>
-            </div>
-            <div class="summary-card">
-                <h3>Media por Reserva</h3>
-                <p><?php echo number_format($resultados['promedio_reserva'] ?? 0, 2); ?> €</p>
-            </div>
+        <div class="glory-analytics-summary resumen-ganancias">
+            <div class="summary-card"><h3>Ingresos Totales</h3><p><?php echo number_format($resultados['total_ganado'] ?? 0, 2); ?> €</p></div>
+            <div class="summary-card"><h3>Total de Reservas</h3><p><?php echo $resultados['total_reservas'] ?? 0; ?></p></div>
+            <div class="summary-card"><h3>Media por Reserva</h3><p><?php echo number_format($resultados['promedio_reserva'] ?? 0, 2); ?> €</p></div>
         </div>
 
-        <div class="glory-analytics-details postbox">
-            <h2 class="hndle"><span>Detalle de Reservas Filtradas</span></h2>
-            <div class="inside">
-                <table class="wp-list-table widefat fixed striped">
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Fecha</th>
-                            <th>Servicio</th>
-                            <th>Barbero</th>
-                            <th>Precio</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($reservasDetalladas)) : ?>
-                            <?php foreach ($reservasDetalladas as $reserva) : ?>
-                                <tr>
-                                    <td><?php echo esc_html($reserva['cliente']); ?></td>
-                                    <td><?php echo esc_html($reserva['fecha']); ?></td>
-                                    <td><?php echo esc_html($reserva['servicio']); ?></td>
-                                    <td><?php echo esc_html($reserva['barbero']); ?></td>
-                                    <td><?php echo esc_html($reserva['precio']); ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else : ?>
-                            <tr>
-                                <td colspan="5">No se encontraron reservas con los filtros seleccionados.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <?php if (!is_admin()) { echo '<div class="tablaWrap">'; } ?>
+        <?php DataGridRenderer::render(array_values($reservasDetalladas), $configuracionColumnas); ?>
+        <?php if (!is_admin()) { echo '</div>'; } ?>
     </div>
 <?php
 }

@@ -1,0 +1,42 @@
+.paginaGanancias {
+    max-width: 1200px;
+    width: 100%;
+}
+
+.paginaGanancias h1 {
+    margin-bottom: 12px;
+}
+
+.acciones-ganancias {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+.resumen-ganancias {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 12px 0 18px;
+}
+
+.resumen-ganancias .summary-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.tablaWrap {
+    overflow-x: auto;
+}
+
+.gloryDataGridContenedor table.fixed {
+    width: 100%;
+}
+
+
