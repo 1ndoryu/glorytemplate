@@ -5,11 +5,12 @@ use Glory\Components\DataGridRenderer;
 function verificarDisponibilidadCallback()
 {
     $fecha = sanitize_text_field($_POST['fecha'] ?? ($_POST['fecha_reserva'] ?? ''));
-    $barberoId = absint($_POST['barbero_id'] ?? 0);
+    $barberoRaw = sanitize_text_field($_POST['barbero_id'] ?? '');
+    $barberoId = is_numeric($barberoRaw) ? absint($barberoRaw) : 0;
     $servicioId = absint($_POST['servicio_id'] ?? 0);
     $excludeId = absint($_POST['exclude_id'] ?? 0);
 
-    if (empty($fecha) || empty($barberoId) || empty($servicioId)) {
+    if (empty($fecha) || empty($barberoRaw) || empty($servicioId)) {
         wp_send_json_error(['mensaje' => 'Faltan datos para verificar la disponibilidad.']);
         return;
     }
@@ -40,7 +41,15 @@ function verificarDisponibilidadCallback()
     }
     $duracion = get_term_meta($servicio->term_id, 'duracion', true) ?: 30;
 
-    $horariosDisponibles = obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion, $excludeId);
+    if ($barberoRaw === 'any') {
+        if (!function_exists('obtenerHorariosDisponiblesCualquierBarbero')) {
+            wp_send_json_error(['mensaje' => 'Función de disponibilidad no disponible.']);
+            return;
+        }
+        $horariosDisponibles = obtenerHorariosDisponiblesCualquierBarbero($fecha, $servicioId, $duracion, $excludeId);
+    } else {
+        $horariosDisponibles = obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion, $excludeId);
+    }
 
     // Si estamos editando, garantizar que la hora actual de la reserva esté presente en las opciones
     if ($excludeId > 0) {

@@ -99,4 +99,64 @@ function obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion, 
 	return $slotsDisponibles;
 }
 
+/** Verifica si un barbero ofrece un servicio dado. */
+function barberoOfreceServicio(int $barberoId, int $servicioId): bool
+{
+    if ($barberoId <= 0 || $servicioId <= 0) return false;
+    $servicesIds = get_term_meta($barberoId, 'servicios', true);
+    if (!is_array($servicesIds)) $servicesIds = [];
+    $servicesIds = array_map('intval', $servicesIds);
+    return in_array((int)$servicioId, $servicesIds, true);
+}
+
+/**
+ * Devuelve la intersección de horas disponibles entre todos los barberos que ofrecen el servicio dado.
+ * Si alguno tiene el slot ocupado, el slot se excluye. Sirve para opción "Cualquier barbero".
+ */
+function obtenerHorariosDisponiblesCualquierBarbero($fecha, $servicioId, $duracion, $excludeId = 0)
+{
+    // Buscar todos los barberos que ofrecen el servicio
+    $barberos = get_terms([
+        'taxonomy' => 'barbero',
+        'hide_empty' => false,
+    ]);
+    if (is_wp_error($barberos) || empty($barberos)) {
+        return [];
+    }
+
+    $barberosQueOfrecen = [];
+    foreach ($barberos as $barbero) {
+        $servicesIds = get_term_meta($barbero->term_id, 'servicios', true);
+        if (!is_array($servicesIds)) $servicesIds = [];
+        $servicesIds = array_map('intval', $servicesIds);
+        if (in_array((int)$servicioId, $servicesIds, true)) {
+            $barberosQueOfrecen[] = (int)$barbero->term_id;
+        }
+    }
+
+    if (empty($barberosQueOfrecen)) {
+        return [];
+    }
+
+    // Construir un mapa de disponibilidad por barbero y luego intersectar
+    $disponibilidades = [];
+    foreach ($barberosQueOfrecen as $bid) {
+        $slots = obtenerHorariosDisponibles($fecha, $bid, $servicioId, $duracion, $excludeId);
+        $disponibilidades[] = $slots;
+    }
+
+    // Intersección: slots que están disponibles en al menos un barbero
+    // Para que "Cualquier barbero" funcione como "encuéntrame cualquier barbero libre",
+    // necesitamos la unión, no la intersección. Así habrá más opciones de horas.
+    $union = [];
+    foreach ($disponibilidades as $slots) {
+        foreach ($slots as $h) {
+            $union[$h] = true;
+        }
+    }
+    $horas = array_keys($union);
+    sort($horas);
+    return $horas;
+}
+
 

@@ -22,7 +22,7 @@ function renderPaginaReservarPublica()
         'hide_empty' => false,
     ]);
 
-    $opcionesBarberos = ['' => 'Selecciona un barbero'];
+    $opcionesBarberos = ['any' => 'Cualquier barbero'];
     if (!is_wp_error($barberosTerms)) {
         foreach ($barberosTerms as $term) {
             $opcionesBarberos[$term->term_id] = $term->name;
@@ -58,17 +58,16 @@ function renderPaginaReservarPublica()
                 'placeholder' => 'Ej: 600 123 456',
                 'obligatorio' => true,
             ]);
+            echo '</div>';
+
+            echo '<div class="filaFormulario">';
             echo FormBuilder::campoTexto([
                 'nombre'      => 'correo_cliente',
                 'label'       => 'Correo Electrónico',
                 'placeholder' => 'Ej: juan.perez@correo.com',
                 'obligatorio' => true,
             ]);
-            echo '</div>';
-
-
-            echo '<div class="filaFormulario">';
-            // Barbero primero; el servicio depende del barbero
+            // Barbero (segunda columna)
             echo FormBuilder::campoSelect([
                 'nombre'          => 'barbero_id',
                 'label'           => 'Elige un Barbero',
@@ -76,6 +75,10 @@ function renderPaginaReservarPublica()
                 'obligatorio'     => true,
                 'extraClassInput' => 'selector-barbero'
             ]);
+            echo '</div>';
+
+            echo '<div class="filaFormulario">';
+            // Servicio (depende de barbero o "Cualquier barbero") y Fecha
             echo FormBuilder::campoSelect([
                 'nombre'          => 'servicio_id',
                 'label'           => 'Elige un Servicio',
@@ -88,21 +91,19 @@ function renderPaginaReservarPublica()
                     'data-fm-placeholder-deshabilitado' => 'Selecciona un barbero',
                 ]
             ]);
-            echo '</div>';
-
-
-            echo '<div class="filaFormulario">';
             echo FormBuilder::campoFecha([
                 'nombre'          => 'fecha_reserva',
                 'label'           => 'Elige una Fecha',
                 'obligatorio'     => true,
                 'extraClassInput' => 'selector-fecha'
             ]);
+            echo '</div>';
 
+            echo '<div class="filaFormulario">';
             echo FormBuilder::campoSelect([
                 'nombre'          => 'hora_reserva',
                 'label'           => 'Elige una Hora',
-                'opciones'        => ['' => 'Selecciona fecha, servicio y barbero'],
+                'opciones'        => ['' => 'Selecciona fecha y servicio'],
                 'obligatorio'     => true,
                 'extraClassInput' => 'selector-hora',
                 'atributosExtra'  => [
@@ -111,13 +112,14 @@ function renderPaginaReservarPublica()
                     'data-fm-placeholder-deshabilitado' => 'Completa los campos anteriores',
                 ]
             ]);
-            echo '</div>';
 
             echo FormBuilder::campoCheckbox([
                 'nombre' => 'exclusividad',
-                'label' => 'Marcar si es un servicio con exclusividad (❤️)',
+                'label' => 'Marcar si es un servicio con exclusividad',
                 'valorInput' => '1',
             ]);
+
+            echo '</div>';
 
             echo FormBuilder::botonEnviar([
                 'accion'     => 'crearReserva',

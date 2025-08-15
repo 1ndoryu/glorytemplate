@@ -2,7 +2,24 @@
 
 function serviciosPorBarberoCallback()
 {
-	$barberoId = absint($_POST['barbero_id'] ?? 0);
+	$barberoRaw = sanitize_text_field($_POST['barbero_id'] ?? '');
+	if ($barberoRaw === 'any') {
+		// Devolver todos los servicios disponibles (para "Cualquier barbero")
+		$servicios = get_terms([
+			'taxonomy' => 'servicio',
+			'hide_empty' => false,
+		]);
+		$options = [];
+		if (!is_wp_error($servicios)) {
+			foreach ($servicios as $term) {
+				$options[$term->term_id] = $term->name;
+			}
+		}
+		wp_send_json_success(['options' => $options]);
+		return;
+	}
+
+	$barberoId = absint($barberoRaw);
 	if (!$barberoId) {
 		wp_send_json_error(['mensaje' => 'Barbero no válido.']);
 		return;
