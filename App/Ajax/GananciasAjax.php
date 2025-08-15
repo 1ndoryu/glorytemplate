@@ -53,6 +53,8 @@ function filtrarGananciasAjaxCallback()
 	$q = new WP_Query($argsConsulta);
 
 	$reservasDetalladas = [];
+	$totalGanado = 0.0;
+	$totalReservas = 0;
 	if ($q->have_posts()) {
 		while ($q->have_posts()) {
 			$q->the_post();
@@ -63,6 +65,8 @@ function filtrarGananciasAjaxCallback()
 				$primerServicio = $serviciosPost[0];
 				$precio = get_term_meta($primerServicio->term_id, 'precio', true);
 				$precio = is_numeric($precio) ? floatval($precio) : 0;
+				$totalGanado += $precio;
+				$totalReservas++;
 				$reservasDetalladas[] = [
 					'cliente'  => get_the_title(),
 					'fecha'    => (string) get_post_meta($postId, 'fecha_reserva', true),
@@ -74,6 +78,8 @@ function filtrarGananciasAjaxCallback()
 		}
 	}
 	wp_reset_postdata();
+
+	$promedioReserva = $totalReservas > 0 ? ($totalGanado / $totalReservas) : 0;
 
 	$configuracionColumnas = [
 		'columnas' => [
@@ -95,7 +101,18 @@ function filtrarGananciasAjaxCallback()
 	echo '</div>';
 	$html = ob_get_clean();
 
-	wp_send_json_success(['html' => $html]);
+	$summaryHtml = '<div class="glory-analytics-summary resumen-ganancias">'
+		. '<div class="summary-card"><h3>Ingresos Totales</h3><p>' . number_format($totalGanado, 2) . ' €</p></div>'
+		. '<div class="summary-card"><h3>Total de Reservas</h3><p>' . intval($totalReservas) . '</p></div>'
+		. '<div class="summary-card"><h3>Media por Reserva</h3><p>' . number_format($promedioReserva, 2) . ' €</p></div>'
+		. '</div>';
+
+	wp_send_json_success([
+		'html' => $html,
+		'fragments' => [
+			'.glory-analytics-summary' => $summaryHtml,
+		],
+	]);
 }
 
 
