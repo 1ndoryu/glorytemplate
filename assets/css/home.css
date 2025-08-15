@@ -97,10 +97,12 @@
     border-radius: 999px;
     font-size: 12px;
 }
+
 .homeFront .gloryPaginacion a {
     background: var(--segundo);
     color: var(--negro);
     text-decoration: none;
+    cursor: pointer;
 }
 .homeFront .gloryPaginacion a:hover {
     filter: brightness(0.97);
@@ -112,6 +114,7 @@
 .homeFront .gloryPaginacion .prev,
 .homeFront .gloryPaginacion .next {
     padding: 0 12px;
+    cursor: pointer;
 }
 
 .homeFront table {
@@ -120,11 +123,6 @@
     border-spacing: 0;
     border: none;
     background: transparent;
-}
-
-/* Asegurar que la paginación quede fuera, pero visualmente unida al bloque */
-.homeFront .gloryDataGridContenedor + .gloryPaginacion {
-    border-top: 1px solid #e5e7eb;
 }
 
 /* Evitar doble borde y cortes bruscos: solo líneas internas */
@@ -155,6 +153,7 @@
     border-radius: 100px;
     color: var(--negro);
     padding: 6px 15px;
+    cursor: pointer;
 }
 
 .homeFront .button,
@@ -167,12 +166,14 @@
     display: inline-block;
     font-size: 12px;
     border-radius: 100px;
+    cursor: pointer;
 }
 
 .homeFront .button:hover,
 .homeFront .button-primary:hover {
     background: var(--negro);
     border-color: var(--negro);
+    cursor: pointer;
 }
 
 .homeFront .glory-analytics-filters .form-row {

@@ -445,7 +445,6 @@
 				if (resp && resp.success && resp.data && resp.data.html) {
 					var wrap = contenedorActivo.querySelector(wrapSelector);
 					if (wrap) { wrap.outerHTML = resp.data.html; }
-					actualizarParametroUrl('paged', pagina);
 					try { document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true})); } catch(_) {}
 					try { contenedorActivo.querySelector(wrapSelector).scrollIntoView({behavior: 'smooth', block: 'start'}); } catch(_) {}
 				}
