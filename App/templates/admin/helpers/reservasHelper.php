@@ -274,8 +274,9 @@ function obtenerColorServicioPorSlug(string $slug): string
     // Valor desde opciones (si existe y no es vacío)
     $color = (string) OpcionManager::get($key);
 
-    // Si no hay valor en opciones, o es el gris por defecto, usa el mapeo por servicio cuando esté disponible
-    if ($color === '' || $color === null || strtoupper($color) === '#9E9E9E') {
+    // Si no hay valor en opciones, o es uno de los grises por defecto, usa el mapeo por servicio cuando esté disponible
+    $hex = is_string($color) ? strtoupper(trim($color)) : '';
+    if ($color === '' || $color === null || $hex === '#9E9E9E' || $hex === '#6C757D') {
         if ($mapped) {
             $color = $mapped;
         } else {
@@ -294,7 +295,7 @@ function renderServicioItem(WP_Term $term): string
     $slug  = (string) $term->slug;
     $color = obtenerColorServicioPorSlug($slug);
 
-    $dot = '<span class="glory-servicio-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:' . esc_attr($color) . ';margin-right:6px;vertical-align:middle;"></span>';
+    $dot = '<span class="glory-servicio-dot" data-color="' . esc_attr($color) . '" style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:' . esc_attr($color) . ' !important;margin-right:6px;vertical-align:middle;"></span>';
     $picker = '<input type="color" class="glory-color-servicio-picker" value="' . esc_attr($color) . '" data-slug="' . esc_attr($slug) . '" style="width:18px;height:18px;border:none;padding:0;margin-left:6px;vertical-align:middle;">';
 
     return $dot . esc_html($term->name) . $picker;
