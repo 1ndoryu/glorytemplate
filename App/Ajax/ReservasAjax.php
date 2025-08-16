@@ -76,6 +76,11 @@ function manejarExportacionReservasCsv()
 
 function filtrarReservasAjaxCallback()
 {
+    // Asegurar que las definiciones de colores estén registradas antes de renderizar
+    if (function_exists('registrarOpcionesColoresServiciosDinamico')) {
+        registrarOpcionesColoresServiciosDinamico();
+    }
+
     $t0 = microtime(true);
     // Construir args similares a consultaReservas() pero con $_POST
     $pagina = isset($_POST['paged']) ? max(1, absint($_POST['paged'])) : 1;
