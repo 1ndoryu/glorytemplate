@@ -18,9 +18,26 @@ function incluirArchivos($directorio)
 {
     $ruta_completa = get_template_directory() . "/$directorio";
 
+    // Evitar incluir dos veces por diferencias de mayúsculas/minúsculas en el FS
+    static $directoriosVisitados = [];
+    static $archivosIncluidos = [];
+
+    $ruta_rel_completa = str_replace(get_template_directory() . '/', '', $ruta_completa);
+    $dir_key = strtolower($ruta_rel_completa);
+    if (isset($directoriosVisitados[$dir_key])) {
+        return;
+    }
+    $directoriosVisitados[$dir_key] = true;
+
     $archivos = glob($ruta_completa . "*.php");
     foreach ($archivos as $archivo) {
+        $archivo_rel = str_replace(get_template_directory() . '/', '', $archivo);
+        $archivo_key = strtolower($archivo_rel);
+        if (isset($archivosIncluidos[$archivo_key])) {
+            continue;
+        }
         include_once $archivo;
+        $archivosIncluidos[$archivo_key] = true;
     }
 
     $subdirectorios = glob($ruta_completa . "*/", GLOB_ONLYDIR);
