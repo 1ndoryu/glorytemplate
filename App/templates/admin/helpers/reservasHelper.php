@@ -235,56 +235,12 @@ function obtenerMetaONa(int $postId, string $metaKey): string
 function obtenerColorServicioPorSlug(string $slug): string
 {
     $key = 'glory_scheduler_color_' . str_replace('-', '_', $slug);
-
-    // Mapeo base por categorías (default por servicio conocido)
-    $mapped = null;
-    $categorias = [
-        '#8BC34A' => [
-            'corte-de-pelo',
-            'corte-extra-degradado',
-            'arreglo-de-cuello',
-            'corte-al-cero',
-            'lavar',
-            'lavar-y-peinar'
-        ],
-        '#FF9800' => [
-            'arreglo-y-perfilado-de-barba',
-            'arreglo-de-barba'
-        ],
-        '#F44336' => [
-            'corte-y-arreglo-de-barba',
-            'corte-y-afeitado'
-        ],
-        '#FFEB3B' => [
-            'afeitado-de-barba',
-            'afeitado-de-cabeza'
-        ],
-        '#2196F3' => [
-            'tinte-de-pelo',
-            'tinte-de-barba'
-        ],
-    ];
-    foreach ($categorias as $hex => $slugs) {
-        if (in_array($slug, $slugs, true)) {
-            $mapped = $hex;
-            break;
-        }
+    $color = OpcionRepository::get($key);
+    if ($color === OpcionRepository::getCentinela() || empty($color)) {
+        $colorDefault = OpcionRepository::get('glory_scheduler_color_default');
+        $color = ($colorDefault !== OpcionRepository::getCentinela() && !empty($colorDefault)) ? $colorDefault : '#9E9E9E';
     }
-
-    // Valor desde opciones (si existe y no es vacío)
-    $color = (string) OpcionManager::get($key);
-
-    // Si no hay valor en opciones, o es uno de los grises por defecto, usa el mapeo por servicio cuando esté disponible
-    $hex = is_string($color) ? strtoupper(trim($color)) : '';
-    if ($color === '' || $color === null || $hex === '#9E9E9E' || $hex === '#6C757D') {
-        if ($mapped) {
-            $color = $mapped;
-        } else {
-            $color = (string) OpcionManager::get('glory_scheduler_color_default', '#9E9E9E');
-        }
-    }
-
-    return $color;
+    return (string) $color;
 }
 
 /**
@@ -295,7 +251,7 @@ function renderServicioItem(WP_Term $term): string
     $slug  = (string) $term->slug;
     $color = obtenerColorServicioPorSlug($slug);
 
-    $dot = '<span class="glory-servicio-dot" data-color="' . esc_attr($color) . '" style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:' . esc_attr($color) . ' !important;margin-right:6px;vertical-align:middle;"></span>';
+    $dot = '<span class="glory-servicio-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' . esc_attr($color) . ';margin-right:6px;vertical-align:middle;"></span>';
     $picker = '<input type="color" class="glory-color-servicio-picker" value="' . esc_attr($color) . '" data-slug="' . esc_attr($slug) . '" style="width:18px;height:18px;border:none;padding:0;margin-left:6px;vertical-align:middle;">';
 
     return $dot . esc_html($term->name) . $picker;

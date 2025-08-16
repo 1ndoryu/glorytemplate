@@ -35,7 +35,7 @@ function renderPaginaReservas()
     $configuracionColumnas['acciones_masivas_separadas'] = true;
 ?>
     <div class="acciones-pagina-header acciones-reservas-header">
-        <h1><?php echo 'Panel de Reservas.'; ?></h1>
+        <h1><?php echo 'Panel de Reservas'; ?></h1>
         <div class="acciones-pagina-header-buttons acciones-reservas-header-buttons">
             <a href="<?php echo esc_url($export_url); ?>" class="button button-secondary">
                 <?php echo 'Exportar a CSV'; ?>
