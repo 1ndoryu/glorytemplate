@@ -9,12 +9,23 @@ function renderPaginaReservas()
     if (function_exists('registrarOpcionesColoresServiciosDinamico')) {
         registrarOpcionesColoresServiciosDinamico();
     }
-    if (isset($_GET['exportar_csv']) && $_GET['exportar_csv'] == 'true' && current_user_can('manage_options')) {
+    if (
+        isset($_GET['exportar_csv']) && $_GET['exportar_csv'] == 'true' &&
+        current_user_can('manage_options') &&
+        isset($_GET['_glory_export_nonce']) && wp_verify_nonce((string) $_GET['_glory_export_nonce'], 'exportar_reservas_csv')
+    ) {
         exportarReservasACsv();
         exit;
     }
 
-    $export_url = add_query_arg(['exportar_csv' => 'true'], admin_url('admin.php?page=barberia-reservas'));
+    // Construir URL de exportación: en admin usa admin.php, en frontend reutiliza la URL actual
+    $export_base = is_admin()
+        ? admin_url('admin.php?page=barberia-reservas')
+        : remove_query_arg(['exportar_csv', '_glory_export_nonce']);
+    $export_url = add_query_arg([
+        'exportar_csv' => 'true',
+        '_glory_export_nonce' => wp_create_nonce('exportar_reservas_csv')
+    ], $export_base);
     $opcionesServicios = gloryOpcionesTaxonomia('servicio', 'Selecciona un servicio');
     $opcionesBarberos  = gloryOpcionesTaxonomia('barbero', 'Selecciona un barbero');
     // Orden por defecto: futuras y en proceso primero; pasadas al final. Si el usuario ordena por columna, se respeta.
@@ -37,7 +48,7 @@ function renderPaginaReservas()
     <div class="acciones-pagina-header acciones-reservas-header">
         <h1><?php echo 'Panel de Reservas'; ?></h1>
         <div class="acciones-pagina-header-buttons acciones-reservas-header-buttons">
-            <a href="<?php echo esc_url($export_url); ?>" class="button button-secondary">
+            <a href="<?php echo esc_url($export_url); ?>" class="button button-secondary noAjax">
                 <?php echo 'Exportar a CSV'; ?>
             </a>
             <button class="button button-primary openModal noAjax" data-modal="modalAnadirReserva" data-form-mode="create" data-submit-action="crearReserva" data-submit-text="Añadir" data-modal-title-create="<?php echo esc_attr('Añadir Nueva Reserva'); ?>">
