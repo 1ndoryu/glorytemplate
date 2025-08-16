@@ -45,10 +45,6 @@ add_action('rest_api_init', function () {
 				'required' => true,
 				'type'     => 'string',
 			],
-			'exclusividad' => [
-				'required' => false,
-				'type'     => 'string',
-			],
 		],
 	]);
 

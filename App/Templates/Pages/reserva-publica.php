@@ -113,12 +113,6 @@ function renderPaginaReservarPublica()
                 ]
             ]);
 
-            echo FormBuilder::campoCheckbox([
-                'nombre' => 'exclusividad',
-                'label' => 'Marcar si es un servicio con exclusividad',
-                'valorInput' => '1',
-            ]);
-
             echo '</div>';
 
             echo FormBuilder::botonEnviar([
