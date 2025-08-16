@@ -238,7 +238,42 @@ function obtenerColorServicioPorSlug(string $slug): string
     // Usar OpcionManager::get para que aplique defaults registrados por registrarOpcionesColoresServiciosDinamico()
     $color = OpcionManager::get($key);
     if (empty($color)) {
-        $color = OpcionManager::get('glory_scheduler_color_default', '#9E9E9E');
+        // Fallback inteligente: aplicar mapeo por categorías si la opción aún no existe (p.ej. tras restablecer)
+        $categorias = [
+            '#8BC34A' => [
+                'corte-de-pelo',
+                'corte-extra-degradado',
+                'arreglo-de-cuello',
+                'corte-al-cero',
+                'lavar',
+                'lavar-y-peinar'
+            ],
+            '#FF9800' => [
+                'arreglo-y-perfilado-de-barba',
+                'arreglo-de-barba'
+            ],
+            '#F44336' => [
+                'corte-y-arreglo-de-barba',
+                'corte-y-afeitado'
+            ],
+            '#FFEB3B' => [
+                'afeitado-de-barba',
+                'afeitado-de-cabeza'
+            ],
+            '#2196F3' => [
+                'tinte-de-pelo',
+                'tinte-de-barba'
+            ],
+        ];
+        foreach ($categorias as $hex => $slugs) {
+            if (in_array($slug, $slugs, true)) {
+                $color = $hex;
+                break;
+            }
+        }
+        if (empty($color)) {
+            $color = OpcionManager::get('glory_scheduler_color_default', '#9E9E9E');
+        }
     }
     return (string) $color;
 }

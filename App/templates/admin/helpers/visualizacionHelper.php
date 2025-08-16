@@ -27,6 +27,11 @@ function registrarOpcionesColoresServiciosDinamico(): void
             'etiquetaSeccion' => $etiquetaSeccionScheduler,
             'subSeccion'      => $subSeccionColores,
         ]);
+        // Persistir default si no existe en BD (evita gris tras restablecer)
+        $val = OpcionRepository::get('glory_scheduler_color_default');
+        if ($val === OpcionRepository::getCentinela()) {
+            OpcionRepository::save('glory_scheduler_color_default', '#9E9E9E');
+        }
     }
 
     // Mapeo de colores sugeridos por categorías (según el documento del proyecto)
@@ -89,6 +94,11 @@ function registrarOpcionesColoresServiciosDinamico(): void
             'etiquetaSeccion' => $etiquetaSeccionScheduler,
             'subSeccion'      => $subSeccionColores,
         ]);
+        // Persistir valor por defecto si no existe (evita gris hasta que el admin guarde manualmente)
+        $actual = OpcionRepository::get($key);
+        if ($actual === OpcionRepository::getCentinela()) {
+            OpcionRepository::save($key, $defaultColor);
+        }
     }
 }
 
