@@ -235,10 +235,10 @@ function obtenerMetaONa(int $postId, string $metaKey): string
 function obtenerColorServicioPorSlug(string $slug): string
 {
     $key = 'glory_scheduler_color_' . str_replace('-', '_', $slug);
-    $color = OpcionRepository::get($key);
-    if ($color === OpcionRepository::getCentinela() || empty($color)) {
-        $colorDefault = OpcionRepository::get('glory_scheduler_color_default');
-        $color = ($colorDefault !== OpcionRepository::getCentinela() && !empty($colorDefault)) ? $colorDefault : '#9E9E9E';
+    // Usar OpcionManager::get para que aplique defaults registrados por registrarOpcionesColoresServiciosDinamico()
+    $color = OpcionManager::get($key);
+    if (empty($color)) {
+        $color = OpcionManager::get('glory_scheduler_color_default', '#9E9E9E');
     }
     return (string) $color;
 }
