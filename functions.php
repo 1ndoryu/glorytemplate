@@ -105,3 +105,33 @@ add_action('admin_post_glory_delete_servicio', 'gloryDeleteServicioHandler');
 // AJAX: Configuración de API desde Home (solo admin logueado)
 add_action('wp_ajax_glory_api_generar_token', 'gloryApiGenerarTokenCallback');
 add_action('wp_ajax_glory_api_guardar_config', 'gloryApiGuardarConfigCallback');
+
+// Forzar no-cache para ver cambios inmediatos cuando se use ?nocache o ?glory_debug
+add_action('send_headers', function () {
+    if (isset($_GET['nocache']) || isset($_GET['glory_debug'])) {
+        if (!headers_sent()) {
+            header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+            header('Cache-Control: post-check=0, pre-check=0', false);
+            header('Pragma: no-cache');
+            header('Expires: 0');
+            header('Surrogate-Control: no-store');
+            header('X-Glory-Bypass: nocache');
+            header('X-Glory-Build: ' . time());
+        }
+    }
+});
+
+// Adjuntar un query param de bust para scripts/estilos cuando ?nocache o ?glory_debug
+add_filter('script_loader_src', function ($src) {
+    if (isset($_GET['nocache']) || isset($_GET['glory_debug'])) {
+        $src = add_query_arg('nocache', time(), $src);
+    }
+    return $src;
+}, 9999);
+
+add_filter('style_loader_src', function ($src) {
+    if (isset($_GET['nocache']) || isset($_GET['glory_debug'])) {
+        $src = add_query_arg('nocache', time(), $src);
+    }
+    return $src;
+}, 9999);
