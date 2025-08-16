@@ -235,47 +235,55 @@ function obtenerMetaONa(int $postId, string $metaKey): string
 function obtenerColorServicioPorSlug(string $slug): string
 {
     $key = 'glory_scheduler_color_' . str_replace('-', '_', $slug);
-    // Usar OpcionManager::get para que aplique defaults registrados por registrarOpcionesColoresServiciosDinamico()
-    $color = OpcionManager::get($key);
-    if (empty($color)) {
-        // Fallback inteligente: aplicar mapeo por categorías si la opción aún no existe (p.ej. tras restablecer)
-        $categorias = [
-            '#8BC34A' => [
-                'corte-de-pelo',
-                'corte-extra-degradado',
-                'arreglo-de-cuello',
-                'corte-al-cero',
-                'lavar',
-                'lavar-y-peinar'
-            ],
-            '#FF9800' => [
-                'arreglo-y-perfilado-de-barba',
-                'arreglo-de-barba'
-            ],
-            '#F44336' => [
-                'corte-y-arreglo-de-barba',
-                'corte-y-afeitado'
-            ],
-            '#FFEB3B' => [
-                'afeitado-de-barba',
-                'afeitado-de-cabeza'
-            ],
-            '#2196F3' => [
-                'tinte-de-pelo',
-                'tinte-de-barba'
-            ],
-        ];
-        foreach ($categorias as $hex => $slugs) {
-            if (in_array($slug, $slugs, true)) {
-                $color = $hex;
-                break;
-            }
-        }
-        if (empty($color)) {
-            $color = OpcionManager::get('glory_scheduler_color_default', '#9E9E9E');
+
+    // Mapeo base por categorías (default por servicio conocido)
+    $mapped = null;
+    $categorias = [
+        '#8BC34A' => [
+            'corte-de-pelo',
+            'corte-extra-degradado',
+            'arreglo-de-cuello',
+            'corte-al-cero',
+            'lavar',
+            'lavar-y-peinar'
+        ],
+        '#FF9800' => [
+            'arreglo-y-perfilado-de-barba',
+            'arreglo-de-barba'
+        ],
+        '#F44336' => [
+            'corte-y-arreglo-de-barba',
+            'corte-y-afeitado'
+        ],
+        '#FFEB3B' => [
+            'afeitado-de-barba',
+            'afeitado-de-cabeza'
+        ],
+        '#2196F3' => [
+            'tinte-de-pelo',
+            'tinte-de-barba'
+        ],
+    ];
+    foreach ($categorias as $hex => $slugs) {
+        if (in_array($slug, $slugs, true)) {
+            $mapped = $hex;
+            break;
         }
     }
-    return (string) $color;
+
+    // Valor desde opciones (si existe y no es vacío)
+    $color = (string) OpcionManager::get($key);
+
+    // Si no hay valor en opciones, o es el gris por defecto, usa el mapeo por servicio cuando esté disponible
+    if ($color === '' || $color === null || strtoupper($color) === '#9E9E9E') {
+        if ($mapped) {
+            $color = $mapped;
+        } else {
+            $color = (string) OpcionManager::get('glory_scheduler_color_default', '#9E9E9E');
+        }
+    }
+
+    return $color;
 }
 
 /**
@@ -286,7 +294,7 @@ function renderServicioItem(WP_Term $term): string
     $slug  = (string) $term->slug;
     $color = obtenerColorServicioPorSlug($slug);
 
-    $dot = '<span class="glory-servicio-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' . esc_attr($color) . ';margin-right:6px;vertical-align:middle;"></span>';
+    $dot = '<span class="glory-servicio-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:' . esc_attr($color) . ';margin-right:6px;vertical-align:middle;"></span>';
     $picker = '<input type="color" class="glory-color-servicio-picker" value="' . esc_attr($color) . '" data-slug="' . esc_attr($slug) . '" style="width:18px;height:18px;border:none;padding:0;margin-left:6px;vertical-align:middle;">';
 
     return $dot . esc_html($term->name) . $picker;
