@@ -40,7 +40,6 @@ function home()
         <div class="gloryTabs homeFront">
             <div class="homeFrontTabs" style="position:relative;">
                 <div class="pestanas"></div>
-		test
                 <div class="perfilUsuario" style="position:absolute;top:0;right:0;">
                     <button class="perfilBoton" data-submenu="menu-perfil" aria-haspopup="true" style="padding:0;">
                         <?php echo PerfilRenderer::getHtml(); ?>
