@@ -19,13 +19,9 @@ function renderPaginaReservas()
     }
 
     // Construir URL de exportación: en admin usa admin.php, en frontend reutiliza la URL actual
-    $export_base = is_admin()
-        ? admin_url('admin.php?page=barberia-reservas')
-        : remove_query_arg(['exportar_csv', '_glory_export_nonce']);
-    $export_url = add_query_arg([
-        'exportar_csv' => 'true',
-        '_glory_export_nonce' => wp_create_nonce('exportar_reservas_csv')
-    ], $export_base);
+    $export_ajax_action = 'glory_exportar_reservas_csv';
+    $export_nonce = wp_create_nonce('exportar_reservas_csv');
+    $export_url = admin_url('admin-ajax.php?action=' . $export_ajax_action . '&nonce=' . $export_nonce);
     $opcionesServicios = gloryOpcionesTaxonomia('servicio', 'Selecciona un servicio');
     $opcionesBarberos  = gloryOpcionesTaxonomia('barbero', 'Selecciona un barbero');
     // Orden por defecto: futuras y en proceso primero; pasadas al final. Si el usuario ordena por columna, se respeta.
@@ -48,7 +44,7 @@ function renderPaginaReservas()
     <div class="acciones-pagina-header acciones-reservas-header">
         <h1><?php echo 'Panel de Reservas'; ?></h1>
         <div class="acciones-pagina-header-buttons acciones-reservas-header-buttons">
-            <a href="<?php echo esc_url($export_url); ?>" class="button button-secondary noAjax">
+            <a href="<?php echo esc_url($export_url); ?>" class="button button-secondary noAjax" id="btnExportarCsv" data-export-url="<?php echo esc_url($export_url); ?>">
                 <?php echo 'Exportar a CSV'; ?>
             </a>
             <button class="button button-primary openModal noAjax" data-modal="modalAnadirReserva" data-form-mode="create" data-submit-action="crearReserva" data-submit-text="Añadir" data-modal-title-create="<?php echo esc_attr('Añadir Nueva Reserva'); ?>">
@@ -87,4 +83,50 @@ function renderPaginaReservas()
         echo '</div>';
     }
     imprimirScriptsColoresServicios();
+
+    // Inyectar JS ligero para descargar CSV vía fetch sin recargar en frontend
+    if (!is_admin()) {
+        ?>
+        <script>
+        (function(){
+            const btn = document.getElementById('btnExportarCsv');
+            if(!btn) return;
+            btn.addEventListener('click', function(e){
+                e.preventDefault();
+                const url = btn.getAttribute('data-export-url');
+                btn.disabled = true;
+                const originalText = btn.textContent;
+                btn.textContent = 'Generando…';
+                fetch(url, { credentials: 'same-origin' })
+                    .then(function(response){
+                        if(!response.ok) throw new Error('Error ' + response.status);
+                        const dispo = response.headers.get('Content-Disposition') || '';
+                        let filename = 'reservas.csv';
+                        const match = dispo.match(/filename\s*=\s*"?([^";]+)"?/i);
+                        if (match && match[1]) { filename = match[1]; }
+                        return response.blob().then(function(blob){
+                            const link = document.createElement('a');
+                            const objectUrl = URL.createObjectURL(blob);
+                            link.href = objectUrl;
+                            link.download = filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            setTimeout(function(){
+                                URL.revokeObjectURL(objectUrl);
+                                link.remove();
+                            }, 0);
+                        });
+                    })
+                    .catch(function(){
+                        alert('No se pudo generar el CSV.');
+                    })
+                    .finally(function(){
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    });
+            });
+        })();
+        </script>
+        <?php
+    }
 }

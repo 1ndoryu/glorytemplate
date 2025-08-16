@@ -74,6 +74,25 @@ function manejarExportacionReservasCsv()
     }
 }
 
+function exportarReservasCsvAjax()
+{
+    // Solo admins y con nonce válido
+    if (!current_user_can('manage_options')) {
+        status_header(403);
+        echo 'Permisos insuficientes.';
+        wp_die();
+    }
+    $nonce = isset($_REQUEST['nonce']) ? (string) $_REQUEST['nonce'] : '';
+    if (!wp_verify_nonce($nonce, 'exportar_reservas_csv')) {
+        status_header(400);
+        echo 'Nonce inválido.';
+        wp_die();
+    }
+
+    exportarReservasACsv();
+    wp_die();
+}
+
 function filtrarReservasAjaxCallback()
 {
     // Asegurar que las definiciones de colores estén registradas antes de renderizar
