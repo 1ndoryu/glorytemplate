@@ -87,46 +87,7 @@ function renderPaginaReservas()
     // Inyectar JS ligero para descargar CSV vía fetch sin recargar en frontend
     if (!is_admin()) {
         ?>
-        <script>
-        (function(){
-            const btn = document.getElementById('btnExportarCsv');
-            if(!btn) return;
-            btn.addEventListener('click', function(e){
-                e.preventDefault();
-                const url = btn.getAttribute('data-export-url');
-                btn.disabled = true;
-                const originalText = btn.textContent;
-                btn.textContent = 'Generando…';
-                fetch(url, { credentials: 'same-origin' })
-                    .then(function(response){
-                        if(!response.ok) throw new Error('Error ' + response.status);
-                        const dispo = response.headers.get('Content-Disposition') || '';
-                        let filename = 'reservas.csv';
-                        const match = dispo.match(/filename\s*=\s*"?([^";]+)"?/i);
-                        if (match && match[1]) { filename = match[1]; }
-                        return response.blob().then(function(blob){
-                            const link = document.createElement('a');
-                            const objectUrl = URL.createObjectURL(blob);
-                            link.href = objectUrl;
-                            link.download = filename;
-                            document.body.appendChild(link);
-                            link.click();
-                            setTimeout(function(){
-                                URL.revokeObjectURL(objectUrl);
-                                link.remove();
-                            }, 0);
-                        });
-                    })
-                    .catch(function(){
-                        alert('No se pudo generar el CSV.');
-                    })
-                    .finally(function(){
-                        btn.disabled = false;
-                        btn.textContent = originalText;
-                    });
-            });
-        })();
-        </script>
+        <!-- Exportar CSV moved to App/assets/js/tema-exportar-reservas.js and enqueued via AssetManager defineFolder -->
         <?php
     }
 }
