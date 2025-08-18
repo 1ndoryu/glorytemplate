@@ -16,12 +16,12 @@
     /* Variables antiguas para compatibilidad */
     --fondo: var(--card-bg);
     --borde: 1px var(--border-color) solid;
-    --bordeBoton: 1px rgba(31,31,31,0.55) solid;
+    --bordeBoton: 1px rgba(31, 31, 31, 0.55) solid;
     --blanco: var(--text);
 }
 
 /* Modo oscuro */
-html[data-theme="dark"] {
+html[data-theme='dark'] {
     --bg: #080808;
     --text: #d4d4d4;
     --muted: #a2a2a2;
@@ -33,7 +33,7 @@ html[data-theme="dark"] {
 
     --fondo: var(--card-bg);
     --borde: 1px var(--border-color) solid;
-    --bordeBoton: 1px rgba(31,31,31,0.55) solid;
+    --bordeBoton: 1px rgba(31, 31, 31, 0.55) solid;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Source+Sans+3:wght@200..900&display=swap');
@@ -247,7 +247,8 @@ ul {
 }
 
 textarea {
-    color: #fff;
+    /* Adaptar al token de texto del tema */
+    color: var(--text);
     border: none;
     padding: 0px;
     margin-bottom: 10px;
@@ -314,8 +315,15 @@ body {
 }
 
 label {
-    font-size: 1.2rem;
-    color: #a2a2a2;
+    /* +1px respecto al valor anterior (1.2rem -> 1.3rem) y en negrita */
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+/* En formularios, forzar los labels en bloque para colocar inputs/selects debajo */
+.gloryForm .formCampo > label {
+    display: block;
+    margin-bottom: 6px;
 }
 
 * {
@@ -384,13 +392,209 @@ textarea {
     padding: 7px 0px !important;
     border-bottom: var(--borde) !important;
     font-size: 1.2rem !important;
-    color: #d4d4d4 !important;
+    /* Usar token de tema para el color del texto */
+    color: var(--text) !important;
     border-radius: 0px;
     border: none;
     resize: none;
     line-height: 1.5;
     width: 100%;
     margin: 4px 0;
+}
+
+/* Estilos para selects: similares a un input (borde inferior) */
+select {
+    width: 100%;
+    border: unset;
+    background: unset;
+    font-family: 'Source Sans 3';
+    padding: 5px;
+    padding-left: 0px;
+    margin: unset;
+    font-size: 1.2rem; /* igual a inputs */
+    border-bottom: var(--borde);
+    outline: none;
+    color: var(--text);
+    margin: 4px 0;
+}
+select:focus {
+    outline: none;
+}
+select option {
+    color: var(--text);
+    background: var(--bg);
+}
+
+/* Toggle estilo switch para checkboxes */
+.opcionCheck {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border: var(--borde);
+    border-radius: 8px;
+}
+.opcionCheck > div label {
+    color: var(--text);
+    font-weight: 700;
+    display: block; /* asegurar que el select quede debajo en bloques similares */
+}
+.opcionCheck .description {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 14px;
+    max-width: 250px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 35px;
+    height: 18px;
+}
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--card-bg);
+    transition: background-color 0.18s ease, border-color 0.18s ease;
+    border-radius: 34px;
+    border: 1px solid var(--border-color);
+}
+.slider:before {
+    position: absolute;
+    content: '';
+    height: 16px;
+    width: 16px;
+    left: 1px;
+    top: 1px;
+    background-color: var(--bg);
+    transition: transform 0.18s ease;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.switch input:checked + .slider {
+    background-color: var(--text);
+    border-color: var(--text);
+}
+.switch input:checked + .slider:before {
+    transform: translateX(17px);
+    background-color: var(--bg);
+}
+.switch input:focus + .slider,
+.switch input:active + .slider {
+    box-shadow: none; /* eliminar halo que añade la sensación de grosor */
+}
+
+/* Minimal modern checkbox group */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+}
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 6px 6px 30px; /* espacio para la casilla personalizada */
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 120ms ease;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid transparent;
+    font-size: 1.2rem; /* igual que inputs */
+    font-weight: 400; /* texto normal */
+}
+/* eliminar efecto hover visual para los checkboxes del grupo */
+.checkbox-group label:hover {
+    background: transparent;
+}
+.checkbox-group input[type='checkbox'] {
+    display: none;
+}
+.checkbox-visual-wrapper {
+    position: relative;
+}
+.checkbox-visual-wrapper::before {
+    content: '';
+    position: absolute;
+    left: -28px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+    background: transparent; /* sin background */
+    display: block;
+    box-sizing: border-box;
+}
+.checkbox-visual-wrapper::after {
+    content: '✔';
+    position: absolute;
+    left: -28px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    font-size: 10px;
+    line-height: 14px;
+    text-align: center;
+}
+/* Mostrar checkmark cuando está marcado */
+label input:checked + .checkbox-visual-wrapper::after {
+    display: block;
+}
+label input:checked + .checkbox-visual-wrapper::before {
+    /* mantener sin background, solo cambiar color del borde si se desea */
+    background: transparent;
+    border-color: var(--text);
+}
+
+/* También un estilo para customCheckbox (campo individual con clase) para mantener coherencia */
+.customCheckbox {
+    justify-content: flex-start;
+    padding-left: 34px;
+    position: relative;
+}
+.customCheckbox input[type='checkbox'] {
+    display: none;
+}
+.customCheckbox::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background: var(--bg);
+}
+.customCheckbox input:checked + .checkmark + * {
+    /* cuando existe span.checkmark seguido del texto */
+    /* no-op but keeps specificity placeholder */
+}
+
+/* Placeholder adaptativo */
+input::placeholder,
+textarea::placeholder {
+    color: var(--muted);
+    opacity: 0.9;
 }
 
 input:focus,
@@ -461,4 +665,34 @@ textarea:focus {
     display: flex; /* o flex, grid, etc., según necesites */
 }
 
-/* Evita el scroll en el body cuando un menú está abierto */
+.image-preview-placeholder {
+    border: var(--borde);
+    border-radius: var(--radius);
+    display: flex;
+    align-content: center;
+    text-align: center;
+    padding: var(--padding);
+    min-height: 60px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.glory-image-uploader {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.image-preview-placeholder {
+    border: var(--borde);
+    border-radius: var(--radius);
+    display: flex;
+    align-content: center;
+    text-align: center;
+    padding: var(--padding);
+    min-height: 110px;
+    cursor: pointer;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
