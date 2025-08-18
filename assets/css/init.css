@@ -480,8 +480,6 @@ select option {
     content: '';
     height: 16px;
     width: 16px;
-    left: 1px;
-    top: 1px;
     background-color: var(--bg);
     transition: transform 0.18s ease;
     border-radius: 50%;
@@ -729,4 +727,15 @@ textarea:focus {
     border-radius: 6px;
     border: 1px solid var(--border-color);
     background: transparent;
+}
+
+.hljs {
+    background: var(--card-bg) !important;
+}
+
+pre code.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 1em;
+    font-size: 10px;
 }

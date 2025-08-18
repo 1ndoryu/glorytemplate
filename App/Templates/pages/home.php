@@ -13,12 +13,14 @@ function home()
 ?>
 
     <div class="bagdeList" style="margin-top: 150px">
-    <?php
-    echo BadgeList::render([
-        'badges' => ['Formulario', 'Modal', 'Pestanas', 'Alertas', 'Previews', 'Paginacion', 'Filtros', 'Busqueda', 'Submenus'],
-        'mode' => 'tab'
-    ]);
-    ?>
+        <?php
+
+        //Haremos un badge por componente
+        echo BadgeList::render([
+            'badges' => ['Formulario', 'Modal', 'Pestanas', 'Alertas', 'Previews', 'Contenido', 'Filtros', 'Busqueda', 'Submenus'],
+            'mode' => 'tab'
+        ]);
+        ?>
     </div>
 
     <div id="glory-component-examples" style="margin-top: 0px">
@@ -35,6 +37,45 @@ function home()
             </div>
         </section>
 
+        <!-- Ejemplo: Código (resaltado) para Alertas -->
+        <section class="seccionComponente" data-category="alertas">
+            <div class="contenidoSeccionComponente">
+                <h2>Ejemplo: Marcado para Alertas (mostrado como código)</h2>
+                <p>Ejemplo mínimo para mostrar alertas/confirmaciones desde el frontend.</p>
+                <pre><code class="language-html">&lt;button
+    class="borde"
+    onclick="alert('Esta es una alerta personalizada.')"
+&gt;
+    Mostrar Alerta
+&lt;/button&gt;
+
+&lt;button
+    class="borde"
+    onclick="confirm('¿Estás seguro?').then(res =&gt; console.log('Confirmado:', res))"
+&gt;
+    Mostrar Confirmación
+&lt;/button&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Sección de ejemplo: Input de búsqueda mostrado como código (resaltado) -->
+        <section class="seccionComponente" data-category="busqueda">
+            <div class="contenidoSeccionComponente">
+                <h2>Ejemplo: Input de búsqueda (mostrado como código)</h2>
+                <p>Ejemplo de marcado HTML para integrar el input de búsqueda frontend.</p>
+                <pre><code class="language-html">&lt;input type="text"
+    class="busqueda"
+    data-tipos="post,libro"
+    data-cantidad="3"
+    data-target="#resultados-busqueda-ejemplo-2"
+    data-renderer="BusquedaRenderer"
+    placeholder="Buscar posts y libros..."&gt;
+
+&lt;div id="resultados-busqueda-ejemplo-2"&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
         <section class="seccionComponente" data-category="modal">
             <div class="contenidoSeccionComponente">
 
@@ -46,6 +87,21 @@ function home()
                     'attrs' => ['data-modal' => 'miModalEjemplo']
                 ]); ?>
 
+            </div>
+        </section>
+
+        <!-- Ejemplo: Código (resaltado) para integrar un modal -->
+        <section class="seccionComponente" data-category="modal">
+            <div class="contenidoSeccionComponente">
+                <h2>Ejemplo: Marcado para Modal (mostrado como código)</h2>
+                <p>HTML mínimo para usar el sistema de modales del tema.</p>
+                <pre><code class="language-html">&lt;button class="openModal borde" data-modal="miModalEjemplo"&gt;Abrir Modal&lt;/button&gt;
+
+&lt;div id="miModalEjemplo" class="modal" style="display:none;"&gt;
+    &lt;h3&gt;Título del Modal&lt;/h3&gt;
+    &lt;p&gt;Contenido del modal...&lt;/p&gt;
+    &lt;button class="borde" onclick="window.ocultarFondo()"&gt;Cerrar&lt;/button&gt;
+&lt;/div&gt;</code></pre>
             </div>
         </section>
 
@@ -121,6 +177,20 @@ function home()
             </div>
         </section>
 
+        <!-- Ejemplo: Código (resaltado) para Pestañas -->
+        <section class="seccionComponente" data-category="pestanas">
+            <div class="contenidoSeccionComponente">
+                <h2>Ejemplo: Marcado para Pestañas (mostrado como código)</h2>
+                <p>HTML mínimo para generar pestañas con el sistema de pestañas del tema.</p>
+                <pre><code class="language-html">&lt;div class="pestanas-wrapper gloryTabs"&gt;
+    &lt;div class="pestanas"&gt;&lt;/div&gt;
+    &lt;div class="pestanaContenido" data-pestana="Perfil"&gt;Contenido de la pestaña Perfil&lt;/div&gt;
+    &lt;div class="pestanaContenido" data-pestana="Opciones"&gt;Contenido de la pestaña Opciones&lt;/div&gt;
+    &lt;div class="pestanaContenido" data-pestana="Ayuda"&gt;Contenido de la pestaña Ayuda&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
         <section class="seccionComponente" data-category="submenus">
             <div class="contenidoSeccionComponente">
 
@@ -132,6 +202,23 @@ function home()
                     'attrs' => ['data-submenu' => 'miSubmenuEjemplo']
                 ]); ?>
 
+            </div>
+        </section>
+
+        <!-- Ejemplo: Código (resaltado) para Submenús -->
+        <section class="seccionComponente" data-category="submenus">
+            <div class="contenidoSeccionComponente">
+                <h2>Ejemplo: Marcado para Submenús (mostrado como código)</h2>
+                <p>Ejemplo mínimo para crear un submenú contextual con <code>data-submenu</code>.</p>
+                <pre><code class="language-html">&lt;button class="borde" data-submenu="miSubmenuEjemplo"&gt;Abrir Submenú&lt;/button&gt;
+
+&lt;div id="miSubmenuEjemplo" class="submenu" style="display:none;"&gt;
+    &lt;ul&gt;
+        &lt;li&gt;&lt;a href="#"&gt;Opción 1&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href="#"&gt;Opción 2&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href="#"&gt;Opción 3&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+&lt;/div&gt;</code></pre>
             </div>
         </section>
 
@@ -347,7 +434,7 @@ function home()
 
         <?php endif; ?>
 
-        <section class="seccionComponente" data-category="paginacion">
+        <section class="seccionComponente" data-category="contenido">
             <div class="contenidoSeccionComponente">
                 <h2 style="text-align:center;">Ejemplo: <code>ContentRender</code> con Libros</h2>
                 <p>Ejemplo de un listado para el Custom Post Type "Libro", usando una plantilla personalizada y estilo minimalista.</p>
@@ -360,6 +447,23 @@ function home()
                     'claseItem'              => 'libro-item', // Clase para cada elemento de la lista.
                 ]);
                 ?>
+            </div>
+        </section>
+
+        <!-- Ejemplo: Código (resaltado) para ContentRender -->
+        <section class="seccionComponente" data-category="contenido">
+            <div class="contenidoSeccionComponente">
+                <h2>Ejemplo: Marcado para ContentRender (mostrado como código)</h2>
+                <p>Ejemplo de uso mínimo en PHP para listar publicaciones de un CPT usando <code>ContentRender</code>.</p>
+                <pre><code class="language-php">&lt;?php
+use Glory\\Components\\ContentRender;
+
+ContentRender::print('libro', [
+    'publicacionesPorPagina' => 3,
+    'paginacion'             => false,
+    'plantillaCallback'      => 'plantillaLibro',
+]);
+?&gt;</code></pre>
             </div>
         </section>
 

@@ -30,6 +30,9 @@ GloryFeatures::enable('paginacion');
 GloryFeatures::enable('gloryFilters');
 // Activar feature para BadgeList
 GloryFeatures::enable('badgeList');
+// Feature para control de highlight y GSAP
+GloryFeatures::enable('highlight');
+GloryFeatures::enable('gsap');
 
 //Services
 GloryFeatures::disable('cssCritico');

@@ -75,7 +75,6 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionCom
 }
 
 .seccionComponente .gloryForm {
-    max-width: 500px;
     display: flex;
     flex-direction: column;
     gap: 1rem;
