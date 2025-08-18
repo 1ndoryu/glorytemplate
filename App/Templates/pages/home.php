@@ -101,7 +101,7 @@ function home()
 
                 <h2>Componente UI: Pestañas</h2>
                 <p>Se generan a partir de divs con la clase <code>.pestanaContenido</code>.</p>
-                <div class="pestanas-wrapper">
+                <div class="pestanas-wrapper gloryTabs">
                     <div class="pestanas"></div>
                     <div class="pestanaContenido" data-pestana="Perfil">Contenido de la pestaña de Perfil.</div>
                     <div class="pestanaContenido" data-pestana="Opciones">Contenido de la pestaña de Opciones.</div>
