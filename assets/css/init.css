@@ -68,6 +68,12 @@ main {
     gap: 10px;
 }
 
+code {
+    background: var(--card-hover);
+    padding: 1px 3px;
+    margin: 1px;
+}
+
 img {
     border-style: none;
     vertical-align: top;
@@ -665,25 +671,13 @@ textarea:focus {
     display: flex; /* o flex, grid, etc., según necesites */
 }
 
-.image-preview-placeholder {
-    border: var(--borde);
-    border-radius: var(--radius);
-    display: flex;
-    align-content: center;
-    text-align: center;
-    padding: var(--padding);
-    min-height: 60px;
-    cursor: pointer;
-    width: 100%;
-}
-
 .glory-image-uploader {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.image-preview-placeholder {
+.previewImagen {
     border: var(--borde);
     border-radius: var(--radius);
     display: flex;
