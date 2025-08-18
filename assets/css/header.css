@@ -76,20 +76,20 @@
 .siteMenuW .siteMenuLogo a,
 .siteMenuW .siteMenuLogo,
 .siteMenuW .burger {
-    color: #333333; /* Color por defecto para fondos claros */
+    color: var(--text); /* Color por defecto adaptado al tema */
     transition: color 0.4s ease;
     text-decoration: none;
 }
 
 .siteMenuW .siteMenuNav a:hover {
-    color: #000000;
+    color: var(--text);
 }
 
 .siteMenuW.has-dark-background .siteMenuNav a,
 .siteMenuW.has-dark-background .siteMenuLogo a,
 .siteMenuW.has-dark-background .siteMenuLogo,
 .siteMenuW.has-dark-background .burger {
-    color: #ffffff; /* Color para fondos oscuros */
+    color: var(--text); /* Color para fondos oscuros */
 }
 
 .siteMenuW.has-dark-background .siteMenuNav a:hover {
@@ -231,7 +231,7 @@ body.menu-open {
 }
 
 .siteMenuNav ul li a {
-    color: #333;
+    color: var(--text);
     text-decoration: none;
 }
 
