@@ -25,8 +25,36 @@ div#glory-component-examples {
     column-gap: 1.5rem;
     max-width: 1100px;
     margin: auto;
-    padding-top: 150px;
 }
+
+/* Ajustes condicionales: 1 visible -> una columna y centrar el contenido */
+div#glory-component-examples:has(> .seccionComponente:not(.oculto)):not(:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto))) {
+    /* exactamente 1 visible */
+    column-count: 1;
+}
+
+/* Limitar el ancho del contenido cuando hay solo 1 visible para lograr centrado visual */
+div#glory-component-examples:has(> .seccionComponente:not(.oculto)):not(:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto))) > .seccionComponente:not(.oculto) .contenidoSeccionComponente {
+    max-width: var(--ancho);
+}
+
+/* Exactamente 2 visibles -> usar grid de 2 columnas para evitar que ambos caigan en la misma columna */
+div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto)):not(:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto))) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    column-count: initial;
+}
+
+.bagdeList {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    max-width: 1100px;
+    margin: auto;
+}
+
 .contenidoSeccionComponente {
     margin: auto;
     /* Cada item ocupa todo el ancho de la columna */

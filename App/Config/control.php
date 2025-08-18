@@ -28,6 +28,8 @@ GloryFeatures::enable('alertas');
 GloryFeatures::enable('gestionarPreviews');
 GloryFeatures::enable('paginacion');
 GloryFeatures::enable('gloryFilters');
+// Activar feature para BadgeList
+GloryFeatures::enable('badgeList');
 
 //Services
 GloryFeatures::disable('cssCritico');

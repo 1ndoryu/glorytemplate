@@ -6,17 +6,27 @@ use Glory\Components\TermRender;
 use Glory\Utility\UserUtility;
 use Glory\Components\ThemeToggle;
 use Glory\Components\Button;
+use Glory\Components\BadgeList;
 
 function home()
 {
 ?>
 
-    <div id="glory-component-examples">
+    <div class="bagdeList" style="margin-top: 150px">
+    <?php
+    echo BadgeList::render([
+        'badges' => ['Formulario', 'Modal', 'Pestanas', 'Alertas', 'Previews', 'Paginacion', 'Filtros', 'Busqueda', 'Submenus'],
+        'mode' => 'tab'
+    ]);
+    ?>
+    </div>
+
+    <div id="glory-component-examples" style="margin-top: 0px">
 
 
         <?php echo ThemeToggle::render(); ?>
 
-        <section class="seccionComponente">
+        <section class="seccionComponente" data-category="busqueda">
             <div class="contenidoSeccionComponente">
                 <h2>Ejemplo: <code>BusquedaRenderer</code></h2>
                 <p>Busca en tiempo real entre posts y libros. Escribe "poder" o "alicia" para ver resultados.</p>
@@ -25,7 +35,7 @@ function home()
             </div>
         </section>
 
-        <section class="seccionComponente">
+        <section class="seccionComponente" data-category="modal">
             <div class="contenidoSeccionComponente">
 
                 <h2>Componente UI: Modales</h2>
@@ -49,7 +59,7 @@ function home()
             ]); ?>
         </div>
 
-        <section class="seccionComponente">
+        <section class="seccionComponente" data-category="busqueda">
             <div class="contenidoSeccionComponente">
                 <h2>Ejemplo: <code>BusquedaRenderer</code> con resultados en Modal </h2>
                 <p>Escribe en el campo y los resultados aparecerán en un modal. Escribe "poder" o "alicia" para ver resultados.</p>
@@ -77,7 +87,7 @@ function home()
         </div>
 
 
-        <section class="seccionComponente">
+        <section class="seccionComponente" data-category="alertas">
             <div class="contenidoSeccionComponente">
 
                 <h2>Componente UI: Alertas</h2>
@@ -96,7 +106,7 @@ function home()
             </div>
         </section>
 
-        <section class="seccionComponente">
+        <section class="seccionComponente" data-category="pestanas">
             <div class="contenidoSeccionComponente">
 
                 <h2>Componente UI: Pestañas</h2>
@@ -111,7 +121,7 @@ function home()
             </div>
         </section>
 
-        <section class="seccionComponente">
+        <section class="seccionComponente" data-category="submenus">
             <div class="contenidoSeccionComponente">
 
                 <h2>Componente UI: Submenús Contextuales</h2>
@@ -126,7 +136,7 @@ function home()
         </section>
 
         <?php if (is_user_logged_in()) : ?>
-            <section class="seccionComponente">
+            <section class="seccionComponente" data-category="formulario">
                 <div class="contenidoSeccionComponente">
                     <h2>Ejemplo: <code>FormBuilder</code></h2>
                     <p>Ejemplo que muestra múltiples tipos de campos y cómo se adaptan al tema.</p>
@@ -234,26 +244,34 @@ function home()
                 </div>
             </section>
 
-            <!-- Sección avanzada: PreviewImagen -->
-            <section class="seccionComponente">
+            <!-- Sección avanzada: PreviewImagen (dividida en sub-secciones) -->
+            <section class="seccionComponente" data-category="previews">
                 <div class="contenidoSeccionComponente">
                     <h2>Componente UI: Preview de Imagen (avanzado)</h2>
-                    <p>Esta sección muestra ejemplos y todas las opciones disponibles para integrar la previsualización de imágenes con <code>gestionarPreviews.js</code>.</p>
+                    <p>Resumen: ejemplos y opciones para integrar la previsualización de imágenes con <code>gestionarPreviews.js</code>. Cada ejemplo está separado en su propia sección para facilitar pruebas y documentación.</p>
+                </div>
+            </section>
 
+            <section class="seccionComponente" data-category="previews">
+                <div class="contenidoSeccionComponente">
                     <h3>1) Ejemplo usando <code>FormBuilder::campoImagen</code> (recomendado)</h3>
                     <p>Parámetros útiles: <code>'nombre'</code>, <code>'label'</code>, <code>'valor'</code> (ID del adjunto), <code>'descripcion'</code>, <code>'placeholder'</code>, <code>'idPreview'</code> (opcional).</p>
                     <?php
-                        echo FormBuilder::campoImagen([
-                            'nombre' => 'avatar_demo',
-                            'label'  => 'Avatar demo (sin botón)',
-                            'valor'  => UserUtility::meta('avatar', get_current_user_id()) ?: '',
-                            'descripcion' => 'Arrastra una imagen o haz clic en el área para seleccionar.',
-                            'placeholder' => 'Haz clic para subir una imagen (demo)'
-                        ]);
+                    echo FormBuilder::campoImagen([
+                        'nombre' => 'avatar_demo',
+                        'label'  => 'Avatar demo (sin botón)',
+                        'valor'  => UserUtility::meta('avatar', get_current_user_id()) ?: '',
+                        'descripcion' => 'Arrastra una imagen o haz clic en el área para seleccionar.',
+                        'placeholder' => 'Haz clic para subir una imagen (demo)'
+                    ]);
                     ?>
+                </div>
+            </section>
 
+            <section class="seccionComponente" data-category="previews">
+                <div class="contenidoSeccionComponente">
                     <h3>2) Ejemplo manual — asociación por <code>data-preview-id</code> / <code>data-preview-for</code></h3>
-                    <p>Usa esto cuando el <code>input</code> y la <code>preview</code> estén en partes distintas del DOM (p.ej. input en el formulario y preview en la cabecera) o cuando debas enlazar varios inputs a previews concretas.</p>
+                    <p>Usa esto cuando el <code>input</code> y la <code>preview</code> estén en partes distintas del DOM o cuando debas enlazar varios inputs a previews concretas.</p>
                     <div class="previewContenedor" data-uploadclick="true" data-extrapreview=".extra-preview-demo" data-extrapreview-on="drag">
                         <input type="file" id="demo-file-1" name="demo_image" style="display:none;" accept="image/*" data-preview-for="demo-preview-1" />
                         <div class="previewImagen" data-preview-id="demo-preview-1">
@@ -261,7 +279,11 @@ function home()
                         </div>
                         <div class="extra-preview-demo oculto" style="margin-top:8px;padding:6px;border:1px dashed #ccc;">Elemento extra (se muestra al arrastrar)</div>
                     </div>
+                </div>
+            </section>
 
+            <section class="seccionComponente" data-category="previews">
+                <div class="contenidoSeccionComponente">
                     <h3>3) Preview con imagen inicial</h3>
                     <p>Si ya hay una imagen, muéstrala dentro de la preview.</p>
                     <div class="previewContenedor" style="margin-top:8px;">
@@ -275,7 +297,11 @@ function home()
                             <?php endif; ?>
                         </div>
                     </div>
+                </div>
+            </section>
 
+            <section class="seccionComponente" data-category="previews">
+                <div class="contenidoSeccionComponente">
                     <h3>4) Opciones y detalles</h3>
                     <ul>
                         <li><strong>data-uploadclick="true"</strong>: permite abrir el selector al hacer clic en cualquier parte del contenedor.</li>
@@ -291,7 +317,7 @@ function home()
             </section>
 
             <!-- Sección avanzada 2: Mostrar campo siguiente al subir y activar contenedor al arrastrar -->
-            <section class="seccionComponente" id="demo-activacion-externa">
+            <section class="seccionComponente" id="demo-activacion-externa" data-category="previews">
                 <div class="contenidoSeccionComponente">
                     <h2>Preview de imagen con activación de siguiente campo y activación externa</h2>
                     <p>Al soltar una imagen en el primer contenedor, se muestra el segundo campo (inicialmente oculto). Además, arrastrar sobre este bloque activa el contenedor oculto.</p>
@@ -321,14 +347,14 @@ function home()
 
         <?php endif; ?>
 
-        <section class="seccionComponente">
+        <section class="seccionComponente" data-category="paginacion">
             <div class="contenidoSeccionComponente">
                 <h2 style="text-align:center;">Ejemplo: <code>ContentRender</code> con Libros</h2>
                 <p>Ejemplo de un listado para el Custom Post Type "Libro", usando una plantilla personalizada y estilo minimalista.</p>
                 <?php
                 ContentRender::print('libro', [
                     'publicacionesPorPagina' => 3,
-                    'paginacion'             => false, 
+                    'paginacion'             => false,
                     'plantillaCallback'      => 'plantillaLibro', // La función que renderiza cada libro.
                     'claseContenedor'        => 'lista-libros-contenedor', // Clase para el contenedor de la lista.
                     'claseItem'              => 'libro-item', // Clase para cada elemento de la lista.
@@ -337,7 +363,7 @@ function home()
             </div>
         </section>
 
-        <section class="seccionComponente">
+        <section class="seccionComponente" data-category="filtros">
             <div class="contenidoSeccionComponente">
                 <h2>Ejemplo: <code>TermRender</code></h2>
                 <p>Mostrando todas las categorías de entradas.</p>
@@ -346,22 +372,6 @@ function home()
                 ?>
             </div>
         </section>
-
-        <section class="seccionComponente" style="text-align:center;">
-            <div class="contenidoSeccionComponente">
-                <h2>Ejemplo: <code>LogoRenderer</code> (Shortcode)</h2>
-                <p>El logo del tema renderizado con un shortcode, con un ancho y filtro personalizados.</p>
-                <?php echo do_shortcode('[theme_logo width="150px" filter="white"]'); ?>
-            </div>
-        </section>
-
-    </div>
-
-
-    <div id="miSubmenuEjemplo" class="submenu-contextual">
-        <?php echo Button::render(['texto' => 'Opción 1']); ?>
-        <?php echo Button::render(['texto' => 'Opción 2']); ?>
-        <?php echo Button::render(['texto' => 'Opción 3']); ?>
     </div>
 
 <?php
