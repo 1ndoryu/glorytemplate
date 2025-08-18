@@ -6,8 +6,8 @@
     --card-bg: #f8f8f8;
     --card-hover: #e6e6e6;
     --border-color: #e6e6e6;
-    --button-bg: #ffffff;
-    --button-text: #000000;
+    --button-bg: transparent;
+    --button-text: var(--text);
 
     --radius: 5px;
     --padding: 20px;
@@ -28,8 +28,8 @@ html[data-theme="dark"] {
     --card-bg: #0f0f0f;
     --card-hover: #1a1a1a;
     --border-color: #161616;
-    --button-bg: #ffffff;
-    --button-text: #000000;
+    --button-bg: transparent;
+    --button-text: var(--text);
 
     --fondo: var(--card-bg);
     --borde: 1px var(--border-color) solid;
@@ -272,7 +272,9 @@ button {
     all: unset;
     display: flex;
     margin: 0px;
-    color: #fff;
+    /* Usar tokens de tema para que el color se adapte (light/dark) */
+    color: var(--button-text);
+    background: var(--button-bg);
     font-size: 1.2rem;
     border-radius: 4px;
     cursor: pointer;
@@ -283,9 +285,9 @@ button {
 }
 
 .botonprincipal {
-    background: white !important;
-    color: black !important;
-    border: 1px #00000000 solid !important;
+    background: transparent !important;
+    color: var(--button-text) !important;
+    border: none !important;
 }
 
 .preview {
