@@ -4,6 +4,7 @@ use Glory\Components\ContentRender;
 use Glory\Components\FormBuilder;
 use Glory\Components\TermRender;
 use Glory\Utility\UserUtility;
+use Glory\Components\ThemeToggle;
 
 function home()
 {
@@ -11,8 +12,8 @@ function home()
 
     <div id="glory-component-examples">
 
-        <!-- Toggle de tema -->
-        <button id="theme-toggle" class="borde" style="position:fixed;top:1rem;right:1rem;z-index:2000;padding:8px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--text);background:var(--card-bg);" aria-label="Alternar tema" title="Alternar tema"></button>
+
+        <?php echo ThemeToggle::render(); ?>
 
         <section class="seccionComponente">
             <div class="contenidoSeccionComponente">

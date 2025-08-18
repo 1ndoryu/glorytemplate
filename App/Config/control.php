@@ -22,6 +22,8 @@ GloryFeatures::enable('submenus');
 GloryFeatures::enable('pestanas');
 GloryFeatures::enable('scheduler');
 GloryFeatures::enable('headerAdaptativo');
+// Feature para toggle de tema (UI)
+GloryFeatures::enable('themeToggle');
 GloryFeatures::enable('alertas');
 GloryFeatures::enable('gestionarPreviews');
 GloryFeatures::enable('paginacion');
