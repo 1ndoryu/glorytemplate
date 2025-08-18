@@ -1,6 +1,7 @@
 <?php
 
 use Dotenv\Dotenv;
+use Glory\Manager\AssetManager;
 
 /* 
 *    Este archivo es el encargado de cargar las variables de entorno desde el archivo .env.
