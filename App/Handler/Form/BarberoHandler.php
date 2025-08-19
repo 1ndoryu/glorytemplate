@@ -92,16 +92,47 @@ class BarberoHandler implements FormHandlerInterface
             }
 
             $image_id = 0;
-            if (! empty($archivos['image']['name'])) {
+            $image_url = '';
+
+            // Soportar nuevo nombre de input: <nombre>_file (p.ej. image_id_file)
+            $expectedFileKey = null;
+            if (isset($archivos['image_id_file']) && !empty($archivos['image_id_file']['name'])) {
+                $expectedFileKey = 'image_id_file';
+            } else {
+                // Buscar cualquier archivo que termine en _file y tenga nombre
+                foreach ($archivos as $k => $v) {
+                    if (is_array($v) && !empty($v['name']) && str_ends_with($k, '_file')) {
+                        $expectedFileKey = $k;
+                        break;
+                    }
+                }
+            }
+
+            if ($expectedFileKey) {
                 require_once ABSPATH . 'wp-admin/includes/file.php';
                 require_once ABSPATH . 'wp-admin/includes/media.php';
                 require_once ABSPATH . 'wp-admin/includes/image.php';
-                $file = media_handle_upload('image', 0);
-                if (! is_wp_error($file)) {
-                    $image_id = intval($file);
+
+                $storeModeKey = str_replace('_file', '_store', $expectedFileKey);
+                $storeMode = $postDatos[$storeModeKey] ?? 'media';
+
+                if ($storeMode === 'media') {
+                    $file = media_handle_upload($expectedFileKey, 0);
+                    if (! is_wp_error($file)) {
+                        $image_id = intval($file);
+                    }
+                } else {
+                    // Subir sin registrar como attachment y guardar URL en meta
+                    $overrides = ['test_form' => false];
+                    $movefile = wp_handle_upload($archivos[$expectedFileKey], $overrides);
+                    if (! empty($movefile) && empty($movefile['error'])) {
+                        $image_url = $movefile['url'];
+                    }
                 }
             } elseif (! empty($postDatos['image_id'])) {
                 $image_id = intval($postDatos['image_id']);
+            } elseif (! empty($postDatos['image_id_url'])) {
+                $image_url = sanitize_text_field($postDatos['image_id_url']);
             }
 
             // Detectar edición: soportar 'id' (índice), 'objectId' (term_id desde el modal), o 'term_id'
@@ -161,7 +192,15 @@ class BarberoHandler implements FormHandlerInterface
                 }
 
                 if ($term_id) {
-                    if ($image_id) update_term_meta($term_id, 'image_id', $image_id);
+                    if ($image_id) {
+                        update_term_meta($term_id, 'image_id', $image_id);
+                        // Borrar posible URL anterior
+                        delete_term_meta($term_id, 'image_url');
+                    } elseif ($image_url) {
+                        update_term_meta($term_id, 'image_url', $image_url);
+                        // Asegurar image_id ausente
+                        delete_term_meta($term_id, 'image_id');
+                    }
                     // Si seleccionó todos, marcar bandera para UI
                     $allIds = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false, 'fields' => 'ids']);
                     if (is_array($allIds) && !array_diff(array_map('intval', $allIds), $servicesIds)) {
@@ -187,7 +226,8 @@ class BarberoHandler implements FormHandlerInterface
                     $inserted = wp_insert_term($name, 'barbero', ['slug' => sanitize_title($name)]);
                     if (! is_wp_error($inserted) && isset($inserted['term_id'])) {
                         $new_entry['term_id'] = intval($inserted['term_id']);
-                        update_term_meta($new_entry['term_id'], 'image_id', $image_id);
+                        if ($image_id) update_term_meta($new_entry['term_id'], 'image_id', $image_id);
+                        if (!empty($image_url)) update_term_meta($new_entry['term_id'], 'image_url', $image_url);
                         // Bandera de todos
                         $allIds = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false, 'fields' => 'ids']);
                         if (is_array($allIds) && !array_diff(array_map('intval', $allIds), $servicesIds)) {
@@ -203,7 +243,8 @@ class BarberoHandler implements FormHandlerInterface
                 } else {
                     $term_id = is_array($existing) ? intval($existing['term_id']) : intval($existing);
                     $new_entry['term_id'] = $term_id;
-                    update_term_meta($term_id, 'image_id', $image_id);
+                    if ($image_id) update_term_meta($term_id, 'image_id', $image_id);
+                    if (!empty($image_url)) update_term_meta($term_id, 'image_url', $image_url);
                     $allIds = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false, 'fields' => 'ids']);
                     if (is_array($allIds) && !array_diff(array_map('intval', $allIds), $servicesIds)) {
                         update_term_meta($term_id, 'servicios_all', '1');
@@ -251,7 +292,15 @@ class BarberoHandler implements FormHandlerInterface
         }
 
         $image_id = get_term_meta($term->term_id, 'image_id', true);
-        $image_url = $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : '';
+        $image_url = '';
+        if ($image_id) {
+            $image_url = wp_get_attachment_image_url($image_id, 'thumbnail');
+        } else {
+            $meta_url = get_term_meta($term->term_id, 'image_url', true);
+            if (!empty($meta_url)) {
+                $image_url = esc_url_raw($meta_url);
+            }
+        }
         $services_ids = get_term_meta($term->term_id, 'servicios', true);
         if (!is_array($services_ids)) {
             // Fallback: intentar recuperar desde options (para barberos antiguos)

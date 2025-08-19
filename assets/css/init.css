@@ -438,7 +438,8 @@ textarea:focus {
     padding: 10px 18px;
 }
 
-.submenus, .glory-submenu {
+.submenus,
+.glory-submenu {
     display: none;
     background: #080808;
     padding: 10px 6px;
@@ -462,7 +463,8 @@ textarea:focus {
 }
 
 /* Muestra el menú cuando está activo */
-.submenus.activo, .glory-submenu.activo {
+.submenus.activo,
+.glory-submenu.activo {
     display: flex;
 }
 
@@ -508,7 +510,7 @@ textarea:focus {
     line-height: 1;
 }
 .glory-submenu-trigger:hover {
-    background: rgba(0,0,0,0.06);
+    background: rgba(0, 0, 0, 0.06);
 }
 
 .arrastrando {
@@ -561,4 +563,48 @@ header.header.oscuro .icon-menu,
 header.header.oscuro .icon-close {
     color: var(--blanco);
     fill: var(--blanco);
+}
+
+.previewImagen {
+    border: var(--borde);
+    border-radius: var(--radius);
+    display: flex;
+    align-content: center;
+    text-align: center;
+    padding: var(--padding);
+    min-height: 110px;
+    cursor: pointer;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-size: 13px;
+    max-height: 300px;
+}
+
+button.preview-remove {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 5px;
+    color: var(--negro);
+    background: var(--blanco);
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+button.preview-remove svg {
+    height: 1.2rem;
+    width: 1.2rem;
+}
+
+.previewImagen img {
+    overflow: auto;
+    max-height: 260px;
+    border-radius: var(--radius);
+    object-fit: cover !important;
 }

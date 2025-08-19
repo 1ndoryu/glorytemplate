@@ -26,6 +26,12 @@ GloryFeatures::enable('alertas');
 GloryFeatures::enable('gestionarPreviews');
 GloryFeatures::enable('paginacion');
 GloryFeatures::enable('gloryFilters');
+// Activar feature para BadgeList
+GloryFeatures::disable('badgeList');
+// Feature para control de highlight y GSAP
+GloryFeatures::disable('highlight');
+GloryFeatures::disable('gsap');
+
 
 //Services
 GloryFeatures::disable('cssCritico');

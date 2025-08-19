@@ -81,6 +81,7 @@ function obtenerDatosBarberos(string $claveOpcion): array
                 'name' => $term->name,
                 'term_id' => intval($term->term_id),
                 'image_id' => intval(get_term_meta($term->term_id, 'image_id', true)),
+                'image_url' => get_term_meta($term->term_id, 'image_url', true) ?: '',
                 'services' => array_values(array_filter($services_names_meta)),
                 'services_ids' => $services_ids_meta,
             ];
@@ -179,13 +180,10 @@ function renderizarModalBarbero(array $opcionesServicios, array $barberos, strin
             'method' => 'post',
             'extraClass' => 'formularioBarberia formularioBarberos',
             'atributos' => [
-                // Habilita el submit cuando el campo 'name' (nombre del barbero) esté presente
                 'data-fm-submit-habilitar-cuando' => 'name',
             ],
         ]],
         ['fn' => 'campoTexto', 'args' => ['nombre' => 'name', 'label' => 'Nombre', 'obligatorio' => true, 'classContainer' => 'name-field']],
-        // No marcar todos por defecto; se preselecciona en modo edición vía AJAX
-        // Importante: usar unión "+" para NO reindexar keys numéricas (array_merge reindexa)
         ['fn' => 'campoCheckboxGrupo', 'args' => ['nombre' => 'services[]', 'label' => 'Servicios', 'opciones' => (['all' => 'Todos los servicios'] + $opcionesServicios) , 'valor' => [], 'classContainer' => 'services-field']],
         ['fn' => 'campoImagen', 'args' => ['nombre' => 'image_id', 'label' => 'Imagen', 'valor' => '', 'classContainer' => 'image-field']],
         ['fn' => 'botonEnviar', 'args' => ['accion' => 'barbero', 'texto' => 'Guardar', 'extraClass' => 'button-primary']],
@@ -212,10 +210,15 @@ function columnasBarberos(array $opcionesServicios, array $servicios_map_id_to_n
     return [
         'columnas' => [
             ['etiqueta' => 'Imagen', 'clave' => 'image_id', 'callback' => function ($b) {
-                $row_image_url = !empty($b['image_id']) ? wp_get_attachment_image_url(intval($b['image_id']), 'thumbnail') : '';
+                $row_image_url = '';
                 if (! empty($b['image_id'])) {
-                    return wp_get_attachment_image($b['image_id'], [80, 80]);
+                    $row_image_url = wp_get_attachment_image_url(intval($b['image_id']), 'thumbnail');
+                    if ($row_image_url) return wp_get_attachment_image($b['image_id'], [80, 80]);
                 }
+                if (empty($row_image_url) && !empty($b['image_url'])) {
+                    return '<img src="' . esc_url($b['image_url']) . '" alt="' . esc_attr($b['name'] ?? '') . '" width="80" height="80">';
+                }
+
                 $barber_name_for_avatar = urlencode($b['name'] ?? 'Undefined');
                 $avatar_url = "https://avatar.vercel.sh/{$barber_name_for_avatar}.svg?size=80&rounded=80";
                 return '<img src="' . esc_url($avatar_url) . '" alt="' . esc_attr($b['name'] ?? '') . '" width="80" height="80" class="barbero-avatar-placeholder">';
