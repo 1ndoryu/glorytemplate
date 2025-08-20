@@ -16,8 +16,11 @@ function verificarDisponibilidadCallback()
     }
 
     try {
-        $fechaObj = new DateTime($fecha);
-        $hoy = new DateTime('today');
+        $tz = obtenerZonaHorariaWp();
+        $fechaObj = new DateTime($fecha, $tz);
+        // 'today' en la zona de WP
+        $hoy = new DateTime('now', $tz);
+        $hoy->setTime(0,0,0);
         // En modo edición (exclude_id > 0), permitimos cargar opciones incluso si la fecha es pasada o domingo.
         if ($excludeId <= 0) {
             if ($fechaObj < $hoy) {

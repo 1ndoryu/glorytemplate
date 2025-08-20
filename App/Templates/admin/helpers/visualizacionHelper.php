@@ -615,7 +615,7 @@ function renderizarScriptVerTodo()
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const CONTADOR_MS_POPUP = 4500; 
-            const OVERFLOW_RATIO_THRESHOLD = 0.9; // Mostrar botón solo si se ve menos del 90% del contenido
+            const OVERFLOW_RATIO_THRESHOLD = 0.85; // Mostrar botón solo si se ve menos del 90% del contenido
 
             function crearBotonParaBloque(bloque) {
                 if (!bloque) return;

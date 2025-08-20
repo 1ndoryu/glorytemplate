@@ -101,6 +101,31 @@ function home()
                                         <p class="description">Se usa en el encabezado: Authorization: Bearer &lt;TOKEN&gt;. Recomendado 32+ caracteres aleatorios.</p>
                                     </td>
                                 </tr>
+                                <?php
+                                    // Mostrar hora actual del sistema usando la zona configurada en WordPress
+                                    try {
+                                        if (function_exists('obtenerZonaHorariaWp')) {
+                                            $__tz = obtenerZonaHorariaWp();
+                                        } elseif (function_exists('wp_timezone')) {
+                                            $__tz = wp_timezone();
+                                        } else {
+                                            $__tz = new DateTimeZone(get_option('timezone_string') ?: date_default_timezone_get());
+                                        }
+                                        $__now = new DateTime('now', $__tz);
+                                        $__hora_actual = $__now->format('Y-m-d H:i:s T');
+                                        $__tz_name = $__tz->getName();
+                                    } catch (Exception $e) {
+                                        $__hora_actual = 'N/A';
+                                        $__tz_name = 'N/A';
+                                    }
+                                ?>
+                                <tr>
+                                    <th scope="row">Hora actual del sistema</th>
+                                    <td>
+                                        <code><?php echo esc_html($__hora_actual); ?></code>
+                                        <p class="description">Zona de WordPress: <code><?php echo esc_html($__tz_name); ?></code>. Si no coincide con la hora local de la barbería, ajusta <em>Ajustes → Generales → Zona horaria</em>.</p>
+                                    </td>
+                                </tr>
                             </table>
                             <p class="submit">
                                 <button type="button" id="glory_api_guardar_btn" class="button button-primary">Guardar cambios</button>

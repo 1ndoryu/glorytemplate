@@ -39,6 +39,14 @@ class CrearReservaHandler implements FormHandlerInterface
                 throw new \Exception('No hay barberos disponibles para ese horario y servicio.');
             }
         } else {
+            // Verificar usando la zona horaria configurada en WP para evitar aceptar reservas en fecha/hora pasada
+            $tz = obtenerZonaHorariaWp();
+            try {
+                $fechaHoraReserva = new \DateTime($fechaReserva . ' ' . $horaReserva, $tz);
+            } catch (Exception $e) {
+                throw new \Exception('Formato de fecha/hora inválido.');
+            }
+            // Reusar la función de disponibilidad (que trabaja con strings de fecha/hora)
             $disponible = $this->verificarDisponibilidadServidor($fechaReserva, $barberoId, $servicioId, $horaReserva, $duracion);
             if (!$disponible) {
                 throw new \Exception('El horario seleccionado ya no está disponible. Por favor, elige otro.');

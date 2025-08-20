@@ -132,6 +132,13 @@ function renderPaginaDocumentacion()
                 <li>Usa <code>exclude_id</code> al consultar horas disponibles para excluir una reserva existente al editarla (evita que se cuente a sí misma).</li>
             </ul>
 
+            <h3 style="margin-top:18px;">Zona horaria y hora del sistema</h3>
+            <p>La API usa la <strong>zona horaria configurada en WordPress</strong> para todas las comparaciones de fecha/hora (validación de fecha pasada, generación de slots, etc.).</p>
+            <p>En PHP intentamos usar <code>wp_timezone()</code> si está disponible; en su defecto se usa <code>get_option('timezone_string')</code> y como último recurso la zona por defecto de PHP.</p>
+            <p>Para depuración, la pestaña API muestra la hora actual del sistema en la zona de WordPress. Ejemplo (hora actual en servidor):</p>
+            <pre style="background:#f6f6f8;padding:12px;border-radius:6px;overflow:auto;border:1px solid #eaeaea;color:#111;"><code><?php $tz = function_exists('wp_timezone') ? wp_timezone() : (new DateTimeZone(get_option('timezone_string') ?: date_default_timezone_get())); $now = new DateTime('now', $tz); echo $now->format('Y-m-d H:i:s T'); ?></code></pre>
+            <p><strong>Nota:</strong> Si la barbería opera en una zona horaria distinta a la del servidor, asegúrate de ajustar la opción de WordPress (Ajustes → Generales → Zona horaria) para que coincida con la hora local de la barbería; la lógica de reservas respetará esa configuración.</p>
+
         </article>
     </section>
     <style>

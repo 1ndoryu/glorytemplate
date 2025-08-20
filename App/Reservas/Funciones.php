@@ -4,6 +4,28 @@
 use Glory\Services\TokenManager;
 use Glory\Manager\OpcionManager;
 
+/**
+ * Devuelve la zona horaria a usar según la configuración de WordPress.
+ * Intenta usar wp_timezone() si está disponible; si no, usa el option
+ * 'timezone_string' y, como último recurso, la zona por defecto de PHP.
+ */
+function obtenerZonaHorariaWp(): \DateTimeZone
+{
+    if (function_exists('wp_timezone')) {
+        return wp_timezone();
+    }
+    $tz = get_option('timezone_string', '');
+    if (!empty($tz)) {
+        try {
+            return new \DateTimeZone($tz);
+        } catch (Exception $e) {
+            // fallthrough
+        }
+    }
+    // Fallback: usar la zona por defecto de PHP
+    return new \DateTimeZone(date_default_timezone_get());
+}
+
 add_action('rest_api_init', function () {
 	register_rest_route('glory/v1', '/reservas', [
 		'methods'             => 'POST',
