@@ -39,7 +39,7 @@ GloryFeatures::enable('navegacionAjax');
 GloryFeatures::enable('gloryAjax');
 GloryFeatures::enable('gloryForm');
 GloryFeatures::disable('gloryBusqueda');
-GloryFeatures::disable('gloryRealtime');
+GloryFeatures::enable('gloryRealtime');
 
 // Renderers
 GloryFeatures::disable('logoRenderer');

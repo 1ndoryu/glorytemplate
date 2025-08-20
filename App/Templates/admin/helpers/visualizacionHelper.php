@@ -298,6 +298,43 @@ function renderizarScriptNavegacionFecha()
             if (btnNext) btnNext.addEventListener('click', function() {
                 cambiarDia(1);
             });
+
+            // Suscripción a tiempo real: refrescar scheduler cuando haya cambios en reservas
+            (function initRealtimeVisualizacion(){
+                if (window.__vizRealtimeStarted) return;
+                window.__vizRealtimeStarted = true;
+                var stop = null;
+                try {
+                    if (window.gloryRealtime && typeof window.gloryRealtime.start === 'function') {
+                        stop = window.gloryRealtime.start(['post_reserva'], {
+                            intervalMsActive: 1500,
+                            intervalMsHidden: 15000,
+                            idleMs: 30000,
+                            offWhenIdle: true
+                        });
+                    } else if (typeof window.gloryRealtimePoll === 'function') {
+                        stop = window.gloryRealtimePoll(['post_reserva'], { intervalMs: 2000 });
+                    }
+                } catch (e) {}
+
+                var lastAt = 0;
+                function onRt(ev){
+                    var ch = ev && ev.detail && ev.detail.channel;
+                    if (ch !== 'post_reserva') return;
+                    var now = Date.now();
+                    if (now - lastAt < 800) return; // anti ráfagas
+                    lastAt = now;
+                    try {
+                        var fechaStr = inputFecha ? (inputFecha.value || '') : '';
+                        if (fechaStr) { cargarScheduler(fechaStr); }
+                    } catch(_){}
+                }
+                try { document.addEventListener('gloryRealtime:update', onRt); } catch(_){}
+                try { window.addEventListener('gloryRealtime:update', onRt); } catch(_){}
+                try { document.addEventListener('gloryRealtimeUpdate', onRt); } catch(_){}
+                try { window.addEventListener('gloryRealtimeUpdate', onRt); } catch(_){}
+                window.addEventListener('beforeunload', function(){ try { if (typeof stop === 'function') stop(); } catch(_){ } });
+            })();
         });
     </script>
 <?php
