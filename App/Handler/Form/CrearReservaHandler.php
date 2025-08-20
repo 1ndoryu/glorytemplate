@@ -20,8 +20,8 @@ class CrearReservaHandler implements FormHandlerInterface
         $barberoId = is_numeric($barberoRaw) ? absint($barberoRaw) : 0;
         $fechaReserva = sanitize_text_field($postDatos['fecha_reserva'] ?? '');
         $horaReserva = sanitize_text_field($postDatos['hora_reserva'] ?? '');
-        // Exclusividad ahora se deriva automáticamente: '1' si el cliente eligió un barbero específico, '0' si eligió 'any'
-        $exclusividad = ($barberoRaw !== 'any' && $barberoId > 0) ? '1' : '0';
+        // Permitir que el formulario admin/crear envie explicitamente exclusividad; si no viene, conservar la derivación automática
+        $exclusividad = isset($postDatos['exclusividad']) ? (string) (absint($postDatos['exclusividad']) > 0 ? '1' : '0') : (($barberoRaw !== 'any' && $barberoId > 0) ? '1' : '0');
 
         if (empty($nombreCliente) || empty($telefonoCliente) || !is_email($correoCliente) || empty($servicioId) || empty($barberoRaw) || empty($fechaReserva) || empty($horaReserva)) {
             throw new \Exception('Por favor, completa todos los campos obligatorios.');

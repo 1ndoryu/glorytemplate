@@ -462,6 +462,8 @@ function renderModalReserva(array $opcionesServicios, array $opcionesBarberos): 
             // Tema: mantener visible el valor actual al entrar en edición
             'data-fm-keep-current' => '1'
         ]]],
+        // Permitir marcar si la reserva corresponde a un cliente con preferencia (corazón)
+        ['fn' => 'campoCheckbox', 'args' => ['nombre' => 'exclusividad', 'label' => 'Cliente con preferencia', 'valorInput' => '1', 'checked' => false, 'extraClassLabel' => 'customCheckbox exclusividadForm']],
         ['fn' => 'botonEnviar', 'args' => ['accion' => 'crearReserva', 'texto' => 'Guardar Reserva', 'extraClass' => 'button-primary']],
         ['fn' => 'fin'],
     ];

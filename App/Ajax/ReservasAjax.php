@@ -272,5 +272,6 @@ function obtenerReservaCallback()
         'hora_reserva' => get_post_meta($id, 'hora_reserva', true) ?: '',
         'servicio_id' => is_array($servicio) && !is_wp_error($servicio) && !empty($servicio) ? $servicio[0]->term_id : '',
         'barbero_id' => is_array($barbero) && !is_wp_error($barbero) && !empty($barbero) ? $barbero[0]->term_id : '',
+        'exclusividad' => get_post_meta($id, 'exclusividad', true) ?: '0',
     ]);
 }

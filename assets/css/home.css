@@ -416,3 +416,8 @@ form.glory-api-config-form {
     gap: 20px;
     width: 100%;
 }
+
+.exclusividadForm {
+    margin-top: 25px;
+    border-radius: 100px;
+}

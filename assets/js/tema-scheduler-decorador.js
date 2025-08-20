@@ -15,15 +15,14 @@
         var exclusividad = (bloque.dataset.exclusividad === 'true' || bloque.dataset.exclusividad === '1');
 
         var iconoEx = exclusividad ? ' <span class="iconoExclusividad">❤️</span>' : '';
-        var telefonoStr = telefono ? ", tel. " + escapeHtml(telefono) : '';
+        var telefonoStr = telefono ? escapeHtml(telefono) : '';
 
         cont.innerHTML = ''
             + '<p class="eventoParrafo">'
-            + escapeHtml(detalle) + iconoEx
-            + ' para el cliente <strong>"' + escapeHtml(titulo) + '"</strong>'
-            + (recurso ? ' con el barbero <strong>"' + escapeHtml(recurso) + '"</strong>' : '')
-            + (horaInicio ? ' a las ' + escapeHtml(horaInicio) : '')
-            + telefonoStr
+            + (horaInicio ? escapeHtml(horaInicio) : '') + (horaFin ? ' - ' + escapeHtml(horaFin) : '') + iconoEx + '<br/>'
+            + escapeHtml(titulo) + '<br/>'
+            + (telefonoStr ? telefonoStr + '<br/>' : '')
+            + escapeHtml(detalle)
             + '</p>';
 
         cont.dataset.decorado = '1';

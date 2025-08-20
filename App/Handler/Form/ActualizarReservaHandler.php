@@ -27,6 +27,7 @@ class ActualizarReservaHandler implements FormHandlerInterface
         $barberoId = absint($postDatos['barbero_id'] ?? 0);
         $fechaReserva = sanitize_text_field($postDatos['fecha_reserva'] ?? '');
         $horaReserva = sanitize_text_field($postDatos['hora_reserva'] ?? '');
+        $exclusividad = isset($postDatos['exclusividad']) ? (string) (absint($postDatos['exclusividad']) > 0 ? '1' : '0') : null;
 
         if (empty($nombreCliente) || empty($telefonoCliente) || !is_email($correoCliente) || empty($servicioId) || empty($barberoId) || empty($fechaReserva) || empty($horaReserva)) {
             throw new \Exception('Por favor, completa todos los campos obligatorios.');
@@ -42,6 +43,9 @@ class ActualizarReservaHandler implements FormHandlerInterface
         update_post_meta($postId, 'correo_cliente', $correoCliente);
         update_post_meta($postId, 'fecha_reserva', $fechaReserva);
         update_post_meta($postId, 'hora_reserva', $horaReserva);
+        if ($exclusividad !== null) {
+            update_post_meta($postId, 'exclusividad', $exclusividad);
+        }
 
         // Taxonomías
         wp_set_object_terms($postId, $servicioId, 'servicio', false);

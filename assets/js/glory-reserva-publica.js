@@ -182,5 +182,15 @@
             horaSelect.dataset.fmSelectedValue = horaVal;
             horaSelect.value = horaVal;
         }
+        // Marcar el checkbox de exclusividad si el server devuelve ese valor
+        try {
+            const exclusividadVal = String(data.exclusividad || '0');
+            const exclusividadEl = form.querySelector('[name="exclusividad"]');
+            if (exclusividadEl && exclusividadEl.type === 'checkbox') {
+                exclusividadEl.checked = exclusividadVal === '1' || exclusividadVal === 'true';
+            }
+        } catch (e) {
+            // silent
+        }
     });
 })();

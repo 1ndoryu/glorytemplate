@@ -95,6 +95,15 @@ function renderPaginaGanancias()
     }
     wp_reset_postdata();
 
+    // --- Ordenar reservas por fecha (más recientes primero) ---
+    if (!empty($reservasDetalladas) && is_array($reservasDetalladas)) {
+        usort($reservasDetalladas, function ($a, $b) {
+            $ta = strtotime(isset($a['fecha']) ? $a['fecha'] : '') ?: 0;
+            $tb = strtotime(isset($b['fecha']) ? $b['fecha'] : '') ?: 0;
+            return $tb <=> $ta; // descendente
+        });
+    }
+
     // --- 5. REALIZAR CÁLCULOS ---
     $resultados = [];
     if (!empty($datosParaAnalisis)) {
@@ -113,7 +122,19 @@ function renderPaginaGanancias()
     $configuracionColumnas = [
         'columnas' => [
             ['etiqueta' => 'Cliente', 'clave' => 'cliente'],
-            ['etiqueta' => 'Fecha', 'clave' => 'fecha'],
+            ['etiqueta' => 'Fecha', 'clave' => 'fecha', 'callback' => function ($row) {
+                $fechaRaw = isset($row['fecha']) ? $row['fecha'] : '';
+                if (empty($fechaRaw)) {
+                    return '';
+                }
+                // Intentar usar strtotime para soportar múltiples formatos
+                $ts = strtotime($fechaRaw);
+                if ($ts === false) {
+                    // Si falla, devolver el valor original sin cambios
+                    return $fechaRaw;
+                }
+                return date('d-m-Y', $ts);
+            }],
             ['etiqueta' => 'Servicio', 'clave' => 'servicio'],
             ['etiqueta' => 'Barbero', 'clave' => 'barbero'],
             ['etiqueta' => 'Precio', 'clave' => 'precio', 'callback' => function ($row) {
