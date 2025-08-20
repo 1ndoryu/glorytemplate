@@ -136,8 +136,164 @@ function renderizarFormularioFecha(string $fecha)
         <input type="hidden" name="page" value="<?php echo esc_attr(sanitize_key($_REQUEST['page'])); ?>">
         <?php endif; ?>
         <input type="date" id="fecha_visualizacion" name="fecha_visualizacion" value="<?php echo esc_attr($fecha); ?>">
-        <button type="submit" class="button"><?php echo esc_html('Ver Fecha'); ?></button>
+        <button type="button" id="verFechaBtn" class="button"><?php echo esc_html('Ver Fecha'); ?></button>
     </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var inputFecha = document.getElementById('fecha_visualizacion');
+            var btnVerFecha = document.getElementById('verFechaBtn');
+            var form = document.querySelector('.formDatepicker');
+            var contenedorPagina = document.querySelector('.wrap.paginaVisual');
+
+            // Función auxiliar para formatear fecha
+            function formatear(fecha) {
+                var y = fecha.getFullYear();
+                var m = ('0' + (fecha.getMonth() + 1)).slice(-2);
+                var d = ('0' + fecha.getDate()).slice(-2);
+                return y + '-' + m + '-' + d;
+            }
+
+            // Función para cargar el scheduler por AJAX
+            async function cargarScheduler(fechaStr) {
+                if (!contenedorPagina) return false;
+
+                // Mostrar indicador de carga
+                contenedorPagina.style.opacity = '0.7';
+                var loadingText = document.createElement('div');
+                loadingText.innerHTML = '<p>Cargando...</p>';
+                loadingText.style.position = 'absolute';
+                loadingText.style.top = '50%';
+                loadingText.style.left = '50%';
+                loadingText.style.transform = 'translate(-50%, -50%)';
+                loadingText.style.background = '#fff';
+                loadingText.style.padding = '10px 20px';
+                loadingText.style.borderRadius = '4px';
+                loadingText.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                loadingText.style.zIndex = '1000';
+                contenedorPagina.appendChild(loadingText);
+
+                try {
+                    var usarGloryAjax = (typeof window.gloryAjax === 'function');
+                    var resp;
+
+                    if (usarGloryAjax) {
+                        resp = await window.gloryAjax('glory_visualizacion_por_fecha', { fecha: fechaStr });
+                    } else {
+                        var params = new URLSearchParams({ action: 'glory_visualizacion_por_fecha', fecha: fechaStr });
+                        var url = (typeof window.ajax_params !== 'undefined' && window.ajax_params.ajax_url) ? window.ajax_params.ajax_url : '/wp-admin/admin-ajax.php';
+                        var r = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: params
+                        });
+                        var t = await r.text();
+                        try { resp = JSON.parse(t); } catch (e) { resp = { success: false, message: 'Respuesta no válida' }; }
+                    }
+
+                    if (resp && resp.success && resp.data && resp.data.html) {
+                        // Reemplazar solo el contenedor del scheduler
+                        var temp = document.createElement('div');
+                        temp.innerHTML = resp.data.html;
+                        var nuevo = temp.querySelector('.glorySchedulerContenedor');
+                        var viejo = document.querySelector('.glorySchedulerContenedor');
+                        if (nuevo && viejo && viejo.parentNode) {
+                            viejo.parentNode.replaceChild(nuevo, viejo);
+                        } else {
+                            // Fallback: insertar completo
+                            var existente = document.querySelector('.glorySchedulerContenedor');
+                            if (existente) existente.outerHTML = resp.data.html; else contenedorPagina.insertAdjacentHTML('beforeend', resp.data.html);
+                        }
+
+                        // Actualizar input
+                        if (inputFecha) inputFecha.value = fechaStr;
+
+                        // Actualizar URL para permitir compartir/recargar misma fecha
+                        try {
+                            var url = new URL(window.location.href);
+                            url.searchParams.set('fecha_visualizacion', fechaStr);
+                            window.history.pushState({ path: url.href }, '', url.href);
+                        } catch (e) {}
+
+                        // Disparar evento de recarga para re-inicializaciones
+                        try {
+                            requestAnimationFrame(function(){
+                                setTimeout(function(){
+                                    var ev1 = new CustomEvent('gloryRecarga', { bubbles: true, cancelable: true });
+                                    document.dispatchEvent(ev1);
+                                }, 0);
+                                setTimeout(function(){
+                                    var ev2 = new CustomEvent('gloryRecarga', { bubbles: true, cancelable: true });
+                                    document.dispatchEvent(ev2);
+                                }, 80);
+                            });
+                        } catch(e) {
+                            var ev = new CustomEvent('gloryRecarga', { bubbles: true, cancelable: true });
+                            document.dispatchEvent(ev);
+                        }
+
+                        return true;
+                    } else {
+                        console.error('Error en respuesta AJAX:', resp);
+                        return false;
+                    }
+                } catch (err) {
+                    console.error('Error cargando scheduler:', err);
+                    return false;
+                } finally {
+                    // Remover indicador de carga
+                    if (loadingText.parentNode) {
+                        loadingText.parentNode.removeChild(loadingText);
+                    }
+                    contenedorPagina.style.opacity = '1';
+                }
+            }
+
+            // Event listener para el botón Ver Fecha
+            if (btnVerFecha) {
+                btnVerFecha.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    if (!inputFecha || !inputFecha.value) {
+                        alert('Por favor selecciona una fecha');
+                        return;
+                    }
+
+                    var fechaSeleccionada = inputFecha.value;
+
+                    cargarScheduler(fechaSeleccionada).then(function(exito){
+                        if (!exito) {
+                            // Fallback: si falla AJAX, hacer submit normal del formulario
+                            console.warn('Fallback: recargando página completa');
+                            if (form) form.submit();
+                        }
+                    });
+                });
+            }
+
+            // También permitir submit del formulario con Enter
+            if (form && inputFecha) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    if (!inputFecha.value) {
+                        alert('Por favor selecciona una fecha');
+                        return;
+                    }
+
+                    var fechaSeleccionada = inputFecha.value;
+
+                    cargarScheduler(fechaSeleccionada).then(function(exito){
+                        if (!exito) {
+                            // Fallback: si falla AJAX, hacer submit normal del formulario
+                            console.warn('Fallback: recargando página completa');
+                            form.submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
 <?php
 }
 

@@ -29,7 +29,7 @@ GloryFeatures::enable('gloryFilters');
 // Activar feature para BadgeList
 GloryFeatures::disable('badgeList');
 // Feature para control de highlight y GSAP
-GloryFeatures::disable('highlight');
+GloryFeatures::enable('highlight');
 GloryFeatures::disable('gsap');
 
 

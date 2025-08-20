@@ -13,6 +13,8 @@ SyncManager::setResetButtonVisible(true);
 PageManager::define('home', 'home');
 #PageManager::define('panel', 'renderPanel', null, ['administrator']);
 PageManager::define('reservar', 'renderPaginaReservarPublica');
+// Página de documentación pública de la API (Chatbot)
+PageManager::define('documentacion-api', 'renderPaginaDocumentacion');
 
 AjaxNav::contentSelector('#main');
 AjaxNav::mainScrollSelector('#main');

@@ -112,6 +112,9 @@ function home()
                                 <code>/wp-json/glory/v1/horas-disponibles</code>,
                                 <code>/wp-json/glory/v1/barberos/{barbero_id}/servicios</code>
                             </p>
+                            <p>
+                                <button type="button" id="glory_api_ver_doc_btn" class="button">Ver documentación</button>
+                            </p>
                         </form>
                         <script>
                         (function(){
@@ -167,6 +170,14 @@ function home()
                                     }
                                 }).catch(()=> notify('Error de red.', 'error')).finally(()=>{ btnGuardar.disabled = false; });
                             });
+
+                            // Botón para abrir la documentación en una nueva pestaña
+                            const btnVerDoc = document.getElementById('glory_api_ver_doc_btn');
+                            if (btnVerDoc) {
+                                btnVerDoc.addEventListener('click', function(){
+                                    window.open('<?php echo esc_url( get_permalink( get_page_by_path( "documentacion-api" ) ) ); ?>', '_blank');
+                                });
+                            }
                         })();
                         </script>
                     </div>
