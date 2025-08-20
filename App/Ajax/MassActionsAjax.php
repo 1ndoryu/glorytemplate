@@ -82,6 +82,38 @@ function gloryEliminarBarberosCallback() {
 	wp_send_json_success(['html' => $html]);
 }
 
+function gloryToggleBarberoCallback() {
+    error_log('[realtime] glory_toggle_barbero_callback llamado');
+    if (!is_user_logged_in() || !current_user_can('manage_options')) {
+        wp_send_json_error(['mensaje' => 'No autorizado.'], 403);
+    }
+    $term_id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+    if ($term_id <= 0 || !term_exists($term_id, 'barbero')) {
+        wp_send_json_error(['mensaje' => 'ID inválido.']);
+    }
+    $current = get_term_meta($term_id, 'inactivo', true) === '1';
+    $new = $current ? '0' : '1';
+    update_term_meta($term_id, 'inactivo', $new);
+
+    // Re-renderizar lista
+    $option_key = 'barberia_barberos';
+    if (!function_exists('obtenerDatosBarberos') || !function_exists('columnasBarberos')) {
+        wp_send_json_error(['mensaje' => 'Config no disponible.']);
+    }
+    list($opcionesServicios, $barberosCombinados, $serviciosMapIdANombre) = obtenerDatosBarberos($option_key);
+    $configuracionColumnas = columnasBarberos($opcionesServicios, $serviciosMapIdANombre);
+    $configuracionColumnas['acciones_masivas_separadas'] = true;
+    ob_start();
+    DataGridRenderer::render($barberosCombinados, $configuracionColumnas);
+    $html = ob_get_clean();
+    if (!is_admin()) {
+        $html = '<div class="tablaWrap">' . $html . '</div>';
+    }
+    try { EventBus::emit('term_barbero', ['accion' => 'toggle', 'term_id' => $term_id, 'nuevo' => $new]); } catch (
+    \Throwable $e) {}
+    wp_send_json_success(['html' => $html]);
+}
+
 function gloryEliminarServiciosCallback() {
 	error_log('[realtime] glory_eliminar_servicios_callback llamado');
 	if (!is_user_logged_in() || !current_user_can('manage_options')) {

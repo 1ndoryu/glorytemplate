@@ -96,6 +96,8 @@ class CrearReservaHandler implements FormHandlerInterface
         }
         $candidatos = [];
         foreach ($barberos as $barbero) {
+            // Omitir barberos dados de baja
+            if (get_term_meta($barbero->term_id, 'inactivo', true) === '1') continue;
             $servicesIds = get_term_meta($barbero->term_id, 'servicios', true);
             if (!is_array($servicesIds)) $servicesIds = [];
             $servicesIds = array_map('intval', $servicesIds);

@@ -92,6 +92,8 @@ if (Glory\Core\GloryFeatures::isEnabled('gloryAjax') !== false) {
     add_action('wp_ajax_nopriv_glory_eliminar_reservas', 'gloryEliminarReservasCallback');
     add_action('wp_ajax_glory_eliminar_barberos', 'gloryEliminarBarberosCallback');
     add_action('wp_ajax_nopriv_glory_eliminar_barberos', 'gloryEliminarBarberosCallback');
+    add_action('wp_ajax_glory_toggle_barbero', 'gloryToggleBarberoCallback');
+    add_action('wp_ajax_nopriv_glory_toggle_barbero', 'gloryToggleBarberoCallback');
     add_action('wp_ajax_glory_eliminar_servicios', 'gloryEliminarServiciosCallback');
     add_action('wp_ajax_nopriv_glory_eliminar_servicios', 'gloryEliminarServiciosCallback');
 
@@ -136,3 +138,12 @@ add_filter('style_loader_src', function ($src) {
     }
     return $src;
 }, 9999);
+
+// Al crear un término de la taxonomía 'servicio', asignarlo automáticamente a todos los barberos
+add_action('created_term', function ($term_id, $tt_id, $taxonomy) {
+    if ($taxonomy === 'servicio') {
+        if (function_exists('asignarServicioATodosLosBarberos')) {
+            asignarServicioATodosLosBarberos((int) $term_id);
+        }
+    }
+}, 10, 3);

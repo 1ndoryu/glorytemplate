@@ -84,6 +84,7 @@ function obtenerDatosBarberos(string $claveOpcion): array
                 'image_url' => get_term_meta($term->term_id, 'image_url', true) ?: '',
                 'services' => array_values(array_filter($services_names_meta)),
                 'services_ids' => $services_ids_meta,
+                'inactivo' => get_term_meta($term->term_id, 'inactivo', true) === '1',
             ];
         }
     }
@@ -99,15 +100,15 @@ function obtenerDatosBarberos(string $claveOpcion): array
 
             $servicesIds = [];
             $servicesNames = [];
-            // Priorizar 'services_ids' si viene desde opciones
-            if (!empty($barberoActual['services_ids']) && is_array($barberoActual['services_ids'])) {
-                $servicesIds = array_map('intval', $barberoActual['services_ids']);
-            } elseif (!empty($barberoActual['term_id'])) {
-                // Si no, intentar desde meta del término
+            // Priorizar SIEMPRE meta del término si hay term_id, y usar opciones como fallback
+            if (!empty($barberoActual['term_id'])) {
                 $meta_ids = get_term_meta(intval($barberoActual['term_id']), 'servicios', true);
                 if (is_array($meta_ids)) {
                     $servicesIds = array_map('intval', $meta_ids);
                 }
+            }
+            if (empty($servicesIds) && !empty($barberoActual['services_ids']) && is_array($barberoActual['services_ids'])) {
+                $servicesIds = array_map('intval', $barberoActual['services_ids']);
             }
             // Si aún vacío, intentar mapear por nombres
             if (empty($servicesIds) && ! empty($barberoActual['services'])) {
@@ -281,6 +282,10 @@ function columnasBarberos(array $opcionesServicios, array $servicios_map_id_to_n
 
                 return esc_html(implode(', ', $names));
             }],
+            ['etiqueta' => 'Estado', 'clave' => 'estado', 'callback' => function ($b) {
+                $inactivo = !empty($b['inactivo']);
+                return $inactivo ? esc_html__('De baja', 'glorytemplate') : esc_html__('Activo', 'glorytemplate');
+            }],
             ['etiqueta' => 'Acciones', 'clave' => 'acciones', 'callback' => function ($b) {
                 $objectId = $b['term_id'] ?? ($b['id'] ?? null);
                 if (!$objectId) return '';
@@ -294,6 +299,9 @@ function columnasBarberos(array $opcionesServicios, array $servicios_map_id_to_n
                 $menu  = '<div id="' . esc_attr($menu_id) . '" class="glory-submenu" style="display:none;flex-direction:column;">';
                 $menu .= '<a href="#" class="openModal noAjax" data-modal="modalAnadirBarbero" data-form-mode="edit" data-fetch-action="glory_get_barbero_details" data-object-id="' . esc_attr($objectId) . '" data-submit-action="barbero" data-submit-text="Guardar Cambios" data-modal-title-edit="' . esc_attr('Editar Barbero') . '">' . esc_html__('Editar', 'glorytemplate') . '</a>';
                 // En frontend: AJAX; en admin: fallback a admin-post
+                $inactivo = !empty($b['inactivo']);
+                $toggleLabel = $inactivo ? esc_html__('Reactivar', 'glorytemplate') : esc_html__('Dar de baja', 'glorytemplate');
+                $menu .= '<a href="#" class="noAjax js-toggle-barbero" data-term-id="' . esc_attr($objectId) . '">' . $toggleLabel . '</a>';
                 $menu .= '<a href="#" class="noAjax js-eliminar-barbero" data-term-id="' . esc_attr($objectId) . '">' . esc_html__('Eliminar', 'glorytemplate') . '</a>';
                 $menu .= '<form method="post" action="' . esc_attr($formAction) . '" style="display:none" class="glory-delete-barbero-fallback">'
                     . $nonce

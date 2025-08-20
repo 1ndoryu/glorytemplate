@@ -143,6 +143,27 @@
     }
   });
 
+  // Toggle dar de baja / reactivar barbero
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest('a.js-toggle-barbero');
+    if (!a) return;
+    ev.preventDefault();
+    var termId = parseInt(a.getAttribute('data-term-id') || '0', 10);
+    if (!termId) return;
+    if (typeof window.gloryAjax === 'function') {
+      window.gloryAjax('glory_toggle_barbero', { id: String(termId) }).then(function (resp) {
+        if (resp && resp.success && resp.data && resp.data.html) {
+          var wrap = document.querySelector('.pestanaContenido[data-pestana="Barberos"] .tablaWrap');
+          if (wrap) { wrap.outerHTML = resp.data.html; }
+          document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
+          if (window.gloryRealtime && typeof window.gloryRealtime.notify === 'function') {
+            try { window.gloryRealtime.notify('term_barbero'); } catch(_){ }
+          }
+        }
+      });
+    }
+  });
+
     // Tema: al abrir modal en edición, preseleccionar hora actual inmediatamente
     document.addEventListener('gloryFormModal:afterEdit', function (ev) {
         const form = ev.detail && ev.detail.form;

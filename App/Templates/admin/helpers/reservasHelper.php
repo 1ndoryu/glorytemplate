@@ -21,6 +21,10 @@ function gloryOpcionesTaxonomia(string $taxonomy, string $placeholder): array
 
     if (!is_wp_error($terminos)) {
         foreach ($terminos as $term) {
+            // No incluir barberos dados de baja
+            if ($taxonomy === 'barbero' && get_term_meta(intval($term->term_id), 'inactivo', true) === '1') {
+                continue;
+            }
             $opciones[$term->term_id] = $term->name;
         }
     }

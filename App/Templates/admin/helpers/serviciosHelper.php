@@ -66,6 +66,9 @@ function procesarFormularioServicios(): void
 							$servicios[$id]['term_id'] = $term_id;
 							update_term_meta($term_id, 'duracion', $duration);
 							update_term_meta($term_id, 'precio', $price);
+							if (function_exists('asignarServicioATodosLosBarberos')) {
+								asignarServicioATodosLosBarberos($term_id);
+							}
 						}
 					} else {
 						$term_id = is_array($existing) ? intval($existing['term_id']) : intval($existing);
@@ -89,6 +92,9 @@ function procesarFormularioServicios(): void
 					$new_entry['term_id'] = intval($inserted['term_id']);
 					update_term_meta($new_entry['term_id'], 'duracion', $duration);
 					update_term_meta($new_entry['term_id'], 'precio', $price);
+					if (function_exists('asignarServicioATodosLosBarberos')) {
+						asignarServicioATodosLosBarberos($new_entry['term_id']);
+					}
 				}
 			} else {
 				$term_id = is_array($existing) ? intval($existing['term_id']) : intval($existing);

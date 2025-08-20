@@ -203,6 +203,11 @@ function obtenerServiciosPorBarberoApi(WP_REST_Request $request) {
 		return new WP_REST_Response(['success' => false, 'error' => 'Barbero no encontrado.'], 404);
 	}
 
+	// No exponer barberos dados de baja a la API
+	if (get_term_meta($barberoId, 'inactivo', true) === '1') {
+		return new WP_REST_Response(['success' => false, 'error' => 'Barbero no disponible.'], 404);
+	}
+
 	$servicesIds = get_term_meta($barberoId, 'servicios', true);
 	if (!is_array($servicesIds)) $servicesIds = [];
 	$servicesIds = array_map('intval', $servicesIds);
@@ -243,6 +248,8 @@ function listarBarberosApi(WP_REST_Request $request) {
 
 	$items = [];
 	foreach ($terms as $term) {
+		// Omitir barberos dados de baja
+		if (get_term_meta($term->term_id, 'inactivo', true) === '1') continue;
 		$items[] = [
 			'id'     => (int) $term->term_id,
 			'nombre' => (string) $term->name,
@@ -385,4 +392,33 @@ function obtenerHorariosDisponiblesCualquierBarbero($fecha, $servicioId, $duraci
     return $horas;
 }
 
+
+/**
+ * Asigna un servicio (term_id) a todos los barberos agregándolo al meta 'servicios'.
+ */
+function asignarServicioATodosLosBarberos(int $servicioId): void
+{
+    $servicioId = absint($servicioId);
+    if ($servicioId <= 0) {
+        return;
+    }
+
+    $barberos = get_terms([
+        'taxonomy' => 'barbero',
+        'hide_empty' => false,
+    ]);
+    if (is_wp_error($barberos) || empty($barberos)) {
+        return;
+    }
+
+    foreach ($barberos as $barbero) {
+        $ids = get_term_meta($barbero->term_id, 'servicios', true);
+        if (!is_array($ids)) {
+            $ids = [];
+        }
+        $ids[] = $servicioId;
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+        update_term_meta($barbero->term_id, 'servicios', $ids);
+    }
+}
 

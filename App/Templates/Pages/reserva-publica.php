@@ -25,6 +25,10 @@ function renderPaginaReservarPublica()
     $opcionesBarberos = ['any' => 'Cualquier barbero'];
     if (!is_wp_error($barberosTerms)) {
         foreach ($barberosTerms as $term) {
+            // No incluir barberos dados de baja
+            if (get_term_meta(intval($term->term_id), 'inactivo', true) === '1') {
+                continue;
+            }
             $opcionesBarberos[$term->term_id] = $term->name;
         }
     }
