@@ -33,9 +33,8 @@ function gloryEliminarReservasCallback() {
 	ob_start();
 	DataGridRenderer::render($consultaReservas, $configuracionColumnas);
 	$html = ob_get_clean();
-	if (!is_admin()) {
-		$html = '<div class="tablaWrap">' . $html . '</div>';
-	}
+	// Envolver siempre en .tablaWrap para mantener consistencia visual
+	$html = '<div class="tablaWrap">' . $html . '</div>';
 	// Emitir evento realtime para reservas tras eliminación masiva
 	try { EventBus::emit('post_reserva', ['accion' => 'eliminar_masivo', 'ids' => $ids]); } catch (\Throwable $e) {}
 
@@ -75,9 +74,8 @@ function gloryEliminarBarberosCallback() {
 	ob_start();
 	DataGridRenderer::render($barberosCombinados, $configuracionColumnas);
 	$html = ob_get_clean();
-	if (!is_admin()) {
-		$html = '<div class="tablaWrap">' . $html . '</div>';
-	}
+	// Envolver siempre en .tablaWrap para mantener consistencia visual
+	$html = '<div class="tablaWrap">' . $html . '</div>';
 	try { EventBus::emit('term_barbero', ['accion' => 'eliminar_masivo', 'ids' => $ids]); } catch (\Throwable $e) {}
 	wp_send_json_success(['html' => $html]);
 }
@@ -106,9 +104,8 @@ function gloryToggleBarberoCallback() {
     ob_start();
     DataGridRenderer::render($barberosCombinados, $configuracionColumnas);
     $html = ob_get_clean();
-    if (!is_admin()) {
-        $html = '<div class="tablaWrap">' . $html . '</div>';
-    }
+    // Unificar respuesta: siempre devolver envuelto en .tablaWrap para reemplazo consistente en frontend
+    $html = '<div class="tablaWrap">' . $html . '</div>';
     try { EventBus::emit('term_barbero', ['accion' => 'toggle', 'term_id' => $term_id, 'nuevo' => $new]); } catch (
     \Throwable $e) {}
     wp_send_json_success(['html' => $html]);
@@ -142,7 +139,7 @@ function gloryEliminarServiciosCallback() {
 	ob_start();
 	DataGridRenderer::render($lista, $configuracionColumnas);
 	$html = ob_get_clean();
-	// Unificar con reservas y barberos: siempre envolver en .tablaWrap
+	// Envolver siempre en .tablaWrap para mantener consistencia visual
 	$html = '<div class="tablaWrap">' . $html . '</div>';
 	try { EventBus::emit('term_servicio', ['accion' => 'eliminar_masivo', 'ids' => $ids]); } catch (\Throwable $e) {}
 	wp_send_json_success(['html' => $html]);

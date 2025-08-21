@@ -123,9 +123,32 @@
     var a = ev.target.closest('a.js-eliminar-barbero');
     if (!a) return;
     ev.preventDefault();
+    if (window.__gloryRealtimeScriptLoaded) return;
+    if (document.body && document.body.classList && document.body.classList.contains('wp-admin')) return;
     var termId = parseInt(a.getAttribute('data-term-id') || '0', 10);
     if (!termId) return;
-    if (!confirm('¿Estás seguro de que quieres eliminar este barbero?')) return;
+    var __confirm = window.confirm('¿Estás seguro de que quieres eliminar este barbero?');
+    if (__confirm && typeof __confirm.then === 'function') {
+      return __confirm.then(function (ok) {
+        if (!ok) return;
+        var form = a.parentElement && a.parentElement.querySelector('form.glory-delete-barbero-fallback');
+        if (typeof window.gloryAjax === 'function') {
+          window.gloryAjax('glory_eliminar_barberos', { ids: String(termId) }).then(function (resp) {
+            if (resp && resp.success && resp.data && resp.data.html) {
+              var wrap = document.querySelector('.pestanaContenido[data-pestana="Barberos"] .tablaWrap');
+              if (wrap) { wrap.outerHTML = resp.data.html; }
+              document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
+              if (window.gloryRealtime && typeof window.gloryRealtime.notify === 'function') {
+                try { window.gloryRealtime.notify('term_barbero'); } catch(_){ }
+              }
+            }
+          });
+        } else if (form) {
+          form.submit();
+        }
+      });
+    }
+    if (!__confirm) return;
     var form = a.parentElement && a.parentElement.querySelector('form.glory-delete-barbero-fallback');
     if (typeof window.gloryAjax === 'function') {
       window.gloryAjax('glory_eliminar_barberos', { ids: String(termId) }).then(function (resp) {
