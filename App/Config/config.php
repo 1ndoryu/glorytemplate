@@ -6,7 +6,8 @@ use Glory\Admin\SyncManager;
 use Dotenv\Dotenv;
 use Glory\Helpers\AjaxNav;
 
-AssetManager::setThemeVersion('0.1.1');
+$themeVersion = get_option('glory_theme_asset_version', '0.1.2');
+AssetManager::setThemeVersion((string) $themeVersion);
 SyncManager::setAdminBarVisible(true);
 SyncManager::setResetButtonVisible(true);
 
