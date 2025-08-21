@@ -88,6 +88,36 @@ function renderPaginaDocumentacion()
             <h3 style="margin-top:18px;">3) Servicios por barbero</h3>
             <p><strong>Método:</strong> <code>GET</code> — <strong>Ruta:</strong> <code>/wp-json/glory/v1/barberos/{barbero_id}/servicios</code></p>
 
+            <h3 style="margin-top:18px;">3.1) Listar servicios generales</h3>
+            <p><strong>Método:</strong> <code>GET</code> — <strong>Ruta:</strong> <code>/wp-json/glory/v1/servicios</code></p>
+            <p><strong>Descripción:</strong> Devuelve la lista completa de servicios. Opcionalmente puedes filtrar por <code>barbero_id</code> para obtener únicamente los servicios que ofrece un barbero.</p>
+            <p><strong>Autenticación:</strong> Bearer Token — mismo sistema que el resto de endpoints.</p>
+
+            <h4 style="margin-top:8px;">Query params</h4>
+            <ul>
+                <li><code>barbero_id</code> (opcional): ID numérico del término <code>barbero</code> para filtrar servicios ofrecidos por ese barbero.</li>
+            </ul>
+
+            <h4 style="margin-top:8px;">Response</h4>
+            <p>JSON con <code>success</code> y <code>items</code> (array de servicios):</p>
+            <pre style="background:#f6f6f8;padding:12px;border-radius:6px;overflow:auto;border:1px solid #eaeaea;color:#111;"><code>{
+  "success": true,
+  "items": [
+    {"id":12, "nombre":"Corte de pelo", "slug":"corte-pelo", "duracion":30, "precio":15.0},
+    {"id":13, "nombre":"Barba", "slug":"barba", "duracion":20, "precio":10.0}
+  ]
+}</code></pre>
+
+            <h4 style="margin-top:8px;">Ejemplo curl</h4>
+            <pre style="background:#f6f6f8;padding:12px;border-radius:6px;overflow:auto;border:1px solid #eaeaea;color:#111;"><code>curl -X GET "https://tusitio.com/wp-json/glory/v1/servicios" \
+  -H "Authorization: Bearer TU_TOKEN_SECRETO"
+
+// Filtrar por barbero
+curl -G "https://tusitio.com/wp-json/glory/v1/servicios" \
+  -H "Authorization: Bearer TU_TOKEN_SECRETO" \
+  --data-urlencode "barbero_id=5"
+</code></pre>
+
             <h3 style="margin-top:18px;">4) Listar barberos</h3>
             <p><strong>Método:</strong> <code>GET</code> — <strong>Ruta:</strong> <code>/wp-json/glory/v1/barberos</code></p>
             <p>Respuesta: lista de barberos con <code>id</code>, <code>nombre</code> y <code>slug</code> para identificar el <code>barbero_id</code>.</p>
@@ -138,6 +168,78 @@ function renderPaginaDocumentacion()
             <p>Para depuración, la pestaña API muestra la hora actual del sistema en la zona de WordPress. Ejemplo (hora actual en servidor):</p>
             <pre style="background:#f6f6f8;padding:12px;border-radius:6px;overflow:auto;border:1px solid #eaeaea;color:#111;"><code><?php $tz = function_exists('wp_timezone') ? wp_timezone() : (new DateTimeZone(get_option('timezone_string') ?: date_default_timezone_get())); $now = new DateTime('now', $tz); echo $now->format('Y-m-d H:i:s T'); ?></code></pre>
             <p><strong>Nota:</strong> Si la barbería opera en una zona horaria distinta a la del servidor, asegúrate de ajustar la opción de WordPress (Ajustes → Generales → Zona horaria) para que coincida con la hora local de la barbería; la lógica de reservas respetará esa configuración.</p>
+
+            <h2 style="font-size:18px;margin-top:18px;color:#111;">Ejemplo real: flujo desde un chatbot</h2>
+            <p>Este ejemplo muestra cómo un chatbot puede manejar la intención "quiero un corte de pelo" y completar la reserva usando la API.</p>
+
+            <h4 style="margin-top:8px;">Conversación ejemplo</h4>
+            <pre style="background:#f6f6f8;padding:12px;border-radius:6px;overflow:auto;border:1px solid #eaeaea;color:#111;"><code>
+Usuario: "Oye, quiero un corte de pelo"
+Chatbot: "Perfecto — ¿qué día te gustaría?"
+Usuario: "El miércoles 2025-08-06"
+Chatbot: "¿Prefieres algún barbero en particular? (o escribe 'cualquiera')"
+Usuario: "Cualquiera"
+Chatbot: "Voy a buscar horarios disponibles..."
+</code></pre>
+
+            <h4 style="margin-top:8px;">Paso 1 — Obtener servicios y mapear la intención</h4>
+            <p>El chatbot solicita la lista de servicios y busca el que más coincide con la intención (ej. "corte de pelo").</p>
+            <pre style="background:#f6f6f8;padding:12px;border-radius:6px;overflow:auto;border:1px solid #eaeaea;color:#111;"><code>curl -X GET "https://tusitio.com/wp-json/glory/v1/servicios" -H "Authorization: Bearer TU_TOKEN_SECRETO"
+
+Respuesta:
+{
+  "success": true,
+  "items": [
+    {"id":12,"nombre":"Corte de pelo","slug":"corte-pelo","duracion":30,"precio":15.0},
+    {"id":13,"nombre":"Barba","slug":"barba","duracion":20,"precio":10.0}
+  ]
+}</code></pre>
+
+            <p>El chatbot hace una comparación simple (case-insensitive / fuzzy) entre "corte de pelo" y los nombres devueltos, selecciona <code>servicio_id=12</code>.</p>
+
+            <h4 style="margin-top:8px;">Paso 2 — Consultar horas disponibles</h4>
+            <pre style="background:#f6f6f8;padding:12px;border-radius:6px;overflow:auto;border:1px solid #eaeaea;color:#111;"><code>curl -G "https://tusitio.com/wp-json/glory/v1/horas-disponibles" \
+  -H "Authorization: Bearer TU_TOKEN_SECRETO" \
+  --data-urlencode "fecha=2025-08-06" \
+  --data-urlencode "servicio_id=12" \
+  --data-urlencode "barbero_id=any"
+
+Respuesta:
+{
+  "success": true,
+  "options": ["09:00","09:15","10:30"]
+}
+</code></pre>
+
+            <h4 style="margin-top:8px;">Paso 3 — Crear la reserva</h4>
+            <p>Tras confirmar la hora con el usuario, el chatbot hace el POST para crear la reserva.</p>
+            <pre style="background:#f6f6f8;padding:12px;border-radius:6px;overflow:auto;border:1px solid #eaeaea;color:#111;"><code>curl -X POST "https://tusitio.com/wp-json/glory/v1/reservas" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer TU_TOKEN_SECRETO" \
+  -d '{
+    "nombre_cliente": "Juan Pérez",
+    "telefono_cliente": "+57 3001234567",
+    "correo_cliente": "juan@example.com",
+    "servicio_id": 12,
+    "barbero_id": "any",
+    "fecha_reserva": "2025-08-06",
+    "hora_reserva": "09:00"
+  }'
+
+Respuesta esperada: 201 con {"success":true,"id":123,...}
+</code></pre>
+
+            <h4 style="margin-top:8px;">Pseudocódigo (ejemplo de lógica en el chatbot)</h4>
+            <pre style="background:#f6f6f8;padding:12px;border-radius:6px;overflow:auto;border:1px solid #eaeaea;color:#111;"><code>// 1) Obtener servicios
+const servicios = await api.get('/wp-json/glory/v1/servicios', { headers: { Authorization: 'Bearer TOKEN' }});
+// 2) Encontrar servicio por nombre (fuzzy match)
+const servicio = encontrarMejorCoincidencia(servicios.items, 'corte de pelo');
+// 3) Consultar horas disponibles
+const horas = await api.get('/wp-json/glory/v1/horas-disponibles', { params: { fecha: '2025-08-06', servicio_id: servicio.id, barbero_id: 'any' }});
+// 4) Mostrar opciones al usuario y obtener su elección
+// 5) Crear reserva con POST /wp-json/glory/v1/reservas
+</code></pre>
+
 
         </article>
     </section>

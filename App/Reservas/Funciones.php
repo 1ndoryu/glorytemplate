@@ -126,6 +126,19 @@ add_action('rest_api_init', function () {
 			return tienePermisoApi($request);
 		},
 	]);
+
+	// Listar servicios (opcionalmente filtrar por barbero_id)
+	register_rest_route('glory/v1', '/servicios', [
+		'methods'             => 'GET',
+		'callback'            => 'listarServiciosApi',
+		'permission_callback' => function ($request) {
+			$habilitada = (bool) OpcionManager::get('glory_api_habilitada', false);
+			if (!$habilitada) {
+				return new WP_Error('api_deshabilitada', 'La API está deshabilitada.', ['status' => 403]);
+			}
+			return tienePermisoApi($request);
+		},
+	]);
 });
 
 function tienePermisoApi(WP_REST_Request $request) {
@@ -253,6 +266,62 @@ function obtenerServiciosPorBarberoApi(WP_REST_Request $request) {
 		'success' => true,
 		'items' => $servicios,
 	]);
+}
+
+/** Listar todos los servicios o filtrar por barbero_id si se pasa como query param */
+function listarServiciosApi(WP_REST_Request $request) {
+    $barberoId = $request->get_param('barbero_id');
+    $items = [];
+
+    if (!empty($barberoId)) {
+        $barberoId = absint((int) $barberoId);
+        if ($barberoId <= 0) {
+            return new WP_REST_Response(['success' => false, 'error' => 'ID de barbero inválido.'], 400);
+        }
+        $servicesIds = get_term_meta($barberoId, 'servicios', true);
+        if (!is_array($servicesIds)) $servicesIds = [];
+        $servicesIds = array_map('intval', $servicesIds);
+        foreach ($servicesIds as $sid) {
+            $term = get_term($sid, 'servicio');
+            if (is_wp_error($term) || !$term) continue;
+            // Omitir servicios si están marcados inactivos (meta 'inactivo' = '1')
+            if (get_term_meta($term->term_id, 'inactivo', true) === '1') continue;
+            $duracion = get_term_meta($term->term_id, 'duracion', true);
+            $precio = get_term_meta($term->term_id, 'precio', true);
+            $items[] = [
+                'id' => (int) $term->term_id,
+                'nombre' => (string) $term->name,
+                'slug' => (string) $term->slug,
+                'duracion' => is_numeric($duracion) ? (int) $duracion : null,
+                'precio' => is_numeric($precio) ? (float) $precio : null,
+            ];
+        }
+    } else {
+        $terms = get_terms([
+            'taxonomy' => 'servicio',
+            'hide_empty' => false,
+        ]);
+        if (is_wp_error($terms)) {
+            return new WP_REST_Response(['success' => false, 'error' => 'No se pudo obtener la lista de servicios.'], 500);
+        }
+        foreach ($terms as $term) {
+            if (get_term_meta($term->term_id, 'inactivo', true) === '1') continue;
+            $duracion = get_term_meta($term->term_id, 'duracion', true);
+            $precio = get_term_meta($term->term_id, 'precio', true);
+            $items[] = [
+                'id' => (int) $term->term_id,
+                'nombre' => (string) $term->name,
+                'slug' => (string) $term->slug,
+                'duracion' => is_numeric($duracion) ? (int) $duracion : null,
+                'precio' => is_numeric($precio) ? (float) $precio : null,
+            ];
+        }
+    }
+
+    return new WP_REST_Response([
+        'success' => true,
+        'items' => $items,
+    ]);
 }
 
 function listarBarberosApi(WP_REST_Request $request) {
