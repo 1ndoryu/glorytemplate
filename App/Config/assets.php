@@ -58,7 +58,9 @@ AssetManager::defineFolder(
     'script',
     '/assets/js/',
     ['deps' => ['jquery'], 'in_footer' => true],
-    'tema-'
+    'tema-',
+    // Excluir scripts que se registran explícitamente más abajo para evitar cargas duplicadas
+    ['glory-reserva-publica.js']
 );
 
 // SCRIPT FOR DYNAMIC TIME SLOTS IN THE RESERVATION MODAL

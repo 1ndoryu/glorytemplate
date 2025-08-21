@@ -485,6 +485,36 @@
         confirmarAccion('¿Estás seguro de que quieres eliminar este servicio?', ejecutarEliminacion);
     });
 
+    // Eliminar reserva desde frontend sin recargar (manejo similar a servicios/barberos)
+    document.addEventListener('click', function (ev) {
+        var a = ev.target.closest('a.js-eliminar-reserva');
+        if (!a) return;
+        ev.preventDefault();
+        var id = parseInt(a.getAttribute('data-id') || '0', 10);
+        if (!id) return;
+        var ejecutarEliminacionReserva = function () {
+            if (typeof window.gloryAjax === 'function' && !document.body.classList.contains('wp-admin')) {
+                window.gloryAjax('glory_eliminar_reservas', {ids: String(id)})
+                    .then(function (resp) {
+                        if (resp && resp.success && resp.data && resp.data.html) {
+                            var wrap = document.querySelector('.pestanaContenido[data-pestana="Reservas"] .tablaWrap');
+                            if (wrap) { wrap.outerHTML = resp.data.html; }
+                            document.dispatchEvent(new CustomEvent('gloryRecarga', {bubbles: true, cancelable: true}));
+                            if (window.gloryRealtime && typeof window.gloryRealtime.notify === 'function') {
+                                try { window.gloryRealtime.notify('post_reserva'); } catch(_){ }
+                            }
+                        }
+                    })
+                    .catch(function (err) { console.error('[realtime] error eliminar reserva', err); });
+            } else {
+                // Fallback: seguir enlace original si no hay gloryAjax
+                var link = a.getAttribute('href');
+                if (link) window.location.href = link;
+            }
+        };
+        confirmarAccion('¿Estás seguro de que quieres eliminar esta reserva?', ejecutarEliminacionReserva);
+    });
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initRealtime, { once: true });
     } else {

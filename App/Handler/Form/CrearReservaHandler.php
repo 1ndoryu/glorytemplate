@@ -23,8 +23,34 @@ class CrearReservaHandler implements FormHandlerInterface
         // Permitir que el formulario admin/crear envie explicitamente exclusividad; si no viene, conservar la derivación automática
         $exclusividad = isset($postDatos['exclusividad']) ? (string) (absint($postDatos['exclusividad']) > 0 ? '1' : '0') : (($barberoRaw !== 'any' && $barberoId > 0) ? '1' : '0');
 
-        if (empty($nombreCliente) || empty($telefonoCliente) || !is_email($correoCliente) || empty($servicioId) || empty($barberoRaw) || empty($fechaReserva) || empty($horaReserva)) {
-            throw new \Exception('Por favor, completa todos los campos obligatorios.');
+        $validationErrors = [];
+        if ($nombreCliente === '') {
+            $validationErrors[] = 'El nombre del cliente es obligatorio.';
+        }
+        if ($telefonoCliente === '') {
+            $validationErrors[] = 'El teléfono es obligatorio.';
+        }
+        if ($correoCliente === '') {
+            $validationErrors[] = 'El correo es obligatorio.';
+        } elseif (!is_email($correoCliente)) {
+            $validationErrors[] = 'El correo no es válido.';
+        }
+        if (empty($servicioId)) {
+            $validationErrors[] = 'Selecciona un servicio válido.';
+        }
+        // En creación se acepta el valor string 'any' para indicar "cualquier barbero".
+        if ($barberoRaw === '') {
+            $validationErrors[] = 'Selecciona un barbero o indica "any" para cualquiera.';
+        }
+        if ($fechaReserva === '') {
+            $validationErrors[] = 'La fecha de la reserva es obligatoria.';
+        }
+        if ($horaReserva === '') {
+            $validationErrors[] = 'La hora de la reserva es obligatoria.';
+        }
+
+        if (!empty($validationErrors)) {
+            throw new \Exception(implode(' ', $validationErrors));
         }
 
         $servicio = get_term($servicioId, 'servicio');

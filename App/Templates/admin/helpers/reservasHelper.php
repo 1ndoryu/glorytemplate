@@ -309,7 +309,8 @@ function renderAccionesReserva(WP_Post $post): string
 
     $menu  = '<div id="' . esc_attr($menu_id) . '" class="glory-submenu" style="display:none;flex-direction:column;">';
     $menu .= '<a href="#" class="openModal noAjax" data-modal="modalAnadirReserva" data-form-mode="edit" data-fetch-action="glory_obtener_reserva" data-object-id="' . esc_attr($post->ID) . '" data-submit-action="actualizarReserva" data-modal-title-edit="' . esc_attr('Editar Reserva') . '">' . esc_html__('Editar', 'glorytemplate') . '</a>';
-    $menu .= '<a href="' . esc_url($delete_link) . '" onclick="return confirm(' . $confirm_message . ')" title="' . esc_attr('Eliminar') . '">' . esc_html__('Eliminar', 'glorytemplate') . '</a>';
+    // Eliminar vía AJAX sin recargar: ancla con data-id y data-href (fallback) que maneja tema-realtime-reservas.js
+    $menu .= '<a href="#" class="noAjax js-eliminar-reserva" data-id="' . esc_attr($post->ID) . '" data-href="' . esc_url($delete_link) . '">' . esc_html__('Eliminar', 'glorytemplate') . '</a>';
     $menu .= '</div>';
 
     return $trigger . $menu;
