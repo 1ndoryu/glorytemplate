@@ -240,22 +240,7 @@
         // Posibles variantes del nombre del evento
         document.addEventListener('gloryRealtimeUpdate', onRealtimeEvent);
         window.addEventListener('gloryRealtimeUpdate', onRealtimeEvent);
-        // Fallback: si no llegan eventos en X segundos, refrescar la pestaña activa
-        setInterval(function () {
-            var since = Date.now() - lastRealtimeAt;
-            if (since < 12000) return; // 12s sin eventos
-            var activa = document.querySelector('.pestanaContenido.activa');
-            if (!activa) return;
-            var tab = activa.getAttribute('data-pestana');
-            // console.log('[realtime] fallback refresh (sin eventos ~' + Math.round(since / 1000) + 's). Pestaña:', tab); // desactivado
-            if (tab === 'Reservas') {
-                refrescarReservas();
-            } else if (tab === 'Barberos') {
-                refrescarBarberos();
-            } else if (tab === 'Servicios') {
-                refrescarServicios();
-            }
-        }, 10000);
+        // Fallback eliminado: actualizamos solo por eventos reales
         document.addEventListener('gloryModal:close', function () {
             if (!refreshPending) return;
             refreshPending = false;
