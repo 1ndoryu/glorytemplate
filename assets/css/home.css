@@ -360,6 +360,7 @@ textarea {
     max-width: 40px;
     max-height: 40px;
     border-radius: 100%;
+    object-fit: cover;
 }
 
 .homeFront .gloryForm.formularioBarberia.formularioBarberos {
