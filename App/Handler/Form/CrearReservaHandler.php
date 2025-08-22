@@ -17,6 +17,8 @@ class CrearReservaHandler implements FormHandlerInterface
         $correoCliente = sanitize_email($postDatos['correo_cliente'] ?? '');
         $servicioId = absint($postDatos['servicio_id'] ?? 0);
         $barberoRaw = sanitize_text_field($postDatos['barbero_id'] ?? '');
+        // Normalizar espacios para evitar que valores como "3 " se conviertan en 0
+        $barberoRaw = is_string($barberoRaw) ? trim($barberoRaw) : $barberoRaw;
         $barberoId = is_numeric($barberoRaw) ? absint($barberoRaw) : 0;
         $fechaReserva = sanitize_text_field($postDatos['fecha_reserva'] ?? '');
         $horaReserva = sanitize_text_field($postDatos['hora_reserva'] ?? '');
@@ -73,6 +75,16 @@ class CrearReservaHandler implements FormHandlerInterface
                 throw new \Exception('Formato de fecha/hora inválido.');
             }
             // Reusar la función de disponibilidad (que trabaja con strings de fecha/hora)
+            // Log de depuración para entender incidencias en entorno público
+            try {
+                GloryLogger::info('Debug reserva pública: validando barbero seleccionado', [
+                    'barbero_raw' => $barberoRaw,
+                    'barbero_id' => $barberoId,
+                    'servicio_id' => $servicioId,
+                    'fecha' => $fechaReserva,
+                    'hora' => $horaReserva,
+                ]);
+            } catch (\Throwable $e) { /* silent */ }
             $disponible = $this->verificarDisponibilidadServidor($fechaReserva, $barberoId, $servicioId, $horaReserva, $duracion);
             if (!$disponible) {
                 throw new \Exception('El horario seleccionado ya no está disponible. Por favor, elige otro.');

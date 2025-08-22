@@ -29,6 +29,7 @@ function barberosDisponiblesPorHoraCallback()
     }
 
     $options = [];
+    $nameCounts = [];
     foreach ($barberos as $term) {
         $barberoId = (int) $term->term_id;
         // Omitir barberos dados de baja
@@ -43,13 +44,25 @@ function barberosDisponiblesPorHoraCallback()
         }
         $slots = obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion);
         if (in_array($hora, $slots, true)) {
-            $options[$barberoId] = (string) $term->name;
+            $nombre = (string) $term->name;
+            $options[$barberoId] = $nombre;
+            $nameCounts[$nombre] = isset($nameCounts[$nombre]) ? ($nameCounts[$nombre] + 1) : 1;
+        }
+    }
+
+    // Desambiguar nombres duplicados: añadir sufijo con ID sólo a duplicados
+    if (!empty($options)) {
+        foreach ($options as $id => $nombre) {
+            if (($nameCounts[$nombre] ?? 0) > 1) {
+                $options[$id] = $nombre . ' (ID: ' . $id . ')';
+            }
         }
     }
 
     // Incluir 'Cualquier barbero' como primera opción si hay barberos disponibles
     if (!empty($options)) {
-        $options = array_merge(['any' => 'Cualquier barbero'], $options);
+        // Usar unión para preservar claves numéricas (IDs). array_merge reindexa y rompe los IDs.
+        $options = ['any' => 'Cualquier barbero'] + $options;
     }
 
     wp_send_json_success(['options' => $options]);
