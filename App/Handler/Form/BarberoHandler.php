@@ -94,6 +94,16 @@ class BarberoHandler implements FormHandlerInterface
             $image_id = 0;
             $image_url = '';
 
+            // Detectar edición y precargar valores existentes si es necesario
+            $current_term_id = isset($postDatos['term_id']) ? intval($postDatos['term_id']) : 0;
+            if ($current_term_id > 0) {
+                $image_id = intval(get_term_meta($current_term_id, 'image_id', true));
+                $image_url = get_term_meta($current_term_id, 'image_url', true) ?: '';
+                if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                    error_log('[BarberoHandler][procesar] Valores iniciales precargados (term_id ' . $current_term_id . '): image_id=' . $image_id . ', image_url=' . $image_url);
+                }
+            }
+
             // Soportar nuevo nombre de input: <nombre>_file (p.ej. image_id_file)
             $expectedFileKey = null;
             if (isset($archivos['image_id_file']) && !empty($archivos['image_id_file']['name'])) {
@@ -135,6 +145,10 @@ class BarberoHandler implements FormHandlerInterface
                 $image_url = sanitize_text_field($postDatos['image_id_url']);
             }
 
+            if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                error_log('[BarberoHandler][procesar] Después de procesamiento de archivos: image_id=' . $image_id . ', image_url=' . $image_url);
+            }
+
             // Detectar edición: soportar 'id' (índice), 'objectId' (term_id desde el modal), o 'term_id'
             $editing = false;
             $indexUpdate = null;
@@ -166,9 +180,9 @@ class BarberoHandler implements FormHandlerInterface
                 $barberos[$id]['name'] = $name;
                 $barberos[$id]['services'] = $services_arr;
                 $barberos[$id]['services_ids'] = $servicesIds;
-                if ($image_id) {
-                    $barberos[$id]['image_id'] = $image_id;
-                }
+                // Asegurar que las opciones reflejen el estado actual de la imagen
+                $barberos[$id]['image_id'] = intval($image_id);
+                $barberos[$id]['image_url'] = is_string($image_url) ? $image_url : '';
 
                 $term_id = ! empty($barberos[$id]['term_id']) ? intval($barberos[$id]['term_id']) : 0;
                 if (!$term_id && $termIdUpdate > 0) {
@@ -192,26 +206,30 @@ class BarberoHandler implements FormHandlerInterface
                 }
 
                 if ($term_id) {
-                    if ($image_id) {
-                        update_term_meta($term_id, 'image_id', $image_id);
-                        // Borrar posible URL anterior
-                        delete_term_meta($term_id, 'image_url');
-                    } elseif ($image_url) {
-                        update_term_meta($term_id, 'image_url', $image_url);
-                        // Asegurar image_id ausente
-                        delete_term_meta($term_id, 'image_id');
-                    } else {
-                        // Si no se proporcionó ni image_id ni image_url, eliminar ambos metadatos.
+                    $delete_image = isset($postDatos['image_id_delete']) && $postDatos['image_id_delete'] === '1';
+                    if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                        error_log('[BarberoHandler][procesar] image_id_delete recibido: ' . ($delete_image ? 'true' : 'false'));
+                    }
+
+                    if ($delete_image) {
+                        // Eliminación explícita solicitada
                         delete_term_meta($term_id, 'image_id');
                         delete_term_meta($term_id, 'image_url');
-                    }
-                    // Si seleccionó todos, marcar bandera para UI
-                    $allIds = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false, 'fields' => 'ids']);
-                    if (is_array($allIds) && !array_diff(array_map('intval', $allIds), $servicesIds)) {
-                        update_term_meta($term_id, 'servicios_all', '1');
+                        $image_id = 0;
+                        $image_url = '';
                     } else {
-                        delete_term_meta($term_id, 'servicios_all');
+                        // Si hay image_id, guardarlo y borrar la url si existía
+                        if ($image_id) {
+                            update_term_meta($term_id, 'image_id', $image_id);
+                            delete_term_meta($term_id, 'image_url');
+                        } elseif ($image_url) {
+                            // Si hay image_url, guardarlo y borrar el id si existía
+                            update_term_meta($term_id, 'image_url', $image_url);
+                            delete_term_meta($term_id, 'image_id');
+                        }
+                        // Si no hay image_id ni image_url (y no se pidió eliminar), no hacer nada para mantener los existentes
                     }
+
                     update_term_meta($term_id, 'servicios', $servicesIds);
                     if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
                         error_log('[Barberos][Handler] Edit guardado term_id=' . $term_id . ' services=' . wp_json_encode($servicesIds));
@@ -222,7 +240,8 @@ class BarberoHandler implements FormHandlerInterface
                     'name' => $name,
                     'services' => $services_arr,
                     'services_ids' => $servicesIds,
-                    'image_id' => $image_id,
+                    'image_id' => intval($image_id),
+                    'image_url' => is_string($image_url) ? $image_url : '',
                 ];
 
                 $existing = term_exists($name, 'barbero');
@@ -249,6 +268,9 @@ class BarberoHandler implements FormHandlerInterface
                     $new_entry['term_id'] = $term_id;
                     if ($image_id) update_term_meta($term_id, 'image_id', $image_id);
                     if (!empty($image_url)) update_term_meta($term_id, 'image_url', $image_url);
+                    // Reflejar también en la opción
+                    $new_entry['image_id'] = intval($image_id);
+                    $new_entry['image_url'] = is_string($image_url) ? $image_url : '';
                     $allIds = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false, 'fields' => 'ids']);
                     if (is_array($allIds) && !array_diff(array_map('intval', $allIds), $servicesIds)) {
                         update_term_meta($term_id, 'servicios_all', '1');

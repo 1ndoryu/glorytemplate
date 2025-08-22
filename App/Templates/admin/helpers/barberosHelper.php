@@ -149,8 +149,10 @@ function obtenerDatosBarberos(string $claveOpcion): array
                         $barberosCombinados[$idx]['services'] = $barberoActual['services'];
                         if (!empty($barberoActual['image_id'])) {
                             $barberosCombinados[$idx]['image_id'] = intval($barberoActual['image_id']);
+                            $barberosCombinados[$idx]['image_url'] = !empty($barberoActual['image_url']) ? $barberoActual['image_url'] : wp_get_attachment_image_url(intval($barberoActual['image_id']), 'thumbnail');
                         }
                         $merged = true;
+                        logBarberosDebug('Barbero fusionado', $barberosCombinados[$idx]);
                         break;
                     }
                 }
