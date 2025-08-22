@@ -356,71 +356,79 @@ function listarBarberosApi(WP_REST_Request $request) {
 
 function obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion, $excludeId = 0)
 {
-	$horaInicioJornada = new DateTime('09:00');
-	$horaFinJornada = new DateTime('21:00');
-	$intervalo = 15; // minutos
+    $horaInicioJornada = new DateTime('09:00');
+    $horaFinJornada = new DateTime('20:00'); // L-V 09:00 - 20:00
+    $intervalo = 15; // minutos
 
-	// Obtener todas las reservas para ese día y barbero
-	$args = [
-		'post_type' => 'reserva',
-		'posts_per_page' => -1,
-		'post_status' => 'publish',
-		'meta_query' => [
-			['key' => 'fecha_reserva', 'value' => $fecha, 'compare' => '=']
-		],
-		'tax_query' => [
-			['taxonomy' => 'barbero', 'field' => 'term_id', 'terms' => $barberoId]
-		]
-	];
-	if ($excludeId > 0) {
-		$args['post__not_in'] = [$excludeId];
-	}
-	$reservasQuery = new WP_Query($args);
+    // Obtener el día de la semana (1 = Lunes, 7 = Domingo)
+    $diaSemana = (new DateTime($fecha))->format('N');
 
-	$horariosOcupados = [];
-	if ($reservasQuery->have_posts()) {
-		while ($reservasQuery->have_posts()) {
-			$reservasQuery->the_post();
-			$horaReserva = get_post_meta(get_the_ID(), 'hora_reserva', true);
-			$serviciosReserva = get_the_terms(get_the_ID(), 'servicio');
-			$duracionReserva = 30;
-			if (!is_wp_error($serviciosReserva) && !empty($serviciosReserva)) {
-				$duracion_meta = get_term_meta($serviciosReserva[0]->term_id, 'duracion', true);
-				if (is_numeric($duracion_meta)) $duracionReserva = (int)$duracion_meta;
-			}
+    // Ajustar horario de fin de jornada para el sábado
+    if ((int)$diaSemana === 6) { // Sábado
+        $horaFinJornada = new DateTime('14:00'); // Sábado 09:00 - 14:00
+    }
 
-			$inicioReserva = new DateTime($horaReserva);
-			$finReserva = (clone $inicioReserva)->add(new DateInterval("PT{$duracionReserva}M"));
-			$horariosOcupados[] = ['inicio' => $inicioReserva, 'fin' => $finReserva];
-		}
-	}
-	wp_reset_postdata();
+    // Obtener todas las reservas para ese día y barbero
+    $args = [
+        'post_type' => 'reserva',
+        'posts_per_page' => -1,
+        'post_status' => 'publish',
+        'meta_query' => [
+            ['key' => 'fecha_reserva', 'value' => $fecha, 'compare' => '=']
+        ],
+        'tax_query' => [
+            ['taxonomy' => 'barbero', 'field' => 'term_id', 'terms' => $barberoId]
+        ]
+    ];
+    if ($excludeId > 0) {
+        $args['post__not_in'] = [$excludeId];
+    }
+    $reservasQuery = new WP_Query($args);
 
-	// Generar todos los posibles slots de inicio
-	$slotsDisponibles = [];
-	$slotActual = clone $horaInicioJornada;
-	$finPosibleSlot = (clone $horaFinJornada)->sub(new DateInterval("PT{$duracion}M"));
+    $horariosOcupados = [];
+    if ($reservasQuery->have_posts()) {
+        while ($reservasQuery->have_posts()) {
+            $reservasQuery->the_post();
+            $horaReserva = get_post_meta(get_the_ID(), 'hora_reserva', true);
+            $serviciosReserva = get_the_terms(get_the_ID(), 'servicio');
+            $duracionReserva = 30;
+            if (!is_wp_error($serviciosReserva) && !empty($serviciosReserva)) {
+                $duracion_meta = get_term_meta($serviciosReserva[0]->term_id, 'duracion', true);
+                if (is_numeric($duracion_meta)) $duracionReserva = (int)$duracion_meta;
+            }
 
-	while ($slotActual <= $finPosibleSlot) {
-		$finSlotNuevo = (clone $slotActual)->add(new DateInterval("PT{$duracion}M"));
-		$esDisponible = true;
+            $inicioReserva = new DateTime($horaReserva);
+            $finReserva = (clone $inicioReserva)->add(new DateInterval("PT{$duracionReserva}M"));
+            $horariosOcupados[] = ['inicio' => $inicioReserva, 'fin' => $finReserva];
+        }
+    }
+    wp_reset_postdata();
 
-		foreach ($horariosOcupados as $ocupado) {
-			// Comprobar solapamiento
-			if ($slotActual < $ocupado['fin'] && $finSlotNuevo > $ocupado['inicio']) {
-				$esDisponible = false;
-				break;
-			}
-		}
+    // Generar todos los posibles slots de inicio
+    $slotsDisponibles = [];
+    $slotActual = clone $horaInicioJornada;
+    $finPosibleSlot = (clone $horaFinJornada)->sub(new DateInterval("PT{$duracion}M"));
 
-		if ($esDisponible) {
-			$slotsDisponibles[] = $slotActual->format('H:i');
-		}
+    while ($slotActual <= $finPosibleSlot) {
+        $finSlotNuevo = (clone $slotActual)->add(new DateInterval("PT{$duracion}M"));
+        $esDisponible = true;
 
-		$slotActual->add(new DateInterval("PT{$intervalo}M"));
-	}
+        foreach ($horariosOcupados as $ocupado) {
+            // Comprobar solapamiento
+            if ($slotActual < $ocupado['fin'] && $finSlotNuevo > $ocupado['inicio']) {
+                $esDisponible = false;
+                break;
+            }
+        }
 
-	return $slotsDisponibles;
+        if ($esDisponible) {
+            $slotsDisponibles[] = $slotActual->format('H:i');
+        }
+
+        $slotActual->add(new DateInterval("PT{$intervalo}M"));
+    }
+
+    return $slotsDisponibles;
 }
 
 /** Verifica si un barbero ofrece un servicio dado. */

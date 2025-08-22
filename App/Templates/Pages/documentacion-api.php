@@ -121,6 +121,7 @@ curl -G "https://tusitio.com/wp-json/glory/v1/servicios" \
             <h3 style="margin-top:18px;">4) Listar barberos</h3>
             <p><strong>Método:</strong> <code>GET</code> — <strong>Ruta:</strong> <code>/wp-json/glory/v1/barberos</code></p>
             <p>Respuesta: lista de barberos con <code>id</code>, <code>nombre</code> y <code>slug</code> para identificar el <code>barbero_id</code>.</p>
+            <p><strong>Nota:</strong> Los barberos que hayan sido marcados como "dados de baja" en el panel de administración no serán incluidos en esta lista, asegurando que el chatbot solo ofrezca barberos activos a los clientes.</p>
 
             <h2 style="font-size:18px;margin-top:18px;color:#111;">Ejemplos con curl</h2>
 
@@ -157,7 +158,14 @@ curl -G "https://tusitio.com/wp-json/glory/v1/servicios" \
             <ul>
                 <li>La API reutiliza la lógica del formulario público, incluyendo verificación de disponibilidad, asignación automática de barbero (<code>any</code>) y notificaciones.</li>
                 <li>Asegúrate de que existan términos en <code>servicio</code> y <code>barbero</code>, y que los barberos tengan configurados los servicios que ofrecen.</li>
-                <li>La ventana de trabajo por defecto es <strong>09:00–21:00</strong> con intervalos de <strong>15 minutos</strong> (valores actualmente codificados en la función de disponibilidad).</li>
+                <li>La ventana de trabajo por defecto es:
+                    <ul>
+                        <li>Lunes a Viernes: <strong>09:00 – 20:00</strong></li>
+                        <li>Sábado: <strong>09:00 – 14:00</strong></li>
+                        <li>Domingo: <strong>Cerrado</strong></li>
+                    </ul>
+                    Con intervalos de <strong>15 minutos</strong> (valores actualmente codificados en la función de disponibilidad).
+                </li>
                 <li>Para conocer los IDs de los barberos utiliza <code>GET /wp-json/glory/v1/barberos</code>.</li>
                 <li>Usa <code>exclude_id</code> al consultar horas disponibles para excluir una reserva existente al editarla (evita que se cuente a sí misma).</li>
             </ul>

@@ -719,7 +719,7 @@ function renderizarScriptVerTodo()
                 overlay.style.left = '0';
                 overlay.style.top = '0';
                 overlay.style.width = '100%';
-                overlay.style.minWidth = '220px';
+                overlay.style.minWidth = 'unset';
                 overlay.style.padding = '8px';
                 overlay.style.borderRadius = estiloBloque.borderRadius || '4px';
                 // Mantener colores del bloque para coherencia visual

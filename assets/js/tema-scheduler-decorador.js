@@ -19,10 +19,11 @@
 
         cont.innerHTML = ''
             + '<p class="eventoParrafo">'
-            + (horaInicio ? escapeHtml(horaInicio) : '') + (horaFin ? ' - ' + escapeHtml(horaFin) : '') + iconoEx + '<br/>'
+            + (horaInicio ? escapeHtml(horaInicio) : '') + (horaFin ? ' - ' + escapeHtml(horaFin) : '') + '<br/>'
             + escapeHtml(titulo) + '<br/>'
             + (telefonoStr ? telefonoStr + '<br/>' : '')
             + escapeHtml(detalle)
+            + (iconoEx ? '<br/>' + iconoEx : '')
             + '</p>';
 
         cont.dataset.decorado = '1';

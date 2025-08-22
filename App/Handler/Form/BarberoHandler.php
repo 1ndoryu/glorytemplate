@@ -200,6 +200,10 @@ class BarberoHandler implements FormHandlerInterface
                         update_term_meta($term_id, 'image_url', $image_url);
                         // Asegurar image_id ausente
                         delete_term_meta($term_id, 'image_id');
+                    } else {
+                        // Si no se proporcionó ni image_id ni image_url, eliminar ambos metadatos.
+                        delete_term_meta($term_id, 'image_id');
+                        delete_term_meta($term_id, 'image_url');
                     }
                     // Si seleccionó todos, marcar bandera para UI
                     $allIds = get_terms(['taxonomy' => 'servicio', 'hide_empty' => false, 'fields' => 'ids']);
