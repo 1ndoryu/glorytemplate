@@ -38,9 +38,9 @@ class CrearReservaHandler implements FormHandlerInterface
         if (empty($servicioId)) {
             $validationErrors[] = 'Selecciona un servicio válido.';
         }
-        // En creación se acepta el valor string 'any' para indicar "cualquier barbero".
+        // En creación, si viene vacío desde el público, tratar como 'any' para asignar automáticamente
         if ($barberoRaw === '') {
-            $validationErrors[] = 'Selecciona un barbero o indica "any" para cualquiera.';
+            $barberoRaw = 'any';
         }
         if ($fechaReserva === '') {
             $validationErrors[] = 'La fecha de la reserva es obligatoria.';

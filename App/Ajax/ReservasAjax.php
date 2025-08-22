@@ -6,11 +6,16 @@ function verificarDisponibilidadCallback()
 {
     $fecha = sanitize_text_field($_POST['fecha'] ?? ($_POST['fecha_reserva'] ?? ''));
     $barberoRaw = sanitize_text_field($_POST['barbero_id'] ?? '');
+    // Permitir cargar horas aunque no se haya elegido barbero aún: tratar vacío como 'any'
+    if ($barberoRaw === '') {
+        $barberoRaw = 'any';
+    }
     $barberoId = is_numeric($barberoRaw) ? absint($barberoRaw) : 0;
     $servicioId = absint($_POST['servicio_id'] ?? 0);
     $excludeId = absint($_POST['exclude_id'] ?? 0);
 
-    if (empty($fecha) || empty($barberoRaw) || empty($servicioId)) {
+    // Para cargar horas, sólo exigimos fecha. El servicio puede venir vacío (se hará unión de servicios)
+    if (empty($fecha)) {
         wp_send_json_error(['mensaje' => 'Faltan datos para verificar la disponibilidad.']);
         return;
     }
@@ -37,21 +42,50 @@ function verificarDisponibilidadCallback()
         return;
     }
 
-    $servicio = get_term($servicioId, 'servicio');
-    if (is_wp_error($servicio) || !$servicio) {
-        wp_send_json_error(['mensaje' => 'Servicio no válido.']);
-        return;
-    }
-    $duracion = get_term_meta($servicio->term_id, 'duracion', true) ?: 30;
-
-    if ($barberoRaw === 'any') {
-        if (!function_exists('obtenerHorariosDisponiblesCualquierBarbero')) {
-            wp_send_json_error(['mensaje' => 'Función de disponibilidad no disponible.']);
+    // Si no se especifica servicio, calcular la UNION de horas disponibles entre todos los servicios activos
+    if ($servicioId <= 0) {
+        $terms = get_terms([
+            'taxonomy' => 'servicio',
+            'hide_empty' => false,
+        ]);
+        $union = [];
+        if (!is_wp_error($terms)) {
+            foreach ($terms as $term) {
+                // Omitir servicios marcados inactivos
+                if (get_term_meta($term->term_id, 'inactivo', true) === '1') continue;
+                $duracion = get_term_meta($term->term_id, 'duracion', true) ?: 30;
+                if ($barberoRaw === 'any') {
+                    if (function_exists('obtenerHorariosDisponiblesCualquierBarbero')) {
+                        $slots = obtenerHorariosDisponiblesCualquierBarbero($fecha, (int) $term->term_id, (int) $duracion, $excludeId);
+                    } else {
+                        $slots = [];
+                    }
+                } else {
+                    $slots = obtenerHorariosDisponibles($fecha, $barberoId, (int) $term->term_id, (int) $duracion, $excludeId);
+                }
+                foreach ($slots as $h) { $union[$h] = true; }
+            }
+        }
+        $horariosDisponibles = array_keys($union);
+        sort($horariosDisponibles);
+    } else {
+        // Flujo original con servicio seleccionado
+        $servicio = get_term($servicioId, 'servicio');
+        if (is_wp_error($servicio) || !$servicio) {
+            wp_send_json_error(['mensaje' => 'Servicio no válido.']);
             return;
         }
-        $horariosDisponibles = obtenerHorariosDisponiblesCualquierBarbero($fecha, $servicioId, $duracion, $excludeId);
-    } else {
-        $horariosDisponibles = obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion, $excludeId);
+        $duracion = get_term_meta($servicio->term_id, 'duracion', true) ?: 30;
+
+        if ($barberoRaw === 'any') {
+            if (!function_exists('obtenerHorariosDisponiblesCualquierBarbero')) {
+                wp_send_json_error(['mensaje' => 'Función de disponibilidad no disponible.']);
+                return;
+            }
+            $horariosDisponibles = obtenerHorariosDisponiblesCualquierBarbero($fecha, $servicioId, $duracion, $excludeId);
+        } else {
+            $horariosDisponibles = obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, $duracion, $excludeId);
+        }
     }
 
     // Si estamos editando, garantizar que la hora actual de la reserva esté presente en las opciones

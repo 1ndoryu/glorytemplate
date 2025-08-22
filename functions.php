@@ -70,6 +70,12 @@ if (Glory\Core\GloryFeatures::isEnabled('gloryAjax') !== false) {
     add_action('wp_ajax_nopriv_glory_verificar_disponibilidad', 'verificarDisponibilidadCallback');
     add_action('wp_ajax_glory_servicios_por_barbero', 'serviciosPorBarberoCallback');
     add_action('wp_ajax_nopriv_glory_servicios_por_barbero', 'serviciosPorBarberoCallback');
+    // Servicios disponibles por hora (frontend público)
+    add_action('wp_ajax_glory_servicios_disponibles_por_hora', 'serviciosDisponiblesPorHoraCallback');
+    add_action('wp_ajax_nopriv_glory_servicios_disponibles_por_hora', 'serviciosDisponiblesPorHoraCallback');
+    // Barberos disponibles por hora (frontend público)
+    add_action('wp_ajax_glory_barberos_disponibles_por_hora', 'barberosDisponiblesPorHoraCallback');
+    add_action('wp_ajax_nopriv_glory_barberos_disponibles_por_hora', 'barberosDisponiblesPorHoraCallback');
     add_action('admin_init', 'manejarExportacionReservasCsv');
     add_action('wp_ajax_glory_exportar_reservas_csv', 'exportarReservasCsvAjax');
     add_action('wp_ajax_glory_actualizar_color_servicio', 'actualizarColorServicioCallback');

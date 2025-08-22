@@ -48,6 +48,10 @@
         } else if (previous) {
             selectEl.value = previous;
         }
+        const after = selectEl.value;
+        if (after !== previous) {
+            try { selectEl.dispatchEvent(new Event('change', { bubbles: true })); } catch(_) {}
+        }
     };
 
     const getFieldByName = (form, name) => form.querySelector(`[name="${name.replace(/"/g, '\\"')}"]`);
@@ -84,13 +88,27 @@
             for (const dep of depends) {
                 const el = getFieldByName(form, dep);
                 const val = getValueFor(form, el);
+                // Permitir que 'servicio_id' sea opcional específicamente para el select de horas
                 if (!val) {
-                    selectEl.disabled = true;
-                    if (placeholderDisabled) repopulateSelect(selectEl, [], placeholderDisabled);
+                    if (selectEl.name === 'hora_reserva' && dep === 'servicio_id') {
+                        // omitir añadirlo al payload, pero no bloquear la carga
+                    } else {
+                        selectEl.disabled = true;
+                        if (placeholderDisabled) repopulateSelect(selectEl, [], placeholderDisabled);
+                        return;
+                    }
+                } else {
+                    payload[dep] = val;
+                }
+            }
+            // Evitar bucles: no recargar si el payload no cambió
+            try {
+                const key = action + '::' + JSON.stringify(payload);
+                if (selectEl.dataset.fmLastKey === key) {
                     return;
                 }
-                payload[dep] = val;
-            }
+                selectEl.dataset.fmLastKey = key;
+            } catch(_) {}
             // Tema: cuando cargamos horas en edición, incluir exclude_id para permitir la hora actual
             if (selectEl.name === 'hora_reserva') {
                 const ownerForm = selectEl.closest('form, .gloryForm, .formularioBarberia');
@@ -100,7 +118,8 @@
             }
             const resp = await callAjax(action, payload);
             const options = parseOptionsFromResponse(resp);
-            repopulateSelect(selectEl, options, '');
+            const enabledPlaceholder = selectEl.dataset.fmPlaceholder || '';
+            repopulateSelect(selectEl, options, enabledPlaceholder);
             selectEl.disabled = options.length === 0;
             const event = new CustomEvent('gloryForm:optionsLoaded', {detail: {select: selectEl, options, payload}});
             document.dispatchEvent(event);
@@ -116,6 +135,24 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('select[data-fm-accion-opciones][data-fm-depende]').forEach(wireSelect);
+        // Autofill fixer: si el navegador autocompleta, forzar eventos change/input para disparar dependencias
+        try {
+            const form = document.querySelector('.formularioBarberia');
+            if (form) {
+                setTimeout(() => {
+                    ['nombre_cliente','telefono_cliente','correo_cliente','fecha_reserva','hora_reserva','servicio_id','barbero_id']
+                        .forEach(name => {
+                            const el = form.querySelector(`[name="${name}"]`);
+                            if (!el) return;
+                            const val = (el.tagName.toLowerCase() === 'select') ? el.value : el.value;
+                            if (val) {
+                                try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch(_) {}
+                                try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch(_) {}
+                            }
+                        });
+                }, 50);
+            }
+        } catch(_) {}
     });
 
   // Eliminar barbero desde frontend sin redirección
