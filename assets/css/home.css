@@ -202,7 +202,7 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionCom
     margin-bottom: 0.5rem;
 }
 
-.pestanas-wrapper {
+.pestanasWrapper {
     margin-top: 1rem;
 }
 

@@ -9,14 +9,14 @@
     --button-bg: transparent;
     --button-text: var(--text);
 
-    --radius: 5px;
-    --padding: 20px;
-    --ancho: 600px;
+    --radius: 0.5rem;
+    --padding: 2rem;
+    --ancho: 60rem;
 
     /* Variables antiguas para compatibilidad */
     --fondo: var(--card-bg);
-    --borde: 1px var(--border-color) solid;
-    --bordeBoton: 1px rgba(31, 31, 31, 0.55) solid;
+    --borde: 0.1rem var(--border-color) solid;
+    --bordeBoton: 0.1rem rgba(31, 31, 31, 0.55) solid;
     --blanco: var(--text);
 }
 
@@ -32,8 +32,8 @@ html[data-theme='dark'] {
     --button-text: var(--text);
 
     --fondo: var(--card-bg);
-    --borde: 1px var(--border-color) solid;
-    --bordeBoton: 1px rgba(31, 31, 31, 0.55) solid;
+    --borde: 0.1rem var(--border-color) solid;
+    --bordeBoton: 0.1rem rgba(31, 31, 31, 0.55) solid;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Source+Sans+3:wght@200..900&display=swap');
@@ -65,13 +65,13 @@ main {
     border: var(--borde);
     width: var(--ancho);
     max-width: 100%;
-    gap: 10px;
+    gap: 1rem;
 }
 
 code {
     background: var(--card-hover);
-    padding: 1px 3px;
-    margin: 1px;
+    padding: 0.1rem 0.3rem;
+    margin: 0.1rem;
 }
 
 img {
@@ -86,15 +86,15 @@ img {
 }
 
 .gap {
-    gap: 10px;
+    gap: 1rem;
 }
 
 .gap15 {
-    gap: 15px;
+    gap: 1.5rem;
 }
 
 .gap20 {
-    gap: 20px;
+    gap: 2rem;
 }
 
 body.noScroll {
@@ -136,13 +136,13 @@ textarea {
     display: block;
     margin-block-start: 0em;
     margin-block-end: 0em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
+    margin-inline-start: 0rem;
+    margin-inline-end: 0rem;
     unicode-bidi: isolate;
     color: var(--text);
     line-height: 1.6;
     font-family: 'Source Sans 3', Arial, Helvetica, sans-serif;
-    letter-spacing: 0px;
+    letter-spacing: 0rem;
     font-weight: 400;
     text-decoration: none;
     -webkit-font-smoothing: antialiased;
@@ -153,13 +153,13 @@ textarea {
 }
 
 .firefox *::-webkit-scrollbar {
-    width: 4px;
+    width: 0.4rem;
     background: transparent;
 }
 
 .firefox *::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    border: 2px solid transparent;
+    border-radius: 1rem;
+    border: 0.2rem solid transparent;
     background-clip: padding-box;
 }
 
@@ -176,8 +176,8 @@ textarea {
 }
 
 ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    width: 0.4rem;
+    height: 0.4rem;
     transition: width 0.3s ease, height 0.3s ease;
 }
 ::-webkit-scrollbar-track {
@@ -185,17 +185,17 @@ textarea {
 }
 ::-webkit-scrollbar-thumb {
     background: #555;
-    border-radius: 10px;
+    border-radius: 1rem;
 }
 
-.scroll-visible::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+.scrollVisible::-webkit-scrollbar {
+    width: 0.4rem;
+    height: 0.4rem;
 }
-.scroll-visible::-webkit-scrollbar-thumb {
+.scrollVisible::-webkit-scrollbar-thumb {
     background: unset;
 }
-.scroll-visible::-webkit-scrollbar-thumb:hover {
+.scrollVisible::-webkit-scrollbar-thumb:hover {
     background: #888;
 }
 
@@ -211,33 +211,33 @@ textarea {
     font-size: 1.4rem;
 }
 
-.appAndroid .JHVSFW a {
+.appAndroid .jhvsfw a {
     font-size: 1.5rem !important;
 }
 
-.appAndroid .ZVJVZA {
-    padding-bottom: 0px;
-    line-height: 13px;
-    padding-top: 5px;
+.appAndroid .zvjvza {
+    padding-bottom: 0rem;
+    line-height: 1.3rem;
+    padding-top: 0.5rem;
 }
 
-.appAndroid .HQLXWD a {
+.appAndroid .hqlxwd a {
     font-size: 1.2rem;
 }
 @media (max-width: 640px) {
     ::-webkit-scrollbar {
-        width: 0px;
-        height: 0px;
+        width: 0rem;
+        height: 0rem;
         transition: width 0.3s ease, height 0.3s ease;
     }
 
-    .scroll-visible::-webkit-scrollbar {
-        width: 0px;
-        height: 0px;
+    .scrollVisible::-webkit-scrollbar {
+        width: 0rem;
+        height: 0rem;
     }
 }
 
-.appAndroid .infoIA-btn,
+.appAndroid .infoIaBtn,
 .appAndroid span.postTag,
 .appAndroid .badge,
 .appAndroid .postTagToggle {
@@ -256,8 +256,8 @@ textarea {
     /* Adaptar al token de texto del tema */
     color: var(--text);
     border: none;
-    padding: 0px;
-    margin-bottom: 10px;
+    padding: 0rem;
+    margin-bottom: 1rem;
     font-size: 1.2rem;
     background: none;
     resize: none;
@@ -267,7 +267,7 @@ textarea {
 .seleccionado {
     filter: brightness(2);
     opacity: 1 !important;
-    border: 1px solid #676767;
+    border: 0.1rem solid #676767;
 }
 
 .botonesBloques button {
@@ -278,20 +278,20 @@ textarea {
 button {
     all: unset;
     display: flex;
-    margin: 0px;
+    margin: 0rem;
     /* Usar tokens de tema para que el color se adapte (light/dark) */
     color: var(--button-text);
     background: var(--button-bg);
     font-size: 1.2rem;
-    border-radius: 4px;
+    border-radius: 0.4rem;
     cursor: pointer;
-    padding: 8px 15px;
+    padding: 0.8rem 1.5rem;
     align-items: center;
     height: fit-content;
-    gap: 5px;
+    gap: 0.5rem;
 }
 
-.botonprincipal {
+.botonPrincipal {
     background: transparent !important;
     color: var(--button-text) !important;
     border: none !important;
@@ -304,13 +304,13 @@ button {
     align-content: center;
     text-align: center;
     padding: var(--padding);
-    min-height: 60px;
+    min-height: 6rem;
     cursor: pointer;
     width: 100%;
     place-content: center;
 }
 
-.noborde {
+.noBorde {
     border: unset;
 }
 
@@ -321,7 +321,7 @@ body {
 }
 
 label {
-    /* +1px respecto al valor anterior (1.2rem -> 1.3rem) y en negrita */
+    /* +0.1rem respecto al valor anterior (1.2rem -> 1.3rem) y en negrita */
     font-size: 1.3rem;
     font-weight: 700;
 }
@@ -329,7 +329,7 @@ label {
 /* En formularios, forzar los labels en bloque para colocar inputs/selects debajo */
 .gloryForm .formCampo > label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 0.6rem;
 }
 
 * {
@@ -345,13 +345,13 @@ form {
     flex-direction: column;
 }
 
-.heart-animation {
+.heartAnimation {
     animation: fade 2s ease forwards;
     color: red;
     font-size: 3rem;
 }
 
-.waveform-container {
+.waveformContainer {
     cursor: pointer;
 }
 
@@ -363,15 +363,15 @@ form {
     transform: translate(-50%, -50%);
     background-color: var(--fondo);
     border: var(--borde);
-    padding: 20px;
+    padding: 2rem;
     border-radius: var(--radius);
-    width: 400px;
+    width: 40rem;
     max-width: 90%;
     z-index: 1006;
     font-size: 1.1rem;
     flex-direction: column;
     flex-wrap: nowrap;
-    gap: 10px;
+    gap: 1rem;
     max-height: 82%;
     overflow: auto;
 }
@@ -379,11 +379,11 @@ form {
 .customCheckbox {
     display: flex;
     cursor: pointer;
-    padding: 5px;
+    padding: 0.5rem;
     user-select: none;
     color: #6b6b6b;
     border: var(--borde);
-    border-radius: 5px;
+    border-radius: 0.5rem;
     width: 100%;
     justify-content: center;
 }
@@ -395,17 +395,17 @@ form {
 input,
 textarea {
     background: unset !important;
-    padding: 7px 0px !important;
+    padding: 0.7rem 0rem !important;
     border-bottom: var(--borde) !important;
     font-size: 1.2rem !important;
     /* Usar token de tema para el color del texto */
     color: var(--text) !important;
-    border-radius: 0px;
+    border-radius: 0rem;
     border: none;
     resize: none;
     line-height: 1.5;
     width: 100%;
-    margin: 4px 0;
+    margin: 0.4rem 0;
 }
 
 /* Estilos para selects: similares a un input (borde inferior) */
@@ -414,14 +414,14 @@ select {
     border: unset;
     background: unset;
     font-family: 'Source Sans 3';
-    padding: 5px;
-    padding-left: 0px;
+    padding: 0.5rem;
+    padding-left: 0rem;
     margin: unset;
     font-size: 1.2rem; /* igual a inputs */
     border-bottom: var(--borde);
     outline: none;
     color: var(--text);
-    margin: 4px 0;
+    margin: 0.4rem 0;
 }
 select:focus {
     outline: none;
@@ -436,9 +436,9 @@ select option {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 15px;
+    padding: 1.2rem 1.5rem;
     border: var(--borde);
-    border-radius: 8px;
+    border-radius: 0.8rem;
 }
 .opcionCheck > div label {
     color: var(--text);
@@ -447,16 +447,16 @@ select option {
 }
 .opcionCheck .description {
     color: var(--muted);
-    font-size: 11px;
-    line-height: 14px;
-    max-width: 250px;
+    font-size: 1.1rem;
+    line-height: 1.4rem;
+    max-width: 25rem;
 }
 
 .switch {
     position: relative;
     display: inline-block;
-    width: 35px;
-    height: 18px;
+    width: 3.5rem;
+    height: 1.8rem;
 }
 .switch input {
     opacity: 0;
@@ -472,25 +472,25 @@ select option {
     bottom: 0;
     background-color: var(--card-bg);
     transition: background-color 0.18s ease, border-color 0.18s ease;
-    border-radius: 34px;
-    border: 1px solid var(--border-color);
+    border-radius: 3.4rem;
+    border: 0.1rem solid var(--border-color);
 }
 .slider:before {
     position: absolute;
     content: '';
-    height: 16px;
-    width: 16px;
+    height: 1.6rem;
+    width: 1.6rem;
     background-color: var(--bg);
     transition: transform 0.18s ease;
     border-radius: 50%;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.2);
 }
 .switch input:checked + .slider {
     background-color: var(--text);
     border-color: var(--text);
 }
 .switch input:checked + .slider:before {
-    transform: translateX(17px);
+    transform: translateX(1.7rem);
     background-color: var(--bg);
 }
 .switch input:focus + .slider,
@@ -499,70 +499,70 @@ select option {
 }
 
 /* Minimal modern checkbox group */
-.checkbox-group {
+.checkboxGroup {
     display: flex;
     flex-direction: column;
 }
-.checkbox-group label {
+.checkboxGroup label {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 6px 6px 6px 30px; /* espacio para la casilla personalizada */
-    border-radius: 8px;
+    gap: 1rem;
+    padding: 0.6rem 0.6rem 0.6rem 3rem; /* espacio para la casilla personalizada */
+    border-radius: 0.8rem;
     cursor: pointer;
     position: relative;
     transition: transform 120ms ease;
     color: var(--text);
     background: transparent;
-    border: 1px solid transparent;
+    border: 0.1rem solid transparent;
     font-size: 1.2rem; /* igual que inputs */
     font-weight: 400; /* texto normal */
 }
 /* eliminar efecto hover visual para los checkboxes del grupo */
-.checkbox-group label:hover {
+.checkboxGroup label:hover {
     background: transparent;
 }
-.checkbox-group input[type='checkbox'] {
+.checkboxGroup input[type='checkbox'] {
     display: none;
 }
-.checkbox-visual-wrapper {
+.checkboxVisualWrapper {
     position: relative;
 }
-.checkbox-visual-wrapper::before {
+.checkboxVisualWrapper::before {
     content: '';
     position: absolute;
-    left: -28px;
+    left: -2.8rem;
     top: 50%;
     transform: translateY(-50%);
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    border: 1px solid var(--border-color);
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 0.3rem;
+    border: 0.1rem solid var(--border-color);
     background: transparent; /* sin background */
     display: block;
     box-sizing: border-box;
 }
-.checkbox-visual-wrapper::after {
+.checkboxVisualWrapper::after {
     content: '✔';
     position: absolute;
-    left: -28px;
+    left: -2.8rem;
     top: 50%;
     transform: translateY(-50%);
-    width: 14px;
-    height: 14px;
+    width: 1.4rem;
+    height: 1.4rem;
     display: none;
     align-items: center;
     justify-content: center;
     color: var(--text);
-    font-size: 10px;
-    line-height: 14px;
+    font-size: 1rem;
+    line-height: 1.4rem;
     text-align: center;
 }
 /* Mostrar checkmark cuando está marcado */
-label input:checked + .checkbox-visual-wrapper::after {
+label input:checked + .checkboxVisualWrapper::after {
     display: block;
 }
-label input:checked + .checkbox-visual-wrapper::before {
+label input:checked + .checkboxVisualWrapper::before {
     /* mantener sin background, solo cambiar color del borde si se desea */
     background: transparent;
     border-color: var(--text);
@@ -571,7 +571,7 @@ label input:checked + .checkbox-visual-wrapper::before {
 /* También un estilo para customCheckbox (campo individual con clase) para mantener coherencia */
 .customCheckbox {
     justify-content: flex-start;
-    padding-left: 34px;
+    padding-left: 3.4rem;
     position: relative;
 }
 .customCheckbox input[type='checkbox'] {
@@ -580,21 +580,16 @@ label input:checked + .checkbox-visual-wrapper::before {
 .customCheckbox::before {
     content: '';
     position: absolute;
-    left: 8px;
+    left: 0.8rem;
     top: 50%;
     transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    border-radius: 4px;
-    border: 1px solid var(--border-color);
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 0.4rem;
+    border: 0.1rem solid var(--border-color);
     background: var(--bg);
 }
-.customCheckbox input:checked + .checkmark + * {
-    /* cuando existe span.checkmark seguido del texto */
-    /* no-op but keeps specificity placeholder */
-}
 
-/* Placeholder adaptativo */
 input::placeholder,
 textarea::placeholder {
     color: var(--muted);
@@ -607,7 +602,7 @@ textarea:focus {
 }
 
 .preview img {
-    max-height: 200px;
+    max-height: 20rem;
     object-fit: cover !important;
     width: 100% !important;
 }
@@ -622,23 +617,23 @@ textarea:focus {
 
 .pestanas button {
     font-size: 1.3rem;
-    padding: 0px;
+    padding: 0rem;
     font-weight: 500;
     opacity: 0.6;
 }
 .pestanas {
     display: flex;
     align-items: center;
-    gap: 20px;
-    padding: 10px 18px;
+    gap: 2rem;
+    padding: 1rem 1.8rem;
 }
 
 .submenus {
     display: none;
     background: #080808;
-    padding: 10px 6px;
-    border-radius: 5px;
-    width: 150px;
+    padding: 1rem 0.6rem;
+    border-radius: 0.5rem;
+    width: 15rem;
     overflow: auto;
     border: var(--borde);
     z-index: 1010;
@@ -648,8 +643,8 @@ textarea:focus {
 
 .submenus a {
     font-size: 1.2rem;
-    padding: 5px;
-    padding-left: 10px;
+    padding: 0.5rem;
+    padding-left: 1rem;
     cursor: pointer;
     color: white;
     width: -webkit-fill-available;
@@ -669,7 +664,7 @@ textarea:focus {
     display: flex; /* o flex, grid, etc., según necesites */
 }
 
-.glory-image-uploader {
+.gloryImageUploader {
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -682,7 +677,7 @@ textarea:focus {
     align-content: center;
     text-align: center;
     padding: var(--padding);
-    min-height: 110px;
+    min-height: 11rem;
     cursor: pointer;
     width: 100%;
     align-items: center;
@@ -690,19 +685,19 @@ textarea:focus {
 }
 
 /* Badges list component (Glory) */
-.badge-list {
+.badgeList {
     display: flex;
-    gap: 8px;
+    gap: 0.8rem;
     flex-wrap: wrap;
     align-items: center;
 }
 
-.badge-list .badge {
+.badgeList .badge {
     /* basarse en variables del tema */
     color: var(--muted);
     background: var(--card-bg);
-    border-radius: 100px;
-    padding: 2px 11px;
+    border-radius: 10rem;
+    padding: 0.2rem 1.1rem;
     cursor: pointer;
     font-size: 1.2rem; /* 12px equivalente */
     white-space: nowrap;
@@ -710,22 +705,22 @@ textarea:focus {
     opacity: 0.85;
 }
 
-.badge-list .badge.activo {
+.badgeList .badge.activo {
     background: var(--card-bg);
     color: var(--text);
     opacity: 1;
-    transform: translateY(-1px);
+    transform: translateY(-0.1rem);
 }
 
-.badge-list .badge.inactivo {
+.badgeList .badge.inactivo {
     opacity: 0.45;
 }
 
-.badge-list .badge-control {
+.badgeList .badgeControl {
     font-size: 1.1rem;
-    padding: 4px 8px;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.6rem;
+    border: 0.1rem solid var(--border-color);
     background: transparent;
 }
 
@@ -737,5 +732,5 @@ pre code.hljs {
     display: block;
     overflow-x: auto;
     padding: 1em;
-    font-size: 10px;
+    font-size: 1rem;
 }
