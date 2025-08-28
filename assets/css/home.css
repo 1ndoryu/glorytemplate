@@ -234,39 +234,8 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionCom
     display: block;
 }
 
-.submenu-contextual {
-    display: none;
-    position: fixed;
-    background: var(--fondo);
-    border: var(--borde);
-    border-radius: var(--radius);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    padding: 0.5rem;
-    min-width: 150px;
-    z-index: 1001;
-    flex-direction: column;
-    gap: 5px;
-    list-style: none;
-}
-
-.submenu-contextual.activo {
+.flexUl {
     display: flex;
-}
-
-.submenu-contextual button {
-    width: -webkit-fill-available;
-    width: -moz-available;
-    width: fill-available;
-    text-align: left;
-    padding: 0.5rem 1rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-    border-radius: var(--radius);
-    color: var(--text);
-}
-
-.submenu-contextual button:hover {
-    background-color: var(--fondo);
-    filter: brightness(1.4);
+    flex-direction: column;
+    gap: 1rem;
 }

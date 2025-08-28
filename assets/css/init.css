@@ -36,6 +36,150 @@ html[data-theme='dark'] {
     --bordeBoton: 0.1rem rgba(31, 31, 31, 0.55) solid;
 }
 
+/* Glory Calendario (clases camelCase en español) */
+.calCont {
+    background-color: var(--fondo);
+    border: var(--borde);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    width: 200px;
+}
+
+.calNav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.calMesAnio {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #e2e8f0;
+}
+
+.calNavBtn {
+    height: 1.75rem;
+    width: 1.75rem;
+    background-color: transparent;
+    padding: 0;
+    border: var(--borde);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #cbd5e0;
+}
+
+.calTabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0.5rem;
+}
+
+.calTabla th {
+    color: #a0aec0;
+    border-radius: 0.375rem;
+    width: calc(100% / 7);
+    font-weight: 400;
+    font-size: 0.8rem;
+    padding-bottom: 0.5rem;
+}
+
+.calTabla td {
+    padding: 0;
+    text-align: center;
+    font-size: 12px;
+    position: relative;
+}
+
+.calDia {
+    height: 2rem;
+    width: 2rem;
+    line-height: 2rem;
+    padding: 0;
+    font-weight: 400;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    display: inline-block;
+    color: #e2e8f0;
+    transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out;
+}
+
+.calDia:hover {
+    background-color: #2d2d2d;
+    color: #fff;
+}
+
+.calDiaFuera {
+    color: #4a5568;
+    opacity: 0.8;
+}
+
+.calDiaFuera:hover {
+    background-color: transparent;
+}
+
+.calDiaHoy .calDiaNum {
+    background-color: #2d2d2d;
+    color: #e2e8f0;
+    border-radius: 0.375rem;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+}
+
+.calDiaHoy.calDiaSel .calDiaNum {
+    background-color: #3182ce;
+    color: #fff;
+}
+
+.calDiaSel .calDiaNum {
+    background-color: #3182ce;
+    color: #fff;
+    border-radius: 0.375rem;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+}
+
+.calDiaSel .calDiaNum:hover {
+    background-color: #2c5282;
+}
+
+.calDiaDeshab {
+    color: #4a5568;
+    opacity: 0.5;
+    cursor: default;
+}
+
+.calDiaDeshab:hover {
+    background-color: transparent;
+}
+
+.calAcciones {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+}
+
+.calBtnAccion {
+    padding: 5px 12px;
+    border: var(--borde);
+    cursor: pointer;
+}
+
+.calBtnAccion:hover {
+    background-color: #2d2d2d;
+}
+
+.calCont tr {
+    padding: 1px 0px;
+    display: flex;
+    justify-content: space-around;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Source+Sans+3:wght@200..900&display=swap');
 
 html {
@@ -682,6 +826,7 @@ textarea:focus {
     width: 100%;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 /* Badges list component (Glory) */
@@ -734,3 +879,50 @@ pre code.hljs {
     padding: 1em;
     font-size: 1rem;
 }
+
+button.previewRemover {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(30px);
+    padding: 8px;
+}
+
+.submenu {
+    display: none;
+    position: fixed;
+    background: var(--fondo);
+    border: var(--borde);
+    border-radius: var(--radius);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    padding: 0.5rem;
+    min-width: 150px;
+    z-index: 1001;
+    flex-direction: column;
+    gap: 5px;
+    list-style: none;
+}
+
+.submenu.activo {
+    display: flex;
+}
+
+.submenu button {
+    width: -webkit-fill-available;
+    width: -moz-available;
+    width: fill-available;
+    text-align: left;
+    padding: 0.5rem 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius);
+    color: var(--text);
+}
+
+.submenu button:hover {
+    background-color: var(--fondo);
+    filter: brightness(1.4);
+}
+

@@ -17,6 +17,12 @@ function renderSubmenusCategory()
             ]); ?>
 
         </div>
+
+        <div id="miSubmenuEjemplo" class="submenu">
+            <?php echo Button::render(['texto' => 'Opción 1']); ?>
+            <?php echo Button::render(['texto' => 'Opción 2']); ?>
+            <?php echo Button::render(['texto' => 'Opción 3']); ?>
+        </div>
     </section>
 
     <!-- Ejemplo: Código (resaltado) para Submenús -->

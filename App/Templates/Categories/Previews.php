@@ -26,6 +26,19 @@ function renderPreviewsCategory()
                 'placeholder' => 'Haz clic para subir una imagen (demo)'
             ]);
             ?>
+            <h3 style="margin-top:20px;">Código (PHP)</h3>
+            <pre><code class="language-php">&lt;?php
+use Glory\Components\FormBuilder;
+use Glory\Utility\UserUtility;
+
+echo FormBuilder::campoImagen([
+    'nombre' => 'avatar_demo',
+    'label'  => 'Avatar demo (sin botón)',
+    'valor'  => UserUtility::meta('avatar', get_current_user_id()) ?: '',
+    'descripcion' => 'Arrastra una imagen o haz clic en el área para seleccionar.',
+    'placeholder' => 'Haz clic para subir una imagen (demo)'
+]);
+?&gt;</code></pre>
         </div>
     </section>
 
@@ -40,6 +53,32 @@ function renderPreviewsCategory()
                 </div>
                 <div class="extra-preview-demo oculto" style="margin-top:8px;padding:6px;border:1px dashed #ccc;">Elemento extra (se muestra al arrastrar)</div>
             </div>
+            <h3 style="margin-top:20px;">Código (HTML)</h3>
+            <pre><code class="language-html">
+&lt;div class="previewContenedor"
+data-uploadclick="true"
+data-extrapreview=".extra-preview-demo"
+data-extrapreview-on="drag">
+
+    &lt;input type="file" 
+    id="demo-file-1" 
+    name="demo_image" 
+    style="display:none;" 
+    accept="image/*" 
+    data-preview-for="demo-preview-1"/&gt;
+
+    &lt;div class="previewImagen" data-preview-id="demo-preview-1">
+        &lt;span class="image-preview-placeholder">
+        Haz clic para subir una imagen (manual)&lt;/span>
+    &lt;/div>
+
+    &lt;div class="extra-preview-demo oculto" 
+    style="margin-top:8px;padding:6px;border:1px dashed #ccc;">
+    Elemento extra (se muestra al arrastrar)
+    &lt;/div>
+
+&lt;/div></code></pre>  
+
         </div>
     </section>
 
@@ -58,6 +97,16 @@ function renderPreviewsCategory()
                     <?php endif; ?>
                 </div>
             </div>
+            <h3 style="margin-top:20px;">Código (PHP)</h3>
+            <pre><code class="language-php">&lt;?php
+use Glory\Utility\UserUtility;
+
+$imgId = UserUtility::meta('avatar', get_current_user_id()) ?: 0;
+if ($imgId): ?&gt;
+    &lt;img src="&lt;?php echo esc_url(wp_get_attachment_image_url((int)$imgId, 'thumbnail')); ?&gt;" alt="Inicial" />
+&lt;?php else: ?&gt;
+    &lt;span class="image-preview-placeholder">Sin imagen inicial&lt;/span>
+&lt;?php endif; ?&gt;</code></pre>
         </div>
     </section>
 
@@ -103,6 +152,24 @@ function renderPreviewsCategory()
                     <span class="image-preview-placeholder">Segundo campo (B): ahora visible.</span>
                 </div>
             </div>
+            <h3 style="margin-top:20px;">Código (HTML)</h3>
+            <pre><code class="language-html">&lt;div style="padding:10px;border:1px dashed #999;margin-bottom:10px;" data-activapreview="#contenedor-oculto">
+    Arrastra una imagen sobre este bloque para activar el siguiente contenedor oculto.
+&lt;/div>
+
+&lt;div class="previewContenedor" data-uploadclick="true" data-extrapreview="#contenedor-oculto" data-extrapreview-on="drop">
+    &lt;input type="file" id="demo-file-a" name="demo_image_a" style="display:none;" accept="image/*" data-preview-for="demo-preview-a" />
+    &lt;div class="previewImagen" data-preview-id="demo-preview-a">
+        &lt;span class="image-preview-placeholder">Sube una imagen (A). Al soltar, se mostrará el siguiente campo.&lt;/span>
+    &lt;/div>
+&lt;/div>
+
+&lt;div id="contenedor-oculto" class="previewContenedor oculto" data-uploadclick="true">
+    &lt;input type="file" id="demo-file-b" name="demo_image_b" style="display:none;" accept="image/*" data-preview-for="demo-preview-b" />
+    &lt;div class="previewImagen oculto" data-preview-id="demo-preview-b">
+        &lt;span class="image-preview-placeholder">Segundo campo (B): ahora visible.&lt;/span>
+    &lt;/div>
+&lt;/div></code></pre>
         </div>
     </section>
 <?php

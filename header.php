@@ -21,12 +21,18 @@ $usuarioId = get_current_user_id();
 use Glory\Components\HeaderRenderer;
 use Glory\Manager\OpcionManager;
 use Glory\Integration\Compatibility;
+use Glory\Components\ThemeToggle;
 
 ?>
 
 
 <body>
     <div id="loadingBar"></div>
+    
+    <?php
+    echo ThemeToggle::render();
+    ?>
+    
     <?php
     $defaultMode = Compatibility::avadaActivo() ? 'default' : 'image';
     $configHeader = [

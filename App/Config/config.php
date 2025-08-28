@@ -10,6 +10,8 @@ SyncManager::setAdminBarVisible(true);
 SyncManager::setResetButtonVisible(true);
 
 PageManager::define('home', 'home');
+PageManager::define('task', 'task');
+
 
 AjaxNav::contentSelector('#main');
 AjaxNav::mainScrollSelector('#main');

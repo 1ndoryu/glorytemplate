@@ -25,5 +25,3 @@ AssetManager::defineFolder(
     ['deps' => ['jquery'], 'in_footer' => true],
     'tema-'
 );
-
-// El script del Theme Toggle fue movido al framework Glory (Glory/Config/scriptSetup.php)
