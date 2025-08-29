@@ -253,4 +253,127 @@
             // silent
         }
     });
+
+    // ---------------- Selector de Barbero (Botón + Modal) ----------------
+    const renderItemBarbero = (item) => {
+        const card = document.createElement('div');
+        card.className = 'barberoCard';
+        card.dataset.barberoId = String(item.id);
+        // Determinar si el barbero está disponible PARA LA HORA SELECCIONADA
+        const isAny = String(item.id) === 'any';
+        const estaInactivo = !!item.inactivo;
+        const estadoTxt = (item.estado || '').toString();
+        const disponibleAhora = isAny ? true : (estadoTxt === 'Disponible' && !estaInactivo);
+        if (!disponibleAhora) {
+            card.classList.add('unavailable');
+            card.setAttribute('aria-disabled', 'true');
+        } else {
+            card.setAttribute('aria-disabled', 'false');
+        }
+
+        card.innerHTML =
+            '<div class="barberoImgWrap">'
+          +   `<img src="${item.imagen}" alt="${(item.nombre||'').replace(/"/g, '&quot;')}" />`
+          + '</div>'
+          + '<div class="barberoInfo">'
+          +   `<div class="barberoNombre">${item.nombre}</div>`
+          +   `<div class="barberoEstado" data-color="${item.estadoColor||''}">${item.estado||''}</div>`
+          + '</div>';
+        return card;
+    };
+
+    const loadBarberosConEstado = async (contenedorLista) => {
+        const form = document.querySelector('.formularioBarberia');
+        const fecha = form ? (form.querySelector('[name="fecha_reserva"]')?.value || '') : '';
+        const hora  = form ? (form.querySelector('[name="hora_reserva"]')?.value || '') : '';
+        const servicioId = form ? (form.querySelector('[name="servicio_id"]')?.value || '') : '';
+        const resp = await callAjax('glory_barberos_con_estado', { fecha, hora, servicio_id: servicioId });
+        const items = resp && resp.success && resp.data && Array.isArray(resp.data.items) ? resp.data.items : [];
+        const any = resp && resp.success && resp.data && resp.data.any ? resp.data.any : { id: 'any', nombre: 'Cualquier barbero', estado: 'Let us choose', estadoColor: 'green', imagen: 'https://avatar.vercel.sh/any.svg?size=80&rounded=80' };
+        contenedorLista.innerHTML = '';
+        // Always show "any" first (siempre seleccionable)
+        contenedorLista.appendChild(renderItemBarbero(any));
+        // Then all barbers (even if inactive)
+        items.forEach(it => contenedorLista.appendChild(renderItemBarbero(it)));
+        contenedorLista.dataset.estadoCargado = '1';
+    };
+
+    const syncBarberoSeleccion = (barberoId, barberoNombre) => {
+        const form = document.querySelector('.formularioBarberia');
+        const input = form ? form.querySelector('input[name="barbero_id"]') : null;
+        if (input) input.value = String(barberoId || 'any');
+        const btn = document.querySelector('.selectorBarberoBtn');
+        if (btn) btn.textContent = barberoNombre || 'Cualquier barbero';
+    };
+
+    document.addEventListener('click', function (ev) {
+        const btn = ev.target.closest('.selectorBarberoBtn.openModal');
+        if (!btn) return;
+        // Al abrir, si no cargamos aún, cargar lista
+        setTimeout(() => {
+            try {
+                const modal = document.getElementById('modalSelectorBarbero');
+                const lista = modal ? modal.querySelector('.listaBarberos') : null;
+                if (lista && lista.dataset.estadoCargado !== '1') {
+                    loadBarberosConEstado(lista);
+                }
+            } catch(_){ }
+        }, 0);
+    });
+
+    // Re-cargar disponibilidad cuando cambien dependencias (fecha/hora/servicio)
+    document.addEventListener('change', function (ev) {
+        const name = ev.target && ev.target.name;
+        if (!name) return;
+        if (name === 'fecha_reserva' || name === 'hora_reserva' || name === 'servicio_id') {
+            const modal = document.getElementById('modalSelectorBarbero');
+            const lista = modal ? modal.querySelector('.listaBarberos') : null;
+            if (lista) {
+                lista.dataset.estadoCargado = '0';
+                if (modal && modal.style.display !== 'none') {
+                    loadBarberosConEstado(lista);
+                }
+                // Si el barbero actualmente seleccionado ya no está disponible, resetear a 'any'
+                try {
+                    const form = document.querySelector('.formularioBarberia');
+                    const input = form ? form.querySelector('input[name="barbero_id"]') : null;
+                    if (input && input.value && input.value !== 'any') {
+                        // Comprobar si el id sigue entre los disponibles en el DOM (y no tiene la clase unavailable)
+                        const selectedId = String(input.value);
+                        // Hacer una llamada rápida al endpoint para validar disponibilidad actual
+                        callAjax('glory_barberos_con_estado', { fecha: form.querySelector('[name="fecha_reserva"]')?.value || '', hora: form.querySelector('[name="hora_reserva"]')?.value || '', servicio_id: form.querySelector('[name="servicio_id"]')?.value || '' })
+                            .then(resp => {
+                                if (!(resp && resp.success && resp.data && Array.isArray(resp.data.items))) return;
+                                const items = resp.data.items;
+                                const encontrado = items.find(i => String(i.id) === selectedId);
+                                const disponible = encontrado && String(encontrado.estado || '') === 'Disponible' && !encontrado.inactivo;
+                                if (!disponible) {
+                                    // reset a 'any'
+                                    input.value = 'any';
+                                    const btn = document.querySelector('.selectorBarberoBtn');
+                                    if (btn) btn.textContent = 'Cualquier barbero';
+                                }
+                            }).catch(()=>{});
+                    }
+                } catch(_){}
+            }
+        }
+    });
+
+    // Selección de barbero dentro del modal
+    document.addEventListener('click', function (ev) {
+        const card = ev.target.closest && ev.target.closest('.barberoCard');
+        if (!card) return;
+        const modal = card.closest && card.closest('#modalSelectorBarbero');
+        if (!modal) return;
+        const barberoId = card.dataset.barberoId;
+        const nombre = card.querySelector('.barberoNombre')?.textContent || '';
+        syncBarberoSeleccion(barberoId, nombre);
+        // Cerrar modal activo
+        document.dispatchEvent(new CustomEvent('gloryModal:close'));
+        // Si gloryModal necesita evento específico, hacer click en overlay o usar la API
+        if (typeof window.ocultarFondo === 'function') { try { window.ocultarFondo(); } catch(_){} }
+        const overlay = document.getElementById('modalSelectorBarbero');
+        if (overlay) overlay.style.display = 'none';
+    });
 })();

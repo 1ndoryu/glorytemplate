@@ -582,22 +582,15 @@ header.header.oscuro .icon-close {
     max-height: 300px;
 }
 
-button.preview-remove {
+button.previewRemover {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 5px;
-    color: var(--negro);
-    background: var(--blanco);
-    font-size: 12px;
-    opacity: 0.8;
+    top: 25px;
+    right: 25px;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(30px);
+    padding: 8px;
 }
-
-button.preview-remove svg {
+button.previewRemover svg {
     height: 1.2rem;
     width: 1.2rem;
 }

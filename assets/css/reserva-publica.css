@@ -157,3 +157,96 @@
 .customCheckbox input[type='checkbox']:checked + .checkmark::before {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M1.39408 2.14408C3.21165 0.326509 6.13348 0.286219 8 2.02321C9.86652 0.286221 12.7884 0.326509 14.6059 2.14408C16.4647 4.00286 16.4647 7.01653 14.6059 8.87531L8 15.4812L1.39408 8.87531C-0.464691 7.01653 -0.464694 4.00286 1.39408 2.14408Z' fill='%23e63946'/></svg>");
 }
+
+/* ---------------- Selector de Barbero (botón + modal) ---------------- */
+.selectorBarberoBtn {
+    display: inline-flex
+;
+    align-items: center;
+    gap: 8px;
+    /* background: #f5f5f5; */
+    color: #000000;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    font-size: 1.4rem;
+}
+
+.modalBarberos {
+    background: #ffffff;
+    color: #000000;
+    width: min(720px, 92vw);
+    max-height: 80vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.modalBarberos .modalHeader {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid #eee;
+}
+.modalBarberos .modalContent {
+    padding: 1rem;
+}
+.listaBarberos {
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
+}
+
+.barberoCard {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease;
+}
+.barberoCard.unavailable { opacity: 0.6; pointer-events: none; }
+.barberoCard:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.barberoImgWrap {
+    width: 40px;
+    height: 40px;
+    flex: none;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.barberoImgWrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.barberoInfo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.barberoNombre {
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+.barberoEstado {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+.barberoEstado[data-color='green'] {
+    color: #0a7a2d;
+}
+.barberoEstado[data-color='orange'] {
+    color: #a66a00;
+}
+.barberoEstado[data-color='red'] {
+    color: #a30d0d;
+}
+.barberoEstado[data-color='gray'] {
+    color: #666666;
+}

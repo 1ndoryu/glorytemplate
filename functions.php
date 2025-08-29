@@ -76,6 +76,9 @@ if (Glory\Core\GloryFeatures::isEnabled('gloryAjax') !== false) {
     // Barberos disponibles por hora (frontend público)
     add_action('wp_ajax_glory_barberos_disponibles_por_hora', 'barberosDisponiblesPorHoraCallback');
     add_action('wp_ajax_nopriv_glory_barberos_disponibles_por_hora', 'barberosDisponiblesPorHoraCallback');
+    // Listado de barberos con estado para selector modal (frontend público)
+    add_action('wp_ajax_glory_barberos_con_estado', 'barberosConEstadoAjaxCallback');
+    add_action('wp_ajax_nopriv_glory_barberos_con_estado', 'barberosConEstadoAjaxCallback');
     add_action('admin_init', 'manejarExportacionReservasCsv');
     add_action('wp_ajax_glory_exportar_reservas_csv', 'exportarReservasCsvAjax');
     add_action('wp_ajax_glory_actualizar_color_servicio', 'actualizarColorServicioCallback');

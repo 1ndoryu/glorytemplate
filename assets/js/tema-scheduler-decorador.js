@@ -17,13 +17,35 @@
         var iconoEx = exclusividad ? ' <span class="iconoExclusividad">❤️</span>' : '';
         var telefonoStr = telefono ? escapeHtml(telefono) : '';
 
+        // Nuevo orden e información solicitada:
+        // 1) Hora (+ corazón al lado si aplica)
+        // 2) Nombre del cliente (solo nombre + primer apellido)
+        // 3) Servicio solicitado
+        // 4) Teléfono al final
+
+        // Extraer solo primer nombre y primer apellido del título (suponiendo formato "Nombre Apellido1 Apellido2")
+        var nombreClienteCorto = '';
+        if (titulo) {
+            var partes = titulo.trim().split(/\s+/);
+            if (partes.length >= 2) {
+                nombreClienteCorto = partes[0] + ' ' + partes[1];
+            } else {
+                nombreClienteCorto = partes[0];
+            }
+            nombreClienteCorto = escapeHtml(nombreClienteCorto);
+        }
+
+        var horaLine = '';
+        if (horaInicio) {
+            horaLine = escapeHtml(horaInicio) + (iconoEx ? ' ' + iconoEx : '');
+        }
+
         cont.innerHTML = ''
             + '<p class="eventoParrafo">'
-            + (horaInicio ? escapeHtml(horaInicio) : '') + (horaFin ? ' - ' + escapeHtml(horaFin) : '') + '<br/>'
-            + escapeHtml(titulo) + '<br/>'
-            + (telefonoStr ? telefonoStr + '<br/>' : '')
-            + escapeHtml(detalle)
-            + (iconoEx ? '<br/>' + iconoEx : '')
+            + (horaLine ? horaLine + '<br/>' : '')
+            + (nombreClienteCorto ? nombreClienteCorto + '<br/>' : '')
+            + (detalle ? escapeHtml(detalle) + '<br/>' : '')
+            + (telefonoStr ? telefonoStr : '')
             + '</p>';
 
         cont.dataset.decorado = '1';
