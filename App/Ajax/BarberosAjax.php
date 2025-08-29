@@ -168,6 +168,28 @@ function barberosConEstadoAjaxCallback()
         ];
     }
 
+    // Ordenar: Disponibles primero, luego "Disponible a las ...", y después el resto
+    $prioridad = static function (array $it): int {
+        $estado = isset($it['estado']) ? (string) $it['estado'] : '';
+        $inactivo = !empty($it['inactivo']);
+        if ($inactivo) return 90; // siempre al final
+        if ($estado === 'Disponible') return 0;
+        if (strpos($estado, 'Disponible a las') === 0) return 10;
+        if ($estado === 'Sin disponibilidad hoy') return 50;
+        if ($estado === 'No ofrece este servicio') return 60;
+        if ($estado === 'Selecciona fecha y servicio') return 70;
+        if ($estado === 'Vacaciones') return 80;
+        return 100;
+    };
+    usort($items, static function ($a, $b) use ($prioridad) {
+        $pa = $prioridad($a);
+        $pb = $prioridad($b);
+        if ($pa === $pb) {
+            return strcmp((string) ($a['nombre'] ?? ''), (string) ($b['nombre'] ?? ''));
+        }
+        return $pa <=> $pb;
+    });
+
     wp_send_json_success([
         'items' => $items,
         'any' => [

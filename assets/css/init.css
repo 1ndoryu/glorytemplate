@@ -601,3 +601,8 @@ button.previewRemover svg {
     border-radius: var(--radius);
     object-fit: cover !important;
 }
+
+.notification-buttons button {
+    color: var(--negro);
+    border: var(--borde);
+}
