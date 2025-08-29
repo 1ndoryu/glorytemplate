@@ -205,7 +205,7 @@
     cursor: pointer;
     transition: box-shadow 0.2s ease;
 }
-.barberoCard.unavailable { opacity: 0.6; pointer-events: none; }
+.barberoCard.unavailable { opacity: 0.8; pointer-events: none; }
 .barberoCard:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
