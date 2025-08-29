@@ -36,8 +36,14 @@
         }
 
         var horaLine = '';
-        if (horaInicio) {
-            horaLine = escapeHtml(horaInicio) + (iconoEx ? ' ' + iconoEx : '');
+        if (horaInicio || horaFin) {
+            var horaInicioStr = horaInicio ? escapeHtml(horaInicio) : '';
+            var horaFinStr = horaFin ? escapeHtml(horaFin) : '';
+            if (horaInicioStr && horaFinStr) {
+                horaLine = horaInicioStr + ' - ' + horaFinStr + iconoEx;
+            } else {
+                horaLine = (horaInicioStr || horaFinStr) + iconoEx;
+            }
         }
 
         cont.innerHTML = ''
