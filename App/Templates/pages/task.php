@@ -8,6 +8,8 @@ Contexto importante.
 La pagina task es un intento de hacer funcionar la funcionalidad de tareas, que antes corría otro proyecto que no usaba Glory. 
 Se ira adaptando progresivamente a Glory. 
 
+La estructura html se a simplificado y ajustado, tal vez los scripts requieran ajustes para soportar la nueva estructura html. 
+
 */
 
 function task()
@@ -53,7 +55,7 @@ function task()
                 'publicacionesPorPagina' => 12,
                 'paginacion' => false,
                 'plantillaCallback' => 'plantillaTarea', 
-                'claseContenedor' => 'listaTareas', 
+                'claseContenedor' => 'listaTareas bloque', 
                 'claseItem' => 'tareaItem', 
             ]);
             ?>

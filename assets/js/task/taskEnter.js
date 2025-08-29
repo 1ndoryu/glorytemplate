@@ -13,16 +13,16 @@ window.initEnter = function () {
     // Considero que crearTareaEnter ya se llama desde initTareas o similar cuando la lista de tareas está presente.
     // Por ahora, asumo que la lógica de initEnter y la condición `if (tit)`
     // son para un contexto diferente al de presionar Enter en un '.tituloTarea' editable.
-    // El event listener clave es el de 'keydown' en '.clase-tarea' añadido por crearTareaEnter.
+    // El event listener clave es el de 'keydown' en '.listaTareas' añadido por crearTareaEnter.
     // Vamos a asegurar que crearTareaEnter se ejecute si hay un contenedor de tareas.
-    const contenedorTareas = document.querySelector('.clase-tarea');
+    const contenedorTareas = document.querySelector('.listaTareas');
     if (contenedorTareas) {
         crearTareaEnter();
     }
 };
 
 async function crearTareaEnter() {
-    const contenedor = document.querySelector('.clase-tarea');
+    const contenedor = document.querySelector('.listaTareas');
     if (contenedor) { // Asegurarse de que el contenedor exista
         // Evitar añadir múltiples listeners si la función se llama varias veces
         if (contenedor.dataset.enterListenerAnadido) return;
@@ -53,10 +53,10 @@ async function manejarTeclaEnter(ev) {
         const padre = tareaActual.getAttribute('padre');
         const importanciaTarea = tareaActual.getAttribute('importancia'); // Renombrado para evitar conflicto con objeto global
         const tipo = tareaActual.getAttribute('tipo-tarea');
-        const listaTareas = document.querySelector('.tab.active .social-post-list.clase-tarea');
+        const listaTareas = document.querySelector('.listaTareas');
 
         if (!listaTareas) {
-            console.error("manejarTeclaEnter: No se encontró la lista de tareas (.social-post-list).");
+            console.error("manejarTeclaEnter: No se encontró la lista de tareas (.listaTareas).");
             return;
         }
 

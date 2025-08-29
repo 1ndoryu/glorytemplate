@@ -52,3 +52,14 @@ GloryFeatures::enable('termRender');
 //Theme options
 GloryFeatures::enable('titleTag');
 GloryFeatures::enable('postThumbnails');
+
+// Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
+if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
+    \App\Handlers\ContentAjaxHandler::register();
+} else {
+    add_action('init', function() {
+        if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
+            \App\Handlers\ContentAjaxHandler::register();
+        }
+    });
+}

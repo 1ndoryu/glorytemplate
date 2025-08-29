@@ -129,7 +129,7 @@ window.prioridadTarea = function() {
     if (boton.dataset.eventoAgregado) return;
 
     boton.addEventListener('click', async () => {
-        const lista = document.querySelector('.social-post-list.clase-tarea');
+        const lista = document.querySelector('.listaTareas');
         const divisores = Array.from(lista.querySelectorAll('.divisorTarea'));
         let log = '';
 
@@ -184,14 +184,14 @@ window.prioridadTarea = function() {
             const tablaTareas = [];
             tareasOrdenadas.forEach((t, i) => {
                 const indiceDeseado = Array.from(lista.children).indexOf(divisor) + 1 + i;
-                const indiceActual = Array.from(lista.children).indexOf(t.tarea);
+                const indiceActual = Array.from(lista.children).indexOf(t.tarea.closest('.tareaItem') || t.tarea);
 
                 if (indiceActual !== indiceDeseado) {
                     const tareaReferencia = lista.children[indiceDeseado];
                     if (tareaReferencia) {
-                        lista.insertBefore(t.tarea, tareaReferencia);
+                        lista.insertBefore(t.tarea.closest('.tareaItem') || t.tarea, tareaReferencia);
                     } else {
-                        lista.appendChild(t.tarea);
+                        lista.appendChild(t.tarea.closest('.tareaItem') || t.tarea);
                     }
                 }
 

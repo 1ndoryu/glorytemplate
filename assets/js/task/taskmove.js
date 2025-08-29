@@ -50,7 +50,7 @@ function deseleccionarTareas() {
 }
 
 function moverTarea() {
-    listaMov = document.querySelector('.clase-tarea');
+    listaMov = document.querySelector('.listaTareas');
     if (!listaMov || listaMov.listenersAdded) return;
     listaMov.listenersAdded = true;
 
@@ -228,7 +228,8 @@ function manejarMov(ev) {
             }
 
             arrastrandoElems.forEach(el => {
-                listaMov.insertBefore(el, elemActual);
+                const wrapper = el.closest('.tareaItem') || el;
+                listaMov.insertBefore(wrapper, elemActual);
             });
             insertado = true;
             break;
@@ -242,13 +243,22 @@ function manejarMov(ev) {
                 if (ultimoElemVisible && ultimoElemVisible.classList.contains('tarea-padre')) {
                     // No se puede añadir al final
                 } else {
-                    arrastrandoElems.forEach(el => listaMov.appendChild(el));
+                    arrastrandoElems.forEach(el => {
+                        const wrapper = el.closest('.tareaItem') || el;
+                        listaMov.appendChild(wrapper);
+                    });
                 }
             } else {
-                arrastrandoElems.forEach(el => listaMov.appendChild(el));
+                arrastrandoElems.forEach(el => {
+                    const wrapper = el.closest('.tareaItem') || el;
+                    listaMov.appendChild(wrapper);
+                });
             }
         } else if (arrastrandoElems.length > 0) {
-            arrastrandoElems.forEach(el => listaMov.appendChild(el));
+            arrastrandoElems.forEach(el => {
+                const wrapper = el.closest('.tareaItem') || el;
+                listaMov.appendChild(wrapper);
+            });
         }
     }
 
@@ -259,7 +269,9 @@ function manejarMov(ev) {
         let actual = arrastrandoElem; // El padre que se acaba de mover
         subtareasArrastradas.forEach(subtarea => {
             // subtareasArrastradas fue poblado en inicializarVars
-            listaMov.insertBefore(subtarea, actual.nextSibling);
+            const wrapSub = subtarea.closest('.tareaItem') || subtarea;
+            const wrapAct = actual.closest('.tareaItem') || actual;
+            listaMov.insertBefore(wrapSub, wrapAct.nextSibling);
             actual = subtarea; // La siguiente subtarea se insertará después de esta
         });
     }
@@ -433,9 +445,9 @@ async function guardarOrdenTareas({idTarea, nuevaPos, ordenNuevo, sesionArriba, 
                         }
 
                         if (ultimoHermano.nextSibling) {
-                            listaMov.insertBefore(tareaElem, ultimoHermano.nextSibling);
+                            listaMov.insertBefore(tareaElem.closest('.tareaItem') || tareaElem, (ultimoHermano.closest('.tareaItem') || ultimoHermano).nextSibling);
                         } else {
-                            listaMov.appendChild(tareaElem);
+                            listaMov.appendChild(tareaElem.closest('.tareaItem') || tareaElem);
                         }
                         logRes += `Tarea ${idTarea} reubicada bajo padre ${idPadre}. `;
                     } else {

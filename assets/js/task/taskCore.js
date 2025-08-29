@@ -69,7 +69,7 @@ window.hideAllOpenTaskMenus = function () {
 };
 
 window.guardarOrden = function () {
-    const lista = document.querySelector('.clase-tarea');
+    const lista = document.querySelector('.listaTareas');
     if (!lista) return;
 
     const tareas = Array.from(lista.querySelectorAll('.draggable-element'));
@@ -77,21 +77,22 @@ window.guardarOrden = function () {
 
     const tareaMovida = tareas[0];
     const segundaTarea = tareas[0];
-    lista.insertBefore(tareaMovida, segundaTarea.nextSibling);
+    lista.insertBefore(tareaMovida.closest('.tareaItem') || tareaMovida, (segundaTarea.closest('.tareaItem') || segundaTarea).nextSibling);
 
     const ordenNuevo = Array.from(lista.querySelectorAll('.draggable-element')).map(tarea => tarea.getAttribute('id-post'));
     const nuevaPosicion = ordenNuevo.indexOf(tareaMovida.getAttribute('id-post'));
 
     let sesionArriba = null;
     let dataSeccionArriba = null;
-    let anterior = tareaMovida.previousElementSibling;
+    let anterior = (tareaMovida.closest('.tareaItem') || tareaMovida).previousElementSibling;
     while (anterior) {
-        if (anterior.classList.contains('POST-tarea')) {
-            sesionArriba = anterior.getAttribute('sesion');
+        const li = anterior.querySelector ? (anterior.querySelector('.POST-tarea') || anterior) : anterior;
+        if (li.classList && li.classList.contains('POST-tarea')) {
+            sesionArriba = li.getAttribute('sesion');
             if (dataSeccionArriba === null) {
-                dataSeccionArriba = anterior.getAttribute('data-sesion');
+                dataSeccionArriba = li.getAttribute('data-sesion');
             }
-        } else if (anterior.classList.contains('divisorTarea')) {
+        } else if (anterior.classList && anterior.classList.contains('divisorTarea')) {
             if (sesionArriba === null) {
                 sesionArriba = anterior.getAttribute('data-valor');
             }
@@ -104,11 +105,13 @@ window.guardarOrden = function () {
     }
 
     guardarOrdenTareas({
-        idTareaMovida: tareaMovida.getAttribute('id-post'),
-        nuevaPosicion: nuevaPosicion,
+        idTarea: tareaMovida.getAttribute('id-post'),
+        nuevaPos: nuevaPosicion,
         ordenNuevo: ordenNuevo,
         sesionArriba: sesionArriba,
-        dataSeccionArriba: dataSeccionArriba
+        dataArriba: dataSeccionArriba,
+        subtarea: tareaMovida.getAttribute('subtarea') === 'true',
+        padre: tareaMovida.getAttribute('padre') || ''
     });
 };
 

@@ -47,7 +47,7 @@ function formTarea()
         </button>
 
         <!-- se maneja por JS, id anterior: sSeccion -->
-        <div class="selectorIcono sSeccion openModal" data-modal="asignarSeccion" style="display: flex;">
+        <div class="selectorIcono sSeccion openModal" data-modal="asignarSeccion" id="sSeccion" style="display: flex;">
             <span class="icono"><? echo $GLOBALS['meterCarpeta'] ?></span>
             <span class="nombreSeccionSeleccionada"></span>
         </div>

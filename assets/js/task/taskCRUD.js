@@ -24,7 +24,11 @@ window.enviarTarea = function () {
 
 function initSeccionSelectorEnFormulario() {
     const sSeccion = document.getElementById('sSeccion');
-    const modalAsignarSeccion = document.getElementById('modalAsignarSeccionForm');
+    if (!sSeccion) {
+        console.warn('initSeccionSelectorEnFormulario: #sSeccion no existe en el DOM. Se omite inicialización del selector de sección.');
+        return;
+    }
+    const modalAsignarSeccion = document.getElementById('asignarSeccion');
     const listaDeSeccionesDiv = document.getElementById('listaSeccionesExistentesModalForm');
     const inputNuevaSeccion = document.getElementById('inputNuevaSeccionModalForm');
     const btnCrearAsignarSeccion = document.getElementById('btnCrearAsignarSeccionModalForm');
@@ -64,8 +68,8 @@ function initSeccionSelectorEnFormulario() {
             });
         }
 
-        // 2. Obtener secciones directamente de los items de tarea en el DOM
-        const listaTareasItems = document.querySelectorAll('.social-post-list.clase-tarea > li[data-sesion]');
+        // 2. Obtener secciones directamente de los items de tarea en el DOM (estructura nueva)
+        const listaTareasItems = document.querySelectorAll('.listaTareas .POST-tarea[data-sesion]');
         listaTareasItems.forEach(item => {
             const sesionAttr = item.getAttribute('data-sesion');
             if (sesionAttr) {
@@ -143,7 +147,7 @@ function initSeccionSelectorEnFormulario() {
                     }
                 });
             }
-            const itemsTareasParaValidar = document.querySelectorAll('.social-post-list.clase-tarea > li[data-sesion]');
+            const itemsTareasParaValidar = document.querySelectorAll('.listaTareas .POST-tarea[data-sesion]');
             itemsTareasParaValidar.forEach(item => {
                 const sesionAttr = item.getAttribute('data-sesion');
                 if (sesionAttr) {
@@ -217,7 +221,7 @@ window.pegarTareaHandler = function (ev) {
     }
 
     const tit = document.getElementById('tituloTarea');
-    const listaTareas = document.querySelector('.tab.active .social-post-list.clase-tarea');
+    const listaTareas = document.querySelector('.listaTareas');
     const promesas = lineasProcesadas.map(titulo => {
         return enviarAjax('crearTarea', {
             titulo: titulo,
@@ -266,7 +270,7 @@ window.pegarTareaHandler = function (ev) {
 //te dejo un ejemplo correcto
 window.enviarTareaHandler = function (ev) {
     const tit = document.getElementById('tituloTarea');
-    const listaTareas = document.querySelector('.tab.active .social-post-list.clase-tarea');
+    const listaTareas = document.querySelector('.listaTareas');
 
     if (ev.key === 'Enter') {
         ev.preventDefault();
@@ -586,7 +590,7 @@ window.archivarTarea = function () {
                 logs += `Accion individual. `;
             }
 
-            const ul = document.querySelector('.social-post-list.clase-tarea');
+            const ul = document.querySelector('.listaTareas');
             const pGeneral = document.querySelector('p.divisorTarea.General');
 
             for (const id of idsParaProcesar) {
@@ -659,7 +663,7 @@ window.archivarTarea = function () {
 // to insert window.subTarea before it.
 
 window.subTarea = function () {
-    const lista = document.querySelector('.clase-tarea');
+    const lista = document.querySelector('.listaTareas');
     if (!lista) {
         // console.log('subTarea: Lista de tareas no encontrada.'); // Log opcional para desarrollo
         return;

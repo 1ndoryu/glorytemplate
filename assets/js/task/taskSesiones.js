@@ -1,11 +1,12 @@
 // js/taskSesiones.js
 
-let mapa = {general: [], archivado: []};
+// Asegurar que el mapa de secciones sea global (window.mapa)
+window.mapa = window.mapa || {general: [], archivado: []};
 
 //No borrar este comentario: Se escribio mal "seccion", cuando se dice "sesion" se refiere a "seccion", es decir, grupo de tareas.
 
 window.dividirTarea = async function () {
-    const listaSec = document.querySelector('.social-post-list.clase-tarea');
+    const listaSec = document.querySelector('.listaTareas');
     if (!listaSec) return;
     organizarSecciones();
     crearSeccionFront();
@@ -15,27 +16,32 @@ window.dividirTarea = async function () {
 
 function actualizarMapa() {
     let log = '';
-    const listaSec = document.querySelector('.social-post-list.clase-tarea');
-    mapa = {general: [], archivado: []};
-    const items = Array.from(listaSec.children).filter(item => item.tagName === 'LI');
+    const listaSec = document.querySelector('.listaTareas');
+    window.mapa = {general: [], archivado: []};
+    const items = Array.from(listaSec.children)
+        .map(node => (node.classList && node.classList.contains('tareaItem') ? (node.querySelector('[id-post]') || node) : node))
+        .filter(node => node && node.getAttribute && node.getAttribute('id-post'));
 
     log = `actualizarMapa: Tareas encontradas: ${items.length}. `;
     items.forEach(item => {
         const est = item.getAttribute('estado')?.toLowerCase();
-        const sesion = item.getAttribute('data-sesion')?.toLowerCase(); // MODIFICADO AQUÍ
+        // Compatibilidad: aceptar tanto data-sesion como data-seccion, y tratar 'null' como vacío
+        let sesionRaw = item.getAttribute('data-sesion') || item.getAttribute('data-seccion') || '';
+        let sesion = typeof sesionRaw === 'string' ? sesionRaw.toLowerCase() : '';
+        if (sesion === 'null') sesion = '';
         const idPost = item.getAttribute('id-post');
         log += `Tarea ID: ${idPost}, Estado: ${est}, Sesión: ${sesion}. `;
 
         if (est === 'archivado') {
-            mapa['archivado'].push(item);
+            window.mapa['archivado'].push(item.closest('.tareaItem') || item);
         } else if (est === 'pendiente') {
             if (!sesion || sesion === '' || sesion === 'pendiente') {
-                mapa['general'].push(item);
+                window.mapa['general'].push(item.closest('.tareaItem') || item);
             } else {
-                if (!mapa[sesion]) {
-                    mapa[sesion] = [];
+                if (!window.mapa[sesion]) {
+                    window.mapa[sesion] = [];
                 }
-                mapa[sesion].push(item);
+                window.mapa[sesion].push(item.closest('.tareaItem') || item);
             }
         }
     });
@@ -43,17 +49,19 @@ function actualizarMapa() {
 }
 
 function alternarVisibilidadSeccion(divisor) {
-    const listaSec = document.querySelector('.social-post-list.clase-tarea');
+    const listaSec = document.querySelector('.listaTareas');
     const valorDivisorCodificado = divisor.dataset.valor;
     const valorDivisor = decodeURIComponent(valorDivisorCodificado); 
-    const items = Array.from(listaSec.children).filter(item => item.tagName === 'LI');
+    const items = Array.from(listaSec.children)
+        .map(node => (node.classList && node.classList.contains('tareaItem') ? (node.querySelector('[id-post]') || node) : node))
+        .filter(node => node && node.getAttribute && node.getAttribute('id-post'));
     let visible = localStorage.getItem(`seccion-${valorDivisorCodificado}`) !== 'oculto';
     visible = !visible;
     // let log = `alternarVisibilidadSeccion: Alternando visibilidad de la sección ${valorDivisor}. `;
 
     items.forEach(item => {
         if (item.dataset.seccion === valorDivisorCodificado) {
-            item.style.display = visible ? '' : 'none';
+            (item.closest('.tareaItem') || item).style.display = visible ? '' : 'none';
             // log += `Tarea ID: ${item.getAttribute('id-post')}, Visibilidad: ${visible ? 'visible' : 'oculta'}. `;
         }
     });
@@ -116,7 +124,7 @@ function configurarInteraccionSeccion(divisor, nomCodificado, items) {
 }
 
 function crearSeccion(nom, items) {
-    const listaSec = document.querySelector('.social-post-list.clase-tarea');
+    const listaSec = document.querySelector('.listaTareas');
     // let log = `crearSeccion: Creando sección: ${nom}. `;
     const nomCodificado = encodeURIComponent(nom); 
     let divisor = document.querySelector(`[data-valor="${nomCodificado}"]`);
@@ -172,17 +180,22 @@ function crearSeccion(nom, items) {
 
     // log += `Insertando ${items.length} tareas en la sección ${nom}. `;
     let anterior = divisor;
-    items.forEach(item => {
-        item.setAttribute('data-seccion', nomCodificado); 
-        if (item.parentNode) item.parentNode.removeChild(item);
-        listaSec.insertBefore(item, anterior.nextSibling);
-        anterior = item;
+    items.forEach(wrapper => {
+        const li = wrapper.querySelector ? (wrapper.querySelector('.POST-tarea') || wrapper) : wrapper;
+        if (li && li.setAttribute) {
+            li.setAttribute('data-seccion', nomCodificado);
+            // Mantener ambos atributos por compatibilidad con otras funciones
+            li.setAttribute('data-sesion', nomCodificado);
+        }
+        if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+        listaSec.insertBefore(wrapper, anterior.nextSibling);
+        anterior = wrapper;
     });
     // console.log(log);
 }
 
 function eliminarSeparadoresExistentes() {
-    const listaSec = document.querySelector('.social-post-list.clase-tarea');
+    const listaSec = document.querySelector('.listaTareas');
     const separadores = Array.from(listaSec.children).filter(item => item.tagName === 'P' && item.classList.contains('divisorTarea'));
     separadores.forEach(separador => separador.remove());
 }
@@ -191,32 +204,35 @@ function organizarSecciones() {
     let log = 'organizarSecciones: Reorganizando tareas... ';
     actualizarMapa();
     eliminarSeparadoresExistentes();
-    crearSeccion('General', mapa.general);
+    crearSeccion('General', window.mapa.general);
 
-    const otrasSecciones = Object.keys(mapa).filter(seccion => seccion !== 'general' && seccion !== 'archivado');
-    otrasSecciones.forEach(seccion => crearSeccion(seccion, mapa[seccion]));
+    const otrasSecciones = Object.keys(window.mapa).filter(seccion => seccion !== 'general' && seccion !== 'archivado');
+    otrasSecciones.forEach(seccion => crearSeccion(seccion, window.mapa[seccion]));
 
-    crearSeccion('Archivado', mapa.archivado);
+    crearSeccion('Archivado', window.mapa.archivado);
 
-    log += `Secciones reorganizadas: General (${mapa.general.length}), `;
+    log += `Secciones reorganizadas: General (${window.mapa.general.length}), `;
     if (otrasSecciones.length > 0) {
-        log += `${otrasSecciones.map(s => `${s} (${mapa[s].length})`).join(', ')}, `;
+        log += `${otrasSecciones.map(s => `${s} (${window.mapa[s].length})`).join(', ')}, `;
     }
-    log += `Archivado (${mapa.archivado.length}). `;
+    log += `Archivado (${window.mapa.archivado.length}). `;
     //console.log(log);
     generarLogFinal();
 }
 
 function generarLogFinal() {
-    const listaSec = document.querySelector('.social-post-list.clase-tarea');
+    const listaSec = document.querySelector('.listaTareas');
     let log = '';
     const final = [];
     Array.from(listaSec.children).forEach(item => {
-        if (item.tagName === 'LI') {
-            const idPost = item.getAttribute('id-post');
-            final.push(`${item.getAttribute('data-sesion') || 'Sin sección'} - ${idPost || 'sin ID'}`);
-        } else if (item.tagName === 'P') {
+        if (item.tagName === 'P') {
             final.push(`${item.textContent} - Divisor`);
+        } else {
+            const li = item.querySelector ? (item.querySelector('[id-post]') || item) : item;
+            if (li && li.getAttribute) {
+                const idPost = li.getAttribute('id-post');
+                final.push(`${li.getAttribute('data-sesion') || 'Sin sección'} - ${idPost || 'sin ID'}`);
+            }
         }
     });
     log = `generarLogFinal: Orden final: ${final.join(', ')}`;
@@ -229,7 +245,7 @@ function generarLogFinal() {
 
 function crearSeccionFront() {
     const botonPlus = document.querySelector('.iconoPlus');
-    const listaSecTareas = document.querySelector('.clase-tarea');
+    const listaSecTareas = document.querySelector('.listaTareas');
 
     if (!botonPlus || !listaSecTareas) return; // Añadir verificación
 
@@ -438,7 +454,7 @@ function hacerDivisoresEditables() {
 }
 
 window.initAsignarSeccionModal = function () {
-    const listaTareas = document.querySelector('.social-post-list.clase-tarea');
+    const listaTareas = document.querySelector('.listaTareas');
     if (!listaTareas) {
         console.log('initAsignarSeccionModal: listaTareas no encontrada.');
         return;
@@ -535,7 +551,7 @@ async function abrirModalAsignarSeccion(idTarea, elemRef) {
     modal.style.zIndex = '10001'; // z-index alto
 
     const listaSecDiv = modal.querySelector('#listaSeccionesExistentesModal');
-    const divisores = document.querySelectorAll('.social-post-list.clase-tarea .divisorTarea');
+    const divisores = document.querySelectorAll('.listaTareas .divisorTarea');
 
     divisores.forEach(divisor => {
         const nomSecEnc = divisor.dataset.valor;
@@ -581,7 +597,7 @@ async function abrirModalAsignarSeccion(idTarea, elemRef) {
         }
 
         let existe = false;
-        document.querySelectorAll('.social-post-list.clase-tarea .divisorTarea').forEach(div => {
+        document.querySelectorAll('.listaTareas .divisorTarea').forEach(div => {
             if (decodeURIComponent(div.dataset.valor).toLowerCase() === nombreNuevo.toLowerCase()) {
                 existe = true;
             }
@@ -634,7 +650,7 @@ async function manejarAsignacionSeccion(idTarea, nombreSeccion) {
             const nombreSeccionCodificado = encodeURIComponent(nombreSeccion);
             const tareaElem = document.querySelector(`.POST-tarea[id-post="${idTarea}"]`);
             // Necesitamos el contenedor principal de tareas para las manipulaciones del DOM.
-            const listaContenedora = document.querySelector('.social-post-list.clase-tarea');
+            const listaContenedora = document.querySelector('.listaTareas');
 
             if (tareaElem && listaContenedora) {
                 // 1. Actualizar data-sesion de la tarea principal en el DOM.
