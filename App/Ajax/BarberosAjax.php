@@ -98,37 +98,43 @@ function barberosConEstadoAjaxCallback()
             $estado = 'Vacaciones';
             $estadoColor = 'gray';
         } else if ($fechaValida && $servicioValido) {
-            // Duración del servicio
-            $servicio = get_term($servicioId, 'servicio');
-            $duracion = $servicio && !is_wp_error($servicio) ? (get_term_meta($servicio->term_id, 'duracion', true) ?: 30) : 30;
+            // Si el barbero no ofrece el servicio seleccionado, indicarlo explícitamente
+            if (function_exists('barberoOfreceServicio') && !barberoOfreceServicio($barberoId, $servicioId)) {
+                $estado = 'No ofrece este servicio';
+                $estadoColor = 'gray';
+            } else {
+                // Duración del servicio
+                $servicio = get_term($servicioId, 'servicio');
+                $duracion = $servicio && !is_wp_error($servicio) ? (get_term_meta($servicio->term_id, 'duracion', true) ?: 30) : 30;
 
-            // Slots disponibles del día para el barbero
-            $slots = obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, (int)$duracion);
+                // Slots disponibles del día para el barbero
+                $slots = obtenerHorariosDisponibles($fecha, $barberoId, $servicioId, (int)$duracion);
 
-            if (!empty($hora)) {
-                if (in_array($hora, $slots, true)) {
-                    $estado = 'Disponible';
-                    $estadoColor = 'green';
+                if (!empty($hora)) {
+                    if (in_array($hora, $slots, true)) {
+                        $estado = 'Disponible';
+                        $estadoColor = 'green';
+                    } else {
+                        // Buscar el primer slot posterior a la hora solicitada
+                        $posteriores = array_values(array_filter($slots, static function ($h) use ($hora) { return strcmp($h, $hora) > 0; }));
+                        if (!empty($posteriores)) {
+                            $siguienteHora = $posteriores[0];
+                            $estado = 'Disponible a las ' . $siguienteHora;
+                            $estadoColor = 'orange';
+                        } else {
+                            $estado = 'Sin disponibilidad hoy';
+                            $estadoColor = 'red';
+                        }
+                    }
                 } else {
-                    // Buscar el primer slot posterior a la hora solicitada
-                    $posteriores = array_values(array_filter($slots, static function ($h) use ($hora) { return strcmp($h, $hora) > 0; }));
-                    if (!empty($posteriores)) {
-                        $siguienteHora = $posteriores[0];
-                        $estado = 'Disponible a las ' . $siguienteHora;
-                        $estadoColor = 'orange';
+                    // Sin hora específica: si tiene algún slot, está disponible
+                    if (!empty($slots)) {
+                        $estado = 'Disponible';
+                        $estadoColor = 'green';
                     } else {
                         $estado = 'Sin disponibilidad hoy';
                         $estadoColor = 'red';
                     }
-                }
-            } else {
-                // Sin hora específica: si tiene algún slot, está disponible
-                if (!empty($slots)) {
-                    $estado = 'Disponible';
-                    $estadoColor = 'green';
-                } else {
-                    $estado = 'Sin disponibilidad hoy';
-                    $estadoColor = 'red';
                 }
             }
         } else {
