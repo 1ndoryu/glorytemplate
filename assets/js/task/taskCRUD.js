@@ -28,15 +28,10 @@ function initSeccionSelectorEnFormulario() {
         console.warn('initSeccionSelectorEnFormulario: #sSeccion no existe en el DOM. Se omite inicialización del selector de sección.');
         return;
     }
-    const modalAsignarSeccion = document.getElementById('asignarSeccion');
-    const listaDeSeccionesDiv = document.getElementById('listaSeccionesExistentesModalForm');
-    const inputNuevaSeccion = document.getElementById('inputNuevaSeccionModalForm');
-    const btnCrearAsignarSeccion = document.getElementById('btnCrearAsignarSeccionModalForm');
-    const btnCerrarModal = document.getElementById('btnCerrarModalSeccionForm');
     const nombreSeccionDisplay = sSeccion.querySelector('.nombreSeccionSeleccionada');
 
-    if (!sSeccion || !modalAsignarSeccion || !listaDeSeccionesDiv || !nombreSeccionDisplay || !inputNuevaSeccion || !btnCrearAsignarSeccion || !btnCerrarModal) {
-        console.error('Error: No se encontraron todos los elementos para el modal de selección de sección del formulario.');
+    if (!sSeccion || !nombreSeccionDisplay) {
+        console.error('Error: No se encontraron elementos necesarios para el selector de sección del formulario.');
         return;
     }
 
@@ -48,159 +43,18 @@ function initSeccionSelectorEnFormulario() {
     }
 
     sSeccion.addEventListener('click', () => {
-        // Posicionar el modal cerca del selector
-        const rect = sSeccion.getBoundingClientRect();
-        modalAsignarSeccion.style.top = `${rect.bottom + window.scrollY}px`;
-        modalAsignarSeccion.style.left = `${rect.left + window.scrollX}px`;
-        modalAsignarSeccion.style.display = 'block';
-
-        listaDeSeccionesDiv.innerHTML = ''; // Limpiar opciones anteriores
-        let seccionesExistentes = [];
-        // 1. Obtener secciones de window.mapa
-        if (window.mapa && typeof window.mapa === 'object') {
-            Object.keys(window.mapa).forEach(secOriginal => {
-                const secDecodificada = decodeURIComponent(secOriginal);
-                if (secDecodificada.toLowerCase() !== 'archivado' && secDecodificada !== '') {
-                    if (!seccionesExistentes.map(s => s.toLowerCase()).includes(secDecodificada.toLowerCase())) {
-                        seccionesExistentes.push(secDecodificada);
-                    }
-                }
+        if (typeof abrirModalSeccionesGenerico === 'function') {
+            abrirModalSeccionesGenerico(sSeccion, {
+                onSelect: (nombreSec) => {
+                    seccionSeleccionadaFormulario = nombreSec;
+                    nombreSeccionDisplay.textContent = nombreSec;
+                },
+                placeholder: 'Crear sección'
             });
         }
-
-        // 2. Obtener secciones directamente de los items de tarea en el DOM (estructura nueva)
-        const listaTareasItems = document.querySelectorAll('.listaTareas .POST-tarea[data-sesion]');
-        listaTareasItems.forEach(item => {
-            const sesionAttr = item.getAttribute('data-sesion');
-            if (sesionAttr) {
-                const nombreSeccion = decodeURIComponent(sesionAttr);
-                if (nombreSeccion.toLowerCase() !== 'archivado' && nombreSeccion !== '' && nombreSeccion.toLowerCase() !== 'pendiente') {
-                    if (!seccionesExistentes.map(s => s.toLowerCase()).includes(nombreSeccion.toLowerCase())) {
-                        seccionesExistentes.push(nombreSeccion);
-                    }
-                }
-            }
-        });
-        // Asegurar que 'General' esté presente si no vino del mapa y no hay otras secciones
-        if (!seccionesExistentes.includes('General') && !seccionesExistentes.find(s => s.toLowerCase() === 'general')) {
-             if (seccionesExistentes.length === 0 || !Object.keys(window.mapa).map(k => decodeURIComponent(k).toLowerCase()).includes('general')){
-                seccionesExistentes.push('General'); // Añadir General si no está y el mapa no lo tiene explícitamente (o mapa vacío)
-             }
-        }
-        // Si 'General' se añadió manualmente y también vino del mapa (con diferente capitalización), eliminar duplicados sensibles a mayúsculas.
-        // Primero, un set para eliminar duplicados exactos, luego un filtro para duplicados insensibles a mayúsculas, priorizando la del mapa si existe.
-        seccionesExistentes = [...new Set(seccionesExistentes)]; 
-        const seccionesUnicas = [];
-        const nombresLower = new Set();
-        // Priorizar la versión de 'General' que podría venir del mapa
-        const generalDelMapa = Object.keys(window.mapa || {}).find(k => decodeURIComponent(k).toLowerCase() === 'general');
-        if (generalDelMapa) {
-            seccionesUnicas.push(decodeURIComponent(generalDelMapa));
-            nombresLower.add('general');
-        }
-
-        seccionesExistentes.forEach(sec => {
-            if (!nombresLower.has(sec.toLowerCase())) {
-                seccionesUnicas.push(sec);
-                nombresLower.add(sec.toLowerCase());
-            }
-        });
-        seccionesExistentes = seccionesUnicas;
-        seccionesExistentes = [...new Set(seccionesExistentes)];
-        // Ordenar, asegurando que 'General' vaya primero si existe
-        seccionesExistentes.sort((a, b) => {
-            if (a.toLowerCase() === 'general') return -1;
-            if (b.toLowerCase() === 'general') return 1;
-            return a.localeCompare(b);
-        });
-
-        seccionesExistentes.forEach(nombreSec => {
-            const pSec = document.createElement('p');
-            pSec.textContent = nombreSec;
-            pSec.addEventListener('click', () => {
-                seccionSeleccionadaFormulario = nombreSec;
-                nombreSeccionDisplay.textContent = nombreSec;
-                modalAsignarSeccion.style.display = 'none';
-            });
-            listaDeSeccionesDiv.appendChild(pSec);
-        });
-        inputNuevaSeccion.value = ''; // Limpiar input
-        btnCrearAsignarSeccion.style.display = 'none'; // Ocultar botón de crear
     });
 
-    inputNuevaSeccion.addEventListener('input', () => {
-        btnCrearAsignarSeccion.style.display = inputNuevaSeccion.value.trim() ? 'inline-block' : 'none';
-    });
-
-    btnCrearAsignarSeccion.addEventListener('click', () => {
-        const nuevoNombre = inputNuevaSeccion.value.trim();
-        if (nuevoNombre) {
-            // Para la validación al crear, usamos la misma lógica de recolección de secciones que al popular el modal
-            let seccionesParaValidar = [];
-            if (window.mapa && typeof window.mapa === 'object') {
-                Object.keys(window.mapa).forEach(secOriginal => {
-                    const secDecodificada = decodeURIComponent(secOriginal);
-                    if (secDecodificada.toLowerCase() !== 'archivado' && secDecodificada !== '') {
-                        if (!seccionesParaValidar.map(s => s.toLowerCase()).includes(secDecodificada.toLowerCase())) {
-                            seccionesParaValidar.push(secDecodificada);
-                        }
-                    }
-                });
-            }
-            const itemsTareasParaValidar = document.querySelectorAll('.listaTareas .POST-tarea[data-sesion]');
-            itemsTareasParaValidar.forEach(item => {
-                const sesionAttr = item.getAttribute('data-sesion');
-                if (sesionAttr) {
-                    const nombreSeccion = decodeURIComponent(sesionAttr);
-                    if (nombreSeccion.toLowerCase() !== 'archivado' && nombreSeccion !== '' && nombreSeccion.toLowerCase() !== 'pendiente') {
-                        if (!seccionesParaValidar.map(s => s.toLowerCase()).includes(nombreSeccion.toLowerCase())) {
-                            seccionesParaValidar.push(nombreSeccion);
-                        }
-                    }
-                }
-            });
-            // Asegurar 'General' para validación si no está
-            if (!seccionesParaValidar.map(s => s.toLowerCase()).includes('general')) {
-                 seccionesParaValidar.push('General');
-            }
-            seccionesParaValidar = [...new Set(seccionesParaValidar.map(s => {
-                // Normalizar 'General' a la capitalización exacta si existe una versión, sino usar 'General'
-                const generalMatch = Object.keys(window.mapa || {}).find(k => decodeURIComponent(k).toLowerCase() === 'general');
-                if (s.toLowerCase() === 'general' && generalMatch) return decodeURIComponent(generalMatch);
-                return s;
-            }))];
-
-            if (seccionesParaValidar.some(s => s.toLowerCase() === nuevoNombre.toLowerCase())) {
-                alert(`La sección "${nuevoNombre}" ya existe.`);
-                return;
-            }
-
-            if (seccionesExistentes.some(s => s.toLowerCase() === nuevoNombre.toLowerCase())) {
-                alert(`La sección "${nuevoNombre}" ya existe.`);
-                return;
-            }
-            seccionSeleccionadaFormulario = nuevoNombre;
-            nombreSeccionDisplay.textContent = nuevoNombre;
-            modalAsignarSeccion.style.display = 'none';
-            // Opcional: agregar la nueva sección al window.mapa si se quiere que esté disponible inmediatamente para otros selectores sin recargar.
-            // if (window.mapa && typeof window.mapa === 'object') {
-            //    window.mapa[encodeURIComponent(nuevoNombre)] = [];
-            // }
-        } else {
-            alert('El nombre de la sección no puede estar vacío.');
-        }
-    });
-
-    btnCerrarModal.addEventListener('click', () => {
-        modalAsignarSeccion.style.display = 'none';
-    });
-
-    // Ocultar modal si se hace clic fuera
-    document.addEventListener('click', function(event) {
-        if (!sSeccion.contains(event.target) && !modalAsignarSeccion.contains(event.target) && modalAsignarSeccion.style.display === 'block') {
-            modalAsignarSeccion.style.display = 'none';
-        }
-    });
+    // La creación de nuevas secciones se gestiona dentro del modal genérico
 }
 
 //necesito ajustar lo de pegar tareas, porque ya no se usa reiniciarContenido sino reiniciarPost
@@ -505,6 +359,7 @@ window.manejarClicCompletar = function () {
                         if (!esHabitoActual && !esHabitoFlexibleActual) {
                             tareaActualElem.classList.add('completada');
                             tareaActualElem.style.textDecoration = 'line-through';
+                            tareaActualElem.setAttribute('estado', 'completada');
                         }
 
                         // Ocultar/Eliminar si filtro activo y no es hábito
@@ -539,12 +394,19 @@ window.manejarClicCompletar = function () {
                                 }
                             }
                         }
+
+                        // Reorganizar secciones inmediatamente al completar (si no se removió)
+                        try { if (!esHabitoActual && !esHabitoFlexibleActual && typeof window.dividirTarea === 'function') await window.dividirTarea(); } catch (_) {}
                     } else {
                         // estado deseado es 'pendiente'
                         tareaActualElem.classList.remove('completada');
                         tareaActualElem.style.textDecoration = 'none';
                         tareaActualElem.style.display = ''; // Asegurar que sea visible
+                        tareaActualElem.setAttribute('estado', 'pendiente');
                         log += `Tarea ${id} marcada como pendiente. `;
+
+                        // Reorganizar secciones inmediatamente al desmarcar
+                        try { if (!esHabitoActual && !esHabitoFlexibleActual && typeof window.dividirTarea === 'function') await window.dividirTarea(); } catch (_) {}
                     }
                 } else {
                     let m = `Error AJAX para ${id}.`;
@@ -609,7 +471,7 @@ window.archivarTarea = function () {
                         logs += `Éxito AJAX para ${id}. `;
                         if (data.desarchivar) {
                             tareaActualElem.classList.remove('archivado');
-                            tareaActualElem.setAttribute('estado', '');
+                            tareaActualElem.setAttribute('estado', 'pendiente');
                             if (pGeneral) {
                                 pGeneral.after(tareaActualElem); // Mover después del divisor General
                             } else {
@@ -751,8 +613,14 @@ window.borrarTareasCompletadas = async function () {
 
             try {
                 await enviarAjax('borrarTareasCompletadas', data);
-                //console.log('Tareas completadas borradas exitosamente');
-                window.reiniciarContenido(limpiar, '', 'tarea');
+                await window.reiniciarContenido({
+                    postType: 'tarea',
+                    publicacionesPorPagina: 34,
+                    claseContenedor: 'listaTareas bloque',
+                    claseItem: 'tareaItem',
+                    plantilla: 'plantillaTarea'
+                });
+                try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
             } catch (error) {
                 console.error('Error al borrar tareas:', error);
             }
@@ -849,8 +717,14 @@ window.borrarTareasCompletadas = async function () {
 
             try {
                 await enviarAjax('borrarTareasCompletadas', data);
-                //console.log('Tareas completadas borradas exitosamente');
-                window.reiniciarContenido(limpiar, '', 'tarea');
+                await window.reiniciarContenido({
+                    postType: 'tarea',
+                    publicacionesPorPagina: 34,
+                    claseContenedor: 'listaTareas bloque',
+                    claseItem: 'tareaItem',
+                    plantilla: 'plantillaTarea'
+                });
+                try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
             } catch (error) {
                 console.error('Error al borrar tareas:', error);
             }
@@ -907,41 +781,44 @@ window.manejarClicDiaHabito = function (event) {
 
     // Usar la función global enviarAjax si existe y es apropiada
     if (typeof enviarAjax === 'function') {
-        enviarAjax('marcarDiaHabito', data)
-            .then(respuesta => {
+        (async () => {
+            try {
+                const respuesta = await enviarAjax('marcarDiaHabito', data);
                 if (respuesta.success) {
-                    window.reiniciarPost(tareaId)
+                    try {
+                        const html = await window.reiniciarPost(tareaId, 'tarea');
+                        if (html) {
+                            try {
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(html, 'text/html');
+                                const nuevaTarea = doc.querySelector('.POST-tarea');
+                                const tareaActual = document.querySelector(`.POST-tarea[id-post="${tareaId}"]`);
+                                if (nuevaTarea && tareaActual) {
+                                    tareaActual.outerHTML = nuevaTarea.outerHTML;
+                                    try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
+                                } else if (nuevaTarea) {
+                                    const lista = document.querySelector('.listaTareas');
+                                    if (lista) {
+                                        lista.insertAdjacentHTML('afterbegin', nuevaTarea.outerHTML);
+                                        try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
+                                    }
+                                }
+                            } catch (errDom) {
+                                console.error('Error al parsear/reemplazar HTML de tarea (habito):', errDom);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error al reiniciarPost para hábito:', err);
+                    }
                 } else {
                     alert('Error al actualizar el día del hábito: ' + (respuesta.data || 'Error desconocido'));
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error en AJAX marcarDiaHabito:', error);
                 alert('Error de conexión al actualizar el día del hábito.');
-            });
-    } else {
-        // Fallback a jQuery AJAX si enviarAjax no está definida
-        console.warn('enviarAjax no definida, usando jQuery.ajax como fallback.');
-        jQuery.ajax({
-            url: ajaxurl,
-            type: 'POST',
-            data: data,
-            success: function (response) {
-                const respuesta = JSON.parse(response);
-                if (respuesta.success) {
-                    item.innerHTML = nuevoIcono; // Changed from textContent to innerHTML
-                    item.dataset.estado = estadoNuevo;
-                    console.log(`Día ${fecha} de tarea ${tareaId} marcado como ${estadoNuevo} (via jQuery).`);
-                } else {
-                    alert('Error al actualizar (jQuery): ' + (respuesta.data.mensaje || respuesta.data || 'Error desconocido'));
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error('Error en jQuery AJAX marcarDiaHabito:', textStatus, errorThrown);
-                alert('Error de conexión (jQuery) al actualizar el día del hábito.');
             }
-        });
-    }
+        })();
+    } 
 }
 // Asegúrate de que initMarcarDiaHabito se llame después de que las tareas se carguen o se actualicen en el DOM.
 // Por ejemplo, dentro de initTareas o después de que reiniciarPost complete su trabajo si añade nuevos elementos de tarea.

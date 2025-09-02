@@ -101,7 +101,8 @@ async function manejarTeclaEnter(ev) {
             tipo: tipo,
             sesion: sesion,
             estado: 'pendiente', // Nueva tarea siempre pendiente
-            padre: null // Por defecto, la nueva tarea no es subtarea, puedes cambiar esto si necesitas heredar 'padre'
+            padre: null, // Por defecto, la nueva tarea no es subtarea, puedes cambiar esto si necesitas heredar 'padre'
+            fechaLimite: (typeof fechaLimite !== 'undefined' && fechaLimite && fechaLimite.valor) ? fechaLimite.valor : null
         };
 
         try {

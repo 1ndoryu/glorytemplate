@@ -22,17 +22,13 @@ GloryFeatures::enable('submenus');
 GloryFeatures::enable('pestanas');
 GloryFeatures::enable('scheduler');
 GloryFeatures::enable('headerAdaptativo');
-// Feature para toggle de tema (UI)
 GloryFeatures::enable('themeToggle');
 GloryFeatures::enable('alertas');
 GloryFeatures::enable('gestionarPreviews');
 GloryFeatures::enable('paginacion');
 GloryFeatures::enable('gloryFilters');
-// Activar componente Calendario
 GloryFeatures::enable('calendario');
-// Activar feature para BadgeList
 GloryFeatures::enable('badgeList');
-// Feature para control de highlight y GSAP
 GloryFeatures::enable('highlight');
 GloryFeatures::enable('gsap');
 

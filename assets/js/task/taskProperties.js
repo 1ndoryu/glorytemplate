@@ -91,36 +91,39 @@ window.actSel = function(obj, val, txtPredeterminado = '') {
 }
 
 window.selectorTipoTarea = function() {
-    importancia.selector = document.getElementById('sImportancia');
-    tipoTarea.selector = document.getElementById('sTipo');
-    fechaLimite.selector = document.getElementById('sFechaLimite');
-    // La función actSel ya está definida globalmente
+    // Vincular los nuevos disparadores basados en data-submenu
+    importancia.selector = document.querySelector('[data-submenu="importanciaSubmenu"]');
+    tipoTarea.selector = document.querySelector('[data-submenu="tipoTareaSubmenu"]');
+    // Fecha límite ahora la maneja el calendario Glory; mantenemos el objeto por compatibilidad
+    fechaLimite.selector = document.querySelector('.gloryCalendario');
 
-    const impContenedor = document.querySelector('#sImportancia-sImportancia .A1806242');
-    const tipoContenedor = document.querySelector('#sTipo-sTipo .A1806242');
-
-    if (impContenedor) {
-        impContenedor.addEventListener('click', event => {
-            if (event.target.tagName === 'BUTTON') {
-                actSel(importancia, event.target.value);
-                window.hideAllSubmenus();
-            }
+    // Delegar selección dentro de los submenus (apertura/cierre lo maneja submenus.js)
+    const impMenu = document.getElementById('importanciaSubmenu');
+    if (impMenu) {
+        impMenu.addEventListener('click', event => {
+            const btn = event.target.closest('button');
+            if (!btn) return;
+            const val = (btn.value || btn.textContent || '').trim().toLowerCase();
+            if (!val) return;
+            actSel(importancia, val);
         });
     }
 
-    if (tipoContenedor) {
-        tipoContenedor.addEventListener('click', event => {
-            if (event.target.tagName === 'BUTTON') {
-                actSel(tipoTarea, event.target.value);
-                window.hideAllSubmenus();
-            }
+    const tipoMenu = document.getElementById('tipoTareaSubmenu');
+    if (tipoMenu) {
+        tipoMenu.addEventListener('click', event => {
+            const btn = event.target.closest('button');
+            if (!btn) return;
+            const val = (btn.value || btn.textContent || '').trim().toLowerCase();
+            if (!val) return;
+            actSel(tipoTarea, val);
         });
     }
 
-    // Valores iniciales
-    actSel(importancia, 'media');
+    // Establecer valores iniciales coherentes con el HTML por defecto
+    actSel(importancia, 'baja');
     actSel(tipoTarea, 'una vez');
-    actSel(fechaLimite, null); // No pasamos 'Sin fecha', actSel lo maneja
+    actSel(fechaLimite, null);
 }
 
 window.prioridadTarea = function() {
@@ -129,96 +132,20 @@ window.prioridadTarea = function() {
     if (boton.dataset.eventoAgregado) return;
 
     boton.addEventListener('click', async () => {
-        const lista = document.querySelector('.listaTareas');
-        const divisores = Array.from(lista.querySelectorAll('.divisorTarea'));
-        let log = '';
-
-        for (const divisor of divisores) {
-            const seccion = divisor.dataset.valor;
-            let tarea = divisor.nextElementSibling;
-            const tareasSeccion = [];
-
-            while (tarea && tarea.classList.contains('POST-tarea') && tarea.dataset.seccion === seccion) {
-                tareasSeccion.push({
-                    tarea: tarea,
-                    id: tarea.getAttribute('id-post'),
-                    impnum: parseInt(tarea.getAttribute('impnum')),
-                    padre: tarea.getAttribute('padre'),
-                    dif: parseInt(tarea.getAttribute('dif')),
-                    tipo: tarea.getAttribute('tipo-tarea')
-                });
-                tarea = tarea.nextElementSibling;
-            }
-
-            const tareasConPadre = tareasSeccion.filter(t => t.padre);
-            const tareasSinPadre = tareasSeccion.filter(t => !t.padre);
-
-            tareasSinPadre.sort((a, b) => {
-                if (b.impnum !== a.impnum) {
-                    return b.impnum - a.impnum;
-                } else if ((a.tipo === 'habito' || a.tipo === 'habito rigido') && (b.tipo === 'habito' || b.tipo === 'habito rigido')) {
-                    return a.dif - b.dif;
-                } else {
-                    return 0;
-                }
-            });
-
-            const tareasOrdenadas = [];
-
-            tareasSinPadre.forEach(tareaSinPadre => {
-                tareasOrdenadas.push(tareaSinPadre);
-                const subtareas = tareasConPadre.filter(t => t.padre === tareaSinPadre.id);
-                subtareas.sort((a, b) => {
-                    if (b.impnum !== a.impnum) {
-                        return b.impnum - a.impnum;
-                    } else if ((a.tipo === 'habito' || a.tipo === 'habito rigido') && (b.tipo === 'habito' || b.tipo === 'habito rigido')) {
-                        return a.dif - b.dif;
-                    } else {
-                        return 0;
-                    }
-                });
-
-                tareasOrdenadas.push(...subtareas);
-            });
-
-            const tablaTareas = [];
-            tareasOrdenadas.forEach((t, i) => {
-                const indiceDeseado = Array.from(lista.children).indexOf(divisor) + 1 + i;
-                const indiceActual = Array.from(lista.children).indexOf(t.tarea.closest('.tareaItem') || t.tarea);
-
-                if (indiceActual !== indiceDeseado) {
-                    const tareaReferencia = lista.children[indiceDeseado];
-                    if (tareaReferencia) {
-                        lista.insertBefore(t.tarea.closest('.tareaItem') || t.tarea, tareaReferencia);
-                    } else {
-                        lista.appendChild(t.tarea.closest('.tareaItem') || t.tarea);
-                    }
-                }
-
-                tablaTareas.push({
-                    ID: t.id,
-                    Imp: t.impnum,
-                    Padre: t.padre,
-                    Dif: t.dif,
-                    Tipo: t.tipo,
-                    'Indice Actual': indiceActual,
-                    'Indice Deseado': indiceDeseado
-                });
-            });
-
-            if (tablaTareas.length > 0) {
-                //console.table(tablaTareas);
-            }
-            log += `Se ordenaron ${tareasOrdenadas.length} tareas en la seccion "${seccion}". \n`;
-        }
-        log += `Se ejecuto prioridadTareas. \n`;
-
-        //console.log(log);
         try {
-            window.guardarOrden();
-            console.log(log);
-        } catch (error) {
-            console.error('Error al guardar el orden:', error);
+            // Pedir al backend que calcule y persista el orden por prioridad
+            await enviarAjax('priorizarTareas', {});
+            // Refrescar lista agnósticamente desde ContentRender (34 sin paginación)
+            await window.reiniciarContenido({
+                postType: 'tarea',
+                publicacionesPorPagina: 34,
+                claseContenedor: 'listaTareas bloque',
+                claseItem: 'tareaItem',
+                plantilla: 'plantillaTarea'
+            });
+            try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
+        } catch (e) {
+            console.error('prioridadTarea: error', e);
         }
     });
 
@@ -329,23 +256,36 @@ window.cambiarFrecuencia = function() {
     });
 }
 
-function actualizarFrecuencia(data, div) {
-    enviarAjax('cambiarFrecuencia', data);
-    const padre = div.querySelector('.frecuenciaTarea');
-    let span = padre.querySelector('.tituloFrecuencia');
-    if (!span) {
-        span = document.createElement('span');
-        span.classList.add('tituloFrecuencia');
-        padre.appendChild(span);
-    }
-    if (data.frecuencia === 1) {
-        span.textContent = 'diaria';
-    } else if (data.frecuencia === 7) {
-        span.textContent = 'semanal';
-    } else if (data.frecuencia === 30) {
-        span.textContent = 'mensual';
-    } else {
-        span.textContent = `${data.frecuencia}d`;
+async function actualizarFrecuencia(data, div) {
+    try {
+        const rta = await enviarAjax('cambiarFrecuencia', data);
+        if (rta && rta.success) {
+            try {
+                const html = await window.reiniciarPost(data.tareaId, 'tarea');
+                if (html) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const nuevaTarea = doc.querySelector('.POST-tarea');
+                    const tareaActual = document.querySelector(`.POST-tarea[id-post="${data.tareaId}"]`);
+                    if (nuevaTarea && tareaActual) {
+                        tareaActual.outerHTML = nuevaTarea.outerHTML;
+                        try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
+                    } else if (nuevaTarea) {
+                        const lista = document.querySelector('.listaTareas');
+                        if (lista) {
+                            lista.insertAdjacentHTML('afterbegin', nuevaTarea.outerHTML);
+                            try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
+                        }
+                    }
+                }
+            } catch (errDom) {
+                console.error('actualizarFrecuencia: Error al actualizar UI:', errDom);
+            }
+        } else {
+            console.error('actualizarFrecuencia: Error en respuesta AJAX', rta && rta.data ? rta.data : rta);
+        }
+    } catch (e) {
+        console.error('actualizarFrecuencia: Excepción', e);
     }
 }
 
@@ -449,7 +389,33 @@ window.manejarClicPrioridad = async function(event) {
                     const rta = await enviarAjax('cambiarPrioridad', data);
                     if (rta.success) {
                         logsFinales += `Éxito AJAX para ${id}. Reiniciando post. `;
-                        window.reiniciarPost(id, 'tarea');
+                        try {
+                            // Esperar el HTML actualizado del servidor y reemplazar la tarea en el DOM
+                            const html = await window.reiniciarPost(id, 'tarea');
+                            if (html) {
+                                try {
+                                    const parser = new DOMParser();
+                                    const doc = parser.parseFromString(html, 'text/html');
+                                    const nuevaTarea = doc.querySelector('.POST-tarea');
+                                    const tareaActual = document.querySelector(`.POST-tarea[id-post="${id}"]`);
+                                    if (nuevaTarea && tareaActual) {
+                                        tareaActual.outerHTML = nuevaTarea.outerHTML;
+                                        try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
+                                    } else if (nuevaTarea) {
+                                        // Si no existe la tarea en el DOM por alguna razón, añadir al inicio de la lista
+                                        const lista = document.querySelector('.listaTareas');
+                                        if (lista) {
+                                            lista.insertAdjacentHTML('afterbegin', nuevaTarea.outerHTML);
+                                            try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
+                                        }
+                                    }
+                                } catch (errDom) {
+                                    console.error('Error al parsear/reemplazar HTML de tarea:', errDom);
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Error al reiniciarPost para actualizar tarea:', err);
+                        }
                     } else {
                         let m = `Error AJAX para ${id}.`;
                         if (rta.data) m += ' Detalles: ' + rta.data;

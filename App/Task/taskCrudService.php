@@ -137,6 +137,20 @@ function completarTarea()
     if (!$tarea || $tarea->post_type !== 'tarea')
         jsonTask(false, 'Tarea no encontrada.', "ID $id no encontrado.", $func);
 
+    // Nuevo: permitir desmarcar (estado 'pendiente') además de marcar como 'completada'
+    $estadoDeseado = sanitize_text_field($_POST['estado'] ?? 'completada');
+    if (!in_array($estadoDeseado, ['pendiente', 'completada'], true)) {
+        $estadoDeseado = 'completada';
+    }
+
+    if ($estadoDeseado === 'pendiente') {
+        $cntHijAct = 0;
+        actEstTarHijos($id, 'pendiente', $cntHijAct);
+        $logDet = "IDPrincipal:$id DesmarcadaA:pendiente. SubtareasAfectadas:$cntHijAct.";
+        jsonTask(true, ['mensaje' => 'Tarea(s) desmarcada(s).'], trim($logDet), $func);
+    }
+
+    // estadoDeseado === 'completada' (comportamiento existente)
     $logDet  = "IDPrincipal:$id ";
     $logDet .= procesarCompletadoInterno($id);
 

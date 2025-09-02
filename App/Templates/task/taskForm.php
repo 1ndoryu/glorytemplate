@@ -46,19 +46,10 @@ function formTarea()
             <input type="hidden" id="fechaInput" name="fecha_input" value="">
         </button>
 
-        <!-- se maneja por JS, id anterior: sSeccion -->
+        <!-- se maneja por JS -->
         <div class="selectorIcono sSeccion openModal" data-modal="asignarSeccion" id="sSeccion" style="display: flex;">
             <span class="icono"><? echo $GLOBALS['meterCarpeta'] ?></span>
             <span class="nombreSeccionSeleccionada"></span>
-        </div>
-
-        <div class="modal" id="asignarSeccion" style="display: none;">
-            <div class="asignarSeccion" style="gap: 5px;">
-                <input type="text" id="inputNuevaSeccionModalForm" placeholder="Crear sección" maxlength="30">
-                <button id="btnCrearAsignarSeccionModalForm" style="display: none;">Crear</button>
-            </div>
-            <div id="listaSeccionesExistentesModalForm"></div>
-            <button id="btnCerrarModalSeccionForm" style="display: none;">Cerrar</button>
         </div>
 
         <!-- Calendario: generado dinámicamente por JS -->

@@ -51,14 +51,25 @@ function task()
         </div>
 
         <div class="tareasList">
-            <?php ContentRender::print('tarea', [
-                'publicacionesPorPagina' => 12,
+            <?php
+            $argumentosConsulta = [];
+            $argumentosConsulta = ordenamientoTareas([], get_current_user_id(), []);
+
+            ContentRender::print('tarea', [
+                'publicacionesPorPagina' => 34,
                 'paginacion' => false,
-                'plantillaCallback' => 'plantillaTarea', 
-                'claseContenedor' => 'listaTareas bloque', 
-                'claseItem' => 'tareaItem', 
+                'plantillaCallback' => 'plantillaTarea',
+                'claseContenedor' => 'listaTareas bloque',
+                'claseItem' => 'tareaItem',
+                'acciones' => ['eliminar'],
+                'submenu' => true,
+                'eventoAccion' => 'dblclick',
+                'selectorItem' => '.tareaItem, .draggable-element, [id-post], [id^="post-"]',
+                'argumentosConsulta' => $argumentosConsulta,
+                'forzarSinCache' => true,
             ]);
             ?>
+            
         </div>
 
     </div>

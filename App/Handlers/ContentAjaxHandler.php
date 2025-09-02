@@ -64,7 +64,8 @@ class ContentAjaxHandler
 
         wp_reset_postdata();
 
-        wp_send_json_success(['data' => $html]);
+        // Enviar el HTML directamente como data para evitar data anidada innecesaria
+        wp_send_json_success($html);
     }
 
     public static function handle_get_list_html(): void
@@ -108,6 +109,12 @@ class ContentAjaxHandler
             return;
         }
 
+        // Aplicar ordenamiento personalizado para 'tarea' de forma agnóstica
+        if ($postType === 'tarea' && function_exists('ordenamientoTareas')) {
+            $usuarioId = get_current_user_id();
+            $argumentosConsulta = ordenamientoTareas($argumentosConsulta, $usuarioId, []);
+        }
+
         ob_start();
         ContentRender::print($postType, [
             'publicacionesPorPagina' => $ppp,
@@ -120,7 +127,8 @@ class ContentAjaxHandler
         ]);
         $html = ob_get_clean();
 
-        wp_send_json_success(['data' => $html]);
+        // Enviar el HTML directamente como data para evitar data anidada innecesaria
+        wp_send_json_success($html);
     }
 }
 

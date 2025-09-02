@@ -58,17 +58,30 @@ window.actualizarFechaLimiteTareaServidorUI = async function(idTarea, nuevaFecha
         if (rta.success) {
             logDetalles += 'Servidor OK. ';
 
-            // No necesitamos actualizar el dataset del liTarea o el atributo 'dif' manualmente aquí,
-            // porque reiniciarPost() obtendrá la información más reciente del servidor.
-            // Tampoco necesitamos tocar el spanDelIconoDisparador ni el display de fecha real.
+            // Refrescar la UI de la tarea con el HTML actualizado del servidor
+            try {
+                const html = await window.reiniciarPost(idTarea, 'tarea');
+                if (html) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const nuevaTarea = doc.querySelector('.POST-tarea');
+                    const tareaActual = document.querySelector(`.POST-tarea[id-post="${idTarea}"]`);
+                    if (nuevaTarea && tareaActual) {
+                        tareaActual.outerHTML = nuevaTarea.outerHTML;
+                        try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
+                    } else if (nuevaTarea) {
+                        const lista = document.querySelector('.listaTareas');
+                        if (lista) {
+                            lista.insertAdjacentHTML('afterbegin', nuevaTarea.outerHTML);
+                            try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
+                        }
+                    }
+                }
+            } catch (errDom) {
+                console.error('actualizarFechaLimiteTareaServidorUI: Error al reconstruir UI:', errDom);
+            }
 
-            // Llamamos a reiniciarPost para actualizar toda la tarea.
-            // Asumimos que 'idTarea' es el mismo que se necesita para reiniciarPost.
-            // Si window.reiniciarPost es asíncrono, puedes usar await.
-            // Si es síncrono o no devuelve una promesa que necesitemos esperar, no hace falta await.
-            await window.reiniciarPost(idTarea, 'tarea');
-            logDetalles += `Se llamó a reiniciarPost(${idTarea}, 'tarea') para actualizar UI.`;
-
+            logDetalles += `UI actualizada para tarea ${idTarea}.`;
             console.log(logBase + '. ' + logDetalles);
         } else {
             logDetalles = `Error Servidor: ${rta.data || 'Desconocido'}`;
@@ -151,18 +164,29 @@ window.actualizarFechaProximaHabitoServidorUI = async function(idTarea, nuevaFec
     console.log(`actualizarFechaProximaHabitoServidorUI: Enviando AJAX para tarea ${idTarea}, fecha próxima: ${nuevaFechaISO}`);
 
     try {
-        // Asumimos que tendrás un endpoint PHP llamado 'modificarFechaProximaHabito'
         const rta = await enviarAjax('modificarFechaProximaHabito', datos);
         if (rta.success) {
-            const tiempo = calcularTextoTiempoJS(nuevaFechaISO);
-            if (spanTexto) {
-                spanTexto.textContent = tiempo.simbolo + tiempo.txt;
-                spanTexto.className = 'textoProxima ' + tiempo.claseNeg; // Asegúrate que la clase base es correcta
-            }
-            if (liTarea) {
-                liTarea.dataset.proxima = nuevaFechaISO || '';
-                const difDias = nuevaFechaISO ? Math.round((new Date(nuevaFechaISO + 'T00:00:00').getTime() - new Date(new Date().setHours(0, 0, 0, 0)).getTime()) / (1000 * 60 * 60 * 24)) : 0;
-                liTarea.setAttribute('dif', difDias);
+            // Refrescar la tarjeta completa para mantener consistencia visual
+            try {
+                const html = await window.reiniciarPost(idTarea, 'tarea');
+                if (html) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const nuevaTarea = doc.querySelector('.POST-tarea');
+                    const tareaActual = document.querySelector(`.POST-tarea[id-post="${idTarea}"]`);
+                    if (nuevaTarea && tareaActual) {
+                        tareaActual.outerHTML = nuevaTarea.outerHTML;
+                        try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
+                    } else if (nuevaTarea) {
+                        const lista = document.querySelector('.listaTareas');
+                        if (lista) {
+                            lista.insertAdjacentHTML('afterbegin', nuevaTarea.outerHTML);
+                            try { if (typeof initTareas === 'function') initTareas(); } catch (_) {}
+                        }
+                    }
+                }
+            } catch (errDom) {
+                console.error('actualizarFechaProximaHabitoServidorUI: Error al reconstruir UI:', errDom);
             }
             console.log(`actualizarFechaProximaHabitoServidorUI: Tarea ${idTarea} (próxima) actualizada a ${nuevaFechaISO || 'ninguna'}.`);
         } else {

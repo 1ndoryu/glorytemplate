@@ -4,7 +4,18 @@
 
 function ordenamientoTareas($queryArgs, $usu, $args, $prioridad = false)
 {
-    $ordenarServidor = false;
+    // Hacer función independiente: normalizar entradas y permitir control por $args
+    if (!is_array($queryArgs)) $queryArgs = [];
+    if (!is_array($args)) $args = [];
+    $usu = intval($usu) ?: get_current_user_id();
+
+    // Permite activar ordenamiento por prioridad desde $args['prioridad'] o parámetro explícito
+    $usarPrioridad = (isset($args['prioridad']) ? (bool)$args['prioridad'] : (bool)$prioridad);
+    if ($usarPrioridad) {
+        return ordenamientoTareasPorPrioridad($queryArgs, $usu);
+    }
+
+    $ordenarServidor = false; // Mantener falso: orden usa post__in desde meta de usuario
 
     $orden = get_user_meta($usu, 'ordenTareas', true);
     $log = "ordenamientoTareas usu: $usu";
@@ -30,6 +41,7 @@ function ordenamientoTareas($queryArgs, $usu, $args, $prioridad = false)
         $faltantes = array_diff($todasTareas, $ordenValido);
         $log .= ", faltantesEnOrdenCant: " . count($faltantes);
 
+        // Mantener el orden guardado del usuario y agregar faltantes al final
         $ordenFinal = array_merge($ordenValido, $faltantes);
         $log .= ", ordenConsolidadoCant: " . count($ordenFinal);
 
@@ -90,7 +102,10 @@ function ordenamientoTareas($queryArgs, $usu, $args, $prioridad = false)
         }
 
         $queryArgs['post__in'] = !empty($ordenFinalReordenado) ? $ordenFinalReordenado : [0]; // Evitar error con array vacío
-        $queryArgs['orderby'] = 'post__in';
+        // No forzamos orderby aquí si el llamador decide otra cosa, pero por defecto usamos post__in
+        if (empty($queryArgs['orderby'])) {
+            $queryArgs['orderby'] = 'post__in';
+        }
     } else {
         // Esta rama no se ejecuta si $ordenarServidor siempre es false.
         // Si se implementara, debería retornar $queryArgs modificado o no.
@@ -106,68 +121,134 @@ function ordenamientoTareas($queryArgs, $usu, $args, $prioridad = false)
 // Refactor(Org): Funcion ordenamientoTareasPorPrioridad() movida desde app/Services/TaskService.php
 function ordenamientoTareasPorPrioridad($queryArgs, $usu)
 {
-    global $wpdb;
-    $tareasPend = [];
-    $tareasNoPend = [];
-    $ordenActual = get_user_meta($usu, 'ordenTareas', true);
-    $log = "ordenamientoTareasPorPrioridad usu: $usu, ";
-    $todasTareasArgs = [
+    $logPartes = [];
+    $logPartes[] = "ordenamientoTareasPorPrioridad usu: $usu";
+
+    // Obtener todas las tareas del usuario
+    $todas = get_posts([
         'post_type'      => 'tarea',
         'author'         => $usu,
         'posts_per_page' => -1,
         'fields'         => 'ids',
-    ];
-
-    $todasTareas = get_posts($todasTareasArgs);
-
-    if (empty($todasTareas) || !is_array($todasTareas)) {
-        $log .= "noTareasParaUsuario";
-        guardarLog($log);
+    ]);
+    if (empty($todas)) {
+        $logPartes[] = 'sinTareas';
+        guardarLog(implode(', ', $logPartes));
         return $queryArgs;
     }
 
-    foreach ($todasTareas as $tareaId) {
-        $estado = strtolower(get_post_meta($tareaId, 'estado', true));
-        if ($estado === 'pendiente') {
-            $tareasPend[] = $tareaId;
-        } else {
-            $tareasNoPend[] = $tareaId;
+    // Clasificar por estado
+    $pendientes = [];
+    $noPendientes = [];
+    foreach ($todas as $id) {
+        $estado = strtolower((string) get_post_meta($id, 'estado', true));
+        if ($estado === 'pendiente') { $pendientes[] = $id; } else { $noPendientes[] = $id; }
+    }
+
+    // Utilidades para obtener impnum y dif (con valores por defecto)
+    $imp = function($id) {
+        $v = get_post_meta($id, 'impnum', true);
+        if (is_numeric($v)) return (int) $v;
+        // Fallback: mapear la cadena 'importancia' si 'impnum' no existe
+        $impStr = strtolower((string) get_post_meta($id, 'importancia', true));
+        $mapa = [
+            'importante' => 4,
+            'alta'       => 3,
+            'media'      => 2,
+            'baja'       => 1,
+        ];
+        return isset($mapa[$impStr]) ? $mapa[$impStr] : 0;
+    };
+    $dif = function($id) { $v = get_post_meta($id, 'dif', true); return (int) (is_numeric($v) ? $v : 0); };
+    $tipo = function($id) { return strtolower((string) get_post_meta($id, 'tipo', true)); };
+
+    // Ordenar padres por prioridad (impnum DESC), tie-breaker para hábitos por dif ASC
+    $ordenarGrupo = function(array $ids) use ($imp, $dif, $tipo) {
+        // Construir mapa padre->hijos y lista de huérfanas
+        $padres = [];
+        $huerfanas = [];
+        foreach ($ids as $id) {
+            $post = get_post($id);
+            if (!$post) continue;
+            if ((int)$post->post_parent === 0) {
+                $padres[$id] = $padres[$id] ?? [];
+            } else {
+                $pp = (int)$post->post_parent;
+                if (!array_key_exists($pp, $padres)) {
+                    // Padre puede no estar en la lista filtrada; se tratará la subtarea como huérfana
+                    $huerfanas[] = $id;
+                } else {
+                    $padres[$pp][] = $id;
+                }
+            }
         }
-    }
 
-    if (!is_array($ordenActual)) {
-        $ordenActual = [];
-    }
-
-    $tareasPendOrdenadas = [];
-    foreach ($ordenActual as $tareaId) {
-        if (in_array($tareaId, $tareasPend)) {
-            $tareasPendOrdenadas[] = $tareaId;
+        // Rellenar hijos para padres que sí están en $ids pero aún no fueron listados
+        foreach (array_keys($padres) as $pid) {
+            $hijos = get_children([
+                'post_parent' => $pid,
+                'post_type'   => 'tarea',
+                'fields'      => 'ids',
+                'posts_per_page' => -1,
+            ]);
+            if ($hijos) {
+                foreach ($hijos as $hid) {
+                    if (in_array($hid, $ids, true) && !in_array($hid, $padres[$pid] ?? [], true)) {
+                        $padres[$pid][] = $hid;
+                    }
+                }
+            }
         }
-    }
 
-    $tareasPendNoOrdenadas = array_diff($tareasPend, $tareasPendOrdenadas);
+        // Ordenar lista de padres por prioridad
+        $listaPadres = array_keys($padres);
+        usort($listaPadres, function($a, $b) use ($imp, $dif, $tipo) {
+            $impA = $imp($a); $impB = $imp($b);
+            if ($impA !== $impB) return $impB <=> $impA; // DESC
+            $esHabA = in_array($tipo($a), ['habito', 'habito rigido'], true);
+            $esHabB = in_array($tipo($b), ['habito', 'habito rigido'], true);
+            if ($esHabA && $esHabB) { return $dif($a) <=> $dif($b); } // ASC para tie habits
+            return 0;
+        });
 
-    usort($tareasPendNoOrdenadas, function ($a, $b) { // $wpdb no es necesario aquí si impnum está en post_meta
-        $impnumA = get_post_meta($a, 'impnum', true);
-        $impnumB = get_post_meta($b, 'impnum', true);
-        return (int)$impnumB - (int)$impnumA; // Castear a int por si son strings
-    });
+        $resultado = [];
+        foreach ($listaPadres as $pid) {
+            $resultado[] = $pid; // padre primero
+            $hijos = $padres[$pid] ?? [];
+            // Ordenar hijos por impnum DESC, tie habits por dif ASC
+            usort($hijos, function($a, $b) use ($imp, $dif, $tipo) {
+                $impA = $imp($a); $impB = $imp($b);
+                if ($impA !== $impB) return $impB <=> $impA;
+                $esHabA = in_array($tipo($a), ['habito', 'habito rigido'], true);
+                $esHabB = in_array($tipo($b), ['habito', 'habito rigido'], true);
+                if ($esHabA && $esHabB) { return $dif($a) <=> $dif($b); }
+                return 0;
+            });
+            foreach ($hijos as $hid) { $resultado[] = $hid; }
+        }
 
-    $tareasPend = array_merge($tareasPendOrdenadas, $tareasPendNoOrdenadas);
-    $tareasOrd = array_merge($tareasPend, $tareasNoPend);
+        // Añadir huérfanas al final del grupo (ordenadas por impnum DESC)
+        if (!empty($huerfanas)) {
+            usort($huerfanas, function($a, $b) use ($imp) { return $imp($b) <=> $imp($a); });
+            foreach ($huerfanas as $hid) { $resultado[] = $hid; }
+        }
 
-    update_user_meta($usu, 'ordenTareas', $tareasOrd);
-    $log .= "ordenTareasActualizadoCant: " . count($tareasOrd);
-    guardarLog($log);
+        // Eliminar duplicados por si algún hijo se añadió dos veces
+        return array_values(array_unique($resultado));
+    };
 
-    $queryArgs['post__in'] = !empty($tareasOrd) ? $tareasOrd : [0]; // Evitar error con array vacío
+    $ordenPend = $ordenarGrupo($pendientes);
+    $ordenNoPend = $ordenarGrupo($noPendientes);
+    $ordenFinal = array_merge($ordenPend, $ordenNoPend);
+
+    update_user_meta($usu, 'ordenTareas', $ordenFinal);
+    $logPartes[] = 'ordenTareasActualizadoCant: ' . count($ordenFinal);
+    guardarLog(implode(', ', $logPartes));
+
+    $queryArgs['post__in'] = !empty($ordenFinal) ? $ordenFinal : [0];
     $queryArgs['orderby'] = 'post__in';
-    unset($queryArgs['meta_key']); // Estos unsets aseguran que el orden por post__in prevalezca
+    unset($queryArgs['meta_key']);
     unset($queryArgs['meta_query']);
-    // unset($queryArgs['order']); // Podría ser necesario mantener 'order' si 'orderby' es diferente de 'post__in' en otros contextos
-    // unset($queryArgs['orderby']); // No hacer unset de orderby si ya lo hemos establecido a post__in
-
     return $queryArgs;
 }
 
@@ -285,5 +366,26 @@ function actualizarOrdenTareas()
 }
 add_action('wp_ajax_actualizarOrdenTareas', 'actualizarOrdenTareas');
 
+function priorizarTareasBackend()
+{
+    $usu = get_current_user_id();
+    $log = "priorizarTareasBackend usu:$usu";
+
+    // Obtener orden resultante con prioridad
+    $queryArgsPrior = ordenamientoTareasPorPrioridad([], $usu);
+
+    // Persistir orden (ya lo hace ordenamientoTareasPorPrioridad via update_user_meta)
+    $nuevoOrden = isset($queryArgsPrior['post__in']) && is_array($queryArgsPrior['post__in']) ? $queryArgsPrior['post__in'] : [];
+    if (!empty($nuevoOrden)) {
+        update_user_meta($usu, 'ordenTareas', $nuevoOrden);
+        $log .= ", ordenGuardadoCant:" . count($nuevoOrden);
+    } else {
+        $log .= ", sinOrdenNuevo";
+    }
+
+    if (function_exists('guardarLog')) guardarLog($log);
+    wp_send_json_success(['orden' => $nuevoOrden]);
+}
+add_action('wp_ajax_priorizarTareas', 'priorizarTareasBackend');
 
 ?>

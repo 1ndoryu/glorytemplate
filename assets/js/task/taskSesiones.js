@@ -1,7 +1,7 @@
 // js/taskSesiones.js
 
 // Asegurar que el mapa de secciones sea global (window.mapa)
-window.mapa = window.mapa || {general: [], archivado: []};
+window.mapa = window.mapa || {general: [], archivado: [], completadas: []};
 
 //No borrar este comentario: Se escribio mal "seccion", cuando se dice "sesion" se refiere a "seccion", es decir, grupo de tareas.
 
@@ -17,7 +17,7 @@ window.dividirTarea = async function () {
 function actualizarMapa() {
     let log = '';
     const listaSec = document.querySelector('.listaTareas');
-    window.mapa = {general: [], archivado: []};
+    window.mapa = {general: [], archivado: [], completadas: []};
     const items = Array.from(listaSec.children)
         .map(node => (node.classList && node.classList.contains('tareaItem') ? (node.querySelector('[id-post]') || node) : node))
         .filter(node => node && node.getAttribute && node.getAttribute('id-post'));
@@ -34,6 +34,8 @@ function actualizarMapa() {
 
         if (est === 'archivado') {
             window.mapa['archivado'].push(item.closest('.tareaItem') || item);
+        } else if (est === 'completada') {
+            window.mapa['completadas'].push(item.closest('.tareaItem') || item);
         } else if (est === 'pendiente') {
             if (!sesion || sesion === '' || sesion === 'pendiente') {
                 window.mapa['general'].push(item.closest('.tareaItem') || item);
@@ -206,16 +208,17 @@ function organizarSecciones() {
     eliminarSeparadoresExistentes();
     crearSeccion('General', window.mapa.general);
 
-    const otrasSecciones = Object.keys(window.mapa).filter(seccion => seccion !== 'general' && seccion !== 'archivado');
+    const otrasSecciones = Object.keys(window.mapa).filter(seccion => seccion !== 'general' && seccion !== 'archivado' && seccion !== 'completadas');
     otrasSecciones.forEach(seccion => crearSeccion(seccion, window.mapa[seccion]));
 
     crearSeccion('Archivado', window.mapa.archivado);
+    crearSeccion('Completadas', window.mapa.completadas);
 
     log += `Secciones reorganizadas: General (${window.mapa.general.length}), `;
     if (otrasSecciones.length > 0) {
         log += `${otrasSecciones.map(s => `${s} (${window.mapa[s].length})`).join(', ')}, `;
     }
-    log += `Archivado (${window.mapa.archivado.length}). `;
+    log += `Archivado (${window.mapa.archivado.length}), Completadas (${window.mapa.completadas.length}). `;
     //console.log(log);
     generarLogFinal();
 }
@@ -482,155 +485,30 @@ window.initAsignarSeccionModal = function () {
 
     listaTareas.addEventListener('click', manejadorClickListaTareas);
     console.log('initAsignarSeccionModal: listener configurado en listaTareas.');
+
+    // Fallback: añadir listeners directos a .divCarpeta por si la delegación falla en algún caso
+    const carpetas = document.querySelectorAll('.divCarpeta');
+    carpetas.forEach(carpeta => {
+        if (carpeta.dataset.asignarSeccionInit) return;
+        carpeta.addEventListener('click', async ev => {
+            ev.stopPropagation();
+            const idTarea = carpeta.dataset.tarea;
+            if (!idTarea) return;
+            await abrirModalAsignarSeccion(idTarea, carpeta);
+        });
+        carpeta.dataset.asignarSeccionInit = 'true';
+    });
 };
 
 async function abrirModalAsignarSeccion(idTarea, elemRef) {
     console.log('abrirModalAsignarSeccion: idTarea', idTarea);
     window.hideAllOpenTaskMenus();
     cerrarModalAsignarSeccion();
-
-    const modal = document.createElement('div');
-    modal.id = 'modalAsignarSeccion';
-    modal.classList.add('modal-asignar-seccion', 'modal', 'bloque');
-
-    modal.innerHTML = `
-        <div class="asignarSeccion" style="gap: 5px;">
-            <input type="text" id="inputNuevaSeccionModal" placeholder="Crear sección" maxlength="30">
-            <button id="btnCrearAsignarSeccionModal" style="display: none;"></button>
-        </div>
-        <div id="listaSeccionesExistentesModal" ></div>
-        <button id="btnCerrarModalSeccion" style="display: none;">Cerrar</button>
-    `;
-
-    document.body.appendChild(modal);
-    // Forzar reflow para asegurar dimensiones correctas antes de calcular posición
-    modal.offsetHeight;
-
-    const modalAncho = modal.offsetWidth;
-    const modalAlto = modal.offsetHeight;
-    const margenVP = 10; // Margen del viewport
-
-    const rectRef = elemRef.getBoundingClientRect();
-
-    let topCalculado = window.scrollY + rectRef.bottom + 5;
-    let leftCalculado = window.scrollX + rectRef.left;
-
-    // Ajustar horizontalmente
-    if (leftCalculado + modalAncho > window.scrollX + window.innerWidth - margenVP) {
-        leftCalculado = window.scrollX + window.innerWidth - modalAncho - margenVP;
-    }
-    if (leftCalculado < window.scrollX + margenVP) {
-        leftCalculado = window.scrollX + margenVP;
-    }
-
-    // Ajustar verticalmente
-    if (topCalculado + modalAlto > window.scrollY + window.innerHeight - margenVP) {
-        // Si se sale por abajo
-        let topArriba = window.scrollY + rectRef.top - modalAlto - 5;
-        if (topArriba < window.scrollY + margenVP) {
-            // Si al ponerlo arriba, se sale por arriba
-            // No cabe ni arriba ni abajo cómodamente pegado al elemento.
-            // Colocarlo lo más abajo posible sin salirse del viewport.
-            topCalculado = window.scrollY + window.innerHeight - modalAlto - margenVP;
-            if (topCalculado < window.scrollY + margenVP) {
-                // Si el modal es muy alto para el viewport
-                topCalculado = window.scrollY + margenVP; // Pegar al borde superior del viewport
-            }
-        } else {
-            topCalculado = topArriba; // Cabe arriba
-        }
-    }
-    if (topCalculado < window.scrollY + margenVP) {
-        // Doble chequeo por si se posicionó muy arriba
-        topCalculado = window.scrollY + margenVP;
-    }
-
-    modal.style.position = 'absolute';
-    modal.style.top = `${Math.max(0, topCalculado)}px`;
-    modal.style.left = `${Math.max(0, leftCalculado)}px`;
-    modal.style.zIndex = '10001'; // z-index alto
-
-    const listaSecDiv = modal.querySelector('#listaSeccionesExistentesModal');
-    const divisores = document.querySelectorAll('.listaTareas .divisorTarea');
-
-    divisores.forEach(divisor => {
-        const nomSecEnc = divisor.dataset.valor;
-        const nomSecOrig = decodeURIComponent(nomSecEnc);
-        if (nomSecOrig.toLowerCase() === 'archivado') return;
-
-        const pSec = document.createElement('p');
-        pSec.textContent = nomSecOrig;
-        pSec.addEventListener('click', async () => {
-            await manejarAsignacionSeccion(idTarea, nomSecOrig);
-        });
-        listaSecDiv.appendChild(pSec);
-    });
-
-    if (listaSecDiv.children.length === 0) {
-        listaSecDiv.innerHTML = '<p>No hay secciones. Crea una.</p>';
-    }
-
-    const inpNuevaSec = modal.querySelector('#inputNuevaSeccionModal');
-    const btnCrearSec = modal.querySelector('#btnCrearAsignarSeccionModal');
-
-    const procesarNuevaSeccion = async () => {
-        const nombreNuevo = inpNuevaSec.value.trim();
-        console.log('procesarNuevaSeccion: nombre', nombreNuevo, 'idTarea', idTarea);
-        const maxLong = 30;
-        const regexVal = /^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s]+$/;
-
-        if (!nombreNuevo) {
-            alert('El nombre de la nueva sección no puede estar vacío.');
-            return;
-        }
-        if (nombreNuevo.length > maxLong) {
-            alert(`El nombre de la sección no puede exceder los ${maxLong} caracteres.`);
-            return;
-        }
-        if (!regexVal.test(nombreNuevo)) {
-            alert('El nombre de la sección solo puede contener letras, números y espacios.');
-            return;
-        }
-        if (nombreNuevo.toLowerCase() === 'general' || nombreNuevo.toLowerCase() === 'archivado') {
-            alert('No se puede nombrar una sección como "General" o "Archivado".');
-            return;
-        }
-
-        let existe = false;
-        document.querySelectorAll('.listaTareas .divisorTarea').forEach(div => {
-            if (decodeURIComponent(div.dataset.valor).toLowerCase() === nombreNuevo.toLowerCase()) {
-                existe = true;
-            }
-        });
-
-        if (existe) {
-            alert(`La sección "${nombreNuevo}" ya existe. Selecciónala de la lista o elige otro nombre.`);
-            return;
-        }
-        await manejarAsignacionSeccion(idTarea, nombreNuevo);
-    };
-
-    btnCrearSec.addEventListener('click', procesarNuevaSeccion);
-    inpNuevaSec.addEventListener('keypress', async evento => {
-        if (evento.key === 'Enter') {
-            evento.preventDefault();
-            await procesarNuevaSeccion();
+    abrirModalSeccionesGenerico(elemRef, {
+        onSelect: async (nombreSeccion) => {
+            await manejarAsignacionSeccion(idTarea, nombreSeccion);
         }
     });
-    inpNuevaSec.focus();
-    modal.querySelector('#btnCerrarModalSeccion').addEventListener('click', cerrarModalAsignarSeccion);
-
-    window.cerrarModalSeccionEvt = function (evento) {
-        if (modal && !modal.contains(evento.target) && evento.target !== elemRef && !elemRef.contains(evento.target)) {
-            cerrarModalAsignarSeccion();
-        }
-    };
-
-    setTimeout(() => {
-        // Asegura que este listener se añade después del evento de click actual
-        document.addEventListener('click', window.cerrarModalSeccionEvt, true);
-    }, 0);
-    // console.log('abrirModalAsignarSeccion: modal configurado para idTarea', idTarea);
 }
 
 async function manejarAsignacionSeccion(idTarea, nombreSeccion) {
@@ -717,4 +595,139 @@ function cerrarModalAsignarSeccion() {
         document.removeEventListener('click', window.cerrarModalSeccionEvt, true);
         window.cerrarModalSeccionEvt = null;
     }
+}
+
+function recolectarSeccionesExistentes() {
+    let secciones = [];
+    // Desde mapa
+    const mapaKeys = Object.keys(window.mapa || {});
+    mapaKeys.forEach(k => {
+        const dec = decodeURIComponent(k);
+        if (dec && dec.toLowerCase() !== 'archivado') secciones.push(dec);
+    });
+    // Desde DOM
+    const listaTareasItems = document.querySelectorAll('.listaTareas .POST-tarea[data-sesion]');
+    listaTareasItems.forEach(item => {
+        const ses = item.getAttribute('data-sesion');
+        if (!ses) return;
+        const dec = decodeURIComponent(ses);
+        if (dec && dec.toLowerCase() !== 'archivado' && dec.toLowerCase() !== 'pendiente') secciones.push(dec);
+    });
+    // Asegurar General
+    const hasGeneral = secciones.map(s => s.toLowerCase()).includes('general');
+    if (!hasGeneral) secciones.push('General');
+    // Unicos y ordenar con General primero
+    const unicos = [];
+    const lower = new Set();
+    secciones.forEach(s => {
+        const l = s.toLowerCase();
+        if (!lower.has(l)) { lower.add(l); unicos.push(s); }
+    });
+    unicos.sort((a, b) => {
+        if (a.toLowerCase() === 'general') return -1;
+        if (b.toLowerCase() === 'general') return 1;
+        return a.localeCompare(b);
+    });
+    return unicos;
+}
+
+function abrirModalSeccionesGenerico(elemRef, opts) {
+    const onSelect = (opts && typeof opts.onSelect === 'function') ? opts.onSelect : null;
+    const placeholder = (opts && opts.placeholder) || 'Crear sección';
+
+    cerrarModalAsignarSeccion();
+
+    const modal = document.createElement('div');
+    modal.id = 'modalAsignarSeccion';
+    modal.classList.add('modal-asignar-seccion', 'modal', 'bloque');
+
+    modal.innerHTML = `
+        <div class="asignarSeccion" style="gap: 5px;">
+            <input type="text" id="inputNuevaSeccionModal" placeholder="${placeholder}" maxlength="30">
+            <button id="btnCrearAsignarSeccionModal" style="display: none;"></button>
+        </div>
+        <div id="listaSeccionesExistentesModal"></div>
+        <button id="btnCerrarModalSeccion" style="display: none;">Cerrar</button>
+    `;
+    document.body.appendChild(modal);
+    // Asegurar que el modal sea visible aunque .modal tenga display:none en CSS
+    modal.style.display = 'block';
+    if (typeof window.mostrarFondo === 'function') { try { window.mostrarFondo(); } catch(_) {} }
+
+    // Posicionamiento relativo a elemRef
+    modal.offsetHeight; // reflow
+    const margenVP = 10;
+    const rectRef = elemRef.getBoundingClientRect();
+    const modalAncho = modal.offsetWidth;
+    const modalAlto = modal.offsetHeight;
+    let topCalculado = window.scrollY + rectRef.bottom + 5;
+    let leftCalculado = window.scrollX + rectRef.left;
+    if (leftCalculado + modalAncho > window.scrollX + window.innerWidth - margenVP) {
+        leftCalculado = window.scrollX + window.innerWidth - modalAncho - margenVP;
+    }
+    if (leftCalculado < window.scrollX + margenVP) leftCalculado = window.scrollX + margenVP;
+    if (topCalculado + modalAlto > window.scrollY + window.innerHeight - margenVP) {
+        const topArriba = window.scrollY + rectRef.top - modalAlto - 5;
+        topCalculado = topArriba < window.scrollY + margenVP ? window.scrollY + margenVP : topArriba;
+    }
+    if (topCalculado < window.scrollY + margenVP) topCalculado = window.scrollY + margenVP;
+    modal.style.position = 'absolute';
+    modal.style.top = `${Math.max(0, topCalculado)}px`;
+    modal.style.left = `${Math.max(0, leftCalculado)}px`;
+    modal.style.zIndex = '10001';
+
+    // Poblar lista
+    const listaDiv = modal.querySelector('#listaSeccionesExistentesModal');
+    const secciones = recolectarSeccionesExistentes();
+    if (secciones.length === 0) {
+        listaDiv.innerHTML = '<p>No hay secciones. Crea una.</p>';
+    } else {
+        secciones.forEach(nombre => {
+            const p = document.createElement('p');
+            p.textContent = nombre;
+            p.addEventListener('click', () => {
+                if (onSelect) onSelect(nombre);
+                cerrarModalAsignarSeccion();
+                if (typeof window.ocultarFondo === 'function') { try { window.ocultarFondo(); } catch(_) {} }
+            });
+            listaDiv.appendChild(p);
+        });
+    }
+
+    const input = modal.querySelector('#inputNuevaSeccionModal');
+    const btnCrear = modal.querySelector('#btnCrearAsignarSeccionModal');
+    input.addEventListener('input', () => {
+        btnCrear.style.display = input.value.trim() ? 'inline-block' : 'none';
+    });
+
+    const crear = () => {
+        const nombreNuevo = input.value.trim();
+        const maxLong = 30;
+        const regexVal = /^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s]+$/;
+        if (!nombreNuevo) { alert('El nombre de la sección no puede estar vacío.'); return; }
+        if (nombreNuevo.length > maxLong) { alert(`El nombre de la sección no puede exceder los ${maxLong} caracteres.`); return; }
+        if (!regexVal.test(nombreNuevo)) { alert('El nombre de la sección solo puede contener letras, números y espacios.'); return; }
+        if (['general','archivado','pendiente'].includes(nombreNuevo.toLowerCase())) { alert('Ese nombre de sección no está permitido.'); return; }
+        const existe = secciones.map(s => s.toLowerCase()).includes(nombreNuevo.toLowerCase());
+        if (existe) { alert(`La sección "${nombreNuevo}" ya existe.`); return; }
+        if (onSelect) onSelect(nombreNuevo);
+        cerrarModalAsignarSeccion();
+        if (typeof window.ocultarFondo === 'function') { try { window.ocultarFondo(); } catch(_) {} }
+    };
+    btnCrear.addEventListener('click', crear);
+    input.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); crear(); } });
+    input.focus();
+
+    modal.querySelector('#btnCerrarModalSeccion').addEventListener('click', () => {
+        cerrarModalAsignarSeccion();
+        if (typeof window.ocultarFondo === 'function') { try { window.ocultarFondo(); } catch(_) {} }
+    });
+
+    window.cerrarModalSeccionEvt = function (evento) {
+        if (modal && !modal.contains(evento.target) && evento.target !== elemRef && !elemRef.contains(evento.target)) {
+            cerrarModalAsignarSeccion();
+            if (typeof window.ocultarFondo === 'function') { try { window.ocultarFondo(); } catch(_) {} }
+        }
+    };
+    setTimeout(() => { document.addEventListener('click', window.cerrarModalSeccionEvt, true); }, 0);
 }

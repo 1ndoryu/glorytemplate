@@ -2,9 +2,6 @@
 
 // Legacy wrapper: expone una inicialización simple que usa la API agnóstica
 window.initCal = function () {
-    if (window.gloryCalendario && typeof window.gloryCalendario.init === 'function') {
-        return window.gloryCalendario.init();
-    }
     // Generar estructura base del calendario si no existe
     let cal = document.getElementById('calCont');
     if (!cal) {
@@ -82,7 +79,8 @@ window.initCal = function () {
         cal.appendChild(input);
     }
 
-    const sfl = document.getElementById('sFechaLimite');
+    // Compatibilidad: preferir #sFechaLimite; si no existe, usar .gloryCalendario
+    const sfl = document.getElementById('sFechaLimite') || document.querySelector('.gloryCalendario');
     const calPrevBtn = document.getElementById('calPrev');
     const calNextBtn = document.getElementById('calNext');
     const calHoyBtn = document.getElementById('calHoyBtn');
@@ -90,7 +88,7 @@ window.initCal = function () {
     const inputFechaOculto = document.getElementById('inputFechaLimite');
 
     if (!sfl) {
-        console.error('initCal: No existe #sFechaLimite en DOM.');
+        console.error('initCal: No existe #sFechaLimite ni .gloryCalendario en DOM.');
         return;
     }
 
