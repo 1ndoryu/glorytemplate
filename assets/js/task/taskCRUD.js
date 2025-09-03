@@ -546,49 +546,90 @@ window.subTarea = function () {
 
             if (ev.shiftKey && ev.key === 'Tab') {
                 ev.preventDefault();
-                if (tareaActual.classList.contains('subtarea')) {
+                const idPadrePrevio = tareaActual.getAttribute('padre') || null;
+                const esSub = tareaActual.classList.contains('subtarea') || tareaActual.getAttribute('subtarea') === 'true' || !!idPadrePrevio;
+                if (esSub) {
                     tareaActual.classList.remove('subtarea');
+                    tareaActual.setAttribute('subtarea', 'false');
                     tareaActual.removeAttribute('padre');
 
                     const datos = { id: idActual, subtarea: false };
                     enviarAjax('crearSubtarea', datos)
-                        .then(rta => {
+                        .then(async rta => {
                             let log = `subTarea Shift+Tab: ID ${idActual} -> ya no es subtarea. RTA ${rta.success}`;
                             if (!rta.success && rta.data) log += `. Error: ${rta.data}`;
                             console.log(log);
                             if (!rta.success) {
-                                window.reiniciarPost(idActual, 'tarea');
-                                // Si guardabas el id del padre anterior, deberías restaurarlo aquí.
+                                await window.reiniciarPost(idActual, 'tarea');
+                            } else {
+                                if (idPadrePrevio) {
+                                    try { await window.reiniciarTareaYSubtareas(idPadrePrevio); } catch (_) {}
+                                } else {
+                                    try { await window.reiniciarPost(idActual, 'tarea'); } catch (_) {}
+                                }
                             }
                         })
                         .catch(err => {
                             console.error(`subTarea Shift+Tab: ID ${idActual}. Excepcion: ${err}`);
                             tareaActual.classList.add('subtarea');
+                            tareaActual.setAttribute('subtarea', 'true');
+                            if (idPadrePrevio) tareaActual.setAttribute('padre', idPadrePrevio);
                         });
                 }
             } else if (ev.key === 'Tab' && !ev.shiftKey && !ev.ctrlKey && !ev.altKey) {
                 ev.preventDefault();
-                const tareaAnterior = tareaActual.previousElementSibling;
+                // Encontrar el wrapper correcto de la tarea actual y su anterior tarea válida
+                const wrapperActual = tareaActual.closest('.tareaItem') || tareaActual;
+                let cursor = (wrapperActual).previousElementSibling;
+                let tareaAnteriorPost = null;
+                while (cursor) {
+                    if (cursor.classList && cursor.classList.contains('divisorTarea')) {
+                        cursor = cursor.previousElementSibling;
+                        continue;
+                    }
+                    const candidato = cursor.querySelector ? (cursor.querySelector('.POST-tarea') || null) : (cursor.classList && cursor.classList.contains('POST-tarea') ? cursor : null);
+                    if (candidato && candidato !== tareaActual) {
+                        tareaAnteriorPost = candidato;
+                        break;
+                    }
+                    cursor = cursor.previousElementSibling;
+                }
 
-                if (tareaAnterior && tareaAnterior.classList.contains('POST-tarea') && tareaAnterior !== tareaActual) {
+                if (tareaAnteriorPost) {
+                    const idAnterior = tareaAnteriorPost.getAttribute('id-post');
+
+                    // Marcar visual y atributos
                     tareaActual.classList.add('subtarea');
-                    const idAnterior = tareaAnterior.getAttribute('id-post');
+                    tareaActual.setAttribute('subtarea', 'true');
                     tareaActual.setAttribute('padre', idAnterior);
+
+                    // Reordenar DOM: mover wrapper de la subtarea justo después del padre
+                    const wrapperPadre = tareaAnteriorPost.closest('.tareaItem') || tareaAnteriorPost;
+                    try {
+                        const contenedor = wrapperPadre.parentNode;
+                        if (contenedor && wrapperActual !== wrapperPadre) {
+                            contenedor.insertBefore(wrapperActual, wrapperPadre.nextSibling);
+                        }
+                    } catch (_) {}
 
                     const datos = { id: idActual, padre: idAnterior, subtarea: true };
                     enviarAjax('crearSubtarea', datos)
-                        .then(rta => {
+                        .then(async rta => {
                             let log = `subTarea Tab: ID ${idActual} -> subtarea de ${idAnterior}. RTA ${rta.success}`;
                             if (!rta.success && rta.data) log += `. Error: ${rta.data}`;
                             console.log(log);
                             if (!rta.success) {
-                                window.reiniciarPost(idActual, 'tarea');
+                                await window.reiniciarPost(idActual, 'tarea');
+                            } else {
+                                try { await window.reiniciarTareaYSubtareas(idAnterior); } catch (_) {}
                             }
                         })
                         .catch(err => {
                             console.error(`subTarea Tab: ID ${idActual} subtarea de ${idAnterior}. Excepcion: ${err}`);
                             tareaActual.classList.remove('subtarea');
+                            tareaActual.setAttribute('subtarea', 'false');
                             tareaActual.removeAttribute('padre');
+                            try { window.reiniciarPost(idActual, 'tarea'); } catch (_) {}
                         });
                 }
             }

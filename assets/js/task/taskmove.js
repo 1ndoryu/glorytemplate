@@ -290,13 +290,61 @@ function finalizarArrastre() {
             const {nuevaEsSubtarea} = cambioASubtarea();
             let padre = '';
             if (nuevaEsSubtarea) {
-                const tareaPadre = arrastrandoElem.nextElementSibling;
-                padre = tareaPadre ? tareaPadre.getAttribute('id-post') : '';
+                // Determinar padre según vecinos con wrappers .tareaItem
+                const wrap = (arrastrandoElem.closest && arrastrandoElem.closest('.tareaItem')) || arrastrandoElem;
+                function buscarAnteriorPost(w) {
+                    let p = w.previousElementSibling;
+                    while (p) {
+                        if (p.classList && p.classList.contains('divisorTarea')) { p = p.previousElementSibling; continue; }
+                        const cand = p.querySelector ? (p.querySelector('.POST-tarea') || null) : (p.classList && p.classList.contains('POST-tarea') ? p : null);
+                        if (cand) return cand;
+                        p = p.previousElementSibling;
+                    }
+                    return null;
+                }
+                function buscarSiguientePost(w) {
+                    let n = w.nextElementSibling;
+                    while (n) {
+                        if (n.classList && n.classList.contains('divisorTarea')) { n = n.nextElementSibling; continue; }
+                        const cand = n.querySelector ? (n.querySelector('.POST-tarea') || null) : (n.classList && n.classList.contains('POST-tarea') ? n : null);
+                        if (cand) return cand;
+                        n = n.nextElementSibling;
+                    }
+                    return null;
+                }
+                const anteriorPost = buscarAnteriorPost(wrap);
+                const siguientePost = buscarSiguientePost(wrap);
+                const prevSibling = wrap.previousElementSibling;
+                const topOdivisor = !prevSibling || (prevSibling.classList && prevSibling.classList.contains('divisorTarea'));
+
+                // 1) Entre dos subtareas del mismo padre → adopta ese padre
+                if (anteriorPost && siguientePost && anteriorPost.getAttribute('subtarea') === 'true' && siguientePost.getAttribute('subtarea') === 'true' && anteriorPost.getAttribute('padre') && anteriorPost.getAttribute('padre') === siguientePost.getAttribute('padre')) {
+                    padre = anteriorPost.getAttribute('padre');
+                }
+                // 2) Si no, si siguiente es subtarea → adopta el padre del siguiente
+                if (!padre && !topOdivisor && siguientePost && siguientePost.getAttribute('subtarea') === 'true') {
+                    padre = siguientePost.getAttribute('padre') || '';
+                }
+                // 3) Si no, si anterior es subtarea → adopta el padre del anterior
+                if (!padre && !topOdivisor && anteriorPost && anteriorPost.getAttribute('subtarea') === 'true') {
+                    padre = anteriorPost.getAttribute('padre') || '';
+                }
+                // 4) Fallback: si el siguiente es el padre original, SOLO si arriba hay una subtarea de ese padre (sigue dentro del bloque)
+                if (!padre && siguientePost && siguientePost.getAttribute('id-post') === arrastrandoElem.getAttribute('padre')) {
+                    if (anteriorPost && anteriorPost.getAttribute('subtarea') === 'true' && anteriorPost.getAttribute('padre') === siguientePost.getAttribute('id-post')) {
+                        padre = siguientePost.getAttribute('id-post');
+                    }
+                }
+
                 if (padre) {
                     arrastrandoElem.setAttribute('padre', padre);
                     arrastrandoElem.setAttribute('subtarea', 'true');
+                    arrastrandoElem.classList.add('subtarea');
                 } else {
-                    padre = '';
+                    // Si no se pudo determinar padre, no marcar como subtarea
+                    arrastrandoElem.removeAttribute('padre');
+                    arrastrandoElem.setAttribute('subtarea', 'false');
+                    arrastrandoElem.classList.remove('subtarea');
                 }
                 arrastrandoElem.setAttribute('data-sesion', dataArriba);
                 arrastrandoElem.setAttribute('sesion', sesionArriba);
@@ -304,6 +352,7 @@ function finalizarArrastre() {
                 padre = '';
                 arrastrandoElem.removeAttribute('padre');
                 arrastrandoElem.setAttribute('subtarea', 'false');
+                arrastrandoElem.classList.remove('subtarea');
                 arrastrandoElem.setAttribute('data-sesion', dataArriba);
                 subtareasArrastradas.forEach(subtarea => subtarea.setAttribute('data-sesion', dataArriba));
                 arrastrandoElem.setAttribute('sesion', sesionArriba);
@@ -374,24 +423,69 @@ function esSubtareaNueva() {
         return false;
     }
 
-    let esSubNuevaRet = false; // Renombrada para evitar confusión con la variable global esSubtarea
-    let siguiente = arrastrandoElem.nextElementSibling;
-    if (siguiente) {
-        const sigEsSubtarea = siguiente.getAttribute('subtarea') === 'true';
-        // sigEsPadreOriginalDeArrastrada significa que 'siguiente' es el padre original de 'arrastrandoElem'
-        const sigEsPadreOriginalDeArrastrada = siguiente.getAttribute('id-post') === arrastrandoElem.getAttribute('padre');
-        // arrastradaEsPadreDeSiguiente significa que 'arrastrandoElem' es el padre de 'siguiente'
-        const arrastradaEsPadreDeSiguiente = arrastrandoElem.getAttribute('id-post') === siguiente.getAttribute('padre');
+    // Usar wrappers .tareaItem y .POST-tarea para evaluar vecinos reales
+    const wrap = (arrastrandoElem.closest && arrastrandoElem.closest('.tareaItem')) || arrastrandoElem;
 
-        // Lógica original (simplificada): una tarea se convierte en subtarea si
-        // 1. El elemento siguiente es una subtarea O el elemento siguiente es el padre original de la tarea arrastrada
-        // Y ADEMÁS
-        // 2. La tarea arrastrada no es el padre del elemento siguiente.
-        if ((sigEsSubtarea || sigEsPadreOriginalDeArrastrada) && !arrastradaEsPadreDeSiguiente) {
-            esSubNuevaRet = true;
+    function buscarAnteriorPost(w) {
+        let p = w.previousElementSibling;
+        while (p) {
+            if (p.classList && p.classList.contains('divisorTarea')) { p = p.previousElementSibling; continue; }
+            const cand = p.querySelector ? (p.querySelector('.POST-tarea') || null) : (p.classList && p.classList.contains('POST-tarea') ? p : null);
+            if (cand) return cand;
+            p = p.previousElementSibling;
+        }
+        return null;
+    }
+
+    function buscarSiguientePost(w) {
+        let n = w.nextElementSibling;
+        while (n) {
+            if (n.classList && n.classList.contains('divisorTarea')) { n = n.nextElementSibling; continue; }
+            const cand = n.querySelector ? (n.querySelector('.POST-tarea') || null) : (n.classList && n.classList.contains('POST-tarea') ? n : null);
+            if (cand) return cand;
+            n = n.nextElementSibling;
+        }
+        return null;
+    }
+
+    const anteriorPost = buscarAnteriorPost(wrap);
+    const siguientePost = buscarSiguientePost(wrap);
+    const prevSibling = wrap.previousElementSibling;
+    const topOdivisor = !prevSibling || (prevSibling && prevSibling.classList && prevSibling.classList.contains('divisorTarea'));
+
+    if (anteriorPost && siguientePost) {
+        const antEsSub = anteriorPost.getAttribute('subtarea') === 'true';
+        const sigEsSub = siguientePost.getAttribute('subtarea') === 'true';
+        const padreAnt = anteriorPost.getAttribute('padre');
+        const padreSig = siguientePost.getAttribute('padre');
+        const idArr = arrastrandoElem.getAttribute('id-post');
+        if (antEsSub && sigEsSub && padreAnt && padreAnt === padreSig && padreAnt !== idArr) {
+            return true;
         }
     }
-    return esSubNuevaRet;
+
+    // Si está al inicio o justo después de un divisor de sección, NO convertir a subtarea
+    if (topOdivisor) {
+        // salvo si el siguiente es su padre original Y arriba hay una subtarea del mismo padre (sigue en bloque)
+        if (siguientePost && siguientePost.getAttribute('id-post') === arrastrandoElem.getAttribute('padre')) {
+            if (anteriorPost && anteriorPost.getAttribute('subtarea') === 'true' && anteriorPost.getAttribute('padre') === siguientePost.getAttribute('id-post')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    if (siguientePost && siguientePost.getAttribute('subtarea') === 'true') {
+        if (arrastrandoElem.getAttribute('id-post') !== siguientePost.getAttribute('padre')) {
+            return true;
+        }
+    }
+
+    if (siguientePost && siguientePost.getAttribute('id-post') === arrastrandoElem.getAttribute('padre')) {
+        return true;
+    }
+
+    return false;
 }
 
 function cambioASubtarea() {

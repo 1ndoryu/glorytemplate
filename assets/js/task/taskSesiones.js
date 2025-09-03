@@ -595,6 +595,8 @@ function cerrarModalAsignarSeccion() {
         document.removeEventListener('click', window.cerrarModalSeccionEvt, true);
         window.cerrarModalSeccionEvt = null;
     }
+moviendola    // Asegurar que el fondo se oculte siempre que cerremos este modal
+    if (typeof window.ocultarFondo === 'function') { try { window.ocultarFondo(); } catch(_) {} }
 }
 
 function recolectarSeccionesExistentes() {
@@ -688,7 +690,6 @@ function abrirModalSeccionesGenerico(elemRef, opts) {
             p.addEventListener('click', () => {
                 if (onSelect) onSelect(nombre);
                 cerrarModalAsignarSeccion();
-                if (typeof window.ocultarFondo === 'function') { try { window.ocultarFondo(); } catch(_) {} }
             });
             listaDiv.appendChild(p);
         });
@@ -712,7 +713,6 @@ function abrirModalSeccionesGenerico(elemRef, opts) {
         if (existe) { alert(`La sección "${nombreNuevo}" ya existe.`); return; }
         if (onSelect) onSelect(nombreNuevo);
         cerrarModalAsignarSeccion();
-        if (typeof window.ocultarFondo === 'function') { try { window.ocultarFondo(); } catch(_) {} }
     };
     btnCrear.addEventListener('click', crear);
     input.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); crear(); } });
@@ -720,13 +720,11 @@ function abrirModalSeccionesGenerico(elemRef, opts) {
 
     modal.querySelector('#btnCerrarModalSeccion').addEventListener('click', () => {
         cerrarModalAsignarSeccion();
-        if (typeof window.ocultarFondo === 'function') { try { window.ocultarFondo(); } catch(_) {} }
     });
 
     window.cerrarModalSeccionEvt = function (evento) {
         if (modal && !modal.contains(evento.target) && evento.target !== elemRef && !elemRef.contains(evento.target)) {
             cerrarModalAsignarSeccion();
-            if (typeof window.ocultarFondo === 'function') { try { window.ocultarFondo(); } catch(_) {} }
         }
     };
     setTimeout(() => { document.addEventListener('click', window.cerrarModalSeccionEvt, true); }, 0);
