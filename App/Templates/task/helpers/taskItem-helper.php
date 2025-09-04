@@ -16,7 +16,7 @@
 function obtenerDatosTarea(int $id, string $filtro = 'tarea'): array
 {
     global $depurarTitulo;
-    $depurarTitulo = true;
+    $depurarTitulo = false;
 
     $datos = [
         'id'          => $id,

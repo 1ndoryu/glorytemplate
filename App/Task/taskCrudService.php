@@ -574,3 +574,59 @@ function marcarDiaHabito()
 }
 
 add_action('wp_ajax_marcarDiaHabito', 'marcarDiaHabito');
+
+/**
+ * Enviar a papelera en cascada las subtareas cuando una tarea padre va a la papelera.
+ */
+function moverSubtareasAPapelera($postId)
+{
+    $post = get_post($postId);
+    if (!$post || $post->post_type !== 'tarea') {
+        return;
+    }
+    $children = get_children([
+        'post_parent'   => $postId,
+        'post_type'     => 'tarea',
+        'numberposts'   => -1,
+        'fields'        => 'ids',
+        'post_status'   => 'any',
+    ]);
+    if (empty($children)) {
+        return;
+    }
+    foreach ($children as $cid) {
+        // Evitar loops si ya está en papelera
+        if (get_post_status($cid) !== 'trash') {
+            wp_trash_post($cid);
+        }
+    }
+}
+
+/**
+ * Borrado permanente en cascada de subtareas cuando se borra una tarea padre.
+ */
+function borrarCascadaSubtareas($postId)
+{
+    $post = get_post($postId);
+    if (!$post || $post->post_type !== 'tarea') {
+        return;
+    }
+    $children = get_children([
+        'post_parent'   => $postId,
+        'post_type'     => 'tarea',
+        'numberposts'   => -1,
+        'fields'        => 'ids',
+        'post_status'   => 'any',
+    ]);
+    if (empty($children)) {
+        return;
+    }
+    foreach ($children as $cid) {
+        // Forzar borrado permanente
+        wp_delete_post($cid, true);
+    }
+}
+
+// Hooks para cascada en papelera y borrado permanente
+add_action('trashed_post', 'moverSubtareasAPapelera', 10, 1);
+add_action('before_delete_post', 'borrarCascadaSubtareas', 10, 1);

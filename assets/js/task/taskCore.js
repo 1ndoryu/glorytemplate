@@ -115,13 +115,13 @@ window.guardarOrden = function () {
     });
 };
 
-window.reiniciarTareaYSubtareas = function (idTareaPrincipal) {
+window.reiniciarTareaYSubtareas = async function (idTareaPrincipal) {
     const tareaElem = document.querySelector(`.POST-tarea[id-post="${idTareaPrincipal}"]`);
     let log = `reiniciarTareaYSubtareas: TareaID ${idTareaPrincipal}. `;
 
     if (tareaElem) {
         log += `Principal reiniciando. `;
-        window.reiniciarPost(idTareaPrincipal, 'tarea');
+        try { await window.reiniciarPost(idTareaPrincipal, 'tarea'); } catch (_) {}
 
         // Buscar subtareas directas de esta tarea
         // La clase 'tarea-padre' es un buen indicador, pero buscar por atributo 'padre' es más directo.
@@ -129,13 +129,13 @@ window.reiniciarTareaYSubtareas = function (idTareaPrincipal) {
 
         if (subtareasElems.length > 0) {
             log += `${subtareasElems.length} subtareas encontradas. `;
-            subtareasElems.forEach(subElem => {
+            for (const subElem of subtareasElems) {
                 const idSub = subElem.getAttribute('id-post');
                 if (idSub) {
                     log += `SubID ${idSub} reiniciando. `;
-                    window.reiniciarPost(idSub, 'tarea');
+                    try { await window.reiniciarPost(idSub, 'tarea'); } catch (_) {}
                 }
-            });
+            }
         } else {
             log += `No se encontraron subtareas en DOM. `;
         }

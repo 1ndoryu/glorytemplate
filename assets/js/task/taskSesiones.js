@@ -14,6 +14,21 @@ window.dividirTarea = async function () {
     window.addEventListener('reiniciar', organizarSecciones);
 };
 
+function decodeFully(valor) {
+	if (!valor) return '';
+	let actual = String(valor);
+	try {
+		while (actual.includes('%')) {
+			const dec = decodeURIComponent(actual);
+			if (dec === actual) break;
+			actual = dec;
+		}
+	} catch (_) {
+		// Si falla alguna decodificación, devolvemos el último valor estable
+	}
+	return actual;
+}
+
 function actualizarMapa() {
     let log = '';
     const listaSec = document.querySelector('.listaTareas');
@@ -25,25 +40,26 @@ function actualizarMapa() {
     log = `actualizarMapa: Tareas encontradas: ${items.length}. `;
     items.forEach(item => {
         const est = item.getAttribute('estado')?.toLowerCase();
-        // Compatibilidad: aceptar tanto data-sesion como data-seccion, y tratar 'null' como vacío
-        let sesionRaw = item.getAttribute('data-sesion') || item.getAttribute('data-seccion') || '';
-        let sesion = typeof sesionRaw === 'string' ? sesionRaw.toLowerCase() : '';
-        if (sesion === 'null') sesion = '';
+        // Compatibilidad: aceptar tanto data-sesion como data-seccion; usar nombre humano decodificado como clave
+        let sesionRaw = item.getAttribute('data-sesion-original') || item.getAttribute('data-sesion') || item.getAttribute('data-seccion') || '';
+        if (sesionRaw === 'null') sesionRaw = '';
+        const sesionDec = decodeFully(typeof sesionRaw === 'string' ? sesionRaw : '') || '';
+        const sesionDecLower = sesionDec.toLowerCase();
         const idPost = item.getAttribute('id-post');
-        log += `Tarea ID: ${idPost}, Estado: ${est}, Sesión: ${sesion}. `;
+        log += `Tarea ID: ${idPost}, Estado: ${est}, Sesión: ${sesionDec}. `;
 
         if (est === 'archivado') {
             window.mapa['archivado'].push(item.closest('.tareaItem') || item);
         } else if (est === 'completada') {
             window.mapa['completadas'].push(item.closest('.tareaItem') || item);
         } else if (est === 'pendiente') {
-            if (!sesion || sesion === '' || sesion === 'pendiente') {
+            if (!sesionDecLower || sesionDecLower === 'pendiente') {
                 window.mapa['general'].push(item.closest('.tareaItem') || item);
             } else {
-                if (!window.mapa[sesion]) {
-                    window.mapa[sesion] = [];
+                if (!window.mapa[sesionDec]) {
+                    window.mapa[sesionDec] = [];
                 }
-                window.mapa[sesion].push(item.closest('.tareaItem') || item);
+                window.mapa[sesionDec].push(item.closest('.tareaItem') || item);
             }
         }
     });
@@ -53,11 +69,28 @@ function actualizarMapa() {
 function alternarVisibilidadSeccion(divisor) {
     const listaSec = document.querySelector('.listaTareas');
     const valorDivisorCodificado = divisor.dataset.valor;
-    const valorDivisor = decodeURIComponent(valorDivisorCodificado); 
+    const valorDivisor = decodeFully(valorDivisorCodificado); 
     const items = Array.from(listaSec.children)
         .map(node => (node.classList && node.classList.contains('tareaItem') ? (node.querySelector('[id-post]') || node) : node))
         .filter(node => node && node.getAttribute && node.getAttribute('id-post'));
-    let visible = localStorage.getItem(`seccion-${valorDivisorCodificado}`) !== 'oculto';
+    let visible = (function() {
+        const standardKey = `seccion-${valorDivisorCodificado}`;
+        let val = localStorage.getItem(standardKey);
+        if (val === null) {
+            const alt1 = `seccion-${encodeURIComponent(valorDivisorCodificado)}`;
+            val = localStorage.getItem(alt1);
+            if (val !== null) {
+                try { localStorage.setItem(standardKey, val); localStorage.removeItem(alt1); } catch(_) {}
+            } else {
+                const alt2 = `seccion-${encodeURIComponent(encodeURIComponent(valorDivisorCodificado))}`;
+                val = localStorage.getItem(alt2);
+                if (val !== null) {
+                    try { localStorage.setItem(standardKey, val); localStorage.removeItem(alt2); } catch(_) {}
+                }
+            }
+        }
+        return val !== 'oculto';
+    })();
     visible = !visible;
     // let log = `alternarVisibilidadSeccion: Alternando visibilidad de la sección ${valorDivisor}. `;
 
@@ -74,12 +107,20 @@ function alternarVisibilidadSeccion(divisor) {
     } else {
         // console.error("alternarVisibilidadSeccion: No se encontró .flecha-seccion para:", valorDivisor);
     }
-    localStorage.setItem(`seccion-${valorDivisorCodificado}`, visible ? 'visible' : 'oculto');
+    const standardKey = `seccion-${valorDivisorCodificado}`;
+    localStorage.setItem(standardKey, visible ? 'visible' : 'oculto');
+    // Limpiar posibles claves antiguas doble/triple codificadas
+    try {
+        const alt1 = `seccion-${encodeURIComponent(valorDivisorCodificado)}`;
+        const alt2 = `seccion-${encodeURIComponent(encodeURIComponent(valorDivisorCodificado))}`;
+        if (alt1 !== standardKey) localStorage.removeItem(alt1);
+        if (alt2 !== standardKey) localStorage.removeItem(alt2);
+    } catch(_) {}
     // console.log(log);
 }
 
 function configurarInteraccionSeccion(divisor, nomCodificado, items) {
-    const nom = decodeURIComponent(nomCodificado);
+    const nom = decodeFully(nomCodificado);
     const flecha = divisor.querySelector('.flecha-seccion'); // Buscar por clase
     let visible = localStorage.getItem(`seccion-${nomCodificado}`) !== 'oculto'; 
     items.forEach(item => (item.style.display = visible ? '' : 'none'));
@@ -186,8 +227,19 @@ function crearSeccion(nom, items) {
         const li = wrapper.querySelector ? (wrapper.querySelector('.POST-tarea') || wrapper) : wrapper;
         if (li && li.setAttribute) {
             li.setAttribute('data-seccion', nomCodificado);
-            // Mantener ambos atributos por compatibilidad con otras funciones
-            li.setAttribute('data-sesion', nomCodificado);
+            // Para la sección "Completadas", no sobreescribir la sección lógica original.
+            // Guardar la sección original en data-sesion-original si aún no está guardada.
+            if (nom === 'Completadas') {
+                const sesionActual = li.getAttribute('data-sesion') || '';
+                if (!li.hasAttribute('data-sesion-original')) {
+                    li.setAttribute('data-sesion-original', sesionActual);
+                }
+                // No modificar data-sesion cuando está en Completadas
+            } else {
+                // En cualquier otra sección, actualizar la sección lógica y limpiar el original
+                li.setAttribute('data-sesion', nomCodificado);
+                if (li.hasAttribute('data-sesion-original')) li.removeAttribute('data-sesion-original');
+            }
         }
         if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
         listaSec.insertBefore(wrapper, anterior.nextSibling);
@@ -361,7 +413,7 @@ function hacerDivisoresEditables() {
             return; // Saltar si la estructura no es la esperada
         }
 
-        const nombreOriginalDecodificado = decodeURIComponent(divisor.dataset.valor);
+        const nombreOriginalDecodificado = decodeFully(divisor.dataset.valor);
 
         if (nombreOriginalDecodificado !== 'General' && nombreOriginalDecodificado !== 'Archivado') {
             nombreSpan.contentEditable = true; // Solo el span del nombre es editable
@@ -382,7 +434,7 @@ function hacerDivisoresEditables() {
                 
                 // El dataset.valor del <p> (divisor) sigue siendo la fuente de verdad para el nombre codificado.
                 const valorCodificadoOriginalEditor = divisor.dataset.valor; // Este es el valor ANTES de la edición
-                const valorAntiguoDecodificado = decodeURIComponent(valorCodificadoOriginalEditor);
+                const valorAntiguoDecodificado = decodeFully(valorCodificadoOriginalEditor);
 
                 if (textoEditadoDecodificado !== valorAntiguoDecodificado) {
                     let conflicto = false;
@@ -414,7 +466,7 @@ function hacerDivisoresEditables() {
                         // divisor.classList.add(nuevoValorCodificadoEditor);
 
                         // La clase con el nombre codificado en el <p> también debe actualizarse si la usas para algo más que 'divisorTarea'
-                        const clasesAntiguasCodificadas = Array.from(divisor.classList).filter(cls => cls !== 'divisorTarea' && cls !== decodeURIComponent(valorCodificadoOriginalEditor));
+                        const clasesAntiguasCodificadas = Array.from(divisor.classList).filter(cls => cls !== 'divisorTarea' && cls !== valorCodificadoOriginalEditor);
                         divisor.className = 'divisorTarea'; // Reset base
                         clasesAntiguasCodificadas.forEach(cls => divisor.classList.add(cls)); // Re-añadir otras clases
                         divisor.classList.add(nuevoValorCodificadoEditor); // Añadir la nueva clase de nombre codificado
@@ -425,6 +477,21 @@ function hacerDivisoresEditables() {
                             tarea.setAttribute('data-sesion', nuevoValorCodificadoEditor);
                         });
                         // console.log('Sesión actualizada y tareas reasignadas en el frontend.');
+                        // Migrar estado de visibilidad guardado en localStorage
+                        try {
+                            const oldKey = `seccion-${valorCodificadoOriginalEditor}`;
+                            const newKey = `seccion-${nuevoValorCodificadoEditor}`;
+                            const prev = localStorage.getItem(oldKey);
+                            if (prev !== null) {
+                                localStorage.setItem(newKey, prev);
+                                localStorage.removeItem(oldKey);
+                            }
+                        } catch(_) {}
+
+                        // Reorganizar secciones inmediatamente para alinear data-seccion con el nuevo nombre
+                        if (typeof window.dividirTarea === 'function') {
+                            try { await window.dividirTarea(); } catch (_) {}
+                        }
                     } catch (error) {
                         // console.error('Error al actualizar sesión:', error);
                         alert(`Error al actualizar. Se restaurará el nombre original.`);
@@ -433,7 +500,7 @@ function hacerDivisoresEditables() {
                     }
                 }
                 // Asegurar que el contentEditable sigue bien (puede que no sea necesario si no se quita)
-                if (decodeURIComponent(divisor.dataset.valor) !== 'General' && decodeURIComponent(divisor.dataset.valor) !== 'Archivado') {
+                if (decodeFully(divisor.dataset.valor) !== 'General' && decodeFully(divisor.dataset.valor) !== 'Archivado') {
                     nombreSpan.contentEditable = true;
                 } else {
                     nombreSpan.contentEditable = false;
@@ -446,7 +513,7 @@ function hacerDivisoresEditables() {
                     nombreSpan.blur();
                 } else if (e.key === 'Escape') {
                     e.preventDefault(); 
-                    nombreSpan.textContent = decodeURIComponent(divisor.dataset.valor); // Restaurar al valor original del dataset del <p>
+                    nombreSpan.textContent = decodeFully(divisor.dataset.valor); // Restaurar al valor original del dataset del <p>
                     nombreSpan.blur();
                 }
             });
@@ -595,7 +662,7 @@ function cerrarModalAsignarSeccion() {
         document.removeEventListener('click', window.cerrarModalSeccionEvt, true);
         window.cerrarModalSeccionEvt = null;
     }
-moviendola    // Asegurar que el fondo se oculte siempre que cerremos este modal
+    // Asegurar que el fondo se oculte siempre que cerremos este modal
     if (typeof window.ocultarFondo === 'function') { try { window.ocultarFondo(); } catch(_) {} }
 }
 
@@ -604,7 +671,7 @@ function recolectarSeccionesExistentes() {
     // Desde mapa
     const mapaKeys = Object.keys(window.mapa || {});
     mapaKeys.forEach(k => {
-        const dec = decodeURIComponent(k);
+        const dec = decodeFully(k);
         if (dec && dec.toLowerCase() !== 'archivado') secciones.push(dec);
     });
     // Desde DOM
@@ -612,7 +679,7 @@ function recolectarSeccionesExistentes() {
     listaTareasItems.forEach(item => {
         const ses = item.getAttribute('data-sesion');
         if (!ses) return;
-        const dec = decodeURIComponent(ses);
+        const dec = decodeFully(ses);
         if (dec && dec.toLowerCase() !== 'archivado' && dec.toLowerCase() !== 'pendiente') secciones.push(dec);
     });
     // Asegurar General

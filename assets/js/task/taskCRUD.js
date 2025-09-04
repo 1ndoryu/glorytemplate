@@ -395,6 +395,23 @@ window.manejarClicCompletar = function () {
                             }
                         }
 
+                        // Propagar a subtareas: marcar visualmente y mover si corresponde
+                        try {
+                            const lista = document.querySelector('.listaTareas');
+                            if (lista && !esHabitoActual && !esHabitoFlexibleActual) {
+                                const hijas = Array.from(lista.querySelectorAll(`.POST-tarea[padre="${id}"]`));
+                                hijas.forEach(h => {
+                                    h.classList.add('completada');
+                                    h.style.textDecoration = 'line-through';
+                                    h.setAttribute('estado', 'completada');
+                                    if (window.filtrosGlobales && window.filtrosGlobales.includes('ocultarCompletadas')) {
+                                        const wrap = h.closest('.tareaItem') || h;
+                                        if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap); else h.remove();
+                                    }
+                                });
+                            }
+                        } catch(_) {}
+
                         // Reorganizar secciones inmediatamente al completar (si no se removió)
                         try { if (!esHabitoActual && !esHabitoFlexibleActual && typeof window.dividirTarea === 'function') await window.dividirTarea(); } catch (_) {}
                     } else {
@@ -404,6 +421,20 @@ window.manejarClicCompletar = function () {
                         tareaActualElem.style.display = ''; // Asegurar que sea visible
                         tareaActualElem.setAttribute('estado', 'pendiente');
                         log += `Tarea ${id} marcada como pendiente. `;
+
+                        // Propagar a subtareas: desmarcar visualmente y restablecer a su sección original
+                        try {
+                            const lista = document.querySelector('.listaTareas');
+                            if (lista && !esHabitoActual && !esHabitoFlexibleActual) {
+                                const hijas = Array.from(lista.querySelectorAll(`.POST-tarea[padre="${id}"]`));
+                                hijas.forEach(h => {
+                                    h.classList.remove('completada');
+                                    h.style.textDecoration = 'none';
+                                    h.style.display = '';
+                                    h.setAttribute('estado', 'pendiente');
+                                });
+                            }
+                        } catch(_) {}
 
                         // Reorganizar secciones inmediatamente al desmarcar
                         try { if (!esHabitoActual && !esHabitoFlexibleActual && typeof window.dividirTarea === 'function') await window.dividirTarea(); } catch (_) {}
