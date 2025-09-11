@@ -1,5 +1,7 @@
 <?
 
+if (\Glory\Core\GloryFeatures::isActive('task') === false) { return; }
+
 function actualizarSeccion()
 {
     $f = 'actualizarSeccion';

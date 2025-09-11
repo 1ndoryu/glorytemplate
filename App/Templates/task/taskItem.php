@@ -4,7 +4,7 @@ function plantillaTarea(\WP_Post $post, string $itemClass)
 {
     // Usamos la función del helper para obtener todos los datos procesados de la tarea.
     $datos = obtenerDatosTarea($post->ID, 'tarea');
-    ?>
+?>
     <div id="post-<?php echo esc_attr($datos['id']); ?>" class="<?php echo esc_attr($itemClass); ?>">
         <li class="POST-<?php echo esc_attr($datos['filtroHtml']); ?> EDYQHV <?php echo $datos['id']; ?> <?php echo $datos['esCompletada'] ? 'completada' : ''; ?> <?php echo (!$datos['idPadre'] && $datos['tieneSubtareasIncompletas']) ? 'tarea-padre' : ''; ?> draggable-element <?php echo esc_attr($datos['estado']); ?> <?php echo $datos['idPadre'] ? 'subtarea' : ''; ?>"
             filtro="<?php echo esc_attr($datos['filtroHtml']); ?>"
@@ -65,15 +65,15 @@ function plantillaTarea(\WP_Post $post, string $itemClass)
             ?>
 
             <div class="divArchivado ocultadoAutomatico" data-tarea="<?php echo $datos['id']; ?>" style="display: none;">
-                <p class="archivadoTarea" style="cursor: pointer;">
+                <p class="archivadoTarea centroIcono" style="cursor: pointer;">
                     <?php echo $GLOBALS['archivadoIcon'] ?? '[A]'; ?>
                 </p>
             </div>
 
             <?php if (!$datos['esHabito'] && !$datos['limiteTieneTextoValido']): ?>
                 <div class="divFechaLimite ocultadoAutomatico" data-tarea="<?php echo $datos['id']; ?>" style="display: none; cursor: pointer;">
-                    <p>
-                        <span class="textoFechaLimite">
+                    <p class="centroIcono">
+                        <span class="textoFechaLimite centroIcono">
                             <?php echo $GLOBALS['calendario'] ?? '[F]'; ?>
                         </span>
                     </p>
@@ -81,17 +81,19 @@ function plantillaTarea(\WP_Post $post, string $itemClass)
             <?php endif; ?>
 
             <div class="divCarpeta ocultadoAutomatico" data-tarea="<?php echo $datos['id']; ?>" style="display: none; cursor: pointer;">
-                <p>
-                    <span class="carpetaSpan">
+                <p class="centroIcono">
+                    <span class="carpetaSpan centroIcono">
                         <?php echo $GLOBALS['meterCarpeta'] ?? '[C]'; ?>
                     </span>
                 </p>
             </div>
 
             <?php if ($datos['esHabito']): ?>
-                <div class="divOpcionesHabito ocultadoAutomatico divFrecuencia" data-tarea="<?php echo $datos['id']; ?>" style="display: none; cursor: pointer;">
-                    <span class="tituloFrecuencia"><?php echo esc_html($datos['frec']); ?></span>
-                    <?php echo $GLOBALS['iconoHabitoRe']; ?>
+                <div class="divOpcionesHabito ocultadoAutomatico divFrecuencia centroIcono" data-tarea="<?php echo $datos['id']; ?>" style="display: none; cursor: pointer;">
+                    <p class="centroIcono">
+                        <span class="tituloFrecuencia "><?php echo esc_html($datos['frec']); ?></span>
+                        <?php echo $GLOBALS['iconoHabitoRe']; ?>
+                    </p>
                 </div>
             <?php endif; ?>
 
@@ -102,6 +104,6 @@ function plantillaTarea(\WP_Post $post, string $itemClass)
             ?>
         </li>
     </div>
-    <?php
+<?php
 }
 ?>

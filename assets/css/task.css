@@ -664,3 +664,20 @@ li.POST-tarea.seleccionado {
     padding: 10px 0px;
     gap: 2px;
 }
+
+.centroIcono {
+    display: flex;
+    align-items: center;
+}
+
+span.textoFechaLimit.centroIcono svg {
+    height: 13px;
+}
+
+span.carpetaSpan.centroIcono {
+    margin-bottom: -1.1px;
+}
+
+button.selectorIcono.gloryCalendario {
+    width: 24px;
+}

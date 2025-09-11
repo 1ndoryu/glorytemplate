@@ -1,6 +1,7 @@
 <?php
 
 
+if (\Glory\Core\GloryFeatures::isActive('task') === false) { return; }
 function crearSubtarea()
 {
     $nombreFunc = 'crearSubtarea';

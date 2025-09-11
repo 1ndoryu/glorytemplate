@@ -40,6 +40,9 @@ GloryFeatures::enable('gloryForm');
 GloryFeatures::enable('gloryBusqueda');
 GloryFeatures::enable('gloryRealtime');
 
+// Task feature flag
+GloryFeatures::disable('task');
+
 // Renderers
 GloryFeatures::enable('logoRenderer');
 GloryFeatures::enable('contentRender');

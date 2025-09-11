@@ -2,6 +2,7 @@
 
 
 
+if (\Glory\Core\GloryFeatures::isActive('task') === false) { return; }
 function ordenamientoTareas($queryArgs, $usu, $args, $prioridad = false)
 {
     // Hacer función independiente: normalizar entradas y permitir control por $args
