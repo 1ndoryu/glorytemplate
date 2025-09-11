@@ -24,6 +24,12 @@ try {
 }
 
 
+// Asegurar que los feature flags se establecen primero
+$control_config = get_template_directory() . '/App/Config/control.php';
+if (file_exists($control_config)) {
+    include_once $control_config;
+}
+
 function incluirArchivos($directorio)
 {
     $ruta_completa = get_template_directory() . "/$directorio";
