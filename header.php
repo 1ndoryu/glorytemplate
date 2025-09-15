@@ -29,9 +29,7 @@ use Glory\Components\ThemeToggle;
 <body>
     <div id="loadingBar"></div>
     
-    <?php
-    echo ThemeToggle::render();
-    ?>
+    
     
     <?php
     $defaultMode = Compatibility::avadaActivo() ? 'default' : 'image';
@@ -39,7 +37,7 @@ use Glory\Components\ThemeToggle;
         'modoLogo'    => OpcionManager::get('glory_logo_mode', $defaultMode),
         'textoLogo'   => OpcionManager::get('glory_logo_text', get_bloginfo('name', 'display')),
         'logoImageId' => OpcionManager::get('glory_logo_image'),
-        'idMenu'      => 'main-menu' 
+        'idMenu'      => 'mainMenu' 
     ];
     HeaderRenderer::render($configHeader);
     ?>

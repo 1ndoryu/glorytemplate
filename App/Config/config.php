@@ -10,10 +10,9 @@ AssetManager::setThemeVersion('0.1.1');
 SyncManager::setAdminBarVisible(true);
 SyncManager::setResetButtonVisible(true);
 
-PageManager::define('home', 'home');
-if (GloryFeatures::isActive('task') !== false) {
-    PageManager::define('task', 'task');
-}
+
+PageManager::define('home', 'homeAgency');
+
 
 AjaxNav::contentSelector('#main');
 AjaxNav::mainScrollSelector('#main');

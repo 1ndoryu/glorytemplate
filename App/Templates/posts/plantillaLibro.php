@@ -1,5 +1,7 @@
 <?php
 
+use Glory\Utility\TemplateRegistry;
+
 /**
  * Plantilla personalizada para renderizar un item de tipo 'libro'.
  *
@@ -9,7 +11,7 @@
 function plantillaLibro(\WP_Post $post, string $itemClass): void
 {
     $imagenUrl = has_post_thumbnail($post) ? get_the_post_thumbnail_url($post, 'medium') : '';
-?>
+    ?>
     <div class="<?php echo esc_attr($itemClass); ?>">
         <div class="libro-card">
             <a href="<?php echo esc_url(get_permalink($post)); ?>">
@@ -22,7 +24,25 @@ function plantillaLibro(\WP_Post $post, string $itemClass): void
             </a>
         </div>
     </div>
-<?php
+    <?php
 }
 
+// Registrar plantilla en el registro global con id 'plantilla_libro'
+if (class_exists(TemplateRegistry::class)) {
+    TemplateRegistry::register(
+        'plantilla_libro',
+        'Plantilla de Libro',
+        function (\WP_Post $givenPost = null) {
+            $postToRender = $givenPost;
+            if (!$postToRender) {
+                global $post;
+                $postToRender = ($post instanceof \WP_Post) ? $post : null;
+            }
+            if ($postToRender instanceof \WP_Post) {
+                plantillaLibro($postToRender, 'glory-libro-item');
+            }
+        },
+        ['libro']
+    );
+}
 ?>

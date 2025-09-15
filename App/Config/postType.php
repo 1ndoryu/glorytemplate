@@ -14,14 +14,3 @@ PostTypeManager::define(
     'Libros'
 );
 
-PostTypeManager::define(
-    'tarea',
-    [
-        'public' => true,
-        'has_archive' => false,
-        'supports' => ['title', 'editor'],
-        'menu_icon' => 'dashicons-clipboard',
-    ],
-    'Tarea',
-    'Tareas'
-);

@@ -1,0 +1,57 @@
+/* Declaraciones de fuentes locales para uso en frontend y editor (Elementor Free) */
+
+@font-face {
+  font-family: 'Rinter';
+  src: url('../fonts/Rinter.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('../fonts/SourceSans3-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('../fonts/SourceSans3-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('../fonts/SourceSans3-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gothic 60';
+  src: url('../fonts/Gothic60-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Utilidades para activar fuentes desde Elementor Free vía clases CSS */
+.font-rinter { font-family: 'Rinter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+.font-source-regular { font-family: 'Source Sans 3', Arial, sans-serif; font-weight: 400; }
+.font-source-semibold { font-family: 'Source Sans 3', Arial, sans-serif; font-weight: 600; }
+.font-source-bold { font-family: 'Source Sans 3', Arial, sans-serif; font-weight: 700; }
+.font-gothic60 { font-family: 'Gothic 60', Georgia, 'Times New Roman', serif; }
+
+/* Ejemplos de tamaños/line-height si quieres usarlos como utilidades */
+.text-xxl { font-size: 48px; line-height: 1.1; }
+.text-xl  { font-size: 36px; line-height: 1.15; }
+.text-lg  { font-size: 28px; line-height: 1.2; }
+.text-md  { font-size: 20px; line-height: 1.4; }
+.text-sm  { font-size: 16px; line-height: 1.5; }
+
+

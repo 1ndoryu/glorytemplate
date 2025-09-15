@@ -18,7 +18,9 @@ AssetManager::defineFolder(
     'tema-',
     [
         // Excluir CSS específico de tareas; se definirá abajo con feature 'task'
-        'task.css'
+        'task.css',
+        // Excluir fonts.css para registrarlo con área both (frontend + admin/editor)
+        'fonts.css'
     ]
 );
 
@@ -31,6 +33,19 @@ AssetManager::define(
         'deps'    => [],
         'media'   => 'all',
         'feature' => 'task',
+    ]
+);
+
+// Registrar fonts.css para que cargue tanto en frontend como en el editor (Elementor, Gutenberg)
+AssetManager::define(
+    'style',
+    'tema-fonts',
+    '/assets/css/fonts.css',
+    [
+        'deps'   => [],
+        'media'  => 'all',
+        'area'   => 'both',
+        'ver'    => null
     ]
 );
 

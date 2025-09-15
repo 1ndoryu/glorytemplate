@@ -36,6 +36,13 @@ html[data-theme='dark'] {
     --bordeBoton: 0.1rem rgba(31, 31, 31, 0.55) solid;
 }
 
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-direction: column;
+}
+
 /* Glory Calendario (clases camelCase en español) */
 .calCont {
     background-color: var(--fondo);
@@ -456,12 +463,6 @@ button {
 
 .noBorde {
     border: unset;
-}
-
-body {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
 }
 
 label {
@@ -926,3 +927,13 @@ button.previewRemover {
     filter: brightness(1.4);
 }
 
+.gloryThemeToggle {
+    color: var(--text);
+    width: 40px;
+    height: 40px;
+    padding: 0px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: unset;
+}

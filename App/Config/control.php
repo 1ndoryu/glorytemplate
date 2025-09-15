@@ -21,7 +21,7 @@ GloryFeatures::enable('modales');
 GloryFeatures::enable('submenus');
 GloryFeatures::enable('pestanas');
 GloryFeatures::enable('scheduler');
-GloryFeatures::enable('headerAdaptativo');
+GloryFeatures::disable('headerAdaptativo');
 GloryFeatures::enable('themeToggle');
 GloryFeatures::enable('alertas');
 GloryFeatures::enable('gestionarPreviews');
@@ -39,6 +39,8 @@ GloryFeatures::enable('gloryAjax');
 GloryFeatures::enable('gloryForm');
 GloryFeatures::enable('gloryBusqueda');
 GloryFeatures::enable('gloryRealtime');
+GloryFeatures::enable('queryProfiler');
+GloryFeatures::disable('queryProfilerLogs'); 
 
 // Task feature flag
 GloryFeatures::disable('task');

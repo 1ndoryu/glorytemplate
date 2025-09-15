@@ -6,16 +6,51 @@
  */
 
 use Glory\Manager\PageManager;
+// Compat Elementor: no usar import directo para evitar errores si no está activo
 
 get_header();
 
 $funcionRenderizar = PageManager::getFuncionParaRenderizar();
 
-if ($funcionRenderizar && function_exists($funcionRenderizar)) {
-    // Llama a la función específica de la página (ej: home(), contacto(), etc.)
-    call_user_func($funcionRenderizar);
+// Si Elementor Theme Builder define la ubicación 'single', dejar que renderice
+if (function_exists('elementor_theme_do_location') && elementor_theme_do_location('single')) {
+    get_footer();
+    return;
+}
+
+// Detectar Elementor y modo edición del editor
+$elementorCargado = did_action('elementor/loaded');
+$estaEnModoEdicion = false;
+$elementorInstance = null;
+if ($elementorCargado && class_exists('Elementor\\Plugin')) {
+    $elementorInstance = \Elementor\Plugin::instance();
+    if ($elementorInstance && isset($elementorInstance->editor) && method_exists($elementorInstance->editor, 'is_edit_mode')) {
+        $estaEnModoEdicion = $elementorInstance->editor->is_edit_mode();
+    }
+}
+
+if (have_posts()) {
+    while (have_posts()) {
+        the_post();
+
+        $postId = get_the_ID();
+        $construidoConElementor = false;
+        if ($elementorInstance && isset($elementorInstance->db) && method_exists($elementorInstance->db, 'is_built_with_elementor')) {
+            $construidoConElementor = $elementorInstance->db->is_built_with_elementor($postId);
+        }
+
+        if ($estaEnModoEdicion || $construidoConElementor) {
+            // Elementor engancha filtros de the_content; esto evita el error "content area not found"
+            the_content();
+        } elseif ($funcionRenderizar && function_exists($funcionRenderizar)) {
+            // Render propio del tema cuando no es Elementor
+            call_user_func($funcionRenderizar);
+        } else {
+            // Fallback a contenido estándar
+            the_content();
+        }
+    }
 } else {
-    // Contenido de respaldo si algo falla
     echo '<h1>Error: Página no configurada correctamente.</h1>';
     if (current_user_can('manage_options')) {
         echo '<p>Función de renderizado esperada: <strong>' . esc_html($funcionRenderizar) . '</strong> no fue encontrada.</p>';
