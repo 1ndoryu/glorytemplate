@@ -1,0 +1,7 @@
+{
+    "postman.settings.dotenv-detection-notification-visibility": false,
+    "files.exclude": {
+        "**/.history": true
+    },
+    "search.useIgnoreFiles": false
+}

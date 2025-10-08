@@ -1,0 +1,83 @@
+# Logs
+logs
+*.log
+wp-content/debug.log
+wp-content/updraft/*.log
+
+# Runtime data
+wp-content/upgrade/
+
+# Cache
+wp-content/cache/
+wp-content/object-cache.php
+
+# User files
+wp-content/uploads/
+
+# Themes (parent/child)
+wp-content/themes/twenty*
+wp-content/themes/*sample
+
+# Plugins
+wp-content/plugins/hello.php
+wp-content/plugins/akismet/
+wp-content/mu-plugins/
+vendor/
+# Configs
+wp-config.php
+wp-config-sample.php
+
+# Database SQL
+*.sql
+*.sql.gz
+.env 
+.env.local
+# Nano save file
+*.swp
+
+# Node.js
+node_modules/
+
+# Composer
+composer.lock
+
+# NPM
+package.json
+npm-debug.log
+grunt
+.history/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# CodeKit
+codekit-config.json
+
+# Various
+.sass-cache
+connect.lock
+db.php
+db-config.php
+desktop.ini
+php_error.log
+phpinfo.php
+phpunit.xml
+site.webmanifest
+wp-cli.yml
+wp-mail.php
+wp-options.php
+Glory/
+status.md
+dev-tools/
+glory_docs/ 
+glory_docs
