@@ -43,4 +43,4 @@ function home()
 <?php
 }
 
-// Script inline eliminado: ahora la funcionalidad se delega a `Glory/assets/js/UI/glory-theme-toggle.js`
+// Script inline eliminado: ahora la funcionalidad se delega a `Glory/assets/js/UI/gloryThemeToggle.js`

@@ -55,6 +55,10 @@ GloryFeatures::enable('postThumbnails');
 //Integrations
 GloryFeatures::disable('avadaIntegration');
 
+//Admin
+GloryFeatures::disable('queryProfiler');
+GloryFeatures::disable('queryProfilerLogs'); 
+
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
 if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
     \App\Handlers\ContentAjaxHandler::register();
