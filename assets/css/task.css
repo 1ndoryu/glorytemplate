@@ -1,0 +1,683 @@
+span.icono p {
+    font-size: 12px;
+}
+
+span.icono {
+    display: flex;
+    flex-direction: row;
+    font-size: 11px;
+    gap: 6px;
+    padding: 0px 5px;
+    border-radius: 100px;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    opacity: 0.9;
+    cursor: pointer;
+}
+
+.selectorIcono {
+    padding: 10px 0px;
+}
+
+.bloque.tareasbloque svg {
+    cursor: pointer;
+}
+
+.bloque.tareasbloque {
+    display: flex;
+    flex-direction: row;
+    height: 40px;
+    padding: 5px;
+    align-items: center;
+    padding-right: 20px;
+    background: unset;
+}
+
+.tareasbloque input {
+    background: none;
+}
+
+.LNVHED.no-tareas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 100px;
+}
+
+.cal-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.cal-mes-anio {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #e2e8f0;
+}
+
+.cal-nav-btn {
+    height: 1.75rem;
+    width: 1.75rem;
+    background-color: transparent;
+    padding: 0;
+    border: var(--borde);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #cbd5e0;
+}
+
+.habito-dias-visualizacion {
+    display: flex;
+    gap: 5px;
+}
+
+.dia-habito-item svg {
+    height: 12px;
+    width: 12px;
+    cursor: pointer;
+}
+
+span.dia-habito-item.estado-pendiente {
+    opacity: 0.6;
+}
+
+.divOpcionesHabito.ocultadoAutomatico.divFrecuencia {
+    align-items: center;
+    gap: 5px;
+    align-content: center;
+}
+
+div#sSeccion {
+    display: flex;
+}
+
+span.nombreSeccionSeleccionada {
+    font-size: 12px;
+    padding: 0px 3px;
+    opacity: 0.9;
+}
+
+.selectorIcono.sSeccion svg {
+    height: 14px;
+    margin-bottom: -1px;
+    width: 14px;
+}
+
+.cal-nav-btn:hover {
+    opacity: 1;
+    background-color: #2d2d2d;
+}
+
+.cal-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0.5rem;
+}
+
+.cal-tabla th {
+    color: #a0aec0;
+    border-radius: 0.375rem;
+    width: calc(100% / 7);
+    font-weight: 400;
+    font-size: 0.8rem;
+    padding-bottom: 0.5rem;
+}
+
+.cal-tabla td {
+    padding: 0;
+    text-align: center;
+    font-size: 12px;
+    position: relative;
+}
+
+.cal-dia {
+    height: 2rem;
+    width: 2rem;
+    line-height: 2rem;
+    padding: 0;
+    font-weight: 400;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    display: inline-block;
+    color: #e2e8f0;
+    transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out;
+}
+
+.cal-dia:hover {
+    background-color: #2d2d2d;
+    color: #fff;
+}
+
+.cal-dia-fuera {
+    color: #4a5568;
+    opacity: 0.8;
+}
+
+.cal-dia-fuera:hover {
+    background-color: transparent;
+}
+
+.cal-dia-hoy .cal-dia-num {
+    background-color: #2d2d2d;
+    color: #e2e8f0;
+    border-radius: 0.375rem;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+}
+
+.cal-dia-hoy.cal-dia-sel .cal-dia-num {
+    background-color: #3182ce;
+    color: #fff;
+}
+
+.cal-dia-sel .cal-dia-num {
+    background-color: #3182ce;
+    color: #fff;
+    border-radius: 0.375rem;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+}
+
+.cal-dia-sel .cal-dia-num:hover {
+    background-color: #2c5282;
+}
+
+.cal-dia-deshab {
+    color: #4a5568;
+    opacity: 0.5;
+    cursor: default;
+}
+
+.cal-dia-deshab:hover {
+    background-color: transparent;
+}
+
+.cal-acciones {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+}
+
+.cal-btn-accion {
+    padding: 5px 12px;
+    border: var(--borde);
+    cursor: pointer;
+}
+
+.cal-btn-accion:hover {
+    background-color: #2d2d2d;
+}
+
+.cal-contenedor tr {
+    padding: 1px 0px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.textoFechaLimite svg {
+    height: 13px !important;
+}
+
+div#modalAsignarSeccion,
+.modal-asignar-seccion {
+    background: #050505;
+    padding: 10px;
+    width: 180px;
+    gap: 5px;
+}
+
+input#inputNuevaSeccionModal,
+#inputNuevaSeccionModalForm {
+    background: unset;
+    border: var(--borde);
+    padding: 7px 10px;
+    font-size: 12px;
+}
+
+div#listaSeccionesExistentesModal,
+#listaSeccionesExistentesModalForm {
+    display: flex;
+    flex-direction: column;
+}
+
+div#listaSeccionesExistentesModal p:hover,
+#listaSeccionesExistentesModalForm p:hover {
+    background: #080808;
+    border-radius: var(--radius);
+}
+
+div#listaSeccionesExistentesModal p,
+#listaSeccionesExistentesModalForm p {
+    cursor: pointer;
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.nombre-seccion-editable {
+    outline: none;
+    border: none;
+    background-color: transparent;
+    padding: 1px;
+    /* A veces necesario para que el cursor de texto aparezca bien */
+    min-height: 1em;
+    /* Asegura que el área sea clickeable incluso si está vacía */
+}
+
+span.iconoPlus {
+    display: none;
+}
+
+.completaTarea svg {
+    height: 13px;
+    width: 13px;
+}
+
+.bloque.tareasbloque {
+    padding-right: 10px;
+}
+
+.POST-tarea {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-content: center;
+    align-items: center;
+    padding: 3px 20px;
+    gap: 10px;
+    background: unset;
+    border: unset;
+}
+
+.subtarea {
+    padding-left: 40px !important;
+}
+
+button.completaTarea {
+    padding: 5px 5px;
+    padding-left: 0px;
+}
+
+p.tituloTarea {
+    margin-right: auto;
+    max-width: 400px;
+    width: 100%;
+}
+
+.svgtask svg {
+    fill: white;
+    opacity: 0.9;
+    width: 13px;
+    height: 13px;
+}
+
+.svgtask path {
+    stroke-width: 0.5px;
+    stroke: #07070700;
+    /* fill: none; */
+}
+
+.divImportancia {
+    cursor: pointer;
+}
+
+.svgtask {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    font-size: 11px;
+    gap: 5px;
+    /* border: var(--borde); */
+    border-radius: 100px;
+    padding: 2px 0px;
+    min-height: 24px;
+    /* min-width: 20px; */
+}
+
+span.tituloImportancia {
+    font-size: 11px;
+    border: var(--borde);
+    padding: 3px 10px;
+    border-radius: 50px;
+}
+
+ul.social-post-list.clase-tarea {
+    padding: 10px 0px;
+    background: unset;
+    gap: 0px;
+    border: var(--borde);
+    border-radius: var(--radius);
+}
+
+svg#musicIcono,
+svg#inicioIcono {
+    fill: white;
+}
+
+/*esto necesito que sea asi */
+
+.clase-tarea .draggable-element.dragging {
+    cursor: grabbing !important;
+    opacity: 0.8;
+}
+
+body.dragging-active {
+    cursor: grabbing !important;
+    user-select: none;
+}
+
+.completada {
+    opacity: 0.4;
+}
+
+svg#emptystate path {
+    fill: white;
+}
+
+.LNVHED.no-tarea {
+    padding: 80px;
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    align-items: center;
+}
+
+.clase-tarea .HR695R8 {
+    display: none;
+}
+
+.opcionesPrioridad svg,
+.opcionesFrecuencia svg {
+    fill: white;
+    opacity: 0.8;
+    height: 13px;
+    width: 13px;
+}
+
+.opcionesPrioridad p,
+.opcionesFrecuencia p {
+    font-size: 12px;
+    padding: 2px 15px;
+    border: var(--borde);
+    border-radius: 100px;
+    cursor: pointer;
+    display: flex;
+    align-content: center;
+    align-items: center;
+    gap: 5px;
+    height: 25px;
+}
+
+.opcionesPrioridad,
+.opcionesFrecuencia {
+    display: flex;
+    gap: 5px;
+    margin-left: auto;
+    padding: 5px 20px;
+    align-items: center;
+    align-content: center;
+}
+
+.frecuenciaPersonalizada {
+    display: flex;
+    align-items: center;
+    align-content: center;
+    border: var(--borde);
+    border-radius: 50px;
+    padding: 0px 5px;
+    height: 25px;
+}
+
+input#diasPersonalizados {
+    background: none;
+    padding: 0px 5px;
+    width: 50px;
+    -webkit-appearance: none;
+    /* Chrome, Safari, Edge */
+    -moz-appearance: textfield;
+    /* Firefox */
+    appearance: none;
+    /* Propiedad estándar */
+    margin: 0;
+}
+
+input#diasPersonalizados::-webkit-inner-spin-button,
+input#diasPersonalizados::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    /* Elimina espacio que puedan ocupar */
+}
+
+.taskConfig {
+    border: var(--borde);
+    border-radius: var(--radius);
+    padding: 10px 20px;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.TABTAREAS {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+    gap: 10px;
+}
+
+.tab {
+    width: 100%;
+}
+
+.tareasDiv {
+    width: 100%;
+}
+
+.contentTareas {
+    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    align-items: center;
+    align-content: center;
+    margin: auto;
+    width: 100%;
+}
+
+.taskConfig .ORDENPOSTSL {
+    background: unset !important;
+    padding: 0px;
+    opacity: 0.9;
+}
+
+div#Tareas {
+    width: 100%;
+}
+
+.taskConfig button {
+    padding: 0;
+}
+
+.tituloTarea:focus,
+.contenidoNotaP:focus {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+ul.masonary,
+ul.masonary li {
+    box-sizing: border-box;
+    /* Asegurar que padding y border estén incluidos en el ancho */
+    margin: 0;
+    list-style: none;
+}
+
+ul.masonary {
+    position: relative;
+    overflow: hidden;
+    /* Ocultar posibles desbordamientos horizontales */
+}
+
+ul.masonary li {
+    position: absolute;
+    /* Necesario para posicionar los elementos en el masonry */
+}
+
+.POST-notas {
+    background: none;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px 20px;
+    padding-bottom: 15px;
+}
+
+div#agregarNuevaNota {
+    margin: auto;
+}
+
+ul.social-post-list.clase-notas {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+    max-width: 600px;
+    width: 100%;
+    padding-top: 0;
+    max-height: 416px;
+    overflow: auto;
+}
+
+.notasMentales {
+    width: 100%;
+}
+
+ul.social-post-list.clase-tarea {
+    padding: 10px 0px;
+    background: unset;
+    gap: 0px;
+    border: var(--borde);
+    border-radius: var(--radius);
+}
+
+.botonesNotas button {
+    padding: 0;
+    opacity: 0.9;
+}
+
+.botonesNotas {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+    gap: 5px;
+}
+
+.botonesNotasGenerales button {
+    padding: 0;
+}
+
+.botonesNotasGenerales {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    gap: 5px;
+}
+
+:has(> .agregarNuevaNota) {
+    height: 150px;
+}
+
+span.textoProxima.diaNegativo {
+    color: #d43333;
+}
+
+p.contenidoNotaP {
+    font-size: 11px;
+    line-height: 17px;
+}
+
+.archivado {
+    opacity: 0.4;
+}
+
+.sesionTarea {
+    margin-right: auto;
+    /* padding: 5px 20px; */
+    width: 100%;
+}
+
+.sesionTarea.oculto > *:not(p) {
+    display: none;
+}
+
+.divisorTarea {
+    font-weight: bold;
+    cursor: pointer;
+    padding: 5px 20px;
+    margin-right: auto;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    outline: none !important;
+}
+
+button.tiempoTareas {
+    height: 15px;
+    width: 15px;
+}
+
+li.POST-tarea.seleccionado {
+    background: #0b0b0b;
+    filter: unset;
+    border-radius: unset;
+}
+
+/* Apartir de aqui empiezan los estilos nuevos */
+
+.pageTask {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    align-content: center;
+}
+
+.listaTareas.bloque.tarea {
+    background: unset;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0px;
+    gap: 2px;
+}
+
+.centroIcono {
+    display: flex;
+    align-items: center;
+}
+
+span.textoFechaLimit.centroIcono svg {
+    height: 13px;
+}
+
+span.carpetaSpan.centroIcono {
+    margin-bottom: -1.1px;
+}
+
+button.selectorIcono.gloryCalendario {
+    width: 24px;
+}
