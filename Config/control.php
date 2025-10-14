@@ -15,6 +15,7 @@ GloryFeatures::enable('scheduleManager');
 GloryFeatures::enable('defaultContentManager');
 GloryFeatures::disable('licenseManager');
 GloryFeatures::disable('creditosManager');
+GloryFeatures::disable('performanceProfiler');
 
 //UI Components
 GloryFeatures::enable('modales');
@@ -55,6 +56,11 @@ GloryFeatures::enable('postThumbnails');
 //Integrations
 GloryFeatures::enable('avadaIntegration');
 
+// GBN y CPT glory_link (feature flags)
+GloryFeatures::enable('gbn');
+GloryFeatures::enable('gbnSplitContent');
+GloryFeatures::enable('gloryLinkCpt');
+
 //Admin
 GloryFeatures::disable('queryProfiler');
 GloryFeatures::disable('queryProfilerLogs'); 
@@ -69,3 +75,20 @@ if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
         }
     });
 }
+
+// Registrar AJAX de GBN
+if (class_exists(\Glory\Gbn\GbnAjaxHandler::class)) {
+    \Glory\Gbn\GbnAjaxHandler::register();
+} else {
+    add_action('init', function() {
+        if (class_exists(\Glory\Gbn\GbnAjaxHandler::class)) {
+            \Glory\Gbn\GbnAjaxHandler::register();
+        }
+    });
+}
+
+// Bootstrap GBN core (forzar carga del gestor y assets si la feature está activa)
+\Glory\Gbn\GbnManager::bootstrap();
+
+// Registrar CPT glory_link (controlado por feature flag interna)
+\Glory\PostTypes\GloryLinkCpt::register();

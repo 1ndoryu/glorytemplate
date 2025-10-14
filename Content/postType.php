@@ -1,7 +1,7 @@
 <?php
 
 use Glory\Manager\PostTypeManager;
-
+/*
 PostTypeManager::define(
     'libro',
     [
@@ -25,3 +25,5 @@ PostTypeManager::define(
     'Tarea',
     'Tareas'
 );
+
+*/
