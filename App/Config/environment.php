@@ -22,6 +22,9 @@ $localValue = $envLocal !== null && $envLocal !== false ? filter_var($envLocal, 
 define('LOCAL', $localValue);
 
 
-$envGlobalDev = $_ENV['GLOBAL_DEV_MODE'] ?? getenv('GLOBAL_DEV_MODE');
+$envGlobalDev = $_ENV['DEV'] ?? getenv('DEV');
 $globalDev = $envGlobalDev !== null && $envGlobalDev !== false ? filter_var($envGlobalDev, FILTER_VALIDATE_BOOLEAN) : false;
 AssetManager::setGlobalDevMode($globalDev);
+
+// Log de estado de entorno
+#error_log('[ENV] LOCAL=' . ($localValue ? 'true' : 'false') . ' | GLOBAL_DEV_MODE=' . ($globalDev ? 'true' : 'false'));

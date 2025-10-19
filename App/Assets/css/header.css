@@ -332,4 +332,70 @@ body.menu-open {
         opacity: 1 !important;
         visibility: visible !important;
     }
+
+    /* ===== Submenús (dropdown) en escritorio ===== */
+    .siteMenuNav ul.menu > li {
+        position: relative;
+    }
+
+    /* contenedor del submenú oculto por defecto (primer nivel de dropdown) */
+    .siteMenuNav ul.menu > li > ul.sub-menu {
+        position: absolute;
+        top: calc(100% + 20px);
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 220px;
+        margin: 0;
+        display: none;
+        z-index: 1004;
+        height: auto;
+    }
+
+    /* fondo y estilo común para todos los submenús */
+    .siteMenuNav ul.sub-menu {
+        background-color: #7878781a;
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
+        border-radius: 1rem;
+        padding: .6rem 0;
+    }
+
+    /* ítems del submenú */
+    .siteMenuNav ul.sub-menu > li {
+        font-size: 1.3rem;
+        padding: .8rem 1.6rem;
+        opacity: 1;
+        display: block;
+        text-align: left;
+    }
+
+    .siteMenuNav ul.sub-menu > li a {
+        color: var(--text);
+        display: block;
+    }
+
+    .siteMenuNav ul.sub-menu > li a:hover {
+        color: var(--text);
+    }
+
+    /* mostrar en hover */
+    .siteMenuNav ul.menu > li:hover > ul.sub-menu {
+        display: block;
+    }
+
+    /* sub-submenú (nivel 3) alineado a la derecha del dropdown */
+    .siteMenuNav ul.sub-menu > li {
+        position: relative;
+    }
+    .siteMenuNav ul.sub-menu > li > ul.sub-menu {
+        position: absolute;
+        top: 0;
+        left: 100%;
+        margin-left: 8px;
+        display: none;
+        min-width: 200px;
+    }
+    .siteMenuNav ul.sub-menu > li:hover > ul.sub-menu {
+        display: block;
+    }
 }
