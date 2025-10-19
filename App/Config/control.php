@@ -57,6 +57,7 @@ GloryFeatures::disable('avadaIntegration');
 
 //Admin
 GloryFeatures::disable('queryProfiler');
+GloryFeatures::disable('performanceProfiler');
 GloryFeatures::disable('queryProfilerLogs'); 
 
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)

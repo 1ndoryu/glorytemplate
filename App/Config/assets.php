@@ -13,7 +13,7 @@ use Glory\Manager\AssetManager;
 // Carga todos los archivos CSS de la carpeta /assets/css/ del tema, excluyendo el CSS de tareas.
 AssetManager::defineFolder(
     'style',
-    '/assets/css/',
+    'App/Assets/css/',
     ['deps' => [], 'media' => 'all'],
     'tema-',
     [
@@ -26,7 +26,7 @@ AssetManager::defineFolder(
 AssetManager::define(
     'style',
     'tema-task',
-    '/assets/css/task.css',
+    'App/Assets/css/task.css',
     [
         'deps'    => [],
         'media'   => 'all',
@@ -37,7 +37,7 @@ AssetManager::define(
 // Carga todos los archivos JS de la carpeta /assets/js/ del tema, excluyendo la carpeta/archivos de tareas.
 AssetManager::defineFolder(
     'script',
-    '/assets/js/',
+    'App/Assets/js/',
     ['deps' => ['jquery'], 'in_footer' => true],
     'tema-',
     [
@@ -58,7 +58,7 @@ AssetManager::defineFolder(
 // Registrar todos los JS de la carpeta /assets/js/task/ con la feature 'task'
 AssetManager::defineFolder(
     'script',
-    '/assets/js/task/',
+    'App/Assets/js/task/',
     [
         'deps'     => ['jquery'],
         'in_footer'=> true,
