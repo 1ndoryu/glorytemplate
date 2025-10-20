@@ -31,7 +31,7 @@
 }
 
 .siteMenuContainer {
-    transform: translate(0px, 0px);
+    transform: none;
     opacity: 1;
     visibility: inherit;
     column-gap: 0.5rem;
@@ -349,6 +349,8 @@ body.menu-open {
         display: none;
         z-index: 1004;
         height: auto;
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
     }
 
     /* fondo y estilo común para todos los submenús */
