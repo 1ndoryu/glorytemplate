@@ -15,7 +15,6 @@ GloryFeatures::enable('scheduleManager');
 GloryFeatures::enable('defaultContentManager');
 GloryFeatures::disable('licenseManager');
 GloryFeatures::disable('creditosManager');
-GloryFeatures::disable('performanceProfiler');
 
 //UI Components
 GloryFeatures::enable('modales');
@@ -64,6 +63,8 @@ GloryFeatures::enable('gloryLinkCpt');
 //Admin
 GloryFeatures::disable('queryProfiler');
 GloryFeatures::disable('queryProfilerLogs'); 
+GloryFeatures::enable('performanceProfiler');
+
 
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
 if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
