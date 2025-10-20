@@ -228,6 +228,7 @@ body.menu-open {
     opacity: 0;
     display: flex;
     gap: 4rem;
+    flex-wrap: wrap; /* móvil: permitir que el submenú baje a la siguiente línea */
 }
 
 .siteMenuNav ul li a {
@@ -241,6 +242,18 @@ body.menu-open {
     font-size: 1.2rem;
     font-weight: 350;
     color: #999;
+}
+
+/* Móvil: submenús cerrados por defecto y a 100% de ancho bajo el ítem */
+.siteMenuNav ul li > ul.sub-menu {
+    display: none;
+    width: 100%;
+    flex-basis: 100%;
+    margin-top: .6rem;
+    text-align: left;
+}
+.siteMenuNav ul li.open > ul.sub-menu {
+    display: block;
 }
 
 .background {
