@@ -26,9 +26,8 @@ AjaxNav::registerFilter();
 require_once get_template_directory() . '/App/Handlers/ContentAjaxHandler.php';
 ContentAjaxHandler::register();
 
-/*
+
 delete_transient('fusion_tos');
 delete_transient('fusion_fb_tos');
 delete_transient('fusionapp_to_sections');
 delete_transient('avada_options_sections');
-*/
