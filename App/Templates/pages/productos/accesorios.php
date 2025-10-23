@@ -42,8 +42,6 @@ function pageAccesorios()
         </ul>
     </section>
     <?php
-    $json = '{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://materialdepadel.com/accesorios-padel/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://materialdepadel.com/"},{"@type":"ListItem","position":2,"name":"Accesorios de pádel","item":"https://materialdepadel.com/accesorios-padel/"}]},{"@type":"FAQPage","@id":"https://materialdepadel.com/accesorios-padel/#faq","mainEntity":[{"@type":"Question","name":"¿Qué overgrip me conviene, tacky o absorbente?","acceptedAnswer":{"@type":"Answer","text":"Tacky mejora la adherencia; absorbente gestiona mejor el sudor. Si sudas mucho, prioriza el absorbente."}},{"@type":"Question","name":"¿Cada cuánto debo cambiar el overgrip?","acceptedAnswer":{"@type":"Answer","text":"Cuando pierda adherencia o se apelmace; en uso frecuente, muchas personas lo cambian cada 1–3 partidos."}},{"@type":"Question","name":"¿Sirve el protector de marco para algo más que golpes?","acceptedAnswer":{"@type":"Answer","text":"Sí, protege la pintura y puede variar ligeramente el balance (un poco más de peso en la cabeza)."}},{"@type":"Question","name":"¿Merece la pena un presurizador de pelotas?","acceptedAnswer":{"@type":"Answer","text":"Si juegas a menudo, ayuda a conservar la presión y alarga la vida útil entre sesiones."}},{"@type":"Question","name":"¿Qué accesorios básicos recomiendas para empezar?","acceptedAnswer":{"@type":"Answer","text":"Overgrips, protector de marco, muñequeras o cinta y calcetines técnicos; añade presurizador si rotas muchas pelotas."}}]}]}';
-    SeoHelper::printJsonLd($json);
 }
 
 

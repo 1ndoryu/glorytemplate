@@ -37,8 +37,6 @@ function pageRopa()
         </ul>
     </section>
     <?php
-    $json = '{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://materialdepadel.com/ropa-padel/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://materialdepadel.com/"},{"@type":"ListItem","position":2,"name":"Ropa de pádel","item":"https://materialdepadel.com/ropa-padel/"}]},{"@type":"FAQPage","@id":"https://materialdepadel.com/ropa-padel/#faq","mainEntity":[{"@type":"Question","name":"¿Qué ropa de pádel es mejor para verano?","acceptedAnswer":{"@type":"Answer","text":"Camisetas y shorts transpirables con paneles de malla y secado rápido; colores claros para mayor confort."}},{"@type":"Question","name":"¿Y para invierno?","acceptedAnswer":{"@type":"Answer","text":"Primera capa térmica y sudadera o chaqueta ligera que no limite la movilidad."}},{"@type":"Question","name":"¿En qué me fijo en los tejidos?","acceptedAnswer":{"@type":"Answer","text":"Poliéster/elastano por elasticidad y secado rápido; costuras planas y patronaje deportivo para evitar roces."}},{"@type":"Question","name":"¿Ropa de pádel y de running sirven igual?","acceptedAnswer":{"@type":"Answer","text":"La de pádel prioriza movilidad lateral y ventilación en zonas clave; la de running está pensada para impacto lineal."}},{"@type":"Question","name":"¿Puedo ver precios y reseñas actualizadas?","acceptedAnswer":{"@type":"Answer","text":"Sí, pulsa en “Consultar precio en Amazon” para ver precio y valoraciones en tiempo real."}}]}]}';
-    SeoHelper::printJsonLd($json);
 }
 
 

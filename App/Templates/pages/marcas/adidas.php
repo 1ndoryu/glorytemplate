@@ -36,8 +36,6 @@ function pageMarcaAdidas()
         </ul>
     </section>
     <?php
-    $json = '{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://materialdepadel.com/marcas/adidas/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://materialdepadel.com/"},{"@type":"ListItem","position":2,"name":"Palas de pádel Adidas","item":"https://materialdepadel.com/marcas/adidas/"}]},{"@type":"FAQPage","@id":"https://materialdepadel.com/marcas/adidas/#faq","mainEntity":[{"@type":"Question","name":"¿Para quién son las palas Adidas de control?","acceptedAnswer":{"@type":"Answer","text":"Ideales si buscas seguridad desde el fondo y regularidad; suelen ser redondas y de tacto cómodo."}},{"@type":"Question","name":"¿Adidas tiene palas potentes para rematar?","acceptedAnswer":{"@type":"Answer","text":"Sí. Mira modelos diamante con balance alto y planos más firmes para ganar pegada."}},{"@type":"Question","name":"¿Qué peso elegir en palas Adidas?","acceptedAnswer":{"@type":"Answer","text":"Como guía general, 355–365 g para adulto; ajusta según fuerza y antecedentes de codo u hombro."}},{"@type":"Question","name":"¿Carbono o fibra de vidrio en Adidas?","acceptedAnswer":{"@type":"Answer","text":"Carbono = precisión y estabilidad; fibra de vidrio = mayor confort y mejor precio."}},{"@type":"Question","name":"¿Dónde veo precios y reseñas actualizadas de palas Adidas?","acceptedAnswer":{"@type":"Answer","text":"En cada tarjeta AAWP pulsa “Consultar precio en Amazon” para ver precio y valoraciones al día."}}]}]}';
-    SeoHelper::printJsonLd($json);
 }
 
 

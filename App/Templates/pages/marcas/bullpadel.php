@@ -35,8 +35,6 @@ function pageMarcaBullpadel()
         </ul>
     </section>
     <?php
-    $json = '{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://materialdepadel.com/marcas/bullpadel/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://materialdepadel.com/"},{"@type":"ListItem","position":2,"name":"Palas de pádel Bullpadel","item":"https://materialdepadel.com/marcas/bullpadel/"}]},{"@type":"FAQPage","@id":"https://materialdepadel.com/marcas/bullpadel/#faq","mainEntity":[{"@type":"Question","name":"¿Bullpadel tiene palas cómodas para empezar?","acceptedAnswer":{"@type":"Answer","text":"Sí; busca modelos con tacto blando/medio y buena tolerancia para fallar menos al inicio."}},{"@type":"Question","name":"Quiero potencia en la red, ¿qué debo priorizar?","acceptedAnswer":{"@type":"Answer","text":"Una pala con respuesta rápida, buena estabilidad al impacto y sensación más firme."}},{"@type":"Question","name":"Si tengo codo sensible, ¿qué me conviene?","acceptedAnswer":{"@type":"Answer","text":"Palas cómodas (menos vibración) y peso contenido; añade overgrip para mejorar agarre sin tensar el antebrazo."}},{"@type":"Question","name":"¿Qué peso es orientativo en Bullpadel para adulto?","acceptedAnswer":{"@type":"Answer","text":"De forma general, 355–365 g; ajusta según fuerza, frecuencia de juego y sensaciones."}},{"@type":"Question","name":"¿Dónde veo precios y reseñas de palas Bullpadel?","acceptedAnswer":{"@type":"Answer","text":"En las tarjetas AAWP, pulsa “Consultar precio en Amazon” para ver precio y valoraciones al día."}}]}]}';
-    SeoHelper::printJsonLd($json);
 }
 
 

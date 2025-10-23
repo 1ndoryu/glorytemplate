@@ -10,8 +10,14 @@ use Glory\Manager\PageManager;
 get_header();
 
 $funcionRenderizar = PageManager::getFuncionParaRenderizar();
+$postId = get_queried_object_id();
+$modo = $postId ? PageManager::getModoContenidoParaPagina((int) $postId) : 'code';
 
-if ($funcionRenderizar && function_exists($funcionRenderizar)) {
+if ($modo === 'editor') {
+    echo '<main id="main" class="site-main"><div class="glory-editor-content">';
+    while (have_posts()) { the_post(); the_content(); }
+    echo '</div></main>';
+} elseif ($funcionRenderizar && function_exists($funcionRenderizar)) {
     // Llama a la función específica de la página (ej: home(), contacto(), etc.)
     call_user_func($funcionRenderizar);
 } else {

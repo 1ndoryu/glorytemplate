@@ -1,3 +1,11 @@
+@font-face {
+    font-family: 'PPNeueMontreal';
+    src: url('../fonts/PPNeueMontreal-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     /* Tokens de tema (valores por defecto: claro) */
     --bg: #ffffff;
@@ -187,15 +195,59 @@ html {
     font-size: 62.5%;
 }
 
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.aawp-grid--placeholder{border:1px dashed #ccc;border-radius:8px;padding:16px;margin:24px 0}
-.aawp-grid__notice{font-size:14px;color:#555;margin-bottom:12px}
-.aawp-grid__items{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-@media(min-width:768px){.aawp-grid__items{grid-template-columns:repeat(3,1fr)}}
-.aawp-card--skeleton{background:#f7f7f7;border-radius:8px;padding:10px}
-.aawp-card__media{height:120px;background:linear-gradient(90deg,#eee,#f5f5f5,#eee);border-radius:6px}
-.aawp-card__title{height:16px;background:#e5e5e5;margin:10px 0;border-radius:4px}
-.aawp-card__cta{height:28px;background:#ddd;border-radius:4px}
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+.aawp-grid--placeholder {
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 24px 0;
+}
+.aawp-grid__notice {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 12px;
+}
+.aawp-grid__items {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+@media (min-width: 768px) {
+    .aawp-grid__items {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+.aawp-card--skeleton {
+    background: #f7f7f7;
+    border-radius: 8px;
+    padding: 10px;
+}
+.aawp-card__media {
+    height: 120px;
+    background: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+    border-radius: 6px;
+}
+.aawp-card__title {
+    height: 16px;
+    background: #e5e5e5;
+    margin: 10px 0;
+    border-radius: 4px;
+}
+.aawp-card__cta {
+    height: 28px;
+    background: #ddd;
+    border-radius: 4px;
+}
 
 main {
     width: 100%;
@@ -295,9 +347,9 @@ textarea {
     unicode-bidi: isolate;
     color: var(--text);
     line-height: 1.6;
-    font-family: 'Source Sans 3', Arial, Helvetica, sans-serif;
+    font-family: 'PPNeueMontreal', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
     letter-spacing: 0rem;
-    font-weight: 400;
+    font-weight: 500;
     text-decoration: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -567,7 +619,7 @@ select {
     width: 100%;
     border: unset;
     background: unset;
-    font-family: 'Source Sans 3';
+    font-family: inherit;
     padding: 0.5rem;
     padding-left: 0rem;
     margin: unset;

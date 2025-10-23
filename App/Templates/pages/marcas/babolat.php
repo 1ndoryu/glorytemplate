@@ -35,8 +35,6 @@ function pageMarcaBabolat()
         </ul>
     </section>
     <?php
-    $json = '{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://materialdepadel.com/marcas/babolat/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://materialdepadel.com/"},{"@type":"ListItem","position":2,"name":"Palas de pádel Babolat","item":"https://materialdepadel.com/marcas/babolat/"}]},{"@type":"FAQPage","@id":"https://materialdepadel.com/marcas/babolat/#faq","mainEntity":[{"@type":"Question","name":"¿Babolat tiene palas cómodas para empezar?","acceptedAnswer":{"@type":"Answer","text":"Sí; modelos con tacto amable y punto dulce amplio ayudan a fallar menos y ganar confianza."}},{"@type":"Question","name":"Busco potencia clara en la red, ¿qué priorizo en Babolat?","acceptedAnswer":{"@type":"Answer","text":"Respuesta rápida, buena estabilidad al impacto y tacto más firme para transferir energía."}},{"@type":"Question","name":"Juego variado (defiendo y ataco), ¿qué me conviene?","acceptedAnswer":{"@type":"Answer","text":"Una pala equilibrada con salida progresiva y agilidad en la volea para cambiar de ritmo sin perder control."}},{"@type":"Question","name":"¿Carbono o fibra de vidrio en Babolat?","acceptedAnswer":{"@type":"Answer","text":"Carbono = más precisión y golpe definido; fibra de vidrio = confort y brazo más descansado."}},{"@type":"Question","name":"¿Dónde veo precios y reseñas de palas Babolat?","acceptedAnswer":{"@type":"Answer","text":"En las tarjetas AAWP, pulsa “Consultar precio en Amazon” para ver precio y valoraciones al día."}}]}]}';
-    SeoHelper::printJsonLd($json);
 }
 
 

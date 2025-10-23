@@ -35,8 +35,6 @@ function pageMarcaViborA()
         </ul>
     </section>
     <?php
-    $json = '{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://materialdepadel.com/marcas/vibor-a/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://materialdepadel.com/"},{"@type":"ListItem","position":2,"name":"Palas de pádel Vibor-A","item":"https://materialdepadel.com/marcas/vibor-a/"}]},{"@type":"FAQPage","@id":"https://materialdepadel.com/marcas/vibor-a/#faq","mainEntity":[{"@type":"Question","name":"¿Vibor-A tiene palas cómodas para empezar?","acceptedAnswer":{"@type":"Answer","text":"Sí; prioriza modelos con tacto amable, baja vibración y punto dulce amplio para ganar confianza."}},{"@type":"Question","name":"Quiero potencia arriba, ¿qué debo buscar en Vibor-A?","acceptedAnswer":{"@type":"Answer","text":"Respuesta rápida, buena estabilidad al impacto y tacto algo más firme para transferir energía en remates."}},{"@type":"Question","name":"Si juego a construir desde el fondo, ¿qué me conviene?","acceptedAnswer":{"@type":"Answer","text":"Salida constante, pala maniobrable y que perdone cuando no impactas al centro."}},{"@type":"Question","name":"¿Carbono o fibra de vidrio en Vibor-A?","acceptedAnswer":{"@type":"Answer","text":"Carbono = más precisión y golpe definido; fibra de vidrio = confort y brazo más descansado."}},{"@type":"Question","name":"¿Dónde veo precios y reseñas de palas Vibor-A?","acceptedAnswer":{"@type":"Answer","text":"En cada tarjeta AAWP pulsa “Consultar precio en Amazon” para ver precio y valoraciones al día."}}]}]}';
-    SeoHelper::printJsonLd($json);
 }
 
 

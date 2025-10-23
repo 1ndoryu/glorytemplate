@@ -35,8 +35,6 @@ function pageMarcaNox()
         </ul>
     </section>
     <?php
-    $json = '{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://materialdepadel.com/marcas/nox/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://materialdepadel.com/"},{"@type":"ListItem","position":2,"name":"Palas de pádel NOX","item":"https://materialdepadel.com/marcas/nox/"}]},{"@type":"FAQPage","@id":"https://materialdepadel.com/marcas/nox/#faq","mainEntity":[{"@type":"Question","name":"¿NOX tiene palas cómodas para empezar?","acceptedAnswer":{"@type":"Answer","text":"Sí; prioriza modelos con tacto amable y buena tolerancia para ganar confianza rápido."}},{"@type":"Question","name":"Quiero más potencia arriba, ¿qué NOX me conviene?","acceptedAnswer":{"@type":"Answer","text":"Una pala con respuesta rápida, buena estabilidad y sensación algo más firme para transferir energía."}},{"@type":"Question","name":"Si busco control desde el fondo, ¿qué priorizo?","acceptedAnswer":{"@type":"Answer","text":"Salida constante, maniobrabilidad y que perdone cuando no impactas al centro."}},{"@type":"Question","name":"¿Carbono o fibra de vidrio en NOX?","acceptedAnswer":{"@type":"Answer","text":"Carbono = más precisión y golpe definido; fibra de vidrio = confort y brazo más descansado."}},{"@type":"Question","name":"¿Dónde ver precios y reseñas de palas NOX?","acceptedAnswer":{"@type":"Answer","text":"En cada tarjeta AAWP pulsa “Consultar precio en Amazon” para ver precio y valoraciones al día."}}]}]}';
-    SeoHelper::printJsonLd($json);
 }
 
 

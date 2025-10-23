@@ -25,8 +25,6 @@ function pageOfertas()
         </ul>
     </section>
     <?php
-    $json = '{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://materialdepadel.com/ofertas/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://materialdepadel.com/"},{"@type":"ListItem","position":2,"name":"Ofertas de pádel","item":"https://materialdepadel.com/ofertas/"}]},{"@type":"FAQPage","@id":"https://materialdepadel.com/ofertas/#faq","mainEntity":[{"@type":"Question","name":"¿Cada cuánto cambian las ofertas?","acceptedAnswer":{"@type":"Answer","text":"Pueden variar varias veces al día según stock y cupones. Revisa el precio actualizado en Amazon."}},{"@type":"Question","name":"¿Cómo sé si la rebaja merece la pena?","acceptedAnswer":{"@type":"Answer","text":"Compara precio actual frente a habitual, consulta reseñas recientes y confirma talla o peso antes de comprar."}},{"@type":"Question","name":"¿Puedo devolver si no me convence?","acceptedAnswer":{"@type":"Answer","text":"Depende del vendedor de Amazon y su política vigente. Revisa condiciones de devolución en la ficha del producto."}}]}]}';
-    SeoHelper::printJsonLd($json);
 }
 
 

@@ -41,31 +41,6 @@ function pagePalas()
         <p>Cuida tu equipo: protege la pala con <a href="/bolsas-y-paleteros/">bolsas y paleteros</a> y ajusta agarre/confort con <a href="/accesorios-padel/">accesorios de pádel</a>.</p>
     </section>
     <?php
-    $json = '{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "BreadcrumbList",
-      "@id": "https://materialdepadel.com/palas-de-padel/#breadcrumb",
-      "itemListElement": [
-        {"@type":"ListItem","position":1,"name":"Inicio","item":"https://materialdepadel.com/"},
-        {"@type":"ListItem","position":2,"name":"Palas de pádel","item":"https://materialdepadel.com/palas-de-padel/"}
-      ]
-    },
-    {
-      "@type": "FAQPage",
-      "@id": "https://materialdepadel.com/palas-de-padel/#faq",
-      "mainEntity": [
-        {"@type":"Question","name":"¿Qué pala de pádel me conviene si soy principiante?","acceptedAnswer":{"@type":"Answer","text":"Una pala redonda de 355–365 g y EVA blanda/media para ganar control y confort."}},
-        {"@type":"Question","name":"¿Control, potencia o polivalente?","acceptedAnswer":{"@type":"Answer","text":"Si dudas, una polivalente (lágrima) equilibra defensa y remate; la diamante es para jugadores avanzados con pegada."}},
-        {"@type":"Question","name":"¿Qué peso es “ligero” en palas de adulto?","acceptedAnswer":{"@type":"Answer","text":"Aproximadamente 355–360 g; por debajo suele ser junior o gamas muy específicas."}},
-        {"@type":"Question","name":"¿El carbono es siempre mejor que la fibra de vidrio?","acceptedAnswer":{"@type":"Answer","text":"No siempre. El carbono ofrece mayor rigidez y precisión; la fibra de vidrio es más cómoda y económica."}},
-        {"@type":"Question","name":"¿Puedo ver precios y reseñas actualizadas?","acceptedAnswer":{"@type":"Answer","text":"Sí, pulsa en “Consultar precio en Amazon” en cada producto para ver precio y valoraciones en tiempo real."}}
-      ]
-    }
-  ]
-}';
-    SeoHelper::printJsonLd($json);
 }
 
 

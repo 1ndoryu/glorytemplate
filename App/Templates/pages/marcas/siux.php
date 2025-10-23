@@ -35,8 +35,6 @@ function pageMarcaSiux()
         </ul>
     </section>
     <?php
-    $json = '{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https://materialdepadel.com/marcas/siux/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://materialdepadel.com/"},{"@type":"ListItem","position":2,"name":"Palas de pádel Siux","item":"https://materialdepadel.com/marcas/siux/"}]},{"@type":"FAQPage","@id":"https://materialdepadel.com/marcas/siux/#faq","mainEntity":[{"@type":"Question","name":"¿Siux tiene palas cómodas para empezar?","acceptedAnswer":{"@type":"Answer","text":"Sí; prioriza modelos con poco castigo al brazo, punto dulce grande y tacto amable para ganar confianza."}},{"@type":"Question","name":"Quiero potencia arriba, ¿qué buscar en Siux?","acceptedAnswer":{"@type":"Answer","text":"Respuesta rápida, buena estabilidad al impacto y sensación algo más firme para transferir energía en remates."}},{"@type":"Question","name":"Juego variado, ¿qué Siux me conviene?","acceptedAnswer":{"@type":"Answer","text":"Una pala equilibrada con salida progresiva y agilidad en la red para pasar de defensa a ataque sin sorpresas."}},{"@type":"Question","name":"¿Carbono o fibra de vidrio en Siux?","acceptedAnswer":{"@type":"Answer","text":"Carbono = más precisión y golpe definido; fibra de vidrio = confort y brazo más descansado."}},{"@type":"Question","name":"¿Dónde veo precios y reseñas de palas Siux?","acceptedAnswer":{"@type":"Answer","text":"En las tarjetas AAWP, pulsa “Consultar precio en Amazon” para ver precio y valoraciones al día."}}]}]}';
-    SeoHelper::printJsonLd($json);
 }
 
 
