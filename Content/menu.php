@@ -3,6 +3,7 @@
 // Definición de menú para modo desarrollo (LOCAL=true)
 // Estructura: cada item puede incluir 'children' para desplegables
 // Las URLs relativas (p.ej. "/ofertas/") se transforman a absolutas automáticamente
+// Gestionado por Glory - menuManager.php
 
 return [
     [

@@ -63,7 +63,7 @@ GloryFeatures::enable('gloryLinkCpt');
 //Admin
 GloryFeatures::disable('queryProfiler');
 GloryFeatures::disable('queryProfilerLogs'); 
-GloryFeatures::enable('performanceProfiler');
+GloryFeatures::disable('performanceProfiler');
 
 
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
