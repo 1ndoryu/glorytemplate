@@ -9,11 +9,14 @@
 :root {
     /* Tokens de tema (valores por defecto: claro) */
     --bg: #ffffff;
+    --bg-oscuro: #080808;
     --text: #111111;
-    --muted: #6b6b6b;
+    --text-blanco: #ffffff;
+    --muted: #dedede;
     --card-bg: #f8f8f8;
     --card-hover: #e6e6e6;
-    --border-color: #e6e6e6;
+    --border-color: #575757;
+
     --button-bg: transparent;
     --button-text: var(--text);
 
@@ -25,7 +28,7 @@
     --fondo: var(--card-bg);
     --borde: 0.1rem var(--border-color) solid;
     --bordeBoton: 0.1rem rgba(31, 31, 31, 0.55) solid;
-    --blanco: var(--text);
+    --blanco: var(--text-light);
 }
 
 /* Modo oscuro */
@@ -1008,4 +1011,28 @@ button.previewRemover {
     align-items: center;
     justify-content: center;
     border-radius: 6px;
+}
+
+/* Footer */
+.footer {
+    width: 100%;
+    background: var(--bg);
+    border-top: var(--borde);
+    padding: var(--padding);
+}
+
+.footerContenedor {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 2rem;
+    max-width: var(--ancho);
+    margin: 0 auto;
+}
+
+.footerSeccion {
+    flex: 1;
+    min-width: 0;
 }
