@@ -1,0 +1,157 @@
+.hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #fff;
+    background: #000;
+}
+.heroBg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.75;
+    object-position: center;
+}
+.heroInner {
+    position: relative;
+    z-index: 2;
+    padding: 40px 20px;
+    max-width: 960px;
+}
+.heroTitulo {
+    font-size: clamp(32px, 5vw, 64px);
+    line-height: 1.1;
+    margin: 0 0 10px;
+}
+.heroDesc {
+    margin: 0;
+    color: #eaeaea;
+}
+
+.bloqueh {
+    padding: 40px 20px;
+}
+.tituloBloque {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: 1200px;
+    margin: 0 auto 20px;
+}
+.bloqueTitulo {
+    margin: 0;
+    font-size: 28px;
+}
+.btnLink {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    text-transform: uppercase;
+    font-size: 14px;
+    text-decoration: none;
+    color: inherit;
+    background: transparent;
+    display: inline-block;
+}
+
+.gridCategorias {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.catCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 260px;
+    background: #f6f6f8;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+}
+.catImg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.35;
+}
+.catTitulo {
+    position: relative;
+    z-index: 2;
+    font-size: 22px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+.btn {
+    position: relative;
+    z-index: 2;
+    border: 1px solid #ddd;
+    padding: 6px 12px;
+}
+
+.brandsScroller {
+    display: flex;
+    gap: 40px;
+    overflow: auto;
+    padding: 10px 20px;
+    scrollbar-width: thin;
+}
+
+.contenedorOfertas {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.gridCta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.ctaMedia {
+    min-height: 280px;
+}
+.ctaMedia img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.ctaTexto {
+    background: #f9f9fb;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.ctaTitulo {
+    margin: 0 0 10px;
+    font-size: 26px;
+}
+.ctaDesc {
+    margin: 0 0 16px;
+    font-size: 14px;
+    max-width: 520px;
+}
+
+@media (max-width: 800px) {
+    .gridCategorias {
+        grid-template-columns: 1fr;
+    }
+    .gridCta {
+        grid-template-columns: 1fr;
+    }
+}

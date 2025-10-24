@@ -16,6 +16,14 @@ PageManager::setDefaultContentMode('editor');
 
 // Defaults SEO por slug (título, descripción, canónica)
 PageManager::setDefaultSeoMap([
+    'home' => [
+        'title' => 'Tienda Pádel: Palas, Zapatillas, Ropa y Ofertas en Amazon',
+        'desc' => 'Guías y comparativas para elegir tu equipo de pádel: palas, zapatillas, ropa, pelotas y accesorios. Descubre marcas top y últimas ofertas en Amazon.',
+        'canonical' => home_url('/'),
+        'breadcrumb' => [
+            ['name' => 'Inicio', 'url' => home_url('/')],
+        ],
+    ],
 	'palas-de-padel' => [
 		'title' => 'Palas de pádel | Control, potencia y ofertas en Amazon',
 		'desc' => 'Compra palas de pádel baratas o de gama alta. Guía por nivel y forma. Consulta precio y ofertas 2025 en Amazon.',

@@ -14,9 +14,15 @@ $postId = get_queried_object_id();
 $modo = $postId ? PageManager::getModoContenidoParaPagina((int) $postId) : 'code';
 
 if ($modo === 'editor') {
-    echo '<main id="main" class="site-main"><div class="glory-editor-content">';
-    while (have_posts()) { the_post(); the_content(); }
-    echo '</div></main>';
+    while (have_posts()) {
+        the_post();
+        $contenido = get_the_content(null, false, get_the_ID());
+        $contenido = apply_filters('the_content', $contenido);
+        $textoPlano = trim(wp_strip_all_tags(str_replace('&nbsp;', ' ', (string) $contenido), true));
+        if ($textoPlano !== '') {
+            echo $contenido; // Imprimir solo si hay contenido real
+        }
+    }
 } elseif ($funcionRenderizar && function_exists($funcionRenderizar)) {
     // Llama a la función específica de la página (ej: home(), contacto(), etc.)
     call_user_func($funcionRenderizar);

@@ -1,4 +1,3 @@
-
 /* HEADER */
 
 /* --- VARIABLES Y ESTILOS BASE --- */
@@ -14,35 +13,21 @@
     --color-orange: #ff5102;
     --color-yellow: #fca311;
     --color-white: #fff;
-    --font-base: "PP Neue Montreal";
+    --font-base: 'PP Neue Montreal';
     --header-height: 7.9rem;
     --grid-columnCount: 5;
     --grid-gutter: 2.5641025641vw;
     --grid-outerGutter: 5.1282051282vw;
 }
 
-.siteMenuW {
-    position: fixed;
-    top: 0;
-    left: 0;
+header.siteMenuW {
     width: 100%;
-    z-index: 1000;
-    transition: background-color 0.4s ease;
 }
 
 .siteMenuContainer {
-    transform: none;
-    opacity: 1;
-    visibility: inherit;
-    column-gap: 0.5rem;
-    justify-content: center;
     display: flex;
-    left: 0;
-    position: fixed;
-    top: 0;
-    transition: opacity 0.3s, visibility 0.3s;
-    width: 100%;
-    z-index: 1002;
+    position: absolute;
+    justify-self: anchor-center;
 }
 
 .siteMenuContainer.hidden {
@@ -56,11 +41,11 @@
     width: 4.9rem;
     margin-left: var(--grid-outerGutter);
     margin-top: 3.4rem;
-    background-color: #7878781a;
+    /* background-color: #7878781a; */
     color: var(--color-offBlack);
     transition: background-color 0.2s, color 0.2s;
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
+    /* -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px); */
     border-radius: 50%;
     overflow: hidden;
     position: relative;
@@ -69,6 +54,14 @@
     justify-content: center;
     padding: 10px;
     z-index: 1;
+}
+
+/* Asegurar que el logo imagen se muestre correctamente */
+.siteMenuLogo img {
+    width: 100%;
+    height: auto;
+    display: block;
+    padding: 2px;
 }
 
 /* --- ESTILOS DE COLOR ADAPTATIVOS --- */
@@ -82,14 +75,14 @@
 }
 
 .siteMenuW .siteMenuNav a:hover {
-    color: var(--text);
+    color: var(--color-greyLight);
 }
 
 .siteMenuW.has-dark-background .siteMenuNav a,
 .siteMenuW.has-dark-background .siteMenuLogo a,
 .siteMenuW.has-dark-background .siteMenuLogo,
 .siteMenuW.has-dark-background .burger {
-    color: var(--text); /* Color para fondos oscuros */
+    color: var(--color-greyLight); /* Color para fondos oscuros */
 }
 
 .siteMenuW.has-dark-background .siteMenuNav a:hover {
@@ -118,8 +111,8 @@
     margin-right: var(--grid-outerGutter);
     margin-top: 3rem;
     position: relative;
-    row-gap: .8rem;
-    transition: background-color .3s, color .2s;
+    row-gap: 0.8rem;
+    transition: background-color 0.3s, color 0.2s;
     width: 4.9rem;
     z-index: 1;
     background-color: #7878781a;
@@ -134,7 +127,7 @@
     height: 1px;
     position: relative;
     top: 0;
-    transition: transform .3s,top .3s;
+    transition: transform 0.3s, top 0.3s;
     width: 1.9rem;
 }
 
@@ -158,7 +151,7 @@
     width: auto;
     border-radius: 1rem;
     font-size: 1.4rem;
-    FONT-WEIGHT: 600;
+    font-weight: 600;
 }
 
 /* --- ESTILOS ADICIONALES PARA MENÚ MÓVIL --- */
@@ -169,7 +162,7 @@
     left: 0;
     width: 100%;
     /* height: 100dvh; */
-    background-color: #f8f8f8b3;
+    /* background-color: #f8f8f8b3; */
     padding: 4.5rem var(--grid-outerGutter) 0;
     display: none;
     padding-bottom: 20px !important;
@@ -237,7 +230,7 @@ body.menu-open {
 }
 
 .siteMenuNav ul li::before {
-    content: "0" counter(list-item);
+    content: '0' counter(list-item);
     counter-increment: list-item;
     font-size: 1.2rem;
     font-weight: 350;
@@ -249,7 +242,7 @@ body.menu-open {
     display: none;
     width: 100%;
     flex-basis: 100%;
-    margin-top: .6rem;
+    margin-top: 0.6rem;
     text-align: left;
 }
 .siteMenuNav ul li.open > ul.sub-menu {
@@ -284,7 +277,7 @@ body.menu-open {
         --grid-gutter: 2.3980815348vw;
         --grid-outerGutter: 4.7961630695vw;
     }
-    
+
     .burger,
     .background,
     .navTitle {
@@ -293,7 +286,7 @@ body.menu-open {
 
     .siteMenuContainer {
         justify-content: center;
-        column-gap: .5rem;
+        column-gap: 0.5rem;
     }
 
     .siteMenuLogo {
@@ -319,22 +312,22 @@ body.menu-open {
         display: flex;
         flex-direction: row;
         align-items: center;
-        -webkit-backdrop-filter: blur(20px);
-        backdrop-filter: blur(20px);
+        /* -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);*/
         border-radius: 1rem;
         column-gap: 4rem;
         height: 4.5rem;
         margin-top: 0;
         padding: 0 3rem;
         row-gap: 0;
-        background-color: #7878781a;
+        /* background-color: #7878781a; */
     }
 
     .siteMenuNav ul li {
         opacity: 1;
         font-size: 1.4rem;
     }
-    
+
     .siteMenuNav ul li::before {
         display: none;
     }
@@ -372,13 +365,13 @@ body.menu-open {
         -webkit-backdrop-filter: blur(20px);
         backdrop-filter: blur(20px);
         border-radius: 1rem;
-        padding: .6rem 0;
+        padding: 0.6rem 0;
     }
 
     /* ítems del submenú */
     .siteMenuNav ul.sub-menu > li {
         font-size: 1.3rem;
-        padding: .8rem 1.6rem;
+        padding: 0.8rem 1.6rem;
         opacity: 1;
         display: block;
         text-align: left;
