@@ -14,11 +14,7 @@ function pageMarcaWilson()
             <p class="cta introContentPage">Para comprar palas de pádel Wilson, piensa en tu nivel y en si priorizas control, potencia o una opción polivalente. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
         </div>
 
-        <div class="gridAAWP">
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-        </div>
+        [productos_aawp_pagina]
 
         <div class="textContentPage">
             <h2>Da con tu Wilson a la primera</h2>

@@ -14,11 +14,7 @@ function pageMarcaHead()
             <p class="cta introContentPage">Para comprar palas de pádel Head, piensa en cómo juegas (control, potencia o polivalentes) y en tu nivel. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
         </div>
 
-        <div class="gridAAWP">
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-        </div>
+        [productos_aawp_pagina]
 
         <div class="textContentPage">
             <h2>Cómo acertar con tu pala Head</h2>

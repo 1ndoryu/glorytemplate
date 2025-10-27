@@ -14,11 +14,7 @@ function pageAccesorios()
             <p class="cta introContentPage">Para comprar accesorios de pádel, empieza por mejorar el agarre (overgrips), proteger la pala (protector de marco) y mantener las pelotas (presurizador). Completa con muñequeras, cintas y calcetines técnicos. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>. Explora: <a href="/palas-de-padel/">palas</a>, <a href="/zapatillas-padel/">zapatillas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/pelotas-de-padel/">pelotas</a> y <a href="/bolsas-y-paleteros/">bolsas y paleteros</a>.</p>
         </div>
 
-        <div class="gridAAWP">
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-        </div>
+        [productos_aawp_pagina]
 
         <div class="textContentPage">
             <h2>Cómo elegir tus accesorios de pádel</h2>

@@ -53,6 +53,21 @@ OpcionManager::register('glory_logo_text', [
     'subSeccion'   => 'logo_configuration',
 ]);
 
+// --- AAWP / Productos por página ---
+$seccionAawp = 'integrations';
+$etiquetaSeccionAawp = 'Integrations & Tracking';
+$subSeccionAawp = 'aawp';
+
+OpcionManager::register('aawp_preview_activo', [
+    'valorDefault'    => true,
+    'tipo'            => 'toggle',
+    'etiqueta'        => 'AAWP Preview activo',
+    'descripcion'     => 'Muestra una vista previa HTML estática en el sitio para los productos seleccionados, sin consumir créditos de la API. Afecta a todos los usuarios.',
+    'seccion'         => $seccionAawp,
+    'etiquetaSeccion' => $etiquetaSeccionAawp,
+    'subSeccion'      => $subSeccionAawp,
+]);
+
 
 $seccionIntegraciones = 'integrations';
 $etiquetaSeccionIntegraciones = 'Integrations & Tracking';
@@ -86,4 +101,15 @@ OpcionManager::register('glory_custom_header_scripts', [
     'seccion'         => $seccionIntegraciones,
     'etiquetaSeccion' => $etiquetaSeccionIntegraciones,
     'subSeccion'      => 'manual_scripts',
+]);
+
+// --- AAWP Preview Toggle ---
+OpcionManager::register('aawp_preview_activo', [
+    'valorDefault'    => true,
+    'tipo'            => 'toggle',
+    'etiqueta'        => 'AAWP: Vista previa activa',
+    'descripcion'     => 'Cuando está activado, el shortcode de productos de página renderiza el HTML de AAWP (consumiendo créditos). Cuando está desactivado, sólo imprime los shortcodes [amazon box="..."] sin ejecutar.',
+    'seccion'         => 'integrations',
+    'etiquetaSeccion' => 'Integrations & Tracking',
+    'subSeccion'      => 'aawp',
 ]);

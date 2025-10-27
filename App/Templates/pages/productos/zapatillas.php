@@ -14,11 +14,7 @@ function pageZapatillas()
             <p class="cta introContentPage">Para comprar zapatillas de pádel, decide primero por suela (clay, híbrida u omni) y por amortiguación/estabilidad según tu nivel. Hay opciones baratas y de gama alta. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>. Explora: <a href="/palas-de-padel/">palas</a>, <a href="/pelotas-de-padel/">pelotas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/accesorios-padel/">accesorios</a> y <a href="/bolsas-y-paleteros/">bolsas y paleteros</a>.</p>
         </div>
 
-        <div class="gridAAWP">
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-        </div>
+        [productos_aawp_pagina]
 
         <div class="textContentPage">
             <h2>Cómo elegir tus zapatillas de pádel</h2>

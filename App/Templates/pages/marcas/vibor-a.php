@@ -14,11 +14,7 @@ function pageMarcaViborA()
             <p class="cta introContentPage">Para comprar palas de pádel Vibor-A, piensa en tu nivel y en si buscas control, potencia o algo polivalente. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
         </div>
 
-        <div class="gridAAWP">
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-        </div>
+        [productos_aawp_pagina]
 
         <div class="textContentPage">
             <h2>Vibor-A: elige bien sin complicarte</h2>

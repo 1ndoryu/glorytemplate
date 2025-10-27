@@ -15,11 +15,7 @@ function pagePalas()
             <p class="cta introContentPage">Para comprar palas de pádel, compara primero por nivel (principiante, intermedio, avanzado) y por tipo: control, potencia o polivalentes. Hay alternativas baratas y de gama alta. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a> antes de decidir. Si lo prefieres, explora marcas: <a href="/marcas/adidas/">palas de pádel Adidas</a>, <a href="/marcas/bullpadel/">palas Bullpadel</a>, <a href="/marcas/nox/">palas de pádel NOX</a> y <a href="/marcas/head/">palas Head</a>.</p>
         </div>
 
-        <div class="gridAAWP">
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-        </div>
+        [productos_aawp_pagina]
         
         <div class="textContentPage">
 

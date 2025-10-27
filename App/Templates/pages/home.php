@@ -63,11 +63,7 @@ function home()
             <h2 class="bloqueTitulo">Últimas ofertas</h2>
             <a class="btnLink" href="/ofertas/">Ver todas</a>
         </div>
-        <div class="gridAAWP">
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-        </div>
+        [productos_aawp_pagina]
 
     </section>
 

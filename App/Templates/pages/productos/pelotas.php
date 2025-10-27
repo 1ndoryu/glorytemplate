@@ -14,11 +14,7 @@ function pagePelotas()
             <p class="cta introContentPage">Para comprar pelotas de pádel, elige el bote (altura de rebote) y la velocidad según tu pista y clima. En pistas lentas o frío, busca pelotas más rápidas; en pistas muy rápidas o calor, pelotas más controladas. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>. Explora: <a href="/palas-de-padel/">palas</a>, <a href="/zapatillas-padel/">zapatillas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/accesorios-padel/">accesorios</a> y <a href="/bolsas-y-paleteros/">bolsas y paleteros</a>.</p>
         </div>
 
-        <div class="gridAAWP">
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-            [amazon box="B09M56N5C5"]
-        </div>
+        [productos_aawp_pagina]
 
         <div class="textContentPage">
             <h2>Cómo elegir tus pelotas de pádel</h2>
