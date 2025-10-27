@@ -11,26 +11,27 @@ GloryFeatures::disable('gloryLogger');
 GloryFeatures::enable('pageManager');
 GloryFeatures::enable('postTypeManager');
 GloryFeatures::enable('taxonomyMetaManager');
-GloryFeatures::enable('scheduleManager');
+GloryFeatures::disable('scheduleManager');
 GloryFeatures::enable('defaultContentManager');
 GloryFeatures::disable('licenseManager');
 GloryFeatures::disable('creditosManager');
 
 //UI Components
-GloryFeatures::enable('modales');
+GloryFeatures::disable('modales');
 GloryFeatures::enable('submenus');
-GloryFeatures::enable('pestanas');
-GloryFeatures::enable('scheduler');
+GloryFeatures::disable('pestanas');
+GloryFeatures::disable('scheduler');
 GloryFeatures::enable('headerAdaptativo');
 GloryFeatures::disable('themeToggle');
-GloryFeatures::enable('alertas');
-GloryFeatures::enable('gestionarPreviews');
-GloryFeatures::enable('paginacion');
-GloryFeatures::enable('gloryFilters');
-GloryFeatures::enable('calendario');
-GloryFeatures::enable('badgeList');
-GloryFeatures::enable('highlight');
+GloryFeatures::disable('alertas');
+GloryFeatures::disable('gestionarPreviews');
+GloryFeatures::disable('paginacion');
+GloryFeatures::disable('gloryFilters');
+GloryFeatures::disable('calendario');
+GloryFeatures::disable('badgeList');
+GloryFeatures::disable('highlight');
 GloryFeatures::enable('gsap');
+GloryFeatures::disable('contentActions');
 
 //Services
 GloryFeatures::disable('cssCritico');

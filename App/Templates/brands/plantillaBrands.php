@@ -13,6 +13,8 @@ use Glory\Utility\AssetsUtility;
 function plantillaBrands(\WP_Post $post, string $itemClass = 'glory-brands-item'): void
 {
     $logoUrl = '';
+    $brandSlug = $post->post_name ?: '';
+    $brandUrl = $brandSlug !== '' ? home_url(trailingslashit('marcas/' . $brandSlug)) : get_permalink($post);
     if (has_post_thumbnail($post)) {
         $logoUrl = get_the_post_thumbnail_url($post, 'full') ?: '';
     }
@@ -27,7 +29,7 @@ function plantillaBrands(\WP_Post $post, string $itemClass = 'glory-brands-item'
     }
     ?>
     <div class="<?php echo esc_attr($itemClass); ?>">
-        <a class="brandLink" href="<?php echo esc_url(get_permalink($post)); ?>">
+        <a class="brandLink" href="<?php echo esc_url($brandUrl); ?>">
             <div class="brandStack">
                 <h3 class="brandTitle"><?php echo esc_html(get_the_title($post)); ?></h3>
                 <?php if ($logoUrl): ?>

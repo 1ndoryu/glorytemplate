@@ -34,35 +34,3 @@ AssetManager::define(
     ]
 );
 
-// Carga todos los archivos JS de la carpeta /assets/js/ del tema, excluyendo la carpeta/archivos de tareas.
-AssetManager::defineFolder(
-    'script',
-    'App/Assets/js/',
-    ['deps' => ['jquery'], 'in_footer' => true],
-    'tema-',
-    [
-        // Excluir los JS de tareas; se registran abajo con feature 'task'
-        'icons.js',
-        'taskCal.js',
-        'taskCore.js',
-        'taskCRUD.js',
-        'taskDates.js',
-        'taskEnter.js',
-        'taskmove.js',
-        'taskProperties.js',
-        'taskSesiones.js',
-        'taskUtils.js'
-    ]
-);
-
-// Registrar todos los JS de la carpeta /assets/js/task/ con la feature 'task'
-AssetManager::defineFolder(
-    'script',
-    'App/Assets/js/task/',
-    [
-        'deps'     => ['jquery'],
-        'in_footer'=> true,
-        'feature'  => 'task',
-    ],
-    'tema-task-'
-);

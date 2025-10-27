@@ -102,14 +102,3 @@ OpcionManager::register('glory_custom_header_scripts', [
     'etiquetaSeccion' => $etiquetaSeccionIntegraciones,
     'subSeccion'      => 'manual_scripts',
 ]);
-
-// --- AAWP Preview Toggle ---
-OpcionManager::register('aawp_preview_activo', [
-    'valorDefault'    => true,
-    'tipo'            => 'toggle',
-    'etiqueta'        => 'AAWP: Vista previa activa',
-    'descripcion'     => 'Cuando está activado, el shortcode de productos de página renderiza el HTML de AAWP (consumiendo créditos). Cuando está desactivado, sólo imprime los shortcodes [amazon box="..."] sin ejecutar.',
-    'seccion'         => 'integrations',
-    'etiquetaSeccion' => 'Integrations & Tracking',
-    'subSeccion'      => 'aawp',
-]);

@@ -10,6 +10,12 @@ class SeoHelper
     private static array $metaDescriptionMap = [];
     private static array $titleMap = [];
 
+    private static function ensureTrailingSlash(string $url): string
+    {
+        if ($url === '') { return $url; }
+        return substr($url, -1) === '/' ? $url : ($url . '/');
+    }
+
     public static function registerCanonicalMap(array $map): void
     {
         self::$canonicalMap = $map;
@@ -56,13 +62,13 @@ class SeoHelper
         $postId = get_queried_object_id();
         $metaCanonical = (string) get_post_meta($postId, '_glory_seo_canonical', true);
         if ($metaCanonical !== '') {
-            $href = esc_url($metaCanonical);
+            $href = esc_url(self::ensureTrailingSlash($metaCanonical));
             echo "<link rel=\"canonical\" href=\"{$href}\" />\n";
             return;
         }
         $slug = get_post_field('post_name', $postId);
         if (!empty(self::$canonicalMap[$slug])) {
-            $href = esc_url(self::$canonicalMap[$slug]);
+            $href = esc_url(self::ensureTrailingSlash((string) self::$canonicalMap[$slug]));
             echo "<link rel=\"canonical\" href=\"{$href}\" />\n";
         }
     }
@@ -110,10 +116,29 @@ class SeoHelper
     {
         $faqMeta = (string) get_post_meta($postId, '_glory_seo_faq', true);
         $bcMeta = (string) get_post_meta($postId, '_glory_seo_breadcrumb', true);
-        // Normalizar posibles literales unicode sin barra invertida
-        $faqMeta = preg_replace('/(?<!\\)u([0-9a-fA-F]{4})/', '\\u$1', $faqMeta);
-        $bcMeta  = preg_replace('/(?<!\\)u([0-9a-fA-F]{4})/', '\\u$1', $bcMeta);
+        $canonicalMeta = (string) get_post_meta($postId, '_glory_seo_canonical', true);
+        $lang = str_replace('_', '-', get_locale());
+        // Normalizar posibles literales unicode sin barra invertida (uXXXX -> \uXXXX)
+        $tmpFaq = preg_replace('/(?<!\\\\)u([0-9a-fA-F]{4})/', '\\\\u$1', $faqMeta);
+        $faqMeta = is_string($tmpFaq) ? $tmpFaq : '';
+        $tmpBc  = preg_replace('/(?<!\\\\)u([0-9a-fA-F]{4})/', '\\\\u$1', $bcMeta);
+        $bcMeta  = is_string($tmpBc) ? $tmpBc : '';
         $graph = [];
+        // Intentar usar SEO por defecto del mapa si no hay metadatos
+        $slug = get_post_field('post_name', $postId);
+        $defaultSeo = \Glory\Manager\PageManager::getDefaultSeoForSlug(is_string($slug) ? $slug : '');
+
+        // Base ID (usar canónica si existe, luego defaultSeo canonical, luego permalink local)
+        $idBase = '';
+        if ($canonicalMeta !== '') {
+            $idBase = self::ensureTrailingSlash((string) esc_url_raw($canonicalMeta));
+        } elseif (!empty($defaultSeo['canonical'])) {
+            $idBase = self::ensureTrailingSlash((string) $defaultSeo['canonical']);
+        } else {
+            $idBase = self::ensureTrailingSlash((string) get_permalink($postId));
+        }
+
+        $bcHandled = false;
         if ($bcMeta !== '') {
             $bcArr = json_decode($bcMeta, true);
             if (is_array($bcArr) && !empty($bcArr)) {
@@ -135,10 +160,35 @@ class SeoHelper
                 if (!empty($items)) {
                     $graph[] = [
                         '@type' => 'BreadcrumbList',
-                        '@id' => get_permalink($postId) . '#breadcrumb',
+                        '@id' => $idBase . '#breadcrumb',
                         'itemListElement' => $items,
                     ];
+                    $bcHandled = true;
                 }
+            }
+        }
+        if (!$bcHandled && !empty($defaultSeo['breadcrumb']) && is_array($defaultSeo['breadcrumb'])) {
+            $items = [];
+            $pos = 1;
+            foreach ($defaultSeo['breadcrumb'] as $item) {
+                $name = isset($item['name']) ? (string) $item['name'] : '';
+                $url = isset($item['url']) ? (string) $item['url'] : '';
+                if ($name !== '') {
+                    $entry = [
+                        '@type' => 'ListItem',
+                        'position' => $pos++,
+                        'name' => $name,
+                    ];
+                    if ($url !== '') { $entry['item'] = $url; }
+                    $items[] = $entry;
+                }
+            }
+            if (!empty($items)) {
+                $graph[] = [
+                    '@type' => 'BreadcrumbList',
+                    '@id' => $idBase . '#breadcrumb',
+                    'itemListElement' => $items,
+                ];
             }
         }
         // Fallback de breadcrumb si no hay metadatos
@@ -158,10 +208,11 @@ class SeoHelper
             ];
             $graph[] = [
                 '@type' => 'BreadcrumbList',
-                '@id' => get_permalink($postId) . '#breadcrumb',
+                '@id' => $idBase . '#breadcrumb',
                 'itemListElement' => $items,
             ];
         }
+        $faqHandled = false;
         if ($faqMeta !== '') {
             $faqArr = json_decode($faqMeta, true);
             if (is_array($faqArr) && !empty($faqArr)) {
@@ -183,10 +234,37 @@ class SeoHelper
                 if (!empty($main)) {
                     $graph[] = [
                         '@type' => 'FAQPage',
-                        '@id' => get_permalink($postId) . '#faq',
+                        '@id' => $idBase . '#faq',
+                        'inLanguage' => $lang,
                         'mainEntity' => $main,
                     ];
+                    $faqHandled = true;
                 }
+            }
+        }
+        if (!$faqHandled && !empty($defaultSeo['faq']) && is_array($defaultSeo['faq'])) {
+            $main = [];
+            foreach ($defaultSeo['faq'] as $qa) {
+                $q = isset($qa['q']) ? (string) $qa['q'] : '';
+                $a = isset($qa['a']) ? (string) $qa['a'] : '';
+                if ($q !== '' && $a !== '') {
+                    $main[] = [
+                        '@type' => 'Question',
+                        'name' => $q,
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => $a,
+                        ],
+                    ];
+                }
+            }
+            if (!empty($main)) {
+                $graph[] = [
+                    '@type' => 'FAQPage',
+                    '@id' => $idBase . '#faq',
+                    'inLanguage' => $lang,
+                    'mainEntity' => $main,
+                ];
             }
         }
         if (!empty($graph)) {
@@ -204,5 +282,17 @@ class SeoHelper
     add_theme_support('title-tag');
 });
 \add_filter('document_title_parts', [SeoHelper::class, 'filterDocumentTitle'], 20);
+
+// Imprimir canónico y meta description desde el tema (evitar duplicados con el core)
+\add_action('init', function () {
+    remove_action('wp_head', 'rel_canonical');
+});
+\add_action('wp_head', [\App\Templates\Helpers\SeoHelper::class, 'printCanonical'], 1);
+\add_action('wp_head', [\App\Templates\Helpers\SeoHelper::class, 'printMetaDescription'], 1);
+\add_action('wp_head', function () {
+    if (is_page()) {
+        \App\Templates\Helpers\SeoHelper::printJsonLdFromMeta(get_queried_object_id());
+    }
+}, 2);
 
 
