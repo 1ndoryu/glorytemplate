@@ -272,7 +272,7 @@ class SeoHelper
                 '@context' => 'https://schema.org',
                 '@graph' => $graph,
             ];
-            echo '<script type="application/ld+json">' . wp_json_encode($json, JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+            echo '<script type="application/ld+json" data-glory-seo="1">' . wp_json_encode($json, JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
         }
     }
 }
