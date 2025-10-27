@@ -11,19 +11,19 @@ return [
     ],
     [
         'title' => 'Productos',
-        'url'   => '#',
+        'url'   => '/productos/',
         'children' => [
             [ 'title' => 'Palas',                 'url' => '/palas-de-padel/' ],
             [ 'title' => 'Zapatillas',            'url' => '/zapatillas-padel/' ],
             [ 'title' => 'Ropa',                  'url' => '/ropa-padel/' ],
-            [ 'title' => 'Pelotas',               'url' => '/pelotas-padel/' ],
+            [ 'title' => 'Pelotas',               'url' => '/pelotas-de-padel/' ],
             [ 'title' => 'Accesorios',            'url' => '/accesorios-padel/' ],
-            [ 'title' => 'Bolsas y Paleteros',    'url' => '/bolsas-paleteros-padel/' ],
+            [ 'title' => 'Bolsas y Paleteros',    'url' => '/bolsas-y-paleteros/' ],
         ],
     ],
     [
         'title' => 'Marcas',
-        'url'   => '#',
+        'url'   => '/marcas/',
         'children' => [
             [ 'title' => 'Adidas',       'url' => '/marcas/adidas/' ],
             [ 'title' => 'Bullpadel',    'url' => '/marcas/bullpadel/' ],

@@ -6,13 +6,22 @@ use App\Templates\Helpers\SeoHelper;
 function pageBolsasPaleteros()
 {
     ?>
-    <section class="plp plp--bolsas">
-        <h1><span>Bolsas y Paleteros</span><span class="sr-only"> de pádel</span></h1>
-        <p class="cta">Para comprar bolsas y paleteros de pádel, elige primero formato (paletero clásico o mochila), luego la capacidad (1–2 o 3–6 palas) y los compartimentos (térmico, calzado ventilado, ropa húmeda). En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>. Explora: <a href="/palas-de-padel/">palas</a>, <a href="/zapatillas-padel/">zapatillas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/pelotas-de-padel/">pelotas</a> y <a href="/accesorios-padel/">accesorios</a>.</p>
+    [hero_page titulo="Bolsas y Paleteros" sr_only=" de pádel" imagen="tema::s3.jpg"]
 
-        <?php renderAawpPlaceholder('bolsas-paleteros'); ?>
+    <section class="plp plp--bolsas bodyPage">
 
-        <h2>Cómo elegir tu bolsa o paletero de pádel</h2>
+        <div class="textContentPage">
+            <p class="cta introContentPage">Para comprar bolsas y paleteros de pádel, elige primero formato (paletero clásico o mochila), luego la capacidad (1–2 o 3–6 palas) y los compartimentos (térmico, calzado ventilado, ropa húmeda). En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>. Explora: <a href="/palas-de-padel/">palas</a>, <a href="/zapatillas-padel/">zapatillas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/pelotas-de-padel/">pelotas</a> y <a href="/accesorios-padel/">accesorios</a>.</p>
+        </div>
+
+        <div class="gridAAWP">
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+        </div>
+
+        <div class="textContentPage">
+            <h2>Cómo elegir tu bolsa o paletero de pádel</h2>
         <p>Piensa en qué llevas (palas, ropa, calzado, accesorios), cómo te mueves (a pie, moto, transporte) y si necesitas protección térmica para las palas.</p>
 
         <h3>Formatos: paletero vs mochila</h3>
@@ -40,6 +49,7 @@ function pageBolsasPaleteros()
             <li>Para entrenos diarios: mochilas o paleteros medianos, acceso rápido a overgrips y pelotas.</li>
             <li>Para torneos/viaje: paleteros grandes, varios compartimentos y dimensiones compatibles con cabina.</li>
         </ul>
+        </div>
     </section>
     <?php
 }

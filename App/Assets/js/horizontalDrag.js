@@ -1,5 +1,11 @@
 (function(){
+    var initializedContainers = new WeakSet();
+
     function initDrag(container){
+        // Evitar inicializar el mismo contenedor múltiples veces
+        if (initializedContainers.has(container)) return;
+        initializedContainers.add(container);
+
         var el = container;
         var isDown = false;
         var startX = 0;
@@ -36,6 +42,7 @@
         el.addEventListener('touchend', function(){ isDown = false; });
         el.addEventListener('touchmove', function(e){
             if(!isDown) return;
+            e.preventDefault(); // Prevenir scroll nativo
             var t = e.touches[0];
             var x = t.pageX - el.offsetLeft;
             var walk = (x - startX) * 1;
@@ -48,11 +55,17 @@
         nodes.forEach(initDrag);
     }
 
+    // Inicialización inicial
     if(document.readyState === 'loading'){
         document.addEventListener('DOMContentLoaded', boot);
     } else {
         boot();
     }
+
+    // Re-inicializar cuando ocurre gloryRecarga (para contenido dinámico)
+    document.addEventListener('gloryRecarga', function(){
+        setTimeout(boot, 100); // Pequeño delay para asegurar que el DOM esté actualizado
+    });
 })();
 
 

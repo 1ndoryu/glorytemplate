@@ -1,3 +1,13 @@
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+    font-weight: unset;
+}
+
 .hero {
     position: relative;
     min-height: 100vh;
@@ -5,7 +15,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: #fff;
+    color: var(--text-blanco);
     background: #000;
 }
 .heroBg {
@@ -24,55 +34,68 @@
     max-width: 960px;
 }
 .heroTitulo {
-    font-size: clamp(32px, 5vw, 64px);
+    font-size: clamp(36px, 5vw, 64px);
     line-height: 1.1;
     margin: 0 0 10px;
 }
 .heroDesc {
     margin: 0;
-    color: #eaeaea;
+    color: var(--muted);
 }
 
 .bloqueh {
-    padding: 40px 20px;
+    display: flex;
+    padding: 20px 30px;
+    flex-direction: column;
+    gap: 20px;
 }
+
 .tituloBloque {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    max-width: 1200px;
-    margin: 0 auto 20px;
 }
 .bloqueTitulo {
     margin: 0;
-    font-size: 28px;
-}
-.btnLink {
-    border: 1px solid #ddd;
-    padding: 8px 12px;
+    font-size: 40px;
     text-transform: uppercase;
-    font-size: 14px;
+}
+
+h2.bloqueTitulo {
+    font-size: clamp(28px, 5vw, 34px);
+}
+
+
+button, .btnLink {
+    white-space: nowrap;
+}
+
+.btnLink {
+    border: 1px solid var(--border-color);
+    padding: 8px 14px;
+    padding-bottom: 6px;
+    text-transform: uppercase;
+    font-size: 12px;
     text-decoration: none;
     color: inherit;
     background: transparent;
     display: inline-block;
+    border-radius: 40px;
 }
 
 .gridCategorias {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
-    max-width: 1200px;
-    margin: 0 auto;
 }
 .catCard {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 260px;
-    background: #f6f6f8;
+    min-height: 340px;
+    background: var(--bg-oscuro);
     position: relative;
     text-decoration: none;
     color: inherit;
@@ -84,7 +107,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.35;
+    opacity: 0.8;
 }
 .catTitulo {
     position: relative;
@@ -92,32 +115,59 @@
     font-size: 22px;
     text-transform: uppercase;
     margin-bottom: 10px;
+    color: var(--text-blanco);
 }
 .btn {
     position: relative;
     z-index: 2;
-    border: 1px solid #ddd;
+    border: unset;
     padding: 6px 12px;
+    border-radius: 50px;
+    background: var(--bg);
+    color: var(--text-oscuro);
 }
 
 .brandsScroller {
     display: flex;
     gap: 40px;
-    overflow: auto;
-    padding: 10px 20px;
-    scrollbar-width: thin;
+    overflow-x: hidden;
+    user-select: none;
+    cursor: grab;
 }
 
-.contenedorOfertas {
-    max-width: 1200px;
-    margin: 0 auto;
+.brandsScroller.is-dragging {
+    cursor: grabbing;
+}
+
+section.bloqueh.marcas {
+    padding-top: 80px;
+    padding-bottom: 80px;
+}
+
+.brandsList {
+    display: flex;
+    flex-direction: row;
+    gap: 80px;
+}
+
+a.brandLink {
+    text-decoration: unset;
+    color: var(--text);
+    white-space: nowrap;
+}
+
+img.brandLogo {
+    width: 70px;
+    height: 70px;
+    min-height: 70px;
+    min-width: 70px;
+    background-size: contain;
 }
 
 .gridCta {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
-    max-width: 1200px;
     margin: 0 auto;
 }
 .ctaMedia {
@@ -129,7 +179,7 @@
     object-fit: cover;
 }
 .ctaTexto {
-    background: #f9f9fb;
+    background: var(--card-bg);
     padding: 30px;
     display: flex;
     flex-direction: column;

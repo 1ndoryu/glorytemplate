@@ -10,7 +10,7 @@
     /* Tokens de tema (valores por defecto: claro) */
     --bg: #ffffff;
     --bg-oscuro: #080808;
-    --text: #111111;
+    --text: #000;
     --text-blanco: #ffffff;
     --muted: #dedede;
     --card-bg: #f8f8f8;
@@ -21,7 +21,7 @@
     --button-text: var(--text);
 
     --radius: 0.5rem;
-    --padding: 2rem;
+    --padding: 3rem;
     --ancho: 60rem;
 
     /* Variables antiguas para compatibilidad */
@@ -340,8 +340,8 @@ body.noScroll {
 
 body,
 body p,
-textarea {
-    font-size: 1.2rem;
+textarea, a, li {
+    font-size: 1.4rem;
     display: block;
     margin-block-start: 0em;
     margin-block-end: 0em;
@@ -1011,28 +1011,4 @@ button.previewRemover {
     align-items: center;
     justify-content: center;
     border-radius: 6px;
-}
-
-/* Footer */
-.footer {
-    width: 100%;
-    background: var(--bg);
-    border-top: var(--borde);
-    padding: var(--padding);
-}
-
-.footerContenedor {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: flex-start;
-    flex-wrap: nowrap;
-    gap: 2rem;
-    max-width: var(--ancho);
-    margin: 0 auto;
-}
-
-.footerSeccion {
-    flex: 1;
-    min-width: 0;
 }

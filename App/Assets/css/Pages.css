@@ -1,0 +1,131 @@
+.hero.page {
+    position: relative;
+    min-height: 34vh;
+    display: flex;
+    align-items: end;
+    justify-content: start;
+    text-align: start;
+    color: var(--text-blanco);
+    background: #000;
+}
+
+.hero.page h1 {
+    font-size: 45px;
+    padding: 0px;
+}
+
+.hero.page .heroInner {
+    padding: 20px 30px;
+}
+
+.bodyPage {
+    padding: 30px;
+}
+
+.bodyPage p,
+.bodyPage li {
+    font-size: 14px;
+    color: color-mix(in srgb, var(--text) 70%, transparent) !important;
+}
+
+.bodyPage a {
+    color: #f84444;
+    font-size: 14px;
+}
+
+.bodyPage strong {
+    font-weight: unset;
+    color: var(--text) !important; /* 100% */
+}
+
+.bodyPage h2 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.bodyPage h3 {
+    font-size: 18px;
+}
+
+.bodyPage p {
+    max-width: 800px;
+}
+
+.bodyPage a {
+    display: inline;
+}
+
+.bodyPage a {
+    color: #f84444;
+}
+
+.textContentPage {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 800px;
+    align-items: flex-start;
+    margin: auto;
+    padding: 20px 0px;
+}
+
+.gridAAWP {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+@media (max-width: 900px) {
+    .gridAAWP {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .gridAAWP {
+        grid-template-columns: 1fr;
+    }
+}
+
+.gridAAWP br {
+    display: none;
+}
+
+.aawp .aawp-product--horizontal .aawp-product__description>ul {
+    padding: 0 !important;
+}
+
+.noDrag, .noDrag div {
+    cursor: unset !important;
+
+}
+
+.noDrag .brandsList {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 40px;
+}
+
+
+
+.noDrag img.brandLogo {
+    width: 120px;
+    height: 120px;
+    min-height: 120px;
+    min-width: 120px;
+    background-size: contain;
+}
+
+h3.brandTitle {
+    color: var(--text);
+}
+
+.noDrag .brandStack {
+    border: var(--borde);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}

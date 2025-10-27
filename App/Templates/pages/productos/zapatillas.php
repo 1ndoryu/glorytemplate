@@ -6,13 +6,22 @@ use App\Templates\Helpers\SeoHelper;
 function pageZapatillas()
 {
     ?>
-    <section class="plp plp--zapatillas">
-        <h1><span>Zapatillas</span><span class="sr-only"> de pádel</span></h1>
-    <p class="cta">Para comprar zapatillas de pádel, decide primero por suela (clay, híbrida u omni) y por amortiguación/estabilidad según tu nivel. Hay opciones baratas y de gama alta. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>. Explora: <a href="/palas-de-padel/">palas</a>, <a href="/pelotas-de-padel/">pelotas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/accesorios-padel/">accesorios</a> y <a href="/bolsas-y-paleteros/">bolsas y paleteros</a>.</p>
+    [hero_page titulo="Zapatillas" sr_only=" de pádel" imagen="tema::s3.jpg"]
 
-        <?php renderAawpPlaceholder('zapatillas'); ?>
+    <section class="plp plp--zapatillas bodyPage">
 
-        <h2>Cómo elegir tus zapatillas de pádel</h2>
+        <div class="textContentPage">
+            <p class="cta introContentPage">Para comprar zapatillas de pádel, decide primero por suela (clay, híbrida u omni) y por amortiguación/estabilidad según tu nivel. Hay opciones baratas y de gama alta. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>. Explora: <a href="/palas-de-padel/">palas</a>, <a href="/pelotas-de-padel/">pelotas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/accesorios-padel/">accesorios</a> y <a href="/bolsas-y-paleteros/">bolsas y paleteros</a>.</p>
+        </div>
+
+        <div class="gridAAWP">
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+        </div>
+
+        <div class="textContentPage">
+            <h2>Cómo elegir tus zapatillas de pádel</h2>
         <p>No necesitas filtros complejos: céntrate en suela, amortiguación/estabilidad, ajuste y durabilidad.</p>
 
         <h3>Suela: ¿clay, híbrida u omni?</h3>
@@ -36,6 +45,7 @@ function pageZapatillas()
             <li>Refuerzos y compuestos anti-abrasión prolongan la vida útil.</li>
         </ul>
         <p>Tip: si la suela está plana o la espiga sin relieve, es momento de renovar aunque el upper se vea bien.</p>
+        </div>
     </section>
     <?php
 }

@@ -31,6 +31,9 @@ PageManager::setDefaultSeoMap([
 		'faq' => [
 			['q' => '¿Qué pala de pádel me conviene si soy principiante?', 'a' => 'Una pala redonda de 355–365 g y EVA blanda/media para ganar control y confort.'],
 			['q' => '¿Control, potencia o polivalente?', 'a' => 'Si dudas, una polivalente (lágrima) equilibra defensa y remate; la diamante es para jugadores avanzados con pegada.'],
+			['q' => '¿Qué peso es "ligero" en palas de adulto?', 'a' => 'Aproximadamente 355–360 g; por debajo suele ser junior o gamas muy específicas.'],
+			['q' => '¿El carbono es siempre mejor que la fibra de vidrio?', 'a' => 'No siempre. Carbono = mayor rigidez/precisión; vidrio = más cómodo y económico.'],
+			['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones en tiempo real.'],
 		],
 		'breadcrumb' => [
 			['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -42,7 +45,11 @@ PageManager::setDefaultSeoMap([
 		'desc' => 'Compra zapatillas de pádel baratas o de gama alta. Guía por suela, amortiguación y ajuste. Consulta precio y ofertas 2025 en Amazon.',
 		'canonical' => 'https://materialdepadel.com/zapatillas-padel',
 		'faq' => [
-			['q' => '¿Qué suela es mejor para pádel?', 'a' => 'Clay si buscas agarre y evacuación de arena; híbrida si alternas superficies; omni en superficies muy lisas.'],
+			['q' => '¿Qué suela es mejor para pádel, clay o híbrida?', 'a' => 'La clay ofrece gran agarre y durabilidad; la híbrida equilibra agarre y deslizamiento si alternas superficies. La omni/microtaco funciona bien en superficies muy lisas, con menos agarre en pistas arenosas.'],
+			['q' => '¿Cada cuánto debo cambiar las zapatillas de pádel?', 'a' => 'Según uso y desgaste: muchas personas las cambian cada 6–12 meses o cuando la espiga pierde relieve.'],
+			['q' => '¿Diferencias con zapatillas de tenis o running?', 'a' => 'Las de pádel priorizan la estabilidad lateral y suela específica para pistas con arena o sintético.'],
+			['q' => '¿Cómo elijo talla y ajuste?', 'a' => 'Deja ~1 cm en puntera, pruébalas con tus calcetines habituales y valora media talla más si notas presión lateral.'],
+			['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones en tiempo real.'],
 		],
 	],
 	'ropa-padel' => [
@@ -50,7 +57,11 @@ PageManager::setDefaultSeoMap([
 		'desc' => 'Compra ropa de pádel hombre y mujer. Guía por prendas, tejidos y temporada: transpirable o térmica. Consulta precio y ofertas 2025 en Amazon.',
 		'canonical' => 'https://materialdepadel.com/ropa-padel',
 		'faq' => [
-			['q' => '¿Qué ropa es mejor para verano?', 'a' => 'Camisetas y shorts transpirables con paneles de malla y secado rápido.'],
+			['q' => '¿Qué ropa de pádel es mejor para verano?', 'a' => 'Camisetas y shorts transpirables con paneles de malla y secado rápido; colores claros para mayor confort.'],
+			['q' => '¿Y para invierno?', 'a' => 'Primera capa térmica y sudadera o chaqueta ligera que no limite la movilidad.'],
+			['q' => '¿En qué me fijo en los tejidos?', 'a' => 'Poliéster/elastano por elasticidad y secado rápido; costuras planas y patronaje deportivo para evitar roces.'],
+			['q' => '¿Ropa de pádel y de running sirven igual?', 'a' => 'La de pádel prioriza movilidad lateral y ventilación en zonas clave; la de running está pensada para impacto lineal.'],
+			['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones en tiempo real.'],
 		],
 	],
 	'pelotas-de-padel' => [
@@ -58,7 +69,11 @@ PageManager::setDefaultSeoMap([
 		'desc' => 'Compra pelotas de pádel: opciones duraderas y económicas. Consejos de conservación y ofertas 2025 en Amazon.',
 		'canonical' => 'https://materialdepadel.com/pelotas-de-padel',
 		'faq' => [
-			['q' => '¿Qué pelotas elegir según pista y clima?', 'a' => 'En pistas lentas o frío, pelotas rápidas; en pistas rápidas o calor, pelotas más controladas.'],
+			['q' => '¿Qué pelotas elegir según pista y clima?', 'a' => 'En pistas lentas o frío, elige pelotas más rápidas (bote alto). En pistas rápidas o calor, pelotas más controladas (bote medio).'],
+			['q' => '¿Cada cuánto conviene cambiarlas?', 'a' => 'Cuando pierden bote o el fieltro está muy gastado; en partidos exigentes, algunas personas las cambian cada 1–2 encuentros.'],
+			['q' => '¿Diferencias entre pelotas de pádel y de tenis?', 'a' => 'Las de pádel ajustan presión y fieltro para pistas más cortas y con arena, ofreciendo un bote y durabilidad acordes al juego.'],
+			['q' => '¿Cómo conservar la presión y el fieltro?', 'a' => 'Guarda los botes cerrados, evita el calor directo y considera un presurizador; rota tubos si juegas a menudo.'],
+			['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones en tiempo real.'],
 		],
 	],
 	'accesorios-padel' => [
@@ -66,7 +81,11 @@ PageManager::setDefaultSeoMap([
 		'desc' => 'Accesorios de pádel: agarre, protección, mantenimiento y confort. Recomendaciones y ofertas 2025 en Amazon.',
 		'canonical' => 'https://materialdepadel.com/accesorios-padel',
 		'faq' => [
-			['q' => '¿Overgrip tacky o absorbente?', 'a' => 'Tacky = adherencia; absorbente = mejor gestión del sudor.'],
+			['q' => '¿Qué overgrip me conviene, tacky o absorbente?', 'a' => 'Tacky mejora la adherencia; absorbente gestiona mejor el sudor. Si sudas mucho, prioriza el absorbente.'],
+			['q' => '¿Cada cuánto debo cambiar el overgrip?', 'a' => 'Cuando pierda adherencia o se apelmace; en uso frecuente, muchas personas lo cambian cada 1–3 partidos.'],
+			['q' => '¿Sirve el protector de marco para algo más que golpes?', 'a' => 'Sí, protege la pintura y puede variar ligeramente el balance, añadiendo un poco de peso en la cabeza.'],
+			['q' => '¿Merece la pena un presurizador de pelotas?', 'a' => 'Si juegas a menudo, ayuda a conservar la presión y alarga la vida útil entre sesiones.'],
+			['q' => '¿Qué accesorios básicos recomiendas para empezar?', 'a' => 'Overgrips, protector de marco, muñequeras o cinta y calcetines técnicos; añade presurizador si rotas muchas pelotas.'],
 		],
 	],
 	'bolsas-y-paleteros' => [
@@ -74,7 +93,11 @@ PageManager::setDefaultSeoMap([
 		'desc' => 'Paleteros y mochilas de pádel: capacidad, protección y confort. Ofertas 2025 en Amazon.',
 		'canonical' => 'https://materialdepadel.com/bolsas-y-paleteros',
 		'faq' => [
-			['q' => '¿Paletero o mochila?', 'a' => 'Paletero = más capacidad; mochila = compacta para 1 pala y uso diario.'],
+			['q' => '¿Paletero o mochila de pádel?', 'a' => 'Paletero = más capacidad y bolsillos; mochila = compacta para 1 pala y uso diario.'],
+			['q' => '¿Qué capacidad elegir?', 'a' => '1–2 palas para entrenos ligeros; 3–6 palas si compites o llevas equipación completa.'],
+			['q' => '¿Sirve el compartimento térmico?', 'a' => 'Sí, protege gomas y planos del calor; útil en verano o si dejas la bolsa en el coche.'],
+			['q' => '¿Calzado y ropa húmeda, cómo separarlos?', 'a' => 'Busca bolsillo de calzado ventilado y bolsa independiente para prendas mojadas.'],
+			['q' => '¿Valen como equipaje de cabina?', 'a' => 'Algunas mochilas y paleteros compactos sí; revisa dimensiones del fabricante de la aerolínea.'],
 		],
 	],
 	'ofertas' => [
@@ -213,7 +236,10 @@ PageManager::setDefaultSeoMap([
 	],
 ]);
 
-PageManager::define('home', 'home'); #Esta pagina es de ejemplo, puedes renombrarla a otro otro lugar (las paginas van en Templates/pages)
+PageManager::define('home', 'home'); 
+PageManager::define('productos', 'pageProductos');
+PageManager::define('marcas', 'pageMarcas');
+PageManager::define('ofertas', 'pageOfertas');
 
 
 if (GloryFeatures::isActive('task') !== false) {
@@ -240,8 +266,6 @@ PageManager::define('star-vie', 'pageMarcaStarVie');
 PageManager::define('vibor-a', 'pageMarcaViborA');
 PageManager::define('wilson', 'pageMarcaWilson');
 
-// Pagina Ofertas
-PageManager::define('ofertas', 'pageOfertas');
 
 AjaxNav::contentSelector('#main');
 AjaxNav::mainScrollSelector('#main');

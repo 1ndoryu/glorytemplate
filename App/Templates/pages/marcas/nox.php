@@ -6,13 +6,22 @@ use App\Templates\Helpers\SeoHelper;
 function pageMarcaNox()
 {
     ?>
-    <section class="plp plp--marca plp--nox">
-        <h1><span>NOX</span><span class="sr-only"> — Palas de pádel NOX</span></h1>
-        <p class="cta">Para comprar palas de pádel NOX, piensa en cómo juegas (control, potencia o polivalentes) y en tu frecuencia de juego. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
+    [hero_page titulo="NOX" sr_only=" — Palas de pádel NOX" imagen="tema::s3.jpg"]
 
-        <?php renderAawpPlaceholder('nox'); ?>
+    <section class="plp plp--marca plp--nox bodyPage">
 
-        <h2>¿Cuál es tu NOX ideal?</h2>
+        <div class="textContentPage">
+            <p class="cta introContentPage">Para comprar palas de pádel NOX, piensa en cómo juegas (control, potencia o polivalentes) y en tu frecuencia de juego. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
+        </div>
+
+        <div class="gridAAWP">
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+        </div>
+
+        <div class="textContentPage">
+            <h2>¿Cuál es tu NOX ideal?</h2>
 
         <h3>Nivel</h3>
         <ul>
@@ -33,6 +42,9 @@ function pageMarcaNox()
             <li><strong>Caras</strong>: carbono firme/preciso; vidrio cómodo.</li>
             <li><strong>Núcleo EVA</strong>: blanda/confort; media/equilibrio; firme/dirección.</li>
         </ul>
+
+        <p class="interlinks">Explora más: <a href="/palas-de-padel/">palas de pádel</a>, <a href="/ofertas/">ofertas</a>, <a href="/zapatillas-padel/">zapatillas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/pelotas-de-padel/">pelotas</a>, <a href="/accesorios-padel/">accesorios</a> y <a href="/bolsas-y-paleteros/">bolsas y paleteros</a>.</p>
+        </div>
     </section>
     <?php
 }

@@ -6,13 +6,22 @@ use App\Templates\Helpers\SeoHelper;
 function pagePelotas()
 {
     ?>
-    <section class="plp plp--pelotas">
-        <h1><span>Pelotas</span><span class="sr-only"> de pádel</span></h1>
-        <p class="cta">Para comprar pelotas de pádel, elige el bote (altura de rebote) y la velocidad según tu pista y clima. En pistas lentas o frío, busca pelotas más rápidas; en pistas muy rápidas o calor, pelotas más controladas. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>. Explora: <a href="/palas-de-padel/">palas</a>, <a href="/zapatillas-padel/">zapatillas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/accesorios-padel/">accesorios</a> y <a href="/bolsas-y-paleteros/">bolsas y paleteros</a>.</p>
+    [hero_page titulo="Pelotas" sr_only=" de pádel" imagen="tema::s3.jpg"]
 
-        <?php renderAawpPlaceholder('pelotas'); ?>
+    <section class="plp plp--pelotas bodyPage">
 
-        <h2>Cómo elegir tus pelotas de pádel</h2>
+        <div class="textContentPage">
+            <p class="cta introContentPage">Para comprar pelotas de pádel, elige el bote (altura de rebote) y la velocidad según tu pista y clima. En pistas lentas o frío, busca pelotas más rápidas; en pistas muy rápidas o calor, pelotas más controladas. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>. Explora: <a href="/palas-de-padel/">palas</a>, <a href="/zapatillas-padel/">zapatillas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/accesorios-padel/">accesorios</a> y <a href="/bolsas-y-paleteros/">bolsas y paleteros</a>.</p>
+        </div>
+
+        <div class="gridAAWP">
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+        </div>
+
+        <div class="textContentPage">
+            <h2>Cómo elegir tus pelotas de pádel</h2>
         <p>Piensa en velocidad de la pista, temperatura y durabilidad del fieltro. Ajusta el bote para que el juego sea predecible y cómodo durante todo el partido.</p>
 
         <h3>Bote y velocidad</h3>
@@ -42,6 +51,7 @@ function pagePelotas()
             <li><strong>Caja/pack de 24</strong>: mejor precio por bola para clubes o entrenos frecuentes.</li>
             <li><strong>Competición vs entrenamiento</strong>: alterna pelotas nuevas para partidos y reserva las usadas para calentamiento.</li>
         </ul>
+        </div>
     </section>
     <?php
 }

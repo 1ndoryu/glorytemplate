@@ -6,13 +6,22 @@ use App\Templates\Helpers\SeoHelper;
 function pageMarcaAdidas()
 {
     ?>
-    <section class="plp plp--marca plp--adidas">
-        <h1><span>Adidas</span><span class="sr-only"> — Palas de pádel Adidas</span></h1>
-        <p class="cta">Para comprar palas de pádel Adidas, elige entre control, potencia o polivalentes y ajusta según tu nivel. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
+    [hero_page titulo="Adidas" sr_only=" — Palas de pádel Adidas" imagen="tema::s3.jpg"]
 
-        <?php renderAawpPlaceholder('adidas'); ?>
+    <section class="plp plp--marca plp--adidas bodyPage">
 
-        <h2>Elige tus palas Adidas en 1 minuto</h2>
+        <div class="textContentPage">
+            <p class="cta introContentPage">Para comprar palas de pádel Adidas, elige entre control, potencia o polivalentes y ajusta según tu nivel. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
+        </div>
+
+        <div class="gridAAWP">
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+        </div>
+
+        <div class="textContentPage">
+            <h2>Elige tus palas Adidas en 1 minuto</h2>
 
         <h3>Nivel</h3>
         <ul>
@@ -34,6 +43,9 @@ function pageMarcaAdidas()
             <li><strong>Fibra de vidrio</strong>: más confort y buen precio.</li>
             <li><strong>Carbono</strong>: más precisión y estabilidad (algo más exigente).</li>
         </ul>
+
+        <p class="interlinks">Explora más: <a href="/palas-de-padel/">palas de pádel</a>, <a href="/ofertas/">ofertas</a>, <a href="/zapatillas-padel/">zapatillas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/pelotas-de-padel/">pelotas</a>, <a href="/accesorios-padel/">accesorios</a> y <a href="/bolsas-y-paleteros/">bolsas y paleteros</a>.</p>
+        </div>
     </section>
     <?php
 }

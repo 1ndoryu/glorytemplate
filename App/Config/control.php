@@ -7,7 +7,7 @@ GloryFeatures::enable('menu');
 GloryFeatures::enable('assetManager');
 GloryFeatures::enable('opcionManagerSync');
 GloryFeatures::enable('syncManager');
-GloryFeatures::enable('gloryLogger');
+GloryFeatures::disable('gloryLogger');
 GloryFeatures::enable('pageManager');
 GloryFeatures::enable('postTypeManager');
 GloryFeatures::enable('taxonomyMetaManager');
@@ -22,7 +22,7 @@ GloryFeatures::enable('submenus');
 GloryFeatures::enable('pestanas');
 GloryFeatures::enable('scheduler');
 GloryFeatures::enable('headerAdaptativo');
-GloryFeatures::enable('themeToggle');
+GloryFeatures::disable('themeToggle');
 GloryFeatures::enable('alertas');
 GloryFeatures::enable('gestionarPreviews');
 GloryFeatures::enable('paginacion');
@@ -36,9 +36,9 @@ GloryFeatures::enable('gsap');
 GloryFeatures::disable('cssCritico');
 GloryFeatures::enable('navegacionAjax');
 GloryFeatures::enable('gloryAjax');
-GloryFeatures::enable('gloryForm');
-GloryFeatures::enable('gloryBusqueda');
-GloryFeatures::enable('gloryRealtime');
+GloryFeatures::disable('gloryForm');
+GloryFeatures::disable('gloryBusqueda');
+GloryFeatures::disable('gloryRealtime');
 
 // Task feature flag
 GloryFeatures::disable('task');
@@ -56,8 +56,8 @@ GloryFeatures::enable('postThumbnails');
 GloryFeatures::disable('avadaIntegration');
 
 //Admin
-GloryFeatures::enable('queryProfiler');
-GloryFeatures::enable('performanceProfiler');
+GloryFeatures::disable('queryProfiler');
+GloryFeatures::disable('performanceProfiler');
 GloryFeatures::disable('queryProfilerLogs'); 
 
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)

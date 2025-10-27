@@ -6,13 +6,22 @@ use App\Templates\Helpers\SeoHelper;
 function pageMarcaBlackCrown()
 {
     ?>
-    <section class="plp plp--marca plp--blackcrown">
-        <h1><span>Black Crown</span><span class="sr-only"> — Palas de pádel Black Crown</span></h1>
-        <p class="cta">Para comprar palas de pádel Black Crown, piensa primero en tu nivel y en si te encaja control, potencia o una opción polivalente. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
+    [hero_page titulo="Black Crown" sr_only=" — Palas de pádel Black Crown" imagen="tema::s3.jpg"]
 
-        <?php renderAawpPlaceholder('black-crown'); ?>
+    <section class="plp plp--marca plp--blackcrown bodyPage">
 
-        <h2>Encuentra tu Black Crown sin liarte</h2>
+        <div class="textContentPage">
+            <p class="cta introContentPage">Para comprar palas de pádel Black Crown, piensa primero en tu nivel y en si te encaja control, potencia o una opción polivalente. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
+        </div>
+
+        <div class="gridAAWP">
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+        </div>
+
+        <div class="textContentPage">
+            <h2>Encuentra tu Black Crown sin liarte</h2>
 
         <h3>Nivel</h3>
         <ul>
@@ -33,6 +42,9 @@ function pageMarcaBlackCrown()
             <li><strong>Caras</strong>: carbono preciso; vidrio confortable.</li>
             <li><strong>Núcleo EVA</strong>: blanda/confort; media/equilibrio; firme/dirección.</li>
         </ul>
+
+        <p class="interlinks">Explora más: <a href="/palas-de-padel/">palas de pádel</a>, <a href="/ofertas/">ofertas</a>, <a href="/zapatillas-padel/">zapatillas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/pelotas-de-padel/">pelotas</a>, <a href="/accesorios-padel/">accesorios</a> y <a href="/bolsas-y-paleteros/">bolsas y paleteros</a>.</p>
+        </div>
     </section>
     <?php
 }

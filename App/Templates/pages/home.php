@@ -20,10 +20,10 @@ function home()
         </div>
     </section>
 
-    <section class="bloqueh categorias">
+    <section class="bloqueh categorias" style="padding-top: 40px;">
         <div class="tituloBloque">
-            <h2 class="bloqueTitulo">Categorías</h2>
-            <a class="btnLink" href="/">Ver todas</a>
+            <h2 class="bloqueTitulo">Productos</h2>
+            <a class="btnLink" href="/productos/">Ver todos</a>
         </div>
         <div class="gridCategorias">
             <?php
@@ -39,7 +39,6 @@ function home()
                     echo '<img class="catImg" src="' . esc_url($url) . '" alt="' . esc_attr($c['titulo']) . '">';
                 }
                 echo '<span class="catTitulo">' . esc_html($c['titulo']) . '</span>';
-                echo '<span class="btn">Ver</span>';
                 echo '</a>';
             }
             ?>
@@ -64,9 +63,12 @@ function home()
             <h2 class="bloqueTitulo">Últimas ofertas</h2>
             <a class="btnLink" href="/ofertas/">Ver todas</a>
         </div>
-        <div class="contenedorOfertas">
-            <?php \App\Templates\Helpers\renderAawpPlaceholder('home'); ?>
+        <div class="gridAAWP">
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
+            [amazon box="B09M56N5C5"]
         </div>
+
     </section>
 
     <section class="bloqueh accesoriosCTA">

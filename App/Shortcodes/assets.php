@@ -25,6 +25,31 @@ use Glory\Utility\AssetsUtility;
         }
         return (string) ob_get_clean();
     });
+
+    \add_shortcode('hero_page', function ($atts = []): string {
+        $atts = is_array($atts) ? $atts : [];
+        $titulo = isset($atts['titulo']) ? (string) $atts['titulo'] : '';
+        $imagen = isset($atts['imagen']) ? (string) $atts['imagen'] : '';
+        $sr_only = isset($atts['sr_only']) ? (string) $atts['sr_only'] : '';
+
+        ob_start();
+        ?>
+        <section class="hero page">
+            <?php
+            if ($imagen && function_exists('App\\Templates\\Helpers\\renderAssetImage')) {
+                $bgUrl = AssetsUtility::imagenUrl($imagen);
+                if ($bgUrl) {
+                    echo '<div class="heroBg" style="background-image:url(' . esc_url($bgUrl) . ');"></div>';
+                }
+            }
+            ?>
+            <div class="heroInner">
+                <h1><span><?php echo esc_html($titulo); ?></span><?php if ($sr_only): ?><span class="sr-only"><?php echo esc_html($sr_only); ?></span><?php endif; ?></h1>
+            </div>
+        </section>
+        <?php
+        return (string) ob_get_clean();
+    });
 });
 
 
