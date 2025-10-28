@@ -27,6 +27,14 @@ function plantillaBrands(\WP_Post $post, string $itemClass = 'glory-brands-item'
             }
         }
     }
+    // Soporte extra para SVG de logos por slug: intenta 'logos::{slug}.svg' si no hay logo aún
+    if ($logoUrl === '' && $brandSlug !== '') {
+        $svgRef = 'logos::' . $brandSlug . '.svg';
+        $svgUrl = AssetsUtility::imagenUrl($svgRef);
+        if ($svgUrl) {
+            $logoUrl = $svgUrl;
+        }
+    }
     ?>
     <div class="<?php echo esc_attr($itemClass); ?>">
         <a class="brandLink" href="<?php echo esc_url($brandUrl); ?>">
