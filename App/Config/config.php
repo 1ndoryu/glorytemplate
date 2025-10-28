@@ -6,8 +6,8 @@ use Glory\Admin\SyncManager;
 use Glory\Helpers\AjaxNav;
 use Glory\Core\GloryFeatures;
 
-AssetManager::setThemeVersion('0.1.7');
-add_filter('show_admin_bar', '__return_false');
+AssetManager::setThemeVersion('0.1.8');
+#add_filter('show_admin_bar', '__return_false');
 SyncManager::setAdminBarVisible(true); 
 SyncManager::setResetButtonVisible(true);
 
