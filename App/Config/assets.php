@@ -125,8 +125,28 @@ add_action('wp_default_scripts', function ($scripts) {
     ));
 });
 
-// Importante: jQuery SIN defer para compatibilidad (algunos bundles ejecutan inmediatamente)
-// Eliminado el defer específico para 'jquery' y 'jquery-core'.
+// Añadir defer a jQuery y a todo script que dependa de jQuery para evitar bloqueo
+add_filter('script_loader_tag', function ($tag, $handle) {
+    // Obtener objeto del script para revisar dependencias
+    if (!function_exists('wp_scripts')) return $tag;
+    $wp_scripts = wp_scripts();
+    $registered = $wp_scripts ? ($wp_scripts->registered[$handle] ?? null) : null;
+
+    $shouldDefer = false;
+    if (in_array($handle, ['jquery','jquery-core'], true)) {
+        $shouldDefer = true;
+    } elseif ($registered && is_array($registered->deps) && in_array('jquery', $registered->deps, true)) {
+        $shouldDefer = true;
+    }
+
+    if ($shouldDefer) {
+        // Evitar duplicar atributo
+        if (strpos($tag, ' defer') === false) {
+            $tag = str_replace(' src=', ' defer src=', $tag);
+        }
+    }
+    return $tag;
+}, 10, 2);
 
 // Asegurar que estilos no necesarios no se encolen en el frontend
 add_action('wp_enqueue_scripts', function () {
