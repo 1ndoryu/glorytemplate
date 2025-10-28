@@ -6,15 +6,10 @@ use Glory\Admin\SyncManager;
 use Glory\Helpers\AjaxNav;
 use Glory\Core\GloryFeatures;
 
-AssetManager::setThemeVersion('0.1.5');
+AssetManager::setThemeVersion('0.1.6');
 add_filter('show_admin_bar', '__return_false');
 SyncManager::setAdminBarVisible(true); 
 SyncManager::setResetButtonVisible(true);
-
-// Forzar opción activa para CSS crítico sin redefinirla (evita warnings por doble registro)
-add_filter('pre_option_glory_css_critico_activado', function ($value) {
-    return true;
-});
 
 
 PageManager::setDefaultContentMode('editor');

@@ -23,18 +23,19 @@ if ((defined('LOCAL') && LOCAL) || AssetManager::isGlobalDevMode()) {
         ]
     );
 } else {
-    $crearBundleCss = function (): ?string {
+    $crearBundleCss = function (): array {
         $dir = get_template_directory() . '/App/Assets/css';
-        if (!is_dir($dir)) return null;
+        if (!is_dir($dir)) return [null, null];
         $archivos = glob($dir . '/*.css') ?: [];
         $excluir = ['task.css', 'admin-elementor.css'];
         $orden = [
             'init.css'   => 10,
-            'header.css' => 20,
-            'Pages.css'  => 30,
-            'home.css'   => 40,
+            'Pages.css'  => 20,
+            'home.css'   => 30,
+            'header.css' => 40,
             'footer.css' => 50,
         ];
+        $criticos = ['init.css','Pages.css','home.css'];
         $archivos = array_values(array_filter($archivos, function ($ruta) use ($excluir) {
             return !in_array(basename($ruta), $excluir, true);
         }));
@@ -44,26 +45,54 @@ if ((defined('LOCAL') && LOCAL) || AssetManager::isGlobalDevMode()) {
             if ($pa === $pb) return strcmp($a, $b);
             return $pa <=> $pb;
         });
-        if (!$archivos) return null;
+        if (!$archivos) return [null, null];
         $destDir = get_template_directory() . '/Glory/cache';
         if (!is_dir($destDir)) { @mkdir($destDir, 0755, true); }
-        $dest = $destDir . '/tema-bundle.css';
-        $contenido = '';
+        $destCrit = $destDir . '/tema-critical.css';
+        $destResto = $destDir . '/tema-resto.css';
+        $contenidoCrit = '';
+        $contenidoResto = '';
         foreach ($archivos as $ruta) {
-            $contenido .= "\n/* " . basename($ruta) . " */\n" . file_get_contents($ruta);
+            $base = basename($ruta);
+            $bloque = "\n/* " . $base . " */\n" . file_get_contents($ruta);
+            if (in_array($base, $criticos, true)) {
+                $contenidoCrit .= $bloque;
+            } else {
+                $contenidoResto .= $bloque;
+            }
         }
-        file_put_contents($dest, $contenido, LOCK_EX);
-        return file_exists($dest) ? '/Glory/cache/tema-bundle.css' : null;
+        if ($contenidoCrit !== '') file_put_contents($destCrit, $contenidoCrit, LOCK_EX);
+        if ($contenidoResto !== '') file_put_contents($destResto, $contenidoResto, LOCK_EX);
+        $rutaCrit = file_exists($destCrit) ? '/Glory/cache/tema-critical.css' : null;
+        $rutaResto = file_exists($destResto) ? '/Glory/cache/tema-resto.css' : null;
+        return [$rutaCrit, $rutaResto];
     };
-    $bundleRuta = $crearBundleCss();
-    if ($bundleRuta) {
-        $ver = @filemtime(get_template_directory() . $bundleRuta) ?: null;
-        AssetManager::define('style', 'tema-bundle', $bundleRuta, [
+    [$bundleCrit, $bundleResto] = $crearBundleCss();
+    if ($bundleCrit) {
+        $verC = @filemtime(get_template_directory() . $bundleCrit) ?: null;
+        AssetManager::define('style', 'tema-critical', $bundleCrit, [
             'deps'  => [],
             'media' => 'all',
-            'ver'   => $ver,
+            'ver'   => $verC,
         ]);
-    } else {
+    }
+    if ($bundleResto) {
+        $verR = @filemtime(get_template_directory() . $bundleResto) ?: null;
+        AssetManager::define('style', 'tema-resto', $bundleResto, [
+            'deps'  => [],
+            'media' => 'all',
+            'ver'   => $verR,
+        ]);
+        // Cargar el resto de estilos de forma asíncrona (onload swap)
+        add_filter('style_loader_tag', function ($tag, $handle) {
+            if ($handle !== 'tema-resto') return $tag;
+            if (strpos($tag, "media='all'") === false) return $tag;
+            $fallback = '<noscript>' . $tag . '</noscript>';
+            $tag = str_replace("media='all'", "media='print' onload=\"this.media='all'; this.onload=null;\"", $tag);
+            return $tag . $fallback;
+        }, 999, 2);
+    }
+    if (!$bundleCrit && !$bundleResto) {
         // Fallback a la carga por archivos si no se pudo crear bundle
         AssetManager::defineFolder(
             'style',
@@ -113,19 +142,4 @@ add_action('wp_enqueue_scripts', function () {
     wp_dequeue_style('glory-daterange');
     wp_dequeue_style('glory-admin-elementor-tweaks');
 }, 1000);
-
-// Fallback: si la API de CSS crítico falla, hacer asíncronos los estilos del tema en portada
-add_filter('style_loader_tag', function ($tag, $handle) {
-    if (is_admin()) return $tag;
-    $esLocal = defined('LOCAL') && LOCAL;
-    $esDev = AssetManager::isGlobalDevMode();
-    if ($esLocal || $esDev) return $tag;
-    if (!is_front_page()) return $tag;
-    $handlesTema = ['tema-bundle','tema-init','tema-header','tema-pages','tema-home','tema-footer'];
-    if (!in_array($handle, $handlesTema, true)) return $tag;
-    if (strpos($tag, "media='all'") === false) return $tag;
-    $fallback = '<noscript>' . $tag . '</noscript>';
-    $tag = str_replace("media='all'", "media='print' onload=\"this.media='all'; this.onload=null;\"", $tag);
-    return $tag . $fallback;
-}, 999, 2);
 
