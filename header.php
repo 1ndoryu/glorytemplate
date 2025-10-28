@@ -8,9 +8,18 @@ $usuarioId = get_current_user_id();
 <head>
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preload" as="font" href="<?php echo get_template_directory_uri(); ?>/App/Assets/fonts/PPNeueMontreal-Medium.woff2" type="font/woff2" crossorigin>
+    <?php if (is_front_page()) { 
+        $heroBg = \Glory\Utility\AssetsUtility::imagenUrl('tema::s3.jpg');
+        if ($heroBg) { echo '<link rel="preload" as="image" href="' . esc_url($heroBg) . '">'; }
+    } ?>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Source+Sans+3:wght@200..900&display=swap');
+        .hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;background:#000}
+        .heroInner{position:relative;z-index:2;padding:40px 20px;max-width:960px;color:#fff}
+        .heroTitulo{font-size:clamp(36px,5vw,64px);line-height:1.1;margin:0 0 10px}
+        .heroDesc{margin:0;color:#cfcfcf}
     </style>
+    
     <!-- Assets encolados por AssetManager: GSAP y Highlight.js (controlados por features) -->
     <link rel="profile" href="https://gmpg.org/xfn/11">
     <?php wp_head(); ?>
