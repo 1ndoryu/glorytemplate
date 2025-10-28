@@ -57,13 +57,14 @@ function plantillaBrands(\WP_Post $post, string $itemClass = 'glory-brands-item'
             GloryLogger::warning('plantillaBrands: no se encontró SVG para marca', [ 'slug' => $brandSlug ]);
         }
     }
+    $tituloId = 'brand-title-' . $post->ID;
     ?>
     <div class="<?php echo esc_attr($itemClass); ?>">
-        <a class="brandLink" href="<?php echo esc_url($brandUrl); ?>">
+        <a class="brandLink" href="<?php echo esc_url($brandUrl); ?>" aria-labelledby="<?php echo esc_attr($tituloId); ?>">
             <div class="brandStack">
-                <h3 class="brandTitle"><?php echo esc_html(get_the_title($post)); ?></h3>
+                <h3 class="brandTitle" id="<?php echo esc_attr($tituloId); ?>"><?php echo esc_html(get_the_title($post)); ?></h3>
                 <?php if ($logoUrl): ?>
-                    <img class="brandLogo" src="<?php echo esc_url($logoUrl); ?>" alt="<?php echo esc_attr(get_the_title($post)); ?>" draggable="false">
+                    <img class="brandLogo" src="<?php echo esc_url($logoUrl); ?>" alt="" aria-hidden="true" draggable="false">
                 <?php endif; ?>
             </div>
             <div class="brandExcerpt">
