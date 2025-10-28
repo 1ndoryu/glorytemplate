@@ -37,7 +37,22 @@ use Glory\Utility\AssetsUtility;
         <section class="hero page">
             <?php
             if ($imagen && function_exists('App\\Templates\\Helpers\\renderAssetImage')) {
-                $bgUrl = AssetsUtility::imagenUrl($imagen);
+                $bgUrl = '';
+                // Intentar reparar/obtener adjunto del asset; si existe el registro pero falta el fichero, se repara
+                $adjuntoId = AssetsUtility::get_attachment_id_from_asset($imagen);
+                if ($adjuntoId) {
+                    $urlAdjunto = wp_get_attachment_image_url($adjuntoId, 'full');
+                    if (is_string($urlAdjunto)) {
+                        $bgUrl = $urlAdjunto;
+                    }
+                }
+                // Fallback directo al asset del tema si no hay adjunto utilizable
+                if ($bgUrl === '' || $bgUrl === null) {
+                    $altUrl = AssetsUtility::imagenUrl($imagen);
+                    if (is_string($altUrl)) {
+                        $bgUrl = $altUrl;
+                    }
+                }
                 if ($bgUrl) {
                     echo '<div class="heroBg" style="background-image:url(' . esc_url($bgUrl) . ');"></div>';
                 }
