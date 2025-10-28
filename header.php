@@ -13,12 +13,6 @@ $usuarioId = get_current_user_id();
         $heroBg = \Glory\Utility\AssetsUtility::imagenUrl('tema::s3.jpg');
         if ($heroBg) { echo '<link rel="preload" as="image" href="' . esc_url($heroBg) . '">'; }
     } ?>
-    <style>
-        .hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;background:#000}
-        .heroInner{position:relative;z-index:2;padding:40px 20px;max-width:960px;color:#fff}
-        .heroTitulo{font-size:clamp(36px,5vw,64px);line-height:1.1;margin:0 0 10px}
-        .heroDesc{margin:0;color:#cfcfcf}
-    </style>
     
     <!-- Assets encolados por AssetManager: GSAP y Highlight.js (controlados por features) -->
     <link rel="profile" href="https://gmpg.org/xfn/11">

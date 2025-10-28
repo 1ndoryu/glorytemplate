@@ -137,6 +137,12 @@ add_action('wp_enqueue_scripts', function () {
     wp_dequeue_style('glory-admin-elementor-tweaks');
 }, 1000);
 
+// Asegurar jQuery en frontend (algunas integraciones lo requieren)
+add_action('wp_enqueue_scripts', function(){
+    // Encolar jQuery de WP para compatibilidad (se marca defer más abajo)
+    wp_enqueue_script('jquery');
+}, 1);
+
 // Forzar solo bundle en frontend (evita init.css/header.css/Pages.css/home.css/footer.css)
 add_action('wp_enqueue_scripts', function () {
     if (is_admin()) return;
