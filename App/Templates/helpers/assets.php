@@ -3,6 +3,7 @@
 namespace App\Templates\Helpers;
 
 use Glory\Utility\AssetsUtility;
+use Glory\Utility\ImageUtility;
 
 function renderAssetImage(string $ref, array $attrs = []): void
 {
@@ -18,9 +19,24 @@ function renderAssetImage(string $ref, array $attrs = []): void
     }
     $url = AssetsUtility::imagenUrl($ref);
     if (!$url) return;
+    // Optimización básica vía Jetpack Photon
+    $quality = isset($attrs['quality']) ? (int) $attrs['quality'] : 60;
+    $strip = isset($attrs['strip']) ? (string) $attrs['strip'] : 'all';
+    $args = ['quality' => $quality, 'strip' => $strip];
+    if (isset($attrs['resize']) && is_string($attrs['resize'])) {
+        $args['resize'] = $attrs['resize'];
+    } else {
+        if (isset($attrs['width']) && is_numeric($attrs['width'])) { $args['w'] = (int) $attrs['width']; }
+        if (isset($attrs['height']) && is_numeric($attrs['height'])) { $args['h'] = (int) $attrs['height']; }
+        if (!isset($args['w']) && !isset($args['h'])) { $args['w'] = 1280; }
+    }
+    $optUrl = ImageUtility::jetpack_photon_url($url, $args);
+
+    if (!isset($attrs['loading'])) { $attrs['loading'] = 'lazy'; }
+    if (!isset($attrs['decoding'])) { $attrs['decoding'] = 'async'; }
     $attrStr = '';
     foreach ($attrs as $k => $v) { $attrStr .= ' ' . esc_attr($k) . '="' . esc_attr((string)$v) . '"'; }
-    echo '<img src="' . esc_url($url) . '"' . $attrStr . ' />';
+    echo '<img src="' . esc_url($optUrl) . '"' . $attrStr . ' />';
 }
 
 

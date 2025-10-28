@@ -6,12 +6,15 @@ function home()
 ?>
     <section class="hero">
         <?php
-        // Fondo con imagen de assets del tema (s3.jpg)
-        if (function_exists('App\\Templates\\Helpers\\renderAssetImage')) {
-            $bgUrl = Glory\Utility\AssetsUtility::imagenUrl('tema::s3.jpg');
-            if ($bgUrl) {
-                echo '<div class="heroBg" style="background-image:url(' . esc_url($bgUrl) . ');"></div>';
-            }
+        // Fondo optimizado (s3.jpg): limitar ancho para viewport y reducir calidad
+        $bgUrl = Glory\Utility\AssetsUtility::imagenUrl('tema::s3.jpg');
+        if ($bgUrl) {
+            $bgOptim = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, [
+                'w'       => 1920,
+                'quality' => 60,
+                'strip'   => 'all',
+            ]);
+            echo '<div class="heroBg" style="background-image:url(' . esc_url($bgOptim) . ');"></div>';
         }
         ?>
         <div class="heroInner">
@@ -36,7 +39,12 @@ function home()
                 $url = Glory\Utility\AssetsUtility::imagenUrl('tema::' . $c['img']);
                 echo '<a class="catCard" href="' . esc_url($c['href']) . '">';
                 if ($url) {
-                    echo '<img class="catImg" src="' . esc_url($url) . '" alt="' . esc_attr($c['titulo']) . '">';
+                    $opt = Glory\Utility\ImageUtility::jetpack_photon_url($url, [
+                        'resize'  => '600,400',
+                        'quality' => 60,
+                        'strip'   => 'all',
+                    ]);
+                    echo '<img class="catImg" src="' . esc_url($opt) . '" alt="' . esc_attr($c['titulo']) . '" width="600" height="400" loading="lazy" decoding="async">';
                 }
                 echo '<span class="catTitulo">' . esc_html($c['titulo']) . '</span>';
                 echo '</a>';
