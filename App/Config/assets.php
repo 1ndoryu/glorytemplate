@@ -10,19 +10,70 @@ use Glory\Manager\AssetManager;
  * del framework Glory.
  */
 
-// Carga todos los archivos CSS de la carpeta /assets/css/ del tema, excluyendo el CSS de tareas.
-AssetManager::defineFolder(
-    'style',
-    'App/Assets/css/',
-    ['deps' => [], 'media' => 'all'],
-    'tema-',
-    [
-        // Excluir CSS específico de tareas; se definirá abajo con feature 'task'
-        'task.css',
-        // Evitar cargar tweaks de Elementor Admin en el frontend (existe en App/Assets/css)
-        'admin-elementor.css'
-    ]
-);
+// Bundle CSS en producción (no LOCAL ni dev mode)
+if ((defined('LOCAL') && LOCAL) || AssetManager::isGlobalDevMode()) {
+    AssetManager::defineFolder(
+        'style',
+        'App/Assets/css/',
+        ['deps' => [], 'media' => 'all'],
+        'tema-',
+        [
+            'task.css',
+            'admin-elementor.css'
+        ]
+    );
+} else {
+    $crearBundleCss = function (): ?string {
+        $dir = get_template_directory() . '/App/Assets/css';
+        if (!is_dir($dir)) return null;
+        $archivos = glob($dir . '/*.css') ?: [];
+        $excluir = ['task.css', 'admin-elementor.css'];
+        $orden = [
+            'init.css'   => 10,
+            'header.css' => 20,
+            'Pages.css'  => 30,
+            'home.css'   => 40,
+            'footer.css' => 50,
+        ];
+        $archivos = array_values(array_filter($archivos, function ($ruta) use ($excluir) {
+            return !in_array(basename($ruta), $excluir, true);
+        }));
+        usort($archivos, function ($a, $b) use ($orden) {
+            $pa = $orden[basename($a)] ?? 999;
+            $pb = $orden[basename($b)] ?? 999;
+            if ($pa === $pb) return strcmp($a, $b);
+            return $pa <=> $pb;
+        });
+        if (!$archivos) return null;
+        $destDir = get_template_directory() . '/Glory/cache';
+        if (!is_dir($destDir)) { @mkdir($destDir, 0755, true); }
+        $dest = $destDir . '/tema-bundle.css';
+        $contenido = '';
+        foreach ($archivos as $ruta) {
+            $contenido .= "\n/* " . basename($ruta) . " */\n" . file_get_contents($ruta);
+        }
+        file_put_contents($dest, $contenido, LOCK_EX);
+        return file_exists($dest) ? '/Glory/cache/tema-bundle.css' : null;
+    };
+    $bundleRuta = $crearBundleCss();
+    if ($bundleRuta) {
+        $ver = @filemtime(get_template_directory() . $bundleRuta) ?: null;
+        AssetManager::define('style', 'tema-bundle', $bundleRuta, [
+            'deps'  => [],
+            'media' => 'all',
+            'ver'   => $ver,
+        ]);
+    } else {
+        // Fallback a la carga por archivos si no se pudo crear bundle
+        AssetManager::defineFolder(
+            'style',
+            'App/Assets/css/',
+            ['deps' => [], 'media' => 'all'],
+            'tema-',
+            ['task.css', 'admin-elementor.css']
+        );
+    }
+}
 
 // Registrar CSS específico de tareas sólo si la feature 'task' está activa
 AssetManager::define(
@@ -55,4 +106,11 @@ add_filter('script_loader_tag', function ($tag, $handle) {
     }
     return $tag;
 }, 10, 2);
+
+// Asegurar que estilos no necesarios no se encolen en el frontend
+add_action('wp_enqueue_scripts', function () {
+    if (is_admin()) return;
+    wp_dequeue_style('glory-daterange');
+    wp_dequeue_style('glory-admin-elementor-tweaks');
+}, 1000);
 
