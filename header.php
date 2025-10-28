@@ -16,6 +16,7 @@ $usuarioId = get_current_user_id();
     
     <!-- Assets encolados por AssetManager: GSAP y Highlight.js (controlados por features) -->
     <link rel="profile" href="https://gmpg.org/xfn/11">
+    <?php if (class_exists('Glory\\Manager\\AssetManager')) { \Glory\Manager\AssetManager::imprimirCssCritico(); } ?>
     <?php wp_head(); ?>
 </head>
 
