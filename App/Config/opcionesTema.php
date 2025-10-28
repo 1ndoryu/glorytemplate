@@ -53,17 +53,6 @@ OpcionManager::register('glory_logo_text', [
     'subSeccion'   => 'logo_configuration',
 ]);
 
-// --- Performance: CSS Crítico ---
-OpcionManager::register('glory_css_critico_activado', [
-    'valorDefault'    => true,
-    'tipo'            => 'toggle',
-    'etiqueta'        => 'CSS crítico (inline) + carga asíncrona de CSS',
-    'descripcion'     => 'Activa el inlining de CSS crítico en páginas y hace asíncronos los estilos para mejorar LCP.',
-    'seccion'         => 'performance',
-    'etiquetaSeccion' => 'Rendimiento',
-    'subSeccion'      => 'css',
-]);
-
 // --- AAWP / Productos por página ---
 $seccionAawp = 'integrations';
 $etiquetaSeccionAawp = 'Integrations & Tracking';

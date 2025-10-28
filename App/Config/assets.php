@@ -114,3 +114,18 @@ add_action('wp_enqueue_scripts', function () {
     wp_dequeue_style('glory-admin-elementor-tweaks');
 }, 1000);
 
+// Fallback: si la API de CSS crítico falla, hacer asíncronos los estilos del tema en portada
+add_filter('style_loader_tag', function ($tag, $handle) {
+    if (is_admin()) return $tag;
+    $esLocal = defined('LOCAL') && LOCAL;
+    $esDev = AssetManager::isGlobalDevMode();
+    if ($esLocal || $esDev) return $tag;
+    if (!is_front_page()) return $tag;
+    $handlesTema = ['tema-bundle','tema-init','tema-header','tema-pages','tema-home','tema-footer'];
+    if (!in_array($handle, $handlesTema, true)) return $tag;
+    if (strpos($tag, "media='all'") === false) return $tag;
+    $fallback = '<noscript>' . $tag . '</noscript>';
+    $tag = str_replace("media='all'", "media='print' onload=\"this.media='all'; this.onload=null;\"", $tag);
+    return $tag . $fallback;
+}, 999, 2);
+
