@@ -18,7 +18,9 @@ AssetManager::defineFolder(
     'tema-',
     [
         // Excluir CSS específico de tareas; se definirá abajo con feature 'task'
-        'task.css'
+        'task.css',
+        // Evitar cargar tweaks de Elementor Admin en el frontend (existe en App/Assets/css)
+        'admin-elementor.css'
     ]
 );
 
@@ -43,4 +45,14 @@ add_action('wp_default_scripts', function ($scripts) {
         ['jquery-migrate']
     ));
 });
+
+// Hacer jQuery no bloqueante en el head (manteniendo compatibilidad)
+add_filter('script_loader_tag', function ($tag, $handle) {
+    if (in_array($handle, ['jquery', 'jquery-core'], true)) {
+        if (strpos($tag, ' defer') === false) {
+            $tag = str_replace(' src=', ' defer src=', $tag);
+        }
+    }
+    return $tag;
+}, 10, 2);
 
