@@ -3,6 +3,7 @@
 namespace App\Shortcodes;
 
 use Glory\Utility\AssetsUtility;
+use Glory\Core\GloryLogger;
 
 \add_action('init', function () {
     \add_shortcode('glory_image', function ($atts = []): string {
@@ -37,13 +38,16 @@ use Glory\Utility\AssetsUtility;
         <section class="hero page">
             <?php
             if ($imagen && function_exists('App\\Templates\\Helpers\\renderAssetImage')) {
+                GloryLogger::info('hero_page: resolviendo imagen de fondo', [ 'ref' => $imagen ]);
                 $bgUrl = '';
                 // Intentar reparar/obtener adjunto del asset; si existe el registro pero falta el fichero, se repara
                 $adjuntoId = AssetsUtility::get_attachment_id_from_asset($imagen);
+                GloryLogger::info('hero_page: resultado get_attachment_id_from_asset', [ 'ref' => $imagen, 'attachmentId' => $adjuntoId ]);
                 if ($adjuntoId) {
                     $urlAdjunto = wp_get_attachment_image_url($adjuntoId, 'full');
                     if (is_string($urlAdjunto)) {
                         $bgUrl = $urlAdjunto;
+                        GloryLogger::info('hero_page: usando URL de adjunto', [ 'ref' => $imagen, 'attachmentId' => $adjuntoId, 'url' => $urlAdjunto ]);
                     }
                 }
                 // Fallback directo al asset del tema si no hay adjunto utilizable
@@ -51,10 +55,13 @@ use Glory\Utility\AssetsUtility;
                     $altUrl = AssetsUtility::imagenUrl($imagen);
                     if (is_string($altUrl)) {
                         $bgUrl = $altUrl;
+                        GloryLogger::info('hero_page: usando fallback imagenUrl desde assets del tema', [ 'ref' => $imagen, 'url' => $altUrl ]);
                     }
                 }
                 if ($bgUrl) {
                     echo '<div class="heroBg" style="background-image:url(' . esc_url($bgUrl) . ');"></div>';
+                } else {
+                    GloryLogger::warning('hero_page: no se pudo resolver URL de fondo', [ 'ref' => $imagen ]);
                 }
             }
             ?>
