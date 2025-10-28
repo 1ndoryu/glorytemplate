@@ -31,7 +31,7 @@ use Glory\Manager\OpcionManager;
             foreach ($asins as $asin) {
                 $asin = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $asin));
                 if ($asin === '') { continue; }
-                echo self::htmlPreviewProducto($asin);
+                echo ProductosAawpShortcode::htmlPreviewProducto($asin);
                 echo "\n";
             }
             echo '</div>';
