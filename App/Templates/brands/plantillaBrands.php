@@ -27,6 +27,16 @@ function plantillaBrands(\WP_Post $post, string $itemClass = 'glory-brands-item'
             }
         }
     }
+    // Si hay URL de destacada pero el archivo físico falta, ignorar y forzar fallback a SVG
+    if ($logoUrl !== '') {
+        $pathRel = parse_url($logoUrl, PHP_URL_PATH);
+        if (is_string($pathRel) && $pathRel !== '') {
+            $pathLocal = ABSPATH . ltrim($pathRel, '/');
+            if (!is_file($pathLocal)) {
+                $logoUrl = '';
+            }
+        }
+    }
     // Soporte extra para SVG de logos por slug: intenta 'logos::{slug}.svg' si no hay logo aún
     if ($logoUrl === '' && $brandSlug !== '') {
         $svgRef = 'logos::' . $brandSlug . '.svg';

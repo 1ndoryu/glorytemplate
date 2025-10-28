@@ -12,7 +12,7 @@ $marcas = [
     'Head' => 'head',
     'Siux' => 'Siux',
     'Black Crown' => 'black-crown',
-    'Star Vie' => 'starvie',
+    'Star Vie' => 'star-vie',
     'Vibor-A' => 'vibor-a',
     'Wilson' => 'wilson',
 ];
