@@ -120,15 +120,8 @@ add_action('wp_default_scripts', function ($scripts) {
     ));
 });
 
-// Hacer jQuery no bloqueante en el head (manteniendo compatibilidad)
-add_filter('script_loader_tag', function ($tag, $handle) {
-    if (in_array($handle, ['jquery', 'jquery-core'], true)) {
-        if (strpos($tag, ' defer') === false) {
-            $tag = str_replace(' src=', ' defer src=', $tag);
-        }
-    }
-    return $tag;
-}, 10, 2);
+// Importante: jQuery SIN defer para compatibilidad (algunos bundles ejecutan inmediatamente)
+// Eliminado el defer específico para 'jquery' y 'jquery-core'.
 
 // Asegurar que estilos no necesarios no se encolen en el frontend
 add_action('wp_enqueue_scripts', function () {
