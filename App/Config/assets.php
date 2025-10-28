@@ -86,14 +86,19 @@ if ((defined('LOCAL') && LOCAL) || AssetManager::isGlobalDevMode()) {
         // Nota: el modo asíncrono solo se aplicará automáticamente cuando exista CSS crítico,
         // a través de AssetManager::hacerEstilosAsincronos.
     }
-    if (!$bundleCrit && !$bundleResto) {
-        // Fallback a la carga por archivos si no se pudo crear bundle
+    // Fallback: si falta el bundle de resto, cargar por archivos (evitar bloqueo del layout)
+    if (!$bundleResto) {
+        $excluir = ['task.css', 'admin-elementor.css'];
+        // Si hay crítico, podemos excluir los que metimos en crítico para reducir duplicación
+        if ($bundleCrit) {
+            $excluir = array_merge($excluir, ['init.css','Pages.css','home.css']);
+        }
         AssetManager::defineFolder(
             'style',
             'App/Assets/css/',
             ['deps' => [], 'media' => 'all'],
             'tema-',
-            ['task.css', 'admin-elementor.css']
+            $excluir
         );
     }
 }
@@ -140,10 +145,13 @@ add_action('wp_enqueue_scripts', function(){
 add_action('wp_enqueue_scripts', function () {
     if (is_admin()) return;
     if ((defined('LOCAL') && LOCAL) || AssetManager::isGlobalDevMode()) return;
-    $temaHandles = ['tema-init','tema-header','tema-pages','tema-home','tema-footer'];
-    foreach ($temaHandles as $h) {
-        wp_dequeue_style($h);
-        wp_deregister_style($h);
+    // Solo desregistrar individuales si existe el bundle 'tema-resto'
+    if (wp_style_is('tema-resto', 'registered') || wp_style_is('tema-resto', 'enqueued')) {
+        $temaHandles = ['tema-init','tema-header','tema-pages','tema-home','tema-footer'];
+        foreach ($temaHandles as $h) {
+            wp_dequeue_style($h);
+            wp_deregister_style($h);
+        }
     }
 }, 1001);
 
