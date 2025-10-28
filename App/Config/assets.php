@@ -83,14 +83,8 @@ if ((defined('LOCAL') && LOCAL) || AssetManager::isGlobalDevMode()) {
             'media' => 'all',
             'ver'   => $verR,
         ]);
-        // Cargar el resto de estilos de forma asíncrona (onload swap)
-        add_filter('style_loader_tag', function ($tag, $handle) {
-            if ($handle !== 'tema-resto') return $tag;
-            if (strpos($tag, "media='all'") === false) return $tag;
-            $fallback = '<noscript>' . $tag . '</noscript>';
-            $tag = str_replace("media='all'", "media='print' onload=\"this.media='all'; this.onload=null;\"", $tag);
-            return $tag . $fallback;
-        }, 999, 2);
+        // Nota: el modo asíncrono solo se aplicará automáticamente cuando exista CSS crítico,
+        // a través de AssetManager::hacerEstilosAsincronos.
     }
     if (!$bundleCrit && !$bundleResto) {
         // Fallback a la carga por archivos si no se pudo crear bundle
@@ -142,4 +136,15 @@ add_action('wp_enqueue_scripts', function () {
     wp_dequeue_style('glory-daterange');
     wp_dequeue_style('glory-admin-elementor-tweaks');
 }, 1000);
+
+// Forzar solo bundle en frontend (evita init.css/header.css/Pages.css/home.css/footer.css)
+add_action('wp_enqueue_scripts', function () {
+    if (is_admin()) return;
+    if ((defined('LOCAL') && LOCAL) || AssetManager::isGlobalDevMode()) return;
+    $temaHandles = ['tema-init','tema-header','tema-pages','tema-home','tema-footer'];
+    foreach ($temaHandles as $h) {
+        wp_dequeue_style($h);
+        wp_deregister_style($h);
+    }
+}, 1001);
 
