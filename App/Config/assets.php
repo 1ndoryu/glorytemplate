@@ -115,6 +115,18 @@ AssetManager::define(
     ]
 );
 
+// Registrar JS del tema (carpeta App/Assets/js)
+AssetManager::defineFolder(
+    'script',
+    'App/Assets/js/',
+    [
+        'deps'      => [],
+        'in_footer' => true,
+        'area'      => 'frontend',
+    ],
+    'tema-'
+);
+
 // Optimización de jQuery: quitar jquery-migrate (mantener jQuery en el head para compatibilidad)
 add_action('wp_default_scripts', function ($scripts) {
     if (is_admin()) { return; }
