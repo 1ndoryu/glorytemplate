@@ -10,7 +10,7 @@ AssetManager::setThemeVersion('0.1.1');
 add_filter('show_admin_bar', '__return_false');
 SyncManager::setAdminBarVisible(true); 
 SyncManager::setResetButtonVisible(true);
-
+PageManager::setDefaultContentMode('code');
 
 PageManager::define('home', 'home');
 if (GloryFeatures::isActive('task') !== false) {
