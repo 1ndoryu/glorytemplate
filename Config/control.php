@@ -31,6 +31,8 @@ GloryFeatures::disable('calendario');
 GloryFeatures::disable('badgeList');
 GloryFeatures::disable('highlight');
 GloryFeatures::disable('gsap');
+GloryFeatures::disable('gbnSplitContent');
+GloryFeatures::disable('gloryLinkCpt');
 
 //Services
 GloryFeatures::disable('cssCritico');
@@ -57,8 +59,7 @@ GloryFeatures::enable('avadaIntegration');
 
 // GBN y CPT glory_link (feature flags)
 GloryFeatures::disable('gbn');
-GloryFeatures::enable('gbnSplitContent');
-GloryFeatures::enable('gloryLinkCpt');
+
 
 //Admin
 GloryFeatures::disable('queryProfiler');
