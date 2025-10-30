@@ -2,6 +2,7 @@
 
 use Glory\Manager\PostTypeManager;
 
+/*
 PostTypeManager::define(
     'brand',
     [
@@ -20,3 +21,4 @@ PostTypeManager::define(
     'Marca',
     'Marcas'
 );
+*/

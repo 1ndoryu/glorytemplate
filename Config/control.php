@@ -17,27 +17,27 @@ GloryFeatures::disable('licenseManager');
 GloryFeatures::disable('creditosManager');
 
 //UI Components
-GloryFeatures::enable('modales');
+GloryFeatures::disable('modales');
 GloryFeatures::enable('submenus');
 GloryFeatures::enable('pestanas');
-GloryFeatures::enable('scheduler');
+GloryFeatures::disable('scheduler');
 GloryFeatures::disable('headerAdaptativo');
-GloryFeatures::enable('themeToggle');
+GloryFeatures::disable('themeToggle');
 GloryFeatures::enable('alertas');
 GloryFeatures::enable('gestionarPreviews');
 GloryFeatures::enable('paginacion');
-GloryFeatures::enable('gloryFilters');
-GloryFeatures::enable('calendario');
-GloryFeatures::enable('badgeList');
-GloryFeatures::enable('highlight');
-GloryFeatures::enable('gsap');
+GloryFeatures::disable('gloryFilters');
+GloryFeatures::disable('calendario');
+GloryFeatures::disable('badgeList');
+GloryFeatures::disable('highlight');
+GloryFeatures::disable('gsap');
 
 //Services
 GloryFeatures::disable('cssCritico');
 GloryFeatures::enable('navegacionAjax');
 GloryFeatures::enable('gloryAjax');
-GloryFeatures::enable('gloryForm');
-GloryFeatures::enable('gloryBusqueda');
+GloryFeatures::disable('gloryForm');
+GloryFeatures::disable('gloryBusqueda');
 GloryFeatures::enable('gloryRealtime');
 
 // Task feature flag
@@ -56,7 +56,7 @@ GloryFeatures::enable('postThumbnails');
 GloryFeatures::enable('avadaIntegration');
 
 // GBN y CPT glory_link (feature flags)
-GloryFeatures::enable('gbn');
+GloryFeatures::disable('gbn');
 GloryFeatures::enable('gbnSplitContent');
 GloryFeatures::enable('gloryLinkCpt');
 
@@ -76,20 +76,3 @@ if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
         }
     });
 }
-
-// Registrar AJAX de GBN
-if (class_exists(\Glory\Gbn\GbnAjaxHandler::class)) {
-    \Glory\Gbn\GbnAjaxHandler::register();
-} else {
-    add_action('init', function() {
-        if (class_exists(\Glory\Gbn\GbnAjaxHandler::class)) {
-            \Glory\Gbn\GbnAjaxHandler::register();
-        }
-    });
-}
-
-// Bootstrap GBN core (forzar carga del gestor y assets si la feature está activa)
-\Glory\Gbn\GbnManager::bootstrap();
-
-// Registrar CPT glory_link (controlado por feature flag interna)
-\Glory\PostTypes\GloryLinkCpt::register();

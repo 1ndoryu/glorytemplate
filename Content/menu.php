@@ -4,7 +4,7 @@
 // Estructura: cada item puede incluir 'children' para desplegables
 // Las URLs relativas (p.ej. "/ofertas/") se transforman a absolutas automáticamente
 // Gestionado por Glory - menuManager.php
-
+/*
 return [
     [
         'title' => 'Inicio',
@@ -43,6 +43,6 @@ return [
         'url'   => '/ofertas/',
     ],
 ];
-
+*/
 
 

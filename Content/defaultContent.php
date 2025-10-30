@@ -3,7 +3,7 @@
 use Glory\Manager\DefaultContentManager;
 use Glory\Utility\AssetsUtility;
 
-// Array de marcas (nombre => nombreArchivoSVG exacto sin extensión)
+/*
 $marcas = [
     'Adidas' => 'adidas',
     'Bullpadel' => 'bullpadel',
@@ -30,3 +30,4 @@ foreach ($marcas as $nombre => $archivo) {
 }
 
 DefaultContentManager::define('brand', $postsDefault); 
+*/
