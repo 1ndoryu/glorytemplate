@@ -32,6 +32,8 @@ GloryFeatures::enable('calendario');
 GloryFeatures::enable('badgeList');
 GloryFeatures::enable('highlight');
 GloryFeatures::enable('gsap');
+GloryFeatures::disable('gbnSplitContent');
+GloryFeatures::disable('gloryLinkCpt');
 
 //Services
 GloryFeatures::disable('cssCritico');
