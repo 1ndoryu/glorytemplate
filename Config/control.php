@@ -31,6 +31,8 @@ GloryFeatures::disable('calendario');
 GloryFeatures::disable('badgeList');
 GloryFeatures::disable('highlight');
 GloryFeatures::disable('gsap');
+
+//Casos especiales
 GloryFeatures::disable('gbnSplitContent');
 GloryFeatures::disable('gloryLinkCpt');
 
