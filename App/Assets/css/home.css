@@ -26,6 +26,8 @@ h6 {
     object-fit: cover;
     opacity: 0.75;
     object-position: center;
+    background-size: cover;
+    background-position: center;
 }
 .heroInner {
     position: relative;

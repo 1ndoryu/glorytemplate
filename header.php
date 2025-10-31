@@ -11,7 +11,13 @@ $usuarioId = get_current_user_id();
     <link rel="preload" as="font" href="<?php echo get_template_directory_uri(); ?>/App/Assets/fonts/PPNeueMontreal-Medium.woff2" type="font/woff2" crossorigin>
     <?php if (is_front_page()) { 
         $heroBg = \Glory\Utility\AssetsUtility::imagenUrl('tema::s3.jpg');
-        if ($heroBg) { echo '<link rel="preload" as="image" href="' . esc_url($heroBg) . '">'; }
+        if ($heroBg) {
+            $m  = \Glory\Utility\ImageUtility::jetpack_photon_url($heroBg, [ 'w' => 768,  'quality' => 60, 'strip' => 'all', 'format' => 'webp' ]);
+            $d  = \Glory\Utility\ImageUtility::jetpack_photon_url($heroBg, [ 'w' => 1280, 'quality' => 60, 'strip' => 'all', 'format' => 'webp' ]);
+            $xl = \Glory\Utility\ImageUtility::jetpack_photon_url($heroBg, [ 'w' => 1920, 'quality' => 60, 'strip' => 'all', 'format' => 'webp' ]);
+            $srcset = esc_attr($m . ' 768w, ' . $d . ' 1280w, ' . $xl . ' 1920w');
+            echo '<link rel="preload" as="image" imagesrcset="' . $srcset . '" imagesizes="100vw">';
+        }
     } ?>
     
     <!-- Assets encolados por AssetManager: GSAP y Highlight.js (controlados por features) -->
