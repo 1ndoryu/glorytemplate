@@ -1,4 +1,4 @@
-<?
+<?php
 
 if (\Glory\Core\GloryFeatures::isActive('task') === false) { return; }
 
@@ -8,7 +8,7 @@ function jsonTask($exito, $datosOError, $logDetalles, $nombreFunc)
     $logFinal = "$nombreFunc: $logDetalles";
     if (!$exito && is_string($datosOError))
         $logFinal .= " ErrorMsg: $datosOError";
-    // guardarLog($logFinal);
+    guardarLog($logFinal);
 
     if ($exito)
         wp_send_json_success($datosOError);
@@ -124,6 +124,7 @@ function crearTarea()
 }
 
 add_action('wp_ajax_crearTarea', 'crearTarea');
+add_action('wp_ajax_nopriv_crearTarea', 'crearTarea');
 
 function completarTarea()
 {
@@ -170,6 +171,7 @@ function completarTarea()
 }
 
 add_action('wp_ajax_completarTarea', 'completarTarea');
+add_action('wp_ajax_nopriv_completarTarea', 'completarTarea');
 
 function cambiarPrioridad()
 {
@@ -196,6 +198,7 @@ function cambiarPrioridad()
 }
 
 add_action('wp_ajax_cambiarPrioridad', 'cambiarPrioridad');
+add_action('wp_ajax_nopriv_cambiarPrioridad', 'cambiarPrioridad');
 
 function borrarTarea()
 {
@@ -221,6 +224,7 @@ function borrarTarea()
 }
 
 add_action('wp_ajax_borrarTarea', 'borrarTarea');
+add_action('wp_ajax_nopriv_borrarTarea', 'borrarTarea');
 
 function modificarTarea()
 {
@@ -246,6 +250,7 @@ function modificarTarea()
 }
 
 add_action('wp_ajax_modificarTarea', 'modificarTarea');
+add_action('wp_ajax_nopriv_modificarTarea', 'modificarTarea');
 
 function archivarTarea()
 {
@@ -292,6 +297,7 @@ function archivarTarea()
 }
 
 add_action('wp_ajax_archivarTarea', 'archivarTarea');
+add_action('wp_ajax_nopriv_archivarTarea', 'archivarTarea');
 
 function cambiarFrecuencia()
 {
@@ -317,6 +323,7 @@ function cambiarFrecuencia()
 }
 
 add_action('wp_ajax_cambiarFrecuencia', 'cambiarFrecuencia');
+add_action('wp_ajax_nopriv_cambiarFrecuencia', 'cambiarFrecuencia');
 
 function borrarTareasCompletadas()
 {
@@ -356,6 +363,7 @@ function borrarTareasCompletadas()
 }
 
 add_action('wp_ajax_borrarTareasCompletadas', 'borrarTareasCompletadas');
+add_action('wp_ajax_nopriv_borrarTareasCompletadas', 'borrarTareasCompletadas');
 
 function modificarFechaLimiteTarea()
 {
@@ -406,6 +414,7 @@ function modificarFechaLimiteTarea()
 }
 
 add_action('wp_ajax_modificarFechaLimiteTarea', 'modificarFechaLimiteTarea');
+add_action('wp_ajax_nopriv_modificarFechaLimiteTarea', 'modificarFechaLimiteTarea');
 
 function modificarFechaProximaHabito()
 {
@@ -464,6 +473,7 @@ function modificarFechaProximaHabito()
 }
 
 add_action('wp_ajax_modificarFechaProximaHabito', 'modificarFechaProximaHabito');
+add_action('wp_ajax_nopriv_modificarFechaProximaHabito', 'modificarFechaProximaHabito');
 
 function marcarDiaHabito()
 {
@@ -576,6 +586,7 @@ function marcarDiaHabito()
 }
 
 add_action('wp_ajax_marcarDiaHabito', 'marcarDiaHabito');
+add_action('wp_ajax_nopriv_marcarDiaHabito', 'marcarDiaHabito');
 
 /**
  * Enviar a papelera en cascada las subtareas cuando una tarea padre va a la papelera.

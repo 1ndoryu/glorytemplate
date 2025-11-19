@@ -10,4 +10,5 @@ PageManager::define('contructor', 'contructor');
 
 if (GloryFeatures::isActive('task') !== false) {
     PageManager::define('task', 'task');
+    PageManager::define('logic', 'logic');
 }

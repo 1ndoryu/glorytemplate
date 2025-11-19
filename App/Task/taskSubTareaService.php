@@ -69,6 +69,7 @@ function crearSubtarea()
     }
 }
 add_action('wp_ajax_crearSubtarea', 'crearSubtarea');
+add_action('wp_ajax_nopriv_crearSubtarea', 'crearSubtarea');
 
 function manejarSubtarea($id, $idPadrePropuesto)
 {

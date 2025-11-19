@@ -44,7 +44,7 @@ GloryFeatures::enable('gloryBusqueda');
 GloryFeatures::enable('gloryRealtime');
 
 // Task feature flag
-GloryFeatures::disable('task');
+GloryFeatures::enable('task');
 
 // Renderers
 GloryFeatures::enable('logoRenderer');
@@ -73,3 +73,9 @@ if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
         }
     });
 }
+
+add_action('template_redirect', function () {
+    if (is_page('logic')) {
+        GloryFeatures::disable('menu');
+    }
+});

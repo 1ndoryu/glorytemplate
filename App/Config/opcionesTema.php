@@ -87,3 +87,16 @@ OpcionManager::register('glory_custom_header_scripts', [
     'etiquetaSeccion' => $etiquetaSeccionIntegraciones,
     'subSeccion'      => 'manual_scripts',
 ]);
+
+$seccionLogic = 'logic';
+$etiquetaSeccionLogic = 'Logic';
+
+OpcionManager::register('glory_logic_api_key', [
+    'valorDefault'    => '',
+    'tipo'            => 'text',
+    'etiqueta'        => 'API Key pública de Logic',
+    'descripcion'     => 'Clave secreta utilizada por la API pública de Logic. Inclúyela en la cabecera <code>X-Glory-Logic-Key</code> de cada petición externa.',
+    'seccion'         => $seccionLogic,
+    'etiquetaSeccion' => $etiquetaSeccionLogic,
+    'subSeccion'      => 'api',
+]);

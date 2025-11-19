@@ -1,4 +1,4 @@
-<?
+<?php
 
 if (\Glory\Core\GloryFeatures::isActive('task') === false) { return; }
 
@@ -93,6 +93,7 @@ function actualizarSeccion()
 }
 
 add_action('wp_ajax_actualizarSeccion', 'actualizarSeccion');
+add_action('wp_ajax_nopriv_actualizarSeccion', 'actualizarSeccion');
 
 function asignarSeccionMeta()
 {
@@ -169,6 +170,7 @@ function asignarSeccionMeta()
 }
 
 add_action('wp_ajax_asignarSeccionMeta', 'asignarSeccionMeta');
+add_action('wp_ajax_nopriv_asignarSeccionMeta', 'asignarSeccionMeta');
 
 function actualizarSeccionEstado($tareaMov, $sesionArr) {
     $f = 'actualizarSeccionEstado';

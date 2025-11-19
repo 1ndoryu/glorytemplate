@@ -321,6 +321,7 @@ function actualizarOrdenTareasGrupo()
     wp_send_json_success(['mensaje' => 'Orden de grupo de tareas actualizado.', 'ordenGuardado' => $ordenNue]);
 }
 add_action('wp_ajax_actualizarOrdenTareasGrupo', 'actualizarOrdenTareasGrupo');
+add_action('wp_ajax_nopriv_actualizarOrdenTareasGrupo', 'actualizarOrdenTareasGrupo');
 
 function actualizarOrdenTareas()
 {
@@ -366,6 +367,7 @@ function actualizarOrdenTareas()
     }
 }
 add_action('wp_ajax_actualizarOrdenTareas', 'actualizarOrdenTareas');
+add_action('wp_ajax_nopriv_actualizarOrdenTareas', 'actualizarOrdenTareas');
 
 function priorizarTareasBackend()
 {
@@ -388,5 +390,6 @@ function priorizarTareasBackend()
     wp_send_json_success(['orden' => $nuevoOrden]);
 }
 add_action('wp_ajax_priorizarTareas', 'priorizarTareasBackend');
+add_action('wp_ajax_nopriv_priorizarTareas', 'priorizarTareasBackend');
 
 ?>

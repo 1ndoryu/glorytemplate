@@ -54,3 +54,9 @@ foreach ($directorios as $directorio) {
     incluirArchivos($directorio);
 }
 
+add_action('wp_enqueue_scripts', function() {
+    wp_localize_script('glory-ajax', 'ajax_params', [
+        'ajax_url' => admin_url('admin-ajax.php')
+    ]);
+}, 30);
+

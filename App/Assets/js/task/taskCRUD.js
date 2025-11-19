@@ -171,9 +171,12 @@ window.enviarTareaHandler = function (ev) {
                             console.error(`enviarTareaHandler: tareaNueva=${tareaNueva}, listaTareas=${listaTareas}`);
                         }
                     } else {
+                        console.log('enviarTareaHandler error rta:', rta);
                         let m = 'enviarTareaHandler: Error al crear tarea.';
                         if (rta.data) {
                             m += ' Detalles: ' + rta.data;
+                        } else if (rta.message) {
+                            m += ' Message: ' + rta.message;
                         }
                         alert(m);
                     }
