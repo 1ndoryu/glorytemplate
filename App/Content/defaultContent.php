@@ -12,7 +12,8 @@ $marcas = [
     'Head' => 'head',
     'Siux' => 'Siux',
     'Black Crown' => 'black-crown',
-    'Star Vie' => 'star-vie',
+    // En assets el archivo es "starvie.svg" (sin guion)
+    'Star Vie' => 'starvie',
     'Vibor-A' => 'vibor-a',
     'Wilson' => 'wilson',
 ];

@@ -137,26 +137,31 @@ add_action('wp_default_scripts', function ($scripts) {
     ));
 });
 
-// Añadir defer a jQuery y a todo script que dependa de jQuery para evitar bloqueo
+// Añadir defer a jQuery y a todo script que dependa de jQuery para evitar bloqueo (solo frontend)
 add_filter('script_loader_tag', function ($tag, $handle) {
-    // Obtener objeto del script para revisar dependencias
-    if (!function_exists('wp_scripts')) return $tag;
-    $wp_scripts = wp_scripts();
-    $registered = $wp_scripts ? ($wp_scripts->registered[$handle] ?? null) : null;
+    // Nunca tocar el admin: muchos scripts de WP dependen del orden exacto
+    if (is_admin()) {
+        return $tag;
+    }
+
+    if (!function_exists('wp_scripts')) {
+        return $tag;
+    }
+
+    $wpScripts  = wp_scripts();
+    $registered = $wpScripts ? ($wpScripts->registered[$handle] ?? null) : null;
 
     $shouldDefer = false;
-    if (in_array($handle, ['jquery','jquery-core'], true)) {
+    if (in_array($handle, ['jquery', 'jquery-core'], true)) {
         $shouldDefer = true;
     } elseif ($registered && is_array($registered->deps) && in_array('jquery', $registered->deps, true)) {
         $shouldDefer = true;
     }
 
-    if ($shouldDefer) {
-        // Evitar duplicar atributo
-        if (strpos($tag, ' defer') === false) {
-            $tag = str_replace(' src=', ' defer src=', $tag);
-        }
+    if ($shouldDefer && strpos($tag, ' defer') === false) {
+        $tag = str_replace(' src=', ' defer src=', $tag);
     }
+
     return $tag;
 }, 10, 2);
 

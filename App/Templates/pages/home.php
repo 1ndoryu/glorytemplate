@@ -59,10 +59,7 @@ function home()
             <a class="btnLink" href="/marcas/">Ver todas</a>
         </div>
         <div class="brandsScroller" data-horizontal-drag>
-            <?php
-            // Listado simple: usa shortcode para facilitar modo editor
-            echo do_shortcode('[glory_content_render post_type="brand" template_id="plantillaBrands" ppp="20" grid_columns="6" item_class="brandItem" container_class="brandsList"]');
-            ?>
+            [glory_content_render post_type="brand" template_id="plantillaBrands" ppp="20" grid_columns="6" item_class="brandItem" container_class="brandsList"]
         </div>
     </section>
 

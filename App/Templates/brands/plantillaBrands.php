@@ -16,30 +16,10 @@ function plantillaBrands(\WP_Post $post, string $itemClass = 'glory-brands-item'
     $logoUrl = '';
     $brandSlug = $post->post_name ?: '';
     $brandUrl = $brandSlug !== '' ? home_url(trailingslashit('marcas/' . $brandSlug)) : get_permalink($post);
-    if (has_post_thumbnail($post)) {
-        $logoUrl = get_the_post_thumbnail_url($post, 'full') ?: '';
-    }
-    if ($logoUrl === '') {
-        $asset = get_post_meta($post->ID, '_glory_featured_asset', true);
-        if (is_string($asset) && $asset !== '') {
-            $resolved = AssetsUtility::imagenUrl($asset);
-            if ($resolved) {
-                $logoUrl = $resolved;
-            }
-        }
-    }
-    // Si hay URL de destacada pero el archivo físico falta, ignorar y forzar fallback a SVG
-    if ($logoUrl !== '') {
-        $pathRel = parse_url($logoUrl, PHP_URL_PATH);
-        if (is_string($pathRel) && $pathRel !== '') {
-            $pathLocal = ABSPATH . ltrim($pathRel, '/');
-            if (!is_file($pathLocal)) {
-                $logoUrl = '';
-            }
-        }
-    }
-    // Soporte extra para SVG de logos por slug: intenta 'logos::{slug}.svg' si no hay logo aún
-    if ($logoUrl === '' && $brandSlug !== '') {
+
+    // 1) Usar SIEMPRE los SVG del tema (alias 'logos') para las marcas.
+    //    No usamos la imagen destacada de WP para evitar URLs rotas en uploads.
+    if ($brandSlug !== '') {
         $candidatos = [];
         $candidatos[] = 'logos::' . $brandSlug . '.svg';
         $candidatos[] = 'logos::' . str_replace('-', '', $brandSlug) . '.svg';
@@ -57,6 +37,7 @@ function plantillaBrands(\WP_Post $post, string $itemClass = 'glory-brands-item'
             GloryLogger::warning('plantillaBrands: no se encontró SVG para marca', [ 'slug' => $brandSlug ]);
         }
     }
+
     $tituloId = 'brand-title-' . $post->ID;
     ?>
     <div class="<?php echo esc_attr($itemClass); ?>">

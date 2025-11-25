@@ -60,6 +60,7 @@ GloryFeatures::disable('avadaIntegration');
 GloryFeatures::disable('queryProfiler');
 GloryFeatures::disable('performanceProfiler');
 GloryFeatures::disable('queryProfilerLogs'); 
+GloryFeatures::disable('gbn');
 
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
 if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
