@@ -64,6 +64,24 @@
         }
     }
 
+    async function eliminarPaso(taskId) {
+        if (!taskId || state.bloqueado) return;
+        state.bloqueado = true;
+        app.render.actualizarDisponibilidad();
+        setEstado(mensajes.saving || 'Guardando…');
+
+        try {
+            const respuesta = await enviarPeticion('logic_delete_step', { taskId });
+            app.render.setTareas(respuesta.tasks, respuesta.limitReached);
+            setEstado(respuesta.mensaje || 'Paso eliminado.');
+        } catch (error) {
+            setEstado(error.message || mensajes.error || 'No pude eliminar el paso.', true);
+        } finally {
+            state.bloqueado = false;
+            app.render.actualizarDisponibilidad();
+        }
+    }
+
     async function alternarPausa(taskId, estaPausado) {
         if (!taskId || state.bloqueado) return;
         state.bloqueado = true;
@@ -234,7 +252,7 @@
     }
 
 
-    async function agregarContexto(inputRef = null) {
+    async function agregarContexto(inputRef = null, pinned = false) {
         if (state.guardandoContexto) return;
         
         const input = inputRef || refs.contextInput;
@@ -250,13 +268,31 @@
         setEstado(mensajes.saving || 'Guardando…');
 
         try {
-            const respuesta = await enviarPeticion('logic_add_context', { texto });
+            const respuesta = await enviarPeticion('logic_add_context', { texto, pinned });
             state.contextos = Array.isArray(respuesta.contexts) ? respuesta.contexts : [];
             app.render.renderContextos();
             input.value = '';
             setEstado(respuesta.mensaje || 'Contexto agregado.');
         } catch (error) {
             setEstado(error.message || 'No pude guardar el contexto.', true);
+        } finally {
+            state.guardandoContexto = false;
+        }
+    }
+
+    async function togglePinContexto(contextId) {
+        if (state.guardandoContexto || !contextId) return;
+
+        state.guardandoContexto = true;
+        setEstado(mensajes.saving || 'Guardando…');
+
+        try {
+            const respuesta = await enviarPeticion('logic_toggle_pin_context', { contextId });
+            state.contextos = Array.isArray(respuesta.contexts) ? respuesta.contexts : [];
+            app.render.renderContextos();
+            setEstado(respuesta.mensaje || 'Contexto actualizado.');
+        } catch (error) {
+            setEstado(error.message || 'No pude actualizar el contexto.', true);
         } finally {
             state.guardandoContexto = false;
         }
@@ -321,9 +357,45 @@
         }
     }
 
+    async function runAgent() {
+        if (state.ejecutandoAgente) return;
+        state.ejecutandoAgente = true;
+        setEstado('Ejecutando agente (esto puede tardar unos segundos)…');
+        
+        try {
+            const respuesta = await enviarPeticion('logic_run_agent', {});
+            
+            // Update full state if returned
+            if (respuesta.tasks) app.render.setTareas(respuesta.tasks, respuesta.limitReached);
+            if (respuesta.habits) {
+                state.habitos = limpiarHabitos(respuesta.habits);
+                app.render.setHabitos(state.habitos);
+            }
+            if (respuesta.history) app.render.setHistorial(respuesta.history);
+            if (respuesta.helpMessage) {
+                state.mensajeAyuda = normalizarMensaje(respuesta.helpMessage);
+                app.render.renderMensajeAyuda();
+            }
+            if (respuesta.contexts) {
+                state.contextos = respuesta.contexts;
+                app.render.renderContextos();
+            }
+
+            setEstado(respuesta.mensaje || 'Agente finalizado.');
+            if (respuesta.agentOutput) {
+                console.log('Agent Output:', respuesta.agentOutput);
+            }
+        } catch (error) {
+            setEstado(error.message || 'Error al ejecutar el agente.', true);
+        } finally {
+            state.ejecutandoAgente = false;
+        }
+    }
+
     app.actions = {
         fijarPaso,
         liberarPaso,
+        eliminarPaso,
         alternarPausa,
         guardarOrden,
         guardarHabitoRapido,
@@ -337,6 +409,8 @@
         actualizarContexto,
         eliminarContexto,
         guardarOrdenContextos,
+        togglePinContexto,
+        runAgent,
     };
 })(window);
 

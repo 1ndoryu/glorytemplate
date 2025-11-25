@@ -161,6 +161,15 @@ function logic()
                                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M15.5607 3.99999L15.0303 4.53032L6.23744 13.3232C5.55403 14.0066 4.44599 14.0066 3.76257 13.3232L4.2929 12.7929L3.76257 13.3232L0.969676 10.5303L0.439346 9.99999L1.50001 8.93933L2.03034 9.46966L4.82323 12.2626C4.92086 12.3602 5.07915 12.3602 5.17678 12.2626L13.9697 3.46966L14.5 2.93933L15.5607 3.99999Z" fill="currentColor"></path>
                                             </svg>
                                         </button>
+                                        <button
+                                            type="button"
+                                            class="logicItemRemove logicItemDelete"
+                                            data-task-id="<?php echo esc_attr($tarea['id']); ?>"
+                                            aria-label="Eliminar"
+                                            title="Eliminar"
+                                        >
+                                            <svg data-testid="geist-icon" height="16" stroke-linejoin="round" viewBox="0 0 16 16" width="16" style="color: currentcolor;"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.75 2.75C6.75 2.05964 7.30964 1.5 8 1.5C8.69036 1.5 9.25 2.05964 9.25 2.75V3H6.75V2.75ZM5.25 3V2.75C5.25 1.23122 6.48122 0 8 0C9.51878 0 10.75 1.23122 10.75 2.75V3H12.9201H14.25H15V4.5H14.25H13.8846L13.1776 13.6917C13.0774 14.9942 11.9913 16 10.6849 16H5.31508C4.00874 16 2.92263 14.9942 2.82244 13.6917L2.11538 4.5H1.75H1V3H1.75H3.07988H5.25ZM4.31802 13.5767L3.61982 4.5H12.3802L11.682 13.5767C11.6419 14.0977 11.2075 14.5 10.6849 14.5H5.31508C4.79254 14.5 4.3581 14.0977 4.31802 13.5767Z" fill="currentColor"></path></svg>
+                                        </button>
                                     </li>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -213,37 +222,51 @@ function logic()
                         >
                         <button type="button" id="logicContextAddBtn">Añadir</button>
                     </div>
-                    <ul class="logicList logicContextList" id="logicContextList">
-                        <?php foreach ($contextos as $ctx): ?>
-                            <li class="logicItem logicContextItem" data-context-id="<?php echo esc_attr($ctx['id']); ?>">
-                                <span class="logicItemHandle logicContextHandle" aria-label="Reordenar" role="button" tabindex="0"></span>
-                                <div class="logicItemContent">
-                                    <span class="logicItemTitle logicContextText" contenteditable="true" spellcheck="false"><?php echo esc_html($ctx['texto']); ?></span>
-                                    <span class="logicItemTimer logicContextDate" style="font-size: 0.75em; opacity: 0.6;">
-                                        <?php echo esc_html($ctx['editadoLabel']); ?>
-                                    </span>
-                                </div>
-                                <button
-                                    type="button"
-                                    class="logicItemRemove logicContextDelete"
-                                    data-context-id="<?php echo esc_attr($ctx['id']); ?>"
-                                    aria-label="Eliminar"
-                                    title="Eliminar"
-                                >
-                                    <svg data-testid="geist-icon" height="16" stroke-linejoin="round" style="color:currentColor" viewBox="0 0 16 16" width="16">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M15.5607 3.99999L15.0303 4.53032L6.23744 13.3232C5.55403 14.0066 4.44599 14.0066 3.76257 13.3232L4.2929 12.7929L3.76257 13.3232L0.969676 10.5303L0.439346 9.99999L1.50001 8.93933L2.03034 9.46966L4.82323 12.2626C4.92086 12.3602 5.07915 12.3602 5.17678 12.2626L13.9697 3.46966L14.5 2.93933L15.5607 3.99999Z" fill="currentColor"></path>
-                                    </svg>
-                                </button>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                    <p class="logicEmpty <?php echo !empty($contextos) ? 'is-hidden' : ''; ?>" id="logicContextEmpty">
-                        No hay bloques de contexto definidos.
-                    </p>
+                    
+                    <div class="logicContextSection">
+                        <p class="logicLabel" style="margin-top: 1.5rem;">Contextos</p>
+                        <ul class="logicList logicContextList" id="logicContextList">
+                            <?php foreach ($contextos as $ctx): ?>
+                                <?php $isPinned = !empty($ctx['pinned']); ?>
+                                <li class="logicItem logicContextItem <?php echo $isPinned ? 'is-pinned' : ''; ?>" data-context-id="<?php echo esc_attr($ctx['id']); ?>" data-pinned="<?php echo $isPinned ? '1' : '0'; ?>">
+                                    <span class="logicItemHandle logicContextHandle" aria-label="Reordenar" role="button" tabindex="0"></span>
+                                    <div class="logicItemContent">
+                                        <span class="logicItemTitle logicContextText" contenteditable="true" spellcheck="false"><?php echo esc_html($ctx['texto']); ?></span>
+                                        <span class="logicItemTimer logicContextDate" style="font-size: 0.75em; opacity: 0.6;">
+                                            <?php echo esc_html($ctx['editadoLabel']); ?>
+                                        </span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="logicItemPin <?php echo $isPinned ? 'is-pinned' : ''; ?>"
+                                        data-context-id="<?php echo esc_attr($ctx['id']); ?>"
+                                        aria-label="<?php echo $isPinned ? 'Desfijar' : 'Fijar'; ?>"
+                                        title="<?php echo $isPinned ? 'Desfijar' : 'Fijar'; ?>"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 17v5"></path>
+                                            <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h14v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path>
+                                        </svg>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="logicItemRemove logicContextDelete"
+                                        data-context-id="<?php echo esc_attr($ctx['id']); ?>"
+                                        aria-label="Eliminar"
+                                        title="Eliminar"
+                                    >
+                                        <svg data-testid="geist-icon" height="16" stroke-linejoin="round" style="color:currentColor" viewBox="0 0 16 16" width="16">
+                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M15.5607 3.99999L15.0303 4.53032L6.23744 13.3232C5.55403 14.0066 4.44599 14.0066 3.76257 13.3232L4.2929 12.7929L3.76257 13.3232L0.969676 10.5303L0.439346 9.99999L1.50001 8.93933L2.03034 9.46966L4.82323 12.2626C4.92086 12.3602 5.07915 12.3602 5.17678 12.2626L13.9697 3.46966L14.5 2.93933L15.5607 3.99999Z" fill="currentColor"></path>
+                                        </svg>
+                                    </button>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="pestanaContenido" data-pestana="Historial">
-                    <div class="logicHistoryHeader">
+                    <div class="logicContextSection">
                         <p class="logicLabel">Historial reciente</p>
                         <button type="button" id="logicHistoryRefresh">Actualizar</button>
                     </div>
@@ -257,8 +280,8 @@ function logic()
                                         <?php echo esc_html($entrada['inicioUtc']); ?> — <?php echo esc_html($entrada['finUtc']); ?>
                                     </span>
                                 </div>
-                                <button type="button" class="logicHistoryDelete" data-history-id="<?php echo esc_attr($entrada['id']); ?>">
-                                    Eliminar
+                                <button type="button" class="logicHistoryDelete" data-history-id="<?php echo esc_attr($entrada['id']); ?>" style="border:none; background:transparent; padding:4px; cursor:pointer;">
+                                    <svg data-testid="geist-icon" height="16" stroke-linejoin="round" viewBox="0 0 16 16" width="16" style="color: currentcolor;"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.75 2.75C6.75 2.05964 7.30964 1.5 8 1.5C8.69036 1.5 9.25 2.05964 9.25 2.75V3H6.75V2.75ZM5.25 3V2.75C5.25 1.23122 6.48122 0 8 0C9.51878 0 10.75 1.23122 10.75 2.75V3H12.9201H14.25H15V4.5H14.25H13.8846L13.1776 13.6917C13.0774 14.9942 11.9913 16 10.6849 16H5.31508C4.00874 16 2.92263 14.9942 2.82244 13.6917L2.11538 4.5H1.75H1V3H1.75H3.07988H5.25ZM4.31802 13.5767L3.61982 4.5H12.3802L11.682 13.5767C11.6419 14.0977 11.2075 14.5 10.6849 14.5H5.31508C4.79254 14.5 4.3581 14.0977 4.31802 13.5767Z" fill="currentColor"></path></svg>
                                 </button>
                             </li>
                         <?php endforeach; ?>
@@ -294,6 +317,14 @@ function logic()
                             <button type="button" id="logicHelpSave">Guardar mensaje</button>
                             <button type="button" id="logicHelpClear">Quitar</button>
                         </div>
+                    </div>
+
+                    <div class="logicAgentSection" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--logic-border);">
+                        <p class="logicLabel">Agente Lógico (IA)</p>
+                        <p class="logicHelpDisplay" style="margin-bottom: 1rem; opacity: 0.7;">
+                            Ejecuta el agente manualmente para que analice tu estado y tome decisiones.
+                        </p>
+                        <button type="button" id="logicRunAgentBtn" class="logicBtnSecondary">Ejecutar Agente</button>
                     </div>
                 </div>
             </div>

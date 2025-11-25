@@ -94,6 +94,19 @@ function logicRegisterPublicApiRoutes(): void
         ]),
     ]);
 
+    register_rest_route('glory-logic/v1', '/steps/(?P<taskId>\d+)', [
+        'methods'             => \WP_REST_Server::DELETABLE,
+        'callback'            => 'logicApiEndpointDeleteStep',
+        'permission_callback' => 'logicApiPermissionCallback',
+        'args'                => logicApiRouteArgs([
+            'taskId' => [
+                'required' => true,
+                'type'     => 'integer',
+                'sanitize_callback' => 'absint',
+            ],
+        ]),
+    ]);
+
     register_rest_route('glory-logic/v1', '/habits', [
         'methods'             => \WP_REST_Server::READABLE,
         'callback'            => 'logicApiEndpointGetHabits',
@@ -179,9 +192,9 @@ function logicRegisterPublicApiRoutes(): void
         'permission_callback' => 'logicApiPermissionCallback',
         'args'                => logicApiRouteArgs([
             'limit' => [
-                'description' => 'Cantidad de contextos a retornar (1-100, -1 para todos). Por defecto: 10',
+                'description' => 'Cantidad de contextos a retornar (1-100, -1 para todos). Por defecto: 30',
                 'type'        => 'integer',
-                'default'     => 10,
+                'default'     => 30,
                 'sanitize_callback' => 'intval',
             ],
             'dateFrom' => [
@@ -206,6 +219,11 @@ function logicRegisterPublicApiRoutes(): void
                 'required' => true,
                 'type'     => 'string',
             ],
+            'pinned' => [
+                'description' => 'Si el contexto debe ser fijado (pinned).',
+                'type'        => 'boolean',
+                'default'     => false,
+            ],
         ]),
     ]);
 
@@ -229,6 +247,19 @@ function logicRegisterPublicApiRoutes(): void
     register_rest_route('glory-logic/v1', '/contexts/(?P<contextId>\\d+)', [
         'methods'             => \WP_REST_Server::DELETABLE,
         'callback'            => 'logicApiEndpointDeleteContext',
+        'permission_callback' => 'logicApiPermissionCallback',
+        'args'                => logicApiRouteArgs([
+            'contextId' => [
+                'required' => true,
+                'type'     => 'integer',
+                'sanitize_callback' => 'absint',
+            ],
+        ]),
+    ]);
+
+    register_rest_route('glory-logic/v1', '/contexts/(?P<contextId>\\d+)/toggle-pin', [
+        'methods'             => \WP_REST_Server::CREATABLE,
+        'callback'            => 'logicApiEndpointTogglePinContext',
         'permission_callback' => 'logicApiPermissionCallback',
         'args'                => logicApiRouteArgs([
             'contextId' => [
@@ -443,6 +474,24 @@ function logicApiEndpointResumeStep(\WP_REST_Request $request)
     return $state;
 }
 
+function logicApiEndpointDeleteStep(\WP_REST_Request $request)
+{
+    $userId = logicApiResolveUserId($request);
+    if (is_wp_error($userId)) {
+        return $userId;
+    }
+
+    $taskId = absint($request->get_param('taskId'));
+    $resultado = logicDeleteStepForUser($userId, $taskId);
+    if (is_wp_error($resultado)) {
+        return $resultado;
+    }
+
+    $state = logicApiBuildFullState($userId);
+    $state['message'] = 'Paso eliminado.';
+    return $state;
+}
+
 function logicApiEndpointGetHabits(\WP_REST_Request $request)
 {
     $userId = logicApiResolveUserId($request);
@@ -586,7 +635,7 @@ function logicApiEndpointGetContexts(\WP_REST_Request $request)
 
     $limit = intval($request->get_param('limit'));
     if ($limit === 0) {
-        $limit = 10; // Default
+        $limit = 30; // Default
     }
     // Limitar entre -1 (todos) y 100
     if ($limit > 0) {
@@ -623,7 +672,9 @@ function logicApiEndpointAddContext(\WP_REST_Request $request)
         return new \WP_Error('logic_api_context_empty', 'El texto del contexto no puede estar vacío.', ['status' => 400]);
     }
 
-    $resultado = logicAddContext($userId, $texto);
+    $pinned = $request->has_param('pinned') ? (bool) $request->get_param('pinned') : false;
+
+    $resultado = logicAddContext($userId, $texto, $pinned);
     if (is_wp_error($resultado)) {
         return $resultado;
     }
@@ -685,6 +736,30 @@ function logicApiEndpointDeleteContext(\WP_REST_Request $request)
         'userId'   => $userId,
         'contexts' => $resultado,
         'message'  => 'Contexto eliminado.',
+    ];
+}
+
+function logicApiEndpointTogglePinContext(\WP_REST_Request $request)
+{
+    $userId = logicApiResolveUserId($request);
+    if (is_wp_error($userId)) {
+        return $userId;
+    }
+
+    $contextId = absint($request->get_param('contextId'));
+    if ($contextId <= 0) {
+        return new \WP_Error('logic_api_context_invalid', 'ID de contexto inválido.', ['status' => 400]);
+    }
+
+    $resultado = logicTogglePinContext($userId, $contextId);
+    if (is_wp_error($resultado)) {
+        return $resultado;
+    }
+
+    return [
+        'userId'   => $userId,
+        'contexts' => $resultado,
+        'message'  => 'Contexto fijado/desfijado.',
     ];
 }
 

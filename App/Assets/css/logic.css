@@ -511,3 +511,42 @@
 
 }
 
+
+.logicItem.is-pinned {
+    border-color: #fcd34d;
+    background: rgba(252, 211, 77, 0.05);
+}
+
+.logicItemPin {
+    border: none;
+    background: transparent;
+    color: inherit;
+    padding: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.logicItemPin:hover,
+.logicItemPin.is-pinned {
+    opacity: 1;
+    color: #fcd34d;
+}
+
+
+.logicItemPin {
+    opacity: 0.7;
+}
+.logicItemPin:hover {
+    opacity: 1;
+    color: #fcd34d;
+}
+
+.logicContextSection {
+    gap: 12px;
+    display: flex;
+    flex-direction: column;
+}

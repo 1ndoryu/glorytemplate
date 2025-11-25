@@ -40,6 +40,8 @@
         contextEmpty: document.getElementById('logicContextEmpty'),
         contextInputQuick: document.getElementById('logicContextInputQuick'),
         contextAddBtnQuick: document.getElementById('logicContextAddBtnQuick'),
+        contextPinBtn: document.getElementById('logicContextPinBtn'),
+        contextPinBtnQuick: document.getElementById('logicContextPinBtnQuick'),
     };
 
     const mensajes = config.strings || {};

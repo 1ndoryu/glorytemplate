@@ -237,8 +237,9 @@ function logicAddContextAjax(): void
 {
     $usuarioId = logicValidateRequest();
     $texto = isset($_POST['texto']) ? (string) $_POST['texto'] : '';
+    $pinned = isset($_POST['pinned']) && $_POST['pinned'];
 
-    $resultado = logicAddContext($usuarioId, $texto);
+    $resultado = logicAddContext($usuarioId, $texto, $pinned);
     if (is_wp_error($resultado)) {
         wp_send_json_error(['mensaje' => $resultado->get_error_message()]);
     }
@@ -306,9 +307,100 @@ function logicGetContextsAjax(): void
     ]);
 }
 
+function logicTogglePinContextAjax(): void
+{
+    $usuarioId = logicValidateRequest();
+    $contextId = isset($_POST['contextId']) ? (int) $_POST['contextId'] : 0;
+
+    $resultado = logicTogglePinContext($usuarioId, $contextId);
+    if (is_wp_error($resultado)) {
+        wp_send_json_error(['mensaje' => $resultado->get_error_message()]);
+    }
+
+    wp_send_json_success([
+        'contexts' => $resultado,
+        'mensaje'  => 'Contexto actualizado.',
+    ]);
+}
+
 add_action('wp_ajax_logic_add_context', 'logicAddContextAjax');
 add_action('wp_ajax_logic_update_context', 'logicUpdateContextAjax');
 add_action('wp_ajax_logic_delete_context', 'logicDeleteContextAjax');
 add_action('wp_ajax_logic_reorder_contexts', 'logicReorderContextsAjax');
 add_action('wp_ajax_logic_get_contexts', 'logicGetContextsAjax');
+add_action('wp_ajax_logic_toggle_pin_context', 'logicTogglePinContextAjax');
 
+function logicDeleteStepAjax(): void
+{
+    $usuarioId = logicValidateRequest();
+    $taskId = isset($_POST['taskId']) ? (int) $_POST['taskId'] : 0;
+
+    $resultado = logicDeleteStepForUser($usuarioId, $taskId);
+    if (is_wp_error($resultado)) {
+        wp_send_json_error(['mensaje' => $resultado->get_error_message()]);
+    }
+
+    wp_send_json_success(array_merge(
+        logicBuildResponse($usuarioId),
+        ['mensaje' => 'Paso eliminado.']
+    ));
+}
+
+add_action('wp_ajax_logic_delete_step', 'logicDeleteStepAjax');
+
+function logicRunAgentAjax(): void
+{
+    $usuarioId = logicValidateRequest();
+
+    $scriptPath = __DIR__ . '/run_agent.js';
+    if (!file_exists($scriptPath)) {
+        wp_send_json_error(['mensaje' => 'No encuentro el script del agente.']);
+    }
+
+    // Attempt to locate node. In many local setups 'node' is in PATH.
+    // If this fails, the user might need to specify the full path to node.
+    $nodeCommand = 'node'; 
+
+    // Prepare command
+    // We pass the user ID as an env var just in case, though the script uses a default or env.
+    // We assume API_OPENROUTER is in the system env or set via other means.
+    // If not, we might need to pass it explicitly if we had access to it here.
+    
+    // On Windows, setting env vars for a single command: "set VAR=val && cmd"
+    // On Linux: "VAR=val cmd"
+    // We'll try to run it directly first.
+    
+    $cmd = sprintf('%s %s 2>&1', $nodeCommand, escapeshellarg($scriptPath));
+    
+    // If we are on Windows, we might want to ensure we are in the correct directory
+    // but using absolute path for script should be enough.
+    
+    $output = [];
+    $returnVar = 0;
+    
+    // Increase time limit for this request as AI might take time
+    set_time_limit(60);
+    
+    exec($cmd, $output, $returnVar);
+    
+    $fullOutput = implode("\n", $output);
+    
+    if ($returnVar !== 0) {
+        // Check if it's a missing API key error
+        if (strpos($fullOutput, 'API_OPENROUTER environment variable is missing') !== false) {
+             wp_send_json_error(['mensaje' => 'Falta la variable API_OPENROUTER en el entorno del servidor.']);
+        }
+        wp_send_json_error(['mensaje' => 'Error del agente: ' . $fullOutput]);
+    }
+
+    // Refresh state to show changes made by agent
+    wp_send_json_success(array_merge(
+        logicBuildResponse($usuarioId),
+        [
+            'mensaje' => 'Agente ejecutado correctamente.',
+            'agentOutput' => $fullOutput
+        ]
+    ));
+}
+
+add_action('wp_ajax_logic_run_agent', 'logicRunAgentAjax');

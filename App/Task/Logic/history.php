@@ -92,3 +92,6 @@ function logicDeleteHistoryEntry(int $usuarioId, int $historialId): void
     wp_trash_post($tarea->ID);
 }
 
+
+
+

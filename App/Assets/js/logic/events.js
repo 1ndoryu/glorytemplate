@@ -263,6 +263,16 @@
                 }
             });
         }
+        
+        const runAgentBtn = document.getElementById('logicRunAgentBtn');
+        if (runAgentBtn) {
+            runAgentBtn.addEventListener('click', () => {
+                if (app.actions && app.actions.runAgent) {
+                    app.actions.runAgent();
+                }
+            });
+        }
+
     }
 
     app.events = { registrar };

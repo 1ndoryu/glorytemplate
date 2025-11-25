@@ -13,6 +13,7 @@ if (!defined('ABSPATH')) {
 
 /**
  * Obtiene los contextos del usuario, ordenados según su preferencia.
+ * Los contextos fijados aparecen siempre primero.
  *
  * @param int $userId
  * @param int $limit Límite de contextos a retornar (default: 10, -1 para todos)
@@ -20,13 +21,8 @@ if (!defined('ABSPATH')) {
  * @param int|null $dateTo Timestamp hasta el cual filtrar (fecha creación <= dateTo)
  * @return array
  */
-function logicGetContexts($userId, $limit = 10, $dateFrom = null, $dateTo = null)
+function logicGetContexts($userId, $limit = 30, $dateFrom = null, $dateTo = null)
 {
-    $order = get_user_meta($userId, 'logic_context_order', true);
-    if (!is_array($order)) {
-        $order = [];
-    }
-
     $metaQuery = [
         [
             'key'   => 'sesion',
@@ -58,45 +54,45 @@ function logicGetContexts($userId, $limit = 10, $dateFrom = null, $dateTo = null
         'post_type'   => 'tarea',
         'post_status' => 'publish',
         'author'      => $userId,
-        'numberposts' => -1, // Obtenemos todos primero para ordenar
+        'numberposts' => -1,
         'meta_query'  => $metaQuery,
+        'orderby'     => 'date',
+        'order'       => 'DESC',
     ];
 
     $posts = get_posts($args);
-    $contextsById = [];
+    $pinnedContexts = [];
+    $normalContexts = [];
 
     foreach ($posts as $p) {
-        $contextsById[$p->ID] = [
+        $creado = get_post_meta($p->ID, 'logic_context_created', true);
+        $editado = get_post_meta($p->ID, 'logic_context_updated', true);
+        $pinned = (bool) get_post_meta($p->ID, 'logic_context_pinned', true);
+        
+        $ctx = [
             'id'           => $p->ID,
             'texto'        => $p->post_title,
-            'creado'       => get_post_meta($p->ID, 'logic_context_created', true),
-            'editado'      => get_post_meta($p->ID, 'logic_context_updated', true),
-            // Formato legible para el frontend
-            'creadoLabel'  => date_i18n('d M Y H:i', get_post_meta($p->ID, 'logic_context_created', true)),
-            'editadoLabel' => date_i18n('d M Y H:i', get_post_meta($p->ID, 'logic_context_updated', true)),
+            'creado'       => $creado,
+            'editado'      => $editado,
+            'pinned'       => $pinned,
+            'creadoLabel'  => date_i18n('d M Y H:i', $creado),
+            'editadoLabel' => date_i18n('d M Y H:i', $editado),
         ];
-    }
-
-    // Ordenar según $order
-    $sorted = [];
-    // Primero los que están en $order
-    foreach ($order as $id) {
-        if (isset($contextsById[$id])) {
-            $sorted[] = $contextsById[$id];
-            unset($contextsById[$id]);
+        
+        if ($pinned) {
+            $pinnedContexts[] = $ctx;
+        } else {
+            $normalContexts[] = $ctx;
         }
     }
-    // Luego los nuevos (que no estaban en $order) al final
-    foreach ($contextsById as $ctx) {
-        $sorted[] = $ctx;
-    }
 
-    // Aplicar límite si es necesario
+    // Aplicar límite solo a los no fijados (los fijados siempre se muestran)
     if ($limit > 0) {
-        $sorted = array_slice($sorted, 0, $limit);
+        $normalContexts = array_slice($normalContexts, 0, $limit);
     }
 
-    return $sorted;
+    // Combinar: fijados primero, luego normales (limitados)
+    return array_merge($pinnedContexts, $normalContexts);
 }
 
 /**
@@ -104,9 +100,10 @@ function logicGetContexts($userId, $limit = 10, $dateFrom = null, $dateTo = null
  *
  * @param int $userId
  * @param string $texto
+ * @param bool $pinned Si el contexto debe ser fijado
  * @return array|WP_Error
  */
-function logicAddContext($userId, $texto)
+function logicAddContext($userId, $texto, $pinned = false)
 {
     $texto = sanitize_text_field($texto);
     if (empty($texto)) {
@@ -124,6 +121,7 @@ function logicAddContext($userId, $texto)
             'sesion'                => 'logic_context',
             'logic_context_created' => $now,
             'logic_context_updated' => $now,
+            'logic_context_pinned'  => $pinned ? 1 : 0,
         ],
     ]);
 
@@ -222,6 +220,33 @@ function logicReorderContexts($userId, $newOrderIds)
     // (Para optimizar, confiamos en que el frontend envía lo correcto, pero saneamos)
     $cleanOrder = array_map('intval', $newOrderIds);
     update_user_meta($userId, 'logic_context_order', $cleanOrder);
+
+    return logicGetContexts($userId);
+}
+
+/**
+ * Fija o desfija un contexto.
+ *
+ * @param int $userId
+ * @param int $contextId
+ * @return array|WP_Error
+ */
+function logicTogglePinContext($userId, $contextId)
+{
+    $post = get_post($contextId);
+    if (!$post || $post->post_author != $userId || $post->post_type !== 'tarea') {
+        return new WP_Error('invalid_context', 'Contexto no válido.');
+    }
+
+    $sesion = get_post_meta($contextId, 'sesion', true);
+    if ($sesion !== 'logic_context') {
+        return new WP_Error('invalid_context', 'Este item no es un contexto.');
+    }
+
+    $currentPinned = (bool) get_post_meta($contextId, 'logic_context_pinned', true);
+    $newPinned = !$currentPinned;
+    
+    update_post_meta($contextId, 'logic_context_pinned', $newPinned ? 1 : 0);
 
     return logicGetContexts($userId);
 }

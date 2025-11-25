@@ -1,5 +1,9 @@
 # API pública de Logic
 
+nota del usuario, si recibes este md significa que debes ejecutar el agente de Logic (tu mismo usando la api local, tu eres el agente, estamos en windows). (no ejecutar run_agent.js, eso es para casos manuales), no necesitas analizar archivos solo cuando algo falla cuando ejecutes la api, confia en este md, si algo falla, arreglalo. Lo recomendable es ejecutar state y apartir de ahi tomar decisiones. No siempre tienes que tomar una decisión, si todo parece bien, no tienes que hacer nada.
+
+ya estan las variables LOGIC_API_KEY y API_LOGIC_URL en el env
+
 Esta API expone todo el espacio Logic para que agentes externos (p. ej. IA) puedan leer y actualizar pasos, historial, hábitos y mensaje de ayuda mediante JSON.
 
 ## Autenticación
@@ -16,13 +20,14 @@ Esta API expone todo el espacio Logic para que agentes externos (p. ej. IA) pued
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| `GET` | `/state` | Devuelve tareas activas, hábito rápidos, historial (limit), mensaje de ayuda y límites. |
+| `GET` | `/state` | Devuelve tareas activas, hábito rápidos, historial (limit), mensaje de ayuda limites y contextos (últimos 30). |
 | `GET` | `/history` | Lista el historial (parámetro `limit`, por defecto 30). |
 | `DELETE` | `/history/{historyId}` | Elimina un registro concreto del historial. |
 | `POST` | `/steps` | Crea un nuevo paso (`titulo`). |
 | `POST` | `/steps/{taskId}/finish` | Libera/completa un paso. |
 | `POST` | `/steps/{taskId}/pause` | Pausa un paso activo. |
 | `POST` | `/steps/{taskId}/resume` | Reanuda un paso pausado. |
+| `DELETE` | `/steps/{taskId}` | Elimina un paso activo. |
 | `GET` | `/habits` | Devuelve los hábitos rápidos disponibles. |
 | `POST` | `/habits` | Agrega un hábito (`titulo`). |
 | `POST` | `/habits/rename` | Cambia el nombre de un hábito (`titulo`, `nuevoTitulo`). |
@@ -30,7 +35,7 @@ Esta API expone todo el espacio Logic para que agentes externos (p. ej. IA) pued
 | `GET` | `/help-message` | Devuelve el mensaje de ayuda vigente. |
 | `POST` | `/help-message` | Crea/actualiza el mensaje (`mensaje`, `duracion` en segundos). |
 | `DELETE` | `/help-message` | Elimina el mensaje de ayuda. |
-| `GET` | `/contexts` | Devuelve los bloques de contexto del usuario. Parámetros: `limit` (default: 10), `dateFrom`, `dateTo`. |
+| `GET` | `/contexts` | Devuelve los bloques de contexto del usuario. Parámetros: `limit` (default: 30), `dateFrom`, `dateTo`. |
 | `POST` | `/contexts` | Crea un nuevo bloque de contexto (`texto`). |
 | `PUT` | `/contexts/{contextId}` | Actualiza el texto de un contexto existente (`texto`). |
 | `DELETE` | `/contexts/{contextId}` | Elimina un bloque de contexto. |
@@ -123,11 +128,34 @@ curl -X DELETE '.../help-message?userId=12' \
   -H 'X-Glory-Logic-Key: TU_API_KEY'
 ```
 
-### 6. Bloques de Contexto
+### 7. Bloques de Contexto
 
-**Listar contextos:**
+**Listar contextos (últimos 10):**
 ```bash
 curl -X GET 'https://tu-sitio.com/wp-json/glory-logic/v1/contexts?userId=12' \
+  -H 'X-Glory-Logic-Key: TU_API_KEY'
+```
+
+**Listar con límite personalizado (últimos 5):**
+```bash
+curl -X GET 'https://tu-sitio.com/wp-json/glory-logic/v1/contexts?userId=12&limit=5' \
+  -H 'X-Glory-Logic-Key: TU_API_KEY'
+```
+
+**Listar todos los contextos:**
+```bash
+curl -X GET 'https://tu-sitio.com/wp-json/glory-logic/v1/contexts?userId=12&limit=-1' \
+  -H 'X-Glory-Logic-Key: TU_API_KEY'
+```
+
+**Filtrar por rango de fechas (timestamp):**
+```bash
+# Contextos creados desde el 1 de noviembre de 2023
+curl -X GET 'https://tu-sitio.com/wp-json/glory-logic/v1/contexts?userId=12&dateFrom=1698796800' \
+  -H 'X-Glory-Logic-Key: TU_API_KEY'
+
+# Contextos creados entre dos fechas
+curl -X GET 'https://tu-sitio.com/wp-json/glory-logic/v1/contexts?userId=12&dateFrom=1698796800&dateTo=1699401600&limit=20' \
   -H 'X-Glory-Logic-Key: TU_API_KEY'
 ```
 
@@ -144,7 +172,9 @@ Respuesta:
       "creadoLabel": "14 Nov 2023 10:00",
       "editadoLabel": "14 Nov 2023 10:16"
     }
-  ]
+  ],
+  "limit": 10,
+  "count": 1
 }
 ```
 
@@ -187,4 +217,5 @@ curl -X DELETE 'https://tu-sitio.com/wp-json/glory-logic/v1/contexts/789?userId=
 | `logic_step_limit` | Límite de pasos activos alcanzado. | Libera alguno antes de crear otro. |
 
 > **Tip**: si necesitas diferentes claves por entorno, usa `LOGIC_API_KEY` en `.env` para sobreescribir la opción del panel automáticamente.
+
 

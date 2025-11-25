@@ -313,3 +313,19 @@ function logicResumeStepForUser(int $usuarioId, int $taskId)
     return true;
 }
 
+function logicDeleteStepForUser(int $usuarioId, int $taskId)
+{
+    if ($taskId <= 0) {
+        return new \WP_Error('logic_step_invalid', 'Selecciona el paso que quieres eliminar.', ['status' => 400]);
+    }
+
+    $tarea = logicFindActiveTask($usuarioId, $taskId);
+    if (!$tarea instanceof \WP_Post) {
+        return new \WP_Error('logic_step_delete_missing', 'No pude eliminar ese paso.', ['status' => 404]);
+    }
+
+    wp_trash_post($tarea->ID);
+    logicRemoveTaskFromOrder($usuarioId, (int) $tarea->ID);
+
+    return true;
+}
