@@ -45,6 +45,7 @@ GloryFeatures::enable('gloryRealtime');
 
 // Task feature flag
 GloryFeatures::enable('task');
+GloryFeatures::enable('amazonProduct');
 
 // Renderers
 GloryFeatures::enable('logoRenderer');

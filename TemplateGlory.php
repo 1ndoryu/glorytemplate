@@ -24,7 +24,7 @@ if ($modo === 'editor') {
             echo $contenido; // Imprimir solo si hay contenido real
         }
     }
-} elseif ($funcionRenderizar && function_exists($funcionRenderizar)) {
+} elseif ($funcionRenderizar && is_callable($funcionRenderizar)) {
     // Llama a la función específica de la página (ej: home(), contacto(), etc.)
     call_user_func($funcionRenderizar);
 } else {
