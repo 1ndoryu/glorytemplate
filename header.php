@@ -39,5 +39,6 @@ use Glory\Components\ThemeToggle;
         'idMenu'      => 'mainMenu' 
     ];
     HeaderRenderer::render($configHeader);
+    echo ThemeToggle::render();
     ?>
     <main id="main" class="main">

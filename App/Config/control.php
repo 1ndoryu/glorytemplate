@@ -44,7 +44,7 @@ GloryFeatures::enable('gloryBusqueda');
 GloryFeatures::enable('gloryRealtime');
 
 // Task feature flag
-GloryFeatures::disable('task');
+GloryFeatures::enable('task');
 
 // Renderers
 GloryFeatures::enable('logoRenderer');

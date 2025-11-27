@@ -21,7 +21,7 @@ function manejarSeleccionTarea(ev) {
     const id = tareaElem.getAttribute('id-post');
 
     if (ev.ctrlKey) {
-        // Lógica de selección/deselección con Ctrl (sin cambios)
+        // Lógica de selección/deselección con Ctrl
         if (tareasSeleccionadas.includes(id)) {
             tareasSeleccionadas = tareasSeleccionadas.filter(selId => selId !== id);
             tareaElem.classList.remove('seleccionado');
@@ -29,24 +29,133 @@ function manejarSeleccionTarea(ev) {
             tareasSeleccionadas.push(id);
             tareaElem.classList.add('seleccionado');
         }
+        window.ultimaTareaSeleccionada = tareaElem;
+    } else if (ev.shiftKey && window.ultimaTareaSeleccionada) {
+        // Lógica de selección con Shift (Rango)
+        const todas = Array.from(document.querySelectorAll('.draggable-element'));
+        const idxActual = todas.indexOf(tareaElem);
+        const idxUltima = todas.indexOf(window.ultimaTareaSeleccionada);
+
+        if (idxActual !== -1 && idxUltima !== -1) {
+            const start = Math.min(idxActual, idxUltima);
+            const end = Math.max(idxActual, idxUltima);
+
+            // Deseleccionar todo primero para reconstruir el rango limpiamente (opcional, o acumular)
+            // En exploradores de archivos, Shift suele extender la selección desde el "ancla".
+            // Aquí simplificaremos: Shift+Click define el rango desde la última tocada.
+            
+            // Si no se quiere perder la selección previa que estaba fuera del rango, habría que ser más complejo.
+            // Asumiremos comportamiento estándar: Shift+Click extiende/define selección.
+            
+            // Limpiamos visualmente pero mantenemos lógica
+            deseleccionarTareas(false); // false para no borrar ultimaTareaSeleccionada aun
+
+            for (let i = start; i <= end; i++) {
+                const t = todas[i];
+                const tid = t.getAttribute('id-post');
+                if (tid && !tareasSeleccionadas.includes(tid)) {
+                    tareasSeleccionadas.push(tid);
+                    t.classList.add('seleccionado');
+                }
+            }
+        }
     } else {
-        // Clic simple (sin Ctrl) directamente en una tarea (no en un control específico dentro de ella)
-        // Deseleccionar otras y seleccionar solo esta.
+        // Clic simple (sin Ctrl ni Shift)
         if (!tareasSeleccionadas.includes(id) || tareasSeleccionadas.length > 1) {
-            deseleccionarTareas(); // Limpia selecciones previas
-            tareasSeleccionadas.push(id); // Selecciona la actual
+            deseleccionarTareas(); 
+            tareasSeleccionadas.push(id); 
             tareaElem.classList.add('seleccionado');
         }
-        // Si se hace clic en una tarea que ya es la única seleccionada, no hace nada.
+        window.ultimaTareaSeleccionada = tareaElem;
     }
+    actualizarBarraAcciones();
 }
 
-function deseleccionarTareas() {
+function deseleccionarTareas(limpiarUltima = true) {
     tareasSeleccionadas.forEach(id => {
         const tarea = document.querySelector(`.draggable-element[id-post="${id}"]`);
         if (tarea) tarea.classList.remove('seleccionado');
     });
     tareasSeleccionadas = [];
+    if (limpiarUltima) window.ultimaTareaSeleccionada = null;
+    actualizarBarraAcciones();
+}
+
+function actualizarBarraAcciones() {
+    let barra = document.getElementById('barraAccionesSeleccion');
+    if (!barra) {
+        crearBarraAcciones();
+        barra = document.getElementById('barraAccionesSeleccion');
+    }
+
+    if (tareasSeleccionadas.length > 0) {
+        barra.classList.add('visible');
+        const contador = barra.querySelector('.contadorSeleccion');
+        if (contador) contador.textContent = tareasSeleccionadas.length;
+    } else {
+        barra.classList.remove('visible');
+    }
+}
+
+function crearBarraAcciones() {
+    const div = document.createElement('div');
+    div.id = 'barraAccionesSeleccion';
+    div.className = 'barraAccionesSeleccion';
+    div.innerHTML = `
+        <span class="contadorSeleccion" style="color: #888; font-size: 12px; margin-right: 5px;">0</span>
+        <div class="separador"></div>
+        <button id="btnArchivarSeleccion" title="Archivar">
+            <svg viewBox="0 0 24 24"><path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12.14l.81 1H5.12z"/></svg>
+        </button>
+        <button id="btnBorrarSeleccion" title="Borrar">
+            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        </button>
+    `;
+    document.body.appendChild(div);
+
+    div.querySelector('#btnArchivarSeleccion').addEventListener('click', async () => {
+        const confirmed = await window.confirm(`¿Archivar ${tareasSeleccionadas.length} tareas?`);
+        if (confirmed) {
+            const ids = [...tareasSeleccionadas];
+            for (const id of ids) {
+                 try {
+                     await enviarAjax('archivarTarea', { id: id, desarchivar: false });
+                     const el = document.querySelector(`.draggable-element[id-post="${id}"]`);
+                     if (el) {
+                         el.classList.add('archivado');
+                         el.setAttribute('estado', 'archivado');
+                         const lista = document.querySelector('.listaTareas');
+                         if(lista) lista.appendChild(el);
+                     }
+                 } catch(e) { console.error(e); }
+            }
+            deseleccionarTareas();
+        }
+    });
+
+    div.querySelector('#btnBorrarSeleccion').addEventListener('click', async () => {
+        const confirmed = await window.confirm(`¿Borrar ${tareasSeleccionadas.length} tareas?`);
+        if (confirmed) {
+             const ids = [...tareasSeleccionadas];
+             
+             // Optimistic UI: Remove from DOM immediately AFTER confirmation
+             ids.forEach(id => {
+                 const el = document.querySelector(`.draggable-element[id-post="${id}"]`);
+                 if (el) el.remove();
+             });
+             deseleccionarTareas(); // Clear selection state
+
+             // Prepare requests
+             const nonce = (typeof task_vars !== 'undefined' && task_vars.borrar_tarea_nonce) ? task_vars.borrar_tarea_nonce : '';
+             const promesas = ids.map(id => {
+                 return enviarAjax('borrarTarea', { id: id, nonce: nonce })
+                     .catch(e => console.error(`Error borrando tarea ${id}:`, e));
+             });
+
+             // Execute all requests
+             await Promise.all(promesas);
+        }
+    });
 }
 
 function moverTarea() {

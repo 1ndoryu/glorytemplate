@@ -124,7 +124,7 @@ window.pegarTareaHandler = function (ev) {
 //te dejo un ejemplo correcto
 window.enviarTareaHandler = function (ev) {
     const tit = document.getElementById('tituloTarea');
-    const listaTareas = document.querySelector('.listaTareas');
+    let listaTareas = document.querySelector('.listaTareas');
 
     if (ev.key === 'Enter') {
         ev.preventDefault();
@@ -151,11 +151,59 @@ window.enviarTareaHandler = function (ev) {
             enviarAjax('crearTarea', { ...data, titulo: tituloParaEnviar })
                 .then(async rta => {
                     if (rta.success) {
-                        alert('Tarea creada.');
+                        // Si no existe la lista de tareas, traerla completa del servidor CON submenús
+                        if (!listaTareas) {
+                            try {
+                                // Llamar directamente a obtenerHtmlLista con TODOS los parámetros de task.php
+                                const res = await enviarAjax('obtenerHtmlLista', {
+                                    postType: 'tarea',
+                                    plantilla: 'plantillaTarea',
+                                    publicacionesPorPagina: 34,
+                                    claseContenedor: 'listaTareas bloque',
+                                    claseItem: 'tareaItem',
+                                    submenu: true,  // CRÍTICO: esto genera los menús contextuales
+                                    eventoAccion: 'dblclick',
+                                    selectorItem: '.tareaItem, .draggable-element, [id-post], [id^="post-"]',
+                                    argumentosConsulta: JSON.stringify({})
+                                });
+                                
+                                if (res && res.success) {
+                                    const html = typeof res.data === 'string' ? res.data : '';
+                                    const target = document.querySelector('.tareasList');
+                                    if (target && html) {
+                                        target.innerHTML = html;
+                                    }
+                                }
+                                
+                                // Delay para asegurar que el DOM esté listo
+                                setTimeout(() => {
+                                    initTareas();
+                                    window.guardarOrden();
+                                    
+                                    const event = new CustomEvent('gloryRecarga', {
+                                        bubbles: true,
+                                        detail: { contentElement: document.querySelector('.tareasList') }
+                                    });
+                                    document.dispatchEvent(event);
+                                }, 50);
 
+                                return; // Salimos, ya que reiniciarContenido se encargó de mostrar la tarea
+                            } catch (e) {
+                                console.error('Error al reiniciar contenido para la primera tarea:', e);
+                            }
+                        }
+
+                        // Flujo normal (ya existe la lista): inserción manual para velocidad
                         const tareaNueva = await window.reiniciarPost(rta.data.tareaId, 'tarea');
+                        
+                        // Re-seleccionar por si acaso
+                        listaTareas = document.querySelector('.listaTareas');
 
                         if (tareaNueva && listaTareas) {
+                            // Eliminar mensaje de "no hay tareas" si existe
+                            const placeholder = listaTareas.querySelector('.no-tareas-placeholder');
+                            if (placeholder) placeholder.remove();
+
                             const primerDivisor = listaTareas.querySelector('.divisorTarea');
 
                             if (primerDivisor) {
@@ -164,11 +212,18 @@ window.enviarTareaHandler = function (ev) {
                                 listaTareas.insertAdjacentHTML('afterbegin', tareaNueva);
                             }
 
-                            initTareas();
-                            window.guardarOrden();
+                            // Delay y eventos también para el flujo normal
+                            setTimeout(() => {
+                                initTareas();
+                                window.guardarOrden();
+                                const event = new CustomEvent('gloryRecarga', {
+                                    bubbles: true,
+                                    detail: { contentElement: listaTareas }
+                                });
+                                document.dispatchEvent(event);
+                            }, 50);
                         } else {
-                            console.error('enviarTareaHandler: No se recibio respuesta o no se encontro la lista de tareas.');
-                            console.error(`enviarTareaHandler: tareaNueva=${tareaNueva}, listaTareas=${listaTareas}`);
+                            console.error('enviarTareaHandler: No se pudo insertar la tarea.');
                         }
                     } else {
                         let m = 'enviarTareaHandler: Error al crear tarea.';

@@ -26,7 +26,7 @@ AssetManager::defineFolder(
 AssetManager::define(
     'style',
     'tema-task',
-    'App/Assets/css/task.css',
+    '/App/Assets/css/task.css',
     [
         'deps'    => [],
         'media'   => 'all',
