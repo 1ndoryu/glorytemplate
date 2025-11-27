@@ -1,17 +1,3 @@
-Vamos a crear un plugin para glory (una carpeta plugin dentro del framework glory de plugin, se activara o apagara en contro.php)
-
-este plugin tiene que ser capaz de renderizar productos de amazon, (no usara gbn ni se integrara con avada)
-
-tiene que tener un panel en el wp-admin intuitivo, la api aun no se ha apagado asi que en el proceso tiene que imprimir contenido de prueba mientras tanto, hice la documentacion de la api real que va a a usar. 
-
-Cosas tecnicas, tiene que estar integrado con glory, los productos tiene que cachearse para no consumir la api cada vez, tienen que manejarse como un postType de wordpress, tiene que estar integrado con contentRender de Glory, aprovecha la funcionalidad de glory en como imprime los postType, asi deberían poder imprimirme los productos, aprovechar la funcionalidad de glory para las tablas y paneles, esto tiene que ser un plugin agnostico (todo en /Glory es agnostico, /App son cosas especificas para el tema)
-
-este es un tema de prueba asi puedes crear paginas para ir probando
-
-*tendra algunas cosas interesantes como filtrado, buscada (en el front, asi como una tienda online moderna y completa)
-
-el diseño tene que ser minimalista, moderno y responsive, optimizado para seo
-
 # Documentación de Amazon Data API
 
 Esta API permite acceder a datos de productos de Amazon, incluyendo detalles por ASIN, búsqueda por palabras clave, ofertas y conversión de UPC a ASIN.
