@@ -3,31 +3,20 @@
 function contructor()
 {
 ?>
-    <style>
-        .primario {
-            display: flex;
-            padding: 20px;
-        }
-
-        .secundario {
-            padding: 20px;
-        }
-
-    </style>
-    <div gloryDiv class="primario">
-        <div gloryDivSecundario class="secundario">
+    <div gloryDiv>
+        <div gloryDivSecundario>
             <p gloryTexto>Texto de ejemplo Uno</p>
         </div>
-        <div gloryDivSecundario class="secundario"> 
+        <div gloryDivSecundario> 
             <p gloryTexto>Texto de ejemplo Dos</p>
         </div>
     </div>
 
-    <div gloryDiv class="primario">
-        <div gloryDivSecundario class="secundario">
+    <div gloryDiv>
+        <div gloryDivSecundario>
             <p gloryTexto>Texto de ejemplo Tres</p>
         </div>
-        <div gloryDivSecundario class="secundario"> 
+        <div gloryDivSecundario> 
             <p gloryTexto>Texto de ejemplo Cuatro</p>
         </div>
     </div>
@@ -110,4 +99,21 @@ otro problema es que en los tamaños de fuente del componente texto, por ejemplo
 paso 3
 
 el problema de error de conexion y no guardar cambio ni mostrarlo en tiempo real cuando se trata del panel de configuracion del tema o de pagina continua, necesito resolver este problema primero, foco total en esto
+
+paso 4 
+
+ya se solucionaron casi todos los problemas 
+
+faltan mas cosas
+
+cuando se abre las configuraciones de componete texto, respecto a lo que dice de "Contenido", hay un problema,
+
+primero que debería cargar el contenido real, no eso que dice por defecto de "Nuevo texto"
+
+segundo debería tener las opciones de fuente como las hicimso reciente, fuente, tamaño, line height, etc,
+
+la parte de contenido debe ser mas elaborada, debe ser basicamente un editor de text donde podemso poner negritas, cursiva cosas asi pero minimalista y sencillo 
+
+los botones al hacer hover de los componentes, de todos los componentes (la barra donde aparece el boton de eliminar o configurar) deben aparecer centrados en el componente, el resto de barras de los div principales y secundarios deben seguir igual en esquina superior
+
 */
