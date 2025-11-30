@@ -26,6 +26,17 @@ function contructor()
         <div gloryDivSecundario class="divSecundarioTres" style="padding-top: 100px;">
             <div gloryContentRender="post" opciones="<?php echo esc_attr($opciones); ?>">
             </div>
+            <?php
+            if (class_exists(\Glory\Components\TermRender::class)) {
+                echo '<div style="margin-top: 20px; border: 1px dashed #ccc; padding: 10px;">';
+                echo '<h4>TermRender Demo</h4>';
+                \Glory\Components\TermRender::print('category', [
+                    'numero' => 5,
+                    'claseContenedor' => 'gbn-term-list-demo',
+                ]);
+                echo '</div>';
+            }
+            ?>
         </div>
     </div>
 <?php

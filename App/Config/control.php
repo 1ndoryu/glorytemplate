@@ -8,7 +8,7 @@ GloryFeatures::enable('assetManager');
 GloryFeatures::enable('opcionManagerSync');
 GloryFeatures::enable('syncManager');
 GloryFeatures::enable('gloryLogger');
-GloryFeatures::disable('gbn');
+GloryFeatures::enable('gbn');
 GloryFeatures::enable('pageManager');
 GloryFeatures::enable('postTypeManager');
 GloryFeatures::enable('taxonomyMetaManager');

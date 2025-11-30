@@ -1,4 +1,3 @@
-
 <?php
 /**
  * Template Name: Glory Central Template
@@ -26,7 +25,9 @@ if ($modo === 'editor') {
     }
 } elseif ($funcionRenderizar && is_callable($funcionRenderizar)) {
     // Llama a la función específica de la página (ej: home(), contacto(), etc.)
+    echo '<div data-gbn-root>';
     call_user_func($funcionRenderizar);
+    echo '</div>';
 } else {
     // Contenido de respaldo si algo falla
     echo '<h1>Error: Página no configurada correctamente.</h1>';
