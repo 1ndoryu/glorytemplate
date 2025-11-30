@@ -35,7 +35,7 @@ function contructor()
 }
 
 /*
-Idea. 
+Idea, paso 1
 
 Para la el apartado de configuración del tema
 
@@ -89,4 +89,21 @@ algo más sobre los bloques secundarios, una configuracion especial, el tamaño
 cuando se agrega un bloque secundario, tiene que preguntar por el tamaño de este, los tamaños van a ser 1/1, 5/6, 4/5, 3/4, 2/3, 3/5, 1/2, 2/5, 1/3, 1/4, 1/5, 1/6. 
 
 asi si hay 2 div secundarios dentro de un div primario y ambos secundarios tienen 1/2, significa que ambos ocuparan las 2 mitades del primaro, creo que con esto se entiende la idea. 
+
+Idea, paso 2 
+
+Algunas cosas de la anteriores no se aplicaron correctamente, empezando por las configuraciones del tema, no se aplica, no se guardan, tampoco tienen efecto en tiempo real, cuando seleciono un color, sigue apareciendo el selector por defecto y no un selector propio donde aparezca los colores por defecto definidos, los default (padding de pagina) por lo visto si se aplica el padding 20px por defecto pero ese valor por defecto de debería cargar en las opciones de default de pagina
+
+luego esta el problema de que cuando abro las configuraciones de la pagina, abre la priimera vez pero a la segunda a cambiar de configuraciones de pagina a la del tema aparece 
+
+Uncaught TypeError: Cannot read properties of null (reading 'replaceChild')
+    at renderPlaceholder (panel-core.js?ver=1764498808:30:36)
+    at Object.close (panel-core.js?ver=1764498808:321:35)
+    at HTMLButtonElement.<anonymous> (panel-core.js?ver=1764498808:83:27)
+
+El contenido del componente texto debería cargar el que ya tiene en vez de poner "Nuevo texto"
+
+las configuraciones de ancho 1/1, no estan todas, faltan algunas, tiene que ser todas las que indique, no se ve que tenga un efecto real, si asigno 1/1, debería ocupar todo el ancho pero eso no sucede, si aplico 1/2, debería ocupar la mitad del div principal pero no sucede en tiempo real ni creo que al guardar, tampoco las opciones de Layout del div principal parecen tener algun efecto, por ejemplo si pongo Justify Content centrado, los div secundarios no se centran
+
+otro problema es que en los tamaños de fuente del componente texto, por ejemplo si pongo un valor como "22" funciona pero si pongo "22px" no, debería poder ser valido ambos o si quiero colocar 1rem tambien
 */

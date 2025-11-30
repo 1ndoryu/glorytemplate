@@ -25,7 +25,29 @@ if ($modo === 'editor') {
     }
 } elseif ($funcionRenderizar && is_callable($funcionRenderizar)) {
     // Llama a la función específica de la página (ej: home(), contacto(), etc.)
-    echo '<div data-gbn-root>';
+    $pageSettings = get_post_meta($postId, 'gbn_page_settings', true);
+    $pageSettings = is_array($pageSettings) ? $pageSettings : [];
+    
+    $rootClass = 'gbnPage-' . $postId;
+    $rootStyle = '';
+    
+    // Default padding 20px if not set
+    if (empty($pageSettings['padding'])) {
+        $rootStyle .= 'padding: 20px;';
+    } else {
+        if (is_array($pageSettings['padding'])) {
+            $p = $pageSettings['padding'];
+            $rootStyle .= "padding: {$p['superior']}px {$p['derecha']}px {$p['inferior']}px {$p['izquierda']}px;";
+        } else {
+            $rootStyle .= 'padding: ' . intval($pageSettings['padding']) . 'px;';
+        }
+    }
+    
+    if (!empty($pageSettings['background'])) {
+        $rootStyle .= 'background-color: ' . esc_attr($pageSettings['background']) . ';';
+    }
+
+    echo '<div data-gbn-root class="' . esc_attr($rootClass) . '" style="' . esc_attr($rootStyle) . '">';
     call_user_func($funcionRenderizar);
     echo '</div>';
 } else {
