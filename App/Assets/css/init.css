@@ -539,7 +539,7 @@ form {
 input,
 textarea {
     background: unset !important;
-    padding: 0.7rem 0rem !important;
+    /* padding: 0.7rem 0rem !important; */
     border-bottom: var(--borde) !important;
     font-size: 1.2rem !important;
     /* Usar token de tema para el color del texto */

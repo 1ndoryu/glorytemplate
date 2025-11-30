@@ -106,4 +106,8 @@ El contenido del componente texto debería cargar el que ya tiene en vez de pone
 las configuraciones de ancho 1/1, no estan todas, faltan algunas, tiene que ser todas las que indique, no se ve que tenga un efecto real, si asigno 1/1, debería ocupar todo el ancho pero eso no sucede, si aplico 1/2, debería ocupar la mitad del div principal pero no sucede en tiempo real ni creo que al guardar, tampoco las opciones de Layout del div principal parecen tener algun efecto, por ejemplo si pongo Justify Content centrado, los div secundarios no se centran
 
 otro problema es que en los tamaños de fuente del componente texto, por ejemplo si pongo un valor como "22" funciona pero si pongo "22px" no, debería poder ser valido ambos o si quiero colocar 1rem tambien
+
+paso 3
+
+el problema de error de conexion y no guardar cambio ni mostrarlo en tiempo real cuando se trata del panel de configuracion del tema o de pagina continua, necesito resolver este problema primero, foco total en esto
 */
