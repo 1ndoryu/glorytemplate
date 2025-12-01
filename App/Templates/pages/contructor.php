@@ -5,21 +5,27 @@ function contructor()
    $opciones = "plantilla: 'plantillaPosts'";
 ?>
     
-    <div gloryDiv>
+    <style>
+        .divClaseTest {
+            padding: 50px;
+            background-color: #ff9f9f;
+        }
+    </style>
+    <div gloryDiv style="padding: 50px; background-color: #f0f0f0;">
         <div gloryDivSecundario>
-            <p gloryTexto>Texto de ejemplo Uno</p>
+            <p gloryTexto>Aqui voy agregar estilos inline</p>
         </div>
-        <div gloryDivSecundario> 
-            <p gloryTexto>Texto de ejemplo Dos</p>
+        <div gloryDivSecundario>
+            <p gloryTexto>Aqui voy agregar estilos inline</p>
         </div>
     </div>
 
-    <div gloryDiv>
+    <div gloryDiv class="divClaseTest">
         <div gloryDivSecundario>
-            <p gloryTexto>Texto de ejemplo Tres</p>
+            <p gloryTexto>Y aqui voy agregar estilos mediante clases</p>
         </div>
-        <div gloryDivSecundario> 
-            <p gloryTexto>Texto de ejemplo Cuatro</p>
+        <div gloryDivSecundario>
+            <p gloryTexto>Y aqui voy agregar estilos mediante clases</p>
         </div>
     </div>
     <div gloryDiv>
