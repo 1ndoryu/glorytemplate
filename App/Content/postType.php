@@ -27,3 +27,27 @@ PostTypeManager::define(
 );
 
 
+//portfolio
+PostTypeManager::define(
+    'portfolio',
+    [
+        'public' => true,
+        'has_archive' => true,
+        'supports' => ['title', 'editor', 'thumbnail'],
+        'menu_icon' => 'dashicons-portfolio',
+    ],
+    'Portafolio',
+    'Portafolios'
+);
+//Services 
+PostTypeManager::define(
+    'services',
+    [
+        'public' => true,
+        'has_archive' => true,
+        'supports' => ['title', 'editor', 'thumbnail'],
+        'menu_icon' => 'dashicons-services',
+    ],
+    'Services',
+    'Services'
+);
