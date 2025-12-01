@@ -161,6 +161,8 @@ class ContentAjaxHandler
                 'flex_wrap' => $options['flex_wrap'] ?? 'wrap',
                 'gap' => $options['gap'] ?? '20px',
                 'grid_columns' => $options['grid_columns'] ?? 4,
+                'justify_content' => $options['justify_content'] ?? 'flex-start',
+                'align_items' => $options['align_items'] ?? 'stretch',
                 // Añadir más mapeos según sea necesario
             ]);
 

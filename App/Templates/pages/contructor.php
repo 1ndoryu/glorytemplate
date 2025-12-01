@@ -223,4 +223,71 @@ paso 8.3
 
 El flex de glorycontentrender no parece funcionar, el grid si, pero, por ejemplo si aplico flex horizontal y wrap, se que debería de verse de determina forma pero lo logro ver por 1 segundo y luego vuelve a su estado original
 
+paso 8.4 
+
+se intento solucioanr el problema de los estilos y glorycontentrender en los usuarios deslogeado pero el problema sigue
+
+Intentare ser un poco más especifica 
+
+html de los usuarios deslogeados:
+
+<div data-gbn-root="" style="--gbn-text-size: 14px; --gbn-text-font: Roboto; --gbn-custom-0: #b04a4a; background-color: rgb(255, 255, 255); padding: 120px 20px 40px;">si bien parece que la pagina se aplican
+
+    
+
+    <div glorydiv="" data-gbn-id="gbn-v3-1kwxvr" class="primario">
+        
+        
+    <div glorydivsecundario="" data-gbn-id="gbn-v3-t7zfe8" class="secundario">
+            <p glorytexto="">Texto de ejemplo Uno</p>
+        </div><div glorydivsecundario="" data-gbn-id="gbn-v3-t7zfe7" class="secundario"> 
+            <p glorytexto="">Texto de ejemplo Dos</p>
+        </div></div><div glorydiv="" data-gbn-id="gbn-v3-1kwxvs" class="primario">
+        
+        
+    <div glorydivsecundario="" data-gbn-id="gbn-v3-ejl567" class="secundario">
+            <p glorytexto="">Texto de ejemplo Tres</p>
+        </div><div glorydivsecundario="" data-gbn-id="gbn-v3-ejl566" class="secundario"> 
+            <p glorytexto="">Texto de ejemplo Cuatro</p>
+        </div></div><div class="primario" glorydiv="" data-gbn-id="gbn-v3-1kwxvt">
+        
+    <div glorydivsecundario="" data-gbn-id="gbn-v3-4t51u" class="secundario">
+                        
+        <div glorycontentrender="libro" opciones="plantilla: 'plantillaPosts'" data-gbn-id="gbn-v3-ogcqed"></div></div></div></div>
+
+
+si bien ya se aplica la configuracion de pagina que hice (padding: 120px 20px 40px;)
+
+los div primariso y secundarios no reciben sus estilos por defecto, ni ningún estilo en realidad que se hay aplicado directamente con el panel, ojo, cabe destacar que estando logeado esto si funciona correctamente
+
+un detalle más que percibo --gbn-text-size: 24px; que se aplica en las configuraciones de Párrafos (p) en la configuracion de tema, si se aplica en los usuarios deslogeados pero cuando se esta logeado no se ve en tiempo real ni al guardar
+
+estando logeado los parrafos tienen estos estilos
+
+element.style {
+    text-align: left;
+    color: #333333;
+    font-size: 16px; (sobre escribe font-size: var(--gbn-text-size);)
+}
+.gbn-node[draggable="true"] {
+    cursor: grab;
+}
+[data-gbn-root] p {
+    color: var(--gbn-text-color);
+    font-family: var(--gbn-text-font);
+    font-size: var(--gbn-text-size);
+    line-height: var(--gbn-text-lh, 1.6);
+    letter-spacing: var(--gbn-text-ls, normal);
+    text-transform: var(--gbn-text-transform, none);
+    margin-bottom: 1em;
+}
+
+analizando en profundidad, ese 16px es el default del componente de texto, cuando no hay ningun valor aplicando no debe aplicar ese 16px, si cambio el valor directamente en el componente, a otro, si se aplica en tiempo real estando logeado, pero, ironicamente no se aplica en los usuarios deslogeado, en pocas palabras es un desastre
+
+si borro un valor que aplique directamente al componente, por ejemplo 30px, y lo dejo vacío, regresa a 16px 
+
+Lo ideas sería que funcionará de este modo 
+
+si no hay ningun valor, usa los valores por defecto, no un valor fijo asignado sin motivo alguno como lo es 16px, tambien supongo que el text-aling y el color son valores fijos que no respetan los valores default cuando no hay nada asignado
+
 */
