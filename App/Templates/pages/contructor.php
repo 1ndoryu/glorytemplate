@@ -116,4 +116,14 @@ la parte de contenido debe ser mas elaborada, debe ser basicamente un editor de 
 
 los botones al hacer hover de los componentes, de todos los componentes (la barra donde aparece el boton de eliminar o configurar) deben aparecer centrados en el componente, el resto de barras de los div principales y secundarios deben seguir igual en esquina superior
 
+
+paso 5
+
+configuración de los div principales y secundarios
+
+los div principales les falta la opcion de gap, y para el layout grid no expone ninguna opcion, tiene que exponer opciones para eso, 
+
+el select de layout (para elegir entre flexbox o grid) es muy feo, debe cambiarse por 2 iconos que los identifique, y grid exponer sus opciones con iconos asi como lo hace flexbox, 
+
+agregar un gloryContentRender de postType libro, y exponer sus opciones de forma ordenada en el panel
 */
