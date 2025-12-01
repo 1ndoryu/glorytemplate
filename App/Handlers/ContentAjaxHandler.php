@@ -4,10 +4,13 @@ namespace App\Handlers;
 
 use Glory\Components\ContentRender;
 
+error_log("ContentAjaxHandler.php loaded");
+
 class ContentAjaxHandler
 {
     public static function register(): void
     {
+        error_log("ContentAjaxHandler::register called");
         add_action('wp_ajax_obtenerHtmlPost', [self::class, 'handle_get_post_html']);
         add_action('wp_ajax_nopriv_obtenerHtmlPost', [self::class, 'handle_get_post_html']);
 
@@ -70,12 +73,22 @@ class ContentAjaxHandler
 
     public static function handle_get_list_html(): void
     {
-        $postType = isset($_POST['postType']) ? sanitize_text_field($_POST['postType']) : (isset($_POST['tipo']) ? sanitize_text_field($_POST['tipo']) : 'post');
-        $plantilla = isset($_POST['plantilla']) ? sanitize_text_field($_POST['plantilla']) : null;
-        $contenedor = isset($_POST['claseContenedor']) ? sanitize_text_field($_POST['claseContenedor']) : 'glory-content-list';
-        $itemClass = isset($_POST['claseItem']) ? sanitize_text_field($_POST['claseItem']) : 'glory-content-item';
-        $ppp = isset($_POST['publicacionesPorPagina']) ? intval($_POST['publicacionesPorPagina']) : 10;
-        $argsJson = isset($_POST['argumentosConsulta']) ? wp_unslash($_POST['argumentosConsulta']) : '';
+        error_log("ContentAjaxHandler::handle_get_list_html called");
+        
+        // Recopilar todas las opciones posibles
+        $options = $_POST;
+        
+        // Normalizar nombres de claves si es necesario (gbnDefaults usa camelCase o snake_case, ContentRenderCss espera snake_case mayormente)
+        // Por ahora pasamos todo $_POST como args.
+        
+        $postType = isset($options['postType']) ? sanitize_text_field($options['postType']) : (isset($options['tipo']) ? sanitize_text_field($options['tipo']) : 'post');
+        $plantilla = isset($options['plantilla']) ? sanitize_text_field($options['plantilla']) : null;
+        $contenedor = isset($options['claseContenedor']) ? sanitize_text_field($options['claseContenedor']) : 'glory-content-list';
+        $itemClass = isset($options['claseItem']) ? sanitize_text_field($options['claseItem']) : 'glory-content-item';
+        $ppp = isset($options['publicacionesPorPagina']) ? intval($options['publicacionesPorPagina']) : 10;
+        
+        // Decodificar argumentos de consulta si vienen como JSON
+        $argsJson = isset($options['argumentosConsulta']) ? wp_unslash($options['argumentosConsulta']) : '';
         $argumentosConsulta = [];
         if (!empty($argsJson)) {
             $decoded = json_decode($argsJson, true);
@@ -98,6 +111,21 @@ class ContentAjaxHandler
                     $callback = [ContentRender::class, 'defaultTemplate'];
                     break;
             }
+        } else {
+            // Usar TemplateManager para localizar la plantilla de forma inteligente
+            if (!class_exists(\Glory\Manager\TemplateManager::class)) {
+                $tmPath = get_template_directory() . '/Glory/src/Manager/TemplateManager.php';
+                if (file_exists($tmPath)) {
+                    require_once $tmPath;
+                }
+            }
+
+            if (class_exists(\Glory\Manager\TemplateManager::class)) {
+                $resolvedCallback = \Glory\Manager\TemplateManager::getTemplateCallback($plantilla);
+                if ($resolvedCallback) {
+                    $callback = $resolvedCallback;
+                }
+            }
         }
 
         if ($includeFile && is_readable($includeFile)) {
@@ -109,10 +137,41 @@ class ContentAjaxHandler
             return;
         }
 
-        // Aplicar ordenamiento personalizado para 'tarea' de forma agnóstica
+        // Aplicar ordenamiento personalizado para 'tarea'
         if ($postType === 'tarea' && function_exists('ordenamientoTareas')) {
             $usuarioId = get_current_user_id();
             $argumentosConsulta = ordenamientoTareas($argumentosConsulta, $usuarioId, []);
+        }
+
+        // Generar CSS dinámico si la clase ContentRenderCss existe
+        $css = '';
+        if (class_exists(\Glory\Support\CSS\ContentRenderCss::class)) {
+            // Generar un ID único para esta instancia si no viene uno
+            $instanceId = isset($options['instanceId']) ? sanitize_key($options['instanceId']) : 'gbn-cr-' . uniqid();
+            // Asegurar que la clase del contenedor incluya este ID para que el CSS aplique
+            $contenedor .= ' ' . $instanceId;
+            
+            // Preparar argumentos para el builder de CSS
+            // Mapear opciones de GBN a lo que espera ContentRenderCss si hay discrepancias
+            $cssArgs = array_merge($options, [
+                'display_mode' => $options['display_mode'] ?? 'flex',
+                'flex_direction' => $options['flex_direction'] ?? 'row',
+                'flex_wrap' => $options['flex_wrap'] ?? 'wrap',
+                'gap' => $options['gap'] ?? '20px',
+                'grid_columns' => $options['grid_columns'] ?? 4,
+                // Añadir más mapeos según sea necesario
+            ]);
+
+            $css = \Glory\Support\CSS\ContentRenderCss::build(
+                $instanceId,
+                $cssArgs,
+                $cssArgs, // instanceConfig
+                $options['interaccion_modo'] ?? 'normal'
+            );
+            
+            if (!empty($css)) {
+                $css = '<style>' . $css . '</style>';
+            }
         }
 
         ob_start();
@@ -124,11 +183,15 @@ class ContentAjaxHandler
             'plantillaCallback' => $callback,
             'argumentosConsulta' => $argumentosConsulta,
             'forzarSinCache' => true,
-        ]);
+            // Pasar todas las opciones al render por si la plantilla las usa
+            'imgSize' => $options['img_size'] ?? 'medium',
+            'imgOptimize' => isset($options['img_show']) ? filter_var($options['img_show'], FILTER_VALIDATE_BOOLEAN) : true,
+            // ... otros
+        ] + $options); // Fusionar resto de opciones
         $html = ob_get_clean();
 
-        // Enviar el HTML directamente como data para evitar data anidada innecesaria
-        wp_send_json_success($html);
+        // Enviar el HTML con el CSS prepuesto
+        wp_send_json_success($css . $html);
     }
 }
 

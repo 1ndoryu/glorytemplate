@@ -2,7 +2,9 @@
 
 function contructor()
 {
+    $opciones = "plantilla: 'plantillaPosts'";
 ?>
+    
     <div gloryDiv>
         <div gloryDivSecundario>
             <p gloryTexto>Texto de ejemplo Uno</p>
@@ -18,6 +20,12 @@ function contructor()
         </div>
         <div gloryDivSecundario> 
             <p gloryTexto>Texto de ejemplo Cuatro</p>
+        </div>
+    </div>
+
+    <div class gloryDiv>
+        <div gloryDivSecundario>
+            <div gloryContentRender="libro" opciones="<?php echo esc_attr($opciones); ?>"></div>
         </div>
     </div>
 <?php
@@ -126,4 +134,12 @@ los div principales les falta la opcion de gap, y para el layout grid no expone 
 el select de layout (para elegir entre flexbox o grid) es muy feo, debe cambiarse por 2 iconos que los identifique, y grid exponer sus opciones con iconos asi como lo hace flexbox, 
 
 agregar un gloryContentRender de postType libro, y exponer sus opciones de forma ordenada en el panel
+
+paso 6, no entiendo porque no funciona  $opciones = "plantilla: 'plantillaLibro'"; ¿no estoy elgiendo la plantilla de la forma correcta o esta desactualizada la plantilla?
+
+paso 7 completar gloryContentRender
+
+Explico brevemente, la integración de Avada soportaba ContentRender de una forma muy avanzada y compleja, con opciones de alineación, layout, efectos complejos, tenemos que replicar todo eso, y que soporte las plantillas, todas las plantillas (no estan actualizadas todas pero si es complejo), se pueden adaptar las plantillas para que funcionen con gbn, en resumen, todo lo que hace la integración de ContentRender en Avada, tiene que poder hacerse en GBN, todas sus opciones complejas, si puedes simplicarlo, aplicar principios solid y no replicar errores que se cometieron en Avada bien, si te parece mejorr reutilizar la logica, esta bien, toma la mejor decisión basandote en la escabilidad y mantenimiento
+
+Glory tiene una carpeta de Integración, alli encontraras la integración de Avada con GloryContentRender, el proposito es que GBN tenga las mismas opciones, si se puede hacer mas ordenadas, mejor
 */
