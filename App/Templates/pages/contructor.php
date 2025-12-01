@@ -2,7 +2,7 @@
 
 function contructor()
 {
-   
+   $opciones = "plantilla: 'plantillaPosts'";
 ?>
     
     <div gloryDiv>
@@ -34,7 +34,6 @@ function contructor()
     
     <div class gloryDiv>
         <div gloryDivSecundario>
-            <?php $opciones = "plantilla: 'plantillaPosts'"; ?>
             <div gloryContentRender="libro" opciones="<?php echo esc_attr($opciones); ?>"></div>
         </div>
     </div>
