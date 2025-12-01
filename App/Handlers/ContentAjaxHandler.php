@@ -150,7 +150,8 @@ class ContentAjaxHandler
             // Generar un ID único para esta instancia si no viene uno
             $instanceId = isset($options['instanceId']) ? sanitize_key($options['instanceId']) : 'gbn-cr-' . uniqid();
             // Asegurar que la clase del contenedor incluya este ID para que el CSS aplique
-            $contenedor .= ' ' . $instanceId;
+            // NOTA: ContentRender::print usa 'instanceClass' para generar la clase única.
+            // Debemos pasar este ID como 'instanceClass' para que coincidan.
             
             // Preparar argumentos para el builder de CSS
             // Mapear opciones de GBN a lo que espera ContentRenderCss si hay discrepancias
@@ -184,6 +185,8 @@ class ContentAjaxHandler
             'plantillaCallback' => $callback,
             'argumentosConsulta' => $argumentosConsulta,
             'forzarSinCache' => true,
+            // Pasar el ID de instancia para que ContentRender use la misma clase que usamos para el CSS
+            'instanceClass' => $instanceId,
             // Pasar todas las opciones al render por si la plantilla las usa
             'imgSize' => $options['img_size'] ?? 'medium',
             'imgOptimize' => true, // Always optimize if showing

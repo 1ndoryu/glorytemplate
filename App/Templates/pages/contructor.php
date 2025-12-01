@@ -200,4 +200,27 @@ CARGANDO ESTE GLORYRENDER
 2) Plantilla (ID) YA APARECEN LAS PLANTILLAS PERO NO SE APLICAN Y TAMPOCO APARECE LA PLANTILLA CORRECTA ACTUAL POR DEFECTO QUE DEBERIA SER plantillaPosts
 3) Mostrar Imagen APARECE POR DEFECTO EN TRUE PERO NO SE VE; NO APARECE
 4) Mostrar Título APARECEN POR DEFECTO EN TRUE NO NO SE VE TAMPOCO
+
+paso 8.2
+
+los problemas anteriores aparentemente se solucionaron 
+
+hay un detalle, al revisar el html encontre <div data-gbn-root="" class="gbnPage-56" style="padding: 120pxpx 20pxpx 40pxpx 20pxpx;background-color: #ffffff;">    estilos invalidos
+
+luego vi que esos estilos se aplicaban correctamente en 
+
+<main id="main" class="main gbn-main-offset" style="padding: 120px 20px 40px; --gbn-text-size: 14px; --gbn-text-font: Roboto; --gbn-custom-0: #b04a4a; background-color: rgb(255, 255, 255);" data-gbn-root="true"><div data-gbn-root="" class="gbnPage-56" style="padding: 120pxpx 20pxpx 40pxpx 20pxpx;background-color: #ffffff;">  
+
+eso no es lo mas interesante
+
+cuando el usuario esta deslogeado, no hay ningun estilo, solo estos
+
+<main id="main" class="main"><div data-gbn-root="" class="gbnPage-56" style="padding: 120pxpx 20pxpx 40pxpx 20pxpx;background-color: #ffffff;"> (este padding lo estoy aplicando en las opciones de pagina, pero imagino que debemos revisar donde sea que se aplique paddings para que no se cometa ese error)
+
+tambien, al usuario deslogeado le aparece <div glorycontentrender="libro" opciones="plantilla: 'plantillaPosts'"></div> sin cargar los post, hay un problema que no vimos venir respecto a esto, hay que solucionarlo porque los estilos y todo funcione para los usuarios deslogeados (mantener que solo el usuario admin puede ver el panel de modificar elementos y esas cosas)
+
+paso 8.3 
+
+El flex de glorycontentrender no parece funcionar, el grid si, pero, por ejemplo si aplico flex horizontal y wrap, se que debería de verse de determina forma pero lo logro ver por 1 segundo y luego vuelve a su estado original
+
 */

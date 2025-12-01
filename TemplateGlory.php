@@ -37,7 +37,7 @@ if ($modo === 'editor') {
     } else {
         if (is_array($pageSettings['padding'])) {
             $p = $pageSettings['padding'];
-            $rootStyle .= "padding: {$p['superior']}px {$p['derecha']}px {$p['inferior']}px {$p['izquierda']}px;";
+            $rootStyle .= "padding: " . intval($p['superior']) . "px " . intval($p['derecha']) . "px " . intval($p['inferior']) . "px " . intval($p['izquierda']) . "px;";
         } else {
             $rootStyle .= 'padding: ' . intval($pageSettings['padding']) . 'px;';
         }
