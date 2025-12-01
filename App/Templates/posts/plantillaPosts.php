@@ -91,7 +91,7 @@ function plantillaPosts(\WP_Post $post, string $itemClass): void
 
 // Registrar plantilla en el registro global con id 'plantilla_posts'
 TemplateRegistry::register(
-    'plantilla_posts',
+    'plantillaPosts',
     'Plantilla de Posts',
     function (?\WP_Post $givenPost = null, string $itemClass = '') {
         $postToRender = $givenPost;
@@ -104,7 +104,7 @@ TemplateRegistry::register(
             plantillaPosts($postToRender, $mergedItemClass);
         }
     },
-    ['post'],
+    [], // Apply to all post types
     [
         'internalLayout' => true,
         'options' => [

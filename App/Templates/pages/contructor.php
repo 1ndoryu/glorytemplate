@@ -2,7 +2,7 @@
 
 function contructor()
 {
-    $opciones = "plantilla: 'plantillaPosts'";
+   
 ?>
     
     <div gloryDiv>
@@ -25,6 +25,7 @@ function contructor()
 
     <div class gloryDiv>
         <div gloryDivSecundario>
+            <?php $opciones = "plantilla: 'plantillaPosts'"; ?>
             <div gloryContentRender="libro" opciones="<?php echo esc_attr($opciones); ?>"></div>
         </div>
     </div>
@@ -142,4 +143,61 @@ paso 7 completar gloryContentRender
 Explico brevemente, la integración de Avada soportaba ContentRender de una forma muy avanzada y compleja, con opciones de alineación, layout, efectos complejos, tenemos que replicar todo eso, y que soporte las plantillas, todas las plantillas (no estan actualizadas todas pero si es complejo), se pueden adaptar las plantillas para que funcionen con gbn, en resumen, todo lo que hace la integración de ContentRender en Avada, tiene que poder hacerse en GBN, todas sus opciones complejas, si puedes simplicarlo, aplicar principios solid y no replicar errores que se cometieron en Avada bien, si te parece mejorr reutilizar la logica, esta bien, toma la mejor decisión basandote en la escabilidad y mantenimiento
 
 Glory tiene una carpeta de Integración, alli encontraras la integración de Avada con GloryContentRender, el proposito es que GBN tenga las mismas opciones, si se puede hacer mas ordenadas, mejor
+
+Paso 8
+
+detalles,
+
+ID: gbn-v3-ogcqed
+
+Rol: content
+
+Contenido: libro
+
+Tipo de contenido
+
+Por defecto si tengo
+
+$opciones = "plantilla: 'plantillaPosts'";
+<div gloryContentRender="libro" opciones="<?php echo esc_attr($opciones); ?>"></div>
+
+Puedes en el select de Tipo de contenido debería aparecer el tipo de contenido actual
+
+tambien Plantilla (ID)
+
+no quiero que haya que especificar el id, necesito que las plantillas se registren y se detecten
+
+Mostrar Imagen
+
+Mostrar Título
+
+Aparecen marcadas como No (x) pero en realidad por defecto si estan activas, asi que todo esta mal en cuanto a detectar su estado por defecto, y obvio qeu la imagen y titulo siempre se muestran por defecto
+
+si bien he marcado la plantilla plantillaPosts
+
+cambias las opciones de visualizacion parecen funcionar
+
+aunque veo que lo solicita 
+
+tambien veo que inicialmente las imagenes aparecen pero si toca la opcion de Mostrar Imagen, independiente de off o on, la imagen nunca vuelve aparecer y si se ve que se solicita con "img_show
+: 
+true" en la consola
+
+lo mismo con el titulo, no vuelve aparecer al tocar la opción
+
+estoy atorada en este paso
+
+ultima actualización 
+
+paso 8.1 
+
+CARGANDO ESTE GLORYRENDER 
+
+<?php $opciones = "plantilla: 'plantillaPosts'"; ?>
+<div gloryContentRender="libro" opciones="<?php echo esc_attr($opciones); ?>"></div>
+
+1) Tipo de contenido ES UN SELECT Y APARECE POR DEFECTO "ENTRADAS" EN VEZ DE "LIBRO"
+2) Plantilla (ID) YA APARECEN LAS PLANTILLAS PERO NO SE APLICAN Y TAMPOCO APARECE LA PLANTILLA CORRECTA ACTUAL POR DEFECTO QUE DEBERIA SER plantillaPosts
+3) Mostrar Imagen APARECE POR DEFECTO EN TRUE PERO NO SE VE; NO APARECE
+4) Mostrar Título APARECEN POR DEFECTO EN TRUE NO NO SE VE TAMPOCO
 */

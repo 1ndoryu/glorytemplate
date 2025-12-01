@@ -112,15 +112,16 @@ class ContentAjaxHandler
                     break;
             }
         } else {
-            // Usar TemplateManager para localizar la plantilla de forma inteligente
-            if (!class_exists(\Glory\Manager\TemplateManager::class)) {
-                $tmPath = get_template_directory() . '/Glory/src/Manager/TemplateManager.php';
-                if (file_exists($tmPath)) {
-                    require_once $tmPath;
+            // 1. Try TemplateRegistry (registered via code)
+            if (class_exists(\Glory\Utility\TemplateRegistry::class)) {
+                $resolvedCallback = \Glory\Utility\TemplateRegistry::get($plantilla);
+                if ($resolvedCallback) {
+                    $callback = $resolvedCallback;
                 }
             }
 
-            if (class_exists(\Glory\Manager\TemplateManager::class)) {
+            // 2. Try TemplateManager (scans files)
+            if (!$callback && class_exists(\Glory\Manager\TemplateManager::class)) {
                 $resolvedCallback = \Glory\Manager\TemplateManager::getTemplateCallback($plantilla);
                 if ($resolvedCallback) {
                     $callback = $resolvedCallback;
@@ -185,7 +186,9 @@ class ContentAjaxHandler
             'forzarSinCache' => true,
             // Pasar todas las opciones al render por si la plantilla las usa
             'imgSize' => $options['img_size'] ?? 'medium',
-            'imgOptimize' => isset($options['img_show']) ? filter_var($options['img_show'], FILTER_VALIDATE_BOOLEAN) : true,
+            'imgOptimize' => true, // Always optimize if showing
+            'img_show' => isset($options['img_show']) ? filter_var($options['img_show'], FILTER_VALIDATE_BOOLEAN) : true,
+            'title_show' => isset($options['title_show']) ? filter_var($options['title_show'], FILTER_VALIDATE_BOOLEAN) : true,
             // ... otros
         ] + $options); // Fusionar resto de opciones
         $html = ob_get_clean();
