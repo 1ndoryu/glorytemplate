@@ -14,7 +14,7 @@ use Glory\Manager\AssetManager;
 AssetManager::defineFolder(
     'style',
     'App/Assets/css/',
-    ['deps' => [], 'media' => 'all'],
+    ['deps' => [], 'media' => 'all', 'exclude_on' => ['gbn-control-panel']],
     'tema-',
     [
         // Excluir CSS específico de tareas; se definirá abajo con feature 'task'
@@ -31,6 +31,7 @@ AssetManager::define(
         'deps'    => [],
         'media'   => 'all',
         'feature' => 'task',
+        'exclude_on' => ['gbn-control-panel'],
     ]
 );
 
@@ -38,7 +39,7 @@ AssetManager::define(
 AssetManager::defineFolder(
     'script',
     'App/Assets/js/',
-    ['deps' => ['jquery'], 'in_footer' => true],
+    ['deps' => ['jquery'], 'in_footer' => true, 'exclude_on' => ['gbn-control-panel']],
     'tema-',
     [
         // Excluir los JS de tareas; se registran abajo con feature 'task'
@@ -61,8 +62,9 @@ AssetManager::defineFolder(
     'App/Assets/js/task/',
     [
         'deps'     => ['jquery'],
-        'in_footer'=> true,
+        'in_footer' => true,
         'feature'  => 'task',
+        'exclude_on' => ['gbn-control-panel'],
     ],
     'tema-task-'
 );

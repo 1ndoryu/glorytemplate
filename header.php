@@ -31,14 +31,18 @@ use Glory\Components\ThemeToggle;
     
     
     <?php
-    $defaultMode = Compatibility::avadaActivo() ? 'default' : 'image';
-    $configHeader = [
-        'modoLogo'    => OpcionManager::get('glory_logo_mode', $defaultMode),
-        'textoLogo'   => OpcionManager::get('glory_logo_text', get_bloginfo('name', 'display')),
-        'logoImageId' => OpcionManager::get('glory_logo_image'),
-        'idMenu'      => 'mainMenu' 
-    ];
-    HeaderRenderer::render($configHeader);
-    echo ThemeToggle::render();
+    $funcionRenderizar = \Glory\Manager\PageManager::getFuncionParaRenderizar();
+    
+    if ($funcionRenderizar !== 'contructor') {
+        $defaultMode = Compatibility::avadaActivo() ? 'default' : 'image';
+        $configHeader = [
+            'modoLogo'    => OpcionManager::get('glory_logo_mode', $defaultMode),
+            'textoLogo'   => OpcionManager::get('glory_logo_text', get_bloginfo('name', 'display')),
+            'logoImageId' => OpcionManager::get('glory_logo_image'),
+            'idMenu'      => 'mainMenu' 
+        ];
+        HeaderRenderer::render($configHeader);
+        echo ThemeToggle::render();
+    }
     ?>
     <main id="main" class="main">
