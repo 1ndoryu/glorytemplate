@@ -21,10 +21,7 @@ function home()
 
     <div id="glory-component-examples" style="margin-top: 0px">
 
-
-        
-
-        <?php renderAlertasCategory(); ?>
+        <?php renderAlertasCategory(); ?> 
         <?php renderBusquedaCategory(); ?>
         <?php renderModalCategory(); ?>
         <?php renderPestanasCategory(); ?>
