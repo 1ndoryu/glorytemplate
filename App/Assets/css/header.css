@@ -1,4 +1,3 @@
-
 /* HEADER */
 
 /* --- VARIABLES Y ESTILOS BASE --- */
@@ -76,7 +75,8 @@
 .siteMenuW .siteMenuLogo a,
 .siteMenuW .siteMenuLogo,
 .siteMenuW .burger {
-    color: var(--text); /* Color por defecto adaptado al tema */
+    color: var(--text);
+    /* Color por defecto adaptado al tema */
     transition: color 0.4s ease;
     text-decoration: none;
 }
@@ -89,7 +89,8 @@
 .siteMenuW.has-dark-background .siteMenuLogo a,
 .siteMenuW.has-dark-background .siteMenuLogo,
 .siteMenuW.has-dark-background .burger {
-    color: var(--text); /* Color para fondos oscuros */
+    color: var(--text);
+    /* Color para fondos oscuros */
 }
 
 .siteMenuW.has-dark-background .siteMenuNav a:hover {
@@ -134,7 +135,7 @@
     height: 1px;
     position: relative;
     top: 0;
-    transition: transform .3s,top .3s;
+    transition: transform .3s, top .3s;
     width: 1.9rem;
 }
 
@@ -228,7 +229,8 @@ body.menu-open {
     opacity: 0;
     display: flex;
     gap: 4rem;
-    flex-wrap: wrap; /* móvil: permitir que el submenú baje a la siguiente línea */
+    flex-wrap: wrap;
+    /* móvil: permitir que el submenú baje a la siguiente línea */
 }
 
 .siteMenuNav ul li a {
@@ -245,14 +247,15 @@ body.menu-open {
 }
 
 /* Móvil: submenús cerrados por defecto y a 100% de ancho bajo el ítem */
-.siteMenuNav ul li > ul.sub-menu {
+.siteMenuNav ul li>ul.sub-menu {
     display: none;
     width: 100%;
     flex-basis: 100%;
     margin-top: .6rem;
     text-align: left;
 }
-.siteMenuNav ul li.open > ul.sub-menu {
+
+.siteMenuNav ul li.open>ul.sub-menu {
     display: block;
 }
 
@@ -284,7 +287,7 @@ body.menu-open {
         --grid-gutter: 2.3980815348vw;
         --grid-outerGutter: 4.7961630695vw;
     }
-    
+
     .burger,
     .background,
     .navTitle {
@@ -334,7 +337,7 @@ body.menu-open {
         opacity: 1;
         font-size: 1.4rem;
     }
-    
+
     .siteMenuNav ul li::before {
         display: none;
     }
@@ -347,12 +350,12 @@ body.menu-open {
     }
 
     /* ===== Submenús (dropdown) en escritorio ===== */
-    .siteMenuNav ul.menu > li {
+    .siteMenuNav ul.menu>li {
         position: relative;
     }
 
     /* contenedor del submenú oculto por defecto (primer nivel de dropdown) */
-    .siteMenuNav ul.menu > li > ul.sub-menu {
+    .siteMenuNav ul.menu>li>ul.sub-menu {
         position: absolute;
         top: calc(100% + 20px);
         left: 50%;
@@ -376,7 +379,7 @@ body.menu-open {
     }
 
     /* ítems del submenú */
-    .siteMenuNav ul.sub-menu > li {
+    .siteMenuNav ul.sub-menu>li {
         font-size: 1.3rem;
         padding: .8rem 1.6rem;
         opacity: 1;
@@ -384,25 +387,26 @@ body.menu-open {
         text-align: left;
     }
 
-    .siteMenuNav ul.sub-menu > li a {
+    .siteMenuNav ul.sub-menu>li a {
         color: var(--text);
         display: block;
     }
 
-    .siteMenuNav ul.sub-menu > li a:hover {
+    .siteMenuNav ul.sub-menu>li a:hover {
         color: var(--text);
     }
 
     /* mostrar en hover */
-    .siteMenuNav ul.menu > li:hover > ul.sub-menu {
+    .siteMenuNav ul.menu>li:hover>ul.sub-menu {
         display: block;
     }
 
     /* sub-submenú (nivel 3) alineado a la derecha del dropdown */
-    .siteMenuNav ul.sub-menu > li {
+    .siteMenuNav ul.sub-menu>li {
         position: relative;
     }
-    .siteMenuNav ul.sub-menu > li > ul.sub-menu {
+
+    .siteMenuNav ul.sub-menu>li>ul.sub-menu {
         position: absolute;
         top: 0;
         left: 100%;
@@ -410,7 +414,8 @@ body.menu-open {
         display: none;
         min-width: 200px;
     }
-    .siteMenuNav ul.sub-menu > li:hover > ul.sub-menu {
+
+    .siteMenuNav ul.sub-menu>li:hover>ul.sub-menu {
         display: block;
     }
 }

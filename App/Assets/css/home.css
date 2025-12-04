@@ -34,7 +34,7 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto)):not(:has(> .
 }
 
 /* Limitar el ancho del contenido cuando hay solo 1 visible para lograr centrado visual */
-div#glory-component-examples:has(> .seccionComponente:not(.oculto)):not(:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto))) > .seccionComponente:not(.oculto) .contenidoSeccionComponente {
+div#glory-component-examples:has(> .seccionComponente:not(.oculto)):not(:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto)))>.seccionComponente:not(.oculto) .contenidoSeccionComponente {
     max-width: var(--ancho);
 }
 

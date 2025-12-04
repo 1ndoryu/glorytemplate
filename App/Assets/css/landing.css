@@ -27,9 +27,20 @@ body {
     position: relative;
     height: 100vh;
     min-height: 700px;
-    background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 50%, #d4e157 100%);
-    /* Ajuste para parecerse más a la imagen: degradado suave amarillo/verdoso */
-    background: linear-gradient(180deg, rgba(212, 225, 87, 0.3) 0%, rgba(212, 225, 87, 0.8) 100%), url('https://www.transparenttextures.com/patterns/noise.png');
+    width: 100%;
+    height: 100vh;
+    background-color: #9ED8C2;
+    /* Color base (Menta) */
+    background-image:
+        /* El brillo amarillo a la derecha */
+        radial-gradient(at 90% 60%, #F9D35A 0px, transparent 50%),
+        /* El naranja melocotón arriba a la izquierda */
+        radial-gradient(at 10% 20%, #F4C594 0px, transparent 50%),
+        /* El tono salmón abajo a la izquierda */
+        radial-gradient(at 0% 90%, #EFA686 0px, transparent 50%),
+        /* El verde pistacho arriba a la derecha */
+        radial-gradient(at 80% 10%, #CADDA3 0px, transparent 50%);
+
     background-blend-mode: overlay;
     display: flex;
     flex-direction: column;
@@ -73,17 +84,18 @@ body {
 .landing-nav .nav-links a {
     text-decoration: none;
     color: #fff;
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 1.5rem;
     mix-blend-mode: difference;
+}
+
+.landing-nav .nav-links a:hover {
+    cursor: pointer;
 }
 
 .landing-nav .btn-nav {
     background: #000;
-    color: #fff !important;
     padding: 8px 20px;
     border-radius: 20px;
-    mix-blend-mode: normal !important;
 }
 
 .hero-content {
@@ -93,16 +105,14 @@ body {
 
 .hero-title {
     font-family: var(--font-heading);
-    font-size: 4rem;
+    font-size: 5rem;
     line-height: 1.1;
-    font-weight: 400;
-    color: #fff;
     margin-bottom: 40px;
+    color: #fff;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .hero-title .highlight-text {
-    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 2px;
 }
@@ -111,14 +121,23 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 30px;
+    padding: 8px 30px;
     border: 1px solid #fff;
-    border-radius: 30px;
-    color: #fff;
+    border-radius: 46%;
+    color: #ffffff;
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 1.5rem;
     transition: all 0.3s ease;
     backdrop-filter: blur(5px);
+    position: relative;
+}
+
+.auditoria-icon {
+    position: absolute;
+    font-size: 2.2rem;
+    right: 0;
+    top: 10px;
+    transform: translate(-50%, -50%);
 }
 
 .btn-auditoria:hover {
@@ -136,15 +155,24 @@ body {
     white-space: nowrap;
     font-size: 0.8rem;
     color: #fff;
+    border-top: calc(1rem - 7px) solid #fff;
     text-transform: uppercase;
     letter-spacing: 2px;
     backdrop-filter: blur(5px);
 }
 
+.hero-marquee span {
+    display: block;
+    font-size: 2rem;
+}
+
 /* --- SECCIONES COMUNES --- */
 .services-section,
-.cases-section {
-    padding: 80px 20px;
+.cases-section,
+.methodology-section,
+.about-section,
+.contact-section {
+    padding: 80px 0;
     background-color: #f9f9f9;
     text-align: center;
 }
@@ -156,9 +184,19 @@ body {
     margin-right: auto;
 }
 
+/*
+* .estilo {
+    color: #000;
+}
+
+.section-title {
+    color: #fff;
+}
+*/
+
 .section-title {
     font-family: var(--font-heading);
-    font-size: 3rem;
+    font-size: 5rem;
     margin-bottom: 20px;
     color: #1a1a1a;
 }
@@ -274,4 +312,388 @@ body {
     color: #666;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+/* --- METHODOLOGY SECTION --- */
+.methodology-section {
+    background-color: #1a1a1a;
+    color: #fff;
+    padding-bottom: 0;
+    /* Marquee at bottom */
+    position: relative;
+    overflow: hidden;
+}
+
+.methodology-section .section-title {
+    color: #fff;
+}
+
+.methodology-section .section-subtitle {
+    color: #a0a0a0;
+}
+
+.methodology-graphic {
+    height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 40px 0 80px;
+    position: relative;
+}
+
+.orbit-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+}
+
+.orbit-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+}
+
+.ring-outer {
+    width: 300px;
+    height: 300px;
+}
+
+.ring-inner {
+    width: 180px;
+    height: 180px;
+}
+
+.orbit-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1a1a1a;
+    font-size: 1.5rem;
+}
+
+.orbit-planet {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+/* Posicionamiento manual de planetas para simular la imagen */
+.planet-s {
+    top: 10%;
+    left: 20%;
+}
+
+.planet-m {
+    top: 10%;
+    right: 20%;
+}
+
+.planet-c {
+    top: 40%;
+    right: -15px;
+}
+
+.planet-o {
+    top: 60%;
+    left: -15px;
+}
+
+.planet-bottom-o {
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    border-color: #d4e157;
+    color: #d4e157;
+}
+
+.methodology-marquee {
+    background-color: #1a1a1a;
+    color: #fff;
+    padding: 1.5rem 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-top: calc(1rem - 7px) solid #f4f4f4;
+}
+
+.methodology-marquee span {
+    display: block;
+    font-size: 1.8rem;
+}
+
+/* --- ABOUT SECTION --- */
+.about-section {
+    background-color: #f5f5f5;
+}
+
+.about-content {
+    max-width: 600px;
+    margin: 0 auto 60px;
+}
+
+.about-image img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 20px;
+}
+
+.about-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.btn-about {
+    display: inline-block;
+    padding: 10px 30px;
+    background-color: #9da876;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: background 0.3s;
+}
+
+.btn-about:hover {
+    background-color: #8a9466;
+}
+
+.about-marquee {
+    border-top: calc(1rem - 7px) solid #727272;
+    border-bottom: calc(1rem - 7px) solid #727272;
+    padding: 1rem;
+    color: #333;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.about-marquee span {
+    display: block;
+    font-size: 1.8rem;
+}
+
+/* --- CONTACT SECTION --- */
+.contact-section {
+    background-color: #fff;
+}
+
+.contact-form {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.form-row {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+    border: none;
+    border-bottom: 1px solid #ccc;
+    padding: 10px 0;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-bottom-color: #000;
+}
+
+.form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+}
+
+.checkbox-label {
+    font-size: 0.8rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-submit {
+    background-color: #9da876;
+    color: #fff;
+    border: none;
+    padding: 10px 40px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    transition: background 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: #8a9466;
+}
+
+/* --- FOOTER --- */
+.landing-footer {
+    background-color: #f5f5f5;
+    padding: 60px 40px 20px;
+    border-top: 1px solid #eee;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 40px;
+    margin-bottom: 60px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.footer-brand .logo {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+.footer-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-nav li {
+    margin-bottom: 10px;
+}
+
+.footer-nav a {
+    text-decoration: none;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.footer-info {
+    display: flex;
+    gap: 60px;
+}
+
+.info-col h4 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 15px;
+}
+
+.info-col p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+}
+
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.social-icons {
+    display: flex;
+    gap: 15px;
+}
+
+.social-icons a {
+    text-decoration: none;
+    color: #333;
+    width: 30px;
+    height: 30px;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: all 0.3s;
+}
+
+.social-icons a:hover {
+    background-color: #333;
+    color: #fff;
+    border-color: #333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 3rem;
+    }
+
+    .section-title {
+        font-size: 3rem;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+    }
+
+    .footer-info {
+        flex-direction: column;
+        gap: 30px;
+    }
 }
