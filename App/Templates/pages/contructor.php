@@ -44,7 +44,7 @@ function contructor()
             text-transform: uppercase;
         }
 
-        .supra-container a { text-decoration: none; color: inherit; }
+        .supra-container a { text-decoration: none;}
         .supra-container button { border: none; background: none; cursor: pointer; font-family: inherit; }
 
         /* Utilidades de Layout */
@@ -168,7 +168,7 @@ function contructor()
             align-items: center;
             flex-direction: row;
         }
-        
+
         .btnRacing {
             position: relative;
             padding: 1rem 2rem;
@@ -482,8 +482,9 @@ function contructor()
             transition: background-color 0.3s;
         }
 
-        .btnSubmit:hover {
-            background-color: var(--color-red-dark);
+        .btnPrimary {
+            color: var(--color-text-muted);
+            background: var(--color-bg-card);
         }
 
         .socialLinks {
@@ -492,6 +493,10 @@ function contructor()
             justify-content: center;
             gap: 1.5rem;
             color: var(--color-text-muted);
+        }
+
+        .btnPrimary {
+            color: var(--color-text);
         }
         
         .socialLinks a:hover { color: white; }
@@ -506,28 +511,25 @@ function contructor()
             <div class="heroOverlay"></div>
 
             <div gloryDivSecundario class="heroContent">
-                <div gloryDivSecundario class="badgeEst fadeInSection">
+                <div gloryTexto class="badgeEst fadeInSection">
                     EST. 1978
                 </div>
-                <h1 class="heroTitle textGlow fadeInSection" style="transition-delay: 100ms;">
+                <h1 gloryTexto class="heroTitle textGlow fadeInSection" style="transition-delay: 100ms;">
                     LA LEYENDA <br/><span class="textGradient">RENACE</span>
                 </h1>
-                <p class="heroSubtitle fadeInSection" style="transition-delay: 200ms;">
+                <p gloryTexto class="heroSubtitle fadeInSection" style="transition-delay: 200ms;">
                     Más que un coche, es una declaración de intenciones. Desde el icónico MK4 hasta la ingeniería de precisión del MK5.
                 </p>
                 <div gloryDivSecundario class="btnGroup fadeInSection" style="transition-delay: 300ms;">
-                    <button onclick="explorarModelo()" class="btnRacing btnPrimary">
-                        <span>EXPLORAR AHORA</span>
-                    </button>
-                    <button class="btnRacing btnSecondary">
-                        <span>VER GALERÍA</span>
-                    </button>
+                    <a href="#especificaciones" gloryButton class="btnRacing btnPrimary" opciones="variant: 'primary', url: '#especificaciones'">
+                        EXPLORAR AHORA
+                    </a>
+                    <a href="#legado" gloryButton class="btnRacing btnSecondary" opciones="variant: 'secondary', url: '#legado'">
+                        VER GALERÍA
+                    </a>
                 </div>
             </div>
             
-            <div class="scrollIndicator">
-                <i data-lucide="chevron-down" style="width: 32px; height: 32px;"></i>
-            </div>
         </div>
 
         <!-- Comparador Interactivo -->

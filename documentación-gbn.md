@@ -3,31 +3,73 @@
 > [!IMPORTANT]
 > Esta documentación resume los puntos clave para trabajar con estilos en GBN y evitar conflictos entre el código manual y el constructor visual. Esta en construcción, cada nuevo aprendizaje importante debe documentarse aca.
 
-## 1. Regla de Oro: Control del Atributo `style`
+## 1. Ciclo de Vida de los Estilos en GBN
 
-**GBN tiene control total sobre el atributo `style` de los elementos marcados con `gloryDiv` o `gloryDivSecundario`.**
+**GBN gestiona el atributo `style` de los elementos editables, sincronizándolo con su configuración interna.**
 
-### El Problema
-Si escribes estilos en línea (inline styles) directamente en el HTML PHP:
-```html
-<!-- MAL: GBN borrará esto al iniciar -->
-<div gloryDiv style="background-color: red;">...</div>
+### Flujo Real de Procesamiento
+
 ```
-GBN, al inicializarse, regenera el atributo `style` basándose en su configuración interna (JSON). Si la configuración no "sabe" que debe haber un color rojo, **borrará tu estilo inline**.
+┌──────────────────────────────────────────────────────────────────┐
+│                    AL CARGAR LA PÁGINA                           │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. GBN escanea el DOM buscando elementos con gloryDiv, etc.     │
+│                                                                  │
+│  2. Por cada elemento, LEE los estilos inline existentes:        │
+│     <div gloryDiv style="background: red; padding: 20px;">       │
+│                                                                  │
+│  3. SINCRONIZA esos valores a la configuración del bloque:       │
+│     block.config = { fondo: "red", padding: {...} }              │
+│                                                                  │
+│  4. Si hay configuración GUARDADA (presets), esta SOBRESCRIBE    │   
+│     lo que se leyó del HTML (la versión guardada tiene prioridad)│
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
 
-### La Solución
-Para estilos estáticos o estructurales que no necesitan ser editados por el usuario final a través del panel, **usa Clases CSS**.
+### ¿Cuándo se "pierden" los estilos inline?
 
+Los estilos inline del HTML **NO se borran al iniciar**. Se pierden en estos casos:
+
+| Escenario                                  | ¿Qué pasa?                                         |
+| ------------------------------------------ | -------------------------------------------------- |
+| Hay configuración guardada para ese bloque | El preset **sobrescribe** la config leída del HTML |
+| El usuario edita una propiedad en el panel | Solo las propiedades en la nueva config se aplican |
+| El usuario "limpia" un valor en el panel   | `styleManager` elimina esa propiedad del `style`   |
+
+### Opciones para Estilos Iniciales
+
+**Opción A: Estilos Inline (Editables desde el Panel)**
 ```html
-<!-- BIEN: GBN respeta las clases -->
-<div gloryDiv class="mi-clase-roja">...</div>
+<!-- GBN lee esto y lo sincroniza a la config del bloque -->
+<div gloryDiv style="background-color: red; padding: 20px;">...</div>
+```
+- ✅ El usuario puede editarlo desde el panel
+- ⚠️ Si hay versión guardada, esta tiene prioridad
+
+**Opción B: Atributo `opciones` (Recomendado para valores iniciales)**
+```html
+<!-- Configuración explícita que GBN entiende directamente -->
+<div gloryDiv opciones="fondo: 'red', padding: { superior: '20px' }">...</div>
+```
+- ✅ Más explícito y legible
+- ✅ Se integra directamente con la config del bloque
+
+**Opción C: Clases CSS (Para defaults del tema)**
+```html
+<!-- Estilos base que el panel puede sobrescribir -->
+<div gloryDiv class="hero-section">...</div>
 
 <style>
-    .mi-clase-roja {
+    .hero-section {
         background-color: red;
     }
 </style>
 ```
+- ✅ Actúa como "default" visual
+- ✅ El panel (estilos inline) tiene prioridad y puede sobrescribirlo
+- ✅ No se pierde nunca (solo se sobrescribe visualmente)
 
 ## 2. Jerarquía de Estilos en GBN
 
@@ -92,10 +134,36 @@ Si notas que un estilo del tema está "ganando" indebidamente, verifica que el s
 
 ## 6. Diagnóstico de Problemas Comunes
 
--   **La imagen/estilo desaparece al cargar:** Probablemente está como estilo inline en un bloque `gloryDiv`. Muévelo a una clase CSS.
+-   **El estilo inline desaparece al recargar:** Hay una configuración guardada (preset) que sobrescribe lo leído del HTML. Limpia los presets del bloque o usa clases CSS.
+-   **El estilo del HTML se ignora:** GBN lee el preset guardado primero. Si quieres resetear, edita el bloque en el panel y guarda de nuevo.
 -   **El estilo no se aplica:** Verifica si hay una regla `!important` o si el panel de GBN tiene un valor configurado que está sobrescribiendo tu clase.
 -   **Overlays o elementos absolutos rotos en el editor:** Verifica si tienen `gloryDivSecundario` innecesariamente. Quítalo si no es contenido editable.
 -   **Flash de contenido sin estilo:** Asegúrate de que tus clases críticas estén cargadas en el `<head>` o en el bloque `<style>` del template.
+-   **El panel no muestra el valor actual:** GBN intenta sincronizar desde `getComputedStyle`. Si el valor viene de una clase CSS, el panel lo mostrará pero al editarlo se guarda como inline.
+
+## 7. Uso Manual de Componentes en PHP
+
+Para utilizar componentes de GBN directamente en archivos PHP (fuera del editor visual), se deben usar los atributos correspondientes.
+
+**Mejora de Inferencia (v6.5):**
+Ya no es necesario duplicar el contenido del texto ni la etiqueta en el atributo `opciones`. GBN ahora infiere automáticamente:
+- `texto`: Del `innerHTML` del elemento.
+- `tag`: Del `tagName` del elemento (ej: `h1`, `p`, `div`).
+
+**Ejemplo Texto (Simplificado):**
+```html
+<!-- GBN detectará automáticamente que es un H1 y que el texto es "Mi Título" -->
+<h1 gloryTexto>Mi Título</h1>
+```
+
+**Ejemplo Botón (Simplificado):**
+```html
+<!-- Solo necesitas especificar las opciones que NO son contenido -->
+<a href="#" gloryButton class="btn" opciones="variant: 'primary'">Click</a>
+```
+
+> [!NOTE]
+> Si necesitas forzar un valor diferente al del HTML inicial, puedes seguir usando `opciones="texto: 'Nuevo Valor'"`.
 
 ---
 *Basado en `Glory/src/Gbn/reglas.md` y `plan.md`.*
