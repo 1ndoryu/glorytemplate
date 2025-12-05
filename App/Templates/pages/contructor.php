@@ -521,10 +521,10 @@ function contructor()
                     Más que un coche, es una declaración de intenciones. Desde el icónico MK4 hasta la ingeniería de precisión del MK5.
                 </p>
                 <div gloryDivSecundario class="btnGroup fadeInSection" style="transition-delay: 300ms;">
-                    <a href="#especificaciones" gloryButton class="btnRacing btnPrimary" opciones="variant: 'primary', url: '#especificaciones'">
+                    <a href="#especificaciones" gloryButton class="btnRacing btnPrimary">
                         EXPLORAR AHORA
                     </a>
-                    <a href="#legado" gloryButton class="btnRacing btnSecondary" opciones="variant: 'secondary', url: '#legado'">
+                    <a href="#legado" gloryButton class="btnRacing btnSecondary">
                         VER GALERÍA
                     </a>
                 </div>
