@@ -67,16 +67,11 @@ GloryFeatures::disable('queryProfilerLogs');
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
 if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
-    error_log("control.php: ContentAjaxHandler class exists, registering immediately");
     \App\Handlers\ContentAjaxHandler::register();
 } else {
-    error_log("control.php: ContentAjaxHandler class NOT found, hooking to init");
     add_action('init', function() {
         if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
-            error_log("control.php (init): ContentAjaxHandler class exists, registering");
             \App\Handlers\ContentAjaxHandler::register();
-        } else {
-            error_log("control.php (init): ContentAjaxHandler class STILL NOT found");
         }
     });
 }
