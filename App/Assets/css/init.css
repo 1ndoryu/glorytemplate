@@ -1,4 +1,4 @@
-:root {
+:where(:root) {
     /* Tokens de tema (valores por defecto: claro) */
     --bg: #ffffff;
     --text: #141414;
@@ -20,8 +20,8 @@
     --blanco: var(--text);
 }
 
-/* Modo oscuro */
-html[data-theme='dark'] {
+:where(/* Modo oscuro */
+html[data-theme='dark']) {
     --bg: #080808;
     --text: #d4d4d4;
     --muted: #a2a2a2;
@@ -36,8 +36,8 @@ html[data-theme='dark'] {
     --bordeBoton: 0.1rem rgba(31, 31, 31, 0.55) solid;
 }
 
-/* Glory Calendario (clases camelCase en español) */
-.calCont {
+:where(/* Glory Calendario (clases camelCase en español) */
+.calCont) {
     background-color: var(--fondo);
     border: var(--borde);
     border-radius: 0.5rem;
@@ -45,20 +45,20 @@ html[data-theme='dark'] {
     width: 200px;
 }
 
-.calNav {
+:where(.calNav) {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
 }
 
-.calMesAnio {
+:where(.calMesAnio) {
     font-size: 0.875rem;
     font-weight: 500;
     color: #e2e8f0;
 }
 
-.calNavBtn {
+:where(.calNavBtn) {
     height: 1.75rem;
     width: 1.75rem;
     background-color: transparent;
@@ -72,13 +72,13 @@ html[data-theme='dark'] {
     color: #cbd5e0;
 }
 
-.calTabla {
+:where(.calTabla) {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 0.5rem;
 }
 
-.calTabla th {
+:where(.calTabla th) {
     color: #a0aec0;
     border-radius: 0.375rem;
     width: calc(100% / 7);
@@ -87,14 +87,14 @@ html[data-theme='dark'] {
     padding-bottom: 0.5rem;
 }
 
-.calTabla td {
+:where(.calTabla td) {
     padding: 0;
     text-align: center;
     font-size: 12px;
     position: relative;
 }
 
-.calDia {
+:where(.calDia) {
     height: 2rem;
     width: 2rem;
     line-height: 2rem;
@@ -107,21 +107,21 @@ html[data-theme='dark'] {
     transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out;
 }
 
-.calDia:hover {
+:where(.calDia:hover) {
     background-color: #2d2d2d;
     color: #fff;
 }
 
-.calDiaFuera {
+:where(.calDiaFuera) {
     color: #4a5568;
     opacity: 0.8;
 }
 
-.calDiaFuera:hover {
+:where(.calDiaFuera:hover) {
     background-color: transparent;
 }
 
-.calDiaHoy .calDiaNum {
+:where(.calDiaHoy .calDiaNum) {
     background-color: #2d2d2d;
     color: #e2e8f0;
     border-radius: 0.375rem;
@@ -130,12 +130,12 @@ html[data-theme='dark'] {
     height: 100%;
 }
 
-.calDiaHoy.calDiaSel .calDiaNum {
+:where(.calDiaHoy.calDiaSel .calDiaNum) {
     background-color: #3182ce;
     color: #fff;
 }
 
-.calDiaSel .calDiaNum {
+:where(.calDiaSel .calDiaNum) {
     background-color: #3182ce;
     color: #fff;
     border-radius: 0.375rem;
@@ -144,37 +144,37 @@ html[data-theme='dark'] {
     height: 100%;
 }
 
-.calDiaSel .calDiaNum:hover {
+:where(.calDiaSel .calDiaNum:hover) {
     background-color: #2c5282;
 }
 
-.calDiaDeshab {
+:where(.calDiaDeshab) {
     color: #4a5568;
     opacity: 0.5;
     cursor: default;
 }
 
-.calDiaDeshab:hover {
+:where(.calDiaDeshab:hover) {
     background-color: transparent;
 }
 
-.calAcciones {
+:where(.calAcciones) {
     display: flex;
     justify-content: space-between;
     margin-top: 0.75rem;
 }
 
-.calBtnAccion {
+:where(.calBtnAccion) {
     padding: 5px 12px;
     border: var(--borde);
     cursor: pointer;
 }
 
-.calBtnAccion:hover {
+:where(.calBtnAccion:hover) {
     background-color: #2d2d2d;
 }
 
-.calCont tr {
+:where(.calCont tr) {
     padding: 1px 0px;
     display: flex;
     justify-content: space-around;
@@ -182,26 +182,26 @@ html[data-theme='dark'] {
 
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Source+Sans+3:wght@200..900&display=swap');
 
-html {
+:where(html) {
     background: var(--bg);
     font-size: 1rem;
 }
 
-main {
+:where(main) {
     width: 100%;
 }
 
-.firefox * {
+:where(.firefox *) {
     scrollbar-width: thin;
     scrollbar-color: #373737 transparent;
 }
 
-* {
+:where(*) {
     -webkit-tap-highlight-color: transparent;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
-.bloque {
+:where(.bloque) {
     display: flex;
     background: var(--fondo);
     border-radius: var(--radius);
@@ -212,70 +212,70 @@ main {
     gap: 1rem;
 }
 
-code {
+:where(code) {
     background: var(--card-hover);
     padding: 0.1rem 0.3rem;
     margin: 0.1rem;
 }
 
-img {
+:where(img) {
     border-style: none;
     vertical-align: top;
     max-width: 100%;
     height: auto;
 }
 
-.flex {
+:where(.flex) {
     display: flex;
 }
 
-.gap {
+:where(.gap) {
     gap: 1rem;
 }
 
-.gap15 {
+:where(.gap15) {
     gap: 1.5rem;
 }
 
-.gap20 {
+:where(.gap20) {
     gap: 2rem;
 }
 
-body.noScroll {
+:where(body.noScroll) {
     overflow: hidden;
 }
 
-.oculto {
+:where(.oculto) {
     display: none;
 }
 
-.flexRow {
+:where(.flexRow) {
     flex-direction: row;
 }
 
-.spaceBetween {
+:where(.spaceBetween) {
     justify-content: space-between;
 }
 
-.alignItemCenter {
+:where(.alignItemCenter) {
     align-items: center;
 }
 
-.columna {
+:where(.columna) {
     flex-direction: column;
 }
 
-.w100 {
+:where(.w100) {
     width: 100%;
 }
 
-.w50 {
+:where(.w50) {
     width: 50%;
 }
 
-body,
+:where(body,
 body p,
-textarea {
+textarea) {
     font-size: 1.2rem;
     display: block;
     margin-block-start: 0em;
@@ -296,112 +296,112 @@ textarea {
     text-wrap: pretty;
 }
 
-.firefox *::-webkit-scrollbar {
+:where(.firefox *::-webkit-scrollbar) {
     width: 0.4rem;
     background: transparent;
 }
 
-.firefox *::-webkit-scrollbar-thumb {
+:where(.firefox *::-webkit-scrollbar-thumb) {
     border-radius: 1rem;
     border: 0.2rem solid transparent;
     background-clip: padding-box;
 }
 
-.firefox .menu-container {
-    filter: url(#blur-effect) !important;
+:where(.firefox .menu-container) {
+    filter: url(#blur-effect);
     background-color: rgba(9, 9, 9, 0.85);
 }
 
-.firefox .panelperfilsupsec {
+:where(.firefox .panelperfilsupsec) {
     background: #070707;
     background-color: rgb(7, 7, 7);
-    filter: url(#blur-effect) !important;
+    filter: url(#blur-effect);
     background-color: rgba(9, 9, 9, 0.85);
 }
 
-::-webkit-scrollbar {
+:where(::-webkit-scrollbar) {
     width: 0.4rem;
     height: 0.4rem;
     transition: width 0.3s ease, height 0.3s ease;
 }
 
-::-webkit-scrollbar-track {
+:where(::-webkit-scrollbar-track) {
     background: none;
 }
 
-::-webkit-scrollbar-thumb {
+:where(::-webkit-scrollbar-thumb) {
     background: #555;
     border-radius: 1rem;
 }
 
-.scrollVisible::-webkit-scrollbar {
+:where(.scrollVisible::-webkit-scrollbar) {
     width: 0.4rem;
     height: 0.4rem;
 }
 
-.scrollVisible::-webkit-scrollbar-thumb {
+:where(.scrollVisible::-webkit-scrollbar-thumb) {
     background: unset;
 }
 
-.scrollVisible::-webkit-scrollbar-thumb:hover {
+:where(.scrollVisible::-webkit-scrollbar-thumb:hover) {
     background: #888;
 }
 
-.appAndroid p {
+:where(.appAndroid p) {
     font-size: 1.4rem;
 }
 
-.appAndroid button {
-    font-size: 1.4rem !important;
-}
-
-.appAndroid a {
+:where(.appAndroid button) {
     font-size: 1.4rem;
 }
 
-.appAndroid .jhvsfw a {
-    font-size: 1.5rem !important;
+:where(.appAndroid a) {
+    font-size: 1.4rem;
 }
 
-.appAndroid .zvjvza {
+:where(.appAndroid .jhvsfw a) {
+    font-size: 1.5rem;
+}
+
+:where(.appAndroid .zvjvza) {
     padding-bottom: 0rem;
     line-height: 1.3rem;
     padding-top: 0.5rem;
 }
 
-.appAndroid .hqlxwd a {
+:where(.appAndroid .hqlxwd a) {
     font-size: 1.2rem;
 }
 
 @media (max-width: 640px) {
-    ::-webkit-scrollbar {
+    :where(::-webkit-scrollbar) {
         width: 0rem;
         height: 0rem;
         transition: width 0.3s ease, height 0.3s ease;
     }
 
-    .scrollVisible::-webkit-scrollbar {
+    :where(.scrollVisible::-webkit-scrollbar) {
         width: 0rem;
         height: 0rem;
     }
 }
 
-.appAndroid .infoIaBtn,
+:where(.appAndroid .infoIaBtn,
 .appAndroid span.postTag,
 .appAndroid .badge,
-.appAndroid .postTagToggle {
-    font-size: 1.3rem !important;
+.appAndroid .postTagToggle) {
+    font-size: 1.3rem;
 }
 
-ul {
+:where(ul) {
     list-style: none;
 }
 
-.borde {
+:where(.borde) {
     border: var(--borde);
 }
 
-textarea {
+:where(textarea) {
     /* Adaptar al token de texto del tema */
     color: var(--text);
     border: none;
@@ -413,18 +413,18 @@ textarea {
     width: 100%;
 }
 
-.seleccionado {
+:where(.seleccionado) {
     filter: brightness(2);
-    opacity: 1 !important;
+    opacity: 1;
     border: 0.1rem solid #676767;
 }
 
-.botonesBloques button {
+:where(.botonesBloques button) {
     width: -webkit-fill-available;
     justify-content: center;
 }
 
-button {
+:where(button) {
     all: unset;
     display: flex;
     margin: 0rem;
@@ -440,13 +440,13 @@ button {
     gap: 0.5rem;
 }
 
-.botonPrincipal {
-    background: transparent !important;
-    color: var(--button-text) !important;
-    border: none !important;
+:where(.botonPrincipal) {
+    background: transparent;
+    color: var(--button-text);
+    border: none;
 }
 
-.preview {
+:where(.preview) {
     border: var(--borde);
     border-radius: var(--radius);
     display: flex;
@@ -459,29 +459,29 @@ button {
     place-content: center;
 }
 
-.noBorde {
+:where(.noBorde) {
     border: unset;
 }
 
-body {
+:where(body) {
     display: flex;
     justify-content: center;
     align-items: flex-start;
 }
 
-label {
+:where(label) {
     /* +0.1rem respecto al valor anterior (1.2rem -> 1.3rem) y en negrita */
     font-size: 1.3rem;
     font-weight: 700;
 }
 
-/* En formularios, forzar los labels en bloque para colocar inputs/selects debajo */
-.gloryForm .formCampo>label {
+:where(/* En formularios, forzar los labels en bloque para colocar inputs/selects debajo */
+.gloryForm .formCampo>label) {
     display: block;
     margin-bottom: 0.6rem;
 }
 
-* {
+:where(*) {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -489,22 +489,22 @@ label {
     text-rendering: optimizeLegibility;
 }
 
-form {
+:where(form) {
     display: flex;
     flex-direction: column;
 }
 
-.heartAnimation {
+:where(.heartAnimation) {
     animation: fade 2s ease forwards;
     color: red;
     font-size: 3rem;
 }
 
-.waveformContainer {
+:where(.waveformContainer) {
     cursor: pointer;
 }
 
-.modal {
+:where(.modal) {
     display: none;
     position: fixed;
     top: 50%;
@@ -525,7 +525,7 @@ form {
     overflow: auto;
 }
 
-.customCheckbox {
+:where(.customCheckbox) {
     display: flex;
     cursor: pointer;
     padding: 0.5rem;
@@ -537,18 +537,18 @@ form {
     justify-content: center;
 }
 
-.customCheckbox input[type='checkbox'] {
-    display: none !important;
+:where(.customCheckbox input[type='checkbox']) {
+    display: none;
 }
 
-input,
-textarea {
-    background: unset !important;
-    /* padding: 0.7rem 0rem !important; */
-    border-bottom: var(--borde) !important;
-    font-size: 1.2rem !important;
+:where(input,
+textarea) {
+    background: unset;
+    /* padding: 0.7rem 0rem; */
+    border-bottom: var(--borde);
+    font-size: 1.2rem;
     /* Usar token de tema para el color del texto */
-    color: var(--text) !important;
+    color: var(--text);
     border-radius: 0rem;
     border: none;
     resize: none;
@@ -557,8 +557,8 @@ textarea {
     margin: 0.4rem 0;
 }
 
-/* Estilos para selects: similares a un input (borde inferior) */
-select {
+:where(/* Estilos para selects: similares a un input (borde inferior) */
+select) {
     width: 100%;
     border: unset;
     background: unset;
@@ -574,17 +574,17 @@ select {
     margin: 0.4rem 0;
 }
 
-select:focus {
+:where(select:focus) {
     outline: none;
 }
 
-select option {
+:where(select option) {
     color: var(--text);
     background: var(--bg);
 }
 
-/* Toggle estilo switch para checkboxes */
-.opcionCheck {
+:where(/* Toggle estilo switch para checkboxes */
+.opcionCheck) {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -593,34 +593,34 @@ select option {
     border-radius: 0.8rem;
 }
 
-.opcionCheck>div label {
+:where(.opcionCheck>div label) {
     color: var(--text);
     font-weight: 700;
     display: block;
     /* asegurar que el select quede debajo en bloques similares */
 }
 
-.opcionCheck .description {
+:where(.opcionCheck .description) {
     color: var(--muted);
     font-size: 1.1rem;
     line-height: 1.4rem;
     max-width: 25rem;
 }
 
-.switch {
+:where(.switch) {
     position: relative;
     display: inline-block;
     width: 3.5rem;
     height: 1.8rem;
 }
 
-.switch input {
+:where(.switch input) {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.slider {
+:where(.slider) {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -633,7 +633,7 @@ select option {
     border: 0.1rem solid var(--border-color);
 }
 
-.slider:before {
+:where(.slider:before) {
     position: absolute;
     content: '';
     height: 1.6rem;
@@ -644,29 +644,29 @@ select option {
     box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.2);
 }
 
-.switch input:checked+.slider {
+:where(.switch input:checked+.slider) {
     background-color: var(--text);
     border-color: var(--text);
 }
 
-.switch input:checked+.slider:before {
+:where(.switch input:checked+.slider:before) {
     transform: translateX(1.7rem);
     background-color: var(--bg);
 }
 
-.switch input:focus+.slider,
-.switch input:active+.slider {
+:where(.switch input:focus+.slider,
+.switch input:active+.slider) {
     box-shadow: none;
     /* eliminar halo que añade la sensación de grosor */
 }
 
-/* Minimal modern checkbox group */
-.checkboxGroup {
+:where(/* Minimal modern checkbox group */
+.checkboxGroup) {
     display: flex;
     flex-direction: column;
 }
 
-.checkboxGroup label {
+:where(.checkboxGroup label) {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -685,20 +685,20 @@ select option {
     /* texto normal */
 }
 
-/* eliminar efecto hover visual para los checkboxes del grupo */
-.checkboxGroup label:hover {
+:where(/* eliminar efecto hover visual para los checkboxes del grupo */
+.checkboxGroup label:hover) {
     background: transparent;
 }
 
-.checkboxGroup input[type='checkbox'] {
+:where(.checkboxGroup input[type='checkbox']) {
     display: none;
 }
 
-.checkboxVisualWrapper {
+:where(.checkboxVisualWrapper) {
     position: relative;
 }
 
-.checkboxVisualWrapper::before {
+:where(.checkboxVisualWrapper::before) {
     content: '';
     position: absolute;
     left: -2.8rem;
@@ -714,7 +714,7 @@ select option {
     box-sizing: border-box;
 }
 
-.checkboxVisualWrapper::after {
+:where(.checkboxVisualWrapper::after) {
     content: '✔';
     position: absolute;
     left: -2.8rem;
@@ -731,29 +731,29 @@ select option {
     text-align: center;
 }
 
-/* Mostrar checkmark cuando está marcado */
-label input:checked+.checkboxVisualWrapper::after {
+:where(/* Mostrar checkmark cuando está marcado */
+label input:checked+.checkboxVisualWrapper::after) {
     display: block;
 }
 
-label input:checked+.checkboxVisualWrapper::before {
+:where(label input:checked+.checkboxVisualWrapper::before) {
     /* mantener sin background, solo cambiar color del borde si se desea */
     background: transparent;
     border-color: var(--text);
 }
 
-/* También un estilo para customCheckbox (campo individual con clase) para mantener coherencia */
-.customCheckbox {
+:where(/* También un estilo para customCheckbox (campo individual con clase) para mantener coherencia */
+.customCheckbox) {
     justify-content: flex-start;
     padding-left: 3.4rem;
     position: relative;
 }
 
-.customCheckbox input[type='checkbox'] {
+:where(.customCheckbox input[type='checkbox']) {
     display: none;
 }
 
-.customCheckbox::before {
+:where(.customCheckbox::before) {
     content: '';
     position: absolute;
     left: 0.8rem;
@@ -766,46 +766,46 @@ label input:checked+.checkboxVisualWrapper::before {
     background: var(--bg);
 }
 
-input::placeholder,
-textarea::placeholder {
+:where(input::placeholder,
+textarea::placeholder) {
     color: var(--muted);
     opacity: 0.9;
 }
 
-input:focus,
-textarea:focus {
+:where(input:focus,
+textarea:focus) {
     outline: none;
 }
 
-.preview img {
+:where(.preview img) {
     max-height: 20rem;
-    object-fit: cover !important;
-    width: 100% !important;
+    object-fit: cover;
+    width: 100%;
 }
 
-.openModal {
+:where(.openModal) {
     cursor: pointer;
 }
 
-.activa {
-    opacity: 1 !important;
+:where(.activa) {
+    opacity: 1;
 }
 
-.pestanas button {
+:where(.pestanas button) {
     font-size: 1.3rem;
     padding: 0rem;
     font-weight: 500;
     opacity: 0.6;
 }
 
-.pestanas {
+:where(.pestanas) {
     display: flex;
     align-items: center;
     gap: 2rem;
     padding: 1rem 1.8rem;
 }
 
-.submenus {
+:where(.submenus) {
     display: none;
     background: #080808;
     padding: 1rem 0.6rem;
@@ -818,7 +818,7 @@ textarea:focus {
     flex-direction: column;
 }
 
-.submenus a {
+:where(.submenus a) {
     font-size: 1.2rem;
     padding: 0.5rem;
     padding-left: 1rem;
@@ -828,27 +828,27 @@ textarea:focus {
     width: -moz-available;
 }
 
-/* Muestra el menú cuando está activo */
-.submenus.activo {
+:where(/* Muestra el menú cuando está activo */
+.submenus.activo) {
     display: flex;
 }
 
-.arrastrando {
+:where(.arrastrando) {
     filter: brightness(1.2);
 }
 
-.previewsForms.activo {
+:where(.previewsForms.activo) {
     display: flex;
     /* o flex, grid, etc., según necesites */
 }
 
-.gloryImageUploader {
+:where(.gloryImageUploader) {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.previewImagen {
+:where(.previewImagen) {
     border: var(--borde);
     border-radius: var(--radius);
     display: flex;
@@ -863,15 +863,15 @@ textarea:focus {
     position: relative;
 }
 
-/* Badges list component (Glory) */
-.badgeList {
+:where(/* Badges list component (Glory) */
+.badgeList) {
     display: flex;
     gap: 0.8rem;
     flex-wrap: wrap;
     align-items: center;
 }
 
-.badgeList .badge {
+:where(.badgeList .badge) {
     /* basarse en variables del tema */
     color: var(--muted);
     background: var(--card-bg);
@@ -885,18 +885,18 @@ textarea:focus {
     opacity: 0.85;
 }
 
-.badgeList .badge.activo {
+:where(.badgeList .badge.activo) {
     background: var(--card-bg);
     color: var(--text);
     opacity: 1;
     transform: translateY(-0.1rem);
 }
 
-.badgeList .badge.inactivo {
+:where(.badgeList .badge.inactivo) {
     opacity: 0.45;
 }
 
-.badgeList .badgeControl {
+:where(.badgeList .badgeControl) {
     font-size: 1.1rem;
     padding: 0.4rem 0.8rem;
     border-radius: 0.6rem;
@@ -904,18 +904,18 @@ textarea:focus {
     background: transparent;
 }
 
-.hljs {
-    background: var(--card-bg) !important;
+:where(.hljs) {
+    background: var(--card-bg);
 }
 
-pre code.hljs {
+:where(pre code.hljs) {
     display: block;
     overflow-x: auto;
     padding: 1em;
     font-size: 1rem;
 }
 
-button.previewRemover {
+:where(button.previewRemover) {
     position: absolute;
     top: 25px;
     right: 25px;
@@ -924,7 +924,7 @@ button.previewRemover {
     padding: 8px;
 }
 
-.submenu {
+:where(.submenu) {
     display: none;
     position: fixed;
     background: var(--fondo);
@@ -939,11 +939,11 @@ button.previewRemover {
     list-style: none;
 }
 
-.submenu.activo {
+:where(.submenu.activo) {
     display: flex;
 }
 
-.submenu button {
+:where(.submenu button) {
     width: -webkit-fill-available;
     width: -moz-available;
     width: fill-available;
@@ -956,12 +956,12 @@ button.previewRemover {
     color: var(--text);
 }
 
-.submenu button:hover {
+:where(.submenu button:hover) {
     background-color: var(--fondo);
     filter: brightness(1.4);
 }
 
-.gloryThemeToggle {
+:where(.gloryThemeToggle) {
     color: var(--text);
     background: var(--card-bg);
     border: var(--borde);

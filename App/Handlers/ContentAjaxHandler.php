@@ -4,13 +4,11 @@ namespace App\Handlers;
 
 use Glory\Components\ContentRender;
 
-error_log("ContentAjaxHandler.php loaded");
 
 class ContentAjaxHandler
 {
     public static function register(): void
     {
-        error_log("ContentAjaxHandler::register called");
         add_action('wp_ajax_obtenerHtmlPost', [self::class, 'handle_get_post_html']);
         add_action('wp_ajax_nopriv_obtenerHtmlPost', [self::class, 'handle_get_post_html']);
 
@@ -73,7 +71,6 @@ class ContentAjaxHandler
 
     public static function handle_get_list_html(): void
     {
-        error_log("ContentAjaxHandler::handle_get_list_html called");
         
         // Recopilar todas las opciones posibles
         $options = $_POST;

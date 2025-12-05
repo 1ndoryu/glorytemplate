@@ -33,7 +33,6 @@ if ($modo === 'editor') {
     
     // Default padding 20px if not set
     if (empty($pageSettings['padding'])) {
-        $rootStyle .= 'padding: 20px;';
     } else {
         if (is_array($pageSettings['padding'])) {
             $p = $pageSettings['padding'];
