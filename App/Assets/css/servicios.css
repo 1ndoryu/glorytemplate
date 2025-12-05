@@ -11,7 +11,7 @@
     width: 100%;
     background-color: #a8bfa5;
     /* Base greenish color */
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.4) 0%, rgba(168, 191, 165, 1) 70%);
+    background: radial-gradient(circle at center, rgba(233, 232, 232, 0.4) 0%, rgb(99, 117, 97) 70%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -99,9 +99,68 @@
 
 .services-container .marketing-card {
     background: #fff;
-    border: 1px solid #e0e0e0;
+    border: 2.3px solid #4a5d4e48;
+    border-radius: 20px;
     padding: 40px 30px;
     text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.services-container .marketing-card-right {
+    background: #fff;
+    border: 2.3px solid #4a5d4e48;
+    border-radius: 0px 20px 20px 0px;
+    padding: 40px 30px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.services-container .marketing-card-left {
+    background: #fff;
+    border: 2.3px solid #4a5d4e48;
+    border-radius: 20px 0px 0px 20px;
+    padding: 40px 30px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.services-container .marketing-card-center {
+    background: #fff;
+    border: 2.3px solid #4a5d4e48;
+    border-right: 0;
+    border-left: 0;
+    padding: 40px 30px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.services-container .marketing-card-right-bottom {
+    background: #fff;
+    border: 2.3px solid #4a5d4e48;
+    border-radius: 0px 20px 20px 0px;
+    border-left: .5px;
+    padding: 40px 30px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -110,34 +169,54 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
-.services-container .card-icon {
-    font-size: 2rem;
+.services-container .card-header {
     margin-bottom: 20px;
 }
 
-.services-container .marketing-card h3 {
+.services-container .card-icon-wrapper {
+    background-color: #f5f5f5;
+    border-radius: 12px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 9px;
+}
+
+.services-container .marketing-card-left h3,
+.services-container .marketing-card-center h3,
+.services-container .marketing-card-right h3,
+.services-container .marketing-card-right-bottom h3 {
     font-family: var(--font-heading);
-    font-size: 2rem;
-    margin: 0 0 5px 0;
-    color: #1a1a1a;
+    font-size: 3rem;
+    margin: 0;
+    color: #4a5d4e;
     font-style: italic;
+    font-weight: 400;
 }
 
 .services-container .card-subtitle {
     display: block;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #666;
-    margin-bottom: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #1a1a1a;
+    margin-bottom: 0;
+}
+
+.services-container .card-body {
+    flex-grow: 1;
 }
 
 .services-container .card-desc {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: #555;
     line-height: 1.6;
     margin-bottom: 30px;
-    min-height: 60px;
+    margin-top: 5px;
 }
 
 .services-container .card-features {
@@ -149,22 +228,34 @@
 .services-container .card-features li {
     font-size: 0.9rem;
     color: #444;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     display: flex;
-    align-items: center;
-    gap: 10px;
+    align-items: flex-start;
+    /* Align top for multi-line text */
+    gap: 12px;
+}
+
+.services-container .feature-check svg {
+    display: block;
+    color: #8c8c8c;
+}
+
+.services-container .card-footer {
+    margin-top: auto;
 }
 
 .services-container .btn-card {
     display: block;
     width: 100%;
     padding: 12px 0;
-    border: 1px solid #ccc;
-    border-radius: 25px;
+    border: 1px solid #757474;
+    border-radius: 8px;
+    /* Slightly less rounded than card */
     text-align: center;
     text-decoration: none;
     color: #333;
     font-size: 0.9rem;
+    font-weight: 500;
     transition: all 0.3s ease;
 }
 
