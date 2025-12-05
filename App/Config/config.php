@@ -11,8 +11,6 @@ add_filter('show_admin_bar', '__return_false');
 SyncManager::setAdminBarVisible(true); 
 SyncManager::setResetButtonVisible(true);
 
-
-
 AjaxNav::contentSelector('#main');
 AjaxNav::mainScrollSelector('#main');
 AjaxNav::registerFilter();

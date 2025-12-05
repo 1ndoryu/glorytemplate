@@ -1,0 +1,350 @@
+/* 
+ * ESTILOS DE LA PÁGINA DE SERVICIOS
+ * Hereda variables y resets de landing.css (base).
+ */
+
+/* --- HERO SECTION (Específico Servicios) --- */
+.services-container .services-hero {
+    position: relative;
+    height: 60vh;
+    min-height: 500px;
+    width: 100%;
+    background-color: #a8bfa5;
+    /* Base greenish color */
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.4) 0%, rgba(168, 191, 165, 1) 70%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+}
+
+.services-container .hero-content {
+    z-index: 2;
+    max-width: 800px;
+}
+
+.services-container .hero-title {
+    font-family: var(--font-body);
+    font-size: 4rem;
+    line-height: 1;
+    color: #fff;
+    margin-bottom: 20px;
+    font-weight: 300;
+}
+
+.services-container .hero-title .script-text {
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-size: 4.5rem;
+    display: block;
+    margin-bottom: -10px;
+}
+
+.services-container .hero-subtitle {
+    color: #fff;
+    font-size: 1.4rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+/* --- SECCIONES COMUNES EN SERVICIOS --- */
+.services-container .marketing-section,
+.services-container .consulting-section,
+.services-container .revenue-section {
+    padding: 80px 20px;
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.services-container .section-tag {
+    display: inline-block;
+    padding: 8px 20px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    color: #666;
+}
+
+/* Override del título de sección para servicios (más pequeño que landing) */
+.services-container .section-title {
+    font-size: 3.5rem;
+    margin: 0 0 20px 0;
+}
+
+.services-container .section-title-italic {
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-size: 3.5rem;
+    margin: 0 0 20px 0;
+}
+
+.services-container .section-subtitle {
+    max-width: 700px;
+    margin: 0 auto 60px;
+    font-size: 1.2rem;
+}
+
+/* --- MARKETING SECTION --- */
+.services-container .marketing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.services-container .marketing-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 40px 30px;
+    text-align: left;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.services-container .marketing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.services-container .card-icon {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.services-container .marketing-card h3 {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    margin: 0 0 5px 0;
+    color: #1a1a1a;
+    font-style: italic;
+}
+
+.services-container .card-subtitle {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.services-container .card-desc {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    min-height: 60px;
+}
+
+.services-container .card-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 30px 0;
+}
+
+.services-container .card-features li {
+    font-size: 0.9rem;
+    color: #444;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.services-container .btn-card {
+    display: block;
+    width: 100%;
+    padding: 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.services-container .btn-card:hover {
+    background: #1a1a1a;
+    color: #fff;
+    border-color: #1a1a1a;
+}
+
+/* --- CONSULTING SECTION --- */
+.services-container .consulting-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 50px;
+    align-items: center;
+    text-align: left;
+}
+
+.services-container .consulting-left {
+    flex: 1;
+    min-width: 300px;
+}
+
+.services-container .consulting-left .section-title {
+    font-size: 3rem !important;
+}
+
+.services-container .section-text {
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    font-size: 1rem;
+}
+
+.services-container .consulting-right {
+    flex: 1;
+    min-width: 300px;
+}
+
+.services-container .orbit-card {
+    background: #111;
+    color: #fff;
+    border-radius: 20px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.services-container .orbit-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.services-container .orbit-icon {
+    font-size: 1.5rem;
+    color: #d4e157;
+}
+
+.services-container .orbit-card h3 {
+    color: #f4f4f4;
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    margin: 0;
+    font-style: italic;
+}
+
+.services-container .orbit-desc {
+    font-size: 1rem;
+    color: #757575;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+.services-container .orbit-subdesc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    color: #ddd;
+}
+
+.services-container .orbit-features {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.services-container .orbit-features ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+}
+
+.services-container .orbit-features li {
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.services-container .btn-orbit {
+    display: block;
+    width: 100%;
+    padding: 12px 0;
+    background: #fff;
+    color: #111;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: background 0.3s;
+}
+
+.services-container .btn-orbit:hover {
+    background: #f0f0f0;
+}
+
+/* --- REVENUE SECTION --- */
+.services-container .revenue-section {
+    padding-bottom: 100px;
+}
+
+.services-revenue {
+    max-width: 950px;
+    margin: 0 auto;
+}
+
+.services-revenue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.services-revenue-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-top: 5rem;
+    width: 100%;
+}
+
+.services-revenue-bottom-content {
+    max-width: 950px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.revenue-bottom-text {
+    max-width: 70%;
+}
+
+@media (max-width: 768px) {
+    .revenue-bottom-text {
+        max-width: 95%;
+    }
+}
+
+.btn-submit-revenue {
+    background-color: #9da876;
+    color: #f4f4f4;
+    border: none;
+    padding: 9px 38px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    transition: background 0.3s;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+
+.btn-submit-revenue:hover {
+    background-color: transparent;
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent);
+}

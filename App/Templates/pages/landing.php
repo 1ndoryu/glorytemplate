@@ -2,7 +2,7 @@
 
 function landing_render()
 {
-    // Cargar fuentes
+    // Cargar fuentes (temporal para testear)
     echo '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">';
     
     ?>
@@ -24,21 +24,10 @@ function landing_hero() {
     ?>
     <section class="hero-section">
 
-        <nav class="landing-nav">
-            <div class="logo">COSMO REVENUE</div>
-            <ul class="nav-links">
-                <li><a href="#">Inicio</a></li>
-                <li><a href="#">Servicios</a></li>
-                <li><a href="#">Casos</a></li>
-                <li><a href="#">Nosotros</a></li>
-                <li><a href="#" class="btn-nav">Contacto</a></li>
-            </ul>
-        </nav>
-
         <div class="hero-content">
-            <h1 style="color: #fff;">
+            <h1 class="hero-title">
                 Ordenamos el universo de tus <br>
-                <span style="color: #fff;">INGRESOS</span>
+                <span>INGRESOS</span>
             </h1>
             
             <a href="#" class="btn-auditoria">
@@ -48,7 +37,13 @@ function landing_hero() {
         </div>
 
         <div class="hero-marquee">
-            <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS ✦ ORDENAMOS EL UNIVERSO DE TUS INGRESOS ✦ ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+            <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+            <span>✦</span>
+            <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+            <span>✦</span>
+            <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+            <span>✦</span>
+            <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
         </div>
     </section>
     <?php
@@ -158,22 +153,42 @@ function landing_methodology() {
             <!-- Representación simplificada del gráfico orbital -->
             <div class="orbit-container">
                 <div class="orbit-ring ring-outer">
-                    <div class="orbit-planet planet-s">S</div>
-                    <div class="orbit-planet planet-m">M</div>
+                    <div class="orbit-planet planet-s">
+                        <p>S</p>
+                    </div>
+                    <div class="orbit-planet planet-m">
+                        <p>M</p>
+                    </div>
                 </div>
                 <div class="orbit-ring ring-inner">
-                    <div class="orbit-planet planet-c">C</div>
-                    <div class="orbit-planet planet-o">O</div>
+                    <div class="orbit-planet planet-o">
+                        <p>O</p>
+                    </div>
                 </div>
+                <div class="orbit-ring ring-inner-2">
+                    <div class="orbit-planet planet-c">
+                        <p>C</p>
+                    </div>
+                </div>
+
                 <div class="orbit-center">
                     <div class="logo-icon">✦</div>
                 </div>
-                <div class="orbit-planet planet-bottom-o">O</div>
+                <div class="orbit-planet planet-bottom-o">
+                    <p>O</p>
+                </div>
             </div>
+
         </div>
 
         <div class="methodology-marquee">
-            <span>TODO GIRA A FAVOR DE TU RENTABILIDAD ✦ TODO GIRA A FAVOR DE TU RENTABILIDAD ✦ TODO GIRA A FAVOR DE TU RENTABILIDAD ✦ TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+            <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+            <span>✦</span>
+            <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+            <span>✦</span>
+            <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+            <span>✦</span>
+            <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
         </div>
     </section>
     <?php
@@ -194,7 +209,13 @@ function landing_about() {
         </div>
 
         <div class="about-marquee">
-            <span>ES EL MEJOR MOMENTO PARA DESPEGAR ✦ ES EL MEJOR MOMENTO PARA DESPEGAR ✦ ES EL MEJOR MOMENTO PARA DESPEGAR ✦ ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+            <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+            <span>✦</span>
+            <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+            <span>✦</span>
+            <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+            <span>✦</span>
+            <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
         </div>
     </section>
     <?php

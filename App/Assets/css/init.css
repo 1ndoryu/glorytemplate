@@ -1,7 +1,7 @@
 :root {
     /* Tokens de tema (valores por defecto: claro) */
     --bg: #ffffff;
-    --text: #111111;
+    --text: #141414;
     --muted: #6b6b6b;
     --card-bg: #f8f8f8;
     --card-hover: #e6e6e6;
@@ -184,7 +184,7 @@ html[data-theme='dark'] {
 
 html {
     background: var(--bg);
-    font-size: 62.5%;
+    font-size: 1rem;
 }
 
 main {
@@ -324,9 +324,11 @@ textarea {
     height: 0.4rem;
     transition: width 0.3s ease, height 0.3s ease;
 }
+
 ::-webkit-scrollbar-track {
     background: none;
 }
+
 ::-webkit-scrollbar-thumb {
     background: #555;
     border-radius: 1rem;
@@ -336,9 +338,11 @@ textarea {
     width: 0.4rem;
     height: 0.4rem;
 }
+
 .scrollVisible::-webkit-scrollbar-thumb {
     background: unset;
 }
+
 .scrollVisible::-webkit-scrollbar-thumb:hover {
     background: #888;
 }
@@ -368,6 +372,7 @@ textarea {
 .appAndroid .hqlxwd a {
     font-size: 1.2rem;
 }
+
 @media (max-width: 640px) {
     ::-webkit-scrollbar {
         width: 0rem;
@@ -471,7 +476,7 @@ label {
 }
 
 /* En formularios, forzar los labels en bloque para colocar inputs/selects debajo */
-.gloryForm .formCampo > label {
+.gloryForm .formCampo>label {
     display: block;
     margin-bottom: 0.6rem;
 }
@@ -561,15 +566,18 @@ select {
     padding: 0.5rem;
     padding-left: 0rem;
     margin: unset;
-    font-size: 1.2rem; /* igual a inputs */
+    font-size: 1.2rem;
+    /* igual a inputs */
     border-bottom: var(--borde);
     outline: none;
     color: var(--text);
     margin: 0.4rem 0;
 }
+
 select:focus {
     outline: none;
 }
+
 select option {
     color: var(--text);
     background: var(--bg);
@@ -584,11 +592,14 @@ select option {
     border: var(--borde);
     border-radius: 0.8rem;
 }
-.opcionCheck > div label {
+
+.opcionCheck>div label {
     color: var(--text);
     font-weight: 700;
-    display: block; /* asegurar que el select quede debajo en bloques similares */
+    display: block;
+    /* asegurar que el select quede debajo en bloques similares */
 }
+
 .opcionCheck .description {
     color: var(--muted);
     font-size: 1.1rem;
@@ -602,11 +613,13 @@ select option {
     width: 3.5rem;
     height: 1.8rem;
 }
+
 .switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
+
 .slider {
     position: absolute;
     cursor: pointer;
@@ -619,6 +632,7 @@ select option {
     border-radius: 3.4rem;
     border: 0.1rem solid var(--border-color);
 }
+
 .slider:before {
     position: absolute;
     content: '';
@@ -629,17 +643,21 @@ select option {
     border-radius: 50%;
     box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.2);
 }
-.switch input:checked + .slider {
+
+.switch input:checked+.slider {
     background-color: var(--text);
     border-color: var(--text);
 }
-.switch input:checked + .slider:before {
+
+.switch input:checked+.slider:before {
     transform: translateX(1.7rem);
     background-color: var(--bg);
 }
-.switch input:focus + .slider,
-.switch input:active + .slider {
-    box-shadow: none; /* eliminar halo que añade la sensación de grosor */
+
+.switch input:focus+.slider,
+.switch input:active+.slider {
+    box-shadow: none;
+    /* eliminar halo que añade la sensación de grosor */
 }
 
 /* Minimal modern checkbox group */
@@ -647,11 +665,13 @@ select option {
     display: flex;
     flex-direction: column;
 }
+
 .checkboxGroup label {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 0.6rem 0.6rem 0.6rem 3rem; /* espacio para la casilla personalizada */
+    padding: 0.6rem 0.6rem 0.6rem 3rem;
+    /* espacio para la casilla personalizada */
     border-radius: 0.8rem;
     cursor: pointer;
     position: relative;
@@ -659,19 +679,25 @@ select option {
     color: var(--text);
     background: transparent;
     border: 0.1rem solid transparent;
-    font-size: 1.2rem; /* igual que inputs */
-    font-weight: 400; /* texto normal */
+    font-size: 1.2rem;
+    /* igual que inputs */
+    font-weight: 400;
+    /* texto normal */
 }
+
 /* eliminar efecto hover visual para los checkboxes del grupo */
 .checkboxGroup label:hover {
     background: transparent;
 }
+
 .checkboxGroup input[type='checkbox'] {
     display: none;
 }
+
 .checkboxVisualWrapper {
     position: relative;
 }
+
 .checkboxVisualWrapper::before {
     content: '';
     position: absolute;
@@ -682,10 +708,12 @@ select option {
     height: 1.4rem;
     border-radius: 0.3rem;
     border: 0.1rem solid var(--border-color);
-    background: transparent; /* sin background */
+    background: transparent;
+    /* sin background */
     display: block;
     box-sizing: border-box;
 }
+
 .checkboxVisualWrapper::after {
     content: '✔';
     position: absolute;
@@ -702,11 +730,13 @@ select option {
     line-height: 1.4rem;
     text-align: center;
 }
+
 /* Mostrar checkmark cuando está marcado */
-label input:checked + .checkboxVisualWrapper::after {
+label input:checked+.checkboxVisualWrapper::after {
     display: block;
 }
-label input:checked + .checkboxVisualWrapper::before {
+
+label input:checked+.checkboxVisualWrapper::before {
     /* mantener sin background, solo cambiar color del borde si se desea */
     background: transparent;
     border-color: var(--text);
@@ -718,9 +748,11 @@ label input:checked + .checkboxVisualWrapper::before {
     padding-left: 3.4rem;
     position: relative;
 }
+
 .customCheckbox input[type='checkbox'] {
     display: none;
 }
+
 .customCheckbox::before {
     content: '';
     position: absolute;
@@ -765,6 +797,7 @@ textarea:focus {
     font-weight: 500;
     opacity: 0.6;
 }
+
 .pestanas {
     display: flex;
     align-items: center;
@@ -805,7 +838,8 @@ textarea:focus {
 }
 
 .previewsForms.activo {
-    display: flex; /* o flex, grid, etc., según necesites */
+    display: flex;
+    /* o flex, grid, etc., según necesites */
 }
 
 .gloryImageUploader {
@@ -844,7 +878,8 @@ textarea:focus {
     border-radius: 10rem;
     padding: 0.2rem 1.1rem;
     cursor: pointer;
-    font-size: 1.2rem; /* 12px equivalente */
+    font-size: 1.2rem;
+    /* 12px equivalente */
     white-space: nowrap;
     transition: opacity 120ms ease, transform 120ms ease, background-color 120ms ease, color 120ms ease;
     opacity: 0.85;
