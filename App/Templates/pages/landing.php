@@ -3,7 +3,7 @@
 function landing_render()
 {
     // Cargar fuentes (temporal para testear)
-    echo '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">';
+    echo '<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Instrument+Serif:ital@0;1&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">';
     
     ?>
     <div class="landing-container">
@@ -17,6 +17,8 @@ function landing_render()
         landing_footer();
         ?>
     </div>
+    ?>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <?php
 }
 
@@ -31,18 +33,18 @@ function landing_hero() {
             </h1>
             
             <a href="#" class="btn-auditoria">
-                <span class="auditoria-icon">✦</span>
+                <i data-lucide="sparkles" class="auditoria-icon"></i>
                 Reservar auditoría
             </a>
         </div>
 
         <div class="hero-marquee">
             <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-            <span>✦</span>
+            <span><i data-lucide="star"></i></span>
             <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-            <span>✦</span>
+            <span><i data-lucide="star"></i></span>
             <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-            <span>✦</span>
+            <span><i data-lucide="star"></i></span>
             <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
         </div>
     </section>
@@ -172,7 +174,7 @@ function landing_methodology() {
                 </div>
 
                 <div class="orbit-center">
-                    <div class="logo-icon">✦</div>
+                    <div class="logo-icon"><i data-lucide="atom"></i></div>
                 </div>
                 <div class="orbit-planet planet-bottom-o">
                     <p>O</p>
@@ -183,11 +185,11 @@ function landing_methodology() {
 
         <div class="methodology-marquee">
             <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-            <span>✦</span>
+            <span><i data-lucide="zap"></i></span>
             <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-            <span>✦</span>
+            <span><i data-lucide="zap"></i></span>
             <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-            <span>✦</span>
+            <span><i data-lucide="zap"></i></span>
             <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
         </div>
     </section>
@@ -210,11 +212,11 @@ function landing_about() {
 
         <div class="about-marquee">
             <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-            <span>✦</span>
+            <span><i data-lucide="rocket"></i></span>
             <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-            <span>✦</span>
+            <span><i data-lucide="rocket"></i></span>
             <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-            <span>✦</span>
+            <span><i data-lucide="rocket"></i></span>
             <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
         </div>
     </section>
@@ -308,12 +310,15 @@ function landing_footer() {
         <div class="footer-bottom">
             <p>© 2025 Cosmo All rights reserved.</p>
             <div class="social-icons">
-                <a href="#">X</a>
-                <a href="#">F</a>
-                <a href="#">I</a>
-                <a href="#">L</a>
+                <a href="#"><i data-lucide="x"></i></a>
+                <a href="#"><i data-lucide="facebook"></i></a>
+                <a href="#"><i data-lucide="instagram"></i></a>
+                <a href="#"><i data-lucide="linkedin"></i></a>
             </div>
         </div>
     </footer>
+    <script>
+        lucide.createIcons();
+    </script>
     <?php
 }

@@ -11,6 +11,10 @@ function services_render()
         services_revenue();
         ?>
     </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
     <?php
 }
 
@@ -21,7 +25,7 @@ function services_hero() {
             <h1 class="hero-title">
                 <span class="script-text">
                     Nuestros
-                    <span class="script-icon">✦</span>
+                    <span class="script-icon"><i data-lucide="sparkles"></i></span>
                 </span>
                 SERVICIOS
             </h1>
@@ -41,7 +45,7 @@ function services_marketing() {
         <div class="marketing-grid">
             <?php
             render_marketing_card(
-                '🚀',
+                '<i data-lucide="rocket"></i>',
                 'Comet',
                 'IMPULSO INICIAL',
                 'Para alojamientos que quieren establecer una presencia profesional.',
@@ -51,7 +55,7 @@ function services_marketing() {
             );
 
             render_marketing_card(
-                '✨',
+                '<i data-lucide="sparkles"></i>',
                 'Nebula',
                 'ATRACCIÓN Y NUTRICIÓN',
                 'Para negocios que buscan atraer tráfico y convertir seguidores en reservas.',
@@ -61,7 +65,7 @@ function services_marketing() {
             );
 
             render_marketing_card(
-                '⚡',
+                '<i data-lucide="zap"></i>',
                 'Quasar',
                 'ACELERACIÓN TOTAL',
                 'Estrategia integral de comunicación y captación avanzada.',
@@ -138,7 +142,9 @@ function render_orbit_card() {
     ?>
     <div class="orbit-card">
         <div class="orbit-header">
-            <span class="orbit-icon">🌿</span>
+            <span class="rocket-icon-conl">
+                <i data-lucide="rocket" class="rocket-icon-conl"></i>
+            </span>
             <h3>Orbit</h3>
         </div>
         <p class="orbit-desc">Empieza con claridad</p>
@@ -172,7 +178,7 @@ function services_revenue() {
         <div class="services-revenue">
             <div class="services-revenue-grid">
                 <?php render_marketing_card(
-                    '🚀',
+                    '<i data-lucide="globe"></i>',
                     'Galaxy',
                     'Gestión externa continua',
                     'Ejecución y seguimiento constante mensual. Sin ampliar tu estructura interna.',
@@ -181,7 +187,7 @@ function services_revenue() {
                     'left'
                 ); ?>
             <?php render_marketing_card(
-                '🚀',
+                '<i data-lucide="star"></i>',
                 'Universe',
                 'Departamento 360°',
                 'Partner completo anual. Para grupos o alojamientos que buscan excelencia total.',

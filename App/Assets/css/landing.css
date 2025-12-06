@@ -6,16 +6,26 @@
 
 /* --- 1. VARIABLES GLOBALES Y RESET --- */
 :root {
-    --color-bg-dark: #1a1a1a;
-    --color-text-light: #ffffff;
-    --color-text-muted: #a0a0a0;
-    --color-accent: #888d67;
+    --color-negro: #000000;
+    --color-blanco: #F4F4F2;
+    --color-naranja-claro: #F6F3EC;
+    --color-gris: #CCCCCC;
+    --color-verde-1: #DDE0CD;
+    --color-verde-2: #B2B88E;
+    --color-verde-marca: #8D926F;
+    --color-verde-oscuro: #545938;
+
+    --color-bg-dark: var(--color-negro);
+    --color-text-light: var(--color-blanco);
+    --color-text-muted: var(--color-gris);
+    --color-accent: var(--color-verde-marca);
     /* Verde/Amarillo */
-    --color-mint: #9ED8C2;
+    --color-mint: var(--color-verde-1);
     /* Menta */
-    --color-mint-dark: #888d67;
-    --font-heading: 'Playfair Display', serif;
-    --font-body: 'Outfit', sans-serif;
+    --color-mint-dark: var(--color-verde-2);
+    --font-heading: 'Instrument Serif', serif;
+    --font-body: 'Montserrat', sans-serif !important;
+    --font-brand: 'Archivo Black', sans-serif;
 }
 
 body {
@@ -46,6 +56,7 @@ body {
     color: #666;
     line-height: 1.6;
     font-size: 1.1rem;
+    font-family: var(--font-body);
 }
 
 /* --- 3. ESTILOS ESPECÍFICOS DE LANDING PAGE --- */
@@ -85,7 +96,9 @@ body {
 }
 
 .landing-nav .logo {
-    font-weight: 700;
+    font-family: var(--font-brand);
+    font-weight: 400;
+    /* Archivo Black is usually black weight by default or specific weight, check if 700 is needed, usually 400 is fine if only one weight loaded but let's stick to variable */
     font-size: 1.2rem;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -159,9 +172,18 @@ body {
 
 .landing-container .auditoria-icon {
     position: absolute;
-    font-size: 1.8rem;
+    width: 1.8rem;
+    height: 1.8rem;
     right: 5px;
     top: -12px;
+}
+
+.landing-container .hero-marquee svg,
+.landing-container .methodology-marquee svg,
+.landing-container .about-marquee svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    vertical-align: middle;
 }
 
 .landing-container .btn-auditoria:hover {
@@ -192,6 +214,7 @@ body {
     color: #fff;
     text-transform: uppercase;
     letter-spacing: 2px;
+    font-family: var(--font-brand);
 }
 
 /* Secciones Landing */
@@ -630,7 +653,8 @@ body {
 }
 
 .landing-footer .footer-brand .logo {
-    font-weight: 700;
+    font-weight: 400;
+    font-family: var(--font-brand);
     font-size: 1.2rem;
     margin-bottom: 20px;
 }

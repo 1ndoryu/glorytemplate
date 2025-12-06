@@ -1,24 +1,7 @@
 /* HEADER */
 
 /* --- VARIABLES Y ESTILOS BASE --- */
-:root {
-    --color-black: #000;
-    --color-blue: #0071e3;
-    --color-green: #00b982;
-    --color-greyDark: #1d1e20;
-    --color-greyLight: #efefef;
-    --color-greyLighter: #f8f8f8;
-    --color-offBlack: #0f1012;
-    --color-offWhite: #f2f2f4;
-    --color-orange: #ff5102;
-    --color-yellow: #fca311;
-    --color-white: #fff;
-    --font-base: "Playfair Display", serif;
-    --header-height: 7.9rem;
-    --grid-columnCount: 5;
-    --grid-gutter: 2.5641025641vw;
-    --grid-outerGutter: 5.1282051282vw;
-}
+/* VARIABLES MOVIDAS A INIT.CSS */
 
 .siteMenuW {
     position: fixed;

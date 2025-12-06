@@ -1,8 +1,41 @@
 :where(:root) {
+    /* Palette */
+    --color-negro: #000000;
+    --color-blanco: #F4F4F2;
+    --color-naranja-claro: #F6F3EC;
+    --color-gris: #CCCCCC;
+    --color-verde-1: #DDE0CD;
+    --color-verde-2: #B2B88E;
+    --color-verde-marca: #8D926F;
+    --color-verde-oscuro: #545938;
+
+    /* Extra variables merged from header.css */
+    --color-black: var(--color-negro);
+    --color-blue: #0071e3;
+    --color-green: #00b982;
+    --color-greyDark: #1d1e20;
+    --color-greyLight: #efefef;
+    --color-greyLighter: #f8f8f8;
+    --color-offBlack: #0f1012;
+    --color-offWhite: #f2f2f4;
+    --color-orange: #ff5102;
+    --color-yellow: #fca311;
+    --color-white: var(--color-blanco);
+
+    --font-base: "Instrument Serif", serif;
+    /* font-heading, font-body, font-brand are already in another :root block down below or can be moved here. I'll leave them there or unify. 
+       Let's check if they are already defined in the other :root block. 
+       I will add the layout vars here. */
+
+    --header-height: 7.9rem;
+    --grid-columnCount: 5;
+    --grid-gutter: 2.5641025641vw;
+    --grid-outerGutter: 5.1282051282vw;
+
     /* Tokens de tema (valores por defecto: claro) */
-    --bg: #ffffff;
+    --bg: var(--color-blanco);
     --text: #141414;
-    --muted: #6b6b6b;
+    --muted: var(--color-gris);
     --card-bg: #f8f8f8;
     --card-hover: #e6e6e6;
     --border-color: #e6e6e6;
@@ -20,8 +53,10 @@
     --blanco: var(--text);
 }
 
-:where(/* Modo oscuro */
-html[data-theme='dark']) {
+:where(
+
+    /* Modo oscuro */
+    html[data-theme='dark']) {
     --bg: #080808;
     --text: #d4d4d4;
     --muted: #a2a2a2;
@@ -36,8 +71,10 @@ html[data-theme='dark']) {
     --bordeBoton: 0.1rem rgba(31, 31, 31, 0.55) solid;
 }
 
-:where(/* Glory Calendario (clases camelCase en español) */
-.calCont) {
+:where(
+
+    /* Glory Calendario (clases camelCase en español) */
+    .calCont) {
     background-color: var(--fondo);
     border: var(--borde);
     border-radius: 0.5rem;
@@ -180,7 +217,20 @@ html[data-theme='dark']) {
     justify-content: space-around;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Source+Sans+3:wght@200..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Instrument+Serif:ital@0;1&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Source+Sans+3:wght@200..900&display=swap');
+
+:root {
+    --font-heading: 'Instrument Serif', serif;
+    --font-brand: 'Archivo Black', sans-serif;
+    --font-body: 'Montserrat', sans-serif;
+}
+
+
+
+:where(h1, h2) {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+}
 
 :where(html) {
     background: var(--bg);
@@ -274,8 +324,8 @@ html[data-theme='dark']) {
 }
 
 :where(body,
-body p,
-textarea) {
+    body p,
+    textarea) {
     font-size: 1.2rem;
     display: block;
     margin-block-start: 0em;
@@ -285,7 +335,7 @@ textarea) {
     unicode-bidi: isolate;
     color: var(--text);
     line-height: 1.6;
-    font-family: 'Source Sans 3', Arial, Helvetica, sans-serif;
+    font-family: var(--font-body);
     letter-spacing: 0rem;
     font-weight: 400;
     text-decoration: none;
@@ -387,9 +437,9 @@ textarea) {
 }
 
 :where(.appAndroid .infoIaBtn,
-.appAndroid span.postTag,
-.appAndroid .badge,
-.appAndroid .postTagToggle) {
+    .appAndroid span.postTag,
+    .appAndroid .badge,
+    .appAndroid .postTagToggle) {
     font-size: 1.3rem;
 }
 
@@ -475,8 +525,10 @@ textarea) {
     font-weight: 700;
 }
 
-:where(/* En formularios, forzar los labels en bloque para colocar inputs/selects debajo */
-.gloryForm .formCampo>label) {
+:where(
+
+    /* En formularios, forzar los labels en bloque para colocar inputs/selects debajo */
+    .gloryForm .formCampo>label) {
     display: block;
     margin-bottom: 0.6rem;
 }
@@ -542,7 +594,7 @@ textarea) {
 }
 
 :where(input,
-textarea) {
+    textarea) {
     background: unset;
     /* padding: 0.7rem 0rem; */
     border-bottom: var(--borde);
@@ -557,8 +609,10 @@ textarea) {
     margin: 0.4rem 0;
 }
 
-:where(/* Estilos para selects: similares a un input (borde inferior) */
-select) {
+:where(
+
+    /* Estilos para selects: similares a un input (borde inferior) */
+    select) {
     width: 100%;
     border: unset;
     background: unset;
@@ -583,8 +637,10 @@ select) {
     background: var(--bg);
 }
 
-:where(/* Toggle estilo switch para checkboxes */
-.opcionCheck) {
+:where(
+
+    /* Toggle estilo switch para checkboxes */
+    .opcionCheck) {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -655,13 +711,15 @@ select) {
 }
 
 :where(.switch input:focus+.slider,
-.switch input:active+.slider) {
+    .switch input:active+.slider) {
     box-shadow: none;
     /* eliminar halo que añade la sensación de grosor */
 }
 
-:where(/* Minimal modern checkbox group */
-.checkboxGroup) {
+:where(
+
+    /* Minimal modern checkbox group */
+    .checkboxGroup) {
     display: flex;
     flex-direction: column;
 }
@@ -685,8 +743,10 @@ select) {
     /* texto normal */
 }
 
-:where(/* eliminar efecto hover visual para los checkboxes del grupo */
-.checkboxGroup label:hover) {
+:where(
+
+    /* eliminar efecto hover visual para los checkboxes del grupo */
+    .checkboxGroup label:hover) {
     background: transparent;
 }
 
@@ -731,8 +791,10 @@ select) {
     text-align: center;
 }
 
-:where(/* Mostrar checkmark cuando está marcado */
-label input:checked+.checkboxVisualWrapper::after) {
+:where(
+
+    /* Mostrar checkmark cuando está marcado */
+    label input:checked+.checkboxVisualWrapper::after) {
     display: block;
 }
 
@@ -742,8 +804,10 @@ label input:checked+.checkboxVisualWrapper::after) {
     border-color: var(--text);
 }
 
-:where(/* También un estilo para customCheckbox (campo individual con clase) para mantener coherencia */
-.customCheckbox) {
+:where(
+
+    /* También un estilo para customCheckbox (campo individual con clase) para mantener coherencia */
+    .customCheckbox) {
     justify-content: flex-start;
     padding-left: 3.4rem;
     position: relative;
@@ -767,13 +831,13 @@ label input:checked+.checkboxVisualWrapper::after) {
 }
 
 :where(input::placeholder,
-textarea::placeholder) {
+    textarea::placeholder) {
     color: var(--muted);
     opacity: 0.9;
 }
 
 :where(input:focus,
-textarea:focus) {
+    textarea:focus) {
     outline: none;
 }
 
@@ -828,8 +892,10 @@ textarea:focus) {
     width: -moz-available;
 }
 
-:where(/* Muestra el menú cuando está activo */
-.submenus.activo) {
+:where(
+
+    /* Muestra el menú cuando está activo */
+    .submenus.activo) {
     display: flex;
 }
 
@@ -863,8 +929,10 @@ textarea:focus) {
     position: relative;
 }
 
-:where(/* Badges list component (Glory) */
-.badgeList) {
+:where(
+
+    /* Badges list component (Glory) */
+    .badgeList) {
     display: flex;
     gap: 0.8rem;
     flex-wrap: wrap;
