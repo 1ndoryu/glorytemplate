@@ -52,6 +52,50 @@ function contructor()
 
     </div>
 
+    <div gloryDiv>
+        <p gloryTexto>Hola</p>
+    </div>
+
+    <!-- Fase 14.5: Formulario GBN con envío AJAX y email automático -->
+    <div gloryDiv style="padding: 32px; max-width: 700px; margin: 32px auto;">
+        <form gloryForm method="post" data-form-id="contacto" data-ajax-submit="true" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            
+            <div gloryInput>
+                <label class="gbn-label">Nombre</label>
+                <input type="text" name="nombre" placeholder="Tu nombre" class="gbn-input" required>
+            </div>
+            
+            <div gloryInput>
+                <label class="gbn-label">Email</label>
+                <input type="email" name="email" placeholder="tu@email.com" class="gbn-input" required>
+            </div>
+            
+            <div gloryInput>
+                <label class="gbn-label">Teléfono</label>
+                <input type="tel" name="telefono" placeholder="+1 234 567 890" class="gbn-input">
+            </div>
+            
+            <div glorySelect>
+                <label class="gbn-label">Asunto</label>
+                <select name="asunto" class="gbn-select" required>
+                    <option value="" disabled selected>Seleccionar...</option>
+                    <option value="consulta">Consulta</option>
+                    <option value="soporte">Soporte</option>
+                    <option value="ventas">Ventas</option>
+                </select>
+            </div>
+            
+            <div gloryTextarea style="grid-column: 1 / -1;">
+                <label class="gbn-label">Mensaje</label>
+                <textarea name="mensaje" rows="4" placeholder="Tu mensaje..." class="gbn-textarea" required></textarea>
+            </div>
+            
+            <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
+                <button type="submit" glorySubmit class="gbn-submit">Enviar</button>
+            </div>
+            
+        </form>
+    </div>
 <?php
     $html = ob_get_clean();
     
