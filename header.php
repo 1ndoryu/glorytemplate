@@ -49,30 +49,16 @@ use Glory\Components\ThemeToggle;
     <?php
     $funcionRenderizar = \Glory\Manager\PageManager::getFuncionParaRenderizar();
     
-    // Modificación para GBN: Permitir header personalizado incluso en 'contructor' si GBN está activo.
-    // El usuario solicitó explícitamente probar el header en el constructor.
-    
-    $gbnActive = \Glory\Gbn\GbnManager::isBuilderActive() || (class_exists(\Glory\Core\GloryFeatures::class) && \Glory\Core\GloryFeatures::isActive('gbn', 'glory_gbn_activado'));
-    
-    // Si GBN está activo, tiene prioridad absoluta sobre la lógica legacy ('contructor').
-    if ($gbnActive && class_exists(\Glory\Gbn\Services\TemplateService::class)) {
-            // Render GBN Header
-            echo '<header id="gbn-header" class="gbn-header-wrapper">';
-            echo \Glory\Gbn\Services\TemplateService::getHeaderContent();
-            echo '</header>';
-    } 
-    // Si GBN NO está activo, mantenemos la lógica original de ocultar en 'contructor'
-    elseif ($funcionRenderizar !== 'contructor') {
-            // Render Default Glory Header
-            $defaultMode = Compatibility::avadaActivo() ? 'default' : 'image';
-            $configHeader = [
-                'modoLogo'    => OpcionManager::get('glory_logo_mode', $defaultMode),
-                'textoLogo'   => OpcionManager::get('glory_logo_text', get_bloginfo('name', 'display')),
-                'logoImageId' => OpcionManager::get('glory_logo_image'),
-                'idMenu'      => 'mainMenu' 
-            ];
-            HeaderRenderer::render($configHeader);
-            echo ThemeToggle::render();
+    if ($funcionRenderizar !== 'contructor') {
+        $defaultMode = Compatibility::avadaActivo() ? 'default' : 'image';
+        $configHeader = [
+            'modoLogo'    => OpcionManager::get('glory_logo_mode', $defaultMode),
+            'textoLogo'   => OpcionManager::get('glory_logo_text', get_bloginfo('name', 'display')),
+            'logoImageId' => OpcionManager::get('glory_logo_image'),
+            'idMenu'      => 'mainMenu' 
+        ];
+        HeaderRenderer::render($configHeader);
+        echo ThemeToggle::render();
     }
     ?>
     <main id="main" class="main">
