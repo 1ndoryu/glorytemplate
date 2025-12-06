@@ -38,7 +38,14 @@ function services_hero() {
 function services_marketing() {
     ?>
     <section class="marketing-section">
-        <div class="section-tag">✦ Estrategia digital</div>
+        <div class="section-tag">
+            <i data-lucide="sparkles">
+            </i>
+            <p class="section-tag-text">
+                Estrategia digital
+            </p>
+        </div>
+
         <h2 class="section-title">Marketing y estrategia</h2>
         <p class="section-subtitle">Impulsa tu visibilidad y venta directa. Desde el lanzamiento hasta la consolidación de tu posicionamiento digital.</p>
 
@@ -178,7 +185,7 @@ function services_revenue() {
         <div class="services-revenue">
             <div class="services-revenue-grid">
                 <?php render_marketing_card(
-                    '<i data-lucide="globe"></i>',
+                    '<i data-lucide="sparkles"></i>',
                     'Galaxy',
                     'Gestión externa continua',
                     'Ejecución y seguimiento constante mensual. Sin ampliar tu estructura interna.',
@@ -187,7 +194,7 @@ function services_revenue() {
                     'left'
                 ); ?>
             <?php render_marketing_card(
-                '<i data-lucide="star"></i>',
+                '<i data-lucide="zap"></i>',
                 'Universe',
                 'Departamento 360°',
                 'Partner completo anual. Para grupos o alojamientos que buscan excelencia total.',

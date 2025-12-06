@@ -23,9 +23,9 @@
     --color-white: var(--color-blanco);
 
     --font-base: "Instrument Serif", serif;
-    /* font-heading, font-body, font-brand are already in another :root block down below or can be moved here. I'll leave them there or unify. 
-       Let's check if they are already defined in the other :root block. 
-       I will add the layout vars here. */
+    --font-heading: 'Instrument Serif', serif;
+    --font-brand: 'Archivo Black', sans-serif;
+    --font-body: 'Montserrat', sans-serif;
 
     --header-height: 7.9rem;
     --grid-columnCount: 5;
@@ -218,13 +218,6 @@
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Instrument+Serif:ital@0;1&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Source+Sans+3:wght@200..900&display=swap');
-
-:root {
-    --font-heading: 'Instrument Serif', serif;
-    --font-brand: 'Archivo Black', sans-serif;
-    --font-body: 'Montserrat', sans-serif;
-}
-
 
 
 :where(h1, h2) {

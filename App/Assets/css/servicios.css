@@ -74,15 +74,21 @@
 }
 
 .services-container .section-tag {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
     padding: 8px 20px;
     border: 1px solid #ccc;
     border-radius: 20px;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 20px;
-    color: #666;
+}
+
+.services-container .section-tag-text {
+    font-family: var(--font-brand);
+    font-size: 1rem;
+    color: var(--color-text);
+    font-weight: normal;
+    margin: 0;
 }
 
 /* Override del título de sección para servicios (más pequeño que landing) */
