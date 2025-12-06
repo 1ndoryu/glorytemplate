@@ -1,0 +1,232 @@
+/* 
+ * Single Portfolio Styles
+ * Matches the requested design (Villa de Lujo example)
+ */
+
+body {
+    background-color: #fdfdfd;
+    /* Off-white base */
+}
+
+/* --- HERO SECTION --- */
+.single-portfolio-hero {
+    position: relative;
+    height: 70vh;
+    min-height: 500px;
+    width: 100%;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    /* Text at bottom */
+    padding-bottom: 80px;
+}
+
+.single-portfolio-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 80%);
+    z-index: 1;
+}
+
+.hero-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.hero-title {
+    font-family: var(--font-heading, "Playfair Display", serif);
+    font-size: 4rem;
+    color: #fff;
+    font-style: italic;
+    font-weight: 400;
+    margin-bottom: 20px;
+    line-height: 1.1;
+    max-width: 800px;
+}
+
+.hero-excerpt {
+    font-family: var(--font-body, "Inter", sans-serif);
+    font-size: 1.1rem;
+    color: #fff;
+    max-width: 600px;
+    line-height: 1.5;
+    opacity: 0.9;
+}
+
+/* --- MAIN CONTENT & SIDEBAR GRID --- */
+.single-portfolio-container {
+    max-width: 1200px;
+    margin: 60px auto 100px;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    /* Main content | Sidebar */
+    gap: 60px;
+}
+
+/* Left Column */
+.portfolio-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.content-title {
+    font-family: var(--font-heading, serif);
+    font-size: 4rem;
+    color: #8c9669;
+    /* Olive Greenish tone matching 'Caso' */
+    font-style: italic;
+    margin-bottom: 10px;
+    line-height: 1;
+}
+
+.text-content {
+    font-family: var(--font-body, sans-serif);
+    color: #333;
+    line-height: 1.8;
+    font-size: 1rem;
+}
+
+.text-content p {
+    margin-bottom: 20px;
+}
+
+.inline-image {
+    width: 100%;
+    border-radius: 12px;
+    height: auto;
+    object-fit: cover;
+    margin: 20px 0;
+}
+
+/* Results Box */
+.results-box {
+    background-color: #f7f7f2;
+    /* Light beige */
+    border: 1px solid #e5e5da;
+    border-radius: 12px;
+    padding: 40px;
+    margin-top: 20px;
+}
+
+.results-quote {
+    font-family: var(--font-body, sans-serif);
+    font-size: 1.25rem;
+    color: #5d6650;
+    /* Darker olive text */
+    margin-bottom: 30px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.results-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.results-list li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 12px;
+    color: #444;
+    font-size: 0.95rem;
+}
+
+.results-list li::before {
+    content: '+';
+    position: absolute;
+    left: 0;
+    color: #8c9669;
+    font-weight: bold;
+}
+
+/* Right Column (Sidebar) */
+.portfolio-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* CTA Card */
+.sidebar-card {
+    background-color: #f7f7f2;
+    border: 1px solid #e5e5da;
+    border-radius: 12px;
+    padding: 30px;
+}
+
+.cta-heading {
+    font-family: var(--font-heading, serif);
+    font-style: italic;
+    font-size: 1.8rem;
+    color: #8c9669;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.cta-desc {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.btn-sidebar {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background-color: #8c9669;
+    color: #fff;
+    padding: 12px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-sidebar:hover {
+    background-color: #7b855a;
+}
+
+/* Info Card */
+.info-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 15px;
+    font-size: 0.9rem;
+}
+
+.info-label {
+    color: #666;
+    font-weight: 400;
+}
+
+.info-value {
+    color: #000;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .single-portfolio-container {
+        grid-template-columns: 1fr;
+    }
+
+    .single-portfolio-hero {
+        height: 50vh;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+    }
+}

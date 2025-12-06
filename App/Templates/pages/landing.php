@@ -1,10 +1,7 @@
 <?php
 
 function landing_render()
-{
-    // Cargar fuentes (temporal para testear)
-    echo '<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Instrument+Serif:ital@0;1&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">';
-    
+{   
     ?>
     <div class="landing-container">
         <?php 
