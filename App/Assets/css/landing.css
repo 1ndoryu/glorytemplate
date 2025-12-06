@@ -69,10 +69,10 @@ body {
     width: 100%;
     background-color: var(--color-mint);
     background-image:
-        radial-gradient(at 90% 60%, #F9D35A 0px, transparent 50%),
-        radial-gradient(at 10% 20%, #F4C594 0px, transparent 50%),
-        radial-gradient(at 0% 90%, #EFA686 0px, transparent 50%),
-        radial-gradient(at 80% 10%, #CADDA3 0px, transparent 50%);
+        radial-gradient(at 90% 60%, #72612b 0px, transparent 50%),
+        radial-gradient(at 10% 20%, #6e5233 0px, transparent 50%),
+        radial-gradient(at 0% 90%, #8f573f 0px, transparent 50%),
+        radial-gradient(at 80% 10%, #4e553e 0px, transparent 50%);
     background-blend-mode: overlay;
     display: flex;
     flex-direction: column;
@@ -143,7 +143,8 @@ body {
 
 .landing-container .hero-title {
     font-family: var(--font-heading) !important;
-    font-size: 3.4rem;
+    font-weight: normal;
+    font-size: 5rem;
     line-height: 1.1;
     margin-bottom: 40px;
     color: #fff;
@@ -151,6 +152,8 @@ body {
 }
 
 .landing-container .hero-title .highlight-text {
+    font-weight: normal;
+    font-family: var(--font-body);
     text-transform: uppercase;
     letter-spacing: 2px;
 }
@@ -210,11 +213,11 @@ body {
 
 .landing-container .hero-marquee span {
     display: block;
-    font-size: 1rem;
+    font-size: .9rem;
     color: #fff;
     text-transform: uppercase;
     letter-spacing: 2px;
-    font-family: var(--font-brand);
+    font-family: var(--font-body);
 }
 
 /* Secciones Landing */
@@ -231,12 +234,14 @@ body {
 /* Títulos específicos de Landing (más grandes) */
 .landing-container .section-title {
     margin-top: 3rem;
-    font-size: 3.5rem;
+    font-size: 4.5rem;
+    font-weight: normal;
     margin-bottom: 2rem;
 }
 
 .landing-container .section-subtitle {
     font-size: 1.2rem !important;
+    margin-bottom: 6rem;
 }
 
 /* Cards Grid Landing */

@@ -57,7 +57,7 @@ function services_marketing() {
                 'IMPULSO INICIAL',
                 'Para alojamientos que quieren establecer una presencia profesional.',
                 ['Auditoría de redes', 'Gestión de 2 redes', 'Publicaciones semanales', 'Reporting mensual'],
-                'Solicitar info →',
+                'Solicitar info <i data-lucide="arrow-right"></i>',
                 'left'
             );
 
@@ -67,7 +67,7 @@ function services_marketing() {
                 'ATRACCIÓN Y NUTRICIÓN',
                 'Para negocios que buscan atraer tráfico y convertir seguidores en reservas.',
                 ['Todo lo de COMET +', 'Anuncios en redes (Ads)', 'Email marketing', 'Gestión de comunidad'],
-                'Consultar propuestas →',
+                'Consultar propuestas <i data-lucide="arrow-right"></i>',
                 'center'
             );
 
@@ -77,7 +77,7 @@ function services_marketing() {
                 'ACELERACIÓN TOTAL',
                 'Estrategia integral de comunicación y captación avanzada.',
                 ['Todo lo de NEBULA +', 'Google Hotel Ads', 'Plan comunicación anual', 'Análisis ROI mensual'],
-                'Reunión estratégica →',
+                'Reunión estratégica <i data-lucide="arrow-right"></i>',
                 'right'
             );
             ?>
@@ -127,7 +127,7 @@ function services_consulting() {
     <section class="consulting-section">
         <div class="consulting-content">
             <div class="consulting-left">
-                <div class="section-tag">✦ Auditoría y Tecnología</div>
+                <div class="section-tag"><i data-lucide="sparkles"></i> Auditoría y Tecnología</div>
                 <h2 class="section-title">Consultoría & Mapeo</h2>
                 <p class="section-text">
                     Antes de correr, ordenamos el camino. Un servicio esencial para alojamientos que buscan diagnóstico, limpieza de datos y una hoja de ruta clara antes de la temporada.
@@ -158,15 +158,15 @@ function render_orbit_card() {
         <p class="orbit-subdesc">Auditoría inicial y puesta a punto. Ideal para diagnóstico y hoja de ruta antes de temporada.</p>
         
         <div class="orbit-features">
-            <ul>
-                <li>✓ Consultoría estratégica</li>
-                <li>✓ Auditoría PMS/OTAs</li>
-                <li>✓ Reunión de entrega</li>
+            <ul class="orbit-features-list">
+                <li><i data-lucide="check-circle-2"></i> Consultoría estratégica</li>
+                <li><i data-lucide="check-circle-2"></i> Auditoría PMS/OTAs</li>
+                <li><i data-lucide="check-circle-2"></i> Reunión de entrega</li>
             </ul>
-            <ul>
-                <li>✓ Mapeos de canales</li>
-                <li>✓ Análisis de tarifas</li>
-                <li>✓ Calendario demanda</li>
+            <ul class="orbit-features-list">
+                <li><i data-lucide="check-circle-2"></i> Mapeos de canales</li>
+                <li><i data-lucide="check-circle-2"></i> Análisis de tarifas</li>
+                <li><i data-lucide="check-circle-2"></i> Calendario demanda</li>
             </ul>
         </div>
         
@@ -178,7 +178,7 @@ function render_orbit_card() {
 function services_revenue() {
     ?>
     <section class="revenue-section">
-        <div class="section-tag">✦ Gestión Mensual Recurrente</div>
+        <div class="section-tag"><i data-lucide="sparkles"></i> Gestión Mensual Recurrente</div>
         <h2 class="section-title">Revenue Management</h2>
         <p class="section-subtitle">Programas adaptados a la madurez de tu alojamiento. Desde auditoría técnica hasta gestión 360°.</p>
         
@@ -190,7 +190,7 @@ function services_revenue() {
                     'Gestión externa continua',
                     'Ejecución y seguimiento constante mensual. Sin ampliar tu estructura interna.',
                     ['Todo lo de ORBIT+', 'Control channel mix', 'Revisión de tarifas (3-5 x Semana)', 'Reporting mensual'],
-                    'Consultar propuestas →',
+                    'Consultar propuestas <i data-lucide="arrow-right"></i>',
                     'left'
                 ); ?>
             <?php render_marketing_card(
@@ -199,7 +199,7 @@ function services_revenue() {
                 'Departamento 360°',
                 'Partner completo anual. Para grupos o alojamientos que buscan excelencia total.',
                 ['Todo lo de GALAXY+', 'Estrategia de fidelización', 'Mapeos ilimitados', 'Formación de equipo'],
-                'Reunión estratégica →',
+                'Reunión estratégica <i data-lucide="arrow-right"></i>',
                 'right-bottom'
             ); ?>
             </div>

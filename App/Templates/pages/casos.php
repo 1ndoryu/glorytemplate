@@ -10,6 +10,11 @@ function casos_render() {
         casos_cta();
         ?>
     </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
     <?php
 }
 
@@ -20,7 +25,7 @@ function casos_hero() {
             <h1 class="hero-title">
                 <span class="script-text">
                     Casos
-                    <span class="script-icon">✦</span>
+                    <span class="script-icon"><i data-lucide="sparkles"></i></span>
                 </span>
                 DE ÉXITO
             </h1>
@@ -95,7 +100,7 @@ function casos_quote() {
     ?>
     <section class="quote-section">
         <div class="quote-content">
-            <span class="quote-icon">📊</span>
+            <span class="quote-icon"><i data-lucide="bar-chart-3"></i></span>
             <p class="quote-text">"Estos ejemplos reflejan cómo una gestión estratégica de precios, distribución y posicionamiento puede transformar los resultados de cualquier hotel."</p>
             <p class="quote-author">Adaptándonos siempre a su mercado y objetivos específicos.</p>
         </div>

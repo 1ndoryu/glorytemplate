@@ -29,7 +29,7 @@ function landing_hero() {
         <div class="hero-content">
             <h1 class="hero-title">
                 Ordenamos el universo de tus <br>
-                <span>INGRESOS</span>
+                <span class="highlight-text">INGRESOS</span>
             </h1>
             
             <a href="#" class="btn-auditoria">
