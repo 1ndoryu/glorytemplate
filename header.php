@@ -14,6 +14,22 @@ $usuarioId = get_current_user_id();
     <!-- Assets encolados por AssetManager: GSAP y Highlight.js (controlados por features) -->
     <link rel="profile" href="https://gmpg.org/xfn/11">
     <?php wp_head(); ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const header = document.querySelector('.siteMenuW');
+            if (header) {
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 20) {
+                        header.classList.add('scrolled');
+                    } else {
+                        header.classList.remove('scrolled');
+                    }
+                }, {
+                    passive: true
+                });
+            }
+        });
+    </script>
 </head>
 
 <?php

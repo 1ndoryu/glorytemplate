@@ -26,8 +26,34 @@
     left: 0;
     width: 100%;
     z-index: 1000;
-    transition: background-color 0.4s ease;
+    transition: background-color 0.4s ease, backdrop-filter 0.4s ease;
 }
+
+.siteMenuW.scrolled {
+    background-color: rgba(255, 255, 255, 0.05);
+    /* Slight tint */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.header-cta-btn {
+    display: inline-block;
+    background-color: #0f1012;
+    /* Black */
+    color: #fff !important;
+    padding: .45rem 1rem;
+    border-radius: 2rem;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: transform 0.2s ease-in-out;
+    margin-left: 1.2rem;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    transform: scale(1);
+}
+
 
 .siteMenuContainer {
     transform: none;
@@ -51,23 +77,24 @@
 
 /* --- LOGO --- */
 .siteMenuLogo {
-    height: 2rem;
-    width: 4.9rem;
-    margin-left: var(--grid-outerGutter);
+    margin-left: 0;
     margin-top: 0;
-    background-color: #7878781a;
+    background-color: transparent;
     color: var(--color-offBlack);
-    transition: background-color 0.2s, color 0.2s;
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    border-radius: 50%;
-    overflow: hidden;
+    transition: color 0.2s;
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 10px;
+    justify-content: flex-start;
+    padding: 0;
     z-index: 1;
+}
+
+.siteMenuLogo img,
+.siteMenuLogo svg {
+    max-height: 2.8rem;
+    width: auto;
+    object-fit: contain;
 }
 
 /* --- ESTILOS DE COLOR ADAPTATIVOS --- */
@@ -169,9 +196,7 @@
     top: 0;
     left: 0;
     width: 100%;
-    /* height: 100dvh; */
     background-color: #f8f8f8b3;
-    padding: 4.5rem var(--grid-outerGutter) 0;
     display: none;
     padding-bottom: 20px !important;
     flex-direction: column;
@@ -295,42 +320,47 @@ body.menu-open {
     }
 
     .siteMenuContainer {
-        justify-content: center;
-        column-gap: .5rem;
+        justify-content: space-between;
+        align-items: center;
+        column-gap: 2rem;
+        padding: 0 var(--grid-outerGutter);
+        padding-top: 1rem;
     }
 
     .siteMenuLogo {
-        height: 4.5rem;
-        width: 4.5rem;
+        height: 3rem;
+        width: auto;
         margin-left: 0;
-        margin-top: 3.4rem;
     }
 
     .siteMenuNav {
-        display: block;
+        display: flex;
         position: relative;
         flex-direction: row;
         width: auto;
         height: auto;
         padding: 0;
-        margin: 3.4rem 0 0;
+        margin: 0;
         background-color: transparent;
         visibility: visible;
+        align-items: center;
+        padding-top: 1rem;
     }
 
     .siteMenuNav ul {
         display: flex;
         flex-direction: row;
         align-items: center;
-        -webkit-backdrop-filter: blur(20px);
-        backdrop-filter: blur(20px);
-        border-radius: .9rem;
-        column-gap: 4rem;
-        height: 3rem;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        border-radius: 0;
+        column-gap: 1.8rem;
+        /* Spacing between links */
+        height: auto;
         margin-top: 0;
-        padding: 0 3rem;
+        padding: 0;
         row-gap: 0;
-        background-color: #7878781a;
+        background-color: transparent;
     }
 
     .siteMenuNav ul li {

@@ -20,7 +20,8 @@ AssetManager::defineFolder(
         // Excluir CSS específico de tareas; se definirá abajo con feature 'task'
         'task.css',
         'cache_buster.css', // Forzar regeneración de caché
-        'casos.css'
+        'casos.css',
+        'about.css'
     ]
 );
 
@@ -42,6 +43,18 @@ AssetManager::define(
     'style',
     'tema-casos',
     '/App/Assets/css/casos.css',
+    [
+        'deps'    => [],
+        'media'   => 'all',
+        'exclude_on' => ['gbn-control-panel'],
+    ]
+);
+
+// Registrar CSS de About (Sobre Nosotros) manualmente
+AssetManager::define(
+    'style',
+    'tema-about',
+    '/App/Assets/css/about.css',
     [
         'deps'    => [],
         'media'   => 'all',

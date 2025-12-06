@@ -9,11 +9,11 @@
     --color-bg-dark: #1a1a1a;
     --color-text-light: #ffffff;
     --color-text-muted: #a0a0a0;
-    --color-accent: #d5df82;
+    --color-accent: #888d67;
     /* Verde/Amarillo */
     --color-mint: #9ED8C2;
     /* Menta */
-
+    --color-mint-dark: #888d67;
     --font-heading: 'Playfair Display', serif;
     --font-body: 'Outfit', sans-serif;
 }
@@ -476,9 +476,6 @@ body {
 }
 
 /* About Landing */
-.landing-container .about-section {
-    background-color: #f5f5f5;
-}
 
 .landing-container .about-content {
     max-width: 750px;
@@ -537,10 +534,6 @@ body {
 }
 
 /* Contact Landing */
-.landing-container .contact-section {
-    background-color: #fff;
-}
-
 .landing-container .contact-form {
     max-width: 850px;
     margin: 0 auto;
@@ -621,7 +614,6 @@ body {
 
 /* Footer Global (o Landing) */
 .landing-footer {
-    background-color: #f5f5f5;
     padding: 60px 40px 20px;
     border-top: 1px solid #eee;
 }

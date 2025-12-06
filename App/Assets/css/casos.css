@@ -10,7 +10,7 @@
     min-height: 400px;
     width: 100%;
     background-color: #a8bfa5;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.4) 0%, rgba(168, 191, 165, 1) 70%);
+    background: radial-gradient(circle at center, rgba(185, 185, 185, 0.4) 0%, rgba(145, 150, 121) 70%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -26,28 +26,40 @@
 }
 
 .casos-container .hero-title {
-    font-family: var(--font-body);
-    font-size: 4rem;
-    line-height: 1;
-    color: #fff;
     margin-bottom: 20px;
-    font-weight: 300;
-    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #f4f4f4;
+    font-weight: 500;
+    font-size: 4rem;
+    letter-spacing: 2px;
 }
 
 .casos-container .hero-title .script-text {
+    position: relative;
+    color: #f4f4f4;
     font-family: var(--font-heading);
     font-style: italic;
     font-size: 4.5rem;
+    width: fit-content;
     display: block;
-    margin-bottom: -15px;
-    text-transform: none;
+    margin-bottom: -10px;
+}
+
+.casos-container .script-icon {
+    position: absolute;
+    top: .8rem;
+    right: -2%;
+    font-size: 2.5rem;
+    color: #f7f7f7d7;
 }
 
 .casos-container .hero-subtitle {
-    color: #fff;
+    color: #f4f4f4;
     font-size: 1.2rem;
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
     line-height: 1.5;
 }
@@ -138,16 +150,14 @@
 
 /* --- QUOTE SECTION --- */
 .quote-section {
-    background-color: #9da876;
+    background-color: rgba(145, 150, 121);
     /* Olive green tone from services */
     padding: 100px 20px;
     text-align: center;
-    color: #fff;
-    margin-bottom: 80px;
 }
 
 .quote-content {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
@@ -159,16 +169,15 @@
 }
 
 .quote-text {
-    font-family: var(--font-heading);
-    font-size: 2rem;
+    font-size: 2.5rem !important;
+    color: #f4f4f4 !important;
     line-height: 1.4;
-    font-style: italic;
     margin-bottom: 30px;
 }
 
 .quote-author {
-    font-size: 1rem;
-    text-transform: uppercase;
+    font-size: 1.2rem !important;
+    color: #f4f4f4b4 !important;
     letter-spacing: 1px;
     opacity: 0.9;
 }
@@ -176,14 +185,14 @@
 /* --- CTA SECTION --- */
 .casos-cta {
     text-align: center;
-    padding: 60px 20px 100px;
-    background-color: #f9f9f9;
+    padding: 8rem 0;
+    background-color: rgba(245, 245, 234);
 }
 
 .cta-title {
-    font-family: var(--font-heading);
-    font-size: 3rem;
-    margin-bottom: 20px;
+    font-family: var(--font-heading) !important;
+    font-size: 4rem !important;
+    margin-bottom: 15px !important;
     font-style: italic;
     color: #1a1a1a;
 }
@@ -192,7 +201,7 @@
     font-size: 1.1rem;
     color: #666;
     margin-bottom: 40px;
-    max-width: 600px;
+    max-width: 500px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -201,15 +210,19 @@
     display: inline-block;
     background-color: #9da876;
     color: #fff;
-    padding: 15px 40px;
+    padding: .3rem 1.2rem;
     border-radius: 30px;
+    margin-top: 1rem;
     text-decoration: none;
+    border: 1px solid transparent;
     font-size: 1rem;
     transition: background 0.3s, transform 0.3s;
 }
 
 .btn-cta:hover {
-    background-color: #8c9669;
+    border: 1px solid #8c9669;
+    background-color: transparent;
+    color: #8c9669;
     transform: translateY(-2px);
 }
 

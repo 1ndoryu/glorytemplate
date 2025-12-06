@@ -18,7 +18,10 @@ function casos_hero() {
     <section class="casos-hero">
         <div class="hero-content">
             <h1 class="hero-title">
-                <span class="script-text">Casos</span>
+                <span class="script-text">
+                    Casos
+                    <span class="script-icon">✦</span>
+                </span>
                 DE ÉXITO
             </h1>
             <p class="hero-subtitle">Descubre algunos ejemplos reales del impacto de nuestras estrategias de Revenue Management en diferentes tipologías de hoteles.</p>

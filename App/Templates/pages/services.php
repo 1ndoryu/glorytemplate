@@ -19,7 +19,10 @@ function services_hero() {
     <section class="services-hero">
         <div class="hero-content">
             <h1 class="hero-title">
-                <span class="script-text">Nuestros</span>
+                <span class="script-text">
+                    Nuestros
+                    <span class="script-icon">✦</span>
+                </span>
                 SERVICIOS
             </h1>
             <p class="hero-subtitle">Combinamos Revenue, Marketing y Consultoría para impulsar tus ingresos. Soluciones flexibles que crecen al ritmo de tu negocio.</p>
