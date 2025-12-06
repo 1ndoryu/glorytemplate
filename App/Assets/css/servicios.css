@@ -524,3 +524,74 @@
     height: 2rem;
     stroke-width: 1.5;
 }
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media (max-width: 1024px) {
+
+    /* En tablet/móvil, las tarjetas deben separarse y verse uniformes */
+    .services-container .marketing-grid {
+        grid-template-columns: 1fr;
+        /* Una sola columna */
+        gap: 20px;
+    }
+
+    /* Resetear estilos específicos de posición para que parezcan tarjetas independientes */
+    .services-container .marketing-card-left,
+    .services-container .marketing-card-center,
+    .services-container .marketing-card-right,
+    .services-container .marketing-card-right-bottom {
+        border-radius: 20px !important;
+        /* Bordes redondeados completos */
+        border: 2.3px solid #4a5d4e48 !important;
+        /* Borde completo */
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        /* Sombra suave para destacar */
+    }
+
+    /* Ajustar padding de contenedores principales para evitar que se vea apretado */
+    .services-container .marketing-section,
+    .services-container .revenue-section,
+    .services-container .consulting-content {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+
+    /* Ajustes adicionales para móvil */
+    .services-container .hero-title,
+    .services-container .hero-title .script-text {
+        font-size: 3rem;
+        /* Reducir tamaño de título hero */
+    }
+
+    .services-container .section-title,
+    .services-container .marketing-card-left h3,
+    .services-container .marketing-card-center h3,
+    .services-container .marketing-card-right h3 {
+        font-size: 2.5rem;
+        /* Títulos de tarjetas más pequeños */
+    }
+
+    .services-container .hero-subtitle {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+
+    .services-container .marketing-card-left,
+    .services-container .marketing-card-center,
+    .services-container .marketing-card-right,
+    .services-container .marketing-card-right-bottom {
+        padding: 30px 20px;
+        /* Padding interno más cómodo para móvil */
+        height: auto;
+        /* Altura automática */
+    }
+
+    .services-container .consulting-content {
+        flex-direction: column;
+        gap: 40px;
+    }
+}

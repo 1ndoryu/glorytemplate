@@ -91,7 +91,6 @@ body {
 .text-content {
     font-family: var(--font-body, sans-serif);
     color: #333;
-    line-height: 1.8;
     font-size: 1rem;
 }
 
@@ -166,6 +165,7 @@ body {
 
 .cta-heading {
     font-family: var(--font-heading, serif);
+    font-weight: normal;
     font-style: italic;
     font-size: 1.8rem;
     color: #8c9669;
@@ -176,7 +176,7 @@ body {
 .cta-desc {
     font-size: 0.9rem;
     color: #555;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     line-height: 1.6;
 }
 
@@ -186,10 +186,9 @@ body {
     text-align: center;
     background-color: #8c9669;
     color: #fff;
-    padding: 12px;
+    padding: .4rem 1.2rem;
     border-radius: 30px;
     text-decoration: none;
-    font-weight: 500;
     transition: background-color 0.3s;
 }
 
@@ -227,6 +226,64 @@ body {
     }
 
     .hero-title {
+        font-size: 2.5rem;
+    }
+}
+
+/* --- Bottom CTA Section --- */
+.portfolio-cta-section {
+    background-color: #f7f7f2;
+    padding: 100px 20px;
+    text-align: center;
+    border-top: 1px solid #e5e5da;
+    margin-top: 0;
+    /* Ensures full width if outside container */
+}
+
+.portfolio-cta-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.portfolio-cta-title {
+    font-family: var(--font-heading, serif);
+    font-size: 3.5rem;
+    /* Large size as per image */
+    font-weight: 400;
+    font-style: italic;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    line-height: 1.1;
+}
+
+.portfolio-cta-text {
+    font-family: var(--font-body, sans-serif);
+    font-size: 1rem;
+    color: #444;
+    margin-bottom: 30px;
+    line-height: 1.6;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.portfolio-btn-cta {
+    display: inline-block;
+    background-color: #8D926F;
+    color: #fff;
+    padding: .3rem 1.2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.portfolio-btn-cta:hover {
+    background-color: #7b855a;
+}
+
+@media (max-width: 768px) {
+    .portfolio-cta-title {
         font-size: 2.5rem;
     }
 }

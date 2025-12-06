@@ -96,6 +96,15 @@ while (have_posts()) : the_post();
     </aside>
 </div>
 
+<!-- CTA Section -->
+<section class="portfolio-cta-section">
+    <div class="portfolio-cta-content">
+        <h2 class="portfolio-cta-title">¿Listo para escribir tu caso de éxito?</h2>
+        <p class="portfolio-cta-text">Analicemos el potencial oculto de tu alojamiento. Empieza con una auditoría o una consulta estratégica hoy mismo.</p>
+        <a href="<?php echo home_url('/contacto'); ?>" class="portfolio-btn-cta">Contactar</a>
+    </div>
+</section>
+
 <?php 
 endwhile; 
 get_footer();

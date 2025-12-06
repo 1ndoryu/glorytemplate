@@ -249,16 +249,74 @@
     transform: translateY(-2px);
 }
 
+@media (max-width: 1024px) {
+    .casos-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+    }
+
+    .casos-section {
+        padding: 40px 20px 60px;
+    }
+}
+
 @media (max-width: 768px) {
+
+    /* Grid Stacking */
     .casos-grid {
         grid-template-columns: 1fr;
+        gap: 40px;
     }
 
-    .hero-title {
+    /* Hero Typography & Spacing */
+    .casos-container .casos-hero {
+        height: auto;
+        min-height: 400px;
+        padding: 80px 20px 60px;
+        margin-bottom: 40px;
+    }
+
+    .casos-container .hero-title {
         font-size: 3rem;
+        margin-bottom: 1.5rem;
     }
 
-    .hero-title .script-text {
+    .casos-container .hero-title .script-text {
         font-size: 3.5rem;
+    }
+
+    .casos-container .hero-subtitle {
+        font-size: 1rem;
+        line-height: 1.4;
+    }
+
+    /* Quote Section */
+    .quote-section {
+        padding: 60px 20px;
+    }
+
+    .quote-text {
+        font-size: 1.4rem !important;
+        line-height: 1.4;
+    }
+
+    .quote-icon svg {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    /* CTA Section */
+    .casos-cta {
+        padding: 60px 20px;
+    }
+
+    .cta-title {
+        font-size: 2.5rem !important;
+        line-height: 1.1;
+    }
+
+    .cta-text {
+        font-size: 1rem;
+        padding: 0 10px;
     }
 }
