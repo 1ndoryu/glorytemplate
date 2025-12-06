@@ -222,11 +222,22 @@ body {
 
 /* Secciones Landing */
 .landing-container .services-section,
-.landing-container .cases-section,
 .landing-container .methodology-section,
-.landing-container .about-section,
 .landing-container .contact-section {
     padding: 80px 0;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.landing-container .about-section {
+    padding: 80px 0;
+    padding-bottom: 0px;
+    text-align: center;
+}
+
+.landing-container .cases-section {
+    padding: 80px 0;
+    padding-bottom: 0px;
     background-color: #f9f9f9;
     text-align: center;
 }
@@ -237,6 +248,7 @@ body {
     font-size: 4.5rem;
     font-weight: normal;
     margin-bottom: 2rem;
+    line-height: .9;
 }
 
 .landing-container .section-subtitle {
@@ -247,8 +259,8 @@ body {
 /* Cards Grid Landing */
 .landing-container .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 4rem;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -256,6 +268,7 @@ body {
 .landing-container .service-card {
     position: relative;
     height: 400px;
+    width: 280px;
     border-radius: 20px;
     overflow: hidden;
     display: flex;
@@ -266,8 +279,54 @@ body {
     cursor: pointer;
 }
 
+.landing-container .service-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.9) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+
 .landing-container .service-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(0px);
+}
+
+@media (min-width: 1024px) {
+    .landing-container .cards-grid {
+        align-items: center;
+        padding: 40px 0;
+    }
+
+    /* Tarjeta Izquierda */
+    .landing-container .service-card:nth-child(1) {
+        transform: rotate(-12deg) translateY(100px);
+    }
+
+    .landing-container .service-card:nth-child(1):hover {
+        transform: translateY(95px) rotate(-12deg) scale(1.1);
+    }
+
+    /* Tarjeta Central */
+    .landing-container .service-card:nth-child(2) {
+        transform: translateY(0px) scale(1.1);
+        z-index: 2;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .landing-container .service-card:nth-child(2):hover {
+        transform: translateY(-10px) scale(1.1);
+    }
+
+    /* Tarjeta Derecha */
+    .landing-container .service-card:nth-child(3) {
+        transform: rotate(12deg) translateY(100px);
+    }
+
+    .landing-container .service-card:nth-child(3):hover {
+        transform: rotate(12deg) translateY(95px) scale(1.1);
+    }
 }
 
 .landing-container .service-card .card-bg-image {
@@ -294,9 +353,11 @@ body {
 
 .landing-container .service-card h3 {
     font-family: var(--font-heading);
+    font-weight: normal;
     font-size: 1.8rem;
     margin: 0;
     color: #fff;
+    text-align: center;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
@@ -304,52 +365,104 @@ body {
 .landing-container .cases-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    gap: 2.5rem;
     max-width: 1200px;
     margin: 0 auto;
 }
 
 .landing-container .case-card {
-    background: #fff;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    position: relative;
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+    box-shadow: none;
     text-align: left;
+    margin-top: 30px;
+    /* Space for top meta */
 }
 
 .landing-container .case-image {
-    height: 250px;
+    height: 550px;
     background-size: cover;
     background-position: center;
+    border-radius: 15px;
+    margin-top: .5rem;
 }
 
 .landing-container .case-info {
-    padding: 20px;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
 }
 
 .landing-container .case-meta {
+    position: absolute;
+    top: -25px;
+    left: 0;
+    width: 100%;
     display: flex;
     justify-content: space-between;
-    font-size: 0.8rem;
-    color: #888;
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 0.9rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    color: #000;
+    padding: 0 5px;
+    box-sizing: border-box;
+}
+
+.landing-container .case-stat {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: #F4F4F2;
+    padding: .8rem 1rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    pointer-events: auto;
 }
 
 .landing-container .case-stat h4 {
     font-family: var(--font-heading);
-    font-size: 1.5rem;
-    margin: 0 0 5px 0;
-    color: #1a1a1a;
+    color: var(--color-accent);
+    font-size: 2rem;
+    font-style: italic;
+    margin: 0px;
+    font-weight: normal;
 }
 
 .landing-container .case-stat p {
     margin: 0;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #666;
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-weight: normal;
+    font-family: var(--font-body);
+}
+
+.landing-container .cases-marquee {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    width: 100%;
+    padding: 10px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    border-top: 2px solid rgba(58, 58, 58, 0.5);
+    margin-top: calc(2vh + 6rem);
+}
+
+.landing-container .case-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.landing-container .case-icon svg {
+    height: 1rem;
+    width: 1rem;
 }
 
 /* Methodology Landing */
@@ -370,11 +483,11 @@ body {
 }
 
 .landing-container .methodology-graphic {
-    height: calc(90vh - 12rem);
+    height: calc(90vh - 22rem);
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 40px 0 80px;
+    margin: 40px 0 8rem;
     position: relative;
 }
 
@@ -505,34 +618,41 @@ body {
 
 /* About Landing */
 
+.landing-container .about-section .section-title {
+    margin-top: 1.5rem;
+    font-size: 4.5rem;
+    font-weight: normal;
+    margin-bottom: 1.5rem;
+}
+
 .landing-container .about-content {
     max-width: 750px;
     margin: 0 auto 100px;
 }
 
 .landing-container .about-image img {
-    width: 150px;
-    height: 150px;
+    width: 260px;
+    height: 260px;
     border-radius: 50%;
     object-fit: cover;
-    margin-bottom: 20px;
 }
 
 .landing-container .about-text {
-    font-size: 1.2rem;
+    font-family: var(--font-body);
+    font-size: 1rem;
     line-height: 1.6;
     margin-bottom: 30px;
     color: #333;
 }
 
 .landing-container .btn-about {
+    font-family: var(--font-body);
     display: inline-block;
-    padding: 10px 30px;
+    padding: .4rem 1.2rem;
     background-color: #9da876;
     color: #fff;
     text-decoration: none;
     border-radius: 25px;
-    font-weight: 500;
     transition: background 0.3s;
 }
 
@@ -541,8 +661,8 @@ body {
 }
 
 .landing-container .about-marquee {
-    border-top: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
+    border-top: 2px solid #ccc;
+    border-bottom: 2px solid #ccc;
     padding: 1rem;
     color: #333;
     display: flex;
@@ -583,7 +703,8 @@ body {
 .landing-container .form-group label {
     font-size: 1rem;
     color: #292929;
-    font-family: var(--font-heading);
+    font-family: var(--font-body);
+    font-weight: normal;
 }
 
 .landing-container .form-group input,
@@ -600,7 +721,7 @@ body {
 
 .landing-container .form-group input:focus,
 .landing-container .form-group textarea:focus {
-    border-bottom-color: #39f18c;
+    border-bottom-color: #313131;
 }
 
 .landing-container .form-footer {
@@ -614,6 +735,7 @@ body {
     font-size: 1rem;
     color: #666;
     font-family: var(--font-body);
+    font-weight: normal;
     display: flex;
     align-items: flex-start;
     gap: 10px;
@@ -628,7 +750,7 @@ body {
     background-color: #9da876;
     color: #fff;
     border: none;
-    padding: 10px 40px;
+    padding: .3rem 1.5rem;
     border-radius: 25px;
     cursor: pointer;
     font-family: var(--font-body);

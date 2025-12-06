@@ -19,6 +19,9 @@ function landing_render()
     </div>
     ?>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
     <?php
 }
 
@@ -40,11 +43,11 @@ function landing_hero() {
 
         <div class="hero-marquee">
             <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-            <span><i data-lucide="star"></i></span>
+            <span><i data-lucide="sparkle"></i></span>
             <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-            <span><i data-lucide="star"></i></span>
+            <span><i data-lucide="sparkle"></i></span>
             <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-            <span><i data-lucide="star"></i></span>
+            <span><i data-lucide="sparkle"></i></span>
             <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
         </div>
     </section>
@@ -104,7 +107,7 @@ function landing_cases() {
                     </div>
                     <div class="case-stat">
                         <h4>250.000 €</h4>
-                        <p>INCREMENTO VENTAS DIRECTAS</p>
+                        <p>RENTABILIDAD NETA (1ER AÑO)</p>
                     </div>
                 </div>
             </div>
@@ -118,8 +121,8 @@ function landing_cases() {
                         <span>Costa Blanca</span>
                     </div>
                     <div class="case-stat">
-                        <h4>+ 5% (70% ventas directas)</h4>
-                        <p>INCREMENTO ANUAL</p>
+                        <h4>+5% (70% ventas directas)</h4>
+                        <p>INGRESOS ANUALES</p>
                     </div>
                 </div>
             </div>
@@ -134,10 +137,20 @@ function landing_cases() {
                     </div>
                     <div class="case-stat">
                         <h4>+15% ADR</h4>
-                        <p>EN LA PRIMERA FASE</p>
+                        <p>VS LA COMPETENCIA</p>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="cases-marquee">
+            <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
+            <span class="case-icon"><i data-lucide="sparkle"></i></span>
+            <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
+            <span class="case-icon"><i data-lucide="sparkle"></i></span>
+            <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
+            <span class="case-icon"><i data-lucide="sparkle"></i></span>
+            <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
         </div>
     </section>
     <?php
@@ -185,11 +198,11 @@ function landing_methodology() {
 
         <div class="methodology-marquee">
             <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-            <span><i data-lucide="zap"></i></span>
+            <span><i data-lucide="sparkle"></i></span>
             <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-            <span><i data-lucide="zap"></i></span>
+            <span><i data-lucide="sparkle"></i></span>
             <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-            <span><i data-lucide="zap"></i></span>
+            <span><i data-lucide="sparkle"></i></span>
             <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
         </div>
     </section>
@@ -212,11 +225,11 @@ function landing_about() {
 
         <div class="about-marquee">
             <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-            <span><i data-lucide="rocket"></i></span>
+            <span><i data-lucide="sparkle"></i></span>
             <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-            <span><i data-lucide="rocket"></i></span>
+            <span><i data-lucide="sparkle"></i></span>
             <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-            <span><i data-lucide="rocket"></i></span>
+            <span><i data-lucide="sparkle"></i></span>
             <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
         </div>
     </section>
