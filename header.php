@@ -16,7 +16,7 @@ $usuarioId = get_current_user_id();
     <?php wp_head(); ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const header = document.querySelector('.siteMenuW');
+            const header = document.querySelector('.siteMenuW, [gloryHeader]');
             if (header) {
                 window.addEventListener('scroll', () => {
                     if (window.scrollY > 20) {
@@ -27,6 +27,24 @@ $usuarioId = get_current_user_id();
                 }, {
                     passive: true
                 });
+                
+                // Burger menu toggle para header GBN
+                const burger = header.querySelector('.burger');
+                if (burger) {
+                    burger.addEventListener('click', function() {
+                        header.classList.toggle('open');
+                        document.body.classList.toggle('menu-open');
+                    });
+                    
+                    // Cerrar menú al hacer clic en el backdrop
+                    const backdrop = header.querySelector('.background');
+                    if (backdrop) {
+                        backdrop.addEventListener('click', function() {
+                            header.classList.remove('open');
+                            document.body.classList.remove('menu-open');
+                        });
+                    }
+                }
             }
         });
     </script>
@@ -38,6 +56,8 @@ use Glory\Components\HeaderRenderer;
 use Glory\Manager\OpcionManager;
 use Glory\Integration\Compatibility;
 use Glory\Components\ThemeToggle;
+use Glory\Core\GloryFeatures;
+use Glory\Gbn\Services\TemplateService;
 
 ?>
 
@@ -49,7 +69,26 @@ use Glory\Components\ThemeToggle;
     <?php
     $funcionRenderizar = \Glory\Manager\PageManager::getFuncionParaRenderizar();
     
-    if ($funcionRenderizar !== 'contructor') {
+    // Fase 15: Verificar si GBN está activado
+    $useGbnHeader = false;
+    if (class_exists(GloryFeatures::class) && method_exists(GloryFeatures::class, 'isActive')) {
+        $useGbnHeader = GloryFeatures::isActive('gbn', 'glory_gbn_activado');
+    }
+    
+    // Si GBN está activo, usar header GBN (guardado o por defecto)
+    if ($useGbnHeader && class_exists(TemplateService::class)) {
+        // Intentar obtener template guardado
+        $gbnHeader = TemplateService::renderHeader();
+        
+        if ($gbnHeader !== false) {
+            // Hay template guardado, usarlo
+            echo $gbnHeader;
+        } else {
+            // No hay template guardado, usar el template por defecto de GBN
+            echo TemplateService::getDefaultHeaderTemplate();
+        }
+    } else {
+        // GBN no está activo: usar header tradicional de Glory
         $defaultMode = Compatibility::avadaActivo() ? 'default' : 'image';
         $configHeader = [
             'modoLogo'    => OpcionManager::get('glory_logo_mode', $defaultMode),
