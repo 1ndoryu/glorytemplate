@@ -66,18 +66,16 @@ body {
 /* --- 3. ESTILOS ESPECÍFICOS DE LANDING PAGE --- */
 
 /* Hero de Landing */
+/* Hero de Landing */
 .landing-container .hero-section {
     position: relative;
     height: 100vh;
     min-height: 700px;
     width: 100%;
-    background-color: var(--color-mint);
-    background-image:
-        radial-gradient(at 90% 60%, #72612b 0px, transparent 50%),
-        radial-gradient(at 10% 20%, #6e5233 0px, transparent 50%),
-        radial-gradient(at 0% 90%, #8f573f 0px, transparent 50%),
-        radial-gradient(at 80% 10%, #4e553e 0px, transparent 50%);
-    background-blend-mode: overlay;
+    /* Gradient Pastel replícita de imagen */
+    background-color: #dbe4c8;
+    background-image: radial-gradient(at 15% 25%, #fce38a 0px, transparent 50%), radial-gradient(at 90% 15%, #acf0d6 0px, transparent 50%), radial-gradient(at 10% 90%, #e6a78c 0px, transparent 50%), radial-gradient(at 85% 85%, #f4d061 0px, transparent 50%), radial-gradient(at 50% 50%, #c4e4d0 0px, transparent 50%);
+    background-size: 100% 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
