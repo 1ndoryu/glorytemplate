@@ -13,6 +13,10 @@ $usuarioId = get_current_user_id();
     </style>
     <!-- Assets encolados por AssetManager: GSAP y Highlight.js (controlados por features) -->
     <link rel="profile" href="https://gmpg.org/xfn/11">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
     <?php wp_head(); ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -27,7 +31,7 @@ $usuarioId = get_current_user_id();
                 }, {
                     passive: true
                 });
-                
+
                 // Burger menu toggle para header GBN
                 const burger = header.querySelector('.burger');
                 if (burger) {
@@ -35,7 +39,7 @@ $usuarioId = get_current_user_id();
                         header.classList.toggle('open');
                         document.body.classList.toggle('menu-open');
                     });
-                    
+
                     // Cerrar menú al hacer clic en el backdrop
                     const backdrop = header.querySelector('.background');
                     if (backdrop) {
@@ -64,23 +68,23 @@ use Glory\Gbn\Services\TemplateService;
 
 <body>
     <div id="loadingBar"></div>
-    
-    
+
+
     <?php
-    
+
     $funcionRenderizar = \Glory\Manager\PageManager::getFuncionParaRenderizar();
-    
+
     // Fase 15: Verificar si GBN está activado
     $useGbnHeader = false;
     if (class_exists(GloryFeatures::class) && method_exists(GloryFeatures::class, 'isActive')) {
         $useGbnHeader = GloryFeatures::isActive('gbn', 'glory_gbn_activado');
     }
-    
+
     // Si GBN está activo, usar header GBN (guardado o por defecto)
     if ($useGbnHeader && class_exists(TemplateService::class)) {
         // Intentar obtener template guardado
         $gbnHeader = TemplateService::renderHeader();
-        
+
         if ($gbnHeader !== false) {
             // Hay template guardado, usarlo
             echo $gbnHeader;
@@ -95,7 +99,7 @@ use Glory\Gbn\Services\TemplateService;
             'modoLogo'    => OpcionManager::get('glory_logo_mode', $defaultMode),
             'textoLogo'   => OpcionManager::get('glory_logo_text', get_bloginfo('name', 'display')),
             'logoImageId' => OpcionManager::get('glory_logo_image'),
-            'idMenu'      => 'mainMenu' 
+            'idMenu'      => 'mainMenu'
         ];
         HeaderRenderer::render($configHeader);
         echo ThemeToggle::render();
