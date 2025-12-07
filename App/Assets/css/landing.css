@@ -26,6 +26,7 @@
     --font-heading: 'Instrument Serif', serif;
     --font-body: 'Montserrat', sans-serif !important;
     --font-brand: 'Archivo Black', sans-serif;
+    font-size: 14px;
 }
 
 body {
