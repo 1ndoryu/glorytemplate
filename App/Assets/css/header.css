@@ -1,416 +1,60 @@
+/*
+var BREAKPOINTS = {
+    desktop: {min: 1025, label: 'Desktop', icon: 'desktop'},
+    tablet: {min: 769, max: 1024, label: 'Tablet', icon: 'tablet'},
+    mobile: {max: 768, label: 'Móvil', icon: 'mobile'}
+};
+*/
 
-/* HEADER */
-
-/* --- VARIABLES Y ESTILOS BASE --- */
-:root {
-    --color-black: #000;
-    --color-blue: #0071e3;
-    --color-green: #00b982;
-    --color-greyDark: #1d1e20;
-    --color-greyLight: #efefef;
-    --color-greyLighter: #f8f8f8;
-    --color-offBlack: #0f1012;
-    --color-offWhite: #f2f2f4;
-    --color-orange: #ff5102;
-    --color-yellow: #fca311;
-    --color-white: #fff;
-    --font-base: "PP Neue Montreal";
-    --header-height: 7.9rem;
-    --grid-columnCount: 5;
-    --grid-gutter: 2.5641025641vw;
-    --grid-outerGutter: 5.1282051282vw;
-}
-
-.siteMenuW {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    transition: background-color 0.4s ease;
-}
-
-.siteMenuContainer {
-    transform: none;
-    opacity: 1;
-    visibility: inherit;
-    column-gap: 0.5rem;
-    justify-content: center;
+.cosmoHeaderContainer {
     display: flex;
-    left: 0;
-    position: fixed;
-    top: 0;
-    transition: opacity 0.3s, visibility 0.3s;
-    width: 100%;
-    z-index: 1002;
-}
-
-.siteMenuContainer.hidden {
-    opacity: 0 !important;
-    visibility: hidden !important;
-}
-
-/* --- LOGO --- */
-.siteMenuLogo {
-    height: 4.9rem;
-    width: 4.9rem;
-    margin-left: var(--grid-outerGutter);
-    margin-top: 3.4rem;
-    background-color: #7878781a;
-    color: var(--color-offBlack);
-    transition: background-color 0.2s, color 0.2s;
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    border-radius: 50%;
-    overflow: hidden;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    z-index: 1;
-}
-
-/* --- ESTILOS DE COLOR ADAPTATIVOS --- */
-.siteMenuW .siteMenuNav a,
-.siteMenuW .siteMenuLogo a,
-.siteMenuW .siteMenuLogo,
-.siteMenuW .burger {
-    color: var(--text); /* Color por defecto adaptado al tema */
-    transition: color 0.4s ease;
-    text-decoration: none;
-}
-
-.siteMenuW .siteMenuNav a:hover {
-    color: var(--text);
-}
-
-.siteMenuW.has-dark-background .siteMenuNav a,
-.siteMenuW.has-dark-background .siteMenuLogo a,
-.siteMenuW.has-dark-background .siteMenuLogo,
-.siteMenuW.has-dark-background .burger {
-    color: var(--text); /* Color para fondos oscuros */
-}
-
-.siteMenuW.has-dark-background .siteMenuNav a:hover {
-    color: #dddddd;
-}
-
-/* — Evitar que los enlaces del menú móvil se pongan blancos — */
-.siteMenuW.open .siteMenuNav a {
-    color: #333 !important;
-}
-
-.siteMenuW.open .siteMenuNav a:hover {
-    color: #000 !important;
-}
-
-/* --- BOTÓN HAMBURGUESA --- */
-.burger {
-    align-items: center;
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    height: 4.9rem;
-    justify-content: center;
-    margin-right: var(--grid-outerGutter);
-    margin-top: 3rem;
-    position: relative;
-    row-gap: .8rem;
-    transition: background-color .3s, color .2s;
-    width: 4.9rem;
-    z-index: 1;
-    background-color: #7878781a;
-    color: var(--color-offBlack);
-    border: none;
-    cursor: pointer;
-}
-
-.burger span {
-    background-color: currentColor;
-    display: block;
-    height: 1px;
-    position: relative;
-    top: 0;
-    transition: transform .3s,top .3s;
-    width: 1.9rem;
-}
-
-.open .burger {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: none;
-}
-
-.open .burger span:first-child {
-    top: 4.5px;
-    transform: rotate(45deg);
-}
-
-.open .burger span:nth-child(2) {
-    top: -4.5px;
-    transform: rotate(-45deg);
-}
-
-.header-logo-text-mode .siteMenuLogo {
-    width: auto;
-    border-radius: 1rem;
-    font-size: 1.4rem;
-    FONT-WEIGHT: 600;
-}
-
-/* --- ESTILOS ADICIONALES PARA MENÚ MÓVIL --- */
-
-.siteMenuNav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    /* height: 100dvh; */
-    background-color: #f8f8f8b3;
-    padding: 4.5rem var(--grid-outerGutter) 0;
-    display: none;
-    padding-bottom: 20px !important;
-    flex-direction: column;
-    z-index: 1002;
-    visibility: hidden;
-}
-
-.siteMenuContainer {
     justify-content: space-between;
+    width: 100%;
 }
 
-body.menu-open {
-    overflow: hidden;
-}
-
-.siteMenuW.open .siteMenuNav {
+.cosmoHeader {
     display: flex;
-    visibility: visible;
-}
-
-.siteMenuW.open .siteMenuLogo,
-.siteMenuW.open .burger {
     position: fixed;
-    z-index: 1003;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    background: transparent;
+    box-shadow: unset;
+    padding: 20px 30px;
+    color: var(--color-blanco);
+    transition: background 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+    z-index: 100;
 }
 
-.siteMenuW.open .burger {
-    top: 0.3rem;
-    right: 0rem;
+/* Estado cuando el usuario hace scroll */
+.cosmoHeader.scrolled {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
 }
 
-.navTitle {
-    color: #333;
-    font-size: 1.8rem;
-    font-weight: 350;
-    text-align: center;
-    padding-bottom: 2.5rem;
-    border-bottom: 1px solid #e0e0e0;
-    opacity: 0;
+.cosmoHeader a {
+    color: #ffffff;
+    font-size: 16px;
 }
 
-.siteMenuNav ul {
-    margin-top: 3rem;
-    padding: 0;
-    list-style: none;
-    text-align: center;
-    counter-reset: list-item;
-}
-
-.siteMenuNav ul li {
-    font-size: 2.5rem;
-    font-weight: 350;
-    line-height: 1.2;
-    padding: 0.6rem 0;
-    opacity: 0;
-    display: flex;
-    gap: 4rem;
-    flex-wrap: wrap; /* móvil: permitir que el submenú baje a la siguiente línea */
-}
-
-.siteMenuNav ul li a {
-    color: var(--text);
-    text-decoration: none;
-}
-
-.siteMenuNav ul li::before {
-    content: "0" counter(list-item);
-    counter-increment: list-item;
-    font-size: 1.2rem;
-    font-weight: 350;
-    color: #999;
-}
-
-/* Móvil: submenús cerrados por defecto y a 100% de ancho bajo el ítem */
-.siteMenuNav ul li > ul.sub-menu {
+.cosmoHeaderBurger {
     display: none;
-    width: 100%;
-    flex-basis: 100%;
-    margin-top: .6rem;
-    text-align: left;
-}
-.siteMenuNav ul li.open > ul.sub-menu {
-    display: block;
 }
 
-.background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.2);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-    border: none;
-    cursor: pointer;
-    z-index: 1001;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.4s, visibility 0.4s;
+.cosmoHeaderBackground {
+    display: none;
 }
 
-.siteMenuW.open .background {
-    opacity: 1;
-    visibility: visible;
+/* 2. TABLET (Max 1024px) */
+@media (max-width: 1024px) {
+    .cosmoHeaderBurger {
+        display: block;
+    }
 }
-
-/* --- ESTILOS PARA ESCRITORIO (min-width: 834px) --- */
-@media only screen and (min-width: 834px) {
-    :root {
-        --grid-gutter: 2.3980815348vw;
-        --grid-outerGutter: 4.7961630695vw;
-    }
-    
-    .burger,
-    .background,
-    .navTitle {
-        display: none;
-    }
-
-    .siteMenuContainer {
-        justify-content: center;
-        column-gap: .5rem;
-    }
-
-    .siteMenuLogo {
-        height: 4.5rem;
-        width: 4.5rem;
-        margin-left: 0;
-        margin-top: 3.4rem;
-    }
-
-    .siteMenuNav {
-        display: block;
-        position: relative;
-        flex-direction: row;
-        width: auto;
-        height: auto;
-        padding: 0;
-        margin: 3.4rem 0 0;
-        background-color: transparent;
-        visibility: visible;
-    }
-
-    .siteMenuNav ul {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        -webkit-backdrop-filter: blur(20px);
-        backdrop-filter: blur(20px);
-        border-radius: 1rem;
-        column-gap: 4rem;
-        height: 4.5rem;
-        margin-top: 0;
-        padding: 0 3rem;
-        row-gap: 0;
-        background-color: #7878781a;
-    }
-
-    .siteMenuNav ul li {
-        opacity: 1;
-        font-size: 1.4rem;
-    }
-    
-    .siteMenuNav ul li::before {
-        display: none;
-    }
-
-    .siteMenuNav {
-        /* Asegura que la navegación se muestre correctamente al volver a escritorio */
-        transform: none !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-    }
-
-    /* ===== Submenús (dropdown) en escritorio ===== */
-    .siteMenuNav ul.menu > li {
-        position: relative;
-    }
-
-    /* contenedor del submenú oculto por defecto (primer nivel de dropdown) */
-    .siteMenuNav ul.menu > li > ul.sub-menu {
-        position: absolute;
-        top: calc(100% + 20px);
-        left: 50%;
-        transform: translateX(-50%);
-        min-width: 220px;
-        margin: 0;
-        display: none;
-        z-index: 1004;
-        height: auto;
-        -webkit-backdrop-filter: blur(20px);
-        backdrop-filter: blur(20px);
-    }
-
-    /* fondo y estilo común para todos los submenús */
-    .siteMenuNav ul.sub-menu {
-        background-color: #7878781a;
-        -webkit-backdrop-filter: blur(20px);
-        backdrop-filter: blur(20px);
-        border-radius: 1rem;
-        padding: .6rem 0;
-    }
-
-    /* ítems del submenú */
-    .siteMenuNav ul.sub-menu > li {
-        font-size: 1.3rem;
-        padding: .8rem 1.6rem;
-        opacity: 1;
-        display: block;
-        text-align: left;
-    }
-
-    .siteMenuNav ul.sub-menu > li a {
-        color: var(--text);
-        display: block;
-    }
-
-    .siteMenuNav ul.sub-menu > li a:hover {
-        color: var(--text);
-    }
-
-    /* mostrar en hover */
-    .siteMenuNav ul.menu > li:hover > ul.sub-menu {
-        display: block;
-    }
-
-    /* sub-submenú (nivel 3) alineado a la derecha del dropdown */
-    .siteMenuNav ul.sub-menu > li {
-        position: relative;
-    }
-    .siteMenuNav ul.sub-menu > li > ul.sub-menu {
-        position: absolute;
-        top: 0;
-        left: 100%;
-        margin-left: 8px;
-        display: none;
-        min-width: 200px;
-    }
-    .siteMenuNav ul.sub-menu > li:hover > ul.sub-menu {
+/* 3. MÓVIL (Max 768px) */
+@media (max-width: 768px) {
+    .cosmoHeaderBurger {
         display: block;
     }
 }

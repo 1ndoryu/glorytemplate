@@ -22,7 +22,7 @@ GloryFeatures::enable('modales');
 GloryFeatures::enable('submenus');
 GloryFeatures::enable('pestanas');
 GloryFeatures::enable('scheduler');
-GloryFeatures::enable('headerAdaptativo');
+GloryFeatures::disable('headerAdaptativo');
 GloryFeatures::enable('themeToggle');
 GloryFeatures::enable('alertas');
 GloryFeatures::enable('gestionarPreviews');
@@ -44,13 +44,13 @@ GloryFeatures::enable('gloryBusqueda');
 GloryFeatures::enable('gloryRealtime');
 
 // Task feature flag
-GloryFeatures::enable('task');
-GloryFeatures::enable('amazonProduct');
+GloryFeatures::disable('task');
+GloryFeatures::disable('amazonProduct');
 
 // Renderers
 GloryFeatures::enable('logoRenderer');
-GloryFeatures::enable('contentRender');
-GloryFeatures::enable('termRender');
+GloryFeatures::disable('contentRender');
+GloryFeatures::disable('termRender');
 
 //Theme options
 GloryFeatures::enable('titleTag');

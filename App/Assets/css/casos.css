@@ -21,21 +21,21 @@
 }
 
 .casos-container .hero-content {
-    margin-top: 2rem;
+    margin-top: 32px;
     z-index: 2;
     max-width: 800px;
 }
 
 .casos-container .hero-title {
     font-family: var(--font-body, sans-serif);
-    margin-bottom: 2.5rem;
+    margin-bottom: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     color: #f4f4f4;
     font-weight: normal;
-    font-size: 5rem;
+    font-size: 80px;
 }
 
 .casos-container .hero-title .script-text {
@@ -43,7 +43,7 @@
     color: #f4f4f4;
     font-family: var(--font-heading, serif);
     font-style: italic;
-    font-size: 5rem;
+    font-size: 80px;
     width: fit-content;
     display: block;
     margin-bottom: -10px;
@@ -51,16 +51,16 @@
 
 .casos-container .script-icon {
     position: absolute;
-    top: .8rem;
+    top: 13px;
     right: -2%;
-    font-size: 2.5rem;
+    font-size: 40px;
     color: #f7f7f7d7;
 }
 
 .casos-container .hero-subtitle {
     font-family: var(--font-body, sans-serif);
     color: #f4f4f4;
-    font-size: 1.2rem;
+    font-size: 19px;
     max-width: 700px;
     margin: 0 auto;
     line-height: 1.5;
@@ -123,7 +123,7 @@
 
 .caso-minimal-title {
     font-family: var(--font-body, sans-serif) !important;
-    font-size: 1rem !important;
+    font-size: 16px !important;
     font-weight: 600;
     color: #1a1a1a;
     margin: 0;
@@ -132,7 +132,7 @@
 
 .caso-minimal-location {
     font-family: var(--font-body, sans-serif);
-    font-size: 0.9rem;
+    font-size: 14px;
     color: #1a1a1a;
     /* Dark text as per image */
     font-weight: 500;
@@ -178,20 +178,20 @@
 }
 
 .quote-icon {
-    font-size: 3rem;
+    font-size: 48px;
     display: block;
     opacity: 0.8;
 }
 
 .quote-icon svg {
     color: #f4f4f4;
-    height: 4rem;
-    width: 4rem;
+    height: 64px;
+    width: 64px;
 }
 
 .quote-text {
     font-family: var(--font-body) !important;
-    font-size: 2.2rem !important;
+    font-size: 35px !important;
     color: #f4f4f4 !important;
     line-height: 1.4;
     margin-bottom: 30px;
@@ -199,7 +199,7 @@
 
 .quote-author {
     font-family: var(--font-body) !important;
-    font-size: 1.2rem !important;
+    font-size: 19px !important;
     color: #f4f4f4b4 !important;
     letter-spacing: 1px;
     opacity: 0.9;
@@ -207,22 +207,22 @@
 
 .casos-cta {
     text-align: center;
-    padding: 8rem 0;
+    padding: 128px 0;
     background-color: rgba(245, 245, 234);
 }
 
 .cta-title {
     font-family: var(--font-heading) !important;
     font-weight: normal !important;
-    font-size: 4rem !important;
-    margin-bottom: 1.2rem !important;
+    font-size: 64px !important;
+    margin-bottom: 19px !important;
     font-style: italic;
     color: #1a1a1a;
 }
 
 .cta-text {
     font-family: var(--font-body) !important;
-    font-size: 1.1rem;
+    font-size: 18px;
     color: #1d1d1d;
     margin-bottom: 40px;
     max-width: 500px;
@@ -233,12 +233,12 @@
     display: inline-block;
     background-color: #9da876;
     color: #fff;
-    padding: .3rem 1.2rem;
+    padding: 5px 19px;
     border-radius: 30px;
-    margin-top: 1rem;
+    margin-top: 16px;
     text-decoration: none;
     border: 1px solid transparent;
-    font-size: 1rem;
+    font-size: 16px;
     transition: background 0.3s, transform 0.3s;
 }
 
@@ -261,7 +261,6 @@
 }
 
 @media (max-width: 768px) {
-
     /* Grid Stacking */
     .casos-grid {
         grid-template-columns: 1fr;
@@ -277,16 +276,16 @@
     }
 
     .casos-container .hero-title {
-        font-size: 3rem;
-        margin-bottom: 1.5rem;
+        font-size: 48px;
+        margin-bottom: 24px;
     }
 
     .casos-container .hero-title .script-text {
-        font-size: 3.5rem;
+        font-size: 56px;
     }
 
     .casos-container .hero-subtitle {
-        font-size: 1rem;
+        font-size: 16px;
         line-height: 1.4;
     }
 
@@ -296,13 +295,13 @@
     }
 
     .quote-text {
-        font-size: 1.4rem !important;
+        font-size: 22px !important;
         line-height: 1.4;
     }
 
     .quote-icon svg {
-        width: 3rem;
-        height: 3rem;
+        width: 48px;
+        height: 48px;
     }
 
     /* CTA Section */
@@ -311,12 +310,12 @@
     }
 
     .cta-title {
-        font-size: 2.5rem !important;
+        font-size: 40px !important;
         line-height: 1.1;
     }
 
     .cta-text {
-        font-size: 1rem;
+        font-size: 16px;
         padding: 0 10px;
     }
 }

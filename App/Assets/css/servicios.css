@@ -27,14 +27,14 @@
 
 .services-container .hero-title {
     font-family: var(--font-body);
-    margin-bottom: 2.5rem;
+    margin-bottom: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     color: #f4f4f4;
     font-weight: normal;
-    font-size: 5rem;
+    font-size: 80px;
     letter-spacing: 2px;
 }
 
@@ -43,7 +43,7 @@
     color: #f4f4f4;
     font-family: var(--font-heading);
     font-style: italic;
-    font-size: 5rem;
+    font-size: 80px;
     width: fit-content;
     display: block;
     margin-bottom: -10px;
@@ -51,15 +51,15 @@
 
 .services-container .script-icon {
     position: absolute;
-    top: 0.8rem;
+    top: 13px;
     right: -2%;
-    font-size: 2.5rem;
+    font-size: 40px;
     color: #f7f7f7d7;
 }
 
 .services-container .hero-subtitle {
     color: #f4f4f4;
-    font-size: 1.2rem;
+    font-size: 19px;
     max-width: 800px;
     font-family: var(--font-body);
     margin: 0 auto;
@@ -76,25 +76,25 @@
 }
 
 .services-container .section-tag {
-    margin-top: 2rem;
+    margin-top: 32px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 0.2rem 1rem;
+    gap: 8px;
+    padding: 3px 16px;
     border: 1px solid var(--color-accent);
     border-radius: 20px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 24px;
 }
 
 .services-container .section-tag svg {
-    width: 0.8rem;
-    height: 0.8rem;
+    width: 13px;
+    height: 13px;
 }
 
 .services-container .section-tag-text {
     font-family: var(--font-body);
-    font-size: 0.8rem;
+    font-size: 13px;
     color: var(--color-text);
     font-weight: normal;
     margin: 0;
@@ -102,7 +102,7 @@
 
 /* Override del título de sección para servicios (más pequeño que landing) */
 .services-container .section-title {
-    font-size: 3.5rem;
+    font-size: 56px;
     font-weight: normal;
     margin: 0 0 20px 0;
 }
@@ -111,7 +111,7 @@
     font-family: var(--font-heading);
     font-weight: normal;
     font-style: italic;
-    font-size: 3.5rem;
+    font-size: 56px;
     margin: 0 0 20px 0;
 }
 
@@ -119,7 +119,7 @@
     font-family: var(--font-body);
     max-width: 700px;
     margin: 0 auto 60px;
-    font-size: 1rem;
+    font-size: 16px;
 }
 
 /* --- MARKETING SECTION --- */
@@ -212,7 +212,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 24px;
     margin-bottom: 9px;
 }
 
@@ -221,7 +221,7 @@
 .services-container .marketing-card-right h3,
 .services-container .marketing-card-right-bottom h3 {
     font-family: var(--font-heading);
-    font-size: 3rem;
+    font-size: 48px;
     margin: 0;
     color: #4a5d4e;
     font-style: italic;
@@ -231,7 +231,7 @@
 .services-container .card-subtitle {
     font-family: var(--font-body);
     display: block;
-    font-size: 0.8rem;
+    font-size: 13px;
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.5px;
@@ -244,7 +244,7 @@
 }
 
 .services-container .card-desc {
-    font-size: 0.95rem;
+    font-size: 15px;
     color: #555;
     line-height: 1.6;
     margin-bottom: 30px;
@@ -258,7 +258,7 @@
 }
 
 .services-container .card-features li {
-    font-size: 0.9rem;
+    font-size: 14px;
     color: #444;
     margin-bottom: 12px;
     display: flex;
@@ -280,7 +280,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
     width: 100%;
     padding: 12px 0;
     border: 1px solid #757474;
@@ -289,7 +289,7 @@
     text-align: center;
     text-decoration: none;
     color: #333;
-    font-size: 0.9rem;
+    font-size: 14px;
     font-weight: 500;
     transition: all 0.3s ease;
 }
@@ -301,8 +301,8 @@
 }
 
 .services-container .btn-card svg {
-    width: 1rem;
-    height: 1rem;
+    width: 16px;
+    height: 16px;
 }
 
 /* --- CONSULTING SECTION --- */
@@ -320,7 +320,7 @@
     gap: 50px;
     align-items: flex-start;
     text-align: left;
-    padding: 5rem 1rem;
+    padding: 80px 16px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -331,14 +331,14 @@
 }
 
 .services-container .consulting-left .section-title {
-    font-size: 3rem !important;
+    font-size: 48px !important;
 }
 
 .services-container .section-text {
     color: #555;
     line-height: 1.8;
     margin-bottom: 20px;
-    font-size: 1rem;
+    font-size: 16px;
     font-weight: normal;
     font-family: var(--font-body);
 }
@@ -365,20 +365,20 @@
 }
 
 .services-container .orbit-icon {
-    font-size: 1.5rem;
+    font-size: 24px;
     color: #d4e157;
 }
 
 .services-container .orbit-card h3 {
     color: #f4f4f4;
     font-family: var(--font-heading);
-    font-size: 2.5rem;
+    font-size: 40px;
     margin: 0;
     font-style: italic;
 }
 
 .services-container .orbit-desc {
-    font-size: 1rem;
+    font-size: 16px;
     color: var(--color-accent);
     font-weight: normal;
     font-family: var(--font-body);
@@ -387,7 +387,7 @@
 }
 
 .services-container .orbit-subdesc {
-    font-size: 0.95rem;
+    font-size: 15px;
     line-height: 1.6;
     margin-bottom: 30px;
     color: #ddd;
@@ -409,7 +409,7 @@
 }
 
 .services-container .orbit-features li {
-    font-size: 0.85rem;
+    font-size: 14px;
     margin-bottom: 12px;
     color: #ccc;
     display: flex;
@@ -421,8 +421,8 @@
 
 .services-container .orbit-features-list li svg {
     color: var(--color-accent);
-    width: 1.4rem;
-    height: 1.4rem;
+    width: 22px;
+    height: 22px;
 }
 
 .services-container .btn-orbit {
@@ -462,7 +462,7 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    margin-top: 5rem;
+    margin-top: 80px;
     width: 100%;
 }
 
@@ -477,7 +477,7 @@
 
 .revenue-bottom-text {
     font-family: var(--font-body) !important;
-    font-size: 1rem !important;
+    font-size: 16px !important;
     max-width: 70%;
 }
 
@@ -488,15 +488,15 @@
 }
 
 .btn-submit-revenue {
-    margin-top: 1.8rem;
+    margin-top: 29px;
     background-color: #9da876;
     color: #f4f4f4;
     border: none;
-    padding: 0.3rem 1rem;
+    padding: 5px 16px;
     border-radius: 25px;
     cursor: pointer;
     font-family: var(--font-body);
-    font-size: 1rem;
+    font-size: 16px;
     transition: background 0.3s;
     text-decoration: none;
     border: 1px solid transparent;
@@ -518,14 +518,13 @@
 
 /* Lucide genera un SVG, así que usamos width/height para el tamaño */
 .rocket-icon-conl svg {
-    width: 2rem;
-    height: 2rem;
+    width: 32px;
+    height: 32px;
     stroke-width: 1.5;
 }
 
 /* --- RESPONSIVE ADJUSTMENTS --- */
 @media (max-width: 1024px) {
-
     /* En tablet/móvil, las tarjetas deben separarse y verse uniformes */
     .services-container .marketing-grid {
         grid-template-columns: 1fr;
@@ -551,17 +550,16 @@
     .services-container .marketing-section,
     .services-container .revenue-section,
     .services-container .consulting-content {
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
+        padding-left: 24px;
+        padding-right: 24px;
     }
 }
 
 @media (max-width: 768px) {
-
     /* Ajustes adicionales para móvil */
     .services-container .hero-title,
     .services-container .hero-title .script-text {
-        font-size: 3rem;
+        font-size: 48px;
         /* Reducir tamaño de título hero */
     }
 
@@ -569,13 +567,13 @@
     .services-container .marketing-card-left h3,
     .services-container .marketing-card-center h3,
     .services-container .marketing-card-right h3 {
-        font-size: 2.5rem;
+        font-size: 40px;
         /* Títulos de tarjetas más pequeños */
     }
 
     .services-container .hero-subtitle {
-        font-size: 1rem;
-        padding: 0 1rem;
+        font-size: 16px;
+        padding: 0 16px;
     }
 
     .services-container .marketing-card-left,

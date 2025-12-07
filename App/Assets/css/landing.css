@@ -5,29 +5,6 @@
  */
 
 /* --- 1. VARIABLES GLOBALES Y RESET --- */
-:root {
-    --color-negro: #000000;
-    --color-blanco: #f4f4f2;
-    --color-naranja-claro: #f6f3ec;
-    --color-gris: #cccccc;
-    --color-verde-1: #dde0cd;
-    --color-verde-2: #b2b88e;
-    --color-verde-marca: #8d926f;
-    --color-verde-oscuro: #545938;
-
-    --color-bg-dark: var(--color-negro);
-    --color-text-light: var(--color-blanco);
-    --color-text-muted: var(--color-gris);
-    --color-accent: var(--color-verde-marca);
-    /* Verde/Amarillo */
-    --color-mint: var(--color-verde-1);
-    /* Menta */
-    --color-mint-dark: var(--color-verde-2);
-    --font-heading: 'Instrument Serif', serif;
-    --font-body: 'Montserrat', sans-serif !important;
-    --font-brand: 'Archivo Black', sans-serif;
-    font-size: 14px;
-}
 
 body {
     margin: 0;
@@ -60,7 +37,7 @@ body {
 .section-subtitle {
     color: #666;
     line-height: 1.6;
-    font-size: 1.1rem;
+    font-size: 18px;
     font-family: var(--font-body);
 }
 
@@ -73,16 +50,28 @@ body {
     height: 100vh;
     min-height: 700px;
     width: 100%;
-    /* Gradient Pastel replícita de imagen */
-    background-color: #dbe4c8;
-    background-image: radial-gradient(at 15% 25%, #fce38a 0px, transparent 50%), radial-gradient(at 90% 15%, #acf0d6 0px, transparent 50%), radial-gradient(at 10% 90%, #e6a78c 0px, transparent 50%), radial-gradient(at 85% 85%, #f4d061 0px, transparent 50%), radial-gradient(at 50% 50%, #c4e4d0 0px, transparent 50%);
-    background-size: 100% 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
     padding: 20px;
+    overflow: hidden;
+}
+
+/* Fondo con intensidad aumentada via contraste */
+.landing-container .hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background-color: #dbe4c8;
+    background-image: radial-gradient(at 15% 25%, #f2d775 0px, transparent 50%), radial-gradient(at 90% 15%, #77e3ba 0px, transparent 50%), radial-gradient(at 10% 90%, #fca079 0px, transparent 50%), radial-gradient(at 85% 85%, #e0bd50 0px, transparent 50%), radial-gradient(at 50% 50%, #95c4a6 0px, transparent 50%);
+    background-size: 100% 100%;
+    pointer-events: none;
 }
 
 .landing-nav {
@@ -102,7 +91,7 @@ body {
     font-family: var(--font-brand);
     font-weight: 400;
     /* Archivo Black is usually black weight by default or specific weight, check if 700 is needed, usually 400 is fine if only one weight loaded but let's stick to variable */
-    font-size: 1.2rem;
+    font-size: 19px;
     letter-spacing: 1px;
     text-transform: uppercase;
     color: #fff;
@@ -120,7 +109,7 @@ body {
 .landing-nav .nav-links a {
     text-decoration: none;
     color: #fff;
-    font-size: 1.2rem;
+    font-size: 19px;
     /* Ajustado para consistencia */
     mix-blend-mode: difference;
     font-weight: 500;
@@ -147,10 +136,11 @@ body {
 .landing-container .hero-title {
     font-family: var(--font-heading) !important;
     font-weight: normal;
-    font-size: 5rem;
+    font-size: 80px;
     line-height: 1.1;
     margin-bottom: 40px;
     color: #fff;
+    font-style: normal;
     /* text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
 }
 
@@ -165,59 +155,54 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 30px;
+    padding: 10px 34px;
     border: 1px solid #fff;
     border-radius: 46%;
     color: #ffffff;
     text-decoration: none;
-    font-size: 1.2rem;
-    transition: all 0.3s ease;
+    font-size: 16px;
+    transition: all 0.3s 
+ease;
     backdrop-filter: blur(5px);
     position: relative;
+
 }
 
 .landing-container .auditoria-icon {
     position: absolute;
-    width: 1.8rem;
-    height: 1.8rem;
+    width: 30px;
+    height: 30px;
     right: 5px;
-    top: -12px;
+    top: -8px;
 }
 
 .landing-container .hero-marquee svg,
 .landing-container .methodology-marquee svg,
 .landing-container .about-marquee svg {
-    width: 1.2rem;
-    height: 1.2rem;
+    width: 19px;
+    height: 19px;
     vertical-align: middle;
 }
 
-.landing-container .btn-auditoria:hover {
-    background: #fff;
-    color: #000;
-}
 
 /* Marquee Landing */
 .landing-container .hero-marquee {
     position: absolute;
     bottom: 0;
     width: 100%;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 10px 0;
+    /* background: rgba(255, 255, 255, 0.2); */
+    padding: 12px 0;
     overflow: hidden;
-    border-top: 2px solid rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(5px);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
     display: flex;
     align-items: center;
-    /* Center vertically */
 }
 
 .landing-container .hero-marquee span {
     display: block;
-    font-size: 1rem;
+    font-size: 12px;
     color: #fff;
     text-transform: uppercase;
-    letter-spacing: 2px;
     font-family: var(--font-body);
 }
 
@@ -231,7 +216,7 @@ body {
 }
 
 .landing-container .contact-container {
-    padding: 1rem 1.4rem;
+    padding: 16px 22px;
 }
 
 .landing-container .about-section {
@@ -248,28 +233,28 @@ body {
 }
 
 .landing-container .cases-container {
-    padding: 0 1.2rem;
+    padding: 0 19px;
 }
 
 /* Títulos específicos de Landing (más grandes) */
 .landing-container .section-title {
-    margin-top: 3rem;
-    font-size: 4.5rem;
+    margin-top: 48px;
+    font-size: 72px;
     font-weight: normal;
-    margin-bottom: 2rem;
+    margin-bottom: 32px;
     line-height: 0.9;
 }
 
 .landing-container .section-subtitle {
-    font-size: 1.2rem !important;
-    margin-bottom: 6rem;
+    font-size: 19px !important;
+    margin-bottom: 96px;
 }
 
 /* Cards Grid Landing */
 .landing-container .cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 4rem;
+    gap: 64px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -371,7 +356,7 @@ body {
 .landing-container .service-card h3 {
     font-family: var(--font-heading);
     font-weight: normal;
-    font-size: 1.8rem;
+    font-size: 29px;
     margin: 0;
     color: #fff;
     text-align: center;
@@ -382,7 +367,7 @@ body {
 .landing-container .cases-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2.5rem;
+    gap: 40px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -403,7 +388,7 @@ body {
     background-size: cover;
     background-position: center;
     border-radius: 15px;
-    margin-top: 0.5rem;
+    margin-top: 8px;
 }
 
 .landing-container .case-info {
@@ -419,7 +404,7 @@ body {
     width: 100%;
     display: flex;
     justify-content: space-between;
-    font-size: 0.9rem;
+    font-size: 14px;
     font-family: var(--font-body);
     font-weight: 600;
     color: #000;
@@ -433,7 +418,7 @@ body {
     left: 20px;
     right: 20px;
     background: #f4f4f2;
-    padding: 0.8rem 1rem;
+    padding: 13px 16px;
     border-radius: 12px;
     /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); */
     pointer-events: auto;
@@ -442,7 +427,7 @@ body {
 .landing-container .case-stat h4 {
     font-family: var(--font-heading);
     color: var(--color-accent);
-    font-size: 2rem;
+    font-size: 32px;
     font-style: italic;
     margin: 0px;
     font-weight: normal;
@@ -450,7 +435,7 @@ body {
 
 .landing-container .case-stat p {
     margin: 0;
-    font-size: 0.7rem;
+    font-size: 11px;
     color: #666;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -463,14 +448,14 @@ body {
     padding: 10px 0;
     overflow: hidden;
     border-top: 2px solid rgba(58, 58, 58, 0.5);
-    margin-top: calc(2vh + 6rem);
+    margin-top: calc(2vh + 96px);
     display: flex;
     align-items: center;
 }
 
 /* Ensure span font-size is 1rem via common rule or here if needed, but we'll add common or specific */
 .landing-container .cases-marquee span {
-    font-size: 1rem;
+    font-size: 16px;
     color: #333;
     /* Default text color needed? assuming inherited or black */
     text-transform: uppercase;
@@ -484,8 +469,8 @@ body {
 }
 
 .landing-container .case-icon svg {
-    height: 1rem;
-    width: 1rem;
+    height: 16px;
+    width: 16px;
 }
 
 /* Methodology Landing */
@@ -574,7 +559,7 @@ body {
     align-items: center;
     justify-content: center;
     color: #eeeeee;
-    font-size: clamp(1rem, 3vw, 1.5rem);
+    font-size: clamp(16px, 3vw, 24px);
     z-index: 10;
 }
 
@@ -598,7 +583,7 @@ body {
     align-items: center;
     justify-content: center;
     font-family: var(--font-heading);
-    font-size: clamp(1.2rem, 3vw, 2rem);
+    font-size: clamp(19px, 3vw, 32px);
     color: #f4f4f4;
 }
 
@@ -647,14 +632,14 @@ body {
 .landing-container .planet-bottom-o p {
     margin: 0;
     font-family: var(--font-heading);
-    font-size: clamp(1.2rem, 3vw, 2rem);
+    font-size: clamp(19px, 3vw, 32px);
     color: #f4f4f4;
 }
 
 .landing-container .methodology-marquee {
     background-color: #1a1a1a;
     color: #f4f4f4;
-    padding: 1rem;
+    padding: 16px;
     width: 100%;
     overflow: hidden;
     border-top: 2px solid rgba(255, 255, 255, 0.1);
@@ -664,7 +649,7 @@ body {
 
 .landing-container .methodology-marquee span {
     display: block;
-    font-size: 1rem;
+    font-size: 16px;
     text-transform: uppercase;
     letter-spacing: 2px;
 }
@@ -731,10 +716,10 @@ body {
 /* About Landing */
 
 .landing-container .about-section .section-title {
-    margin-top: 1.5rem;
-    font-size: 4.5rem;
+    margin-top: 24px;
+    font-size: 72px;
     font-weight: normal;
-    margin-bottom: 1.5rem;
+    margin-bottom: 24px;
 }
 
 .landing-container .about-content {
@@ -743,7 +728,7 @@ body {
 }
 
 .landing-container .about-container {
-    padding: 1.2rem;
+    padding: 19px;
 }
 
 .landing-container .about-image img {
@@ -755,7 +740,7 @@ body {
 
 .landing-container .about-text {
     font-family: var(--font-body);
-    font-size: 1rem;
+    font-size: 16px;
     line-height: 1.6;
     margin-bottom: 30px;
     color: #333;
@@ -764,7 +749,7 @@ body {
 .landing-container .btn-about {
     font-family: var(--font-body);
     display: inline-block;
-    padding: 0.4rem 1.2rem;
+    padding: 6px 19px;
     background-color: #9da876;
     color: #fff;
     text-decoration: none;
@@ -779,7 +764,7 @@ body {
 .landing-container .about-marquee {
     border-top: 2px solid #ccc;
     border-bottom: 2px solid #ccc;
-    padding: 1rem;
+    padding: 16px;
     color: #333;
     width: 100%;
     overflow: hidden;
@@ -789,7 +774,7 @@ body {
 
 .landing-container .about-marquee span {
     display: block;
-    font-size: 1rem;
+    font-size: 16px;
     text-transform: uppercase;
     letter-spacing: 2px;
 }
@@ -1001,7 +986,7 @@ body {
 .landing-container .marquee-track {
     display: flex;
     align-items: center;
-    gap: 1.2rem;
+    gap: 30px;
     width: max-content;
     will-change: transform;
     flex-wrap: nowrap;

@@ -1,0 +1,139 @@
+/* 
+ * Marquee Component Styles
+ * Centralized styles for animated marquee elements.
+ * 
+ * Color Schemes:
+ * - .marquee--light: Dark text/icons on light backgrounds
+ * - .marquee--dark: Light text/icons on dark backgrounds
+ */
+
+/* Base Marquee Styles */
+.marquee {
+    width: 100%;
+    padding: 12px 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.marquee .marquee-track {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    width: max-content;
+    will-change: transform;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+.marquee .marquee-text {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-family: var(--font-body);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.marquee .marquee-icon {
+    width: 19px;
+    height: 19px;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+/* Light scheme: dark text on light backgrounds */
+.marquee--light .marquee-text {
+    color: #333;
+}
+
+.marquee--light .marquee-icon path {
+    fill: #333;
+}
+
+/* Dark scheme: light text on dark backgrounds */
+.marquee--dark .marquee-text {
+    color: #f4f4f4;
+}
+
+.marquee--dark .marquee-icon path {
+    fill: #f4f4f4;
+}
+
+/* Marquee Animation */
+@keyframes marquee-scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.marquee .marquee-track {
+    animation: marquee-scroll 25s linear infinite;
+}
+
+/* Context-specific overrides for landing page integration */
+
+/* Hero Marquee - positioned at bottom, with border */
+.landing-container .hero-marquee.marquee {
+    position: absolute;
+    bottom: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Hero uses inverted colors due to gradient background */
+.landing-container .hero-marquee .marquee-text {
+    color: #fff;
+}
+
+.landing-container .hero-marquee .marquee-icon path {
+    fill: #fff;
+}
+
+/* Cases Marquee */
+.landing-container .cases-marquee.marquee {
+    border-top: 2px solid rgba(58, 58, 58, 0.5);
+    margin-top: calc(2vh + 96px);
+    padding: 10px 0;
+}
+
+.landing-container .cases-marquee .marquee-text {
+    font-size: 16px;
+}
+
+/* Methodology Marquee */
+.landing-container .methodology-marquee.marquee {
+    background-color: #1a1a1a;
+    padding: 16px;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.landing-container .methodology-marquee .marquee-text {
+    font-size: 16px;
+    letter-spacing: 2px;
+}
+
+/* About Marquee */
+.landing-container .about-marquee.marquee {
+    border-top: 2px solid #ccc;
+    border-bottom: 2px solid #ccc;
+    padding: 16px;
+}
+
+.landing-container .about-marquee .marquee-text {
+    font-size: 16px;
+    letter-spacing: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .marquee .marquee-track {
+        animation-duration: 20s;
+    }
+
+    .landing-container .hero-marquee .marquee-track {
+        animation-duration: 25s;
+    }
+}

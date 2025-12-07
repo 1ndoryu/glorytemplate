@@ -41,8 +41,8 @@ body {
 }
 
 .hero-title {
-    font-family: var(--font-heading, "Playfair Display", serif);
-    font-size: 4rem;
+    font-family: var(--font-heading, 'Playfair Display', serif);
+    font-size: 64px;
     color: #fff;
     font-style: italic;
     font-weight: 400;
@@ -52,8 +52,8 @@ body {
 }
 
 .hero-excerpt {
-    font-family: var(--font-body, "Inter", sans-serif);
-    font-size: 1.1rem;
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 18px;
     color: #fff;
     max-width: 600px;
     line-height: 1.5;
@@ -80,7 +80,7 @@ body {
 
 .content-title {
     font-family: var(--font-heading, serif);
-    font-size: 4rem;
+    font-size: 64px;
     color: #8c9669;
     /* Olive Greenish tone matching 'Caso' */
     font-style: italic;
@@ -91,7 +91,7 @@ body {
 .text-content {
     font-family: var(--font-body, sans-serif);
     color: #333;
-    font-size: 1rem;
+    font-size: 16px;
 }
 
 .text-content p {
@@ -118,7 +118,7 @@ body {
 
 .results-quote {
     font-family: var(--font-body, sans-serif);
-    font-size: 1.25rem;
+    font-size: 20px;
     color: #5d6650;
     /* Darker olive text */
     margin-bottom: 30px;
@@ -137,7 +137,7 @@ body {
     padding-left: 20px;
     margin-bottom: 12px;
     color: #444;
-    font-size: 0.95rem;
+    font-size: 15px;
 }
 
 .results-list li::before {
@@ -167,14 +167,14 @@ body {
     font-family: var(--font-heading, serif);
     font-weight: normal;
     font-style: italic;
-    font-size: 1.8rem;
+    font-size: 29px;
     color: #8c9669;
     margin-bottom: 20px;
     line-height: 1.2;
 }
 
 .cta-desc {
-    font-size: 0.9rem;
+    font-size: 14px;
     color: #555;
     margin-bottom: 20px;
     line-height: 1.6;
@@ -186,7 +186,7 @@ body {
     text-align: center;
     background-color: #8c9669;
     color: #fff;
-    padding: .4rem 1.2rem;
+    padding: 6px 19px;
     border-radius: 30px;
     text-decoration: none;
     transition: background-color 0.3s;
@@ -201,7 +201,7 @@ body {
     display: grid;
     grid-template-columns: 100px 1fr;
     gap: 15px;
-    font-size: 0.9rem;
+    font-size: 14px;
 }
 
 .info-label {
@@ -226,7 +226,7 @@ body {
     }
 
     .hero-title {
-        font-size: 2.5rem;
+        font-size: 40px;
     }
 }
 
@@ -247,7 +247,7 @@ body {
 
 .portfolio-cta-title {
     font-family: var(--font-heading, serif);
-    font-size: 3.5rem;
+    font-size: 56px;
     /* Large size as per image */
     font-weight: 400;
     font-style: italic;
@@ -258,7 +258,7 @@ body {
 
 .portfolio-cta-text {
     font-family: var(--font-body, sans-serif);
-    font-size: 1rem;
+    font-size: 16px;
     color: #444;
     margin-bottom: 30px;
     line-height: 1.6;
@@ -269,12 +269,12 @@ body {
 
 .portfolio-btn-cta {
     display: inline-block;
-    background-color: #8D926F;
+    background-color: #8d926f;
     color: #fff;
-    padding: .3rem 1.2rem;
+    padding: 5px 19px;
     border-radius: 50px;
     text-decoration: none;
-    font-size: 1rem;
+    font-size: 16px;
     transition: background-color 0.3s;
 }
 
@@ -284,6 +284,6 @@ body {
 
 @media (max-width: 768px) {
     .portfolio-cta-title {
-        font-size: 2.5rem;
+        font-size: 40px;
     }
 }

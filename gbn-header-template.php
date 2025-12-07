@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Template por defecto del Header GBN.
  * 
@@ -37,12 +38,12 @@ if (has_nav_menu($menuLocation)) {
         'depth' => 3,
         'fallback_cb' => false
     ];
-    
+
     // Usar MenuWalker si está disponible
     if (class_exists(MenuWalker::class)) {
         $walkerArgs['walker'] = new MenuWalker();
     }
-    
+
     $menuHtml = wp_nav_menu($walkerArgs);
 }
 
@@ -57,21 +58,23 @@ if (empty($menuHtml)) {
     </ul>';
 }
 ?>
-<header gloryHeader class="gbn-header siteMenuW" role="banner">
-    <div class="siteMenuContainer">
-        <div gloryLogo class="siteMenuLogo">
+<header gloryHeader class="cosmoHeader" role="banner">
+    <div class="cosmoHeaderContainer">
+        <div gloryLogo class="cosmoHeaderLogo">
             <a href="<?php echo $homeUrl; ?>" rel="home" class="gbn-logo-link">
-                <span class="gbn-logo-text"><?php echo esc_html($siteTitle); ?></span>
+                <span class="cosmoHeaderLogoText"><?php echo esc_html($siteTitle); ?></span>
             </a>
         </div>
-        <nav gloryMenu class="siteMenuNav" role="navigation" aria-label="Menú principal">
+        <nav gloryMenu class="cosmoHeaderMenu" role="navigation" aria-label="Menú principal">
             <?php echo $menuHtml; ?>
         </nav>
-        <button aria-label="Toggle menu" class="burger" type="button">
-            <span></span>
-            <span></span>
+        <button aria-label="Toggle menu" class="cosmoHeaderBurger" type="button">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
         </button>
-        <div class="background"></div>
+        <div class="cosmoHeaderBackground"></div>
     </div>
 </header>
-

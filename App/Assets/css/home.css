@@ -1,5 +1,5 @@
 .seccionComponente {
-    padding: 1rem;
+    padding: 16px;
     /* Usar inline-block para que fluya en columnas tipo masonry */
     display: inline-block;
     vertical-align: top;
@@ -9,7 +9,7 @@
     -webkit-column-break-inside: avoid;
     -moz-column-break-inside: avoid;
     /* espacio inferior entre items dentro de la columna */
-    margin-bottom: 1.5rem;
+    margin-bottom: 24px;
 }
 
 main {
@@ -22,7 +22,7 @@ div#glory-component-examples {
     /* Layout tipo Pinterest: columnas con gap y items de altura variable */
     display: block;
     column-count: 2;
-    column-gap: 1.5rem;
+    column-gap: 24px;
     max-width: 1100px;
     margin: auto;
 }
@@ -42,7 +42,7 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto)):not(:has(> .
 div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto)):not(:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto))) {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+    gap: 24px;
     column-count: initial;
 }
 
@@ -61,29 +61,29 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionCom
     width: 100%;
     max-width: none;
     background-color: var(--fondo);
-    padding: 2.5rem;
+    padding: 40px;
     border-radius: var(--radius);
     text-align: start;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 16px;
     border: var(--borde);
 }
 
 .seccionComponente h2 {
-    font-size: 1.5rem;
+    font-size: 24px;
 }
 
 .seccionComponente .gloryForm {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 16px;
 }
 
 .lista-libros-contenedor {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 2rem;
+    gap: 32px;
     width: 100%;
 }
 
@@ -113,11 +113,11 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionCom
 }
 
 .libro-info {
-    padding: 1rem;
+    padding: 16px;
 }
 
 .libro-titulo {
-    font-size: 1rem;
+    font-size: 16px;
     margin: 0;
     color: var(--text);
     white-space: nowrap;
@@ -126,7 +126,7 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionCom
 }
 
 #resultados-busqueda-ejemplo {
-    margin-top: 1.5rem;
+    margin-top: 24px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -164,56 +164,56 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionCom
 
 .resultadoInfo h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 16px;
 }
 
 .resultadoInfo p {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: 14px;
     color: var(--muted);
     text-align: left;
 }
 
 .ui-examples-grid {
     display: flex;
-    gap: 1rem;
+    gap: 16px;
     flex-wrap: wrap;
     justify-content: center;
 }
 
 .ui-example {
-    padding: 1.5rem;
+    padding: 24px;
     border-radius: 8px;
     border: var(--borde);
 }
 
 .ui-example h3 {
     margin-top: 0;
-    margin-bottom: 0.5rem;
+    margin-bottom: 8px;
 }
 
 .ui-example p {
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
+    font-size: 14px;
+    margin-bottom: 16px;
 }
 
 .ui-example button {
-    margin-right: 0.5rem;
-    margin-bottom: 0.5rem;
+    margin-right: 8px;
+    margin-bottom: 8px;
 }
 
 .pestanasWrapper {
-    margin-top: 1rem;
+    margin-top: 16px;
 }
 
 .pestanas {
     display: flex;
     border-bottom: var(--borde);
-    margin-bottom: 1rem;
+    margin-bottom: 16px;
 }
 
 .pestanas button {
-    padding: 0.5rem 1rem;
+    padding: 8px 16px;
     border: none;
     background: transparent;
     cursor: pointer;
@@ -237,5 +237,5 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionCom
 .flexUl {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 16px;
 }

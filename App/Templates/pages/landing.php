@@ -1,29 +1,37 @@
 <?php
 
+use App\Helpers\Icons;
+use App\Helpers\Marquee;
+
 function landing_render()
-{   
-    ?>
+{
+?>
     <div class="landing-container">
-        <?php 
+        <?php
         landing_hero();
+
+
         landing_services();
         landing_cases();
         landing_methodology();
         landing_about();
         landing_contact();
         landing_footer();
+
+
         ?>
     </div>
-    ?>
+
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         lucide.createIcons();
     </script>
-    <?php
+<?php
 }
 
-function landing_hero() {
-    ?>
+function landing_hero()
+{
+?>
     <section class="hero-section">
 
         <div class="hero-content">
@@ -31,41 +39,21 @@ function landing_hero() {
                 Ordenamos el universo de tus <br>
                 <span class="highlight-text">INGRESOS</span>
             </h1>
-            
+
             <a href="#" class="btn-auditoria">
-                <i data-lucide="sparkles" class="auditoria-icon"></i>
+                <?php echo Icons::get('sparkles', 'auditoria-icon'); ?>
                 Reservar auditoría
             </a>
         </div>
 
-        <div class="hero-marquee">
-            <div class="marquee-track">
-                <!-- Set 1 -->
-                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <!-- Set 2 (Duplicate for Loop) -->
-                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-                <span><i data-lucide="sparkle"></i></span>
-            </div>
-        </div>
+        <?php Marquee::echo('ORDENAMOS EL UNIVERSO DE TUS INGRESOS', 'dark', 'hero-marquee'); ?>
     </section>
-    <?php
+<?php
 }
 
-function landing_services() {
-    ?>
+function landing_services()
+{
+?>
     <section class="services-section">
         <div class="section-header">
             <h2 class="section-title">Logra el máximo <br> potencial</h2>
@@ -95,11 +83,12 @@ function landing_services() {
             </div>
         </div>
     </section>
-    <?php
+<?php
 }
 
-function landing_cases() {
-    ?>
+function landing_cases()
+{
+?>
     <section class="cases-section">
         <div class="cases-container">
             <div class="section-header">
@@ -137,7 +126,7 @@ function landing_cases() {
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Case 3 -->
                 <div class="case-card">
                     <div class="case-image" style="background-image: url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=500&q=80');"></div>
@@ -155,34 +144,14 @@ function landing_cases() {
             </div>
         </div>
 
-    <div class="cases-marquee">
-            <div class="marquee-track">
-                <!-- Set 1 -->
-                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
-                <span class="case-icon"><i data-lucide="sparkle"></i></span>
-                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
-                <span class="case-icon"><i data-lucide="sparkle"></i></span>
-                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
-                <span class="case-icon"><i data-lucide="sparkle"></i></span>
-                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
-                <span class="case-icon"><i data-lucide="sparkle"></i></span>
-                <!-- Set 2 -->
-                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
-                <span class="case-icon"><i data-lucide="sparkle"></i></span>
-                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
-                <span class="case-icon"><i data-lucide="sparkle"></i></span>
-                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
-                <span class="case-icon"><i data-lucide="sparkle"></i></span>
-                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
-                <span class="case-icon"><i data-lucide="sparkle"></i></span>
-            </div>
-        </div>
+        <?php Marquee::echo('RENTABILIDAD COMPROBADA CON DATOS REALES', 'light', 'cases-marquee'); ?>
     </section>
-    <?php
+<?php
 }
 
-function landing_methodology() {
-    ?>
+function landing_methodology()
+{
+?>
     <section class="methodology-section">
         <div class="methodology-container">
             <div class="section-header dark-header">
@@ -223,38 +192,18 @@ function landing_methodology() {
             </div>
         </div>
 
-        <div class="methodology-marquee">
-            <div class="marquee-track">
-                <!-- Set 1 -->
-                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <!-- Set 2 -->
-                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-                <span><i data-lucide="sparkle"></i></span>
-            </div>
-        </div>
+        <?php Marquee::echo('TODO GIRA A FAVOR DE TU RENTABILIDAD', 'dark', 'methodology-marquee'); ?>
     </section>
-    <?php
+<?php
 }
 
-function landing_about() {
-    ?>
+function landing_about()
+{
+?>
     <section class="about-section">
         <div class="about-container">
             <div class="about-content">
-                
+
                 <div class="about-image">
                     <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="Perfil">
                 </div>
@@ -266,34 +215,14 @@ function landing_about() {
             </div>
         </div>
 
-        <div class="about-marquee">
-            <div class="marquee-track">
-                <!-- Set 1 -->
-                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <!-- Set 2 -->
-                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-                <span><i data-lucide="sparkle"></i></span>
-                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-                <span><i data-lucide="sparkle"></i></span>
-            </div>
-        </div>
+        <?php Marquee::echo('ES EL MEJOR MOMENTO PARA DESPEGAR', 'light', 'about-marquee'); ?>
     </section>
-    <?php
+<?php
 }
 
-function landing_contact() {
-    ?>
+function landing_contact()
+{
+?>
     <section class="contact-section">
         <div class="contact-container">
             <div class="section-header">
@@ -335,7 +264,7 @@ function landing_contact() {
                     <label>Mensaje</label>
                     <textarea name="mensaje" rows="1"></textarea>
                 </div>
-                
+
                 <div class="form-footer">
                     <label class="checkbox-label">
                         <input type="checkbox" name="privacy">
@@ -346,11 +275,12 @@ function landing_contact() {
             </form>
         </div>
     </section>
-    <?php
+<?php
 }
 
-function landing_footer() {
-    ?>
+function landing_footer()
+{
+?>
     <footer class="landing-footer">
         <div class="footer-content">
             <div class="footer-brand">
@@ -363,7 +293,7 @@ function landing_footer() {
                     <li><a href="#">Contacto</a></li>
                 </ul>
             </div>
-            
+
             <div class="footer-info">
                 <div class="info-col">
                     <h4>Contacto</h4>
@@ -377,7 +307,7 @@ function landing_footer() {
                 </div>
             </div>
         </div>
-        
+
         <div class="footer-bottom">
             <p>© 2025 Cosmo All rights reserved.</p>
             <div class="social-icons">
@@ -388,5 +318,5 @@ function landing_footer() {
             </div>
         </div>
     </footer>
-    <?php
+<?php
 }

@@ -22,7 +22,7 @@
 .about-container .hero-title {
     font-family: var(--font-heading);
     font-style: italic;
-    font-size: 4rem;
+    font-size: 64px;
     color: #fff;
     margin-bottom: 0;
     font-weight: 400;
@@ -30,7 +30,7 @@
 
 .about-container .hero-subtitle-big {
     font-family: var(--font-body);
-    font-size: 3.5rem;
+    font-size: 56px;
     color: #fff;
     text-transform: uppercase;
     font-weight: 300;
@@ -40,7 +40,7 @@
 
 .about-container .hero-desc {
     color: #fff;
-    font-size: 1.2rem;
+    font-size: 19px;
     max-width: 700px;
     margin: 0 auto;
     line-height: 1.6;
@@ -55,7 +55,7 @@
 }
 
 .about-container .method-icon {
-    font-size: 3rem;
+    font-size: 48px;
     color: #9da876;
     margin-bottom: 20px;
     display: block;
@@ -63,22 +63,22 @@
 
 .about-container .section-title {
     font-family: var(--font-heading);
-    font-size: 3.5rem;
-    margin-bottom: 2rem;
+    font-size: 56px;
+    margin-bottom: 32px;
     color: #1a1a1a;
 }
 
 .about-container .section-subtitle {
-    font-size: 1.1rem;
+    font-size: 18px;
     color: #555;
     max-width: 700px;
-    margin: 0 auto 8rem;
+    margin: 0 auto 128px;
     line-height: 1.6;
 }
 
 /* --- TIME LINE GRID REFACTOR --- */
 .about-timeline {
-    padding: 8rem 0;
+    padding: 128px 0;
     position: relative;
     max-width: 1000px;
     margin: 0 auto;
@@ -106,14 +106,14 @@
     align-items: start;
     /* Align Marker with Top of Content (Subtitle) */
     position: relative;
-    margin-bottom: 3rem;
-    margin-top: 4rem;
+    margin-bottom: 48px;
+    margin-top: 64px;
     z-index: 1;
 }
 
 .method-step:last-child {
     margin-bottom: 0;
-    margin-top: 4rem;
+    margin-top: 64px;
 }
 
 .step-content {
@@ -144,7 +144,7 @@
     align-items: center;
     justify-content: center;
     font-family: var(--font-heading);
-    font-size: 2.2rem;
+    font-size: 35px;
     color: #4a5d4e;
     /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); */
     position: relative;
@@ -152,19 +152,19 @@
 }
 
 .step-marker-c {
-    top: -2.5rem;
+    top: -40px;
 }
 
 .step-marker-o {
-    top: -10rem;
+    top: -160px;
 }
 
 .step-marker-s {
-    top: -3rem;
+    top: -48px;
 }
 
 .step-marker-m {
-    top: -10rem;
+    top: -160px;
 }
 
 /* Double circle border effect */
@@ -183,7 +183,7 @@
 /* TYPOGRAPHY */
 .step-title {
     font-family: var(--font-heading) !important;
-    font-size: 4rem !important;
+    font-size: 64px !important;
     color: #8f9b6b !important;
     line-height: 1;
     position: absolute;
@@ -211,7 +211,7 @@
     color: #333;
     margin-bottom: 10px;
     display: block;
-    font-size: 0.85rem;
+    font-size: 14px;
     letter-spacing: 0.5px;
     line-height: 1.5;
     /* This line-height interacts with marker alignment */
@@ -219,7 +219,7 @@
 
 .step-desc {
     color: #666;
-    font-size: 0.9rem;
+    font-size: 14px;
     line-height: 1.5;
     max-width: 350px;
     display: inline-block;
@@ -271,14 +271,14 @@
 
 .about-container .bio-title {
     font-family: var(--font-heading);
-    font-size: 3.5rem;
+    font-size: 56px;
     color: #4a5d4e;
     margin-bottom: 30px;
     line-height: 1.1;
 }
 
 .about-container .bio-desc {
-    font-size: 1rem;
+    font-size: 16px;
     color: #444;
     line-height: 1.8;
     margin-bottom: 20px;
@@ -294,7 +294,7 @@
 
 .about-container .contact-title {
     font-family: var(--font-heading);
-    font-size: 4rem;
+    font-size: 64px;
     margin-bottom: 60px;
     color: #1a1a1a;
     font-weight: 400;
@@ -324,7 +324,7 @@
 }
 
 .about-container label {
-    font-size: 0.95rem;
+    font-size: 15px;
     color: #333;
     margin-bottom: 15px;
     font-weight: 500;
@@ -337,7 +337,7 @@
     border: none;
     border-bottom: 1px solid #999;
     padding: 10px 0;
-    font-size: 1rem;
+    font-size: 16px;
     font-family: var(--font-body);
     background: transparent;
     outline: none;
@@ -373,7 +373,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 0.95rem;
+    font-size: 15px;
     color: #444;
     cursor: pointer;
     font-weight: 400;
@@ -397,7 +397,7 @@
     padding: 12px 50px;
     border-radius: 50px;
     /* Pill shape */
-    font-size: 1rem;
+    font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
     font-family: var(--font-body);
@@ -410,19 +410,19 @@
 
 @media (max-width: 1024px) {
     .about-container .hero-title {
-        font-size: 3rem;
+        font-size: 48px;
     }
 
     .about-container .hero-subtitle-big {
-        font-size: 2.5rem;
+        font-size: 40px;
     }
 
     .about-container .section-title {
-        font-size: 3rem;
+        font-size: 48px;
     }
 
     .about-container .step-title {
-        font-size: 3rem !important;
+        font-size: 48px !important;
     }
 
     .about-container .bio-content {
@@ -434,11 +434,11 @@
     }
 
     .about-container .bio-title {
-        font-size: 3rem;
+        font-size: 48px;
     }
 
     .about-container .contact-title {
-        font-size: 3.5rem;
+        font-size: 56px;
     }
 }
 
@@ -459,7 +459,7 @@
         align-items: start;
         text-align: left;
         gap: 0;
-        margin-top: 3rem;
+        margin-top: 48px;
     }
     .step-content,
     .method-step:nth-child(even) .step-content {
@@ -470,14 +470,13 @@
         margin: 0;
     }
 
-
     .step-marker {
         grid-column: 1;
         margin: 0 auto;
         order: 1;
         width: 60px;
         height: 60px;
-        font-size: 1.8rem;
+        font-size: 29px;
     }
 
     .step-marker::after {
@@ -499,7 +498,7 @@
     .method-step:nth-child(even) .step-title {
         position: static;
         margin-bottom: 5px !important;
-        font-size: 2.2rem !important;
+        font-size: 35px !important;
         text-align: left;
     }
 
@@ -541,6 +540,6 @@
     }
 
     .about-container .contact-title {
-        font-size: 2.5rem;
+        font-size: 40px;
     }
 }
