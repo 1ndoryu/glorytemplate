@@ -28,15 +28,15 @@ function landing_render()
 function landing_hero()
 {
 ?>
-    <section class="hero-section">
+    <section divGlory class="hero-section">
 
-        <div class="hero-content">
-            <h1 class="hero-title">
+        <div gloryDivSecundario class="hero-content">
+            <h1 gloryTexto class="hero-title">
                 Ordenamos el universo de tus <br>
                 <span class="highlight-text">INGRESOS</span>
             </h1>
 
-            <a href="#" class="btn-auditoria">
+            <a gloryButton href="#" class="btn-auditoria">
                 <?php echo Icons::get('sparkles', 'auditoria-icon'); ?>
                 Reservar auditoría
             </a>
@@ -50,33 +50,25 @@ function landing_hero()
 function landing_services()
 {
 ?>
-    <section class="services-section">
-        <div class="section-header">
-            <h2 class="section-title">Logra el máximo <br> potencial</h2>
-            <p class="section-subtitle">En Cosmo Revenue diseñamos estrategias integrales para potenciar la rentabilidad de tu alojamiento.</p>
+    <section divGlory class="services-section">
+        <div gloryDivSecundario class="section-header">
+            <h2 gloryTexto class="section-title">Logra el máximo <br> potencial</h2>
+            <p gloryTexto class="section-subtitle">En Cosmo Revenue diseñamos estrategias integrales para potenciar la rentabilidad de tu alojamiento.</p>
         </div>
 
-        <div class="cards-grid">
-            <div class="service-card card-dark">
-                <div class="card-content">
-                    <h3>Marketing y <br> estrategia</h3>
+        <div gloryPostRender opciones="postType: 'casos', postsPerPage: 3, categoryFilter: false" class="cases-grid">
+            <article gloryPostItem class="case-card">
+                <div class="case-meta">
+                    <h3 gloryPostField="meta:caso_tipo"></h3>
+                    <span gloryPostField="meta:caso_ubicacion"></span>
                 </div>
-                <div class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=500&q=80');"></div>
-            </div>
-
-            <div class="service-card card-light">
-                <div class="card-content">
-                    <h3>Revenue <br> Management</h3>
+                <div gloryPostField="featuredImage" opciones="asBackground: true" class="case-image">
+                    <div class="case-stat">
+                        <h4 gloryPostField="meta:caso_valor"></h4>
+                        <p gloryPostField="meta:caso_descripcion"></p>
+                    </div>
                 </div>
-                <div class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=500&q=80');"></div>
-            </div>
-
-            <div class="service-card card-dark">
-                <div class="card-content">
-                    <h3>Consultoría & <br> Mapeos</h3>
-                </div>
-                <div class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=500&q=80');"></div>
-            </div>
+            </article>
         </div>
     </section>
 <?php
@@ -92,52 +84,6 @@ function landing_cases()
                 <p class="section-subtitle">Descubre el impacto real de nuestras estrategias y cómo transformamos la rentabilidad de hoteles como el tuyo.</p>
             </div>
 
-            <div class="cases-grid">
-                <!-- Case 1 -->
-                <div class="case-card">
-                    <div class="case-image" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=500&q=80');"></div>
-                    <div class="case-info">
-                        <div class="case-meta">
-                            <span>Villa de Lujo</span>
-                            <span>Costa Valenciana</span>
-                        </div>
-                        <div class="case-stat">
-                            <h4>250.000 €</h4>
-                            <p>RENTABILIDAD NETA (1ER AÑO)</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Case 2 -->
-                <div class="case-card">
-                    <div class="case-image" style="background-image: url('https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=500&q=80');"></div>
-                    <div class="case-info">
-                        <div class="case-meta">
-                            <span>Hotel Vacacional</span>
-                            <span>Costa Blanca</span>
-                        </div>
-                        <div class="case-stat">
-                            <h4>+5% (70% ventas directas)</h4>
-                            <p>INGRESOS ANUALES</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Case 3 -->
-                <div class="case-card">
-                    <div class="case-image" style="background-image: url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=500&q=80');"></div>
-                    <div class="case-info">
-                        <div class="case-meta">
-                            <span>Hotel Boutique Urbano</span>
-                            <span>Post-reforma</span>
-                        </div>
-                        <div class="case-stat">
-                            <h4>+15% ADR</h4>
-                            <p>VS LA COMPETENCIA</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <?php Marquee::echo('RENTABILIDAD COMPROBADA CON DATOS REALES', 'light', 'cases-marquee'); ?>

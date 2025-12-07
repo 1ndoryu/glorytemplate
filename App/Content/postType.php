@@ -51,3 +51,16 @@ PostTypeManager::define(
     'Services',
     'Services'
 );
+
+//Casos
+PostTypeManager::define(
+    'casos',
+    [
+        'public' => true,
+        'has_archive' => true,
+        'supports' => ['title', 'editor', 'thumbnail', 'excerpt'],
+        'menu_icon' => 'dashicons-building',
+    ],
+    'Casos',
+    'Casos'
+);

@@ -148,7 +148,6 @@ body {
     font-weight: normal;
     font-family: var(--font-body);
     text-transform: uppercase;
-    letter-spacing: 2px;
 }
 
 .landing-container .btn-auditoria {
@@ -161,11 +160,9 @@ body {
     color: #ffffff;
     text-decoration: none;
     font-size: 16px;
-    transition: all 0.3s 
-ease;
+    transition: all 0.3s ease;
     backdrop-filter: blur(5px);
     position: relative;
-
 }
 
 .landing-container .auditoria-icon {
@@ -183,7 +180,6 @@ ease;
     height: 19px;
     vertical-align: middle;
 }
-
 
 /* Marquee Landing */
 .landing-container .hero-marquee {
@@ -233,7 +229,8 @@ ease;
 }
 
 .landing-container .cases-container {
-    padding: 0 19px;
+    padding: 0 20px;
+    width: 100%;
 }
 
 /* Títulos específicos de Landing (más grandes) */
@@ -246,121 +243,10 @@ ease;
 }
 
 .landing-container .section-subtitle {
-    font-size: 19px !important;
-    margin-bottom: 96px;
-}
-
-/* Cards Grid Landing */
-.landing-container .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 64px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-@media screen and (max-width: 768px) {
-    .landing-container .cards-grid {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-}
-
-.landing-container .service-card {
-    position: relative;
-    height: 400px;
-    width: 280px;
-    border-radius: 20px;
-    overflow: hidden;
-    display: flex;
-    align-items: flex-end;
-    padding: 30px;
-    text-align: left;
-    transition: transform 0.3s ease;
-    cursor: pointer;
-}
-
-.landing-container .service-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.9) 100%);
-    z-index: 1;
-    pointer-events: none;
-}
-
-.landing-container .service-card:hover {
-    transform: translateY(0px);
-}
-
-@media (min-width: 1024px) {
-    .landing-container .cards-grid {
-        align-items: center;
-        padding: 40px 0;
-    }
-
-    /* Tarjeta Izquierda */
-    .landing-container .service-card:nth-child(1) {
-        transform: rotate(-12deg) translateY(100px);
-    }
-
-    .landing-container .service-card:nth-child(1):hover {
-        transform: translateY(95px) rotate(-12deg) scale(1.1);
-    }
-
-    /* Tarjeta Central */
-    .landing-container .service-card:nth-child(2) {
-        transform: translateY(0px) scale(1.1);
-        z-index: 2;
-        /* box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); */
-    }
-
-    .landing-container .service-card:nth-child(2):hover {
-        transform: translateY(-10px) scale(1.1);
-    }
-
-    /* Tarjeta Derecha */
-    .landing-container .service-card:nth-child(3) {
-        transform: rotate(12deg) translateY(100px);
-    }
-
-    .landing-container .service-card:nth-child(3):hover {
-        transform: rotate(12deg) translateY(95px) scale(1.1);
-    }
-}
-
-.landing-container .service-card .card-bg-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    z-index: 1;
-    transition: transform 0.5s ease;
-}
-
-.landing-container .service-card:hover .card-bg-image {
-    transform: scale(1.05);
-}
-
-.landing-container .service-card .card-content {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-}
-
-.landing-container .service-card h3 {
-    font-family: var(--font-heading);
-    font-weight: normal;
-    font-size: 29px;
-    margin: 0;
-    color: #fff;
-    text-align: center;
-    /* text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); */
+    font-size: 14px;
+    margin: auto;
+    margin-bottom: 20px;
+    max-width: 530px;
 }
 
 /* Cases Landing */
@@ -380,10 +266,12 @@ ease;
     box-shadow: none;
     text-align: left;
     margin-top: 30px;
-    /* Space for top meta */
+    max-width: 300px;
+    max-height: 450px;
 }
 
 .landing-container .case-image {
+    position: relative;
     height: 550px;
     background-size: cover;
     background-position: center;
@@ -991,12 +879,11 @@ ease;
     will-change: transform;
     flex-wrap: nowrap;
     white-space: nowrap;
-    /* Asegura que no haya wrap */
+    animation: marquee-loop 40s linear infinite;
 }
 
 .landing-container .marquee-track span {
     white-space: nowrap;
-    /* Refuerzo individual */
 }
 
 @keyframes marquee-loop {
@@ -1009,13 +896,10 @@ ease;
     }
 }
 
-@media (max-width: 1024px) {
-    .landing-container .marquee-track {
-        animation: marquee-loop 20s linear infinite;
-    }
-
-    /* Adjust speed for specific marquees if needed */
-    .landing-container .hero-marquee .marquee-track {
-        animation-duration: 25s;
-    }
+section.services-section,
+section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-content: center;
 }

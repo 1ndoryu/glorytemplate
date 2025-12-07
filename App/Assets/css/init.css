@@ -82,6 +82,10 @@
     font-size: 14px;
 }
 
+a {
+    font-family: var(--font-body);
+}
+
 :where(
 
     /* Modo oscuro */

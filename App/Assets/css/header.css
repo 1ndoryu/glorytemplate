@@ -20,7 +20,7 @@ var BREAKPOINTS = {
     flex-direction: row;
     background: transparent;
     box-shadow: unset;
-    padding: 20px 30px;
+    padding: 15px 30px;
     color: var(--color-blanco);
     transition: background 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
     z-index: 100;
@@ -35,7 +35,7 @@ var BREAKPOINTS = {
 
 .cosmoHeader a {
     color: #ffffff;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .cosmoHeaderBurger {

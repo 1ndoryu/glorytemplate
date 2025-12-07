@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Template Name: Glory Central Template
  *
@@ -27,10 +28,10 @@ if ($modo === 'editor') {
     // Llama a la función específica de la página (ej: home(), contacto(), etc.)
     $pageSettings = get_post_meta($postId, 'gbn_page_settings', true);
     $pageSettings = is_array($pageSettings) ? $pageSettings : [];
-    
+
     $rootClass = 'gbnPage-' . $postId;
     $rootStyle = '';
-    
+
     // Default padding 20px if not set
     if (empty($pageSettings['padding'])) {
     } else {
@@ -41,13 +42,27 @@ if ($modo === 'editor') {
             $rootStyle .= 'padding: ' . intval($pageSettings['padding']) . 'px;';
         }
     }
-    
+
     if (!empty($pageSettings['background'])) {
         $rootStyle .= 'background-color: ' . esc_attr($pageSettings['background']) . ';';
     }
 
     echo '<div data-gbn-root class="' . esc_attr($rootClass) . '" style="' . esc_attr($rootStyle) . '">';
+
+    // Capturar output de la funcion para procesar componentes dinamicos (PostRender)
+    ob_start();
     call_user_func($funcionRenderizar);
+    $html = ob_get_clean();
+
+    // Procesar PostRender para usuarios del frontend
+    // En modo editor, isEditorMode() retorna true y devuelve HTML sin procesar (JS maneja preview)
+    // En frontend (usuarios deslogueados), se procesan los componentes server-side
+    if (class_exists(\Glory\Gbn\Components\PostRender\PostRenderProcessor::class)) {
+        echo \Glory\Gbn\Components\PostRender\PostRenderProcessor::processContent($html);
+    } else {
+        echo $html;
+    }
+
     echo '</div>';
 } else {
     // Contenido de respaldo si algo falla
