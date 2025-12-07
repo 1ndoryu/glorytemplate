@@ -2,10 +2,11 @@
 
 use Glory\Components\ContentRender;
 
-function casos_render() {
-    ?>
+function casos_render()
+{
+?>
     <div class="casos-container">
-        <?php 
+        <?php
         casos_hero();
         casos_grid();
         casos_quote();
@@ -17,39 +18,41 @@ function casos_render() {
     <script>
         lucide.createIcons();
     </script>
-    <?php
+<?php
 }
 
-function casos_hero() {
-    ?>
-    <section class="casos-hero">
-        <div class="hero-content">
-            <h1 class="hero-title">
+function casos_hero()
+{
+?>
+    <section gloryDiv class="casos-hero">
+        <div gloryDivSecundario class="hero-content">
+            <h1 gloryTexto class="hero-title">
                 <span class="script-text">
                     Casos
                     <span class="script-icon"><i data-lucide="sparkles"></i></span>
                 </span>
-                DE ÉXITO
+                DE EXITO
             </h1>
-            <p class="hero-subtitle">Descubre algunos ejemplos reales del impacto de nuestras estrategias de Revenue Management en diferentes tipologías de hoteles.</p>
+            <p gloryTexto class="hero-subtitle">Descubre algunos ejemplos reales del impacto de nuestras estrategias de Revenue Management en diferentes tipologias de hoteles.</p>
         </div>
     </section>
-    <?php
+<?php
 }
 
-function template_caso_item($post, $itemClass) {
+function template_caso_item($post, $itemClass)
+{
     if (!$post instanceof \WP_Post) return;
 
-    $location = get_post_meta($post->ID, 'location', true); 
+    $location = get_post_meta($post->ID, 'location', true);
     $image_url = get_the_post_thumbnail_url($post->ID, 'large');
-    
+
     if (!$image_url) {
-         $image_url = 'https://via.placeholder.com/800x600?text=' . urlencode(get_the_title($post));
+        $image_url = 'https://via.placeholder.com/800x600?text=' . urlencode(get_the_title($post));
     }
-    ?>
+?>
     <div class="<?php echo esc_attr($itemClass); ?> caso-minimal-card">
         <a href="<?php echo esc_url(get_permalink($post)); ?>" class="caso-card-link" style="text-decoration:none; color:inherit; display:block;">
-            
+
             <div class="caso-minimal-header">
                 <h3 class="caso-minimal-title"><?php echo esc_html(get_the_title($post)); ?></h3>
                 <?php if ($location) : ?>
@@ -63,12 +66,13 @@ function template_caso_item($post, $itemClass) {
 
         </a>
     </div>
-    <?php
+<?php
 }
 
-function casos_grid() {
-    ?>
-    <section class="casos-section">
+function casos_grid()
+{
+?>
+    <section gloryDiv class="casos-section">
         <?php
         ContentRender::print('portfolio', [
             'publicacionesPorPagina' => -1,
@@ -84,33 +88,35 @@ function casos_grid() {
             'gap'                 => '40px',
             'claseItem'           => 'caso-card',
             'plantillaCallback'      => 'template_caso_item',
-            'forzarSinCache'      => true, 
+            'forzarSinCache'      => true,
         ]);
         ?>
     </section>
-    <?php
+<?php
 }
 
-function casos_quote() {
-    ?>
-    <section class="quote-section">
-        <div class="quote-content">
+function casos_quote()
+{
+?>
+    <section gloryDiv class="quote-section">
+        <div gloryDivSecundario class="quote-content">
             <span class="quote-icon"><i data-lucide="bar-chart-3"></i></span>
-            <p class="quote-text">"Estos ejemplos reflejan cómo una gestión estratégica de precios, distribución y posicionamiento puede transformar los resultados de cualquier hotel."</p>
-            <p class="quote-author">Adaptándonos siempre a su mercado y objetivos específicos.</p>
+            <p gloryTexto class="quote-text">"Estos ejemplos reflejan como una gestion estrategica de precios, distribucion y posicionamiento puede transformar los resultados de cualquier hotel."</p>
+            <p gloryTexto class="quote-author">Adaptandonos siempre a su mercado y objetivos especificos.</p>
         </div>
     </section>
-    <?php
+<?php
 }
 
-function casos_cta() {
-    ?>
-    <section class="casos-cta">
-        <h2 class="cta-title">¿Listo para escribir tu caso de éxito?</h2>
-        <p class="cta-text">Analicemos el potencial oculto de tu alojamiento. Empieza con una auditoría o una consulta estratégica hoy mismo.</p>
-        <a href="#" class="btn-cta">Contactar</a>
+function casos_cta()
+{
+?>
+    <section gloryDiv class="casos-cta">
+        <h2 gloryTexto class="cta-title">Listo para escribir tu caso de exito?</h2>
+        <p gloryTexto class="cta-text">Analicemos el potencial oculto de tu alojamiento. Empieza con una auditoria o una consulta estrategica hoy mismo.</p>
+        <a gloryButton href="#" class="btn-cta">Contactar</a>
     </section>
-    <?php
+<?php
 }
 
 ?>

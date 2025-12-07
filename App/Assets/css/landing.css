@@ -772,6 +772,11 @@ body {
 .landing-container .about-content {
     max-width: 750px;
     margin: 0 auto 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
 }
 
 .landing-container .about-container {
@@ -897,17 +902,19 @@ body {
 .landing-footer {
     padding: 60px 40px 20px;
     border-top: 1px solid #eee;
+    width: 100%;
 }
 
 .landing-footer .footer-content {
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 40px;
     margin-bottom: 60px;
     max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
+    flex-direction: row;
 }
 
 .landing-footer .footer-brand .logo {

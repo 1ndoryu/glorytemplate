@@ -1,2 +1,3 @@
 1. Las opciones de Dimensiones en los botones no tiene sentido que esten alli.
 2. Esto no es bug pero es una idea que se me ocurrio, que en gbn en el constructor, los componentes al dar click derecho muestran su nombre de componente pero, se puede mejorar haciendo algo como gloryDiv="Seccion del hero" y nombre sera ese, claro, gloryDiv sin nombre seguira siendo igual, es para facilitar la edicción al usuario final
+3. Los divs secundarios no tienen opción para cambiar el fondo (imagen)

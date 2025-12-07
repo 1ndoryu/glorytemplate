@@ -9,16 +9,11 @@ function landing_render()
     <div class="landing-container">
         <?php
         landing_hero();
-
-
         landing_services();
         landing_cases();
         landing_methodology();
         landing_about();
         landing_contact();
-        landing_footer();
-
-
         ?>
     </div>
 
@@ -50,32 +45,33 @@ function landing_hero()
 function landing_services()
 {
 ?>
-    <section divGlory class="services-section">
+    <section gloryDiv class="services-section">
         <div gloryDivSecundario class="section-header">
             <h2 gloryTexto class="section-title">Logra el máximo <br> potencial</h2>
             <p gloryTexto class="section-subtitle">En Cosmo Revenue diseñamos estrategias integrales para potenciar la rentabilidad de tu alojamiento.</p>
         </div>
 
         <div gloryDivSecundario class="cards-grid">
-            <div gloryDivSecundario class="service-card card-dark">
+
+            <div gloryTarjeta class="service-card card-dark">
                 <div gloryTexto class="card-content">
                     <h3>Marketing y <br> estrategia</h3>
                 </div>
-                <div gloryDivSecundario class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=500&q=80');"></div>
+                <div class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=500&q=80');"></div>
             </div>
 
-            <div gloryDivSecundario class="service-card card-light">
+            <div gloryTarjeta class="service-card card-light">
                 <div gloryTexto class="card-content">
                     <h3>Revenue <br> Management</h3>
                 </div>
-                <div gloryDivSecundario class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=500&q=80');"></div>
+                <div class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=500&q=80');"></div>
             </div>
 
-            <div gloryDivSecundario class="service-card card-dark">
+            <div gloryTarjeta class="service-card card-dark">
                 <div gloryTexto class="card-content">
                     <h3>Consultoría & <br> Mapeos</h3>
                 </div>
-                <div gloryDivSecundario class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=500&q=80');"></div>
+                <div class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=500&q=80');"></div>
             </div>
         </div>
 
@@ -233,18 +229,18 @@ function landing_methodology()
 function landing_about()
 {
 ?>
-    <section class="about-section">
-        <div class="about-container">
-            <div class="about-content">
+    <section gloryDiv class="about-section">
+        <div gloryDivSecundario class="about-container">
+            <div gloryDivSecundario class="about-content">
 
-                <div class="about-image">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="Perfil">
+                <div gloryDivSecundario class="about-image">
+                    <img gloryImagen src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="Perfil">
                 </div>
-                <h2 class="section-title">Sobre mi</h2>
-                <p class="about-text">
+                <h2 gloryTexto class="section-title">Sobre mi</h2>
+                <p gloryTexto class="about-text">
                     Cosmo Revenue es una consultoría boutique de revenue y RevOps para hotelería, liderada por una profesional joven, independiente y cercana. Mi propósito es que los hoteles tomen decisiones de ingresos con claridad y confianza.
                 </p>
-                <a href="#" class="btn-about">Leer más</a>
+                <a gloryButton href="#" class="btn-about">Leer más</a>
             </div>
         </div>
 
@@ -256,100 +252,57 @@ function landing_about()
 function landing_contact()
 {
 ?>
-    <section class="contact-section">
-        <div class="contact-container">
-            <div class="section-header">
-                <h2 class="section-title">Contacto</h2>
+    <section gloryDiv class="contact-section">
+        <div gloryDivSecundario class="contact-container">
+            <div gloryDivSecundario class="section-header">
+                <h2 gloryTexto class="section-title">Contacto</h2>
             </div>
 
-            <form class="contact-form">
-                <div class="form-row">
-                    <div class="form-group">
+            <form gloryForm opciones="formId: 'contacto', ajaxSubmit: true, honeypot: true" class="contact-form">
+                <div gloryDivSecundario class="form-row">
+                    <div gloryInput opciones="name: 'nombre', label: 'Nombre', type: 'text', required: true" class="form-group">
                         <label>Nombre</label>
                         <input type="text" name="nombre">
                     </div>
-                    <div class="form-group">
+                    <div gloryInput opciones="name: 'email', label: 'Email', type: 'email', required: true" class="form-group">
                         <label>Email</label>
                         <input type="email" name="email">
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
+                <div gloryDivSecundario class="form-row">
+                    <div gloryInput opciones="name: 'telefono', label: 'Teléfono', type: 'tel'" class="form-group">
                         <label>Teléfono</label>
                         <input type="tel" name="telefono">
                     </div>
-                    <div class="form-group">
+                    <div gloryInput opciones="name: 'alojamiento', label: 'Alojamiento', type: 'text'" class="form-group">
                         <label>Alojamiento</label>
                         <input type="text" name="alojamiento">
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
+                <div gloryDivSecundario class="form-row">
+                    <div gloryInput opciones="name: 'habitaciones', label: 'Nº habitaciones', type: 'text'" class="form-group">
                         <label>Nº habitaciones</label>
                         <input type="text" name="habitaciones">
                     </div>
-                    <div class="form-group">
+                    <div gloryInput opciones="name: 'pms', label: 'PMS/Channel', type: 'text'" class="form-group">
                         <label>PMS/Channel</label>
                         <input type="text" name="pms">
                     </div>
                 </div>
-                <div class="form-group full-width">
+                <div gloryTextarea opciones="name: 'mensaje', label: 'Mensaje', rows: 4" class="form-group full-width">
                     <label>Mensaje</label>
                     <textarea name="mensaje" rows="1"></textarea>
                 </div>
 
-                <div class="form-footer">
+                <div gloryDivSecundario class="form-footer">
                     <label class="checkbox-label">
-                        <input type="checkbox" name="privacy">
+                        <input type="checkbox" name="privacy" required>
                         He leído y acepto la Política de Privacidad.
                     </label>
-                    <button type="submit" class="btn-submit">Enviar</button>
+                    <button glorySubmit opciones="texto: 'Enviar', loadingText: 'Enviando...'" type="submit" class="btn-submit">Enviar</button>
                 </div>
             </form>
         </div>
     </section>
-<?php
-}
-
-function landing_footer()
-{
-?>
-    <footer class="landing-footer">
-        <div class="footer-content">
-            <div class="footer-brand">
-                <div class="logo">COSMO REVENUE</div>
-                <ul class="footer-nav">
-                    <li><a href="#">Inicio</a></li>
-                    <li><a href="#">Servicios</a></li>
-                    <li><a href="#">Nosotros</a></li>
-                    <li><a href="#">Casos</a></li>
-                    <li><a href="#">Contacto</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-info">
-                <div class="info-col">
-                    <h4>Contacto</h4>
-                    <p>hello@test.com</p>
-                    <p>+20 00 000 00</p>
-                </div>
-                <div class="info-col">
-                    <h4>Contacto</h4>
-                    <p>Lunes a Domingo</p>
-                    <p>08:00 AM - 10:00 PM</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer-bottom">
-            <p>© 2025 Cosmo All rights reserved.</p>
-            <div class="social-icons">
-                <a href="#"><i data-lucide="x"></i></a>
-                <a href="#"><i data-lucide="facebook"></i></a>
-                <a href="#"><i data-lucide="instagram"></i></a>
-                <a href="#"><i data-lucide="linkedin"></i></a>
-            </div>
-        </div>
-    </footer>
 <?php
 }

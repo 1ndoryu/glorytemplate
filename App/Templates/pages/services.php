@@ -2,9 +2,9 @@
 
 function services_render()
 {
-    ?>
+?>
     <div class="services-container">
-        <?php 
+        <?php
         services_hero();
         services_marketing();
         services_consulting();
@@ -15,29 +15,31 @@ function services_render()
     <script>
         lucide.createIcons();
     </script>
-    <?php
+<?php
 }
 
-function services_hero() {
-    ?>
-    <section class="services-hero">
-        <div class="hero-content">
-            <h1 class="hero-title">
+function services_hero()
+{
+?>
+    <section gloryDiv class="services-hero">
+        <div gloryDivSecundario class="hero-content">
+            <h1 gloryTexto class="hero-title">
                 <span class="script-text">
                     Nuestros
                     <span class="script-icon"><i data-lucide="sparkles"></i></span>
                 </span>
                 SERVICIOS
             </h1>
-            <p class="hero-subtitle">Combinamos Revenue, Marketing y Consultoría para impulsar tus ingresos. Soluciones flexibles que crecen al ritmo de tu negocio.</p>
+            <p gloryTexto class="hero-subtitle">Combinamos Revenue, Marketing y Consultoria para impulsar tus ingresos. Soluciones flexibles que crecen al ritmo de tu negocio.</p>
         </div>
     </section>
-    <?php
+<?php
 }
 
-function services_marketing() {
-    ?>
-    <section class="marketing-section">
+function services_marketing()
+{
+?>
+    <section gloryDiv class="marketing-section">
         <div class="section-tag">
             <i data-lucide="sparkles">
             </i>
@@ -46,8 +48,8 @@ function services_marketing() {
             </p>
         </div>
 
-        <h2 class="section-title">Marketing y estrategia</h2>
-        <p class="section-subtitle">Impulsa tu visibilidad y venta directa. Desde el lanzamiento hasta la consolidación de tu posicionamiento digital.</p>
+        <h2 gloryTexto class="section-title">Marketing y estrategia</h2>
+        <p gloryTexto class="section-subtitle">Impulsa tu visibilidad y venta directa. Desde el lanzamiento hasta la consolidacion de tu posicionamiento digital.</p>
 
         <div class="marketing-grid">
             <?php
@@ -83,17 +85,19 @@ function services_marketing() {
             ?>
         </div>
     </section>
-    <?php
+<?php
 }
 
-function render_marketing_card($icon, $title, $subtitle, $desc, $features, $cta, $dir = 'normal') {
-    ?>
-    <div class="<?php if ($dir == 'normal') echo 'marketing-card'; else echo 'marketing-card-' . $dir; ?>">
+function render_marketing_card($icon, $title, $subtitle, $desc, $features, $cta, $dir = 'normal')
+{
+?>
+    <div class="<?php if ($dir == 'normal') echo 'marketing-card';
+                else echo 'marketing-card-' . $dir; ?>">
         <div class="card-header">
             <div class="card-icon-wrapper">
                 <?php echo $icon; ?>
             </div>
-            
+
             <h3><?php echo $title; ?></h3>
             <span class="card-subtitle"><?php echo $subtitle; ?></span>
         </div>
@@ -105,8 +109,8 @@ function render_marketing_card($icon, $title, $subtitle, $desc, $features, $cta,
                     <li>
                         <span class="feature-check">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="12" r="11" stroke="#8c8c8c" stroke-width="1"/>
-                                <path d="M8 12L11 15L16 9" stroke="#8c8c8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="11" stroke="#8c8c8c" stroke-width="1" />
+                                <path d="M8 12L11 15L16 9" stroke="#8c8c8c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
                         </span>
                         <span class="feature-text"><?php echo $feature; ?></span>
@@ -114,39 +118,41 @@ function render_marketing_card($icon, $title, $subtitle, $desc, $features, $cta,
                 <?php endforeach; ?>
             </ul>
         </div>
-        
+
         <div class="card-footer">
             <a href="#" class="btn-card"><?php echo $cta; ?></a>
         </div>
     </div>
-    <?php
+<?php
 }
 
-function services_consulting() {
-    ?>
-    <section class="consulting-section">
-        <div class="consulting-content">
-            <div class="consulting-left">
-                <div class="section-tag"><i data-lucide="sparkles"></i> Auditoría y Tecnología</div>
-                <h2 class="section-title">Consultoría & Mapeo</h2>
-                <p class="section-text">
-                    Antes de correr, ordenamos el camino. Un servicio esencial para alojamientos que buscan diagnóstico, limpieza de datos y una hoja de ruta clara antes de la temporada.
+function services_consulting()
+{
+?>
+    <section gloryDiv class="consulting-section">
+        <div gloryDivSecundario class="consulting-content">
+            <div gloryDivSecundario class="consulting-left">
+                <div class="section-tag"><i data-lucide="sparkles"></i> Auditoria y Tecnologia</div>
+                <h2 gloryTexto class="section-title">Consultoria & Mapeo</h2>
+                <p gloryTexto class="section-text">
+                    Antes de correr, ordenamos el camino. Un servicio esencial para alojamientos que buscan diagnostico, limpieza de datos y una hoja de ruta clara antes de la temporada.
                 </p>
-                <p class="section-text">
-                    Auditamos y conectamos tu ecosistema tecnológico (PMS, Channel Manager, OTAs) para asegurar que la distribución funcione sin fisuras.
+                <p gloryTexto class="section-text">
+                    Auditamos y conectamos tu ecosistema tecnologico (PMS, Channel Manager, OTAs) para asegurar que la distribucion funcione sin fisuras.
                 </p>
             </div>
-            
-            <div class="consulting-right">
+
+            <div gloryDivSecundario class="consulting-right">
                 <?php render_orbit_card(); ?>
             </div>
         </div>
     </section>
-    <?php
+<?php
 }
 
-function render_orbit_card() {
-    ?>
+function render_orbit_card()
+{
+?>
     <div class="orbit-card">
         <div class="orbit-header">
             <span class="rocket-icon-conl">
@@ -156,7 +162,7 @@ function render_orbit_card() {
         </div>
         <p class="orbit-desc">Empieza con claridad</p>
         <p class="orbit-subdesc">Auditoría inicial y puesta a punto. Ideal para diagnóstico y hoja de ruta antes de temporada.</p>
-        
+
         <div class="orbit-features">
             <ul class="orbit-features-list">
                 <li><i data-lucide="check-circle-2"></i> Consultoría estratégica</li>
@@ -169,19 +175,20 @@ function render_orbit_card() {
                 <li><i data-lucide="check-circle-2"></i> Calendario demanda</li>
             </ul>
         </div>
-        
+
         <a href="#" class="btn-orbit">Solicitar diagnóstico +</a>
     </div>
-    <?php
+<?php
 }
 
-function services_revenue() {
-    ?>
-    <section class="revenue-section">
-        <div class="section-tag"><i data-lucide="sparkles"></i> Gestión Mensual Recurrente</div>
-        <h2 class="section-title">Revenue Management</h2>
-        <p class="section-subtitle">Programas adaptados a la madurez de tu alojamiento. Desde auditoría técnica hasta gestión 360°.</p>
-        
+function services_revenue()
+{
+?>
+    <section gloryDiv class="revenue-section">
+        <div class="section-tag"><i data-lucide="sparkles"></i> Gestion Mensual Recurrente</div>
+        <h2 gloryTexto class="section-title">Revenue Management</h2>
+        <p gloryTexto class="section-subtitle">Programas adaptados a la madurez de tu alojamiento. Desde auditoria tecnica hasta gestion 360.</p>
+
         <div class="services-revenue">
             <div class="services-revenue-grid">
                 <?php render_marketing_card(
@@ -193,28 +200,28 @@ function services_revenue() {
                     'Consultar propuestas <i data-lucide="arrow-right"></i>',
                     'left'
                 ); ?>
-            <?php render_marketing_card(
-                '<i data-lucide="zap"></i>',
-                'Universe',
-                'Departamento 360°',
-                'Partner completo anual. Para grupos o alojamientos que buscan excelencia total.',
-                ['Todo lo de GALAXY+', 'Estrategia de fidelización', 'Mapeos ilimitados', 'Formación de equipo'],
-                'Reunión estratégica <i data-lucide="arrow-right"></i>',
-                'right-bottom'
-            ); ?>
+                <?php render_marketing_card(
+                    '<i data-lucide="zap"></i>',
+                    'Universe',
+                    'Departamento 360°',
+                    'Partner completo anual. Para grupos o alojamientos que buscan excelencia total.',
+                    ['Todo lo de GALAXY+', 'Estrategia de fidelización', 'Mapeos ilimitados', 'Formación de equipo'],
+                    'Reunión estratégica <i data-lucide="arrow-right"></i>',
+                    'right-bottom'
+                ); ?>
             </div>
         </div>
 
-        <div class="services-revenue-bottom">
-            <div class="services-revenue-bottom-content">
-                <h2 class="section-title-italic">¿Dudas sobre qué plan elegir?</h2>
-                
-                <p class="revenue-bottom-text">Hablemos. Analizaremos tu situación y te recomendamos la órbita adecuada para tu despegue.</p>
-                <a class="btn-submit-revenue" href="#">Contactar</a>
+        <div gloryDivSecundario class="services-revenue-bottom">
+            <div gloryDivSecundario class="services-revenue-bottom-content">
+                <h2 gloryTexto class="section-title-italic">Dudas sobre que plan elegir?</h2>
+
+                <p gloryTexto class="revenue-bottom-text">Hablemos. Analizaremos tu situacion y te recomendamos la orbita adecuada para tu despegue.</p>
+                <a gloryButton class="btn-submit-revenue" href="#">Contactar</a>
             </div>
         </div>
 
     </section>
-    <?php
+<?php
 }
 ?>
