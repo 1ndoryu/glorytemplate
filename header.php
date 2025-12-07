@@ -27,7 +27,7 @@ $usuarioId = get_current_user_id();
                 }, {
                     passive: true
                 });
-                
+
                 // Burger menu toggle para header GBN
                 const burger = header.querySelector('.burger');
                 if (burger) {
@@ -35,7 +35,7 @@ $usuarioId = get_current_user_id();
                         header.classList.toggle('open');
                         document.body.classList.toggle('menu-open');
                     });
-                    
+
                     // Cerrar menú al hacer clic en el backdrop
                     const backdrop = header.querySelector('.background');
                     if (backdrop) {
@@ -64,9 +64,10 @@ use Glory\Gbn\Services\TemplateService;
 
 <body>
     <div id="loadingBar"></div>
-    
-    
+
+
     <?php
+    /*
     $funcionRenderizar = \Glory\Manager\PageManager::getFuncionParaRenderizar();
     
     // Fase 15: Verificar si GBN está activado
@@ -88,16 +89,20 @@ use Glory\Gbn\Services\TemplateService;
             echo TemplateService::getDefaultHeaderTemplate();
         }
     } else {
-        // GBN no está activo: usar header tradicional de Glory
-        $defaultMode = Compatibility::avadaActivo() ? 'default' : 'image';
-        $configHeader = [
-            'modoLogo'    => OpcionManager::get('glory_logo_mode', $defaultMode),
-            'textoLogo'   => OpcionManager::get('glory_logo_text', get_bloginfo('name', 'display')),
-            'logoImageId' => OpcionManager::get('glory_logo_image'),
-            'idMenu'      => 'mainMenu' 
-        ];
-        HeaderRenderer::render($configHeader);
-        echo ThemeToggle::render();
+
+        */
+    // GBN no está activo: usar header tradicional de Glory
+    $defaultMode = Compatibility::avadaActivo() ? 'default' : 'image';
+    $configHeader = [
+        'modoLogo'    => OpcionManager::get('glory_logo_mode', $defaultMode),
+        'textoLogo'   => OpcionManager::get('glory_logo_text', get_bloginfo('name', 'display')),
+        'logoImageId' => OpcionManager::get('glory_logo_image'),
+        'idMenu'      => 'mainMenu'
+    ];
+    HeaderRenderer::render($configHeader);
+    //echo ThemeToggle::render();
+    /*
     }
+        */
     ?>
     <main id="main" class="main">
