@@ -56,20 +56,29 @@ function landing_services()
             <p gloryTexto class="section-subtitle">En Cosmo Revenue diseñamos estrategias integrales para potenciar la rentabilidad de tu alojamiento.</p>
         </div>
 
-        <div gloryPostRender opciones="postType: 'casos', postsPerPage: 3, categoryFilter: false" class="cases-grid">
-            <article gloryPostItem class="case-card">
-                <div class="case-meta">
-                    <h3 gloryPostField="meta:caso_tipo"></h3>
-                    <span gloryPostField="meta:caso_ubicacion"></span>
+        <div gloryDivSecundario class="cards-grid">
+            <div gloryDivSecundario class="service-card card-dark">
+                <div gloryTexto class="card-content">
+                    <h3>Marketing y <br> estrategia</h3>
                 </div>
-                <div gloryPostField="featuredImage" opciones="asBackground: true" class="case-image">
-                    <div class="case-stat">
-                        <h4 gloryPostField="meta:caso_valor"></h4>
-                        <p gloryPostField="meta:caso_descripcion"></p>
-                    </div>
+                <div gloryDivSecundario class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=500&q=80');"></div>
+            </div>
+
+            <div gloryDivSecundario class="service-card card-light">
+                <div gloryTexto class="card-content">
+                    <h3>Revenue <br> Management</h3>
                 </div>
-            </article>
+                <div gloryDivSecundario class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=500&q=80');"></div>
+            </div>
+
+            <div gloryDivSecundario class="service-card card-dark">
+                <div gloryTexto class="card-content">
+                    <h3>Consultoría & <br> Mapeos</h3>
+                </div>
+                <div gloryDivSecundario class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=500&q=80');"></div>
+            </div>
         </div>
+
     </section>
 <?php
 }
@@ -77,11 +86,26 @@ function landing_services()
 function landing_cases()
 {
 ?>
-    <section class="cases-section">
-        <div class="cases-container">
-            <div class="section-header">
-                <h2 class="section-title">Casos de éxito</h2>
-                <p class="section-subtitle">Descubre el impacto real de nuestras estrategias y cómo transformamos la rentabilidad de hoteles como el tuyo.</p>
+    <section gloryDiv class="cases-section">
+        <div gloryDivSecundario class="cases-container">
+            <div gloryTexto class="section-header">
+                <h2 gloryTexto class="section-title">Casos de éxito</h2>
+                <p gloryTexto class="section-subtitle">Descubre el impacto real de nuestras estrategias y cómo transformamos la rentabilidad de hoteles como el tuyo.</p>
+            </div>
+
+            <div gloryPostRender opciones="postType: 'casos', postsPerPage: 3, categoryFilter: false" class="cases-grid">
+                <article gloryPostItem class="case-card">
+                    <div class="case-meta">
+                        <h3 gloryPostField="meta:caso_tipo" class="case-flotante"></h3>
+                        <span gloryPostField="meta:caso_ubicacion" class="case-flotante"></span>
+                    </div>
+                    <div gloryPostField="featuredImage" opciones="asBackground: true" class="case-image">
+                        <div class="case-stat">
+                            <h4 gloryPostField="meta:caso_valor"></h4>
+                            <p gloryPostField="meta:caso_descripcion"></p>
+                        </div>
+                    </div>
+                </article>
             </div>
 
         </div>
@@ -94,40 +118,61 @@ function landing_cases()
 function landing_methodology()
 {
 ?>
-    <section class="methodology-section">
-        <div class="methodology-container">
-            <div class="section-header dark-header">
-                <h2 class="section-title">Metodología Cosmo</h2>
-                <p class="section-subtitle">Cada hotel es un sistema. Con COSMO alineamos datos, procesos y ejecución para que todo gire a favor del resultado.</p>
+    <section gloryDiv class="methodology-section">
+        <div gloryDivSecundario class="methodology-container">
+            <div gloryDivSecundario class="section-header dark-header">
+                <h2 gloryTexto class="section-title">Metodología Cosmo</h2>
+                <p gloryTexto class="section-subtitle">Cada hotel es un sistema. Con COSMO alineamos datos, procesos y ejecución para que todo gire a favor del resultado.</p>
             </div>
 
-            <div class="methodology-graphic">
-                <!-- Representación simplificada del gráfico orbital -->
+            <div gloryDivSecundario class="methodology-graphic">
+                <!-- Representacion simplificada del grafico orbital -->
                 <div class="orbit-container">
                     <div class="orbit-ring ring-outer">
                         <div class="orbit-planet planet-s">
                             <p>S</p>
+                            <div class="planet-tooltip">
+                                <strong>Signal</strong>
+                                <span>Lectura del Mercado - Monitorizamos senales de demanda, eventos y elasticidad de precios en tiempo real.</span>
+                            </div>
                         </div>
                         <div class="orbit-planet planet-m">
                             <p>M</p>
+                            <div class="planet-tooltip">
+                                <strong>Monetize</strong>
+                                <span>Ejecucion de Ventas - Aplicamos reglas de precios, optimizamos canales y lanzamos campanas con ROI medible.</span>
+                            </div>
+                        </div>
+                        <!-- Ultima O ahora dentro del anillo exterior para orbitar con S y M -->
+                        <div class="orbit-planet planet-bottom-o">
+                            <p>O</p>
+                            <div class="planet-tooltip">
+                                <strong>Optimize</strong>
+                                <span>Mejora continua - Analizamos el post-mortem de cada accion para iterar con rapidez.</span>
+                            </div>
                         </div>
                     </div>
                     <div class="orbit-ring ring-inner">
                         <div class="orbit-planet planet-o">
                             <p>O</p>
+                            <div class="planet-tooltip">
+                                <strong>Orchestrate</strong>
+                                <span>Orquestacion de Procesos - Definimos KPIs criticos, cadencias de revision y asignamos responsables.</span>
+                            </div>
                         </div>
                     </div>
                     <div class="orbit-ring ring-inner-2">
                         <div class="orbit-planet planet-c">
                             <p>C</p>
+                            <div class="planet-tooltip">
+                                <strong>Collect</strong>
+                                <span>Recopilacion y Saneamiento - Unificamos tus fuentes de datos y normalizamos la informacion.</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="orbit-center">
                         <div class="logo-icon"><i data-lucide="atom"></i></div>
-                    </div>
-                    <div class="orbit-planet planet-bottom-o">
-                        <p>O</p>
                     </div>
                 </div>
 
@@ -136,6 +181,52 @@ function landing_methodology()
 
         <?php Marquee::echo('TODO GIRA A FAVOR DE TU RENTABILIDAD', 'dark', 'methodology-marquee'); ?>
     </section>
+
+    <script>
+        // Script para pausar las orbitas y mostrar tooltips correctamente
+        document.addEventListener('DOMContentLoaded', function() {
+            const planets = document.querySelectorAll('.orbit-planet');
+            const rings = document.querySelectorAll('.orbit-ring');
+
+            planets.forEach(function(planet) {
+                planet.addEventListener('mouseenter', function() {
+                    // Pausar todos los anillos
+                    rings.forEach(function(ring) {
+                        ring.style.animationPlayState = 'paused';
+                    });
+                    // Pausar todos los planetas
+                    planets.forEach(function(p) {
+                        p.style.animationPlayState = 'paused';
+                    });
+
+                    // Elevar el z-index del anillo padre para que el tooltip aparezca por encima
+                    var parentRing = planet.closest('.orbit-ring');
+                    if (parentRing) {
+                        parentRing.style.zIndex = '100';
+                    }
+                });
+
+                planet.addEventListener('mouseleave', function() {
+                    // Reanudar todos los anillos
+                    rings.forEach(function(ring) {
+                        ring.style.animationPlayState = 'running';
+                    });
+                    // Reanudar todos los planetas
+                    planets.forEach(function(p) {
+                        p.style.animationPlayState = 'running';
+                    });
+
+                    // Restaurar z-index originales de los anillos (invertidos)
+                    var ringOuter = document.querySelector('.ring-outer');
+                    var ringInner = document.querySelector('.ring-inner');
+                    var ringInner2 = document.querySelector('.ring-inner-2');
+                    if (ringOuter) ringOuter.style.zIndex = '1';
+                    if (ringInner) ringInner.style.zIndex = '2';
+                    if (ringInner2) ringInner2.style.zIndex = '3';
+                });
+            });
+        });
+    </script>
 <?php
 }
 

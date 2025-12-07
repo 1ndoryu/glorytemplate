@@ -1,16 +1,18 @@
 /* 
  * Marquee Component Styles
- * Centralized styles for animated marquee elements.
+ * Estilos centralizados para elementos marquee animados.
  * 
- * Color Schemes:
- * - .marquee--light: Dark text/icons on light backgrounds
- * - .marquee--dark: Light text/icons on dark backgrounds
+ * Esquemas de color:
+ * - .marquee--light: Texto/iconos oscuros sobre fondos claros
+ * - .marquee--dark: Texto/iconos claros sobre fondos oscuros
+ * 
+ * Todos los marquees comparten el mismo estilo base unificado.
  */
 
-/* Base Marquee Styles */
+/* Estilos Base del Marquee - Unificados para todos */
 .marquee {
     width: 100%;
-    padding: 12px 0;
+    padding: 14px 0;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -24,6 +26,7 @@
     will-change: transform;
     flex-wrap: nowrap;
     white-space: nowrap;
+    animation: marquee-scroll 25s linear infinite;
 }
 
 .marquee .marquee-text {
@@ -31,7 +34,6 @@
     font-size: 12px;
     text-transform: uppercase;
     font-family: var(--font-body);
-    letter-spacing: 1px;
     white-space: nowrap;
 }
 
@@ -42,7 +44,7 @@
     flex-shrink: 0;
 }
 
-/* Light scheme: dark text on light backgrounds */
+/* Esquema Light: texto/iconos oscuros sobre fondos claros */
 .marquee--light .marquee-text {
     color: #333;
 }
@@ -51,7 +53,7 @@
     fill: #333;
 }
 
-/* Dark scheme: light text on dark backgrounds */
+/* Esquema Dark: texto/iconos claros sobre fondos oscuros */
 .marquee--dark .marquee-text {
     color: #f4f4f4;
 }
@@ -60,7 +62,7 @@
     fill: #f4f4f4;
 }
 
-/* Marquee Animation */
+/* Animacion del Marquee */
 @keyframes marquee-scroll {
     0% {
         transform: translateX(0);
@@ -70,20 +72,17 @@
     }
 }
 
-.marquee .marquee-track {
-    animation: marquee-scroll 25s linear infinite;
-}
+/* Estilos de contexto para Landing Page */
+/* Solo posicionamiento y bordes especificos, el estilo base es compartido */
 
-/* Context-specific overrides for landing page integration */
-
-/* Hero Marquee - positioned at bottom, with border */
+/* Hero Marquee - posicionado en la parte inferior con borde */
 .landing-container .hero-marquee.marquee {
     position: absolute;
     bottom: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-/* Hero uses inverted colors due to gradient background */
+/* Hero usa colores invertidos debido al fondo gradiente */
 .landing-container .hero-marquee .marquee-text {
     color: #fff;
 }
@@ -92,48 +91,27 @@
     fill: #fff;
 }
 
-/* Cases Marquee */
+/* Cases Marquee - borde superior, margen especifico */
 .landing-container .cases-marquee.marquee {
     border-top: 2px solid rgba(58, 58, 58, 0.5);
     margin-top: calc(2vh + 96px);
-    padding: 10px 0;
 }
 
-.landing-container .cases-marquee .marquee-text {
-    font-size: 16px;
-}
-
-/* Methodology Marquee */
+/* Methodology Marquee - fondo oscuro, borde sutil */
 .landing-container .methodology-marquee.marquee {
     background-color: #1a1a1a;
-    padding: 16px;
     border-top: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.landing-container .methodology-marquee .marquee-text {
-    font-size: 16px;
-    letter-spacing: 2px;
-}
-
-/* About Marquee */
+/* About Marquee - bordes superior e inferior */
 .landing-container .about-marquee.marquee {
     border-top: 2px solid #ccc;
     border-bottom: 2px solid #ccc;
-    padding: 16px;
 }
 
-.landing-container .about-marquee .marquee-text {
-    font-size: 16px;
-    letter-spacing: 2px;
-}
-
-/* Responsive adjustments */
+/* Ajustes Responsive */
 @media (max-width: 1024px) {
     .marquee .marquee-track {
         animation-duration: 20s;
-    }
-
-    .landing-container .hero-marquee .marquee-track {
-        animation-duration: 25s;
     }
 }

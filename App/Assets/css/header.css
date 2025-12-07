@@ -28,9 +28,9 @@ var BREAKPOINTS = {
 
 /* Estado cuando el usuario hace scroll */
 .cosmoHeader.scrolled {
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+    background: rgb(20 20 20);
+    /* backdrop-filter: blur(10px); */
+    /* box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15); */
 }
 
 .cosmoHeader a {

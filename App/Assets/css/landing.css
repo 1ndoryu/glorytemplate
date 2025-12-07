@@ -148,6 +148,7 @@ body {
     font-weight: normal;
     font-family: var(--font-body);
     text-transform: uppercase;
+    font-size: 80px;
 }
 
 .landing-container .btn-auditoria {
@@ -173,34 +174,7 @@ body {
     top: -8px;
 }
 
-.landing-container .hero-marquee svg,
-.landing-container .methodology-marquee svg,
-.landing-container .about-marquee svg {
-    width: 19px;
-    height: 19px;
-    vertical-align: middle;
-}
-
-/* Marquee Landing */
-.landing-container .hero-marquee {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    /* background: rgba(255, 255, 255, 0.2); */
-    padding: 12px 0;
-    overflow: hidden;
-    border-top: 1px solid rgba(255, 255, 255, 0.5);
-    display: flex;
-    align-items: center;
-}
-
-.landing-container .hero-marquee span {
-    display: block;
-    font-size: 12px;
-    color: #fff;
-    text-transform: uppercase;
-    font-family: var(--font-body);
-}
+/* Estilos de marquee centralizados en marquee.css */
 
 /* Secciones Landing */
 .landing-container .services-section,
@@ -213,6 +187,7 @@ body {
 
 .landing-container .contact-container {
     padding: 16px 22px;
+    width: 100%;
 }
 
 .landing-container .about-section {
@@ -249,13 +224,132 @@ body {
     max-width: 530px;
 }
 
+/* Cards Grid Landing */
+.landing-container .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    justify-items: center;
+    align-items: center;
+    justify-content: center;
+}
+
+@media screen and (max-width: 768px) {
+    .landing-container .cards-grid {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+.landing-container .service-card {
+    position: relative;
+    height: 340px;
+    width: 220px;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 30px;
+    text-align: left;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.landing-container .service-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.15) 20%, rgba(0, 0, 0, 1) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.landing-container .service-card:hover {
+    transform: translateY(0px);
+}
+
+@media (min-width: 1024px) {
+    .landing-container .cards-grid {
+        align-items: center;
+        padding: 40px 0;
+    }
+
+    /* Tarjeta Izquierda */
+    .landing-container .service-card:nth-child(1) {
+        transform: rotate(-12deg) translateY(100px);
+    }
+
+    .landing-container .service-card:nth-child(1):hover {
+        transform: translateY(95px) rotate(-12deg) scale(1.1);
+    }
+
+    /* Tarjeta Central */
+    .landing-container .service-card:nth-child(2) {
+        transform: translateY(0px) scale(1.1);
+        z-index: 2;
+        /* box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); */
+    }
+
+    .landing-container .service-card:nth-child(2):hover {
+        transform: translateY(-10px) scale(1.1);
+    }
+
+    /* Tarjeta Derecha */
+    .landing-container .service-card:nth-child(3) {
+        transform: rotate(12deg) translateY(100px);
+    }
+
+    .landing-container .service-card:nth-child(3):hover {
+        transform: rotate(12deg) translateY(95px) scale(1.1);
+    }
+}
+
+.landing-container .service-card .card-bg-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: 1;
+    transition: transform 0.5s ease;
+}
+
+.landing-container .service-card:hover .card-bg-image {
+    transform: scale(1.05);
+}
+
+.landing-container .service-card .card-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+.landing-container .service-card h3 {
+    font-family: var(--font-heading);
+    font-weight: normal;
+    font-size: 29px;
+    margin: 0;
+    color: #fff;
+    text-align: center;
+    /* text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); */
+    line-height: 1;
+}
+
 /* Cases Landing */
 .landing-container .cases-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 40px;
+    /* gap: 40px; */
     max-width: 1200px;
     margin: 0 auto;
+    justify-items: center;
+    justify-content: center;
 }
 
 .landing-container .case-card {
@@ -266,7 +360,7 @@ body {
     box-shadow: none;
     text-align: left;
     margin-top: 30px;
-    max-width: 300px;
+    max-width: 340px;
     max-height: 450px;
 }
 
@@ -275,8 +369,16 @@ body {
     height: 550px;
     background-size: cover;
     background-position: center;
-    border-radius: 15px;
+    border-radius: 8px;
     margin-top: 8px;
+}
+
+.case-flotante {
+    background: #f9f9f9;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
 }
 
 .landing-container .case-info {
@@ -287,7 +389,7 @@ body {
 
 .landing-container .case-meta {
     position: absolute;
-    top: -25px;
+    top: 20px;
     left: 0;
     width: 100%;
     display: flex;
@@ -296,8 +398,9 @@ body {
     font-family: var(--font-body);
     font-weight: 600;
     color: #000;
-    padding: 0 5px;
+    padding: 0 15px;
     box-sizing: border-box;
+    z-index: 2;
 }
 
 .landing-container .case-stat {
@@ -315,7 +418,7 @@ body {
 .landing-container .case-stat h4 {
     font-family: var(--font-heading);
     color: var(--color-accent);
-    font-size: 32px;
+    font-size: 22px;
     font-style: italic;
     margin: 0px;
     font-weight: normal;
@@ -331,24 +434,7 @@ body {
     font-family: var(--font-body);
 }
 
-.landing-container .cases-marquee {
-    width: 100%;
-    padding: 10px 0;
-    overflow: hidden;
-    border-top: 2px solid rgba(58, 58, 58, 0.5);
-    margin-top: calc(2vh + 96px);
-    display: flex;
-    align-items: center;
-}
-
-/* Ensure span font-size is 1rem via common rule or here if needed, but we'll add common or specific */
-.landing-container .cases-marquee span {
-    font-size: 16px;
-    color: #333;
-    /* Default text color needed? assuming inherited or black */
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
+/* Estilos de cases-marquee centralizados en marquee.css */
 
 .landing-container .case-icon {
     display: flex;
@@ -401,7 +487,7 @@ body {
     aspect-ratio: 1 / 1;
 }
 
-/* Anillos con tamaños porcentuales */
+/* Anillos con tamanos porcentuales */
 .landing-container .orbit-ring {
     position: absolute;
     top: 50%;
@@ -410,26 +496,31 @@ body {
     transform: translate(-50%, -50%);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
-    pointer-events: none;
-    /* Allow clicks to pass through if needed */
+    /* overflow visible para que los tooltips no se corten */
+    overflow: visible;
 }
 
 .landing-container .ring-outer {
     width: 100%;
     height: 100%;
-    animation: orbit-spin-cw 60s linear infinite;
+    animation: orbit-spin-cw 120s linear infinite;
+    /* z-index menor para no bloquear los anillos interiores */
+    z-index: 1;
 }
 
 .landing-container .ring-inner {
     width: 78%;
     height: 78%;
-    animation: orbit-spin-ccw 45s linear infinite;
+    animation: orbit-spin-ccw 90s linear infinite;
+    z-index: 2;
 }
 
 .landing-container .ring-inner-2 {
     width: 52%;
     height: 52%;
-    animation: orbit-spin-cw 30s linear infinite;
+    animation: orbit-spin-cw 60s linear infinite;
+    /* z-index mayor para que C reciba eventos del mouse */
+    z-index: 3;
 }
 
 .landing-container .orbit-center {
@@ -441,14 +532,14 @@ body {
     width: 22%;
     height: 22%;
     background: var(--color-accent);
-    /* box-shadow: 0 0px 12px var(--color-accent); */
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #eeeeee;
     font-size: clamp(16px, 3vw, 24px);
-    z-index: 10;
+    /* z-index bajo para no bloquear los tooltips de los planetas */
+    z-index: 0;
 }
 
 .landing-container .orbit-planet {
@@ -457,12 +548,21 @@ body {
     height: clamp(40px, 10vw, 60px);
     background: #141414;
     border: 1px solid var(--color-accent);
-    /* box-shadow: 0 0px 12px var(--color-accent); */
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 5;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover en planetas - efecto visual */
+.landing-container .orbit-planet:hover {
+    box-shadow: 0 0 20px var(--color-accent);
+    transform: scale(1.1);
+    z-index: 100;
 }
 
 .landing-container .orbit-planet p {
@@ -475,38 +575,110 @@ body {
     color: #f4f4f4;
 }
 
+/* Tooltip de los planetas */
+.landing-container .planet-tooltip {
+    position: absolute;
+    bottom: calc(100% + 15px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 20, 0.95);
+    border: 1px solid var(--color-accent);
+    border-radius: 12px;
+    padding: 12px 16px;
+    min-width: 200px;
+    max-width: 280px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    pointer-events: none;
+    /* z-index muy alto para que siempre este por encima del logo central */
+    z-index: 9999;
+    text-align: left;
+}
+
+.landing-container .planet-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: var(--color-accent);
+}
+
+.landing-container .planet-tooltip strong {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 16px;
+    color: var(--color-accent);
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.landing-container .planet-tooltip span {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: #d0d0d0;
+    line-height: 1.2;
+}
+
+/* Mostrar tooltip en hover */
+.landing-container .orbit-planet:hover .planet-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Pausar animacion de anillos cuando se hace hover en un planeta */
+.landing-container .orbit-ring:has(.orbit-planet:hover) {
+    animation-play-state: paused;
+}
+
+/* Pausar contra-rotacion del planeta cuando se hace hover */
+.landing-container .orbit-planet:hover {
+    animation-play-state: paused;
+}
+
+.landing-container .methodology-container {
+    padding: 0 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    gap: 40px;
+    padding-bottom: 40px;
+}
 /* Posiciones iniciales de los planetas */
 .landing-container .planet-s {
     top: 2%;
     left: 20%;
-    animation: planet-counter-cw 60s linear infinite;
+    animation: planet-counter-cw 120s linear infinite;
 }
 
 .landing-container .planet-m {
     top: 10%;
     right: 28%;
-    animation: planet-counter-cw 60s linear infinite;
+    background: #141414 !important;
+    animation: planet-counter-cw 120s linear infinite;
 }
 
 .landing-container .planet-c {
     top: 40%;
     right: -5%;
-    animation: planet-counter-cw 30s linear infinite;
+    animation: planet-counter-cw 60s linear infinite;
 }
 
 /* right adjusted for responsive */
 .landing-container .planet-o {
     top: 45%;
     left: -6%;
-    animation: planet-counter-ccw 45s linear infinite;
+    animation: planet-counter-ccw 90s linear infinite;
 }
 
-/* Planeta Extra fuera de órbita (estático relative al container, o flotando) */
+/* Ultima O - ahora dentro del anillo exterior, orbita con S y M */
 .landing-container .planet-bottom-o {
     position: absolute;
-    bottom: -5%;
-    left: 60%;
-    transform: translateX(-50%);
+    bottom: -3%;
+    left: 45%;
     width: clamp(40px, 10vw, 60px);
     height: clamp(40px, 10vw, 60px);
     border: 1px solid var(--color-accent);
@@ -515,6 +687,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Contra-rotacion para mantener la letra legible mientras el anillo gira */
+    animation: planet-counter-cw 120s linear infinite;
 }
 
 .landing-container .planet-bottom-o p {
@@ -524,23 +698,7 @@ body {
     color: #f4f4f4;
 }
 
-.landing-container .methodology-marquee {
-    background-color: #1a1a1a;
-    color: #f4f4f4;
-    padding: 16px;
-    width: 100%;
-    overflow: hidden;
-    border-top: 2px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-}
-
-.landing-container .methodology-marquee span {
-    display: block;
-    font-size: 16px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
+/* Estilos de methodology-marquee centralizados en marquee.css */
 
 /* Animaciones */
 @keyframes orbit-spin-cw {
@@ -584,7 +742,8 @@ body {
     }
 }
 
-/* Ajustes Responsive móvil */
+
+/* Ajustes Responsive movil */
 @media (max-width: 600px) {
     .landing-container .orbit-container {
         /* En móviles muy pequeños, aseguramos margen lateral */
@@ -628,7 +787,7 @@ body {
 
 .landing-container .about-text {
     font-family: var(--font-body);
-    font-size: 16px;
+    font-size: 14px;
     line-height: 1.6;
     margin-bottom: 30px;
     color: #333;
@@ -649,23 +808,7 @@ body {
     background-color: #8a9466;
 }
 
-.landing-container .about-marquee {
-    border-top: 2px solid #ccc;
-    border-bottom: 2px solid #ccc;
-    padding: 16px;
-    color: #333;
-    width: 100%;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-}
-
-.landing-container .about-marquee span {
-    display: block;
-    font-size: 16px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
+/* Estilos de about-marquee centralizados en marquee.css */
 
 /* Contact Landing */
 .landing-container .contact-form {
@@ -903,3 +1046,4 @@ section {
     align-items: center;
     align-content: center;
 }
+
