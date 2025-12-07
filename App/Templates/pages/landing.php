@@ -1,10 +1,7 @@
 <?php
 
 function landing_render()
-{
-    // Cargar fuentes (temporal para testear)
-    echo '<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Instrument+Serif:ital@0;1&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">';
-    
+{   
     ?>
     <div class="landing-container">
         <?php 
@@ -42,13 +39,26 @@ function landing_hero() {
         </div>
 
         <div class="hero-marquee">
-            <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-            <span><i data-lucide="sparkle"></i></span>
-            <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-            <span><i data-lucide="sparkle"></i></span>
-            <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
-            <span><i data-lucide="sparkle"></i></span>
-            <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+            <div class="marquee-track">
+                <!-- Set 1 -->
+                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <!-- Set 2 (Duplicate for Loop) -->
+                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ORDENAMOS EL UNIVERSO DE TUS INGRESOS</span>
+                <span><i data-lucide="sparkle"></i></span>
+            </div>
         </div>
     </section>
     <?php
@@ -91,66 +101,81 @@ function landing_services() {
 function landing_cases() {
     ?>
     <section class="cases-section">
-        <div class="section-header">
-            <h2 class="section-title">Casos de éxito</h2>
-            <p class="section-subtitle">Descubre el impacto real de nuestras estrategias y cómo transformamos la rentabilidad de hoteles como el tuyo.</p>
+        <div class="cases-container">
+            <div class="section-header">
+                <h2 class="section-title">Casos de éxito</h2>
+                <p class="section-subtitle">Descubre el impacto real de nuestras estrategias y cómo transformamos la rentabilidad de hoteles como el tuyo.</p>
+            </div>
+
+            <div class="cases-grid">
+                <!-- Case 1 -->
+                <div class="case-card">
+                    <div class="case-image" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=500&q=80');"></div>
+                    <div class="case-info">
+                        <div class="case-meta">
+                            <span>Villa de Lujo</span>
+                            <span>Costa Valenciana</span>
+                        </div>
+                        <div class="case-stat">
+                            <h4>250.000 €</h4>
+                            <p>RENTABILIDAD NETA (1ER AÑO)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Case 2 -->
+                <div class="case-card">
+                    <div class="case-image" style="background-image: url('https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=500&q=80');"></div>
+                    <div class="case-info">
+                        <div class="case-meta">
+                            <span>Hotel Vacacional</span>
+                            <span>Costa Blanca</span>
+                        </div>
+                        <div class="case-stat">
+                            <h4>+5% (70% ventas directas)</h4>
+                            <p>INGRESOS ANUALES</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Case 3 -->
+                <div class="case-card">
+                    <div class="case-image" style="background-image: url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=500&q=80');"></div>
+                    <div class="case-info">
+                        <div class="case-meta">
+                            <span>Hotel Boutique Urbano</span>
+                            <span>Post-reforma</span>
+                        </div>
+                        <div class="case-stat">
+                            <h4>+15% ADR</h4>
+                            <p>VS LA COMPETENCIA</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="cases-grid">
-            <!-- Case 1 -->
-            <div class="case-card">
-                <div class="case-image" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=500&q=80');"></div>
-                <div class="case-info">
-                    <div class="case-meta">
-                        <span>Villa de Lujo</span>
-                        <span>Costa Valenciana</span>
-                    </div>
-                    <div class="case-stat">
-                        <h4>250.000 €</h4>
-                        <p>RENTABILIDAD NETA (1ER AÑO)</p>
-                    </div>
-                </div>
+    <div class="cases-marquee">
+            <div class="marquee-track">
+                <!-- Set 1 -->
+                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
+                <span class="case-icon"><i data-lucide="sparkle"></i></span>
+                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
+                <span class="case-icon"><i data-lucide="sparkle"></i></span>
+                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
+                <span class="case-icon"><i data-lucide="sparkle"></i></span>
+                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
+                <span class="case-icon"><i data-lucide="sparkle"></i></span>
+                <!-- Set 2 -->
+                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
+                <span class="case-icon"><i data-lucide="sparkle"></i></span>
+                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
+                <span class="case-icon"><i data-lucide="sparkle"></i></span>
+                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
+                <span class="case-icon"><i data-lucide="sparkle"></i></span>
+                <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
+                <span class="case-icon"><i data-lucide="sparkle"></i></span>
             </div>
-
-            <!-- Case 2 -->
-            <div class="case-card">
-                <div class="case-image" style="background-image: url('https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=500&q=80');"></div>
-                <div class="case-info">
-                    <div class="case-meta">
-                        <span>Hotel Vacacional</span>
-                        <span>Costa Blanca</span>
-                    </div>
-                    <div class="case-stat">
-                        <h4>+5% (70% ventas directas)</h4>
-                        <p>INGRESOS ANUALES</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Case 3 -->
-            <div class="case-card">
-                <div class="case-image" style="background-image: url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=500&q=80');"></div>
-                <div class="case-info">
-                    <div class="case-meta">
-                        <span>Hotel Boutique Urbano</span>
-                        <span>Post-reforma</span>
-                    </div>
-                    <div class="case-stat">
-                        <h4>+15% ADR</h4>
-                        <p>VS LA COMPETENCIA</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="cases-marquee">
-            <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
-            <span class="case-icon"><i data-lucide="sparkle"></i></span>
-            <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
-            <span class="case-icon"><i data-lucide="sparkle"></i></span>
-            <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
-            <span class="case-icon"><i data-lucide="sparkle"></i></span>
-            <span>RENTABILIDAD COMPROBADA CON DATOS REALES</span>
         </div>
     </section>
     <?php
@@ -159,51 +184,66 @@ function landing_cases() {
 function landing_methodology() {
     ?>
     <section class="methodology-section">
-        <div class="section-header dark-header">
-            <h2 class="section-title">Metodología Cosmo</h2>
-            <p class="section-subtitle">Cada hotel es un sistema. Con COSMO alineamos datos, procesos y ejecución para que todo gire a favor del resultado.</p>
-        </div>
+        <div class="methodology-container">
+            <div class="section-header dark-header">
+                <h2 class="section-title">Metodología Cosmo</h2>
+                <p class="section-subtitle">Cada hotel es un sistema. Con COSMO alineamos datos, procesos y ejecución para que todo gire a favor del resultado.</p>
+            </div>
 
-        <div class="methodology-graphic">
-            <!-- Representación simplificada del gráfico orbital -->
-            <div class="orbit-container">
-                <div class="orbit-ring ring-outer">
-                    <div class="orbit-planet planet-s">
-                        <p>S</p>
+            <div class="methodology-graphic">
+                <!-- Representación simplificada del gráfico orbital -->
+                <div class="orbit-container">
+                    <div class="orbit-ring ring-outer">
+                        <div class="orbit-planet planet-s">
+                            <p>S</p>
+                        </div>
+                        <div class="orbit-planet planet-m">
+                            <p>M</p>
+                        </div>
                     </div>
-                    <div class="orbit-planet planet-m">
-                        <p>M</p>
+                    <div class="orbit-ring ring-inner">
+                        <div class="orbit-planet planet-o">
+                            <p>O</p>
+                        </div>
                     </div>
-                </div>
-                <div class="orbit-ring ring-inner">
-                    <div class="orbit-planet planet-o">
+                    <div class="orbit-ring ring-inner-2">
+                        <div class="orbit-planet planet-c">
+                            <p>C</p>
+                        </div>
+                    </div>
+
+                    <div class="orbit-center">
+                        <div class="logo-icon"><i data-lucide="atom"></i></div>
+                    </div>
+                    <div class="orbit-planet planet-bottom-o">
                         <p>O</p>
                     </div>
                 </div>
-                <div class="orbit-ring ring-inner-2">
-                    <div class="orbit-planet planet-c">
-                        <p>C</p>
-                    </div>
-                </div>
 
-                <div class="orbit-center">
-                    <div class="logo-icon"><i data-lucide="atom"></i></div>
-                </div>
-                <div class="orbit-planet planet-bottom-o">
-                    <p>O</p>
-                </div>
             </div>
-
         </div>
 
         <div class="methodology-marquee">
-            <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-            <span><i data-lucide="sparkle"></i></span>
-            <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-            <span><i data-lucide="sparkle"></i></span>
-            <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
-            <span><i data-lucide="sparkle"></i></span>
-            <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+            <div class="marquee-track">
+                <!-- Set 1 -->
+                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <!-- Set 2 -->
+                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>TODO GIRA A FAVOR DE TU RENTABILIDAD</span>
+                <span><i data-lucide="sparkle"></i></span>
+            </div>
         </div>
     </section>
     <?php
@@ -212,25 +252,41 @@ function landing_methodology() {
 function landing_about() {
     ?>
     <section class="about-section">
-        <div class="about-content">
-            <div class="about-image">
-                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="Perfil">
+        <div class="about-container">
+            <div class="about-content">
+                
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="Perfil">
+                </div>
+                <h2 class="section-title">Sobre mi</h2>
+                <p class="about-text">
+                    Cosmo Revenue es una consultoría boutique de revenue y RevOps para hotelería, liderada por una profesional joven, independiente y cercana. Mi propósito es que los hoteles tomen decisiones de ingresos con claridad y confianza.
+                </p>
+                <a href="#" class="btn-about">Leer más</a>
             </div>
-            <h2 class="section-title">Sobre mi</h2>
-            <p class="about-text">
-                Cosmo Revenue es una consultoría boutique de revenue y RevOps para hotelería, liderada por una profesional joven, independiente y cercana. Mi propósito es que los hoteles tomen decisiones de ingresos con claridad y confianza.
-            </p>
-            <a href="#" class="btn-about">Leer más</a>
         </div>
 
         <div class="about-marquee">
-            <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-            <span><i data-lucide="sparkle"></i></span>
-            <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-            <span><i data-lucide="sparkle"></i></span>
-            <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
-            <span><i data-lucide="sparkle"></i></span>
-            <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+            <div class="marquee-track">
+                <!-- Set 1 -->
+                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <!-- Set 2 -->
+                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+                <span><i data-lucide="sparkle"></i></span>
+                <span>ES EL MEJOR MOMENTO PARA DESPEGAR</span>
+                <span><i data-lucide="sparkle"></i></span>
+            </div>
         </div>
     </section>
     <?php
@@ -239,54 +295,56 @@ function landing_about() {
 function landing_contact() {
     ?>
     <section class="contact-section">
-        <div class="section-header">
-            <h2 class="section-title">Contacto</h2>
-        </div>
+        <div class="contact-container">
+            <div class="section-header">
+                <h2 class="section-title">Contacto</h2>
+            </div>
 
-        <form class="contact-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Nombre</label>
-                    <input type="text" name="nombre">
+            <form class="contact-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" name="nombre">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" name="telefono">
+                    </div>
+                    <div class="form-group">
+                        <label>Alojamiento</label>
+                        <input type="text" name="alojamiento">
+                    </div>
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Teléfono</label>
-                    <input type="tel" name="telefono">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nº habitaciones</label>
+                        <input type="text" name="habitaciones">
+                    </div>
+                    <div class="form-group">
+                        <label>PMS/Channel</label>
+                        <input type="text" name="pms">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Alojamiento</label>
-                    <input type="text" name="alojamiento">
+                <div class="form-group full-width">
+                    <label>Mensaje</label>
+                    <textarea name="mensaje" rows="1"></textarea>
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Nº habitaciones</label>
-                    <input type="text" name="habitaciones">
+                
+                <div class="form-footer">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="privacy">
+                        He leído y acepto la Política de Privacidad.
+                    </label>
+                    <button type="submit" class="btn-submit">Enviar</button>
                 </div>
-                <div class="form-group">
-                    <label>PMS/Channel</label>
-                    <input type="text" name="pms">
-                </div>
-            </div>
-            <div class="form-group full-width">
-                <label>Mensaje</label>
-                <textarea name="mensaje" rows="1"></textarea>
-            </div>
-            
-            <div class="form-footer">
-                <label class="checkbox-label">
-                    <input type="checkbox" name="privacy">
-                    He leído y acepto la Política de Privacidad.
-                </label>
-                <button type="submit" class="btn-submit">Enviar</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </section>
     <?php
 }
@@ -330,8 +388,5 @@ function landing_footer() {
             </div>
         </div>
     </footer>
-    <script>
-        lucide.createIcons();
-    </script>
     <?php
 }
