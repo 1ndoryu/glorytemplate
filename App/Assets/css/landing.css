@@ -362,6 +362,7 @@ body {
     margin-top: 30px;
     max-width: 340px;
     max-height: 450px;
+    width: 100%;
 }
 
 .landing-container .case-image {
@@ -742,7 +743,6 @@ body {
     }
 }
 
-
 /* Ajustes Responsive movil */
 @media (max-width: 600px) {
     .landing-container .orbit-container {
@@ -1053,4 +1053,3 @@ section {
     align-items: center;
     align-content: center;
 }
-
