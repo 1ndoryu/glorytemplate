@@ -145,7 +145,7 @@
     font-family: var(--font-heading);
     font-size: 2.2rem;
     color: #4a5d4e;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); */
     position: relative;
     z-index: 2;
 }
@@ -165,7 +165,6 @@
 .step-marker-m {
     top: -10rem;
 }
-
 
 /* Double circle border effect */
 .step-marker::after {
@@ -261,7 +260,7 @@
     height: 500px;
     object-fit: cover;
     border-radius: 20px;
-    box-shadow: 10px 10px 0px rgba(74, 93, 78, 0.1);
+    /* box-shadow: 10px 10px 0px rgba(74, 93, 78, 0.1); */
 }
 
 .about-container .bio-text {
@@ -379,7 +378,7 @@
     font-weight: 400;
 }
 
-.about-container .checkbox-label input[type="checkbox"] {
+.about-container .checkbox-label input[type='checkbox'] {
     width: 20px;
     height: 20px;
     border: 1px solid #757575;

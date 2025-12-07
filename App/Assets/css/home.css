@@ -34,7 +34,7 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto)):not(:has(> .
 }
 
 /* Limitar el ancho del contenido cuando hay solo 1 visible para lograr centrado visual */
-div#glory-component-examples:has(> .seccionComponente:not(.oculto)):not(:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto)))>.seccionComponente:not(.oculto) .contenidoSeccionComponente {
+div#glory-component-examples:has(> .seccionComponente:not(.oculto)):not(:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto))) > .seccionComponente:not(.oculto) .contenidoSeccionComponente {
     max-width: var(--ancho);
 }
 
@@ -95,14 +95,14 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionCom
     background-color: var(--card-bg);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
 }
 
 .libro-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    /* box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); */
 }
 
 .libro-portada {
@@ -146,7 +146,7 @@ div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionCom
     background: var(--card-bg);
     padding: 10px;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08); */
     transition: background-color 0.2s ease, filter 0.15s ease;
 }
 

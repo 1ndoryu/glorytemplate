@@ -1,12 +1,12 @@
 :where(:root) {
     /* Palette */
     --color-negro: #000000;
-    --color-blanco: #F4F4F2;
-    --color-naranja-claro: #F6F3EC;
-    --color-gris: #CCCCCC;
-    --color-verde-1: #DDE0CD;
-    --color-verde-2: #B2B88E;
-    --color-verde-marca: #8D926F;
+    --color-blanco: #f4f4f2;
+    --color-naranja-claro: #f6f3ec;
+    --color-gris: #cccccc;
+    --color-verde-1: #dde0cd;
+    --color-verde-2: #b2b88e;
+    --color-verde-marca: #8d926f;
     --color-verde-oscuro: #545938;
 
     /* Extra variables merged from header.css */
@@ -22,7 +22,7 @@
     --color-yellow: #fca311;
     --color-white: var(--color-blanco);
 
-    --font-base: "Instrument Serif", serif;
+    --font-base: 'Instrument Serif', serif;
     --font-heading: 'Instrument Serif', serif;
     --font-brand: 'Archivo Black', sans-serif;
     --font-body: 'Montserrat', sans-serif;
@@ -51,6 +51,7 @@
     --borde: 0.1rem var(--border-color) solid;
     --bordeBoton: 0.1rem rgba(31, 31, 31, 0.55) solid;
     --blanco: var(--text);
+    font-size: 14px;
 }
 
 :where(
@@ -219,7 +220,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Instrument+Serif:ital@0;1&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Source+Sans+3:wght@200..900&display=swap');
 
-
 :where(h1, h2) {
     font-family: 'Instrument Serif', serif;
     font-weight: 400;
@@ -316,9 +316,7 @@
     width: 50%;
 }
 
-:where(body,
-    body p,
-    textarea) {
+:where(body, body p, textarea) {
     font-size: 1.2rem;
     display: block;
     margin-block-start: 0em;
@@ -429,10 +427,7 @@
     }
 }
 
-:where(.appAndroid .infoIaBtn,
-    .appAndroid span.postTag,
-    .appAndroid .badge,
-    .appAndroid .postTagToggle) {
+:where(.appAndroid .infoIaBtn, .appAndroid span.postTag, .appAndroid .badge, .appAndroid .postTagToggle) {
     font-size: 1.3rem;
 }
 
@@ -586,8 +581,7 @@
     display: none;
 }
 
-:where(input,
-    textarea) {
+:where(input, textarea) {
     background: unset;
     /* padding: 0.7rem 0rem; */
     border-bottom: var(--borde);
@@ -642,7 +636,7 @@
     border-radius: 0.8rem;
 }
 
-:where(.opcionCheck>div label) {
+:where(.opcionCheck > div label) {
     color: var(--text);
     font-weight: 700;
     display: block;
@@ -690,21 +684,20 @@
     background-color: var(--bg);
     transition: transform 0.18s ease;
     border-radius: 50%;
-    box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.2);
+    /* box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.2); */
 }
 
-:where(.switch input:checked+.slider) {
+:where(.switch input:checked + .slider) {
     background-color: var(--text);
     border-color: var(--text);
 }
 
-:where(.switch input:checked+.slider:before) {
+:where(.switch input:checked + .slider:before) {
     transform: translateX(1.7rem);
     background-color: var(--bg);
 }
 
-:where(.switch input:focus+.slider,
-    .switch input:active+.slider) {
+:where(.switch input:focus + .slider, .switch input:active + .slider) {
     box-shadow: none;
     /* eliminar halo que añade la sensación de grosor */
 }
@@ -791,7 +784,7 @@
     display: block;
 }
 
-:where(label input:checked+.checkboxVisualWrapper::before) {
+:where(label input:checked + .checkboxVisualWrapper::before) {
     /* mantener sin background, solo cambiar color del borde si se desea */
     background: transparent;
     border-color: var(--text);
@@ -823,14 +816,12 @@
     background: var(--bg);
 }
 
-:where(input::placeholder,
-    textarea::placeholder) {
+:where(input::placeholder, textarea::placeholder) {
     color: var(--muted);
     opacity: 0.9;
 }
 
-:where(input:focus,
-    textarea:focus) {
+:where(input:focus, textarea:focus) {
     outline: none;
 }
 
@@ -991,7 +982,7 @@
     background: var(--fondo);
     border: var(--borde);
     border-radius: var(--radius);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); */
     padding: 0.5rem;
     min-width: 150px;
     z-index: 1001;
