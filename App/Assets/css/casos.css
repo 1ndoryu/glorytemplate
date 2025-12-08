@@ -80,17 +80,19 @@
     gap: 40px 30px;
 }
 
-@media (max-width: 1024px) {
+/* Container Query: TABLET */
+@container gbn-root (max-width: 1024px) {
     .casos-grid {
         grid-template-columns: repeat(2, 1fr);
         /* 2 Columnas en tablets */
     }
 }
 
-@media (max-width: 768px) {
+/* Container Query: MOVIL */
+@container gbn-root (max-width: 768px) {
     .casos-grid {
         grid-template-columns: 1fr;
-        /* 1 Columna en móvil */
+        /* 1 Columna en movil */
         gap: 30px;
     }
 }
@@ -249,7 +251,8 @@
     transform: translateY(-2px);
 }
 
-@media (max-width: 1024px) {
+/* Container Query: TABLET */
+@container gbn-root (max-width: 1024px) {
     .casos-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 30px;
@@ -260,7 +263,8 @@
     }
 }
 
-@media (max-width: 768px) {
+/* Container Query: MOVIL */
+@container gbn-root (max-width: 768px) {
     /* Grid Stacking */
     .casos-grid {
         grid-template-columns: 1fr;

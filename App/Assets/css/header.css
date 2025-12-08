@@ -46,14 +46,14 @@ var BREAKPOINTS = {
     display: none;
 }
 
-/* 2. TABLET (Max 1024px) */
-@media (max-width: 1024px) {
+/* 2. TABLET - Container Query */
+@container gbn-root (max-width: 1024px) {
     .cosmoHeaderBurger {
         display: block;
     }
 }
-/* 3. MÓVIL (Max 768px) */
-@media (max-width: 768px) {
+/* 3. MOVIL - Container Query */
+@container gbn-root (max-width: 768px) {
     .cosmoHeaderBurger {
         display: block;
     }

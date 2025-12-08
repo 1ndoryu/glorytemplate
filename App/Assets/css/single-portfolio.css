@@ -215,8 +215,8 @@ body {
     text-align: right;
 }
 
-/* Responsive */
-@media (max-width: 900px) {
+/* Responsive - Container Query */
+@container gbn-root (max-width: 900px) {
     .single-portfolio-container {
         grid-template-columns: 1fr;
     }
@@ -282,7 +282,8 @@ body {
     background-color: #7b855a;
 }
 
-@media (max-width: 768px) {
+/* Container Query: MOVIL */
+@container gbn-root (max-width: 768px) {
     .portfolio-cta-title {
         font-size: 40px;
     }

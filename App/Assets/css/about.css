@@ -408,7 +408,8 @@
     background-color: #7a865a;
 }
 
-@media (max-width: 1024px) {
+/* Container Query: TABLET */
+@container gbn-root (max-width: 1024px) {
     .about-container .hero-title {
         font-size: 48px;
     }
@@ -442,7 +443,8 @@
     }
 }
 
-@media (max-width: 768px) {
+/* Container Query: MOVIL */
+@container gbn-root (max-width: 768px) {
     .about-container .bio-content {
         flex-direction: column;
     }

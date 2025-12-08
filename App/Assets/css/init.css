@@ -82,7 +82,24 @@
     font-size: 14px;
 }
 
-p, a, h3, h4, h5, h6, span {
+/* Container Query Support para GBN Responsive Preview
+   TEMPORAL: Permite que el cambio de viewport en GBN active estilos responsive
+   sin necesidad de iframe. Los @container queries responden al ancho del contenedor,
+   no al viewport del navegador. */
+[data-gbn-root],
+.landing-container,
+main {
+    container-type: inline-size;
+    container-name: gbn-root;
+}
+
+p,
+a,
+h3,
+h4,
+h5,
+h6,
+span {
     font-family: var(--font-body);
     font-size: 12px;
     font-weight: unset;

@@ -236,7 +236,8 @@ body {
     justify-content: center;
 }
 
-@media screen and (max-width: 768px) {
+/* Container Query: responde al ancho del contenedor, no del viewport */
+@container gbn-root (max-width: 768px) {
     .landing-container .cards-grid {
         display: flex;
         flex-direction: column;
@@ -272,7 +273,8 @@ body {
     transform: translateY(0px);
 }
 
-@media (min-width: 1024px) {
+/* Container Query: responde al ancho del contenedor, no del viewport */
+@container gbn-root (min-width: 1024px) {
     .landing-container .cards-grid {
         align-items: center;
         padding: 40px 0;
@@ -744,7 +746,8 @@ body {
 }
 
 /* Ajustes Responsive movil */
-@media (max-width: 600px) {
+/* Container Query: responde al ancho del contenedor, no del viewport */
+@container gbn-root (max-width: 600px) {
     .landing-container .orbit-container {
         /* En móviles muy pequeños, aseguramos margen lateral */
         width: 90%;
@@ -995,8 +998,8 @@ body {
     border-color: #333;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Responsive - Container Query */
+@container gbn-root (max-width: 768px) {
     .landing-container .hero-title {
         font-size: 3rem;
     }

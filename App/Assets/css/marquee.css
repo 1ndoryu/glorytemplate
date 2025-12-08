@@ -109,8 +109,8 @@
     border-bottom: 2px solid #ccc;
 }
 
-/* Ajustes Responsive */
-@media (max-width: 1024px) {
+/* Ajustes Responsive - Container Query */
+@container gbn-root (max-width: 1024px) {
     .marquee .marquee-track {
         animation-duration: 20s;
     }

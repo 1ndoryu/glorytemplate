@@ -481,7 +481,8 @@
     max-width: 70%;
 }
 
-@media (max-width: 768px) {
+/* Container Query: MOVIL */
+@container gbn-root (max-width: 768px) {
     .revenue-bottom-text {
         max-width: 95%;
     }
@@ -524,7 +525,8 @@
 }
 
 /* --- RESPONSIVE ADJUSTMENTS --- */
-@media (max-width: 1024px) {
+/* Container Query: TABLET */
+@container gbn-root (max-width: 1024px) {
     /* En tablet/móvil, las tarjetas deben separarse y verse uniformes */
     .services-container .marketing-grid {
         grid-template-columns: 1fr;
@@ -555,7 +557,8 @@
     }
 }
 
-@media (max-width: 768px) {
+/* Container Query: MOVIL */
+@container gbn-root (max-width: 768px) {
     /* Ajustes adicionales para móvil */
     .services-container .hero-title,
     .services-container .hero-title .script-text {
