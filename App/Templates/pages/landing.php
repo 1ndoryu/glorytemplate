@@ -230,18 +230,17 @@ function landing_about()
 {
 ?>
     <section gloryDiv class="about-section">
-        <div gloryDivSecundario class="about-container">
-            <div gloryDivSecundario class="about-content">
 
-                <div gloryDivSecundario class="about-image">
-                    <img gloryImagen src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="Perfil">
-                </div>
-                <h2 gloryTexto class="section-title">Sobre mi</h2>
-                <p gloryTexto class="about-text">
-                    Cosmo Revenue es una consultoría boutique de revenue y RevOps para hotelería, liderada por una profesional joven, independiente y cercana. Mi propósito es que los hoteles tomen decisiones de ingresos con claridad y confianza.
-                </p>
-                <a gloryButton href="#" class="btn-about">Leer más</a>
+        <div gloryDivSecundario class="about-content">
+
+            <div gloryDivSecundario class="about-image">
+                <img gloryImagen src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="Perfil">
             </div>
+            <h2 gloryTexto class="section-title">Sobre mi</h2>
+            <p gloryTexto class="about-text">
+                Cosmo Revenue es una consultoría boutique de revenue y RevOps para hotelería, liderada por una profesional joven, independiente y cercana. Mi propósito es que los hoteles tomen decisiones de ingresos con claridad y confianza.
+            </p>
+            <a gloryButton href="#" class="btn-about">Leer más</a>
         </div>
 
         <?php Marquee::echo('ES EL MEJOR MOMENTO PARA DESPEGAR', 'light', 'about-marquee'); ?>

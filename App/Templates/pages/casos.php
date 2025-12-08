@@ -8,7 +8,7 @@ function casos_render()
     <div class="casos-container">
         <?php
         casos_hero();
-        landing_cases();
+        casos_cases();
         casos_quote();
         casos_cta();
         ?>
@@ -39,11 +39,11 @@ function casos_hero()
 <?php
 }
 
-function casos_grid()
+function casos_cases()
 {
 ?>
     <section gloryDiv class="cases-section">
-        <div gloryDivSecundario class="cases-container">
+        <div gloryDivSecundario class="cases-wrapper">
 
             <div gloryPostRender opciones="postType: 'casos', postsPerPage: 3, categoryFilter: false" class="cases-grid">
                 <article gloryPostItem class="case-card">
@@ -51,16 +51,16 @@ function casos_grid()
                         <h3 gloryPostField="meta:caso_tipo" class="case-flotante"></h3>
                         <span gloryPostField="meta:caso_ubicacion" class="case-flotante"></span>
                     </div>
-                    <div gloryPostField="featuredImage" opciones="asBackground: true" class="case-image">
-                        <div class="case-stat">
+                    <div gloryPostField="featuredImage" opciones="asBackground: true" class="case-image" >
+                        <div class="case-stat" style="display: none;">
                             <h4 gloryPostField="meta:caso_valor"></h4>
                             <p gloryPostField="meta:caso_descripcion"></p>
                         </div>
                     </div>
                 </article>
             </div>
-
         </div>
+
     </section>
 <?php
 }

@@ -196,14 +196,16 @@ body {
     text-align: center;
 }
 
-.landing-container .cases-section {
+.landing-container .cases-section,
+.casos-container .cases-section {
     padding: var(--gap-section) 0px;
     padding-bottom: 0px;
     background-color: #f9f9f9;
     text-align: center;
 }
 
-.landing-container .cases-container {
+.landing-container .cases-container,
+.casos-container .cases-wrapper {
     padding: 0 var(--pad-xs);
     width: 100%;
 }
@@ -296,18 +298,20 @@ body {
     line-height: 1;
 }
 
-/* Cases Landing */
-.landing-container .cases-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    /* gap: 40px; */
+/* Cases - Estilos compartidos entre landing y casos pages */
+.landing-container .cases-grid,
+.casos-container .cases-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: var(--gap-md);
     max-width: 1200px;
     margin: 0 auto;
     justify-items: center;
     justify-content: center;
 }
 
-.landing-container .case-card {
+.landing-container .case-card,
+.casos-container .case-card {
     position: relative;
     background: transparent;
     border-radius: 0;
@@ -319,7 +323,8 @@ body {
     width: 100%;
 }
 
-.landing-container .case-image {
+.landing-container .case-image,
+.casos-container .case-image {
     position: relative;
     height: 500px;
     background-size: cover;
@@ -336,13 +341,15 @@ body {
     font-weight: 500;
 }
 
-.landing-container .case-info {
+.landing-container .case-info,
+.casos-container .case-info {
     position: absolute;
     inset: 0;
     pointer-events: none;
 }
 
-.landing-container .case-meta {
+.landing-container .case-meta,
+.casos-container .case-meta {
     position: absolute;
     top: var(--pad-xs);
     left: 0;
@@ -358,7 +365,8 @@ body {
     z-index: 2;
 }
 
-.landing-container .case-stat {
+.landing-container .case-stat,
+.casos-container .case-stat {
     position: absolute;
     bottom: 20px;
     left: 20px;
@@ -366,11 +374,11 @@ body {
     background: #f4f4f2;
     padding: 13px 16px;
     border-radius: 12px;
-    /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); */
     pointer-events: auto;
 }
 
-.landing-container .case-stat h4 {
+.landing-container .case-stat h4,
+.casos-container .case-stat h4 {
     font-family: var(--font-heading);
     color: var(--color-accent);
     font-size: 22px;
@@ -379,7 +387,8 @@ body {
     font-weight: normal;
 }
 
-.landing-container .case-stat p {
+.landing-container .case-stat p,
+.casos-container .case-stat p {
     margin: 0;
     font-size: var(--text-xs);
     color: #666;
@@ -391,13 +400,15 @@ body {
 
 /* Estilos de cases-marquee centralizados en marquee.css */
 
-.landing-container .case-icon {
+.landing-container .case-icon,
+.casos-container .case-icon {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.landing-container .case-icon svg {
+.landing-container .case-icon svg,
+.casos-container .case-icon svg {
     height: 16px;
     width: 16px;
 }
@@ -924,6 +935,7 @@ body {
     justify-content: center;
     font-size: var(--text-xs);
     transition: all 0.3s;
+    padding: 5px;
 }
 
 .landing-footer .social-icons a:hover {
@@ -1084,11 +1096,33 @@ section {
     }
 }
 
-/* 2. TABLET - max-width: 1024px (despues de movil para sobreescribir) */
+/* 2. TABLET - entre 768px y 1024px */
 @container gbn-root (max-width: 1024px) {
     .landing-container .cards-grid {
         gap: 40px;
         padding: 40px 20px;
+    }
+}
+
+/* Cases Grid - Tablet: 2 columnas (768px a 1024px) */
+@container gbn-root (min-width: 769px) and (max-width: 1024px) {
+    .landing-container .cases-grid,
+    .casos-container .cases-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* Cases Grid - Movil: 1 columna (menos de 768px) */
+@container gbn-root (max-width: 768px) {
+    .landing-container .cases-grid,
+    .casos-container .cases-grid {
+        grid-template-columns: 1fr !important;
+        gap: var(--gap-sm) !important;
+    }
+
+    .landing-container .case-image,
+    .casos-container .case-image {
+        height: 400px;
     }
 }
 

@@ -1,50 +1,10 @@
 /* 
- * ESTILOS DE LA PÁGINA SOBRE NOSOTROS (ABOUT)
+ * ESTILOS DE LA PAGINA SOBRE NOSOTROS (ABOUT)
  * Hereda variables y resets de landing.css (base).
+ * Hereda estilos de hero de init.css (page-hero compartido).
  */
 
-/* --- HERO SECTION --- */
-.about-container .about-hero {
-    position: relative;
-    height: 50vh;
-    min-height: 400px;
-    width: 100%;
-    background: radial-gradient(circle at center, rgba(158, 158, 158, 0.4) 0%, rgb(99, 117, 97) 70%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 20px;
-    margin-bottom: 60px;
-}
-
-.about-container .hero-title {
-    font-family: var(--font-heading);
-    font-style: italic;
-    font-size: 64px;
-    color: #fff;
-    margin-bottom: 0;
-    font-weight: 400;
-}
-
-.about-container .hero-subtitle-big {
-    font-family: var(--font-body);
-    font-size: 56px;
-    color: #fff;
-    text-transform: uppercase;
-    font-weight: 300;
-    line-height: 1;
-    margin-bottom: 30px;
-}
-
-.about-container .hero-desc {
-    color: #fff;
-    font-size: 19px;
-    max-width: 700px;
-    margin: 0 auto;
-    line-height: 1.6;
-}
+/* Los estilos de .about-hero ahora estan centralizados en init.css */
 
 /* --- METHOD SECTION --- */
 .about-container .method-section {
@@ -151,21 +111,11 @@
     z-index: 2;
 }
 
-.step-marker-c {
-    top: -40px;
-}
-
-.step-marker-o {
-    top: -160px;
-}
-
-.step-marker-s {
-    top: -48px;
-}
-
-.step-marker-m {
-    top: -160px;
-}
+/* 
+ * NOTA: Los valores top de cada step-marker-* ahora son calculados 
+ * dinamicamente por about-align.js para alinear cada marker con su step-name.
+ * Los valores originales hardcodeados han sido removidos.
+ */
 
 /* Double circle border effect */
 .step-marker::after {
@@ -277,8 +227,8 @@
     line-height: 1.1;
 }
 
-.about-container .bio-desc {
-    font-size: 16px;
+.about-container .bio-desc p {
+    font-size: var(--text-base);
     color: #444;
     line-height: 1.8;
     margin-bottom: 20px;
@@ -304,6 +254,7 @@
     text-align: left;
     max-width: 800px;
     margin: 0 auto;
+    width: 100%;
 }
 
 .about-container .form-row {
@@ -462,6 +413,8 @@
         text-align: left;
         gap: 0;
         margin-top: 48px;
+        /* Altura minima uniforme para que las letras esten equidistantes */
+        min-height: 140px;
     }
     .step-content,
     .method-step:nth-child(even) .step-content {
@@ -479,6 +432,17 @@
         width: 60px;
         height: 60px;
         font-size: 29px;
+        /* Reset: en mobile el JS controla la alineacion via margin-top */
+        position: relative;
+        top: auto;
+    }
+
+    /* Reset de las variantes de step-marker para mobile */
+    .step-marker-c,
+    .step-marker-o,
+    .step-marker-s,
+    .step-marker-m {
+        top: auto;
     }
 
     .step-marker::after {

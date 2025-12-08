@@ -1,67 +1,11 @@
 /* 
- * ESTILOS DE LA PÁGINA DE SERVICIOS
+ * ESTILOS DE LA PAGINA DE SERVICIOS
  * Hereda variables y resets de landing.css (base).
+ * Hereda estilos de hero de init.css (page-hero compartido).
  */
 
-/* --- HERO SECTION (Específico Servicios) --- */
-.services-container .services-hero {
-    position: relative;
-    height: 60vh;
-    min-height: 500px;
-    width: 100%;
-    background-color: #141414;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: var(--pad-xs);
-}
-
-.services-container .hero-content {
-    z-index: 2;
-    max-width: 800px;
-}
-
-.services-container .hero-title {
-    font-family: var(--font-body);
-    margin-bottom: var(--pad-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    color: #f4f4f4;
-    font-weight: normal;
-    font-size: var(--text-hero);
-    letter-spacing: 2px;
-}
-
-.services-container .hero-title .script-text {
-    position: relative;
-    color: #f4f4f4;
-    font-family: var(--font-heading);
-    font-style: italic;
-    font-size: var(--text-hero);
-    width: fit-content;
-    display: block;
-    margin-bottom: -10px;
-}
-
-.services-container .script-icon {
-    position: absolute;
-    top: 13px;
-    right: -2%;
-    font-size: var(--text-lg);
-    color: #f7f7f7d7;
-}
-
-.services-container .hero-subtitle {
-    color: #f4f4f4;
-    font-size: var(--text-base);
-    font-family: var(--font-body);
-    margin: 0 auto;
-    max-width: 540px;
-}
+/* Los estilos de .services-hero ahora estan centralizados en init.css 
+   junto con .casos-hero, .about-hero y .page-hero */
 
 /* --- SECCIONES COMUNES EN SERVICIOS --- */
 .services-container .marketing-section,

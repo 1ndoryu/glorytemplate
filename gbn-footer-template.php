@@ -62,5 +62,26 @@ $homeUrl = esc_url(home_url('/'));
             <a gloryButton href="#"><i data-lucide="instagram"></i></a>
             <a gloryButton href="#"><i data-lucide="linkedin"></i></a>
         </div>
-    </div>
 </footer>
+
+<!-- Lucide Icons: Se carga al final para que todos los elementos data-lucide existan en el DOM -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    // Se usa DOMContentLoaded como fallback, pero también verificamos si lucide ya esta disponible
+    // ya que el script anterior puede haber cargado de forma asincrona
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+
+    // Fallback: si el DOM ya cargo pero lucide aun no estaba listo
+    // (puede pasar con cache del navegador)
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }, 100);
+    }
+</script>

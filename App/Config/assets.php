@@ -62,6 +62,18 @@ AssetManager::define(
     ]
 );
 
+// Registrar JS de About para alinear markers en mobile
+AssetManager::define(
+    'script',
+    'tema-about-align',
+    '/App/Assets/js/about-align.js',
+    [
+        'deps'       => [],
+        'in_footer'  => true,
+        'exclude_on' => ['gbn-control-panel'],
+    ]
+);
+
 // Carga todos los archivos JS de la carpeta /assets/js/ del tema, excluyendo la carpeta/archivos de tareas.
 AssetManager::defineFolder(
     'script',

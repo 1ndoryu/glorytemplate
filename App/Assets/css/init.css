@@ -65,7 +65,7 @@
     --text-xs: 12px; /* Labels, tags, texto uppercase pequeño */
     --text-sm: 14px; /* Subtítulos, descripciones secundarias */
     --text-base: 14px; /* Párrafos, botones, texto normal */
-    --text-lg: 32px; /* Títulos de tarjetas, h3, headings medianos */
+    --text-lg: 28px; /* Títulos de tarjetas, h3, headings medianos */
     --text-hero: 72px; /* Títulos de sección y hero principales */
 
     /* Spacing - Separación entre elementos */
@@ -113,6 +113,9 @@
    no al viewport del navegador. */
 [data-gbn-root],
 .landing-container,
+.casos-container,
+.about-container,
+.services-container,
 main {
     container-type: inline-size;
     container-name: gbn-root;
@@ -1108,4 +1111,276 @@ span {
     align-items: center;
     justify-content: center;
     border-radius: 6px;
+}
+
+/* ========================================
+   PAGE HERO - Estilos compartidos para heros de paginas internas
+   Usado por: casos, about, services y otras paginas
+   ======================================== */
+
+.page-hero,
+.services-hero,
+.casos-hero,
+.about-hero {
+    position: relative;
+    height: 60vh;
+    min-height: 500px;
+    width: 100%;
+    background-color: #141414;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--pad-xs);
+}
+
+.page-hero .hero-content,
+.services-hero .hero-content,
+.casos-hero .hero-content,
+.about-hero .hero-content {
+    z-index: 2;
+    max-width: 800px;
+}
+
+.page-hero .hero-title,
+.services-hero .hero-title,
+.casos-hero .hero-title,
+.about-hero .hero-title {
+    font-family: var(--font-body);
+    margin-bottom: var(--pad-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #f4f4f4;
+    font-weight: normal;
+    font-size: var(--text-hero);
+    letter-spacing: 2px;
+}
+
+.page-hero .hero-title .script-text,
+.services-hero .hero-title .script-text,
+.casos-hero .hero-title .script-text,
+.about-hero .hero-title .script-text {
+    position: relative;
+    color: #f4f4f4;
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-size: var(--text-hero);
+    width: fit-content;
+    display: block;
+    margin-bottom: -10px;
+}
+
+.page-hero .script-icon,
+.services-hero .script-icon,
+.casos-hero .script-icon,
+.about-hero .script-icon {
+    position: absolute;
+    top: 13px;
+    right: -2%;
+    font-size: var(--text-lg);
+    color: #f7f7f7d7;
+}
+
+.page-hero .hero-subtitle,
+.services-hero .hero-subtitle,
+.casos-hero .hero-subtitle,
+.about-hero .hero-subtitle {
+    color: #f4f4f4;
+    font-size: var(--text-base);
+    font-family: var(--font-body);
+    margin: 0 auto;
+    max-width: 540px;
+}
+
+/* Page Hero - Responsive */
+@container gbn-root (max-width: 768px) {
+    .page-hero,
+    .services-hero,
+    .casos-hero,
+    .about-hero {
+        height: auto;
+        min-height: 400px;
+        padding: 80px 20px 60px;
+    }
+
+    .page-hero .hero-title,
+    .services-hero .hero-title,
+    .casos-hero .hero-title,
+    .about-hero .hero-title {
+        font-size: 48px;
+        margin-bottom: 24px;
+    }
+
+    .page-hero .hero-title .script-text,
+    .services-hero .hero-title .script-text,
+    .casos-hero .hero-title .script-text,
+    .about-hero .hero-title .script-text {
+        font-size: 56px;
+    }
+
+    .page-hero .hero-subtitle,
+    .services-hero .hero-subtitle,
+    .casos-hero .hero-subtitle,
+    .about-hero .hero-subtitle {
+        font-size: 16px;
+        line-height: 1.4;
+    }
+}
+
+/* ========================================
+   CONTACT FORM - Estilos globales para formularios de contacto
+   Usado por: ContactForm helper y formularios en cualquier pagina
+   Prefijo cosmo- para la marca Cosmo Revenue
+   ======================================== */
+
+.cosmo-contact-section {
+    padding: var(--gap-section) var(--pad-xs);
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.cosmo-contact-container {
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.cosmo-section-header {
+    text-align: center;
+    margin-bottom: var(--gap-lg);
+}
+
+.cosmo-section-title {
+    font-family: var(--font-heading);
+    font-size: 56px;
+    color: #1a1a1a;
+    font-weight: 400;
+    margin: 0;
+}
+
+.cosmo-contact-form {
+    max-width: 850px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.cosmo-form-row {
+    display: flex;
+    gap: var(--pad-lg);
+    margin-bottom: var(--gap-md);
+}
+
+.cosmo-form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.cosmo-form-group.cosmo-full-width {
+    width: 100%;
+    margin-bottom: var(--gap-md);
+}
+
+.cosmo-form-group label {
+    font-size: var(--text-base);
+    color: #292929;
+    font-family: var(--font-body);
+    font-weight: normal;
+    margin-bottom: 8px;
+}
+
+.cosmo-form-group input,
+.cosmo-form-group textarea {
+    border: none;
+    border-bottom: 1px solid #a0a0a0;
+    padding: var(--gap-xs) 0;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    outline: none;
+    transition: border-color 0.3s;
+    background: transparent;
+    width: 100%;
+}
+
+.cosmo-form-group input:focus,
+.cosmo-form-group textarea:focus {
+    border-bottom-color: #313131;
+}
+
+.cosmo-form-group textarea {
+    resize: none;
+    min-height: 40px;
+}
+
+.cosmo-form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--pad-lg);
+    flex-wrap: wrap;
+    gap: var(--gap-sm);
+}
+
+.cosmo-checkbox-label {
+    font-size: var(--text-base);
+    color: #666;
+    font-family: var(--font-body);
+    font-weight: normal;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap-xs);
+    cursor: pointer;
+}
+
+.cosmo-checkbox-label input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: #8f9b6b;
+}
+
+.cosmo-btn-submit {
+    background-color: #9da876;
+    color: #fff;
+    border: none;
+    padding: 10px 40px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    transition: background 0.3s;
+}
+
+.cosmo-btn-submit:hover {
+    background-color: #8a9466;
+}
+
+/* Contact Form - Responsive */
+@container gbn-root (max-width: 768px) {
+    .cosmo-form-row {
+        flex-direction: column;
+        gap: var(--gap-sm);
+    }
+
+    .cosmo-form-footer {
+        flex-direction: column;
+        gap: var(--gap-md);
+        align-items: stretch;
+    }
+
+    .cosmo-btn-submit {
+        width: 100%;
+        text-align: center;
+    }
+
+    .cosmo-checkbox-label {
+        justify-content: center;
+    }
+
+    .cosmo-section-title {
+        font-size: 40px;
+    }
 }

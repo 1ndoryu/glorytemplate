@@ -1,69 +1,16 @@
 /* 
- * ESTILOS DE LA PÁGINA DE CASOS DE ÉXITO (Refactored Minimal)
- * Diseñado para igualar el "Villa de Lujo" style.
+ * ESTILOS DE LA PAGINA DE CASOS DE EXITO (Refactored Minimal)
+ * Hereda estilos de hero de init.css (page-hero compartido).
  */
 
-/* --- HERO SECTION (Mantener existente) --- */
-.casos-container .casos-hero {
-    position: relative;
-    height: 55vh;
-    min-height: 500px;
-    width: 100%;
-    background-color: #a8bfa5;
-    background: #141414;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: var(--pad-xs);
-    margin-bottom: var(--gap-lg);
+/* Sobreescrituras especificas de casos */
+.casos-container .cases-section {
+    padding: var(--gap-section) 0px;
+    padding-bottom: var(--gap-section);
 }
 
-.casos-container .hero-content {
-    margin-top: var(--gap-md);
-    z-index: 2;
-    max-width: 800px;
-}
-
-.casos-container .hero-title {
-    font-family: var(--font-body, sans-serif);
-    margin-bottom: var(--pad-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    color: #f4f4f4;
-    font-weight: normal;
-    font-size: var(--text-hero);
-}
-
-.casos-container .hero-title .script-text {
-    position: relative;
-    color: #f4f4f4;
-    font-family: var(--font-heading, serif);
-    font-style: italic;
-    font-size: var(--text-hero);
-    width: fit-content;
-    display: block;
-    margin-bottom: -10px;
-}
-
-.casos-container .script-icon {
-    position: absolute;
-    top: 13px;
-    right: -2%;
-    font-size: var(--text-lg);
-    color: #f7f7f7d7;
-}
-
-.casos-container .hero-subtitle {
-    font-family: var(--font-body, sans-serif);
-    color: #f4f4f4;
-    font-size: var(--text-base);
-    max-width: 700px;
-    margin: 0 auto;
-    line-height: 1.5;
+.casos-container .case-card {
+    margin-top: 0;
 }
 
 /* --- CASOS GRID SECTION (New Minimal Style) --- */
@@ -80,8 +27,8 @@
     gap: var(--pad-lg) var(--gap-md);
 }
 
-/* Container Query: TABLET */
-@container gbn-root (max-width: 1024px) {
+/* Container Query: TABLET (769px a 1024px) */
+@container gbn-root (min-width: 769px) and (max-width: 1024px) {
     .casos-grid {
         grid-template-columns: repeat(2, 1fr);
         /* 2 Columnas en tablets */
@@ -251,8 +198,8 @@
     transform: translateY(-2px);
 }
 
-/* Container Query: TABLET */
-@container gbn-root (max-width: 1024px) {
+/* Container Query: TABLET (769px a 1024px) */
+@container gbn-root (min-width: 769px) and (max-width: 1024px) {
     .casos-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 30px;

@@ -1,5 +1,7 @@
 <?php
 
+use App\Helpers\ContactForm;
+
 function about_render()
 {
 ?>
@@ -11,6 +13,10 @@ function about_render()
         about_contact();
         ?>
     </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
 <?php
 }
 
@@ -20,12 +26,13 @@ function about_hero()
     <section gloryDiv class="about-hero">
         <div gloryDivSecundario class="hero-content">
             <h1 gloryTexto class="hero-title">
-                <span class="script-text">Sobre</span>
+                <span class="script-text">
+                    Sobre
+                    <span class="script-icon"><i data-lucide="sparkles"></i></span>
+                </span>
+                NOSOTROS
             </h1>
-            <h2 gloryTexto class="hero-subtitle-big">NOSOTROS</h2>
-            <p gloryTexto class="hero-desc">
-                Cosmo Revenue nace con un proposito claro: que los hoteles tomen decisiones de ingresos con claridad, confianza y control absoluto.
-            </p>
+            <p gloryTexto class="hero-subtitle">Cosmo Revenue nace con un proposito claro: que los hoteles tomen decisiones de ingresos con claridad, confianza y control absoluto.</p>
         </div>
     </section>
 <?php
@@ -164,45 +171,6 @@ function about_bio()
 
 function about_contact()
 {
-?>
-    <section gloryDiv class="contact-section">
-        <h2 gloryTexto class="section-title">Contacto</h2>
-
-        <form gloryForm opciones="formId: 'about-contacto', ajaxSubmit: true, honeypot: true" class="contact-form">
-            <div gloryDivSecundario class="form-row">
-                <div gloryInput opciones="name: 'nombre', label: 'Nombre', type: 'text', required: true" class="form-group">
-                    <label>Nombre</label>
-                    <input type="text" name="nombre">
-                </div>
-                <div gloryInput opciones="name: 'email', label: 'Email', type: 'email', required: true" class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email">
-                </div>
-            </div>
-            <div gloryDivSecundario class="form-row">
-                <div gloryInput opciones="name: 'telefono', label: 'Telefono', type: 'tel'" class="form-group">
-                    <label>Telefono</label>
-                    <input type="tel" name="telefono">
-                </div>
-                <div gloryInput opciones="name: 'alojamiento', label: 'Alojamiento', type: 'text'" class="form-group">
-                    <label>Alojamiento</label>
-                    <input type="text" name="alojamiento">
-                </div>
-            </div>
-            <div gloryTextarea opciones="name: 'mensaje', label: 'Mensaje', rows: 4" class="form-group full-width">
-                <label>Mensaje</label>
-                <textarea name="mensaje" rows="4"></textarea>
-            </div>
-
-            <div gloryDivSecundario class="form-footer">
-                <label class="checkbox-label">
-                    <input type="checkbox" name="privacy" required>
-                    He leido y acepto la Politica de Privacidad.
-                </label>
-                <button glorySubmit opciones="texto: 'Enviar', loadingText: 'Enviando...'" type="submit" class="btn-submit">Enviar</button>
-            </div>
-        </form>
-    </section>
-<?php
+    ContactForm::render('about-contacto', 'Contacto', false);
 }
 ?>
