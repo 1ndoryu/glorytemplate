@@ -3,21 +3,17 @@
 use Glory\Core\GloryFeatures;
 use Glory\Gbn\Services\TemplateService;
 
-?>
-
-</main>
-
-<?php
-// Fase 15: Verificar si GBN está activado
+// Fase 15: Verificar si GBN esta activado
 $useGbnFooter = false;
 if (class_exists(GloryFeatures::class) && method_exists(GloryFeatures::class, 'isActive')) {
     $useGbnFooter = GloryFeatures::isActive('gbn', 'glory_gbn_activado');
 }
 
-// Si GBN está activo, usar footer GBN (guardado o por defecto)
+// Si GBN esta activo, usar footer GBN (guardado o por defecto)
+// El footer se renderiza DENTRO del main para que los container queries funcionen
 if ($useGbnFooter && class_exists(TemplateService::class)) {
     $gbnFooter = TemplateService::renderFooter();
-    
+
     if ($gbnFooter !== false) {
         // Hay template guardado, usarlo
         echo $gbnFooter;
@@ -26,8 +22,10 @@ if ($useGbnFooter && class_exists(TemplateService::class)) {
         echo TemplateService::getDefaultFooterTemplate();
     }
 }
-// Si GBN no está activo, el footer queda vacío (comportamiento original de Glory)
+// Si GBN no esta activo, el footer queda vacio (comportamiento original de Glory)
 ?>
+
+</main>
 
 <?php wp_footer(); ?>
 </body>

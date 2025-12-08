@@ -186,7 +186,7 @@ body {
 }
 
 .landing-container .contact-container {
-    padding: 16px 22px;
+    padding: 40px;
     width: 100%;
 }
 
@@ -234,8 +234,15 @@ body {
     justify-items: center;
     align-items: center;
     justify-content: center;
+    gap: 100px;
 }
 
+@container gbn-root (max-width: 1024px) {
+    .landing-container .cards-grid {
+        gap: 40px;
+        padding: 40px 20px;
+    }
+}
 /* Container Query: responde al ancho del contenedor, no del viewport */
 @container gbn-root (max-width: 768px) {
     .landing-container .cards-grid {
@@ -308,6 +315,11 @@ body {
     .landing-container .service-card:nth-child(3):hover {
         transform: rotate(12deg) translateY(95px) scale(1.1);
     }
+
+    .footer-content.secundario {
+        display: flex;
+        flex-direction: column;
+    }
 }
 
 .landing-container .service-card .card-bg-image {
@@ -363,13 +375,12 @@ body {
     text-align: left;
     margin-top: 30px;
     max-width: 340px;
-    max-height: 450px;
     width: 100%;
 }
 
 .landing-container .case-image {
     position: relative;
-    height: 550px;
+    height: 500px;
     background-size: cover;
     background-position: center;
     border-radius: 8px;
@@ -998,10 +1009,32 @@ body {
     border-color: #333;
 }
 
-/* Responsive - Container Query */
+/* MOVIL */
 @container gbn-root (max-width: 768px) {
     .landing-container .hero-title {
         font-size: 3rem;
+    }
+
+    .landing-container .hero-title .highlight-text {
+        font-size: 3rem;
+    }
+
+    .landing-nav {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 15px;
+        background: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(5px);
+    }
+
+    .landing-nav .nav-links {
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .landing-nav .logo {
+        margin-bottom: 5px;
     }
 
     .landing-container .section-title {
@@ -1015,11 +1048,55 @@ body {
 
     .landing-footer .footer-content {
         flex-direction: column;
+        gap: 30px;
+        text-align: center;
     }
 
     .landing-footer .footer-info {
         flex-direction: column;
         gap: 30px;
+        align-items: center;
+    }
+
+    .landing-footer .footer-brand {
+        text-align: center;
+    }
+
+    .landing-footer .footer-nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .landing-footer .footer-nav li {
+        margin-bottom: 0;
+    }
+
+    .landing-footer .footer-bottom {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .landing-footer .social-icons {
+        justify-content: center;
+    }
+
+    .landing-footer {
+        padding: 40px 20px 20px;
+    }
+
+    .landing-footer .info-col {
+        text-align: center;
+    }
+
+    .landing-container .cards-grid {
+        padding: 0 20px;
+    }
+
+    .landing-container .hero-content {
+        padding: 0 15px;
     }
 }
 

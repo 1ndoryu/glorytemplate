@@ -103,6 +103,7 @@ span {
     font-family: var(--font-body);
     font-size: 12px;
     font-weight: unset;
+    text-decoration: unset;
 }
 
 :where(

@@ -1,11 +1,3 @@
-/*
-var BREAKPOINTS = {
-    desktop: {min: 1025, label: 'Desktop', icon: 'desktop'},
-    tablet: {min: 769, max: 1024, label: 'Tablet', icon: 'tablet'},
-    mobile: {max: 768, label: 'Móvil', icon: 'mobile'}
-};
-*/
-
 .cosmoHeaderContainer {
     display: flex;
     justify-content: space-between;
@@ -20,10 +12,17 @@ var BREAKPOINTS = {
     flex-direction: row;
     background: transparent;
     box-shadow: unset;
+    top: 0;
+    width: 100%;
     padding: 15px 30px;
     color: var(--color-blanco);
     transition: background 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
     z-index: 100;
+}
+
+ul#menu-main-menu {
+    display: flex;
+    gap: 20px;
 }
 
 /* Estado cuando el usuario hace scroll */
@@ -46,15 +45,107 @@ var BREAKPOINTS = {
     display: none;
 }
 
-/* 2. TABLET - Container Query */
+
+/* Menu movil desplegable - Estado abierto */
+.cosmoHeader.open .cosmoHeaderBackground,
+[gloryHeader].open .cosmoHeaderBackground,
+.cosmoHeader.open .background,
+[gloryHeader].open .background {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 99;
+}
+
+.cosmoHeader.open ul#menu-main-menu,
+.cosmoHeader.open .cosmoHeaderMenu ul,
+.cosmoHeader.open .nav-links,
+[gloryHeader].open ul#menu-main-menu,
+[gloryHeader].open .nav-links {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    inset: 0;
+    gap: 30px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.cosmoHeader.open ul#menu-main-menu a,
+.cosmoHeader.open .nav-links a,
+.cosmoHeader.open .cosmoHeaderMenu a,
+[gloryHeader].open ul#menu-main-menu a,
+[gloryHeader].open .nav-links a {
+    font-size: 24px;
+    color: #fff;
+}
+
+/* Estilos del boton burger - visible con icono SVG */
+.cosmoHeader .burger,
+.cosmoHeaderBurger,
+[gloryHeader] .burger {
+    display: none;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    position: relative;
+    z-index: 110;
+}
+
+.cosmoHeader .burger svg,
+.cosmoHeaderBurger svg,
+[gloryHeader] .burger svg {
+    color: #fff;
+    width: 24px;
+    height: 24px;
+}
+
+/* 2. TABLET - Container Query (header ahora dentro del main con container-type) */
 @container gbn-root (max-width: 1024px) {
-    .cosmoHeaderBurger {
-        display: block;
+    .cosmoHeaderBurger,
+    .cosmoHeader .burger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 110;
+    }
+
+    /* Ocultar menu principal en tablet */
+    ul#menu-main-menu,
+    .cosmoHeaderMenu ul,
+    .cosmoHeader .nav-links {
+        display: none !important;
     }
 }
+
+
 /* 3. MOVIL - Container Query */
 @container gbn-root (max-width: 768px) {
-    .cosmoHeaderBurger {
-        display: block;
+    .cosmoHeaderBurger,
+    .cosmoHeader .burger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 110;
+    }
+
+    /* Ocultar menu principal en movil */
+    ul#menu-main-menu,
+    .cosmoHeaderMenu ul,
+    .cosmoHeader .nav-links {
+        display: none !important;
+    }
+
+    .cosmoHeader {
+        padding: 12px 20px;
     }
 }
