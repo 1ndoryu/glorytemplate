@@ -28,7 +28,7 @@ function landing_hero()
         <div gloryDivSecundario class="hero-content">
             <h1 gloryTexto class="hero-title">
                 Ordenamos el universo de tus <br>
-                <span class="highlight-text">INGRESOS</span>
+                <span class="highlight-text">femboy u.u</span>
             </h1>
 
             <a gloryButton href="#" class="btn-auditoria">
