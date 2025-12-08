@@ -3,11 +3,13 @@
  *
  * Alinea cada marcador (C, O, S, M, O) verticalmente con su step-name
  * tanto en vista mobile como desktop.
+ * Se re-inicializa despues de navegacion AJAX.
  */
 (function () {
     'use strict';
 
     var MOBILE_BREAKPOINT = 768;
+    var resizeListenerAdded = false;
 
     function alignMarkers() {
         var isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
@@ -72,23 +74,33 @@
         };
     }
 
-    // Ejecutar al cargar
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () {
-            // Esperar un poco para que el layout se estabilice
-            setTimeout(alignMarkers, 100);
-        });
-    } else {
+    var debouncedAlign = debounce(alignMarkers, 150);
+
+    function init() {
+        // Esperar un poco para que el layout se estabilice
         setTimeout(alignMarkers, 100);
+
+        // Solo agregar listeners una vez
+        if (!resizeListenerAdded) {
+            window.addEventListener('resize', debouncedAlign);
+            resizeListenerAdded = true;
+        }
+
+        // Re-calcular cuando las fuentes carguen
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(function () {
+                setTimeout(alignMarkers, 50);
+            });
+        }
     }
 
-    // Re-calcular en resize
-    window.addEventListener('resize', debounce(alignMarkers, 150));
-
-    // Re-calcular cuando las fuentes carguen
-    if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(function () {
-            setTimeout(alignMarkers, 50);
-        });
+    // Inicializacion en carga de pagina
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
     }
+
+    // Re-inicializacion despues de navegacion AJAX
+    document.addEventListener('gloryRecarga', init);
 })();

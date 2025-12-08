@@ -62,26 +62,30 @@ $homeUrl = esc_url(home_url('/'));
             <a gloryButton href="#"><i data-lucide="instagram"></i></a>
             <a gloryButton href="#"><i data-lucide="linkedin"></i></a>
         </div>
+    </div>
 </footer>
 
 <!-- Lucide Icons: Se carga al final para que todos los elementos data-lucide existan en el DOM -->
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
-    // Se usa DOMContentLoaded como fallback, pero también verificamos si lucide ya esta disponible
-    // ya que el script anterior puede haber cargado de forma asincrona
-    document.addEventListener('DOMContentLoaded', function() {
+    // Funcion centralizada para inicializar iconos Lucide
+    // Verifica que lucide este disponible antes de llamar createIcons
+    function initLucideIcons() {
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
-    });
+    }
+
+    // Inicializacion en carga inicial de la pagina
+    document.addEventListener('DOMContentLoaded', initLucideIcons);
+
+    // Re-inicializacion despues de navegacion AJAX (gloryAjaxNav)
+    // El evento gloryRecarga se dispara cada vez que se carga contenido nuevo via AJAX
+    document.addEventListener('gloryRecarga', initLucideIcons);
 
     // Fallback: si el DOM ya cargo pero lucide aun no estaba listo
-    // (puede pasar con cache del navegador)
+    // (puede pasar con cache del navegador en primera carga)
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        setTimeout(function() {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        }, 100);
+        setTimeout(initLucideIcons, 100);
     }
 </script>
