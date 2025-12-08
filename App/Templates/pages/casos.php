@@ -8,7 +8,7 @@ function casos_render()
     <div class="casos-container">
         <?php
         casos_hero();
-        casos_grid();
+        landing_cases();
         casos_quote();
         casos_cta();
         ?>
@@ -39,58 +39,28 @@ function casos_hero()
 <?php
 }
 
-function template_caso_item($post, $itemClass)
-{
-    if (!$post instanceof \WP_Post) return;
-
-    $location = get_post_meta($post->ID, 'location', true);
-    $image_url = get_the_post_thumbnail_url($post->ID, 'large');
-
-    if (!$image_url) {
-        $image_url = 'https://via.placeholder.com/800x600?text=' . urlencode(get_the_title($post));
-    }
-?>
-    <div class="<?php echo esc_attr($itemClass); ?> caso-minimal-card">
-        <a href="<?php echo esc_url(get_permalink($post)); ?>" class="caso-card-link" style="text-decoration:none; color:inherit; display:block;">
-
-            <div class="caso-minimal-header">
-                <h3 class="caso-minimal-title"><?php echo esc_html(get_the_title($post)); ?></h3>
-                <?php if ($location) : ?>
-                    <span class="caso-minimal-location"><?php echo esc_html($location); ?></span>
-                <?php endif; ?>
-            </div>
-
-            <div class="caso-minimal-image-wrap">
-                <img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr(get_the_title($post)); ?>" class="caso-minimal-image">
-            </div>
-
-        </a>
-    </div>
-<?php
-}
-
 function casos_grid()
 {
 ?>
-    <section gloryDiv class="casos-section">
-        <?php
-        ContentRender::print('portfolio', [
-            'publicacionesPorPagina' => -1,
-            'orden'                  => 'fecha',
-            'argumentosConsulta'     => [
-                'order' => 'DESC'
-            ],
-            'display_mode'        => 'grid',
-            'grid_columns_mode'   => 'fixed',
-            'grid_columns'        => 3,
-            'grid_columns_medium' => 2,
-            'grid_columns_small'  => 1,
-            'gap'                 => '40px',
-            'claseItem'           => 'caso-card',
-            'plantillaCallback'      => 'template_caso_item',
-            'forzarSinCache'      => true,
-        ]);
-        ?>
+    <section gloryDiv class="cases-section">
+        <div gloryDivSecundario class="cases-container">
+
+            <div gloryPostRender opciones="postType: 'casos', postsPerPage: 3, categoryFilter: false" class="cases-grid">
+                <article gloryPostItem class="case-card">
+                    <div class="case-meta">
+                        <h3 gloryPostField="meta:caso_tipo" class="case-flotante"></h3>
+                        <span gloryPostField="meta:caso_ubicacion" class="case-flotante"></span>
+                    </div>
+                    <div gloryPostField="featuredImage" opciones="asBackground: true" class="case-image">
+                        <div class="case-stat">
+                            <h4 gloryPostField="meta:caso_valor"></h4>
+                            <p gloryPostField="meta:caso_descripcion"></p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+
+        </div>
     </section>
 <?php
 }

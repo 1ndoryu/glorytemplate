@@ -52,6 +52,11 @@ $usuarioId = get_current_user_id();
             }
         });
     </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+
 </head>
 
 <?php

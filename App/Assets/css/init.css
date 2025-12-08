@@ -55,6 +55,31 @@
     --font-brand: 'Archivo Black', sans-serif;
     --font-body: 'Montserrat', sans-serif;
 
+    /* ========================================
+       DESIGN TOKENS CENTRALIZADOS
+       Usar estas variables en todas las páginas
+       para mantener consistencia visual.
+       ======================================== */
+
+    /* Tipografía - Tamaños de fuente */
+    --text-xs: 12px; /* Labels, tags, texto uppercase pequeño */
+    --text-sm: 14px; /* Subtítulos, descripciones secundarias */
+    --text-base: 14px; /* Párrafos, botones, texto normal */
+    --text-lg: 32px; /* Títulos de tarjetas, h3, headings medianos */
+    --text-hero: 72px; /* Títulos de sección y hero principales */
+
+    /* Spacing - Separación entre elementos */
+    --gap-xs: 8px; /* Separación mínima entre elementos inline */
+    --gap-sm: 16px; /* Separación estándar entre elementos */
+    --gap-md: 32px; /* Separación entre grupos de contenido */
+    --gap-lg: 60px; /* Separación entre secciones internas */
+    --gap-section: 80px; /* Padding vertical de secciones principales */
+
+    /* Padding - Espaciado interno de contenedores */
+    --pad-xs: 16px; /* Padding interno elementos pequeños */
+    --pad-sm: 24px; /* Padding interno contenedores medianos */
+    --pad-lg: 40px; /* Padding lateral de secciones y header */
+
     --header-height: 126px;
     --grid-columnCount: 5;
     --grid-gutter: 2.5641025641vw;

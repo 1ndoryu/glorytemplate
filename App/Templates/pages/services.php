@@ -15,6 +15,7 @@ function services_render()
     <script>
         lucide.createIcons();
     </script>
+
 <?php
 }
 
@@ -132,7 +133,10 @@ function services_consulting()
     <section gloryDiv class="consulting-section">
         <div gloryDivSecundario class="consulting-content">
             <div gloryDivSecundario class="consulting-left">
-                <div class="section-tag"><i data-lucide="sparkles"></i> Auditoria y Tecnologia</div>
+                <div class="section-tag">
+                    <i data-lucide="sparkles"></i>
+                    <p class="section-tag-text">Auditoria y Tecnologia</p>
+                </div>
                 <h2 gloryTexto class="section-title">Consultoria & Mapeo</h2>
                 <p gloryTexto class="section-text">
                     Antes de correr, ordenamos el camino. Un servicio esencial para alojamientos que buscan diagnostico, limpieza de datos y una hoja de ruta clara antes de la temporada.
@@ -185,7 +189,10 @@ function services_revenue()
 {
 ?>
     <section gloryDiv class="revenue-section">
-        <div class="section-tag"><i data-lucide="sparkles"></i> Gestion Mensual Recurrente</div>
+        <div class="section-tag">
+            <i data-lucide="sparkles"></i>
+            <p class="section-tag-text">Gestion Mensual Recurrente</p>
+        </div>
         <h2 gloryTexto class="section-title">Revenue Management</h2>
         <p gloryTexto class="section-subtitle">Programas adaptados a la madurez de tu alojamiento. Desde auditoria tecnica hasta gestion 360.</p>
 

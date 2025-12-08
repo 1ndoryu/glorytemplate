@@ -9,15 +9,13 @@
     height: 60vh;
     min-height: 500px;
     width: 100%;
-    background-color: #a8bfa5;
-    /* Base greenish color */
-    background: radial-gradient(circle at center, rgba(185, 185, 185, 0.4) 0%, rgba(145, 150, 121) 70%);
+    background-color: #141414;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 20px;
+    padding: var(--pad-xs);
 }
 
 .services-container .hero-content {
@@ -27,14 +25,14 @@
 
 .services-container .hero-title {
     font-family: var(--font-body);
-    margin-bottom: 40px;
+    margin-bottom: var(--pad-lg);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     color: #f4f4f4;
     font-weight: normal;
-    font-size: 80px;
+    font-size: var(--text-hero);
     letter-spacing: 2px;
 }
 
@@ -43,7 +41,7 @@
     color: #f4f4f4;
     font-family: var(--font-heading);
     font-style: italic;
-    font-size: 80px;
+    font-size: var(--text-hero);
     width: fit-content;
     display: block;
     margin-bottom: -10px;
@@ -53,38 +51,37 @@
     position: absolute;
     top: 13px;
     right: -2%;
-    font-size: 40px;
+    font-size: var(--text-lg);
     color: #f7f7f7d7;
 }
 
 .services-container .hero-subtitle {
     color: #f4f4f4;
-    font-size: 19px;
-    max-width: 800px;
+    font-size: var(--text-base);
     font-family: var(--font-body);
     margin: 0 auto;
-    line-height: 1;
+    max-width: 540px;
 }
 
 /* --- SECCIONES COMUNES EN SERVICIOS --- */
 .services-container .marketing-section,
 .services-container .revenue-section {
-    padding: 80px 20px;
+    padding: var(--gap-section) var(--pad-xs);
     text-align: center;
     max-width: 1200px;
     margin: 0 auto;
 }
 
 .services-container .section-tag {
-    margin-top: 32px;
+    margin-top: var(--gap-md);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 3px 16px;
+    gap: var(--gap-xs);
+    padding: 3px var(--gap-sm);
     border: 1px solid var(--color-accent);
     border-radius: 20px;
-    margin-bottom: 24px;
+    margin-bottom: var(--pad-sm);
 }
 
 .services-container .section-tag svg {
@@ -94,7 +91,7 @@
 
 .services-container .section-tag-text {
     font-family: var(--font-body);
-    font-size: 13px;
+    font-size: var(--text-xs);
     color: var(--color-text);
     font-weight: normal;
     margin: 0;
@@ -104,7 +101,7 @@
 .services-container .section-title {
     font-size: 56px;
     font-weight: normal;
-    margin: 0 0 20px 0;
+    margin: 0 0 var(--pad-xs) 0;
 }
 
 .services-container .section-title-italic {
@@ -112,27 +109,27 @@
     font-weight: normal;
     font-style: italic;
     font-size: 56px;
-    margin: 0 0 20px 0;
+    margin: 0 0 var(--pad-xs) 0;
 }
 
 .services-container .section-subtitle {
     font-family: var(--font-body);
     max-width: 700px;
-    margin: 0 auto 60px;
-    font-size: 16px;
+    margin: 0 auto var(--gap-lg);
+    font-size: var(--text-base);
 }
 
 /* --- MARKETING SECTION --- */
 .services-container .marketing-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
 }
 
 .services-container .marketing-card {
     background: #fff;
     border: 2.3px solid #4a5d4e48;
     border-radius: 20px;
-    padding: 40px 30px;
+    padding: var(--pad-lg) var(--pad-sm);
     text-align: left;
     display: flex;
     flex-direction: column;
@@ -145,7 +142,7 @@
     background: #fff;
     border: 2.3px solid #4a5d4e48;
     border-radius: 0px 20px 20px 0px;
-    padding: 40px 30px;
+    padding: var(--pad-lg) var(--pad-sm);
     text-align: left;
     display: flex;
     flex-direction: column;
@@ -158,7 +155,7 @@
     background: #fff;
     border: 2.3px solid #4a5d4e48;
     border-radius: 20px 0px 0px 20px;
-    padding: 40px 30px;
+    padding: var(--pad-lg) var(--pad-sm);
     text-align: left;
     display: flex;
     flex-direction: column;
@@ -172,7 +169,7 @@
     border: 2.3px solid #4a5d4e48;
     border-right: 0;
     border-left: 0;
-    padding: 40px 30px;
+    padding: var(--pad-lg) var(--pad-sm);
     text-align: left;
     display: flex;
     flex-direction: column;
@@ -186,7 +183,7 @@
     border: 2.3px solid #4a5d4e48;
     border-radius: 0px 20px 20px 0px;
     border-left: 0.5px;
-    padding: 40px 30px;
+    padding: var(--pad-lg) var(--pad-sm);
     text-align: left;
     display: flex;
     flex-direction: column;
@@ -201,7 +198,7 @@
 }
 
 .services-container .card-header {
-    margin-bottom: 20px;
+    margin-bottom: var(--pad-xs);
 }
 
 .services-container .card-icon-wrapper {
@@ -212,8 +209,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    margin-bottom: 9px;
+    font-size: var(--pad-sm);
+    margin-bottom: var(--gap-xs);
 }
 
 .services-container .marketing-card-left h3,
@@ -231,7 +228,7 @@
 .services-container .card-subtitle {
     font-family: var(--font-body);
     display: block;
-    font-size: 13px;
+    font-size: var(--text-xs);
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.5px;
@@ -244,27 +241,27 @@
 }
 
 .services-container .card-desc {
-    font-size: 15px;
+    font-size: var(--text-sm);
     color: #555;
     line-height: 1.6;
-    margin-bottom: 30px;
+    margin-bottom: var(--gap-md);
     margin-top: 5px;
 }
 
 .services-container .card-features {
     list-style: none;
     padding: 0;
-    margin: 0 0 30px 0;
+    margin: 0 0 var(--gap-md) 0;
 }
 
 .services-container .card-features li {
-    font-size: 14px;
+    font-size: var(--text-sm);
     color: #444;
-    margin-bottom: 12px;
+    margin-bottom: var(--text-xs);
     display: flex;
     align-items: flex-start;
     /* Align top for multi-line text */
-    gap: 12px;
+    gap: var(--text-xs);
 }
 
 .services-container .feature-check svg {
@@ -280,16 +277,16 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap-xs);
     width: 100%;
-    padding: 12px 0;
+    padding: var(--text-xs) 0;
     border: 1px solid #757474;
     border-radius: 8px;
     /* Slightly less rounded than card */
     text-align: center;
     text-decoration: none;
     color: #333;
-    font-size: 14px;
+    font-size: var(--text-sm);
     font-weight: 500;
     transition: all 0.3s ease;
 }
@@ -301,8 +298,8 @@
 }
 
 .services-container .btn-card svg {
-    width: 16px;
-    height: 16px;
+    width: var(--gap-sm);
+    height: var(--gap-sm);
 }
 
 /* --- CONSULTING SECTION --- */
@@ -320,7 +317,7 @@
     gap: 50px;
     align-items: flex-start;
     text-align: left;
-    padding: 80px 16px;
+    padding: var(--gap-section) var(--gap-sm);
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -337,8 +334,8 @@
 .services-container .section-text {
     color: #555;
     line-height: 1.8;
-    margin-bottom: 20px;
-    font-size: 16px;
+    margin-bottom: var(--pad-xs);
+    font-size: var(--text-base);
     font-weight: normal;
     font-family: var(--font-body);
 }
@@ -352,7 +349,7 @@
     background: #111;
     color: #fff;
     border-radius: 20px;
-    padding: 40px;
+    padding: var(--pad-lg);
     position: relative;
     overflow: hidden;
 }
@@ -360,36 +357,36 @@
 .services-container .orbit-header {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 10px;
+    gap: var(--gap-sm);
+    margin-bottom: var(--gap-xs);
 }
 
 .services-container .orbit-icon {
-    font-size: 24px;
+    font-size: var(--pad-sm);
     color: #d4e157;
 }
 
 .services-container .orbit-card h3 {
     color: #f4f4f4;
     font-family: var(--font-heading);
-    font-size: 40px;
+    font-size: var(--text-lg);
     margin: 0;
     font-style: italic;
 }
 
 .services-container .orbit-desc {
-    font-size: 16px;
+    font-size: var(--text-base);
     color: var(--color-accent);
     font-weight: normal;
     font-family: var(--font-body);
-    margin-bottom: 20px;
+    margin-bottom: var(--pad-xs);
     letter-spacing: 1px;
 }
 
 .services-container .orbit-subdesc {
-    font-size: 15px;
+    font-size: var(--text-sm);
     line-height: 1.6;
-    margin-bottom: 30px;
+    margin-bottom: var(--gap-md);
     color: #ddd;
     font-weight: normal;
     font-family: var(--font-body);
@@ -397,8 +394,8 @@
 
 .services-container .orbit-features {
     display: flex;
-    gap: 30px;
-    margin-bottom: 30px;
+    gap: var(--gap-md);
+    margin-bottom: var(--gap-md);
 }
 
 .services-container .orbit-features ul {
@@ -409,12 +406,12 @@
 }
 
 .services-container .orbit-features li {
-    font-size: 14px;
-    margin-bottom: 12px;
+    font-size: var(--text-sm);
+    margin-bottom: var(--text-xs);
     color: #ccc;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap-xs);
     font-weight: normal;
     font-family: var(--font-body);
 }
@@ -428,7 +425,7 @@
 .services-container .btn-orbit {
     display: block;
     width: 100%;
-    padding: 12px 0;
+    padding: var(--text-xs) 0;
     background: #fff;
     color: #111;
     text-align: center;
@@ -442,7 +439,6 @@
     background: #f0f0f0;
 }
 
-/* --- REVENUE SECTION --- */
 .services-container .revenue-section {
     padding-bottom: 100px;
 }
@@ -462,7 +458,7 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    margin-top: 80px;
+    margin-top: var(--gap-section);
     width: 100%;
 }
 
@@ -477,7 +473,7 @@
 
 .revenue-bottom-text {
     font-family: var(--font-body) !important;
-    font-size: 16px !important;
+    font-size: var(--text-base) !important;
     max-width: 70%;
 }
 
@@ -525,15 +521,8 @@
 }
 
 /* --- RESPONSIVE ADJUSTMENTS --- */
-/* Container Query: TABLET */
+/* Container Query: TABLET - mantiene 3 columnas en tablet */
 @container gbn-root (max-width: 1024px) {
-    /* En tablet/móvil, las tarjetas deben separarse y verse uniformes */
-    .services-container .marketing-grid {
-        grid-template-columns: 1fr;
-        /* Una sola columna */
-        gap: 20px;
-    }
-
     /* Resetear estilos específicos de posición para que parezcan tarjetas independientes */
     .services-container .marketing-card-left,
     .services-container .marketing-card-center,
@@ -543,7 +532,6 @@
         /* Bordes redondeados completos */
         border: 2.3px solid #4a5d4e48 !important;
         /* Borde completo */
-        margin-bottom: 20px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         /* Sombra suave para destacar */
     }
@@ -559,11 +547,17 @@
 
 /* Container Query: MOVIL */
 @container gbn-root (max-width: 768px) {
-    /* Ajustes adicionales para móvil */
+    /* Marketing grid: 1 columna solo en movil */
+    .services-container .marketing-grid {
+        grid-template-columns: 1fr;
+        gap: var(--pad-xs);
+    }
+
+    /* Ajustes adicionales para movil */
     .services-container .hero-title,
     .services-container .hero-title .script-text {
         font-size: 48px;
-        /* Reducir tamaño de título hero */
+        /* Reducir tamano de titulo hero */
     }
 
     .services-container .section-title,
@@ -571,7 +565,7 @@
     .services-container .marketing-card-center h3,
     .services-container .marketing-card-right h3 {
         font-size: 40px;
-        /* Títulos de tarjetas más pequeños */
+        /* Titulos de tarjetas mas pequenos */
     }
 
     .services-container .hero-subtitle {
@@ -584,9 +578,10 @@
     .services-container .marketing-card-right,
     .services-container .marketing-card-right-bottom {
         padding: 30px 20px;
-        /* Padding interno más cómodo para móvil */
+        /* Padding interno mas comodo para movil */
         height: auto;
-        /* Altura automática */
+        /* Altura automatica */
+        margin-bottom: var(--pad-xs);
     }
 
     .services-container .consulting-content {
