@@ -39,6 +39,7 @@ body {
     line-height: 1.6;
     font-size: 18px;
     font-family: var(--font-body);
+    padding: 20px;
 }
 
 /* --- 3. ESTILOS ESPECÍFICOS DE LANDING PAGE --- */
@@ -237,22 +238,6 @@ body {
     gap: 100px;
 }
 
-@container gbn-root (max-width: 1024px) {
-    .landing-container .cards-grid {
-        gap: 40px;
-        padding: 40px 20px;
-    }
-}
-/* Container Query: responde al ancho del contenedor, no del viewport */
-@container gbn-root (max-width: 768px) {
-    .landing-container .cards-grid {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-}
-
 .landing-container .service-card {
     position: relative;
     height: 340px;
@@ -278,48 +263,6 @@ body {
 
 .landing-container .service-card:hover {
     transform: translateY(0px);
-}
-
-/* Container Query: responde al ancho del contenedor, no del viewport */
-@container gbn-root (min-width: 1024px) {
-    .landing-container .cards-grid {
-        align-items: center;
-        padding: 40px 0;
-    }
-
-    /* Tarjeta Izquierda */
-    .landing-container .service-card:nth-child(1) {
-        transform: rotate(-12deg) translateY(100px);
-    }
-
-    .landing-container .service-card:nth-child(1):hover {
-        transform: translateY(95px) rotate(-12deg) scale(1.1);
-    }
-
-    /* Tarjeta Central */
-    .landing-container .service-card:nth-child(2) {
-        transform: translateY(0px) scale(1.1);
-        z-index: 2;
-        /* box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); */
-    }
-
-    .landing-container .service-card:nth-child(2):hover {
-        transform: translateY(-10px) scale(1.1);
-    }
-
-    /* Tarjeta Derecha */
-    .landing-container .service-card:nth-child(3) {
-        transform: rotate(12deg) translateY(100px);
-    }
-
-    .landing-container .service-card:nth-child(3):hover {
-        transform: rotate(12deg) translateY(95px) scale(1.1);
-    }
-
-    .footer-content.secundario {
-        display: flex;
-        flex-direction: column;
-    }
 }
 
 .landing-container .service-card .card-bg-image {
@@ -756,24 +699,6 @@ body {
     }
 }
 
-/* Ajustes Responsive movil */
-/* Container Query: responde al ancho del contenedor, no del viewport */
-@container gbn-root (max-width: 600px) {
-    .landing-container .orbit-container {
-        /* En móviles muy pequeños, aseguramos margen lateral */
-        width: 90%;
-    }
-
-    /* Posiciones ajustadas para evitar cortes en bordes */
-    .landing-container .planet-c {
-        right: -2%;
-    }
-
-    .landing-container .planet-o {
-        left: -2%;
-    }
-}
-
 /* About Landing */
 
 .landing-container .about-section .section-title {
@@ -1009,7 +934,46 @@ body {
     border-color: #333;
 }
 
-/* MOVIL */
+/* --- Marquee Infinite Scroll Support --- */
+.landing-container .marquee-track {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    width: max-content;
+    will-change: transform;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    animation: marquee-loop 40s linear infinite;
+}
+
+.landing-container .marquee-track span {
+    white-space: nowrap;
+}
+
+@keyframes marquee-loop {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+section.services-section,
+section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-content: center;
+}
+
+/* ==========================================================================
+   RESPONSIVE - CONTAINER QUERIES UNIFICADOS
+   Orden: Movil (768px) -> Tablet (1024px) -> Desktop (min-width: 1024px)
+   ========================================================================== */
+
+/* 1. MOVIL - max-width: 768px */
 @container gbn-root (max-width: 768px) {
     .landing-container .hero-title {
         font-size: 3rem;
@@ -1091,45 +1055,82 @@ body {
         text-align: center;
     }
 
-    .landing-container .cards-grid {
-        padding: 0 20px;
-    }
-
     .landing-container .hero-content {
         padding: 0 15px;
     }
-}
 
-/* --- Marquee Infinite Scroll Support --- */
-.landing-container .marquee-track {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    width: max-content;
-    will-change: transform;
-    flex-wrap: nowrap;
-    white-space: nowrap;
-    animation: marquee-loop 40s linear infinite;
-}
-
-.landing-container .marquee-track span {
-    white-space: nowrap;
-}
-
-@keyframes marquee-loop {
-    0% {
-        transform: translateX(0);
+    .landing-container .methodology-graphic {
+        height: unset;
+        min-height: unset;
+        margin: unset;
     }
 
-    100% {
-        transform: translateX(-50%);
+    .landing-container .cards-grid {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 0 20px;
+    }
+
+    .landing-container .orbit-container {
+        width: 90%;
+    }
+
+    .landing-container .planet-c {
+        right: -2%;
+    }
+
+    .landing-container .planet-o {
+        left: -2%;
     }
 }
 
-section.services-section,
-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    align-content: center;
+/* 2. TABLET - max-width: 1024px (despues de movil para sobreescribir) */
+@container gbn-root (max-width: 1024px) {
+    .landing-container .cards-grid {
+        gap: 40px;
+        padding: 40px 20px;
+    }
+}
+
+/* 3. DESKTOP - min-width: 1024px */
+@container gbn-root (min-width: 1024px) {
+    .landing-container .cards-grid {
+        align-items: center;
+        padding: 40px 0;
+    }
+
+    /* Tarjeta Izquierda */
+    .landing-container .service-card:nth-child(1) {
+        transform: rotate(-12deg) translateY(100px);
+    }
+
+    .landing-container .service-card:nth-child(1):hover {
+        transform: translateY(95px) rotate(-12deg) scale(1.1);
+    }
+
+    /* Tarjeta Central */
+    .landing-container .service-card:nth-child(2) {
+        transform: translateY(0px) scale(1.1);
+        z-index: 2;
+    }
+
+    .landing-container .service-card:nth-child(2):hover {
+        transform: translateY(-10px) scale(1.1);
+    }
+
+    /* Tarjeta Derecha */
+    .landing-container .service-card:nth-child(3) {
+        transform: rotate(12deg) translateY(100px);
+    }
+
+    .landing-container .service-card:nth-child(3):hover {
+        transform: rotate(12deg) translateY(95px) scale(1.1);
+    }
+
+    .footer-content.secundario {
+        display: flex;
+        flex-direction: row;
+    }
 }
