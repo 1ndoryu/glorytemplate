@@ -206,7 +206,7 @@ body {
 
 .landing-container .cases-container,
 .casos-container .cases-wrapper {
-    padding: 0 var(--pad-xs);
+    padding: 40px;
     width: 100%;
 }
 
