@@ -87,7 +87,7 @@ function contact_form_section()
     // Renderiza el formulario de contacto con el helper global
     // Parametros: formId, titulo, mostrar campos de habitaciones
     ?>
-    <div style="padding: 20px;">
+    <div style="padding: 20px; background-color: #f9f9f9;">
     <?php ContactForm::render('contact-page', 'Enviar mensaje', true); ?>
     </div>
     <?php
