@@ -1246,7 +1246,6 @@ span {
 }
 
 .contact-container {
-    padding: var(--pad-lg);
     width: 100%;
     max-width: 900px;
     margin: 0 auto;
