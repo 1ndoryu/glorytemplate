@@ -27,8 +27,7 @@ if ($useGbnFooter && class_exists(TemplateService::class)) {
 
 </main>
 
-<!-- Lucide icons cargado al final con defer para no bloquear renderizado -->
-<script src="https://unpkg.com/lucide@latest" defer></script>
+
 <script>
     // Inicializar iconos despues de que Lucide cargue
     document.addEventListener('DOMContentLoaded', function() {

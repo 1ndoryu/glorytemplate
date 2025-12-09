@@ -100,6 +100,19 @@ AssetManager::define(
     ]
 );
 
+// Registrar Lucide Icons sin dependencia de jQuery y con defer
+AssetManager::define(
+    'script',
+    'tema-lucide',
+    '/App/Assets/js/lucide.min.js',
+    [
+        'deps'       => [],
+        'in_footer'  => true,
+        'defer'      => true,
+        'exclude_on' => ['gbn-control-panel'],
+    ]
+);
+
 // Carga todos los archivos JS de la carpeta /assets/js/ del tema, excluyendo la carpeta/archivos de tareas.
 AssetManager::defineFolder(
     'script',
@@ -117,19 +130,8 @@ AssetManager::defineFolder(
         'taskmove.js',
         'taskProperties.js',
         'taskSesiones.js',
-        'taskUtils.js'
+        'taskUtils.js',
+        'lucide.min.js'
     ]
 );
 
-// Registrar todos los JS de la carpeta /assets/js/task/ con la feature 'task'
-AssetManager::defineFolder(
-    'script',
-    'App/Assets/js/task/',
-    [
-        'deps'     => ['jquery'],
-        'in_footer' => true,
-        'feature'  => 'task',
-        'exclude_on' => ['gbn-control-panel'],
-    ],
-    'tema-task-'
-);
