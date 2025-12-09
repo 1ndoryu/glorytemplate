@@ -61,7 +61,7 @@ function landing_services()
                         <div gloryTexto class="card-content">
                             <h3>Marketing y <br>estrategia</h3>
                         </div>
-                        <div class="card-bg-image" style="background-image: url('<?php echo AssetsUtility::imagenUrl('tema:marketing.jpg'); ?>');"></div>
+                        <div class="card-bg-image" style="background-image: url('<?php echo AssetsUtility::imagenUrl('tema::marketing.jpg'); ?>');"></div>
                     </div>
                     <div class="flip-card-back">
                         <div class="flip-back-content">
@@ -78,7 +78,7 @@ function landing_services()
                         <div gloryTexto class="card-content">
                             <h3>Revenue <br>Management</h3>
                         </div>
-                        <div class="card-bg-image" style="background-image: url('<?php echo AssetsUtility::imagenUrl('tema:revenue.jpg'); ?>');"></div>
+                        <div class="card-bg-image" style="background-image: url('<?php echo AssetsUtility::imagenUrl('tema::revenue.jpg'); ?>');"></div>
                     </div>
                     <div class="flip-card-back">
                         <div class="flip-back-content">
@@ -95,7 +95,7 @@ function landing_services()
                         <div gloryTexto class="card-content">
                             <h3>Consultoria & <br>Mapeos</h3>
                         </div>
-                        <div class="card-bg-image" style="background-image: url('<?php echo AssetsUtility::imagenUrl('tema:consultoría.jpg'); ?>');"></div>
+                        <div class="card-bg-image" style="background-image: url('<?php echo AssetsUtility::imagenUrl('tema::consultoria.jpg'); ?>');"></div>
                     </div>
                     <div class="flip-card-back">
                         <div class="flip-back-content">
