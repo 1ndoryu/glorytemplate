@@ -19,18 +19,18 @@ GloryFeatures::disable('licenseManager');
 GloryFeatures::disable('creditosManager');
 
 //UI Components
-GloryFeatures::enable('modales');
-GloryFeatures::enable('submenus');
-GloryFeatures::enable('pestanas');
-GloryFeatures::enable('scheduler');
+GloryFeatures::disable('modales');
+GloryFeatures::disable('submenus');
+GloryFeatures::disable('pestanas');
+GloryFeatures::disable('scheduler');
 GloryFeatures::disable('headerAdaptativo');
 GloryFeatures::enable('themeToggle');
-GloryFeatures::enable('alertas');
+GloryFeatures::disable('alertas');
 GloryFeatures::enable('gestionarPreviews');
 GloryFeatures::enable('paginacion');
-GloryFeatures::enable('gloryFilters');
-GloryFeatures::enable('calendario');
-GloryFeatures::enable('badgeList');
+GloryFeatures::disable('gloryFilters');
+GloryFeatures::disable('calendario');
+GloryFeatures::disable('badgeList');
 GloryFeatures::enable('highlight');
 GloryFeatures::enable('gsap');
 GloryFeatures::disable('gbnSplitContent');
@@ -41,8 +41,8 @@ GloryFeatures::enable('cssCritico');
 GloryFeatures::enable('navegacionAjax');
 GloryFeatures::enable('gloryAjax');
 GloryFeatures::enable('gloryForm');
-GloryFeatures::enable('gloryBusqueda');
-GloryFeatures::enable('gloryRealtime');
+GloryFeatures::disable('gloryBusqueda');
+GloryFeatures::disable('gloryRealtime');
 
 // Activar CSS asincrono para evitar bloqueo de renderizado
 // Todos los CSS se cargaran con media="print" y onload para no bloquear
