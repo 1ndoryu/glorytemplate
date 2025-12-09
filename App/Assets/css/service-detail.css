@@ -344,3 +344,7 @@
         width: 100%;
     }
 }
+
+.service-contact-section .contact-container {
+    padding: 0;
+}
