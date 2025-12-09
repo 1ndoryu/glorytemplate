@@ -1238,6 +1238,7 @@ span {
     padding: var(--gap-section) var(--pad-xs);
     max-width: 1000px;
     margin: 0 auto;
+    padding: 40px;
 }
 
 .cosmo-contact-container {

@@ -32,7 +32,12 @@ class ContactForm
                     </div>
                 <?php endif; ?>
 
-                <form gloryForm opciones="formId: '<?php echo esc_attr($formId); ?>', ajaxSubmit: true, honeypot: true" class="cosmo-contact-form">
+                <form gloryForm
+                    data-ajax-submit="true"
+                    data-form-id="<?php echo esc_attr($formId); ?>"
+                    data-success-message="Formulario enviado con exito!"
+                    data-error-message="Hubo un error al enviar el formulario."
+                    class="cosmo-contact-form">
                     <div gloryDivSecundario class="cosmo-form-row">
                         <div gloryInput opciones="name: 'nombre', label: 'Nombre', type: 'text', required: true" class="cosmo-form-group">
                             <label>Nombre</label>
@@ -94,7 +99,12 @@ class ContactForm
     public static function renderFormOnly(string $formId = 'contacto', bool $showHabitaciones = true): void
     {
     ?>
-        <form gloryForm opciones="formId: '<?php echo esc_attr($formId); ?>', ajaxSubmit: true, honeypot: true" class="cosmo-contact-form">
+        <form gloryForm
+            data-ajax-submit="true"
+            data-form-id="<?php echo esc_attr($formId); ?>"
+            data-success-message="Formulario enviado con exito!"
+            data-error-message="Hubo un error al enviar el formulario."
+            class="cosmo-contact-form">
             <div gloryDivSecundario class="cosmo-form-row">
                 <div gloryInput opciones="name: 'nombre', label: 'Nombre', type: 'text', required: true" class="cosmo-form-group">
                     <label>Nombre</label>
@@ -140,6 +150,96 @@ class ContactForm
                 <button glorySubmit opciones="texto: 'Enviar', loadingText: 'Enviando...'" type="submit" class="cosmo-btn-submit">Enviar</button>
             </div>
         </form>
+    <?php
+    }
+
+    /**
+     * Renderiza el formulario con un servicio preseleccionado
+     * Usado en las paginas de detalle de servicios
+     * 
+     * @param string $formId ID unico del formulario
+     * @param string $title Titulo de la seccion
+     * @param string $serviceName Nombre del servicio preseleccionado
+     * @return void
+     */
+    public static function renderWithService(
+        string $formId = 'contacto',
+        string $title = 'Solicitar informacion',
+        string $serviceName = ''
+    ): void {
+    ?>
+        <section gloryDiv class="cosmo-contact-section service-contact-section">
+            <div gloryDivSecundario class="cosmo-contact-container">
+                <?php if (!empty($title)): ?>
+                    <div gloryDivSecundario class="cosmo-section-header">
+                        <h2 gloryTexto class="cosmo-section-title"><?php echo esc_html($title); ?></h2>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!empty($serviceName)): ?>
+                    <div class="service-selected-badge">
+                        <span class="badge-label">Servicio seleccionado:</span>
+                        <span class="badge-value"><?php echo esc_html($serviceName); ?></span>
+                    </div>
+                <?php endif; ?>
+
+                <form gloryForm
+                    data-ajax-submit="true"
+                    data-form-id="<?php echo esc_attr($formId); ?>"
+                    data-success-message="Gracias por tu interes! Nos pondremos en contacto contigo pronto."
+                    data-error-message="Hubo un error al enviar el formulario."
+                    class="cosmo-contact-form">
+
+                    <!-- Campo oculto con el servicio seleccionado -->
+                    <?php if (!empty($serviceName)): ?>
+                        <input type="hidden" name="servicio_interes" value="<?php echo esc_attr($serviceName); ?>">
+                    <?php endif; ?>
+
+                    <div gloryDivSecundario class="cosmo-form-row">
+                        <div gloryInput opciones="name: 'nombre', label: 'Nombre', type: 'text', required: true" class="cosmo-form-group">
+                            <label>Nombre</label>
+                            <input type="text" name="nombre" required>
+                        </div>
+                        <div gloryInput opciones="name: 'email', label: 'Email', type: 'email', required: true" class="cosmo-form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" required>
+                        </div>
+                    </div>
+                    <div gloryDivSecundario class="cosmo-form-row">
+                        <div gloryInput opciones="name: 'telefono', label: 'Telefono', type: 'tel'" class="cosmo-form-group">
+                            <label>Telefono</label>
+                            <input type="tel" name="telefono">
+                        </div>
+                        <div gloryInput opciones="name: 'alojamiento', label: 'Nombre del alojamiento', type: 'text'" class="cosmo-form-group">
+                            <label>Nombre del alojamiento</label>
+                            <input type="text" name="alojamiento">
+                        </div>
+                    </div>
+                    <div gloryDivSecundario class="cosmo-form-row">
+                        <div gloryInput opciones="name: 'habitaciones', label: 'N habitaciones', type: 'text'" class="cosmo-form-group">
+                            <label>N habitaciones</label>
+                            <input type="text" name="habitaciones">
+                        </div>
+                        <div gloryInput opciones="name: 'pms', label: 'PMS/Channel', type: 'text'" class="cosmo-form-group">
+                            <label>PMS/Channel</label>
+                            <input type="text" name="pms">
+                        </div>
+                    </div>
+                    <div gloryTextarea opciones="name: 'mensaje', label: 'Cuentanos sobre tu proyecto', rows: 4" class="cosmo-form-group cosmo-full-width">
+                        <label>Cuentanos sobre tu proyecto</label>
+                        <textarea name="mensaje" rows="3" placeholder="Describe brevemente tu alojamiento y que te gustaria conseguir..."></textarea>
+                    </div>
+
+                    <div gloryDivSecundario class="cosmo-form-footer">
+                        <label class="cosmo-checkbox-label">
+                            <input type="checkbox" name="privacy" required>
+                            He leido y acepto la Politica de Privacidad.
+                        </label>
+                        <button glorySubmit opciones="texto: 'Solicitar propuesta', loadingText: 'Enviando...'" type="submit" class="cosmo-btn-submit">Solicitar propuesta</button>
+                    </div>
+                </form>
+            </div>
+        </section>
 <?php
     }
 }

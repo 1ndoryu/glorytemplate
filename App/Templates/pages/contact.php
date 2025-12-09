@@ -2,12 +2,13 @@
 
 use App\Helpers\ContactForm;
 use App\Helpers\Marquee;
+use App\Helpers\PageHero;
 
 /**
  * contact_render - Renderiza la pagina de contacto completa
  * 
  * Estructura:
- * - Hero con titulo decorativo (patron de about/services)
+ * - Hero con titulo decorativo (usando helper PageHero)
  * - Informacion de contacto con iconos
  * - Formulario de contacto usando el helper ContactForm
  * - Marquee de cierre
@@ -23,34 +24,22 @@ function contact_render()
         contact_marquee();
         ?>
     </div>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        lucide.createIcons();
-    </script>
 <?php
 }
 
 /**
  * contact_hero - Hero de la pagina de contacto
- * Sigue el mismo patron visual que about y services
+ * Usa el helper PageHero para mantener consistencia con about y services
  */
 function contact_hero()
 {
-?>
-    <section gloryDiv class="contact-hero">
-        <div gloryDivSecundario class="hero-content">
-            <h1 gloryTexto class="hero-title">
-                <span class="script-text">
-                    Hablemos
-                    <span class="script-icon"><i data-lucide="sparkles"></i></span>
-                </span>
-                CONTACTO
-            </h1>
-            <p gloryTexto class="hero-subtitle">Estamos aqui para ayudarte a maximizar la rentabilidad de tu alojamiento. Cuentanos tu proyecto y encontraremos la solucion perfecta para ti.</p>
-        </div>
-    </section>
-<?php
+    PageHero::render(
+        'Hablemos',
+        'CONTACTO',
+        'Estamos aqui para ayudarte a maximizar la rentabilidad de tu alojamiento. Cuentanos tu proyecto y encontraremos la solucion perfecta para ti.'
+    );
 }
+
 
 /**
  * contact_info - Seccion con informacion de contacto

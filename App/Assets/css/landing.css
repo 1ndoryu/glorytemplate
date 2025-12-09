@@ -468,18 +468,20 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    /* transform is handled by animation */
-    transform: translate(-50%, -50%);
+    /* Transform inicial debe coincidir con el primer frame de la animacion */
+    transform: translate(-50%, -50%) rotate(0deg);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     /* overflow visible para que los tooltips no se corten */
     overflow: visible;
+    /* Forzar aplicacion inmediata de estilos de animacion */
+    animation-fill-mode: both;
 }
 
 .landing-container .ring-outer {
     width: 100%;
     height: 100%;
-    animation: orbit-spin-cw 120s linear infinite;
+    animation: orbit-spin-cw 120s linear infinite both;
     /* z-index menor para no bloquear los anillos interiores */
     z-index: 1;
 }
@@ -487,14 +489,14 @@ body {
 .landing-container .ring-inner {
     width: 78%;
     height: 78%;
-    animation: orbit-spin-ccw 90s linear infinite;
+    animation: orbit-spin-ccw 90s linear infinite both;
     z-index: 2;
 }
 
 .landing-container .ring-inner-2 {
     width: 52%;
     height: 52%;
-    animation: orbit-spin-cw 60s linear infinite;
+    animation: orbit-spin-cw 60s linear infinite both;
     /* z-index mayor para que C reciba eventos del mouse */
     z-index: 3;
 }
@@ -1157,33 +1159,8 @@ section {
         padding: 40px 0;
     }
 
-    /* Tarjeta Izquierda */
-    .landing-container .service-card:nth-child(1) {
-        transform: rotate(-12deg) translateY(100px);
-    }
-
-    .landing-container .service-card:nth-child(1):hover {
-        transform: translateY(95px) rotate(-12deg) scale(1.1);
-    }
-
-    /* Tarjeta Central */
-    .landing-container .service-card:nth-child(2) {
-        transform: translateY(0px) scale(1.1);
-        z-index: 2;
-    }
-
-    .landing-container .service-card:nth-child(2):hover {
-        transform: translateY(-10px) scale(1.1);
-    }
-
-    /* Tarjeta Derecha */
-    .landing-container .service-card:nth-child(3) {
-        transform: rotate(12deg) translateY(100px);
-    }
-
-    .landing-container .service-card:nth-child(3):hover {
-        transform: rotate(12deg) translateY(95px) scale(1.1);
-    }
+    /* Los estilos de posicionamiento de tarjetas ahora se aplican a .flip-card 
+       en la seccion de FLIP CARDS - RESPONSIVE al final del archivo */
 
     .footer-content.secundario {
         display: flex;
@@ -1191,9 +1168,197 @@ section {
     }
 }
 
-
 .logo-icon svg {
     height: 40px;
     width: 40px;
     margin-top: 12px;
+}
+
+/* ==========================================================================
+   FLIP CARDS - Efecto de volteo para tarjetas de servicios
+   ========================================================================== */
+
+/* Contenedor principal de la flip card - establece la perspectiva 3D */
+.landing-container .flip-card {
+    perspective: 1000px;
+    width: 220px;
+    height: 340px;
+    cursor: pointer;
+}
+
+/* Contenedor interno que rotara */
+.landing-container .flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+/* Estado volteado - rota 180 grados en el eje Y */
+.landing-container .flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+/* Estilos compartidos para frente y reverso */
+.landing-container .flip-card-front,
+.landing-container .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* Frente de la tarjeta - hereda los estilos de service-card */
+.landing-container .flip-card-front {
+    z-index: 2;
+}
+
+/* Reverso de la tarjeta */
+.landing-container .flip-card-back {
+    transform: rotateY(180deg);
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--pad-sm);
+    box-sizing: border-box;
+    border: 1px solid #e0e0e0;
+}
+
+/* Contenido del reverso */
+.landing-container .flip-back-content {
+    text-align: center;
+    color: #333;
+}
+
+.landing-container .flip-back-content p {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: #444;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Efecto hover en flip card (antes de voltear) */
+.landing-container .flip-card:not(.flipped):hover .flip-card-inner {
+    transform: rotateY(10deg);
+}
+
+/* ==========================================================================
+   FLIP CARDS - RESPONSIVE
+   ========================================================================== */
+
+/* Desktop - posicionamiento de flip cards con rotacion */
+@container gbn-root (min-width: 1024px) {
+    /* Tarjeta Izquierda */
+    .landing-container .flip-card:nth-child(1) {
+        transform: rotate(-12deg) translateY(100px);
+    }
+
+    .landing-container .flip-card:nth-child(1):hover {
+        transform: translateY(95px) rotate(-12deg) scale(1.05);
+    }
+
+    /* Tarjeta Central */
+    .landing-container .flip-card:nth-child(2) {
+        transform: translateY(0px) scale(1.1);
+        z-index: 2;
+    }
+
+    .landing-container .flip-card:nth-child(2):hover {
+        transform: translateY(-10px) scale(1.1);
+    }
+
+    /* Tarjeta Derecha */
+    .landing-container .flip-card:nth-child(3) {
+        transform: rotate(12deg) translateY(100px);
+    }
+
+    .landing-container .flip-card:nth-child(3):hover {
+        transform: rotate(12deg) translateY(95px) scale(1.05);
+    }
+
+    /* Cuando estan volteadas, mantener la posicion pero voltear */
+    .landing-container .flip-card.flipped:nth-child(1) .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+
+    .landing-container .flip-card.flipped:nth-child(2) .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+
+    .landing-container .flip-card.flipped:nth-child(3) .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+}
+
+/* Movil - las flip cards se apilan verticalmente */
+@container gbn-root (max-width: 768px) {
+    .landing-container .flip-card {
+        transform: none !important;
+    }
+
+    .landing-container .flip-card:hover {
+        transform: none !important;
+    }
+}
+
+/* ==========================================================================
+   CORRECCIONES ADICIONALES
+   ========================================================================== */
+
+/* Padding al texto de "Sobre mi" */
+.landing-container .about-text {
+    padding: 0 20px;
+}
+
+/* Padding lateral de 40px a secciones y formularios */
+.landing-container .about-section,
+.landing-container .contact-section {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Tarjetas móviles: 70% de ancho y proporción correcta */
+@container gbn-root (max-width: 768px) {
+    /* Flip cards de servicios */
+    .landing-container .flip-card {
+        width: 100% !important;
+        max-width: none;
+        aspect-ratio: 3/4;
+    }
+
+    .landing-container .services-grid {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+
+    /* Case cards */
+    .landing-container .case-card,
+    .casos-container .case-card {
+        width: 100%;
+        max-width: none;
+    }
+
+    .landing-container .cases-grid,
+    .casos-container .cases-grid {
+        grid-template-columns: 1fr !important;
+        justify-items: center;
+    }
+
+    /* Ajuste del padding lateral general */
+    .landing-container .about-text {
+        padding: 0 20px;
+    }
+
+    .landing-container .about-section,
+    .landing-container .contact-section {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
 }

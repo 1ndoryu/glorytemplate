@@ -38,11 +38,11 @@ $homeUrl = esc_url(home_url('/'));
                 </a>
             </div>
             <ul class="footer-nav">
-                <li><a gloryButton href="#">Inicio</a></li>
-                <li><a gloryButton href="#">Servicios</a></li>
-                <li><a gloryButton href="#">Nosotros</a></li>
-                <li><a gloryButton href="#">Casos</a></li>
-                <li><a gloryButton href="#">Contacto</a></li>
+                <li><a gloryAjaxNav gloryButton href="/">Inicio</a></li>
+                <li><a gloryAjaxNav gloryButton href="/servicios">Servicios</a></li>
+                <li><a gloryAjaxNav gloryButton href="/about">Nosotros</a></li>
+                <li><a gloryAjaxNav gloryButton href="/casos">Casos</a></li>
+                <li><a gloryAjaxNav gloryButton href="/contacto">Contacto</a></li>
             </ul>
         </div>
 

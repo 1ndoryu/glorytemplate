@@ -27,7 +27,7 @@ class PageHero
     public static function render(string $scriptText, string $mainText, string $subtitle): void
     {
 ?>
-        <section gloryDiv class="page-hero">
+        <section gloryDiv class="page-hero" style="min-height: 500px;">
             <div gloryDivSecundario class="hero-content">
                 <h1 gloryTexto class="hero-title">
                     <span class="script-text">

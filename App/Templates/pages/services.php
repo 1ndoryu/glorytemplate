@@ -54,7 +54,8 @@ function services_marketing()
                 'Para alojamientos que quieren establecer una presencia profesional.',
                 ['Auditoría de redes', 'Gestión de 2 redes', 'Publicaciones semanales', 'Reporting mensual'],
                 'Solicitar info <i data-lucide="arrow-right"></i>',
-                'left'
+                'left',
+                '/servicio-comet'
             );
 
             render_marketing_card(
@@ -64,7 +65,8 @@ function services_marketing()
                 'Para negocios que buscan atraer tráfico y convertir seguidores en reservas.',
                 ['Todo lo de COMET +', 'Anuncios en redes (Ads)', 'Email marketing', 'Gestión de comunidad'],
                 'Consultar propuestas <i data-lucide="arrow-right"></i>',
-                'center'
+                'center',
+                '/servicio-nebula'
             );
 
             render_marketing_card(
@@ -74,7 +76,8 @@ function services_marketing()
                 'Estrategia integral de comunicación y captación avanzada.',
                 ['Todo lo de NEBULA +', 'Google Hotel Ads', 'Plan comunicación anual', 'Análisis ROI mensual'],
                 'Reunión estratégica <i data-lucide="arrow-right"></i>',
-                'right'
+                'right',
+                '/servicio-quasar'
             );
             ?>
         </div>
@@ -82,7 +85,7 @@ function services_marketing()
 <?php
 }
 
-function render_marketing_card($icon, $title, $subtitle, $desc, $features, $cta, $dir = 'normal')
+function render_marketing_card($icon, $title, $subtitle, $desc, $features, $cta, $dir = 'normal', $link = '#')
 {
 ?>
     <div class="<?php if ($dir == 'normal') echo 'marketing-card';
@@ -114,7 +117,7 @@ function render_marketing_card($icon, $title, $subtitle, $desc, $features, $cta,
         </div>
 
         <div class="card-footer">
-            <a href="#" class="btn-card"><?php echo $cta; ?></a>
+            <a gloryAjaxNav href="<?php echo esc_url($link); ?>" class="btn-card"><?php echo $cta; ?></a>
         </div>
     </div>
 <?php
@@ -173,7 +176,7 @@ function render_orbit_card()
             </ul>
         </div>
 
-        <a href="#" class="btn-orbit">Solicitar diagnóstico +</a>
+        <a gloryAjaxNav href="/servicio-orbit" class="btn-orbit">Solicitar diagnostico +</a>
     </div>
 <?php
 }
@@ -194,20 +197,22 @@ function services_revenue()
                 <?php render_marketing_card(
                     '<i data-lucide="sparkles"></i>',
                     'Galaxy',
-                    'Gestión externa continua',
-                    'Ejecución y seguimiento constante mensual. Sin ampliar tu estructura interna.',
-                    ['Todo lo de ORBIT+', 'Control channel mix', 'Revisión de tarifas (3-5 x Semana)', 'Reporting mensual'],
+                    'Gestion externa continua',
+                    'Ejecucion y seguimiento constante mensual. Sin ampliar tu estructura interna.',
+                    ['Todo lo de ORBIT+', 'Control channel mix', 'Revision de tarifas (3-5 x Semana)', 'Reporting mensual'],
                     'Consultar propuestas <i data-lucide="arrow-right"></i>',
-                    'left'
+                    'left',
+                    '/servicio-galaxy'
                 ); ?>
                 <?php render_marketing_card(
                     '<i data-lucide="zap"></i>',
                     'Universe',
-                    'Departamento 360°',
+                    'Departamento 360',
                     'Partner completo anual. Para grupos o alojamientos que buscan excelencia total.',
-                    ['Todo lo de GALAXY+', 'Estrategia de fidelización', 'Mapeos ilimitados', 'Formación de equipo'],
-                    'Reunión estratégica <i data-lucide="arrow-right"></i>',
-                    'right-bottom'
+                    ['Todo lo de GALAXY+', 'Estrategia de fidelizacion', 'Mapeos ilimitados', 'Formacion de equipo'],
+                    'Reunion estrategica <i data-lucide="arrow-right"></i>',
+                    'right-bottom',
+                    '/servicio-universe'
                 ); ?>
             </div>
         </div>
@@ -217,7 +222,7 @@ function services_revenue()
                 <h2 gloryTexto class="section-title-italic">Dudas sobre que plan elegir?</h2>
 
                 <p gloryTexto class="revenue-bottom-text">Hablemos. Analizaremos tu situacion y te recomendamos la orbita adecuada para tu despegue.</p>
-                <a gloryButton class="btn-submit-revenue" href="#">Contactar</a>
+                <a gloryAjaxNav gloryButton class="btn-submit-revenue" href="/contacto">Contactar</a>
             </div>
         </div>
 

@@ -76,7 +76,7 @@
 
 /* --- SECCION DE INFORMACION DE CONTACTO --- */
 .contact-container .contact-info-section {
-    padding: var(--gap-section) var(--pad-xs);
+    padding: var(--gap-section) 40px;
     background-color: #f9f9f9;
 }
 
@@ -144,6 +144,8 @@
 /* Aqui ajustamos el contexto especifico de la pagina de contacto */
 .contact-container .cosmo-contact-section {
     background-color: #fff;
+    padding-left: 40px;
+    padding-right: 40px;
 }
 
 .contact-container .cosmo-section-title {

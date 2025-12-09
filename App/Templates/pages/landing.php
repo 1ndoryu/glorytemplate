@@ -2,6 +2,7 @@
 
 use App\Helpers\Icons;
 use App\Helpers\Marquee;
+use Glory\Utility\AssetsUtility;
 
 function landing_render()
 {
@@ -31,7 +32,7 @@ function landing_hero()
                 <span class="highlight-text">INGRESOS</span>
             </h1>
 
-            <a gloryButton href="#" class="btn-auditoria">
+            <a gloryAjaxNav gloryButton href="/contacto" class="btn-auditoria">
                 <?php echo Icons::get('sparkles', 'auditoria-icon'); ?>
                 Reservar auditoría
             </a>
@@ -53,25 +54,55 @@ function landing_services()
 
         <div gloryDivSecundario class="cards-grid">
 
-            <div gloryTarjeta class="service-card card-dark">
-                <div gloryTexto class="card-content">
-                    <h3>Marketing y <br> estrategia</h3>
+            <!-- Marketing y Estrategia - Flip Card -->
+            <div class="flip-card" onclick="this.classList.toggle('flipped')">
+                <div class="flip-card-inner">
+                    <div gloryTarjeta class="flip-card-front service-card card-dark">
+                        <div gloryTexto class="card-content">
+                            <h3>Marketing y <br>estrategia</h3>
+                        </div>
+                        <div class="card-bg-image" style="background-image: url('<?php echo AssetsUtility::imagenUrl('tema:marketing.jpg'); ?>');"></div>
+                    </div>
+                    <div class="flip-card-back">
+                        <div class="flip-back-content">
+                            <p>Impulsa tu visibilidad y venta directa. Desde el lanzamiento hasta la consolidacion de tu posicionamiento digital.</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=500&q=80');"></div>
             </div>
 
-            <div gloryTarjeta class="service-card card-light">
-                <div gloryTexto class="card-content">
-                    <h3>Revenue <br> Management</h3>
+            <!-- Revenue Management - Flip Card -->
+            <div class="flip-card" onclick="this.classList.toggle('flipped')">
+                <div class="flip-card-inner">
+                    <div gloryTarjeta class="flip-card-front service-card card-light">
+                        <div gloryTexto class="card-content">
+                            <h3>Revenue <br>Management</h3>
+                        </div>
+                        <div class="card-bg-image" style="background-image: url('<?php echo AssetsUtility::imagenUrl('tema:revenue.jpg'); ?>');"></div>
+                    </div>
+                    <div class="flip-card-back">
+                        <div class="flip-back-content">
+                            <p>Programas adaptados a la madurez de tu alojamiento. Desde auditoria tecnica hasta gestion 360.</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=500&q=80');"></div>
             </div>
 
-            <div gloryTarjeta class="service-card card-dark">
-                <div gloryTexto class="card-content">
-                    <h3>Consultoría & <br> Mapeos</h3>
+            <!-- Consultoria & Mapeos - Flip Card -->
+            <div class="flip-card" onclick="this.classList.toggle('flipped')">
+                <div class="flip-card-inner">
+                    <div gloryTarjeta class="flip-card-front service-card card-dark">
+                        <div gloryTexto class="card-content">
+                            <h3>Consultoria & <br>Mapeos</h3>
+                        </div>
+                        <div class="card-bg-image" style="background-image: url('<?php echo AssetsUtility::imagenUrl('tema:consultoría.jpg'); ?>');"></div>
+                    </div>
+                    <div class="flip-card-back">
+                        <div class="flip-back-content">
+                            <p>Antes de correr, ordenamos el camino. Diagnostico, limpieza de datos y hoja de ruta clara antes de temporada.</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-bg-image" style="background-image: url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=500&q=80');"></div>
             </div>
         </div>
 
@@ -244,7 +275,7 @@ function landing_about()
             <p gloryTexto class="about-text">
                 Cosmo Revenue es una consultoría boutique de revenue y RevOps para hotelería, liderada por una profesional joven, independiente y cercana. Mi propósito es que los hoteles tomen decisiones de ingresos con claridad y confianza.
             </p>
-            <a gloryButton href="#" class="btn-about">Leer más</a>
+            <a gloryAjaxNav gloryButton href="/about" class="btn-about">Leer mas</a>
         </div>
 
         <?php Marquee::echo('ES EL MEJOR MOMENTO PARA DESPEGAR', 'light', 'about-marquee'); ?>
@@ -261,7 +292,12 @@ function landing_contact()
                 <h2 gloryTexto class="section-title">Contacto</h2>
             </div>
 
-            <form gloryForm opciones="formId: 'contacto', ajaxSubmit: true, honeypot: true" class="contact-form">
+            <form gloryForm
+                data-ajax-submit="true"
+                data-form-id="contacto"
+                data-success-message="Formulario enviado con exito!"
+                data-error-message="Hubo un error al enviar el formulario."
+                class="contact-form">
                 <div gloryDivSecundario class="form-row">
                     <div gloryInput opciones="name: 'nombre', label: 'Nombre', type: 'text', required: true" class="form-group">
                         <label>Nombre</label>
@@ -309,3 +345,4 @@ function landing_contact()
     </section>
 <?php
 }
+?>

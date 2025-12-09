@@ -75,7 +75,7 @@ function casos_cta()
     <section gloryDiv class="casos-cta">
         <h2 gloryTexto class="cta-title">Listo para escribir tu caso de exito?</h2>
         <p gloryTexto class="cta-text">Analicemos el potencial oculto de tu alojamiento. Empieza con una auditoria o una consulta estrategica hoy mismo.</p>
-        <a gloryButton href="#" class="btn-cta">Contactar</a>
+        <a gloryAjaxNav gloryButton href="/contacto" class="btn-cta">Contactar</a>
     </section>
 <?php
 }

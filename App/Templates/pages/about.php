@@ -163,6 +163,7 @@ function about_bio()
 
 function about_contact()
 {
-    ContactForm::render('about-contacto', 'Contacto', false);
+    // Renderiza el formulario de contacto completo, igual que en landing
+    ContactForm::render('about-contacto', 'Contacto', true);
 }
 ?>

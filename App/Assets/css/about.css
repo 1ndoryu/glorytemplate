@@ -189,7 +189,7 @@
 /* --- BIO SECTION --- */
 .about-container .bio-section {
     background-color: rgba(245, 245, 234);
-    padding: 100px 20px;
+    padding: 100px 40px;
     margin-top: 80px;
 }
 
@@ -236,7 +236,7 @@
 
 /* --- CONTACT SECTION --- */
 .about-container .contact-section {
-    padding: 100px 20px;
+    padding: 100px 40px;
     max-width: 900px;
     margin: 0 auto;
     text-align: center;

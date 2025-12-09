@@ -22,7 +22,8 @@ AssetManager::defineFolder(
         'cache_buster.css', // Forzar regeneración de caché
         'casos.css',
         'about.css',
-        'contact.css'
+        'contact.css',
+        'service-detail.css'
     ]
 );
 
@@ -68,6 +69,18 @@ AssetManager::define(
     'style',
     'tema-about',
     '/App/Assets/css/about.css',
+    [
+        'deps'    => [],
+        'media'   => 'all',
+        'exclude_on' => ['gbn-control-panel'],
+    ]
+);
+
+// Registrar CSS de paginas de detalle de servicios
+AssetManager::define(
+    'style',
+    'tema-service-detail',
+    '/App/Assets/css/service-detail.css',
     [
         'deps'    => [],
         'media'   => 'all',
