@@ -1348,10 +1348,4 @@ section {
     .landing-container .about-text {
         padding: 0 20px;
     }
-
-    .landing-container .about-section,
-    .landing-container .contact-section {
-        padding-left: 20px;
-        padding-right: 20px;
-    }
 }
