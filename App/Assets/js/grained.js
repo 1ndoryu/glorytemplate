@@ -52,26 +52,24 @@
 
         var noiseUrl = generateNoise();
 
+        // Optimizacion: Leer todos los estilos primero para evitar layout thrashing
+        var positions = [];
+        for (var i = 0; i < element.length; i++) {
+            positions.push(getComputedStyle(element[i]).position);
+        }
+
+        // Luego aplicar todos los cambios
         for (var i = 0; i < element.length; i++) {
             var item = element[i];
 
-            // Ensure container is relative
-            if (getComputedStyle(item).position === 'static') {
+            // Ensure container is relative (usando valor cacheado)
+            if (positions[i] === 'static') {
                 item.style.position = 'relative';
             }
 
             var noiseDiv = doc.createElement('div');
             noiseDiv.className = 'grained-overlay';
-            noiseDiv.style.position = 'absolute';
-            noiseDiv.style.top = '0';
-            noiseDiv.style.left = '0';
-            noiseDiv.style.width = '100%';
-            noiseDiv.style.height = '100%';
-            noiseDiv.style.overflow = 'hidden';
-            noiseDiv.style.zIndex = '1';
-            noiseDiv.style.pointerEvents = 'none';
-            noiseDiv.style.backgroundImage = 'url(' + noiseUrl + ')';
-            noiseDiv.style.backgroundRepeat = 'repeat';
+            noiseDiv.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;z-index:1;pointer-events:none;background-image:url(' + noiseUrl + ');background-repeat:repeat';
 
             // Insert as first child
             if (item.firstChild) {

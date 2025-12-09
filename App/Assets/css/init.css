@@ -298,7 +298,8 @@ span {
     justify-content: space-around;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Instrument+Serif:ital@0;1&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Source+Sans+3:wght@200..900&display=swap');
+/* Google Fonts: cargadas de forma asincrona en header.php para evitar bloqueo de renderizado.
+   No usar @import aqui ya que bloquea el renderizado (~780ms segun PageSpeed). */
 
 :where(h1, h2) {
     font-family: 'Instrument Serif', serif;

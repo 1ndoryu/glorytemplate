@@ -17,52 +17,63 @@
 
         if (steps.length === 0) return;
 
-        steps.forEach(function (step, index) {
+        // Optimizacion: Separar lecturas de escrituras para evitar forced reflows
+        // Fase 1: Recolectar todas las medidas primero (lecturas)
+        var measurements = [];
+        steps.forEach(function (step) {
             var marker = step.querySelector('.step-marker');
             var stepName = step.querySelector('.step-name');
             var stepTitle = step.querySelector('.step-title');
 
-            if (!marker || !stepName) return;
+            if (!marker || !stepName) {
+                measurements.push(null);
+                return;
+            }
 
-            // Resetear completamente los estilos previos
-            marker.style.marginTop = '0';
-            marker.style.top = 'auto';
-            marker.style.position = 'relative';
+            var data = {marker: marker, stepName: stepName};
 
             if (isMobile) {
-                // MOBILE: step-title esta en flow normal
                 var titleHeight = 0;
                 if (stepTitle) {
                     var titleStyle = getComputedStyle(stepTitle);
                     titleHeight = stepTitle.offsetHeight + parseFloat(titleStyle.marginBottom || 0) + parseFloat(titleStyle.marginTop || 0);
                 }
-
-                var nameLineHeight = parseFloat(getComputedStyle(stepName).lineHeight) || 21;
-                var markerHeight = marker.offsetHeight;
-                var alignOffset = titleHeight + nameLineHeight / 2 - markerHeight / 2;
-
-                if (alignOffset > 0) {
-                    marker.style.marginTop = alignOffset + 'px';
-                }
+                data.titleHeight = titleHeight;
+                data.nameLineHeight = parseFloat(getComputedStyle(stepName).lineHeight) || 21;
+                data.markerHeight = marker.offsetHeight;
             } else {
-                // DESKTOP: Usar posiciones reales con getBoundingClientRect
-                // Forzar un reflow para obtener medidas correctas
-                void step.offsetHeight;
-
-                var markerRect = marker.getBoundingClientRect();
-                var nameRect = stepName.getBoundingClientRect();
-
-                // Calcular cuanto debe moverse el marker para alinearse con step-name
-                var markerCenter = markerRect.top + markerRect.height / 2;
-                var nameLineHeight = parseFloat(getComputedStyle(stepName).lineHeight) || 21;
-                var nameCenter = nameRect.top + nameLineHeight / 2;
-
-                // Diferencia entre donde esta el marker y donde deberia estar
-                var offset = nameCenter - markerCenter;
-
-                // Aplicar el offset
-                marker.style.top = offset + 'px';
+                data.markerRect = marker.getBoundingClientRect();
+                data.nameRect = stepName.getBoundingClientRect();
+                data.nameLineHeight = parseFloat(getComputedStyle(stepName).lineHeight) || 21;
             }
+
+            measurements.push(data);
+        });
+
+        // Fase 2: Aplicar todas las escrituras en un solo batch (usando rAF para evitar layout thrashing)
+        requestAnimationFrame(function () {
+            measurements.forEach(function (data) {
+                if (!data) return;
+
+                var marker = data.marker;
+
+                // Resetear estilos
+                marker.style.marginTop = '0';
+                marker.style.top = 'auto';
+                marker.style.position = 'relative';
+
+                if (isMobile) {
+                    var alignOffset = data.titleHeight + data.nameLineHeight / 2 - data.markerHeight / 2;
+                    if (alignOffset > 0) {
+                        marker.style.marginTop = alignOffset + 'px';
+                    }
+                } else {
+                    var markerCenter = data.markerRect.top + data.markerRect.height / 2;
+                    var nameCenter = data.nameRect.top + data.nameLineHeight / 2;
+                    var offset = nameCenter - markerCenter;
+                    marker.style.top = offset + 'px';
+                }
+            });
         });
     }
 
