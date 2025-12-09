@@ -1,6 +1,7 @@
 <?php
 
 use Glory\Core\GloryFeatures;
+use Glory\Manager\AssetManager;
 
 //Managers
 GloryFeatures::enable('menu');
@@ -42,6 +43,10 @@ GloryFeatures::enable('gloryAjax');
 GloryFeatures::enable('gloryForm');
 GloryFeatures::enable('gloryBusqueda');
 GloryFeatures::enable('gloryRealtime');
+
+// Activar CSS asincrono para evitar bloqueo de renderizado
+// Todos los CSS se cargaran con media="print" y onload para no bloquear
+AssetManager::enableAsyncStyles();
 
 // Task feature flag
 GloryFeatures::disable('task');
