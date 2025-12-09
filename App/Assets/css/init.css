@@ -1173,7 +1173,10 @@ span {
     margin-bottom: -10px;
 }
 
-.page-hero .script-icon, .services-hero .script-icon, .casos-hero .script-icon, .about-hero .script-icon {
+.page-hero .script-icon,
+.services-hero .script-icon,
+.casos-hero .script-icon,
+.about-hero .script-icon {
     position: absolute;
     top: 18px;
     right: -2%;
@@ -1231,63 +1234,48 @@ span {
 /* ========================================
    CONTACT FORM - Estilos globales para formularios de contacto
    Usado por: ContactForm helper y formularios en cualquier pagina
-   Prefijo cosmo- para la marca Cosmo Revenue
+   Clases identicas a landing.css para consistencia visual
    ======================================== */
 
-.cosmo-contact-section {
-    padding: var(--gap-section) var(--pad-xs);
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 40px;
+/* Seccion de contacto global - aplica a cualquier contenedor */
+.contact-section {
+    padding: var(--gap-section) 0;
+    background-color: #f9f9f9;
+    text-align: center;
 }
 
-.cosmo-contact-container {
+.contact-container {
+    padding: var(--pad-lg);
+    width: 100%;
     max-width: 900px;
     margin: 0 auto;
-    width: 100%;
 }
 
-h1.hero-title {
-    line-height: 1.2;
-}
-
-.cosmo-section-header {
-    text-align: center;
-    margin-bottom: var(--gap-lg);
-}
-
-.cosmo-section-title {
-    font-family: var(--font-heading);
-    font-size: 56px;
-    color: #1a1a1a;
-    font-weight: 400;
-    margin: 0;
-}
-
-.cosmo-contact-form {
+/* Formulario de contacto */
+.contact-form {
     max-width: 850px;
     margin: 0 auto;
     text-align: left;
 }
 
-.cosmo-form-row {
+.form-row {
     display: flex;
     gap: var(--pad-lg);
     margin-bottom: var(--gap-md);
 }
 
-.cosmo-form-group {
+.form-group {
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
-.cosmo-form-group.cosmo-full-width {
+.form-group.full-width {
     width: 100%;
     margin-bottom: var(--gap-md);
 }
 
-.cosmo-form-group label {
+.form-group label {
     font-size: var(--text-base);
     color: #292929;
     font-family: var(--font-body);
@@ -1295,8 +1283,8 @@ h1.hero-title {
     margin-bottom: 8px;
 }
 
-.cosmo-form-group input,
-.cosmo-form-group textarea {
+.form-group input,
+.form-group textarea {
     border: none;
     border-bottom: 1px solid #a0a0a0;
     padding: var(--gap-xs) 0;
@@ -1308,17 +1296,17 @@ h1.hero-title {
     width: 100%;
 }
 
-.cosmo-form-group input:focus,
-.cosmo-form-group textarea:focus {
+.form-group input:focus,
+.form-group textarea:focus {
     border-bottom-color: #313131;
 }
 
-.cosmo-form-group textarea {
+.form-group textarea {
     resize: none;
     min-height: 40px;
 }
 
-.cosmo-form-footer {
+.form-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1327,7 +1315,7 @@ h1.hero-title {
     gap: var(--gap-sm);
 }
 
-.cosmo-checkbox-label {
+.checkbox-label {
     font-size: var(--text-base);
     color: #666;
     font-family: var(--font-body);
@@ -1338,18 +1326,18 @@ h1.hero-title {
     cursor: pointer;
 }
 
-.cosmo-checkbox-label input[type='checkbox'] {
+.checkbox-label input[type='checkbox'] {
     width: 18px;
     height: 18px;
     margin: 0;
     accent-color: #8f9b6b;
 }
 
-.cosmo-btn-submit {
+.btn-submit {
     background-color: #9da876;
     color: #fff;
     border: none;
-    padding: 10px 40px;
+    padding: 6px var(--pad-sm);
     border-radius: 25px;
     cursor: pointer;
     font-family: var(--font-body);
@@ -1357,33 +1345,34 @@ h1.hero-title {
     transition: background 0.3s;
 }
 
-.cosmo-btn-submit:hover {
+.btn-submit:hover {
     background-color: #8a9466;
 }
 
 /* Contact Form - Responsive */
 @container gbn-root (max-width: 768px) {
-    .cosmo-form-row {
+    .form-row {
         flex-direction: column;
         gap: var(--gap-sm);
     }
 
-    .cosmo-form-footer {
+    .form-footer {
         flex-direction: column;
         gap: var(--gap-md);
         align-items: stretch;
     }
 
-    .cosmo-btn-submit {
+    .btn-submit {
         width: 100%;
         text-align: center;
-    }
-
-    .cosmo-checkbox-label {
         justify-content: center;
     }
 
-    .cosmo-section-title {
+    .checkbox-label {
+        justify-content: center;
+    }
+
+    .section-title {
         font-size: 40px;
     }
 }
