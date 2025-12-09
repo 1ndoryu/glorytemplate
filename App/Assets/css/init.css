@@ -20,7 +20,8 @@
     --blanco: var(--text);
 }
 
-/* Modo oscuro */
+@where {
+
 html[data-theme='dark'] {
     --bg: #080808;
     --text: #d4d4d4;
@@ -944,4 +945,6 @@ button.previewRemover {
     align-items: center;
     justify-content: center;
     border-radius: 6px;
+}
+
 }
