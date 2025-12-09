@@ -16,7 +16,11 @@ use App\Helpers\PageHero;
 function contact_render()
 {
 ?>
-    <div class="contact-container">
+    <div class="contact-container" style="
+        margin: unset !important;
+        width: 100%;
+        max-width: unset;
+    ">
         <?php
         contact_hero();
         contact_info();
