@@ -323,10 +323,10 @@
         font-size: calc(var(--text-hero) * 0.6);
     }
 
-    .service-contact-section {
-        padding: var(--pad-sm);
+      .service-contact-section {
+        padding: 0;
         box-shadow: none;
-        border: 1px solid #eee;
+        border: unset;
     }
 }
 
