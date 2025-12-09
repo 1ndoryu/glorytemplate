@@ -53,13 +53,16 @@ PostTypeManager::define(
 );
 
 //Casos
+// Nota: El slug de rewrite es 'caso' (singular) para evitar conflicto con la pagina /casos/
+// Los posts individuales usaran: /caso/nombre-del-caso/
 PostTypeManager::define(
     'casos',
     [
         'public' => true,
-        'has_archive' => true,
+        'has_archive' => false,
         'supports' => ['title', 'editor', 'thumbnail', 'excerpt'],
         'menu_icon' => 'dashicons-building',
+        'rewrite' => ['slug' => 'caso', 'with_front' => false],
     ],
     'Casos',
     'Casos'

@@ -1,5 +1,7 @@
 <?php
 
+use App\Helpers\PageHero;
+
 function services_render()
 {
 ?>
@@ -21,20 +23,11 @@ function services_render()
 
 function services_hero()
 {
-?>
-    <section gloryDiv class="services-hero">
-        <div gloryDivSecundario class="hero-content">
-            <h1 gloryTexto class="hero-title">
-                <span class="script-text">
-                    Nuestros
-                    <span class="script-icon"><i data-lucide="sparkles"></i></span>
-                </span>
-                SERVICIOS
-            </h1>
-            <p gloryTexto class="hero-subtitle">Combinamos Revenue, Marketing y Consultoria para impulsar tus ingresos. Soluciones flexibles que crecen al ritmo de tu negocio.</p>
-        </div>
-    </section>
-<?php
+    PageHero::render(
+        'Nuestros',
+        'SERVICIOS',
+        'Combinamos Revenue, Marketing y Consultoria para impulsar tus ingresos. Soluciones flexibles que crecen al ritmo de tu negocio.'
+    );
 }
 
 function services_marketing()

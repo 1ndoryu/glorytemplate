@@ -21,7 +21,20 @@ AssetManager::defineFolder(
         'task.css',
         'cache_buster.css', // Forzar regeneración de caché
         'casos.css',
-        'about.css'
+        'about.css',
+        'contact.css'
+    ]
+);
+
+// Registrar CSS de Contacto manualmente para asegurar carga
+AssetManager::define(
+    'style',
+    'tema-contact',
+    '/App/Assets/css/contact.css',
+    [
+        'deps'    => [],
+        'media'   => 'all',
+        'exclude_on' => ['gbn-control-panel'],
     ]
 );
 

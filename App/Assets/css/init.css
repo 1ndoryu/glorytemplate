@@ -1173,15 +1173,13 @@ span {
     margin-bottom: -10px;
 }
 
-.page-hero .script-icon,
-.services-hero .script-icon,
-.casos-hero .script-icon,
-.about-hero .script-icon {
+.page-hero .script-icon, .services-hero .script-icon, .casos-hero .script-icon, .about-hero .script-icon {
     position: absolute;
-    top: 13px;
+    top: 18px;
     right: -2%;
     font-size: var(--text-lg);
     color: #f7f7f7d7;
+    height: 24px;
 }
 
 .page-hero .hero-subtitle,
@@ -1246,6 +1244,10 @@ span {
     max-width: 900px;
     margin: 0 auto;
     width: 100%;
+}
+
+h1.hero-title {
+    line-height: 1.2;
 }
 
 .cosmo-section-header {

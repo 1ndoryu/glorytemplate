@@ -1,6 +1,7 @@
 <?php
 
 use App\Helpers\ContactForm;
+use App\Helpers\PageHero;
 
 function about_render()
 {
@@ -22,20 +23,11 @@ function about_render()
 
 function about_hero()
 {
-?>
-    <section gloryDiv class="about-hero">
-        <div gloryDivSecundario class="hero-content">
-            <h1 gloryTexto class="hero-title">
-                <span class="script-text">
-                    Sobre
-                    <span class="script-icon"><i data-lucide="sparkles"></i></span>
-                </span>
-                NOSOTROS
-            </h1>
-            <p gloryTexto class="hero-subtitle">Cosmo Revenue nace con un proposito claro: que los hoteles tomen decisiones de ingresos con claridad, confianza y control absoluto.</p>
-        </div>
-    </section>
-<?php
+    PageHero::render(
+        'Sobre',
+        'NOSOTROS',
+        'Cosmo Revenue nace con un proposito claro: que los hoteles tomen decisiones de ingresos con claridad, confianza y control absoluto.'
+    );
 }
 
 function about_method()

@@ -1,6 +1,6 @@
 <?php
 
-use Glory\Components\ContentRender;
+use App\Helpers\PageHero;
 
 function casos_render()
 {
@@ -23,20 +23,11 @@ function casos_render()
 
 function casos_hero()
 {
-?>
-    <section gloryDiv class="casos-hero">
-        <div gloryDivSecundario class="hero-content">
-            <h1 gloryTexto class="hero-title">
-                <span class="script-text">
-                    Casos
-                    <span class="script-icon"><i data-lucide="sparkles"></i></span>
-                </span>
-                DE EXITO
-            </h1>
-            <p gloryTexto class="hero-subtitle">Descubre algunos ejemplos reales del impacto de nuestras estrategias de Revenue Management en diferentes tipologias de hoteles.</p>
-        </div>
-    </section>
-<?php
+    PageHero::render(
+        'Casos',
+        'DE EXITO',
+        'Descubre algunos ejemplos reales del impacto de nuestras estrategias de Revenue Management en diferentes tipologias de hoteles.'
+    );
 }
 
 function casos_cases()
@@ -51,7 +42,7 @@ function casos_cases()
                         <h3 gloryPostField="meta:caso_tipo" class="case-flotante"></h3>
                         <span gloryPostField="meta:caso_ubicacion" class="case-flotante"></span>
                     </div>
-                    <div gloryPostField="featuredImage" opciones="asBackground: true" class="case-image" >
+                    <div gloryPostField="featuredImage" opciones="asBackground: true" class="case-image">
                         <div class="case-stat" style="display: none;">
                             <h4 gloryPostField="meta:caso_valor"></h4>
                             <p gloryPostField="meta:caso_descripcion"></p>

@@ -1,0 +1,216 @@
+/* 
+ * ESTILOS DE LA PAGINA DE CONTACTO
+ * Hereda variables y resets de init.css (base).
+ * Hereda estilos de hero de init.css (page-hero compartido).
+ * 
+ * Patron visual consistente con about.css y servicios.css
+ */
+
+/* --- CONTAINER PRINCIPAL --- */
+.contact-container {
+    container-type: inline-size;
+    container-name: gbn-root;
+}
+
+/* --- HERO DE CONTACTO --- */
+/* Los estilos base del hero estan centralizados en init.css */
+/* Aqui solo agregamos la clase contact-hero al grupo */
+.contact-hero {
+    position: relative;
+    height: 60vh;
+    min-height: 500px;
+    width: 100%;
+    background-color: #141414;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--pad-xs);
+}
+
+.contact-hero .hero-content {
+    z-index: 2;
+    max-width: 800px;
+}
+
+.contact-hero .hero-title {
+    font-family: var(--font-body);
+    margin-bottom: var(--pad-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #f4f4f4;
+    font-weight: normal;
+    font-size: var(--text-hero);
+    letter-spacing: 2px;
+}
+
+.contact-hero .hero-title .script-text {
+    position: relative;
+    color: #f4f4f4;
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-size: var(--text-hero);
+    width: fit-content;
+    display: block;
+    margin-bottom: -10px;
+}
+
+.contact-hero .script-icon {
+    position: absolute;
+    top: 13px;
+    right: -2%;
+    font-size: var(--text-lg);
+    color: #f7f7f7d7;
+}
+
+.contact-hero .hero-subtitle {
+    color: #f4f4f4;
+    font-size: var(--text-base);
+    font-family: var(--font-body);
+    margin: 0 auto;
+    max-width: 540px;
+}
+
+/* --- SECCION DE INFORMACION DE CONTACTO --- */
+.contact-container .contact-info-section {
+    padding: var(--gap-section) var(--pad-xs);
+    background-color: #f9f9f9;
+}
+
+.contact-container .contact-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gap-lg);
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.contact-container .contact-info-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--pad-lg);
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid rgba(74, 93, 78, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.contact-container .contact-info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.contact-container .info-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(157, 168, 118, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--gap-sm);
+}
+
+.contact-container .info-icon svg {
+    width: 28px;
+    height: 28px;
+    color: var(--color-accent);
+    stroke-width: 1.5;
+}
+
+.contact-container .info-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-lg);
+    color: #1a1a1a;
+    margin: 0 0 var(--gap-xs) 0;
+    font-weight: 400;
+}
+
+.contact-container .info-text {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* --- SECCION DE FORMULARIO --- */
+/* Los estilos del formulario estan en init.css con prefijo cosmo- */
+/* Aqui ajustamos el contexto especifico de la pagina de contacto */
+.contact-container .cosmo-contact-section {
+    background-color: #fff;
+}
+
+.contact-container .cosmo-section-title {
+    font-family: var(--font-heading);
+    font-size: 56px;
+    color: #1a1a1a;
+    margin-bottom: var(--gap-lg);
+    text-align: center;
+    font-weight: 400;
+}
+
+/* --- RESPONSIVE --- */
+
+/* Container Query: TABLET */
+@container gbn-root (max-width: 1024px) {
+    .contact-container .contact-info-grid {
+        gap: var(--gap-md);
+    }
+
+    .contact-container .cosmo-section-title {
+        font-size: 48px;
+    }
+}
+
+/* Container Query: MOVIL */
+@container gbn-root (max-width: 768px) {
+    /* Hero responsive */
+    .contact-hero {
+        height: auto;
+        min-height: 400px;
+        padding: 80px 20px 60px;
+    }
+
+    .contact-hero .hero-title {
+        font-size: 48px;
+        margin-bottom: 24px;
+    }
+
+    .contact-hero .hero-title .script-text {
+        font-size: 56px;
+    }
+
+    .contact-hero .hero-subtitle {
+        font-size: 16px;
+        line-height: 1.4;
+    }
+
+    /* Info grid responsive */
+    .contact-container .contact-info-section {
+        padding: var(--gap-lg) var(--pad-xs);
+    }
+
+    .contact-container .contact-info-grid {
+        grid-template-columns: 1fr;
+        gap: var(--gap-sm);
+    }
+
+    .contact-container .contact-info-card {
+        padding: var(--pad-sm);
+    }
+
+    .contact-container .info-title {
+        font-size: 24px;
+    }
+
+    /* Formulario responsive */
+    .contact-container .cosmo-section-title {
+        font-size: 40px;
+    }
+}

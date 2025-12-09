@@ -3,13 +3,16 @@
 namespace App\Helpers;
 
 /**
- * PageHero - Helper para generar heros de paginas internas
+ * PageHero - Helper para generar heroes de paginas internas
  * 
- * Genera un hero con el estilo de la pagina de servicios:
+ * Genera un hero con el estilo de las paginas internas (services, casos, about):
  * - Fondo oscuro (#141414)
- * - Titulo con texto script + mayusculas
+ * - Titulo con texto script (cursiva) + texto en mayusculas
  * - Subtitulo descriptivo
  * - Icono de sparkles
+ * 
+ * Uso:
+ * PageHero::render('Casos', 'DE EXITO', 'Descripcion aqui...');
  */
 class PageHero
 {
@@ -19,18 +22,18 @@ class PageHero
      * @param string $scriptText Texto en cursiva (ej: "Casos", "Sobre", "Nuestros")
      * @param string $mainText Texto principal en mayusculas (ej: "DE EXITO", "NOSOTROS", "SERVICIOS")
      * @param string $subtitle Subtitulo descriptivo
-     * @param string $heroClass Clase CSS del hero (ej: "casos-hero", "about-hero", "services-hero")
      * @return void
      */
-    public static function render(string $scriptText, string $mainText, string $subtitle, string $heroClass = 'page-hero'): void
+    public static function render(string $scriptText, string $mainText, string $subtitle): void
     {
 ?>
-        <section gloryDiv class="<?php echo esc_attr($heroClass); ?>">
+        <section gloryDiv class="page-hero">
             <div gloryDivSecundario class="hero-content">
                 <h1 gloryTexto class="hero-title">
                     <span class="script-text">
                         <?php echo esc_html($scriptText); ?>
-                        <span class="script-icon"><i data-lucide="sparkles"></i></span>
+
+                        <?php echo Icons::get('sparkles', 'script-icon'); ?>
                     </span>
                     <?php echo esc_html($mainText); ?>
                 </h1>
@@ -38,13 +41,5 @@ class PageHero
             </div>
         </section>
 <?php
-    }
-
-    /**
-     * Wrapper para echo directo
-     */
-    public static function echo(string $scriptText, string $mainText, string $subtitle, string $heroClass = 'page-hero'): void
-    {
-        self::render($scriptText, $mainText, $subtitle, $heroClass);
     }
 }
