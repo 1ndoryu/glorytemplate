@@ -36,7 +36,7 @@ GloryFeatures::disable('gbnSplitContent');
 GloryFeatures::disable('gloryLinkCpt');
 
 //Services
-GloryFeatures::disable('cssCritico');
+GloryFeatures::enable('cssCritico');
 GloryFeatures::enable('navegacionAjax');
 GloryFeatures::enable('gloryAjax');
 GloryFeatures::enable('gloryForm');
@@ -62,14 +62,14 @@ GloryFeatures::disable('avadaIntegration');
 //Admin
 GloryFeatures::disable('queryProfiler');
 GloryFeatures::disable('performanceProfiler');
-GloryFeatures::disable('queryProfilerLogs'); 
+GloryFeatures::disable('queryProfilerLogs');
 
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
 if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
     \App\Handlers\ContentAjaxHandler::register();
 } else {
-    add_action('init', function() {
+    add_action('init', function () {
         if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
             \App\Handlers\ContentAjaxHandler::register();
         }

@@ -1157,6 +1157,7 @@ span {
     font-weight: normal;
     font-size: var(--text-hero);
     letter-spacing: 2px;
+    line-height: 1.2;
 }
 
 .page-hero .hero-title .script-text,

@@ -300,37 +300,37 @@ function landing_contact()
                 class="contact-form">
                 <div gloryDivSecundario class="form-row">
                     <div gloryInput opciones="name: 'nombre', label: 'Nombre', type: 'text', required: true" class="form-group">
-                        <label>Nombre</label>
-                        <input type="text" name="nombre">
+                        <label for="contact-nombre">Nombre</label>
+                        <input type="text" name="nombre" id="contact-nombre">
                     </div>
                     <div gloryInput opciones="name: 'email', label: 'Email', type: 'email', required: true" class="form-group">
-                        <label>Email</label>
-                        <input type="email" name="email">
+                        <label for="contact-email">Email</label>
+                        <input type="email" name="email" id="contact-email">
                     </div>
                 </div>
                 <div gloryDivSecundario class="form-row">
-                    <div gloryInput opciones="name: 'telefono', label: 'Teléfono', type: 'tel'" class="form-group">
-                        <label>Teléfono</label>
-                        <input type="tel" name="telefono">
+                    <div gloryInput opciones="name: 'telefono', label: 'Telefono', type: 'tel'" class="form-group">
+                        <label for="contact-telefono">Telefono</label>
+                        <input type="tel" name="telefono" id="contact-telefono">
                     </div>
                     <div gloryInput opciones="name: 'alojamiento', label: 'Alojamiento', type: 'text'" class="form-group">
-                        <label>Alojamiento</label>
-                        <input type="text" name="alojamiento">
+                        <label for="contact-alojamiento">Alojamiento</label>
+                        <input type="text" name="alojamiento" id="contact-alojamiento">
                     </div>
                 </div>
                 <div gloryDivSecundario class="form-row">
-                    <div gloryInput opciones="name: 'habitaciones', label: 'Nº habitaciones', type: 'text'" class="form-group">
-                        <label>Nº habitaciones</label>
-                        <input type="text" name="habitaciones">
+                    <div gloryInput opciones="name: 'habitaciones', label: 'N habitaciones', type: 'text'" class="form-group">
+                        <label for="contact-habitaciones">N habitaciones</label>
+                        <input type="text" name="habitaciones" id="contact-habitaciones">
                     </div>
                     <div gloryInput opciones="name: 'pms', label: 'PMS/Channel', type: 'text'" class="form-group">
-                        <label>PMS/Channel</label>
-                        <input type="text" name="pms">
+                        <label for="contact-pms">PMS/Channel</label>
+                        <input type="text" name="pms" id="contact-pms">
                     </div>
                 </div>
                 <div gloryTextarea opciones="name: 'mensaje', label: 'Mensaje', rows: 4" class="form-group full-width">
-                    <label>Mensaje</label>
-                    <textarea name="mensaje" rows="1"></textarea>
+                    <label for="contact-mensaje">Mensaje</label>
+                    <textarea name="mensaje" id="contact-mensaje" rows="1"></textarea>
                 </div>
 
                 <div gloryDivSecundario class="form-footer">
