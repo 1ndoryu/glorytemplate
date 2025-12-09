@@ -26,7 +26,7 @@ function casos_hero()
     PageHero::render(
         'Casos',
         'DE EXITO',
-        'Descubre algunos ejemplos reales del impacto de nuestras estrategias de Revenue Management en diferentes tipologias de hoteles.'
+        'Descubre algunos ejemplos reales del impacto de nuestras estrategias de Revenue Management en diferentes tipologías de hoteles.'
     );
 }
 
@@ -62,8 +62,8 @@ function casos_quote()
     <section gloryDiv class="quote-section">
         <div gloryDivSecundario class="quote-content">
             <span class="quote-icon"><i data-lucide="bar-chart-3"></i></span>
-            <p gloryTexto class="quote-text">"Estos ejemplos reflejan como una gestion estrategica de precios, distribucion y posicionamiento puede transformar los resultados de cualquier hotel."</p>
-            <p gloryTexto class="quote-author">Adaptandonos siempre a su mercado y objetivos especificos.</p>
+            <p gloryTexto class="quote-text">"Estos ejemplos reflejan cómo una gestión estratégica de precios, distribución y posicionamiento puede transformar los resultados de cualquier hotel."</p>
+            <p gloryTexto class="quote-author">Adaptándonos siempre a su mercado y objetivos específicos.</p>
         </div>
     </section>
 <?php
@@ -73,8 +73,8 @@ function casos_cta()
 {
 ?>
     <section gloryDiv class="casos-cta">
-        <h2 gloryTexto class="cta-title">Listo para escribir tu caso de exito?</h2>
-        <p gloryTexto class="cta-text">Analicemos el potencial oculto de tu alojamiento. Empieza con una auditoria o una consulta estrategica hoy mismo.</p>
+        <h2 gloryTexto class="cta-title">¿Listo para escribir tu caso de éxito?</h2>
+        <p gloryTexto class="cta-text">Analicemos el potencial oculto de tu alojamiento. Empieza con una auditoría o una consulta estratégica hoy mismo.</p>
         <a gloryAjaxNav gloryButton href="/contacto" class="btn-cta">Contactar</a>
     </section>
 <?php

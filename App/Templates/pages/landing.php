@@ -65,7 +65,7 @@ function landing_services()
                     </div>
                     <div class="flip-card-back">
                         <div class="flip-back-content">
-                            <p>Impulsa tu visibilidad y venta directa. Desde el lanzamiento hasta la consolidacion de tu posicionamiento digital.</p>
+                            <p>Impulsa tu visibilidad y venta directa. Desde el lanzamiento hasta la consolidación de tu posicionamiento digital.</p>
                         </div>
                     </div>
                 </div>
@@ -82,7 +82,7 @@ function landing_services()
                     </div>
                     <div class="flip-card-back">
                         <div class="flip-back-content">
-                            <p>Programas adaptados a la madurez de tu alojamiento. Desde auditoria tecnica hasta gestion 360.</p>
+                            <p>Programas adaptados a la madurez de tu alojamiento. Desde auditoría técnica hasta gestión 360.</p>
                         </div>
                     </div>
                 </div>
@@ -99,7 +99,7 @@ function landing_services()
                     </div>
                     <div class="flip-card-back">
                         <div class="flip-back-content">
-                            <p>Antes de correr, ordenamos el camino. Diagnostico, limpieza de datos y hoja de ruta clara antes de temporada.</p>
+                            <p>Antes de correr, ordenamos el camino. Diagnóstico, limpieza de datos y hoja de ruta clara antes de temporada.</p>
                         </div>
                     </div>
                 </div>
@@ -160,14 +160,14 @@ function landing_methodology()
                             <p>S</p>
                             <div class="planet-tooltip">
                                 <strong>Signal</strong>
-                                <span>Lectura del Mercado - Monitorizamos senales de demanda, eventos y elasticidad de precios en tiempo real.</span>
+                                <span>Lectura del Mercado - Monitorizamos señales de demanda, eventos y elasticidad de precios en tiempo real.</span>
                             </div>
                         </div>
                         <div class="orbit-planet planet-m">
                             <p>M</p>
                             <div class="planet-tooltip">
                                 <strong>Monetize</strong>
-                                <span>Ejecucion de Ventas - Aplicamos reglas de precios, optimizamos canales y lanzamos campanas con ROI medible.</span>
+                                <span>Ejecución de Ventas - Aplicamos reglas de precios, optimizamos canales y lanzamos campañas con ROI medible.</span>
                             </div>
                         </div>
                         <!-- Ultima O ahora dentro del anillo exterior para orbitar con S y M -->
@@ -175,7 +175,7 @@ function landing_methodology()
                             <p>O</p>
                             <div class="planet-tooltip">
                                 <strong>Optimize</strong>
-                                <span>Mejora continua - Analizamos el post-mortem de cada accion para iterar con rapidez.</span>
+                                <span>Mejora continua - Analizamos el post-mortem de cada acción para iterar con rapidez.</span>
                             </div>
                         </div>
                     </div>
@@ -184,7 +184,7 @@ function landing_methodology()
                             <p>O</p>
                             <div class="planet-tooltip">
                                 <strong>Orchestrate</strong>
-                                <span>Orquestacion de Procesos - Definimos KPIs criticos, cadencias de revision y asignamos responsables.</span>
+                                <span>Orquestación de Procesos - Definimos KPIs críticos, cadencias de revisión y asignamos responsables.</span>
                             </div>
                         </div>
                     </div>
@@ -193,7 +193,7 @@ function landing_methodology()
                             <p>C</p>
                             <div class="planet-tooltip">
                                 <strong>Collect</strong>
-                                <span>Recopilacion y Saneamiento - Unificamos tus fuentes de datos y normalizamos la informacion.</span>
+                                <span>Recopilación y Saneamiento - Unificamos tus fuentes de datos y normalizamos la información.</span>
                             </div>
                         </div>
                     </div>
@@ -271,11 +271,11 @@ function landing_about()
             <div gloryDivSecundario class="about-image">
                 <img gloryImagen src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="Perfil">
             </div>
-            <h2 gloryTexto class="section-title">Sobre mi</h2>
+            <h2 gloryTexto class="section-title">Sobre mí</h2>
             <p gloryTexto class="about-text">
                 Cosmo Revenue es una consultoría boutique de revenue y RevOps para hotelería, liderada por una profesional joven, independiente y cercana. Mi propósito es que los hoteles tomen decisiones de ingresos con claridad y confianza.
             </p>
-            <a gloryAjaxNav gloryButton href="/about" class="btn-about">Leer mas</a>
+            <a gloryAjaxNav gloryButton href="/about" class="btn-about">Leer más</a>
         </div>
 
         <?php Marquee::echo('ES EL MEJOR MOMENTO PARA DESPEGAR', 'light', 'about-marquee'); ?>
@@ -295,7 +295,7 @@ function landing_contact()
             <form gloryForm
                 data-ajax-submit="true"
                 data-form-id="contacto"
-                data-success-message="Formulario enviado con exito!"
+                data-success-message="Formulario enviado con éxito!"
                 data-error-message="Hubo un error al enviar el formulario."
                 class="contact-form">
                 <div gloryDivSecundario class="form-row">

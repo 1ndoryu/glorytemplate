@@ -187,3 +187,9 @@ ul#menu-main-menu > li:last-child > a:hover,
         padding: 12px 20px;
     }
 }
+
+
+.cosmoHeaderMenu ul {
+    display: flex;
+    gap: 30px;
+}

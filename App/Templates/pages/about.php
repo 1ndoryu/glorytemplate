@@ -26,7 +26,7 @@ function about_hero()
     PageHero::render(
         'Sobre',
         'NOSOTROS',
-        'Cosmo Revenue nace con un proposito claro: que los hoteles tomen decisiones de ingresos con claridad, confianza y control absoluto.'
+        'Cosmo Revenue nace con un propósito claro: que los hoteles tomen decisiones de ingresos con claridad, confianza y control absoluto.'
     );
 }
 
@@ -35,9 +35,9 @@ function about_method()
 ?>
     <section gloryDiv class="method-section">
         <span class="method-icon">&#x2B22;</span>
-        <h2 gloryTexto class="section-title">El Metodo COSMO</h2>
+        <h2 gloryTexto class="section-title">El Método COSMO</h2>
         <p gloryTexto class="section-subtitle">
-            Cada hotel es un sistema vivo. Alineamos datos, procesos y ejecucion en 5 fases orbitales para que todo gire a favor de tu rentabilidad.
+            Cada hotel es un sistema vivo. Alineamos datos, procesos y ejecución en 5 fases orbitales para que todo gire a favor de tu rentabilidad.
         </p>
 
         <div class="about-timeline">
@@ -151,9 +151,9 @@ function about_bio()
             <div gloryDivSecundario class="bio-text">
                 <h2 gloryTexto class="bio-title">Hola, soy Laura</h2>
                 <div gloryTexto class="bio-desc">
-                    <p>Lidero Cosmo Revenue como una consultoria boutique, alejandome de las grandes estructuras impersonales. Soy una profesional joven, independiente y cercana.</p>
+                    <p>Lidero Cosmo Revenue como una consultoría boutique, alejándome de las grandes estructuras impersonales. Soy una profesional joven, independiente y cercana.</p>
                     <p>Mi experiencia se centra en la Comunidad Valenciana, trabajando con hoteles, apartamentos, villas y hostels para optimizar su rendimiento en mercados clave como ES, FR, DE y UK.</p>
-                    <p>Creo firmemente que el Revenue Management no tiene por que ser complejo ni opaco. Mi mision es traducir los datos en estrategias ejecutables que te den paz mental y resultados bancarios.</p>
+                    <p>Creo firmemente que el Revenue Management no tiene por qué ser complejo ni opaco. Mi misión es traducir los datos en estrategias ejecutables que te den paz mental y resultados bancarios.</p>
                 </div>
             </div>
         </div>

@@ -26,7 +26,7 @@ function services_hero()
     PageHero::render(
         'Nuestros',
         'SERVICIOS',
-        'Combinamos Revenue, Marketing y Consultoria para impulsar tus ingresos. Soluciones flexibles que crecen al ritmo de tu negocio.'
+        'Combinamos Revenue, Marketing y Consultoría para impulsar tus ingresos. Soluciones flexibles que crecen al ritmo de tu negocio.'
     );
 }
 
@@ -43,7 +43,7 @@ function services_marketing()
         </div>
 
         <h2 gloryTexto class="section-title">Marketing y estrategia</h2>
-        <p gloryTexto class="section-subtitle">Impulsa tu visibilidad y venta directa. Desde el lanzamiento hasta la consolidacion de tu posicionamiento digital.</p>
+        <p gloryTexto class="section-subtitle">Impulsa tu visibilidad y venta directa. Desde el lanzamiento hasta la consolidación de tu posicionamiento digital.</p>
 
         <div class="marketing-grid">
             <?php
@@ -131,14 +131,14 @@ function services_consulting()
             <div gloryDivSecundario class="consulting-left">
                 <div class="section-tag">
                     <i data-lucide="sparkles"></i>
-                    <p class="section-tag-text">Auditoria y Tecnologia</p>
+                    <p class="section-tag-text">Auditoría y Tecnología</p>
                 </div>
-                <h2 gloryTexto class="section-title">Consultoria & Mapeo</h2>
+                <h2 gloryTexto class="section-title">Consultoría & Mapeo</h2>
                 <p gloryTexto class="section-text">
-                    Antes de correr, ordenamos el camino. Un servicio esencial para alojamientos que buscan diagnostico, limpieza de datos y una hoja de ruta clara antes de la temporada.
+                    Antes de correr, ordenamos el camino. Un servicio esencial para alojamientos que buscan diagnóstico, limpieza de datos y una hoja de ruta clara antes de la temporada.
                 </p>
                 <p gloryTexto class="section-text">
-                    Auditamos y conectamos tu ecosistema tecnologico (PMS, Channel Manager, OTAs) para asegurar que la distribucion funcione sin fisuras.
+                    Auditamos y conectamos tu ecosistema tecnológico (PMS, Channel Manager, OTAs) para asegurar que la distribución funcione sin fisuras.
                 </p>
             </div>
 
@@ -176,7 +176,7 @@ function render_orbit_card()
             </ul>
         </div>
 
-        <a gloryAjaxNav href="/servicio-orbit" class="btn-orbit">Solicitar diagnostico +</a>
+        <a gloryAjaxNav href="/servicio-orbit" class="btn-orbit">Solicitar diagnóstico +</a>
     </div>
 <?php
 }
@@ -187,19 +187,19 @@ function services_revenue()
     <section gloryDiv class="revenue-section">
         <div class="section-tag">
             <i data-lucide="sparkles"></i>
-            <p class="section-tag-text">Gestion Mensual Recurrente</p>
+            <p class="section-tag-text">Gestión Mensual Recurrente</p>
         </div>
         <h2 gloryTexto class="section-title">Revenue Management</h2>
-        <p gloryTexto class="section-subtitle">Programas adaptados a la madurez de tu alojamiento. Desde auditoria tecnica hasta gestion 360.</p>
+        <p gloryTexto class="section-subtitle">Programas adaptados a la madurez de tu alojamiento. Desde auditoría técnica hasta gestión 360.</p>
 
         <div class="services-revenue">
             <div class="services-revenue-grid">
                 <?php render_marketing_card(
                     '<i data-lucide="sparkles"></i>',
                     'Galaxy',
-                    'Gestion externa continua',
-                    'Ejecucion y seguimiento constante mensual. Sin ampliar tu estructura interna.',
-                    ['Todo lo de ORBIT+', 'Control channel mix', 'Revision de tarifas (3-5 x Semana)', 'Reporting mensual'],
+                    'Gestión externa continua',
+                    'Ejecución y seguimiento constante mensual. Sin ampliar tu estructura interna.',
+                    ['Todo lo de ORBIT+', 'Control channel mix', 'Revisión de tarifas (3-5 x Semana)', 'Reporting mensual'],
                     'Consultar propuestas <i data-lucide="arrow-right"></i>',
                     'left',
                     '/servicio-galaxy'
@@ -209,8 +209,8 @@ function services_revenue()
                     'Universe',
                     'Departamento 360',
                     'Partner completo anual. Para grupos o alojamientos que buscan excelencia total.',
-                    ['Todo lo de GALAXY+', 'Estrategia de fidelizacion', 'Mapeos ilimitados', 'Formacion de equipo'],
-                    'Reunion estrategica <i data-lucide="arrow-right"></i>',
+                    ['Todo lo de GALAXY+', 'Estrategia de fidelización', 'Mapeos ilimitados', 'Formación de equipo'],
+                    'Reunión estratégica <i data-lucide="arrow-right"></i>',
                     'right-bottom',
                     '/servicio-universe'
                 ); ?>
@@ -219,9 +219,9 @@ function services_revenue()
 
         <div gloryDivSecundario class="services-revenue-bottom">
             <div gloryDivSecundario class="services-revenue-bottom-content">
-                <h2 gloryTexto class="section-title-italic">Dudas sobre que plan elegir?</h2>
+                <h2 gloryTexto class="section-title-italic">¿Dudas sobre qué plan elegir?</h2>
 
-                <p gloryTexto class="revenue-bottom-text">Hablemos. Analizaremos tu situacion y te recomendamos la orbita adecuada para tu despegue.</p>
+                <p gloryTexto class="revenue-bottom-text">Hablemos. Analizaremos tu situación y te recomendamos la órbita adecuada para tu despegue.</p>
                 <a gloryAjaxNav gloryButton class="btn-submit-revenue" href="/contacto">Contactar</a>
             </div>
         </div>

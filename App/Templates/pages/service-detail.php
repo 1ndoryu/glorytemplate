@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Template base para paginas de servicios individuales
+ * Template base para páginas de servicios individuales
  * 
  * Cada servicio usa esta estructura:
  * - Hero con nombre del plan
- * - Descripcion detallada
- * - Lista de caracteristicas
+ * - Descripción detallada
+ * - Lista de características
  * - Formulario de contacto con servicio preseleccionado
  */
 
@@ -30,33 +30,33 @@ function getServicePlans(): array
             'description' => 'Para alojamientos que quieren establecer una presencia profesional en redes sociales. El punto de partida perfecto para construir tu marca digital.',
             'longDescription' => 'Comet es nuestro programa de entrada para hoteles y alojamientos que dan sus primeros pasos en el marketing digital. Nos encargamos de establecer las bases de tu presencia online con una estrategia sostenible y profesional.',
             'features' => [
-                'Auditoria completa de redes sociales',
-                'Gestion profesional de 2 redes sociales',
+                'Auditoría completa de redes sociales',
+                'Gestión profesional de 2 redes sociales',
                 'Calendario de publicaciones semanales',
-                'Creacion de contenido visual',
-                'Reporting mensual de metricas',
+                'Creación de contenido visual',
+                'Reporting mensual de métricas',
                 'Soporte por email'
             ],
-            'idealFor' => 'Alojamientos pequenos que inician su presencia digital',
+            'idealFor' => 'Alojamientos pequeños que inician su presencia digital',
             'icon' => 'rocket'
         ],
         'nebula' => [
             'category' => 'marketing',
             'categoryLabel' => 'Marketing y Estrategia',
             'name' => 'Nebula',
-            'tagline' => 'Atraccion y Nutricion',
+            'tagline' => 'Atracción y Nutrición',
             'heroTitle' => 'Plan',
             'heroSubtitle' => 'NEBULA',
-            'description' => 'Para negocios que buscan atraer trafico cualificado y convertir seguidores en reservas directas.',
-            'longDescription' => 'Nebula expande tu alcance con publicidad pagada y estrategias de email marketing. Convertimos tu audiencia en huespedes reales con campanas optimizadas y nurturing automatizado.',
+            'description' => 'Para negocios que buscan atraer tráfico cualificado y convertir seguidores en reservas directas.',
+            'longDescription' => 'Nebula expande tu alcance con publicidad pagada y estrategias de email marketing. Convertimos tu audiencia en huéspedes reales con campañas optimizadas y nurturing automatizado.',
             'features' => [
                 'Todo lo incluido en Comet',
-                'Campanas de anuncios en redes (Meta Ads)',
+                'Campañas de anuncios en redes (Meta Ads)',
                 'Estrategia de email marketing',
                 'Automatizaciones de bienvenida y seguimiento',
-                'Gestion activa de comunidad',
+                'Gestión activa de comunidad',
                 'Respuesta a comentarios y mensajes',
-                'Analisis de competencia mensual'
+                'Análisis de competencia mensual'
             ],
             'idealFor' => 'Hoteles medianos buscando aumentar reservas directas',
             'icon' => 'sparkles'
@@ -65,18 +65,18 @@ function getServicePlans(): array
             'category' => 'marketing',
             'categoryLabel' => 'Marketing y Estrategia',
             'name' => 'Quasar',
-            'tagline' => 'Aceleracion Total',
+            'tagline' => 'Aceleración Total',
             'heroTitle' => 'Plan',
             'heroSubtitle' => 'QUASAR',
-            'description' => 'Estrategia integral de comunicacion y captacion avanzada para maximizar tu visibilidad y conversiones.',
-            'longDescription' => 'Quasar es nuestro programa premium de marketing. Combina todas las herramientas disponibles para crear una maquina de captacion que trabaja 24/7 atrayendo huespedes de alta calidad.',
+            'description' => 'Estrategia integral de comunicación y captación avanzada para maximizar tu visibilidad y conversiones.',
+            'longDescription' => 'Quasar es nuestro programa premium de marketing. Combina todas las herramientas disponibles para crear una máquina de captación que trabaja 24/7 atrayendo huéspedes de alta calidad.',
             'features' => [
                 'Todo lo incluido en Nebula',
-                'Campanas de Google Hotel Ads',
-                'Plan de comunicacion anual',
+                'Campañas de Google Hotel Ads',
+                'Plan de comunicación anual',
                 'Estrategia de contenidos premium',
-                'Analisis de ROI mensual detallado',
-                'Reuniones estrategicas quincenales',
+                'Análisis de ROI mensual detallado',
+                'Reuniones estratégicas quincenales',
                 'Acceso prioritario a nuevas funcionalidades'
             ],
             'idealFor' => 'Hoteles y grupos que buscan liderazgo de mercado',
@@ -86,19 +86,19 @@ function getServicePlans(): array
         // Consultoria y Mapeo
         'orbit' => [
             'category' => 'consultoria',
-            'categoryLabel' => 'Consultoria y Mapeo',
+            'categoryLabel' => 'Consultoría y Mapeo',
             'name' => 'Orbit',
             'tagline' => 'Empieza con Claridad',
             'heroTitle' => 'Plan',
             'heroSubtitle' => 'ORBIT',
-            'description' => 'Auditoria inicial y puesta a punto. Ideal para diagnostico y hoja de ruta clara antes de temporada.',
-            'longDescription' => 'Orbit es el primer paso para cualquier alojamiento que quiere profesionalizar su gestion de ingresos. Analizamos tu ecosistema tecnologico, limpiamos datos y te entregamos un plan de accion claro.',
+            'description' => 'Auditoría inicial y puesta a punto. Ideal para diagnóstico y hoja de ruta clara antes de temporada.',
+            'longDescription' => 'Orbit es el primer paso para cualquier alojamiento que quiere profesionalizar su gestión de ingresos. Analizamos tu ecosistema tecnológico, limpiamos datos y te entregamos un plan de acción claro.',
             'features' => [
-                'Consultoria estrategica personalizada',
-                'Auditoria completa de PMS y OTAs',
-                'Reunion de entrega con presentacion',
-                'Mapeos de canales de distribucion',
-                'Analisis de estructura de tarifas',
+                'Consultoría estratégica personalizada',
+                'Auditoría completa de PMS y OTAs',
+                'Reunión de entrega con presentación',
+                'Mapeos de canales de distribución',
+                'Análisis de estructura de tarifas',
                 'Calendario de demanda local',
                 'Documento de recomendaciones'
             ],
@@ -111,19 +111,19 @@ function getServicePlans(): array
             'category' => 'revenue',
             'categoryLabel' => 'Revenue Management',
             'name' => 'Galaxy',
-            'tagline' => 'Gestion Externa Continua',
+            'tagline' => 'Gestión Externa Continua',
             'heroTitle' => 'Plan',
             'heroSubtitle' => 'GALAXY',
-            'description' => 'Ejecucion y seguimiento constante mensual. Sin ampliar tu estructura interna.',
-            'longDescription' => 'Galaxy es tu departamento de Revenue externalizado. Nos encargamos de la gestion diaria de tarifas, canales y estrategia para que te centres en la operacion de tu hotel.',
+            'description' => 'Ejecución y seguimiento constante mensual. Sin ampliar tu estructura interna.',
+            'longDescription' => 'Galaxy es tu departamento de Revenue externalizado. Nos encargamos de la gestión diaria de tarifas, canales y estrategia para que te centres en la operación de tu hotel.',
             'features' => [
                 'Todo lo incluido en Orbit',
                 'Control activo de channel mix',
-                'Revision de tarifas 3-5 veces por semana',
-                'Ajustes dinamicos segun demanda',
+                'Revisión de tarifas 3-5 veces por semana',
+                'Ajustes dinámicos según demanda',
                 'Reporting mensual detallado',
                 'Reuniones mensuales de seguimiento',
-                'Soporte continuo por email y telefono'
+                'Soporte continuo por email y teléfono'
             ],
             'idealFor' => 'Hoteles sin Revenue Manager interno',
             'icon' => 'orbit'
@@ -136,13 +136,13 @@ function getServicePlans(): array
             'heroTitle' => 'Plan',
             'heroSubtitle' => 'UNIVERSE',
             'description' => 'Partner completo anual. Para grupos o alojamientos que buscan excelencia total en Revenue.',
-            'longDescription' => 'Universe es nuestra solucion mas completa. Te acompanamos como partner estrategico a largo plazo, integrando Revenue, distribucion y formacion de tu equipo.',
+            'longDescription' => 'Universe es nuestra solución más completa. Te acompañamos como partner estratégico a largo plazo, integrando Revenue, distribución y formación de tu equipo.',
             'features' => [
                 'Todo lo incluido en Galaxy',
-                'Estrategia de fidelizacion de huespedes',
+                'Estrategia de fidelización de huéspedes',
                 'Mapeos ilimitados de canales',
-                'Formacion continua de tu equipo',
-                'Reuniones estrategicas semanales',
+                'Formación continua de tu equipo',
+                'Reuniones estratégicas semanales',
                 'Dashboard personalizado de KPIs',
                 'Acceso a benchmarking del sector'
             ],
@@ -153,7 +153,7 @@ function getServicePlans(): array
 }
 
 /**
- * Renderiza una pagina de servicio individual
+ * Renderiza una página de servicio individual
  */
 function renderServicePage(string $planKey): void
 {
@@ -192,7 +192,7 @@ function renderServicePage(string $planKey): void
                     </div>
 
                     <div class="service-features-section">
-                        <h3 gloryTexto class="features-title">Que incluye</h3>
+                        <h3 gloryTexto class="features-title">Qué incluye</h3>
                         <ul class="service-features-list">
                             <?php foreach ($plan['features'] as $feature): ?>
                                 <li>
@@ -221,7 +221,7 @@ function renderServicePage(string $planKey): void
                 // Formulario con servicio preseleccionado
                 ContactForm::renderWithService(
                     'servicio-' . $planKey,
-                    'Solicitar informacion sobre ' . $plan['name'],
+                    'Solicitar información sobre ' . $plan['name'],
                     $plan['name'] . ' - ' . $plan['categoryLabel']
                 );
                 ?>

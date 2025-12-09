@@ -5,7 +5,7 @@ use App\Helpers\Marquee;
 use App\Helpers\PageHero;
 
 /**
- * contact_render - Renderiza la pagina de contacto completa
+ * contact_render - Renderiza la página de contacto completa
  * 
  * Estructura:
  * - Hero con titulo decorativo (usando helper PageHero)
@@ -28,7 +28,7 @@ function contact_render()
 }
 
 /**
- * contact_hero - Hero de la pagina de contacto
+ * contact_hero - Hero de la página de contacto
  * Usa el helper PageHero para mantener consistencia con about y services
  */
 function contact_hero()
@@ -36,7 +36,7 @@ function contact_hero()
     PageHero::render(
         'Hablemos',
         'CONTACTO',
-        'Estamos aqui para ayudarte a maximizar la rentabilidad de tu alojamiento. Cuentanos tu proyecto y encontraremos la solucion perfecta para ti.'
+        'Estamos aquí para ayudarte a maximizar la rentabilidad de tu alojamiento. Cuéntanos tu proyecto y encontraremos la solución perfecta para ti.'
     );
 }
 
@@ -62,7 +62,7 @@ function contact_info()
                 <div class="info-icon">
                     <i data-lucide="phone"></i>
                 </div>
-                <h3 gloryTexto class="info-title">Telefono</h3>
+                <h3 gloryTexto class="info-title">Teléfono</h3>
                 <p gloryTexto class="info-text">+34 600 000 000</p>
             </div>
 
@@ -70,8 +70,8 @@ function contact_info()
                 <div class="info-icon">
                     <i data-lucide="map-pin"></i>
                 </div>
-                <h3 gloryTexto class="info-title">Ubicacion</h3>
-                <p gloryTexto class="info-text">Comunidad Valenciana, Espana</p>
+                <h3 gloryTexto class="info-title">Ubicación</h3>
+                <p gloryTexto class="info-text">Comunidad Valenciana, España</p>
             </div>
         </div>
     </section>
@@ -90,7 +90,7 @@ function contact_form_section()
 }
 
 /**
- * contact_marquee - Marquee de cierre de la pagina
+ * contact_marquee - Marquee de cierre de la página
  */
 function contact_marquee()
 {
