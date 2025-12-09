@@ -86,7 +86,11 @@ function contact_form_section()
 {
     // Renderiza el formulario de contacto con el helper global
     // Parametros: formId, titulo, mostrar campos de habitaciones
-    ContactForm::render('contact-page', 'Enviar mensaje', true);
+    ?>
+    <div style="padding: 20px;">
+    <?php ContactForm::render('contact-page', 'Enviar mensaje', true); ?>
+    </div>
+    <?php
 }
 
 /**
@@ -94,6 +98,8 @@ function contact_form_section()
  */
 function contact_marquee()
 {
+
     Marquee::echo('CONECTA CON NOSOTROS Y DESPEGA TU RENTABILIDAD', 'light', 'contact-marquee');
+   
 }
 ?>
