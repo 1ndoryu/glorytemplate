@@ -3,7 +3,8 @@
 
     var LOADER_ID = 'cosmoPageLoader';
     var HIDDEN_CLASS = 'isHidden';
-    var SHOW_MIN_MS = 500;
+    // Tiempo minimo que el loader permanece visible (evita parpadeos rapidos)
+    var SHOW_MIN_MS = 800;
 
     var lastShowTime = Date.now();
     var hideTimeout = null;

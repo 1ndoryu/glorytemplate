@@ -27,6 +27,23 @@ if ($useGbnFooter && class_exists(TemplateService::class)) {
 
 </main>
 
+<!-- Lucide icons cargado al final con defer para no bloquear renderizado -->
+<script src="https://unpkg.com/lucide@latest" defer></script>
+<script>
+    // Inicializar iconos despues de que Lucide cargue
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+    // Re-inicializar en navegacion AJAX
+    document.addEventListener('gloryRecarga', function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+</script>
+
 <?php wp_footer(); ?>
 </body>
 
