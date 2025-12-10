@@ -12,12 +12,26 @@ interface ButtonProps {
 }
 
 export function Button({children, variant = 'primary', className = '', href, icon: Icon, onClick}: ButtonProps) {
-    const baseClass = 'inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#79716b] disabled:opacity-50 disabled:pointer-events-none tracking-tight shadow-sm';
+    const baseClass = 'inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50 disabled:pointer-events-none tracking-tight shadow-sm';
 
-    const variants = {
-        primary: 'bg-[#292524] text-[#f8f8f6] hover:bg-[#1c1917] hover:shadow-md',
-        outline: 'border border-[#e7e5e4] bg-white text-[#57534e] hover:bg-[#f5f5f4] hover:text-[#292524]',
-        ghost: 'text-[#79716b] hover:bg-[#f0efeb] hover:text-[#292524]'
+    // Estilos base usando CSS variables
+    const variantStyles: Record<string, React.CSSProperties> = {
+        primary: {
+            backgroundColor: 'var(--color-accent-primary)',
+            // Texto blanco fijo para contraste en ambos temas
+            // Tema default: botones oscuros con texto blanco
+            // Tema project: botones azules con texto blanco
+            color: '#ffffff'
+        },
+        outline: {
+            border: '1px solid var(--color-border-secondary)',
+            backgroundColor: 'var(--color-bg-surface)',
+            color: 'var(--color-text-secondary)'
+        },
+        ghost: {
+            color: 'var(--color-text-muted)',
+            backgroundColor: 'transparent'
+        }
     };
 
     const content = (
@@ -29,14 +43,14 @@ export function Button({children, variant = 'primary', className = '', href, ico
 
     if (href) {
         return (
-            <a href={href} className={`${baseClass} ${variants[variant]} ${className}`}>
+            <a href={href} className={`${baseClass} ${className}`} style={variantStyles[variant]}>
                 {content}
             </a>
         );
     }
 
     return (
-        <button onClick={onClick} className={`${baseClass} ${variants[variant]} ${className}`}>
+        <button onClick={onClick} className={`${baseClass} ${className}`} style={variantStyles[variant]}>
             {content}
         </button>
     );

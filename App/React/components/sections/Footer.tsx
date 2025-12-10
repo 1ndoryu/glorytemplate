@@ -26,22 +26,34 @@ function FooterLogo() {
 
 export function Footer({columns, copyrightText}: FooterProps) {
     return (
-        <footer className="w-full bg-white border-t border-[#e5e5e0]">
+        <footer
+            className="w-full border-t"
+            style={{
+                backgroundColor: 'var(--color-bg-surface)',
+                borderColor: 'var(--color-border-primary)'
+            }}>
             <div className="mx-auto w-full max-w-7xl px-6 py-10">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-[13px]">
                     {columns.map((column, index) => (
                         <div key={index} className="flex flex-col gap-3">
-                            <h3 className="font-semibold text-[#292524] uppercase tracking-wide text-xs">{column.title}</h3>
+                            <h3 className="font-semibold uppercase tracking-wide text-xs" style={{color: 'var(--color-text-primary)'}}>
+                                {column.title}
+                            </h3>
                             {column.links.map((link, linkIndex) => (
-                                <a key={linkIndex} href={link.href} className="text-[#79716b] hover:text-[#292524]">
+                                <a key={linkIndex} href={link.href} className="hover:opacity-80" style={{color: 'var(--color-text-muted)'}}>
                                     {link.label}
                                 </a>
                             ))}
                         </div>
                     ))}
                 </div>
-                <div className="pt-8 mt-8 border-t border-[#f5f5f4] flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[#a8a29e]">
-                    <a href="/" className="font-bold text-lg tracking-tighter flex items-center gap-2 text-[#292524] opacity-80">
+                <div
+                    className="pt-8 mt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4 text-xs"
+                    style={{
+                        borderColor: 'var(--color-border-subtle)',
+                        color: 'var(--color-text-subtle)'
+                    }}>
+                    <a href="/" className="font-bold text-lg tracking-tighter flex items-center gap-2 opacity-80" style={{color: 'var(--color-text-primary)'}}>
                         <FooterLogo />
                     </a>
                     <p>{copyrightText}</p>

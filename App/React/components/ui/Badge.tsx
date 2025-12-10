@@ -7,5 +7,15 @@ interface BadgeProps {
 }
 
 export function Badge({children, className = ''}: BadgeProps) {
-    return <span className={`inline-flex items-center rounded-md border border-[#e5e5e0] bg-white px-2 py-0.5 text-[11px] font-medium text-[#79716b] font-mono transition-colors ${className}`}>{children}</span>;
+    return (
+        <span
+            className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium font-mono transition-colors ${className}`}
+            style={{
+                borderColor: 'var(--color-border-primary)',
+                backgroundColor: 'var(--color-bg-surface)',
+                color: 'var(--color-text-muted)'
+            }}>
+            {children}
+        </span>
+    );
 }

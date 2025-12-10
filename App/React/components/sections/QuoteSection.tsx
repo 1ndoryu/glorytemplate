@@ -8,7 +8,9 @@ interface QuoteSectionProps {
 export function QuoteSection({children}: QuoteSectionProps) {
     return (
         <section className="mx-auto w-full max-w-4xl py-24 text-center">
-            <p className="text-2xl md:text-3xl font-normal tracking-tight text-[#79716b] leading-relaxed text-balance">{children}</p>
+            <p className="text-2xl md:text-3xl font-normal tracking-tight leading-relaxed text-balance" style={{color: 'var(--color-text-muted)'}}>
+                {children}
+            </p>
         </section>
     );
 }
