@@ -1,0 +1,14 @@
+{
+    "extends": "../../Glory/assets/react/tsconfig.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "rootDir": ".",
+        "paths": {
+            "@/*": ["../../Glory/assets/react/src/*"],
+            "@app/*": ["./*"]
+        },
+        "typeRoots": ["../../Glory/assets/react/node_modules/@types", "../../Glory/assets/react/node_modules"]
+    },
+    "include": ["./**/*", "../../Glory/assets/react/node_modules/@types"],
+    "exclude": []
+}

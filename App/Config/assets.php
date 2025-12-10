@@ -61,7 +61,7 @@ AssetManager::defineFolder(
     'App/Assets/js/task/',
     [
         'deps'     => ['jquery'],
-        'in_footer'=> true,
+        'in_footer' => true,
         'feature'  => 'task',
     ],
     'tema-task-'
