@@ -1,11 +1,12 @@
 import {useState, useEffect} from 'react';
-import {MessageSquare, Calendar, ArrowRight, Database, Zap, ShieldCheck, Activity, GitBranch, Layers, Search} from 'lucide-react';
+import {motion, AnimatePresence} from 'framer-motion';
+import {MessageSquare, Calendar, ArrowRight, Database, Zap, ShieldCheck, Activity, GitBranch, Layers, Search, CheckCircle} from 'lucide-react';
 
 // Hook para manejo de temas
 import {useTheme} from '../hooks/useTheme';
 
 // Componentes UI reutilizables
-import {Badge, Button, ThemeToggle} from '../components/ui';
+import {Button, ThemeToggle} from '../components/ui';
 
 // Componentes de seccion reutilizables
 import {TopBanner, Header, HeroSection, Footer, FeatureList, GridCards, QuoteSection, ProcessWorkflow} from '../components/sections';
@@ -183,49 +184,6 @@ function BentoGrid({activeTab, onTabChange}: BentoGridProps) {
     return (
         <section id="bento-grid" className="mx-auto w-full max-w-7xl">
             <div id="bento-grid-container" className="grid grid-cols-4 lg:grid-cols-8 border rounded-md overflow-hidden shadow-sm" style={{borderColor: 'var(--color-border-primary)', backgroundColor: 'var(--color-bg-surface)'}}>
-                {/* Visual Area - Mockup abstracto */}
-                <div id="bento-visual-area" className="col-span-4 lg:col-span-8 border-b relative h-64 md:h-[420px] overflow-hidden group" style={{borderColor: 'var(--color-border-primary)', backgroundColor: 'var(--color-bg-secondary)'}}>
-                    {/* Grid Pattern */}
-                    <div
-                        id="bento-grid-pattern"
-                        className="absolute inset-0 opacity-[0.4]"
-                        style={{
-                            backgroundImage: `linear-gradient(var(--color-border-primary) 1px, transparent 1px), linear-gradient(to right, var(--color-border-primary) 1px, transparent 1px)`,
-                            backgroundSize: '40px 40px'
-                        }}></div>
-
-                    {/* Abstract Mockup */}
-                    <div id="bento-mockup-container" className="absolute inset-0 flex items-center justify-center p-6">
-                        <div id="bento-mockup-wrapper" className="w-full max-w-3xl rounded-lg shadow-sm border p-1.5 transform transition-transform group-hover:scale-[1.005] duration-1000" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border-primary)'}}>
-                            <div id="bento-mockup-card" className="rounded border p-6 flex flex-col gap-4" style={{backgroundColor: 'var(--color-bg-elevated)', borderColor: 'var(--color-border-subtle)'}}>
-                                {/* Fake UI Header */}
-                                <div id="bento-ui-header" className="flex items-center justify-between border-b pb-4" style={{borderColor: 'var(--color-border-subtle)'}}>
-                                    <div id="bento-header-content" className="flex items-center gap-3">
-                                        <div id="bento-avatar" className="w-8 h-8 rounded border" style={{backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border-secondary)'}}></div>
-                                        <div id="bento-text-placeholders" className="flex flex-col gap-1">
-                                            <div id="bento-text-line-1" className="h-2 w-24 rounded-sm" style={{backgroundColor: 'var(--color-border-secondary)'}}></div>
-                                            <div id="bento-text-line-2" className="h-2 w-16 rounded-sm" style={{backgroundColor: 'var(--color-border-subtle)'}}></div>
-                                        </div>
-                                    </div>
-                                    <Badge>SIMULATING</Badge>
-                                </div>
-
-                                {/* Fake Lines */}
-                                <div id="bento-fake-lines" className="space-y-3">
-                                    <div id="bento-fake-line-1" className="flex items-center gap-4 p-3 border rounded-md shadow-sm" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border-subtle)'}}>
-                                        <div id="bento-pulse-dot" className="h-4 w-4 rounded-full border border-orange-400 animate-pulse"></div>
-                                        <div id="bento-line-1-text" className="h-2 w-3/4 rounded-sm" style={{backgroundColor: 'var(--color-border-subtle)'}}></div>
-                                    </div>
-                                    <div id="bento-fake-line-2" className="flex items-center gap-4 p-3 border rounded-md shadow-sm opacity-60" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border-subtle)'}}>
-                                        <div id="bento-static-dot" className="h-4 w-4 rounded-full border" style={{borderColor: 'var(--color-border-secondary)'}}></div>
-                                        <div id="bento-line-2-text" className="h-2 w-1/2 rounded-sm" style={{backgroundColor: 'var(--color-border-subtle)'}}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 {/* Integrations Bar */}
                 <div id="bento-integrations-bar" className="col-span-4 lg:col-span-8 border-b" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border-primary)'}}>
                     <div id="bento-integrations-grid" className="grid grid-cols-2 md:grid-cols-4" style={{borderColor: 'var(--color-border-subtle)'}}>
@@ -303,6 +261,43 @@ function BentoGrid({activeTab, onTabChange}: BentoGridProps) {
     );
 }
 
+// --- COMPONENTE NOTIFICATION STATUS (Extraido para manejar estado) ---
+function NotificationStatus() {
+    const [step, setStep] = useState<'idle' | 'processing' | 'confirmed'>('idle');
+
+    return (
+        <motion.div
+            onViewportEnter={() => {
+                if (step === 'idle') {
+                    // Secuencia de tiempos
+                    setTimeout(() => setStep('processing'), 1500);
+                    setTimeout(() => setStep('confirmed'), 4500);
+                }
+            }}
+            viewport={{once: true}}>
+            <AnimatePresence mode="wait">
+                {step === 'processing' && (
+                    <motion.div key="processing" initial={{opacity: 0, y: 5}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: -5}} className="flex items-center gap-2">
+                        <div className="px-2 py-0.5 rounded text-[10px] font-medium border flex items-center gap-2" style={{backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border-secondary)', color: 'var(--color-text-secondary)'}}>
+                            <span>Bot: Buscando horarios...</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                        </div>
+                    </motion.div>
+                )}
+
+                {step === 'confirmed' && (
+                    <motion.div key="confirmed" initial={{opacity: 0, scale: 0.9}} animate={{opacity: 1, scale: 1}} className="flex items-center gap-2">
+                        <div className="px-2 py-0.5 rounded text-[10px] font-medium border flex items-center gap-2" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-success)', color: 'var(--color-success)'}}>
+                            <CheckCircle className="w-3 h-3" />
+                            <span>Cita Agendada: Mañana 16:00</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
+}
+
 // --- COMPONENTE FEATURE SECTION ---
 // Seccion de caracteristicas con imagen mockup a la izquierda
 function FeatureSection() {
@@ -327,14 +322,34 @@ function FeatureSection() {
                 <div className="col-span-12 lg:col-span-6">
                     <div className="rounded-sm border shadow-sm overflow-hidden aspect-[4/3] relative flex items-center justify-center group" style={{borderColor: 'var(--color-border-primary)', backgroundColor: 'var(--color-bg-secondary)'}}>
                         <div className="absolute inset-0 opacity-20" style={{backgroundColor: 'var(--color-border-secondary)'}}></div>
-                        <div className="relative w-[85%] border rounded p-3 shadow-lg transition-transform group-hover:-translate-y-1" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border-primary)'}}>
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="h-6 w-6 rounded-full" style={{backgroundColor: 'var(--color-border-primary)'}}></div>
-                                <div className="text-[11px] font-medium" style={{color: 'var(--color-text-primary)'}}>
-                                    Nuevo lead: Maria quiere reservar cita para manana.
+                        <motion.div className="relative w-[85%] border rounded-lg p-4 shadow-lg transition-transform hover:-translate-y-1" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border-primary)'}} initial={{opacity: 0, y: 10}} whileInView={{opacity: 1, y: 0}} viewport={{once: true}} transition={{duration: 0.5}}>
+                            <div className="flex justify-between items-start mb-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{backgroundColor: '#25D366'}}>
+                                        <MessageSquare className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[11px] font-bold" style={{color: 'var(--color-text-primary)'}}>
+                                            Maria Gomez
+                                        </div>
+                                        <div className="text-[10px] opacity-70" style={{color: 'var(--color-text-muted)'}}>
+                                            via WhatsApp Business
+                                        </div>
+                                    </div>
                                 </div>
+                                <span className="text-[10px]" style={{color: 'var(--color-text-subtle)'}}>
+                                    Now
+                                </span>
                             </div>
-                        </div>
+
+                            <motion.div className="p-2 rounded mb-3 text-[11px] leading-relaxed border" style={{backgroundColor: 'var(--color-bg-tertiary)', borderColor: 'var(--color-border-subtle)', color: 'var(--color-text-secondary)'}} initial={{opacity: 0, x: -10}} whileInView={{opacity: 1, x: 0}} viewport={{once: true}} transition={{delay: 0.5}}>
+                                👋 Hola, me gustaría agendar una reunión para mañana por la tarde si es posible.
+                            </motion.div>
+
+                            <div className="pt-2 border-t" style={{borderColor: 'var(--color-border-subtle)'}}>
+                                <NotificationStatus />
+                            </div>
+                        </motion.div>
                     </div>
                 </div>
 

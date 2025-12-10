@@ -1,7 +1,7 @@
-import {useState} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import {motion, AnimatePresence} from 'framer-motion';
 import {Badge} from '../ui/Badge';
-import {Phone, Mic, Layout, Database, CheckCircle, TrendingUp, Calendar, MessageSquare, ShieldCheck} from 'lucide-react';
+import {Phone, TrendingUp, CheckCircle, MessageSquare} from 'lucide-react';
 
 // Tipos para las simulaciones de proceso
 interface ProcessStep {
@@ -21,17 +21,18 @@ interface ProcessWorkflowProps {
 
 /**
  * Visualizacion Paso 1: Llamada
- * Minimalista: Avatar pulsando suavemente + Ondas de audio sutiles
+ * Minimalista: Avatar pulsando suavemente + Ondas de audio + Notas de reunion
  */
 function SimulationStepCall() {
     return (
         <motion.div className="flex flex-col gap-4 py-2" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} transition={{duration: 0.3}}>
-            <div className="flex items-center gap-4 p-3 border rounded-md shadow-sm bg-white" style={{borderColor: 'var(--color-border-subtle)'}}>
+            {/* Tarjeta de Llamada */}
+            <div className="flex items-center gap-4 p-3 border rounded-md shadow-sm" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border-subtle)'}}>
                 <div className="relative flex-shrink-0">
-                    <motion.div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100" animate={{boxShadow: ['0 0 0 0px rgba(59, 130, 246, 0.1)', '0 0 0 8px rgba(59, 130, 246, 0)']}} transition={{duration: 2, repeat: Infinity}}>
+                    <motion.div className="w-10 h-10 rounded-full flex items-center justify-center border" style={{backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border-primary)', color: 'var(--color-text-primary)'}} animate={{boxShadow: ['0 0 0 0px var(--color-bg-secondary)', '0 0 0 8px transparent']}} transition={{duration: 2, repeat: Infinity}}>
                         <Phone className="w-5 h-5" />
                     </motion.div>
-                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
+                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2" style={{backgroundColor: 'var(--color-success)', borderColor: 'var(--color-bg-surface)'}}></div>
                 </div>
 
                 <div className="flex-1 space-y-1">
@@ -41,7 +42,7 @@ function SimulationStepCall() {
                         </div>
                         <div className="flex gap-0.5 items-end h-3">
                             {[1, 2, 3, 4, 5].map(i => (
-                                <motion.div key={i} className="w-0.5 bg-blue-400 rounded-full" animate={{height: ['20%', '100%', '20%']}} transition={{duration: 0.8, repeat: Infinity, delay: i * 0.1}} />
+                                <motion.div key={i} className="w-0.5 rounded-full" style={{backgroundColor: 'var(--color-text-primary)'}} animate={{height: ['20%', '100%', '20%']}} transition={{duration: 0.8, repeat: Infinity, delay: i * 0.1}} />
                             ))}
                         </div>
                     </div>
@@ -50,6 +51,16 @@ function SimulationStepCall() {
                     </div>
                 </div>
             </div>
+
+            {/* Notas de Reunion (Puntos Acordados) */}
+            <motion.div className="space-y-2 pl-2" initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} transition={{delay: 0.5}}>
+                {['Definición de objetivos principales', 'Canales a integrar (WhatsApp / Web)', 'Presupuesto y plazos estimados'].map((note, i) => (
+                    <motion.div key={i} className="flex items-center gap-2 text-xs" style={{color: 'var(--color-text-secondary)'}} initial={{opacity: 0, x: -5}} animate={{opacity: 1, x: 0}} transition={{delay: 0.8 + i * 0.2}}>
+                        <div className="w-1 h-1 rounded-full" style={{backgroundColor: 'var(--color-text-muted)'}}></div>
+                        <span>{note}</span>
+                    </motion.div>
+                ))}
+            </motion.div>
         </motion.div>
     );
 }
@@ -62,20 +73,30 @@ function SimulationStepPrototype() {
     return (
         <motion.div className="space-y-3 py-1" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
             <motion.div className="flex gap-3 items-start" initial={{opacity: 0, x: -10}} animate={{opacity: 1, x: 0}} transition={{delay: 0.1}}>
-                <div className="w-6 h-6 rounded-full bg-indigo-50 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-indigo-600 border border-indigo-100">AI</div>
-                <div className="bg-indigo-50/50 p-2 rounded-lg rounded-tl-none text-[11px] text-indigo-900 border border-indigo-100/50 max-w-[80%]">Hola, ¿en qué puedo ayudarte hoy?</div>
+                <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold border" style={{backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border-secondary)'}}>
+                    AI
+                </div>
+                <div className="p-2 rounded-lg rounded-tl-none text-[11px] border max-w-[80%]" style={{backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border-subtle)'}}>
+                    Hola, ¿en qué puedo ayudarte hoy?
+                </div>
             </motion.div>
 
             <motion.div className="flex gap-3 flex-row-reverse items-start" initial={{opacity: 0, x: 10}} animate={{opacity: 1, x: 0}} transition={{delay: 0.6}}>
-                <div className="w-6 h-6 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-gray-500 border border-gray-200">Tú</div>
-                <div className="bg-white p-2 rounded-lg rounded-tr-none text-[11px] text-gray-700 border border-gray-200 max-w-[80%] shadow-sm">Quiero reservar una cita para mañana.</div>
+                <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold border" style={{backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-muted)', borderColor: 'var(--color-border-secondary)'}}>
+                    Tú
+                </div>
+                <div className="p-2 rounded-lg rounded-tr-none text-[11px] border max-w-[80%] shadow-sm" style={{backgroundColor: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border-primary)'}}>
+                    Quiero reservar una cita para mañana.
+                </div>
             </motion.div>
 
             <motion.div className="flex gap-3 items-start" initial={{opacity: 0, x: -10}} animate={{opacity: 1, x: 0}} transition={{delay: 1.2}}>
-                <div className="w-6 h-6 rounded-full bg-indigo-50 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-indigo-600 border border-indigo-100">AI</div>
-                <div className="bg-indigo-50/50 p-2 rounded-lg rounded-tl-none text-[11px] text-indigo-900 border border-indigo-100/50 max-w-[80%]">
+                <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold border" style={{backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border-secondary)'}}>
+                    AI
+                </div>
+                <div className="p-2 rounded-lg rounded-tl-none text-[11px] border max-w-[80%]" style={{backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-primary)', borderColor: 'var(--color-border-subtle)'}}>
                     Aquí tienes los huecos libres:
-                    <div className="mt-1 h-1.5 w-12 bg-indigo-200/30 rounded-full"></div>
+                    <div className="mt-1 h-1.5 w-12 rounded-full opacity-30" style={{backgroundColor: 'var(--color-text-muted)'}}></div>
                 </div>
             </motion.div>
         </motion.div>
@@ -84,30 +105,26 @@ function SimulationStepPrototype() {
 
 /**
  * Visualizacion Paso 3: Lanzamiento
- * Minimalista: Iconos de apps activándose
+ * Minimalista: Consola de despliegue estilo terminal
  */
 function SimulationStepLaunch() {
     return (
-        <motion.div className="flex flex-col gap-3 py-2" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
-            <div className="grid grid-cols-4 gap-2">
-                {[
-                    {icon: Database, color: 'text-emerald-600 bg-emerald-50 border-emerald-100'},
-                    {icon: Calendar, color: 'text-orange-600 bg-orange-50 border-orange-100'},
-                    {icon: MessageSquare, color: 'text-blue-600 bg-blue-50 border-blue-100'},
-                    {icon: ShieldCheck, color: 'text-purple-600 bg-purple-50 border-purple-100'}
-                ].map((item, i) => (
-                    <motion.div key={i} className={`flex flex-col items-center justify-center p-2 rounded border ${item.color}`} initial={{opacity: 0, scale: 0.8}} animate={{opacity: 1, scale: 1}} transition={{delay: i * 0.1}}>
-                        <item.icon className="w-4 h-4 mb-1" />
-                        <motion.div initial={{scale: 0}} animate={{scale: 1}} transition={{delay: 0.5 + i * 0.1}}>
-                            <CheckCircle className="w-3 h-3 opacity-80" />
-                        </motion.div>
+        <motion.div className="flex flex-col gap-2 py-2 font-mono text-xs" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
+            <div className="flex flex-col gap-1.5 p-3 rounded border" style={{backgroundColor: 'var(--color-bg-tertiary)', borderColor: 'var(--color-border-secondary)', color: 'var(--color-text-secondary)'}}>
+                {['Initializing agent core...', 'Connecting to CRM...', 'Syncing WhatsApp Business...', 'Verifying GDPR compliance...'].map((text, i) => (
+                    <motion.div key={i} className="flex items-center gap-2" initial={{opacity: 0, x: -5}} animate={{opacity: 1, x: 0}} transition={{delay: i * 0.8}}>
+                        <span style={{color: 'var(--color-text-muted)'}}>{'>'}</span>
+                        <span>{text}</span>
+                        <motion.span initial={{opacity: 0}} animate={{opacity: 1}} transition={{delay: i * 0.8 + 0.6}} className="font-bold ml-auto" style={{color: 'var(--color-success)'}}>
+                            OK
+                        </motion.span>
                     </motion.div>
                 ))}
-            </div>
 
-            <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono mt-1 px-1">
-                <span>STATUS:</span>
-                <span className="text-green-600 font-bold">ALL SYSTEMS OPERATIONAL</span>
+                <motion.div className="mt-2 font-bold flex items-center gap-2 border-t pt-2" style={{color: 'var(--color-success)', borderColor: 'var(--color-border-subtle)'}} initial={{opacity: 0}} animate={{opacity: 1}} transition={{delay: 3.5}}>
+                    <span className="w-2 h-2 rounded-full animate-pulse" style={{backgroundColor: 'var(--color-success)'}}></span>
+                    AI AGENT DEPLOYED SUCCESSFULLY
+                </motion.div>
             </div>
         </motion.div>
     );
@@ -115,23 +132,56 @@ function SimulationStepLaunch() {
 
 /**
  * Visualizacion Paso 4: Mejora Continua
- * Minimalista: Micro-grafica subiendo
+ * Minimalista: Grafica lenta y mensajes de analisis
  */
 function SimulationStepImprove() {
+    const [statusMsg, setStatusMsg] = useState(0);
+    const messages = ['Analizando conversaciones...', 'Detectando fricción...', 'Optimizando respuestas...', 'Aplicando mejoras...'];
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setStatusMsg(prev => (prev + 1) % messages.length);
+        }, 2000);
+        return () => clearInterval(interval);
+    }, []);
+
     return (
-        <motion.div className="flex flex-col gap-3 py-2" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
-            <div className="flex items-end justify-between gap-1 h-16 px-2 border-b border-gray-100 pb-1">
-                {[30, 45, 40, 60, 55, 75, 80, 95].map((h, i) => (
-                    <motion.div key={i} className="bg-indigo-500 w-full rounded-t-[1px] opacity-80" initial={{height: '10%'}} animate={{height: `${h}%`}} transition={{delay: i * 0.05, duration: 0.5}} />
+        <motion.div className="flex flex-col gap-4 py-2" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
+            {/* Cabecera con mensajes cambiantes */}
+            <div className="flex items-center justify-between px-1 h-6">
+                <div className="flex items-center gap-2 text-xs font-mono" style={{color: 'var(--color-text-muted)'}}>
+                    <motion.div animate={{rotate: 360}} transition={{duration: 2, repeat: Infinity, ease: 'linear'}}>
+                        <div className="w-3 h-3 border-2 rounded-full" style={{borderColor: 'var(--color-border-secondary)', borderTopColor: 'var(--color-text-primary)'}}></div>
+                    </motion.div>
+                    <AnimatePresence mode="wait">
+                        <motion.span key={statusMsg} initial={{opacity: 0, y: 5}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: -5}}>
+                            {messages[statusMsg]}
+                        </motion.span>
+                    </AnimatePresence>
+                </div>
+            </div>
+
+            {/* Grafica subiendo LENTO */}
+            <div className="flex items-end justify-between gap-1 h-20 px-2 border-b pb-1 overflow-hidden" style={{borderColor: 'var(--color-border-secondary)'}}>
+                {[30, 35, 32, 45, 42, 55, 60, 75, 70, 85].map((h, i) => (
+                    <motion.div
+                        key={i}
+                        className="w-full rounded-t-[1px] opacity-80"
+                        style={{backgroundColor: 'var(--color-text-primary)'}}
+                        initial={{height: '5%'}}
+                        animate={{height: `${h}%`}}
+                        transition={{
+                            delay: i * 0.5,
+                            duration: 1.5,
+                            ease: 'easeOut'
+                        }}
+                    />
                 ))}
             </div>
-            <div className="flex justify-between px-2">
-                <div className="flex items-center gap-1.5">
-                    <TrendingUp className="w-3 h-3 text-green-600" />
-                    <span className="text-[11px] font-medium text-gray-600">Conversión</span>
-                </div>
-                <motion.span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100" initial={{opacity: 0, scale: 0.8}} animate={{opacity: 1, scale: 1}} transition={{delay: 0.8}}>
-                    +32%
+
+            <div className="flex justify-end px-2">
+                <motion.span className="text-[10px] font-bold px-2 py-1 rounded border flex gap-1 items-center" style={{backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-success)', borderColor: 'var(--color-border-secondary)'}} initial={{opacity: 0, scale: 0.9}} animate={{opacity: 1, scale: 1}} transition={{delay: 5}}>
+                    <TrendingUp className="w-3 h-3" />+ Conversión
                 </motion.span>
             </div>
         </motion.div>
@@ -140,30 +190,71 @@ function SimulationStepImprove() {
 
 /**
  * Componente unificado que muestra el proceso de trabajo
- * Estructura minimalista original con animaciones internas enriquecidas
+ * Estructura minimalista con colores normalizados y Autoplay
  */
 export function ProcessWorkflow({steps, simulations}: ProcessWorkflowProps) {
     const [activeStep, setActiveStep] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+
     const currentSimulation = simulations[activeStep];
+
+    // Manejo del ciclo automatico
+    useEffect(() => {
+        if (isPaused) return;
+
+        timerRef.current = setInterval(() => {
+            setActiveStep(prev => (prev + 1) % steps.length);
+        }, 6000); // 6 segundos por slide para dar tiempo a ver la animacion
+
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, [isPaused, steps.length]);
+
+    const handleStepClick = (index: number) => {
+        setActiveStep(index);
+        setIsPaused(true); // Pausar al interactuar
+
+        // Reiniciar el timer si el usuario quiere seguir viendo
+        // Opcional: Podriamos dejarlo pausado para siempre o reanudar despues de un tiempo
+    };
 
     return (
         <section className="mx-auto w-full max-w-7xl space-y-8">
-            {/* Indicadores Minimalistas (Estilo Original) */}
+            {/* Indicadores Minimalistas */}
             <div className="flex w-full flex-wrap items-center justify-between gap-6 text-[13px] md:text-sm font-medium tracking-tight font-mono" style={{color: 'var(--color-text-muted)'}}>
                 {steps.map((step, index) => {
                     const isActive = index === activeStep;
 
                     return (
-                        <button key={index} onClick={() => setActiveStep(index)} className={`flex items-center gap-2 transition-all ${isActive ? 'hover:opacity-80 cursor-pointer scale-105' : 'opacity-50 hover:opacity-70 cursor-pointer'}`} style={{color: isActive ? 'var(--color-text-primary)' : 'inherit'}}>
-                            <div className={`h-4 w-4 rounded-full flex-shrink-0 ${isActive ? 'border-[2px] border-dotted border-orange-500 animate-spin' : 'border'}`} style={{borderColor: isActive ? undefined : 'var(--color-border-secondary)'}}></div>
+                        <button key={index} onClick={() => handleStepClick(index)} className={`flex items-center gap-2 transition-all ${isActive ? 'hover:opacity-80 cursor-pointer scale-105' : 'opacity-50 hover:opacity-70 cursor-pointer'}`} style={{color: isActive ? 'var(--color-text-primary)' : 'inherit'}}>
+                            <div className="relative h-4 w-4 flex items-center justify-center">
+                                <div
+                                    className={`absolute inset-0 rounded-full border transition-all duration-300 ${isActive ? 'scale-100 opacity-100' : 'scale-90 opacity-40'}`}
+                                    style={{
+                                        borderColor: isActive ? 'var(--color-warning)' : 'var(--color-border-secondary)',
+                                        borderStyle: isActive ? 'dotted' : 'solid',
+                                        borderWidth: '2px'
+                                    }}></div>
+                                {isActive && <motion.div layoutId="active-dot" className="h-1.5 w-1.5 rounded-full" style={{backgroundColor: 'var(--color-warning)'}} transition={{type: 'spring', stiffness: 300, damping: 20}} />}
+                            </div>
                             <span>{step.label}</span>
+
+                            {/* Barra de progreso de tiempo restante (Solo si esta activo y no pausado) */}
+                            {isActive && !isPaused && <motion.div className="absolute bottom-[-4px] left-0 h-[1px] bg-current opacity-30" initial={{width: '0%'}} animate={{width: '100%'}} transition={{duration: 6, ease: 'linear'}} />}
                         </button>
                     );
                 })}
             </div>
 
-            {/* Area Visual Minimalista (Estilo Original) */}
-            <div className="border rounded-md overflow-hidden shadow-sm" style={{borderColor: 'var(--color-border-primary)', backgroundColor: 'var(--color-bg-surface)'}}>
+            {/* Area Visual Minimalista */}
+            <div
+                className="border rounded-md overflow-hidden shadow-sm"
+                style={{borderColor: 'var(--color-border-primary)', backgroundColor: 'var(--color-bg-surface)'}}
+                onMouseEnter={() => setIsPaused(true)} // Pausar al hacer hover sobre la visualizacion
+                onMouseLeave={() => setIsPaused(false)} // Reanudar al salir (opcional)
+            >
                 <div className="border-b relative h-64 md:h-[420px] overflow-hidden group" style={{borderColor: 'var(--color-border-primary)', backgroundColor: 'var(--color-bg-secondary)'}}>
                     {/* Grid Pattern */}
                     <div
@@ -173,7 +264,7 @@ export function ProcessWorkflow({steps, simulations}: ProcessWorkflowProps) {
                             backgroundSize: '40px 40px'
                         }}></div>
 
-                    {/* Tarjeta Flotante Central (Contenedor de Simulaciones) */}
+                    {/* Tarjeta Flotante Central */}
                     <div className="absolute inset-0 flex items-center justify-center p-6">
                         <div className="w-full max-w-2xl rounded-lg shadow-sm border p-1.5 transition-transform duration-500" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border-primary)'}}>
                             <div className="rounded border p-6 flex flex-col gap-4" style={{backgroundColor: 'var(--color-bg-elevated)', borderColor: 'var(--color-border-subtle)'}}>
@@ -190,7 +281,7 @@ export function ProcessWorkflow({steps, simulations}: ProcessWorkflowProps) {
                                 </div>
 
                                 {/* Contenido Dinamico Animado */}
-                                <div className="min-h-[120px] flex flex-col justify-center">
+                                <div className="min-h-[140px] flex flex-col justify-center">
                                     <AnimatePresence mode="wait">
                                         <motion.div key={activeStep} initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: -10}} transition={{duration: 0.2}}>
                                             {activeStep === 0 && <SimulationStepCall />}
@@ -199,12 +290,6 @@ export function ProcessWorkflow({steps, simulations}: ProcessWorkflowProps) {
                                             {activeStep === 3 && <SimulationStepImprove />}
                                         </motion.div>
                                     </AnimatePresence>
-                                </div>
-
-                                {/* Linea Falsa Inferior (Fake UI) */}
-                                <div className="flex items-center gap-4 p-3 border rounded-md shadow-sm opacity-60 mt-2" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border-subtle)'}}>
-                                    <div className="h-4 w-4 rounded-full border" style={{borderColor: 'var(--color-border-secondary)'}}></div>
-                                    <div className="h-2 w-1/2 rounded-sm" style={{backgroundColor: 'var(--color-border-subtle)'}}></div>
                                 </div>
                             </div>
                         </div>
