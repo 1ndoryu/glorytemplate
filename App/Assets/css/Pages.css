@@ -24,13 +24,13 @@
 
 .bodyPage p,
 .bodyPage li {
-    font-size: 14px;
+    font-size: 16px;
     color: color-mix(in srgb, var(--text) 70%, transparent) !important;
 }
 
 .bodyPage a {
     color: #f84444;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .bodyPage strong {
@@ -128,4 +128,13 @@ h3.brandTitle {
     align-items: center;
     justify-content: center;
     flex-direction: column;
+}
+
+a.amazon-buy-btn-icon {
+    display: flex;
+    color: white;
+}
+
+.amazon-card-content h3 {
+    FONT-WEIGHT: 400;
 }

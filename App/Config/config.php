@@ -36,7 +36,7 @@ PageManager::setDefaultSeoMap([
             ['q' => '¿Control, potencia o polivalente?', 'a' => 'Si dudas, una polivalente (lágrima) equilibra defensa y remate; la diamante es para jugadores avanzados con pegada.'],
             ['q' => '¿Qué peso es "ligero" en palas de adulto?', 'a' => 'Aproximadamente 355–360 g; por debajo suele ser junior o gamas muy específicas.'],
             ['q' => '¿El carbono es siempre mejor que la fibra de vidrio?', 'a' => 'No siempre. Carbono = mayor rigidez/precisión; vidrio = más cómodo y económico.'],
-            ['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones en tiempo real.'],
+            ['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones en tiempo real.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -52,7 +52,7 @@ PageManager::setDefaultSeoMap([
             ['q' => '¿Cada cuánto debo cambiar las zapatillas de pádel?', 'a' => 'Según uso y desgaste: muchas personas las cambian cada 6–12 meses o cuando la espiga pierde relieve.'],
             ['q' => '¿Diferencias con zapatillas de tenis o running?', 'a' => 'Las de pádel priorizan la estabilidad lateral y suela específica para pistas con arena o sintético.'],
             ['q' => '¿Cómo elijo talla y ajuste?', 'a' => 'Deja ~1 cm en puntera, pruébalas con tus calcetines habituales y valora media talla más si notas presión lateral.'],
-            ['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones en tiempo real.'],
+            ['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones en tiempo real.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -68,7 +68,7 @@ PageManager::setDefaultSeoMap([
             ['q' => '¿Y para invierno?', 'a' => 'Primera capa térmica y sudadera o chaqueta ligera que no limite la movilidad.'],
             ['q' => '¿En qué me fijo en los tejidos?', 'a' => 'Poliéster/elastano por elasticidad y secado rápido; costuras planas y patronaje deportivo para evitar roces.'],
             ['q' => '¿Ropa de pádel y de running sirven igual?', 'a' => 'La de pádel prioriza movilidad lateral y ventilación en zonas clave; la de running está pensada para impacto lineal.'],
-            ['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones en tiempo real.'],
+            ['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones en tiempo real.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -84,7 +84,7 @@ PageManager::setDefaultSeoMap([
             ['q' => '¿Cada cuánto conviene cambiarlas?', 'a' => 'Cuando pierden bote o el fieltro está muy gastado; en partidos exigentes, algunas personas las cambian cada 1–2 encuentros.'],
             ['q' => '¿Diferencias entre pelotas de pádel y de tenis?', 'a' => 'Las de pádel ajustan presión y fieltro para pistas más cortas y con arena, ofreciendo un bote y durabilidad acordes al juego.'],
             ['q' => '¿Cómo conservar la presión y el fieltro?', 'a' => 'Guarda los botes cerrados, evita el calor directo y considera un presurizador; rota tubos si juegas a menudo.'],
-            ['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones en tiempo real.'],
+            ['q' => '¿Puedo ver precios y reseñas actualizadas?', 'a' => 'Sí, en cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones en tiempo real.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -146,7 +146,7 @@ PageManager::setDefaultSeoMap([
             ['q' => '¿Adidas tiene palas potentes para rematar?', 'a' => 'Sí. Mira modelos diamante con balance alto y planos más firmes para ganar pegada.'],
             ['q' => '¿Qué peso elegir en palas Adidas?', 'a' => 'Como guía general, 355–365 g para adulto; ajusta según fuerza y antecedentes de codo u hombro.'],
             ['q' => '¿Carbono o fibra de vidrio en Adidas?', 'a' => 'Carbono = precisión y estabilidad; fibra de vidrio = mayor confort y mejor precio.'],
-            ['q' => '¿Dónde veo precios y reseñas actualizadas de palas Adidas?', 'a' => 'En cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones al día.'],
+            ['q' => '¿Dónde veo precios y reseñas actualizadas de palas Adidas?', 'a' => 'En cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones al día.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -162,7 +162,7 @@ PageManager::setDefaultSeoMap([
             ['q' => 'Quiero potencia en la red, ¿qué debo priorizar?', 'a' => 'Una pala con respuesta rápida, buena estabilidad al impacto y sensación más firme.'],
             ['q' => 'Si tengo codo sensible, ¿qué me conviene?', 'a' => 'Palas cómodas (menos vibración) y peso contenido; añade overgrip para mejorar agarre sin tensar el antebrazo.'],
             ['q' => '¿Qué peso es orientativo en Bullpadel para adulto?', 'a' => 'De forma general, 355–365 g; ajusta según fuerza, frecuencia de juego y sensaciones.'],
-            ['q' => '¿Dónde veo precios y reseñas de palas Bullpadel?', 'a' => 'En las tarjetas AAWP, pulsa "Consultar precio en Amazon" para ver precio y valoraciones al día.'],
+            ['q' => '¿Dónde veo precios y reseñas de palas Bullpadel?', 'a' => 'En cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones al día.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -178,7 +178,7 @@ PageManager::setDefaultSeoMap([
             ['q' => 'Quiero más potencia arriba, ¿qué NOX me conviene?', 'a' => 'Una pala con respuesta rápida, buena estabilidad y sensación algo más firme para transferir energía.'],
             ['q' => 'Si busco control desde el fondo, ¿qué priorizo?', 'a' => 'Salida constante, maniobrabilidad y que perdone cuando no impactas al centro.'],
             ['q' => '¿Carbono o fibra de vidrio en NOX?', 'a' => 'Carbono = más precisión y golpe definido; fibra de vidrio = confort y brazo más descansado.'],
-            ['q' => '¿Dónde ver precios y reseñas de palas NOX?', 'a' => 'En cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones al día.'],
+            ['q' => '¿Dónde ver precios y reseñas de palas NOX?', 'a' => 'En cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones al día.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -194,7 +194,7 @@ PageManager::setDefaultSeoMap([
             ['q' => 'Busco potencia clara en la red, ¿qué priorizo en Babolat?', 'a' => 'Respuesta rápida, buena estabilidad al impacto y tacto más firme para transferir energía.'],
             ['q' => 'Juego variado (defiendo y ataco), ¿qué me conviene?', 'a' => 'Una pala equilibrada con salida progresiva y agilidad en la volea para cambiar de ritmo sin perder control.'],
             ['q' => '¿Carbono o fibra de vidrio en Babolat?', 'a' => 'Carbono = más precisión y golpe definido; fibra de vidrio = confort y brazo más descansado.'],
-            ['q' => '¿Dónde veo precios y reseñas de palas Babolat?', 'a' => 'En las tarjetas AAWP, pulsa "Consultar precio en Amazon" para ver precio y valoraciones al día.'],
+            ['q' => '¿Dónde veo precios y reseñas de palas Babolat?', 'a' => 'En cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones al día.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -211,7 +211,7 @@ PageManager::setDefaultSeoMap([
             ['q' => '¿Y si busco potencia en la red?', 'a' => 'Respuesta rápida, buena estabilidad al impacto y tacto algo más firme para transferir energía.'],
             ['q' => '¿Qué peso orientativo recomiendas en Head?', 'a' => 'De forma general, 355–365 g en adulto; ajusta según fuerza y comodidad del antebrazo.'],
             ['q' => '¿Carbono o fibra de vidrio en Head?', 'a' => 'Carbono = más precisión y golpe definido; fibra de vidrio = confort y brazo más descansado.'],
-            ['q' => '¿Dónde veo precios y reseñas de palas Head?', 'a' => 'En cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones al día.'],
+            ['q' => '¿Dónde veo precios y reseñas de palas Head?', 'a' => 'En cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones al día.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -227,7 +227,7 @@ PageManager::setDefaultSeoMap([
             ['q' => 'Quiero potencia arriba, ¿qué buscar en Siux?', 'a' => 'Respuesta rápida, buena estabilidad al impacto y sensación algo más firme para transferir energía en remates.'],
             ['q' => 'Juego variado, ¿qué Siux me conviene?', 'a' => 'Una pala equilibrada con salida progresiva y agilidad en la red para pasar de defensa a ataque sin sorpresas.'],
             ['q' => '¿Carbono o fibra de vidrio en Siux?', 'a' => 'Carbono = más precisión y golpe definido; fibra de vidrio = confort y brazo más descansado.'],
-            ['q' => '¿Dónde veo precios y reseñas de palas Siux?', 'a' => 'En las tarjetas AAWP, pulsa "Consultar precio en Amazon" para ver precio y valoraciones al día.'],
+            ['q' => '¿Dónde veo precios y reseñas de palas Siux?', 'a' => 'En cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones al día.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -244,7 +244,7 @@ PageManager::setDefaultSeoMap([
             ['q' => 'Quiero potencia arriba, ¿qué me conviene?', 'a' => 'Respuesta rápida, buena estabilidad al golpear y tacto algo más firme para transferir energía.'],
             ['q' => 'Juego variado, ¿hay opciones polivalentes?', 'a' => 'Sí, palas con salida progresiva y agilidad en la red para pasar de defensa a ataque sin sorpresas.'],
             ['q' => '¿Carbono o fibra de vidrio en Black Crown?', 'a' => 'Carbono = más precisión; fibra de vidrio = confort y brazo más descansado.'],
-            ['q' => '¿Dónde veo precios y reseñas de palas Black Crown?', 'a' => 'En las tarjetas AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones al día.'],
+            ['q' => '¿Dónde veo precios y reseñas de palas Black Crown?', 'a' => 'En cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones al día.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -261,7 +261,7 @@ PageManager::setDefaultSeoMap([
             ['q' => 'Si busco potencia arriba, ¿qué me conviene?', 'a' => 'Respuesta rápida, buena estabilidad al impacto y tacto algo más firme para transferir energía.'],
             ['q' => 'Juego variado (defiendo y ataco), ¿hay opciones polivalentes?', 'a' => 'Sí, palas con salida progresiva y agilidad en la volea para cambiar de ritmo sin sorpresas.'],
             ['q' => '¿Carbono o fibra de vidrio en Star Vie?', 'a' => 'Carbono = más precisión; fibra de vidrio = confort y brazo más descansado.'],
-            ['q' => '¿Dónde veo precios y reseñas de palas Star Vie?', 'a' => 'En las tarjetas AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones al día.'],
+            ['q' => '¿Dónde veo precios y reseñas de palas Star Vie?', 'a' => 'En cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones al día.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -278,7 +278,7 @@ PageManager::setDefaultSeoMap([
             ['q' => 'Si juego a construir desde el fondo, ¿qué me conviene?', 'a' => 'Salida constante, pala maniobrable y que perdone cuando no impactas al centro.'],
             ['q' => '¿Carbono o fibra de vidrio en Vibor-A?', 'a' => 'Carbono = más precisión y golpe definido; fibra de vidrio = confort y brazo más descansado.'],
             ['q' => '¿Qué peso orientativo recomendáis?', 'a' => 'De forma general, 355–365 g en adulto; ajusta según fuerza, frecuencia de juego y sensaciones.'],
-            ['q' => '¿Dónde veo precios y reseñas de palas Vibor-A?', 'a' => 'En cada tarjeta AAWP pulsa "Consultar precio en Amazon" para ver precio y valoraciones al día.'],
+            ['q' => '¿Dónde veo precios y reseñas de palas Vibor-A?', 'a' => 'En cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones al día.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],
@@ -295,7 +295,7 @@ PageManager::setDefaultSeoMap([
             ['q' => 'Quiero potencia en la red, ¿qué me conviene?', 'a' => 'Respuesta rápida, buena estabilidad y un tacto algo más firme para transferir mejor la energía.'],
             ['q' => 'Juego variado (defiendo y ataco), ¿hay opciones polivalentes?', 'a' => 'Sí, palas con salida progresiva y agilidad en la volea para cambiar de ritmo con confianza.'],
             ['q' => '¿Carbono o fibra de vidrio en Wilson?', 'a' => 'Carbono = más precisión y golpe definido; fibra de vidrio = confort y brazo más descansado.'],
-            ['q' => '¿Dónde veo precios y reseñas de palas Wilson?', 'a' => 'En las tarjetas AAWP, pulsa "Consultar precio en Amazon" para ver precio y valoraciones al día.'],
+            ['q' => '¿Dónde veo precios y reseñas de palas Wilson?', 'a' => 'En cada producto pulsa "Ver en Amazon" para consultar precio y valoraciones al día.'],
         ],
         'breadcrumb' => [
             ['name' => 'Inicio', 'url' => 'https://materialdepadel.com/'],

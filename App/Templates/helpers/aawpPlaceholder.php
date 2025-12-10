@@ -2,6 +2,13 @@
 
 namespace App\Templates\Helpers;
 
+/**
+ * @deprecated Este helper ya no se usa. Se migro al plugin AmazonProduct.
+ * Ver: Glory/src/Plugins/AmazonProduct/Docs/USAGE_GUIDE.md
+ * Shortcodes disponibles: [amazon_products] y [amazon_deals]
+ * 
+ * Este archivo se mantiene por compatibilidad pero puede eliminarse.
+ */
 function renderAawpPlaceholder(string $context = 'productos'): void
 {
     // Si estamos en contexto de copia para editor, emitir shortcode en lugar de HTML completo
@@ -24,5 +31,3 @@ function renderAawpPlaceholder(string $context = 'productos'): void
     echo '</div>';
     echo '</div>';
 }
-
-

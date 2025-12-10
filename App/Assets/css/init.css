@@ -385,8 +385,8 @@ textarea, a, li {
 }
 
 ::-webkit-scrollbar {
-    width: 0.4rem;
-    height: 0.4rem;
+    width: 0.8rem;
+    height: 0.8rem;
     transition: width 0.3s ease, height 0.3s ease;
 }
 ::-webkit-scrollbar-track {
@@ -398,8 +398,8 @@ textarea, a, li {
 }
 
 .scrollVisible::-webkit-scrollbar {
-    width: 0.4rem;
-    height: 0.4rem;
+    width: 0.8rem;
+    height: 0.8rem;
 }
 .scrollVisible::-webkit-scrollbar-thumb {
     background: unset;
@@ -1011,4 +1011,11 @@ button.previewRemover {
     align-items: center;
     justify-content: center;
     border-radius: 6px;
+}
+
+.brandsList {
+    gap: 70px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
 }

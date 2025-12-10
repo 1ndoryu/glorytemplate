@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @deprecated Este metabox ya no se usa.
+ * Se migro al plugin AmazonProduct que gestiona productos como Custom Post Type.
+ * Ver: Glory/src/Plugins/AmazonProduct/Docs/USAGE_GUIDE.md
+ * 
+ * Este archivo se mantiene por compatibilidad pero puede eliminarse.
+ */
+
 namespace App\Admin;
 
 class ProductosAawpMetabox
@@ -16,7 +24,9 @@ class ProductosAawpMetabox
     public static function addMetabox(): void
     {
         static $yaAnadido = false;
-        if ($yaAnadido) { return; }
+        if ($yaAnadido) {
+            return;
+        }
         $yaAnadido = true;
 
         \add_meta_box(
@@ -74,7 +84,7 @@ class ProductosAawpMetabox
   });
 })();
 JS
-        . '</script>';
+            . '</script>';
     }
 
     public static function save(int $postId, \WP_Post $post): void
@@ -92,9 +102,13 @@ JS
         $input = isset($_POST['app_aawp_asins']) && is_array($_POST['app_aawp_asins']) ? $_POST['app_aawp_asins'] : [];
         $limpios = [];
         foreach ($input as $asin) {
-            if (!is_string($asin)) { continue; }
+            if (!is_string($asin)) {
+                continue;
+            }
             $asin = strtoupper(preg_replace('/[^A-Z0-9]/i', '', $asin));
-            if ($asin !== '') { $limpios[] = $asin; }
+            if ($asin !== '') {
+                $limpios[] = $asin;
+            }
         }
         if (empty($limpios)) {
             $limpios = ['B09M56N5C5', 'B09M56N5C5', 'B09M56N5C5'];
@@ -104,5 +118,3 @@ JS
 }
 
 ProductosAawpMetabox::register();
-
-

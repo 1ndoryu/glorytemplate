@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @deprecated Este shortcode ya no se usa en las paginas del tema.
+ * Se migro al plugin AmazonProduct con los shortcodes [amazon_products] y [amazon_deals].
+ * Ver: Glory/src/Plugins/AmazonProduct/Docs/USAGE_GUIDE.md
+ * 
+ * Este archivo se mantiene por compatibilidad pero puede eliminarse.
+ */
+
 namespace App\Shortcodes;
 
 use Glory\Manager\OpcionManager;
@@ -30,7 +38,9 @@ use Glory\Manager\OpcionManager;
             echo '<div class="gridAAWP">';
             foreach ($asins as $asin) {
                 $asin = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $asin));
-                if ($asin === '') { continue; }
+                if ($asin === '') {
+                    continue;
+                }
                 echo ProductosAawpShortcode::htmlPreviewProducto($asin);
                 echo "\n";
             }
@@ -42,7 +52,9 @@ use Glory\Manager\OpcionManager;
         $shortcodes = [];
         foreach ($asins as $asin) {
             $asin = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $asin));
-            if ($asin === '') { continue; }
+            if ($asin === '') {
+                continue;
+            }
             $shortcodes[] = '[amazon box="' . esc_attr($asin) . '"]';
         }
         $render = do_shortcode(implode("\n", $shortcodes));
@@ -63,59 +75,78 @@ class ProductosAawpShortcode
         $ratingWidth = '90%';
 
         ob_start();
-        ?>
-<div class="aawp">
+?>
+        <div class="aawp">
 
-<div class="aawp-product aawp-product--horizontal" data-aawp-product-asin="<?php echo $asinAttr; ?>" data-aawp-product-id="3" data-aawp-product-title="<?php echo $titleAttr; ?>">
+            <div class="aawp-product aawp-product--horizontal" data-aawp-product-asin="<?php echo $asinAttr; ?>" data-aawp-product-id="3" data-aawp-product-title="<?php echo $titleAttr; ?>">
 
-    <div class="aawp-product__thumb">
-        <a class="aawp-product__image-link" href="https://www.amazon.es/dp/<?php echo $asinAttr; ?>?tag=<?php echo esc_attr($tracking); ?>" title="<?php echo $titleAttr; ?>" rel="nofollow noopener sponsored" target="_blank">
-            <img decoding="async" class="aawp-product__image" src="<?php echo $img; ?>" alt="<?php echo $titleAttr; ?>">
-        </a>
-        <div class="aawp-product__rating">
-            <a class="aawp-star-rating aawp-star-rating--small aawp-star-rating--v1" href="https://www.amazon.es/product-reviews/<?php echo $asinAttr; ?>?tag=<?php echo esc_attr($tracking); ?>" title="Reviews on Amazon" rel="nofollow noopener sponsored" target="_blank"><span style="width: <?php echo $ratingWidth; ?>;"></span></a>
+                <div class="aawp-product__thumb">
+                    <a class="aawp-product__image-link" href="https://www.amazon.es/dp/<?php echo $asinAttr; ?>?tag=<?php echo esc_attr($tracking); ?>" title="<?php echo $titleAttr; ?>" rel="nofollow noopener sponsored" target="_blank">
+                        <img decoding="async" class="aawp-product__image" src="<?php echo $img; ?>" alt="<?php echo $titleAttr; ?>">
+                    </a>
+                    <div class="aawp-product__rating">
+                        <a class="aawp-star-rating aawp-star-rating--small aawp-star-rating--v1" href="https://www.amazon.es/product-reviews/<?php echo $asinAttr; ?>?tag=<?php echo esc_attr($tracking); ?>" title="Reviews on Amazon" rel="nofollow noopener sponsored" target="_blank"><span style="width: <?php echo $ratingWidth; ?>;"></span></a>
+                    </div>
+                </div>
+
+                <div class="aawp-product__content">
+                    <a class="aawp-product__title" href="https://www.amazon.es/dp/<?php echo $asinAttr; ?>?tag=<?php echo esc_attr($tracking); ?>" title="<?php echo $titleAttr; ?>" rel="nofollow noopener sponsored" target="_blank">
+                        <?php echo esc_html($title); ?> </a>
+                    <div class="aawp-product__description">
+                        <ul>
+                            <li>La ZEPHYR es para jugadores avanzados que quieren llevar su juego al siguiente nivel y se ha diseñado para una mayor maniobrabilidad</li>
+                            <li>Tecnología: Innegra</li>
+                            <li>Peso: 345 G</li>
+                            <li>Tamaño de Cabeza: 490 cm²</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="aawp-product__footer">
+                    <div class="aawp-product__pricing">
+                        <span class="aawp-product__price aawp-product__price--current"></span>
+                        <a href="https://www.amazon.es/gp/prime/" title="Amazon Prime" rel="nofollow noopener sponsored" target="_blank" class="aawp-check-prime"><img decoding="async" src="<?php echo $prime; ?>" height="16" width="55" alt="Amazon Prime"></a>
+                    </div>
+                    <a class="aawp-button aawp-button--buy rounded aawp-button--icon aawp-button--icon-black" href="https://www.amazon.es/dp/<?php echo $asinAttr; ?>?tag=<?php echo esc_attr($tracking); ?>" title="Consultar precio en Amazon" target="_blank" rel="nofollow noopener sponsored">Consultar precio en Amazon</a>
+                </div>
+
+            </div>
+
         </div>
-    </div>
-
-    <div class="aawp-product__content">
-        <a class="aawp-product__title" href="https://www.amazon.es/dp/<?php echo $asinAttr; ?>?tag=<?php echo esc_attr($tracking); ?>" title="<?php echo $titleAttr; ?>" rel="nofollow noopener sponsored" target="_blank">
-            <?php echo esc_html($title); ?>        </a>
-        <div class="aawp-product__description">
-            <ul><li>La ZEPHYR es para jugadores avanzados que quieren llevar su juego al siguiente nivel y se ha diseñado para una mayor maniobrabilidad</li><li>Tecnología: Innegra</li><li>Peso: 345 G</li><li>Tamaño de Cabeza: 490 cm²</li></ul>        </div>
-    </div>
-
-    <div class="aawp-product__footer">
-        <div class="aawp-product__pricing">
-            <span class="aawp-product__price aawp-product__price--current"></span>
-            <a href="https://www.amazon.es/gp/prime/" title="Amazon Prime" rel="nofollow noopener sponsored" target="_blank" class="aawp-check-prime"><img decoding="async" src="<?php echo $prime; ?>" height="16" width="55" alt="Amazon Prime"></a>        </div>
-        <a class="aawp-button aawp-button--buy rounded aawp-button--icon aawp-button--icon-black" href="https://www.amazon.es/dp/<?php echo $asinAttr; ?>?tag=<?php echo esc_attr($tracking); ?>" title="Consultar precio en Amazon" target="_blank" rel="nofollow noopener sponsored">Consultar precio en Amazon</a>
-    </div>
-
-</div>
-
-</div>
-<script type="application/ld+json">{
-    "@context": "https://schema.org/",
-    "@graph": [
-        {
-            "@type": "Product",
-            "name": "<?php echo $titleAttr; ?>",
-            "image": "https://m.media-amazon.com/images/I/61LDe095HjL._AC_SL1300_._SL160_.jpg",
-            "description": "<ul><li>La ZEPHYR es para jugadores avanzados que quieren llevar su juego al siguiente nivel y se ha diseñado para una mayor maniobrabilidad</li><li>Tecnología: Innegra</li><li>Peso: 345 G</li><li>Tamaño de Cabeza: 490 cm²</li></ul>",
-            "sku": "<?php echo $asinAttr; ?>",
-            "brand": {"@type": "Brand","name": ""},
-            "offers": {"@type": "Offer","url": "https://www.amazon.es/dp/<?php echo $asinAttr; ?>?tag=<?php echo esc_attr($tracking); ?>","priceCurrency": "","price": 0,"availability": "https://schema.org/OutOfStock","itemCondition": "https://schema.org/NewCondition","seller": {"@type": "Organization","name": ""}},
-            "aggregateRating": {"@type": "AggregateRating","ratingValue": "4.6","reviewCount": "199"}
-        }
-    ]
-}</script><br>
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org/",
+                "@graph": [{
+                    "@type": "Product",
+                    "name": "<?php echo $titleAttr; ?>",
+                    "image": "https://m.media-amazon.com/images/I/61LDe095HjL._AC_SL1300_._SL160_.jpg",
+                    "description": "<ul><li>La ZEPHYR es para jugadores avanzados que quieren llevar su juego al siguiente nivel y se ha diseñado para una mayor maniobrabilidad</li><li>Tecnología: Innegra</li><li>Peso: 345 G</li><li>Tamaño de Cabeza: 490 cm²</li></ul>",
+                    "sku": "<?php echo $asinAttr; ?>",
+                    "brand": {
+                        "@type": "Brand",
+                        "name": ""
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "url": "https://www.amazon.es/dp/<?php echo $asinAttr; ?>?tag=<?php echo esc_attr($tracking); ?>",
+                        "priceCurrency": "",
+                        "price": 0,
+                        "availability": "https://schema.org/OutOfStock",
+                        "itemCondition": "https://schema.org/NewCondition",
+                        "seller": {
+                            "@type": "Organization",
+                            "name": ""
+                        }
+                    },
+                    "aggregateRating": {
+                        "@type": "AggregateRating",
+                        "ratingValue": "4.6",
+                        "reviewCount": "199"
+                    }
+                }]
+            }
+        </script><br>
 <?php
         return (string) ob_get_clean();
     }
 }
-
-
-
-
-
-

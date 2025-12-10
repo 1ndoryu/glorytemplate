@@ -9,9 +9,9 @@ function home()
         // Fondo responsive (s3.jpg) con WebP y diferentes anchos por breakpoint
         $bgUrl = Glory\Utility\AssetsUtility::imagenUrl('tema::s3.jpg');
         if ($bgUrl) {
-            $bg_m  = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, [ 'w' => 768,  'quality' => 60, 'strip' => 'all', 'format' => 'webp' ]);
-            $bg_d  = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, [ 'w' => 1280, 'quality' => 60, 'strip' => 'all', 'format' => 'webp' ]);
-            $bg_xl = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, [ 'w' => 1920, 'quality' => 60, 'strip' => 'all', 'format' => 'webp' ]);
+            $bg_m  = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, ['w' => 768,  'quality' => 60, 'strip' => 'all', 'format' => 'webp']);
+            $bg_d  = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, ['w' => 1280, 'quality' => 60, 'strip' => 'all', 'format' => 'webp']);
+            $bg_xl = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, ['w' => 1920, 'quality' => 60, 'strip' => 'all', 'format' => 'webp']);
             echo '<style>.hero .heroBg{background-image:url(' . esc_url($bg_d) . ');background-size:cover;background-position:center;}@media(max-width:800px){.hero .heroBg{background-image:url(' . esc_url($bg_m) . ');}}@media(min-width:1400px){.hero .heroBg{background-image:url(' . esc_url($bg_xl) . ');}}</style>';
             echo '<div class="heroBg"></div>';
         }
@@ -68,7 +68,7 @@ function home()
             <h2 class="bloqueTitulo">Últimas ofertas</h2>
             <a class="btnLink" href="/ofertas/">Ver todas</a>
         </div>
-        [productos_aawp_pagina]
+        [amazon_products only_deals="1" orderby="random" limit="4" hide_filters="1" pagination="0"]
 
     </section>
 
@@ -94,4 +94,3 @@ function home()
     </section>
 <?php
 }
-
