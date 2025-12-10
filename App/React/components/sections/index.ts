@@ -9,3 +9,4 @@ export {Footer} from './Footer';
 export {FeatureList} from './FeatureList';
 export {GridCards} from './GridCards';
 export {QuoteSection} from './QuoteSection';
+export {ProcessWorkflow} from './ProcessWorkflow';

@@ -6,8 +6,6 @@ import {Button} from '../ui/Button';
 
 interface StatusIndicator {
     label: string;
-    isActive?: boolean;
-    isAnimated?: boolean;
 }
 
 interface HeroSectionProps {
@@ -22,9 +20,11 @@ interface HeroSectionProps {
         href: string;
     };
     statusIndicators?: StatusIndicator[];
+    activeIndicatorIndex?: number;
+    onIndicatorClick?: (index: number) => void;
 }
 
-export function HeroSection({title, subtitle, primaryCta, secondaryCta, statusIndicators = []}: HeroSectionProps) {
+export function HeroSection({title, subtitle, primaryCta, secondaryCta, statusIndicators = [], activeIndicatorIndex = 0, onIndicatorClick}: HeroSectionProps) {
     return (
         <section className="mx-auto w-full max-w-7xl">
             <div className="grid grid-cols-12 gap-6 items-start">
@@ -46,16 +46,21 @@ export function HeroSection({title, subtitle, primaryCta, secondaryCta, statusIn
                 </div>
             </div>
 
-            {/* Indicadores de estado */}
+            {/* Indicadores de proceso - clicables */}
             {statusIndicators.length > 0 && (
                 <div className="mt-16">
                     <div className="flex w-full flex-wrap items-center justify-between gap-6 text-[13px] md:text-sm font-medium tracking-tight font-mono" style={{color: 'var(--color-text-muted)'}}>
-                        {statusIndicators.map((indicator, index) => (
-                            <div key={index} className={`flex items-center gap-2 ${indicator.isActive ? 'hover:opacity-80 transition-opacity cursor-default' : 'opacity-50'}`} style={{color: indicator.isActive ? 'var(--color-text-primary)' : 'inherit'}}>
-                                <div className={`h-4 w-4 rounded-full ${indicator.isActive && indicator.isAnimated ? 'border-[2px] border-dotted border-orange-500 animate-spin' : 'border'}`} style={{borderColor: indicator.isActive && indicator.isAnimated ? undefined : 'var(--color-border-secondary)'}}></div>
-                                <span>{indicator.label}</span>
-                            </div>
-                        ))}
+                        {statusIndicators.map((indicator, index) => {
+                            const isActive = index === activeIndicatorIndex;
+                            const isAnimated = isActive;
+
+                            return (
+                                <button key={index} onClick={() => onIndicatorClick?.(index)} className={`flex items-center gap-2 transition-all ${isActive ? 'hover:opacity-80 cursor-pointer scale-105' : 'opacity-50 hover:opacity-70 cursor-pointer'}`} style={{color: isActive ? 'var(--color-text-primary)' : 'inherit'}}>
+                                    <div className={`h-4 w-4 rounded-full ${isActive && isAnimated ? 'border-[2px] border-dotted border-orange-500 animate-spin' : 'border'}`} style={{borderColor: isActive && isAnimated ? undefined : 'var(--color-border-secondary)'}}></div>
+                                    <span>{indicator.label}</span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
