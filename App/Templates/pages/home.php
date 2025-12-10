@@ -9,9 +9,9 @@ function home()
         // Fondo responsive (s3.jpg) con WebP y diferentes anchos por breakpoint
         $bgUrl = Glory\Utility\AssetsUtility::imagenUrl('tema::s3.jpg');
         if ($bgUrl) {
-            $bg_m  = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, ['w' => 768,  'quality' => 60, 'strip' => 'all', 'format' => 'webp']);
-            $bg_d  = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, ['w' => 1280, 'quality' => 60, 'strip' => 'all', 'format' => 'webp']);
-            $bg_xl = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, ['w' => 1920, 'quality' => 60, 'strip' => 'all', 'format' => 'webp']);
+            $bg_m  = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, ['w' => 768,  'quality' => 80, 'strip' => 'all', 'format' => 'webp']);
+            $bg_d  = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, ['w' => 1280, 'quality' => 80, 'strip' => 'all', 'format' => 'webp']);
+            $bg_xl = Glory\Utility\ImageUtility::jetpack_photon_url($bgUrl, ['w' => 1920, 'quality' => 80, 'strip' => 'all', 'format' => 'webp']);
             echo '<style>.hero .heroBg{background-image:url(' . esc_url($bg_d) . ');background-size:cover;background-position:center;}@media(max-width:800px){.hero .heroBg{background-image:url(' . esc_url($bg_m) . ');}}@media(min-width:1400px){.hero .heroBg{background-image:url(' . esc_url($bg_xl) . ');}}</style>';
             echo '<div class="heroBg"></div>';
         }
@@ -30,9 +30,9 @@ function home()
         <div class="gridCategorias">
             <?php
             $cards = [
-                ['href' => '/palas-de-padel/',       'titulo' => 'Palas',       'img' => 's4.jpg'],
-                ['href' => '/zapatillas-padel/',     'titulo' => 'Zapatillas',  'img' => 's5.jpg'],
-                ['href' => '/ropa-padel/',           'titulo' => 'Ropa',        'img' => 's6.jpg'],
+                ['href' => '/palas-de-padel/',       'titulo' => 'Palas',       'img' => 'padel.jpg'],
+                ['href' => '/zapatillas-padel/',     'titulo' => 'Zapatillas',  'img' => 'zapatos.jpg'],
+                ['href' => '/ropa-padel/',           'titulo' => 'Ropa',        'img' => 'ropa.jpg'],
             ];
             foreach ($cards as $c) {
                 $url = Glory\Utility\AssetsUtility::imagenUrl('tema::' . $c['img']);
@@ -40,7 +40,7 @@ function home()
                 if ($url) {
                     $opt = Glory\Utility\ImageUtility::jetpack_photon_url($url, [
                         'resize'  => '600,400',
-                        'quality' => 60,
+                        'quality' => 80,
                         'strip'   => 'all',
                         'format'  => 'webp',
                     ]);
@@ -77,7 +77,7 @@ function home()
             <div class="ctaMedia">
                 <?php
                 if (function_exists('App\\Templates\\Helpers\\renderAssetImage')) {
-                    \App\Templates\Helpers\renderAssetImage('tema::s1.jpg', [
+                    \App\Templates\Helpers\renderAssetImage('tema::accesorios.jpg', [
                         'alt'   => 'Accesorios de pádel',
                         // En móvil ocupa todo el ancho; en escritorio es 1 de 2 columnas
                         'sizes' => '(max-width: 800px) 100vw, 50vw',

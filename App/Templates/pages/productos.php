@@ -12,11 +12,11 @@ function pageProductos()
         <div class="gridCategorias">
             <?php
             $cards = [
-                ['href' => '/palas-de-padel/',       'titulo' => 'Palas',       'img' => 's4.jpg'],
-                ['href' => '/zapatillas-padel/',     'titulo' => 'Zapatillas',  'img' => 's5.jpg'],
-                ['href' => '/ropa-padel/',           'titulo' => 'Ropa',        'img' => 's6.jpg'],
+                ['href' => '/palas-de-padel/',       'titulo' => 'Palas',       'img' => 'padel.jpg'],
+                ['href' => '/zapatillas-padel/',     'titulo' => 'Zapatillas',  'img' => 'zapatos.jpg'],
+                ['href' => '/ropa-padel/',           'titulo' => 'Ropa',        'img' => 'ropa.jpg'],
                 ['href' => '/pelotas-de-padel/',     'titulo' => 'Pelotas',     'img' => 's10.jpg'],
-                ['href' => '/accesorios-padel/',     'titulo' => 'Accesorios',  'img' => 's11.jpg'],
+                ['href' => '/accesorios-padel/',     'titulo' => 'Accesorios',  'img' => 'accesorios.jpg'],
                 ['href' => '/bolsas-y-paleteros/',   'titulo' => 'Bolsas y Paleteros', 'img' => 's12.jpg'],
             ];
             foreach ($cards as $c) {

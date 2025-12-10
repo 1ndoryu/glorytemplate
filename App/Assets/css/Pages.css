@@ -103,9 +103,10 @@
 .noDrag .brandsList {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 40px;
+    gap: 10px;
+    row-gap: 0px;
+    column-gap: 20px;
 }
-
 
 
 .noDrag img.brandLogo {
@@ -138,3 +139,4 @@ a.amazon-buy-btn-icon {
 .amazon-card-content h3 {
     FONT-WEIGHT: 400;
 }
+
