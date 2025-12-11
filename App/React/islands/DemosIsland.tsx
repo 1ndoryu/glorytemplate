@@ -1,12 +1,12 @@
-import {useState} from 'react';
 import {MessageSquare, Smartphone, Globe, Mic, Calendar, Database, Layout, Scissors, Utensils, Stethoscope} from 'lucide-react';
 import {Button, FeatureCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
-import {HeroSection, ProcessTimeline, IntegrationsSection, FaqWithCta, ContactForm, InternalLinks, CtaBlock} from '../components/sections';
+import {HeroSection, ProcessTimeline, IntegrationsSection, FaqWithCta, ContactForm, InternalLinks, CtaBlock, ChannelShowcase} from '../components/sections';
 import {siteUrls} from '../config';
-// Componentes del showcase interactivo
-import {DemoShowcase} from '../features/demos/components/DemoShowcase';
-import {SCENARIOS} from '../features/demos/data/scenarios';
+// Componente de demo interactivo estilo ProcessWorkflow
+import {DemoWorkflow} from '../features/demos/components/DemoWorkflow';
+// Componente de features estilo AnalyticsSection
+import {DemoFeaturesSection} from '../features/demos/components/DemoFeaturesSection';
 
 // Links internos especificos para Demos
 const demosInternalLinks = [
@@ -41,31 +41,40 @@ const demosContent = {
         ctaHref: siteUrls.calendly
     },
     channels: {
-        title: 'Elige tu demo (Canales)',
+        title: (
+            <>
+                Elige tu <span className="text-info">demo</span>
+            </>
+        ),
+        description: 'Cada canal tiene su propio flujo. Selecciona uno para ver como funciona el chatbot en ese entorno.',
         items: [
             {
+                id: 'whatsapp',
                 icon: MessageSquare,
-                title: 'Demo chatbot WhatsApp',
+                title: 'WhatsApp',
                 badge: 'POPULAR',
-                desc: 'Mensajes útiles, derivación a persona y seguimiento.'
+                description: 'Mensajes utiles, derivacion a persona y seguimiento.'
             },
             {
+                id: 'instagram',
                 icon: Smartphone,
-                title: 'Demo chatbot Instagram (DM)',
+                title: 'Instagram DM',
                 badge: 'VISUAL',
-                desc: 'Responde en Instagram y, si procede, propone y confirma la reserva.'
+                description: 'Responde en Instagram y propone la reserva.'
             },
             {
+                id: 'web',
                 icon: Globe,
-                title: 'Demo chatbot web',
+                title: 'Chatbot Web',
                 badge: 'WIDGET',
-                desc: 'Widget visible, FAQs transaccionales y pase a humano.'
+                description: 'Widget visible, FAQs y pase a humano.'
             },
             {
+                id: 'voicebot',
                 icon: Mic,
-                title: 'Demo voicebot (llamadas)',
+                title: 'Voicebot',
                 badge: 'VOZ',
-                desc: 'Atiende, clasifica, reserva y transfiere a agente.'
+                description: 'Atiende, clasifica y transfiere a agente.'
             }
         ]
     },
@@ -123,56 +132,33 @@ const demosContent = {
 
 // --- ISLAND PRINCIPAL ---
 export function DemosIsland(): JSX.Element {
-    // Estado para el escenario activo del showcase interactivo
-    const [activeScenarioId, setActiveScenarioId] = useState('restaurant');
-    const currentScenario = SCENARIOS[activeScenarioId];
-
     return (
         <PageLayout headerCtaText="Agendar 1:1" topBanner={{text: 'Primer mes gratis - Prueba tu caso real', linkText: 'Agenda ahora', linkHref: siteUrls.calendly}}>
             {/* 1. HERO SECTION */}
             <HeroSection title={demosContent.hero.title} subtitle={demosContent.hero.subtitle} primaryCta={demosContent.hero.primaryCta} secondaryCta={demosContent.hero.secondaryCta} tertiaryCta={demosContent.hero.tertiaryCta} />
 
-            {/* 2. DEMO SHOWCASE INTERACTIVO - Simulador WhatsApp con selector de escenarios */}
+            {/* 2. DEMO WORKFLOW INTERACTIVO - Estilo ProcessWorkflow con simulador WhatsApp */}
             <section id="demo-interactivo" className="py-16 bg-primary">
                 <div className="mx-auto max-w-7xl px-6">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl font-heading font-bold tracking-tight mb-4 text-primary">Prueba la demo en vivo</h2>
                         <p className="text-lg text-secondary max-w-2xl mx-auto">Selecciona un sector y observa como el chatbot gestiona la conversacion en tiempo real.</p>
                     </div>
-                    <DemoShowcase activeScenarioId={activeScenarioId} onSelect={setActiveScenarioId} currentScenario={currentScenario} />
+                    <DemoWorkflow />
                 </div>
             </section>
 
-            {/* 3. QUE VERAS EN LA DEMO */}
-            <section id="que-veras" className="py-16 bg-surface">
-                <div className="mx-auto max-w-7xl px-6">
-                    <div className="mb-8">
-                        <h2 className="text-3xl font-heading font-bold tracking-tight mb-2 text-primary">{demosContent.whatYouWillSee.title}</h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {demosContent.whatYouWillSee.items.map((item, i) => (
-                            <FeatureCard key={i} icon={item.icon} title={item.text} description="" />
-                        ))}
-                    </div>
-                    <div className="flex justify-center mt-10">
-                        <Button href={demosContent.whatYouWillSee.ctaHref} icon={Calendar}>
-                            {demosContent.whatYouWillSee.ctaText}
-                        </Button>
-                    </div>
+            {/* 3. QUE VERAS EN LA DEMO - Estilo AnalyticsSection */}
+            <section id="que-veras" className="py-16">
+                <div className="mx-auto">
+                    <DemoFeaturesSection title={demosContent.whatYouWillSee.title} description="En cada demo veras como el chatbot gestiona conversaciones reales con tu flujo de negocio." items={demosContent.whatYouWillSee.items} ctaText={demosContent.whatYouWillSee.ctaText} ctaHref={demosContent.whatYouWillSee.ctaHref} />
                 </div>
             </section>
 
-            {/* 4. ELIGE TU DEMO (CANALES) */}
-            <section id="canales" className="py-16 bg-primary">
-                <div className="mx-auto max-w-7xl px-6">
-                    <div className="mb-8">
-                        <h2 className="text-3xl font-heading font-bold tracking-tight mb-2 text-primary">{demosContent.channels.title}</h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {demosContent.channels.items.map((item, idx) => (
-                            <FeatureCard key={idx} icon={item.icon} title={item.title} badge={item.badge} description={item.desc} />
-                        ))}
-                    </div>
+            {/* 4. ELIGE TU DEMO (CANALES) - Estilo AutomationFlow */}
+            <section id="canales" className="py-16">
+                <div className="mx-auto">
+                    <ChannelShowcase badge="CANALES" title={demosContent.channels.title} description={demosContent.channels.description} channels={demosContent.channels.items} cta={{text: 'Agenda tu demo', href: siteUrls.calendly}} />
                 </div>
             </section>
 

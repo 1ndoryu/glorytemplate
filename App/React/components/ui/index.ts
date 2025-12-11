@@ -8,4 +8,5 @@ export {FaqItem} from './FaqItem';
 export {FeatureCard} from './FeatureCard';
 export {NotificationStatus} from './NotificationStatus';
 export {PricingCard} from './PricingCard';
+export {SimulationCard} from './SimulationCard';
 export {ThemeToggle} from './ThemeToggle';
