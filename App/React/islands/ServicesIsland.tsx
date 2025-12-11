@@ -1,16 +1,7 @@
-import {Smartphone, Globe, Mic, Calendar, Database, Workflow, Zap, MessageSquare, Users, CheckSquare, Share2, Phone, Layout} from 'lucide-react';
+import {Smartphone, Globe, Mic, Calendar, Database, Zap, Phone} from 'lucide-react';
 import {Button, FeatureCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
-import {
-    WhatsAppShowcase,
-    AutomationFlow,
-    FaqWithCta,
-    ProcessTimeline,
-    HeroSection,
-    IntegrationsSection,
-    InternalLinks,
-    ContactForm // Necesario para "Hablamos?" si se decide usar forma, pero el doc dice CTAs. Aunque en Home hay ContactForm. En Servicios también hay "Formulario ancla".
-} from '../components/sections';
+import {WhatsAppShowcase, AutomationFlow, FaqWithCta, ProcessTimeline, HeroSection, IntegrationsSection, InternalLinks, ContactForm, CtaBlock} from '../components/sections';
 import {siteUrls} from '../config';
 
 // Links internos especificos para Servicios
@@ -26,7 +17,7 @@ const servicesContent = {
     hero: {
         title: (
             <>
-                Servicios de chatbots y automatizacion <span className="text-blue-600">para empresas, conmigo 1:1</span>
+                Servicios de chatbots y automatizacion <span className="text-info">para empresas, conmigo 1:1</span>
             </>
         ),
         subtitle: 'Diseño, implanto y mantengo chatbot WhatsApp, Instagram y tu web, además de voicebots (llamadas). Trabajo contigo, de tú a tú, para que atiendas mejor, resuelvas dudas y, cuando toca, gestiones reservas sin cargar a tu equipo. Respuesta en menos de 30 min (09–21h), primer mes gratis y mantenimiento continuo.',
@@ -96,7 +87,7 @@ const servicesContent = {
         badge: 'MAKE & N8N',
         title: (
             <>
-                Automatización de <span className="text-blue-600">reservas y tareas</span>
+                Automatización de <span className="text-info">reservas y tareas</span>
             </>
         ),
         description: 'No es solo responder chats. Es conectar tu negocio. Cuando un cliente reserva, el bot actualiza tu agenda, envia un email de confirmacion y crea el contacto en tu CRM. Sin que toques nada.',
@@ -148,9 +139,7 @@ export function ServicesIsland(): JSX.Element {
             {/* 3. MULTICANAL (Instagram y Web) */}
             <section id="multichannel-section" className="mx-auto w-full max-w-7xl px-6 py-12">
                 <div className="mb-8">
-                    <h2 className="text-3xl font-bold tracking-tight mb-4" style={{color: 'var(--color-text-primary)'}}>
-                        {servicesContent.multichannel.title}
-                    </h2>
+                    <h2 className="text-3xl font-bold tracking-tight mb-4 text-primary">{servicesContent.multichannel.title}</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {servicesContent.multichannel.cards.map((card, idx) => (
@@ -160,11 +149,9 @@ export function ServicesIsland(): JSX.Element {
             </section>
 
             {/* 4. VOZ (Llamadas) */}
-            <section id="voice-section" className="mx-auto w-full max-w-7xl px-6 py-12 bg-gray-50 rounded-2xl relative overflow-hidden">
+            <section id="voice-section" className="mx-auto w-full max-w-7xl px-6 py-12 bg-primary rounded-2xl relative overflow-hidden">
                 <div className="mb-8 relative z-10">
-                    <h2 className="text-3xl font-bold tracking-tight mb-4" style={{color: 'var(--color-text-primary)'}}>
-                        {servicesContent.voice.title}
-                    </h2>
+                    <h2 className="text-3xl font-bold tracking-tight mb-4 text-primary">{servicesContent.voice.title}</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
                     {servicesContent.voice.cards.map((card, idx) => (
@@ -189,21 +176,7 @@ export function ServicesIsland(): JSX.Element {
             <ProcessTimeline title={servicesContent.process.title} steps={servicesContent.process.steps} />
 
             {/* 8. HABLAMOS? (CTAs) */}
-            <section className="py-16 text-center">
-                <h2 className="text-3xl font-bold mb-8">¿Hablamos?</h2>
-                <p className="mb-8 text-lg text-gray-600">Elige cómo prefieres:</p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <Button href={siteUrls.calendly} icon={Calendar}>
-                        Agenda en 30 s
-                    </Button>
-                    <Button href={siteUrls.whatsapp} variant="outline" icon={MessageSquare}>
-                        Hablame ahora
-                    </Button>
-                    <Button href="#formulario" variant="ghost">
-                        Te leo y te respondo hoy
-                    </Button>
-                </div>
-            </section>
+            <CtaBlock id="cta-final" />
 
             {/* 9. FAQS */}
             <FaqWithCta title={servicesContent.faq.title} items={servicesContent.faq.items} />

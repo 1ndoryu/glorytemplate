@@ -1,4 +1,4 @@
-import {MessageSquare, Calendar, Database, Zap, FileText, Workflow, HelpCircle, Globe, MousePointer, ClipboardCheck} from 'lucide-react';
+import {MessageSquare, Calendar, Database, Zap, FileText, Workflow, HelpCircle, MousePointer, ClipboardCheck} from 'lucide-react';
 
 // Layout compartido
 import {PageLayout} from '../components/layout';
@@ -21,7 +21,7 @@ const homeContent = {
         // H1 exacto segun project-extends.md
         title: (
             <>
-                Chatbot para empresas que atiende a tus clientes <span style={{color: 'var(--color-text-subtle)'}}>24/7 y gestiona reservas</span>
+                Chatbot para empresas que atiende a tus clientes <span className="text-subtle">24/7 y gestiona reservas</span>
             </>
         ),
         // Subhero segun project-extends.md
@@ -89,7 +89,7 @@ export function HomeIsland(): JSX.Element {
                 badge="PYMES"
                 title={
                     <>
-                        Automatizacion de <span className="text-blue-500">procesos pymes</span>
+                        Automatizacion de <span className="text-info">procesos pymes</span>
                     </>
                 }
                 description="Todo lo que el bot recoge (contacto, interes, canal preferido, origen/UTM, etc) va directo a tu Software/CRM. Si lo prefieres, te preparo una hoja compartida. Integro el chatbot con tu web y agenda. Confirmaciones y recordatorios automaticos."
@@ -98,9 +98,7 @@ export function HomeIsland(): JSX.Element {
 
             {/* 5. PROCESS WORKFLOW - "Trabajo contigo, sin intermediarios" (H2 + 3 H3) */}
             <section id="proceso" className="mx-auto w-full max-w-7xl">
-                <h2 className="text-2xl md:text-3xl font-medium tracking-tight mb-8" style={{color: 'var(--color-text-primary)'}}>
-                    Trabajo contigo, sin intermediarios
-                </h2>
+                <h2 className="text-2xl md:text-3xl font-medium tracking-tight mb-8 text-primary">Trabajo contigo, sin intermediarios</h2>
                 <ProcessWorkflow steps={homeContent.processWorkflow.steps} simulations={homeContent.processWorkflow.simulations} />
             </section>
 
@@ -113,7 +111,7 @@ export function HomeIsland(): JSX.Element {
             {/* 8. QUOTE - Propuesta de valor diferenciadora */}
             <div id="quote">
                 <QuoteSection>
-                    Trabajo <span style={{color: 'var(--color-text-primary)'}}>contigo, sin intermediarios</span>. Llamada breve, prototipo en 72h y <span style={{color: 'var(--color-text-primary)'}}>mejora continua</span> cada mes.
+                    Trabajo <span className="text-primary">contigo, sin intermediarios</span>. Llamada breve, prototipo en 72h y <span className="text-primary">mejora continua</span> cada mes.
                 </QuoteSection>
             </div>
 

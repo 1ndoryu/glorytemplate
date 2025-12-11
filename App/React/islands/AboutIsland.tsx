@@ -1,7 +1,7 @@
 import {MessageSquare, Globe, Mic, Zap, Link, Calendar} from 'lucide-react';
 import {Button} from '../components/ui';
 import {PageLayout} from '../components/layout';
-import {ProcessTimeline, ContactForm, InternalLinks} from '../components/sections';
+import {ProcessTimeline, ContactForm, InternalLinks, CtaBlock} from '../components/sections';
 import {siteUrls} from '../config';
 
 // Links internos especificos para Sobre Mi
@@ -78,10 +78,10 @@ export function AboutIsland(): JSX.Element {
     return (
         <PageLayout headerCtaText="Agendar 1:1" mainClassName="flex-1 flex flex-col gap-0">
             {/* 1. HERO PROFILE con Imagen Lateral */}
-            <section className="mx-auto w-full max-w-7xl px-6 py-12 md:py-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <section id="hero" className="mx-auto w-full max-w-7xl px-6 py-12 md:py-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div className="flex flex-col gap-6 text-left">
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter text-balance text-gray-900">{aboutContent.hero.title}</h1>
-                    <p className="text-lg text-gray-600 leading-relaxed font-light">{aboutContent.hero.subtitle}</p>
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter text-balance text-primary">{aboutContent.hero.title}</h1>
+                    <p className="text-lg text-secondary leading-relaxed font-light">{aboutContent.hero.subtitle}</p>
                     <div className="flex flex-col sm:flex-row gap-4 mt-4">
                         <Button href={aboutContent.hero.primaryCta.href} icon={Calendar}>
                             {aboutContent.hero.primaryCta.text}
@@ -100,28 +100,28 @@ export function AboutIsland(): JSX.Element {
             </section>
 
             {/* 2. QUIEN SOY */}
-            <section className="bg-gray-50 py-16 px-6">
+            <section id="quien-soy" className="bg-primary py-16 px-6">
                 <div className="mx-auto max-w-3xl text-center">
-                    <h2 className="text-3xl font-bold mb-8 text-gray-900">{aboutContent.bio.title}</h2>
-                    <div className="text-lg text-gray-700 leading-relaxed">{aboutContent.bio.text}</div>
+                    <h2 className="text-3xl font-bold mb-8 text-primary">{aboutContent.bio.title}</h2>
+                    <div className="text-lg text-secondary leading-relaxed">{aboutContent.bio.text}</div>
                 </div>
             </section>
 
             {/* 3. LO QUE HAGO CONTIGO */}
-            <section className="py-16 bg-white px-6">
+            <section id="servicios" className="py-16 bg-surface px-6">
                 <div className="mx-auto max-w-7xl">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-gray-900">{aboutContent.services.title}</h2>
-                        <p className="text-gray-500 mt-2">{aboutContent.services.subtitle}</p>
+                        <h2 className="text-3xl font-bold text-primary">{aboutContent.services.title}</h2>
+                        <p className="text-muted mt-2">{aboutContent.services.subtitle}</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
                         {aboutContent.services.items.map((item, idx) => (
                             <div key={idx} className="flex flex-col items-center text-center p-4">
-                                <div className="p-3 bg-blue-50 text-blue-600 rounded-full mb-3">
+                                <div className="p-3 bg-[var(--color-selection-bg)] text-[var(--color-accent-primary)] rounded-full mb-3">
                                     <item.icon className="w-6 h-6" />
                                 </div>
-                                <h3 className="font-semibold text-gray-900 mb-1 text-sm">{item.title}</h3>
-                                <p className="text-xs text-gray-600">{item.desc}</p>
+                                <h3 className="font-semibold text-primary mb-1 text-sm">{item.title}</h3>
+                                <p className="text-xs text-muted">{item.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -134,10 +134,10 @@ export function AboutIsland(): JSX.Element {
             </section>
 
             {/* 4. UN CASO (BARBERIA) */}
-            <section className="py-16 bg-gray-900 text-white px-6">
+            <section id="caso-estudio" className="py-16 bg-[var(--color-surface-inverse)] text-[var(--color-text-inverse)] px-6">
                 <div className="mx-auto max-w-4xl text-center">
-                    <h2 className="text-3xl font-bold mb-6">{aboutContent.caseStudy.title}</h2>
-                    <p className="text-xl leading-relaxed text-gray-300">"{aboutContent.caseStudy.text}"</p>
+                    <h2 className="text-3xl font-bold mb-6 text-[var(--color-text-inverse)]">{aboutContent.caseStudy.title}</h2>
+                    <p className="text-xl leading-relaxed text-[var(--color-text-inverse)] opacity-90">"{aboutContent.caseStudy.text}"</p>
                 </div>
             </section>
 
@@ -150,10 +150,10 @@ export function AboutIsland(): JSX.Element {
             </section>
 
             {/* 7. HERRAMIENTAS QUE USO */}
-            <section className="py-16 bg-white px-6">
+            <section id="herramientas" className="py-16 bg-surface px-6">
                 <div className="mx-auto max-w-3xl text-center">
-                    <h2 className="text-3xl font-bold mb-6 text-gray-900">{aboutContent.tools.title}</h2>
-                    <p className="text-lg text-gray-700 mb-8">{aboutContent.tools.text}</p>
+                    <h2 className="text-3xl font-bold mb-6 text-primary">{aboutContent.tools.title}</h2>
+                    <p className="text-lg text-secondary mb-8">{aboutContent.tools.text}</p>
                     <Button href={aboutContent.tools.ctaHref} variant="outline" icon={MessageSquare}>
                         {aboutContent.tools.ctaText}
                     </Button>
@@ -161,20 +161,7 @@ export function AboutIsland(): JSX.Element {
             </section>
 
             {/* 8. HABLAMOS? (CTAs) */}
-            <section className="py-16 bg-gray-50 text-center">
-                <h2 className="text-3xl font-bold mb-8">¿Hablamos?</h2>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <Button href={siteUrls.calendly} icon={Calendar}>
-                        Agenda en 30 s
-                    </Button>
-                    <Button href={siteUrls.whatsapp} variant="outline" icon={MessageSquare}>
-                        Hablame ahora
-                    </Button>
-                    <Button href="#formulario" variant="ghost">
-                        Te leo y te respondo hoy
-                    </Button>
-                </div>
-            </section>
+            <CtaBlock id="cta-final" className="bg-primary" />
 
             {/* 9. FORMULARIO CONTACTO (Ancla manejada internamente por el componente) */}
             <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rápido con respuesta hoy mismo" />

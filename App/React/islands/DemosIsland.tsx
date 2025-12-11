@@ -1,8 +1,12 @@
-import {Play, MessageSquare, Smartphone, Globe, Mic, Calendar, Database, Mail, Layout, CheckCircle, Scissors, Utensils, Stethoscope} from 'lucide-react';
+import {useState} from 'react';
+import {MessageSquare, Smartphone, Globe, Mic, Calendar, Database, Layout, Scissors, Utensils, Stethoscope} from 'lucide-react';
 import {Button, FeatureCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
-import {HeroSection, ProcessTimeline, IntegrationsSection, FaqWithCta, ContactForm, InternalLinks} from '../components/sections';
+import {HeroSection, ProcessTimeline, IntegrationsSection, FaqWithCta, ContactForm, InternalLinks, CtaBlock} from '../components/sections';
 import {siteUrls} from '../config';
+// Componentes del showcase interactivo
+import {DemoShowcase} from '../features/demos/components/DemoShowcase';
+import {SCENARIOS} from '../features/demos/data/scenarios';
 
 // Links internos especificos para Demos
 const demosInternalLinks = [
@@ -17,7 +21,7 @@ const demosContent = {
     hero: {
         title: (
             <>
-                Demo chatbot WhatsApp: <span className="text-blue-600">pruébalo con tu caso</span>
+                Demo chatbot WhatsApp: <span className="text-info">pruébalo con tu caso</span>
             </>
         ),
         subtitle: 'Te enseño una demo real de chatbot en WhatsApp (y, si quieres, Instagram/web/voz) aplicada a tu negocio: atender mejor, resolver dudas y gestionar reservas.',
@@ -119,23 +123,35 @@ const demosContent = {
 
 // --- ISLAND PRINCIPAL ---
 export function DemosIsland(): JSX.Element {
+    // Estado para el escenario activo del showcase interactivo
+    const [activeScenarioId, setActiveScenarioId] = useState('restaurant');
+    const currentScenario = SCENARIOS[activeScenarioId];
+
     return (
         <PageLayout headerCtaText="Agendar 1:1" topBanner={{text: 'Primer mes gratis - Prueba tu caso real', linkText: 'Agenda ahora', linkHref: siteUrls.calendly}}>
             {/* 1. HERO SECTION */}
             <HeroSection title={demosContent.hero.title} subtitle={demosContent.hero.subtitle} primaryCta={demosContent.hero.primaryCta} secondaryCta={demosContent.hero.secondaryCta} tertiaryCta={demosContent.hero.tertiaryCta} />
 
-            {/* 2. QUE VERAS EN LA DEMO */}
-            <section className="py-12 bg-white">
+            {/* 2. DEMO SHOWCASE INTERACTIVO - Simulador WhatsApp con selector de escenarios */}
+            <section id="demo-interactivo" className="py-16 bg-primary">
                 <div className="mx-auto max-w-7xl px-6">
-                    <h2 className="text-3xl font-bold text-center mb-10">{demosContent.whatYouWillSee.title}</h2>
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-heading font-bold tracking-tight mb-4 text-primary">Prueba la demo en vivo</h2>
+                        <p className="text-lg text-secondary max-w-2xl mx-auto">Selecciona un sector y observa como el chatbot gestiona la conversacion en tiempo real.</p>
+                    </div>
+                    <DemoShowcase activeScenarioId={activeScenarioId} onSelect={setActiveScenarioId} currentScenario={currentScenario} />
+                </div>
+            </section>
+
+            {/* 3. QUE VERAS EN LA DEMO */}
+            <section id="que-veras" className="py-16 bg-surface">
+                <div className="mx-auto max-w-7xl px-6">
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-heading font-bold tracking-tight mb-2 text-primary">{demosContent.whatYouWillSee.title}</h2>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {demosContent.whatYouWillSee.items.map((item, i) => (
-                            <div key={i} className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-xl border border-gray-100">
-                                <div className="p-3 bg-blue-100 text-blue-600 rounded-full mb-4">
-                                    <item.icon className="w-6 h-6" />
-                                </div>
-                                <p className="font-medium text-gray-800">{item.text}</p>
-                            </div>
+                            <FeatureCard key={i} icon={item.icon} title={item.text} description="" />
                         ))}
                     </div>
                     <div className="flex justify-center mt-10">
@@ -146,13 +162,11 @@ export function DemosIsland(): JSX.Element {
                 </div>
             </section>
 
-            {/* 3. ELIGE TU DEMO (CANALES) */}
-            <section className="py-16 bg-gray-50">
+            {/* 4. ELIGE TU DEMO (CANALES) */}
+            <section id="canales" className="py-16 bg-primary">
                 <div className="mx-auto max-w-7xl px-6">
                     <div className="mb-8">
-                        <h2 className="text-3xl font-bold tracking-tight mb-2" style={{color: 'var(--color-text-primary)'}}>
-                            {demosContent.channels.title}
-                        </h2>
+                        <h2 className="text-3xl font-heading font-bold tracking-tight mb-2 text-primary">{demosContent.channels.title}</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {demosContent.channels.items.map((item, idx) => (
@@ -162,13 +176,11 @@ export function DemosIsland(): JSX.Element {
                 </div>
             </section>
 
-            {/* 4. DEMOS POR SECTOR */}
-            <section className="py-16 bg-white">
+            {/* 5. DEMOS POR SECTOR */}
+            <section id="sectores" className="py-16 bg-surface">
                 <div className="mx-auto max-w-7xl px-6">
                     <div className="mb-8">
-                        <h2 className="text-3xl font-bold tracking-tight mb-2" style={{color: 'var(--color-text-primary)'}}>
-                            {demosContent.sectors.title}
-                        </h2>
+                        <h2 className="text-3xl font-heading font-bold tracking-tight mb-2 text-primary">{demosContent.sectors.title}</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {demosContent.sectors.items.map((item, idx) => (
@@ -178,42 +190,32 @@ export function DemosIsland(): JSX.Element {
                 </div>
             </section>
 
-            {/* 5. INTEGRACIONES */}
-            <IntegrationsSection title={demosContent.integrations.title} items={demosContent.integrations.items} />
-            {/* CTA Integraciones */}
-            <div className="flex justify-center pb-12 bg-white">
-                <Button href={siteUrls.whatsapp} variant="outline" icon={MessageSquare}>
-                    Hablame ahora y respondo en menos de 30 min (09-21h)
-                </Button>
-            </div>
-
-            {/* 6. COMO LO HACEMOS */}
-            <ProcessTimeline title={demosContent.process.title} steps={demosContent.process.steps} />
-
-            {/* 7. HABLAMOS? (CTAs) */}
-            <section className="py-16 text-center">
-                <h2 className="text-3xl font-bold mb-8">¿Hablamos?</h2>
-                <p className="mb-8 text-lg text-gray-600">Elige cómo prefieres:</p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <Button href={siteUrls.calendly} icon={Calendar}>
-                        Agenda en 30 s
-                    </Button>
-                    <Button href={siteUrls.whatsapp} variant="outline" icon={MessageSquare}>
-                        Hablame ahora
-                    </Button>
-                    <Button href="#formulario" variant="ghost">
-                        Te leo y te respondo hoy
-                    </Button>
+            {/* 6. INTEGRACIONES */}
+            <section id="integraciones-wrapper" className="py-16 bg-surface">
+                <div className="px-6">
+                    <IntegrationsSection title={demosContent.integrations.title} items={demosContent.integrations.items} />
+                    {/* CTA Integraciones */}
+                    <div className="flex justify-center mt-10">
+                        <Button href={siteUrls.whatsapp} variant="outline" icon={MessageSquare}>
+                            Hablame ahora y respondo en menos de 30 min (09-21h)
+                        </Button>
+                    </div>
                 </div>
             </section>
 
-            {/* 8. FAQS */}
+            {/* 7. COMO LO HACEMOS */}
+            <ProcessTimeline title={demosContent.process.title} steps={demosContent.process.steps} />
+
+            {/* 8. HABLAMOS? (CTAs) */}
+            <CtaBlock id="cta-final" />
+
+            {/* 9. FAQS */}
             <FaqWithCta title={demosContent.faq.title} items={demosContent.faq.items} />
 
-            {/* 9. FORMULARIO CONTACTO */}
-            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rápido con respuesta hoy mismo" />
+            {/* 10. FORMULARIO CONTACTO */}
+            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rapido con respuesta hoy mismo" />
 
-            {/* 10. INTERLINKING */}
+            {/* 11. INTERLINKING */}
             <InternalLinks title="Te puede interesar" links={demosInternalLinks} />
         </PageLayout>
     );

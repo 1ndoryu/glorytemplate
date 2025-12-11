@@ -59,8 +59,8 @@ Tambien se pueden normalizar estilos
 - [x] `features/demos/components/StepProcess.tsx`
 
 ### Islands
-- [ ] `islands/AboutIsland.tsx`
-- [ ] `islands/DemosIsland.tsx`
-- [ ] `islands/HomeIsland.tsx`
-- [ ] `islands/PricingIsland.tsx`
-- [ ] `islands/ServicesIsland.tsx`
+- [x] `islands/AboutIsland.tsx`
+- [x] `islands/DemosIsland.tsx`
+- [x] `islands/HomeIsland.tsx`
+- [x] `islands/PricingIsland.tsx`
+- [x] `islands/ServicesIsland.tsx`

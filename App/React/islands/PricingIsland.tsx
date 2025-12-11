@@ -1,7 +1,7 @@
-import {MessageSquare, Zap, Database, ShieldCheck, Globe, Mic, Smartphone, Calendar, BarChart3, Users} from 'lucide-react';
+import {Zap, Database, Smartphone, Calendar, Users} from 'lucide-react';
 import {Button, PricingCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
-import {PricingBreakdown, HeroSection, FaqWithCta, ContactForm, InternalLinks} from '../components/sections';
+import {PricingBreakdown, HeroSection, FaqWithCta, ContactForm, InternalLinks, CtaBlock} from '../components/sections';
 import {siteUrls} from '../config';
 
 // Links internos especificos para Planes
@@ -16,7 +16,7 @@ const pricingContent = {
     hero: {
         title: (
             <>
-                Precio chatbot: planes con <span className="text-blue-600">mantenimiento incluido y primer mes gratis</span>
+                Precio chatbot: planes con <span className="text-info">mantenimiento incluido y primer mes gratis</span>
             </>
         ),
         subtitle: 'Te presento tres planes pensados para atender mejor, resolver dudas y, cuando proceda, gestionar reservas. El primer mes es gratis y, luego, hay una cuota mensual que incluye mantenimiento y mejoras continuas.',
@@ -100,11 +100,11 @@ export function PricingIsland(): JSX.Element {
             <HeroSection title={pricingContent.hero.title} subtitle={pricingContent.hero.subtitle} primaryCta={pricingContent.hero.primaryCta} secondaryCta={pricingContent.hero.secondaryCta} tertiaryCta={pricingContent.hero.tertiaryCta} />
 
             {/* 2. COMO CALCULO EL PRECIO */}
-            <section className="py-12 bg-white">
+            <section id="como-calculo" className="py-12 bg-surface">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     <div className="mx-auto max-w-3xl text-center mb-10">
-                        <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{pricingContent.breakdown.title}</h2>
-                        <p className="mt-4 text-lg leading-8 text-gray-600">{pricingContent.breakdown.description}</p>
+                        <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">{pricingContent.breakdown.title}</h2>
+                        <p className="mt-4 text-lg leading-8 text-secondary">{pricingContent.breakdown.description}</p>
                     </div>
                 </div>
                 <PricingBreakdown items={pricingContent.breakdown.items} />
@@ -129,35 +129,21 @@ export function PricingIsland(): JSX.Element {
             </section>
 
             {/* 4. COMPARATIVA DE MERCADO (TEXTO) */}
-            <section className="py-16 bg-gray-50">
+            <section id="comparativa" className="py-16 bg-primary">
                 <div className="mx-auto max-w-3xl px-6 text-center">
-                    <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">{pricingContent.marketComparison.title}</h2>
-                    <p className="text-lg leading-relaxed text-gray-700">{pricingContent.marketComparison.text}</p>
+                    <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl mb-6">{pricingContent.marketComparison.title}</h2>
+                    <p className="text-lg leading-relaxed text-secondary">{pricingContent.marketComparison.text}</p>
                 </div>
             </section>
 
             {/* 5. HABLAMOS? (CTAs) */}
-            <section className="py-16 text-center">
-                <h2 className="text-3xl font-bold mb-8">¿Hablamos?</h2>
-                <p className="mb-8 text-lg text-gray-600">Elige cómo prefieres:</p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <Button href={siteUrls.calendly} icon={Calendar}>
-                        Agenda en 30 s
-                    </Button>
-                    <Button href={siteUrls.whatsapp} variant="outline" icon={MessageSquare}>
-                        Hablame ahora
-                    </Button>
-                    <Button href="#formulario" variant="ghost">
-                        Te leo y te respondo hoy
-                    </Button>
-                </div>
-            </section>
+            <CtaBlock id="cta-final" />
 
             {/* 6. FAQS */}
             <FaqWithCta title={pricingContent.faq.title} items={pricingContent.faq.items} />
 
             {/* 7. FORMULARIO CONTACTO */}
-            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rápido con respuesta hoy mismo" id="formulario" />
+            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rápido con respuesta hoy mismo" />
 
             {/* 8. INTERLINKING */}
             <InternalLinks title="Te puede interesar" links={pricingInternalLinks} />

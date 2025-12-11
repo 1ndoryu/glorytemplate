@@ -23,3 +23,4 @@ export * from './FeatureList';
 export * from './BentoGrid';
 export * from './ComparisonSection';
 export * from './SplitSection';
+export * from './CtaBlock';
