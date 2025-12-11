@@ -26,7 +26,7 @@ const demosContent = {
         ),
         subtitle: 'Te enseño una demo real de chatbot en WhatsApp (y, si quieres, Instagram/web/voz) aplicada a tu negocio: atender mejor, resolver dudas y gestionar reservas.',
         primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.calendly},
-        secondaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.whatsapp},
+        secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp},
         tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'}
     },
     whatYouWillSee: {

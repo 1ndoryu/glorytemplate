@@ -21,7 +21,7 @@ const pricingContent = {
         ),
         subtitle: 'Te presento tres planes pensados para atender mejor, resolver dudas y, cuando proceda, gestionar reservas. El primer mes es gratis y, luego, hay una cuota mensual que incluye mantenimiento y mejoras continuas.',
         primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.calendly},
-        secondaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.whatsapp},
+        secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp},
         tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'}
     },
     breakdown: {

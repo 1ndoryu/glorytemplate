@@ -22,7 +22,7 @@ const servicesContent = {
         ),
         subtitle: 'Diseño, implanto y mantengo chatbot WhatsApp, Instagram y tu web, además de voicebots (llamadas). Trabajo contigo, de tú a tú, para que atiendas mejor, resuelvas dudas y, cuando toca, gestiones reservas sin cargar a tu equipo. Respuesta en menos de 30 min (09–21h), primer mes gratis y mantenimiento continuo.',
         primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.calendly}, // El doc dice Calendario primero
-        secondaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.whatsapp}, // WhatsApp
+        secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp},
         tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'} // Formulario ancla
     },
     whatsapp: {

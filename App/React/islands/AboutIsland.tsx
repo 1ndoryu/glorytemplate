@@ -21,7 +21,7 @@ const aboutContent = {
         title: 'Consultor de chatbots: trabajo 1:1 contigo',
         subtitle: 'Soy Guillermo, de Madrid. Vengo del mundo audiovisual y me enganché a la IA desde ChatGPT. Hoy ayudo a pymes a atender mejor y automatizar con chatbots (WhatsApp Business, Instagram, web y voz), en remoto por toda España. Estoy en Madrid; trabajo en toda España.',
         primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.calendly},
-        secondaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.whatsapp},
+        secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp},
         tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'},
         imageSrc: '/img/sobre-mi-guillermo-hero.jpg',
         imageAlt: 'Guillermo, consultor de chatbots en Madrid, en videollamada'
