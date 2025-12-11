@@ -34,26 +34,16 @@ const getIconForIntegration = (text: string) => {
 export function IntegrationsSection({title, items}: IntegrationsSectionProps) {
     return (
         <section id="integraciones" className="mx-auto w-full max-w-7xl">
-            <h2 className="text-2xl md:text-3xl font-medium tracking-tight mb-8 md:mb-12 text-center md:text-left" style={{color: 'var(--color-text-primary)'}}>
-                {title}
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-medium tracking-tight mb-8 md:mb-12 text-center md:text-left text-primary">{title}</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {items.map((item, idx) => {
                     const Icon = getIconForIntegration(item);
                     return (
-                        <div
-                            key={idx}
-                            className="group p-6 rounded-xl border transition-all duration-300 hover:shadow-md h-full flex flex-col items-start gap-4"
-                            style={{
-                                borderColor: 'var(--color-border-subtle)',
-                                backgroundColor: 'var(--color-bg-surface)'
-                            }}>
-                            <div className="p-3 rounded-lg w-fit transition-colors group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20" style={{backgroundColor: 'var(--color-bg-tertiary)'}}>
-                                <Icon className="w-6 h-6" style={{color: 'var(--color-accent-primary)'}} />
+                        <div key={idx} className="group p-6 rounded-xl border transition-all duration-300 hover:shadow-md h-full flex flex-col items-start gap-4 border-[var(--color-border-subtle)] bg-surface">
+                            <div className="p-3 rounded-lg w-fit transition-colors group-hover:bg-[var(--color-selection-bg)]/50 bg-[var(--color-bg-tertiary)]">
+                                <Icon className="w-6 h-6 text-[var(--color-accent-primary)]" />
                             </div>
-                            <p className="text-sm font-medium leading-relaxed" style={{color: 'var(--color-text-secondary)'}}>
-                                {item}
-                            </p>
+                            <p className="text-sm font-medium leading-relaxed text-secondary">{item}</p>
                         </div>
                     );
                 })}

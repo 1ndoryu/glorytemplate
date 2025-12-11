@@ -68,25 +68,15 @@ export function InternalLinks({title = 'Te puede interesar', links}: InternalLin
 
     return (
         <section className="mx-auto w-full max-w-4xl">
-            <div className="rounded-xl p-6 md:p-8" style={{backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-subtle)'}}>
+            <div className="rounded-xl p-6 md:p-8 bg-secondary border border-[var(--color-border-subtle)]">
                 {/* Titulo de la seccion */}
-                <h2 className="text-lg font-semibold mb-4" style={{color: 'var(--color-text-primary)'}}>
-                    {title}
-                </h2>
+                <h2 className="text-lg font-semibold mb-4 text-primary">{title}</h2>
 
                 {/* Grid de enlaces */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {links.map((link, index) => (
-                        <a
-                            key={index}
-                            href={link.href}
-                            className="group flex items-center gap-2 px-4 py-3 rounded-lg transition-all hover:translate-x-1"
-                            style={{
-                                backgroundColor: 'var(--color-bg-surface)',
-                                border: '1px solid var(--color-border-primary)',
-                                color: 'var(--color-text-secondary)'
-                            }}>
-                            <ArrowRight className="w-4 h-4 flex-shrink-0 transition-transform group-hover:translate-x-1" style={{color: 'var(--color-accent-primary)'}} />
+                        <a key={index} href={link.href} className="group flex items-center gap-2 px-4 py-3 rounded-lg transition-all hover:translate-x-1 bg-surface border border-primary text-secondary">
+                            <ArrowRight className="w-4 h-4 flex-shrink-0 transition-transform group-hover:translate-x-1 text-[var(--color-accent-primary)]" />
                             <span className="text-sm font-medium group-hover:underline">{link.text}</span>
                         </a>
                     ))}

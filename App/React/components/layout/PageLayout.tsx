@@ -48,7 +48,7 @@ export function PageLayout({children, headerCtaText = 'Agendar 1:1', copyrightTy
 
     return (
         <div
-            className="min-h-screen selection:bg-[#e7e5e4]"
+            className="min-h-screen selection:bg-[var(--color-selection-bg)]"
             style={{
                 backgroundColor: 'var(--color-bg-primary)',
                 fontFamily,

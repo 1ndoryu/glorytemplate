@@ -126,17 +126,17 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
 
     // Estilos de input y label usando clases Tailwind que referencian variables CSS nativas
     // Esto asegura que se adapte perfectamente al tema activo (default o project)
-    const inputClasses = 'w-full px-4 py-3 rounded-lg border bg-[var(--color-bg-surface)] border-[var(--color-border-primary)] text-[var(--color-text-primary)] transition-all focus:outline-none focus:ring-1 focus:ring-[var(--color-accent-primary)] focus:border-[var(--color-accent-primary)] placeholder:text-[var(--color-text-subtle)] text-base shadow-sm';
+    const inputClasses = 'w-full px-4 py-3 rounded-lg border bg-surface border-primary text-primary transition-all focus:outline-none focus:ring-1 focus:ring-[var(--color-accent-primary)] focus:border-[var(--color-accent-primary)] placeholder:text-subtle text-base shadow-sm';
 
-    const labelClasses = 'block text-sm font-medium mb-1.5 text-[var(--color-text-secondary)]';
+    const labelClasses = 'block text-sm font-medium mb-1.5 text-secondary';
 
     return (
         <section id="formulario" className="mx-auto w-full max-w-3xl px-4 md:px-0">
-            <div className="rounded-2xl bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] p-6 md:p-10 shadow-sm relative overflow-hidden">
+            <div className="rounded-2xl bg-[var(--color-bg-elevated)] border-subtle p-6 md:p-10 shadow-sm relative overflow-hidden">
                 {/* Encabezado limpio */}
                 <div className="text-center mb-8 relative z-10">
-                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-2 text-[var(--color-text-primary)]">{title}</h2>
-                    {subtitle && <p className="text-base text-[var(--color-text-muted)] max-w-xl mx-auto">{subtitle}</p>}
+                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-2 text-primary">{title}</h2>
+                    {subtitle && <p className="text-base text-muted max-w-xl mx-auto">{subtitle}</p>}
                 </div>
 
                 {/* Mensaje de exito */}
@@ -204,7 +204,7 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
                                     ))}
                                 </select>
                                 {/* Chevron custom para select */}
-                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[var(--color-text-muted)]">
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted">
                                     <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
                                         <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path>
                                     </svg>
@@ -223,7 +223,7 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
                                         </option>
                                     ))}
                                 </select>
-                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[var(--color-text-muted)]">
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted">
                                     <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
                                         <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path>
                                     </svg>
@@ -245,7 +245,7 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
                         <div className="flex h-6 items-center">
                             <input type="checkbox" id="consentimiento" name="consentimiento" checked={formData.consentimiento} onChange={handleChange} required className="h-4 w-4 rounded border-gray-300 text-[var(--color-accent-primary)] focus:ring-[var(--color-accent-primary)] cursor-pointer" />
                         </div>
-                        <label htmlFor="consentimiento" className="text-sm leading-relaxed text-[var(--color-text-muted)] cursor-pointer select-none">
+                        <label htmlFor="consentimiento" className="text-sm leading-relaxed text-muted cursor-pointer select-none">
                             He leido y acepto la{' '}
                             <a href="/privacidad" className="font-medium text-[var(--color-accent-primary)] hover:underline">
                                 Politica de Privacidad
@@ -270,9 +270,9 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
                     </div>
 
                     {/* Enlace a Cookies */}
-                    <p className="text-center text-xs text-[var(--color-text-subtle)] mt-4">
+                    <p className="text-center text-xs text-subtle mt-4">
                         Protegido por reCAPTCHA. Consulta tambien nuestra{' '}
-                        <a href="/cookies" className="text-[var(--color-text-muted)] hover:underline transition-colors">
+                        <a href="/cookies" className="text-muted hover:underline transition-colors">
                             Politica de Cookies
                         </a>
                     </p>

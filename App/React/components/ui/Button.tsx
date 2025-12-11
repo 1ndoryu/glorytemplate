@@ -17,31 +17,15 @@ interface ButtonProps {
 export function Button({children, variant = 'primary', className = '', href, icon: Icon, onClick, type = 'button', disabled = false}: ButtonProps) {
     const baseClass = 'inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50 disabled:pointer-events-none tracking-tight shadow-sm';
 
-    // Estilos base usando CSS variables
-    const variantStyles: Record<string, React.CSSProperties> = {
-        primary: {
-            backgroundColor: 'var(--color-accent-primary)',
-            // Texto blanco fijo para contraste en ambos temas
-            // Tema default: botones oscuros con texto blanco
-            // Tema project: botones azules con texto blanco
-            color: '#ffffff'
-        },
-        outline: {
-            border: '1px solid var(--color-border-secondary)',
-            backgroundColor: 'var(--color-bg-surface)',
-            color: 'var(--color-text-secondary)'
-        },
-        ghost: {
-            color: 'var(--color-text-muted)',
-            backgroundColor: 'transparent'
-        },
-        white: {
-            backgroundColor: '#ffffff',
-            color: 'var(--color-accent-primary)',
-            border: '1px solid transparent',
-            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-        }
+    // Mapeo de clases por variante
+    const variantClasses = {
+        primary: 'bg-[var(--color-accent-primary)] hover:bg-[var(--color-accent-hover)] text-white border border-transparent',
+        outline: 'border border-[var(--color-border-secondary)] bg-surface text-secondary hover:bg-[var(--color-bg-secondary)]',
+        ghost: 'text-muted hover:bg-[var(--color-bg-secondary)] hover:text-primary border border-transparent shadow-none',
+        white: 'bg-white text-[var(--color-accent-primary)] border border-transparent shadow-sm hover:bg-gray-50'
     };
+
+    const combinedClassName = `${baseClass} ${variantClasses[variant]} ${className}`;
 
     const content = (
         <>
@@ -52,14 +36,14 @@ export function Button({children, variant = 'primary', className = '', href, ico
 
     if (href) {
         return (
-            <a href={href} className={`${baseClass} ${className}`} style={variantStyles[variant]}>
+            <a href={href} className={combinedClassName}>
                 {content}
             </a>
         );
     }
 
     return (
-        <button type={type} disabled={disabled} onClick={onClick} className={`${baseClass} ${className}`} style={variantStyles[variant]}>
+        <button type={type} disabled={disabled} onClick={onClick} className={combinedClassName}>
             {content}
         </button>
     );

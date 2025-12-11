@@ -20,26 +20,18 @@ export function PricingBreakdown({title = 'Que determina el precio?', subtitle =
     return (
         <section id="pricing-breakdown" className="mx-auto w-full max-w-7xl">
             <div className="mb-8 md:text-center max-w-3xl mx-auto">
-                <h2 className="text-2xl font-medium tracking-tight" style={{color: 'var(--color-text-primary)'}}>
-                    {title}
-                </h2>
-                <p className="text-sm mt-2" style={{color: 'var(--color-text-muted)'}}>
-                    {subtitle}
-                </p>
+                <h2 className="text-2xl font-medium tracking-tight text-primary">{title}</h2>
+                <p className="text-sm mt-2 text-muted">{subtitle}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {items.map((item, i) => (
-                    <div key={i} className="p-6 border rounded-lg hover:shadow-sm transition-shadow" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border-primary)'}}>
-                        <div className="w-8 h-8 rounded-md flex items-center justify-center mb-4" style={{backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-secondary)'}}>
+                    <div key={i} className="p-6 border rounded-lg hover:shadow-sm transition-shadow bg-surface border-primary">
+                        <div className="w-8 h-8 rounded-md flex items-center justify-center mb-4 bg-secondary text-secondary">
                             <item.icon className="w-4 h-4" />
                         </div>
-                        <h3 className="text-sm font-bold mb-2" style={{color: 'var(--color-text-primary)'}}>
-                            {item.title}
-                        </h3>
-                        <p className="text-xs leading-relaxed" style={{color: 'var(--color-text-muted)'}}>
-                            {item.desc}
-                        </p>
+                        <h3 className="text-sm font-bold mb-2 text-primary">{item.title}</h3>
+                        <p className="text-xs leading-relaxed text-muted">{item.desc}</p>
                     </div>
                 ))}
             </div>
