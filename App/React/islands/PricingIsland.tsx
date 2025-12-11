@@ -1,7 +1,7 @@
 import {Zap, Database, Smartphone, Calendar, Users} from 'lucide-react';
 import {Button, PricingCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
-import {PricingBreakdown, HeroSection, FaqWithCta, ContactForm, InternalLinks, CtaBlock} from '../components/sections';
+import {PricingBreakdown, HeroSection, FaqWithCta, ContactForm, InternalLinks} from '../components/sections';
 import {siteUrls} from '../config';
 
 // Links internos especificos para Planes
@@ -100,26 +100,26 @@ export function PricingIsland(): JSX.Element {
             <HeroSection title={pricingContent.hero.title} subtitle={pricingContent.hero.subtitle} primaryCta={pricingContent.hero.primaryCta} secondaryCta={pricingContent.hero.secondaryCta} tertiaryCta={pricingContent.hero.tertiaryCta} />
 
             {/* 2. COMO CALCULO EL PRECIO */}
-            <section id="como-calculo" className="py-12 bg-surface">
+            <section id="como-calculo" className="py-12">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     <div className="mx-auto max-w-3xl text-center mb-10">
                         <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">{pricingContent.breakdown.title}</h2>
-                        <p className="mt-4 text-lg leading-8 text-secondary">{pricingContent.breakdown.description}</p>
+                        <p className="mt-4 text-lg leading-8 text-secondary mb-8">{pricingContent.breakdown.description}</p>
+                        <div className="flex justify-center">
+                            <Button href={siteUrls.calendly} icon={Calendar}>
+                                Hablame ahora y respondo en menos de 30 min
+                            </Button>
+                        </div>
                     </div>
                 </div>
                 <PricingBreakdown items={pricingContent.breakdown.items} />
-                <div className="flex justify-center mt-8">
-                    <Button href={siteUrls.calendly} icon={Calendar}>
-                        Hablame ahora y respondo en menos de 30 min
-                    </Button>
-                </div>
             </section>
 
             {/* 3. PLANES GRID */}
             <section id="pricing-grid" className="py-16 mx-auto w-full max-w-7xl px-6">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4">{pricingContent.plans.title}</h2>
-                    <p className="text-gray-600">{pricingContent.plans.subtitle}</p>
+                    <p className="text-secondary">{pricingContent.plans.subtitle}</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
                     {pricingContent.plans.cards.map((plan, i) => (
@@ -135,9 +135,6 @@ export function PricingIsland(): JSX.Element {
                     <p className="text-lg leading-relaxed text-secondary">{pricingContent.marketComparison.text}</p>
                 </div>
             </section>
-
-            {/* 5. HABLAMOS? (CTAs) */}
-            <CtaBlock id="cta-final" />
 
             {/* 6. FAQS */}
             <FaqWithCta title={pricingContent.faq.title} items={pricingContent.faq.items} />

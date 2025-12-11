@@ -1,6 +1,6 @@
 import {motion} from 'framer-motion';
 import {MessageSquare, Workflow, Calendar, Database, LucideIcon} from 'lucide-react';
-import {Badge} from '../ui';
+import {Badge, Button} from '../ui';
 
 // --- TIPOS ---
 interface AutomationFeature {
@@ -13,12 +13,16 @@ interface AutomationFlowProps {
     title: React.ReactNode;
     description: string;
     features: AutomationFeature[];
+    cta?: {
+        text: string;
+        href: string;
+    };
 }
 
 // --- COMPONENTE ---
 // Seccion visual de automatizacion con flujo animado
 // Muestra como se conectan los diferentes servicios
-export function AutomationFlow({badge = 'BACKEND & LOGIC', title, description, features}: AutomationFlowProps): JSX.Element {
+export function AutomationFlow({badge = 'BACKEND & LOGIC', title, description, features, cta}: AutomationFlowProps): JSX.Element {
     return (
         <section id="automation-section" className="mx-auto w-full max-w-7xl">
             <div className="rounded-xl p-8 md:p-12 text-[var(--color-bg-primary)] relative overflow-hidden bg-neutral-900">
@@ -41,6 +45,14 @@ export function AutomationFlow({badge = 'BACKEND & LOGIC', title, description, f
                                 </div>
                             ))}
                         </div>
+
+                        {cta && (
+                            <div className="mt-8">
+                                <Button href={cta.href} variant="white" icon={Calendar}>
+                                    {cta.text}
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Visual Flow Abstracto */}

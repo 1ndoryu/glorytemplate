@@ -1,7 +1,7 @@
 import {Smartphone, Globe, Mic, Calendar, Database, Zap, Phone, MessageSquare, Instagram, Mail, FileSpreadsheet, Workflow} from 'lucide-react';
-import {Button, FeatureCard} from '../components/ui';
+import {FeatureCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
-import {WhatsAppShowcase, AutomationFlow, FaqWithCta, ProcessTimeline, HeroSection, IntegrationsSection, InternalLinks, ContactForm, CtaBlock} from '../components/sections';
+import {WhatsAppShowcase, AutomationFlow, FaqWithCta, ProcessTimeline, HeroSection, InternalLinks, ContactForm} from '../components/sections';
 import {siteUrls} from '../config';
 
 // Links internos especificos para Servicios
@@ -210,13 +210,7 @@ export function ServicesIsland(): JSX.Element {
             </section>
 
             {/* 5. AUTOMATIZACION */}
-            <AutomationFlow badge={servicesContent.automation.badge} title={servicesContent.automation.title} description={servicesContent.automation.description} features={servicesContent.automation.features} />
-            {/* CTA de seccion Automation segun doc: Agenda en 30s */}
-            <div className="flex justify-center pb-12">
-                <Button href={siteUrls.calendly} icon={Calendar}>
-                    Agenda en 30 s
-                </Button>
-            </div>
+            <AutomationFlow badge={servicesContent.automation.badge} title={servicesContent.automation.title} description={servicesContent.automation.description} features={servicesContent.automation.features} cta={{text: 'Agenda en 30 s', href: siteUrls.calendly}} />
 
             {/* 6. INTEGRACIONES */}
             <section id="integrations-section" className="mx-auto w-full max-w-7xl py-12">
@@ -232,9 +226,6 @@ export function ServicesIsland(): JSX.Element {
 
             {/* 7. PROCESO DE TRABAJO */}
             <ProcessTimeline title={servicesContent.process.title} steps={servicesContent.process.steps} />
-
-            {/* 8. HABLAMOS? (CTAs) */}
-            <CtaBlock id="cta-final" />
 
             {/* 9. FAQS */}
             <FaqWithCta title={servicesContent.faq.title} items={servicesContent.faq.items} />
