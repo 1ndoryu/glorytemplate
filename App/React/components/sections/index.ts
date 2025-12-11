@@ -24,3 +24,4 @@ export * from './BentoGrid';
 export * from './ComparisonSection';
 export * from './SplitSection';
 export * from './CtaBlock';
+export * from './PricingComparisonAnimation';

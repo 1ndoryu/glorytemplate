@@ -1,7 +1,7 @@
 import {Zap, Database, Smartphone, Calendar, Users} from 'lucide-react';
 import {Button, PricingCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
-import {PricingBreakdown, HeroSection, FaqWithCta, ContactForm, InternalLinks} from '../components/sections';
+import {PricingBreakdown, HeroSection, FaqWithCta, ContactForm, InternalLinks, PricingComparisonAnimation} from '../components/sections';
 import {siteUrls} from '../config';
 
 // Links internos especificos para Planes
@@ -100,7 +100,7 @@ export function PricingIsland(): JSX.Element {
             <HeroSection title={pricingContent.hero.title} subtitle={pricingContent.hero.subtitle} primaryCta={pricingContent.hero.primaryCta} secondaryCta={pricingContent.hero.secondaryCta} tertiaryCta={pricingContent.hero.tertiaryCta} />
 
             {/* 2. COMO CALCULO EL PRECIO */}
-            <section id="como-calculo" className="py-12">
+            <section id="como-calculo" className="py-12 bg-surface p-6">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     <div className="mx-auto max-w-3xl text-center mb-10">
                         <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">{pricingContent.breakdown.title}</h2>
@@ -128,12 +128,13 @@ export function PricingIsland(): JSX.Element {
                 </div>
             </section>
 
-            {/* 4. COMPARATIVA DE MERCADO (TEXTO) */}
+            {/* 4. COMPARATIVA DE MERCADO (TEXTO + ANIMACION) */}
             <section id="comparativa" className="py-16 bg-primary">
-                <div className="mx-auto max-w-3xl px-6 text-center">
+                <div className="mx-auto max-w-3xl px-6 text-center mb-12">
                     <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl mb-6">{pricingContent.marketComparison.title}</h2>
                     <p className="text-lg leading-relaxed text-secondary">{pricingContent.marketComparison.text}</p>
                 </div>
+                <PricingComparisonAnimation />
             </section>
 
             {/* 6. FAQS */}
