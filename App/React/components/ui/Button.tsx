@@ -9,9 +9,12 @@ interface ButtonProps {
     href?: string;
     icon?: React.ComponentType<{className?: string}>;
     onClick?: () => void;
+    // Soporte para formularios
+    type?: 'button' | 'submit' | 'reset';
+    disabled?: boolean;
 }
 
-export function Button({children, variant = 'primary', className = '', href, icon: Icon, onClick}: ButtonProps) {
+export function Button({children, variant = 'primary', className = '', href, icon: Icon, onClick, type = 'button', disabled = false}: ButtonProps) {
     const baseClass = 'inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50 disabled:pointer-events-none tracking-tight shadow-sm';
 
     // Estilos base usando CSS variables
@@ -56,7 +59,7 @@ export function Button({children, variant = 'primary', className = '', href, ico
     }
 
     return (
-        <button onClick={onClick} className={`${baseClass} ${className}`} style={variantStyles[variant]}>
+        <button type={type} disabled={disabled} onClick={onClick} className={`${baseClass} ${className}`} style={variantStyles[variant]}>
             {content}
         </button>
     );

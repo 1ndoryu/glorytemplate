@@ -15,15 +15,49 @@
 
 ---
 
-## NOTA IMPORTANTE: ESTILOS DEL PROYECTO
+## SISTEMA DE TEMAS (YA IMPLEMENTADO)
 
-Existen **2 referencias de estilo** para este proyecto:
+El proyecto cuenta con **2 temas intercambiables** mediante un boton flotante:
 
-1. **Estilo Cliente (project-extends.md):** Especificaciones originales del cliente con tipografia Manrope/Inter, paleta azul/verde, estructura y contenido SEO optimizado.
+### Temas Disponibles
 
-2. **Estilo Recomendado (desarrollador):** Mejoras visuales modernas que pueden aplicarse manteniendo la estructura del cliente.
+| Tema      | Nombre UI      | Activacion              | Descripcion                                                  |
+| --------- | -------------- | ----------------------- | ------------------------------------------------------------ |
+| `default` | Custom (Stone) | Sin atributo data-theme | Paleta stone/neutral, tipografia Geist, estilo desarrollador |
+| `project` | Project (Blue) | `data-theme="project"`  | Paleta azul/verde del cliente, tipografia Manrope/Inter      |
 
-**Regla:** Las paginas deben cumplir PRIMERO con el contenido y estructura de `project-extends.md`. Las mejoras visuales son secundarias y no deben alterar el contenido SEO ni la estructura definida por el cliente.
+### Arquitectura del Sistema
+
+| Archivo                                      | Funcion                                                                |
+| -------------------------------------------- | ---------------------------------------------------------------------- |
+| `App/Assets/css/init.css`                    | Define CSS Variables para ambos temas (:root y [data-theme='project']) |
+| `App/React/hooks/useTheme.ts`                | Hook que maneja estado, localStorage y atributo data-theme             |
+| `App/React/hooks/useFontLoader.ts`           | Carga fuentes dinamicamente segun el tema activo                       |
+| `App/React/components/ui/ThemeToggle.tsx`    | Boton flotante para cambiar entre temas                                |
+| `App/React/components/layout/PageLayout.tsx` | Integra useTheme y ThemeToggle en todas las paginas                    |
+
+### Como Funciona
+
+1. El tema se puede forzar via URL: `?theme=project` o `?theme=default`
+2. Se persiste en localStorage como `glory-theme`
+3. Se aplica el atributo `data-theme` al elemento `<html>`
+4. Las CSS Variables cambian automaticamente
+
+### Tema `project` (Cliente)
+
+Colores segun `project-extends.md`:
+- `--color-accent-primary: #2563eb` (Azul brand)
+- `--color-accent-green: #25d366` (Verde WhatsApp, solo iconos/badges)
+- `--color-text-primary: #111827`
+- `--color-bg-primary: #f5f5f4`
+
+Tipografia:
+- Titulos: Manrope (700 H1-H2, 600 subsecciones)
+- Cuerpo: Inter (400/600)
+
+### Regla de Desarrollo
+
+Las paginas deben cumplir PRIMERO con el **contenido y estructura** de `project-extends.md` (textos SEO, secciones H2/H3, CTAs, formulario RGPD). El tema visual (`default` o `project`) es secundario y no afecta el contenido.
 
 ---
 
@@ -70,17 +104,17 @@ Existen **2 referencias de estilo** para este proyecto:
 Cada pagina debe revisarse contra su seccion correspondiente en `project-extends.md`:
 
 #### HOME (/)
-- [ ] Verificar H1 exacto: "Chatbot para empresas que atiende a tus clientes 24/7 y gestiona reservas"
-- [ ] Verificar subhero con las 2 lineas especificadas
-- [ ] Verificar CTAs en orden: Calendario > WhatsApp > Formulario
-- [ ] Verificar seccion "Lo que voy a conseguir contigo" (4 beneficios)
-- [ ] Verificar seccion "WhatsApp Business" (3 H3)
-- [ ] Verificar seccion "Automatizacion de procesos pymes"
-- [ ] Verificar seccion "Trabajo contigo, sin intermediarios"
-- [ ] Verificar seccion "Integraciones"
-- [ ] Verificar seccion "Medimos lo importante"
-- [ ] Verificar formulario RGPD con checkbox obligatorio
-- [ ] Verificar interlinking interno
+- [x] Verificar H1 exacto: "Chatbot para empresas que atiende a tus clientes 24/7 y gestiona reservas"
+- [x] Verificar subhero con las 2 lineas especificadas
+- [x] Verificar CTAs en orden: Calendario > WhatsApp > Formulario
+- [x] Verificar seccion "Lo que voy a conseguir contigo" (4 beneficios)
+- [ ] Verificar seccion "WhatsApp Business" (3 H3) - Pendiente: estructura exacta H2/H3
+- [ ] Verificar seccion "Automatizacion de procesos pymes" - Pendiente: estructura exacta
+- [ ] Verificar seccion "Trabajo contigo, sin intermediarios" - Existe como quote, falta estructura H2/H3
+- [ ] Verificar seccion "Integraciones" - Existe en GridCards, resumido
+- [ ] Verificar seccion "Medimos lo importante" - Existe en GridCards, resumido
+- [x] Verificar formulario RGPD con checkbox obligatorio - COMPLETADO
+- [x] Verificar interlinking interno - COMPLETADO
 
 #### SERVICIOS (/servicios)
 - [ ] Verificar H1: "Servicios de chatbots y automatizacion para empresas, conmigo 1:1"
@@ -696,11 +730,13 @@ GloryFeatures::setMode('react'); // o 'native'
 
 ## HISTORIAL DE ACTUALIZACIONES
 
-| Fecha      | Cambio                                             | Autor   |
-| ---------- | -------------------------------------------------- | ------- |
-| 2025-12-11 | Creacion inicial del roadmap                       | Sistema |
-| 2025-12-11 | Agregado: estados de paginas, Fase 0 revision      | Sistema |
-| 2025-12-11 | Agregado: arquitectura tecnica, modos React/Nativo | Sistema |
+| Fecha      | Cambio                                                 | Autor   |
+| ---------- | ------------------------------------------------------ | ------- |
+| 2025-12-11 | Creacion inicial del roadmap                           | Sistema |
+| 2025-12-11 | Agregado: estados de paginas, Fase 0 revision          | Sistema |
+| 2025-12-11 | Agregado: arquitectura tecnica, modos React/Nativo     | Sistema |
+| 2025-12-11 | Documentado: sistema de temas dinamico (useTheme)      | Sistema |
+| 2025-12-11 | HOME: Agregado tertiaryCta, ContactForm, InternalLinks | Sistema |
 
 ---
 

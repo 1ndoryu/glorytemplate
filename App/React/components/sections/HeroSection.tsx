@@ -8,23 +8,25 @@ interface StatusIndicator {
     label: string;
 }
 
+// Estructura de un CTA
+interface CtaConfig {
+    text: string;
+    href: string;
+}
+
 interface HeroSectionProps {
     title: React.ReactNode;
     subtitle: string;
-    primaryCta: {
-        text: string;
-        href: string;
-    };
-    secondaryCta: {
-        text: string;
-        href: string;
-    };
+    primaryCta: CtaConfig;
+    secondaryCta: CtaConfig;
+    // Tercer CTA opcional (ej: ancla a formulario)
+    tertiaryCta?: CtaConfig;
     statusIndicators?: StatusIndicator[];
     activeIndicatorIndex?: number;
     onIndicatorClick?: (index: number) => void;
 }
 
-export function HeroSection({title, subtitle, primaryCta, secondaryCta, statusIndicators = [], activeIndicatorIndex = 0, onIndicatorClick}: HeroSectionProps) {
+export function HeroSection({title, subtitle, primaryCta, secondaryCta, tertiaryCta, statusIndicators = [], activeIndicatorIndex = 0, onIndicatorClick}: HeroSectionProps) {
     return (
         <section className="mx-auto w-full max-w-7xl">
             <div className="grid grid-cols-12 gap-6 items-start">
@@ -35,13 +37,19 @@ export function HeroSection({title, subtitle, primaryCta, secondaryCta, statusIn
                     <p className="text-lg md:text-xl max-w-2xl leading-relaxed tracking-tight font-normal" style={{color: 'var(--color-text-muted)'}}>
                         {subtitle}
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                        <Button href={secondaryCta.href} variant="outline" className="h-10 px-6">
-                            {secondaryCta.text}
-                        </Button>
+                    {/* CTAs en orden: Calendario (primary) > WhatsApp (secondary) > Formulario (tertiary) */}
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4">
                         <Button href={primaryCta.href} icon={ArrowRight} className="h-10 px-6">
                             {primaryCta.text}
                         </Button>
+                        <Button href={secondaryCta.href} variant="outline" className="h-10 px-6">
+                            {secondaryCta.text}
+                        </Button>
+                        {tertiaryCta && (
+                            <Button href={tertiaryCta.href} variant="outline" className="h-10 px-6">
+                                {tertiaryCta.text}
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>

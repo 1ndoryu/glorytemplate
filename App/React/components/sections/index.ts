@@ -18,3 +18,7 @@ export {WhatsAppShowcase} from './WhatsAppShowcase';
 export {AutomationFlow} from './AutomationFlow';
 export {FaqWithCta} from './FaqWithCta';
 export {ProcessTimeline} from './ProcessTimeline';
+
+// Componentes RGPD y SEO (project-extends.md)
+export {ContactForm} from './ContactForm';
+export {InternalLinks, homeInternalLinks, serviciosInternalLinks, planesInternalLinks, demosInternalLinks, sobreMiInternalLinks} from './InternalLinks';
