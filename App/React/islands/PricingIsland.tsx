@@ -1,128 +1,166 @@
-import {MessageSquare, Zap, Database, ShieldCheck} from 'lucide-react';
-
-// Componentes UI reutilizables
-import {Button, FaqItem, PricingCard} from '../components/ui';
-
-// Layout compartido
+import {MessageSquare, Zap, Database, ShieldCheck, Globe, Mic, Smartphone, Calendar, BarChart3, Users} from 'lucide-react';
+import {Button, PricingCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
-
-// Componentes de seccion reutilizables
-import {PricingBreakdown, ComparisonSection} from '../components/sections';
-
-// Configuracion centralizada
+import {PricingBreakdown, HeroSection, FaqWithCta, ContactForm, InternalLinks} from '../components/sections';
 import {siteUrls} from '../config';
+
+// Links internos especificos para Planes
+const pricingInternalLinks = [
+    {text: 'Ver servicios detallados', href: '/servicios'},
+    {text: '¿Prefieres ver una demo primero?', href: '/demos'},
+    {text: 'Contacto (presupuesto en 30s)', href: '/contacto'}
+];
 
 // --- CONFIGURACION DE CONTENIDO ESPECIFICO DE PRICING ---
 const pricingContent = {
-    plans: [
-        {
-            title: 'Basico',
-            price: 'Consultar',
-            description: 'Para empresas que quieren empezar a automatizar lo esencial.',
-            features: ['1 Canal (WhatsApp, Web o IG)', 'Respuestas a FAQs frecuentes', 'Derivacion a humano con historial', 'Formularios a CRM o Sheet basico', '1 Automatizacion simple', 'Mantenimiento incluido'],
-            ctaText: 'Empezar Gratis'
-        },
-        {
-            title: 'Avanzado',
-            price: 'Consultar',
-            description: 'Automatizacion completa de reservas y seguimiento de clientes.',
-            recommended: true,
-            features: ['1-2 Canales Integrados', 'Reservas automaticas (Agenda/Calendly)', 'Recordatorios y confirmaciones', 'Etiquetado de leads automatico', 'Integracion CRM completa', '3 Automatizaciones avanzadas', 'Soporte Prioritario'],
-            ctaText: 'Agendar Consultoria'
-        },
-        {
-            title: 'Total',
-            price: 'A medida',
-            description: 'Ecosistema multicanal con voz y procesos complejos.',
-            features: ['Omnicanal (WhatsApp + Web + Voz)', 'Voicebot para llamadas entrantes', 'Integracion ERP/Facturacion', 'Dashboards de metricas a medida', 'Automatizaciones ilimitadas', 'Auditoria mensual de conversion', 'Mantenimiento Premium'],
-            ctaText: 'Hablar con Guillermo'
-        }
-    ],
-    breakdownItems: [
-        {icon: MessageSquare, title: 'Canales', desc: 'Solo WhatsApp o tambien Instagram y Web? Mas canales, mas puntos de entrada.'},
-        {icon: Zap, title: 'Automatizacion', desc: "No es lo mismo responder 'Hola' que consultar tu stock en tiempo real y reservar."},
-        {icon: Database, title: 'Integraciones', desc: 'Conectamos con un Google Sheet simple o con un Salesforce/ERP complejo?'},
-        {icon: ShieldCheck, title: 'Mantenimiento', desc: 'Incluye ajustes de respuestas, revision de conversaciones y soporte tecnico.'}
-    ],
-    comparisonItems: ['Configuracion tecnica', 'Diseno de flujos', 'Alta en WhatsApp API', 'Soporte directo (WhatsApp)'],
-    faqItems: [
-        {question: 'Puedo cambiar de plan mas adelante?', answer: 'Si, totalmente. Sin permanencias. Si tu negocio crece y necesitas añadir Instagram o Voz, ajustamos el plan y listo.'},
-        {question: "Que incluye exactamente el 'Primer Mes Gratis'?", answer: 'Incluye el uso de la licencia del software del bot y mi soporte durante 30 dias tras el lanzamiento. Solo pagas (si aplica) los costes directos de WhatsApp API (meta cobra centimos por conversacion), pero mi servicio es gratuito para que veas el valor.'},
-        {question: 'Cual es el coste de WhatsApp API?', answer: 'Meta cobra una pequeña tarifa por conversacion (aprox 0.05 en España) iniciada por el negocio. Las primeras 1000 conversaciones de servicio al mes suelen ser gratuitas. Yo te ayudo a configurarlo en tu propia tarjeta.'},
-        {question: 'Haces factura?', answer: 'Por supuesto. Soy autonomo registrado en España y emito factura valida con todos los impuestos correspondientes.'}
-    ]
+    hero: {
+        title: (
+            <>
+                Precio chatbot: planes con <span className="text-blue-600">mantenimiento incluido y primer mes gratis</span>
+            </>
+        ),
+        subtitle: 'Te presento tres planes pensados para atender mejor, resolver dudas y, cuando proceda, gestionar reservas. El primer mes es gratis y, luego, hay una cuota mensual que incluye mantenimiento y mejoras continuas.',
+        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.calendly},
+        secondaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.whatsapp},
+        tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'}
+    },
+    breakdown: {
+        title: '¿Cómo calculo el precio del chatbot y qué lo determina?',
+        description: 'Si buscas referencias de precios chatbot para empresas, te explico qué factores los determinan para que pagues solo por lo que necesitas.',
+        items: [
+            {icon: Smartphone, title: 'Canales', desc: 'WhatsApp, Instagram DM, tu web y voz (llamadas) — uno o varios.'},
+            {icon: Zap, title: 'Automatización', desc: 'Reservas, recordatorios, confirmaciones, etiquetas y avisos.'},
+            {icon: Database, title: 'Integraciones', desc: 'Tu agenda (si ya usas Calendly, lo conecto), Google Sheets, email y tu Software/CRM.'},
+            {icon: Users, title: 'Volumen y soporte', desc: 'Actividad mensual y mantenimiento (revisión de conversiones y mejoras).'}
+        ]
+    },
+    plans: {
+        title: 'Planes chatbot (elige y ajustamos juntos)',
+        subtitle: 'Sin permanencias. Puedes cambiar de plan en cualquier momento.',
+        cards: [
+            {
+                title: 'Básico',
+                price: 'Empezar bien',
+                description: 'Ideal para empezar con un solo canal y automatizar lo esencial.',
+                features: ['1 canal a elegir (WhatsApp o Web o Instagram DM)', 'FAQs útiles + derivación a humano con historial', 'Formularios a tu Software/CRM (o hoja compartida)', '1 automatización ligera (recordatorio o control)', 'Mantenimiento incluido · primer mes gratis'],
+                ctaText: 'Agenda en 30 s',
+                ctaHref: siteUrls.calendly,
+                recommended: false
+            },
+            {
+                title: 'Avanzado',
+                price: 'Reservas y seguimiento',
+                description: 'Automatización de reservas y conexión completa de datos.',
+                features: ['1-2 canales (WhatsApp/IG/Web)', 'Reservas automáticas con tu agenda (incl. Calendly)', '3 automatizaciones (confirmaciones, etiquetas, avisos)', 'Integraciones: tu Software/CRM, Google Sheets, email', 'Mantenimiento incluido · primer mes gratis'],
+                ctaText: 'Hablame ahora',
+                ctaHref: siteUrls.calendly, // Dice "Hablame ahora", normalmente WhatsApp en CTAs anteriores pero el doc dice "Enlace a Calendario" para Plan Basico y Total, y para Avanzado "Hablame ahora" (Calendario? WhatsApp?). En Services decia "Hablame ahora -> Calendario". Asumire Calendario o seguire href.
+                recommended: true
+            },
+            {
+                title: 'Total',
+                price: 'Multicanal + Voz',
+                description: 'La solución completa para todos los puntos de contacto.',
+                features: ['2-3 canales (WhatsApp, IG, Web) + voz (llamadas)', '5-6 automatizaciones (recordatorios, cambios estado)', 'Integraciones avanzadas con Software/CRM y ERP', 'Auditoria mensual de conversión', 'Mantenimiento incluido · primer mes gratis'],
+                ctaText: 'Agenda en 30 s',
+                ctaHref: siteUrls.calendly,
+                recommended: false
+            }
+        ]
+    },
+    marketComparison: {
+        title: 'Qué verás en el mercado y por qué lo hago distinto',
+        text: 'Muchos proveedores muestran planes por suscripción con features cerrados y otros estiman precio según alcance e integraciones. Yo prefiero definir juntos el/los canal(es), las automatizaciones y las integraciones para se adapten totalmente a lo que quieres conseguir, y, después, mantenerlo mensualmente y mejorarlo.'
+    },
+    faq: {
+        title: 'FAQs (responden a dudas de precio)',
+        items: [
+            {question: '¿Precios chatbot WhatsApp y tarifas?', answer: 'Depende de los canales, la automatización y las integraciones que necesites. En cuanto a tarifas chatbot whatsapp, ajusto el alcance a tu caso y te paso propuesta clara tras una llamada breve. Primer mes gratis para verlo en marcha.'},
+            {question: '¿Puedo cambiar de plan cuando quiera?', answer: 'Sí. Sin permanencias: puedes subir o bajar entre mis planes chatbot según tu carga y objetivos del mes. Ajusto el alcance y el soporte; el mantenimiento sigue activo para no perder tracción.'},
+            {question: '¿Precios chatbot Instagram empresas?', answer: 'Si IG DM es clave, puedo incluirlo en Básico/Avanzado/Total. Ajusto el alcance (respuestas, derivación y, si encaja, reservas).'},
+            {question: '¿Precio chatbot web para empresas?', answer: 'Varía según alcance (FAQs, derivación a humano, automatizaciones e integraciones con tu web/agenda/Sheets/CRM). En mis planes chatbot el widget y las FAQs básicas van incluidos.'},
+            {question: '¿Precio automatizar reservas por WhatsApp?', answer: 'Depende de las reglas de tu negocio (horarios, duración/buffer, antelación, cancelación y asignación por profesional/sede) y de si conecto con tu agenda. Yo implementaré tus reglas e incluiré recordatorios. Tras una llamada breve te paso propuesta. Primer mes gratis.'},
+            {question: '¿Precio integración WhatsApp + Calendly/Google Sheets?', answer: 'Depende del alcance: en Calendly puedo solo leer citas o también crear/actualizar/cancelar y enviar recordatorios, y en Google Sheets desde guardar leads básico hasta mapear columnas con validaciones y envíos automáticos, y tras una llamada te doy precio cerrado con primer mes gratis.'},
+            {question: '¿Planes chatbot con mantenimiento incluido?', answer: 'Sí. Todos. Revisión de conversaciones y mejoras continuas cada mes.'},
+            {question: '¿Precio voicebot (para empresas)?', answer: 'Si el canal de voz te aporta, lo añado en el Plan Total y ajusto la propuesta.'}
+        ],
+        ctaTitle: '¿Hablamos?',
+        ctaItems: [
+            {text: 'Agenda en 30 s', href: siteUrls.calendly, variant: 'primary'},
+            {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.whatsapp, variant: 'outline'},
+            {text: 'Te leo y te respondo hoy', href: '#formulario', variant: 'ghost'}
+        ]
+    }
 };
 
 // --- ISLAND PRINCIPAL ---
 export function PricingIsland(): JSX.Element {
     return (
-        <PageLayout headerCtaText="Agendar 1:1" copyrightType="consultoria">
+        <PageLayout headerCtaText="Agendar 1:1" topBanner={{text: 'Primer mes gratis - Mantenimiento incluido', linkText: 'Agenda ahora', linkHref: siteUrls.calendly}}>
             {/* 1. HERO SECTION */}
-            <section id="pricing-hero" className="mx-auto w-full max-w-7xl text-center">
-                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium mb-6 border" style={{backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-secondary)', borderColor: 'var(--color-border-primary)'}}>
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                    </span>
-                    Sin permanencias - Primer mes gratis
-                </div>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter text-balance mb-6 max-w-4xl mx-auto" style={{color: 'var(--color-text-primary)'}}>
-                    Planes flexibles con <span style={{color: 'var(--color-text-subtle)'}}>mantenimiento incluido.</span>
-                </h1>
-                <p className="text-lg leading-relaxed max-w-2xl mx-auto font-light mb-8" style={{color: 'var(--color-text-muted)'}}>
-                    Diseno a medida, no suscripciones enlatadas. Defines que necesitas, lo construyo, y luego pago mensual por mantenimiento y mejoras.
-                </p>
-            </section>
+            <HeroSection title={pricingContent.hero.title} subtitle={pricingContent.hero.subtitle} primaryCta={pricingContent.hero.primaryCta} secondaryCta={pricingContent.hero.secondaryCta} tertiaryCta={pricingContent.hero.tertiaryCta} />
 
-            {/* 2. PRICING GRID */}
-            <section id="pricing-grid" className="mx-auto w-full max-w-7xl">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
-                    {pricingContent.plans.map((plan, i) => (
-                        <PricingCard key={i} title={plan.title} price={plan.price} description={plan.description} features={plan.features} recommended={plan.recommended} ctaText={plan.ctaText} ctaHref={siteUrls.calendly} />
-                    ))}
-                </div>
-
-                <div className="mt-8 text-center">
-                    <p className="text-xs font-mono" style={{color: 'var(--color-text-subtle)'}}>
-                        * El precio final depende de la complejidad de los flujos. El mantenimiento asegura que tu bot nunca deje de funcionar.
-                    </p>
-                </div>
-            </section>
-
-            {/* 3. COMO CALCULO EL PRECIO */}
-            <PricingBreakdown items={pricingContent.breakdownItems} />
-
-            {/* 4. COMPARATIVA 1:1 VS SAAS */}
-            <ComparisonSection includedItems={pricingContent.comparisonItems} />
-
-            {/* 5. FAQS PRECIO */}
-            <section id="pricing-faq" className="mx-auto w-full max-w-2xl pb-12">
-                <h2 className="text-xl font-medium tracking-tight mb-6 md:text-center" style={{color: 'var(--color-text-primary)'}}>
-                    Preguntas sobre Precios
-                </h2>
-                <div className="space-y-1 mb-12">
-                    {pricingContent.faqItems.map((item, i) => (
-                        <FaqItem key={i} question={item.question} answer={item.answer} />
-                    ))}
-                </div>
-
-                <div className="text-center">
-                    <h3 className="text-lg font-semibold mb-2" style={{color: 'var(--color-text-primary)'}}>
-                        Dudas con el presupuesto?
-                    </h3>
-                    <p className="text-sm mb-6" style={{color: 'var(--color-text-muted)'}}>
-                        Hagamos una llamada rapida de 15 minutos y te doy una cifra exacta.
-                    </p>
-                    <div className="flex justify-center gap-3">
-                        <Button href={siteUrls.calendly} className="border-0">
-                            Agendar llamada
-                        </Button>
-                        <Button href={siteUrls.whatsapp} variant="outline">
-                            Preguntar por WhatsApp
-                        </Button>
+            {/* 2. COMO CALCULO EL PRECIO */}
+            <section className="py-12 bg-white">
+                <div className="mx-auto max-w-7xl px-6 lg:px-8">
+                    <div className="mx-auto max-w-3xl text-center mb-10">
+                        <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{pricingContent.breakdown.title}</h2>
+                        <p className="mt-4 text-lg leading-8 text-gray-600">{pricingContent.breakdown.description}</p>
                     </div>
                 </div>
+                <PricingBreakdown items={pricingContent.breakdown.items} />
+                <div className="flex justify-center mt-8">
+                    <Button href={siteUrls.calendly} icon={Calendar}>
+                        Hablame ahora y respondo en menos de 30 min
+                    </Button>
+                </div>
             </section>
+
+            {/* 3. PLANES GRID */}
+            <section id="pricing-grid" className="py-16 mx-auto w-full max-w-7xl px-6">
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl md:text-4xl font-bold mb-4">{pricingContent.plans.title}</h2>
+                    <p className="text-gray-600">{pricingContent.plans.subtitle}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
+                    {pricingContent.plans.cards.map((plan, i) => (
+                        <PricingCard key={i} title={plan.title} price={plan.price} description={plan.description} features={plan.features} recommended={plan.recommended} ctaText={plan.ctaText} ctaHref={plan.ctaHref} />
+                    ))}
+                </div>
+            </section>
+
+            {/* 4. COMPARATIVA DE MERCADO (TEXTO) */}
+            <section className="py-16 bg-gray-50">
+                <div className="mx-auto max-w-3xl px-6 text-center">
+                    <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">{pricingContent.marketComparison.title}</h2>
+                    <p className="text-lg leading-relaxed text-gray-700">{pricingContent.marketComparison.text}</p>
+                </div>
+            </section>
+
+            {/* 5. HABLAMOS? (CTAs) */}
+            <section className="py-16 text-center">
+                <h2 className="text-3xl font-bold mb-8">¿Hablamos?</h2>
+                <p className="mb-8 text-lg text-gray-600">Elige cómo prefieres:</p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <Button href={siteUrls.calendly} icon={Calendar}>
+                        Agenda en 30 s
+                    </Button>
+                    <Button href={siteUrls.whatsapp} variant="outline" icon={MessageSquare}>
+                        Hablame ahora
+                    </Button>
+                    <Button href="#formulario" variant="ghost">
+                        Te leo y te respondo hoy
+                    </Button>
+                </div>
+            </section>
+
+            {/* 6. FAQS */}
+            <FaqWithCta title={pricingContent.faq.title} items={pricingContent.faq.items} />
+
+            {/* 7. FORMULARIO CONTACTO */}
+            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rápido con respuesta hoy mismo" id="formulario" />
+
+            {/* 8. INTERLINKING */}
+            <InternalLinks title="Te puede interesar" links={pricingInternalLinks} />
         </PageLayout>
     );
 }

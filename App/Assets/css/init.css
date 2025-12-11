@@ -47,7 +47,8 @@
     --color-selection-bg: #e7e5e4;
 
     /* --- TIPOGRAFIA --- */
-    --font-sans: 'Geist Sans', system-ui, -apple-system, sans-serif;
+    --font-heading: 'Manrope', system-ui, -apple-system, sans-serif;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'Geist Mono', ui-monospace, monospace;
 
     /* Tamanos de Fuente */
@@ -203,4 +204,32 @@
 
 .border-secondary {
     border-color: var(--color-border-secondary);
+}
+
+/* RESET GLOBAL DE FUENTES */
+body {
+    font-family: var(--font-sans);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+}
+
+/* Clase utilidad para headers light/medium si hace falta override */
+.font-heading-medium {
+    font-weight: 500;
+}
+
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    text-wrap: pretty;
 }

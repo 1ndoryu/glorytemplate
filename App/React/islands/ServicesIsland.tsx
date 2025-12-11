@@ -1,92 +1,136 @@
-import {Smartphone, Globe, Mic, Calendar, Database, Workflow, Zap, MessageSquare} from 'lucide-react';
-
-// Componentes UI reutilizables
+import {Smartphone, Globe, Mic, Calendar, Database, Workflow, Zap, MessageSquare, Users, CheckSquare, Share2, Phone, Layout} from 'lucide-react';
 import {Button, FeatureCard} from '../components/ui';
-
-// Layout compartido
 import {PageLayout} from '../components/layout';
-
-// Componentes de seccion reutilizables
-import {WhatsAppShowcase, AutomationFlow, FaqWithCta, ProcessTimeline} from '../components/sections';
-
-// Configuracion centralizada
+import {
+    WhatsAppShowcase,
+    AutomationFlow,
+    FaqWithCta,
+    ProcessTimeline,
+    HeroSection,
+    IntegrationsSection,
+    InternalLinks,
+    ContactForm // Necesario para "Hablamos?" si se decide usar forma, pero el doc dice CTAs. Aunque en Home hay ContactForm. En Servicios también hay "Formulario ancla".
+} from '../components/sections';
 import {siteUrls} from '../config';
+
+// Links internos especificos para Servicios
+const servicesInternalLinks = [
+    {text: 'Mira planes y precios', href: '/planes'},
+    {text: 'Ver demos por canal', href: '/demos'},
+    {text: 'Contacto para presupuesto', href: '/contacto'},
+    {text: 'Saber más sobre mí', href: '/sobre-mi'}
+];
 
 // --- CONFIGURACION DE CONTENIDO ESPECIFICO DE SERVICES ---
 const servicesContent = {
     hero: {
-        badge: 'Disponible para nuevos proyectos',
         title: (
             <>
-                Servicios de automatizacion y chatbots, <span style={{color: 'var(--color-text-subtle)'}}>trabajando 1:1 contigo.</span>
+                Servicios de chatbots y automatizacion <span className="text-blue-600">para empresas, conmigo 1:1</span>
             </>
         ),
-        description: 'Diseno, implanto y mantengo la tecnologia que tu empresa necesita para atender mejor y vender mas. Sin intermediarios, directo al grano.'
+        subtitle: 'Diseño, implanto y mantengo chatbot WhatsApp, Instagram y tu web, además de voicebots (llamadas). Trabajo contigo, de tú a tú, para que atiendas mejor, resuelvas dudas y, cuando toca, gestiones reservas sin cargar a tu equipo. Respuesta en menos de 30 min (09–21h), primer mes gratis y mantenimiento continuo.',
+        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.calendly}, // El doc dice Calendario primero
+        secondaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.whatsapp}, // WhatsApp
+        tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'} // Formulario ancla
     },
     whatsapp: {
-        badge: 'CANAL PRINCIPAL',
-        title: 'WhatsApp Business API',
+        badge: 'PILAR PRINCIPAL',
+        title: 'WhatsApp Business',
         features: [
-            {title: 'Flujo de conversacion util', desc: 'Preguntas claras, botones rapidos y logica condicional. Nada de bucles infinitos que frustran al cliente.'},
-            {title: 'Derivacion a humano (Handoff)', desc: 'Si el bot no sabe, te avisa. Entras al chat con todo el contexto anterior visible. Cero friccion.'},
-            {title: 'RGPD y Permisos', desc: 'Gestion automatica de Opt-in/Opt-out para que cumplas la ley sin pensarlo.'}
-        ]
+            {title: 'Flujo de conversación útil', desc: 'Preguntas claras (nombre, motivo, urgencia), etiquetas de interés y mensajes que ayudan de verdad.'},
+            {title: 'Derivación a humano + avisos', desc: 'Cuando conviene, entras tú o tu equipo con el historial a mano.'},
+            {title: 'Permisos y cumplimiento', desc: 'Incluyo opt-in/opt-out y aviso de privacidad.'},
+            {title: 'API de WhatsApp Business', desc: 'Te acompaño en el alta con proveedor oficial cuando aporta (plantillas y escalado).'}
+        ],
+        ctaText: 'Hablame ahora y respondo en menos de 30 min (09-21h)',
+        ctaHref: siteUrls.calendly
     },
     multichannel: {
-        title: 'Mas alla de WhatsApp',
-        subtitle: 'Misma inteligencia, diferentes puntos de contacto.',
+        title: 'Instagram y Web (UChat multicanal)',
         cards: [
             {
                 icon: Smartphone,
                 title: 'Instagram DM',
-                badge: 'META API',
-                description: 'Responde a stories y menciones automaticamente. Ideal para captar leads que reaccionan a tu contenido visual.'
+                badge: 'META',
+                description: 'Respondo en tus mensajes de IG, derivo a persona y, si encaja, lanzo reserva.'
             },
             {
                 icon: Globe,
-                title: 'Web Chatbot',
+                title: 'Chatbot en tu web',
                 badge: 'WIDGET',
-                description: 'Un asistente en tu web que sabe que pagina esta mirando el cliente. FAQs transaccionales y captura de leads.'
+                description: 'Widget visible, FAQs transaccionales y derivación a humano.'
             },
             {
+                icon: Database,
+                title: 'Una sola base de conocimiento',
+                badge: 'SYNC',
+                description: 'Mismo tono y respuestas en todos los canales.'
+            }
+        ]
+    },
+    voice: {
+        title: 'Voz (llamadas) cuando prefieren hablar',
+        cards: [
+            {
                 icon: Mic,
-                title: 'Voicebot (Llamadas)',
-                badge: 'IA VOZ',
-                description: 'Atiende el telefono 24/7. Clasifica la urgencia, responde dudas simples o transfiere a un agente si es critico.'
+                title: 'Voicebot que atiende y clasifica',
+                badge: 'AI VOZ',
+                description: 'Saluda, entiende el motivo y dirige la llamada.'
+            },
+            {
+                icon: Phone,
+                title: 'Pase a agente',
+                badge: 'TRANSFER',
+                description: 'Transfiere a persona cuando lo pide el caso o el cliente.'
+            },
+            {
+                icon: Calendar,
+                title: 'Horarios y mensajes',
+                badge: 'CONFIG',
+                description: 'Horarios, festivos y buzón bien configurados.'
             }
         ]
     },
     automation: {
-        badge: 'BACKEND & LOGIC',
+        badge: 'MAKE & N8N',
         title: (
             <>
-                Automatizacion de procesos <br />
-                <span style={{color: 'var(--color-text-muted)'}}>Make & n8n</span>
+                Automatización de <span className="text-blue-600">reservas y tareas</span>
             </>
         ),
         description: 'No es solo responder chats. Es conectar tu negocio. Cuando un cliente reserva, el bot actualiza tu agenda, envia un email de confirmacion y crea el contacto en tu CRM. Sin que toques nada.',
         features: [
-            {icon: Calendar, label: 'Sync Agenda'},
-            {icon: Database, label: 'CRM Update'},
-            {icon: Workflow, label: 'Avisos Internos'},
-            {icon: Zap, label: 'Pagos Stripe'}
+            {icon: Calendar, label: 'Recordatorios'}, // Mapeado de 'Recordatorios y confirmaciones' - El componente features recibe iconos+label, no H3 completo. Ajustaré esto.
+            {icon: Database, label: 'Volcado de datos'},
+            {icon: Zap, label: 'Etiquetas y avisos'}
+            // El doc tiene 3 H3. AutomationFlow usa lista de features simples.
         ]
     },
+    integrations: ['Tu agenda (p. ej., Calendly)', 'Google Sheets', 'Email (avisos/notificaciones)', 'Tu CRM (HubSpot, Zoho u otros)', 'ERP/otros vía webhook o conector', 'Si hoy no tienes CRM, empiezo con hoja compartida para que avances ya.'],
     process: {
-        title: 'Como trabajo contigo',
+        title: 'Proceso de trabajo (simple y sin jerga)',
         steps: [
-            {title: '1. Llamada breve (15 min)', desc: 'Sin compromiso. Me cuentas tu situacion y vemos si te puedo ayudar.'},
-            {title: '2. Prototipo en 72h', desc: 'No te vendo humo. Te enseno un flujo real con tus datos para que decidas.'},
-            {title: '3. Integracion y Lanzamiento', desc: 'Conecto el bot a tu web, agenda y CRM. Todo listo para funcionar.'},
-            {title: '4. Mejora Continua', desc: 'Mes a mes reviso las conversaciones y optimizo las respuestas para vender mas.'}
+            {title: '1. Llamada breve (15-20 min)', desc: 'Fijamos objetivos y 2-3 casos iniciales.'},
+            {title: '2. Prototipo en 72 h', desc: 'Flujo real: dudas + datos + (si aplica) reserva.'},
+            {title: '3. Integración y lanzamiento', desc: 'Conecto con tu web, tu agenda y tu Software/CRM.'},
+            {title: '4. Mejora continua', desc: 'Reviso conversaciones y optimizo respuestas/conversión cada mes.'}
         ]
     },
     faq: {
         title: 'Preguntas Frecuentes',
         items: [
-            {question: 'Trabajas con cualquier web o CRM?', answer: 'Si. Me adapto a tu web actual (WordPress, Shopify, etc.) y a tu Software (HubSpot, Zoho, Salesforce). Si no tienes CRM, empezamos con una hoja de calculo compartida.'},
-            {question: 'El bot incluye inteligencia artificial real?', answer: 'Si. Utilizamos modelos LLM (como GPT-4) entrenados con tus datos para que las respuestas sean naturales, no roboticas. Nada de "pulsa 1 para ventas".'},
-            {question: 'Que pasa si el bot no sabe la respuesta?', answer: 'El sistema detecta la duda y deriva la conversacion a un humano (a ti o a tu equipo) enviando una alerta por WhatsApp o email con el resumen de la charla.'}
+            {question: '¿Trabajas con cualquier web o CRM?', answer: 'Sí. Me adapto a tu web actual y a tu Software/CRM. Si no tienes, empezamos con hoja compartida.'},
+            {question: '¿Solo WhatsApp o también Instagram y web?', answer: 'También Instagram DM y tu web, con la misma base de respuestas.'},
+            {question: '¿Automatizas reservas por WhatsApp/Instagram?', answer: 'Sí: propuestas de franjas, confirmaciones y recordatorios. Uso tu agenda; si ya usas Calendly, también lo integro.'},
+            {question: '¿Precio del servicio?', answer: 'Depende de los casos de uso y canales (WhatsApp/IG/Web/Voz). Primer mes gratis para verlo en marcha y ajustar.'},
+            {question: '¿Incluye mantenimiento?', answer: 'Sí. Revisión de conversaciones, mejoras en respuestas y soporte continuo.'}
+        ],
+        ctaTitle: '¿Hablamos?',
+        ctaItems: [
+            {text: 'Agenda en 30 s', href: siteUrls.calendly, variant: 'primary'},
+            {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.whatsapp, variant: 'outline'}, // Documento dice WhatsApp segundo
+            {text: 'Te leo y te respondo hoy', href: '#formulario', variant: 'ghost'}
         ]
     }
 };
@@ -94,63 +138,81 @@ const servicesContent = {
 // --- ISLAND PRINCIPAL ---
 export function ServicesIsland(): JSX.Element {
     return (
-        <PageLayout headerCtaText="Agendar 1:1">
+        <PageLayout headerCtaText="Agendar 1:1" topBanner={{text: 'Primer mes gratis - Respuesta en menos de 30 min', linkText: 'Agenda ahora', linkHref: siteUrls.calendly}}>
             {/* 1. HERO SECTION */}
-            <section id="hero-section" className="mx-auto w-full max-w-7xl">
-                <div id="hero-content" className="max-w-3xl">
-                    <div id="hero-badge" className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium mb-6 border" style={{backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-secondary)', borderColor: 'var(--color-border-primary)'}}>
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                        </span>
-                        {servicesContent.hero.badge}
-                    </div>
-                    <h1 id="hero-title" className="text-4xl md:text-6xl font-semibold tracking-tighter text-balance mb-6" style={{color: 'var(--color-text-primary)'}}>
-                        {servicesContent.hero.title}
-                    </h1>
-                    <p id="hero-description" className="text-lg md:text-xl leading-relaxed max-w-2xl font-light" style={{color: 'var(--color-text-muted)'}}>
-                        {servicesContent.hero.description}
-                    </p>
+            <HeroSection title={servicesContent.hero.title} subtitle={servicesContent.hero.subtitle} primaryCta={servicesContent.hero.primaryCta} secondaryCta={servicesContent.hero.secondaryCta} tertiaryCta={servicesContent.hero.tertiaryCta} />
 
-                    <div id="hero-actions" className="flex flex-col sm:flex-row gap-4 mt-8">
-                        <Button href={siteUrls.calendly} icon={Calendar}>
-                            Agendar consultoria (30 min)
-                        </Button>
-                        <Button href="#whatsapp" variant="outline" icon={MessageSquare}>
-                            Ver solucion WhatsApp
-                        </Button>
-                    </div>
-                </div>
-            </section>
+            {/* 2. WHATSAPP BUSINESS */}
+            <WhatsAppShowcase badge={servicesContent.whatsapp.badge} title={servicesContent.whatsapp.title} features={servicesContent.whatsapp.features} ctaText={servicesContent.whatsapp.ctaText} ctaHref={servicesContent.whatsapp.ctaHref} />
 
-            {/* 2. WHATSAPP BUSINESS (FEATURE DESTACADA) */}
-            <WhatsAppShowcase badge={servicesContent.whatsapp.badge} title={servicesContent.whatsapp.title} features={servicesContent.whatsapp.features} />
-
-            {/* 3. MULTICANAL (GRID DE TARJETAS) */}
-            <section id="multichannel-section" className="mx-auto w-full max-w-7xl">
+            {/* 3. MULTICANAL (Instagram y Web) */}
+            <section id="multichannel-section" className="mx-auto w-full max-w-7xl px-6 py-12">
                 <div className="mb-8">
-                    <h2 className="text-2xl font-medium tracking-tight" style={{color: 'var(--color-text-primary)'}}>
+                    <h2 className="text-3xl font-bold tracking-tight mb-4" style={{color: 'var(--color-text-primary)'}}>
                         {servicesContent.multichannel.title}
                     </h2>
-                    <p className="text-sm mt-2" style={{color: 'var(--color-text-muted)'}}>
-                        {servicesContent.multichannel.subtitle}
-                    </p>
                 </div>
-                <div id="multichannel-grid" className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {servicesContent.multichannel.cards.map((card, idx) => (
                         <FeatureCard key={idx} icon={card.icon} title={card.title} badge={card.badge} description={card.description} />
                     ))}
                 </div>
             </section>
 
-            {/* 4. AUTOMATIZACION (VISUAL FLOW) */}
-            <AutomationFlow badge={servicesContent.automation.badge} title={servicesContent.automation.title} description={servicesContent.automation.description} features={servicesContent.automation.features} />
+            {/* 4. VOZ (Llamadas) */}
+            <section id="voice-section" className="mx-auto w-full max-w-7xl px-6 py-12 bg-gray-50 rounded-2xl relative overflow-hidden">
+                <div className="mb-8 relative z-10">
+                    <h2 className="text-3xl font-bold tracking-tight mb-4" style={{color: 'var(--color-text-primary)'}}>
+                        {servicesContent.voice.title}
+                    </h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                    {servicesContent.voice.cards.map((card, idx) => (
+                        <FeatureCard key={idx} icon={card.icon} title={card.title} badge={card.badge} description={card.description} />
+                    ))}
+                </div>
+            </section>
 
-            {/* 5. PROCESO DE TRABAJO (TIMELINE) */}
+            {/* 5. AUTOMATIZACION */}
+            <AutomationFlow badge={servicesContent.automation.badge} title={servicesContent.automation.title} description={servicesContent.automation.description} features={servicesContent.automation.features} />
+            {/* CTA de seccion Automation segun doc: Agenda en 30s */}
+            <div className="flex justify-center pb-12">
+                <Button href={siteUrls.calendly} icon={Calendar}>
+                    Agenda en 30 s
+                </Button>
+            </div>
+
+            {/* 6. INTEGRACIONES */}
+            <IntegrationsSection title="Integraciones con tu software" items={servicesContent.integrations} />
+
+            {/* 7. PROCESO DE TRABAJO */}
             <ProcessTimeline title={servicesContent.process.title} steps={servicesContent.process.steps} />
 
-            {/* 6. FAQS & CTA FINAL */}
+            {/* 8. HABLAMOS? (CTAs) */}
+            <section className="py-16 text-center">
+                <h2 className="text-3xl font-bold mb-8">¿Hablamos?</h2>
+                <p className="mb-8 text-lg text-gray-600">Elige cómo prefieres:</p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <Button href={siteUrls.calendly} icon={Calendar}>
+                        Agenda en 30 s
+                    </Button>
+                    <Button href={siteUrls.whatsapp} variant="outline" icon={MessageSquare}>
+                        Hablame ahora
+                    </Button>
+                    <Button href="#formulario" variant="ghost">
+                        Te leo y te respondo hoy
+                    </Button>
+                </div>
+            </section>
+
+            {/* 9. FAQS */}
             <FaqWithCta title={servicesContent.faq.title} items={servicesContent.faq.items} />
+
+            {/* 10. FORMULARIO CONTACTO */}
+            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rápido con respuesta hoy mismo" />
+
+            {/* 11. INTERLINKING */}
+            <InternalLinks title="Te puede interesar" links={servicesInternalLinks} />
         </PageLayout>
     );
 }
