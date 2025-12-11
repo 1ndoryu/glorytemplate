@@ -23,7 +23,7 @@ const aboutContent = {
         primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.calendly},
         secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp},
         tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'},
-        imageSrc: '/img/sobre-mi-guillermo-hero.jpg',
+        imageSrc: 'https://placehold.co/400x500/png',
         imageAlt: 'Guillermo, consultor de chatbots en Madrid, en videollamada'
     },
     bio: {
@@ -76,26 +76,30 @@ const aboutContent = {
 // --- ISLAND PRINCIPAL ---
 export function AboutIsland(): JSX.Element {
     return (
-        <PageLayout headerCtaText="Agendar 1:1" mainClassName="flex-1 flex flex-col gap-0">
+        <PageLayout headerCtaText="Agendar 1:1" mainClassName="flex-1 flex flex-col gap-0 px-6 py-12 md:py-20">
             {/* 1. HERO PROFILE con Imagen Lateral */}
-            <section id="hero" className="mx-auto w-full max-w-7xl px-6 py-12 md:py-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                <div className="flex flex-col gap-6 text-left">
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter text-balance text-primary">{aboutContent.hero.title}</h1>
-                    <p className="text-lg text-secondary leading-relaxed font-light">{aboutContent.hero.subtitle}</p>
-                    <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                        <Button href={aboutContent.hero.primaryCta.href} icon={Calendar}>
-                            {aboutContent.hero.primaryCta.text}
-                        </Button>
-                        <Button href={aboutContent.hero.secondaryCta.href} variant="outline" icon={MessageSquare}>
-                            WhatsApp
-                        </Button>
-                        <Button href={aboutContent.hero.tertiaryCta.href} variant="ghost" className="text-sm underline">
-                            Agenda en 30 s
-                        </Button>
+            <section id="hero" className="mx-auto w-full max-w-7xl">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    <div className="col-span-1 lg:col-span-7 flex flex-col gap-6 text-left">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter text-balance leading-[1.1] text-primary">{aboutContent.hero.title}</h1>
+                        <p className="text-lg md:text-xl max-w-2xl leading-relaxed tracking-tight font-normal text-muted">{aboutContent.hero.subtitle}</p>
+                        <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4">
+                            <Button href={aboutContent.hero.primaryCta.href} icon={Calendar} className="h-10 px-6">
+                                {aboutContent.hero.primaryCta.text}
+                            </Button>
+                            <Button href={aboutContent.hero.secondaryCta.href} variant="outline" icon={MessageSquare} className="h-10 px-6">
+                                WhatsApp
+                            </Button>
+                            <Button href={aboutContent.hero.tertiaryCta.href} variant="outline" className="h-10 px-6">
+                                Agenda en 30 s
+                            </Button>
+                        </div>
                     </div>
-                </div>
-                <div className="relative rounded-2xl overflow-hidden shadow-xl aspect-square md:aspect-auto md:h-[600px]">
-                    <img src={aboutContent.hero.imageSrc} alt={aboutContent.hero.imageAlt} className="object-cover w-full h-full" />
+                    <div className="col-span-1 lg:col-span-5 relative w-full flex justify-center lg:justify-end">
+                        <div className="relative rounded-2xl overflow-hidden shadow-xl w-full max-w-[400px] aspect-[4/5]">
+                            <img src={aboutContent.hero.imageSrc} alt={aboutContent.hero.imageAlt} className="object-cover w-full h-full" />
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -143,11 +147,6 @@ export function AboutIsland(): JSX.Element {
 
             {/* 5. COMO TRABAJO */}
             <ProcessTimeline title={aboutContent.process.title} steps={aboutContent.process.steps} />
-
-            {/* 6. FOTO 2 (MEDIA PAGINA) */}
-            <section className="w-full h-[400px] md:h-[500px] overflow-hidden">
-                <img src={aboutContent.workingImage.src} alt={aboutContent.workingImage.alt} className="w-full h-full object-cover" />
-            </section>
 
             {/* 7. HERRAMIENTAS QUE USO */}
             <section id="herramientas" className="py-16 bg-surface px-6">

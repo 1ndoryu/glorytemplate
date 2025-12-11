@@ -13,6 +13,7 @@ export interface NavItem {
  * Se usa en el Header de todas las paginas.
  */
 export const mainNavItems: NavItem[] = [
+    {label: 'Inicio', href: '/'},
     {label: 'Servicios', href: siteUrls.servicios},
     {label: 'Planes', href: siteUrls.planes},
     {label: 'Demos', href: siteUrls.demos},

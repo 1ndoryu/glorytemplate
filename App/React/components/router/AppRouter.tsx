@@ -5,9 +5,9 @@
  * paginas/islands del sitio. Intercepta clics en enlaces y cambia
  * el contenido dinamicamente.
  *
- * Uso:
- * En lugar de renderizar islands individuales, se renderiza una unica
- * instancia de AppRouter que contiene todas las paginas.
+ * Soporta:
+ * - Rutas estaticas: /servicios, /planes, etc.
+ * - Rutas dinamicas: /blog/:slug para single posts
  */
 
 import {useState, useEffect, useCallback, createContext, useContext} from 'react';
@@ -19,22 +19,41 @@ import {ServicesIsland} from '../../islands/ServicesIsland';
 import {PricingIsland} from '../../islands/PricingIsland';
 import {DemosIsland} from '../../islands/DemosIsland';
 import {AboutIsland} from '../../islands/AboutIsland';
+import {BlogIsland} from '../../islands/BlogIsland';
+import {SinglePostIsland} from '../../islands/SinglePostIsland';
+import {ContactIsland} from '../../islands/ContactIsland';
+import {PrivacyIsland} from '../../islands/PrivacyIsland';
+import {CookiesIsland} from '../../islands/CookiesIsland';
 
-// Mapa de rutas a componentes
-const ROUTES: Record<string, React.ComponentType> = {
+// Mapa de rutas estaticas a componentes
+const STATIC_ROUTES: Record<string, React.ComponentType> = {
     '/': HomeIsland,
     '/servicios': ServicesIsland,
-    '/servicios/': ServicesIsland,
     '/planes': PricingIsland,
-    '/planes/': PricingIsland,
     '/demos': DemosIsland,
-    '/demos/': DemosIsland,
     '/sobre-mi': AboutIsland,
-    '/sobre-mi/': AboutIsland
+    '/blog': BlogIsland,
+    '/contacto': ContactIsland,
+    '/privacidad': PrivacyIsland,
+    '/cookies': CookiesIsland
 };
 
+// Rutas dinamicas (patron -> componente wrapper)
+interface DynamicRoute {
+    pattern: RegExp;
+    getComponent: (matches: RegExpMatchArray) => React.ReactNode;
+}
+
+const DYNAMIC_ROUTES: DynamicRoute[] = [
+    {
+        // /blog/:slug - Single post
+        pattern: /^\/blog\/([^\/]+)\/?$/,
+        getComponent: matches => <SinglePostIsland slug={matches[1]} />
+    }
+];
+
 // URLs que deben usar navegacion tradicional (no SPA)
-const EXCLUDED_PATTERNS = [/\/wp-admin/, /\/wp-login/, /\/wp-json/, /\/blog/, /\/contacto/, /\/privacidad/, /\/cookies/, /\.(pdf|zip|doc|docx|xls|xlsx|jpg|jpeg|png|gif|svg|webp)$/i, /#calendly/, /^https?:\/\/wa\.me/, /^https?:\/\/calendly\.com/];
+const EXCLUDED_PATTERNS = [/\/wp-admin/, /\/wp-login/, /\/wp-json/, /\.(pdf|zip|doc|docx|xls|xlsx|jpg|jpeg|png|gif|svg|webp)$/i, /#calendly/, /^https?:\/\/wa\.me/, /^https?:\/\/calendly\.com/];
 
 // Contexto para el router
 interface RouterContextType {
@@ -79,19 +98,55 @@ function shouldHandleInternally(url: string): boolean {
         }
     }
 
-    // Verificar si tenemos un componente para esta ruta
+    // Normalizar el path
     const normalizedPath = url.endsWith('/') && url !== '/' ? url.slice(0, -1) : url;
-    return ROUTES[normalizedPath] !== undefined || ROUTES[url] !== undefined;
+
+    // Verificar rutas estaticas
+    if (STATIC_ROUTES[normalizedPath] !== undefined) {
+        return true;
+    }
+
+    // Verificar rutas dinamicas
+    for (const route of DYNAMIC_ROUTES) {
+        if (route.pattern.test(normalizedPath)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
- * Obtiene el componente para una ruta dada
+ * Resultado de resolver una ruta
  */
-function getComponentForPath(path: string): React.ComponentType | null {
+interface RouteResult {
+    type: 'static' | 'dynamic' | 'not-found';
+    component?: React.ComponentType;
+    element?: React.ReactNode;
+}
+
+/**
+ * Resuelve una ruta y devuelve el componente o elemento a renderizar
+ */
+function resolveRoute(path: string): RouteResult {
     // Normalizar el path (quitar trailing slash excepto para root)
     const normalizedPath = path.endsWith('/') && path !== '/' ? path.slice(0, -1) : path;
 
-    return ROUTES[normalizedPath] || ROUTES[path] || null;
+    // Verificar rutas estaticas
+    const StaticComponent = STATIC_ROUTES[normalizedPath];
+    if (StaticComponent) {
+        return {type: 'static', component: StaticComponent};
+    }
+
+    // Verificar rutas dinamicas
+    for (const route of DYNAMIC_ROUTES) {
+        const matches = normalizedPath.match(route.pattern);
+        if (matches) {
+            return {type: 'dynamic', element: route.getComponent(matches)};
+        }
+    }
+
+    return {type: 'not-found'};
 }
 
 interface AppRouterProps {
@@ -262,11 +317,11 @@ export function AppRouter({initialPath, fallback}: AppRouterProps) {
         };
     }, [handleClick, handlePopState, currentPath]);
 
-    // Obtener el componente para la ruta actual
-    const CurrentPage = getComponentForPath(currentPath);
+    // Resolver la ruta actual
+    const routeResult = resolveRoute(currentPath);
 
-    if (!CurrentPage) {
-        // Si no hay componente para esta ruta, mostrar fallback o redirigir
+    // Si no hay ruta, mostrar fallback o redirigir
+    if (routeResult.type === 'not-found') {
         if (fallback) {
             return <>{fallback}</>;
         }
@@ -278,6 +333,18 @@ export function AppRouter({initialPath, fallback}: AppRouterProps) {
         return null;
     }
 
+    // Renderizar segun el tipo de ruta
+    const renderContent = () => {
+        if (routeResult.type === 'static' && routeResult.component) {
+            const CurrentPage = routeResult.component;
+            return <CurrentPage />;
+        }
+        if (routeResult.type === 'dynamic' && routeResult.element) {
+            return <>{routeResult.element}</>;
+        }
+        return null;
+    };
+
     return (
         <RouterContext.Provider value={{currentPath, navigateTo, isNavigating}}>
             <div
@@ -286,7 +353,7 @@ export function AppRouter({initialPath, fallback}: AppRouterProps) {
                     opacity: isNavigating ? 0.7 : 1,
                     transition: 'opacity 150ms ease'
                 }}>
-                <CurrentPage />
+                {renderContent()}
             </div>
         </RouterContext.Provider>
     );

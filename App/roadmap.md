@@ -21,10 +21,10 @@ El proyecto cuenta con **2 temas intercambiables** mediante un boton flotante:
 
 ### Temas Disponibles
 
-| Tema      | Nombre UI      | Activacion              | Descripcion                                                  |
-| --------- | -------------- | ----------------------- | ------------------------------------------------------------ |
-| `default` | Custom (Stone) | Sin atributo data-theme | Paleta stone/neutral, tipografia Geist, estilo desarrollador |
-| `project` | Project (Blue) | `data-theme="project"`  | Paleta azul/verde del cliente, tipografia Manrope/Inter      |
+| Tema      | Nombre UI      | Activacion              | Descripcion                                                                                                                                |
+| --------- | -------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `default` | Custom (Stone) | Sin atributo data-theme | Paleta stone/neutral, tipografia Geist, estilo desarrollador                                                                               |
+| `project` | Project (Blue) | `data-theme="project"`  | Paleta azul/verde del cliente, tipografia Manrope/Inter    (ESTAS SON LAS QUE DEBEN RESPECTOR LOS ESTILOS INDICADOS SEGUN PROJECT-EXTENDS) |
 
 ### Arquitectura del Sistema
 
@@ -70,10 +70,10 @@ Las paginas deben cumplir PRIMERO con el **contenido y estructura** de `project-
 | Planes     | /planes     | PricingIsland  | Implementada - OK |
 | Demos      | /demos      | DemosIsland    | Implementada - OK |
 | Sobre Mi   | /sobre-mi   | AboutIsland    | Implementada - OK |
-| Blog       | /blog       | -              | Pendiente         |
-| Contacto   | /contacto   | -              | Pendiente         |
-| Privacidad | /privacidad | -              | Pendiente         |
-| Cookies    | /cookies    | -              | Pendiente         |
+| Blog       | /blog       | BlogIsland     | Implementada - OK |
+| Contacto   | /contacto   | ContactIsland  | Implementada - OK |
+| Privacidad | /privacidad | PrivacyIsland  | Implementada - OK |
+| Cookies    | /cookies    | CookiesIsland  | Implementada - OK |
 
 ---
 
@@ -84,10 +84,10 @@ Las paginas deben cumplir PRIMERO con el **contenido y estructura** de `project-
 | 0    | Revision de Paginas Existentes   | ALTA      | Completada  |
 | 1    | Configuracion Base y Estilos     | ALTA      | Pendiente   |
 | 2    | Paginas Principales              | ALTA      | Completada  |
-| 3    | Paginas Secundarias              | MEDIA     | En progreso |
-| 4    | Paginas Legales                  | MEDIA     | Pendiente   |
-| 5    | Sistema de Contacto y Conversion | ALTA      | Pendiente   |
-| 6    | Blog y Sistema de Contenido      | MEDIA     | Pendiente   |
+| 3    | Paginas Secundarias              | MEDIA     | Completada  |
+| 4    | Paginas Legales                  | MEDIA     | Completada  |
+| 5    | Sistema de Contacto y Conversion | ALTA      | En progreso |
+| 6    | Blog y Sistema de Contenido      | MEDIA     | En progreso |
 | 7    | SEO y Datos Estructurados        | ALTA      | Pendiente   |
 | 8    | Analitica (GA4 + GTM)            | ALTA      | Pendiente   |
 | 9    | Optimizacion y Rendimiento       | MEDIA     | Pendiente   |
@@ -744,6 +744,9 @@ GloryFeatures::setMode('react'); // o 'native'
 | 2025-12-11 | DEMOS: Contenido actualizado 100% (Sectores, Canales, FAQ x6, Integraciones)                                        | Sistema |
 | 2025-12-11 | SOBRE MI: Contenido actualizado 100% (Hero, Historia, Servicios, Caso Barberia, Herramientas)                       | Sistema |
 | 2025-12-11 | FASE 0 COMPLETADA: Todas las paginas principales actualizadas segun project-extends.md                              | Sistema |
+| 2025-12-11 | PAGINAS: Blog, Contacto, Privacidad, Cookies implementadas con React                                                | Sistema |
+| 2025-12-11 | ARQUITECTURA: Centralizado rutas React en pages.php con handler unico (renderReactApp)                              | Sistema |
+| 2025-12-11 | ARQUITECTURA: ReactContentProvider para inyectar contenido WP a React                                               | Sistema |
 
 ---
 
@@ -761,4 +764,68 @@ GloryFeatures::setMode('react'); // o 'native'
 7. **React para UI:** Solo presentacion visual e interactividad.
 8. **No SSR (aun):** El contenido React no es visible sin JavaScript.
 9. **Modos separados:** Paginas React no deben cargar assets del modo nativo.
-5. **Contenido SEO:** Usar exactamente el texto del documento original, esta optimizado.
+
+---
+
+## SISTEMA DE CONTENIDO REACT
+
+### ReactContentProvider (PHP)
+
+Servicio que inyecta contenido de WordPress a React. Ubicado en `Glory/src/Services/ReactContentProvider.php`.
+
+**Uso en PHP (App/Content/reactContent.php):**
+```php
+use Glory\Services\ReactContentProvider;
+
+// Registrar posts destacados
+ReactContentProvider::register('blogFeatured', 'post', [
+    'posts_per_page' => 3,
+    'category_name' => 'caso-exito',
+]);
+
+// Registrar posts recientes
+ReactContentProvider::register('blogRecent', 'post', [
+    'posts_per_page' => 6,
+]);
+
+// Inyectar como variable global JS
+ReactContentProvider::injectGlobal();
+```
+
+### useContent (React Hook)
+
+Hook para consumir el contenido inyectado. Ubicado en `App/React/hooks/useContent.ts`.
+
+**Uso en React:**
+```tsx
+import {useContent} from '../hooks/useContent';
+import type {WordPressPost} from '../components/content';
+
+// Obtener posts con fallback
+const posts = useContent<WordPressPost[]>('blogFeatured', []);
+```
+
+### ContentRenderer (React Component)
+
+Componente para renderizar posts de WordPress. Ubicado en `App/React/components/content/ContentRenderer.tsx`.
+
+**Uso en React:**
+```tsx
+import {ContentRenderer} from '../components/content';
+
+<ContentRenderer 
+    content={posts}
+    layout="grid"
+    columns={3}
+    showImage={true}
+    showExcerpt={true}
+/>
+```
+
+**Layouts disponibles:**
+- `card`: Tarjeta individual
+- `grid`: Rejilla de tarjetas
+- `list`: Lista vertical
+- `featured`: Primer post grande, resto en grid
+- `minimal`: Solo titulo y fecha
+

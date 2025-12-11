@@ -14,6 +14,8 @@ interface InternalLinksProps {
     title?: string;
     // Lista de enlaces internos
     links: InternalLink[];
+    // Clases CSS adicionales para la seccion
+    className?: string;
 }
 
 // Enlaces predefinidos para HOME segun project-extends.md
@@ -63,11 +65,35 @@ export const sobreMiInternalLinks: InternalLink[] = [
     {text: 'Hablar por contacto', href: '/contacto'}
 ];
 
-export function InternalLinks({title = 'Te puede interesar', links}: InternalLinksProps) {
+// Enlaces predefinidos para BLOG
+export const blogInternalLinks: InternalLink[] = [
+    {text: 'Probar una demo similar', href: '/demos'},
+    {text: 'Ver servicios (WhatsApp, IG, web, voz)', href: '/servicios'},
+    {text: 'Precio? Mira planes', href: '/planes'},
+    {text: 'Contactar para consulta', href: '/contacto'}
+];
+
+// Enlaces predefinidos para CONTACTO
+export const contactInternalLinks: InternalLink[] = [
+    {text: 'Aun no lo tienes claro: ver demos', href: '/demos'},
+    {text: 'Revisar planes y precios', href: '/planes'},
+    {text: 'Volver a servicios', href: '/servicios'},
+    {text: 'Conocerme mejor', href: '/sobre-mi'}
+];
+
+// Enlaces predefinidos para PAGINAS LEGALES
+export const legalInternalLinks: InternalLink[] = [
+    {text: 'Volver a contacto', href: '/contacto'},
+    {text: 'Politica de privacidad', href: '/privacidad'},
+    {text: 'Politica de cookies', href: '/cookies'},
+    {text: 'Volver al inicio', href: '/'}
+];
+
+export function InternalLinks({title = 'Te puede interesar', links, className = ''}: InternalLinksProps) {
     if (!links || links.length === 0) return null;
 
     return (
-        <section className="mx-auto w-full max-w-4xl">
+        <section className={`mx-auto w-full max-w-4xl pt-16 ${className}`}>
             <div className="rounded-xl p-6 md:p-8 bg-secondary border border-[var(--color-border-subtle)]">
                 {/* Titulo de la seccion */}
                 <h2 className="text-lg font-semibold mb-4 text-primary">{title}</h2>
