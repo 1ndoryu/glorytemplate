@@ -40,9 +40,9 @@ const REACT_PAGES = [
     'cookies',    // /cookies -> CookiesIsland
 ];
 
-// Registrar las paginas adicionales como React Fullpage
-// (home, servicios, planes, demos, sobre-mi ya estan en el core)
-PageManager::registerReactFullPages(['blog', 'contacto', 'privacidad', 'cookies']);
+// Registrar TODAS las paginas React como Fullpage
+// Glory es agnostico - todas las definiciones especificas van aqui en App/
+PageManager::registerReactFullPages(REACT_PAGES);
 
 // Registrar todas las paginas React con el mismo handler
 foreach (REACT_PAGES as $slug) {

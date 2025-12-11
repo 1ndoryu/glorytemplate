@@ -10,7 +10,7 @@
  * - Interlinking
  */
 
-import {Calendar, MessageSquare, Phone, Mail, Clock, CheckCircle, ArrowRight} from 'lucide-react';
+import {Calendar, MessageSquare, Clock, CheckCircle, ArrowRight, Zap, FileSpreadsheet, Bot} from 'lucide-react';
 import {PageLayout} from '../components/layout';
 import {HeroSection, ContactForm, FaqWithCta, InternalLinks} from '../components/sections';
 import {siteUrls} from '../config';
@@ -31,33 +31,41 @@ interface Step {
 }
 
 // --- DATOS ---
+// 5 opciones segun project-extends.md (basadas en necesidades/servicios)
 const contactOptions: ContactOption[] = [
     {
+        icon: MessageSquare,
+        title: 'Contratar chatbot WhatsApp',
+        description: 'Atencion de dudas frecuentes y citas automaticas 24/7.',
+        cta: 'Solicitar info',
+        href: '#formulario'
+    },
+    {
         icon: Calendar,
-        title: 'Reservar una llamada',
-        description: 'Hablamos 15-20 min sobre tu caso. Sin compromiso.',
+        title: 'Agendar demo (WhatsApp / Instagram / Voicebot)',
+        description: 'Vemos tu caso en una llamada breve de 15-20 min.',
         cta: 'Agendar ahora',
         href: siteUrls.calendly
     },
     {
-        icon: MessageSquare,
-        title: 'WhatsApp',
-        description: 'Respuesta en menos de 30 min (09-21h).',
-        cta: 'Abrir WhatsApp',
-        href: siteUrls.whatsapp
-    },
-    {
-        icon: Mail,
-        title: 'Formulario',
-        description: 'Cuentame tu caso y te respondo hoy.',
-        cta: 'Ir al formulario',
+        icon: Bot,
+        title: 'Solicitar presupuesto: automatizacion de reservas',
+        description: 'Reglas de tu negocio + recordatorios y avisos automaticos.',
+        cta: 'Pedir presupuesto',
         href: '#formulario'
     },
     {
-        icon: Phone,
-        title: 'Llamada directa',
-        description: 'Si prefieres llamar, usa el numero de WhatsApp.',
-        cta: 'Ver numero',
+        icon: FileSpreadsheet,
+        title: 'Presupuesto integracion WhatsApp + Calendly / Google Sheets',
+        description: 'Conecto y dejo los datos listos para seguimiento.',
+        cta: 'Ver opciones',
+        href: '#formulario'
+    },
+    {
+        icon: Zap,
+        title: 'Consulta general o dudas',
+        description: 'Cualquier otra pregunta sobre chatbots o automatizacion.',
+        cta: 'Escribir mensaje',
         href: siteUrls.whatsapp
     }
 ];
@@ -116,7 +124,7 @@ const contactContent = {
     hero: {
         title: (
             <>
-                Solicitar presupuesto chatbot WhatsApp: <span className="text-subtle">contacto directo</span>
+                Solicitar presupuesto chatbot WhatsApp <span className="text-subtle">| Contacto (Guillermo)</span>
             </>
         ),
         subtitle: 'Hablemos sobre como un chatbot puede ayudar a tu negocio. Primera llamada gratuita, respuesta en menos de 30 minutos (09-21h), y primer mes gratis si decidimos trabajar juntos.',
@@ -141,7 +149,7 @@ export function ContactIsland(): JSX.Element {
                     <p className="text-muted mt-2">Respondo en menos de 30 minutos por WhatsApp (09-21h).</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {contactOptions.map((option, index) => {
                         const Icon = option.icon;
                         return (

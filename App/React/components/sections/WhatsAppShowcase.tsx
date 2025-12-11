@@ -148,5 +148,5 @@ export function WhatsAppShowcase({badge = 'CANAL PRINCIPAL', title = 'WhatsApp B
         </>
     );
 
-    return <SplitSection id="whatsapp-section" visual={visualContent} content={textContent} visualPosition="left" />;
+    return <SplitSection id="whatsapp-section" visual={visualContent} content={textContent} visualPosition="right" />;
 }

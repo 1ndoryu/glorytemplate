@@ -68,10 +68,10 @@ export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
     return (
         <PageLayout headerCtaText="Reservar llamada" mainClassName="flex-1 flex flex-col justify-start gap-12 px-6 py-12 md:py-16">
             {/* HEADER DEL POST */}
-            <header id="post-header" className="mx-auto w-full max-w-3xl">
+            <header id="post-header" className="single-post-container">
                 {/* Boton volver */}
                 <div className="mb-8">
-                    <Button href="/blog" variant="ghost" size="sm" icon={ArrowLeft}>
+                    <Button href="/blog" variant="ghost" icon={ArrowLeft}>
                         Volver al blog
                     </Button>
                 </div>
@@ -85,12 +85,6 @@ export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
                         <span className="inline-flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
                             {post.dateFormatted}
-                        </span>
-                    )}
-                    {post.author && (
-                        <span className="inline-flex items-center gap-2">
-                            <User className="w-4 h-4" />
-                            {post.author}
                         </span>
                     )}
                     {post.readTime && (
@@ -107,17 +101,17 @@ export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
 
                 {/* Imagen destacada */}
                 {post.featuredImage && (
-                    <div className="rounded-xl overflow-hidden mb-8">
-                        <img src={post.featuredImage.url} alt={post.featuredImage.alt || post.title} className="w-full h-auto object-cover" />
+                    <div className="overflow-hidden mb-8">
+                        <img src={post.featuredImage.url} alt={post.featuredImage.alt || post.title} className="single-post-featured-image" />
                     </div>
                 )}
             </header>
 
             {/* CONTENIDO DEL POST */}
-            <article id="post-content" className="mx-auto w-full max-w-3xl prose prose-lg prose-neutral dark:prose-invert" dangerouslySetInnerHTML={{__html: post.content}} />
+            <article id="post-content" className="single-post-container prose prose-lg prose-neutral dark:prose-invert" dangerouslySetInnerHTML={{__html: post.content}} />
 
             {/* CTA */}
-            <div id="post-cta" className="mx-auto w-full max-w-3xl py-8 border-t border-b border-primary">
+            <div id="post-cta" className="single-post-container py-8 border-t border-b border-primary">
                 <div className="text-center">
                     <p className="text-lg text-primary mb-4">¿Te interesa implementar algo similar en tu negocio?</p>
                     <div className="flex flex-wrap justify-center gap-4">

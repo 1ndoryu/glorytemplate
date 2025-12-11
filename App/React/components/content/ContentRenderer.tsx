@@ -179,7 +179,7 @@ function PostCard({post, layout, showImage, showExcerpt, showDate, showAuthor, s
                 {!isMinimal && (
                     <div className="mt-4">
                         <a
-                            href={post.permalink}
+                            href={`/blog/${post.slug}`}
                             className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-accent-primary)] hover:underline group/link"
                             onClick={e => {
                                 if (onPostClick) {

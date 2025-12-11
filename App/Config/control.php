@@ -65,7 +65,6 @@ GloryFeatures::disable('performanceProfiler');
 GloryFeatures::disable('queryProfilerLogs');
 
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
-// Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
 if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
     error_log("control.php: ContentAjaxHandler class exists, registering immediately");
     \App\Handlers\ContentAjaxHandler::register();
@@ -79,4 +78,10 @@ if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
             error_log("control.php (init): ContentAjaxHandler class STILL NOT found");
         }
     });
+}
+
+// Cargar configuracion de rendimiento (preconexiones, fuentes)
+$performanceConfig = get_template_directory() . '/App/Config/performance.php';
+if (file_exists($performanceConfig)) {
+    require_once $performanceConfig;
 }

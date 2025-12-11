@@ -3,8 +3,14 @@
  *
  * CONTENIDO:
  * Los posts se obtienen de WordPress via useContent hook.
- * Se definen en App/Content/defaultContent.php y se sincronizan automaticamente.
+ * Se definen en App/Content/reactContent.php y se sincronizan automaticamente.
  * ReactContentProvider los inyecta en window.__GLORY_CONTENT__
+ *
+ * ESTRUCTURA (segun project-extends.md):
+ * 1. Hero con H1 y CTAs
+ * 2. Casos destacados (3 posts featured con chips fecha/canal)
+ * 3. Lo ultimo (6 posts en grid)
+ * 4. Enlaces utiles (interlinking)
  */
 
 import {PageLayout} from '../components/layout';
@@ -39,7 +45,14 @@ const blogContent = {
 // --- COMPONENTE PRINCIPAL ---
 export function BlogIsland(): JSX.Element {
     // Obtener posts de WordPress (inyectados desde ReactContentProvider)
-    const posts = useContent<WordPressPost[]>('blogPosts', []);
+    const allPosts = useContent<WordPressPost[]>('blogPosts', []);
+    const featuredPosts = useContent<WordPressPost[]>('blogFeatured', []);
+    const recentPosts = useContent<WordPressPost[]>('blogRecent', []);
+
+    // Si no hay posts destacados separados, usar los primeros 3 del listado general
+    const featured = featuredPosts.length > 0 ? featuredPosts : allPosts.slice(0, 3);
+    // Si no hay posts recientes separados, usar los siguientes 6 del listado general
+    const recent = recentPosts.length > 0 ? recentPosts : allPosts.slice(3, 9);
 
     return (
         <PageLayout headerCtaText="Reservar llamada" mainClassName="flex-1 flex flex-col justify-start gap-16 px-6 py-12 md:py-20">
@@ -48,18 +61,31 @@ export function BlogIsland(): JSX.Element {
                 <HeroSection title={blogContent.hero.title} subtitle={blogContent.hero.subtitle} primaryCta={blogContent.hero.primaryCta} secondaryCta={blogContent.hero.secondaryCta} />
             </div>
 
-            {/* 2. ARTICULOS */}
-            <section id="blog-posts-section" className="mx-auto w-full max-w-7xl">
-                <div className="mb-8">
-                    <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wider uppercase rounded-full bg-[var(--color-accent-primary)]/10 text-[var(--color-accent-primary)] mb-4">Blog</span>
-                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Articulos recientes</h2>
-                    <p className="text-muted mt-2 max-w-2xl">Casos de exito, tutoriales y novedades sobre chatbots y automatizacion.</p>
-                </div>
+            {/* 2. CASOS DESTACADOS - 3 posts con layout featured y chips de categoria */}
+            {featured.length > 0 && (
+                <section id="casos-destacados" className="mx-auto w-full max-w-7xl">
+                    <div className="mb-8">
+                        <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wider uppercase rounded-full bg-[var(--color-accent-primary)]/10 text-[var(--color-accent-primary)] mb-4">Destacados</span>
+                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Casos destacados</h2>
+                        <p className="text-muted mt-2 max-w-2xl">Proyectos reales con resultados medibles. Cada caso incluye el canal usado y los resultados obtenidos.</p>
+                    </div>
+                    <ContentRenderer content={featured} layout="featured" columns={3} showImage={true} showExcerpt={true} showDate={true} showReadTime={true} showCategories={true} readMoreText="Ver caso completo" emptyMessage="No hay casos destacados todavia." />
+                </section>
+            )}
 
-                <ContentRenderer content={posts} layout="grid" columns={3} showImage={true} showExcerpt={true} showDate={true} showReadTime={true} showCategories={false} readMoreText="Leer articulo" emptyMessage="No hay articulos publicados todavia." />
-            </section>
+            {/* 3. LO ULTIMO - 6 posts en grid con chips */}
+            {recent.length > 0 && (
+                <section id="blog-recientes" className="mx-auto w-full max-w-7xl">
+                    <div className="mb-8">
+                        <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wider uppercase rounded-full bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] mb-4">Blog</span>
+                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Lo ultimo</h2>
+                        <p className="text-muted mt-2 max-w-2xl">Articulos recientes sobre chatbots, automatizacion y novedades del sector.</p>
+                    </div>
+                    <ContentRenderer content={recent} layout="grid" columns={3} showImage={true} showExcerpt={true} showDate={true} showReadTime={true} showCategories={true} readMoreText="Leer articulo" emptyMessage="No hay articulos recientes." />
+                </section>
+            )}
 
-            {/* 3. INTERNAL LINKS - SEO */}
+            {/* 4. INTERNAL LINKS - SEO */}
             <InternalLinks title="Enlaces utiles" links={blogInternalLinks} />
         </PageLayout>
     );

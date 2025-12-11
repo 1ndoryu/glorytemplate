@@ -233,3 +233,283 @@ h6 {
     text-rendering: optimizeLegibility;
     text-wrap: pretty;
 }
+
+/* ==============================================
+   SINGLE POST STYLES
+   ============================================== */
+
+/* Contenedor del single post - ancho maximo 800px */
+.single-post-container {
+    max-width: 800px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Imagen destacada con aspect ratio 4:6 (portrait) */
+.single-post-featured-image {
+    aspect-ratio: 6 / 4;
+    width: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-xl);
+}
+
+/* ==============================================
+   FASE 1: COMPONENTES BASE
+   ==============================================
+   Estilos para botones, cards, alertas y utilidades
+   segun project-extends.md
+   ============================================== */
+
+/* --- BOTONES --- */
+/* Altura minima tactil de 44px segun accesibilidad */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.625rem 1.25rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    line-height: 1.5;
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 1px solid transparent;
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--color-focus-ring, var(--color-accent-primary));
+    outline-offset: 2px;
+}
+
+/* Boton Primario - Fondo brand */
+.btn--primary {
+    background-color: var(--color-accent-primary);
+    color: white;
+    border-color: var(--color-accent-primary);
+}
+
+.btn--primary:hover {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+
+.btn--primary:active {
+    background-color: var(--color-accent-active);
+    border-color: var(--color-accent-active);
+}
+
+/* Boton Secundario - Outline */
+.btn--secondary {
+    background-color: transparent;
+    color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+}
+
+.btn--secondary:hover {
+    background-color: var(--color-accent-primary);
+    color: white;
+}
+
+/* Boton Ghost - Sin borde */
+.btn--ghost {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border-color: transparent;
+}
+
+.btn--ghost:hover {
+    background-color: var(--color-bg-secondary);
+}
+
+/* Boton Blanco (para fondos oscuros) */
+.btn--white {
+    background-color: white;
+    color: var(--color-accent-primary);
+    border-color: white;
+}
+
+.btn--white:hover {
+    background-color: var(--color-bg-secondary);
+}
+
+/* --- CARDS --- */
+
+.card {
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-lg);
+    transition: box-shadow var(--transition-normal), border-color var(--transition-normal);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-border-secondary);
+}
+
+.card--elevated {
+    box-shadow: var(--shadow-sm);
+}
+
+.card--interactive {
+    cursor: pointer;
+}
+
+.card--interactive:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+/* --- ALERTAS --- */
+
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-lg);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+}
+
+.alert--ok,
+.alert--success {
+    background-color: color-mix(in srgb, var(--color-success) 10%, transparent);
+    color: var(--color-success);
+    border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
+}
+
+.alert--error {
+    background-color: color-mix(in srgb, var(--color-error) 10%, transparent);
+    color: var(--color-error);
+    border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
+}
+
+.alert--warning {
+    background-color: color-mix(in srgb, var(--color-warning) 10%, transparent);
+    color: var(--color-warning);
+    border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
+}
+
+.alert--info {
+    background-color: color-mix(in srgb, var(--color-info) 10%, transparent);
+    color: var(--color-info);
+    border: 1px solid color-mix(in srgb, var(--color-info) 30%, transparent);
+}
+
+/* --- UTILIDADES DE COLOR (TEMA PROJECT) --- */
+
+.text-brand {
+    color: var(--color-accent-primary);
+}
+
+.text-accent-green {
+    color: var(--color-accent-green);
+}
+
+.text-info {
+    color: var(--color-info);
+}
+
+.text-success {
+    color: var(--color-success);
+}
+
+.text-error {
+    color: var(--color-error);
+}
+
+.text-warning {
+    color: var(--color-warning);
+}
+
+.text-inverse {
+    color: var(--color-text-inverse);
+}
+
+.bg-brand {
+    background-color: var(--color-accent-primary);
+}
+
+.bg-accent-green {
+    background-color: var(--color-accent-green);
+}
+
+.surface-inverse {
+    background-color: var(--color-surface-inverse);
+    color: var(--color-text-inverse);
+}
+
+.surface-alt {
+    background-color: var(--color-bg-secondary);
+}
+
+/* --- FOCUS VISIBLE (ACCESIBILIDAD) --- */
+/* Focus solo visible con teclado, no con mouse */
+
+*:focus {
+    outline: none;
+}
+
+*:focus-visible {
+    outline: 2px solid var(--color-focus-ring, var(--color-accent-primary));
+    outline-offset: 2px;
+}
+
+/* Links con focus visible */
+a:focus-visible {
+    outline: 2px solid var(--color-focus-ring, var(--color-accent-primary));
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+/* Inputs y formularios */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--color-focus-ring, var(--color-accent-primary));
+    outline-offset: 1px;
+}
+
+/* Checkboxes y radios */
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+    outline: 2px solid var(--color-focus-ring, var(--color-accent-primary));
+    outline-offset: 2px;
+}
+
+/* --- UTILIDADES ADICIONALES --- */
+
+/* Skip link para accesibilidad */
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-surface-inverse);
+    color: var(--color-text-inverse);
+    z-index: var(--z-modal);
+    transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* Clase para ocultar visualmente pero mantener accesible */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

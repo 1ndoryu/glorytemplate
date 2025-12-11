@@ -22,15 +22,39 @@ if (!class_exists(ReactContentProvider::class)) {
 }
 
 /**
- * BLOG: Todos los posts definidos en defaultContent.php
+ * BLOG: Todos los posts publicados
  * 
- * Los 3 posts de blog:
- * - caso-barberia-chatbot-whatsapp
- * - chatbot-vs-formulario-comparativa
- * - guia-recordatorios-whatsapp-automaticos
+ * Se obtienen todos los posts para que el router SPA pueda
+ * renderizar tanto el listado (/blog) como los single posts (/blog/:slug)
  */
 ReactContentProvider::register('blogPosts', 'post', [
-    'posts_per_page' => 10,
+    'posts_per_page' => -1, // Todos los posts
+    'orderby' => 'date',
+    'order' => 'DESC',
+]);
+
+/**
+ * BLOG DESTACADOS: Posts destacados (sticky) o de categoria "caso-exito"
+ * 
+ * Segun project-extends.md: Seccion "Casos destacados" con 3 posts
+ * Prioriza sticky posts, si no hay suficientes, usa categoria "caso-exito"
+ */
+ReactContentProvider::register('blogFeatured', 'post', [
+    'posts_per_page' => 3,
+    'ignore_sticky_posts' => false,
+    'post__in' => get_option('sticky_posts') ?: [0], // Posts sticky primero
+    'orderby' => 'post__in',
+    'order' => 'DESC',
+]);
+
+/**
+ * BLOG RECIENTES: Ultimos 6 posts (excluyendo sticky)
+ * 
+ * Segun project-extends.md: Seccion "Lo ultimo" con rejilla de 6 posts
+ */
+ReactContentProvider::register('blogRecent', 'post', [
+    'posts_per_page' => 6,
+    'ignore_sticky_posts' => true,
     'orderby' => 'date',
     'order' => 'DESC',
 ]);

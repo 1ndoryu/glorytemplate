@@ -148,6 +148,15 @@ export function AboutIsland(): JSX.Element {
             {/* 5. COMO TRABAJO */}
             <ProcessTimeline title={aboutContent.process.title} steps={aboutContent.process.steps} />
 
+            {/* 6. FOTO 2 (Guillermo trabajando) - segun project-extends.md */}
+            <section id="foto-trabajo" className="py-16 bg-primary px-6">
+                <div className="mx-auto max-w-4xl">
+                    <div className="relative rounded-2xl overflow-hidden shadow-xl aspect-video">
+                        <img src={aboutContent.workingImage.src} alt={aboutContent.workingImage.alt} className="object-cover w-full h-full" loading="lazy" />
+                    </div>
+                </div>
+            </section>
+
             {/* 7. HERRAMIENTAS QUE USO */}
             <section id="herramientas" className="py-16 bg-surface px-6">
                 <div className="mx-auto max-w-3xl text-center">

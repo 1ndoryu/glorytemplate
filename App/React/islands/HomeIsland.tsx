@@ -132,6 +132,9 @@ export function HomeIsland(): JSX.Element {
                 <HeroSection title={homeContent.hero.title} subtitle={homeContent.hero.subtitle} primaryCta={homeContent.hero.primaryCta} secondaryCta={homeContent.hero.secondaryCta} tertiaryCta={homeContent.hero.tertiaryCta} />
             </div>
 
+            {/* 2. FEATURE SECTION - "Lo que voy a conseguir contigo" (4 beneficios) segun project-extends.md */}
+            <FeatureSection features={homeContent.features} />
+
             {/* 3. WHATSAPP SHOWCASE - "WhatsApp Business" (H2 + 3 H3) segun project-extends.md */}
             <WhatsAppShowcase badge="CANAL PRINCIPAL" title="WhatsApp Business" features={homeContent.whatsAppFeatures} ctaText="Hablame ahora y respondo en menos de 30 min (09-21h)" ctaHref={siteUrls.whatsapp} />
 
@@ -174,9 +177,6 @@ export function HomeIsland(): JSX.Element {
                     Trabajo <span className="text-primary">contigo, sin intermediarios</span>. Llamada breve, prototipo en 72h y <span className="text-primary">mejora continua</span> cada mes.
                 </QuoteSection>
             </div>
-
-            {/* MOVED: 2. FEATURE SECTION - "Lo que voy a conseguir contigo" (Ahora al final) */}
-            <FeatureSection features={homeContent.features} />
 
             {/* 9. CONTACT FORM - "Si prefieres escribirme ahora" (project-extends.md) */}
             <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rapido con respuesta hoy mismo" />

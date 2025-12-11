@@ -3,8 +3,8 @@
  * Editar aqui para cambiar en todas las paginas.
  */
 export const siteUrls = {
-    calendly: '#calendly',
-    whatsapp: 'https://wa.me/34XXXXXXXXX',
+    calendly: 'https://calendly.com/andoryyu',
+    whatsapp: 'https://wa.me/584120825234',
     // Paginas internas
     servicios: '/servicios',
     planes: '/planes',

@@ -11,12 +11,28 @@
  * App/Content/reactContent.php
  */
 
-// Cargar el handler React si no está cargado
-require_once get_template_directory() . '/App/Templates/handlers/reactApp.php';
+use Glory\Services\ReactIslands;
 
-get_header();
+?>
+<!doctype html>
+<html <?php language_attributes(); ?>>
 
-// Renderizar la aplicacion React (el router detectará que es un single post)
-renderReactApp();
+<head>
+    <meta charset="<?php bloginfo('charset'); ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <?php wp_head(); ?>
+</head>
 
-get_footer();
+<body <?php body_class('glory-react-fullpage glory-single-post'); ?>>
+    <?php wp_body_open(); ?>
+
+    <?php
+    // Renderizar la aplicacion React
+    // El router detectará que es /blog/:slug y renderizará SinglePostIsland
+    echo ReactIslands::render('MainAppIsland');
+    ?>
+
+    <?php wp_footer(); ?>
+</body>
+
+</html>
