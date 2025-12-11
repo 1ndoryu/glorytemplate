@@ -65,7 +65,7 @@ Velocidad: Optimización móvil específica (imágenes con lazy-load, evitar sal
 
 Contenido: El texto debe ser exactamente el del documento que envió, ya que está optimizado para SEO por él.
 
-Estado Actual: Ya hemos maquetado la Home (Inicio) siguiendo estas directrices visuales y de contenido. El siguiente paso lógico sería maquetar la página de Servicios o empezar a planificar el backend de la IA.
+Estado Actual: Ya hemos maquetado la Home (Inicio), la página de Servicios y la página de Planes siguiendo estas directrices visuales y de contenido. El siguiente paso lógico sería maquetar la página de Demos o empezar a planificar el backend de la IA.
 
 HOME - Implementación
 

@@ -4,7 +4,7 @@
 
 interface ButtonProps {
     children: React.ReactNode;
-    variant?: 'primary' | 'outline' | 'ghost';
+    variant?: 'primary' | 'outline' | 'ghost' | 'white';
     className?: string;
     href?: string;
     icon?: React.ComponentType<{className?: string}>;
@@ -31,6 +31,12 @@ export function Button({children, variant = 'primary', className = '', href, ico
         ghost: {
             color: 'var(--color-text-muted)',
             backgroundColor: 'transparent'
+        },
+        white: {
+            backgroundColor: '#ffffff',
+            color: 'var(--color-accent-primary)',
+            border: '1px solid transparent',
+            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
         }
     };
 

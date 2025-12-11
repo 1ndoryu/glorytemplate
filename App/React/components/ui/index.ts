@@ -4,4 +4,7 @@
 
 export {Badge} from './Badge';
 export {Button} from './Button';
+export {FaqItem} from './FaqItem';
+export {FeatureCard} from './FeatureCard';
+export {PricingCard} from './PricingCard';
 export {ThemeToggle} from './ThemeToggle';

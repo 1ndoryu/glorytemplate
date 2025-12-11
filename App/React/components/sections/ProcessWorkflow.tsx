@@ -1,7 +1,7 @@
 import {useState, useEffect, useRef} from 'react';
 import {motion, AnimatePresence} from 'framer-motion';
 import {Badge} from '../ui/Badge';
-import {Phone, TrendingUp, CheckCircle, MessageSquare} from 'lucide-react';
+import {Phone, TrendingUp} from 'lucide-react';
 
 // Tipos para las simulaciones de proceso
 interface ProcessStep {
@@ -143,7 +143,7 @@ function SimulationStepImprove() {
             setStatusMsg(prev => (prev + 1) % messages.length);
         }, 2000);
         return () => clearInterval(interval);
-    }, []);
+    }, [messages.length]);
 
     return (
         <motion.div className="flex flex-col gap-4 py-2" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
@@ -195,7 +195,7 @@ function SimulationStepImprove() {
 export function ProcessWorkflow({steps, simulations}: ProcessWorkflowProps) {
     const [activeStep, setActiveStep] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const currentSimulation = simulations[activeStep];
 

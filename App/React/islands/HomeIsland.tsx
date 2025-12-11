@@ -1,86 +1,52 @@
-import {useState, useEffect} from 'react';
+import {useState} from 'react';
 import {motion, AnimatePresence} from 'framer-motion';
-import {MessageSquare, Calendar, ArrowRight, Database, Zap, ShieldCheck, Activity, GitBranch, Layers, Search, CheckCircle} from 'lucide-react';
+import {MessageSquare, Calendar, Database, Zap, ShieldCheck, Activity, GitBranch, Layers, Search, CheckCircle} from 'lucide-react';
 
-// Hook para manejo de temas
 import {useTheme} from '../hooks/useTheme';
+import {useFontLoader, fontFamilyByTheme} from '../hooks/useFontLoader';
 
 // Componentes UI reutilizables
 import {Button, ThemeToggle} from '../components/ui';
 
 // Componentes de seccion reutilizables
 import {TopBanner, Header, HeroSection, Footer, FeatureList, GridCards, QuoteSection, ProcessWorkflow} from '../components/sections';
+import type {Feature} from '../components/sections/FeatureList';
 
-// --- CONSTANTES ---
-const URL_CALENDLY = '#calendly';
-const URL_WHATSAPP = 'https://wa.me/34XXXXXXXXX';
+// Configuracion centralizada
+import {siteUrls, mainNavItems, logoText, footerColumns, getCopyrightText} from '../config';
 
-// --- CONFIGURACION DEL SITIO (Basado en project.md - HOME) ---
-const siteConfig = {
-    logoText: 'Guillermo',
-    navItems: [
-        {label: 'Servicios', href: '/servicios'},
-        {label: 'Planes', href: '/planes'},
-        {label: 'Demos', href: '/demos'},
-        {label: 'Blog', href: '/blog'},
-        {label: 'Sobre Mi', href: '/sobre-mi'}
-    ],
+// --- CONFIGURACION DE CONTENIDO ESPECIFICO DE HOME ---
+const homeContent = {
     topBanner: {
         text: 'Primer mes gratis - Respuesta en menos de 30 min (09-21h)',
         linkText: 'Agenda ahora',
-        linkHref: URL_CALENDLY
+        linkHref: siteUrls.calendly
     },
     hero: {
-        // H1 segun project.md
         title: (
             <>
                 Chatbot para empresas que atiende a tus clientes <span style={{color: 'var(--color-text-subtle)'}}>24/7 y gestiona reservas</span>
             </>
         ),
-        // Subhero segun project.md
         subtitle: 'Soy Guillermo. Creo el chatbot para tu empresa en tu web y en WhatsApp Business para que atiendas mas rapido a tus clientes. Trabajamos tu y yo, 1:1, con respuesta en menos de 30 min (09-21h), primer mes gratis y mantenimiento continuo.',
-        // CTAs segun project.md (orden: Calendario, WhatsApp, Formulario)
-        primaryCta: {text: 'Hablame ahora', href: URL_CALENDLY},
-        secondaryCta: {text: 'WhatsApp', href: URL_WHATSAPP}
+        primaryCta: {text: 'Hablame ahora', href: siteUrls.calendly},
+        secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp}
     },
-    // Proceso de trabajo (unificado: indicadores + simulaciones)
     processWorkflow: {
         steps: [{label: 'Llamada'}, {label: 'Prototipo 72h'}, {label: 'Lanzamiento'}, {label: 'Mejora continua'}],
         simulations: [
-            {
-                // Paso 1: Llamada
-                badge: 'CONECTANDO',
-                title: 'Llamada breve de 15-20 min',
-                subtitle: 'Me cuentas tu situacion y objetivos'
-            },
-            {
-                // Paso 2: Prototipo 72h
-                badge: 'DISEÑANDO',
-                title: 'Prototipo en 72 horas',
-                subtitle: 'Flujo real: dudas + datos + propuesta de reserva'
-            },
-            {
-                // Paso 3: Lanzamiento
-                badge: 'INTEGRANDO',
-                title: 'Integracion y lanzamiento',
-                subtitle: 'Conecto con tu web, agenda y CRM'
-            },
-            {
-                // Paso 4: Mejora continua
-                badge: 'OPTIMIZANDO',
-                title: 'Mejora continua mensual',
-                subtitle: 'Reviso conversaciones y optimizo respuestas'
-            }
+            {badge: 'CONECTANDO', title: 'Llamada breve de 15-20 min', subtitle: 'Me cuentas tu situacion y objetivos'},
+            {badge: 'DISENANDO', title: 'Prototipo en 72 horas', subtitle: 'Flujo real: dudas + datos + propuesta de reserva'},
+            {badge: 'INTEGRANDO', title: 'Integracion y lanzamiento', subtitle: 'Conecto con tu web, agenda y CRM'},
+            {badge: 'OPTIMIZANDO', title: 'Mejora continua mensual', subtitle: 'Reviso conversaciones y optimizo respuestas'}
         ]
     },
-    // H2: Lo que voy a conseguir contigo
     features: [
         {icon: Zap, title: 'Mas oportunidades en menos horas', desc: 'Respuestas en segundos, 24/7. Tu chatbot atiende cuando tu no puedes.'},
         {icon: Calendar, title: 'Reservas directas', desc: 'El bot propone dia/hora y confirma por email/WhatsApp. Sin llamadas, sin esperas.'},
         {icon: Database, title: 'Menos tareas repetitivas', desc: 'Envia los datos al Software/CRM que uses. Si no tienes, empezamos con hoja compartida.'},
         {icon: MessageSquare, title: 'Mejor experiencia', desc: 'Conversacion con tono cuidado y, cuando haga falta, dejo paso a ti o tu equipo con todo el historial.'}
     ],
-    // Secciones de contenido para GridCards
     gridCards: [
         {icon: MessageSquare, title: 'WhatsApp Business', description: 'Detecto, clasifico y doy seguimiento. Derivacion humana sin perder contexto.'},
         {icon: Activity, title: 'Automatizacion pymes', description: 'Formularios a CRM, flujos con tu web y agenda, FAQs transaccionales.'},
@@ -88,64 +54,97 @@ const siteConfig = {
         {icon: ShieldCheck, title: 'RGPD y permisos', description: 'Incluyo opt-in/opt-out y aviso de privacidad. Todo en regla.'},
         {icon: Search, title: 'Medimos lo importante', description: 'Clics en WhatsApp, citas creadas, formularios enviados. Analytics real.'},
         {icon: GitBranch, title: 'Trabajo 1:1 contigo', description: 'Llamada breve, prototipo en 72h, mejora continua cada mes.'}
-    ],
-    // Interlinking segun project.md
-    interlinking: [
-        {label: 'Servicios de chatbots y automatizacion', href: '/servicios'},
-        {label: 'Ver planes y empezar gratis', href: '/planes'},
-        {label: 'Probar una demo real', href: '/demos'},
-        {label: 'Articulos practicos', href: '/blog'},
-        {label: 'Quien soy y como trabajo', href: '/sobre-mi'},
-        {label: 'Escribeme o reserva', href: '/contacto'}
-    ],
-    footer: {
-        columns: [
-            {
-                title: 'Servicios',
-                links: [
-                    {label: 'Chatbot WhatsApp', href: '/servicios#whatsapp'},
-                    {label: 'Automatizacion', href: '/servicios#automatizacion'},
-                    {label: 'Integraciones', href: '/servicios#integraciones'}
-                ]
-            },
-            {
-                title: 'Recursos',
-                links: [
-                    {label: 'Planes', href: '/planes'},
-                    {label: 'Demos', href: '/demos'},
-                    {label: 'Blog', href: '/blog'}
-                ]
-            },
-            {
-                title: 'Legal',
-                links: [
-                    {label: 'Politica de Privacidad', href: '/privacidad'},
-                    {label: 'Politica de Cookies', href: '/cookies'}
-                ]
-            }
-        ],
-        copyrightText: `© ${new Date().getFullYear()} Guillermo Garcia. Chatbots y Automatizacion.`
-    }
+    ]
 };
 
-// --- COMPONENTE BENTO GRID ---
-// Este componente es especifico de la pagina Home, por eso se mantiene aqui
+// --- COMPONENTE PRINCIPAL ---
+export function HomeIsland(): JSX.Element {
+    const [activeTab, setActiveTab] = useState('whatsapp');
+    const {theme, toggleTheme} = useTheme();
+
+    // Carga dinamica de fuentes segun tema (hook reutilizable)
+    useFontLoader(theme);
+
+    const fontFamily = fontFamilyByTheme[theme];
+
+    // Mapear features para FeatureList
+    const featuresForList = homeContent.features.map(f => ({
+        icon: f.icon,
+        title: f.title,
+        description: f.desc
+    }));
+
+    return (
+        <div className="min-h-screen" style={{backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)', fontFamily}}>
+            {/* 1. TOP BANNER */}
+            <div id="top-banner">
+                <TopBanner text={homeContent.topBanner.text} linkText={homeContent.topBanner.linkText} linkHref={homeContent.topBanner.linkHref} />
+            </div>
+
+            {/* 2. HEADER */}
+            <div id="header">
+                <Header logoText={logoText} navItems={mainNavItems} ctaText="Hablame ahora" ctaHref={siteUrls.calendly} loginHref={siteUrls.whatsapp} />
+            </div>
+
+            <main className="flex-1 flex flex-col justify-start gap-12 px-6 py-12 md:py-20">
+                {/* 3. HERO SECTION */}
+                <div id="hero">
+                    <HeroSection title={homeContent.hero.title} subtitle={homeContent.hero.subtitle} primaryCta={homeContent.hero.primaryCta} secondaryCta={homeContent.hero.secondaryCta} />
+                </div>
+
+                {/* 4. PROCESS WORKFLOW - Indicadores + Simulacion Visual */}
+                <ProcessWorkflow steps={homeContent.processWorkflow.steps} simulations={homeContent.processWorkflow.simulations} />
+
+                {/* 5. BENTO GRID - Tabs de Servicios */}
+                <BentoGrid activeTab={activeTab} onTabChange={setActiveTab} />
+
+                {/* 6. FEATURE SECTION */}
+                <FeatureSection features={featuresForList} />
+
+                {/* 7. QUOTE - Propuesta de valor diferenciadora */}
+                <div id="quote">
+                    <QuoteSection>
+                        Trabajo <span style={{color: 'var(--color-text-primary)'}}>contigo, sin intermediarios</span>. Llamada breve, prototipo en 72h y <span style={{color: 'var(--color-text-primary)'}}>mejora continua</span> cada mes.
+                    </QuoteSection>
+                </div>
+
+                {/* 8. GRID CARDS - Servicios principales */}
+                <div id="grid-servicios">
+                    <GridCards title="Todo lo que necesitas para automatizar" subtitle="WhatsApp, automatizacion, integraciones y RGPD. Trabajo 1:1 contigo." cards={homeContent.gridCards} />
+                </div>
+            </main>
+
+            {/* 9. FOOTER */}
+            <div id="footer">
+                <Footer columns={footerColumns} copyrightText={getCopyrightText()} />
+            </div>
+
+            {/* THEME TOGGLE - Boton flotante para cambiar de tema */}
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+        </div>
+    );
+}
+
+// --- COMPONENTES LOCALES (especificos de Home) ---
+
 interface BentoGridProps {
     activeTab: string;
     onTabChange: (tab: string) => void;
 }
 
+/**
+ * BentoGrid: Grid con tabs para mostrar diferentes servicios.
+ * Componente especifico de la pagina Home.
+ */
 function BentoGrid({activeTab, onTabChange}: BentoGridProps) {
     const integrations = ['WhatsApp', 'Calendly', 'Sheets', 'HubSpot'];
 
-    // Tabs segun secciones de project.md
     const tabs = [
         {id: 'whatsapp', label: 'WhatsApp'},
         {id: 'auto', label: 'Automatizacion'},
         {id: 'integraciones', label: 'Integraciones'}
     ];
 
-    // Contenido basado en secciones H2 de project.md HOME
     const tabContent = {
         whatsapp: {
             icon: <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" className="w-4 h-4 opacity-60" alt="" />,
@@ -250,7 +249,7 @@ function BentoGrid({activeTab, onTabChange}: BentoGridProps) {
                             <p id="bento-cta-description" className="text-[13px] mb-8 leading-relaxed" style={{color: 'var(--color-text-muted)'}}>
                                 Hablamos 15-20 min, te enseno un prototipo en 72h y decidimos juntos. Primer mes gratis.
                             </p>
-                            <Button href={URL_CALENDLY} variant="primary" className="w-full">
+                            <Button href={siteUrls.calendly} variant="primary" className="w-full">
                                 Hablame ahora
                             </Button>
                         </div>
@@ -261,7 +260,9 @@ function BentoGrid({activeTab, onTabChange}: BentoGridProps) {
     );
 }
 
-// --- COMPONENTE NOTIFICATION STATUS (Extraido para manejar estado) ---
+/**
+ * NotificationStatus: Animacion de estado de notificacion en el mockup.
+ */
 function NotificationStatus() {
     const [step, setStep] = useState<'idle' | 'processing' | 'confirmed'>('idle');
 
@@ -269,7 +270,6 @@ function NotificationStatus() {
         <motion.div
             onViewportEnter={() => {
                 if (step === 'idle') {
-                    // Secuencia de tiempos
                     setTimeout(() => setStep('processing'), 1500);
                     setTimeout(() => setStep('confirmed'), 4500);
                 }
@@ -289,7 +289,7 @@ function NotificationStatus() {
                     <motion.div key="confirmed" initial={{opacity: 0, scale: 0.9}} animate={{opacity: 1, scale: 1}} className="flex items-center gap-2">
                         <div className="px-2 py-0.5 rounded text-[10px] font-medium border flex items-center gap-2" style={{backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-success)', color: 'var(--color-success)'}}>
                             <CheckCircle className="w-3 h-3" />
-                            <span>Cita Agendada: Mañana 16:00</span>
+                            <span>Cita Agendada: Manana 16:00</span>
                         </div>
                     </motion.div>
                 )}
@@ -298,15 +298,14 @@ function NotificationStatus() {
     );
 }
 
-// --- COMPONENTE FEATURE SECTION ---
-// Seccion de caracteristicas con imagen mockup a la izquierda
-function FeatureSection() {
-    const features = siteConfig.features.map(f => ({
-        icon: f.icon,
-        title: f.title,
-        description: f.desc
-    }));
+interface FeatureSectionProps {
+    features: Feature[];
+}
 
+/**
+ * FeatureSection: Seccion de caracteristicas con mockup visual.
+ */
+function FeatureSection({features}: FeatureSectionProps) {
     return (
         <section id="servicios" className="mx-auto w-full max-w-7xl pt-12">
             <div className="mb-12">
@@ -319,6 +318,7 @@ function FeatureSection() {
             </div>
 
             <div className="grid grid-cols-12 gap-12 lg:gap-16 items-start">
+                {/* Mockup Visual */}
                 <div className="col-span-12 lg:col-span-6">
                     <div className="rounded-sm border shadow-sm overflow-hidden aspect-[4/3] relative flex items-center justify-center group" style={{borderColor: 'var(--color-border-primary)', backgroundColor: 'var(--color-bg-secondary)'}}>
                         <div className="absolute inset-0 opacity-20" style={{backgroundColor: 'var(--color-border-secondary)'}}></div>
@@ -343,7 +343,7 @@ function FeatureSection() {
                             </div>
 
                             <motion.div className="p-2 rounded mb-3 text-[11px] leading-relaxed border" style={{backgroundColor: 'var(--color-bg-tertiary)', borderColor: 'var(--color-border-subtle)', color: 'var(--color-text-secondary)'}} initial={{opacity: 0, x: -10}} whileInView={{opacity: 1, x: 0}} viewport={{once: true}} transition={{delay: 0.5}}>
-                                👋 Hola, me gustaría agendar una reunión para mañana por la tarde si es posible.
+                                Hola, me gustaria agendar una reunion para manana por la tarde si es posible.
                             </motion.div>
 
                             <div className="pt-2 border-t" style={{borderColor: 'var(--color-border-subtle)'}}>
@@ -353,112 +353,16 @@ function FeatureSection() {
                     </div>
                 </div>
 
+                {/* Feature List */}
                 <div className="col-span-12 lg:col-span-6 flex flex-col justify-center h-full">
                     <FeatureList features={features} />
                     <div className="mt-8">
-                        <Button href="#planes" variant="outline" className="h-9 text-xs">
+                        <Button href={siteUrls.planes} variant="outline" className="h-9 text-xs">
                             Ver planes
                         </Button>
                     </div>
                 </div>
             </div>
         </section>
-    );
-}
-
-// --- COMPONENTE PRINCIPAL ---
-export function HomeIsland(): JSX.Element {
-    const [activeTab, setActiveTab] = useState('whatsapp');
-    const {theme, toggleTheme} = useTheme();
-
-    // Inyeccion dinamica de fuentes segun el tema activo
-    // Tema default: Geist Sans/Mono
-    // Tema project: Inter + Manrope
-    useEffect(() => {
-        const fontsToLoad: {id: string; href: string}[] = [];
-
-        if (theme === 'project') {
-            // Fuentes del tema project (Inter + Manrope)
-            fontsToLoad.push({id: 'font-inter', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap'}, {id: 'font-manrope', href: 'https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&display=swap'});
-        } else {
-            // Fuentes del tema default (Geist)
-            fontsToLoad.push({id: 'font-geist-sans', href: 'https://cdn.jsdelivr.net/npm/geist@1.0.0/dist/fonts/geist-sans/style.css'}, {id: 'font-geist-mono', href: 'https://cdn.jsdelivr.net/npm/geist@1.0.0/dist/fonts/geist-mono/style.css'});
-        }
-
-        // Agregar fuentes al head
-        const addedLinks: HTMLLinkElement[] = [];
-        fontsToLoad.forEach(({id, href}) => {
-            // Evitar duplicados
-            if (!document.getElementById(id)) {
-                const link = document.createElement('link');
-                link.id = id;
-                link.href = href;
-                link.rel = 'stylesheet';
-                document.head.appendChild(link);
-                addedLinks.push(link);
-            }
-        });
-
-        // Cleanup: remover fuentes del tema anterior si cambia
-        return () => {
-            addedLinks.forEach(link => {
-                if (document.head.contains(link)) {
-                    document.head.removeChild(link);
-                }
-            });
-        };
-    }, [theme]);
-
-    // Determinar la familia de fuentes segun el tema
-    const fontFamily = theme === 'project' ? "'Inter', system-ui, sans-serif" : "'Geist Sans', sans-serif";
-
-    return (
-        <div className="min-h-screen" style={{backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)', fontFamily}}>
-            {/* 1. TOP BANNER */}
-            <div id="top-banner">
-                <TopBanner text={siteConfig.topBanner.text} linkText={siteConfig.topBanner.linkText} linkHref={siteConfig.topBanner.linkHref} />
-            </div>
-
-            {/* 2. HEADER */}
-            <div id="header">
-                <Header logoText={siteConfig.logoText} navItems={siteConfig.navItems} ctaText="Hablame ahora" ctaHref={URL_CALENDLY} loginHref={URL_WHATSAPP} />
-            </div>
-
-            <main className="flex-1 flex flex-col justify-start gap-12 px-6 py-12 md:py-20">
-                {/* 3. HERO SECTION */}
-                <div id="hero">
-                    <HeroSection title={siteConfig.hero.title} subtitle={siteConfig.hero.subtitle} primaryCta={siteConfig.hero.primaryCta} secondaryCta={siteConfig.hero.secondaryCta} />
-                </div>
-
-                {/* 4. PROCESS WORKFLOW - Indicadores + Simulacion Visual */}
-                <ProcessWorkflow steps={siteConfig.processWorkflow.steps} simulations={siteConfig.processWorkflow.simulations} />
-
-                {/* 5. BENTO GRID - Tabs de Servicios */}
-                <BentoGrid activeTab={activeTab} onTabChange={setActiveTab} />
-
-                {/* 6. FEATURE SECTION */}
-                <FeatureSection />
-
-                {/* 7. QUOTE - Propuesta de valor diferenciadora */}
-                <div id="quote">
-                    <QuoteSection>
-                        Trabajo <span style={{color: 'var(--color-text-primary)'}}>contigo, sin intermediarios</span>. Llamada breve, prototipo en 72h y <span style={{color: 'var(--color-text-primary)'}}>mejora continua</span> cada mes.
-                    </QuoteSection>
-                </div>
-
-                {/* 8. GRID CARDS - Servicios principales */}
-                <div id="grid-servicios">
-                    <GridCards title="Todo lo que necesitas para automatizar" subtitle="WhatsApp, automatizacion, integraciones y RGPD. Trabajo 1:1 contigo." cards={siteConfig.gridCards} />
-                </div>
-            </main>
-
-            {/* 9. FOOTER */}
-            <div id="footer">
-                <Footer columns={siteConfig.footer.columns} copyrightText={siteConfig.footer.copyrightText} />
-            </div>
-
-            {/* THEME TOGGLE - Boton flotante para cambiar de tema */}
-            <ThemeToggle theme={theme} onToggle={toggleTheme} />
-        </div>
     );
 }

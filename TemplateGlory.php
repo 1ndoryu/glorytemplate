@@ -15,7 +15,7 @@ $modo = $postId ? PageManager::getModoContenidoParaPagina((int) $postId) : 'code
 
 // Para paginas React fullpage, verificar meta o slug especifico
 $slug = get_post_field('post_name', $postId);
-$isReactFullpage = ($slug === 'home'); // Por ahora, solo home es fullpage
+$isReactFullpage = ($slug === 'home' || $slug === 'servicios' || $slug === 'planes'); // Paginas que usan layout React completo
 
 if ($isReactFullpage) {
     // React fullpage: HTML completo sin header/footer de WordPress

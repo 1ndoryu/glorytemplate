@@ -1,10 +1,11 @@
 // Componente FeatureList
 // Lista de caracteristicas con iconos, similar a feature cards
 
-import {type LucideIcon} from 'lucide-react';
+import {type ComponentType} from 'react';
 
-interface Feature {
-    icon: LucideIcon;
+// Tipo flexible para iconos: acepta LucideIcon y cualquier componente con className
+export interface Feature {
+    icon: ComponentType<{className?: string; style?: React.CSSProperties}>;
     title: string;
     description: string;
 }
