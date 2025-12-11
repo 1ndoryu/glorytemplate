@@ -2,23 +2,24 @@
 // Permite importar todos los componentes de seccion desde un solo punto
 // Ejemplo: import { Header, Footer, HeroSection } from '@/components/sections';
 
-export {TopBanner} from './TopBanner';
-export {Header} from './Header';
-export {HeroSection} from './HeroSection';
-export {Footer} from './Footer';
-export {FeatureList} from './FeatureList';
-export {FeatureSection} from './FeatureSection';
-export {GridCards} from './GridCards';
-export {QuoteSection} from './QuoteSection';
-export {ProcessWorkflow} from './ProcessWorkflow';
-export {BentoGrid} from './BentoGrid';
-export {PricingBreakdown} from './PricingBreakdown';
-export {ComparisonSection} from './ComparisonSection';
-export {WhatsAppShowcase} from './WhatsAppShowcase';
-export {AutomationFlow} from './AutomationFlow';
-export {FaqWithCta} from './FaqWithCta';
-export {ProcessTimeline} from './ProcessTimeline';
-
-// Componentes RGPD y SEO (project-extends.md)
-export {ContactForm} from './ContactForm';
-export {InternalLinks, homeInternalLinks, serviciosInternalLinks, planesInternalLinks, demosInternalLinks, sobreMiInternalLinks} from './InternalLinks';
+export * from './TopBanner';
+export * from './Header';
+export * from './HeroSection';
+export * from './QuoteSection';
+export * from './ProcessWorkflow';
+export * from './FeatureSection';
+export * from './ContactForm';
+export * from './InternalLinks';
+export * from './WhatsAppShowcase';
+export * from './AutomationFlow';
+export * from './IntegrationsSection';
+export * from './AnalyticsSection';
+export * from './Footer';
+export * from './ProcessTimeline';
+export * from './PricingBreakdown';
+export * from './FaqWithCta';
+export * from './GridCards';
+export * from './FeatureList';
+export * from './BentoGrid';
+export * from './ComparisonSection';
+export * from './SplitSection';

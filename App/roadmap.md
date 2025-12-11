@@ -108,11 +108,11 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 - [x] Verificar subhero con las 2 lineas especificadas
 - [x] Verificar CTAs en orden: Calendario > WhatsApp > Formulario
 - [x] Verificar seccion "Lo que voy a conseguir contigo" (4 beneficios)
-- [ ] Verificar seccion "WhatsApp Business" (3 H3) - Pendiente: estructura exacta H2/H3
-- [ ] Verificar seccion "Automatizacion de procesos pymes" - Pendiente: estructura exacta
-- [ ] Verificar seccion "Trabajo contigo, sin intermediarios" - Existe como quote, falta estructura H2/H3
-- [ ] Verificar seccion "Integraciones" - Existe en GridCards, resumido
-- [ ] Verificar seccion "Medimos lo importante" - Existe en GridCards, resumido
+- [x] Verificar seccion "WhatsApp Business" (3 H3) - COMPLETADO con WhatsAppShowcase
+- [x] Verificar seccion "Automatizacion de procesos pymes" - COMPLETADO con AutomationFlow
+- [x] Verificar seccion "Trabajo contigo, sin intermediarios" - COMPLETADO con H2 + ProcessWorkflow
+- [x] Verificar seccion "Integraciones" - COMPLETADO con componente IntegrationsSection (Grid)
+- [x] Verificar seccion "Medimos lo importante" - COMPLETADO con componente AnalyticsSection (Data Driven UI)
 - [x] Verificar formulario RGPD con checkbox obligatorio - COMPLETADO
 - [x] Verificar interlinking interno - COMPLETADO
 
@@ -730,13 +730,15 @@ GloryFeatures::setMode('react'); // o 'native'
 
 ## HISTORIAL DE ACTUALIZACIONES
 
-| Fecha      | Cambio                                                 | Autor   |
-| ---------- | ------------------------------------------------------ | ------- |
-| 2025-12-11 | Creacion inicial del roadmap                           | Sistema |
-| 2025-12-11 | Agregado: estados de paginas, Fase 0 revision          | Sistema |
-| 2025-12-11 | Agregado: arquitectura tecnica, modos React/Nativo     | Sistema |
-| 2025-12-11 | Documentado: sistema de temas dinamico (useTheme)      | Sistema |
-| 2025-12-11 | HOME: Agregado tertiaryCta, ContactForm, InternalLinks | Sistema |
+| Fecha      | Cambio                                                                                                              | Autor   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- | ------- |
+| 2025-12-11 | Creacion inicial del roadmap                                                                                        | Sistema |
+| 2025-12-11 | Agregado: estados de paginas, Fase 0 revision                                                                       | Sistema |
+| 2025-12-11 | Agregado: arquitectura tecnica, modos React/Nativo                                                                  | Sistema |
+| 2025-12-11 | Documentado: sistema de temas dinamico (useTheme)                                                                   | Sistema |
+| 2025-12-11 | HOME: Agregado tertiaryCta, ContactForm, InternalLinks                                                              | Sistema |
+| 2025-12-11 | HOME: Secciones H2/H3 completas segun project-extends.md (WhatsAppShowcase, AutomationFlow, Integraciones, Medimos) | Sistema |
+| 2025-12-11 | HOME: Mejora UI Integraciones y Analytics (componentes dedicados)                                                   | Sistema |
 
 ---
 
