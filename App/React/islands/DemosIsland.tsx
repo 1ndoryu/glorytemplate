@@ -1,7 +1,6 @@
 import {MessageSquare, Smartphone, Globe, Mic, Calendar, Database, Layout, Scissors, Utensils, Stethoscope} from 'lucide-react';
-import {Button, FeatureCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
-import {HeroSection, ProcessTimeline, IntegrationsSection, FaqWithCta, ContactForm, InternalLinks, CtaBlock, ChannelShowcase} from '../components/sections';
+import {HeroSection, ProcessTimeline, FaqWithCta, ContactForm, InternalLinks, CtaBlock, ScrollTabsShowcase} from '../components/sections';
 import {siteUrls} from '../config';
 // Componente de demo interactivo estilo ProcessWorkflow
 import {DemoWorkflow} from '../features/demos/components/DemoWorkflow';
@@ -98,10 +97,42 @@ const demosContent = {
             }
         ]
     },
-    integrations: {
-        title: 'Integraciones con tu software',
-        items: ['Tu agenda (si ya usas Calendly, lo conecto)', 'Google Sheets (leads básicos o mapeo avanzado)', 'Email (avisos/notificaciones)', 'Tu Software/CRM']
-    },
+    // Datos para ScrollTabsShowcase (3 secciones)
+    scrollTabsSections: [
+        {
+            id: 'canales',
+            label: 'Canales',
+            badge: 'ELIGE TU DEMO',
+            title: (
+                <>
+                    Elige tu <span className="text-info">demo</span>
+                </>
+            ),
+            description: 'Cada canal tiene su propio flujo. Selecciona uno para ver como funciona el chatbot en ese entorno.'
+        },
+        {
+            id: 'sectores',
+            label: 'Por sector',
+            badge: 'EJEMPLOS RAPIDOS',
+            title: (
+                <>
+                    Demos por <span className="text-info">sector</span>
+                </>
+            ),
+            description: 'Restaurantes, barberias, clinicas... cada sector tiene sus propios flujos y necesidades.'
+        },
+        {
+            id: 'integraciones',
+            label: 'Integraciones',
+            badge: 'TU SOFTWARE',
+            title: (
+                <>
+                    Integraciones con tu <span className="text-info">software</span>
+                </>
+            ),
+            description: 'Tu agenda, tu CRM, Google Sheets, email... todo conectado y sincronizado automaticamente.'
+        }
+    ],
     process: {
         title: 'Cómo lo hacemos',
         steps: [
@@ -139,7 +170,7 @@ export function DemosIsland(): JSX.Element {
 
             {/* 2. DEMO WORKFLOW INTERACTIVO - Estilo ProcessWorkflow con simulador WhatsApp */}
             <section id="demo-interactivo" className="py-16 bg-primary">
-                <div className="mx-auto max-w-7xl px-6">
+                <div className="mx-auto">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl font-heading font-bold tracking-tight mb-4 text-primary">Prueba la demo en vivo</h2>
                         <p className="text-lg text-secondary max-w-2xl mx-auto">Selecciona un sector y observa como el chatbot gestiona la conversacion en tiempo real.</p>
@@ -155,37 +186,10 @@ export function DemosIsland(): JSX.Element {
                 </div>
             </section>
 
-            {/* 4. ELIGE TU DEMO (CANALES) - Estilo AutomationFlow */}
-            <section id="canales" className="py-16">
+            {/* 4. SCROLL TABS: CANALES + SECTORES + INTEGRACIONES */}
+            <section id="demos-showcase" className="py-16">
                 <div className="mx-auto">
-                    <ChannelShowcase badge="CANALES" title={demosContent.channels.title} description={demosContent.channels.description} channels={demosContent.channels.items} cta={{text: 'Agenda tu demo', href: siteUrls.calendly}} />
-                </div>
-            </section>
-
-            {/* 5. DEMOS POR SECTOR */}
-            <section id="sectores" className="py-16 bg-surface">
-                <div className="mx-auto max-w-7xl px-6">
-                    <div className="mb-8">
-                        <h2 className="text-3xl font-heading font-bold tracking-tight mb-2 text-primary">{demosContent.sectors.title}</h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {demosContent.sectors.items.map((item, idx) => (
-                            <FeatureCard key={idx} icon={item.icon} title={item.title} description={item.desc} />
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* 6. INTEGRACIONES */}
-            <section id="integraciones-wrapper" className="py-16 bg-surface">
-                <div className="px-6">
-                    <IntegrationsSection title={demosContent.integrations.title} items={demosContent.integrations.items} />
-                    {/* CTA Integraciones */}
-                    <div className="flex justify-center mt-10">
-                        <Button href={siteUrls.whatsapp} variant="outline" icon={MessageSquare}>
-                            Hablame ahora y respondo en menos de 30 min (09-21h)
-                        </Button>
-                    </div>
+                    <ScrollTabsShowcase sections={demosContent.scrollTabsSections} cta={{text: 'Agenda tu demo', href: siteUrls.calendly}} />
                 </div>
             </section>
 
