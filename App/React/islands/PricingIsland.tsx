@@ -118,7 +118,7 @@ export function PricingIsland(): JSX.Element {
             {/* 3. PLANES GRID */}
             <section id="pricing-grid" className="py-16 mx-auto w-full max-w-7xl px-6">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold mb-4">{pricingContent.plans.title}</h2>
+                    <h2 className="text-3xl md:text-4xlmb-4">{pricingContent.plans.title}</h2>
                     <p className="text-secondary">{pricingContent.plans.subtitle}</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">

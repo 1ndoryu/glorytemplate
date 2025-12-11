@@ -37,7 +37,7 @@ export function PricingCard({title, price, description, features, recommended = 
             <div className="mb-6">
                 <h3 className={`text-lg font-semibold tracking-tight mb-2 ${recommended ? 'text-white' : 'text-primary'}`}>{title}</h3>
                 <div className="flex items-baseline gap-1 mb-2">
-                    <span className={`text-3xl font-bold ${recommended ? 'text-white' : 'text-primary'}`}>{price}</span>
+                    <span className={`text-3xl ${recommended ? 'text-white' : 'text-primary'}`}>{price}</span>
                     {price !== 'A medida' && <span className={`text-sm ${recommended ? 'text-subtle' : 'text-muted'}`}>/mes</span>}
                 </div>
                 <p className={`text-sm leading-relaxed ${recommended ? 'text-[#d6d3d1]' : 'text-muted'}`}>{description}</p>
@@ -59,7 +59,7 @@ export function PricingCard({title, price, description, features, recommended = 
             </Button>
 
             <div className="mt-4 text-center">
-                <span className={`text-[10px] font-mono ${recommended ? 'text-muted' : 'text-subtle'}`}>{recommended ? 'Mantenimiento incluido' : 'Primer mes GRATIS'}</span>
+                <span className={`text-[12px] font-mono ${recommended ? 'text-muted' : 'text-subtle'}`}>{recommended ? 'Mantenimiento incluido' : 'Primer mes GRATIS'}</span>
             </div>
         </div>
     );
