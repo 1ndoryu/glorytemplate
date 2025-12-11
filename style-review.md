@@ -43,20 +43,20 @@ Tambien se pueden normalizar estilos
 - [x] `components/ui/ThemeToggle.tsx`
 
 ### Features - About
-- [ ] `features/about/components/ActionCta.tsx`
-- [ ] `features/about/components/CaseStudy.tsx`
-- [ ] `features/about/components/Philosophy.tsx`
-- [ ] `features/about/components/ProfileHero.tsx`
-- [ ] `features/about/components/SimpleProcess.tsx`
-- [ ] `features/about/components/TechStack.tsx`
-- [ ] `features/about/data/content.tsx` (Use of colors in data?)
+- [x] `features/about/components/ActionCta.tsx`
+- [x] `features/about/components/CaseStudy.tsx`
+- [x] `features/about/components/Philosophy.tsx`
+- [x] `features/about/components/ProfileHero.tsx`
+- [x] `features/about/components/SimpleProcess.tsx`
+- [x] `features/about/components/TechStack.tsx`
+- [x] `features/about/data/content.tsx` (Use of colors in data?)
 
 ### Features - Demos
-- [ ] `features/demos/components/ChannelGrid.tsx`
-- [ ] `features/demos/components/DemoChat.tsx`
-- [ ] `features/demos/components/DemoShowcase.tsx`
-- [ ] `features/demos/components/ScenarioSelector.tsx`
-- [ ] `features/demos/components/StepProcess.tsx`
+- [x] `features/demos/components/ChannelGrid.tsx`
+- [x] `features/demos/components/DemoChat.tsx`
+- [x] `features/demos/components/DemoShowcase.tsx`
+- [x] `features/demos/components/ScenarioSelector.tsx`
+- [x] `features/demos/components/StepProcess.tsx`
 
 ### Islands
 - [ ] `islands/AboutIsland.tsx`

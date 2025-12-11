@@ -1,6 +1,6 @@
 import React from 'react';
 import type {ReactNode} from 'react';
-import {Calendar, Linkedin, Mail, MapPin, Cpu, MessageSquare, Zap, Database, CheckCircle2, ArrowRight} from 'lucide-react';
+import {Calendar, Linkedin, Mail, Cpu, MessageSquare, Zap, Database} from 'lucide-react';
 import {siteUrls} from '../../../config';
 
 export interface ActionItem {
@@ -71,7 +71,7 @@ export const ABOUT_CONTENT: AboutContent = {
         title: (
             <>
                 Hola, soy Guillermo. <br />
-                <span className="text-[#a8a29e]">Automatizo lo aburrido.</span>
+                <span className="text-subtle">Automatizo lo aburrido.</span>
             </>
         ),
         description: 'Vengo del mundo audiovisual, pero ChatGPT cambió mi carrera. Hoy ayudo a pymes a recuperar su tiempo implementando chatbots y automatizaciones que funcionan de verdad.',

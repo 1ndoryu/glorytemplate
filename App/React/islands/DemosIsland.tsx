@@ -85,7 +85,10 @@ const demosContent = {
             }
         ]
     },
-    integrations: ['Tu agenda (si ya usas Calendly, lo conecto)', 'Google Sheets (leads básicos o mapeo avanzado)', 'Email (avisos/notificaciones)', 'Tu Software/CRM'],
+    integrations: {
+        title: 'Integraciones con tu software',
+        items: ['Tu agenda (si ya usas Calendly, lo conecto)', 'Google Sheets (leads básicos o mapeo avanzado)', 'Email (avisos/notificaciones)', 'Tu Software/CRM']
+    },
     process: {
         title: 'Cómo lo hacemos',
         steps: [
@@ -208,7 +211,7 @@ export function DemosIsland(): JSX.Element {
             <FaqWithCta title={demosContent.faq.title} items={demosContent.faq.items} />
 
             {/* 9. FORMULARIO CONTACTO */}
-            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rápido con respuesta hoy mismo" id="formulario" />
+            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rápido con respuesta hoy mismo" />
 
             {/* 10. INTERLINKING */}
             <InternalLinks title="Te puede interesar" links={demosInternalLinks} />

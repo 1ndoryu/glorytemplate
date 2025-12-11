@@ -15,23 +15,23 @@ export function ChannelGrid() {
     ];
 
     return (
-        <section className="mx-auto w-full max-w-7xl">
+        <section id="channel-grid" className="mx-auto w-full max-w-7xl">
             <div className="mb-8">
-                <h2 className="text-2xl font-medium tracking-tight text-[#292524]">Elige tu canal</h2>
-                <p className="text-[#79716b] text-sm mt-2">La misma inteligencia, disponible donde estén tus clientes.</p>
+                <h2 className="text-2xl font-heading font-medium tracking-tight text-primary">Elige tu canal</h2>
+                <p className="text-muted text-sm mt-2">La misma inteligencia, disponible donde estén tus clientes.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {channels.map((channel, i) => (
-                    <div key={i} className="group p-6 bg-white border border-[#e5e5e0] rounded-lg hover:shadow-sm transition-all hover:border-[#d6d3d1]">
+                    <div key={i} className="group p-6 bg-surface border border-primary rounded-lg hover:shadow-sm transition-all hover:border-stone-300">
                         <div className="flex justify-between items-start mb-4">
-                            <div className="w-8 h-8 bg-[#f0efeb] rounded-md flex items-center justify-center text-[#57534e] group-hover:bg-[#e7e5e4] transition-colors">
+                            <div className="w-8 h-8 bg-secondary rounded-md flex items-center justify-center text-secondary group-hover:bg-stone-200 transition-colors">
                                 <channel.icon className="w-4 h-4" />
                             </div>
                             {channel.badge && <Badge className="bg-green-50 text-green-700 border-green-100">{channel.badge}</Badge>}
                         </div>
-                        <h3 className="text-sm font-bold text-[#292524] mb-2">{channel.title}</h3>
-                        <p className="text-xs text-[#79716b] leading-relaxed">{channel.desc}</p>
+                        <h3 className="text-sm font-heading font-bold text-primary mb-2">{channel.title}</h3>
+                        <p className="text-xs text-muted leading-relaxed">{channel.desc}</p>
                     </div>
                 ))}
             </div>
