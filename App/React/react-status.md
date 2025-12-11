@@ -5,6 +5,91 @@ Estado: Refactorizacion DemosIsland COMPLETADA
 
 ---
 
+## Feed en Vivo AnalyticsSection (2025-12-11) - COMPLETADO
+
+### Problema
+El usuario solicitó aplicar una animación tipo carrusel/feed en la sección de "Live Events" de `AnalyticsSection`, similar a la realizada en `WhatsAppShowcase`.
+
+### Solución
+- [x] Implementar lista rotativa de eventos de analítica (`ANALYTICS_EVENTS`).
+- [x] Usar `useEffect` y `setInterval` para añadir nuevos eventos simulados cada 2.5s con timestamps actualizados.
+- [x] Usar `AnimatePresence` y `layout` prop de Framer Motion para animar la entrada/salida y reordenamiento de la lista.
+- [x] Estilizar los eventos dinámicamente según su tipo (info, success, conversion).
+
+**Resultado**: La tarjeta de "Live Events" ahora parece un dashboard en tiempo real con actividad constante.
+
+---
+
+## Ajuste Tiempos WhatsAppShowcase (2025-12-11) - COMPLETADO
+
+### Problema
+La animación del carrusel de WhatsApp iba demasiado rápido, no dando tiempo suficiente a leer. Además, quedó un espacio vacío en la parte inferior tras quitar los indicadores.
+
+### Solución
+- [x] Aumentar la duración del ciclo de 6.5s a 9s para incluir una pausa al final.
+- [x] Ajustar los delays de los mensajes para que aparezcan más lentamente (0.5s -> 2.5s -> 4.5s -> 6.0s).
+- [x] Reducir la altura del contenedor de `320px` a `300px` para eliminar el espacio sobrante.
+
+**Resultado**: La conversación se siente más natural y pausada, y el diseño visual está ajustado al contenido.
+
+---
+
+## Carrusel de Conversaciones WhatsApp (2025-12-11) - COMPLETADO
+
+### Problema
+El usuario solicitó ampliar la sección de demostración de WhatsApp para mostrar 3 ejemplos más de conversaciones (total 4) que roten automáticamente ("aparece una y luego otra cuando termine").
+
+### Solución
+- [x] Implementar lógica de carrusel automático con `useEffect` y `setInterval` en `WhatsAppShowcase.tsx`.
+- [x] Definir 4 escenarios de conversación con datos estructurados (Restaurante, Clínica, Ecommerce, Coaching).
+- [x] Usar `AnimatePresence` de Framer Motion para transiciones suaves de entrada/salida entre escenarios.
+- [x] Renderizar mensajes dinámicamente según el escenario activo.
+
+**Resultado**: El mockup de WhatsApp ahora muestra un ciclo infinito de 4 conversaciones diferentes, cambiando cada ~6.5 segundos.
+
+---
+
+## Ajuste Alineación WhatsAppShowcase (2025-12-11) - COMPLETADO
+
+### Problema
+Los mensajes de IA en la sección de demostración de WhatsApp no estaban centrados verticalmente con su avatar circular ("AI"), lo que generaba una desconexión visual. El usuario solicitó "centrarlos" o ajustar la altura del texto/icono.
+
+### Solución
+- [x] Añadir `items-center` a los contenedores flex de los mensajes de bot en `WhatsAppShowcase.tsx`.
+
+**Resultado**: El avatar y la burbuja de texto ahora están perfectamente centrados verticalmente.
+
+---
+
+## Ajuste de Anchos ServicesIsland (2025-12-11) - COMPLETADO
+
+### Problema
+Inconsistencia en los anchos de las secciones principales de `ServicesIsland` ("Multicanal", "Voz", "Integraciones") y los formularios ("FAQs", "ContactForm") comparado con `HomeIsland`.
+Específicamente, la sección "Voz" tenía estilos de caja (`bg-primary`, padding interno) que reducían su ancho visual de contenido, y los formularios estaban limitados a `max-w-2xl/3xl`.
+
+### Solución
+- [x] Quitar padding extra y contenedores "Boxed" de las secciones en `ServicesIsland` para que usen `max-w-7xl` limpio.
+- [x] Actualizar `FaqWithCta` para usar `max-w-7xl` (antes 2xl).
+- [x] Actualizar `ContactForm` para usar `max-w-7xl` (antes 3xl).
+
+**Resultado**: Todas las secciones ahora comparten el mismo ancho máximo (`max-w-7xl`) y alineación visual consistente.
+
+---
+
+## Ajuste Visual HomeIsland (2025-12-11) - COMPLETADO
+
+### Problema
+La sección de "Integraciones" en `HomeIsland` tenía un estilo visual diferente (lista de texto) comparado con `ServicesIsland` (cards con iconos), lo cual generaba inconsistencia.
+
+### Solución
+- [x] Actualizar `HomeIsland.tsx` para usar la estructura de datos de integraciones de `ServicesIsland`.
+- [x] Implementar el renderizado con `FeatureCard` en `HomeIsland`.
+- [x] Unificar imports de iconos y componentes UI.
+
+**Resultado**: Ambas páginas ahora comparten la misma presentación visual para la sección de integraciones.
+
+---
+
 ## Revision 4 - Refactorizacion DemosIsland (2025-12-11) - COMPLETADA
 
 ### Problema Principal (RESUELTO)

@@ -131,7 +131,7 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
     const labelClasses = 'block text-sm font-medium mb-1.5 text-secondary';
 
     return (
-        <section id="formulario" className="mx-auto w-full max-w-3xl px-4 md:px-0">
+        <section id="formulario" className="mx-auto w-full max-w-7xl px-4 md:px-0">
             <div className="rounded-2xl bg-[var(--color-bg-elevated)] border-subtle p-6 md:p-10 shadow-sm relative overflow-hidden">
                 {/* Encabezado limpio */}
                 <div className="text-center mb-8 relative z-10">

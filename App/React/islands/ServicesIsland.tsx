@@ -1,4 +1,4 @@
-import {Smartphone, Globe, Mic, Calendar, Database, Zap, Phone} from 'lucide-react';
+import {Smartphone, Globe, Mic, Calendar, Database, Zap, Phone, MessageSquare, Instagram, Mail, FileSpreadsheet, Workflow} from 'lucide-react';
 import {Button, FeatureCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
 import {WhatsAppShowcase, AutomationFlow, FaqWithCta, ProcessTimeline, HeroSection, IntegrationsSection, InternalLinks, ContactForm, CtaBlock} from '../components/sections';
@@ -98,7 +98,56 @@ const servicesContent = {
             // El doc tiene 3 H3. AutomationFlow usa lista de features simples.
         ]
     },
-    integrations: ['Tu agenda (p. ej., Calendly)', 'Google Sheets', 'Email (avisos/notificaciones)', 'Tu CRM (HubSpot, Zoho u otros)', 'ERP/otros vía webhook o conector', 'Si hoy no tienes CRM, empiezo con hoja compartida para que avances ya.'],
+    integrations: [
+        {
+            icon: Globe,
+            title: 'Tu web actual',
+            badge: 'WEB',
+            description: 'Sea cual sea (WordPress, Shopify, a medida...).'
+        },
+        {
+            icon: MessageSquare,
+            title: 'WhatsApp Business',
+            badge: 'META',
+            description: 'Canal principal. Respuesta 24/7 y seguimiento.'
+        },
+        {
+            icon: Instagram,
+            title: 'Instagram',
+            badge: 'SOCIAL',
+            description: 'Respondo en mensajes y cazo oportunidades.'
+        },
+        {
+            icon: Calendar,
+            title: 'Tu agenda',
+            badge: 'SYNC',
+            description: 'Google Calendar, Outlook, iCloud...'
+        },
+        {
+            icon: Database,
+            title: 'Tu Software/CRM',
+            badge: 'DATA',
+            description: 'ERP, facturación, HubSpot, Zoho...'
+        },
+        {
+            icon: Mail,
+            title: 'Email y avisos',
+            badge: 'NOTIFY',
+            description: 'Notificaciones internas para que no se escape nada.'
+        },
+        {
+            icon: FileSpreadsheet,
+            title: '¿Sin CRM?',
+            badge: 'START',
+            description: 'Empezamos con una hoja compartida.'
+        },
+        {
+            icon: Workflow,
+            title: 'Automatización',
+            badge: 'AUTO',
+            description: 'Make/n8n para conectar todo entre sí.'
+        }
+    ],
     process: {
         title: 'Proceso de trabajo (simple y sin jerga)',
         steps: [
@@ -137,7 +186,7 @@ export function ServicesIsland(): JSX.Element {
             <WhatsAppShowcase badge={servicesContent.whatsapp.badge} title={servicesContent.whatsapp.title} features={servicesContent.whatsapp.features} ctaText={servicesContent.whatsapp.ctaText} ctaHref={servicesContent.whatsapp.ctaHref} />
 
             {/* 3. MULTICANAL (Instagram y Web) */}
-            <section id="multichannel-section" className="mx-auto w-full max-w-7xl px-6 py-12">
+            <section id="multichannel-section" className="mx-auto w-full max-w-7xl py-12">
                 <div className="mb-8">
                     <h2 className="text-3xl font-bold tracking-tight mb-4 text-primary">{servicesContent.multichannel.title}</h2>
                 </div>
@@ -149,11 +198,11 @@ export function ServicesIsland(): JSX.Element {
             </section>
 
             {/* 4. VOZ (Llamadas) */}
-            <section id="voice-section" className="mx-auto w-full max-w-7xl px-6 py-12 bg-primary rounded-2xl relative overflow-hidden">
-                <div className="mb-8 relative z-10">
+            <section id="voice-section" className="mx-auto w-full max-w-7xl py-12">
+                <div className="mb-8">
                     <h2 className="text-3xl font-bold tracking-tight mb-4 text-primary">{servicesContent.voice.title}</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {servicesContent.voice.cards.map((card, idx) => (
                         <FeatureCard key={idx} icon={card.icon} title={card.title} badge={card.badge} description={card.description} />
                     ))}
@@ -170,7 +219,16 @@ export function ServicesIsland(): JSX.Element {
             </div>
 
             {/* 6. INTEGRACIONES */}
-            <IntegrationsSection title="Integraciones con tu software" items={servicesContent.integrations} />
+            <section id="integrations-section" className="mx-auto w-full max-w-7xl py-12">
+                <div className="mb-8">
+                    <h2 className="text-3xl font-bold tracking-tight mb-4 text-primary">Integraciones con tu software</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {servicesContent.integrations.map((card, idx) => (
+                        <FeatureCard key={idx} icon={card.icon} title={card.title} badge={card.badge} description={card.description} />
+                    ))}
+                </div>
+            </section>
 
             {/* 7. PROCESO DE TRABAJO */}
             <ProcessTimeline title={servicesContent.process.title} steps={servicesContent.process.steps} />

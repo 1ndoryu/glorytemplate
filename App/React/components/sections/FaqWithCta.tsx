@@ -23,7 +23,7 @@ interface FaqWithCtaProps {
 // Reutilizable en cualquier pagina que necesite FAQs con acciones
 export function FaqWithCta({title = 'Preguntas Frecuentes', items, ctaTitle = 'Hablamos?', ctaDescription = 'Elige como prefieres empezar. Respuesta en menos de 30 minutos (09-21h).', primaryCtaText = 'Agenda en 30s', primaryCtaHref = siteUrls.calendly, secondaryCtaText = 'Escribeme por WhatsApp', secondaryCtaHref = siteUrls.whatsapp}: FaqWithCtaProps): JSX.Element {
     return (
-        <section id="faq-section" className="mx-auto w-full max-w-2xl pb-12">
+        <section id="faq-section" className="mx-auto w-full max-w-7xl pb-12">
             <h2 className="text-xl font-medium tracking-tight mb-6 text-primary">{title}</h2>
             <div id="faq-list" className="space-y-1 mb-12">
                 {items.map((item, i) => (

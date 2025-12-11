@@ -1,10 +1,11 @@
-import {MessageSquare, Calendar, Database, Zap, FileText, Workflow, HelpCircle, MousePointer, ClipboardCheck} from 'lucide-react';
+import {MessageSquare, Calendar, Database, Zap, FileText, Workflow, HelpCircle, MousePointer, ClipboardCheck, Globe, Instagram, Mail, FileSpreadsheet} from 'lucide-react';
+import {FeatureCard} from '../components/ui';
 
 // Layout compartido
 import {PageLayout} from '../components/layout';
 
 // Componentes de seccion reutilizables
-import {HeroSection, QuoteSection, ProcessWorkflow, FeatureSection, ContactForm, InternalLinks, homeInternalLinks, WhatsAppShowcase, AutomationFlow, IntegrationsSection, AnalyticsSection} from '../components/sections';
+import {HeroSection, QuoteSection, ProcessWorkflow, FeatureSection, ContactForm, InternalLinks, homeInternalLinks, WhatsAppShowcase, AutomationFlow, AnalyticsSection} from '../components/sections';
 
 // Configuracion centralizada
 import {siteUrls} from '../config';
@@ -63,7 +64,57 @@ const homeContent = {
         ]
     },
     // Seccion "Integraciones" (project-extends.md) - Lista exacta
-    integrations: ['Tu web actual (sea cual sea)', 'WhatsApp Business', 'Instagram', 'Tu agenda (Google Calendar, Outlook, ...)', 'Tu Software/CRM (ERP, facturacion, HubSpot, Zoho...)', 'Email y avisos internos para que no se escape nada', 'Si no tienes CRM, empezamos con una hoja compartida.', 'Automatización (Make/n8n)'],
+    // Seccion "Integraciones" (project-extends.md) - Lista exacta
+    integrations: [
+        {
+            icon: Globe,
+            title: 'Tu web actual',
+            badge: 'WEB',
+            description: 'Sea cual sea (WordPress, Shopify, a medida...).'
+        },
+        {
+            icon: MessageSquare,
+            title: 'WhatsApp Business',
+            badge: 'META',
+            description: 'Canal principal. Respuesta 24/7 y seguimiento.'
+        },
+        {
+            icon: Instagram,
+            title: 'Instagram',
+            badge: 'SOCIAL',
+            description: 'Respondo en mensajes y cazo oportunidades.'
+        },
+        {
+            icon: Calendar,
+            title: 'Tu agenda',
+            badge: 'SYNC',
+            description: 'Google Calendar, Outlook, iCloud...'
+        },
+        {
+            icon: Database,
+            title: 'Tu Software/CRM',
+            badge: 'DATA',
+            description: 'ERP, facturación, HubSpot, Zoho...'
+        },
+        {
+            icon: Mail,
+            title: 'Email y avisos',
+            badge: 'NOTIFY',
+            description: 'Notificaciones internas para que no se escape nada.'
+        },
+        {
+            icon: FileSpreadsheet,
+            title: '¿Sin CRM?',
+            badge: 'START',
+            description: 'Empezamos con una hoja compartida.'
+        },
+        {
+            icon: Workflow,
+            title: 'Automatización',
+            badge: 'AUTO',
+            description: 'Make/n8n para conectar todo entre sí.'
+        }
+    ],
     // Seccion "Medimos lo importante" (project-extends.md) - Lista exacta
     analytics: [
         {icon: MousePointer, text: 'Clic en WhatsApp (click_whatsapp)'},
@@ -102,8 +153,17 @@ export function HomeIsland(): JSX.Element {
                 <ProcessWorkflow steps={homeContent.processWorkflow.steps} simulations={homeContent.processWorkflow.simulations} />
             </section>
 
-            {/* 6. INTEGRACIONES - Lista clara segun project-extends.md */}
-            <IntegrationsSection title="Integraciones" items={homeContent.integrations} />
+            {/* 6. INTEGRACIONES - Mismo estilo que en Servicios */}
+            <section id="integrations-section" className="mx-auto w-full max-w-7xl">
+                <div className="mb-8">
+                    <h2 className="text-3xl font-bold tracking-tight mb-4 text-primary">Integraciones con tu software</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {homeContent.integrations.map((card, idx) => (
+                        <FeatureCard key={idx} icon={card.icon} title={card.title} badge={card.badge} description={card.description} />
+                    ))}
+                </div>
+            </section>
 
             {/* 7. MEDIMOS LO IMPORTANTE - Lista clara segun project-extends.md */}
             <AnalyticsSection title="Medimos lo importante" description="Vas a ver quien te escribe, quien reserva y desde donde llegan. Configuro tres cosas clave:" metrics={homeContent.analytics} footerText="Ademas registro: fecha, pagina, origen/UTM, y consentimiento para poder mejorar." />
