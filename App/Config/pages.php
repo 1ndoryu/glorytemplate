@@ -10,6 +10,8 @@ PageManager::setDefaultContentMode('code');
 PageManager::define('home', 'home');
 PageManager::define('servicios', 'servicios');
 PageManager::define('planes', 'planes');
+PageManager::define('demos', 'demos');
+PageManager::define('sobre-mi', 'sobreMi');
 
 if (GloryFeatures::isActive('task') !== false) {
     PageManager::define('task', 'task');

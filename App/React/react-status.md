@@ -173,5 +173,24 @@ App/React/
 - [x] Extraer `BentoGrid` de HomeIsland a `components/sections/` - COMPLETADO (Paso 3)
 - [x] Extraer `NotificationStatus` a `components/ui/` - COMPLETADO (Paso 5)
 - [x] Refactorizar ServicesIsland (6 secciones locales) - COMPLETADO (Paso 7)
-- [ ] Crear tipos compartidos en `types/` para mejor tipado
-- [ ] Unificar HeroSection (Services usa version local diferente)
+- [ ] Crear tipos compartidos en `types/` para mejor tipado (no hacer no quiero complicar las cosas innecesariamente)
+- [ ] Unificar HeroSection (Services usa version local diferente) (no hacer no quiero complicar las cosas innecesariamente)
+
+---
+
+## Fase 4: Nuevas Paginas (2025-12-11)
+
+### DemosIsland
+- [x] Implementado `islands/DemosIsland.tsx` usando `PageLayout`
+- [x] Estructura Feature-First: `features/demos/`
+- [x] Componentes: `DemoChat`, `ScenarioSelector`, `DemoShowcase`, `ChannelGrid`, `StepProcess`
+- [x] Data: `scenarios.ts`
+- [x] Integrado en `main.tsx`
+
+### AboutIsland (Sobre Mi)
+- [x] Implementado `islands/AboutIsland.tsx`
+- [x] Estructura Feature-First: `features/about/`
+- [x] Separación de Contenido: `features/about/data/content.tsx`
+- [x] Componentes: `ProfileHero`, `Philosophy`, `CaseStudy`, `TechStack`, `SimpleProcess`, `ActionCta`
+- [x] Integrado en `main.tsx`
+

@@ -7,8 +7,8 @@
             "@/*": ["../../Glory/assets/react/src/*"],
             "@app/*": ["./*"]
         },
-        "typeRoots": ["../../Glory/assets/react/node_modules/@types", "../../Glory/assets/react/node_modules"]
+        "typeRoots": ["../../Glory/assets/react/node_modules/@types"]
     },
-    "include": ["./**/*", "../../Glory/assets/react/node_modules/@types"],
-    "exclude": []
+    "include": ["./**/*"],
+    "exclude": ["node_modules"]
 }
