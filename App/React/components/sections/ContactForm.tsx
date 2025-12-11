@@ -126,13 +126,13 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
 
     // Estilos de input y label usando clases Tailwind que referencian variables CSS nativas
     // Esto asegura que se adapte perfectamente al tema activo (default o project)
-    const inputClasses = 'w-full px-4 py-3 rounded-lg border bg-surface border-primary text-primary transition-all focus:outline-none focus:ring-1 focus:ring-[var(--color-accent-primary)] focus:border-[var(--color-accent-primary)] placeholder:text-subtle text-base shadow-sm';
+    const inputClasses = 'w-full px-0 py-3 bg-transparent border-0 border-b border-primary text-primary transition-all focus:outline-none focus:ring-0 focus:border-[var(--color-accent-primary)] placeholder:text-subtle text-base rounded-none';
 
     const labelClasses = 'block text-sm font-medium mb-1.5 text-secondary';
 
     return (
-        <section id="formulario" className="mx-auto w-full max-w-7xl px-4 md:px-0">
-            <div className="rounded-2xl bg-[var(--color-bg-elevated)] border-subtle p-6 md:p-10 shadow-sm relative overflow-hidden">
+        <section id="formulario" className="w-full bg-surface py-16 md:py-24">
+            <div className="mx-auto w-full max-w-[800px] px-4 md:px-0 relative overflow-hidden">
                 {/* Encabezado limpio */}
                 <div className="text-center mb-8 relative z-10">
                     <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-2 text-primary">{title}</h2>
@@ -264,7 +264,7 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
 
                     {/* Boton de envio */}
                     <div className="pt-2">
-                        <Button type="submit" disabled={status === 'submitting'} icon={Send} className="w-full h-12 text-base shadow-sm hover:translate-y-[-1px] transition-all">
+                        <Button type="submit" disabled={status === 'submitting'} icon={Send} className="w-full h-12 text-base hover:translate-y-[-1px] transition-all">
                             {status === 'submitting' ? 'Enviando...' : 'Enviar mensaje'}
                         </Button>
                     </div>
