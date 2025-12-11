@@ -54,15 +54,12 @@ export function PageLayout({children, headerCtaText = 'Agendar 1:1', copyrightTy
                 fontFamily,
                 color: 'var(--color-text-primary)'
             }}>
-            {/* TOP BANNER (opcional, usado en Home) */}
-            {topBanner && (
-                <div id="top-banner">
-                    <TopBanner text={topBanner.text} linkText={topBanner.linkText} linkHref={topBanner.linkHref} />
-                </div>
-            )}
+            {/* HEADER FIJO - Banner + Navegacion como bloque unico sticky */}
+            <div id="sticky-header-container" className="sticky top-0 z-[var(--z-sticky)]">
+                {/* TOP BANNER (opcional, usado en Home) */}
+                {topBanner && <TopBanner text={topBanner.text} linkText={topBanner.linkText} linkHref={topBanner.linkHref} />}
 
-            {/* HEADER */}
-            <div id="header-wrapper">
+                {/* HEADER - Navegacion principal */}
                 <Header logoText={logoText} navItems={mainNavItems} ctaText={headerCtaText} ctaHref={siteUrls.calendly} loginHref={siteUrls.whatsapp} />
             </div>
 

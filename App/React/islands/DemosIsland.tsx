@@ -1,11 +1,13 @@
 import {MessageSquare, Smartphone, Globe, Mic, Calendar, Database, Layout, Scissors, Utensils, Stethoscope} from 'lucide-react';
 import {PageLayout} from '../components/layout';
-import {HeroSection, ProcessTimeline, FaqWithCta, ContactForm, InternalLinks, CtaBlock, ScrollTabsShowcase} from '../components/sections';
+import {HeroSection, FaqWithCta, ContactForm, InternalLinks, CtaBlock, ScrollTabsShowcase} from '../components/sections';
 import {siteUrls} from '../config';
 // Componente de demo interactivo estilo ProcessWorkflow
 import {DemoWorkflow} from '../features/demos/components/DemoWorkflow';
 // Componente de features estilo AnalyticsSection
 import {DemoFeaturesSection} from '../features/demos/components/DemoFeaturesSection';
+// Componente de proceso con animaciones propias para demos
+import {DemoProcessWorkflow} from '../features/demos/components/DemoProcessWorkflow';
 
 // Links internos especificos para Demos
 const demosInternalLinks = [
@@ -133,15 +135,7 @@ const demosContent = {
             description: 'Tu agenda, tu CRM, Google Sheets, email... todo conectado y sincronizado automaticamente.'
         }
     ],
-    process: {
-        title: 'Cómo lo hacemos',
-        steps: [
-            {title: '1. Llamada breve (15-20 min)', desc: 'Eliges canal/sector y objetivo.'},
-            {title: '2. Preparo tu demo', desc: 'Flujos y mensajes con tus "reglas".'},
-            {title: '3. La probamos juntos', desc: 'Ajustes en directo.'},
-            {title: '4. Siguiente paso', desc: 'Si te encaja, lo lanzamos (primer mes gratis).'}
-        ]
-    },
+
     faq: {
         title: 'FAQs (demo y casos)',
         items: [
@@ -193,8 +187,12 @@ export function DemosIsland(): JSX.Element {
                 </div>
             </section>
 
-            {/* 7. COMO LO HACEMOS */}
-            <ProcessTimeline title={demosContent.process.title} steps={demosContent.process.steps} />
+            {/* 7. COMO LO HACEMOS - Con animaciones propias */}
+            <section id="proceso-demos" className="py-16">
+                <div className="mx-auto px-4">
+                    <DemoProcessWorkflow />
+                </div>
+            </section>
 
             {/* 8. HABLAMOS? (CTAs) */}
             <CtaBlock id="cta-final" />

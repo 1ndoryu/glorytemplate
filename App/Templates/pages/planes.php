@@ -4,7 +4,7 @@ use Glory\Services\ReactIslands;
 
 function planes()
 {
-    // Renderiza la pagina de planes completa en React
-    // PricingIsland incluye su propio header y footer
-    echo ReactIslands::render('PricingIsland');
+    // Renderiza la aplicacion React SPA
+    // MainAppIsland contiene el router y detecta la ruta actual
+    echo ReactIslands::render('MainAppIsland');
 }

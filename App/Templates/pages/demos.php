@@ -4,7 +4,7 @@ use Glory\Services\ReactIslands;
 
 function demos()
 {
-    // Renderiza la pagina de demos completa en React
-    // DemosIsland incluye su propio header y footer
-    echo ReactIslands::render('DemosIsland');
+    // Renderiza la aplicacion React SPA
+    // MainAppIsland contiene el router y detecta la ruta actual
+    echo ReactIslands::render('MainAppIsland');
 }

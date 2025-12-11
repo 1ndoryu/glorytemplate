@@ -33,7 +33,7 @@ export function Header({logoText, navItems, ctaText, ctaHref, loginText = 'Login
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
-        <header className="sticky top-0 z-[var(--z-sticky)] w-full backdrop-blur-md bg-[var(--color-bg-primary)]/80">
+        <header className="w-full backdrop-blur-md bg-[var(--color-bg-primary)]/80">
             <div className="mx-auto w-full max-w-7xl px-6 h-14 flex items-center justify-between">
                 <div className="flex items-center gap-8">
                     <a href="/" className="font-bold text-lg tracking-tighter flex items-center gap-2 text-primary">

@@ -83,29 +83,14 @@ function WebVisual() {
                         <div className="h-2 bg-white/10 rounded w-3/4"></div>
                         <div className="h-2 bg-white/10 rounded w-1/2"></div>
                     </div>
-                    
+
                     {/* Widget de chat expandido */}
-                    <motion.div 
-                        className="bg-neutral-800 rounded-lg border border-white/20 p-2 w-32"
-                        initial={{scale: 0.8, opacity: 0}} 
-                        animate={{scale: 1, opacity: 1}} 
-                        transition={{delay: 0.4, type: 'spring'}}
-                    >
-                        <motion.div 
-                            className="flex flex-col gap-0.5"
-                            initial={{opacity: 0}} 
-                            animate={{opacity: 1}} 
-                            transition={{delay: 0.7}}
-                        >
+                    <motion.div className="bg-neutral-800 rounded-lg border border-white/20 p-2 w-32" initial={{scale: 0.8, opacity: 0}} animate={{scale: 1, opacity: 1}} transition={{delay: 0.4, type: 'spring'}}>
+                        <motion.div className="flex flex-col gap-0.5" initial={{opacity: 0}} animate={{opacity: 1}} transition={{delay: 0.7}}>
                             <div className="text-[9px] text-[var(--color-info)]">Hola!</div>
                             <div className="text-[9px] text-white">En que puedo ayudarte?</div>
                         </motion.div>
-                        <motion.div 
-                            className="flex justify-center mt-2"
-                            initial={{scale: 0}} 
-                            animate={{scale: 1}} 
-                            transition={{delay: 1.0, type: 'spring'}}
-                        >
+                        <motion.div className="flex justify-center mt-2" initial={{scale: 0}} animate={{scale: 1}} transition={{delay: 1.0, type: 'spring'}}>
                             <div className="w-6 h-6 rounded-md bg-[var(--color-info)] flex items-center justify-center">
                                 <MessageSquare className="w-3 h-3 text-white" />
                             </div>
@@ -292,16 +277,14 @@ export function ScrollTabsShowcase({sections, cta}: ScrollTabsShowcaseProps): JS
             if (!container) return;
 
             const rect = container.getBoundingClientRect();
-            const containerHeight = container.offsetHeight;
-            const sectionHeight = containerHeight / sections.length;
 
-            // Calcular que tan lejos hemos scrolleado dentro del contenedor
-            // El contenedor tiene altura = sections.length * 100vh para el scroll
+            // Calcular progreso de scroll dentro del contenedor
             const scrollProgress = -rect.top;
             const viewportHeight = window.innerHeight;
 
-            // Determinar seccion activa basada en progreso
-            const sectionIndex = Math.floor(scrollProgress / viewportHeight);
+            // Determinar seccion activa basada en progreso (1.5 viewports por seccion)
+            const sectionHeight = viewportHeight * 1.5;
+            const sectionIndex = Math.floor(scrollProgress / sectionHeight);
             const clampedIndex = Math.max(0, Math.min(sectionIndex, sections.length - 1));
 
             if (clampedIndex !== activeSection) {
@@ -336,8 +319,8 @@ export function ScrollTabsShowcase({sections, cta}: ScrollTabsShowcaseProps): JS
 
     return (
         <section id="scroll-tabs-showcase" className="w-full">
-            {/* Contenedor con altura para capturar scroll (numero de secciones * viewport) */}
-            <div ref={containerRef} style={{height: `${sections.length * 100}vh`}}>
+            {/* Contenedor con altura para capturar scroll (150vh por seccion para mas tiempo de permanencia) */}
+            <div ref={containerRef} style={{height: `${sections.length * 150}vh`}}>
                 {/* Contenedor sticky que se queda fijo y centrado verticalmente */}
                 <div
                     className="sticky w-full rounded-xl bg-neutral-900 relative overflow-hidden"

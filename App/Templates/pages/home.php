@@ -4,7 +4,7 @@ use Glory\Services\ReactIslands;
 
 function home()
 {
-    // Renderiza la pagina de inicio completa en React
-    // HomeIsland incluye su propio header y footer
-    echo ReactIslands::render('HomeIsland');
+    // Renderiza la aplicacion React SPA
+    // MainAppIsland contiene el router y detecta la ruta actual
+    echo ReactIslands::render('MainAppIsland');
 }
