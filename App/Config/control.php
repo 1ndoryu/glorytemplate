@@ -99,3 +99,9 @@ $performanceConfig = get_template_directory() . '/App/Config/performance.php';
 if (file_exists($performanceConfig)) {
     require_once $performanceConfig;
 }
+
+// Cargar modulo de IA para generacion de contenido (Fase 6)
+$contentAiLoader = get_template_directory() . '/App/Services/ContentAI/loader.php';
+if (file_exists($contentAiLoader)) {
+    require_once $contentAiLoader;
+}

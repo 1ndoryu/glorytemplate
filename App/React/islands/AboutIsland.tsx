@@ -84,20 +84,20 @@ export function AboutIsland(): JSX.Element {
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter text-balance leading-[1.1] text-primary">{aboutContent.hero.title}</h1>
                         <p className="text-lg md:text-xl max-w-2xl leading-relaxed tracking-tight font-normal text-muted">{aboutContent.hero.subtitle}</p>
                         <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4">
-                            <Button href={aboutContent.hero.primaryCta.href} icon={Calendar} className="h-10 px-6">
+                            <Button href={aboutContent.hero.primaryCta.href} icon={Calendar} className="h-11 px-6">
                                 {aboutContent.hero.primaryCta.text}
                             </Button>
-                            <Button href={aboutContent.hero.secondaryCta.href} variant="outline" icon={MessageSquare} className="h-10 px-6">
+                            <Button href={aboutContent.hero.secondaryCta.href} variant="outline" icon={MessageSquare} className="h-11 px-6">
                                 WhatsApp
                             </Button>
-                            <Button href={aboutContent.hero.tertiaryCta.href} variant="outline" className="h-10 px-6">
+                            <Button href={aboutContent.hero.tertiaryCta.href} variant="outline" className="h-11 px-6">
                                 Agenda en 30 s
                             </Button>
                         </div>
                     </div>
                     <div className="col-span-1 lg:col-span-5 relative w-full flex justify-center lg:justify-end">
                         <div className="relative rounded-2xl overflow-hidden shadow-xl w-full max-w-[400px] aspect-[4/5]">
-                            <img src={aboutContent.hero.imageSrc} alt={aboutContent.hero.imageAlt} className="object-cover w-full h-full" />
+                            <img src={aboutContent.hero.imageSrc} alt={aboutContent.hero.imageAlt} className="object-cover w-full h-full" loading="eager" />
                         </div>
                     </div>
                 </div>

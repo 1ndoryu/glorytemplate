@@ -20,11 +20,13 @@ export function CookieBanner(): JSX.Element | null {
     const loadGtm = () => {
         if (window.dataLayer) return; // Ya cargado
 
-        // Inicializar dataLayer
+        // Inicializar dataLayer (tipo definido en useAnalytics.ts)
         window.dataLayer = window.dataLayer || [];
-        function gtag(...args: any[]) {
-            window.dataLayer.push(args);
-        }
+
+        // Funcion gtag para configuracion inicial
+        const gtag = (...args: unknown[]) => {
+            window.dataLayer.push({event: 'gtag', args});
+        };
         gtag('js', new Date());
         gtag('config', GTM_ID);
 
@@ -49,7 +51,7 @@ export function CookieBanner(): JSX.Element | null {
     if (!isVisible) return null;
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-surface-inverse border-t border-[var(--color-border-primary)] shadow-lg animate-fade-in-up">
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 w-full backdrop-blur-md bg-[var(--color-bg-primary)]/80">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="text-sm text-text-inverse text-center md:text-left">
                     <p>
@@ -71,11 +73,4 @@ export function CookieBanner(): JSX.Element | null {
             </div>
         </div>
     );
-}
-
-// Augment window interface for TypeScript
-declare global {
-    interface Window {
-        dataLayer: any[];
-    }
 }

@@ -38,6 +38,7 @@ const REACT_PAGES = [
     'contacto',   // /contacto -> ContactIsland
     'privacidad', // /privacidad -> PrivacyIsland
     'cookies',    // /cookies -> CookiesIsland
+    'panel-ia',   // /panel-ia -> AdminAIIsland (solo admins)
 ];
 
 // Registrar TODAS las paginas React como Fullpage

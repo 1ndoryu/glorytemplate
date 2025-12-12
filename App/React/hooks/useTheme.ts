@@ -21,17 +21,18 @@ export const themeLabels: Record<ThemeName, string> = {
  * @returns {Object} { theme, setTheme, toggleTheme }
  */
 export function useTheme() {
-    const [theme, setThemeState] = useState<ThemeName>('default');
+    const [theme, setThemeState] = useState<ThemeName>('project');
     const [isInitialized, setIsInitialized] = useState(false);
 
     // Inicializacion: leer de URL o localStorage
     useEffect(() => {
-        // Prioridad: 1) URL param, 2) localStorage, 3) default
+        // Prioridad: 1) URL param, 2) localStorage, 3) project (tema cliente por defecto)
         const urlParams = new URLSearchParams(window.location.search);
         const urlTheme = urlParams.get('theme') as ThemeName | null;
         const storedTheme = localStorage.getItem('glory-theme') as ThemeName | null;
 
-        let initialTheme: ThemeName = 'default';
+        // Tema por defecto: 'project' (cliente Guillermo Garcia)
+        let initialTheme: ThemeName = 'project';
 
         if (urlTheme && (urlTheme === 'default' || urlTheme === 'project')) {
             initialTheme = urlTheme;

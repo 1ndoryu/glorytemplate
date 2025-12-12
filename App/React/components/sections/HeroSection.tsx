@@ -35,14 +35,14 @@ export function HeroSection({title, subtitle, primaryCta, secondaryCta, tertiary
                     <p className="text-lg md:text-xl max-w-2xl leading-relaxed tracking-tight font-normal text-muted">{subtitle}</p>
                     {/* CTAs en orden: Calendario (primary) > WhatsApp (secondary) > Formulario (tertiary) */}
                     <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4">
-                        <Button href={primaryCta.href} icon={ArrowRight} className="h-10 px-6">
+                        <Button href={primaryCta.href} icon={ArrowRight} className="h-11 px-6">
                             {primaryCta.text}
                         </Button>
-                        <Button href={secondaryCta.href} variant="outline" className="h-10 px-6">
+                        <Button href={secondaryCta.href} variant="outline" className="h-11 px-6">
                             {secondaryCta.text}
                         </Button>
                         {tertiaryCta && (
-                            <Button href={tertiaryCta.href} variant="outline" className="h-10 px-6">
+                            <Button href={tertiaryCta.href} variant="outline" className="h-11 px-6">
                                 {tertiaryCta.text}
                             </Button>
                         )}

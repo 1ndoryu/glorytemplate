@@ -5,7 +5,7 @@ import {FeatureCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
 
 // Componentes de seccion reutilizables
-import {HeroSection, QuoteSection, ProcessWorkflow, FeatureSection, ContactForm, InternalLinks, homeInternalLinks, WhatsAppShowcase, AutomationFlow, AnalyticsSection} from '../components/sections';
+import {HeroSection, QuoteSection, ProcessWorkflow, FeatureSection, ContactForm, InternalLinks, homeInternalLinks, WhatsAppShowcase, AutomationFlow, AnalyticsSection, CtaBlock} from '../components/sections';
 
 // Configuracion centralizada
 import {siteUrls} from '../config';
@@ -155,6 +155,9 @@ export function HomeIsland(): JSX.Element {
                 <h2 className="text-2xl md:text-3xl font-medium tracking-tight mb-8 text-primary">Trabajo contigo, sin intermediarios</h2>
                 <ProcessWorkflow steps={homeContent.processWorkflow.steps} simulations={homeContent.processWorkflow.simulations} />
             </section>
+
+            {/* CTA INTERMEDIO - Bloque de conversion despues del proceso (FASE 5.2) */}
+            <CtaBlock id="cta-proceso" />
 
             {/* 6. INTEGRACIONES - Mismo estilo que en Servicios */}
             <section id="integrations-section" className="mx-auto w-full max-w-7xl">

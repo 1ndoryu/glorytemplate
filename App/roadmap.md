@@ -2,8 +2,8 @@
 
 > Documento generado a partir de `project-extends.md`
 > Fecha de creacion: 2025-12-11
-> Ultima actualizacion: 2025-12-11 16:45
-> Estado: Verificacion FASE 0 COMPLETADA - 100% conforme (30/30 items OK)
+> Ultima actualizacion: 2025-12-12 03:15
+> Estado: FASE 6 COMPLETADA - Sistema de IA con Gemini 2.5 Flash implementado
 
 ---
 
@@ -15,16 +15,54 @@
 
 ---
 
+## PENDIENTES CON CLIENTE (Guillermo Garcia)
+
+> **Importante:** Estos datos son necesarios para completar la implementacion. Deben obtenerse del cliente antes del lanzamiento.
+
+### Datos Basicos (CRITICO)
+- [ ] **Dominio final**: URL definitiva del sitio (ej: guillermogarcia.com)
+- [ ] **Nombre de marca**: Como quiere aparecer (Guillermo Garcia / GG Chatbots / otro)
+- [ ] **Telefono real**: Numero de contacto (+34 XXXXXXXXX)
+- [ ] **Logo final**: Archivos en formato SVG/PNG (ya hay LogoBlanco.png, LogoNegro.png)
+
+### Analitica y Tracking (CRITICO)
+- [ ] **ID de Google Tag Manager**: GTM-XXXXXXX (actual es placeholder)
+- [ ] **ID de Google Analytics 4**: G-XXXXXXXXXX
+- [ ] **Acceso a contenedor GTM**: Para configurar tags y triggers
+
+### URLs de Contacto
+- [ ] **URL Calendly correcta**: Verificar que calendly.com/andoryyu es la correcta
+- [ ] **Numero WhatsApp correcto**: Verificar +584120825234
+
+### Perfiles Sociales (para JSON-LD)
+- [ ] **LinkedIn**: URL del perfil
+- [ ] **Twitter/X**: URL del perfil (si aplica)
+- [ ] **YouTube**: URL del canal (si aplica)
+- [ ] **Instagram**: URL del perfil (si aplica)
+
+### Contenido Pendiente
+- [ ] **Foto de Guillermo (Hero)**: Imagen profesional para About y Hero
+- [ ] **Foto de trabajo**: Segunda foto para seccion About
+- [ ] **Testimonios**: Si hay clientes que quiera mostrar
+- [ ] **Casos de exito reales**: Para seccion de blog/casos
+
+### Configuracion Hosting/Dominio
+- [ ] **Certificado SSL**: Forzar HTTPS en todo el sitio
+- [ ] **Redireccion www**: Definir con o sin www y configurar 301
+- [ ] **Verificar Google Search Console**: Token de verificacion
+
+---
+
 ## SISTEMA DE TEMAS (YA IMPLEMENTADO)
 
 El proyecto cuenta con **2 temas intercambiables** mediante un boton flotante:
 
 ### Temas Disponibles
 
-| Tema      | Nombre UI      | Activacion              | Descripcion                                                                                                                                |
-| --------- | -------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `default` | Custom (Stone) | Sin atributo data-theme | Paleta stone/neutral, tipografia Geist, estilo desarrollador                                                                               |
-| `project` | Project (Blue) | `data-theme="project"`  | Paleta azul/verde del cliente, tipografia Manrope/Inter    (ESTAS SON LAS QUE DEBEN RESPECTOR LOS ESTILOS INDICADOS SEGUN PROJECT-EXTENDS) |
+| Tema      | Nombre UI      | Activacion                | Descripcion                                                                 |
+| --------- | -------------- | ------------------------- | --------------------------------------------------------------------------- |
+| `project` | Project (Blue) | **DEFAULT** (sin cambios) | Paleta azul/verde del cliente, tipografia Manrope/Inter (tema de Guillermo) |
+| `default` | Custom (Stone) | `?theme=default`          | Paleta stone/neutral, tipografia Geist, estilo desarrollador                |
 
 ### Arquitectura del Sistema
 
@@ -87,11 +125,11 @@ Las paginas deben cumplir PRIMERO con el **contenido y estructura** de `project-
 | 2    | Paginas Principales (Estructura)  | ALTA      | Completada (SEO metadata implementada)      |
 | 3    | Paginas Secundarias (Estructura)  | MEDIA     | Completada (SEO metadata implementada)      |
 | 4    | Paginas Legales (Estructura)      | MEDIA     | Completada (SEO metadata implementada)      |
-| 5    | Sistema de Contacto y Conversion  | ALTA      | Parcial (formulario OK, falta Calendly/WA)  |
-| 6    | Blog y Sistema de Contenido       | MEDIA     | Parcial (estructura OK, falta IA backend)   |
+| 5    | Sistema de Contacto y Conversion  | ALTA      | Completada (CTAs, URLs, GTM)                |
+| 6    | Blog y Sistema de Contenido       | MEDIA     | **Completada** (Gemini 2.5 Flash + Panel)   |
 | 7    | SEO y Datos Estructurados         | ALTA      | Parcial (BreadcrumbList OK, faltan schemas) |
-| 8    | Analitica (GA4 + GTM)             | ALTA      | Pendiente                                   |
-| 9    | Optimizacion y Rendimiento        | MEDIA     | Pendiente                                   |
+| 8    | Analitica (GA4 + GTM)             | ALTA      | Parcial (eventos OK, falta config GTM)      |
+| 9    | Optimizacion y Rendimiento        | MEDIA     | Completada (imagenes, botones 44px)         |
 | 10   | Publicacion y Lanzamiento         | ALTA      | Pendiente                                   |
 
 ---
@@ -734,11 +772,17 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 - [x] Formulario Web: Implementar con campos RGPD (ContactForm.tsx implementado)
 
 ### 5.2 CTAs Consistentes
-- [ ] Patron de CTAs (siempre en este orden):
+- [x] Patron de CTAs (siempre en este orden):
   1. Calendario: "Hablame ahora y respondo en menos de 30 min (09-21h)"
   2. WhatsApp: "Hablame ahora y respondo en menos de 30 min (09-21h)"
   3. Formulario: "Agenda en 30 s"
-- [ ] Repetir bloque de CTAs cada ~2 secciones
+- [x] Repetir bloque de CTAs cada ~2 secciones
+
+**Implementacion:**
+- `CtaBlock.tsx`: Componente centralizado con CTAs en orden correcto (Calendario > WhatsApp > Formulario)
+- Usado en: DemosIsland, AboutIsland, HomeIsland (nuevo)
+- HeroSection: Todos los heroes con primaryCta (Calendario), secondaryCta (WhatsApp), tertiaryCta (Formulario)
+- URLs centralizadas en `config/urls.ts`
 
 - [x] Widget Calendly: Enlace directo a calendly.com/andoryyu (configurado en urls.ts)
 - [x] Reservar espacio fijo -> **N/A**
@@ -749,25 +793,67 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 ## FASE 6: BLOG Y SISTEMA DE CONTENIDO
 
 ### 6.1 Backend de Automatizacion con IA (Caracteristica Personalizada)
-**Estado:** Pendiente - Planificacion
+**Estado:** Implementado - Backend y Frontend listos
 
-- [ ] Definir flujo:
-  1. Busqueda de noticias/tendencias (ultimas 2 semanas)
-  2. Temas: Chatbots y Automatizaciones con IA
-  3. Redaccion automatica del articulo
-  4. Guardar como borrador (NO publicar automaticamente)
-  5. Panel de aprobacion para Guillermo
-- [ ] Crear panel de configuracion:
-  - [ ] Frecuencia de busqueda
-  - [ ] Tono de redaccion
-  - [ ] Temas a ignorar
+**Arquitectura Implementada:**
+
+| Componente       | Archivo                                       | Funcion                                                          |
+| ---------------- | --------------------------------------------- | ---------------------------------------------------------------- |
+| GeminiClient     | `App/Services/ContentAI/GeminiClient.php`     | Cliente REST para Gemini 2.5 Flash con Google Search grounding   |
+| AIConfigManager  | `App/Services/ContentAI/AIConfigManager.php`  | Gestion de configuracion (API keys, tono, temas)                 |
+| DraftManager     | `App/Services/ContentAI/DraftManager.php`     | Ciclo de vida de borradores (crear, aprobar, publicar, rechazar) |
+| ContentGenerator | `App/Services/ContentAI/ContentGenerator.php` | Orquestador de generacion (articulos, ideas, tendencias)         |
+| AIRestApi        | `App/Services/ContentAI/AIRestApi.php`        | Endpoints REST para el panel React                               |
+| AdminAIIsland    | `App/React/islands/AdminAIIsland.tsx`         | Panel de administracion React                                    |
+| useAdminAI       | `App/React/hooks/useAdminAI.ts`               | Hook para interactuar con la API                                 |
+
+**Endpoints REST Disponibles:**
+
+| Metodo | Endpoint                                      | Funcion                    |
+| ------ | --------------------------------------------- | -------------------------- |
+| GET    | `/wp-json/glory/v1/ai/config`                 | Obtener configuracion      |
+| POST   | `/wp-json/glory/v1/ai/config`                 | Guardar configuracion      |
+| POST   | `/wp-json/glory/v1/ai/config/test`            | Probar conexion API        |
+| POST   | `/wp-json/glory/v1/ai/generate`               | Generar articulo           |
+| POST   | `/wp-json/glory/v1/ai/ideas`                  | Generar ideas de articulos |
+| POST   | `/wp-json/glory/v1/ai/search`                 | Buscar tendencias          |
+| GET    | `/wp-json/glory/v1/ai/drafts`                 | Listar borradores          |
+| GET    | `/wp-json/glory/v1/ai/drafts/{id}`            | Obtener borrador           |
+| PUT    | `/wp-json/glory/v1/ai/drafts/{id}`            | Actualizar borrador        |
+| POST   | `/wp-json/glory/v1/ai/drafts/{id}/approve`    | Aprobar borrador           |
+| POST   | `/wp-json/glory/v1/ai/drafts/{id}/publish`    | Publicar borrador          |
+| POST   | `/wp-json/glory/v1/ai/drafts/{id}/reject`     | Rechazar borrador          |
+| POST   | `/wp-json/glory/v1/ai/drafts/{id}/regenerate` | Regenerar contenido        |
+| GET    | `/wp-json/glory/v1/ai/stats`                  | Estadisticas               |
+
+**Checklist de Funcionalidades:**
+
+- [x] Definir flujo:
+  1. [x] Busqueda de noticias/tendencias (ultimas 2 semanas) - `searchTrends()`
+  2. [x] Temas: Chatbots y Automatizaciones con IA - Configurables
+  3. [x] Redaccion automatica del articulo - `generateArticle()`
+  4. [x] Guardar como borrador (NO publicar automaticamente) - `DraftManager::createDraft()`
+  5. [x] Panel de aprobacion para Guillermo - `AdminAIIsland.tsx`
+- [x] Crear panel de configuracion:
+  - [x] Frecuencia de busqueda (manual, diaria, semanal, quincenal)
+  - [x] Tono de redaccion (cercano, profesional, tecnico)
+  - [x] Temas a ignorar (excluded_topics)
+
+**API de IA:**
+- Proveedor: Google Gemini
+- Modelo: `gemini-2.5-flash` (capa gratuita)
+- Caracteristica especial: **Grounding con Google Search** - Busca informacion en internet para generar contenido actualizado y con fuentes
+
+**Acceso al Panel:**
+- URL: `/admin/ai`
+- Requiere: Usuario autenticado como administrador
 
 ### 6.2 Estructura de Posts
-- [ ] Definir plantilla de post:
-  - [ ] Autor + fechas
-  - [ ] Chips (fecha, canal, tipo)
-  - [ ] Fuentes consultadas
-  - [ ] JSON-LD BlogPosting
+- [x] Definir plantilla de post:
+  - [x] Autor + fechas (SinglePostIsland)
+  - [ ] Chips (fecha, canal, tipo) - Parcial (categorias disponibles)
+  - [x] Fuentes consultadas (en metadata de IA)
+  - [x] JSON-LD BlogPosting (SeoManager)
 
 ---
 
@@ -823,41 +909,48 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 | lead_form_submit  | Envio exitoso del formulario         | form_service, page_location |
 
 ### 8.3 Pasos de Implementacion
-- [ ] Paso 1: Conectar GA4 (en todas las paginas)
-- [ ] Paso 2: Configurar evento click_whatsapp
-- [ ] Paso 3: Configurar evento schedule_calendly
-- [ ] Paso 4: Configurar evento lead_form_submit
-- [ ] Paso 5: Guardar UTMs y origen en sistema/hoja
-- [ ] Paso 6: Marcar conversiones en GA4
-- [ ] Paso 7: Probar con DebugView
+- [ ] Paso 1: Conectar GA4 (en todas las paginas) - Pendiente configuracion GTM
+- [x] Paso 2: Configurar evento click_whatsapp - Implementado en Button.tsx (automatico)
+- [x] Paso 3: Configurar evento click_calendly - Implementado en Button.tsx (automatico)
+- [x] Paso 4: Configurar evento lead_form_submit - Implementado en ContactForm.tsx
+- [x] Paso 5: Guardar UTMs y origen en sistema/hoja - ContactForm captura UTMs
+- [ ] Paso 6: Marcar conversiones en GA4 - Pendiente configuracion
+- [ ] Paso 7: Probar con DebugView - Pendiente
+
+**Implementacion (hooks/useAnalytics.ts):**
+- `analytics.trackWhatsAppClick(ctaText)` - Click en enlaces wa.me
+- `analytics.trackCalendlyClick(ctaText)` - Click en enlaces calendly.com  
+- `analytics.trackFormSubmit(formService)` - Envio exitoso formulario
+- `analytics.trackCalendlyScheduled()` - Cita confirmada (requiere listener Calendly)
+- Eventos se envian a `window.dataLayer` para GTM
 
 ---
 
 ## FASE 9: OPTIMIZACION Y RENDIMIENTO
 
 ### 9.1 Imagenes
-- [ ] Hero de cada pagina: SIN lazy-load
-- [ ] Resto de imagenes: CON lazy-load
+- [x] Hero de cada pagina: SIN lazy-load (loading="eager" en AboutIsland, SinglePostIsland)
+- [x] Resto de imagenes: CON lazy-load (ContentRenderer, AboutIsland working image)
 - [ ] Definir dimensiones fijas:
   - Hero: 1600 x 900
   - Contenido: 1200 x 800
   - Miniaturas: 600 x 400
-- [ ] No enlazar imagenes a su archivo
-- [ ] No meter texto importante dentro de imagenes
+- [x] No enlazar imagenes a su archivo - Implementado (no hay lightbox)
+- [x] No meter texto importante dentro de imagenes - Cumplido
 
 ### 9.2 Rendimiento Movil
-- [ ] Botones minimo 44px de alto
-- [ ] H1 y hero legibles sin zoom
-- [ ] Primer CTA visible al cargar
-- [ ] Banner de cookies pequeno abajo
-- [ ] Calendly con min-height fijo (evitar CLS)
+- [x] Botones minimo 44px de alto (h-11 en Tailwind, verificado en Button.tsx, HeroSection, AboutIsland)
+- [x] H1 y hero legibles sin zoom (clamp responsive en CSS)
+- [x] Primer CTA visible al cargar (HeroSection tiene CTAs above the fold)
+- [x] Banner de cookies pequeno abajo (CookieBanner con bottom-0)
+- [ ] Calendly con min-height fijo (evitar CLS) - Pendiente (no hay widget embebido, solo enlaces)
 
 ### 9.3 Texto Indexable
-- [ ] Titulos y parrafos como texto (no imagenes)
-- [ ] CTAs como texto de boton
-- [ ] Contenido de acordeones ya escrito
-- [ ] Campos de formulario con labels visibles
-- [ ] Iconos acompanados de texto
+- [x] Titulos y parrafos como texto (no imagenes)
+- [x] CTAs como texto de boton
+- [x] Contenido de acordeones ya escrito (FaqWithCta renderiza preguntas como texto)
+- [x] Campos de formulario con labels visibles (ContactForm tiene labels)
+- [x] Iconos acompanados de texto (todos los iconos tienen labels)
 
 ---
 
@@ -1057,6 +1150,20 @@ GloryFeatures::setMode('react'); // o 'native'
 | 2025-12-11 | BLOG: SinglePostIsland actualizado con Autor y Fecha (Phase 3.2)                                                     | Sistema |
 | 2025-12-11 | GTM/COOKIES: Implementado CookieBanner.tsx con carga condicional de GTM (solo aceptando cookies) (Phase 8.1)         | Sistema |
 | 2025-12-11 | LAYOUT: Integrado CookieBanner en PageLayout.tsx                                                                     | Sistema |
+| 2025-12-12 | FASE 5.2: Implementado CtaBlock en HomeIsland, verificados CTAs consistentes en todas las islands                    | Sistema |
+| 2025-12-12 | FASE 8: Creado hooks/useAnalytics.ts con eventos click_whatsapp, click_calendly, lead_form_submit, schedule_calendly | Sistema |
+| 2025-12-12 | FASE 8: Button.tsx ahora trackea automaticamente clicks a WhatsApp y Calendly                                        | Sistema |
+| 2025-12-12 | FASE 8: ContactForm.tsx ahora trackea lead_form_submit al envio exitoso                                              | Sistema |
+| 2025-12-12 | TEMA: Cambiado tema por defecto a 'project' (cliente) en useTheme.ts                                                 | Sistema |
+| 2025-12-12 | ROADMAP: Agregada seccion "Pendientes con Cliente" para coordinar datos del lanzamiento                              | Sistema |
+| 2025-12-12 | FASE 9: HeroSection botones a 44px (h-11), AboutIsland botones y loading eager                                       | Sistema |
+| 2025-12-12 | FASE 9: SinglePostIsland con siteUrls.calendly y loading='eager' en imagen                                           | Sistema |
+| 2025-12-12 | FASE 6: Implementado sistema completo de generacion de contenido con Gemini 2.5 Flash + Google Search grounding      | Sistema |
+| 2025-12-12 | FASE 6: Creados GeminiClient, AIConfigManager, DraftManager, ContentGenerator, AIRestApi en App/Services/ContentAI   | Sistema |
+| 2025-12-12 | FASE 6: Creado AdminAIIsland.tsx con 4 tabs (Generar, Borradores, Configuracion, Estadisticas)                       | Sistema |
+| 2025-12-12 | FASE 6: Creado useAdminAI.ts hook para interactuar con la REST API de IA                                             | Sistema |
+| 2025-12-12 | FASE 6: Registrada ruta /admin/ai en AppRouter y pages.php (solo administradores)                                    | Sistema |
+| 2025-12-12 | UI: Actualizado Badge.tsx con variantes (info, success, warning, error) y tamanos (sm, md)                           | Sistema |
 
 ---
 

@@ -1,6 +1,9 @@
 // Componente Button reutilizable
 // Soporta tres variantes: primary, outline y ghost
 // Puede renderizarse como boton o como enlace si se proporciona href
+// Incluye tracking automatico para WhatsApp y Calendly (FASE 8)
+
+import {analytics} from '../../hooks/useAnalytics';
 
 interface ButtonProps {
     children: React.ReactNode;
@@ -12,6 +15,17 @@ interface ButtonProps {
     onClick?: () => void;
     type?: 'button' | 'submit' | 'reset';
     disabled?: boolean;
+}
+
+/**
+ * Detecta si un href es de WhatsApp o Calendly y trackea el evento correspondiente.
+ */
+function trackLinkClick(href: string, ctaText: string): void {
+    if (href.includes('wa.me') || href.includes('api.whatsapp.com')) {
+        analytics.trackWhatsAppClick(ctaText);
+    } else if (href.includes('calendly.com')) {
+        analytics.trackCalendlyClick(ctaText);
+    }
 }
 
 export function Button({children, variant = 'primary', size = 'md', className = '', href, icon: Icon, onClick, type = 'button', disabled = false}: ButtonProps) {
@@ -33,6 +47,9 @@ export function Button({children, variant = 'primary', size = 'md', className = 
 
     const combinedClassName = `${baseClass} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
 
+    // Extraer texto del CTA para tracking
+    const ctaText = typeof children === 'string' ? children : 'CTA Button';
+
     const content = (
         <>
             {children}
@@ -41,8 +58,12 @@ export function Button({children, variant = 'primary', size = 'md', className = 
     );
 
     if (href) {
+        const handleClick = () => {
+            trackLinkClick(href, ctaText);
+        };
+
         return (
-            <a href={href} className={combinedClassName}>
+            <a href={href} className={combinedClassName} onClick={handleClick}>
                 {content}
             </a>
         );

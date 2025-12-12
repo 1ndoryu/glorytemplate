@@ -4,6 +4,7 @@
 import {useState, useEffect} from 'react';
 import {Send, CheckCircle, AlertCircle} from 'lucide-react';
 import {Button} from '../ui/Button';
+import {analytics} from '../../hooks/useAnalytics';
 
 interface ContactFormProps {
     // Titulo de la seccion
@@ -120,6 +121,8 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
         // Por ahora simulamos un envio exitoso
         setTimeout(() => {
             setStatus('success');
+            // Trackear evento de conversion (FASE 8)
+            analytics.trackFormSubmit(formData.servicio || 'general');
             setFormData(initialFormData);
         }, 1500);
     };

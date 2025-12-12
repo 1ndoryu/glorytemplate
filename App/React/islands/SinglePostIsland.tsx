@@ -11,6 +11,7 @@ import {InternalLinks} from '../components/sections';
 import {Button} from '../components/ui';
 import type {WordPressPost} from '../components/content';
 import {useContent} from '../hooks/useContent';
+import {siteUrls} from '../config';
 
 // Props del componente
 interface SinglePostIslandProps {
@@ -115,10 +116,10 @@ export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
                     </button>
                 </div>
 
-                {/* Imagen destacada */}
+                {/* Imagen destacada - loading='eager' porque es hero del post */}
                 {post.featuredImage && (
                     <div className="overflow-hidden mb-8">
-                        <img src={post.featuredImage.url} alt={post.featuredImage.alt || post.title} className="single-post-featured-image" />
+                        <img src={post.featuredImage.url} alt={post.featuredImage.alt || post.title} className="single-post-featured-image" loading="eager" />
                     </div>
                 )}
             </header>
@@ -131,7 +132,7 @@ export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
                 <div className="text-center">
                     <p className="text-lg text-primary mb-4">¿Te interesa implementar algo similar en tu negocio?</p>
                     <div className="flex flex-wrap justify-center gap-4">
-                        <Button href="https://calendly.com/glorybot/30min" variant="primary">
+                        <Button href={siteUrls.calendly} variant="primary">
                             Reservar llamada gratuita
                         </Button>
                         <Button href="/demos" variant="outline">
