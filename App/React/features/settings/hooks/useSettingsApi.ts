@@ -9,7 +9,7 @@
  */
 
 import {useState, useCallback, useEffect} from 'react';
-import type {SettingsState, SaveResult, SettingsTab} from '../types';
+import type {SettingsState, SaveResult} from '../types';
 
 const API_BASE = '/wp-json/glory/v1/settings';
 
@@ -20,6 +20,7 @@ interface UseSettingsApiReturn extends SettingsState {
     uploadImage: (file: File) => Promise<string>;
     clearMessages: () => void;
     resetChanges: () => void;
+    isUnauthorized: boolean;
 }
 
 export function useSettingsApi(): UseSettingsApiReturn {
@@ -30,6 +31,7 @@ export function useSettingsApi(): UseSettingsApiReturn {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [isDirty, setIsDirty] = useState(false);
+    const [isUnauthorized, setIsUnauthorized] = useState(false);
 
     // Cargar opciones al montar
     const loadOptions = useCallback(async () => {
@@ -37,16 +39,24 @@ export function useSettingsApi(): UseSettingsApiReturn {
         setError(null);
 
         try {
+            const nonce = getWpNonce();
+
             const response = await fetch(API_BASE, {
                 method: 'GET',
                 credentials: 'same-origin',
                 headers: {
-                    'X-WP-Nonce': getWpNonce()
+                    'X-WP-Nonce': nonce
                 }
             });
 
             if (!response.ok) {
-                throw new Error('Error al cargar la configuracion');
+                // Detectar error de autenticacion
+                if (response.status === 401 || response.status === 403) {
+                    setIsUnauthorized(true);
+                    throw new Error('No tienes permiso para acceder');
+                }
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Error ${response.status}: No tienes permiso para acceder`);
             }
 
             const data = await response.json();
@@ -100,6 +110,10 @@ export function useSettingsApi(): UseSettingsApiReturn {
             const data = await response.json();
 
             if (!response.ok) {
+                // Detectar error de autenticacion
+                if (response.status === 401 || response.status === 403) {
+                    setIsUnauthorized(true);
+                }
                 throw new Error(data.message || 'Error al guardar');
             }
 
@@ -160,6 +174,7 @@ export function useSettingsApi(): UseSettingsApiReturn {
         error,
         success,
         isDirty,
+        isUnauthorized,
         loadOptions,
         updateOption,
         saveOptions,
@@ -171,13 +186,24 @@ export function useSettingsApi(): UseSettingsApiReturn {
 
 // Helper para obtener el nonce de WordPress
 function getWpNonce(): string {
-    // El nonce se inyecta desde PHP
+    // Opcion 1: wpApiSettings (estandar de WordPress, inyectado por ContentAI loader)
+    const wpApiSettings = (window as unknown as {wpApiSettings?: {nonce?: string}}).wpApiSettings;
+    if (wpApiSettings?.nonce) {
+        return wpApiSettings.nonce;
+    }
+
+    // Opcion 2: Meta tag
     const nonceElement = document.querySelector('meta[name="wp-api-nonce"]');
     if (nonceElement) {
         return nonceElement.getAttribute('content') || '';
     }
 
-    // Fallback: buscar en gloryReactContent
+    // Opcion 3: gloryReactContent
     const gloryContent = (window as unknown as {gloryReactContent?: {nonce?: string}}).gloryReactContent;
-    return gloryContent?.nonce || '';
+    if (gloryContent?.nonce) {
+        return gloryContent.nonce;
+    }
+
+    console.warn('[Settings] No se encontro el nonce de WordPress');
+    return '';
 }

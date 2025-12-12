@@ -41,7 +41,7 @@ export function Button({children, variant = 'primary', size = 'md', className = 
     const variantClasses = {
         primary: 'bg-[var(--color-accent-primary)] hover:bg-[var(--color-accent-hover)] text-white border border-transparent',
         outline: 'border border-[var(--color-border-secondary)] bg-surface text-secondary hover:bg-[var(--color-bg-secondary)]',
-        ghost: 'text-muted hover:bg-[var(--color-bg-secondary)] hover:text-primary border border-transparent shadow-none',
+        ghost: 'text-muted hover:bg-[var(--color-bg-secondary)] hover:text-primary border border-[var(--color-border-secondary)] shadow-none',
         white: 'bg-white text-[var(--color-accent-primary)] border border-transparent shadow-sm hover:bg-gray-50'
     };
 

@@ -53,6 +53,8 @@ export interface SiteImages {
     hero: string;
     secondary: string;
     logo: string;
+    logoMode: 'text' | 'image';
+    logoText: string;
 }
 
 export interface AnalyticsConfig {
@@ -100,7 +102,9 @@ const defaultConfig: SiteConfig = {
     images: {
         hero: '',
         secondary: '',
-        logo: ''
+        logo: '',
+        logoMode: 'text',
+        logoText: ''
     },
     analytics: {
         gtmId: '',

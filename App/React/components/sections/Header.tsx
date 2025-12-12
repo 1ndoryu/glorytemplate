@@ -4,6 +4,7 @@
 import {useState} from 'react';
 import {Menu, X} from 'lucide-react';
 import {Button} from '../ui/Button';
+import {useSiteImages, useSiteIdentity} from '../../hooks/useSiteConfig';
 
 interface NavItem {
     label: string;
@@ -11,14 +12,14 @@ interface NavItem {
 }
 
 interface HeaderProps {
-    logoText: string;
+    logoText?: string;
     navItems: NavItem[];
     ctaText: string;
     ctaHref: string;
 }
 
-// Logo SVG como componente interno
-function Logo() {
+// Logo SVG por defecto
+function DefaultLogo() {
     return (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-primary">
             <rect x="2" y="2" width="20" height="20" rx="6" fill="currentColor" fillOpacity="0.1" />
@@ -27,16 +28,22 @@ function Logo() {
     );
 }
 
-export function Header({logoText, navItems, ctaText, ctaHref}: HeaderProps) {
+export function Header({logoText: propLogoText, navItems, ctaText, ctaHref}: HeaderProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const images = useSiteImages();
+    const identity = useSiteIdentity();
+
+    // Determinar que logo mostrar
+    const logoMode = images.logoMode || 'text';
+    const logoImageUrl = images.logo;
+    const displayLogoText = images.logoText || propLogoText || identity.name;
 
     return (
         <header className="w-full backdrop-blur-md bg-[var(--color-bg-primary)]/80">
             <div className="mx-auto w-full max-w-7xl px-6 h-14 flex items-center justify-between">
                 <div className="flex items-center gap-8">
                     <a href="/" className="font-bold text-lg tracking-tighter flex items-center gap-2 text-primary">
-                        <Logo />
-                        {logoText}
+                        {logoMode === 'image' && logoImageUrl ? <img src={logoImageUrl} alt={displayLogoText} className="h-8 w-auto" /> : displayLogoText ? <span>{displayLogoText}</span> : <DefaultLogo />}
                     </a>
                     <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted">
                         {navItems.map(item => (

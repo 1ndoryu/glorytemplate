@@ -17,6 +17,7 @@ interface WhatsAppShowcaseProps {
     features: WhatsAppFeature[];
     ctaText?: string;
     ctaHref?: string;
+    backgroundImage?: string;
 }
 
 // Datos de las conversaciones demo
@@ -62,7 +63,7 @@ const DEMO_CONVERSATIONS = [
 // --- COMPONENTE ---
 // Seccion visual de WhatsApp Business con mockup de chat y lista de beneficios
 // Usado para mostrar capacidades del servicio de manera visual
-export function WhatsAppShowcase({badge = 'CANAL PRINCIPAL', title = 'WhatsApp Business API', features, ctaText = 'Solicitar demo WhatsApp', ctaHref = siteUrls.calendly}: WhatsAppShowcaseProps): JSX.Element {
+export function WhatsAppShowcase({badge = 'CANAL PRINCIPAL', title = 'WhatsApp Business API', features, ctaText = 'Solicitar demo WhatsApp', ctaHref = siteUrls.calendly, backgroundImage}: WhatsAppShowcaseProps): JSX.Element {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     // Rotacion de conversaciones
@@ -148,5 +149,5 @@ export function WhatsAppShowcase({badge = 'CANAL PRINCIPAL', title = 'WhatsApp B
         </>
     );
 
-    return <SplitSection id="whatsapp-section" visual={visualContent} content={textContent} visualPosition="right" />;
+    return <SplitSection id="whatsapp-section" visual={visualContent} content={textContent} visualPosition="right" backgroundImage={backgroundImage} />;
 }

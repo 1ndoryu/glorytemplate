@@ -18,10 +18,10 @@
  * - features/settings/hooks/useSettingsApi.ts
  */
 
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {Settings, Building2, Calendar, Share2, Image, LineChart, Save, RotateCcw, Check, X, AlertCircle} from 'lucide-react';
 import {PageLayout} from '../components/layout';
-import {IdentityTab, ContactTab, SocialTab, ImagesTab, IntegrationsTab, useSettingsApi} from '../features/settings';
+import {IdentityTab, ContactTab, SocialTab, ImagesTab, IntegrationsTab, LogoTab, useSettingsApi} from '../features/settings';
 import type {SettingsTab} from '../features/settings';
 
 interface TabConfig {
@@ -35,12 +35,23 @@ const TABS: TabConfig[] = [
     {id: 'contact', label: 'Contacto', icon: Calendar},
     {id: 'social', label: 'Redes Sociales', icon: Share2},
     {id: 'images', label: 'Imagenes', icon: Image},
+    {id: 'logo', label: 'Logo', icon: Image},
     {id: 'integrations', label: 'Integraciones', icon: LineChart}
 ];
 
 export function SettingsIsland(): JSX.Element {
     const [activeTab, setActiveTab] = useState<SettingsTab>('identity');
     const settings = useSettingsApi();
+
+    // Redirigir a login si no esta autenticado
+    useEffect(() => {
+        if (settings.isUnauthorized) {
+            // Redirigir al login de WordPress con redirect_to a esta pagina
+            const currentUrl = window.location.href;
+            const loginUrl = `/wp-login.php?redirect_to=${encodeURIComponent(currentUrl)}`;
+            window.location.href = loginUrl;
+        }
+    }, [settings.isUnauthorized]);
 
     return (
         <PageLayout headerCtaText="Volver al sitio" mainClassName="settings-page">
@@ -159,6 +170,8 @@ function TabContent({activeTab, settings}: TabContentProps): JSX.Element | null 
             return <SocialTab options={settings.options} onUpdate={settings.updateOption} />;
         case 'images':
             return <ImagesTab options={settings.options} onUpdate={settings.updateOption} onUpload={settings.uploadImage} />;
+        case 'logo':
+            return <LogoTab options={settings.options} onUpdate={settings.updateOption} onUpload={settings.uploadImage} />;
         case 'integrations':
             return <IntegrationsTab options={settings.options} onUpdate={settings.updateOption} />;
         default:

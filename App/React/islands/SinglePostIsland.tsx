@@ -5,7 +5,7 @@
  * Obtiene el post desde window.__GLORY_CONTENT__.blogPosts usando el slug.
  */
 
-import {ArrowLeft, Calendar, Clock, User, Share2} from 'lucide-react';
+import {ArrowLeft, Calendar, Clock, User, Share2, ExternalLink} from 'lucide-react';
 import {PageLayout} from '../components/layout';
 import {InternalLinks} from '../components/sections';
 import {Button} from '../components/ui';
@@ -26,6 +26,13 @@ const postInternalLinks = [
     {text: 'Ver servicios', href: '/servicios'},
     {text: 'Contactar', href: '/contacto'}
 ];
+
+// Tipo para fuentes
+interface Source {
+    title: string;
+    url: string;
+    description?: string;
+}
 
 // --- COMPONENTE PRINCIPAL ---
 export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
@@ -69,6 +76,9 @@ export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
             alert('Enlace copiado al portapapeles');
         }
     };
+
+    // Extraer fuentes desde meta
+    const sources = (post.meta?.sources as Source[]) || [];
 
     return (
         <PageLayout headerCtaText="Reservar llamada" mainClassName="flex-1 flex flex-col justify-start gap-12 px-6 py-12 md:py-16">
@@ -130,6 +140,28 @@ export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
 
             {/* CONTENIDO DEL POST */}
             <article id="post-content" className="single-post-container prose prose-lg prose-neutral dark:prose-invert" dangerouslySetInnerHTML={{__html: post.content}} />
+
+            {/* FUENTES CONSULTADAS */}
+            {sources.length > 0 && (
+                <section id="post-sources" className="single-post-container">
+                    <div className="border-t border-primary pt-8">
+                        <h2 className="text-xl font-semibold text-primary mb-4">Fuentes consultadas</h2>
+                        <ul className="space-y-3">
+                            {sources.map((source, index) => (
+                                <li key={index} className="flex items-start gap-3">
+                                    <ExternalLink className="w-4 h-4 text-[var(--color-accent-primary)] mt-1 flex-shrink-0" />
+                                    <div>
+                                        <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent-primary)] hover:underline font-medium">
+                                            {source.title}
+                                        </a>
+                                        {source.description && <p className="text-sm text-muted mt-1">{source.description}</p>}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </section>
+            )}
 
             {/* CTA */}
             <div id="post-cta" className="single-post-container py-8 border-t border-b border-primary">

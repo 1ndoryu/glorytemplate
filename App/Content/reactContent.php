@@ -120,6 +120,8 @@ ReactContentProvider::registerStatic('siteConfig', [
         'hero' => OpcionManager::get('glory_image_hero', ''),
         'secondary' => OpcionManager::get('glory_image_secondary', ''),
         'logo' => OpcionManager::get('glory_logo_image', ''),
+        'logoMode' => OpcionManager::get('glory_logo_mode', 'text'),
+        'logoText' => OpcionManager::get('glory_logo_text', ''),
     ],
 
     // Analytics y tracking

@@ -30,13 +30,13 @@ export function IdentityTab({options, onUpdate}: IdentityTabProps): JSX.Element 
             </header>
 
             <div className="settings-fields-grid">
-                <SettingsField id="glory_site_name" label="Nombre del Sitio" type="text" value={options.glory_site_name || ''} onChange={value => onUpdate('glory_site_name', value)} description="El nombre que aparece en encabezados, SEO y schemas JSON-LD." placeholder="Ej: Guillermo Garcia" />
+                <SettingsField id="glory_site_name" label="Nombre del Sitio" type="text" value={options.glory_site_name || ''} onChange={(value: string) => onUpdate('glory_site_name', value)} description="El nombre que aparece en encabezados, SEO y schemas JSON-LD." placeholder="Ej: Guillermo Garcia" />
 
-                <SettingsField id="glory_site_tagline" label="Tagline / Slogan" type="text" value={options.glory_site_tagline || ''} onChange={value => onUpdate('glory_site_tagline', value)} description="Descripcion corta del sitio usada en SEO y headers." placeholder="Ej: Consultoria en Chatbots y Automatizacion" />
+                <SettingsField id="glory_site_tagline" label="Tagline / Slogan" type="text" value={options.glory_site_tagline || ''} onChange={(value: string) => onUpdate('glory_site_tagline', value)} description="Descripcion corta del sitio usada en SEO y headers." placeholder="Ej: Consultoria en Chatbots y Automatizacion" />
 
-                <SettingsField id="glory_site_phone" label="Telefono de Contacto" type="text" value={options.glory_site_phone || ''} onChange={value => onUpdate('glory_site_phone', value)} description="Numero con codigo de pais (ej: +34 612 345 678). Usado en JSON-LD y seccion de contacto." placeholder="Ej: +34 612 345 678" />
+                <SettingsField id="glory_site_phone" label="Telefono de Contacto" type="text" value={options.glory_site_phone || ''} onChange={(value: string) => onUpdate('glory_site_phone', value)} description="Numero con codigo de pais (ej: +34 612 345 678). Usado en JSON-LD y seccion de contacto." placeholder="Ej: +34 612 345 678" />
 
-                <SettingsField id="glory_site_email" label="Email de Contacto" type="text" inputType="email" value={options.glory_site_email || ''} onChange={value => onUpdate('glory_site_email', value)} description="Direccion de email principal para contacto." placeholder="Ej: hola@tudominio.com" />
+                <SettingsField id="glory_site_email" label="Email de Contacto" type="text" inputType="email" value={options.glory_site_email || ''} onChange={(value: string) => onUpdate('glory_site_email', value)} description="Direccion de email principal para contacto." placeholder="Ej: hola@tudominio.com" />
             </div>
         </div>
     );

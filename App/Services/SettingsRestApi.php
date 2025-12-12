@@ -13,6 +13,7 @@
 namespace App\Services;
 
 use Glory\Manager\OpcionManager;
+use Glory\Core\OpcionRepository;
 
 class SettingsRestApi
 {
@@ -38,6 +39,10 @@ class SettingsRestApi
         // Images
         'glory_image_hero',
         'glory_image_secondary',
+        // Logo
+        'glory_logo_mode',
+        'glory_logo_text',
+        'glory_logo_image',
         // Integrations
         'glory_gtm_id',
         'glory_ga4_measurement_id',
@@ -127,16 +132,16 @@ class SettingsRestApi
             // Sanitizar segun tipo
             $sanitizedValue = self::sanitizeOption($key, $value);
 
-            // Guardar usando update_option de WordPress
-            // Las opciones registradas con OpcionManager se almacenan en wp_options
-            $result = update_option($key, $sanitizedValue);
+            // Guardar usando OpcionRepository (que aplica el prefijo correcto)
+            // OpcionManager lee desde OpcionRepository, no directamente desde wp_options
+            $result = OpcionRepository::save($key, $sanitizedValue);
 
             if ($result !== false) {
                 $saved[] = $key;
                 // Limpiar cache de OpcionManager para que refleje el nuevo valor
                 OpcionManager::clearCache();
             } else {
-                // update_option devuelve false si el valor no cambio
+                // save() devuelve false si el valor no cambio
                 // En ese caso, consideramos que el guardado fue exitoso
                 $saved[] = $key;
             }
@@ -178,7 +183,7 @@ class SettingsRestApi
         }
 
         // Imagenes (URLs)
-        if (strpos($key, '_image_') !== false) {
+        if (strpos($key, '_image_') !== false || $key === 'glory_logo_image') {
             return esc_url_raw($value);
         }
 

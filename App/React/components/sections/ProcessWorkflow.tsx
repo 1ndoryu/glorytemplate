@@ -17,6 +17,7 @@ interface ProcessSimulation {
 interface ProcessWorkflowProps {
     steps: ProcessStep[];
     simulations: ProcessSimulation[];
+    backgroundImage?: string;
 }
 
 /**
@@ -177,7 +178,7 @@ function SimulationStepImprove() {
  * Componente unificado que muestra el proceso de trabajo
  * Estructura minimalista con colores normalizados y Autoplay
  */
-export function ProcessWorkflow({steps, simulations}: ProcessWorkflowProps) {
+export function ProcessWorkflow({steps, simulations, backgroundImage}: ProcessWorkflowProps) {
     const [activeStep, setActiveStep] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -239,6 +240,9 @@ export function ProcessWorkflow({steps, simulations}: ProcessWorkflowProps) {
                 onMouseLeave={() => setIsPaused(false)} // Reanudar al salir (opcional)
             >
                 <div className="border-b relative h-64 md:h-[420px] overflow-hidden group border-primary bg-secondary">
+                    {/* Imagen de fondo opcional */}
+                    {backgroundImage && <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{backgroundImage: `url(${backgroundImage})`}} />}
+
                     {/* Grid Pattern */}
                     <div
                         className="absolute inset-0 opacity-[0.4]"

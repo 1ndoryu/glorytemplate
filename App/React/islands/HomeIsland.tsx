@@ -9,6 +9,8 @@ import {HeroSection, QuoteSection, ProcessWorkflow, FeatureSection, ContactForm,
 
 // Configuracion dinamica desde Theme Options
 import {useSiteUrls} from '../hooks/useSiteConfig';
+// Utilidad para optimizar imagenes (WebP/CDN)
+import {getBackgroundImageUrl} from '../utils/imageOptimizer';
 
 // --- CONFIGURACION DE CONTENIDO ESPECIFICO DE HOME ---
 // Textos exactos segun project-extends.md para SEO optimizado
@@ -139,10 +141,10 @@ export function HomeIsland(): JSX.Element {
             </div>
 
             {/* 2. FEATURE SECTION - "Lo que voy a conseguir contigo" (4 beneficios) segun project-extends.md */}
-            <FeatureSection features={homeContent.features} />
+            <FeatureSection features={homeContent.features} backgroundImage={getBackgroundImageUrl('316d9c253af59840f793c2d6d6d2f15b.jpg')} />
 
             {/* 3. WHATSAPP SHOWCASE - "WhatsApp Business" (H2 + 3 H3) segun project-extends.md */}
-            <WhatsAppShowcase badge="CANAL PRINCIPAL" title="WhatsApp Business" features={homeContent.whatsAppFeatures} ctaText="Hablame ahora y respondo en menos de 30 min (09-21h)" ctaHref={urls.whatsapp} />
+            <WhatsAppShowcase badge="CANAL PRINCIPAL" title="WhatsApp Business" features={homeContent.whatsAppFeatures} ctaText="Hablame ahora y respondo en menos de 30 min (09-21h)" ctaHref={urls.whatsapp} backgroundImage={getBackgroundImageUrl('e0157b5927a898a9e9df9d988b27fafc.jpg')} />
 
             {/* 4. AUTOMATION FLOW - "Automatizacion de procesos pymes" (H2 + descripcion) */}
             <AutomationFlow
@@ -159,7 +161,7 @@ export function HomeIsland(): JSX.Element {
             {/* 5. PROCESS WORKFLOW - "Trabajo contigo, sin intermediarios" (H2 + 3 H3) */}
             <section id="proceso" className="mx-auto w-full max-w-7xl">
                 <h2 className="text-2xl md:text-3xl font-medium tracking-tight mb-8 text-primary">Trabajo contigo, sin intermediarios</h2>
-                <ProcessWorkflow steps={homeContent.processWorkflow.steps} simulations={homeContent.processWorkflow.simulations} />
+                <ProcessWorkflow steps={homeContent.processWorkflow.steps} simulations={homeContent.processWorkflow.simulations} backgroundImage={getBackgroundImageUrl('7edd0f69949fcb2662528c5af952b6a2.jpg')} />
             </section>
 
             {/* CTA INTERMEDIO - Bloque de conversion despues del proceso (FASE 5.2) */}
@@ -178,7 +180,7 @@ export function HomeIsland(): JSX.Element {
             </section>
 
             {/* 7. MEDIMOS LO IMPORTANTE - Lista clara segun project-extends.md */}
-            <AnalyticsSection title="Medimos lo importante" description="Vas a ver quien te escribe, quien reserva y desde donde llegan. Configuro tres cosas clave:" metrics={homeContent.analytics} footerText="Ademas registro: fecha, pagina, origen/UTM, y consentimiento para poder mejorar." />
+            <AnalyticsSection title="Medimos lo importante" description="Vas a ver quien te escribe, quien reserva y desde donde llegan. Configuro tres cosas clave:" metrics={homeContent.analytics} footerText="Ademas registro: fecha, pagina, origen/UTM, y consentimiento para poder mejorar." backgroundImage={getBackgroundImageUrl('f0ac5f498b5d6a0cfaac8caa87cb7f00.jpg')} />
 
             {/* 8. QUOTE - Propuesta de valor diferenciadora */}
             <div id="quote">

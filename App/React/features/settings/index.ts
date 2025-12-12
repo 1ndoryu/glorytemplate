@@ -10,6 +10,7 @@ export {ContactTab} from './components/ContactTab';
 export {SocialTab} from './components/SocialTab';
 export {ImagesTab} from './components/ImagesTab';
 export {IntegrationsTab} from './components/IntegrationsTab';
+export {LogoTab} from './components/LogoTab';
 
 // Componentes auxiliares
 export {SettingsField} from './components/SettingsField';
@@ -19,4 +20,4 @@ export {ImageUploader} from './components/ImageUploader';
 export {useSettingsApi} from './hooks/useSettingsApi';
 
 // Types
-export type * from './types';
+export type {SettingsTab, SettingsState, ThemeOption, SettingsSection, SaveResult, ValidationError} from './types';

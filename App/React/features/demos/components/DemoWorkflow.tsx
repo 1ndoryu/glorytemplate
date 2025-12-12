@@ -24,11 +24,15 @@ const getMessageDelay = (index: number): number => {
 // Tiempo extra despues del ultimo mensaje antes de cambiar (en ms)
 const PAUSE_AFTER_CONVERSATION = 3000;
 
+interface DemoWorkflowProps {
+    backgroundImage?: string;
+}
+
 /**
  * DemoWorkflow - Componente de demo interactivo estilo ProcessWorkflow
  * Muestra una simulacion de chat por sector con autoplay y animaciones
  */
-export function DemoWorkflow() {
+export function DemoWorkflow({backgroundImage}: DemoWorkflowProps) {
     const [activeIndex, setActiveIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -98,6 +102,8 @@ export function DemoWorkflow() {
             {/* Area Visual Principal */}
             <div className="border rounded-md overflow-hidden shadow-sm border-primary bg-surface" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
                 <div className="border-b relative min-h-[520px] md:min-h-[600px] overflow-hidden border-primary bg-secondary">
+                    {/* Imagen de fondo opcional */}
+                    {backgroundImage && <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{backgroundImage: `url(${backgroundImage})`}} />}
                     {/* Grid Pattern de fondo */}
                     <div
                         className="absolute inset-0 opacity-[0.4]"

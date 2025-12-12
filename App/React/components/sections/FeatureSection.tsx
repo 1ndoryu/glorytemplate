@@ -9,6 +9,7 @@ import {siteUrls} from '../../config';
 
 interface FeatureSectionProps {
     features: Feature[];
+    backgroundImage?: string;
 }
 
 /**
@@ -143,7 +144,7 @@ function ConversationSimulationContent() {
  * - Lista de features/beneficios con iconos
  * - CTA para ver planes
  */
-export function FeatureSection({features}: FeatureSectionProps): JSX.Element {
+export function FeatureSection({features, backgroundImage}: FeatureSectionProps): JSX.Element {
     // Visual: SimulationCard con animacion de chat
     const visualContent = (
         <SimulationCard badge="WHATSAPP" minHeight="160px">
@@ -161,8 +162,8 @@ export function FeatureSection({features}: FeatureSectionProps): JSX.Element {
             {/* Lista de features estilo AnalyticsSection */}
             <div className="space-y-6">
                 {features.map((feature, idx) => (
-                    <div key={idx} className="flex gap-4">
-                        <div className="mt-1 p-1.5 rounded-md border flex-none bg-[var(--color-bg-tertiary)] border-[var(--color-border-subtle)]">
+                    <div key={idx} className="flex gap-4 items-start">
+                        <div className="w-7 h-7 rounded-md border flex items-center justify-center shrink-0 bg-[var(--color-bg-tertiary)] border-[var(--color-border-subtle)]">
                             <feature.icon className="w-4 h-4 text-[var(--color-accent-primary)]" />
                         </div>
                         <div>
@@ -182,5 +183,5 @@ export function FeatureSection({features}: FeatureSectionProps): JSX.Element {
         </>
     );
 
-    return <SplitSection id="servicios" visual={visualContent} content={textContent} visualPosition="left" />;
+    return <SplitSection id="servicios" visual={visualContent} content={textContent} visualPosition="left" backgroundImage={backgroundImage} />;
 }

@@ -209,6 +209,42 @@ OpcionManager::register('glory_image_secondary', [
 ]);
 
 // ============================================================================
+// SECCION: LOGO DEL SITIO
+// ============================================================================
+$seccionLogo = 'logo';
+$etiquetaSeccionLogo = 'Site Logo';
+
+OpcionManager::register('glory_logo_mode', [
+    'valorDefault'    => 'text',
+    'tipo'            => 'text',
+    'etiqueta'        => 'Logo Mode',
+    'descripcion'     => 'How to display the logo: "text" or "image".',
+    'seccion'         => $seccionLogo,
+    'etiquetaSeccion' => $etiquetaSeccionLogo,
+    'subSeccion'      => 'logo_settings',
+]);
+
+OpcionManager::register('glory_logo_text', [
+    'valorDefault'    => '',
+    'tipo'            => 'text',
+    'etiqueta'        => 'Logo Text',
+    'descripcion'     => 'Text to display as logo when mode is "text". Falls back to site name if empty.',
+    'seccion'         => $seccionLogo,
+    'etiquetaSeccion' => $etiquetaSeccionLogo,
+    'subSeccion'      => 'logo_settings',
+]);
+
+OpcionManager::register('glory_logo_image', [
+    'valorDefault'    => '',
+    'tipo'            => 'imagen',
+    'etiqueta'        => 'Logo Image',
+    'descripcion'     => 'Image URL for the logo when mode is "image".',
+    'seccion'         => $seccionLogo,
+    'etiquetaSeccion' => $etiquetaSeccionLogo,
+    'subSeccion'      => 'logo_settings',
+]);
+
+// ============================================================================
 // SECCION: GTM ID (separado de GA4 para mayor claridad)
 // ============================================================================
 OpcionManager::register('glory_gtm_id', [

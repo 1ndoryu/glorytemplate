@@ -31,7 +31,7 @@ export function ContactTab({options, onUpdate}: ContactTabProps): JSX.Element {
             </header>
 
             <div className="settings-fields-grid">
-                <SettingsField id="glory_url_calendly" label="URL de Calendly" type="text" inputType="url" value={options.glory_url_calendly || ''} onChange={value => onUpdate('glory_url_calendly', value)} description="URL completa a tu calendario de Calendly." placeholder="https://calendly.com/tu-usuario" icon={<Calendar className="settings-field-icon" />} />
+                <SettingsField id="glory_url_calendly" label="URL de Calendly" type="text" inputType="url" value={options.glory_url_calendly || ''} onChange={(value: string) => onUpdate('glory_url_calendly', value)} description="URL completa a tu calendario de Calendly." placeholder="https://calendly.com/tu-usuario" icon={<Calendar className="settings-field-icon" />} />
 
                 <div className="settings-field-group">
                     <h3 className="settings-group-title">
@@ -39,7 +39,7 @@ export function ContactTab({options, onUpdate}: ContactTabProps): JSX.Element {
                         WhatsApp
                     </h3>
 
-                    <SettingsField id="glory_url_whatsapp" label="Numero de WhatsApp" type="text" value={options.glory_url_whatsapp || ''} onChange={value => onUpdate('glory_url_whatsapp', value)} description="Numero sin + ni espacios (ej: 34612345678). Se usara como wa.me/NUMERO." placeholder="34612345678" />
+                    <SettingsField id="glory_url_whatsapp" label="Numero de WhatsApp" type="text" value={options.glory_url_whatsapp || ''} onChange={(value: string) => onUpdate('glory_url_whatsapp', value)} description="Numero sin + ni espacios (ej: 34612345678). Se usara como wa.me/NUMERO." placeholder="34612345678" />
 
                     {whatsappPreview && (
                         <div className="settings-preview-link">
@@ -50,7 +50,7 @@ export function ContactTab({options, onUpdate}: ContactTabProps): JSX.Element {
                         </div>
                     )}
 
-                    <SettingsField id="glory_whatsapp_message" label="Mensaje Predefinido" type="textarea" value={options.glory_whatsapp_message || ''} onChange={value => onUpdate('glory_whatsapp_message', value)} description="Mensaje opcional que aparecera pre-escrito cuando el usuario haga clic en WhatsApp." placeholder="Hola, me gustaria obtener mas informacion sobre..." rows={3} />
+                    <SettingsField id="glory_whatsapp_message" label="Mensaje Predefinido" type="textarea" value={options.glory_whatsapp_message || ''} onChange={(value: string) => onUpdate('glory_whatsapp_message', value)} description="Mensaje opcional que aparecera pre-escrito cuando el usuario haga clic en WhatsApp." placeholder="Hola, me gustaria obtener mas informacion sobre..." rows={3} />
                 </div>
             </div>
         </div>

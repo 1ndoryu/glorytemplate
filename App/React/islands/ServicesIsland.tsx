@@ -4,6 +4,8 @@ import {PageLayout} from '../components/layout';
 import {WhatsAppShowcase, AutomationFlow, FaqWithCta, ProcessTimeline, HeroSection, InternalLinks, ContactForm} from '../components/sections';
 // Configuracion dinamica desde Theme Options
 import {useSiteUrls} from '../hooks/useSiteConfig';
+// Utilidad para optimizar imagenes (WebP/CDN)
+import {getBackgroundImageUrl} from '../utils/imageOptimizer';
 
 // Links internos especificos para Servicios
 const servicesInternalLinks = [
@@ -189,7 +191,7 @@ export function ServicesIsland(): JSX.Element {
             <HeroSection title={servicesContent.hero.title} subtitle={servicesContent.hero.subtitle} primaryCta={servicesContent.hero.primaryCta} secondaryCta={servicesContent.hero.secondaryCta} tertiaryCta={servicesContent.hero.tertiaryCta} />
 
             {/* 2. WHATSAPP BUSINESS */}
-            <WhatsAppShowcase badge={servicesContent.whatsapp.badge} title={servicesContent.whatsapp.title} features={servicesContent.whatsapp.features} ctaText={servicesContent.whatsapp.ctaText} ctaHref={servicesContent.whatsapp.ctaHref} />
+            <WhatsAppShowcase badge={servicesContent.whatsapp.badge} title={servicesContent.whatsapp.title} features={servicesContent.whatsapp.features} ctaText={servicesContent.whatsapp.ctaText} ctaHref={servicesContent.whatsapp.ctaHref} backgroundImage={getBackgroundImageUrl('bc2241ad92399a7545184ea5856f3fc6.jpg')} />
 
             {/* 3. MULTICANAL (Instagram y Web) */}
             <section id="multichannel-section" className="mx-auto w-full max-w-7xl py-12">

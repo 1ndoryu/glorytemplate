@@ -1,11 +1,13 @@
 import {useState, useEffect} from 'react';
 import {Button} from './Button';
+import {useAnalyticsConfig} from '../../hooks/useSiteConfig';
 
 const STORAGE_KEY = 'cookie_consent';
-const GTM_ID = 'GTM-XXXXXXX'; // Placeholder
 
 export function CookieBanner(): JSX.Element | null {
     const [isVisible, setIsVisible] = useState(false);
+    const analyticsConfig = useAnalyticsConfig();
+    const gtmId = analyticsConfig.gtmId;
 
     useEffect(() => {
         // Validar si ya hay consentimiento
@@ -18,6 +20,12 @@ export function CookieBanner(): JSX.Element | null {
     }, []);
 
     const loadGtm = () => {
+        // No cargar si no hay GTM ID configurado
+        if (!gtmId || gtmId === '') {
+            console.warn('[CookieBanner] GTM ID no configurado en Theme Options');
+            return;
+        }
+
         if (window.dataLayer) return; // Ya cargado
 
         // Inicializar dataLayer (tipo definido en useAnalytics.ts)
@@ -28,11 +36,11 @@ export function CookieBanner(): JSX.Element | null {
             window.dataLayer.push({event: 'gtag', args});
         };
         gtag('js', new Date());
-        gtag('config', GTM_ID);
+        gtag('config', gtmId);
 
         // Script GTM
         const script = document.createElement('script');
-        script.src = `https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`;
+        script.src = `https://www.googletagmanager.com/gtm.js?id=${gtmId}`;
         script.async = true;
         document.head.appendChild(script);
     };

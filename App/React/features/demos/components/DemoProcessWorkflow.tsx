@@ -25,6 +25,10 @@ const DEMO_SIMULATIONS: DemoProcessSimulation[] = [
     {badge: 'PASO 4', title: 'Siguiente paso', subtitle: 'Primer mes gratis'}
 ];
 
+interface DemoProcessWorkflowProps {
+    backgroundImage?: string;
+}
+
 /**
  * Visualizacion Paso 1: Llamada breve
  * Minimalista: Avatar pulsando + Notas de reunion con checkmarks
@@ -198,7 +202,7 @@ function SimulationLaunch() {
  * DemoProcessWorkflow - Componente de proceso para la pagina de demos
  * Estructura inspirada en ProcessWorkflow del home con animaciones propias
  */
-export function DemoProcessWorkflow() {
+export function DemoProcessWorkflow({backgroundImage}: DemoProcessWorkflowProps) {
     const [activeStep, setActiveStep] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -259,6 +263,8 @@ export function DemoProcessWorkflow() {
             {/* Area Visual */}
             <div className="border rounded-md overflow-hidden shadow-sm border-primary bg-surface" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
                 <div className="border-b relative h-64 md:h-[380px] overflow-hidden group border-primary bg-secondary">
+                    {/* Imagen de fondo opcional */}
+                    {backgroundImage && <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{backgroundImage: `url(${backgroundImage})`}} />}
                     {/* Grid Pattern */}
                     <div
                         className="absolute inset-0 opacity-[0.4]"

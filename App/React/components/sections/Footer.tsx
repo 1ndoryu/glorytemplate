@@ -1,5 +1,8 @@
 // Componente Footer
-// Pie de pagina con columnas de enlaces y creditos
+// Pie de pagina con columnas de enlaces, redes sociales y creditos
+
+import {Linkedin, Twitter, Youtube, Instagram} from 'lucide-react';
+import {useActiveSocialProfiles, useSiteIdentity, useSiteImages, type SocialProfiles} from '../../hooks/useSiteConfig';
 
 interface FooterColumn {
     title: string;
@@ -14,8 +17,16 @@ interface FooterProps {
     copyrightText: string;
 }
 
-// Logo SVG como componente interno
-function FooterLogo() {
+// Mapa de iconos para redes sociales
+const socialIcons: Record<keyof SocialProfiles, React.ComponentType<{className?: string}>> = {
+    linkedin: Linkedin,
+    twitter: Twitter,
+    youtube: Youtube,
+    instagram: Instagram
+};
+
+// Logo SVG por defecto
+function DefaultFooterLogo() {
     return (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="2" y="2" width="20" height="20" rx="6" fill="currentColor" fillOpacity="0.1" />
@@ -25,6 +36,15 @@ function FooterLogo() {
 }
 
 export function Footer({columns, copyrightText}: FooterProps) {
+    const socialProfiles = useActiveSocialProfiles();
+    const identity = useSiteIdentity();
+    const images = useSiteImages();
+
+    // Determinar que logo mostrar
+    const logoMode = images.logoMode || 'text';
+    const logoImageUrl = images.logo;
+    const displayLogoText = images.logoText || identity.name;
+
     return (
         <footer className="w-full border-t bg-surface border-primary">
             <div className="mx-auto w-full max-w-7xl px-6 py-10">
@@ -42,8 +62,23 @@ export function Footer({columns, copyrightText}: FooterProps) {
                 </div>
                 <div className="pt-8 mt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4 text-xs border-subtle text-subtle">
                     <a href="/" className="font-bold text-lg tracking-tighter flex items-center gap-2 opacity-80 text-primary">
-                        <FooterLogo />
+                        {logoMode === 'image' && logoImageUrl ? <img src={logoImageUrl} alt={displayLogoText} className="h-6 w-auto" /> : displayLogoText ? <span>{displayLogoText}</span> : <DefaultFooterLogo />}
                     </a>
+
+                    {/* Redes sociales */}
+                    {socialProfiles.length > 0 && (
+                        <div className="flex items-center gap-4">
+                            {socialProfiles.map(({platform, url}) => {
+                                const Icon = socialIcons[platform];
+                                return (
+                                    <a key={platform} href={url} target="_blank" rel="noopener noreferrer" className="text-muted hover:text-primary transition-colors" aria-label={`Ir a ${platform}`}>
+                                        <Icon className="w-5 h-5" />
+                                    </a>
+                                );
+                            })}
+                        </div>
+                    )}
+
                     <p>{copyrightText}</p>
                 </div>
             </div>

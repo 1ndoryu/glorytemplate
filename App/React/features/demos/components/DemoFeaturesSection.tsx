@@ -15,6 +15,7 @@ interface DemoFeaturesSectionProps {
     items: DemoFeatureItem[];
     ctaText: string;
     ctaHref: string;
+    backgroundImage?: string;
 }
 
 /**
@@ -149,7 +150,7 @@ function DemoVisualSimulation() {
     );
 }
 
-export function DemoFeaturesSection({title, description, items, ctaText, ctaHref}: DemoFeaturesSectionProps) {
+export function DemoFeaturesSection({title, description, items, ctaText, ctaHref, backgroundImage}: DemoFeaturesSectionProps) {
     // Contenido de texto: mismo estilo que AnalyticsSection
     const textContent = (
         <>
@@ -160,8 +161,8 @@ export function DemoFeaturesSection({title, description, items, ctaText, ctaHref
             {/* Lista de features estilo AnalyticsSection */}
             <div className="space-y-6">
                 {items.map((item, idx) => (
-                    <div key={idx} className="flex gap-4">
-                        <div className="mt-1 p-1.5 rounded-md border flex-none bg-[var(--color-bg-tertiary)] border-[var(--color-border-subtle)]">
+                    <div key={idx} className="flex gap-4 items-start">
+                        <div className="w-7 h-7 rounded-md border flex items-center justify-center shrink-0 bg-[var(--color-bg-tertiary)] border-[var(--color-border-subtle)]">
                             <item.icon className="w-4 h-4 text-[var(--color-accent-primary)]" />
                         </div>
                         <div>
@@ -180,5 +181,5 @@ export function DemoFeaturesSection({title, description, items, ctaText, ctaHref
         </>
     );
 
-    return <SplitSection id="que-veras-demo" visual={<DemoVisualSimulation />} content={textContent} visualPosition="right" />;
+    return <SplitSection id="que-veras-demo" visual={<DemoVisualSimulation />} content={textContent} visualPosition="right" backgroundImage={backgroundImage} />;
 }

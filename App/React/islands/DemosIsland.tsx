@@ -3,6 +3,8 @@ import {PageLayout} from '../components/layout';
 import {HeroSection, FaqWithCta, ContactForm, InternalLinks, CtaBlock, ScrollTabsShowcase} from '../components/sections';
 // Configuracion dinamica desde Theme Options
 import {useSiteUrls} from '../hooks/useSiteConfig';
+// Utilidad para optimizar imagenes (WebP/CDN)
+import {getBackgroundImageUrl} from '../utils/imageOptimizer';
 // Componente de demo interactivo estilo ProcessWorkflow
 import {DemoWorkflow} from '../features/demos/components/DemoWorkflow';
 // Componente de features estilo AnalyticsSection
@@ -175,14 +177,14 @@ export function DemosIsland(): JSX.Element {
                         <h2 className="text-3xl font-heading font-bold tracking-tight mb-4 text-primary">Prueba la demo en vivo</h2>
                         <p className="text-lg text-secondary max-w-2xl mx-auto">Selecciona un sector y observa como el chatbot gestiona la conversacion en tiempo real.</p>
                     </div>
-                    <DemoWorkflow />
+                    <DemoWorkflow backgroundImage={getBackgroundImageUrl('517215a59e44b13753fb01d83808742f.jpg')} />
                 </div>
             </section>
 
             {/* 3. QUE VERAS EN LA DEMO - Estilo AnalyticsSection */}
             <section id="que-veras" className="py-16">
                 <div className="mx-auto">
-                    <DemoFeaturesSection title={demosContent.whatYouWillSee.title} description="En cada demo veras como el chatbot gestiona conversaciones reales con tu flujo de negocio." items={demosContent.whatYouWillSee.items} ctaText={demosContent.whatYouWillSee.ctaText} ctaHref={demosContent.whatYouWillSee.ctaHref} />
+                    <DemoFeaturesSection title={demosContent.whatYouWillSee.title} description="En cada demo veras como el chatbot gestiona conversaciones reales con tu flujo de negocio." items={demosContent.whatYouWillSee.items} ctaText={demosContent.whatYouWillSee.ctaText} ctaHref={demosContent.whatYouWillSee.ctaHref} backgroundImage={getBackgroundImageUrl('c5f3015667280079a5a6299c0ac16e83.jpg')} />
                 </div>
             </section>
 
@@ -196,7 +198,7 @@ export function DemosIsland(): JSX.Element {
             {/* 7. COMO LO HACEMOS - Con animaciones propias */}
             <section id="proceso-demos" className="py-16">
                 <div className="mx-auto px-4">
-                    <DemoProcessWorkflow />
+                    <DemoProcessWorkflow backgroundImage={getBackgroundImageUrl('0dbad17d22ffe12ca27b1bda40ee2077.jpg')} />
                 </div>
             </section>
 

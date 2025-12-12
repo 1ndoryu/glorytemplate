@@ -144,14 +144,31 @@ class SeoManager
         $homeUrl = home_url();
         $data = [];
 
-        // Common
+        // Obtener datos dinamicos de Theme Options
+        $siteConfig = self::getSiteConfig();
+
+        // Common Organization with sameAs
         $org = [
             '@type' => 'Organization',
-            'name' => 'Guillermo Garcia',
+            'name' => $siteConfig['name'] ?: 'Guillermo Garcia',
             'url' => $homeUrl,
-            // 'logo' => '...' // TODO: Add Logo URL
         ];
 
+        // Agregar logo si existe
+        if (!empty($siteConfig['logo'])) {
+            $org['logo'] = $siteConfig['logo'];
+        }
+
+        // Agregar sameAs (redes sociales) si existen
+        $sameAs = array_filter([
+            $siteConfig['linkedin'],
+            $siteConfig['twitter'],
+            $siteConfig['youtube'],
+            $siteConfig['instagram'],
+        ]);
+        if (!empty($sameAs)) {
+            $org['sameAs'] = array_values($sameAs);
+        }
         $breadList = function ($name) use ($homeUrl, $slug) {
             $path = $slug;
             if (is_single()) {
@@ -216,13 +233,15 @@ class SeoManager
 
         switch ($slug) {
             case 'home':
+                $siteName = $siteConfig['name'] ?: 'Guillermo Garcia';
+                $heroImage = $siteConfig['heroImage'] ?: '';
                 $data = [
                     '@context' => 'https://schema.org',
                     '@graph' => [
                         $org,
                         [
                             '@type' => 'WebSite',
-                            'name' => 'Guillermo Garcia',
+                            'name' => $siteName,
                             'url' => $homeUrl,
                             'potentialAction' => [
                                 '@type' => 'SearchAction',
@@ -232,9 +251,11 @@ class SeoManager
                         ],
                         [
                             '@type' => 'ProfessionalService',
-                            'name' => 'Guillermo Garcia - Chatbots y Automatizacion',
-                            'image' => '', // TODO: Add hero image
+                            'name' => $siteName . ' - Chatbots y Automatizacion',
+                            'image' => $heroImage,
                             'priceRange' => '$$',
+                            'telephone' => $siteConfig['phone'] ?: '',
+                            'email' => $siteConfig['email'] ?: '',
                             'address' => [
                                 '@type' => 'PostalAddress',
                                 'addressLocality' => 'Madrid',
@@ -306,17 +327,20 @@ class SeoManager
                 break;
 
             case 'contacto':
+                $calendlyUrl = $siteConfig['calendly'] ?: 'https://calendly.com';
                 $data = [
                     '@context' => 'https://schema.org',
                     '@graph' => [
                         $breadList('Contacto'),
                         [
                             '@type' => 'ProfessionalService',
-                            'name' => 'Contacto Guillermo Garcia',
+                            'name' => 'Contacto ' . ($siteConfig['name'] ?: 'Guillermo Garcia'),
                             'url' => $homeUrl . '/contacto',
+                            'telephone' => $siteConfig['phone'] ?: '',
+                            'email' => $siteConfig['email'] ?: '',
                             'potentialAction' => [
                                 '@type' => 'ScheduleAction',
-                                'target' => 'https://calendly.com/andoryyu'
+                                'target' => $calendlyUrl
                             ]
                         ]
                     ]
@@ -338,5 +362,42 @@ class SeoManager
         if (!empty($data)) {
             echo '<script type="application/ld+json">' . json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
         }
+    }
+
+    /**
+     * Obtiene la configuracion del sitio desde Theme Options
+     */
+    private static function getSiteConfig(): array
+    {
+        // Verificar si OpcionManager existe
+        if (!class_exists('Glory\Core\OpcionManager')) {
+            return [
+                'name' => 'Guillermo Garcia',
+                'phone' => '',
+                'email' => '',
+                'calendly' => '',
+                'logo' => '',
+                'heroImage' => '',
+                'linkedin' => '',
+                'twitter' => '',
+                'youtube' => '',
+                'instagram' => '',
+            ];
+        }
+
+        $get = ['Glory\Core\OpcionManager', 'get'];
+
+        return [
+            'name' => $get('glory_site_name', 'Guillermo Garcia'),
+            'phone' => $get('glory_site_phone', ''),
+            'email' => $get('glory_site_email', ''),
+            'calendly' => $get('glory_url_calendly', ''),
+            'logo' => $get('glory_logo_image', ''),
+            'heroImage' => $get('glory_image_hero', ''),
+            'linkedin' => $get('glory_social_linkedin', ''),
+            'twitter' => $get('glory_social_twitter', ''),
+            'youtube' => $get('glory_social_youtube', ''),
+            'instagram' => $get('glory_social_instagram', ''),
+        ];
     }
 }

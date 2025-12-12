@@ -25,9 +25,10 @@ interface AnalyticsSectionProps {
     description: string;
     metrics: MetricItem[];
     footerText: string;
+    backgroundImage?: string;
 }
 
-export function AnalyticsSection({title, description, metrics, footerText}: AnalyticsSectionProps) {
+export function AnalyticsSection({title, description, metrics, footerText, backgroundImage}: AnalyticsSectionProps) {
     const [events, setEvents] = useState(ANALYTICS_EVENTS.slice(0, 4));
     const nextEventIndex = useRef(4);
 
@@ -125,5 +126,5 @@ export function AnalyticsSection({title, description, metrics, footerText}: Anal
         </>
     );
 
-    return <SplitSection id="analytics" visual={visualContent} content={textContent} visualPosition="right" />;
+    return <SplitSection id="analytics" visual={visualContent} content={textContent} visualPosition="right" backgroundImage={backgroundImage} />;
 }
