@@ -319,9 +319,11 @@ Panel de configuracion en el **frontend** para gestionar las opciones del tema (
 
 #### 1. Recursos Bloqueantes (LCP) - COMPLETADO
 - [x] **Fuentes bloqueantes eliminadas**: Eliminado `@import` de Lato/Source Sans en `header.php` (~540ms de ahorro).
-- [x] **Google Fonts optimizado**: Verificado `font-display: swap` en `performance.php`.
+- [x] **Google Fonts asíncrono**: Carga con `media="print" onload` para no bloquear render (~750ms ahorro).
 - [x] **Preconnects verificados**: `fonts.googleapis.com` y `fonts.gstatic.com` ya configurados en `performance.php`.
 - [x] **Preload de fuentes críticas**: Añadido preload de archivos woff2 (Manrope 700, Inter 400) para reducir cadena crítica (~300ms estimado).
+- [x] **block-library CSS eliminado**: Desencolado `wp-block-library` (Gutenberg) en modo React (~540ms ahorro).
+- [x] **React CSS asíncrono**: Carga con `rel="preload" onload` para no bloquear render.
 
 #### 2. Layout Shifts (CLS) - COMPLETADO (0.101 → ~0.02 estimado)
 - [x] **Fallback fonts con métricas ajustadas**: Creados `@font-face` para `Manrope Fallback` e `Inter Fallback` con:
@@ -331,7 +333,7 @@ Panel de configuracion en el **frontend** para gestionar las opciones del tema (
   - `min-h-[280px] md:min-h-[300px]` en contenedor principal.
   - `min-h-[88px] md:min-h-[120px] lg:min-h-[140px]` en H1.
   - `min-h-[60px] md:min-h-[72px]` en subtítulo.
-  - `min-h-[100px] sm:min-h-[52px]` en CTAs.
+  - `min-h-[156px] sm:min-h-[52px]` en CTAs (3 botones apilados en móvil).
 
 #### 3. Forced Reflow (Layout Thrashing) - COMPLETADO (~84ms → ~20ms)
 - [x] **Scroll handler optimizado**: `ScrollTabsShowcase.tsx` ahora usa:
@@ -341,17 +343,23 @@ Panel de configuracion en el **frontend** para gestionar las opciones del tema (
 
 #### 4. Cadena Crítica de Peticiones - OPTIMIZADA
 - [x] **Preload de fuentes**: Archivos woff2 críticos se precargan antes del CSS de Google Fonts.
-- [x] **Orden mejorado**: Preconnect → Preload fonts → Google Fonts CSS → init.css.
+- [x] **Orden mejorado**: Preconnect → Preload fonts → Google Fonts CSS (async) → React CSS (async).
+
+#### 5. Optimización de Imágenes
+- [x] **Imágenes de fondo**: Calidad reducida de 60 a 40 (decorativas con opacity-40).
+- [x] **Ancho máximo**: Limitado a 1920px para evitar descargar imágenes gigantes (~400KB ahorro).
 
 #### Archivos Modificados
 
-| Archivo                                                | Cambios                                                                                           |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `header.php`                                           | Eliminado @import bloqueante de Lato/Source Sans 3                                                |
-| `App/Config/performance.php`                           | Añadido preload de woff2 críticos (Manrope 700, Inter 400)                                        |
-| `App/Assets/css/init.css`                              | Añadidos @font-face fallback con métricas ajustadas, actualizado `--font-heading` y `--font-sans` |
-| `App/React/components/sections/ScrollTabsShowcase.tsx` | Optimizado scroll handler con requestAnimationFrame                                               |
-| `App/React/components/sections/HeroSection.tsx`        | Añadidas alturas mínimas para evitar CLS                                                          |
+| Archivo                                                | Cambios                                                                                  |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `header.php`                                           | Eliminado @import bloqueante de Lato/Source Sans 3                                       |
+| `App/Config/performance.php`                           | Preload woff2, Google Fonts async, desencolar block-library en React                     |
+| `App/Assets/css/init.css`                              | @font-face fallback con métricas ajustadas, actualizado `--font-heading` y `--font-sans` |
+| `App/React/components/sections/ScrollTabsShowcase.tsx` | Scroll handler optimizado con requestAnimationFrame                                      |
+| `App/React/components/sections/HeroSection.tsx`        | Alturas mínimas para evitar CLS (156px en móvil para 3 CTAs)                             |
+| `App/React/utils/imageOptimizer.ts`                    | Calidad 40 y ancho máximo 1920px para imágenes de fondo                                  |
+| `Glory/src/Services/ReactIslands.php`                  | CSS React con preload+onload (no bloqueante)                                             |
 
 ---
 
@@ -741,5 +749,10 @@ const urls = useSiteUrls();
 | 2025-12-12 | CLS: Creados @font-face fallback con metricas ajustadas (size-adjust, etc)       |
 | 2025-12-12 | CLS: HeroSection.tsx con alturas minimas para evitar layout shifts               |
 | 2025-12-12 | JS: ScrollTabsShowcase.tsx optimizado con requestAnimationFrame                  |
+| 2025-12-12 | LCP: Google Fonts carga asincrona (media="print" onload)                         |
+| 2025-12-12 | LCP: Desencolado wp-block-library CSS en modo React (~540ms ahorro)              |
+| 2025-12-12 | LCP: ReactIslands.php CSS con preload+onload (no bloqueante)                     |
+| 2025-12-12 | CLS: HeroSection CTAs min-h-[156px] movil (3 botones apilados)                   |
+| 2025-12-12 | IMG: imageOptimizer.ts calidad 40 y max-width 1920px (~400KB ahorro)             |
 
 </details>

@@ -1,9 +1,12 @@
 <?php
 $usuarioId = get_current_user_id();
 
+// Determinar tema desde URL o usar 'project' por defecto (evita flash de estilos)
+$themeFromUrl = isset($_GET['theme']) && in_array($_GET['theme'], ['default', 'project']) ? $_GET['theme'] : 'project';
+$dataThemeAttr = $themeFromUrl === 'project' ? ' data-theme="project"' : '';
 ?>
 <!doctype html>
-<html <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?><?php echo $dataThemeAttr; ?>>
 
 <head>
     <meta charset="<?php bloginfo('charset'); ?>">

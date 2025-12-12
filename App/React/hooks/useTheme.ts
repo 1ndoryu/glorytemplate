@@ -24,20 +24,29 @@ export function useTheme() {
     const [theme, setThemeState] = useState<ThemeName>('project');
     const [isInitialized, setIsInitialized] = useState(false);
 
-    // Inicializacion: leer de URL o localStorage
+    // Inicializacion: leer tema actual del DOM (ya viene del servidor) o de localStorage
     useEffect(() => {
-        // Prioridad: 1) URL param, 2) localStorage, 3) project (tema cliente por defecto)
+        // El tema viene del servidor en data-theme, así que lo leemos directamente
+        // Esto evita el flash de estilos porque no hay cambio
+        const htmlElement = document.documentElement;
+        const currentTheme = htmlElement.getAttribute('data-theme');
+
+        // Prioridad: 1) URL param, 2) localStorage, 3) DOM actual (del servidor)
         const urlParams = new URLSearchParams(window.location.search);
         const urlTheme = urlParams.get('theme') as ThemeName | null;
         const storedTheme = localStorage.getItem('glory-theme') as ThemeName | null;
 
-        // Tema por defecto: 'project' (cliente Guillermo Garcia)
-        let initialTheme: ThemeName = 'project';
+        let initialTheme: ThemeName;
 
         if (urlTheme && (urlTheme === 'default' || urlTheme === 'project')) {
+            // URL tiene prioridad - ya se aplicó desde el servidor
             initialTheme = urlTheme;
         } else if (storedTheme && (storedTheme === 'default' || storedTheme === 'project')) {
+            // localStorage tiene preferencia guardada
             initialTheme = storedTheme;
+        } else {
+            // Usar el tema que vino del servidor (por defecto 'project')
+            initialTheme = currentTheme === 'project' ? 'project' : 'project';
         }
 
         setThemeState(initialTheme);
