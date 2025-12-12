@@ -131,7 +131,9 @@ body {
 /* Contenido Hero Landing */
 .landing-container .hero-content {
     z-index: 2;
-    max-width: 800px;
+    max-width: 100%;
+    width: 100%;
+    padding: 30px;
 }
 
 .landing-container .hero-title {
@@ -149,6 +151,13 @@ body {
     font-family: var(--font-body);
     text-transform: uppercase;
     font-size: var(--text-hero);
+}
+
+/* Evita que la primera línea del hero se rompa en escritorio */
+@media (min-width: 1024px) {
+    .landing-container .hero-title .hero-line {
+        white-space: nowrap;
+    }
 }
 
 .landing-container .btn-auditoria {

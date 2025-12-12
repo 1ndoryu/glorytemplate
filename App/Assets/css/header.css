@@ -193,3 +193,8 @@ ul#menu-main-menu > li:last-child > a:hover,
     display: flex;
     gap: 30px;
 }
+
+nav.cosmoHeaderMenu {
+    display: flex;
+    align-items: center;
+}

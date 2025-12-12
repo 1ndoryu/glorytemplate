@@ -62,7 +62,7 @@ if (empty($menuHtml)) {
     <div class="cosmoHeaderContainer">
         <div gloryLogo class="cosmoHeaderLogo">
             <a href="<?php echo $homeUrl; ?>" rel="home" class="gbn-logo-link">
-                <img src="<?php echo get_template_directory_uri(); ?>/App/Assets/images/LogoBlancoLetras.png" alt="<?php echo esc_attr($siteTitle); ?>" class="cosmoHeaderLogoImg" style="height: auto; width: auto; max-height: 40px;">
+                <img src="<?php echo get_template_directory_uri(); ?>/App/Assets/images/LogoBlancoLetras.png" alt="<?php echo esc_attr($siteTitle); ?>" class="cosmoHeaderLogoImg" style="height: auto; width: auto; max-height: 60px;">
             </a>
         </div>
         <nav gloryMenu class="cosmoHeaderMenu" role="navigation" aria-label="Menú principal">
