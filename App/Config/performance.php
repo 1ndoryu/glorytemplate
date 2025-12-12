@@ -45,9 +45,17 @@ add_action('wp_head', 'glory_add_preconnects', 1);
  * 
  * Mejora el First Contentful Paint mostrando texto del sistema
  * mientras las fuentes personalizadas cargan.
+ * 
+ * Optimizacion: Preload de archivos woff2 criticos para reducir
+ * cadena de peticiones (~300ms de ahorro estimado).
  */
 function glory_add_google_fonts(): void
 {
+    // Preload de fuentes criticas para reducir cadena de peticiones
+    // Manrope 700 (titulos) e Inter 400 (cuerpo) son las mas usadas
+    echo '<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/manrope/v15/xn7gYHE41ni1AdIRggexSg.woff2">' . "\n";
+    echo '<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/inter/v14/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2">' . "\n";
+
     // Cargar Manrope e Inter con font-display: swap
     $fonts_url = 'https://fonts.googleapis.com/css2?';
     $fonts_url .= 'family=Manrope:wght@600;700&';

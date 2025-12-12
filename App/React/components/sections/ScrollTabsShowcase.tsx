@@ -271,26 +271,39 @@ export function ScrollTabsShowcase({sections, cta}: ScrollTabsShowcaseProps): JS
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Detectar seccion basada en scroll de la pagina
+    // Optimizado con requestAnimationFrame para evitar layout thrashing
     useEffect(() => {
+        let ticking = false;
+
         const handleScroll = () => {
-            const container = containerRef.current;
-            if (!container) return;
+            if (ticking) return;
 
-            const rect = container.getBoundingClientRect();
+            ticking = true;
+            requestAnimationFrame(() => {
+                const container = containerRef.current;
+                if (!container) {
+                    ticking = false;
+                    return;
+                }
 
-            // Calcular progreso de scroll dentro del contenedor
-            const scrollProgress = -rect.top;
-            const viewportHeight = window.innerHeight;
+                const rect = container.getBoundingClientRect();
 
-            // Determinar seccion activa basada en progreso (1.2 viewports por seccion)
-            const sectionHeight = viewportHeight * 1.2;
-            const sectionIndex = Math.floor(scrollProgress / sectionHeight);
-            const clampedIndex = Math.max(0, Math.min(sectionIndex, sections.length - 1));
+                // Calcular progreso de scroll dentro del contenedor
+                const scrollProgress = -rect.top;
+                const viewportHeight = window.innerHeight;
 
-            if (clampedIndex !== activeSection) {
-                setActiveSection(clampedIndex);
-                setActiveItem(0);
-            }
+                // Determinar seccion activa basada en progreso (1.2 viewports por seccion)
+                const sectionHeight = viewportHeight * 1.2;
+                const sectionIndex = Math.floor(scrollProgress / sectionHeight);
+                const clampedIndex = Math.max(0, Math.min(sectionIndex, sections.length - 1));
+
+                if (clampedIndex !== activeSection) {
+                    setActiveSection(clampedIndex);
+                    setActiveItem(0);
+                }
+
+                ticking = false;
+            });
         };
 
         window.addEventListener('scroll', handleScroll, {passive: true});
