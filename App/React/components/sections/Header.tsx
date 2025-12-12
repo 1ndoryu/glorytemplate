@@ -3,6 +3,7 @@
 
 import {useState} from 'react';
 import {Menu, X} from 'lucide-react';
+import {motion, AnimatePresence} from 'framer-motion';
 import {Button} from '../ui/Button';
 import {useSiteImages, useSiteIdentity} from '../../hooks/useSiteConfig';
 
@@ -53,7 +54,7 @@ export function Header({logoText: propLogoText, navItems, ctaText, ctaHref}: Hea
 
     return (
         <>
-            <header className="w-full backdrop-blur-md bg-[var(--color-bg-primary)]/80">
+            <header className="w-full backdrop-blur-xl bg-[var(--color-bg-primary)]/60">
                 <div className="mx-auto w-full max-w-7xl px-6 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-8">
                         <a href="/" className="font-bold text-lg tracking-tighter flex items-center gap-2 text-primary">
@@ -78,36 +79,38 @@ export function Header({logoText: propLogoText, navItems, ctaText, ctaHref}: Hea
                 </div>
             </header>
 
-            {/* Menu movil - Pantalla completa, fuera del header para evitar problemas de z-index */}
-            {isMobileMenuOpen && (
-                <div className="md:hidden fixed inset-0 z-[100] bg-[var(--color-bg-primary)] flex flex-col">
-                    {/* Header del menu con boton cerrar */}
-                    <div className="flex items-center justify-between px-6 h-14 border-b border-[var(--color-border-primary)] flex-shrink-0">
-                        <a href="/" className="font-bold text-lg tracking-tighter text-primary" onClick={closeMobileMenu}>
-                            <Logo logoMode={logoMode} logoImageUrl={logoImageUrl} displayLogoText={displayLogoText} />
-                        </a>
-                        <button className="text-secondary p-2 -mr-2" onClick={closeMobileMenu} aria-label="Cerrar menu">
-                            <X size={24} />
-                        </button>
-                    </div>
-
-                    {/* Links de navegacion */}
-                    <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
-                        {navItems.map(item => (
-                            <a key={item.label} href={item.href} onClick={closeMobileMenu} className="block text-lg font-medium py-4 px-4 rounded-xl text-primary hover:bg-[var(--color-bg-secondary)] active:bg-[var(--color-bg-tertiary)] transition-colors">
-                                {item.label}
+            {/* Menu movil - Pantalla completa con animacion */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div className="md:hidden fixed inset-0 z-[100] backdrop-blur-xl bg-[var(--color-bg-primary)]/60 flex flex-col" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} transition={{duration: 0.2}}>
+                        {/* Header del menu con boton cerrar */}
+                        <motion.div className="flex items-center justify-between px-6 h-14 border-b border-[var(--color-border-primary)]/50 flex-shrink-0" initial={{opacity: 0, y: -10}} animate={{opacity: 1, y: 0}} transition={{delay: 0.05}}>
+                            <a href="/" className="font-bold text-lg tracking-tighter text-primary" onClick={closeMobileMenu}>
+                                <Logo logoMode={logoMode} logoImageUrl={logoImageUrl} displayLogoText={displayLogoText} />
                             </a>
-                        ))}
-                    </nav>
+                            <button className="text-secondary p-2 -mr-2" onClick={closeMobileMenu} aria-label="Cerrar menu">
+                                <X size={24} />
+                            </button>
+                        </motion.div>
 
-                    {/* CTA fijo en la parte inferior */}
-                    <div className="p-4 border-t border-[var(--color-border-primary)] flex-shrink-0">
-                        <a href={ctaHref} onClick={closeMobileMenu} className="flex items-center justify-center w-full h-12 rounded-lg bg-[var(--color-accent-primary)] text-white font-medium text-base">
-                            {ctaText}
-                        </a>
-                    </div>
-                </div>
-            )}
+                        {/* Links de navegacion con animacion escalonada */}
+                        <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
+                            {navItems.map((item, index) => (
+                                <motion.a key={item.label} href={item.href} onClick={closeMobileMenu} className="block text-lg font-medium py-4 px-4 rounded-xl text-primary hover:bg-[var(--color-bg-secondary)] active:bg-[var(--color-bg-tertiary)] transition-colors" initial={{opacity: 0, x: -20}} animate={{opacity: 1, x: 0}} transition={{delay: 0.1 + index * 0.05}}>
+                                    {item.label}
+                                </motion.a>
+                            ))}
+                        </nav>
+
+                        {/* CTA fijo en la parte inferior */}
+                        <motion.div className="p-4 border-t border-[var(--color-border-primary)]/50 flex-shrink-0" initial={{opacity: 0, y: 20}} animate={{opacity: 1, y: 0}} transition={{delay: 0.15 + navItems.length * 0.05}}>
+                            <a href={ctaHref} onClick={closeMobileMenu} className="flex items-center justify-center w-full h-12 rounded-lg bg-[var(--color-accent-primary)] text-white font-medium text-base shadow-lg shadow-[var(--color-accent-primary)]/25 active:scale-[0.98] transition-transform">
+                                {ctaText}
+                            </a>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 }
