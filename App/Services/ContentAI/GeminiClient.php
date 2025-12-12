@@ -230,6 +230,9 @@ Reglas:
      */
     private function makeRequest(string $action, array $body): ?array
     {
+        // Log de la peticion
+        $logId = GeminiLogger::logRequest($action, $body);
+
         // Usar API key como query param segun documentacion oficial
         $url = self::API_BASE . $this->model . ':' . $action . '?key=' . urlencode($this->apiKey);
 
@@ -246,6 +249,10 @@ Reglas:
 
         if (is_wp_error($response)) {
             $this->lastError = $response->get_error_message();
+
+            // Log del error
+            GeminiLogger::logResponse($logId, null, $this->lastError, 0);
+
             return null;
         }
 
@@ -256,8 +263,15 @@ Reglas:
         if ($statusCode !== 200) {
             $errorMessage = $this->lastResponse['error']['message'] ?? 'Error desconocido';
             $this->lastError = "Error {$statusCode}: {$errorMessage}";
+
+            // Log del error
+            GeminiLogger::logResponse($logId, $this->lastResponse, $this->lastError, $statusCode);
+
             return null;
         }
+
+        // Log de la respuesta exitosa
+        GeminiLogger::logResponse($logId, $this->lastResponse, null, $statusCode);
 
         return $this->lastResponse;
     }

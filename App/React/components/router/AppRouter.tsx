@@ -128,6 +128,28 @@ interface RouteResult {
 }
 
 /**
+ * Obtiene el slug de un path (ultima parte de la URL sin el trailing slash)
+ */
+function getSlugFromPath(path: string): string {
+    const normalizedPath = path.endsWith('/') && path !== '/' ? path.slice(0, -1) : path;
+    const segments = normalizedPath.split('/').filter(Boolean);
+    return segments[segments.length - 1] || '';
+}
+
+/**
+ * Verifica si un slug corresponde a un post existente en blogPosts
+ */
+function isValidPostSlug(slug: string): boolean {
+    if (!slug || typeof window === 'undefined') return false;
+
+    const content = window.__GLORY_CONTENT__;
+    if (!content || !content.blogPosts) return false;
+
+    const posts = content.blogPosts as Array<{slug: string}>;
+    return posts.some(post => post.slug === slug);
+}
+
+/**
  * Resuelve una ruta y devuelve el componente o elemento a renderizar
  */
 function resolveRoute(path: string): RouteResult {
@@ -146,6 +168,14 @@ function resolveRoute(path: string): RouteResult {
         if (matches) {
             return {type: 'dynamic', element: route.getComponent(matches)};
         }
+    }
+
+    // Fallback: Verificar si el path corresponde a un single post
+    // Esto maneja el caso de acceso directo a URLs como /mi-post/ (sin /blog/ prefix)
+    // que WordPress sirve directamente via single.php
+    const slug = getSlugFromPath(normalizedPath);
+    if (slug && isValidPostSlug(slug)) {
+        return {type: 'dynamic', element: <SinglePostIsland slug={slug} />};
     }
 
     return {type: 'not-found'};

@@ -139,6 +139,36 @@ class AIRestApi
             'callback' => [self::class, 'getStats'],
             'permission_callback' => [self::class, 'checkAdminPermission']
         ]);
+
+        // === LOGS ===
+
+        // GET /glory/v1/ai/logs - Lista logs recientes
+        register_rest_route(self::NAMESPACE, '/' . self::BASE . '/logs', [
+            'methods' => 'GET',
+            'callback' => [self::class, 'getLogs'],
+            'permission_callback' => [self::class, 'checkAdminPermission']
+        ]);
+
+        // GET /glory/v1/ai/logs/stats - Estadisticas de logs
+        register_rest_route(self::NAMESPACE, '/' . self::BASE . '/logs/stats', [
+            'methods' => 'GET',
+            'callback' => [self::class, 'getLogStats'],
+            'permission_callback' => [self::class, 'checkAdminPermission']
+        ]);
+
+        // GET /glory/v1/ai/logs/files - Lista archivos de log
+        register_rest_route(self::NAMESPACE, '/' . self::BASE . '/logs/files', [
+            'methods' => 'GET',
+            'callback' => [self::class, 'getLogFiles'],
+            'permission_callback' => [self::class, 'checkAdminPermission']
+        ]);
+
+        // DELETE /glory/v1/ai/logs - Limpia todos los logs
+        register_rest_route(self::NAMESPACE, '/' . self::BASE . '/logs', [
+            'methods' => 'DELETE',
+            'callback' => [self::class, 'clearLogs'],
+            'permission_callback' => [self::class, 'checkAdminPermission']
+        ]);
     }
 
     /**
@@ -389,6 +419,46 @@ class AIRestApi
             'stats' => DraftManager::getStats(),
             'config' => AIConfigManager::isConfigured(),
             'lastSearch' => AIConfigManager::get('last_search')
+        ]);
+    }
+
+    // === HANDLERS DE LOGS ===
+
+    public static function getLogs(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $limit = (int) ($request->get_param('limit') ?? 20);
+
+        return new \WP_REST_Response([
+            'success' => true,
+            'logs' => GeminiLogger::getLogs($limit),
+            'stats' => GeminiLogger::getStats()
+        ]);
+    }
+
+    public static function getLogStats(\WP_REST_Request $request): \WP_REST_Response
+    {
+        return new \WP_REST_Response([
+            'success' => true,
+            'stats' => GeminiLogger::getStats()
+        ]);
+    }
+
+    public static function getLogFiles(\WP_REST_Request $request): \WP_REST_Response
+    {
+        return new \WP_REST_Response([
+            'success' => true,
+            'files' => GeminiLogger::getLogFiles(),
+            'directory' => GeminiLogger::getLogDirectory()
+        ]);
+    }
+
+    public static function clearLogs(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $cleared = GeminiLogger::clearLogs();
+
+        return new \WP_REST_Response([
+            'success' => $cleared,
+            'message' => $cleared ? 'Logs limpiados correctamente' : 'Error al limpiar logs'
         ]);
     }
 }

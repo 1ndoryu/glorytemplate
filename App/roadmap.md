@@ -2,8 +2,8 @@
 
 > Documento generado a partir de `project-extends.md`
 > Fecha de creacion: 2025-12-11
-> Ultima actualizacion: 2025-12-12 03:15
-> Estado: FASE 6 COMPLETADA - Sistema de IA con Gemini 2.5 Flash implementado
+> Ultima actualizacion: 2025-12-12 04:30
+> Estado: **BUG-001 EN PROGRESO** - Ver seccion "BUGS CRITICOS Y TAREAS PRIORITARIAS"
 
 ---
 
@@ -14,6 +14,82 @@
 **Meta Principal:** Captar leads cualificados y medir que canal de contacto funciona mejor.
 
 ---
+
+## BUGS CRITICOS Y TAREAS PRIORITARIAS
+
+> **ATENCION:** Estas tareas deben resolverse antes de continuar con otras fases.
+> Ultima actualizacion: 2025-12-12 04:30
+
+### BUG-001: Navegacion directa a Single Posts falla (EN PROGRESO)
+
+**Descripcion:** Cuando se accede directamente a una URL de post individual (ej: `/blog/chatbot-vs-formulario`), el router redirige al Home en lugar de mostrar el post.
+
+**Comportamiento actual:**
+- Via SPA (click en "Leer articulo"): Funciona correctamente
+- Acceso directo a URL: ~~Redirige al Home~~ **PARCIALMENTE RESUELTO**
+- Vista previa desde panel IA: Requiere verificacion
+
+**Solucion implementada (2025-12-12):**
+Se modifico `AppRouter.tsx` para detectar cuando WordPress sirve un single post directamente:
+- Si la ruta no coincide con rutas estaticas ni dinamicas
+- Intenta verificar si el slug de la URL existe en `blogPosts`
+- Si existe, renderiza `SinglePostIsland` con ese slug
+- Funciones agregadas: `getSlugFromPath()`, `isValidPostSlug()`
+
+**Archivos modificados:**
+- `App/React/components/router/AppRouter.tsx` - Logica de fallback para single posts
+
+**Pendiente de verificacion:**
+- [ ] Probar acceso directo a URLs de posts existentes
+- [ ] Verificar que WordPress tenga estructura de permalinks `/blog/%postname%/`
+- [ ] Verificar que los posts esten en estado `publish`
+
+---
+
+### TAREA-001: Sistema de Logs para API de Gemini (COMPLETADA)
+
+**Descripcion:** Implementar logging detallado de todas las peticiones a la API de Gemini para diagnostico y verificacion del grounding.
+
+**Requisitos:**
+- [x] Log del JSON de peticion (prompt, configuracion, tools)
+- [x] Log del JSON de respuesta completa
+- [x] Log de las fuentes de grounding (groundingMetadata)
+- [x] Log de errores con contexto completo
+- [x] Timestamps de inicio/fin de cada peticion
+- [x] Almacenamiento en archivo y tabla de WP
+
+**Implementacion (2025-12-12):**
+
+**Archivo creado:** `App/Services/ContentAI/GeminiLogger.php`
+
+| Metodo          | Descripcion                                           |
+| --------------- | ----------------------------------------------------- |
+| `logRequest()`  | Registra inicio de peticion, retorna ID unico         |
+| `logResponse()` | Registra respuesta, error, grounding metadata, tokens |
+| `getLogs()`     | Obtiene logs recientes de la BD                       |
+| `getStats()`    | Estadisticas: peticiones, exitos, errores, tokens     |
+| `getLogFiles()` | Lista archivos de log diarios                         |
+| `clearLogs()`   | Limpia todos los logs                                 |
+
+**Almacenamiento:**
+- BD WordPress: `wp_options` con key `glory_ai_gemini_logs` (ultimos 50 logs)
+- Archivos: `wp-content/glory-ai-logs/gemini-YYYY-MM-DD.log`
+
+**Endpoints REST agregados:**
+| Metodo | Endpoint                  | Funcion               |
+| ------ | ------------------------- | --------------------- |
+| GET    | `/glory/v1/ai/logs`       | Lista logs recientes  |
+| GET    | `/glory/v1/ai/logs/stats` | Estadisticas de logs  |
+| GET    | `/glory/v1/ai/logs/files` | Lista archivos de log |
+| DELETE | `/glory/v1/ai/logs`       | Limpia todos los logs |
+
+**Datos logueados por respuesta:**
+- `grounding.search_queries`: Queries de busqueda realizadas
+- `grounding.sources`: URLs y titulos de fuentes usadas
+- `grounding.sources_count`: Cantidad de fuentes
+- `tokens`: Conteo de tokens (prompt, response, total)
+- `content_preview`: Primeros 500 caracteres del contenido
+- `duration_seconds`: Duracion de la peticion
 
 ## PENDIENTES CON CLIENTE (Guillermo Garcia)
 
@@ -117,20 +193,21 @@ Las paginas deben cumplir PRIMERO con el **contenido y estructura** de `project-
 
 ## INDICE DE FASES
 
-| Fase | Nombre                            | Prioridad | Estado                                      |
-| ---- | --------------------------------- | --------- | ------------------------------------------- |
-| 0    | Revision de Paginas Existentes    | ALTA      | Completada (100% conforme)                  |
-| 1    | Configuracion Base y Estilos      | ALTA      | Completada                                  |
-| 1.5  | **Revision Estilos Tema Project** | BAJA      | **NUEVA - Postergada por el usuario**       |
-| 2    | Paginas Principales (Estructura)  | ALTA      | Completada (SEO metadata implementada)      |
-| 3    | Paginas Secundarias (Estructura)  | MEDIA     | Completada (SEO metadata implementada)      |
-| 4    | Paginas Legales (Estructura)      | MEDIA     | Completada (SEO metadata implementada)      |
-| 5    | Sistema de Contacto y Conversion  | ALTA      | Completada (CTAs, URLs, GTM)                |
-| 6    | Blog y Sistema de Contenido       | MEDIA     | **Completada** (Gemini 2.5 Flash + Panel)   |
-| 7    | SEO y Datos Estructurados         | ALTA      | Parcial (BreadcrumbList OK, faltan schemas) |
-| 8    | Analitica (GA4 + GTM)             | ALTA      | Parcial (eventos OK, falta config GTM)      |
-| 9    | Optimizacion y Rendimiento        | MEDIA     | Completada (imagenes, botones 44px)         |
-| 10   | Publicacion y Lanzamiento         | ALTA      | Pendiente                                   |
+| Fase | Nombre                            | Prioridad  | Estado                                      |
+| ---- | --------------------------------- | ---------- | ------------------------------------------- |
+| --   | **BUGS CRITICOS**                 | **MAXIMA** | **2 pendientes (BUG-001, TAREA-001)**       |
+| 0    | Revision de Paginas Existentes    | ALTA       | Completada (100% conforme)                  |
+| 1    | Configuracion Base y Estilos      | ALTA       | Completada                                  |
+| 1.5  | **Revision Estilos Tema Project** | BAJA       | **NUEVA - Postergada por el usuario**       |
+| 2    | Paginas Principales (Estructura)  | ALTA       | Completada (SEO metadata implementada)      |
+| 3    | Paginas Secundarias (Estructura)  | MEDIA      | Completada (SEO metadata implementada)      |
+| 4    | Paginas Legales (Estructura)      | MEDIA      | Completada (SEO metadata implementada)      |
+| 5    | Sistema de Contacto y Conversion  | ALTA       | Completada (CTAs, URLs, GTM)                |
+| 6    | Blog y Sistema de Contenido       | MEDIA      | **Completada** (Gemini 2.5 Flash + Panel)   |
+| 7    | SEO y Datos Estructurados         | ALTA       | Parcial (BreadcrumbList OK, faltan schemas) |
+| 8    | Analitica (GA4 + GTM)             | ALTA       | Parcial (eventos OK, falta config GTM)      |
+| 9    | Optimizacion y Rendimiento        | MEDIA      | Completada (imagenes, botones 44px)         |
+| 10   | Publicacion y Lanzamiento         | ALTA       | Pendiente                                   |
 
 ---
 
@@ -1164,6 +1241,11 @@ GloryFeatures::setMode('react'); // o 'native'
 | 2025-12-12 | FASE 6: Creado useAdminAI.ts hook para interactuar con la REST API de IA                                             | Sistema |
 | 2025-12-12 | FASE 6: Registrada ruta /admin/ai en AppRouter y pages.php (solo administradores)                                    | Sistema |
 | 2025-12-12 | UI: Actualizado Badge.tsx con variantes (info, success, warning, error) y tamanos (sm, md)                           | Sistema |
+| 2025-12-12 | BUG-001: AppRouter.tsx modificado con fallback para detectar single posts directos via slug                          | Sistema |
+| 2025-12-12 | BUG-001: Agregadas funciones getSlugFromPath() e isValidPostSlug() para resolver posts sin /blog/ prefix             | Sistema |
+| 2025-12-12 | TAREA-001: Creado GeminiLogger.php con logging completo de peticiones/respuestas a Gemini API                        | Sistema |
+| 2025-12-12 | TAREA-001: GeminiClient.php ahora usa GeminiLogger para registrar todas las peticiones                               | Sistema |
+| 2025-12-12 | TAREA-001: AIRestApi.php ampliado con 4 endpoints para logs (/logs, /logs/stats, /logs/files, DELETE /logs)          | Sistema |
 
 ---
 
