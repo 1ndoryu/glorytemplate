@@ -15,8 +15,6 @@ interface HeaderProps {
     navItems: NavItem[];
     ctaText: string;
     ctaHref: string;
-    loginText?: string;
-    loginHref?: string;
 }
 
 // Logo SVG como componente interno
@@ -29,7 +27,7 @@ function Logo() {
     );
 }
 
-export function Header({logoText, navItems, ctaText, ctaHref, loginText = 'Login', loginHref = '#'}: HeaderProps) {
+export function Header({logoText, navItems, ctaText, ctaHref}: HeaderProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
@@ -49,9 +47,6 @@ export function Header({logoText, navItems, ctaText, ctaHref, loginText = 'Login
                     </nav>
                 </div>
                 <div className="flex items-center gap-3">
-                    <a href={loginHref} className="hidden md:inline-flex text-sm font-medium hover:opacity-80 text-muted">
-                        {loginText}
-                    </a>
                     <Button href={ctaHref} className="hidden md:inline-flex">
                         {ctaText}
                     </Button>

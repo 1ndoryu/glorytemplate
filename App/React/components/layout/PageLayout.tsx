@@ -60,7 +60,7 @@ export function PageLayout({children, headerCtaText = 'Agendar 1:1', copyrightTy
                 {topBanner && <TopBanner text={topBanner.text} linkText={topBanner.linkText} linkHref={topBanner.linkHref} />}
 
                 {/* HEADER - Navegacion principal */}
-                <Header logoText={logoText} navItems={mainNavItems} ctaText={headerCtaText} ctaHref={siteUrls.calendly} loginHref={siteUrls.whatsapp} />
+                <Header logoText={logoText} navItems={mainNavItems} ctaText={headerCtaText} ctaHref={siteUrls.calendly} />
             </div>
 
             {/* CONTENIDO PRINCIPAL */}

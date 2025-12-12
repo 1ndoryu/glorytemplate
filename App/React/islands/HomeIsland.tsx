@@ -7,17 +7,12 @@ import {PageLayout} from '../components/layout';
 // Componentes de seccion reutilizables
 import {HeroSection, QuoteSection, ProcessWorkflow, FeatureSection, ContactForm, InternalLinks, homeInternalLinks, WhatsAppShowcase, AutomationFlow, AnalyticsSection, CtaBlock} from '../components/sections';
 
-// Configuracion centralizada
-import {siteUrls} from '../config';
+// Configuracion dinamica desde Theme Options
+import {useSiteUrls} from '../hooks/useSiteConfig';
 
 // --- CONFIGURACION DE CONTENIDO ESPECIFICO DE HOME ---
 // Textos exactos segun project-extends.md para SEO optimizado
 const homeContent = {
-    topBanner: {
-        text: 'Primer mes gratis - Respuesta en menos de 30 min (09-21h)',
-        linkText: 'Agenda ahora',
-        linkHref: siteUrls.calendly
-    },
     hero: {
         // H1 exacto segun project-extends.md
         title: (
@@ -26,11 +21,7 @@ const homeContent = {
             </>
         ),
         // Subhero segun project-extends.md
-        subtitle: 'Soy Guillermo. Creo el chatbot para tu empresa en tu web y en WhatsApp Business para que atiendas mas rapido a tus clientes. Trabajamos tu y yo, 1:1, con respuesta en menos de 30 min (09-21h), primer mes gratis y mantenimiento continuo.',
-        // CTAs en orden: Calendario > WhatsApp > Formulario (project-extends.md)
-        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min', href: siteUrls.calendly},
-        secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp},
-        tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'}
+        subtitle: 'Soy Guillermo. Creo el chatbot para tu empresa en tu web y en WhatsApp Business para que atiendas mas rapido a tus clientes. Trabajamos tu y yo, 1:1, con respuesta en menos de 30 min (09-21h), primer mes gratis y mantenimiento continuo.'
     },
     // Seccion "Lo que voy a conseguir contigo" (project-extends.md) - 4 beneficios exactos
     features: [
@@ -63,7 +54,6 @@ const homeContent = {
             {badge: 'PASO 4', title: 'Mejora continua', subtitle: 'Reviso conversaciones y optimizo respuestas y conversiones cada mes.'}
         ]
     },
-    // Seccion "Integraciones" (project-extends.md) - Lista exacta
     // Seccion "Integraciones" (project-extends.md) - Lista exacta
     integrations: [
         {
@@ -125,18 +115,34 @@ const homeContent = {
 
 // --- COMPONENTE PRINCIPAL ---
 export function HomeIsland(): JSX.Element {
+    // Obtener URLs dinamicas desde Theme Options (configurables en WP Admin)
+    const urls = useSiteUrls();
+
+    // Contenido con URLs dinamicas
+    const topBanner = {
+        text: 'Primer mes gratis - Respuesta en menos de 30 min (09-21h)',
+        linkText: 'Agenda ahora',
+        linkHref: urls.calendly
+    };
+
+    const heroCtAs = {
+        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min', href: urls.calendly},
+        secondaryCta: {text: 'WhatsApp', href: urls.whatsapp},
+        tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'}
+    };
+
     return (
-        <PageLayout headerCtaText="Hablame ahora" topBanner={homeContent.topBanner} mainClassName="flex-1 flex flex-col justify-start gap-16 px-6 py-12 md:py-20">
+        <PageLayout headerCtaText="Hablame ahora" topBanner={topBanner} mainClassName="flex-1 flex flex-col justify-start gap-16 px-6 py-12 md:py-20">
             {/* 1. HERO SECTION - Con 3 CTAs segun project-extends.md */}
             <div id="hero">
-                <HeroSection title={homeContent.hero.title} subtitle={homeContent.hero.subtitle} primaryCta={homeContent.hero.primaryCta} secondaryCta={homeContent.hero.secondaryCta} tertiaryCta={homeContent.hero.tertiaryCta} />
+                <HeroSection title={homeContent.hero.title} subtitle={homeContent.hero.subtitle} primaryCta={heroCtAs.primaryCta} secondaryCta={heroCtAs.secondaryCta} tertiaryCta={heroCtAs.tertiaryCta} />
             </div>
 
             {/* 2. FEATURE SECTION - "Lo que voy a conseguir contigo" (4 beneficios) segun project-extends.md */}
             <FeatureSection features={homeContent.features} />
 
             {/* 3. WHATSAPP SHOWCASE - "WhatsApp Business" (H2 + 3 H3) segun project-extends.md */}
-            <WhatsAppShowcase badge="CANAL PRINCIPAL" title="WhatsApp Business" features={homeContent.whatsAppFeatures} ctaText="Hablame ahora y respondo en menos de 30 min (09-21h)" ctaHref={siteUrls.whatsapp} />
+            <WhatsAppShowcase badge="CANAL PRINCIPAL" title="WhatsApp Business" features={homeContent.whatsAppFeatures} ctaText="Hablame ahora y respondo en menos de 30 min (09-21h)" ctaHref={urls.whatsapp} />
 
             {/* 4. AUTOMATION FLOW - "Automatizacion de procesos pymes" (H2 + descripcion) */}
             <AutomationFlow
