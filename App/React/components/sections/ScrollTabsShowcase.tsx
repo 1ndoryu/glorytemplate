@@ -282,8 +282,8 @@ export function ScrollTabsShowcase({sections, cta}: ScrollTabsShowcaseProps): JS
             const scrollProgress = -rect.top;
             const viewportHeight = window.innerHeight;
 
-            // Determinar seccion activa basada en progreso (1.5 viewports por seccion)
-            const sectionHeight = viewportHeight * 1.5;
+            // Determinar seccion activa basada en progreso (1.2 viewports por seccion)
+            const sectionHeight = viewportHeight * 1.2;
             const sectionIndex = Math.floor(scrollProgress / sectionHeight);
             const clampedIndex = Math.max(0, Math.min(sectionIndex, sections.length - 1));
 
@@ -319,16 +319,16 @@ export function ScrollTabsShowcase({sections, cta}: ScrollTabsShowcaseProps): JS
 
     return (
         <section id="scroll-tabs-showcase" className="w-full">
-            {/* Contenedor con altura para capturar scroll (150vh por seccion para mas tiempo de permanencia) */}
-            <div ref={containerRef} style={{height: `${sections.length * 150}vh`}}>
+            {/* Contenedor con altura para capturar scroll (120vh por seccion para mas tiempo de permanencia) */}
+            <div ref={containerRef} style={{height: `${sections.length * 120}vh`}}>
                 {/* Contenedor sticky que se queda fijo y centrado verticalmente */}
                 <div
                     className="sticky w-full rounded-xl bg-neutral-900 relative overflow-hidden"
                     style={{
-                        height: '70vh',
-                        minHeight: '550px',
-                        maxHeight: '600px',
-                        top: 'calc((100vh - min(max(70vh, 550px), 600px)) / 2)'
+                        height: '75vh',
+                        minHeight: '600px',
+                        maxHeight: '800px',
+                        top: 'calc((100vh - min(max(75vh, 600px), 800px)) / 2)'
                     }}>
                     {/* Background Effects */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-info)]/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
@@ -353,11 +353,11 @@ export function ScrollTabsShowcase({sections, cta}: ScrollTabsShowcaseProps): JS
                                                 const isActive = itemIdx === activeItem % config.items.length;
 
                                                 return (
-                                                    <button key={item.id} onClick={() => setActiveItem(itemIdx)} className={`flex items-center gap-2 p-2 rounded-lg border transition-all text-left ${isActive ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/10 opacity-60 hover:opacity-80'}`}>
+                                                    <button key={item.id} onClick={() => setActiveItem(itemIdx)} className={`flex items-center justify-center md:justify-start gap-2 p-2 rounded-lg border transition-all text-left ${isActive ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/10 opacity-60 hover:opacity-80'}`}>
                                                         <div className={`p-1.5 rounded ${isActive ? 'bg-white/20' : 'bg-white/5'}`}>
                                                             <Icon className="w-3.5 h-3.5 text-white" />
                                                         </div>
-                                                        <div>
+                                                        <div className="hidden md:block">
                                                             <div className="text-[11px] font-medium text-white">{item.title}</div>
                                                             <div className="text-[9px] text-white/50">{item.badge}</div>
                                                         </div>

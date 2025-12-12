@@ -262,7 +262,7 @@ export function DemoProcessWorkflow({backgroundImage}: DemoProcessWorkflowProps)
 
             {/* Area Visual */}
             <div className="border rounded-md overflow-hidden shadow-sm border-primary bg-surface" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
-                <div className="border-b relative h-64 md:h-[380px] overflow-hidden group border-primary bg-secondary">
+                <div className="border-b relative h-[450px] md:h-[500px] overflow-hidden group border-primary bg-secondary">
                     {/* Imagen de fondo opcional */}
                     {backgroundImage && <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{backgroundImage: `url(${backgroundImage})`}} />}
                     {/* Grid Pattern */}
@@ -274,9 +274,9 @@ export function DemoProcessWorkflow({backgroundImage}: DemoProcessWorkflowProps)
                         }}></div>
 
                     {/* Tarjeta Flotante Central */}
-                    <div className="absolute inset-0 flex items-center justify-center p-6">
+                    <div className="absolute inset-0 flex items-center justify-center p-4 md:p-6">
                         <div className="w-full max-w-xl rounded-lg shadow-sm border p-1.5 transition-transform duration-500 bg-surface border-primary">
-                            <div className="rounded border p-5 flex flex-col gap-4 bg-[var(--color-bg-elevated)] border-[var(--color-border-subtle)]">
+                            <div className="rounded border p-4 md:p-5 flex flex-col gap-4 bg-[var(--color-bg-elevated)] border-[var(--color-border-subtle)]">
                                 {/* Header de la Tarjeta */}
                                 <div className="flex items-center justify-between border-b pb-3 border-[var(--color-border-subtle)]">
                                     <div className="flex items-center gap-3">

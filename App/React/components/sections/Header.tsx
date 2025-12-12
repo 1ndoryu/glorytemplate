@@ -28,6 +28,17 @@ function DefaultLogo() {
     );
 }
 
+// Componente Logo reutilizable
+function Logo({logoMode, logoImageUrl, displayLogoText}: {logoMode: string; logoImageUrl: string; displayLogoText: string}) {
+    if (logoMode === 'image' && logoImageUrl) {
+        return <img src={logoImageUrl} alt={displayLogoText} className="h-8 w-auto" />;
+    }
+    if (displayLogoText) {
+        return <span>{displayLogoText}</span>;
+    }
+    return <DefaultLogo />;
+}
+
 export function Header({logoText: propLogoText, navItems, ctaText, ctaHref}: HeaderProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const images = useSiteImages();
@@ -38,44 +49,65 @@ export function Header({logoText: propLogoText, navItems, ctaText, ctaHref}: Hea
     const logoImageUrl = images.logo;
     const displayLogoText = images.logoText || propLogoText || identity.name;
 
+    const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
     return (
-        <header className="w-full backdrop-blur-md bg-[var(--color-bg-primary)]/80">
-            <div className="mx-auto w-full max-w-7xl px-6 h-14 flex items-center justify-between">
-                <div className="flex items-center gap-8">
-                    <a href="/" className="font-bold text-lg tracking-tighter flex items-center gap-2 text-primary">
-                        {logoMode === 'image' && logoImageUrl ? <img src={logoImageUrl} alt={displayLogoText} className="h-8 w-auto" /> : displayLogoText ? <span>{displayLogoText}</span> : <DefaultLogo />}
-                    </a>
-                    <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted">
+        <>
+            <header className="w-full backdrop-blur-md bg-[var(--color-bg-primary)]/80">
+                <div className="mx-auto w-full max-w-7xl px-6 h-14 flex items-center justify-between">
+                    <div className="flex items-center gap-8">
+                        <a href="/" className="font-bold text-lg tracking-tighter flex items-center gap-2 text-primary">
+                            <Logo logoMode={logoMode} logoImageUrl={logoImageUrl} displayLogoText={displayLogoText} />
+                        </a>
+                        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted">
+                            {navItems.map(item => (
+                                <a key={item.label} href={item.href} className="hover:opacity-80 transition-colors">
+                                    {item.label}
+                                </a>
+                            ))}
+                        </nav>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Button href={ctaHref} className="hidden md:inline-flex">
+                            {ctaText}
+                        </Button>
+                        <button className="md:hidden text-secondary p-2 -mr-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Menu">
+                            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            {/* Menu movil - Pantalla completa, fuera del header para evitar problemas de z-index */}
+            {isMobileMenuOpen && (
+                <div className="md:hidden fixed inset-0 z-[100] bg-[var(--color-bg-primary)] flex flex-col">
+                    {/* Header del menu con boton cerrar */}
+                    <div className="flex items-center justify-between px-6 h-14 border-b border-[var(--color-border-primary)] flex-shrink-0">
+                        <a href="/" className="font-bold text-lg tracking-tighter text-primary" onClick={closeMobileMenu}>
+                            <Logo logoMode={logoMode} logoImageUrl={logoImageUrl} displayLogoText={displayLogoText} />
+                        </a>
+                        <button className="text-secondary p-2 -mr-2" onClick={closeMobileMenu} aria-label="Cerrar menu">
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    {/* Links de navegacion */}
+                    <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
                         {navItems.map(item => (
-                            <a key={item.label} href={item.href} className="hover:opacity-80 transition-colors">
+                            <a key={item.label} href={item.href} onClick={closeMobileMenu} className="block text-lg font-medium py-4 px-4 rounded-xl text-primary hover:bg-[var(--color-bg-secondary)] active:bg-[var(--color-bg-tertiary)] transition-colors">
                                 {item.label}
                             </a>
                         ))}
                     </nav>
-                </div>
-                <div className="flex items-center gap-3">
-                    <Button href={ctaHref} className="hidden md:inline-flex">
-                        {ctaText}
-                    </Button>
-                    <button className="md:hidden text-secondary" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-                        {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-                    </button>
-                </div>
-            </div>
 
-            {/* Menu movil */}
-            {isMobileMenuOpen && (
-                <div className="md:hidden border-t p-4 space-y-4 shadow-lg border-primary bg-primary">
-                    {navItems.map(item => (
-                        <a key={item.label} href={item.href} className="block text-sm font-medium text-secondary">
-                            {item.label}
+                    {/* CTA fijo en la parte inferior */}
+                    <div className="p-4 border-t border-[var(--color-border-primary)] flex-shrink-0">
+                        <a href={ctaHref} onClick={closeMobileMenu} className="flex items-center justify-center w-full h-12 rounded-lg bg-[var(--color-accent-primary)] text-white font-medium text-base">
+                            {ctaText}
                         </a>
-                    ))}
-                    <Button href={ctaHref} className="w-full">
-                        {ctaText}
-                    </Button>
+                    </div>
                 </div>
             )}
-        </header>
+        </>
     );
 }

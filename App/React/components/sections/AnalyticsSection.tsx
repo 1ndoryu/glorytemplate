@@ -106,8 +106,8 @@ export function AnalyticsSection({title, description, metrics, footerText, backg
 
             <div className="space-y-6">
                 {metrics.map((item, idx) => (
-                    <div key={idx} className="flex gap-4">
-                        <div className="mt-1 p-1.5 rounded-md border flex-none bg-[var(--color-bg-tertiary)] border-[var(--color-border-subtle)]">
+                    <div key={idx} className="flex gap-4 items-start">
+                        <div className="mt-1 p-1.5 rounded-md border flex-none aspect-square bg-[var(--color-bg-tertiary)] border-[var(--color-border-subtle)]">
                             <item.icon className="w-4 h-4 text-[var(--color-accent-primary)]" />
                         </div>
                         <div>

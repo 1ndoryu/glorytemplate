@@ -32,7 +32,7 @@ export function FaqWithCta({title = 'Preguntas Frecuentes', items, ctaTitle = 'H
                     ))}
                 </div>
 
-                <div id="cta-card" className="rounded-lg p-8 text-center border bg-[var(--color-bg-secondary)] border-primary">
+                <div id="cta-card" className="rounded-2xl shadow-sm p-8 text-center border bg-surface border-primary">
                     <h3 className="text-xl font-semibold mb-2 text-primary">{ctaTitle}</h3>
                     <p className="text-sm mb-6 max-w-md mx-auto text-muted">{ctaDescription}</p>
                     <div className="flex flex-col sm:flex-row justify-center gap-3">

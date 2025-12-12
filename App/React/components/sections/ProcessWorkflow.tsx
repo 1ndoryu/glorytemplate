@@ -239,7 +239,7 @@ export function ProcessWorkflow({steps, simulations, backgroundImage}: ProcessWo
                 onMouseEnter={() => setIsPaused(true)} // Pausar al hacer hover sobre la visualizacion
                 onMouseLeave={() => setIsPaused(false)} // Reanudar al salir (opcional)
             >
-                <div className="border-b relative h-64 md:h-[420px] overflow-hidden group border-primary bg-secondary">
+                <div className="border-b relative h-[450px] md:h-[500px] overflow-hidden group border-primary bg-secondary">
                     {/* Imagen de fondo opcional */}
                     {backgroundImage && <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{backgroundImage: `url(${backgroundImage})`}} />}
 
@@ -252,9 +252,9 @@ export function ProcessWorkflow({steps, simulations, backgroundImage}: ProcessWo
                         }}></div>
 
                     {/* Tarjeta Flotante Central */}
-                    <div className="absolute inset-0 flex items-center justify-center p-6">
+                    <div className="absolute inset-0 flex items-center justify-center p-4 md:p-6">
                         <div className="w-full max-w-2xl rounded-lg shadow-sm border p-1.5 transition-transform duration-500 bg-surface border-primary">
-                            <div className="rounded border p-6 flex flex-col gap-4 bg-[var(--color-bg-elevated)] border-[var(--color-border-subtle)]">
+                            <div className="rounded border p-4 md:p-6 flex flex-col gap-4 bg-[var(--color-bg-elevated)] border-[var(--color-border-subtle)]">
                                 {/* Header de la Tarjeta */}
                                 <div className="flex items-center justify-between border-b pb-4 border-[var(--color-border-subtle)]">
                                     <div className="flex items-center gap-3">

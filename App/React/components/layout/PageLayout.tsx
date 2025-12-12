@@ -54,11 +54,11 @@ export function PageLayout({children, headerCtaText = 'Agendar 1:1', copyrightTy
                 fontFamily,
                 color: 'var(--color-text-primary)'
             }}>
+            {/* TOP BANNER (opcional, usado en Home) - Se mueve con scroll */}
+            {topBanner && <TopBanner text={topBanner.text} linkText={topBanner.linkText} linkHref={topBanner.linkHref} />}
+
             {/* HEADER FIJO - Banner + Navegacion como bloque unico sticky */}
             <div id="sticky-header-container" className="sticky top-0 z-[var(--z-sticky)]">
-                {/* TOP BANNER (opcional, usado en Home) */}
-                {topBanner && <TopBanner text={topBanner.text} linkText={topBanner.linkText} linkHref={topBanner.linkHref} />}
-
                 {/* HEADER - Navegacion principal */}
                 <Header logoText={logoText} navItems={mainNavItems} ctaText={headerCtaText} ctaHref={siteUrls.calendly} />
             </div>

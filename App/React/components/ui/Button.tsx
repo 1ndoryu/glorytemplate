@@ -32,9 +32,9 @@ export function Button({children, variant = 'primary', size = 'md', className = 
     const baseClass = 'inline-flex items-center justify-center rounded-md font-medium transition-all focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50 disabled:pointer-events-none tracking-tight shadow-sm';
 
     const sizeClasses = {
-        sm: 'h-8 px-3 text-xs',
-        md: 'h-11 px-6 text-sm', // 44px height (Phase 1.1 requirement)
-        lg: 'h-12 px-8 text-base',
+        sm: 'h-auto min-h-[32px] px-3 py-1 text-xs',
+        md: 'h-auto min-h-[44px] px-6 py-2 text-sm', // 44px min-height (Phase 1.1 requirement)
+        lg: 'h-auto min-h-[48px] px-8 py-3 text-base',
         icon: 'h-9 w-9'
     };
 

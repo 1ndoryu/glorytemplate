@@ -309,6 +309,84 @@ Panel de configuracion en el **frontend** para gestionar las opciones del tema (
 
 ---
 
+### TAREA-005: Optimización Core Web Vitals (Lighthouse)
+
+> **Estado:** PENDIENTE
+> **Prioridad:** ALTA
+> **Origen:** Auditoría Lighthouse (2025-12-12)
+> **Meta:** Mejorar LCP y reducir CLS.
+
+#### 1. Recursos Bloqueantes (LCP) - Ahorro estimado ~1.25s
+- [ ] **CSS Crítico**: `style.min.css` (block-library) y `init.css` están bloqueando el renderizado.
+  - *Acción:* Implementar carga diferida para CSS no crítico o inlining de CSS crítico.
+  - *Detalle:* 540ms + 540ms de bloqueo.
+- [ ] **Fuentes (Google Fonts)**: Retraso de 750ms.
+  - *Acción:* Verificar `font-display: swap` en todas las fuentes.
+  - *Acción:* Asegurar `<link rel="preconnect">` a `fonts.googleapis.com` y `fonts.gstatic.com` en `head`.
+
+#### 2. Layout Shifts (CLS) - Puntuación actual 0.101 (Mejorable)
+- [ ] **Elementos inestables**:
+  - `div.flex.flex-col` ("Hablame ahora y respondo...") (0.089)
+  - `span.text-subtle` ("24/7 y gestiona reservas") (0.012)
+- [ ] **Fuentes Web**: Archivos `.woff2` causando cambios de diseño al cargar.
+  - *Acción:* Asegurar dimensiones fijas (min-height/min-width) en contenedores críticos.
+  - *Acción:* Revisar métricas de fuente de fallback para coincidir con la fuente web.
+
+#### 3. Forced Reflow (Layout Thrashing)
+- [ ] **JavaScript Causante**: `assets/main-Cutubr5A.js` (Bundle React).
+  - *Problema:* JS consulta propiedades geométricas (offsetWidth, etc.) tras invalidar estilos.
+  - *Acción:* Auditar componentes React que manipulen DOM o midan elementos en el montaje (`useLayoutEffect` o similar).
+  - *Costo:* ~84ms de reprocesamiento total.
+
+#### 4. Cadena Crítica de Peticiones
+- [ ] **Orden de Carga**: `Google Fonts` -> `style.min.css` -> `init.css` -> `main.js`
+  - *Latencia ruta crítica:* 1,536 ms
+  - *Acción:* Revisar prioridades de carga (`fetchpriority`) y atributos `defer`/`async`.
+
+---
+
+### TAREA-006: Mejoras UI/UX y Correcciones Responsive - COMPLETADA
+> **Estado:** COMPLETADA
+> **Prioridad:** MEDIA-ALTA
+> **Fecha de creación:** 2025-12-12
+> **Fecha de finalización:** 2025-12-12
+> **Origen:** Revisión de UX (Móvil/Desktop)
+
+#### 1. Botones y Textos
+- [x] **Botones Multilínea (Móvil)**: 
+  - *Contexto:* Botones CTA largos ("Hablame ahora...").
+  - *Problema:* Al hacer wrap a 2 líneas, la altura no aumenta, texto se corta o queda apretado.
+  - *Solución:* Implementado `min-h-[44px]` y `h-auto` en `Button.tsx`.
+- [x] **Elementos Fijos Innecesarios**:
+  - *Problema:* Textos como "Primer mes gratis", "Respuesta en..." están fijos.
+  - *Solución:* `PageLayout.tsx` modificado. `TopBanner` ahora hace scroll, solo el menú es sticky.
+
+#### 2. Componente Tabs ("Trabajamos contigo" / "Cómo lo hacemos")
+- [x] **Componente Tabs / Proceso**:
+  - *Problema:* El contenedor de animación tiene muy poca altura en móvil.
+  - *Solución:* Aumentada altura base a `h-[450px]` (móvil) y `h-[500px]` (escritorio) en `ProcessWorkflow.tsx` y `DemoProcessWorkflow.tsx`. Reducido padding móvil a `p-4`.
+- [x] **Diseño Tabs Móvil (ScrollTabs)**:
+  - *Solución:* Texto oculto en móvil (`hidden md:block`), iconos centrados.
+
+#### 3. Estilos y Consistencia (Look & Feel)
+- [x] **Contact Form y Pricing FAQ**:
+  - *Problema:* Falta borde, radio y sombra consistente con el resto.
+  - *Solución:* Añadido estilo "Card" (`border`, `rounded-2xl`, `shadow-sm`, `bg-surface`) en `ContactForm.tsx` y `FaqWithCta.tsx`.
+  - *Ajuste extra:* En `ContactForm`, se eliminó el contenedor externo que generaba doble fondo/padding, aplicando el estilo Card directamente al `section`.
+- [x] **Iconos "Medimos lo importante"**:
+  - *Problema:* El fondo del icono se estira verticalmente con el texto.
+  - *Solución:* Añadido `items-start` y `aspect-square` en `AnalyticsSection.tsx`.
+
+#### 4. Navegación y Layout Móvil
+- [x] **Menú Móvil (Hamburguesa)**:
+  - *Problema:* No cubre toda la pantalla o se ve parcial.
+  - *Solución:* Implementado `fixed inset-0 top-14` para pantalla completa.
+- [x] **Sección "Elige tu demo" (Móvil)**:
+  - *Problema:* Espacio fijo excesivo, requiere demasiado scroll para pasar.
+  - *Solución:* Reducido factor de scroll de 1.5 a 1.2 viewports por sección.
+
+---
+
 ### TAREA-002: Migrar Islands a useSiteUrls() - COMPLETADA
 
 > **Estado:** Completada el 2025-12-12
@@ -640,5 +718,12 @@ const urls = useSiteUrls();
 | 2025-12-12 | FASE 8: Eliminado placeholder hardcodeado GTM-XXXXXXX                            |
 | 2025-12-12 | GUIA: Creado GUIA_CONFIGURACION_ANALYTICS.md (7 partes)                          |
 | 2025-12-12 | FASES 7 y 8: Marcadas como COMPLETADAS (codigo)                                  |
+| 2025-12-12 | TAREA-006: COMPLETADA (Mejoras UI/UX y Responsive)                               |
+| 2025-12-12 | UI: Button.tsx multiline fix, PageLayout fixed elements removed                  |
+| 2025-12-12 | UI: ScrollTabsShowcase altura ajustada y texto oculto en movil                   |
+| 2025-12-12 | UI: ProcessWorkflow/DemoProcessWorkflow altura aumentada (450px movil)           |
+| 2025-12-12 | UI: ContactForm estilo Card aplicado a section (eliminado doble padding)         |
+| 2025-12-12 | UI: ContactForm y FaqWithCta estilo Card                                         |
+| 2025-12-12 | UI: AnalyticsSection icon fix, Header menu full screen                           |
 
 </details>
