@@ -24,45 +24,53 @@ export function useTheme() {
     const [theme, setThemeState] = useState<ThemeName>('project');
     const [isInitialized, setIsInitialized] = useState(false);
 
-    // Inicializacion: leer tema actual del DOM (ya viene del servidor) o de localStorage
+    // Inicializacion: leer tema actual del DOM (ya viene del servidor)
+    // IMPORTANTE: El servidor ya envió el tema correcto en data-theme
+    // NO usamos localStorage en la primera carga para evitar flash de estilos
     useEffect(() => {
-        // El tema viene del servidor en data-theme, así que lo leemos directamente
-        // Esto evita el flash de estilos porque no hay cambio
         const htmlElement = document.documentElement;
-        const currentTheme = htmlElement.getAttribute('data-theme');
-
-        // Prioridad: 1) URL param, 2) localStorage, 3) DOM actual (del servidor)
+        const currentDomTheme = htmlElement.getAttribute('data-theme');
+        
+        // El servidor ya aplicó el tema correcto, solo sincronizamos el estado
+        // Prioridad: DOM (servidor) > URL (solo si difiere del DOM)
         const urlParams = new URLSearchParams(window.location.search);
         const urlTheme = urlParams.get('theme') as ThemeName | null;
-        const storedTheme = localStorage.getItem('glory-theme') as ThemeName | null;
 
         let initialTheme: ThemeName;
 
         if (urlTheme && (urlTheme === 'default' || urlTheme === 'project')) {
-            // URL tiene prioridad - ya se aplicó desde el servidor
+            // URL tiene prioridad si está presente (el servidor ya lo aplicó)
             initialTheme = urlTheme;
-        } else if (storedTheme && (storedTheme === 'default' || storedTheme === 'project')) {
-            // localStorage tiene preferencia guardada
-            initialTheme = storedTheme;
         } else {
-            // Usar el tema que vino del servidor (por defecto 'project')
-            initialTheme = currentTheme === 'project' ? 'project' : 'project';
+            // Usar lo que el servidor ya aplicó al DOM
+            initialTheme = currentDomTheme === 'project' ? 'project' : 'default';
         }
 
+        // Sincronizar estado React con lo que ya está en el DOM
         setThemeState(initialTheme);
+        
+        // Actualizar localStorage para mantener consistencia (sin cambiar DOM)
+        localStorage.setItem('glory-theme', initialTheme);
+        
         setIsInitialized(true);
     }, []);
 
-    // Aplicar tema al DOM cuando cambie
+    // Aplicar tema al DOM cuando cambie (solo si hay diferencia)
     useEffect(() => {
         if (!isInitialized) return;
 
         const htmlElement = document.documentElement;
+        const currentDomTheme = htmlElement.getAttribute('data-theme');
 
+        // Solo modificar el DOM si hay una diferencia real (evita flash de estilos)
         if (theme === 'project') {
-            htmlElement.setAttribute('data-theme', 'project');
+            if (currentDomTheme !== 'project') {
+                htmlElement.setAttribute('data-theme', 'project');
+            }
         } else {
-            htmlElement.removeAttribute('data-theme');
+            if (currentDomTheme !== null) {
+                htmlElement.removeAttribute('data-theme');
+            }
         }
 
         // Guardar en localStorage

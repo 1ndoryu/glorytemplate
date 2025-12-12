@@ -353,13 +353,14 @@ Panel de configuracion en el **frontend** para gestionar las opciones del tema (
 
 | Archivo                                                | Cambios                                                                                  |
 | ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| `header.php`                                           | Eliminado @import bloqueante de Lato/Source Sans 3                                       |
+| `header.php`                                           | data-theme="project" SSR (evita flash), eliminado @import bloqueante                     |
 | `App/Config/performance.php`                           | Preload woff2, Google Fonts async, desencolar block-library en React                     |
 | `App/Assets/css/init.css`                              | @font-face fallback con métricas ajustadas, actualizado `--font-heading` y `--font-sans` |
 | `App/React/components/sections/ScrollTabsShowcase.tsx` | Scroll handler optimizado con requestAnimationFrame                                      |
 | `App/React/components/sections/HeroSection.tsx`        | Alturas mínimas para evitar CLS (156px en móvil para 3 CTAs)                             |
 | `App/React/utils/imageOptimizer.ts`                    | Calidad 40 y ancho máximo 1920px para imágenes de fondo                                  |
 | `Glory/src/Services/ReactIslands.php`                  | CSS React con preload+onload (no bloqueante)                                             |
+| `App/React/hooks/useTheme.ts`                          | Lee tema del DOM (SSR) en lugar de aplicarlo, evita flash                                |
 
 ---
 
@@ -754,5 +755,7 @@ const urls = useSiteUrls();
 | 2025-12-12 | LCP: ReactIslands.php CSS con preload+onload (no bloqueante)                     |
 | 2025-12-12 | CLS: HeroSection CTAs min-h-[156px] movil (3 botones apilados)                   |
 | 2025-12-12 | IMG: imageOptimizer.ts calidad 40 y max-width 1920px (~400KB ahorro)             |
+| 2025-12-12 | CLS: data-theme="project" SSR en header.php (evita flash de tema)                |
+| 2025-12-12 | CLS: useTheme.ts lee tema del DOM en lugar de aplicarlo                          |
 
 </details>
