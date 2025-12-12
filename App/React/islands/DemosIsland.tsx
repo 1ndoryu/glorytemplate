@@ -1,7 +1,8 @@
 import {MessageSquare, Smartphone, Globe, Mic, Calendar, Database, Layout, Scissors, Utensils, Stethoscope} from 'lucide-react';
 import {PageLayout} from '../components/layout';
 import {HeroSection, FaqWithCta, ContactForm, InternalLinks, CtaBlock, ScrollTabsShowcase} from '../components/sections';
-import {siteUrls} from '../config';
+// Configuracion dinamica desde Theme Options
+import {useSiteUrls} from '../hooks/useSiteConfig';
 // Componente de demo interactivo estilo ProcessWorkflow
 import {DemoWorkflow} from '../features/demos/components/DemoWorkflow';
 // Componente de features estilo AnalyticsSection
@@ -13,12 +14,12 @@ import {DemoProcessWorkflow} from '../features/demos/components/DemoProcessWorkf
 const demosInternalLinks = [
     {text: 'Ver servicios en detalle', href: '/servicios'},
     {text: 'Ver planes (primer mes gratis)', href: '/planes'},
-    {text: 'Escríbeme por WhatsApp', href: '/contacto'}, // Apunta a contacto segun doc
+    {text: 'Escríbeme por WhatsApp', href: '/contacto'},
     {text: 'Quién soy y cómo trabajo', href: '/sobre-mi'}
 ];
 
-// --- CONFIGURACION DE CONTENIDO ESPECIFICO DE DEMOS ---
-const demosContent = {
+// --- FUNCION PARA CREAR CONTENIDO CON URLS DINAMICAS ---
+const createDemosContent = (urls: ReturnType<typeof useSiteUrls>) => ({
     hero: {
         title: (
             <>
@@ -26,8 +27,8 @@ const demosContent = {
             </>
         ),
         subtitle: 'Te enseño una demo real de chatbot en WhatsApp (y, si quieres, Instagram/web/voz) aplicada a tu negocio: atender mejor, resolver dudas y gestionar reservas.',
-        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.calendly},
-        secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp},
+        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: urls.calendly},
+        secondaryCta: {text: 'WhatsApp', href: urls.whatsapp},
         tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'}
     },
     whatYouWillSee: {
@@ -39,7 +40,7 @@ const demosContent = {
             {icon: Layout, text: 'Integraciones (Calendly, Google Sheets, tu Software/CRM)'}
         ],
         ctaText: 'Agenda en 30 s',
-        ctaHref: siteUrls.calendly
+        ctaHref: urls.calendly
     },
     channels: {
         title: (
@@ -148,17 +149,22 @@ const demosContent = {
         ],
         ctaTitle: '¿Hablamos?',
         ctaItems: [
-            {text: 'Agenda en 30 s', href: siteUrls.calendly, variant: 'primary'},
-            {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.whatsapp, variant: 'outline'},
+            {text: 'Agenda en 30 s', href: urls.calendly, variant: 'primary'},
+            {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: urls.whatsapp, variant: 'outline'},
             {text: 'Te leo y te respondo hoy', href: '#formulario', variant: 'ghost'}
         ]
     }
-};
+});
 
 // --- ISLAND PRINCIPAL ---
 export function DemosIsland(): JSX.Element {
+    // Obtener URLs dinamicas desde Theme Options (configurables en WP Admin)
+    const urls = useSiteUrls();
+    // Crear contenido con URLs dinamicas
+    const demosContent = createDemosContent(urls);
+
     return (
-        <PageLayout headerCtaText="Agendar 1:1" topBanner={{text: 'Primer mes gratis - Prueba tu caso real', linkText: 'Agenda ahora', linkHref: siteUrls.calendly}}>
+        <PageLayout headerCtaText="Agendar 1:1" topBanner={{text: 'Primer mes gratis - Prueba tu caso real', linkText: 'Agenda ahora', linkHref: urls.calendly}}>
             {/* 1. HERO SECTION */}
             <HeroSection title={demosContent.hero.title} subtitle={demosContent.hero.subtitle} primaryCta={demosContent.hero.primaryCta} secondaryCta={demosContent.hero.secondaryCta} tertiaryCta={demosContent.hero.tertiaryCta} />
 
@@ -183,7 +189,7 @@ export function DemosIsland(): JSX.Element {
             {/* 4. SCROLL TABS: CANALES + SECTORES + INTEGRACIONES */}
             <section id="demos-showcase" className="py-16">
                 <div className="mx-auto">
-                    <ScrollTabsShowcase sections={demosContent.scrollTabsSections} cta={{text: 'Agenda tu demo', href: siteUrls.calendly}} />
+                    <ScrollTabsShowcase sections={demosContent.scrollTabsSections} cta={{text: 'Agenda tu demo', href: urls.calendly}} />
                 </div>
             </section>
 

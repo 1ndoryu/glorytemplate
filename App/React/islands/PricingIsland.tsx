@@ -2,7 +2,8 @@ import {Zap, Database, Smartphone, Calendar, Users} from 'lucide-react';
 import {Button, PricingCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
 import {PricingBreakdown, HeroSection, FaqWithCta, ContactForm, InternalLinks, PricingComparisonAnimation} from '../components/sections';
-import {siteUrls} from '../config';
+// Configuracion dinamica desde Theme Options
+import {useSiteUrls} from '../hooks/useSiteConfig';
 
 // Links internos especificos para Planes
 const pricingInternalLinks = [
@@ -11,8 +12,8 @@ const pricingInternalLinks = [
     {text: 'Contacto (presupuesto en 30s)', href: '/contacto'}
 ];
 
-// --- CONFIGURACION DE CONTENIDO ESPECIFICO DE PRICING ---
-const pricingContent = {
+// --- FUNCION PARA CREAR CONTENIDO CON URLS DINAMICAS ---
+const createPricingContent = (urls: ReturnType<typeof useSiteUrls>) => ({
     hero: {
         title: (
             <>
@@ -20,8 +21,8 @@ const pricingContent = {
             </>
         ),
         subtitle: 'Te presento tres planes pensados para atender mejor, resolver dudas y, cuando proceda, gestionar reservas. El primer mes es gratis y, luego, hay una cuota mensual que incluye mantenimiento y mejoras continuas.',
-        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.calendly},
-        secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp},
+        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: urls.calendly},
+        secondaryCta: {text: 'WhatsApp', href: urls.whatsapp},
         tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'}
     },
     breakdown: {
@@ -44,7 +45,7 @@ const pricingContent = {
                 description: 'Ideal para empezar con un solo canal y automatizar lo esencial.',
                 features: ['1 canal a elegir (WhatsApp o Web o Instagram DM)', 'FAQs útiles + derivación a humano con historial', 'Formularios a tu Software/CRM (o hoja compartida)', '1 automatización ligera (recordatorio o control)', 'Mantenimiento incluido · primer mes gratis'],
                 ctaText: 'Agenda en 30 s',
-                ctaHref: siteUrls.calendly,
+                ctaHref: urls.calendly,
                 recommended: false
             },
             {
@@ -53,7 +54,7 @@ const pricingContent = {
                 description: 'Automatización de reservas y conexión completa de datos.',
                 features: ['1-2 canales (WhatsApp/IG/Web)', 'Reservas automáticas con tu agenda (incl. Calendly)', '3 automatizaciones (confirmaciones, etiquetas, avisos)', 'Integraciones: tu Software/CRM, Google Sheets, email', 'Mantenimiento incluido · primer mes gratis'],
                 ctaText: 'Hablame ahora',
-                ctaHref: siteUrls.calendly, // Dice "Hablame ahora", normalmente WhatsApp en CTAs anteriores pero el doc dice "Enlace a Calendario" para Plan Basico y Total, y para Avanzado "Hablame ahora" (Calendario? WhatsApp?). En Services decia "Hablame ahora -> Calendario". Asumire Calendario o seguire href.
+                ctaHref: urls.calendly,
                 recommended: true
             },
             {
@@ -62,7 +63,7 @@ const pricingContent = {
                 description: 'La solución completa para todos los puntos de contacto.',
                 features: ['2-3 canales (WhatsApp, IG, Web) + voz (llamadas)', '5-6 automatizaciones (recordatorios, cambios estado)', 'Integraciones avanzadas con Software/CRM y ERP', 'Auditoria mensual de conversión', 'Mantenimiento incluido · primer mes gratis'],
                 ctaText: 'Agenda en 30 s',
-                ctaHref: siteUrls.calendly,
+                ctaHref: urls.calendly,
                 recommended: false
             }
         ]
@@ -85,17 +86,22 @@ const pricingContent = {
         ],
         ctaTitle: '¿Hablamos?',
         ctaItems: [
-            {text: 'Agenda en 30 s', href: siteUrls.calendly, variant: 'primary'},
-            {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.whatsapp, variant: 'outline'},
+            {text: 'Agenda en 30 s', href: urls.calendly, variant: 'primary'},
+            {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: urls.whatsapp, variant: 'outline'},
             {text: 'Te leo y te respondo hoy', href: '#formulario', variant: 'ghost'}
         ]
     }
-};
+});
 
 // --- ISLAND PRINCIPAL ---
 export function PricingIsland(): JSX.Element {
+    // Obtener URLs dinamicas desde Theme Options (configurables en WP Admin)
+    const urls = useSiteUrls();
+    // Crear contenido con URLs dinamicas
+    const pricingContent = createPricingContent(urls);
+
     return (
-        <PageLayout headerCtaText="Agendar 1:1" topBanner={{text: 'Primer mes gratis - Mantenimiento incluido', linkText: 'Agenda ahora', linkHref: siteUrls.calendly}}>
+        <PageLayout headerCtaText="Agendar 1:1" topBanner={{text: 'Primer mes gratis - Mantenimiento incluido', linkText: 'Agenda ahora', linkHref: urls.calendly}}>
             {/* 1. HERO SECTION */}
             <HeroSection title={pricingContent.hero.title} subtitle={pricingContent.hero.subtitle} primaryCta={pricingContent.hero.primaryCta} secondaryCta={pricingContent.hero.secondaryCta} tertiaryCta={pricingContent.hero.tertiaryCta} />
 
@@ -106,7 +112,7 @@ export function PricingIsland(): JSX.Element {
                         <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">{pricingContent.breakdown.title}</h2>
                         <p className="mt-4 text-lg leading-8 text-secondary mb-8">{pricingContent.breakdown.description}</p>
                         <div className="flex justify-center">
-                            <Button href={siteUrls.calendly} icon={Calendar}>
+                            <Button href={urls.calendly} icon={Calendar}>
                                 Hablame ahora y respondo en menos de 30 min
                             </Button>
                         </div>

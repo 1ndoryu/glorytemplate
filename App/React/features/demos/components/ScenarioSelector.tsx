@@ -1,6 +1,7 @@
 import {Play} from 'lucide-react';
 import {Button} from '../../../components/ui/Button';
-import {siteUrls} from '../../../config';
+// Configuracion dinamica desde Theme Options
+import {useSiteUrls} from '../../../hooks/useSiteConfig';
 import {SCENARIOS} from '../data/scenarios';
 
 interface ScenarioSelectorProps {
@@ -9,6 +10,9 @@ interface ScenarioSelectorProps {
 }
 
 export function ScenarioSelector({activeScenarioId, onSelect}: ScenarioSelectorProps) {
+    // Obtener URLs dinamicas desde Theme Options (configurables en WP Admin)
+    const urls = useSiteUrls();
+
     return (
         <div id="scenario-selector" className="lg:col-span-5 space-y-6">
             <h2 className="text-xl font-heading font-medium tracking-tight text-primary mb-6">Elige una demo para empezar:</h2>
@@ -44,7 +48,7 @@ export function ScenarioSelector({activeScenarioId, onSelect}: ScenarioSelectorP
 
             <div className="pt-6 border-t border-primary mt-8">
                 <p className="text-sm text-muted mb-4">¿No ves tu sector? No te preocupes, diseño flujos a medida para cualquier industria.</p>
-                <Button href={siteUrls.calendly} variant="outline" className="w-full justify-center">
+                <Button href={urls.calendly} variant="outline" className="w-full justify-center">
                     Solicitar demo personalizada
                 </Button>
             </div>

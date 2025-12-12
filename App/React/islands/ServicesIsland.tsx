@@ -2,7 +2,8 @@ import {Smartphone, Globe, Mic, Calendar, Database, Zap, Phone, MessageSquare, I
 import {FeatureCard} from '../components/ui';
 import {PageLayout} from '../components/layout';
 import {WhatsAppShowcase, AutomationFlow, FaqWithCta, ProcessTimeline, HeroSection, InternalLinks, ContactForm} from '../components/sections';
-import {siteUrls} from '../config';
+// Configuracion dinamica desde Theme Options
+import {useSiteUrls} from '../hooks/useSiteConfig';
 
 // Links internos especificos para Servicios
 const servicesInternalLinks = [
@@ -12,8 +13,8 @@ const servicesInternalLinks = [
     {text: 'Saber más sobre mí', href: '/sobre-mi'}
 ];
 
-// --- CONFIGURACION DE CONTENIDO ESPECIFICO DE SERVICES ---
-const servicesContent = {
+// --- FUNCION PARA CREAR CONTENIDO CON URLS DINAMICAS ---
+const createServicesContent = (urls: ReturnType<typeof useSiteUrls>) => ({
     hero: {
         title: (
             <>
@@ -21,9 +22,9 @@ const servicesContent = {
             </>
         ),
         subtitle: 'Diseño, implanto y mantengo chatbot WhatsApp, Instagram y tu web, además de voicebots (llamadas). Trabajo contigo, de tú a tú, para que atiendas mejor, resuelvas dudas y, cuando toca, gestiones reservas sin cargar a tu equipo. Respuesta en menos de 30 min (09–21h), primer mes gratis y mantenimiento continuo.',
-        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.calendly}, // El doc dice Calendario primero
-        secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp},
-        tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'} // Formulario ancla
+        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: urls.calendly},
+        secondaryCta: {text: 'WhatsApp', href: urls.whatsapp},
+        tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'}
     },
     whatsapp: {
         badge: 'PILAR PRINCIPAL',
@@ -35,7 +36,7 @@ const servicesContent = {
             {title: 'API de WhatsApp Business', desc: 'Te acompaño en el alta con proveedor oficial cuando aporta (plantillas y escalado).'}
         ],
         ctaText: 'Hablame ahora y respondo en menos de 30 min (09-21h)',
-        ctaHref: siteUrls.calendly
+        ctaHref: urls.calendly
     },
     multichannel: {
         title: 'Instagram y Web (UChat multicanal)',
@@ -168,17 +169,22 @@ const servicesContent = {
         ],
         ctaTitle: '¿Hablamos?',
         ctaItems: [
-            {text: 'Agenda en 30 s', href: siteUrls.calendly, variant: 'primary'},
-            {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.whatsapp, variant: 'outline'}, // Documento dice WhatsApp segundo
+            {text: 'Agenda en 30 s', href: urls.calendly, variant: 'primary'},
+            {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: urls.whatsapp, variant: 'outline'},
             {text: 'Te leo y te respondo hoy', href: '#formulario', variant: 'ghost'}
         ]
     }
-};
+});
 
 // --- ISLAND PRINCIPAL ---
 export function ServicesIsland(): JSX.Element {
+    // Obtener URLs dinamicas desde Theme Options (configurables en WP Admin)
+    const urls = useSiteUrls();
+    // Crear contenido con URLs dinamicas
+    const servicesContent = createServicesContent(urls);
+
     return (
-        <PageLayout headerCtaText="Agendar 1:1" topBanner={{text: 'Primer mes gratis - Respuesta en menos de 30 min', linkText: 'Agenda ahora', linkHref: siteUrls.calendly}}>
+        <PageLayout headerCtaText="Agendar 1:1" topBanner={{text: 'Primer mes gratis - Respuesta en menos de 30 min', linkText: 'Agenda ahora', linkHref: urls.calendly}}>
             {/* 1. HERO SECTION */}
             <HeroSection title={servicesContent.hero.title} subtitle={servicesContent.hero.subtitle} primaryCta={servicesContent.hero.primaryCta} secondaryCta={servicesContent.hero.secondaryCta} tertiaryCta={servicesContent.hero.tertiaryCta} />
 
@@ -210,7 +216,7 @@ export function ServicesIsland(): JSX.Element {
             </section>
 
             {/* 5. AUTOMATIZACION */}
-            <AutomationFlow badge={servicesContent.automation.badge} title={servicesContent.automation.title} description={servicesContent.automation.description} features={servicesContent.automation.features} cta={{text: 'Agenda en 30 s', href: siteUrls.calendly}} />
+            <AutomationFlow badge={servicesContent.automation.badge} title={servicesContent.automation.title} description={servicesContent.automation.description} features={servicesContent.automation.features} cta={{text: 'Agenda en 30 s', href: urls.calendly}} />
 
             {/* 6. INTEGRACIONES */}
             <section id="integrations-section" className="mx-auto w-full max-w-7xl py-12">

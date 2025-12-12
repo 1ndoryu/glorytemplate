@@ -13,7 +13,8 @@
 import {Calendar, MessageSquare, Clock, CheckCircle, ArrowRight, Zap, FileSpreadsheet, Bot} from 'lucide-react';
 import {PageLayout} from '../components/layout';
 import {HeroSection, ContactForm, FaqWithCta, InternalLinks} from '../components/sections';
-import {siteUrls} from '../config';
+// Configuracion dinamica desde Theme Options
+import {useSiteUrls} from '../hooks/useSiteConfig';
 
 // --- TIPOS ---
 interface ContactOption {
@@ -30,46 +31,7 @@ interface Step {
     description: string;
 }
 
-// --- DATOS ---
-// 5 opciones segun project-extends.md (basadas en necesidades/servicios)
-const contactOptions: ContactOption[] = [
-    {
-        icon: MessageSquare,
-        title: 'Contratar chatbot WhatsApp',
-        description: 'Atencion de dudas frecuentes y citas automaticas 24/7.',
-        cta: 'Solicitar info',
-        href: '#formulario'
-    },
-    {
-        icon: Calendar,
-        title: 'Agendar demo (WhatsApp / Instagram / Voicebot)',
-        description: 'Vemos tu caso en una llamada breve de 15-20 min.',
-        cta: 'Agendar ahora',
-        href: siteUrls.calendly
-    },
-    {
-        icon: Bot,
-        title: 'Solicitar presupuesto: automatizacion de reservas',
-        description: 'Reglas de tu negocio + recordatorios y avisos automaticos.',
-        cta: 'Pedir presupuesto',
-        href: '#formulario'
-    },
-    {
-        icon: FileSpreadsheet,
-        title: 'Presupuesto integracion WhatsApp + Calendly / Google Sheets',
-        description: 'Conecto y dejo los datos listos para seguimiento.',
-        cta: 'Ver opciones',
-        href: '#formulario'
-    },
-    {
-        icon: Zap,
-        title: 'Consulta general o dudas',
-        description: 'Cualquier otra pregunta sobre chatbots o automatizacion.',
-        cta: 'Escribir mensaje',
-        href: siteUrls.whatsapp
-    }
-];
-
+// --- DATOS ESTATICOS ---
 const nextSteps: Step[] = [
     {
         number: '01',
@@ -119,8 +81,46 @@ const contactInternalLinks = [
     {text: 'Conocerme mejor', href: '/sobre-mi'}
 ];
 
-// --- CONTENIDO ---
-const contactContent = {
+// --- FUNCION PARA CREAR CONTENIDO CON URLS DINAMICAS ---
+const createContactOptions = (urls: ReturnType<typeof useSiteUrls>): ContactOption[] => [
+    {
+        icon: MessageSquare,
+        title: 'Contratar chatbot WhatsApp',
+        description: 'Atencion de dudas frecuentes y citas automaticas 24/7.',
+        cta: 'Solicitar info',
+        href: '#formulario'
+    },
+    {
+        icon: Calendar,
+        title: 'Agendar demo (WhatsApp / Instagram / Voicebot)',
+        description: 'Vemos tu caso en una llamada breve de 15-20 min.',
+        cta: 'Agendar ahora',
+        href: urls.calendly
+    },
+    {
+        icon: Bot,
+        title: 'Solicitar presupuesto: automatizacion de reservas',
+        description: 'Reglas de tu negocio + recordatorios y avisos automaticos.',
+        cta: 'Pedir presupuesto',
+        href: '#formulario'
+    },
+    {
+        icon: FileSpreadsheet,
+        title: 'Presupuesto integracion WhatsApp + Calendly / Google Sheets',
+        description: 'Conecto y dejo los datos listos para seguimiento.',
+        cta: 'Ver opciones',
+        href: '#formulario'
+    },
+    {
+        icon: Zap,
+        title: 'Consulta general o dudas',
+        description: 'Cualquier otra pregunta sobre chatbots o automatizacion.',
+        cta: 'Escribir mensaje',
+        href: urls.whatsapp
+    }
+];
+
+const createContactContent = (urls: ReturnType<typeof useSiteUrls>) => ({
     hero: {
         title: (
             <>
@@ -128,13 +128,19 @@ const contactContent = {
             </>
         ),
         subtitle: 'Hablemos sobre como un chatbot puede ayudar a tu negocio. Primera llamada gratuita, respuesta en menos de 30 minutos (09-21h), y primer mes gratis si decidimos trabajar juntos.',
-        primaryCta: {text: 'Reservar llamada', href: siteUrls.calendly},
-        secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp}
+        primaryCta: {text: 'Reservar llamada', href: urls.calendly},
+        secondaryCta: {text: 'WhatsApp', href: urls.whatsapp}
     }
-};
+});
 
 // --- COMPONENTE PRINCIPAL ---
 export function ContactIsland(): JSX.Element {
+    // Obtener URLs dinamicas desde Theme Options (configurables en WP Admin)
+    const urls = useSiteUrls();
+    // Crear contenido con URLs dinamicas
+    const contactContent = createContactContent(urls);
+    const contactOptions = createContactOptions(urls);
+
     return (
         <PageLayout headerCtaText="Reservar llamada" mainClassName="flex-1 flex flex-col justify-start gap-16 px-6 py-12 md:py-20">
             {/* 1. HERO SECTION */}

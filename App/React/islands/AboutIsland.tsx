@@ -2,7 +2,8 @@ import {MessageSquare, Globe, Mic, Zap, Link, Calendar} from 'lucide-react';
 import {Button} from '../components/ui';
 import {PageLayout} from '../components/layout';
 import {ProcessTimeline, ContactForm, InternalLinks, CtaBlock} from '../components/sections';
-import {siteUrls} from '../config';
+// Configuracion dinamica desde Theme Options
+import {useSiteUrls} from '../hooks/useSiteConfig';
 
 // Links internos especificos para Sobre Mi
 const aboutInternalLinks = [
@@ -15,13 +16,13 @@ const aboutInternalLinks = [
     {text: 'Blog: casos y noticias', href: '/blog'}
 ];
 
-// --- CONFIGURACION DE CONTENIDO ESPECIFICO ---
-const aboutContent = {
+// --- FUNCION PARA CREAR CONTENIDO CON URLS DINAMICAS ---
+const createAboutContent = (urls: ReturnType<typeof useSiteUrls>) => ({
     hero: {
         title: 'Consultor de chatbots: trabajo 1:1 contigo',
         subtitle: 'Soy Guillermo, de Madrid. Vengo del mundo audiovisual y me enganché a la IA desde ChatGPT. Hoy ayudo a pymes a atender mejor y automatizar con chatbots (WhatsApp Business, Instagram, web y voz), en remoto por toda España. Estoy en Madrid; trabajo en toda España.',
-        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: siteUrls.calendly},
-        secondaryCta: {text: 'WhatsApp', href: siteUrls.whatsapp},
+        primaryCta: {text: 'Hablame ahora y respondo en menos de 30 min (09-21h)', href: urls.calendly},
+        secondaryCta: {text: 'WhatsApp', href: urls.whatsapp},
         tertiaryCta: {text: 'Agenda en 30 s', href: '#formulario'},
         imageSrc: 'https://placehold.co/400x500/png',
         imageAlt: 'Guillermo, consultor de chatbots en Madrid, en videollamada'
@@ -31,7 +32,7 @@ const aboutContent = {
         text: (
             <>
                 <p className="mb-4">
-                    Me llamo Guillermo, tengo 28 años y he vivido siempre en Madrid. La primera vez que probé ChatGPT pensé: <strong>“esto cambia la forma de trabajar”</strong>. Desde entonces me puse manos a la obra y hoy soy consultor de chatbots y consultor de automatización de procesos para pymes.
+                    Me llamo Guillermo, tengo 28 años y he vivido siempre en Madrid. La primera vez que probé ChatGPT pensé: <strong>"esto cambia la forma de trabajar"</strong>. Desde entonces me puse manos a la obra y hoy soy consultor de chatbots y consultor de automatización de procesos para pymes.
                 </p>
                 <p>Trabajo 1:1 y en remoto: me cuentas tu caso, lo traduzco a flujos simples y me ocupo de que funcione a diario. Mi objetivo es claro: que tú trabajes menos y tu negocio rinda más (mejor atención, menos interrupciones y reservas sin fricción).</p>
             </>
@@ -69,12 +70,17 @@ const aboutContent = {
         title: 'Herramientas que uso',
         text: 'UChat para el bot, Make (y cuando conviene n8n) para automatizar, más Google Sheets, Calendly, WhatsApp, Instagram y tu CRM. Si no tienes CRM, empezamos con hoja compartida y listo.',
         ctaText: 'Hablame ahora y respondo en menos de 30 min (09-21h)',
-        ctaHref: siteUrls.whatsapp
+        ctaHref: urls.whatsapp
     }
-};
+});
 
 // --- ISLAND PRINCIPAL ---
 export function AboutIsland(): JSX.Element {
+    // Obtener URLs dinamicas desde Theme Options (configurables en WP Admin)
+    const urls = useSiteUrls();
+    // Crear contenido con URLs dinamicas
+    const aboutContent = createAboutContent(urls);
+
     return (
         <PageLayout headerCtaText="Agendar 1:1" mainClassName="flex-1 flex flex-col gap-0 px-6 py-12 md:py-20">
             {/* 1. HERO PROFILE con Imagen Lateral */}
@@ -130,7 +136,7 @@ export function AboutIsland(): JSX.Element {
                         ))}
                     </div>
                     <div className="flex justify-center mt-10">
-                        <Button href={siteUrls.calendly} icon={Calendar}>
+                        <Button href={urls.calendly} icon={Calendar}>
                             Agenda en 30 s
                         </Button>
                     </div>

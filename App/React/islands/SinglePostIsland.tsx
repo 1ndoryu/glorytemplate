@@ -11,7 +11,8 @@ import {InternalLinks} from '../components/sections';
 import {Button} from '../components/ui';
 import type {WordPressPost} from '../components/content';
 import {useContent} from '../hooks/useContent';
-import {siteUrls} from '../config';
+// Configuracion dinamica desde Theme Options
+import {useSiteUrls} from '../hooks/useSiteConfig';
 
 // Props del componente
 interface SinglePostIslandProps {
@@ -28,6 +29,9 @@ const postInternalLinks = [
 
 // --- COMPONENTE PRINCIPAL ---
 export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
+    // Obtener URLs dinamicas desde Theme Options (configurables en WP Admin)
+    const urls = useSiteUrls();
+
     // Obtener todos los posts y buscar por slug
     const allPosts = useContent<WordPressPost[]>('blogPosts', []);
     const post = allPosts.find(p => p.slug === slug);
@@ -132,7 +136,7 @@ export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
                 <div className="text-center">
                     <p className="text-lg text-primary mb-4">¿Te interesa implementar algo similar en tu negocio?</p>
                     <div className="flex flex-wrap justify-center gap-4">
-                        <Button href={siteUrls.calendly} variant="primary">
+                        <Button href={urls.calendly} variant="primary">
                             Reservar llamada gratuita
                         </Button>
                         <Button href="/demos" variant="outline">

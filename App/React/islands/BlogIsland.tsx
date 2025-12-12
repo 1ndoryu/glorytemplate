@@ -18,7 +18,8 @@ import {HeroSection, InternalLinks} from '../components/sections';
 import {ContentRenderer} from '../components/content';
 import type {WordPressPost} from '../components/content';
 import {useContent} from '../hooks/useContent';
-import {siteUrls} from '../config';
+// Configuracion dinamica desde Theme Options
+import {useSiteUrls} from '../hooks/useSiteConfig';
 
 // Enlaces internos para el blog
 const blogInternalLinks = [
@@ -28,8 +29,8 @@ const blogInternalLinks = [
     {text: 'Contactar para consulta', href: '/contacto'}
 ];
 
-// --- CONTENIDO ---
-const blogContent = {
+// --- FUNCION PARA CREAR CONTENIDO CON URLS DINAMICAS ---
+const createBlogContent = (urls: ReturnType<typeof useSiteUrls>) => ({
     hero: {
         title: (
             <>
@@ -37,13 +38,18 @@ const blogContent = {
             </>
         ),
         subtitle: 'Articulos practicos, casos reales y novedades sobre chatbots, automatizacion y atencion al cliente. Sin jerga tecnica, todo explicado para que lo apliques en tu negocio.',
-        primaryCta: {text: 'Reservar llamada gratuita', href: siteUrls.calendly},
-        secondaryCta: {text: 'Ver demos', href: siteUrls.demos}
+        primaryCta: {text: 'Reservar llamada gratuita', href: urls.calendly},
+        secondaryCta: {text: 'Ver demos', href: urls.demos}
     }
-};
+});
 
 // --- COMPONENTE PRINCIPAL ---
 export function BlogIsland(): JSX.Element {
+    // Obtener URLs dinamicas desde Theme Options (configurables en WP Admin)
+    const urls = useSiteUrls();
+    // Crear contenido con URLs dinamicas
+    const blogContent = createBlogContent(urls);
+
     // Obtener posts de WordPress (inyectados desde ReactContentProvider)
     const allPosts = useContent<WordPressPost[]>('blogPosts', []);
     const featuredPosts = useContent<WordPressPost[]>('blogFeatured', []);

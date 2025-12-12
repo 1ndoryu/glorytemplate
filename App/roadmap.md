@@ -1,7 +1,7 @@
 # ROADMAP - Proyecto Web Guillermo Garcia (Chatbots y Automatizacion)
 
 > Fecha de creacion: 2025-12-11
-> Ultima actualizacion: 2025-12-12 06:40
+> Ultima actualizacion: 2025-12-12 06:47
 > Estado: **EN PRODUCCION** - Sistema funcional, pendiente lanzamiento
 
 ---
@@ -36,6 +36,7 @@
 | ID        | Descripcion                        | Implementacion                                                                          |
 | --------- | ---------------------------------- | --------------------------------------------------------------------------------------- |
 | TAREA-001 | Sistema de Logs para API de Gemini | `GeminiLogger.php` con endpoints REST `/glory/v1/ai/logs`, `/logs/stats`, `/logs/files` |
+| TAREA-002 | Migrar Islands a useSiteUrls()     | 11 archivos migrados para usar URLs dinamicas desde Theme Options                       |
 
 ### Paginas Implementadas (9/9 - 100%)
 
@@ -184,43 +185,35 @@ const posts = useContent<WordPressPost[]>('blogFeatured', []);
 
 ## TAREAS PENDIENTES
 
-### PRIORIDAD ALTA
+> **Sin tareas de desarrollo pendientes.** Las tareas restantes son de configuracion (Theme Options, GTM, SEO) y lanzamiento.
 
-#### TAREA-002: Migrar Islands a useSiteUrls() 
+---
 
-**Descripcion:** Migrar todos los Islands para usar `useSiteUrls()` en lugar del objeto estatico `siteUrls`.
+### TAREA-002: Migrar Islands a useSiteUrls() - COMPLETADA
 
-**Estado actual:**
-- [x] Sistema de opciones implementado en PHP (`opcionesTema.php`)
-- [x] Inyeccion a React via `ReactContentProvider::registerStatic('siteConfig', ...)`
-- [x] Hook `useSiteUrls()` creado en `hooks/useSiteConfig.ts`
-- [x] `HomeIsland.tsx` migrado como ejemplo
+> **Estado:** Completada el 2025-12-12
 
-**Islands pendientes:**
+**Resumen:** Todos los Islands y componentes ahora usan `useSiteUrls()` para obtener URLs dinamicas desde Theme Options.
 
-| Island           | Archivo                        | Usos estimados |
-| ---------------- | ------------------------------ | -------------- |
-| ServicesIsland   | `islands/ServicesIsland.tsx`   | ~10            |
-| PricingIsland    | `islands/PricingIsland.tsx`    | ~8             |
-| DemosIsland      | `islands/DemosIsland.tsx`      | ~7             |
-| AboutIsland      | `islands/AboutIsland.tsx`      | ~4             |
-| ContactIsland    | `islands/ContactIsland.tsx`    | ~4             |
-| BlogIsland       | `islands/BlogIsland.tsx`       | ~3             |
-| SinglePostIsland | `islands/SinglePostIsland.tsx` | ~1             |
+**Archivos migrados:**
+- [x] `islands/HomeIsland.tsx`
+- [x] `islands/ServicesIsland.tsx`
+- [x] `islands/PricingIsland.tsx`
+- [x] `islands/DemosIsland.tsx`
+- [x] `islands/AboutIsland.tsx`
+- [x] `islands/ContactIsland.tsx`
+- [x] `islands/BlogIsland.tsx`
+- [x] `islands/SinglePostIsland.tsx`
+- [x] `features/demos/components/ScenarioSelector.tsx`
+- [x] `features/about/data/content.tsx`
+- [x] `components/sections/CtaBlock.tsx`
 
-**Archivos adicionales:**
-- `features/demos/components/ScenarioSelector.tsx`
-- `features/about/data/content.tsx`
-- `components/sections/CtaBlock.tsx`
-
-**Patron de migracion:**
+**Patron implementado:**
 ```tsx
-// ANTES
-import {siteUrls} from '../config';
-
-// DESPUES
+// En componentes React
 import {useSiteUrls} from '../hooks/useSiteConfig';
 const urls = useSiteUrls();
+// Usar urls.calendly, urls.whatsapp, etc.
 ```
 
 ---
@@ -456,5 +449,6 @@ const urls = useSiteUrls();
 | 2025-12-12 | REACT: HomeIsland migrado a useSiteUrls()                                        |
 | 2025-12-12 | ROADMAP: Pendientes con claves configurables                                     |
 | 2025-12-12 | ROADMAP: Reorganizado - completados compactados, pendientes al final             |
+| 2025-12-12 | TAREA-002: Todos los Islands migrados a useSiteUrls()                            |
 
 </details>
