@@ -2,6 +2,23 @@
 
 use Glory\Core\GloryFeatures;
 
+// ============================================================================
+// MODO REACT
+// ============================================================================
+// Cuando reactMode esta activo, Glory desactiva TODAS las features de frontend:
+// - UI Components (modales, tabs, navegacion, alertas, etc.)
+// - Services (AJAX nativo, formularios, busqueda, etc.)
+// - Renderers (logo, contenido, terminos)
+// - Plugins especificos (task, amazonProduct)
+//
+// React maneja TODO de forma independiente via sus propios componentes y hooks.
+//
+// NOTA: El panel glory-opciones NO se usa con React.
+// Las opciones para React se configuran via ReactContentProvider y
+// opcionesTema.php (que inyecta datos a React via gloryReactContent).
+// ============================================================================
+GloryFeatures::enable('reactMode');
+
 //Managers
 GloryFeatures::enable('menu');
 GloryFeatures::enable('assetManager');
@@ -105,3 +122,12 @@ $contentAiLoader = get_template_directory() . '/App/Services/ContentAI/loader.ph
 if (file_exists($contentAiLoader)) {
     require_once $contentAiLoader;
 }
+
+// ============================================================================
+// APLICAR MODO REACT
+// ============================================================================
+// Esta llamada DEBE ir al final de control.php, despues de definir todas las
+// features. Si reactMode esta activo, desactivara automaticamente las features
+// de UI que React reemplaza.
+// ============================================================================
+GloryFeatures::applyReactMode();

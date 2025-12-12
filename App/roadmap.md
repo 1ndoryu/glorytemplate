@@ -1,7 +1,7 @@
 # ROADMAP - Proyecto Web Guillermo Garcia (Chatbots y Automatizacion)
 
 > Fecha de creacion: 2025-12-11
-> Ultima actualizacion: 2025-12-12 06:47
+> Ultima actualizacion: 2025-12-12 08:45
 > Estado: **EN PRODUCCION** - Sistema funcional, pendiente lanzamiento
 
 ---
@@ -183,9 +183,106 @@ const posts = useContent<WordPressPost[]>('blogFeatured', []);
 
 ---
 
+## TAREAS URGENTES
+
+### TAREA-003: Implementar Modo React - COMPLETADA
+
+> **Estado:** COMPLETADA
+> **Prioridad:** URGENTE
+> **Fecha de creacion:** 2025-12-12
+> **Fecha de finalizacion:** 2025-12-12
+
+#### Descripcion
+
+Implementar un "Modo React" en Glory que, cuando esta activo, desactive **TODAS** las features de frontend (UI, Services, Renderers, Plugins). React maneja todo de forma independiente.
+
+#### Cambio de Criterio (Decision 2025-12-12)
+
+Se decidio que cuando React esta activo:
+- **TODAS las features de frontend se desactivan** (no solo algunas)
+- **El panel `glory-opciones` NO se usa** con React
+- Las opciones para React se configuran via `opcionesTema.php` y se inyectan via `ReactContentProvider`
+- **Futuro:** Un panel React dedicado gestionara estas opciones
+
+#### Implementacion Final
+
+**`GloryFeatures::$reactExcludedFeatures`** ahora incluye:
+
+| Categoria     | Features Desactivadas                                                                                                                                                                     |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| UI Components | modales, submenus, pestanas, scheduler, headerAdaptativo, themeToggle, alertas, gestionarPreviews, paginacion, gloryFilters, calendario, badgeList, highlight, gsap, menu, contentActions |
+| Services      | navegacionAjax, gloryAjax, gloryForm, gloryBusqueda, gloryRealtime, cssCritico                                                                                                            |
+| Renderers     | logoRenderer, contentRender, termRender                                                                                                                                                   |
+| Plugins       | task, amazonProduct, gbn, gbnSplitContent, gloryLinkCpt                                                                                                                                   |
+| Integraciones | avadaIntegration                                                                                                                                                                          |
+
+**Managers de backend que SI se mantienen activos:**
+- pageManager, postTypeManager, taxonomyMetaManager, scheduleManager
+- assetManager (solo para CSS base y React bundle)
+- syncManager, opcionManagerSync (para persistir opciones)
+
+#### Archivos Modificados
+
+| Archivo                            | Cambios                                                               |
+| ---------------------------------- | --------------------------------------------------------------------- |
+| `Glory/src/Core/GloryFeatures.php` | Lista completa de features excluidas, isReactMode(), applyReactMode() |
+| `Glory/load.php`                   | Orden de carga: control.php ANTES de scriptSetup.php                  |
+| `Glory/Config/scriptSetup.php`     | defineFolder envuelto con !isReactMode()                              |
+| `App/Config/control.php`           | Documentacion completa Modo React, enable('reactMode')                |
+| `App/Config/opcionesTema.php`      | Limpiado para React, documentacion header                             |
+
+#### Criterios de Aceptacion
+
+- [x] Con `reactMode` activo, NO se carga NINGUN script nativo en frontend
+- [x] Panel `glory-opciones` no se usa con React (documentado)
+- [x] React Islands sigue funcionando correctamente
+- [x] El modo se controla exclusivamente desde `control.php`
+- [x] Opciones para React se inyectan via `ReactContentProvider`
+- [ ] (Futuro) Panel React dedicado para gestionar opciones
+
+---
+
 ## TAREAS PENDIENTES
 
-> **Sin tareas de desarrollo pendientes.** Las tareas restantes son de configuracion (Theme Options, GTM, SEO) y lanzamiento.
+> Las tareas restantes son de configuracion (Theme Options, GTM, SEO) y lanzamiento.
+
+### TAREA-004: Panel React para Opciones del Tema
+
+> **Estado:** PENDIENTE
+> **Prioridad:** BAJA
+> **Dependencia:** TAREA-003 completada
+
+#### Descripcion
+
+Crear un panel de configuracion en el **frontend** (no wp-admin) para gestionar las opciones del tema (Calendly, WhatsApp, redes sociales, imagenes, etc.). Accesible solo para usuarios autenticados con permisos.
+
+#### Requisitos
+
+**Ubicacion y Acceso:**
+- [ ] Ruta frontend: `/config` o `/settings` (protegida por autenticacion)
+- [ ] Solo usuarios con rol `administrator` pueden acceder
+- [ ] Redireccionar a login si no autenticado
+
+**Diseño:**
+- [ ] Diseño minimalista y limpio
+- [ ] Estilos independientes en Glory (no depender de estilos del tema App)
+- [ ] Responsive (mobile-first)
+- [ ] Dark mode compatible (usar variables CSS del tema)
+
+**Funcionalidad:**
+- [ ] React Island para el panel de opciones
+- [ ] Formularios por seccion: Identidad, Contacto, Redes Sociales, Imagenes
+- [ ] Integracion con REST API para guardar/cargar opciones
+- [ ] Validacion de campos en tiempo real
+- [ ] Feedback visual (toast/notificaciones de exito/error)
+- [ ] Preview de imagenes al seleccionar
+
+#### Notas Tecnicas
+
+- Las opciones ya estan definidas en `App/Config/opcionesTema.php`
+- Se acceden via `OpcionManager::get()` en PHP
+- Se inyectan a React via `ReactContentProvider`
+- Estilos deben ir en `Glory/assets/css/` (independientes del tema)
 
 ---
 
@@ -450,5 +547,18 @@ const urls = useSiteUrls();
 | 2025-12-12 | ROADMAP: Pendientes con claves configurables                                     |
 | 2025-12-12 | ROADMAP: Reorganizado - completados compactados, pendientes al final             |
 | 2025-12-12 | TAREA-002: Todos los Islands migrados a useSiteUrls()                            |
+| 2025-12-12 | TAREA-003: Documentado Modo React (analisis y plan de implementacion)            |
+| 2025-12-12 | TAREA-003: GloryFeatures::applyReactMode() implementado                          |
+| 2025-12-12 | TAREA-003: GloryFeatures::isReactMode() y getReactExcludedFeatures()             |
+| 2025-12-12 | TAREA-003: control.php - Añadido reactMode con documentacion                     |
+| 2025-12-12 | TAREA-003: ReactIslands::isReactMode() helper                                    |
+| 2025-12-12 | TAREA-003: opcionesTema.php - Toggle Modo React en Theme Options                 |
+| 2025-12-12 | TAREA-003: Cambio criterio - React desactiva TODAS las features                  |
+| 2025-12-12 | TAREA-003: Lista completa de features excluidas (UI, Services, Renderers, etc)   |
+| 2025-12-12 | TAREA-003: Documentado que glory-opciones NO se usa con React                    |
+| 2025-12-12 | TAREA-003: COMPLETADA                                                            |
+| 2025-12-12 | TAREA-003: load.php - control.php carga ANTES de scriptSetup.php                 |
+| 2025-12-12 | TAREA-003: scriptSetup.php - defineFolder envuelto con !isReactMode()            |
+| 2025-12-12 | TAREA-003: Verificado - 0 scripts Glory en frontend con React activo             |
 
 </details>
