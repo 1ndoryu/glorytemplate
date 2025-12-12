@@ -25,6 +25,7 @@ import {ContactIsland} from '../../islands/ContactIsland';
 import {PrivacyIsland} from '../../islands/PrivacyIsland';
 import {CookiesIsland} from '../../islands/CookiesIsland';
 import {AdminAIIsland} from '../../islands/AdminAIIsland';
+import {SettingsIsland} from '../../islands/SettingsIsland';
 
 // Mapa de rutas estaticas a componentes
 const STATIC_ROUTES: Record<string, React.ComponentType> = {
@@ -37,7 +38,8 @@ const STATIC_ROUTES: Record<string, React.ComponentType> = {
     '/contacto': ContactIsland,
     '/privacidad': PrivacyIsland,
     '/cookies': CookiesIsland,
-    '/panel-ia': AdminAIIsland
+    '/panel-ia': AdminAIIsland,
+    '/configuracion': SettingsIsland
 };
 
 // Rutas dinamicas (patron -> componente wrapper)

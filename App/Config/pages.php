@@ -29,16 +29,17 @@ PageManager::setDefaultContentMode('code');
 // Todas estas paginas usan el router de React.
 // El slug debe coincidir con la ruta definida en AppRouter.tsx
 const REACT_PAGES = [
-    'home',       // / -> HomeIsland
-    'servicios',  // /servicios -> ServicesIsland
-    'planes',     // /planes -> PricingIsland
-    'demos',      // /demos -> DemosIsland
-    'sobre-mi',   // /sobre-mi -> AboutIsland
-    'blog',       // /blog -> BlogIsland
-    'contacto',   // /contacto -> ContactIsland
-    'privacidad', // /privacidad -> PrivacyIsland
-    'cookies',    // /cookies -> CookiesIsland
-    'panel-ia',   // /panel-ia -> AdminAIIsland (solo admins)
+    'home',          // / -> HomeIsland
+    'servicios',     // /servicios -> ServicesIsland
+    'planes',        // /planes -> PricingIsland
+    'demos',         // /demos -> DemosIsland
+    'sobre-mi',      // /sobre-mi -> AboutIsland
+    'blog',          // /blog -> BlogIsland
+    'contacto',      // /contacto -> ContactIsland
+    'privacidad',    // /privacidad -> PrivacyIsland
+    'cookies',       // /cookies -> CookiesIsland
+    'panel-ia',      // /panel-ia -> AdminAIIsland (solo admins)
+    'configuracion', // /configuracion -> SettingsIsland (solo admins)
 ];
 
 // Registrar TODAS las paginas React como Fullpage

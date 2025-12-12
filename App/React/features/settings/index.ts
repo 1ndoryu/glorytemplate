@@ -1,0 +1,22 @@
+/**
+ * Settings Feature - Barrel exports
+ *
+ * Exporta todos los componentes y hooks del feature de configuracion.
+ */
+
+// Componentes de tabs
+export {IdentityTab} from './components/IdentityTab';
+export {ContactTab} from './components/ContactTab';
+export {SocialTab} from './components/SocialTab';
+export {ImagesTab} from './components/ImagesTab';
+export {IntegrationsTab} from './components/IntegrationsTab';
+
+// Componentes auxiliares
+export {SettingsField} from './components/SettingsField';
+export {ImageUploader} from './components/ImageUploader';
+
+// Hooks
+export {useSettingsApi} from './hooks/useSettingsApi';
+
+// Types
+export type * from './types';

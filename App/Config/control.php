@@ -123,6 +123,13 @@ if (file_exists($contentAiLoader)) {
     require_once $contentAiLoader;
 }
 
+// Cargar API REST para el panel de configuracion React (TAREA-004)
+$settingsApiPath = get_template_directory() . '/App/Services/SettingsRestApi.php';
+if (file_exists($settingsApiPath)) {
+    require_once $settingsApiPath;
+    \App\Services\SettingsRestApi::register();
+}
+
 // ============================================================================
 // APLICAR MODO REACT
 // ============================================================================
