@@ -91,7 +91,10 @@ export function getPhotonUrl(url: string, options: PhotonOptions = {}): string {
 
 /**
  * Genera la URL optimizada para una imagen de fondo.
- * Usa configuracion especifica para fondos (calidad 60, strip all).
+ * Usa configuracion especifica para fondos decorativos:
+ * - Calidad 40 (suficiente para imagenes con opacity-40)
+ * - Strip all (sin metadatos)
+ * - Ancho maximo 1920px (evita descargar imagenes enormes)
  *
  * @param imageFileName - Nombre del archivo de imagen en /Glory/assets/images/colors/
  * @returns URL optimizada lista para usar en CSS/React
@@ -101,7 +104,8 @@ export function getBackgroundImageUrl(imageFileName: string): string {
     const url = `${basePath}/${imageFileName}`;
 
     return getPhotonUrl(url, {
-        quality: 60,
-        strip: 'all'
+        quality: 40, // Reducido de 60 a 40 (imagenes decorativas con opacity-40)
+        strip: 'all',
+        width: 1920 // Ancho maximo para evitar descargar imagenes gigantes
     });
 }

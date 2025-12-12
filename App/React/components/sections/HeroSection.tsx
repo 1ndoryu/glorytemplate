@@ -37,8 +37,8 @@ export function HeroSection({title, subtitle, primaryCta, secondaryCta, tertiary
                     {/* Subtitulo con altura minima para evitar saltos */}
                     <p className="text-lg md:text-xl max-w-2xl leading-relaxed tracking-tight font-normal text-muted min-h-[60px] md:min-h-[72px]">{subtitle}</p>
                     {/* CTAs en orden: Calendario (primary) > WhatsApp (secondary) > Formulario (tertiary) */}
-                    {/* Contenedor de CTAs con altura minima para evitar CLS */}
-                    <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4 min-h-[100px] sm:min-h-[52px]">
+                    {/* Altura minima: movil = 3 botones (3*44 + 2*12 gaps = 156px), desktop = 1 fila (52px) */}
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4 min-h-[156px] sm:min-h-[52px]">
                         <Button href={primaryCta.href} icon={ArrowRight} className="h-11 px-6">
                             {primaryCta.text}
                         </Button>
