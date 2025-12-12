@@ -51,7 +51,7 @@ $homeUrl = esc_url(home_url('/'));
                 <p gloryTexto>+20 00 000 00</p>
             </div>
             <div gloryDivSecundario class="info-col">
-                <h4 gloryTexto>Contacto</h4>
+                <h4 gloryTexto>Horario</h4>
                 <p gloryTexto>Lunes a Domingo</p>
                 <p gloryTexto>08:00 AM - 10:00 PM</p>
             </div>
