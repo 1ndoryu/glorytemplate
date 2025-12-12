@@ -81,18 +81,34 @@ export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
 
                 {/* Meta info */}
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted mb-8">
+                    {/* Autor */}
+                    <span className="inline-flex items-center gap-2 font-medium text-primary">
+                        <User className="w-4 h-4" />
+                        {post.author || 'Guillermo Garcia'}
+                    </span>
+
+                    {/* Separator */}
+                    <span className="hidden md:inline text-muted/30">•</span>
+
+                    {/* Fecha */}
                     {post.dateFormatted && (
                         <span className="inline-flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
                             {post.dateFormatted}
                         </span>
                     )}
+
+                    {/* Lectura */}
                     {post.readTime && (
-                        <span className="inline-flex items-center gap-2">
-                            <Clock className="w-4 h-4" />
-                            {post.readTime} de lectura
-                        </span>
+                        <>
+                            <span className="hidden md:inline text-muted/30">•</span>
+                            <span className="inline-flex items-center gap-2">
+                                <Clock className="w-4 h-4" />
+                                {post.readTime} de lectura
+                            </span>
+                        </>
                     )}
+
                     <button onClick={handleShare} className="inline-flex items-center gap-2 text-[var(--color-accent-primary)] hover:underline ml-auto">
                         <Share2 className="w-4 h-4" />
                         Compartir

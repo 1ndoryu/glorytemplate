@@ -3,7 +3,7 @@ import type {ReactNode} from 'react';
 import {useTheme} from '../../hooks/useTheme';
 import {useFontLoader, fontFamilyByTheme} from '../../hooks/useFontLoader';
 
-import {ThemeToggle} from '../ui';
+import {ThemeToggle, CookieBanner} from '../ui';
 import {Header, Footer, TopBanner} from '../sections';
 
 import {siteUrls, mainNavItems, logoText, footerColumns, getCopyrightText} from '../../config';
@@ -73,6 +73,9 @@ export function PageLayout({children, headerCtaText = 'Agendar 1:1', copyrightTy
 
             {/* THEME TOGGLE - Boton flotante para cambiar de tema */}
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
+
+            {/* COOKIE BANNER - Gestion de consentimiento y activacion de GTM */}
+            <CookieBanner />
         </div>
     );
 }

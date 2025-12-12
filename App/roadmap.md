@@ -84,9 +84,9 @@ Las paginas deben cumplir PRIMERO con el **contenido y estructura** de `project-
 | 0    | Revision de Paginas Existentes    | ALTA      | Completada (100% conforme)                  |
 | 1    | Configuracion Base y Estilos      | ALTA      | Completada                                  |
 | 1.5  | **Revision Estilos Tema Project** | BAJA      | **NUEVA - Postergada por el usuario**       |
-| 2    | Paginas Principales (Estructura)  | ALTA      | Completada (pendiente SEO metadata)         |
-| 3    | Paginas Secundarias (Estructura)  | MEDIA     | Completada (pendiente SEO metadata)         |
-| 4    | Paginas Legales (Estructura)      | MEDIA     | Completada (pendiente SEO metadata)         |
+| 2    | Paginas Principales (Estructura)  | ALTA      | Completada (SEO metadata implementada)      |
+| 3    | Paginas Secundarias (Estructura)  | MEDIA     | Completada (SEO metadata implementada)      |
+| 4    | Paginas Legales (Estructura)      | MEDIA     | Completada (SEO metadata implementada)      |
 | 5    | Sistema de Contacto y Conversion  | ALTA      | Parcial (formulario OK, falta Calendly/WA)  |
 | 6    | Blog y Sistema de Contenido       | MEDIA     | Parcial (estructura OK, falta IA backend)   |
 | 7    | SEO y Datos Estructurados         | ALTA      | Parcial (BreadcrumbList OK, faltan schemas) |
@@ -366,7 +366,7 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
   - H2: `clamp(28px, 2.6vw, 32px)`
   - H3: `20px`
   - Body: `17px`
-- [x] Asegurar altura tactil minima de botones: 44px
+- [x] Asegurar altura tactil minima de botones: 44px (Implementado en Button.tsx)
 
 ### 1.2 Paleta de Colores (Variables CSS)
 - [x] Definir tokens de color:
@@ -512,9 +512,9 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 **Estado:** Implementada - Estructura OK (FASE 0 verificada)
 
 #### Metadatos
-- [ ] Title: "Chatbot para empresas | Hablame y arrancamos hoy"
-- [ ] Meta description (<=160 chars)
-- [ ] Canonical: https://[URL_BASE]/
+- [x] Title: "Chatbot para empresas | Hablame y arrancamos hoy"
+- [x] Meta description (<=160 chars)
+- [x] Canonical: https://[URL_BASE]/
 
 #### Estructura
 - [x] Hero (above the fold):
@@ -531,19 +531,19 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 - [x] Interlinking interno (antes del footer)
 
 #### JSON-LD
-- [ ] Organization
-- [ ] ProfessionalService + ScheduleAction
-- [ ] WebSite + SearchAction
+- [x] Organization
+- [x] ProfessionalService + ScheduleAction
+- [x] WebSite + SearchAction
 
 ---
 
 ### 2.2 SERVICIOS (/servicios)
-**Estado:** Implementada - Estructura OK (FASE 0 verificada)
+**Estado:** Implementada - Estructura y SEO OK (FASE 0 verificada)
 
 #### Metadatos
-- [ ] Title: "Servicios de chatbots y automatizacion | Trabaja 1:1 conmigo"
-- [ ] Meta description
-- [ ] Canonical
+- [x] Title: "Servicios de chatbots y automatizacion | Trabaja 1:1 conmigo"
+- [x] Meta description
+- [x] Canonical
 
 #### Estructura
 - [x] Hero con H1 y CTAs
@@ -558,8 +558,8 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 - [x] Interlinking
 
 #### JSON-LD
-- [ ] BreadcrumbList
-- [ ] Service + OfferCatalog
+- [x] BreadcrumbList
+- [x] Service + OfferCatalog
 
 ---
 
@@ -567,9 +567,9 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 **Estado:** Implementada - Estructura OK (FASE 0 verificada)
 
 #### Metadatos
-- [ ] Title: "Precio chatbot: planes con mantenimiento | Primer mes gratis"
-- [ ] Meta description
-- [ ] Canonical
+- [x] Title: "Precio chatbot: planes con mantenimiento | Primer mes gratis"
+- [x] Meta description
+- [x] Canonical
 
 #### Estructura
 - [x] Hero con H1 y CTAs
@@ -584,8 +584,8 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 - [x] Interlinking
 
 #### JSON-LD
-- [ ] BreadcrumbList
-- [ ] ItemList (3 Services)
+- [x] BreadcrumbList
+- [x] ItemList (3 Services)
 
 ---
 
@@ -598,9 +598,9 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 **Estado:** Implementada - Estructura OK (FASE 0 verificada)
 
 #### Metadatos
-- [ ] Title: "Demo Chatbot WhatsApp | Pruebalo con tu caso (gratis)"
-- [ ] Meta description
-- [ ] Canonical
+- [x] Title: "Demo Chatbot WhatsApp | Pruebalo con tu caso (gratis)"
+- [x] Meta description
+- [x] Canonical
 
 #### Estructura
 - [x] Hero con H1 y CTAs
@@ -614,8 +614,8 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 - [x] Interlinking
 
 #### JSON-LD
-- [ ] BreadcrumbList
-- [ ] Service + ScheduleAction
+- [x] BreadcrumbList
+- [x] Service + ScheduleAction
 
 ---
 
@@ -623,9 +623,9 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 **Estado:** Implementada - Estructura OK (FASE 0 verificada)
 
 #### Metadatos
-- [ ] Title: "Mejores chatbots para WhatsApp Business | Casos y noticias"
-- [ ] Meta description
-- [ ] Canonical
+- [x] Title: "Mejores chatbots para WhatsApp Business | Casos y noticias"
+- [x] Meta description
+- [x] Canonical
 
 #### Estructura
 - [x] Hero con H1 y CTAs
@@ -634,12 +634,12 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 - [x] Seccion: "Enlaces utiles" (interlinking)
 
 #### JSON-LD
-- [ ] BreadcrumbList
+- [x] BreadcrumbList
 
 #### Plantilla de Post Individual
-- [ ] Autor + fechas (publicacion/actualizacion)
-- [ ] Fuentes consultadas al final
-- [ ] JSON-LD BlogPosting
+- [x] Autor + fechas (Implementado en SinglePostIsland)
+- [ ] Fuentes consultadas al final (Pendiente de datos reales)
+- [x] JSON-LD BlogPosting (Implementado en SeoManager)
 
 ---
 
@@ -647,9 +647,9 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 **Estado:** Implementada - Estructura OK (FASE 0 verificada)
 
 #### Metadatos
-- [ ] Title: "Consultor de chatbots en Madrid | Trabajo 1:1 contigo"
-- [ ] Meta description
-- [ ] Canonical
+- [x] Title: "Consultor de chatbots en Madrid | Trabajo 1:1 contigo"
+- [x] Meta description
+- [x] Canonical
 
 #### Estructura
 - [x] Hero con H1, foto y CTAs
@@ -663,7 +663,7 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 - [x] Interlinking
 
 #### JSON-LD
-- [ ] BreadcrumbList
+- [x] BreadcrumbList
 
 ---
 
@@ -671,9 +671,9 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 **Estado:** Implementada - Estructura OK (FASE 0 verificada)
 
 #### Metadatos
-- [ ] Title: "Solicitar presupuesto chatbot WhatsApp | Contacto (Guillermo)"
-- [ ] Meta description
-- [ ] Canonical
+- [x] Title: "Solicitar presupuesto chatbot WhatsApp | Contacto (Guillermo)"
+- [x] Meta description
+- [x] Canonical
 
 #### Estructura
 - [x] Hero con H1 y CTAs
@@ -688,7 +688,7 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 - [x] Interlinking
 
 #### JSON-LD
-- [ ] ProfessionalService + ScheduleAction
+- [x] ProfessionalService + ScheduleAction
 
 ---
 
@@ -705,7 +705,7 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 - [x] Tus derechos
 - [x] Cookies (enlace)
 - [x] Ultima revision
-- [ ] JSON-LD BreadcrumbList
+- [x] JSON-LD BreadcrumbList
 
 ---
 
@@ -720,7 +720,7 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 - [x] Configurar o revocar
 - [x] Proveedores y transferencias
 - [x] Ultima revision
-- [ ] JSON-LD BreadcrumbList
+- [x] JSON-LD BreadcrumbList
 
 ---
 
@@ -740,10 +740,9 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
   3. Formulario: "Agenda en 30 s"
 - [ ] Repetir bloque de CTAs cada ~2 secciones
 
-### 5.3 Widget Calendly
-- [x] Embeber widget en pagina de contacto -> **DESESTIMADO** (Se usa enlace directo por simplicidad)
+- [x] Widget Calendly: Enlace directo a calendly.com/andoryyu (configurado en urls.ts)
 - [x] Reservar espacio fijo -> **N/A**
-- [ ] Preparar integracion con GTM (cambiar tracking a *click* en enlace en lugar de evento embed)
+- [x] Preparar integracion con GTM (Implementado en CookieBanner.tsx - carga diferida)
 
 ---
 
@@ -775,6 +774,8 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 ## FASE 7: SEO Y DATOS ESTRUCTURADOS
 
 ### 7.1 JSON-LD por Pagina
+
+**Estado:** Implementado via SeoManager (Phases 2-4)
 
 | Pagina        | Schemas                                    |
 | ------------- | ------------------------------------------ |
@@ -809,9 +810,9 @@ Cada pagina debe revisarse contra su seccion correspondiente en `project-extends
 ## FASE 8: ANALITICA (GA4 + GTM)
 
 ### 8.1 Configuracion Base
-- [ ] Instalar Google Tag Manager en la web
-- [ ] Crear etiqueta GA4 de configuracion
-- [ ] Respetar privacidad: activar solo tras aceptar cookies
+- [x] Instalar Google Tag Manager en la web (CookieBanner.tsx)
+- [ ] Crear etiqueta GA4 de configuracion (Pendiente en contenedor GTM)
+- [x] Respetar privacidad: activar solo tras aceptar cookies (CookieBanner.tsx)
 
 ### 8.2 Eventos a Implementar
 
@@ -1048,6 +1049,14 @@ GloryFeatures::setMode('react'); // o 'native'
 | 2025-12-11 | FASE 1: Creado App/Config/performance.php con preconexiones (Google Fonts, Calendly, WhatsApp) y fuentes optimizadas | Sistema |
 | 2025-12-11 | ROADMAP: Agregada FASE 1.5 para revision de estilos del tema project (cliente)                                       | Sistema |
 | 2025-12-11 | ROADMAP: Actualizados estados de FASES 2-5. Marcados checkboxes de estructura implementada, pendiente SEO metadata   | Sistema |
+| 2025-12-11 | SEO: Implementado SeoManager.php para gestionar Title, Meta Description y JSON-LD de todas las paginas principales   | Sistema |
+| 2025-12-11 | SEO: Actualizado App/Config/control.php para registrar SeoManager                                                    | Sistema |
+| 2025-12-11 | FASES 2, 3, 4: Completada implementacion de metadatos SEO y JSON-LD (verificados y marcados en roadmap)              | Sistema |
+| 2025-12-11 | SEO: Actualizado SeoManager para soportar Single Posts (is_single) con JSON-LD BlogPosting y metadatos dinamicos     | Sistema |
+| 2025-12-11 | UI: Button.tsx actualizado con prop size y altura minima de 44px (Phase 1.1)                                         | Sistema |
+| 2025-12-11 | BLOG: SinglePostIsland actualizado con Autor y Fecha (Phase 3.2)                                                     | Sistema |
+| 2025-12-11 | GTM/COOKIES: Implementado CookieBanner.tsx con carga condicional de GTM (solo aceptando cookies) (Phase 8.1)         | Sistema |
+| 2025-12-11 | LAYOUT: Integrado CookieBanner en PageLayout.tsx                                                                     | Sistema |
 
 ---
 

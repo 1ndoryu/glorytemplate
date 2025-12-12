@@ -80,6 +80,20 @@ if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
     });
 }
 
+// Registro de SeoManager para metadatos (Title, Description, JSON-LD)
+if (class_exists(\App\Services\SeoManager::class)) {
+    \App\Services\SeoManager::register();
+} else {
+    // Fallback si el autoloader no lo ha pillado aun (aunque deberia)
+    $seoManagerPath = get_template_directory() . '/App/Services/SeoManager.php';
+    if (file_exists($seoManagerPath)) {
+        require_once $seoManagerPath;
+        if (class_exists(\App\Services\SeoManager::class)) {
+            \App\Services\SeoManager::register();
+        }
+    }
+}
+
 // Cargar configuracion de rendimiento (preconexiones, fuentes)
 $performanceConfig = get_template_directory() . '/App/Config/performance.php';
 if (file_exists($performanceConfig)) {

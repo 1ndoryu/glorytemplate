@@ -10,3 +10,4 @@ export {NotificationStatus} from './NotificationStatus';
 export {PricingCard} from './PricingCard';
 export {SimulationCard} from './SimulationCard';
 export {ThemeToggle} from './ThemeToggle';
+export {CookieBanner} from './CookieBanner';

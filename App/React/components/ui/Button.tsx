@@ -5,19 +5,25 @@
 interface ButtonProps {
     children: React.ReactNode;
     variant?: 'primary' | 'outline' | 'ghost' | 'white';
+    size?: 'sm' | 'md' | 'lg' | 'icon';
     className?: string;
     href?: string;
     icon?: React.ComponentType<{className?: string}>;
     onClick?: () => void;
-    // Soporte para formularios
     type?: 'button' | 'submit' | 'reset';
     disabled?: boolean;
 }
 
-export function Button({children, variant = 'primary', className = '', href, icon: Icon, onClick, type = 'button', disabled = false}: ButtonProps) {
-    const baseClass = 'inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50 disabled:pointer-events-none tracking-tight shadow-sm';
+export function Button({children, variant = 'primary', size = 'md', className = '', href, icon: Icon, onClick, type = 'button', disabled = false}: ButtonProps) {
+    const baseClass = 'inline-flex items-center justify-center rounded-md font-medium transition-all focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50 disabled:pointer-events-none tracking-tight shadow-sm';
 
-    // Mapeo de clases por variante
+    const sizeClasses = {
+        sm: 'h-8 px-3 text-xs',
+        md: 'h-11 px-6 text-sm', // 44px height (Phase 1.1 requirement)
+        lg: 'h-12 px-8 text-base',
+        icon: 'h-9 w-9'
+    };
+
     const variantClasses = {
         primary: 'bg-[var(--color-accent-primary)] hover:bg-[var(--color-accent-hover)] text-white border border-transparent',
         outline: 'border border-[var(--color-border-secondary)] bg-surface text-secondary hover:bg-[var(--color-bg-secondary)]',
@@ -25,7 +31,7 @@ export function Button({children, variant = 'primary', className = '', href, ico
         white: 'bg-white text-[var(--color-accent-primary)] border border-transparent shadow-sm hover:bg-gray-50'
     };
 
-    const combinedClassName = `${baseClass} ${variantClasses[variant]} ${className}`;
+    const combinedClassName = `${baseClass} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
 
     const content = (
         <>
