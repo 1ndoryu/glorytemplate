@@ -61,10 +61,10 @@ $homeUrl = esc_url(home_url('/'));
     <div gloryDivSecundario class="footer-bottom">
         <p gloryTexto>© 2025 Cosmo All rights reserved.</p>
         <div class="social-icons">
-            <a gloryButton href="#" style="display: none;"><i data-lucide="x"></i></a>
-            <a gloryButton href="#" style="display: none;"><i data-lucide="facebook"></i></a>
+            <a gloryButton href="#" style="display: none !important;"><i data-lucide="x"></i></a>
+            <a gloryButton href="#" style="display: none !important;"><i data-lucide="facebook"></i></a>
             <a gloryButton href="https://www.instagram.com/cosmorevenue/"><i data-lucide="instagram"></i></a>
-            <a gloryButton href="#" style="display: none;"><i data-lucide="linkedin"></i></a>
+            <a gloryButton href="#" style="display: none !important;"><i data-lucide="linkedin"></i></a>
         </div>
     </div>
 </footer>
