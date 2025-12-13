@@ -20,39 +20,46 @@ export function AnimatedChat({scenario}: AnimatedChatProps) {
     };
 
     // Scroll interno suave solo si es necesario
+    // Optimizado con requestAnimationFrame para evitar forced reflows
     const scrollToBottom = useCallback(() => {
         const container = scrollContainerRef.current;
         if (!container) return;
 
-        // Solo hacer scroll si el contenido excede el contenedor
-        const needsScroll = container.scrollHeight > container.clientHeight;
-        if (!needsScroll) return;
+        // Agrupar todas las lecturas DOM en un solo frame para evitar layout thrashing
+        requestAnimationFrame(() => {
+            const scrollHeight = container.scrollHeight;
+            const clientHeight = container.clientHeight;
+            const currentScroll = container.scrollTop;
 
-        // Scroll suave usando animacion manual
-        const targetScroll = container.scrollHeight - container.clientHeight;
-        const currentScroll = container.scrollTop;
-        const distance = targetScroll - currentScroll;
+            // Solo hacer scroll si el contenido excede el contenedor
+            const needsScroll = scrollHeight > clientHeight;
+            if (!needsScroll) return;
 
-        if (distance <= 0) return;
+            // Scroll suave usando animacion manual
+            const targetScroll = scrollHeight - clientHeight;
+            const distance = targetScroll - currentScroll;
 
-        // Animacion de scroll gradual
-        const duration = 300;
-        const startTime = performance.now();
+            if (distance <= 0) return;
 
-        const animateScroll = (currentTime: number) => {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
+            // Animacion de scroll gradual
+            const duration = 300;
+            const startTime = performance.now();
 
-            // Easing suave
-            const easeOut = 1 - Math.pow(1 - progress, 3);
-            container.scrollTop = currentScroll + distance * easeOut;
+            const animateScroll = (currentTime: number) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
 
-            if (progress < 1) {
-                requestAnimationFrame(animateScroll);
-            }
-        };
+                // Easing suave
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                container.scrollTop = currentScroll + distance * easeOut;
 
-        requestAnimationFrame(animateScroll);
+                if (progress < 1) {
+                    requestAnimationFrame(animateScroll);
+                }
+            };
+
+            requestAnimationFrame(animateScroll);
+        });
     }, []);
 
     // Programar scrolls suaves conforme aparecen mensajes

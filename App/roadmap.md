@@ -513,6 +513,9 @@ Panel de configuracion en el **frontend** para gestionar las opciones del tema (
   - `requestAnimationFrame` para agrupar lecturas de DOM.
   - Flag `ticking` para evitar ejecuciones redundantes.
   - Reduce recálculos forzados del layout significativamente.
+- [x] **AnimatedChat.tsx optimizado** (2025-12-13):
+  - `scrollToBottom` ahora agrupa lecturas de `scrollHeight`/`clientHeight` en `requestAnimationFrame`.
+  - Evita forced reflows adicionales (~81ms de ahorro potencial).
 
 #### 4. Cadena Crítica de Peticiones - OPTIMIZADA
 - [x] **Preload de fuentes**: Archivos woff2 críticos se precargan antes del CSS de Google Fonts.
@@ -520,7 +523,9 @@ Panel de configuracion en el **frontend** para gestionar las opciones del tema (
 
 #### 5. Optimización de Imágenes
 - [x] **Imágenes de fondo**: Calidad reducida de 60 a 40 (decorativas con opacity-40).
-- [x] **Ancho máximo**: Limitado a 1920px para evitar descargar imágenes gigantes (~400KB ahorro).
+- [x] **Ancho máximo optimizado** (actualizado 2025-12-13):
+  - Reducido de 1920px a 1280px (~222KB ahorro adicional según Lighthouse).
+  - Total: calidad 40 + ancho 1280px = ahorro significativo en imágenes decorativas.
 
 #### Archivos Modificados
 
@@ -531,7 +536,8 @@ Panel de configuracion en el **frontend** para gestionar las opciones del tema (
 | `App/Assets/css/init.css`                              | @font-face fallback con métricas ajustadas, actualizado `--font-heading` y `--font-sans` |
 | `App/React/components/sections/ScrollTabsShowcase.tsx` | Scroll handler optimizado con requestAnimationFrame                                      |
 | `App/React/components/sections/HeroSection.tsx`        | Alturas mínimas para evitar CLS (156px en móvil para 3 CTAs)                             |
-| `App/React/utils/imageOptimizer.ts`                    | Calidad 40 y ancho máximo 1920px para imágenes de fondo                                  |
+| `App/React/utils/imageOptimizer.ts`                    | Calidad 40 y ancho máximo 1280px (reducido de 1920px)                                    |
+| `App/React/features/demos/components/AnimatedChat.tsx` | scrollToBottom optimizado con requestAnimationFrame                                      |
 | `Glory/src/Services/ReactIslands.php`                  | CSS React con preload+onload (no bloqueante)                                             |
 | `App/React/hooks/useTheme.ts`                          | Lee tema del DOM (SSR) en lugar de aplicarlo, evita flash                                |
 
