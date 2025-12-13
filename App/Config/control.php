@@ -37,7 +37,7 @@ GloryFeatures::disable('gbnSplitContent');
 GloryFeatures::disable('gloryLinkCpt');
 
 //Services
-GloryFeatures::enable('cssCritico');
+GloryFeatures::disable('cssCritico');
 GloryFeatures::enable('navegacionAjax');
 GloryFeatures::enable('gloryAjax');
 GloryFeatures::enable('gloryForm');

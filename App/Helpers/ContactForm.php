@@ -24,7 +24,8 @@ class ContactForm
         bool $showHabitaciones = true
     ): void {
 ?>
-        <section gloryDiv class="contact-section">
+        <section gloryDiv class="contact-section"
+            style="width: 100%; max-width: unset;">
             <div gloryDivSecundario class="contact-container">
                 <?php if (!empty($title)): ?>
                     <div gloryDivSecundario class="section-header">

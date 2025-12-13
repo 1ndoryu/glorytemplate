@@ -27,8 +27,8 @@ function landing_hero()
     <section divGlory class="hero-section">
 
         <div gloryDivSecundario class="hero-content">
-            <h1 gloryTexto class="hero-title">
-                 Ordenamos el universo de tus<br>
+            <h1 gloryTexto class="hero-title" style="font-size: clamp(48px, 7.5vw, 152px); line-height: 0.9;">
+                Ordenamos el universo de tus<br>
                 <span class="highlight-text">INGRESOS</span>
             </h1>
 
@@ -78,7 +78,7 @@ function landing_services()
                         <div gloryTexto class="card-content">
                             <h3>Revenue <br>Management</h3>
                         </div>
-                        <div class="card-bg-image" style="background-image: url('<?php echo AssetsUtility::imagenUrl('tema::revenue.jpg'); ?>');"></div>
+                        <div class="card-bg-image" style="background-image: url('<?php echo AssetsUtility::imagenUrl('tema::revenueNew.png'); ?>');"></div>
                     </div>
                     <div class="flip-card-back">
                         <div class="flip-back-content">
@@ -264,12 +264,12 @@ function landing_about()
 
         <div gloryDivSecundario class="about-content">
 
-            <div gloryDivSecundario class="about-image">
-                <img gloryImagen src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" alt="Perfil">
+            <div class="orbit-center-about" style="background-color: #141414; border-radius: 500px; padding: 30px;">
+                <img src="<?php echo get_template_directory_uri(); ?>/App/Assets/images/logocuadradoblanco.png" class="" style="height: auto; width: auto; max-height: 80px;">
             </div>
-            <h2 gloryTexto class="section-title">Sobre mí</h2>
+            <h2 gloryTexto class="section-title">Sobre nosotros</h2>
             <p gloryTexto class="about-text">
-                Cosmo Revenue es una consultoría boutique de revenue y RevOps para hotelería, liderada por una profesional joven, independiente y cercana. Mi propósito es que los hoteles tomen decisiones de ingresos con claridad y confianza.
+                En Cosmo Revenue somos una consultoría boutique especializada en revenue management y RevOps para la industria hotelera. Nos dedicamos a brindar soluciones personalizadas, fundamentadas en datos reales y en un enfoque cercano y de confianza con nuestros clientes.
             </p>
             <a gloryAjaxNav gloryButton href="/about" class="btn-about">Leer más</a>
         </div>

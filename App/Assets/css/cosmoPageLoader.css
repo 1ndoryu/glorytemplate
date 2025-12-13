@@ -29,13 +29,6 @@
     justify-content: center;
 }
 
-.cosmoPageLoaderLogo .cosmoLoaderLogo {
-    width: 60px;
-    height: 60px;
-    color: var(--color-accent, #8d926f);
-    animation: cosmoPulse 1.5s ease-in-out infinite;
-}
-
 /* Animacion de pulso suave */
 @keyframes cosmoPulse {
     0%,

@@ -143,12 +143,12 @@ function render_method_step($letter, $title, $subtitle, $desc)
 function about_bio()
 {
 ?>
-    <section gloryDiv class="bio-section">
+    <section gloryDiv class="bio-section" style="display: none">
         <div gloryDivSecundario class="bio-content">
             <div gloryDivSecundario class="bio-image">
                 <img gloryImagen src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80" alt="Laura - Cosmo Revenue">
             </div>
-            <div gloryDivSecundario class="bio-text">
+            <div gloryDivSecundario class="bio-text" >
                 <h2 gloryTexto class="bio-title">Hola, soy Laura</h2>
                 <div gloryTexto class="bio-desc">
                     <p>Lidero Cosmo Revenue como una consultoría boutique, alejándome de las grandes estructuras impersonales. Soy una profesional joven, independiente y cercana.</p>
@@ -163,7 +163,7 @@ function about_bio()
 
 function about_contact()
 {
-    // Renderiza el formulario de contacto completo, igual que en landing
+    
     ContactForm::render('about-contacto', 'Contacto', true);
 }
 ?>

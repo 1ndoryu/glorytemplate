@@ -42,7 +42,7 @@ DefaultContentManager::define('casos', [
 <h3>Los Resultados</h3>
 <p>En la primera temporada completa de colaboracion, Villa Mar Azul alcanzo una ocupacion del 78% con un incremento del ADR del 35%. Los propietarios pudieron abandonar la gestion operativa diaria, delegando en nuestros procesos automatizados mientras disfrutaban de reportes mensuales claros sobre el rendimiento de su inversion.</p>
 ',
-        'imagenDestacadaAsset' => 'tema::hotel1.jpg',
+        'imagenDestacadaAsset' => 'tema::casoUno.png',
         'metaEntrada' => [
             'caso_tipo'           => 'Villa de Lujo',
             'caso_ubicacion'      => 'Costa Valenciana',
@@ -74,7 +74,7 @@ DefaultContentManager::define('casos', [
 <h3>Los Resultados</h3>
 <p>En 18 meses, Hotel Costa Sol paso de un 12% de reservas directas al 70%, incrementando sus ingresos netos en un 5% a pesar de mantener tarifas competitivas. El hotel ahora cuenta con una base de datos propia de mas de 3.000 clientes y un programa de fidelizacion activo que genera reservas recurrentes.</p>
 ',
-        'imagenDestacadaAsset' => 'tema::hotel2.jpg',
+        'imagenDestacadaAsset' => 'tema::casoDos.png',
         'metaEntrada' => [
             'caso_tipo'           => 'Hotel Vacacional',
             'caso_ubicacion'      => 'Costa Blanca',
@@ -108,7 +108,7 @@ DefaultContentManager::define('casos', [
 <h3>Los Resultados</h3>
 <p>En apenas 8 meses, Boutique Hotel Alameda logro establecerse como uno de los hoteles mejor valorados de Valencia, con un ADR un 15% superior a la media de su competitive set. La tasa de ocupacion se mantuvo estable en el 75%, demostrando que los huespedes estaban dispuestos a pagar por la experiencia diferenciada.</p>
 ',
-        'imagenDestacadaAsset' => 'tema::hotel3.jpg',
+        'imagenDestacadaAsset' => 'tema::casoTres.png',
         'metaEntrada' => [
             'caso_tipo'           => 'Hotel Boutique Urbano',
             'caso_ubicacion'      => 'Valencia Centro',
