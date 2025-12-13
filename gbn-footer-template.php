@@ -47,7 +47,7 @@ $homeUrl = esc_url(home_url('/'));
         <div gloryDivSecundario class="footer-info">
             <div gloryDivSecundario class="info-col">
                 <h4 gloryTexto>Contacto</h4>
-                <p gloryTexto>hello@test.com</p>
+                <p gloryTexto>info@cosmorevenue.com</p>
                 <p gloryTexto>+20 00 000 00</p>
             </div>
             <div gloryDivSecundario class="info-col">
@@ -61,10 +61,10 @@ $homeUrl = esc_url(home_url('/'));
     <div gloryDivSecundario class="footer-bottom">
         <p gloryTexto>© 2025 Cosmo All rights reserved.</p>
         <div class="social-icons">
-            <a gloryButton href="#"><i data-lucide="x"></i></a>
-            <a gloryButton href="#"><i data-lucide="facebook"></i></a>
-            <a gloryButton href="#"><i data-lucide="instagram"></i></a>
-            <a gloryButton href="#"><i data-lucide="linkedin"></i></a>
+            <a gloryButton href="#" style="display: none;"><i data-lucide="x"></i></a>
+            <a gloryButton href="#" style="display: none;"><i data-lucide="facebook"></i></a>
+            <a gloryButton href="https://www.instagram.com/cosmorevenue/"><i data-lucide="instagram"></i></a>
+            <a gloryButton href="#" style="display: none;"><i data-lucide="linkedin"></i></a>
         </div>
     </div>
 </footer>
