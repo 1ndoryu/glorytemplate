@@ -322,17 +322,17 @@ PageManager::define('pelotas-de-padel', 'pagePelotas');
 PageManager::define('accesorios-padel', 'pageAccesorios');
 PageManager::define('bolsas-y-paleteros', 'pageBolsasPaleteros');
 
-// Paginas de Marcas (usar como hijos bajo "marcas/" en WP)
-PageManager::define('adidas', 'pageMarcaAdidas');
-PageManager::define('bullpadel', 'pageMarcaBullpadel');
-PageManager::define('nox', 'pageMarcaNox');
-PageManager::define('babolat', 'pageMarcaBabolat');
-PageManager::define('head', 'pageMarcaHead');
-PageManager::define('siux', 'pageMarcaSiux');
-PageManager::define('black-crown', 'pageMarcaBlackCrown');
-PageManager::define('star-vie', 'pageMarcaStarVie');
-PageManager::define('vibor-a', 'pageMarcaViborA');
-PageManager::define('wilson', 'pageMarcaWilson');
+// Paginas de Marcas (hijas de 'marcas' para generar URLs /marcas/{marca}/)
+PageManager::defineWithParent('marcas', 'adidas', 'pageMarcaAdidas');
+PageManager::defineWithParent('marcas', 'bullpadel', 'pageMarcaBullpadel');
+PageManager::defineWithParent('marcas', 'nox', 'pageMarcaNox');
+PageManager::defineWithParent('marcas', 'babolat', 'pageMarcaBabolat');
+PageManager::defineWithParent('marcas', 'head', 'pageMarcaHead');
+PageManager::defineWithParent('marcas', 'siux', 'pageMarcaSiux');
+PageManager::defineWithParent('marcas', 'black-crown', 'pageMarcaBlackCrown');
+PageManager::defineWithParent('marcas', 'star-vie', 'pageMarcaStarVie');
+PageManager::defineWithParent('marcas', 'vibor-a', 'pageMarcaViborA');
+PageManager::defineWithParent('marcas', 'wilson', 'pageMarcaWilson');
 
 
 AjaxNav::contentSelector('#main');

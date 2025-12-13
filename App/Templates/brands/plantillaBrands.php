@@ -1,7 +1,6 @@
 <?php
 
 use Glory\Utility\AssetsUtility;
-use Glory\Core\GloryLogger;
 
 /**
  * Plantilla simple para CPT 'brand'.
@@ -20,26 +19,22 @@ function plantillaBrands(\WP_Post $post, string $itemClass = 'glory-brands-item'
     // 1) Usar SIEMPRE los SVG del tema (alias 'logos') para las marcas.
     //    No usamos la imagen destacada de WP para evitar URLs rotas en uploads.
     if ($brandSlug !== '') {
-        $candidatos = [];
-        $candidatos[] = 'logos::' . $brandSlug . '.svg';
-        $candidatos[] = 'logos::' . str_replace('-', '', $brandSlug) . '.svg';
-        $candidatos[] = 'logos::' . str_replace('-', '_', $brandSlug) . '.svg';
-        GloryLogger::info('plantillaBrands: buscando SVG para marca', [ 'slug' => $brandSlug, 'candidatos' => $candidatos ]);
+        $candidatos = [
+            'logos::' . $brandSlug . '.svg',
+            'logos::' . str_replace('-', '', $brandSlug) . '.svg',
+            'logos::' . str_replace('-', '_', $brandSlug) . '.svg',
+        ];
         foreach ($candidatos as $ref) {
             $svgUrl = AssetsUtility::imagenUrl($ref);
             if ($svgUrl) {
                 $logoUrl = $svgUrl;
-                GloryLogger::info('plantillaBrands: SVG resuelto', [ 'slug' => $brandSlug, 'ref' => $ref, 'url' => $svgUrl ]);
                 break;
             }
-        }
-        if ($logoUrl === '') {
-            GloryLogger::warning('plantillaBrands: no se encontró SVG para marca', [ 'slug' => $brandSlug ]);
         }
     }
 
     $tituloId = 'brand-title-' . $post->ID;
-    ?>
+?>
     <div class="<?php echo esc_attr($itemClass); ?>">
         <a class="brandLink" href="<?php echo esc_url($brandUrl); ?>" aria-labelledby="<?php echo esc_attr($tituloId); ?>">
             <div class="brandStack">
@@ -53,7 +48,5 @@ function plantillaBrands(\WP_Post $post, string $itemClass = 'glory-brands-item'
             </div>
         </a>
     </div>
-    <?php
+<?php
 }
-
-
