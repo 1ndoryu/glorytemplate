@@ -28,8 +28,8 @@ export function SimulationCard({badge, children, className = '', minHeight = '15
             {/* Tarjeta con doble borde estilo ProcessWorkflow */}
             <div className="rounded-lg shadow-sm border p-2 bg-surface border-primary">
                 <div className="rounded border p-5 flex flex-col gap-4 bg-[var(--color-bg-elevated)] border-[var(--color-border-subtle)]">
-                    {/* Header - Placeholders rectangulares + Badge */}
-                    <div className="flex items-center justify-between border-b pb-4 border-[var(--color-border-subtle)]">
+                    {/* Header - Placeholders rectangulares + Badge (oculto en móvil) */}
+                    <div className="hidden sm:flex items-center justify-between border-b pb-4 border-[var(--color-border-subtle)]">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded border bg-secondary border-secondary"></div>
                             <div className="flex flex-col gap-1.5">

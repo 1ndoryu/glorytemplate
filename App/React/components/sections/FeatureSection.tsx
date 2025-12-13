@@ -156,7 +156,7 @@ export function FeatureSection({features, backgroundImage}: FeatureSectionProps)
     const textContent = (
         <>
             <Badge className="w-fit mb-4 text-[var(--color-accent-primary)] border-[var(--color-accent-primary)]/20 bg-[var(--color-accent-primary)]/10">RESULTADOS</Badge>
-            <h2 className="text-3xl font-medium tracking-tight mb-6 text-primary">Lo que voy a conseguir contigo</h2>
+            <h2 className="text-2xl sm:text-3xl font-medium tracking-tight mb-6 text-primary">Lo que voy a conseguir contigo</h2>
             <p className="text-base mb-8 leading-relaxed text-muted">Mas oportunidades, reservas directas, menos tareas repetitivas y mejor experiencia para tus clientes.</p>
 
             {/* Lista de features estilo AnalyticsSection */}

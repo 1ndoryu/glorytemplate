@@ -20,7 +20,7 @@ export function SplitSection({id, visual, content, visualPosition = 'left', clas
             <div className="border rounded-xl overflow-hidden shadow-sm border-primary bg-surface">
                 <div className="grid grid-cols-1 lg:grid-cols-2">
                     {/* Visual Side */}
-                    <div className={`p-8 md:p-12 flex items-center justify-center border-b lg:border-b-0 relative overflow-hidden ${visualPosition === 'left' ? 'lg:border-r lg:order-1' : 'lg:border-l lg:order-2'} bg-secondary border-primary`}>
+                    <div className={`p-6 md:p-8 lg:p-12 flex items-center justify-center border-b lg:border-b-0 relative overflow-hidden min-h-[300px] md:min-h-[340px] ${visualPosition === 'left' ? 'lg:border-r lg:order-1' : 'lg:border-l lg:order-2'} bg-secondary border-primary`}>
                         {/* Imagen de fondo opcional */}
                         {backgroundImage && <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{backgroundImage: `url(${backgroundImage})`}} />}
 

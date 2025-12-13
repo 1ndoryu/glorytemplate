@@ -78,7 +78,7 @@ export function AnalyticsSection({title, description, metrics, footerText, backg
                             exit={{opacity: 0, x: 20}} // Salida hacia la derecha o fade out
                             transition={{duration: 0.4}}
                             className={`flex items-center gap-3 ${evt.type === 'info' ? 'opacity-70' : ''}`}>
-                            <span className="text-subtle w-16 flex-none">{evt.time}</span>
+                            <span className="text-subtle w-16 flex-none hidden sm:inline">{evt.time}</span>
                             <span className={`${evt.type === 'success' ? 'font-bold text-[var(--color-success)]' : evt.type === 'bold' ? 'font-bold text-[var(--color-info)]' : 'text-[var(--color-info)]'}`}>{evt.name}</span>
 
                             {evt.path && <span className="ml-auto text-subtle truncate max-w-[80px]">{evt.path}</span>}
@@ -101,7 +101,7 @@ export function AnalyticsSection({title, description, metrics, footerText, backg
     const textContent = (
         <>
             <Badge className="w-fit mb-4 text-[var(--color-info)] border-[var(--color-info)]/20 bg-[var(--color-info)]/10">DATA PRIVACY</Badge>
-            <h2 className="text-3xl font-medium tracking-tight mb-6 text-primary">{title}</h2>
+            <h2 className="text-2xl sm:text-3xl font-medium tracking-tight mb-6 text-primary break-words">{title}</h2>
             <p className="text-base mb-8 leading-relaxed text-muted">{description}</p>
 
             <div className="space-y-6">

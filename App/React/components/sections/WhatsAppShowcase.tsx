@@ -83,7 +83,7 @@ export function WhatsAppShowcase({badge = 'CANAL PRINCIPAL', title = 'WhatsApp B
 
     // Contenido Visual
     const visualContent = (
-        <div className="w-full max-w-md h-[270px] rounded-lg border shadow-lg p-6 bg-surface border-primary overflow-hidden relative">
+        <div className="w-full max-w-md h-[340px] sm:h-[300px] rounded-lg border shadow-lg p-6 bg-surface border-primary overflow-hidden relative">
             <AnimatePresence mode="wait">
                 <motion.div key={currentScenario.id} className="space-y-4 absolute inset-0 p-4 w-full" initial={{opacity: 0, x: 20}} animate={{opacity: 1, x: 0}} exit={{opacity: 0, x: -20}} transition={{duration: 0.3}}>
                     {currentScenario.messages.map((msg, idx) => {
@@ -127,7 +127,7 @@ export function WhatsAppShowcase({badge = 'CANAL PRINCIPAL', title = 'WhatsApp B
     const textContent = (
         <>
             <Badge className="w-fit mb-4 text-[#25D366] border-[var(--color-accent-green)]/30 bg-[var(--color-accent-green)]/10">{badge}</Badge>
-            <h2 className="text-3xl font-medium tracking-tight mb-6 text-primary">{title}</h2>
+            <h2 className="text-2xl sm:text-3xl font-medium tracking-tight mb-6 text-primary break-words">{title}</h2>
             <div className="space-y-8">
                 {features.map((item, idx) => (
                     <div key={idx} className="flex gap-4">

@@ -35,7 +35,7 @@ export function AutomationFlow({badge = 'BACKEND & LOGIC', title, description, f
                         <h2 className="text-3xl font-medium tracking-tight mb-6 text-white">{title}</h2>
                         <p className="text-neutral-300 mb-8 leading-relaxed">{description}</p>
 
-                        <div className="grid grid-cols-2 gap-6 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 text-sm">
                             {features.map((feat, idx) => (
                                 <div key={idx} className="flex items-center gap-3">
                                     <div className="p-2 rounded bg-white/5 border border-white/10">

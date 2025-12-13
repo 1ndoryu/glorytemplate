@@ -92,7 +92,7 @@ const createDemosContent = (urls: ReturnType<typeof useSiteUrls>) => ({
             },
             {
                 icon: Scissors,
-                title: 'Demo chatbot para barbería',
+                title: 'Demo chatbot barbería',
                 desc: 'Citas, reprogramaciones y avisos internos.'
             },
             {

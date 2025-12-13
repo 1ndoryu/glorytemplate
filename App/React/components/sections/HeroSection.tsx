@@ -33,7 +33,7 @@ export function HeroSection({title, subtitle, primaryCta, secondaryCta, tertiary
                 {/* Contenedor con altura minima para evitar CLS cuando cargan las fuentes */}
                 <div className="col-span-12 lg:col-span-8 flex flex-col gap-6 min-h-[280px] md:min-h-[300px]">
                     {/* H1 con altura minima estimada para 2-3 lineas de texto */}
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter text-balance leading-[1.1] text-primary min-h-[88px] md:min-h-[120px] lg:min-h-[140px]">{title}</h1>
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter text-balance leading-[1.1] text-primary min-h-[88px] md:min-h-[120px] lg:min-h-[140px] break-words">{title}</h1>
                     {/* Subtitulo con altura minima para evitar saltos */}
                     <p className="text-lg md:text-xl max-w-2xl leading-relaxed tracking-tight font-normal text-muted min-h-[60px] md:min-h-[72px]">{subtitle}</p>
                     {/* CTAs en orden: Calendario (primary) > WhatsApp (secondary) > Formulario (tertiary) */}
