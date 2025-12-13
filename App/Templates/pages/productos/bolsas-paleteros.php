@@ -13,7 +13,7 @@ function pageBolsasPaleteros()
             <p class="cta introContentPage">Para comprar bolsas y paleteros de pádel, elige primero formato (paletero clásico o mochila), luego la capacidad (1–2 o 3–6 palas) y los compartimentos (térmico, calzado ventilado, ropa húmeda). En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>. Explora: <a href="/palas-de-padel/">palas</a>, <a href="/zapatillas-padel/">zapatillas</a>, <a href="/ropa-padel/">ropa</a>, <a href="/pelotas-de-padel/">pelotas</a> y <a href="/accesorios-padel/">accesorios</a>.</p>
         </div>
 
-        [amazon_products search="paletero" orderby="random"]
+        [amazon_products search="paletero,bolsa,mochila,raquetero" orderby="random" exclude="pala,zapatilla,pelota,camiseta,grip,ropa"]
 
         <div class="textContentPage">
             <h2>Cómo elegir tu bolsa o paletero de pádel</h2>

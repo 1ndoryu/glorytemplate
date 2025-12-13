@@ -30,7 +30,7 @@ function home()
         <div class="gridCategorias">
             <?php
             $cards = [
-                ['href' => '/palas-de-padel/',       'titulo' => 'Palas',       'img' => 'padel.jpg'],
+                ['href' => '/palas-de-padel/',       'titulo' => 'Palas',       'img' => 'paletasNew.jpg'],
                 ['href' => '/zapatillas-padel/',     'titulo' => 'Zapatillas',  'img' => 'zapatos.jpg'],
                 ['href' => '/ropa-padel/',           'titulo' => 'Ropa',        'img' => 'ropa.jpg'],
             ];
@@ -77,7 +77,7 @@ function home()
             <div class="ctaMedia">
                 <?php
                 if (function_exists('App\\Templates\\Helpers\\renderAssetImage')) {
-                    \App\Templates\Helpers\renderAssetImage('tema::accesorios.jpg', [
+                    \App\Templates\Helpers\renderAssetImage('tema::accesoriosNew.jpg', [
                         'alt'   => 'Accesorios de pádel',
                         // En móvil ocupa todo el ancho; en escritorio es 1 de 2 columnas
                         'sizes' => '(max-width: 800px) 100vw, 50vw',

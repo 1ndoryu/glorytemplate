@@ -13,7 +13,7 @@ function pageRopa()
             <p class="cta introContentPage">Para comprar ropa de pádel, prioriza prendas transpirables (secado rápido) y con tejidos elásticos para libertad de movimiento. En invierno, añade ropa térmica o sudadera; en verano, tejidos ligeros con paneles de malla. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>. Explora: <a href="/palas-de-padel/">palas</a>, <a href="/zapatillas-padel/">zapatillas</a>, <a href="/pelotas-de-padel/">pelotas</a>, <a href="/accesorios-padel/">accesorios</a> y <a href="/bolsas-y-paleteros/">bolsas y paleteros</a>.</p>
         </div>
 
-        [amazon_products orderby="random"]
+        [amazon_products search="ropa,camiseta,pantalon,short" orderby="random" exclude="zapatilla,zapato,calzado,pala,paletero,bolsa,pelota,grip"]
 
         <div class="textContentPage">
             <h2>Cómo elegir tu ropa de pádel</h2>
