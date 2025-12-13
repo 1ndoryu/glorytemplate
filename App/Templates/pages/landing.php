@@ -269,7 +269,7 @@ function landing_about()
             </div>
             <h2 gloryTexto class="section-title">Sobre nosotros</h2>
             <p gloryTexto class="about-text">
-                En Cosmo Revenue somos una consultoría boutique especializada en revenue management y RevOps para la industria hotelera. Nos dedicamos a brindar soluciones personalizadas, fundamentadas en datos reales y en un enfoque cercano y de confianza con nuestros clientes.
+                En Cosmo Revenue somos una consultoría boutique especializada en revenue management y RevOps para la industria hotelera. Nos dedicamos a brindar soluciones personalizadas, fundamentadas en datos reales y en un enfoque cercano y de confianza con nuestros clientes. Nuestro objetivo es empoderar a los hoteles para que tomen decisiones de ingresos con claridad y seguridad, generando resultados sostenibles y duraderos.
             </p>
             <a gloryAjaxNav gloryButton href="/about" class="btn-about">Leer más</a>
         </div>
