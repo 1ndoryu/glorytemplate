@@ -24,56 +24,52 @@ export function useTheme() {
     const [theme, setThemeState] = useState<ThemeName>('project');
     const [isInitialized, setIsInitialized] = useState(false);
 
-    // Inicializacion: leer tema actual del DOM (ya viene del servidor)
-    // IMPORTANTE: El servidor ya envió el tema correcto en data-theme
-    // NO usamos localStorage en la primera carga para evitar flash de estilos
+    // Inicializacion: leer tema actual del DOM
+    // NOTA: El tema "project" (azul) es ahora el DEFAULT en CSS (:root)
+    // Solo existe data-theme="default" para el tema alternativo stone
     useEffect(() => {
         const htmlElement = document.documentElement;
         const currentDomTheme = htmlElement.getAttribute('data-theme');
-        
-        // El servidor ya aplicó el tema correcto, solo sincronizamos el estado
-        // Prioridad: DOM (servidor) > URL (solo si difiere del DOM)
+
+        // Prioridad: URL > DOM actual
         const urlParams = new URLSearchParams(window.location.search);
         const urlTheme = urlParams.get('theme') as ThemeName | null;
 
         let initialTheme: ThemeName;
 
         if (urlTheme && (urlTheme === 'default' || urlTheme === 'project')) {
-            // URL tiene prioridad si está presente (el servidor ya lo aplicó)
             initialTheme = urlTheme;
         } else {
-            // Usar lo que el servidor ya aplicó al DOM
-            initialTheme = currentDomTheme === 'project' ? 'project' : 'default';
+            // Sin atributo data-theme = project (es el default en CSS)
+            // Con data-theme="default" = stone
+            initialTheme = currentDomTheme === 'default' ? 'default' : 'project';
         }
 
-        // Sincronizar estado React con lo que ya está en el DOM
         setThemeState(initialTheme);
-        
-        // Actualizar localStorage para mantener consistencia (sin cambiar DOM)
         localStorage.setItem('glory-theme', initialTheme);
-        
         setIsInitialized(true);
     }, []);
 
     // Aplicar tema al DOM cuando cambie (solo si hay diferencia)
+    // NOTA: "project" = sin atributo (default CSS), "default" = data-theme="default"
     useEffect(() => {
         if (!isInitialized) return;
 
         const htmlElement = document.documentElement;
         const currentDomTheme = htmlElement.getAttribute('data-theme');
 
-        // Solo modificar el DOM si hay una diferencia real (evita flash de estilos)
-        if (theme === 'project') {
-            if (currentDomTheme !== 'project') {
-                htmlElement.setAttribute('data-theme', 'project');
+        if (theme === 'default') {
+            // Tema stone: necesita data-theme="default"
+            if (currentDomTheme !== 'default') {
+                htmlElement.setAttribute('data-theme', 'default');
             }
         } else {
+            // Tema project: es el default en CSS, remover cualquier atributo
             if (currentDomTheme !== null) {
                 htmlElement.removeAttribute('data-theme');
             }
         }
 
-        // Guardar en localStorage
         localStorage.setItem('glory-theme', theme);
     }, [theme, isInitialized]);
 

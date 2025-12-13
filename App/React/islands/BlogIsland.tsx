@@ -34,7 +34,7 @@ const createBlogContent = (urls: ReturnType<typeof useSiteUrls>) => ({
     hero: {
         title: (
             <>
-                Mejores chatbots para WhatsApp Business: <span className="text-subtle">casos y noticias</span>
+                Mejores chatbots para WhatsApp Business: <span className="text-info">casos y noticias</span>
             </>
         ),
         subtitle: 'Articulos practicos, casos reales y novedades sobre chatbots, automatizacion y atencion al cliente. Sin jerga tecnica, todo explicado para que lo apliques en tu negocio.',

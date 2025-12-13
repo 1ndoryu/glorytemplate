@@ -24,13 +24,26 @@ class AIConfigManager
         'openai_api_key' => '',
         'active_provider' => 'gemini',
         'model' => 'gemini-2.5-flash',
+        'custom_model' => '',
+        'temperature' => 0.7,
+        'system_prompt' => '',
+        'excluded_sources' => [],
         'tone' => 'cercano',
         'word_count' => 1000,
         'topics' => ['chatbots', 'whatsapp business', 'automatizacion', 'ia para empresas'],
         'excluded_topics' => [],
         'auto_search_enabled' => false,
         'search_frequency' => 'daily',
+        'schedule_hour' => 9,
+        'schedule_minute' => 0,
+        'schedule_day_of_week' => 1,
+        'schedule_day_of_month' => 1,
+        'notification_enabled' => false,
+        'notification_email' => '',
+        'notification_on_error' => true,
+        'notification_on_success' => true,
         'last_search' => null,
+        'last_execution' => null,
         'drafts_auto_create' => true
     ];
 
@@ -209,7 +222,99 @@ class AIConfigManager
         // Agregar estado
         $config['status'] = self::isConfigured();
 
+        // Agregar proxima ejecucion si la programacion esta habilitada
+        if ($config['auto_search_enabled']) {
+            $config['next_execution'] = self::getNextScheduledExecution();
+        } else {
+            $config['next_execution'] = null;
+        }
+
         return $config;
+    }
+
+    /**
+     * Calcula la proxima ejecucion programada
+     */
+    public static function getNextScheduledExecution(): ?string
+    {
+        $enabled = self::get('auto_search_enabled', false);
+        if (!$enabled) {
+            return null;
+        }
+
+        $frequency = self::get('search_frequency', 'daily');
+        $hour = (int) self::get('schedule_hour', 9);
+        $minute = (int) self::get('schedule_minute', 0);
+        $dayOfWeek = (int) self::get('schedule_day_of_week', 1);
+        $dayOfMonth = (int) self::get('schedule_day_of_month', 1);
+
+        $timezone = wp_timezone();
+        $now = new \DateTime('now', $timezone);
+
+        switch ($frequency) {
+            case 'hourly':
+                $next = clone $now;
+                $next->modify('+1 hour');
+                $next->setTime((int)$next->format('H'), 0, 0);
+                break;
+
+            case 'twice_daily':
+                $next = clone $now;
+                $currentHour = (int) $now->format('H');
+                if ($currentHour < $hour) {
+                    $next->setTime($hour, $minute, 0);
+                } elseif ($currentHour < ($hour + 12)) {
+                    $next->setTime($hour + 12, $minute, 0);
+                } else {
+                    $next->modify('+1 day');
+                    $next->setTime($hour, $minute, 0);
+                }
+                break;
+
+            case 'daily':
+                $next = clone $now;
+                $next->setTime($hour, $minute, 0);
+                if ($next <= $now) {
+                    $next->modify('+1 day');
+                }
+                break;
+
+            case 'weekly':
+                $next = clone $now;
+                $next->setTime($hour, $minute, 0);
+                $currentDow = (int) $now->format('N');
+                $daysUntil = ($dayOfWeek - $currentDow + 7) % 7;
+                if ($daysUntil === 0 && $next <= $now) {
+                    $daysUntil = 7;
+                }
+                $next->modify("+{$daysUntil} days");
+                break;
+
+            case 'biweekly':
+                $next = clone $now;
+                $next->setTime($hour, $minute, 0);
+                $currentDow = (int) $now->format('N');
+                $daysUntil = ($dayOfWeek - $currentDow + 7) % 7;
+                if ($daysUntil === 0 && $next <= $now) {
+                    $daysUntil = 14;
+                }
+                $next->modify("+{$daysUntil} days");
+                break;
+
+            case 'monthly':
+                $next = clone $now;
+                $next->setDate((int)$next->format('Y'), (int)$next->format('m'), $dayOfMonth);
+                $next->setTime($hour, $minute, 0);
+                if ($next <= $now) {
+                    $next->modify('+1 month');
+                }
+                break;
+
+            default:
+                return null;
+        }
+
+        return $next->format('Y-m-d H:i:s');
     }
 
     /**

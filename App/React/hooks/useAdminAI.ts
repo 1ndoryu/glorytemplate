@@ -82,7 +82,8 @@ export function useAdminAI() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [toneOptions, setToneOptions] = useState<Record<string, ToneOption>>({});
-    const [models, setModels] = useState<Record<string, string>>({});
+    const [geminiModels, setGeminiModels] = useState<Record<string, string>>({});
+    const [openaiModels, setOpenaiModels] = useState<Record<string, string>>({});
 
     // Fetch helper con autenticacion
     const fetchAPI = useCallback(async (endpoint: string, options: RequestInit = {}) => {
@@ -134,7 +135,8 @@ export function useAdminAI() {
             const data = await fetchAPI('/config');
             setConfig(data.config);
             setToneOptions(data.toneOptions || {});
-            setModels(data.models || {});
+            setGeminiModels(data.geminiModels || {});
+            setOpenaiModels(data.openaiModels || {});
             return data.config;
         } finally {
             setLoading(false);
@@ -344,7 +346,8 @@ export function useAdminAI() {
         loading,
         error,
         toneOptions,
-        models,
+        geminiModels,
+        openaiModels,
 
         // Configuracion
         loadConfig,

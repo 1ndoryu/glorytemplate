@@ -15,16 +15,17 @@
  * - features/admin-ai/components/GenerateTab.tsx
  * - features/admin-ai/components/DraftsTab.tsx
  * - features/admin-ai/components/ConfigTab.tsx
+ * - features/admin-ai/components/AdvancedTab.tsx
  * - features/admin-ai/components/StatsTab.tsx
  */
 
 import {useState} from 'react';
-import {Settings, Sparkles, FileText, BarChart3, X, AlertCircle} from 'lucide-react';
+import {Settings, Sparkles, FileText, BarChart3, X, AlertCircle, Sliders, Clock} from 'lucide-react';
 import {PageLayout} from '../components/layout';
 import {useAdminAI} from '../hooks/useAdminAI';
-import {GenerateTab, DraftsTab, ConfigTab, StatsTab} from '../features/admin-ai';
+import {GenerateTab, DraftsTab, ConfigTab, AdvancedTab, StatsTab, LogsModal} from '../features/admin-ai';
 
-type TabId = 'generate' | 'drafts' | 'config' | 'stats';
+type TabId = 'generate' | 'drafts' | 'config' | 'advanced' | 'stats';
 
 interface TabConfig {
     id: TabId;
@@ -36,36 +37,49 @@ const TABS: TabConfig[] = [
     {id: 'generate', label: 'Generar', icon: Sparkles},
     {id: 'drafts', label: 'Borradores', icon: FileText},
     {id: 'config', label: 'Configuracion', icon: Settings},
+    {id: 'advanced', label: 'Avanzado', icon: Sliders},
     {id: 'stats', label: 'Estadisticas', icon: BarChart3}
 ];
 
 export function AdminAIIsland(): JSX.Element {
     const [activeTab, setActiveTab] = useState<TabId>('generate');
+    const [showLogs, setShowLogs] = useState(false);
     const ai = useAdminAI();
 
     return (
         <PageLayout headerCtaText="Volver al sitio" mainClassName="flex-1 flex flex-col gap-6 px-6 py-8">
-            <AdminAIHeader />
+            <AdminAIHeader onShowLogs={() => setShowLogs(true)} />
             <ConfigurationBanner config={ai.config} />
             <TabsNavigation tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} pendingCount={ai.stats?.pending ?? 0} />
             <ErrorBanner error={ai.error} onDismiss={ai.clearError} />
             <main id="admin-ai-content" className="flex-1">
                 <TabContent activeTab={activeTab} ai={ai} />
             </main>
+            <LogsModal isOpen={showLogs} onClose={() => setShowLogs(false)} />
         </PageLayout>
     );
 }
 
-function AdminAIHeader(): JSX.Element {
+interface AdminAIHeaderProps {
+    onShowLogs: () => void;
+}
+
+function AdminAIHeader({onShowLogs}: AdminAIHeaderProps): JSX.Element {
     return (
         <header id="admin-ai-header" className="admin-ai-header">
-            <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-xl bg-[var(--color-accent-primary)]/10">
-                    <Sparkles className="w-6 h-6 text-[var(--color-accent-primary)]" />
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-xl bg-[var(--color-accent-primary)]/10">
+                        <Sparkles className="w-6 h-6 text-[var(--color-accent-primary)]" />
+                    </div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-primary">Generador de Contenido IA</h1>
                 </div>
-                <h1 className="text-2xl md:text-3xl font-bold text-primary">Generador de Contenido IA</h1>
+                <button onClick={onShowLogs} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted hover:text-primary hover:bg-secondary transition-colors" title="Ver historial de ejecuciones">
+                    <Clock className="w-4 h-4" />
+                    <span className="hidden sm:inline">Historial</span>
+                </button>
             </div>
-            <p className="text-muted">Genera articulos automaticamente con Gemini 2.5 Flash y Google Search grounding.</p>
+            <p className="text-muted">Genera borradores de articulos para tu blog automaticamente.</p>
         </header>
     );
 }
@@ -149,7 +163,10 @@ function TabContent({activeTab, ai}: TabContentProps): JSX.Element | null {
             return <DraftsTab drafts={ai.drafts} loading={ai.loading} onLoadDrafts={ai.loadDrafts} onApproveDraft={ai.approveDraft} onPublishDraft={ai.publishDraft} onRejectDraft={ai.rejectDraft} />;
 
         case 'config':
-            return <ConfigTab config={ai.config} models={ai.models} onTestConnection={ai.testConnection} onSaveConfig={ai.saveConfig} />;
+            return <ConfigTab config={ai.config} geminiModels={ai.geminiModels} openaiModels={ai.openaiModels} onTestConnection={ai.testConnection} onSaveConfig={ai.saveConfig} />;
+
+        case 'advanced':
+            return <AdvancedTab config={ai.config} onSaveConfig={ai.saveConfig} />;
 
         case 'stats':
             return <StatsTab stats={ai.stats} loading={ai.loading} onRefresh={ai.loadStats} />;

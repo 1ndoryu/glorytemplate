@@ -188,8 +188,27 @@ class AIRestApi
             'config' => AIConfigManager::getPublicConfig(),
             'toneOptions' => AIConfigManager::getToneOptions(),
             'frequencyOptions' => AIConfigManager::getFrequencyOptions(),
-            'models' => GeminiClient::getAvailableModels()
+            'geminiModels' => GeminiClient::getAvailableModels(),
+            'openaiModels' => self::getOpenAIModels()
         ]);
+    }
+
+    /**
+     * Obtiene los modelos disponibles de OpenAI
+     * Actualizado: 2025-12-13
+     */
+    private static function getOpenAIModels(): array
+    {
+        return [
+            // Modelos actuales GPT-5
+            'gpt-5.2' => 'GPT-5.2 (Mejor para codigo y agentes)',
+            'gpt-5-mini' => 'GPT-5 mini (Rapido y economico)',
+            'gpt-5-nano' => 'GPT-5 nano (Ultra rapido y economico)',
+            'gpt-5.2-pro' => 'GPT-5.2 pro (Respuestas mas precisas)',
+            'gpt-5' => 'GPT-5 (Razonamiento configurable)',
+            // Modelos anteriores
+            'gpt-4.1' => 'GPT-4.1 (Mejor sin razonamiento)'
+        ];
     }
 
     public static function saveConfig(\WP_REST_Request $request): \WP_REST_Response
@@ -200,12 +219,24 @@ class AIRestApi
             'openai_api_key',
             'active_provider',
             'model',
+            'custom_model',
             'tone',
             'word_count',
             'topics',
             'excluded_topics',
             'auto_search_enabled',
             'search_frequency',
+            'schedule_hour',
+            'schedule_minute',
+            'schedule_day_of_week',
+            'schedule_day_of_month',
+            'notification_enabled',
+            'notification_email',
+            'notification_on_error',
+            'notification_on_success',
+            'temperature',
+            'system_prompt',
+            'excluded_sources',
             'drafts_auto_create'
         ];
 

@@ -2,10 +2,11 @@
 // Cabecera con navegacion principal y menu movil
 
 import {useState} from 'react';
-import {Menu, X} from 'lucide-react';
+import {Menu, X, Settings, Sparkles, Cog} from 'lucide-react';
 import {motion, AnimatePresence} from 'framer-motion';
 import {Button} from '../ui/Button';
-import {useSiteImages, useSiteIdentity} from '../../hooks/useSiteConfig';
+import {AdminSettingsMenu} from '../ui/AdminSettingsMenu';
+import {useSiteImages, useSiteIdentity, useUserPermissions} from '../../hooks/useSiteConfig';
 
 interface NavItem {
     label: string;
@@ -42,10 +43,11 @@ function Logo({logoMode, logoImageUrl, displayLogoText}: {logoMode: string; logo
 
 export function Header({logoText: propLogoText, navItems, ctaText, ctaHref}: HeaderProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const images = useSiteImages();
     const identity = useSiteIdentity();
+    const {isAdmin} = useUserPermissions();
 
-    // Determinar que logo mostrar
     const logoMode = images.logoMode || 'text';
     const logoImageUrl = images.logo;
     const displayLogoText = images.logoText || propLogoText || identity.name;
@@ -69,6 +71,14 @@ export function Header({logoText: propLogoText, navItems, ctaText, ctaHref}: Hea
                         </nav>
                     </div>
                     <div className="flex items-center gap-3">
+                        {isAdmin && (
+                            <div className="relative hidden md:block">
+                                <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="p-2 rounded-lg text-muted hover:text-primary hover:bg-[var(--color-bg-secondary)] transition-colors" aria-label="Configuracion" title="Configuracion">
+                                    <Settings size={20} />
+                                </button>
+                                <AdminSettingsMenu isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+                            </div>
+                        )}
                         <Button href={ctaHref} className="hidden md:inline-flex">
                             {ctaText}
                         </Button>
@@ -83,7 +93,6 @@ export function Header({logoText: propLogoText, navItems, ctaText, ctaHref}: Hea
             <AnimatePresence>
                 {isMobileMenuOpen && (
                     <motion.div className="md:hidden fixed inset-0 z-[100] backdrop-blur-xl bg-[var(--color-bg-primary)]/60 flex flex-col" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} transition={{duration: 0.2}}>
-                        {/* Header del menu con boton cerrar */}
                         <motion.div className="flex items-center justify-between px-6 h-14 border-b border-[var(--color-border-primary)]/50 flex-shrink-0" initial={{opacity: 0, y: -10}} animate={{opacity: 1, y: 0}} transition={{delay: 0.05}}>
                             <a href="/" className="font-bold text-lg tracking-tighter text-primary" onClick={closeMobileMenu}>
                                 <Logo logoMode={logoMode} logoImageUrl={logoImageUrl} displayLogoText={displayLogoText} />
@@ -93,16 +102,26 @@ export function Header({logoText: propLogoText, navItems, ctaText, ctaHref}: Hea
                             </button>
                         </motion.div>
 
-                        {/* Links de navegacion con animacion escalonada */}
                         <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
                             {navItems.map((item, index) => (
                                 <motion.a key={item.label} href={item.href} onClick={closeMobileMenu} className="block text-lg font-medium py-4 px-4 rounded-xl text-primary hover:bg-[var(--color-bg-secondary)] active:bg-[var(--color-bg-tertiary)] transition-colors" initial={{opacity: 0, x: -20}} animate={{opacity: 1, x: 0}} transition={{delay: 0.1 + index * 0.05}}>
                                     {item.label}
                                 </motion.a>
                             ))}
+                            {isAdmin && (
+                                <>
+                                    <motion.a href="/panel-ia" onClick={closeMobileMenu} className="flex items-center gap-3 text-lg font-medium py-4 px-4 rounded-xl text-primary hover:bg-[var(--color-bg-secondary)] active:bg-[var(--color-bg-tertiary)] transition-colors" initial={{opacity: 0, x: -20}} animate={{opacity: 1, x: 0}} transition={{delay: 0.1 + navItems.length * 0.05}}>
+                                        <Sparkles size={20} className="text-[var(--color-accent-primary)]" />
+                                        <span>IA Contenido</span>
+                                    </motion.a>
+                                    <motion.a href="/configuracion" onClick={closeMobileMenu} className="flex items-center gap-3 text-lg font-medium py-4 px-4 rounded-xl text-primary hover:bg-[var(--color-bg-secondary)] active:bg-[var(--color-bg-tertiary)] transition-colors" initial={{opacity: 0, x: -20}} animate={{opacity: 1, x: 0}} transition={{delay: 0.15 + navItems.length * 0.05}}>
+                                        <Cog size={20} className="text-muted" />
+                                        <span>Configuracion</span>
+                                    </motion.a>
+                                </>
+                            )}
                         </nav>
 
-                        {/* CTA fijo en la parte inferior */}
                         <motion.div className="p-4 border-t border-[var(--color-border-primary)]/50 flex-shrink-0" initial={{opacity: 0, y: 20}} animate={{opacity: 1, y: 0}} transition={{delay: 0.15 + navItems.length * 0.05}}>
                             <a href={ctaHref} onClick={closeMobileMenu} className="flex items-center justify-center w-full h-12 rounded-lg bg-[var(--color-accent-primary)] text-white font-medium text-base shadow-lg shadow-[var(--color-accent-primary)]/25 active:scale-[0.98] transition-transform">
                                 {ctaText}

@@ -36,12 +36,22 @@ class ContentGenerator
      */
     public function generateAndSave(string $title, string $topic, array $options = []): array
     {
+        $startTime = microtime(true);
+
         // Verificar configuracion
         $configStatus = AIConfigManager::isConfigured();
         if (!$configStatus['configured']) {
+            $error = 'Sistema de IA no configurado: ' . $configStatus['message'];
+
+            // Notificar error
+            AINotificationService::notifyError($error, [
+                'titulo_intentado' => $title,
+                'tema' => $topic
+            ]);
+
             return [
                 'success' => false,
-                'error' => 'Sistema de IA no configurado: ' . $configStatus['message']
+                'error' => $error
             ];
         }
 
@@ -54,9 +64,18 @@ class ContentGenerator
         $result = $this->client->generateArticle($title, $outline, $tone, $wordCount);
 
         if (!$result) {
+            $error = $this->client->getLastError() ?? 'Error al generar contenido';
+
+            // Notificar error
+            AINotificationService::notifyError($error, [
+                'titulo_intentado' => $title,
+                'tema' => $topic,
+                'modelo' => AIConfigManager::get('model')
+            ]);
+
             return [
                 'success' => false,
-                'error' => $this->client->getLastError() ?? 'Error al generar contenido'
+                'error' => $error
             ];
         }
 
@@ -71,11 +90,28 @@ class ContentGenerator
         $postId = DraftManager::createDraft($result, $title, $draftOptions);
 
         if (is_wp_error($postId)) {
+            $error = $postId->get_error_message();
+
+            // Notificar error
+            AINotificationService::notifyError($error, [
+                'titulo' => $title,
+                'etapa' => 'crear_borrador'
+            ]);
+
             return [
                 'success' => false,
-                'error' => $postId->get_error_message()
+                'error' => $error
             ];
         }
+
+        $duration = microtime(true) - $startTime;
+
+        // Notificar exito
+        AINotificationService::notifySuccess($title, $postId, [
+            'model' => $result['model'],
+            'duration' => $duration,
+            'sources' => $result['sources']
+        ]);
 
         return [
             'success' => true,

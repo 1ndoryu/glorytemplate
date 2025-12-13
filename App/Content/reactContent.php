@@ -130,6 +130,12 @@ ReactContentProvider::registerStatic('siteConfig', [
         'ga4Id' => OpcionManager::get('glory_ga4_measurement_id', ''),
         'gscCode' => OpcionManager::get('glory_gsc_verification_code', ''),
     ],
+
+    // Usuario actual
+    'user' => [
+        'isLoggedIn' => is_user_logged_in(),
+        'isAdmin' => current_user_can('manage_options'),
+    ],
 ]);
 
 /**

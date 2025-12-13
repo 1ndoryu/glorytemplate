@@ -293,14 +293,20 @@ Reglas:
     }
 
     /**
-     * Obtiene los modelos disponibles
+     * Obtiene los modelos disponibles de Gemini
+     * Actualizado: 2025-12-13
      */
     public static function getAvailableModels(): array
     {
         return [
-            'gemini-2.5-flash' => 'Gemini 2.5 Flash (Recomendado - Gratis)',
-            'gemini-2.5-pro' => 'Gemini 2.5 Pro (Avanzado)',
-            'gemini-2.0-flash' => 'Gemini 2.0 Flash (Legacy)'
+            // Modelos actuales
+            'gemini-3-pro' => 'Gemini 3 Pro (Mejor modelo, agentes y codigo)',
+            'gemini-2.5-flash' => 'Gemini 2.5 Flash (Rapido e inteligente)',
+            'gemini-2.5-flash-lite' => 'Gemini 2.5 Flash-Lite (Ultra rapido)',
+            'gemini-2.5-pro' => 'Gemini 2.5 Pro (Pensamiento avanzado)',
+            // Modelos anteriores
+            'gemini-2.0-flash' => 'Gemini 2.0 Flash (Segunda generacion)',
+            'gemini-2.0-flash-lite' => 'Gemini 2.0 Flash-Lite (Rapido y ligero)'
         ];
     }
 

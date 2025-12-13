@@ -19,7 +19,7 @@ const homeContent = {
         // H1 exacto segun project-extends.md
         title: (
             <>
-                Chatbot para empresas que atiende a tus clientes <span className="text-subtle">24/7 y gestiona reservas</span>
+                Chatbot para empresas que atiende a tus clientes <span className="text-info">24/7 y gestiona reservas</span>
             </>
         ),
         // Subhero segun project-extends.md

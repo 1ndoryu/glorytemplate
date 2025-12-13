@@ -1,9 +1,10 @@
 <?php
 $usuarioId = get_current_user_id();
 
-// Determinar tema desde URL o usar 'project' por defecto (evita flash de estilos)
-$themeFromUrl = isset($_GET['theme']) && in_array($_GET['theme'], ['default', 'project']) ? $_GET['theme'] : 'project';
-$dataThemeAttr = $themeFromUrl === 'project' ? ' data-theme="project"' : '';
+// El tema "project" (azul) es ahora el DEFAULT en CSS (:root)
+// Solo necesitamos agregar data-theme="default" si se solicita explícitamente
+$themeFromUrl = isset($_GET['theme']) && $_GET['theme'] === 'default' ? 'default' : 'project';
+$dataThemeAttr = $themeFromUrl === 'default' ? ' data-theme="default"' : '';
 ?>
 <!doctype html>
 <html <?php language_attributes(); ?><?php echo $dataThemeAttr; ?>>

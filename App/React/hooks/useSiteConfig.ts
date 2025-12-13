@@ -63,12 +63,18 @@ export interface AnalyticsConfig {
     gscCode: string;
 }
 
+export interface UserPermissions {
+    isLoggedIn: boolean;
+    isAdmin: boolean;
+}
+
 export interface SiteConfig {
     identity: SiteIdentity;
     urls: SiteUrls;
     social: SocialProfiles;
     images: SiteImages;
     analytics: AnalyticsConfig;
+    user: UserPermissions;
 }
 
 // Valores por defecto (fallback si no hay config desde PHP)
@@ -110,6 +116,10 @@ const defaultConfig: SiteConfig = {
         gtmId: '',
         ga4Id: '',
         gscCode: ''
+    },
+    user: {
+        isLoggedIn: false,
+        isAdmin: false
     }
 };
 
@@ -162,6 +172,15 @@ export function useSiteImages(): SiteImages {
 export function useAnalyticsConfig(): AnalyticsConfig {
     const config = useSiteConfig();
     return config.analytics;
+}
+
+/**
+ * Hook para obtener los permisos del usuario actual.
+ * Devuelve si el usuario esta logueado y si es administrador.
+ */
+export function useUserPermissions(): UserPermissions {
+    const config = useSiteConfig();
+    return config.user;
 }
 
 /**
