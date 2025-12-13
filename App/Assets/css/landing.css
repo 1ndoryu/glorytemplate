@@ -152,19 +152,21 @@ body {
     font-style: normal;
 }
 
-.landing-container .titulo-responsive.hero-title {
-    font-size: clamp(48px, 7.5vw, 152px);
-    line-height: 0.9;
-}
-
 
 
 .landing-container .hero-title .highlight-text {
     font-weight: normal;
     font-family: var(--font-body);
     text-transform: uppercase;
-    font-size: var(--text-hero);
+    font-size: clamp(48px, 7.5vw, 120px);
 }
+
+
+.landing-container .titulo-responsive.hero-title {
+    font-size: clamp(48px, 7.5vw, 152px);
+    line-height: 0.9;
+}
+
 
 /* Evita que la primera línea del hero se rompa en escritorio */
 @media (min-width: 1024px) {
