@@ -128,6 +128,12 @@ body {
     mix-blend-mode: normal !important;
 }
 
+.landing-container .titulo-responsive.hero-title {
+    font-size: clamp(48px, 7.5vw, 152px);
+    line-height: 0.9;
+}
+
+
 /* Contenido Hero Landing */
 .landing-container .hero-content {
     z-index: 2;
@@ -145,6 +151,13 @@ body {
     color: #fff;
     font-style: normal;
 }
+
+.landing-container .titulo-responsive.hero-title {
+    font-size: clamp(48px, 7.5vw, 152px);
+    line-height: 0.9;
+}
+
+
 
 .landing-container .hero-title .highlight-text {
     font-weight: normal;

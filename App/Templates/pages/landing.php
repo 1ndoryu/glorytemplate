@@ -27,7 +27,7 @@ function landing_hero()
     <section divGlory class="hero-section">
 
         <div gloryDivSecundario class="hero-content">
-            <h1 gloryTexto class="hero-title" style="font-size: clamp(48px, 7.5vw, 152px); line-height: 0.9;">
+            <h1 gloryTexto class="titulo-responsive hero-title">
                 Ordenamos el universo de tus<br>
                 <span class="highlight-text">INGRESOS</span>
             </h1>
