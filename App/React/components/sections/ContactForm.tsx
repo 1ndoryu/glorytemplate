@@ -117,14 +117,34 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
         setStatus('submitting');
         setErrorMessage('');
 
-        // TODO: Implementar envio real del formulario
-        // Por ahora simulamos un envio exitoso
-        setTimeout(() => {
-            setStatus('success');
-            // Trackear evento de conversion (FASE 8)
-            analytics.trackFormSubmit(formData.servicio || 'general');
-            setFormData(initialFormData);
-        }, 1500);
+        try {
+            // Enviar al endpoint REST API
+            const response = await fetch('/wp-json/glory/v1/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setStatus('success');
+                // Trackear evento de conversion (FASE 8)
+                analytics.trackFormSubmit(formData.servicio || 'general');
+                setFormData(initialFormData);
+            } else {
+                // Error del servidor o validacion
+                setErrorMessage(data.message || 'Hubo un error al enviar el mensaje. Intentalo de nuevo.');
+                setStatus('error');
+            }
+        } catch (error) {
+            // Error de red u otro
+            console.error('Error enviando formulario:', error);
+            setErrorMessage('Error de conexion. Por favor, intentalo de nuevo o contactanos por WhatsApp.');
+            setStatus('error');
+        }
     };
 
     // Estilos de input y label usando clases Tailwind que referencian variables CSS nativas

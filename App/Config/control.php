@@ -130,6 +130,13 @@ if (file_exists($settingsApiPath)) {
     \App\Services\SettingsRestApi::register();
 }
 
+// Cargar API REST para el formulario de contacto
+$contactFormApiPath = get_template_directory() . '/App/Services/ContactFormRestApi.php';
+if (file_exists($contactFormApiPath)) {
+    require_once $contactFormApiPath;
+    \App\Services\ContactFormRestApi::register();
+}
+
 // ============================================================================
 // APLICAR MODO REACT
 // ============================================================================
