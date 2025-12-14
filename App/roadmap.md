@@ -1,7 +1,7 @@
 # ROADMAP - Proyecto Web Guillermo Garcia (Chatbots y Automatizacion)
 
 > Fecha de creacion: 2025-12-11
-> Ultima actualizacion: 2025-12-13 05:20
+> Ultima actualizacion: 2025-12-14 02:21
 > Estado: **EN PRODUCCION** - Sistema funcional, pendiente lanzamiento
 
 ---
@@ -252,6 +252,56 @@ Se decidio que cuando React esta activo:
 ## TAREAS PENDIENTES
 
 > Las tareas restantes son de configuracion (Theme Options, GTM, SEO) y lanzamiento.
+
+---
+
+## PENDIENTES DEL CLIENTE (Guillermo)
+
+> **Fecha de actualizacion:** 2025-12-14
+> **Contexto:** Dudas resueltas via articulo explicativo (ver `.agent/articulo-respuesta-cliente.md`)
+
+### Acciones Requeridas del Cliente
+
+| Accion                        | Descripcion                                                                     | Panel/Ubicacion              | Estado      |
+| ----------------------------- | ------------------------------------------------------------------------------- | ---------------------------- | ----------- |
+| **Crear cuenta Calendly**     | Registrarse en [calendly.com](https://calendly.com) y configurar disponibilidad | Externa                      | Pendiente   |
+| **Configurar URL Calendly**   | Pegar la URL de Calendly en el panel                                            | `/configuracion` → Contacto  | Panel listo |
+| **Verificar WhatsApp**        | Confirmar que el numero esta correcto (actualmente: 584120825234)               | `/configuracion` → Contacto  | Panel listo |
+| **Configurar email contacto** | Definir email donde llegaran los mensajes del formulario                        | `/configuracion` → Identidad | Panel listo |
+| **Definir precios de planes** | Decidir precios para cada plan (solicitó 2 dias para pensar)                    | Comunicar al desarrollador   | Pendiente   |
+| **Subir fotos "Sobre Mi"**    | Subir imagen de perfil e imagen secundaria (trabajando)                         | `/configuracion` → Imagenes  | Panel listo |
+| **Crear cuenta Calendly**     | Antes de configurar la URL, necesita crear su cuenta                            | Externa (calendly.com)       | Pendiente   |
+
+### Decisiones Pendientes
+
+| Tema                   | Opciones                    | Recomendacion                              |
+| ---------------------- | --------------------------- | ------------------------------------------ |
+| **Precios de planes**  | Precios fijos vs "Desde X€" | Usar "Desde X€" para mantener flexibilidad |
+| **Fondo de la pagina** | Blanco actual vs Azul suave | Proximo: selector de temas en panel        |
+
+### Funcionalidades Listas (Solo requieren configuracion)
+
+| Funcionalidad              | Como funciona                                  | Donde configurar                     |
+| -------------------------- | ---------------------------------------------- | ------------------------------------ |
+| **Formulario de contacto** | Envia email al correo configurado              | `/configuracion` → Identidad → Email |
+| **Boton WhatsApp**         | Abre WhatsApp con numero y mensaje predefinido | `/configuracion` → Contacto          |
+| **Boton Calendly**         | Redirige al calendario configurado             | `/configuracion` → Contacto          |
+| **Blog**                   | Sistema nativo de WordPress                    | WP Admin → Entradas → Añadir nueva   |
+| **Fotos**                  | Subir directamente desde el panel              | `/configuracion` → Imagenes          |
+| **Logo**                   | Elegir entre texto o imagen                    | `/configuracion` → Logo              |
+| **Redes sociales**         | URLs de perfiles para footer y SEO             | `/configuracion` → Redes Sociales    |
+
+### Proximas Mejoras (Desarrollo)
+
+| Mejora                | Estado                       | Descripcion                                         |
+| --------------------- | ---------------------------- | --------------------------------------------------- |
+| **Selector de temas** | Proximo                      | Elegir entre varios temas de colores desde el panel |
+| **Modificar colores** | Proximo                      | Personalizar colores principales desde el panel     |
+| **Panel extendido**   | Futuro                       | Mas opciones editables manteniendo estructura       |
+| **Editor completo**   | Futuro (requiere desarrollo) | Mover secciones y modificar estructuras             |
+
+---
+
 ### TAREA-007: Correcciones UI Hero y Header Admin
 
 > **Estado:** COMPLETADA
@@ -1051,5 +1101,11 @@ useEffect(() => {
 | 2025-12-13 | ROADMAP: Actualizada seccion Analitica con 4 eventos y pendientes                                                   |
 | 2025-12-13 | ROADMAP: Actualizada FASE 9 con tareas faltantes y prioridades                                                      |
 | 2025-12-13 | ROADMAP: Nueva seccion VERIFICACION con hallazgos detallados                                                        |
+| 2025-12-14 | CONTACTFORM: Implementado envio real de formulario via REST API (ContactFormRestApi.php)                            |
+| 2025-12-14 | CONTACTFORM: Endpoint POST /glory/v1/contact con envio de email via wp_mail()                                       |
+| 2025-12-14 | CONTACTFORM: Email HTML profesional con datos del contacto, mensaje y tracking UTM                                  |
+| 2025-12-14 | CONTACTFORM: Frontend actualizado para usar endpoint real (ya no simula)                                            |
+| 2025-12-14 | ROADMAP: Nueva seccion PENDIENTES DEL CLIENTE con tabla de acciones requeridas                                      |
+| 2025-12-14 | DOCS: Creado articulo-respuesta-cliente.md con guia completa para el cliente                                        |
 
 </details>
