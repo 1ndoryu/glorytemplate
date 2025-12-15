@@ -40,7 +40,7 @@ GloryFeatures::enable('gloryAjax');
 GloryFeatures::disable('gloryForm');
 GloryFeatures::disable('gloryBusqueda');
 GloryFeatures::disable('gloryRealtime');
-
+GloryFeatures::enable('amazonProduct');
 // Task feature flag
 GloryFeatures::disable('task');
 
