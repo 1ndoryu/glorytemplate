@@ -9,18 +9,23 @@ if (file_exists($autoloader)) {
     error_log('Error: Composer autoload no encontrado. Ejecuta "composer install".');
 }
 
-$glory_loader = get_template_directory() . '/Glory/load.php';
-if (file_exists($glory_loader)) {
-    require_once $glory_loader;
-} else {
-    error_log('Error: Glory Framework loader no encontrado.');
-}
-
+/*
+ * IMPORTANTE: Cargar dotenv ANTES de Glory Framework
+ * para que las variables de entorno esten disponibles
+ * cuando los plugins se inicialicen.
+ */
 try {
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
     $dotenv->load();
 } catch (Exception $e) {
     error_log('Error al cargar el archivo .env: ' . $e->getMessage());
+}
+
+$glory_loader = get_template_directory() . '/Glory/load.php';
+if (file_exists($glory_loader)) {
+    require_once $glory_loader;
+} else {
+    error_log('Error: Glory Framework loader no encontrado.');
 }
 
 
@@ -54,3 +59,13 @@ foreach ($directorios as $directorio) {
     incluirArchivos($directorio);
 }
 
+
+// Fix SVG MIME type support
+add_filter('upload_mimes', function ($mimes) {
+    $mimes['svg'] = 'image/svg+xml';
+    return $mimes;
+});
+add_filter('mime_types', function ($mimes) {
+    $mimes['svg'] = 'image/svg+xml';
+    return $mimes;
+});
