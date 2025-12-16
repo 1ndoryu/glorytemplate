@@ -55,7 +55,7 @@ GloryFeatures::disable('termRender');
 
 //Theme options
 GloryFeatures::disable('titleTag');
-GloryFeatures::disable('postThumbnails');
+GloryFeatures::enable('postThumbnails');
 
 //Integrations
 GloryFeatures::disable('avadaIntegration');
