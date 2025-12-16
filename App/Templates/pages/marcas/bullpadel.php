@@ -13,7 +13,7 @@ function pageMarcaBullpadel()
             <p class="cta introContentPage">Para comprar palas de pádel Bullpadel, elige entre control, potencia o polivalentes y ajusta según tu nivel. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
         </div>
 
-        [amazon_products search="bullpadel" orderby="random"]
+        [amazon_products section="marca-bullpadel" search="bullpadel" orderby="random"]
 
         <div class="textContentPage">
             <h2>¿Cómo elegir tu pala Bullpadel?</h2>

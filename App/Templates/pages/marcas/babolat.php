@@ -13,7 +13,7 @@ function pageMarcaBabolat()
             <p class="cta introContentPage">Para comprar palas de pádel Babolat, piensa en tu nivel y en si priorizas control, potencia o un punto polivalente. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
         </div>
 
-        [amazon_products search="babolat" orderby="random"]
+        [amazon_products section="marca-babolat" search="babolat" orderby="random"]
 
         <div class="textContentPage">
             <h2>Babolat: encuentra tu pala sin complicarte</h2>

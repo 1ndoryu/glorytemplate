@@ -13,7 +13,7 @@ function pageMarcaAdidas()
             <p class="cta introContentPage">Para comprar palas de pádel Adidas, elige entre control, potencia o polivalentes y ajusta según tu nivel. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
         </div>
 
-        [amazon_products search="adidas" orderby="random"]
+        [amazon_products section="marca-adidas" search="adidas" orderby="random"]
 
         <div class="textContentPage">
             <h2>Elige tus palas Adidas en 1 minuto</h2>

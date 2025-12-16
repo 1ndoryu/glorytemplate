@@ -13,7 +13,7 @@ function pageMarcaBlackCrown()
             <p class="cta introContentPage">Para comprar palas de pádel Black Crown, piensa primero en tu nivel y en si te encaja control, potencia o una opción polivalente. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
         </div>
 
-        [amazon_products search="black crown" orderby="random"]
+        [amazon_products section="marca-blackcrown" search="black crown" orderby="random"]
 
         <div class="textContentPage">
             <h2>Encuentra tu Black Crown sin liarte</h2>

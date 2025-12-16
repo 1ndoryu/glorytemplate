@@ -68,7 +68,7 @@ function home()
             <h2 class="bloqueTitulo">Últimas ofertas</h2>
             <a class="btnLink" href="/ofertas/">Ver todas</a>
         </div>
-        [amazon_products only_deals="1" orderby="random" limit="4" hide_filters="1" pagination="0"]
+        [amazon_products section="ofertas-home" only_deals="1" orderby="random" limit="4" hide_filters="1" pagination="0"]
 
     </section>
 

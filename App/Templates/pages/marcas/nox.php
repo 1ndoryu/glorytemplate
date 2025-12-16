@@ -13,7 +13,7 @@ function pageMarcaNox()
             <p class="cta introContentPage">Para comprar palas de pádel NOX, piensa en cómo juegas (control, potencia o polivalentes) y en tu frecuencia de juego. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
         </div>
 
-        [amazon_products search="nox" orderby="random"]
+        [amazon_products section="marca-nox" search="nox" orderby="random"]
 
         <div class="textContentPage">
             <h2>¿Cuál es tu NOX ideal?</h2>

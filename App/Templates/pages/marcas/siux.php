@@ -13,7 +13,7 @@ function pageMarcaSiux()
             <p class="cta introContentPage">Para comprar palas de pádel Siux, piensa en tu nivel y en si buscas control, potencia o una opción polivalente. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a> al día.</p>
         </div>
 
-        [amazon_products search="siux" orderby="random"]
+        [amazon_products section="marca-siux" search="siux" orderby="random"]
 
         <div class="textContentPage">
             <h2>Tu pala Siux, sin darle mil vueltas</h2>

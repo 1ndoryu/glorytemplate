@@ -13,7 +13,7 @@ function pageMarcaStarVie()
             <p class="cta introContentPage">Para comprar palas de pádel Star Vie, piensa en tu nivel y en si prefieres control, potencia o una opción polivalente. En Amazon puedes consultar precio y <a href="/ofertas/">ofertas 2025</a>.</p>
         </div>
 
-        [amazon_products search="star vie" orderby="random"]
+        [amazon_products section="marca-starvie" search="star vie" orderby="random"]
 
         <div class="textContentPage">
             <h2>Elige bien tu Star Vie (rápido y claro)</h2>
