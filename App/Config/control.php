@@ -3,58 +3,59 @@
 use Glory\Core\GloryFeatures;
 
 //Managers
-GloryFeatures::enable('menu');
+GloryFeatures::disable('menu');
 GloryFeatures::enable('assetManager');
 GloryFeatures::enable('opcionManagerSync');
 GloryFeatures::enable('syncManager');
 GloryFeatures::enable('gloryLogger');
-GloryFeatures::enable('gbn');
 GloryFeatures::enable('pageManager');
 GloryFeatures::enable('postTypeManager');
-GloryFeatures::enable('taxonomyMetaManager');
 GloryFeatures::enable('scheduleManager');
 GloryFeatures::enable('defaultContentManager');
+
+GloryFeatures::disable('gbn');
 GloryFeatures::disable('licenseManager');
 GloryFeatures::disable('creditosManager');
+GloryFeatures::disable('taxonomyMetaManager');
 
 //UI Components
-GloryFeatures::enable('modales');
-GloryFeatures::enable('submenus');
-GloryFeatures::enable('pestanas');
-GloryFeatures::enable('scheduler');
-GloryFeatures::enable('headerAdaptativo');
-GloryFeatures::enable('themeToggle');
-GloryFeatures::enable('alertas');
-GloryFeatures::enable('gestionarPreviews');
-GloryFeatures::enable('paginacion');
-GloryFeatures::enable('gloryFilters');
-GloryFeatures::enable('calendario');
-GloryFeatures::enable('badgeList');
-GloryFeatures::enable('highlight');
-GloryFeatures::enable('gsap');
+GloryFeatures::disable('modales');
+GloryFeatures::disable('submenus');
+GloryFeatures::disable('pestanas');
+GloryFeatures::disable('scheduler');
+GloryFeatures::disable('headerAdaptativo');
+GloryFeatures::disable('themeToggle');
+GloryFeatures::disable('alertas');
+GloryFeatures::disable('gestionarPreviews');
+GloryFeatures::disable('paginacion');
+GloryFeatures::disable('gloryFilters');
+GloryFeatures::disable('calendario');
+GloryFeatures::disable('badgeList');
+GloryFeatures::disable('highlight');
+GloryFeatures::disable('gsap');
 GloryFeatures::disable('gbnSplitContent');
 GloryFeatures::disable('gloryLinkCpt');
 
 //Services
 GloryFeatures::disable('cssCritico');
-GloryFeatures::enable('navegacionAjax');
-GloryFeatures::enable('gloryAjax');
-GloryFeatures::enable('gloryForm');
-GloryFeatures::enable('gloryBusqueda');
-GloryFeatures::enable('gloryRealtime');
+GloryFeatures::disable('navegacionAjax');
+GloryFeatures::disable('gloryAjax');
+GloryFeatures::disable('gloryForm');
+GloryFeatures::disable('gloryBusqueda');
+GloryFeatures::disable('gloryRealtime');
 
 // Task feature flag
-GloryFeatures::enable('task');
+GloryFeatures::disable('task');
 GloryFeatures::enable('amazonProduct');
 
 // Renderers
-GloryFeatures::enable('logoRenderer');
-GloryFeatures::enable('contentRender');
-GloryFeatures::enable('termRender');
+GloryFeatures::disable('logoRenderer');
+GloryFeatures::disable('contentRender');
+GloryFeatures::disable('termRender');
 
 //Theme options
-GloryFeatures::enable('titleTag');
-GloryFeatures::enable('postThumbnails');
+GloryFeatures::disable('titleTag');
+GloryFeatures::disable('postThumbnails');
 
 //Integrations
 GloryFeatures::disable('avadaIntegration');
@@ -62,21 +63,21 @@ GloryFeatures::disable('avadaIntegration');
 //Admin
 GloryFeatures::disable('queryProfiler');
 GloryFeatures::disable('performanceProfiler');
-GloryFeatures::disable('queryProfilerLogs'); 
+GloryFeatures::disable('queryProfilerLogs');
 
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
 if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
-    error_log("control.php: ContentAjaxHandler class exists, registering immediately");
+    // error_log("control.php: ContentAjaxHandler class exists, registering immediately");
     \App\Handlers\ContentAjaxHandler::register();
 } else {
-    error_log("control.php: ContentAjaxHandler class NOT found, hooking to init");
-    add_action('init', function() {
+    // error_log("control.php: ContentAjaxHandler class NOT found, hooking to init");
+    add_action('init', function () {
         if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
-            error_log("control.php (init): ContentAjaxHandler class exists, registering");
+            // error_log("control.php (init): ContentAjaxHandler class exists, registering");
             \App\Handlers\ContentAjaxHandler::register();
         } else {
-            error_log("control.php (init): ContentAjaxHandler class STILL NOT found");
+            // error_log("control.php (init): ContentAjaxHandler class STILL NOT found");
         }
     });
 }

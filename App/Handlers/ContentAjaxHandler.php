@@ -4,13 +4,13 @@ namespace App\Handlers;
 
 use Glory\Components\ContentRender;
 
-error_log("ContentAjaxHandler.php loaded");
+// error_log("ContentAjaxHandler.php loaded");
 
 class ContentAjaxHandler
 {
     public static function register(): void
     {
-        error_log("ContentAjaxHandler::register called");
+        // error_log("ContentAjaxHandler::register called");
         add_action('wp_ajax_obtenerHtmlPost', [self::class, 'handle_get_post_html']);
         add_action('wp_ajax_nopriv_obtenerHtmlPost', [self::class, 'handle_get_post_html']);
 
@@ -73,20 +73,20 @@ class ContentAjaxHandler
 
     public static function handle_get_list_html(): void
     {
-        error_log("ContentAjaxHandler::handle_get_list_html called");
-        
+        // error_log("ContentAjaxHandler::handle_get_list_html called");
+
         // Recopilar todas las opciones posibles
         $options = $_POST;
-        
+
         // Normalizar nombres de claves si es necesario (gbnDefaults usa camelCase o snake_case, ContentRenderCss espera snake_case mayormente)
         // Por ahora pasamos todo $_POST como args.
-        
+
         $postType = isset($options['postType']) ? sanitize_text_field($options['postType']) : (isset($options['tipo']) ? sanitize_text_field($options['tipo']) : 'post');
         $plantilla = isset($options['plantilla']) ? sanitize_text_field($options['plantilla']) : null;
         $contenedor = isset($options['claseContenedor']) ? sanitize_text_field($options['claseContenedor']) : 'glory-content-list';
         $itemClass = isset($options['claseItem']) ? sanitize_text_field($options['claseItem']) : 'glory-content-item';
         $ppp = isset($options['publicacionesPorPagina']) ? intval($options['publicacionesPorPagina']) : 10;
-        
+
         // Decodificar argumentos de consulta si vienen como JSON
         $argsJson = isset($options['argumentosConsulta']) ? wp_unslash($options['argumentosConsulta']) : '';
         $argumentosConsulta = [];
@@ -152,7 +152,7 @@ class ContentAjaxHandler
             // Asegurar que la clase del contenedor incluya este ID para que el CSS aplique
             // NOTA: ContentRender::print usa 'instanceClass' para generar la clase única.
             // Debemos pasar este ID como 'instanceClass' para que coincidan.
-            
+
             // Preparar argumentos para el builder de CSS
             // Mapear opciones de GBN a lo que espera ContentRenderCss si hay discrepancias
             $cssArgs = array_merge($options, [
@@ -172,7 +172,7 @@ class ContentAjaxHandler
                 $cssArgs, // instanceConfig
                 $options['interaccion_modo'] ?? 'normal'
             );
-            
+
             if (!empty($css)) {
                 $css = '<style>' . $css . '</style>';
             }
@@ -202,5 +202,3 @@ class ContentAjaxHandler
         wp_send_json_success($css . $html);
     }
 }
-
-
