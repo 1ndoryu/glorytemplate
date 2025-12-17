@@ -14,6 +14,7 @@
 
 // Islas del proyecto
 import {HomeIsland} from './islands/HomeIsland';
+import {HomeStaticIsland} from './islands/HomeStaticIsland';
 import {PageEditorIsland} from './islands/PageEditorIsland';
 
 // Estilos especificos del proyecto
@@ -29,6 +30,7 @@ registerAppBlocks();
  */
 export const appIslands: Record<string, React.ComponentType<Record<string, unknown>>> = {
     HomeIsland: HomeIsland,
+    HomeStaticIsland: HomeStaticIsland,
     PageEditorIsland: PageEditorIsland
 };
 
