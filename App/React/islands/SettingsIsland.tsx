@@ -34,7 +34,7 @@ const TABS: TabConfig[] = [
     {id: 'identity', label: 'Identidad', icon: Building2},
     {id: 'contact', label: 'Contacto', icon: Calendar},
     {id: 'social', label: 'Redes Sociales', icon: Share2},
-    {id: 'images', label: 'Imagenes', icon: Image},
+    {id: 'images', label: 'Imágenes', icon: Image},
     {id: 'logo', label: 'Logo', icon: Image},
     {id: 'integrations', label: 'Integraciones', icon: LineChart}
 ];
@@ -87,7 +87,7 @@ function SettingsHeader(): JSX.Element {
                 <Settings className="settings-icon-large" />
             </div>
             <div>
-                <h1 className="settings-title">Configuracion del Tema</h1>
+                <h1 className="settings-title">Configuración del Tema</h1>
                 <p className="settings-subtitle">Gestiona las opciones de tu sitio web desde un solo lugar.</p>
             </div>
         </header>
@@ -98,7 +98,7 @@ function LoadingState(): JSX.Element {
     return (
         <div className="settings-loading">
             <div className="settings-loading-spinner" />
-            <p>Cargando configuracion...</p>
+            <p>Cargando configuración...</p>
         </div>
     );
 }

@@ -375,9 +375,9 @@ export function AboutIsland(): JSX.Element {
                     <>
                         <Badge className="w-fit mb-4 text-[var(--color-warning)] border-[var(--color-warning)]/20 bg-[var(--color-warning)]/10">CASO REAL</Badge>
                         <h2 className="text-3xl font-medium tracking-tight mb-6 text-primary">{aboutContent.caseStudy.title}</h2>
-                        <p className="text-base mb-6 leading-relaxed text-muted">En MVP Barber me contaron que no podian contestar los WhatsApp mientras cortaban el pelo y lo hacian en sus ratos libres, fuera del horario.</p>
+                        <p className="text-base mb-6 leading-relaxed text-muted">En MVP Barber me contaron que no podían contestar los WhatsApp mientras cortaban el pelo y lo hacían en sus ratos libres, fuera del horario.</p>
                         <p className="text-base mb-6 leading-relaxed text-muted">
-                            Montamos un chatbot para dudas tipicas y citas. <strong className="text-primary">Resultado: ahora cortan en paz y el bot se encarga del resto.</strong>
+                            Montamos un chatbot para dudas típicas y citas. <strong className="text-primary">Resultado: ahora cortan en paz y el bot se encarga del resto.</strong>
                         </p>
                         <div className="space-y-3">
                             <div className="flex items-center gap-2 text-sm text-[var(--color-success)]">
@@ -386,7 +386,7 @@ export function AboutIsland(): JSX.Element {
                             </div>
                             <div className="flex items-center gap-2 text-sm text-[var(--color-success)]">
                                 <CheckCircle className="w-4 h-4" />
-                                <span>Gestion de citas automatica</span>
+                                <span>Gestión de citas automática</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-[var(--color-success)]">
                                 <CheckCircle className="w-4 h-4" />
@@ -423,7 +423,7 @@ export function AboutIsland(): JSX.Element {
                             <h2 className="text-3xl font-medium tracking-tight mb-6 text-white">
                                 Herramientas que uso <span className="text-[var(--color-info)]">conectadas entre si</span>
                             </h2>
-                            <p className="text-neutral-300 mb-8 leading-relaxed">UChat para el bot, Make (y cuando conviene n8n) para automatizar, mas Google Sheets, Calendly, WhatsApp, Instagram y tu CRM. Si no tienes CRM, empezamos con hoja compartida y listo.</p>
+                            <p className="text-neutral-300 mb-8 leading-relaxed">UChat para el bot, Make (y cuando conviene n8n) para automatizar, más Google Sheets, Calendly, WhatsApp, Instagram y tu CRM. Si no tienes CRM, empezamos con hoja compartida y listo.</p>
 
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div className="flex items-center gap-3">

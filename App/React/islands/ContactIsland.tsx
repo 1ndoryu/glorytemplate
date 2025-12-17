@@ -52,23 +52,23 @@ const nextSteps: Step[] = [
 
 const contactFaqs = [
     {
-        question: 'Cuanto cuesta una consulta inicial?',
-        answer: 'La primera llamada es gratuita y sin compromiso. Hablamos sobre tu caso y te doy mi opinion honesta.'
+        question: '¿Cuánto cuesta una consulta inicial?',
+        answer: 'La primera llamada es gratuita y sin compromiso. Hablamos sobre tu caso y te doy mi opinión honesta.'
     },
     {
-        question: 'En cuanto tiempo me respondes?',
-        answer: 'Por WhatsApp, en menos de 30 minutos (de 09:00 a 21:00). Por formulario o email, el mismo dia.'
+        question: '¿En cuánto tiempo me respondes?',
+        answer: 'Por WhatsApp, en menos de 30 minutos (de 09:00 a 21:00). Por formulario o email, el mismo día.'
     },
     {
-        question: 'Trabajas solo con empresas grandes?',
-        answer: 'No, trabajo con empresas de todos los tamanos. Desde autonomos hasta pymes con equipos de venta.'
+        question: '¿Trabajas solo con empresas grandes?',
+        answer: 'No, trabajo con empresas de todos los tamaños. Desde autónomos hasta pymes con equipos de venta.'
     },
     {
-        question: 'Puedo ver una demo antes de decidir?',
-        answer: 'Si, puedo prepararte un prototipo en 72h para que veas como funcionaria en tu caso concreto.'
+        question: '¿Puedo ver una demo antes de decidir?',
+        answer: 'Sí, puedo prepararte un prototipo en 72h para que veas cómo funcionaría en tu caso concreto.'
     },
     {
-        question: 'Que pasa si no me convence?',
+        question: '¿Qué pasa si no me convence?',
         answer: 'Sin problema. La llamada inicial no tiene compromiso y el primer mes es gratis para que pruebes.'
     }
 ];
@@ -181,7 +181,7 @@ export function ContactIsland(): JSX.Element {
             {/* 4. QUE PASA DESPUES */}
             <section id="next-steps-section" className="mx-auto w-full max-w-4xl">
                 <div className="mb-8 text-center">
-                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Que pasa despues de contactarme</h2>
+                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">¿Qué pasa después de contactarme?</h2>
                     <p className="text-muted mt-2">Un proceso simple, sin sorpresas.</p>
                 </div>
 
@@ -202,13 +202,13 @@ export function ContactIsland(): JSX.Element {
                 <div className="mt-8 p-4 rounded-lg bg-secondary border border-primary text-center">
                     <div className="flex items-center justify-center gap-2 text-muted">
                         <Clock className="w-4 h-4" />
-                        <span className="text-sm">Disponible de lunes a viernes, 09:00 - 21:00 (hora Espana).</span>
+                        <span className="text-sm">Disponible de lunes a viernes, 09:00 - 21:00 (hora España).</span>
                     </div>
                 </div>
             </section>
 
             {/* 5. FAQs */}
-            <FaqWithCta title="Preguntas sobre contacto" items={contactFaqs} ctaTitle="Listo para empezar?" ctaDescription="Primera llamada gratuita. Te cuento como puedo ayudarte." />
+            <FaqWithCta title="Preguntas sobre contacto" items={contactFaqs} ctaTitle="¿Listo para empezar?" ctaDescription="Primera llamada gratuita. Te cuento cómo puedo ayudarte." />
 
             {/* 6. INTERNAL LINKS - SEO */}
             <InternalLinks title="Tambien te puede interesar" links={contactInternalLinks} />

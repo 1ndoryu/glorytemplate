@@ -93,7 +93,7 @@ const createServicesContent = (urls: ReturnType<typeof useSiteUrls>) => ({
                 Automatización de <span className="text-info">reservas y tareas</span>
             </>
         ),
-        description: 'No es solo responder chats. Es conectar tu negocio. Cuando un cliente reserva, el bot actualiza tu agenda, envia un email de confirmacion y crea el contacto en tu CRM. Sin que toques nada.',
+        description: 'No es solo responder chats. Es conectar tu negocio. Cuando un cliente reserva, el bot actualiza tu agenda, envía un email de confirmación y crea el contacto en tu CRM. Sin que toques nada.',
         features: [
             {icon: Calendar, label: 'Recordatorios'}, // Mapeado de 'Recordatorios y confirmaciones' - El componente features recibe iconos+label, no H3 completo. Ajustaré esto.
             {icon: Database, label: 'Volcado de datos'},

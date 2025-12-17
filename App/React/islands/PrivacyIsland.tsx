@@ -37,13 +37,13 @@ const legalSections: LegalSection[] = [
                     <br />
                     <strong>Actividad:</strong> Consultoria de chatbots y automatizacion para empresas
                 </p>
-                <p className="text-sm text-muted">Este sitio web es propiedad de Guillermo Garcia. Al usar este sitio, aceptas esta politica de privacidad.</p>
+                <p className="text-sm text-muted">Este sitio web es propiedad de Guillermo Garcia. Al usar este sitio, aceptas esta política de privacidad.</p>
             </>
         )
     },
     {
         icon: Database,
-        title: 'Para que uso tus datos',
+        title: 'Para qué uso tus datos',
         content: (
             <>
                 <p className="mb-4">Recopilo tus datos personales para:</p>
@@ -52,7 +52,7 @@ const legalSections: LegalSection[] = [
                         <strong>Responder a tus consultas:</strong> cuando me escribes por formulario, WhatsApp o email.
                     </li>
                     <li>
-                        <strong>Gestionar citas:</strong> cuando reservas una llamada a traves de Calendly.
+                        <strong>Gestionar citas:</strong> cuando reservas una llamada a través de Calendly.
                     </li>
                     <li>
                         <strong>Enviarte informacion relevante:</strong> solo si lo has solicitado expresamente.
@@ -62,14 +62,14 @@ const legalSections: LegalSection[] = [
                     </li>
                 </ul>
                 <p className="text-sm">
-                    <strong>Base legal:</strong> Tu consentimiento explicito (checkbox en formularios) y el interes legitimo para atender tu solicitud.
+                    <strong>Base legal:</strong> Tu consentimiento explícito (checkbox en formularios) y el interés legítimo para atender tu solicitud.
                 </p>
             </>
         )
     },
     {
         icon: Shield,
-        title: 'A quien encargo datos',
+        title: 'A quién encargo datos',
         content: (
             <>
                 <p className="mb-4">Utilizo los siguientes servicios de terceros que pueden procesar tus datos:</p>
@@ -78,10 +78,10 @@ const legalSections: LegalSection[] = [
                         <strong>Calendly:</strong> Para gestionar reservas de llamadas (servidores en EEUU, Privacy Shield).
                     </li>
                     <li>
-                        <strong>Google Analytics:</strong> Para estadisticas anonimas del sitio (solo si aceptas cookies).
+                        <strong>Google Analytics:</strong> Para estadísticas anónimas del sitio (solo si aceptas cookies).
                     </li>
                     <li>
-                        <strong>WhatsApp/Meta:</strong> Si me contactas por WhatsApp (politica de Meta).
+                        <strong>WhatsApp/Meta:</strong> Si me contactas por WhatsApp (política de Meta).
                     </li>
                     <li>
                         <strong>Hosting:</strong> Local by Flywheel / WP Engine (servidores en EEUU/UE).
@@ -93,22 +93,22 @@ const legalSections: LegalSection[] = [
     },
     {
         icon: Clock,
-        title: 'Cuanto tiempo los conservo',
+        title: 'Cuánto tiempo los conservo',
         content: (
             <>
                 <p className="mb-4">Conservo tus datos durante el tiempo necesario para:</p>
                 <ul className="list-disc list-inside space-y-2 text-muted">
                     <li>
-                        <strong>Consultas por formulario/email:</strong> Hasta 12 meses tras la ultima comunicacion.
+                        <strong>Consultas por formulario/email:</strong> Hasta 12 meses tras la última comunicación.
                     </li>
                     <li>
-                        <strong>Clientes activos:</strong> Durante la relacion comercial y 5 anos adicionales por obligaciones legales.
+                        <strong>Clientes activos:</strong> Durante la relación comercial y 5 años adicionales por obligaciones legales.
                     </li>
                     <li>
-                        <strong>Cookies analiticas:</strong> Segun la politica de cada proveedor (normalmente 26 meses).
+                        <strong>Cookies analíticas:</strong> Según la política de cada proveedor (normalmente 26 meses).
                     </li>
                 </ul>
-                <p className="mt-4 text-sm">Puedes solicitar la eliminacion de tus datos en cualquier momento.</p>
+                <p className="mt-4 text-sm">Puedes solicitar la eliminación de tus datos en cualquier momento.</p>
             </>
         )
     },
@@ -123,19 +123,19 @@ const legalSections: LegalSection[] = [
                         <strong>Acceso:</strong> Saber que datos tengo sobre ti.
                     </li>
                     <li>
-                        <strong>Rectificacion:</strong> Corregir datos incorrectos.
+                        <strong>Rectificación:</strong> Corregir datos incorrectos.
                     </li>
                     <li>
-                        <strong>Supresion:</strong> Eliminar tus datos (derecho al olvido).
+                        <strong>Supresión:</strong> Eliminar tus datos (derecho al olvido).
                     </li>
                     <li>
-                        <strong>Oposicion:</strong> Oponerte a ciertos tratamientos.
+                        <strong>Oposición:</strong> Oponerte a ciertos tratamientos.
                     </li>
                     <li>
-                        <strong>Portabilidad:</strong> Recibir tus datos en formato electronico.
+                        <strong>Portabilidad:</strong> Recibir tus datos en formato electrónico.
                     </li>
                     <li>
-                        <strong>Limitacion:</strong> Restringir el tratamiento en ciertos casos.
+                        <strong>Limitación:</strong> Restringir el tratamiento en ciertos casos.
                     </li>
                 </ul>
                 <p className="text-sm">
@@ -143,7 +143,7 @@ const legalSections: LegalSection[] = [
                     <a href="mailto:contacto@dominio.com" className="text-[var(--color-accent-primary)] hover:underline">
                         contacto@[dominio].com
                     </a>
-                    . Si no estas satisfecho, puedes reclamar ante la{' '}
+                    . Si no estás satisfecho, puedes reclamar ante la{' '}
                     <a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent-primary)] hover:underline">
                         AEPD
                     </a>
@@ -157,11 +157,11 @@ const legalSections: LegalSection[] = [
         title: 'Cookies',
         content: (
             <>
-                <p className="mb-4">Este sitio utiliza cookies para funcionar correctamente y analizar el trafico (si lo aceptas).</p>
+                <p className="mb-4">Este sitio utiliza cookies para funcionar correctamente y analizar el tráfico (si lo aceptas).</p>
                 <p>
-                    Para mas informacion, consulta nuestra{' '}
+                    Para más información, consulta nuestra{' '}
                     <a href="/cookies" className="text-[var(--color-accent-primary)] hover:underline font-medium">
-                        Politica de Cookies
+                        Política de Cookies
                     </a>
                     .
                 </p>
@@ -183,11 +183,11 @@ export function PrivacyIsland(): JSX.Element {
         <PageLayout headerCtaText="Contactar" mainClassName="flex-1 flex flex-col justify-start gap-12 px-6 py-12 md:py-20">
             {/* HEADER */}
             <header id="privacy-header" className="mx-auto w-full max-w-4xl">
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-primary mb-4">Politica de privacidad</h1>
-                <p className="text-lg text-muted max-w-2xl">En esta pagina te explico como trato tus datos personales, para que los uso y cuales son tus derechos. Sin jerga legal innecesaria.</p>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-primary mb-4">Política de privacidad</h1>
+                <p className="text-lg text-muted max-w-2xl">En esta página te explico cómo trato tus datos personales, para qué los uso y cuáles son tus derechos. Sin jerga legal innecesaria.</p>
                 <div className="flex items-center gap-2 mt-6 text-sm text-muted">
                     <Calendar className="w-4 h-4" />
-                    <span>Ultima actualizacion: Diciembre 2025</span>
+                    <span>Última actualización: Diciembre 2025</span>
                 </div>
             </header>
 
@@ -215,8 +215,8 @@ export function PrivacyIsland(): JSX.Element {
             <section id="privacy-contact" className="mx-auto w-full max-w-4xl">
                 <div className="p-6 rounded-xl bg-secondary border border-primary text-center">
                     <Mail className="w-8 h-8 mx-auto mb-4 text-[var(--color-accent-primary)]" />
-                    <h2 className="text-lg font-semibold text-primary mb-2">Dudas sobre privacidad?</h2>
-                    <p className="text-muted mb-4">Si tienes cualquier pregunta sobre como trato tus datos, escribeme sin compromiso.</p>
+                    <h2 className="text-lg font-semibold text-primary mb-2">¿Dudas sobre privacidad?</h2>
+                    <p className="text-muted mb-4">Si tienes cualquier pregunta sobre cómo trato tus datos, escríbeme sin compromiso.</p>
                     <a href="/contacto" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[var(--color-accent-primary)] text-white font-medium hover:opacity-90 transition-opacity">
                         Contactar
                     </a>

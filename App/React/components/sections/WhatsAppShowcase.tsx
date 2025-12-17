@@ -2,7 +2,7 @@ import {useState, useEffect} from 'react';
 import {Check} from 'lucide-react';
 import {motion, AnimatePresence} from 'framer-motion';
 import {Badge, Button} from '../ui';
-import {siteUrls} from '../../config';
+import {useSiteUrls} from '../../hooks/useSiteConfig';
 import {SplitSection} from './SplitSection';
 
 // --- TIPOS ---
@@ -63,8 +63,10 @@ const DEMO_CONVERSATIONS = [
 // --- COMPONENTE ---
 // Seccion visual de WhatsApp Business con mockup de chat y lista de beneficios
 // Usado para mostrar capacidades del servicio de manera visual
-export function WhatsAppShowcase({badge = 'CANAL PRINCIPAL', title = 'WhatsApp Business API', features, ctaText = 'Solicitar demo WhatsApp', ctaHref = siteUrls.calendly, backgroundImage}: WhatsAppShowcaseProps): JSX.Element {
+export function WhatsAppShowcase({badge = 'CANAL PRINCIPAL', title = 'WhatsApp Business API', features, ctaText = 'Solicitar demo WhatsApp', ctaHref, backgroundImage}: WhatsAppShowcaseProps): JSX.Element {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const urls = useSiteUrls();
+    const finalCtaHref = ctaHref || urls.calendly;
 
     // Rotacion de conversaciones
     // Rotacion de conversaciones
@@ -142,7 +144,7 @@ export function WhatsAppShowcase({badge = 'CANAL PRINCIPAL', title = 'WhatsApp B
                 ))}
             </div>
             <div className="mt-10 pt-6 border-t border-[var(--color-border-subtle)]">
-                <Button href={ctaHref} variant="outline" className="w-full sm:w-auto">
+                <Button href={finalCtaHref} variant="outline" className="w-full sm:w-auto">
                     {ctaText}
                 </Button>
             </div>

@@ -21,7 +21,7 @@ interface SinglePostIslandProps {
 
 // Enlaces internos
 const postInternalLinks = [
-    {text: 'Ver mas articulos', href: '/blog'},
+    {text: 'Ver más artículos', href: '/blog'},
     {text: 'Probar una demo', href: '/demos'},
     {text: 'Ver servicios', href: '/servicios'},
     {text: 'Contactar', href: '/contacto'}
@@ -48,8 +48,8 @@ export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
         return (
             <PageLayout headerCtaText="Reservar llamada" mainClassName="flex-1 flex flex-col justify-center items-center gap-8 px-6 py-12">
                 <div id="post-not-found" className="text-center max-w-md">
-                    <h1 className="text-2xl font-bold text-primary mb-4">Articulo no encontrado</h1>
-                    <p className="text-muted mb-6">El articulo que buscas no existe o ha sido eliminado.</p>
+                    <h1 className="text-2xl font-bold text-primary mb-4">Artículo no encontrado</h1>
+                    <p className="text-muted mb-6">El artículo que buscas no existe o ha sido eliminado.</p>
                     <Button href="/blog" variant="primary" icon={ArrowLeft}>
                         Volver al blog
                     </Button>
@@ -179,7 +179,7 @@ export function SinglePostIsland({slug}: SinglePostIslandProps): JSX.Element {
             </div>
 
             {/* INTERNAL LINKS - SEO */}
-            <InternalLinks title="Tambien te puede interesar" links={postInternalLinks} />
+            <InternalLinks title="También te puede interesar" links={postInternalLinks} />
         </PageLayout>
     );
 }

@@ -36,9 +36,9 @@ interface TabConfig {
 const TABS: TabConfig[] = [
     {id: 'generate', label: 'Generar', icon: Sparkles},
     {id: 'drafts', label: 'Borradores', icon: FileText},
-    {id: 'config', label: 'Configuracion', icon: Settings},
+    {id: 'config', label: 'Configuración', icon: Settings},
     {id: 'advanced', label: 'Avanzado', icon: Sliders},
-    {id: 'stats', label: 'Estadisticas', icon: BarChart3}
+    {id: 'stats', label: 'Estadísticas', icon: BarChart3}
 ];
 
 export function AdminAIIsland(): JSX.Element {
@@ -95,7 +95,7 @@ function ConfigurationBanner({config}: ConfigurationBannerProps): JSX.Element | 
         <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
             <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
             <p className="text-sm text-amber-700 dark:text-amber-300">
-                <strong>Configuracion pendiente:</strong> {config.status.message}. Ve a la pestana de Configuracion para agregar tu API key.
+                <strong>Configuración pendiente:</strong> {config.status.message}. Ve a la pestaña de Configuración para agregar tu API key.
             </p>
         </div>
     );

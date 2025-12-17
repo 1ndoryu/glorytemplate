@@ -23,18 +23,18 @@ const homeContent = {
             </>
         ),
         // Subhero segun project-extends.md
-        subtitle: 'Soy Guillermo. Creo el chatbot para tu empresa en tu web y en WhatsApp Business para que atiendas mas rapido a tus clientes. Trabajamos tu y yo, 1:1, con respuesta en menos de 30 min (09-21h), primer mes gratis y mantenimiento continuo.'
+        subtitle: 'Soy Guillermo. Creo el chatbot para tu empresa en tu web y en WhatsApp Business para que atiendas más rápido a tus clientes. Trabajamos tú y yo, 1:1, con respuesta en menos de 30 min (09-21h), primer mes gratis y mantenimiento continuo.'
     },
     // Seccion "Lo que voy a conseguir contigo" (project-extends.md) - 4 beneficios exactos
     features: [
-        {icon: Zap, title: 'Mas oportunidades en menos horas', description: 'Respuestas en segundos, 24/7.'},
+        {icon: Zap, title: 'Más oportunidades en menos horas', description: 'Respuestas en segundos, 24/7.'},
         {icon: Calendar, title: 'Reservas directas', description: 'El bot propone dia/hora y confirma por email/WhatsApp.'},
         {icon: Database, title: 'Menos tareas repetitivas', description: 'Envia los datos al Software/CRM que uses.'},
         {icon: MessageSquare, title: 'Mejor experiencia', description: 'Conversacion con tono cuidado y, cuando haga falta, dejo paso a ti o tu equipo, con todo el historial a mano.'}
     ],
     // Seccion "WhatsApp Business" (project-extends.md) - 3 H3 exactos
     whatsAppFeatures: [
-        {title: 'Detecto, clasifico y doy seguimiento', desc: 'El bot pide lo necesario (nombre, interes, urgencia, etc), etiqueta la oportunidad y te avisa para que entres cuando quieras.'},
+        {title: 'Detecto, clasifico y doy seguimiento', desc: 'El bot pide lo necesario (nombre, interés, urgencia, etc), etiqueta la oportunidad y te avisa para que entres cuando quieras.'},
         {title: 'Derivacion humana sin perder contexto', desc: 'Si el tema lo requiere, dejo paso a ti o a tu equipo, con todo el historial a mano.'},
         {title: 'Permisos claros y RGPD', desc: 'Incluyo opt-in/opt-out y aviso de privacidad.'}
     ],
@@ -154,7 +154,7 @@ export function HomeIsland(): JSX.Element {
                         Automatizacion de <span className="text-info">procesos pymes</span>
                     </>
                 }
-                description="Todo lo que el bot recoge (contacto, interes, canal preferido, origen/UTM, etc) va directo a tu Software/CRM. Si lo prefieres, te preparo una hoja compartida. Integro el chatbot con tu web y agenda. Confirmaciones y recordatorios automaticos."
+                description="Todo lo que el bot recoge (contacto, interés, canal preferido, origen/UTM, etc) va directo a tu Software/CRM. Si lo prefieres, te preparo una hoja compartida. Integro el chatbot con tu web y agenda. Confirmaciones y recordatorios automáticos."
                 features={homeContent.automationFeatures}
             />
 
@@ -180,7 +180,7 @@ export function HomeIsland(): JSX.Element {
             </section>
 
             {/* 7. MEDIMOS LO IMPORTANTE - Lista clara segun project-extends.md */}
-            <AnalyticsSection title="Medimos lo importante" description="Vas a ver quien te escribe, quien reserva y desde donde llegan. Configuro tres cosas clave:" metrics={homeContent.analytics} footerText="Ademas registro: fecha, pagina, origen/UTM, y consentimiento para poder mejorar." backgroundImage={getBackgroundImageUrl('f0ac5f498b5d6a0cfaac8caa87cb7f00.jpg')} />
+            <AnalyticsSection title="Medimos lo importante" description="Vas a ver quién te escribe, quién reserva y desde dónde llegan. Configuro tres cosas clave:" metrics={homeContent.analytics} footerText="Además registro: fecha, página, origen/UTM, y consentimiento para poder mejorar." backgroundImage={getBackgroundImageUrl('f0ac5f498b5d6a0cfaac8caa87cb7f00.jpg')} />
 
             {/* 8. QUOTE - Propuesta de valor diferenciadora */}
             <div id="quote">
@@ -190,7 +190,7 @@ export function HomeIsland(): JSX.Element {
             </div>
 
             {/* 9. CONTACT FORM - "Si prefieres escribirme ahora" (project-extends.md) */}
-            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rapido con respuesta hoy mismo" />
+            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rápido con respuesta hoy mismo" />
 
             {/* 10. INTERNAL LINKS - Interlinking SEO antes del footer (project-extends.md) */}
             <InternalLinks title="Te puede interesar" links={homeInternalLinks} />

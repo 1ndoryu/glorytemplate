@@ -72,17 +72,17 @@ const cookies: CookieInfo[] = [
 const cookieSections: CookieSection[] = [
     {
         icon: Info,
-        title: 'Que son las cookies',
+        title: '¿Qué son las cookies?',
         content: (
             <>
-                <p className="mb-4">Las cookies son pequenos archivos de texto que los sitios web guardan en tu navegador. Sirven para recordar preferencias, mantener sesiones activas y analizar como se usa el sitio.</p>
+                <p className="mb-4">Las cookies son pequeños archivos de texto que los sitios web guardan en tu navegador. Sirven para recordar preferencias, mantener sesiones activas y analizar cómo se usa el sitio.</p>
                 <p className="text-sm text-muted">No son virus ni programas ejecutables. Son simplemente datos que el sitio puede leer cuando vuelves a visitarlo.</p>
             </>
         )
     },
     {
         icon: Settings,
-        title: 'Como configurar o revocar cookies',
+        title: '¿Cómo configurar o revocar cookies?',
         content: (
             <>
                 <p className="mb-4">Puedes gestionar las cookies de varias formas:</p>
@@ -94,7 +94,7 @@ const cookieSections: CookieSection[] = [
                         <strong>Configuracion del navegador:</strong> Puedes bloquear o eliminar cookies desde la configuracion de tu navegador.
                     </li>
                     <li>
-                        <strong>Revocar consentimiento:</strong> Si quieres cambiar tu decision, elimina las cookies del navegador y recarga la pagina.
+                        <strong>Revocar consentimiento:</strong> Si quieres cambiar tu decisión, elimina las cookies del navegador y recarga la página.
                     </li>
                 </ul>
                 <p className="text-sm">
@@ -108,12 +108,12 @@ const cookieSections: CookieSection[] = [
         title: 'Proveedores y transferencias',
         content: (
             <>
-                <p className="mb-4">Las cookies analiticas son proporcionadas por Google Analytics (Google LLC, EEUU).</p>
-                <p className="mb-4">Google esta adherido al Marco de Privacidad UE-EEUU (EU-US Data Privacy Framework), lo que proporciona garantias adecuadas para la transferencia de datos.</p>
+                <p className="mb-4">Las cookies analíticas son proporcionadas por Google Analytics (Google LLC, EEUU).</p>
+                <p className="mb-4">Google está adherido al Marco de Privacidad UE-EEUU (EU-US Data Privacy Framework), lo que proporciona garantías adecuadas para la transferencia de datos.</p>
                 <p className="text-sm text-muted">
-                    Mas informacion:{' '}
+                    Más información:{' '}
                     <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent-primary)] hover:underline">
-                        Politica de privacidad de Google
+                        Política de privacidad de Google
                     </a>
                 </p>
             </>
@@ -139,8 +139,8 @@ function CookieTable({cookies, type}: {cookies: CookieInfo[]; type: 'necessary' 
                     <tr className="border-b border-primary">
                         <th className="text-left py-3 px-2 font-semibold text-primary">Cookie</th>
                         <th className="text-left py-3 px-2 font-semibold text-primary">Proveedor</th>
-                        <th className="text-left py-3 px-2 font-semibold text-primary">Proposito</th>
-                        <th className="text-left py-3 px-2 font-semibold text-primary">Duracion</th>
+                        <th className="text-left py-3 px-2 font-semibold text-primary">Propósito</th>
+                        <th className="text-left py-3 px-2 font-semibold text-primary">Duración</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -166,12 +166,12 @@ export function CookiesIsland(): JSX.Element {
             <header id="cookies-header" className="mx-auto w-full max-w-4xl">
                 <div className="flex items-center gap-3 mb-4">
                     <Cookie className="w-10 h-10 text-[var(--color-accent-primary)]" />
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-primary">Politica de cookies</h1>
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-primary">Política de cookies</h1>
                 </div>
-                <p className="text-lg text-muted max-w-2xl">Te explico que cookies usa este sitio, para que sirven y como puedes gestionarlas. Sin complicaciones.</p>
+                <p className="text-lg text-muted max-w-2xl">Te explico qué cookies usa este sitio, para qué sirven y cómo puedes gestionarlas. Sin complicaciones.</p>
                 <div className="flex items-center gap-2 mt-6 text-sm text-muted">
                     <Calendar className="w-4 h-4" />
-                    <span>Ultima actualizacion: Diciembre 2025</span>
+                    <span>Última actualización: Diciembre 2025</span>
                 </div>
             </header>
 
@@ -197,7 +197,7 @@ export function CookiesIsland(): JSX.Element {
 
             {/* SECCION: Cookies que uso */}
             <section id="cookies-list" className="mx-auto w-full max-w-4xl">
-                <h2 className="text-2xl font-semibold text-primary mb-6">Que cookies uso</h2>
+                <h2 className="text-2xl font-semibold text-primary mb-6">¿Qué cookies uso?</h2>
 
                 {/* Cookies necesarias */}
                 <div className="mb-8">
@@ -219,7 +219,7 @@ export function CookiesIsland(): JSX.Element {
                         <h3 className="text-lg font-semibold text-primary">Cookies analiticas</h3>
                         <span className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800">Solo si aceptas</span>
                     </div>
-                    <p className="text-muted mb-4">Estas cookies me ayudan a entender como usas el sitio para mejorarlo. Solo se activan si das tu consentimiento.</p>
+                    <p className="text-muted mb-4">Estas cookies me ayudan a entender cómo usas el sitio para mejorarlo. Solo se activan si das tu consentimiento.</p>
                     <div className="rounded-xl border border-primary bg-surface p-4">
                         <CookieTable cookies={cookies} type="analytics" />
                     </div>
@@ -250,13 +250,13 @@ export function CookiesIsland(): JSX.Element {
             <section id="cookies-manage" className="mx-auto w-full max-w-4xl">
                 <div className="p-6 rounded-xl bg-secondary border border-primary text-center">
                     <Cookie className="w-8 h-8 mx-auto mb-4 text-[var(--color-accent-primary)]" />
-                    <h2 className="text-lg font-semibold text-primary mb-2">Quieres cambiar tus preferencias?</h2>
-                    <p className="text-muted mb-4">Puedes modificar tu configuracion de cookies en cualquier momento.</p>
+                    <h2 className="text-lg font-semibold text-primary mb-2">¿Quieres cambiar tus preferencias?</h2>
+                    <p className="text-muted mb-4">Puedes modificar tu configuración de cookies en cualquier momento.</p>
                     <Button
                         variant="outline"
                         onClick={() => {
                             // TODO: Implementar apertura del banner de cookies
-                            alert('Aqui se abriria el panel de configuracion de cookies');
+                            alert('Aquí se abriría el panel de configuración de cookies');
                         }}>
                         Gestionar cookies
                     </Button>

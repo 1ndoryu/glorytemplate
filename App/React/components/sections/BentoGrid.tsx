@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import {Database, Layers} from 'lucide-react';
 
 import {Button} from '../ui';
-import {siteUrls} from '../../config';
+import {useSiteUrls} from '../../hooks/useSiteConfig';
 
 // Tipos para el contenido de cada tab
 interface TabContentItem {
@@ -73,6 +73,7 @@ const getTabContent = (): Record<string, TabContentItem> => ({
  * Extraido de HomeIsland para mejorar mantenibilidad.
  */
 export function BentoGrid({activeTab, onTabChange}: BentoGridProps): JSX.Element {
+    const urls = useSiteUrls();
     const tabContent = getTabContent();
     const currentContent = tabContent[activeTab] || tabContent.whatsapp;
 
@@ -141,7 +142,7 @@ export function BentoGrid({activeTab, onTabChange}: BentoGridProps): JSX.Element
                             <p id="bento-cta-description" className="text-[13px] mb-8 leading-relaxed text-muted">
                                 Hablamos 15-20 min, te enseno un prototipo en 72h y decidimos juntos. Primer mes gratis.
                             </p>
-                            <Button href={siteUrls.calendly} variant="primary" className="w-full">
+                            <Button href={urls.calendly} variant="primary" className="w-full">
                                 Hablame ahora
                             </Button>
                         </div>

@@ -2,11 +2,12 @@ import type {ReactNode} from 'react';
 
 import {useTheme} from '../../hooks/useTheme';
 import {useFontLoader, fontFamilyByTheme} from '../../hooks/useFontLoader';
+import {useSiteUrls} from '../../hooks/useSiteConfig';
 
 import {ThemeToggle, CookieBanner} from '../ui';
 import {Header, Footer, TopBanner} from '../sections';
 
-import {siteUrls, mainNavItems, logoText, footerColumns, getCopyrightText} from '../../config';
+import {mainNavItems, logoText, footerColumns, getCopyrightText} from '../../config';
 
 // Props para el TopBanner opcional
 interface TopBannerConfig {
@@ -40,6 +41,7 @@ interface PageLayoutProps {
  */
 export function PageLayout({children, headerCtaText = 'Agendar 1:1', copyrightType, topBanner, mainClassName = 'flex-1 flex flex-col gap-16 md:gap-24 px-6 py-12 md:py-20'}: PageLayoutProps): JSX.Element {
     const {theme, toggleTheme} = useTheme();
+    const urls = useSiteUrls();
 
     // Carga dinamica de fuentes segun tema (hook reutilizable)
     useFontLoader(theme);
@@ -60,7 +62,7 @@ export function PageLayout({children, headerCtaText = 'Agendar 1:1', copyrightTy
             {/* HEADER FIJO - Banner + Navegacion como bloque unico sticky */}
             <div id="sticky-header-container" className="sticky top-0 z-[var(--z-sticky)]">
                 {/* HEADER - Navegacion principal */}
-                <Header logoText={logoText} navItems={mainNavItems} ctaText={headerCtaText} ctaHref={siteUrls.calendly} />
+                <Header logoText={logoText} navItems={mainNavItems} ctaText={headerCtaText} ctaHref={urls.calendly} />
             </div>
 
             {/* CONTENIDO PRINCIPAL */}

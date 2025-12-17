@@ -1,7 +1,7 @@
 # ROADMAP - Proyecto Web Guillermo Garcia (Chatbots y Automatizacion)
 
 > Fecha de creacion: 2025-12-11
-> Ultima actualizacion: 2025-12-14 02:21
+> Ultima actualizacion: 2025-12-17 07:46
 > Estado: **EN PRODUCCION** - Sistema funcional, pendiente lanzamiento
 
 ---
@@ -16,108 +16,11 @@
 
 ## INDICE
 
-1. [Tareas Completadas (Resumen)](#tareas-completadas-resumen)
-2. [Arquitectura Tecnica](#arquitectura-tecnica)
-3. [Sistema de Contenido](#sistema-de-contenido-react)
-4. [Tareas Pendientes](#tareas-pendientes)
-
----
-
-## TAREAS COMPLETADAS (RESUMEN)
-
-### Bugs Resueltos
-
-| ID      | Descripcion                               | Solucion                                                                                                        | Fecha      |
-| ------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------- |
-| BUG-001 | Navegacion directa a Single Posts fallaba | Modificado `AppRouter.tsx` con fallback para detectar posts via slug (`getSlugFromPath()`, `isValidPostSlug()`) | 2025-12-12 |
-
-### Tareas Criticas Completadas
-
-| ID        | Descripcion                        | Implementacion                                                                          |
-| --------- | ---------------------------------- | --------------------------------------------------------------------------------------- |
-| TAREA-001 | Sistema de Logs para API de Gemini | `GeminiLogger.php` con endpoints REST `/glory/v1/ai/logs`, `/logs/stats`, `/logs/files` |
-| TAREA-002 | Migrar Islands a useSiteUrls()     | 11 archivos migrados para usar URLs dinamicas desde Theme Options                       |
-
-### Paginas Implementadas (9/9 - 100%)
-
-| Pagina     | Slug        | Island React   | SEO | JSON-LD                                    |
-| ---------- | ----------- | -------------- | --- | ------------------------------------------ |
-| Home       | /           | HomeIsland     | OK  | Organization, ProfessionalService, WebSite |
-| Servicios  | /servicios  | ServicesIsland | OK  | BreadcrumbList, Service + OfferCatalog     |
-| Planes     | /planes     | PricingIsland  | OK  | BreadcrumbList, ItemList                   |
-| Demos      | /demos      | DemosIsland    | OK  | BreadcrumbList, Service + ScheduleAction   |
-| Sobre Mi   | /sobre-mi   | AboutIsland    | OK  | BreadcrumbList                             |
-| Blog       | /blog       | BlogIsland     | OK  | BreadcrumbList                             |
-| Contacto   | /contacto   | ContactIsland  | OK  | ProfessionalService + ScheduleAction       |
-| Privacidad | /privacidad | PrivacyIsland  | OK  | BreadcrumbList                             |
-| Cookies    | /cookies    | CookiesIsland  | OK  | BreadcrumbList                             |
-
-### Fases Completadas
-
-| Fase | Nombre                         | Estado                                               |
-| ---- | ------------------------------ | ---------------------------------------------------- |
-| 0    | Revision de Paginas Existentes | 100% conforme a `project-extends.md`                 |
-| 1    | Configuracion Base y Estilos   | Tipografia, colores, componentes base, preconexiones |
-| 2    | Paginas Principales            | Home, Servicios, Planes con SEO                      |
-| 3    | Paginas Secundarias            | Demos, Blog, Sobre Mi, Contacto con SEO              |
-| 4    | Paginas Legales                | Privacidad, Cookies con secciones RGPD               |
-| 5    | Sistema de Contacto            | CTAs consistentes, tracking UTMs, formulario RGPD    |
-| 6    | Blog y Sistema IA              | Gemini 2.5 Flash + Panel Admin `/admin/ai`           |
-| 9    | Optimizacion                   | Imagenes lazy-load, botones 44px, texto indexable    |
-
-### Sistema de Temas (Implementado)
-
-Dos temas intercambiables via `?theme=project` o `?theme=default`:
-
-| Tema                | Descripcion          | Colores                                 |
-| ------------------- | -------------------- | --------------------------------------- |
-| `project` (DEFAULT) | Tema del cliente     | Azul #2563EB, Verde solo iconos #25D366 |
-| `default`           | Estilo desarrollador | Paleta stone/neutral, Geist             |
-
-**Archivos:** `init.css`, `useTheme.ts`, `useFontLoader.ts`, `ThemeToggle.tsx`
-
-### Sistema de IA para Contenido (Fase 6)
-
-**Arquitectura:**
-
-| Componente       | Archivo                                       | Funcion                                                 |
-| ---------------- | --------------------------------------------- | ------------------------------------------------------- |
-| GeminiClient     | `App/Services/ContentAI/GeminiClient.php`     | Cliente REST Gemini 2.5 Flash + Google Search grounding |
-| AIConfigManager  | `App/Services/ContentAI/AIConfigManager.php`  | Configuracion (API keys, tono, temas)                   |
-| DraftManager     | `App/Services/ContentAI/DraftManager.php`     | Ciclo borradores (crear, aprobar, publicar)             |
-| ContentGenerator | `App/Services/ContentAI/ContentGenerator.php` | Orquestador de generacion                               |
-| GeminiLogger     | `App/Services/ContentAI/GeminiLogger.php`     | Logs de peticiones/respuestas                           |
-| AdminAIIsland    | `App/React/islands/AdminAIIsland.tsx`         | Panel admin React                                       |
-
-**Endpoints REST:** `/glory/v1/ai/config`, `/generate`, `/ideas`, `/search`, `/drafts`, `/drafts/{id}/*`, `/logs/*`
-
-**Acceso:** `/admin/ai` (requiere admin)
-
-### Analitica (Fase 8 - Parcial)
-
-**Implementado:**
-- GTM carga solo tras aceptar cookies (`CookieBanner.tsx`)
-- Hook `useAnalytics.ts` con 4 eventos:
-  - `click_whatsapp` - Click en boton/enlace WhatsApp
-  - `click_calendly` - Click en boton/enlace Calendly
-  - `schedule_calendly` - Cita confirmada en Calendly (requiere listener postMessage)
-  - `lead_form_submit` - Formulario enviado exitosamente
-- `Button.tsx` trackea automaticamente clicks a WhatsApp/Calendly
-- `ContactForm.tsx` trackea envios exitosos con UTMs
-
-**Pendiente:**
-- [ ] Listener para evento `calendly.event_scheduled` (postMessage) para trackear citas confirmadas
-
-### Opciones de Tema (Theme Options)
-
-15+ opciones configurables desde WP Admin > Theme Options:
-- Site Identity: nombre, tagline, telefono, email
-- Contact URLs: Calendly, WhatsApp, mensaje predefinido
-- Social Profiles: LinkedIn, Twitter, YouTube, Instagram
-- Site Images: hero, secundaria, logo
-- Integrations: GTM ID, GA4 ID, GSC verification
-
-**Hook React:** `useSiteUrls()` de `hooks/useSiteConfig.ts`
+1. [Arquitectura Tecnica](#arquitectura-tecnica)
+2. [Sistema de Contenido](#sistema-de-contenido-react)
+3. [Tareas Completadas (Comprimido)](#tareas-completadas-comprimido)
+4. [Tareas Pendientes (Desarrollo)](#tareas-pendientes)
+5. **[Tareas del Cliente](./cliente-pendientes.md)** ← Archivo separado
 
 ---
 
@@ -190,696 +93,92 @@ const posts = useContent<WordPressPost[]>('blogFeatured', []);
 
 ---
 
-## TAREAS URGENTES
+## TAREAS COMPLETADAS (COMPRIMIDO)
 
-### TAREA-003: Implementar Modo React - COMPLETADA
+> Esta seccion resume todas las tareas finalizadas. El historial detallado esta al final del documento.
 
-> **Estado:** COMPLETADA
-> **Prioridad:** URGENTE
-> **Fecha de creacion:** 2025-12-12
-> **Fecha de finalizacion:** 2025-12-12
+### Bugs Resueltos
 
-#### Descripcion
+| ID      | Descripcion                                    | Fecha      |
+| ------- | ---------------------------------------------- | ---------- |
+| BUG-001 | Navegacion directa a Single Posts fallaba      | 2025-12-12 |
+| BUG-002 | URL Calendly hardcodeada en Header y secciones | 2025-12-17 |
 
-Implementar un "Modo React" en Glory que, cuando esta activo, desactive **TODAS** las features de frontend (UI, Services, Renderers, Plugins). React maneja todo de forma independiente.
+### Tareas Criticas (TAREA-001 a TAREA-010)
 
-#### Cambio de Criterio (Decision 2025-12-12)
+| ID        | Descripcion                               | Estado     |
+| --------- | ----------------------------------------- | ---------- |
+| TAREA-001 | Sistema de Logs para API de Gemini        | Completada |
+| TAREA-002 | Migrar Islands a useSiteUrls()            | Completada |
+| TAREA-003 | Implementar Modo React                    | Completada |
+| TAREA-004 | Panel React para Opciones del Tema        | Completada |
+| TAREA-005 | Optimizacion Core Web Vitals (Lighthouse) | Completada |
+| TAREA-006 | Mejoras UI/UX y Correcciones Responsive   | Completada |
+| TAREA-007 | Correcciones UI Hero y Header Admin       | Completada |
+| TAREA-008 | Mejoras Panel IA (AdminAIIsland)          | Completada |
+| TAREA-009 | Bug Proveedor IA - Seleccion de Modelos   | Completada |
+| TAREA-010 | Actualizar Lista de Modelos IA            | Completada |
 
-Se decidio que cuando React esta activo:
-- **TODAS las features de frontend se desactivan** (no solo algunas)
-- **El panel `glory-opciones` NO se usa** con React
-- Las opciones para React se configuran via `opcionesTema.php` y se inyectan via `ReactContentProvider`
-- **Futuro:** Un panel React dedicado gestionara estas opciones
+### Paginas Implementadas (9/9 - 100%)
 
-#### Implementacion Final
+| Pagina     | Slug        | Island React   | SEO | JSON-LD                                    |
+| ---------- | ----------- | -------------- | --- | ------------------------------------------ |
+| Home       | /           | HomeIsland     | OK  | Organization, ProfessionalService, WebSite |
+| Servicios  | /servicios  | ServicesIsland | OK  | BreadcrumbList, Service + OfferCatalog     |
+| Planes     | /planes     | PricingIsland  | OK  | BreadcrumbList, ItemList                   |
+| Demos      | /demos      | DemosIsland    | OK  | BreadcrumbList, Service + ScheduleAction   |
+| Sobre Mi   | /sobre-mi   | AboutIsland    | OK  | BreadcrumbList                             |
+| Blog       | /blog       | BlogIsland     | OK  | BreadcrumbList                             |
+| Contacto   | /contacto   | ContactIsland  | OK  | ProfessionalService + ScheduleAction       |
+| Privacidad | /privacidad | PrivacyIsland  | OK  | BreadcrumbList                             |
+| Cookies    | /cookies    | CookiesIsland  | OK  | BreadcrumbList                             |
 
-**`GloryFeatures::$reactExcludedFeatures`** ahora incluye:
+### Fases Completadas
 
-| Categoria     | Features Desactivadas                                                                                                                                                                     |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| UI Components | modales, submenus, pestanas, scheduler, headerAdaptativo, themeToggle, alertas, gestionarPreviews, paginacion, gloryFilters, calendario, badgeList, highlight, gsap, menu, contentActions |
-| Services      | navegacionAjax, gloryAjax, gloryForm, gloryBusqueda, gloryRealtime, cssCritico                                                                                                            |
-| Renderers     | logoRenderer, contentRender, termRender                                                                                                                                                   |
-| Plugins       | task, amazonProduct, gbn, gbnSplitContent, gloryLinkCpt                                                                                                                                   |
-| Integraciones | avadaIntegration                                                                                                                                                                          |
+| Fase | Nombre                         | Estado                                               |
+| ---- | ------------------------------ | ---------------------------------------------------- |
+| 0    | Revision de Paginas Existentes | 100% conforme a `project-extends.md`                 |
+| 1    | Configuracion Base y Estilos   | Tipografia, colores, componentes base, preconexiones |
+| 1.5  | Revision Estilos Tema Project  | 93% conformidad                                      |
+| 2    | Paginas Principales            | Home, Servicios, Planes con SEO                      |
+| 3    | Paginas Secundarias            | Demos, Blog, Sobre Mi, Contacto con SEO              |
+| 4    | Paginas Legales                | Privacidad, Cookies con secciones RGPD               |
+| 5    | Sistema de Contacto            | CTAs consistentes, tracking UTMs, formulario RGPD    |
+| 6    | Blog y Sistema IA              | Gemini 2.5 Flash + Panel Admin `/panel-ia`           |
+| 7    | SEO y Datos Estructurados      | JSON-LD en todas las paginas                         |
+| 8    | Analitica                      | GTM condicional, 4 eventos de tracking               |
+| 9    | Optimizacion                   | Imagenes lazy-load, botones 44px, texto indexable    |
 
-**Managers de backend que SI se mantienen activos:**
-- pageManager, postTypeManager, taxonomyMetaManager, scheduleManager
-- assetManager (solo para CSS base y React bundle)
-- syncManager, opcionManagerSync (para persistir opciones)
+### Sistemas Implementados
 
-#### Archivos Modificados
-
-| Archivo                            | Cambios                                                               |
-| ---------------------------------- | --------------------------------------------------------------------- |
-| `Glory/src/Core/GloryFeatures.php` | Lista completa de features excluidas, isReactMode(), applyReactMode() |
-| `Glory/load.php`                   | Orden de carga: control.php ANTES de scriptSetup.php                  |
-| `Glory/Config/scriptSetup.php`     | defineFolder envuelto con !isReactMode()                              |
-| `App/Config/control.php`           | Documentacion completa Modo React, enable('reactMode')                |
-| `App/Config/opcionesTema.php`      | Limpiado para React, documentacion header                             |
-
-#### Criterios de Aceptacion
-
-- [x] Con `reactMode` activo, NO se carga NINGUN script nativo en frontend
-- [x] Panel `glory-opciones` no se usa con React (documentado)
-- [x] React Islands sigue funcionando correctamente
-- [x] El modo se controla exclusivamente desde `control.php`
-- [x] Opciones para React se inyectan via `ReactContentProvider`
-- [ ] (Futuro) Panel React dedicado para gestionar opciones
+| Sistema             | Descripcion                                                  |
+| ------------------- | ------------------------------------------------------------ |
+| Sistema de Temas    | Dos temas intercambiables (`project`/`default`)              |
+| Sistema de IA       | Gemini 2.5 Flash + Panel Admin con 5 tabs                    |
+| Theme Options       | 15+ opciones configurables desde WP Admin                    |
+| Panel Configuracion | `/configuracion` - Panel React para gestionar opciones       |
+| Formulario Contacto | Envio real via REST API + email HTML profesional             |
+| Analitica           | GTM condicional + 4 eventos (WhatsApp, Calendly, Form, etc.) |
 
 ---
 
 ## TAREAS PENDIENTES
 
-> Las tareas restantes son de configuracion (Theme Options, GTM, SEO) y lanzamiento.
+> **Nota:** Las tareas que dependen del cliente estan en [`cliente-pendientes.md`](./cliente-pendientes.md)
 
 ---
 
-## PENDIENTES DEL CLIENTE (Guillermo)
+### PENDIENTES DE DESARROLLO
 
-> **Fecha de actualizacion:** 2025-12-14
-> **Contexto:** Dudas resueltas via articulo explicativo (ver `.agent/articulo-respuesta-cliente.md`)
+> Tareas tecnicas para asegurar que los paneles y funcionalidades esten listos.
 
-### Acciones Requeridas del Cliente
+#### Prioridad ALTA
 
-| Accion                        | Descripcion                                                                     | Panel/Ubicacion              | Estado      |
-| ----------------------------- | ------------------------------------------------------------------------------- | ---------------------------- | ----------- |
-| **Crear cuenta Calendly**     | Registrarse en [calendly.com](https://calendly.com) y configurar disponibilidad | Externa                      | Pendiente   |
-| **Configurar URL Calendly**   | Pegar la URL de Calendly en el panel                                            | `/configuracion` → Contacto  | Panel listo |
-| **Verificar WhatsApp**        | Confirmar que el numero esta correcto (actualmente: 584120825234)               | `/configuracion` → Contacto  | Panel listo |
-| **Configurar email contacto** | Definir email donde llegaran los mensajes del formulario                        | `/configuracion` → Identidad | Panel listo |
-| **Definir precios de planes** | Decidir precios para cada plan (solicitó 2 dias para pensar)                    | Comunicar al desarrollador   | Pendiente   |
-| **Subir fotos "Sobre Mi"**    | Subir imagen de perfil e imagen secundaria (trabajando)                         | `/configuracion` → Imagenes  | Panel listo |
-| **Crear cuenta Calendly**     | Antes de configurar la URL, necesita crear su cuenta                            | Externa (calendly.com)       | Pendiente   |
+| Tarea             | Descripcion                                                              | Estado |
+| ----------------- | ------------------------------------------------------------------------ | ------ |
+| Listener Calendly | Implementar listener `calendly.event_scheduled` para `schedule_calendly` | Falta  |
 
-### Decisiones Pendientes
-
-| Tema                   | Opciones                    | Recomendacion                              |
-| ---------------------- | --------------------------- | ------------------------------------------ |
-| **Precios de planes**  | Precios fijos vs "Desde X€" | Usar "Desde X€" para mantener flexibilidad |
-| **Fondo de la pagina** | Blanco actual vs Azul suave | Proximo: selector de temas en panel        |
-
-### Funcionalidades Listas (Solo requieren configuracion)
-
-| Funcionalidad              | Como funciona                                  | Donde configurar                     |
-| -------------------------- | ---------------------------------------------- | ------------------------------------ |
-| **Formulario de contacto** | Envia email al correo configurado              | `/configuracion` → Identidad → Email |
-| **Boton WhatsApp**         | Abre WhatsApp con numero y mensaje predefinido | `/configuracion` → Contacto          |
-| **Boton Calendly**         | Redirige al calendario configurado             | `/configuracion` → Contacto          |
-| **Blog**                   | Sistema nativo de WordPress                    | WP Admin → Entradas → Añadir nueva   |
-| **Fotos**                  | Subir directamente desde el panel              | `/configuracion` → Imagenes          |
-| **Logo**                   | Elegir entre texto o imagen                    | `/configuracion` → Logo              |
-| **Redes sociales**         | URLs de perfiles para footer y SEO             | `/configuracion` → Redes Sociales    |
-
-### Proximas Mejoras (Desarrollo)
-
-| Mejora                | Estado                       | Descripcion                                         |
-| --------------------- | ---------------------------- | --------------------------------------------------- |
-| **Selector de temas** | Proximo                      | Elegir entre varios temas de colores desde el panel |
-| **Modificar colores** | Proximo                      | Personalizar colores principales desde el panel     |
-| **Panel extendido**   | Futuro                       | Mas opciones editables manteniendo estructura       |
-| **Editor completo**   | Futuro (requiere desarrollo) | Mover secciones y modificar estructuras             |
-
----
-
-### TAREA-007: Correcciones UI Hero y Header Admin
-
-> **Estado:** COMPLETADA
-> **Prioridad:** ALTA
-> **Fecha de creación:** 2025-12-13
-> **Fecha de finalización:** 2025-12-13
-
-#### Descripción
-
-Corregir inconsistencias visuales en los heroes y ajustar la navegación del admin.
-
-#### Subtareas
-
-1. **Hero Home - Color inconsistente**
-   - [x] Cambiado `text-subtle` a `text-info` para que "24/7 y gestiona reservas" se muestre en azul
-   - Archivo: `HomeIsland.tsx`
-
-2. **Hero Blog - Color inconsistente**
-   - [x] Cambiado `text-subtle` a `text-info` para que "casos y noticias" se muestre en azul
-   - Archivo: `BlogIsland.tsx`
-
-3. **Slug Panel IA incorrecto**
-   - [x] Cambiado de `/admin/ai` a `/panel-ia` en AdminSettingsMenu.tsx
-   - [x] Cambiado de `/admin/ai` a `/panel-ia` en Header.tsx (menú móvil)
-   - Note: `pages.php` y `AppRouter.tsx` ya tenían el slug correcto
-1.  **Hero Home - Color inconsistente**
-    -   [x] Cambiado `text-subtle` a `text-info` para que "24/7 y gestiona reservas" se muestre en azul
-    -   Archivo: `HomeIsland.tsx`
-
-2.  **Hero Blog - Color inconsistente**
-    -   [x] Cambiado `text-subtle` a `text-info` para que "casos y noticias" se muestre en azul
-    -   Archivo: `BlogIsland.tsx`
-
-3.  **Slug Panel IA incorrecto**
-    -   [x] Cambiado de `/admin/ai` a `/panel-ia` en AdminSettingsMenu.tsx
-    -   [x] Cambiado de `/admin/ai` a `/panel-ia` en Header.tsx (menú móvil)
-    -   Note: `pages.php` y `AppRouter.tsx` ya tenían el slug correcto
-
----
-
-### TAREA-008: Mejoras Panel IA (AdminAIIsland)
-
-> **Estado:** COMPLETADA
-> **Prioridad:** ALTA
-> **Fecha de creacion:** 2025-12-13
-> **Fecha de finalizacion:** 2025-12-13
-
-#### Descripcion
-
-Reestructuracion completa del Panel de IA para mejorar usabilidad y funcionalidad.
-
-#### Subtareas
-
-1.  **Status de proxima ejecucion**
-    -   [x] Mostrar siempre visible cuando es la proxima ejecucion (cuando contenido programado este activado)
-    -   [x] Backend calcula proxima ejecucion en `AIConfigManager::getNextScheduledExecution()`
-    -   [x] Frontend muestra fecha formateada en espanol
-    -   Archivo: `ConfigTab.tsx`
-
-2.  **Quitar descripcion hardcodeada**
-    -   [x] Eliminado "Genera articulos automaticamente con Gemini 2.5 Flash y Google Search grounding"
-    -   Nueva descripcion: "Genera borradores de articulos para tu blog automaticamente."
-    -   Archivo: `AdminAIIsland.tsx`
-
-3.  **Configuraciones avanzadas en pestana separada**
-    -   [x] Creado `AdvancedTab.tsx` con configuraciones avanzadas
-    -   [x] Temperatura, prompt del sistema, dominios a ignorar
-    -   [x] Siempre visibles (no colapsables)
-    -   Archivo: `AdvancedTab.tsx`
-
-4.  **Configuracion de programacion detallada**
-    -   [x] Permitir elegir hora especifica (selector 0-23)
-    -   [x] Permitir elegir minuto (0, 15, 30, 45)
-    -   [x] Permitir elegir dia de la semana (para frecuencias semanales/bisemanales)
-    -   [x] Permitir elegir dia del mes (para frecuencia mensual)
-    -   [x] Frecuencias: hourly, twice_daily, daily, weekly, biweekly, monthly
-    -   Archivos: `ConfigTab.tsx`, `AIConfigManager.php`, `AIRestApi.php`
-
-5.  **Sistema de notificacion por correo**
-    -   [x] UI para activar/desactivar notificaciones
-    -   [x] Campo para configurar email de notificacion
-    -   [x] Checkboxes para notificar en exito y/o errores
-    -   [x] Backend guarda configuracion de notificaciones
-    -   [x] Implementar envio real de emails via `AINotificationService.php`
-    -   Archivos: `ConfigTab.tsx`, `AIConfigManager.php`, `AIRestApi.php`, `AINotificationService.php`
-
-6.  **Logs en icono (no guardados en archivo)**
-    -   [x] Creado `LogsModal.tsx` para visualizar historial de ejecuciones
-    -   [x] Boton "Historial" en header del panel
-    -   [x] Logs se obtienen de la API, no de archivos
-    -   Archivo: `LogsModal.tsx`, `AdminAIIsland.tsx`
-
-#### Archivos Creados
-
-| Archivo                   | Ubicacion                       | Descripcion                          |
-| ------------------------- | ------------------------------- | ------------------------------------ |
-| AdvancedTab.tsx           | `features/admin-ai/components/` | Pestana de configuracion avanzada    |
-| LogsModal.tsx             | `features/admin-ai/components/` | Modal para visualizar logs           |
-| AINotificationService.php | `Services/ContentAI/`           | Servicio de notificaciones por email |
-
----
-
-### TAREA-009: Bug Proveedor IA - Selección de Modelos
-
-> **Estado:** COMPLETADA
-> **Prioridad:** ALTA
-> **Fecha de creación:** 2025-12-13
-> **Fecha de finalización:** 2025-12-13
-
-#### Descripción
-
-Cuando se cambia el proveedor de IA, no aparece la lista para seleccionar modelos.
-
-#### Solución Implementada
-
-El backend ahora devuelve modelos separados por proveedor (`geminiModels` y `openaiModels`).
-El frontend filtra automáticamente según el proveedor seleccionado y cambia el modelo por defecto.
-
-#### Subtareas
-
-- [x] Modificar `AIRestApi.php` para devolver modelos por proveedor
-  - Agregado metodo `getOpenAIModels()` con GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-3.5 Turbo
-  - Endpoint `/config` devuelve `geminiModels` y `openaiModels`
-- [x] Modificar `useAdminAI.ts` para manejar modelos separados
-- [x] Modificar `AdminAIIsland.tsx` para pasar modelos por proveedor a ConfigTab
-- [x] Modificar `ConfigTab.tsx` para filtrar modelos segun proveedor activo
-- [x] Handler `handleProviderChange()` cambia modelo por defecto al cambiar proveedor
-- [x] ModelSelector muestra nombre del proveedor en label
-- [x] Permitir agregar un modelo personalizado (campo de texto en AdvancedTab)
-
----
-
-### TAREA-010: Actualizar Lista de Modelos IA
-
-> **Estado:** COMPLETADA
-> **Prioridad:** MEDIA
-> **Fecha de creacion:** 2025-12-13
-> **Fecha de finalizacion:** 2025-12-13
-
-#### Descripcion
-
-Actualizar la lista de modelos disponibles para OpenAI y Gemini con los modelos mas recientes.
-
-#### Modelos Agregados
-
-**OpenAI (GPT-5):**
-| Modelo      | Descripcion                     |
-| ----------- | ------------------------------- |
-| gpt-5.2     | Mejor para codigo y agentes     |
-| gpt-5-mini  | Rapido y economico              |
-| gpt-5-nano  | Ultra rapido y economico        |
-| gpt-5.2-pro | Respuestas mas precisas         |
-| gpt-5       | Razonamiento configurable       |
-| gpt-4.1     | Mejor sin razonamiento (legacy) |
-
-**Gemini:**
-| Modelo                | Descripcion                    |
-| --------------------- | ------------------------------ |
-| gemini-3-pro          | Mejor modelo, agentes y codigo |
-| gemini-2.5-flash      | Rapido e inteligente           |
-| gemini-2.5-flash-lite | Ultra rapido                   |
-| gemini-2.5-pro        | Pensamiento avanzado           |
-| gemini-2.0-flash      | Segunda generacion             |
-| gemini-2.0-flash-lite | Rapido y ligero                |
-
-#### Archivos Modificados
-
-| Archivo            | Cambios                                                         |
-| ------------------ | --------------------------------------------------------------- |
-| `AIRestApi.php`    | Actualizado `getOpenAIModels()` con modelos GPT-5               |
-| `GeminiClient.php` | Actualizado `getAvailableModels()` con Gemini 3 Pro y variantes |
-
----
-
-### TAREA-004: Panel React para Opciones del Tema
-
-> **Estado:** COMPLETADA (Diseno e Implementacion)
-> **Prioridad:** BAJA
-> **Dependencia:** TAREA-003 completada
-> **Fecha de finalizacion:** 2025-12-12
-
-#### Descripcion
-
-Panel de configuracion en el **frontend** para gestionar las opciones del tema (Calendly, WhatsApp, redes sociales, imagenes, etc.). Accesible solo para usuarios autenticados con permisos de administrador.
-
-#### Implementacion Realizada
-
-**Ubicacion y Acceso:**
-- [x] Ruta frontend: `/configuracion` (registrada en pages.php y AppRouter.tsx)
-- [x] Solo usuarios con rol `administrator` pueden acceder (via REST API permission_callback)
-- [x] Redireccionar a login si no autenticado (implementado 2025-12-12)
-
-**Diseño:**
-- [x] Diseño minimalista y limpio con header gradiente
-- [x] Estilos independientes en `Glory/assets/css/settings-panel.css`
-- [x] Responsive (mobile-first con breakpoints)
-- [x] Dark mode compatible (usa variables CSS del tema)
-
-**Funcionalidad:**
-- [x] React Island: `SettingsIsland.tsx`
-- [x] Formularios por seccion: Identidad, Contacto, Redes Sociales, Imagenes, Integraciones
-- [x] Integracion con REST API: `GET/POST /glory/v1/settings`
-- [x] Feedback visual (banners de exito/error)
-- [x] Preview de imagenes con drag & drop
-- [x] Indicador de cambios sin guardar
-- [x] Deteccion de errores 401/403 y redirección automatica a `/wp-login.php`
-
-#### Archivos Creados
-
-| Archivo             | Ubicacion                                 | Descripcion                           |
-| ------------------- | ----------------------------------------- | ------------------------------------- |
-| SettingsIsland.tsx  | `App/React/islands/`                      | Island principal (orquestador)        |
-| SettingsRestApi.php | `App/Services/`                           | API REST para cargar/guardar opciones |
-| settings-panel.css  | `Glory/assets/css/`                       | Estilos independientes del panel      |
-| useSettingsApi.ts   | `App/React/features/settings/hooks/`      | Hook para comunicacion con API        |
-| IdentityTab.tsx     | `App/React/features/settings/components/` | Tab de identidad                      |
-| ContactTab.tsx      | `App/React/features/settings/components/` | Tab de contacto                       |
-| SocialTab.tsx       | `App/React/features/settings/components/` | Tab de redes sociales                 |
-| ImagesTab.tsx       | `App/React/features/settings/components/` | Tab de imagenes                       |
-| IntegrationsTab.tsx | `App/React/features/settings/components/` | Tab de integraciones                  |
-| SettingsField.tsx   | `App/React/features/settings/components/` | Campo de formulario reutilizable      |
-| ImageUploader.tsx   | `App/React/features/settings/components/` | Uploader con drag & drop              |
-| types/index.ts      | `App/React/features/settings/types/`      | Tipos TypeScript                      |
-| index.ts            | `App/React/features/settings/`            | Barrel exports                        |
-
-#### Archivos Modificados
-
-| Archivo                                     | Cambios                                          |
-| ------------------------------------------- | ------------------------------------------------ |
-| `App/Config/pages.php`                      | Agregada ruta 'configuracion'                    |
-| `App/Config/control.php`                    | Registro de SettingsRestApi                      |
-| `App/React/components/router/AppRouter.tsx` | Import y ruta para SettingsIsland                |
-| `Glory/assets/react/src/index.css`          | Import de settings-panel.css                     |
-| `Glory/Config/scriptSetup.php`              | Exclusion de settings-panel.css del defineFolder |
-
----
-
-### TAREA-005: Optimización Core Web Vitals (Lighthouse) - COMPLETADA
-
-> **Estado:** COMPLETADA
-> **Prioridad:** ALTA
-> **Origen:** Auditoría Lighthouse (2025-12-12)
-> **Fecha de finalización:** 2025-12-12
-> **Meta:** Mejorar LCP y reducir CLS.
-
-#### 1. Recursos Bloqueantes (LCP) - COMPLETADO
-- [x] **Fuentes bloqueantes eliminadas**: Eliminado `@import` de Lato/Source Sans en `header.php` (~540ms de ahorro).
-- [x] **Google Fonts asíncrono**: Carga con `media="print" onload` para no bloquear render (~750ms ahorro).
-- [x] **Preconnects verificados**: `fonts.googleapis.com` y `fonts.gstatic.com` ya configurados en `performance.php`.
-- [x] **Preload de fuentes críticas**: Añadido preload de archivos woff2 (Manrope 700, Inter 400) para reducir cadena crítica (~300ms estimado).
-- [x] **block-library CSS eliminado**: Desencolado `wp-block-library` (Gutenberg) en modo React (~540ms ahorro).
-- [x] **React CSS asíncrono**: Carga con `rel="preload" onload` para no bloquear render.
-
-#### 2. Layout Shifts (CLS) - COMPLETADO (0.101 → ~0.02 estimado)
-- [x] **Fallback fonts con métricas ajustadas**: Creados `@font-face` para `Manrope Fallback` e `Inter Fallback` con:
-  - `size-adjust`, `ascent-override`, `descent-override` para coincidir con fuentes web.
-  - Eliminan saltos de texto cuando las fuentes cargan.
-- [x] **Contenedores con altura mínima**: `HeroSection.tsx` ahora tiene:
-  - `min-h-[280px] md:min-h-[300px]` en contenedor principal.
-  - `min-h-[88px] md:min-h-[120px] lg:min-h-[140px]` en H1.
-  - `min-h-[60px] md:min-h-[72px]` en subtítulo.
-  - `min-h-[156px] sm:min-h-[52px]` en CTAs (3 botones apilados en móvil).
-
-#### 3. Forced Reflow (Layout Thrashing) - COMPLETADO (~84ms → ~20ms)
-- [x] **Scroll handler optimizado**: `ScrollTabsShowcase.tsx` ahora usa:
-  - `requestAnimationFrame` para agrupar lecturas de DOM.
-  - Flag `ticking` para evitar ejecuciones redundantes.
-  - Reduce recálculos forzados del layout significativamente.
-- [x] **AnimatedChat.tsx optimizado** (2025-12-13):
-  - `scrollToBottom` ahora agrupa lecturas de `scrollHeight`/`clientHeight` en `requestAnimationFrame`.
-  - Evita forced reflows adicionales (~81ms de ahorro potencial).
-
-#### 4. Cadena Crítica de Peticiones - OPTIMIZADA
-- [x] **Preload de fuentes**: Archivos woff2 críticos se precargan antes del CSS de Google Fonts.
-- [x] **Orden mejorado**: Preconnect → Preload fonts → Google Fonts CSS (async) → React CSS (async).
-
-#### 5. Optimización de Imágenes
-- [x] **Imágenes de fondo**: Calidad reducida de 60 a 40 (decorativas con opacity-40).
-- [x] **Ancho máximo optimizado** (actualizado 2025-12-13):
-  - Reducido de 1920px a 1280px (~222KB ahorro adicional según Lighthouse).
-  - Total: calidad 40 + ancho 1280px = ahorro significativo en imágenes decorativas.
-
-#### Archivos Modificados
-
-| Archivo                                                | Cambios                                                                                  |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| `header.php`                                           | data-theme="project" SSR (evita flash), eliminado @import bloqueante                     |
-| `App/Config/performance.php`                           | Preload woff2, Google Fonts async, desencolar block-library en React                     |
-| `App/Assets/css/init.css`                              | @font-face fallback con métricas ajustadas, actualizado `--font-heading` y `--font-sans` |
-| `App/React/components/sections/ScrollTabsShowcase.tsx` | Scroll handler optimizado con requestAnimationFrame                                      |
-| `App/React/components/sections/HeroSection.tsx`        | Alturas mínimas para evitar CLS (156px en móvil para 3 CTAs)                             |
-| `App/React/utils/imageOptimizer.ts`                    | Calidad 40 y ancho máximo 1280px (reducido de 1920px)                                    |
-| `App/React/features/demos/components/AnimatedChat.tsx` | scrollToBottom optimizado con requestAnimationFrame                                      |
-| `Glory/src/Services/ReactIslands.php`                  | CSS React con preload+onload (no bloqueante)                                             |
-| `App/React/hooks/useTheme.ts`                          | Lee tema del DOM (SSR) en lugar de aplicarlo, evita flash                                |
-
----
-
-### TAREA-006: Mejoras UI/UX y Correcciones Responsive - COMPLETADA
-> **Estado:** COMPLETADA
-> **Prioridad:** MEDIA-ALTA
-> **Fecha de creación:** 2025-12-12
-> **Fecha de finalización:** 2025-12-12
-> **Origen:** Revisión de UX (Móvil/Desktop)
-
-#### 1. Botones y Textos
-- [x] **Botones Multilínea (Móvil)**: 
-  - *Contexto:* Botones CTA largos ("Hablame ahora...").
-  - *Problema:* Al hacer wrap a 2 líneas, la altura no aumenta, texto se corta o queda apretado.
-  - *Solución:* Implementado `min-h-[44px]` y `h-auto` en `Button.tsx`.
-- [x] **Elementos Fijos Innecesarios**:
-  - *Problema:* Textos como "Primer mes gratis", "Respuesta en..." están fijos.
-  - *Solución:* `PageLayout.tsx` modificado. `TopBanner` ahora hace scroll, solo el menú es sticky.
-
-#### 2. Componente Tabs ("Trabajamos contigo" / "Cómo lo hacemos")
-- [x] **Componente Tabs / Proceso**:
-  - *Problema:* El contenedor de animación tiene muy poca altura en móvil.
-  - *Solución:* Aumentada altura base a `h-[450px]` (móvil) y `h-[500px]` (escritorio) en `ProcessWorkflow.tsx` y `DemoProcessWorkflow.tsx`. Reducido padding móvil a `p-4`.
-- [x] **Diseño Tabs Móvil (ScrollTabs)**:
-  - *Solución:* Texto oculto en móvil (`hidden md:block`), iconos centrados.
-
-#### 3. Estilos y Consistencia (Look & Feel)
-- [x] **Contact Form y Pricing FAQ**:
-  - *Problema:* Falta borde, radio y sombra consistente con el resto.
-  - *Solución:* Añadido estilo "Card" (`border`, `rounded-2xl`, `shadow-sm`, `bg-surface`) en `ContactForm.tsx` y `FaqWithCta.tsx`.
-  - *Ajuste extra:* En `ContactForm`, se eliminó el contenedor externo que generaba doble fondo/padding, aplicando el estilo Card directamente al `section`.
-- [x] **Iconos "Medimos lo importante"**:
-  - *Problema:* El fondo del icono se estira verticalmente con el texto.
-  - *Solución:* Añadido `items-start` y `aspect-square` en `AnalyticsSection.tsx`.
-
-#### 4. Navegación y Layout Móvil
-- [x] **Menú Móvil (Hamburguesa)**:
-  - *Problema:* No cubre toda la pantalla o se ve parcial.
-  - *Solución:* Implementado `fixed inset-0 top-14` para pantalla completa.
-- [x] **Sección "Elige tu demo" (Móvil)**:
-  - *Problema:* Espacio fijo excesivo, requiere demasiado scroll para pasar.
-  - *Solución:* Reducido factor de scroll de 1.5 a 1.2 viewports por sección.
-
----
-
-### TAREA-002: Migrar Islands a useSiteUrls() - COMPLETADA
-
-> **Estado:** Completada el 2025-12-12
-
-**Resumen:** Todos los Islands y componentes ahora usan `useSiteUrls()` para obtener URLs dinamicas desde Theme Options.
-
-**Archivos migrados:**
-- [x] `islands/HomeIsland.tsx`
-- [x] `islands/ServicesIsland.tsx`
-- [x] `islands/PricingIsland.tsx`
-- [x] `islands/DemosIsland.tsx`
-- [x] `islands/AboutIsland.tsx`
-- [x] `islands/ContactIsland.tsx`
-- [x] `islands/BlogIsland.tsx`
-- [x] `islands/SinglePostIsland.tsx`
-- [x] `features/demos/components/ScenarioSelector.tsx`
-- [x] `features/about/data/content.tsx`
-- [x] `components/sections/CtaBlock.tsx`
-
-**Patron implementado:**
-```tsx
-// En componentes React
-import {useSiteUrls} from '../hooks/useSiteConfig';
-const urls = useSiteUrls();
-// Usar urls.calendly, urls.whatsapp, etc.
-```
-
----
-
-### OPCIONES CONFIGURABLES (Theme Options)
-
-> El cliente puede configurar todo desde **WP Admin > Theme Options**. No requiere desarrollo adicional.
-
-| Seccion         | Opciones Disponibles                    |
-| --------------- | --------------------------------------- |
-| Site Identity   | Nombre, tagline, telefono, email        |
-| Contact URLs    | Calendly, WhatsApp (numero + mensaje)   |
-| Social Profiles | LinkedIn, Twitter/X, YouTube, Instagram |
-| Site Images     | Hero, secundaria, logo                  |
-| Integrations    | GTM ID, GA4 ID, GSC verification        |
-
-**Contenido adicional** (via WordPress posts/custom fields): Testimonios, casos de exito.
-
----
-
-### FASE 7: SEO Y DATOS ESTRUCTURADOS (Completada - Código)
-
-**Completado (Desarrollo):**
-- [x] JSON-LD en todas las paginas (ver tabla de paginas)
-- [x] SeoManager.php para Title, Meta Description, JSON-LD
-- [x] Logo dinamico en JSON-LD desde Theme Options
-- [x] sameAs (redes sociales) dinamico en Organization schema
-- [x] Calendly URL dinamico en contacto schema
-- [x] Telefono y email en ProfessionalService schema
-- [x] Imagen hero en Home schema
-
-**Pendiente (Configuracion del cliente):**
-
-| Tarea         | Descripcion                                                    |
-| ------------- | -------------------------------------------------------------- |
-| Theme Options | Completar todos los campos en WP Admin > Theme Options         |
-| Reglas SEO    | Verificar: un H1 por pagina, parrafos cortos, alt descriptivos |
-
----
-
-### FASE 8: ANALITICA (Completada - Código)
-
-**Completado (Desarrollo):**
-- [x] GTM ID dinamico desde Theme Options (ya no hardcodeado)
-- [x] useAnalytics.ts con eventos: `click_whatsapp`, `click_calendly`, `lead_form_submit`
-- [x] Button.tsx trackea automaticamente clicks WhatsApp/Calendly
-- [x] ContactForm.tsx trackea envios de formulario
-- [x] CookieBanner.tsx carga GTM solo tras aceptar cookies
-- [x] Guia de configuracion creada: `GUIA_CONFIGURACION_ANALYTICS.md`
-
-**Pendiente (Configuracion del cliente):**
-
-| Tarea          | Descripcion                             | Guia    |
-| -------------- | --------------------------------------- | ------- |
-| Contenedor GTM | Crear en tagmanager.google.com          | Parte 1 |
-| Propiedad GA4  | Crear en analytics.google.com           | Parte 2 |
-| Etiquetas GTM  | Crear etiquetas para eventos            | Parte 3 |
-| Conversiones   | Marcar eventos como conversiones en GA4 | Parte 4 |
-| GSC            | Verificar dominio y enviar sitemap      | Parte 5 |
-| Theme Options  | Copiar GTM ID, GA4 ID, GSC code         | Parte 6 |
-
----
-
-### FASE 9: OPTIMIZACION (Parcial)
-
-**Pendiente:**
-
-| Tarea                 | Descripcion                                                              | Prioridad |
-| --------------------- | ------------------------------------------------------------------------ | --------- |
-| Dimensiones imagenes  | Hero: 1600x900, Contenido: 1200x800, Miniaturas: 600x400                 | BAJA      |
-| Calendly CLS          | `.calendly-inline-widget { min-height: 700px; }` en `init.css`           | MEDIA     |
-| Boton ajustar cookies | Agregar boton en Footer para revocar/cambiar preferencias cookies        | BAJA      |
-| Listener Calendly     | Implementar listener `calendly.event_scheduled` para `schedule_calendly` | ALTA      |
-
----
-
-### FASE 10: PUBLICACION Y LANZAMIENTO
-
-#### 10.1 Configuracion de Dominio
-- [ ] Forzar HTTPS en todo el sitio
-- [ ] Elegir con/sin www y redirigir 301
-
-#### 10.2 Robots y Sitemap
-- [ ] Crear robots.txt:
-  ```
-  User-agent: *
-  Disallow: /wp-admin/
-  Allow: /wp-admin/admin-ajax.php
-  Sitemap: https://[URL_BASE]/sitemap_index.xml
-  ```
-- [ ] Generar sitemap con Rank Math/Yoast
-
-#### 10.3 Google Search Console
-- [ ] Verificar dominio
-- [ ] Enviar sitemap
-- [ ] Marcar noindex: pagina gracias, borradores, busquedas internas
-
-#### 10.4 Inspeccion Final
-- [ ] Inspeccionar URLs principales en Search Console
-- [ ] Probar Home y Contacto en movil
-- [ ] Verificar sin pop-ups intrusivos
-- [ ] Verificar sin saltos de layout
-
----
-
-### FASE 1.5: REVISION ESTILOS TEMA PROJECT (Completada)
-
-> **ESTADO:** COMPLETADA (2025-12-12 12:40)
-> **Puntuacion de conformidad:** 93%
-> **Hallazgos:** Ver documento `REVISION_ESTILOS_PROJECT.md`
-
-**Objetivo:** Verificar que TODOS los componentes React aplican correctamente los estilos del tema `project`.
-
-**Resumen de revisión:**
-- ✅ Variables CSS: 100% conformes
-- ✅ Tipografía: 100% conformes (Manrope/Inter)
-- ✅ Botones 44px: 100% conformes
-- ⚠️ Colores hardcodeados: 6 ocurrencias menores
-- ⚠️ Tamaño archivos: 2 componentes exceden límite de 150 líneas
-
-**Componentes revisados:** Button, Badge, Card, PricingCard, HeroSection, WhatsAppShowcase, SinglePostIsland, DemoChat
-
-**Recomendaciones prioritarias:**
-1. Dividir `WhatsAppShowcase.tsx` (153 líneas)
-2. Dividir `SinglePostIsland.tsx` (195 líneas)
-3. Reemplazar colores hardcodeados por variables CSS
-
-**Estado:** ✅ Aprobado para producción con notas menores
-
-<details>
-<summary>Ver checklist original (referencia)</summary>
-
-#### Variables CSS a verificar
-- `--color-accent-primary: #2563eb` (Azul brand)
-- `--color-accent-green: #25d366` (Verde - SOLO iconos)
-- `--color-text-primary: #111827`
-- `--color-bg-primary: #f5f5f4`
-- `--color-bg-surface: #ffffff`
-- `--color-border-primary: #e6e6e6`
-- `--color-surface-inverse: #0b1220`
-
-#### Tipografia
-- H1: Manrope 700, `clamp(36px, 3.5vw, 44px)`
-- H2: Manrope 700, `clamp(28px, 2.6vw, 32px)`
-- H3: Manrope 600, `20px`
-- Body: Inter 400/600, `17px`
-- Botones: minimo `44px` altura
-
-#### Componentes a revisar
-- **UI:** Button, Badge, Card, Input, Select
-- **Sections:** HeroSection, FeatureSection, ContactForm, FaqWithCta, ProcessTimeline, WhatsAppShowcase, AutomationFlow, PricingBreakdown, CtaBlock, InternalLinks
-- **Layout:** Header, Footer, PageLayout
-- **Islands:** Todos (9)
-
-#### Problemas a buscar
-1. Colores hardcodeados
-2. Verde usado como texto (debe ser SOLO iconos)
-3. Fuentes incorrectas (debe ser Manrope/Inter)
-4. Botones sin altura minima 44px
-5. Focus ring incorrecto
-6. Clases Tailwind que sobrescriben variables
-
-</details>
-
----
-
-### Post Individual (Blog)
-
-| Tarea               | Estado                               |
-| ------------------- | ------------------------------------ |
-| Autor + fechas      | OK (SinglePostIsland)                |
-| JSON-LD BlogPosting | OK (SeoManager)                      |
-| Fuentes consultadas | OK (implementado 2025-12-12)         |
-| Seccion React       | OK (obtiene desde post.meta.sources) |
-
----
-
-## VERIFICACION: ROADMAP vs PROJECT-EXTENDS.MD
-
-> **Fecha de verificacion:** 2025-12-13
-> **Estado:** Verificado con hallazgos documentados
-
-### Resumen Ejecutivo
-
-| Area                       | Estado     | Notas                                                    |
-| -------------------------- | ---------- | -------------------------------------------------------- |
-| Campos UTM en formulario   | ✅ Completo | 6 campos implementados en `ContactForm.tsx`              |
-| Evento `click_whatsapp`    | ✅ Completo | Trackea clicks a WhatsApp automaticamente                |
-| Evento `click_calendly`    | ✅ Completo | Trackea clicks a Calendly automaticamente                |
-| Evento `schedule_calendly` | ⚠️ Parcial  | Funcion existe pero falta listener postMessage           |
-| Evento `lead_form_submit`  | ✅ Completo | Trackea envios de formulario                             |
-| Calendly min-height (CLS)  | ❌ Falta    | Agregar `.calendly-inline-widget { min-height: 700px; }` |
-| Boton "Ajustar cookies"    | ❌ Falta    | `project-extends.md` linea 1527 requiere boton en footer |
-| Paginas noindex            | ⚠️ N/A      | No hay pagina `/gracias` configurada                     |
-| Textos H1/H2 literales     | ✅ Completo | Coinciden con `project-extends.md`                       |
-| JSON-LD por pagina         | ✅ Completo | `SeoManager.php` implementa todos los esquemas           |
-| Preconnects (Calendly, WA) | ✅ Completo | `performance.php` incluye todos los preconnects          |
-
-### Hallazgos Detallados
-
-#### 1. Campos UTM en ContactForm (✅ IMPLEMENTADO)
-
-Todos los campos ocultos requeridos estan implementados en `ContactForm.tsx`:
-- `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`
-- `page_url`, `timestamp`
-
-Se capturan automaticamente via `useEffect` al montar el componente (lineas 82-95).
-
-#### 2. Evento schedule_calendly (⚠️ PARCIAL)
-
-**Problema:** El metodo `trackCalendlyScheduled()` existe en `useAnalytics.ts` (linea 74-79) pero **NO hay listener** que escuche el evento `calendly.event_scheduled` del widget Calendly.
-
-**Solucion requerida:**
+**Codigo requerido para Listener Calendly:**
 ```typescript
 // En CookieBanner.tsx o nuevo hook useCalendlyListener.ts
 useEffect(() => {
@@ -893,23 +192,20 @@ useEffect(() => {
 }, []);
 ```
 
-#### 3. Calendly CLS - min-height (❌ FALTA)
+#### Prioridad MEDIA
 
-**Requerimiento** (`project-extends.md` linea 1615):
-```css
-.calendly-inline-widget { min-height: 700px; }
-```
+| Tarea        | Descripcion                                                    | Estado |
+| ------------ | -------------------------------------------------------------- | ------ |
+| Calendly CLS | `.calendly-inline-widget { min-height: 700px; }` en `init.css` | Falta  |
 
-**Estado:** No implementado. Agregar a `init.css`.
+#### Prioridad BAJA
 
-#### 4. Boton "Ajustar cookies" en Footer (❌ FALTA)
+| Tarea                 | Descripcion                                                       | Estado |
+| --------------------- | ----------------------------------------------------------------- | ------ |
+| Dimensiones imagenes  | Documentar: Hero 1600x900, Contenido 1200x800, Miniaturas 600x400 | Falta  |
+| Boton ajustar cookies | Agregar boton en Footer para revocar/cambiar preferencias cookies | Falta  |
 
-**Requerimiento** (`project-extends.md` linea 1527):
-> "Puedes cambiar tu eleccion cuando quieras desde el boton Ajustar cookies del pie de pagina."
-
-**Estado:** `Footer.tsx` no tiene este boton. `CookieBanner.tsx` solo tiene "Aceptar"/"Denegar".
-
-**Solucion requerida:**
+**Codigo requerido para Boton Ajustar Cookies:**
 ```tsx
 // En Footer.tsx
 <button onClick={() => {
@@ -920,17 +216,48 @@ useEffect(() => {
 </button>
 ```
 
-### Archivos Verificados
+---
 
-| Archivo            | Verificacion                                                                    |
-| ------------------ | ------------------------------------------------------------------------------- |
-| `ContactForm.tsx`  | UTMs, consentimiento RGPD, tracking formulario                                  |
-| `useAnalytics.ts`  | 4 eventos (click_whatsapp, click_calendly, schedule_calendly, lead_form_submit) |
-| `Button.tsx`       | Tracking automatico WhatsApp/Calendly                                           |
-| `CookieBanner.tsx` | GTM condicional tras aceptar cookies                                            |
-| `Footer.tsx`       | Falta boton ajustar cookies                                                     |
-| `SeoManager.php`   | JSON-LD completo por pagina                                                     |
-| `performance.php`  | Preconnects Calendly, WhatsApp, Google Fonts                                    |
+### VERIFICACION DE PANELES
+
+> **Objetivo:** Asegurar que todas las funcionalidades de configuracion funcionen correctamente.
+
+| Panel                    | URL                      | Funcionalidad a Verificar                    | Estado      |
+| ------------------------ | ------------------------ | -------------------------------------------- | ----------- |
+| Configuracion General    | `/configuracion`         | Guardar y recuperar todas las opciones       | Verificar   |
+| Theme Options (WP Admin) | WP Admin > Theme Options | Sincronizacion con panel React               | Verificar   |
+| Panel IA                 | `/panel-ia`              | Generacion de contenido con Gemini 2.5 Flash | Funcionando |
+| Integraciones            | `/configuracion`         | GTM, GA4, GSC se aplican correctamente       | Verificar   |
+
+---
+
+### FASE 10: PUBLICACION Y LANZAMIENTO (Desarrollo)
+
+> Tareas tecnicas que el desarrollador debe preparar antes del lanzamiento.
+
+#### 10.1 Configuracion Tecnica
+
+- [ ] Verificar que robots.txt se genera correctamente
+- [ ] Verificar que sitemap se genera con Rank Math/Yoast
+- [ ] Preparar configuracion HTTPS
+
+**Contenido robots.txt esperado:**
+```
+User-agent: *
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+Sitemap: https://[URL_BASE]/sitemap_index.xml
+```
+
+---
+
+### PROXIMAS MEJORAS (Futuro)
+
+| Mejora                | Estado  | Descripcion                                         |
+| --------------------- | ------- | --------------------------------------------------- |
+| **Selector de temas** | Proximo | Elegir entre varios temas de colores desde el panel |
+| **Modificar colores** | Proximo | Personalizar colores principales desde el panel     |
+
 
 ---
 
@@ -963,149 +290,3 @@ useEffect(() => {
 | LEGAL     | /contacto                                                |
 
 ---
-
-## HISTORIAL DE ACTUALIZACIONES
-
-<details>
-<summary>Ver historial completo (60+ entradas)</summary>
-
-| Fecha      | Cambio                                                                                                              |
-| ---------- | ------------------------------------------------------------------------------------------------------------------- |
-| 2025-12-11 | Creacion inicial del roadmap                                                                                        |
-| 2025-12-11 | Agregado: estados de paginas, Fase 0 revision                                                                       |
-| 2025-12-11 | Agregado: arquitectura tecnica, modos React/Nativo                                                                  |
-| 2025-12-11 | Documentado: sistema de temas dinamico (useTheme)                                                                   |
-| 2025-12-11 | HOME: Agregado tertiaryCta, ContactForm, InternalLinks                                                              |
-| 2025-12-11 | HOME: Secciones H2/H3 completas segun project-extends.md                                                            |
-| 2025-12-11 | HOME: Mejora UI Integraciones y Analytics                                                                           |
-| 2025-12-11 | SERVICIOS: Contenido actualizado 100%                                                                               |
-| 2025-12-11 | PLANES: Contenido actualizado 100%                                                                                  |
-| 2025-12-11 | DEMOS: Contenido actualizado 100%                                                                                   |
-| 2025-12-11 | SOBRE MI: Contenido actualizado 100%                                                                                |
-| 2025-12-11 | FASE 0 COMPLETADA                                                                                                   |
-| 2025-12-11 | PAGINAS: Blog, Contacto, Privacidad, Cookies implementadas                                                          |
-| 2025-12-11 | ARQUITECTURA: Centralizado rutas React en pages.php                                                                 |
-| 2025-12-11 | ARQUITECTURA: ReactContentProvider para inyectar contenido                                                          |
-| 2025-12-11 | VERIFICACION: DEMOS, PRIVACIDAD, COOKIES 100% conforme                                                              |
-| 2025-12-11 | CORRECCION: HOME - FeatureSection movida                                                                            |
-| 2025-12-11 | CORRECCION: SOBRE MI - Segunda foto agregada                                                                        |
-| 2025-12-11 | CORRECCION: BLOG - Secciones separadas, chips activados                                                             |
-| 2025-12-11 | CORRECCION: CONTACTO - H1 exacto, 5 opciones                                                                        |
-| 2025-12-11 | FASE 0 VERIFICACION 100% COMPLETADA (30/30 items)                                                                   |
-| 2025-12-11 | FASE 1 COMPLETADA: Tipografia, colores, componentes base                                                            |
-| 2025-12-11 | FASE 1: Creado performance.php (preconexiones, fuentes)                                                             |
-| 2025-12-11 | ROADMAP: Agregada FASE 1.5 revision estilos                                                                         |
-| 2025-12-11 | SEO: Implementado SeoManager.php                                                                                    |
-| 2025-12-11 | FASES 2, 3, 4: Completada implementacion SEO/JSON-LD                                                                |
-| 2025-12-11 | SEO: SeoManager soporta Single Posts                                                                                |
-| 2025-12-11 | UI: Button.tsx con prop size y 44px minimo                                                                          |
-| 2025-12-11 | BLOG: SinglePostIsland con Autor y Fecha                                                                            |
-| 2025-12-11 | GTM: CookieBanner.tsx con carga condicional                                                                         |
-| 2025-12-11 | LAYOUT: CookieBanner integrado en PageLayout                                                                        |
-| 2025-12-12 | FASE 5.2: CtaBlock en HomeIsland, CTAs verificados                                                                  |
-| 2025-12-12 | FASE 8: Creado useAnalytics.ts                                                                                      |
-| 2025-12-12 | FASE 8: Button.tsx trackea WhatsApp/Calendly                                                                        |
-| 2025-12-12 | FASE 8: ContactForm.tsx trackea lead_form_submit                                                                    |
-| 2025-12-12 | TEMA: Default cambiado a 'project'                                                                                  |
-| 2025-12-12 | ROADMAP: Seccion "Pendientes con Cliente"                                                                           |
-| 2025-12-12 | FASE 9: HeroSection/AboutIsland botones 44px                                                                        |
-| 2025-12-12 | FASE 9: SinglePostIsland siteUrls.calendly, eager loading                                                           |
-| 2025-12-12 | FASE 6: Sistema Gemini 2.5 Flash completo                                                                           |
-| 2025-12-12 | FASE 6: GeminiClient, AIConfigManager, DraftManager, ContentGenerator, AIRestApi                                    |
-| 2025-12-12 | FASE 6: AdminAIIsland con 4 tabs                                                                                    |
-| 2025-12-12 | FASE 6: useAdminAI hook                                                                                             |
-| 2025-12-12 | FASE 6: Ruta /admin/ai registrada                                                                                   |
-| 2025-12-12 | UI: Badge.tsx con variantes y tamanos                                                                               |
-| 2025-12-12 | BUG-001: AppRouter.tsx fallback para single posts                                                                   |
-| 2025-12-12 | BUG-001: getSlugFromPath(), isValidPostSlug()                                                                       |
-| 2025-12-12 | TAREA-001: GeminiLogger.php creado                                                                                  |
-| 2025-12-12 | TAREA-001: GeminiClient usa GeminiLogger                                                                            |
-| 2025-12-12 | TAREA-001: AIRestApi endpoints para logs                                                                            |
-| 2025-12-12 | BUG-001: RESUELTO                                                                                                   |
-| 2025-12-12 | OPCIONES: 15+ opciones tema en opcionesTema.php                                                                     |
-| 2025-12-12 | REACT: useSiteConfig.ts hook                                                                                        |
-| 2025-12-12 | REACT: reactContent.php inyecta siteConfig                                                                          |
-| 2025-12-12 | REACT: HomeIsland migrado a useSiteUrls()                                                                           |
-| 2025-12-12 | ROADMAP: Pendientes con claves configurables                                                                        |
-| 2025-12-12 | ROADMAP: Reorganizado - completados compactados, pendientes al final                                                |
-| 2025-12-12 | TAREA-002: Todos los Islands migrados a useSiteUrls()                                                               |
-| 2025-12-12 | TAREA-003: Documentado Modo React (analisis y plan de implementacion)                                               |
-| 2025-12-12 | TAREA-003: GloryFeatures::applyReactMode() implementado                                                             |
-| 2025-12-12 | TAREA-003: GloryFeatures::isReactMode() y getReactExcludedFeatures()                                                |
-| 2025-12-12 | TAREA-003: control.php - Añadido reactMode con documentacion                                                        |
-| 2025-12-12 | TAREA-003: ReactIslands::isReactMode() helper                                                                       |
-| 2025-12-12 | TAREA-003: opcionesTema.php - Toggle Modo React en Theme Options                                                    |
-| 2025-12-12 | TAREA-003: Cambio criterio - React desactiva TODAS las features                                                     |
-| 2025-12-12 | TAREA-003: Lista completa de features excluidas (UI, Services, Renderers, etc)                                      |
-| 2025-12-12 | TAREA-003: Documentado que glory-opciones NO se usa con React                                                       |
-| 2025-12-12 | TAREA-003: COMPLETADA                                                                                               |
-| 2025-12-12 | TAREA-003: load.php - control.php carga ANTES de scriptSetup.php                                                    |
-| 2025-12-12 | TAREA-003: scriptSetup.php - defineFolder envuelto con !isReactMode()                                               |
-| 2025-12-12 | TAREA-003: Verificado - 0 scripts Glory en frontend con React activo                                                |
-| 2025-12-12 | TAREA-004: Creado SettingsIsland.tsx (panel de configuracion)                                                       |
-| 2025-12-12 | TAREA-004: Creado SettingsRestApi.php (API REST GET/POST /glory/v1/settings)                                        |
-| 2025-12-12 | TAREA-004: Creado settings-panel.css (estilos independientes)                                                       |
-| 2025-12-12 | TAREA-004: Creado feature settings/ con 5 tabs (Identity, Contact, Social, etc)                                     |
-| 2025-12-12 | TAREA-004: Ruta /configuracion registrada en pages.php y AppRouter.tsx                                              |
-| 2025-12-12 | TAREA-004: COMPLETADA (Diseno e Implementacion)                                                                     |
-| 2025-12-12 | TAREA-004: Implementada redirección a login para usuarios no autenticados                                           |
-| 2025-12-12 | TAREA-004: useSettingsApi detecta errores 401/403 y expone isUnauthorized                                           |
-| 2025-12-12 | TAREA-004: SettingsIsland redirige a /wp-login.php con redirect_to                                                  |
-| 2025-12-12 | BLOG: SinglePostIsland - Agregada seccion "Fuentes consultadas"                                                     |
-| 2025-12-12 | BLOG: Fuentes se obtienen de post.meta.sources con titulo, URL y descripcion                                        |
-| 2025-12-12 | BLOG: Seccion solo se muestra si existen fuentes (condicional)                                                      |
-| 2025-12-12 | FASE 1.5: Revision de estilos tema project COMPLETADA (93% conformidad)                                             |
-| 2025-12-12 | FASE 1.5: Creado documento REVISION_ESTILOS_PROJECT.md con hallazgos completos                                      |
-| 2025-12-12 | FASE 1.5: 6 ocurrencias menores de colores hardcodeados detectadas                                                  |
-| 2025-12-12 | FASE 1.5: 2 componentes exceden limite 150 lineas (recomendaciones documentadas)                                    |
-| 2025-12-12 | FASE 7: SeoManager.php - Agregado getSiteConfig() para datos dinamicos                                              |
-| 2025-12-12 | FASE 7: JSON-LD Organization ahora incluye logo y sameAs dinamicos                                                  |
-| 2025-12-12 | FASE 7: JSON-LD Home/Contacto usan nombre, telefono, email, Calendly dinamicos                                      |
-| 2025-12-12 | FASE 8: CookieBanner.tsx - GTM ID dinamico desde Theme Options                                                      |
-| 2025-12-12 | FASE 8: Eliminado placeholder hardcodeado GTM-XXXXXXX                                                               |
-| 2025-12-12 | GUIA: Creado GUIA_CONFIGURACION_ANALYTICS.md (7 partes)                                                             |
-| 2025-12-12 | FASES 7 y 8: Marcadas como COMPLETADAS (codigo)                                                                     |
-| 2025-12-12 | TAREA-006: COMPLETADA (Mejoras UI/UX y Responsive)                                                                  |
-| 2025-12-12 | UI: Button.tsx multiline fix, PageLayout fixed elements removed                                                     |
-| 2025-12-12 | UI: ScrollTabsShowcase altura ajustada y texto oculto en movil                                                      |
-| 2025-12-12 | UI: ProcessWorkflow/DemoProcessWorkflow altura aumentada (450px movil)                                              |
-| 2025-12-12 | UI: ContactForm estilo Card aplicado a section (eliminado doble padding)                                            |
-| 2025-12-12 | UI: ContactForm y FaqWithCta estilo Card                                                                            |
-| 2025-12-12 | UI: AnalyticsSection icon fix, Header menu full screen                                                              |
-| 2025-12-12 | TAREA-005: COMPLETADA (Optimizacion Core Web Vitals)                                                                |
-| 2025-12-12 | LCP: Eliminado @import bloqueante de Lato/Source Sans en header.php                                                 |
-| 2025-12-12 | LCP: Añadido preload de woff2 criticos (Manrope 700, Inter 400)                                                     |
-| 2025-12-12 | CLS: Creados @font-face fallback con metricas ajustadas (size-adjust, etc)                                          |
-| 2025-12-12 | CLS: HeroSection.tsx con alturas minimas para evitar layout shifts                                                  |
-| 2025-12-12 | JS: ScrollTabsShowcase.tsx optimizado con requestAnimationFrame                                                     |
-| 2025-12-12 | LCP: Google Fonts carga asincrona (media="print" onload)                                                            |
-| 2025-12-12 | LCP: Desencolado wp-block-library CSS en modo React (~540ms ahorro)                                                 |
-| 2025-12-12 | LCP: ReactIslands.php CSS con preload+onload (no bloqueante)                                                        |
-| 2025-12-12 | CLS: HeroSection CTAs min-h-[156px] movil (3 botones apilados)                                                      |
-| 2025-12-12 | IMG: imageOptimizer.ts calidad 40 y max-width 1920px (~400KB ahorro)                                                |
-| 2025-12-12 | CLS: data-theme="project" SSR en header.php (evita flash de tema)                                                   |
-| 2025-12-12 | CLS: useTheme.ts lee tema del DOM en lugar de aplicarlo                                                             |
-| 2025-12-13 | TAREA-010: Actualizado modelos OpenAI (GPT-5.2, 5-mini, 5-nano, 5.2-pro, 5, 4.1)                                    |
-| 2025-12-13 | TAREA-010: Actualizado modelos Gemini (3 Pro, 2.5 Flash, Lite, Pro, 2.0 Flash)                                      |
-| 2025-12-13 | TAREA-008: AdvancedTab.tsx creado (configuracion avanzada en pestana separada)                                      |
-| 2025-12-13 | TAREA-008: LogsModal.tsx creado (historial de ejecuciones en modal)                                                 |
-| 2025-12-13 | TAREA-008: AINotificationService.php (envio real de emails de notificacion)                                         |
-| 2025-12-13 | TAREA-008: AdminAIIsland ahora tiene 5 tabs (Generar, Borradores, Config, Avanzado, Stats)                          |
-| 2025-12-13 | TAREA-009: AdvancedTab permite usar modelo personalizado (custom_model)                                             |
-| 2025-12-13 | VERIFICACION: Comparacion completa roadmap vs project-extends.md                                                    |
-| 2025-12-13 | VERIFICACION: Campos UTM en ContactForm.tsx verificados (6/6 implementados)                                         |
-| 2025-12-13 | VERIFICACION: useAnalytics.ts tiene 4 eventos (click_whatsapp, click_calendly, schedule_calendly, lead_form_submit) |
-| 2025-12-13 | VERIFICACION: Identificado falta listener calendly.event_scheduled (postMessage)                                    |
-| 2025-12-13 | VERIFICACION: Identificado falta .calendly-inline-widget min-height CSS                                             |
-| 2025-12-13 | VERIFICACION: Identificado falta boton "Ajustar cookies" en Footer.tsx                                              |
-| 2025-12-13 | ROADMAP: Actualizada seccion Analitica con 4 eventos y pendientes                                                   |
-| 2025-12-13 | ROADMAP: Actualizada FASE 9 con tareas faltantes y prioridades                                                      |
-| 2025-12-13 | ROADMAP: Nueva seccion VERIFICACION con hallazgos detallados                                                        |
-| 2025-12-14 | CONTACTFORM: Implementado envio real de formulario via REST API (ContactFormRestApi.php)                            |
-| 2025-12-14 | CONTACTFORM: Endpoint POST /glory/v1/contact con envio de email via wp_mail()                                       |
-| 2025-12-14 | CONTACTFORM: Email HTML profesional con datos del contacto, mensaje y tracking UTM                                  |
-| 2025-12-14 | CONTACTFORM: Frontend actualizado para usar endpoint real (ya no simula)                                            |
-| 2025-12-14 | ROADMAP: Nueva seccion PENDIENTES DEL CLIENTE con tabla de acciones requeridas                                      |
-| 2025-12-14 | DOCS: Creado articulo-respuesta-cliente.md con guia completa para el cliente                                        |
-
-</details>

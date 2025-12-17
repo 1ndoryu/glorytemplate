@@ -37,7 +37,7 @@ const createBlogContent = (urls: ReturnType<typeof useSiteUrls>) => ({
                 Mejores chatbots para WhatsApp Business: <span className="text-info">casos y noticias</span>
             </>
         ),
-        subtitle: 'Articulos practicos, casos reales y novedades sobre chatbots, automatizacion y atencion al cliente. Sin jerga tecnica, todo explicado para que lo apliques en tu negocio.',
+        subtitle: 'Artículos prácticos, casos reales y novedades sobre chatbots, automatización y atención al cliente. Sin jerga técnica, todo explicado para que lo apliques en tu negocio.',
         primaryCta: {text: 'Reservar llamada gratuita', href: urls.calendly},
         secondaryCta: {text: 'Ver demos', href: urls.demos}
     }
@@ -85,9 +85,9 @@ export function BlogIsland(): JSX.Element {
                     <div className="mb-8">
                         <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wider uppercase rounded-full bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] mb-4">Blog</span>
                         <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Lo ultimo</h2>
-                        <p className="text-muted mt-2 max-w-2xl">Articulos recientes sobre chatbots, automatizacion y novedades del sector.</p>
+                        <p className="text-muted mt-2 max-w-2xl">Artículos recientes sobre chatbots, automatización y novedades del sector.</p>
                     </div>
-                    <ContentRenderer content={recent} layout="grid" columns={3} showImage={true} showExcerpt={true} showDate={true} showReadTime={true} showCategories={true} readMoreText="Leer articulo" emptyMessage="No hay articulos recientes." />
+                    <ContentRenderer content={recent} layout="grid" columns={3} showImage={true} showExcerpt={true} showDate={true} showReadTime={true} showCategories={true} readMoreText="Leer artículo" emptyMessage="No hay artículos recientes." />
                 </section>
             )}
 

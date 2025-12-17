@@ -50,14 +50,14 @@ const createDemosContent = (urls: ReturnType<typeof useSiteUrls>) => ({
                 Elige tu <span className="text-info">demo</span>
             </>
         ),
-        description: 'Cada canal tiene su propio flujo. Selecciona uno para ver como funciona el chatbot en ese entorno.',
+        description: 'Cada canal tiene su propio flujo. Selecciona uno para ver cómo funciona el chatbot en ese entorno.',
         items: [
             {
                 id: 'whatsapp',
                 icon: MessageSquare,
                 title: 'WhatsApp',
                 badge: 'POPULAR',
-                description: 'Mensajes utiles, derivacion a persona y seguimiento.'
+                description: 'Mensajes útiles, derivación a persona y seguimiento.'
             },
             {
                 id: 'instagram',
@@ -113,7 +113,7 @@ const createDemosContent = (urls: ReturnType<typeof useSiteUrls>) => ({
                     Elige tu <span className="text-info">demo</span>
                 </>
             ),
-            description: 'Cada canal tiene su propio flujo. Selecciona uno para ver como funciona el chatbot en ese entorno.'
+            description: 'Cada canal tiene su propio flujo. Selecciona uno para ver cómo funciona el chatbot en ese entorno.'
         },
         {
             id: 'sectores',
@@ -124,7 +124,7 @@ const createDemosContent = (urls: ReturnType<typeof useSiteUrls>) => ({
                     Demos por <span className="text-info">sector</span>
                 </>
             ),
-            description: 'Restaurantes, barberias, clinicas... cada sector tiene sus propios flujos y necesidades.'
+            description: 'Restaurantes, barberías, clínicas... cada sector tiene sus propios flujos y necesidades.'
         },
         {
             id: 'integraciones',
@@ -135,7 +135,7 @@ const createDemosContent = (urls: ReturnType<typeof useSiteUrls>) => ({
                     Integraciones con tu <span className="text-info">software</span>
                 </>
             ),
-            description: 'Tu agenda, tu CRM, Google Sheets, email... todo conectado y sincronizado automaticamente.'
+            description: 'Tu agenda, tu CRM, Google Sheets, email... todo conectado y sincronizado automáticamente.'
         }
     ],
 
@@ -175,7 +175,7 @@ export function DemosIsland(): JSX.Element {
                 <div className="mx-auto">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl font-heading font-bold tracking-tight mb-4 text-primary">Prueba la demo en vivo</h2>
-                        <p className="text-lg text-secondary max-w-2xl mx-auto">Selecciona un sector y observa como el chatbot gestiona la conversacion en tiempo real.</p>
+                        <p className="text-lg text-secondary max-w-2xl mx-auto">Selecciona un sector y observa cómo el chatbot gestiona la conversación en tiempo real.</p>
                     </div>
                     <DemoWorkflow backgroundImage={getBackgroundImageUrl('517215a59e44b13753fb01d83808742f.jpg')} />
                 </div>
@@ -184,7 +184,7 @@ export function DemosIsland(): JSX.Element {
             {/* 3. QUE VERAS EN LA DEMO - Estilo AnalyticsSection */}
             <section id="que-veras" className="py-16">
                 <div className="mx-auto">
-                    <DemoFeaturesSection title={demosContent.whatYouWillSee.title} description="En cada demo veras como el chatbot gestiona conversaciones reales con tu flujo de negocio." items={demosContent.whatYouWillSee.items} ctaText={demosContent.whatYouWillSee.ctaText} ctaHref={demosContent.whatYouWillSee.ctaHref} backgroundImage={getBackgroundImageUrl('c5f3015667280079a5a6299c0ac16e83.jpg')} />
+                    <DemoFeaturesSection title={demosContent.whatYouWillSee.title} description="En cada demo verás cómo el chatbot gestiona conversaciones reales con tu flujo de negocio." items={demosContent.whatYouWillSee.items} ctaText={demosContent.whatYouWillSee.ctaText} ctaHref={demosContent.whatYouWillSee.ctaHref} backgroundImage={getBackgroundImageUrl('c5f3015667280079a5a6299c0ac16e83.jpg')} />
                 </div>
             </section>
 
