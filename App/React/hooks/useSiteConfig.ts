@@ -87,9 +87,9 @@ const defaultConfig: SiteConfig = {
         siteUrl: ''
     },
     urls: {
-        calendly: 'https://calendly.com/andoryyu',
-        whatsapp: 'https://wa.me/584120825234',
-        whatsappNumber: '584120825234',
+        calendly: 'https://calendly.com/test',
+        whatsapp: 'https://wa.me/0000000000',
+        whatsappNumber: '0000000000',
         servicios: '/servicios',
         planes: '/planes',
         demos: '/demos',

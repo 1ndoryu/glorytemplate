@@ -1,7 +1,7 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {Calendar, Linkedin, Mail, Cpu, MessageSquare, Zap, Database} from 'lucide-react';
-import type {SiteUrls} from '../../../hooks/useSiteConfig';
+import type {SiteUrls, SocialProfiles, SiteIdentity} from '../../../hooks/useSiteConfig';
 
 export interface ActionItem {
     text: string;
@@ -64,10 +64,19 @@ export interface AboutContent {
 }
 
 /**
- * Funcion para crear contenido de About con URLs dinamicas.
- * Las URLs se obtienen del hook useSiteUrls() en el componente que consume este contenido.
+ * Parametros para crear contenido de About con URLs dinamicas.
  */
-export const createAboutContent = (urls: SiteUrls): AboutContent => ({
+export interface CreateAboutContentParams {
+    urls: SiteUrls;
+    social: SocialProfiles;
+    identity: SiteIdentity;
+}
+
+/**
+ * Funcion para crear contenido de About con URLs dinamicas.
+ * Las URLs se obtienen del hook useSiteConfig() en el componente que consume este contenido.
+ */
+export const createAboutContent = ({urls, social, identity}: CreateAboutContentParams): AboutContent => ({
     hero: {
         image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800',
         location: 'Madrid, ES (Remoto)',
@@ -79,11 +88,7 @@ export const createAboutContent = (urls: SiteUrls): AboutContent => ({
             </>
         ),
         description: 'Vengo del mundo audiovisual, pero ChatGPT cambió mi carrera. Hoy ayudo a pymes a recuperar su tiempo implementando chatbots y automatizaciones que funcionan de verdad.',
-        actions: [
-            {text: 'Agendar café virtual', href: urls.calendly, icon: Calendar, variant: 'primary'},
-            {text: 'LinkedIn', href: 'https://linkedin.com', icon: Linkedin, variant: 'outline'},
-            {text: 'Email', href: 'mailto:guillermo.autoia@gmail.com', icon: Mail, variant: 'ghost'}
-        ]
+        actions: [{text: 'Agendar café virtual', href: urls.calendly, icon: Calendar, variant: 'primary'}, ...(social.linkedin ? [{text: 'LinkedIn', href: social.linkedin, icon: Linkedin, variant: 'outline' as const}] : []), ...(identity.email ? [{text: 'Email', href: `mailto:${identity.email}`, icon: Mail, variant: 'ghost' as const}] : [])]
     },
     philosophy: {
         left: {
