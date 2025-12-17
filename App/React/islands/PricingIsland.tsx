@@ -132,6 +132,7 @@ export function PricingIsland(): JSX.Element {
                         <PricingCard key={i} title={plan.title} price={plan.price} description={plan.description} features={plan.features} recommended={plan.recommended} ctaText={plan.ctaText} ctaHref={plan.ctaHref} />
                     ))}
                 </div>
+                <p className="text-center text-secondary text-sm mt-8 italic">Los precios son aproximados y pueden variar ligeramente en función de la complejidad de la solución.</p>
             </section>
 
             {/* 4. COMPARATIVA DE MERCADO (TEXTO + ANIMACION) */}
