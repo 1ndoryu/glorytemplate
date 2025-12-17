@@ -84,7 +84,7 @@ export function BlogIsland(): JSX.Element {
                 <section id="blog-recientes" className="mx-auto w-full max-w-7xl">
                     <div className="mb-8">
                         <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wider uppercase rounded-full bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] mb-4">Blog</span>
-                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Lo ultimo</h2>
+                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Lo último</h2>
                         <p className="text-muted mt-2 max-w-2xl">Artículos recientes sobre chatbots, automatización y novedades del sector.</p>
                     </div>
                     <ContentRenderer content={recent} layout="grid" columns={3} showImage={true} showExcerpt={true} showDate={true} showReadTime={true} showCategories={true} readMoreText="Leer artículo" emptyMessage="No hay artículos recientes." />
@@ -92,7 +92,7 @@ export function BlogIsland(): JSX.Element {
             )}
 
             {/* 4. INTERNAL LINKS - SEO */}
-            <InternalLinks title="Enlaces utiles" links={blogInternalLinks} />
+            <InternalLinks title="Enlaces útiles" links={blogInternalLinks} />
         </PageLayout>
     );
 }

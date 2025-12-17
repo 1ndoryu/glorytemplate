@@ -62,13 +62,13 @@ function BarberSimulationContent() {
                     {/* Mensaje cliente */}
                     <motion.div className="flex gap-2 items-start" initial={{opacity: 0, x: -10}} animate={{opacity: 1, x: 0}} transition={{delay: 0.2}}>
                         <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold border bg-secondary text-primary border-secondary">CR</div>
-                        <div className="p-2 rounded-lg rounded-tl-none text-[11px] border max-w-[85%] bg-[var(--color-bg-tertiary)] text-primary border-[var(--color-border-subtle)]">Hola! Quiero corte + barba para manana por la tarde</div>
+                        <div className="p-2 rounded-lg rounded-tl-none text-[11px] border max-w-[85%] bg-[var(--color-bg-tertiary)] text-primary border-[var(--color-border-subtle)]">Hola! Quiero corte + barba para mañana por la tarde</div>
                     </motion.div>
 
                     {/* Respuesta bot */}
                     <motion.div className="flex gap-2 flex-row-reverse items-start" initial={{opacity: 0, x: 10}} animate={{opacity: 1, x: 0}} transition={{delay: 0.8}}>
                         <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold border bg-[var(--color-accent-primary)] text-white border-[var(--color-accent-primary)]">AI</div>
-                        <div className="p-2 rounded-lg rounded-tr-none text-[11px] border max-w-[85%] shadow-sm bg-surface text-primary border-primary">Perfecto Carlos! Tengo huecos a las 16:00 y 18:30. Cual te viene mejor?</div>
+                        <div className="p-2 rounded-lg rounded-tr-none text-[11px] border max-w-[85%] shadow-sm bg-surface text-primary border-primary">Perfecto Carlos! Tengo huecos a las 16:00 y 18:30. ¿Cuál te viene mejor?</div>
                     </motion.div>
 
                     {/* Status Footer */}
@@ -421,7 +421,7 @@ export function AboutIsland(): JSX.Element {
                         <div id="tools-content">
                             <Badge className="mb-4 bg-[var(--color-text-primary)] text-[var(--color-text-subtle)] border-neutral-700">MI CAJA DE HERRAMIENTAS</Badge>
                             <h2 className="text-3xl font-medium tracking-tight mb-6 text-white">
-                                Herramientas que uso <span className="text-[var(--color-info)]">conectadas entre si</span>
+                                Herramientas que uso <span className="text-[var(--color-info)]">conectadas entre sí</span>
                             </h2>
                             <p className="text-neutral-300 mb-8 leading-relaxed">UChat para el bot, Make (y cuando conviene n8n) para automatizar, más Google Sheets, Calendly, WhatsApp, Instagram y tu CRM. Si no tienes CRM, empezamos con hoja compartida y listo.</p>
 

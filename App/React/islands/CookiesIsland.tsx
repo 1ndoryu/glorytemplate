@@ -88,17 +88,17 @@ const cookieSections: CookieSection[] = [
                 <p className="mb-4">Puedes gestionar las cookies de varias formas:</p>
                 <ul className="list-disc list-inside space-y-2 mb-4 text-muted">
                     <li>
-                        <strong>Banner de cookies:</strong> Cuando visitas el sitio por primera vez, puedes aceptar o rechazar las cookies analiticas.
+                        <strong>Banner de cookies:</strong> Cuando visitas el sitio por primera vez, puedes aceptar o rechazar las cookies analíticas.
                     </li>
                     <li>
-                        <strong>Configuracion del navegador:</strong> Puedes bloquear o eliminar cookies desde la configuracion de tu navegador.
+                        <strong>Configuración del navegador:</strong> Puedes bloquear o eliminar cookies desde la configuración de tu navegador.
                     </li>
                     <li>
                         <strong>Revocar consentimiento:</strong> Si quieres cambiar tu decisión, elimina las cookies del navegador y recarga la página.
                     </li>
                 </ul>
                 <p className="text-sm">
-                    <strong>Nota:</strong> Si desactivas las cookies necesarias, algunas funciones del sitio podrian no funcionar correctamente.
+                    <strong>Nota:</strong> Si desactivas las cookies necesarias, algunas funciones del sitio podrían no funcionar correctamente.
                 </p>
             </>
         )

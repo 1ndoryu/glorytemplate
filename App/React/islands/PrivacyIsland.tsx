@@ -55,7 +55,7 @@ const legalSections: LegalSection[] = [
                         <strong>Gestionar citas:</strong> cuando reservas una llamada a través de Calendly.
                     </li>
                     <li>
-                        <strong>Enviarte informacion relevante:</strong> solo si lo has solicitado expresamente.
+                        <strong>Enviarte información relevante:</strong> solo si lo has solicitado expresamente.
                     </li>
                     <li>
                         <strong>Mejorar el servicio:</strong> mediante analisis anonimos del uso del sitio.
@@ -120,7 +120,7 @@ const legalSections: LegalSection[] = [
                 <p className="mb-4">Tienes derecho a:</p>
                 <ul className="list-disc list-inside space-y-2 mb-4 text-muted">
                     <li>
-                        <strong>Acceso:</strong> Saber que datos tengo sobre ti.
+                        <strong>Acceso:</strong> Saber qué datos tengo sobre ti.
                     </li>
                     <li>
                         <strong>Rectificación:</strong> Corregir datos incorrectos.

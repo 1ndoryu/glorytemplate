@@ -41,7 +41,7 @@ const nextSteps: Step[] = [
     {
         number: '02',
         title: 'Llamada breve (15-20 min)',
-        description: 'Entiendo tu situacion, objetivos y te cuento como puedo ayudarte.'
+        description: 'Entiendo tu situación, objetivos y te cuento como puedo ayudarte.'
     },
     {
         number: '03',
@@ -75,7 +75,7 @@ const contactFaqs = [
 
 // Enlaces internos para contacto
 const contactInternalLinks = [
-    {text: 'Aun no lo tienes claro: ver demos', href: '/demos'},
+    {text: 'Aún no lo tienes claro: ver demos', href: '/demos'},
     {text: 'Revisar planes y precios', href: '/planes'},
     {text: 'Volver a servicios', href: '/servicios'},
     {text: 'Conocerme mejor', href: '/sobre-mi'}
@@ -211,7 +211,7 @@ export function ContactIsland(): JSX.Element {
             <FaqWithCta title="Preguntas sobre contacto" items={contactFaqs} ctaTitle="¿Listo para empezar?" ctaDescription="Primera llamada gratuita. Te cuento cómo puedo ayudarte." />
 
             {/* 6. INTERNAL LINKS - SEO */}
-            <InternalLinks title="Tambien te puede interesar" links={contactInternalLinks} />
+            <InternalLinks title="También te puede interesar" links={contactInternalLinks} />
         </PageLayout>
     );
 }

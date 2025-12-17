@@ -118,7 +118,7 @@ const createDemosContent = (urls: ReturnType<typeof useSiteUrls>) => ({
         {
             id: 'sectores',
             label: 'Por sector',
-            badge: 'EJEMPLOS RAPIDOS',
+            badge: 'EJEMPLOS RÁPIDOS',
             title: (
                 <>
                     Demos por <span className="text-info">sector</span>
@@ -209,7 +209,7 @@ export function DemosIsland(): JSX.Element {
             <FaqWithCta title={demosContent.faq.title} items={demosContent.faq.items} />
 
             {/* 10. FORMULARIO CONTACTO */}
-            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rapido con respuesta hoy mismo" />
+            <ContactForm title="Si prefieres escribirme ahora" subtitle="Formulario rápido con respuesta hoy mismo" />
 
             {/* 11. INTERLINKING */}
             <InternalLinks title="Te puede interesar" links={demosInternalLinks} />
