@@ -1,46 +1,31 @@
 <?php
 
+/**
+ * Home Page - Glory SaaS Landing
+ * 
+ * Esta pagina usa el sistema SSG de Glory:
+ * - HTML pre-renderizado para SEO (generado en build)
+ * - React hidrata para interactividad y animaciones
+ * - PHP inyecta configuracion dinamica
+ */
 
-use Glory\Components\ThemeToggle;
-use Glory\Components\BadgeList;
+use Glory\Services\ReactIslands;
 
 function home()
 {
-?>
+    // Configuracion de la landing page
+    // Estos valores pueden venir de WordPress options o hardcodeados
+    $siteName = get_bloginfo('name') ?: 'Glory';
 
-    <div class="badgeList" style="display: flex; justify-content: center; margin-top: 150px; margin-bottom: 20px">
-        <?php
+    // URL de Stripe para pagos (puede configurarse desde WP Admin)
+    $stripeUrl = get_option('glory_stripe_url', 'https://buy.stripe.com/8x26oG58XchA56va31cAo0c');
 
-        //Haremos un badge por componente
-        echo BadgeList::render([
-            'badges' => ['Formulario', 'Modal', 'Pestanas', 'Alertas', 'Previews', 'Contenido', 'Filtros', 'Busqueda', 'Submenus', 'Calendario'],
-            'mode' => 'tab'
-        ]);
-        ?>
-    </div>
-
-    <div id="glory-component-examples" style="margin-top: 0px">
-
-
-        
-
-        <?php renderAlertasCategory(); ?>
-        <?php renderBusquedaCategory(); ?>
-        <?php renderModalCategory(); ?>
-        <?php renderPestanasCategory(); ?>
-        <?php renderSubmenusCategory(); ?>
-        <?php renderCalendarioCategory(); ?>
-
-        <?php if (is_user_logged_in()) : ?>
-            <?php renderFormularioCategory(); ?>
-            <?php renderPreviewsCategory(); ?>
-        <?php endif; ?>
-        
-        <?php renderContenidoCategory(); ?>
-        <?php renderFiltrosCategory(); ?>
-    </div>
-
-<?php
+    // Renderizar la isla React con SSG
+    // - Si existe dist/ssg/HomeIsland.html, se usa como base (SEO)
+    // - Los props frescos se pasan via data-props
+    // - React hidratara el componente con los datos actuales
+    echo ReactIslands::render('HomeIsland', [
+        'siteName' => $siteName,
+        'stripeUrl' => $stripeUrl
+    ]);
 }
-
-// Script inline eliminado: ahora la funcionalidad se delega a `Glory/assets/js/UI/gloryThemeToggle.js`
