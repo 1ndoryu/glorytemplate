@@ -77,7 +77,6 @@ if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
             // error_log("control.php (init): ContentAjaxHandler class exists, registering");
             \App\Handlers\ContentAjaxHandler::register();
         } else {
-            // error_log("control.php (init): ContentAjaxHandler class STILL NOT found");
         }
     });
 }
