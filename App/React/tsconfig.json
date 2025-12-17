@@ -18,14 +18,8 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["../../Glory/assets/react/src/*"],
-            "@app/*": ["./*"],
-            "react": ["../../Glory/assets/react/node_modules/react"],
-            "react/*": ["../../Glory/assets/react/node_modules/react/*"],
-            "react-dom": ["../../Glory/assets/react/node_modules/react-dom"],
-            "react-dom/*": ["../../Glory/assets/react/node_modules/react-dom/*"],
-            "lucide-react": ["../../Glory/assets/react/node_modules/lucide-react"]
-        },
-        "typeRoots": ["../../Glory/assets/react/node_modules/@types", "../../Glory/assets/react/node_modules"]
+            "@app/*": ["./*"]
+        }
     },
     "include": ["./**/*.ts", "./**/*.tsx"]
 }

@@ -18,11 +18,6 @@ $usuarioId = get_current_user_id();
 
 <?php
 
-use Glory\Components\HeaderRenderer;
-use Glory\Manager\OpcionManager;
-use Glory\Integration\Compatibility;
-use Glory\Components\ThemeToggle;
-
 ?>
 
 
@@ -31,14 +26,6 @@ use Glory\Components\ThemeToggle;
     
     
     <?php
-    $defaultMode = Compatibility::avadaActivo() ? 'default' : 'image';
-    $configHeader = [
-        'modoLogo'    => OpcionManager::get('glory_logo_mode', $defaultMode),
-        'textoLogo'   => OpcionManager::get('glory_logo_text', get_bloginfo('name', 'display')),
-        'logoImageId' => OpcionManager::get('glory_logo_image'),
-        'idMenu'      => 'mainMenu' 
-    ];
-    HeaderRenderer::render($configHeader);
-    echo ThemeToggle::render();
+
     ?>
     <main id="main" class="main">
