@@ -1,4 +1,4 @@
-import {obtenerPosts, obtenerInfoSitio} from '@/lib/wordpress';
+import {obtenerPosts, obtenerInfoSitio, obtenerPagina} from '@/lib/wordpress';
 import type {Metadata} from 'next';
 import Link from 'next/link';
 
@@ -16,29 +16,79 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /*
  * Pagina principal con SSR
- * Obtiene los ultimos posts de WordPress
+ * Busca contenido real en WordPress (slug 'inicio' o 'home')
+ * Si no existe, muestra contenido por defecto.
  */
 export default async function PaginaInicio() {
+    // 1. Intentar buscar la pagina en WordPress
+    // Prueba con 'inicio' (comun en español) o 'home'
+    let paginaHome = await obtenerPagina('inicio');
+    if (!paginaHome) {
+        paginaHome = await obtenerPagina('home');
+    }
+
+    // 2. Obtener datos adicionales
     const posts = await obtenerPosts({porPagina: 6});
     const infoSitio = await obtenerInfoSitio();
 
     return (
         <>
-            <SeccionHero nombreSitio={infoSitio?.nombre || 'Glory Builder'} />
+            {paginaHome ? (
+                // Si encontramos la pagina en WP, usamos su contenido
+                <SeccionContenidoHome pagina={paginaHome} />
+            ) : (
+                // Si no, usamos el diseño por defecto (Fallback)
+                <SeccionHeroDefault nombreSitio={infoSitio?.nombre || 'Glory Builder'} />
+            )}
+
             <SeccionPosts posts={posts} />
         </>
     );
 }
 
 /*
- * Seccion Hero
+ * Renderiza el contenido REAL de la pagina de WordPress
  */
-function SeccionHero({nombreSitio}: {nombreSitio: string}) {
+function SeccionContenidoHome({pagina}: {pagina: any}) {
+    return (
+        <section className="seccionHero" style={{minHeight: '60vh', alignItems: 'flex-start'}}>
+            <div className="contenedor heroContenido">
+                {/* Titulo desde WordPress */}
+                <h1 className="heroTitulo">{pagina.title.rendered}</h1>
+
+                {/*
+                 * Contenido desde WordPress (Blocks o Clásico)
+                 * Se renderiza como HTML puro
+                 */}
+                <div className="contenidoWordPress" dangerouslySetInnerHTML={{__html: pagina.content.rendered}} style={{fontSize: '1.25rem', marginBottom: '2rem', color: 'var(--color-texto-secundario)'}} />
+
+                <div className="heroAcciones">
+                    <Link href="/contacto" className="boton botonPrimario">
+                        Contactanos
+                    </Link>
+                    <Link href="/blog" className="boton botonSecundario">
+                        Blog
+                    </Link>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+/*
+ * Diseño por defecto (cuando no hay pagina en WP)
+ */
+function SeccionHeroDefault({nombreSitio}: {nombreSitio: string}) {
     return (
         <section id="seccion-hero" className="seccionHero">
             <div className="contenedor heroContenido">
                 <h1 className="heroTitulo">Bienvenido a {nombreSitio}</h1>
-                <p className="heroDescripcion">Creamos experiencias digitales excepcionales con tecnologia moderna. Este es un ejemplo de SSR con Next.js y WordPress.</p>
+                <p className="heroDescripcion">
+                    Creamos experiencias digitales excepcionales con tecnologia moderna.
+                    <br />
+                    <br />
+                    <strong>Tip:</strong> Crea una pagina llamada "Inicio" o "Home" en WordPress para reemplazar este texto con tu propio contenido.
+                </p>
                 <div className="heroAcciones">
                     <Link href="/contacto" className="boton botonPrimario">
                         Contactanos
@@ -80,7 +130,7 @@ function SeccionPosts({posts}: {posts: Post[]}) {
                     </div>
                     <div className="estadoVacio">
                         <p>No hay posts disponibles.</p>
-                        <p>WordPress esta conectado en: {process.env.WORDPRESS_API_URL}</p>
+                        <p>WordPress conectado en: {process.env.WORDPRESS_API_URL}</p>
                     </div>
                 </div>
             </section>
