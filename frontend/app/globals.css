@@ -1,0 +1,456 @@
+/* 
+ * Variables CSS Globales - Glory SSR
+ * Sistema de diseno centralizado
+ */
+
+:root {
+    /* Colores primarios */
+    --color-primario: hsl(220, 90%, 56%);
+    --color-primario-hover: hsl(220, 90%, 46%);
+    --color-primario-suave: hsl(220, 90%, 95%);
+
+    /* Colores secundarios */
+    --color-secundario: hsl(280, 80%, 55%);
+    --color-secundario-hover: hsl(280, 80%, 45%);
+
+    /* Colores de fondo */
+    --color-fondo: hsl(220, 20%, 98%);
+    --color-fondo-tarjeta: hsl(0, 0%, 100%);
+    --color-fondo-oscuro: hsl(220, 25%, 10%);
+
+    /* Colores de texto */
+    --color-texto: hsl(220, 20%, 15%);
+    --color-texto-secundario: hsl(220, 10%, 45%);
+    --color-texto-claro: hsl(0, 0%, 100%);
+
+    /* Colores de estado */
+    --color-exito: hsl(145, 65%, 42%);
+    --color-error: hsl(0, 75%, 55%);
+    --color-advertencia: hsl(40, 95%, 50%);
+
+    /* Bordes */
+    --color-borde: hsl(220, 15%, 88%);
+    --radio-borde: 12px;
+    --radio-borde-pequeno: 8px;
+    --radio-borde-grande: 20px;
+
+    /* Sombras */
+    --sombra-suave: 0 2px 8px hsla(220, 20%, 20%, 0.08);
+    --sombra-media: 0 4px 16px hsla(220, 20%, 20%, 0.12);
+    --sombra-fuerte: 0 8px 32px hsla(220, 20%, 20%, 0.16);
+
+    /* Espaciado */
+    --espacio-xs: 0.25rem;
+    --espacio-sm: 0.5rem;
+    --espacio-md: 1rem;
+    --espacio-lg: 1.5rem;
+    --espacio-xl: 2rem;
+    --espacio-2xl: 3rem;
+    --espacio-3xl: 4rem;
+
+    /* Tipografia */
+    --fuente-principal: 'Inter', system-ui, -apple-system, sans-serif;
+    --fuente-mono: 'JetBrains Mono', monospace;
+
+    --tamano-texto-xs: 0.75rem;
+    --tamano-texto-sm: 0.875rem;
+    --tamano-texto-base: 1rem;
+    --tamano-texto-lg: 1.125rem;
+    --tamano-texto-xl: 1.25rem;
+    --tamano-texto-2xl: 1.5rem;
+    --tamano-texto-3xl: 2rem;
+    --tamano-texto-4xl: 2.5rem;
+    --tamano-texto-5xl: 3.5rem;
+
+    /* Transiciones */
+    --transicion-rapida: 150ms ease;
+    --transicion-normal: 250ms ease;
+    --transicion-lenta: 400ms ease;
+
+    /* Contenedor */
+    --ancho-contenedor: 1200px;
+    --padding-contenedor: var(--espacio-lg);
+}
+
+/* 
+ * Reset y estilos base
+ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--fuente-principal);
+    font-size: var(--tamano-texto-base);
+    line-height: 1.6;
+    color: var(--color-texto);
+    background-color: var(--color-fondo);
+    min-height: 100vh;
+}
+
+/* 
+ * Tipografia
+ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--color-texto);
+}
+
+h1 {
+    font-size: var(--tamano-texto-5xl);
+}
+h2 {
+    font-size: var(--tamano-texto-4xl);
+}
+h3 {
+    font-size: var(--tamano-texto-3xl);
+}
+h4 {
+    font-size: var(--tamano-texto-2xl);
+}
+
+p {
+    color: var(--color-texto-secundario);
+    margin-bottom: var(--espacio-md);
+}
+
+a {
+    color: var(--color-primario);
+    text-decoration: none;
+    transition: color var(--transicion-rapida);
+}
+
+a:hover {
+    color: var(--color-primario-hover);
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* 
+ * Layout - Contenedor
+ */
+.contenedor {
+    width: 100%;
+    max-width: var(--ancho-contenedor);
+    margin: 0 auto;
+    padding: 0 var(--padding-contenedor);
+}
+
+/* 
+ * Componentes - Header
+ */
+.cabeceraGlobal {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: hsla(0, 0%, 100%, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-borde);
+    padding: var(--espacio-md) 0;
+}
+
+.cabeceraContenido {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logoSitio {
+    font-size: var(--tamano-texto-xl);
+    font-weight: 800;
+    color: var(--color-texto);
+    display: flex;
+    align-items: center;
+    gap: var(--espacio-sm);
+}
+
+.logoSitio span {
+    background: linear-gradient(135deg, var(--color-primario), var(--color-secundario));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.navegacionPrincipal {
+    display: flex;
+    align-items: center;
+    gap: var(--espacio-xl);
+}
+
+.enlaceNavegacion {
+    font-weight: 500;
+    color: var(--color-texto-secundario);
+    transition: color var(--transicion-rapida);
+    position: relative;
+}
+
+.enlaceNavegacion:hover {
+    color: var(--color-primario);
+}
+
+.enlaceNavegacion::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--color-primario), var(--color-secundario));
+    transition: width var(--transicion-normal);
+}
+
+.enlaceNavegacion:hover::after {
+    width: 100%;
+}
+
+/* 
+ * Componentes - Hero
+ */
+.seccionHero {
+    padding: var(--espacio-3xl) 0;
+    background: linear-gradient(135deg, var(--color-fondo) 0%, var(--color-primario-suave) 50%, var(--color-fondo) 100%);
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+}
+
+.heroContenido {
+    max-width: 700px;
+}
+
+.heroTitulo {
+    margin-bottom: var(--espacio-lg);
+    background: linear-gradient(135deg, var(--color-texto) 0%, var(--color-primario) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.heroDescripcion {
+    font-size: var(--tamano-texto-xl);
+    margin-bottom: var(--espacio-xl);
+}
+
+.heroAcciones {
+    display: flex;
+    gap: var(--espacio-md);
+    flex-wrap: wrap;
+}
+
+/* 
+ * Componentes - Botones
+ */
+.boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacio-sm);
+    padding: var(--espacio-md) var(--espacio-xl);
+    font-size: var(--tamano-texto-base);
+    font-weight: 600;
+    border-radius: var(--radio-borde);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transicion-normal);
+}
+
+.botonPrimario {
+    background: linear-gradient(135deg, var(--color-primario), var(--color-secundario));
+    color: var(--color-texto-claro);
+    box-shadow: var(--sombra-media);
+}
+
+.botonPrimario:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-fuerte);
+}
+
+.botonSecundario {
+    background: var(--color-fondo-tarjeta);
+    color: var(--color-texto);
+    border: 2px solid var(--color-borde);
+}
+
+.botonSecundario:hover {
+    border-color: var(--color-primario);
+    color: var(--color-primario);
+}
+
+/* 
+ * Componentes - Tarjetas de Post
+ */
+.gridPosts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--espacio-xl);
+    padding: var(--espacio-2xl) 0;
+}
+
+.tarjetaPost {
+    background: var(--color-fondo-tarjeta);
+    border-radius: var(--radio-borde-grande);
+    overflow: hidden;
+    box-shadow: var(--sombra-suave);
+    transition: all var(--transicion-normal);
+}
+
+.tarjetaPost:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--sombra-fuerte);
+}
+
+.tarjetaImagen {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--color-primario-suave), var(--color-fondo));
+}
+
+.tarjetaContenido {
+    padding: var(--espacio-lg);
+}
+
+.tarjetaTitulo {
+    font-size: var(--tamano-texto-xl);
+    margin-bottom: var(--espacio-sm);
+    color: var(--color-texto);
+}
+
+.tarjetaExcerpt {
+    font-size: var(--tamano-texto-sm);
+    color: var(--color-texto-secundario);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.tarjetaFecha {
+    font-size: var(--tamano-texto-xs);
+    color: var(--color-texto-secundario);
+    margin-top: var(--espacio-md);
+}
+
+/* 
+ * Componentes - Seccion
+ */
+.seccion {
+    padding: var(--espacio-3xl) 0;
+}
+
+.seccionTitulo {
+    text-align: center;
+    margin-bottom: var(--espacio-2xl);
+}
+
+.seccionSubtitulo {
+    color: var(--color-primario);
+    font-size: var(--tamano-texto-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--espacio-sm);
+}
+
+/* 
+ * Componentes - Footer
+ */
+.pieGlobal {
+    background: var(--color-fondo-oscuro);
+    color: var(--color-texto-claro);
+    padding: var(--espacio-2xl) 0;
+    margin-top: auto;
+}
+
+.pieContenido {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--espacio-lg);
+}
+
+.pieCopyright {
+    color: hsla(0, 0%, 100%, 0.6);
+    font-size: var(--tamano-texto-sm);
+}
+
+.pieEnlaces {
+    display: flex;
+    gap: var(--espacio-lg);
+}
+
+.pieEnlace {
+    color: hsla(0, 0%, 100%, 0.8);
+    font-size: var(--tamano-texto-sm);
+    transition: color var(--transicion-rapida);
+}
+
+.pieEnlace:hover {
+    color: var(--color-primario);
+}
+
+/* 
+ * Estado de carga
+ */
+.estadoCargando {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espacio-3xl);
+    color: var(--color-texto-secundario);
+}
+
+.estadoVacio {
+    text-align: center;
+    padding: var(--espacio-3xl);
+    color: var(--color-texto-secundario);
+}
+
+/* 
+ * Responsive
+ */
+@media (max-width: 768px) {
+    :root {
+        --tamano-texto-5xl: 2.5rem;
+        --tamano-texto-4xl: 2rem;
+        --tamano-texto-3xl: 1.5rem;
+    }
+
+    .navegacionPrincipal {
+        display: none;
+    }
+
+    .heroContenido {
+        text-align: center;
+    }
+
+    .heroAcciones {
+        justify-content: center;
+    }
+
+    .pieContenido {
+        flex-direction: column;
+        text-align: center;
+    }
+}

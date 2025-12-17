@@ -1,6 +1,7 @@
 <?php
 
 use Glory\Core\GloryFeatures;
+use Glory\Services\NextjsApiService;
 
 //Managers
 GloryFeatures::disable('menu');
@@ -64,6 +65,16 @@ GloryFeatures::disable('avadaIntegration');
 GloryFeatures::disable('queryProfiler');
 GloryFeatures::disable('performanceProfiler');
 GloryFeatures::disable('queryProfilerLogs');
+
+// Habilitar modo React (Islands/Next.js)
+if (method_exists(GloryFeatures::class, 'applyReactMode')) {
+    GloryFeatures::applyReactMode();
+}
+
+// Inicializar servicio de API para Next.js SSR
+if (class_exists(NextjsApiService::class)) {
+    NextjsApiService::inicializar();
+}
 
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
 // Registrar handlers AJAX específicos del tema de forma segura (puede cargarse más tarde)
