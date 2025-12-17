@@ -45,7 +45,7 @@ function SimulationStepCall() {
                             ))}
                         </div>
                     </div>
-                    <div className="text-xs text-muted">Me cuentas tu situacion y objetivos</div>
+                    <div className="text-xs text-muted">Me cuentas tu situación y objetivos</div>
                 </div>
             </div>
 
@@ -203,7 +203,7 @@ export function ProcessWorkflow({steps, simulations, backgroundImage}: ProcessWo
         setIsPaused(true); // Pausar al interactuar
 
         // Reiniciar el timer si el usuario quiere seguir viendo
-        // Opcional: Podriamos dejarlo pausado para siempre o reanudar despues de un tiempo
+        // Opcional: Podríamos dejarlo pausado para siempre o reanudar después de un tiempo
     };
 
     return (

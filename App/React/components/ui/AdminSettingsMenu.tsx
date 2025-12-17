@@ -1,4 +1,4 @@
-// Submenu de configuracion para admins
+// Submenu de configuración para admins
 // Solo visible para usuarios con permisos de administrador
 
 import {useRef, useEffect} from 'react';
@@ -34,7 +34,7 @@ export function AdminSettingsMenu({isOpen, onClose}: AdminSettingsMenuProps) {
             </a>
             <a href="/configuracion" className="flex items-center gap-3 px-4 py-3 text-sm text-primary hover:bg-[var(--color-bg-secondary)] transition-colors border-t border-[var(--color-border-primary)]">
                 <Cog size={18} className="text-muted" />
-                <span>Configuracion</span>
+                <span>Configuración</span>
             </a>
         </div>
     );

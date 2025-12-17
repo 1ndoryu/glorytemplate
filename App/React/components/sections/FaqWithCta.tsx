@@ -21,7 +21,7 @@ interface FaqWithCtaProps {
 // --- COMPONENTE ---
 // Seccion de FAQs con Call To Action final
 // Reutilizable en cualquier pagina que necesite FAQs con acciones
-export function FaqWithCta({title = 'Preguntas Frecuentes', items, ctaTitle = 'Hablamos?', ctaDescription = 'Elige como prefieres empezar. Respuesta en menos de 30 minutos (09-21h).', primaryCtaText = 'Agenda en 30s', primaryCtaHref, secondaryCtaText = 'Escribeme por WhatsApp', secondaryCtaHref}: FaqWithCtaProps): JSX.Element {
+export function FaqWithCta({title = 'Preguntas Frecuentes', items, ctaTitle = '¿Hablamos?', ctaDescription = 'Elige como prefieres empezar. Respuesta en menos de 30 minutos (09-21h).', primaryCtaText = 'Agenda en 30s', primaryCtaHref, secondaryCtaText = 'Escríbeme por WhatsApp', secondaryCtaHref}: FaqWithCtaProps): JSX.Element {
     const urls = useSiteUrls();
     const finalPrimaryHref = primaryCtaHref || urls.calendly;
     const finalSecondaryHref = secondaryCtaHref || urls.whatsapp;

@@ -1,7 +1,7 @@
 /**
- * useSettingsApi - Hook para interactuar con la API de configuracion
+ * useSettingsApi - Hook para interactuar con la API de configuración
  *
- * Proporciona metodos para:
+ * Proporciona métodos para:
  * - Cargar opciones actuales
  * - Guardar cambios
  * - Subir imagenes
@@ -50,7 +50,7 @@ export function useSettingsApi(): UseSettingsApiReturn {
             });
 
             if (!response.ok) {
-                // Detectar error de autenticacion
+                // Detectar error de autenticación
                 if (response.status === 401 || response.status === 403) {
                     setIsUnauthorized(true);
                     throw new Error('No tienes permiso para acceder');
@@ -110,7 +110,7 @@ export function useSettingsApi(): UseSettingsApiReturn {
             const data = await response.json();
 
             if (!response.ok) {
-                // Detectar error de autenticacion
+                // Detectar error de autenticación
                 if (response.status === 401 || response.status === 403) {
                     setIsUnauthorized(true);
                 }
@@ -119,7 +119,7 @@ export function useSettingsApi(): UseSettingsApiReturn {
 
             setOriginalOptions(options);
             setIsDirty(false);
-            setSuccess('Configuracion guardada correctamente');
+            setSuccess('Configuración guardada correctamente');
 
             return {success: true, message: 'Guardado correctamente'};
         } catch (err) {
@@ -186,24 +186,24 @@ export function useSettingsApi(): UseSettingsApiReturn {
 
 // Helper para obtener el nonce de WordPress
 function getWpNonce(): string {
-    // Opcion 1: wpApiSettings (estandar de WordPress, inyectado por ContentAI loader)
+    // Opción 1: wpApiSettings (estándar de WordPress, inyectado por ContentAI loader)
     const wpApiSettings = (window as unknown as {wpApiSettings?: {nonce?: string}}).wpApiSettings;
     if (wpApiSettings?.nonce) {
         return wpApiSettings.nonce;
     }
 
-    // Opcion 2: Meta tag
+    // Opción 2: Meta tag
     const nonceElement = document.querySelector('meta[name="wp-api-nonce"]');
     if (nonceElement) {
         return nonceElement.getAttribute('content') || '';
     }
 
-    // Opcion 3: gloryReactContent
+    // Opción 3: gloryReactContent
     const gloryContent = (window as unknown as {gloryReactContent?: {nonce?: string}}).gloryReactContent;
     if (gloryContent?.nonce) {
         return gloryContent.nonce;
     }
 
-    console.warn('[Settings] No se encontro el nonce de WordPress');
+    console.warn('[Settings] No se encontró el nonce de WordPress');
     return '';
 }

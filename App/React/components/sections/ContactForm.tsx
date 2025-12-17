@@ -59,7 +59,7 @@ const servicioOptions = [
     {value: 'chatbot-instagram', label: 'Chatbot Instagram'},
     {value: 'chatbot-web', label: 'Chatbot Web'},
     {value: 'voicebot', label: 'Voicebot (llamadas)'},
-    {value: 'automatizacion', label: 'Automatizacion de tareas'},
+    {value: 'automatizacion', label: 'Automatización de tareas'},
     {value: 'integraciones', label: 'Integraciones CRM/Software'},
     {value: 'otro', label: 'Otro / No estoy seguro'}
 ];
@@ -69,7 +69,7 @@ const canalOptions = [
     {value: '', label: 'Canal preferido de contacto'},
     {value: 'whatsapp', label: 'WhatsApp'},
     {value: 'email', label: 'Email'},
-    {value: 'telefono', label: 'Llamada telefonica'},
+    {value: 'telefono', label: 'Llamada telefónica'},
     {value: 'cualquiera', label: 'Cualquiera'}
 ];
 
@@ -109,7 +109,7 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
 
         // Validar consentimiento obligatorio
         if (!formData.consentimiento) {
-            setErrorMessage('Debes aceptar la Politica de Privacidad para continuar.');
+            setErrorMessage('Debes aceptar la Política de Privacidad para continuar.');
             setStatus('error');
             return;
         }
@@ -136,13 +136,13 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
                 setFormData(initialFormData);
             } else {
                 // Error del servidor o validacion
-                setErrorMessage(data.message || 'Hubo un error al enviar el mensaje. Intentalo de nuevo.');
+                setErrorMessage(data.message || 'Hubo un error al enviar el mensaje. Inténtalo de nuevo.');
                 setStatus('error');
             }
         } catch (error) {
             // Error de red u otro
             console.error('Error enviando formulario:', error);
-            setErrorMessage('Error de conexion. Por favor, intentalo de nuevo o contactanos por WhatsApp.');
+            setErrorMessage('Error de conexión. Por favor, inténtalo de nuevo o contáctanos por WhatsApp.');
             setStatus('error');
         }
     };
@@ -268,9 +268,9 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
                         <input type="checkbox" id="consentimiento" name="consentimiento" checked={formData.consentimiento} onChange={handleChange} required className="h-4 w-4 rounded border-gray-300 text-[var(--color-accent-primary)] focus:ring-[var(--color-accent-primary)] cursor-pointer" />
                     </div>
                     <label htmlFor="consentimiento" className="text-sm leading-relaxed text-muted cursor-pointer select-none">
-                        He leido y acepto la{' '}
+                        He leído y acepto la{' '}
                         <a href="/privacidad" className="font-medium text-[var(--color-accent-primary)] hover:underline">
-                            Politica de Privacidad
+                            Política de Privacidad
                         </a>
                         . Autorizo el tratamiento de mis datos para atender mi solicitud.
                     </label>
@@ -293,9 +293,9 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
 
                 {/* Enlace a Cookies */}
                 <p className="text-center text-xs text-subtle mt-4">
-                    Protegido por reCAPTCHA. Consulta tambien nuestra{' '}
+                    Protegido por reCAPTCHA. Consulta también nuestra{' '}
                     <a href="/cookies" className="text-muted hover:underline transition-colors">
-                        Politica de Cookies
+                        Política de Cookies
                     </a>
                 </p>
             </form>
