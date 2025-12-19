@@ -54,6 +54,12 @@ header.siteMenuW {
     z-index: 1;
 }
 
+.logoSvg svg {
+    height: 100%;
+    width: 35px;
+    color: black;
+}
+
 /* Asegurar que el logo imagen se muestre correctamente */
 .siteMenuLogo img {
     width: 100%;
@@ -70,10 +76,6 @@ header.siteMenuW {
     color: var(--text); /* Color por defecto adaptado al tema */
     transition: color 0.4s ease;
     text-decoration: none;
-}
-
-.siteMenuW .siteMenuNav a:hover {
-    color: var(--color-greyLight);
 }
 
 .siteMenuW.has-dark-background .siteMenuNav a,
@@ -282,11 +284,42 @@ body.menu-open {
     z-index: 1001;
 }
 
+/* Ocultar buscador en móvil por defecto */
+.buscadorMenu {
+    display: none;
+}
+
 /* --- ESTILOS PARA ESCRITORIO (min-width: 834px) --- */
 @media only screen and (min-width: 834px) {
     :root {
         --grid-gutter: 2.3980815348vw;
         --grid-outerGutter: 4.7961630695vw;
+    }
+
+    .buscadorMenu {
+        height: 50px;
+        width: 50px;
+        margin-left: 0;
+        border-radius: 10px;
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        padding: 12px;
+        position: fixed;
+        right: 20px;
+        top: 40px;
+        background-color: #7878781a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-offBlack);
+        cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .buscadorMenu svg {
+        width: 100%;
+        height: 100%;
+        stroke: currentColor;
     }
 
     header a {
@@ -314,15 +347,21 @@ body.menu-open {
     }
 
     .siteMenuLogo {
-        height: 4.5rem;
-        width: 4.5rem;
+        height: 50px;
+        width: 50px;
         margin-left: 0;
-        margin-top: 3.4rem;
+        border-radius: 10px;
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        padding: 20px;
+        position: fixed;
+        left: 20px;
+        background-color: #7878781a;
     }
 
     .siteMenuNav {
         display: block;
-        position: absolute;
+        position: fixed;
         left: 50%;
         transform: translateX(-50%);
         flex-direction: row;
@@ -338,15 +377,15 @@ body.menu-open {
         display: flex;
         flex-direction: row;
         align-items: center;
-        /* -webkit-backdrop-filter: blur(10px);
-        backdrop-filter: blur(10px);*/
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
         border-radius: 1rem;
         column-gap: 4rem;
         height: 4.5rem;
         margin-top: 0;
-        padding: 0 3rem;
+        padding: 2.5rem 3rem;
         row-gap: 0;
-        /* background-color: #7878781a; */
+        background-color: #7878781a;
     }
 
     .siteMenuNav ul li {
@@ -385,7 +424,6 @@ body.menu-open {
 
     /* fondo y estilo común para todos los submenús */
     .siteMenuNav ul.sub-menu {
-        background-color: #0f0f0f66;
         -webkit-backdrop-filter: blur(10px);
         backdrop-filter: blur(10px);
         border-radius: 1rem;
@@ -402,16 +440,6 @@ body.menu-open {
     }
 
     .siteMenuNav ul.sub-menu > li a {
-        color: var(--text);
-        display: block;
-    }
-
-    .siteMenuNav ul.sub-menu > li a:hover {
-        color: var(--text);
-    }
-
-    /* mostrar en hover */
-    .siteMenuNav ul.menu > li:hover > ul.sub-menu {
         display: block;
     }
 

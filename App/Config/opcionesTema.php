@@ -20,11 +20,12 @@ if (Compatibility::avadaActivo()) {
     ]);
 } else {
     OpcionManager::register('glory_logo_mode', [
-        'valorDefault'    => 'image',
+        'valorDefault'    => 'svg',
         'tipo'            => 'select',
         'etiqueta'        => 'Header Logo Mode',
         'descripcion'     => 'Select how the site logo should be displayed.',
         'opciones'        => [
+            'svg'   => 'SVG Logo (Adaptive)',
             'image' => 'Image Logo',
             'text'  => 'Custom Text',
             'none'  => 'No Logo',
@@ -51,21 +52,6 @@ OpcionManager::register('glory_logo_text', [
     'descripcion'  => 'This text will be used as the logo when "Custom Text" mode is selected.',
     'seccion'      => 'header',
     'subSeccion'   => 'logo_configuration',
-]);
-
-// --- AAWP / Productos por página ---
-$seccionAawp = 'integrations';
-$etiquetaSeccionAawp = 'Integrations & Tracking';
-$subSeccionAawp = 'aawp';
-
-OpcionManager::register('aawp_preview_activo', [
-    'valorDefault'    => true,
-    'tipo'            => 'toggle',
-    'etiqueta'        => 'AAWP Preview activo',
-    'descripcion'     => 'Muestra una vista previa HTML estática en el sitio para los productos seleccionados, sin consumir créditos de la API. Afecta a todos los usuarios.',
-    'seccion'         => $seccionAawp,
-    'etiquetaSeccion' => $etiquetaSeccionAawp,
-    'subSeccion'      => $subSeccionAawp,
 ]);
 
 
