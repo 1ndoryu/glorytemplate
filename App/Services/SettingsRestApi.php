@@ -48,6 +48,12 @@ class SettingsRestApi
         'glory_ga4_measurement_id',
         'glory_gsc_verification_code',
         'glory_custom_header_scripts',
+        // Pricing
+        'glory_pricing_basico',
+        'glory_pricing_avanzado',
+        'glory_pricing_total',
+        'glory_pricing_currency',
+        'glory_pricing_period',
     ];
 
     /**
