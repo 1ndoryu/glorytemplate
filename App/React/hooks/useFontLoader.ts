@@ -3,13 +3,13 @@ import type {ThemeName} from './useTheme';
 
 /**
  * Configuracion de fuentes por tema.
- * Cada tema tiene su propio conjunto de fuentes que se cargan dinamicamente.
+ *
+ * NOTA: Para el tema 'project', las fuentes Inter y Manrope se cargan
+ * localmente via PHP (App/Config/performance.php) para evitar FOUT
+ * y mejorar metricas de PageSpeed. Por eso el array esta vacio.
  */
 const fontsByTheme: Record<ThemeName, {id: string; href: string}[]> = {
-    project: [
-        {id: 'font-inter', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap'},
-        {id: 'font-manrope', href: 'https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&display=swap'}
-    ],
+    project: [],
     default: [
         {id: 'font-geist-sans', href: 'https://cdn.jsdelivr.net/npm/geist@1.0.0/dist/fonts/geist-sans/style.css'},
         {id: 'font-geist-mono', href: 'https://cdn.jsdelivr.net/npm/geist@1.0.0/dist/fonts/geist-mono/style.css'}

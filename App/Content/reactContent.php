@@ -136,6 +136,15 @@ ReactContentProvider::registerStatic('siteConfig', [
         'isLoggedIn' => is_user_logged_in(),
         'isAdmin' => current_user_can('manage_options'),
     ],
+
+    // Precios de planes
+    'pricing' => [
+        'basico' => OpcionManager::get('glory_pricing_basico', '99'),
+        'avanzado' => OpcionManager::get('glory_pricing_avanzado', '149'),
+        'total' => OpcionManager::get('glory_pricing_total', '199'),
+        'currency' => OpcionManager::get('glory_pricing_currency', '€'),
+        'period' => OpcionManager::get('glory_pricing_period', '/mes'),
+    ],
 ]);
 
 /**

@@ -63,6 +63,14 @@ export interface AnalyticsConfig {
     gscCode: string;
 }
 
+export interface PricingConfig {
+    basico: string;
+    avanzado: string;
+    total: string;
+    currency: string;
+    period: string;
+}
+
 export interface UserPermissions {
     isLoggedIn: boolean;
     isAdmin: boolean;
@@ -75,6 +83,7 @@ export interface SiteConfig {
     images: SiteImages;
     analytics: AnalyticsConfig;
     user: UserPermissions;
+    pricing: PricingConfig;
 }
 
 // Valores por defecto (fallback si no hay config desde PHP)
@@ -120,6 +129,13 @@ const defaultConfig: SiteConfig = {
     user: {
         isLoggedIn: false,
         isAdmin: false
+    },
+    pricing: {
+        basico: '99',
+        avanzado: '149',
+        total: '199',
+        currency: '€',
+        period: '/mes'
     }
 };
 
@@ -189,6 +205,22 @@ export function useUserPermissions(): UserPermissions {
 export function useHasSocialProfiles(): boolean {
     const social = useSocialProfiles();
     return Boolean(social.linkedin || social.twitter || social.youtube || social.instagram);
+}
+
+/**
+ * Hook para obtener la configuracion de precios de planes.
+ */
+export function usePricingConfig(): PricingConfig {
+    const config = useSiteConfig();
+    return config.pricing;
+}
+
+/**
+ * Helper para formatear un precio con simbolo y periodo.
+ */
+export function useFormatPrice(): (amount: string) => string {
+    const pricing = usePricingConfig();
+    return (amount: string) => `${amount}${pricing.currency}${pricing.period}`;
 }
 
 /**

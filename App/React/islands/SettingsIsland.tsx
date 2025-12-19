@@ -19,9 +19,9 @@
  */
 
 import {useState, useEffect} from 'react';
-import {Settings, Building2, Calendar, Share2, Image, LineChart, Save, RotateCcw, Check, X, AlertCircle} from 'lucide-react';
+import {Settings, Building2, Calendar, Share2, Image, LineChart, Save, RotateCcw, Check, X, AlertCircle, DollarSign} from 'lucide-react';
 import {PageLayout} from '../components/layout';
-import {IdentityTab, ContactTab, SocialTab, ImagesTab, IntegrationsTab, LogoTab, useSettingsApi} from '../features/settings';
+import {IdentityTab, ContactTab, SocialTab, ImagesTab, IntegrationsTab, LogoTab, PricingTab, useSettingsApi} from '../features/settings';
 import type {SettingsTab} from '../features/settings';
 
 interface TabConfig {
@@ -36,7 +36,8 @@ const TABS: TabConfig[] = [
     {id: 'social', label: 'Redes Sociales', icon: Share2},
     {id: 'images', label: 'Imágenes', icon: Image},
     {id: 'logo', label: 'Logo', icon: Image},
-    {id: 'integrations', label: 'Integraciones', icon: LineChart}
+    {id: 'integrations', label: 'Integraciones', icon: LineChart},
+    {id: 'pricing', label: 'Precios', icon: DollarSign}
 ];
 
 export function SettingsIsland(): JSX.Element {
@@ -174,6 +175,8 @@ function TabContent({activeTab, settings}: TabContentProps): JSX.Element | null 
             return <LogoTab options={settings.options} onUpdate={settings.updateOption} onUpload={settings.uploadImage} />;
         case 'integrations':
             return <IntegrationsTab options={settings.options} onUpdate={settings.updateOption} />;
+        case 'pricing':
+            return <PricingTab options={settings.options} onUpdate={settings.updateOption} />;
         default:
             return null;
     }

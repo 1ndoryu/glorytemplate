@@ -40,4 +40,4 @@ export interface ValidationError {
     message: string;
 }
 
-export type SettingsTab = 'identity' | 'contact' | 'social' | 'images' | 'logo' | 'integrations';
+export type SettingsTab = 'identity' | 'contact' | 'social' | 'images' | 'logo' | 'integrations' | 'pricing';

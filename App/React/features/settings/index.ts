@@ -11,6 +11,7 @@ export {SocialTab} from './components/SocialTab';
 export {ImagesTab} from './components/ImagesTab';
 export {IntegrationsTab} from './components/IntegrationsTab';
 export {LogoTab} from './components/LogoTab';
+export {PricingTab} from './components/PricingTab';
 
 // Componentes auxiliares
 export {SettingsField} from './components/SettingsField';

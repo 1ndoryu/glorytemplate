@@ -256,3 +256,60 @@ OpcionManager::register('glory_gtm_id', [
     'etiquetaSeccion' => $etiquetaSeccionIntegraciones,
     'subSeccion'      => $subSeccionCodigos,
 ]);
+
+/*
+ * SECCION: PRECIOS DE PLANES
+ * Configuracion de precios mensuales para cada plan
+ */
+$seccionPrecios = 'pricing';
+$etiquetaSeccionPrecios = 'Plan Pricing';
+
+OpcionManager::register('glory_pricing_basico', [
+    'valorDefault'    => '99',
+    'tipo'            => 'text',
+    'etiqueta'        => 'Precio Plan Básico',
+    'descripcion'     => 'Precio mensual del plan Básico (solo número, sin símbolo de moneda).',
+    'seccion'         => $seccionPrecios,
+    'etiquetaSeccion' => $etiquetaSeccionPrecios,
+    'subSeccion'      => 'plan_prices',
+]);
+
+OpcionManager::register('glory_pricing_avanzado', [
+    'valorDefault'    => '149',
+    'tipo'            => 'text',
+    'etiqueta'        => 'Precio Plan Avanzado',
+    'descripcion'     => 'Precio mensual del plan Avanzado (solo número, sin símbolo de moneda).',
+    'seccion'         => $seccionPrecios,
+    'etiquetaSeccion' => $etiquetaSeccionPrecios,
+    'subSeccion'      => 'plan_prices',
+]);
+
+OpcionManager::register('glory_pricing_total', [
+    'valorDefault'    => '199',
+    'tipo'            => 'text',
+    'etiqueta'        => 'Precio Plan Total',
+    'descripcion'     => 'Precio mensual del plan Total (solo número, sin símbolo de moneda).',
+    'seccion'         => $seccionPrecios,
+    'etiquetaSeccion' => $etiquetaSeccionPrecios,
+    'subSeccion'      => 'plan_prices',
+]);
+
+OpcionManager::register('glory_pricing_currency', [
+    'valorDefault'    => '€',
+    'tipo'            => 'text',
+    'etiqueta'        => 'Símbolo de Moneda',
+    'descripcion'     => 'Símbolo de la moneda a mostrar (ej: €, $, £).',
+    'seccion'         => $seccionPrecios,
+    'etiquetaSeccion' => $etiquetaSeccionPrecios,
+    'subSeccion'      => 'plan_prices',
+]);
+
+OpcionManager::register('glory_pricing_period', [
+    'valorDefault'    => '/mes',
+    'tipo'            => 'text',
+    'etiqueta'        => 'Período de Facturación',
+    'descripcion'     => 'Texto del período de facturación (ej: /mes, /año).',
+    'seccion'         => $seccionPrecios,
+    'etiquetaSeccion' => $etiquetaSeccionPrecios,
+    'subSeccion'      => 'plan_prices',
+]);
