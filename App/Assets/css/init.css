@@ -342,7 +342,6 @@ body,
 body p,
 textarea, a, li {
     font-size: 1.4rem;
-    display: block;
     margin-block-start: 0em;
     margin-block-end: 0em;
     margin-inline-start: 0rem;

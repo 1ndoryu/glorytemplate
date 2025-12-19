@@ -3,6 +3,16 @@
 use Glory\Components\LogoRenderer;
 
 ?>
+<style>
+    .flex {
+        display: flex;
+    }
+
+    .spaceBetween {
+        justify-content: space-between;
+    }
+
+</style>
 
 </main>
 
@@ -10,11 +20,15 @@ use Glory\Components\LogoRenderer;
     <div class="footerContenedor">
         <div class="footerSeccion logoFooter">
             <?php echo LogoRenderer::get_html(['filter' => 'white']); ?>
+            <ul class="footer-menu-marcas" style="margin-top: 20px;">
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/Ofertas">Ofertas</a></li>
+            </ul>
         </div>
         <div class="footerSeccion">
             <?php
             $menu = include get_template_directory() . '/App/Content/menu.php';
-            $marcas = array_filter($menu, function($item) {
+            $marcas = array_filter($menu, function ($item) {
                 return $item['title'] === 'Marcas';
             });
 
@@ -38,7 +52,7 @@ use Glory\Components\LogoRenderer;
         <div class="footerSeccion">
             <?php
             $menu = include get_template_directory() . '/App/Content/menu.php';
-            $productos = array_filter($menu, function($item) {
+            $productos = array_filter($menu, function ($item) {
                 return $item['title'] === 'Productos';
             });
 
@@ -59,7 +73,13 @@ use Glory\Components\LogoRenderer;
             }
             ?>
         </div>
-        <div class="footerSeccion"></div> <!-- vacio -->
+        <div class="footerSeccion">
+            <div></div>
+        </div> <!-- vacio -->
+    </div>
+    <div class="footerBlock">
+        <p>Todos los derechos reservados 2025 ®</p>
+        <p style="display: unset;">Sitio web hecho con <?php echo $GLOBALS['iconoCorazonMarcado']; ?> por <a href="https://wandori.us" target="_blank" rel="noopener noreferrer">Wan</a></p>
     </div>
 </footer>
 

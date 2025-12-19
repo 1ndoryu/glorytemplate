@@ -1,0 +1,223 @@
+/* 
+ * Buscador del Menu
+ * Modal de busqueda de productos centrado con overlay difuso
+ * Estilos consistentes con los submenus del header
+ */
+
+/* Contenedor overlay */
+.panelBuscadorMenu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panelBuscadorMenu.activo {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Fondo difuso blanco */
+.fondoBuscadorMenu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.6);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+/* Panel de contenido */
+.panelBuscadorContenido {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 450px;
+    max-height: 70vh;
+
+    /* Mismo estilo que los submenus */
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    background-color: #7878781a;
+    border-radius: 1rem;
+    overflow: hidden;
+
+    transform: scale(0.95) translateY(-10px);
+    transition: transform 0.25s ease;
+}
+
+.panelBuscadorMenu.activo .panelBuscadorContenido {
+    transform: scale(1) translateY(0);
+}
+
+.panelBuscadorCabecera {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    gap: 1rem;
+}
+
+.inputBuscadorMenu {
+    flex: 1;
+    border: none !important;
+    border-bottom: none !important;
+    background: transparent !important;
+    font-size: 1.4rem !important;
+    padding: 0.5rem 0 !important;
+    margin: 0 !important;
+    color: var(--text, #000) !important;
+}
+
+.inputBuscadorMenu::placeholder {
+    color: #000;
+    opacity: 0.7;
+}
+
+.inputBuscadorMenu:focus {
+    outline: none;
+}
+
+.cerrarBuscadorMenu {
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--text, #333);
+    padding: 0;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.cerrarBuscadorMenu:hover {
+    opacity: 1;
+}
+
+.cerrarBuscadorMenu svg {
+    width: 1.6rem;
+    height: 1.6rem;
+}
+
+.resultadosBuscadorMenu {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.buscadorMenuConteo {
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+    color: #000;
+    opacity: 0.7;
+}
+
+.buscadorMenuLista {
+    display: flex;
+    flex-direction: column;
+}
+
+.buscadorMenuItem {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    gap: 1.2rem;
+    text-decoration: none;
+    color: var(--text, #000);
+    transition: background-color 0.15s ease;
+}
+
+.buscadorMenuItem:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.buscadorMenuItemImagen {
+    width: 4.5rem;
+    height: 4.5rem;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.6rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.buscadorMenuItemImagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.buscadorMenuItemInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.buscadorMenuItemTitulo {
+    font-size: 1.3rem;
+    line-height: 1.3;
+    color: var(--text, #000);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.buscadorMenuItemPrecio {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--amazon-price, #b12704);
+}
+
+.buscadorMenuCargando,
+.buscadorMenuVacio,
+.buscadorMenuError {
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: #000;
+    font-size: 1.3rem;
+    opacity: 0.8;
+}
+
+.buscadorMenuCargando {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.buscadorMenuSpinner {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid rgba(120, 120, 120, 0.3);
+    border-top-color: var(--text, #333);
+    border-radius: 50%;
+    animation: spinnerBuscador 0.7s linear infinite;
+}
+
+@keyframes spinnerBuscador {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.buscadorMenuError {
+    color: #dc2626;
+}
