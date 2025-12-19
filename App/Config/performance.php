@@ -46,20 +46,42 @@ add_action('wp_head', 'glory_add_preconnects', 1);
  * - Evitar FOUT (Flash of Unstyled Text)
  * - Mejorar metricas de PageSpeed (LCP, CLS)
  * 
- * Optimizacion: Preload de archivos woff2 criticos para reducir
- * cadena de peticiones (~300ms de ahorro estimado).
+ * IMPORTANTE: Se hace preload de TODAS las variantes para que
+ * carguen en paralelo al inicio y evitar cambios visuales.
  */
 function glory_add_local_fonts(): void
 {
     $fonts_dir = get_template_directory_uri() . '/App/Assets/fonts';
 
-    // Preload de fuentes criticas para reducir cadena de peticiones
-    // Inter 400 (cuerpo) y Manrope 700 (titulos) son las mas usadas
-    echo '<link rel="preload" as="font" type="font/woff2" crossorigin href="' . esc_url($fonts_dir . '/inter-latin-400.woff2') . '">' . "\n";
-    echo '<link rel="preload" as="font" type="font/woff2" crossorigin href="' . esc_url($fonts_dir . '/manrope-latin-700.woff2') . '">' . "\n";
+    /* 
+     * OPTIMIZACION MAXIMA: CSS inline + Preload
+     * 
+     * 1. @font-face inline: El navegador sabe inmediatamente que fuentes necesita
+     * 2. Preload: Inicia descarga paralela al instante
+     * 
+     * Esto elimina la peticion HTTP del fonts.css y garantiza carga instantanea.
+     */
 
-    // Cargar el CSS de @font-face que define las fuentes locales
-    echo '<link rel="stylesheet" href="' . esc_url($fonts_dir . '/fonts.css') . '">' . "\n";
+    // 1. CSS @font-face inline (elimina una peticion HTTP)
+    echo '<style id="glory-fonts">';
+
+    // Inter 400, 500, 600
+    echo "@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('" . esc_url($fonts_dir . '/inter-latin-400.woff2') . "') format('woff2')}";
+    echo "@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('" . esc_url($fonts_dir . '/inter-latin-500.woff2') . "') format('woff2')}";
+    echo "@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('" . esc_url($fonts_dir . '/inter-latin-600.woff2') . "') format('woff2')}";
+
+    // Manrope 600, 700
+    echo "@font-face{font-family:'Manrope';font-style:normal;font-weight:600;font-display:swap;src:url('" . esc_url($fonts_dir . '/manrope-latin-600.woff2') . "') format('woff2')}";
+    echo "@font-face{font-family:'Manrope';font-style:normal;font-weight:700;font-display:swap;src:url('" . esc_url($fonts_dir . '/manrope-latin-700.woff2') . "') format('woff2')}";
+
+    echo '</style>' . "\n";
+
+    // 2. Preload de TODAS las fuentes para carga inmediata (en paralelo)
+    echo '<link rel="preload" as="font" type="font/woff2" crossorigin href="' . esc_url($fonts_dir . '/inter-latin-400.woff2') . '">' . "\n";
+    echo '<link rel="preload" as="font" type="font/woff2" crossorigin href="' . esc_url($fonts_dir . '/inter-latin-500.woff2') . '">' . "\n";
+    echo '<link rel="preload" as="font" type="font/woff2" crossorigin href="' . esc_url($fonts_dir . '/inter-latin-600.woff2') . '">' . "\n";
+    echo '<link rel="preload" as="font" type="font/woff2" crossorigin href="' . esc_url($fonts_dir . '/manrope-latin-600.woff2') . '">' . "\n";
+    echo '<link rel="preload" as="font" type="font/woff2" crossorigin href="' . esc_url($fonts_dir . '/manrope-latin-700.woff2') . '">' . "\n";
 }
 
 // Registrar despues de preconnects

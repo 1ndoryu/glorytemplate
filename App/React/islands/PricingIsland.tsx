@@ -15,7 +15,8 @@ const pricingInternalLinks = [
 
 /* FUNCION PARA CREAR CONTENIDO CON URLS DINAMICAS */
 const createPricingContent = (urls: ReturnType<typeof useSiteUrls>, pricing: PricingConfig) => {
-    const formatPrice = (amount: string) => `${amount}${pricing.currency}${pricing.period}`;
+    /* Formato: solo numero + moneda. El PricingCard agrega '/mes' automaticamente */
+    const formatPrice = (amount: string) => `${amount}${pricing.currency}`;
 
     return {
         hero: {
