@@ -21,6 +21,20 @@
 }
 
 /* 
+ * SUBTAREAS
+ */
+.tareaItemSubtarea {
+    margin-left: var(--dashboard-espacioLg);
+    width: calc(100% - var(--dashboard-espacioLg));
+    border-left: 2px solid var(--dashboard-bordeSutil);
+    background-color: rgba(0, 0, 0, 0.02); /* Sutil diferenciacion de fondo */
+}
+
+.tareaItemSubtarea:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* 
  * CHECKBOX
  */
 .tareaCheckbox {
@@ -405,13 +419,77 @@
 /* 
  * ARRASTRAR Y REORDENAR
  */
-/* 
- * ARRASTRAR Y REORDENAR
- */
 /* Drag handle removido por solicitud, arrastre por item completo */
 
 .listaTareasSeparador {
     height: 1px;
     background-color: var(--dashboard-bordePrincipal);
     margin: var(--dashboard-espacioMd) 0;
+}
+
+/* 
+ * CONTENEDOR DE TAREA CON COLAPSADOR
+ */
+.tareaConColapsador {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+}
+
+.tareaConColapsador > .tareaItem {
+    flex: 1;
+}
+
+/* 
+ * BOTON COLAPSAR SUBTAREAS
+ * Posicionado a la derecha, junto a las acciones
+ */
+.tareaColapsadorBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    right: 1px;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+    border-radius: 2px;
+    margin-top: var(--dashboard-espacioMd);
+    margin-right: var(--dashboard-espacioSm);
+    flex-shrink: 0;
+}
+
+.tareaColapsadorBoton:hover {
+    color: var(--dashboard-textoNormal);
+    border-color: var(--dashboard-bordePrincipal);
+    background-color: var(--dashboard-fondoHover);
+}
+
+/* 
+ * CONTADOR DE SUBTAREAS COLAPSADAS
+ */
+.tareaColapsadorContador {
+    font-size: 0.65rem;
+    margin-left: 1px;
+    color: var(--dashboard-textoApagado);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+}
+
+/* 
+ * Contador cuando las subtareas estan expandidas
+ */
+.tareaColapsadorContadorExpandido {
+    color: var(--dashboard-textoMuyApagado);
+    padding: 0 2px;
+}
+
+/* 
+ * Resaltar cuando hay subtareas completadas
+ */
+.tareaColapsadorContador:not(:empty)::before {
+    content: '';
 }

@@ -6,7 +6,7 @@
  */
 
 import {useState, useCallback, useEffect, useRef} from 'react';
-import type {Habito, Tarea, ConfiguracionDashboard, DatosNuevoHabito, DatosNuevaTarea} from '../types/dashboard';
+import type {Habito, Tarea, ConfiguracionDashboard, DatosNuevoHabito, DatosNuevaTarea, DatosEdicionTarea} from '../types/dashboard';
 import {exportarDatos, importarDatos} from '../services/dataService';
 import {useLocalStorage, CLAVES_LOCALSTORAGE} from './useLocalStorage';
 import {useDeshacer} from './useDeshacer';
@@ -31,8 +31,8 @@ interface UseDashboardReturn {
     tareas: Tarea[];
     notas: string;
     toggleTarea: (id: number) => void;
-    crearTarea: (datos: DatosNuevaTarea) => void;
-    editarTarea: (id: number, datos: DatosNuevaTarea) => void;
+    crearTarea: (datos: DatosEdicionTarea) => void;
+    editarTarea: (id: number, datos: DatosEdicionTarea) => void;
     eliminarTarea: (id: number) => void;
     actualizarNotas: (valor: string) => void;
     toggleHabito: (id: number) => void;
@@ -161,27 +161,50 @@ export function useDashboard(): UseDashboardReturn {
 
     /*
      * Crear una nueva tarea
+     * Acepta DatosEdicionTarea para soportar creacion de subtareas (con parentId)
+     * Si se proporciona insertarDespuesDe, inserta después de esa tarea
      */
     const crearTarea = useCallback(
-        (datos: DatosNuevaTarea) => {
+        (datos: DatosEdicionTarea) => {
             const hoy = obtenerFechaHoy();
             const nuevaTarea: Tarea = {
                 id: Date.now(),
-                texto: datos.texto,
+                texto: datos.texto || 'Nueva tarea',
                 completado: false,
                 fechaCreacion: hoy,
-                prioridad: datos.prioridad,
-                fechaLimite: datos.fechaLimite
+                prioridad: datos.prioridad ?? undefined,
+                parentId: datos.parentId
             };
 
-            setTareas(prev => [nuevaTarea, ...prev]);
-            mostrarMensaje(`Tarea creada`, 'exito');
+            setTareas(prev => {
+                /* Si hay una tarea de referencia, insertar después de ella */
+                if (datos.insertarDespuesDe) {
+                    const indice = prev.findIndex(t => t.id === datos.insertarDespuesDe);
+                    if (indice !== -1) {
+                        /* Insertar después de la tarea de referencia */
+                        const nuevaLista = [...prev];
+                        nuevaLista.splice(indice + 1, 0, nuevaTarea);
+                        return nuevaLista;
+                    }
+                }
+
+                /* Por defecto, agregar al final de las pendientes (antes de completadas) */
+                const primeraCompletada = prev.findIndex(t => t.completado);
+                if (primeraCompletada === -1) {
+                    /* No hay completadas, agregar al final */
+                    return [...prev, nuevaTarea];
+                }
+                /* Insertar antes de la primera completada */
+                const nuevaLista = [...prev];
+                nuevaLista.splice(primeraCompletada, 0, nuevaTarea);
+                return nuevaLista;
+            });
 
             registrarAccion(`Tarea creada`, () => {
                 setTareas(prev => prev.filter(t => t.id !== nuevaTarea.id));
             });
         },
-        [setTareas, mostrarMensaje, registrarAccion]
+        [setTareas, registrarAccion]
     );
 
     /*
@@ -213,31 +236,47 @@ export function useDashboard(): UseDashboardReturn {
      * Editar una tarea existente con soporte de deshacer
      */
 
+    /*
+     * Editar una tarea existente con soporte de deshacer
+     */
+
     const editarTarea = useCallback(
-        (id: number, datos: DatosNuevaTarea) => {
+        (id: number, datos: DatosEdicionTarea) => {
             const tareaAnterior = tareas.find(t => t.id === id);
             if (!tareaAnterior) return;
 
-            /* Si solo cambiamos texto o prioridad, mantenemos el resto */
+            /* Fusionar datos nuevos con la tarea existente */
             setTareas(prev =>
                 prev.map(t => {
                     if (t.id !== id) return t;
-                    return {
+
+                    /*
+                     * Crear objeto base excluyendo prioridad de datos si es null
+                     * Para prioridad null significa "quitar", así que no la incluimos en el spread
+                     */
+                    const {prioridad: nuevaPrioridad, ...restoDatos} = datos;
+
+                    const tareaActualizada: Tarea = {
                         ...t,
-                        texto: datos.texto,
-                        prioridad: datos.prioridad !== undefined ? datos.prioridad : t.prioridad,
-                        fechaLimite: datos.fechaLimite !== undefined ? datos.fechaLimite : t.fechaLimite
+                        ...restoDatos
                     };
+
+                    /* Si prioridad es null, eliminar; si tiene valor, asignar */
+                    if (nuevaPrioridad === null) {
+                        delete tareaActualizada.prioridad;
+                    } else if (nuevaPrioridad !== undefined) {
+                        tareaActualizada.prioridad = nuevaPrioridad;
+                    }
+
+                    return tareaActualizada;
                 })
             );
-
-            mostrarMensaje(`Tarea actualizada`, 'exito');
 
             registrarAccion(`Tarea editada`, () => {
                 setTareas(prev => prev.map(t => (t.id === id ? tareaAnterior : t)));
             });
         },
-        [tareas, setTareas, mostrarMensaje, registrarAccion]
+        [tareas, setTareas, registrarAccion]
     );
 
     const actualizarNotas = useCallback(

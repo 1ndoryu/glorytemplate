@@ -68,6 +68,7 @@ export interface Tarea {
     texto: string;
     completado: boolean;
     fechaCreacion?: string /* Fecha ISO de cuando se creo la tarea */;
+    fechaCompletado?: string /* Fecha ISO de cuando se completo la tarea */;
     /* Orden manual para drag & drop (menor = primero) */
     orden?: number;
     /* ID de tarea padre para subtareas (solo un nivel de anidacion) */
@@ -112,4 +113,17 @@ export interface DatosNuevaTarea {
     texto: string;
     prioridad?: NivelPrioridad;
     fechaLimite?: string;
+}
+
+/*
+ * Datos para editar una tarea existente
+ * prioridad puede ser null para eliminar la prioridad de la tarea
+ */
+export interface DatosEdicionTarea {
+    texto?: string;
+    prioridad?: NivelPrioridad | null;
+    completado?: boolean;
+    parentId?: number;
+    /* ID de la tarea después de la cual insertar (solo para creación) */
+    insertarDespuesDe?: number;
 }

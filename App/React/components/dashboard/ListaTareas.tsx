@@ -4,320 +4,160 @@
  * Responsabilidad única: renderizar tareas con checkbox, input de creación, edición inline y acciones
  */
 
-import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent, type ReactNode} from 'react';
-import {Check, X, Plus, Pencil, Flag, Trash2} from 'lucide-react';
-import {Reorder, useDragControls} from 'framer-motion';
-import type {Tarea, NivelPrioridad} from '../../types/dashboard';
-import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
-
-interface DatosEditarTarea {
-    texto: string;
-    prioridad?: NivelPrioridad;
-}
+import {useState, useCallback} from 'react';
+import {Reorder} from 'framer-motion';
+import {ChevronRight} from 'lucide-react';
+import type {Tarea, DatosEdicionTarea} from '../../types/dashboard';
+import {TareaItem} from './TareaItem';
+import {InputNuevaTarea} from './InputNuevaTarea';
 
 interface ListaTareasProps {
     tareas: Tarea[];
     onToggleTarea?: (id: number) => void;
-    onCrearTarea?: (datos: DatosEditarTarea) => void;
-    onEditarTarea?: (id: number, datos: DatosEditarTarea) => void;
+    onCrearTarea?: (datos: DatosEdicionTarea) => void;
+    onEditarTarea?: (id: number, datos: DatosEdicionTarea) => void;
     onEliminarTarea?: (id: number) => void;
     onReordenarTareas?: (tareas: Tarea[]) => void;
 }
 
-interface TareaItemProps {
-    tarea: Tarea;
-    onToggle?: () => void;
-    onEditar?: (datos: DatosEditarTarea) => void;
-    onEliminar?: () => void;
-}
-
-interface MenuContextualEstado {
-    visible: boolean;
-    x: number;
-    y: number;
-}
-
-function TareaItem({tarea, onToggle, onEditar, onEliminar}: TareaItemProps): JSX.Element {
-    const [mostrarAcciones, setMostrarAcciones] = useState(false);
-    const [editando, setEditando] = useState(false);
-    const [textoEditado, setTextoEditado] = useState(tarea.texto);
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    /* Estado menu contextual */
-    const [menuContextual, setMenuContextual] = useState<MenuContextualEstado>({
-        visible: false,
-        x: 0,
-        y: 0
-    });
-
-    useEffect(() => {
-        if (editando && inputRef.current) {
-            inputRef.current.focus();
-            /* Bug fix: No seleccionar todo el texto automaticamente */
-            /* Ponemos el cursor al final */
-            const length = inputRef.current.value.length;
-            inputRef.current.setSelectionRange(length, length);
-        }
-    }, [editando]);
-
-    const iniciarEdicion = useCallback(() => {
-        setTextoEditado(tarea.texto);
-        setEditando(true);
-    }, [tarea.texto]);
-
-    const guardarEdicion = useCallback(() => {
-        const textoLimpio = textoEditado.trim();
-        if (textoLimpio.length === 0) {
-            cancelarEdicion();
-            return;
-        }
-
-        if (textoLimpio !== tarea.texto) {
-            onEditar?.({texto: textoLimpio});
-        }
-        setEditando(false);
-    }, [textoEditado, tarea.texto, onEditar]);
-
-    const cancelarEdicion = useCallback(() => {
-        setTextoEditado(tarea.texto);
-        setEditando(false);
-    }, [tarea.texto]);
-
-    const manejarTecla = useCallback(
-        (evento: KeyboardEvent<HTMLInputElement>) => {
-            if (evento.key === 'Enter') {
-                guardarEdicion();
-            } else if (evento.key === 'Escape') {
-                cancelarEdicion();
-            }
-        },
-        [guardarEdicion, cancelarEdicion]
-    );
-
-    /* Manejo del menu contextual */
-    const manejarClickDerecho = useCallback((evento: React.MouseEvent) => {
-        evento.preventDefault();
-        evento.stopPropagation();
-        setMenuContextual({
-            visible: true,
-            x: evento.clientX,
-            y: evento.clientY
-        });
-    }, []);
-
-    const cerrarMenuContextual = useCallback(() => {
-        setMenuContextual(prev => ({...prev, visible: false}));
-    }, []);
-
-    const manejarOpcionMenu = useCallback(
-        (opcionId: string) => {
-            if (opcionId === 'eliminar') {
-                onEliminar?.();
-            } else if (['alta', 'media', 'baja'].includes(opcionId)) {
-                onEditar?.({
-                    texto: tarea.texto,
-                    prioridad: opcionId as NivelPrioridad
-                });
-            }
-        },
-        [onEliminar, onEditar, tarea.texto]
-    );
-
-    const opcionesMenu: OpcionMenu[] = [
-        {
-            id: 'alta',
-            etiqueta: 'Prioridad Alta',
-            icono: <Flag size={12} color="#ef4444" /> /* Rojo */
-        },
-        {
-            id: 'media',
-            etiqueta: 'Prioridad Media',
-            icono: <Flag size={12} color="#f59e0b" /> /* Arange/Amarillo */
-        },
-        {
-            id: 'baja',
-            etiqueta: 'Prioridad Baja',
-            icono: <Flag size={12} color="#94a3b8" /> /* Gris */,
-            separadorDespues: true
-        },
-        {
-            id: 'eliminar',
-            etiqueta: 'Eliminar tarea',
-            icono: <Trash2 size={12} />,
-            peligroso: true
-        }
-    ];
-
-    /* Renderizado del indicador de prioridad */
-    const renderIndicadorPrioridad = () => {
-        if (!tarea.prioridad) return null;
-
-        const colores = {
-            alta: '#ef4444',
-            media: '#f59e0b',
-            baja: '#94a3b8'
-        };
-
-        return (
-            <div className="tareaPrioridadIndicador" title={`Prioridad ${tarea.prioridad}`}>
-                <Flag size={10} color={colores[tarea.prioridad]} fill={colores[tarea.prioridad]} />
-            </div>
-        );
-    };
-
-    if (editando) {
-        return (
-            <div className="tareaItem tareaItemEditando">
-                <div className={`tareaCheckbox ${tarea.completado ? 'tareaCheckboxCompletado' : ''}`}>{tarea.completado && <Check size={8} color="white" />}</div>
-                <div className="tareaContenido">
-                    <input ref={inputRef} type="text" className="tareaEdicionInput" value={textoEditado} onChange={(e: ChangeEvent<HTMLInputElement>) => setTextoEditado(e.target.value)} onKeyDown={manejarTecla} onBlur={guardarEdicion} />
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <>
-            <div className="tareaItem" onMouseEnter={() => setMostrarAcciones(true)} onMouseLeave={() => setMostrarAcciones(false)} onContextMenu={manejarClickDerecho}>
-                <div className={`tareaCheckbox ${tarea.completado ? 'tareaCheckboxCompletado' : ''}`} onClick={onToggle}>
-                    {tarea.completado && <Check size={8} color="white" />}
-                </div>
-                <div className="tareaContenido" onClick={iniciarEdicion}>
-                    <div className="tareaTextoWrapper">
-                        <p className={`tareaTexto ${tarea.completado ? 'tareaTextoCompletado' : ''}`}>{tarea.texto}</p>
-                        {renderIndicadorPrioridad()}
-                    </div>
-                </div>
-                {mostrarAcciones && (
-                    <div className="tareaAcciones">
-                        <button className="tareaBotonEditar" onClick={iniciarEdicion} title="Editar tarea">
-                            <Pencil size={12} />
-                        </button>
-                        <button className="tareaBotonEliminar" onClick={onEliminar} title="Eliminar tarea">
-                            <X size={12} />
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            {menuContextual.visible && <MenuContextual opciones={opcionesMenu} posicionX={menuContextual.x} posicionY={menuContextual.y} onSeleccionar={manejarOpcionMenu} onCerrar={cerrarMenuContextual} />}
-        </>
-    );
-}
-
-interface InputNuevaTareaProps {
-    onCrear: (datos: DatosEditarTarea) => void;
-}
-
-function InputNuevaTarea({onCrear}: InputNuevaTareaProps): JSX.Element {
-    const [texto, setTexto] = useState('');
-    const [enfocado, setEnfocado] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    const manejarEnvio = useCallback(() => {
-        const textoLimpio = texto.trim();
-        if (textoLimpio.length === 0) return;
-
-        onCrear({texto: textoLimpio});
-        setTexto('');
-        /* Mantener el foco para permitir crear varias tareas seguidas */
-        inputRef.current?.focus();
-    }, [texto, onCrear]);
-
-    const manejarTecla = useCallback(
-        (evento: KeyboardEvent<HTMLInputElement>) => {
-            if (evento.key === 'Enter') {
-                manejarEnvio();
-            } else if (evento.key === 'Escape') {
-                setTexto('');
-                inputRef.current?.blur();
-            }
-        },
-        [manejarEnvio]
-    );
-
-    const manejarCambioTexto = useCallback((evento: ChangeEvent<HTMLInputElement>) => {
-        setTexto(evento.target.value);
-    }, []);
-
-    const tieneTexto = texto.trim().length > 0;
-
-    return (
-        <div className={`tareaNuevoInline ${enfocado || tieneTexto ? 'tareaNuevoInlineActivo' : ''}`}>
-            <div className="tareaNuevoInlineIcono">
-                <Plus size={12} />
-            </div>
-            <input
-                ref={inputRef}
-                type="text"
-                className="tareaNuevoInlineInput"
-                placeholder="Nueva tarea..."
-                value={texto}
-                onChange={manejarCambioTexto}
-                onKeyDown={manejarTecla}
-                onFocus={() => setEnfocado(true)}
-                onBlur={() => {
-                    setEnfocado(false);
-                    /* Guardar si hay texto al perder foco */
-                    if (texto.trim().length > 0) {
-                        manejarEnvio();
-                    }
-                }}
-            />
-            {tieneTexto && (
-                <button className="tareaNuevoInlineConfirmar" onClick={manejarEnvio} title="Crear tarea (Enter)">
-                    <Check size={12} />
-                </button>
-            )}
-        </div>
-    );
-}
-
-interface DraggableItemProps extends TareaItemProps {
-    tarea: Tarea;
-}
-
-function DraggableTareaItem({tarea, ...props}: DraggableItemProps) {
-    /*
-     * useDragControls permite iniciar el drag programaticamente
-     * dragListener={true} (default) permite arrastrar desde cualquier parte del componente
-     */
-    return (
-        <Reorder.Item value={tarea} as="div" style={{position: 'relative'}}>
-            <TareaItem {...props} tarea={tarea} />
-        </Reorder.Item>
-    );
-}
-
 export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ListaTareasProps): JSX.Element {
-    /* Separar pendientes y completadas */
+    /*
+     * Estado para tareas padre colapsadas
+     * Set de IDs de tareas padre cuyas subtareas estan ocultas
+     */
+    const [tareasColapsadas, setTareasColapsadas] = useState<Set<number>>(new Set());
+
+    // Filtramos pendientes y completadas
     const pendientes = tareas.filter(t => !t.completado);
-    /* Las completadas se ordenan por defecto (id/creacion) o como vengan */
     const completadas = tareas.filter(t => t.completado);
 
     const handleReorder = (nuevosPendientes: Tarea[]) => {
         if (!onReordenarTareas) return;
-        /* Reconstruimos la lista completa: pendientes reordenados + completadas */
         onReordenarTareas([...nuevosPendientes, ...completadas]);
     };
+
+    /*
+     * Manejadores de indentacion
+     */
+    const handleIndent = (tareaId: number) => {
+        const index = pendientes.findIndex(t => t.id === tareaId);
+        if (index <= 0) return;
+
+        const tarea = pendientes[index];
+        const tareaAnterior = pendientes[index - 1];
+
+        // Validacion: No anidar mas de 1 nivel
+        if (tareaAnterior.parentId) {
+            return;
+        }
+
+        onEditarTarea?.(tarea.id, {parentId: tareaAnterior.id});
+    };
+
+    const handleOutdent = (tareaId: number) => {
+        const tarea = pendientes.find(t => t.id === tareaId);
+        if (!tarea || !tarea.parentId) return;
+
+        onEditarTarea?.(tareaId, {parentId: undefined} as any);
+    };
+
+    /*
+     * Crear nueva tarea debajo de la actual (hereda parentId si aplica)
+     * tareaActualId indica despues de cual tarea insertar
+     */
+    const handleCrearNueva = (parentId: number | undefined, tareaActualId: number) => {
+        onCrearTarea?.({
+            texto: '',
+            parentId: parentId,
+            insertarDespuesDe: tareaActualId
+        });
+    };
+
+    /*
+     * Colapsar/expandir subtareas de una tarea padre
+     */
+    const toggleColapsar = useCallback((tareaId: number) => {
+        setTareasColapsadas(prev => {
+            const nuevo = new Set(prev);
+            if (nuevo.has(tareaId)) {
+                nuevo.delete(tareaId);
+            } else {
+                nuevo.add(tareaId);
+            }
+            return nuevo;
+        });
+    }, []);
+
+    /*
+     * Determinar si una tarea tiene subtareas
+     * Busca en TODAS las tareas para incluir subtareas completadas
+     */
+    const tieneSubtareas = (tareaId: number): boolean => {
+        return tareas.some(t => t.parentId === tareaId);
+    };
+
+    /*
+     * Contar subtareas de una tarea (total y completadas)
+     * Busca en TODAS las tareas, no solo pendientes
+     */
+    const contarSubtareas = (tareaId: number): {total: number; completadas: number} => {
+        const subtareas = tareas.filter(t => t.parentId === tareaId);
+        return {
+            total: subtareas.length,
+            completadas: subtareas.filter(t => t.completado).length
+        };
+    };
+
+    /*
+     * Filtrar tareas visibles (excluyendo subtareas de padres colapsados)
+     */
+    const tareasVisibles = pendientes.filter(tarea => {
+        if (!tarea.parentId) return true; // Tareas principales siempre visibles
+        return !tareasColapsadas.has(tarea.parentId); // Subtareas visibles si padre no colapsado
+    });
 
     return (
         <div id="lista-tareas" className="dashboardPanel">
             {onCrearTarea && <InputNuevaTarea onCrear={onCrearTarea} />}
 
-            {/* Grupo de reordenamiento para tareas pendientes */}
-            <Reorder.Group axis="y" values={pendientes} onReorder={handleReorder} className="listaTareasPendientes">
-                {pendientes.map(tarea => (
-                    <DraggableTareaItem key={tarea.id} tarea={tarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} />
-                ))}
+            <Reorder.Group axis="y" values={tareasVisibles} onReorder={handleReorder} className="listaTareasPendientes">
+                {tareasVisibles.map(tarea => {
+                    const isSubtarea = !!tarea.parentId;
+                    const esColapsable = tieneSubtareas(tarea.id);
+                    const estaColapsada = tareasColapsadas.has(tarea.id);
+                    const numSubtareas = contarSubtareas(tarea.id);
+
+                    return (
+                        <Reorder.Item key={tarea.id} value={tarea} as="div" style={{position: 'relative'}}>
+                            <div className="tareaConColapsador">
+                                <TareaItem tarea={tarea} esSubtarea={isSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} />
+                                {/* Boton de colapsar a la derecha, solo si tiene subtareas */}
+                                {esColapsable && (
+                                    <button className="tareaColapsadorBoton" onClick={() => toggleColapsar(tarea.id)} title={estaColapsada ? `Expandir ${numSubtareas.total} subtareas` : `Colapsar ${numSubtareas.total} subtareas`}>
+                                        {estaColapsada ? (
+                                            <>
+                                                <ChevronRight size={12} />
+                                                <span className="tareaColapsadorContador">
+                                                    {numSubtareas.completadas}/{numSubtareas.total}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span className="tareaColapsadorContador tareaColapsadorContadorExpandido">
+                                                {numSubtareas.completadas}/{numSubtareas.total}
+                                            </span>
+                                        )}
+                                    </button>
+                                )}
+                            </div>
+                        </Reorder.Item>
+                    );
+                })}
             </Reorder.Group>
 
-            {/* Separador visual si hay ambos tipos */}
             {pendientes.length > 0 && completadas.length > 0 && <div className="listaTareasSeparador" />}
 
-            {/* Tareas completadas (estaticas) */}
             {completadas.map(tarea => (
-                <TareaItem key={tarea.id} tarea={tarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} />
+                <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} />
             ))}
         </div>
     );

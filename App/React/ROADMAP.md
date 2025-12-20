@@ -33,6 +33,10 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [x] **Edicion inline mejorada** - Un solo click para editar tareas, input invisible seamless
 - [x] **Prioridad en Tareas** - Context menu para asignar prioridad (Alta/Media/Baja) con indicador visual
 - [x] **Bug Edicion Tareas** - Corregido comportamiento de preseleccion de texto al editar
+- [x] **Enter crea tarea debajo** - Al editar, Enter guarda y crea nueva tarea (hereda parentId)
+- [x] **Prioridad visual unificada** - Badges de texto como en habitos
+- [x] **Subtareas colapsables** - Boton para ocultar/mostrar subtareas de una tarea padre
+- [x] **Quitar prioridad de tarea** - Opcion en menu contextual para remover prioridad asignada
 
 ### Estructura de Archivos (Actualizada)
 ```
@@ -320,18 +324,18 @@ App/React/hooks/useDeshacer.ts                  # Hook para manejar cola de acci
 **Objetivo:** Anidacion simple de tareas relacionadas
 
 **Comportamiento:**
-- [ ] Tab en tarea nueva la convierte en subtarea de la anterior
-- [ ] Subtareas solo pueden ser hijas de tareas (no de otras subtareas)
-- [ ] Indentacion visual para subtareas
-- [ ] Shift+Tab saca la subtarea al nivel principal
+- [x] Tab en tarea nueva la convierte en subtarea de la anterior
+- [x] Subtareas solo pueden ser hijas de tareas (no de otras subtareas)
+- [x] Indentacion visual para subtareas
+- [x] Shift+Tab saca la subtarea al nivel principal
 - [ ] Completar tarea padre NO completa subtareas automaticamente
-- [ ] Contador de subtareas completadas visible
+- [x] Contador de subtareas completadas visible (formato X/Y)
 
 **Ejemplo visual:**
 ```
-[ ] Tarea principal
-    [ ] Subtarea 1
-    [ ] Subtarea 2
+[ v ] Tarea principal         <- Click en chevron para colapsar
+      [ ] Subtarea 1
+      [ ] Subtarea 2
 [ ] Otra tarea principal
 ```
 
@@ -346,6 +350,95 @@ interface Tarea {
 }
 ```
 
+### 3.4.1 Drag & Drop Avanzado con Subtareas (PLANIFICACION)
+**Objetivo:** Comportamiento inteligente al arrastrar tareas con jerarquía
+
+**Estado:** ⚠️ REQUIERE REFACTORIZACION PREVIA
+
+#### Casos de uso a manejar:
+
+**1. Arrastrar subtarea a nueva posición:**
+| Situación                                | Comportamiento esperado             |
+| ---------------------------------------- | ----------------------------------- |
+| Soltar entre tareas principales          | Convertir en tarea principal        |
+| Soltar sobre una tarea principal         | Convertir en subtarea de esa tarea  |
+| Soltar entre subtareas de otro padre     | Heredar el parentId del nuevo grupo |
+| Soltar arriba del todo (sin nada encima) | Convertir en tarea principal        |
+
+**2. Arrastrar tarea principal con subtareas:**
+| Situación                         | Comportamiento esperado                   |
+| --------------------------------- | ----------------------------------------- |
+| Mover a otra posición             | Mover tarea + todas sus subtareas juntas  |
+| Soltar sobre otra tarea principal | ??? (decidir: error, fusionar, o ignorar) |
+
+**3. Gestos de indentación horizontal:**
+| Gesto                                | Comportamiento esperado                              |
+| ------------------------------------ | ---------------------------------------------------- |
+| Arrastrar ligeramente a la derecha   | Convertir en subtarea de la tarea de arriba          |
+| Arrastrar ligeramente a la izquierda | Convertir en tarea principal                         |
+| Outdent entre subtareas              | Mover afuera, colocarse arriba del padre más cercano |
+
+**4. Validaciones:**
+- No permitir anidar más de 1 nivel (subtarea de subtarea = prohibido)
+- No permitir que una tarea sea subtarea de sí misma
+- No permitir que una tarea padre se convierta en subtarea de una de sus hijas
+
+#### Refactorización necesaria antes de implementar:
+
+**1. Extraer lógica de tareas a hook separado:**
+```
+hooks/
+  useTareas.ts           # NUEVO - Lógica CRUD de tareas
+  useTareasReordenar.ts  # NUEVO - Lógica específica de drag & drop
+  useDashboard.ts        # Simplificado, importa los otros hooks
+```
+
+**2. Crear utilidades de jerarquía:**
+```
+utils/
+  jerarquiaTareas.ts     # NUEVO
+    - obtenerSubtareas(tareas, parentId)
+    - obtenerPadre(tareas, tareaId)
+    - esDescendiente(tareas, posibleHijo, posiblePadre)
+    - moverConHijos(tareas, tareaId, nuevaPosicion)
+    - calcularNuevoParent(tareas, posicionDrop, offsetX)
+```
+
+**3. Mejorar el tipo Tarea:**
+```typescript
+interface Tarea {
+    // ... campos existentes
+    orden: number;        // Hacer obligatorio para orden consistente
+    profundidad?: number; // Calcular automáticamente (0 = principal, 1 = subtarea)
+}
+```
+
+**4. Componente de drop zone inteligente:**
+```
+components/shared/
+  DropZoneTarea.tsx      # NUEVO - Indicador visual de donde caerá
+```
+
+#### Fases de implementación sugeridas:
+
+1. **Fase A - Refactorización** (prerequisito)
+   - [ ] Extraer `useTareas.ts` de `useDashboard.ts`
+   - [ ] Crear `utils/jerarquiaTareas.ts` con funciones básicas
+   - [ ] Añadir campo `orden` obligatorio a todas las tareas
+
+2. **Fase B - Drag & Drop básico mejorado**
+   - [ ] Mover tarea principal mueve sus subtareas
+   - [ ] Indicador visual correcto de destino
+
+3. **Fase C - Conversión automática de jerarquía**
+   - [ ] Detectar drop entre subtareas -> heredar parent
+   - [ ] Detectar drop en zona de tareas principales -> quitar parent
+
+4. **Fase D - Gestos horizontales**
+   - [ ] Detectar offset X al soltar
+   - [ ] Umbral de indentación (>30px derecha = subtarea)
+   - [ ] Animación de preview durante arrastre
+
 ### 3.5 Completar/Descompletar
 - [x] Toggle estado con soporte de deshacer
 - [x] Mover completadas al final (automatico)
@@ -359,6 +452,7 @@ interface Tarea {
 **Nota:** Funcionalidades para fases posteriores
 
 - [x] Prioridad (Alta/Media/Baja) con indicador visual
+- [x] Poder quitar prioridad de tarea (dejarla sin prioridad)
 - [ ] Dias de inactividad por tarea
 - [ ] Fecha limite con indicador de urgencia
 - [ ] Notas/descripcion expandible
