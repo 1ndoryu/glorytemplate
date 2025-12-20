@@ -91,6 +91,76 @@
 }
 
 /* 
+ * INDICADOR DE FRECUENCIA EN TITULO 
+ * Muestra icono de reloj y numero de intervalo junto al nombre
+ */
+.filaNombreIndicadorFrecuencia {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 4px;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--dashboard-textoApagado);
+    opacity: 0.8;
+}
+
+.filaNombreIndicadorFrecuencia svg {
+    position: relative;
+    top: 1px;
+}
+
+/* 
+ * CONTENEDOR DE NOMBRE CON FRECUENCIA 
+ */
+.filaNombreContenedor {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    flex-wrap: wrap;
+}
+
+/* 
+ * BADGE TOCA HOY 
+ */
+.filaTocaHoyBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #fbbf24;
+    background-color: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 2px;
+    animation: pulsarBadgeTocaHoy 2s ease-in-out infinite;
+}
+
+@keyframes pulsarBadgeTocaHoy {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* 
+ * FILA QUE TOCA HOY 
+ */
+.tablaFilaTocaHoy {
+    background-color: rgba(251, 191, 36, 0.03);
+    border-left: 2px solid rgba(251, 191, 36, 0.4);
+}
+
+.tablaFilaTocaHoy:hover {
+    background-color: rgba(251, 191, 36, 0.06);
+}
+
+/* 
  * ETIQUETAS DE PRIORIDAD 
  */
 .etiquetaPrioridad {

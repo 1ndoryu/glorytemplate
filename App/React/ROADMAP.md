@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Refactorizacion SOLID completada, tipos expandidos para frecuencia y prioridad
+**Estado:** Frecuencia de habitos con persistencia corregida, indicador visual compacto
 
 ### Completado
 - [x] Arquitectura de componentes (SOLID)
@@ -24,6 +24,11 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [x] **Simplificacion de tareas** - Removida funcionalidad de proyectos para enfoque minimalista
 - [x] **Refactorizacion modular** - Utilidades extraidas a modulos separados (utils/, data/)
 - [x] **Tipos expandidos** - Añadidos tipos para Frecuencia, Prioridad y configuraciones
+- [x] **Menu contextual** - Click derecho en habitos con opciones rapidas
+- [x] **Selector de frecuencia** - UI para configurar frecuencia de habitos
+- [x] **Indicador visual Toca Hoy** - Badge y resaltado de habitos que tocan hoy
+- [x] **Persistencia de frecuencia** - Frecuencia se guarda correctamente al crear/editar
+- [x] **Indicador frecuencia en titulo** - Icono de reloj + numero junto al nombre del habito
 
 ### Estructura de Archivos (Actualizada)
 ```
@@ -35,6 +40,7 @@ App/React/
     fecha.ts                   # Utilidades de fecha
     validadores.ts             # Validadores de datos
     migracionHabitos.ts        # Logica de migracion de habitos
+    frecuenciaHabitos.ts       # Calculo de frecuencia y "toca hoy" (NUEVO)
   data/
     datosIniciales.ts          # Datos de demo para desarrollo
   hooks/
@@ -43,6 +49,10 @@ App/React/
     useOrdenarHabitos.ts       # Ordenamiento de habitos
     useLocalStorage.ts         # Persistencia local
     useDebounce.ts             # Debounce para guardado
+  components/shared/
+    MenuContextual.tsx         # Menu contextual reutilizable (NUEVO)
+  components/dashboard/
+    SelectorFrecuencia.tsx     # Selector de frecuencia de habitos (NUEVO)
 ```
 
 ### Estructura CSS (Refactorizada)
@@ -61,6 +71,8 @@ App/React/styles/dashboard/
     formulario.css             # Formularios de habitos
     toast.css                  # Toast deshacer
     ordenamiento.css           # Selector de orden
+    menuContextual.css         # Menu contextual (NUEVO)
+    frecuencia.css             # Selector de frecuencia (NUEVO)
   utilidades/
     estados.css                # Carga, spinners, skeletons
     acciones.css               # Botones exportar/importar
@@ -145,17 +157,19 @@ App/React/components/dashboard/FormularioHabito.tsx   # Formulario con validacio
 - [x] Notificacion visual si esta por perder racha
 - [ ] Hacer umbral editable por el usuario en configuracion
 
-### 2.7 Menu Contextual (NUEVO)
+### 2.7 Menu Contextual (COMPLETADO)
 **Objetivo:** Acciones rapidas con click derecho en filas
 
-- [ ] Menu contextual al hacer click derecho en habito
-- [ ] Opciones: Editar, Eliminar, Marcar completado, Ver historial
-- [ ] Animacion de aparicion/desaparicion
-- [ ] Cerrar al hacer click fuera
+- [x] Menu contextual al hacer click derecho en habito
+- [x] Opciones: Editar, Eliminar, Marcar completado
+- [x] Animacion de aparicion/desaparicion
+- [x] Cerrar al hacer click fuera o presionar Escape
+- [x] Posicionamiento inteligente (no se sale de pantalla)
 
-**Componentes a crear:**
+**Componentes creados:**
 ```
 App/React/components/shared/MenuContextual.tsx
+App/React/styles/dashboard/componentes/menuContextual.css
 ```
 
 ### 2.8 Mejoras UI Tabla Habitos (NUEVO)
@@ -165,22 +179,33 @@ App/React/components/shared/MenuContextual.tsx
 - [x] Columna ACCION solo contiene el boton toggle
 - [x] Indicadores visuales mas claros
 
-### 2.9 Frecuencia de Habitos (PLANIFICADO)
+**Simplificacion planificada:**
+- [ ] Reemplazar columna ID por checkbox (como tareas) para completar habito rapidamente
+- [ ] Simplificar columna acciones a 1 solo boton que abre menu contextual
+- [ ] Acciones (editar, eliminar, etc) disponibles solo via menu contextual (click derecho)
+
+### 2.9 Frecuencia de Habitos (EN PROGRESO)
 **Objetivo:** Cada habito puede tener su propia frecuencia de repeticion
 
-**Tipos de frecuencia:**
-- Diario (por defecto actual)
-- Cada X dias (ej: cada 3 dias)
-- Semanal (1 vez por semana)
-- Dias especificos (ej: Lunes, Miercoles, Viernes)
-- Mensual (X veces al mes)
+**Tipos de frecuencia implementados:**
+- [x] Diario (por defecto actual)
+- [x] Cada X dias (ej: cada 3 dias)
+- [x] Semanal (1 vez por semana)
+- [x] Dias especificos (ej: Lunes, Miercoles, Viernes)
+- [x] Mensual (X veces al mes)
 
 **Impacto en logica:**
-- [ ] Añadir campo `frecuencia` al tipo `Habito`
-- [ ] Calcular dias de inactividad basado en la frecuencia
+- [x] Añadir campo `frecuencia` al tipo `Habito`
+- [x] Utilidades para calcular "toca hoy" segun frecuencia
+- [x] Utilidades para calcular umbral de inactividad por frecuencia
+- [x] Indicador visual de "toca hoy" (badge + resaltado de fila)
+- [x] Selector de frecuencia en formulario de habito
+- [x] **Persistencia de frecuencia al crear habito** - Corregido en useDashboard
+- [x] **Persistencia de frecuencia al editar habito** - Corregido en useDashboard
+- [x] **Indicador compacto en titulo** - Muestra icono reloj + numero (ej: Ejercicio (o3))
+- [ ] Calcular dias de inactividad basado en la frecuencia (pendiente integracion)
 - [ ] Adaptar racha a la frecuencia (racha semanal vs diaria)
 - [ ] Barra de progreso proporcional a la frecuencia
-- [ ] Indicador visual de "toca hoy" vs "no toca hoy"
 - [ ] Historial debe considerar frecuencia para estadisticas
 
 **Ejemplos:**
@@ -190,12 +215,15 @@ App/React/components/shared/MenuContextual.tsx
 | Cada 3 dias | +1 cada ciclo completado  | Rojo si >4 dias sin hacer |
 | Semanal     | +1 cada semana completada | Rojo si >9 dias sin hacer |
 
-**Componentes a modificar:**
+**Componentes creados/modificados:**
 ```
-App/React/types/dashboard.ts           # Añadir tipo Frecuencia
-App/React/hooks/useDashboard.ts        # Logica de calculo
-App/React/components/dashboard/FormularioHabito.tsx  # Selector frecuencia
-App/React/components/dashboard/TablaHabitos.tsx      # Indicador "toca hoy"
+App/React/types/dashboard.ts                         # Tipos FrecuenciaHabito, TipoFrecuencia
+App/React/utils/frecuenciaHabitos.ts                 # tocaHoy(), calcularUmbralInactividad(), etc.
+App/React/components/dashboard/SelectorFrecuencia.tsx # Selector visual de frecuencia
+App/React/components/dashboard/FormularioHabito.tsx  # Integrado SelectorFrecuencia
+App/React/components/dashboard/TablaHabitos.tsx      # Indicador "toca hoy" + frecuencia
+App/React/styles/dashboard/componentes/frecuencia.css # Estilos del selector
+App/React/styles/dashboard/componentes/tabla.css     # Estilos badge "Toca Hoy"
 ```
 
 ### 2.10 Barra de Progreso Configurable (PLANIFICADO)

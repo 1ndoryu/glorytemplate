@@ -4,14 +4,20 @@
  * Responsabilidad única: renderizar lista de hábitos con su estado
  */
 
+import {useState, useCallback} from 'react';
 import {Clock, Check, Edit3, AlertTriangle, Flame} from 'lucide-react';
 import type {Habito} from '../../types/dashboard';
+import {FRECUENCIA_POR_DEFECTO} from '../../types/dashboard';
+import {tocaHoy, describirFrecuencia, obtenerIntervaloFrecuencia} from '../../utils/frecuenciaHabitos';
+import {MenuContextual} from '../shared/MenuContextual';
+import type {OpcionMenu} from '../shared/MenuContextual';
 
 interface TablaHabitosProps {
     habitos: Habito[];
     onAñadirHabito?: () => void;
     onToggleHabito?: (id: number) => void;
     onEditarHabito?: (habito: Habito) => void;
+    onEliminarHabito?: (id: number) => void;
 }
 
 function obtenerClasesPrioridad(importancia: Habito['importancia']): string {
@@ -40,34 +46,104 @@ interface FilaHabitoProps {
     indice: number;
     onToggle?: (id: number) => void;
     onEditar?: (habito: Habito) => void;
+    onEliminar?: (id: number) => void;
 }
 
-function FilaHabito({habito, indice, onToggle, onEditar}: FilaHabitoProps): JSX.Element {
+interface MenuContextualEstado {
+    visible: boolean;
+    x: number;
+    y: number;
+}
+
+function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabitoProps): JSX.Element {
     /* Configuracion de umbrales (debe coincidir con useDashboard) */
     const UMBRAL_RESETEO_RACHA = 7;
     const DIAS_ADVERTENCIA_RACHA = 2;
 
+    const [menuContextual, setMenuContextual] = useState<MenuContextualEstado>({
+        visible: false,
+        x: 0,
+        y: 0
+    });
+
     const esUrgente = habito.diasInactividad > 2;
     const porcentajeUrgencia = Math.min((habito.diasInactividad / 7) * 100, 100);
     const completadoHoy = fueCompletadoHoy(habito.ultimoCompletado);
+
+    /* Frecuencia del habito */
+    const frecuencia = habito.frecuencia || FRECUENCIA_POR_DEFECTO;
+    const habitoTocaHoy = tocaHoy(frecuencia, habito.ultimoCompletado);
+    const textoFrecuencia = describirFrecuencia(frecuencia);
+    const intervaloFrecuencia = obtenerIntervaloFrecuencia(frecuencia);
 
     /* Logica de advertencia de racha */
     const diasAntesDePerder = UMBRAL_RESETEO_RACHA - habito.diasInactividad;
     const rachaEnPeligro = habito.racha > 0 && diasAntesDePerder <= DIAS_ADVERTENCIA_RACHA && diasAntesDePerder > 0;
     const rachaPerdida = habito.diasInactividad > UMBRAL_RESETEO_RACHA;
 
-    const manejarToggle = (evento: React.MouseEvent) => {
-        evento.stopPropagation();
-        if (onToggle) {
-            onToggle(habito.id);
-        }
-    };
+    const manejarToggle = useCallback(
+        (evento: React.MouseEvent) => {
+            evento.stopPropagation();
+            onToggle?.(habito.id);
+        },
+        [onToggle, habito.id]
+    );
 
-    const manejarEditar = () => {
-        if (onEditar) {
-            onEditar(habito);
+    const manejarEditar = useCallback(() => {
+        onEditar?.(habito);
+    }, [onEditar, habito]);
+
+    const manejarClickDerecho = useCallback((evento: React.MouseEvent) => {
+        evento.preventDefault();
+        evento.stopPropagation();
+        setMenuContextual({
+            visible: true,
+            x: evento.clientX,
+            y: evento.clientY
+        });
+    }, []);
+
+    const cerrarMenuContextual = useCallback(() => {
+        setMenuContextual(prev => ({...prev, visible: false}));
+    }, []);
+
+    const manejarOpcionMenu = useCallback(
+        (opcionId: string) => {
+            switch (opcionId) {
+                case 'editar':
+                    onEditar?.(habito);
+                    break;
+                case 'toggle':
+                    onToggle?.(habito.id);
+                    break;
+                case 'eliminar':
+                    onEliminar?.(habito.id);
+                    break;
+            }
+        },
+        [habito, onEditar, onToggle, onEliminar]
+    );
+
+    /* Opciones del menu contextual */
+    const opcionesMenu: OpcionMenu[] = [
+        {
+            id: 'toggle',
+            etiqueta: completadoHoy ? 'Desmarcar' : 'Marcar completado',
+            icono: <Check size={12} />
+        },
+        {
+            id: 'editar',
+            etiqueta: 'Editar habito',
+            icono: <Edit3 size={12} />,
+            separadorDespues: true
+        },
+        {
+            id: 'eliminar',
+            etiqueta: 'Eliminar',
+            icono: <AlertTriangle size={12} />,
+            peligroso: true
         }
-    };
+    ];
 
     /* Determinar clase de urgencia para la barra */
     const obtenerClaseUrgencia = (): string => {
@@ -79,79 +155,95 @@ function FilaHabito({habito, indice, onToggle, onEditar}: FilaHabitoProps): JSX.
     };
 
     return (
-        <div className={`tablaFila tablaFilaEditable ${completadoHoy ? 'tablaFilaCompletada' : ''}`} onClick={manejarEditar} title="Click para editar">
-            {/* ID */}
-            <div className="tablaColumnaId filaIndice">{String(indice + 1).padStart(2, '0')}</div>
+        <>
+            <div className={`tablaFila tablaFilaEditable ${completadoHoy ? 'tablaFilaCompletada' : ''} ${habitoTocaHoy && !completadoHoy ? 'tablaFilaTocaHoy' : ''}`} onClick={manejarEditar} onContextMenu={manejarClickDerecho} title="Click para editar, click derecho para menu">
+                {/* ID */}
+                <div className="tablaColumnaId filaIndice">{String(indice + 1).padStart(2, '0')}</div>
 
-            {/* Nombre y Tags */}
-            <div className="tablaColumnaNombre">
-                <div className={`filaNombre ${completadoHoy ? 'filaNombreCompletado' : ''}`}>{habito.nombre}</div>
-                <div className="filaTags">
-                    {habito.tags.map(tag => (
-                        <span key={tag} className="filaTag">
-                            #{tag}
+                {/* Nombre y Tags */}
+                <div className="tablaColumnaNombre">
+                    <div className="filaNombreContenedor">
+                        <span className={`filaNombre ${completadoHoy ? 'filaNombreCompletado' : ''}`}>
+                            {habito.nombre}
+                            {intervaloFrecuencia !== null && (
+                                <span className="filaNombreIndicadorFrecuencia" title={`Frecuencia: ${textoFrecuencia}`}>
+                                    (<Clock size={10} />
+                                    <span>{intervaloFrecuencia}</span>)
+                                </span>
+                            )}
                         </span>
-                    ))}
-                </div>
-            </div>
-
-            {/* Prioridad */}
-            <div className="tablaColumnaPrioridad">
-                <span className={obtenerClasesPrioridad(habito.importancia)}>{habito.importancia.toUpperCase()}</span>
-            </div>
-
-            {/* Inactividad - dias sin hacer */}
-            <div className="tablaColumnaInactividad">
-                <div className="inactividadIndicador">
-                    <Clock size={10} className={esUrgente ? 'inactividadIconoUrgente' : 'inactividadIcono'} />
-                    <span className={esUrgente ? 'inactividadTextoUrgente' : 'inactividadTexto'}>{habito.diasInactividad}d</span>
-                </div>
-            </div>
-
-            {/* Urgencia - barra de progreso visual */}
-            <div className="tablaColumnaUrgencia">
-                <div className="urgenciaContenedor">
-                    <div className="barraUrgenciaNueva">
-                        <div className={`barraRellenoNueva ${obtenerClaseUrgencia()}`} style={{width: `${porcentajeUrgencia}%`}}></div>
+                        {habitoTocaHoy && !completadoHoy && <span className="filaTocaHoyBadge">Hoy</span>}
                     </div>
-                    <span className={`urgenciaPorcentaje ${esUrgente ? 'urgenciaPorcentajeAlto' : ''}`}>{Math.round(porcentajeUrgencia)}%</span>
+                    <div className="filaTags">
+                        {habito.tags.map(tag => (
+                            <span key={tag} className="filaTag">
+                                #{tag}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Prioridad */}
+                <div className="tablaColumnaPrioridad">
+                    <span className={obtenerClasesPrioridad(habito.importancia)}>{habito.importancia.toUpperCase()}</span>
+                </div>
+
+                {/* Inactividad - dias sin hacer */}
+                <div className="tablaColumnaInactividad">
+                    <div className="inactividadIndicador">
+                        <Clock size={10} className={esUrgente ? 'inactividadIconoUrgente' : 'inactividadIcono'} />
+                        <span className={esUrgente ? 'inactividadTextoUrgente' : 'inactividadTexto'}>{habito.diasInactividad}d</span>
+                    </div>
+                </div>
+
+                {/* Urgencia - barra de progreso visual */}
+                <div className="tablaColumnaUrgencia">
+                    <div className="urgenciaContenedor">
+                        <div className="barraUrgenciaNueva">
+                            <div className={`barraRellenoNueva ${obtenerClaseUrgencia()}`} style={{width: `${porcentajeUrgencia}%`}}></div>
+                        </div>
+                        <span className={`urgenciaPorcentaje ${esUrgente ? 'urgenciaPorcentajeAlto' : ''}`}>{Math.round(porcentajeUrgencia)}%</span>
+                    </div>
+                </div>
+
+                {/* Racha - indicador separado */}
+                <div className="tablaColumnaRacha">
+                    <div className={`rachaContenedor ${rachaEnPeligro && !completadoHoy ? 'rachaContenedorPeligro' : ''} ${completadoHoy ? 'rachaContenedorCompletado' : ''}`}>
+                        {rachaEnPeligro && !completadoHoy && <AlertTriangle size={10} className="rachaIconoAdvertencia" />}
+                        {rachaPerdida && habito.racha === 0 && <Flame size={10} className="rachaIconoPerdida" />}
+                        <Flame size={10} className={`rachaIcono ${habito.racha > 0 ? 'rachaIconoActivo' : ''}`} />
+                        <span className="rachaNumero">{habito.racha}</span>
+                        {rachaEnPeligro && !completadoHoy && <span className="rachaTiempoRestante">({diasAntesDePerder}d)</span>}
+                    </div>
+                </div>
+
+                {/* Accion - solo boton toggle */}
+                <div className="tablaColumnaAccion">
+                    <div className="accionContenedor">
+                        <button className={`botonCompletarHabito ${completadoHoy ? 'botonCompletarHabitoActivo' : ''}`} onClick={manejarToggle} title={completadoHoy ? 'Desmarcar' : 'Marcar como completado'}>
+                            <Check size={12} />
+                            <span>{completadoHoy ? 'Hecho' : 'Hoy'}</span>
+                        </button>
+                        <button
+                            className="botonEditarHabito"
+                            onClick={evento => {
+                                evento.stopPropagation();
+                                manejarEditar();
+                            }}
+                            title="Editar habito">
+                            <Edit3 size={12} />
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* Racha - indicador separado */}
-            <div className="tablaColumnaRacha">
-                <div className={`rachaContenedor ${rachaEnPeligro && !completadoHoy ? 'rachaContenedorPeligro' : ''} ${completadoHoy ? 'rachaContenedorCompletado' : ''}`}>
-                    {rachaEnPeligro && !completadoHoy && <AlertTriangle size={10} className="rachaIconoAdvertencia" />}
-                    {rachaPerdida && habito.racha === 0 && <Flame size={10} className="rachaIconoPerdida" />}
-                    <Flame size={10} className={`rachaIcono ${habito.racha > 0 ? 'rachaIconoActivo' : ''}`} />
-                    <span className="rachaNumero">{habito.racha}</span>
-                    {rachaEnPeligro && !completadoHoy && <span className="rachaTiempoRestante">({diasAntesDePerder}d)</span>}
-                </div>
-            </div>
-
-            {/* Accion - solo boton toggle */}
-            <div className="tablaColumnaAccion">
-                <div className="accionContenedor">
-                    <button className={`botonCompletarHabito ${completadoHoy ? 'botonCompletarHabitoActivo' : ''}`} onClick={manejarToggle} title={completadoHoy ? 'Desmarcar' : 'Marcar como completado'}>
-                        <Check size={12} />
-                        <span>{completadoHoy ? 'Hecho' : 'Hoy'}</span>
-                    </button>
-                    <button
-                        className="botonEditarHabito"
-                        onClick={evento => {
-                            evento.stopPropagation();
-                            manejarEditar();
-                        }}
-                        title="Editar habito">
-                        <Edit3 size={12} />
-                    </button>
-                </div>
-            </div>
-        </div>
+            {/* Menu contextual */}
+            {menuContextual.visible && <MenuContextual opciones={opcionesMenu} posicionX={menuContextual.x} posicionY={menuContextual.y} onSeleccionar={manejarOpcionMenu} onCerrar={cerrarMenuContextual} />}
+        </>
     );
 }
 
-export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditarHabito}: TablaHabitosProps): JSX.Element {
+export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditarHabito, onEliminarHabito}: TablaHabitosProps): JSX.Element {
     return (
         <div id="tabla-habitos" className="dashboardPanel">
             {/* Encabezado de tabla */}
@@ -167,7 +259,7 @@ export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditar
 
             {/* Filas de habitos */}
             {habitos.map((habito, index) => (
-                <FilaHabito key={habito.id} habito={habito} indice={index} onToggle={onToggleHabito} onEditar={onEditarHabito} />
+                <FilaHabito key={habito.id} habito={habito} indice={index} onToggle={onToggleHabito} onEditar={onEditarHabito} onEliminar={onEliminarHabito} />
             ))}
 
             {/* Añadir habito */}

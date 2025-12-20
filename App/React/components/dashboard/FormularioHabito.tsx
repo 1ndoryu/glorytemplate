@@ -6,7 +6,9 @@
 
 import {useState, useCallback} from 'react';
 import {Plus, Tag, Trash2} from 'lucide-react';
-import type {NivelImportancia, DatosNuevoHabito} from '../../types/dashboard';
+import type {NivelImportancia, DatosNuevoHabito, FrecuenciaHabito} from '../../types/dashboard';
+import {FRECUENCIA_POR_DEFECTO} from '../../types/dashboard';
+import {SelectorFrecuencia} from './SelectorFrecuencia';
 
 /* Alias para compatibilidad con el componente */
 type DatosFormulario = DatosNuevoHabito;
@@ -26,6 +28,7 @@ export function FormularioHabito({onGuardar, onCancelar, onEliminar, datosInicia
     const [nombre, setNombre] = useState(datosIniciales?.nombre || '');
     const [importancia, setImportancia] = useState<NivelImportancia>(datosIniciales?.importancia || 'Media');
     const [tags, setTags] = useState<string[]>(datosIniciales?.tags || []);
+    const [frecuencia, setFrecuencia] = useState<FrecuenciaHabito>(datosIniciales?.frecuencia || FRECUENCIA_POR_DEFECTO);
     const [nuevoTag, setNuevoTag] = useState('');
     const [errores, setErrores] = useState<{nombre?: string}>({});
     const [mostrarConfirmacionEliminar, setMostrarConfirmacionEliminar] = useState(false);
@@ -51,7 +54,8 @@ export function FormularioHabito({onGuardar, onCancelar, onEliminar, datosInicia
         onGuardar({
             nombre: nombre.trim(),
             importancia,
-            tags
+            tags,
+            frecuencia
         });
     };
 
@@ -99,6 +103,11 @@ export function FormularioHabito({onGuardar, onCancelar, onEliminar, datosInicia
                         </button>
                     ))}
                 </div>
+            </div>
+
+            {/* Campo Frecuencia */}
+            <div className="formularioCampo">
+                <SelectorFrecuencia frecuencia={frecuencia} onChange={setFrecuencia} deshabilitado={guardando} />
             </div>
 
             {/* Campo Tags */}

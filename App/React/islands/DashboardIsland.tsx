@@ -52,7 +52,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                     {/* Columna 1: Habitos Criticos */}
                     <div className="columnaHabitos">
                         <SeccionEncabezado icono={<AlertCircle size={12} />} titulo="Foco Prioritario" subtitulo={modoInfo?.descripcion || ''} acciones={<SelectorOrden modoActual={modoActual} onCambiarModo={cambiarModo} />} />
-                        <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} />
+                        <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} />
                     </div>
 
                     {/* Columna 2: Tareas y Notas */}
@@ -92,7 +92,8 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                         datosIniciales={{
                             nombre: habitoEditando.nombre,
                             importancia: habitoEditando.importancia,
-                            tags: habitoEditando.tags
+                            tags: habitoEditando.tags,
+                            frecuencia: habitoEditando.frecuencia
                         }}
                         modoEdicion
                     />

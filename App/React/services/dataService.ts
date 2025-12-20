@@ -167,6 +167,18 @@ function validarHabito(habito: unknown): ResultadoValidacion {
         return {esValido: false, mensaje: 'Ultimo completado invalido'};
     }
 
+    /* Validar frecuencia si existe */
+    if (h.frecuencia !== undefined) {
+        if (typeof h.frecuencia !== 'object' || h.frecuencia === null) {
+            return {esValido: false, mensaje: 'Frecuencia de habito invalida'};
+        }
+        const frecuencia = h.frecuencia as Record<string, unknown>;
+        const tiposValidos = ['diario', 'cadaXDias', 'semanal', 'diasEspecificos', 'mensual'];
+        if (!tiposValidos.includes(frecuencia.tipo as string)) {
+            return {esValido: false, mensaje: 'Tipo de frecuencia invalido'};
+        }
+    }
+
     return {esValido: true, mensaje: 'OK'};
 }
 

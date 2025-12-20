@@ -274,6 +274,7 @@ export function useDashboard(): UseDashboardReturn {
                 nombre: datos.nombre,
                 importancia: datos.importancia,
                 tags: datos.tags,
+                frecuencia: datos.frecuencia,
                 diasInactividad: 0,
                 racha: 0,
                 historialCompletados: [],
@@ -304,7 +305,8 @@ export function useDashboard(): UseDashboardReturn {
                         ...h,
                         nombre: datos.nombre,
                         importancia: datos.importancia,
-                        tags: datos.tags
+                        tags: datos.tags,
+                        frecuencia: datos.frecuencia
                     };
                 })
             );

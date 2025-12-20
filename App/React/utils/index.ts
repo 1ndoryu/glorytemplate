@@ -8,3 +8,5 @@ export {obtenerFechaHoy, calcularDiasDesde, fueCompletadoHoy, crearFechaHaceNDia
 export {validarHabitos, validarTareas, validarNotas} from './validadores';
 
 export {migrarYActualizarHabitos} from './migracionHabitos';
+
+export {tocaHoy, diasHastaProximaRepeticion, calcularUmbralInactividad, describirFrecuencia, obtenerIntervaloFrecuencia} from './frecuenciaHabitos';

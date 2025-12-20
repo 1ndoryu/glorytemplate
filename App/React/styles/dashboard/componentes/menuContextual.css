@@ -1,0 +1,102 @@
+/*
+ * MENU CONTEXTUAL
+ * Estilos para el menu de click derecho
+ */
+
+/* 
+ * CONTENEDOR PRINCIPAL 
+ */
+.menuContextual {
+    position: fixed;
+    z-index: 1000;
+    min-width: 160px;
+    max-width: 240px;
+    padding: var(--dashboard-espacioXs) 0;
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    animation: menuContextualAparecer 0.12s ease-out;
+}
+
+@keyframes menuContextualAparecer {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 
+ * OPCIONES DEL MENU 
+ */
+.menuContextualOpcion {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    width: 100%;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: transparent;
+    border: none;
+    color: var(--dashboard-textoNormal);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--dashboard-transicionRapida);
+}
+
+.menuContextualOpcion:hover:not(:disabled) {
+    background-color: var(--dashboard-fondoHover);
+}
+
+.menuContextualOpcion:focus {
+    outline: none;
+    background-color: var(--dashboard-fondoHover);
+}
+
+/* 
+ * OPCION PELIGROSA 
+ */
+.menuContextualOpcionPeligrosa {
+    color: var(--dashboard-estadoAlta);
+}
+
+.menuContextualOpcionPeligrosa:hover:not(:disabled) {
+    background-color: var(--dashboard-estadoAltaFondo);
+}
+
+/* 
+ * OPCION DESHABILITADA 
+ */
+.menuContextualOpcionDeshabilitada {
+    color: var(--dashboard-textoMuyApagado);
+    cursor: not-allowed;
+}
+
+/* 
+ * ICONO Y ETIQUETA 
+ */
+.menuContextualIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.menuContextualEtiqueta {
+    flex: 1;
+}
+
+/* 
+ * SEPARADOR 
+ */
+.menuContextualSeparador {
+    height: 1px;
+    margin: var(--dashboard-espacioXs) var(--dashboard-espacioMd);
+    background-color: var(--dashboard-bordePrincipal);
+}

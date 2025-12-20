@@ -30,6 +30,8 @@
 @import './componentes/formulario.css';
 @import './componentes/toast.css';
 @import './componentes/ordenamiento.css';
+@import './componentes/menuContextual.css';
+@import './componentes/frecuencia.css';
 
 /* Utilidades */
 @import './utilidades/estados.css';

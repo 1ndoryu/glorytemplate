@@ -1,0 +1,212 @@
+/*
+ * SELECTOR DE FRECUENCIA
+ * Estilos para el componente de configuracion de frecuencia de habitos
+ */
+
+/* 
+ * CONTENEDOR PRINCIPAL 
+ */
+.selectorFrecuencia {
+    border: 1px solid var(--dashboard-bordePrincipal);
+    background-color: var(--dashboard-fondoPrincipal);
+}
+
+/* 
+ * CABECERA COLAPSABLE 
+ */
+.selectorFrecuenciaCabecera {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: transparent;
+    border: none;
+    color: var(--dashboard-textoNormal);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoBase);
+    cursor: pointer;
+    transition: background-color var(--dashboard-transicionNormal);
+}
+
+.selectorFrecuenciaCabecera:hover:not(:disabled) {
+    background-color: var(--dashboard-fondoHover);
+}
+
+.selectorFrecuenciaCabecera:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.selectorFrecuenciaEtiqueta {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.selectorFrecuenciaValor {
+    flex: 1;
+    text-align: right;
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+    margin-right: var(--dashboard-espacioSm);
+}
+
+.selectorFrecuenciaFlecha {
+    color: var(--dashboard-textoMuyApagado);
+    font-size: 8px;
+}
+
+/* 
+ * PANEL EXPANDIDO 
+ */
+.selectorFrecuenciaPanel {
+    padding: var(--dashboard-espacioMd);
+    border-top: 1px solid var(--dashboard-bordePrincipal);
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+    animation: selectorFrecuenciaAparecer 0.15s ease-out;
+}
+
+@keyframes selectorFrecuenciaAparecer {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 
+ * SELECTOR DE TIPOS 
+ */
+.selectorFrecuenciaTipos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--dashboard-espacioXs);
+}
+
+.selectorFrecuenciaTipo {
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoApagado);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.selectorFrecuenciaTipo:hover:not(:disabled) {
+    border-color: var(--dashboard-textoMuyApagado);
+    color: var(--dashboard-textoSecundario);
+}
+
+.selectorFrecuenciaTipoActivo {
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-textoMuyApagado);
+    color: var(--dashboard-textoNormal);
+}
+
+/* 
+ * CONFIGURACION ESPECIFICA 
+ */
+.selectorFrecuenciaConfig {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+    padding-top: var(--dashboard-espacioSm);
+    border-top: 1px dashed var(--dashboard-bordePrincipal);
+}
+
+.selectorFrecuenciaConfigLabel {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoMuyApagado);
+}
+
+/* 
+ * SELECTOR NUMERICO 
+ */
+.selectorFrecuenciaNumero {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+}
+
+.selectorFrecuenciaBotonNumero {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoBase);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.selectorFrecuenciaBotonNumero:hover:not(:disabled) {
+    border-color: var(--dashboard-textoMuyApagado);
+    background-color: var(--dashboard-fondoHover);
+}
+
+.selectorFrecuenciaBotonNumero:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.selectorFrecuenciaNumeroValor {
+    min-width: 2rem;
+    text-align: center;
+    color: var(--dashboard-textoNormal);
+    font-weight: 600;
+}
+
+.selectorFrecuenciaNumeroUnidad {
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+}
+
+/* 
+ * SELECTOR DE DIAS 
+ */
+.selectorFrecuenciaDias {
+    display: flex;
+    gap: var(--dashboard-espacioXs);
+}
+
+.selectorFrecuenciaDia {
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoApagado);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.selectorFrecuenciaDia:hover:not(:disabled) {
+    border-color: var(--dashboard-textoMuyApagado);
+    color: var(--dashboard-textoSecundario);
+}
+
+.selectorFrecuenciaDiaActivo {
+    background-color: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+}
+
+.selectorFrecuenciaDiaActivo:hover:not(:disabled) {
+    background-color: rgba(34, 197, 94, 0.25);
+    border-color: rgba(34, 197, 94, 0.6);
+}
