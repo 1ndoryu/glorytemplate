@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Panel de Configuración de Tareas completado (Adjuntos en versión local). Próximo: Fase de Estadísticas.
+**Estado:** Fase de Gestión de Proyectos (Planificación).
 
 ---
 
@@ -118,6 +118,47 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 </details>
 
+<details>
+<summary><strong>⚙️ Panel Configuración Tareas (Completado)</strong></summary>
+
+### Configuracion Avanzada
+- Panel modal dedicado para cada tarea
+- Integracion con menu contextual y click en iconos
+
+### Campos Implementados
+- **Fecha maxima (deadline)**: Selector, indicadores de urgencia, alertas de vencimiento
+- **Descripcion**: Notas detalladas expandibles
+- **Repeticion**: Sistema "Tras Completar" con selector unificado
+- **Prioridad**: Selector visual (compartido con habitos)
+
+### Adjuntos (Media)
+- Subida de imagenes (con preview y zoom)
+- Subida de audios (con reproductor minimalista integrado)
+- Subida de documentos (PDF, TXT, etc.)
+- Descarga de archivos
+- Validacion de tamaño (Max 5MB)
+- Almacenamiento local (simulado en navegador)
+
+</details>
+
+<details>
+<summary><strong>🔧 Refactorización Estructural (Completado)</strong></summary>
+
+### Componentes Compartidos (Shared)
+- `AccionesFormulario`: Botones estandarizados (Guardar/Cancelar)
+- `SelectorNivel`: Selector generico Importancia/Prioridad
+- `SeccionPanel`: Wrapper de secciones con encabeziado
+- `Modal`: Sistema de ventanas modales reutilizable
+- `ToggleSwitch`: Interruptor UI
+- `SelectorDias`: Logica de seleccion semanal
+
+### Estandarización CSS
+- Directorio `styles/dashboard/shared/` creado
+- Estilos desacoplados de componentes especificos
+- Unificacion visual entre formularios de Habitos y Tareas
+
+</details>
+
 ---
 
 ## Estructura de Archivos Actual
@@ -178,164 +219,33 @@ App/React/styles/dashboard/
     estados.css, acciones.css
 ```
 
----
+## Fase Actual: Gestión de Proyectos
 
-## Fase Actual: Panel de Configuración de Tareas
+**Objetivo:** Implementar la entidad "Proyecto" como un contenedor de alto nivel para agrupar y aislar tareas complejas. Esto introduce una jerarquía de 3 niveles: **Proyecto > Tarea > Subtarea**.
 
-**Objetivo:** Cada tarea puede tener configuracion avanzada similar a los habitos
-**Estado:** Panel base implementado, tipos expandidos, integracion con ListaTareas
+### Concepto y Flujo
+- **Jerarquía**: 
+  1. **Proyecto**: Objetivo macro (ej: "Lanzar Web Personal").
+  2. **Tarea**: Entidad accionable dentro del proyecto.
+  3. **Subtarea**: Paso indivisible de una tarea.
+- **Aislamiento**: Las tareas de un proyecto pertenecen *exclusivamente* a ese contexto y no deben mezclarse visualmente con tareas sueltas u otros proyectos en la vista principal, permitiendo foco total.
 
-### Campos del Panel de Configuración
+### Refactorización Arquitectónica
+- [ ] **Componente `DashboardPanel`**: Crear `components/shared/DashboardPanel.tsx` para estandarizar los contenedores (Hábitos, Lista de Proyectos, Paneles de Proyecto).
 
-- [x] **Fecha maxima (deadline)**
-  - [x] Selector de fecha
-  - [x] Indicador visual de proximidad (urgente, proximo, normal)
-  - [x] Tareas vencidas resaltadas en rojo
-  - [x] Indicador compacto en la fila de tarea (icono calendario + fecha)
-  
-- [x] **Descripcion**
-  - [x] Campo expandible para notas detalladas
-  - [ ] Soporte markdown basico (opcional)
+### Nueva Entidad: Proyectos
+- [ ] **Estructura de Datos**:
+  - `Proyecto`: id, nombre, descripción, prioridad, fecha límite.
+  - Relación: Tareas tendrán un campo `proyectoId`.
+- [ ] **Visualización**:
+  - **Lista de Proyectos**: Ubicada en columna izquierda (bajo Hábitos). Muestra resumen y progreso.
+  - **Vista Detalle**: Al seleccionar un proyecto, se muestra su propia lista de tareas aislada (debajo, puede ocultarse las tareas)
 
-- [x] **Sistema de Repeticion Inteligente** (UI unificada)
-  - [x] **Logica simplificada: Repetir despues de completar**
-    - La tarea reaparece X dias despues de marcarla completada
-    - Se reutiliza el componente `SelectorFrecuencia` para la configuración
-  - [x] **Modo Intervalo Fijo** (Eliminado por simplificación - solo soporta 'Tras Completar')
-  - [x] Logica de generacion automatica de repeticiones
-  - [x] Evitar duplicados (si ya existe una instancia pendiente)
-  - [ ] Historial de repeticiones
-
-- [x] **Adjuntos** (Implementado versión local)
-  - [x] Subir imagenes a la tarea
-  - [x] Subir archivos (PDF, documentos)
-  - [x] Preview de imagenes integrado
-  - [ ] Almacenamiento en WordPress media library (Requiere Backend)
-
-### Implementacion Tecnica (COMPLETADO)
-
-**Tipos expandidos en dashboard.ts:**
-- [x] TipoRepeticion ('despuesCompletar' | 'intervaloFijo')
-- [x] RepeticionTarea (tipo, intervalo, diasSemana, ultimaRepeticion)
-- [x] Adjunto (id, tipo, url, nombre, tamano, fechaSubida)
-- [x] TareaConfiguracion (fechaMaxima, descripcion, repeticion, adjuntos)
-- [x] Tarea.configuracion?: TareaConfiguracion
-
-**Componentes creados:**
-- [x] PanelConfiguracionTarea.tsx - Panel modal completo
-- [x] SeccionAdjuntos.tsx - UI para gestión de adjuntos
-- [x] Estilos en panelConfiguracion.css (consistentes con formulario habitos)
-
-**Integraciones:**
-- [x] Opcion "Configurar tarea" en menu contextual de TareaItem
-- [x] Indicador de fecha limite en fila de tarea
-- [x] Selector de prioridad en panel (reutiliza estilos de importancia)
-- [x] Estilos botones Cancelar/Guardar unificados con formulario habitos
-
----
-
-## Refactorizacion: Componentes Comunes (PLANIFICACION)
-
-**Objetivo:** Centralizar componentes y estilos duplicados para mantener coherencia visual y reducir mantenimiento
-
-### Problema Actual
-
-Los paneles de configuración de hábitos y tareas tienen estructura similar pero implementaciones separadas:
-- Botones de acción (Cancelar/Guardar) con estilos duplicados
-- Selectores de importancia/prioridad (mismo concepto, diferente implementación)
-- Estructura de secciones con encabezado (icono + titulo)
-- Toggle switches
-- Modales/Paneles con overlay
-
-### Componentes Candidatos a Centralizar
-
-| Componente Propuesto | Uso Actual                                 | Archivos Afectados                                  |
-| -------------------- | ------------------------------------------ | --------------------------------------------------- |
-| `AccionesFormulario` | Botones Cancelar/Guardar/Eliminar          | FormularioHabito.tsx, PanelConfiguracionTarea.tsx   |
-| `SelectorNivel`      | Importancia (habitos) y Prioridad (tareas) | FormularioHabito.tsx, PanelConfiguracionTarea.tsx   |
-| `SeccionPanel`       | Wrapper con icono + titulo                 | PanelConfiguracionTarea.tsx, FormularioHabito.tsx   |
-| `ToggleSwitch`       | Switch on/off para opciones                | PanelConfiguracionTarea.tsx                         |
-| `PanelModal`         | Contenedor modal con overlay               | ModalHabito.tsx, PanelConfiguracionTarea.tsx        |
-| `SelectorDias`       | Dias de la semana                          | SelectorFrecuencia.tsx, PanelConfiguracionTarea.tsx |
-
-### CSS a Unificar
-
-| Estilos                                                   | Ubicacion Actual       | Propuesta                                                   |
-| --------------------------------------------------------- | ---------------------- | ----------------------------------------------------------- |
-| `.formularioAcciones`, `.formularioBotonCancelar`, etc    | formulario.css         | Mover a `shared/acciones.css`                               |
-| `.formularioGrupoBotones`, `.formularioBotonImportancia*` | formulario.css         | Mover a `shared/selector-nivel.css`                         |
-| `.modalOverlay`, `.modalContenedor`, etc                  | modal.css              | Ya centralizado en `components/shared/Modal.tsx`            |
-| `.panelConfiguracion*` que duplica modal                  | panelConfiguracion.css | [x] Eliminado duplicados, usa `components/shared/Modal.tsx` |
-
-### Fases de Refactorizacion
-
-**Fase R1: Audit y Documentacion** (Completado)
-- [x] Listar TODOS los componentes con UI similar
-- [x] Capturar screenshots de diferencias visuales actuales
-- [x] Definir diseño "canonico" de cada componente comun
-- [x] Crear documento de patron de uso
-
-**Fase R2: CSS Compartido** (Completado)
-- [x] Crear `styles/dashboard/shared/` para estilos reutilizables
-- [x] Extraer estilos de botones de accion
-- [x] Extraer estilos de selector nivel (importancia/prioridad)
-- [x] Actualizar imports en index.css
-
-**Fase R3: Componentes Compartidos** (Completado)
-- [x] Crear `components/shared/AccionesFormulario.tsx`
-- [x] Crear `components/shared/SelectorNivel.tsx`
-- [x] Crear `components/shared/SeccionPanel.tsx`
-- [x] Crear `components/shared/Modal.tsx`
-- [x] Actualizar exportaciones en index.ts
-- [x] Crear `components/shared/ToggleSwitch.tsx`
-- [x] Crear `components/shared/SelectorDias.tsx`
-
-**Fase R4: Integracion y Testing** (Completado)t
-- [x] Refactorizar FormularioHabito.tsx para usar componentes shared
-- [x] Refactorizar PanelConfiguracionTarea.tsx para usar componentes shared
-- [x] Verificar consistencia visual en ambos paneles
-- [x] Probar todos los flujos de usuario
-
-### Checklist de Revision por Archivo
-
-**FormularioHabito.tsx**
-- [x] Usa AccionesFormulario?
-- [x] Usa SelectorNivel para importancia?
-- [x] Estilos vienen de shared/?
-
-**PanelConfiguracionTarea.tsx**
-- [x] Usa AccionesFormulario?
-- [x] Usa SelectorNivel para prioridad?
-- [x] Usa SeccionPanel para secciones?
-- [x] Usa ToggleSwitch para repeticion?
-- [x] Estilos vienen de shared/?
-
-**SelectorFrecuencia.tsx**
-- [x] Usa SelectorDias para dias de semana?
-
-### Archivos Nuevos a Crear
-
-```
-components/shared/
-  AccionesFormulario.tsx      # Botones Cancelar/Guardar/Eliminar
-  SelectorNivel.tsx           # Selector Alta/Media/Baja generico
-  SeccionPanel.tsx            # Wrapper seccion con icono+titulo
-  ToggleSwitch.tsx            # Componente toggle reutilizable
-  index.ts                    # Actualizar exportaciones
-
-styles/dashboard/shared/
-  accionesFormulario.css      # Estilos centralizados de acciones
-  selectorNivel.css           # Estilos selector importancia/prioridad
-  seccionPanel.css            # Estilos seccion con encabezado
-  toggleSwitch.css            # Estilos toggle
-```
-
-### Notas de Implementacion
-
-- Mantener retrocompatibilidad: los componentes deben poder usarse sin romper lo existente
-- Usar props genéricas (ej: `niveles` en lugar de `importancias` o `prioridades`)
-- Documentar cada componente con ejemplos de uso
-- Considerar accesibilidad (aria-labels, focus states)
+### Funcionalidad
+- [ ] **Gestión de Proyectos**: CRUD completo.
+- [ ] **Lógica de Tareas de Proyecto**: 
+  - Las tareas creadas dentro de un proyecto heredan el `proyectoId`.
+  - Reutilización del componente `ListaTareas` pero filtrado por `proyectoId`.
 
 ---
 
@@ -349,9 +259,12 @@ styles/dashboard/shared/
 - [ ] Historial considerando frecuencia para estadisticas
 - [ ] Animacion de salida al eliminar
 
-### Tareas
+### Tareas (Configuracion y UX)
 - [ ] Animacion de preview mas fluida durante arrastre
 - [ ] Estadisticas de tareas completadas hoy
+- [ ] Soporte markdown basico en descripcion (opcional)
+- [ ] Historial de repeticiones (log)
+- [ ] Almacenamiento real de adjuntos (WP Media Library - Requiere Backend)
 
 ### Scratchpad
 - [ ] Toggle entre edicion y preview markdown
@@ -367,12 +280,6 @@ styles/dashboard/shared/
 ---
 
 ## Fases Futuras
-
-### Fase: Estadisticas y Graficos
-- Panel de estadisticas (habitos/semana, rachas, tareas completadas)
-- Grafico de consistencia estilo GitHub (heatmap)
-- Calendario con dias completados
-- Exportar datos
 
 ### Fase: API REST WordPress
 - Endpoint `POST /wp-json/glory/v1/dashboard/save`
