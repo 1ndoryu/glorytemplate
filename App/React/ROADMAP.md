@@ -306,11 +306,11 @@ App/React/hooks/useDeshacer.ts                  # Hook para manejar cola de acci
 ### 3.3 Reordenar Tareas (NUEVO)
 **Objetivo:** Orden manual persistente con drag & drop
 
-- [ ] Drag & drop para reordenar tareas
-- [ ] Indicador visual de destino al arrastrar
-- [ ] Orden se persiste en localStorage
-- [ ] Tareas completadas se ordenan aparte (al final)
-- [ ] Animacion suave al reordenar
+- [x] Drag & drop para reordenar tareas
+- [x] Indicador visual de destino al arrastrar
+- [x] Orden se persiste en localStorage
+- [x] Tareas completadas se ordenan aparte (al final)
+- [x] Animacion suave al reordenar
 
 **Implementacion tecnica:**
 - Usar `@dnd-kit/core` o implementacion nativa HTML5 drag

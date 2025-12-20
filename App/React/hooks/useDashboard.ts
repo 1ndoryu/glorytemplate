@@ -59,6 +59,7 @@ interface UseDashboardReturn {
     } | null;
     ejecutarDeshacer: () => void;
     descartarDeshacer: () => void;
+    reordenarTareas: (tareas: Tarea[]) => void;
 }
 
 export function useDashboard(): UseDashboardReturn {
@@ -478,6 +479,7 @@ export function useDashboard(): UseDashboardReturn {
               }
             : null,
         ejecutarDeshacer,
-        descartarDeshacer
+        descartarDeshacer,
+        reordenarTareas: setTareas
     };
 }

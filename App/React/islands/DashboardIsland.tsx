@@ -35,7 +35,7 @@ function IndicadorCarga(): JSX.Element {
 }
 
 export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin'}: DashboardIslandProps): JSX.Element {
-    const {habitos, tareas, notas, toggleTarea, crearTarea, editarTarea, eliminarTarea, actualizarNotas, toggleHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, exportarTodosDatos, importarTodosDatos, importando, mensajeEstado, tipoMensaje, cargandoDatos, accionDeshacer, ejecutarDeshacer, descartarDeshacer} = useDashboard();
+    const {habitos, tareas, notas, toggleTarea, crearTarea, editarTarea, eliminarTarea, actualizarNotas, toggleHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, exportarTodosDatos, importarTodosDatos, importando, mensajeEstado, tipoMensaje, cargandoDatos, accionDeshacer, ejecutarDeshacer, descartarDeshacer, reordenarTareas} = useDashboard();
 
     /* Sistema de ordenamiento de habitos */
     const {habitosOrdenados, modoActual, cambiarModo, modosDisponibles} = useOrdenarHabitos(habitos);
@@ -60,7 +60,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                         {/* Seccion: Tareas */}
                         <div className="internaColumna">
                             <SeccionEncabezado icono={<Terminal size={12} />} titulo="Ejecucion" subtitulo={`${tareas.filter(t => !t.completado).length} pendientes`} />
-                            <ListaTareas tareas={tareas} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} />
+                            <ListaTareas tareas={tareas} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
                         </div>
 
                         {/* Seccion: Notas Rapidas */}

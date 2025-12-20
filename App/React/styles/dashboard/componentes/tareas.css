@@ -401,3 +401,17 @@
     background-color: var(--dashboard-estadoExitoFondo);
     border-color: var(--dashboard-estadoExitoBorde);
 }
+
+/* 
+ * ARRASTRAR Y REORDENAR
+ */
+/* 
+ * ARRASTRAR Y REORDENAR
+ */
+/* Drag handle removido por solicitud, arrastre por item completo */
+
+.listaTareasSeparador {
+    height: 1px;
+    background-color: var(--dashboard-bordePrincipal);
+    margin: var(--dashboard-espacioMd) 0;
+}

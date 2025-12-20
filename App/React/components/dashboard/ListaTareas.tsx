@@ -4,8 +4,9 @@
  * Responsabilidad única: renderizar tareas con checkbox, input de creación, edición inline y acciones
  */
 
-import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
+import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent, type ReactNode} from 'react';
 import {Check, X, Plus, Pencil, Flag, Trash2} from 'lucide-react';
+import {Reorder, useDragControls} from 'framer-motion';
 import type {Tarea, NivelPrioridad} from '../../types/dashboard';
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
 
@@ -20,6 +21,7 @@ interface ListaTareasProps {
     onCrearTarea?: (datos: DatosEditarTarea) => void;
     onEditarTarea?: (id: number, datos: DatosEditarTarea) => void;
     onEliminarTarea?: (id: number) => void;
+    onReordenarTareas?: (tareas: Tarea[]) => void;
 }
 
 interface TareaItemProps {
@@ -271,17 +273,50 @@ function InputNuevaTarea({onCrear}: InputNuevaTareaProps): JSX.Element {
     );
 }
 
-export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea}: ListaTareasProps): JSX.Element {
-    /* Ordenar: pendientes primero, completadas al final */
-    const tareasOrdenadas = [...tareas].sort((a, b) => {
-        if (a.completado === b.completado) return 0;
-        return a.completado ? 1 : -1;
-    });
+interface DraggableItemProps extends TareaItemProps {
+    tarea: Tarea;
+}
+
+function DraggableTareaItem({tarea, ...props}: DraggableItemProps) {
+    /*
+     * useDragControls permite iniciar el drag programaticamente
+     * dragListener={true} (default) permite arrastrar desde cualquier parte del componente
+     */
+    return (
+        <Reorder.Item value={tarea} as="div" style={{position: 'relative'}}>
+            <TareaItem {...props} tarea={tarea} />
+        </Reorder.Item>
+    );
+}
+
+export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ListaTareasProps): JSX.Element {
+    /* Separar pendientes y completadas */
+    const pendientes = tareas.filter(t => !t.completado);
+    /* Las completadas se ordenan por defecto (id/creacion) o como vengan */
+    const completadas = tareas.filter(t => t.completado);
+
+    const handleReorder = (nuevosPendientes: Tarea[]) => {
+        if (!onReordenarTareas) return;
+        /* Reconstruimos la lista completa: pendientes reordenados + completadas */
+        onReordenarTareas([...nuevosPendientes, ...completadas]);
+    };
 
     return (
         <div id="lista-tareas" className="dashboardPanel">
             {onCrearTarea && <InputNuevaTarea onCrear={onCrearTarea} />}
-            {tareasOrdenadas.map(tarea => (
+
+            {/* Grupo de reordenamiento para tareas pendientes */}
+            <Reorder.Group axis="y" values={pendientes} onReorder={handleReorder} className="listaTareasPendientes">
+                {pendientes.map(tarea => (
+                    <DraggableTareaItem key={tarea.id} tarea={tarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} />
+                ))}
+            </Reorder.Group>
+
+            {/* Separador visual si hay ambos tipos */}
+            {pendientes.length > 0 && completadas.length > 0 && <div className="listaTareasSeparador" />}
+
+            {/* Tareas completadas (estaticas) */}
+            {completadas.map(tarea => (
                 <TareaItem key={tarea.id} tarea={tarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} />
             ))}
         </div>
