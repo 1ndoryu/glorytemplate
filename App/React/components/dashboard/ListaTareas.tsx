@@ -4,12 +4,13 @@
  * Responsabilidad única: renderizar tareas con checkbox, input de creación, edición inline y acciones
  */
 
-import {useState, useCallback} from 'react';
+import {useState, useCallback, useMemo, useRef} from 'react';
 import {Reorder} from 'framer-motion';
 import {ChevronRight} from 'lucide-react';
 import type {Tarea, DatosEdicionTarea} from '../../types/dashboard';
 import {TareaItem} from './TareaItem';
 import {InputNuevaTarea} from './InputNuevaTarea';
+import {obtenerSubtareas, tieneSubtareas as utilTieneSubtareas, contarSubtareas as utilContarSubtareas, puedeSerSubtareaDe} from '../../utils/jerarquiaTareas';
 
 interface ListaTareasProps {
     tareas: Tarea[];
@@ -27,14 +28,106 @@ export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea,
      */
     const [tareasColapsadas, setTareasColapsadas] = useState<Set<number>>(new Set());
 
-    // Filtramos pendientes y completadas
+    /*
+     * Estado para tracking de drag & drop con gestos horizontales
+     * Fase D: Detectamos el offset X para convertir tareas en subtareas
+     */
+    const [tareaArrastrandoId, setTareaArrastrandoId] = useState<number | null>(null);
+    const [esGestoSubtarea, setEsGestoSubtarea] = useState(false);
+    const dragStartXRef = useRef<number>(0);
+    const dragCurrentXRef = useRef<number>(0);
+
+    /* Filtramos pendientes y completadas */
     const pendientes = tareas.filter(t => !t.completado);
     const completadas = tareas.filter(t => t.completado);
 
-    const handleReorder = (nuevosPendientes: Tarea[]) => {
-        if (!onReordenarTareas) return;
-        onReordenarTareas([...nuevosPendientes, ...completadas]);
-    };
+    /*
+     * Obtener solo tareas principales para el reorder
+     * Las subtareas se moverán automáticamente con su padre
+     */
+    const tareasPrincipalesPendientes = useMemo(() => pendientes.filter(t => !t.parentId), [pendientes]);
+
+    /*
+     * Umbral de pixels para detectar gesto horizontal
+     * Si el usuario arrastra más de este valor a la derecha, la tarea se convierte en subtarea
+     */
+    const UMBRAL_INDENT = 40;
+
+    /*
+     * Handlers de eventos de drag para capturar posición X
+     * Framer Motion Reorder no expone el offset X, así que lo capturamos manualmente
+     */
+    const handleDragStart = useCallback((tareaId: number, evento: React.PointerEvent) => {
+        setTareaArrastrandoId(tareaId);
+        dragStartXRef.current = evento.clientX;
+        dragCurrentXRef.current = evento.clientX;
+    }, []);
+
+    const handleDragEnd = useCallback(() => {
+        setTareaArrastrandoId(null);
+        setEsGestoSubtarea(false);
+    }, []);
+
+    /*
+     * Reconstruir la lista completa manteniendo subtareas con sus padres
+     * Cuando se reordena, solo movemos las tareas principales,
+     * las subtareas siguen a su padre automáticamente
+     *
+     * Fase C: Detectar contexto de drop para conversión de jerarquía
+     * Fase D: Usar offset X para determinar si convertir en subtarea
+     */
+    const handleReorder = useCallback(
+        (nuevoOrdenPrincipales: Tarea[]) => {
+            if (!onReordenarTareas || !onEditarTarea) return;
+
+            /* Calcular offset X del gesto horizontal */
+            const offsetX = dragCurrentXRef.current - dragStartXRef.current;
+
+            /* Si hay una tarea siendo arrastrada y hay offset significativo hacia la derecha */
+            if (tareaArrastrandoId !== null && offsetX > UMBRAL_INDENT) {
+                /* Encontrar la nueva posición de la tarea arrastrada */
+                const nuevaPosicion = nuevoOrdenPrincipales.findIndex(t => t.id === tareaArrastrandoId);
+
+                if (nuevaPosicion > 0) {
+                    /* La tarea de arriba será el nuevo padre */
+                    const posiblePadre = nuevoOrdenPrincipales[nuevaPosicion - 1];
+
+                    /* Validar que puede ser subtarea */
+                    if (puedeSerSubtareaDe(tareas, tareaArrastrandoId, posiblePadre.id)) {
+                        /* Convertir en subtarea */
+                        onEditarTarea(tareaArrastrandoId, {parentId: posiblePadre.id});
+
+                        /* Reconstruir lista sin la tarea convertida (ahora es subtarea) */
+                        const nuevaListaSinConvertida = nuevoOrdenPrincipales.filter(t => t.id !== tareaArrastrandoId);
+
+                        const nuevaListaPendientes: Tarea[] = [];
+                        for (const padre of nuevaListaSinConvertida) {
+                            nuevaListaPendientes.push(padre);
+                            const subtareas = obtenerSubtareas(pendientes, padre.id);
+                            nuevaListaPendientes.push(...subtareas);
+                        }
+
+                        onReordenarTareas([...nuevaListaPendientes, ...completadas]);
+                        return;
+                    }
+                }
+            }
+
+            /* Comportamiento normal: reconstruir lista con jerarquía */
+            const nuevaListaPendientes: Tarea[] = [];
+
+            for (const padre of nuevoOrdenPrincipales) {
+                nuevaListaPendientes.push(padre);
+                /* Añadir subtareas de este padre en su orden original */
+                const subtareas = obtenerSubtareas(pendientes, padre.id);
+                nuevaListaPendientes.push(...subtareas);
+            }
+
+            /* Combinar con completadas al final */
+            onReordenarTareas([...nuevaListaPendientes, ...completadas]);
+        },
+        [pendientes, completadas, onReordenarTareas, onEditarTarea, tareaArrastrandoId, tareas]
+    );
 
     /*
      * Manejadores de indentacion
@@ -89,66 +182,90 @@ export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea,
     }, []);
 
     /*
-     * Determinar si una tarea tiene subtareas
-     * Busca en TODAS las tareas para incluir subtareas completadas
+     * Usar funciones de utilidades para verificar subtareas
      */
-    const tieneSubtareas = (tareaId: number): boolean => {
-        return tareas.some(t => t.parentId === tareaId);
-    };
+    const tieneSubtareasLocal = (tareaId: number): boolean => utilTieneSubtareas(tareas, tareaId);
+    const contarSubtareasLocal = (tareaId: number) => utilContarSubtareas(tareas, tareaId);
 
     /*
-     * Contar subtareas de una tarea (total y completadas)
-     * Busca en TODAS las tareas, no solo pendientes
+     * Obtener subtareas de una tarea padre (para renderizar debajo de ella)
      */
-    const contarSubtareas = (tareaId: number): {total: number; completadas: number} => {
-        const subtareas = tareas.filter(t => t.parentId === tareaId);
-        return {
-            total: subtareas.length,
-            completadas: subtareas.filter(t => t.completado).length
-        };
-    };
+    const obtenerSubtareasVisibles = useCallback(
+        (padreId: number): Tarea[] => {
+            if (tareasColapsadas.has(padreId)) return [];
+            return pendientes.filter(t => t.parentId === padreId);
+        },
+        [pendientes, tareasColapsadas]
+    );
 
     /*
-     * Filtrar tareas visibles (excluyendo subtareas de padres colapsados)
+     * Renderizar una tarea con su estructura visual
      */
-    const tareasVisibles = pendientes.filter(tarea => {
-        if (!tarea.parentId) return true; // Tareas principales siempre visibles
-        return !tareasColapsadas.has(tarea.parentId); // Subtareas visibles si padre no colapsado
-    });
+    const renderTareaConColapsador = (tarea: Tarea, esSubtarea: boolean) => {
+        const esColapsable = !esSubtarea && tieneSubtareasLocal(tarea.id);
+        const estaColapsada = tareasColapsadas.has(tarea.id);
+        const numSubtareas = contarSubtareasLocal(tarea.id);
+
+        return (
+            <div className="tareaConColapsador" key={`wrapper-${tarea.id}`}>
+                <TareaItem tarea={tarea} esSubtarea={esSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} />
+                {/* Boton de colapsar a la derecha, solo si tiene subtareas */}
+                {esColapsable && (
+                    <button className="tareaColapsadorBoton" onClick={() => toggleColapsar(tarea.id)} title={estaColapsada ? `Expandir ${numSubtareas.total} subtareas` : `Colapsar ${numSubtareas.total} subtareas`}>
+                        {estaColapsada ? (
+                            <>
+                                <ChevronRight size={12} />
+                                <span className="tareaColapsadorContador">
+                                    {numSubtareas.completadas}/{numSubtareas.total}
+                                </span>
+                            </>
+                        ) : (
+                            <span className="tareaColapsadorContador tareaColapsadorContadorExpandido">
+                                {numSubtareas.completadas}/{numSubtareas.total}
+                            </span>
+                        )}
+                    </button>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div id="lista-tareas" className="dashboardPanel">
             {onCrearTarea && <InputNuevaTarea onCrear={onCrearTarea} />}
 
-            <Reorder.Group axis="y" values={tareasVisibles} onReorder={handleReorder} className="listaTareasPendientes">
-                {tareasVisibles.map(tarea => {
-                    const isSubtarea = !!tarea.parentId;
-                    const esColapsable = tieneSubtareas(tarea.id);
-                    const estaColapsada = tareasColapsadas.has(tarea.id);
-                    const numSubtareas = contarSubtareas(tarea.id);
+            <Reorder.Group axis="y" values={tareasPrincipalesPendientes} onReorder={handleReorder} className="listaTareasPendientes">
+                {tareasPrincipalesPendientes.map(tareaPadre => {
+                    const subtareasVisibles = obtenerSubtareasVisibles(tareaPadre.id);
 
                     return (
-                        <Reorder.Item key={tarea.id} value={tarea} as="div" style={{position: 'relative'}}>
-                            <div className="tareaConColapsador">
-                                <TareaItem tarea={tarea} esSubtarea={isSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} />
-                                {/* Boton de colapsar a la derecha, solo si tiene subtareas */}
-                                {esColapsable && (
-                                    <button className="tareaColapsadorBoton" onClick={() => toggleColapsar(tarea.id)} title={estaColapsada ? `Expandir ${numSubtareas.total} subtareas` : `Colapsar ${numSubtareas.total} subtareas`}>
-                                        {estaColapsada ? (
-                                            <>
-                                                <ChevronRight size={12} />
-                                                <span className="tareaColapsadorContador">
-                                                    {numSubtareas.completadas}/{numSubtareas.total}
-                                                </span>
-                                            </>
-                                        ) : (
-                                            <span className="tareaColapsadorContador tareaColapsadorContadorExpandido">
-                                                {numSubtareas.completadas}/{numSubtareas.total}
-                                            </span>
-                                        )}
-                                    </button>
-                                )}
-                            </div>
+                        <Reorder.Item
+                            key={tareaPadre.id}
+                            value={tareaPadre}
+                            as="div"
+                            style={{position: 'relative'}}
+                            className={`tareaPadreReorder ${tareaArrastrandoId === tareaPadre.id ? 'tareaPadreReorderArrastrando' : ''} ${tareaArrastrandoId === tareaPadre.id && esGestoSubtarea ? 'tareaPadreReorderGestoSubtarea' : ''}`}
+                            onPointerDown={e => handleDragStart(tareaPadre.id, e)}
+                            onDragEnd={handleDragEnd}
+                            onDrag={(_, info) => {
+                                dragCurrentXRef.current = dragStartXRef.current + info.offset.x;
+                                const nuevoEsGesto = info.offset.x > UMBRAL_INDENT;
+                                if (nuevoEsGesto !== esGestoSubtarea) {
+                                    setEsGestoSubtarea(nuevoEsGesto);
+                                }
+                            }}>
+                            {/* Indicador visual de gesto horizontal hacia subtarea */}
+                            {tareaArrastrandoId === tareaPadre.id && esGestoSubtarea && <div className="tareaDropIndicador tareaDropIndicadorSubtarea tareaDropIndicadorActivo" style={{top: 0}} />}
+
+                            {/* Tarea padre */}
+                            {renderTareaConColapsador(tareaPadre, false)}
+
+                            {/* Subtareas (no son draggables individualmente) */}
+                            {subtareasVisibles.map(subtarea => (
+                                <div key={subtarea.id} className="subtareaContenedor">
+                                    {renderTareaConColapsador(subtarea, true)}
+                                </div>
+                            ))}
                         </Reorder.Item>
                     );
                 })}

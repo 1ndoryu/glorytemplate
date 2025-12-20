@@ -159,8 +159,10 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
     return (
         <>
             <div className={`tablaFila tablaFilaEditable ${completadoHoy ? 'tablaFilaCompletada' : ''} ${habitoTocaHoy && !completadoHoy ? 'tablaFilaTocaHoy' : ''}`} onClick={manejarEditar} onContextMenu={manejarClickDerecho} title="Click para editar, click derecho para menu">
-                {/* ID */}
-                <div className="tablaColumnaId filaIndice">{String(indice + 1).padStart(2, '0')}</div>
+                {/* Checkbox para completar rápidamente */}
+                <div className="tablaColumnaCheckbox" onClick={manejarToggle}>
+                    <div className={`habitoCheckbox ${completadoHoy ? 'habitoCheckboxCompletado' : ''}`}>{completadoHoy && <Check size={10} />}</div>
+                </div>
 
                 {/* Nombre y Tags */}
                 <div className="tablaColumnaNombre">
@@ -218,25 +220,6 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
                         {rachaEnPeligro && !completadoHoy && <span className="rachaTiempoRestante">({diasAntesDePerder}d)</span>}
                     </div>
                 </div>
-
-                {/* Accion - solo boton toggle */}
-                <div className="tablaColumnaAccion">
-                    <div className="accionContenedor">
-                        <button className={`botonCompletarHabito ${completadoHoy ? 'botonCompletarHabitoActivo' : ''}`} onClick={manejarToggle} title={completadoHoy ? 'Desmarcar' : 'Marcar como completado'}>
-                            <Check size={12} />
-                            <span>{completadoHoy ? 'Hecho' : 'Hoy'}</span>
-                        </button>
-                        <button
-                            className="botonEditarHabito"
-                            onClick={evento => {
-                                evento.stopPropagation();
-                                manejarEditar();
-                            }}
-                            title="Editar habito">
-                            <Edit3 size={12} />
-                        </button>
-                    </div>
-                </div>
             </div>
 
             {/* Menu contextual */}
@@ -250,13 +233,12 @@ export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditar
         <div id="tabla-habitos" className="dashboardPanel">
             {/* Encabezado de tabla */}
             <div className="tablaEncabezado">
-                <div className="tablaColumnaId">ID</div>
+                <div className="tablaColumnaCheckbox"></div>
                 <div className="tablaColumnaNombre">HABITO</div>
                 <div className="tablaColumnaPrioridad">PRIO</div>
                 <div className="tablaColumnaInactividad">DIAS</div>
                 <div className="tablaColumnaUrgencia">URGENCIA</div>
                 <div className="tablaColumnaRacha">RACHA</div>
-                <div className="tablaColumnaAccion">ACCION</div>
             </div>
 
             {/* Filas de habitos */}

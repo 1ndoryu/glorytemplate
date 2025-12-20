@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Prioridad en tareas visual y funcional, Correccion de bugs de UI tareas
+**Estado:** Fase C completada, Fase D en progreso (gestos horizontales para subtareas implementados)
 
 ### Completado
 - [x] Arquitectura de componentes (SOLID)
@@ -37,6 +37,10 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [x] **Prioridad visual unificada** - Badges de texto como en habitos
 - [x] **Subtareas colapsables** - Boton para ocultar/mostrar subtareas de una tarea padre
 - [x] **Quitar prioridad de tarea** - Opcion en menu contextual para remover prioridad asignada
+- [x] **Refactorización useTareas** - Lógica CRUD de tareas extraída a hook dedicado
+- [x] **Utilidades de jerarquía** - Funciones para manejo de subtareas y drag & drop
+- [x] **Gestos horizontales en drag** - Arrastrar tarea hacia la derecha la convierte en subtarea
+- [x] **Tabla habitos simplificada** - Checkbox en lugar de ID, removida columna ACCION
 
 ### Estructura de Archivos (Actualizada)
 ```
@@ -48,11 +52,13 @@ App/React/
     fecha.ts                   # Utilidades de fecha
     validadores.ts             # Validadores de datos
     migracionHabitos.ts        # Logica de migracion de habitos
-    frecuenciaHabitos.ts       # Calculo de frecuencia y "toca hoy" (NUEVO)
+    frecuenciaHabitos.ts       # Calculo de frecuencia y "toca hoy"
+    jerarquiaTareas.ts         # Jerarquia subtareas + detectarContextoDrop(), calcularNuevoParent()
   data/
     datosIniciales.ts          # Datos de demo para desarrollo
   hooks/
-    useDashboard.ts            # Hook principal (refactorizado, ~476 lineas)
+    useDashboard.ts            # Hook principal (refactorizado, ~400 lineas)
+    useTareas.ts               # Logica CRUD de tareas (NUEVO)
     useDeshacer.ts             # Sistema de undo
     useOrdenarHabitos.ts       # Ordenamiento de habitos
     useLocalStorage.ts         # Persistencia local
@@ -187,10 +193,10 @@ App/React/styles/dashboard/componentes/menuContextual.css
 - [x] Columna ACCION solo contiene el boton toggle
 - [x] Indicadores visuales mas claros
 
-**Simplificacion planificada:**
-- [ ] Reemplazar columna ID por checkbox (como tareas) para completar habito rapidamente
-- [ ] Simplificar columna acciones a 1 solo boton que abre menu contextual
-- [ ] Acciones (editar, eliminar, etc) disponibles solo via menu contextual (click derecho)
+**Simplificacion completada:**
+- [x] Reemplazar columna ID por checkbox para completar habito rapidamente
+- [x] Remover columna ACCION redundante
+- [x] Acciones (editar, eliminar, etc) disponibles solo via menu contextual (click derecho)
 
 ### 2.9 Frecuencia de Habitos (EN PROGRESO)
 **Objetivo:** Cada habito puede tener su propia frecuencia de repeticion
@@ -246,14 +252,6 @@ App/React/styles/dashboard/componentes/tabla.css     # Estilos badge "Toca Hoy"
 - [x] Umbral de urgencia automatico segun frecuencia
 - La barra muestra `diasInactividad / umbralFrecuencia * 100%`
 
-**Mejoras planificadas:**
-- [ ] Umbral de urgencia configurable manualmente por habito
-- [ ] Modos de visualizacion:
-  - `urgencia`: Cuanto falta para perder racha (actual)
-  - `progreso`: Progreso hacia meta (ej: 3/5 dias esta semana)
-  - `racha`: Visualizacion de racha actual vs record
-- [ ] Colores graduales (verde -> amarillo -> rojo)
-- [ ] Tooltip con informacion detallada
 
 ### 2.6 Sistema de Deshacer (Undo)
 **Objetivo:** Permitir revertir cualquier accion con feedback visual
@@ -328,8 +326,9 @@ App/React/hooks/useDeshacer.ts                  # Hook para manejar cola de acci
 - [x] Subtareas solo pueden ser hijas de tareas (no de otras subtareas)
 - [x] Indentacion visual para subtareas
 - [x] Shift+Tab saca la subtarea al nivel principal
-- [ ] Completar tarea padre NO completa subtareas automaticamente
+- [x] Completar tarea padre NO completa subtareas automaticamente (toggle individual)
 - [x] Contador de subtareas completadas visible (formato X/Y)
+- [x] Al eliminar tarea padre, subtareas se promueven a principales
 
 **Ejemplo visual:**
 ```
@@ -421,23 +420,25 @@ components/shared/
 
 #### Fases de implementación sugeridas:
 
-1. **Fase A - Refactorización** (prerequisito)
-   - [ ] Extraer `useTareas.ts` de `useDashboard.ts`
-   - [ ] Crear `utils/jerarquiaTareas.ts` con funciones básicas
-   - [ ] Añadir campo `orden` obligatorio a todas las tareas
+1. **Fase A - Refactorizacion** (COMPLETADA)
+   - [x] Extraer `useTareas.ts` de `useDashboard.ts`
+   - [x] Crear `utils/jerarquiaTareas.ts` con funciones basicas
+   - [x] Añadir campo `orden` automatico a tareas (asignado en creacion y reordenamiento)
 
-2. **Fase B - Drag & Drop básico mejorado**
-   - [ ] Mover tarea principal mueve sus subtareas
-   - [ ] Indicador visual correcto de destino
+2. **Fase B - Drag & Drop basico mejorado** (COMPLETADA)
+   - [x] Mover tarea principal mueve sus subtareas
+   - [x] Indicador visual correcto de destino
 
-3. **Fase C - Conversión automática de jerarquía**
-   - [ ] Detectar drop entre subtareas -> heredar parent
-   - [ ] Detectar drop en zona de tareas principales -> quitar parent
+3. **Fase C - Conversion automatica de jerarquia** (COMPLETADA)
+   - [x] Funcion `detectarContextoDrop()` implementada
+   - [x] Estilos CSS para indicadores de zona de drop
+   - [x] Integrar deteccion en el componente ListaTareas al soltar
 
-4. **Fase D - Gestos horizontales**
-   - [ ] Detectar offset X al soltar
-   - [ ] Umbral de indentación (>30px derecha = subtarea)
-   - [ ] Animación de preview durante arrastre
+4. **Fase D - Gestos horizontales** (EN PROGRESO)
+   - [x] Detectar offset X al soltar
+   - [x] Funcion `calcularNuevoParent()` ya soporta umbral de indentacion
+   - [x] Indicador visual durante arrastre (estado reactivo + estilos)
+   - [ ] Animacion de preview mas fluida durante arrastre
 
 ### 3.5 Completar/Descompletar
 - [x] Toggle estado con soporte de deshacer
@@ -500,11 +501,6 @@ App/React/styles/dashboard.css                  # Estilos del indicador
 - [x] Por nombre alfabetico
 - [ ] Drag & drop para orden manual
 
-**Inteligentes (PLANIFICADO):**
-- [ ] "Toca hoy primero" - Habitos que deben hacerse hoy segun frecuencia
-- [x] "Urgencia ponderada" - Combina importancia + inactividad
-- [ ] "Proximos a perder racha" - Prioriza rachas en peligro
-- [ ] "Menos frecuentes primero" - Para no olvidar habitos semanales
 
 **UI de ordenamiento:**
 - [x] Dropdown para cambiar modo de orden

@@ -419,7 +419,92 @@
 /* 
  * ARRASTRAR Y REORDENAR
  */
-/* Drag handle removido por solicitud, arrastre por item completo */
+
+/* 
+ * Contenedor del item padre en el reorder
+ * Contiene la tarea padre y todas sus subtareas
+ */
+.tareaPadreReorder {
+    position: relative;
+}
+
+/* 
+ * Efecto visual durante el arrastre
+ * Resalta todo el grupo (padre + subtareas)
+ */
+.tareaPadreReorder:active {
+    z-index: 10;
+}
+
+.tareaPadreReorder[style*='transform'] {
+    background-color: var(--dashboard-fondoSecundario);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+}
+
+/* 
+ * Estado de arrastre activo
+ * Clase añadida cuando la tarea está siendo arrastrada
+ */
+.tareaPadreReorderArrastrando {
+    z-index: 20;
+    cursor: grabbing;
+}
+
+/* 
+ * Indicador visual de gesto horizontal
+ * Muestra al usuario que puede arrastrar hacia la derecha para convertir en subtarea
+ */
+.tareaPadreReorderArrastrando::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    background: linear-gradient(to right, transparent 0%, var(--dashboard-estadoMedia) 50%, var(--dashboard-estadoExito) 100%);
+    opacity: 0.5;
+    transition: opacity var(--dashboard-transicionRapida);
+}
+
+.tareaPadreReorderArrastrando:hover::after {
+    opacity: 0.8;
+}
+
+/* 
+ * Estado de gesto de conversión a subtarea
+ * Se activa cuando el usuario arrastra la tarea hacia la derecha
+ */
+.tareaPadreReorderGestoSubtarea {
+    border-left: 3px solid var(--dashboard-estadoMedia);
+    margin-left: var(--dashboard-espacioMd);
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.tareaPadreReorderGestoSubtarea .tareaItem {
+    background-color: var(--dashboard-fondoHover);
+}
+
+/* 
+ * Contenedor de subtarea
+ * Las subtareas no son draggables individualmente
+ */
+.subtareaContenedor {
+    position: relative;
+}
+
+/* 
+ * Indicador visual de que la subtarea pertenece al padre
+ */
+.subtareaContenedor::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--dashboard-bordeSutil);
+}
 
 .listaTareasSeparador {
     height: 1px;
@@ -492,4 +577,67 @@
  */
 .tareaColapsadorContador:not(:empty)::before {
     content: '';
+}
+
+/* 
+ * INDICADORES DE ZONA DE DROP
+ * Muestran visualmente dónde caerá la tarea al soltarla
+ */
+
+/* 
+ * Linea indicadora de drop entre tareas
+ */
+.tareaDropIndicador {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--dashboard-textoApagado);
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity var(--dashboard-transicionRapida);
+}
+
+.tareaDropIndicadorActivo {
+    opacity: 1;
+}
+
+/* 
+ * Indicador para conversión a subtarea (indentado)
+ */
+.tareaDropIndicadorSubtarea {
+    left: var(--dashboard-espacioLg);
+    background-color: var(--dashboard-estadoMedia);
+}
+
+/* 
+ * Indicador para tarea principal
+ */
+.tareaDropIndicadorPrincipal {
+    background-color: var(--dashboard-estadoExito);
+}
+
+/* 
+ * Zona de drop superior de la lista (primera posición)
+ */
+.listaTareasDropZonaSuperior {
+    height: 8px;
+    background: transparent;
+    position: relative;
+    transition: background-color var(--dashboard-transicionRapida);
+}
+
+.listaTareasDropZonaSuperior.dropActivo {
+    background-color: rgba(var(--dashboard-exitoRgb), 0.1);
+}
+
+.listaTareasDropZonaSuperior.dropActivo::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--dashboard-estadoExito);
 }

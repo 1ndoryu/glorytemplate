@@ -1,15 +1,17 @@
 /*
  * useDashboard
  * Hook personalizado para la logica del dashboard
- * Responsabilidad unica: manejar estado y acciones del dashboard
+ * Responsabilidad unica: orquestar estado y acciones del dashboard
+ * Delega lógica de tareas a useTareas
  * Incluye persistencia automatica en localStorage
  */
 
 import {useState, useCallback, useEffect, useRef} from 'react';
-import type {Habito, Tarea, ConfiguracionDashboard, DatosNuevoHabito, DatosNuevaTarea, DatosEdicionTarea} from '../types/dashboard';
+import type {Habito, Tarea, ConfiguracionDashboard, DatosNuevoHabito, DatosEdicionTarea} from '../types/dashboard';
 import {exportarDatos, importarDatos} from '../services/dataService';
 import {useLocalStorage, CLAVES_LOCALSTORAGE} from './useLocalStorage';
 import {useDeshacer} from './useDeshacer';
+import {useTareas} from './useTareas';
 
 /* Utilidades extraidas a modulos separados */
 import {obtenerFechaHoy, calcularDiasDesde, fueCompletadoHoy} from '../utils/fecha';
@@ -140,144 +142,14 @@ export function useDashboard(): UseDashboardReturn {
     }, []);
 
     /*
-     * Toggle de tarea: completa o desmarca con soporte de deshacer
+     * Hook de tareas - delega toda la lógica CRUD a useTareas
      */
-    const toggleTarea = useCallback(
-        (id: number) => {
-            const tarea = tareas.find(t => t.id === id);
-            if (!tarea) return;
-
-            const estadoAnterior = tarea.completado;
-            const accion = estadoAnterior ? 'pendiente' : 'completada';
-
-            setTareas(prev => prev.map(t => (t.id === id ? {...t, completado: !t.completado} : t)));
-
-            registrarAccion(`Tarea "${tarea.texto.substring(0, 30)}..." ${accion}`, () => {
-                setTareas(prev => prev.map(t => (t.id === id ? {...t, completado: estadoAnterior} : t)));
-            });
-        },
-        [tareas, setTareas, registrarAccion]
-    );
-
-    /*
-     * Crear una nueva tarea
-     * Acepta DatosEdicionTarea para soportar creacion de subtareas (con parentId)
-     * Si se proporciona insertarDespuesDe, inserta después de esa tarea
-     */
-    const crearTarea = useCallback(
-        (datos: DatosEdicionTarea) => {
-            const hoy = obtenerFechaHoy();
-            const nuevaTarea: Tarea = {
-                id: Date.now(),
-                texto: datos.texto || 'Nueva tarea',
-                completado: false,
-                fechaCreacion: hoy,
-                prioridad: datos.prioridad ?? undefined,
-                parentId: datos.parentId
-            };
-
-            setTareas(prev => {
-                /* Si hay una tarea de referencia, insertar después de ella */
-                if (datos.insertarDespuesDe) {
-                    const indice = prev.findIndex(t => t.id === datos.insertarDespuesDe);
-                    if (indice !== -1) {
-                        /* Insertar después de la tarea de referencia */
-                        const nuevaLista = [...prev];
-                        nuevaLista.splice(indice + 1, 0, nuevaTarea);
-                        return nuevaLista;
-                    }
-                }
-
-                /* Por defecto, agregar al final de las pendientes (antes de completadas) */
-                const primeraCompletada = prev.findIndex(t => t.completado);
-                if (primeraCompletada === -1) {
-                    /* No hay completadas, agregar al final */
-                    return [...prev, nuevaTarea];
-                }
-                /* Insertar antes de la primera completada */
-                const nuevaLista = [...prev];
-                nuevaLista.splice(primeraCompletada, 0, nuevaTarea);
-                return nuevaLista;
-            });
-
-            registrarAccion(`Tarea creada`, () => {
-                setTareas(prev => prev.filter(t => t.id !== nuevaTarea.id));
-            });
-        },
-        [setTareas, registrarAccion]
-    );
-
-    /*
-     * Eliminar una tarea con soporte de deshacer
-     */
-    const eliminarTarea = useCallback(
-        (id: number) => {
-            const tareaEliminada = tareas.find(t => t.id === id);
-            if (!tareaEliminada) return;
-
-            /* Guardar indice original para restaurar en la misma posicion */
-            const indiceOriginal = tareas.findIndex(t => t.id === id);
-
-            setTareas(prev => prev.filter(t => t.id !== id));
-            mostrarMensaje(`Tarea eliminada`, 'exito');
-
-            registrarAccion(`Tarea eliminada`, () => {
-                setTareas(prev => {
-                    const nuevaLista = [...prev];
-                    nuevaLista.splice(indiceOriginal, 0, tareaEliminada);
-                    return nuevaLista;
-                });
-            });
-        },
-        [tareas, setTareas, mostrarMensaje, registrarAccion]
-    );
-
-    /*
-     * Editar una tarea existente con soporte de deshacer
-     */
-
-    /*
-     * Editar una tarea existente con soporte de deshacer
-     */
-
-    const editarTarea = useCallback(
-        (id: number, datos: DatosEdicionTarea) => {
-            const tareaAnterior = tareas.find(t => t.id === id);
-            if (!tareaAnterior) return;
-
-            /* Fusionar datos nuevos con la tarea existente */
-            setTareas(prev =>
-                prev.map(t => {
-                    if (t.id !== id) return t;
-
-                    /*
-                     * Crear objeto base excluyendo prioridad de datos si es null
-                     * Para prioridad null significa "quitar", así que no la incluimos en el spread
-                     */
-                    const {prioridad: nuevaPrioridad, ...restoDatos} = datos;
-
-                    const tareaActualizada: Tarea = {
-                        ...t,
-                        ...restoDatos
-                    };
-
-                    /* Si prioridad es null, eliminar; si tiene valor, asignar */
-                    if (nuevaPrioridad === null) {
-                        delete tareaActualizada.prioridad;
-                    } else if (nuevaPrioridad !== undefined) {
-                        tareaActualizada.prioridad = nuevaPrioridad;
-                    }
-
-                    return tareaActualizada;
-                })
-            );
-
-            registrarAccion(`Tarea editada`, () => {
-                setTareas(prev => prev.map(t => (t.id === id ? tareaAnterior : t)));
-            });
-        },
-        [tareas, setTareas, registrarAccion]
-    );
+    const {toggleTarea, crearTarea, editarTarea, eliminarTarea, reordenarTareas} = useTareas({
+        tareas,
+        setTareas,
+        registrarAccion,
+        mostrarMensaje
+    });
 
     const actualizarNotas = useCallback(
         (valor: string) => {
@@ -519,6 +391,6 @@ export function useDashboard(): UseDashboardReturn {
             : null,
         ejecutarDeshacer,
         descartarDeshacer,
-        reordenarTareas: setTareas
+        reordenarTareas
     };
 }
