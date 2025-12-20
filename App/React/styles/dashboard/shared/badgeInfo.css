@@ -1,0 +1,194 @@
+/*
+ * BADGE INFO
+ * Estilos para badges de informacion reutilizables
+ * Usado en tareas, habitos y proyectos
+ */
+
+/* 
+ * CONTENEDOR DE BADGES 
+ */
+.badgeGroup {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSx);
+    flex-wrap: wrap;
+}
+
+/* 
+ * BADGE BASE 
+ */
+.badgeInfo {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 5px;
+    font-size: 0.65rem;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    color: var(--dashboard-textoApagado);
+    background-color: var(--dashboard-fondoHover);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: 2px;
+    white-space: nowrap;
+    line-height: 1.3;
+    transition: all var(--dashboard-transicionRapida);
+    min-height: 20px;
+}
+
+/* 
+ * BADGE CLICKABLE 
+ */
+.badgeInfoClickable {
+    cursor: pointer;
+}
+
+.badgeInfoClickable:hover {
+    border-color: var(--dashboard-bordePrincipal);
+    background-color: var(--dashboard-fondoSecundario);
+}
+
+/* 
+ * ICONO 
+ */
+.badgeInfoIcono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* 
+ * TEXTO 
+ */
+.badgeInfoTexto {
+    font-weight: 500;
+}
+
+/* 
+ * VARIANTES DE ESTADO
+ */
+
+/* Normal (por defecto) */
+.badgeInfo--normal {
+    color: var(--dashboard-textoApagado);
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+}
+
+/* Urgente (rojo) */
+.badgeInfo--urgente {
+    color: var(--dashboard-estadoAlta);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border-color: var(--dashboard-estadoAltaBorde);
+}
+
+/* Exito (verde) */
+.badgeInfo--exito {
+    color: var(--dashboard-estadoExito);
+    background-color: var(--dashboard-estadoExitoFondo);
+    border-color: var(--dashboard-estadoExitoBorde);
+}
+
+/* Advertencia (amarillo/naranja) */
+.badgeInfo--advertencia {
+    color: #f59e0b;
+    background-color: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* 
+ * VARIANTES DE PRIORIDAD
+ */
+
+/* Prioridad Alta */
+.badgeInfo--prioridadAlta {
+    color: var(--dashboard-estadoAlta);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border-color: var(--dashboard-estadoAltaBorde);
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 2px 8px;
+}
+
+/* Prioridad Media */
+.badgeInfo--prioridadMedia {
+    color: var(--dashboard-estadoMedia);
+    background-color: var(--dashboard-estadoMediaFondo);
+    border-color: var(--dashboard-estadoMediaBorde);
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 2px 8px;
+}
+
+/* Prioridad Baja */
+.badgeInfo--prioridadBaja {
+    color: var(--dashboard-estadoBaja);
+    background-color: transparent;
+    border-color: var(--dashboard-estadoBajaBorde);
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 2px 8px;
+}
+
+/* 
+ * BADGE DESTACADO (Toca hoy, activo)
+ */
+.badgeInfo--destacado {
+    color: #fbbf24;
+    background-color: rgba(251, 191, 36, 0.15);
+    border-color: rgba(251, 191, 36, 0.3);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    animation: pulsarBadge 2s ease-in-out infinite;
+}
+
+@keyframes pulsarBadge {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* 
+ * BADGE RACHA
+ */
+.badgeInfo--racha {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.badgeInfo--rachaPeligro {
+    color: var(--dashboard-estadoMedia);
+    background-color: rgba(202, 138, 4, 0.1);
+    border-color: rgba(202, 138, 4, 0.3);
+}
+
+.badgeInfo--rachaActiva {
+    color: var(--dashboard-estadoMedia);
+    background-color: transparent;
+    border-color: var(--dashboard-bordeSutil);
+}
+
+.badgeInfo--rachaCompletada {
+    color: #22c55e;
+    background-color: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.2);
+}
+
+/* 
+ * FRECUENCIA (sutil, junto al nombre)
+ */
+.badgeInfo--frecuencia {
+    padding: 0;
+    margin-left: 4px;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--dashboard-textoApagado);
+    background-color: transparent;
+    border: none;
+    opacity: 0.8;
+}

@@ -12,6 +12,8 @@ import {tocaHoy, describirFrecuencia, obtenerIntervaloFrecuencia, calcularUmbral
 import {MenuContextual} from '../shared/MenuContextual';
 import type {OpcionMenu} from '../shared/MenuContextual';
 import {DashboardPanel} from '../shared/DashboardPanel';
+import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
+import type {VarianteBadge} from '../shared/BadgeInfo';
 
 interface TablaHabitosProps {
     habitos: Habito[];
@@ -21,15 +23,14 @@ interface TablaHabitosProps {
     onEliminarHabito?: (id: number) => void;
 }
 
-function obtenerClasesPrioridad(importancia: Habito['importancia']): string {
-    const clases = 'etiquetaPrioridad ';
+function obtenerVariantePrioridad(importancia: Habito['importancia']): VarianteBadge {
     switch (importancia) {
         case 'Alta':
-            return clases + 'etiquetaAlta';
+            return 'prioridadAlta';
         case 'Media':
-            return clases + 'etiquetaMedia';
+            return 'prioridadMedia';
         case 'Baja':
-            return clases + 'etiquetaBaja';
+            return 'prioridadBaja';
     }
 }
 
@@ -168,29 +169,17 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
                 {/* Nombre y Tags */}
                 <div className="tablaColumnaNombre">
                     <div className="filaNombreContenedor">
-                        <span className={`filaNombre ${completadoHoy ? 'filaNombreCompletado' : ''}`}>
-                            {habito.nombre}
-                            {intervaloFrecuencia !== null && (
-                                <span className="filaNombreIndicadorFrecuencia" title={`Frecuencia: ${textoFrecuencia}`}>
-                                    (<Clock size={10} />
-                                    <span>{intervaloFrecuencia}</span>)
-                                </span>
-                            )}
-                        </span>
-                        {habitoTocaHoy && !completadoHoy && <span className="filaTocaHoyBadge">Hoy</span>}
-                    </div>
-                    <div className="filaTags">
-                        {habito.tags.map(tag => (
-                            <span key={tag} className="filaTag">
-                                #{tag}
-                            </span>
-                        ))}
+                        <span className={`filaNombre ${completadoHoy ? 'filaNombreCompletado' : ''}`}>{habito.nombre}</span>
+                        <BadgeGroup>
+                            {intervaloFrecuencia !== null && <BadgeInfo tipo="frecuencia" icono={<Clock size={10} />} texto={intervaloFrecuencia.toString()} titulo={`Frecuencia: ${textoFrecuencia}`} variante="frecuencia" />}
+                            {habitoTocaHoy && !completadoHoy && <BadgeInfo tipo="destacado" texto="Hoy" variante="destacado" />}
+                        </BadgeGroup>
                     </div>
                 </div>
 
                 {/* Prioridad */}
                 <div className="tablaColumnaPrioridad">
-                    <span className={obtenerClasesPrioridad(habito.importancia)}>{habito.importancia.toUpperCase()}</span>
+                    <BadgeInfo tipo="prioridad" texto={habito.importancia.toUpperCase()} variante={obtenerVariantePrioridad(habito.importancia)} />
                 </div>
 
                 {/* Inactividad - dias sin hacer */}

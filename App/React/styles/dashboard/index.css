@@ -28,6 +28,7 @@
 @import './shared/toggleSwitch.css';
 @import './shared/selectorDias.css';
 @import './shared/dashboardPanel.css';
+@import './shared/badgeInfo.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';

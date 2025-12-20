@@ -261,12 +261,17 @@ App/React/styles/dashboard/
 
 ### Indicadores Visuales en Items
 - [ ] **Fecha Límite en Proyectos**: Mostrar fecha límite visible (igual que tareas) con indicador de urgencia.
-- [ ] **Badges de Información en Tareas**:
-  - [ ] Badge de Adjunto (icono clip) - cuando tiene archivos adjuntos.
-  - [ ] Badge de Descripción (icono nota) - cuando tiene descripción.
-  - [ ] Badge de Repetición (icono repetir) - cuando tiene repetición configurada.
-- [ ] **Centralizar Badges**: Crear sistema de badges reutilizable para mostrar información secundaria de manera consistente.
-- [ ] **Ordenamiento de Badges**: Establecer orden visual consistente (ej: prioridad > fecha > adjuntos > repetición).
+- [x] **Badges de Información en Tareas**:
+  - [x] Badge de Adjunto (icono clip) - cuando tiene archivos adjuntos.
+  - [x] Badge de Descripción (icono nota) - cuando tiene descripción.
+  - [x] Badge de Repetición (icono repetir) - cuando tiene repetición configurada.
+  - [x] Badge de Prioridad (alta/media/baja) - unificado con hábitos.
+- [x] **Badges de Información en Hábitos**:
+  - [x] Badge de Prioridad/Importancia (alta/media/baja) - unificado con tareas.
+  - [x] Badge de Frecuencia (cada X días) - indicador sutil junto al nombre.
+  - [x] Badge "Hoy" (destacado) - indica que toca realizar el hábito hoy.
+- [x] **Centralizar Badges**: Sistema de badges reutilizable con variantes: normal, urgente, exito, advertencia, prioridadAlta/Media/Baja, destacado, frecuencia, racha.
+- [x] **Ordenamiento de Badges**: Orden visual consistente (fecha > adjuntos > descripción > repetición > prioridad).
 
 ### Acciones en Hábitos
 - [ ] **Iconos de Acción Inline**: Agregar botones de Configurar y Eliminar a los ítems de hábitos (similar a proyectos cuando están activos).
@@ -276,7 +281,7 @@ App/React/styles/dashboard/
 
 ### Refactorización de Componentes Compartidos
 - [ ] **PanelConfiguracion base**: Extraer lógica común de `PanelConfiguracionTarea` a un componente genérico.
-- [ ] **BadgeInfo**: Componente para mostrar badges de información (adjuntos, descripción, repetición, fecha).
+- [x] **BadgeInfo**: Componente para mostrar badges de información (adjuntos, descripción, repetición, fecha, prioridad, frecuencia, racha).
 - [ ] **AccionesItem**: Componente para los botones de acción inline (configurar, eliminar).
 
 ---

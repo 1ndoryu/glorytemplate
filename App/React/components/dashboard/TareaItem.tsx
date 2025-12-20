@@ -4,9 +4,11 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
-import {Check, X, Pencil, Flag, Trash2, Settings, Calendar} from 'lucide-react';
+import {Check, X, Pencil, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat} from 'lucide-react';
 import type {Tarea, NivelPrioridad, DatosEdicionTarea, TareaConfiguracion} from '../../types/dashboard';
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
+import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
+import type {VarianteBadge} from '../shared/BadgeInfo';
 
 export interface TareaItemProps {
     tarea: Tarea;
@@ -178,23 +180,22 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
         peligroso: true
     });
 
-    /* Renderizado del indicador de prioridad como badge de texto (igual que habitos) */
+    /* Renderizado del indicador de prioridad como badge (unificado con habitos) */
     const renderIndicadorPrioridad = () => {
         if (!tarea.prioridad) return null;
 
-        const obtenerClasePrioridad = (prioridad: NivelPrioridad): string => {
-            const clases = 'etiquetaPrioridad ';
+        const obtenerVariantePrioridad = (prioridad: NivelPrioridad): VarianteBadge => {
             switch (prioridad) {
                 case 'alta':
-                    return clases + 'etiquetaAlta';
+                    return 'prioridadAlta';
                 case 'media':
-                    return clases + 'etiquetaMedia';
+                    return 'prioridadMedia';
                 case 'baja':
-                    return clases + 'etiquetaBaja';
+                    return 'prioridadBaja';
             }
         };
 
-        return <span className={obtenerClasePrioridad(tarea.prioridad)}>{tarea.prioridad.toUpperCase()}</span>;
+        return <BadgeInfo tipo="prioridad" texto={tarea.prioridad.toUpperCase()} variante={obtenerVariantePrioridad(tarea.prioridad)} />;
     };
 
     /* Renderizado del indicador de fecha limite */
@@ -207,24 +208,46 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
         const fecha = new Date(fechaMaxima);
         const diferenciaDias = Math.ceil((fecha.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
 
-        let claseEstado = 'tareaFechaIndicador';
+        /* Determinar variante segun urgencia */
+        let variante: 'normal' | 'urgente' | 'exito' | 'advertencia' = 'normal';
         if (diferenciaDias < 0) {
-            claseEstado += ' tareaFechaVencida';
+            variante = 'urgente';
         } else if (diferenciaDias === 0) {
-            claseEstado += ' tareaFechaUrgente';
+            variante = 'advertencia';
         } else if (diferenciaDias <= 3) {
-            claseEstado += ' tareaFechaProxima';
+            variante = 'exito';
         }
 
         /* Formatear fecha de forma compacta */
         const formatoFecha = fecha.toLocaleDateString('es', {day: 'numeric', month: 'short'});
 
-        return (
-            <span className={claseEstado} title={`Fecha limite: ${formatoFecha}`}>
-                <Calendar size={10} />
-                <span>{formatoFecha}</span>
-            </span>
-        );
+        return <BadgeInfo tipo="fecha" icono={<Calendar size={10} />} texto={formatoFecha} titulo={`Fecha limite: ${formatoFecha}`} variante={variante} onClick={onConfigurar} />;
+    };
+
+    /* Renderizado del badge de adjuntos */
+    const renderBadgeAdjuntos = () => {
+        const adjuntos = tarea.configuracion?.adjuntos;
+        if (!adjuntos || adjuntos.length === 0) return null;
+
+        return <BadgeInfo tipo="adjunto" icono={<Paperclip size={10} />} texto={adjuntos.length.toString()} titulo={`${adjuntos.length} archivo${adjuntos.length > 1 ? 's' : ''} adjunto${adjuntos.length > 1 ? 's' : ''}`} onClick={onConfigurar} />;
+    };
+
+    /* Renderizado del badge de descripcion */
+    const renderBadgeDescripcion = () => {
+        const descripcion = tarea.configuracion?.descripcion;
+        if (!descripcion || descripcion.trim().length === 0) return null;
+
+        return <BadgeInfo tipo="descripcion" icono={<FileText size={10} />} titulo="Tiene descripcion" onClick={onConfigurar} />;
+    };
+
+    /* Renderizado del badge de repeticion */
+    const renderBadgeRepeticion = () => {
+        const repeticion = tarea.configuracion?.repeticion;
+        if (!repeticion) return null;
+
+        const textoIntervalo = repeticion.intervalo === 1 ? 'diaria' : `cada ${repeticion.intervalo} dias`;
+
+        return <BadgeInfo tipo="repeticion" icono={<Repeat size={10} />} titulo={`Repeticion ${textoIntervalo}`} onClick={onConfigurar} />;
     };
 
     if (editando) {
@@ -247,8 +270,13 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                 <div className="tareaContenido" onClick={iniciarEdicion}>
                     <div className="tareaTextoWrapper">
                         <p className={`tareaTexto ${tarea.completado ? 'tareaTextoCompletado' : ''}`}>{tarea.texto}</p>
-                        {renderIndicadorFecha()}
-                        {renderIndicadorPrioridad()}
+                        <BadgeGroup>
+                            {renderIndicadorFecha()}
+                            {renderBadgeAdjuntos()}
+                            {renderBadgeDescripcion()}
+                            {renderBadgeRepeticion()}
+                            {renderIndicadorPrioridad()}
+                        </BadgeGroup>
                     </div>
                 </div>
                 {mostrarAcciones && (
