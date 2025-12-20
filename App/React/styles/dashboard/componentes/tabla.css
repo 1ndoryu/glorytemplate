@@ -493,7 +493,7 @@
 /* 
  * AÑADIR HABITO 
  */
-.anadirHabito {
+.añadirHabito {
     padding: var(--dashboard-espacioMd);
     text-align: center;
     color: var(--dashboard-textoIndice);
@@ -502,6 +502,6 @@
     transition: color var(--dashboard-transicionNormal);
 }
 
-.anadirHabito:hover {
+.añadirHabito:hover {
     color: var(--dashboard-textoMuyApagado);
 }

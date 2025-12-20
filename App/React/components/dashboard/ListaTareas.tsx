@@ -78,16 +78,8 @@ function TareaItem({tarea, onToggle, onEditar, onEliminar}: TareaItemProps): JSX
         return (
             <div className="tareaItem tareaItemEditando">
                 <div className={`tareaCheckbox ${tarea.completado ? 'tareaCheckboxCompletado' : ''}`}>{tarea.completado && <Check size={8} color="white" />}</div>
-                <div className="tareaEdicionContenedor">
+                <div className="tareaContenido">
                     <input ref={inputRef} type="text" className="tareaEdicionInput" value={textoEditado} onChange={(e: ChangeEvent<HTMLInputElement>) => setTextoEditado(e.target.value)} onKeyDown={manejarTecla} onBlur={guardarEdicion} />
-                    <div className="tareaEdicionAcciones">
-                        <button className="tareaEdicionConfirmar" onClick={guardarEdicion} title="Guardar">
-                            <Check size={12} />
-                        </button>
-                        <button className="tareaEdicionCancelar" onClick={cancelarEdicion} title="Cancelar">
-                            <X size={12} />
-                        </button>
-                    </div>
                 </div>
             </div>
         );
@@ -98,7 +90,7 @@ function TareaItem({tarea, onToggle, onEditar, onEliminar}: TareaItemProps): JSX
             <div className={`tareaCheckbox ${tarea.completado ? 'tareaCheckboxCompletado' : ''}`} onClick={onToggle}>
                 {tarea.completado && <Check size={8} color="white" />}
             </div>
-            <div className="tareaContenido" onDoubleClick={iniciarEdicion}>
+            <div className="tareaContenido" onClick={iniciarEdicion}>
                 <p className={`tareaTexto ${tarea.completado ? 'tareaTextoCompletado' : ''}`}>{tarea.texto}</p>
             </div>
             {mostrarAcciones && (
@@ -121,7 +113,8 @@ interface InputNuevaTareaProps {
 
 function InputNuevaTarea({onCrear}: InputNuevaTareaProps): JSX.Element {
     const [texto, setTexto] = useState('');
-    const [expandido, setExpandido] = useState(false);
+    const [enfocado, setEnfocado] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const manejarEnvio = useCallback(() => {
         const textoLimpio = texto.trim();
@@ -129,7 +122,8 @@ function InputNuevaTarea({onCrear}: InputNuevaTareaProps): JSX.Element {
 
         onCrear({texto: textoLimpio});
         setTexto('');
-        setExpandido(false);
+        /* Mantener el foco para permitir crear varias tareas seguidas */
+        inputRef.current?.focus();
     }, [texto, onCrear]);
 
     const manejarTecla = useCallback(
@@ -138,7 +132,7 @@ function InputNuevaTarea({onCrear}: InputNuevaTareaProps): JSX.Element {
                 manejarEnvio();
             } else if (evento.key === 'Escape') {
                 setTexto('');
-                setExpandido(false);
+                inputRef.current?.blur();
             }
         },
         [manejarEnvio]
@@ -148,31 +142,35 @@ function InputNuevaTarea({onCrear}: InputNuevaTareaProps): JSX.Element {
         setTexto(evento.target.value);
     }, []);
 
-    if (!expandido) {
-        return (
-            <button className="tareaNuevoBoton" onClick={() => setExpandido(true)}>
-                <Plus size={12} />
-                <span>Nueva tarea</span>
-            </button>
-        );
-    }
+    const tieneTexto = texto.trim().length > 0;
 
     return (
-        <div className="tareaNuevoFormulario">
-            <input type="text" className="tareaNuevoInput" placeholder="Descripcion de la tarea..." value={texto} onChange={manejarCambioTexto} onKeyDown={manejarTecla} autoFocus />
-            <div className="tareaNuevoAcciones">
-                <button className="tareaNuevoConfirmar" onClick={manejarEnvio} disabled={texto.trim().length === 0}>
+        <div className={`tareaNuevoInline ${enfocado || tieneTexto ? 'tareaNuevoInlineActivo' : ''}`}>
+            <div className="tareaNuevoInlineIcono">
+                <Plus size={12} />
+            </div>
+            <input
+                ref={inputRef}
+                type="text"
+                className="tareaNuevoInlineInput"
+                placeholder="Nueva tarea..."
+                value={texto}
+                onChange={manejarCambioTexto}
+                onKeyDown={manejarTecla}
+                onFocus={() => setEnfocado(true)}
+                onBlur={() => {
+                    setEnfocado(false);
+                    /* Guardar si hay texto al perder foco */
+                    if (texto.trim().length > 0) {
+                        manejarEnvio();
+                    }
+                }}
+            />
+            {tieneTexto && (
+                <button className="tareaNuevoInlineConfirmar" onClick={manejarEnvio} title="Crear tarea (Enter)">
                     <Check size={12} />
                 </button>
-                <button
-                    className="tareaNuevoCancelar"
-                    onClick={() => {
-                        setTexto('');
-                        setExpandido(false);
-                    }}>
-                    <X size={12} />
-                </button>
-            </div>
+            )}
         </div>
     );
 }

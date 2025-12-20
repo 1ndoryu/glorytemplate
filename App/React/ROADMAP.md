@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Frecuencia de habitos con persistencia corregida, indicador visual compacto
+**Estado:** Calculo de inactividad basado en frecuencia, edicion inline de tareas mejorada
 
 ### Completado
 - [x] Arquitectura de componentes (SOLID)
@@ -29,6 +29,8 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [x] **Indicador visual Toca Hoy** - Badge y resaltado de habitos que tocan hoy
 - [x] **Persistencia de frecuencia** - Frecuencia se guarda correctamente al crear/editar
 - [x] **Indicador frecuencia en titulo** - Icono de reloj + numero junto al nombre del habito
+- [x] **Inactividad basada en frecuencia** - El umbral de reseteo de racha depende de la frecuencia del habito
+- [x] **Edicion inline mejorada** - Un solo click para editar tareas, input invisible seamless
 
 ### Estructura de Archivos (Actualizada)
 ```
@@ -203,10 +205,14 @@ App/React/styles/dashboard/componentes/menuContextual.css
 - [x] **Persistencia de frecuencia al crear habito** - Corregido en useDashboard
 - [x] **Persistencia de frecuencia al editar habito** - Corregido en useDashboard
 - [x] **Indicador compacto en titulo** - Muestra icono reloj + numero (ej: Ejercicio (o3))
-- [ ] Calcular dias de inactividad basado en la frecuencia (pendiente integracion)
+- [x] Calcular dias de inactividad basado en la frecuencia (integrado en migracionHabitos)
+- [x] Barra de progreso proporcional a la frecuencia
 - [ ] Adaptar racha a la frecuencia (racha semanal vs diaria)
-- [ ] Barra de progreso proporcional a la frecuencia
 - [ ] Historial debe considerar frecuencia para estadisticas
+
+**Integrado en migracionHabitos.ts:**
+- [x] `calcularUmbralInactividad()` ahora se usa para determinar reseteo de racha
+- [x] El umbral depende del tipo de frecuencia (diario=7d, semanal=10d, cadaXDias=intervalo*1.5)
 
 **Ejemplos:**
 | Frecuencia  | Comportamiento Racha      | Urgencia                  |
@@ -226,16 +232,16 @@ App/React/styles/dashboard/componentes/frecuencia.css # Estilos del selector
 App/React/styles/dashboard/componentes/tabla.css     # Estilos badge "Toca Hoy"
 ```
 
-### 2.10 Barra de Progreso Configurable (PLANIFICADO)
+### 2.10 Barra de Progreso Configurable (EN PROGRESO)
 **Objetivo:** Control sobre que representa la barra de progreso de urgencia
 
 **Estado actual:**
-- La barra muestra `diasInactividad / 7 * 100%`
-- Hardcodeado a 7 dias maximo
+- [x] Barra proporcional a la frecuencia del habito (usa `calcularUmbralInactividad`)
+- [x] Umbral de urgencia automatico segun frecuencia
+- La barra muestra `diasInactividad / umbralFrecuencia * 100%`
 
 **Mejoras planificadas:**
-- [ ] Barra proporcional a la frecuencia del habito
-- [ ] Umbral de urgencia configurable por habito
+- [ ] Umbral de urgencia configurable manualmente por habito
 - [ ] Modos de visualizacion:
   - `urgencia`: Cuanto falta para perder racha (actual)
   - `progreso`: Progreso hacia meta (ej: 3/5 dias esta semana)
@@ -272,30 +278,28 @@ App/React/hooks/useDeshacer.ts                  # Hook para manejar cola de acci
 
 **Objetivo:** Gestion completa de tareas con UX fluida y minimalista
 
-### 3.1 Crear Tarea (REDISEÑO)
-**Comportamiento actual:** Boton "Nueva tarea" expande formulario
-**Comportamiento deseado:** Edicion inmediata inline
+### 3.1 Crear Tarea (COMPLETADO)
+**Comportamiento implementado:**
 
-- [ ] El texto "Nueva tarea" es directamente editable (sin boton)
-- [ ] Click en "Nueva tarea" activa modo edicion in-place
-- [ ] Enter guarda la tarea
-- [ ] Escape cancela y restaura "Nueva tarea"
-- [ ] Sin cambio de estilos visibles (input transparente)
-- [ ] Guardado automatico al perder foco (blur)
+- [x] Input siempre visible (sin boton "Nueva tarea" previo)
+- [x] Placeholder "Nueva tarea..." indica accion
+- [x] Enter guarda la tarea
+- [x] Escape limpia el input y quita foco
+- [x] Guardado automatico al perder foco (blur)
+- [x] Mantiene foco despues de crear para agregar multiples tareas
+- [x] Boton de confirmar solo visible cuando hay texto
 
-### 3.2 Editar Tarea (REDISEÑO)
-**Comportamiento actual:** Doble click abre input con estilos diferentes
-**Comportamiento deseado:** Edicion transparente al usuario
+### 3.2 Editar Tarea (COMPLETADO)
+**Comportamiento implementado:**
 
-- [ ] Un solo click activa modo edicion (no doble click)
-- [ ] El texto se vuelve input PERO mantiene estilos identicos
-- [ ] Input "invisible" - mismo font, color, padding que el texto
-- [ ] Guardado automatico:
+- [x] Un solo click activa modo edicion
+- [x] El texto se vuelve input con estilos similares
+- [x] Guardado automatico:
   - Al presionar Enter
   - Al perder foco (blur)
-- [ ] Escape cancela edicion y restaura texto original
-- [ ] Sin botones de Guardar/Cancelar visibles
-- [ ] Transicion suave (sin "salto" visual)
+- [x] Escape cancela edicion y restaura texto original
+- [x] Botones ocultos - solo aparecen en hover
+- [ ] Transicion mas suave (refinamiento pendiente)
 
 ### 3.3 Reordenar Tareas (NUEVO)
 **Objetivo:** Orden manual persistente con drag & drop

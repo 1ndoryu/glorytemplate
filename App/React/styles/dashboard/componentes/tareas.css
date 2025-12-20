@@ -124,38 +124,58 @@
 
 /* 
  * MODO EDICION INLINE
+ * El input debe ser visualmente identico al texto para edicion seamless
  */
 .tareaItemEditando {
-    background-color: var(--dashboard-fondoSecundario);
+    background-color: transparent;
+}
+
+.tareaItemEditando:hover {
+    background-color: var(--dashboard-fondoHover);
 }
 
 .tareaEdicionContenedor {
     flex: 1;
     display: flex;
-    flex-direction: column;
+    align-items: flex-start;
     gap: var(--dashboard-espacioSm);
 }
 
+/* 
+ * Input invisible - hereda estilos del texto para edicion seamless
+ */
 .tareaEdicionInput {
     width: 100%;
-    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
-    background-color: var(--dashboard-fondoPrincipal);
-    border: 1px solid var(--dashboard-bordePrincipal);
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--dashboard-bordeSutil);
     color: var(--dashboard-textoNormal);
     font-size: var(--dashboard-tamanoBase);
     font-family: var(--dashboard-fuenteMonoespaciada);
+    line-height: 1.4;
     outline: none;
     transition: border-color var(--dashboard-transicionNormal);
 }
 
 .tareaEdicionInput:focus {
-    border-color: var(--dashboard-textoApagado);
+    border-bottom-color: var(--dashboard-textoApagado);
 }
 
+/* 
+ * Acciones de edicion - ocultas por defecto, visibles en hover de item
+ */
 .tareaEdicionAcciones {
     display: flex;
     align-items: center;
-    gap: var(--dashboard-espacioSm);
+    gap: var(--dashboard-espacioXs);
+    opacity: 0;
+    transition: opacity var(--dashboard-transicionRapida);
+}
+
+.tareaItemEditando:hover .tareaEdicionAcciones {
+    opacity: 1;
 }
 
 .tareaEdicionConfirmar,
@@ -166,7 +186,7 @@
     width: 1.25rem;
     height: 1.25rem;
     background: transparent;
-    border: 1px solid var(--dashboard-bordePrincipal);
+    border: 1px solid transparent;
     cursor: pointer;
     transition: all var(--dashboard-transicionRapida);
 }
@@ -286,4 +306,85 @@
 .tareaNuevoCancelar:hover {
     color: var(--dashboard-estadoAlta);
     border-color: var(--dashboard-estadoAltaBorde);
+}
+
+/* 
+ * INPUT INLINE NUEVA TAREA
+ * Input siempre visible, estilo seamless que coincide con tareas existentes
+ */
+.tareaNuevoInline {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd);
+    border-bottom: 1px dashed var(--dashboard-bordePunteado);
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.tareaNuevoInline:hover,
+.tareaNuevoInlineActivo {
+    border-bottom-color: var(--dashboard-bordePrincipal);
+    background-color: var(--dashboard-fondoHover);
+}
+
+.tareaNuevoInlineIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dashboard-textoApagado);
+    transition: color var(--dashboard-transicionNormal);
+    flex-shrink: 0;
+}
+
+.tareaNuevoInlineActivo .tareaNuevoInlineIcono {
+    color: var(--dashboard-textoNormal);
+}
+
+/* 
+ * Input invisible - hereda estilos del texto de tarea
+ */
+.tareaNuevoInlineInput {
+    flex: 1;
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    border: none;
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    line-height: 1.4;
+    outline: none;
+}
+
+.tareaNuevoInlineInput::placeholder {
+    color: var(--dashboard-textoApagado);
+    transition: color var(--dashboard-transicionNormal);
+}
+
+.tareaNuevoInline:hover .tareaNuevoInlineInput::placeholder {
+    color: var(--dashboard-textoIndice);
+}
+
+/* 
+ * Boton de confirmar - solo visible cuando hay texto
+ */
+.tareaNuevoInlineConfirmar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-estadoExito);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all var(--dashboard-transicionRapida);
+    opacity: 0;
+    animation: aparecer var(--dashboard-transicionRapida) ease forwards;
+}
+
+.tareaNuevoInlineConfirmar:hover {
+    background-color: var(--dashboard-estadoExitoFondo);
+    border-color: var(--dashboard-estadoExitoBorde);
 }

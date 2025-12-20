@@ -8,7 +8,7 @@ import {useState, useCallback} from 'react';
 import {Clock, Check, Edit3, AlertTriangle, Flame} from 'lucide-react';
 import type {Habito} from '../../types/dashboard';
 import {FRECUENCIA_POR_DEFECTO} from '../../types/dashboard';
-import {tocaHoy, describirFrecuencia, obtenerIntervaloFrecuencia} from '../../utils/frecuenciaHabitos';
+import {tocaHoy, describirFrecuencia, obtenerIntervaloFrecuencia, calcularUmbralInactividad} from '../../utils/frecuenciaHabitos';
 import {MenuContextual} from '../shared/MenuContextual';
 import type {OpcionMenu} from '../shared/MenuContextual';
 
@@ -56,8 +56,7 @@ interface MenuContextualEstado {
 }
 
 function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabitoProps): JSX.Element {
-    /* Configuracion de umbrales (debe coincidir con useDashboard) */
-    const UMBRAL_RESETEO_RACHA = 7;
+    /* Advertencia de racha: mostrar cuando faltan pocos dias para perderla */
     const DIAS_ADVERTENCIA_RACHA = 2;
 
     const [menuContextual, setMenuContextual] = useState<MenuContextualEstado>({
@@ -66,20 +65,23 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
         y: 0
     });
 
-    const esUrgente = habito.diasInactividad > 2;
-    const porcentajeUrgencia = Math.min((habito.diasInactividad / 7) * 100, 100);
-    const completadoHoy = fueCompletadoHoy(habito.ultimoCompletado);
-
     /* Frecuencia del habito */
     const frecuencia = habito.frecuencia || FRECUENCIA_POR_DEFECTO;
+    const umbralInactividad = calcularUmbralInactividad(frecuencia);
+
+    /* Calculos basados en el umbral de la frecuencia */
+    const esUrgente = habito.diasInactividad > Math.floor(umbralInactividad * 0.4);
+    const porcentajeUrgencia = Math.min((habito.diasInactividad / umbralInactividad) * 100, 100);
+    const completadoHoy = fueCompletadoHoy(habito.ultimoCompletado);
+
     const habitoTocaHoy = tocaHoy(frecuencia, habito.ultimoCompletado);
     const textoFrecuencia = describirFrecuencia(frecuencia);
     const intervaloFrecuencia = obtenerIntervaloFrecuencia(frecuencia);
 
     /* Logica de advertencia de racha */
-    const diasAntesDePerder = UMBRAL_RESETEO_RACHA - habito.diasInactividad;
+    const diasAntesDePerder = umbralInactividad - habito.diasInactividad;
     const rachaEnPeligro = habito.racha > 0 && diasAntesDePerder <= DIAS_ADVERTENCIA_RACHA && diasAntesDePerder > 0;
-    const rachaPerdida = habito.diasInactividad > UMBRAL_RESETEO_RACHA;
+    const rachaPerdida = habito.diasInactividad > umbralInactividad;
 
     const manejarToggle = useCallback(
         (evento: React.MouseEvent) => {
