@@ -4,11 +4,24 @@
  * Cuando un proyecto está seleccionado, muestra sus tareas debajo
  */
 
-import {Folder, Plus, ChevronDown, ChevronRight, Settings, Trash2} from 'lucide-react';
+import {useState, useCallback} from 'react';
+import {Folder, Plus, ChevronDown, ChevronRight, Calendar, Edit, Trash2, PlayCircle, PauseCircle, CheckCircle} from 'lucide-react';
 import {DashboardPanel} from '../../shared/DashboardPanel';
 import {SeccionEncabezado} from '../SeccionEncabezado';
 import {ListaTareas} from '../ListaTareas';
+import {MenuContextual} from '../../shared/MenuContextual';
+import {BadgeInfo, BadgeGroup} from '../../shared/BadgeInfo';
+import {AccionesItem} from '../../shared/AccionesItem';
 import type {Proyecto, Tarea, DatosEdicionTarea} from '../../../types/dashboard';
+import type {OpcionMenu} from '../../shared/MenuContextual';
+import {obtenerTextoFechaLimite, obtenerVarianteFechaLimite, formatearFechaCorta} from '../../../utils/fecha';
+
+interface MenuContextoProyecto {
+    visible: boolean;
+    x: number;
+    y: number;
+    proyectoId: number | null;
+}
 
 interface ListaProyectosProps {
     proyectos: Proyecto[];
@@ -18,6 +31,7 @@ interface ListaProyectosProps {
     proyectoSeleccionadoId?: number | null;
     onEditarProyecto?: (proyecto: Proyecto) => void;
     onEliminarProyecto?: (id: number) => void;
+    onCambiarEstadoProyecto?: (id: number, estado: 'activo' | 'completado' | 'pausado') => void;
     onToggleTarea: (id: number) => void;
     onCrearTarea: (datos: DatosEdicionTarea) => void;
     onEditarTarea: (id: number, datos: DatosEdicionTarea) => void;
@@ -32,6 +46,7 @@ interface ProyectoItemProps {
     onToggle: () => void;
     onEditar?: () => void;
     onEliminar?: () => void;
+    onContextMenu?: (e: React.MouseEvent) => void;
     onToggleTarea: (id: number) => void;
     onCrearTarea: (datos: DatosEdicionTarea) => void;
     onEditarTarea: (id: number, datos: DatosEdicionTarea) => void;
@@ -39,13 +54,17 @@ interface ProyectoItemProps {
     onReordenarTareas: (tareas: Tarea[]) => void;
 }
 
-function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onEliminar, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ProyectoItemProps): JSX.Element {
+function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onEliminar, onContextMenu, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ProyectoItemProps): JSX.Element {
     const tareasCompletadas = tareasProyecto.filter(t => t.completado).length;
     const totalTareas = tareasProyecto.length;
 
+    /* Usar funciones centralizadas para fecha */
+    const textoFecha = obtenerTextoFechaLimite(proyecto.fechaLimite);
+    const varianteFecha = obtenerVarianteFechaLimite(proyecto.fechaLimite);
+
     return (
         <div className={`proyectoItemWrapper ${activo ? 'proyectoItemWrapperActivo' : ''}`}>
-            <div className={`proyectoItem ${activo ? 'proyectoItemActivo' : ''}`} onClick={onToggle}>
+            <div className={`proyectoItem ${activo ? 'proyectoItemActivo' : ''}`} onClick={onToggle} onContextMenu={onContextMenu}>
                 <div className="proyectoItemChevron">{activo ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</div>
 
                 <div className="proyectoItemContenido">
@@ -54,6 +73,16 @@ function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onE
                         <span className={`etiquetaPrioridad etiqueta${proyecto.prioridad.charAt(0).toUpperCase() + proyecto.prioridad.slice(1)}`}>{proyecto.prioridad.toUpperCase()}</span>
                         <span>•</span>
                         <span>{totalTareas > 0 ? `${tareasCompletadas}/${totalTareas}` : 'Sin tareas'}</span>
+
+                        {/* Badge de fecha limite con urgencia */}
+                        {proyecto.fechaLimite && (
+                            <>
+                                <span>•</span>
+                                <BadgeGroup>
+                                    <BadgeInfo tipo="fecha" icono={<Calendar size={10} />} texto={textoFecha} variante={varianteFecha} titulo={`Fecha limite: ${proyecto.fechaLimite ? formatearFechaCorta(proyecto.fechaLimite) : ''}`} />
+                                </BadgeGroup>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -63,17 +92,8 @@ function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onE
                     </div>
                 </div>
 
-                {/* Acciones que solo aparecen cuando está activo */}
-                {activo && (
-                    <div className="proyectoAcciones" onClick={e => e.stopPropagation()}>
-                        <button className="botonIcono" onClick={onEditar} title="Editar proyecto">
-                            <Settings size={12} />
-                        </button>
-                        <button className="botonIcono botonPeligro" onClick={onEliminar} title="Eliminar proyecto">
-                            <Trash2 size={12} />
-                        </button>
-                    </div>
-                )}
+                {/* Acciones inline usando componente reutilizable */}
+                {activo && <AccionesItem mostrarConfigurar={true} mostrarEliminar={true} onConfigurar={onEditar} onEliminar={onEliminar} />}
             </div>
 
             {/* Tareas del proyecto (solo cuando está activo) */}
@@ -86,7 +106,9 @@ function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onE
     );
 }
 
-export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSeleccionarProyecto, proyectoSeleccionadoId, onEditarProyecto, onEliminarProyecto, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ListaProyectosProps): JSX.Element {
+export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSeleccionarProyecto, proyectoSeleccionadoId, onEditarProyecto, onEliminarProyecto, onCambiarEstadoProyecto, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ListaProyectosProps): JSX.Element {
+    const [menuContexto, setMenuContexto] = useState<MenuContextoProyecto>({visible: false, x: 0, y: 0, proyectoId: null});
+
     /* Toggle: si ya está seleccionado, deseleccionar */
     const toggleProyecto = (id: number) => {
         if (proyectoSeleccionadoId === id) {
@@ -95,6 +117,73 @@ export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSelecciona
             onSeleccionarProyecto?.(id);
         }
     };
+
+    /* Manejar click derecho en proyecto */
+    const manejarContextMenu = useCallback((e: React.MouseEvent, proyectoId: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setMenuContexto({visible: true, x: e.clientX, y: e.clientY, proyectoId});
+    }, []);
+
+    /* Cerrar menu contextual */
+    const cerrarMenuContexto = useCallback(() => {
+        setMenuContexto(prev => ({...prev, visible: false, proyectoId: null}));
+    }, []);
+
+    /* Construir opciones del menu contextual */
+    const obtenerOpcionesMenu = useCallback((): OpcionMenu[] => {
+        if (!menuContexto.proyectoId) return [];
+        const proyecto = proyectos.find(p => p.id === menuContexto.proyectoId);
+        if (!proyecto) return [];
+
+        const opciones: OpcionMenu[] = [{id: 'editar', etiqueta: 'Editar proyecto', icono: <Edit size={14} />, separadorDespues: true}];
+
+        /* Opciones de estado segun el estado actual */
+        if (proyecto.estado !== 'activo') {
+            opciones.push({id: 'estado-activo', etiqueta: 'Marcar como activo', icono: <PlayCircle size={14} />});
+        }
+        if (proyecto.estado !== 'pausado') {
+            opciones.push({id: 'estado-pausado', etiqueta: 'Pausar proyecto', icono: <PauseCircle size={14} />});
+        }
+        if (proyecto.estado !== 'completado') {
+            opciones.push({id: 'estado-completado', etiqueta: 'Marcar como completado', icono: <CheckCircle size={14} />, separadorDespues: true});
+        } else {
+            opciones[opciones.length - 1].separadorDespues = true;
+        }
+
+        opciones.push({id: 'eliminar', etiqueta: 'Eliminar proyecto', icono: <Trash2 size={14} />, peligroso: true});
+
+        return opciones;
+    }, [menuContexto.proyectoId, proyectos]);
+
+    /* Manejar seleccion del menu contextual */
+    const manejarSeleccionMenu = useCallback(
+        (opcionId: string) => {
+            if (!menuContexto.proyectoId) return;
+            const proyecto = proyectos.find(p => p.id === menuContexto.proyectoId);
+            if (!proyecto) return;
+
+            switch (opcionId) {
+                case 'editar':
+                    onEditarProyecto?.(proyecto);
+                    break;
+                case 'eliminar':
+                    onEliminarProyecto?.(proyecto.id);
+                    break;
+                case 'estado-activo':
+                    onCambiarEstadoProyecto?.(proyecto.id, 'activo');
+                    break;
+                case 'estado-pausado':
+                    onCambiarEstadoProyecto?.(proyecto.id, 'pausado');
+                    break;
+                case 'estado-completado':
+                    onCambiarEstadoProyecto?.(proyecto.id, 'completado');
+                    break;
+            }
+            cerrarMenuContexto();
+        },
+        [menuContexto.proyectoId, proyectos, onEditarProyecto, onEliminarProyecto, onCambiarEstadoProyecto, cerrarMenuContexto]
+    );
 
     return (
         <>
@@ -111,7 +200,7 @@ export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSelecciona
                 <div className="listaProyectos">
                     {proyectos.map(proyecto => {
                         const tareasProyecto = tareas.filter(t => t.proyectoId === proyecto.id);
-                        return <ProyectoItem key={proyecto.id} proyecto={proyecto} activo={proyecto.id === proyectoSeleccionadoId} tareasProyecto={tareasProyecto} onToggle={() => toggleProyecto(proyecto.id)} onEditar={() => onEditarProyecto?.(proyecto)} onEliminar={() => onEliminarProyecto?.(proyecto.id)} onToggleTarea={onToggleTarea} onCrearTarea={onCrearTarea} onEditarTarea={onEditarTarea} onEliminarTarea={onEliminarTarea} onReordenarTareas={onReordenarTareas} />;
+                        return <ProyectoItem key={proyecto.id} proyecto={proyecto} activo={proyecto.id === proyectoSeleccionadoId} tareasProyecto={tareasProyecto} onToggle={() => toggleProyecto(proyecto.id)} onEditar={() => onEditarProyecto?.(proyecto)} onEliminar={() => onEliminarProyecto?.(proyecto.id)} onContextMenu={e => manejarContextMenu(e, proyecto.id)} onToggleTarea={onToggleTarea} onCrearTarea={onCrearTarea} onEditarTarea={onEditarTarea} onEliminarTarea={onEliminarTarea} onReordenarTareas={onReordenarTareas} />;
                     })}
 
                     {proyectos.length === 0 && (
@@ -124,6 +213,9 @@ export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSelecciona
                     )}
                 </div>
             </DashboardPanel>
+
+            {/* Menu contextual */}
+            {menuContexto.visible && <MenuContextual opciones={obtenerOpcionesMenu()} posicionX={menuContexto.x} posicionY={menuContexto.y} onSeleccionar={manejarSeleccionMenu} onCerrar={cerrarMenuContexto} />}
         </>
     );
 }

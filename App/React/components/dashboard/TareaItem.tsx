@@ -9,6 +9,7 @@ import type {Tarea, NivelPrioridad, DatosEdicionTarea, TareaConfiguracion} from 
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
 import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
 import type {VarianteBadge} from '../shared/BadgeInfo';
+import {obtenerTextoFechaLimite as obtenerTextoFechaLim, obtenerVarianteFechaLimite as obtenerVarianteFecha, formatearFechaCorta as formatearFecha} from '../../utils/fecha';
 
 export interface TareaItemProps {
     tarea: Tarea;
@@ -198,30 +199,15 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
         return <BadgeInfo tipo="prioridad" texto={tarea.prioridad.toUpperCase()} variante={obtenerVariantePrioridad(tarea.prioridad)} />;
     };
 
-    /* Renderizado del indicador de fecha limite */
+    /* Renderizado del indicador de fecha limite (usando funciones centralizadas) */
     const renderIndicadorFecha = () => {
         const fechaMaxima = tarea.configuracion?.fechaMaxima;
         if (!fechaMaxima) return null;
 
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        const fecha = new Date(fechaMaxima);
-        const diferenciaDias = Math.ceil((fecha.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+        const textoFecha = obtenerTextoFechaLim(fechaMaxima);
+        const variante = obtenerVarianteFecha(fechaMaxima);
 
-        /* Determinar variante segun urgencia */
-        let variante: 'normal' | 'urgente' | 'exito' | 'advertencia' = 'normal';
-        if (diferenciaDias < 0) {
-            variante = 'urgente';
-        } else if (diferenciaDias === 0) {
-            variante = 'advertencia';
-        } else if (diferenciaDias <= 3) {
-            variante = 'exito';
-        }
-
-        /* Formatear fecha de forma compacta */
-        const formatoFecha = fecha.toLocaleDateString('es', {day: 'numeric', month: 'short'});
-
-        return <BadgeInfo tipo="fecha" icono={<Calendar size={10} />} texto={formatoFecha} titulo={`Fecha limite: ${formatoFecha}`} variante={variante} onClick={onConfigurar} />;
+        return <BadgeInfo tipo="fecha" icono={<Calendar size={10} />} texto={textoFecha} titulo={`Fecha limite: ${formatearFecha(fechaMaxima)}`} variante={variante} onClick={onConfigurar} />;
     };
 
     /* Renderizado del badge de adjuntos */

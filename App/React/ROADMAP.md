@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Fase de Estandarización UI/UX (Planificación).
+**Estado:** Fase de Estandarización UI/UX (En Progreso).
 
 ---
 
@@ -169,7 +169,7 @@ App/React/
     dashboard.ts              # Tipos centralizados (+ TareaConfiguracion, RepeticionTarea, Adjunto)
   utils/
     index.ts                  # Exportaciones
-    fecha.ts                  # Utilidades de fecha
+    fecha.ts                  # Utilidades de fecha (+ urgencia, formateo fecha limite)
     validadores.ts            # Validadores de datos
     migracionHabitos.ts       # Logica de migracion
     frecuenciaHabitos.ts      # Calculo de frecuencia
@@ -256,11 +256,11 @@ App/React/styles/dashboard/
 **Objetivo:** Unificar la experiencia visual y de interacción entre Hábitos, Tareas y Proyectos. Centralizar componentes comunes y agregar indicadores visuales faltantes.
 
 ### Menú Contextual Unificado
-- [ ] **Proyectos**: Implementar menú contextual (click derecho) con opciones: Editar, Eliminar, Cambiar estado.
-- [ ] **Centralizar MenuContextual**: Asegurar que el componente `MenuContextual` sea reutilizable para Hábitos, Tareas y Proyectos.
+- [x] **Proyectos**: Implementar menú contextual (click derecho) con opciones: Editar, Eliminar, Cambiar estado.
+- [x] **Centralizar MenuContextual**: Asegurar que el componente `MenuContextual` sea reutilizable para Hábitos, Tareas y Proyectos.
 
 ### Indicadores Visuales en Items
-- [ ] **Fecha Límite en Proyectos**: Mostrar fecha límite visible (igual que tareas) con indicador de urgencia.
+- [x] **Fecha Límite en Proyectos**: Mostrar fecha límite visible (igual que tareas) con indicador de urgencia.
 - [x] **Badges de Información en Tareas**:
   - [x] Badge de Adjunto (icono clip) - cuando tiene archivos adjuntos.
   - [x] Badge de Descripción (icono nota) - cuando tiene descripción.
@@ -275,14 +275,14 @@ App/React/styles/dashboard/
 
 ### Acciones en Hábitos
 - [ ] **Iconos de Acción Inline**: Agregar botones de Configurar y Eliminar a los ítems de hábitos (similar a proyectos cuando están activos).
-- [ ] **Panel "Configurar Hábito"**: Crear modal de configuración avanzada para hábitos, similar a `PanelConfiguracionTarea`.
+- [ ] **Panel "Configurar Hábito"**: Crear modal de configuración avanzada para hábitos, similar a `PanelConfiguracionTarea`. (ESTO ESTA LISTO SOLO HAY QUE REVISAR SI SE ESTA REUTIZANDO COSAS BIEN)
   - Reutilizar componentes compartidos (`SeccionPanel`, `SelectorNivel`, etc.).
   - Centralizar estilos para que ambos paneles se vean idénticos.
 
 ### Refactorización de Componentes Compartidos
 - [ ] **PanelConfiguracion base**: Extraer lógica común de `PanelConfiguracionTarea` a un componente genérico.
 - [x] **BadgeInfo**: Componente para mostrar badges de información (adjuntos, descripción, repetición, fecha, prioridad, frecuencia, racha).
-- [ ] **AccionesItem**: Componente para los botones de acción inline (configurar, eliminar).
+- [x] **AccionesItem**: Componente para los botones de acción inline (configurar, eliminar).
 
 ---
 

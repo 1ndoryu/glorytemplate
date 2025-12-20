@@ -1,0 +1,38 @@
+/*
+ * ACCIONES ITEM
+ * Estilos para botones de accion inline en items
+ */
+
+.accionesItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-left: var(--dashboard-espacioSm);
+}
+
+.accionesItem .botonIcono {
+    padding: 4px;
+    background: transparent;
+    border: none;
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.accionesItem .botonIcono:hover {
+    color: var(--dashboard-textoActivo);
+    background-color: var(--dashboard-fondoHover);
+}
+
+.accionesItem .botonIcono.botonPeligro {
+    color: var(--dashboard-estadoError);
+}
+
+.accionesItem .botonIcono.botonPeligro:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}

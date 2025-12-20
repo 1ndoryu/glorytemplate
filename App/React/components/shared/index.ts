@@ -9,3 +9,4 @@ export * from './ToggleSwitch';
 export * from './SelectorDias';
 export * from './DashboardPanel';
 export * from './BadgeInfo';
+export * from './AccionesItem';

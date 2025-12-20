@@ -129,10 +129,9 @@ export function useProyectos({proyectos, setProyectos, registrarAccion, mostrarM
                     if (nuevoEstado === 'completado') {
                         updates.fechaCompletado = hoy;
                         updates.progreso = 100;
-                    } else if (estadoAnterior === 'completado' && nuevoEstado !== 'completado') {
+                    } else if (estadoAnterior === 'completado') {
+                        /* Reactivando proyecto: limpiar fecha de completado */
                         updates.fechaCompletado = undefined;
-                        // Mantiene el progreso anterior o lo deja en un valor por defecto si fuera necesario
-                        // Por ahora no modificamos progreso al reactivar, solo al completar
                     }
 
                     return {...p, ...updates};
