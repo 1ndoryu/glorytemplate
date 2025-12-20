@@ -27,6 +27,7 @@
 @import './shared/seccionPanel.css';
 @import './shared/toggleSwitch.css';
 @import './shared/selectorDias.css';
+@import './shared/dashboardPanel.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';
@@ -41,6 +42,7 @@
 @import './componentes/frecuencia.css';
 @import './componentes/panelConfiguracion.css';
 @import './componentes/adjuntos.css';
+@import './componentes/proyectos.css';
 
 /* Utilidades */
 @import './utilidades/estados.css';

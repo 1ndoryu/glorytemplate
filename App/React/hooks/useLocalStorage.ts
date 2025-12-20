@@ -100,5 +100,6 @@ export const CLAVES_LOCALSTORAGE = {
     habitos: 'dashboard_habitos',
     tareas: 'dashboard_tareas',
     notas: 'dashboard_notas',
-    configuracion: 'dashboard_config'
+    configuracion: 'dashboard_config',
+    proyectos: 'dashboard_proyectos'
 } as const;

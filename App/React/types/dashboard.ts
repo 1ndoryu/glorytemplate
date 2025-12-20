@@ -105,6 +105,23 @@ export interface TareaConfiguracion {
     adjuntos?: Adjunto[];
 }
 
+/*
+ * Entidad Proyecto
+ * Contenedor de alto nivel para agrupar tareas relacionadas
+ */
+export interface Proyecto {
+    id: number;
+    nombre: string;
+    descripcion?: string;
+    prioridad: NivelPrioridad;
+    fechaLimite?: string;
+    estado: 'activo' | 'completado' | 'pausado';
+    /* Progreso calculado (0-100) */
+    progreso?: number;
+    fechaCreacion: string;
+    fechaCompletado?: string;
+}
+
 export interface Tarea {
     id: number;
     texto: string;
@@ -115,6 +132,8 @@ export interface Tarea {
     orden?: number;
     /* ID de tarea padre para subtareas (solo un nivel de anidacion) */
     parentId?: number;
+    /* ID del proyecto al que pertenece la tarea (opcional) */
+    proyectoId?: number;
     /* Campos opcionales */
     prioridad?: NivelPrioridad;
     /* Configuracion avanzada (fecha limite, descripcion, repeticion, adjuntos) */
@@ -124,6 +143,7 @@ export interface Tarea {
 export interface DashboardData {
     habitos: Habito[];
     tareas: Tarea[];
+    proyectos?: Proyecto[];
     notasIniciales?: string;
 }
 
@@ -155,6 +175,7 @@ export interface DatosNuevaTarea {
     texto: string;
     prioridad?: NivelPrioridad;
     configuracion?: TareaConfiguracion;
+    proyectoId?: number;
 }
 
 /*
@@ -170,4 +191,5 @@ export interface DatosEdicionTarea {
     insertarDespuesDe?: number;
     /* Configuración avanzada de la tarea */
     configuracion?: TareaConfiguracion;
+    proyectoId?: number;
 }

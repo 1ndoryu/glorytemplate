@@ -44,3 +44,20 @@ export function validarTareas(valor: unknown): valor is Tarea[] {
 export function validarNotas(valor: unknown): valor is string {
     return typeof valor === 'string';
 }
+
+/*
+ * Valida que un valor sea un array de proyectos con estructura correcta
+ */
+import type {Proyecto} from '../types/dashboard';
+
+export function validarProyectos(valor: unknown): valor is Proyecto[] {
+    if (!Array.isArray(valor)) return false;
+
+    return valor.every(p => {
+        if (typeof p !== 'object' || p === null) return false;
+
+        const proyecto = p as Record<string, unknown>;
+
+        return typeof proyecto.id === 'number' && typeof proyecto.nombre === 'string' && typeof proyecto.estado === 'string';
+    });
+}

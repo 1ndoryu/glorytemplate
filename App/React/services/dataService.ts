@@ -4,13 +4,14 @@
  * Permite transferir datos entre entornos mediante archivos JSON
  */
 
-import type {Habito, Tarea} from '../types/dashboard';
+import type {Habito, Tarea, Proyecto} from '../types/dashboard';
 
 export interface DatosDashboardExportados {
     version: string;
     fechaExportacion: string;
     habitos: Habito[];
     tareas: Tarea[];
+    proyectos?: Proyecto[];
     notas: string;
 }
 
@@ -19,12 +20,13 @@ const VERSION_ACTUAL = '1.0.0';
 /*
  * Exporta los datos del dashboard a un archivo JSON
  */
-export function exportarDatos(habitos: Habito[], tareas: Tarea[], notas: string): void {
+export function exportarDatos(habitos: Habito[], tareas: Tarea[], notas: string, proyectos?: Proyecto[]): void {
     const datosExportar: DatosDashboardExportados = {
         version: VERSION_ACTUAL,
         fechaExportacion: new Date().toISOString(),
         habitos,
         tareas,
+        proyectos,
         notas
     };
 
@@ -106,6 +108,10 @@ function validarDatosImportados(datos: unknown): ResultadoValidacion {
         return {esValido: false, mensaje: 'Las tareas deben ser un arreglo'};
     }
 
+    if (datosTyped.proyectos !== undefined && !Array.isArray(datosTyped.proyectos)) {
+        return {esValido: false, mensaje: 'Los proyectos deben ser un arreglo'};
+    }
+
     if (typeof datosTyped.notas !== 'string') {
         return {esValido: false, mensaje: 'Las notas deben ser texto'};
     }
@@ -123,6 +129,30 @@ function validarDatosImportados(datos: unknown): ResultadoValidacion {
             return validacionTarea;
         }
     }
+
+    /* Validar proyectos si existen */
+    if (datosTyped.proyectos) {
+        const proyectos = datosTyped.proyectos as unknown[];
+        for (const proyecto of proyectos) {
+            const validacionProyecto = validarProyecto(proyecto);
+            if (!validacionProyecto.esValido) {
+                return validacionProyecto;
+            }
+        }
+    }
+
+    return {esValido: true, mensaje: 'OK'};
+}
+
+function validarProyecto(proyecto: unknown): ResultadoValidacion {
+    if (!proyecto || typeof proyecto !== 'object') {
+        return {esValido: false, mensaje: 'Proyecto inválido'};
+    }
+
+    const p = proyecto as Record<string, unknown>;
+
+    if (typeof p.id !== 'number') return {esValido: false, mensaje: 'Proyecto sin ID válido'};
+    if (typeof p.nombre !== 'string') return {esValido: false, mensaje: 'Proyecto sin nombre válido'};
 
     return {esValido: true, mensaje: 'OK'};
 }

@@ -5,7 +5,7 @@
  */
 
 import {Terminal, AlertCircle, FileText} from 'lucide-react';
-import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden} from '../components/dashboard';
+import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden, ListaProyectos} from '../components/dashboard';
 import {ToastDeshacer} from '../components/shared/ToastDeshacer';
 import {Modal} from '../components/shared/Modal';
 import {useDashboard} from '../hooks/useDashboard';
@@ -36,7 +36,7 @@ function IndicadorCarga(): JSX.Element {
 }
 
 export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin'}: DashboardIslandProps): JSX.Element {
-    const {habitos, tareas, notas, toggleTarea, crearTarea, editarTarea, eliminarTarea, actualizarNotas, toggleHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, exportarTodosDatos, importarTodosDatos, importando, mensajeEstado, tipoMensaje, cargandoDatos, accionDeshacer, ejecutarDeshacer, descartarDeshacer, reordenarTareas} = useDashboard();
+    const {habitos, tareas, notas, proyectos, toggleTarea, crearTarea, editarTarea, eliminarTarea, crearProyecto, actualizarNotas, toggleHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, exportarTodosDatos, importarTodosDatos, importando, mensajeEstado, tipoMensaje, cargandoDatos, accionDeshacer, ejecutarDeshacer, descartarDeshacer, reordenarTareas} = useDashboard();
 
     /* Sistema de ordenamiento de habitos */
     const {habitosOrdenados, modoActual, cambiarModo, modosDisponibles} = useOrdenarHabitos(habitos);
@@ -54,6 +54,10 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                     <div className="columnaHabitos">
                         <SeccionEncabezado icono={<AlertCircle size={12} />} titulo="Foco Prioritario" subtitulo={modoInfo?.descripcion || ''} acciones={<SelectorOrden modoActual={modoActual} onCambiarModo={cambiarModo} />} />
                         <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} />
+
+                        <div style={{marginTop: 'var(--dashboard-espacioLg)'}}>
+                            <ListaProyectos proyectos={proyectos || []} onCrearProyecto={() => crearProyecto({nombre: 'Nuevo Proyecto', prioridad: 'media'})} />
+                        </div>
                     </div>
 
                     {/* Columna 2: Tareas y Notas */}

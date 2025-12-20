@@ -12,6 +12,7 @@ import {TareaItem} from './TareaItem';
 import {InputNuevaTarea} from './InputNuevaTarea';
 import {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
 import {obtenerSubtareas, tieneSubtareas as utilTieneSubtareas, contarSubtareas as utilContarSubtareas, puedeSerSubtareaDe} from '../../utils/jerarquiaTareas';
+import {DashboardPanel} from '../shared/DashboardPanel';
 
 interface ListaTareasProps {
     tareas: Tarea[];
@@ -269,7 +270,7 @@ export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea,
     };
 
     return (
-        <div id="lista-tareas" className="dashboardPanel">
+        <DashboardPanel id="lista-tareas">
             {onCrearTarea && <InputNuevaTarea onCrear={onCrearTarea} />}
 
             <Reorder.Group axis="y" values={tareasPrincipalesPendientes} onReorder={handleReorder} className="listaTareasPendientes">
@@ -317,6 +318,6 @@ export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea,
 
             {/* Panel de configuración */}
             {tareaConfigurando && <PanelConfiguracionTarea tarea={tareaConfigurando} estaAbierto={true} onCerrar={() => setTareaConfigurando(null)} onGuardar={guardarConfiguracion} />}
-        </div>
+        </DashboardPanel>
     );
 }

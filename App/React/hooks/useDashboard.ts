@@ -7,17 +7,18 @@
  */
 
 import {useState, useCallback, useEffect, useRef} from 'react';
-import type {Habito, Tarea, ConfiguracionDashboard, DatosNuevoHabito, DatosEdicionTarea} from '../types/dashboard';
+import type {Habito, Tarea, Proyecto, ConfiguracionDashboard, DatosNuevoHabito, DatosEdicionTarea} from '../types/dashboard';
 import {exportarDatos, importarDatos} from '../services/dataService';
 import {useLocalStorage, CLAVES_LOCALSTORAGE} from './useLocalStorage';
 import {useDeshacer} from './useDeshacer';
 import {useTareas} from './useTareas';
+import {useProyectos, DatosNuevoProyecto} from './useProyectos';
 
 /* Utilidades extraidas a modulos separados */
 import {obtenerFechaHoy, calcularDiasDesde, fueCompletadoHoy} from '../utils/fecha';
-import {validarHabitos, validarTareas, validarNotas} from '../utils/validadores';
+import {validarHabitos, validarTareas, validarNotas, validarProyectos} from '../utils/validadores';
 import {migrarYActualizarHabitos} from '../utils/migracionHabitos';
-import {habitosIniciales, tareasIniciales, notasIniciales} from '../data/datosIniciales';
+import {habitosIniciales, tareasIniciales, notasIniciales, proyectosIniciales} from '../data/datosIniciales';
 
 /*
  * Configuracion por defecto del dashboard
@@ -62,6 +63,12 @@ interface UseDashboardReturn {
     ejecutarDeshacer: () => void;
     descartarDeshacer: () => void;
     reordenarTareas: (tareas: Tarea[]) => void;
+    /* Proyectos */
+    proyectos?: Proyecto[];
+    crearProyecto: (datos: DatosNuevoProyecto) => void;
+    editarProyecto: (id: number, datos: Partial<Proyecto>) => void;
+    eliminarProyecto: (id: number) => void;
+    cambiarEstadoProyecto: (id: number, nuevoEstado: Proyecto['estado']) => void;
 }
 
 export function useDashboard(): UseDashboardReturn {
@@ -102,7 +109,19 @@ export function useDashboard(): UseDashboardReturn {
         validarValor: validarNotas
     });
 
-    const cargandoDatos = cargandoHabitos || cargandoTareas || cargandoNotas;
+    /*
+     * Hook de proyectos - delega logica CRUD a useProyectos
+     */
+    const {
+        valor: proyectos,
+        setValor: setProyectos,
+        cargando: cargandoProyectos
+    } = useLocalStorage<Proyecto[]>(CLAVES_LOCALSTORAGE.proyectos, {
+        valorPorDefecto: proyectosIniciales,
+        validarValor: validarProyectos
+    });
+
+    const cargandoDatos = cargandoHabitos || cargandoTareas || cargandoNotas || cargandoProyectos;
 
     const [importando, setImportando] = useState(false);
     const [mensajeEstado, setMensajeEstado] = useState<string | null>(null);
@@ -140,6 +159,16 @@ export function useDashboard(): UseDashboardReturn {
             setTipoMensaje(null);
         }, 4000);
     }, []);
+
+    /*
+     * Hook de proyectos - delega logica CRUD a useProyectos
+     */
+    const {crearProyecto, editarProyecto, eliminarProyecto, cambiarEstadoProyecto} = useProyectos({
+        proyectos,
+        setProyectos,
+        registrarAccion,
+        mostrarMensaje
+    });
 
     /*
      * Hook de tareas - delega toda la lógica CRUD a useTareas
@@ -330,12 +359,12 @@ export function useDashboard(): UseDashboardReturn {
 
     const exportarTodosDatos = useCallback(() => {
         try {
-            exportarDatos(habitos, tareas, notas);
+            exportarDatos(habitos, tareas, notas, proyectos);
             mostrarMensaje('Datos exportados correctamente', 'exito');
         } catch (error) {
             mostrarMensaje('Error al exportar datos', 'error');
         }
-    }, [habitos, tareas, notas, mostrarMensaje]);
+    }, [habitos, tareas, notas, proyectos, mostrarMensaje]);
 
     const importarTodosDatos = useCallback(
         async (archivo: File) => {
@@ -344,8 +373,9 @@ export function useDashboard(): UseDashboardReturn {
                 const datos = await importarDatos(archivo);
                 setHabitos(datos.habitos);
                 setTareas(datos.tareas);
-                setNotas(datos.notas);
-                mostrarMensaje(`Datos restaurados (${datos.habitos.length} habitos, ${datos.tareas.length} tareas)`, 'exito');
+                if (datos.proyectos) setProyectos(datos.proyectos);
+                setNotas(datos.notas || '');
+                mostrarMensaje(`Datos restaurados (${datos.habitos.length} habitos, ${datos.tareas.length} tareas, ${datos.proyectos?.length || 0} proyectos)`, 'exito');
             } catch (error) {
                 const mensaje = error instanceof Error ? error.message : 'Error desconocido';
                 mostrarMensaje(mensaje, 'error');
@@ -353,17 +383,22 @@ export function useDashboard(): UseDashboardReturn {
                 setImportando(false);
             }
         },
-        [mostrarMensaje, setHabitos, setTareas, setNotas]
+        [mostrarMensaje, setHabitos, setTareas, setProyectos, setNotas]
     );
 
     return {
         habitos,
         tareas,
+        proyectos,
         notas,
         toggleTarea,
         crearTarea,
         editarTarea,
         eliminarTarea,
+        crearProyecto,
+        editarProyecto,
+        eliminarProyecto,
+        cambiarEstadoProyecto,
         actualizarNotas,
         toggleHabito,
         crearHabito,

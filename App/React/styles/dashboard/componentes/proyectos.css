@@ -1,0 +1,76 @@
+/*
+ * LISTA DE PROYECTOS
+ * Estilos para el panel de proyectos y items individuales
+ */
+
+.listaProyectos {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background-color: var(--dashboard-bordePrincipal); /* Separador entre items */
+}
+
+.proyectoItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoSecundario);
+    cursor: pointer;
+    transition: background-color var(--dashboard-transicionNormal);
+    border-left: 3px solid transparent;
+}
+
+.proyectoItem:hover {
+    background-color: var(--dashboard-fondoHover);
+}
+
+.proyectoItemActivo {
+    background-color: var(--dashboard-fondoHover);
+    border-left-color: var(--dashboard-textoActivo);
+}
+
+.proyectoItemContenido {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.proyectoNombre {
+    color: var(--dashboard-textoActivo);
+    font-weight: 500;
+}
+
+.proyectoMeta {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+}
+
+.proyectoProgreso {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 60px;
+}
+
+.barraProgresoFondo {
+    flex: 1;
+    height: 4px;
+    background-color: var(--dashboard-barraFondo);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.barraProgresoRelleno {
+    height: 100%;
+    background-color: var(--dashboard-barraNormal);
+    border-radius: 2px;
+}
+
+.proyectoProgreso[data-estado='completado'] .barraProgresoRelleno {
+    background-color: var(--dashboard-estadoExito);
+}

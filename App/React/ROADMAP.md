@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Fase de Gestión de Proyectos (Planificación).
+**Estado:** Fase de Gestión de Proyectos (Implementación).
 
 ---
 
@@ -231,18 +231,20 @@ App/React/styles/dashboard/
 - **Aislamiento**: Las tareas de un proyecto pertenecen *exclusivamente* a ese contexto y no deben mezclarse visualmente con tareas sueltas u otros proyectos en la vista principal, permitiendo foco total.
 
 ### Refactorización Arquitectónica
-- [ ] **Componente `DashboardPanel`**: Crear `components/shared/DashboardPanel.tsx` para estandarizar los contenedores (Hábitos, Lista de Proyectos, Paneles de Proyecto).
+- [x] **Componente `DashboardPanel`**: Crear `components/shared/DashboardPanel.tsx` para estandarizar los contenedores (Hábitos, Lista de Proyectos, Paneles de Proyecto).
 
 ### Nueva Entidad: Proyectos
-- [ ] **Estructura de Datos**:
+- [x] **Estructura de Datos**:
   - `Proyecto`: id, nombre, descripción, prioridad, fecha límite.
   - Relación: Tareas tendrán un campo `proyectoId`.
-- [ ] **Visualización**:
+- [x] **Visualización**:
   - **Lista de Proyectos**: Ubicada en columna izquierda (bajo Hábitos). Muestra resumen y progreso.
-  - **Vista Detalle**: Al seleccionar un proyecto, se muestra su propia lista de tareas aislada (debajo, puede ocultarse las tareas)
+  - [ ] **Vista Detalle**: Al seleccionar un proyecto, se muestra su propia lista de tareas aislada (debajo, puede ocultarse las tareas)
 
 ### Funcionalidad
-- [ ] **Gestión de Proyectos**: CRUD completo.
+- [x] **Gestión de Proyectos**: Hooks y lógica base creados (CRUD backend-frontend logic ready).
+- [ ] **Formularios**: Modal para crear/editar proyectos.
+- [ ] **Lógica de Tareas de Proyecto**:
 - [ ] **Lógica de Tareas de Proyecto**: 
   - Las tareas creadas dentro de un proyecto heredan el `proyectoId`.
   - Reutilización del componente `ListaTareas` pero filtrado por `proyectoId`.

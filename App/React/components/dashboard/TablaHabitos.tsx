@@ -11,6 +11,7 @@ import {FRECUENCIA_POR_DEFECTO} from '../../types/dashboard';
 import {tocaHoy, describirFrecuencia, obtenerIntervaloFrecuencia, calcularUmbralInactividad} from '../../utils/frecuenciaHabitos';
 import {MenuContextual} from '../shared/MenuContextual';
 import type {OpcionMenu} from '../shared/MenuContextual';
+import {DashboardPanel} from '../shared/DashboardPanel';
 
 interface TablaHabitosProps {
     habitos: Habito[];
@@ -230,7 +231,7 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
 
 export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditarHabito, onEliminarHabito}: TablaHabitosProps): JSX.Element {
     return (
-        <div id="tabla-habitos" className="dashboardPanel">
+        <DashboardPanel id="tabla-habitos">
             {/* Encabezado de tabla */}
             <div className="tablaEncabezado">
                 <div className="tablaColumnaCheckbox"></div>
@@ -250,6 +251,6 @@ export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditar
             <div className="añadirHabito" onClick={onAñadirHabito}>
                 + Añadir nuevo habito de seguimiento
             </div>
-        </div>
+        </DashboardPanel>
     );
 }

@@ -103,3 +103,29 @@ export const notasIniciales = `- Idea: Refactorizar el módulo de fechas
 - Recordatorio: Comprar café
 
 > La consistencia gana a la intensidad.`;
+
+/*
+ * Proyectos de demostracion
+ */
+import type {Proyecto} from '../types/dashboard';
+
+export const proyectosIniciales: Proyecto[] = [
+    {
+        id: 1,
+        nombre: 'Lanzamiento Web Personal',
+        descripcion: 'Rediseño y lanzamiento de portfolio en Next.js',
+        prioridad: 'alta',
+        estado: 'activo',
+        fechaCreacion: crearFechaHaceNDias(10),
+        progreso: 35
+    },
+    {
+        id: 2,
+        nombre: 'Aprender Rust',
+        descripcion: 'Curso completo y proyecto final en Rust',
+        prioridad: 'media',
+        estado: 'pausado',
+        fechaCreacion: crearFechaHaceNDias(45),
+        progreso: 15
+    }
+];
