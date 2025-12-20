@@ -63,6 +63,48 @@ export interface Habito {
     frecuencia?: FrecuenciaHabito;
 }
 
+/*
+ * Tipos de repeticion para tareas
+ * despuesCompletar: La tarea reaparece X dias despues de completarla
+ * intervaloFijo: La tarea reaparece en fechas fijas (cada X dias o dias especificos)
+ */
+export type TipoRepeticion = 'despuesCompletar' | 'intervaloFijo';
+
+/*
+ * Configuracion de repeticion para una tarea
+ */
+export interface RepeticionTarea {
+    tipo: TipoRepeticion;
+    /* Dias de intervalo (para ambos tipos) */
+    intervalo: number;
+    /* Para intervalo fijo semanal: dias de la semana */
+    diasSemana?: DiaSemana[];
+    /* Fecha de la ultima repeticion generada */
+    ultimaRepeticion?: string;
+}
+
+/*
+ * Archivo adjunto a una tarea
+ */
+export interface Adjunto {
+    id: number;
+    tipo: 'imagen' | 'archivo';
+    url: string;
+    nombre: string;
+    tamano: number /* en bytes */;
+    fechaSubida: string;
+}
+
+/*
+ * Configuracion avanzada de una tarea
+ */
+export interface TareaConfiguracion {
+    fechaMaxima?: string /* Fecha limite ISO */;
+    descripcion?: string /* Notas detalladas */;
+    repeticion?: RepeticionTarea;
+    adjuntos?: Adjunto[];
+}
+
 export interface Tarea {
     id: number;
     texto: string;
@@ -73,10 +115,10 @@ export interface Tarea {
     orden?: number;
     /* ID de tarea padre para subtareas (solo un nivel de anidacion) */
     parentId?: number;
-    /* Campos opcionales para funcionalidades futuras */
+    /* Campos opcionales */
     prioridad?: NivelPrioridad;
-    fechaLimite?: string /* Fecha ISO de fecha limite */;
-    descripcion?: string /* Notas adicionales expandibles */;
+    /* Configuracion avanzada (fecha limite, descripcion, repeticion, adjuntos) */
+    configuracion?: TareaConfiguracion;
 }
 
 export interface DashboardData {
@@ -112,7 +154,7 @@ export interface DatosNuevoHabito {
 export interface DatosNuevaTarea {
     texto: string;
     prioridad?: NivelPrioridad;
-    fechaLimite?: string;
+    configuracion?: TareaConfiguracion;
 }
 
 /*
@@ -126,4 +168,6 @@ export interface DatosEdicionTarea {
     parentId?: number;
     /* ID de la tarea después de la cual insertar (solo para creación) */
     insertarDespuesDe?: number;
+    /* Configuración avanzada de la tarea */
+    configuracion?: TareaConfiguracion;
 }

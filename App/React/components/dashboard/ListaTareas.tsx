@@ -7,9 +7,10 @@
 import {useState, useCallback, useMemo, useRef} from 'react';
 import {Reorder} from 'framer-motion';
 import {ChevronRight} from 'lucide-react';
-import type {Tarea, DatosEdicionTarea} from '../../types/dashboard';
+import type {Tarea, DatosEdicionTarea, TareaConfiguracion, NivelPrioridad} from '../../types/dashboard';
 import {TareaItem} from './TareaItem';
 import {InputNuevaTarea} from './InputNuevaTarea';
+import {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
 import {obtenerSubtareas, tieneSubtareas as utilTieneSubtareas, contarSubtareas as utilContarSubtareas, puedeSerSubtareaDe} from '../../utils/jerarquiaTareas';
 
 interface ListaTareasProps {
@@ -27,6 +28,12 @@ export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea,
      * Set de IDs de tareas padre cuyas subtareas estan ocultas
      */
     const [tareasColapsadas, setTareasColapsadas] = useState<Set<number>>(new Set());
+
+    /*
+     * Estado para el panel de configuración
+     * Guarda la tarea que se está configurando (null si el panel está cerrado)
+     */
+    const [tareaConfigurando, setTareaConfigurando] = useState<Tarea | null>(null);
 
     /*
      * Estado para tracking de drag & drop con gestos horizontales
@@ -182,6 +189,36 @@ export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea,
     }, []);
 
     /*
+     * Abrir panel de configuración para una tarea
+     */
+    const abrirConfiguracion = useCallback(
+        (tareaId: number) => {
+            const tarea = tareas.find(t => t.id === tareaId);
+            if (tarea) {
+                setTareaConfigurando(tarea);
+            }
+        },
+        [tareas]
+    );
+
+    /*
+     * Guardar configuración de tarea (incluye prioridad)
+     */
+    const guardarConfiguracion = useCallback(
+        (configuracion: TareaConfiguracion, prioridad?: NivelPrioridad | null) => {
+            if (tareaConfigurando && onEditarTarea) {
+                /* Actualizamos la tarea con la nueva configuración y prioridad */
+                onEditarTarea(tareaConfigurando.id, {
+                    configuracion,
+                    prioridad: prioridad === undefined ? tareaConfigurando.prioridad : prioridad
+                });
+            }
+            setTareaConfigurando(null);
+        },
+        [tareaConfigurando, onEditarTarea]
+    );
+
+    /*
      * Usar funciones de utilidades para verificar subtareas
      */
     const tieneSubtareasLocal = (tareaId: number): boolean => utilTieneSubtareas(tareas, tareaId);
@@ -208,7 +245,7 @@ export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea,
 
         return (
             <div className="tareaConColapsador" key={`wrapper-${tarea.id}`}>
-                <TareaItem tarea={tarea} esSubtarea={esSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} />
+                <TareaItem tarea={tarea} esSubtarea={esSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} onConfigurar={() => abrirConfiguracion(tarea.id)} />
                 {/* Boton de colapsar a la derecha, solo si tiene subtareas */}
                 {esColapsable && (
                     <button className="tareaColapsadorBoton" onClick={() => toggleColapsar(tarea.id)} title={estaColapsada ? `Expandir ${numSubtareas.total} subtareas` : `Colapsar ${numSubtareas.total} subtareas`}>
@@ -274,8 +311,11 @@ export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea,
             {pendientes.length > 0 && completadas.length > 0 && <div className="listaTareasSeparador" />}
 
             {completadas.map(tarea => (
-                <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} />
+                <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} />
             ))}
+
+            {/* Panel de configuración */}
+            {tareaConfigurando && <PanelConfiguracionTarea tarea={tareaConfigurando} estaAbierto={true} onCerrar={() => setTareaConfigurando(null)} onGuardar={guardarConfiguracion} />}
         </div>
     );
 }

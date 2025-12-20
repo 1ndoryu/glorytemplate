@@ -1,0 +1,449 @@
+/*
+ * PANEL DE CONFIGURACION DE TAREA
+ * Estilos para el modal de configuracion avanzada de tareas
+ */
+
+/* 
+ * CONTENEDOR PRINCIPAL
+ */
+.panelConfiguracionContenedor {
+    width: 100%;
+    max-width: 480px;
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    animation: deslizarModal 0.2s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* 
+ * ENCABEZADO
+ */
+.panelConfiguracionEncabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--dashboard-espacioMd) var(--dashboard-espacioLg);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.panelConfiguracionTitulo {
+    font-size: var(--dashboard-tamanoBase);
+    font-weight: 600;
+    color: var(--dashboard-textoActivo);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+/* 
+ * NOMBRE DE LA TAREA
+ */
+.panelConfiguracionTarea {
+    padding: var(--dashboard-espacioMd) var(--dashboard-espacioLg);
+    background-color: var(--dashboard-fondoPrincipal);
+    border-bottom: 1px solid var(--dashboard-bordeSutil);
+}
+
+.panelConfiguracionTareaNombre {
+    font-size: var(--dashboard-tamanoBase);
+    color: var(--dashboard-textoNormal);
+    word-break: break-word;
+}
+
+/* 
+ * CONTENIDO DEL PANEL
+ */
+.panelConfiguracionContenido {
+    padding: var(--dashboard-espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioLg);
+}
+
+/* 
+ * SECCION GENERICA
+ */
+.panelConfiguracionSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+}
+
+.panelConfiguracionSeccionEncabezado {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    color: var(--dashboard-textoApagado);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* 
+ * CAMPO CON ESTADOS
+ */
+.panelConfiguracionCampo {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    position: relative;
+}
+
+.panelConfiguracionCampoVencida {
+    border-left: 3px solid var(--dashboard-estadoAlta);
+    padding-left: var(--dashboard-espacioSm);
+}
+
+.panelConfiguracionCampoUrgente {
+    border-left: 3px solid var(--dashboard-estadoMedia);
+    padding-left: var(--dashboard-espacioSm);
+}
+
+.panelConfiguracionCampoProxima {
+    border-left: 3px solid var(--dashboard-estadoExito);
+    padding-left: var(--dashboard-espacioSm);
+}
+
+/* 
+ * INPUT DE FECHA
+ */
+.panelConfiguracionInputFecha {
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    outline: none;
+    transition: border-color var(--dashboard-transicionNormal);
+    min-width: 160px;
+}
+
+.panelConfiguracionInputFecha:focus {
+    border-color: var(--dashboard-textoApagado);
+}
+
+.panelConfiguracionInputFecha::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+}
+
+/* 
+ * ALERTAS DE FECHA
+ */
+.panelConfiguracionAlerta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-radius: 2px;
+}
+
+.panelConfiguracionAlertaVencida {
+    background-color: var(--dashboard-estadoAltaFondo);
+    color: var(--dashboard-estadoAlta);
+    border: 1px solid var(--dashboard-estadoAltaBorde);
+}
+
+.panelConfiguracionAlertaUrgente {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.panelConfiguracionAlertaProxima {
+    background-color: var(--dashboard-estadoExitoFondo);
+    color: var(--dashboard-estadoExito);
+    border: 1px solid var(--dashboard-estadoExitoBorde);
+}
+
+/* 
+ * BOTON LIMPIAR
+ */
+.panelConfiguracionBotonLimpiar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.panelConfiguracionBotonLimpiar:hover {
+    color: var(--dashboard-estadoAlta);
+    border-color: var(--dashboard-estadoAltaBorde);
+}
+
+/* 
+ * TEXTAREA DESCRIPCION
+ */
+.panelConfiguracionTextarea {
+    width: 100%;
+    padding: var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    line-height: 1.5;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color var(--dashboard-transicionNormal);
+}
+
+.panelConfiguracionTextarea:focus {
+    border-color: var(--dashboard-textoApagado);
+}
+
+.panelConfiguracionTextarea::placeholder {
+    color: var(--dashboard-textoPlaceholder);
+}
+
+/* 
+ * TOGGLE SWITCH
+ */
+.panelConfiguracionToggle {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 18px;
+    margin-left: auto;
+}
+
+.panelConfiguracionToggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.panelConfiguracionToggleSlider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--dashboard-bordePrincipal);
+    transition: var(--dashboard-transicionNormal);
+    border-radius: 9px;
+}
+
+.panelConfiguracionToggleSlider::before {
+    position: absolute;
+    content: '';
+    height: 12px;
+    width: 12px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--dashboard-textoApagado);
+    transition: var(--dashboard-transicionNormal);
+    border-radius: 50%;
+}
+
+.panelConfiguracionToggle input:checked + .panelConfiguracionToggleSlider {
+    background-color: var(--dashboard-estadoExitoBorde);
+}
+
+.panelConfiguracionToggle input:checked + .panelConfiguracionToggleSlider::before {
+    transform: translateX(18px);
+    background-color: var(--dashboard-estadoExito);
+}
+
+/* 
+ * SECCION REPETICION
+ */
+.panelConfiguracionRepeticion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordeSutil);
+}
+
+/* 
+ * TIPO DE REPETICION
+ */
+.panelConfiguracionTipoRepeticion {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--dashboard-espacioSm);
+}
+
+.panelConfiguracionTipoBoton {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--dashboard-espacioMd);
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+    text-align: left;
+}
+
+.panelConfiguracionTipoBoton:hover {
+    border-color: var(--dashboard-textoApagado);
+    color: var(--dashboard-textoNormal);
+}
+
+.panelConfiguracionTipoBotonActivo {
+    border-color: var(--dashboard-estadoExitoBorde);
+    background-color: var(--dashboard-estadoExitoFondo);
+    color: var(--dashboard-textoNormal);
+}
+
+.panelConfiguracionTipoTitulo {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.panelConfiguracionTipoDesc {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+/* 
+ * INTERVALO
+ */
+.panelConfiguracionIntervalo {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+}
+
+.panelConfiguracionIntervaloLabel {
+    color: var(--dashboard-textoApagado);
+    font-size: 0.85rem;
+}
+
+.panelConfiguracionIntervaloInput {
+    width: 60px;
+    padding: var(--dashboard-espacioSm);
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    text-align: center;
+    outline: none;
+    transition: border-color var(--dashboard-transicionNormal);
+}
+
+.panelConfiguracionIntervaloInput:focus {
+    border-color: var(--dashboard-textoApagado);
+}
+
+.panelConfiguracionIntervaloSufijo {
+    color: var(--dashboard-textoApagado);
+    font-size: 0.85rem;
+}
+
+/* 
+ * DIAS DE LA SEMANA
+ */
+.panelConfiguracionDiasSemana {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+    padding-top: var(--dashboard-espacioSm);
+    border-top: 1px dashed var(--dashboard-bordeSutil);
+}
+
+.panelConfiguracionDiasSemanaLabel {
+    font-size: 0.75rem;
+    color: var(--dashboard-textoApagado);
+}
+
+.panelConfiguracionDiasBotones {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.panelConfiguracionDiaBoton {
+    padding: 4px 8px;
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoApagado);
+    font-size: 0.7rem;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.panelConfiguracionDiaBoton:hover {
+    border-color: var(--dashboard-textoApagado);
+    color: var(--dashboard-textoNormal);
+}
+
+.panelConfiguracionDiaBotonActivo {
+    border-color: var(--dashboard-estadoExitoBorde);
+    background-color: var(--dashboard-estadoExitoFondo);
+    color: var(--dashboard-estadoExito);
+}
+
+/* 
+ * ACCIONES DEL PANEL
+ * Estilos consistentes con formularioAcciones de habitos
+ */
+.panelConfiguracionAcciones {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+    margin-top: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioLg);
+    padding-top: var(--dashboard-espacioLg);
+    border-top: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.panelConfiguracionBotonCancelar {
+    flex: 1;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.panelConfiguracionBotonCancelar:hover:not(:disabled) {
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+}
+
+.panelConfiguracionBotonGuardar {
+    flex: 1;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.panelConfiguracionBotonGuardar:hover:not(:disabled) {
+    background-color: rgba(34, 197, 94, 0.25);
+    border-color: rgba(34, 197, 94, 0.6);
+}
+
+.panelConfiguracionBotonGuardar:disabled,
+.panelConfiguracionBotonCancelar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

@@ -93,6 +93,41 @@
 }
 
 /* 
+ * INDICADOR DE FECHA LIMITE
+ */
+.tareaFechaIndicador {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 5px;
+    font-size: 0.65rem;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    color: var(--dashboard-textoApagado);
+    background-color: var(--dashboard-fondoHover);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: 2px;
+    white-space: nowrap;
+}
+
+.tareaFechaVencida {
+    color: var(--dashboard-estadoAlta);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border-color: var(--dashboard-estadoAltaBorde);
+}
+
+.tareaFechaUrgente {
+    color: #f59e0b;
+    background-color: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.tareaFechaProxima {
+    color: var(--dashboard-estadoExito);
+    background-color: var(--dashboard-estadoExitoFondo);
+    border-color: var(--dashboard-estadoExitoBorde);
+}
+
+/* 
  * ACCIONES DE TAREA (eliminar, etc)
  */
 .tareaAcciones {

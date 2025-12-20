@@ -9,637 +9,488 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Fase C completada, Fase D en progreso (gestos horizontales para subtareas implementados)
+**Estado:** Fase D completada, iniciando Panel de Configuración de Tareas
 
-### Completado
-- [x] Arquitectura de componentes (SOLID)
-- [x] Sistema de estilos centralizados (sin hardcodeo)
-- [x] **CSS modular y escalable** - Refactorizado a estructura por responsabilidad
-- [x] Componentes visuales: Encabezado, TablaHabitos, ListaTareas, Scratchpad, Footer
-- [x] Hook personalizado `useDashboard` para logica de estado
-- [x] Tipos TypeScript para Habito y Tarea
-- [x] Compilacion SSG exitosa
-- [x] Pagina registrada en `/dashboard/`
-- [x] **Sistema de ordenamiento de habitos** - 5 modos: importancia, urgentes, racha, nombre, inteligente
-- [x] **Simplificacion de tareas** - Removida funcionalidad de proyectos para enfoque minimalista
-- [x] **Refactorizacion modular** - Utilidades extraidas a modulos separados (utils/, data/)
-- [x] **Tipos expandidos** - Añadidos tipos para Frecuencia, Prioridad y configuraciones
-- [x] **Menu contextual** - Click derecho en habitos con opciones rapidas
-- [x] **Selector de frecuencia** - UI para configurar frecuencia de habitos
-- [x] **Indicador visual Toca Hoy** - Badge y resaltado de habitos que tocan hoy
-- [x] **Persistencia de frecuencia** - Frecuencia se guarda correctamente al crear/editar
-- [x] **Indicador frecuencia en titulo** - Icono de reloj + numero junto al nombre del habito
-- [x] **Inactividad basada en frecuencia** - El umbral de reseteo de racha depende de la frecuencia del habito
-- [x] **Edicion inline mejorada** - Un solo click para editar tareas, input invisible seamless
-- [x] **Prioridad en Tareas** - Context menu para asignar prioridad (Alta/Media/Baja) con indicador visual
-- [x] **Bug Edicion Tareas** - Corregido comportamiento de preseleccion de texto al editar
-- [x] **Enter crea tarea debajo** - Al editar, Enter guarda y crea nueva tarea (hereda parentId)
-- [x] **Prioridad visual unificada** - Badges de texto como en habitos
-- [x] **Subtareas colapsables** - Boton para ocultar/mostrar subtareas de una tarea padre
-- [x] **Quitar prioridad de tarea** - Opcion en menu contextual para remover prioridad asignada
-- [x] **Refactorización useTareas** - Lógica CRUD de tareas extraída a hook dedicado
-- [x] **Utilidades de jerarquía** - Funciones para manejo de subtareas y drag & drop
-- [x] **Gestos horizontales en drag** - Arrastrar tarea hacia la derecha la convierte en subtarea
-- [x] **Tabla habitos simplificada** - Checkbox en lugar de ID, removida columna ACCION
+---
 
-### Estructura de Archivos (Actualizada)
+## Resumen de Funcionalidades Completadas
+
+<details>
+<summary><strong>📦 Arquitectura y Base (Click para expandir)</strong></summary>
+
+### Infraestructura
+- Arquitectura de componentes (SOLID)
+- Sistema de estilos centralizados (sin hardcodeo)
+- CSS modular y escalable - Refactorizado a estructura por responsabilidad
+- Tipos TypeScript para Habito, Tarea, Frecuencia, Prioridad
+- Compilacion SSG exitosa
+- Pagina registrada en `/dashboard/`
+
+### Hooks y Utilidades
+- Hook `useDashboard` para logica de estado principal
+- Hook `useTareas` para CRUD de tareas
+- Hook `useDeshacer` para sistema de undo
+- Hook `useOrdenarHabitos` para ordenamiento
+- Hook `useLocalStorage` para persistencia local
+- Hook `useDebounce` para guardado optimizado
+- Utilidades de fecha, validadores, migracion de habitos
+- Utilidades de jerarquia de tareas (subtareas, drag & drop)
+
+### Persistencia
+- LocalStorage para habitos, tareas y notas
+- Sincronizacion al cargar pagina
+- Exportar/Importar datos a JSON
+
+</details>
+
+<details>
+<summary><strong>✅ Hábitos - Funcionalidades Completadas</strong></summary>
+
+### CRUD Completo
+- Modal/formulario para crear/editar habito
+- Campos: nombre, importancia, frecuencia
+- Registrar completado con toggle (marcar/desmarcar)
+- Eliminar habito con confirmacion
+- Sistema de deshacer para todas las acciones
+
+### Frecuencia de Habitos
+- Tipos: Diario, Cada X dias, Semanal, Dias especificos, Mensual
+- Selector visual de frecuencia en formulario
+- Indicador compacto en titulo (icono reloj + numero)
+- Calculo de "toca hoy" segun frecuencia
+- Umbral de inactividad dinamico segun frecuencia
+
+### Logica de Rachas
+- Calculo automatico de dias de inactividad
+- Reseteo de racha si inactividad > umbral (basado en frecuencia)
+- Historial de fechas completadas
+
+### UI/UX
+- Tabla simplificada (checkbox en lugar de ID, sin columna ACCION)
+- Barra de progreso de urgencia proporcional a frecuencia
+- Badge e indicador visual "Toca Hoy"
+- Menu contextual (click derecho) con opciones rapidas
+- 5 modos de ordenamiento: importancia, urgentes, racha, nombre, inteligente
+
+</details>
+
+<details>
+<summary><strong>📋 Tareas - Funcionalidades Completadas</strong></summary>
+
+### CRUD Completo
+- Input siempre visible para crear tareas
+- Edicion inline con un solo click
+- Guardado automatico (Enter, blur)
+- Escape para cancelar
+- Eliminar con deshacer
+
+### Subtareas
+- Tab convierte en subtarea
+- Shift+Tab promueve a tarea principal
+- Subtareas colapsables (boton chevron)
+- Contador de subtareas completadas (X/Y)
+- Eliminar padre promueve subtareas
+
+### Drag & Drop Avanzado
+- Reordenar tareas con drag & drop
+- Mover tarea padre mueve sus subtareas
+- Gestos horizontales: arrastrar a derecha = convertir en subtarea
+- Indicador visual de zona de drop
+- Orden persistido en localStorage
+
+### Prioridad
+- Prioridad Alta/Media/Baja via menu contextual
+- Badges de texto (visual unificada con habitos)
+- Opcion para quitar prioridad
+
+### Creacion Rapida
+- Enter al editar crea nueva tarea debajo
+- Nueva subtarea hereda parentId del padre
+
+</details>
+
+<details>
+<summary><strong>📝 Scratchpad</strong></summary>
+
+- Notas rapidas persistidas
+- Guardado automatico con debounce 500ms
+- Indicador visual "Guardando..." / "Guardado"
+
+</details>
+
+---
+
+## Estructura de Archivos Actual
+
 ```
 App/React/
   types/
-    dashboard.ts               # Tipos centralizados (Habito, Tarea, Frecuencia, Prioridad)
+    dashboard.ts              # Tipos centralizados (+ TareaConfiguracion, RepeticionTarea, Adjunto)
   utils/
-    index.ts                   # Exportaciones de utilidades
-    fecha.ts                   # Utilidades de fecha
-    validadores.ts             # Validadores de datos
-    migracionHabitos.ts        # Logica de migracion de habitos
-    frecuenciaHabitos.ts       # Calculo de frecuencia y "toca hoy"
-    jerarquiaTareas.ts         # Jerarquia subtareas + detectarContextoDrop(), calcularNuevoParent()
+    index.ts                  # Exportaciones
+    fecha.ts                  # Utilidades de fecha
+    validadores.ts            # Validadores de datos
+    migracionHabitos.ts       # Logica de migracion
+    frecuenciaHabitos.ts      # Calculo de frecuencia
+    jerarquiaTareas.ts        # Jerarquia + drag & drop
   data/
-    datosIniciales.ts          # Datos de demo para desarrollo
+    datosIniciales.ts         # Datos demo
   hooks/
-    useDashboard.ts            # Hook principal (refactorizado, ~400 lineas)
-    useTareas.ts               # Logica CRUD de tareas (NUEVO)
-    useDeshacer.ts             # Sistema de undo
-    useOrdenarHabitos.ts       # Ordenamiento de habitos
-    useLocalStorage.ts         # Persistencia local
-    useDebounce.ts             # Debounce para guardado
+    useDashboard.ts           # Hook principal
+    useTareas.ts              # CRUD tareas (+ manejo de configuracion)
+    useDeshacer.ts            # Sistema undo
+    useOrdenarHabitos.ts      # Ordenamiento
+    useLocalStorage.ts        # Persistencia
+    useDebounce.ts            # Debounce
   components/shared/
-    MenuContextual.tsx         # Menu contextual reutilizable (NUEVO)
+    MenuContextual.tsx        # Menu contextual reutilizable
   components/dashboard/
-    SelectorFrecuencia.tsx     # Selector de frecuencia de habitos (NUEVO)
+    SelectorFrecuencia.tsx    # Selector frecuencia habitos
+    FormularioHabito.tsx      # Formulario habitos
+    TablaHabitos.tsx          # Tabla principal
+    ListaTareas.tsx           # Lista de tareas (+ integracion PanelConfiguracion)
+    TareaItem.tsx             # Item individual (+ indicador fecha, opcion configurar)
+    PanelConfiguracionTarea.tsx # Panel configuracion avanzada (NUEVO)
+    ...
 ```
 
-### Estructura CSS (Refactorizada)
 ```
 App/React/styles/dashboard/
-  index.css                    # Archivo principal (imports)
-  variables.css                # Tokens de diseno (colores, espaciados)
-  animaciones.css              # Keyframes reutilizables
-  base.css                     # Contenedor principal y grid
+  index.css                   # Imports principales
+  variables.css               # Tokens de diseno
+  animaciones.css             # Keyframes
+  base.css                    # Contenedor y grid
   componentes/
-    encabezado.css             # Header, navegacion, footer
-    tabla.css                  # Tabla habitos, filas, indicadores
-    tareas.css                 # Lista de tareas
-    scratchpad.css             # Notas rapidas
-    modal.css                  # Modales
-    formulario.css             # Formularios de habitos
-    toast.css                  # Toast deshacer
-    ordenamiento.css           # Selector de orden
-    menuContextual.css         # Menu contextual (NUEVO)
-    frecuencia.css             # Selector de frecuencia (NUEVO)
+    encabezado.css, tabla.css, tareas.css, scratchpad.css,
+    modal.css, formulario.css, toast.css, ordenamiento.css,
+    menuContextual.css, frecuencia.css, panelConfiguracion.css
   utilidades/
-    estados.css                # Carga, spinners, skeletons
-    acciones.css               # Botones exportar/importar
+    estados.css, acciones.css
 ```
 
 ---
 
-## Fase 1: Persistencia de Datos
+## Fase Actual: Panel de Configuración de Tareas
 
-**Objetivo:** Guardar y recuperar datos del usuario (hábitos, tareas, notas)
+**Objetivo:** Cada tarea puede tener configuracion avanzada similar a los habitos
+**Estado:** Panel base implementado, tipos expandidos, integracion con ListaTareas
 
-### 1.1 LocalStorage (MVP rápido)
-- [x] Crear hook `useLocalStorage` genérico
-- [x] Persistir hábitos en localStorage
-- [x] Persistir tareas en localStorage
-- [x] Persistir notas del scratchpad
-- [x] Sincronizar estado al cargar página
+### Campos del Panel de Configuración
 
-**Archivos creados/modificados:**
-```
-App/React/hooks/useLocalStorage.ts    # Hook genérico (NUEVO)
-App/React/hooks/useDashboard.ts       # Integrada persistencia
-App/React/hooks/index.ts              # Exportaciones
-App/React/styles/dashboard.css        # Estilos de carga
-App/React/islands/DashboardIsland.tsx # UI de carga
-```
+- [x] **Fecha maxima (deadline)**
+  - [x] Selector de fecha
+  - [x] Indicador visual de proximidad (urgente, proximo, normal)
+  - [x] Tareas vencidas resaltadas en rojo
+  - [x] Indicador compacto en la fila de tarea (icono calendario + fecha)
+  
+- [x] **Descripcion**
+  - [x] Campo expandible para notas detalladas
+  - [ ] Soporte markdown basico (opcional)
 
-### 1.2 API REST (WordPress)
-- [ ] Crear endpoint `POST /wp-json/glory/v1/dashboard/save`
-- [ ] Crear endpoint `GET /wp-json/glory/v1/dashboard/load`
-- [ ] Guardar datos en `user_meta` de WordPress
-- [ ] Crear hook `useDashboardApi` para comunicación
-- [ ] Manejar estados de carga y error
+- [x] **Sistema de Repeticion Inteligente** (UI implementada)
+  - [x] **Tipo 1: Repetir despues de completar**
+    - Ej: "Repetir 3 dias despues de completar"
+    - La tarea reaparece X dias despues de marcarla completada
+  - [x] **Tipo 2: Repetir en intervalo fijo**
+    - Ej: "Repetir cada lunes" o "Repetir cada 7 dias"
+    - La tarea reaparece en fechas fijas sin importar cuando se completo
+  - [x] Selector de dias de la semana para intervalo fijo
+  - [ ] Logica de generacion automatica de repeticiones
+  - [ ] Evitar duplicados (si ya existe una instancia pendiente)
+  - [ ] Historial de repeticiones
 
-**Archivos a crear:**
-```
-Glory/src/API/DashboardController.php    # Endpoints REST
-App/React/hooks/useDashboardApi.ts       # Hook de API
-App/React/services/dashboardService.ts   # Funciones fetch
-```
+- [ ] **Adjuntos** (pendiente)
+  - [ ] Subir imagenes a la tarea
+  - [ ] Subir archivos (PDF, documentos)
+  - [ ] Preview de imagenes integrado
+  - [ ] Almacenamiento en WordPress media library
+
+### Implementacion Tecnica (COMPLETADO)
+
+**Tipos expandidos en dashboard.ts:**
+- [x] TipoRepeticion ('despuesCompletar' | 'intervaloFijo')
+- [x] RepeticionTarea (tipo, intervalo, diasSemana, ultimaRepeticion)
+- [x] Adjunto (id, tipo, url, nombre, tamano, fechaSubida)
+- [x] TareaConfiguracion (fechaMaxima, descripcion, repeticion, adjuntos)
+- [x] Tarea.configuracion?: TareaConfiguracion
+
+**Componentes creados:**
+- [x] PanelConfiguracionTarea.tsx - Panel modal completo
+- [x] Estilos en panelConfiguracion.css (consistentes con formulario habitos)
+
+**Integraciones:**
+- [x] Opcion "Configurar tarea" en menu contextual de TareaItem
+- [x] Indicador de fecha limite en fila de tarea
+- [x] Selector de prioridad en panel (reutiliza estilos de importancia)
+- [x] Estilos botones Cancelar/Guardar unificados con formulario habitos
 
 ---
 
-## Fase 2: CRUD Completo de Hábitos
+## Refactorizacion: Componentes Comunes (PLANIFICACION)
 
-**Objetivo:** Crear, editar, eliminar y registrar hábitos
+**Objetivo:** Centralizar componentes y estilos duplicados para mantener coherencia visual y reducir mantenimiento
 
-### 2.1 Crear Habito
-- [x] Modal/formulario para nuevo habito
-- [x] Campos: nombre, importancia, tags
-- [x] Validacion de formulario
-- [ ] Animacion de entrada al crear
+### Problema Actual
 
-**Componentes creados:**
-```
-App/React/components/dashboard/ModalHabito.tsx        # Modal reutilizable
-App/React/components/dashboard/FormularioHabito.tsx   # Formulario con validacion
-```
+Los paneles de configuración de hábitos y tareas tienen estructura similar pero implementaciones separadas:
+- Botones de acción (Cancelar/Guardar) con estilos duplicados
+- Selectores de importancia/prioridad (mismo concepto, diferente implementación)
+- Estructura de secciones con encabezado (icono + titulo)
+- Toggle switches
+- Modales/Paneles con overlay
 
-### 2.2 Registrar Completado
-- [x] Boton "Completar hoy" en cada fila
-- [x] Actualizar `diasInactividad` a 0
-- [x] Incrementar `racha`
-- [x] Toggle: desmarcar habito completado (revertir estado)
-- [ ] Animacion visual de logro (opcional, mejora futura)
-- [x] Historial de fechas completadas
+### Componentes Candidatos a Centralizar
 
-### 2.3 Editar Habito
-- [x] Click en fila abre modal de edicion
-- [x] Guardar cambios
-- [x] Cancelar sin guardar
-- [ ] Panel de configuracion del habito
+| Componente Propuesto | Uso Actual                                 | Archivos Afectados                                  |
+| -------------------- | ------------------------------------------ | --------------------------------------------------- |
+| `AccionesFormulario` | Botones Cancelar/Guardar/Eliminar          | FormularioHabito.tsx, PanelConfiguracionTarea.tsx   |
+| `SelectorNivel`      | Importancia (habitos) y Prioridad (tareas) | FormularioHabito.tsx, PanelConfiguracionTarea.tsx   |
+| `SeccionPanel`       | Wrapper con icono + titulo                 | PanelConfiguracionTarea.tsx, FormularioHabito.tsx   |
+| `ToggleSwitch`       | Switch on/off para opciones                | PanelConfiguracionTarea.tsx                         |
+| `PanelModal`         | Contenedor modal con overlay               | ModalHabito.tsx, PanelConfiguracionTarea.tsx        |
+| `SelectorDias`       | Dias de la semana                          | SelectorFrecuencia.tsx, PanelConfiguracionTarea.tsx |
 
-### 2.4 Eliminar Habito
-- [x] Opcion de eliminar en modal
-- [x] Confirmacion antes de eliminar
-- [ ] Animacion de salida
+### CSS a Unificar
 
-### 2.5 Logica de Rachas
-- [x] Calcular automaticamente dias de inactividad
-- [x] Resetear racha si inactividad > umbral configurable (7 dias por defecto)
-- [x] Notificacion visual si esta por perder racha
-- [ ] Hacer umbral editable por el usuario en configuracion
+| Estilos                                                   | Ubicacion Actual       | Propuesta                           |
+| --------------------------------------------------------- | ---------------------- | ----------------------------------- |
+| `.formularioAcciones`, `.formularioBotonCancelar`, etc    | formulario.css         | Mover a `shared/acciones.css`       |
+| `.formularioGrupoBotones`, `.formularioBotonImportancia*` | formulario.css         | Mover a `shared/selector-nivel.css` |
+| `.modalOverlay`, `.modalContenedor`, etc                  | modal.css              | Ya centralizado, reutilizar         |
+| `.panelConfiguracion*` que duplica modal                  | panelConfiguracion.css | Eliminar duplicados, usar modal.css |
 
-### 2.7 Menu Contextual (COMPLETADO)
-**Objetivo:** Acciones rapidas con click derecho en filas
+### Fases de Refactorizacion
 
-- [x] Menu contextual al hacer click derecho en habito
-- [x] Opciones: Editar, Eliminar, Marcar completado
-- [x] Animacion de aparicion/desaparicion
-- [x] Cerrar al hacer click fuera o presionar Escape
-- [x] Posicionamiento inteligente (no se sale de pantalla)
+**Fase R1: Audit y Documentacion** (2-3 horas)
+- [ ] Listar TODOS los componentes con UI similar
+- [ ] Capturar screenshots de diferencias visuales actuales
+- [ ] Definir diseño "canonico" de cada componente comun
+- [ ] Crear documento de patron de uso
 
-**Componentes creados:**
-```
-App/React/components/shared/MenuContextual.tsx
-App/React/styles/dashboard/componentes/menuContextual.css
-```
+**Fase R2: CSS Compartido** (1-2 horas)
+- [ ] Crear `styles/dashboard/shared/` para estilos reutilizables
+- [ ] Extraer estilos de botones de accion
+- [ ] Extraer estilos de selector nivel (importancia/prioridad)
+- [ ] Actualizar imports en index.css
 
-### 2.8 Mejoras UI Tabla Habitos (NUEVO)
-**Objetivo:** Mejor organizacion visual de la tabla
+**Fase R3: Componentes Compartidos** (3-4 horas)
+- [ ] Crear `components/shared/AccionesFormulario.tsx`
+- [ ] Crear `components/shared/SelectorNivel.tsx`
+- [ ] Crear `components/shared/SeccionPanel.tsx`
+- [ ] Crear `components/shared/ToggleSwitch.tsx`
+- [ ] Actualizar exportaciones en index.ts
 
-- [x] Columna separada para URGENCIA y RACHA (barra de progreso)
-- [x] Columna ACCION solo contiene el boton toggle
-- [x] Indicadores visuales mas claros
+**Fase R4: Integracion y Testing** (2-3 horas)
+- [ ] Refactorizar FormularioHabito.tsx para usar componentes shared
+- [ ] Refactorizar PanelConfiguracionTarea.tsx para usar componentes shared
+- [ ] Verificar consistencia visual en ambos paneles
+- [ ] Probar todos los flujos de usuario
 
-**Simplificacion completada:**
-- [x] Reemplazar columna ID por checkbox para completar habito rapidamente
-- [x] Remover columna ACCION redundante
-- [x] Acciones (editar, eliminar, etc) disponibles solo via menu contextual (click derecho)
+### Checklist de Revision por Archivo
 
-### 2.9 Frecuencia de Habitos (EN PROGRESO)
-**Objetivo:** Cada habito puede tener su propia frecuencia de repeticion
+**FormularioHabito.tsx**
+- [ ] Usa AccionesFormulario?
+- [ ] Usa SelectorNivel para importancia?
+- [ ] Estilos vienen de shared/?
 
-**Tipos de frecuencia implementados:**
-- [x] Diario (por defecto actual)
-- [x] Cada X dias (ej: cada 3 dias)
-- [x] Semanal (1 vez por semana)
-- [x] Dias especificos (ej: Lunes, Miercoles, Viernes)
-- [x] Mensual (X veces al mes)
+**PanelConfiguracionTarea.tsx**
+- [ ] Usa AccionesFormulario?
+- [ ] Usa SelectorNivel para prioridad?
+- [ ] Usa SeccionPanel para secciones?
+- [ ] Usa ToggleSwitch para repeticion?
+- [ ] Estilos vienen de shared/?
 
-**Impacto en logica:**
-- [x] Añadir campo `frecuencia` al tipo `Habito`
-- [x] Utilidades para calcular "toca hoy" segun frecuencia
-- [x] Utilidades para calcular umbral de inactividad por frecuencia
-- [x] Indicador visual de "toca hoy" (badge + resaltado de fila)
-- [x] Selector de frecuencia en formulario de habito
-- [x] **Persistencia de frecuencia al crear habito** - Corregido en useDashboard
-- [x] **Persistencia de frecuencia al editar habito** - Corregido en useDashboard
-- [x] **Indicador compacto en titulo** - Muestra icono reloj + numero (ej: Ejercicio (o3))
-- [x] Calcular dias de inactividad basado en la frecuencia (integrado en migracionHabitos)
-- [x] Barra de progreso proporcional a la frecuencia
-- [ ] Adaptar racha a la frecuencia (racha semanal vs diaria)
-- [ ] Historial debe considerar frecuencia para estadisticas
+**SelectorFrecuencia.tsx**
+- [ ] Usa SelectorDias para dias de semana?
 
-**Integrado en migracionHabitos.ts:**
-- [x] `calcularUmbralInactividad()` ahora se usa para determinar reseteo de racha
-- [x] El umbral depende del tipo de frecuencia (diario=7d, semanal=10d, cadaXDias=intervalo*1.5)
+### Archivos Nuevos a Crear
 
-**Ejemplos:**
-| Frecuencia  | Comportamiento Racha      | Urgencia                  |
-| ----------- | ------------------------- | ------------------------- |
-| Diario      | +1 cada dia completado    | Rojo si >2 dias sin hacer |
-| Cada 3 dias | +1 cada ciclo completado  | Rojo si >4 dias sin hacer |
-| Semanal     | +1 cada semana completada | Rojo si >9 dias sin hacer |
-
-**Componentes creados/modificados:**
-```
-App/React/types/dashboard.ts                         # Tipos FrecuenciaHabito, TipoFrecuencia
-App/React/utils/frecuenciaHabitos.ts                 # tocaHoy(), calcularUmbralInactividad(), etc.
-App/React/components/dashboard/SelectorFrecuencia.tsx # Selector visual de frecuencia
-App/React/components/dashboard/FormularioHabito.tsx  # Integrado SelectorFrecuencia
-App/React/components/dashboard/TablaHabitos.tsx      # Indicador "toca hoy" + frecuencia
-App/React/styles/dashboard/componentes/frecuencia.css # Estilos del selector
-App/React/styles/dashboard/componentes/tabla.css     # Estilos badge "Toca Hoy"
-```
-
-### 2.10 Barra de Progreso Configurable (EN PROGRESO)
-**Objetivo:** Control sobre que representa la barra de progreso de urgencia
-
-**Estado actual:**
-- [x] Barra proporcional a la frecuencia del habito (usa `calcularUmbralInactividad`)
-- [x] Umbral de urgencia automatico segun frecuencia
-- La barra muestra `diasInactividad / umbralFrecuencia * 100%`
-
-
-### 2.6 Sistema de Deshacer (Undo)
-**Objetivo:** Permitir revertir cualquier accion con feedback visual
-
-- [x] Toast/notificacion en esquina inferior con opcion "Deshacer"
-- [x] Tiempo limite de 5 segundos para deshacer
-- [x] Acciones reversibles:
-  - [x] Completar/desmarcar habito
-  - [x] Crear habito
-  - [x] Eliminar habito
-  - [x] Editar habito
-  - [x] Completar/descompletar tarea
-  - [x] Eliminar tarea
-  - [x] Crear tarea
-  - [x] Editar tarea
-- [x] Animacion de entrada/salida del toast
-- [x] Barra de progreso visual del tiempo restante
-
-**Componentes creados:**
-```
-App/React/components/shared/ToastDeshacer.tsx   # Toast con boton deshacer
-App/React/hooks/useDeshacer.ts                  # Hook para manejar cola de acciones
-```
-
----
-
-## Fase 3: CRUD Completo de Tareas
-
-**Objetivo:** Gestion completa de tareas con UX fluida y minimalista
-
-### 3.1 Crear Tarea (COMPLETADO)
-**Comportamiento implementado:**
-
-- [x] Input siempre visible (sin boton "Nueva tarea" previo)
-- [x] Placeholder "Nueva tarea..." indica accion
-- [x] Enter guarda la tarea
-- [x] Escape limpia el input y quita foco
-- [x] Guardado automatico al perder foco (blur)
-- [x] Mantiene foco despues de crear para agregar multiples tareas
-- [x] Boton de confirmar solo visible cuando hay texto
-
-### 3.2 Editar Tarea (COMPLETADO)
-**Comportamiento implementado:**
-
-- [x] Un solo click activa modo edicion
-- [x] El texto se vuelve input con estilos similares
-- [x] Guardado automatico:
-  - Al presionar Enter
-  - Al perder foco (blur)
-- [x] Escape cancela edicion y restaura texto original
-- [x] Botones ocultos - solo aparecen en hover
-- [ ] Transicion mas suave (refinamiento pendiente)
-
-### 3.3 Reordenar Tareas (NUEVO)
-**Objetivo:** Orden manual persistente con drag & drop
-
-- [x] Drag & drop para reordenar tareas
-- [x] Indicador visual de destino al arrastrar
-- [x] Orden se persiste en localStorage
-- [x] Tareas completadas se ordenan aparte (al final)
-- [x] Animacion suave al reordenar
-
-**Implementacion tecnica:**
-- Usar `@dnd-kit/core` o implementacion nativa HTML5 drag
-- Guardar orden como array de IDs o campo `orden: number`
-
-### 3.4 Subtareas (NUEVO)
-**Objetivo:** Anidacion simple de tareas relacionadas
-
-**Comportamiento:**
-- [x] Tab en tarea nueva la convierte en subtarea de la anterior
-- [x] Subtareas solo pueden ser hijas de tareas (no de otras subtareas)
-- [x] Indentacion visual para subtareas
-- [x] Shift+Tab saca la subtarea al nivel principal
-- [x] Completar tarea padre NO completa subtareas automaticamente (toggle individual)
-- [x] Contador de subtareas completadas visible (formato X/Y)
-- [x] Al eliminar tarea padre, subtareas se promueven a principales
-
-**Ejemplo visual:**
-```
-[ v ] Tarea principal         <- Click en chevron para colapsar
-      [ ] Subtarea 1
-      [ ] Subtarea 2
-[ ] Otra tarea principal
-```
-
-**Estructura de datos:**
-```typescript
-interface Tarea {
-    id: number;
-    texto: string;
-    completado: boolean;
-    orden: number;
-    parentId?: number; // Si tiene parentId es subtarea
-}
-```
-
-### 3.4.1 Drag & Drop Avanzado con Subtareas (PLANIFICACION)
-**Objetivo:** Comportamiento inteligente al arrastrar tareas con jerarquía
-
-**Estado:** ⚠️ REQUIERE REFACTORIZACION PREVIA
-
-#### Casos de uso a manejar:
-
-**1. Arrastrar subtarea a nueva posición:**
-| Situación                                | Comportamiento esperado             |
-| ---------------------------------------- | ----------------------------------- |
-| Soltar entre tareas principales          | Convertir en tarea principal        |
-| Soltar sobre una tarea principal         | Convertir en subtarea de esa tarea  |
-| Soltar entre subtareas de otro padre     | Heredar el parentId del nuevo grupo |
-| Soltar arriba del todo (sin nada encima) | Convertir en tarea principal        |
-
-**2. Arrastrar tarea principal con subtareas:**
-| Situación                         | Comportamiento esperado                   |
-| --------------------------------- | ----------------------------------------- |
-| Mover a otra posición             | Mover tarea + todas sus subtareas juntas  |
-| Soltar sobre otra tarea principal | ??? (decidir: error, fusionar, o ignorar) |
-
-**3. Gestos de indentación horizontal:**
-| Gesto                                | Comportamiento esperado                              |
-| ------------------------------------ | ---------------------------------------------------- |
-| Arrastrar ligeramente a la derecha   | Convertir en subtarea de la tarea de arriba          |
-| Arrastrar ligeramente a la izquierda | Convertir en tarea principal                         |
-| Outdent entre subtareas              | Mover afuera, colocarse arriba del padre más cercano |
-
-**4. Validaciones:**
-- No permitir anidar más de 1 nivel (subtarea de subtarea = prohibido)
-- No permitir que una tarea sea subtarea de sí misma
-- No permitir que una tarea padre se convierta en subtarea de una de sus hijas
-
-#### Refactorización necesaria antes de implementar:
-
-**1. Extraer lógica de tareas a hook separado:**
-```
-hooks/
-  useTareas.ts           # NUEVO - Lógica CRUD de tareas
-  useTareasReordenar.ts  # NUEVO - Lógica específica de drag & drop
-  useDashboard.ts        # Simplificado, importa los otros hooks
-```
-
-**2. Crear utilidades de jerarquía:**
-```
-utils/
-  jerarquiaTareas.ts     # NUEVO
-    - obtenerSubtareas(tareas, parentId)
-    - obtenerPadre(tareas, tareaId)
-    - esDescendiente(tareas, posibleHijo, posiblePadre)
-    - moverConHijos(tareas, tareaId, nuevaPosicion)
-    - calcularNuevoParent(tareas, posicionDrop, offsetX)
-```
-
-**3. Mejorar el tipo Tarea:**
-```typescript
-interface Tarea {
-    // ... campos existentes
-    orden: number;        // Hacer obligatorio para orden consistente
-    profundidad?: number; // Calcular automáticamente (0 = principal, 1 = subtarea)
-}
-```
-
-**4. Componente de drop zone inteligente:**
 ```
 components/shared/
-  DropZoneTarea.tsx      # NUEVO - Indicador visual de donde caerá
+  AccionesFormulario.tsx      # Botones Cancelar/Guardar/Eliminar
+  SelectorNivel.tsx           # Selector Alta/Media/Baja generico
+  SeccionPanel.tsx            # Wrapper seccion con icono+titulo
+  ToggleSwitch.tsx            # Componente toggle reutilizable
+  index.ts                    # Actualizar exportaciones
+
+styles/dashboard/shared/
+  accionesFormulario.css      # Estilos centralizados de acciones
+  selectorNivel.css           # Estilos selector importancia/prioridad
+  seccionPanel.css            # Estilos seccion con encabezado
+  toggleSwitch.css            # Estilos toggle
 ```
 
-#### Fases de implementación sugeridas:
+### Notas de Implementacion
 
-1. **Fase A - Refactorizacion** (COMPLETADA)
-   - [x] Extraer `useTareas.ts` de `useDashboard.ts`
-   - [x] Crear `utils/jerarquiaTareas.ts` con funciones basicas
-   - [x] Añadir campo `orden` automatico a tareas (asignado en creacion y reordenamiento)
-
-2. **Fase B - Drag & Drop basico mejorado** (COMPLETADA)
-   - [x] Mover tarea principal mueve sus subtareas
-   - [x] Indicador visual correcto de destino
-
-3. **Fase C - Conversion automatica de jerarquia** (COMPLETADA)
-   - [x] Funcion `detectarContextoDrop()` implementada
-   - [x] Estilos CSS para indicadores de zona de drop
-   - [x] Integrar deteccion en el componente ListaTareas al soltar
-
-4. **Fase D - Gestos horizontales** (EN PROGRESO)
-   - [x] Detectar offset X al soltar
-   - [x] Funcion `calcularNuevoParent()` ya soporta umbral de indentacion
-   - [x] Indicador visual durante arrastre (estado reactivo + estilos)
-   - [ ] Animacion de preview mas fluida durante arrastre
-
-### 3.5 Completar/Descompletar
-- [x] Toggle estado con soporte de deshacer
-- [x] Mover completadas al final (automatico)
-- [ ] Estadisticas de completadas hoy
-
-### 3.6 Eliminar Tarea
-- [x] Boton para eliminar (hover reveal)
-- [x] Deshacer eliminacion (5 segundos)
-
-### 3.7 Tareas Avanzadas (FUTURO)
-**Nota:** Funcionalidades para fases posteriores
-
-- [x] Prioridad (Alta/Media/Baja) con indicador visual
-- [x] Poder quitar prioridad de tarea (dejarla sin prioridad)
-- [ ] Dias de inactividad por tarea
-- [ ] Fecha limite con indicador de urgencia
-- [ ] Notas/descripcion expandible
-
+- Mantener retrocompatibilidad: los componentes deben poder usarse sin romper lo existente
+- Usar props genéricas (ej: `niveles` en lugar de `importancias` o `prioridades`)
+- Documentar cada componente con ejemplos de uso
+- Considerar accesibilidad (aria-labels, focus states)
 
 ---
 
-## Fase 4: Scratchpad Avanzado
+## Pendientes de Fases Anteriores
 
-**Objetivo:** Notas rápidas con formato markdown
+### Habitos
+- [ ] Animacion de entrada al crear habito
+- [ ] Animacion visual de logro al completar
+- [ ] Umbral de reseteo editable por usuario
+- [ ] Adaptar racha a la frecuencia (racha semanal vs diaria)
+- [ ] Historial considerando frecuencia para estadisticas
+- [ ] Animacion de salida al eliminar
 
-### 4.1 Guardado Automático
-- [x] Debounce de 500ms antes de guardar
-- [x] Indicador visual "Guardando..." / "Guardado"
+### Tareas
+- [ ] Animacion de preview mas fluida durante arrastre
+- [ ] Estadisticas de tareas completadas hoy
 
-**Archivos creados/modificados:**
-```
-App/React/hooks/useDebounce.ts                  # Hook de debounce (NUEVO)
-App/React/components/dashboard/Scratchpad.tsx   # Actualizado con indicador
-App/React/styles/dashboard.css                  # Estilos del indicador
-```
+### Scratchpad
+- [ ] Toggle entre edicion y preview markdown
+- [ ] Multiples notas (tabs)
 
-### 4.2 Preview Markdown (opcional)
-- [ ] Toggle entre edición y preview
-- [ ] Renderizar markdown básico (headers, listas, quotes)
-
-### 4.3 Múltiples Notas
-- [ ] Tabs o lista de notas
-- [ ] Crear nueva nota
-- [ ] Eliminar nota
-
----
-
-## Fase 5: Ordenamiento y Filtros
-
-**Objetivo:** Control sobre la visualización de datos
-
-### 5.1 Ordenar Habitos
-**Modos de ordenamiento:**
-
-**Basicos:**
-- [x] Por importancia (default)
-- [x] Por inactividad (mas urgentes primero)
-- [x] Por racha (mas largas primero)
-- [x] Por nombre alfabetico
-- [ ] Drag & drop para orden manual
-
-
-**UI de ordenamiento:**
-- [x] Dropdown para cambiar modo de orden
-- [x] Indicador visual del orden activo (descripcion en subtitulo)
+### Ordenamiento y Filtros
+- [ ] Drag & drop para orden manual de habitos
 - [ ] Guardar preferencia de orden en configuracion
-
-**Componentes creados:**
-```
-App/React/components/dashboard/SelectorOrden.tsx
-App/React/hooks/useOrdenarHabitos.ts
-App/React/styles/dashboard/componentes/ordenamiento.css
-```
-
-### 5.2 Filtrar Hábitos
-- [ ] Por tag
-- [ ] Por importancia
-- [ ] Solo urgentes (inactividad > 3)
-- [ ] Buscar por nombre
-
-### 5.3 Vistas de Tareas
-- [ ] Todas
-- [ ] Pendientes
-- [ ] Completadas hoy
-- [ ] Con fecha límite
+- [ ] Filtrar habitos por tag, importancia, urgentes
+- [ ] Buscar habitos por nombre
+- [ ] Vistas de tareas (todas, pendientes, completadas hoy, con deadline)
 
 ---
 
-## Fase 6: Estadísticas y Gráficos
+## Fases Futuras
 
-**Objetivo:** Visualizar progreso y tendencias
+### Fase: Estadisticas y Graficos
+- Panel de estadisticas (habitos/semana, rachas, tareas completadas)
+- Grafico de consistencia estilo GitHub (heatmap)
+- Calendario con dias completados
+- Exportar datos
 
-### 6.1 Panel de Estadísticas
-- [ ] Hábitos completados esta semana
-- [ ] Racha más larga activa
-- [ ] Tareas completadas hoy/semana
-- [ ] Gráfico de consistencia (heatmap estilo GitHub)
+### Fase: API REST WordPress
+- Endpoint `POST /wp-json/glory/v1/dashboard/save`
+- Endpoint `GET /wp-json/glory/v1/dashboard/load`
+- Guardar en `user_meta` de WordPress
+- Hook `useDashboardApi`
+- Estados de carga y error
 
-### 6.2 Historial
-- [ ] Calendario con días completados
-- [ ] Filtrar por hábito específico
-- [ ] Exportar datos
-
-**Componentes a crear:**
-```
-App/React/components/dashboard/PanelEstadisticas.tsx
-App/React/components/dashboard/GraficoConsistencia.tsx
-App/React/components/dashboard/CalendarioHistorial.tsx
-```
-
----
-
-## Fase 7: Notificaciones y Recordatorios
-
-**Objetivo:** Alertas para mantener consistencia
-
-### 7.1 Notificaciones en UI
-- [ ] Badge en hábitos urgentes
-- [ ] Toast al completar hábito
-- [ ] Alerta si racha está en peligro
-
-### 7.2 Notificaciones del Navegador (opcional)
-- [ ] Pedir permiso al usuario
-- [ ] Recordatorio diario configurable
-- [ ] Notificar si no se ha registrado el día
+### Fase: Responsive y PWA
+- Layout adaptativo movil
+- Touch gestures (swipe para completar)
+- Service Worker para offline
+- Instalable en movil
 
 ---
 
-## Fase 8: Configuración de Usuario
+## Vision SaaS - Planificacion a Largo Plazo
 
-**Objetivo:** Personalización del dashboard
+**Objetivo:** Convertir el dashboard en un producto SaaS escalable con modelo freemium
 
-### 8.1 Preferencias
-- [ ] Umbral de días para "urgente"
-- [ ] Orden por defecto
-- [ ] Tema claro/oscuro (extensión del actual)
-- [ ] Densidad de información
+### Arquitectura Backend WordPress
 
-### 8.2 Importar/Exportar
-- [x] Exportar datos a JSON
-- [x] Importar desde JSON
-- [ ] Backup automático
+**Sistema de Login y Usuarios:**
+- [ ] Registro e inicio de sesion integrado con WordPress
+- [ ] Cada usuario tiene sus propios datos aislados
+- [ ] Soporte multi-dispositivo (sincronizacion)
+
+**Optimizacion de Datos:**
+- [ ] API REST eficiente con paginacion
+- [ ] Caching inteligente (Redis o transients de WP)
+- [ ] Compresion de datos para transferencia rapida
+- [ ] Sync incremental (solo cambios, no datos completos)
+
+**Base de Datos:**
+- [ ] Tablas personalizadas para rendimiento (no solo user_meta)
+- [ ] Indices optimizados para consultas frecuentes
+- [ ] Migraciones versionadas
+
+### Seguridad y Cifrado
+
+**Cifrado de Datos de Usuario:**
+- [ ] Cifrado en reposo (datos almacenados)
+- [ ] Cifrado en transito (HTTPS obligatorio)
+- [ ] Cifrado end-to-end opcional (clave del usuario)
+- [ ] Datos sensibles nunca en texto plano
+
+**Seguridad General:**
+- [ ] Autenticacion JWT para API
+- [ ] Rate limiting para prevenir abuso
+- [ ] Validacion estricta de inputs
+- [ ] Logs de auditoria
+
+### Sistema de Notificaciones por Correo
+
+**Notificaciones Automaticas:**
+- [ ] Tarea por vencer (configurable: 1 dia, 3 dias, 1 semana antes)
+- [ ] Tareas vencidas sin completar
+- [ ] Resumen diario de habitos que "tocan hoy"
+- [ ] Resumen semanal de progreso
+- [ ] Alerta de racha en peligro
+
+**Configuracion de Usuario:**
+- [ ] Activar/desactivar tipos de notificacion
+- [ ] Frecuencia de resumen (diario, semanal, nunca)
+- [ ] Hora preferida para recibir emails
+- [ ] Unsubscribe facil
+
+**Implementacion Tecnica:**
+- [ ] Cola de emails (wp_cron o queue externa)
+- [ ] Templates HTML responsive
+- [ ] Tracking de apertura (opcional)
+- [ ] Integracion con servicios de email (SendGrid, Mailgun, etc.)
+
+### Modelo Freemium
+
+**Funcionalidades FREE:**
+- Hasta 10 habitos
+- Hasta 50 tareas activas
+- Scratchpad basico
+- Persistencia localStorage (sin sync)
+- Estadisticas basicas (ultimos 7 dias)
+
+**Funcionalidades PREMIUM:**
+- Habitos y tareas ilimitados
+- Sincronizacion multi-dispositivo
+- Adjuntos en tareas (imagenes, archivos)
+- Notificaciones por correo
+- Estadisticas avanzadas y graficos historicos
+- Exportacion en multiples formatos
+- Temas personalizados
+- Cifrado end-to-end
+- Prioridad en soporte
+
+**Sistema de Suscripcion:**
+- [ ] Planes: Mensual, Anual (descuento)
+- [ ] Integracion con Stripe o WooCommerce
+- [ ] Trial gratuito de 14 dias para Premium
+- [ ] Downgrade graceful (mantiene datos, limita funciones)
+
+### Escalabilidad
+
+**Infraestructura:**
+- [ ] CDN para assets estaticos
+- [ ] Database replication para lecturas
+- [ ] Microservicios para notificaciones (opcional)
+- [ ] Monitoreo y alertas (uptime, errores)
+
+**Codigo:**
+- [ ] Tests automatizados (unit, integration)
+- [ ] CI/CD pipeline
+- [ ] Feature flags para rollouts graduales
+- [ ] Documentacion de API publica
 
 ---
 
-## Fase 9: Responsive y PWA
-
-**Objetivo:** Funcionar en móviles como app nativa
-
-### 9.1 Responsive
-- [ ] Layout adaptativo para móvil
-- [ ] Menú hamburguesa para secciones
-- [ ] Touch gestures (swipe para completar)
-
-### 9.2 PWA
-- [ ] Manifest.json
-- [ ] Service Worker para offline
-- [ ] Instalable en móvil
-- [ ] Sincronización cuando vuelve online
-
----
-
-## Prioridades Sugeridas
-
-### Sprint 1 (Semana 1-2)
-1. **Fase 1.1** - LocalStorage (esencial para uso real)
-2. **Fase 2.2** - Registrar completado (funcionalidad core)
-3. **Fase 4.1** - Guardado automático scratchpad
-
-### Sprint 2 (Semana 3-4)
-1. **Fase 2.1** - Crear hábito
-2. **Fase 3.1-3.3** - CRUD básico tareas
-3. **Fase 5.1** - Ordenar hábitos
-
-### Sprint 3 (Semana 5-6)
-1. **Fase 1.2** - API REST (persistencia seria)
-2. **Fase 2.3-2.5** - CRUD completo hábitos
-3. **Fase 3.4-3.5** - Proyectos y filtros
-
-### Sprint 4+ (Posteriores)
-- Estadísticas y gráficos
-- Notificaciones
-- Configuración avanzada
-- PWA
-
----
-
-## Notas Técnicas
+## Notas Tecnicas
 
 ### Dependencias Sugeridas
 ```json
 {
-  "date-fns": "^3.x",         // Manejo de fechas
-  "react-hot-toast": "^2.x",  // Notificaciones toast
-  "framer-motion": "^11.x",   // Animaciones (opcional)
-  "recharts": "^2.x"          // Gráficos (opcional)
+  "date-fns": "^3.x",
+  "react-hot-toast": "^2.x",
+  "framer-motion": "^11.x",
+  "recharts": "^2.x"
 }
 ```
 
-### Estructura de Datos Propuesta para API
+### Estructura de Datos para API (Actualizada)
 
 ```typescript
 interface DashboardUserData {
@@ -650,11 +501,16 @@ interface DashboardUserData {
   notas: Nota[];
   configuracion: UserConfig;
   historial: RegistroHistorial[];
+  suscripcion?: {
+    plan: 'free' | 'premium';
+    fechaExpiracion?: string;
+    estado: 'activa' | 'trial' | 'expirada';
+  };
 }
 
 interface RegistroHistorial {
   habitoId: number;
-  fecha: string;        // ISO date
+  fecha: string;
   completado: boolean;
 }
 
@@ -663,6 +519,18 @@ interface Nota {
   titulo: string;
   contenido: string;
   ultimaEdicion: string;
+}
+
+interface UserConfig {
+  notificaciones: {
+    email: boolean;
+    frecuenciaResumen: 'diario' | 'semanal' | 'nunca';
+    horaPreferida: string;
+    tareasPorVencer: boolean;
+    rachaEnPeligro: boolean;
+  };
+  cifradoE2E: boolean;
+  tema: 'terminal' | 'claro' | 'oscuro';
 }
 ```
 

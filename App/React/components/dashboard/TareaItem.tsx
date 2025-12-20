@@ -4,8 +4,8 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
-import {Check, X, Pencil, Flag, Trash2} from 'lucide-react';
-import type {Tarea, NivelPrioridad, DatosEdicionTarea} from '../../types/dashboard';
+import {Check, X, Pencil, Flag, Trash2, Settings, Calendar} from 'lucide-react';
+import type {Tarea, NivelPrioridad, DatosEdicionTarea, TareaConfiguracion} from '../../types/dashboard';
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
 
 export interface TareaItemProps {
@@ -18,6 +18,8 @@ export interface TareaItemProps {
     onOutdent?: () => void;
     /* Crear nueva tarea debajo (hereda parentId si es subtarea, tareaActualId para posición) */
     onCrearNueva?: (parentId: number | undefined, tareaActualId: number) => void;
+    /* Abrir panel de configuración */
+    onConfigurar?: () => void;
 }
 
 export interface MenuContextualEstado {
@@ -26,7 +28,7 @@ export interface MenuContextualEstado {
     y: number;
 }
 
-export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva}: TareaItemProps): JSX.Element {
+export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar}: TareaItemProps): JSX.Element {
     const [mostrarAcciones, setMostrarAcciones] = useState(false);
     const [editando, setEditando] = useState(false);
     const [textoEditado, setTextoEditado] = useState(tarea.texto);
@@ -118,6 +120,8 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
         (opcionId: string) => {
             if (opcionId === 'eliminar') {
                 onEliminar?.();
+            } else if (opcionId === 'configurar') {
+                onConfigurar?.();
             } else if (opcionId === 'sin-prioridad') {
                 /* Quitar prioridad enviando null */
                 onEditar?.({prioridad: null});
@@ -127,32 +131,38 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                 });
             }
         },
-        [onEliminar, onEditar]
+        [onEliminar, onEditar, onConfigurar]
     );
 
-    /* Opciones del menu, solo mostrar "Sin prioridad" si la tarea ya tiene una */
-    const opcionesBase: OpcionMenu[] = [
+    /* Opciones del menu contextual */
+    const opcionesMenu: OpcionMenu[] = [
+        {
+            id: 'configurar',
+            etiqueta: 'Configurar tarea',
+            icono: <Settings size={12} />,
+            separadorDespues: true
+        },
         {
             id: 'alta',
             etiqueta: 'Prioridad Alta',
-            icono: <Flag size={12} color="#ef4444" /> /* Rojo */
+            icono: <Flag size={12} color="#ef4444" />
         },
         {
             id: 'media',
             etiqueta: 'Prioridad Media',
-            icono: <Flag size={12} color="#f59e0b" /> /* Naranja/Amarillo */
+            icono: <Flag size={12} color="#f59e0b" />
         },
         {
             id: 'baja',
             etiqueta: 'Prioridad Baja',
-            icono: <Flag size={12} color="#94a3b8" /> /* Gris */,
-            separadorDespues: !tarea.prioridad /* Separador solo si no hay opcion de quitar */
+            icono: <Flag size={12} color="#94a3b8" />,
+            separadorDespues: !tarea.prioridad
         }
     ];
 
     /* Agregar opcion de quitar prioridad solo si tiene una */
     if (tarea.prioridad) {
-        opcionesBase.push({
+        opcionesMenu.push({
             id: 'sin-prioridad',
             etiqueta: 'Sin prioridad',
             icono: <X size={12} />,
@@ -161,15 +171,12 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
     }
 
     /* Agregar opcion de eliminar al final */
-    const opcionesMenu: OpcionMenu[] = [
-        ...opcionesBase,
-        {
-            id: 'eliminar',
-            etiqueta: 'Eliminar tarea',
-            icono: <Trash2 size={12} />,
-            peligroso: true
-        }
-    ];
+    opcionesMenu.push({
+        id: 'eliminar',
+        etiqueta: 'Eliminar tarea',
+        icono: <Trash2 size={12} />,
+        peligroso: true
+    });
 
     /* Renderizado del indicador de prioridad como badge de texto (igual que habitos) */
     const renderIndicadorPrioridad = () => {
@@ -188,6 +195,36 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
         };
 
         return <span className={obtenerClasePrioridad(tarea.prioridad)}>{tarea.prioridad.toUpperCase()}</span>;
+    };
+
+    /* Renderizado del indicador de fecha limite */
+    const renderIndicadorFecha = () => {
+        const fechaMaxima = tarea.configuracion?.fechaMaxima;
+        if (!fechaMaxima) return null;
+
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const fecha = new Date(fechaMaxima);
+        const diferenciaDias = Math.ceil((fecha.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+
+        let claseEstado = 'tareaFechaIndicador';
+        if (diferenciaDias < 0) {
+            claseEstado += ' tareaFechaVencida';
+        } else if (diferenciaDias === 0) {
+            claseEstado += ' tareaFechaUrgente';
+        } else if (diferenciaDias <= 3) {
+            claseEstado += ' tareaFechaProxima';
+        }
+
+        /* Formatear fecha de forma compacta */
+        const formatoFecha = fecha.toLocaleDateString('es', {day: 'numeric', month: 'short'});
+
+        return (
+            <span className={claseEstado} title={`Fecha limite: ${formatoFecha}`}>
+                <Calendar size={10} />
+                <span>{formatoFecha}</span>
+            </span>
+        );
     };
 
     if (editando) {
@@ -210,6 +247,7 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                 <div className="tareaContenido" onClick={iniciarEdicion}>
                     <div className="tareaTextoWrapper">
                         <p className={`tareaTexto ${tarea.completado ? 'tareaTextoCompletado' : ''}`}>{tarea.texto}</p>
+                        {renderIndicadorFecha()}
                         {renderIndicadorPrioridad()}
                     </div>
                 </div>

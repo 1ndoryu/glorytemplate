@@ -32,6 +32,7 @@
 @import './componentes/ordenamiento.css';
 @import './componentes/menuContextual.css';
 @import './componentes/frecuencia.css';
+@import './componentes/panelConfiguracion.css';
 
 /* Utilidades */
 @import './utilidades/estados.css';

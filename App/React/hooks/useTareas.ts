@@ -164,7 +164,7 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                      * Crear objeto base excluyendo prioridad de datos si es null
                      * Para prioridad null significa "quitar", así que no la incluimos en el spread
                      */
-                    const {prioridad: nuevaPrioridad, ...restoDatos} = datos;
+                    const {prioridad: nuevaPrioridad, configuracion: nuevaConfiguracion, ...restoDatos} = datos;
 
                     const tareaActualizada: Tarea = {
                         ...t,
@@ -176,6 +176,20 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                         delete tareaActualizada.prioridad;
                     } else if (nuevaPrioridad !== undefined) {
                         tareaActualizada.prioridad = nuevaPrioridad;
+                    }
+
+                    /* Manejar configuracion: fusionar con existente o reemplazar */
+                    if (nuevaConfiguracion !== undefined) {
+                        /* Si hay campos en la configuracion, fusionar; de lo contrario mantener existente */
+                        if (Object.keys(nuevaConfiguracion).length > 0) {
+                            tareaActualizada.configuracion = {
+                                ...t.configuracion,
+                                ...nuevaConfiguracion
+                            };
+                        } else {
+                            /* Configuracion vacia significa quitar */
+                            delete tareaActualizada.configuracion;
+                        }
                     }
 
                     return tareaActualizada;
