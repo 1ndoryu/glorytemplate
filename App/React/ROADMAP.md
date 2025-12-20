@@ -195,8 +195,8 @@ App/React/styles/dashboard/
     - Ej: "Repetir cada lunes" o "Repetir cada 7 dias"
     - La tarea reaparece en fechas fijas sin importar cuando se completo
   - [x] Selector de dias de la semana para intervalo fijo
-  - [ ] Logica de generacion automatica de repeticiones
-  - [ ] Evitar duplicados (si ya existe una instancia pendiente)
+  - [x] Logica de generacion automatica de repeticiones
+  - [x] Evitar duplicados (si ya existe una instancia pendiente)
   - [ ] Historial de repeticiones
 
 - [ ] **Adjuntos** (pendiente)
@@ -252,12 +252,12 @@ Los paneles de configuración de hábitos y tareas tienen estructura similar per
 
 ### CSS a Unificar
 
-| Estilos                                                   | Ubicacion Actual       | Propuesta                           |
-| --------------------------------------------------------- | ---------------------- | ----------------------------------- |
-| `.formularioAcciones`, `.formularioBotonCancelar`, etc    | formulario.css         | Mover a `shared/acciones.css`       |
-| `.formularioGrupoBotones`, `.formularioBotonImportancia*` | formulario.css         | Mover a `shared/selector-nivel.css` |
-| `.modalOverlay`, `.modalContenedor`, etc                  | modal.css              | Ya centralizado, reutilizar         |
-| `.panelConfiguracion*` que duplica modal                  | panelConfiguracion.css | Eliminar duplicados, usar modal.css |
+| Estilos                                                   | Ubicacion Actual       | Propuesta                                                   |
+| --------------------------------------------------------- | ---------------------- | ----------------------------------------------------------- |
+| `.formularioAcciones`, `.formularioBotonCancelar`, etc    | formulario.css         | Mover a `shared/acciones.css`                               |
+| `.formularioGrupoBotones`, `.formularioBotonImportancia*` | formulario.css         | Mover a `shared/selector-nivel.css`                         |
+| `.modalOverlay`, `.modalContenedor`, etc                  | modal.css              | Ya centralizado en `components/shared/Modal.tsx`            |
+| `.panelConfiguracion*` que duplica modal                  | panelConfiguracion.css | [x] Eliminado duplicados, usa `components/shared/Modal.tsx` |
 
 ### Fases de Refactorizacion
 
@@ -268,21 +268,21 @@ Los paneles de configuración de hábitos y tareas tienen estructura similar per
 - [ ] Crear documento de patron de uso
 
 **Fase R2: CSS Compartido** (1-2 horas)
-- [ ] Crear `styles/dashboard/shared/` para estilos reutilizables
-- [ ] Extraer estilos de botones de accion
+- [x] Crear `styles/dashboard/shared/` para estilos reutilizables
+- [x] Extraer estilos de botones de accion
 - [ ] Extraer estilos de selector nivel (importancia/prioridad)
 - [ ] Actualizar imports en index.css
 
 **Fase R3: Componentes Compartidos** (3-4 horas)
-- [ ] Crear `components/shared/AccionesFormulario.tsx`
-- [ ] Crear `components/shared/SelectorNivel.tsx`
-- [ ] Crear `components/shared/SeccionPanel.tsx`
-- [ ] Crear `components/shared/ToggleSwitch.tsx`
+- [x] Crear `components/shared/AccionesFormulario.tsx`
+- [x] Crear `components/shared/SelectorNivel.tsx`
+- [x] Crear `components/shared/SeccionPanel.tsx`
+- [x] Crear `components/shared/Modal.tsx`
 - [ ] Actualizar exportaciones en index.ts
 
 **Fase R4: Integracion y Testing** (2-3 horas)
-- [ ] Refactorizar FormularioHabito.tsx para usar componentes shared
-- [ ] Refactorizar PanelConfiguracionTarea.tsx para usar componentes shared
+- [x] Refactorizar FormularioHabito.tsx para usar componentes shared
+- [x] Refactorizar PanelConfiguracionTarea.tsx para usar componentes shared
 - [ ] Verificar consistencia visual en ambos paneles
 - [ ] Probar todos los flujos de usuario
 

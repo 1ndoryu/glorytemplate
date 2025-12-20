@@ -60,3 +60,14 @@ export function debeResetearRacha(diasInactividad: number, umbral: number): bool
 export function calcularDiasAntesDePerderRacha(diasInactividad: number, umbral: number): number {
     return umbral - diasInactividad;
 }
+
+/*
+ * Suma dias a una fecha ISO
+ * Retorna la nueva fecha en formato ISO (YYYY-MM-DD)
+ */
+export function sumarDias(fechaIso: string, dias: number): string {
+    const fecha = new Date(fechaIso);
+    /* Usar metodos UTC para evitar problemas de zona horaria al sumar dias */
+    fecha.setUTCDate(fecha.getUTCDate() + dias);
+    return fecha.toISOString().split('T')[0];
+}

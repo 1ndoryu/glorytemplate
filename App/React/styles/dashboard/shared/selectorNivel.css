@@ -1,0 +1,69 @@
+/*
+ * SELECTOR DE NIVEL / IMPORTANCIA / PRIORIDAD
+ * Componente compartido para seleccionar entre niveles predefinidos
+ */
+
+.selectorNivelContenedor {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+    width: 100%;
+}
+
+.selectorNivelBoton {
+    flex: 1;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoMuyApagado);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.selectorNivelBoton:hover:not(:disabled) {
+    border-color: var(--dashboard-textoMuyApagado);
+    color: var(--dashboard-textoSecundario);
+}
+
+.selectorNivelBotonActivo {
+    font-weight: 600;
+}
+
+/* 
+ * VARIANTES POR NIVEL
+ * Se asume que los niveles estandar son Alta, Media, Baja
+ * Pero las clases se construyen dinamicamente o se usan estas bases
+ */
+
+/* ALTA */
+.selectorNivelBotonAlta.selectorNivelBotonActivo,
+.selectorNivelBotonCritical.selectorNivelBotonActivo {
+    color: var(--dashboard-estadoAlta);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border-color: var(--dashboard-estadoAltaBorde);
+}
+
+/* MEDIA */
+.selectorNivelBotonMedia.selectorNivelBotonActivo,
+.selectorNivelBotonHigh.selectorNivelBotonActivo {
+    color: var(--dashboard-estadoMedia);
+    background-color: var(--dashboard-estadoMediaFondo);
+    border-color: var(--dashboard-estadoMediaBorde);
+}
+
+/* BAJA */
+.selectorNivelBotonBaja.selectorNivelBotonActivo,
+.selectorNivelBotonLow.selectorNivelBotonActivo,
+.selectorNivelBotonNormal.selectorNivelBotonActivo {
+    color: var(--dashboard-estadoBaja);
+    border-color: var(--dashboard-estadoBajaBorde);
+}
+
+.selectorNivelBoton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

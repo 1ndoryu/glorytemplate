@@ -5,10 +5,11 @@
  */
 
 import {useState, useCallback} from 'react';
-import {Plus, Tag, Trash2} from 'lucide-react';
+import {Plus, Tag} from 'lucide-react';
 import type {NivelImportancia, DatosNuevoHabito, FrecuenciaHabito} from '../../types/dashboard';
 import {FRECUENCIA_POR_DEFECTO} from '../../types/dashboard';
 import {SelectorFrecuencia} from './SelectorFrecuencia';
+import {AccionesFormulario, SeccionPanel, SelectorNivel} from '../shared';
 
 /* Alias para compatibilidad con el componente */
 type DatosFormulario = DatosNuevoHabito;
@@ -31,7 +32,6 @@ export function FormularioHabito({onGuardar, onCancelar, onEliminar, datosInicia
     const [frecuencia, setFrecuencia] = useState<FrecuenciaHabito>(datosIniciales?.frecuencia || FRECUENCIA_POR_DEFECTO);
     const [nuevoTag, setNuevoTag] = useState('');
     const [errores, setErrores] = useState<{nombre?: string}>({});
-    const [mostrarConfirmacionEliminar, setMostrarConfirmacionEliminar] = useState(false);
 
     const validarFormulario = useCallback((): boolean => {
         const nuevosErrores: {nombre?: string} = {};
@@ -85,25 +85,15 @@ export function FormularioHabito({onGuardar, onCancelar, onEliminar, datosInicia
     return (
         <form id="formulario-habito" className="formularioHabito" onSubmit={manejarSubmit}>
             {/* Campo Nombre */}
-            <div className="formularioCampo">
-                <label htmlFor="habito-nombre" className="formularioEtiqueta">
-                    Nombre del habito
-                </label>
+            <SeccionPanel titulo="Nombre del habito">
                 <input id="habito-nombre" type="text" className={`formularioInput ${errores.nombre ? 'formularioInputError' : ''}`} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Leer 30 minutos" autoFocus disabled={guardando} />
                 {errores.nombre && <span className="formularioMensajeError">{errores.nombre}</span>}
-            </div>
+            </SeccionPanel>
 
             {/* Campo Importancia */}
-            <div className="formularioCampo">
-                <label className="formularioEtiqueta">Importancia</label>
-                <div className="formularioGrupoBotones">
-                    {IMPORTANCIAS.map(imp => (
-                        <button key={imp} type="button" className={`formularioBotonImportancia ${importancia === imp ? `formularioBotonImportanciaActivo formularioBotonImportancia${imp}` : ''}`} onClick={() => setImportancia(imp)} disabled={guardando}>
-                            {imp}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            <SeccionPanel titulo="Importancia">
+                <SelectorNivel<NivelImportancia> niveles={IMPORTANCIAS} seleccionado={importancia} onSeleccionar={setImportancia} disabled={guardando} />
+            </SeccionPanel>
 
             {/* Campo Frecuencia */}
             <div className="formularioCampo">
@@ -136,39 +126,8 @@ export function FormularioHabito({onGuardar, onCancelar, onEliminar, datosInicia
                 )}
             </div>
 
-            {/* Zona de peligro: eliminar hábito */}
-            {modoEdicion && onEliminar && (
-                <div className="formularioZonaPeligro">
-                    {!mostrarConfirmacionEliminar ? (
-                        <button type="button" className="formularioBotonEliminar" onClick={() => setMostrarConfirmacionEliminar(true)} disabled={guardando}>
-                            <Trash2 size={12} />
-                            <span>Eliminar habito</span>
-                        </button>
-                    ) : (
-                        <div className="formularioConfirmacionEliminar">
-                            <span className="formularioConfirmacionTexto">Confirmar eliminacion?</span>
-                            <div className="formularioConfirmacionBotones">
-                                <button type="button" className="formularioBotonConfirmarEliminar" onClick={onEliminar} disabled={guardando}>
-                                    Si, eliminar
-                                </button>
-                                <button type="button" className="formularioBotonCancelarEliminar" onClick={() => setMostrarConfirmacionEliminar(false)} disabled={guardando}>
-                                    No
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* Botones de accion */}
-            <div className="formularioAcciones">
-                <button type="button" className="formularioBotonCancelar" onClick={onCancelar} disabled={guardando}>
-                    Cancelar
-                </button>
-                <button type="submit" className="formularioBotonGuardar" disabled={guardando}>
-                    {guardando ? 'Guardando...' : modoEdicion ? 'Guardar cambios' : 'Crear habito'}
-                </button>
-            </div>
+            {/* Acciones reutilizables */}
+            <AccionesFormulario onCancelar={onCancelar} textoGuardar={modoEdicion ? 'Guardar cambios' : 'Crear habito'} guardando={guardando} onEliminar={modoEdicion && onEliminar ? onEliminar : undefined} textoEliminar="Eliminar habito" />
         </form>
     );
 }

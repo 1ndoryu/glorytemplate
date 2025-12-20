@@ -21,6 +21,11 @@
 /* Base y layout */
 @import './base.css';
 
+/* Componentes compartidos */
+@import './shared/accionesFormulario.css';
+@import './shared/selectorNivel.css';
+@import './shared/seccionPanel.css';
+
 /* Componentes */
 @import './componentes/encabezado.css';
 @import './componentes/tabla.css';

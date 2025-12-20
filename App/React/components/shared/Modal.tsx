@@ -1,20 +1,21 @@
 /*
- * ModalHabito
- * Componente modal para crear/editar hábitos
- * Responsabilidad única: contenedor modal con overlay y animaciones
+ * Modal
+ * Componente modal reutilizable con overlay y animaciones
+ * Responsabilidad unica: contenedor modal generico
  */
 
 import {useEffect, useCallback} from 'react';
 import {X} from 'lucide-react';
 
-interface ModalHabitoProps {
+export interface ModalProps {
     estaAbierto: boolean;
     onCerrar: () => void;
     titulo: string;
     children: React.ReactNode;
+    claseExtra?: string;
 }
 
-export function ModalHabito({estaAbierto, onCerrar, titulo, children}: ModalHabitoProps): JSX.Element | null {
+export function Modal({estaAbierto, onCerrar, titulo, children, claseExtra = ''}: ModalProps): JSX.Element | null {
     /*
      * Cierra el modal al presionar Escape
      */
@@ -39,17 +40,17 @@ export function ModalHabito({estaAbierto, onCerrar, titulo, children}: ModalHabi
         };
     }, [estaAbierto, manejarTecla]);
 
-    if (!estaAbierto) return null;
-
     const manejarClickOverlay = (evento: React.MouseEvent<HTMLDivElement>) => {
         if (evento.target === evento.currentTarget) {
             onCerrar();
         }
     };
 
+    if (!estaAbierto) return null;
+
     return (
-        <div id="modal-habito-overlay" className="modalOverlay" onClick={manejarClickOverlay}>
-            <div className="modalContenedor" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+        <div className="modalOverlay" onClick={manejarClickOverlay}>
+            <div className={`modalContenedor ${claseExtra}`} role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
                 <div className="modalEncabezado">
                     <h2 id="modal-titulo" className="modalTitulo">
                         {titulo}

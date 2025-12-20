@@ -1,0 +1,35 @@
+/*
+ * SECCION DE PANEL / FORMULARIO
+ * Contenedor estilizado con encabezado opcion e icono
+ */
+
+.seccionPanel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+}
+
+.seccionPanelEncabezado {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    color: var(--dashboard-textoApagado);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-bottom: 0px;
+}
+
+.seccionPanelIcono {
+    opacity: 0.8;
+}
+
+.seccionPanelTitulo {
+    font-weight: 500;
+}
+
+.seccionPanelContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioxs);
+}

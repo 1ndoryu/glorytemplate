@@ -9,7 +9,6 @@ export {ListaTareas} from './ListaTareas';
 export {Scratchpad} from './Scratchpad';
 export {DashboardFooter} from './DashboardFooter';
 export {AccionesDatos} from './AccionesDatos';
-export {ModalHabito} from './ModalHabito';
 export {FormularioHabito} from './FormularioHabito';
 export {SelectorOrden} from './SelectorOrden';
 export {PanelConfiguracionTarea} from './PanelConfiguracionTarea';

@@ -205,12 +205,13 @@ export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea,
      * Guardar configuración de tarea (incluye prioridad)
      */
     const guardarConfiguracion = useCallback(
-        (configuracion: TareaConfiguracion, prioridad?: NivelPrioridad | null) => {
+        (configuracion: TareaConfiguracion, prioridad?: NivelPrioridad | null, texto?: string) => {
             if (tareaConfigurando && onEditarTarea) {
-                /* Actualizamos la tarea con la nueva configuración y prioridad */
+                /* Actualizamos la tarea con la nueva configuración, prioridad y texto */
                 onEditarTarea(tareaConfigurando.id, {
                     configuracion,
-                    prioridad: prioridad === undefined ? tareaConfigurando.prioridad : prioridad
+                    prioridad: prioridad === undefined ? tareaConfigurando.prioridad : prioridad,
+                    ...(texto !== undefined && {texto})
                 });
             }
             setTareaConfigurando(null);

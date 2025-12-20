@@ -6,7 +6,7 @@
 
 import {useCallback} from 'react';
 import type {Tarea, DatosEdicionTarea} from '../types/dashboard';
-import {obtenerFechaHoy} from '../utils/fecha';
+import {obtenerFechaHoy, sumarDias} from '../utils/fecha';
 import {obtenerSubtareas} from '../utils/jerarquiaTareas';
 
 export interface UseTareasParams {
@@ -28,6 +28,10 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
     /*
      * Toggle de tarea: completa o desmarca con soporte de deshacer
      */
+    /*
+     * Toggle de tarea: completa o desmarca con soporte de deshacer
+     * Maneja la logica de repeticion autogenerando nuevas tareas
+     */
     const toggleTarea = useCallback(
         (id: number) => {
             const tarea = tareas.find(t => t.id === id);
@@ -36,10 +40,71 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
             const estadoAnterior = tarea.completado;
             const accion = estadoAnterior ? 'pendiente' : 'completada';
 
-            setTareas(prev => prev.map(t => (t.id === id ? {...t, completado: !t.completado} : t)));
+            /* Logica de Repeticion: Generar nueva tarea si se completa y tiene repeticion */
+            let nuevaTareaRepetida: Tarea | null = null;
+
+            if (!estadoAnterior && tarea.configuracion?.repeticion) {
+                const {tipo, intervalo} = tarea.configuracion.repeticion;
+
+                /* Verificar duplicados pendientes para no spammear */
+                const yaExiste = tareas.some(t => t.texto === tarea.texto && !t.completado && t.id !== id);
+
+                if (!yaExiste && intervalo > 0) {
+                    const hoy = obtenerFechaHoy();
+                    let nuevaFechaMaxima = '';
+
+                    if (tipo === 'despuesCompletar') {
+                        nuevaFechaMaxima = sumarDias(hoy, intervalo);
+                    } else {
+                        /* intervaloFijo: Sumar a la fecha maxima anterior o a hoy si no existe */
+                        const base = tarea.configuracion.fechaMaxima || hoy;
+                        nuevaFechaMaxima = sumarDias(base, intervalo);
+                    }
+
+                    /* Crear la nueva instancia de la tarea */
+                    nuevaTareaRepetida = {
+                        ...tarea,
+                        id: Date.now() /* Nuevo ID unico */,
+                        completado: false,
+                        fechaCreacion: hoy,
+                        fechaCompletado: undefined,
+                        orden: 0 /* Se colocara al inicio */,
+                        configuracion: {
+                            ...tarea.configuracion,
+                            fechaMaxima: nuevaFechaMaxima,
+                            repeticion: {
+                                ...tarea.configuracion.repeticion,
+                                ultimaRepeticion: hoy
+                            }
+                        }
+                    };
+                }
+            }
+
+            setTareas(prev => {
+                const actualizadas = prev.map(t => (t.id === id ? {...t, completado: !t.completado} : t));
+
+                if (nuevaTareaRepetida) {
+                    /* Insertar al inicio y recalcular ordenes */
+                    const listaConNueva = [nuevaTareaRepetida, ...actualizadas];
+                    return listaConNueva.map((t, i) => ({...t, orden: i}));
+                }
+
+                return actualizadas;
+            });
 
             registrarAccion(`Tarea "${tarea.texto.substring(0, 30)}..." ${accion}`, () => {
-                setTareas(prev => prev.map(t => (t.id === id ? {...t, completado: estadoAnterior} : t)));
+                setTareas(prev => {
+                    /* Restaurar estado original y eliminar tarea generada si existe */
+                    let listaRestaurada = prev.filter(t => t.id !== nuevaTareaRepetida?.id).map(t => (t.id === id ? {...t, completado: estadoAnterior} : t));
+
+                    /* Si habia repeticion, normalizar ordenes tras eliminar la nueva */
+                    if (nuevaTareaRepetida) {
+                        listaRestaurada = listaRestaurada.map((t, i) => ({...t, orden: i}));
+                    }
+
+                    return listaRestaurada;
+                });
             });
         },
         [tareas, setTareas, registrarAccion]

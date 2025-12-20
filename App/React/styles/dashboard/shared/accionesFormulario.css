@@ -1,0 +1,163 @@
+/*
+ * COMPONENTE REUTILIZABLE: ACCIONES DE FORMULARIO
+ * Botones Guardar, Cancelar y Zona de Peligro (Eliminar)
+ */
+
+.accionesFormularioContenedor {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+    margin-top: var(--dashboard-espacioSm);
+    padding-top: var(--dashboard-espacioLg);
+    border-top: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.accionesFormularioBotonCancelar {
+    flex: 1;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.accionesFormularioBotonCancelar:hover:not(:disabled) {
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+}
+
+.accionesFormularioBotonGuardar {
+    flex: 1;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.accionesFormularioBotonGuardar:hover:not(:disabled) {
+    background-color: rgba(34, 197, 94, 0.25);
+    border-color: rgba(34, 197, 94, 0.6);
+}
+
+.accionesFormularioBotonGuardar:disabled,
+.accionesFormularioBotonCancelar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 
+ * ZONA DE PELIGRO (ELIMINAR) 
+ */
+.accionesFormularioZonaPeligro {
+    margin-top: var(--dashboard-espacioSm);
+    padding-top: var(--dashboard-espacioMd);
+    border-top: 1px dashed var(--dashboard-estadoAltaBorde);
+}
+
+.accionesFormularioBotonEliminar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: transparent;
+    border: 1px solid var(--dashboard-estadoAltaBorde);
+    color: var(--dashboard-textoMuyApagado);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.accionesFormularioBotonEliminar:hover:not(:disabled) {
+    background-color: var(--dashboard-estadoAltaFondo);
+    border-color: var(--dashboard-estadoAlta);
+    color: var(--dashboard-estadoAlta);
+}
+
+.accionesFormularioBotonEliminar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 
+ * CONFIRMACION DE ELIMINAR 
+ */
+.accionesFormularioConfirmacion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border: 1px solid var(--dashboard-estadoAltaBorde);
+    animation: aparecerConfirmacion 0.2s ease-out;
+}
+
+.accionesFormularioConfirmacionTexto {
+    font-size: var(--dashboard-tamanoBase);
+    color: var(--dashboard-estadoAlta);
+    text-align: center;
+}
+
+.accionesFormularioConfirmacionBotones {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+}
+
+.accionesFormularioBotonConfirmar {
+    flex: 1;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: var(--dashboard-estadoAlta);
+    border: 1px solid var(--dashboard-estadoAlta);
+    color: white;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.accionesFormularioBotonConfirmar:hover:not(:disabled) {
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+
+.accionesFormularioBotonCancelarEliminar {
+    flex: 1;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.accionesFormularioBotonCancelarEliminar:hover:not(:disabled) {
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+}
+
+.accionesFormularioBotonConfirmar:disabled,
+.accionesFormularioBotonCancelarEliminar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@keyframes aparecerConfirmacion {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

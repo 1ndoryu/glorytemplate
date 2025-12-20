@@ -5,8 +5,9 @@
  */
 
 import {Terminal, AlertCircle, FileText} from 'lucide-react';
-import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, ModalHabito, FormularioHabito, SelectorOrden} from '../components/dashboard';
+import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden} from '../components/dashboard';
 import {ToastDeshacer} from '../components/shared/ToastDeshacer';
+import {Modal} from '../components/shared/Modal';
 import {useDashboard} from '../hooks/useDashboard';
 import {useOrdenarHabitos} from '../hooks/useOrdenarHabitos';
 
@@ -78,12 +79,12 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
             <DashboardFooter />
 
             {/* Modal para crear nuevo habito */}
-            <ModalHabito estaAbierto={modalCrearHabitoAbierto} onCerrar={cerrarModalCrearHabito} titulo="Nuevo Habito">
+            <Modal estaAbierto={modalCrearHabitoAbierto} onCerrar={cerrarModalCrearHabito} titulo="Nuevo Habito">
                 <FormularioHabito onGuardar={crearHabito} onCancelar={cerrarModalCrearHabito} />
-            </ModalHabito>
+            </Modal>
 
             {/* Modal para editar habito */}
-            <ModalHabito estaAbierto={habitoEditando !== null} onCerrar={cerrarModalEditarHabito} titulo="Editar Habito">
+            <Modal estaAbierto={habitoEditando !== null} onCerrar={cerrarModalEditarHabito} titulo="Editar Habito">
                 {habitoEditando && (
                     <FormularioHabito
                         onGuardar={datos => editarHabito(habitoEditando.id, datos)}
@@ -98,7 +99,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                         modoEdicion
                     />
                 )}
-            </ModalHabito>
+            </Modal>
 
             {/* Toast de deshacer */}
             {accionDeshacer && <ToastDeshacer mensaje={accionDeshacer.mensaje} tiempoRestante={accionDeshacer.tiempoRestante} tiempoTotal={5000} onDeshacer={ejecutarDeshacer} onDescartar={descartarDeshacer} />}

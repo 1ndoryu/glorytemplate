@@ -292,65 +292,12 @@
 }
 
 /* 
- * CONFIRMACION DE ELIMINAR 
+ * NOTA SOBRE ACCIONES Y ZONA PELIGRO:
+ * 
+ * Los estilos para botones de guardar/cancelar y la zona de eliminacion
+ * han sido MOVIDOS a styles/dashboard/shared/accionesFormulario.css
+ * para ser reutilizados en otros formularios.
+ * 
+ * Se mantienen aqui solo si hay especificidades unicas del habito,
+ * de lo contrario, usar AccionesFormulario.tsx
  */
-.formularioConfirmacionEliminar {
-    display: flex;
-    flex-direction: column;
-    gap: var(--dashboard-espacioSm);
-    padding: var(--dashboard-espacioMd);
-    background-color: var(--dashboard-estadoAltaFondo);
-    border: 1px solid var(--dashboard-estadoAltaBorde);
-    animation: aparecerConfirmacion 0.2s ease-out;
-}
-
-.formularioConfirmacionTexto {
-    font-size: var(--dashboard-tamanoBase);
-    color: var(--dashboard-estadoAlta);
-    text-align: center;
-}
-
-.formularioConfirmacionBotones {
-    display: flex;
-    gap: var(--dashboard-espacioSm);
-}
-
-.formularioBotonConfirmarEliminar {
-    flex: 1;
-    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
-    background-color: var(--dashboard-estadoAlta);
-    border: 1px solid var(--dashboard-estadoAlta);
-    color: white;
-    font-family: var(--dashboard-fuenteMonoespaciada);
-    font-size: var(--dashboard-tamanoPequeno);
-    cursor: pointer;
-    transition: all var(--dashboard-transicionNormal);
-}
-
-.formularioBotonConfirmarEliminar:hover:not(:disabled) {
-    background-color: #dc2626;
-    border-color: #dc2626;
-}
-
-.formularioBotonCancelarEliminar {
-    flex: 1;
-    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
-    background-color: transparent;
-    border: 1px solid var(--dashboard-bordePrincipal);
-    color: var(--dashboard-textoSecundario);
-    font-family: var(--dashboard-fuenteMonoespaciada);
-    font-size: var(--dashboard-tamanoPequeno);
-    cursor: pointer;
-    transition: all var(--dashboard-transicionNormal);
-}
-
-.formularioBotonCancelarEliminar:hover:not(:disabled) {
-    background-color: var(--dashboard-fondoHover);
-    border-color: var(--dashboard-bordeSutil);
-}
-
-.formularioBotonConfirmarEliminar:disabled,
-.formularioBotonCancelarEliminar:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
