@@ -6,6 +6,7 @@
 
 import {useState, useCallback} from 'react';
 import type {FrecuenciaHabito, TipoFrecuencia, DiaSemana} from '../../types/dashboard';
+import {SelectorDias} from '../shared';
 
 interface SelectorFrecuenciaProps {
     frecuencia: FrecuenciaHabito;
@@ -60,18 +61,7 @@ export function SelectorFrecuencia({frecuencia, onChange, deshabilitado = false}
         [frecuencia, onChange]
     );
 
-    const manejarToggleDiaSemana = useCallback(
-        (dia: DiaSemana) => {
-            const diasActuales = frecuencia.diasSemana || [];
-            const nuevoDias = diasActuales.includes(dia) ? diasActuales.filter(d => d !== dia) : [...diasActuales, dia];
-
-            /* Minimo un dia seleccionado */
-            if (nuevoDias.length === 0) return;
-
-            onChange({...frecuencia, diasSemana: nuevoDias});
-        },
-        [frecuencia, onChange]
-    );
+    /* manejarToggleDiaSemana eliminado - gestionado por SelectorDias */
 
     const manejarCambioVecesMes = useCallback(
         (nuevasVeces: number) => {
@@ -143,13 +133,7 @@ export function SelectorFrecuencia({frecuencia, onChange, deshabilitado = false}
                     {frecuencia.tipo === 'diasEspecificos' && (
                         <div className="selectorFrecuenciaConfig">
                             <label className="selectorFrecuenciaConfigLabel">Dias de la semana</label>
-                            <div className="selectorFrecuenciaDias">
-                                {DIAS_SEMANA.map(({dia, corto}) => (
-                                    <button key={dia} type="button" className={`selectorFrecuenciaDia ${(frecuencia.diasSemana || []).includes(dia) ? 'selectorFrecuenciaDiaActivo' : ''}`} onClick={() => manejarToggleDiaSemana(dia)} disabled={deshabilitado} title={dia}>
-                                        {corto}
-                                    </button>
-                                ))}
-                            </div>
+                            <SelectorDias seleccionados={frecuencia.diasSemana || []} onChange={dias => onChange({...frecuencia, diasSemana: dias})} deshabilitado={deshabilitado} />
                         </div>
                     )}
 

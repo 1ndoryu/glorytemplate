@@ -5,3 +5,5 @@ export * from './ToastDeshacer';
 export * from './Modal';
 export * from './SelectorNivel';
 export * from './SeccionPanel';
+export * from './ToggleSwitch';
+export * from './SelectorDias';

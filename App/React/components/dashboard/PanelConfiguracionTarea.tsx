@@ -7,7 +7,7 @@
 import {useState, useCallback, useEffect} from 'react';
 import {X, Calendar, FileText, Repeat, AlertCircle, Flag} from 'lucide-react';
 import type {Tarea, TareaConfiguracion, TipoRepeticion, DiaSemana, NivelPrioridad} from '../../types/dashboard';
-import {AccionesFormulario, Modal, SeccionPanel, SelectorNivel} from '../shared';
+import {AccionesFormulario, Modal, SeccionPanel, SelectorNivel, ToggleSwitch} from '../shared';
 import {SelectorFrecuencia} from './SelectorFrecuencia';
 import type {FrecuenciaHabito} from '../../types/dashboard';
 
@@ -126,12 +126,12 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
                 </SeccionPanel>
 
                 {/* Seccion: Prioridad */}
-                <SeccionPanel titulo="Prioridad" icono={<Flag size={14} />}>
+                <SeccionPanel titulo="Prioridad">
                     <SelectorNivel<NivelPrioridad> niveles={['Alta', 'Media', 'Baja'].map(n => n.toLowerCase() as NivelPrioridad)} seleccionado={prioridad} onSeleccionar={nivel => setPrioridad(prioridad === nivel ? null : nivel)} />
                 </SeccionPanel>
 
                 {/* Seccion: Fecha Limite */}
-                <SeccionPanel titulo="Fecha Limite" icono={<Calendar size={14} />}>
+                <SeccionPanel titulo="Fecha Limite">
                     <div className={`panelConfiguracionCampo ${estadoFecha ? `panelConfiguracionCampo${estadoFecha.charAt(0).toUpperCase() + estadoFecha.slice(1)}` : ''}`}>
                         <input type="date" className="panelConfiguracionInputFecha" value={fechaMaxima} onChange={e => setFechaMaxima(e.target.value)} />
                         {estadoFecha === 'vencida' && (
@@ -156,17 +156,14 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
                 </SeccionPanel>
 
                 {/* Seccion: Descripcion */}
-                <SeccionPanel titulo="Descripcion" icono={<FileText size={14} />}>
+                <SeccionPanel titulo="Descripcion">
                     <textarea className="panelConfiguracionTextarea" placeholder="Notas adicionales sobre esta tarea..." value={descripcion} onChange={e => setDescripcion(e.target.value)} rows={3} />
                 </SeccionPanel>
 
                 {/* Seccion: Repeticion */}
-                <SeccionPanel titulo="Repeticion" icono={<Repeat size={14} />}>
+                <SeccionPanel titulo="Repeticion">
                     <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '-1.5rem'}}>
-                        <label className="panelConfiguracionToggle">
-                            <input type="checkbox" checked={tieneRepeticion} onChange={e => setTieneRepeticion(e.target.checked)} />
-                            <span className="panelConfiguracionToggleSlider" />
-                        </label>
+                        <ToggleSwitch checked={tieneRepeticion} onChange={setTieneRepeticion} className="panelConfiguracionToggle" />
                     </div>
 
                     {tieneRepeticion && (

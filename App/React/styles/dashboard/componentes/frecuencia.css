@@ -174,39 +174,5 @@
 
 /* 
  * SELECTOR DE DIAS 
+ * Reemplazado por componente compartido SelectorDias
  */
-.selectorFrecuenciaDias {
-    display: flex;
-    gap: var(--dashboard-espacioXs);
-}
-
-.selectorFrecuenciaDia {
-    width: 1.75rem;
-    height: 1.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 1px solid var(--dashboard-bordePrincipal);
-    color: var(--dashboard-textoApagado);
-    font-family: var(--dashboard-fuenteMonoespaciada);
-    font-size: var(--dashboard-tamanoPequeno);
-    cursor: pointer;
-    transition: all var(--dashboard-transicionRapida);
-}
-
-.selectorFrecuenciaDia:hover:not(:disabled) {
-    border-color: var(--dashboard-textoMuyApagado);
-    color: var(--dashboard-textoSecundario);
-}
-
-.selectorFrecuenciaDiaActivo {
-    background-color: rgba(34, 197, 94, 0.15);
-    border-color: rgba(34, 197, 94, 0.4);
-    color: #22c55e;
-}
-
-.selectorFrecuenciaDiaActivo:hover:not(:disabled) {
-    background-color: rgba(34, 197, 94, 0.25);
-    border-color: rgba(34, 197, 94, 0.6);
-}

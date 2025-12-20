@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Panel de Configuración de Tareas unificado con Selector de Frecuencia compartido. Pendiente: Adjuntos y resto de Componentes compartidos.
+**Estado:** Refactorización de componentes compartidos completada. Panel de Configuración de Tareas integrado y simplificado. Pendiente: Adjuntos y Fase de Estadísticas.
 
 ---
 
@@ -144,13 +144,20 @@ App/React/
     useDebounce.ts            # Debounce
   components/shared/
     MenuContextual.tsx        # Menu contextual reutilizable
+    Modal.tsx                 # Modal con overlay
+    AccionesFormulario.tsx    # Botones de accion
+    SelectorNivel.tsx         # Selector importancia/prioridad
+    SeccionPanel.tsx          # Wrapper de seccion
+    ToggleSwitch.tsx          # Interruptor
+    SelectorDias.tsx          # Selector dias semana
+    index.ts
   components/dashboard/
     SelectorFrecuencia.tsx    # Selector frecuencia habitos
     FormularioHabito.tsx      # Formulario habitos
     TablaHabitos.tsx          # Tabla principal
     ListaTareas.tsx           # Lista de tareas (+ integracion PanelConfiguracion)
     TareaItem.tsx             # Item individual (+ indicador fecha, opcion configurar)
-    PanelConfiguracionTarea.tsx # Panel configuracion avanzada (NUEVO)
+    PanelConfiguracionTarea.tsx # Panel configuracion avanzada
     ...
 ```
 
@@ -160,9 +167,12 @@ App/React/styles/dashboard/
   variables.css               # Tokens de diseno
   animaciones.css             # Keyframes
   base.css                    # Contenedor y grid
+  shared/                     # Estilos reutilizables (NUEVO)
+    accionesFormulario.css, selectorNivel.css, 
+    seccionPanel.css, toggleSwitch.css, modal.css
   componentes/
     encabezado.css, tabla.css, tareas.css, scratchpad.css,
-    modal.css, formulario.css, toast.css, ordenamiento.css,
+    formulario.css, toast.css, ordenamiento.css,
     menuContextual.css, frecuencia.css, panelConfiguracion.css
   utilidades/
     estados.css, acciones.css
@@ -191,7 +201,7 @@ App/React/styles/dashboard/
   - [x] **Logica simplificada: Repetir despues de completar**
     - La tarea reaparece X dias despues de marcarla completada
     - Se reutiliza el componente `SelectorFrecuencia` para la configuración
-  - [ ] **Modo Intervalo Fijo** (Eliminado por simplificación)
+  - [x] **Modo Intervalo Fijo** (Eliminado por simplificación - solo soporta 'Tras Completar')
   - [x] Logica de generacion automatica de repeticiones
   - [x] Evitar duplicados (si ya existe una instancia pendiente)
   - [ ] Historial de repeticiones
@@ -276,14 +286,14 @@ Los paneles de configuración de hábitos y tareas tienen estructura similar per
 - [x] Crear `components/shared/SeccionPanel.tsx`
 - [x] Crear `components/shared/Modal.tsx`
 - [x] Actualizar exportaciones en index.ts
-- [ ] Crear `components/shared/ToggleSwitch.tsx` (Pendiente)
-- [ ] Crear `components/shared/SelectorDias.tsx` (Pendiente)
+- [x] Crear `components/shared/ToggleSwitch.tsx`
+- [x] Crear `components/shared/SelectorDias.tsx`
 
-**Fase R4: Integracion y Testing** (En Progreso)
+**Fase R4: Integracion y Testing** (Completado)
 - [x] Refactorizar FormularioHabito.tsx para usar componentes shared
 - [x] Refactorizar PanelConfiguracionTarea.tsx para usar componentes shared
 - [x] Verificar consistencia visual en ambos paneles
-- [ ] Probar todos los flujos de usuario
+- [x] Probar todos los flujos de usuario
 
 ### Checklist de Revision por Archivo
 
@@ -296,11 +306,11 @@ Los paneles de configuración de hábitos y tareas tienen estructura similar per
 - [x] Usa AccionesFormulario?
 - [x] Usa SelectorNivel para prioridad?
 - [x] Usa SeccionPanel para secciones?
-- [ ] Usa ToggleSwitch para repeticion? (Pendiente)
+- [x] Usa ToggleSwitch para repeticion?
 - [x] Estilos vienen de shared/?
 
 **SelectorFrecuencia.tsx**
-- [ ] Usa SelectorDias para dias de semana? (Pendiente)
+- [x] Usa SelectorDias para dias de semana?
 
 ### Archivos Nuevos a Crear
 

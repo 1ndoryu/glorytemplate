@@ -1,0 +1,45 @@
+/*
+ * SELECTOR DE DIAS
+ * Estilos para el componente de seleccion de dias de la semana
+ */
+
+.selectorDias {
+    display: flex;
+    gap: var(--dashboard-espacioXs);
+}
+
+.selectorDiaBoton {
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoApagado);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.selectorDiaBoton:hover:not(:disabled) {
+    border-color: var(--dashboard-textoMuyApagado);
+    color: var(--dashboard-textoSecundario);
+}
+
+.selectorDiaBotonActivo {
+    background-color: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+}
+
+.selectorDiaBotonActivo:hover:not(:disabled) {
+    background-color: rgba(34, 197, 94, 0.25);
+    border-color: rgba(34, 197, 94, 0.6);
+}
+
+.selectorDiaBoton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

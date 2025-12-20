@@ -1,0 +1,50 @@
+/*
+ * TOGGLE SWITCH
+ * Estilos para el componente de interruptor boolean reutilizable
+ */
+
+.toggleSwitch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 18px;
+}
+
+.toggleSwitch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggleSlider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--dashboard-bordePrincipal);
+    transition: var(--dashboard-transicionNormal);
+    border-radius: 9px;
+}
+
+.toggleSlider::before {
+    position: absolute;
+    content: '';
+    height: 12px;
+    width: 12px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--dashboard-textoApagado);
+    transition: var(--dashboard-transicionNormal);
+    border-radius: 50%;
+}
+
+.toggleSwitch input:checked + .toggleSlider {
+    background-color: var(--dashboard-estadoExitoBorde);
+}
+
+.toggleSwitch input:checked + .toggleSlider::before {
+    transform: translateX(18px);
+    background-color: var(--dashboard-estadoExito);
+}
