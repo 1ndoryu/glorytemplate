@@ -53,6 +53,12 @@
     min-width: 0;
 }
 
+.tareaTextoWrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+}
+
 .tareaTexto {
     line-height: 1.4;
     color: var(--dashboard-textoNormal);
@@ -63,6 +69,13 @@
     color: var(--dashboard-textoIndice);
     text-decoration: line-through;
     text-decoration-color: var(--dashboard-textoIndice);
+}
+
+.tareaPrioridadIndicador {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
 }
 
 /* 

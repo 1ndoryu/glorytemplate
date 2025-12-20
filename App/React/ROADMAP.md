@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Calculo de inactividad basado en frecuencia, edicion inline de tareas mejorada
+**Estado:** Prioridad en tareas visual y funcional, Correccion de bugs de UI tareas
 
 ### Completado
 - [x] Arquitectura de componentes (SOLID)
@@ -31,6 +31,8 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [x] **Indicador frecuencia en titulo** - Icono de reloj + numero junto al nombre del habito
 - [x] **Inactividad basada en frecuencia** - El umbral de reseteo de racha depende de la frecuencia del habito
 - [x] **Edicion inline mejorada** - Un solo click para editar tareas, input invisible seamless
+- [x] **Prioridad en Tareas** - Context menu para asignar prioridad (Alta/Media/Baja) con indicador visual
+- [x] **Bug Edicion Tareas** - Corregido comportamiento de preseleccion de texto al editar
 
 ### Estructura de Archivos (Actualizada)
 ```
@@ -356,7 +358,7 @@ interface Tarea {
 ### 3.7 Tareas Avanzadas (FUTURO)
 **Nota:** Funcionalidades para fases posteriores
 
-- [ ] Prioridad (Alta/Media/Baja) con indicador visual
+- [x] Prioridad (Alta/Media/Baja) con indicador visual
 - [ ] Dias de inactividad por tarea
 - [ ] Fecha limite con indicador de urgencia
 - [ ] Notas/descripcion expandible

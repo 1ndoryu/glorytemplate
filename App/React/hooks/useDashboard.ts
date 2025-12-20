@@ -168,7 +168,9 @@ export function useDashboard(): UseDashboardReturn {
                 id: Date.now(),
                 texto: datos.texto,
                 completado: false,
-                fechaCreacion: hoy
+                fechaCreacion: hoy,
+                prioridad: datos.prioridad,
+                fechaLimite: datos.fechaLimite
             };
 
             setTareas(prev => [nuevaTarea, ...prev]);
@@ -209,17 +211,21 @@ export function useDashboard(): UseDashboardReturn {
     /*
      * Editar una tarea existente con soporte de deshacer
      */
+
     const editarTarea = useCallback(
         (id: number, datos: DatosNuevaTarea) => {
             const tareaAnterior = tareas.find(t => t.id === id);
             if (!tareaAnterior) return;
 
+            /* Si solo cambiamos texto o prioridad, mantenemos el resto */
             setTareas(prev =>
                 prev.map(t => {
                     if (t.id !== id) return t;
                     return {
                         ...t,
-                        texto: datos.texto
+                        texto: datos.texto,
+                        prioridad: datos.prioridad !== undefined ? datos.prioridad : t.prioridad,
+                        fechaLimite: datos.fechaLimite !== undefined ? datos.fechaLimite : t.fechaLimite
                     };
                 })
             );

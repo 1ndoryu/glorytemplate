@@ -5,11 +5,13 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
-import {Check, X, Plus, Pencil} from 'lucide-react';
-import type {Tarea} from '../../types/dashboard';
+import {Check, X, Plus, Pencil, Flag, Trash2} from 'lucide-react';
+import type {Tarea, NivelPrioridad} from '../../types/dashboard';
+import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
 
 interface DatosEditarTarea {
     texto: string;
+    prioridad?: NivelPrioridad;
 }
 
 interface ListaTareasProps {
@@ -27,16 +29,32 @@ interface TareaItemProps {
     onEliminar?: () => void;
 }
 
+interface MenuContextualEstado {
+    visible: boolean;
+    x: number;
+    y: number;
+}
+
 function TareaItem({tarea, onToggle, onEditar, onEliminar}: TareaItemProps): JSX.Element {
     const [mostrarAcciones, setMostrarAcciones] = useState(false);
     const [editando, setEditando] = useState(false);
     const [textoEditado, setTextoEditado] = useState(tarea.texto);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    /* Estado menu contextual */
+    const [menuContextual, setMenuContextual] = useState<MenuContextualEstado>({
+        visible: false,
+        x: 0,
+        y: 0
+    });
+
     useEffect(() => {
         if (editando && inputRef.current) {
             inputRef.current.focus();
-            inputRef.current.select();
+            /* Bug fix: No seleccionar todo el texto automaticamente */
+            /* Ponemos el cursor al final */
+            const length = inputRef.current.value.length;
+            inputRef.current.setSelectionRange(length, length);
         }
     }, [editando]);
 
@@ -74,6 +92,77 @@ function TareaItem({tarea, onToggle, onEditar, onEliminar}: TareaItemProps): JSX
         [guardarEdicion, cancelarEdicion]
     );
 
+    /* Manejo del menu contextual */
+    const manejarClickDerecho = useCallback((evento: React.MouseEvent) => {
+        evento.preventDefault();
+        evento.stopPropagation();
+        setMenuContextual({
+            visible: true,
+            x: evento.clientX,
+            y: evento.clientY
+        });
+    }, []);
+
+    const cerrarMenuContextual = useCallback(() => {
+        setMenuContextual(prev => ({...prev, visible: false}));
+    }, []);
+
+    const manejarOpcionMenu = useCallback(
+        (opcionId: string) => {
+            if (opcionId === 'eliminar') {
+                onEliminar?.();
+            } else if (['alta', 'media', 'baja'].includes(opcionId)) {
+                onEditar?.({
+                    texto: tarea.texto,
+                    prioridad: opcionId as NivelPrioridad
+                });
+            }
+        },
+        [onEliminar, onEditar, tarea.texto]
+    );
+
+    const opcionesMenu: OpcionMenu[] = [
+        {
+            id: 'alta',
+            etiqueta: 'Prioridad Alta',
+            icono: <Flag size={12} color="#ef4444" /> /* Rojo */
+        },
+        {
+            id: 'media',
+            etiqueta: 'Prioridad Media',
+            icono: <Flag size={12} color="#f59e0b" /> /* Arange/Amarillo */
+        },
+        {
+            id: 'baja',
+            etiqueta: 'Prioridad Baja',
+            icono: <Flag size={12} color="#94a3b8" /> /* Gris */,
+            separadorDespues: true
+        },
+        {
+            id: 'eliminar',
+            etiqueta: 'Eliminar tarea',
+            icono: <Trash2 size={12} />,
+            peligroso: true
+        }
+    ];
+
+    /* Renderizado del indicador de prioridad */
+    const renderIndicadorPrioridad = () => {
+        if (!tarea.prioridad) return null;
+
+        const colores = {
+            alta: '#ef4444',
+            media: '#f59e0b',
+            baja: '#94a3b8'
+        };
+
+        return (
+            <div className="tareaPrioridadIndicador" title={`Prioridad ${tarea.prioridad}`}>
+                <Flag size={10} color={colores[tarea.prioridad]} fill={colores[tarea.prioridad]} />
+            </div>
+        );
+    };
+
     if (editando) {
         return (
             <div className="tareaItem tareaItemEditando">
@@ -86,24 +175,31 @@ function TareaItem({tarea, onToggle, onEditar, onEliminar}: TareaItemProps): JSX
     }
 
     return (
-        <div className="tareaItem" onMouseEnter={() => setMostrarAcciones(true)} onMouseLeave={() => setMostrarAcciones(false)}>
-            <div className={`tareaCheckbox ${tarea.completado ? 'tareaCheckboxCompletado' : ''}`} onClick={onToggle}>
-                {tarea.completado && <Check size={8} color="white" />}
-            </div>
-            <div className="tareaContenido" onClick={iniciarEdicion}>
-                <p className={`tareaTexto ${tarea.completado ? 'tareaTextoCompletado' : ''}`}>{tarea.texto}</p>
-            </div>
-            {mostrarAcciones && (
-                <div className="tareaAcciones">
-                    <button className="tareaBotonEditar" onClick={iniciarEdicion} title="Editar tarea">
-                        <Pencil size={12} />
-                    </button>
-                    <button className="tareaBotonEliminar" onClick={onEliminar} title="Eliminar tarea">
-                        <X size={12} />
-                    </button>
+        <>
+            <div className="tareaItem" onMouseEnter={() => setMostrarAcciones(true)} onMouseLeave={() => setMostrarAcciones(false)} onContextMenu={manejarClickDerecho}>
+                <div className={`tareaCheckbox ${tarea.completado ? 'tareaCheckboxCompletado' : ''}`} onClick={onToggle}>
+                    {tarea.completado && <Check size={8} color="white" />}
                 </div>
-            )}
-        </div>
+                <div className="tareaContenido" onClick={iniciarEdicion}>
+                    <div className="tareaTextoWrapper">
+                        <p className={`tareaTexto ${tarea.completado ? 'tareaTextoCompletado' : ''}`}>{tarea.texto}</p>
+                        {renderIndicadorPrioridad()}
+                    </div>
+                </div>
+                {mostrarAcciones && (
+                    <div className="tareaAcciones">
+                        <button className="tareaBotonEditar" onClick={iniciarEdicion} title="Editar tarea">
+                            <Pencil size={12} />
+                        </button>
+                        <button className="tareaBotonEliminar" onClick={onEliminar} title="Eliminar tarea">
+                            <X size={12} />
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {menuContextual.visible && <MenuContextual opciones={opcionesMenu} posicionX={menuContextual.x} posicionY={menuContextual.y} onSeleccionar={manejarOpcionMenu} onCerrar={cerrarMenuContextual} />}
+        </>
     );
 }
 
