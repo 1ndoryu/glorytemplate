@@ -88,7 +88,7 @@ export interface RepeticionTarea {
  */
 export interface Adjunto {
     id: number;
-    tipo: 'imagen' | 'archivo';
+    tipo: 'imagen' | 'audio' | 'archivo';
     url: string;
     nombre: string;
     tamano: number /* en bytes */;

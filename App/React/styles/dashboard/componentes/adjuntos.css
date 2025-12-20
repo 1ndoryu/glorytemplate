@@ -1,0 +1,238 @@
+/*
+ * ESTILOS DE ADJUNTOS
+ * Visualización y gestión de archivos adjuntos
+ */
+
+.adjuntosContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+}
+
+.adjuntosLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+}
+
+.adjuntoItem {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioSm);
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.adjuntoItem:hover {
+    border-color: var(--dashboard-bordeSutil);
+    background-color: var(--dashboard-fondoHover);
+}
+
+.adjuntoPreview {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dashboard-textoSecundario);
+    overflow: hidden;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.adjuntoPreviewImagen:hover {
+    opacity: 0.8;
+}
+
+.adjuntoIcono {
+    color: var(--dashboard-textoSecundario);
+}
+
+.adjuntoInfo {
+    flex: 1;
+    min-width: 0; /* Para que el text-overflow funcione */
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.adjuntoNombre {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoBase);
+    color: var(--dashboard-textoActivo);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.adjuntoNombre:hover {
+    text-decoration: underline;
+    color: #fff;
+}
+
+.adjuntoMeta {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+}
+
+.adjuntoAccionEliminar {
+    background: none;
+    border: none;
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    padding: var(--dashboard-espacioXs);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--dashboard-transicionRapida);
+}
+
+.adjuntoAccionEliminar:hover {
+    color: var(--dashboard-estadoAlta);
+    background-color: var(--dashboard-estadoAltaFondo);
+}
+
+.adjuntosAreaCarga {
+    border: 1px dashed var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+    padding: var(--dashboard-espacioMd);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioXs);
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.02);
+    transition: all var(--dashboard-transicionNormal);
+    text-align: center;
+}
+
+.adjuntosAreaCarga:hover {
+    border-color: var(--dashboard-textoSecundario);
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.adjuntosSubtextoCarga {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+}
+
+.adjuntosVacio {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+    font-style: italic;
+    text-align: center;
+    padding: var(--dashboard-espacioSm);
+}
+
+/* Reproductor de Audio Minimalista */
+.adjuntoAudioControl {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    width: 100%;
+}
+
+.adjuntoBotonPlay {
+    background: none;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--dashboard-textoActivo);
+    padding: 0;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.adjuntoBotonPlay:hover {
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-textoActivo);
+}
+
+.adjuntoAudioBarra {
+    flex: 1;
+    height: 4px;
+    background-color: var(--dashboard-barraFondo);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.adjuntoAudioProgreso {
+    height: 100%;
+    background-color: var(--dashboard-textoActivo);
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+/* Overlay Imagen */
+.adjuntoOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.adjuntoOverlayContenido {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+.adjuntoImagenFull {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.adjuntoBotonCerrar {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: var(--dashboard-textoActivo);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color var(--dashboard-transicionNormal);
+}
+
+.adjuntoBotonCerrar:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

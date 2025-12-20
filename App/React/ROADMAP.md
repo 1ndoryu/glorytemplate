@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Refactorización de componentes compartidos completada. Panel de Configuración de Tareas integrado y simplificado. Pendiente: Adjuntos y Fase de Estadísticas.
+**Estado:** Panel de Configuración de Tareas completado (Adjuntos en versión local). Próximo: Fase de Estadísticas.
 
 ---
 
@@ -206,11 +206,11 @@ App/React/styles/dashboard/
   - [x] Evitar duplicados (si ya existe una instancia pendiente)
   - [ ] Historial de repeticiones
 
-- [ ] **Adjuntos** (pendiente)
-  - [ ] Subir imagenes a la tarea
-  - [ ] Subir archivos (PDF, documentos)
-  - [ ] Preview de imagenes integrado
-  - [ ] Almacenamiento en WordPress media library
+- [x] **Adjuntos** (Implementado versión local)
+  - [x] Subir imagenes a la tarea
+  - [x] Subir archivos (PDF, documentos)
+  - [x] Preview de imagenes integrado
+  - [ ] Almacenamiento en WordPress media library (Requiere Backend)
 
 ### Implementacion Tecnica (COMPLETADO)
 
@@ -223,6 +223,7 @@ App/React/styles/dashboard/
 
 **Componentes creados:**
 - [x] PanelConfiguracionTarea.tsx - Panel modal completo
+- [x] SeccionAdjuntos.tsx - UI para gestión de adjuntos
 - [x] Estilos en panelConfiguracion.css (consistentes con formulario habitos)
 
 **Integraciones:**
@@ -280,7 +281,7 @@ Los paneles de configuración de hábitos y tareas tienen estructura similar per
 - [x] Extraer estilos de selector nivel (importancia/prioridad)
 - [x] Actualizar imports en index.css
 
-**Fase R3: Componentes Compartidos** (Parcialmente Completado)
+**Fase R3: Componentes Compartidos** (Completado)
 - [x] Crear `components/shared/AccionesFormulario.tsx`
 - [x] Crear `components/shared/SelectorNivel.tsx`
 - [x] Crear `components/shared/SeccionPanel.tsx`
@@ -289,7 +290,7 @@ Los paneles de configuración de hábitos y tareas tienen estructura similar per
 - [x] Crear `components/shared/ToggleSwitch.tsx`
 - [x] Crear `components/shared/SelectorDias.tsx`
 
-**Fase R4: Integracion y Testing** (Completado)
+**Fase R4: Integracion y Testing** (Completado)t
 - [x] Refactorizar FormularioHabito.tsx para usar componentes shared
 - [x] Refactorizar PanelConfiguracionTarea.tsx para usar componentes shared
 - [x] Verificar consistencia visual en ambos paneles

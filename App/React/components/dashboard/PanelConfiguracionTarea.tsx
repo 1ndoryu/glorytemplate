@@ -9,7 +9,8 @@ import {X, Calendar, FileText, Repeat, AlertCircle, Flag} from 'lucide-react';
 import type {Tarea, TareaConfiguracion, TipoRepeticion, DiaSemana, NivelPrioridad} from '../../types/dashboard';
 import {AccionesFormulario, Modal, SeccionPanel, SelectorNivel, ToggleSwitch} from '../shared';
 import {SelectorFrecuencia} from './SelectorFrecuencia';
-import type {FrecuenciaHabito} from '../../types/dashboard';
+import {SeccionAdjuntos} from './SeccionAdjuntos';
+import type {FrecuenciaHabito, Adjunto} from '../../types/dashboard';
 
 export interface PanelConfiguracionTareaProps {
     tarea: Tarea;
@@ -25,6 +26,7 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
     const [descripcion, setDescripcion] = useState<string>(tarea.configuracion?.descripcion || '');
     const [tieneRepeticion, setTieneRepeticion] = useState<boolean>(!!tarea.configuracion?.repeticion);
     const [frecuencia, setFrecuencia] = useState<FrecuenciaHabito>({tipo: 'diario'});
+    const [adjuntos, setAdjuntos] = useState<Adjunto[]>(tarea.configuracion?.adjuntos || []);
     const [texto, setTexto] = useState(tarea.texto);
 
     /* Sincronizar estado cuando cambia la tarea */
@@ -49,6 +51,8 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
         } else {
             setFrecuencia({tipo: 'diario'});
         }
+
+        setAdjuntos(tarea.configuracion?.adjuntos || []);
 
         setTexto(tarea.texto);
     }, [tarea]);
@@ -93,6 +97,10 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
             }
 
             configuracion.repeticion = repeticion;
+        }
+
+        if (adjuntos.length > 0) {
+            configuracion.adjuntos = adjuntos;
         }
 
         onGuardar(configuracion, prioridad, texto.trim());
@@ -175,6 +183,9 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
                         </div>
                     )}
                 </SeccionPanel>
+
+                {/* Seccion: Adjuntos */}
+                <SeccionAdjuntos adjuntos={adjuntos} onChange={setAdjuntos} />
             </div>
 
             {/* Acciones reutilizables */}
