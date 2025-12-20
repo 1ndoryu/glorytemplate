@@ -142,6 +142,7 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                     fechaCreacion: hoy,
                     prioridad: datos.prioridad ?? undefined,
                     parentId: datos.parentId,
+                    proyectoId: datos.proyectoId,
                     orden: indiceInsercion
                 };
 

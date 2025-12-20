@@ -7,13 +7,28 @@
     display: flex;
     flex-direction: column;
     gap: 1px;
-    background-color: var(--dashboard-bordePrincipal); /* Separador entre items */
+    background-color: var(--dashboard-bordePrincipal);
+}
+
+/* 
+ * WRAPPER DEL PROYECTO
+ * Contiene el item y sus tareas
+ */
+
+.proyectoItemWrapper {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--dashboard-fondoSecundario);
+}
+
+.proyectoItemWrapperActivo {
+    background-color: var(--dashboard-fondoPrincipal);
 }
 
 .proyectoItem {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: var(--dashboard-espacioSm);
     padding: var(--dashboard-espacioMd);
     background-color: var(--dashboard-fondoSecundario);
     cursor: pointer;
@@ -30,16 +45,33 @@
     border-left-color: var(--dashboard-textoActivo);
 }
 
+/* Chevron de toggle */
+.proyectoItemChevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dashboard-textoApagado);
+    flex-shrink: 0;
+}
+
+.proyectoItemActivo .proyectoItemChevron {
+    color: var(--dashboard-textoActivo);
+}
+
 .proyectoItemContenido {
     display: flex;
     flex-direction: column;
     gap: 4px;
     flex: 1;
+    min-width: 0;
 }
 
 .proyectoNombre {
     color: var(--dashboard-textoActivo);
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .proyectoMeta {
@@ -54,7 +86,30 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    width: 60px;
+    width: 50px;
+    flex-shrink: 0;
+}
+
+/* Acciones en linea (editar/eliminar) */
+.proyectoAcciones {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-left: var(--dashboard-espacioSm);
+}
+
+.proyectoAcciones .botonIcono {
+    padding: 4px;
+}
+
+/* 
+ * TAREAS DEL PROYECTO
+ * Lista de tareas anidada dentro del proyecto
+ */
+
+.proyectoTareas {
+    border-left: 3px solid var(--dashboard-textoActivo);
 }
 
 .barraProgresoFondo {
@@ -69,8 +124,111 @@
     height: 100%;
     background-color: var(--dashboard-barraNormal);
     border-radius: 2px;
+    transition: width var(--dashboard-transicionNormal);
 }
 
 .proyectoProgreso[data-estado='completado'] .barraProgresoRelleno {
     background-color: var(--dashboard-estadoExito);
+}
+
+/* 
+ * VISTA DETALLE PROYECTO
+ * Estilos para el panel de vista de proyecto individual
+ */
+
+.vistaProyecto {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+}
+
+.vistaProyectoAcciones {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+}
+
+.botonVolver {
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    transition: color var(--dashboard-transicionNormal);
+}
+
+.botonVolver:hover {
+    color: var(--dashboard-textoActivo);
+}
+
+.botonPeligro {
+    color: var(--dashboard-estadoError);
+}
+
+.botonPeligro:hover {
+    color: var(--dashboard-estadoError);
+    opacity: 0.8;
+}
+
+.vistaProyectoProgreso {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+}
+
+.vistaProyectoProgreso .barraProgresoFondo {
+    flex: 1;
+    height: 6px;
+}
+
+.vistaProyectoPorcentaje {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+    min-width: 32px;
+    text-align: right;
+}
+
+.vistaProyectoDescripcion {
+    margin: 0;
+    padding: var(--dashboard-espacioMd);
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoBase);
+    line-height: 1.5;
+}
+
+/* 
+ * ESTADO VACIO
+ * Mensaje cuando no hay proyectos
+ */
+
+.estadoVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioXl);
+    color: var(--dashboard-textoApagado);
+    text-align: center;
+}
+
+.estadoVacio span {
+    font-size: var(--dashboard-tamanoPequeno);
+}
+
+.botonTexto {
+    background: transparent;
+    border: none;
+    color: var(--dashboard-textoActivo);
+    cursor: pointer;
+    font-size: var(--dashboard-tamanoPequeno);
+    text-decoration: underline;
+    padding: 0;
+}
+
+.botonTexto:hover {
+    opacity: 0.8;
 }

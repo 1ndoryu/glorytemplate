@@ -4,12 +4,14 @@
  * Compone todos los subcomponentes del dashboard
  */
 
+import {useState} from 'react';
 import {Terminal, AlertCircle, FileText} from 'lucide-react';
-import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden, ListaProyectos} from '../components/dashboard';
+import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden, ListaProyectos, FormularioProyecto} from '../components/dashboard';
 import {ToastDeshacer} from '../components/shared/ToastDeshacer';
 import {Modal} from '../components/shared/Modal';
 import {useDashboard} from '../hooks/useDashboard';
 import {useOrdenarHabitos} from '../hooks/useOrdenarHabitos';
+import type {Proyecto} from '../types/dashboard';
 
 interface DashboardIslandProps {
     titulo?: string;
@@ -36,11 +38,47 @@ function IndicadorCarga(): JSX.Element {
 }
 
 export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin'}: DashboardIslandProps): JSX.Element {
-    const {habitos, tareas, notas, proyectos, toggleTarea, crearTarea, editarTarea, eliminarTarea, crearProyecto, actualizarNotas, toggleHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, exportarTodosDatos, importarTodosDatos, importando, mensajeEstado, tipoMensaje, cargandoDatos, accionDeshacer, ejecutarDeshacer, descartarDeshacer, reordenarTareas} = useDashboard();
+    const {habitos, tareas, notas, proyectos, toggleTarea, crearTarea, editarTarea, eliminarTarea, crearProyecto, editarProyecto, eliminarProyecto, actualizarNotas, toggleHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, exportarTodosDatos, importarTodosDatos, importando, mensajeEstado, tipoMensaje, cargandoDatos, accionDeshacer, ejecutarDeshacer, descartarDeshacer, reordenarTareas} = useDashboard();
 
     /* Sistema de ordenamiento de habitos */
     const {habitosOrdenados, modoActual, cambiarModo, modosDisponibles} = useOrdenarHabitos(habitos);
     const modoInfo = modosDisponibles.find(m => m.id === modoActual);
+
+    /* Estado de proyectos */
+    const [proyectoSeleccionadoId, setProyectoSeleccionadoId] = useState<number | null>(null);
+    const [modalCrearProyectoAbierto, setModalCrearProyectoAbierto] = useState(false);
+    const [proyectoEditando, setProyectoEditando] = useState<Proyecto | null>(null);
+
+    /* Tareas sueltas (sin proyecto) para mostrar en Ejecucion */
+    const tareasSinProyecto = tareas.filter(t => !t.proyectoId);
+
+    /* Manejadores de proyectos */
+    const manejarCrearProyecto = () => {
+        setModalCrearProyectoAbierto(true);
+    };
+
+    const manejarGuardarNuevoProyecto = (datos: Parameters<typeof crearProyecto>[0]) => {
+        crearProyecto(datos);
+        setModalCrearProyectoAbierto(false);
+    };
+
+    const manejarEditarProyecto = (proyecto: Proyecto) => {
+        setProyectoEditando(proyecto);
+    };
+
+    const manejarGuardarEdicionProyecto = (datos: Parameters<typeof crearProyecto>[0]) => {
+        if (proyectoEditando) {
+            editarProyecto(proyectoEditando.id, datos);
+            setProyectoEditando(null);
+        }
+    };
+
+    const manejarEliminarProyecto = (id: number) => {
+        eliminarProyecto(id);
+        if (proyectoSeleccionadoId === id) {
+            setProyectoSeleccionadoId(null);
+        }
+    };
 
     return (
         <div id="dashboard-contenedor" className="dashboardContenedor">
@@ -50,22 +88,22 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                 <IndicadorCarga />
             ) : (
                 <div className="dashboardGrid">
-                    {/* Columna 1: Habitos Criticos */}
+                    {/* Columna 1: Habitos y Proyectos */}
                     <div className="columnaHabitos">
                         <SeccionEncabezado icono={<AlertCircle size={12} />} titulo="Foco Prioritario" subtitulo={modoInfo?.descripcion || ''} acciones={<SelectorOrden modoActual={modoActual} onCambiarModo={cambiarModo} />} />
                         <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} />
 
                         <div style={{marginTop: 'var(--dashboard-espacioLg)'}}>
-                            <ListaProyectos proyectos={proyectos || []} onCrearProyecto={() => crearProyecto({nombre: 'Nuevo Proyecto', prioridad: 'media'})} />
+                            <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
                         </div>
                     </div>
 
-                    {/* Columna 2: Tareas y Notas */}
+                    {/* Columna 2: Tareas sueltas y Notas */}
                     <div className="columnaTareas">
-                        {/* Seccion: Tareas */}
+                        {/* Seccion: Tareas sueltas (sin proyecto) */}
                         <div className="internaColumna">
-                            <SeccionEncabezado icono={<Terminal size={12} />} titulo="Ejecucion" subtitulo={`${tareas.filter(t => !t.completado).length} pendientes`} />
-                            <ListaTareas tareas={tareas} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
+                            <SeccionEncabezado icono={<Terminal size={12} />} titulo="Ejecucion" subtitulo={`${tareasSinProyecto.filter(t => !t.completado).length} pendientes`} />
+                            <ListaTareas tareas={tareasSinProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
                         </div>
 
                         {/* Seccion: Notas Rapidas */}
@@ -99,6 +137,33 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                             importancia: habitoEditando.importancia,
                             tags: habitoEditando.tags,
                             frecuencia: habitoEditando.frecuencia
+                        }}
+                        modoEdicion
+                    />
+                )}
+            </Modal>
+
+            {/* Modal para crear nuevo proyecto */}
+            <Modal estaAbierto={modalCrearProyectoAbierto} onCerrar={() => setModalCrearProyectoAbierto(false)} titulo="Nuevo Proyecto">
+                <FormularioProyecto onGuardar={manejarGuardarNuevoProyecto} onCancelar={() => setModalCrearProyectoAbierto(false)} />
+            </Modal>
+
+            {/* Modal para editar proyecto */}
+            <Modal estaAbierto={proyectoEditando !== null} onCerrar={() => setProyectoEditando(null)} titulo="Editar Proyecto">
+                {proyectoEditando && (
+                    <FormularioProyecto
+                        onGuardar={manejarGuardarEdicionProyecto}
+                        onCancelar={() => setProyectoEditando(null)}
+                        onEliminar={() => {
+                            eliminarProyecto(proyectoEditando.id);
+                            setProyectoEditando(null);
+                            setProyectoSeleccionadoId(null);
+                        }}
+                        datosIniciales={{
+                            nombre: proyectoEditando.nombre,
+                            descripcion: proyectoEditando.descripcion,
+                            prioridad: proyectoEditando.prioridad,
+                            fechaLimite: proyectoEditando.fechaLimite
                         }}
                         modoEdicion
                     />

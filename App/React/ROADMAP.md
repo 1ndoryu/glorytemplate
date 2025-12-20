@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Fase de Gestión de Proyectos (Implementación).
+**Estado:** Fase de Estandarización UI/UX (Planificación).
 
 ---
 
@@ -219,7 +219,7 @@ App/React/styles/dashboard/
     estados.css, acciones.css
 ```
 
-## Fase Actual: Gestión de Proyectos
+## Fase Completada: Gestión de Proyectos ✓
 
 **Objetivo:** Implementar la entidad "Proyecto" como un contenedor de alto nivel para agrupar y aislar tareas complejas. Esto introduce una jerarquía de 3 niveles: **Proyecto > Tarea > Subtarea**.
 
@@ -239,15 +239,45 @@ App/React/styles/dashboard/
   - Relación: Tareas tendrán un campo `proyectoId`.
 - [x] **Visualización**:
   - **Lista de Proyectos**: Ubicada en columna izquierda (bajo Hábitos). Muestra resumen y progreso.
-  - [ ] **Vista Detalle**: Al seleccionar un proyecto, se muestra su propia lista de tareas aislada (debajo, puede ocultarse las tareas)
+  - [x] **Vista Integrada**: Al seleccionar un proyecto, se expande mostrando su lista de tareas directamente debajo (mismo componente ListaTareas).
 
 ### Funcionalidad
-- [x] **Gestión de Proyectos**: Hooks y lógica base creados (CRUD backend-frontend logic ready).
-- [ ] **Formularios**: Modal para crear/editar proyectos.
-- [ ] **Lógica de Tareas de Proyecto**:
-- [ ] **Lógica de Tareas de Proyecto**: 
+- [x] **Gestión de Proyectos**: Hooks y lógica base creados (CRUD completo).
+- [x] **Formularios**: Modal para crear/editar proyectos (FormularioProyecto.tsx).
+- [x] **Lógica de Tareas de Proyecto**: 
   - Las tareas creadas dentro de un proyecto heredan el `proyectoId`.
-  - Reutilización del componente `ListaTareas` pero filtrado por `proyectoId`.
+  - Reutilización del componente `ListaTareas` filtrado por `proyectoId`.
+  - Panel de Ejecución muestra solo tareas sin proyecto.
+
+---
+
+## Fase Actual: Estandarización UI/UX
+
+**Objetivo:** Unificar la experiencia visual y de interacción entre Hábitos, Tareas y Proyectos. Centralizar componentes comunes y agregar indicadores visuales faltantes.
+
+### Menú Contextual Unificado
+- [ ] **Proyectos**: Implementar menú contextual (click derecho) con opciones: Editar, Eliminar, Cambiar estado.
+- [ ] **Centralizar MenuContextual**: Asegurar que el componente `MenuContextual` sea reutilizable para Hábitos, Tareas y Proyectos.
+
+### Indicadores Visuales en Items
+- [ ] **Fecha Límite en Proyectos**: Mostrar fecha límite visible (igual que tareas) con indicador de urgencia.
+- [ ] **Badges de Información en Tareas**:
+  - [ ] Badge de Adjunto (icono clip) - cuando tiene archivos adjuntos.
+  - [ ] Badge de Descripción (icono nota) - cuando tiene descripción.
+  - [ ] Badge de Repetición (icono repetir) - cuando tiene repetición configurada.
+- [ ] **Centralizar Badges**: Crear sistema de badges reutilizable para mostrar información secundaria de manera consistente.
+- [ ] **Ordenamiento de Badges**: Establecer orden visual consistente (ej: prioridad > fecha > adjuntos > repetición).
+
+### Acciones en Hábitos
+- [ ] **Iconos de Acción Inline**: Agregar botones de Configurar y Eliminar a los ítems de hábitos (similar a proyectos cuando están activos).
+- [ ] **Panel "Configurar Hábito"**: Crear modal de configuración avanzada para hábitos, similar a `PanelConfiguracionTarea`.
+  - Reutilizar componentes compartidos (`SeccionPanel`, `SelectorNivel`, etc.).
+  - Centralizar estilos para que ambos paneles se vean idénticos.
+
+### Refactorización de Componentes Compartidos
+- [ ] **PanelConfiguracion base**: Extraer lógica común de `PanelConfiguracionTarea` a un componente genérico.
+- [ ] **BadgeInfo**: Componente para mostrar badges de información (adjuntos, descripción, repetición, fecha).
+- [ ] **AccionesItem**: Componente para los botones de acción inline (configurar, eliminar).
 
 ---
 

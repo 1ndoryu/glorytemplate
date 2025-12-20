@@ -16,6 +16,7 @@ import {DashboardPanel} from '../shared/DashboardPanel';
 
 interface ListaTareasProps {
     tareas: Tarea[];
+    proyectoId?: number;
     onToggleTarea?: (id: number) => void;
     onCrearTarea?: (datos: DatosEdicionTarea) => void;
     onEditarTarea?: (id: number, datos: DatosEdicionTarea) => void;
@@ -23,7 +24,7 @@ interface ListaTareasProps {
     onReordenarTareas?: (tareas: Tarea[]) => void;
 }
 
-export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ListaTareasProps): JSX.Element {
+export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ListaTareasProps): JSX.Element {
     /*
      * Estado para tareas padre colapsadas
      * Set de IDs de tareas padre cuyas subtareas estan ocultas
@@ -163,14 +164,25 @@ export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea,
     };
 
     /*
-     * Crear nueva tarea debajo de la actual (hereda parentId si aplica)
+     * Crear nueva tarea debajo de la actual (hereda parentId y proyectoId si aplica)
      * tareaActualId indica despues de cual tarea insertar
      */
     const handleCrearNueva = (parentId: number | undefined, tareaActualId: number) => {
         onCrearTarea?.({
             texto: '',
             parentId: parentId,
-            insertarDespuesDe: tareaActualId
+            insertarDespuesDe: tareaActualId,
+            proyectoId: proyectoId
+        });
+    };
+
+    /*
+     * Wrapper para crear tareas desde el input, incluyendo proyectoId
+     */
+    const crearTareaConProyecto = (datos: DatosEdicionTarea) => {
+        onCrearTarea?.({
+            ...datos,
+            proyectoId: proyectoId
         });
     };
 
@@ -271,7 +283,7 @@ export function ListaTareas({tareas, onToggleTarea, onCrearTarea, onEditarTarea,
 
     return (
         <DashboardPanel id="lista-tareas">
-            {onCrearTarea && <InputNuevaTarea onCrear={onCrearTarea} />}
+            {onCrearTarea && <InputNuevaTarea onCrear={crearTareaConProyecto} />}
 
             <Reorder.Group axis="y" values={tareasPrincipalesPendientes} onReorder={handleReorder} className="listaTareasPendientes">
                 {tareasPrincipalesPendientes.map(tareaPadre => {

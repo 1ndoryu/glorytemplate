@@ -12,5 +12,5 @@ export {AccionesDatos} from './AccionesDatos';
 export {FormularioHabito} from './FormularioHabito';
 export {SelectorOrden} from './SelectorOrden';
 export {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
-export {ListaProyectos} from './proyectos/ListaProyectos';
+export {ListaProyectos, FormularioProyecto} from './proyectos';
 export type {DatosFormulario} from './FormularioHabito';
