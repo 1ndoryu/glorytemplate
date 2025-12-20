@@ -1,0 +1,79 @@
+/*
+ * VARIABLES DE DISEÑO
+ * Paleta oscura minimalista estilo terminal
+ * Todos los tokens de diseño centralizados
+ */
+
+:root {
+    /* 
+     * COLORES DE FONDO 
+     */
+    --dashboard-fondoPrincipal: #050505;
+    --dashboard-fondoSecundario: #090909;
+    --dashboard-fondoHover: #0c0c0c;
+
+    /* 
+     * COLORES DE BORDE 
+     */
+    --dashboard-bordePrincipal: #1a1a1a;
+    --dashboard-bordeSutil: #222;
+    --dashboard-bordePunteado: #1a1a1a;
+
+    /* 
+     * COLORES DE TEXTO 
+     */
+    --dashboard-textoActivo: #eaeaea;
+    --dashboard-textoNormal: #ccc;
+    --dashboard-textoSecundario: #888;
+    --dashboard-textoApagado: #666;
+    --dashboard-textoMuyApagado: #555;
+    --dashboard-textoIndice: #333;
+    --dashboard-textoPlaceholder: #222;
+
+    /* 
+     * COLORES DE ESTADO 
+     */
+    --dashboard-estadoAlta: #ef4444;
+    --dashboard-estadoAltaFondo: rgba(153, 27, 27, 0.1);
+    --dashboard-estadoAltaBorde: rgba(153, 27, 27, 0.3);
+
+    --dashboard-estadoMedia: #ca8a04;
+    --dashboard-estadoMediaFondo: rgba(113, 63, 18, 0.1);
+    --dashboard-estadoMediaBorde: rgba(113, 63, 18, 0.3);
+
+    --dashboard-estadoBaja: #666;
+    --dashboard-estadoBajaBorde: #333;
+
+    --dashboard-estadoExito: #22c55e;
+    --dashboard-estadoExitoFondo: rgba(34, 197, 94, 0.1);
+    --dashboard-estadoExitoBorde: rgba(34, 197, 94, 0.3);
+
+    /* 
+     * BARRA DE PROGRESO 
+     */
+    --dashboard-barraFondo: #111;
+    --dashboard-barraNormal: #333;
+    --dashboard-barraUrgente: #dc2626;
+
+    /* 
+     * TIPOGRAFIA 
+     */
+    --dashboard-fuenteMonoespaciada: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+    --dashboard-tamanoBase: 12px;
+    --dashboard-tamanoPequeno: 10px;
+
+    /* 
+     * ESPACIADO 
+     */
+    --dashboard-espacioXs: 0.25rem;
+    --dashboard-espacioSm: 0.5rem;
+    --dashboard-espacioMd: 0.75rem;
+    --dashboard-espacioLg: 1rem;
+    --dashboard-espacioXl: 1.5rem;
+
+    /* 
+     * TRANSICIONES 
+     */
+    --dashboard-transicionRapida: 0.15s ease;
+    --dashboard-transicionNormal: 0.2s ease;
+}

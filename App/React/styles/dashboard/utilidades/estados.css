@@ -1,0 +1,74 @@
+/*
+ * ESTADOS DE CARGA
+ * Indicadores de carga, spinners y skeleton loaders
+ */
+
+/* 
+ * PANTALLA DE CARGA INICIAL 
+ */
+.dashboardCargando {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: var(--dashboard-espacioLg);
+}
+
+.cargandoIndicador {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+    color: var(--dashboard-textoSecundario);
+}
+
+.cargandoSpinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--dashboard-bordePrincipal);
+    border-top-color: var(--dashboard-textoSecundario);
+    border-radius: 50%;
+    animation: rotarSpinner 0.8s linear infinite;
+}
+
+.cargandoTexto {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoBase);
+}
+
+.cargandoBarraProgreso {
+    width: 200px;
+    height: 4px;
+    background-color: var(--dashboard-barraFondo);
+    overflow: hidden;
+}
+
+.cargandoBarraRelleno {
+    height: 100%;
+    width: 30%;
+    background-color: var(--dashboard-textoMuyApagado);
+    animation: moverBarra 1s ease-in-out infinite;
+}
+
+/* 
+ * SKELETON LOADERS 
+ */
+.skeletonLinea {
+    height: 12px;
+    background: linear-gradient(90deg, var(--dashboard-bordePrincipal) 25%, var(--dashboard-fondoHover) 50%, var(--dashboard-bordePrincipal) 75%);
+    background-size: 200% 100%;
+    animation: brilloSkeleton 1.5s ease-in-out infinite;
+    border-radius: 2px;
+}
+
+.skeletonCorto {
+    width: 40%;
+}
+
+.skeletonMedio {
+    width: 60%;
+}
+
+.skeletonLargo {
+    width: 80%;
+}

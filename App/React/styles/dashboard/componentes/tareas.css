@@ -1,0 +1,289 @@
+/*
+ * LISTA DE TAREAS
+ * Items de tareas, checkbox, estados y formulario de creacion
+ */
+
+/* 
+ * ITEM DE TAREA
+ */
+.tareaItem {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioMd);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    transition: background-color var(--dashboard-transicionNormal);
+    position: relative;
+}
+
+.tareaItem:hover {
+    background-color: var(--dashboard-fondoHover);
+}
+
+/* 
+ * CHECKBOX
+ */
+.tareaCheckbox {
+    margin-top: 2px;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 1px solid var(--dashboard-textoIndice);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color var(--dashboard-transicionNormal), background-color var(--dashboard-transicionNormal);
+    flex-shrink: 0;
+}
+
+.tareaCheckbox:hover {
+    border-color: var(--dashboard-textoApagado);
+}
+
+.tareaCheckboxCompletado {
+    background-color: var(--dashboard-bordeSutil);
+    border-color: var(--dashboard-textoMuyApagado);
+}
+
+/* 
+ * CONTENIDO
+ */
+.tareaContenido {
+    flex: 1;
+    min-width: 0;
+}
+
+.tareaTexto {
+    line-height: 1.4;
+    color: var(--dashboard-textoNormal);
+    word-break: break-word;
+}
+
+.tareaTextoCompletado {
+    color: var(--dashboard-textoIndice);
+    text-decoration: line-through;
+    text-decoration-color: var(--dashboard-textoIndice);
+}
+
+/* 
+ * ACCIONES DE TAREA (eliminar, etc)
+ */
+.tareaAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    opacity: 0;
+    animation: aparecer var(--dashboard-transicionRapida) ease forwards;
+}
+
+@keyframes aparecer {
+    to {
+        opacity: 1;
+    }
+}
+
+.tareaBotonEliminar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.tareaBotonEliminar:hover {
+    color: var(--dashboard-estadoAlta);
+    border-color: var(--dashboard-estadoAltaBorde);
+    background-color: var(--dashboard-estadoAltaFondo);
+}
+
+.tareaBotonEditar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.tareaBotonEditar:hover {
+    color: var(--dashboard-textoNormal);
+    border-color: var(--dashboard-bordePrincipal);
+    background-color: var(--dashboard-fondoHover);
+}
+
+/* 
+ * MODO EDICION INLINE
+ */
+.tareaItemEditando {
+    background-color: var(--dashboard-fondoSecundario);
+}
+
+.tareaEdicionContenedor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+}
+
+.tareaEdicionInput {
+    width: 100%;
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    outline: none;
+    transition: border-color var(--dashboard-transicionNormal);
+}
+
+.tareaEdicionInput:focus {
+    border-color: var(--dashboard-textoApagado);
+}
+
+.tareaEdicionAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+}
+
+.tareaEdicionConfirmar,
+.tareaEdicionCancelar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.tareaEdicionConfirmar {
+    color: var(--dashboard-estadoExito);
+}
+
+.tareaEdicionConfirmar:hover {
+    background-color: var(--dashboard-estadoExitoFondo);
+    border-color: var(--dashboard-estadoExitoBorde);
+}
+
+.tareaEdicionCancelar {
+    color: var(--dashboard-textoApagado);
+}
+
+.tareaEdicionCancelar:hover {
+    color: var(--dashboard-estadoAlta);
+    border-color: var(--dashboard-estadoAltaBorde);
+}
+
+/* 
+ * BOTON NUEVA TAREA
+ */
+.tareaNuevoBoton {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    width: 100%;
+    padding: var(--dashboard-espacioMd);
+    background: transparent;
+    border: none;
+    border-bottom: 1px dashed var(--dashboard-bordePunteado);
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    text-align: left;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.tareaNuevoBoton:hover {
+    color: var(--dashboard-textoNormal);
+    background-color: var(--dashboard-fondoHover);
+}
+
+/* 
+ * FORMULARIO NUEVA TAREA
+ */
+.tareaNuevoFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    background-color: var(--dashboard-fondoSecundario);
+}
+
+.tareaNuevoInput {
+    width: 100%;
+    padding: var(--dashboard-espacioSm);
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    outline: none;
+    transition: border-color var(--dashboard-transicionNormal);
+}
+
+.tareaNuevoInput:focus {
+    border-color: var(--dashboard-textoApagado);
+}
+
+.tareaNuevoInput::placeholder {
+    color: var(--dashboard-textoPlaceholder);
+}
+
+.tareaNuevoAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+}
+
+.tareaNuevoConfirmar,
+.tareaNuevoCancelar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.tareaNuevoConfirmar {
+    color: var(--dashboard-estadoExito);
+}
+
+.tareaNuevoConfirmar:hover:not(:disabled) {
+    background-color: var(--dashboard-estadoExitoFondo);
+    border-color: var(--dashboard-estadoExitoBorde);
+}
+
+.tareaNuevoConfirmar:disabled {
+    color: var(--dashboard-textoIndice);
+    cursor: not-allowed;
+}
+
+.tareaNuevoCancelar {
+    color: var(--dashboard-textoApagado);
+}
+
+.tareaNuevoCancelar:hover {
+    color: var(--dashboard-estadoAlta);
+    border-color: var(--dashboard-estadoAltaBorde);
+}

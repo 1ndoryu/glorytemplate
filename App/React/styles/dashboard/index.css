@@ -1,0 +1,36 @@
+/*
+ * DASHBOARD STYLES - ARCHIVO PRINCIPAL
+ * 
+ * Sistema de diseno modular para el dashboard estilo terminal
+ * Todos los estilos estan divididos en modulos por responsabilidad
+ * 
+ * Estructura:
+ * - variables.css      : Tokens de diseno (colores, espaciados, tipografia)
+ * - animaciones.css    : Keyframes reutilizables
+ * - base.css           : Contenedor principal y grid
+ * - componentes/       : Estilos por componente
+ * - utilidades/        : Estados de carga y acciones
+ */
+
+/* Tokens de diseno */
+@import './variables.css';
+
+/* Animaciones */
+@import './animaciones.css';
+
+/* Base y layout */
+@import './base.css';
+
+/* Componentes */
+@import './componentes/encabezado.css';
+@import './componentes/tabla.css';
+@import './componentes/tareas.css';
+@import './componentes/scratchpad.css';
+@import './componentes/modal.css';
+@import './componentes/formulario.css';
+@import './componentes/toast.css';
+@import './componentes/ordenamiento.css';
+
+/* Utilidades */
+@import './utilidades/estados.css';
+@import './utilidades/acciones.css';

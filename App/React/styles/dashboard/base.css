@@ -1,0 +1,68 @@
+/*
+ * ESTILOS BASE
+ * Contenedor principal, grid y layouts generales
+ */
+
+/* 
+ * CONTENEDOR PRINCIPAL 
+ */
+.dashboardContenedor {
+    min-height: 100vh;
+    background-color: var(--dashboard-fondoPrincipal);
+    color: var(--dashboard-textoSecundario);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoBase);
+    padding: var(--dashboard-espacioXl);
+}
+
+.dashboardContenedor::selection {
+    background-color: #333;
+    color: white;
+}
+
+/* 
+ * GRID PRINCIPAL 
+ */
+.dashboardGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--dashboard-espacioXl);
+}
+
+@media (min-width: 1024px) {
+    .dashboardGrid {
+        grid-template-columns: repeat(12, 1fr);
+    }
+}
+
+.columnaHabitos, .internaColumna {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioLg);
+}
+
+@media (min-width: 1024px) {
+    .columnaHabitos {
+        grid-column: span 7;
+    }
+}
+
+.columnaTareas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioXl);
+}
+
+@media (min-width: 1024px) {
+    .columnaTareas {
+        grid-column: span 5;
+    }
+}
+
+/* 
+ * PANEL (Contenedor de datos) 
+ */
+.dashboardPanel {
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+}

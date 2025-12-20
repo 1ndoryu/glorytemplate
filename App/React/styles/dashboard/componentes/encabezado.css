@@ -1,0 +1,106 @@
+/*
+ * ENCABEZADO DEL DASHBOARD
+ * Header, navegacion y secciones
+ */
+
+/* 
+ * HEADER PRINCIPAL 
+ */
+.dashboardEncabezado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    padding-bottom: var(--dashboard-espacioLg);
+    margin-bottom: 2rem;
+}
+
+.encabezadoLogo {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+}
+
+.encabezadoIndicador {
+    height: 0.75rem;
+    width: 0.75rem;
+    background-color: white;
+    border-radius: 50%;
+}
+
+.encabezadoTitulo {
+    font-weight: 600;
+    color: var(--dashboard-textoActivo);
+    letter-spacing: -0.025em;
+}
+
+.encabezadoNav {
+    display: flex;
+    gap: var(--dashboard-espacioLg);
+}
+
+.encabezadoEnlace {
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    transition: color var(--dashboard-transicionNormal);
+}
+
+.encabezadoEnlace:hover {
+    color: white;
+}
+
+/* 
+ * ENCABEZADO DE SECCION 
+ */
+.seccionEncabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--dashboard-espacioSm);
+    min-height: 24px;
+}
+
+.seccionTitulo {
+    color: var(--dashboard-textoActivo);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    font-size: var(--dashboard-tamanoBase);
+    font-weight: normal;
+}
+
+.seccionSubtitulo {
+    color: var(--dashboard-textoMuyApagado);
+    font-size: var(--dashboard-tamanoBase);
+}
+
+.seccionAcciones {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+}
+
+.seccionBoton {
+    background: none;
+    border: none;
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    padding: var(--dashboard-espacioXs);
+    transition: color var(--dashboard-transicionNormal);
+}
+
+.seccionBoton:hover {
+    color: white;
+}
+
+/* 
+ * FOOTER 
+ */
+.dashboardFooter {
+    margin-top: 2rem;
+    text-align: center;
+    color: var(--dashboard-textoPlaceholder);
+    border-top: 1px solid var(--dashboard-bordePrincipal);
+    padding-top: var(--dashboard-espacioLg);
+}

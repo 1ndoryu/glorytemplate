@@ -1,0 +1,93 @@
+/*
+ * ANIMACIONES
+ * Keyframes reutilizables para todo el dashboard
+ */
+
+@keyframes rotarSpinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulsarAdvertencia {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes pulsarBarra {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes moverBarra {
+    0% {
+        transform: translateX(-100%);
+    }
+    50% {
+        transform: translateX(250%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+@keyframes brilloSkeleton {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes aparecerModal {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes deslizarModal {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes aparecerConfirmacion {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes deslizarToast {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,40 @@
+/*
+ * SELECTOR DE ORDEN
+ * Estilos para el dropdown de ordenamiento de habitos
+ */
+
+.selectorOrdenContenedor {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+}
+
+.selectorOrdenIcono {
+    color: var(--dashboard-textoApagado);
+}
+
+.selectorOrdenSelect {
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.selectorOrdenSelect:hover {
+    border-color: var(--dashboard-textoApagado);
+    color: var(--dashboard-textoNormal);
+}
+
+.selectorOrdenSelect:focus {
+    outline: none;
+    border-color: var(--dashboard-textoApagado);
+}
+
+.selectorOrdenSelect option {
+    background-color: var(--dashboard-fondoPrincipal);
+    color: var(--dashboard-textoNormal);
+}

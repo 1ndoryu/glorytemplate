@@ -1,0 +1,84 @@
+/*
+ * TOAST DESHACER
+ * Notificacion en esquina inferior para acciones reversibles
+ */
+
+.toastDeshacerContenedor {
+    position: fixed;
+    bottom: var(--dashboard-espacioLg);
+    right: var(--dashboard-espacioLg);
+    min-width: 280px;
+    max-width: 400px;
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    z-index: 1100;
+    animation: deslizarToast 0.25s ease-out;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.toastDeshacerContenido {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioMd) var(--dashboard-espacioLg);
+}
+
+.toastDeshacerMensaje {
+    flex: 1;
+    font-size: var(--dashboard-tamanoBase);
+    color: var(--dashboard-textoNormal);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.toastDeshacerAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    flex-shrink: 0;
+}
+
+.toastDeshacerBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background-color: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.toastDeshacerBotonUndo:hover {
+    background-color: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+}
+
+.toastDeshacerBotonCerrar {
+    padding: var(--dashboard-espacioXs);
+}
+
+.toastDeshacerBotonCerrar:hover {
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+    color: var(--dashboard-textoActivo);
+}
+
+.toastDeshacerBarra {
+    height: 3px;
+    background-color: var(--dashboard-barraFondo);
+    overflow: hidden;
+}
+
+.toastDeshacerBarraRelleno {
+    height: 100%;
+    background: linear-gradient(to right, #22c55e, var(--dashboard-estadoMedia));
+    transition: width 0.1s linear;
+}

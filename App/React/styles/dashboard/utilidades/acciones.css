@@ -1,0 +1,82 @@
+/*
+ * ACCIONES DE DATOS
+ * Botones de exportar/importar y mensajes de estado
+ */
+
+.accionesDatosContenedor {
+    margin-top: var(--dashboard-espacioLg);
+    padding: var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.accionesDatosBotones {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+}
+
+.botonAccionDatos {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.botonAccionDatos:hover {
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+    color: var(--dashboard-textoActivo);
+}
+
+.botonAccionDatos:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.botonAccionIcono {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.botonExportar:hover {
+    border-color: var(--dashboard-estadoMedia);
+}
+
+.botonImportar:hover {
+    border-color: #22c55e;
+}
+
+.inputArchivoOculto {
+    display: none;
+}
+
+/* 
+ * MENSAJES DE ESTADO 
+ */
+.mensajeEstadoDatos {
+    margin-top: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    font-size: var(--dashboard-tamanoPequeno);
+    text-align: center;
+}
+
+.mensajeExito {
+    color: #22c55e;
+    background-color: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.mensajeError {
+    color: var(--dashboard-estadoAlta);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border: 1px solid var(--dashboard-estadoAltaBorde);
+}

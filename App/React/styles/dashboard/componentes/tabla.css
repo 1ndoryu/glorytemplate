@@ -1,0 +1,437 @@
+/*
+ * TABLA DE HABITOS
+ * Grid de habitos, filas, columnas e indicadores
+ */
+
+/* 
+ * ESTRUCTURA DE LA TABLA 
+ */
+.tablaEncabezado {
+    display: grid;
+    grid-template-columns: 0.5fr 3fr 1fr 1fr 2fr 1.5fr 1.5fr;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoMuyApagado);
+}
+
+.tablaColumnaId {
+    text-align: center;
+}
+
+.tablaColumnaNombre {
+    overflow: hidden;
+}
+
+.tablaColumnaPrioridad {
+    text-align: center;
+}
+
+.tablaColumnaInactividad {
+    text-align: center;
+}
+
+.tablaColumnaUrgencia {
+    text-align: center;
+}
+
+.tablaColumnaRacha {
+    text-align: center;
+}
+
+.tablaColumnaAccion {
+    text-align: right;
+}
+
+/* 
+ * FILA DE LA TABLA 
+ */
+.tablaFila {
+    display: grid;
+    grid-template-columns: 0.5fr 3fr 1fr 1fr 2fr 1.5fr 1.5fr;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    align-items: center;
+    transition: background-color var(--dashboard-transicionNormal);
+    cursor: default;
+}
+
+.tablaFila:hover {
+    background-color: var(--dashboard-fondoHover);
+}
+
+.tablaFila:hover .filaIndice {
+    color: var(--dashboard-textoMuyApagado);
+}
+
+.filaIndice {
+    font-weight: bold;
+    color: var(--dashboard-textoIndice);
+    transition: color var(--dashboard-transicionNormal);
+}
+
+.filaNombre {
+    color: var(--dashboard-textoActivo);
+    font-weight: 500;
+}
+
+.filaTags {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+    margin-top: var(--dashboard-espacioXs);
+}
+
+.filaTag {
+    color: var(--dashboard-textoMuyApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+    border: 1px solid var(--dashboard-bordeSutil);
+    padding: 0 var(--dashboard-espacioXs);
+    border-radius: 2px;
+}
+
+/* 
+ * ETIQUETAS DE PRIORIDAD 
+ */
+.etiquetaPrioridad {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: var(--dashboard-tamanoPequeno);
+    border: 1px solid;
+}
+
+.etiquetaAlta {
+    color: var(--dashboard-estadoAlta);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border-color: var(--dashboard-estadoAltaBorde);
+}
+
+.etiquetaMedia {
+    color: var(--dashboard-estadoMedia);
+    background-color: var(--dashboard-estadoMediaFondo);
+    border-color: var(--dashboard-estadoMediaBorde);
+}
+
+.etiquetaBaja {
+    color: var(--dashboard-estadoBaja);
+    background-color: transparent;
+    border-color: var(--dashboard-estadoBajaBorde);
+}
+
+/* 
+ * INDICADOR DE INACTIVIDAD 
+ */
+.inactividadIndicador {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioXs);
+}
+
+.inactividadIcono {
+    color: var(--dashboard-textoMuyApagado);
+}
+
+.inactividadIconoUrgente {
+    color: var(--dashboard-estadoAlta);
+}
+
+.inactividadTexto {
+    color: var(--dashboard-textoApagado);
+}
+
+.inactividadTextoUrgente {
+    color: var(--dashboard-textoActivo);
+}
+
+/* 
+ * BARRA DE URGENCIA (legacy) 
+ */
+.barraUrgencia {
+    width: 100%;
+    height: 6px;
+    background-color: var(--dashboard-barraFondo);
+    margin-top: var(--dashboard-espacioXs);
+    overflow: hidden;
+}
+
+.barraRelleno {
+    height: 100%;
+    background-color: var(--dashboard-barraNormal);
+}
+
+.barraRellenoUrgente {
+    background-color: var(--dashboard-barraUrgente);
+}
+
+/* 
+ * COLUMNA URGENCIA (nueva) 
+ */
+.urgenciaContenedor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.barraUrgenciaNueva {
+    width: 100%;
+    height: 8px;
+    background-color: var(--dashboard-barraFondo);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+
+.barraRellenoNueva {
+    height: 100%;
+    background-color: var(--dashboard-barraNormal);
+    border-radius: 2px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.barraRellenoAdvertencia {
+    background: linear-gradient(90deg, var(--dashboard-barraNormal), var(--dashboard-estadoMedia));
+}
+
+.barraRellenoUrgenteCritico {
+    background: linear-gradient(90deg, var(--dashboard-barraUrgente), #ff0000);
+    animation: pulsarBarra 1.5s ease-in-out infinite;
+}
+
+.barraRellenoCompletado {
+    background-color: rgba(34, 197, 94, 0.4);
+}
+
+.urgenciaPorcentaje {
+    font-size: 9px;
+    color: var(--dashboard-textoMuyApagado);
+    line-height: 1;
+}
+
+.urgenciaPorcentajeAlto {
+    color: var(--dashboard-estadoAlta);
+    font-weight: 600;
+}
+
+/* 
+ * COLUMNA RACHA 
+ */
+.rachaContenedor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.rachaContenedorPeligro {
+    background-color: rgba(202, 138, 4, 0.1);
+    border: 1px solid rgba(202, 138, 4, 0.3);
+}
+
+.rachaContenedorCompletado {
+    background-color: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.rachaIcono {
+    color: var(--dashboard-textoMuyApagado);
+}
+
+.rachaIconoActivo {
+    color: var(--dashboard-estadoMedia);
+}
+
+.rachaIconoAdvertencia {
+    color: var(--dashboard-estadoMedia);
+    animation: pulsarAdvertencia 1.5s ease-in-out infinite;
+}
+
+.rachaIconoPerdida {
+    color: var(--dashboard-textoMuyApagado);
+    opacity: 0.5;
+}
+
+.rachaNumero {
+    font-size: var(--dashboard-tamanoBase);
+    font-weight: 600;
+    color: var(--dashboard-textoSecundario);
+}
+
+.rachaContenedorPeligro .rachaNumero {
+    color: var(--dashboard-estadoMedia);
+}
+
+.rachaContenedorCompletado .rachaNumero {
+    color: #22c55e;
+}
+
+.rachaTiempoRestante {
+    font-size: 9px;
+    color: var(--dashboard-estadoMedia);
+    opacity: 0.8;
+}
+
+/* 
+ * INDICADORES DE RACHA (legacy) 
+ */
+.filaRacha {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoMuyApagado);
+    margin-top: var(--dashboard-espacioXs);
+    display: block;
+}
+
+.filaRachaContenedor {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    margin-top: var(--dashboard-espacioXs);
+}
+
+.filaRachaAdvertencia {
+    display: flex;
+    align-items: center;
+    color: var(--dashboard-estadoMedia);
+    animation: pulsarAdvertencia 1.5s ease-in-out infinite;
+}
+
+.filaRachaPerdida {
+    display: flex;
+    align-items: center;
+    color: var(--dashboard-textoMuyApagado);
+    opacity: 0.6;
+}
+
+.filaRachaEnPeligro {
+    color: var(--dashboard-estadoMedia);
+    font-weight: 500;
+}
+
+.filaRachaTiempo {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-estadoMedia);
+    opacity: 0.8;
+}
+
+/* 
+ * COLUMNA ACCION 
+ */
+.accionContenedor {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--dashboard-espacioXs);
+}
+
+/* 
+ * FILA COMPLETADA 
+ */
+.tablaFilaCompletada {
+    background-color: rgba(34, 197, 94, 0.03);
+}
+
+.tablaFilaCompletada:hover {
+    background-color: rgba(34, 197, 94, 0.05);
+}
+
+.filaNombreCompletado {
+    color: var(--dashboard-textoApagado);
+}
+
+/* 
+ * FILA EDITABLE 
+ */
+.tablaFilaEditable {
+    cursor: pointer;
+}
+
+.tablaFilaEditable:hover .filaIndice {
+    color: var(--dashboard-textoSecundario);
+}
+
+.tablaFilaAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+}
+
+/* 
+ * BOTON COMPLETAR HABITO 
+ */
+.botonCompletarHabito {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background-color: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoMuyApagado);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+    min-width: 60px;
+}
+
+.botonCompletarHabito:hover:not(:disabled) {
+    background-color: var(--dashboard-fondoHover);
+    border-color: #22c55e;
+    color: #22c55e;
+}
+
+.botonCompletarHabito:disabled {
+    cursor: default;
+}
+
+.botonCompletarHabitoActivo {
+    background-color: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+}
+
+/* 
+ * BOTON EDITAR HABITO 
+ */
+.botonEditarHabito {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--dashboard-espacioXs);
+    background-color: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoIndice);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+    opacity: 0;
+}
+
+.tablaFila:hover .botonEditarHabito {
+    opacity: 1;
+}
+
+.botonEditarHabito:hover {
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+    color: var(--dashboard-textoSecundario);
+}
+
+/* 
+ * AÑADIR HABITO 
+ */
+.anadirHabito {
+    padding: var(--dashboard-espacioMd);
+    text-align: center;
+    color: var(--dashboard-textoIndice);
+    cursor: pointer;
+    border-top: 1px dashed var(--dashboard-bordePrincipal);
+    transition: color var(--dashboard-transicionNormal);
+}
+
+.anadirHabito:hover {
+    color: var(--dashboard-textoMuyApagado);
+}

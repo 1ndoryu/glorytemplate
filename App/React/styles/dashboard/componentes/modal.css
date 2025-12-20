@@ -1,0 +1,64 @@
+/*
+ * MODAL
+ * Overlay, contenedor y estructura del modal
+ */
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--dashboard-espacioLg);
+    animation: aparecerModal 0.15s ease-out;
+}
+
+.modalContenedor {
+    width: 100%;
+    max-width: 420px;
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    animation: deslizarModal 0.2s ease-out;
+}
+
+.modalEncabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--dashboard-espacioMd) var(--dashboard-espacioLg);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.modalTitulo {
+    font-size: var(--dashboard-tamanoBase);
+    font-weight: 600;
+    color: var(--dashboard-textoActivo);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.modalBotonCerrar {
+    background: none;
+    border: none;
+    color: var(--dashboard-textoMuyApagado);
+    cursor: pointer;
+    padding: var(--dashboard-espacioXs);
+    transition: color var(--dashboard-transicionNormal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalBotonCerrar:hover {
+    color: var(--dashboard-textoActivo);
+}
+
+.modalContenido {
+    padding: var(--dashboard-espacioLg);
+}
