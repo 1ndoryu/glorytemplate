@@ -103,7 +103,7 @@ export function SelectorFrecuencia({frecuencia, onChange, deshabilitado = false}
     };
 
     return (
-        <div id="selector-frecuencia" className="selectorFrecuencia">
+        <div className="selectorFrecuencia">
             {/* Cabecera colapsable */}
             <button type="button" className="selectorFrecuenciaCabecera" onClick={() => setExpandido(!expandido)} disabled={deshabilitado}>
                 <span className="selectorFrecuenciaEtiqueta">Frecuencia</span>

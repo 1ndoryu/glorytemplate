@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Fase D completada, iniciando Panel de Configuración de Tareas
+**Estado:** Panel de Configuración de Tareas unificado con Selector de Frecuencia compartido. Pendiente: Adjuntos y resto de Componentes compartidos.
 
 ---
 
@@ -187,14 +187,11 @@ App/React/styles/dashboard/
   - [x] Campo expandible para notas detalladas
   - [ ] Soporte markdown basico (opcional)
 
-- [x] **Sistema de Repeticion Inteligente** (UI implementada)
-  - [x] **Tipo 1: Repetir despues de completar**
-    - Ej: "Repetir 3 dias despues de completar"
+- [x] **Sistema de Repeticion Inteligente** (UI unificada)
+  - [x] **Logica simplificada: Repetir despues de completar**
     - La tarea reaparece X dias despues de marcarla completada
-  - [x] **Tipo 2: Repetir en intervalo fijo**
-    - Ej: "Repetir cada lunes" o "Repetir cada 7 dias"
-    - La tarea reaparece en fechas fijas sin importar cuando se completo
-  - [x] Selector de dias de la semana para intervalo fijo
+    - Se reutiliza el componente `SelectorFrecuencia` para la configuración
+  - [ ] **Modo Intervalo Fijo** (Eliminado por simplificación)
   - [x] Logica de generacion automatica de repeticiones
   - [x] Evitar duplicados (si ya existe una instancia pendiente)
   - [ ] Historial de repeticiones
@@ -261,47 +258,49 @@ Los paneles de configuración de hábitos y tareas tienen estructura similar per
 
 ### Fases de Refactorizacion
 
-**Fase R1: Audit y Documentacion** (2-3 horas)
-- [ ] Listar TODOS los componentes con UI similar
-- [ ] Capturar screenshots de diferencias visuales actuales
-- [ ] Definir diseño "canonico" de cada componente comun
-- [ ] Crear documento de patron de uso
+**Fase R1: Audit y Documentacion** (Completado)
+- [x] Listar TODOS los componentes con UI similar
+- [x] Capturar screenshots de diferencias visuales actuales
+- [x] Definir diseño "canonico" de cada componente comun
+- [x] Crear documento de patron de uso
 
-**Fase R2: CSS Compartido** (1-2 horas)
+**Fase R2: CSS Compartido** (Completado)
 - [x] Crear `styles/dashboard/shared/` para estilos reutilizables
 - [x] Extraer estilos de botones de accion
-- [ ] Extraer estilos de selector nivel (importancia/prioridad)
-- [ ] Actualizar imports en index.css
+- [x] Extraer estilos de selector nivel (importancia/prioridad)
+- [x] Actualizar imports en index.css
 
-**Fase R3: Componentes Compartidos** (3-4 horas)
+**Fase R3: Componentes Compartidos** (Parcialmente Completado)
 - [x] Crear `components/shared/AccionesFormulario.tsx`
 - [x] Crear `components/shared/SelectorNivel.tsx`
 - [x] Crear `components/shared/SeccionPanel.tsx`
 - [x] Crear `components/shared/Modal.tsx`
-- [ ] Actualizar exportaciones en index.ts
+- [x] Actualizar exportaciones en index.ts
+- [ ] Crear `components/shared/ToggleSwitch.tsx` (Pendiente)
+- [ ] Crear `components/shared/SelectorDias.tsx` (Pendiente)
 
-**Fase R4: Integracion y Testing** (2-3 horas)
+**Fase R4: Integracion y Testing** (En Progreso)
 - [x] Refactorizar FormularioHabito.tsx para usar componentes shared
 - [x] Refactorizar PanelConfiguracionTarea.tsx para usar componentes shared
-- [ ] Verificar consistencia visual en ambos paneles
+- [x] Verificar consistencia visual en ambos paneles
 - [ ] Probar todos los flujos de usuario
 
 ### Checklist de Revision por Archivo
 
 **FormularioHabito.tsx**
-- [ ] Usa AccionesFormulario?
-- [ ] Usa SelectorNivel para importancia?
-- [ ] Estilos vienen de shared/?
+- [x] Usa AccionesFormulario?
+- [x] Usa SelectorNivel para importancia?
+- [x] Estilos vienen de shared/?
 
 **PanelConfiguracionTarea.tsx**
-- [ ] Usa AccionesFormulario?
-- [ ] Usa SelectorNivel para prioridad?
-- [ ] Usa SeccionPanel para secciones?
-- [ ] Usa ToggleSwitch para repeticion?
-- [ ] Estilos vienen de shared/?
+- [x] Usa AccionesFormulario?
+- [x] Usa SelectorNivel para prioridad?
+- [x] Usa SeccionPanel para secciones?
+- [ ] Usa ToggleSwitch para repeticion? (Pendiente)
+- [x] Estilos vienen de shared/?
 
 **SelectorFrecuencia.tsx**
-- [ ] Usa SelectorDias para dias de semana?
+- [ ] Usa SelectorDias para dias de semana? (Pendiente)
 
 ### Archivos Nuevos a Crear
 

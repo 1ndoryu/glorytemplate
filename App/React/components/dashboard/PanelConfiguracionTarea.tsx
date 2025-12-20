@@ -8,6 +8,8 @@ import {useState, useCallback, useEffect} from 'react';
 import {X, Calendar, FileText, Repeat, AlertCircle, Flag} from 'lucide-react';
 import type {Tarea, TareaConfiguracion, TipoRepeticion, DiaSemana, NivelPrioridad} from '../../types/dashboard';
 import {AccionesFormulario, Modal, SeccionPanel, SelectorNivel} from '../shared';
+import {SelectorFrecuencia} from './SelectorFrecuencia';
+import type {FrecuenciaHabito} from '../../types/dashboard';
 
 export interface PanelConfiguracionTareaProps {
     tarea: Tarea;
@@ -16,25 +18,13 @@ export interface PanelConfiguracionTareaProps {
     onGuardar: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string) => void;
 }
 
-const DIAS_SEMANA: {valor: DiaSemana; etiqueta: string}[] = [
-    {valor: 'lunes', etiqueta: 'Lun'},
-    {valor: 'martes', etiqueta: 'Mar'},
-    {valor: 'miercoles', etiqueta: 'Mié'},
-    {valor: 'jueves', etiqueta: 'Jue'},
-    {valor: 'viernes', etiqueta: 'Vie'},
-    {valor: 'sabado', etiqueta: 'Sáb'},
-    {valor: 'domingo', etiqueta: 'Dom'}
-];
-
 export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar}: PanelConfiguracionTareaProps): JSX.Element | null {
     /* Estado local para edicion */
     const [prioridad, setPrioridad] = useState<NivelPrioridad | null>(tarea.prioridad || null);
     const [fechaMaxima, setFechaMaxima] = useState<string>(tarea.configuracion?.fechaMaxima || '');
     const [descripcion, setDescripcion] = useState<string>(tarea.configuracion?.descripcion || '');
     const [tieneRepeticion, setTieneRepeticion] = useState<boolean>(!!tarea.configuracion?.repeticion);
-    const [tipoRepeticion, setTipoRepeticion] = useState<TipoRepeticion>(tarea.configuracion?.repeticion?.tipo || 'intervaloFijo');
-    const [intervalo, setIntervalo] = useState<number>(tarea.configuracion?.repeticion?.intervalo || 7);
-    const [diasSemana, setDiasSemana] = useState<DiaSemana[]>(tarea.configuracion?.repeticion?.diasSemana || []);
+    const [frecuencia, setFrecuencia] = useState<FrecuenciaHabito>({tipo: 'diario'});
     const [texto, setTexto] = useState(tarea.texto);
 
     /* Sincronizar estado cuando cambia la tarea */
@@ -43,15 +33,25 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
         setFechaMaxima(tarea.configuracion?.fechaMaxima || '');
         setDescripcion(tarea.configuracion?.descripcion || '');
         setTieneRepeticion(!!tarea.configuracion?.repeticion);
-        setTipoRepeticion(tarea.configuracion?.repeticion?.tipo || 'intervaloFijo');
-        setIntervalo(tarea.configuracion?.repeticion?.intervalo || 7);
-        setDiasSemana(tarea.configuracion?.repeticion?.diasSemana || []);
+
+        /* Convertir RepeticionTarea a FrecuenciaHabito */
+        if (tarea.configuracion?.repeticion) {
+            const {intervalo, diasSemana} = tarea.configuracion.repeticion;
+            if (diasSemana && diasSemana.length > 0) {
+                setFrecuencia({tipo: 'diasEspecificos', diasSemana});
+            } else if (intervalo === 1) {
+                setFrecuencia({tipo: 'diario'});
+            } else if (intervalo === 7) {
+                setFrecuencia({tipo: 'semanal'});
+            } else {
+                setFrecuencia({tipo: 'cadaXDias', cadaDias: intervalo});
+            }
+        } else {
+            setFrecuencia({tipo: 'diario'});
+        }
+
         setTexto(tarea.texto);
     }, [tarea]);
-
-    const toggleDiaSemana = (dia: DiaSemana) => {
-        setDiasSemana(prev => (prev.includes(dia) ? prev.filter(d => d !== dia) : [...prev, dia]));
-    };
 
     const manejarGuardar = () => {
         const configuracion: TareaConfiguracion = {};
@@ -65,11 +65,34 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
         }
 
         if (tieneRepeticion) {
-            configuracion.repeticion = {
-                tipo: tipoRepeticion,
-                intervalo,
-                ...(diasSemana.length > 0 && {diasSemana})
+            /* Convertir FrecuenciaHabito a RepeticionTarea */
+            /* Por defecto siempre es 'despuesCompletar' segun requerimiento */
+            const repeticion: any = {
+                tipo: 'despuesCompletar',
+                intervalo: 1
             };
+
+            switch (frecuencia.tipo) {
+                case 'diario':
+                    repeticion.intervalo = 1;
+                    break;
+                case 'cadaXDias':
+                    repeticion.intervalo = frecuencia.cadaDias || 2;
+                    break;
+                case 'semanal':
+                    repeticion.intervalo = 7;
+                    break;
+                case 'diasEspecificos':
+                    repeticion.intervalo = 1;
+                    repeticion.diasSemana = frecuencia.diasSemana || [];
+                    break;
+                case 'mensual':
+                    /* Aproximacion para mensual */
+                    repeticion.intervalo = Math.floor(30 / (frecuencia.vecesAlMes || 1));
+                    break;
+            }
+
+            configuracion.repeticion = repeticion;
         }
 
         onGuardar(configuracion, prioridad, texto.trim());
@@ -139,7 +162,7 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
 
                 {/* Seccion: Repeticion */}
                 <SeccionPanel titulo="Repeticion" icono={<Repeat size={14} />}>
-                    <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '-1.5rem', marginBottom: '1rem'}}>
+                    <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '-1.5rem'}}>
                         <label className="panelConfiguracionToggle">
                             <input type="checkbox" checked={tieneRepeticion} onChange={e => setTieneRepeticion(e.target.checked)} />
                             <span className="panelConfiguracionToggleSlider" />
@@ -148,38 +171,10 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
 
                     {tieneRepeticion && (
                         <div className="panelConfiguracionRepeticion">
-                            {/* Tipo de repeticion */}
-                            <div className="panelConfiguracionTipoRepeticion">
-                                <button type="button" className={`panelConfiguracionTipoBoton ${tipoRepeticion === 'intervaloFijo' ? 'panelConfiguracionTipoBotonActivo' : ''}`} onClick={() => setTipoRepeticion('intervaloFijo')}>
-                                    <span className="panelConfiguracionTipoTitulo">Intervalo Fijo</span>
-                                    <span className="panelConfiguracionTipoDesc">Repetir cada X dias</span>
-                                </button>
-                                <button type="button" className={`panelConfiguracionTipoBoton ${tipoRepeticion === 'despuesCompletar' ? 'panelConfiguracionTipoBotonActivo' : ''}`} onClick={() => setTipoRepeticion('despuesCompletar')}>
-                                    <span className="panelConfiguracionTipoTitulo">Tras Completar</span>
-                                    <span className="panelConfiguracionTipoDesc">Repetir X dias despues</span>
-                                </button>
+                            {/* Intervalo usando el selector compartido */}
+                            <div style={{marginTop: '1rem'}}>
+                                <SelectorFrecuencia frecuencia={frecuencia} onChange={setFrecuencia} />
                             </div>
-
-                            {/* Intervalo */}
-                            <div className="panelConfiguracionIntervalo">
-                                <label className="panelConfiguracionIntervaloLabel">{tipoRepeticion === 'intervaloFijo' ? 'Cada' : 'Despues de'}</label>
-                                <input type="number" className="panelConfiguracionIntervaloInput" min={1} max={365} value={intervalo} onChange={e => setIntervalo(Math.max(1, parseInt(e.target.value) || 1))} />
-                                <span className="panelConfiguracionIntervaloSufijo">dias</span>
-                            </div>
-
-                            {/* Dias de la semana (solo para intervalo fijo) */}
-                            {tipoRepeticion === 'intervaloFijo' && (
-                                <div className="panelConfiguracionDiasSemana">
-                                    <span className="panelConfiguracionDiasSemanaLabel">O dias especificos:</span>
-                                    <div className="panelConfiguracionDiasBotones">
-                                        {DIAS_SEMANA.map(dia => (
-                                            <button key={dia.valor} type="button" className={`panelConfiguracionDiaBoton ${diasSemana.includes(dia.valor) ? 'panelConfiguracionDiaBotonActivo' : ''}`} onClick={() => toggleDiaSemana(dia.valor)}>
-                                                {dia.etiqueta}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     )}
                 </SeccionPanel>
