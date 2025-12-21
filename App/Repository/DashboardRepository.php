@@ -280,8 +280,13 @@ class DashboardRepository
             $idLocal = (int)$habito['id'];
             $incomingIds[] = $idLocal;
 
-            /* Preparar datos para columnas SQL */
-            $nombre = sanitize_text_field($habito['nombre'] ?? '');
+            /* 
+             * Preparar datos para columnas SQL
+             * Si el cifrado está activo, el nombre también se oculta
+             */
+            $nombreOriginal = sanitize_text_field($habito['nombre'] ?? '');
+            $nombre = $this->cifradoHabilitado ? '[CIFRADO]' : $nombreOriginal;
+
             $frecuenciaData = $habito['frecuencia'] ?? null;
             $frecuencia = is_array($frecuenciaData) ? ($frecuenciaData['tipo'] ?? 'diario') : 'diario';
             $completadoHoy = isset($habito['ultimoCompletado']) && $habito['ultimoCompletado'] === date('Y-m-d') ? 1 : 0;
@@ -412,7 +417,10 @@ class DashboardRepository
             $idLocal = (int)$tarea['id'];
             $incomingIds[] = $idLocal;
 
-            $texto = sanitize_text_field($tarea['texto'] ?? '');
+            /* Si el cifrado está activo, el texto también se oculta */
+            $textoOriginal = sanitize_text_field($tarea['texto'] ?? '');
+            $texto = $this->cifradoHabilitado ? '[CIFRADO]' : $textoOriginal;
+
             $completada = !empty($tarea['completada']) ? 1 : 0;
             $proyectoId = isset($tarea['proyectoId']) ? (int)$tarea['proyectoId'] : null;
             $padreId = isset($tarea['padreId']) ? (int)$tarea['padreId'] : null;
@@ -537,7 +545,10 @@ class DashboardRepository
             $idLocal = (int)$proyecto['id'];
             $incomingIds[] = $idLocal;
 
-            $nombre = sanitize_text_field($proyecto['nombre'] ?? '');
+            /* Si el cifrado está activo, el nombre también se oculta */
+            $nombreOriginal = sanitize_text_field($proyecto['nombre'] ?? '');
+            $nombre = $this->cifradoHabilitado ? '[CIFRADO]' : $nombreOriginal;
+            
             $estado = $proyecto['estado'] ?? 'activo';
             $prioridad = $proyecto['prioridad'] ?? null;
 
@@ -666,8 +677,28 @@ class DashboardRepository
         /* 
          * IMPORTANTE: La configuración NUNCA se cifra.
          * Esto es necesario para poder leer cifradoE2E en el bootstrap.
+         * 
+         * CRÍTICO: El valor de cifradoE2E NO puede ser modificado desde aquí.
+         * Esto previene que el frontend sobrescriba el estado del cifrado
+         * a través de la sincronización normal. Solo habilitarCifrado/deshabilitarCifrado
+         * pueden modificar este valor.
          */
+
+        /* Obtener el valor ACTUAL de cifradoE2E del servidor */
+        $configActual = get_user_meta($this->userId, self::META_CONFIG, true);
+        $cifradoActual = false;
+
+        if (!empty($configActual) && is_string($configActual)) {
+            $decoded = json_decode($configActual, true);
+            if (is_array($decoded) && isset($decoded['cifradoE2E'])) {
+                $cifradoActual = $decoded['cifradoE2E'];
+            }
+        }
+
+        /* Merge con defaults, pero FORZAR el valor actual de cifradoE2E */
         $merged = array_merge($this->getDefaultConfig(), $config);
+        $merged['cifradoE2E'] = $cifradoActual;
+
         $json = wp_json_encode($merged, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         update_user_meta($this->userId, self::META_CONFIG, $json);
         return true;
