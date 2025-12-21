@@ -17,7 +17,7 @@ class GoogleAuthService
         $this->client = new Client();
         $this->client->setClientId($_ENV['GOOGLE_CLIENT_ID'] ?? '');
         $this->client->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET'] ?? '');
-        $this->client->setRedirectUri(home_url('/dashboard'));
+        $this->client->setRedirectUri(home_url('/'));
         $this->client->addScope('email');
         $this->client->addScope('profile');
     }
