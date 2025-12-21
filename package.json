@@ -1,0 +1,17 @@
+{
+    "name": "glory-theme",
+    "private": true,
+    "version": "1.0.0",
+    "description": "Glory WordPress Theme - Comandos centralizados",
+    "scripts": {
+        "dev": "npm run dev --prefix Glory/assets/react",
+        "build": "npm run build --prefix Glory/assets/react",
+        "build:fast": "npm run build:fast --prefix Glory/assets/react",
+        "prerender": "npm run prerender --prefix Glory/assets/react",
+        "install:all": "npm install --prefix Glory/assets/react && npm install --prefix App/React",
+        "types:add": "npm install --save-dev --prefix App/React"
+    },
+    "dependencies": {
+        "@measured/puck": "^0.20.2"
+    }
+}

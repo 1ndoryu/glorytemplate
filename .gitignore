@@ -42,7 +42,7 @@ node_modules/
 composer.lock
 
 # NPM
-package.json
+
 npm-debug.log
 grunt
 .history/
@@ -76,7 +76,7 @@ site.webmanifest
 wp-cli.yml
 wp-mail.php
 wp-options.php
-Glory/
+
 status.md
 dev-tools/
 glory_docs/ 
