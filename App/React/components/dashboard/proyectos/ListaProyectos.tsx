@@ -188,15 +188,7 @@ export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSelecciona
 
     return (
         <>
-            <SeccionEncabezado
-                titulo="Proyectos"
-                icono={<Folder size={12} />}
-                acciones={
-                    <button className="botonIcono" onClick={onCrearProyecto} title="Nuevo Proyecto">
-                        <Plus size={14} />
-                    </button>
-                }
-            />
+
             <DashboardPanel>
                 <div className="listaProyectos">
                     {proyectos.map(proyecto => {

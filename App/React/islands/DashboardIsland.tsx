@@ -5,7 +5,7 @@
  */
 
 import {useState, useEffect} from 'react';
-import {Terminal, AlertCircle, FileText} from 'lucide-react';
+import {Terminal, AlertCircle, FileText, Folder, Plus} from 'lucide-react';
 import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad} from '../components/dashboard';
 import {ToastDeshacer, ModalUpgrade} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
@@ -132,9 +132,16 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                         <SeccionEncabezado icono={<AlertCircle size={12} />} titulo="Foco Prioritario" subtitulo={modoInfo?.descripcion || ''} acciones={<SelectorOrden modoActual={modoActual} onCambiarModo={cambiarModo} />} />
                         <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} />
 
-                        <div style={{marginTop: 'var(--dashboard-espacioLg)'}}>
-                            <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
-                        </div>
+                        <SeccionEncabezado
+                            titulo="Proyectos"
+                            icono={<Folder size={12} />}
+                            acciones={
+                                <button className="botonIcono" onClick={manejarCrearProyecto} title="Nuevo Proyecto">
+                                    <Plus size={14} />
+                                </button>
+                            }
+                        />
+                        <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
                     </div>
 
                     {/* Columna 2: Tareas sueltas y Notas */}
@@ -146,7 +153,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                         </div>
 
                         {/* Seccion: Notas Rapidas */}
-                        <div className="scratchpadContenedor">
+                        <div className="internaColumna">
                             <SeccionEncabezado icono={<FileText size={12} />} titulo="Scratchpad" subtitulo="markdown supported" />
                             <Scratchpad valorInicial={notas} onChange={actualizarNotas} />
                         </div>

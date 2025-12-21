@@ -126,12 +126,23 @@ export function useAuth(): UseAuthReturn {
     const logout = useCallback(async () => {
         setLoading(true);
         try {
+            /* Obtener el nonce de WordPress */
+            const wpData = (window as any).gloryDashboard;
+            const nonce = wpData?.nonce || '';
+
             const response = await fetch('/wp-json/glory/v1/auth/logout', {
                 method: 'POST',
-                credentials: 'include'
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': nonce
+                }
             });
             if (response.ok) {
                 window.location.reload();
+            } else {
+                console.error('Logout failed:', response.status);
+                setLoading(false);
             }
         } catch (e) {
             console.error(e);

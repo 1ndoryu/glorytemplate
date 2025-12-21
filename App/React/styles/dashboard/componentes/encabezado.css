@@ -85,17 +85,6 @@
     transform: translateY(-1px);
 }
 
-/* Variante version */
-.badgeEncabezado--version {
-    color: var(--dashboard-textoApagado);
-    border-color: var(--dashboard-bordePrincipal);
-    background: transparent;
-}
-
-.badgeEncabezado--version:hover {
-    color: var(--dashboard-textoSecundario);
-}
-
 /* Variante usuario */
 .badgeEncabezado--usuario {
     color: var(--dashboard-textoSecundario);

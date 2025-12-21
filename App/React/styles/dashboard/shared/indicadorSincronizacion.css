@@ -35,7 +35,9 @@
 }
 
 .indicadorSync--ok .indicadorSync__icono {
-    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* 
@@ -47,14 +49,17 @@
     border-color: var(--dashboard-estadoMediaBorde);
 }
 
-.indicadorSync__spinner {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border: 2px solid currentColor;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spinSync 0.8s linear infinite;
+/* Icono base */
+.indicadorSync__icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* Spinner con SVG */
+.indicadorSync__icono--spinner {
+    animation: spinSync 1s linear infinite;
 }
 
 @keyframes spinSync {
@@ -85,19 +90,9 @@
     cursor: pointer;
 }
 
-.indicadorSync--offline .indicadorSync__icono {
-    position: relative;
-}
-
-.indicadorSync--offline .indicadorSync__icono::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: currentColor;
-    transform: rotate(-45deg);
+.indicadorSync--offline:hover {
+    color: var(--dashboard-textoNormal);
+    border-color: var(--dashboard-bordeSutil);
 }
 
 /* 

@@ -11,7 +11,7 @@
  * - Offline: Icono de nube tachada
  */
 
-import React from 'react';
+import {LogOut, CloudOff, AlertTriangle, Loader2, CheckCircle} from 'lucide-react';
 
 interface IndicadorSincronizacionProps {
     sincronizado: boolean;
@@ -27,18 +27,22 @@ export function IndicadorSincronizacion({sincronizado, pendiente, error, estaLog
     /* No mostrar si el usuario no está logueado */
     if (!estaLogueado) {
         return (
-            <div id="indicador-sync-offline" className="indicadorSync indicadorSync--offline" title="Modo local - Click para iniciar sesión con Google" onClick={onLogin} style={{cursor: 'pointer'}}>
-                <span className="indicadorSync__icono">☁</span>
+            <button type="button" id="indicador-sync-offline" className="indicadorSync indicadorSync--offline" title="Modo local - Click para iniciar sesión" onClick={onLogin}>
+                <span className="indicadorSync__icono">
+                    <CloudOff size={12} />
+                </span>
                 <span className="indicadorSync__texto">Iniciar Sesión</span>
-            </div>
+            </button>
         );
     }
 
     /* Estado de error */
     if (error) {
         return (
-            <button id="indicador-sync-error" className="indicadorSync indicadorSync--error" onClick={onSincronizar} title={`Error: ${error}. Click para reintentar.`}>
-                <span className="indicadorSync__icono">⚠</span>
+            <button type="button" id="indicador-sync-error" className="indicadorSync indicadorSync--error" onClick={onSincronizar} title={`Error: ${error}. Click para reintentar.`}>
+                <span className="indicadorSync__icono">
+                    <AlertTriangle size={12} />
+                </span>
                 <span className="indicadorSync__texto">Error</span>
             </button>
         );
@@ -48,7 +52,9 @@ export function IndicadorSincronizacion({sincronizado, pendiente, error, estaLog
     if (pendiente || !sincronizado) {
         return (
             <div id="indicador-sync-pendiente" className="indicadorSync indicadorSync--pendiente" title="Sincronizando...">
-                <span className="indicadorSync__spinner"></span>
+                <span className="indicadorSync__icono indicadorSync__icono--spinner">
+                    <Loader2 size={12} />
+                </span>
                 <span className="indicadorSync__texto">Guardando</span>
             </div>
         );
@@ -56,9 +62,11 @@ export function IndicadorSincronizacion({sincronizado, pendiente, error, estaLog
 
     /* Estado sincronizado */
     return (
-        <div id="indicador-sync-ok" className="indicadorSync indicadorSync--ok" title="Datos sincronizados - Click para cerrar sesión" onClick={onLogout} style={{cursor: 'pointer'}}>
-            <span className="indicadorSync__icono">✓</span>
+        <button type="button" id="indicador-sync-ok" className="indicadorSync indicadorSync--ok" title="Datos sincronizados - Click para cerrar sesión" onClick={onLogout}>
+            <span className="indicadorSync__icono">
+                <LogOut size={12} />
+            </span>
             <span className="indicadorSync__texto">Logout</span>
-        </div>
+        </button>
     );
 }
