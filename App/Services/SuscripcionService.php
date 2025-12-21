@@ -30,6 +30,7 @@ class SuscripcionService
 
     /* 
      * Límites por plan 
+     * Nota: cifradoE2E disponible para todos los planes
      */
     private const LIMITES = [
         self::PLAN_FREE => [
@@ -40,7 +41,7 @@ class SuscripcionService
             'sincronizacion' => false,
             'estadisticasAvanzadas' => false,
             'temas' => false,
-            'cifradoE2E' => false
+            'cifradoE2E' => true
         ],
         self::PLAN_PREMIUM => [
             'habitos' => -1,
