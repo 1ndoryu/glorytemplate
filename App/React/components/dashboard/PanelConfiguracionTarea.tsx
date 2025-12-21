@@ -2,12 +2,13 @@
  * PanelConfiguracionTarea
  * Panel modal para configurar opciones avanzadas de una tarea
  * Responsabilidad: prioridad, fecha limite, descripcion, repeticion
+ *
+ * Usa campos compartidos: CampoTexto, CampoPrioridad, CampoFechaLimite
  */
 
-import {useState, useCallback, useEffect} from 'react';
-import {X, Calendar, FileText, Repeat, AlertCircle, Flag} from 'lucide-react';
-import type {Tarea, TareaConfiguracion, TipoRepeticion, DiaSemana, NivelPrioridad} from '../../types/dashboard';
-import {AccionesFormulario, Modal, SeccionPanel, SelectorNivel, ToggleSwitch} from '../shared';
+import {useState, useEffect} from 'react';
+import type {Tarea, TareaConfiguracion, NivelPrioridad} from '../../types/dashboard';
+import {AccionesFormulario, Modal, SeccionPanel, ToggleSwitch, CampoTexto, CampoPrioridad, CampoFechaLimite} from '../shared';
 import {SelectorFrecuencia} from './SelectorFrecuencia';
 import {SeccionAdjuntos} from './SeccionAdjuntos';
 import type {FrecuenciaHabito, Adjunto} from '../../types/dashboard';
@@ -53,7 +54,6 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
         }
 
         setAdjuntos(tarea.configuracion?.adjuntos || []);
-
         setTexto(tarea.texto);
     }, [tarea]);
 
@@ -70,7 +70,6 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
 
         if (tieneRepeticion) {
             /* Convertir FrecuenciaHabito a RepeticionTarea */
-            /* Por defecto siempre es 'despuesCompletar' segun requerimiento */
             const repeticion: any = {
                 tipo: 'despuesCompletar',
                 intervalo: 1
@@ -91,7 +90,6 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
                     repeticion.diasSemana = frecuencia.diasSemana || [];
                     break;
                 case 'mensual':
-                    /* Aproximacion para mensual */
                     repeticion.intervalo = Math.floor(30 / (frecuencia.vecesAlMes || 1));
                     break;
             }
@@ -107,66 +105,20 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
         onCerrar();
     };
 
-    /* Calcular estado de urgencia de la fecha */
-    const obtenerEstadoFecha = (): 'vencida' | 'urgente' | 'proxima' | 'normal' | null => {
-        if (!fechaMaxima) return null;
-
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        const fecha = new Date(fechaMaxima);
-        const diferenciaDias = Math.ceil((fecha.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
-
-        if (diferenciaDias < 0) return 'vencida';
-        if (diferenciaDias === 0) return 'urgente';
-        if (diferenciaDias <= 3) return 'proxima';
-        return 'normal';
-    };
-
-    const estadoFecha = obtenerEstadoFecha();
-
     return (
         <Modal estaAbierto={estaAbierto} onCerrar={onCerrar} titulo="Configurar Tarea" claseExtra="panelConfiguracionContenedor">
-            {/* Contenido (sin padding extra porque el modal ya tiene) */}
             <div className="panelConfiguracionContenido" style={{padding: 0}}>
-                {/* Nombre de la tarea (Editable) */}
-                <SeccionPanel titulo="Nombre de la tarea">
-                    <input className="formularioInput" value={texto} onChange={e => setTexto(e.target.value)} placeholder="Nombre de la tarea" />
-                </SeccionPanel>
+                {/* Nombre de la tarea - Campo reutilizable */}
+                <CampoTexto titulo="Nombre de la tarea" valor={texto} onChange={setTexto} placeholder="Nombre de la tarea" />
 
-                {/* Seccion: Prioridad */}
-                <SeccionPanel titulo="Prioridad">
-                    <SelectorNivel<NivelPrioridad> niveles={['Alta', 'Media', 'Baja'].map(n => n.toLowerCase() as NivelPrioridad)} seleccionado={prioridad} onSeleccionar={nivel => setPrioridad(prioridad === nivel ? null : nivel)} />
-                </SeccionPanel>
+                {/* Prioridad - Campo reutilizable */}
+                <CampoPrioridad<NivelPrioridad> tipo="prioridad" valor={prioridad} onChange={setPrioridad} permitirNulo={true} />
 
-                {/* Seccion: Fecha Limite */}
-                <SeccionPanel titulo="Fecha Limite">
-                    <div className={`panelConfiguracionCampo ${estadoFecha ? `panelConfiguracionCampo${estadoFecha.charAt(0).toUpperCase() + estadoFecha.slice(1)}` : ''}`}>
-                        <input type="date" className="panelConfiguracionInputFecha" value={fechaMaxima} onChange={e => setFechaMaxima(e.target.value)} />
-                        {estadoFecha === 'vencida' && (
-                            <span className="panelConfiguracionAlerta panelConfiguracionAlertaVencida">
-                                <AlertCircle size={12} />
-                                Vencida
-                            </span>
-                        )}
-                        {estadoFecha === 'urgente' && (
-                            <span className="panelConfiguracionAlerta panelConfiguracionAlertaUrgente">
-                                <AlertCircle size={12} />
-                                Hoy
-                            </span>
-                        )}
-                        {estadoFecha === 'proxima' && <span className="panelConfiguracionAlerta panelConfiguracionAlertaProxima">Pronto</span>}
-                        {fechaMaxima && (
-                            <button type="button" className="panelConfiguracionBotonLimpiar" onClick={() => setFechaMaxima('')} title="Quitar fecha">
-                                <X size={12} />
-                            </button>
-                        )}
-                    </div>
-                </SeccionPanel>
+                {/* Fecha Limite - Campo reutilizable */}
+                <CampoFechaLimite valor={fechaMaxima} onChange={setFechaMaxima} />
 
-                {/* Seccion: Descripcion */}
-                <SeccionPanel titulo="Descripcion">
-                    <textarea className="panelConfiguracionTextarea" placeholder="Notas adicionales sobre esta tarea..." value={descripcion} onChange={e => setDescripcion(e.target.value)} rows={3} />
-                </SeccionPanel>
+                {/* Descripcion - Campo reutilizable */}
+                <CampoTexto titulo="Descripcion" valor={descripcion} onChange={setDescripcion} placeholder="Notas adicionales sobre esta tarea..." tipo="textarea" filas={3} />
 
                 {/* Seccion: Repeticion */}
                 <SeccionPanel titulo="Repeticion">
@@ -176,7 +128,6 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
 
                     {tieneRepeticion && (
                         <div className="panelConfiguracionRepeticion">
-                            {/* Intervalo usando el selector compartido */}
                             <div style={{marginTop: '1rem'}}>
                                 <SelectorFrecuencia frecuencia={frecuencia} onChange={setFrecuencia} />
                             </div>

@@ -1,6 +1,7 @@
 /*
  * MODAL
  * Overlay, contenedor y estructura del modal
+ * Incluye scrollbar minimalista dark mode
  */
 
 .modalOverlay {
@@ -21,6 +22,9 @@
 .modalContenedor {
     width: 100%;
     max-width: 420px;
+    max-height: calc(100vh - 2rem);
+    display: flex;
+    flex-direction: column;
     background-color: var(--dashboard-fondoSecundario);
     border: 1px solid var(--dashboard-bordePrincipal);
     animation: deslizarModal 0.2s ease-out;
@@ -32,6 +36,7 @@
     align-items: center;
     padding: var(--dashboard-espacioMd) var(--dashboard-espacioLg);
     border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    flex-shrink: 0;
 }
 
 .modalTitulo {
@@ -61,4 +66,34 @@
 
 .modalContenido {
     padding: var(--dashboard-espacioLg);
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+/* 
+ * SCROLLBAR MINIMALISTA PARA MODAL
+ * Delgado, semitransparente, no ocupa espacio
+ */
+.modalContenido::-webkit-scrollbar {
+    width: var(--dashboard-scrollbarAncho);
+}
+
+.modalContenido::-webkit-scrollbar-track {
+    background: var(--dashboard-scrollbarFondo);
+}
+
+.modalContenido::-webkit-scrollbar-thumb {
+    background: var(--dashboard-scrollbarThumb);
+    border-radius: 2px;
+}
+
+.modalContenido::-webkit-scrollbar-thumb:hover {
+    background: var(--dashboard-scrollbarThumbHover);
+}
+
+/* Firefox */
+.modalContenido {
+    scrollbar-width: thin;
+    scrollbar-color: var(--dashboard-scrollbarThumb) var(--dashboard-scrollbarFondo);
 }

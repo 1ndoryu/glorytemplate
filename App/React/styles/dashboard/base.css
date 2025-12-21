@@ -35,7 +35,8 @@
     }
 }
 
-.columnaHabitos, .internaColumna {
+.columnaHabitos,
+.internaColumna {
     display: flex;
     flex-direction: column;
     gap: var(--dashboard-espacioLg);
@@ -65,4 +66,50 @@
 .dashboardPanel {
     background-color: var(--dashboard-fondoSecundario);
     border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+/* 
+ * SCROLLBAR GLOBAL MINIMALISTA
+ * Aplica a todo el dashboard: delgado, semitransparente, dark mode
+ */
+.dashboardContenedor *::-webkit-scrollbar {
+    width: var(--dashboard-scrollbarAncho);
+    height: var(--dashboard-scrollbarAncho);
+}
+
+.dashboardContenedor *::-webkit-scrollbar-track {
+    background: var(--dashboard-scrollbarFondo);
+}
+
+.dashboardContenedor *::-webkit-scrollbar-thumb {
+    background: var(--dashboard-scrollbarThumb);
+    border-radius: 2px;
+}
+
+.dashboardContenedor *::-webkit-scrollbar-thumb:hover {
+    background: var(--dashboard-scrollbarThumbHover);
+}
+
+/* Firefox - aplicar a elementos con scroll */
+.dashboardContenedor * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--dashboard-scrollbarThumb) var(--dashboard-scrollbarFondo);
+}
+
+/* Scrollbar para textareas */
+.dashboardContenedor textarea::-webkit-scrollbar {
+    width: var(--dashboard-scrollbarAncho);
+}
+
+.dashboardContenedor textarea::-webkit-scrollbar-track {
+    background: var(--dashboard-scrollbarFondo);
+}
+
+.dashboardContenedor textarea::-webkit-scrollbar-thumb {
+    background: var(--dashboard-scrollbarThumb);
+    border-radius: 2px;
+}
+
+.dashboardContenedor textarea::-webkit-scrollbar-thumb:hover {
+    background: var(--dashboard-scrollbarThumbHover);
 }

@@ -10,3 +10,6 @@ export * from './SelectorDias';
 export * from './DashboardPanel';
 export * from './BadgeInfo';
 export * from './AccionesItem';
+export * from './CampoTexto';
+export * from './CampoFechaLimite';
+export * from './CampoPrioridad';

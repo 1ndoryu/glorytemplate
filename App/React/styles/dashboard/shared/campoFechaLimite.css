@@ -1,0 +1,117 @@
+/*
+ * Campo Fecha Limite
+ * Estilos para el campo de fecha con indicadores de urgencia
+ */
+
+/* 
+ * Contenedor principal 
+ */
+.campoFechaLimiteContenedor {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    position: relative;
+}
+
+.campoFechaLimiteVencida {
+    border-left: 3px solid var(--dashboard-estadoAlta);
+    padding-left: var(--dashboard-espacioSm);
+}
+
+.campoFechaLimiteUrgente {
+    border-left: 3px solid var(--dashboard-estadoMedia);
+    padding-left: var(--dashboard-espacioSm);
+}
+
+.campoFechaLimiteProxima {
+    border-left: 3px solid var(--dashboard-estadoExito);
+    padding-left: var(--dashboard-espacioSm);
+}
+
+/* 
+ * Input de fecha 
+ */
+.campoFechaLimiteInput {
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    outline: none;
+    transition: border-color var(--dashboard-transicionNormal);
+    min-width: 160px;
+}
+
+.campoFechaLimiteInput:focus {
+    border-color: var(--dashboard-textoApagado);
+}
+
+.campoFechaLimiteInput::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+}
+
+.campoFechaLimiteInput:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 
+ * Alertas de urgencia 
+ */
+.campoFechaLimiteAlerta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-radius: 2px;
+}
+
+.campoFechaLimiteAlertaVencida {
+    background-color: var(--dashboard-estadoAltaFondo);
+    color: var(--dashboard-estadoAlta);
+    border: 1px solid var(--dashboard-estadoAltaBorde);
+}
+
+.campoFechaLimiteAlertaUrgente {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.campoFechaLimiteAlertaProxima {
+    background-color: var(--dashboard-estadoExitoFondo);
+    color: var(--dashboard-estadoExito);
+    border: 1px solid var(--dashboard-estadoExitoBorde);
+}
+
+/* 
+ * Boton limpiar 
+ */
+.campoFechaLimiteBotonLimpiar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.campoFechaLimiteBotonLimpiar:hover {
+    color: var(--dashboard-estadoAlta);
+    border-color: var(--dashboard-estadoAltaBorde);
+}
+
+.campoFechaLimiteBotonLimpiar:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

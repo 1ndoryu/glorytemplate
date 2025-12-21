@@ -77,4 +77,12 @@
      */
     --dashboard-transicionRapida: 0.15s ease;
     --dashboard-transicionNormal: 0.2s ease;
+
+    /* 
+     * SCROLLBAR MINIMALISTA 
+     */
+    --dashboard-scrollbarAncho: 4px;
+    --dashboard-scrollbarFondo: transparent;
+    --dashboard-scrollbarThumb: rgba(255, 255, 255, 0.15);
+    --dashboard-scrollbarThumbHover: rgba(255, 255, 255, 0.25);
 }

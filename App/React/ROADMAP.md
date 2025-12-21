@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Fase de Estandarización UI/UX (En Progreso).
+**Estado:** Fase de Estandarización UI/UX (Completada). Proxima: API REST WordPress.
 
 ---
 
@@ -191,6 +191,11 @@ App/React/
     SeccionPanel.tsx          # Wrapper de seccion
     ToggleSwitch.tsx          # Interruptor
     SelectorDias.tsx          # Selector dias semana
+    BadgeInfo.tsx             # Badges de informacion
+    AccionesItem.tsx          # Acciones inline (hover)
+    CampoTexto.tsx            # Campo texto/textarea reutilizable
+    CampoPrioridad.tsx        # Selector prioridad/importancia
+    CampoFechaLimite.tsx      # Campo fecha con indicadores
     index.ts
   components/dashboard/
     SelectorFrecuencia.tsx    # Selector frecuencia habitos
@@ -208,9 +213,10 @@ App/React/styles/dashboard/
   variables.css               # Tokens de diseno
   animaciones.css             # Keyframes
   base.css                    # Contenedor y grid
-  shared/                     # Estilos reutilizables (NUEVO)
-    accionesFormulario.css, selectorNivel.css, 
-    seccionPanel.css, toggleSwitch.css, modal.css
+  shared/                     # Estilos reutilizables
+    accionesFormulario.css, selectorNivel.css, seccionPanel.css,
+    toggleSwitch.css, dashboardPanel.css, badgeInfo.css,
+    accionesItem.css, campoFechaLimite.css
   componentes/
     encabezado.css, tabla.css, tareas.css, scratchpad.css,
     formulario.css, toast.css, ordenamiento.css,
@@ -274,7 +280,10 @@ App/React/styles/dashboard/
 - [x] **Ordenamiento de Badges**: Orden visual consistente (fecha > adjuntos > descripción > repetición > prioridad).
 
 ### Refactorización de Componentes Compartidos
-- [ ] **PanelConfiguracion base**: Extraer lógica común de `PanelConfiguracionTarea` a un componente genérico y usar las opciones comunes en los demas paneles.
+- [x] **Campos de formulario reutilizables**: Extraer campos comunes a componentes genericos:
+  - `CampoTexto`: Input/textarea con manejo de errores y SeccionPanel integrado.
+  - `CampoPrioridad`: Selector de prioridad/importancia con soporte para valor nulo.
+  - `CampoFechaLimite`: Input de fecha con indicadores de urgencia visuales.
 - [x] **BadgeInfo**: Componente para mostrar badges de información (adjuntos, descripción, repetición, fecha, prioridad, frecuencia, racha).
 - [x] **AccionesItem**: Componente para los botones de acción inline (configurar, eliminar).
 
@@ -295,7 +304,7 @@ App/React/styles/dashboard/
 - [ ] Estadisticas de tareas completadas hoy
 - [ ] Soporte markdown basico en descripcion (opcional)
 - [ ] Historial de repeticiones (log)
-- [ ] Almacenamiento real de adjuntos (WP Media Library - Requiere Backend)
+- [ ] Almacenamiento real de adjuntos (WP Media Library - Requiere Backend) (Esto tiene que sr seguro y no accesible desde internet ni exponerse, toda la informacion privada debe estar cifrada y protegida)
 
 ### Scratchpad
 - [ ] Toggle entre edicion y preview markdown

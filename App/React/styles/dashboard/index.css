@@ -30,6 +30,7 @@
 @import './shared/dashboardPanel.css';
 @import './shared/badgeInfo.css';
 @import './shared/accionesItem.css';
+@import './shared/campoFechaLimite.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';

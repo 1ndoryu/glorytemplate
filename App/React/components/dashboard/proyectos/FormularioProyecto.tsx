@@ -2,12 +2,14 @@
  * FormularioProyecto
  * Formulario para crear/editar un proyecto
  * Responsabilidad unica: capturar datos del proyecto con validacion
+ *
+ * Usa campos compartidos: CampoTexto, CampoPrioridad, CampoFechaLimite
  */
 
 import {useState, useCallback} from 'react';
 import type {NivelPrioridad} from '../../../types/dashboard';
 import type {DatosNuevoProyecto} from '../../../hooks/useProyectos';
-import {AccionesFormulario, SeccionPanel, SelectorNivel} from '../../shared';
+import {AccionesFormulario, CampoTexto, CampoPrioridad, CampoFechaLimite} from '../../shared';
 
 interface FormularioProyectoProps {
     onGuardar: (datos: DatosNuevoProyecto) => void;
@@ -17,8 +19,6 @@ interface FormularioProyectoProps {
     guardando?: boolean;
     modoEdicion?: boolean;
 }
-
-const PRIORIDADES: NivelPrioridad[] = ['alta', 'media', 'baja'];
 
 export function FormularioProyecto({onGuardar, onCancelar, onEliminar, datosIniciales, guardando = false, modoEdicion = false}: FormularioProyectoProps): JSX.Element {
     const [nombre, setNombre] = useState(datosIniciales?.nombre || '');
@@ -55,26 +55,17 @@ export function FormularioProyecto({onGuardar, onCancelar, onEliminar, datosInic
 
     return (
         <form id="formulario-proyecto" className="formularioHabito" onSubmit={manejarSubmit}>
-            {/* Campo Nombre */}
-            <SeccionPanel titulo="Nombre del proyecto">
-                <input id="proyecto-nombre" type="text" className={`formularioInput ${errores.nombre ? 'formularioInputError' : ''}`} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Lanzar Web Personal" autoFocus disabled={guardando} />
-                {errores.nombre && <span className="formularioMensajeError">{errores.nombre}</span>}
-            </SeccionPanel>
+            {/* Campo Nombre - Campo reutilizable */}
+            <CampoTexto id="proyecto-nombre" titulo="Nombre del proyecto" valor={nombre} onChange={setNombre} placeholder="Ej: Lanzar Web Personal" error={errores.nombre} autoFocus disabled={guardando} />
 
-            {/* Campo Descripcion */}
-            <SeccionPanel titulo="Descripcion (opcional)">
-                <textarea id="proyecto-descripcion" className="formularioInput formularioTextarea" value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Describe brevemente el objetivo del proyecto..." rows={3} disabled={guardando} />
-            </SeccionPanel>
+            {/* Campo Descripcion - Campo reutilizable */}
+            <CampoTexto id="proyecto-descripcion" titulo="Descripcion (opcional)" valor={descripcion} onChange={setDescripcion} placeholder="Describe brevemente el objetivo del proyecto..." tipo="textarea" filas={3} disabled={guardando} />
 
-            {/* Campo Prioridad */}
-            <SeccionPanel titulo="Prioridad">
-                <SelectorNivel<NivelPrioridad> niveles={PRIORIDADES} seleccionado={prioridad} onSeleccionar={setPrioridad} disabled={guardando} />
-            </SeccionPanel>
+            {/* Campo Prioridad - Campo reutilizable */}
+            <CampoPrioridad<NivelPrioridad> tipo="prioridad" valor={prioridad} onChange={val => setPrioridad(val || 'media')} permitirNulo={false} disabled={guardando} />
 
-            {/* Campo Fecha Limite */}
-            <SeccionPanel titulo="Fecha limite (opcional)">
-                <input id="proyecto-fecha-limite" type="date" className="formularioInput" value={fechaLimite} onChange={e => setFechaLimite(e.target.value)} disabled={guardando} />
-            </SeccionPanel>
+            {/* Campo Fecha Limite - Campo reutilizable */}
+            <CampoFechaLimite titulo="Fecha limite (opcional)" valor={fechaLimite} onChange={setFechaLimite} mostrarBotonLimpiar={true} disabled={guardando} />
 
             {/* Acciones */}
             <AccionesFormulario onCancelar={onCancelar} textoGuardar={modoEdicion ? 'Guardar cambios' : 'Crear proyecto'} guardando={guardando} onEliminar={modoEdicion && onEliminar ? onEliminar : undefined} textoEliminar="Eliminar proyecto" />
