@@ -118,7 +118,15 @@ class DashboardApiController
                 'args' => [
                     'habilitar' => [
                         'required' => true,
-                        'validate_callback' => fn($param) => is_bool($param),
+                        'validate_callback' => function ($param) {
+                            return is_bool($param) || $param === 'true' || $param === 'false' || $param === 1 || $param === 0 || $param === '1' || $param === '0';
+                        },
+                        'sanitize_callback' => function ($param) {
+                            if (is_bool($param)) {
+                                return $param;
+                            }
+                            return $param === 'true' || $param === '1' || $param === 1;
+                        },
                     ],
                 ],
             ],
