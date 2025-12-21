@@ -32,6 +32,7 @@
 @import './shared/accionesItem.css';
 @import './shared/campoFechaLimite.css';
 @import './shared/indicadorSincronizacion.css';
+@import './shared/suscripcion.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';

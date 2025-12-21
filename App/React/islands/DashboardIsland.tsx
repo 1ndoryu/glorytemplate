@@ -7,11 +7,12 @@
 import {useState, useEffect} from 'react';
 import {Terminal, AlertCircle, FileText} from 'lucide-react';
 import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden, ListaProyectos, FormularioProyecto, ModalLogin} from '../components/dashboard';
-import {ToastDeshacer} from '../components/shared/ToastDeshacer';
+import {ToastDeshacer, ModalUpgrade} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {useDashboard} from '../hooks/useDashboard';
 import {useOrdenarHabitos} from '../hooks/useOrdenarHabitos';
 import {useAuth} from '../hooks/useAuth';
+import {useSuscripcion} from '../hooks/useSuscripcion';
 import type {Proyecto} from '../types/dashboard';
 
 interface DashboardIslandProps {
@@ -44,6 +45,10 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
     /* Auth */
     const {loginWithGoogle, loginWithCredentials, register, handleCallback, logout, loading: authLoading, error: authError, user} = useAuth();
     const [modalLoginAbierto, setModalLoginAbierto] = useState(false);
+
+    /* Suscripción */
+    const {suscripcion, activarTrial, cargando: cargandoSuscripcion} = useSuscripcion();
+    const [modalUpgradeAbierto, setModalUpgradeAbierto] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -110,6 +115,8 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                     onLogout: logout,
                     estaLogueado: !!user
                 }}
+                suscripcion={suscripcion}
+                onClickPlan={() => setModalUpgradeAbierto(true)}
             />
 
             {cargandoDatos ? (
@@ -202,6 +209,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
             {/* Toast de deshacer */}
             {accionDeshacer && <ToastDeshacer mensaje={accionDeshacer.mensaje} tiempoRestante={accionDeshacer.tiempoRestante} tiempoTotal={5000} onDeshacer={ejecutarDeshacer} onDescartar={descartarDeshacer} />}
+
+            {/* Modal de upgrade */}
+            <ModalUpgrade visible={modalUpgradeAbierto} onCerrar={() => setModalUpgradeAbierto(false)} suscripcion={suscripcion} onActivarTrial={activarTrial} cargando={cargandoSuscripcion} />
         </div>
     );
 }

@@ -14,3 +14,5 @@ export * from './CampoTexto';
 export * from './CampoFechaLimite';
 export * from './CampoPrioridad';
 export * from './IndicadorSincronizacion';
+export * from './IndicadorPlan';
+export * from './ModalUpgrade';

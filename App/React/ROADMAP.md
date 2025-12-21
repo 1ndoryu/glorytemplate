@@ -344,6 +344,27 @@ App/React/hooks/
 - [ ] Service Worker para offline
 - [ ] Instalable en móvil
 
+### Sistema de Notificaciones por Correo
+
+**Notificaciones Automáticas:**
+- [ ] Tarea por vencer (configurable: 1 día, 3 días, 1 semana antes)
+- [ ] Tareas vencidas sin completar
+- [ ] Resumen diario de hábitos que "tocan hoy"
+- [ ] Resumen semanal de progreso
+- [ ] Alerta de racha en peligro
+
+**Configuración de Usuario:**
+- [ ] Activar/desactivar tipos de notificación
+- [ ] Frecuencia de resumen (diario, semanal, nunca)
+- [ ] Hora preferida para recibir emails
+- [ ] Unsubscribe fácil
+
+**Implementación Técnica:**
+- [ ] Cola de emails (wp_cron o queue externa)
+- [ ] Templates HTML responsive
+- [ ] Tracking de apertura (opcional)
+- [ ] Integración con servicios de email (SendGrid, Mailgun, etc.)
+
 </details>
 
 ---
@@ -413,27 +434,6 @@ App/React/hooks/
 - [ ] Rate limiting para prevenir abuso
 - [ ] Validacion estricta de inputs
 - [ ] Logs de auditoria
-
-### Sistema de Notificaciones por Correo
-
-**Notificaciones Automaticas:**
-- [ ] Tarea por vencer (configurable: 1 dia, 3 dias, 1 semana antes)
-- [ ] Tareas vencidas sin completar
-- [ ] Resumen diario de habitos que "tocan hoy"
-- [ ] Resumen semanal de progreso
-- [ ] Alerta de racha en peligro
-
-**Configuracion de Usuario:**
-- [ ] Activar/desactivar tipos de notificacion
-- [ ] Frecuencia de resumen (diario, semanal, nunca)
-- [ ] Hora preferida para recibir emails
-- [ ] Unsubscribe facil
-
-**Implementacion Tecnica:**
-- [ ] Cola de emails (wp_cron o queue externa)
-- [ ] Templates HTML responsive
-- [ ] Tracking de apertura (opcional)
-- [ ] Integracion con servicios de email (SendGrid, Mailgun, etc.)
 
 ### Modelo Freemium
 

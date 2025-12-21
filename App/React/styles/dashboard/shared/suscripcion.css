@@ -1,0 +1,351 @@
+/*
+ * Estilos para IndicadorPlan y ModalUpgrade
+ * Sistema de suscripción Freemium
+ * Diseño premium estilo terminal
+ */
+
+/* 
+ * IndicadorPlan - Badge compacto en header
+ */
+.indicadorPlan {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    border-radius: 2px;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+    border: 1px solid transparent;
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.indicadorPlan::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity var(--dashboard-transicionNormal);
+}
+
+.indicadorPlan:hover::before {
+    opacity: 1;
+}
+
+.indicadorPlan:hover {
+    transform: translateY(-1px);
+}
+
+.indicadorPlan__icono {
+    font-size: 0.85em;
+    line-height: 1;
+}
+
+.indicadorPlan__texto {
+    position: relative;
+    z-index: 1;
+}
+
+/* Variante FREE */
+.indicadorPlan--free {
+    color: var(--dashboard-textoSecundario);
+    border-color: var(--dashboard-bordePrincipal);
+    background: var(--dashboard-fondoSecundario);
+}
+
+.indicadorPlan--free::before {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+}
+
+.indicadorPlan--free:hover {
+    color: var(--dashboard-textoNormal);
+    border-color: var(--dashboard-textoSecundario);
+}
+
+/* Variante PREMIUM - Dorado elegante */
+.indicadorPlan--premium {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.4);
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(251, 191, 36, 0.02) 100%);
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.1), inset 0 1px 0 rgba(251, 191, 36, 0.1);
+}
+
+.indicadorPlan--premium::before {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, transparent 100%);
+}
+
+.indicadorPlan--premium:hover {
+    border-color: rgba(251, 191, 36, 0.6);
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.2), inset 0 1px 0 rgba(251, 191, 36, 0.15);
+}
+
+/* Variante TRIAL - Azul sutil con pulso */
+.indicadorPlan--trial {
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.4);
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, rgba(96, 165, 250, 0.02) 100%);
+    animation: trialPulso 3s ease-in-out infinite;
+}
+
+.indicadorPlan--trial::before {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, transparent 100%);
+}
+
+.indicadorPlan--trial:hover {
+    border-color: rgba(96, 165, 250, 0.6);
+    animation: none;
+}
+
+@keyframes trialPulso {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 8px 2px rgba(96, 165, 250, 0.15);
+    }
+}
+
+/* 
+ * ModalUpgrade - Modal de comparativa de planes
+ */
+.modalUpgrade {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.modalUpgrade__encabezado {
+    text-align: center;
+    padding: var(--dashboard-espacioLg) 0 var(--dashboard-espacioXl);
+    margin-bottom: var(--dashboard-espacioLg);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    position: relative;
+}
+
+.modalUpgrade__encabezado::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--dashboard-textoSecundario), transparent);
+}
+
+.modalUpgrade__icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto var(--dashboard-espacioMd);
+    font-size: 1.5rem;
+    border-radius: 50%;
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.modalUpgrade__encabezado h2 {
+    margin: 0 0 var(--dashboard-espacioXs);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--dashboard-textoActivo);
+    letter-spacing: -0.01em;
+}
+
+.modalUpgrade__subtitulo {
+    margin: 0;
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+}
+
+.modalUpgrade__subtitulo strong {
+    color: var(--dashboard-textoNormal);
+}
+
+/* Encabezado variantes */
+.modalUpgrade__encabezado--trial .modalUpgrade__icono {
+    color: #60a5fa;
+    border-color: rgba(96, 165, 250, 0.3);
+    background: rgba(96, 165, 250, 0.08);
+}
+
+.modalUpgrade__encabezado--premium .modalUpgrade__icono {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.3);
+    background: rgba(251, 191, 36, 0.08);
+}
+
+/* 
+ * Tabla comparativa
+ */
+.modalUpgrade__comparativa {
+    margin-bottom: var(--dashboard-espacioLg);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--dashboard-fondoSecundario);
+}
+
+.modalUpgrade__columnas {
+    display: grid;
+    grid-template-columns: 1fr 90px 90px;
+    background: var(--dashboard-fondoPrincipal);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-weight: 600;
+    font-size: var(--dashboard-tamanoPequeno);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.modalUpgrade__columna {
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    text-align: center;
+    color: var(--dashboard-textoSecundario);
+}
+
+.modalUpgrade__columna--header {
+    text-align: left;
+}
+
+.modalUpgrade__columna--free {
+    color: var(--dashboard-textoApagado);
+}
+
+.modalUpgrade__columna--premium {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.03);
+    position: relative;
+}
+
+.modalUpgrade__columna--premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.5), transparent);
+}
+
+.modalUpgrade__fila {
+    display: grid;
+    grid-template-columns: 1fr 90px 90px;
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    transition: background var(--dashboard-transicionRapida);
+}
+
+.modalUpgrade__fila:last-child {
+    border-bottom: none;
+}
+
+.modalUpgrade__fila:hover {
+    background: var(--dashboard-fondoHover);
+}
+
+.modalUpgrade__caracteristica {
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoBase);
+    color: var(--dashboard-textoNormal);
+}
+
+.modalUpgrade__valor {
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    text-align: center;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalUpgrade__valor--free {
+    color: var(--dashboard-textoApagado);
+}
+
+.modalUpgrade__valor--premium {
+    color: var(--dashboard-estadoExito);
+    background: rgba(251, 191, 36, 0.02);
+}
+
+/* 
+ * Botones de acción
+ */
+.modalUpgrade__acciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+    padding-top: var(--dashboard-espacioMd);
+}
+
+.modalUpgrade__boton {
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioLg);
+    border-radius: 2px;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoBase);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+    border: 1px solid transparent;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.modalUpgrade__boton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Botón primario (Obtener Premium) - Dorado */
+.modalUpgrade__boton--primario {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #000;
+    border-color: #fbbf24;
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.modalUpgrade__boton--primario:hover:not(:disabled) {
+    background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Botón trial - Azul */
+.modalUpgrade__boton--trial {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #fff;
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.modalUpgrade__boton--trial:hover:not(:disabled) {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+/* Botón secundario - Ghost */
+.modalUpgrade__boton--secundario {
+    background: transparent;
+    color: var(--dashboard-textoSecundario);
+    border-color: var(--dashboard-bordePrincipal);
+}
+
+.modalUpgrade__boton--secundario:hover:not(:disabled) {
+    color: var(--dashboard-textoNormal);
+    border-color: var(--dashboard-textoSecundario);
+    background: var(--dashboard-fondoSecundario);
+}

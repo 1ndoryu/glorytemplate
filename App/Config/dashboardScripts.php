@@ -60,6 +60,8 @@ class DashboardScripts
     private static function localizeScripts(): void
     {
         $currentUser = null;
+        $suscripcion = null;
+
         if (is_user_logged_in()) {
             $user = wp_get_current_user();
             $currentUser = [
@@ -67,6 +69,10 @@ class DashboardScripts
                 'email' => $user->user_email,
                 'login' => $user->user_login
             ];
+
+            /* Obtener info de suscripción */
+            $suscripcionService = new \App\Services\SuscripcionService(get_current_user_id());
+            $suscripcion = $suscripcionService->getInfoCompleta();
         }
 
         $data = [
@@ -75,6 +81,7 @@ class DashboardScripts
             'userId' => get_current_user_id(),
             'isLoggedIn' => is_user_logged_in(),
             'currentUser' => $currentUser,
+            'suscripcion' => $suscripcion,
             'locale' => get_locale(),
         ];
 

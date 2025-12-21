@@ -68,42 +68,29 @@ class DashboardRepository
 
         try {
             if (isset($data['habitos'])) {
-                $res = $this->setHabitos($data['habitos']);
-                $results['habitos'] = $res;
-                error_log("[DashboardRepo] setHabitos: " . ($res ? 'OK' : 'FAIL'));
+                $results['habitos'] = $this->setHabitos($data['habitos']);
             }
 
             if (isset($data['tareas'])) {
-                $res = $this->setTareas($data['tareas']);
-                $results['tareas'] = $res;
-                error_log("[DashboardRepo] setTareas: " . ($res ? 'OK' : 'FAIL'));
+                $results['tareas'] = $this->setTareas($data['tareas']);
             }
 
             if (isset($data['proyectos'])) {
-                $res = $this->setProyectos($data['proyectos']);
-                $results['proyectos'] = $res;
-                error_log("[DashboardRepo] setProyectos: " . ($res ? 'OK' : 'FAIL'));
+                $results['proyectos'] = $this->setProyectos($data['proyectos']);
             }
 
             if (isset($data['notas'])) {
-                $res = $this->setNotas($data['notas']);
-                $results['notas'] = $res;
-                error_log("[DashboardRepo] setNotas: " . ($res ? 'OK' : 'FAIL'));
+                $results['notas'] = $this->setNotas($data['notas']);
             }
 
             if (isset($data['configuracion'])) {
-                $res = $this->setConfiguracion($data['configuracion']);
-                $results['configuracion'] = $res;
-                error_log("[DashboardRepo] setConfiguracion: " . ($res ? 'OK' : 'FAIL'));
+                $results['configuracion'] = $this->setConfiguracion($data['configuracion']);
             }
 
             $this->updateSyncStatus($timestamp);
             $wpdb->query('COMMIT');
 
-            $allOk = !in_array(false, $results, true);
-            error_log("[DashboardRepo] saveAll final: " . ($allOk ? 'OK' : 'FAIL') . " results: " . json_encode($results));
-
-            return $allOk;
+            return !in_array(false, $results, true);
         } catch (\Exception $e) {
             $wpdb->query('ROLLBACK');
             error_log('[DashboardRepo] Error saving dashboard: ' . $e->getMessage());

@@ -4,7 +4,8 @@
  * Responsabilidad única: mostrar logo, título y navegación
  */
 
-import {IndicadorSincronizacion} from '../shared';
+import {IndicadorSincronizacion, IndicadorPlan} from '../shared';
+import type {InfoSuscripcion} from '../../types/dashboard';
 
 interface SincronizacionInfo {
     sincronizado: boolean;
@@ -21,9 +22,11 @@ interface DashboardEncabezadoProps {
     version?: string;
     usuario?: string;
     sincronizacion?: SincronizacionInfo;
+    suscripcion?: InfoSuscripcion | null;
+    onClickPlan?: () => void;
 }
 
-export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion}: DashboardEncabezadoProps): JSX.Element {
+export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion, suscripcion, onClickPlan}: DashboardEncabezadoProps): JSX.Element {
     const estaConectado = sincronizacion?.estaLogueado ?? false;
 
     return (
@@ -33,6 +36,7 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-
                 <span className="encabezadoTitulo">{titulo}</span>
             </div>
             <nav className="encabezadoNav">
+                {suscripcion && <IndicadorPlan suscripcion={suscripcion} onClick={onClickPlan} />}
                 {sincronizacion && <IndicadorSincronizacion sincronizado={sincronizacion.sincronizado} pendiente={sincronizacion.pendiente} error={sincronizacion.error} estaLogueado={sincronizacion.estaLogueado} onSincronizar={sincronizacion.sincronizarAhora} onLogin={sincronizacion.onLogin} onLogout={sincronizacion.onLogout} />}
                 <span className="encabezadoEnlace">{version}</span>
                 <span className={`estadoConexion ${estaConectado ? 'estadoConexion--conectado' : 'estadoConexion--local'}`}>

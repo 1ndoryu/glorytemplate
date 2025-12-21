@@ -193,3 +193,48 @@ export interface DatosEdicionTarea {
     configuracion?: TareaConfiguracion;
     proyectoId?: number;
 }
+
+/*
+ * Tipos para el sistema de suscripción (Freemium)
+ */
+
+export type PlanSuscripcion = 'free' | 'premium';
+export type EstadoSuscripcion = 'activa' | 'trial' | 'expirada';
+
+/*
+ * Límites por plan
+ */
+export interface LimitesPlan {
+    habitos: number /* -1 = ilimitado */;
+    tareasActivas: number /* -1 = ilimitado */;
+    proyectos: number /* -1 = ilimitado */;
+    adjuntosPorTarea: number /* 0 = no disponible */;
+    sincronizacion: boolean;
+    estadisticasAvanzadas: boolean;
+    temas: boolean;
+    cifradoE2E: boolean;
+}
+
+/*
+ * Información completa de suscripción
+ */
+export interface InfoSuscripcion {
+    plan: PlanSuscripcion;
+    estado: EstadoSuscripcion;
+    esPremium: boolean;
+    diasRestantes: number | null;
+    trialDisponible: boolean;
+    limites: LimitesPlan;
+    fechaInicio: string;
+    fechaExpiracion: string | null;
+}
+
+/*
+ * Error de límite excedido
+ */
+export interface ErrorLimite {
+    tipo: 'habitos' | 'tareas' | 'proyectos' | 'adjuntos';
+    limite: number;
+    actual: number;
+    mensaje: string;
+}

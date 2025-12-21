@@ -17,6 +17,7 @@
 namespace App\Api;
 
 use App\Repository\DashboardRepository;
+use App\Services\SuscripcionService;
 
 class DashboardApiController
 {
@@ -87,6 +88,19 @@ class DashboardApiController
                 ],
             ],
         ]);
+
+        /* Endpoints de suscripción */
+        register_rest_route(self::API_NAMESPACE, '/suscripcion', [
+            'methods' => \WP_REST_Server::READABLE,
+            'callback' => [self::class, 'getSuscripcion'],
+            'permission_callback' => [self::class, 'requireAuthentication'],
+        ]);
+
+        register_rest_route(self::API_NAMESPACE, '/suscripcion/trial', [
+            'methods' => \WP_REST_Server::CREATABLE,
+            'callback' => [self::class, 'activarTrial'],
+            'permission_callback' => [self::class, 'requireAuthentication'],
+        ]);
     }
 
     /**
@@ -139,13 +153,8 @@ class DashboardApiController
         $userId = get_current_user_id();
 
         try {
-            error_log("[DashboardAPI] loadDashboard iniciado para userId: $userId");
-
             $repository = new DashboardRepository($userId);
-            error_log("[DashboardAPI] Repository creado");
-
             $data = $repository->loadAll();
-            error_log("[DashboardAPI] loadAll completado");
 
             return new \WP_REST_Response([
                 'success' => true,
@@ -157,16 +166,14 @@ class DashboardApiController
                 ],
             ], 200);
         } catch (\Exception $e) {
-            error_log("[DashboardAPI] ERROR: " . $e->getMessage());
-            error_log("[DashboardAPI] TRACE: " . $e->getTraceAsString());
+            error_log("[DashboardAPI] ERROR loadDashboard: " . $e->getMessage());
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => 'Error al cargar datos: ' . $e->getMessage(),
                 'code' => 'load_error',
             ], 500);
         } catch (\Error $e) {
-            error_log("[DashboardAPI] FATAL ERROR: " . $e->getMessage());
-            error_log("[DashboardAPI] TRACE: " . $e->getTraceAsString());
+            error_log("[DashboardAPI] FATAL loadDashboard: " . $e->getMessage());
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => 'Error fatal: ' . $e->getMessage(),
@@ -181,7 +188,6 @@ class DashboardApiController
     public static function saveDashboard(\WP_REST_Request $request): \WP_REST_Response
     {
         $userId = get_current_user_id();
-        error_log("[DashboardAPI] saveDashboard iniciado para userId: $userId");
 
         $data = [
             'habitos' => $request->get_param('habitos') ?? [],
@@ -191,11 +197,22 @@ class DashboardApiController
             'configuracion' => $request->get_param('configuracion') ?? [],
         ];
 
-        error_log("[DashboardAPI] Datos recibidos - habitos:" . count($data['habitos']) . " tareas:" . count($data['tareas']) . " proyectos:" . count($data['proyectos']));
-
         try {
             $repository = new DashboardRepository($userId);
-            error_log("[DashboardAPI] Repository creado para save");
+            $suscripcionService = new SuscripcionService($userId);
+
+            /* Validar límites del plan */
+            $erroresLimite = $suscripcionService->validarLimites($data);
+            if (!empty($erroresLimite)) {
+                error_log("[DashboardAPI] Límites excedidos: " . json_encode($erroresLimite));
+                return new \WP_REST_Response([
+                    'success' => false,
+                    'message' => 'Límites del plan excedidos',
+                    'errors' => $erroresLimite,
+                    'code' => 'plan_limit_exceeded',
+                    'suscripcion' => $suscripcionService->getInfoCompleta(),
+                ], 403);
+            }
 
             /* Validar estructura de datos */
             $validation = $repository->validateData($data);
@@ -209,21 +226,17 @@ class DashboardApiController
                 ], 400);
             }
 
-            error_log("[DashboardAPI] Validacion OK, guardando...");
-
             /* Guardar datos */
             $result = $repository->saveAll($data);
-            error_log("[DashboardAPI] saveAll resultado: " . ($result ? 'true' : 'false'));
 
             if (!$result) {
+                error_log("[DashboardAPI] saveAll devolvió false");
                 return new \WP_REST_Response([
                     'success' => false,
                     'message' => 'Error al guardar datos',
                     'code' => 'save_error',
                 ], 500);
             }
-
-            error_log("[DashboardAPI] saveDashboard completado exitosamente");
 
             return new \WP_REST_Response([
                 'success' => true,
@@ -240,16 +253,14 @@ class DashboardApiController
                 ],
             ], 200);
         } catch (\Exception $e) {
-            error_log("[DashboardAPI] SAVE ERROR: " . $e->getMessage());
-            error_log("[DashboardAPI] SAVE TRACE: " . $e->getTraceAsString());
+            error_log("[DashboardAPI] ERROR saveDashboard: " . $e->getMessage());
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => 'Error interno: ' . $e->getMessage(),
                 'code' => 'internal_error',
             ], 500);
         } catch (\Error $e) {
-            error_log("[DashboardAPI] SAVE FATAL ERROR: " . $e->getMessage());
-            error_log("[DashboardAPI] SAVE TRACE: " . $e->getTraceAsString());
+            error_log("[DashboardAPI] FATAL saveDashboard: " . $e->getMessage());
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => 'Error fatal: ' . $e->getMessage(),
@@ -334,6 +345,55 @@ class DashboardApiController
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => 'Error al aplicar cambios: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtiene información de suscripción del usuario
+     */
+    public static function getSuscripcion(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = get_current_user_id();
+
+        try {
+            $service = new SuscripcionService($userId);
+            $info = $service->getInfoCompleta();
+
+            return new \WP_REST_Response([
+                'success' => true,
+                'data' => $info,
+            ], 200);
+        } catch (\Exception $e) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Error al obtener suscripción: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Activa el trial de Premium
+     */
+    public static function activarTrial(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = get_current_user_id();
+
+        try {
+            $service = new SuscripcionService($userId);
+            $resultado = $service->activarTrial();
+
+            $status = $resultado['exito'] ? 200 : 400;
+
+            return new \WP_REST_Response([
+                'success' => $resultado['exito'],
+                'message' => $resultado['mensaje'],
+                'data' => $resultado['suscripcion'] ?? $service->getInfoCompleta(),
+            ], $status);
+        } catch (\Exception $e) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Error al activar trial: ' . $e->getMessage(),
             ], 500);
         }
     }
