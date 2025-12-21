@@ -31,6 +31,7 @@
 @import './shared/badgeInfo.css';
 @import './shared/accionesItem.css';
 @import './shared/campoFechaLimite.css';
+@import './shared/indicadorSincronizacion.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';

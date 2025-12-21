@@ -21,6 +21,12 @@ try {
     error_log('Error al cargar el archivo .env: ' . $e->getMessage());
 }
 
+/*
+ * IMPORTANTE
+ * /App son cosas especificas del proyecto.
+ * /Glory debe mantener agnostico a cualquier proyecto.
+ */
+
 $glory_loader = get_template_directory() . '/Glory/load.php';
 if (file_exists($glory_loader)) {
     require_once $glory_loader;

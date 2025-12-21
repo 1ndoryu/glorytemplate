@@ -1,0 +1,109 @@
+/* 
+ * Indicador de Sincronización
+ * Muestra el estado de sync con el servidor
+ */
+
+.indicadorSync {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacio-xs);
+    padding: var(--espacio-xs) var(--espacio-sm);
+    border-radius: var(--radio-sm);
+    font-size: var(--fuente-xs);
+    font-family: var(--fuente-mono);
+    border: none;
+    background: transparent;
+    cursor: default;
+    transition: all var(--transicion-rapida);
+}
+
+/* 
+ * Estado sincronizado
+ */
+.indicadorSync--ok {
+    color: var(--color-exito);
+    opacity: 0.7;
+}
+
+.indicadorSync--ok:hover {
+    opacity: 1;
+}
+
+.indicadorSync--ok .indicadorSync__icono {
+    font-size: var(--fuente-sm);
+}
+
+/* 
+ * Estado pendiente / sincronizando
+ */
+.indicadorSync--pendiente {
+    color: var(--color-advertencia);
+}
+
+.indicadorSync__spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spinSync 0.8s linear infinite;
+}
+
+@keyframes spinSync {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 
+ * Estado error
+ */
+.indicadorSync--error {
+    color: var(--color-error);
+    cursor: pointer;
+    background: rgba(var(--color-error-rgb), 0.1);
+}
+
+.indicadorSync--error:hover {
+    background: rgba(var(--color-error-rgb), 0.2);
+}
+
+/* 
+ * Estado offline / modo local
+ */
+.indicadorSync--offline {
+    color: var(--color-texto-secundario);
+    opacity: 0.6;
+}
+
+.indicadorSync--offline .indicadorSync__icono {
+    position: relative;
+}
+
+.indicadorSync--offline .indicadorSync__icono::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: currentColor;
+    transform: rotate(-45deg);
+}
+
+/* 
+ * Texto del indicador
+ */
+.indicadorSync__texto {
+    white-space: nowrap;
+}
+
+/* 
+ * Ocultar texto en pantallas pequeñas
+ */
+@media (max-width: 768px) {
+    .indicadorSync__texto {
+        display: none;
+    }
+}

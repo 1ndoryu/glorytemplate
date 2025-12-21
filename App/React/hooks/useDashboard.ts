@@ -6,13 +6,15 @@
  * Incluye persistencia automatica en localStorage
  */
 
-import {useState, useCallback, useEffect, useRef} from 'react';
+import {useState, useCallback, useEffect, useRef, useMemo} from 'react';
 import type {Habito, Tarea, Proyecto, ConfiguracionDashboard, DatosNuevoHabito, DatosEdicionTarea} from '../types/dashboard';
 import {exportarDatos, importarDatos} from '../services/dataService';
 import {useLocalStorage, CLAVES_LOCALSTORAGE} from './useLocalStorage';
 import {useDeshacer} from './useDeshacer';
 import {useTareas} from './useTareas';
 import {useProyectos, DatosNuevoProyecto} from './useProyectos';
+import {useSincronizacion} from './useSincronizacion';
+import type {DashboardData} from './useDashboardApi';
 
 /* Utilidades extraidas a modulos separados */
 import {obtenerFechaHoy, calcularDiasDesde, fueCompletadoHoy} from '../utils/fecha';
@@ -69,6 +71,14 @@ interface UseDashboardReturn {
     editarProyecto: (id: number, datos: Partial<Proyecto>) => void;
     eliminarProyecto: (id: number) => void;
     cambiarEstadoProyecto: (id: number, nuevoEstado: Proyecto['estado']) => void;
+    /* Sincronización */
+    sincronizacion: {
+        sincronizado: boolean;
+        pendiente: boolean;
+        error: string | null;
+        estaLogueado: boolean;
+        sincronizarAhora: () => Promise<void>;
+    };
 }
 
 export function useDashboard(): UseDashboardReturn {
@@ -122,6 +132,50 @@ export function useDashboard(): UseDashboardReturn {
     });
 
     const cargandoDatos = cargandoHabitos || cargandoTareas || cargandoNotas || cargandoProyectos;
+
+    /*
+     * Sincronización con servidor WordPress
+     * Solo activa si el usuario está logueado
+     */
+    const datosParaSync = useMemo(
+        () => ({
+            habitos,
+            tareas,
+            proyectos,
+            notas
+        }),
+        [habitos, tareas, proyectos, notas]
+    );
+
+    const handleDatosServidor = useCallback(
+        (datos: DashboardData) => {
+            if (datos.habitos?.length) setHabitos(datos.habitos);
+            if (datos.tareas?.length) setTareas(datos.tareas);
+            if (datos.proyectos?.length) setProyectos(datos.proyectos);
+            if (datos.notas) setNotas(datos.notas);
+        },
+        [setHabitos, setTareas, setProyectos, setNotas]
+    );
+
+    const {estado: estadoSync, sincronizarAhora, marcarCambiosPendientes, estaLogueado} = useSincronizacion(datosParaSync, handleDatosServidor);
+
+    /* Marcar cambios pendientes cuando los datos cambian */
+    const datosVersion = useRef({habitos: 0, tareas: 0, proyectos: 0, notas: ''});
+
+    useEffect(() => {
+        const nuevaVersion = {
+            habitos: habitos.length,
+            tareas: tareas.length,
+            proyectos: proyectos.length,
+            notas: notas.slice(0, 50)
+        };
+
+        /* Solo sincronizar si hubo cambios reales después de la carga inicial */
+        if (!cargandoDatos && JSON.stringify(nuevaVersion) !== JSON.stringify(datosVersion.current)) {
+            datosVersion.current = nuevaVersion;
+            marcarCambiosPendientes();
+        }
+    }, [habitos, tareas, proyectos, notas, cargandoDatos, marcarCambiosPendientes]);
 
     const [importando, setImportando] = useState(false);
     const [mensajeEstado, setMensajeEstado] = useState<string | null>(null);
@@ -426,6 +480,14 @@ export function useDashboard(): UseDashboardReturn {
             : null,
         ejecutarDeshacer,
         descartarDeshacer,
-        reordenarTareas
+        reordenarTareas,
+        /* Sincronización */
+        sincronizacion: {
+            sincronizado: estadoSync.sincronizado,
+            pendiente: estadoSync.pendiente,
+            error: estadoSync.error,
+            estaLogueado,
+            sincronizarAhora
+        }
     };
 }

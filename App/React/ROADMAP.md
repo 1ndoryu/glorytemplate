@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-20
-**Estado:** Fase de Estandarización UI/UX (Completada). Proxima: API REST WordPress.
+**Estado:** Fase SaaS - Sincronización Frontend integrada (En Progreso)
 
 ---
 
@@ -35,11 +35,15 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - Hook `useDebounce` para guardado optimizado
 - Utilidades de fecha, validadores, migracion de habitos
 - Utilidades de jerarquia de tareas (subtareas, drag & drop)
+- Hook `useSincronizacion` para sync frontend-backend
+- Hook `useDashboardApi` para comunicación con API REST
 
 ### Persistencia
 - LocalStorage para habitos, tareas y notas
 - Sincronizacion al cargar pagina
 - Exportar/Importar datos a JSON
+- Sincronización automática con servidor WordPress (usuarios logueados)
+- Indicador visual de estado de sincronización
 
 </details>
 
@@ -196,6 +200,7 @@ App/React/
     CampoTexto.tsx            # Campo texto/textarea reutilizable
     CampoPrioridad.tsx        # Selector prioridad/importancia
     CampoFechaLimite.tsx      # Campo fecha con indicadores
+    IndicadorSincronizacion.tsx # Estado visual de sync
     index.ts
   components/dashboard/
     SelectorFrecuencia.tsx    # Selector frecuencia habitos
@@ -223,6 +228,20 @@ App/React/styles/dashboard/
     menuContextual.css, frecuencia.css, panelConfiguracion.css
   utilidades/
     estados.css, acciones.css
+```
+
+```
+App/React/hooks/
+  useDashboard.ts             # Hook principal (integrado con sync)
+  useTareas.ts                # CRUD tareas
+  useProyectos.ts             # CRUD proyectos
+  useDashboardApi.ts          # Comunicación con API REST WordPress
+  useSincronizacion.ts        # Orquestación sync offline-first
+  useDeshacer.ts              # Sistema undo
+  useOrdenarHabitos.ts        # Ordenamiento
+  useLocalStorage.ts          # Persistencia local
+  useDebounce.ts              # Debounce
+  index.ts
 ```
 
 ## Fase Completada: Gestión de Proyectos ✓
@@ -289,73 +308,92 @@ App/React/styles/dashboard/
 
 ---
 
-## Pendientes de Fases Anteriores
+<details>
+<summary><strong>📌 Mejoras Menores (Baja Prioridad)</strong></summary>
 
-### Habitos
-- [ ] Animacion de entrada al crear habito
-- [ ] Animacion visual de logro al completar
+*Estas mejoras son opcionales y se implementarán cuando el MVP SaaS esté estable.*
+
+### Hábitos
+- [ ] Animación de entrada al crear hábito
+- [ ] Animación visual de logro al completar
 - [ ] Umbral de reseteo editable por usuario
 - [ ] Adaptar racha a la frecuencia (racha semanal vs diaria)
-- [ ] Historial considerando frecuencia para estadisticas
-- [ ] Animacion de salida al eliminar
+- [ ] Historial considerando frecuencia para estadísticas
+- [ ] Animación de salida al eliminar
 
-### Tareas (Configuracion y UX)
-- [ ] Animacion de preview mas fluida durante arrastre
-- [ ] Estadisticas de tareas completadas hoy
-- [ ] Soporte markdown basico en descripcion (opcional)
+### Tareas (Configuración y UX)
+- [ ] Animación de preview más fluida durante arrastre
+- [ ] Estadísticas de tareas completadas hoy
+- [ ] Soporte markdown básico en descripción (opcional)
 - [ ] Historial de repeticiones (log)
-- [ ] Almacenamiento real de adjuntos (WP Media Library - Requiere Backend) (Esto tiene que sr seguro y no accesible desde internet ni exponerse, toda la informacion privada debe estar cifrada y protegida)
 
 ### Scratchpad
-- [ ] Toggle entre edicion y preview markdown
-- [ ] Multiples notas (tabs)
+- [ ] Toggle entre edición y preview markdown
+- [ ] Múltiples notas (tabs)
 
 ### Ordenamiento y Filtros
-- [ ] Drag & drop para orden manual de habitos
-- [ ] Guardar preferencia de orden en configuracion
-- [ ] Filtrar habitos por tag, importancia, urgentes
-- [ ] Buscar habitos por nombre
+- [ ] Drag & drop para orden manual de hábitos
+- [ ] Guardar preferencia de orden en configuración
+- [ ] Filtrar hábitos por tag, importancia, urgentes
+- [ ] Buscar hábitos por nombre
 - [ ] Vistas de tareas (todas, pendientes, completadas hoy, con deadline)
 
----
+### Responsive y PWA (Post-SaaS)
+- [ ] Layout adaptativo móvil
+- [ ] Touch gestures (swipe para completar)
+- [ ] Service Worker para offline
+- [ ] Instalable en móvil
 
-## Fases Futuras
-
-### Fase: API REST WordPress
-- Endpoint `POST /wp-json/glory/v1/dashboard/save`
-- Endpoint `GET /wp-json/glory/v1/dashboard/load`
-- Guardar en `user_meta` de WordPress
-- Hook `useDashboardApi`
-- Estados de carga y error
-
-### Fase: Responsive y PWA
-- Layout adaptativo movil
-- Touch gestures (swipe para completar)
-- Service Worker para offline
-- Instalable en movil
+</details>
 
 ---
 
-## Vision SaaS - Planificacion a Largo Plazo
+## Fase Actual: Vision SaaS
 
 **Objetivo:** Convertir el dashboard en un producto SaaS escalable con modelo freemium
 
 ### Arquitectura Backend WordPress
 
 **Sistema de Login y Usuarios:**
+- [x] Cada usuario tiene sus propios datos aislados (user_meta por usuario)
 - [ ] Registro e inicio de sesion integrado con WordPress
-- [ ] Cada usuario tiene sus propios datos aislados
 - [ ] Soporte multi-dispositivo (sincronizacion)
 
-**Optimizacion de Datos:**
-- [ ] API REST eficiente con paginacion
+**API REST (Completado):**
+- [x] `GET /wp-json/glory/v1/dashboard` - Cargar datos del usuario
+- [x] `POST /wp-json/glory/v1/dashboard` - Guardar datos del usuario
+- [x] `GET /wp-json/glory/v1/dashboard/sync` - Estado de sincronización
+- [x] `GET/POST /wp-json/glory/v1/dashboard/changes` - Sync incremental
+- [x] Validación de datos (habitos, tareas, proyectos)
+- [x] Autenticación requerida (is_user_logged_in)
+- [x] Nonce para seguridad CSRF
+
+**Archivos Creados:**
+- `App/Api/DashboardApiController.php` - Endpoints REST
+- `App/Repository/DashboardRepository.php` - Capa de acceso a datos
+- `App/Config/dashboardScripts.php` - Nonce y datos para frontend
+- `App/React/hooks/useDashboardApi.ts` - Hook React para API
+
+**Optimización de Datos:**
+- [x] Sync incremental (solo cambios, no datos completos)
+- [x] Sincronización con debounce (2 segundos)
+- [x] Reintentos automáticos (máximo 3)
+- [x] Reconexión automática cuando vuelve online
+- [ ] API REST eficiente con paginación
 - [ ] Caching inteligente (Redis o transients de WP)
-- [ ] Compresion de datos para transferencia rapida
-- [ ] Sync incremental (solo cambios, no datos completos)
+- [ ] Compresión de datos para transferencia rápida
+
+**Integración Frontend (Completado):**
+- [x] Hook `useSincronizacion` para orquestar sync
+- [x] Integración con `useDashboard` (transparente para componentes)
+- [x] Componente `IndicadorSincronizacion` en encabezado
+- [x] Estados visuales: sincronizado, pendiente, error, offline
+- [x] Fallback a localStorage cuando no hay conexión
 
 **Base de Datos:**
-- [ ] Tablas personalizadas para rendimiento (no solo user_meta)
-- [ ] Indices optimizados para consultas frecuentes
+- [x] Almacenamiento en user_meta (MVP)
+- [ ] Tablas personalizadas para rendimiento (fase posterior)
+- [ ] Índices optimizados para consultas frecuentes
 - [ ] Migraciones versionadas
 
 ### Seguridad y Cifrado
