@@ -26,12 +26,7 @@ class DashboardScripts
      */
     public static function enqueueScripts(): void
     {
-        /* Solo en la página del dashboard */
-        if (!self::isDashboardPage()) {
-            return;
-        }
-
-        /* Pasar datos al frontend */
+        /* Inyectar datos de usuario en todas las páginas del frontend */
         self::localizeScripts();
     }
 
@@ -64,11 +59,22 @@ class DashboardScripts
      */
     private static function localizeScripts(): void
     {
+        $currentUser = null;
+        if (is_user_logged_in()) {
+            $user = wp_get_current_user();
+            $currentUser = [
+                'name' => $user->display_name,
+                'email' => $user->user_email,
+                'login' => $user->user_login
+            ];
+        }
+
         $data = [
             'nonce' => wp_create_nonce('wp_rest'),
             'apiBase' => rest_url('glory/v1/dashboard'),
             'userId' => get_current_user_id(),
             'isLoggedIn' => is_user_logged_in(),
+            'currentUser' => $currentUser,
             'locale' => get_locale(),
         ];
 

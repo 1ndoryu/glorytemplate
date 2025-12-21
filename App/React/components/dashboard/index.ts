@@ -13,4 +13,5 @@ export {FormularioHabito} from './FormularioHabito';
 export {SelectorOrden} from './SelectorOrden';
 export {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
 export {ListaProyectos, FormularioProyecto} from './proyectos';
+export {ModalLogin} from './ModalLogin';
 export type {DatosFormulario} from './FormularioHabito';

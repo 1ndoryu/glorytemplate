@@ -139,8 +139,13 @@ class DashboardApiController
         $userId = get_current_user_id();
 
         try {
+            error_log("[DashboardAPI] loadDashboard iniciado para userId: $userId");
+
             $repository = new DashboardRepository($userId);
+            error_log("[DashboardAPI] Repository creado");
+
             $data = $repository->loadAll();
+            error_log("[DashboardAPI] loadAll completado");
 
             return new \WP_REST_Response([
                 'success' => true,
@@ -152,10 +157,20 @@ class DashboardApiController
                 ],
             ], 200);
         } catch (\Exception $e) {
+            error_log("[DashboardAPI] ERROR: " . $e->getMessage());
+            error_log("[DashboardAPI] TRACE: " . $e->getTraceAsString());
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => 'Error al cargar datos: ' . $e->getMessage(),
                 'code' => 'load_error',
+            ], 500);
+        } catch (\Error $e) {
+            error_log("[DashboardAPI] FATAL ERROR: " . $e->getMessage());
+            error_log("[DashboardAPI] TRACE: " . $e->getTraceAsString());
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Error fatal: ' . $e->getMessage(),
+                'code' => 'fatal_error',
             ], 500);
         }
     }
@@ -166,6 +181,7 @@ class DashboardApiController
     public static function saveDashboard(\WP_REST_Request $request): \WP_REST_Response
     {
         $userId = get_current_user_id();
+        error_log("[DashboardAPI] saveDashboard iniciado para userId: $userId");
 
         $data = [
             'habitos' => $request->get_param('habitos') ?? [],
@@ -175,12 +191,16 @@ class DashboardApiController
             'configuracion' => $request->get_param('configuracion') ?? [],
         ];
 
+        error_log("[DashboardAPI] Datos recibidos - habitos:" . count($data['habitos']) . " tareas:" . count($data['tareas']) . " proyectos:" . count($data['proyectos']));
+
         try {
             $repository = new DashboardRepository($userId);
+            error_log("[DashboardAPI] Repository creado para save");
 
             /* Validar estructura de datos */
             $validation = $repository->validateData($data);
             if (!$validation['valid']) {
+                error_log("[DashboardAPI] Validacion fallida: " . json_encode($validation['errors']));
                 return new \WP_REST_Response([
                     'success' => false,
                     'message' => 'Datos inválidos',
@@ -189,8 +209,11 @@ class DashboardApiController
                 ], 400);
             }
 
+            error_log("[DashboardAPI] Validacion OK, guardando...");
+
             /* Guardar datos */
             $result = $repository->saveAll($data);
+            error_log("[DashboardAPI] saveAll resultado: " . ($result ? 'true' : 'false'));
 
             if (!$result) {
                 return new \WP_REST_Response([
@@ -199,6 +222,8 @@ class DashboardApiController
                     'code' => 'save_error',
                 ], 500);
             }
+
+            error_log("[DashboardAPI] saveDashboard completado exitosamente");
 
             return new \WP_REST_Response([
                 'success' => true,
@@ -215,10 +240,20 @@ class DashboardApiController
                 ],
             ], 200);
         } catch (\Exception $e) {
+            error_log("[DashboardAPI] SAVE ERROR: " . $e->getMessage());
+            error_log("[DashboardAPI] SAVE TRACE: " . $e->getTraceAsString());
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => 'Error interno: ' . $e->getMessage(),
                 'code' => 'internal_error',
+            ], 500);
+        } catch (\Error $e) {
+            error_log("[DashboardAPI] SAVE FATAL ERROR: " . $e->getMessage());
+            error_log("[DashboardAPI] SAVE TRACE: " . $e->getTraceAsString());
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Error fatal: ' . $e->getMessage(),
+                'code' => 'fatal_error',
             ], 500);
         }
     }

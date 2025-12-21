@@ -4,13 +4,14 @@
  * Compone todos los subcomponentes del dashboard
  */
 
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {Terminal, AlertCircle, FileText} from 'lucide-react';
-import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden, ListaProyectos, FormularioProyecto} from '../components/dashboard';
+import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden, ListaProyectos, FormularioProyecto, ModalLogin} from '../components/dashboard';
 import {ToastDeshacer} from '../components/shared/ToastDeshacer';
 import {Modal} from '../components/shared/Modal';
 import {useDashboard} from '../hooks/useDashboard';
 import {useOrdenarHabitos} from '../hooks/useOrdenarHabitos';
+import {useAuth} from '../hooks/useAuth';
 import type {Proyecto} from '../types/dashboard';
 
 interface DashboardIslandProps {
@@ -23,12 +24,12 @@ interface DashboardIslandProps {
  * Componente de carga
  * Muestra un indicador mientras se cargan los datos de localStorage
  */
-function IndicadorCarga(): JSX.Element {
+function IndicadorCarga({texto = 'Cargando datos...'}: {texto?: string}): JSX.Element {
     return (
         <div id="dashboard-cargando" className="dashboardCargando">
             <div className="cargandoIndicador">
                 <div className="cargandoSpinner" />
-                <span className="cargandoTexto">Cargando datos...</span>
+                <span className="cargandoTexto">{texto}</span>
             </div>
             <div className="cargandoBarraProgreso">
                 <div className="cargandoBarraRelleno" />
@@ -39,6 +40,18 @@ function IndicadorCarga(): JSX.Element {
 
 export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin'}: DashboardIslandProps): JSX.Element {
     const {habitos, tareas, notas, proyectos, toggleTarea, crearTarea, editarTarea, eliminarTarea, crearProyecto, editarProyecto, eliminarProyecto, cambiarEstadoProyecto, actualizarNotas, toggleHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, exportarTodosDatos, importarTodosDatos, importando, mensajeEstado, tipoMensaje, cargandoDatos, accionDeshacer, ejecutarDeshacer, descartarDeshacer, reordenarTareas, sincronizacion} = useDashboard();
+
+    /* Auth */
+    const {loginWithGoogle, loginWithCredentials, register, handleCallback, logout, loading: authLoading, error: authError, user} = useAuth();
+    const [modalLoginAbierto, setModalLoginAbierto] = useState(false);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        if (code) {
+            handleCallback(code);
+        }
+    }, [handleCallback]);
 
     /* Sistema de ordenamiento de habitos */
     const {habitosOrdenados, modoActual, cambiarModo, modosDisponibles} = useOrdenarHabitos(habitos);
@@ -80,9 +93,24 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
         }
     };
 
+    if (authLoading && !modalLoginAbierto) {
+        // Solo mostrar carga pantalla completa si no es modal
+        return <IndicadorCarga texto="Autenticando..." />;
+    }
+
     return (
         <div id="dashboard-contenedor" className="dashboardContenedor">
-            <DashboardEncabezado titulo={titulo} version={version} usuario={usuario} sincronizacion={sincronizacion} />
+            <DashboardEncabezado
+                titulo={titulo}
+                version={version}
+                usuario={user ? user.name : usuario}
+                sincronizacion={{
+                    ...sincronizacion,
+                    onLogin: () => setModalLoginAbierto(true),
+                    onLogout: logout,
+                    estaLogueado: !!user
+                }}
+            />
 
             {cargandoDatos ? (
                 <IndicadorCarga />
@@ -119,6 +147,8 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
             )}
 
             <DashboardFooter />
+
+            <ModalLogin estaAbierto={modalLoginAbierto} onCerrar={() => setModalLoginAbierto(false)} onLoginGoogle={loginWithGoogle} onLoginCredentials={loginWithCredentials} onRegister={register} loading={authLoading} error={authError} />
 
             {/* Modal para crear nuevo habito */}
             <Modal estaAbierto={modalCrearHabitoAbierto} onCerrar={cerrarModalCrearHabito} titulo="Nuevo Habito">

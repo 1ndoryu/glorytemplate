@@ -12,6 +12,8 @@ interface SincronizacionInfo {
     error: string | null;
     estaLogueado: boolean;
     sincronizarAhora: () => Promise<void>;
+    onLogin?: () => void;
+    onLogout?: () => void;
 }
 
 interface DashboardEncabezadoProps {
@@ -22,6 +24,8 @@ interface DashboardEncabezadoProps {
 }
 
 export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion}: DashboardEncabezadoProps): JSX.Element {
+    const estaConectado = sincronizacion?.estaLogueado ?? false;
+
     return (
         <header id="dashboard-encabezado" className="dashboardEncabezado">
             <div className="encabezadoLogo">
@@ -29,8 +33,12 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-
                 <span className="encabezadoTitulo">{titulo}</span>
             </div>
             <nav className="encabezadoNav">
-                {sincronizacion && <IndicadorSincronizacion sincronizado={sincronizacion.sincronizado} pendiente={sincronizacion.pendiente} error={sincronizacion.error} estaLogueado={sincronizacion.estaLogueado} onSincronizar={sincronizacion.sincronizarAhora} />}
+                {sincronizacion && <IndicadorSincronizacion sincronizado={sincronizacion.sincronizado} pendiente={sincronizacion.pendiente} error={sincronizacion.error} estaLogueado={sincronizacion.estaLogueado} onSincronizar={sincronizacion.sincronizarAhora} onLogin={sincronizacion.onLogin} onLogout={sincronizacion.onLogout} />}
                 <span className="encabezadoEnlace">{version}</span>
+                <span className={`estadoConexion ${estaConectado ? 'estadoConexion--conectado' : 'estadoConexion--local'}`}>
+                    <span className="estadoConexion__punto"></span>
+                    {estaConectado ? 'Conectado' : 'Local'}
+                </span>
                 <span className="encabezadoEnlace">{usuario}</span>
             </nav>
         </header>

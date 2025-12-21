@@ -19,15 +19,17 @@ interface IndicadorSincronizacionProps {
     error: string | null;
     estaLogueado: boolean;
     onSincronizar?: () => void;
+    onLogin?: () => void;
+    onLogout?: () => void;
 }
 
-export function IndicadorSincronizacion({sincronizado, pendiente, error, estaLogueado, onSincronizar}: IndicadorSincronizacionProps): JSX.Element | null {
+export function IndicadorSincronizacion({sincronizado, pendiente, error, estaLogueado, onSincronizar, onLogin, onLogout}: IndicadorSincronizacionProps): JSX.Element | null {
     /* No mostrar si el usuario no está logueado */
     if (!estaLogueado) {
         return (
-            <div id="indicador-sync-offline" className="indicadorSync indicadorSync--offline" title="Modo local - Inicia sesión para sincronizar">
+            <div id="indicador-sync-offline" className="indicadorSync indicadorSync--offline" title="Modo local - Click para iniciar sesión con Google" onClick={onLogin} style={{cursor: 'pointer'}}>
                 <span className="indicadorSync__icono">☁</span>
-                <span className="indicadorSync__texto">Local</span>
+                <span className="indicadorSync__texto">Iniciar Sesión</span>
             </div>
         );
     }
@@ -54,9 +56,9 @@ export function IndicadorSincronizacion({sincronizado, pendiente, error, estaLog
 
     /* Estado sincronizado */
     return (
-        <div id="indicador-sync-ok" className="indicadorSync indicadorSync--ok" title="Datos sincronizados con el servidor">
+        <div id="indicador-sync-ok" className="indicadorSync indicadorSync--ok" title="Datos sincronizados - Click para cerrar sesión" onClick={onLogout} style={{cursor: 'pointer'}}>
             <span className="indicadorSync__icono">✓</span>
-            <span className="indicadorSync__texto">Sincronizado</span>
+            <span className="indicadorSync__texto">Logout</span>
         </div>
     );
 }

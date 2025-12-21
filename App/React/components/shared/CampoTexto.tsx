@@ -15,16 +15,20 @@ interface CampoTextoProps {
     error?: string;
     disabled?: boolean;
     autoFocus?: boolean;
-    tipo?: 'texto' | 'textarea';
+    tipo?: 'texto' | 'textarea' | 'password' | 'email';
     filas?: number;
 }
 
 export function CampoTexto({id, titulo, valor, onChange, placeholder, error, disabled = false, autoFocus = false, tipo = 'texto', filas = 3}: CampoTextoProps): JSX.Element {
     const claseInput = `formularioInput ${error ? 'formularioInputError' : ''}`;
 
+    let inputType = 'text';
+    if (tipo === 'password') inputType = 'password';
+    if (tipo === 'email') inputType = 'email';
+
     return (
         <SeccionPanel titulo={titulo}>
-            {tipo === 'textarea' ? <textarea id={id} className={`${claseInput} formularioTextarea`} value={valor} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} rows={filas} /> : <input id={id} type="text" className={claseInput} value={valor} onChange={e => onChange(e.target.value)} placeholder={placeholder} autoFocus={autoFocus} disabled={disabled} />}
+            {tipo === 'textarea' ? <textarea id={id} className={`${claseInput} formularioTextarea`} value={valor} onChange={e => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} rows={filas} /> : <input id={id} type={inputType} className={claseInput} value={valor} onChange={e => onChange(e.target.value)} placeholder={placeholder} autoFocus={autoFocus} disabled={disabled} />}
             {error && <span className="formularioMensajeError">{error}</span>}
         </SeccionPanel>
     );

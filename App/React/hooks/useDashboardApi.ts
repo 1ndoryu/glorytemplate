@@ -115,7 +115,7 @@ export function useDashboardApi(): UseDashboardApiReturn {
         const url = `${API_BASE}${endpoint}`;
 
         const defaultOptions: RequestInit = {
-            credentials: 'same-origin',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
                 'X-WP-Nonce': obtenerNonce()

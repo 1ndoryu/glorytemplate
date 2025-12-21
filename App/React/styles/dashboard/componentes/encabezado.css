@@ -104,3 +104,56 @@
     border-top: 1px solid var(--dashboard-bordePrincipal);
     padding-top: var(--dashboard-espacioLg);
 }
+
+/* 
+ * ESTADO DE CONEXION 
+ */
+.estadoConexion {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioMd);
+    border-radius: var(--dashboard-radioBorde);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.estadoConexion__punto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: parpadeo 2s ease-in-out infinite;
+}
+
+.estadoConexion--conectado {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.estadoConexion--conectado .estadoConexion__punto {
+    background-color: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+}
+
+.estadoConexion--local {
+    background-color: rgba(156, 163, 175, 0.15);
+    color: #9ca3af;
+    border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+.estadoConexion--local .estadoConexion__punto {
+    background-color: #9ca3af;
+}
+
+@keyframes parpadeo {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
