@@ -204,7 +204,10 @@ class CifradoService
     {
         $config = get_user_meta($userId, '_glory_dashboard_config', true);
 
+        error_log('[CifradoService] estaHabilitado user=' . $userId . ' raw_config=' . (is_string($config) ? substr($config, 0, 200) : gettype($config)));
+
         if (empty($config)) {
+            error_log('[CifradoService] Config vacía, retornando false');
             return false;
         }
 
@@ -212,7 +215,10 @@ class CifradoService
             $config = json_decode($config, true);
         }
 
-        return !empty($config['cifradoE2E']);
+        $resultado = !empty($config['cifradoE2E']);
+        error_log('[CifradoService] cifradoE2E=' . ($config['cifradoE2E'] ?? 'no definido') . ' resultado=' . ($resultado ? 'true' : 'false'));
+
+        return $resultado;
     }
 
     /**

@@ -48,10 +48,12 @@ class DashboardRepository
     private function inicializarCifrado(): void
     {
         $this->cifradoHabilitado = CifradoService::estaHabilitado($this->userId);
+        error_log('[DashboardRepo] inicializarCifrado user=' . $this->userId . ' habilitado=' . ($this->cifradoHabilitado ? 'true' : 'false'));
 
         if ($this->cifradoHabilitado) {
             try {
                 $this->cifradoService = new CifradoService($this->userId);
+                error_log('[DashboardRepo] CifradoService creado exitosamente');
             } catch (\Exception $e) {
                 error_log('[DashboardRepo] Error inicializando cifrado: ' . $e->getMessage());
                 $this->cifradoHabilitado = false;
@@ -66,27 +68,48 @@ class DashboardRepository
     public function habilitarCifrado(): bool
     {
         if ($this->cifradoHabilitado) {
+            error_log('[DashboardRepo] Cifrado ya está habilitado para user ' . $this->userId);
             return true;
         }
 
         try {
+            error_log('[DashboardRepo] Iniciando habilitación de cifrado para user ' . $this->userId);
+
             /* Cargar datos actuales sin cifrado */
             $datos = $this->loadAll();
+            error_log('[DashboardRepo] Datos cargados: ' . count($datos['habitos'] ?? []) . ' habitos, ' . count($datos['tareas'] ?? []) . ' tareas');
+
+            /* 
+             * IMPORTANTE: Remover 'configuracion' de los datos para que saveAll
+             * no sobrescriba nuestro cifradoE2E=true con el valor anterior (false)
+             */
+            unset($datos['configuracion']);
 
             /* Activar cifrado en configuración */
             $config = $this->getConfiguracion();
             $config['cifradoE2E'] = true;
-            $this->setConfiguracion($config);
+
+            /* Guardar config PRIMERO sin usar encodeData para cifrar (aún no está activo) */
+            $configJson = wp_json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            update_user_meta($this->userId, self::META_CONFIG, $configJson);
+            error_log('[DashboardRepo] Configuración guardada con cifradoE2E=true');
 
             /* Re-inicializar con cifrado habilitado */
+            $this->cifradoHabilitado = false;
+            $this->cifradoService = null;
             $this->inicializarCifrado();
 
-            /* Re-guardar todo con cifrado */
-            if ($this->cifradoHabilitado) {
-                $this->saveAll($datos);
-            }
+            error_log('[DashboardRepo] Cifrado reinicializado: habilitado=' . ($this->cifradoHabilitado ? 'true' : 'false'));
 
-            return $this->cifradoHabilitado;
+            /* Re-guardar datos (sin configuración) con cifrado */
+            if ($this->cifradoHabilitado && $this->cifradoService !== null) {
+                $resultado = $this->saveAll($datos);
+                error_log('[DashboardRepo] Datos re-guardados con cifrado: ' . ($resultado ? 'éxito' : 'fallo'));
+                return true;
+            } else {
+                error_log('[DashboardRepo] Cifrado no se pudo activar, servicio es null');
+                return false;
+            }
         } catch (\Exception $e) {
             error_log('[DashboardRepo] Error habilitando cifrado: ' . $e->getMessage());
             return false;
@@ -106,6 +129,9 @@ class DashboardRepository
             /* Cargar datos descifrados */
             $datos = $this->loadAll();
 
+            /* Remover configuracion para evitar conflictos */
+            unset($datos['configuracion']);
+
             /* Desactivar cifrado en configuración */
             $config = $this->getConfiguracion();
             $config['cifradoE2E'] = false;
@@ -116,7 +142,7 @@ class DashboardRepository
 
             $this->setConfiguracion($config);
 
-            /* Re-guardar todo sin cifrado */
+            /* Re-guardar datos sin cifrado */
             $this->saveAll($datos);
 
             return true;
@@ -201,14 +227,18 @@ class DashboardRepository
 
         /* Si hay datos SQL, devolverlos */
         if (!empty($rows)) {
-            return array_map(function ($row) {
-                $data = json_decode($row['data'], true);
+            $habitos = array_map(function ($row) {
+                /* Usar decodeData para descifrar si es necesario */
+                $data = $this->decodeData($row['data'], null);
                 /* Asegurar que el ID sea el correcto (cast a numero por si acaso) */
                 if (is_array($data)) {
                     $data['id'] = (int)$row['id_local'];
                 }
                 return $data;
             }, $rows);
+
+            /* Filtrar valores null (descifrado fallido) */
+            return array_values(array_filter($habitos, fn($h) => $h !== null && is_array($h)));
         }
 
         /* Si está vacío, verificar si hay datos antiguos en user_meta para migrar */
@@ -333,13 +363,17 @@ class DashboardRepository
         ), 'ARRAY_A');
 
         if (!empty($rows)) {
-            return array_map(function ($row) {
-                $data = json_decode($row['data'], true);
+            $tareas = array_map(function ($row) {
+                /* Usar decodeData para descifrar si es necesario */
+                $data = $this->decodeData($row['data'], null);
                 if (is_array($data)) {
                     $data['id'] = (int)$row['id_local'];
                 }
                 return $data;
             }, $rows);
+
+            /* Filtrar valores null (descifrado fallido) */
+            return array_values(array_filter($tareas, fn($t) => $t !== null && is_array($t)));
         }
 
         /* Fallback */
@@ -454,13 +488,17 @@ class DashboardRepository
         ), 'ARRAY_A');
 
         if (!empty($rows)) {
-            return array_map(function ($row) {
-                $data = json_decode($row['data'], true);
+            $proyectos = array_map(function ($row) {
+                /* Usar decodeData para descifrar si es necesario */
+                $data = $this->decodeData($row['data'], null);
                 if (is_array($data)) {
                     $data['id'] = (int)$row['id_local'];
                 }
                 return $data;
             }, $rows);
+
+            /* Filtrar valores null (descifrado fallido) */
+            return array_values(array_filter($proyectos, fn($p) => $p !== null && is_array($p)));
         }
 
         /* Fallback */
@@ -580,19 +618,58 @@ class DashboardRepository
 
     /**
      * Configuración (META)
+     * IMPORTANTE: La configuración NUNCA se cifra porque contiene
+     * la bandera cifradoE2E necesaria para bootstrap del cifrado.
      */
     public function getConfiguracion(): array
     {
         $data = get_user_meta($this->userId, self::META_CONFIG, true);
-        return $this->decodeData($data, $this->getDefaultConfig());
+
+        if (empty($data)) {
+            return $this->getDefaultConfig();
+        }
+
+        /* 
+         * AUTO-REPARACIÓN: Si la config está cifrada (error anterior),
+         * restaurar a valores por defecto.
+         */
+        if (is_string($data) && str_starts_with($data, 'ENC:')) {
+            error_log('[DashboardRepo] AUTO-REPARACIÓN: Configuración cifrada detectada, restaurando a valores por defecto');
+            $defaultConfig = $this->getDefaultConfig();
+            $this->setConfiguracion($defaultConfig);
+            return $defaultConfig;
+        }
+
+        /* La config siempre está en JSON plano, nunca cifrada */
+        if (is_string($data)) {
+            $decoded = json_decode($data, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return array_merge($this->getDefaultConfig(), $decoded);
+            }
+
+            /* JSON inválido - restaurar */
+            error_log('[DashboardRepo] AUTO-REPARACIÓN: JSON inválido en config, restaurando');
+            $defaultConfig = $this->getDefaultConfig();
+            $this->setConfiguracion($defaultConfig);
+            return $defaultConfig;
+        }
+
+        if (is_array($data)) {
+            return array_merge($this->getDefaultConfig(), $data);
+        }
+
+        return $this->getDefaultConfig();
     }
 
     public function setConfiguracion(array $config): bool
     {
-        /* update_user_meta devuelve false si el valor no cambió, lo cual no es un error */
+        /* 
+         * IMPORTANTE: La configuración NUNCA se cifra.
+         * Esto es necesario para poder leer cifradoE2E en el bootstrap.
+         */
         $merged = array_merge($this->getDefaultConfig(), $config);
-        $encoded = $this->encodeData($merged);
-        update_user_meta($this->userId, self::META_CONFIG, $encoded);
+        $json = wp_json_encode($merged, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        update_user_meta($this->userId, self::META_CONFIG, $json);
         return true;
     }
 
