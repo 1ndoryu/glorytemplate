@@ -23,6 +23,8 @@ interface UseCifradoReturn {
 
 /*
  * Obtiene la configuracion de WordPress inyectada en el frontend
+ * Nota: apiBase apunta a /glory/v1/dashboard, pero para seguridad
+ * necesitamos /glory/v1, por eso removemos el sufijo /dashboard
  */
 function obtenerConfigWP(): {nonce: string; apiBase: string} | null {
     const wpData = (
@@ -35,9 +37,15 @@ function obtenerConfigWP(): {nonce: string; apiBase: string} | null {
         return null;
     }
 
+    /* Obtener la base sin /dashboard para endpoints fuera de dashboard */
+    let apiBase = wpData.apiBase || '/wp-json/glory/v1/dashboard';
+    if (apiBase.endsWith('/dashboard')) {
+        apiBase = apiBase.replace('/dashboard', '');
+    }
+
     return {
         nonce: wpData.nonce,
-        apiBase: wpData.apiBase || '/wp-json/glory/v1'
+        apiBase
     };
 }
 
