@@ -23,6 +23,7 @@ export function useAuth(): UseAuthReturn {
 
     /* Inicializar usuario desde datos inyectados por WP */
     const [user, setUser] = useState<User | null>(() => {
+        if (typeof window === 'undefined') return null;
         const wpData = (window as any).gloryDashboard;
         return wpData?.currentUser || null;
     });
