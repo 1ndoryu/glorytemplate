@@ -8,7 +8,7 @@
  */
 .tablaEncabezado {
     display: grid;
-    grid-template-columns: 2rem 3fr 1fr 1fr 2fr 1.5fr;
+    grid-template-columns: 2rem 3fr 1fr 1fr 2fr 1.5fr auto;
     gap: var(--dashboard-espacioSm);
     padding: var(--dashboard-espacioMd);
     border-bottom: 1px solid var(--dashboard-bordePrincipal);
@@ -80,12 +80,19 @@
     text-align: right;
 }
 
+.tablaColumnaAcciones {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 60px;
+}
+
 /* 
  * FILA DE LA TABLA 
  */
 .tablaFila {
     display: grid;
-    grid-template-columns: 2rem 3fr 1fr 1fr 2fr 1.5fr;
+    grid-template-columns: 2rem 3fr 1fr 1fr 2fr 1.5fr auto;
     gap: var(--dashboard-espacioSm);
     padding: var(--dashboard-espacioMd);
     border-bottom: 1px solid var(--dashboard-bordePrincipal);

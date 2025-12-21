@@ -4,10 +4,11 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
-import {Check, X, Pencil, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat} from 'lucide-react';
+import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat} from 'lucide-react';
 import type {Tarea, NivelPrioridad, DatosEdicionTarea, TareaConfiguracion} from '../../types/dashboard';
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
 import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
+import {AccionesItem} from '../shared/AccionesItem';
 import type {VarianteBadge} from '../shared/BadgeInfo';
 import {obtenerTextoFechaLimite as obtenerTextoFechaLim, obtenerVarianteFechaLimite as obtenerVarianteFecha, formatearFechaCorta as formatearFecha} from '../../utils/fecha';
 
@@ -265,16 +266,7 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                         </BadgeGroup>
                     </div>
                 </div>
-                {mostrarAcciones && (
-                    <div className="tareaAcciones">
-                        <button className="tareaBotonEditar" onClick={iniciarEdicion} title="Editar tarea">
-                            <Pencil size={12} />
-                        </button>
-                        <button className="tareaBotonEliminar" onClick={onEliminar} title="Eliminar tarea">
-                            <X size={12} />
-                        </button>
-                    </div>
-                )}
+                {mostrarAcciones && <AccionesItem mostrarConfigurar={true} mostrarEliminar={true} onConfigurar={onConfigurar} onEliminar={onEliminar} />}
             </div>
 
             {menuContextual.visible && <MenuContextual opciones={opcionesMenu} posicionX={menuContextual.x} posicionY={menuContextual.y} onSeleccionar={manejarOpcionMenu} onCerrar={cerrarMenuContextual} />}

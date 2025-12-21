@@ -55,6 +55,7 @@ interface ProyectoItemProps {
 }
 
 function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onEliminar, onContextMenu, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ProyectoItemProps): JSX.Element {
+    const [mostrarAcciones, setMostrarAcciones] = useState(false);
     const tareasCompletadas = tareasProyecto.filter(t => t.completado).length;
     const totalTareas = tareasProyecto.length;
 
@@ -64,7 +65,7 @@ function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onE
 
     return (
         <div className={`proyectoItemWrapper ${activo ? 'proyectoItemWrapperActivo' : ''}`}>
-            <div className={`proyectoItem ${activo ? 'proyectoItemActivo' : ''}`} onClick={onToggle} onContextMenu={onContextMenu}>
+            <div className={`proyectoItem ${activo ? 'proyectoItemActivo' : ''}`} onClick={onToggle} onContextMenu={onContextMenu} onMouseEnter={() => setMostrarAcciones(true)} onMouseLeave={() => setMostrarAcciones(false)}>
                 <div className="proyectoItemChevron">{activo ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</div>
 
                 <div className="proyectoItemContenido">
@@ -93,7 +94,7 @@ function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onE
                 </div>
 
                 {/* Acciones inline usando componente reutilizable */}
-                {activo && <AccionesItem mostrarConfigurar={true} mostrarEliminar={true} onConfigurar={onEditar} onEliminar={onEliminar} />}
+                {mostrarAcciones && <AccionesItem mostrarConfigurar={true} mostrarEliminar={true} onConfigurar={onEditar} onEliminar={onEliminar} />}
             </div>
 
             {/* Tareas del proyecto (solo cuando está activo) */}

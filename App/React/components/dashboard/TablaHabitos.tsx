@@ -13,6 +13,7 @@ import {MenuContextual} from '../shared/MenuContextual';
 import type {OpcionMenu} from '../shared/MenuContextual';
 import {DashboardPanel} from '../shared/DashboardPanel';
 import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
+import {AccionesItem} from '../shared/AccionesItem';
 import type {VarianteBadge} from '../shared/BadgeInfo';
 
 interface TablaHabitosProps {
@@ -66,6 +67,7 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
         x: 0,
         y: 0
     });
+    const [mostrarAcciones, setMostrarAcciones] = useState(false);
 
     /* Frecuencia del habito */
     const frecuencia = habito.frecuencia || FRECUENCIA_POR_DEFECTO;
@@ -160,7 +162,7 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
 
     return (
         <>
-            <div className={`tablaFila tablaFilaEditable ${completadoHoy ? 'tablaFilaCompletada' : ''} ${habitoTocaHoy && !completadoHoy ? 'tablaFilaTocaHoy' : ''}`} onClick={manejarEditar} onContextMenu={manejarClickDerecho} title="Click para editar, click derecho para menu">
+            <div className={`tablaFila tablaFilaEditable ${completadoHoy ? 'tablaFilaCompletada' : ''} ${habitoTocaHoy && !completadoHoy ? 'tablaFilaTocaHoy' : ''}`} onClick={manejarEditar} onContextMenu={manejarClickDerecho} onMouseEnter={() => setMostrarAcciones(true)} onMouseLeave={() => setMostrarAcciones(false)} title="Click para editar, click derecho para menu">
                 {/* Checkbox para completar rápidamente */}
                 <div className="tablaColumnaCheckbox" onClick={manejarToggle}>
                     <div className={`habitoCheckbox ${completadoHoy ? 'habitoCheckboxCompletado' : ''}`}>{completadoHoy && <Check size={10} />}</div>
@@ -210,6 +212,9 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
                         {rachaEnPeligro && !completadoHoy && <span className="rachaTiempoRestante">({diasAntesDePerder}d)</span>}
                     </div>
                 </div>
+
+                {/* Acciones inline (hover) */}
+                <div className="tablaColumnaAcciones">{mostrarAcciones && <AccionesItem mostrarConfigurar={true} mostrarEliminar={true} onConfigurar={manejarEditar} onEliminar={() => onEliminar?.(habito.id)} />}</div>
             </div>
 
             {/* Menu contextual */}
@@ -229,6 +234,7 @@ export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditar
                 <div className="tablaColumnaInactividad">DIAS</div>
                 <div className="tablaColumnaUrgencia">URGENCIA</div>
                 <div className="tablaColumnaRacha">RACHA</div>
+                <div className="tablaColumnaAcciones"></div>
             </div>
 
             {/* Filas de habitos */}
