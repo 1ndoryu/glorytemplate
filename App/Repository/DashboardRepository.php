@@ -13,10 +13,13 @@
 namespace App\Repository;
 
 use App\Database\Schema;
+use App\Services\CifradoService;
 
 class DashboardRepository
 {
     private int $userId;
+    private ?CifradoService $cifradoService = null;
+    private bool $cifradoHabilitado = false;
 
     /* Meta keys (Mantenidos para configuración, sync y migración) */
     private const META_HABITOS = '_glory_dashboard_habitos';
@@ -36,6 +39,91 @@ class DashboardRepository
             throw new \InvalidArgumentException('ID de usuario inválido');
         }
         $this->userId = $userId;
+        $this->inicializarCifrado();
+    }
+
+    /**
+     * Inicializa el servicio de cifrado si está habilitado para el usuario
+     */
+    private function inicializarCifrado(): void
+    {
+        $this->cifradoHabilitado = CifradoService::estaHabilitado($this->userId);
+
+        if ($this->cifradoHabilitado) {
+            try {
+                $this->cifradoService = new CifradoService($this->userId);
+            } catch (\Exception $e) {
+                error_log('[DashboardRepo] Error inicializando cifrado: ' . $e->getMessage());
+                $this->cifradoHabilitado = false;
+            }
+        }
+    }
+
+    /**
+     * Habilita el cifrado para el usuario actual
+     * Migra los datos existentes a formato cifrado
+     */
+    public function habilitarCifrado(): bool
+    {
+        if ($this->cifradoHabilitado) {
+            return true;
+        }
+
+        try {
+            /* Cargar datos actuales sin cifrado */
+            $datos = $this->loadAll();
+
+            /* Activar cifrado en configuración */
+            $config = $this->getConfiguracion();
+            $config['cifradoE2E'] = true;
+            $this->setConfiguracion($config);
+
+            /* Re-inicializar con cifrado habilitado */
+            $this->inicializarCifrado();
+
+            /* Re-guardar todo con cifrado */
+            if ($this->cifradoHabilitado) {
+                $this->saveAll($datos);
+            }
+
+            return $this->cifradoHabilitado;
+        } catch (\Exception $e) {
+            error_log('[DashboardRepo] Error habilitando cifrado: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Deshabilita el cifrado (descifra todos los datos)
+     */
+    public function deshabilitarCifrado(): bool
+    {
+        if (!$this->cifradoHabilitado) {
+            return true;
+        }
+
+        try {
+            /* Cargar datos descifrados */
+            $datos = $this->loadAll();
+
+            /* Desactivar cifrado en configuración */
+            $config = $this->getConfiguracion();
+            $config['cifradoE2E'] = false;
+
+            /* Forzar desactivación antes de guardar */
+            $this->cifradoHabilitado = false;
+            $this->cifradoService = null;
+
+            $this->setConfiguracion($config);
+
+            /* Re-guardar todo sin cifrado */
+            $this->saveAll($datos);
+
+            return true;
+        } catch (\Exception $e) {
+            error_log('[DashboardRepo] Error deshabilitando cifrado: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -644,17 +732,49 @@ class DashboardRepository
         return ['valid' => true, 'errors' => []];
     }
 
-    private function encodeData(mixed $data): string
+    private function encodeData(mixed $data, bool $cifrarDatos = true): string
     {
-        return wp_json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $json = wp_json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        /* Cifrar si está habilitado y se solicita */
+        if ($cifrarDatos && $this->cifradoHabilitado && $this->cifradoService !== null) {
+            try {
+                return $this->cifradoService->cifrar($json);
+            } catch (\Exception $e) {
+                error_log('[DashboardRepo] Error cifrando: ' . $e->getMessage());
+            }
+        }
+
+        return $json;
     }
 
     private function decodeData(mixed $data, mixed $default): mixed
     {
         if (empty($data)) return $default;
         if (is_array($data)) return $data;
-        $decoded = json_decode($data, true);
+
+        $dataString = (string) $data;
+
+        /* Descifrar si está cifrado */
+        if ($this->cifradoService !== null && $this->cifradoService->estaCifrado($dataString)) {
+            try {
+                $dataString = $this->cifradoService->descifrar($dataString);
+            } catch (\Exception $e) {
+                error_log('[DashboardRepo] Error descifrando: ' . $e->getMessage());
+                return $default;
+            }
+        }
+
+        $decoded = json_decode($dataString, true);
         return (json_last_error() === JSON_ERROR_NONE) ? $decoded : $default;
+    }
+
+    /**
+     * Verifica si el cifrado está activo para este usuario
+     */
+    public function esCifradoActivo(): bool
+    {
+        return $this->cifradoHabilitado;
     }
 
     public function deleteAll(): bool

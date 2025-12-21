@@ -33,6 +33,7 @@
 @import './shared/campoFechaLimite.css';
 @import './shared/indicadorSincronizacion.css';
 @import './shared/suscripcion.css';
+@import './shared/panelSeguridad.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';

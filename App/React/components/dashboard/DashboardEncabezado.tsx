@@ -4,6 +4,7 @@
  * Responsabilidad única: mostrar logo, título y navegación
  */
 
+import {Shield} from 'lucide-react';
 import {IndicadorSincronizacion, IndicadorPlan} from '../shared';
 import type {InfoSuscripcion} from '../../types/dashboard';
 
@@ -24,9 +25,10 @@ interface DashboardEncabezadoProps {
     sincronizacion?: SincronizacionInfo;
     suscripcion?: InfoSuscripcion | null;
     onClickPlan?: () => void;
+    onClickSeguridad?: () => void;
 }
 
-export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion, suscripcion, onClickPlan}: DashboardEncabezadoProps): JSX.Element {
+export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion, suscripcion, onClickPlan, onClickSeguridad}: DashboardEncabezadoProps): JSX.Element {
     const estaConectado = sincronizacion?.estaLogueado ?? false;
 
     return (
@@ -38,6 +40,16 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-
             <nav className="encabezadoNav">
                 {suscripcion && <IndicadorPlan suscripcion={suscripcion} onClick={onClickPlan} />}
                 {sincronizacion && <IndicadorSincronizacion sincronizado={sincronizacion.sincronizado} pendiente={sincronizacion.pendiente} error={sincronizacion.error} estaLogueado={sincronizacion.estaLogueado} onSincronizar={sincronizacion.sincronizarAhora} onLogin={sincronizacion.onLogin} onLogout={sincronizacion.onLogout} />}
+                {onClickSeguridad && (
+                    <button 
+                        type="button" 
+                        className="botonSeguridad" 
+                        onClick={onClickSeguridad}
+                        title="Seguridad y Privacidad"
+                    >
+                        <Shield size={14} />
+                    </button>
+                )}
                 <span className="encabezadoEnlace">{version}</span>
                 <span className={`estadoConexion ${estaConectado ? 'estadoConexion--conectado' : 'estadoConexion--local'}`}>
                     <span className="estadoConexion__punto"></span>

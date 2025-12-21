@@ -12,3 +12,5 @@ export {useDashboardApi} from './useDashboardApi';
 export type {DashboardData, EstadoApi, SyncStatus} from './useDashboardApi';
 export {useSincronizacion, estaUsuarioLogueado, obtenerUserId} from './useSincronizacion';
 export {useSuscripcion} from './useSuscripcion';
+export {useCifrado} from './useCifrado';
+export type {EstadoCifrado} from './useCifrado';

@@ -8,8 +8,8 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
-**Ultima actualizacion:** 2025-12-20
-**Estado:** Fase SaaS - Optimización y Seguridad (En Progreso)
+**Ultima actualizacion:** 2025-12-21
+**Estado:** Fase SaaS - Cifrado de Datos Implementado
 
 ---
 
@@ -201,6 +201,8 @@ App/React/
     CampoPrioridad.tsx        # Selector prioridad/importancia
     CampoFechaLimite.tsx      # Campo fecha con indicadores
     IndicadorSincronizacion.tsx # Estado visual de sync
+    IndicadorPlan.tsx         # Badge de plan FREE/PREMIUM/TRIAL
+    ModalUpgrade.tsx          # Modal comparativa de planes
     index.ts
   components/dashboard/
     SelectorFrecuencia.tsx    # Selector frecuencia habitos
@@ -209,6 +211,7 @@ App/React/
     ListaTareas.tsx           # Lista de tareas (+ integracion PanelConfiguracion)
     TareaItem.tsx             # Item individual (+ indicador fecha, opcion configurar)
     PanelConfiguracionTarea.tsx # Panel configuracion avanzada
+    PanelSeguridad.tsx        # Panel de configuracion de seguridad/cifrado
     ...
 ```
 
@@ -221,7 +224,9 @@ App/React/styles/dashboard/
   shared/                     # Estilos reutilizables
     accionesFormulario.css, selectorNivel.css, seccionPanel.css,
     toggleSwitch.css, dashboardPanel.css, badgeInfo.css,
-    accionesItem.css, campoFechaLimite.css
+    accionesItem.css, campoFechaLimite.css, indicadorSincronizacion.css,
+    suscripcion.css,          # Estilos freemium (IndicadorPlan, ModalUpgrade)
+    panelSeguridad.css        # Estilos panel de seguridad
   componentes/
     encabezado.css, tabla.css, tareas.css, scratchpad.css,
     formulario.css, toast.css, ordenamiento.css,
@@ -237,6 +242,8 @@ App/React/hooks/
   useProyectos.ts             # CRUD proyectos
   useDashboardApi.ts          # Comunicación con API REST WordPress
   useSincronizacion.ts        # Orquestación sync offline-first
+  useSuscripcion.ts           # Estado y límites de plan freemium
+  useCifrado.ts               # Gestión de cifrado E2E
   useDeshacer.ts              # Sistema undo
   useOrdenarHabitos.ts        # Ordenamiento
   useLocalStorage.ts          # Persistencia local
@@ -392,10 +399,13 @@ App/React/hooks/
 
 **Archivos Creados:**
 - `App/Api/DashboardApiController.php` - Endpoints REST
-- `App/Repository/DashboardRepository.php` - Capa de acceso a datos
+- `App/Repository/DashboardRepository.php` - Capa de acceso a datos (+ cifrado integrado)
 - `App/Config/dashboardScripts.php` - Nonce y datos para frontend
+- `App/Services/CifradoService.php` - Cifrado AES-256-GCM por usuario
+- `App/Services/SuscripcionService.php` - Gestión de planes freemium
 - `App/React/hooks/useDashboardApi.ts` - Hook React para API
 - `App/React/hooks/useSincronizacion.ts` - Orquestador Sync
+- `App/React/hooks/useCifrado.ts` - Gestión de cifrado E2E
 - `App/Database/Schema.php` - Esquema de Base de Datos
 
 **Optimización de Datos:**
@@ -423,11 +433,16 @@ App/React/hooks/
 
 ### Seguridad y Cifrado
 
-**Cifrado de Datos de Usuario:**
-- [ ] Cifrado en reposo (datos almacenados)
-- [ ] Cifrado en transito (HTTPS obligatorio)
-- [ ] Cifrado end-to-end opcional (clave del usuario)
-- [ ] Datos sensibles nunca en texto plano
+**Cifrado de Datos de Usuario (Completado):**
+- [x] Cifrado en reposo (datos almacenados) - AES-256-GCM
+- [x] Cifrado end-to-end opcional (clave derivada por usuario)
+- [x] Datos sensibles cifrados en base de datos
+- [x] Servicio `CifradoService.php` con algoritmo AES-256-GCM
+- [x] Derivación de clave HKDF-SHA256 única por usuario
+- [x] Endpoint API `/seguridad/cifrado` para gestionar cifrado
+- [x] Hook `useCifrado` para frontend
+- [x] Componente `PanelSeguridad` con toggle de cifrado
+- [ ] Cifrado en tránsito (HTTPS obligatorio) - Pendiente configuración servidor
 
 **Seguridad General:**
 - [ ] Autenticacion JWT para API
@@ -435,30 +450,36 @@ App/React/hooks/
 - [ ] Validacion estricta de inputs
 - [ ] Logs de auditoria
 
-### Modelo Freemium
+### Modelo Freemium (Completado)
 
-**Funcionalidades FREE:**
-- Hasta 10 habitos
-- Hasta 50 tareas activas
-- Scratchpad basico
-- Persistencia localStorage (sin sync)
-- Estadisticas basicas (ultimos 7 dias)
+**Sistema de Límites (Backend - Completado):**
+- [x] Servicio `SuscripcionService.php` con lógica de planes
+- [x] Planes: FREE / PREMIUM
+- [x] Estados: activa / trial / expirada
+- [x] Límites configurables:
+  - FREE: 10 hábitos, 50 tareas activas, 3 proyectos, sin adjuntos
+  - PREMIUM: Ilimitado + sync + adjuntos + estadísticas avanzadas
+- [x] Validación de límites en API antes de guardar (403 si excede)
+- [x] Trial de 14 días activable por usuario
+- [x] Info de suscripción inyectada al frontend via `window.gloryDashboard`
 
-**Funcionalidades PREMIUM:**
-- Habitos y tareas ilimitados
-- Sincronizacion multi-dispositivo
-- Adjuntos en tareas (imagenes, archivos)
-- Notificaciones por correo
-- Estadisticas avanzadas y graficos historicos
-- Exportacion en multiples formatos
-- Temas personalizados
-- Cifrado end-to-end
-- Prioridad en soporte
+**Endpoints API (Completado):**
+- [x] `GET /wp-json/glory/v1/suscripcion` - Info del plan actual
+- [x] `POST /wp-json/glory/v1/suscripcion/trial` - Activar trial
+- [x] Respuesta 403 con errores detallados cuando se exceden límites
 
-**Sistema de Suscripcion:**
+**Frontend (Completado):**
+- [x] Tipos TypeScript: `InfoSuscripcion`, `LimitesPlan`, `ErrorLimite`
+- [x] Hook `useSuscripcion` para verificar límites y estado
+- [x] Componente `IndicadorPlan` (badge FREE/PREMIUM/TRIAL en header)
+- [x] Componente `ModalUpgrade` (comparativa de planes + activar trial)
+- [x] Integración en `DashboardIsland` y `DashboardEncabezado`
+- [x] CSS premium estilo terminal (gradientes, animaciones, hover states)
+
+**Pendiente - Integración de Pagos:**
+- [ ] Integración con Stripe (ver plugin Amazon como referencia)
 - [ ] Planes: Mensual, Anual (descuento)
-- [ ] Integracion con Stripe o WooCommerce
-- [ ] Trial gratuito de 14 dias para Premium
+- [ ] Webhooks de Stripe para actualizar estado
 - [ ] Downgrade graceful (mantiene datos, limita funciones)
 
 ### Escalabilidad

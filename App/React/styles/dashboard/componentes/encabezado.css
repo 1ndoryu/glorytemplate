@@ -157,3 +157,29 @@
         opacity: 0.5;
     }
 }
+
+/* 
+ * BOTON DE SEGURIDAD 
+ */
+.botonSeguridad {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    border-radius: var(--dashboard-radioBorde);
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.botonSeguridad:hover {
+    color: var(--dashboard-textoActivo);
+    border-color: var(--dashboard-acento);
+    background: rgba(139, 92, 246, 0.1);
+}
+
+.botonSeguridad:active {
+    transform: scale(0.95);
+}

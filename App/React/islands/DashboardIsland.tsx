@@ -6,7 +6,7 @@
 
 import {useState, useEffect} from 'react';
 import {Terminal, AlertCircle, FileText} from 'lucide-react';
-import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden, ListaProyectos, FormularioProyecto, ModalLogin} from '../components/dashboard';
+import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad} from '../components/dashboard';
 import {ToastDeshacer, ModalUpgrade} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {useDashboard} from '../hooks/useDashboard';
@@ -46,9 +46,12 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
     const {loginWithGoogle, loginWithCredentials, register, handleCallback, logout, loading: authLoading, error: authError, user} = useAuth();
     const [modalLoginAbierto, setModalLoginAbierto] = useState(false);
 
-    /* Suscripción */
+    /* Suscripcion */
     const {suscripcion, activarTrial, cargando: cargandoSuscripcion} = useSuscripcion();
     const [modalUpgradeAbierto, setModalUpgradeAbierto] = useState(false);
+
+    /* Seguridad */
+    const [panelSeguridadAbierto, setPanelSeguridadAbierto] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -117,6 +120,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                 }}
                 suscripcion={suscripcion}
                 onClickPlan={() => setModalUpgradeAbierto(true)}
+                onClickSeguridad={() => setPanelSeguridadAbierto(true)}
             />
 
             {cargandoDatos ? (
@@ -212,6 +216,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
             {/* Modal de upgrade */}
             <ModalUpgrade visible={modalUpgradeAbierto} onCerrar={() => setModalUpgradeAbierto(false)} suscripcion={suscripcion} onActivarTrial={activarTrial} cargando={cargandoSuscripcion} />
+
+            {/* Panel de Seguridad */}
+            <PanelSeguridad visible={panelSeguridadAbierto} onCerrar={() => setPanelSeguridadAbierto(false)} />
         </div>
     );
 }

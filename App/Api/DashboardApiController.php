@@ -101,6 +101,26 @@ class DashboardApiController
             'callback' => [self::class, 'activarTrial'],
             'permission_callback' => [self::class, 'requireAuthentication'],
         ]);
+
+        /* Endpoints de cifrado */
+        register_rest_route(self::API_NAMESPACE, '/seguridad/cifrado', [
+            [
+                'methods' => \WP_REST_Server::READABLE,
+                'callback' => [self::class, 'getEstadoCifrado'],
+                'permission_callback' => [self::class, 'requireAuthentication'],
+            ],
+            [
+                'methods' => \WP_REST_Server::CREATABLE,
+                'callback' => [self::class, 'toggleCifrado'],
+                'permission_callback' => [self::class, 'requireAuthentication'],
+                'args' => [
+                    'habilitar' => [
+                        'required' => true,
+                        'validate_callback' => fn($param) => is_bool($param),
+                    ],
+                ],
+            ],
+        ]);
     }
 
     /**
@@ -394,6 +414,70 @@ class DashboardApiController
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => 'Error al activar trial: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtiene el estado de cifrado del usuario
+     */
+    public static function getEstadoCifrado(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = get_current_user_id();
+
+        try {
+            $repository = new DashboardRepository($userId);
+
+            return new \WP_REST_Response([
+                'success' => true,
+                'data' => [
+                    'habilitado' => $repository->esCifradoActivo(),
+                    'algoritmo' => 'AES-256-GCM',
+                    'tipoClaveDerivacion' => 'HKDF-SHA256',
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Error al obtener estado de cifrado: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Habilita o deshabilita el cifrado de datos
+     */
+    public static function toggleCifrado(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = get_current_user_id();
+        $habilitar = $request->get_param('habilitar');
+
+        try {
+            $repository = new DashboardRepository($userId);
+
+            if ($habilitar) {
+                $resultado = $repository->habilitarCifrado();
+                $mensaje = $resultado
+                    ? 'Cifrado habilitado. Tus datos ahora están protegidos.'
+                    : 'Error al habilitar el cifrado.';
+            } else {
+                $resultado = $repository->deshabilitarCifrado();
+                $mensaje = $resultado
+                    ? 'Cifrado deshabilitado. Los datos se almacenan sin cifrar.'
+                    : 'Error al deshabilitar el cifrado.';
+            }
+
+            return new \WP_REST_Response([
+                'success' => $resultado,
+                'message' => $mensaje,
+                'data' => [
+                    'habilitado' => $repository->esCifradoActivo(),
+                ],
+            ], $resultado ? 200 : 500);
+        } catch (\Exception $e) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Error al cambiar cifrado: ' . $e->getMessage(),
             ], 500);
         }
     }
