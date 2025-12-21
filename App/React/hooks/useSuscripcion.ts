@@ -13,6 +13,7 @@ import type {InfoSuscripcion, LimitesPlan, ErrorLimite, PlanSuscripcion} from '.
 
 /*
  * Límites por defecto para plan FREE (fallback)
+ * Nota: cifradoE2E disponible para todos los planes
  */
 const LIMITES_FREE: LimitesPlan = {
     habitos: 10,
@@ -22,7 +23,7 @@ const LIMITES_FREE: LimitesPlan = {
     sincronizacion: false,
     estadisticasAvanzadas: false,
     temas: false,
-    cifradoE2E: false
+    cifradoE2E: true
 };
 
 /*
