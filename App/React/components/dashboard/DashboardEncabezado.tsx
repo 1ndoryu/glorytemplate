@@ -41,21 +41,16 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-
                 {suscripcion && <IndicadorPlan suscripcion={suscripcion} onClick={onClickPlan} />}
                 {sincronizacion && <IndicadorSincronizacion sincronizado={sincronizacion.sincronizado} pendiente={sincronizacion.pendiente} error={sincronizacion.error} estaLogueado={sincronizacion.estaLogueado} onSincronizar={sincronizacion.sincronizarAhora} onLogin={sincronizacion.onLogin} onLogout={sincronizacion.onLogout} />}
                 {onClickSeguridad && (
-                    <button 
-                        type="button" 
-                        className="botonSeguridad" 
-                        onClick={onClickSeguridad}
-                        title="Seguridad y Privacidad"
-                    >
+                    <button type="button" className="botonSeguridad" onClick={onClickSeguridad} title="Seguridad y Privacidad">
                         <Shield size={14} />
                     </button>
                 )}
-                <span className="encabezadoEnlace">{version}</span>
+                <span className="badgeEncabezado badgeEncabezado--version">{version}</span>
                 <span className={`estadoConexion ${estaConectado ? 'estadoConexion--conectado' : 'estadoConexion--local'}`}>
                     <span className="estadoConexion__punto"></span>
                     {estaConectado ? 'Conectado' : 'Local'}
                 </span>
-                <span className="encabezadoEnlace">{usuario}</span>
+                <span className="badgeEncabezado badgeEncabezado--usuario">{usuario}</span>
             </nav>
         </header>
     );

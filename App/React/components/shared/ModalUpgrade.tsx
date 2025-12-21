@@ -2,7 +2,8 @@
  * ModalUpgrade
  *
  * Modal que muestra los beneficios de Premium y permite
- * activar el trial o proceder al checkout con Stripe.
+ * proceder al checkout con Stripe.
+ * El trial se configura directamente en Stripe (14 dias de prueba).
  *
  * @package App/React/components/shared
  */
@@ -16,8 +17,6 @@ interface ModalUpgradeProps {
     visible: boolean;
     onCerrar: () => void;
     suscripcion: InfoSuscripcion;
-    onActivarTrial: () => Promise<boolean>;
-    cargando?: boolean;
 }
 
 type PlanSeleccionado = 'monthly' | 'yearly';
@@ -50,17 +49,10 @@ const CARACTERISTICAS = [
     {nombre: 'Cifrado E2E', free: 'No', premium: 'Si'}
 ];
 
-export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, cargando = false}: ModalUpgradeProps) {
-    const {trialDisponible, plan, estado, diasRestantes} = suscripcion;
-    const {iniciarCheckout, abrirPortalFacturacion, cargando: cargandoStripe, error: errorStripe} = useStripe();
+export function ModalUpgrade({visible, onCerrar, suscripcion}: ModalUpgradeProps) {
+    const {plan, estado, diasRestantes} = suscripcion;
+    const {iniciarCheckout, abrirPortalFacturacion, cargando, error} = useStripe();
     const [planSeleccionado, setPlanSeleccionado] = useState<PlanSeleccionado>('yearly');
-
-    const handleActivarTrial = async () => {
-        const exito = await onActivarTrial();
-        if (exito) {
-            onCerrar();
-        }
-    };
 
     const handleComprar = async () => {
         await iniciarCheckout(planSeleccionado);
@@ -69,8 +61,6 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
     const handleGestionarSuscripcion = async () => {
         await abrirPortalFacturacion();
     };
-
-    const estaCargando = cargando || cargandoStripe;
 
     const renderEncabezado = () => {
         if (plan === 'premium') {
@@ -98,7 +88,7 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
             <div className="modalUpgrade__encabezado">
                 <span className="modalUpgrade__icono">&gt;</span>
                 <h2>DESBLOQUEA TU POTENCIAL</h2>
-                <p className="modalUpgrade__subtitulo">Actualiza a Premium y organiza tu vida sin limites</p>
+                <p className="modalUpgrade__subtitulo">Prueba 14 dias gratis, cancela cuando quieras</p>
             </div>
         );
     };
@@ -127,12 +117,14 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
     };
 
     const renderAcciones = () => {
+        const precioSeleccionado = planSeleccionado === 'yearly' ? PRECIOS.yearly.precio : PRECIOS.monthly.precio;
+
         if (plan === 'premium') {
             if (estado === 'trial') {
                 return (
                     <div className="modalUpgrade__acciones">
-                        <button className="modalUpgrade__boton modalUpgrade__boton--primario" onClick={handleComprar} disabled={estaCargando}>
-                            {estaCargando ? 'Procesando...' : 'Continuar con Premium'}
+                        <button className="modalUpgrade__boton modalUpgrade__boton--primario" onClick={handleComprar} disabled={cargando}>
+                            {cargando ? 'Procesando...' : 'Continuar con Premium'}
                         </button>
                         <button className="modalUpgrade__boton modalUpgrade__boton--secundario" onClick={onCerrar}>
                             Seguir probando
@@ -142,8 +134,8 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
             }
             return (
                 <div className="modalUpgrade__acciones">
-                    <button className="modalUpgrade__boton modalUpgrade__boton--primario" onClick={handleGestionarSuscripcion} disabled={estaCargando}>
-                        {estaCargando ? 'Abriendo...' : 'Gestionar suscripcion'}
+                    <button className="modalUpgrade__boton modalUpgrade__boton--primario" onClick={handleGestionarSuscripcion} disabled={cargando}>
+                        {cargando ? 'Abriendo...' : 'Gestionar suscripcion'}
                     </button>
                     <button className="modalUpgrade__boton modalUpgrade__boton--secundario" onClick={onCerrar}>
                         Cerrar
@@ -154,14 +146,10 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
 
         return (
             <div className="modalUpgrade__acciones">
-                {trialDisponible && (
-                    <button className="modalUpgrade__boton modalUpgrade__boton--trial" onClick={handleActivarTrial} disabled={estaCargando}>
-                        {estaCargando ? 'Activando...' : 'Probar 14 dias gratis'}
-                    </button>
-                )}
-                <button className="modalUpgrade__boton modalUpgrade__boton--primario" onClick={handleComprar} disabled={estaCargando}>
-                    {estaCargando ? 'Procesando...' : `Obtener Premium - $${planSeleccionado === 'yearly' ? PRECIOS.yearly.precio : PRECIOS.monthly.precio}`}
+                <button className="modalUpgrade__boton modalUpgrade__boton--primario" onClick={handleComprar} disabled={cargando}>
+                    {cargando ? 'Procesando...' : `Probar 14 dias gratis - luego $${precioSeleccionado}`}
                 </button>
+                <p className="modalUpgrade__aviso">Sin compromiso. Cancela antes del dia 14 y no se te cobrara nada.</p>
                 <button className="modalUpgrade__boton modalUpgrade__boton--secundario" onClick={onCerrar}>
                     Quizas despues
                 </button>
@@ -174,7 +162,7 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
             <div id="modal-upgrade-contenido" className="modalUpgrade">
                 {renderEncabezado()}
 
-                {errorStripe && <div className="modalUpgrade__error">[ERROR] {errorStripe}</div>}
+                {error && <div className="modalUpgrade__error">[ERROR] {error}</div>}
 
                 <div className="modalUpgrade__comparativa">
                     <div className="modalUpgrade__columnas">

@@ -50,6 +50,62 @@
 }
 
 /* 
+ * BADGES UNIFICADOS DEL ENCABEZADO
+ * Sistema de badges consistente para todos los elementos del header
+ */
+.badgeEncabezado {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    border-radius: 2px;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    background: var(--dashboard-fondoSecundario);
+    color: var(--dashboard-textoSecundario);
+    transition: all var(--dashboard-transicionNormal);
+    cursor: default;
+}
+
+.badgeEncabezado:hover {
+    color: var(--dashboard-textoNormal);
+    border-color: var(--dashboard-bordeSutil);
+}
+
+/* Variante clickable */
+.badgeEncabezado--clickable {
+    cursor: pointer;
+}
+
+.badgeEncabezado--clickable:hover {
+    transform: translateY(-1px);
+}
+
+/* Variante version */
+.badgeEncabezado--version {
+    color: var(--dashboard-textoApagado);
+    border-color: var(--dashboard-bordePrincipal);
+    background: transparent;
+}
+
+.badgeEncabezado--version:hover {
+    color: var(--dashboard-textoSecundario);
+}
+
+/* Variante usuario */
+.badgeEncabezado--usuario {
+    color: var(--dashboard-textoSecundario);
+}
+
+.badgeEncabezado--usuario:hover {
+    color: var(--dashboard-textoActivo);
+}
+
+/* 
  * ENCABEZADO DE SECCION 
  */
 .seccionEncabezado {
@@ -109,11 +165,12 @@
  * ESTADO DE CONEXION 
  */
 .estadoConexion {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: var(--dashboard-espacioXs);
-    padding: var(--dashboard-espacioXs) var(--dashboard-espacioMd);
-    border-radius: var(--dashboard-radioBorde);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    border-radius: 2px;
+    font-family: var(--dashboard-fuenteMonoespaciada);
     font-size: var(--dashboard-tamanoPequeno);
     font-weight: 500;
     text-transform: uppercase;
@@ -162,15 +219,15 @@
  * BOTON DE SEGURIDAD 
  */
 .botonSeguridad {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: none;
+    background: var(--dashboard-fondoSecundario);
     border: 1px solid var(--dashboard-bordePrincipal);
     color: var(--dashboard-textoSecundario);
     cursor: pointer;
     padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
-    border-radius: var(--dashboard-radioBorde);
+    border-radius: 2px;
     transition: all var(--dashboard-transicionNormal);
 }
 

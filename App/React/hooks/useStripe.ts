@@ -12,8 +12,10 @@ import {useState, useCallback} from 'react';
 declare global {
     interface Window {
         gloryDashboard?: {
-            restUrl: string;
             nonce: string;
+            apiBase: string;
+            isLoggedIn: boolean;
+            userId: number;
         };
     }
 }
@@ -50,12 +52,16 @@ export function useStripe(): UseStripeReturn {
     const getApiConfig = () => {
         const wpData = window.gloryDashboard;
 
-        if (!wpData?.restUrl || !wpData?.nonce) {
+        /* Verificar que exista la config y el usuario este logueado */
+        if (!wpData || !wpData.isLoggedIn || !wpData.nonce) {
             return null;
         }
 
+        /* apiBase apunta a /glory/v1/dashboard, necesitamos /glory/v1/ */
+        const baseUrl = wpData.apiBase.replace(/\/dashboard\/?$/, '/');
+
         return {
-            baseUrl: wpData.restUrl,
+            baseUrl,
             nonce: wpData.nonce
         };
     };

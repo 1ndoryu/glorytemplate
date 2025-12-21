@@ -17,7 +17,7 @@
     font-size: var(--dashboard-tamanoPequeno);
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.05em;
     cursor: pointer;
     transition: all var(--dashboard-transicionNormal);
     border: 1px solid transparent;
@@ -43,7 +43,9 @@
 }
 
 .indicadorPlan__icono {
-    font-size: 0.85em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     line-height: 1;
 }
 
@@ -438,4 +440,16 @@
     color: #f87171;
     font-family: var(--dashboard-fuenteMonoespaciada);
     font-size: var(--dashboard-tamanoPequeno);
+}
+
+/* 
+ * Aviso de trial
+ */
+.modalUpgrade__aviso {
+    margin: var(--dashboard-espacioXs) 0;
+    padding: 0;
+    text-align: center;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
 }

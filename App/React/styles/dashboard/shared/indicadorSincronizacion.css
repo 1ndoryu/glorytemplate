@@ -6,38 +6,45 @@
 .indicadorSync {
     display: inline-flex;
     align-items: center;
-    gap: var(--espacio-xs);
-    padding: var(--espacio-xs) var(--espacio-sm);
-    border-radius: var(--radio-sm);
-    font-size: var(--fuente-xs);
-    font-family: var(--fuente-mono);
-    border: none;
-    background: transparent;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    border-radius: 2px;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    background: var(--dashboard-fondoSecundario);
     cursor: default;
-    transition: all var(--transicion-rapida);
+    transition: all var(--dashboard-transicionRapida);
 }
 
 /* 
  * Estado sincronizado
  */
 .indicadorSync--ok {
-    color: var(--color-exito);
-    opacity: 0.7;
+    color: var(--dashboard-estadoExito);
+    background-color: var(--dashboard-estadoExitoFondo);
+    border-color: var(--dashboard-estadoExitoBorde);
+    cursor: pointer;
 }
 
 .indicadorSync--ok:hover {
-    opacity: 1;
+    border-color: var(--dashboard-estadoExito);
 }
 
 .indicadorSync--ok .indicadorSync__icono {
-    font-size: var(--fuente-sm);
+    font-size: 0.75rem;
 }
 
 /* 
  * Estado pendiente / sincronizando
  */
 .indicadorSync--pendiente {
-    color: var(--color-advertencia);
+    color: var(--dashboard-estadoMedia);
+    background-color: var(--dashboard-estadoMediaFondo);
+    border-color: var(--dashboard-estadoMediaBorde);
 }
 
 .indicadorSync__spinner {
@@ -60,21 +67,22 @@
  * Estado error
  */
 .indicadorSync--error {
-    color: var(--color-error);
+    color: var(--dashboard-estadoAlta);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border-color: var(--dashboard-estadoAltaBorde);
     cursor: pointer;
-    background: rgba(var(--color-error-rgb), 0.1);
 }
 
 .indicadorSync--error:hover {
-    background: rgba(var(--color-error-rgb), 0.2);
+    border-color: var(--dashboard-estadoAlta);
 }
 
 /* 
  * Estado offline / modo local
  */
 .indicadorSync--offline {
-    color: var(--color-texto-secundario);
-    opacity: 0.6;
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
 }
 
 .indicadorSync--offline .indicadorSync__icono {

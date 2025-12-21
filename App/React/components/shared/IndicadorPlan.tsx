@@ -7,7 +7,9 @@
  * @package App/React/components/shared
  */
 
+import {Crown, Sparkles, CircleDot} from 'lucide-react';
 import type {InfoSuscripcion} from '../../types/dashboard';
+import type {ReactNode} from 'react';
 
 interface IndicadorPlanProps {
     suscripcion: InfoSuscripcion;
@@ -37,11 +39,14 @@ export function IndicadorPlan({suscripcion, onClick}: IndicadorPlanProps) {
         return 'FREE';
     };
 
-    const obtenerIcono = (): string => {
+    const obtenerIcono = (): ReactNode => {
         if (plan === 'premium') {
-            return '★';
+            if (estado === 'trial') {
+                return <Sparkles size={12} />;
+            }
+            return <Crown size={12} />;
         }
-        return '○';
+        return <CircleDot size={12} />;
     };
 
     return (

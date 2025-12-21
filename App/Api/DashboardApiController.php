@@ -565,15 +565,22 @@ class DashboardApiController
             $user = wp_get_current_user();
             $checkoutService = new StripeCheckoutService();
 
-            $baseUrl = home_url('/dashboard/');
+            /* Verificar si el usuario ya uso el trial */
+            $suscripcionService = new SuscripcionService($userId);
+            $suscripcion = $suscripcionService->getSuscripcion();
+            $trialDays = empty($suscripcion['trialUsado']) ? 14 : 0;
+
+            $baseUrl = home_url('/');
             $result = $checkoutService->createSubscriptionSession([
                 'priceId' => $priceId,
                 'successUrl' => $baseUrl . '?checkout=success&session_id={CHECKOUT_SESSION_ID}',
                 'cancelUrl' => $baseUrl . '?checkout=cancelled',
                 'customerEmail' => $user->user_email,
+                'trialDays' => $trialDays,
                 'metadata' => [
                     'user_id' => $userId,
                     'plan' => $plan,
+                    'wp_user_email' => $user->user_email,
                 ],
                 'allowPromotionCodes' => true,
             ]);
@@ -634,7 +641,7 @@ class DashboardApiController
             $client = new \Glory\Services\Stripe\StripeApiClient();
             $result = $client->createBillingPortalSession(
                 $customerId,
-                home_url('/dashboard/')
+                home_url('/')
             );
 
             if (!$result['success']) {

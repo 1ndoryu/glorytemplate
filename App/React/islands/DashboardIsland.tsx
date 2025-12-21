@@ -47,7 +47,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
     const [modalLoginAbierto, setModalLoginAbierto] = useState(false);
 
     /* Suscripcion */
-    const {suscripcion, activarTrial, cargando: cargandoSuscripcion} = useSuscripcion();
+    const {suscripcion} = useSuscripcion();
     const [modalUpgradeAbierto, setModalUpgradeAbierto] = useState(false);
 
     /* Seguridad */
@@ -215,7 +215,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
             {accionDeshacer && <ToastDeshacer mensaje={accionDeshacer.mensaje} tiempoRestante={accionDeshacer.tiempoRestante} tiempoTotal={5000} onDeshacer={ejecutarDeshacer} onDescartar={descartarDeshacer} />}
 
             {/* Modal de upgrade */}
-            <ModalUpgrade visible={modalUpgradeAbierto} onCerrar={() => setModalUpgradeAbierto(false)} suscripcion={suscripcion} onActivarTrial={activarTrial} cargando={cargandoSuscripcion} />
+            <ModalUpgrade visible={modalUpgradeAbierto} onCerrar={() => setModalUpgradeAbierto(false)} suscripcion={suscripcion} />
 
             {/* Panel de Seguridad */}
             <PanelSeguridad visible={panelSeguridadAbierto} onCerrar={() => setPanelSeguridadAbierto(false)} />
