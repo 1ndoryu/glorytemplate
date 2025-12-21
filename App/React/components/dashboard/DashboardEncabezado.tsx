@@ -4,7 +4,7 @@
  * Responsabilidad única: mostrar logo, título y navegación
  */
 
-import {Shield} from 'lucide-react';
+import {Shield, Settings} from 'lucide-react';
 import {IndicadorSincronizacion, IndicadorPlan} from '../shared';
 import type {InfoSuscripcion} from '../../types/dashboard';
 
@@ -24,11 +24,13 @@ interface DashboardEncabezadoProps {
     usuario?: string;
     sincronizacion?: SincronizacionInfo;
     suscripcion?: InfoSuscripcion | null;
+    esAdmin?: boolean;
     onClickPlan?: () => void;
     onClickSeguridad?: () => void;
+    onClickAdmin?: () => void;
 }
 
-export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion, suscripcion, onClickPlan, onClickSeguridad}: DashboardEncabezadoProps): JSX.Element {
+export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion, suscripcion, esAdmin = false, onClickPlan, onClickSeguridad, onClickAdmin}: DashboardEncabezadoProps): JSX.Element {
     const estaConectado = sincronizacion?.estaLogueado ?? false;
 
     return (
@@ -36,6 +38,12 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-
             <div className="encabezadoLogo">
                 <div className="encabezadoIndicador"></div>
                 <span className="encabezadoTitulo">{titulo}</span>
+                {esAdmin && onClickAdmin && (
+                    <button type="button" className="badgeEncabezado badgeEncabezado--admin" onClick={onClickAdmin} title="Panel de Administración">
+                        <Settings size={12} />
+                        ADMIN
+                    </button>
+                )}
             </div>
             <nav className="encabezadoNav">
                 {suscripcion && <IndicadorPlan suscripcion={suscripcion} onClick={onClickPlan} />}

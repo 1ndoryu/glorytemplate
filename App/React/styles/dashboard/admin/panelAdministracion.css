@@ -1,0 +1,471 @@
+/*
+ * ESTILOS DEL PANEL DE ADMINISTRACIÓN
+ * Estilos para la gestión de usuarios y suscripciones
+ */
+
+/* 
+ * MODAL DEL PANEL
+ */
+.panelAdministracionModal {
+    max-width: 1000px;
+    width: 95%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.panelAdministracion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioLg);
+    overflow-y: auto;
+    max-height: calc(90vh - 60px);
+}
+
+/* 
+ * RESUMEN ADMIN
+ */
+.resumenAdmin {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--dashboard-espacioMd);
+}
+
+.tarjetaResumen {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioMd) var(--dashboard-espacioLg);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+}
+
+.tarjetaIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    background: var(--dashboard-fondoHover);
+    color: var(--dashboard-textoSecundario);
+}
+
+.tarjetaTotal .tarjetaIcono {
+    color: var(--dashboard-textoActivo);
+}
+.tarjetaPremium .tarjetaIcono {
+    color: #f59e0b;
+}
+.tarjetaTrial .tarjetaIcono {
+    color: #3b82f6;
+}
+.tarjetaFree .tarjetaIcono {
+    color: var(--dashboard-textoSecundario);
+}
+
+.tarjetaContenido {
+    display: flex;
+    flex-direction: column;
+}
+
+.tarjetaValor {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dashboard-textoActivo);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+}
+
+.tarjetaTitulo {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* 
+ * FILTROS USUARIOS
+ */
+.filtrosUsuarios {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+}
+
+.filtrosUsuariosPlan {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+}
+
+.filtrosIcono {
+    color: var(--dashboard-textoSecundario);
+}
+
+.filtrosBotones {
+    display: flex;
+    gap: 2px;
+    background: var(--dashboard-fondoHover);
+    border-radius: 4px;
+    padding: 2px;
+}
+
+.filtroPlanBoton {
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    border: none;
+    background: transparent;
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    cursor: pointer;
+    border-radius: 3px;
+    transition: var(--dashboard-transicionRapida);
+}
+
+.filtroPlanBoton:hover {
+    color: var(--dashboard-textoNormal);
+    background: var(--dashboard-fondoPrincipal);
+}
+
+.filtroPlanBotonActivo {
+    color: var(--dashboard-textoActivo);
+    background: var(--dashboard-fondoPrincipal);
+}
+
+.filtrosUsuariosBusqueda {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    flex: 1;
+    min-width: 200px;
+}
+
+.busquedaInputContenedor {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background: var(--dashboard-fondoHover);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+}
+
+.busquedaIcono {
+    color: var(--dashboard-textoSecundario);
+    flex-shrink: 0;
+}
+
+.busquedaInput {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    outline: none;
+}
+
+.busquedaInput::placeholder {
+    color: var(--dashboard-textoApagado);
+}
+
+.busquedaBoton {
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    border: none;
+    background: var(--dashboard-fondoPrincipal);
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    cursor: pointer;
+    border-radius: 3px;
+    transition: var(--dashboard-transicionRapida);
+}
+
+.busquedaBoton:hover {
+    color: var(--dashboard-textoActivo);
+}
+
+.filtrosReiniciarBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    background: transparent;
+    color: var(--dashboard-textoSecundario);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--dashboard-transicionRapida);
+}
+
+.filtrosReiniciarBoton:hover {
+    color: var(--dashboard-textoNormal);
+    border-color: var(--dashboard-textoApagado);
+}
+
+/* 
+ * LISTA USUARIOS
+ */
+.listaUsuarios {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+}
+
+.listaUsuariosEstado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioXl);
+    color: var(--dashboard-textoSecundario);
+}
+
+.listaUsuariosError {
+    color: var(--dashboard-estadoAlta);
+}
+
+.listaUsuariosIcono {
+    opacity: 0.5;
+}
+
+.listaUsuariosTabla {
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.listaUsuariosEncabezado {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 100px;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoSecundario);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.listaUsuariosFilas {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* 
+ * FILA USUARIO
+ */
+.filaUsuario {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 100px;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd);
+    border-bottom: 1px solid var(--dashboard-bordeSutil);
+    transition: var(--dashboard-transicionRapida);
+}
+
+.filaUsuario:last-child {
+    border-bottom: none;
+}
+
+.filaUsuario:hover {
+    background: var(--dashboard-fondoHover);
+}
+
+.celdaUsuario {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    min-width: 0;
+}
+
+.usuarioAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.usuarioInfo {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.usuarioNombre {
+    color: var(--dashboard-textoActivo);
+    font-size: var(--dashboard-tamanoBase);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.usuarioEmail {
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.celdaPlan,
+.celdaEstado,
+.celdaFecha {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    font-size: var(--dashboard-tamanoBase);
+    color: var(--dashboard-textoNormal);
+}
+
+/* Badges de plan */
+.planBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: var(--dashboard-tamanoPequeno);
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.badgePremium {
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.badgeTrial {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badgeFree {
+    background: var(--dashboard-fondoHover);
+    color: var(--dashboard-textoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+/* Badges de estado */
+.estadoBadge {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: var(--dashboard-tamanoPequeno);
+}
+
+.estadoActiva {
+    color: var(--dashboard-estadoExito);
+}
+
+.estadoTrial {
+    color: #3b82f6;
+}
+
+.estadoExpirada {
+    color: var(--dashboard-estadoAlta);
+}
+
+.estadoDias {
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+}
+
+.celdaAcciones {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--dashboard-espacioXs);
+}
+
+.accionBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--dashboard-transicionRapida);
+}
+
+.accionVer {
+    color: var(--dashboard-textoSecundario);
+}
+
+.accionVer:hover {
+    color: var(--dashboard-textoActivo);
+    border-color: var(--dashboard-textoApagado);
+}
+
+.accionActivar {
+    color: var(--dashboard-estadoExito);
+}
+
+.accionActivar:hover {
+    border-color: var(--dashboard-estadoExito);
+    background: var(--dashboard-estadoExitoFondo);
+}
+
+.accionCancelar {
+    color: var(--dashboard-estadoAlta);
+}
+
+.accionCancelar:hover {
+    border-color: var(--dashboard-estadoAlta);
+    background: var(--dashboard-estadoAltaFondo);
+}
+
+/* 
+ * PAGINACIÓN
+ */
+.listaUsuariosPaginacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioMd);
+}
+
+.paginacionBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    background: transparent;
+    color: var(--dashboard-textoSecundario);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--dashboard-transicionRapida);
+}
+
+.paginacionBoton:hover:not(:disabled) {
+    color: var(--dashboard-textoActivo);
+    border-color: var(--dashboard-textoApagado);
+}
+
+.paginacionBoton:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.paginacionInfo {
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+}

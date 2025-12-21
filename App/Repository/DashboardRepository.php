@@ -48,12 +48,10 @@ class DashboardRepository
     private function inicializarCifrado(): void
     {
         $this->cifradoHabilitado = CifradoService::estaHabilitado($this->userId);
-        error_log('[DashboardRepo] inicializarCifrado user=' . $this->userId . ' habilitado=' . ($this->cifradoHabilitado ? 'true' : 'false'));
 
         if ($this->cifradoHabilitado) {
             try {
                 $this->cifradoService = new CifradoService($this->userId);
-                error_log('[DashboardRepo] CifradoService creado exitosamente');
             } catch (\Exception $e) {
                 error_log('[DashboardRepo] Error inicializando cifrado: ' . $e->getMessage());
                 $this->cifradoHabilitado = false;
@@ -68,16 +66,12 @@ class DashboardRepository
     public function habilitarCifrado(): bool
     {
         if ($this->cifradoHabilitado) {
-            error_log('[DashboardRepo] Cifrado ya está habilitado para user ' . $this->userId);
             return true;
         }
 
         try {
-            error_log('[DashboardRepo] Iniciando habilitación de cifrado para user ' . $this->userId);
-
             /* Cargar datos actuales sin cifrado */
             $datos = $this->loadAll();
-            error_log('[DashboardRepo] Datos cargados: ' . count($datos['habitos'] ?? []) . ' habitos, ' . count($datos['tareas'] ?? []) . ' tareas');
 
             /* 
              * IMPORTANTE: Remover 'configuracion' de los datos para que saveAll
@@ -92,22 +86,18 @@ class DashboardRepository
             /* Guardar config PRIMERO sin usar encodeData para cifrar (aún no está activo) */
             $configJson = wp_json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             update_user_meta($this->userId, self::META_CONFIG, $configJson);
-            error_log('[DashboardRepo] Configuración guardada con cifradoE2E=true');
 
             /* Re-inicializar con cifrado habilitado */
             $this->cifradoHabilitado = false;
             $this->cifradoService = null;
             $this->inicializarCifrado();
 
-            error_log('[DashboardRepo] Cifrado reinicializado: habilitado=' . ($this->cifradoHabilitado ? 'true' : 'false'));
-
             /* Re-guardar datos (sin configuración) con cifrado */
             if ($this->cifradoHabilitado && $this->cifradoService !== null) {
-                $resultado = $this->saveAll($datos);
-                error_log('[DashboardRepo] Datos re-guardados con cifrado: ' . ($resultado ? 'éxito' : 'fallo'));
+                $this->saveAll($datos);
                 return true;
             } else {
-                error_log('[DashboardRepo] Cifrado no se pudo activar, servicio es null');
+                error_log('[DashboardRepo] Error: Cifrado no se pudo activar');
                 return false;
             }
         } catch (\Exception $e) {
@@ -548,7 +538,7 @@ class DashboardRepository
             /* Si el cifrado está activo, el nombre también se oculta */
             $nombreOriginal = sanitize_text_field($proyecto['nombre'] ?? '');
             $nombre = $this->cifradoHabilitado ? '[CIFRADO]' : $nombreOriginal;
-            
+
             $estado = $proyecto['estado'] ?? 'activo';
             $prioridad = $proyecto['prioridad'] ?? null;
 

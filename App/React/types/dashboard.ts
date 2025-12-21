@@ -238,3 +238,84 @@ export interface ErrorLimite {
     actual: number;
     mensaje: string;
 }
+
+/*
+ * Tipos para el Panel de Administración
+ */
+
+/*
+ * Información de suscripción para administración
+ */
+export interface SuscripcionAdmin {
+    plan: PlanSuscripcion;
+    estado: EstadoSuscripcion;
+    fechaInicio: string | null;
+    fechaExpiracion: string | null;
+    diasRestantes: number | null;
+    stripeCustomerId: string | null;
+    ultimoPago: string | null;
+}
+
+/*
+ * Estadísticas de uso de un usuario
+ */
+export interface EstadisticasUsuario {
+    habitos: number;
+    tareas: number;
+    proyectos: number;
+    tareasCompletadas: number;
+}
+
+/*
+ * Usuario con información de administración
+ */
+export interface UsuarioAdmin {
+    id: number;
+    nombre: string;
+    email: string;
+    avatar: string;
+    fechaRegistro: string;
+    suscripcion: SuscripcionAdmin;
+    estadisticas?: EstadisticasUsuario;
+    cifradoActivo: boolean;
+}
+
+/*
+ * Filtros para listar usuarios
+ */
+export interface FiltrosAdmin {
+    plan: 'todos' | 'premium' | 'free' | 'trial';
+    busqueda: string;
+    ordenarPor: 'nombre' | 'fechaRegistro' | 'ultimoPago' | 'estado';
+    orden: 'asc' | 'desc';
+    pagina: number;
+    porPagina: number;
+}
+
+/*
+ * Información de paginación
+ */
+export interface PaginacionAdmin {
+    pagina: number;
+    porPagina: number;
+    totalPaginas: number;
+}
+
+/*
+ * Respuesta de listado de usuarios
+ */
+export interface RespuestaListaUsuarios {
+    usuarios: UsuarioAdmin[];
+    total: number;
+    paginacion: PaginacionAdmin;
+}
+
+/*
+ * Resumen global de estadísticas
+ */
+export interface ResumenAdmin {
+    totalUsuarios: number;
+    premium: number;
+    trial: number;
+    free: number;
+}

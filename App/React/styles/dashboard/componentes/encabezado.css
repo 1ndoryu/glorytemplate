@@ -229,3 +229,24 @@
 .botonSeguridad:active {
     transform: scale(0.95);
 }
+
+/* 
+ * BADGE DE ADMINISTRACIÓN 
+ */
+.badgeEncabezado--admin {
+    cursor: pointer;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: #a78bfa;
+}
+
+.badgeEncabezado--admin:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.5);
+    color: #c4b5fd;
+    transform: translateY(-1px);
+}
+
+.badgeEncabezado--admin:active {
+    transform: scale(0.95);
+}

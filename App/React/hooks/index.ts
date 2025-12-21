@@ -15,3 +15,5 @@ export {useSuscripcion} from './useSuscripcion';
 export {useCifrado} from './useCifrado';
 export type {EstadoCifrado} from './useCifrado';
 export {useStripe} from './useStripe';
+export {useAdministracion} from './useAdministracion';
+export type {UseAdministracionReturn} from './useAdministracion';

@@ -9,6 +9,7 @@ import {Terminal, AlertCircle, FileText, Folder, Plus} from 'lucide-react';
 import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad} from '../components/dashboard';
 import {ToastDeshacer, ModalUpgrade} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
+import {PanelAdministracion} from '../components/admin';
 import {useDashboard} from '../hooks/useDashboard';
 import {useOrdenarHabitos} from '../hooks/useOrdenarHabitos';
 import {useAuth} from '../hooks/useAuth';
@@ -52,6 +53,10 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
     /* Seguridad */
     const [panelSeguridadAbierto, setPanelSeguridadAbierto] = useState(false);
+
+    /* Administración (solo si es admin) */
+    const esAdmin = Boolean((window as unknown as {gloryDashboard?: {esAdmin?: boolean}}).gloryDashboard?.esAdmin);
+    const [panelAdminAbierto, setPanelAdminAbierto] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -119,8 +124,10 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                     estaLogueado: !!user
                 }}
                 suscripcion={suscripcion}
+                esAdmin={esAdmin}
                 onClickPlan={() => setModalUpgradeAbierto(true)}
                 onClickSeguridad={() => setPanelSeguridadAbierto(true)}
+                onClickAdmin={() => setPanelAdminAbierto(true)}
             />
 
             {cargandoDatos ? (
@@ -226,6 +233,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
             {/* Panel de Seguridad */}
             <PanelSeguridad visible={panelSeguridadAbierto} onCerrar={() => setPanelSeguridadAbierto(false)} />
+
+            {/* Panel de Administración */}
+            {esAdmin && <PanelAdministracion estaAbierto={panelAdminAbierto} onCerrar={() => setPanelAdminAbierto(false)} />}
         </div>
     );
 }

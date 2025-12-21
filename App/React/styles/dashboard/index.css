@@ -53,3 +53,7 @@
 /* Utilidades */
 @import './utilidades/estados.css';
 @import './utilidades/acciones.css';
+
+/* Panel de Administración */
+@import './admin/panelAdministracion.css';
+@import './admin/detalleUsuario.css';

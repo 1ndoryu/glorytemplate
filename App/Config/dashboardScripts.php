@@ -78,8 +78,10 @@ class DashboardScripts
         $data = [
             'nonce' => wp_create_nonce('wp_rest'),
             'apiBase' => rest_url('glory/v1/dashboard'),
+            'apiUrl' => rest_url('glory/v1'),
             'userId' => get_current_user_id(),
             'isLoggedIn' => is_user_logged_in(),
+            'esAdmin' => current_user_can('manage_options'),
             'currentUser' => $currentUser,
             'suscripcion' => $suscripcion,
             'locale' => get_locale(),

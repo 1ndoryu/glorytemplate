@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-21
-**Estado:** Fase SaaS - Integracion de Pagos Stripe Completada
+**Estado:** Fase SaaS - Cifrado E2E y Pagos Stripe Completados
 
 ---
 
@@ -37,6 +37,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - Utilidades de jerarquia de tareas (subtareas, drag & drop)
 - Hook `useSincronizacion` para sync frontend-backend
 - Hook `useDashboardApi` para comunicación con API REST
+- Hook `useCifrado` para gestión de cifrado E2E
 
 ### Persistencia
 - LocalStorage para habitos, tareas y notas
@@ -44,6 +45,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - Exportar/Importar datos a JSON
 - Sincronización automática con servidor WordPress (usuarios logueados)
 - Indicador visual de estado de sincronización
+- **Cifrado E2E AES-256-GCM** (opcional por usuario)
 
 </details>
 
@@ -447,6 +449,8 @@ App/React/hooks/
 - [x] Endpoint API `/seguridad/cifrado` para gestionar cifrado
 - [x] Hook `useCifrado` para frontend
 - [x] Componente `PanelSeguridad` con toggle de cifrado
+- [x] Cifrado de campos sensibles: nombre, texto y data serializados como `[CIFRADO]` o `ENC:...`
+- [x] Disponible para TODOS los usuarios (FREE y PREMIUM)
 - [ ] Cifrado en tránsito (HTTPS obligatorio) - Pendiente configuración servidor
 
 **Seguridad General:**
@@ -511,6 +515,180 @@ define('GLORY_STRIPE_PRICE_YEARLY', 'price_...');
 ```
 
 
+
+---
+
+## Próxima Fase: Panel de Administración
+
+**Objetivo:** Implementar un panel de administración para gestionar usuarios, accesible desde el header principal junto al título "DASHBOARD_01".
+
+### Diseño Visual
+
+**Acceso al Panel:**
+- Badge "ADMINISTRACIÓN" al lado del título "DASHBOARD_01" en el encabezado
+- Solo visible para administradores (`is_admin()` o `current_user_can('manage_options')`)
+- Estilo visual consistente con el resto de badges del header (estilo terminal)
+- Click en el badge abre modal/panel lateral de administración
+
+**UI del Panel:**
+- Modal amplio o panel lateral derecho (estilo consistente con `PanelSeguridad`)
+- Diseño tipo tabla/grid con:
+  - Barra de filtros superior (Premium / Free / Todos)
+  - Buscador de usuarios por nombre/email
+  - Lista de usuarios con columnas:
+    - Avatar/Nombre
+    - Email
+    - Plan (badge FREE/PREMIUM/TRIAL)
+    - Fecha último pago
+    - Estado suscripción
+    - Acciones
+
+### Funcionalidades
+
+**Filtrado y Búsqueda:**
+- [ ] Filtro por tipo de plan: Premium, Free, Trial, Todos
+- [ ] Búsqueda por nombre o email
+- [ ] Ordenar por: nombre, fecha registro, último pago, estado
+
+**Información por Usuario:**
+- [ ] Nombre y email
+- [ ] Plan actual (FREE/PREMIUM/TRIAL)
+- [ ] Estado de suscripción (activa/expirada/trial)
+- [ ] Fecha del último pago (si aplica)
+- [ ] Días restantes de trial/suscripción
+- [ ] ID de cliente Stripe (si existe)
+- [ ] Estadísticas de uso (hábitos, tareas, proyectos creados)
+
+**Acciones Administrativas:**
+- [ ] **Activar Premium**: Otorgar premium manualmente (sin Stripe)
+- [ ] **Cancelar Premium**: Revocar premium y volver a FREE
+- [ ] **Extender Trial**: Añadir días adicionales al trial
+- [ ] **Ver detalles**: Expandir información completa del usuario
+
+### Estructura de Archivos
+
+```
+App/React/
+  components/
+    admin/                          # Nueva carpeta para admin
+      PanelAdministracion.tsx       # Panel principal (modal)
+      ListaUsuarios.tsx             # Lista/tabla de usuarios
+      FilaUsuario.tsx               # Fila individual de usuario
+      FiltrosUsuarios.tsx           # Barra de filtros
+      AccionesUsuario.tsx           # Acciones por usuario
+      index.ts
+  hooks/
+    useAdministracion.ts            # Hook para datos de admin
+  types/
+    dashboard.ts                    # Añadir tipos Usuario, InfoUsuarioAdmin
+
+App/
+  Api/
+    AdminApiController.php          # Endpoints de administración
+  Services/
+    AdminService.php                # Lógica de gestión de usuarios
+
+styles/dashboard/
+  admin/                            # Estilos del panel admin
+    panelAdministracion.css
+    listaUsuarios.css
+```
+
+### Backend API Endpoints
+
+```
+GET  /wp-json/glory/v1/admin/usuarios
+     - Query params: ?plan=premium|free|trial&search=texto&orderby=fecha&order=asc
+     - Response: { usuarios: Usuario[], total: number, paginacion: {...} }
+
+GET  /wp-json/glory/v1/admin/usuario/{id}
+     - Response: InfoUsuarioAdmin completa
+
+POST /wp-json/glory/v1/admin/usuario/{id}/activar-premium
+     - Body: { duracion?: number } (días, opcional, default ilimitado)
+     - Activa premium manualmente
+
+POST /wp-json/glory/v1/admin/usuario/{id}/cancelar-premium
+     - Revoca premium y pasa a FREE
+
+POST /wp-json/glory/v1/admin/usuario/{id}/extender-trial
+     - Body: { dias: number }
+     - Extiende el trial por X días
+```
+
+### Tipos TypeScript
+
+```typescript
+interface UsuarioAdmin {
+    id: number;
+    nombre: string;
+    email: string;
+    avatar?: string;
+    fechaRegistro: string;
+    suscripcion: {
+        plan: PlanSuscripcion;
+        estado: EstadoSuscripcion;
+        fechaInicio?: string;
+        fechaExpiracion?: string;
+        diasRestantes?: number;
+        stripeCustomerId?: string;
+        ultimoPago?: string;
+    };
+    estadisticas: {
+        habitos: number;
+        tareas: number;
+        proyectos: number;
+        tareasCompletadas: number;
+    };
+    cifradoActivo: boolean;
+}
+
+interface FiltrosAdmin {
+    plan: 'todos' | 'premium' | 'free' | 'trial';
+    busqueda: string;
+    ordenarPor: 'nombre' | 'fechaRegistro' | 'ultimoPago' | 'estado';
+    orden: 'asc' | 'desc';
+    pagina: number;
+    porPagina: number;
+}
+```
+
+### Tareas de Implementación
+
+**Fase 1: Backend (API)**
+- [ ] Crear `AdminApiController.php` con endpoints CRUD
+- [ ] Crear `AdminService.php` para lógica de negocio
+- [ ] Validar permisos de administrador en cada endpoint
+- [ ] Implementar paginación eficiente
+- [ ] Queries optimizadas para filtrado
+
+**Fase 2: Frontend (UI)**
+- [ ] Badge "ADMINISTRACIÓN" en `DashboardEncabezado.tsx`
+- [ ] Componente `PanelAdministracion.tsx` (modal)
+- [ ] Componente `ListaUsuarios.tsx` con tabla
+- [ ] Componente `FiltrosUsuarios.tsx`
+- [ ] Componente `FilaUsuario.tsx`
+- [ ] Estilos CSS (panelAdministracion.css, listaUsuarios.css)
+
+**Fase 3: Hooks e Integración**
+- [ ] Hook `useAdministracion` para estado y API
+- [ ] Integrar en `DashboardIsland.tsx`
+- [ ] Manejo de estados: cargando, error, vacío
+- [ ] Confirmaciones para acciones destructivas
+
+**Fase 4: Polish**
+- [ ] Paginación con scroll infinito o botones
+- [ ] Feedback visual en acciones (toast)
+- [ ] Indicadores de carga por acción
+- [ ] Responsive para tablet/móvil
+
+### Consideraciones de Seguridad
+
+- **Validación de permisos estricta**: Verificar `current_user_can('manage_options')` en cada endpoint
+- **Nonce CSRF**: Usar nonce de WordPress para proteger acciones
+- **Logs de auditoría**: Registrar acciones administrativas (quién, qué, cuándo)
+- **Rate limiting**: Limitar llamadas a endpoints sensibles
+- **No exponer información sensible**: Ocultar claves de Stripe y datos internos
 
 ---
 
