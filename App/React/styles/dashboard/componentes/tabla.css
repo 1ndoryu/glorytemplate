@@ -275,7 +275,7 @@
 }
 
 .barraRellenoUrgente {
-    background-color: var(--dashboard-barraUrgente);
+    background: linear-gradient(90deg, var(--dashboard-estadoMedia), var(--dashboard-barraUrgente));
 }
 
 /* 

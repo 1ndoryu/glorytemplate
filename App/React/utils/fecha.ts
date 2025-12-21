@@ -46,6 +46,16 @@ export function crearFechaHaceNDias(dias: number): string {
 }
 
 /*
+ * Crea una fecha ISO de dentro de N dias
+ * Util para fechas limite futuras
+ */
+export function crearFechaEnNDias(dias: number): string {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() + dias);
+    return fecha.toISOString().split('T')[0];
+}
+
+/*
  * Calcula si la racha debe resetearse
  * Retorna true si los dias de inactividad superan el umbral
  */

@@ -20,7 +20,7 @@ import type {DashboardData} from './useDashboardApi';
 import {obtenerFechaHoy, calcularDiasDesde, fueCompletadoHoy} from '../utils/fecha';
 import {validarHabitos, validarTareas, validarNotas, validarProyectos} from '../utils/validadores';
 import {migrarYActualizarHabitos} from '../utils/migracionHabitos';
-import {habitosIniciales, tareasIniciales, notasIniciales, proyectosIniciales} from '../data/datosIniciales';
+import {habitosIniciales, tareasIniciales, notasIniciales, proyectosIniciales, tareasProyectosIniciales} from '../data/datosIniciales';
 
 /*
  * Configuracion por defecto del dashboard
@@ -106,7 +106,7 @@ export function useDashboard(): UseDashboardReturn {
         setValor: setTareas,
         cargando: cargandoTareas
     } = useLocalStorage<Tarea[]>(CLAVES_LOCALSTORAGE.tareas, {
-        valorPorDefecto: tareasIniciales,
+        valorPorDefecto: [...tareasIniciales, ...tareasProyectosIniciales],
         validarValor: validarTareas
     });
 

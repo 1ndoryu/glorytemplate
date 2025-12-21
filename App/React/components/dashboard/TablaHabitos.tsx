@@ -206,8 +206,7 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
                 <div className="tablaColumnaRacha">
                     <div className={`rachaContenedor ${rachaEnPeligro && !completadoHoy ? 'rachaContenedorPeligro' : ''} ${completadoHoy ? 'rachaContenedorCompletado' : ''}`}>
                         {rachaEnPeligro && !completadoHoy && <AlertTriangle size={10} className="rachaIconoAdvertencia" />}
-                        {rachaPerdida && habito.racha === 0 && <Flame size={10} className="rachaIconoPerdida" />}
-                        <Flame size={10} className={`rachaIcono ${habito.racha > 0 ? 'rachaIconoActivo' : ''}`} />
+                        {rachaPerdida && habito.racha === 0 ? <Flame size={10} className="rachaIconoPerdida" /> : <Flame size={10} className={`rachaIcono ${habito.racha > 0 ? 'rachaIconoActivo' : ''}`} />}
                         <span className="rachaNumero">{habito.racha}</span>
                         {rachaEnPeligro && !completadoHoy && <span className="rachaTiempoRestante">({diasAntesDePerder}d)</span>}
                     </div>
