@@ -349,3 +349,93 @@
     border-color: var(--dashboard-textoSecundario);
     background: var(--dashboard-fondoSecundario);
 }
+
+/* 
+ * Selector de planes (mensual/anual)
+ */
+.modalUpgrade__planes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--dashboard-espacioMd);
+    margin-bottom: var(--dashboard-espacioLg);
+}
+
+.modalUpgrade__planOpcion {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+}
+
+.modalUpgrade__planOpcion:hover {
+    border-color: var(--dashboard-textoSecundario);
+    background: var(--dashboard-fondoHover);
+}
+
+.modalUpgrade__planOpcion--activo {
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.05);
+    box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.3);
+}
+
+.modalUpgrade__planOpcion--activo::before {
+    content: '>';
+    position: absolute;
+    top: var(--dashboard-espacioSm);
+    right: var(--dashboard-espacioSm);
+    color: #fbbf24;
+    font-size: var(--dashboard-tamanoPequeno);
+}
+
+.modalUpgrade__planBadge {
+    position: absolute;
+    top: calc(-1 * var(--dashboard-espacioXs));
+    right: var(--dashboard-espacioMd);
+    padding: 2px var(--dashboard-espacioXs);
+    background: var(--dashboard-estadoExito);
+    color: var(--dashboard-fondoPrincipal);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    border-radius: 1px;
+}
+
+.modalUpgrade__planNombre {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.modalUpgrade__planPrecio {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dashboard-textoActivo);
+}
+
+.modalUpgrade__planDescripcion {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+}
+
+/* 
+ * Mensaje de error
+ */
+.modalUpgrade__error {
+    margin-bottom: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 2px;
+    color: #f87171;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+}
