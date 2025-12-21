@@ -2,13 +2,15 @@
  * ModalUpgrade
  *
  * Modal que muestra los beneficios de Premium y permite
- * activar el trial o proceder al checkout.
+ * activar el trial o proceder al checkout con Stripe.
  *
  * @package App/React/components/shared
  */
 
+import {useState} from 'react';
 import {Modal} from './Modal';
-import type {InfoSuscripcion, LimitesPlan} from '../../types/dashboard';
+import {useStripe} from '../../hooks/useStripe';
+import type {InfoSuscripcion} from '../../types/dashboard';
 
 interface ModalUpgradeProps {
     visible: boolean;
@@ -18,54 +20,40 @@ interface ModalUpgradeProps {
     cargando?: boolean;
 }
 
+type PlanSeleccionado = 'monthly' | 'yearly';
+
+/*
+ * Precios de referencia (mostrados en UI)
+ */
+const PRECIOS = {
+    monthly: {
+        precio: 4.99,
+        descripcion: 'por mes'
+    },
+    yearly: {
+        precio: 39.99,
+        descripcion: 'por año',
+        ahorro: '33%'
+    }
+};
+
 /*
  * Comparativa de planes
  */
 const CARACTERISTICAS = [
-    {
-        nombre: 'Hábitos',
-        free: '10 máximo',
-        premium: 'Ilimitados'
-    },
-    {
-        nombre: 'Tareas activas',
-        free: '50 máximo',
-        premium: 'Ilimitadas'
-    },
-    {
-        nombre: 'Proyectos',
-        free: '3 máximo',
-        premium: 'Ilimitados'
-    },
-    {
-        nombre: 'Adjuntos en tareas',
-        free: 'No disponible',
-        premium: 'Hasta 10 por tarea'
-    },
-    {
-        nombre: 'Sincronización multi-dispositivo',
-        free: 'No',
-        premium: 'Sí'
-    },
-    {
-        nombre: 'Estadísticas avanzadas',
-        free: 'No',
-        premium: 'Sí'
-    },
-    {
-        nombre: 'Temas personalizados',
-        free: 'No',
-        premium: 'Sí'
-    },
-    {
-        nombre: 'Cifrado end-to-end',
-        free: 'No',
-        premium: 'Sí'
-    }
+    {nombre: 'Habitos', free: '10 max', premium: 'Ilimitados'},
+    {nombre: 'Tareas activas', free: '50 max', premium: 'Ilimitadas'},
+    {nombre: 'Proyectos', free: '3 max', premium: 'Ilimitados'},
+    {nombre: 'Adjuntos', free: 'No', premium: '10 por tarea'},
+    {nombre: 'Sincronizacion', free: 'No', premium: 'Si'},
+    {nombre: 'Estadisticas', free: 'No', premium: 'Si'},
+    {nombre: 'Cifrado E2E', free: 'No', premium: 'Si'}
 ];
 
 export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, cargando = false}: ModalUpgradeProps) {
     const {trialDisponible, plan, estado, diasRestantes} = suscripcion;
+    const {iniciarCheckout, abrirPortalFacturacion, cargando: cargandoStripe, error: errorStripe} = useStripe();
+    const [planSeleccionado, setPlanSeleccionado] = useState<PlanSeleccionado>('yearly');
 
     const handleActivarTrial = async () => {
         const exito = await onActivarTrial();
@@ -74,33 +62,66 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
         }
     };
 
+    const handleComprar = async () => {
+        await iniciarCheckout(planSeleccionado);
+    };
+
+    const handleGestionarSuscripcion = async () => {
+        await abrirPortalFacturacion();
+    };
+
+    const estaCargando = cargando || cargandoStripe;
+
     const renderEncabezado = () => {
         if (plan === 'premium') {
             if (estado === 'trial') {
                 return (
                     <div className="modalUpgrade__encabezado modalUpgrade__encabezado--trial">
-                        <span className="modalUpgrade__icono">★</span>
-                        <h2>Tu período de prueba</h2>
+                        <span className="modalUpgrade__icono">*</span>
+                        <h2>Tu periodo de prueba</h2>
                         <p className="modalUpgrade__subtitulo">
-                            Te quedan <strong>{diasRestantes} días</strong> de Premium gratis
+                            Te quedan <strong>{diasRestantes} dias</strong> de Premium gratis
                         </p>
                     </div>
                 );
             }
             return (
                 <div className="modalUpgrade__encabezado modalUpgrade__encabezado--premium">
-                    <span className="modalUpgrade__icono">★</span>
+                    <span className="modalUpgrade__icono">*</span>
                     <h2>Eres Premium</h2>
-                    <p className="modalUpgrade__subtitulo">{diasRestantes ? `Tu suscripción vence en ${diasRestantes} días` : 'Disfruta de todas las funcionalidades'}</p>
+                    <p className="modalUpgrade__subtitulo">{diasRestantes ? `Tu suscripcion vence en ${diasRestantes} dias` : 'Disfruta de todas las funcionalidades'}</p>
                 </div>
             );
         }
 
         return (
             <div className="modalUpgrade__encabezado">
-                <span className="modalUpgrade__icono">⚡</span>
-                <h2>Desbloquea todo tu potencial</h2>
-                <p className="modalUpgrade__subtitulo">Actualiza a Premium y organiza tu vida sin límites</p>
+                <span className="modalUpgrade__icono">&gt;</span>
+                <h2>DESBLOQUEA TU POTENCIAL</h2>
+                <p className="modalUpgrade__subtitulo">Actualiza a Premium y organiza tu vida sin limites</p>
+            </div>
+        );
+    };
+
+    const renderSelectorPlan = () => {
+        if (plan === 'premium' && estado !== 'trial') {
+            return null;
+        }
+
+        return (
+            <div className="modalUpgrade__planes">
+                <button type="button" className={`modalUpgrade__planOpcion ${planSeleccionado === 'monthly' ? 'modalUpgrade__planOpcion--activo' : ''}`} onClick={() => setPlanSeleccionado('monthly')}>
+                    <span className="modalUpgrade__planNombre">Mensual</span>
+                    <span className="modalUpgrade__planPrecio">${PRECIOS.monthly.precio}</span>
+                    <span className="modalUpgrade__planDescripcion">{PRECIOS.monthly.descripcion}</span>
+                </button>
+
+                <button type="button" className={`modalUpgrade__planOpcion ${planSeleccionado === 'yearly' ? 'modalUpgrade__planOpcion--activo' : ''}`} onClick={() => setPlanSeleccionado('yearly')}>
+                    <span className="modalUpgrade__planBadge">-{PRECIOS.yearly.ahorro}</span>
+                    <span className="modalUpgrade__planNombre">Anual</span>
+                    <span className="modalUpgrade__planPrecio">${PRECIOS.yearly.precio}</span>
+                    <span className="modalUpgrade__planDescripcion">{PRECIOS.yearly.descripcion}</span>
+                </button>
             </div>
         );
     };
@@ -110,13 +131,8 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
             if (estado === 'trial') {
                 return (
                     <div className="modalUpgrade__acciones">
-                        <button
-                            className="modalUpgrade__boton modalUpgrade__boton--primario"
-                            onClick={() => {
-                                /* TODO: Integrar con Stripe */
-                                alert('Próximamente: Pago con Stripe');
-                            }}>
-                            Continuar con Premium
+                        <button className="modalUpgrade__boton modalUpgrade__boton--primario" onClick={handleComprar} disabled={estaCargando}>
+                            {estaCargando ? 'Procesando...' : 'Continuar con Premium'}
                         </button>
                         <button className="modalUpgrade__boton modalUpgrade__boton--secundario" onClick={onCerrar}>
                             Seguir probando
@@ -126,6 +142,9 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
             }
             return (
                 <div className="modalUpgrade__acciones">
+                    <button className="modalUpgrade__boton modalUpgrade__boton--primario" onClick={handleGestionarSuscripcion} disabled={estaCargando}>
+                        {estaCargando ? 'Abriendo...' : 'Gestionar suscripcion'}
+                    </button>
                     <button className="modalUpgrade__boton modalUpgrade__boton--secundario" onClick={onCerrar}>
                         Cerrar
                     </button>
@@ -136,20 +155,15 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
         return (
             <div className="modalUpgrade__acciones">
                 {trialDisponible && (
-                    <button className="modalUpgrade__boton modalUpgrade__boton--trial" onClick={handleActivarTrial} disabled={cargando}>
-                        {cargando ? 'Activando...' : 'Probar 14 días gratis'}
+                    <button className="modalUpgrade__boton modalUpgrade__boton--trial" onClick={handleActivarTrial} disabled={estaCargando}>
+                        {estaCargando ? 'Activando...' : 'Probar 14 dias gratis'}
                     </button>
                 )}
-                <button
-                    className="modalUpgrade__boton modalUpgrade__boton--primario"
-                    onClick={() => {
-                        /* TODO: Integrar con Stripe */
-                        alert('Próximamente: Pago con Stripe');
-                    }}>
-                    Obtener Premium
+                <button className="modalUpgrade__boton modalUpgrade__boton--primario" onClick={handleComprar} disabled={estaCargando}>
+                    {estaCargando ? 'Procesando...' : `Obtener Premium - $${planSeleccionado === 'yearly' ? PRECIOS.yearly.precio : PRECIOS.monthly.precio}`}
                 </button>
                 <button className="modalUpgrade__boton modalUpgrade__boton--secundario" onClick={onCerrar}>
-                    Quizás después
+                    Quizas despues
                 </button>
             </div>
         );
@@ -159,6 +173,8 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
         <Modal estaAbierto={visible} onCerrar={onCerrar} titulo="">
             <div id="modal-upgrade-contenido" className="modalUpgrade">
                 {renderEncabezado()}
+
+                {errorStripe && <div className="modalUpgrade__error">[ERROR] {errorStripe}</div>}
 
                 <div className="modalUpgrade__comparativa">
                     <div className="modalUpgrade__columnas">
@@ -176,6 +192,7 @@ export function ModalUpgrade({visible, onCerrar, suscripcion, onActivarTrial, ca
                     ))}
                 </div>
 
+                {renderSelectorPlan()}
                 {renderAcciones()}
             </div>
         </Modal>

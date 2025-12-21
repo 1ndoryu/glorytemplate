@@ -14,3 +14,4 @@ export {useSincronizacion, estaUsuarioLogueado, obtenerUserId} from './useSincro
 export {useSuscripcion} from './useSuscripcion';
 export {useCifrado} from './useCifrado';
 export type {EstadoCifrado} from './useCifrado';
+export {useStripe} from './useStripe';

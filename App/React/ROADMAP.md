@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-21
-**Estado:** Fase SaaS - Cifrado de Datos Implementado
+**Estado:** Fase SaaS - Integracion de Pagos Stripe Completada
 
 ---
 
@@ -240,10 +240,11 @@ App/React/hooks/
   useDashboard.ts             # Hook principal (integrado con sync)
   useTareas.ts                # CRUD tareas
   useProyectos.ts             # CRUD proyectos
-  useDashboardApi.ts          # Comunicación con API REST WordPress
-  useSincronizacion.ts        # Orquestación sync offline-first
-  useSuscripcion.ts           # Estado y límites de plan freemium
-  useCifrado.ts               # Gestión de cifrado E2E
+  useDashboardApi.ts          # Comunicacion con API REST WordPress
+  useSincronizacion.ts        # Orquestacion sync offline-first
+  useSuscripcion.ts           # Estado y limites de plan freemium
+  useCifrado.ts               # Gestion de cifrado E2E
+  useStripe.ts                # Checkout y portal de facturacion Stripe
   useDeshacer.ts              # Sistema undo
   useOrdenarHabitos.ts        # Ordenamiento
   useLocalStorage.ts          # Persistencia local
@@ -393,6 +394,10 @@ App/React/hooks/
 - [x] `GET /wp-json/glory/v1/dashboard/sync` - Estado de sincronización
 - [x] `POST /wp-json/glory/v1/auth/register` - Registro de nuevos usuarios
 - [x] `GET/POST /wp-json/glory/v1/dashboard/changes` - Sync incremental
+- [x] `GET /wp-json/glory/v1/suscripcion` - Info del plan actual
+- [x] `POST /wp-json/glory/v1/suscripcion/trial` - Activar trial
+- [x] `GET /wp-json/glory/v1/seguridad/cifrado` - Estado de cifrado
+- [x] `POST /wp-json/glory/v1/seguridad/cifrado` - Activar/desactivar cifrado
 - [x] Validación de datos (habitos, tareas, proyectos)
 - [x] Autenticación requerida (is_user_logged_in)
 - [x] Nonce para seguridad CSRF
@@ -470,31 +475,42 @@ App/React/hooks/
 
 **Frontend (Completado):**
 - [x] Tipos TypeScript: `InfoSuscripcion`, `LimitesPlan`, `ErrorLimite`
-- [x] Hook `useSuscripcion` para verificar límites y estado
+- [x] Hook `useSuscripcion` para verificar limites y estado
 - [x] Componente `IndicadorPlan` (badge FREE/PREMIUM/TRIAL en header)
 - [x] Componente `ModalUpgrade` (comparativa de planes + activar trial)
-- [x] Integración en `DashboardIsland` y `DashboardEncabezado`
+- [x] Integracion en `DashboardIsland` y `DashboardEncabezado`
 - [x] CSS premium estilo terminal (gradientes, animaciones, hover states)
 
-**Pendiente - Integración de Pagos:**
-- [ ] Integración con Stripe (ver plugin Amazon como referencia)
-- [ ] Planes: Mensual, Anual (descuento)
-- [ ] Webhooks de Stripe para actualizar estado
-- [ ] Downgrade graceful (mantiene datos, limita funciones)
+**Integracion de Pagos (Completado):**
+- [x] Servicios Stripe reutilizables en `Glory/src/Services/Stripe/`:
+  - `StripeConfig.php` - Configuracion centralizada de claves
+  - `StripeApiClient.php` - Cliente HTTP para API de Stripe
+  - `StripeWebhookVerifier.php` - Verificacion de firma sin libreria
+  - `StripeWebhookException.php` - Excepciones tipadas
+  - `AbstractStripeWebhookHandler.php` - Handler base extensible
+  - `StripeCheckoutService.php` - Crear sesiones de checkout
+- [x] Implementacion especifica en `App/Api/`:
+  - `StripeWebhookHandler.php` - Handler concreto para el Dashboard
+  - Endpoints en `DashboardApiController.php`:
+    - `POST /stripe/checkout` - Crear sesion de pago
+    - `POST /stripe/webhook` - Webhook de Stripe
+    - `POST /stripe/portal` - Portal de facturacion
+- [x] Hook `useStripe` para frontend (checkout + portal)
+- [x] Planes: Mensual ($4.99), Anual ($39.99 - 33% descuento)
+- [x] Selector de plan en ModalUpgrade
+- [x] Webhooks de Stripe para actualizar estado automaticamente
+- [x] Downgrade graceful (mantiene datos, limita funciones)
 
-### Escalabilidad
+**Configuracion Necesaria (wp-config.php o opciones WP):**
+```php
+define('GLORY_STRIPE_SECRET_KEY', 'sk_live_...');
+define('GLORY_STRIPE_PUBLISHABLE_KEY', 'pk_live_...');
+define('GLORY_STRIPE_WEBHOOK_SECRET', 'whsec_...');
+define('GLORY_STRIPE_PRICE_MONTHLY', 'price_...');
+define('GLORY_STRIPE_PRICE_YEARLY', 'price_...');
+```
 
-**Infraestructura:**
-- [ ] CDN para assets estaticos
-- [ ] Database replication para lecturas
-- [ ] Microservicios para notificaciones (opcional)
-- [ ] Monitoreo y alertas (uptime, errores)
 
-**Codigo:**
-- [ ] Tests automatizados (unit, integration)
-- [ ] CI/CD pipeline
-- [ ] Feature flags para rollouts graduales
-- [ ] Documentacion de API publica
 
 ---
 

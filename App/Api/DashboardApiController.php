@@ -18,6 +18,8 @@ namespace App\Api;
 
 use App\Repository\DashboardRepository;
 use App\Services\SuscripcionService;
+use Glory\Services\Stripe\StripeConfig;
+use Glory\Services\Stripe\StripeCheckoutService;
 
 class DashboardApiController
 {
@@ -120,6 +122,33 @@ class DashboardApiController
                     ],
                 ],
             ],
+        ]);
+
+        /* Endpoints de Stripe - Checkout */
+        register_rest_route(self::API_NAMESPACE, '/stripe/checkout', [
+            'methods' => \WP_REST_Server::CREATABLE,
+            'callback' => [self::class, 'createCheckoutSession'],
+            'permission_callback' => [self::class, 'requireAuthentication'],
+            'args' => [
+                'plan' => [
+                    'required' => true,
+                    'validate_callback' => fn($param) => in_array($param, ['monthly', 'yearly']),
+                ],
+            ],
+        ]);
+
+        /* Webhook de Stripe - No requiere auth, usa firma */
+        register_rest_route(self::API_NAMESPACE, '/stripe/webhook', [
+            'methods' => \WP_REST_Server::CREATABLE,
+            'callback' => [self::class, 'handleStripeWebhook'],
+            'permission_callback' => '__return_true',
+        ]);
+
+        /* Portal de facturacion de Stripe */
+        register_rest_route(self::API_NAMESPACE, '/stripe/portal', [
+            'methods' => \WP_REST_Server::CREATABLE,
+            'callback' => [self::class, 'createBillingPortal'],
+            'permission_callback' => [self::class, 'requireAuthentication'],
         ]);
     }
 
@@ -481,7 +510,156 @@ class DashboardApiController
             ], 500);
         }
     }
+
+    /* 
+     *
+     * STRIPE INTEGRATION METHODS
+     *
+     */
+
+    /**
+     * IDs de precios de Stripe
+     * En produccion estos deberian venir de opciones de WP o constantes
+     */
+    private static function getStripePriceId(string $plan): string
+    {
+        $prices = [
+            'monthly' => defined('GLORY_STRIPE_PRICE_MONTHLY')
+                ? GLORY_STRIPE_PRICE_MONTHLY
+                : get_option('glory_stripe_price_monthly', ''),
+            'yearly' => defined('GLORY_STRIPE_PRICE_YEARLY')
+                ? GLORY_STRIPE_PRICE_YEARLY
+                : get_option('glory_stripe_price_yearly', ''),
+        ];
+
+        return $prices[$plan] ?? '';
+    }
+
+    /**
+     * Crea una sesion de checkout de Stripe
+     */
+    public static function createCheckoutSession(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = get_current_user_id();
+        $plan = $request->get_param('plan');
+
+        /* Verificar que Stripe esta configurado */
+        if (!StripeConfig::isConfigured()) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Stripe no está configurado',
+                'code' => 'stripe_not_configured',
+            ], 500);
+        }
+
+        $priceId = self::getStripePriceId($plan);
+        if (empty($priceId)) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Plan no válido',
+                'code' => 'invalid_plan',
+            ], 400);
+        }
+
+        try {
+            $user = wp_get_current_user();
+            $checkoutService = new StripeCheckoutService();
+
+            $baseUrl = home_url('/dashboard/');
+            $result = $checkoutService->createSubscriptionSession([
+                'priceId' => $priceId,
+                'successUrl' => $baseUrl . '?checkout=success&session_id={CHECKOUT_SESSION_ID}',
+                'cancelUrl' => $baseUrl . '?checkout=cancelled',
+                'customerEmail' => $user->user_email,
+                'metadata' => [
+                    'user_id' => $userId,
+                    'plan' => $plan,
+                ],
+                'allowPromotionCodes' => true,
+            ]);
+
+            if (!$result['success']) {
+                return new \WP_REST_Response([
+                    'success' => false,
+                    'message' => $result['error'] ?? 'Error al crear sesión de pago',
+                    'code' => 'checkout_error',
+                ], 500);
+            }
+
+            return new \WP_REST_Response([
+                'success' => true,
+                'data' => [
+                    'sessionId' => $result['sessionId'],
+                    'url' => $result['url'],
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            error_log('[DashboardAPI] Stripe checkout error: ' . $e->getMessage());
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Error interno al procesar pago',
+                'code' => 'internal_error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Maneja webhooks de Stripe
+     */
+    public static function handleStripeWebhook(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $handler = new StripeWebhookHandler();
+        return $handler->handle($request);
+    }
+
+    /**
+     * Crea una sesion del portal de facturacion de Stripe
+     */
+    public static function createBillingPortal(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = get_current_user_id();
+
+        /* Obtener customer ID del usuario */
+        $customerId = get_user_meta($userId, 'glory_stripe_customer_id', true);
+
+        if (empty($customerId)) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'No tienes una suscripción activa',
+                'code' => 'no_subscription',
+            ], 400);
+        }
+
+        try {
+            $client = new \Glory\Services\Stripe\StripeApiClient();
+            $result = $client->createBillingPortalSession(
+                $customerId,
+                home_url('/dashboard/')
+            );
+
+            if (!$result['success']) {
+                return new \WP_REST_Response([
+                    'success' => false,
+                    'message' => $result['error'] ?? 'Error al crear portal',
+                    'code' => 'portal_error',
+                ], 500);
+            }
+
+            return new \WP_REST_Response([
+                'success' => true,
+                'data' => [
+                    'url' => $result['data']['url'],
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Error interno',
+                'code' => 'internal_error',
+            ], 500);
+        }
+    }
 }
 
-/* Registrar el controlador automáticamente */
+/* Registrar el controlador automaticamente */
 DashboardApiController::register();
