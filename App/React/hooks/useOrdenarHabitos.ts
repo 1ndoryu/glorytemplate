@@ -4,8 +4,12 @@
  * Responsabilidad unica: proveer logica de ordenamiento para habitos
  */
 
-import {useState, useMemo, useCallback} from 'react';
+import {useMemo, useCallback} from 'react';
 import type {Habito} from '../types/dashboard';
+import {useLocalStorage} from './useLocalStorage';
+
+/* Clave para persistencia en localStorage */
+const KEY_ORDEN_HABITOS = 'glory_orden_habitos';
 
 export type ModoOrdenHabitos = 'importancia' | 'inactividad' | 'racha' | 'nombre' | 'urgenciaPonderada';
 
@@ -69,8 +73,11 @@ interface UseOrdenarHabitosReturn {
     modosDisponibles: ModoOrdenInfo[];
 }
 
-export function useOrdenarHabitos(habitos: Habito[], modoInicial: ModoOrdenHabitos = 'importancia'): UseOrdenarHabitosReturn {
-    const [modoActual, setModoActual] = useState<ModoOrdenHabitos>(modoInicial);
+export function useOrdenarHabitos(habitos: Habito[], _modoInicial: ModoOrdenHabitos = 'importancia'): UseOrdenarHabitosReturn {
+    /* Persistencia del modo con localStorage */
+    const {valor: modoActual, setValor: setModoActual} = useLocalStorage<ModoOrdenHabitos>(KEY_ORDEN_HABITOS, {
+        valorPorDefecto: 'importancia'
+    });
 
     const habitosOrdenados = useMemo(() => {
         const copia = [...habitos];
@@ -91,9 +98,12 @@ export function useOrdenarHabitos(habitos: Habito[], modoInicial: ModoOrdenHabit
         }
     }, [habitos, modoActual]);
 
-    const cambiarModo = useCallback((modo: ModoOrdenHabitos) => {
-        setModoActual(modo);
-    }, []);
+    const cambiarModo = useCallback(
+        (modo: ModoOrdenHabitos) => {
+            setModoActual(modo);
+        },
+        [setModoActual]
+    );
 
     return {
         habitosOrdenados,

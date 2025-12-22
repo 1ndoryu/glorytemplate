@@ -4,7 +4,7 @@
  * Persiste la preferencia del usuario
  */
 
-import {useState, useEffect, useMemo} from 'react';
+import {useMemo, useCallback} from 'react';
 import type {Tarea, Proyecto} from '../types/dashboard';
 import {useLocalStorage} from './useLocalStorage';
 
@@ -19,24 +19,18 @@ export interface EstadoFiltro {
 const KEY_FILTRO = 'glory_filtro_tareas';
 
 export function useFiltroTareas(tareas: Tarea[], proyectos: Proyecto[] = []) {
-    /* Estado persistido del filtro */
-    const {valor: filtroGuardado, setValor: setFiltroGuardado} = useLocalStorage<EstadoFiltro>(KEY_FILTRO, {
+    /* Estado persistido del filtro directamente con localStorage */
+    const {valor: filtroActual, setValor: setFiltroActual} = useLocalStorage<EstadoFiltro>(KEY_FILTRO, {
         valorPorDefecto: {tipo: 'sueltas'}
     });
 
-    /* Estado local para manipulacion rapida */
-    const [filtroActual, setFiltroActual] = useState<EstadoFiltro>(filtroGuardado);
-
-    /* Sincronizar estado local al cargar */
-    useEffect(() => {
-        setFiltroActual(filtroGuardado);
-    }, []);
-
-    /* Actualizar filtro y persistir */
-    const cambiarFiltro = (nuevoFiltro: EstadoFiltro) => {
-        setFiltroActual(nuevoFiltro);
-        setFiltroGuardado(nuevoFiltro);
-    };
+    /* Actualizar filtro */
+    const cambiarFiltro = useCallback(
+        (nuevoFiltro: EstadoFiltro) => {
+            setFiltroActual(nuevoFiltro);
+        },
+        [setFiltroActual]
+    );
 
     /* Tareas filtradas segun la seleccion */
     const tareasFiltradas = useMemo(() => {

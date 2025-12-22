@@ -141,9 +141,9 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [x] **Aplicación prioritaria**: Mostrar nombre completo del proyecto al hacer hover en el badge (especialmente en modo solo icono)
 
 **Consideraciones Visuales:**
-- [ ] Cuidar la estética con múltiples filtros visibles
-- [ ] Agrupar controles de forma compacta
-- [ ] Mantener coherencia con el estilo terminal
+- [x] Cuidar la estética con múltiples filtros visibles
+- [x] Agrupar controles de forma compacta
+- [x] Mantener coherencia con el estilo terminal
 
 ---
 
