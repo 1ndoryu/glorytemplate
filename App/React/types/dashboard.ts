@@ -319,3 +319,20 @@ export interface ResumenAdmin {
     trial: number;
     free: number;
 }
+
+/*
+ * Información de almacenamiento del usuario
+ * Usado para mostrar uso de espacio y límites
+ */
+export interface InfoAlmacenamiento {
+    usado: number;
+    usadoFormateado: string;
+    limite: number;
+    limiteFormateado: string;
+    disponible: number;
+    disponibleFormateado: string;
+    porcentaje: number;
+    cercaDelLimite: boolean;
+    limiteExcedido: boolean;
+    esPremium: boolean;
+}

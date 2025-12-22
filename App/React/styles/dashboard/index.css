@@ -39,6 +39,7 @@
 @import './shared/layoutManager.css';
 @import './shared/panelArrastrable.css';
 @import './shared/alertas.css';
+@import './shared/indicadorAlmacenamiento.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';

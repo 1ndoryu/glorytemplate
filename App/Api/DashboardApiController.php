@@ -18,6 +18,7 @@ namespace App\Api;
 
 use App\Repository\DashboardRepository;
 use App\Services\SuscripcionService;
+use App\Services\AlmacenamientoService;
 use Glory\Services\Stripe\StripeConfig;
 use Glory\Services\Stripe\StripeCheckoutService;
 
@@ -102,6 +103,27 @@ class DashboardApiController
             'methods' => \WP_REST_Server::CREATABLE,
             'callback' => [self::class, 'activarTrial'],
             'permission_callback' => [self::class, 'requireAuthentication'],
+        ]);
+
+        /* Endpoint de almacenamiento */
+        register_rest_route(self::API_NAMESPACE, '/almacenamiento', [
+            [
+                'methods' => \WP_REST_Server::READABLE,
+                'callback' => [self::class, 'getAlmacenamiento'],
+                'permission_callback' => [self::class, 'requireAuthentication'],
+            ],
+            [
+                'methods' => \WP_REST_Server::CREATABLE,
+                'callback' => [self::class, 'verificarEspacioSubida'],
+                'permission_callback' => [self::class, 'requireAuthentication'],
+                'args' => [
+                    'tamano' => [
+                        'required' => true,
+                        'validate_callback' => fn($param) => is_numeric($param) && $param > 0,
+                        'sanitize_callback' => 'absint',
+                    ],
+                ],
+            ],
         ]);
 
         /* Endpoints de cifrado */
@@ -451,6 +473,63 @@ class DashboardApiController
             return new \WP_REST_Response([
                 'success' => false,
                 'message' => 'Error al activar trial: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtiene información de almacenamiento del usuario
+     */
+    public static function getAlmacenamiento(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = get_current_user_id();
+
+        try {
+            $service = new AlmacenamientoService($userId);
+            $info = $service->getInfoCompleta();
+
+            return new \WP_REST_Response([
+                'success' => true,
+                'data' => $info,
+            ], 200);
+        } catch (\Exception $e) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Error al obtener almacenamiento: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Verifica si el usuario puede subir un archivo de determinado tamaño
+     */
+    public static function verificarEspacioSubida(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = get_current_user_id();
+        $tamano = (int) $request->get_param('tamano');
+
+        try {
+            $service = new AlmacenamientoService($userId);
+            $puedeSubir = $service->puedeSubir($tamano);
+
+            if (!$puedeSubir) {
+                return new \WP_REST_Response([
+                    'success' => false,
+                    'puedeSubir' => false,
+                    'message' => 'No hay espacio suficiente. Elimina archivos o actualiza a Premium.',
+                    'data' => $service->getInfoCompleta(),
+                ], 400);
+            }
+
+            return new \WP_REST_Response([
+                'success' => true,
+                'puedeSubir' => true,
+                'data' => $service->getInfoCompleta(),
+            ], 200);
+        } catch (\Exception $e) {
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Error al verificar espacio: ' . $e->getMessage(),
             ], 500);
         }
     }

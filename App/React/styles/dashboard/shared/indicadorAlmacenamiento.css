@@ -1,0 +1,138 @@
+/*
+ * INDICADOR DE ALMACENAMIENTO
+ * Estilos para la visualizacion del uso de espacio
+ */
+
+.indicadorAlmacenamiento {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+}
+
+.indicadorAlmacenamiento--advertencia {
+    border-color: var(--dashboard-estadoAdvertencia);
+}
+
+.indicadorAlmacenamiento--excedido {
+    border-color: var(--dashboard-estadoAlta);
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+.indicadorAlmacenamiento--cargando {
+    opacity: 0.7;
+}
+
+.indicadorAlmacenamientoEncabezado {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+}
+
+.indicadorAlmacenamientoIcono {
+    display: flex;
+    align-items: center;
+    color: var(--dashboard-textoSecundario);
+}
+
+.indicadorAlmacenamiento--advertencia .indicadorAlmacenamientoIcono {
+    color: var(--dashboard-estadoAdvertencia);
+}
+
+.indicadorAlmacenamiento--excedido .indicadorAlmacenamientoIcono {
+    color: var(--dashboard-estadoAlta);
+}
+
+.indicadorAlmacenamientoTitulo {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoActivo);
+    font-weight: 600;
+    flex: 1;
+}
+
+.indicadorAlmacenamientoPorcentaje {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+}
+
+/* 
+ * Barra de progreso
+ */
+.barraAlmacenamientoContenedor {
+    height: 6px;
+    background-color: var(--dashboard-barraFondo);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.barraAlmacenamientoProgreso {
+    height: 100%;
+    border-radius: 3px;
+    transition: width var(--dashboard-transicionNormal), background-color var(--dashboard-transicionNormal);
+}
+
+/* 
+ * Detalles
+ */
+.indicadorAlmacenamientoDetalles {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.indicadorAlmacenamientoUsado {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoActivo);
+}
+
+.indicadorAlmacenamientoDisponible {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+}
+
+/* 
+ * Alertas
+ */
+.indicadorAlmacenamientoAlerta {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-estadoAlta);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border-radius: 3px;
+    text-align: center;
+}
+
+.indicadorAlmacenamientoAlerta--advertencia {
+    color: var(--dashboard-estadoAdvertencia);
+    background-color: rgba(234, 179, 8, 0.1);
+}
+
+/* 
+ * Upgrade
+ */
+.indicadorAlmacenamientoUpgrade {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: 10px;
+    color: var(--dashboard-textoApagado);
+    text-align: center;
+    padding-top: var(--dashboard-espacioXs);
+    border-top: 1px dashed var(--dashboard-bordePrincipal);
+}
+
+.indicadorAlmacenamientoContenido {
+    flex: 1;
+}
+
+.indicadorAlmacenamientoTexto {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+}

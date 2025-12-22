@@ -292,7 +292,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ---
 
-### Fase 1: Sistema de Almacenamiento
+### Fase 1: Sistema de Almacenamiento ✅
 
 **Objetivo:** Control de uso de espacio por usuario.
 
@@ -302,12 +302,19 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 | Free    | 50 MB  |
 | Premium | 10 GB  |
 
-- [ ] Calcular tamaño total de adjuntos por usuario (backend)
-- [ ] Endpoint API: `GET /glory/v1/almacenamiento` (usado, límite, porcentaje)
-- [ ] Hook `useAlmacenamiento` para consultar estado
-- [ ] Bloquear subida si se excede límite
-- [ ] Indicador de uso en Modal de Perfil (barra de progreso)
-- [ ] Alerta al 90% de capacidad
+- [x] Calcular tamaño total de adjuntos por usuario (backend)
+- [x] Endpoint API: `GET /glory/v1/almacenamiento` (usado, límite, porcentaje)
+- [x] Hook `useAlmacenamiento` para consultar estado
+- [x] Bloquear subida si se excede límite (endpoint POST verificación)
+- [x] Indicador de uso en Modal de Perfil (barra de progreso)
+- [x] Alerta al 90% de capacidad
+
+**Archivos creados:**
+- `App/Services/AlmacenamientoService.php` - Servicio backend
+- `App/React/hooks/useAlmacenamiento.ts` - Hook frontend
+- `App/React/components/shared/IndicadorAlmacenamiento.tsx` - Componente visual
+- `App/React/styles/dashboard/shared/indicadorAlmacenamiento.css` - Estilos
+- `App/React/types/dashboard.ts` - Tipo InfoAlmacenamiento
 
 **Complejidad:** Media | **Dependencias:** Ninguna
 

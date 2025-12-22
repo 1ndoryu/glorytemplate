@@ -7,6 +7,7 @@ import {useState, useEffect, useRef} from 'react';
 import {Camera, Save, X} from 'lucide-react';
 import {Modal} from '../shared/Modal';
 import {useAuth} from '../../hooks/useAuth';
+import {IndicadorAlmacenamiento} from '../shared/IndicadorAlmacenamiento';
 // Importamos los estilos registrandolos en index.css, pero definimos clases aqui
 // Se asume que perfil.css ya esta importado globalmente
 
@@ -203,6 +204,11 @@ export function ModalPerfil({estaAbierto, onCerrar}: ModalPerfilProps): JSX.Elem
                         <label className="labelPerfil">Confirmar Nueva Contraseña</label>
                         <input type="password" className="inputPerfil" value={datos.passwordConfirmar} onChange={e => handleChange('passwordConfirmar', e.target.value)} placeholder="Repite la nueva contraseña" />
                     </div>
+                </div>
+
+                <div className="seccionPerfil">
+                    <div className="tituloSeccionPerfil">Uso de Espacio</div>
+                    <IndicadorAlmacenamiento mostrarDetalles={true} />
                 </div>
 
                 {mensaje && <div className={`mensajePerfil mensajePerfil--${mensaje.tipo}`}>{mensaje.texto}</div>}
