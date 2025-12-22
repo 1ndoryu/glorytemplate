@@ -50,6 +50,7 @@ export function InputNuevaTarea({onCrear}: InputNuevaTareaProps): JSX.Element {
                 <Plus size={12} />
             </div>
             <input
+                id="input-nueva-tarea-global"
                 ref={inputRef}
                 type="text"
                 className="tareaNuevoInlineInput"

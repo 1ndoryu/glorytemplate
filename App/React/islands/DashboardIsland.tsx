@@ -5,8 +5,8 @@
  */
 
 import {useState, useEffect} from 'react';
-import {Terminal, AlertCircle, FileText, Folder, Plus, LayoutGrid} from 'lucide-react';
-import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad, ModalConfiguracionLayout} from '../components/dashboard';
+import {Terminal, AlertCircle, FileText, Folder, Plus, LayoutGrid, Eraser} from 'lucide-react';
+import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad, ModalConfiguracionLayout, PanelConfiguracionTarea} from '../components/dashboard';
 import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos, PanelArrastrable, HandleArrastre, IndicadorArrastre} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {PanelAdministracion} from '../components/admin';
@@ -23,7 +23,7 @@ import {Filter, LayoutList, CheckSquare, ArrowUpDown, Settings} from 'lucide-rea
 import {useConfiguracionTareas} from '../hooks/useConfiguracionTareas';
 import {useArrastrePaneles} from '../hooks/useArrastrePaneles';
 import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
-import type {Proyecto} from '../types/dashboard';
+import type {Proyecto, TareaConfiguracion, NivelPrioridad} from '../types/dashboard';
 
 interface DashboardIslandProps {
     titulo?: string;
@@ -168,6 +168,39 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
         }
     };
 
+    /* Estado para modal de nueva tarea global */
+    const [modalNuevaTareaAbierto, setModalNuevaTareaAbierto] = useState(false);
+
+    /* Manejadores de acciones globales */
+    const manejarNuevaTarea = () => {
+        setModalNuevaTareaAbierto(true);
+    };
+
+    const manejarCrearNuevaTareaGlobal = (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string) => {
+        if (!texto) return;
+
+        // Asignar al proyecto filtrado actualmente si existe
+        const proyectoId = filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined;
+
+        crearTarea({
+            texto,
+            prioridad,
+            configuracion,
+            proyectoId,
+            completado: false
+        });
+
+        setModalNuevaTareaAbierto(false);
+    };
+
+    const manejarLimpiarScratchpad = () => {
+        if (!notas || notas.trim() === '') return;
+
+        if (window.confirm('¿Estás seguro de que quieres borrar todo el contenido del Scratchpad?')) {
+            actualizarNotas('');
+        }
+    };
+
     /*
      * Renderiza el contenido interno de un panel según su ID
      * Incluye el HandleArrastre en cada SeccionEncabezado
@@ -187,6 +220,11 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                                 <>
                                     {handleArrastre}
                                     <SelectorBadge opciones={opcionesOrdenHabitos} valorActual={modoActual} onChange={valor => cambiarModo(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar hábitos" />
+                                    <button className="selectorBadgeBoton" onClick={abrirModalCrearHabito} title="Nuevo Hábito">
+                                        <span className="selectorBadgeIcono">
+                                            <Plus size={10} />
+                                        </span>
+                                    </button>
                                 </>
                             }
                         />
@@ -207,7 +245,6 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                                         <span className="selectorBadgeIcono">
                                             <Plus size={10} />
                                         </span>
-                                        <span className="selectorBadgeTexto">Nuevo</span>
                                     </button>
                                 </>
                             }
@@ -227,6 +264,11 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                                     {handleArrastre}
                                     <SelectorBadge opciones={opcionesFiltro} valorActual={valorFiltroActual} onChange={manejarCambioFiltro} titulo="Filtrar tareas" />
                                     <SelectorBadge opciones={opcionesOrden} valorActual={modoOrden} onChange={valor => cambiarModoOrden(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar tareas" />
+                                    <button className="selectorBadgeBoton" onClick={manejarNuevaTarea} title="Nueva Tarea">
+                                        <span className="selectorBadgeIcono">
+                                            <Plus size={10} />
+                                        </span>
+                                    </button>
                                     <button className="selectorBadgeBoton" onClick={() => setModalConfigTareasAbierto(true)} title="Configuración">
                                         <span className="selectorBadgeIcono">
                                             <Settings size={10} />
@@ -242,7 +284,22 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
             case 'scratchpad':
                 return (
                     <div className="panelDashboard internaColumna">
-                        <SeccionEncabezado icono={<FileText size={12} />} titulo="Scratchpad" subtitulo="markdown supported" acciones={handleArrastre} />
+                        <SeccionEncabezado
+                            icono={<FileText size={12} />}
+                            titulo="Scratchpad"
+                            subtitulo="markdown supported"
+                            acciones={
+                                <>
+                                    {handleArrastre}
+                                    <button className="selectorBadgeBoton" onClick={manejarLimpiarScratchpad} title="Limpiar notas">
+                                        <span className="selectorBadgeIcono">
+                                            <Eraser size={10} />
+                                        </span>
+                                        <span className="selectorBadgeTexto">Limpiar</span>
+                                    </button>
+                                </>
+                            }
+                        />
                         <Scratchpad valorInicial={notas} onChange={actualizarNotas} />
                     </div>
                 );
@@ -408,6 +465,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
             {/* Indicador de arrastre flotante */}
             <IndicadorArrastre panelArrastrando={panelArrastrando} posicionMouse={posicionMouse} />
+
+            {/* Modal para crear nueva tarea global */}
+            {modalNuevaTareaAbierto && <PanelConfiguracionTarea estaAbierto={modalNuevaTareaAbierto} onCerrar={() => setModalNuevaTareaAbierto(false)} onGuardar={manejarCrearNuevaTareaGlobal} />}
         </div>
     );
 }

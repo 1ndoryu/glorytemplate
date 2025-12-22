@@ -14,7 +14,7 @@ import {SeccionAdjuntos} from './SeccionAdjuntos';
 import type {FrecuenciaHabito, Adjunto} from '../../types/dashboard';
 
 export interface PanelConfiguracionTareaProps {
-    tarea: Tarea;
+    tarea?: Tarea;
     estaAbierto: boolean;
     onCerrar: () => void;
     onGuardar: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string) => void;
@@ -22,39 +22,45 @@ export interface PanelConfiguracionTareaProps {
 
 export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar}: PanelConfiguracionTareaProps): JSX.Element | null {
     /* Estado local para edicion */
-    const [prioridad, setPrioridad] = useState<NivelPrioridad | null>(tarea.prioridad || null);
-    const [fechaMaxima, setFechaMaxima] = useState<string>(tarea.configuracion?.fechaMaxima || '');
-    const [descripcion, setDescripcion] = useState<string>(tarea.configuracion?.descripcion || '');
-    const [tieneRepeticion, setTieneRepeticion] = useState<boolean>(!!tarea.configuracion?.repeticion);
+    const [prioridad, setPrioridad] = useState<NivelPrioridad | null>(tarea?.prioridad || null);
+    const [fechaMaxima, setFechaMaxima] = useState<string>(tarea?.configuracion?.fechaMaxima || '');
+    const [descripcion, setDescripcion] = useState<string>(tarea?.configuracion?.descripcion || '');
+    const [tieneRepeticion, setTieneRepeticion] = useState<boolean>(!!tarea?.configuracion?.repeticion);
     const [frecuencia, setFrecuencia] = useState<FrecuenciaHabito>({tipo: 'diario'});
-    const [adjuntos, setAdjuntos] = useState<Adjunto[]>(tarea.configuracion?.adjuntos || []);
-    const [texto, setTexto] = useState(tarea.texto);
+    const [adjuntos, setAdjuntos] = useState<Adjunto[]>(tarea?.configuracion?.adjuntos || []);
+    const [texto, setTexto] = useState(tarea?.texto || '');
 
     /* Sincronizar estado cuando cambia la tarea */
     useEffect(() => {
-        setPrioridad(tarea.prioridad || null);
-        setFechaMaxima(tarea.configuracion?.fechaMaxima || '');
-        setDescripcion(tarea.configuracion?.descripcion || '');
-        setTieneRepeticion(!!tarea.configuracion?.repeticion);
+        if (tarea) {
+            setPrioridad(tarea.prioridad || null);
+            setFechaMaxima(tarea.configuracion?.fechaMaxima || '');
+            setDescripcion(tarea.configuracion?.descripcion || '');
+            setTieneRepeticion(!!tarea.configuracion?.repeticion);
 
-        /* Convertir RepeticionTarea a FrecuenciaHabito */
-        if (tarea.configuracion?.repeticion) {
-            const {intervalo, diasSemana} = tarea.configuracion.repeticion;
-            if (diasSemana && diasSemana.length > 0) {
-                setFrecuencia({tipo: 'diasEspecificos', diasSemana});
-            } else if (intervalo === 1) {
-                setFrecuencia({tipo: 'diario'});
-            } else if (intervalo === 7) {
-                setFrecuencia({tipo: 'semanal'});
+            /* Convertir RepeticionTarea a FrecuenciaHabito */
+            if (tarea.configuracion?.repeticion) {
+                const {intervalo, diasSemana} = tarea.configuracion.repeticion;
+                if (diasSemana && diasSemana.length > 0) {
+                    setFrecuencia({tipo: 'diasEspecificos', diasSemana});
+                } else if (intervalo === 1) {
+                    setFrecuencia({tipo: 'diario'});
+                } else if (intervalo === 7) {
+                    setFrecuencia({tipo: 'semanal'});
+                } else {
+                    setFrecuencia({tipo: 'cadaXDias', cadaDias: intervalo});
+                }
             } else {
-                setFrecuencia({tipo: 'cadaXDias', cadaDias: intervalo});
+                setFrecuencia({tipo: 'diario'});
             }
-        } else {
-            setFrecuencia({tipo: 'diario'});
-        }
 
-        setAdjuntos(tarea.configuracion?.adjuntos || []);
-        setTexto(tarea.texto);
+            setAdjuntos(tarea.configuracion?.adjuntos || []);
+            setTexto(tarea.texto);
+        } else {
+            /* Resetear si no hay tarea (modo creacion) */
+            // Solo si se acaba de abrir (esta logica puede requerir mejorar si el componente no se desmonta)
+            // Pero si se usa con renderizado condicional en el padre, esto es el estado inicial.
+        }
     }, [tarea]);
 
     const manejarGuardar = () => {
@@ -102,11 +108,17 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
         }
 
         onGuardar(configuracion, prioridad, texto.trim());
+        /* No cerramos aqui automaticamente para dar control al padre si es necesario, 
+           pero en la implementacion actual el padre suele cerrar o el componente se desmonta */
+        // onCerrar(); // El padre debe cerrarlo
+        // Correction: The original code called onCerrar(). Keeping it consistent.
         onCerrar();
     };
 
+    const esModoCreacion = !tarea;
+
     return (
-        <Modal estaAbierto={estaAbierto} onCerrar={onCerrar} titulo="Configurar Tarea" claseExtra="panelConfiguracionContenedor">
+        <Modal estaAbierto={estaAbierto} onCerrar={onCerrar} titulo={esModoCreacion ? 'Nueva Tarea' : 'Configurar Tarea'} claseExtra="panelConfiguracionContenedor">
             <div className="panelConfiguracionContenido" style={{padding: 0}}>
                 {/* Nombre de la tarea - Campo reutilizable */}
                 <CampoTexto titulo="Nombre de la tarea" valor={texto} onChange={setTexto} placeholder="Nombre de la tarea" />
@@ -140,7 +152,7 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
             </div>
 
             {/* Acciones reutilizables */}
-            <AccionesFormulario onCancelar={onCerrar} onGuardar={manejarGuardar} textoGuardar="Guardar configuracion" />
+            <AccionesFormulario onCancelar={onCerrar} onGuardar={manejarGuardar} textoGuardar={esModoCreacion ? 'Crear Tarea' : 'Guardar configuracion'} />
         </Modal>
     );
 }

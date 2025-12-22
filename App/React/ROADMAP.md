@@ -152,16 +152,16 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Objetivo:** Unificar la experiencia de usuario en todos los paneles, asegurando que cada uno tenga controles consistentes para crear elementos y configurar el panel.
 
 **Botones de Creación Unificados:**
-- [ ] Implementar botón "Nuevo" estilo badge (como en Proyectos/Filtros) en todos los paneles:
-  - [ ] **Hábitos:** Botón "Nuevo Hábito" en el encabezado
-  - [ ] **Tareas (Ejecución):** Botón "Nueva Tarea" en el encabezado (además del input inline)
-  - [ ] **Scratchpad:** Botón "Limpiar" o "Nueva Nota" (si se implementan tabs)
-- [ ] Asegurar que todos usen el componente/estilo `selectorBadgeBoton`
+- [x] Implementar botón "Nuevo" estilo badge (como en Proyectos/Filtros) en todos los paneles:
+  - [x] **Hábitos:** Botón "Nuevo Hábito" en el encabezado
+  - [x] **Tareas (Ejecución):** Botón "Nueva Tarea" en el encabezado (además del input inline)
+  - [x] **Scratchpad:** Botón "Limpiar" o "Nueva Nota" (si se implementan tabs)
+- [x] Asegurar que todos usen el componente/estilo `selectorBadgeBoton`
 
 **Consistencia Visual:**
-- [ ] Revisar tamaños de iconos (10px - 12px) en todos los badges
-- [ ] Unificar tooltips en estos botones
-- [ ] Asegurar alineación vertical correcta en todos los encabezados
+- [x] Revisar tamaños de iconos (10px - 12px) en todos los badges
+- [x] Unificar tooltips en estos botones
+- [x] Asegurar alineación vertical correcta en todos los encabezados
 
 ---
 
