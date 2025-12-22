@@ -27,6 +27,7 @@ class AlmacenamientoService
     private int $userId;
     private SuscripcionService $suscripcion;
     private ?CifradoService $cifradoService = null;
+    private ?int $usadoCache = null;
 
     public function __construct(int $userId)
     {
@@ -70,9 +71,15 @@ class AlmacenamientoService
 
     /**
      * Calcula el espacio usado por el usuario (todos los adjuntos)
+     * Resultado cacheado para evitar múltiples consultas en la misma petición
      */
     public function getUsado(): int
     {
+        /* Retornar cache si existe */
+        if ($this->usadoCache !== null) {
+            return $this->usadoCache;
+        }
+
         global $wpdb;
 
         $tablaTareas = $wpdb->prefix . 'glory_tareas';
@@ -133,6 +140,8 @@ class AlmacenamientoService
             }
         }
 
+        /* Guardar en cache y retornar */
+        $this->usadoCache = $totalBytes;
         return $totalBytes;
     }
 

@@ -30,7 +30,7 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
     const [adjuntos, setAdjuntos] = useState<Adjunto[]>(tarea?.configuracion?.adjuntos || []);
     const [texto, setTexto] = useState(tarea?.texto || '');
 
-    /* Sincronizar estado cuando cambia la tarea */
+    /* Sincronizar estado cuando cambia la tarea (solo por ID, no por referencia) */
     useEffect(() => {
         if (tarea) {
             setPrioridad(tarea.prioridad || null);
@@ -58,10 +58,15 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
             setTexto(tarea.texto);
         } else {
             /* Resetear si no hay tarea (modo creacion) */
-            // Solo si se acaba de abrir (esta logica puede requerir mejorar si el componente no se desmonta)
-            // Pero si se usa con renderizado condicional en el padre, esto es el estado inicial.
+            setPrioridad(null);
+            setFechaMaxima('');
+            setDescripcion('');
+            setTieneRepeticion(false);
+            setFrecuencia({tipo: 'diario'});
+            setAdjuntos([]);
+            setTexto('');
         }
-    }, [tarea]);
+    }, [tarea?.id]);
 
     const manejarGuardar = () => {
         const configuracion: TareaConfiguracion = {};
@@ -103,9 +108,8 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
             configuracion.repeticion = repeticion;
         }
 
-        if (adjuntos.length > 0) {
-            configuracion.adjuntos = adjuntos;
-        }
+        /* Siempre incluir adjuntos para permitir eliminación */
+        configuracion.adjuntos = adjuntos;
 
         onGuardar(configuracion, prioridad, texto.trim());
         /* No cerramos aqui automaticamente para dar control al padre si es necesario, 

@@ -316,7 +316,150 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - `App/React/styles/dashboard/shared/indicadorAlmacenamiento.css` - Estilos
 - `App/React/types/dashboard.ts` - Tipo InfoAlmacenamiento
 
+
 **Complejidad:** Media | **Dependencias:** Ninguna
+
+---
+
+### Fase 1.5: Archivos Físicos y Optimización de Cifrado
+
+**Objetivo:** Migrar de Base64 a archivos físicos, optimizar cifrado para rendimiento.
+
+#### Problema Actual
+| Aspecto  | Estado Actual           | Problema                     |
+| -------- | ----------------------- | ---------------------------- |
+| Adjuntos | Base64 en JSON          | +33% tamaño, infla BD        |
+| Cifrado  | Servidor (PHP)          | CPU servidor, no es E2E real |
+| Cache    | Sin cache               | Descifra en cada petición    |
+| Clave    | En servidor (user_meta) | Servidor tiene acceso        |
+
+#### Diferenciación por Plan
+
+| Característica                                | Free       | Premium                   |
+| --------------------------------------------- | ---------- | ------------------------- |
+| Cifrado de datos (tareas, hábitos, proyectos) | Si         | Si                        |
+| Cifrado de archivos adjuntos                  | No         | Si                        |
+| Thumbnails de imágenes                        | Sin cifrar | Sin cifrar (optimización) |
+| Límite almacenamiento                         | 50 MB      | 10 GB                     |
+
+**Justificación:** Cifrar archivos es costoso computacionalmente. Los usuarios Free tienen límite bajo (50MB), el impacto de archivos sin cifrar es menor. Premium obtiene seguridad completa como beneficio.
+
+#### 1.5.1 Sistema de Archivos Físicos
+**Ubicación:** `/wp-content/uploads/glory-adjuntos/{user_id}/`
+
+**Estructura de archivos:**
+```
+glory-adjuntos/
+  {user_id}/
+    {hash_archivo}.enc    ← Archivo cifrado (Premium)
+    {hash_archivo}.raw    ← Archivo sin cifrar (Free)
+    thumbs/
+      {hash_archivo}.jpg  ← Thumbnail sin cifrar (todos)
+```
+
+- [ ] Crear `AdjuntosService.php` con métodos:
+  - `subirArchivo($userId, $file, $cifrar)` → retorna URL
+  - `descargarArchivo($url)` → descifra si es .enc
+  - `eliminarArchivo($url)` → elimina archivo + thumbnail
+  - `generarThumbnail($imagePath)` → versión 200x200 sin cifrar
+  - `limpiarHuerfanos()` → cron job semanal
+- [ ] Endpoint `POST /glory/v1/adjuntos` para subida directa
+- [ ] Endpoint `GET /glory/v1/adjuntos/{id}` para descarga (descifra on-the-fly si Premium)
+- [ ] Migración: script para convertir Base64 existentes → archivos
+- [ ] Actualizar `SeccionAdjuntos.tsx` para subida multipart (no Base64)
+
+#### 1.5.2 Optimización de Cifrado de Archivos (Solo Premium)
+
+**Técnicas de rendimiento:**
+
+1. **Stream Cipher (archivos grandes > 1MB):**
+   ```php
+   // Procesar en chunks de 8KB para no saturar RAM
+   while (!feof($file)) {
+       $chunk = fread($file, 8192);
+       $chunkCifrado = openssl_encrypt($chunk, 'aes-256-gcm', $key, ...);
+       fwrite($destino, $chunkCifrado);
+   }
+   ```
+   - [ ] Implementar `cifrarStream()` en `CifradoService`
+   - [ ] Implementar `descifrarStream()` en `CifradoService`
+
+2. **Cache de archivos descifrados:**
+   ```
+   /tmp/glory-cache/{user_id}/{hash_archivo}  ← TTL 5 minutos
+   ```
+   - [ ] Crear directorio temporal por usuario
+   - [ ] Verificar cache antes de descifrar
+   - [ ] Cron job cada 5 min para limpiar expired
+
+3. **Thumbnails sin cifrar:**
+   - Preview rápido sin costo de descifrado
+   - Archivo original cifrado para descarga
+   - [ ] Generar thumbnail al subir imagen
+   - [ ] Mostrar thumbnail en lista, cifrado en modal/descarga
+
+4. **Lazy Decryption:**
+   - No descifrar hasta que usuario haga clic
+   - [ ] Mostrar placeholder con icono de candado
+   - [ ] Descifrar on-demand al hacer clic
+
+#### 1.5.3 Optimización de Cifrado de Datos
+
+**Estrategia de cifrado diferencial (solo cambios):**
+```
+Datos actuales → Hash SHA-256
+Datos nuevos → Hash SHA-256
+Si hash diferente → Cifrar y guardar
+Si hash igual → No hacer nada
+```
+
+- [ ] Implementar `hashDatos()` en `CifradoService`
+- [ ] Guardar hash del último estado cifrado en metadata
+- [ ] Comparar antes de cifrar para evitar trabajo innecesario
+
+**Cache de datos descifrados (opcional):**
+| Opción         | Pros                    | Contras                       |
+| -------------- | ----------------------- | ----------------------------- |
+| LocalStorage   | Persiste entre sesiones | Datos sensibles en disco      |
+| SessionStorage | Se borra al cerrar      | Hay que descifrar cada sesión |
+| Memory (RAM)   | Más seguro              | Se pierde en F5               |
+
+Recomendación: **SessionStorage con clave derivada de sesión**
+
+- [ ] Evaluar si cache de descifrado es necesaria (medir tiempos actuales)
+- [ ] Si >500ms para descifrar dashboard completo, implementar cache
+
+#### 1.5.3 E2E Real (Fase Futura - Opcional)
+
+**Arquitectura de clave en cliente:**
+```
+Usuario define contraseña maestra
+     ↓
+Deriva clave AES con PBKDF2 (en navegador)
+     ↓
+Cifra/descifra en JavaScript (Web Crypto API)
+     ↓
+Servidor NUNCA ve datos descifrados
+```
+
+Implicaciones:
+- [ ] Usuario responsable de recordar contraseña
+- [ ] Si olvida → datos irrecuperables (opcional: backup cifrado)
+- [ ] Cifrado en Web Workers para no bloquear UI
+- [ ] Migración de datos existentes (recifrar con nueva clave)
+
+**Decisión:** ¿Implementar E2E real o mantener cifrado servidor?
+- **E2E Real:** Máxima privacidad, complejidad alta
+- **Servidor:** Más simple, recuperable, server tiene acceso
+
+#### Archivos a crear/modificar:
+- `App/Services/AdjuntosService.php` - Nuevo servicio
+- `App/Api/AdjuntosApiController.php` - Endpoints REST
+- `App/Services/CifradoService.php` - Añadir hash diferencial
+- `App/React/components/dashboard/SeccionAdjuntos.tsx` - Upload directo
+- Cron job para limpieza de archivos huérfanos
+
+**Complejidad:** Alta | **Dependencias:** Fase 1 completada
 
 ---
 
