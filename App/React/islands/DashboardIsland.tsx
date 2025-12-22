@@ -7,7 +7,7 @@
 import {useState, useEffect} from 'react';
 import {Terminal, AlertCircle, FileText, Folder, Plus} from 'lucide-react';
 import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad} from '../components/dashboard';
-import {ToastDeshacer, ModalUpgrade} from '../components/shared';
+import {ToastDeshacer, ModalUpgrade, TooltipSystem} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {PanelAdministracion} from '../components/admin';
 import {useDashboard} from '../hooks/useDashboard';
@@ -305,6 +305,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
             {/* Panel de Administración */}
             {esAdmin && <PanelAdministracion estaAbierto={panelAdminAbierto} onCerrar={() => setPanelAdminAbierto(false)} />}
+
+            {/* Sistema Global de Tooltips */}
+            <TooltipSystem />
         </div>
     );
 }

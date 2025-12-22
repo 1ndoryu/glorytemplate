@@ -35,6 +35,7 @@
 @import './shared/suscripcion.css';
 @import './shared/panelSeguridad.css';
 @import './shared/selectorBadge.css';
+@import './shared/tooltip.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';

@@ -162,7 +162,7 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
 
     return (
         <>
-            <div className={`tablaFila tablaFilaEditable ${completadoHoy ? 'tablaFilaCompletada' : ''} ${habitoTocaHoy && !completadoHoy ? 'tablaFilaTocaHoy' : ''}`} onClick={manejarEditar} onContextMenu={manejarClickDerecho} onMouseEnter={() => setMostrarAcciones(true)} onMouseLeave={() => setMostrarAcciones(false)} title="Click para editar, click derecho para menu">
+            <div className={`tablaFila tablaFilaEditable ${completadoHoy ? 'tablaFilaCompletada' : ''} ${habitoTocaHoy && !completadoHoy ? 'tablaFilaTocaHoy' : ''}`} onClick={manejarEditar} onContextMenu={manejarClickDerecho} onMouseEnter={() => setMostrarAcciones(true)} onMouseLeave={() => setMostrarAcciones(false)}>
                 {/* Checkbox para completar rápidamente */}
                 <div className="tablaColumnaCheckbox" onClick={manejarToggle}>
                     <div className={`habitoCheckbox ${completadoHoy ? 'habitoCheckboxCompletado' : ''}`}>{completadoHoy && <Check size={10} />}</div>

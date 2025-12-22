@@ -136,9 +136,9 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [x] **Por importancia**: Priorizar tareas (Alta > Media > Baja)
 
 **Mejora de UX / Tooltips:**
-- [ ] **Sistema de Tooltips**: Crear componente `Tooltip` personalizado con diseño del dashboard (oscuro, minimalista)
-- [ ] **Interceptar nativos**: Reemplazar atributos `title` del navegador por el tooltip personalizado automáticamente
-- [ ] **Aplicación prioritaria**: Mostrar nombre completo del proyecto al hacer hover en el badge (especialmente en modo solo icono)
+- [x] **Sistema de Tooltips**: Crear componente `Tooltip` personalizado con diseño del dashboard (oscuro, minimalista)
+- [x] **Interceptar nativos**: Reemplazar atributos `title` del navegador por el tooltip personalizado automáticamente
+- [x] **Aplicación prioritaria**: Mostrar nombre completo del proyecto al hacer hover en el badge (especialmente en modo solo icono)
 
 **Consideraciones Visuales:**
 - [ ] Cuidar la estética con múltiples filtros visibles

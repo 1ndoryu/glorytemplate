@@ -16,3 +16,4 @@ export * from './CampoPrioridad';
 export * from './IndicadorSincronizacion';
 export * from './IndicadorPlan';
 export * from './ModalUpgrade';
+export * from './TooltipSystem';
