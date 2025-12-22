@@ -1,0 +1,189 @@
+/*
+ * ESTILOS SISTEMA DE ARRASTRE DE PANELES
+ * Sistema personalizado basado en mouse events
+ * Handle de arrastre, indicador flotante, zonas de drop
+ */
+
+/* 
+ * HANDLE DE ARRASTRE
+ * Botón en el encabezado de cada panel
+ */
+.handleArrastre {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 3px;
+    color: var(--dashboard-textoApagado);
+    cursor: grab;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.handleArrastre:hover {
+    color: var(--dashboard-textoSecundario);
+    background: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+}
+
+.handleArrastre:active,
+.handleArrastre.activo {
+    cursor: grabbing;
+    color: var(--dashboard-acentoPrimario);
+    border-color: var(--dashboard-acentoPrimario);
+    background: rgba(139, 92, 246, 0.1);
+}
+
+/* 
+ * INDICADOR FLOTANTE
+ * Preview del panel que sigue el cursor
+ */
+.indicadorArrastreFlotante {
+    position: fixed;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-acentoPrimario);
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(139, 92, 246, 0.2);
+    pointer-events: none;
+    animation: aparecer 0.15s ease-out;
+}
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.indicadorArrastreIcono {
+    display: flex;
+    align-items: center;
+    color: var(--dashboard-acentoPrimario);
+}
+
+.indicadorArrastreNombre {
+    font-size: var(--dashboard-tamanoPequeno);
+    font-weight: 500;
+    color: var(--dashboard-textoNormal);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* 
+ * ZONA DE DROP
+ * Linea brillante que indica donde se insertara el panel
+ */
+.indicadorZonaDrop {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--dashboard-acentoPrimario);
+    border-radius: 2px;
+    z-index: 100;
+    box-shadow: 0 0 12px var(--dashboard-acentoPrimario), 0 0 24px rgba(139, 92, 246, 0.4);
+    animation: pulsoZona 1s ease-in-out infinite;
+}
+
+.indicadorZonaDropSuperior {
+    top: -6px;
+}
+
+.indicadorZonaDropInferior {
+    bottom: -6px;
+}
+
+@keyframes pulsoZona {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scaleX(0.98);
+    }
+}
+
+/* 
+ * PANEL ARRASTRABLE - CONTENEDOR
+ */
+.panelArrastrable {
+    position: relative;
+    transition: opacity var(--dashboard-transicionNormal), transform var(--dashboard-transicionNormal);
+}
+
+/* Panel que esta siendo arrastrado */
+.panelArrastrable.arrastrando {
+    opacity: 0.4;
+    transform: scale(0.98);
+}
+
+/* Otros paneles mientras hay arrastre activo */
+.panelArrastrable.puedeRecibirDrop {
+    position: relative;
+}
+
+/* 
+ * ANIMACION DE SNAP AL SOLTAR
+ */
+@keyframes panelSnap {
+    0% {
+        transform: scale(1.02);
+    }
+    50% {
+        transform: scale(0.99);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.panelArrastrable.recienSoltado {
+    animation: panelSnap 0.25s ease-out;
+}
+
+/* 
+ * ESTADO GLOBAL DE ARRASTRE
+ * Estilos cuando hay un arrastre activo
+ */
+.dashboardContenedor.arrastrandoPanel {
+    cursor: grabbing;
+}
+
+.dashboardContenedor.arrastrandoPanel .panelDashboard {
+    pointer-events: none;
+}
+
+.dashboardContenedor.arrastrandoPanel .panelArrastrable {
+    pointer-events: auto;
+}
+
+/* 
+ * RESPONSIVE - OCULTAR HANDLES EN MOVIL
+ */
+@media (max-width: 768px) {
+    .handleArrastre {
+        display: none;
+    }
+}
+
+/* 
+ * ACCESIBILIDAD
+ */
+.handleArrastre:focus-visible {
+    outline: 2px solid var(--dashboard-acentoPrimario);
+    outline-offset: 2px;
+}

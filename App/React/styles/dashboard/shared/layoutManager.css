@@ -138,6 +138,44 @@
     margin: 0;
 }
 
+/* Header de sección con título y botón */
+.configLayoutSeccionHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--dashboard-espacioMd);
+}
+
+/* Título con icono */
+.configLayoutSeccionTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+}
+
+/* Botón reset pequeño para secciones */
+.configLayoutBotonResetPequeno {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.configLayoutBotonResetPequeno:hover {
+    background: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-acentoPrimario);
+    color: var(--dashboard-acentoPrimario);
+}
+
 /* 
  * SELECTOR DE COLUMNAS
  */

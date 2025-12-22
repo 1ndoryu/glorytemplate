@@ -7,7 +7,7 @@
 import {useState, useEffect} from 'react';
 import {Terminal, AlertCircle, FileText, Folder, Plus, LayoutGrid} from 'lucide-react';
 import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad, ModalConfiguracionLayout} from '../components/dashboard';
-import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos} from '../components/shared';
+import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos, PanelArrastrable, HandleArrastre} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {PanelAdministracion} from '../components/admin';
 import {useDashboard} from '../hooks/useDashboard';
@@ -17,6 +17,7 @@ import {useSuscripcion} from '../hooks/useSuscripcion';
 import {useFiltroTareas} from '../hooks/useFiltroTareas';
 import {useOrdenarTareas, MODOS_ORDEN_TAREAS} from '../hooks/useOrdenarTareas';
 import {useConfiguracionLayout} from '../hooks/useConfiguracionLayout';
+import type {PanelId} from '../hooks/useConfiguracionLayout';
 import {SelectorBadge} from '../components/shared/SelectorBadge';
 import {Filter, LayoutList, CheckSquare, ArrowUpDown, Settings} from 'lucide-react';
 import {useConfiguracionTareas} from '../hooks/useConfiguracionTareas';
@@ -119,8 +120,34 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
     const [modalConfigTareasAbierto, setModalConfigTareasAbierto] = useState(false);
 
     /* Configuracion de layout */
-    const {modoColumnas, anchos, visibilidad, panelesOcultos, cambiarModoColumnas, ajustarAnchos, toggleVisibilidadPanel, mostrarPanel, resetearLayout} = useConfiguracionLayout();
+    const {modoColumnas, anchos, visibilidad, ordenPaneles, panelesOcultos, cambiarModoColumnas, ajustarAnchos, toggleVisibilidadPanel, mostrarPanel, resetearLayout, obtenerPanelesColumna, moverPanelArriba, moverPanelAbajo, moverPanelAColumna, resetearOrdenPaneles, reordenarPanel} = useConfiguracionLayout();
     const [modalConfigLayoutAbierto, setModalConfigLayoutAbierto] = useState(false);
+
+    /* Estado para Drag & Drop de paneles */
+    const [panelArrastrando, setPanelArrastrando] = useState<PanelId | null>(null);
+
+    const manejarDragStartPanel = (panelId: PanelId) => {
+        setPanelArrastrando(panelId);
+    };
+
+    const manejarDragEndPanel = () => {
+        setPanelArrastrando(null);
+    };
+
+    /*
+     * Manejador de drop mejorado
+     * Recibe el panel arrastrado, el panel destino, y si va antes o despues
+     */
+    const manejarDropEnPanel = (panelArrastrado: PanelId, panelDestino: PanelId, posicionRelativa: 'antes' | 'despues') => {
+        /* Obtener info del panel destino */
+        const ordenDestino = ordenPaneles.find(p => p.id === panelDestino);
+        if (!ordenDestino) return;
+
+        const nuevaPosicion = posicionRelativa === 'antes' ? ordenDestino.posicion : ordenDestino.posicion + 1;
+
+        reordenarPanel(panelArrastrado, ordenDestino.columna, nuevaPosicion);
+        setPanelArrastrando(null);
+    };
 
     /* Calcular valor actual para el selector */
     const valorFiltroActual = filtroActual.tipo === 'proyecto' ? `proyecto-${filtroActual.proyectoId}` : filtroActual.tipo;
@@ -163,6 +190,118 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
         }
     };
 
+    /*
+     * Renderiza el contenido interno de un panel según su ID
+     * Incluye el HandleArrastre en cada SeccionEncabezado
+     */
+    const renderizarContenidoPanel = (panelId: PanelId): JSX.Element | null => {
+        /* Handle de arrastre común para todos los paneles */
+        const handleArrastre = (
+            <HandleArrastre
+                panelId={panelId}
+                onDragStart={e => {
+                    e.dataTransfer.setData('text/plain', panelId);
+                    e.dataTransfer.effectAllowed = 'move';
+                    manejarDragStartPanel(panelId);
+                }}
+                onDragEnd={manejarDragEndPanel}
+                estaArrastrando={panelArrastrando === panelId}
+            />
+        );
+
+        switch (panelId) {
+            case 'focoPrioritario':
+                return (
+                    <div className="panelDashboard">
+                        <SeccionEncabezado
+                            icono={<AlertCircle size={12} />}
+                            titulo="Foco Prioritario"
+                            acciones={
+                                <>
+                                    {handleArrastre}
+                                    <SelectorBadge opciones={opcionesOrdenHabitos} valorActual={modoActual} onChange={valor => cambiarModo(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar hábitos" />
+                                </>
+                            }
+                        />
+                        <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} />
+                    </div>
+                );
+
+            case 'proyectos':
+                return (
+                    <div className="panelDashboard">
+                        <SeccionEncabezado
+                            titulo="Proyectos"
+                            icono={<Folder size={12} />}
+                            acciones={
+                                <>
+                                    {handleArrastre}
+                                    <button className="botonIcono" onClick={manejarCrearProyecto} title="Nuevo Proyecto">
+                                        <Plus size={14} />
+                                    </button>
+                                </>
+                            }
+                        />
+                        <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
+                    </div>
+                );
+
+            case 'ejecucion':
+                return (
+                    <div className="panelDashboard internaColumna">
+                        <SeccionEncabezado
+                            icono={<Terminal size={12} />}
+                            titulo="Ejecucion"
+                            acciones={
+                                <div style={{display: 'flex', gap: '8px'}}>
+                                    {handleArrastre}
+                                    <SelectorBadge opciones={opcionesFiltro} valorActual={valorFiltroActual} onChange={manejarCambioFiltro} titulo="Filtrar tareas" />
+                                    <SelectorBadge opciones={opcionesOrden} valorActual={modoOrden} onChange={valor => cambiarModoOrden(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar tareas" />
+                                    <button className="selectorBadgeBoton" onClick={() => setModalConfigTareasAbierto(true)} title="Configuración">
+                                        <span className="selectorBadgeIcono">
+                                            <Settings size={10} />
+                                        </span>
+                                    </button>
+                                </div>
+                            }
+                        />
+                        <ListaTareas tareas={tareasFinales} proyectoId={filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined} proyectos={proyectos || []} ocultarCompletadas={configTareas.ocultarCompletadas} ocultarBadgeProyecto={configTareas.ocultarBadgeProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={esOrdenManual ? reordenarTareas : undefined} habilitarDrag={esOrdenManual} />
+                    </div>
+                );
+
+            case 'scratchpad':
+                return (
+                    <div className="panelDashboard internaColumna">
+                        <SeccionEncabezado icono={<FileText size={12} />} titulo="Scratchpad" subtitulo="markdown supported" acciones={handleArrastre} />
+                        <Scratchpad valorInicial={notas} onChange={actualizarNotas} />
+                    </div>
+                );
+
+            default:
+                return null;
+        }
+    };
+
+    /*
+     * Renderiza un panel envuelto en PanelArrastrable
+     * Las zonas de drop están integradas dentro del PanelArrastrable
+     */
+    const renderizarPanel = (panelId: PanelId): JSX.Element => {
+        return (
+            <PanelArrastrable key={panelId} panelId={panelId} onDragStart={manejarDragStartPanel} onDragEnd={manejarDragEndPanel} onDropEnPanel={manejarDropEnPanel} panelArrastrandoGlobal={panelArrastrando} habilitado={true}>
+                {renderizarContenidoPanel(panelId)}
+            </PanelArrastrable>
+        );
+    };
+
+    /*
+     * Renderiza los paneles de una columna
+     */
+    const renderizarColumna = (columna: 1 | 2 | 3): JSX.Element[] => {
+        const panelesColumna = obtenerPanelesColumna(columna);
+        return panelesColumna.map(panelId => renderizarPanel(panelId));
+    };
+
     if (authLoading && !modalLoginAbierto) {
         // Solo mostrar carga pantalla completa si no es modal
         return <IndicadorCarga texto="Autenticando..." />;
@@ -191,67 +330,32 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
             {cargandoDatos ? (
                 <IndicadorCarga />
             ) : (
-                <div className={`dashboardGrid dashboardGrid--${modoColumnas}col`}>
-                    {/* Columna 1: Habitos y Proyectos */}
-                    <div className="columnaHabitos">
-                        {visibilidad.focoPrioritario && (
-                            <>
-                                <SeccionEncabezado icono={<AlertCircle size={12} />} titulo="Foco Prioritario" acciones={<SelectorBadge opciones={opcionesOrdenHabitos} valorActual={modoActual} onChange={valor => cambiarModo(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar hábitos" />} />
-                                <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} />
-                            </>
-                        )}
+                <div className={`dashboardGrid dashboardGrid--${modoColumnas}col ${panelArrastrando ? 'arrastrandoPanel' : ''}`}>
+                    {/* Columna 1 */}
+                    <div className="columnaDashboard">{renderizarColumna(1)}</div>
 
-                        {visibilidad.proyectos && (
-                            <>
-                                <SeccionEncabezado
-                                    titulo="Proyectos"
-                                    icono={<Folder size={12} />}
-                                    acciones={
-                                        <button className="botonIcono" onClick={manejarCrearProyecto} title="Nuevo Proyecto">
-                                            <Plus size={14} />
-                                        </button>
-                                    }
-                                />
-                                <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
-                            </>
-                        )}
-                    </div>
+                    {/* Columna 2 (si modoColumnas >= 2) */}
+                    {modoColumnas >= 2 && (
+                        <div className="columnaDashboard">
+                            {renderizarColumna(2)}
 
-                    {/* Columna 2: Tareas sueltas y Notas */}
-                    <div className="columnaTareas">
-                        {/* Seccion: Tareas sueltas (sin proyecto) */}
-                        {visibilidad.ejecucion && (
-                            <div className="internaColumna">
-                                <SeccionEncabezado
-                                    icono={<Terminal size={12} />}
-                                    titulo="Ejecucion"
-                                    acciones={
-                                        <div style={{display: 'flex', gap: '8px'}}>
-                                            <SelectorBadge opciones={opcionesFiltro} valorActual={valorFiltroActual} onChange={manejarCambioFiltro} titulo="Filtrar tareas" />
-                                            <SelectorBadge opciones={opcionesOrden} valorActual={modoOrden} onChange={valor => cambiarModoOrden(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar tareas" />
-                                            <button className="selectorBadgeBoton" onClick={() => setModalConfigTareasAbierto(true)} title="Configuración">
-                                                <span className="selectorBadgeIcono">
-                                                    <Settings size={10} />
-                                                </span>
-                                            </button>
-                                        </div>
-                                    }
-                                />
-                                <ListaTareas tareas={tareasFinales} proyectoId={filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined} proyectos={proyectos || []} ocultarCompletadas={configTareas.ocultarCompletadas} ocultarBadgeProyecto={configTareas.ocultarBadgeProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={esOrdenManual ? reordenarTareas : undefined} habilitarDrag={esOrdenManual} />
-                            </div>
-                        )}
+                            {/* Acciones de Datos siempre al final de la última columna */}
+                            {modoColumnas === 2 && <AccionesDatos onExportar={exportarTodosDatos} onImportar={importarTodosDatos} importando={importando} mensajeEstado={mensajeEstado} tipoMensaje={tipoMensaje} />}
+                        </div>
+                    )}
 
-                        {/* Seccion: Notas Rapidas */}
-                        {visibilidad.scratchpad && (
-                            <div className="internaColumna">
-                                <SeccionEncabezado icono={<FileText size={12} />} titulo="Scratchpad" subtitulo="markdown supported" />
-                                <Scratchpad valorInicial={notas} onChange={actualizarNotas} />
-                            </div>
-                        )}
+                    {/* Columna 3 (si modoColumnas === 3) */}
+                    {modoColumnas === 3 && (
+                        <div className="columnaDashboard">
+                            {renderizarColumna(3)}
 
-                        {/* Seccion: Acciones de Datos */}
-                        <AccionesDatos onExportar={exportarTodosDatos} onImportar={importarTodosDatos} importando={importando} mensajeEstado={mensajeEstado} tipoMensaje={tipoMensaje} />
-                    </div>
+                            {/* Acciones de Datos siempre al final de la última columna */}
+                            <AccionesDatos onExportar={exportarTodosDatos} onImportar={importarTodosDatos} importando={importando} mensajeEstado={mensajeEstado} tipoMensaje={tipoMensaje} />
+                        </div>
+                    )}
+
+                    {/* Acciones de Datos para modo 1 columna */}
+                    {modoColumnas === 1 && <AccionesDatos onExportar={exportarTodosDatos} onImportar={importarTodosDatos} importando={importando} mensajeEstado={mensajeEstado} tipoMensaje={tipoMensaje} />}
                 </div>
             )}
 
@@ -325,7 +429,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
             {esAdmin && <PanelAdministracion estaAbierto={panelAdminAbierto} onCerrar={() => setPanelAdminAbierto(false)} />}
 
             {/* Modal configuracion de layout */}
-            <ModalConfiguracionLayout estaAbierto={modalConfigLayoutAbierto} onCerrar={() => setModalConfigLayoutAbierto(false)} modoColumnas={modoColumnas} visibilidad={visibilidad} onCambiarModo={cambiarModoColumnas} onTogglePanel={toggleVisibilidadPanel} onResetear={resetearLayout} />
+            <ModalConfiguracionLayout estaAbierto={modalConfigLayoutAbierto} onCerrar={() => setModalConfigLayoutAbierto(false)} modoColumnas={modoColumnas} visibilidad={visibilidad} ordenPaneles={ordenPaneles} onCambiarModo={cambiarModoColumnas} onTogglePanel={toggleVisibilidadPanel} onMoverPanelArriba={moverPanelArriba} onMoverPanelAbajo={moverPanelAbajo} onMoverPanelAColumna={moverPanelAColumna} onResetearOrden={resetearOrdenPaneles} onResetear={resetearLayout} />
 
             {/* Barra de paneles ocultos */}
             <BarraPanelesOcultos panelesOcultos={panelesOcultos} onMostrarPanel={mostrarPanel} />

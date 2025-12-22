@@ -1,0 +1,188 @@
+/* 
+ * Lista Orden Paneles
+ * Estilos para el componente de reordenamiento de paneles
+ */
+
+.listaOrdenPaneles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+}
+
+/* Grid de columnas para modo 2-3 columnas */
+.listaOrdenColumnasGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--dashboard-espacioMd);
+}
+
+/* Contenedor de una columna */
+.listaOrdenColumna {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+}
+
+.listaOrdenColumnaLabel {
+    font-size: 0.7rem;
+    color: var(--dashboard-textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-bottom: var(--dashboard-espacioXs);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+}
+
+/* Lista de items */
+.listaOrdenItems {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioXs);
+}
+
+/* Item individual de panel */
+.listaOrdenItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--dashboard-espacioSm);
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+    gap: var(--dashboard-espacioSm);
+}
+
+.listaOrdenItem:hover {
+    border-color: var(--dashboard-acentoPrimario);
+}
+
+/* Info del panel (icono + nombre) */
+.listaOrdenItemInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    flex: 1;
+    min-width: 0;
+}
+
+.listaOrdenItemIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dashboard-textoSecundario);
+    flex-shrink: 0;
+}
+
+.listaOrdenItemNombre {
+    font-size: 0.75rem;
+    color: var(--dashboard-textoPrincipal);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Acciones (botones) */
+.listaOrdenItemAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    flex-shrink: 0;
+}
+
+/* Botón de mover arriba/abajo */
+.listaOrdenBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background-color: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 3px;
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.listaOrdenBoton:hover:not(:disabled) {
+    background-color: var(--dashboard-fondoTerciario);
+    border-color: var(--dashboard-acentoPrimario);
+    color: var(--dashboard-acentoPrimario);
+}
+
+.listaOrdenBoton:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Selector de columnas */
+.listaOrdenColumnas {
+    display: flex;
+    gap: 2px;
+    margin-left: var(--dashboard-espacioXs);
+}
+
+.listaOrdenColumnaBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    font-size: 0.65rem;
+    font-weight: 600;
+    background-color: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 3px;
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.listaOrdenColumnaBtn:hover {
+    background-color: var(--dashboard-fondoTerciario);
+    border-color: var(--dashboard-acentoPrimario);
+}
+
+.listaOrdenColumnaBtn.activa {
+    background-color: var(--dashboard-acentoPrimario);
+    border-color: var(--dashboard-acentoPrimario);
+    color: var(--dashboard-fondoPrincipal);
+}
+
+/* Vista previa compacta del layout */
+.listaOrdenPreview {
+    display: grid;
+    gap: 4px;
+    padding: var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+    margin-top: var(--dashboard-espacioMd);
+}
+
+.listaOrdenPreview--2col {
+    grid-template-columns: 1fr 1fr;
+}
+
+.listaOrdenPreview--3col {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.listaOrdenPreviewColumna {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.listaOrdenPreviewItem {
+    height: 12px;
+    background-color: var(--dashboard-fondoTerciario);
+    border-radius: 2px;
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.listaOrdenPreviewItem--activo {
+    background-color: var(--dashboard-acentoPrimario);
+    border-color: var(--dashboard-acentoPrimario);
+}

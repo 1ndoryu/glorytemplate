@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-22
-**Estado:** Planificación de nuevas funcionalidades
+**Estado:** Etapa 4 - Implementando Sistema de Arrastre Personalizado (Etapas 1-3 completadas)
 
 ---
 
@@ -195,7 +195,114 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ---
 
-### 📜 Fase Historial de Versiones
+### � Fase Reordenamiento de Paneles (Drag & Drop)
+
+**Objetivo:** Permitir al usuario reorganizar la posición de los paneles del dashboard arrastrándolos vertical u horizontalmente entre columnas.
+
+**Estructura de Datos:**
+```typescript
+interface OrdenPanel {
+    id: PanelId;           // 'focoPrioritario' | 'proyectos' | 'ejecucion' | 'scratchpad'
+    columna: 1 | 2 | 3;    // A qué columna pertenece
+    posicion: number;      // Orden dentro de la columna (0, 1, 2...)
+}
+
+// Agregar a ConfiguracionLayout existente:
+ordenPaneles: OrdenPanel[];
+```
+
+**Etapa 1: Modelo de Datos y Hook (Fundamentos)**
+- [x] Extender `useConfiguracionLayout` con `ordenPaneles`
+- [x] Definir orden por defecto según modo de columnas
+- [x] Implementar `reordenarPanel(panelId, columna, posicion)`
+- [x] Implementar `moverPanelArriba(panelId)` / `moverPanelAbajo(panelId)`
+- [x] Función `obtenerPanelesColumna(columna)` que retorna paneles ordenados
+- [x] Migración automática: si no existe `ordenPaneles`, generarlo desde el layout actual
+
+**Etapa 2: Renderizado Dinámico en Dashboard**
+- [x] Crear función `renderizarPanel(panelId)` que retorna el JSX del panel
+- [x] Modificar `DashboardIsland` para iterar `ordenPaneles` agrupados por columna
+- [x] Los paneles se renderizan según su `posicion` dentro de cada columna
+- [x] Respetar `visibilidad`: panel oculto no se renderiza pero mantiene su orden
+
+**Etapa 3: Controles en Modal de Configuración (Accesibilidad)**
+- [x] Crear componente `ListaOrdenPaneles.tsx`
+  - Lista de paneles con iconos y nombres
+  - Botones ↑↓ para mover dentro de columna
+  - Selector de columna destino (dropdown o badges)
+  - Vista previa compacta del layout
+- [x] Agregar sección "Orden de Paneles" en `ModalConfiguracionLayout`
+- [x] Botón "Restaurar orden por defecto"
+
+**Etapa 4: Sistema de Arrastre Personalizado (En Progreso)**
+
+> **Nota:** El API nativo de HTML5 Drag & Drop fue descartado por ser poco confiable 
+> (comportamiento inconsistente, falta de feedback visual adecuado). Se implementará 
+> un sistema personalizado basado en eventos de mouse.
+
+- [ ] Crear hook `useArrastrePaneles` con lógica de mouse events
+  - Estado: `panelArrastrando`, `posicionMouse`, `panelDestino`
+  - Eventos: mousedown en handle, mousemove global, mouseup global
+  - Cálculo de zona de drop basado en posición Y del mouse
+- [ ] Crear componente `HandleArrastre.tsx` (botón en encabezado)
+  - Estilo badge consistente con el dashboard
+  - Icono grip de 6 puntos
+  - onMouseDown inicia el arrastre
+- [ ] Implementar feedback visual durante arrastre
+  - Panel origen: opacidad reducida
+  - Indicador flotante siguiendo el cursor (preview del panel)
+  - Zona destino: borde brillante arriba/abajo del panel
+- [ ] Integrar con `DashboardIsland`
+  - Agregar HandleArrastre en cada SeccionEncabezado
+  - Listeners globales de mouse en el componente principal
+- [ ] Animación suave al soltar (CSS transitions)
+
+**Etapa 5: Pulido y Mobile**
+- [ ] Touch events para dispositivos táctiles
+- [ ] Fallback a controles del modal para accesibilidad
+- [ ] Animación de "snap" al soltar
+- [ ] Cursor personalizado durante arrastre
+
+**Consideraciones Técnicas:**
+
+| Aspecto        | Decisión                                        |
+| -------------- | ----------------------------------------------- |
+| Dependencias   | Ninguna - sistema propio con mouse/touch events |
+| Persistencia   | localStorage via `useConfiguracionLayout`       |
+| Sincronización | Incluir en datos sincronizados al servidor      |
+| Mobile         | Touch events + fallback a controles del modal   |
+| Accesibilidad  | Modal con botones siempre disponible            |
+
+**Archivos a Crear:**
+```
+components/shared/PanelArrastrable.tsx
+components/shared/ZonaDeposito.tsx  
+components/dashboard/ListaOrdenPaneles.tsx
+styles/dashboard/shared/panelArrastrable.css
+```
+
+**Archivos a Modificar:**
+```
+hooks/useConfiguracionLayout.ts
+components/dashboard/ModalConfiguracionLayout.tsx
+islands/DashboardIsland.tsx
+styles/dashboard/shared/layoutManager.css
+```
+
+**Orden de Paneles por Defecto:**
+
+| Panel            | Columna (2col) | Posición |
+| ---------------- | -------------- | -------- |
+| Foco Prioritario | 1              | 0        |
+| Proyectos        | 1              | 1        |
+| Ejecución        | 2              | 0        |
+| Scratchpad       | 2              | 1        |
+
+**Nota:** "Acciones de Datos" (exportar/importar) siempre aparece al final de la última columna y no es reordenable.
+
+---
+
+### �📜 Fase Historial de Versiones
 
 **Objetivo:** Mostrar changelog de versiones al hacer click en el badge de versión.
 
@@ -240,6 +347,52 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [ ] Endpoint API `POST /wp-json/glory/v1/perfil`
 - [ ] Endpoint API `POST /wp-json/glory/v1/auth/recuperar`
 - [ ] Integración con WordPress para contraseñas
+
+---
+
+### ⚙️ Fase Configuración por Panel
+
+**Objetivo:** Cada panel del dashboard tendrá su propio botón de configuración (similar al de Tareas) con opciones específicas para ese panel.
+
+**Patrón General:**
+- Cada panel tiene un botón ⚙️ en su encabezado (junto al título)
+- Abre un modal de configuración específico del panel
+- Configuraciones se guardan en localStorage
+- Hook `useConfiguracion[NombrePanel]` para cada panel
+
+**Panel: Foco Prioritario (Hábitos)**
+- [ ] Crear hook `useConfiguracionHabitos`
+- [ ] Crear componente `ModalConfiguracionHabitos.tsx`
+- [ ] Agregar botón de configuración al encabezado del panel
+- [ ] Configuraciones disponibles:
+  - [ ] Ocultar hábitos completados hoy
+  - [ ] Columnas visibles de la tabla:
+    - Índice (#)
+    - Nombre
+    - Racha
+    - Frecuencia
+    - Importancia
+    - "Toca Hoy"
+    - Acciones
+  - [ ] Modo compacto (filas más pequeñas)
+
+**Panel: Proyectos**
+- [ ] Crear hook `useConfiguracionProyectos`
+- [ ] Crear componente `ModalConfiguracionProyectos.tsx`
+- [ ] Configuraciones disponibles:
+  - [ ] Ocultar proyectos completados
+  - [ ] Ordenamiento por defecto (nombre, fecha, prioridad)
+  - [ ] Mostrar/ocultar progreso
+
+**Panel: Scratchpad**
+- [ ] Crear hook `useConfiguracionScratchpad`
+- [ ] Crear componente `ModalConfiguracionScratchpad.tsx`
+- [ ] Configuraciones disponibles:
+  - [ ] Tamaño de fuente (pequeño, normal, grande)
+  - [ ] Altura del área de texto
+  - [ ] Auto-guardado (intervalo configurable)
+
+**Nota:** El panel de Tareas (Ejecución) ya tiene su configuración implementada via `useConfiguracionTareas` y `ModalConfiguracionTareas`.
 
 ---
 

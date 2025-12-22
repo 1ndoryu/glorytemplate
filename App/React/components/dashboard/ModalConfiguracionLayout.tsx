@@ -1,21 +1,27 @@
 /*
  * ModalConfiguracionLayout
  * Modal para configurar el layout del dashboard
- * Selector de columnas y toggles de visibilidad de paneles
+ * Selector de columnas, toggles de visibilidad y orden de paneles
  */
 
 import {Modal} from '../shared/Modal';
 import {ToggleSwitch} from '../shared/ToggleSwitch';
-import {Columns2, Columns3, Square, Target, Folder, Terminal, FileText, RotateCcw} from 'lucide-react';
-import type {ModoColumnas, VisibilidadPaneles, PanelId} from '../../hooks/useConfiguracionLayout';
+import {Columns2, Columns3, Square, Target, Folder, Terminal, FileText, RotateCcw, ArrowUpDown} from 'lucide-react';
+import {ListaOrdenPaneles} from './ListaOrdenPaneles';
+import type {ModoColumnas, VisibilidadPaneles, PanelId, OrdenPanel} from '../../hooks/useConfiguracionLayout';
 
 interface ModalConfiguracionLayoutProps {
     estaAbierto: boolean;
     onCerrar: () => void;
     modoColumnas: ModoColumnas;
     visibilidad: VisibilidadPaneles;
+    ordenPaneles: OrdenPanel[];
     onCambiarModo: (modo: ModoColumnas) => void;
     onTogglePanel: (panel: PanelId) => void;
+    onMoverPanelArriba: (panelId: PanelId) => void;
+    onMoverPanelAbajo: (panelId: PanelId) => void;
+    onMoverPanelAColumna: (panelId: PanelId, columna: 1 | 2 | 3) => void;
+    onResetearOrden: () => void;
     onResetear: () => void;
 }
 
@@ -47,7 +53,7 @@ const PANELES: {id: PanelId; nombre: string; icono: JSX.Element; descripcion: st
     }
 ];
 
-export function ModalConfiguracionLayout({estaAbierto, onCerrar, modoColumnas, visibilidad, onCambiarModo, onTogglePanel, onResetear}: ModalConfiguracionLayoutProps): JSX.Element {
+export function ModalConfiguracionLayout({estaAbierto, onCerrar, modoColumnas, visibilidad, ordenPaneles, onCambiarModo, onTogglePanel, onMoverPanelArriba, onMoverPanelAbajo, onMoverPanelAColumna, onResetearOrden, onResetear}: ModalConfiguracionLayoutProps): JSX.Element {
     return (
         <Modal estaAbierto={estaAbierto} onCerrar={onCerrar} titulo="Configuración de Layout">
             <div className="configLayoutContenido">
@@ -72,6 +78,24 @@ export function ModalConfiguracionLayout({estaAbierto, onCerrar, modoColumnas, v
                             <span>3 Columnas</span>
                         </button>
                     </div>
+                </div>
+
+                {/* Orden de Paneles */}
+                <div className="configLayoutSeccion">
+                    <div className="configLayoutSeccionHeader">
+                        <div>
+                            <h4 className="configLayoutSeccionTitulo">
+                                <ArrowUpDown size={14} />
+                                <span>Orden de Paneles</span>
+                            </h4>
+                            <p className="configLayoutSeccionDescripcion">Reordena los paneles usando los botones o cambia su columna</p>
+                        </div>
+                        <button className="configLayoutBotonResetPequeno" onClick={onResetearOrden} title="Restaurar orden por defecto">
+                            <RotateCcw size={12} />
+                        </button>
+                    </div>
+
+                    <ListaOrdenPaneles ordenPaneles={ordenPaneles} modoColumnas={modoColumnas} onMoverArriba={onMoverPanelArriba} onMoverAbajo={onMoverPanelAbajo} onCambiarColumna={onMoverPanelAColumna} />
                 </div>
 
                 {/* Visibilidad de paneles */}
@@ -99,7 +123,7 @@ export function ModalConfiguracionLayout({estaAbierto, onCerrar, modoColumnas, v
                 <div className="configLayoutAcciones">
                     <button className="configLayoutBotonReset" onClick={onResetear} title="Restaurar configuración por defecto">
                         <RotateCcw size={12} />
-                        <span>Restaurar valores por defecto</span>
+                        <span>Restaurar todo por defecto</span>
                     </button>
                 </div>
             </div>

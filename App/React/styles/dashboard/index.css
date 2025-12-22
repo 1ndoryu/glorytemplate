@@ -37,6 +37,7 @@
 @import './shared/selectorBadge.css';
 @import './shared/tooltip.css';
 @import './shared/layoutManager.css';
+@import './shared/panelArrastrable.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';
@@ -54,6 +55,7 @@
 @import './componentes/proyectos.css';
 @import './componentes/configuracionTareas.css';
 @import './componentes/modalMoverTarea.css';
+@import './componentes/listaOrdenPaneles.css';
 
 /* Utilidades */
 @import './utilidades/estados.css';

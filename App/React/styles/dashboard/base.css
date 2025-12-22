@@ -98,6 +98,40 @@
 }
 
 /* 
+ * COLUMNA DINAMICA - Para el sistema de orden de paneles
+ * Reemplaza columnaHabitos y columnaTareas cuando se usa renderizado dinámico
+ */
+.columnaDashboard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioLg);
+}
+
+/* 
+ * Panel individual dentro de una columna dinámica
+ */
+.panelDashboard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioLg);
+}
+
+/* Asegurar que las columnas dinámicas se comporten como las fijas */
+@media (min-width: 1024px) {
+    .dashboardGrid--2col .columnaDashboard:first-child {
+        grid-column: span 7;
+    }
+
+    .dashboardGrid--2col .columnaDashboard:nth-child(2) {
+        grid-column: span 5;
+    }
+
+    .dashboardGrid--3col .columnaDashboard {
+        grid-column: span 1;
+    }
+}
+
+/* 
  * PANEL (Contenedor de datos) 
  */
 .dashboardPanel {
