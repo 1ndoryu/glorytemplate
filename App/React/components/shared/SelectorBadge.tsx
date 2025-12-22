@@ -106,10 +106,9 @@ export function SelectorBadge<T extends string = string>({opciones, valorActual,
 
     return (
         <div id="selector-badge-contenedor" ref={contenedorRef} className={`selectorBadgeContenedor ${className}`.trim()}>
-            <button type="button" className={`selectorBadgeBoton ${menuAbierto ? 'selectorBadgeBotonActivo' : ''}`} onClick={() => setMenuAbierto(!menuAbierto)} title={titulo || opcionActual?.descripcion}>
+            <button type="button" className={`selectorBadgeBoton selectorBadgeBotonCompacto ${menuAbierto ? 'selectorBadgeBotonActivo' : ''}`} onClick={() => setMenuAbierto(!menuAbierto)} title={titulo ? `${titulo}: ${opcionActual?.etiqueta}` : opcionActual?.etiqueta}>
                 {icono && <span className="selectorBadgeIcono">{icono}</span>}
                 {opcionActual?.icono && <span className="selectorBadgeOpcionIcono">{opcionActual.icono}</span>}
-                <span className="selectorBadgeTexto">{opcionActual?.etiqueta || 'Seleccionar'}</span>
                 <ChevronDown size={10} className={`selectorBadgeFlecha ${menuAbierto ? 'selectorBadgeFlechaAbierta' : ''}`} />
             </button>
 

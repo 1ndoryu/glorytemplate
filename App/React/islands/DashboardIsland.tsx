@@ -344,11 +344,10 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                             acciones={
                                 <>
                                     {handleArrastre}
-                                    <button className="selectorBadgeBoton" onClick={manejarLimpiarScratchpad} title="Limpiar notas">
+                                    <button className="selectorBadgeBoton selectorBadgeBotonCompacto" onClick={manejarLimpiarScratchpad} title="Limpiar notas">
                                         <span className="selectorBadgeIcono">
                                             <Eraser size={10} />
                                         </span>
-                                        <span className="selectorBadgeTexto">Limpiar</span>
                                     </button>
                                     <button className="selectorBadgeBoton" onClick={() => setModalConfigScratchpadAbierto(true)} title="Configuración">
                                         <span className="selectorBadgeIcono">
