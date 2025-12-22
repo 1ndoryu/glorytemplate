@@ -21,8 +21,10 @@ import type {PanelId} from '../hooks/useConfiguracionLayout';
 import {SelectorBadge} from '../components/shared/SelectorBadge';
 import {Filter, LayoutList, CheckSquare, ArrowUpDown, Settings} from 'lucide-react';
 import {useConfiguracionTareas} from '../hooks/useConfiguracionTareas';
+import {useConfiguracionHabitos} from '../hooks/useConfiguracionHabitos';
 import {useArrastrePaneles} from '../hooks/useArrastrePaneles';
 import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
+import {ModalConfiguracionHabitos} from '../components/dashboard/ModalConfiguracionHabitos';
 import type {Proyecto, TareaConfiguracion, NivelPrioridad} from '../types/dashboard';
 
 interface DashboardIslandProps {
@@ -117,8 +119,12 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
     };
 
     /* Configuracion de tareas */
-    const {configuracion: configTareas, toggleOcultarCompletadas, toggleOcultarBadgeProyecto} = useConfiguracionTareas();
+    const {configuracion: configTareas, toggleOcultarCompletadas, toggleOcultarBadgeProyecto, toggleEliminarCompletadasDespuesDeUnDia} = useConfiguracionTareas();
     const [modalConfigTareasAbierto, setModalConfigTareasAbierto] = useState(false);
+
+    /* Configuracion de habitos */
+    const {configuracion: configHabitos, toggleOcultarCompletadosHoy, toggleModoCompacto, toggleColumnaVisible} = useConfiguracionHabitos();
+    const [modalConfigHabitosAbierto, setModalConfigHabitosAbierto] = useState(false);
 
     /* Configuracion de layout */
     const {modoColumnas, anchos, visibilidad, ordenPaneles, panelesOcultos, cambiarModoColumnas, ajustarAnchos, toggleVisibilidadPanel, mostrarPanel, resetearLayout, obtenerPanelesColumna, moverPanelArriba, moverPanelAbajo, moverPanelAColumna, resetearOrdenPaneles, reordenarPanel} = useConfiguracionLayout();
@@ -228,10 +234,15 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                                             <Plus size={10} />
                                         </span>
                                     </button>
+                                    <button className="selectorBadgeBoton" onClick={() => setModalConfigHabitosAbierto(true)} title="Configuración">
+                                        <span className="selectorBadgeIcono">
+                                            <Settings size={10} />
+                                        </span>
+                                    </button>
                                 </>
                             }
                         />
-                        <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} />
+                        <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} configuracion={configHabitos} />
                     </div>
                 );
 
@@ -453,7 +464,10 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
             <PanelSeguridad visible={panelSeguridadAbierto} onCerrar={() => setPanelSeguridadAbierto(false)} />
 
             {/* Modal configuracion tareas */}
-            <ModalConfiguracionTareas estaAbierto={modalConfigTareasAbierto} onCerrar={() => setModalConfigTareasAbierto(false)} configuracion={configTareas} onToggleCompletadas={toggleOcultarCompletadas} onToggleBadgeProyecto={toggleOcultarBadgeProyecto} />
+            <ModalConfiguracionTareas estaAbierto={modalConfigTareasAbierto} onCerrar={() => setModalConfigTareasAbierto(false)} configuracion={configTareas} onToggleCompletadas={toggleOcultarCompletadas} onToggleBadgeProyecto={toggleOcultarBadgeProyecto} onToggleEliminarCompletadas={toggleEliminarCompletadasDespuesDeUnDia} />
+
+            {/* Modal configuracion habitos */}
+            <ModalConfiguracionHabitos estaAbierto={modalConfigHabitosAbierto} onCerrar={() => setModalConfigHabitosAbierto(false)} configuracion={configHabitos} onToggleCompletadosHoy={toggleOcultarCompletadosHoy} onToggleModoCompacto={toggleModoCompacto} onToggleColumna={toggleColumnaVisible} />
 
             {/* Panel de Administración */}
             {esAdmin && <PanelAdministracion estaAbierto={panelAdminAbierto} onCerrar={() => setPanelAdminAbierto(false)} />}

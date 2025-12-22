@@ -379,20 +379,20 @@ styles/dashboard/shared/layoutManager.css
 - Hook `useConfiguracion[NombrePanel]` para cada panel
 
 **Panel: Foco Prioritario (Hábitos)**
-- [ ] Crear hook `useConfiguracionHabitos`
-- [ ] Crear componente `ModalConfiguracionHabitos.tsx`
-- [ ] Agregar botón de configuración al encabezado del panel
-- [ ] Configuraciones disponibles:
-  - [ ] Ocultar hábitos completados hoy
-  - [ ] Columnas visibles de la tabla:
-    - Índice (#)
-    - Nombre
-    - Racha
-    - Frecuencia
-    - Importancia
-    - "Toca Hoy"
-    - Acciones
-  - [ ] Modo compacto (filas más pequeñas)
+- [x] Crear hook `useConfiguracionHabitos`
+- [x] Crear componente `ModalConfiguracionHabitos.tsx`
+- [x] Agregar botón de configuración al encabezado del panel
+- [x] Configuraciones disponibles:
+  - [x] Ocultar hábitos completados hoy
+  - [x] Columnas visibles de la tabla:
+    - [x] Índice (#)
+    - [x] Nombre
+    - [x] Racha
+    - [x] Frecuencia
+    - [x] Importancia
+    - [x] "Toca Hoy"
+    - [x] Acciones
+  - [x] Modo compacto (filas más pequeñas)
 
 **Panel: Proyectos**
 - [ ] Crear hook `useConfiguracionProyectos`

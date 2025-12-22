@@ -3,11 +3,13 @@ import {useLocalStorage} from './useLocalStorage';
 export interface ConfiguracionTareas {
     ocultarCompletadas: boolean;
     ocultarBadgeProyecto: boolean;
+    eliminarCompletadasDespuesDeUnDia: boolean;
 }
 
 export const CONFIG_POR_DEFECTO: ConfiguracionTareas = {
-    ocultarCompletadas: false,
-    ocultarBadgeProyecto: false
+    ocultarCompletadas: true,
+    ocultarBadgeProyecto: true,
+    eliminarCompletadasDespuesDeUnDia: false
 };
 
 export function useConfiguracionTareas() {
@@ -23,10 +25,15 @@ export function useConfiguracionTareas() {
         setValor(prev => ({...prev, ocultarBadgeProyecto: !prev.ocultarBadgeProyecto}));
     };
 
+    const toggleEliminarCompletadasDespuesDeUnDia = () => {
+        setValor(prev => ({...prev, eliminarCompletadasDespuesDeUnDia: !prev.eliminarCompletadasDespuesDeUnDia}));
+    };
+
     return {
         configuracion: valor,
         actualizarConfiguracion: setValor,
         toggleOcultarCompletadas,
-        toggleOcultarBadgeProyecto
+        toggleOcultarBadgeProyecto,
+        toggleEliminarCompletadasDespuesDeUnDia
     };
 }

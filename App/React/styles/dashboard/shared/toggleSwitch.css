@@ -8,6 +8,7 @@
     display: inline-block;
     width: 36px;
     height: 18px;
+    flex-shrink: 0; /* Evitar que se comprima si falta espacio */
 }
 
 .toggleSwitch input {

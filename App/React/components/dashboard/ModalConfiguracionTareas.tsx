@@ -14,9 +14,10 @@ interface ModalConfiguracionTareasProps {
     configuracion: ConfiguracionTareas;
     onToggleCompletadas: () => void;
     onToggleBadgeProyecto: () => void;
+    onToggleEliminarCompletadas: () => void;
 }
 
-export function ModalConfiguracionTareas({estaAbierto, onCerrar, configuracion, onToggleCompletadas, onToggleBadgeProyecto}: ModalConfiguracionTareasProps): JSX.Element {
+export function ModalConfiguracionTareas({estaAbierto, onCerrar, configuracion, onToggleCompletadas, onToggleBadgeProyecto, onToggleEliminarCompletadas}: ModalConfiguracionTareasProps): JSX.Element {
     return (
         <Modal estaAbierto={estaAbierto} onCerrar={onCerrar} titulo="Configuracion de Vista">
             <div className="contenedorOpcionesConfig">
@@ -39,6 +40,16 @@ export function ModalConfiguracionTareas({estaAbierto, onCerrar, configuracion, 
                         <span className="descripcionOpcionConfig">No mostrar el badge del proyecto en las tareas de la lista</span>
                     </div>
                     <ToggleSwitch checked={configuracion.ocultarBadgeProyecto} onChange={onToggleBadgeProyecto} />
+                </div>
+                <div className="separadorOpcionesConfig" />
+
+                {/* Opcion 3: Eliminar Completadas */}
+                <div className="itemOpcionConfig">
+                    <div className="detallesOpcionConfig">
+                        <span className="tituloOpcionConfig">Limpieza automática</span>
+                        <span className="descripcionOpcionConfig">Eliminar tareas completadas después de 24 horas</span>
+                    </div>
+                    <ToggleSwitch checked={configuracion.eliminarCompletadasDespuesDeUnDia} onChange={onToggleEliminarCompletadas} />
                 </div>
             </div>
         </Modal>

@@ -6,8 +6,8 @@
 .contenedorOpcionesConfig {
     display: flex;
     flex-direction: column;
-    gap: var(--dashboard-espacioLg);
-    padding: var(--dashboard-espacioMd);
+    gap: var(--dashboard-espacioMd); /* Reducir gap */
+    padding: var(--dashboard-espacioSm); /* Reducir padding */
 }
 
 .itemOpcionConfig {
@@ -15,6 +15,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--dashboard-espacioMd);
+    padding: 2px 0; /* Padding vertical minimo */
 }
 
 .detallesOpcionConfig {
@@ -24,15 +25,15 @@
 }
 
 .tituloOpcionConfig {
-    font-size: var(--dashboard-tamanoBase);
+    font-size: 0.75rem; /* Mas pequeño */
     font-weight: 500;
     color: var(--dashboard-textoNormal);
 }
 
 .descripcionOpcionConfig {
-    font-size: 0.75rem;
+    font-size: 0.65rem; /* Mas pequeño */
     color: var(--dashboard-textoApagado);
-    line-height: 1.4;
+    line-height: 1.2;
 }
 
 .separadorOpcionesConfig {

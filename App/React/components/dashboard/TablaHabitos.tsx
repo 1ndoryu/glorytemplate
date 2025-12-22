@@ -15,6 +15,7 @@ import {DashboardPanel} from '../shared/DashboardPanel';
 import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
 import {AccionesItem} from '../shared/AccionesItem';
 import type {VarianteBadge} from '../shared/BadgeInfo';
+import {ConfiguracionHabitos, CONFIG_HABITOS_POR_DEFECTO} from '../../hooks/useConfiguracionHabitos';
 
 interface TablaHabitosProps {
     habitos: Habito[];
@@ -22,6 +23,7 @@ interface TablaHabitosProps {
     onToggleHabito?: (id: number) => void;
     onEditarHabito?: (habito: Habito) => void;
     onEliminarHabito?: (id: number) => void;
+    configuracion?: ConfiguracionHabitos;
 }
 
 function obtenerVariantePrioridad(importancia: Habito['importancia']): VarianteBadge {
@@ -50,6 +52,8 @@ interface FilaHabitoProps {
     onToggle?: (id: number) => void;
     onEditar?: (habito: Habito) => void;
     onEliminar?: (id: number) => void;
+    configuracion: ConfiguracionHabitos;
+    estiloGrid: React.CSSProperties;
 }
 
 interface MenuContextualEstado {
@@ -58,7 +62,7 @@ interface MenuContextualEstado {
     y: number;
 }
 
-function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabitoProps): JSX.Element {
+function FilaHabito({habito, indice, onToggle, onEditar, onEliminar, configuracion, estiloGrid}: FilaHabitoProps): JSX.Element {
     /* Advertencia de racha: mostrar cuando faltan pocos dias para perderla */
     const DIAS_ADVERTENCIA_RACHA = 2;
 
@@ -162,58 +166,68 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
 
     return (
         <>
-            <div className={`tablaFila tablaFilaEditable ${completadoHoy ? 'tablaFilaCompletada' : ''} ${habitoTocaHoy && !completadoHoy ? 'tablaFilaTocaHoy' : ''}`} onClick={manejarEditar} onContextMenu={manejarClickDerecho} onMouseEnter={() => setMostrarAcciones(true)} onMouseLeave={() => setMostrarAcciones(false)}>
-                {/* Checkbox para completar rápidamente */}
-                <div className="tablaColumnaCheckbox" onClick={manejarToggle}>
-                    <div className={`habitoCheckbox ${completadoHoy ? 'habitoCheckboxCompletado' : ''}`}>{completadoHoy && <Check size={10} />}</div>
-                </div>
+            <div className={`tablaFila tablaFilaEditable ${completadoHoy ? 'tablaFilaCompletada' : ''} ${configuracion.modoCompacto ? 'tablaFilaCompacta' : ''} ${habitoTocaHoy && !completadoHoy ? 'tablaFilaTocaHoy' : ''}`} onClick={manejarEditar} onContextMenu={manejarClickDerecho} onMouseEnter={() => setMostrarAcciones(true)} onMouseLeave={() => setMostrarAcciones(false)} style={estiloGrid}>
+                {/* Checkbox para completar rápidamente - Indice */}
+                {configuracion.columnasVisibles.indice && (
+                    <div className="tablaColumnaCheckbox" onClick={manejarToggle}>
+                        <div className={`habitoCheckbox ${completadoHoy ? 'habitoCheckboxCompletado' : ''}`}>{completadoHoy && <Check size={10} />}</div>
+                    </div>
+                )}
 
                 {/* Nombre y Tags */}
                 <div className="tablaColumnaNombre">
                     <div className="filaNombreContenedor">
                         <span className={`filaNombre ${completadoHoy ? 'filaNombreCompletado' : ''}`}>{habito.nombre}</span>
                         <BadgeGroup>
-                            {intervaloFrecuencia !== null && <BadgeInfo tipo="frecuencia" icono={<Clock size={10} />} texto={intervaloFrecuencia.toString()} titulo={`Frecuencia: ${textoFrecuencia}`} variante="frecuencia" />}
-                            {habitoTocaHoy && !completadoHoy && <BadgeInfo tipo="destacado" texto="Hoy" variante="destacado" />}
+                            {configuracion.columnasVisibles.frecuencia && intervaloFrecuencia !== null && <BadgeInfo tipo="frecuencia" icono={<Clock size={10} />} texto={intervaloFrecuencia.toString()} titulo={`Frecuencia: ${textoFrecuencia}`} variante="frecuencia" />}
+                            {configuracion.columnasVisibles.tocaHoy && habitoTocaHoy && !completadoHoy && <BadgeInfo tipo="destacado" texto="Hoy" variante="destacado" />}
                         </BadgeGroup>
                     </div>
                 </div>
 
                 {/* Prioridad */}
-                <div className="tablaColumnaPrioridad">
-                    <BadgeInfo tipo="prioridad" texto={habito.importancia.toUpperCase()} variante={obtenerVariantePrioridad(habito.importancia)} />
-                </div>
+                {configuracion.columnasVisibles.importancia && (
+                    <div className="tablaColumnaPrioridad">
+                        <BadgeInfo tipo="prioridad" texto={habito.importancia.toUpperCase()} variante={obtenerVariantePrioridad(habito.importancia)} />
+                    </div>
+                )}
 
                 {/* Inactividad - dias sin hacer */}
-                <div className="tablaColumnaInactividad">
-                    <div className="inactividadIndicador">
-                        <Clock size={10} className={esUrgente ? 'inactividadIconoUrgente' : 'inactividadIcono'} />
-                        <span className={esUrgente ? 'inactividadTextoUrgente' : 'inactividadTexto'}>{habito.diasInactividad}d</span>
+                {configuracion.columnasVisibles.inactividad && (
+                    <div className="tablaColumnaInactividad">
+                        <div className="inactividadIndicador">
+                            <Clock size={10} className={esUrgente ? 'inactividadIconoUrgente' : 'inactividadIcono'} />
+                            <span className={esUrgente ? 'inactividadTextoUrgente' : 'inactividadTexto'}>{habito.diasInactividad}d</span>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Urgencia - barra de progreso visual */}
-                <div className="tablaColumnaUrgencia">
-                    <div className="urgenciaContenedor">
-                        <div className="barraUrgenciaNueva">
-                            <div className={`barraRellenoNueva ${obtenerClaseUrgencia()}`} style={{width: `${porcentajeUrgencia}%`}}></div>
+                {configuracion.columnasVisibles.urgencia && (
+                    <div className="tablaColumnaUrgencia">
+                        <div className="urgenciaContenedor">
+                            <div className="barraUrgenciaNueva">
+                                <div className={`barraRellenoNueva ${obtenerClaseUrgencia()}`} style={{width: `${porcentajeUrgencia}%`}}></div>
+                            </div>
+                            <span className={`urgenciaPorcentaje ${esUrgente ? 'urgenciaPorcentajeAlto' : ''}`}>{Math.round(porcentajeUrgencia)}%</span>
                         </div>
-                        <span className={`urgenciaPorcentaje ${esUrgente ? 'urgenciaPorcentajeAlto' : ''}`}>{Math.round(porcentajeUrgencia)}%</span>
                     </div>
-                </div>
+                )}
 
                 {/* Racha - indicador separado */}
-                <div className="tablaColumnaRacha">
-                    <div className={`rachaContenedor ${rachaEnPeligro && !completadoHoy ? 'rachaContenedorPeligro' : ''} ${completadoHoy ? 'rachaContenedorCompletado' : ''}`}>
-                        {rachaEnPeligro && !completadoHoy && <AlertTriangle size={10} className="rachaIconoAdvertencia" />}
-                        {rachaPerdida && habito.racha === 0 ? <Flame size={10} className="rachaIconoPerdida" /> : <Flame size={10} className={`rachaIcono ${habito.racha > 0 ? 'rachaIconoActivo' : ''}`} />}
-                        <span className="rachaNumero">{habito.racha}</span>
-                        {rachaEnPeligro && !completadoHoy && <span className="rachaTiempoRestante">({diasAntesDePerder}d)</span>}
+                {configuracion.columnasVisibles.racha && (
+                    <div className="tablaColumnaRacha">
+                        <div className={`rachaContenedor ${rachaEnPeligro && !completadoHoy ? 'rachaContenedorPeligro' : ''} ${completadoHoy ? 'rachaContenedorCompletado' : ''}`}>
+                            {rachaEnPeligro && !completadoHoy && <AlertTriangle size={10} className="rachaIconoAdvertencia" />}
+                            {rachaPerdida && habito.racha === 0 ? <Flame size={10} className="rachaIconoPerdida" /> : <Flame size={10} className={`rachaIcono ${habito.racha > 0 ? 'rachaIconoActivo' : ''}`} />}
+                            <span className="rachaNumero">{habito.racha}</span>
+                            {rachaEnPeligro && !completadoHoy && <span className="rachaTiempoRestante">({diasAntesDePerder}d)</span>}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Acciones inline (hover) */}
-                <div className="tablaColumnaAcciones">{mostrarAcciones && <AccionesItem mostrarConfigurar={true} mostrarEliminar={true} onConfigurar={manejarEditar} onEliminar={() => onEliminar?.(habito.id)} />}</div>
+                {configuracion.columnasVisibles.acciones && <div className="tablaColumnaAcciones">{mostrarAcciones && <AccionesItem mostrarConfigurar={true} mostrarEliminar={true} onConfigurar={manejarEditar} onEliminar={() => onEliminar?.(habito.id)} />}</div>}
             </div>
 
             {/* Menu contextual */}
@@ -222,23 +236,46 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar}: FilaHabito
     );
 }
 
-export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditarHabito, onEliminarHabito}: TablaHabitosProps): JSX.Element {
+export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditarHabito, onEliminarHabito, configuracion = CONFIG_HABITOS_POR_DEFECTO}: TablaHabitosProps): JSX.Element {
+    // Filtrar habitos segun configuracion
+    const habitosVisibles = habitos.filter(habito => {
+        if (configuracion.ocultarCompletadosHoy && fueCompletadoHoy(habito.ultimoCompletado)) {
+            return false;
+        }
+        return true;
+    });
+
+    const obtenerGridTemplate = () => {
+        const widths = [];
+        if (configuracion.columnasVisibles.indice) widths.push('2rem');
+        // Nombre siempre visible
+        widths.push('3fr');
+        if (configuracion.columnasVisibles.importancia) widths.push('1fr');
+        if (configuracion.columnasVisibles.inactividad) widths.push('1fr');
+        if (configuracion.columnasVisibles.urgencia) widths.push('2fr');
+        if (configuracion.columnasVisibles.racha) widths.push('1.5fr');
+        if (configuracion.columnasVisibles.acciones) widths.push('auto');
+        return widths.join(' ');
+    };
+
+    const estiloGrid = {gridTemplateColumns: obtenerGridTemplate()};
+
     return (
         <DashboardPanel id="tabla-habitos">
             {/* Encabezado de tabla */}
-            <div className="tablaEncabezado">
-                <div className="tablaColumnaCheckbox"></div>
+            <div className="tablaEncabezado" style={estiloGrid}>
+                {configuracion.columnasVisibles.indice && <div className="tablaColumnaCheckbox"></div>}
                 <div className="tablaColumnaNombre">HABITO</div>
-                <div className="tablaColumnaPrioridad">PRIO</div>
-                <div className="tablaColumnaInactividad">DIAS</div>
-                <div className="tablaColumnaUrgencia">URGENCIA</div>
-                <div className="tablaColumnaRacha">RACHA</div>
-                <div className="tablaColumnaAcciones"></div>
+                {configuracion.columnasVisibles.importancia && <div className="tablaColumnaPrioridad">PRIO</div>}
+                {configuracion.columnasVisibles.inactividad && <div className="tablaColumnaInactividad">DIAS</div>}
+                {configuracion.columnasVisibles.urgencia && <div className="tablaColumnaUrgencia">URGENCIA</div>}
+                {configuracion.columnasVisibles.racha && <div className="tablaColumnaRacha">RACHA</div>}
+                {configuracion.columnasVisibles.acciones && <div className="tablaColumnaAcciones"></div>}
             </div>
 
             {/* Filas de habitos */}
-            {habitos.map((habito, index) => (
-                <FilaHabito key={habito.id} habito={habito} indice={index} onToggle={onToggleHabito} onEditar={onEditarHabito} onEliminar={onEliminarHabito} />
+            {habitosVisibles.map((habito, index) => (
+                <FilaHabito key={habito.id} habito={habito} indice={index} onToggle={onToggleHabito} onEditar={onEditarHabito} onEliminar={onEliminarHabito} configuracion={configuracion} estiloGrid={estiloGrid} />
             ))}
 
             {/* Añadir habito */}

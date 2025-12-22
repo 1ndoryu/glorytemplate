@@ -549,3 +549,11 @@
 .añadirHabito:hover {
     color: var(--dashboard-textoMuyApagado);
 }
+
+/* 
+ * MODO COMPACTO 
+ */
+.tablaFilaCompacta {
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioMd);
+    min-height: 40px;
+}

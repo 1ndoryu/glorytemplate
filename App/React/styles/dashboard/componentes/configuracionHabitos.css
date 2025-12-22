@@ -1,0 +1,66 @@
+/*
+ * CONFIGURACION DE HABITOS
+ * Estilos para el modal de configuracion de habitos
+ * Extiende visualmente el sistema de configuracionTareas.css
+ */
+
+.gridOpcionesColumnas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--dashboard-espacioSm) var(--dashboard-espacioLg);
+    margin-top: var(--dashboard-espacioXs);
+}
+
+.itemColumnaConfig {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    transition: all var(--dashboard-transicionNormal);
+    border-bottom: 1px solid var(--dashboard-bordeSutil);
+}
+
+.itemColumnaConfig:last-child {
+    border-bottom: none;
+}
+
+.itemColumnaConfig:hover {
+    background-color: transparent;
+}
+
+.infoColumnaConfig {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.etiquetaColumna {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--dashboard-textoNormal);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.descripcionColumna {
+    font-size: 0.65rem;
+    color: var(--dashboard-textoApagado);
+    line-height: 1.2;
+}
+
+/* Ajustes para el título de la sección */
+.seccionConfiguracion {
+    padding: var(--dashboard-espacioSm) 0;
+}
+
+.tituloSeccionConfig {
+    margin: 0 0 var(--dashboard-espacioMd) 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--dashboard-textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-bottom: var(--dashboard-espacioSm);
+    border-bottom: 2px solid var(--dashboard-fondoHover);
+    display: inline-block;
+}
