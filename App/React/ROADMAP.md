@@ -156,16 +156,15 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [ ] Cifrar contenido con la misma lógica de AES-256-GCM
 
 **Límites de Texto:**
-- [ ] Implementar límite mínimo de 20,000 caracteres
-- [ ] Mostrar contador de caracteres usado/total
-- [ ] Advertencia visual cuando se acerca al límite
-- [ ] Truncar texto si excede (con confirmación)
+- [x] Implementar límite mínimo de 20,000 caracteres
+- [x] Mostrar contador de caracteres usado/total
+- [x] Advertencia visual cuando se acerca al límite (90%)
+- [x] Truncar texto si excede (con maxLength en textarea)
 
 **Optimización de Guardado:**
-- [ ] Revisar si cada letra genera petición AJAX (actualmente hay debounce 500ms)
-- [ ] Considerar aumentar debounce a 1-2 segundos
-- [ ] Evaluar guardado por "bloques" o "commit" manual
-- [ ] Indicador "pendiente de guardar" vs "guardado"
+- [x] Revisar si cada letra genera petición AJAX (actualmente hay debounce 500ms)
+- [x] Considerar aumentar debounce a 1-2 segundos (aumentado a 1.5s)
+- [x] Indicador "pendiente de guardar" vs "guardado"
 
 ---
 

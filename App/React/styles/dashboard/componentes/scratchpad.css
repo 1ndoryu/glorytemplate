@@ -48,16 +48,26 @@
 }
 
 /* 
- * INDICADOR DE GUARDADO 
+ * BARRA DE ESTADO 
+ * Contiene indicador de guardado y contador
  */
-.scratchpadEstado {
+.scratchpadBarraEstado {
     position: absolute;
     bottom: var(--dashboard-espacioSm);
     right: var(--dashboard-espacioMd);
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    pointer-events: none;
+}
+
+/* 
+ * INDICADOR DE GUARDADO 
+ */
+.scratchpadEstado {
     font-size: var(--dashboard-tamanoPequeno);
     opacity: 0;
     transition: opacity var(--dashboard-transicionNormal);
-    pointer-events: none;
 }
 
 .scratchpadEstadoVisible {
@@ -82,4 +92,22 @@
 
 .scratchpadGuardado {
     color: #22c55e;
+}
+
+/* 
+ * CONTADOR DE CARACTERES 
+ */
+.scratchpadContador {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoMuyApagado);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    white-space: nowrap;
+}
+
+.scratchpadContadorAdvertencia {
+    color: #f59e0b;
+}
+
+.scratchpadContadorLimite {
+    color: #ef4444;
 }
