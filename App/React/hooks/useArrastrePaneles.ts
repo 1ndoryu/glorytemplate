@@ -59,9 +59,12 @@ export function useArrastrePaneles(ordenPaneles: OrdenPanel[], onReordenar: (pan
 
     /* Detectar zona de drop basado en posición del mouse */
     const detectarZonaDrop = useCallback(
-        (mouseY: number): ZonaDropDetectada | null => {
+        (mouseX: number, mouseY: number): ZonaDropDetectada | null => {
             const panelArrastrado = estado.panelArrastrando;
             if (!panelArrastrado) return null;
+
+            let mejorCandidato: ZonaDropDetectada | null = null;
+            let menorDistancia = Infinity;
 
             /* Iterar sobre todos los paneles para encontrar el más cercano */
             for (const [panelId, elemento] of Object.entries(refsPaneles.current)) {
@@ -69,17 +72,25 @@ export function useArrastrePaneles(ordenPaneles: OrdenPanel[], onReordenar: (pan
 
                 const rect = elemento.getBoundingClientRect();
 
-                /* Verificar si el mouse está dentro del área vertical del panel */
-                if (mouseY >= rect.top && mouseY <= rect.bottom) {
-                    const mitad = rect.top + rect.height / 2;
-                    return {
-                        panelId: panelId as PanelId,
-                        posicion: mouseY < mitad ? 'antes' : 'despues'
-                    };
+                /* Verificar si el mouse está dentro del área horizontal del panel */
+                if (mouseX >= rect.left && mouseX <= rect.right) {
+                    /* Verificar si el mouse está dentro del área vertical del panel con un margen */
+                    if (mouseY >= rect.top - 20 && mouseY <= rect.bottom + 20) {
+                        const centroY = rect.top + rect.height / 2;
+                        const distancia = Math.abs(mouseY - centroY);
+
+                        if (distancia < menorDistancia) {
+                            menorDistancia = distancia;
+                            mejorCandidato = {
+                                panelId: panelId as PanelId,
+                                posicion: mouseY < centroY ? 'antes' : 'despues'
+                            };
+                        }
+                    }
                 }
             }
 
-            return null;
+            return mejorCandidato;
         },
         [estado.panelArrastrando]
     );
@@ -90,7 +101,7 @@ export function useArrastrePaneles(ordenPaneles: OrdenPanel[], onReordenar: (pan
 
         const manejarMovimiento = (evento: MouseEvent) => {
             const nuevaPosicion = {x: evento.clientX, y: evento.clientY};
-            const nuevaZona = detectarZonaDrop(evento.clientY);
+            const nuevaZona = detectarZonaDrop(evento.clientX, evento.clientY);
 
             setEstado(prev => ({
                 ...prev,

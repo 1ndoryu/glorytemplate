@@ -64,5 +64,6 @@ interface IndicadorZonaDropProps {
 export function IndicadorZonaDrop({activo, posicion}: IndicadorZonaDropProps): JSX.Element | null {
     if (!activo) return null;
 
-    return <div className={`indicadorZonaDrop ${posicion === 'antes' ? 'indicadorZonaDropSuperior' : 'indicadorZonaDropInferior'}`} />;
+    /* Ahora usamos un placeholder (caja fantasma) en lugar de una linea */
+    return <div className="indicadorPlaceholder" />;
 }

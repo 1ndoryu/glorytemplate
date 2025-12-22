@@ -21,3 +21,4 @@ export * from './LayoutManager';
 export * from './BarraPanelesOcultos';
 export * from './HandleArrastre';
 export * from './IndicadorArrastre';
+export * from './PanelArrastrable';

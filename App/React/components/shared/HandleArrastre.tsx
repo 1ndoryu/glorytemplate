@@ -20,12 +20,12 @@ export function HandleArrastre({panelId, onMouseDown, estaArrastrando}: HandleAr
     return (
         <button className={`handleArrastre ${estaArrastrando ? 'activo' : ''}`} onMouseDown={manejarMouseDown} title="Arrastrar para mover panel" type="button">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-                <circle cx="2" cy="2" r="1.2" />
-                <circle cx="2" cy="5" r="1.2" />
-                <circle cx="2" cy="8" r="1.2" />
-                <circle cx="5" cy="2" r="1.2" />
-                <circle cx="5" cy="5" r="1.2" />
-                <circle cx="5" cy="8" r="1.2" />
+                <circle cx="3.5" cy="2" r="1.2" />
+                <circle cx="3.5" cy="5" r="1.2" />
+                <circle cx="3.5" cy="8" r="1.2" />
+                <circle cx="6.5" cy="2" r="1.2" />
+                <circle cx="6.5" cy="5" r="1.2" />
+                <circle cx="6.5" cy="8" r="1.2" />
             </svg>
         </button>
     );

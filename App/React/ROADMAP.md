@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-22
-**Estado:** Etapa 4 - Implementando Sistema de Arrastre Personalizado (Etapas 1-3 completadas)
+**Estado:** Etapa 5 - Pulido y Soporte Mobile (Etapas 1-4 completadas)
 
 ---
 
@@ -147,6 +147,24 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ---
 
+### 🎨 Fase Estandarización de UX - Controles de Panel
+
+**Objetivo:** Unificar la experiencia de usuario en todos los paneles, asegurando que cada uno tenga controles consistentes para crear elementos y configurar el panel.
+
+**Botones de Creación Unificados:**
+- [ ] Implementar botón "Nuevo" estilo badge (como en Proyectos/Filtros) en todos los paneles:
+  - [ ] **Hábitos:** Botón "Nuevo Hábito" en el encabezado
+  - [ ] **Tareas (Ejecución):** Botón "Nueva Tarea" en el encabezado (además del input inline)
+  - [ ] **Scratchpad:** Botón "Limpiar" o "Nueva Nota" (si se implementan tabs)
+- [ ] Asegurar que todos usen el componente/estilo `selectorBadgeBoton`
+
+**Consistencia Visual:**
+- [ ] Revisar tamaños de iconos (10px - 12px) en todos los badges
+- [ ] Unificar tooltips en estos botones
+- [ ] Asegurar alineación vertical correcta en todos los encabezados
+
+---
+
 ### 📝 Fase Scratchpad Seguro
 
 **Objetivo:** Asegurar que el Scratchpad sea seguro, eficiente y no abuse de recursos.
@@ -234,28 +252,28 @@ ordenPaneles: OrdenPanel[];
 - [x] Agregar sección "Orden de Paneles" en `ModalConfiguracionLayout`
 - [x] Botón "Restaurar orden por defecto"
 
-**Etapa 4: Sistema de Arrastre Personalizado (En Progreso)**
+**Etapa 4: Sistema de Arrastre Personalizado (Completado)**
 
 > **Nota:** El API nativo de HTML5 Drag & Drop fue descartado por ser poco confiable 
 > (comportamiento inconsistente, falta de feedback visual adecuado). Se implementará 
 > un sistema personalizado basado en eventos de mouse.
 
-- [ ] Crear hook `useArrastrePaneles` con lógica de mouse events
+- [x] Crear hook `useArrastrePaneles` con lógica de mouse events
   - Estado: `panelArrastrando`, `posicionMouse`, `panelDestino`
   - Eventos: mousedown en handle, mousemove global, mouseup global
   - Cálculo de zona de drop basado en posición Y del mouse
-- [ ] Crear componente `HandleArrastre.tsx` (botón en encabezado)
+- [x] Crear componente `HandleArrastre.tsx` (botón en encabezado)
   - Estilo badge consistente con el dashboard
   - Icono grip de 6 puntos
   - onMouseDown inicia el arrastre
-- [ ] Implementar feedback visual durante arrastre
+- [x] Implementar feedback visual durante arrastre
   - Panel origen: opacidad reducida
   - Indicador flotante siguiendo el cursor (preview del panel)
   - Zona destino: borde brillante arriba/abajo del panel
-- [ ] Integrar con `DashboardIsland`
+- [x] Integrar con `DashboardIsland`
   - Agregar HandleArrastre en cada SeccionEncabezado
   - Listeners globales de mouse en el componente principal
-- [ ] Animación suave al soltar (CSS transitions)
+- [x] Animación suave al soltar (CSS transitions)
 
 **Etapa 5: Pulido y Mobile**
 - [ ] Touch events para dispositivos táctiles

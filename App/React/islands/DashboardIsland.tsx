@@ -7,7 +7,7 @@
 import {useState, useEffect} from 'react';
 import {Terminal, AlertCircle, FileText, Folder, Plus, LayoutGrid} from 'lucide-react';
 import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad, ModalConfiguracionLayout} from '../components/dashboard';
-import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos, PanelArrastrable, HandleArrastre} from '../components/shared';
+import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos, PanelArrastrable, HandleArrastre, IndicadorArrastre} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {PanelAdministracion} from '../components/admin';
 import {useDashboard} from '../hooks/useDashboard';
@@ -21,6 +21,7 @@ import type {PanelId} from '../hooks/useConfiguracionLayout';
 import {SelectorBadge} from '../components/shared/SelectorBadge';
 import {Filter, LayoutList, CheckSquare, ArrowUpDown, Settings} from 'lucide-react';
 import {useConfiguracionTareas} from '../hooks/useConfiguracionTareas';
+import {useArrastrePaneles} from '../hooks/useArrastrePaneles';
 import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
 import type {Proyecto} from '../types/dashboard';
 
@@ -123,31 +124,8 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
     const {modoColumnas, anchos, visibilidad, ordenPaneles, panelesOcultos, cambiarModoColumnas, ajustarAnchos, toggleVisibilidadPanel, mostrarPanel, resetearLayout, obtenerPanelesColumna, moverPanelArriba, moverPanelAbajo, moverPanelAColumna, resetearOrdenPaneles, reordenarPanel} = useConfiguracionLayout();
     const [modalConfigLayoutAbierto, setModalConfigLayoutAbierto] = useState(false);
 
-    /* Estado para Drag & Drop de paneles */
-    const [panelArrastrando, setPanelArrastrando] = useState<PanelId | null>(null);
-
-    const manejarDragStartPanel = (panelId: PanelId) => {
-        setPanelArrastrando(panelId);
-    };
-
-    const manejarDragEndPanel = () => {
-        setPanelArrastrando(null);
-    };
-
-    /*
-     * Manejador de drop mejorado
-     * Recibe el panel arrastrado, el panel destino, y si va antes o despues
-     */
-    const manejarDropEnPanel = (panelArrastrado: PanelId, panelDestino: PanelId, posicionRelativa: 'antes' | 'despues') => {
-        /* Obtener info del panel destino */
-        const ordenDestino = ordenPaneles.find(p => p.id === panelDestino);
-        if (!ordenDestino) return;
-
-        const nuevaPosicion = posicionRelativa === 'antes' ? ordenDestino.posicion : ordenDestino.posicion + 1;
-
-        reordenarPanel(panelArrastrado, ordenDestino.columna, nuevaPosicion);
-        setPanelArrastrando(null);
-    };
+    /* Sistema de arrastre de paneles */
+    const {panelArrastrando, posicionMouse, zonaDropActiva, iniciarArrastre, registrarPanel} = useArrastrePaneles(ordenPaneles, reordenarPanel);
 
     /* Calcular valor actual para el selector */
     const valorFiltroActual = filtroActual.tipo === 'proyecto' ? `proyecto-${filtroActual.proyectoId}` : filtroActual.tipo;
@@ -196,18 +174,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
      */
     const renderizarContenidoPanel = (panelId: PanelId): JSX.Element | null => {
         /* Handle de arrastre común para todos los paneles */
-        const handleArrastre = (
-            <HandleArrastre
-                panelId={panelId}
-                onDragStart={e => {
-                    e.dataTransfer.setData('text/plain', panelId);
-                    e.dataTransfer.effectAllowed = 'move';
-                    manejarDragStartPanel(panelId);
-                }}
-                onDragEnd={manejarDragEndPanel}
-                estaArrastrando={panelArrastrando === panelId}
-            />
-        );
+        const handleArrastre = <HandleArrastre panelId={panelId} onMouseDown={iniciarArrastre} estaArrastrando={panelArrastrando === panelId} />;
 
         switch (panelId) {
             case 'focoPrioritario':
@@ -236,8 +203,11 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                             acciones={
                                 <>
                                     {handleArrastre}
-                                    <button className="botonIcono" onClick={manejarCrearProyecto} title="Nuevo Proyecto">
-                                        <Plus size={14} />
+                                    <button className="selectorBadgeBoton" onClick={manejarCrearProyecto} title="Nuevo Proyecto">
+                                        <span className="selectorBadgeIcono">
+                                            <Plus size={10} />
+                                        </span>
+                                        <span className="selectorBadgeTexto">Nuevo</span>
                                     </button>
                                 </>
                             }
@@ -284,11 +254,10 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
     /*
      * Renderiza un panel envuelto en PanelArrastrable
-     * Las zonas de drop están integradas dentro del PanelArrastrable
      */
     const renderizarPanel = (panelId: PanelId): JSX.Element => {
         return (
-            <PanelArrastrable key={panelId} panelId={panelId} onDragStart={manejarDragStartPanel} onDragEnd={manejarDragEndPanel} onDropEnPanel={manejarDropEnPanel} panelArrastrandoGlobal={panelArrastrando} habilitado={true}>
+            <PanelArrastrable key={panelId} panelId={panelId} innerRef={el => registrarPanel(panelId, el)} esArrastrando={panelArrastrando === panelId} esDestino={zonaDropActiva?.panelId === panelId} posicionDestino={zonaDropActiva?.panelId === panelId ? zonaDropActiva.posicion : null}>
                 {renderizarContenidoPanel(panelId)}
             </PanelArrastrable>
         );
@@ -436,6 +405,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
             {/* Sistema Global de Tooltips */}
             <TooltipSystem />
+
+            {/* Indicador de arrastre flotante */}
+            <IndicadorArrastre panelArrastrando={panelArrastrando} posicionMouse={posicionMouse} />
         </div>
     );
 }
