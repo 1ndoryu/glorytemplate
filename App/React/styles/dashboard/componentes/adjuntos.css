@@ -236,3 +236,109 @@
         opacity: 1;
     }
 }
+
+/* 
+ * Estados de subida
+ */
+.adjuntosAreaCarga--subiendo {
+    cursor: wait;
+    border-color: var(--dashboard-acentoPrimario);
+    background-color: rgba(var(--dashboard-acentoPrimarioRgb), 0.05);
+}
+
+.adjuntosAreaCarga--subiendo:hover {
+    border-color: var(--dashboard-acentoPrimario);
+    background-color: rgba(var(--dashboard-acentoPrimarioRgb), 0.05);
+}
+
+.adjuntosIconoCarga {
+    color: var(--dashboard-textoApagado);
+    transition: color var(--dashboard-transicionNormal);
+}
+
+.adjuntosAreaCarga:hover .adjuntosIconoCarga {
+    color: var(--dashboard-textoSecundario);
+}
+
+.adjuntosAreaCarga--subiendo .adjuntosIconoCarga {
+    color: var(--dashboard-acentoPrimario);
+}
+
+/* 
+ * Mensaje de error
+ */
+.adjuntosMensajeError {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-estadoAlta);
+    padding: var(--dashboard-espacioSm);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border: 1px solid var(--dashboard-estadoAlta);
+    border-radius: 4px;
+}
+
+/* 
+ * Animación de spinner
+ */
+.iconoGirando {
+    animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 
+ * Archivos cifrados (Lazy Decryption)
+ * Muestra un candado hasta que el usuario haga clic para descifrar
+ */
+.adjuntoPreviewCifrado {
+    background: linear-gradient(135deg, var(--dashboard-fondoPrincipal) 0%, rgba(var(--dashboard-acentoPrimarioRgb), 0.1) 100%);
+    border-color: var(--dashboard-acentoPrimario);
+    cursor: pointer;
+}
+
+.adjuntoPreviewCifrado:hover {
+    background: linear-gradient(135deg, var(--dashboard-fondoHover) 0%, rgba(var(--dashboard-acentoPrimarioRgb), 0.2) 100%);
+    border-color: var(--dashboard-acentoSecundario);
+}
+
+.adjuntoIconoCifrado {
+    color: var(--dashboard-acentoPrimario);
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.adjuntoPreviewCifrado:hover .adjuntoIconoCifrado {
+    color: var(--dashboard-acentoSecundario);
+    transform: scale(1.1);
+}
+
+/* 
+ * Indicador de cifrado superpuesto sobre thumbnail
+ * Pequeño candado en la esquina inferior derecha
+ */
+.adjuntoIndicadorCifrado {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 3px;
+    padding: 2px 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dashboard-acentoPrimario);
+}
+
+/* Hacer el preview posición relativa para el indicador */
+.adjuntoPreviewCifrado {
+    position: relative;
+}

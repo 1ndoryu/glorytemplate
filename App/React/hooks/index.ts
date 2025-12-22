@@ -22,3 +22,5 @@ export type {ModoColumnas, PanelId, ConfiguracionLayout, AnchoColumnas, Visibili
 export {useArrastrePaneles} from './useArrastrePaneles';
 export {useAlertas} from './useAlertas';
 export type {TipoAlerta, AlertaToast, AlertaConfirmacion, UseAlertasReturn} from './useAlertas';
+export {useAlmacenamiento} from './useAlmacenamiento';
+export {useAdjuntos} from './useAdjuntos';

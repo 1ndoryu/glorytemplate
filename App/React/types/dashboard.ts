@@ -93,6 +93,8 @@ export interface Adjunto {
     nombre: string;
     tamano: number /* en bytes */;
     fechaSubida: string;
+    /* URL del thumbnail (sin cifrar, solo para imágenes) */
+    thumbnailUrl?: string;
 }
 
 /*

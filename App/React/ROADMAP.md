@@ -201,6 +201,10 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 <details>
 <summary>Expandir lista completa</summary>
 
+**Adjuntos:**
+- [ ] Bug: Al eliminar adjunto, no se quita instantáneamente del UI
+- [ ] Bug: Al eliminar múltiples adjuntos, reaparecen algunos (problema de estado React)
+
 **Hábitos:**
 - [ ] Animación de entrada/salida
 - [ ] Animación visual de logro al completar
@@ -344,7 +348,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 **Justificación:** Cifrar archivos es costoso computacionalmente. Los usuarios Free tienen límite bajo (50MB), el impacto de archivos sin cifrar es menor. Premium obtiene seguridad completa como beneficio.
 
-#### 1.5.1 Sistema de Archivos Físicos
+#### 1.5.1 Sistema de Archivos Físicos ✅
 **Ubicación:** `/wp-content/uploads/glory-adjuntos/{user_id}/`
 
 **Estructura de archivos:**
@@ -357,51 +361,66 @@ glory-adjuntos/
       {hash_archivo}.jpg  ← Thumbnail sin cifrar (todos)
 ```
 
-- [ ] Crear `AdjuntosService.php` con métodos:
-  - `subirArchivo($userId, $file, $cifrar)` → retorna URL
-  - `descargarArchivo($url)` → descifra si es .enc
-  - `eliminarArchivo($url)` → elimina archivo + thumbnail
+- [x] Crear `AdjuntosService.php` con métodos:
+  - `subirArchivo($archivo)` → retorna datos del adjunto
+  - `obtenerArchivo($nombreArchivo)` → descifra si es .enc
+  - `eliminarArchivo($nombreArchivo)` → elimina archivo + thumbnail
   - `generarThumbnail($imagePath)` → versión 200x200 sin cifrar
-  - `limpiarHuerfanos()` → cron job semanal
-- [ ] Endpoint `POST /glory/v1/adjuntos` para subida directa
-- [ ] Endpoint `GET /glory/v1/adjuntos/{id}` para descarga (descifra on-the-fly si Premium)
-- [ ] Migración: script para convertir Base64 existentes → archivos
-- [ ] Actualizar `SeccionAdjuntos.tsx` para subida multipart (no Base64)
+  - `calcularEspacioUsado()` → espacio total en disco
+- [x] Endpoint `POST /glory/v1/adjuntos` para subida directa multipart
+- [x] Endpoint `GET /glory/v1/adjuntos/{id}` para descarga (descifra on-the-fly)
+- [x] Endpoint `DELETE /glory/v1/adjuntos/{id}` para eliminación
+- [x] Hook `useAdjuntos.ts` para gestión frontend
+- [x] Actualizar `SeccionAdjuntos.tsx` para subida multipart (no Base64)
+- [x] Actualizar `AlmacenamientoService.php` para contar archivos físicos + legacy
+- [ ] Migración: script para convertir Base64 existentes → archivos (no aplica, sin usuarios)
 
-#### 1.5.2 Optimización de Cifrado de Archivos (Solo Premium)
+**Archivos creados/modificados:**
+- `App/Services/AdjuntosService.php` - Servicio de archivos físicos (nuevo)
+- `App/Api/AdjuntosApiController.php` - Endpoints REST (nuevo)
+- `App/React/hooks/useAdjuntos.ts` - Hook frontend (nuevo)
+- `App/React/components/dashboard/SeccionAdjuntos.tsx` - Actualizado para subida multipart
+- `App/React/styles/dashboard/componentes/adjuntos.css` - Estilos de loading y errores
+- `App/Services/AlmacenamientoService.php` - Actualizado para contar físicos + legacy
+
+**Nota:** Los archivos PHP se cargan automáticamente desde `functions.php`.
+
+#### 1.5.2 Optimización de Cifrado de Archivos (Solo Premium) ✅
 
 **Técnicas de rendimiento:**
 
 1. **Stream Cipher (archivos grandes > 1MB):**
    ```php
    // Procesar en chunks de 8KB para no saturar RAM
-   while (!feof($file)) {
-       $chunk = fread($file, 8192);
-       $chunkCifrado = openssl_encrypt($chunk, 'aes-256-gcm', $key, ...);
-       fwrite($destino, $chunkCifrado);
-   }
+   // Archivos pequeños (<1MB): cifrado en memoria (más eficiente)
+   // Archivos grandes (>1MB): stream cipher en chunks
+   // Formato: [tipo:2bytes][num_chunks:4bytes][chunk1_len:4bytes][chunk1_data]...
    ```
-   - [ ] Implementar `cifrarStream()` en `CifradoService`
-   - [ ] Implementar `descifrarStream()` en `CifradoService`
+   - [x] Implementar `cifrarEnStream()` en `AdjuntosService`
+   - [x] Implementar `descifrarStream()` en `AdjuntosService`
+   - [x] Detectar automáticamente si usar memoria o stream (umbral: 1MB)
 
 2. **Cache de archivos descifrados:**
    ```
-   /tmp/glory-cache/{user_id}/{hash_archivo}  ← TTL 5 minutos
+   glory-adjuntos/{user_id}/cache/{hash_archivo}  ← TTL 5 minutos
    ```
-   - [ ] Crear directorio temporal por usuario
-   - [ ] Verificar cache antes de descifrar
-   - [ ] Cron job cada 5 min para limpiar expired
+   - [x] Crear directorio de cache por usuario
+   - [x] Verificar cache antes de descifrar (`obtenerDeCache()`)
+   - [x] Guardar en cache tras descifrar (`guardarEnCache()`)
+   - [x] Método `limpiarCache()` para eliminar archivos expirados
 
-3. **Thumbnails sin cifrar:**
+3. **Thumbnails sin cifrar:** (ya implementado en 1.5.1)
    - Preview rápido sin costo de descifrado
    - Archivo original cifrado para descarga
-   - [ ] Generar thumbnail al subir imagen
-   - [ ] Mostrar thumbnail en lista, cifrado en modal/descarga
+   - [x] Generar thumbnail al subir imagen
+   - [x] Mostrar thumbnail en lista, cifrado en modal/descarga
 
 4. **Lazy Decryption:**
    - No descifrar hasta que usuario haga clic
-   - [ ] Mostrar placeholder con icono de candado
-   - [ ] Descifrar on-demand al hacer clic
+   - [x] Mostrar placeholder con icono de candado
+   - [x] Descifrar on-demand al hacer clic
+   - [x] Estados visuales: candado, cargando, contenido
+   - [x] Estilos CSS para archivos cifrados
 
 #### 1.5.3 Optimización de Cifrado de Datos
 

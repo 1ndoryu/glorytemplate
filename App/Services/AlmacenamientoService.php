@@ -71,6 +71,7 @@ class AlmacenamientoService
 
     /**
      * Calcula el espacio usado por el usuario (todos los adjuntos)
+     * Incluye: archivos Base64 en BD (legacy) + archivos físicos (nuevo)
      * Resultado cacheado para evitar múltiples consultas en la misma petición
      */
     public function getUsado(): int
@@ -80,6 +81,33 @@ class AlmacenamientoService
             return $this->usadoCache;
         }
 
+        $totalBytes = 0;
+
+        /* 1. Calcular espacio de archivos físicos */
+        $totalBytes += $this->calcularEspacioArchivosFisicos();
+
+        /* 2. Calcular espacio de archivos Base64 en BD (legacy) */
+        $totalBytes += $this->calcularEspacioBase64();
+
+        /* Guardar en cache y retornar */
+        $this->usadoCache = $totalBytes;
+        return $totalBytes;
+    }
+
+    /**
+     * Calcula espacio usado por archivos físicos en disco
+     */
+    private function calcularEspacioArchivosFisicos(): int
+    {
+        $adjuntosService = new AdjuntosService($this->userId);
+        return $adjuntosService->calcularEspacioUsado();
+    }
+
+    /**
+     * Calcula espacio usado por archivos Base64 almacenados en BD (legacy)
+     */
+    private function calcularEspacioBase64(): int
+    {
         global $wpdb;
 
         $tablaTareas = $wpdb->prefix . 'glory_tareas';
@@ -134,14 +162,15 @@ class AlmacenamientoService
             }
 
             foreach ($data['configuracion']['adjuntos'] as $adjunto) {
-                if (isset($adjunto['tamano']) && is_numeric($adjunto['tamano'])) {
-                    $totalBytes += (int) $adjunto['tamano'];
+                /* Solo contar si es Base64 (URL empieza con data:) */
+                if (isset($adjunto['url']) && str_starts_with($adjunto['url'], 'data:')) {
+                    if (isset($adjunto['tamano']) && is_numeric($adjunto['tamano'])) {
+                        $totalBytes += (int) $adjunto['tamano'];
+                    }
                 }
             }
         }
 
-        /* Guardar en cache y retornar */
-        $this->usadoCache = $totalBytes;
         return $totalBytes;
     }
 
