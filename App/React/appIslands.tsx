@@ -14,6 +14,9 @@
 /* Islas del proyecto */
 import {DashboardIsland} from './islands/DashboardIsland';
 
+/* Provider global de la app */
+import {ProveedorAlertas} from './context/AlertasContext';
+
 /* Estilos del proyecto */
 import './styles/dashboard/index.css';
 
@@ -24,6 +27,13 @@ import './styles/dashboard/index.css';
 export const appIslands: Record<string, React.ComponentType<Record<string, unknown>>> = {
     DashboardIsland: DashboardIsland
 };
+
+/*
+ * Provider global de la aplicación
+ * Glory lo usará para envolver todas las islas
+ * Puede ser undefined si la app no necesita un provider
+ */
+export const AppProvider: React.ComponentType<{children: React.ReactNode}> | undefined = ProveedorAlertas;
 
 /*
  * Exportación por defecto para facilitar el import en Glory/main.tsx
