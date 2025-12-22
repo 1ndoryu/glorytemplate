@@ -34,6 +34,7 @@
 @import './shared/indicadorSincronizacion.css';
 @import './shared/suscripcion.css';
 @import './shared/panelSeguridad.css';
+@import './shared/selectorBadge.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';
@@ -49,6 +50,7 @@
 @import './componentes/panelConfiguracion.css';
 @import './componentes/adjuntos.css';
 @import './componentes/proyectos.css';
+@import './componentes/configuracionTareas.css';
 
 /* Utilidades */
 @import './utilidades/estados.css';

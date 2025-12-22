@@ -1,0 +1,166 @@
+/*
+ * SELECTOR BADGE
+ * Estilos para el componente de selección estilo badge
+ * Usado para filtros y selectores elegantes
+ */
+
+/* 
+ * CONTENEDOR 
+ */
+.selectorBadgeContenedor {
+    position: relative;
+    display: inline-flex;
+}
+
+/* 
+ * BOTON PRINCIPAL 
+ */
+.selectorBadgeBoton {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    font-size: 0.65rem;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-weight: 500;
+    color: var(--dashboard-textoApagado);
+    background-color: var(--dashboard-fondoHover);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+    white-space: nowrap;
+    min-height: 22px;
+}
+
+.selectorBadgeBoton:hover {
+    border-color: var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    background-color: var(--dashboard-fondoSecundario);
+}
+
+.selectorBadgeBotonActivo {
+    border-color: var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoNormal);
+    background-color: var(--dashboard-fondoSecundario);
+}
+
+/* 
+ * ICONOS 
+ */
+.selectorBadgeIcono {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.7;
+}
+
+.selectorBadgeFlecha {
+    transition: transform var(--dashboard-transicionRapida);
+    opacity: 0.6;
+}
+
+.selectorBadgeFlechaAbierta {
+    transform: rotate(180deg);
+}
+
+/* 
+ * MENU DESPLEGABLE 
+ */
+.selectorBadgeMenu {
+    position: absolute;
+    left: 0;
+    z-index: 1000;
+    min-width: 220px;
+    width: max-content;
+    max-width: 280px;
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 3px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    animation: selectorBadgeAparecer 0.15s ease-out;
+}
+
+@keyframes selectorBadgeAparecer {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 
+ * OPCIONES 
+ */
+.selectorBadgeOpcion {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.7rem;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    color: var(--dashboard-textoSecundario);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.selectorBadgeOpcion:hover {
+    background-color: var(--dashboard-fondoHover);
+    color: var(--dashboard-textoNormal);
+}
+
+.selectorBadgeOpcionActiva {
+    background-color: var(--dashboard-fondoSecundario);
+    color: var(--dashboard-textoNormal);
+    position: relative;
+}
+
+.selectorBadgeOpcionActiva::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--dashboard-acento);
+}
+
+.selectorBadgeOpcion + .selectorBadgeOpcion {
+    border-top: 1px solid var(--dashboard-bordeSutil);
+}
+
+.selectorBadgeOpcionIcono {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.selectorBadgeOpcionTexto {
+    flex: 1;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    margin-right: 8px;
+}
+
+.selectorBadgeOpcionDesc {
+    font-size: 0.6rem;
+    color: var(--dashboard-textoApagado);
+    margin-left: auto;
+    max-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+    text-align: right;
+}

@@ -7,7 +7,7 @@
 import {useState, useCallback, useMemo, useRef} from 'react';
 import {Reorder} from 'framer-motion';
 import {ChevronRight} from 'lucide-react';
-import type {Tarea, DatosEdicionTarea, TareaConfiguracion, NivelPrioridad} from '../../types/dashboard';
+import type {Tarea, DatosEdicionTarea, TareaConfiguracion, NivelPrioridad, Proyecto} from '../../types/dashboard';
 import {TareaItem} from './TareaItem';
 import {InputNuevaTarea} from './InputNuevaTarea';
 import {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
@@ -22,9 +22,13 @@ interface ListaTareasProps {
     onEditarTarea?: (id: number, datos: DatosEdicionTarea) => void;
     onEliminarTarea?: (id: number) => void;
     onReordenarTareas?: (tareas: Tarea[]) => void;
+    habilitarDrag?: boolean;
+    proyectos?: Proyecto[];
+    ocultarCompletadas?: boolean;
+    ocultarBadgeProyecto?: boolean;
 }
 
-export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ListaTareasProps): JSX.Element {
+export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false}: ListaTareasProps): JSX.Element {
     /*
      * Estado para tareas padre colapsadas
      * Set de IDs de tareas padre cuyas subtareas estan ocultas
@@ -257,9 +261,20 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
         const estaColapsada = tareasColapsadas.has(tarea.id);
         const numSubtareas = contarSubtareasLocal(tarea.id);
 
+        const proyecto = tarea.proyectoId ? proyectos.find(p => p.id === tarea.proyectoId) : undefined;
+        let nombreProyecto: string | undefined = undefined;
+        const soloIcono = ocultarBadgeProyecto;
+
+        if (proyecto?.nombre) {
+            nombreProyecto = proyecto.nombre;
+            if (!soloIcono && nombreProyecto.length > 20) {
+                nombreProyecto = nombreProyecto.substring(0, 20) + '...';
+            }
+        }
+
         return (
             <div className="tareaConColapsador" key={`wrapper-${tarea.id}`}>
-                <TareaItem tarea={tarea} esSubtarea={esSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} onConfigurar={() => abrirConfiguracion(tarea.id)} />
+                <TareaItem tarea={tarea} esSubtarea={esSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} />
                 {/* Boton de colapsar a la derecha, solo si tiene subtareas */}
                 {esColapsable && (
                     <button className="tareaColapsadorBoton" onClick={() => toggleColapsar(tarea.id)} title={estaColapsada ? `Expandir ${numSubtareas.total} subtareas` : `Colapsar ${numSubtareas.total} subtareas`}>
@@ -296,7 +311,8 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
                             as="div"
                             style={{position: 'relative'}}
                             className={`tareaPadreReorder ${tareaArrastrandoId === tareaPadre.id ? 'tareaPadreReorderArrastrando' : ''} ${tareaArrastrandoId === tareaPadre.id && esGestoSubtarea ? 'tareaPadreReorderGestoSubtarea' : ''}`}
-                            onPointerDown={e => handleDragStart(tareaPadre.id, e)}
+                            dragListener={habilitarDrag}
+                            onPointerDown={e => habilitarDrag && handleDragStart(tareaPadre.id, e)}
                             onDragEnd={handleDragEnd}
                             onDrag={(_, info) => {
                                 dragCurrentXRef.current = dragStartXRef.current + info.offset.x;
@@ -322,11 +338,23 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
                 })}
             </Reorder.Group>
 
-            {pendientes.length > 0 && completadas.length > 0 && <div className="listaTareasSeparador" />}
+            {pendientes.length > 0 && completadas.length > 0 && !ocultarCompletadas && <div className="listaTareasSeparador" />}
 
-            {completadas.map(tarea => (
-                <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} />
-            ))}
+            {!ocultarCompletadas &&
+                completadas.map(tarea => {
+                    const proyecto = tarea.proyectoId ? proyectos.find(p => p.id === tarea.proyectoId) : undefined;
+                    let nombreProyecto: string | undefined = undefined;
+                    const soloIcono = ocultarBadgeProyecto;
+
+                    if (proyecto?.nombre) {
+                        nombreProyecto = proyecto.nombre;
+                        if (!soloIcono && nombreProyecto.length > 20) {
+                            nombreProyecto = nombreProyecto.substring(0, 20) + '...';
+                        }
+                    }
+
+                    return <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} />;
+                })}
 
             {/* Panel de configuración */}
             {tareaConfigurando && <PanelConfiguracionTarea tarea={tareaConfigurando} estaAbierto={true} onCerrar={() => setTareaConfigurando(null)} onGuardar={guardarConfiguracion} />}

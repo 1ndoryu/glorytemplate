@@ -8,10 +8,18 @@
  * CONTENEDOR DE BADGES 
  */
 .badgeGroup {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--dashboard-espacioSx);
-    flex-wrap: wrap;
+    display: inline;
+    vertical-align: middle;
+}
+
+.badgeGroup > * {
+    margin-right: var(--dashboard-espacioSx);
+    margin-bottom: 2px;
+    vertical-align: middle;
+}
+
+.badgeGroup > *:last-child {
+    margin-right: 0;
 }
 
 /* 

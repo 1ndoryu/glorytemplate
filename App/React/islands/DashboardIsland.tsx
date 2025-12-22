@@ -6,7 +6,7 @@
 
 import {useState, useEffect} from 'react';
 import {Terminal, AlertCircle, FileText, Folder, Plus} from 'lucide-react';
-import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, SelectorOrden, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad} from '../components/dashboard';
+import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad} from '../components/dashboard';
 import {ToastDeshacer, ModalUpgrade} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {PanelAdministracion} from '../components/admin';
@@ -14,6 +14,12 @@ import {useDashboard} from '../hooks/useDashboard';
 import {useOrdenarHabitos} from '../hooks/useOrdenarHabitos';
 import {useAuth} from '../hooks/useAuth';
 import {useSuscripcion} from '../hooks/useSuscripcion';
+import {useFiltroTareas} from '../hooks/useFiltroTareas';
+import {useOrdenarTareas, MODOS_ORDEN_TAREAS} from '../hooks/useOrdenarTareas';
+import {SelectorBadge} from '../components/shared/SelectorBadge';
+import {Filter, LayoutList, CheckSquare, ArrowUpDown, Settings} from 'lucide-react';
+import {useConfiguracionTareas} from '../hooks/useConfiguracionTareas';
+import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
 import type {Proyecto} from '../types/dashboard';
 
 interface DashboardIslandProps {
@@ -67,8 +73,16 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
     }, [handleCallback]);
 
     /* Sistema de ordenamiento de habitos */
+
     const {habitosOrdenados, modoActual, cambiarModo, modosDisponibles} = useOrdenarHabitos(habitos);
     const modoInfo = modosDisponibles.find(m => m.id === modoActual);
+
+    /* Opciones para SelectorBadge de hábitos */
+    const opcionesOrdenHabitos = modosDisponibles.map(m => ({
+        id: m.id,
+        etiqueta: m.etiqueta,
+        descripcion: m.descripcion
+    }));
 
     /* Estado de proyectos */
     const [proyectoSeleccionadoId, setProyectoSeleccionadoId] = useState<number | null>(null);
@@ -76,7 +90,45 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
     const [proyectoEditando, setProyectoEditando] = useState<Proyecto | null>(null);
 
     /* Tareas sueltas (sin proyecto) para mostrar en Ejecucion */
-    const tareasSinProyecto = tareas.filter(t => !t.proyectoId);
+    const {filtroActual, cambiarFiltro, tareasFiltradas, infoFiltro} = useFiltroTareas(tareas, proyectos || []);
+
+    /* Generar opciones para el selector */
+    const opcionesFiltro = [
+        {id: 'sueltas', etiqueta: 'Tareas sueltas', icono: <CheckSquare size={12} />, descripcion: 'Sin proyecto'},
+        {id: 'todas', etiqueta: 'Todas las tareas', icono: <LayoutList size={12} />, descripcion: 'Todas'},
+        ...(proyectos || []).map(p => ({
+            id: `proyecto-${p.id}`,
+            etiqueta: p.nombre,
+            icono: <Folder size={12} />,
+            descripcion: (p.descripcion || '').length > 25 ? (p.descripcion || '').substring(0, 25) + '...' : p.descripcion || ''
+        }))
+    ];
+
+    const manejarCambioFiltro = (valor: string) => {
+        if (valor === 'sueltas') cambiarFiltro({tipo: 'sueltas'});
+        else if (valor === 'todas') cambiarFiltro({tipo: 'todas'});
+        else if (valor.startsWith('proyecto-')) {
+            const id = parseInt(valor.replace('proyecto-', ''), 10);
+            cambiarFiltro({tipo: 'proyecto', proyectoId: id});
+        }
+    };
+
+    /* Configuracion de tareas */
+    const {configuracion: configTareas, toggleOcultarCompletadas, toggleOcultarBadgeProyecto} = useConfiguracionTareas();
+    const [modalConfigTareasAbierto, setModalConfigTareasAbierto] = useState(false);
+
+    /* Calcular valor actual para el selector */
+    const valorFiltroActual = filtroActual.tipo === 'proyecto' ? `proyecto-${filtroActual.proyectoId}` : filtroActual.tipo;
+
+    /* Ordenamiento de tareas */
+    const {tareasOrdenadas: tareasFinales, modoActual: modoOrden, cambiarModo: cambiarModoOrden, esOrdenManual} = useOrdenarTareas(tareasFiltradas);
+
+    /* Adaptar opciones de orden para SelectorBadge */
+    const opcionesOrden = MODOS_ORDEN_TAREAS.map(m => ({
+        id: m.id,
+        etiqueta: m.etiqueta,
+        descripcion: m.descripcion
+    }));
 
     /* Manejadores de proyectos */
     const manejarCrearProyecto = () => {
@@ -136,7 +188,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                 <div className="dashboardGrid">
                     {/* Columna 1: Habitos y Proyectos */}
                     <div className="columnaHabitos">
-                        <SeccionEncabezado icono={<AlertCircle size={12} />} titulo="Foco Prioritario" subtitulo={modoInfo?.descripcion || ''} acciones={<SelectorOrden modoActual={modoActual} onCambiarModo={cambiarModo} />} />
+                        <SeccionEncabezado icono={<AlertCircle size={12} />} titulo="Foco Prioritario" subtitulo={modoInfo?.descripcion || ''} acciones={<SelectorBadge opciones={opcionesOrdenHabitos} valorActual={modoActual} onChange={valor => cambiarModo(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar hábitos" />} />
                         <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} />
 
                         <SeccionEncabezado
@@ -155,8 +207,23 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                     <div className="columnaTareas">
                         {/* Seccion: Tareas sueltas (sin proyecto) */}
                         <div className="internaColumna">
-                            <SeccionEncabezado icono={<Terminal size={12} />} titulo="Ejecucion" subtitulo={`${tareasSinProyecto.filter(t => !t.completado).length} pendientes`} />
-                            <ListaTareas tareas={tareasSinProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
+                            <SeccionEncabezado
+                                icono={<Terminal size={12} />}
+                                titulo="Ejecucion"
+                                subtitulo={`${tareasFinales.filter(t => !t.completado).length} pendientes`}
+                                acciones={
+                                    <div style={{display: 'flex', gap: '8px'}}>
+                                        <SelectorBadge opciones={opcionesFiltro} valorActual={valorFiltroActual} onChange={manejarCambioFiltro} titulo="Filtrar tareas" />
+                                        <SelectorBadge opciones={opcionesOrden} valorActual={modoOrden} onChange={valor => cambiarModoOrden(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar tareas" />
+                                        <button className="selectorBadgeBoton" onClick={() => setModalConfigTareasAbierto(true)} title="Configuración">
+                                            <span className="selectorBadgeIcono">
+                                                <Settings size={10} />
+                                            </span>
+                                        </button>
+                                    </div>
+                                }
+                            />
+                            <ListaTareas tareas={tareasFinales} proyectoId={filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined} proyectos={proyectos || []} ocultarCompletadas={configTareas.ocultarCompletadas} ocultarBadgeProyecto={configTareas.ocultarBadgeProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={esOrdenManual ? reordenarTareas : undefined} habilitarDrag={esOrdenManual} />
                         </div>
 
                         {/* Seccion: Notas Rapidas */}
@@ -233,6 +300,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
             {/* Panel de Seguridad */}
             <PanelSeguridad visible={panelSeguridadAbierto} onCerrar={() => setPanelSeguridadAbierto(false)} />
+
+            {/* Modal configuracion tareas */}
+            <ModalConfiguracionTareas estaAbierto={modalConfigTareasAbierto} onCerrar={() => setModalConfigTareasAbierto(false)} configuracion={configTareas} onToggleCompletadas={toggleOcultarCompletadas} onToggleBadgeProyecto={toggleOcultarBadgeProyecto} />
 
             {/* Panel de Administración */}
             {esAdmin && <PanelAdministracion estaAbierto={panelAdminAbierto} onCerrar={() => setPanelAdminAbierto(false)} />}

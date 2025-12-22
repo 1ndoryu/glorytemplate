@@ -68,15 +68,15 @@
 }
 
 .tareaTextoWrapper {
-    display: flex;
-    align-items: center;
-    gap: var(--dashboard-espacioXs);
+    display: block;
+    line-height: 1.6;
 }
 
 .tareaTexto {
-    line-height: 1.4;
+    display: inline;
     color: var(--dashboard-textoNormal);
     word-break: break-word;
+    margin-right: var(--dashboard-espacioSm);
 }
 
 .tareaTextoCompletado {

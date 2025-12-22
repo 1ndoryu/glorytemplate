@@ -16,11 +16,11 @@ interface ModoOrdenInfo {
 }
 
 export const MODOS_ORDEN: ModoOrdenInfo[] = [
-    {id: 'importancia', etiqueta: 'Importancia', descripcion: 'Alta > Media > Baja, luego por inactividad'},
-    {id: 'inactividad', etiqueta: 'Urgentes', descripcion: 'Mas dias sin hacer primero'},
-    {id: 'racha', etiqueta: 'Racha', descripcion: 'Rachas mas largas primero'},
-    {id: 'nombre', etiqueta: 'Nombre', descripcion: 'Orden alfabetico A-Z'},
-    {id: 'urgenciaPonderada', etiqueta: 'Inteligente', descripcion: 'Combina importancia + inactividad'}
+    {id: 'importancia', etiqueta: 'Importancia', descripcion: 'Importancia'},
+    {id: 'inactividad', etiqueta: 'Urgentes', descripcion: 'Urgencia'},
+    {id: 'racha', etiqueta: 'Racha', descripcion: 'Racha'},
+    {id: 'nombre', etiqueta: 'Nombre', descripcion: 'A-Z'},
+    {id: 'urgenciaPonderada', etiqueta: 'Inteligente', descripcion: 'Inteligente'}
 ];
 
 const PESO_IMPORTANCIA: Record<Habito['importancia'], number> = {

@@ -114,20 +114,31 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Objetivo:** Mejorar la visualización y filtrado de tareas en el panel de Ejecución con controles elegantes.
 
 **Rediseño del Select (Badge Personalizado):**
-- [ ] Crear componente `SelectorBadge` que reemplace el select nativo
-- [ ] Al hacer click abre menú estilo contextual con opciones
-- [ ] Diseño visual consistente con badges existentes
-- [ ] Aplicar también al filtro de importancia de hábitos
+- [x] Crear componente `SelectorBadge` que reemplace el select nativo
+- [x] Al hacer click abre menú estilo contextual con opciones
+- [x] Diseño visual consistente con badges existentes
+- [x] Aplicar también al filtro de importancia de hábitos
 
-**Filtros de Tareas:**
-- [ ] **Tareas sin proyecto**: Vista por defecto, tareas sueltas (normales)
-- [ ] **Filtro por proyecto**: Selector para ver tareas de un proyecto específico
-- [ ] Indicador visual del filtro activo
+**Filtros de Tareas en Panel Ejecución:**
+- [x] **Tareas sueltas** (por defecto): Comportamiento actual, solo tareas sin proyecto
+- [x] **Por proyecto**: Selector para ver tareas de un proyecto específico en Ejecución
+- [x] **Todas las tareas**: Combinar tareas sueltas + tareas de todos los proyectos
+- [x] Badge/indicador visual que muestre el filtro activo
+- [x] Recordar preferencia del usuario (localStorage) 
+
+**Gestión de Tareas:**
+- [ ] **Mover de proyecto**: Opción en menú contextual para cambiar una tarea de proyecto
+- [ ] Modal selector de proyecto al mover tarea
 
 **Ordenamiento Inteligente:**
-- [ ] **Inteligente**: Combinar importancia + fecha límite
-- [ ] **Solo fecha**: Ordenar por fecha límite
-- [ ] **Por importancia de proyecto**: Priorizar tareas de proyectos importantes
+- [x] **Inteligente**: Combinar importancia + fecha límite
+- [x] **Solo fecha**: Ordenar por fecha límite
+- [x] **Por importancia**: Priorizar tareas (Alta > Media > Baja)
+
+**Mejora de UX / Tooltips:**
+- [ ] **Sistema de Tooltips**: Crear componente `Tooltip` personalizado con diseño del dashboard (oscuro, minimalista)
+- [ ] **Interceptar nativos**: Reemplazar atributos `title` del navegador por el tooltip personalizado automáticamente
+- [ ] **Aplicación prioritaria**: Mostrar nombre completo del proyecto al hacer hover en el badge (especialmente en modo solo icono)
 
 **Consideraciones Visuales:**
 - [ ] Cuidar la estética con múltiples filtros visibles

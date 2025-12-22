@@ -4,7 +4,7 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
-import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat} from 'lucide-react';
+import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder} from 'lucide-react';
 import type {Tarea, NivelPrioridad, DatosEdicionTarea, TareaConfiguracion} from '../../types/dashboard';
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
 import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
@@ -24,6 +24,10 @@ export interface TareaItemProps {
     onCrearNueva?: (parentId: number | undefined, tareaActualId: number) => void;
     /* Abrir panel de configuración */
     onConfigurar?: () => void;
+    /* Nombre del proyecto al que pertenece (opcional) */
+    nombreProyecto?: string;
+    /* Mostrar solo el icono del proyecto sin texto */
+    soloIconoProyecto?: boolean;
 }
 
 export interface MenuContextualEstado {
@@ -32,7 +36,7 @@ export interface MenuContextualEstado {
     y: number;
 }
 
-export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar}: TareaItemProps): JSX.Element {
+export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false}: TareaItemProps): JSX.Element {
     const [mostrarAcciones, setMostrarAcciones] = useState(false);
     const [editando, setEditando] = useState(false);
     const [textoEditado, setTextoEditado] = useState(tarea.texto);
@@ -262,6 +266,7 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                             {renderBadgeAdjuntos()}
                             {renderBadgeDescripcion()}
                             {renderBadgeRepeticion()}
+                            {nombreProyecto && <BadgeInfo tipo="personalizado" icono={<Folder size={10} />} texto={soloIconoProyecto ? undefined : nombreProyecto} titulo={`Proyecto: ${nombreProyecto}`} variante="normal" />}
                             {renderIndicadorPrioridad()}
                         </BadgeGroup>
                     </div>

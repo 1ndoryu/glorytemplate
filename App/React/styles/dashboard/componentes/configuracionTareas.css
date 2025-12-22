@@ -1,0 +1,42 @@
+/*
+ * CONFIGURACION DE TAREAS
+ * Estilos para el modal de configuracion
+ */
+
+.contenedorOpcionesConfig {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioLg);
+    padding: var(--dashboard-espacioMd);
+}
+
+.itemOpcionConfig {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--dashboard-espacioMd);
+}
+
+.detallesOpcionConfig {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tituloOpcionConfig {
+    font-size: var(--dashboard-tamanoBase);
+    font-weight: 500;
+    color: var(--dashboard-textoNormal);
+}
+
+.descripcionOpcionConfig {
+    font-size: 0.75rem;
+    color: var(--dashboard-textoApagado);
+    line-height: 1.4;
+}
+
+.separadorOpcionesConfig {
+    height: 1px;
+    background-color: var(--dashboard-bordeSutil);
+    width: 100%;
+}
