@@ -64,10 +64,15 @@ class DashboardScripts
 
         if (is_user_logged_in()) {
             $user = wp_get_current_user();
+            $userId = $user->ID;
+            $avatarUrl = get_user_meta($userId, 'glory_avatar_url', true);
+
             $currentUser = [
                 'name' => $user->display_name,
                 'email' => $user->user_email,
-                'login' => $user->user_login
+                'login' => $user->user_login,
+                'description' => get_the_author_meta('description', $userId),
+                'avatarUrl' => $avatarUrl ?: ''
             ];
 
             /* Obtener info de suscripción */

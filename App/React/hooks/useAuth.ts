@@ -4,6 +4,8 @@ interface User {
     name: string;
     email: string;
     login: string;
+    description?: string;
+    avatarUrl?: string;
 }
 
 interface UseAuthReturn {

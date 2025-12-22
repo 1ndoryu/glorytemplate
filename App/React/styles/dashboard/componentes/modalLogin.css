@@ -131,3 +131,60 @@
 .loginTab:hover:not(.activo) {
     color: var(--dashboard-textoActivo);
 }
+
+/* 
+ * Enlace Recuperar Contrasena
+ */
+.enlaceRecuperar {
+    background: transparent;
+    border: none;
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    text-align: center;
+    padding: var(--dashboard-espacioSm) 0;
+    transition: color 0.2s ease;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.enlaceRecuperar:hover {
+    color: var(--dashboard-textoActivo);
+}
+
+/* 
+ * Contenedor de Recuperacion
+ */
+.recuperarContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+}
+
+.recuperarDescripcion {
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoPequeno);
+    line-height: 1.5;
+    margin: 0 0 var(--dashboard-espacioSm) 0;
+}
+
+/* 
+ * Mensajes de Feedback en Recuperacion
+ */
+.mensajeRecuperar {
+    padding: var(--dashboard-espacioMd);
+    font-size: var(--dashboard-tamanoPequeno);
+    border-radius: var(--dashboard-radioBorde);
+}
+
+.mensajeRecuperar--exito {
+    background-color: var(--dashboard-estadoExitoFondo);
+    color: var(--dashboard-estadoExito);
+    border: 1px solid var(--dashboard-estadoExitoBorde);
+}
+
+.mensajeRecuperar--error {
+    background-color: var(--dashboard-estadoAltaFondo);
+    color: var(--dashboard-estadoAlta);
+    border: 1px solid var(--dashboard-estadoAltaBorde);
+}

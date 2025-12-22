@@ -11,6 +11,25 @@ export interface Version {
 
 export const HISTORIAL_VERSIONES: Version[] = [
     {
+        version: 'v1.0.1-beta',
+        fecha: '2025-12-22',
+        cambios: [
+            {tipo: 'nuevo', descripcion: 'Perfil de usuario con foto, bio y cambio de contraseña'},
+            {tipo: 'nuevo', descripcion: 'Avatar del usuario visible en el header'},
+            {tipo: 'nuevo', descripcion: 'Recuperación de contraseña desde el login'},
+            {tipo: 'nuevo', descripcion: 'Configuración individual por panel (Hábitos, Tareas, Proyectos, Scratchpad)'},
+            {tipo: 'nuevo', descripcion: 'Filtros inteligentes en panel de Ejecución'},
+            {tipo: 'nuevo', descripcion: 'Sistema de tooltips personalizados'},
+            {tipo: 'nuevo', descripcion: 'Mover tareas entre proyectos'},
+            {tipo: 'nuevo', descripcion: 'Ordenamiento inteligente de tareas'},
+            {tipo: 'nuevo', descripcion: 'Modal de historial de versiones'},
+            {tipo: 'mejora', descripcion: 'Scratchpad con límite de caracteres y contador'},
+            {tipo: 'mejora', descripcion: 'Botones de creación unificados en todos los paneles'},
+            {tipo: 'mejora', descripcion: 'Controles de layout y visibilidad de paneles'},
+            {tipo: 'arreglo', descripcion: 'Cifrado E2E ahora incluye datos del Scratchpad'}
+        ]
+    },
+    {
         version: 'v1.0.0-beta',
         fecha: '2025-12-22',
         cambios: [

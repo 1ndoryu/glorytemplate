@@ -6,7 +6,7 @@
 
 import {useState, useEffect} from 'react';
 import {Terminal, AlertCircle, FileText, Folder, Plus, LayoutGrid, Eraser} from 'lucide-react';
-import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad, ModalConfiguracionLayout, PanelConfiguracionTarea, ModalConfiguracionProyectos} from '../components/dashboard';
+import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad, ModalConfiguracionLayout, PanelConfiguracionTarea, ModalConfiguracionProyectos, ModalPerfil} from '../components/dashboard';
 import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos, PanelArrastrable, HandleArrastre, IndicadorArrastre, ModalVersiones} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {PanelAdministracion} from '../components/admin';
@@ -54,7 +54,7 @@ function IndicadorCarga({texto = 'Cargando datos...'}: {texto?: string}): JSX.El
     );
 }
 
-export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin'}: DashboardIslandProps): JSX.Element {
+export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta', usuario = 'user@admin'}: DashboardIslandProps): JSX.Element {
     const {habitos, tareas, notas, proyectos, toggleTarea, crearTarea, editarTarea, eliminarTarea, crearProyecto, editarProyecto, eliminarProyecto, cambiarEstadoProyecto, actualizarNotas, toggleHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, exportarTodosDatos, importarTodosDatos, importando, mensajeEstado, tipoMensaje, cargandoDatos, accionDeshacer, ejecutarDeshacer, descartarDeshacer, reordenarTareas, sincronizacion} = useDashboard();
 
     /* Auth */
@@ -70,7 +70,11 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
     /* Administración (solo si es admin) */
     const esAdmin = Boolean((window as unknown as {gloryDashboard?: {esAdmin?: boolean}}).gloryDashboard?.esAdmin);
+
     const [panelAdminAbierto, setPanelAdminAbierto] = useState(false);
+
+    /* Perfil de Usuario */
+    const [modalPerfilAbierto, setModalPerfilAbierto] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -382,6 +386,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                 titulo={titulo}
                 version={version}
                 usuario={user ? user.name : usuario}
+                avatarUrl={user?.avatarUrl}
                 sincronizacion={{
                     ...sincronizacion,
                     onLogin: () => setModalLoginAbierto(true),
@@ -395,6 +400,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                 onClickAdmin={() => setPanelAdminAbierto(true)}
                 onClickLayout={() => setModalConfigLayoutAbierto(true)}
                 onClickVersion={() => setModalVersionesAbierto(true)}
+                onClickUsuario={() => setModalPerfilAbierto(true)}
             />
 
             {cargandoDatos ? (
@@ -512,6 +518,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
             {/* Modal de Historial de Versiones */}
             <ModalVersiones estaAbierto={modalVersionesAbierto} onCerrar={() => setModalVersionesAbierto(false)} />
+
+            {/* Modal de Perfil de Usuario */}
+            <ModalPerfil estaAbierto={modalPerfilAbierto} onCerrar={() => setModalPerfilAbierto(false)} />
 
             {/* Barra de paneles ocultos */}
             <BarraPanelesOcultos panelesOcultos={panelesOcultos} onMostrarPanel={mostrarPanel} />

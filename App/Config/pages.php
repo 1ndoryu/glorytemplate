@@ -30,6 +30,6 @@ PageManager::setDefaultContentMode('code');
  */
 PageManager::reactPage('home', 'DashboardIsland', [
     'titulo' => 'DASHBOARD_01',
-    'version' => 'v1.0.0-beta',
+    'version' => 'v1.0.1-beta',
     'usuario' => 'user@admin'
 ]);

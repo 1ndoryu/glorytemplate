@@ -7,9 +7,9 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 ## Estado Actual
 
 **Fecha de inicio:** 2025-12-19  
-**Version:** v1.0.0-beta  
+**Version:** v1.0.1-beta  
 **Ultima actualizacion:** 2025-12-22
-**Estado:** Etapa 6 - Configuración por Panel (En Progreso)
+**Estado:** Funcionalidades Core Completadas - Mejoras Menores Pendientes
 
 ---
 
@@ -105,318 +105,106 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 </details>
 
+<details>
+<summary><strong>🎯 Filtros Inteligentes (Completo)</strong></summary>
+
+- Componente `SelectorBadge` reemplaza selects nativos
+- Filtros de tareas: sueltas, por proyecto, todas
+- Mover tareas entre proyectos desde menú contextual
+- Ordenamiento: inteligente, por fecha, por importancia
+- Sistema de tooltips personalizados
+- Controles compactos y estética coherente
+
+</details>
+
+<details>
+<summary><strong>🎨 Estandarización UX (Completo)</strong></summary>
+
+- Botones "Nuevo" estilo badge en todos los paneles
+- Iconos unificados (10px - 12px)
+- Tooltips en todos los botones
+- Alineación vertical correcta en encabezados
+
+</details>
+
+<details>
+<summary><strong>📝 Scratchpad Seguro (Completo)</strong></summary>
+
+- Cifrado E2E cuando está activo
+- Límite 20,000 caracteres con contador
+- Advertencia al 90% de capacidad
+- Debounce optimizado (1.5s)
+- Indicador de estado de guardado
+
+</details>
+
+<details>
+<summary><strong>🔲 Layout Personalizable (Completo)</strong></summary>
+
+- Resize handle entre columnas
+- Modos: 1, 2 y 3 columnas
+- Toggle visibilidad de paneles
+- Paneles ocultos en barra lateral
+- CSS Grid/Flexbox adaptativo
+
+</details>
+
+<details>
+<summary><strong>🔄 Reordenamiento de Paneles (Completo)</strong></summary>
+
+- Sistema Drag & Drop personalizado (sin dependencias)
+- Hook `useArrastrePaneles` con mouse events
+- Handle de arrastre en cada panel
+- Feedback visual durante arrastre
+- Controles en modal de configuración
+- Animaciones suaves
+
+</details>
+
+<details>
+<summary><strong>📜 Historial de Versiones (Completo)</strong></summary>
+
+- Modal al hacer click en badge de versión
+- Lista ordenada de releases
+- Formato semver (MAJOR.MINOR.PATCH)
+- Etiquetas: alpha, beta, stable
+
+</details>
+
+<details>
+<summary><strong>👤 Perfil de Usuario (Completo)</strong></summary>
+
+- Modal de perfil desde nombre de usuario
+- Foto de perfil con subida base64
+- Nombre y descripción editables
+- Cambio de contraseña
+- Recuperación de contraseña desde login
+- Avatar visible en header
+- Integración con WordPress (AvatarIntegration)
+
+</details>
+
+<details>
+<summary><strong>⚙️ Configuración por Panel (Completo)</strong></summary>
+
+- **Hábitos:** Ocultar completados, columnas visibles, modo compacto
+- **Tareas:** Ocultar completadas, badge proyecto, limpieza automática
+- **Proyectos:** Ocultar completados, orden, progreso
+- **Scratchpad:** Tamaño fuente, altura, intervalo guardado
+
+</details>
+
 ---
 
 ## Próximas Funcionalidades (Pendientes)
 
-### 🎯 Fase Filtros Inteligentes en Ejecución
-
-**Objetivo:** Mejorar la visualización y filtrado de tareas en el panel de Ejecución con controles elegantes.
-
-**Rediseño del Select (Badge Personalizado):**
-- [x] Crear componente `SelectorBadge` que reemplace el select nativo
-- [x] Al hacer click abre menú estilo contextual con opciones
-- [x] Diseño visual consistente con badges existentes
-- [x] Aplicar también al filtro de importancia de hábitos
-
-**Filtros de Tareas en Panel Ejecución:**
-- [x] **Tareas sueltas** (por defecto): Comportamiento actual, solo tareas sin proyecto
-- [x] **Por proyecto**: Selector para ver tareas de un proyecto específico en Ejecución
-- [x] **Todas las tareas**: Combinar tareas sueltas + tareas de todos los proyectos
-- [x] Badge/indicador visual que muestre el filtro activo
-- [x] Recordar preferencia del usuario (localStorage) 
-
-**Gestión de Tareas:**
-- [x] **Mover de proyecto**: Opción en menú contextual para cambiar una tarea de proyecto
-- [x] Modal selector de proyecto al mover tarea
-
-**Ordenamiento Inteligente:**
-- [x] **Inteligente**: Combinar importancia + fecha límite
-- [x] **Solo fecha**: Ordenar por fecha límite
-- [x] **Por importancia**: Priorizar tareas (Alta > Media > Baja)
-
-**Mejora de UX / Tooltips:**
-- [x] **Sistema de Tooltips**: Crear componente `Tooltip` personalizado con diseño del dashboard (oscuro, minimalista)
-- [x] **Interceptar nativos**: Reemplazar atributos `title` del navegador por el tooltip personalizado automáticamente
-- [x] **Aplicación prioritaria**: Mostrar nombre completo del proyecto al hacer hover en el badge (especialmente en modo solo icono)
-
-**Consideraciones Visuales:**
-- [x] Cuidar la estética con múltiples filtros visibles
-- [x] Agrupar controles de forma compacta
-- [x] Mantener coherencia con el estilo terminal
-
----
-
-### 🎨 Fase Estandarización de UX - Controles de Panel
-
-**Objetivo:** Unificar la experiencia de usuario en todos los paneles, asegurando que cada uno tenga controles consistentes para crear elementos y configurar el panel.
-
-**Botones de Creación Unificados:**
-- [x] Implementar botón "Nuevo" estilo badge (como en Proyectos/Filtros) en todos los paneles:
-  - [x] **Hábitos:** Botón "Nuevo Hábito" en el encabezado
-  - [x] **Tareas (Ejecución):** Botón "Nueva Tarea" en el encabezado (además del input inline)
-  - [x] **Scratchpad:** Botón "Limpiar" o "Nueva Nota" (si se implementan tabs)
-- [x] Asegurar que todos usen el componente/estilo `selectorBadgeBoton`
-
-**Consistencia Visual:**
-- [x] Revisar tamaños de iconos (10px - 12px) en todos los badges
-- [x] Unificar tooltips en estos botones
-- [x] Asegurar alineación vertical correcta en todos los encabezados
-
----
-
-### 📝 Fase Scratchpad Seguro
-
-**Objetivo:** Asegurar que el Scratchpad sea seguro, eficiente y no abuse de recursos.
-
-**Seguridad:**
-- [x] Verificar que el Scratchpad esté cifrado cuando E2E está activo
-- [x] Cifrar contenido con la misma lógica de AES-256-GCM
-
-**Límites de Texto:**
-- [x] Implementar límite mínimo de 20,000 caracteres
-- [x] Mostrar contador de caracteres usado/total
-- [x] Advertencia visual cuando se acerca al límite (90%)
-- [x] Truncar texto si excede (con maxLength en textarea)
-
-**Optimización de Guardado:**
-- [x] Revisar si cada letra genera petición AJAX (actualmente hay debounce 500ms)
-- [x] Considerar aumentar debounce a 1-2 segundos (aumentado a 1.5s)
-- [x] Indicador "pendiente de guardar" vs "guardado"
-
----
-
-### 🔲 Fase Layout Personalizable (Columnas)
-
-**Objetivo:** Permitir al usuario personalizar el layout del dashboard según sus preferencias.
-
-**Columnas Redimensionables:**
-- [x] Implementar resize handle entre columnas (arrastrar para cambiar ancho)
-- [x] Guardar preferencias de ancho en configuración de usuario
-- [x] Ancho mínimo y máximo por columna
-
-**Configuración de Layout:**
-- [x] Opción 1 columna (todo vertical)
-- [x] Opción 2 columnas (actual)
-- [x] Opción 3 columnas (para pantallas grandes)
-- [x] Selector en configuración o drag & drop
-
-**Ocultar/Mostrar Paneles:**
-- [x] Toggle para ocultar: Proyectos, Foco Prioritario, Ejecución, Scratchpad
-- [x] Paneles ocultos aparecen en barra lateral mínima (iconos)
-- [x] Persistir configuración de visibilidad
-
-**Refactorización Necesaria:**
-- [x] Verificar que todos los componentes soporten ancho dinámico
-- [x] CSS Grid/Flexbox adaptativo
-- [x] Componente `LayoutManager` para orquestar
-
----
-
-### � Fase Reordenamiento de Paneles (Drag & Drop)
-
-**Objetivo:** Permitir al usuario reorganizar la posición de los paneles del dashboard arrastrándolos vertical u horizontalmente entre columnas.
-
-**Estructura de Datos:**
-```typescript
-interface OrdenPanel {
-    id: PanelId;           // 'focoPrioritario' | 'proyectos' | 'ejecucion' | 'scratchpad'
-    columna: 1 | 2 | 3;    // A qué columna pertenece
-    posicion: number;      // Orden dentro de la columna (0, 1, 2...)
-}
-
-// Agregar a ConfiguracionLayout existente:
-ordenPaneles: OrdenPanel[];
-```
-
-**Etapa 1: Modelo de Datos y Hook (Fundamentos)**
-- [x] Extender `useConfiguracionLayout` con `ordenPaneles`
-- [x] Definir orden por defecto según modo de columnas
-- [x] Implementar `reordenarPanel(panelId, columna, posicion)`
-- [x] Implementar `moverPanelArriba(panelId)` / `moverPanelAbajo(panelId)`
-- [x] Función `obtenerPanelesColumna(columna)` que retorna paneles ordenados
-- [x] Migración automática: si no existe `ordenPaneles`, generarlo desde el layout actual
-
-**Etapa 2: Renderizado Dinámico en Dashboard**
-- [x] Crear función `renderizarPanel(panelId)` que retorna el JSX del panel
-- [x] Modificar `DashboardIsland` para iterar `ordenPaneles` agrupados por columna
-- [x] Los paneles se renderizan según su `posicion` dentro de cada columna
-- [x] Respetar `visibilidad`: panel oculto no se renderiza pero mantiene su orden
-
-**Etapa 3: Controles en Modal de Configuración (Accesibilidad)**
-- [x] Crear componente `ListaOrdenPaneles.tsx`
-  - Lista de paneles con iconos y nombres
-  - Botones ↑↓ para mover dentro de columna
-  - Selector de columna destino (dropdown o badges)
-  - Vista previa compacta del layout
-- [x] Agregar sección "Orden de Paneles" en `ModalConfiguracionLayout`
-- [x] Botón "Restaurar orden por defecto"
-
-**Etapa 4: Sistema de Arrastre Personalizado (Completado)**
-
-> **Nota:** El API nativo de HTML5 Drag & Drop fue descartado por ser poco confiable 
-> (comportamiento inconsistente, falta de feedback visual adecuado). Se implementará 
-> un sistema personalizado basado en eventos de mouse.
-
-- [x] Crear hook `useArrastrePaneles` con lógica de mouse events
-  - Estado: `panelArrastrando`, `posicionMouse`, `panelDestino`
-  - Eventos: mousedown en handle, mousemove global, mouseup global
-  - Cálculo de zona de drop basado en posición Y del mouse
-- [x] Crear componente `HandleArrastre.tsx` (botón en encabezado)
-  - Estilo badge consistente con el dashboard
-  - Icono grip de 6 puntos
-  - onMouseDown inicia el arrastre
-- [x] Implementar feedback visual durante arrastre
-  - Panel origen: opacidad reducida
-  - Indicador flotante siguiendo el cursor (preview del panel)
-  - Zona destino: borde brillante arriba/abajo del panel
-- [x] Integrar con `DashboardIsland`
-  - Agregar HandleArrastre en cada SeccionEncabezado
-  - Listeners globales de mouse en el componente principal
-- [x] Animación suave al soltar (CSS transitions)
+### 🔄 Fase Reordenamiento - Pulido Mobile
 
 **Etapa 5: Pulido y Mobile**
 - [ ] Touch events para dispositivos táctiles
 - [ ] Fallback a controles del modal para accesibilidad
 - [ ] Animación de "snap" al soltar
 - [ ] Cursor personalizado durante arrastre
-
-**Consideraciones Técnicas:**
-
-| Aspecto        | Decisión                                        |
-| -------------- | ----------------------------------------------- |
-| Dependencias   | Ninguna - sistema propio con mouse/touch events |
-| Persistencia   | localStorage via `useConfiguracionLayout`       |
-| Sincronización | Incluir en datos sincronizados al servidor      |
-| Mobile         | Touch events + fallback a controles del modal   |
-| Accesibilidad  | Modal con botones siempre disponible            |
-
-**Archivos a Crear:**
-```
-components/shared/PanelArrastrable.tsx
-components/shared/ZonaDeposito.tsx  
-components/dashboard/ListaOrdenPaneles.tsx
-styles/dashboard/shared/panelArrastrable.css
-```
-
-**Archivos a Modificar:**
-```
-hooks/useConfiguracionLayout.ts
-components/dashboard/ModalConfiguracionLayout.tsx
-islands/DashboardIsland.tsx
-styles/dashboard/shared/layoutManager.css
-```
-
-**Orden de Paneles por Defecto:**
-
-| Panel            | Columna (2col) | Posición |
-| ---------------- | -------------- | -------- |
-| Foco Prioritario | 1              | 0        |
-| Proyectos        | 1              | 1        |
-| Ejecución        | 2              | 0        |
-| Scratchpad       | 2              | 1        |
-
-**Nota:** "Acciones de Datos" (exportar/importar) siempre aparece al final de la última columna y no es reordenable.
-
----
-
-### �📜 Fase Historial de Versiones
-
-**Objetivo:** Mostrar changelog de versiones al hacer click en el badge de versión.
-
-**Modal de Historial:**
-- [x] Al hacer click en "v1.0.0-beta" se abre modal
-- [x] Lista de versiones ordenada (más reciente primero)
-- [x] Cada versión muestra:
-  - Número de versión
-  - Fecha de lanzamiento
-  - Lista de cambios (agregados, mejorados, corregidos)
-
-**Implementación:**
-- [x] Archivo `CHANGELOG.md` o JSON con versiones
-- [x] Componente `ModalVersiones.tsx`
-- [x] Estilos consistentes con otros modales
-
-**Sistema de Versiones:**
-- [x] Con cada release significativo, incrementar versión
-- [x] Formato: MAJOR.MINOR.PATCH (semver)
-- [x] Etiquetas: alpha, beta, stable
-
----
-
-### 👤 Fase Perfil de Usuario
-
-**Objetivo:** Permitir al usuario configurar su perfil desde el dashboard.
-
-**Modal de Perfil (click en nombre de usuario):**
-- [ ] Nombre de usuario (editable)
-- [ ] Foto de perfil (subir imagen, crop, preview)
-- [ ] Descripción/Bio breve
-- [ ] Cambiar contraseña (actual, nueva, confirmar)
-- [ ] Botón guardar con validaciones
-
-**Recuperación de Contraseña:**
-- [ ] Enlace "¿Olvidaste tu contraseña?" en formulario de login
-- [ ] Flujo: email → código/link → nueva contraseña
-- [ ] Usar sistema de WordPress (wp_lostpassword_url) o custom
-
-**Implementación:**
-- [ ] Componente `ModalPerfil.tsx`
-- [ ] Endpoint API `POST /wp-json/glory/v1/perfil`
-- [ ] Endpoint API `POST /wp-json/glory/v1/auth/recuperar`
-- [ ] Integración con WordPress para contraseñas
-
----
-
-### ⚙️ Fase Configuración por Panel
-
-**Objetivo:** Cada panel del dashboard tendrá su propio botón de configuración (similar al de Tareas) con opciones específicas para ese panel.
-
-**Patrón General:**
-- Cada panel tiene un botón ⚙️ en su encabezado (junto al título)
-- Abre un modal de configuración específico del panel
-- Configuraciones se guardan en localStorage
-- Hook `useConfiguracion[NombrePanel]` para cada panel
-
-**Panel: Foco Prioritario (Hábitos)**
-- [x] Crear hook `useConfiguracionHabitos`
-- [x] Crear componente `ModalConfiguracionHabitos.tsx`
-- [x] Agregar botón de configuración al encabezado del panel
-- [x] Configuraciones disponibles:
-  - [x] Ocultar hábitos completados hoy
-  - [x] Columnas visibles de la tabla:
-    - [x] Índice (#)
-    - [x] Nombre
-    - [x] Racha
-    - [x] Frecuencia
-    - [x] Importancia
-    - [x] "Toca Hoy"
-    - [x] Acciones
-  - [x] Modo compacto (filas más pequeñas)
-
-**Panel: Proyectos**
-- [x] Crear hook `useConfiguracionProyectos`
-- [x] Crear componente `ModalConfiguracionProyectos.tsx`
-- [x] Configuraciones disponibles:
-  - [x] Ocultar proyectos completados
-  - [x] Ordenamiento por defecto (nombre, fecha, prioridad)
-  - [x] Mostrar/ocultar progreso
-
-**Panel: Scratchpad**
-- [x] Crear hook `useConfiguracionScratchpad`
-- [x] Crear componente `ModalConfiguracionScratchpad.tsx`
-- [x] Configuraciones disponibles:
-  - [x] Tamaño de fuente (pequeño, normal, grande)
-  - [x] Altura del área de texto
-  - [x] Auto-guardado (intervalo configurable)
-
-**Panel: Tareas (Ejecución)**
-- [x] Crear hook `useConfiguracionTareas`
-- [x] Crear componente `ModalConfiguracionTareas.tsx`
-- [x] Opciones disponibles:
-  - [x] Ocultar tareas completadas
-  - [x] Ocultar nombre de proyecto (badge)
-  - [x] Limpieza automática (eliminar completadas tras 24h)
 
 ---
 
@@ -464,7 +252,7 @@ styles/dashboard/shared/layoutManager.css
 
 ## 🔮 Visión a Largo Plazo
 
-### Sistema de Compañeros (v2.x)
+### Sistema de Compañeros (v1.0.2)
 
 **Objetivo:** Permitir que usuarios se conecten y compartan hábitos/tareas.
 
@@ -486,7 +274,7 @@ styles/dashboard/shared/layoutManager.css
 
 ---
 
-### Feed de Red Social (v3.x)
+### Feed de Red Social (v1.0.2)
 
 **Objetivo:** Crear un espacio social para compartir logros y motivarse.
 

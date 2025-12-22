@@ -69,6 +69,8 @@
     color: var(--dashboard-textoSecundario);
     transition: all var(--dashboard-transicionNormal);
     cursor: default;
+    box-sizing: border-box;
+    line-height: 1.4;
 }
 
 .badgeEncabezado:hover {
@@ -88,10 +90,43 @@
 /* Variante usuario */
 .badgeEncabezado--usuario {
     color: var(--dashboard-textoSecundario);
+    cursor: pointer;
 }
 
 .badgeEncabezado--usuario:hover {
     color: var(--dashboard-textoActivo);
+}
+
+/* 
+ * AVATAR EN ENCABEZADO
+ */
+.avatarEncabezado {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.avatarEncabezadoInicial {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--dashboard-fondoHover);
+    color: var(--dashboard-textoSecundario);
+    font-size: 10px;
+    font-weight: 600;
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.nombreUsuarioEncabezado {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* 

@@ -69,6 +69,19 @@ class AuthApiController
                 return is_user_logged_in();
             },
         ]);
+
+        /* Recuperar contraseña */
+        register_rest_route(self::API_NAMESPACE, '/auth/recuperar', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [self::class, 'recuperarPassword'],
+            'permission_callback' => '__return_true',
+            'args' => [
+                'email' => [
+                    'required' => true,
+                    'validate_callback' => 'is_email'
+                ],
+            ],
+        ]);
     }
 
     public static function loginWithCredentials(WP_REST_Request $request): WP_REST_Response
@@ -135,6 +148,10 @@ class AuthApiController
         wp_set_auth_cookie($userId, true);
         $nonce = wp_create_nonce('wp_rest');
         $user  = get_user_by('id', $userId);
+
+        if (!$user) {
+            return new WP_REST_Response(['success' => false, 'message' => 'Error inesperado al recuperar usuario'], 500);
+        }
 
         return new WP_REST_Response([
             'success' => true,
@@ -243,6 +260,32 @@ class AuthApiController
     {
         wp_logout();
         return new WP_REST_Response(['success' => true, 'message' => 'Logged out'], 200);
+    }
+
+    /**
+     * Envía correo de recuperación de contraseña usando el sistema de WordPress
+     */
+    public static function recuperarPassword(WP_REST_Request $request): WP_REST_Response
+    {
+        $email = sanitize_email($request->get_param('email'));
+
+        $user = get_user_by('email', $email);
+
+        if ($user) {
+            /* Usar el sistema nativo de WordPress para generar el link */
+            $result = retrieve_password($user->user_login);
+
+            if (is_wp_error($result)) {
+                /* Log interno pero no revelar al usuario */
+                error_log('Error enviando recuperación de password: ' . $result->get_error_message());
+            }
+        }
+
+        /* Por seguridad, siempre retornamos éxito para no revelar si el email existe */
+        return new WP_REST_Response([
+            'success' => true,
+            'message' => 'Si el correo existe en nuestro sistema, recibirás instrucciones para restablecer tu contraseña.'
+        ], 200);
     }
 }
 

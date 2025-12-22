@@ -17,4 +17,5 @@ export {ListaProyectos, FormularioProyecto, ModalConfiguracionProyectos} from '.
 export {ModalLogin} from './ModalLogin';
 export {PanelSeguridad} from './PanelSeguridad';
 export {ModalConfiguracionLayout} from './ModalConfiguracionLayout';
+export {ModalPerfil} from './ModalPerfil'; // Exportamos ModalPerfil
 export type {DatosFormulario} from './FormularioHabito';

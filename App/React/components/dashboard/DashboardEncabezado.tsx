@@ -22,6 +22,7 @@ interface DashboardEncabezadoProps {
     titulo?: string;
     version?: string;
     usuario?: string;
+    avatarUrl?: string;
     sincronizacion?: SincronizacionInfo;
     suscripcion?: InfoSuscripcion | null;
     esAdmin?: boolean;
@@ -30,9 +31,10 @@ interface DashboardEncabezadoProps {
     onClickAdmin?: () => void;
     onClickLayout?: () => void;
     onClickVersion?: () => void;
+    onClickUsuario?: () => void;
 }
 
-export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion, suscripcion, esAdmin = false, onClickPlan, onClickSeguridad, onClickAdmin, onClickLayout, onClickVersion}: DashboardEncabezadoProps): JSX.Element {
+export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta', usuario = 'user@admin', avatarUrl, sincronizacion, suscripcion, esAdmin = false, onClickPlan, onClickSeguridad, onClickAdmin, onClickLayout, onClickVersion, onClickUsuario}: DashboardEncabezadoProps): JSX.Element {
     const estaConectado = sincronizacion?.estaLogueado ?? false;
 
     return (
@@ -59,17 +61,20 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-
                         <LayoutGrid size={14} />
                     </button>
                 )}
-                <button type="button" className="badgeEncabezado" onClick={onClickVersion} title="Ver historial de versiones" style={{cursor: 'pointer', background: 'none', border: 'none', padding: 0}}>
-                    <span className="badgeEncabezado" style={{margin: 0}}>
-                        {version}
-                    </span>
+                <button type="button" className="badgeEncabezado badgeEncabezado--clickable" onClick={onClickVersion} title="Ver historial de versiones">
+                    {version}
                 </button>
                 <span className={`estadoConexion ${estaConectado ? 'estadoConexion--conectado' : 'estadoConexion--local'}`}>
                     <span className="estadoConexion__punto"></span>
                     {estaConectado ? 'Conectado' : 'Local'}
                 </span>
                 {sincronizacion && <IndicadorSincronizacion sincronizado={sincronizacion.sincronizado} pendiente={sincronizacion.pendiente} error={sincronizacion.error} estaLogueado={sincronizacion.estaLogueado} onSincronizar={sincronizacion.sincronizarAhora} onLogin={sincronizacion.onLogin} onLogout={sincronizacion.onLogout} />}
-                {estaConectado && <span className="badgeEncabezado badgeEncabezado--usuario">{usuario}</span>}
+                {estaConectado && (
+                    <button type="button" className="badgeEncabezado badgeEncabezado--usuario" onClick={onClickUsuario} title="Mi Perfil">
+                        {avatarUrl ? <img src={avatarUrl} alt="" className="avatarEncabezado" /> : <span className="avatarEncabezadoInicial">{usuario.charAt(0).toUpperCase()}</span>}
+                        <span className="nombreUsuarioEncabezado">{usuario}</span>
+                    </button>
+                )}
             </nav>
         </header>
     );
