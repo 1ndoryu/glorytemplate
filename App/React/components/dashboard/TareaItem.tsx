@@ -28,6 +28,8 @@ export interface TareaItemProps {
     nombreProyecto?: string;
     /* Mostrar solo el icono del proyecto sin texto */
     soloIconoProyecto?: boolean;
+    /* Mover tarea a otro proyecto */
+    onMoverProyecto?: () => void;
 }
 
 export interface MenuContextualEstado {
@@ -36,7 +38,7 @@ export interface MenuContextualEstado {
     y: number;
 }
 
-export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false}: TareaItemProps): JSX.Element {
+export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto}: TareaItemProps): JSX.Element {
     const [mostrarAcciones, setMostrarAcciones] = useState(false);
     const [editando, setEditando] = useState(false);
     const [textoEditado, setTextoEditado] = useState(tarea.texto);
@@ -133,13 +135,15 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
             } else if (opcionId === 'sin-prioridad') {
                 /* Quitar prioridad enviando null */
                 onEditar?.({prioridad: null});
+            } else if (opcionId === 'mover-proyecto') {
+                onMoverProyecto?.();
             } else if (['alta', 'media', 'baja'].includes(opcionId)) {
                 onEditar?.({
                     prioridad: opcionId as NivelPrioridad
                 });
             }
         },
-        [onEliminar, onEditar, onConfigurar]
+        [onEliminar, onEditar, onConfigurar, onMoverProyecto]
     );
 
     /* Opciones del menu contextual */
@@ -148,6 +152,12 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
             id: 'configurar',
             etiqueta: 'Configurar tarea',
             icono: <Settings size={12} />,
+            separadorDespues: true
+        },
+        {
+            id: 'mover-proyecto',
+            etiqueta: 'Mover a proyecto',
+            icono: <Folder size={12} />,
             separadorDespues: true
         },
         {

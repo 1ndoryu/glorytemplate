@@ -188,7 +188,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                 <div className="dashboardGrid">
                     {/* Columna 1: Habitos y Proyectos */}
                     <div className="columnaHabitos">
-                        <SeccionEncabezado icono={<AlertCircle size={12} />} titulo="Foco Prioritario" subtitulo={modoInfo?.descripcion || ''} acciones={<SelectorBadge opciones={opcionesOrdenHabitos} valorActual={modoActual} onChange={valor => cambiarModo(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar hábitos" />} />
+                        <SeccionEncabezado icono={<AlertCircle size={12} />} titulo="Foco Prioritario" acciones={<SelectorBadge opciones={opcionesOrdenHabitos} valorActual={modoActual} onChange={valor => cambiarModo(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar hábitos" />} />
                         <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} />
 
                         <SeccionEncabezado
@@ -210,7 +210,6 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                             <SeccionEncabezado
                                 icono={<Terminal size={12} />}
                                 titulo="Ejecucion"
-                                subtitulo={`${tareasFinales.filter(t => !t.completado).length} pendientes`}
                                 acciones={
                                     <div style={{display: 'flex', gap: '8px'}}>
                                         <SelectorBadge opciones={opcionesFiltro} valorActual={valorFiltroActual} onChange={manejarCambioFiltro} titulo="Filtrar tareas" />

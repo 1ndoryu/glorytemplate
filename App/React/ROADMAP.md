@@ -127,8 +127,8 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [x] Recordar preferencia del usuario (localStorage) 
 
 **Gestión de Tareas:**
-- [ ] **Mover de proyecto**: Opción en menú contextual para cambiar una tarea de proyecto
-- [ ] Modal selector de proyecto al mover tarea
+- [x] **Mover de proyecto**: Opción en menú contextual para cambiar una tarea de proyecto
+- [x] Modal selector de proyecto al mover tarea
 
 **Ordenamiento Inteligente:**
 - [x] **Inteligente**: Combinar importancia + fecha límite

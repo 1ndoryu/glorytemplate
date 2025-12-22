@@ -11,6 +11,7 @@ import type {Tarea, DatosEdicionTarea, TareaConfiguracion, NivelPrioridad, Proye
 import {TareaItem} from './TareaItem';
 import {InputNuevaTarea} from './InputNuevaTarea';
 import {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
+import {ModalMoverTarea} from './ModalMoverTarea';
 import {obtenerSubtareas, tieneSubtareas as utilTieneSubtareas, contarSubtareas as utilContarSubtareas, puedeSerSubtareaDe} from '../../utils/jerarquiaTareas';
 import {DashboardPanel} from '../shared/DashboardPanel';
 
@@ -40,6 +41,11 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
      * Guarda la tarea que se está configurando (null si el panel está cerrado)
      */
     const [tareaConfigurando, setTareaConfigurando] = useState<Tarea | null>(null);
+
+    /*
+     * Estado para mover tarea de proyecto
+     */
+    const [tareaMoviendo, setTareaMoviendo] = useState<Tarea | null>(null);
 
     /*
      * Estado para tracking de drag & drop con gestos horizontales
@@ -237,6 +243,26 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
     );
 
     /*
+     * Manejar movimiento de tarea a proyecto
+     */
+    const handleMoverProyecto = useCallback(
+        (nuevoProyectoId: number | undefined) => {
+            if (tareaMoviendo && onEditarTarea) {
+                /*
+                 * Al mover de proyecto, convertimos en tarea principal (sin padre)
+                 * para evitar inconsistencias de jerarquia
+                 */
+                onEditarTarea(tareaMoviendo.id, {
+                    proyectoId: nuevoProyectoId,
+                    parentId: undefined
+                } as any); /* Casting necesario para enviar null/undefined si la interfaz lo requiere */
+            }
+            setTareaMoviendo(null);
+        },
+        [tareaMoviendo, onEditarTarea]
+    );
+
+    /*
      * Usar funciones de utilidades para verificar subtareas
      */
     const tieneSubtareasLocal = (tareaId: number): boolean => utilTieneSubtareas(tareas, tareaId);
@@ -274,7 +300,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
 
         return (
             <div className="tareaConColapsador" key={`wrapper-${tarea.id}`}>
-                <TareaItem tarea={tarea} esSubtarea={esSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} />
+                <TareaItem tarea={tarea} esSubtarea={esSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} onMoverProyecto={() => setTareaMoviendo(tarea)} />
                 {/* Boton de colapsar a la derecha, solo si tiene subtareas */}
                 {esColapsable && (
                     <button className="tareaColapsadorBoton" onClick={() => toggleColapsar(tarea.id)} title={estaColapsada ? `Expandir ${numSubtareas.total} subtareas` : `Colapsar ${numSubtareas.total} subtareas`}>
@@ -353,11 +379,14 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
                         }
                     }
 
-                    return <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} />;
+                    return <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} onMoverProyecto={() => setTareaMoviendo(tarea)} />;
                 })}
 
             {/* Panel de configuración */}
             {tareaConfigurando && <PanelConfiguracionTarea tarea={tareaConfigurando} estaAbierto={true} onCerrar={() => setTareaConfigurando(null)} onGuardar={guardarConfiguracion} />}
+
+            {/* Modal Mover Proyecto */}
+            <ModalMoverTarea estaAbierto={!!tareaMoviendo} onCerrar={() => setTareaMoviendo(null)} onMover={handleMoverProyecto} proyectos={proyectos} proyectoActualId={tareaMoviendo?.proyectoId} />
         </DashboardPanel>
     );
 }

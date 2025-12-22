@@ -1,0 +1,106 @@
+/*
+ * modalMoverTarea.css
+ * Estilos para el modal de mover tarea a proyecto
+ */
+
+.contenedorListaProyectos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioXs);
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: var(--dashboard-espacioXs); /* Espacio para scrollbar */
+}
+
+.separadorListaProyectos {
+    height: 1px;
+    background-color: var(--dashboard-bordePrincipal);
+    margin: var(--dashboard-espacioXs) 0;
+    flex-shrink: 0;
+}
+
+/* Scrollbar personalizado para la lista */
+.contenedorListaProyectos::-webkit-scrollbar {
+    width: var(--dashboard-scrollbarAncho);
+}
+
+.contenedorListaProyectos::-webkit-scrollbar-track {
+    background: var(--dashboard-scrollbarFondo);
+}
+
+.contenedorListaProyectos::-webkit-scrollbar-thumb {
+    background: var(--dashboard-scrollbarThumb);
+    border-radius: 2px;
+}
+
+.contenedorListaProyectos::-webkit-scrollbar-thumb:hover {
+    background: var(--dashboard-scrollbarThumbHover);
+}
+
+.itemProyectoSeleccionable {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    border: 1px solid transparent;
+    background-color: transparent;
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+    color: var(--dashboard-textoSecundario);
+    width: 100%; /* Asegurar ancho completo */
+    text-align: left;
+    outline: none;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+}
+
+.itemProyectoSeleccionable:hover {
+    background-color: var(--dashboard-fondoHover);
+    color: var(--dashboard-textoActivo);
+}
+
+.itemProyectoSeleccionable:focus {
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+}
+
+.itemProyectoSeleccionable.seleccionado {
+    background-color: var(--dashboard-fondoHover);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoActivo);
+}
+
+.infoProyectoSeleccion {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+}
+
+.iconoProyectoSeleccion {
+    color: var(--dashboard-textoSecundario);
+    opacity: 0.8;
+}
+
+.itemProyectoSeleccionable.seleccionado .iconoProyectoSeleccion {
+    color: var(--dashboard-textoActivo);
+    opacity: 1;
+}
+
+.nombreProyectoSeleccion {
+    font-size: var(--dashboard-tamanoBase);
+    font-weight: 500;
+}
+
+.indicadorActual {
+    font-size: var(--dashboard-tamanoPequeno);
+    padding: 2px 6px;
+    background-color: var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoApagado);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.itemProyectoSeleccionable.seleccionado .indicadorActual {
+    background-color: var(--dashboard-textoActivo);
+    color: var(--dashboard-fondoPrincipal);
+    font-weight: 600;
+}
