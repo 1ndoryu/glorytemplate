@@ -6,7 +6,7 @@
 
 import {useState, useEffect} from 'react';
 import {Terminal, AlertCircle, FileText, Folder, Plus, LayoutGrid, Eraser} from 'lucide-react';
-import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad, ModalConfiguracionLayout, PanelConfiguracionTarea} from '../components/dashboard';
+import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad, ModalConfiguracionLayout, PanelConfiguracionTarea, ModalConfiguracionProyectos} from '../components/dashboard';
 import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos, PanelArrastrable, HandleArrastre, IndicadorArrastre, ModalVersiones} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {PanelAdministracion} from '../components/admin';
@@ -22,9 +22,12 @@ import {SelectorBadge} from '../components/shared/SelectorBadge';
 import {Filter, LayoutList, CheckSquare, ArrowUpDown, Settings} from 'lucide-react';
 import {useConfiguracionTareas} from '../hooks/useConfiguracionTareas';
 import {useConfiguracionHabitos} from '../hooks/useConfiguracionHabitos';
+import {useConfiguracionProyectos} from '../hooks/useConfiguracionProyectos';
+import {useConfiguracionScratchpad} from '../hooks/useConfiguracionScratchpad';
 import {useArrastrePaneles} from '../hooks/useArrastrePaneles';
 import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
 import {ModalConfiguracionHabitos} from '../components/dashboard/ModalConfiguracionHabitos';
+import {ModalConfiguracionScratchpad} from '../components/dashboard/ModalConfiguracionScratchpad';
 import type {Proyecto, TareaConfiguracion, NivelPrioridad} from '../types/dashboard';
 
 interface DashboardIslandProps {
@@ -93,6 +96,21 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
     const [proyectoSeleccionadoId, setProyectoSeleccionadoId] = useState<number | null>(null);
     const [modalCrearProyectoAbierto, setModalCrearProyectoAbierto] = useState(false);
     const [proyectoEditando, setProyectoEditando] = useState<Proyecto | null>(null);
+
+    /* Configuracion de proyectos */
+    const {configuracion: configProyectos, toggleOcultarCompletados: toggleOcultarProyectosCompletados, cambiarOrdenDefecto: cambiarOrdenProyectos, toggleMostrarProgreso: toggleProgresoProyectos} = useConfiguracionProyectos();
+    const [modalConfigProyectosAbierto, setModalConfigProyectosAbierto] = useState(false);
+
+    /* Opciones para SelectorBadge de proyectos */
+    const opcionesOrdenProyectos = [
+        {id: 'nombre', etiqueta: 'Nombre', descripcion: 'Alfabético'},
+        {id: 'fecha', etiqueta: 'Fecha Límite', descripcion: 'Vencimiento'},
+        {id: 'prioridad', etiqueta: 'Prioridad', descripcion: 'Importancia'}
+    ];
+
+    /* Configuracion de scratchpad */
+    const {configuracion: configScratchpad, cambiarTamanoFuente: cambiarFuenteScratchpad, cambiarAltura: cambiarAlturaScratchpad, cambiarAutoGuardado: cambiarAutoGuardadoScratchpad} = useConfiguracionScratchpad();
+    const [modalConfigScratchpadAbierto, setModalConfigScratchpadAbierto] = useState(false);
 
     /* Tareas sueltas (sin proyecto) para mostrar en Ejecucion */
     const {filtroActual, cambiarFiltro, tareasFiltradas, infoFiltro} = useFiltroTareas(tareas, proyectos || []);
@@ -255,15 +273,21 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                             acciones={
                                 <>
                                     {handleArrastre}
+                                    <SelectorBadge opciones={opcionesOrdenProyectos} valorActual={configProyectos.ordenDefecto} onChange={valor => cambiarOrdenProyectos(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar proyectos" />
                                     <button className="selectorBadgeBoton" onClick={manejarCrearProyecto} title="Nuevo Proyecto">
                                         <span className="selectorBadgeIcono">
                                             <Plus size={10} />
                                         </span>
                                     </button>
+                                    <button className="selectorBadgeBoton" onClick={() => setModalConfigProyectosAbierto(true)} title="Configuración">
+                                        <span className="selectorBadgeIcono">
+                                            <Settings size={10} />
+                                        </span>
+                                    </button>
                                 </>
                             }
                         />
-                        <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
+                        <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} ocultarCompletados={configProyectos.ocultarCompletados} ordenDefecto={configProyectos.ordenDefecto} mostrarProgreso={configProyectos.mostrarProgreso} />
                     </div>
                 );
 
@@ -311,10 +335,15 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                                         </span>
                                         <span className="selectorBadgeTexto">Limpiar</span>
                                     </button>
+                                    <button className="selectorBadgeBoton" onClick={() => setModalConfigScratchpadAbierto(true)} title="Configuración">
+                                        <span className="selectorBadgeIcono">
+                                            <Settings size={10} />
+                                        </span>
+                                    </button>
                                 </>
                             }
                         />
-                        <Scratchpad valorInicial={notas} onChange={actualizarNotas} />
+                        <Scratchpad valorInicial={notas} onChange={actualizarNotas} tamanoFuente={configScratchpad.tamanoFuente} altura={configScratchpad.altura} delayGuardado={configScratchpad.autoGuardadoIntervalo} />
                     </div>
                 );
 
@@ -468,6 +497,12 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
             {/* Modal configuracion habitos */}
             <ModalConfiguracionHabitos estaAbierto={modalConfigHabitosAbierto} onCerrar={() => setModalConfigHabitosAbierto(false)} configuracion={configHabitos} onToggleCompletadosHoy={toggleOcultarCompletadosHoy} onToggleModoCompacto={toggleModoCompacto} onToggleColumna={toggleColumnaVisible} />
+
+            {/* Modal configuracion proyectos */}
+            <ModalConfiguracionProyectos estaAbierto={modalConfigProyectosAbierto} onCerrar={() => setModalConfigProyectosAbierto(false)} configuracion={configProyectos} onToggleCompletados={toggleOcultarProyectosCompletados} onToggleProgreso={toggleProgresoProyectos} />
+
+            {/* Modal configuracion scratchpad */}
+            <ModalConfiguracionScratchpad estaAbierto={modalConfigScratchpadAbierto} onCerrar={() => setModalConfigScratchpadAbierto(false)} configuracion={configScratchpad} onCambiarFuente={cambiarFuenteScratchpad} onCambiarAltura={cambiarAlturaScratchpad} onCambiarIntervalo={cambiarAutoGuardadoScratchpad} />
 
             {/* Panel de Administración */}
             {esAdmin && <PanelAdministracion estaAbierto={panelAdminAbierto} onCerrar={() => setPanelAdminAbierto(false)} />}

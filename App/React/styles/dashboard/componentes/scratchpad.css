@@ -14,6 +14,8 @@
     flex-grow: 1;
     min-height: 150px;
     padding: var(--dashboard-espacioLg);
+    display: flex;
+    flex-direction: column;
 }
 
 .scratchpadBarra {
@@ -41,6 +43,21 @@
     color: var(--dashboard-textoSecundario);
     font-family: var(--dashboard-fuenteMonoespaciada);
     font-size: var(--dashboard-tamanoBase);
+    /* Altura por defecto, puede ser sobreescrita por inline style */
+}
+
+/* Modificadores de fuente */
+.scratchpadFuente-pequeno {
+    font-size: 0.75rem; /* ~12px */
+}
+
+.scratchpadFuente-normal {
+    font-size: var(--dashboard-tamanoBase); /* ~13-14px */
+}
+
+.scratchpadFuente-grande {
+    font-size: 0.95rem; /* ~15px */
+    letter-spacing: 0.02em;
 }
 
 .scratchpadTextarea::placeholder {

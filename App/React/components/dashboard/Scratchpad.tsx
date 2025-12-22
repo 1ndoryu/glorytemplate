@@ -7,6 +7,7 @@
 
 import {useState, useEffect, useCallback} from 'react';
 import {useDebounceCallback} from '../../hooks/useDebounce';
+import type {TamanoFuente, AlturaScratchpad} from '../../hooks/useConfiguracionScratchpad';
 
 /* Límite de caracteres para el scratchpad */
 const LIMITE_CARACTERES = 20000;
@@ -17,11 +18,13 @@ interface ScratchpadProps {
     placeholder?: string;
     onChange?: (valor: string) => void;
     delayGuardado?: number;
+    tamanoFuente?: TamanoFuente;
+    altura?: AlturaScratchpad;
 }
 
 type EstadoGuardado = 'guardado' | 'guardando' | 'inactivo';
 
-export function Scratchpad({valorInicial = '', placeholder = '// Escribe tus notas rapidas aqui...', onChange, delayGuardado = 1500}: ScratchpadProps): JSX.Element {
+export function Scratchpad({valorInicial = '', placeholder = '// Escribe tus notas rapidas aqui...', onChange, delayGuardado = 1500, tamanoFuente = 'normal', altura = '100%'}: ScratchpadProps): JSX.Element {
     const [valor, setValor] = useState(valorInicial);
     const [estadoGuardado, setEstadoGuardado] = useState<EstadoGuardado>('inactivo');
 
@@ -69,7 +72,8 @@ export function Scratchpad({valorInicial = '', placeholder = '// Escribe tus not
         <div id="scratchpad" className="scratchpadContenedor">
             <div className="dashboardPanel scratchpadPanel">
                 <div className="scratchpadBarra"></div>
-                <textarea className="scratchpadTextarea" placeholder={placeholder} value={valor} onChange={manejarCambio} maxLength={LIMITE_CARACTERES} />
+                <div className="scratchpadBarra"></div>
+                <textarea className={`scratchpadTextarea scratchpadFuente-${tamanoFuente}`} style={{height: altura}} placeholder={placeholder} value={valor} onChange={manejarCambio} maxLength={LIMITE_CARACTERES} />
 
                 {/* Barra de estado con contador y guardado */}
                 <div className="scratchpadBarraEstado">

@@ -37,6 +37,9 @@ interface ListaProyectosProps {
     onEditarTarea: (id: number, datos: DatosEdicionTarea) => void;
     onEliminarTarea: (id: number) => void;
     onReordenarTareas: (tareas: Tarea[]) => void;
+    ocultarCompletados?: boolean;
+    ordenDefecto?: 'nombre' | 'fecha' | 'prioridad';
+    mostrarProgreso?: boolean;
 }
 
 interface ProyectoItemProps {
@@ -52,9 +55,10 @@ interface ProyectoItemProps {
     onEditarTarea: (id: number, datos: DatosEdicionTarea) => void;
     onEliminarTarea: (id: number) => void;
     onReordenarTareas: (tareas: Tarea[]) => void;
+    mostrarProgreso?: boolean;
 }
 
-function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onEliminar, onContextMenu, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ProyectoItemProps): JSX.Element {
+function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onEliminar, onContextMenu, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, mostrarProgreso = true}: ProyectoItemProps): JSX.Element {
     const [mostrarAcciones, setMostrarAcciones] = useState(false);
     const tareasCompletadas = tareasProyecto.filter(t => t.completado).length;
     const totalTareas = tareasProyecto.length;
@@ -87,11 +91,13 @@ function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onE
                     </div>
                 </div>
 
-                <div className="proyectoProgreso" data-estado={proyecto.estado}>
-                    <div className="barraProgresoFondo">
-                        <div className="barraProgresoRelleno" style={{width: totalTareas > 0 ? `${(tareasCompletadas / totalTareas) * 100}%` : '0%'}} />
+                {mostrarProgreso && (
+                    <div className="proyectoProgreso" data-estado={proyecto.estado}>
+                        <div className="barraProgresoFondo">
+                            <div className="barraProgresoRelleno" style={{width: totalTareas > 0 ? `${(tareasCompletadas / totalTareas) * 100}%` : '0%'}} />
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Acciones inline usando componente reutilizable */}
                 {mostrarAcciones && <AccionesItem mostrarConfigurar={true} mostrarEliminar={true} onConfigurar={onEditar} onEliminar={onEliminar} />}
@@ -107,7 +113,7 @@ function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onE
     );
 }
 
-export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSeleccionarProyecto, proyectoSeleccionadoId, onEditarProyecto, onEliminarProyecto, onCambiarEstadoProyecto, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas}: ListaProyectosProps): JSX.Element {
+export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSeleccionarProyecto, proyectoSeleccionadoId, onEditarProyecto, onEliminarProyecto, onCambiarEstadoProyecto, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, ocultarCompletados = false, ordenDefecto = 'fecha', mostrarProgreso = true}: ListaProyectosProps): JSX.Element {
     const [menuContexto, setMenuContexto] = useState<MenuContextoProyecto>({visible: false, x: 0, y: 0, proyectoId: null});
 
     /* Toggle: si ya está seleccionado, deseleccionar */
@@ -188,13 +194,27 @@ export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSelecciona
 
     return (
         <>
-
             <DashboardPanel>
                 <div className="listaProyectos">
-                    {proyectos.map(proyecto => {
-                        const tareasProyecto = tareas.filter(t => t.proyectoId === proyecto.id);
-                        return <ProyectoItem key={proyecto.id} proyecto={proyecto} activo={proyecto.id === proyectoSeleccionadoId} tareasProyecto={tareasProyecto} onToggle={() => toggleProyecto(proyecto.id)} onEditar={() => onEditarProyecto?.(proyecto)} onEliminar={() => onEliminarProyecto?.(proyecto.id)} onContextMenu={e => manejarContextMenu(e, proyecto.id)} onToggleTarea={onToggleTarea} onCrearTarea={onCrearTarea} onEditarTarea={onEditarTarea} onEliminarTarea={onEliminarTarea} onReordenarTareas={onReordenarTareas} />;
-                    })}
+                    {proyectos
+                        .filter(p => !ocultarCompletados || p.estado !== 'completado')
+                        .sort((a, b) => {
+                            if (ordenDefecto === 'nombre') return a.nombre.localeCompare(b.nombre);
+                            if (ordenDefecto === 'fecha') {
+                                if (!a.fechaLimite) return 1;
+                                if (!b.fechaLimite) return -1;
+                                return new Date(a.fechaLimite).getTime() - new Date(b.fechaLimite).getTime();
+                            }
+                            if (ordenDefecto === 'prioridad') {
+                                const map: Record<string, number> = {alta: 1, media: 2, baja: 3};
+                                return (map[a.prioridad] || 99) - (map[b.prioridad] || 99);
+                            }
+                            return 0;
+                        })
+                        .map(proyecto => {
+                            const tareasProyecto = tareas.filter(t => t.proyectoId === proyecto.id);
+                            return <ProyectoItem key={proyecto.id} proyecto={proyecto} activo={proyecto.id === proyectoSeleccionadoId} tareasProyecto={tareasProyecto} onToggle={() => toggleProyecto(proyecto.id)} onEditar={() => onEditarProyecto?.(proyecto)} onEliminar={() => onEliminarProyecto?.(proyecto.id)} onContextMenu={e => manejarContextMenu(e, proyecto.id)} onToggleTarea={onToggleTarea} onCrearTarea={onCrearTarea} onEditarTarea={onEditarTarea} onEliminarTarea={onEliminarTarea} onReordenarTareas={onReordenarTareas} mostrarProgreso={mostrarProgreso} />;
+                        })}
 
                     {proyectos.length === 0 && (
                         <div className="estadoVacio">

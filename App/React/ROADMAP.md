@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
 **Ultima actualizacion:** 2025-12-22
-**Estado:** Etapa 5 - Pulido y Soporte Mobile (Etapas 1-4 completadas)
+**Estado:** Etapa 6 - Configuración por Panel (En Progreso)
 
 ---
 
@@ -395,22 +395,28 @@ styles/dashboard/shared/layoutManager.css
   - [x] Modo compacto (filas más pequeñas)
 
 **Panel: Proyectos**
-- [ ] Crear hook `useConfiguracionProyectos`
-- [ ] Crear componente `ModalConfiguracionProyectos.tsx`
-- [ ] Configuraciones disponibles:
-  - [ ] Ocultar proyectos completados
-  - [ ] Ordenamiento por defecto (nombre, fecha, prioridad)
-  - [ ] Mostrar/ocultar progreso
+- [x] Crear hook `useConfiguracionProyectos`
+- [x] Crear componente `ModalConfiguracionProyectos.tsx`
+- [x] Configuraciones disponibles:
+  - [x] Ocultar proyectos completados
+  - [x] Ordenamiento por defecto (nombre, fecha, prioridad)
+  - [x] Mostrar/ocultar progreso
 
 **Panel: Scratchpad**
-- [ ] Crear hook `useConfiguracionScratchpad`
-- [ ] Crear componente `ModalConfiguracionScratchpad.tsx`
-- [ ] Configuraciones disponibles:
-  - [ ] Tamaño de fuente (pequeño, normal, grande)
-  - [ ] Altura del área de texto
-  - [ ] Auto-guardado (intervalo configurable)
+- [x] Crear hook `useConfiguracionScratchpad`
+- [x] Crear componente `ModalConfiguracionScratchpad.tsx`
+- [x] Configuraciones disponibles:
+  - [x] Tamaño de fuente (pequeño, normal, grande)
+  - [x] Altura del área de texto
+  - [x] Auto-guardado (intervalo configurable)
 
-**Nota:** El panel de Tareas (Ejecución) ya tiene su configuración implementada via `useConfiguracionTareas` y `ModalConfiguracionTareas`.
+**Panel: Tareas (Ejecución)**
+- [x] Crear hook `useConfiguracionTareas`
+- [x] Crear componente `ModalConfiguracionTareas.tsx`
+- [x] Opciones disponibles:
+  - [x] Ocultar tareas completadas
+  - [x] Ocultar nombre de proyecto (badge)
+  - [x] Limpieza automática (eliminar completadas tras 24h)
 
 ---
 

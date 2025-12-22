@@ -57,6 +57,7 @@
 @import './componentes/configuracionHabitos.css';
 @import './componentes/modalMoverTarea.css';
 @import './componentes/listaOrdenPaneles.css';
+@import './componentes/configuracionProyectos.css';
 
 /* Utilidades */
 @import './utilidades/estados.css';
