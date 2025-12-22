@@ -25,6 +25,7 @@ import {useConfiguracionHabitos} from '../hooks/useConfiguracionHabitos';
 import {useConfiguracionProyectos} from '../hooks/useConfiguracionProyectos';
 import {useConfiguracionScratchpad} from '../hooks/useConfiguracionScratchpad';
 import {useArrastrePaneles} from '../hooks/useArrastrePaneles';
+import {useAlertasContext} from '../context/AlertasContext';
 import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
 import {ModalConfiguracionHabitos} from '../components/dashboard/ModalConfiguracionHabitos';
 import {ModalConfiguracionScratchpad} from '../components/dashboard/ModalConfiguracionScratchpad';
@@ -224,10 +225,20 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
         setModalNuevaTareaAbierto(false);
     };
 
-    const manejarLimpiarScratchpad = () => {
+    const {confirmar} = useAlertasContext();
+
+    const manejarLimpiarScratchpad = async () => {
         if (!notas || notas.trim() === '') return;
 
-        if (window.confirm('¿Estás seguro de que quieres borrar todo el contenido del Scratchpad?')) {
+        const confirmado = await confirmar({
+            titulo: 'Limpiar Scratchpad',
+            mensaje: '¿Estás seguro de que quieres borrar todo el contenido del Scratchpad? Esta acción no se puede deshacer.',
+            textoAceptar: 'Limpiar',
+            textoCancelar: 'Cancelar',
+            tipo: 'advertencia'
+        });
+
+        if (confirmado) {
             actualizarNotas('');
         }
     };

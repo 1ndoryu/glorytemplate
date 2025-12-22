@@ -311,3 +311,103 @@
 .botonLayout:active {
     transform: scale(0.95);
 }
+
+/* 
+ * BOTON ICONO UNIFICADO DEL ENCABEZADO 
+ * Estilo compartido para todos los botones de solo icono
+ */
+.botonIconoEncabezado {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    border-radius: 2px;
+    transition: all var(--dashboard-transicionNormal);
+    box-sizing: border-box;
+    line-height: 1.4;
+    font-size: var(--dashboard-tamanoPequeno);
+}
+
+.botonIconoEncabezado:hover {
+    color: var(--dashboard-textoActivo);
+    border-color: var(--dashboard-bordeSutil);
+    background: var(--dashboard-fondoHover);
+}
+
+.botonIconoEncabezado:active {
+    transform: scale(0.95);
+}
+
+/* Variante admin - color violeta */
+.botonIconoEncabezado--admin {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: #a78bfa;
+}
+
+.botonIconoEncabezado--admin:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.5);
+    color: #c4b5fd;
+}
+
+/* 
+ * ESTADO DE CONEXION - SOLO ICONO 
+ */
+.estadoConexionIcono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    border-radius: 2px;
+    border: 1px solid;
+    box-sizing: border-box;
+    line-height: 1.4;
+    font-size: var(--dashboard-tamanoPequeno);
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.estadoConexionIcono--conectado {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.estadoConexionIcono--desconectado {
+    background-color: rgba(156, 163, 175, 0.15);
+    color: #9ca3af;
+    border-color: rgba(156, 163, 175, 0.3);
+    cursor: pointer;
+}
+
+.estadoConexionIcono--desconectado:hover {
+    background-color: rgba(156, 163, 175, 0.25);
+    border-color: rgba(156, 163, 175, 0.5);
+}
+
+.estadoConexionIcono--error {
+    background-color: var(--dashboard-estadoAltaFondo);
+    color: var(--dashboard-estadoAlta);
+    border-color: var(--dashboard-estadoAltaBorde);
+    cursor: pointer;
+}
+
+.estadoConexionIcono--error:hover {
+    background-color: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.estadoConexionIcono--sincronizando {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Animacion de giro para icono de sincronizacion */
+.iconoGirando {
+    animation: rotarSpinner 1s linear infinite;
+}

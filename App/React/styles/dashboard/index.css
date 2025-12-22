@@ -38,6 +38,7 @@
 @import './shared/tooltip.css';
 @import './shared/layoutManager.css';
 @import './shared/panelArrastrable.css';
+@import './shared/alertas.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';
