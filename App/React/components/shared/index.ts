@@ -22,3 +22,4 @@ export * from './BarraPanelesOcultos';
 export * from './HandleArrastre';
 export * from './IndicadorArrastre';
 export * from './PanelArrastrable';
+export * from './ModalVersiones';

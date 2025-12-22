@@ -29,9 +29,10 @@ interface DashboardEncabezadoProps {
     onClickSeguridad?: () => void;
     onClickAdmin?: () => void;
     onClickLayout?: () => void;
+    onClickVersion?: () => void;
 }
 
-export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion, suscripcion, esAdmin = false, onClickPlan, onClickSeguridad, onClickAdmin, onClickLayout}: DashboardEncabezadoProps): JSX.Element {
+export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion, suscripcion, esAdmin = false, onClickPlan, onClickSeguridad, onClickAdmin, onClickLayout, onClickVersion}: DashboardEncabezadoProps): JSX.Element {
     const estaConectado = sincronizacion?.estaLogueado ?? false;
 
     return (
@@ -58,7 +59,11 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-
                         <LayoutGrid size={14} />
                     </button>
                 )}
-                <span className="badgeEncabezado">{version}</span>
+                <button type="button" className="badgeEncabezado" onClick={onClickVersion} title="Ver historial de versiones" style={{cursor: 'pointer', background: 'none', border: 'none', padding: 0}}>
+                    <span className="badgeEncabezado" style={{margin: 0}}>
+                        {version}
+                    </span>
+                </button>
                 <span className={`estadoConexion ${estaConectado ? 'estadoConexion--conectado' : 'estadoConexion--local'}`}>
                     <span className="estadoConexion__punto"></span>
                     {estaConectado ? 'Conectado' : 'Local'}

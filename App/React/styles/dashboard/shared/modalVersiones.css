@@ -1,0 +1,109 @@
+.contenedorVersiones {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 0.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    /* Scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--dashboard-bordeSutil) transparent;
+}
+
+.contenedorVersiones::-webkit-scrollbar {
+    width: var(--dashboard-scrollbarAncho);
+}
+
+.contenedorVersiones::-webkit-scrollbar-thumb {
+    background-color: var(--dashboard-scrollbarThumb);
+    border-radius: 3px;
+}
+
+.contenedorVersiones::-webkit-scrollbar-thumb:hover {
+    background-color: var(--dashboard-scrollbarThumbHover);
+}
+
+.grupoVersion {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px dashed var(--dashboard-bordeSutil);
+}
+
+.grupoVersion:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.encabezadoVersion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border: 1px solid var(--dashboard-bordeSutil);
+}
+
+.infoVersion {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-weight: 700;
+    color: var(--dashboard-textoActivo);
+}
+
+.iconoVersion {
+    opacity: 0.8;
+}
+
+.fechaVersion {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--dashboard-tamanoBase);
+    color: var(--dashboard-textoSecundario);
+}
+
+.listaCambios {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-left: 0.5rem;
+}
+
+.itemCambio {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: var(--dashboard-tamanoPequeno);
+    line-height: 1.4;
+    color: var(--dashboard-textoNormal);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+}
+
+.iconoCambio {
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.tipo-nuevo .iconoCambio {
+    color: var(--dashboard-estadoExito);
+}
+
+.tipo-mejora .iconoCambio {
+    color: var(--dashboard-textoActivo); /* Usamos texto activo para mejoras/info */
+}
+
+.tipo-arreglo .iconoCambio {
+    color: var(--dashboard-estadoAlta);
+}
+
+.textoCambio {
+    opacity: 0.9;
+}

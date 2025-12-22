@@ -7,7 +7,7 @@
 import {useState, useEffect} from 'react';
 import {Terminal, AlertCircle, FileText, Folder, Plus, LayoutGrid, Eraser} from 'lucide-react';
 import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad, ModalConfiguracionLayout, PanelConfiguracionTarea} from '../components/dashboard';
-import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos, PanelArrastrable, HandleArrastre, IndicadorArrastre} from '../components/shared';
+import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos, PanelArrastrable, HandleArrastre, IndicadorArrastre, ModalVersiones} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {PanelAdministracion} from '../components/admin';
 import {useDashboard} from '../hooks/useDashboard';
@@ -123,6 +123,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
     /* Configuracion de layout */
     const {modoColumnas, anchos, visibilidad, ordenPaneles, panelesOcultos, cambiarModoColumnas, ajustarAnchos, toggleVisibilidadPanel, mostrarPanel, resetearLayout, obtenerPanelesColumna, moverPanelArriba, moverPanelAbajo, moverPanelAColumna, resetearOrdenPaneles, reordenarPanel} = useConfiguracionLayout();
     const [modalConfigLayoutAbierto, setModalConfigLayoutAbierto] = useState(false);
+
+    /* Modal historial de versiones */
+    const [modalVersionesAbierto, setModalVersionesAbierto] = useState(false);
 
     /* Sistema de arrastre de paneles */
     const {panelArrastrando, posicionMouse, zonaDropActiva, iniciarArrastre, registrarPanel} = useArrastrePaneles(ordenPaneles, reordenarPanel);
@@ -351,6 +354,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                 onClickSeguridad={() => setPanelSeguridadAbierto(true)}
                 onClickAdmin={() => setPanelAdminAbierto(true)}
                 onClickLayout={() => setModalConfigLayoutAbierto(true)}
+                onClickVersion={() => setModalVersionesAbierto(true)}
             />
 
             {cargandoDatos ? (
@@ -456,6 +460,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
             {/* Modal configuracion de layout */}
             <ModalConfiguracionLayout estaAbierto={modalConfigLayoutAbierto} onCerrar={() => setModalConfigLayoutAbierto(false)} modoColumnas={modoColumnas} visibilidad={visibilidad} ordenPaneles={ordenPaneles} onCambiarModo={cambiarModoColumnas} onTogglePanel={toggleVisibilidadPanel} onMoverPanelArriba={moverPanelArriba} onMoverPanelAbajo={moverPanelAbajo} onMoverPanelAColumna={moverPanelAColumna} onResetearOrden={resetearOrdenPaneles} onResetear={resetearLayout} />
+
+            {/* Modal de Historial de Versiones */}
+            <ModalVersiones estaAbierto={modalVersionesAbierto} onCerrar={() => setModalVersionesAbierto(false)} />
 
             {/* Barra de paneles ocultos */}
             <BarraPanelesOcultos panelesOcultos={panelesOcultos} onMostrarPanel={mostrarPanel} />

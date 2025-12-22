@@ -325,22 +325,22 @@ styles/dashboard/shared/layoutManager.css
 **Objetivo:** Mostrar changelog de versiones al hacer click en el badge de versión.
 
 **Modal de Historial:**
-- [ ] Al hacer click en "v1.0.0-beta" se abre modal
-- [ ] Lista de versiones ordenada (más reciente primero)
-- [ ] Cada versión muestra:
+- [x] Al hacer click en "v1.0.0-beta" se abre modal
+- [x] Lista de versiones ordenada (más reciente primero)
+- [x] Cada versión muestra:
   - Número de versión
   - Fecha de lanzamiento
   - Lista de cambios (agregados, mejorados, corregidos)
 
 **Implementación:**
-- [ ] Archivo `CHANGELOG.md` o JSON con versiones
-- [ ] Componente `ModalVersiones.tsx`
-- [ ] Estilos consistentes con otros modales
+- [x] Archivo `CHANGELOG.md` o JSON con versiones
+- [x] Componente `ModalVersiones.tsx`
+- [x] Estilos consistentes con otros modales
 
 **Sistema de Versiones:**
-- [ ] Con cada release significativo, incrementar versión
-- [ ] Formato: MAJOR.MINOR.PATCH (semver)
-- [ ] Etiquetas: alpha, beta, stable
+- [x] Con cada release significativo, incrementar versión
+- [x] Formato: MAJOR.MINOR.PATCH (semver)
+- [x] Etiquetas: alpha, beta, stable
 
 ---
 
