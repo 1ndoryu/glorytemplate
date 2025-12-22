@@ -414,100 +414,73 @@ glory-adjuntos/
    - Archivo original cifrado para descarga
    - [x] Generar thumbnail al subir imagen
    - [x] Mostrar thumbnail en lista, cifrado en modal/descarga
+   - [x] Añadir `thumbnailUrl` al tipo `Adjunto`
 
 4. **Lazy Decryption:**
    - No descifrar hasta que usuario haga clic
-   - [x] Mostrar placeholder con icono de candado
+   - [x] Mostrar placeholder con icono de candado (si no hay thumbnail)
+   - [x] Mostrar thumbnail con indicador de cifrado superpuesto
    - [x] Descifrar on-demand al hacer clic
    - [x] Estados visuales: candado, cargando, contenido
-   - [x] Estilos CSS para archivos cifrados
+   - [x] Estilos CSS para archivos cifrados (`.adjuntoIndicadorCifrado`)
 
-#### 1.5.3 Optimización de Cifrado de Datos
-
-**Estrategia de cifrado diferencial (solo cambios):**
-```
-Datos actuales → Hash SHA-256
-Datos nuevos → Hash SHA-256
-Si hash diferente → Cifrar y guardar
-Si hash igual → No hacer nada
-```
-
-- [ ] Implementar `hashDatos()` en `CifradoService`
-- [ ] Guardar hash del último estado cifrado en metadata
-- [ ] Comparar antes de cifrar para evitar trabajo innecesario
-
-**Cache de datos descifrados (opcional):**
-| Opción         | Pros                    | Contras                       |
-| -------------- | ----------------------- | ----------------------------- |
-| LocalStorage   | Persiste entre sesiones | Datos sensibles en disco      |
-| SessionStorage | Se borra al cerrar      | Hay que descifrar cada sesión |
-| Memory (RAM)   | Más seguro              | Se pierde en F5               |
-
-Recomendación: **SessionStorage con clave derivada de sesión**
-
-- [ ] Evaluar si cache de descifrado es necesaria (medir tiempos actuales)
-- [ ] Si >500ms para descifrar dashboard completo, implementar cache
-
-#### 1.5.3 E2E Real (Fase Futura - Opcional)
-
-**Arquitectura de clave en cliente:**
-```
-Usuario define contraseña maestra
-     ↓
-Deriva clave AES con PBKDF2 (en navegador)
-     ↓
-Cifra/descifra en JavaScript (Web Crypto API)
-     ↓
-Servidor NUNCA ve datos descifrados
-```
-
-Implicaciones:
-- [ ] Usuario responsable de recordar contraseña
-- [ ] Si olvida → datos irrecuperables (opcional: backup cifrado)
-- [ ] Cifrado en Web Workers para no bloquear UI
-- [ ] Migración de datos existentes (recifrar con nueva clave)
-
-**Decisión:** ¿Implementar E2E real o mantener cifrado servidor?
-- **E2E Real:** Máxima privacidad, complejidad alta
-- **Servidor:** Más simple, recuperable, server tiene acceso
-
-#### Archivos a crear/modificar:
-- `App/Services/AdjuntosService.php` - Nuevo servicio
-- `App/Api/AdjuntosApiController.php` - Endpoints REST
-- `App/Services/CifradoService.php` - Añadir hash diferencial
-- `App/React/components/dashboard/SeccionAdjuntos.tsx` - Upload directo
-- Cron job para limpieza de archivos huérfanos
-
-**Complejidad:** Alta | **Dependencias:** Fase 1 completada
+**Archivos modificados:**
+- `App/Services/AdjuntosService.php` - Stream cipher, cache, descifrado
+- `App/React/types/dashboard.ts` - Añadido `thumbnailUrl` a `Adjunto`
+- `App/React/hooks/useAdjuntos.ts` - Incluir `thumbnailUrl` del servidor
+- `App/React/components/dashboard/SeccionAdjuntos.tsx` - Lazy loading UI
+- `App/React/styles/dashboard/componentes/adjuntos.css` - Estilos cifrado
 
 ---
 
-### Fase 2: Sistema de Equipos
+### Fase 2: Sistema de Equipos ✅
 
 **Objetivo:** Permitir conexión entre usuarios para colaboración.
 
 #### 2.1 Infraestructura de Equipos
-- [ ] Tabla BD: `wp_glory_equipos` (id, usuario_id, compañero_id, estado, fecha)
-- [ ] Estados: `pendiente`, `aceptada`, `rechazada`
-- [ ] Endpoint API: `POST /glory/v1/equipos/solicitud` (enviar por correo)
-- [ ] Endpoint API: `GET /glory/v1/equipos` (listar compañeros)
-- [ ] Endpoint API: `PUT /glory/v1/equipos/{id}` (aceptar/rechazar)
-- [ ] Endpoint API: `DELETE /glory/v1/equipos/{id}` (eliminar/cancelar)
+- [x] Tabla BD: `wp_glory_equipos` (id, usuario_id, compañero_id, estado, fecha)
+- [x] Estados: `pendiente`, `aceptada`, `rechazada`, `pendiente_registro`
+- [x] Endpoint API: `POST /glory/v1/equipos/solicitud` (enviar por correo)
+- [x] Endpoint API: `GET /glory/v1/equipos` (listar compañeros)
+- [x] Endpoint API: `GET /glory/v1/equipos/pendientes` (contador para badge)
+- [x] Endpoint API: `PUT /glory/v1/equipos/{id}/responder` (aceptar/rechazar)
+- [x] Endpoint API: `DELETE /glory/v1/equipos/{id}` (eliminar/cancelar)
 
 #### 2.2 UI de Equipos
-- [ ] Icono "Social" (👥) en header, al lado del candado de cifrado
-- [ ] Modal de Equipos con pestañas:
+- [x] Icono "Social" (Users) en header, al lado del configurar layout
+- [x] Badge con contador de solicitudes pendientes
+- [x] Modal de Equipos con pestañas:
   - Solicitudes recibidas (con Aceptar/Rechazar)
   - Solicitudes enviadas (con opción Cancelar)
   - Lista de compañeros activos
-- [ ] Formulario para enviar solicitud (input de correo)
-- [ ] Estado "Pendiente" si usuario no existe (se activa al registrarse)
-- [ ] Hook `useEquipos` para gestionar estado
+- [x] Formulario para enviar solicitud (input de correo con validación)
+- [x] Estado "Pendiente de registro" si usuario no existe
+- [x] Hook `useEquipos` para gestionar estado
 
 #### 2.3 Lógica de Solicitudes Pendientes
-- [ ] Si el correo no existe en BD, guardar solicitud como `pendiente_registro`
-- [ ] Al registrarse nuevo usuario, buscar solicitudes pendientes y activarlas
+- [x] Si el correo no existe en BD, guardar solicitud como `pendiente_registro`
+- [x] Al registrarse nuevo usuario, buscar solicitudes pendientes y activarlas (hook en `user_register`)
 - [ ] (Futuro) Enviar correo de invitación si no está registrado
+
+**Archivos creados:**
+- `App/Database/Schema.php` - Actualizado v1.0.2, añadida tabla `wp_glory_equipos`
+- `App/Services/EquiposService.php` - Lógica de equipos
+- `App/Api/EquiposApiController.php` - Endpoints REST
+- `App/React/hooks/useEquipos.ts` - Hook de gestión de equipos
+- `App/React/components/equipos/ModalEquipos.tsx` - Modal principal
+- `App/React/components/equipos/FormularioSolicitud.tsx` - Formulario de invitación
+- `App/React/components/equipos/ListaSolicitudes.tsx` - Lista de solicitudes
+- `App/React/components/equipos/ListaCompaneros.tsx` - Lista de compañeros
+- `App/React/components/equipos/index.ts` - Exportaciones
+- `App/React/styles/dashboard/componentes/equipos.css` - Estilos
+
+**Archivos modificados:**
+- `App/React/components/dashboard/DashboardEncabezado.tsx` - Botón de equipos
+- `App/React/islands/DashboardIsland.tsx` - Integración del modal
+- `App/React/styles/dashboard/componentes/encabezado.css` - Estilos del botón
+- `App/React/styles/dashboard/index.css` - Import de estilos
+- `App/React/utils/fecha.ts` - Añadida `formatearFechaRelativa`
+- `App/React/types/dashboard.ts` - Tipos de equipos
 
 **Complejidad:** Alta | **Dependencias:** Fase 0 (alertas para confirmaciones)
 
@@ -706,16 +679,17 @@ Implicaciones:
 
 ## 📋 Resumen de Fases
 
-| Fase | Nombre                         | Complejidad | Dependencias  |
-| ---- | ------------------------------ | ----------- | ------------- |
-| 0    | Preparación (Alertas + Header) | Baja-Media  | Ninguna       |
-| 1    | Almacenamiento                 | Media       | Ninguna       |
-| 2    | Sistema de Equipos             | Alta        | Fase 0        |
-| 3    | Notificaciones                 | Alta        | Fase 0, 2     |
-| 4    | Compartir Tareas/Proyectos     | Muy Alta    | Fase 2, 3     |
-| 5    | Compartir Hábitos              | Media       | Fase 2, 3     |
-| 6    | Modal Chat + Historial         | Muy Alta    | Fase 2, 3, 4  |
-| 7    | Futuro                         | Variable    | Todo anterior |
+| Fase | Nombre                         | Complejidad | Estado       |
+| ---- | ------------------------------ | ----------- | ------------ |
+| 0    | Preparación (Alertas + Header) | Baja-Media  | ✅ Completada |
+| 1    | Almacenamiento                 | Media       | ✅ Completada |
+| 1.5  | Archivos Físicos + Cifrado     | Alta        | ✅ Completada |
+| 2    | Sistema de Equipos             | Alta        | ✅ Completada |
+| 3    | Notificaciones                 | Alta        | Pendiente    |
+| 4    | Compartir Tareas/Proyectos     | Muy Alta    | Pendiente    |
+| 5    | Compartir Hábitos              | Media       | Pendiente    |
+| 6    | Modal Chat + Historial         | Muy Alta    | Pendiente    |
+| 7    | Futuro                         | Variable    | Pendiente    |
 
 ---
 
@@ -800,4 +774,25 @@ define('GLORY_STRIPE_PRICE_YEARLY', 'price_...');
 - `Glory/assets/react/Docs/react-glory.md` - Documentación del sistema
 - `App/React/components/` - Componentes existentes
 - `App/React/styles/dashboard/` - Sistema de diseño modular
+
+
+## Optimizaciones Futuras & Ideas (Baja Prioridad)
+
+### Optimización de Cifrado de Datos (Cifrado Diferencial)
+
+**Estrategia (solo cambios):**
+```
+Datos actuales → Hash SHA-256
+Datos nuevos → Hash SHA-256
+Si hash diferente → Cifrar y guardar
+Si hash igual → No hacer nada
+```
+
+- [ ] Implementar `hashDatos()` en `CifradoService`
+- [ ] Guardar hash del último estado cifrado en metadata
+- [ ] Comparar antes de cifrar para evitar trabajo innecesario
+
+**Cache de datos descifrados (opcional):**
+- **SessionStorage con clave derivada:** Equibrio entre seguridad y persistencia.
+- Evaluar implementación solo si descifrado > 500ms.
 

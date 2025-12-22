@@ -10,6 +10,7 @@ import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scrat
 import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos, PanelArrastrable, HandleArrastre, IndicadorArrastre, ModalVersiones} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {PanelAdministracion} from '../components/admin';
+import {ModalEquipos} from '../components/equipos';
 import {useDashboard} from '../hooks/useDashboard';
 import {useOrdenarHabitos} from '../hooks/useOrdenarHabitos';
 import {useAuth} from '../hooks/useAuth';
@@ -25,6 +26,7 @@ import {useConfiguracionHabitos} from '../hooks/useConfiguracionHabitos';
 import {useConfiguracionProyectos} from '../hooks/useConfiguracionProyectos';
 import {useConfiguracionScratchpad} from '../hooks/useConfiguracionScratchpad';
 import {useArrastrePaneles} from '../hooks/useArrastrePaneles';
+import {useEquipos} from '../hooks/useEquipos';
 import {useAlertasContext} from '../context/AlertasContext';
 import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
 import {ModalConfiguracionHabitos} from '../components/dashboard/ModalConfiguracionHabitos';
@@ -76,6 +78,10 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
 
     /* Perfil de Usuario */
     const [modalPerfilAbierto, setModalPerfilAbierto] = useState(false);
+
+    /* Equipos (Social) */
+    const equipos = useEquipos();
+    const [modalEquiposAbierto, setModalEquiposAbierto] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -405,12 +411,14 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                 }}
                 suscripcion={suscripcion}
                 esAdmin={esAdmin}
+                equiposPendientes={equipos.pendientes}
                 onClickPlan={() => setModalUpgradeAbierto(true)}
                 onClickSeguridad={() => setPanelSeguridadAbierto(true)}
                 onClickAdmin={() => setPanelAdminAbierto(true)}
                 onClickLayout={() => setModalConfigLayoutAbierto(true)}
                 onClickVersion={() => setModalVersionesAbierto(true)}
                 onClickUsuario={() => setModalPerfilAbierto(true)}
+                onClickEquipos={() => setModalEquiposAbierto(true)}
             />
 
             {cargandoDatos ? (
@@ -531,6 +539,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
 
             {/* Modal de Perfil de Usuario */}
             <ModalPerfil estaAbierto={modalPerfilAbierto} onCerrar={() => setModalPerfilAbierto(false)} />
+
+            {/* Modal de Equipos */}
+            <ModalEquipos estaAbierto={modalEquiposAbierto} onCerrar={() => setModalEquiposAbierto(false)} />
 
             {/* Barra de paneles ocultos */}
             <BarraPanelesOcultos panelesOcultos={panelesOcultos} onMostrarPanel={mostrarPanel} />

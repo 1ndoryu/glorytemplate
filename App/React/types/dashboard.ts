@@ -338,3 +338,66 @@ export interface InfoAlmacenamiento {
     limiteExcedido: boolean;
     esPremium: boolean;
 }
+
+/*
+ * Tipos para el Sistema de Equipos (Social)
+ */
+
+/*
+ * Estados posibles de una solicitud de equipo
+ */
+export type EstadoSolicitud = 'pendiente' | 'aceptada' | 'rechazada' | 'pendiente_registro';
+
+/*
+ * Datos básicos de un usuario en el contexto de equipos
+ */
+export interface UsuarioEquipo {
+    id: number;
+    nombre: string;
+    email: string;
+    avatar: string;
+}
+
+/*
+ * Solicitud de conexión (recibida o enviada)
+ */
+export interface SolicitudEquipo {
+    id: number;
+    estado: EstadoSolicitud;
+    fechaSolicitud: string;
+    fechaRespuesta: string | null;
+    email: string | null;
+    usuario: UsuarioEquipo | null;
+    esMia: boolean;
+}
+
+/*
+ * Compañero activo (conexión aceptada)
+ */
+export interface CompaneroEquipo {
+    id: number;
+    companeroId: number;
+    nombre: string;
+    email: string;
+    avatar: string;
+    fechaConexion: string;
+}
+
+/*
+ * Contadores del equipo
+ */
+export interface ContadoresEquipo {
+    recibidas: number;
+    enviadas: number;
+    companeros: number;
+}
+
+/*
+ * Estructura completa del equipo
+ */
+export interface EquipoCompleto {
+    recibidas: SolicitudEquipo[];
+    enviadas: SolicitudEquipo[];
+    companeros: CompaneroEquipo[];
+    contadores: ContadoresEquipo;
+}

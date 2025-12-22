@@ -69,3 +69,6 @@
 @import './admin/panelAdministracion.css';
 @import './admin/detalleUsuario.css';
 @import './componentes/perfil.css';
+
+/* Sistema de Equipos */
+@import './componentes/equipos.css';

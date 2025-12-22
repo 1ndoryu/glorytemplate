@@ -1,0 +1,437 @@
+/*
+ * Estilos para el Sistema de Equipos
+ * Modal, pestañas, formulario y listas de solicitudes/compañeros
+ * Usa variables CSS del dashboard
+ */
+
+/* 
+ * Modal principal
+ */
+.modalEquipos {
+    max-width: 550px;
+    width: 95%;
+}
+
+.equiposContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+}
+
+/* 
+ * Formulario de solicitud
+ */
+.formularioSolicitud {
+    padding: var(--dashboard-espacioSm);
+    background: var(--dashboard-fondoSecundario);
+    border-radius: 2px;
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.formularioSolicitudLabel {
+    display: block;
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+    margin-bottom: var(--dashboard-espacioXs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.formularioSolicitudInputGrupo {
+    display: flex;
+    gap: var(--dashboard-espacioXs);
+}
+
+.formularioSolicitudInput {
+    flex: 1;
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 2px;
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    transition: border-color var(--dashboard-transicionNormal);
+}
+
+.formularioSolicitudInput:focus {
+    outline: none;
+    border-color: var(--dashboard-estadoExito);
+}
+
+.formularioSolicitudInput.invalido {
+    border-color: var(--dashboard-estadoAlta);
+}
+
+.formularioSolicitudInput::placeholder {
+    color: var(--dashboard-textoApagado);
+}
+
+.formularioSolicitudBoton {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background: var(--dashboard-estadoExitoFondo);
+    border: 1px solid var(--dashboard-estadoExitoBorde);
+    color: var(--dashboard-estadoExito);
+    border-radius: 2px;
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+    white-space: nowrap;
+}
+
+.formularioSolicitudBoton:hover:not(:disabled) {
+    background: rgba(34, 197, 94, 0.2);
+}
+
+.formularioSolicitudBoton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.formularioSolicitudError {
+    display: block;
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-estadoAlta);
+    margin-top: var(--dashboard-espacioXs);
+}
+
+/* 
+ * Pestañas
+ */
+.equiposPestanas {
+    display: flex;
+    gap: var(--dashboard-espacioXs);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    padding-bottom: var(--dashboard-espacioXs);
+}
+
+.equiposPestana {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.equiposPestana:hover {
+    background: var(--dashboard-fondoHover);
+    color: var(--dashboard-textoNormal);
+}
+
+.equiposPestana.activa {
+    background: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+    color: var(--dashboard-textoActivo);
+}
+
+.equiposContador {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 2px;
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.equiposPestana.activa .equiposContador {
+    background: var(--dashboard-bordeSutil);
+}
+
+.equiposContador.alerta {
+    background: var(--dashboard-estadoAltaFondo);
+    border-color: var(--dashboard-estadoAltaBorde);
+    color: var(--dashboard-estadoAlta);
+}
+
+/* 
+ * Estados vacío, cargando y error
+ */
+.equiposVacio,
+.equiposCargando,
+.equiposError {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--dashboard-espacioXl);
+    text-align: center;
+    color: var(--dashboard-textoSecundario);
+    gap: var(--dashboard-espacioSm);
+}
+
+.equiposVacio svg,
+.equiposCargando svg,
+.equiposError svg {
+    opacity: 0.5;
+    color: var(--dashboard-textoApagado);
+}
+
+.equiposVacioSubtexto {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+}
+
+.equiposSpinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--dashboard-bordePrincipal);
+    border-top-color: var(--dashboard-textoSecundario);
+    border-radius: 50%;
+    animation: equiposGiro 0.8s linear infinite;
+}
+
+.equiposSpinner.pequeno {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+}
+
+@keyframes equiposGiro {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.botonReintentar {
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    border-radius: 2px;
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.botonReintentar:hover {
+    border-color: var(--dashboard-bordeSutil);
+    color: var(--dashboard-textoNormal);
+}
+
+/* 
+ * Contenedor de listas
+ */
+.equiposListaContenedor {
+    min-height: 200px;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.equiposListaContenedor::-webkit-scrollbar {
+    width: var(--dashboard-scrollbarAncho);
+}
+
+.equiposListaContenedor::-webkit-scrollbar-track {
+    background: var(--dashboard-scrollbarFondo);
+}
+
+.equiposListaContenedor::-webkit-scrollbar-thumb {
+    background: var(--dashboard-scrollbarThumb);
+    border-radius: 2px;
+}
+
+.equiposListaContenedor::-webkit-scrollbar-thumb:hover {
+    background: var(--dashboard-scrollbarThumbHover);
+}
+
+/* 
+ * Lista de solicitudes
+ */
+.listaSolicitudes,
+.listaCompaneros {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioXs);
+}
+
+.solicitudItem,
+.companeroItem {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm);
+    background: var(--dashboard-fondoSecundario);
+    border-radius: 2px;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    transition: border-color var(--dashboard-transicionNormal);
+}
+
+.solicitudItem:hover,
+.companeroItem:hover {
+    border-color: var(--dashboard-bordeSutil);
+}
+
+.solicitudInfo,
+.companeroInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    flex: 1;
+    min-width: 0;
+}
+
+.solicitudAvatar,
+.companeroAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 2px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.solicitudAvatarPlaceholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 2px;
+    background: var(--dashboard-fondoHover);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dashboard-textoApagado);
+    flex-shrink: 0;
+}
+
+.solicitudDatos,
+.companeroDatos {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+.solicitudNombre,
+.companeroNombre {
+    font-size: var(--dashboard-tamanoBase);
+    font-weight: 500;
+    color: var(--dashboard-textoNormal);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.solicitudNombre.pendiente {
+    color: var(--dashboard-textoApagado);
+    font-style: italic;
+}
+
+.solicitudEmail,
+.companeroEmail {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+}
+
+.solicitudMeta,
+.companeroMeta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.solicitudFecha,
+.companeroFecha {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoMuyApagado);
+}
+
+.solicitudEstado {
+    font-size: 9px;
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.solicitudEstado.pendienteRegistro {
+    background: var(--dashboard-estadoMediaFondo);
+    border: 1px solid var(--dashboard-estadoMediaBorde);
+    color: var(--dashboard-estadoMedia);
+}
+
+/* 
+ * Botones de acción
+ */
+.solicitudAcciones,
+.companeroAcciones {
+    display: flex;
+    gap: var(--dashboard-espacioXs);
+    flex-shrink: 0;
+}
+
+.solicitudBoton,
+.companeroBoton {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: var(--dashboard-espacioXs);
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 2px;
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.solicitudBoton span {
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    text-transform: uppercase;
+}
+
+.solicitudBoton:hover:not(:disabled),
+.companeroBoton:hover:not(:disabled) {
+    border-color: currentColor;
+}
+
+.solicitudBoton.aceptar:hover:not(:disabled) {
+    color: var(--dashboard-estadoExito);
+    background: var(--dashboard-estadoExitoFondo);
+    border-color: var(--dashboard-estadoExitoBorde);
+}
+
+.solicitudBoton.rechazar:hover:not(:disabled),
+.solicitudBoton.cancelar:hover:not(:disabled),
+.companeroBoton.eliminar:hover:not(:disabled) {
+    color: var(--dashboard-estadoAlta);
+    background: var(--dashboard-estadoAltaFondo);
+    border-color: var(--dashboard-estadoAltaBorde);
+}
+
+.solicitudBoton:disabled,
+.companeroBoton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

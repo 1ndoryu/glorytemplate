@@ -6,8 +6,9 @@ class Schema
 {
     /**
      * Versión actual de la base de datos
+     * v1.0.2: Añadida tabla de equipos para sistema social
      */
-    public const DB_VERSION = '1.0.1';
+    public const DB_VERSION = '1.0.2';
 
     /**
      * Nombre de la opción donde guardamos la versión instalada
@@ -60,6 +61,26 @@ class Schema
             KEY updated_at (updated_at)
         ) $charset_collate;";
 
+        /* Tabla de Equipos (Sistema Social)
+         * Gestiona las conexiones entre usuarios para colaboración
+         * Estados: pendiente, aceptada, rechazada, pendiente_registro
+         */
+        $table_equipos = $wpdb->prefix . 'glory_equipos';
+        $sql_equipos = "CREATE TABLE $table_equipos (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            usuario_id bigint(20) NOT NULL,
+            companero_id bigint(20) DEFAULT NULL,
+            companero_email varchar(255) DEFAULT NULL,
+            estado varchar(50) DEFAULT 'pendiente',
+            fecha_solicitud datetime DEFAULT CURRENT_TIMESTAMP,
+            fecha_respuesta datetime DEFAULT NULL,
+            PRIMARY KEY  (id),
+            KEY usuario_id (usuario_id),
+            KEY companero_id (companero_id),
+            KEY companero_email (companero_email),
+            KEY estado (estado)
+        ) $charset_collate;";
+
         /* Tabla de Tareas */
         $table_tareas = $wpdb->prefix . 'glory_tareas';
         $sql_tareas = "CREATE TABLE $table_tareas (
@@ -103,6 +124,7 @@ class Schema
         ) $charset_collate;";
 
         dbDelta($sql_habitos);
+        dbDelta($sql_equipos);
         dbDelta($sql_tareas);
         dbDelta($sql_proyectos);
     }
@@ -113,6 +135,6 @@ class Schema
     public static function getTableName(string $entity): string
     {
         global $wpdb;
-        return $wpdb->prefix . 'glory_' . $entity; // habitos, tareas, proyectos
+        return $wpdb->prefix . 'glory_' . $entity;
     }
 }

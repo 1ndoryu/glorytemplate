@@ -161,3 +161,36 @@ export function obtenerVarianteFechaLimite(fechaIso: string | undefined): Varian
 
     return 'normal';
 }
+
+/*
+ * Formatea una fecha en formato relativo (ej: "hace 2 días", "hace 1 semana")
+ * Útil para mostrar cuándo ocurrió algo
+ */
+export function formatearFechaRelativa(fechaIso: string | null | undefined): string {
+    if (!fechaIso) return '';
+
+    const fecha = new Date(fechaIso);
+    const ahora = new Date();
+    const diferenciaSeg = Math.floor((ahora.getTime() - fecha.getTime()) / 1000);
+
+    if (diferenciaSeg < 60) return 'hace un momento';
+    if (diferenciaSeg < 3600) {
+        const minutos = Math.floor(diferenciaSeg / 60);
+        return `hace ${minutos} ${minutos === 1 ? 'minuto' : 'minutos'}`;
+    }
+    if (diferenciaSeg < 86400) {
+        const horas = Math.floor(diferenciaSeg / 3600);
+        return `hace ${horas} ${horas === 1 ? 'hora' : 'horas'}`;
+    }
+    if (diferenciaSeg < 604800) {
+        const dias = Math.floor(diferenciaSeg / 86400);
+        return `hace ${dias} ${dias === 1 ? 'día' : 'días'}`;
+    }
+    if (diferenciaSeg < 2592000) {
+        const semanas = Math.floor(diferenciaSeg / 604800);
+        return `hace ${semanas} ${semanas === 1 ? 'semana' : 'semanas'}`;
+    }
+
+    const meses = Math.floor(diferenciaSeg / 2592000);
+    return `hace ${meses} ${meses === 1 ? 'mes' : 'meses'}`;
+}
