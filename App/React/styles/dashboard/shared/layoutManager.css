@@ -1,0 +1,281 @@
+/*
+ * ESTILOS LAYOUT MANAGER
+ * Estilos para el sistema de layout personalizable
+ * Columnas redimensionables, barra de paneles ocultos y modal de configuración
+ */
+
+/* 
+ * LAYOUT MANAGER - CONTENEDOR PRINCIPAL
+ */
+.layoutManager {
+    position: relative;
+    min-height: 200px;
+}
+
+.layoutManager.arrastrando {
+    cursor: col-resize;
+    user-select: none;
+}
+
+/* 
+ * COLUMNAS
+ */
+.layoutColumna {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioLg);
+    min-width: 0;
+}
+
+/* 
+ * HANDLES DE RESIZE
+ */
+.layoutResizeHandle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 12px;
+    cursor: col-resize;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity var(--dashboard-transicionNormal);
+}
+
+.layoutManager:hover .layoutResizeHandle {
+    opacity: 1;
+}
+
+.layoutResizeHandle:hover,
+.layoutResizeHandle.activo {
+    opacity: 1;
+}
+
+.layoutResizeHandleLinea {
+    width: 2px;
+    height: 40px;
+    background: var(--dashboard-bordePrincipal);
+    border-radius: 1px;
+    transition: background var(--dashboard-transicionRapida), height var(--dashboard-transicionRapida);
+}
+
+.layoutResizeHandle:hover .layoutResizeHandleLinea,
+.layoutResizeHandle.activo .layoutResizeHandleLinea {
+    background: var(--dashboard-textoSecundario);
+    height: 60px;
+}
+
+/* 
+ * BARRA DE PANELES OCULTOS
+ */
+.barraPanelesOcultos {
+    position: fixed;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    padding: var(--dashboard-espacioXs);
+}
+
+.barraPanelesOcultosContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioXs);
+}
+
+.botonPanelOculto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.botonPanelOculto:hover {
+    background: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoNormal);
+}
+
+/* 
+ * MODAL DE CONFIGURACIÓN DE LAYOUT
+ */
+.configLayoutContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioXl);
+    padding: var(--dashboard-espacioMd) 0;
+}
+
+.configLayoutSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+}
+
+.configLayoutSeccionTitulo {
+    font-size: var(--dashboard-tamanoBase);
+    font-weight: 600;
+    color: var(--dashboard-textoNormal);
+    margin: 0;
+}
+
+.configLayoutSeccionDescripcion {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+    margin: 0;
+}
+
+/* 
+ * SELECTOR DE COLUMNAS
+ */
+.configLayoutColumnasOpciones {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+}
+
+.configLayoutColumnaOpcion {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd) var(--dashboard-espacioSm);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.configLayoutColumnaOpcion:hover {
+    background: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+    color: var(--dashboard-textoNormal);
+}
+
+.configLayoutColumnaOpcion.activo {
+    background: var(--dashboard-estadoExitoFondo);
+    border-color: var(--dashboard-estadoExitoBorde);
+    color: var(--dashboard-estadoExito);
+}
+
+.configLayoutColumnaOpcion span {
+    font-size: var(--dashboard-tamanoPequeno);
+}
+
+/* 
+ * LISTA DE PANELES
+ */
+.configLayoutPaneles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+}
+
+.configLayoutPanelItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+}
+
+.configLayoutPanelInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+}
+
+.configLayoutPanelIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--dashboard-textoSecundario);
+}
+
+.configLayoutPanelTexto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.configLayoutPanelNombre {
+    font-size: var(--dashboard-tamanoBase);
+    color: var(--dashboard-textoNormal);
+}
+
+.configLayoutPanelDescripcion {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+}
+
+/* 
+ * BOTÓN RESET
+ */
+.configLayoutAcciones {
+    display: flex;
+    justify-content: center;
+    padding-top: var(--dashboard-espacioMd);
+    border-top: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.configLayoutBotonReset {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 4px;
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.configLayoutBotonReset:hover {
+    background: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-estadoAltaBorde);
+    color: var(--dashboard-estadoAlta);
+}
+
+/* 
+ * BOTÓN DE CONFIGURACIÓN DE LAYOUT EN HEADER
+ */
+.botonConfigLayout {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 3px;
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.botonConfigLayout:hover {
+    background: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-bordeSutil);
+    color: var(--dashboard-textoNormal);
+}

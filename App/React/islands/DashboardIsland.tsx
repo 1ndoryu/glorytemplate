@@ -5,9 +5,9 @@
  */
 
 import {useState, useEffect} from 'react';
-import {Terminal, AlertCircle, FileText, Folder, Plus} from 'lucide-react';
-import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad} from '../components/dashboard';
-import {ToastDeshacer, ModalUpgrade, TooltipSystem} from '../components/shared';
+import {Terminal, AlertCircle, FileText, Folder, Plus, LayoutGrid} from 'lucide-react';
+import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad, ModalConfiguracionLayout} from '../components/dashboard';
+import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {PanelAdministracion} from '../components/admin';
 import {useDashboard} from '../hooks/useDashboard';
@@ -16,6 +16,7 @@ import {useAuth} from '../hooks/useAuth';
 import {useSuscripcion} from '../hooks/useSuscripcion';
 import {useFiltroTareas} from '../hooks/useFiltroTareas';
 import {useOrdenarTareas, MODOS_ORDEN_TAREAS} from '../hooks/useOrdenarTareas';
+import {useConfiguracionLayout} from '../hooks/useConfiguracionLayout';
 import {SelectorBadge} from '../components/shared/SelectorBadge';
 import {Filter, LayoutList, CheckSquare, ArrowUpDown, Settings} from 'lucide-react';
 import {useConfiguracionTareas} from '../hooks/useConfiguracionTareas';
@@ -117,6 +118,10 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
     const {configuracion: configTareas, toggleOcultarCompletadas, toggleOcultarBadgeProyecto} = useConfiguracionTareas();
     const [modalConfigTareasAbierto, setModalConfigTareasAbierto] = useState(false);
 
+    /* Configuracion de layout */
+    const {modoColumnas, anchos, visibilidad, panelesOcultos, cambiarModoColumnas, ajustarAnchos, toggleVisibilidadPanel, mostrarPanel, resetearLayout} = useConfiguracionLayout();
+    const [modalConfigLayoutAbierto, setModalConfigLayoutAbierto] = useState(false);
+
     /* Calcular valor actual para el selector */
     const valorFiltroActual = filtroActual.tipo === 'proyecto' ? `proyecto-${filtroActual.proyectoId}` : filtroActual.tipo;
 
@@ -180,56 +185,69 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
                 onClickPlan={() => setModalUpgradeAbierto(true)}
                 onClickSeguridad={() => setPanelSeguridadAbierto(true)}
                 onClickAdmin={() => setPanelAdminAbierto(true)}
+                onClickLayout={() => setModalConfigLayoutAbierto(true)}
             />
 
             {cargandoDatos ? (
                 <IndicadorCarga />
             ) : (
-                <div className="dashboardGrid">
+                <div className={`dashboardGrid dashboardGrid--${modoColumnas}col`}>
                     {/* Columna 1: Habitos y Proyectos */}
                     <div className="columnaHabitos">
-                        <SeccionEncabezado icono={<AlertCircle size={12} />} titulo="Foco Prioritario" acciones={<SelectorBadge opciones={opcionesOrdenHabitos} valorActual={modoActual} onChange={valor => cambiarModo(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar hábitos" />} />
-                        <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} />
+                        {visibilidad.focoPrioritario && (
+                            <>
+                                <SeccionEncabezado icono={<AlertCircle size={12} />} titulo="Foco Prioritario" acciones={<SelectorBadge opciones={opcionesOrdenHabitos} valorActual={modoActual} onChange={valor => cambiarModo(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar hábitos" />} />
+                                <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} />
+                            </>
+                        )}
 
-                        <SeccionEncabezado
-                            titulo="Proyectos"
-                            icono={<Folder size={12} />}
-                            acciones={
-                                <button className="botonIcono" onClick={manejarCrearProyecto} title="Nuevo Proyecto">
-                                    <Plus size={14} />
-                                </button>
-                            }
-                        />
-                        <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
+                        {visibilidad.proyectos && (
+                            <>
+                                <SeccionEncabezado
+                                    titulo="Proyectos"
+                                    icono={<Folder size={12} />}
+                                    acciones={
+                                        <button className="botonIcono" onClick={manejarCrearProyecto} title="Nuevo Proyecto">
+                                            <Plus size={14} />
+                                        </button>
+                                    }
+                                />
+                                <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} />
+                            </>
+                        )}
                     </div>
 
                     {/* Columna 2: Tareas sueltas y Notas */}
                     <div className="columnaTareas">
                         {/* Seccion: Tareas sueltas (sin proyecto) */}
-                        <div className="internaColumna">
-                            <SeccionEncabezado
-                                icono={<Terminal size={12} />}
-                                titulo="Ejecucion"
-                                acciones={
-                                    <div style={{display: 'flex', gap: '8px'}}>
-                                        <SelectorBadge opciones={opcionesFiltro} valorActual={valorFiltroActual} onChange={manejarCambioFiltro} titulo="Filtrar tareas" />
-                                        <SelectorBadge opciones={opcionesOrden} valorActual={modoOrden} onChange={valor => cambiarModoOrden(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar tareas" />
-                                        <button className="selectorBadgeBoton" onClick={() => setModalConfigTareasAbierto(true)} title="Configuración">
-                                            <span className="selectorBadgeIcono">
-                                                <Settings size={10} />
-                                            </span>
-                                        </button>
-                                    </div>
-                                }
-                            />
-                            <ListaTareas tareas={tareasFinales} proyectoId={filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined} proyectos={proyectos || []} ocultarCompletadas={configTareas.ocultarCompletadas} ocultarBadgeProyecto={configTareas.ocultarBadgeProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={esOrdenManual ? reordenarTareas : undefined} habilitarDrag={esOrdenManual} />
-                        </div>
+                        {visibilidad.ejecucion && (
+                            <div className="internaColumna">
+                                <SeccionEncabezado
+                                    icono={<Terminal size={12} />}
+                                    titulo="Ejecucion"
+                                    acciones={
+                                        <div style={{display: 'flex', gap: '8px'}}>
+                                            <SelectorBadge opciones={opcionesFiltro} valorActual={valorFiltroActual} onChange={manejarCambioFiltro} titulo="Filtrar tareas" />
+                                            <SelectorBadge opciones={opcionesOrden} valorActual={modoOrden} onChange={valor => cambiarModoOrden(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar tareas" />
+                                            <button className="selectorBadgeBoton" onClick={() => setModalConfigTareasAbierto(true)} title="Configuración">
+                                                <span className="selectorBadgeIcono">
+                                                    <Settings size={10} />
+                                                </span>
+                                            </button>
+                                        </div>
+                                    }
+                                />
+                                <ListaTareas tareas={tareasFinales} proyectoId={filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined} proyectos={proyectos || []} ocultarCompletadas={configTareas.ocultarCompletadas} ocultarBadgeProyecto={configTareas.ocultarBadgeProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={esOrdenManual ? reordenarTareas : undefined} habilitarDrag={esOrdenManual} />
+                            </div>
+                        )}
 
                         {/* Seccion: Notas Rapidas */}
-                        <div className="internaColumna">
-                            <SeccionEncabezado icono={<FileText size={12} />} titulo="Scratchpad" subtitulo="markdown supported" />
-                            <Scratchpad valorInicial={notas} onChange={actualizarNotas} />
-                        </div>
+                        {visibilidad.scratchpad && (
+                            <div className="internaColumna">
+                                <SeccionEncabezado icono={<FileText size={12} />} titulo="Scratchpad" subtitulo="markdown supported" />
+                                <Scratchpad valorInicial={notas} onChange={actualizarNotas} />
+                            </div>
+                        )}
 
                         {/* Seccion: Acciones de Datos */}
                         <AccionesDatos onExportar={exportarTodosDatos} onImportar={importarTodosDatos} importando={importando} mensajeEstado={mensajeEstado} tipoMensaje={tipoMensaje} />
@@ -305,6 +323,12 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta
 
             {/* Panel de Administración */}
             {esAdmin && <PanelAdministracion estaAbierto={panelAdminAbierto} onCerrar={() => setPanelAdminAbierto(false)} />}
+
+            {/* Modal configuracion de layout */}
+            <ModalConfiguracionLayout estaAbierto={modalConfigLayoutAbierto} onCerrar={() => setModalConfigLayoutAbierto(false)} modoColumnas={modoColumnas} visibilidad={visibilidad} onCambiarModo={cambiarModoColumnas} onTogglePanel={toggleVisibilidadPanel} onResetear={resetearLayout} />
+
+            {/* Barra de paneles ocultos */}
+            <BarraPanelesOcultos panelesOcultos={panelesOcultos} onMostrarPanel={mostrarPanel} />
 
             {/* Sistema Global de Tooltips */}
             <TooltipSystem />

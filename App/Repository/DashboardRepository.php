@@ -596,24 +596,44 @@ class DashboardRepository
 
     /**
      * Obtiene las notas (Mantenemos en META por simplicidad de string único)
+     * Las notas son texto plano, no JSON, así que descifrado especial
      */
     public function getNotas(): mixed
     {
         $data = get_user_meta($this->userId, self::META_NOTAS, true);
         if (empty($data)) return '';
-        $decoded = $this->decodeData($data, null);
-        return $decoded ?? $data;
+
+        /* Descifrar si está cifrado - las notas son texto plano, no JSON */
+        if ($this->cifradoService !== null && $this->cifradoService->estaCifrado($data)) {
+            try {
+                return $this->cifradoService->descifrar($data);
+            } catch (\Exception $e) {
+                error_log('[DashboardRepo] Error descifrando notas: ' . $e->getMessage());
+                return '';
+            }
+        }
+
+        return $data;
     }
 
     public function setNotas(mixed $notas): bool
     {
-        /* update_user_meta devuelve false si el valor no cambió, lo cual no es un error */
-        if (is_string($notas)) {
-            update_user_meta($this->userId, self::META_NOTAS, $notas);
-        } else {
-            $encoded = $this->encodeData($notas);
-            update_user_meta($this->userId, self::META_NOTAS, $encoded);
+        /* 
+         * update_user_meta devuelve false si el valor no cambió, lo cual no es un error
+         * IMPORTANTE: Las notas deben cifrarse cuando E2E está activo
+         */
+        $valorGuardar = is_string($notas) ? $notas : wp_json_encode($notas, JSON_UNESCAPED_UNICODE);
+
+        /* Cifrar si el E2E está habilitado */
+        if ($this->cifradoHabilitado && $this->cifradoService !== null && !empty($valorGuardar)) {
+            try {
+                $valorGuardar = $this->cifradoService->cifrar($valorGuardar);
+            } catch (\Exception $e) {
+                error_log('[DashboardRepo] Error cifrando notas: ' . $e->getMessage());
+            }
         }
+
+        update_user_meta($this->userId, self::META_NOTAS, $valorGuardar);
         return true;
     }
 

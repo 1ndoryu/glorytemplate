@@ -8,7 +8,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.0-beta  
-**Ultima actualizacion:** 2025-12-21
+**Ultima actualizacion:** 2025-12-22
 **Estado:** Planificación de nuevas funcionalidades
 
 ---
@@ -152,8 +152,8 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Objetivo:** Asegurar que el Scratchpad sea seguro, eficiente y no abuse de recursos.
 
 **Seguridad:**
-- [ ] Verificar que el Scratchpad esté cifrado cuando E2E está activo
-- [ ] Cifrar contenido con la misma lógica de AES-256-GCM
+- [x] Verificar que el Scratchpad esté cifrado cuando E2E está activo
+- [x] Cifrar contenido con la misma lógica de AES-256-GCM
 
 **Límites de Texto:**
 - [x] Implementar límite mínimo de 20,000 caracteres
@@ -173,25 +173,25 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Objetivo:** Permitir al usuario personalizar el layout del dashboard según sus preferencias.
 
 **Columnas Redimensionables:**
-- [ ] Implementar resize handle entre columnas (arrastrar para cambiar ancho)
-- [ ] Guardar preferencias de ancho en configuración de usuario
-- [ ] Ancho mínimo y máximo por columna
+- [x] Implementar resize handle entre columnas (arrastrar para cambiar ancho)
+- [x] Guardar preferencias de ancho en configuración de usuario
+- [x] Ancho mínimo y máximo por columna
 
 **Configuración de Layout:**
-- [ ] Opción 1 columna (todo vertical)
-- [ ] Opción 2 columnas (actual)
-- [ ] Opción 3 columnas (para pantallas grandes)
-- [ ] Selector en configuración o drag & drop
+- [x] Opción 1 columna (todo vertical)
+- [x] Opción 2 columnas (actual)
+- [x] Opción 3 columnas (para pantallas grandes)
+- [x] Selector en configuración o drag & drop
 
 **Ocultar/Mostrar Paneles:**
-- [ ] Toggle para ocultar: Proyectos, Foco Prioritario, Ejecución, Scratchpad
-- [ ] Paneles ocultos aparecen en barra lateral mínima (iconos)
-- [ ] Persistir configuración de visibilidad
+- [x] Toggle para ocultar: Proyectos, Foco Prioritario, Ejecución, Scratchpad
+- [x] Paneles ocultos aparecen en barra lateral mínima (iconos)
+- [x] Persistir configuración de visibilidad
 
 **Refactorización Necesaria:**
-- [ ] Verificar que todos los componentes soporten ancho dinámico
-- [ ] CSS Grid/Flexbox adaptativo
-- [ ] Componente `LayoutManager` para orquestar
+- [x] Verificar que todos los componentes soporten ancho dinámico
+- [x] CSS Grid/Flexbox adaptativo
+- [x] Componente `LayoutManager` para orquestar
 
 ---
 

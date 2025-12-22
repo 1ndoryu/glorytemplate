@@ -36,6 +36,7 @@
 @import './shared/panelSeguridad.css';
 @import './shared/selectorBadge.css';
 @import './shared/tooltip.css';
+@import './shared/layoutManager.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';

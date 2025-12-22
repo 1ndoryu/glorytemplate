@@ -15,4 +15,5 @@ export {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
 export {ListaProyectos, FormularioProyecto} from './proyectos';
 export {ModalLogin} from './ModalLogin';
 export {PanelSeguridad} from './PanelSeguridad';
+export {ModalConfiguracionLayout} from './ModalConfiguracionLayout';
 export type {DatosFormulario} from './FormularioHabito';

@@ -17,3 +17,5 @@ export type {EstadoCifrado} from './useCifrado';
 export {useStripe} from './useStripe';
 export {useAdministracion} from './useAdministracion';
 export type {UseAdministracionReturn} from './useAdministracion';
+export {useConfiguracionLayout, ANCHO_MINIMO_COLUMNA, ANCHO_MAXIMO_COLUMNA, CONFIG_LAYOUT_DEFECTO, PRESETS_ANCHOS} from './useConfiguracionLayout';
+export type {ModoColumnas, PanelId, ConfiguracionLayout, AnchoColumnas, VisibilidadPaneles} from './useConfiguracionLayout';

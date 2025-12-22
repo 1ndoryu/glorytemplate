@@ -4,7 +4,7 @@
  * Responsabilidad única: mostrar logo, título y navegación
  */
 
-import {Shield, Settings} from 'lucide-react';
+import {Shield, Settings, LayoutGrid} from 'lucide-react';
 import {IndicadorSincronizacion, IndicadorPlan} from '../shared';
 import type {InfoSuscripcion} from '../../types/dashboard';
 
@@ -28,9 +28,10 @@ interface DashboardEncabezadoProps {
     onClickPlan?: () => void;
     onClickSeguridad?: () => void;
     onClickAdmin?: () => void;
+    onClickLayout?: () => void;
 }
 
-export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion, suscripcion, esAdmin = false, onClickPlan, onClickSeguridad, onClickAdmin}: DashboardEncabezadoProps): JSX.Element {
+export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-beta', usuario = 'user@admin', sincronizacion, suscripcion, esAdmin = false, onClickPlan, onClickSeguridad, onClickAdmin, onClickLayout}: DashboardEncabezadoProps): JSX.Element {
     const estaConectado = sincronizacion?.estaLogueado ?? false;
 
     return (
@@ -50,6 +51,11 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.0-
                 {onClickSeguridad && estaConectado && (
                     <button type="button" className="botonSeguridad" onClick={onClickSeguridad} title="Seguridad y Privacidad">
                         <Shield size={14} />
+                    </button>
+                )}
+                {onClickLayout && (
+                    <button type="button" className="botonLayout" onClick={onClickLayout} title="Configurar Layout">
+                        <LayoutGrid size={14} />
                     </button>
                 )}
                 <span className="badgeEncabezado">{version}</span>

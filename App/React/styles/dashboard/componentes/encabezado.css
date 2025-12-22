@@ -250,3 +250,29 @@
 .badgeEncabezado--admin:active {
     transform: scale(0.95);
 }
+
+/* 
+ * BOTON DE LAYOUT 
+ */
+.botonLayout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    border-radius: 2px;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.botonLayout:hover {
+    color: var(--dashboard-textoActivo);
+    border-color: var(--dashboard-bordeSutil);
+    background: var(--dashboard-fondoHover);
+}
+
+.botonLayout:active {
+    transform: scale(0.95);
+}
