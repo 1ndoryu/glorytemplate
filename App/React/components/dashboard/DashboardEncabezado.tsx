@@ -5,7 +5,7 @@
  */
 
 import {useState} from 'react';
-import {Settings, LayoutGrid, Wifi, WifiOff, RefreshCw, User, LogOut, AlertTriangle, Shield, ClipboardList, Crown, Users} from 'lucide-react';
+import {Settings, LayoutGrid, Wifi, WifiOff, RefreshCw, User, LogOut, AlertTriangle, Shield, ClipboardList, Crown, Users, Bell} from 'lucide-react';
 import {IndicadorPlan, MenuContextual} from '../shared';
 import type {InfoSuscripcion} from '../../types/dashboard';
 
@@ -28,6 +28,7 @@ interface DashboardEncabezadoProps {
     suscripcion?: InfoSuscripcion | null;
     esAdmin?: boolean;
     equiposPendientes?: number;
+    notificacionesPendientes?: number;
     onClickPlan?: () => void;
     onClickSeguridad?: () => void;
     onClickAdmin?: () => void;
@@ -35,6 +36,7 @@ interface DashboardEncabezadoProps {
     onClickVersion?: () => void;
     onClickUsuario?: () => void;
     onClickEquipos?: () => void;
+    onClickNotificaciones?: (evento: React.MouseEvent) => void;
 }
 
 interface MenuUsuarioState {
@@ -43,7 +45,7 @@ interface MenuUsuarioState {
     y: number;
 }
 
-export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta', usuario = 'user@admin', avatarUrl, sincronizacion, suscripcion, esAdmin = false, equiposPendientes = 0, onClickPlan, onClickSeguridad, onClickAdmin, onClickLayout, onClickVersion, onClickUsuario, onClickEquipos}: DashboardEncabezadoProps): JSX.Element {
+export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta', usuario = 'user@admin', avatarUrl, sincronizacion, suscripcion, esAdmin = false, equiposPendientes = 0, notificacionesPendientes = 0, onClickPlan, onClickSeguridad, onClickAdmin, onClickLayout, onClickVersion, onClickUsuario, onClickEquipos, onClickNotificaciones}: DashboardEncabezadoProps): JSX.Element {
     const estaConectado = sincronizacion?.estaLogueado ?? false;
     const [menuUsuario, setMenuUsuario] = useState<MenuUsuarioState>({visible: false, x: 0, y: 0});
 

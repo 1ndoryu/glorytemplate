@@ -72,3 +72,6 @@
 
 /* Sistema de Equipos */
 @import './componentes/equipos.css';
+
+/* Sistema de Notificaciones */
+@import './componentes/notificaciones.css';

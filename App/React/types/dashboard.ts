@@ -401,3 +401,73 @@ export interface EquipoCompleto {
     companeros: CompaneroEquipo[];
     contadores: ContadoresEquipo;
 }
+
+/*
+ * Tipos para el Sistema de Notificaciones In-App
+ */
+
+/*
+ * Tipos de notificación disponibles
+ */
+export type TipoNotificacion = 'solicitud_equipo' | 'tarea_vence_hoy' | 'tarea_asignada' | 'tarea_removida' | 'adjunto_agregado' | 'mensaje_chat' | 'habito_companero';
+
+/*
+ * Datos extra específicos por tipo de notificación
+ */
+export interface DatosExtraSolicitudEquipo {
+    solicitudId: number;
+    usuarioId: number;
+    usuarioNombre: string;
+    usuarioEmail: string;
+    usuarioAvatar: string;
+}
+
+export interface DatosExtraTareaVence {
+    tareaId: number;
+    tareaTexto: string;
+    proyectoId?: number;
+}
+
+export interface DatosExtraTareaAsignada {
+    tareaId: number;
+    tareaTexto: string;
+    asignadoPor: number;
+    asignadoPorNombre: string;
+}
+
+/*
+ * Datos extra genéricos (unión de todos los tipos específicos)
+ */
+export type DatosExtraNotificacion = DatosExtraSolicitudEquipo | DatosExtraTareaVence | DatosExtraTareaAsignada | Record<string, unknown> | null;
+
+/*
+ * Notificación individual
+ */
+export interface Notificacion {
+    id: number;
+    tipo: TipoNotificacion;
+    titulo: string;
+    contenido: string | null;
+    leida: boolean;
+    fechaCreacion: string;
+    fechaLectura: string | null;
+    datosExtra: DatosExtraNotificacion;
+}
+
+/*
+ * Paginación de notificaciones
+ */
+export interface PaginacionNotificaciones {
+    pagina: number;
+    porPagina: number;
+    totalPaginas: number;
+}
+
+/*
+ * Respuesta de listado de notificaciones
+ */
+export interface RespuestaNotificaciones {
+    notificaciones: Notificacion[];
+    total: number;
+    paginacion: PaginacionNotificaciones;
+}

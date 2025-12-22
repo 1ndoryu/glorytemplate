@@ -6,9 +6,9 @@ class Schema
 {
     /**
      * Versión actual de la base de datos
-     * v1.0.2: Añadida tabla de equipos para sistema social
+     * v1.0.3: Añadida tabla de notificaciones para sistema de alertas in-app
      */
-    public const DB_VERSION = '1.0.2';
+    public const DB_VERSION = '1.0.3';
 
     /**
      * Nombre de la opción donde guardamos la versión instalada
@@ -81,6 +81,28 @@ class Schema
             KEY estado (estado)
         ) $charset_collate;";
 
+        /* Tabla de Notificaciones (Sistema de Alertas In-App)
+         * Tipos: solicitud_equipo, tarea_vence_hoy, tarea_asignada, tarea_removida,
+         *        adjunto_agregado, mensaje_chat, habito_companero
+         */
+        $table_notificaciones = $wpdb->prefix . 'glory_notificaciones';
+        $sql_notificaciones = "CREATE TABLE $table_notificaciones (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            usuario_id bigint(20) NOT NULL,
+            tipo varchar(50) NOT NULL,
+            titulo varchar(255) NOT NULL,
+            contenido text,
+            leida tinyint(1) DEFAULT 0,
+            datos_extra longtext,
+            fecha_creacion datetime DEFAULT CURRENT_TIMESTAMP,
+            fecha_lectura datetime DEFAULT NULL,
+            PRIMARY KEY  (id),
+            KEY usuario_id (usuario_id),
+            KEY tipo (tipo),
+            KEY leida (leida),
+            KEY fecha_creacion (fecha_creacion)
+        ) $charset_collate;";
+
         /* Tabla de Tareas */
         $table_tareas = $wpdb->prefix . 'glory_tareas';
         $sql_tareas = "CREATE TABLE $table_tareas (
@@ -125,6 +147,7 @@ class Schema
 
         dbDelta($sql_habitos);
         dbDelta($sql_equipos);
+        dbDelta($sql_notificaciones);
         dbDelta($sql_tareas);
         dbDelta($sql_proyectos);
     }
