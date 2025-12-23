@@ -11,6 +11,23 @@ export interface Version {
 
 export const HISTORIAL_VERSIONES: Version[] = [
     {
+        version: 'v1.0.2-beta',
+        fecha: '2025-12-23',
+        cambios: [
+            {tipo: 'nuevo', descripcion: 'Sistema de Equipos: solicitudes, compañeros, estados pendientes'},
+            {tipo: 'nuevo', descripcion: 'Sistema de Notificaciones: alertas en tiempo real, polling automático'},
+            {tipo: 'nuevo', descripcion: 'Compartir Proyectos y Tareas con miembros del equipo'},
+            {tipo: 'nuevo', descripcion: 'Asignación de tareas a participantes específicos'},
+            {tipo: 'nuevo', descripcion: 'Límites de almacenamiento (50MB Free / 10GB Premium)'},
+            {tipo: 'nuevo', descripcion: 'Archivos físicos con cifrado para usuarios Premium'},
+            {tipo: 'nuevo', descripcion: 'Thumbnails para imágenes adjuntas'},
+            {tipo: 'nuevo', descripcion: 'Sistema de alertas personalizadas (toasts y confirmaciones)'},
+            {tipo: 'mejora', descripcion: 'Header compactado: iconos con tooltips'},
+            {tipo: 'mejora', descripcion: 'Cache de archivos descifrados (5 min TTL)'},
+            {tipo: 'arreglo', descripcion: 'Badges de solicitudes y notificaciones sincronizados'}
+        ]
+    },
+    {
         version: 'v1.0.1-beta',
         fecha: '2025-12-22',
         cambios: [
