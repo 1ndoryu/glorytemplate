@@ -49,7 +49,7 @@ export function PanelEjecucion({tareas, proyectos, proyectoIdActual, ocultarComp
                 icono={<Terminal size={12} />}
                 titulo="Ejecucion"
                 acciones={
-                    <div className="accionesEncabezadoTareas">
+                    <>
                         {handleArrastre}
                         <SelectorBadge opciones={opcionesFiltro} valorActual={valorFiltroActual} onChange={onCambiarFiltro} titulo="Filtrar tareas" />
                         <SelectorBadge opciones={opcionesOrdenTareas} valorActual={modoOrden} onChange={valor => onCambiarModoOrden(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar tareas" />
@@ -63,7 +63,7 @@ export function PanelEjecucion({tareas, proyectos, proyectoIdActual, ocultarComp
                                 <Settings size={10} />
                             </span>
                         </button>
-                    </div>
+                    </>
                 }
             />
             <ListaTareas tareas={tareas} proyectoId={proyectoIdActual} proyectos={proyectos} ocultarCompletadas={ocultarCompletadas} ocultarBadgeProyecto={ocultarBadgeProyecto} onToggleTarea={onToggleTarea} onCrearTarea={onCrearTarea} onEditarTarea={onEditarTarea} onEliminarTarea={onEliminarTarea} onReordenarTareas={esOrdenManual ? onReordenarTareas : undefined} habilitarDrag={esOrdenManual} onCompartirTarea={onCompartirTarea} estaCompartida={estaCompartida} obtenerParticipantes={obtenerParticipantes} />
