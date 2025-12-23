@@ -5,14 +5,14 @@
  */
 
 import {useState, useCallback} from 'react';
-import {Folder, Plus, ChevronDown, ChevronRight, Calendar, Edit, Trash2, PlayCircle, PauseCircle, CheckCircle, Share2, Users} from 'lucide-react';
+import {Folder, Plus, ChevronDown, ChevronRight, Calendar, Edit, Trash2, PlayCircle, PauseCircle, CheckCircle, Share2, Users, Zap} from 'lucide-react';
 import {DashboardPanel} from '../../shared/DashboardPanel';
 import {SeccionEncabezado} from '../SeccionEncabezado';
 import {ListaTareas} from '../ListaTareas';
 import {MenuContextual} from '../../shared/MenuContextual';
 import {BadgeInfo, BadgeGroup} from '../../shared/BadgeInfo';
 import {AccionesItem} from '../../shared/AccionesItem';
-import type {Proyecto, Tarea, DatosEdicionTarea} from '../../../types/dashboard';
+import type {Proyecto, Tarea, DatosEdicionTarea, NivelUrgencia} from '../../../types/dashboard';
 import type {OpcionMenu} from '../../shared/MenuContextual';
 import {obtenerTextoFechaLimite, obtenerVarianteFechaLimite, formatearFechaCorta} from '../../../utils/fecha';
 
@@ -70,6 +70,20 @@ function ProyectoItem({proyecto, activo, tareasProyecto, estaCompartido = false,
     const textoFecha = obtenerTextoFechaLimite(proyecto.fechaLimite);
     const varianteFecha = obtenerVarianteFechaLimite(proyecto.fechaLimite);
 
+    /* Obtener variante de urgencia para badge */
+    const obtenerVarianteUrgencia = (urgencia: NivelUrgencia): 'urgenciaBloqueante' | 'urgenciaUrgente' | 'urgenciaChill' | 'normal' => {
+        switch (urgencia) {
+            case 'bloqueante':
+                return 'urgenciaBloqueante';
+            case 'urgente':
+                return 'urgenciaUrgente';
+            case 'chill':
+                return 'urgenciaChill';
+            default:
+                return 'normal';
+        }
+    };
+
     return (
         <div className={`proyectoItemWrapper ${activo ? 'proyectoItemWrapperActivo' : ''}`}>
             <div className={`proyectoItem ${activo ? 'proyectoItemActivo' : ''}`} onClick={onToggle} onContextMenu={onContextMenu} onMouseEnter={() => setMostrarAcciones(true)} onMouseLeave={() => setMostrarAcciones(false)}>
@@ -79,6 +93,8 @@ function ProyectoItem({proyecto, activo, tareasProyecto, estaCompartido = false,
                     <span className="proyectoNombre">{proyecto.nombre}</span>
                     <div className="proyectoMeta">
                         <span className={`etiquetaPrioridad etiqueta${proyecto.prioridad.charAt(0).toUpperCase() + proyecto.prioridad.slice(1)}`}>{proyecto.prioridad.toUpperCase()}</span>
+                        {/* Badge de urgencia (si no es normal) */}
+                        {proyecto.urgencia && proyecto.urgencia !== 'normal' && <BadgeInfo tipo="personalizado" icono={<Zap size={10} />} texto={proyecto.urgencia.toUpperCase()} variante={obtenerVarianteUrgencia(proyecto.urgencia)} titulo={`Urgencia: ${proyecto.urgencia}`} />}
                         <span>•</span>
                         <span>{totalTareas > 0 ? `${tareasCompletadas}/${totalTareas}` : 'Sin tareas'}</span>
 

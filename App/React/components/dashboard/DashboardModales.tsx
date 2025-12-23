@@ -94,6 +94,7 @@ export function DashboardModales({ctx}: DashboardModalesProps): JSX.Element {
                             nombre: modales.proyectoEditando.nombre,
                             descripcion: modales.proyectoEditando.descripcion,
                             prioridad: modales.proyectoEditando.prioridad,
+                            urgencia: modales.proyectoEditando.urgencia,
                             fechaLimite: modales.proyectoEditando.fechaLimite
                         }}
                         modoEdicion

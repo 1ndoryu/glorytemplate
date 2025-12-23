@@ -5,13 +5,14 @@
  */
 
 import {useCallback} from 'react';
-import type {Proyecto, NivelPrioridad} from '../types/dashboard';
+import type {Proyecto, NivelPrioridad, NivelUrgencia} from '../types/dashboard';
 import {obtenerFechaHoy} from '../utils/fecha';
 
 export interface DatosNuevoProyecto {
     nombre: string;
     descripcion?: string;
     prioridad: NivelPrioridad;
+    urgencia?: NivelUrgencia;
     fechaLimite?: string;
 }
 
@@ -43,6 +44,7 @@ export function useProyectos({proyectos, setProyectos, registrarAccion, mostrarM
                 nombre: datos.nombre,
                 descripcion: datos.descripcion,
                 prioridad: datos.prioridad,
+                urgencia: datos.urgencia || 'normal',
                 fechaLimite: datos.fechaLimite,
                 estado: 'activo',
                 fechaCreacion: hoy,

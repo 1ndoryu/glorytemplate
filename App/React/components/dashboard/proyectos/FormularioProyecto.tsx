@@ -7,9 +7,9 @@
  */
 
 import {useState, useCallback} from 'react';
-import type {NivelPrioridad} from '../../../types/dashboard';
+import type {NivelPrioridad, NivelUrgencia} from '../../../types/dashboard';
 import type {DatosNuevoProyecto} from '../../../hooks/useProyectos';
-import {AccionesFormulario, CampoTexto, CampoPrioridad, CampoFechaLimite} from '../../shared';
+import {AccionesFormulario, CampoTexto, CampoPrioridad, CampoUrgencia, CampoFechaLimite} from '../../shared';
 
 interface FormularioProyectoProps {
     onGuardar: (datos: DatosNuevoProyecto) => void;
@@ -24,6 +24,7 @@ export function FormularioProyecto({onGuardar, onCancelar, onEliminar, datosInic
     const [nombre, setNombre] = useState(datosIniciales?.nombre || '');
     const [descripcion, setDescripcion] = useState(datosIniciales?.descripcion || '');
     const [prioridad, setPrioridad] = useState<NivelPrioridad>(datosIniciales?.prioridad || 'media');
+    const [urgencia, setUrgencia] = useState<NivelUrgencia | null>(datosIniciales?.urgencia || null);
     const [fechaLimite, setFechaLimite] = useState(datosIniciales?.fechaLimite || '');
     const [errores, setErrores] = useState<{nombre?: string}>({});
 
@@ -49,6 +50,7 @@ export function FormularioProyecto({onGuardar, onCancelar, onEliminar, datosInic
             nombre: nombre.trim(),
             descripcion: descripcion.trim() || undefined,
             prioridad,
+            urgencia: urgencia || undefined,
             fechaLimite: fechaLimite || undefined
         });
     };
@@ -63,6 +65,9 @@ export function FormularioProyecto({onGuardar, onCancelar, onEliminar, datosInic
 
             {/* Campo Prioridad - Campo reutilizable */}
             <CampoPrioridad<NivelPrioridad> tipo="prioridad" valor={prioridad} onChange={val => setPrioridad(val || 'media')} permitirNulo={false} disabled={guardando} />
+
+            {/* Campo Urgencia - Campo reutilizable */}
+            <CampoUrgencia valor={urgencia} onChange={setUrgencia} permitirNulo={true} disabled={guardando} />
 
             {/* Campo Fecha Limite - Campo reutilizable */}
             <CampoFechaLimite titulo="Fecha limite (opcional)" valor={fechaLimite} onChange={setFechaLimite} mostrarBotonLimpiar={true} disabled={guardando} />
