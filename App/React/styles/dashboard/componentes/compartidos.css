@@ -1,0 +1,513 @@
+/* 
+ * Estilos para el sistema de compartidos
+ * Incluye: SelectorCompaneros, ListaParticipantes, ModalCompartir
+ */
+
+/* 
+ *
+ * Modal Compartir
+ *
+ */
+
+.modalCompartirContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+}
+
+.modalCompartirElemento {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoPrincipal);
+    border-radius: 2px;
+    font-weight: 500;
+    color: var(--dashboard-textoActivo);
+}
+
+.modalCompartirElemento svg {
+    color: var(--dashboard-textoSecundario);
+    flex-shrink: 0;
+}
+
+.modalCompartirAdvertencia {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd);
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 2px;
+}
+
+.modalCompartirAdvertencia svg {
+    color: #ffc107;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.modalCompartirAdvertencia strong {
+    display: block;
+    color: #ffc107;
+    margin-bottom: var(--dashboard-espacioXs);
+}
+
+.modalCompartirAdvertencia p {
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoBase);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.modalCompartirSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+}
+
+.modalCompartirSeccion h4 {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--dashboard-textoApagado);
+    margin: 0;
+    padding-bottom: var(--dashboard-espacioXs);
+    border-bottom: 1px solid var(--dashboard-bordeSutil);
+}
+
+.modalCompartirCargando {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioLg);
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoBase);
+}
+
+.modalCompartirError {
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: var(--dashboard-estadoAltaFondo);
+    border: 1px solid var(--dashboard-estadoAltaBorde);
+    border-radius: 2px;
+    color: var(--dashboard-estadoAlta);
+    font-size: var(--dashboard-tamanoBase);
+}
+
+.modalCompartirAcciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--dashboard-espacioSm);
+    padding-top: var(--dashboard-espacioMd);
+    border-top: 1px solid var(--dashboard-bordeSutil);
+}
+
+.modalCompartirAcciones button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-weight: 500;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.modalCompartirAcciones .botonSecundario {
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoSecundario);
+}
+
+.modalCompartirAcciones .botonSecundario:hover:not(:disabled) {
+    border-color: var(--dashboard-textoActivo);
+    color: var(--dashboard-textoActivo);
+}
+
+.modalCompartirAcciones .botonPrimario {
+    background: var(--dashboard-textoActivo);
+    border: 1px solid var(--dashboard-textoActivo);
+    color: var(--dashboard-fondoPrincipal);
+}
+
+.modalCompartirAcciones .botonPrimario:hover:not(:disabled) {
+    background: #fff;
+}
+
+.modalCompartirAcciones .botonPrimario:disabled,
+.modalCompartirAcciones .botonSecundario:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 
+ *
+ * Selector de Companeros
+ *
+ */
+
+.selectorCompaneros {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+}
+
+.selectorCompanerosVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioXl) var(--dashboard-espacioLg);
+    text-align: center;
+    background: var(--dashboard-fondoSecundario);
+    border-radius: 4px;
+    border: 1px dashed var(--dashboard-bordeSutil);
+}
+
+.selectorCompanerosVacio svg {
+    opacity: 0.4;
+    color: var(--dashboard-textoApagado);
+}
+
+.selectorCompanerosVacio p {
+    margin: 0;
+    font-weight: 600;
+    font-size: var(--dashboard-tamanoBase);
+    color: var(--dashboard-textoActivo);
+}
+
+.selectorCompanerosVacio span {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+    line-height: 1.5;
+    max-width: 280px;
+}
+
+.selectorCompanerosLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioXs);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.selectorCompaneroItem {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color var(--dashboard-transicionNormal);
+    border: 1px solid transparent;
+}
+
+.selectorCompaneroItem:hover {
+    background: var(--dashboard-fondoHover);
+}
+
+.selectorCompaneroItemActivo {
+    background: rgba(100, 100, 100, 0.15);
+    border-color: var(--dashboard-textoApagado);
+}
+
+.selectorCompaneroAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.selectorCompaneroInfo {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.selectorCompaneroNombre {
+    font-weight: 500;
+    color: var(--dashboard-textoActivo);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.selectorCompaneroEmail {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.selectorCompaneroCheck {
+    color: var(--dashboard-estadoExito);
+    flex-shrink: 0;
+}
+
+.selectorRolContainer {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoPrincipal);
+    border-radius: 2px;
+}
+
+.selectorRolTitulo {
+    font-size: var(--dashboard-tamanoBase);
+    color: var(--dashboard-textoSecundario);
+    font-weight: 500;
+}
+
+.selectorRolOpciones {
+    display: flex;
+    gap: var(--dashboard-espacioXs);
+}
+
+.selectorRolOpcion {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: 2px;
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoPequeno);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.selectorRolOpcion:hover {
+    border-color: var(--dashboard-textoApagado);
+    color: var(--dashboard-textoActivo);
+}
+
+.selectorRolOpcionActiva {
+    background: var(--dashboard-textoApagado);
+    border-color: var(--dashboard-textoApagado);
+    color: white;
+}
+
+/* 
+ *
+ * Lista de Participantes
+ *
+ */
+
+.listaParticipantes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioXs);
+}
+
+.listaParticipantesVacia {
+    padding: var(--dashboard-espacioMd);
+    text-align: center;
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoBase);
+}
+
+.participanteItem {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoPrincipal);
+    border-radius: 2px;
+    transition: background-color var(--dashboard-transicionNormal);
+}
+
+.participanteItem:hover {
+    background: var(--dashboard-fondoHover);
+}
+
+.participanteItemPropietario {
+    background: rgba(100, 100, 100, 0.08);
+}
+
+.participanteAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.participanteInfo {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.participanteNombre {
+    font-weight: 500;
+    color: var(--dashboard-textoActivo);
+    font-size: var(--dashboard-tamanoBase);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.participanteEmail {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.participanteRolContainer {
+    flex-shrink: 0;
+}
+
+.participanteRolBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: 2px var(--dashboard-espacioSm);
+    background: var(--dashboard-fondoSecundario);
+    border-radius: 2px;
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+}
+
+.participanteRolPropietario {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+}
+
+.participanteRolSelector {
+    position: relative;
+}
+
+.participanteRolBoton {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: 2px var(--dashboard-espacioSm);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: 2px;
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+}
+
+.participanteRolBoton:hover {
+    border-color: var(--dashboard-textoApagado);
+    color: var(--dashboard-textoActivo);
+}
+
+.participanteRolMenu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 2px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    min-width: 120px;
+    overflow: hidden;
+}
+
+.participanteRolOpcion {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    width: 100%;
+    padding: var(--dashboard-espacioSm);
+    background: none;
+    border: none;
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+    cursor: pointer;
+    transition: background-color var(--dashboard-transicionNormal);
+    text-align: left;
+}
+
+.participanteRolOpcion:hover {
+    background: var(--dashboard-fondoHover);
+    color: var(--dashboard-textoActivo);
+}
+
+.participanteRolOpcionActiva {
+    color: var(--dashboard-estadoExito);
+}
+
+.participanteEliminar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--dashboard-espacioXs);
+    background: none;
+    border: none;
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all var(--dashboard-transicionNormal);
+    opacity: 0;
+}
+
+.participanteItem:hover .participanteEliminar {
+    opacity: 1;
+}
+
+.participanteEliminar:hover {
+    background: var(--dashboard-estadoAltaFondo);
+    color: var(--dashboard-estadoAlta);
+}
+
+/* 
+ *
+ * Badge de compartido (para usar en proyectos/tareas)
+ *
+ */
+
+.badgeCompartido {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    background: rgba(100, 100, 100, 0.2);
+    border-radius: 2px;
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+}
+
+.badgeCompartido svg {
+    flex-shrink: 0;
+}
+
+/* 
+ *
+ * Animacion de giro
+ *
+ */
+
+@keyframes girar {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.girando {
+    animation: girar 1s linear infinite;
+}

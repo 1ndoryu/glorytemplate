@@ -4,7 +4,7 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
-import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder} from 'lucide-react';
+import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder, Share2, Users} from 'lucide-react';
 import type {Tarea, NivelPrioridad, DatosEdicionTarea, TareaConfiguracion} from '../../types/dashboard';
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
 import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
@@ -20,9 +20,9 @@ export interface TareaItemProps {
     esSubtarea?: boolean;
     onIndent?: () => void;
     onOutdent?: () => void;
-    /* Crear nueva tarea debajo (hereda parentId si es subtarea, tareaActualId para posición) */
+    /* Crear nueva tarea debajo (hereda parentId si es subtarea, tareaActualId para posicion) */
     onCrearNueva?: (parentId: number | undefined, tareaActualId: number) => void;
-    /* Abrir panel de configuración */
+    /* Abrir panel de configuracion */
     onConfigurar?: () => void;
     /* Nombre del proyecto al que pertenece (opcional) */
     nombreProyecto?: string;
@@ -30,6 +30,10 @@ export interface TareaItemProps {
     soloIconoProyecto?: boolean;
     /* Mover tarea a otro proyecto */
     onMoverProyecto?: () => void;
+    /* Compartir tarea con companeros */
+    onCompartir?: () => void;
+    /* Indica si la tarea esta siendo compartida */
+    estaCompartida?: boolean;
 }
 
 export interface MenuContextualEstado {
@@ -38,7 +42,7 @@ export interface MenuContextualEstado {
     y: number;
 }
 
-export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto}: TareaItemProps): JSX.Element {
+export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir, estaCompartida = false}: TareaItemProps): JSX.Element {
     const [mostrarAcciones, setMostrarAcciones] = useState(false);
     const [editando, setEditando] = useState(false);
     const [textoEditado, setTextoEditado] = useState(tarea.texto);
@@ -137,13 +141,15 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                 onEditar?.({prioridad: null});
             } else if (opcionId === 'mover-proyecto') {
                 onMoverProyecto?.();
+            } else if (opcionId === 'compartir') {
+                onCompartir?.();
             } else if (['alta', 'media', 'baja'].includes(opcionId)) {
                 onEditar?.({
                     prioridad: opcionId as NivelPrioridad
                 });
             }
         },
-        [onEliminar, onEditar, onConfigurar, onMoverProyecto]
+        [onEliminar, onEditar, onConfigurar, onMoverProyecto, onCompartir]
     );
 
     /* Opciones del menu contextual */
@@ -153,6 +159,11 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
             etiqueta: 'Configurar tarea',
             icono: <Settings size={12} />,
             separadorDespues: true
+        },
+        {
+            id: 'compartir',
+            etiqueta: 'Compartir tarea',
+            icono: <Share2 size={12} />
         },
         {
             id: 'mover-proyecto',
@@ -276,6 +287,7 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                             {renderBadgeAdjuntos()}
                             {renderBadgeDescripcion()}
                             {renderBadgeRepeticion()}
+                            {estaCompartida && <BadgeInfo tipo="personalizado" icono={<Users size={10} />} titulo="Tarea compartida" variante="normal" />}
                             {nombreProyecto && <BadgeInfo tipo="personalizado" icono={<Folder size={10} />} texto={soloIconoProyecto ? undefined : nombreProyecto} titulo={`Proyecto: ${nombreProyecto}`} variante="normal" />}
                             {renderIndicadorPrioridad()}
                         </BadgeGroup>

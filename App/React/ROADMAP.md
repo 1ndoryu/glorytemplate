@@ -548,32 +548,63 @@ glory-adjuntos/
 
 ---
 
-### Fase 4: Compartir Tareas y Proyectos
+### Fase 4: Compartir Tareas y Proyectos [EN PROGRESO]
 
 **Objetivo:** Colaboración en tareas/proyectos con miembros del equipo.
 
-#### 4.1 Infraestructura de Compartir
-- [ ] Tabla BD: `wp_glory_compartidos` (id, tipo, elemento_id, usuario_id, rol, fecha)
-- [ ] Tipos: `tarea`, `proyecto`, `habito`
-- [ ] Roles: `propietario`, `colaborador`, `observador`
+#### 4.1 Infraestructura de Compartir ✅
+- [x] Tabla BD: `wp_glory_compartidos` (id, tipo, elemento_id, propietario_id, usuario_id, rol, fecha)
+- [x] Tipos: `tarea`, `proyecto`, `habito`
+- [x] Roles: `propietario` (implícito), `colaborador`, `observador`
+- [x] `CompartidosService.php` con métodos CRUD y verificación de permisos
+- [x] `CompartidosApiController.php` con endpoints REST
+- [x] Hook `useCompartidos.ts` para gestión frontend
+- [x] Tipos TypeScript en `dashboard.ts`
+- [x] Notificación automática al compartir (`elemento_compartido`)
+- [x] Componentes UI: `ModalCompartir`, `SelectorCompaneros`, `ListaParticipantes`
+- [x] Estilos CSS: `compartidos.css`
 
-#### 4.2 Compartir Proyectos
-- [ ] Al compartir proyecto → invitado ve TODAS las tareas del proyecto
-- [ ] Selector de compañeros en modal de proyecto
-- [ ] Badge visual de "Compartido" en proyecto
-- [ ] Lista de participantes visible
+**Archivos creados:**
+- `App/Database/Schema.php` - Actualizado v1.0.4, tabla `wp_glory_compartidos`
+- `App/Services/CompartidosService.php` - Lógica de negocio
+- `App/Api/CompartidosApiController.php` - Endpoints REST
+- `App/React/hooks/useCompartidos.ts` - Hook de React
+- `App/React/types/dashboard.ts` - Tipos actualizados
+- `App/React/components/compartidos/` - Componentes UI
+  - `ModalCompartir.tsx` - Modal principal para compartir
+  - `SelectorCompaneros.tsx` - Selector de compañeros con roles
+  - `ListaParticipantes.tsx` - Lista de participantes con gestión
+  - `index.ts` - Exportaciones
+- `App/React/styles/dashboard/componentes/compartidos.css` - Estilos
 
-#### 4.3 Compartir Tareas Individuales
-- [ ] Opción en menú contextual: "Compartir tarea"
-- [ ] Selector de compañeros (solo de tu equipo)
+**Endpoints disponibles:**
+- `POST /glory/v1/compartidos` - Compartir elemento
+- `GET /glory/v1/compartidos` - Elementos compartidos conmigo
+- `GET /glory/v1/compartidos/mis` - Lo que yo he compartido
+- `GET /glory/v1/compartidos/participantes/{tipo}/{id}` - Participantes
+- `PUT /glory/v1/compartidos/{id}/rol` - Actualizar rol
+- `DELETE /glory/v1/compartidos/{id}` - Dejar de compartir
+- `GET /glory/v1/compartidos/contadores` - Contadores para badges
+- `GET /glory/v1/compartidos/acceso/{tipo}/{id}/{propietarioId}` - Verificar acceso
+
+#### 4.2 Compartir Proyectos [EN PROGRESO]
+- [ ] Al compartir proyecto → invitado ve TODAS las tareas del proyecto (requiere modificar sync)
+- [x] Selector de compañeros en modal de proyecto
+- [x] Badge visual de "Compartido" en proyecto
+- [x] Lista de participantes visible (en ModalCompartir)
+- [x] Integrar `ModalCompartir` en menú contextual de proyectos
+
+#### 4.3 Compartir Tareas Individuales [EN PROGRESO]
+- [x] Opción en menú contextual: "Compartir tarea"
+- [x] Selector de compañeros (solo de tu equipo) - reutiliza ModalCompartir
 - [ ] Subtareas incluidas automáticamente
-- [ ] Badge visual de "Compartida" en tarea
-- [ ] Notificación al compartir/quitar
+- [x] Badge visual de "Compartida" en tarea
+- [x] Notificación al compartir/quitar (ya implementado en backend)
 
 #### 4.4 Cifrado y Privacidad
 > Las tareas/proyectos compartidos pierden cifrado E2E individual.
 
-- [ ] Advertencia antes de compartir: *"Al compartir, el cifrado E2E se desactivará para este elemento"*
+- [x] Advertencia antes de compartir: *"Al compartir, el cifrado E2E se desactivará para este elemento"* (UI en ModalCompartir)
 - [ ] Usar sistema de alertas personalizadas (Fase 0)
 - [ ] Campo `cifrado_compartido: false` en elementos compartidos
 - [ ] Tareas NO compartidas permanecen cifradas normalmente
@@ -705,17 +736,17 @@ glory-adjuntos/
 
 ## 📋 Resumen de Fases
 
-| Fase | Nombre                         | Complejidad | Estado       |
-| ---- | ------------------------------ | ----------- | ------------ |
-| 0    | Preparación (Alertas + Header) | Baja-Media  | ✅ Completada |
-| 1    | Almacenamiento                 | Media       | ✅ Completada |
-| 1.5  | Archivos Físicos + Cifrado     | Alta        | ✅ Completada |
-| 2    | Sistema de Equipos             | Alta        | ✅ Completada |
-| 3    | Notificaciones                 | Alta        | ✅ Completada |
-| 4    | Compartir Tareas/Proyectos     | Muy Alta    | Pendiente    |
-| 5    | Compartir Hábitos              | Media       | Pendiente    |
-| 6    | Modal Chat + Historial         | Muy Alta    | Pendiente    |
-| 7    | Futuro                         | Variable    | Pendiente    |
+| Fase | Nombre                         | Complejidad | Estado        |
+| ---- | ------------------------------ | ----------- | ------------- |
+| 0    | Preparación (Alertas + Header) | Baja-Media  | ✅ Completada  |
+| 1    | Almacenamiento                 | Media       | ✅ Completada  |
+| 1.5  | Archivos Físicos + Cifrado     | Alta        | ✅ Completada  |
+| 2    | Sistema de Equipos             | Alta        | ✅ Completada  |
+| 3    | Notificaciones                 | Alta        | ✅ Completada  |
+| 4    | Compartir Tareas/Proyectos     | Muy Alta    | ⏳ En Progreso |
+| 5    | Compartir Hábitos              | Media       | Pendiente     |
+| 6    | Modal Chat + Historial         | Muy Alta    | Pendiente     |
+| 7    | Futuro                         | Variable    | Pendiente     |
 
 ---
 

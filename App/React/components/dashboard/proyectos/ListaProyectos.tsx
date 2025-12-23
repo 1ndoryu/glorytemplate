@@ -5,7 +5,7 @@
  */
 
 import {useState, useCallback} from 'react';
-import {Folder, Plus, ChevronDown, ChevronRight, Calendar, Edit, Trash2, PlayCircle, PauseCircle, CheckCircle} from 'lucide-react';
+import {Folder, Plus, ChevronDown, ChevronRight, Calendar, Edit, Trash2, PlayCircle, PauseCircle, CheckCircle, Share2, Users} from 'lucide-react';
 import {DashboardPanel} from '../../shared/DashboardPanel';
 import {SeccionEncabezado} from '../SeccionEncabezado';
 import {ListaTareas} from '../ListaTareas';
@@ -32,6 +32,8 @@ interface ListaProyectosProps {
     onEditarProyecto?: (proyecto: Proyecto) => void;
     onEliminarProyecto?: (id: number) => void;
     onCambiarEstadoProyecto?: (id: number, estado: 'activo' | 'completado' | 'pausado') => void;
+    onCompartirProyecto?: (proyecto: Proyecto) => void;
+    estaCompartido?: (proyectoId: number) => boolean;
     onToggleTarea: (id: number) => void;
     onCrearTarea: (datos: DatosEdicionTarea) => void;
     onEditarTarea: (id: number, datos: DatosEdicionTarea) => void;
@@ -46,6 +48,7 @@ interface ProyectoItemProps {
     proyecto: Proyecto;
     activo: boolean;
     tareasProyecto: Tarea[];
+    estaCompartido?: boolean;
     onToggle: () => void;
     onEditar?: () => void;
     onEliminar?: () => void;
@@ -58,7 +61,7 @@ interface ProyectoItemProps {
     mostrarProgreso?: boolean;
 }
 
-function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onEliminar, onContextMenu, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, mostrarProgreso = true}: ProyectoItemProps): JSX.Element {
+function ProyectoItem({proyecto, activo, tareasProyecto, estaCompartido = false, onToggle, onEditar, onEliminar, onContextMenu, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, mostrarProgreso = true}: ProyectoItemProps): JSX.Element {
     const [mostrarAcciones, setMostrarAcciones] = useState(false);
     const tareasCompletadas = tareasProyecto.filter(t => t.completado).length;
     const totalTareas = tareasProyecto.length;
@@ -78,6 +81,16 @@ function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onE
                         <span className={`etiquetaPrioridad etiqueta${proyecto.prioridad.charAt(0).toUpperCase() + proyecto.prioridad.slice(1)}`}>{proyecto.prioridad.toUpperCase()}</span>
                         <span>•</span>
                         <span>{totalTareas > 0 ? `${tareasCompletadas}/${totalTareas}` : 'Sin tareas'}</span>
+
+                        {/* Badge de compartido */}
+                        {estaCompartido && (
+                            <>
+                                <span>•</span>
+                                <span className="badgeCompartido" title="Proyecto compartido">
+                                    <Users size={10} />
+                                </span>
+                            </>
+                        )}
 
                         {/* Badge de fecha limite con urgencia */}
                         {proyecto.fechaLimite && (
@@ -113,7 +126,7 @@ function ProyectoItem({proyecto, activo, tareasProyecto, onToggle, onEditar, onE
     );
 }
 
-export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSeleccionarProyecto, proyectoSeleccionadoId, onEditarProyecto, onEliminarProyecto, onCambiarEstadoProyecto, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, ocultarCompletados = false, ordenDefecto = 'fecha', mostrarProgreso = true}: ListaProyectosProps): JSX.Element {
+export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSeleccionarProyecto, proyectoSeleccionadoId, onEditarProyecto, onEliminarProyecto, onCambiarEstadoProyecto, onCompartirProyecto, estaCompartido, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, ocultarCompletados = false, ordenDefecto = 'fecha', mostrarProgreso = true}: ListaProyectosProps): JSX.Element {
     const [menuContexto, setMenuContexto] = useState<MenuContextoProyecto>({visible: false, x: 0, y: 0, proyectoId: null});
 
     /* Toggle: si ya está seleccionado, deseleccionar */
@@ -143,7 +156,10 @@ export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSelecciona
         const proyecto = proyectos.find(p => p.id === menuContexto.proyectoId);
         if (!proyecto) return [];
 
-        const opciones: OpcionMenu[] = [{id: 'editar', etiqueta: 'Editar proyecto', icono: <Edit size={14} />, separadorDespues: true}];
+        const opciones: OpcionMenu[] = [
+            {id: 'editar', etiqueta: 'Editar proyecto', icono: <Edit size={14} />},
+            {id: 'compartir', etiqueta: 'Compartir proyecto', icono: <Share2 size={14} />, separadorDespues: true}
+        ];
 
         /* Opciones de estado segun el estado actual */
         if (proyecto.estado !== 'activo') {
@@ -174,6 +190,9 @@ export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSelecciona
                 case 'editar':
                     onEditarProyecto?.(proyecto);
                     break;
+                case 'compartir':
+                    onCompartirProyecto?.(proyecto);
+                    break;
                 case 'eliminar':
                     onEliminarProyecto?.(proyecto.id);
                     break;
@@ -189,7 +208,7 @@ export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSelecciona
             }
             cerrarMenuContexto();
         },
-        [menuContexto.proyectoId, proyectos, onEditarProyecto, onEliminarProyecto, onCambiarEstadoProyecto, cerrarMenuContexto]
+        [menuContexto.proyectoId, proyectos, onEditarProyecto, onEliminarProyecto, onCambiarEstadoProyecto, onCompartirProyecto, cerrarMenuContexto]
     );
 
     return (
@@ -213,7 +232,8 @@ export function ListaProyectos({proyectos, tareas, onCrearProyecto, onSelecciona
                         })
                         .map(proyecto => {
                             const tareasProyecto = tareas.filter(t => t.proyectoId === proyecto.id);
-                            return <ProyectoItem key={proyecto.id} proyecto={proyecto} activo={proyecto.id === proyectoSeleccionadoId} tareasProyecto={tareasProyecto} onToggle={() => toggleProyecto(proyecto.id)} onEditar={() => onEditarProyecto?.(proyecto)} onEliminar={() => onEliminarProyecto?.(proyecto.id)} onContextMenu={e => manejarContextMenu(e, proyecto.id)} onToggleTarea={onToggleTarea} onCrearTarea={onCrearTarea} onEditarTarea={onEditarTarea} onEliminarTarea={onEliminarTarea} onReordenarTareas={onReordenarTareas} mostrarProgreso={mostrarProgreso} />;
+                            const proyectoCompartido = estaCompartido?.(proyecto.id) ?? false;
+                            return <ProyectoItem key={proyecto.id} proyecto={proyecto} activo={proyecto.id === proyectoSeleccionadoId} tareasProyecto={tareasProyecto} estaCompartido={proyectoCompartido} onToggle={() => toggleProyecto(proyecto.id)} onEditar={() => onEditarProyecto?.(proyecto)} onEliminar={() => onEliminarProyecto?.(proyecto.id)} onContextMenu={e => manejarContextMenu(e, proyecto.id)} onToggleTarea={onToggleTarea} onCrearTarea={onCrearTarea} onEditarTarea={onEditarTarea} onEliminarTarea={onEliminarTarea} onReordenarTareas={onReordenarTareas} mostrarProgreso={mostrarProgreso} />;
                         })}
 
                     {proyectos.length === 0 && (

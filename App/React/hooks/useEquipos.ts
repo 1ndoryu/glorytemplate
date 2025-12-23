@@ -260,6 +260,8 @@ export function useEquipos() {
      * Carga inicial y polling para actualizar el badge en tiempo real
      */
     useEffect(() => {
+        /* Cargar equipo completo al inicio para tener los compañeros disponibles */
+        cargarEquipo();
         contarPendientes();
 
         intervalRef.current = setInterval(() => {
@@ -271,7 +273,7 @@ export function useEquipos() {
                 clearInterval(intervalRef.current);
             }
         };
-    }, [contarPendientes]);
+    }, [cargarEquipo, contarPendientes]);
 
     return {
         /* Estado */

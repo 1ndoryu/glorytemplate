@@ -409,7 +409,7 @@ export interface EquipoCompleto {
 /*
  * Tipos de notificación disponibles
  */
-export type TipoNotificacion = 'solicitud_equipo' | 'solicitud_aceptada' | 'tarea_vence_hoy' | 'tarea_asignada' | 'tarea_removida' | 'adjunto_agregado' | 'mensaje_chat' | 'habito_companero';
+export type TipoNotificacion = 'solicitud_equipo' | 'solicitud_aceptada' | 'tarea_vence_hoy' | 'tarea_asignada' | 'tarea_removida' | 'adjunto_agregado' | 'mensaje_chat' | 'habito_companero' | 'elemento_compartido';
 
 /*
  * Datos extra específicos por tipo de notificación
@@ -470,4 +470,93 @@ export interface RespuestaNotificaciones {
     notificaciones: Notificacion[];
     total: number;
     paginacion: PaginacionNotificaciones;
+}
+
+/*
+ * Tipos para el Sistema de Compartidos (Colaboración)
+ */
+
+/*
+ * Tipos de elemento que pueden compartirse
+ */
+export type TipoElementoCompartido = 'tarea' | 'proyecto' | 'habito';
+
+/*
+ * Roles de usuario en un elemento compartido
+ * propietario: Control total (solo el creador original)
+ * colaborador: Puede editar pero no eliminar
+ * observador: Solo lectura
+ */
+export type RolCompartido = 'propietario' | 'colaborador' | 'observador';
+
+/*
+ * Elemento compartido conmigo (lo veo en mi dashboard)
+ */
+export interface ElementoCompartidoConmigo {
+    id: number;
+    tipo: TipoElementoCompartido;
+    elementoId: number;
+    propietarioId: number;
+    propietarioNombre: string;
+    propietarioEmail: string;
+    propietarioAvatar: string;
+    rol: RolCompartido;
+    fechaCompartido: string;
+}
+
+/*
+ * Elemento que yo he compartido con alguien
+ */
+export interface ElementoCompartidoPorMi {
+    id: number;
+    tipo: TipoElementoCompartido;
+    elementoId: number;
+    usuarioId: number;
+    usuarioNombre: string;
+    usuarioEmail: string;
+    usuarioAvatar: string;
+    rol: RolCompartido;
+    fechaCompartido: string;
+}
+
+/*
+ * Participante de un elemento compartido
+ */
+export interface Participante {
+    id: number;
+    usuarioId: number;
+    nombre: string;
+    email: string;
+    avatar: string;
+    rol: RolCompartido;
+    esPropietario: boolean;
+}
+
+/*
+ * Permisos de acceso a un elemento
+ */
+export interface PermisosAcceso {
+    rol: RolCompartido;
+    puedeEditar: boolean;
+    puedeEliminar: boolean;
+}
+
+/*
+ * Contadores de elementos compartidos
+ */
+export interface ContadoresCompartidos {
+    tareas: number;
+    proyectos: number;
+    habitos: number;
+    total: number;
+}
+
+/*
+ * Datos para compartir un elemento
+ */
+export interface DatosCompartir {
+    tipo: TipoElementoCompartido;
+    elementoId: number;
+    usuarioId: number;
+    rol?: RolCompartido;
 }

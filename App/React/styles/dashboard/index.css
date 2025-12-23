@@ -75,3 +75,6 @@
 
 /* Sistema de Notificaciones */
 @import './componentes/notificaciones.css';
+
+/* Sistema de Compartidos */
+@import './componentes/compartidos.css';

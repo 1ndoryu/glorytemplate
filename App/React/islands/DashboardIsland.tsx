@@ -28,14 +28,16 @@ import {useConfiguracionScratchpad} from '../hooks/useConfiguracionScratchpad';
 import {useArrastrePaneles} from '../hooks/useArrastrePaneles';
 import {useEquipos} from '../hooks/useEquipos';
 import {useNotificaciones} from '../hooks/useNotificaciones';
+import {useCompartidos} from '../hooks/useCompartidos';
 import {ModalNotificaciones} from '../components/notificaciones';
+import {ModalCompartir} from '../components/compartidos';
 import {ModalExperimentos} from '../components/experimentos/ModalExperimentos';
 import type {AccionExperimento} from '../components/experimentos/ModalExperimentos';
 import {useAlertasContext} from '../context/AlertasContext';
 import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
 import {ModalConfiguracionHabitos} from '../components/dashboard/ModalConfiguracionHabitos';
 import {ModalConfiguracionScratchpad} from '../components/dashboard/ModalConfiguracionScratchpad';
-import type {Proyecto, TareaConfiguracion, NivelPrioridad} from '../types/dashboard';
+import type {Proyecto, Tarea, TareaConfiguracion, NivelPrioridad, RolCompartido, Participante} from '../types/dashboard';
 import {Bell} from 'lucide-react';
 import '../styles/dashboard/componentes/experimentos.css';
 
@@ -88,6 +90,13 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
     /* Equipos (Social) */
     const equipos = useEquipos();
     const [modalEquiposAbierto, setModalEquiposAbierto] = useState(false);
+
+    /* Compartidos */
+    const compartidos = useCompartidos();
+    const [proyectoCompartiendo, setProyectoCompartiendo] = useState<Proyecto | null>(null);
+    const [participantesProyecto, setParticipantesProyecto] = useState<Participante[]>([]);
+    const [tareaCompartiendo, setTareaCompartiendo] = useState<Tarea | null>(null);
+    const [participantesTarea, setParticipantesTarea] = useState<Participante[]>([]);
 
     /* Notificaciones */
     const notificaciones = useNotificaciones(Boolean(user));
@@ -282,6 +291,77 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
         }
     };
 
+    /* Manejador para compartir proyecto */
+    const manejarCompartirProyecto = async (proyecto: Proyecto) => {
+        setProyectoCompartiendo(proyecto);
+        /* Cargar participantes del proyecto */
+        const parts = await compartidos.obtenerParticipantes('proyecto', proyecto.id);
+        setParticipantesProyecto(parts);
+    };
+
+    /* Handlers para el modal de compartir */
+    const manejarCompartirElemento = async (usuarioId: number, rol: RolCompartido): Promise<boolean> => {
+        if (!proyectoCompartiendo) return false;
+        const exito = await compartidos.compartir('proyecto', proyectoCompartiendo.id, usuarioId, rol);
+        if (exito) {
+            /* Recargar participantes */
+            const parts = await compartidos.obtenerParticipantes('proyecto', proyectoCompartiendo.id);
+            setParticipantesProyecto(parts);
+        }
+        return exito;
+    };
+
+    const manejarCambiarRolCompartido = async (compartidoId: number, nuevoRol: RolCompartido): Promise<boolean> => {
+        const exito = await compartidos.actualizarRol(compartidoId, nuevoRol);
+        if (exito && proyectoCompartiendo) {
+            const parts = await compartidos.obtenerParticipantes('proyecto', proyectoCompartiendo.id);
+            setParticipantesProyecto(parts);
+        }
+        return exito;
+    };
+
+    const manejarDejarDeCompartir = async (compartidoId: number): Promise<boolean> => {
+        const exito = await compartidos.dejarDeCompartir(compartidoId);
+        if (exito && proyectoCompartiendo) {
+            const parts = await compartidos.obtenerParticipantes('proyecto', proyectoCompartiendo.id);
+            setParticipantesProyecto(parts);
+        }
+        if (exito && tareaCompartiendo) {
+            const parts = await compartidos.obtenerParticipantes('tarea', tareaCompartiendo.id);
+            setParticipantesTarea(parts);
+        }
+        return exito;
+    };
+
+    /* Manejador para compartir tarea */
+    const manejarCompartirTarea = async (tarea: Tarea) => {
+        setTareaCompartiendo(tarea);
+        /* Cargar participantes de la tarea */
+        const parts = await compartidos.obtenerParticipantes('tarea', tarea.id);
+        setParticipantesTarea(parts);
+    };
+
+    /* Handlers para el modal de compartir tarea */
+    const manejarCompartirTareaElemento = async (usuarioId: number, rol: RolCompartido): Promise<boolean> => {
+        if (!tareaCompartiendo) return false;
+        const exito = await compartidos.compartir('tarea', tareaCompartiendo.id, usuarioId, rol);
+        if (exito) {
+            /* Recargar participantes */
+            const parts = await compartidos.obtenerParticipantes('tarea', tareaCompartiendo.id);
+            setParticipantesTarea(parts);
+        }
+        return exito;
+    };
+
+    const manejarCambiarRolTareaCompartida = async (compartidoId: number, nuevoRol: RolCompartido): Promise<boolean> => {
+        const exito = await compartidos.actualizarRol(compartidoId, nuevoRol);
+        if (exito && tareaCompartiendo) {
+            const parts = await compartidos.obtenerParticipantes('tarea', tareaCompartiendo.id);
+            setParticipantesTarea(parts);
+        }
+        return exito;
+    };
+
     /* Estado para modal de nueva tarea global */
     const [modalNuevaTareaAbierto, setModalNuevaTareaAbierto] = useState(false);
 
@@ -384,7 +464,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                                 </>
                             }
                         />
-                        <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} ocultarCompletados={configProyectos.ocultarCompletados} ordenDefecto={configProyectos.ordenDefecto} mostrarProgreso={configProyectos.mostrarProgreso} />
+                        <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onCompartirProyecto={manejarCompartirProyecto} estaCompartido={id => compartidos.estaCompartido('proyecto', id)} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} ocultarCompletados={configProyectos.ocultarCompletados} ordenDefecto={configProyectos.ordenDefecto} mostrarProgreso={configProyectos.mostrarProgreso} />
                     </div>
                 );
 
@@ -412,7 +492,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                                 </div>
                             }
                         />
-                        <ListaTareas tareas={tareasFinales} proyectoId={filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined} proyectos={proyectos || []} ocultarCompletadas={configTareas.ocultarCompletadas} ocultarBadgeProyecto={configTareas.ocultarBadgeProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={esOrdenManual ? reordenarTareas : undefined} habilitarDrag={esOrdenManual} />
+                        <ListaTareas tareas={tareasFinales} proyectoId={filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined} proyectos={proyectos || []} ocultarCompletadas={configTareas.ocultarCompletadas} ocultarBadgeProyecto={configTareas.ocultarBadgeProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={esOrdenManual ? reordenarTareas : undefined} habilitarDrag={esOrdenManual} onCompartirTarea={manejarCompartirTarea} estaCompartida={id => compartidos.estaCompartido('tarea', id)} />
                     </div>
                 );
 
@@ -624,6 +704,12 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
 
             {/* Modal de Equipos */}
             <ModalEquipos estaAbierto={modalEquiposAbierto} onCerrar={() => setModalEquiposAbierto(false)} />
+
+            {/* Modal de Compartir Proyecto */}
+            <ModalCompartir visible={proyectoCompartiendo !== null} onCerrar={() => setProyectoCompartiendo(null)} tipo="proyecto" elementoId={proyectoCompartiendo?.id ?? 0} elementoNombre={proyectoCompartiendo?.nombre ?? ''} companeros={equipos.companeros} participantes={participantesProyecto} cifradoActivo={false} onCompartir={manejarCompartirElemento} onCambiarRol={manejarCambiarRolCompartido} onDejarDeCompartir={manejarDejarDeCompartir} cargandoParticipantes={compartidos.cargando} />
+
+            {/* Modal de Compartir Tarea */}
+            <ModalCompartir visible={tareaCompartiendo !== null} onCerrar={() => setTareaCompartiendo(null)} tipo="tarea" elementoId={tareaCompartiendo?.id ?? 0} elementoNombre={tareaCompartiendo?.texto ?? ''} companeros={equipos.companeros} participantes={participantesTarea} cifradoActivo={false} onCompartir={manejarCompartirTareaElemento} onCambiarRol={manejarCambiarRolTareaCompartida} onDejarDeCompartir={manejarDejarDeCompartir} cargandoParticipantes={compartidos.cargando} />
 
             {/* Barra de paneles ocultos */}
             <BarraPanelesOcultos panelesOcultos={panelesOcultos} onMostrarPanel={mostrarPanel} />
