@@ -27,6 +27,8 @@ import {useConfiguracionProyectos} from '../hooks/useConfiguracionProyectos';
 import {useConfiguracionScratchpad} from '../hooks/useConfiguracionScratchpad';
 import {useArrastrePaneles} from '../hooks/useArrastrePaneles';
 import {useEquipos} from '../hooks/useEquipos';
+import {useNotificaciones} from '../hooks/useNotificaciones';
+import {ModalNotificaciones} from '../components/notificaciones';
 import {useAlertasContext} from '../context/AlertasContext';
 import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
 import {ModalConfiguracionHabitos} from '../components/dashboard/ModalConfiguracionHabitos';
@@ -82,6 +84,34 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
     /* Equipos (Social) */
     const equipos = useEquipos();
     const [modalEquiposAbierto, setModalEquiposAbierto] = useState(false);
+
+    /* Notificaciones */
+    const notificaciones = useNotificaciones(Boolean(user));
+    const [modalNotificacionesAbierto, setModalNotificacionesAbierto] = useState(false);
+    const [posicionModalNotificaciones, setPosicionModalNotificaciones] = useState({x: 0, y: 0});
+
+    const manejarClickNotificaciones = (evento: React.MouseEvent) => {
+        const rect = (evento.currentTarget as HTMLElement).getBoundingClientRect();
+        setPosicionModalNotificaciones({
+            x: rect.right - 360,
+            y: rect.bottom + 10
+        });
+        setModalNotificacionesAbierto(!modalNotificacionesAbierto);
+
+        // Cargar notificaciones al abrir
+        if (!modalNotificacionesAbierto) {
+            notificaciones.cargarNotificaciones();
+        }
+    };
+
+    const manejarClickNotificacionIndividual = (notificacion: any) => {
+        // Lógica específica por tipo de notificación
+        if (notificacion.tipo === 'solicitud_equipo') {
+            setModalEquiposAbierto(true);
+            setModalNotificacionesAbierto(false);
+        }
+        // Futuro: manejar otros tipos (ir a tarea, proyecto, etc)
+    };
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -412,6 +442,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                 suscripcion={suscripcion}
                 esAdmin={esAdmin}
                 equiposPendientes={equipos.pendientes}
+                notificacionesPendientes={notificaciones.noLeidas}
                 onClickPlan={() => setModalUpgradeAbierto(true)}
                 onClickSeguridad={() => setPanelSeguridadAbierto(true)}
                 onClickAdmin={() => setPanelAdminAbierto(true)}
@@ -419,6 +450,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                 onClickVersion={() => setModalVersionesAbierto(true)}
                 onClickUsuario={() => setModalPerfilAbierto(true)}
                 onClickEquipos={() => setModalEquiposAbierto(true)}
+                onClickNotificaciones={manejarClickNotificaciones}
             />
 
             {cargandoDatos ? (
@@ -456,6 +488,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
             <DashboardFooter />
 
             <ModalLogin estaAbierto={modalLoginAbierto} onCerrar={() => setModalLoginAbierto(false)} onLoginGoogle={loginWithGoogle} onLoginCredentials={loginWithCredentials} onRegister={register} loading={authLoading} error={authError} />
+
+            {/* Modal de Notificaciones (Dropdown) */}
+            {modalNotificacionesAbierto && <ModalNotificaciones notificaciones={notificaciones.notificaciones} noLeidas={notificaciones.noLeidas} total={notificaciones.total} cargando={notificaciones.cargando} posicionX={posicionModalNotificaciones.x} posicionY={posicionModalNotificaciones.y} onMarcarLeida={notificaciones.marcarLeida} onMarcarTodasLeidas={notificaciones.marcarTodasLeidas} onEliminar={notificaciones.eliminar} onClickNotificacion={manejarClickNotificacionIndividual} onCerrar={() => setModalNotificacionesAbierto(false)} />}
 
             {/* Modal para crear nuevo habito */}
             <Modal estaAbierto={modalCrearHabitoAbierto} onCerrar={cerrarModalCrearHabito} titulo="Nuevo Habito">

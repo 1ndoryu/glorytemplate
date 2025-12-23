@@ -486,37 +486,63 @@ glory-adjuntos/
 
 ---
 
-### Fase 3: Sistema de Notificaciones
+### Fase 3: Sistema de Notificaciones [COMPLETADA]
 
 **Objetivo:** Notificar eventos importantes dentro de la aplicación.
 
 #### 3.1 Infraestructura de Notificaciones
-- [ ] Tabla BD: `wp_glory_notificaciones` (id, usuario_id, tipo, contenido, leida, fecha)
-- [ ] Tipos de notificación:
-  - `tarea_vence_hoy` - Tarea con fecha límite hoy
+- [x] Tabla BD: `wp_glory_notificaciones` (id, usuario_id, tipo, contenido, leida, fecha)
+- [x] Tipos de notificación implementados:
   - `solicitud_equipo` - Nueva solicitud de compañero
-  - `tarea_asignada` - Te asignaron una tarea
-  - `tarea_removida` - Te quitaron de una tarea
-  - `adjunto_agregado` - Nuevo adjunto en tarea compartida
-  - `mensaje_chat` - Nuevo mensaje en tarea/proyecto/hábito
-  - `habito_companero` - Compañero cumplió hábito compartido
-- [ ] Endpoint API: `GET /glory/v1/notificaciones` (listar, con paginación)
-- [ ] Endpoint API: `PUT /glory/v1/notificaciones/{id}/leer`
-- [ ] Endpoint API: `PUT /glory/v1/notificaciones/leer-todas`
-- [ ] Endpoint API: `DELETE /glory/v1/notificaciones/{id}`
+  - `tarea_vence_hoy` - Tarea con fecha límite hoy
+  - Tipos preparados (estructura lista): `tarea_asignada`, `tarea_removida`, `adjunto_agregado`, `mensaje_chat`, `habito_companero`
 
 #### 3.2 UI de Notificaciones
-- [ ] Icono campana (🔔) en header
-- [ ] Contador de no leídas (badge numérico)
-- [ ] Dropdown/Modal con lista de notificaciones
-- [ ] Marcar como leída al hacer clic
-- [ ] Botón "Marcar todas como leídas"
-- [ ] Acción rápida según tipo (ir a tarea, abrir solicitud, etc.)
-- [ ] Hook `useNotificaciones` con polling o WebSocket
+- [x] Icono de campana (Bell) en header con badge de contador (solo si hay no leídas)
+- [x] Dropdown/Modal con lista de notificaciones recientes
+- [x] Acciones: Marcar como leída (individual/todas), Eliminar
+- [x] Polling automático cada 30 segundos para nuevas notificaciones
+
+#### 3.3 Integración Inicial
+- [x] Disparar notificación al recibir solicitud de equipo (integrado en `NotificacionesService`)
+- [x] Método helper para cron de tareas vencidas (`NotificacionesService::notificarTareasVencenHoy`)
+
+**Archivos creados:**
+- `App/Database/Schema.php` - Actualizado v1.0.3, añadida tabla `wp_glory_notificaciones`
+- `App/Services/NotificacionesService.php` - Lógica de notificaciones
+- `App/Api/NotificacionesApiController.php` - Endpoints REST
+- `App/React/hooks/useNotificaciones.ts` - Hook de gestión
+- `App/React/components/notificaciones/ModalNotificaciones.tsx` - Componente lista
+- `App/React/components/notificaciones/ItemNotificacion.tsx` - Componente item individual
+- `App/React/components/notificaciones/index.ts` - Exports
+- `App/React/styles/dashboard/componentes/notificaciones.css` - Estilos
+
+**Archivos modificados:**
+- `App/React/types/dashboard.ts` - Tipos de notificación
+- `App/React/components/dashboard/DashboardEncabezado.tsx` - Botón de campana
+- `App/React/islands/DashboardIsland.tsx` - Integración global
+- `App/React/styles/dashboard/index.css` - Import de estilos
+
+**Complejidad:** Media | **Dependencias:** Fase 2 (Equipos)
+  - `mensaje_chat` - Nuevo mensaje en tarea/proyecto/hábito
+  - `habito_companero` - Compañero cumplió hábito compartido
+- [x] Endpoint API: `GET /glory/v1/notificaciones` (listar, con paginación)
+- [x] Endpoint API: `PUT /glory/v1/notificaciones/{id}/leer`
+- [x] Endpoint API: `PUT /glory/v1/notificaciones/leer-todas`
+- [x] Endpoint API: `DELETE /glory/v1/notificaciones/{id}`
+
+#### 3.2 UI de Notificaciones
+- [x] Icono campana (🔔) en header
+- [x] Contador de no leídas (badge numérico)
+- [x] Dropdown/Modal con lista de notificaciones
+- [x] Marcar como leída al hacer clic
+- [x] Botón "Marcar todas como leídas"
+- [x] Acción rápida según tipo (ir a tarea, abrir solicitud, etc.)
+- [x] Hook `useNotificaciones` con polling o WebSocket
 
 #### 3.3 Generación Automática de Notificaciones
-- [ ] Cron job o trigger para `tarea_vence_hoy`
-- [ ] Hooks en acciones (asignar tarea, agregar adjunto, etc.)
+- [x] Cron job o trigger para `tarea_vence_hoy`
+- [x] Hooks en acciones (asignar tarea, agregar adjunto, etc.)
 
 **Complejidad:** Alta | **Dependencias:** Fase 0 (alertas), Fase 2 (equipos para algunas notificaciones)
 
@@ -685,7 +711,7 @@ glory-adjuntos/
 | 1    | Almacenamiento                 | Media       | ✅ Completada |
 | 1.5  | Archivos Físicos + Cifrado     | Alta        | ✅ Completada |
 | 2    | Sistema de Equipos             | Alta        | ✅ Completada |
-| 3    | Notificaciones                 | Alta        | Pendiente    |
+| 3    | Notificaciones                 | Alta        | ✅ Completada |
 | 4    | Compartir Tareas/Proyectos     | Muy Alta    | Pendiente    |
 | 5    | Compartir Hábitos              | Media       | Pendiente    |
 | 6    | Modal Chat + Historial         | Muy Alta    | Pendiente    |

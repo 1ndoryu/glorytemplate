@@ -6,7 +6,7 @@
  */
 
 import {useEffect, useRef} from 'react';
-import {X, Bell, Check, CheckCheck, Trash2} from 'lucide-react';
+import {Bell, Check, CheckCheck, Trash2} from 'lucide-react';
 import type {Notificacion} from '../../types/dashboard';
 import {ItemNotificacion} from './ItemNotificacion';
 
@@ -85,25 +85,6 @@ export function ModalNotificaciones({notificaciones, noLeidas, total, cargando, 
 
     return (
         <div id="modal-notificaciones" className="modalNotificaciones" ref={modalRef} style={calcularEstilo()}>
-            {/* Encabezado */}
-            <div className="modalNotificaciones__encabezado">
-                <div className="modalNotificaciones__titulo">
-                    <Bell size={16} />
-                    <span>Notificaciones</span>
-                    {noLeidas > 0 && <span className="modalNotificaciones__contador">{noLeidas}</span>}
-                </div>
-                <div className="modalNotificaciones__acciones">
-                    {noLeidas > 0 && (
-                        <button type="button" className="modalNotificaciones__botonAccion" onClick={onMarcarTodasLeidas} title="Marcar todas como leídas">
-                            <CheckCheck size={14} />
-                        </button>
-                    )}
-                    <button type="button" className="modalNotificaciones__botonCerrar" onClick={onCerrar} title="Cerrar">
-                        <X size={14} />
-                    </button>
-                </div>
-            </div>
-
             {/* Lista de notificaciones */}
             <div className="modalNotificaciones__lista">
                 {cargando && notificaciones.length === 0 ? (
@@ -123,9 +104,11 @@ export function ModalNotificaciones({notificaciones, noLeidas, total, cargando, 
             {/* Pie con resumen */}
             {total > 0 && (
                 <div className="modalNotificaciones__pie">
-                    <span className="modalNotificaciones__resumen">
-                        {total} notificación{total !== 1 ? 'es' : ''} en total
-                    </span>
+                    {noLeidas > 0 && (
+                        <button type="button" className="modalNotificaciones__botonAccion" onClick={onMarcarTodasLeidas} title="Marcar todas como leídas">
+                            <CheckCheck size={14} />
+                        </button>
+                    )}
                 </div>
             )}
         </div>

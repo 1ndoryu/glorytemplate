@@ -69,15 +69,15 @@ export function ItemNotificacion({notificacion, onClick, onMarcarLeida, onElimin
 
     return (
         <div className={`${claseBase} ${claseLeida}`} onClick={onClick} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onClick()}>
-            {/* Indicador de no leída */}
-            {!notificacion.leida && <div className="itemNotificacion__indicadorNoLeida" />}
-
             {/* Icono del tipo */}
-            <div className={`itemNotificacion__icono ${clase}`}>{icono}</div>
+            <div className="itemNotificacion__icono">{icono}</div>
 
             {/* Contenido */}
             <div className="itemNotificacion__contenido">
-                <span className="itemNotificacion__titulo">{notificacion.titulo}</span>
+                <div className="itemNotificacion__encabezadoTitulo">
+                    {!notificacion.leida && <span className="itemNotificacion__puntoNoLeido" />}
+                    <span className="itemNotificacion__titulo">{notificacion.titulo}</span>
+                </div>
                 {notificacion.contenido && <span className="itemNotificacion__texto">{notificacion.contenido}</span>}
                 <span className="itemNotificacion__fecha">{formatearFechaRelativa(notificacion.fechaCreacion)}</span>
             </div>

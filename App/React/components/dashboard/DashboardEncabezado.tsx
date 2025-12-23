@@ -147,6 +147,14 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.1-
                     </button>
                 )}
 
+                {/* Notificaciones */}
+                {onClickNotificaciones && estaConectado && (
+                    <button type="button" className={`botonIconoEncabezado botonIconoEncabezado--notificaciones ${notificacionesPendientes > 0 ? 'tieneNuevas' : ''}`} onClick={onClickNotificaciones} title="Notificaciones">
+                        <Bell size={14} />
+                        {notificacionesPendientes > 0 && <span className="botonIconoEncabezado__puntoNotificacion"></span>}
+                    </button>
+                )}
+
                 {/* Mi Equipo (Social) */}
                 {onClickEquipos && estaConectado && (
                     <button type="button" className="botonIconoEncabezado botonIconoEncabezado--equipo" onClick={onClickEquipos} title="Mi Equipo">
