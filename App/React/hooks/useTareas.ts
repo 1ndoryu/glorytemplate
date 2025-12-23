@@ -227,10 +227,10 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                     if (t.id !== id) return t;
 
                     /*
-                     * Crear objeto base excluyendo prioridad de datos si es null
-                     * Para prioridad null significa "quitar", así que no la incluimos en el spread
+                     * Crear objeto base excluyendo prioridad y asignadoA de datos si es null
+                     * Para estos campos, null significa "quitar"
                      */
-                    const {prioridad: nuevaPrioridad, configuracion: nuevaConfiguracion, ...restoDatos} = datos;
+                    const {prioridad: nuevaPrioridad, configuracion: nuevaConfiguracion, asignadoA: nuevoAsignadoA, asignadoANombre, asignadoAAvatar, ...restoDatos} = datos;
 
                     const tareaActualizada: Tarea = {
                         ...t,
@@ -242,6 +242,17 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                         delete tareaActualizada.prioridad;
                     } else if (nuevaPrioridad !== undefined) {
                         tareaActualizada.prioridad = nuevaPrioridad;
+                    }
+
+                    /* Si asignadoA es null, eliminar asignación; si tiene valor, asignar */
+                    if (nuevoAsignadoA === null) {
+                        delete tareaActualizada.asignadoA;
+                        delete tareaActualizada.asignadoANombre;
+                        delete tareaActualizada.asignadoAAvatar;
+                    } else if (nuevoAsignadoA !== undefined) {
+                        tareaActualizada.asignadoA = nuevoAsignadoA;
+                        tareaActualizada.asignadoANombre = asignadoANombre;
+                        tareaActualizada.asignadoAAvatar = asignadoAAvatar;
                     }
 
                     /* Manejar configuracion: fusionar con existente o reemplazar */

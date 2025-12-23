@@ -587,12 +587,21 @@ glory-adjuntos/
 - `GET /glory/v1/compartidos/contadores` - Contadores para badges
 - `GET /glory/v1/compartidos/acceso/{tipo}/{id}/{propietarioId}` - Verificar acceso
 
+**Modelo de Colaboración:**
+
+> **Proyectos compartidos:** Cuando compartes un proyecto, los participantes ven TODAS las tareas del proyecto. Las tareas NO están asignadas por defecto (cualquiera puede completarlas). Opcionalmente, se puede asignar una tarea a un participante específico para indicar "encárgate de esto".
+
+> **Tareas sueltas (fuera de proyectos):** No tiene sentido "compartir para ver" una tarea individual. En su lugar, se **asigna** directamente a un compañero. La tarea aparece automáticamente en su dashboard.
+
+> **Hábitos:** Funcionan diferente - ver Fase 5. Es un "compromiso mutuo" donde cada persona tiene su propia instancia independiente.
+
 #### 4.2 Compartir Proyectos [EN PROGRESO]
-- [ ] Al compartir proyecto → invitado ve TODAS las tareas del proyecto (requiere modificar sync)
+- [x] Al compartir proyecto → invitado ve TODAS las tareas del proyecto
 - [x] Selector de compañeros en modal de proyecto
 - [x] Badge visual de "Compartido" en proyecto
 - [x] Lista de participantes visible (en ModalCompartir)
 - [x] Integrar `ModalCompartir` en menú contextual de proyectos
+- [x] Badge de propietario cuando el proyecto es de otro usuario
 
 #### 4.3 Compartir Tareas Individuales [EN PROGRESO]
 - [x] Opción en menú contextual: "Compartir tarea"
@@ -600,6 +609,7 @@ glory-adjuntos/
 - [ ] Subtareas incluidas automáticamente
 - [x] Badge visual de "Compartida" en tarea
 - [x] Notificación al compartir/quitar (ya implementado en backend)
+- [x] Badge de propietario cuando la tarea es de otro usuario
 
 #### 4.4 Cifrado y Privacidad
 > Las tareas/proyectos compartidos pierden cifrado E2E individual.
@@ -610,12 +620,34 @@ glory-adjuntos/
 - [ ] Tareas NO compartidas permanecen cifradas normalmente
 - [ ] Separar datos cifrados de no cifrados en sincronización
 
-#### 4.5 Asignar Tareas
-- [ ] Campo `asignado_a` en tareas
-- [ ] Selector de asignado (solo participantes del proyecto/tarea)
-- [ ] Badge visual de asignado
-- [ ] Filtro por "Mis tareas asignadas"
-- [ ] Notificación al asignar/desasignar
+#### 4.5 Asignar Tareas [EN PROGRESO]
+- [x] Campo `asignadoA` en tareas (tipos: `Tarea`, `DatosEdicionTarea`)
+- [x] Componente `SelectorAsignado` para seleccionar participante
+- [x] Badge visual de asignado en `TareaItem`
+- [x] Filtro por "Mis tareas asignadas" en `useFiltroTareas`
+- [x] Notificación al asignar/desasignar (`NotificacionesService`)
+- [x] Tareas asignadas a mí aparecen en mi dashboard automáticamente
+- [x] Integrar `SelectorAsignado` en `PanelConfiguracionTarea`
+- [x] Pasar participantes al `PanelConfiguracionTarea` desde `DashboardIsland`
+- [ ] Sincronizar asignación con backend
+
+**Archivos creados/modificados (Fase 4.2-4.5):**
+- `App/Services/CompartidosService.php` - Métodos para obtener datos compartidos
+  - `obtenerProyectosCompartidosConmigo()` - IDs de proyectos compartidos
+  - `obtenerTareasDeProyectosCompartidos()` - Tareas de proyectos compartidos
+  - `obtenerDatosProyectosCompartidos()` - Datos completos de proyectos
+  - `obtenerTareasAsignadasAMi()` - Tareas asignadas directamente
+- `App/Repository/DashboardRepository.php` - Modificado `loadAll()` para incluir compartidos
+  - `getDatosCompartidos()` - Combina tareas/proyectos compartidos
+  - `decodeDataCompartido()` - Decodifica datos de otros usuarios
+- `App/React/types/dashboard.ts` - Campos `esCompartido`, `propietarioId`, `propietarioNombre`, `propietarioAvatar`, `miRol`
+- `App/React/components/dashboard/TareaItem.tsx` - Badge de propietario
+- `App/React/components/dashboard/proyectos/ListaProyectos.tsx` - Badge de propietario
+- `App/React/components/dashboard/PanelConfiguracionTarea.tsx` - Integración de `SelectorAsignado`
+- `App/React/components/dashboard/ListaTareas.tsx` - Prop `obtenerParticipantes` para asignación
+- `App/React/islands/DashboardIsland.tsx` - Cache de participantes y función `obtenerParticipantesTarea`
+- `App/React/styles/dashboard/componentes/compartidos.css` - Estilos `.badgePropietario`
+
 
 **Complejidad:** Muy Alta | **Dependencias:** Fase 2 (equipos), Fase 3 (notificaciones)
 

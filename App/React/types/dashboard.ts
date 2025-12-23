@@ -122,6 +122,12 @@ export interface Proyecto {
     progreso?: number;
     fechaCreacion: string;
     fechaCompletado?: string;
+    /* Metadata para proyectos compartidos conmigo */
+    esCompartido?: boolean;
+    propietarioId?: number;
+    propietarioNombre?: string;
+    propietarioAvatar?: string;
+    miRol?: RolCompartido;
 }
 
 export interface Tarea {
@@ -140,6 +146,16 @@ export interface Tarea {
     prioridad?: NivelPrioridad;
     /* Configuracion avanzada (fecha limite, descripcion, repeticion, adjuntos) */
     configuracion?: TareaConfiguracion;
+    /* Asignacion de tarea a un participante */
+    asignadoA?: number /* ID del usuario asignado */;
+    asignadoANombre?: string /* Nombre del usuario para evitar lookups */;
+    asignadoAAvatar?: string /* Avatar del usuario asignado */;
+    /* Metadata para tareas compartidas/asignadas a mi */
+    esCompartido?: boolean;
+    propietarioId?: number;
+    propietarioNombre?: string;
+    propietarioAvatar?: string;
+    miRol?: RolCompartido;
 }
 
 export interface DashboardData {
@@ -194,6 +210,10 @@ export interface DatosEdicionTarea {
     /* Configuración avanzada de la tarea */
     configuracion?: TareaConfiguracion;
     proyectoId?: number;
+    /* Asignación de tarea */
+    asignadoA?: number | null;
+    asignadoANombre?: string;
+    asignadoAAvatar?: string;
 }
 
 /*

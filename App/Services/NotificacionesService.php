@@ -420,6 +420,79 @@ class NotificacionesService
     }
 
     /**
+     * Crea notificación cuando se asigna una tarea a un usuario
+     *
+     * @param int $usuarioDestinoId Usuario al que se le asigna la tarea
+     * @param int $usuarioOrigenId Usuario que hizo la asignación
+     * @param int $tareaId ID de la tarea
+     * @param string $tareaTexto Texto de la tarea
+     * @return array Resultado de la operación
+     */
+    public function notificarTareaAsignada(
+        int $usuarioDestinoId,
+        int $usuarioOrigenId,
+        int $tareaId,
+        string $tareaTexto
+    ): array {
+        $usuarioOrigen = get_user_by('ID', $usuarioOrigenId);
+        $nombreOrigen = $usuarioOrigen ? $usuarioOrigen->display_name : 'Alguien';
+
+        $textoCorto = strlen($tareaTexto) > 50
+            ? substr($tareaTexto, 0, 50) . '...'
+            : $tareaTexto;
+
+        return $this->crear(
+            $usuarioDestinoId,
+            self::TIPO_TAREA_ASIGNADA,
+            "Nueva tarea asignada",
+            "{$nombreOrigen} te asignó la tarea: \"{$textoCorto}\"",
+            [
+                'tareaId' => $tareaId,
+                'tareaTexto' => $tareaTexto,
+                'asignadoPor' => $usuarioOrigenId,
+                'asignadoPorNombre' => $nombreOrigen,
+            ]
+        );
+    }
+
+    /**
+     * Crea notificación cuando se quita la asignación de una tarea
+     *
+     * @param int $usuarioDestinoId Usuario al que se le quitó la asignación
+     * @param int $usuarioOrigenId Usuario que quitó la asignación
+     * @param int $tareaId ID de la tarea
+     * @param string $tareaTexto Texto de la tarea
+     * @return array Resultado de la operación
+     */
+    public function notificarTareaDesasignada(
+        int $usuarioDestinoId,
+        int $usuarioOrigenId,
+        int $tareaId,
+        string $tareaTexto
+    ): array {
+        $usuarioOrigen = get_user_by('ID', $usuarioOrigenId);
+        $nombreOrigen = $usuarioOrigen ? $usuarioOrigen->display_name : 'Alguien';
+
+        $textoCorto = strlen($tareaTexto) > 50
+            ? substr($tareaTexto, 0, 50) . '...'
+            : $tareaTexto;
+
+        return $this->crear(
+            $usuarioDestinoId,
+            self::TIPO_TAREA_REMOVIDA,
+            "Tarea desasignada",
+            "Ya no estás asignado a la tarea: \"{$textoCorto}\"",
+            [
+                'tareaId' => $tareaId,
+                'tareaTexto' => $tareaTexto,
+                'removidoPor' => $usuarioOrigenId,
+                'removidoPorNombre' => $nombreOrigen,
+            ]
+        );
+    }
+
+
+    /**
      * Formatea una notificación para la respuesta de API
      */
     private function formatear(

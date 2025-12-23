@@ -144,18 +144,129 @@ class DashboardRepository
 
     /**
      * Carga todos los datos del dashboard
+     * Incluye elementos propios + compartidos conmigo
      */
     public function loadAll(): array
     {
+        /* Obtener datos propios */
+        $tareasPropia = $this->getTareas();
+        $proyectosPropios = $this->getProyectos();
+
+        /* Obtener datos compartidos conmigo */
+        $datosCompartidos = $this->getDatosCompartidos();
+
+        /* Combinar tareas: propias + de proyectos compartidos + asignadas */
+        $todasLasTareas = array_merge(
+            $tareasPropia,
+            $datosCompartidos['tareas']
+        );
+
+        /* Combinar proyectos: propios + compartidos */
+        $todosLosProyectos = array_merge(
+            $proyectosPropios,
+            $datosCompartidos['proyectos']
+        );
+
         return [
             'version' => self::SCHEMA_VERSION,
             'habitos' => $this->getHabitos(),
-            'tareas' => $this->getTareas(),
-            'proyectos' => $this->getProyectos(),
+            'tareas' => $todasLasTareas,
+            'proyectos' => $todosLosProyectos,
             'notas' => $this->getNotas(),
             'configuracion' => $this->getConfiguracion(),
             'ultimaActualizacion' => $this->getLastUpdate(),
         ];
+    }
+
+    /**
+     * Obtiene tareas y proyectos compartidos conmigo
+     * Incluye metadata de compartido para distinguirlos en el frontend
+     * 
+     * @return array ['tareas' => [...], 'proyectos' => [...]]
+     */
+    private function getDatosCompartidos(): array
+    {
+        $compartidosService = new \App\Services\CompartidosService();
+        $tareasCompartidas = [];
+        $proyectosCompartidos = [];
+
+        /* 1. Obtener proyectos compartidos conmigo */
+        $proyectosData = $compartidosService->obtenerDatosProyectosCompartidos($this->userId);
+
+        foreach ($proyectosData as $pData) {
+            $proyecto = $this->decodeDataCompartido($pData['data']);
+            if (!$proyecto) continue;
+
+            /* Agregar metadata de compartido */
+            $proyecto['id'] = (int) $pData['idLocal'];
+            $proyecto['esCompartido'] = true;
+            $proyecto['propietarioId'] = $pData['propietarioId'];
+            $proyecto['propietarioNombre'] = $pData['propietarioNombre'];
+            $proyecto['propietarioAvatar'] = $pData['propietarioAvatar'];
+            $proyecto['miRol'] = $pData['rol'];
+
+            $proyectosCompartidos[] = $proyecto;
+        }
+
+        /* 2. Obtener tareas de proyectos compartidos */
+        $tareasProyectos = $compartidosService->obtenerTareasDeProyectosCompartidos($this->userId);
+
+        foreach ($tareasProyectos as $tData) {
+            $tarea = $this->decodeDataCompartido($tData['data']);
+            if (!$tarea) continue;
+
+            /* Agregar metadata de compartido */
+            $tarea['id'] = (int) $tData['idLocal'];
+            $tarea['esCompartido'] = true;
+            $tarea['propietarioId'] = $tData['propietarioId'];
+            $tarea['propietarioNombre'] = $tData['propietarioNombre'];
+            $tarea['propietarioAvatar'] = $tData['propietarioAvatar'];
+            $tarea['miRol'] = $tData['rol'];
+            $tarea['proyectoId'] = $tData['proyectoId'];
+
+            $tareasCompartidas[] = $tarea;
+        }
+
+        /* 3. Obtener tareas asignadas directamente a mí */
+        $tareasAsignadas = $compartidosService->obtenerTareasAsignadasAMi($this->userId);
+
+        foreach ($tareasAsignadas as $tData) {
+            $tarea = $this->decodeDataCompartido($tData['data']);
+            if (!$tarea) continue;
+
+            $tarea['id'] = (int) $tData['idLocal'];
+            $tarea['esCompartido'] = true;
+            $tarea['propietarioId'] = $tData['propietarioId'];
+            $tarea['propietarioNombre'] = $tData['propietarioNombre'];
+            $tarea['propietarioAvatar'] = $tData['propietarioAvatar'];
+            $tarea['miRol'] = $tData['rol'];
+
+            $tareasCompartidas[] = $tarea;
+        }
+
+        return [
+            'tareas' => $tareasCompartidas,
+            'proyectos' => $proyectosCompartidos
+        ];
+    }
+
+    /**
+     * Decodifica datos de elementos compartidos
+     * Los datos compartidos están en JSON plano (no cifrados con mi clave)
+     * 
+     * @param string $data JSON string
+     * @return array|null
+     */
+    private function decodeDataCompartido(string $data): ?array
+    {
+        if (empty($data)) return null;
+
+        $decoded = json_decode($data, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return null;
+        }
+
+        return is_array($decoded) ? $decoded : null;
     }
 
     /**

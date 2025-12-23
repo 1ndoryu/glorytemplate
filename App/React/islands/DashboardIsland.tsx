@@ -20,7 +20,7 @@ import {useOrdenarTareas, MODOS_ORDEN_TAREAS} from '../hooks/useOrdenarTareas';
 import {useConfiguracionLayout} from '../hooks/useConfiguracionLayout';
 import type {PanelId} from '../hooks/useConfiguracionLayout';
 import {SelectorBadge} from '../components/shared/SelectorBadge';
-import {Filter, LayoutList, CheckSquare, ArrowUpDown, Settings} from 'lucide-react';
+import {Filter, LayoutList, CheckSquare, ArrowUpDown, Settings, User} from 'lucide-react';
 import {useConfiguracionTareas} from '../hooks/useConfiguracionTareas';
 import {useConfiguracionHabitos} from '../hooks/useConfiguracionHabitos';
 import {useConfiguracionProyectos} from '../hooks/useConfiguracionProyectos';
@@ -97,6 +97,8 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
     const [participantesProyecto, setParticipantesProyecto] = useState<Participante[]>([]);
     const [tareaCompartiendo, setTareaCompartiendo] = useState<Tarea | null>(null);
     const [participantesTarea, setParticipantesTarea] = useState<Participante[]>([]);
+    /* Cache de participantes por proyecto para asignación de tareas */
+    const [cacheParticipantesProyecto, setCacheParticipantesProyecto] = useState<Map<number, Participante[]>>(new Map());
 
     /* Notificaciones */
     const notificaciones = useNotificaciones(Boolean(user));
@@ -209,11 +211,12 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
     const [modalConfigScratchpadAbierto, setModalConfigScratchpadAbierto] = useState(false);
 
     /* Tareas sueltas (sin proyecto) para mostrar en Ejecucion */
-    const {filtroActual, cambiarFiltro, tareasFiltradas, infoFiltro} = useFiltroTareas(tareas, proyectos || []);
+    const {filtroActual, cambiarFiltro, tareasFiltradas, infoFiltro, contarAsignadas} = useFiltroTareas(tareas, proyectos || []);
 
     /* Generar opciones para el selector */
     const opcionesFiltro = [
         {id: 'sueltas', etiqueta: 'Tareas sueltas', icono: <CheckSquare size={12} />, descripcion: 'Sin proyecto'},
+        {id: 'asignadas', etiqueta: 'Mis asignadas', icono: <User size={12} />, descripcion: contarAsignadas > 0 ? `${contarAsignadas} pendientes` : 'Ninguna'},
         {id: 'todas', etiqueta: 'Todas las tareas', icono: <LayoutList size={12} />, descripcion: 'Todas'},
         ...(proyectos || []).map(p => ({
             id: `proyecto-${p.id}`,
@@ -226,6 +229,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
     const manejarCambioFiltro = (valor: string) => {
         if (valor === 'sueltas') cambiarFiltro({tipo: 'sueltas'});
         else if (valor === 'todas') cambiarFiltro({tipo: 'todas'});
+        else if (valor === 'asignadas') cambiarFiltro({tipo: 'asignadas'});
         else if (valor.startsWith('proyecto-')) {
             const id = parseInt(valor.replace('proyecto-', ''), 10);
             cambiarFiltro({tipo: 'proyecto', proyectoId: id});
@@ -297,6 +301,8 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
         /* Cargar participantes del proyecto */
         const parts = await compartidos.obtenerParticipantes('proyecto', proyecto.id);
         setParticipantesProyecto(parts);
+        /* Actualizar cache */
+        setCacheParticipantesProyecto(prev => new Map(prev).set(proyecto.id, parts));
     };
 
     /* Handlers para el modal de compartir */
@@ -307,6 +313,8 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
             /* Recargar participantes */
             const parts = await compartidos.obtenerParticipantes('proyecto', proyectoCompartiendo.id);
             setParticipantesProyecto(parts);
+            /* Actualizar cache */
+            setCacheParticipantesProyecto(prev => new Map(prev).set(proyectoCompartiendo.id, parts));
         }
         return exito;
     };
@@ -316,6 +324,8 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
         if (exito && proyectoCompartiendo) {
             const parts = await compartidos.obtenerParticipantes('proyecto', proyectoCompartiendo.id);
             setParticipantesProyecto(parts);
+            /* Actualizar cache */
+            setCacheParticipantesProyecto(prev => new Map(prev).set(proyectoCompartiendo.id, parts));
         }
         return exito;
     };
@@ -325,6 +335,8 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
         if (exito && proyectoCompartiendo) {
             const parts = await compartidos.obtenerParticipantes('proyecto', proyectoCompartiendo.id);
             setParticipantesProyecto(parts);
+            /* Actualizar cache */
+            setCacheParticipantesProyecto(prev => new Map(prev).set(proyectoCompartiendo.id, parts));
         }
         if (exito && tareaCompartiendo) {
             const parts = await compartidos.obtenerParticipantes('tarea', tareaCompartiendo.id);
@@ -360,6 +372,34 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
             setParticipantesTarea(parts);
         }
         return exito;
+    };
+
+    /*
+     * Obtiene los participantes disponibles para asignar a una tarea
+     * Prioridad: 1) Si pertenece a un proyecto compartido, usa participantes del proyecto
+     *            2) Si la tarea está compartida directamente, no tiene participantes adicionales
+     *            3) Si no está compartida, array vacío
+     */
+    const obtenerParticipantesTarea = (tarea: Tarea): Participante[] => {
+        /* Si la tarea pertenece a un proyecto, buscar participantes del proyecto en cache */
+        if (tarea.proyectoId) {
+            const participantesDelProyecto = cacheParticipantesProyecto.get(tarea.proyectoId);
+            if (participantesDelProyecto && participantesDelProyecto.length > 0) {
+                return participantesDelProyecto;
+            }
+            /* Si el proyecto está marcado como compartido pero no tenemos cache, intentar cargarlo */
+            const proyecto = proyectos?.find(p => p.id === tarea.proyectoId);
+            if (proyecto?.esCompartido || compartidos.estaCompartido('proyecto', tarea.proyectoId)) {
+                /* Cargar participantes del proyecto en background y actualizar cache */
+                compartidos.obtenerParticipantes('proyecto', tarea.proyectoId).then(parts => {
+                    if (parts.length > 0) {
+                        setCacheParticipantesProyecto(prev => new Map(prev).set(tarea.proyectoId!, parts));
+                    }
+                });
+            }
+        }
+        /* Por defecto, retornar array vacío si no hay participantes */
+        return [];
     };
 
     /* Estado para modal de nueva tarea global */
@@ -492,7 +532,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                                 </div>
                             }
                         />
-                        <ListaTareas tareas={tareasFinales} proyectoId={filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined} proyectos={proyectos || []} ocultarCompletadas={configTareas.ocultarCompletadas} ocultarBadgeProyecto={configTareas.ocultarBadgeProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={esOrdenManual ? reordenarTareas : undefined} habilitarDrag={esOrdenManual} onCompartirTarea={manejarCompartirTarea} estaCompartida={id => compartidos.estaCompartido('tarea', id)} />
+                        <ListaTareas tareas={tareasFinales} proyectoId={filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined} proyectos={proyectos || []} ocultarCompletadas={configTareas.ocultarCompletadas} ocultarBadgeProyecto={configTareas.ocultarBadgeProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={esOrdenManual ? reordenarTareas : undefined} habilitarDrag={esOrdenManual} onCompartirTarea={manejarCompartirTarea} estaCompartida={id => compartidos.estaCompartido('tarea', id)} obtenerParticipantes={obtenerParticipantesTarea} />
                     </div>
                 );
 

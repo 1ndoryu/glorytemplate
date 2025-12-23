@@ -1,26 +1,29 @@
 /*
  * PanelConfiguracionTarea
  * Panel modal para configurar opciones avanzadas de una tarea
- * Responsabilidad: prioridad, fecha limite, descripcion, repeticion
+ * Responsabilidad: prioridad, fecha limite, descripcion, repeticion, asignacion
  *
  * Usa campos compartidos: CampoTexto, CampoPrioridad, CampoFechaLimite
  */
 
 import {useState, useEffect} from 'react';
-import type {Tarea, TareaConfiguracion, NivelPrioridad} from '../../types/dashboard';
+import type {Tarea, TareaConfiguracion, NivelPrioridad, Participante} from '../../types/dashboard';
 import {AccionesFormulario, Modal, SeccionPanel, ToggleSwitch, CampoTexto, CampoPrioridad, CampoFechaLimite} from '../shared';
 import {SelectorFrecuencia} from './SelectorFrecuencia';
 import {SeccionAdjuntos} from './SeccionAdjuntos';
+import {SelectorAsignado} from '../compartidos/SelectorAsignado';
 import type {FrecuenciaHabito, Adjunto} from '../../types/dashboard';
 
 export interface PanelConfiguracionTareaProps {
     tarea?: Tarea;
     estaAbierto: boolean;
     onCerrar: () => void;
-    onGuardar: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string) => void;
+    onGuardar: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}) => void;
+    /* Participantes disponibles para asignar (opcional, solo si es tarea compartida) */
+    participantes?: Participante[];
 }
 
-export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar}: PanelConfiguracionTareaProps): JSX.Element | null {
+export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar, participantes = []}: PanelConfiguracionTareaProps): JSX.Element | null {
     /* Estado local para edicion */
     const [prioridad, setPrioridad] = useState<NivelPrioridad | null>(tarea?.prioridad || null);
     const [fechaMaxima, setFechaMaxima] = useState<string>(tarea?.configuracion?.fechaMaxima || '');
@@ -29,6 +32,11 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
     const [frecuencia, setFrecuencia] = useState<FrecuenciaHabito>({tipo: 'diario'});
     const [adjuntos, setAdjuntos] = useState<Adjunto[]>(tarea?.configuracion?.adjuntos || []);
     const [texto, setTexto] = useState(tarea?.texto || '');
+
+    /* Estado para asignacion */
+    const [asignadoA, setAsignadoA] = useState<number | null>(tarea?.asignadoA || null);
+    const [asignadoANombre, setAsignadoANombre] = useState<string>(tarea?.asignadoANombre || '');
+    const [asignadoAAvatar, setAsignadoAAvatar] = useState<string>(tarea?.asignadoAAvatar || '');
 
     /* Sincronizar estado cuando cambia la tarea (solo por ID, no por referencia) */
     useEffect(() => {
@@ -56,6 +64,9 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
 
             setAdjuntos(tarea.configuracion?.adjuntos || []);
             setTexto(tarea.texto);
+            setAsignadoA(tarea.asignadoA || null);
+            setAsignadoANombre(tarea.asignadoANombre || '');
+            setAsignadoAAvatar(tarea.asignadoAAvatar || '');
         } else {
             /* Resetear si no hay tarea (modo creacion) */
             setPrioridad(null);
@@ -65,8 +76,18 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
             setFrecuencia({tipo: 'diario'});
             setAdjuntos([]);
             setTexto('');
+            setAsignadoA(null);
+            setAsignadoANombre('');
+            setAsignadoAAvatar('');
         }
     }, [tarea?.id]);
+
+    /* Manejador de cambio de asignacion */
+    const manejarAsignacion = (usuarioId: number | null, nombre: string, avatar: string) => {
+        setAsignadoA(usuarioId);
+        setAsignadoANombre(nombre);
+        setAsignadoAAvatar(avatar);
+    };
 
     const manejarGuardar = () => {
         const configuracion: TareaConfiguracion = {};
@@ -111,15 +132,19 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
         /* Siempre incluir adjuntos para permitir eliminación */
         configuracion.adjuntos = adjuntos;
 
-        onGuardar(configuracion, prioridad, texto.trim());
-        /* No cerramos aqui automaticamente para dar control al padre si es necesario, 
-           pero en la implementacion actual el padre suele cerrar o el componente se desmonta */
-        // onCerrar(); // El padre debe cerrarlo
-        // Correction: The original code called onCerrar(). Keeping it consistent.
+        /* Preparar datos de asignacion */
+        const asignacion = {
+            asignadoA,
+            asignadoANombre,
+            asignadoAAvatar
+        };
+
+        onGuardar(configuracion, prioridad, texto.trim(), asignacion);
         onCerrar();
     };
 
     const esModoCreacion = !tarea;
+    const tieneParticipantes = participantes.length > 0;
 
     return (
         <Modal estaAbierto={estaAbierto} onCerrar={onCerrar} titulo={esModoCreacion ? 'Nueva Tarea' : 'Configurar Tarea'} claseExtra="panelConfiguracionContenedor">
@@ -135,6 +160,13 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
 
                 {/* Descripcion - Campo reutilizable */}
                 <CampoTexto titulo="Descripcion" valor={descripcion} onChange={setDescripcion} placeholder="Notas adicionales sobre esta tarea..." tipo="textarea" filas={3} />
+
+                {/* Seccion: Asignacion (solo si hay participantes) */}
+                {tieneParticipantes && (
+                    <SeccionPanel titulo="Asignar a">
+                        <SelectorAsignado participantes={participantes} asignadoActual={asignadoA} onAsignar={manejarAsignacion} />
+                    </SeccionPanel>
+                )}
 
                 {/* Seccion: Repeticion */}
                 <SeccionPanel titulo="Repeticion">

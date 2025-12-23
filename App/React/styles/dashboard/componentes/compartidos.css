@@ -511,3 +511,220 @@
 .girando {
     animation: girar 1s linear infinite;
 }
+
+/* 
+ *
+ * Selector de Asignado
+ *
+ */
+
+.selectorAsignadoContenedor {
+    position: relative;
+}
+
+.selectorAsignadoVacio {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoBase);
+    font-style: italic;
+}
+
+.selectorAsignadoBoton {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: 2px;
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoBase);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+    min-width: 140px;
+}
+
+.selectorAsignadoBoton:hover:not(:disabled) {
+    border-color: var(--dashboard-textoApagado);
+    color: var(--dashboard-textoActivo);
+}
+
+.selectorAsignadoBoton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.selectorAsignadoBotonActivo {
+    background: rgba(100, 100, 100, 0.1);
+    border-color: var(--dashboard-bordePrincipal);
+}
+
+.selectorAsignadoAvatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.selectorAsignadoNombre {
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.selectorAsignadoFlecha {
+    flex-shrink: 0;
+    transition: transform var(--dashboard-transicionNormal);
+}
+
+.selectorAsignadoFlechaAbierto {
+    transform: rotate(180deg);
+}
+
+.selectorAsignadoMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    border-radius: 2px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.selectorAsignadoOpcion {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    width: 100%;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: none;
+    border: none;
+    color: var(--dashboard-textoSecundario);
+    font-size: var(--dashboard-tamanoBase);
+    cursor: pointer;
+    transition: background-color var(--dashboard-transicionNormal);
+    text-align: left;
+}
+
+.selectorAsignadoOpcion:hover {
+    background: var(--dashboard-fondoHover);
+    color: var(--dashboard-textoActivo);
+}
+
+.selectorAsignadoOpcionActiva {
+    background: rgba(100, 100, 100, 0.15);
+}
+
+.selectorAsignadoOpcionQuitar {
+    color: var(--dashboard-estadoAlta);
+    border-bottom: 1px solid var(--dashboard-bordeSutil);
+}
+
+.selectorAsignadoOpcionQuitar:hover {
+    background: var(--dashboard-estadoAltaFondo);
+}
+
+.selectorAsignadoAvatarOpcion {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.selectorAsignadoOpcionInfo {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.selectorAsignadoOpcionNombre {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.selectorAsignadoOpcionRol {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoApagado);
+}
+
+.selectorAsignadoCheck {
+    color: var(--dashboard-estadoExito);
+    flex-shrink: 0;
+}
+
+/* 
+ *
+ * Badge de Asignado (en TareaItem)
+ *
+ */
+
+.badgeAsignado {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    background: rgba(100, 100, 100, 0.15);
+    border-radius: 2px;
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+}
+
+.badgeAsignado img {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.badgeAsignadoNombre {
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 
+ *
+ * Badge de Propietario (para tareas compartidas de otro usuario)
+ *
+ */
+
+.badgePropietario {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    background: rgba(100, 140, 180, 0.2);
+    border-radius: 2px;
+    font-size: var(--dashboard-tamanoPequeno);
+    color: #7eb8da;
+}
+
+.badgePropietarioAvatar {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.badgePropietarioNombre {
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

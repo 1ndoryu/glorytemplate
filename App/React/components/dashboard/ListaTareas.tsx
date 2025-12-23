@@ -7,7 +7,7 @@
 import {useState, useCallback, useMemo, useRef} from 'react';
 import {Reorder} from 'framer-motion';
 import {ChevronRight} from 'lucide-react';
-import type {Tarea, DatosEdicionTarea, TareaConfiguracion, NivelPrioridad, Proyecto} from '../../types/dashboard';
+import type {Tarea, DatosEdicionTarea, TareaConfiguracion, NivelPrioridad, Proyecto, Participante} from '../../types/dashboard';
 import {TareaItem} from './TareaItem';
 import {InputNuevaTarea} from './InputNuevaTarea';
 import {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
@@ -29,9 +29,11 @@ interface ListaTareasProps {
     ocultarBadgeProyecto?: boolean;
     onCompartirTarea?: (tarea: Tarea) => void;
     estaCompartida?: (tareaId: number) => boolean;
+    /* Callback para obtener participantes de una tarea (para asignación) */
+    obtenerParticipantes?: (tarea: Tarea) => Participante[];
 }
 
-export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false, onCompartirTarea, estaCompartida}: ListaTareasProps): JSX.Element {
+export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, habilitarDrag = true, proyectos = [], ocultarCompletadas = false, ocultarBadgeProyecto = false, onCompartirTarea, estaCompartida, obtenerParticipantes}: ListaTareasProps): JSX.Element {
     /*
      * Estado para tareas padre colapsadas
      * Set de IDs de tareas padre cuyas subtareas estan ocultas
@@ -230,13 +232,18 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
      * Guardar configuración de tarea (incluye prioridad)
      */
     const guardarConfiguracion = useCallback(
-        (configuracion: TareaConfiguracion, prioridad?: NivelPrioridad | null, texto?: string) => {
+        (configuracion: TareaConfiguracion, prioridad?: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}) => {
             if (tareaConfigurando && onEditarTarea) {
-                /* Actualizamos la tarea con la nueva configuración, prioridad y texto */
+                /* Actualizamos la tarea con la nueva configuración, prioridad, texto y asignación */
                 onEditarTarea(tareaConfigurando.id, {
                     configuracion,
                     prioridad: prioridad === undefined ? tareaConfigurando.prioridad : prioridad,
-                    ...(texto !== undefined && {texto})
+                    ...(texto !== undefined && {texto}),
+                    ...(asignacion && {
+                        asignadoA: asignacion.asignadoA,
+                        asignadoANombre: asignacion.asignadoANombre,
+                        asignadoAAvatar: asignacion.asignadoAAvatar
+                    })
                 });
             }
             setTareaConfigurando(null);
@@ -385,7 +392,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
                 })}
 
             {/* Panel de configuración */}
-            {tareaConfigurando && <PanelConfiguracionTarea tarea={tareaConfigurando} estaAbierto={true} onCerrar={() => setTareaConfigurando(null)} onGuardar={guardarConfiguracion} />}
+            {tareaConfigurando && <PanelConfiguracionTarea tarea={tareaConfigurando} estaAbierto={true} onCerrar={() => setTareaConfigurando(null)} onGuardar={guardarConfiguracion} participantes={obtenerParticipantes ? obtenerParticipantes(tareaConfigurando) : []} />}
 
             {/* Modal Mover Proyecto */}
             <ModalMoverTarea estaAbierto={!!tareaMoviendo} onCerrar={() => setTareaMoviendo(null)} onMover={handleMoverProyecto} proyectos={proyectos} proyectoActualId={tareaMoviendo?.proyectoId} />

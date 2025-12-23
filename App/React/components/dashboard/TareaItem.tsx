@@ -262,6 +262,30 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
         return <BadgeInfo tipo="repeticion" icono={<Repeat size={10} />} titulo={`Repeticion ${textoIntervalo}`} onClick={onConfigurar} />;
     };
 
+    /* Renderizado del badge de asignacion */
+    const renderBadgeAsignado = () => {
+        if (!tarea.asignadoA || !tarea.asignadoANombre) return null;
+
+        return (
+            <span className="badgeAsignado" title={`Asignado a: ${tarea.asignadoANombre}`}>
+                {tarea.asignadoAAvatar && <img src={tarea.asignadoAAvatar} alt={tarea.asignadoANombre} />}
+                <span className="badgeAsignadoNombre">{tarea.asignadoANombre}</span>
+            </span>
+        );
+    };
+
+    /* Renderizado del badge de propietario (cuando es tarea compartida de otro usuario) */
+    const renderBadgePropietario = () => {
+        if (!tarea.esCompartido || !tarea.propietarioNombre) return null;
+
+        return (
+            <span className="badgePropietario" title={`De: ${tarea.propietarioNombre}`}>
+                {tarea.propietarioAvatar && <img src={tarea.propietarioAvatar} alt={tarea.propietarioNombre} className="badgePropietarioAvatar" />}
+                <span className="badgePropietarioNombre">{tarea.propietarioNombre}</span>
+            </span>
+        );
+    };
+
     if (editando) {
         return (
             <div className={`tareaItem tareaItemEditando ${esSubtarea ? 'tareaItemSubtarea' : ''}`}>
@@ -283,11 +307,13 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                     <div className="tareaTextoWrapper">
                         <p className={`tareaTexto ${tarea.completado ? 'tareaTextoCompletado' : ''}`}>{tarea.texto}</p>
                         <BadgeGroup>
+                            {renderBadgePropietario()}
                             {renderIndicadorFecha()}
                             {renderBadgeAdjuntos()}
                             {renderBadgeDescripcion()}
                             {renderBadgeRepeticion()}
-                            {estaCompartida && <BadgeInfo tipo="personalizado" icono={<Users size={10} />} titulo="Tarea compartida" variante="normal" />}
+                            {renderBadgeAsignado()}
+                            {estaCompartida && !tarea.esCompartido && <BadgeInfo tipo="personalizado" icono={<Users size={10} />} titulo="Tarea compartida" variante="normal" />}
                             {nombreProyecto && <BadgeInfo tipo="personalizado" icono={<Folder size={10} />} texto={soloIconoProyecto ? undefined : nombreProyecto} titulo={`Proyecto: ${nombreProyecto}`} variante="normal" />}
                             {renderIndicadorPrioridad()}
                         </BadgeGroup>

@@ -82,14 +82,24 @@ function ProyectoItem({proyecto, activo, tareasProyecto, estaCompartido = false,
                         <span>•</span>
                         <span>{totalTareas > 0 ? `${tareasCompletadas}/${totalTareas}` : 'Sin tareas'}</span>
 
-                        {/* Badge de compartido */}
-                        {estaCompartido && (
+                        {/* Badge de compartido o propietario */}
+                        {proyecto.esCompartido && proyecto.propietarioNombre ? (
                             <>
                                 <span>•</span>
-                                <span className="badgeCompartido" title="Proyecto compartido">
-                                    <Users size={10} />
+                                <span className="badgePropietario" title={`De: ${proyecto.propietarioNombre}`}>
+                                    {proyecto.propietarioAvatar && <img src={proyecto.propietarioAvatar} alt={proyecto.propietarioNombre} className="badgePropietarioAvatar" />}
+                                    <span className="badgePropietarioNombre">{proyecto.propietarioNombre}</span>
                                 </span>
                             </>
+                        ) : (
+                            estaCompartido && (
+                                <>
+                                    <span>•</span>
+                                    <span className="badgeCompartido" title="Proyecto compartido">
+                                        <Users size={10} />
+                                    </span>
+                                </>
+                            )
                         )}
 
                         {/* Badge de fecha limite con urgencia */}

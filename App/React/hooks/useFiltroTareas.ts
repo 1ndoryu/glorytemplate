@@ -1,6 +1,6 @@
 /*
  * Hook para gestionar el filtrado de tareas
- * Permite filtrar por: tareas sueltas, por proyecto especifico, o todas
+ * Permite filtrar por: tareas sueltas, por proyecto especifico, todas, o mis asignadas
  * Persiste la preferencia del usuario
  */
 
@@ -8,7 +8,7 @@ import {useMemo, useCallback} from 'react';
 import type {Tarea, Proyecto} from '../types/dashboard';
 import {useLocalStorage} from './useLocalStorage';
 
-export type TipoFiltroTareas = 'sueltas' | 'todas' | 'proyecto';
+export type TipoFiltroTareas = 'sueltas' | 'todas' | 'proyecto' | 'asignadas';
 
 export interface EstadoFiltro {
     tipo: TipoFiltroTareas;
@@ -17,6 +17,12 @@ export interface EstadoFiltro {
 
 /* Identificador para localStorage */
 const KEY_FILTRO = 'glory_filtro_tareas';
+
+/* Obtener ID del usuario actual desde la configuración global */
+function obtenerUsuarioActualId(): number | null {
+    const gloryData = (window as unknown as {gloryDashboard?: {userId?: number}}).gloryDashboard;
+    return gloryData?.userId ?? null;
+}
 
 export function useFiltroTareas(tareas: Tarea[], proyectos: Proyecto[] = []) {
     /* Estado persistido del filtro directamente con localStorage */
@@ -34,6 +40,8 @@ export function useFiltroTareas(tareas: Tarea[], proyectos: Proyecto[] = []) {
 
     /* Tareas filtradas segun la seleccion */
     const tareasFiltradas = useMemo(() => {
+        const usuarioId = obtenerUsuarioActualId();
+
         switch (filtroActual.tipo) {
             case 'todas':
                 return tareas;
@@ -42,12 +50,23 @@ export function useFiltroTareas(tareas: Tarea[], proyectos: Proyecto[] = []) {
                 if (!filtroActual.proyectoId) return tareas;
                 return tareas.filter(t => t.proyectoId === filtroActual.proyectoId);
 
+            case 'asignadas':
+                if (!usuarioId) return tareas;
+                return tareas.filter(t => t.asignadoA === usuarioId);
+
             case 'sueltas':
             default:
                 // Tareas que no tienen proyecto asignado
                 return tareas.filter(t => !t.proyectoId);
         }
     }, [tareas, filtroActual]);
+
+    /* Contar tareas asignadas al usuario */
+    const contarAsignadas = useMemo(() => {
+        const usuarioId = obtenerUsuarioActualId();
+        if (!usuarioId) return 0;
+        return tareas.filter(t => t.asignadoA === usuarioId && !t.completado).length;
+    }, [tareas]);
 
     /* Obtener informacion del filtro actual para display */
     const infoFiltro = useMemo(() => {
@@ -63,6 +82,10 @@ export function useFiltroTareas(tareas: Tarea[], proyectos: Proyecto[] = []) {
             };
         }
 
+        if (filtroActual.tipo === 'asignadas') {
+            return {etiqueta: 'Mis asignadas', descripcion: 'Tareas asignadas a mí'};
+        }
+
         return {etiqueta: 'Tareas sueltas', descripcion: 'Tareas sin proyecto asignado'};
     }, [filtroActual, proyectos]);
 
@@ -70,6 +93,7 @@ export function useFiltroTareas(tareas: Tarea[], proyectos: Proyecto[] = []) {
         filtroActual,
         cambiarFiltro,
         tareasFiltradas,
-        infoFiltro
+        infoFiltro,
+        contarAsignadas
     };
 }
