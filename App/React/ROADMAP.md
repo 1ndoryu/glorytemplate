@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.3-beta  
 **Ultima actualizacion:** 2025-12-23
-**Estado:** Refactorización en Progreso - Siguiente: Sistema de Urgencia
+**Estado:** Sistema de Urgencia completado - Siguiente: Mejoras UX Rápidas (Fase 6)
 
 ---
 
@@ -154,13 +154,23 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 |                              |              | `CifradoApiController.php`        | 114      |
 |                              |              | `StripeApiController.php`         | 187      |
 
-### 5.2 Frontend TSX - Pendiente
+### 5.2 Frontend TSX - En Progreso
 
-| Archivo                          | Líneas | Acción Propuesta                          |
-| -------------------------------- | ------ | ----------------------------------------- |
-| `islands/DashboardIsland.tsx`    | 773    | Extraer lógica a hooks, dividir secciones |
-| `components/SeccionAdjuntos.tsx` | 389    | Extraer subcomponentes                    |
-| `components/ListaTareas.tsx`     | 350    | Extraer lógica a hook                     |
+**Refactorizados:**
+
+| Archivo Original              | Líneas Antes | Archivos Resultantes             | Líneas D |
+| ----------------------------- | ------------ | -------------------------------- | -------- |
+| `islands/DashboardIsland.tsx` | 773          | `islands/DashboardIsland.tsx`    | 280      |
+|                               |              | `hooks/useModalesDashboard.ts`   | 195      |
+|                               |              | `hooks/useCompartirDashboard.ts` | 190      |
+|                               |              | `hooks/useOpcionesDashboard.tsx` | 85       |
+
+**Pendientes:**
+
+| Archivo                          | Líneas | Acción Propuesta       |
+| -------------------------------- | ------ | ---------------------- |
+| `components/SeccionAdjuntos.tsx` | 448    | Extraer subcomponentes |
+| `components/ListaTareas.tsx`     | 403    | Extraer lógica a hook  |
 
 ### 5.3 CSS - Pendiente
 
@@ -197,11 +207,11 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 | `Api/AdminApiController.php`      | 310    | Separar por responsabilidad       |
 | `Services/SuscripcionService`     | 306    | Separar Stripe de lógica local    |
 
-**Estado:** En progreso - Backend repositorios/controllers completado
+**Estado:** En progreso - Backend completado, DashboardIsland.tsx refactorizado
 
 ---
 
-## Fase 5.5: Sistema de Urgencia [SIGUIENTE]
+## Fase 5.5: Sistema de Urgencia [COMPLETADO]
 
 **Objetivo:** Diferenciar entre importancia (prioridad) y temporalidad (urgencia) para mejorar el ordenamiento inteligente de tareas.
 
@@ -218,27 +228,27 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 | 2     | `normal`     | **Default oculto**. No se muestra badge, se asume si no se elige otro | Sin badge                                 |
 | 1     | `chill`      | Puede hacerse en cualquier momento sin presión temporal               | Verde/Gris suave                          |
 
-> **Nota:** Los colores son los mismos de prioridad para mantener coherencia visual. La diferenciación será por icono o posición del badge.
+> **Nota:** Los colores son los mismos de prioridad para mantener coherencia visual. La diferenciación es por icono (Zap/rayo).
 
-### 5.5.2 Implementación Backend
+### 5.5.2 Implementación Backend ✅
 
-- [ ] Agregar campo `urgencia` a tabla `wp_glory_tareas` (enum: bloqueante, urgente, normal, chill)
-- [ ] Agregar campo `urgencia` a tabla `wp_glory_proyectos`
-- [ ] Migración para tareas/proyectos existentes → `normal` por defecto
-- [ ] Actualizar `TareasRepository.php` para guardar/leer urgencia
-- [ ] Actualizar `ProyectosRepository.php` para guardar/leer urgencia
+- [x] Agregar campo `urgencia` a tabla `wp_glory_tareas` (enum: bloqueante, urgente, normal, chill)
+- [x] Agregar campo `urgencia` a tabla `wp_glory_proyectos`
+- [x] Migración para tareas/proyectos existentes → `normal` por defecto (Schema v1.0.5)
+- [x] Actualizar `TareasRepository.php` para guardar/leer urgencia
+- [x] Actualizar `ProyectosRepository.php` para guardar/leer urgencia
 
-### 5.5.3 Implementación Frontend
+### 5.5.3 Implementación Frontend ✅
 
-- [ ] Agregar tipo `Urgencia` al `dashboard.ts` 
-- [ ] Agregar campo `urgencia` a interfaces `Tarea` y `Proyecto`
-- [ ] Crear componente `SelectorUrgencia` (similar a `CampoPrioridad`)
-- [ ] Integrar en `PanelConfiguracionTarea.tsx`
-- [ ] Integrar en `FormularioProyecto.tsx`
-- [ ] Mostrar badge de urgencia en `TareaItem.tsx` (si no es `normal`)
-- [ ] La urgencia tambien aplica a subtareas
+- [x] Agregar tipo `NivelUrgencia` al `dashboard.ts` 
+- [x] Agregar campo `urgencia` a interfaces `Tarea` y `Proyecto`
+- [x] Crear componente `CampoUrgencia` (similar a `CampoPrioridad`)
+- [x] Integrar en `PanelConfiguracionTarea.tsx`
+- [ ] Integrar en `FormularioProyecto.tsx` (pendiente)
+- [x] Mostrar badge de urgencia en `TareaItem.tsx` (si no es `normal`)
+- [x] La urgencia también aplica a subtareas
 
-### 5.5.4 Filtro Inteligente Mejorado
+### 5.5.4 Filtro Inteligente Mejorado ✅
 
 **Fórmula actual:** `fecha_limite + prioridad`
 
@@ -264,14 +274,14 @@ Peso Fecha:
   - Sin fecha: 0
 ```
 
-- [ ] Actualizar lógica de ordenamiento en `useTareas.ts`
-- [ ] Considerar urgencia en el conteo de "Tareas importantes para hoy"
+- [x] Actualizar lógica de ordenamiento en `useOrdenarTareas.ts`
+- [ ] Considerar urgencia en el conteo de "Tareas importantes para hoy" (pendiente)
 
-### 5.5.5 UI/UX
+### 5.5.5 UI/UX ✅
 
-- [ ] Badge de urgencia junto a prioridad (o integrado)
-- [ ] Tooltip explicativo de la diferencia prioridad vs urgencia
-- [ ] Valor default `normal` nunca muestra badge (igual que prioridad `media` oculta por defecto)
+- [x] Badge de urgencia junto a prioridad (icono Zap/rayo)
+- [x] Tooltip explicativo de la diferencia prioridad vs urgencia
+- [x] Valor default `normal` nunca muestra badge
 
 **Complejidad:** Media | **Dependencias:** Ninguna (independiente)
 **Aplica a:** Tareas, Subtareas, Proyectos (NO hábitos - los hábitos ya tienen periodicidad fija)
@@ -561,8 +571,8 @@ components/shared/
 | 3    | Notificaciones                 | Alta        | ✅ Completada  |
 | 4    | Compartir Tareas/Proyectos     | Muy Alta    | ✅ Completada  |
 | 5    | Refactorización                | Alta        | ⏳ En Progreso |
-| 5.5  | **Sistema de Urgencia**        | Media       | 🔜 Siguiente   |
-| 6    | Mejoras UX Rápidas             | Baja        | Pendiente     |
+| 5.5  | Sistema de Urgencia            | Media       | ✅ Completada  |
+| 6    | **Mejoras UX Rápidas**         | Baja        | 🔜 Siguiente   |
 | 7    | Scratchpad + File Manager      | Alta        | Planificada   |
 | 8    | Mapa de Calor                  | Media-Alta  | Planificada   |
 | 9    | Compartir Hábitos              | Media       | Pospuesta     |

@@ -2,25 +2,31 @@
  * DashboardIsland
  * Componente principal del Dashboard
  * Compone todos los subcomponentes del dashboard
+ * Refactorizado: Lógica extraída a hooks especializados
  */
 
-import {useState, useEffect} from 'react';
-import {Terminal, AlertCircle, FileText, Folder, Plus, LayoutGrid, Eraser} from 'lucide-react';
+import {useEffect, useCallback} from 'react';
+import {Terminal, AlertCircle, FileText, Folder, Plus, Eraser, Bell, ArrowUpDown, Settings} from 'lucide-react';
 import {DashboardEncabezado, SeccionEncabezado, TablaHabitos, ListaTareas, Scratchpad, DashboardFooter, AccionesDatos, FormularioHabito, ListaProyectos, FormularioProyecto, ModalLogin, PanelSeguridad, ModalConfiguracionLayout, PanelConfiguracionTarea, ModalConfiguracionProyectos, ModalPerfil} from '../components/dashboard';
-import {ToastDeshacer, ModalUpgrade, TooltipSystem, LayoutManager, BarraPanelesOcultos, PanelArrastrable, HandleArrastre, IndicadorArrastre, ModalVersiones} from '../components/shared';
+import {ToastDeshacer, ModalUpgrade, TooltipSystem, BarraPanelesOcultos, PanelArrastrable, HandleArrastre, IndicadorArrastre, ModalVersiones} from '../components/shared';
 import {Modal} from '../components/shared/Modal';
 import {PanelAdministracion} from '../components/admin';
 import {ModalEquipos} from '../components/equipos';
+import {ModalNotificaciones} from '../components/notificaciones';
+import {ModalCompartir} from '../components/compartidos';
+import {ModalExperimentos} from '../components/experimentos/ModalExperimentos';
+import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
+import {ModalConfiguracionHabitos} from '../components/dashboard/ModalConfiguracionHabitos';
+import {ModalConfiguracionScratchpad} from '../components/dashboard/ModalConfiguracionScratchpad';
+import {SelectorBadge} from '../components/shared/SelectorBadge';
+
 import {useDashboard} from '../hooks/useDashboard';
 import {useOrdenarHabitos} from '../hooks/useOrdenarHabitos';
 import {useAuth} from '../hooks/useAuth';
 import {useSuscripcion} from '../hooks/useSuscripcion';
 import {useFiltroTareas} from '../hooks/useFiltroTareas';
-import {useOrdenarTareas, MODOS_ORDEN_TAREAS} from '../hooks/useOrdenarTareas';
+import {useOrdenarTareas} from '../hooks/useOrdenarTareas';
 import {useConfiguracionLayout} from '../hooks/useConfiguracionLayout';
-import type {PanelId} from '../hooks/useConfiguracionLayout';
-import {SelectorBadge} from '../components/shared/SelectorBadge';
-import {Filter, LayoutList, CheckSquare, ArrowUpDown, Settings, User} from 'lucide-react';
 import {useConfiguracionTareas} from '../hooks/useConfiguracionTareas';
 import {useConfiguracionHabitos} from '../hooks/useConfiguracionHabitos';
 import {useConfiguracionProyectos} from '../hooks/useConfiguracionProyectos';
@@ -28,17 +34,17 @@ import {useConfiguracionScratchpad} from '../hooks/useConfiguracionScratchpad';
 import {useArrastrePaneles} from '../hooks/useArrastrePaneles';
 import {useEquipos} from '../hooks/useEquipos';
 import {useNotificaciones} from '../hooks/useNotificaciones';
-import {useCompartidos} from '../hooks/useCompartidos';
-import {ModalNotificaciones} from '../components/notificaciones';
-import {ModalCompartir} from '../components/compartidos';
-import {ModalExperimentos} from '../components/experimentos/ModalExperimentos';
-import type {AccionExperimento} from '../components/experimentos/ModalExperimentos';
 import {useAlertasContext} from '../context/AlertasContext';
-import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
-import {ModalConfiguracionHabitos} from '../components/dashboard/ModalConfiguracionHabitos';
-import {ModalConfiguracionScratchpad} from '../components/dashboard/ModalConfiguracionScratchpad';
-import type {Proyecto, Tarea, TareaConfiguracion, NivelPrioridad, RolCompartido, Participante} from '../types/dashboard';
-import {Bell} from 'lucide-react';
+
+/* Hooks refactorizados */
+import {useModalesDashboard} from '../hooks/useModalesDashboard';
+import {useCompartirDashboard} from '../hooks/useCompartirDashboard';
+import {useOpcionesDashboard} from '../hooks/useOpcionesDashboard';
+
+import type {PanelId} from '../hooks/useConfiguracionLayout';
+import type {AccionExperimento} from '../components/experimentos/ModalExperimentos';
+import type {TareaConfiguracion, NivelPrioridad} from '../types/dashboard';
+
 import '../styles/dashboard/componentes/experimentos.css';
 
 interface DashboardIslandProps {
@@ -47,10 +53,7 @@ interface DashboardIslandProps {
     usuario?: string;
 }
 
-/*
- * Componente de carga
- * Muestra un indicador mientras se cargan los datos de localStorage
- */
+/* Componente de carga */
 function IndicadorCarga({texto = 'Cargando datos...'}: {texto?: string}): JSX.Element {
     return (
         <div id="dashboard-cargando" className="dashboardCargando">
@@ -66,372 +69,88 @@ function IndicadorCarga({texto = 'Cargando datos...'}: {texto?: string}): JSX.El
 }
 
 export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta', usuario = 'user@admin'}: DashboardIslandProps): JSX.Element {
+    /* Core Dashboard */
     const {habitos, tareas, notas, proyectos, toggleTarea, crearTarea, editarTarea, eliminarTarea, crearProyecto, editarProyecto, eliminarProyecto, cambiarEstadoProyecto, actualizarNotas, toggleHabito, crearHabito, editarHabito, eliminarHabito, modalCrearHabitoAbierto, abrirModalCrearHabito, cerrarModalCrearHabito, habitoEditando, abrirModalEditarHabito, cerrarModalEditarHabito, exportarTodosDatos, importarTodosDatos, importando, mensajeEstado, tipoMensaje, cargandoDatos, accionDeshacer, ejecutarDeshacer, descartarDeshacer, reordenarTareas, sincronizacion} = useDashboard();
 
     /* Auth */
     const {loginWithGoogle, loginWithCredentials, register, handleCallback, logout, loading: authLoading, error: authError, user} = useAuth();
-    const [modalLoginAbierto, setModalLoginAbierto] = useState(false);
 
     /* Suscripcion */
     const {suscripcion} = useSuscripcion();
-    const [modalUpgradeAbierto, setModalUpgradeAbierto] = useState(false);
 
-    /* Seguridad */
-    const [panelSeguridadAbierto, setPanelSeguridadAbierto] = useState(false);
-
-    /* Administración (solo si es admin) */
+    /* Admin check */
     const esAdmin = Boolean((window as unknown as {gloryDashboard?: {esAdmin?: boolean}}).gloryDashboard?.esAdmin);
 
-    const [panelAdminAbierto, setPanelAdminAbierto] = useState(false);
+    /* Hook centralizado de modales */
+    const modales = useModalesDashboard();
 
-    /* Perfil de Usuario */
-    const [modalPerfilAbierto, setModalPerfilAbierto] = useState(false);
-
-    /* Equipos (Social) */
+    /* Equipos */
     const equipos = useEquipos();
-    const [modalEquiposAbierto, setModalEquiposAbierto] = useState(false);
-
-    /* Compartidos */
-    const compartidos = useCompartidos();
-    const [proyectoCompartiendo, setProyectoCompartiendo] = useState<Proyecto | null>(null);
-    const [participantesProyecto, setParticipantesProyecto] = useState<Participante[]>([]);
-    const [tareaCompartiendo, setTareaCompartiendo] = useState<Tarea | null>(null);
-    const [participantesTarea, setParticipantesTarea] = useState<Participante[]>([]);
-    /* Cache de participantes por proyecto para asignación de tareas */
-    const [cacheParticipantesProyecto, setCacheParticipantesProyecto] = useState<Map<number, Participante[]>>(new Map());
 
     /* Notificaciones */
     const notificaciones = useNotificaciones(Boolean(user));
-    const [modalNotificacionesAbierto, setModalNotificacionesAbierto] = useState(false);
-    const [posicionModalNotificaciones, setPosicionModalNotificaciones] = useState({x: 0, y: 0});
 
-    const manejarClickNotificaciones = (evento: React.MouseEvent) => {
-        const rect = (evento.currentTarget as HTMLElement).getBoundingClientRect();
-        setPosicionModalNotificaciones({
-            x: rect.right - 360,
-            y: rect.bottom + 10
-        });
-        setModalNotificacionesAbierto(!modalNotificacionesAbierto);
-
-        // Cargar notificaciones al abrir
-        if (!modalNotificacionesAbierto) {
-            notificaciones.cargarNotificaciones();
-        }
-    };
-
-    const manejarClickNotificacionIndividual = (notificacion: any) => {
-        // Lógica específica por tipo de notificación
-        if (notificacion.tipo === 'solicitud_equipo') {
-            setModalEquiposAbierto(true);
-            setModalNotificacionesAbierto(false);
-        }
-        // Futuro: manejar otros tipos (ir a tarea, proyecto, etc)
-    };
-
-    /* Modal de Experimentos (solo admins) */
-    const [modalExperimentosAbierto, setModalExperimentosAbierto] = useState(false);
-
-    /* Acción: Crear notificación de prueba */
-    const crearNotificacionPrueba = async (): Promise<boolean> => {
-        try {
-            const nonce = (window as unknown as {gloryDashboard?: {nonce?: string}}).gloryDashboard?.nonce || '';
-            const response = await fetch('/wp-json/glory/v1/notificaciones/test', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-WP-Nonce': nonce
-                },
-                body: JSON.stringify({
-                    tipo: 'solicitud_equipo',
-                    titulo: 'Notificación de prueba',
-                    contenido: 'Esta es una notificación de prueba para verificar el sistema.'
-                })
-            });
-            const data = await response.json();
-            if (data.success) {
-                notificaciones.refrescar();
-                return true;
-            }
-            return false;
-        } catch (err) {
-            console.error('Error al crear notificación de prueba:', err);
-            return false;
-        }
-    };
-
-    /* Lista de acciones de experimentos */
-    const accionesExperimentos: AccionExperimento[] = [
-        {
-            id: 'notificacion-prueba',
-            nombre: 'Crear Notificación de Prueba',
-            descripcion: 'Crea una notificación de tipo solicitud_equipo para probar el sistema.',
-            icono: <Bell size={20} />,
-            ejecutar: crearNotificacionPrueba
-        }
-    ];
-
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
-        if (code) {
-            handleCallback(code);
-        }
-    }, [handleCallback]);
+    /* Compartidos */
+    const compartir = useCompartirDashboard({proyectos});
 
     /* Sistema de ordenamiento de habitos */
+    const {habitosOrdenados, modoActual: modoOrdenHabitos, cambiarModo: cambiarModoHabitos, modosDisponibles: modosHabitos} = useOrdenarHabitos(habitos);
 
-    const {habitosOrdenados, modoActual, cambiarModo, modosDisponibles} = useOrdenarHabitos(habitos);
-    const modoInfo = modosDisponibles.find(m => m.id === modoActual);
-
-    /* Opciones para SelectorBadge de hábitos */
-    const opcionesOrdenHabitos = modosDisponibles.map(m => ({
-        id: m.id,
-        etiqueta: m.etiqueta,
-        descripcion: m.descripcion
-    }));
-
-    /* Estado de proyectos */
-    const [proyectoSeleccionadoId, setProyectoSeleccionadoId] = useState<number | null>(null);
-    const [modalCrearProyectoAbierto, setModalCrearProyectoAbierto] = useState(false);
-    const [proyectoEditando, setProyectoEditando] = useState<Proyecto | null>(null);
-
-    /* Configuracion de proyectos */
-    const {configuracion: configProyectos, toggleOcultarCompletados: toggleOcultarProyectosCompletados, cambiarOrdenDefecto: cambiarOrdenProyectos, toggleMostrarProgreso: toggleProgresoProyectos} = useConfiguracionProyectos();
-    const [modalConfigProyectosAbierto, setModalConfigProyectosAbierto] = useState(false);
-
-    /* Opciones para SelectorBadge de proyectos */
-    const opcionesOrdenProyectos = [
-        {id: 'nombre', etiqueta: 'Nombre', descripcion: 'Alfabético'},
-        {id: 'fecha', etiqueta: 'Fecha Límite', descripcion: 'Vencimiento'},
-        {id: 'prioridad', etiqueta: 'Prioridad', descripcion: 'Importancia'}
-    ];
-
-    /* Configuracion de scratchpad */
-    const {configuracion: configScratchpad, cambiarTamanoFuente: cambiarFuenteScratchpad, cambiarAltura: cambiarAlturaScratchpad, cambiarAutoGuardado: cambiarAutoGuardadoScratchpad} = useConfiguracionScratchpad();
-    const [modalConfigScratchpadAbierto, setModalConfigScratchpadAbierto] = useState(false);
-
-    /* Tareas sueltas (sin proyecto) para mostrar en Ejecucion */
-    const {filtroActual, cambiarFiltro, tareasFiltradas, infoFiltro, contarAsignadas} = useFiltroTareas(tareas, proyectos || []);
-
-    /* Generar opciones para el selector */
-    const opcionesFiltro = [
-        {id: 'sueltas', etiqueta: 'Tareas sueltas', icono: <CheckSquare size={12} />, descripcion: 'Sin proyecto'},
-        {id: 'asignadas', etiqueta: 'Mis asignadas', icono: <User size={12} />, descripcion: contarAsignadas > 0 ? `${contarAsignadas} pendientes` : 'Ninguna'},
-        {id: 'todas', etiqueta: 'Todas las tareas', icono: <LayoutList size={12} />, descripcion: 'Todas'},
-        ...(proyectos || []).map(p => ({
-            id: `proyecto-${p.id}`,
-            etiqueta: p.nombre,
-            icono: <Folder size={12} />,
-            descripcion: (p.descripcion || '').length > 25 ? (p.descripcion || '').substring(0, 25) + '...' : p.descripcion || ''
-        }))
-    ];
-
-    const manejarCambioFiltro = (valor: string) => {
-        if (valor === 'sueltas') cambiarFiltro({tipo: 'sueltas'});
-        else if (valor === 'todas') cambiarFiltro({tipo: 'todas'});
-        else if (valor === 'asignadas') cambiarFiltro({tipo: 'asignadas'});
-        else if (valor.startsWith('proyecto-')) {
-            const id = parseInt(valor.replace('proyecto-', ''), 10);
-            cambiarFiltro({tipo: 'proyecto', proyectoId: id});
-        }
-    };
-
-    /* Configuracion de tareas */
-    const {configuracion: configTareas, toggleOcultarCompletadas, toggleOcultarBadgeProyecto, toggleEliminarCompletadasDespuesDeUnDia} = useConfiguracionTareas();
-    const [modalConfigTareasAbierto, setModalConfigTareasAbierto] = useState(false);
-
-    /* Configuracion de habitos */
-    const {configuracion: configHabitos, toggleOcultarCompletadosHoy, toggleModoCompacto, toggleColumnaVisible} = useConfiguracionHabitos();
-    const [modalConfigHabitosAbierto, setModalConfigHabitosAbierto] = useState(false);
-
-    /* Configuracion de layout */
-    const {modoColumnas, anchos, visibilidad, ordenPaneles, panelesOcultos, cambiarModoColumnas, ajustarAnchos, toggleVisibilidadPanel, mostrarPanel, resetearLayout, obtenerPanelesColumna, moverPanelArriba, moverPanelAbajo, moverPanelAColumna, resetearOrdenPaneles, reordenarPanel} = useConfiguracionLayout();
-    const [modalConfigLayoutAbierto, setModalConfigLayoutAbierto] = useState(false);
-
-    /* Modal historial de versiones */
-    const [modalVersionesAbierto, setModalVersionesAbierto] = useState(false);
-
-    /* Sistema de arrastre de paneles */
-    const {panelArrastrando, posicionMouse, zonaDropActiva, iniciarArrastre, registrarPanel} = useArrastrePaneles(ordenPaneles, reordenarPanel);
-
-    /* Calcular valor actual para el selector */
-    const valorFiltroActual = filtroActual.tipo === 'proyecto' ? `proyecto-${filtroActual.proyectoId}` : filtroActual.tipo;
+    /* Filtro de tareas */
+    const {filtroActual, cambiarFiltro, tareasFiltradas, contarAsignadas} = useFiltroTareas(tareas, proyectos || []);
 
     /* Ordenamiento de tareas */
     const {tareasOrdenadas: tareasFinales, modoActual: modoOrden, cambiarModo: cambiarModoOrden, esOrdenManual} = useOrdenarTareas(tareasFiltradas);
 
-    /* Adaptar opciones de orden para SelectorBadge */
-    const opcionesOrden = MODOS_ORDEN_TAREAS.map(m => ({
-        id: m.id,
-        etiqueta: m.etiqueta,
-        descripcion: m.descripcion
-    }));
+    /* Configuraciones */
+    const {configuracion: configTareas, toggleOcultarCompletadas, toggleOcultarBadgeProyecto, toggleEliminarCompletadasDespuesDeUnDia} = useConfiguracionTareas();
+    const {configuracion: configHabitos, toggleOcultarCompletadosHoy, toggleModoCompacto, toggleColumnaVisible} = useConfiguracionHabitos();
+    const {configuracion: configProyectos, toggleOcultarCompletados: toggleOcultarProyectosCompletados, cambiarOrdenDefecto: cambiarOrdenProyectos, toggleMostrarProgreso: toggleProgresoProyectos} = useConfiguracionProyectos();
+    const {configuracion: configScratchpad, cambiarTamanoFuente: cambiarFuenteScratchpad, cambiarAltura: cambiarAlturaScratchpad, cambiarAutoGuardado: cambiarAutoGuardadoScratchpad} = useConfiguracionScratchpad();
 
-    /* Manejadores de proyectos */
-    const manejarCrearProyecto = () => {
-        setModalCrearProyectoAbierto(true);
-    };
+    /* Layout */
+    const {modoColumnas, visibilidad, ordenPaneles, panelesOcultos, cambiarModoColumnas, toggleVisibilidadPanel, mostrarPanel, resetearLayout, obtenerPanelesColumna, moverPanelArriba, moverPanelAbajo, moverPanelAColumna, resetearOrdenPaneles, reordenarPanel} = useConfiguracionLayout();
 
-    const manejarGuardarNuevoProyecto = (datos: Parameters<typeof crearProyecto>[0]) => {
-        crearProyecto(datos);
-        setModalCrearProyectoAbierto(false);
-    };
+    /* Arrastre de paneles */
+    const {panelArrastrando, posicionMouse, zonaDropActiva, iniciarArrastre, registrarPanel} = useArrastrePaneles(ordenPaneles, reordenarPanel);
 
-    const manejarEditarProyecto = (proyecto: Proyecto) => {
-        setProyectoEditando(proyecto);
-    };
+    /* Opciones para selectores */
+    const opciones = useOpcionesDashboard({
+        proyectos: proyectos || [],
+        modosOrdenHabitos: modosHabitos,
+        contarAsignadas
+    });
 
-    const manejarGuardarEdicionProyecto = (datos: Parameters<typeof crearProyecto>[0]) => {
-        if (proyectoEditando) {
-            editarProyecto(proyectoEditando.id, datos);
-            setProyectoEditando(null);
-        }
-    };
-
-    const manejarEliminarProyecto = (id: number) => {
-        eliminarProyecto(id);
-        if (proyectoSeleccionadoId === id) {
-            setProyectoSeleccionadoId(null);
-        }
-    };
-
-    /* Manejador para compartir proyecto */
-    const manejarCompartirProyecto = async (proyecto: Proyecto) => {
-        setProyectoCompartiendo(proyecto);
-        /* Cargar participantes del proyecto */
-        const parts = await compartidos.obtenerParticipantes('proyecto', proyecto.id);
-        setParticipantesProyecto(parts);
-        /* Actualizar cache */
-        setCacheParticipantesProyecto(prev => new Map(prev).set(proyecto.id, parts));
-    };
-
-    /* Handlers para el modal de compartir */
-    const manejarCompartirElemento = async (usuarioId: number, rol: RolCompartido): Promise<boolean> => {
-        if (!proyectoCompartiendo) return false;
-        const exito = await compartidos.compartir('proyecto', proyectoCompartiendo.id, usuarioId, rol);
-        if (exito) {
-            /* Recargar participantes */
-            const parts = await compartidos.obtenerParticipantes('proyecto', proyectoCompartiendo.id);
-            setParticipantesProyecto(parts);
-            /* Actualizar cache */
-            setCacheParticipantesProyecto(prev => new Map(prev).set(proyectoCompartiendo.id, parts));
-        }
-        return exito;
-    };
-
-    const manejarCambiarRolCompartido = async (compartidoId: number, nuevoRol: RolCompartido): Promise<boolean> => {
-        const exito = await compartidos.actualizarRol(compartidoId, nuevoRol);
-        if (exito && proyectoCompartiendo) {
-            const parts = await compartidos.obtenerParticipantes('proyecto', proyectoCompartiendo.id);
-            setParticipantesProyecto(parts);
-            /* Actualizar cache */
-            setCacheParticipantesProyecto(prev => new Map(prev).set(proyectoCompartiendo.id, parts));
-        }
-        return exito;
-    };
-
-    const manejarDejarDeCompartir = async (compartidoId: number): Promise<boolean> => {
-        const exito = await compartidos.dejarDeCompartir(compartidoId);
-        if (exito && proyectoCompartiendo) {
-            const parts = await compartidos.obtenerParticipantes('proyecto', proyectoCompartiendo.id);
-            setParticipantesProyecto(parts);
-            /* Actualizar cache */
-            setCacheParticipantesProyecto(prev => new Map(prev).set(proyectoCompartiendo.id, parts));
-        }
-        if (exito && tareaCompartiendo) {
-            const parts = await compartidos.obtenerParticipantes('tarea', tareaCompartiendo.id);
-            setParticipantesTarea(parts);
-        }
-        return exito;
-    };
-
-    /* Manejador para compartir tarea */
-    const manejarCompartirTarea = async (tarea: Tarea) => {
-        setTareaCompartiendo(tarea);
-        /* Cargar participantes de la tarea */
-        const parts = await compartidos.obtenerParticipantes('tarea', tarea.id);
-        setParticipantesTarea(parts);
-    };
-
-    /* Handlers para el modal de compartir tarea */
-    const manejarCompartirTareaElemento = async (usuarioId: number, rol: RolCompartido): Promise<boolean> => {
-        if (!tareaCompartiendo) return false;
-        const exito = await compartidos.compartir('tarea', tareaCompartiendo.id, usuarioId, rol);
-        if (exito) {
-            /* Recargar participantes */
-            const parts = await compartidos.obtenerParticipantes('tarea', tareaCompartiendo.id);
-            setParticipantesTarea(parts);
-        }
-        return exito;
-    };
-
-    const manejarCambiarRolTareaCompartida = async (compartidoId: number, nuevoRol: RolCompartido): Promise<boolean> => {
-        const exito = await compartidos.actualizarRol(compartidoId, nuevoRol);
-        if (exito && tareaCompartiendo) {
-            const parts = await compartidos.obtenerParticipantes('tarea', tareaCompartiendo.id);
-            setParticipantesTarea(parts);
-        }
-        return exito;
-    };
-
-    /*
-     * Obtiene los participantes disponibles para asignar a una tarea
-     * Prioridad: 1) Si pertenece a un proyecto compartido, usa participantes del proyecto
-     *            2) Si la tarea está compartida directamente, no tiene participantes adicionales
-     *            3) Si no está compartida, array vacío
-     */
-    const obtenerParticipantesTarea = (tarea: Tarea): Participante[] => {
-        /* Si la tarea pertenece a un proyecto, buscar participantes del proyecto en cache */
-        if (tarea.proyectoId) {
-            const participantesDelProyecto = cacheParticipantesProyecto.get(tarea.proyectoId);
-            if (participantesDelProyecto && participantesDelProyecto.length > 0) {
-                return participantesDelProyecto;
-            }
-            /* Si el proyecto está marcado como compartido pero no tenemos cache, intentar cargarlo */
-            const proyecto = proyectos?.find(p => p.id === tarea.proyectoId);
-            if (proyecto?.esCompartido || compartidos.estaCompartido('proyecto', tarea.proyectoId)) {
-                /* Cargar participantes del proyecto en background y actualizar cache */
-                compartidos.obtenerParticipantes('proyecto', tarea.proyectoId).then(parts => {
-                    if (parts.length > 0) {
-                        setCacheParticipantesProyecto(prev => new Map(prev).set(tarea.proyectoId!, parts));
-                    }
-                });
-            }
-        }
-        /* Por defecto, retornar array vacío si no hay participantes */
-        return [];
-    };
-
-    /* Estado para modal de nueva tarea global */
-    const [modalNuevaTareaAbierto, setModalNuevaTareaAbierto] = useState(false);
-
-    /* Manejadores de acciones globales */
-    const manejarNuevaTarea = () => {
-        setModalNuevaTareaAbierto(true);
-    };
-
-    const manejarCrearNuevaTareaGlobal = (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string) => {
-        if (!texto) return;
-
-        // Asignar al proyecto filtrado actualmente si existe
-        const proyectoId = filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined;
-
-        crearTarea({
-            texto,
-            prioridad,
-            configuracion,
-            proyectoId,
-            completado: false
-        });
-
-        setModalNuevaTareaAbierto(false);
-    };
-
+    /* Alertas */
     const {confirmar} = useAlertasContext();
 
-    const manejarLimpiarScratchpad = async () => {
-        if (!notas || notas.trim() === '') return;
+    /* Callback para OAuth */
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        if (code) handleCallback(code);
+    }, [handleCallback]);
 
+    /* Valor actual del filtro */
+    const valorFiltroActual = filtroActual.tipo === 'proyecto' ? `proyecto-${filtroActual.proyectoId}` : filtroActual.tipo;
+
+    /* Manejador de cambio de filtro */
+    const manejarCambioFiltro = useCallback(
+        (valor: string) => {
+            if (valor === 'sueltas') cambiarFiltro({tipo: 'sueltas'});
+            else if (valor === 'todas') cambiarFiltro({tipo: 'todas'});
+            else if (valor === 'asignadas') cambiarFiltro({tipo: 'asignadas'});
+            else if (valor.startsWith('proyecto-')) {
+                const id = parseInt(valor.replace('proyecto-', ''), 10);
+                cambiarFiltro({tipo: 'proyecto', proyectoId: id});
+            }
+        },
+        [cambiarFiltro]
+    );
+
+    /* Manejador para limpiar scratchpad */
+    const manejarLimpiarScratchpad = useCallback(async () => {
+        if (!notas || notas.trim() === '') return;
         const confirmado = await confirmar({
             titulo: 'Limpiar Scratchpad',
             mensaje: '¿Estás seguro de que quieres borrar todo el contenido del Scratchpad? Esta acción no se puede deshacer.',
@@ -439,18 +158,84 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
             textoCancelar: 'Cancelar',
             tipo: 'advertencia'
         });
+        if (confirmado) actualizarNotas('');
+    }, [notas, confirmar, actualizarNotas]);
 
-        if (confirmado) {
-            actualizarNotas('');
+    /* Crear nueva tarea global */
+    const manejarCrearNuevaTareaGlobal = useCallback(
+        (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string) => {
+            if (!texto) return;
+            const proyectoId = filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined;
+            crearTarea({texto, prioridad, configuracion, proyectoId, completado: false});
+            modales.cerrarModalNuevaTarea();
+        },
+        [filtroActual, crearTarea, modales]
+    );
+
+    /* Manejadores de proyectos */
+    const manejarGuardarNuevoProyecto = useCallback(
+        (datos: Parameters<typeof crearProyecto>[0]) => {
+            crearProyecto(datos);
+            modales.cerrarModalCrearProyecto();
+        },
+        [crearProyecto, modales]
+    );
+
+    const manejarGuardarEdicionProyecto = useCallback(
+        (datos: Parameters<typeof crearProyecto>[0]) => {
+            if (modales.proyectoEditando) {
+                editarProyecto(modales.proyectoEditando.id, datos);
+                modales.cerrarModalEditarProyecto();
+            }
+        },
+        [modales.proyectoEditando, editarProyecto, modales]
+    );
+
+    /* Click en notificaciones */
+    const manejarClickNotificaciones = useCallback(
+        (evento: React.MouseEvent) => {
+            modales.abrirModalNotificaciones(evento);
+            if (!modales.modalNotificacionesAbierto) {
+                notificaciones.cargarNotificaciones();
+            }
+        },
+        [modales, notificaciones]
+    );
+
+    const manejarClickNotificacionIndividual = useCallback(
+        (notificacion: any) => {
+            if (notificacion.tipo === 'solicitud_equipo') {
+                modales.abrirModalEquipos();
+                modales.cerrarModalNotificaciones();
+            }
+        },
+        [modales]
+    );
+
+    /* Acciones de experimentos */
+    const crearNotificacionPrueba = useCallback(async (): Promise<boolean> => {
+        try {
+            const nonce = (window as unknown as {gloryDashboard?: {nonce?: string}}).gloryDashboard?.nonce || '';
+            const response = await fetch('/wp-json/glory/v1/notificaciones/test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-WP-Nonce': nonce},
+                body: JSON.stringify({tipo: 'solicitud_equipo', titulo: 'Notificación de prueba', contenido: 'Esta es una notificación de prueba.'})
+            });
+            const data = await response.json();
+            if (data.success) {
+                notificaciones.refrescar();
+                return true;
+            }
+            return false;
+        } catch {
+            return false;
         }
-    };
+    }, [notificaciones]);
 
-    /*
-     * Renderiza el contenido interno de un panel según su ID
-     * Incluye el HandleArrastre en cada SeccionEncabezado
-     */
+    const accionesExperimentos: AccionExperimento[] = [{id: 'notificacion-prueba', nombre: 'Crear Notificación de Prueba', descripcion: 'Crea una notificación de tipo solicitud_equipo para probar el sistema.', icono: <Bell size={20} />, ejecutar: crearNotificacionPrueba}];
+
+    /* Renderizar contenido de panel */
     const renderizarContenidoPanel = (panelId: PanelId): JSX.Element | null => {
-        /* Handle de arrastre común para todos los paneles */
         const handleArrastre = <HandleArrastre panelId={panelId} onMouseDown={iniciarArrastre} estaArrastrando={panelArrastrando === panelId} />;
 
         switch (panelId) {
@@ -463,13 +248,13 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                             acciones={
                                 <>
                                     {handleArrastre}
-                                    <SelectorBadge opciones={opcionesOrdenHabitos} valorActual={modoActual} onChange={valor => cambiarModo(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar hábitos" />
+                                    <SelectorBadge opciones={opciones.opcionesOrdenHabitos} valorActual={modoOrdenHabitos} onChange={valor => cambiarModoHabitos(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar hábitos" />
                                     <button className="selectorBadgeBoton" onClick={abrirModalCrearHabito} title="Nuevo Hábito">
                                         <span className="selectorBadgeIcono">
                                             <Plus size={10} />
                                         </span>
                                     </button>
-                                    <button className="selectorBadgeBoton" onClick={() => setModalConfigHabitosAbierto(true)} title="Configuración">
+                                    <button className="selectorBadgeBoton" onClick={modales.abrirModalConfigHabitos} title="Configuración">
                                         <span className="selectorBadgeIcono">
                                             <Settings size={10} />
                                         </span>
@@ -480,7 +265,6 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                         <TablaHabitos habitos={habitosOrdenados} onAñadirHabito={abrirModalCrearHabito} onToggleHabito={toggleHabito} onEditarHabito={abrirModalEditarHabito} onEliminarHabito={eliminarHabito} configuracion={configHabitos} />
                     </div>
                 );
-
             case 'proyectos':
                 return (
                     <div className="panelDashboard">
@@ -490,13 +274,13 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                             acciones={
                                 <>
                                     {handleArrastre}
-                                    <SelectorBadge opciones={opcionesOrdenProyectos} valorActual={configProyectos.ordenDefecto} onChange={valor => cambiarOrdenProyectos(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar proyectos" />
-                                    <button className="selectorBadgeBoton" onClick={manejarCrearProyecto} title="Nuevo Proyecto">
+                                    <SelectorBadge opciones={opciones.opcionesOrdenProyectos} valorActual={configProyectos.ordenDefecto} onChange={valor => cambiarOrdenProyectos(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar proyectos" />
+                                    <button className="selectorBadgeBoton" onClick={modales.abrirModalCrearProyecto} title="Nuevo Proyecto">
                                         <span className="selectorBadgeIcono">
                                             <Plus size={10} />
                                         </span>
                                     </button>
-                                    <button className="selectorBadgeBoton" onClick={() => setModalConfigProyectosAbierto(true)} title="Configuración">
+                                    <button className="selectorBadgeBoton" onClick={modales.abrirModalConfigProyectos} title="Configuración">
                                         <span className="selectorBadgeIcono">
                                             <Settings size={10} />
                                         </span>
@@ -504,10 +288,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                                 </>
                             }
                         />
-                        <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={manejarCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={manejarEditarProyecto} onEliminarProyecto={manejarEliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onCompartirProyecto={manejarCompartirProyecto} estaCompartido={id => compartidos.estaCompartido('proyecto', id)} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} ocultarCompletados={configProyectos.ocultarCompletados} ordenDefecto={configProyectos.ordenDefecto} mostrarProgreso={configProyectos.mostrarProgreso} />
+                        <ListaProyectos proyectos={proyectos || []} tareas={tareas} onCrearProyecto={modales.abrirModalCrearProyecto} onSeleccionarProyecto={() => {}} onEditarProyecto={modales.abrirModalEditarProyecto} onEliminarProyecto={eliminarProyecto} onCambiarEstadoProyecto={cambiarEstadoProyecto} onCompartirProyecto={compartir.manejarCompartirProyecto} estaCompartido={compartir.estaCompartidoProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={reordenarTareas} ocultarCompletados={configProyectos.ocultarCompletados} ordenDefecto={configProyectos.ordenDefecto} mostrarProgreso={configProyectos.mostrarProgreso} />
                     </div>
                 );
-
             case 'ejecucion':
                 return (
                     <div className="panelDashboard internaColumna">
@@ -517,14 +300,14 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                             acciones={
                                 <div style={{display: 'flex', gap: '8px'}}>
                                     {handleArrastre}
-                                    <SelectorBadge opciones={opcionesFiltro} valorActual={valorFiltroActual} onChange={manejarCambioFiltro} titulo="Filtrar tareas" />
-                                    <SelectorBadge opciones={opcionesOrden} valorActual={modoOrden} onChange={valor => cambiarModoOrden(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar tareas" />
-                                    <button className="selectorBadgeBoton" onClick={manejarNuevaTarea} title="Nueva Tarea">
+                                    <SelectorBadge opciones={opciones.opcionesFiltro} valorActual={valorFiltroActual} onChange={manejarCambioFiltro} titulo="Filtrar tareas" />
+                                    <SelectorBadge opciones={opciones.opcionesOrdenTareas} valorActual={modoOrden} onChange={valor => cambiarModoOrden(valor as any)} icono={<ArrowUpDown size={10} />} titulo="Ordenar tareas" />
+                                    <button className="selectorBadgeBoton" onClick={modales.abrirModalNuevaTarea} title="Nueva Tarea">
                                         <span className="selectorBadgeIcono">
                                             <Plus size={10} />
                                         </span>
                                     </button>
-                                    <button className="selectorBadgeBoton" onClick={() => setModalConfigTareasAbierto(true)} title="Configuración">
+                                    <button className="selectorBadgeBoton" onClick={modales.abrirModalConfigTareas} title="Configuración">
                                         <span className="selectorBadgeIcono">
                                             <Settings size={10} />
                                         </span>
@@ -532,10 +315,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                                 </div>
                             }
                         />
-                        <ListaTareas tareas={tareasFinales} proyectoId={filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined} proyectos={proyectos || []} ocultarCompletadas={configTareas.ocultarCompletadas} ocultarBadgeProyecto={configTareas.ocultarBadgeProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={esOrdenManual ? reordenarTareas : undefined} habilitarDrag={esOrdenManual} onCompartirTarea={manejarCompartirTarea} estaCompartida={id => compartidos.estaCompartido('tarea', id)} obtenerParticipantes={obtenerParticipantesTarea} />
+                        <ListaTareas tareas={tareasFinales} proyectoId={filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined} proyectos={proyectos || []} ocultarCompletadas={configTareas.ocultarCompletadas} ocultarBadgeProyecto={configTareas.ocultarBadgeProyecto} onToggleTarea={toggleTarea} onCrearTarea={crearTarea} onEditarTarea={editarTarea} onEliminarTarea={eliminarTarea} onReordenarTareas={esOrdenManual ? reordenarTareas : undefined} habilitarDrag={esOrdenManual} onCompartirTarea={compartir.manejarCompartirTarea} estaCompartida={compartir.estaCompartidaTarea} obtenerParticipantes={compartir.obtenerParticipantesTarea} />
                     </div>
                 );
-
             case 'scratchpad':
                 return (
                     <div className="panelDashboard internaColumna">
@@ -551,7 +333,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                                             <Eraser size={10} />
                                         </span>
                                     </button>
-                                    <button className="selectorBadgeBoton" onClick={() => setModalConfigScratchpadAbierto(true)} title="Configuración">
+                                    <button className="selectorBadgeBoton" onClick={modales.abrirModalConfigScratchpad} title="Configuración">
                                         <span className="selectorBadgeIcono">
                                             <Settings size={10} />
                                         </span>
@@ -562,209 +344,115 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                         <Scratchpad valorInicial={notas} onChange={actualizarNotas} tamanoFuente={configScratchpad.tamanoFuente} altura={configScratchpad.altura} delayGuardado={configScratchpad.autoGuardadoIntervalo} />
                     </div>
                 );
-
             default:
                 return null;
         }
     };
 
-    /*
-     * Renderiza un panel envuelto en PanelArrastrable
-     */
-    const renderizarPanel = (panelId: PanelId): JSX.Element => {
-        return (
-            <PanelArrastrable key={panelId} panelId={panelId} innerRef={el => registrarPanel(panelId, el)} esArrastrando={panelArrastrando === panelId} esDestino={zonaDropActiva?.panelId === panelId} posicionDestino={zonaDropActiva?.panelId === panelId ? zonaDropActiva.posicion : null}>
-                {renderizarContenidoPanel(panelId)}
-            </PanelArrastrable>
-        );
-    };
+    /* Renderizar panel con wrapper */
+    const renderizarPanel = (panelId: PanelId): JSX.Element => (
+        <PanelArrastrable key={panelId} panelId={panelId} innerRef={el => registrarPanel(panelId, el)} esArrastrando={panelArrastrando === panelId} esDestino={zonaDropActiva?.panelId === panelId} posicionDestino={zonaDropActiva?.panelId === panelId ? zonaDropActiva.posicion : null}>
+            {renderizarContenidoPanel(panelId)}
+        </PanelArrastrable>
+    );
 
-    /*
-     * Renderiza los paneles de una columna
-     */
-    const renderizarColumna = (columna: 1 | 2 | 3): JSX.Element[] => {
-        const panelesColumna = obtenerPanelesColumna(columna);
-        return panelesColumna.map(panelId => renderizarPanel(panelId));
-    };
+    /* Renderizar columna */
+    const renderizarColumna = (columna: 1 | 2 | 3): JSX.Element[] => obtenerPanelesColumna(columna).map(panelId => renderizarPanel(panelId));
 
-    if (authLoading && !modalLoginAbierto) {
-        // Solo mostrar carga pantalla completa si no es modal
-        return <IndicadorCarga texto="Autenticando..." />;
-    }
+    if (authLoading && !modales.modalLoginAbierto) return <IndicadorCarga texto="Autenticando..." />;
 
     return (
         <div id="dashboard-contenedor" className="dashboardContenedor">
-            <DashboardEncabezado
-                titulo={titulo}
-                version={version}
-                usuario={user ? user.name : usuario}
-                avatarUrl={user?.avatarUrl}
-                sincronizacion={{
-                    ...sincronizacion,
-                    onLogin: () => setModalLoginAbierto(true),
-                    onLogout: logout,
-                    estaLogueado: !!user
-                }}
-                suscripcion={suscripcion}
-                esAdmin={esAdmin}
-                equiposPendientes={equipos.pendientes}
-                notificacionesPendientes={notificaciones.noLeidas}
-                onClickPlan={() => setModalUpgradeAbierto(true)}
-                onClickSeguridad={() => setPanelSeguridadAbierto(true)}
-                onClickAdmin={() => setPanelAdminAbierto(true)}
-                onClickLayout={() => setModalConfigLayoutAbierto(true)}
-                onClickVersion={() => setModalVersionesAbierto(true)}
-                onClickUsuario={() => setModalPerfilAbierto(true)}
-                onClickEquipos={() => setModalEquiposAbierto(true)}
-                onClickNotificaciones={manejarClickNotificaciones}
-                onClickExperimentos={esAdmin ? () => setModalExperimentosAbierto(true) : undefined}
-            />
+            <DashboardEncabezado titulo={titulo} version={version} usuario={user ? user.name : usuario} avatarUrl={user?.avatarUrl} sincronizacion={{...sincronizacion, onLogin: modales.abrirModalLogin, onLogout: logout, estaLogueado: !!user}} suscripcion={suscripcion} esAdmin={esAdmin} equiposPendientes={equipos.pendientes} notificacionesPendientes={notificaciones.noLeidas} onClickPlan={modales.abrirModalUpgrade} onClickSeguridad={modales.abrirPanelSeguridad} onClickAdmin={modales.abrirPanelAdmin} onClickLayout={modales.abrirModalConfigLayout} onClickVersion={modales.abrirModalVersiones} onClickUsuario={modales.abrirModalPerfil} onClickEquipos={modales.abrirModalEquipos} onClickNotificaciones={manejarClickNotificaciones} onClickExperimentos={esAdmin ? modales.abrirModalExperimentos : undefined} />
 
             {cargandoDatos ? (
                 <IndicadorCarga />
             ) : (
                 <div className={`dashboardGrid dashboardGrid--${modoColumnas}col ${panelArrastrando ? 'arrastrandoPanel' : ''}`}>
-                    {/* Columna 1 */}
                     <div className="columnaDashboard">{renderizarColumna(1)}</div>
-
-                    {/* Columna 2 (si modoColumnas >= 2) */}
                     {modoColumnas >= 2 && (
                         <div className="columnaDashboard">
                             {renderizarColumna(2)}
-
-                            {/* Acciones de Datos siempre al final de la última columna */}
                             {modoColumnas === 2 && <AccionesDatos onExportar={exportarTodosDatos} onImportar={importarTodosDatos} importando={importando} mensajeEstado={mensajeEstado} tipoMensaje={tipoMensaje} />}
                         </div>
                     )}
-
-                    {/* Columna 3 (si modoColumnas === 3) */}
                     {modoColumnas === 3 && (
                         <div className="columnaDashboard">
                             {renderizarColumna(3)}
-
-                            {/* Acciones de Datos siempre al final de la última columna */}
                             <AccionesDatos onExportar={exportarTodosDatos} onImportar={importarTodosDatos} importando={importando} mensajeEstado={mensajeEstado} tipoMensaje={tipoMensaje} />
                         </div>
                     )}
-
-                    {/* Acciones de Datos para modo 1 columna */}
                     {modoColumnas === 1 && <AccionesDatos onExportar={exportarTodosDatos} onImportar={importarTodosDatos} importando={importando} mensajeEstado={mensajeEstado} tipoMensaje={tipoMensaje} />}
                 </div>
             )}
 
             <DashboardFooter />
 
-            <ModalLogin estaAbierto={modalLoginAbierto} onCerrar={() => setModalLoginAbierto(false)} onLoginGoogle={loginWithGoogle} onLoginCredentials={loginWithCredentials} onRegister={register} loading={authLoading} error={authError} />
+            {/* Modales de Auth y Upgrade */}
+            <ModalLogin estaAbierto={modales.modalLoginAbierto} onCerrar={modales.cerrarModalLogin} onLoginGoogle={loginWithGoogle} onLoginCredentials={loginWithCredentials} onRegister={register} loading={authLoading} error={authError} />
+            <ModalUpgrade visible={modales.modalUpgradeAbierto} onCerrar={modales.cerrarModalUpgrade} suscripcion={suscripcion} />
+            <PanelSeguridad visible={modales.panelSeguridadAbierto} onCerrar={modales.cerrarPanelSeguridad} />
 
-            {/* Modal de Notificaciones (Dropdown) */}
-            {modalNotificacionesAbierto && <ModalNotificaciones notificaciones={notificaciones.notificaciones} noLeidas={notificaciones.noLeidas} total={notificaciones.total} cargando={notificaciones.cargando} posicionX={posicionModalNotificaciones.x} posicionY={posicionModalNotificaciones.y} onMarcarLeida={notificaciones.marcarLeida} onMarcarTodasLeidas={notificaciones.marcarTodasLeidas} onEliminar={notificaciones.eliminar} onClickNotificacion={manejarClickNotificacionIndividual} onCerrar={() => setModalNotificacionesAbierto(false)} />}
+            {/* Modales de Notificaciones y Social */}
+            {modales.modalNotificacionesAbierto && <ModalNotificaciones notificaciones={notificaciones.notificaciones} noLeidas={notificaciones.noLeidas} total={notificaciones.total} cargando={notificaciones.cargando} posicionX={modales.posicionModalNotificaciones.x} posicionY={modales.posicionModalNotificaciones.y} onMarcarLeida={notificaciones.marcarLeida} onMarcarTodasLeidas={notificaciones.marcarTodasLeidas} onEliminar={notificaciones.eliminar} onClickNotificacion={manejarClickNotificacionIndividual} onCerrar={modales.cerrarModalNotificaciones} />}
+            <ModalEquipos estaAbierto={modales.modalEquiposAbierto} onCerrar={modales.cerrarModalEquipos} />
 
-            {/* Modal para crear nuevo habito */}
+            {/* Modales de Hábitos */}
             <Modal estaAbierto={modalCrearHabitoAbierto} onCerrar={cerrarModalCrearHabito} titulo="Nuevo Habito">
                 <FormularioHabito onGuardar={crearHabito} onCancelar={cerrarModalCrearHabito} />
             </Modal>
-
-            {/* Modal para editar habito */}
             <Modal estaAbierto={habitoEditando !== null} onCerrar={cerrarModalEditarHabito} titulo="Editar Habito">
-                {habitoEditando && (
-                    <FormularioHabito
-                        onGuardar={datos => editarHabito(habitoEditando.id, datos)}
-                        onCancelar={cerrarModalEditarHabito}
-                        onEliminar={() => eliminarHabito(habitoEditando.id)}
-                        datosIniciales={{
-                            nombre: habitoEditando.nombre,
-                            importancia: habitoEditando.importancia,
-                            tags: habitoEditando.tags,
-                            frecuencia: habitoEditando.frecuencia
-                        }}
-                        modoEdicion
-                    />
-                )}
+                {habitoEditando && <FormularioHabito onGuardar={datos => editarHabito(habitoEditando.id, datos)} onCancelar={cerrarModalEditarHabito} onEliminar={() => eliminarHabito(habitoEditando.id)} datosIniciales={{nombre: habitoEditando.nombre, importancia: habitoEditando.importancia, tags: habitoEditando.tags, frecuencia: habitoEditando.frecuencia}} modoEdicion />}
             </Modal>
 
-            {/* Modal para crear nuevo proyecto */}
-            <Modal estaAbierto={modalCrearProyectoAbierto} onCerrar={() => setModalCrearProyectoAbierto(false)} titulo="Nuevo Proyecto">
-                <FormularioProyecto onGuardar={manejarGuardarNuevoProyecto} onCancelar={() => setModalCrearProyectoAbierto(false)} />
+            {/* Modales de Proyectos */}
+            <Modal estaAbierto={modales.modalCrearProyectoAbierto} onCerrar={modales.cerrarModalCrearProyecto} titulo="Nuevo Proyecto">
+                <FormularioProyecto onGuardar={manejarGuardarNuevoProyecto} onCancelar={modales.cerrarModalCrearProyecto} />
             </Modal>
-
-            {/* Modal para editar proyecto */}
-            <Modal estaAbierto={proyectoEditando !== null} onCerrar={() => setProyectoEditando(null)} titulo="Editar Proyecto">
-                {proyectoEditando && (
+            <Modal estaAbierto={modales.proyectoEditando !== null} onCerrar={modales.cerrarModalEditarProyecto} titulo="Editar Proyecto">
+                {modales.proyectoEditando && (
                     <FormularioProyecto
                         onGuardar={manejarGuardarEdicionProyecto}
-                        onCancelar={() => setProyectoEditando(null)}
+                        onCancelar={modales.cerrarModalEditarProyecto}
                         onEliminar={() => {
-                            eliminarProyecto(proyectoEditando.id);
-                            setProyectoEditando(null);
-                            setProyectoSeleccionadoId(null);
+                            eliminarProyecto(modales.proyectoEditando!.id);
+                            modales.cerrarModalEditarProyecto();
                         }}
-                        datosIniciales={{
-                            nombre: proyectoEditando.nombre,
-                            descripcion: proyectoEditando.descripcion,
-                            prioridad: proyectoEditando.prioridad,
-                            fechaLimite: proyectoEditando.fechaLimite
-                        }}
+                        datosIniciales={{nombre: modales.proyectoEditando.nombre, descripcion: modales.proyectoEditando.descripcion, prioridad: modales.proyectoEditando.prioridad, fechaLimite: modales.proyectoEditando.fechaLimite}}
                         modoEdicion
                     />
                 )}
             </Modal>
 
-            {/* Toast de deshacer */}
+            {/* Modales de Configuración */}
+            <ModalConfiguracionTareas estaAbierto={modales.modalConfigTareasAbierto} onCerrar={modales.cerrarModalConfigTareas} configuracion={configTareas} onToggleCompletadas={toggleOcultarCompletadas} onToggleBadgeProyecto={toggleOcultarBadgeProyecto} onToggleEliminarCompletadas={toggleEliminarCompletadasDespuesDeUnDia} />
+
+            <ModalConfiguracionHabitos estaAbierto={modales.modalConfigHabitosAbierto} onCerrar={modales.cerrarModalConfigHabitos} configuracion={configHabitos} onToggleCompletadosHoy={toggleOcultarCompletadosHoy} onToggleModoCompacto={toggleModoCompacto} onToggleColumna={toggleColumnaVisible} />
+
+            <ModalConfiguracionProyectos estaAbierto={modales.modalConfigProyectosAbierto} onCerrar={modales.cerrarModalConfigProyectos} configuracion={configProyectos} onToggleCompletados={toggleOcultarProyectosCompletados} onToggleProgreso={toggleProgresoProyectos} />
+            
+            <ModalConfiguracionScratchpad estaAbierto={modales.modalConfigScratchpadAbierto} onCerrar={modales.cerrarModalConfigScratchpad} configuracion={configScratchpad} onCambiarFuente={cambiarFuenteScratchpad} onCambiarAltura={cambiarAlturaScratchpad} onCambiarIntervalo={cambiarAutoGuardadoScratchpad} />
+            
+            <ModalConfiguracionLayout estaAbierto={modales.modalConfigLayoutAbierto} onCerrar={modales.cerrarModalConfigLayout} modoColumnas={modoColumnas} visibilidad={visibilidad} ordenPaneles={ordenPaneles} onCambiarModo={cambiarModoColumnas} onTogglePanel={toggleVisibilidadPanel} onMoverPanelArriba={moverPanelArriba} onMoverPanelAbajo={moverPanelAbajo} onMoverPanelAColumna={moverPanelAColumna} onResetearOrden={resetearOrdenPaneles} onResetear={resetearLayout} />
+
+            {/* Otros Modales */}
+            <ModalVersiones estaAbierto={modales.modalVersionesAbierto} onCerrar={modales.cerrarModalVersiones} />
+            <ModalPerfil estaAbierto={modales.modalPerfilAbierto} onCerrar={modales.cerrarModalPerfil} />
+            {esAdmin && <PanelAdministracion estaAbierto={modales.panelAdminAbierto} onCerrar={modales.cerrarPanelAdmin} />}
+            <ModalExperimentos abierto={modales.modalExperimentosAbierto} onCerrar={modales.cerrarModalExperimentos} acciones={accionesExperimentos} />
+
+            {/* Modales de Compartir */}
+            <ModalCompartir visible={compartir.proyectoCompartiendo !== null} onCerrar={compartir.cerrarModalCompartirProyecto} tipo="proyecto" elementoId={compartir.proyectoCompartiendo?.id ?? 0} elementoNombre={compartir.proyectoCompartiendo?.nombre ?? ''} companeros={equipos.companeros} participantes={compartir.participantesProyecto} cifradoActivo={false} onCompartir={compartir.manejarCompartirElemento} onCambiarRol={compartir.manejarCambiarRolCompartido} onDejarDeCompartir={compartir.manejarDejarDeCompartir} cargandoParticipantes={compartir.cargando} />
+            <ModalCompartir visible={compartir.tareaCompartiendo !== null} onCerrar={compartir.cerrarModalCompartirTarea} tipo="tarea" elementoId={compartir.tareaCompartiendo?.id ?? 0} elementoNombre={compartir.tareaCompartiendo?.texto ?? ''} companeros={equipos.companeros} participantes={compartir.participantesTarea} cifradoActivo={false} onCompartir={compartir.manejarCompartirTareaElemento} onCambiarRol={compartir.manejarCambiarRolTareaCompartida} onDejarDeCompartir={compartir.manejarDejarDeCompartir} cargandoParticipantes={compartir.cargando} />
+
+            {/* Nueva Tarea Global */}
+            {modales.modalNuevaTareaAbierto && <PanelConfiguracionTarea estaAbierto={modales.modalNuevaTareaAbierto} onCerrar={modales.cerrarModalNuevaTarea} onGuardar={manejarCrearNuevaTareaGlobal} />}
+
+            {/* Toast y Utilidades */}
             {accionDeshacer && <ToastDeshacer mensaje={accionDeshacer.mensaje} tiempoRestante={accionDeshacer.tiempoRestante} tiempoTotal={5000} onDeshacer={ejecutarDeshacer} onDescartar={descartarDeshacer} />}
-
-            {/* Modal de upgrade */}
-            <ModalUpgrade visible={modalUpgradeAbierto} onCerrar={() => setModalUpgradeAbierto(false)} suscripcion={suscripcion} />
-
-            {/* Panel de Seguridad */}
-            <PanelSeguridad visible={panelSeguridadAbierto} onCerrar={() => setPanelSeguridadAbierto(false)} />
-
-            {/* Modal configuracion tareas */}
-            <ModalConfiguracionTareas estaAbierto={modalConfigTareasAbierto} onCerrar={() => setModalConfigTareasAbierto(false)} configuracion={configTareas} onToggleCompletadas={toggleOcultarCompletadas} onToggleBadgeProyecto={toggleOcultarBadgeProyecto} onToggleEliminarCompletadas={toggleEliminarCompletadasDespuesDeUnDia} />
-
-            {/* Modal configuracion habitos */}
-            <ModalConfiguracionHabitos estaAbierto={modalConfigHabitosAbierto} onCerrar={() => setModalConfigHabitosAbierto(false)} configuracion={configHabitos} onToggleCompletadosHoy={toggleOcultarCompletadosHoy} onToggleModoCompacto={toggleModoCompacto} onToggleColumna={toggleColumnaVisible} />
-
-            {/* Modal configuracion proyectos */}
-            <ModalConfiguracionProyectos estaAbierto={modalConfigProyectosAbierto} onCerrar={() => setModalConfigProyectosAbierto(false)} configuracion={configProyectos} onToggleCompletados={toggleOcultarProyectosCompletados} onToggleProgreso={toggleProgresoProyectos} />
-
-            {/* Modal configuracion scratchpad */}
-            <ModalConfiguracionScratchpad estaAbierto={modalConfigScratchpadAbierto} onCerrar={() => setModalConfigScratchpadAbierto(false)} configuracion={configScratchpad} onCambiarFuente={cambiarFuenteScratchpad} onCambiarAltura={cambiarAlturaScratchpad} onCambiarIntervalo={cambiarAutoGuardadoScratchpad} />
-
-            {/* Panel de Administración */}
-            {esAdmin && <PanelAdministracion estaAbierto={panelAdminAbierto} onCerrar={() => setPanelAdminAbierto(false)} />}
-
-            {/* Modal configuracion de layout */}
-            <ModalConfiguracionLayout estaAbierto={modalConfigLayoutAbierto} onCerrar={() => setModalConfigLayoutAbierto(false)} modoColumnas={modoColumnas} visibilidad={visibilidad} ordenPaneles={ordenPaneles} onCambiarModo={cambiarModoColumnas} onTogglePanel={toggleVisibilidadPanel} onMoverPanelArriba={moverPanelArriba} onMoverPanelAbajo={moverPanelAbajo} onMoverPanelAColumna={moverPanelAColumna} onResetearOrden={resetearOrdenPaneles} onResetear={resetearLayout} />
-
-            {/* Modal de Historial de Versiones */}
-            <ModalVersiones estaAbierto={modalVersionesAbierto} onCerrar={() => setModalVersionesAbierto(false)} />
-
-            {/* Modal de Perfil de Usuario */}
-            <ModalPerfil estaAbierto={modalPerfilAbierto} onCerrar={() => setModalPerfilAbierto(false)} />
-
-            {/* Modal de Equipos */}
-            <ModalEquipos estaAbierto={modalEquiposAbierto} onCerrar={() => setModalEquiposAbierto(false)} />
-
-            {/* Modal de Compartir Proyecto */}
-            <ModalCompartir visible={proyectoCompartiendo !== null} onCerrar={() => setProyectoCompartiendo(null)} tipo="proyecto" elementoId={proyectoCompartiendo?.id ?? 0} elementoNombre={proyectoCompartiendo?.nombre ?? ''} companeros={equipos.companeros} participantes={participantesProyecto} cifradoActivo={false} onCompartir={manejarCompartirElemento} onCambiarRol={manejarCambiarRolCompartido} onDejarDeCompartir={manejarDejarDeCompartir} cargandoParticipantes={compartidos.cargando} />
-
-            {/* Modal de Compartir Tarea */}
-            <ModalCompartir visible={tareaCompartiendo !== null} onCerrar={() => setTareaCompartiendo(null)} tipo="tarea" elementoId={tareaCompartiendo?.id ?? 0} elementoNombre={tareaCompartiendo?.texto ?? ''} companeros={equipos.companeros} participantes={participantesTarea} cifradoActivo={false} onCompartir={manejarCompartirTareaElemento} onCambiarRol={manejarCambiarRolTareaCompartida} onDejarDeCompartir={manejarDejarDeCompartir} cargandoParticipantes={compartidos.cargando} />
-
-            {/* Barra de paneles ocultos */}
             <BarraPanelesOcultos panelesOcultos={panelesOcultos} onMostrarPanel={mostrarPanel} />
-
-            {/* Sistema Global de Tooltips */}
             <TooltipSystem />
-
-            {/* Indicador de arrastre flotante */}
             <IndicadorArrastre panelArrastrando={panelArrastrando} posicionMouse={posicionMouse} />
-
-            {/* Modal para crear nueva tarea global */}
-            {modalNuevaTareaAbierto && <PanelConfiguracionTarea estaAbierto={modalNuevaTareaAbierto} onCerrar={() => setModalNuevaTareaAbierto(false)} onGuardar={manejarCrearNuevaTareaGlobal} />}
-
-            {/* Modal de Experimentos (solo admins) */}
-            <ModalExperimentos abierto={modalExperimentosAbierto} onCerrar={() => setModalExperimentosAbierto(false)} acciones={accionesExperimentos} />
         </div>
     );
 }
