@@ -6,7 +6,7 @@
  * Usa campos compartidos: CampoTexto, CampoPrioridad, CampoFechaLimite
  */
 
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef, useCallback} from 'react';
 import type {Tarea, TareaConfiguracion, NivelPrioridad, NivelUrgencia, Participante} from '../../types/dashboard';
 import {AccionesFormulario, Modal, SeccionPanel, ToggleSwitch, CampoTexto, CampoPrioridad, CampoUrgencia, CampoFechaLimite} from '../shared';
 import {SelectorFrecuencia} from './SelectorFrecuencia';
@@ -92,7 +92,7 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
         setAsignadoAAvatar(avatar);
     };
 
-    const manejarGuardar = () => {
+    const manejarGuardar = useCallback(() => {
         const configuracion: TareaConfiguracion = {};
 
         if (fechaMaxima) {
@@ -144,13 +144,23 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
 
         onGuardar(configuracion, prioridad, texto.trim(), asignacion, urgencia);
         onCerrar();
-    };
+    }, [fechaMaxima, descripcion, tieneRepeticion, frecuencia, adjuntos, asignadoA, asignadoANombre, asignadoAAvatar, prioridad, texto, urgencia, onGuardar, onCerrar]);
+
+    /* Auto-guardado: al cerrar el modal (overlay, ESC, X), guardar automáticamente */
+    const manejarCerrarConGuardado = useCallback(() => {
+        manejarGuardar();
+    }, [manejarGuardar]);
+
+    /* Cancelar: cerrar sin guardar (descartar cambios) */
+    const manejarCancelar = useCallback(() => {
+        onCerrar();
+    }, [onCerrar]);
 
     const esModoCreacion = !tarea;
     const tieneParticipantes = participantes.length > 0;
 
     return (
-        <Modal estaAbierto={estaAbierto} onCerrar={onCerrar} titulo={esModoCreacion ? 'Nueva Tarea' : 'Configurar Tarea'} claseExtra="panelConfiguracionContenedor">
+        <Modal estaAbierto={estaAbierto} onCerrar={manejarCerrarConGuardado} titulo={esModoCreacion ? 'Nueva Tarea' : 'Configurar Tarea'} claseExtra="panelConfiguracionContenedor">
             <div className="panelConfiguracionContenido" style={{padding: 0}}>
                 {/* Nombre de la tarea - Campo reutilizable */}
                 <CampoTexto titulo="Nombre de la tarea" valor={texto} onChange={setTexto} placeholder="Nombre de la tarea" />
@@ -194,7 +204,7 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
             </div>
 
             {/* Acciones reutilizables */}
-            <AccionesFormulario onCancelar={onCerrar} onGuardar={manejarGuardar} textoGuardar={esModoCreacion ? 'Crear Tarea' : 'Guardar configuracion'} />
+            <AccionesFormulario onCancelar={manejarCancelar} onGuardar={manejarGuardar} textoGuardar={esModoCreacion ? 'Crear Tarea' : 'Guardar'} />
         </Modal>
     );
 }

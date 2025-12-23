@@ -70,6 +70,8 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.2-beta
                 onClickEquipos={modales.abrirModalEquipos}
                 onClickNotificaciones={acciones.manejarClickNotificaciones}
                 onClickExperimentos={esAdmin ? modales.abrirModalExperimentos : undefined}
+                onExportarDatos={dashboard.exportarTodosDatos}
+                onImportarDatos={dashboard.importarTodosDatos}
             />
 
             {dashboard.cargandoDatos ? <IndicadorCarga /> : <DashboardGrid ctx={ctx} />}

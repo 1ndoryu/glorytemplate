@@ -4,8 +4,8 @@
  * Responsabilidad única: mostrar logo, título y navegación
  */
 
-import {useState} from 'react';
-import {Settings, LayoutGrid, Wifi, WifiOff, RefreshCw, User, LogOut, AlertTriangle, Shield, ClipboardList, Crown, Users, Bell, FlaskConical} from 'lucide-react';
+import {useState, useRef} from 'react';
+import {Settings, LayoutGrid, Wifi, WifiOff, RefreshCw, User, LogOut, AlertTriangle, Shield, ClipboardList, Crown, Users, Bell, FlaskConical, Download, Upload} from 'lucide-react';
 import {IndicadorPlan, MenuContextual} from '../shared';
 import type {InfoSuscripcion} from '../../types/dashboard';
 
@@ -38,6 +38,8 @@ interface DashboardEncabezadoProps {
     onClickEquipos?: () => void;
     onClickNotificaciones?: (evento: React.MouseEvent) => void;
     onClickExperimentos?: () => void;
+    onExportarDatos?: () => void;
+    onImportarDatos?: (archivo: File) => void;
 }
 
 interface MenuUsuarioState {
@@ -46,16 +48,17 @@ interface MenuUsuarioState {
     y: number;
 }
 
-export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta', usuario = 'user@admin', avatarUrl, sincronizacion, suscripcion, esAdmin = false, equiposPendientes = 0, notificacionesPendientes = 0, onClickPlan, onClickSeguridad, onClickAdmin, onClickLayout, onClickVersion, onClickUsuario, onClickEquipos, onClickNotificaciones, onClickExperimentos}: DashboardEncabezadoProps): JSX.Element {
+export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.2-beta', usuario = 'user@admin', avatarUrl, sincronizacion, suscripcion, esAdmin = false, equiposPendientes = 0, notificacionesPendientes = 0, onClickPlan, onClickSeguridad, onClickAdmin, onClickLayout, onClickVersion, onClickUsuario, onClickEquipos, onClickNotificaciones, onClickExperimentos, onExportarDatos, onImportarDatos}: DashboardEncabezadoProps): JSX.Element {
     const estaConectado = sincronizacion?.estaLogueado ?? false;
     const [menuUsuario, setMenuUsuario] = useState<MenuUsuarioState>({visible: false, x: 0, y: 0});
+    const inputArchivoRef = useRef<HTMLInputElement>(null);
 
     /* Determinar si mostrar badge de plan en header (solo FREE y TRIAL) */
     const esPremiumActivo = suscripcion?.plan === 'premium' && suscripcion?.estado === 'activa';
     const mostrarBadgePlanEnHeader = suscripcion && !esPremiumActivo;
 
     /* Opciones del menu contextual del usuario */
-    const opcionesMenuUsuario = [{id: 'perfil', etiqueta: 'Mi Perfil', icono: <User size={12} />}, {id: 'seguridad', etiqueta: 'Seguridad', icono: <Shield size={12} />}, ...(esPremiumActivo ? [{id: 'plan', etiqueta: 'Plan Premium', icono: <Crown size={12} />}] : []), {id: 'version', etiqueta: `Versión ${version}`, icono: <ClipboardList size={12} />, separadorDespues: true}, {id: 'logout', etiqueta: 'Cerrar Sesión', icono: <LogOut size={12} />, peligroso: true}];
+    const opcionesMenuUsuario = [{id: 'perfil', etiqueta: 'Mi Perfil', icono: <User size={12} />}, {id: 'seguridad', etiqueta: 'Seguridad', icono: <Shield size={12} />}, ...(esPremiumActivo ? [{id: 'plan', etiqueta: 'Plan Premium', icono: <Crown size={12} />}] : []), {id: 'version', etiqueta: `Versión ${version}`, icono: <ClipboardList size={12} />, separadorDespues: true}, {id: 'exportar', etiqueta: 'Exportar datos', icono: <Download size={12} />}, {id: 'importar', etiqueta: 'Importar datos', icono: <Upload size={12} />, separadorDespues: true}, {id: 'logout', etiqueta: 'Cerrar Sesión', icono: <LogOut size={12} />, peligroso: true}];
 
     const manejarClickUsuario = (evento: React.MouseEvent) => {
         evento.preventDefault();
@@ -81,9 +84,25 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.1-
             case 'plan':
                 onClickPlan?.();
                 break;
+            case 'exportar':
+                onExportarDatos?.();
+                break;
+            case 'importar':
+                inputArchivoRef.current?.click();
+                break;
             case 'logout':
                 sincronizacion?.onLogout?.();
                 break;
+        }
+    };
+
+    const manejarCambioArchivo = (evento: React.ChangeEvent<HTMLInputElement>) => {
+        const archivo = evento.target.files?.[0];
+        if (archivo && onImportarDatos) {
+            onImportarDatos(archivo);
+            if (inputArchivoRef.current) {
+                inputArchivoRef.current.value = '';
+            }
         }
     };
 
@@ -192,6 +211,9 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.1-
 
                 {/* Menu contextual del usuario */}
                 {menuUsuario.visible && <MenuContextual opciones={opcionesMenuUsuario} posicionX={menuUsuario.x} posicionY={menuUsuario.y} onSeleccionar={manejarOpcionMenu} onCerrar={() => setMenuUsuario({...menuUsuario, visible: false})} />}
+
+                {/* Input oculto para importar archivo */}
+                <input ref={inputArchivoRef} type="file" accept=".json" onChange={manejarCambioArchivo} style={{display: 'none'}} />
             </nav>
         </header>
     );

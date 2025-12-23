@@ -4,7 +4,6 @@
  * Extraído para reducir la complejidad de DashboardIsland
  */
 
-import {AccionesDatos} from './AccionesDatos';
 import {PanelArrastrable, HandleArrastre} from '../shared';
 import {PanelFocoPrioritario, PanelProyectos, PanelEjecucion, PanelScratchpad} from '../paneles';
 
@@ -65,33 +64,13 @@ export function DashboardGrid({ctx}: DashboardGridProps): JSX.Element {
 
     const renderizarColumna = (columna: 1 | 2 | 3): JSX.Element[] => layout.obtenerPanelesColumna(columna).map(renderizarPanel);
 
-    const accionesDatosProps = {
-        onExportar: dashboard.exportarTodosDatos,
-        onImportar: dashboard.importarTodosDatos,
-        importando: dashboard.importando,
-        mensajeEstado: dashboard.mensajeEstado,
-        tipoMensaje: dashboard.tipoMensaje
-    };
-
     return (
         <div className={`dashboardGrid dashboardGrid--${layout.modoColumnas}col ${arrastre.panelArrastrando ? 'arrastrandoPanel' : ''}`}>
             <div className="columnaDashboard">{renderizarColumna(1)}</div>
 
-            {layout.modoColumnas >= 2 && (
-                <div className="columnaDashboard">
-                    {renderizarColumna(2)}
-                    {layout.modoColumnas === 2 && <AccionesDatos {...accionesDatosProps} />}
-                </div>
-            )}
+            {layout.modoColumnas >= 2 && <div className="columnaDashboard">{renderizarColumna(2)}</div>}
 
-            {layout.modoColumnas === 3 && (
-                <div className="columnaDashboard">
-                    {renderizarColumna(3)}
-                    <AccionesDatos {...accionesDatosProps} />
-                </div>
-            )}
-
-            {layout.modoColumnas === 1 && <AccionesDatos {...accionesDatosProps} />}
+            {layout.modoColumnas === 3 && <div className="columnaDashboard">{renderizarColumna(3)}</div>}
         </div>
     );
 }

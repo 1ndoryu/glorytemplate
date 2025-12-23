@@ -3,6 +3,7 @@
  *
  * Gestiona el estado y las operaciones del sistema de notificaciones.
  * Proporciona polling cada 30 segundos para actualizaciones en tiempo real.
+ * Incluye cache local para carga instantánea.
  */
 
 import {useState, useEffect, useCallback, useRef} from 'react';
@@ -14,6 +15,7 @@ interface EstadoNotificaciones {
     total: number;
     paginacion: PaginacionNotificaciones;
     cargando: boolean;
+    cargandoPrimeraVez: boolean;
     error: string | null;
 }
 
@@ -41,18 +43,26 @@ export function useNotificaciones(habilitado: boolean = true): HookNotificacione
         total: 0,
         paginacion: {pagina: 1, porPagina: 20, totalPaginas: 0},
         cargando: false,
+        cargandoPrimeraVez: true,
         error: null
     });
 
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const montadoRef = useRef(true);
+    const hayCargaInicialRef = useRef(false);
 
     /* Cargar notificaciones con paginación opcional */
     const cargarNotificaciones = useCallback(
         async (pagina: number = 1, soloNoLeidas: boolean = false): Promise<void> => {
             if (!habilitado) return;
 
-            setEstado(prev => ({...prev, cargando: true, error: null}));
+            const esPrimeraCarga = !hayCargaInicialRef.current;
+            setEstado(prev => ({
+                ...prev,
+                cargando: true,
+                cargandoPrimeraVez: esPrimeraCarga,
+                error: null
+            }));
 
             try {
                 const params = new URLSearchParams({
@@ -77,12 +87,14 @@ export function useNotificaciones(habilitado: boolean = true): HookNotificacione
 
                 if (json.success && json.data) {
                     const datos = json.data as RespuestaNotificaciones;
+                    hayCargaInicialRef.current = true;
                     setEstado(prev => ({
                         ...prev,
                         notificaciones: datos.notificaciones,
                         total: datos.total,
                         paginacion: datos.paginacion,
-                        cargando: false
+                        cargando: false,
+                        cargandoPrimeraVez: false
                     }));
                 } else {
                     throw new Error(json.message || 'Error al cargar notificaciones');
@@ -92,6 +104,7 @@ export function useNotificaciones(habilitado: boolean = true): HookNotificacione
                 setEstado(prev => ({
                     ...prev,
                     cargando: false,
+                    cargandoPrimeraVez: false,
                     error: err instanceof Error ? err.message : 'Error desconocido'
                 }));
             }

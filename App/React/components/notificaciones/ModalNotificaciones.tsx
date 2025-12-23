@@ -3,10 +3,11 @@
  *
  * Modal/Dropdown que muestra la lista de notificaciones del usuario.
  * Se abre al hacer clic en el icono de campana del header.
+ * Marca automáticamente todas las notificaciones como leídas al abrirse.
  */
 
 import {useEffect, useRef} from 'react';
-import {Bell, Check, CheckCheck, Trash2} from 'lucide-react';
+import {Bell} from 'lucide-react';
 import type {Notificacion} from '../../types/dashboard';
 import {ItemNotificacion} from './ItemNotificacion';
 
@@ -15,6 +16,7 @@ interface ModalNotificacionesProps {
     noLeidas: number;
     total: number;
     cargando: boolean;
+    cargandoPrimeraVez: boolean;
     posicionX: number;
     posicionY: number;
     onMarcarLeida: (id: number) => Promise<boolean>;
@@ -24,8 +26,17 @@ interface ModalNotificacionesProps {
     onCerrar: () => void;
 }
 
-export function ModalNotificaciones({notificaciones, noLeidas, total, cargando, posicionX, posicionY, onMarcarLeida, onMarcarTodasLeidas, onEliminar, onClickNotificacion, onCerrar}: ModalNotificacionesProps): JSX.Element {
+export function ModalNotificaciones({notificaciones, noLeidas, total, cargando, cargandoPrimeraVez, posicionX, posicionY, onMarcarLeida, onMarcarTodasLeidas, onEliminar, onClickNotificacion, onCerrar}: ModalNotificacionesProps): JSX.Element {
     const modalRef = useRef<HTMLDivElement>(null);
+    const yaMarcoLeidasRef = useRef(false);
+
+    /* Marcar todas como leídas automáticamente al abrir el modal */
+    useEffect(() => {
+        if (noLeidas > 0 && !yaMarcoLeidasRef.current) {
+            yaMarcoLeidasRef.current = true;
+            onMarcarTodasLeidas();
+        }
+    }, [noLeidas, onMarcarTodasLeidas]);
 
     /* Cerrar al hacer clic fuera */
     useEffect(() => {
@@ -83,11 +94,14 @@ export function ModalNotificaciones({notificaciones, noLeidas, total, cargando, 
         onClickNotificacion(notificacion);
     };
 
+    /* Solo mostrar "Cargando..." si es la primera carga y no hay notificaciones en cache */
+    const mostrarCargando = cargandoPrimeraVez && notificaciones.length === 0;
+
     return (
         <div id="modal-notificaciones" className="modalNotificaciones" ref={modalRef} style={calcularEstilo()}>
             {/* Lista de notificaciones */}
             <div className="modalNotificaciones__lista">
-                {cargando && notificaciones.length === 0 ? (
+                {mostrarCargando ? (
                     <div className="modalNotificaciones__estado">
                         <span className="modalNotificaciones__cargando">Cargando...</span>
                     </div>
@@ -100,17 +114,6 @@ export function ModalNotificaciones({notificaciones, noLeidas, total, cargando, 
                     notificaciones.map(notificacion => <ItemNotificacion key={notificacion.id} notificacion={notificacion} onClick={() => manejarClickNotificacion(notificacion)} onMarcarLeida={() => onMarcarLeida(notificacion.id)} onEliminar={() => onEliminar(notificacion.id)} />)
                 )}
             </div>
-
-            {/* Pie con resumen */}
-            {total > 0 && (
-                <div className="modalNotificaciones__pie">
-                    {noLeidas > 0 && (
-                        <button type="button" className="modalNotificaciones__botonAccion" onClick={onMarcarTodasLeidas} title="Marcar todas como leídas">
-                            <CheckCheck size={14} />
-                        </button>
-                    )}
-                </div>
-            )}
         </div>
     );
 }

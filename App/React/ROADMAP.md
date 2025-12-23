@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.3-beta  
 **Ultima actualizacion:** 2025-12-23
-**Estado:** Sistema de Urgencia completado - Siguiente: Mejoras UX Rápidas (Fase 6)
+**Estado:** Mejoras UX completadas - Siguiente: Refactorización Formularios (Fase 6.5)
 
 ---
 
@@ -121,106 +121,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ---
 
-## Fase 5: Refactorización de Archivos Grandes [EN PROGRESO]
-
-**Objetivo:** Reducir archivos que exceden los límites de líneas establecidos para mantener SOLID.
-
-> **Límites recordatorio:**
-> - Componente/Servicio: 300 líneas máximo
-> - Hook: 120 líneas máximo
-> - CSS: 300 líneas máximo
-
-### 5.1 Backend PHP - ✅ COMPLETADO
-
-**Repositorios refactorizados:**
-
-| Archivo Original          | Líneas Antes | Archivos Resultantes          | Líneas D |
-| ------------------------- | ------------ | ----------------------------- | -------- |
-| `DashboardRepository.php` | 1023         | `DashboardRepository.php`     | 186      |
-|                           |              | `HabitosRepository.php`       | 138      |
-|                           |              | `TareasRepository.php`        | 142      |
-|                           |              | `ProyectosRepository.php`     | 136      |
-|                           |              | `ConfiguracionRepository.php` | 189      |
-|                           |              | `CompartidosRepository.php`   | 98       |
-|                           |              | `CifradoTrait.php`            | 85       |
-
-**Controladores API refactorizados:**
-
-| Archivo Original             | Líneas Antes | Archivos Resultantes              | Líneas D |
-| ---------------------------- | ------------ | --------------------------------- | -------- |
-| `DashboardApiController.php` | 760          | `DashboardApiController.php`      | 302      |
-|                              |              | `SuscripcionApiController.php`    | 82       |
-|                              |              | `AlmacenamientoApiController.php` | 99       |
-|                              |              | `CifradoApiController.php`        | 114      |
-|                              |              | `StripeApiController.php`         | 187      |
-
-### 5.2 Frontend TSX - ✅ COMPLETADO
-
-**Refactorizados:**
-
-| Archivo Original              | Líneas Antes | Archivos Resultantes                          | Líneas D |
-| ----------------------------- | ------------ | --------------------------------------------- | -------- |
-| `islands/DashboardIsland.tsx` | 461          | `islands/DashboardIsland.tsx`                 | 90       |
-|                               |              | `hooks/useDashboardCompleto.ts`               | 98       |
-|                               |              | `components/dashboard/DashboardGrid.tsx`      | 140      |
-|                               |              | `components/dashboard/DashboardModales.tsx`   | 131      |
-|                               |              | `hooks/useModalesDashboard.ts`                | 234      |
-|                               |              | `hooks/useCompartirDashboard.ts`              | 236      |
-|                               |              | `hooks/useOpcionesDashboard.tsx`              | 96       |
-|                               |              | `hooks/useAccionesDashboard.ts`               | 160      |
-|                               |              | `components/paneles/PanelFocoPrioritario.tsx` | 76       |
-|                               |              | `components/paneles/PanelProyectos.tsx`       | 61       |
-|                               |              | `components/paneles/PanelEjecucion.tsx`       | 117      |
-|                               |              | `components/paneles/PanelScratchpad.tsx`      | 65       |
-
-
-**Pendientes:**
-
-| Archivo                          | Líneas | Acción Propuesta       |
-| -------------------------------- | ------ | ---------------------- |
-| `components/SeccionAdjuntos.tsx` | 448    | Extraer subcomponentes |
-| `components/ListaTareas.tsx`     | 403    | Extraer lógica a hook  |
-
-### 5.3 CSS - Pendiente
-
-| Archivo                          | Líneas | Acción Propuesta          |
-| -------------------------------- | ------ | ------------------------- |
-| `styles/compartidos.css`         | 631    | Dividir por componente    |
-| `styles/tareas.css`              | 589    | Dividir por subcomponente |
-| `styles/tabla.css`               | 477    | Dividir por sección       |
-| `styles/encabezado.css`          | 410    | Dividir iconos/badges     |
-| `styles/panelAdministracion.css` | 408    | Dividir secciones         |
-| `styles/suscripcion.css`         | 396    | Dividir modal/indicadores |
-| `styles/equipos.css`             | 383    | Dividir por componente    |
-| `styles/detalleUsuario.css`      | 332    | Dividir secciones         |
-| `styles/adjuntos.css`            | 302    | Dividir lista/preview     |
-
-### 5.4 Hooks y Types - Pendiente
-
-| Archivo                        | Líneas | Acción Propuesta               |
-| ------------------------------ | ------ | ------------------------------ |
-| `types/dashboard.ts`           | 525    | Dividir por dominio            |
-| `hooks/useDashboard.ts`        | 439    | Extraer a hooks especializados |
-| `hooks/useConfiguracionLayout` | 407    | Simplificar, extraer helpers   |
-
-### 5.5 Servicios PHP - Pendiente
-
-| Archivo                           | Líneas | Acción Propuesta                  |
-| --------------------------------- | ------ | --------------------------------- |
-| `Services/AdjuntosService.php`    | 629    | Separar cifrado de gestión        |
-| `Services/CompartidosService.php` | 560    | Separar queries de lógica         |
-| `Services/NotificacionesService`  | 483    | Separar tipos de notificación     |
-| `Services/EquiposService.php`     | 441    | Separar solicitudes de relaciones |
-| `Api/AdjuntosApiController.php`   | 354    | Separar upload/download           |
-| `Services/AdminService.php`       | 347    | Separar estadísticas de gestión   |
-| `Api/AdminApiController.php`      | 310    | Separar por responsabilidad       |
-| `Services/SuscripcionService`     | 306    | Separar Stripe de lógica local    |
-
-**Estado:** En progreso - Backend completado, DashboardIsland.tsx refactorizado
-
----
-
-## Fase 5.5: Sistema de Urgencia [COMPLETADO]
+## Fase 5: Sistema de Urgencia [COMPLETADO]
 
 **Objetivo:** Diferenciar entre importancia (prioridad) y temporalidad (urgencia) para mejorar el ordenamiento inteligente de tareas.
 
@@ -297,107 +198,118 @@ Peso Fecha:
 
 ---
 
-## Fase 6: Mejoras UX Rápidas [DESPUÉS DE 5.5]
+## Fase 6: Mejoras UX Rápidas [COMPLETADA]
 
 **Objetivo:** Pequeñas mejoras de experiencia de usuario identificadas.
 
-### 6.1 Notificaciones - Lectura Automática
+### 6.1 Notificaciones - Lectura Automática ✅
 
-- [ ] Las notificaciones se marcan como leídas automáticamente al abrir el panel
-- [ ] Eliminar botón "Marcar todas como leídas" (ya no es necesario)
-- [ ] Las notificaciones existentes deben cargar instantáneamente (cache local)
-- [ ] Solo mostrar "Cargando..." para notificaciones nuevas, no para las ya cargadas
+- [x] Las notificaciones se marcan como leídas automáticamente al abrir el panel
+- [x] Eliminar botón "Marcar todas como leídas" (ya no es necesario)
+- [x] Las notificaciones existentes cargan instantáneamente (cache local con `cargandoPrimeraVez`)
+- [x] Solo mostrar "Cargando..." para la primera carga sin datos en cache
 
-### 6.2 Exportar/Importar - Mover al Menú de Perfil
+### 6.2 Exportar/Importar - Mover al Menú de Perfil ✅
 
-- [ ] Quitar panel de Exportar/Importar de la página actual
-- [ ] Agregar opciones "Exportar datos" e "Importar datos" al menú contextual del perfil (header)
+- [x] Quitar panel de Exportar/Importar del grid de columnas
+- [x] Agregar opciones "Exportar datos" e "Importar datos" al menú contextual del perfil (header)
+
+### 6.3 Auto-Guardado en Modales de Configuración ✅
+
+> **Implementado para:** Modal de configuración de Tareas (PanelConfiguracionTarea)
+
+- [x] Los cambios se guardan automáticamente al cerrar el modal (overlay, ESC, X)
+- [x] El botón "Cancelar" descarta los cambios y cierra el modal
+- [x] El botón "Guardar" se mantiene (guarda y cierra inmediatamente)
+
+> **Nota:** Hábitos y Proyectos usan arquitectura diferente (formulario dentro de Modal externo). Ver Fase 6.5 para refactorización.
 
 **Complejidad:** Baja | **Dependencias:** Ninguna
 
 ---
 
-## Fase 7: Scratchpad con Guardado + File Manager [PLANIFICADA]
+## Fase 6.5: Refactorización Formularios Hábitos/Proyectos [SIGUIENTE]
 
-**Objetivo:** Permitir guardar notas del Scratchpad y crear un gestor de archivos tipo Google Drive.
+**Objetivo:** Unificar arquitectura de formularios para permitir auto-guardado completo.
 
-### 7.1 Scratchpad - Sistema de Guardado
+> **Problema actual:** `FormularioHabito` y `FormularioProyecto` están contenidos dentro de un `<Modal>` externo en `DashboardModales.tsx`. Esto impide implementar auto-guardado porque el Modal no tiene acceso al estado interno del formulario.
 
-- [ ] Agregar botón badge "Guardar nota" al Scratchpad
-- [ ] Al guardar: la nota se almacena con título (primeras palabras o input) y fecha
-- [ ] Agregar botón badge "Archivo" para ver notas guardadas
-- [ ] Las notas guardadas se pueden reabrir en el Scratchpad
-- [ ] Preview markdown en notas guardadas
+### 6.5.1 Refactorizar FormularioHabito
 
-### 7.2 File Manager (Drive Glory)
+- [ ] Convertir `FormularioHabito` a `ModalHabito` (similar a `PanelConfiguracionTarea`)
+- [ ] El componente maneja su propio `<Modal>` interno
+- [ ] Implementar auto-guardado al cerrar (overlay, ESC, X)
+- [ ] Mantener botón "Cancelar" para descartar cambios
+- [ ] Actualizar `DashboardModales.tsx` para usar el nuevo componente
 
-> **Estructura:** Crear carpeta `components/fileManager/` para mantener organizado
+### 6.5.2 Refactorizar FormularioProyecto
 
-**Diseño visual:**
-- Estilo similar a explorador de archivos de Windows
-- Panel lateral con carpetas
-- Vista principal con archivos en grid/lista
-- Mantener línea visual minimalista del dashboard
+- [ ] Convertir `FormularioProyecto` a `ModalProyecto` (similar a `PanelConfiguracionTarea`)
+- [ ] El componente maneja su propio `<Modal>` interno
+- [ ] Implementar auto-guardado al cerrar
+- [ ] Mantener botón "Cancelar" para descartar cambios
+- [ ] Actualizar `DashboardModales.tsx` para usar el nuevo componente
 
-**Estructura de carpetas:**
+**Complejidad:** Media | **Dependencias:** Fase 6
 
-```
-📁 Mis Archivos
-  📁 Notas (notas guardadas del Scratchpad)
-  📁 Imágenes (adjuntos de tipo imagen)
-  📁 Documentos (otros adjuntos)
-  📁 Por Proyecto
-    📁 [Nombre Proyecto 1]
-    📁 [Nombre Proyecto 2]
-  📁 Por Tarea
-    📁 [Nombre Tarea 1]
-    📁 [Nombre Tarea 2]
-```
+---
 
-### 7.3 Funcionalidades del File Manager
+## Fase 7: Modal Expandido con Chat e Historial [PLANIFICADA]
 
-**Básicas:**
-- [ ] Ver todos los archivos del usuario
-- [ ] Navegación por carpetas
-- [ ] Agrupación automática por proyecto/tarea
-- [ ] Agrupación configurable (por tipo, por fecha, por proyecto)
-- [ ] Preview de archivos (imágenes, notas)
-- [ ] Descargar archivos (drag & drop hacia escritorio)
+**Objetivo:** Comunicación y trazabilidad en tareas/proyectos/hábitos compartidos.
 
-**Avanzadas:**
-- [ ] Subir archivos directamente al Drive (sin asociar a tarea)
-- [ ] Crear carpetas personalizadas
-- [ ] Mover archivos entre carpetas
-- [ ] Arrastrar y soltar archivos
-- [ ] Búsqueda por nombre
+### 7.1 Nuevo Diseño del Modal de Tarea
+> El modal actual se expande al doble de ancho con 2 columnas.
 
-### 7.4 Estructura de Componentes
+**Columna Izquierda (existente):**
+- Información de la tarea (nombre, descripción, prioridad, etc.)
+- Subtareas
+- Adjuntos
+- Configuración
 
-```
-components/fileManager/
-  FileManager.tsx           (componente principal)
-  BarraLateral.tsx          (panel de carpetas)
-  VistaArchivos.tsx         (grid/lista de archivos)
-  ItemArchivo.tsx           (archivo individual)
-  ItemCarpeta.tsx           (carpeta individual)
-  BarraHerramientas.tsx     (acciones: subir, crear carpeta, etc)
-  ModalPreview.tsx          (preview de archivos)
-  hooks/
-    useFileManager.ts       (estado y lógica)
-  types/
-    fileManager.ts          (tipos)
-styles/
-  fileManager.css           (estilos)
-```
+**Columna Derecha (nueva):**
+- Chat/Comentarios en tiempo real
+- Historial de cambios (inmutable)
+- Lista de participantes
 
-### 7.5 Backend
+### 7.2 Sistema de Chat por Elemento
+- [ ] Tabla BD: `wp_glory_mensajes` (id, tipo, elemento_id, usuario_id, contenido, fecha)
+- [ ] Tipos: `tarea`, `proyecto`, `habito`
+- [ ] Cada tarea/proyecto/hábito tiene su propia conversación
+- [ ] Input de mensaje con soporte para adjuntos
+- [ ] Mensajes ordenados cronológicamente
+- [ ] Scroll automático al nuevo mensaje
+- [ ] Notificación a participantes al enviar mensaje
 
-- [ ] Tabla BD: `wp_glory_notas` (id, user_id, titulo, contenido, fecha_creacion, fecha_modificacion)
-- [ ] Tabla BD: `wp_glory_carpetas` (id, user_id, nombre, padre_id, tipo)
-- [ ] Endpoints API para notas (CRUD)
-- [ ] Endpoint para listar archivos agrupados
+### 7.3 Historial de Cambios (Audit Log)
+> Inmutable. Nadie puede editar ni eliminar el historial.
 
-**Complejidad:** Alta | **Dependencias:** Fase 1.5 (archivos físicos)
+- [ ] Tabla BD: `wp_glory_historial` (id, tipo, elemento_id, usuario_id, accion, detalles, fecha)
+- [ ] Acciones registradas:
+  - Cambio de nombre
+  - Cambio de descripción
+  - Cambio de prioridad
+  - Cambio de fecha límite
+  - Adjunto agregado/eliminado
+  - Tarea completada/reabierta
+  - Participante agregado/removido
+  - Asignación cambiada
+- [ ] Formato: "[Usuario] [acción] [detalles] - [fecha]"
+- [ ] Visualización tipo timeline
+
+### 7.4 UI del Modal Expandido
+- [ ] Componente `ModalTareaExpandido` con 2 columnas
+- [ ] Toggle para expandir/colapsar columna derecha
+- [ ] Por defecto: modal expandido (2 columnas)
+- [ ] Scroll independiente por columna
+- [ ] Responsive: en móvil, pestañas en lugar de columnas
+
+### 7.5 Aplicar a Proyectos y Hábitos
+- [ ] Modal de proyecto con chat + historial
+- [ ] Modal de hábito (solo si está compartido)
+- [ ] Componente `PanelChatHistorial` reutilizable
+
+**Complejidad:** Muy Alta | **Dependencias:** Fase 2, 3, 4 (requiere sistema social completo)
 
 ---
 
@@ -454,13 +366,99 @@ components/shared/
 
 ---
 
-## Fase 9: Compartir Hábitos [POSPUESTA]
+## Fase 9: Scratchpad con Guardado + File Manager [BAJA PRIORIDAD]
+
+**Objetivo:** Permitir guardar notas del Scratchpad y crear un gestor de archivos tipo Google Drive.
+
+> **Nota:** Esta fase tiene baja prioridad. Se implementará después de las funcionalidades principales.
+
+### 9.1 Scratchpad - Sistema de Guardado
+
+- [ ] Agregar botón badge "Guardar nota" al Scratchpad
+- [ ] Al guardar: la nota se almacena con título (primeras palabras o input) y fecha
+- [ ] Agregar botón badge "Archivo" para ver notas guardadas
+- [ ] Las notas guardadas se pueden reabrir en el Scratchpad
+- [ ] Preview markdown en notas guardadas
+
+### 9.2 File Manager (Drive Glory)
+
+> **Estructura:** Crear carpeta `components/fileManager/` para mantener organizado
+
+**Diseño visual:**
+- Estilo similar a explorador de archivos de Windows
+- Panel lateral con carpetas
+- Vista principal con archivos en grid/lista
+- Mantener línea visual minimalista del dashboard
+
+**Estructura de carpetas:**
+
+```
+📁 Mis Archivos
+  📁 Notas (notas guardadas del Scratchpad)
+  📁 Imágenes (adjuntos de tipo imagen)
+  📁 Documentos (otros adjuntos)
+  📁 Por Proyecto
+    📁 [Nombre Proyecto 1]
+    📁 [Nombre Proyecto 2]
+  📁 Por Tarea
+    📁 [Nombre Tarea 1]
+    📁 [Nombre Tarea 2]
+```
+
+### 9.3 Funcionalidades del File Manager
+
+**Básicas:**
+- [ ] Ver todos los archivos del usuario
+- [ ] Navegación por carpetas
+- [ ] Agrupación automática por proyecto/tarea
+- [ ] Agrupación configurable (por tipo, por fecha, por proyecto)
+- [ ] Preview de archivos (imágenes, notas)
+- [ ] Descargar archivos (drag & drop hacia escritorio)
+
+**Avanzadas:**
+- [ ] Subir archivos directamente al Drive (sin asociar a tarea)
+- [ ] Crear carpetas personalizadas
+- [ ] Mover archivos entre carpetas
+- [ ] Arrastrar y soltar archivos
+- [ ] Búsqueda por nombre
+
+### 9.4 Estructura de Componentes
+
+```
+components/fileManager/
+  FileManager.tsx           (componente principal)
+  BarraLateral.tsx          (panel de carpetas)
+  VistaArchivos.tsx         (grid/lista de archivos)
+  ItemArchivo.tsx           (archivo individual)
+  ItemCarpeta.tsx           (carpeta individual)
+  BarraHerramientas.tsx     (acciones: subir, crear carpeta, etc)
+  ModalPreview.tsx          (preview de archivos)
+  hooks/
+    useFileManager.ts       (estado y lógica)
+  types/
+    fileManager.ts          (tipos)
+styles/
+  fileManager.css           (estilos)
+```
+
+### 9.5 Backend
+
+- [ ] Tabla BD: `wp_glory_notas` (id, user_id, titulo, contenido, fecha_creacion, fecha_modificacion)
+- [ ] Tabla BD: `wp_glory_carpetas` (id, user_id, nombre, padre_id, tipo)
+- [ ] Endpoints API para notas (CRUD)
+- [ ] Endpoint para listar archivos agrupados
+
+**Complejidad:** Alta | **Dependencias:** Fase 1.5 (archivos físicos)
+
+---
+
+## Fase 10: Compartir Hábitos [BAJA PRIORIDAD]
 
 **Objetivo:** Motivación social al compartir hábitos con compañeros.
 
-> **Razón de posponer:** Esta funcionalidad no es crítica para el MVP. Se implementará después de la refactorización y estabilización del sistema actual.
+> **Nota:** Esta fase tiene baja prioridad. No es crítica para el MVP.
 
-### 9.1 Modelo de Hábitos Compartidos
+### 10.1 Modelo de Hábitos Compartidos
 > Cada persona tiene su propia instancia. Racha y cumplimiento son individuales.
 > Solo comparten "el mismo hábito" para verse mutuamente.
 
@@ -469,13 +467,13 @@ components/shared/
 - [ ] Campo `habito_origen_id` para vincular ambas instancias
 - [ ] Cada usuario cumple su hábito independientemente
 
-### 9.2 UI de Hábitos Compartidos
+### 10.2 UI de Hábitos Compartidos
 - [ ] Opción en menú contextual: "Compartir hábito"
 - [ ] Indicador visual: "Compartido con [Nombre]"
 - [ ] Ver cuándo el compañero cumplió (badge o indicador)
 - [ ] Notificación: "[Nombre] cumplió [Hábito] hoy"
 
-### 9.3 Sincronización de Estado
+### 10.3 Sincronización de Estado
 - [ ] Endpoint para consultar estado de hábito del compañero
 - [ ] Cache local para no sobrecargar
 - [ ] Actualización periódica o al abrir panel
@@ -484,66 +482,9 @@ components/shared/
 
 ---
 
-## Fase 10: Modal Expandido con Chat e Historial
-
-**Objetivo:** Comunicación y trazabilidad en tareas/proyectos/hábitos compartidos.
-
-### 10.1 Nuevo Diseño del Modal de Tarea
-> El modal actual se expande al doble de ancho con 2 columnas.
-
-**Columna Izquierda (existente):**
-- Información de la tarea (nombre, descripción, prioridad, etc.)
-- Subtareas
-- Adjuntos
-- Configuración
-
-**Columna Derecha (nueva):**
-- Chat/Comentarios en tiempo real
-- Historial de cambios (inmutable)
-- Lista de participantes
-
-### 10.2 Sistema de Chat por Elemento
-- [ ] Tabla BD: `wp_glory_mensajes` (id, tipo, elemento_id, usuario_id, contenido, fecha)
-- [ ] Tipos: `tarea`, `proyecto`, `habito`
-- [ ] Cada tarea/proyecto/hábito tiene su propia conversación
-- [ ] Input de mensaje con soporte para adjuntos
-- [ ] Mensajes ordenados cronológicamente
-- [ ] Scroll automático al nuevo mensaje
-- [ ] Notificación a participantes al enviar mensaje
-
-### 10.3 Historial de Cambios (Audit Log)
-> Inmutable. Nadie puede editar ni eliminar el historial.
-
-- [ ] Tabla BD: `wp_glory_historial` (id, tipo, elemento_id, usuario_id, accion, detalles, fecha)
-- [ ] Acciones registradas:
-  - Cambio de nombre
-  - Cambio de descripción
-  - Cambio de prioridad
-  - Cambio de fecha límite
-  - Adjunto agregado/eliminado
-  - Tarea completada/reabierta
-  - Participante agregado/removido
-  - Asignación cambiada
-- [ ] Formato: "[Usuario] [acción] [detalles] - [fecha]"
-- [ ] Visualización tipo timeline
-
-### 10.4 UI del Modal Expandido
-- [ ] Componente `ModalTareaExpandido` con 2 columnas
-- [ ] Toggle para expandir/colapsar columna derecha
-- [ ] Por defecto: modal expandido (2 columnas)
-- [ ] Scroll independiente por columna
-- [ ] Responsive: en móvil, pestañas en lugar de columnas
-
-### 10.5 Aplicar a Proyectos y Hábitos
-- [ ] Modal de proyecto con chat + historial
-- [ ] Modal de hábito (solo si está compartido)
-- [ ] Componente `PanelChatHistorial` reutilizable
-
-**Complejidad:** Muy Alta | **Dependencias:** Fase 2, 3, 4 (requiere sistema social completo)
+## Fase 11: Futuro (Post v1.1.0)
 
 ---
-
-## Fase 11: Futuro (Post v1.1.0)
 
 ### 11.1 Correo de Invitación
 - [ ] Enviar email cuando se invita a usuario no registrado
@@ -571,22 +512,22 @@ components/shared/
 
 ## 📋 Resumen de Fases
 
-| Fase | Nombre                         | Complejidad | Estado        |
-| ---- | ------------------------------ | ----------- | ------------- |
-| 0    | Preparación (Alertas + Header) | Baja-Media  | ✅ Completada  |
-| 1    | Almacenamiento                 | Media       | ✅ Completada  |
-| 1.5  | Archivos Físicos + Cifrado     | Alta        | ✅ Completada  |
-| 2    | Sistema de Equipos             | Alta        | ✅ Completada  |
-| 3    | Notificaciones                 | Alta        | ✅ Completada  |
-| 4    | Compartir Tareas/Proyectos     | Muy Alta    | ✅ Completada  |
-| 5    | Refactorización                | Alta        | ⏳ En Progreso |
-| 5.5  | Sistema de Urgencia            | Media       | ✅ Completada  |
-| 6    | **Mejoras UX Rápidas**         | Baja        | 🔜 Siguiente   |
-| 7    | Scratchpad + File Manager      | Alta        | Planificada   |
-| 8    | Mapa de Calor                  | Media-Alta  | Planificada   |
-| 9    | Compartir Hábitos              | Media       | Pospuesta     |
-| 10   | Modal Chat + Historial         | Muy Alta    | Pendiente     |
-| 11   | Futuro                         | Variable    | Pendiente     |
+| Fase | Nombre                         | Complejidad | Estado         |
+| ---- | ------------------------------ | ----------- | -------------- |
+| 0    | Preparación (Alertas + Header) | Baja-Media  | ✅ Completada   |
+| 1    | Almacenamiento                 | Media       | ✅ Completada   |
+| 1.5  | Archivos Físicos + Cifrado     | Alta        | ✅ Completada   |
+| 2    | Sistema de Equipos             | Alta        | ✅ Completada   |
+| 3    | Notificaciones                 | Alta        | ✅ Completada   |
+| 4    | Compartir Tareas/Proyectos     | Muy Alta    | ✅ Completada   |
+| 5    | Sistema de Urgencia            | Media       | ✅ Completada   |
+| 6    | Mejoras UX Rápidas             | Baja        | ✅ Completada   |
+| 6.5  | **Refact. Formularios**        | Media       | 🔜 Siguiente    |
+| 7    | Modal Chat + Historial         | Muy Alta    | Planificada    |
+| 8    | Mapa de Calor                  | Media-Alta  | Planificada    |
+| 9    | Scratchpad + File Manager      | Alta        | Baja Prioridad |
+| 10   | Compartir Hábitos              | Media       | Baja Prioridad |
+| 11   | Futuro                         | Variable    | Pendiente      |
 
 ---
 
