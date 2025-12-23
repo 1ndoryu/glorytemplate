@@ -4,7 +4,7 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
-import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder} from 'lucide-react';
+import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder, Users} from 'lucide-react';
 import type {Tarea, NivelPrioridad, DatosEdicionTarea, TareaConfiguracion} from '../../types/dashboard';
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
 import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
@@ -30,6 +30,8 @@ export interface TareaItemProps {
     soloIconoProyecto?: boolean;
     /* Mover tarea a otro proyecto */
     onMoverProyecto?: () => void;
+    /* Compartir tarea con equipo */
+    onCompartir?: () => void;
 }
 
 export interface MenuContextualEstado {
@@ -38,7 +40,7 @@ export interface MenuContextualEstado {
     y: number;
 }
 
-export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto}: TareaItemProps): JSX.Element {
+export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir}: TareaItemProps): JSX.Element {
     const [mostrarAcciones, setMostrarAcciones] = useState(false);
     const [editando, setEditando] = useState(false);
     const [textoEditado, setTextoEditado] = useState(tarea.texto);
@@ -137,6 +139,8 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                 onEditar?.({prioridad: null});
             } else if (opcionId === 'mover-proyecto') {
                 onMoverProyecto?.();
+            } else if (opcionId === 'compartir') {
+                onCompartir?.();
             } else if (['alta', 'media', 'baja'].includes(opcionId)) {
                 onEditar?.({
                     prioridad: opcionId as NivelPrioridad
@@ -147,7 +151,18 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
     );
 
     /* Opciones del menu contextual */
-    const opcionesMenu: OpcionMenu[] = [
+    const opcionesMenu: OpcionMenu[] = [];
+
+    if (!esSubtarea && onCompartir) {
+        opcionesMenu.push({
+            id: 'compartir',
+            etiqueta: 'Compartir tarea',
+            icono: <Users size={12} />,
+            separadorDespues: true
+        });
+    }
+
+    opcionesMenu.push(
         {
             id: 'configurar',
             etiqueta: 'Configurar tarea',
@@ -176,7 +191,7 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
             icono: <Flag size={12} color="#94a3b8" />,
             separadorDespues: !tarea.prioridad
         }
-    ];
+    );
 
     /* Agregar opcion de quitar prioridad solo si tiene una */
     if (tarea.prioridad) {

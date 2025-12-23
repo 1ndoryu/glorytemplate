@@ -140,6 +140,8 @@ export interface Tarea {
     prioridad?: NivelPrioridad;
     /* Configuracion avanzada (fecha limite, descripcion, repeticion, adjuntos) */
     configuracion?: TareaConfiguracion;
+    /* ID Real en Base de Datos (para compartir) */
+    _id?: number;
 }
 
 export interface DashboardData {
@@ -470,4 +472,33 @@ export interface RespuestaNotificaciones {
     notificaciones: Notificacion[];
     total: number;
     paginacion: PaginacionNotificaciones;
+}
+
+/*
+ * Tipos para el Sistema de Compartición (Fase 4)
+ */
+
+export type RolCompartido = 'propietario' | 'colaborador' | 'observador';
+
+export interface Participante {
+    id: number; // ID del registro compartido o 0 para propietario
+    usuarioId: number;
+    nombre: string;
+    email: string;
+    avatar: string;
+    rol: RolCompartido;
+    fecha: string | null;
+    esPropietario: boolean;
+}
+
+/*
+ * Interfaz base para elementos que han sido compartidos
+ * Se debe hacer intersección con Tarea o Proyecto
+ */
+export interface MetadatosCompartido {
+    _compartido: boolean;
+    _rol: RolCompartido;
+    _propietario: string;
+    _compartido_id: number;
+    _elemento_id: number;
 }

@@ -1,0 +1,255 @@
+/*
+ * Estilos para el Modal de Compartir
+ * y componentes relacionados a la colaboración
+ */
+
+.modalCompartir {
+    max-width: 500px;
+}
+
+.modalCompartirContenido {
+    padding: 8px 4px;
+}
+
+/* Alerta de cifrado */
+.alertaCifrado {
+    background-color: var(--warning-bg-subtle, #fff4e5);
+    border: 1px solid var(--warning-border, #ffd599);
+    color: var(--warning-text, #663c00);
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.iconoAlerta {
+    color: var(--warning-icon, #e69500);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Formulario de invitación */
+.formularioInvitar {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.grupoInput {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.grupoInput label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary, #64748b);
+}
+
+.inputConBoton {
+    display: flex;
+    gap: 8px;
+}
+
+.inputSelect {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    background-color: var(--bg-input, #ffffff);
+    color: var(--text-primary, #0f172a);
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.inputSelect:focus {
+    outline: none;
+    border-color: var(--primary-color, #3b82f6);
+    box-shadow: 0 0 0 3px var(--primary-color-alpha, rgba(59, 130, 246, 0.1));
+}
+
+.botonPrimario {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--primary-color, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    height: 42px; /* Match inputs height usually */
+    white-space: nowrap;
+}
+
+.botonPrimario:hover:not(:disabled) {
+    background-color: var(--primary-color-dark, #2563eb);
+}
+
+.botonPrimario:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: var(--disabled-bg, #94a3b8);
+}
+
+/* Lista de Participantes */
+.seccionParticipantes h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-primary, #0f172a);
+}
+
+.listaParticipantes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.itemParticipante {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background-color: var(--bg-card-subtle, #f8fafc);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 10px;
+    transition: background-color 0.2s ease;
+}
+
+.itemParticipante:hover {
+    background-color: var(--bg-hover, #f1f5f9);
+}
+
+.infoParticipante {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatarParticipante {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: var(--bg-avatar, #e2e8f0);
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.textoParticipante {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nombreParticipante {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary, #0f172a);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.emailParticipante {
+    font-size: 12px;
+    color: var(--text-secondary, #64748b);
+}
+
+.badgePropietario {
+    background-color: var(--primary-bg-subtle, #eff6ff);
+    color: var(--primary-color, #3b82f6);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.accionesParticipante {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.badgeRol {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background-color: var(--bg-badge, #e2e8f0);
+    color: var(--text-secondary, #475569);
+    text-transform: capitalize;
+    font-weight: 500;
+}
+
+.badgeRol.propietario {
+    background-color: transparent;
+    border: 1px solid var(--primary-color-alpha, rgba(59, 130, 246, 0.3));
+    color: var(--primary-color, #3b82f6);
+}
+
+.badgeRol.colaborador {
+    background-color: var(--success-bg-subtle, #f0fdf4);
+    color: var(--success-text, #15803d);
+}
+
+.botonEliminar {
+    background: none;
+    border: none;
+    color: var(--danger-color, #ef4444);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.botonEliminar:hover {
+    background-color: var(--danger-bg-subtle, #fef2f2);
+}
+
+.iconoPropietario {
+    color: var(--primary-color, #3b82f6);
+    opacity: 0.8;
+}
+
+.textoVacio {
+    text-align: center;
+    color: var(--text-muted, #94a3b8);
+    font-size: 13px;
+    padding: 20px;
+    background-color: var(--bg-card-subtle, #f8fafc);
+    border-radius: 8px;
+    border: 1px dashed var(--border-color, #e2e8f0);
+}
+
+.cargandoTexto {
+    text-align: center;
+    color: var(--text-secondary, #64748b);
+    font-size: 13px;
+    padding: 10px;
+}
+
+.mensajeError {
+    color: var(--danger-text, #991b1b);
+    background-color: var(--danger-bg-subtle, #fef2f2);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--danger-border, #fecaca);
+}

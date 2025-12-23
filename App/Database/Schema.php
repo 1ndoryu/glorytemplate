@@ -6,9 +6,9 @@ class Schema
 {
     /**
      * Versión actual de la base de datos
-     * v1.0.3: Añadida tabla de notificaciones para sistema de alertas in-app
+     * v1.0.4: Añadida tabla de elementos compartidos (Fase 4)
      */
-    public const DB_VERSION = '1.0.3';
+    public const DB_VERSION = '1.0.4';
 
     /**
      * Nombre de la opción donde guardamos la versión instalada
@@ -103,6 +103,25 @@ class Schema
             KEY fecha_creacion (fecha_creacion)
         ) $charset_collate;";
 
+        /* Tabla de Elementos Compartidos (Fase 4)
+         * Gestiona permisos de acceso a tareas, proyectos y hábitos
+         * Roles: propietario, colaborador, observador
+         */
+        $table_compartidos = $wpdb->prefix . 'glory_compartidos';
+        $sql_compartidos = "CREATE TABLE $table_compartidos (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            tipo varchar(20) NOT NULL,
+            elemento_id bigint(20) NOT NULL,
+            usuario_id bigint(20) NOT NULL,
+            rol varchar(20) NOT NULL DEFAULT 'colaborador',
+            fecha datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY tipo (tipo),
+            KEY elemento_id (elemento_id),
+            KEY usuario_id (usuario_id)
+        ) $charset_collate;";
+
         /* Tabla de Tareas */
         $table_tareas = $wpdb->prefix . 'glory_tareas';
         $sql_tareas = "CREATE TABLE $table_tareas (
@@ -148,9 +167,11 @@ class Schema
         dbDelta($sql_habitos);
         dbDelta($sql_equipos);
         dbDelta($sql_notificaciones);
+        dbDelta($sql_compartidos);
         dbDelta($sql_tareas);
         dbDelta($sql_proyectos);
     }
+
 
     /**
      * Nombres de tablas públicos
