@@ -160,7 +160,10 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 | Archivo Original              | Líneas Antes | Archivos Resultantes                          | Líneas D |
 | ----------------------------- | ------------ | --------------------------------------------- | -------- |
-| `islands/DashboardIsland.tsx` | 461          | `islands/DashboardIsland.tsx`                 | 260      |
+| `islands/DashboardIsland.tsx` | 461          | `islands/DashboardIsland.tsx`                 | 90       |
+|                               |              | `hooks/useDashboardCompleto.ts`               | 98       |
+|                               |              | `components/dashboard/DashboardGrid.tsx`      | 140      |
+|                               |              | `components/dashboard/DashboardModales.tsx`   | 131      |
 |                               |              | `hooks/useModalesDashboard.ts`                | 234      |
 |                               |              | `hooks/useCompartirDashboard.ts`              | 236      |
 |                               |              | `hooks/useOpcionesDashboard.tsx`              | 96       |
@@ -169,6 +172,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 |                               |              | `components/paneles/PanelProyectos.tsx`       | 61       |
 |                               |              | `components/paneles/PanelEjecucion.tsx`       | 117      |
 |                               |              | `components/paneles/PanelScratchpad.tsx`      | 65       |
+
 
 **Pendientes:**
 
