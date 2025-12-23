@@ -253,7 +253,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [x] Agregar campo `urgencia` a interfaces `Tarea` y `Proyecto`
 - [x] Crear componente `CampoUrgencia` (similar a `CampoPrioridad`)
 - [x] Integrar en `PanelConfiguracionTarea.tsx`
-- [ ] Integrar en `FormularioProyecto.tsx` (pendiente)
+- [x] Integrar en `FormularioProyecto.tsx`
 - [x] Mostrar badge de urgencia en `TareaItem.tsx` (si no es `normal`)
 - [x] La urgencia también aplica a subtareas
 
