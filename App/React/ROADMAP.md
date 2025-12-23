@@ -154,16 +154,21 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 |                              |              | `CifradoApiController.php`        | 114      |
 |                              |              | `StripeApiController.php`         | 187      |
 
-### 5.2 Frontend TSX - En Progreso
+### 5.2 Frontend TSX - ✅ COMPLETADO
 
 **Refactorizados:**
 
-| Archivo Original              | Líneas Antes | Archivos Resultantes             | Líneas D |
-| ----------------------------- | ------------ | -------------------------------- | -------- |
-| `islands/DashboardIsland.tsx` | 773          | `islands/DashboardIsland.tsx`    | 280      |
-|                               |              | `hooks/useModalesDashboard.ts`   | 195      |
-|                               |              | `hooks/useCompartirDashboard.ts` | 190      |
-|                               |              | `hooks/useOpcionesDashboard.tsx` | 85       |
+| Archivo Original              | Líneas Antes | Archivos Resultantes                          | Líneas D |
+| ----------------------------- | ------------ | --------------------------------------------- | -------- |
+| `islands/DashboardIsland.tsx` | 461          | `islands/DashboardIsland.tsx`                 | 260      |
+|                               |              | `hooks/useModalesDashboard.ts`                | 234      |
+|                               |              | `hooks/useCompartirDashboard.ts`              | 236      |
+|                               |              | `hooks/useOpcionesDashboard.tsx`              | 96       |
+|                               |              | `hooks/useAccionesDashboard.ts`               | 160      |
+|                               |              | `components/paneles/PanelFocoPrioritario.tsx` | 76       |
+|                               |              | `components/paneles/PanelProyectos.tsx`       | 61       |
+|                               |              | `components/paneles/PanelEjecucion.tsx`       | 117      |
+|                               |              | `components/paneles/PanelScratchpad.tsx`      | 65       |
 
 **Pendientes:**
 
