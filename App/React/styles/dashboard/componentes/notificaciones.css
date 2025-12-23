@@ -242,47 +242,38 @@
 }
 
 /* 
- * Botón de notificaciones en el header
+ * Variantes de colores para iconos de notificación
  */
-.botonIconoEncabezado--notificaciones {
-    position: relative;
+.itemNotificacion__icono--equipo {
+    color: var(--dashboard-estadoInfo);
 }
 
-.botonIconoEncabezado__puntoNotificacion {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 6px;
-    height: 6px;
-    background: var(--dashboard-estadoAlta);
-    border-radius: 50%;
-    border: 1px solid var(--dashboard-fondoPrincipal);
+.itemNotificacion__icono--aceptada {
+    color: var(--dashboard-estadoExito);
 }
 
-/* 
- * Animación de campana cuando hay nuevas
- */
-@keyframes campanaNueva {
-    0%,
-    100% {
-        transform: rotate(0deg);
-    }
-    10%,
-    30%,
-    50% {
-        transform: rotate(-8deg);
-    }
-    20%,
-    40% {
-        transform: rotate(8deg);
-    }
-    60% {
-        transform: rotate(0deg);
-    }
+.itemNotificacion__icono--urgente {
+    color: var(--dashboard-estadoAlta);
 }
 
-.botonIconoEncabezado--notificaciones.tieneNuevas svg {
-    animation: campanaNueva 1s ease-in-out;
+.itemNotificacion__icono--asignada {
+    color: var(--dashboard-estadoMedia);
+}
+
+.itemNotificacion__icono--removida {
+    color: var(--dashboard-textoApagado);
+}
+
+.itemNotificacion__icono--adjunto {
+    color: var(--dashboard-textoSecundario);
+}
+
+.itemNotificacion__icono--mensaje {
+    color: var(--dashboard-acento);
+}
+
+.itemNotificacion__icono--habito {
+    color: var(--dashboard-estadoExito);
 }
 
 /* 

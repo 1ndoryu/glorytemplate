@@ -416,23 +416,55 @@
  * BOTON DE EQUIPOS 
  */
 .botonIconoEncabezado--equipo {
-    position: relative;
+    gap: var(--dashboard-espacioXs);
 }
 
 .botonIconoEncabezado__contador {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
-    background: #ef4444;
-    color: white;
     font-size: 10px;
     font-weight: 600;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    color: var(--dashboard-estadoAlta);
+}
+
+/* 
+ * BOTON DE NOTIFICACIONES 
+ */
+.botonIconoEncabezado--notificaciones {
+    position: relative;
+    gap: var(--dashboard-espacioXs);
+}
+
+.botonIconoEncabezado--notificaciones.tieneNuevas {
+    color: var(--dashboard-textoActivo);
+}
+
+.botonIconoEncabezado__contadorNotificaciones {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--dashboard-estadoAlta);
+}
+
+/* Punto de notificacion cuando hay nuevas (para indicador sin numero) */
+.botonIconoEncabezado__puntoNotificacion {
+    width: 6px;
+    height: 6px;
+    background: var(--dashboard-estadoAlta);
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+}
+
+/* 
+ * TEMPORAL: Boton de test de notificaciones
+ */
+.botonIconoEncabezado--test {
+    background: rgba(234, 179, 8, 0.15);
+    border-color: rgba(234, 179, 8, 0.3);
+    color: #eab308;
+}
+
+.botonIconoEncabezado--test:hover {
+    background: rgba(234, 179, 8, 0.25);
+    border-color: rgba(234, 179, 8, 0.5);
+    color: #facc15;
 }

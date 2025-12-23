@@ -409,7 +409,7 @@ export interface EquipoCompleto {
 /*
  * Tipos de notificación disponibles
  */
-export type TipoNotificacion = 'solicitud_equipo' | 'tarea_vence_hoy' | 'tarea_asignada' | 'tarea_removida' | 'adjunto_agregado' | 'mensaje_chat' | 'habito_companero';
+export type TipoNotificacion = 'solicitud_equipo' | 'solicitud_aceptada' | 'tarea_vence_hoy' | 'tarea_asignada' | 'tarea_removida' | 'adjunto_agregado' | 'mensaje_chat' | 'habito_companero';
 
 /*
  * Datos extra específicos por tipo de notificación

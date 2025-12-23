@@ -5,7 +5,7 @@
  * Muestra icono según tipo, título, contenido, fecha y acciones.
  */
 
-import {Users, Calendar, UserPlus, UserMinus, Paperclip, MessageCircle, Target, Check, Trash2} from 'lucide-react';
+import {Users, UserCheck, Calendar, UserPlus, UserMinus, Paperclip, MessageCircle, Target, Check, Trash2} from 'lucide-react';
 import type {Notificacion, TipoNotificacion} from '../../types/dashboard';
 import {formatearFechaRelativa} from '../../utils/fecha';
 
@@ -21,6 +21,10 @@ const ICONO_POR_TIPO: Record<TipoNotificacion, {icono: JSX.Element; clase: strin
     solicitud_equipo: {
         icono: <Users size={16} />,
         clase: 'itemNotificacion__icono--equipo'
+    },
+    solicitud_aceptada: {
+        icono: <UserCheck size={16} />,
+        clase: 'itemNotificacion__icono--aceptada'
     },
     tarea_vence_hoy: {
         icono: <Calendar size={16} />,

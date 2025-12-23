@@ -101,6 +101,27 @@ class NotificacionesApiController
                 ],
             ],
         ]);
+
+        /* Endpoint de prueba: crear notificación de test (solo admins) */
+        register_rest_route(self::API_NAMESPACE, '/notificaciones/test', [
+            'methods' => \WP_REST_Server::CREATABLE,
+            'callback' => [self::class, 'crearTest'],
+            'permission_callback' => [self::class, 'requireAdmin'],
+            'args' => [
+                'tipo' => [
+                    'default' => 'solicitud_equipo',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ],
+                'titulo' => [
+                    'default' => 'Notificación de prueba',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ],
+                'contenido' => [
+                    'default' => 'Esta es una notificación de prueba para verificar el sistema.',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ],
+            ],
+        ]);
     }
 
     /**
@@ -109,6 +130,14 @@ class NotificacionesApiController
     public static function requireAuthentication(): bool
     {
         return is_user_logged_in();
+    }
+
+    /**
+     * Verifica que el usuario sea administrador
+     */
+    public static function requireAdmin(): bool
+    {
+        return current_user_can('manage_options');
     }
 
     /**
@@ -244,6 +273,50 @@ class NotificacionesApiController
                 'success' => false,
                 'message' => 'Error al eliminar notificación: ' . $e->getMessage(),
                 'code' => 'delete_error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Crea una notificación de prueba (solo admins)
+     * 
+     * Uso desde consola del navegador:
+     * fetch('/wp-json/glory/v1/notificaciones/test', {
+     *   method: 'POST',
+     *   headers: {'Content-Type': 'application/json', 'X-WP-Nonce': gloryDashboard.nonce},
+     *   body: JSON.stringify({tipo: 'solicitud_equipo', titulo: 'Prueba', contenido: 'Test'})
+     * }).then(r => r.json()).then(console.log);
+     */
+    public static function crearTest(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $usuarioId = get_current_user_id();
+            $tipo = $request->get_param('tipo');
+            $titulo = $request->get_param('titulo');
+            $contenido = $request->get_param('contenido');
+
+            $service = new NotificacionesService();
+            $resultado = $service->crear(
+                $usuarioId,
+                $tipo,
+                $titulo,
+                $contenido,
+                ['test' => true, 'timestamp' => current_time('mysql')]
+            );
+
+            $statusCode = $resultado['exito'] ? 200 : 400;
+
+            return new \WP_REST_Response([
+                'success' => $resultado['exito'],
+                'message' => $resultado['mensaje'],
+                'data' => $resultado['notificacion'] ?? null,
+            ], $statusCode);
+        } catch (\Exception $e) {
+            error_log('[NotificacionesAPI] ERROR crearTest: ' . $e->getMessage());
+            return new \WP_REST_Response([
+                'success' => false,
+                'message' => 'Error al crear notificación de prueba: ' . $e->getMessage(),
+                'code' => 'test_error',
             ], 500);
         }
     }

@@ -802,6 +802,33 @@ define('GLORY_STRIPE_PRICE_YEARLY', 'price_...');
 - `App/React/styles/dashboard/` - Sistema de diseño modular
 
 
+---
+
+## 🐛 Bugs Críticos (2025-12-22)
+
+### Sistema de Notificaciones y Equipos
+
+- [x] **Bug:** Al enviar solicitud de equipo, no se crea notificación para el destinatario
+  - **Causa:** `NotificacionesService::notificarSolicitudEquipo()` nunca se llama desde EquiposService
+  - **Solución:** Integrar llamada en `EquiposService::enviarSolicitud()`
+
+- [x] **Bug:** Al aceptar solicitud, no se notifica al solicitante original
+  - **Causa:** Falta llamada a notificaciones en `responderSolicitud()`
+  - **Solución:** Crear nuevo método `notificarSolicitudAceptada()` y llamarlo
+
+- [x] **Bug:** Badge de solicitudes pendientes no se actualiza en tiempo real
+  - **Causa:** Hook `useEquipos` no tiene polling, solo carga inicial
+  - **Solución:** Agregar polling cada 30 segundos similar a `useNotificaciones`
+
+- [x] **Bug:** Ajuste visual - contador de solicitudes en círculo rojo absoluto
+  - **Solución:** Cambiar estilo a inline dentro del badge, igual que otros contadores
+
+- [x] **Bug:** Falta indicador numérico para notificaciones pendientes
+  - **Causa:** Solo muestra punto rojo, sin número
+  - **Solución:** Mostrar número de notificaciones no leídas
+
+---
+
 ## Optimizaciones Futuras & Ideas (Baja Prioridad)
 
 ### Optimización de Cifrado de Datos (Cifrado Diferencial)

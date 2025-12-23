@@ -30,6 +30,10 @@ interface HookNotificaciones extends EstadoNotificaciones, AccionesNotificacione
 const INTERVALO_POLLING = 30000;
 const BASE_URL = '/wp-json/glory/v1';
 
+const obtenerNonce = (): string => {
+    return (window as unknown as {gloryDashboard?: {nonce?: string}}).gloryDashboard?.nonce || '';
+};
+
 export function useNotificaciones(habilitado: boolean = true): HookNotificaciones {
     const [estado, setEstado] = useState<EstadoNotificaciones>({
         notificaciones: [],
@@ -59,7 +63,7 @@ export function useNotificaciones(habilitado: boolean = true): HookNotificacione
 
                 const respuesta = await fetch(`${BASE_URL}/notificaciones?${params}`, {
                     headers: {
-                        'X-WP-Nonce': (window as unknown as {gloryNonce?: string}).gloryNonce || ''
+                        'X-WP-Nonce': obtenerNonce()
                     }
                 });
 
@@ -102,7 +106,7 @@ export function useNotificaciones(habilitado: boolean = true): HookNotificacione
         try {
             const respuesta = await fetch(`${BASE_URL}/notificaciones/no-leidas`, {
                 headers: {
-                    'X-WP-Nonce': (window as unknown as {gloryNonce?: string}).gloryNonce || ''
+                    'X-WP-Nonce': obtenerNonce()
                 }
             });
 
@@ -130,7 +134,7 @@ export function useNotificaciones(habilitado: boolean = true): HookNotificacione
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': (window as unknown as {gloryNonce?: string}).gloryNonce || ''
+                    'X-WP-Nonce': obtenerNonce()
                 }
             });
 
@@ -158,7 +162,7 @@ export function useNotificaciones(habilitado: boolean = true): HookNotificacione
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': (window as unknown as {gloryNonce?: string}).gloryNonce || ''
+                    'X-WP-Nonce': obtenerNonce()
                 }
             });
 
@@ -189,7 +193,7 @@ export function useNotificaciones(habilitado: boolean = true): HookNotificacione
             const respuesta = await fetch(`${BASE_URL}/notificaciones/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-WP-Nonce': (window as unknown as {gloryNonce?: string}).gloryNonce || ''
+                    'X-WP-Nonce': obtenerNonce()
                 }
             });
 

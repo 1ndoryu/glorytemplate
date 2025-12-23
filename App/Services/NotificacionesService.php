@@ -32,6 +32,7 @@ class NotificacionesService
 
     /* Tipos de notificación válidos */
     public const TIPO_SOLICITUD_EQUIPO = 'solicitud_equipo';
+    public const TIPO_SOLICITUD_ACEPTADA = 'solicitud_aceptada';
     public const TIPO_TAREA_VENCE_HOY = 'tarea_vence_hoy';
     public const TIPO_TAREA_ASIGNADA = 'tarea_asignada';
     public const TIPO_TAREA_REMOVIDA = 'tarea_removida';
@@ -69,6 +70,7 @@ class NotificacionesService
 
         $tiposValidos = [
             self::TIPO_SOLICITUD_EQUIPO,
+            self::TIPO_SOLICITUD_ACEPTADA,
             self::TIPO_TAREA_VENCE_HOY,
             self::TIPO_TAREA_ASIGNADA,
             self::TIPO_TAREA_REMOVIDA,
@@ -387,6 +389,34 @@ class NotificacionesService
         }
 
         return $creadas;
+    }
+
+    /**
+     * Crea notificación cuando una solicitud de equipo es aceptada
+     * Notifica al usuario que envió la solicitud original
+     *
+     * @param int $usuarioDestinoId Usuario que envió la solicitud (recibirá la notificación)
+     * @param int $usuarioAceptoId Usuario que aceptó la solicitud
+     * @return array Resultado de la operación
+     */
+    public function notificarSolicitudAceptada(
+        int $usuarioDestinoId,
+        int $usuarioAceptoId
+    ): array {
+        $usuarioAcepto = get_user_by('ID', $usuarioAceptoId);
+        $nombreAcepto = $usuarioAcepto ? $usuarioAcepto->display_name : 'Usuario';
+
+        return $this->crear(
+            $usuarioDestinoId,
+            self::TIPO_SOLICITUD_ACEPTADA,
+            "{$nombreAcepto} aceptó tu solicitud",
+            "¡Ahora {$nombreAcepto} es parte de tu equipo!",
+            [
+                'usuarioId' => $usuarioAceptoId,
+                'usuarioNombre' => $nombreAcepto,
+                'usuarioAvatar' => $usuarioAcepto ? get_avatar_url($usuarioAceptoId, ['size' => 48]) : '',
+            ]
+        );
     }
 
     /**

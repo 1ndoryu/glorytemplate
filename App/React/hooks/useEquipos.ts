@@ -5,7 +5,7 @@
  * y el estado del panel de equipos (social).
  */
 
-import {useState, useCallback, useEffect} from 'react';
+import {useState, useCallback, useEffect, useRef} from 'react';
 import type {EquipoCompleto, SolicitudEquipo, CompaneroEquipo} from '../types/dashboard';
 
 interface EstadoEquipos {
@@ -253,11 +253,24 @@ export function useEquipos() {
         [setEnviando, setError, cargarEquipo]
     );
 
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const INTERVALO_POLLING = 30000;
+
     /**
-     * Carga inicial al montar
+     * Carga inicial y polling para actualizar el badge en tiempo real
      */
     useEffect(() => {
         contarPendientes();
+
+        intervalRef.current = setInterval(() => {
+            contarPendientes();
+        }, INTERVALO_POLLING);
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
     }, [contarPendientes]);
 
     return {

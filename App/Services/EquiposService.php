@@ -19,10 +19,12 @@ use App\Database\Schema;
 class EquiposService
 {
     private string $tabla;
+    private NotificacionesService $notificaciones;
 
     public function __construct()
     {
         $this->tabla = Schema::getTableName('equipos');
+        $this->notificaciones = new NotificacionesService();
     }
 
     /**
@@ -80,11 +82,20 @@ class EquiposService
                 'fecha_solicitud' => current_time('mysql')
             ]);
 
+            $solicitudId = $wpdb->insert_id;
+
+            /* Crear notificación para el destinatario */
+            $this->notificaciones->notificarSolicitudEquipo(
+                $usuarioDestino->ID,
+                $usuarioId,
+                $solicitudId
+            );
+
             return [
                 'exito' => true,
                 'mensaje' => 'Solicitud enviada correctamente',
                 'solicitud' => $this->formatearSolicitud(
-                    $wpdb->insert_id,
+                    $solicitudId,
                     $usuarioId,
                     $usuarioDestino->ID,
                     'pendiente',
@@ -237,6 +248,14 @@ class EquiposService
             ],
             ['id' => $solicitudId]
         );
+
+        /* Notificar al solicitante cuando se acepta la solicitud */
+        if ($accion === 'aceptar') {
+            $this->notificaciones->notificarSolicitudAceptada(
+                (int)$solicitud->usuario_id,
+                $usuarioId
+            );
+        }
 
         $mensaje = $accion === 'aceptar'
             ? 'Solicitud aceptada'

@@ -5,7 +5,7 @@
  */
 
 import {useState} from 'react';
-import {Settings, LayoutGrid, Wifi, WifiOff, RefreshCw, User, LogOut, AlertTriangle, Shield, ClipboardList, Crown, Users, Bell} from 'lucide-react';
+import {Settings, LayoutGrid, Wifi, WifiOff, RefreshCw, User, LogOut, AlertTriangle, Shield, ClipboardList, Crown, Users, Bell, FlaskConical} from 'lucide-react';
 import {IndicadorPlan, MenuContextual} from '../shared';
 import type {InfoSuscripcion} from '../../types/dashboard';
 
@@ -37,6 +37,7 @@ interface DashboardEncabezadoProps {
     onClickUsuario?: () => void;
     onClickEquipos?: () => void;
     onClickNotificaciones?: (evento: React.MouseEvent) => void;
+    onClickExperimentos?: () => void;
 }
 
 interface MenuUsuarioState {
@@ -45,7 +46,7 @@ interface MenuUsuarioState {
     y: number;
 }
 
-export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta', usuario = 'user@admin', avatarUrl, sincronizacion, suscripcion, esAdmin = false, equiposPendientes = 0, notificacionesPendientes = 0, onClickPlan, onClickSeguridad, onClickAdmin, onClickLayout, onClickVersion, onClickUsuario, onClickEquipos, onClickNotificaciones}: DashboardEncabezadoProps): JSX.Element {
+export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta', usuario = 'user@admin', avatarUrl, sincronizacion, suscripcion, esAdmin = false, equiposPendientes = 0, notificacionesPendientes = 0, onClickPlan, onClickSeguridad, onClickAdmin, onClickLayout, onClickVersion, onClickUsuario, onClickEquipos, onClickNotificaciones, onClickExperimentos}: DashboardEncabezadoProps): JSX.Element {
     const estaConectado = sincronizacion?.estaLogueado ?? false;
     const [menuUsuario, setMenuUsuario] = useState<MenuUsuarioState>({visible: false, x: 0, y: 0});
 
@@ -151,7 +152,14 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.1-
                 {onClickNotificaciones && estaConectado && (
                     <button type="button" className={`botonIconoEncabezado botonIconoEncabezado--notificaciones ${notificacionesPendientes > 0 ? 'tieneNuevas' : ''}`} onClick={onClickNotificaciones} title="Notificaciones">
                         <Bell size={14} />
-                        {notificacionesPendientes > 0 && <span className="botonIconoEncabezado__puntoNotificacion"></span>}
+                        {notificacionesPendientes > 0 && <span className="botonIconoEncabezado__contadorNotificaciones">{notificacionesPendientes}</span>}
+                    </button>
+                )}
+
+                {/* Laboratorio de Pruebas (solo admins) */}
+                {onClickExperimentos && (
+                    <button type="button" className="botonIconoEncabezado botonIconoEncabezado--test" onClick={onClickExperimentos} title="Laboratorio de Pruebas">
+                        <FlaskConical size={14} />
                     </button>
                 )}
 

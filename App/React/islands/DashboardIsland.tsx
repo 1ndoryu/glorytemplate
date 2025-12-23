@@ -29,11 +29,15 @@ import {useArrastrePaneles} from '../hooks/useArrastrePaneles';
 import {useEquipos} from '../hooks/useEquipos';
 import {useNotificaciones} from '../hooks/useNotificaciones';
 import {ModalNotificaciones} from '../components/notificaciones';
+import {ModalExperimentos} from '../components/experimentos/ModalExperimentos';
+import type {AccionExperimento} from '../components/experimentos/ModalExperimentos';
 import {useAlertasContext} from '../context/AlertasContext';
 import {ModalConfiguracionTareas} from '../components/dashboard/ModalConfiguracionTareas';
 import {ModalConfiguracionHabitos} from '../components/dashboard/ModalConfiguracionHabitos';
 import {ModalConfiguracionScratchpad} from '../components/dashboard/ModalConfiguracionScratchpad';
 import type {Proyecto, TareaConfiguracion, NivelPrioridad} from '../types/dashboard';
+import {Bell} from 'lucide-react';
+import '../styles/dashboard/componentes/experimentos.css';
 
 interface DashboardIslandProps {
     titulo?: string;
@@ -112,6 +116,48 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
         }
         // Futuro: manejar otros tipos (ir a tarea, proyecto, etc)
     };
+
+    /* Modal de Experimentos (solo admins) */
+    const [modalExperimentosAbierto, setModalExperimentosAbierto] = useState(false);
+
+    /* Acción: Crear notificación de prueba */
+    const crearNotificacionPrueba = async (): Promise<boolean> => {
+        try {
+            const nonce = (window as unknown as {gloryDashboard?: {nonce?: string}}).gloryDashboard?.nonce || '';
+            const response = await fetch('/wp-json/glory/v1/notificaciones/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': nonce
+                },
+                body: JSON.stringify({
+                    tipo: 'solicitud_equipo',
+                    titulo: 'Notificación de prueba',
+                    contenido: 'Esta es una notificación de prueba para verificar el sistema.'
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                notificaciones.refrescar();
+                return true;
+            }
+            return false;
+        } catch (err) {
+            console.error('Error al crear notificación de prueba:', err);
+            return false;
+        }
+    };
+
+    /* Lista de acciones de experimentos */
+    const accionesExperimentos: AccionExperimento[] = [
+        {
+            id: 'notificacion-prueba',
+            nombre: 'Crear Notificación de Prueba',
+            descripcion: 'Crea una notificación de tipo solicitud_equipo para probar el sistema.',
+            icono: <Bell size={20} />,
+            ejecutar: crearNotificacionPrueba
+        }
+    ];
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -451,6 +497,7 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
                 onClickUsuario={() => setModalPerfilAbierto(true)}
                 onClickEquipos={() => setModalEquiposAbierto(true)}
                 onClickNotificaciones={manejarClickNotificaciones}
+                onClickExperimentos={esAdmin ? () => setModalExperimentosAbierto(true) : undefined}
             />
 
             {cargandoDatos ? (
@@ -589,6 +636,9 @@ export function DashboardIsland({titulo = 'DASHBOARD_01', version = 'v1.0.1-beta
 
             {/* Modal para crear nueva tarea global */}
             {modalNuevaTareaAbierto && <PanelConfiguracionTarea estaAbierto={modalNuevaTareaAbierto} onCerrar={() => setModalNuevaTareaAbierto(false)} onGuardar={manejarCrearNuevaTareaGlobal} />}
+
+            {/* Modal de Experimentos (solo admins) */}
+            <ModalExperimentos abierto={modalExperimentosAbierto} onCerrar={() => setModalExperimentosAbierto(false)} acciones={accionesExperimentos} />
         </div>
     );
 }
