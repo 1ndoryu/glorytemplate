@@ -7,8 +7,8 @@
  */
 
 import {useState, useEffect} from 'react';
-import type {Tarea, TareaConfiguracion, NivelPrioridad, Participante} from '../../types/dashboard';
-import {AccionesFormulario, Modal, SeccionPanel, ToggleSwitch, CampoTexto, CampoPrioridad, CampoFechaLimite} from '../shared';
+import type {Tarea, TareaConfiguracion, NivelPrioridad, NivelUrgencia, Participante} from '../../types/dashboard';
+import {AccionesFormulario, Modal, SeccionPanel, ToggleSwitch, CampoTexto, CampoPrioridad, CampoUrgencia, CampoFechaLimite} from '../shared';
 import {SelectorFrecuencia} from './SelectorFrecuencia';
 import {SeccionAdjuntos} from './SeccionAdjuntos';
 import {SelectorAsignado} from '../compartidos/SelectorAsignado';
@@ -18,7 +18,7 @@ export interface PanelConfiguracionTareaProps {
     tarea?: Tarea;
     estaAbierto: boolean;
     onCerrar: () => void;
-    onGuardar: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}) => void;
+    onGuardar: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null) => void;
     /* Participantes disponibles para asignar (opcional, solo si es tarea compartida) */
     participantes?: Participante[];
 }
@@ -26,6 +26,7 @@ export interface PanelConfiguracionTareaProps {
 export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar, participantes = []}: PanelConfiguracionTareaProps): JSX.Element | null {
     /* Estado local para edicion */
     const [prioridad, setPrioridad] = useState<NivelPrioridad | null>(tarea?.prioridad || null);
+    const [urgencia, setUrgencia] = useState<NivelUrgencia | null>(tarea?.urgencia || null);
     const [fechaMaxima, setFechaMaxima] = useState<string>(tarea?.configuracion?.fechaMaxima || '');
     const [descripcion, setDescripcion] = useState<string>(tarea?.configuracion?.descripcion || '');
     const [tieneRepeticion, setTieneRepeticion] = useState<boolean>(!!tarea?.configuracion?.repeticion);
@@ -42,6 +43,7 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
     useEffect(() => {
         if (tarea) {
             setPrioridad(tarea.prioridad || null);
+            setUrgencia(tarea.urgencia || null);
             setFechaMaxima(tarea.configuracion?.fechaMaxima || '');
             setDescripcion(tarea.configuracion?.descripcion || '');
             setTieneRepeticion(!!tarea.configuracion?.repeticion);
@@ -70,6 +72,7 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
         } else {
             /* Resetear si no hay tarea (modo creacion) */
             setPrioridad(null);
+            setUrgencia(null);
             setFechaMaxima('');
             setDescripcion('');
             setTieneRepeticion(false);
@@ -139,7 +142,7 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
             asignadoAAvatar
         };
 
-        onGuardar(configuracion, prioridad, texto.trim(), asignacion);
+        onGuardar(configuracion, prioridad, texto.trim(), asignacion, urgencia);
         onCerrar();
     };
 
@@ -154,6 +157,9 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
 
                 {/* Prioridad - Campo reutilizable */}
                 <CampoPrioridad<NivelPrioridad> tipo="prioridad" valor={prioridad} onChange={setPrioridad} permitirNulo={true} />
+
+                {/* Urgencia - Temporalidad (bloqueante, urgente, normal, chill) */}
+                <CampoUrgencia valor={urgencia} onChange={setUrgencia} permitirNulo={true} />
 
                 {/* Fecha Limite - Campo reutilizable */}
                 <CampoFechaLimite valor={fechaMaxima} onChange={setFechaMaxima} />

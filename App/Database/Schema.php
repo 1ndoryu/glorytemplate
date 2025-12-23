@@ -6,9 +6,9 @@ class Schema
 {
     /**
      * Versión actual de la base de datos
-     * v1.0.4: Añadida tabla de compartidos para colaboración en tareas/proyectos
+     * v1.0.5: Añadido campo urgencia a tareas y proyectos para sistema de temporalidad
      */
-    public const DB_VERSION = '1.0.4';
+    public const DB_VERSION = '1.0.5';
 
     /**
      * Nombre de la opción donde guardamos la versión instalada
@@ -115,6 +115,7 @@ class Schema
             completada tinyint(1) DEFAULT 0,
             fecha_limite datetime DEFAULT NULL,
             prioridad enum('alta', 'media', 'baja') DEFAULT NULL,
+            urgencia enum('bloqueante', 'urgente', 'normal', 'chill') DEFAULT 'normal',
             orden int(11) DEFAULT 0,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             deleted_at datetime DEFAULT NULL,
@@ -136,6 +137,7 @@ class Schema
             estado varchar(50) DEFAULT 'activo',
             fecha_limite datetime DEFAULT NULL,
             prioridad enum('alta', 'media', 'baja') DEFAULT NULL,
+            urgencia enum('bloqueante', 'urgente', 'normal', 'chill') DEFAULT 'normal',
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             deleted_at datetime DEFAULT NULL,
             data longtext,

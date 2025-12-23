@@ -8,7 +8,7 @@ import type {ReactNode} from 'react';
 
 export type TipoBadge = 'adjunto' | 'descripcion' | 'repeticion' | 'fecha' | 'prioridad' | 'frecuencia' | 'racha' | 'destacado' | 'personalizado';
 
-export type VarianteBadge = 'normal' | 'urgente' | 'exito' | 'advertencia' | 'prioridadAlta' | 'prioridadMedia' | 'prioridadBaja' | 'destacado' | 'racha' | 'rachaPeligro' | 'rachaActiva' | 'rachaCompletada' | 'frecuencia';
+export type VarianteBadge = 'normal' | 'urgente' | 'exito' | 'advertencia' | 'prioridadAlta' | 'prioridadMedia' | 'prioridadBaja' | 'urgenciaBloqueante' | 'urgenciaUrgente' | 'urgenciaChill' | 'destacado' | 'racha' | 'rachaPeligro' | 'rachaActiva' | 'rachaCompletada' | 'frecuencia';
 
 export interface BadgeInfoProps {
     tipo: TipoBadge;

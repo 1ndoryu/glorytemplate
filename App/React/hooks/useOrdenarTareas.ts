@@ -2,11 +2,16 @@
  * Hook para gestionar el ordenamiento de tareas
  * Permite ordenar por: manual (default), inteligente, fecha, prioridad
  * Respeta la jerarquía (ordena padres y ordena hijos internamente) o modo plano
+ *
+ * Formula inteligente (v5.5):
+ * - Peso total = urgencia_peso + prioridad_peso + fecha_peso
+ * - Mayor peso = primero
  */
 
-import {useState, useMemo} from 'react';
-import type {Tarea, NivelPrioridad} from '../types/dashboard';
+import {useMemo} from 'react';
+import type {Tarea, NivelPrioridad, NivelUrgencia} from '../types/dashboard';
 import {useLocalStorage} from './useLocalStorage';
+import {obtenerFechaHoy, sumarDias} from '../utils/fecha';
 
 export type ModoOrdenTareas = 'manual' | 'inteligente' | 'fecha' | 'prioridad';
 
@@ -18,19 +23,68 @@ export interface OpcionOrdenTarea {
 
 export const MODOS_ORDEN_TAREAS: OpcionOrdenTarea[] = [
     {id: 'manual', etiqueta: 'Manual', descripcion: 'Drag & Drop'},
-    {id: 'inteligente', etiqueta: 'Inteligente', descripcion: 'Prioridad + Fecha'},
+    {id: 'inteligente', etiqueta: 'Inteligente', descripcion: 'Urgencia + Prioridad + Fecha'},
     {id: 'fecha', etiqueta: 'Fecha límite', descripcion: 'Vencimiento'},
     {id: 'prioridad', etiqueta: 'Prioridad', descripcion: 'Importancia'}
 ];
 
 const KEY_ORDEN_TAREAS = 'glory_orden_tareas';
 
-/* Mapa de prioridades a valores numéricos para ordenamiento */
-const VALOR_PRIORIDAD: Record<NivelPrioridad | 'normal', number> = {
-    alta: 3,
-    media: 2,
-    baja: 1,
-    normal: 0 // Fallback
+/*
+ * Pesos de urgencia (temporalidad)
+ * bloqueante: 1000 (siempre primero)
+ * urgente: 500
+ * normal: 0 (default)
+ * chill: -200 (puede esperar)
+ */
+const PESO_URGENCIA: Record<NivelUrgencia, number> = {
+    bloqueante: 1000,
+    urgente: 500,
+    normal: 0,
+    chill: -200
+};
+
+/*
+ * Pesos de prioridad (importancia)
+ * alta: 300
+ * media: 100 (default si no se especifica)
+ * baja: 0
+ */
+const PESO_PRIORIDAD: Record<NivelPrioridad | 'default', number> = {
+    alta: 300,
+    media: 100,
+    baja: 0,
+    default: 100
+};
+
+/*
+ * Calcula el peso de fecha según proximidad
+ * Vencida: +400, Hoy: +300, Mañana: +200, Esta semana: +100, Sin fecha: 0
+ */
+const calcularPesoFecha = (fechaMaxima?: string): number => {
+    if (!fechaMaxima) return 0;
+
+    const hoy = obtenerFechaHoy();
+    const manana = sumarDias(hoy, 1);
+    const finSemana = sumarDias(hoy, 7);
+
+    if (fechaMaxima < hoy) return 400;
+    if (fechaMaxima === hoy) return 300;
+    if (fechaMaxima === manana) return 200;
+    if (fechaMaxima <= finSemana) return 100;
+
+    return 0;
+};
+
+/*
+ * Calcula el peso total de una tarea para ordenamiento
+ */
+const calcularPesoTotal = (tarea: Tarea): number => {
+    const pesoUrgencia = PESO_URGENCIA[tarea.urgencia || 'normal'];
+    const pesoPrioridad = PESO_PRIORIDAD[tarea.prioridad || 'default'];
+    const pesoFecha = calcularPesoFecha(tarea.configuracion?.fechaMaxima);
+
+    return pesoUrgencia + pesoPrioridad + pesoFecha;
 };
 
 export function useOrdenarTareas(tareas: Tarea[]) {
@@ -44,35 +98,36 @@ export function useOrdenarTareas(tareas: Tarea[]) {
         const fechaA = a.configuracion?.fechaMaxima;
         const fechaB = b.configuracion?.fechaMaxima;
         if (!fechaA && !fechaB) return 0;
-        if (!fechaA) return 1; // Sin fecha al final
+        if (!fechaA) return 1;
         if (!fechaB) return -1;
         return fechaA.localeCompare(fechaB);
     };
 
     const compararPorPrioridad = (a: Tarea, b: Tarea) => {
-        const pA = VALOR_PRIORIDAD[a.prioridad || 'normal'] || 0;
-        const pB = VALOR_PRIORIDAD[b.prioridad || 'normal'] || 0;
-        return pB - pA; // Mayor prioridad primero
+        const pA = PESO_PRIORIDAD[a.prioridad || 'default'];
+        const pB = PESO_PRIORIDAD[b.prioridad || 'default'];
+        return pB - pA;
     };
 
+    /* Comparación inteligente usando pesos totales */
     const compararInteligente = (a: Tarea, b: Tarea) => {
-        // 1. Prioridad
-        const diffPrioridad = compararPorPrioridad(a, b);
-        if (diffPrioridad !== 0) return diffPrioridad;
+        const pesoA = calcularPesoTotal(a);
+        const pesoB = calcularPesoTotal(b);
 
-        // 2. Fecha
+        /* Mayor peso primero */
+        if (pesoB !== pesoA) return pesoB - pesoA;
+
+        /* Si empatan, ordenar por fecha */
         return compararPorFecha(a, b);
     };
 
     /*
      * Ordenar tareas manteniendo grupos de hermanos
-     * No podemos simplemente sortear todo el array porque romperíamos la asociación Id -> ParentId en la UI si usamos índices
-     * Pero ListaTareas construye el árbol basado en parentId, así que el orden relativo en el array importa
+     * ListaTareas construye el árbol basado en parentId
      */
     const tareasOrdenadas = useMemo(() => {
         if (modoActual === 'manual') return tareas;
 
-        // Clonar para no mutar
         const tareasCopy = [...tareas];
 
         switch (modoActual) {

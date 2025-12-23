@@ -7,9 +7,9 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 ## Estado Actual
 
 **Fecha de inicio:** 2025-12-19  
-**Version:** v1.0.2-beta  
+**Version:** v1.0.3-beta  
 **Ultima actualizacion:** 2025-12-23
-**Estado:** Sistema Social Completado - Refactorización Pendiente
+**Estado:** Refactorización en Progreso - Siguiente: Sistema de Urgencia
 
 ---
 
@@ -30,17 +30,32 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 | **Perfil**          | Avatar, contraseña, integración WordPress                                     |
 | **Configuración**   | Opciones por panel (hábitos, tareas, proyectos, scratchpad)                   |
 
+---
+
+## 🐛 Bugs Conocidos (Investigar)
+
+### Críticos
+
+| Bug                          | Descripción                                                           | Posible Causa                                                                                           |
+| ---------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **BD Compartidos**           | Error `Unknown column 'c.fecha_compartido'` y `c.propietario_id`      | Tabla `wp_glory_compartidos` no se creó o no se actualizó. Verificar que `glory_db_version` sea `1.0.4` |
+| **401 en Adjuntos Cifrados** | Error 401 Unauthorized al cargar imágenes `.enc` después de un tiempo | Token expirado o sesión perdida. Investigar si fue por refactorización o timeout                        |
+
+### Menores
+
+| Bug                      | Descripción                                                         | Estado                     |
+| ------------------------ | ------------------------------------------------------------------- | -------------------------- |
+| **Altura del editor**    | La opción "Altura del editor" en configuración no se está aplicando | Investigar                 |
+| **Tooltips desbordados** | Los tooltips se salen de la pantalla a veces                        | Investigar posicionamiento |
+| **Adjuntos eliminados**  | Al eliminar adjunto, no se quita instantáneamente del UI            | Pendiente                  |
+| **Adjuntos múltiples**   | Al eliminar múltiples adjuntos, reaparecen algunos                  | Estado React               |
 
 ---
 
-### 📌 Mejoras Menores (Baja Prioridad)
+## 📌 Mejoras Menores (Baja Prioridad)
 
 <details>
 <summary>Expandir lista completa</summary>
-
-**Adjuntos:**
-- [ ] Bug: Al eliminar adjunto, no se quita instantáneamente del UI
-- [ ] Bug: Al eliminar múltiples adjuntos, reaparecen algunos (problema de estado React)
 
 **Hábitos:**
 - [ ] Animación de entrada/salida
@@ -53,10 +68,6 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [ ] Estadísticas de tareas completadas hoy
 - [ ] Soporte markdown en descripción
 - [ ] Historial de repeticiones
-
-**Scratchpad:**
-- [ ] Preview markdown
-- [ ] Múltiples notas (tabs)
 
 **Ordenamiento:**
 - [ ] Drag & drop manual para hábitos
@@ -75,14 +86,15 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [ ] Alerta de racha en peligro
 - [ ] Configuración de preferencias
 
-**Pulido y Mobile Fase Reordenamiento - Pulido Mobile**
+**Pulido Mobile:**
 - [ ] Touch events para dispositivos táctiles
 - [ ] Fallback a controles del modal para accesibilidad
 - [ ] Animación de "snap" al soltar
 - [ ] Cursor personalizado durante arrastre
 
-
 </details>
+
+---
 
 ## 🔮 Sistema Social (v1.0.2-beta) - COMPLETADO
 
@@ -109,7 +121,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ---
 
-### Fase 5: Refactorización de Archivos Grandes [BLOQUEANTE]
+## Fase 5: Refactorización de Archivos Grandes [EN PROGRESO]
 
 **Objetivo:** Reducir archivos que exceden los límites de líneas establecidos para mantener SOLID.
 
@@ -118,59 +130,318 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 > - Hook: 120 líneas máximo
 > - CSS: 300 líneas máximo
 
-#### 5.1 Archivos Críticos (>400 líneas) - Prioridad Alta
+### 5.1 Backend PHP - ✅ COMPLETADO
 
-| Archivo                              | Líneas | Acción Propuesta                            |
-| ------------------------------------ | ------ | ------------------------------------------- |
-| `Repository/DashboardRepository.php` | 864    | Dividir en repositorios por dominio         |
-| `Api/DashboardApiController.php`     | 682    | Separar endpoints por entidad               |
-| `islands/DashboardIsland.tsx`        | 668    | Extraer lógica a hooks, dividir secciones   |
-| `styles/compartidos.css`             | 631    | Dividir por componente                      |
-| `Services/AdjuntosService.php`       | 629    | Separar cifrado de gestión de archivos      |
-| `styles/tareas.css`                  | 589    | Dividir por subcomponente                   |
-| `Services/CompartidosService.php`    | 560    | Separar queries de lógica                   |
-| `types/dashboard.ts`                 | 525    | Dividir por dominio (tareas, equipos, etc.) |
-| `Services/NotificacionesService.php` | 483    | Separar tipos de notificación               |
-| `styles/tabla.css`                   | 477    | Dividir por sección                         |
-| `Services/EquiposService.php`        | 441    | Separar solicitudes de relaciones           |
-| `hooks/useDashboard.ts`              | 439    | Extraer a múltiples hooks especializados    |
-| `styles/encabezado.css`              | 410    | Dividir iconos/badges de layout             |
-| `hooks/useConfiguracionLayout.ts`    | 407    | Simplificar, extraer helpers                |
+**Repositorios refactorizados:**
 
-#### 5.2 Archivos Moderados (300-400 líneas) - Prioridad Media
+| Archivo Original          | Líneas Antes | Archivos Resultantes          | Líneas D |
+| ------------------------- | ------------ | ----------------------------- | -------- |
+| `DashboardRepository.php` | 1023         | `DashboardRepository.php`     | 186      |
+|                           |              | `HabitosRepository.php`       | 138      |
+|                           |              | `TareasRepository.php`        | 142      |
+|                           |              | `ProyectosRepository.php`     | 136      |
+|                           |              | `ConfiguracionRepository.php` | 189      |
+|                           |              | `CompartidosRepository.php`   | 98       |
+|                           |              | `CifradoTrait.php`            | 85       |
 
-| Archivo                           | Líneas | Acción Propuesta                |
-| --------------------------------- | ------ | ------------------------------- |
-| `styles/panelAdministracion.css`  | 408    | Dividir secciones               |
-| `styles/suscripcion.css`          | 396    | Dividir modal/indicadores       |
-| `components/SeccionAdjuntos.tsx`  | 389    | Extraer subcomponentes          |
-| `styles/equipos.css`              | 383    | Dividir por componente          |
-| `Api/AdjuntosApiController.php`   | 354    | Separar upload/download         |
-| `components/ListaTareas.tsx`      | 350    | Extraer lógica a hook           |
-| `Services/AdminService.php`       | 347    | Separar estadísticas de gestión |
-| `styles/detalleUsuario.css`       | 332    | Dividir secciones               |
-| `Api/AdminApiController.php`      | 310    | Separar por responsabilidad     |
-| `Services/SuscripcionService.php` | 306    | Separar Stripe de lógica local  |
-| `styles/adjuntos.css`             | 302    | Dividir lista/preview           |
+**Controladores API refactorizados:**
 
-#### 5.3 Estrategia de Refactorización
+| Archivo Original             | Líneas Antes | Archivos Resultantes              | Líneas D |
+| ---------------------------- | ------------ | --------------------------------- | -------- |
+| `DashboardApiController.php` | 760          | `DashboardApiController.php`      | 302      |
+|                              |              | `SuscripcionApiController.php`    | 82       |
+|                              |              | `AlmacenamientoApiController.php` | 99       |
+|                              |              | `CifradoApiController.php`        | 114      |
+|                              |              | `StripeApiController.php`         | 187      |
 
-1. **No romper funcionalidad:** Cada refactor debe ser atómico y verificable
-2. **Orden de prioridad:** Empezar por PHP backend (más estable), luego TSX, finalmente CSS
-3. **Testing manual:** Después de cada división, verificar que todo funciona
-4. **Commits pequeños:** Un archivo por commit para facilitar rollback
+### 5.2 Frontend TSX - Pendiente
 
-**Estado:** Pendiente - Bloqueante para nuevas funcionalidades
+| Archivo                          | Líneas | Acción Propuesta                          |
+| -------------------------------- | ------ | ----------------------------------------- |
+| `islands/DashboardIsland.tsx`    | 773    | Extraer lógica a hooks, dividir secciones |
+| `components/SeccionAdjuntos.tsx` | 389    | Extraer subcomponentes                    |
+| `components/ListaTareas.tsx`     | 350    | Extraer lógica a hook                     |
+
+### 5.3 CSS - Pendiente
+
+| Archivo                          | Líneas | Acción Propuesta          |
+| -------------------------------- | ------ | ------------------------- |
+| `styles/compartidos.css`         | 631    | Dividir por componente    |
+| `styles/tareas.css`              | 589    | Dividir por subcomponente |
+| `styles/tabla.css`               | 477    | Dividir por sección       |
+| `styles/encabezado.css`          | 410    | Dividir iconos/badges     |
+| `styles/panelAdministracion.css` | 408    | Dividir secciones         |
+| `styles/suscripcion.css`         | 396    | Dividir modal/indicadores |
+| `styles/equipos.css`             | 383    | Dividir por componente    |
+| `styles/detalleUsuario.css`      | 332    | Dividir secciones         |
+| `styles/adjuntos.css`            | 302    | Dividir lista/preview     |
+
+### 5.4 Hooks y Types - Pendiente
+
+| Archivo                        | Líneas | Acción Propuesta               |
+| ------------------------------ | ------ | ------------------------------ |
+| `types/dashboard.ts`           | 525    | Dividir por dominio            |
+| `hooks/useDashboard.ts`        | 439    | Extraer a hooks especializados |
+| `hooks/useConfiguracionLayout` | 407    | Simplificar, extraer helpers   |
+
+### 5.5 Servicios PHP - Pendiente
+
+| Archivo                           | Líneas | Acción Propuesta                  |
+| --------------------------------- | ------ | --------------------------------- |
+| `Services/AdjuntosService.php`    | 629    | Separar cifrado de gestión        |
+| `Services/CompartidosService.php` | 560    | Separar queries de lógica         |
+| `Services/NotificacionesService`  | 483    | Separar tipos de notificación     |
+| `Services/EquiposService.php`     | 441    | Separar solicitudes de relaciones |
+| `Api/AdjuntosApiController.php`   | 354    | Separar upload/download           |
+| `Services/AdminService.php`       | 347    | Separar estadísticas de gestión   |
+| `Api/AdminApiController.php`      | 310    | Separar por responsabilidad       |
+| `Services/SuscripcionService`     | 306    | Separar Stripe de lógica local    |
+
+**Estado:** En progreso - Backend repositorios/controllers completado
 
 ---
 
-### Fase 6: Compartir Hábitos [POSPUESTA]
+## Fase 5.5: Sistema de Urgencia [SIGUIENTE]
+
+**Objetivo:** Diferenciar entre importancia (prioridad) y temporalidad (urgencia) para mejorar el ordenamiento inteligente de tareas.
+
+> **Concepto clave:** Una tarea puede ser importante (alta prioridad) pero no urgente (puede hacerse en el futuro), o puede ser urgente (debe hacerse ya) aunque no sea tan importante.
+
+### 5.5.1 Modelo de Urgencia
+
+**Valores de urgencia:**
+
+| Valor | Nombre       | Descripción                                                           | Badge                                     |
+| ----- | ------------ | --------------------------------------------------------------------- | ----------------------------------------- |
+| 4     | `bloqueante` | 200% urgente. No se puede evitar, debe hacerse SÍ o SÍ                | Rojo (mismo color que prioridad alta)     |
+| 3     | `urgente`    | Debe hacerse pronto, no puede esperar mucho                           | Naranja (mismo color que prioridad media) |
+| 2     | `normal`     | **Default oculto**. No se muestra badge, se asume si no se elige otro | Sin badge                                 |
+| 1     | `chill`      | Puede hacerse en cualquier momento sin presión temporal               | Verde/Gris suave                          |
+
+> **Nota:** Los colores son los mismos de prioridad para mantener coherencia visual. La diferenciación será por icono o posición del badge.
+
+### 5.5.2 Implementación Backend
+
+- [ ] Agregar campo `urgencia` a tabla `wp_glory_tareas` (enum: bloqueante, urgente, normal, chill)
+- [ ] Agregar campo `urgencia` a tabla `wp_glory_proyectos`
+- [ ] Migración para tareas/proyectos existentes → `normal` por defecto
+- [ ] Actualizar `TareasRepository.php` para guardar/leer urgencia
+- [ ] Actualizar `ProyectosRepository.php` para guardar/leer urgencia
+
+### 5.5.3 Implementación Frontend
+
+- [ ] Agregar tipo `Urgencia` al `dashboard.ts` 
+- [ ] Agregar campo `urgencia` a interfaces `Tarea` y `Proyecto`
+- [ ] Crear componente `SelectorUrgencia` (similar a `CampoPrioridad`)
+- [ ] Integrar en `PanelConfiguracionTarea.tsx`
+- [ ] Integrar en `FormularioProyecto.tsx`
+- [ ] Mostrar badge de urgencia en `TareaItem.tsx` (si no es `normal`)
+- [ ] La urgencia tambien aplica a subtareas
+
+### 5.5.4 Filtro Inteligente Mejorado
+
+**Fórmula actual:** `fecha_limite + prioridad`
+
+**Nueva fórmula:** `urgencia_peso + prioridad_peso + fecha_peso`
+
+```
+Peso Urgencia:
+  - bloqueante: 1000 (siempre primero)
+  - urgente: 500
+  - normal: 0
+  - chill: -200
+
+Peso Prioridad:
+  - alta: 300
+  - media: 100 (default si no se especifica)
+  - baja: 0
+
+Peso Fecha:
+  - Vencida: +400
+  - Hoy: +300
+  - Mañana: +200
+  - Esta semana: +100
+  - Sin fecha: 0
+```
+
+- [ ] Actualizar lógica de ordenamiento en `useTareas.ts`
+- [ ] Considerar urgencia en el conteo de "Tareas importantes para hoy"
+
+### 5.5.5 UI/UX
+
+- [ ] Badge de urgencia junto a prioridad (o integrado)
+- [ ] Tooltip explicativo de la diferencia prioridad vs urgencia
+- [ ] Valor default `normal` nunca muestra badge (igual que prioridad `media` oculta por defecto)
+
+**Complejidad:** Media | **Dependencias:** Ninguna (independiente)
+**Aplica a:** Tareas, Subtareas, Proyectos (NO hábitos - los hábitos ya tienen periodicidad fija)
+
+---
+
+## Fase 6: Mejoras UX Rápidas [DESPUÉS DE 5.5]
+
+**Objetivo:** Pequeñas mejoras de experiencia de usuario identificadas.
+
+### 6.1 Notificaciones - Lectura Automática
+
+- [ ] Las notificaciones se marcan como leídas automáticamente al abrir el panel
+- [ ] Eliminar botón "Marcar todas como leídas" (ya no es necesario)
+- [ ] Las notificaciones existentes deben cargar instantáneamente (cache local)
+- [ ] Solo mostrar "Cargando..." para notificaciones nuevas, no para las ya cargadas
+
+### 6.2 Exportar/Importar - Mover al Menú de Perfil
+
+- [ ] Quitar panel de Exportar/Importar de la página actual
+- [ ] Agregar opciones "Exportar datos" e "Importar datos" al menú contextual del perfil (header)
+
+**Complejidad:** Baja | **Dependencias:** Ninguna
+
+---
+
+## Fase 7: Scratchpad con Guardado + File Manager [PLANIFICADA]
+
+**Objetivo:** Permitir guardar notas del Scratchpad y crear un gestor de archivos tipo Google Drive.
+
+### 7.1 Scratchpad - Sistema de Guardado
+
+- [ ] Agregar botón badge "Guardar nota" al Scratchpad
+- [ ] Al guardar: la nota se almacena con título (primeras palabras o input) y fecha
+- [ ] Agregar botón badge "Archivo" para ver notas guardadas
+- [ ] Las notas guardadas se pueden reabrir en el Scratchpad
+- [ ] Preview markdown en notas guardadas
+
+### 7.2 File Manager (Drive Glory)
+
+> **Estructura:** Crear carpeta `components/fileManager/` para mantener organizado
+
+**Diseño visual:**
+- Estilo similar a explorador de archivos de Windows
+- Panel lateral con carpetas
+- Vista principal con archivos en grid/lista
+- Mantener línea visual minimalista del dashboard
+
+**Estructura de carpetas:**
+
+```
+📁 Mis Archivos
+  📁 Notas (notas guardadas del Scratchpad)
+  📁 Imágenes (adjuntos de tipo imagen)
+  📁 Documentos (otros adjuntos)
+  📁 Por Proyecto
+    📁 [Nombre Proyecto 1]
+    📁 [Nombre Proyecto 2]
+  📁 Por Tarea
+    📁 [Nombre Tarea 1]
+    📁 [Nombre Tarea 2]
+```
+
+### 7.3 Funcionalidades del File Manager
+
+**Básicas:**
+- [ ] Ver todos los archivos del usuario
+- [ ] Navegación por carpetas
+- [ ] Agrupación automática por proyecto/tarea
+- [ ] Agrupación configurable (por tipo, por fecha, por proyecto)
+- [ ] Preview de archivos (imágenes, notas)
+- [ ] Descargar archivos (drag & drop hacia escritorio)
+
+**Avanzadas:**
+- [ ] Subir archivos directamente al Drive (sin asociar a tarea)
+- [ ] Crear carpetas personalizadas
+- [ ] Mover archivos entre carpetas
+- [ ] Arrastrar y soltar archivos
+- [ ] Búsqueda por nombre
+
+### 7.4 Estructura de Componentes
+
+```
+components/fileManager/
+  FileManager.tsx           (componente principal)
+  BarraLateral.tsx          (panel de carpetas)
+  VistaArchivos.tsx         (grid/lista de archivos)
+  ItemArchivo.tsx           (archivo individual)
+  ItemCarpeta.tsx           (carpeta individual)
+  BarraHerramientas.tsx     (acciones: subir, crear carpeta, etc)
+  ModalPreview.tsx          (preview de archivos)
+  hooks/
+    useFileManager.ts       (estado y lógica)
+  types/
+    fileManager.ts          (tipos)
+styles/
+  fileManager.css           (estilos)
+```
+
+### 7.5 Backend
+
+- [ ] Tabla BD: `wp_glory_notas` (id, user_id, titulo, contenido, fecha_creacion, fecha_modificacion)
+- [ ] Tabla BD: `wp_glory_carpetas` (id, user_id, nombre, padre_id, tipo)
+- [ ] Endpoints API para notas (CRUD)
+- [ ] Endpoint para listar archivos agrupados
+
+**Complejidad:** Alta | **Dependencias:** Fase 1.5 (archivos físicos)
+
+---
+
+## Fase 8: Mapa de Calor de Actividad [PLANIFICADA]
+
+**Objetivo:** Visualizar la actividad del usuario en un mapa de calor tipo GitHub.
+
+### 8.1 Rastreo de Actividad
+
+> **Investigar:** ¿Ya existe registro de `fecha_completado` en tareas/hábitos?
+
+**Datos a rastrear:**
+- [ ] Tabla BD: `wp_glory_actividad` (id, user_id, tipo, elemento_id, fecha, detalles)
+- [ ] Tipos: `tarea_completada`, `habito_cumplido`, `nota_creada`, `adjunto_subido`
+- [ ] Al completar tarea → registrar en actividad
+- [ ] Al cumplir hábito → registrar en actividad
+
+### 8.2 Componente Mapa de Calor
+
+```
+components/shared/
+  MapaCalor.tsx             (componente reutilizable)
+  hooks/
+    useActividad.ts         (hook para obtener datos)
+```
+
+**Configuraciones:**
+- [ ] Período: última semana, mes, 3 meses, año
+- [ ] Filtrar por tipo: solo tareas, solo hábitos, todo
+- [ ] Filtrar por proyecto específico
+- [ ] Filtrar por hábito específico
+- [ ] Nivel de detalle: días, semanas
+
+### 8.3 Integración
+
+**Panel nuevo en Dashboard:**
+- [ ] Nuevo bloque "Actividad" con mapa de calor general
+- [ ] Configurable desde modal de configuración
+
+**En modal de Hábito:**
+- [ ] Mostrar mapa de calor específico del hábito
+- [ ] Historial de cumplimiento visual
+
+**En modal de Proyecto:**
+- [ ] Mostrar mapa de calor de tareas completadas del proyecto
+
+### 8.4 Múltiples Heatmaps
+
+- [ ] Poder agregar múltiples widgets de mapa de calor al dashboard
+- [ ] Cada uno con configuración independiente
+- [ ] Nombrar cada widget (ej: "Mi actividad general", "Hábito: Ejercicio")
+
+**Complejidad:** Media-Alta | **Dependencias:** Historial de actividad
+
+---
+
+## Fase 9: Compartir Hábitos [POSPUESTA]
 
 **Objetivo:** Motivación social al compartir hábitos con compañeros.
 
 > **Razón de posponer:** Esta funcionalidad no es crítica para el MVP. Se implementará después de la refactorización y estabilización del sistema actual.
 
-#### 6.1 Modelo de Hábitos Compartidos
+### 9.1 Modelo de Hábitos Compartidos
 > Cada persona tiene su propia instancia. Racha y cumplimiento son individuales.
 > Solo comparten "el mismo hábito" para verse mutuamente.
 
@@ -179,13 +450,13 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [ ] Campo `habito_origen_id` para vincular ambas instancias
 - [ ] Cada usuario cumple su hábito independientemente
 
-#### 6.2 UI de Hábitos Compartidos
+### 9.2 UI de Hábitos Compartidos
 - [ ] Opción en menú contextual: "Compartir hábito"
 - [ ] Indicador visual: "Compartido con [Nombre]"
 - [ ] Ver cuándo el compañero cumplió (badge o indicador)
 - [ ] Notificación: "[Nombre] cumplió [Hábito] hoy"
 
-#### 6.3 Sincronización de Estado
+### 9.3 Sincronización de Estado
 - [ ] Endpoint para consultar estado de hábito del compañero
 - [ ] Cache local para no sobrecargar
 - [ ] Actualización periódica o al abrir panel
@@ -194,11 +465,11 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ---
 
-### Fase 7: Modal Expandido con Chat e Historial
+## Fase 10: Modal Expandido con Chat e Historial
 
 **Objetivo:** Comunicación y trazabilidad en tareas/proyectos/hábitos compartidos.
 
-#### 7.1 Nuevo Diseño del Modal de Tarea
+### 10.1 Nuevo Diseño del Modal de Tarea
 > El modal actual se expande al doble de ancho con 2 columnas.
 
 **Columna Izquierda (existente):**
@@ -212,7 +483,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - Historial de cambios (inmutable)
 - Lista de participantes
 
-#### 7.2 Sistema de Chat por Elemento
+### 10.2 Sistema de Chat por Elemento
 - [ ] Tabla BD: `wp_glory_mensajes` (id, tipo, elemento_id, usuario_id, contenido, fecha)
 - [ ] Tipos: `tarea`, `proyecto`, `habito`
 - [ ] Cada tarea/proyecto/hábito tiene su propia conversación
@@ -221,7 +492,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [ ] Scroll automático al nuevo mensaje
 - [ ] Notificación a participantes al enviar mensaje
 
-#### 7.3 Historial de Cambios (Audit Log)
+### 10.3 Historial de Cambios (Audit Log)
 > Inmutable. Nadie puede editar ni eliminar el historial.
 
 - [ ] Tabla BD: `wp_glory_historial` (id, tipo, elemento_id, usuario_id, accion, detalles, fecha)
@@ -237,14 +508,14 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [ ] Formato: "[Usuario] [acción] [detalles] - [fecha]"
 - [ ] Visualización tipo timeline
 
-#### 7.4 UI del Modal Expandido
+### 10.4 UI del Modal Expandido
 - [ ] Componente `ModalTareaExpandido` con 2 columnas
 - [ ] Toggle para expandir/colapsar columna derecha
 - [ ] Por defecto: modal expandido (2 columnas)
 - [ ] Scroll independiente por columna
 - [ ] Responsive: en móvil, pestañas en lugar de columnas
 
-#### 7.5 Aplicar a Proyectos y Hábitos
+### 10.5 Aplicar a Proyectos y Hábitos
 - [ ] Modal de proyecto con chat + historial
 - [ ] Modal de hábito (solo si está compartido)
 - [ ] Componente `PanelChatHistorial` reutilizable
@@ -253,26 +524,26 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ---
 
-### Fase 8: Futuro (Post v1.1.0)
+## Fase 11: Futuro (Post v1.1.0)
 
-#### 8.1 Correo de Invitación
+### 11.1 Correo de Invitación
 - [ ] Enviar email cuando se invita a usuario no registrado
 - [ ] Template de correo personalizado
 - [ ] Link de registro con solicitud pre-aceptada
 
-#### 8.2 Notificaciones por Correo
+### 11.2 Notificaciones por Correo
 - [ ] Preferencias de notificación por email
 - [ ] Resumen diario/semanal
 - [ ] Alertas de tareas por vencer
 - [ ] Alerta de racha en peligro
 
-#### 8.3 Feed de Red Social
+### 11.3 Feed de Red Social
 - [ ] Posts automáticos de logros
 - [ ] Posts manuales
 - [ ] Likes y comentarios
 - [ ] Privacidad configurable
 
-#### 8.4 Gamificación
+### 11.4 Gamificación
 - [ ] Badges de logros
 - [ ] Sistema de niveles/experiencia
 - [ ] Leaderboards semanales
@@ -281,18 +552,22 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ## 📋 Resumen de Fases
 
-| Fase | Nombre                         | Complejidad | Estado       |
-| ---- | ------------------------------ | ----------- | ------------ |
-| 0    | Preparación (Alertas + Header) | Baja-Media  | ✅ Completada |
-| 1    | Almacenamiento                 | Media       | ✅ Completada |
-| 1.5  | Archivos Físicos + Cifrado     | Alta        | ✅ Completada |
-| 2    | Sistema de Equipos             | Alta        | ✅ Completada |
-| 3    | Notificaciones                 | Alta        | ✅ Completada |
-| 4    | Compartir Tareas/Proyectos     | Muy Alta    | ✅ Completada |
-| 5    | Refactorización                | Alta        | ⏳ Bloqueante |
-| 6    | Compartir Hábitos              | Media       | Pospuesta    |
-| 7    | Modal Chat + Historial         | Muy Alta    | Pendiente    |
-| 8    | Futuro                         | Variable    | Pendiente    |
+| Fase | Nombre                         | Complejidad | Estado        |
+| ---- | ------------------------------ | ----------- | ------------- |
+| 0    | Preparación (Alertas + Header) | Baja-Media  | ✅ Completada  |
+| 1    | Almacenamiento                 | Media       | ✅ Completada  |
+| 1.5  | Archivos Físicos + Cifrado     | Alta        | ✅ Completada  |
+| 2    | Sistema de Equipos             | Alta        | ✅ Completada  |
+| 3    | Notificaciones                 | Alta        | ✅ Completada  |
+| 4    | Compartir Tareas/Proyectos     | Muy Alta    | ✅ Completada  |
+| 5    | Refactorización                | Alta        | ⏳ En Progreso |
+| 5.5  | **Sistema de Urgencia**        | Media       | 🔜 Siguiente   |
+| 6    | Mejoras UX Rápidas             | Baja        | Pendiente     |
+| 7    | Scratchpad + File Manager      | Alta        | Planificada   |
+| 8    | Mapa de Calor                  | Media-Alta  | Planificada   |
+| 9    | Compartir Hábitos              | Media       | Pospuesta     |
+| 10   | Modal Chat + Historial         | Muy Alta    | Pendiente     |
+| 11   | Futuro                         | Variable    | Pendiente     |
 
 ---
 
@@ -377,6 +652,5 @@ define('GLORY_STRIPE_PRICE_YEARLY', 'price_...');
 - `Glory/assets/react/Docs/react-glory.md` - Documentación del sistema
 - `App/React/components/` - Componentes existentes
 - `App/React/styles/dashboard/` - Sistema de diseño modular
-
 
 ---

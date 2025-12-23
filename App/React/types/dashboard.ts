@@ -12,10 +12,23 @@
 export type NivelImportancia = 'Alta' | 'Media' | 'Baja';
 
 /*
- * Niveles de prioridad para tareas
- * Usado para ordenar y destacar tareas urgentes
+ * Niveles de prioridad para tareas (importancia)
+ * Usado para ordenar y destacar tareas importantes
  */
 export type NivelPrioridad = 'alta' | 'media' | 'baja';
+
+/*
+ * Niveles de urgencia para tareas y proyectos (temporalidad)
+ * Diferencia entre importancia y temporalidad:
+ * - Prioridad: cuán importante es la tarea
+ * - Urgencia: cuándo debe hacerse
+ *
+ * bloqueante: Debe hacerse SÍ o SÍ, no se puede evitar (200% urgente)
+ * urgente: Debe hacerse pronto, no puede esperar mucho
+ * normal: Default. No muestra badge (valor asumido si no se especifica)
+ * chill: Puede hacerse en cualquier momento sin presión temporal
+ */
+export type NivelUrgencia = 'bloqueante' | 'urgente' | 'normal' | 'chill';
 
 /*
  * Tipos de frecuencia para habitos
@@ -116,6 +129,8 @@ export interface Proyecto {
     nombre: string;
     descripcion?: string;
     prioridad: NivelPrioridad;
+    /* Urgencia: temporalidad (bloqueante, urgente, normal, chill) */
+    urgencia?: NivelUrgencia;
     fechaLimite?: string;
     estado: 'activo' | 'completado' | 'pausado';
     /* Progreso calculado (0-100) */
@@ -144,6 +159,8 @@ export interface Tarea {
     proyectoId?: number;
     /* Campos opcionales */
     prioridad?: NivelPrioridad;
+    /* Urgencia: temporalidad (bloqueante, urgente, normal, chill) */
+    urgencia?: NivelUrgencia;
     /* Configuracion avanzada (fecha limite, descripcion, repeticion, adjuntos) */
     configuracion?: TareaConfiguracion;
     /* Asignacion de tarea a un participante */
@@ -199,10 +216,13 @@ export interface DatosNuevaTarea {
 /*
  * Datos para editar una tarea existente
  * prioridad puede ser null para eliminar la prioridad de la tarea
+ * urgencia puede ser null para eliminar la urgencia (vuelve a 'normal')
  */
 export interface DatosEdicionTarea {
     texto?: string;
     prioridad?: NivelPrioridad | null;
+    /* Urgencia: temporalidad (bloqueante, urgente, normal, chill) */
+    urgencia?: NivelUrgencia | null;
     completado?: boolean;
     parentId?: number;
     /* ID de la tarea después de la cual insertar (solo para creación) */

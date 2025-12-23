@@ -138,6 +138,41 @@
 }
 
 /* 
+ * VARIANTES DE URGENCIA
+ * Temporalidad: bloqueante, urgente, chill (normal no muestra badge)
+ */
+
+/* Urgencia Bloqueante (rojo - igual que prioridad alta) */
+.badgeInfo--urgenciaBloqueante {
+    color: var(--dashboard-estadoAlta);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border-color: var(--dashboard-estadoAltaBorde);
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 2px 8px;
+}
+
+/* Urgencia Urgente (naranja - igual que prioridad media) */
+.badgeInfo--urgenciaUrgente {
+    color: var(--dashboard-estadoMedia);
+    background-color: var(--dashboard-estadoMediaFondo);
+    border-color: var(--dashboard-estadoMediaBorde);
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 2px 8px;
+}
+
+/* Urgencia Chill (verde) */
+.badgeInfo--urgenciaChill {
+    color: var(--dashboard-estadoExito);
+    background-color: var(--dashboard-estadoExitoFondo);
+    border-color: var(--dashboard-estadoExitoBorde);
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 2px 8px;
+}
+
+/* 
  * BADGE DESTACADO (Toca hoy, activo)
  */
 .badgeInfo--destacado {

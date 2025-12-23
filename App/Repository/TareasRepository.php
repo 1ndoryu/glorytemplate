@@ -97,6 +97,13 @@ class TareasRepository
             $proyectoId = isset($tarea['proyectoId']) ? (int)$tarea['proyectoId'] : null;
             $padreId = isset($tarea['padreId']) ? (int)$tarea['padreId'] : null;
             $prioridad = $tarea['prioridad'] ?? null;
+            $urgencia = $tarea['urgencia'] ?? 'normal';
+
+            /* Validar valores de urgencia */
+            $urgenciasValidas = ['bloqueante', 'urgente', 'normal', 'chill'];
+            if (!in_array($urgencia, $urgenciasValidas)) {
+                $urgencia = 'normal';
+            }
 
             $exists = $wpdb->get_var($wpdb->prepare(
                 "SELECT id FROM $table WHERE user_id = %d AND id_local = %d",
@@ -115,12 +122,13 @@ class TareasRepository
                         'proyecto_id' => $proyectoId,
                         'padre_id' => $padreId,
                         'prioridad' => $prioridad,
+                        'urgencia' => $urgencia,
                         'data' => $dataJson,
                         'deleted_at' => null,
                         'updated_at' => $now
                     ],
                     ['id' => $exists],
-                    ['%s', '%d', '%d', '%d', '%s', '%s', '%s', '%s'],
+                    ['%s', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s'],
                     ['%d']
                 );
             } else {
@@ -134,9 +142,10 @@ class TareasRepository
                         'proyecto_id' => $proyectoId,
                         'padre_id' => $padreId,
                         'prioridad' => $prioridad,
+                        'urgencia' => $urgencia,
                         'data' => $dataJson
                     ],
-                    ['%d', '%d', '%s', '%d', '%d', '%d', '%s', '%s']
+                    ['%d', '%d', '%s', '%d', '%d', '%d', '%s', '%s', '%s']
                 );
             }
         }

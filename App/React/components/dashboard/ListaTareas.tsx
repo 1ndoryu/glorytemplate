@@ -7,7 +7,7 @@
 import {useState, useCallback, useMemo, useRef} from 'react';
 import {Reorder} from 'framer-motion';
 import {ChevronRight} from 'lucide-react';
-import type {Tarea, DatosEdicionTarea, TareaConfiguracion, NivelPrioridad, Proyecto, Participante} from '../../types/dashboard';
+import type {Tarea, DatosEdicionTarea, TareaConfiguracion, NivelPrioridad, NivelUrgencia, Proyecto, Participante} from '../../types/dashboard';
 import {TareaItem} from './TareaItem';
 import {InputNuevaTarea} from './InputNuevaTarea';
 import {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
@@ -229,15 +229,16 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
     );
 
     /*
-     * Guardar configuración de tarea (incluye prioridad)
+     * Guardar configuración de tarea (incluye prioridad y urgencia)
      */
     const guardarConfiguracion = useCallback(
-        (configuracion: TareaConfiguracion, prioridad?: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}) => {
+        (configuracion: TareaConfiguracion, prioridad?: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null) => {
             if (tareaConfigurando && onEditarTarea) {
-                /* Actualizamos la tarea con la nueva configuración, prioridad, texto y asignación */
+                /* Actualizamos la tarea con la nueva configuración, prioridad, urgencia, texto y asignación */
                 onEditarTarea(tareaConfigurando.id, {
                     configuracion,
                     prioridad: prioridad === undefined ? tareaConfigurando.prioridad : prioridad,
+                    urgencia: urgencia === undefined ? tareaConfigurando.urgencia : urgencia,
                     ...(texto !== undefined && {texto}),
                     ...(asignacion && {
                         asignadoA: asignacion.asignadoA,

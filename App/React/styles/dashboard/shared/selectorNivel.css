@@ -63,6 +63,35 @@
     border-color: var(--dashboard-estadoBajaBorde);
 }
 
+/* 
+ * VARIANTES PARA URGENCIA
+ * bloqueante = rojo (igual que alta)
+ * urgente = naranja (igual que media)
+ * normal = gris (default)
+ * chill = verde suave
+ */
+
+/* BLOQUEANTE (rojo) */
+.selectorNivelBotonBloqueante.selectorNivelBotonActivo {
+    color: var(--dashboard-estadoAlta);
+    background-color: var(--dashboard-estadoAltaFondo);
+    border-color: var(--dashboard-estadoAltaBorde);
+}
+
+/* URGENTE (naranja) */
+.selectorNivelBotonUrgente.selectorNivelBotonActivo {
+    color: var(--dashboard-estadoMedia);
+    background-color: var(--dashboard-estadoMediaFondo);
+    border-color: var(--dashboard-estadoMediaBorde);
+}
+
+/* CHILL (verde suave) */
+.selectorNivelBotonChill.selectorNivelBotonActivo {
+    color: var(--dashboard-estadoExito);
+    background-color: var(--dashboard-estadoExitoFondo);
+    border-color: var(--dashboard-estadoExitoBorde);
+}
+
 .selectorNivelBoton:disabled {
     opacity: 0.5;
     cursor: not-allowed;

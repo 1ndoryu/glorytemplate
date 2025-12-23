@@ -95,6 +95,13 @@ class ProyectosRepository
 
             $estado = $proyecto['estado'] ?? 'activo';
             $prioridad = $proyecto['prioridad'] ?? null;
+            $urgencia = $proyecto['urgencia'] ?? 'normal';
+
+            /* Validar valores de urgencia */
+            $urgenciasValidas = ['bloqueante', 'urgente', 'normal', 'chill'];
+            if (!in_array($urgencia, $urgenciasValidas)) {
+                $urgencia = 'normal';
+            }
 
             $exists = $wpdb->get_var($wpdb->prepare(
                 "SELECT id FROM $table WHERE user_id = %d AND id_local = %d",
@@ -111,12 +118,13 @@ class ProyectosRepository
                         'nombre' => $nombre,
                         'estado' => $estado,
                         'prioridad' => $prioridad,
+                        'urgencia' => $urgencia,
                         'data' => $dataJson,
                         'deleted_at' => null,
                         'updated_at' => $now
                     ],
                     ['id' => $exists],
-                    ['%s', '%s', '%s', '%s', '%s', '%s'],
+                    ['%s', '%s', '%s', '%s', '%s', '%s', '%s'],
                     ['%d']
                 );
             } else {
@@ -128,9 +136,10 @@ class ProyectosRepository
                         'nombre' => $nombre,
                         'estado' => $estado,
                         'prioridad' => $prioridad,
+                        'urgencia' => $urgencia,
                         'data' => $dataJson
                     ],
-                    ['%d', '%d', '%s', '%s', '%s', '%s']
+                    ['%d', '%d', '%s', '%s', '%s', '%s', '%s']
                 );
             }
         }

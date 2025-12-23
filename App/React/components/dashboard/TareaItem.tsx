@@ -4,8 +4,8 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
-import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder, Share2, Users} from 'lucide-react';
-import type {Tarea, NivelPrioridad, DatosEdicionTarea, TareaConfiguracion} from '../../types/dashboard';
+import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder, Share2, Users, Zap} from 'lucide-react';
+import type {Tarea, NivelPrioridad, NivelUrgencia, DatosEdicionTarea, TareaConfiguracion} from '../../types/dashboard';
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
 import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
 import {AccionesItem} from '../shared/AccionesItem';
@@ -225,6 +225,27 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
         return <BadgeInfo tipo="prioridad" texto={tarea.prioridad.toUpperCase()} variante={obtenerVariantePrioridad(tarea.prioridad)} />;
     };
 
+    /* Renderizado del indicador de urgencia (solo si no es 'normal') */
+    const renderIndicadorUrgencia = () => {
+        /* No mostrar badge si es 'normal' (valor por defecto) o no tiene urgencia */
+        if (!tarea.urgencia || tarea.urgencia === 'normal') return null;
+
+        const obtenerVarianteUrgencia = (urgencia: NivelUrgencia): VarianteBadge => {
+            switch (urgencia) {
+                case 'bloqueante':
+                    return 'urgenciaBloqueante';
+                case 'urgente':
+                    return 'urgenciaUrgente';
+                case 'chill':
+                    return 'urgenciaChill';
+                default:
+                    return 'normal';
+            }
+        };
+
+        return <BadgeInfo tipo="personalizado" icono={<Zap size={10} />} texto={tarea.urgencia.toUpperCase()} variante={obtenerVarianteUrgencia(tarea.urgencia)} titulo={`Urgencia: ${tarea.urgencia}`} />;
+    };
+
     /* Renderizado del indicador de fecha limite (usando funciones centralizadas) */
     const renderIndicadorFecha = () => {
         const fechaMaxima = tarea.configuracion?.fechaMaxima;
@@ -316,6 +337,7 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                             {estaCompartida && !tarea.esCompartido && <BadgeInfo tipo="personalizado" icono={<Users size={10} />} titulo="Tarea compartida" variante="normal" />}
                             {nombreProyecto && <BadgeInfo tipo="personalizado" icono={<Folder size={10} />} texto={soloIconoProyecto ? undefined : nombreProyecto} titulo={`Proyecto: ${nombreProyecto}`} variante="normal" />}
                             {renderIndicadorPrioridad()}
+                            {renderIndicadorUrgencia()}
                         </BadgeGroup>
                     </div>
                 </div>
