@@ -14,7 +14,6 @@ import {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
 import {ModalMoverTarea} from './ModalMoverTarea';
 import {obtenerSubtareas, tieneSubtareas as utilTieneSubtareas, contarSubtareas as utilContarSubtareas, puedeSerSubtareaDe} from '../../utils/jerarquiaTareas';
 import {DashboardPanel} from '../shared/DashboardPanel';
-import {ModalCompartir} from '../shared/ModalCompartir';
 
 interface ListaTareasProps {
     tareas: Tarea[];
@@ -47,11 +46,6 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
      * Estado para mover tarea de proyecto
      */
     const [tareaMoviendo, setTareaMoviendo] = useState<Tarea | null>(null);
-
-    /*
-     * Estado para compartir tarea
-     */
-    const [tareaCompartiendo, setTareaCompartiendo] = useState<Tarea | null>(null);
 
     /*
      * Estado para tracking de drag & drop con gestos horizontales
@@ -306,7 +300,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
 
         return (
             <div className="tareaConColapsador" key={`wrapper-${tarea.id}`}>
-                <TareaItem tarea={tarea} esSubtarea={esSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} onMoverProyecto={() => setTareaMoviendo(tarea)} onCompartir={() => setTareaCompartiendo(tarea)} />
+                <TareaItem tarea={tarea} esSubtarea={esSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} onMoverProyecto={() => setTareaMoviendo(tarea)} />
                 {/* Boton de colapsar a la derecha, solo si tiene subtareas */}
                 {esColapsable && (
                     <button className="tareaColapsadorBoton" onClick={() => toggleColapsar(tarea.id)} title={estaColapsada ? `Expandir ${numSubtareas.total} subtareas` : `Colapsar ${numSubtareas.total} subtareas`}>
@@ -385,7 +379,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
                         }
                     }
 
-                    return <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} onMoverProyecto={() => setTareaMoviendo(tarea)} onCompartir={() => setTareaCompartiendo(tarea)} />;
+                    return <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} onMoverProyecto={() => setTareaMoviendo(tarea)} />;
                 })}
 
             {/* Panel de configuración */}
@@ -393,9 +387,6 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
 
             {/* Modal Mover Proyecto */}
             <ModalMoverTarea estaAbierto={!!tareaMoviendo} onCerrar={() => setTareaMoviendo(null)} onMover={handleMoverProyecto} proyectos={proyectos} proyectoActualId={tareaMoviendo?.proyectoId} />
-
-            {/* Modal Compartir */}
-            {tareaCompartiendo && <ModalCompartir estaAbierto={true} onCerrar={() => setTareaCompartiendo(null)} tipo="tarea" elementoId={tareaCompartiendo._id || 0} tituloElemento={tareaCompartiendo.texto} />}
         </DashboardPanel>
     );
 }

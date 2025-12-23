@@ -13,7 +13,6 @@
 namespace App\Repository;
 
 use App\Database\Schema;
-use App\Services\CompartirService;
 use App\Services\CifradoService;
 
 class DashboardRepository
@@ -212,7 +211,7 @@ class DashboardRepository
         $table = Schema::getTableName('habitos');
 
         $rows = $wpdb->get_results($wpdb->prepare(
-            "SELECT data, id_local, id FROM $table WHERE user_id = %d AND deleted_at IS NULL",
+            "SELECT data, id_local FROM $table WHERE user_id = %d AND deleted_at IS NULL",
             $this->userId
         ), 'ARRAY_A');
 
@@ -224,14 +223,12 @@ class DashboardRepository
                 /* Asegurar que el ID sea el correcto (cast a numero por si acaso) */
                 if (is_array($data)) {
                     $data['id'] = (int)$row['id_local'];
-                    $data['_id'] = (int)$row['id'];
                 }
                 return $data;
             }, $rows);
 
             /* Filtrar valores null (descifrado fallido) */
-            $items = array_values(array_filter($habitos, fn($h) => $h !== null && is_array($h)));
-            return $this->mergeSharedItems($items, 'habito');
+            return array_values(array_filter($habitos, fn($h) => $h !== null && is_array($h)));
         }
 
         /* Si está vacío, verificar si hay datos antiguos en user_meta para migrar */
@@ -356,7 +353,7 @@ class DashboardRepository
         $table = Schema::getTableName('tareas');
 
         $rows = $wpdb->get_results($wpdb->prepare(
-            "SELECT data, id_local, id FROM $table WHERE user_id = %d AND deleted_at IS NULL",
+            "SELECT data, id_local FROM $table WHERE user_id = %d AND deleted_at IS NULL",
             $this->userId
         ), 'ARRAY_A');
 
@@ -366,14 +363,12 @@ class DashboardRepository
                 $data = $this->decodeData($row['data'], null);
                 if (is_array($data)) {
                     $data['id'] = (int)$row['id_local'];
-                    $data['_id'] = (int)$row['id'];
                 }
                 return $data;
             }, $rows);
 
             /* Filtrar valores null (descifrado fallido) */
-            $items = array_values(array_filter($tareas, fn($t) => $t !== null && is_array($t)));
-            return $this->mergeSharedItems($items, 'tarea');
+            return array_values(array_filter($tareas, fn($t) => $t !== null && is_array($t)));
         }
 
         /* Fallback */
@@ -486,7 +481,7 @@ class DashboardRepository
         $table = Schema::getTableName('proyectos');
 
         $rows = $wpdb->get_results($wpdb->prepare(
-            "SELECT data, id_local, id FROM $table WHERE user_id = %d AND deleted_at IS NULL",
+            "SELECT data, id_local FROM $table WHERE user_id = %d AND deleted_at IS NULL",
             $this->userId
         ), 'ARRAY_A');
 
@@ -496,14 +491,12 @@ class DashboardRepository
                 $data = $this->decodeData($row['data'], null);
                 if (is_array($data)) {
                     $data['id'] = (int)$row['id_local'];
-                    $data['_id'] = (int)$row['id'];
                 }
                 return $data;
             }, $rows);
 
             /* Filtrar valores null (descifrado fallido) */
-            $items = array_values(array_filter($proyectos, fn($p) => $p !== null && is_array($p)));
-            return $this->mergeSharedItems($items, 'proyecto');
+            return array_values(array_filter($proyectos, fn($p) => $p !== null && is_array($p)));
         }
 
         /* Fallback */
@@ -914,26 +907,5 @@ class DashboardRepository
         delete_user_meta($this->userId, self::META_SYNC);
         delete_user_meta($this->userId, self::META_CHANGELOG);
         return true;
-    }
-
-    /**
-     * Fusiona elementos propios con elementos compartidos
-     */
-    private function mergeSharedItems(array $items, string $tipo): array
-    {
-        try {
-            /* Evitar recursión infinita o errores si el servicio falla */
-            if (!class_exists('App\Services\CompartirService')) return $items;
-
-            $compartirService = new CompartirService();
-            $sharedItems = $compartirService->obtenerDatosCompartidos($this->userId, $tipo);
-
-            if (!empty($sharedItems)) {
-                return array_merge($items, $sharedItems);
-            }
-        } catch (\Exception $e) {
-            error_log('[DashboardRepo] Error merging shared items: ' . $e->getMessage());
-        }
-        return $items;
     }
 }
