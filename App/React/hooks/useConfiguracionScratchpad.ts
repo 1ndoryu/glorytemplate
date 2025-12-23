@@ -1,7 +1,7 @@
 import {useLocalStorage} from './useLocalStorage';
 
 export type TamanoFuente = 'pequeno' | 'normal' | 'grande';
-export type AlturaScratchpad = '300px' | '500px' | '100%';
+export type AlturaScratchpad = string;
 
 export interface ConfiguracionScratchpad {
     tamanoFuente: TamanoFuente;

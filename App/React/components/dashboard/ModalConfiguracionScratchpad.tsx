@@ -35,21 +35,6 @@ export function ModalConfiguracionScratchpad({estaAbierto, onCerrar, configuraci
 
                 <div className="separadorOpcionesConfig" />
 
-                {/* Altura */}
-                <div className="itemOpcionConfig">
-                    <div className="detallesOpcionConfig">
-                        <span className="tituloOpcionConfig">Altura del editor</span>
-                        <span className="descripcionOpcionConfig">Tamaño vertical del área de texto</span>
-                    </div>
-                    <select className="selectOpcionConfig" value={configuracion.altura} onChange={e => onCambiarAltura(e.target.value as AlturaScratchpad)}>
-                        <option value="100%">Automático (Llenar)</option>
-                        <option value="300px">Compacto (300px)</option>
-                        <option value="500px">Amplio (500px)</option>
-                    </select>
-                </div>
-
-                <div className="separadorOpcionesConfig" />
-
                 {/* Intervalo Guardado */}
                 <div className="itemOpcionConfig">
                     <div className="detallesOpcionConfig">

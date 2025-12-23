@@ -128,3 +128,36 @@
 .scratchpadContadorLimite {
     color: #ef4444;
 }
+
+/* 
+ * RESIZE HANDLE 
+ * Minimalista, area dropeable 
+ */
+.scratchpadResizeHandle {
+    height: 8px;
+    width: 100%;
+    cursor: ns-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -1px; /* Solapamiento visual */
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.scratchpadResizeHandle:hover,
+.scratchpadResizing + .scratchpadResizeHandle {
+    opacity: 1;
+}
+
+.scratchpadResizeLine {
+    width: 30px;
+    height: 3px;
+    background-color: var(--dashboard-bordeSutil);
+    border-radius: 2px;
+}
+
+.scratchpadResizing {
+    user-select: none; /* Prevenir selección de texto al arrastrar */
+    pointer-events: none; /* Desactivar eventos de panel interno */
+}

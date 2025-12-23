@@ -14,10 +14,11 @@ interface PanelScratchpadProps {
     onActualizarNotas: (notas: string) => void;
     onLimpiarScratchpad: () => void;
     onAbrirModalConfigScratchpad: () => void;
+    onCambiarAltura: (altura: string) => void;
     handleArrastre: JSX.Element;
 }
 
-export function PanelScratchpad({notas, configuracion, onActualizarNotas, onLimpiarScratchpad, onAbrirModalConfigScratchpad, handleArrastre}: PanelScratchpadProps): JSX.Element {
+export function PanelScratchpad({notas, configuracion, onActualizarNotas, onLimpiarScratchpad, onAbrirModalConfigScratchpad, onCambiarAltura, handleArrastre}: PanelScratchpadProps): JSX.Element {
     return (
         <div className="panelDashboard internaColumna">
             <SeccionEncabezado
@@ -40,7 +41,7 @@ export function PanelScratchpad({notas, configuracion, onActualizarNotas, onLimp
                     </>
                 }
             />
-            <Scratchpad valorInicial={notas} onChange={onActualizarNotas} tamanoFuente={configuracion.tamanoFuente} altura={configuracion.altura} delayGuardado={configuracion.autoGuardadoIntervalo} />
+            <Scratchpad valorInicial={notas} onChange={onActualizarNotas} tamanoFuente={configuracion.tamanoFuente} altura={configuracion.altura} delayGuardado={configuracion.autoGuardadoIntervalo} onCambiarAltura={onCambiarAltura} />
         </div>
     );
 }

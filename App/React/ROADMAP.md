@@ -43,12 +43,12 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ### Menores
 
-| Bug                      | Descripción                                                         | Estado                     |
-| ------------------------ | ------------------------------------------------------------------- | -------------------------- |
-| **Altura del editor**    | La opción "Altura del editor" en configuración no se está aplicando | Investigar                 |
-| **Tooltips desbordados** | Los tooltips se salen de la pantalla a veces                        | Investigar posicionamiento |
-| **Adjuntos eliminados**  | Al eliminar adjunto, no se quita instantáneamente del UI            | Pendiente                  |
-| **Adjuntos múltiples**   | Al eliminar múltiples adjuntos, reaparecen algunos                  | Estado React               |
+| Bug | Descripción | Estado |
+| --- | ----------- | ------ |
+
+| **Tooltips desbordados** | Los tooltips se salen de la pantalla a veces                            | Investigar posicionamiento |
+| **Adjuntos eliminados**  | Al eliminar adjunto, no se quita instantáneamente del UI                | Pendiente                  |
+| **Adjuntos múltiples**   | Al eliminar múltiples adjuntos, reaparecen algunos                      | Estado React               |
 
 ---
 

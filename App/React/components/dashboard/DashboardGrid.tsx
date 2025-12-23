@@ -50,7 +50,7 @@ export function DashboardGrid({ctx}: DashboardGridProps): JSX.Element {
                     handleArrastre={handleArrastreElement}
                 />
             ),
-            scratchpad: <PanelScratchpad notas={dashboard.notas} configuracion={configScratchpad.configuracion} onActualizarNotas={dashboard.actualizarNotas} onLimpiarScratchpad={acciones.manejarLimpiarScratchpad} onAbrirModalConfigScratchpad={modales.abrirModalConfigScratchpad} handleArrastre={handleArrastreElement} />
+            scratchpad: <PanelScratchpad notas={dashboard.notas} configuracion={configScratchpad.configuracion} onActualizarNotas={dashboard.actualizarNotas} onLimpiarScratchpad={acciones.manejarLimpiarScratchpad} onAbrirModalConfigScratchpad={modales.abrirModalConfigScratchpad} onCambiarAltura={configScratchpad.cambiarAltura} handleArrastre={handleArrastreElement} />
         };
 
         return paneles[panelId] || null;
