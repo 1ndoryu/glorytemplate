@@ -7,192 +7,29 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 ## Estado Actual
 
 **Fecha de inicio:** 2025-12-19  
-**Version:** v1.0.1-beta  
-**Ultima actualizacion:** 2025-12-22
-**Estado:** Funcionalidades Core Completadas - Mejoras Menores Pendientes
+**Version:** v1.0.2-beta  
+**Ultima actualizacion:** 2025-12-23
+**Estado:** Sistema Social Completado - Refactorización Pendiente
 
 ---
 
-## Funcionalidades Completadas (Compactado)
+## Funcionalidades Completadas
 
-<details>
-<summary><strong>🏗️ Infraestructura Base</strong></summary>
+| Módulo              | Descripción                                                                   |
+| ------------------- | ----------------------------------------------------------------------------- |
+| **Infraestructura** | Arquitectura SOLID, CSS centralizado, TypeScript, Sincronización, Cifrado E2E |
+| **Hábitos**         | CRUD, frecuencias, rachas, badges, ordenamiento, menú contextual              |
+| **Tareas**          | CRUD inline, subtareas, Drag & Drop, prioridades, adjuntos                    |
+| **Proyectos**       | Jerarquía 3 niveles, progreso, vista expandible                               |
+| **Freemium**        | Free/Premium, Trial 14 días, Stripe (checkout, webhooks, portal)              |
+| **Seguridad**       | API REST WordPress, nonce CSRF, AES-256-GCM, HKDF-SHA256                      |
+| **Admin**           | Gestión usuarios, filtros, estadísticas                                       |
+| **UI/UX**           | Componentes compartidos, badges, tooltips, layout personalizable              |
+| **Scratchpad**      | Cifrado E2E, límite caracteres, debounce                                      |
+| **Layout**          | Columnas, paneles ocultos, Drag & Drop reordenamiento                         |
+| **Perfil**          | Avatar, contraseña, integración WordPress                                     |
+| **Configuración**   | Opciones por panel (hábitos, tareas, proyectos, scratchpad)                   |
 
-- Arquitectura SOLID con componentes modulares
-- Sistema de estilos CSS centralizado (sin hardcodeo)
-- Tipos TypeScript completos (Habito, Tarea, Proyecto, Frecuencia, Prioridad)
-- Hooks: `useDashboard`, `useTareas`, `useProyectos`, `useDeshacer`, `useOrdenarHabitos`, `useLocalStorage`, `useDebounce`, `useSincronizacion`, `useDashboardApi`, `useCifrado`, `useSuscripcion`, `useStripe`
-- Persistencia dual: LocalStorage + Servidor WordPress
-- Sincronización automática con indicador visual
-- Cifrado E2E opcional (AES-256-GCM)
-
-</details>
-
-<details>
-<summary><strong>✅ Hábitos (Completo)</strong></summary>
-
-- CRUD completo con modal de edición
-- Frecuencias: Diario, Cada X días, Semanal, Días específicos, Mensual
-- Sistema de rachas con cálculo automático y reseteo inteligente
-- Badges: prioridad, frecuencia, "Toca Hoy"
-- 5 modos de ordenamiento: importancia, urgentes, racha, nombre, inteligente
-- Menú contextual con opciones rápidas
-
-</details>
-
-<details>
-<summary><strong>📋 Tareas (Completo)</strong></summary>
-
-- CRUD inline con guardado automático
-- Subtareas con Tab/Shift+Tab, colapsables, contador X/Y
-- Drag & Drop avanzado con gestos horizontales
-- Prioridad Alta/Media/Baja con badges visuales
-- Panel de configuración: fecha límite, descripción, repetición, adjuntos
-- Adjuntos: imágenes (zoom), audios (reproductor), documentos (descarga)
-
-</details>
-
-<details>
-<summary><strong>📁 Proyectos (Completo)</strong></summary>
-
-- Jerarquía 3 niveles: Proyecto > Tarea > Subtarea
-- CRUD con formulario modal
-- Lista de proyectos con resumen y progreso
-- Vista integrada expandible con tareas
-- Menú contextual (Editar, Eliminar, Estado)
-
-</details>
-
-<details>
-<summary><strong>💳 Sistema Freemium y Pagos (Completo)</strong></summary>
-
-- Modelo: FREE (limitado) / PREMIUM (ilimitado)
-- Trial 14 días activable
-- Integración Stripe completa (checkout, webhooks, portal)
-- Planes: Mensual $4.99 / Anual $39.99
-- Indicador de plan en header + Modal de upgrade
-
-</details>
-
-<details>
-<summary><strong>🔐 Backend y Seguridad (Completo)</strong></summary>
-
-- API REST WordPress completa con autenticación y nonce CSRF
-- Base de datos: tablas personalizadas (`wp_glory_*`)
-- Cifrado AES-256-GCM con derivación HKDF-SHA256
-- Sync incremental con debounce y reintentos
-
-</details>
-
-<details>
-<summary><strong>👑 Panel Administración (Completo)</strong></summary>
-
-- Badge "ADMINISTRACIÓN" en header (solo admins)
-- Modal con gestión de usuarios
-- Filtros por plan, estado premium
-- Acciones: cancelar/activar premium, ver detalles
-- Estadísticas de resumen
-
-</details>
-
-<details>
-<summary><strong>🎨 UI/UX Estandarizada (Completo)</strong></summary>
-
-- Componentes compartidos: Modal, MenuContextual, BadgeInfo, AccionesItem
-- Campos reutilizables: CampoTexto, CampoPrioridad, CampoFechaLimite
-- Sistema de badges unificado con variantes
-- CSS modular por responsabilidad
-
-</details>
-
-<details>
-<summary><strong>🎯 Filtros Inteligentes (Completo)</strong></summary>
-
-- Componente `SelectorBadge` reemplaza selects nativos
-- Filtros de tareas: sueltas, por proyecto, todas
-- Mover tareas entre proyectos desde menú contextual
-- Ordenamiento: inteligente, por fecha, por importancia
-- Sistema de tooltips personalizados
-- Controles compactos y estética coherente
-
-</details>
-
-<details>
-<summary><strong>🎨 Estandarización UX (Completo)</strong></summary>
-
-- Botones "Nuevo" estilo badge en todos los paneles
-- Iconos unificados (10px - 12px)
-- Tooltips en todos los botones
-- Alineación vertical correcta en encabezados
-
-</details>
-
-<details>
-<summary><strong>📝 Scratchpad Seguro (Completo)</strong></summary>
-
-- Cifrado E2E cuando está activo
-- Límite 20,000 caracteres con contador
-- Advertencia al 90% de capacidad
-- Debounce optimizado (1.5s)
-- Indicador de estado de guardado
-
-</details>
-
-<details>
-<summary><strong>🔲 Layout Personalizable (Completo)</strong></summary>
-
-- Resize handle entre columnas
-- Modos: 1, 2 y 3 columnas
-- Toggle visibilidad de paneles
-- Paneles ocultos en barra lateral
-- CSS Grid/Flexbox adaptativo
-
-</details>
-
-<details>
-<summary><strong>🔄 Reordenamiento de Paneles (Completo)</strong></summary>
-
-- Sistema Drag & Drop personalizado (sin dependencias)
-- Hook `useArrastrePaneles` con mouse events
-- Handle de arrastre en cada panel
-- Feedback visual durante arrastre
-- Controles en modal de configuración
-- Animaciones suaves
-
-</details>
-
-<details>
-<summary><strong>📜 Historial de Versiones (Completo)</strong></summary>
-
-- Modal al hacer click en badge de versión
-- Lista ordenada de releases
-- Formato semver (MAJOR.MINOR.PATCH)
-- Etiquetas: alpha, beta, stable
-
-</details>
-
-<details>
-<summary><strong>👤 Perfil de Usuario (Completo)</strong></summary>
-
-- Modal de perfil desde nombre de usuario
-- Foto de perfil con subida base64
-- Nombre y descripción editables
-- Cambio de contraseña
-- Recuperación de contraseña desde login
-- Avatar visible en header
-- Integración con WordPress (AvatarIntegration)
-
-</details>
-
-<details>
-<summary><strong>⚙️ Configuración por Panel (Completo)</strong></summary>
-
-- **Hábitos:** Ocultar completados, columnas visibles, modo compacto
-- **Tareas:** Ocultar completadas, badge proyecto, limpieza automática
-- **Proyectos:** Ocultar completados, orden, progreso
-- **Scratchpad:** Tamaño fuente, altura, intervalo guardado
-
-</details>
 
 ---
 
@@ -247,417 +84,93 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 </details>
 
----
+## 🔮 Sistema Social (v1.0.2-beta) - COMPLETADO
 
-## 🔮 Próximas Funcionalidades (v1.1.0 - Sistema Social)
+> **Detalle completo:** Ver [fases-completadas.md](./fases-completadas.md)
 
-> **Nota:** Las fases están ordenadas por dependencias. Completar en orden.
+### Fases Completadas (Resumen)
 
----
+| Fase | Nombre           | Descripción                                          |
+| ---- | ---------------- | ---------------------------------------------------- |
+| 0    | Preparación      | Alertas personalizadas, Header compactado a iconos   |
+| 1    | Almacenamiento   | Límites (50MB Free / 10GB Premium), indicador de uso |
+| 1.5  | Archivos Físicos | Subida multipart, cifrado stream, cache, thumbnails  |
+| 2    | Equipos          | Solicitudes, compañeros, estados pendientes          |
+| 3    | Notificaciones   | Polling, tipos, marcar leídas, badges                |
+| 4    | Compartir        | Proyectos, tareas, asignación, roles                 |
 
-### Fase 0: Preparación de Infraestructura ✅
+### Tareas Pendientes de Fase 4 (Cifrado Avanzado)
 
-**Objetivo:** Crear bases necesarias antes de funcionalidades sociales.
+> Estas tareas se posponen para una fase futura de optimización de seguridad:
 
-#### 0.1 Sistema de Alertas Personalizadas ✅
-> Reemplaza `alert()` y `confirm()` del navegador con modales propios.
-
-- [x] Componente `AlertaPersonalizada` (éxito, error, advertencia, confirmación)
-- [x] Hook `useAlertas` para gestionar cola de alertas
-- [x] Animaciones de entrada/salida
-- [x] Estilos coherentes con el proyecto
-- [x] Soporte para acciones (botones Aceptar/Cancelar)
-
-**Archivos creados:**
-- `hooks/useAlertas.ts` - Hook para gestionar alertas
-- `components/shared/AlertaToast.tsx` - Toast individual
-- `components/shared/AlertaConfirmacion.tsx` - Modal de confirmación
-- `components/shared/ContenedorAlertas.tsx` - Contenedor de toasts
-- `context/AlertasContext.tsx` - Contexto global
-- `styles/dashboard/shared/alertas.css` - Estilos
-
-#### 0.2 Compactar Header a Iconos ✅
-> Reducir espacio visual del header para dar cabida a nuevos elementos.
-
-**Antes:** Badges con texto (Versión, Conectado, Logout, Premium)
-**Después:** Solo iconos con tooltips + menú contextual
-
-- [x] Convertir badge "Versión" a icono (ClipboardList)
-- [x] Unificar indicador Conexión + Sincronización (Wifi/WifiOff/RefreshCw/AlertTriangle)
-- [x] Badge "Admin" convertido a solo icono
-- [x] Logout movido a menú contextual del usuario
-- [x] Menú contextual en badge de usuario (Perfil, Cerrar Sesión)
-- [x] Tooltips en todos los iconos
-- [x] Estados visuales: conectado (verde), desconectado (gris), error (rojo), sincronizando (azul)
-- [x] Animación de giro para icono de sincronización
-- [x] Nuevo estilo unificado `.botonIconoEncabezado`
-
-**Complejidad:** Baja | **Archivos:** encabezado.css, DashboardEncabezado.tsx
-
----
-
-### Fase 1: Sistema de Almacenamiento ✅
-
-**Objetivo:** Control de uso de espacio por usuario.
-
-#### 1.1 Límites de Almacenamiento
-| Plan    | Límite |
-| ------- | ------ |
-| Free    | 50 MB  |
-| Premium | 10 GB  |
-
-- [x] Calcular tamaño total de adjuntos por usuario (backend)
-- [x] Endpoint API: `GET /glory/v1/almacenamiento` (usado, límite, porcentaje)
-- [x] Hook `useAlmacenamiento` para consultar estado
-- [x] Bloquear subida si se excede límite (endpoint POST verificación)
-- [x] Indicador de uso en Modal de Perfil (barra de progreso)
-- [x] Alerta al 90% de capacidad
-
-**Archivos creados:**
-- `App/Services/AlmacenamientoService.php` - Servicio backend
-- `App/React/hooks/useAlmacenamiento.ts` - Hook frontend
-- `App/React/components/shared/IndicadorAlmacenamiento.tsx` - Componente visual
-- `App/React/styles/dashboard/shared/indicadorAlmacenamiento.css` - Estilos
-- `App/React/types/dashboard.ts` - Tipo InfoAlmacenamiento
-
-
-**Complejidad:** Media | **Dependencias:** Ninguna
-
----
-
-### Fase 1.5: Archivos Físicos y Optimización de Cifrado
-
-**Objetivo:** Migrar de Base64 a archivos físicos, optimizar cifrado para rendimiento.
-
-#### Problema Actual
-| Aspecto  | Estado Actual           | Problema                     |
-| -------- | ----------------------- | ---------------------------- |
-| Adjuntos | Base64 en JSON          | +33% tamaño, infla BD        |
-| Cifrado  | Servidor (PHP)          | CPU servidor, no es E2E real |
-| Cache    | Sin cache               | Descifra en cada petición    |
-| Clave    | En servidor (user_meta) | Servidor tiene acceso        |
-
-#### Diferenciación por Plan
-
-| Característica                                | Free       | Premium                   |
-| --------------------------------------------- | ---------- | ------------------------- |
-| Cifrado de datos (tareas, hábitos, proyectos) | Si         | Si                        |
-| Cifrado de archivos adjuntos                  | No         | Si                        |
-| Thumbnails de imágenes                        | Sin cifrar | Sin cifrar (optimización) |
-| Límite almacenamiento                         | 50 MB      | 10 GB                     |
-
-**Justificación:** Cifrar archivos es costoso computacionalmente. Los usuarios Free tienen límite bajo (50MB), el impacto de archivos sin cifrar es menor. Premium obtiene seguridad completa como beneficio.
-
-#### 1.5.1 Sistema de Archivos Físicos ✅
-**Ubicación:** `/wp-content/uploads/glory-adjuntos/{user_id}/`
-
-**Estructura de archivos:**
-```
-glory-adjuntos/
-  {user_id}/
-    {hash_archivo}.enc    ← Archivo cifrado (Premium)
-    {hash_archivo}.raw    ← Archivo sin cifrar (Free)
-    thumbs/
-      {hash_archivo}.jpg  ← Thumbnail sin cifrar (todos)
-```
-
-- [x] Crear `AdjuntosService.php` con métodos:
-  - `subirArchivo($archivo)` → retorna datos del adjunto
-  - `obtenerArchivo($nombreArchivo)` → descifra si es .enc
-  - `eliminarArchivo($nombreArchivo)` → elimina archivo + thumbnail
-  - `generarThumbnail($imagePath)` → versión 200x200 sin cifrar
-  - `calcularEspacioUsado()` → espacio total en disco
-- [x] Endpoint `POST /glory/v1/adjuntos` para subida directa multipart
-- [x] Endpoint `GET /glory/v1/adjuntos/{id}` para descarga (descifra on-the-fly)
-- [x] Endpoint `DELETE /glory/v1/adjuntos/{id}` para eliminación
-- [x] Hook `useAdjuntos.ts` para gestión frontend
-- [x] Actualizar `SeccionAdjuntos.tsx` para subida multipart (no Base64)
-- [x] Actualizar `AlmacenamientoService.php` para contar archivos físicos + legacy
-- [ ] Migración: script para convertir Base64 existentes → archivos (no aplica, sin usuarios)
-
-**Archivos creados/modificados:**
-- `App/Services/AdjuntosService.php` - Servicio de archivos físicos (nuevo)
-- `App/Api/AdjuntosApiController.php` - Endpoints REST (nuevo)
-- `App/React/hooks/useAdjuntos.ts` - Hook frontend (nuevo)
-- `App/React/components/dashboard/SeccionAdjuntos.tsx` - Actualizado para subida multipart
-- `App/React/styles/dashboard/componentes/adjuntos.css` - Estilos de loading y errores
-- `App/Services/AlmacenamientoService.php` - Actualizado para contar físicos + legacy
-
-**Nota:** Los archivos PHP se cargan automáticamente desde `functions.php`.
-
-#### 1.5.2 Optimización de Cifrado de Archivos (Solo Premium) ✅
-
-**Técnicas de rendimiento:**
-
-1. **Stream Cipher (archivos grandes > 1MB):**
-   ```php
-   // Procesar en chunks de 8KB para no saturar RAM
-   // Archivos pequeños (<1MB): cifrado en memoria (más eficiente)
-   // Archivos grandes (>1MB): stream cipher en chunks
-   // Formato: [tipo:2bytes][num_chunks:4bytes][chunk1_len:4bytes][chunk1_data]...
-   ```
-   - [x] Implementar `cifrarEnStream()` en `AdjuntosService`
-   - [x] Implementar `descifrarStream()` en `AdjuntosService`
-   - [x] Detectar automáticamente si usar memoria o stream (umbral: 1MB)
-
-2. **Cache de archivos descifrados:**
-   ```
-   glory-adjuntos/{user_id}/cache/{hash_archivo}  ← TTL 5 minutos
-   ```
-   - [x] Crear directorio de cache por usuario
-   - [x] Verificar cache antes de descifrar (`obtenerDeCache()`)
-   - [x] Guardar en cache tras descifrar (`guardarEnCache()`)
-   - [x] Método `limpiarCache()` para eliminar archivos expirados
-
-3. **Thumbnails sin cifrar:** (ya implementado en 1.5.1)
-   - Preview rápido sin costo de descifrado
-   - Archivo original cifrado para descarga
-   - [x] Generar thumbnail al subir imagen
-   - [x] Mostrar thumbnail en lista, cifrado en modal/descarga
-   - [x] Añadir `thumbnailUrl` al tipo `Adjunto`
-
-4. **Lazy Decryption:**
-   - No descifrar hasta que usuario haga clic
-   - [x] Mostrar placeholder con icono de candado (si no hay thumbnail)
-   - [x] Mostrar thumbnail con indicador de cifrado superpuesto
-   - [x] Descifrar on-demand al hacer clic
-   - [x] Estados visuales: candado, cargando, contenido
-   - [x] Estilos CSS para archivos cifrados (`.adjuntoIndicadorCifrado`)
-
-**Archivos modificados:**
-- `App/Services/AdjuntosService.php` - Stream cipher, cache, descifrado
-- `App/React/types/dashboard.ts` - Añadido `thumbnailUrl` a `Adjunto`
-- `App/React/hooks/useAdjuntos.ts` - Incluir `thumbnailUrl` del servidor
-- `App/React/components/dashboard/SeccionAdjuntos.tsx` - Lazy loading UI
-- `App/React/styles/dashboard/componentes/adjuntos.css` - Estilos cifrado
-
----
-
-### Fase 2: Sistema de Equipos ✅
-
-**Objetivo:** Permitir conexión entre usuarios para colaboración.
-
-#### 2.1 Infraestructura de Equipos
-- [x] Tabla BD: `wp_glory_equipos` (id, usuario_id, compañero_id, estado, fecha)
-- [x] Estados: `pendiente`, `aceptada`, `rechazada`, `pendiente_registro`
-- [x] Endpoint API: `POST /glory/v1/equipos/solicitud` (enviar por correo)
-- [x] Endpoint API: `GET /glory/v1/equipos` (listar compañeros)
-- [x] Endpoint API: `GET /glory/v1/equipos/pendientes` (contador para badge)
-- [x] Endpoint API: `PUT /glory/v1/equipos/{id}/responder` (aceptar/rechazar)
-- [x] Endpoint API: `DELETE /glory/v1/equipos/{id}` (eliminar/cancelar)
-
-#### 2.2 UI de Equipos
-- [x] Icono "Social" (Users) en header, al lado del configurar layout
-- [x] Badge con contador de solicitudes pendientes
-- [x] Modal de Equipos con pestañas:
-  - Solicitudes recibidas (con Aceptar/Rechazar)
-  - Solicitudes enviadas (con opción Cancelar)
-  - Lista de compañeros activos
-- [x] Formulario para enviar solicitud (input de correo con validación)
-- [x] Estado "Pendiente de registro" si usuario no existe
-- [x] Hook `useEquipos` para gestionar estado
-
-#### 2.3 Lógica de Solicitudes Pendientes
-- [x] Si el correo no existe en BD, guardar solicitud como `pendiente_registro`
-- [x] Al registrarse nuevo usuario, buscar solicitudes pendientes y activarlas (hook en `user_register`)
-- [ ] (Futuro) Enviar correo de invitación si no está registrado
-
-**Archivos creados:**
-- `App/Database/Schema.php` - Actualizado v1.0.2, añadida tabla `wp_glory_equipos`
-- `App/Services/EquiposService.php` - Lógica de equipos
-- `App/Api/EquiposApiController.php` - Endpoints REST
-- `App/React/hooks/useEquipos.ts` - Hook de gestión de equipos
-- `App/React/components/equipos/ModalEquipos.tsx` - Modal principal
-- `App/React/components/equipos/FormularioSolicitud.tsx` - Formulario de invitación
-- `App/React/components/equipos/ListaSolicitudes.tsx` - Lista de solicitudes
-- `App/React/components/equipos/ListaCompaneros.tsx` - Lista de compañeros
-- `App/React/components/equipos/index.ts` - Exportaciones
-- `App/React/styles/dashboard/componentes/equipos.css` - Estilos
-
-**Archivos modificados:**
-- `App/React/components/dashboard/DashboardEncabezado.tsx` - Botón de equipos
-- `App/React/islands/DashboardIsland.tsx` - Integración del modal
-- `App/React/styles/dashboard/componentes/encabezado.css` - Estilos del botón
-- `App/React/styles/dashboard/index.css` - Import de estilos
-- `App/React/utils/fecha.ts` - Añadida `formatearFechaRelativa`
-- `App/React/types/dashboard.ts` - Tipos de equipos
-
-**Complejidad:** Alta | **Dependencias:** Fase 0 (alertas para confirmaciones)
-
----
-
-### Fase 3: Sistema de Notificaciones [COMPLETADA]
-
-**Objetivo:** Notificar eventos importantes dentro de la aplicación.
-
-#### 3.1 Infraestructura de Notificaciones
-- [x] Tabla BD: `wp_glory_notificaciones` (id, usuario_id, tipo, contenido, leida, fecha)
-- [x] Tipos de notificación implementados:
-  - `solicitud_equipo` - Nueva solicitud de compañero
-  - `tarea_vence_hoy` - Tarea con fecha límite hoy
-  - Tipos preparados (estructura lista): `tarea_asignada`, `tarea_removida`, `adjunto_agregado`, `mensaje_chat`, `habito_companero`
-
-#### 3.2 UI de Notificaciones
-- [x] Icono de campana (Bell) en header con badge de contador (solo si hay no leídas)
-- [x] Dropdown/Modal con lista de notificaciones recientes
-- [x] Acciones: Marcar como leída (individual/todas), Eliminar
-- [x] Polling automático cada 30 segundos para nuevas notificaciones
-
-#### 3.3 Integración Inicial
-- [x] Disparar notificación al recibir solicitud de equipo (integrado en `NotificacionesService`)
-- [x] Método helper para cron de tareas vencidas (`NotificacionesService::notificarTareasVencenHoy`)
-
-**Archivos creados:**
-- `App/Database/Schema.php` - Actualizado v1.0.3, añadida tabla `wp_glory_notificaciones`
-- `App/Services/NotificacionesService.php` - Lógica de notificaciones
-- `App/Api/NotificacionesApiController.php` - Endpoints REST
-- `App/React/hooks/useNotificaciones.ts` - Hook de gestión
-- `App/React/components/notificaciones/ModalNotificaciones.tsx` - Componente lista
-- `App/React/components/notificaciones/ItemNotificacion.tsx` - Componente item individual
-- `App/React/components/notificaciones/index.ts` - Exports
-- `App/React/styles/dashboard/componentes/notificaciones.css` - Estilos
-
-**Archivos modificados:**
-- `App/React/types/dashboard.ts` - Tipos de notificación
-- `App/React/components/dashboard/DashboardEncabezado.tsx` - Botón de campana
-- `App/React/islands/DashboardIsland.tsx` - Integración global
-- `App/React/styles/dashboard/index.css` - Import de estilos
-
-**Complejidad:** Media | **Dependencias:** Fase 2 (Equipos)
-  - `mensaje_chat` - Nuevo mensaje en tarea/proyecto/hábito
-  - `habito_companero` - Compañero cumplió hábito compartido
-- [x] Endpoint API: `GET /glory/v1/notificaciones` (listar, con paginación)
-- [x] Endpoint API: `PUT /glory/v1/notificaciones/{id}/leer`
-- [x] Endpoint API: `PUT /glory/v1/notificaciones/leer-todas`
-- [x] Endpoint API: `DELETE /glory/v1/notificaciones/{id}`
-
-#### 3.2 UI de Notificaciones
-- [x] Icono campana (🔔) en header
-- [x] Contador de no leídas (badge numérico)
-- [x] Dropdown/Modal con lista de notificaciones
-- [x] Marcar como leída al hacer clic
-- [x] Botón "Marcar todas como leídas"
-- [x] Acción rápida según tipo (ir a tarea, abrir solicitud, etc.)
-- [x] Hook `useNotificaciones` con polling o WebSocket
-
-#### 3.3 Generación Automática de Notificaciones
-- [x] Cron job o trigger para `tarea_vence_hoy`
-- [x] Hooks en acciones (asignar tarea, agregar adjunto, etc.)
-
-**Complejidad:** Alta | **Dependencias:** Fase 0 (alertas), Fase 2 (equipos para algunas notificaciones)
-
----
-
-### Fase 4: Compartir Tareas y Proyectos [EN PROGRESO]
-
-**Objetivo:** Colaboración en tareas/proyectos con miembros del equipo.
-
-#### 4.1 Infraestructura de Compartir ✅
-- [x] Tabla BD: `wp_glory_compartidos` (id, tipo, elemento_id, propietario_id, usuario_id, rol, fecha)
-- [x] Tipos: `tarea`, `proyecto`, `habito`
-- [x] Roles: `propietario` (implícito), `colaborador`, `observador`
-- [x] `CompartidosService.php` con métodos CRUD y verificación de permisos
-- [x] `CompartidosApiController.php` con endpoints REST
-- [x] Hook `useCompartidos.ts` para gestión frontend
-- [x] Tipos TypeScript en `dashboard.ts`
-- [x] Notificación automática al compartir (`elemento_compartido`)
-- [x] Componentes UI: `ModalCompartir`, `SelectorCompaneros`, `ListaParticipantes`
-- [x] Estilos CSS: `compartidos.css`
-
-**Archivos creados:**
-- `App/Database/Schema.php` - Actualizado v1.0.4, tabla `wp_glory_compartidos`
-- `App/Services/CompartidosService.php` - Lógica de negocio
-- `App/Api/CompartidosApiController.php` - Endpoints REST
-- `App/React/hooks/useCompartidos.ts` - Hook de React
-- `App/React/types/dashboard.ts` - Tipos actualizados
-- `App/React/components/compartidos/` - Componentes UI
-  - `ModalCompartir.tsx` - Modal principal para compartir
-  - `SelectorCompaneros.tsx` - Selector de compañeros con roles
-  - `ListaParticipantes.tsx` - Lista de participantes con gestión
-  - `index.ts` - Exportaciones
-- `App/React/styles/dashboard/componentes/compartidos.css` - Estilos
-
-**Endpoints disponibles:**
-- `POST /glory/v1/compartidos` - Compartir elemento
-- `GET /glory/v1/compartidos` - Elementos compartidos conmigo
-- `GET /glory/v1/compartidos/mis` - Lo que yo he compartido
-- `GET /glory/v1/compartidos/participantes/{tipo}/{id}` - Participantes
-- `PUT /glory/v1/compartidos/{id}/rol` - Actualizar rol
-- `DELETE /glory/v1/compartidos/{id}` - Dejar de compartir
-- `GET /glory/v1/compartidos/contadores` - Contadores para badges
-- `GET /glory/v1/compartidos/acceso/{tipo}/{id}/{propietarioId}` - Verificar acceso
-
-**Modelo de Colaboración:**
-
-> **Proyectos compartidos:** Cuando compartes un proyecto, los participantes ven TODAS las tareas del proyecto. Las tareas NO están asignadas por defecto (cualquiera puede completarlas). Opcionalmente, se puede asignar una tarea a un participante específico para indicar "encárgate de esto".
-
-> **Tareas sueltas (fuera de proyectos):** No tiene sentido "compartir para ver" una tarea individual. En su lugar, se **asigna** directamente a un compañero. La tarea aparece automáticamente en su dashboard.
-
-> **Hábitos:** Funcionan diferente - ver Fase 5. Es un "compromiso mutuo" donde cada persona tiene su propia instancia independiente.
-
-#### 4.2 Compartir Proyectos [EN PROGRESO]
-- [x] Al compartir proyecto → invitado ve TODAS las tareas del proyecto
-- [x] Selector de compañeros en modal de proyecto
-- [x] Badge visual de "Compartido" en proyecto
-- [x] Lista de participantes visible (en ModalCompartir)
-- [x] Integrar `ModalCompartir` en menú contextual de proyectos
-- [x] Badge de propietario cuando el proyecto es de otro usuario
-
-#### 4.3 Compartir Tareas Individuales [EN PROGRESO]
-- [x] Opción en menú contextual: "Compartir tarea"
-- [x] Selector de compañeros (solo de tu equipo) - reutiliza ModalCompartir
-- [ ] Subtareas incluidas automáticamente
-- [x] Badge visual de "Compartida" en tarea
-- [x] Notificación al compartir/quitar (ya implementado en backend)
-- [x] Badge de propietario cuando la tarea es de otro usuario
-
-#### 4.4 Cifrado y Privacidad
-> Las tareas/proyectos compartidos pierden cifrado E2E individual.
-
-- [x] Advertencia antes de compartir: *"Al compartir, el cifrado E2E se desactivará para este elemento"* (UI en ModalCompartir)
-- [ ] Usar sistema de alertas personalizadas (Fase 0)
 - [ ] Campo `cifrado_compartido: false` en elementos compartidos
 - [ ] Tareas NO compartidas permanecen cifradas normalmente
 - [ ] Separar datos cifrados de no cifrados en sincronización
 
-#### 4.5 Asignar Tareas [EN PROGRESO]
-- [x] Campo `asignadoA` en tareas (tipos: `Tarea`, `DatosEdicionTarea`)
-- [x] Componente `SelectorAsignado` para seleccionar participante
-- [x] Badge visual de asignado en `TareaItem`
-- [x] Filtro por "Mis tareas asignadas" en `useFiltroTareas`
-- [x] Notificación al asignar/desasignar (`NotificacionesService`)
-- [x] Tareas asignadas a mí aparecen en mi dashboard automáticamente
-- [x] Integrar `SelectorAsignado` en `PanelConfiguracionTarea`
-- [x] Pasar participantes al `PanelConfiguracionTarea` desde `DashboardIsland`
-- [ ] Sincronizar asignación con backend
+---
 
-**Archivos creados/modificados (Fase 4.2-4.5):**
-- `App/Services/CompartidosService.php` - Métodos para obtener datos compartidos
-  - `obtenerProyectosCompartidosConmigo()` - IDs de proyectos compartidos
-  - `obtenerTareasDeProyectosCompartidos()` - Tareas de proyectos compartidos
-  - `obtenerDatosProyectosCompartidos()` - Datos completos de proyectos
-  - `obtenerTareasAsignadasAMi()` - Tareas asignadas directamente
-- `App/Repository/DashboardRepository.php` - Modificado `loadAll()` para incluir compartidos
-  - `getDatosCompartidos()` - Combina tareas/proyectos compartidos
-  - `decodeDataCompartido()` - Decodifica datos de otros usuarios
-- `App/React/types/dashboard.ts` - Campos `esCompartido`, `propietarioId`, `propietarioNombre`, `propietarioAvatar`, `miRol`
-- `App/React/components/dashboard/TareaItem.tsx` - Badge de propietario
-- `App/React/components/dashboard/proyectos/ListaProyectos.tsx` - Badge de propietario
-- `App/React/components/dashboard/PanelConfiguracionTarea.tsx` - Integración de `SelectorAsignado`
-- `App/React/components/dashboard/ListaTareas.tsx` - Prop `obtenerParticipantes` para asignación
-- `App/React/islands/DashboardIsland.tsx` - Cache de participantes y función `obtenerParticipantesTarea`
-- `App/React/styles/dashboard/componentes/compartidos.css` - Estilos `.badgePropietario`
+### Fase 5: Refactorización de Archivos Grandes [BLOQUEANTE]
 
+**Objetivo:** Reducir archivos que exceden los límites de líneas establecidos para mantener SOLID.
 
-**Complejidad:** Muy Alta | **Dependencias:** Fase 2 (equipos), Fase 3 (notificaciones)
+> **Límites recordatorio:**
+> - Componente/Servicio: 300 líneas máximo
+> - Hook: 120 líneas máximo
+> - CSS: 300 líneas máximo
+
+#### 5.1 Archivos Críticos (>400 líneas) - Prioridad Alta
+
+| Archivo                              | Líneas | Acción Propuesta                            |
+| ------------------------------------ | ------ | ------------------------------------------- |
+| `Repository/DashboardRepository.php` | 864    | Dividir en repositorios por dominio         |
+| `Api/DashboardApiController.php`     | 682    | Separar endpoints por entidad               |
+| `islands/DashboardIsland.tsx`        | 668    | Extraer lógica a hooks, dividir secciones   |
+| `styles/compartidos.css`             | 631    | Dividir por componente                      |
+| `Services/AdjuntosService.php`       | 629    | Separar cifrado de gestión de archivos      |
+| `styles/tareas.css`                  | 589    | Dividir por subcomponente                   |
+| `Services/CompartidosService.php`    | 560    | Separar queries de lógica                   |
+| `types/dashboard.ts`                 | 525    | Dividir por dominio (tareas, equipos, etc.) |
+| `Services/NotificacionesService.php` | 483    | Separar tipos de notificación               |
+| `styles/tabla.css`                   | 477    | Dividir por sección                         |
+| `Services/EquiposService.php`        | 441    | Separar solicitudes de relaciones           |
+| `hooks/useDashboard.ts`              | 439    | Extraer a múltiples hooks especializados    |
+| `styles/encabezado.css`              | 410    | Dividir iconos/badges de layout             |
+| `hooks/useConfiguracionLayout.ts`    | 407    | Simplificar, extraer helpers                |
+
+#### 5.2 Archivos Moderados (300-400 líneas) - Prioridad Media
+
+| Archivo                           | Líneas | Acción Propuesta                |
+| --------------------------------- | ------ | ------------------------------- |
+| `styles/panelAdministracion.css`  | 408    | Dividir secciones               |
+| `styles/suscripcion.css`          | 396    | Dividir modal/indicadores       |
+| `components/SeccionAdjuntos.tsx`  | 389    | Extraer subcomponentes          |
+| `styles/equipos.css`              | 383    | Dividir por componente          |
+| `Api/AdjuntosApiController.php`   | 354    | Separar upload/download         |
+| `components/ListaTareas.tsx`      | 350    | Extraer lógica a hook           |
+| `Services/AdminService.php`       | 347    | Separar estadísticas de gestión |
+| `styles/detalleUsuario.css`       | 332    | Dividir secciones               |
+| `Api/AdminApiController.php`      | 310    | Separar por responsabilidad     |
+| `Services/SuscripcionService.php` | 306    | Separar Stripe de lógica local  |
+| `styles/adjuntos.css`             | 302    | Dividir lista/preview           |
+
+#### 5.3 Estrategia de Refactorización
+
+1. **No romper funcionalidad:** Cada refactor debe ser atómico y verificable
+2. **Orden de prioridad:** Empezar por PHP backend (más estable), luego TSX, finalmente CSS
+3. **Testing manual:** Después de cada división, verificar que todo funciona
+4. **Commits pequeños:** Un archivo por commit para facilitar rollback
+
+**Estado:** Pendiente - Bloqueante para nuevas funcionalidades
 
 ---
 
-### Fase 5: Compartir Hábitos
+### Fase 6: Compartir Hábitos [POSPUESTA]
 
 **Objetivo:** Motivación social al compartir hábitos con compañeros.
 
-#### 5.1 Modelo de Hábitos Compartidos
+> **Razón de posponer:** Esta funcionalidad no es crítica para el MVP. Se implementará después de la refactorización y estabilización del sistema actual.
+
+#### 6.1 Modelo de Hábitos Compartidos
 > Cada persona tiene su propia instancia. Racha y cumplimiento son individuales.
 > Solo comparten "el mismo hábito" para verse mutuamente.
 
@@ -666,13 +179,13 @@ glory-adjuntos/
 - [ ] Campo `habito_origen_id` para vincular ambas instancias
 - [ ] Cada usuario cumple su hábito independientemente
 
-#### 5.2 UI de Hábitos Compartidos
+#### 6.2 UI de Hábitos Compartidos
 - [ ] Opción en menú contextual: "Compartir hábito"
 - [ ] Indicador visual: "Compartido con [Nombre]"
 - [ ] Ver cuándo el compañero cumplió (badge o indicador)
 - [ ] Notificación: "[Nombre] cumplió [Hábito] hoy"
 
-#### 5.3 Sincronización de Estado
+#### 6.3 Sincronización de Estado
 - [ ] Endpoint para consultar estado de hábito del compañero
 - [ ] Cache local para no sobrecargar
 - [ ] Actualización periódica o al abrir panel
@@ -681,11 +194,11 @@ glory-adjuntos/
 
 ---
 
-### Fase 6: Modal Expandido con Chat e Historial
+### Fase 7: Modal Expandido con Chat e Historial
 
 **Objetivo:** Comunicación y trazabilidad en tareas/proyectos/hábitos compartidos.
 
-#### 6.1 Nuevo Diseño del Modal de Tarea
+#### 7.1 Nuevo Diseño del Modal de Tarea
 > El modal actual se expande al doble de ancho con 2 columnas.
 
 **Columna Izquierda (existente):**
@@ -699,7 +212,7 @@ glory-adjuntos/
 - Historial de cambios (inmutable)
 - Lista de participantes
 
-#### 6.2 Sistema de Chat por Elemento
+#### 7.2 Sistema de Chat por Elemento
 - [ ] Tabla BD: `wp_glory_mensajes` (id, tipo, elemento_id, usuario_id, contenido, fecha)
 - [ ] Tipos: `tarea`, `proyecto`, `habito`
 - [ ] Cada tarea/proyecto/hábito tiene su propia conversación
@@ -708,7 +221,7 @@ glory-adjuntos/
 - [ ] Scroll automático al nuevo mensaje
 - [ ] Notificación a participantes al enviar mensaje
 
-#### 6.3 Historial de Cambios (Audit Log)
+#### 7.3 Historial de Cambios (Audit Log)
 > Inmutable. Nadie puede editar ni eliminar el historial.
 
 - [ ] Tabla BD: `wp_glory_historial` (id, tipo, elemento_id, usuario_id, accion, detalles, fecha)
@@ -724,14 +237,14 @@ glory-adjuntos/
 - [ ] Formato: "[Usuario] [acción] [detalles] - [fecha]"
 - [ ] Visualización tipo timeline
 
-#### 6.4 UI del Modal Expandido
+#### 7.4 UI del Modal Expandido
 - [ ] Componente `ModalTareaExpandido` con 2 columnas
 - [ ] Toggle para expandir/colapsar columna derecha
 - [ ] Por defecto: modal expandido (2 columnas)
 - [ ] Scroll independiente por columna
 - [ ] Responsive: en móvil, pestañas en lugar de columnas
 
-#### 6.5 Aplicar a Proyectos y Hábitos
+#### 7.5 Aplicar a Proyectos y Hábitos
 - [ ] Modal de proyecto con chat + historial
 - [ ] Modal de hábito (solo si está compartido)
 - [ ] Componente `PanelChatHistorial` reutilizable
@@ -740,26 +253,26 @@ glory-adjuntos/
 
 ---
 
-### Fase 7: Futuro (Post v1.1.0)
+### Fase 8: Futuro (Post v1.1.0)
 
-#### 7.1 Correo de Invitación
+#### 8.1 Correo de Invitación
 - [ ] Enviar email cuando se invita a usuario no registrado
 - [ ] Template de correo personalizado
 - [ ] Link de registro con solicitud pre-aceptada
 
-#### 7.2 Notificaciones por Correo
+#### 8.2 Notificaciones por Correo
 - [ ] Preferencias de notificación por email
 - [ ] Resumen diario/semanal
 - [ ] Alertas de tareas por vencer
 - [ ] Alerta de racha en peligro
 
-#### 7.3 Feed de Red Social
+#### 8.3 Feed de Red Social
 - [ ] Posts automáticos de logros
 - [ ] Posts manuales
 - [ ] Likes y comentarios
 - [ ] Privacidad configurable
 
-#### 7.4 Gamificación
+#### 8.4 Gamificación
 - [ ] Badges de logros
 - [ ] Sistema de niveles/experiencia
 - [ ] Leaderboards semanales
@@ -768,17 +281,18 @@ glory-adjuntos/
 
 ## 📋 Resumen de Fases
 
-| Fase | Nombre                         | Complejidad | Estado        |
-| ---- | ------------------------------ | ----------- | ------------- |
-| 0    | Preparación (Alertas + Header) | Baja-Media  | ✅ Completada  |
-| 1    | Almacenamiento                 | Media       | ✅ Completada  |
-| 1.5  | Archivos Físicos + Cifrado     | Alta        | ✅ Completada  |
-| 2    | Sistema de Equipos             | Alta        | ✅ Completada  |
-| 3    | Notificaciones                 | Alta        | ✅ Completada  |
-| 4    | Compartir Tareas/Proyectos     | Muy Alta    | ⏳ En Progreso |
-| 5    | Compartir Hábitos              | Media       | Pendiente     |
-| 6    | Modal Chat + Historial         | Muy Alta    | Pendiente     |
-| 7    | Futuro                         | Variable    | Pendiente     |
+| Fase | Nombre                         | Complejidad | Estado       |
+| ---- | ------------------------------ | ----------- | ------------ |
+| 0    | Preparación (Alertas + Header) | Baja-Media  | ✅ Completada |
+| 1    | Almacenamiento                 | Media       | ✅ Completada |
+| 1.5  | Archivos Físicos + Cifrado     | Alta        | ✅ Completada |
+| 2    | Sistema de Equipos             | Alta        | ✅ Completada |
+| 3    | Notificaciones                 | Alta        | ✅ Completada |
+| 4    | Compartir Tareas/Proyectos     | Muy Alta    | ✅ Completada |
+| 5    | Refactorización                | Alta        | ⏳ Bloqueante |
+| 6    | Compartir Hábitos              | Media       | Pospuesta    |
+| 7    | Modal Chat + Historial         | Muy Alta    | Pendiente    |
+| 8    | Futuro                         | Variable    | Pendiente    |
 
 ---
 
@@ -866,49 +380,3 @@ define('GLORY_STRIPE_PRICE_YEARLY', 'price_...');
 
 
 ---
-
-## 🐛 Bugs Críticos (2025-12-22)
-
-### Sistema de Notificaciones y Equipos
-
-- [x] **Bug:** Al enviar solicitud de equipo, no se crea notificación para el destinatario
-  - **Causa:** `NotificacionesService::notificarSolicitudEquipo()` nunca se llama desde EquiposService
-  - **Solución:** Integrar llamada en `EquiposService::enviarSolicitud()`
-
-- [x] **Bug:** Al aceptar solicitud, no se notifica al solicitante original
-  - **Causa:** Falta llamada a notificaciones en `responderSolicitud()`
-  - **Solución:** Crear nuevo método `notificarSolicitudAceptada()` y llamarlo
-
-- [x] **Bug:** Badge de solicitudes pendientes no se actualiza en tiempo real
-  - **Causa:** Hook `useEquipos` no tiene polling, solo carga inicial
-  - **Solución:** Agregar polling cada 30 segundos similar a `useNotificaciones`
-
-- [x] **Bug:** Ajuste visual - contador de solicitudes en círculo rojo absoluto
-  - **Solución:** Cambiar estilo a inline dentro del badge, igual que otros contadores
-
-- [x] **Bug:** Falta indicador numérico para notificaciones pendientes
-  - **Causa:** Solo muestra punto rojo, sin número
-  - **Solución:** Mostrar número de notificaciones no leídas
-
----
-
-## Optimizaciones Futuras & Ideas (Baja Prioridad)
-
-### Optimización de Cifrado de Datos (Cifrado Diferencial)
-
-**Estrategia (solo cambios):**
-```
-Datos actuales → Hash SHA-256
-Datos nuevos → Hash SHA-256
-Si hash diferente → Cifrar y guardar
-Si hash igual → No hacer nada
-```
-
-- [ ] Implementar `hashDatos()` en `CifradoService`
-- [ ] Guardar hash del último estado cifrado en metadata
-- [ ] Comparar antes de cifrar para evitar trabajo innecesario
-
-**Cache de datos descifrados (opcional):**
-- **SessionStorage con clave derivada:** Equibrio entre seguridad y persistencia.
-- Evaluar implementación solo si descifrado > 500ms.
-
