@@ -7,9 +7,9 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 ## Estado Actual
 
 **Fecha de inicio:** 2025-12-19  
-**Version:** v1.0.9-beta  
+**Version:** v1.1.4-beta  
 **Ultima actualizacion:** 2025-12-24
-**Estado:** Hábitos en Ejecución completado - Siguiente: Modal Chat + Historial (Fase 7)
+**Estado:** Fase 7 - COMPLETADA (Modal Chat + Historial)
 
 ---
 
@@ -322,60 +322,132 @@ Peso Fecha:
 
 ---
 
-## Fase 7: Modal Expandido con Chat e Historial [PLANIFICADA]
+## Fase 7: Modal Expandido con Chat e Historial [EN PROGRESO]
 
 **Objetivo:** Comunicación y trazabilidad en tareas/proyectos/hábitos compartidos.
 
-### 7.1 Nuevo Diseño del Modal de Tarea
+### 7.1 Nuevo Diseño del Modal de Tarea ✅
+
 > El modal actual se expande al doble de ancho con 2 columnas.
 
 **Columna Izquierda (existente):**
-- Información de la tarea (nombre, descripción, prioridad, etc.)
-- Subtareas
-- Adjuntos
-- Configuración
+- [x] Información de la tarea (nombre, descripción, prioridad, etc.)
+- [x] Adjuntos
+- [x] Configuración (repetición, asignación)
 
 **Columna Derecha (nueva):**
-- Chat/Comentarios en tiempo real
-- Historial de cambios (inmutable)
-- Lista de participantes
+- [x] Panel con pestañas Chat/Historial/Participantes
+- [x] Estructura visual placeholder
+- [x] Responsive: pestañas en móvil
 
-### 7.2 Sistema de Chat por Elemento
-- [ ] Tabla BD: `wp_glory_mensajes` (id, tipo, elemento_id, usuario_id, contenido, fecha)
-- [ ] Tipos: `tarea`, `proyecto`, `habito`
-- [ ] Cada tarea/proyecto/hábito tiene su propia conversación
-- [ ] Input de mensaje con soporte para adjuntos
-- [ ] Mensajes ordenados cronológicamente
-- [ ] Scroll automático al nuevo mensaje
-- [ ] Notificación a participantes al enviar mensaje
+**Archivos creados:**
+- `components/dashboard/PanelChatHistorial.tsx`
+- `styles/dashboard/componentes/chatHistorial.css`
 
-### 7.3 Historial de Cambios (Audit Log)
-> Inmutable. Nadie puede editar ni eliminar el historial.
+**Archivos modificados:**
+- `components/dashboard/PanelConfiguracionTarea.tsx` - Layout 2 columnas
+- `styles/dashboard/componentes/modal.css` - Variante `.modalContenedor--expandido`
+- `styles/dashboard/componentes/panelConfiguracion.css` - Grid 2 columnas + responsive
 
-- [ ] Tabla BD: `wp_glory_historial` (id, tipo, elemento_id, usuario_id, accion, detalles, fecha)
-- [ ] Acciones registradas:
+### 7.1.1 Correcciones ✅
+
+- [x] **Botones Cancelar/Guardar**: Centrados en el contenedor fijo con estilos específicos
+- [x] **Unificar Chat + Historial**: Timeline único sin pestañas separadas, participantes como toggle en header
+
+### 7.2 Sistema Unificado de Chat + Historial
+
+> **Concepto clave:** Chat e Historial son UN SOLO timeline. Los mensajes del sistema SON el historial.
+
+**Tipos de mensaje en el timeline:**
+
+| Tipo       | Descripción                     | Estilo Visual                           |
+| ---------- | ------------------------------- | --------------------------------------- |
+| `enviado`  | Mensaje del usuario actual      | Alineado a la derecha, fondo destacado  |
+| `recibido` | Mensaje de otro participante    | Alineado a la izquierda, fondo normal   |
+| `sistema`  | Acción de historial (inmutable) | Centrado, estilo sutil, icono de acción |
+
+**Backend:** ✅
+- [x] Tabla BD: `wp_glory_mensajes` (id, tipo_elemento, elemento_id, usuario_id, contenido, tipo_mensaje, fecha)
+  - `tipo_elemento`: 'tarea' | 'proyecto' | 'habito'
+  - `tipo_mensaje`: 'usuario' | 'sistema'
+- [x] Endpoint: `POST /mensajes` - Enviar mensaje
+- [x] Endpoint: `GET /mensajes/{tipo}/{id}` - Obtener timeline
+- [x] `MensajesRepository.php` - Persistencia de mensajes
+- [x] `MensajesService.php` - Registro de eventos del sistema
+- [x] `Schema::ensureTableExists()` - Migración automática de tablas
+- [x] Endpoint: `POST /mensajes/evento` - Registrar eventos desde frontend
+- [x] Integrar `registrarEventoSistema()` en `useTareas`
+
+**Frontend:** ✅
+- [x] Hook `useMensajes.ts` - Comunicación con API
+- [x] Componente `PanelChatHistorial` conectado a la API real
+- [x] Input de mensaje con Enter para enviar
+- [x] Scroll automático al último mensaje
+- [x] Función `registrarEventoSistema()` para registrar cambios
+- [x] Toggle para ocultar/mostrar panel de chat (persistente en localStorage)
+- [x] Indicador de mensajes sin leer en botón de toggle
+- [ ] Indicador de "escribiendo..." (futuro)
+
+**Acciones que generan mensaje sistema:** ✅
+- [x] Infraestructura lista (endpoint + función)
+- [x] Integrado en `useTareas.toggleTarea()` - Completado/Reabierto
+- [x] Integrado en `useTareas.editarTarea()` con detección de cambios:
   - Cambio de nombre
-  - Cambio de descripción
+  - Cambio de descripción  
   - Cambio de prioridad
+  - Cambio de urgencia
   - Cambio de fecha límite
-  - Adjunto agregado/eliminado
-  - Tarea completada/reabierta
-  - Participante agregado/removido
-  - Asignación cambiada
-- [ ] Formato: "[Usuario] [acción] [detalles] - [fecha]"
-- [ ] Visualización tipo timeline
+  - Cambio de asignación (asignado/desasignado)
 
-### 7.4 UI del Modal Expandido
-- [ ] Componente `ModalTareaExpandido` con 2 columnas
-- [ ] Toggle para expandir/colapsar columna derecha
-- [ ] Por defecto: modal expandido (2 columnas)
-- [ ] Scroll independiente por columna
-- [ ] Responsive: en móvil, pestañas en lugar de columnas
+### 7.3 Sistema de Mensajes No Leídos ✅
 
-### 7.5 Aplicar a Proyectos y Hábitos
-- [ ] Modal de proyecto con chat + historial
-- [ ] Modal de hábito (solo si está compartido)
-- [ ] Componente `PanelChatHistorial` reutilizable
+> **Tu sugerencia:** Badge de notificación cuando hay mensajes/cambios sin leer.
+
+**Backend:**
+- [x] Tabla BD: `wp_glory_mensajes_leidos` (usuario_id, tipo_elemento, elemento_id, ultimo_mensaje_leido)
+- [x] Endpoint: `POST /mensajes/marcar-leido` - Marcar como leído
+- [x] Endpoint: `GET /mensajes/no-leidos/{tipo}/{id}` - Contar no leídos de un elemento
+- [x] Endpoint: `POST /mensajes/no-leidos-masivo` - Contar no leídos de múltiples elementos
+- [x] `MensajesRepository::marcarComoLeido()` - Actualiza último visto
+- [x] `MensajesRepository::contarNoLeidos()` - Cuenta mensajes nuevos
+- [x] `MensajesRepository::contarNoLeidosMasivo()` - Optimizado para listas
+- [x] Auto-marcar como leído al ver el timeline
+
+**Frontend:**
+- [x] Hook `useMensajesNoLeidos` - Obtiene conteo para badges
+- [x] Prop `mensajesNoLeidos` en `TareaItem`
+- [x] Función `renderBadgeMensajesNoLeidos()` con icono MessageCircle
+- [x] Variante CSS `badgeInfo--mensajeNoLeido` con color azul y animación
+- [x] Integrar hook en `ListaTareas` para pasar conteo
+
+### 7.4 UI del Timeline ✅
+
+- [x] Timeline unificado (scroll único)
+- [x] Mensajes usuario: burbuja con avatar
+- [x] Mensajes sistema: línea con icono y texto pequeño
+- [x] Fecha separadora por día
+- [x] Badge de mensajes no leídos (infraestructura lista)
+
+### 7.5 Pestaña Participantes ✅
+
+- [x] Lista de participantes del elemento compartido
+- [x] Avatar + nombre + rol (propietario/colaborador)
+- [x] Solo visible si el elemento está compartido
+
+### 7.6 Aplicar a Proyectos y Hábitos ✅
+
+- [x] Modal de proyecto con timeline (siempre visible en modo edición)
+- [x] Modal de hábito con timeline (siempre visible en modo edición)
+- [x] Componente `PanelChatHistorial` reutilizable
+- [x] Sin botón eliminar en modales (consistente con tareas)
+- [x] Toggle chat/historial persistente en localStorage
+
+### 7.7 Notificaciones de Mensajes ✅
+
+- [x] `NotificacionesService::notificarMensajeChat()` - Crea notificación
+- [x] `MensajesApiController::notificarParticipantes()` - Obtiene participantes
+- [x] Al enviar mensaje, se notifica a todos los participantes excepto al remitente
+- [x] Notificación incluye: nombre del remitente, tipo elemento, preview del mensaje
 
 **Complejidad:** Muy Alta | **Dependencias:** Fase 2, 3, 4 (requiere sistema social completo)
 
@@ -592,7 +664,7 @@ styles/
 | 6    | Mejoras UX Rápidas             | Baja        | ✅ Completada   |
 | 6.5  | Refact. Formularios            | Media       | ✅ Completada   |
 | 6.6  | Hábitos en Ejecución           | Media       | ✅ Completada   |
-| 7    | **Modal Chat + Historial**     | Muy Alta    | 🔜 Siguiente    |
+| 7    | **Modal Chat + Historial**     | Muy Alta    | ✅ Completada   |
 | 8    | Mapa de Calor                  | Media-Alta  | Planificada    |
 | 9    | Scratchpad + File Manager      | Alta        | Baja Prioridad |
 | 10   | Compartir Hábitos              | Media       | Baja Prioridad |

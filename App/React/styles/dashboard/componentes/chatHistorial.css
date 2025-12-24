@@ -1,0 +1,402 @@
+/*
+ * PANEL CHAT/HISTORIAL - TIMELINE UNIFICADO
+ * Estilos para el panel lateral con chat y actividad combinados
+ * 
+ * Fase 7.2: Chat e Historial son UN SOLO timeline
+ * - Mensajes usuario: burbuja (enviado derecha, recibido izquierda)
+ * - Mensajes sistema: linea centrada con icono sutil
+ * - Sin pestañas: participantes como toggle en header
+ */
+
+/* 
+ * CONTENEDOR PRINCIPAL
+ */
+.panelChatHistorial {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* 
+ * HEADER SIN PESTANAS
+ */
+.panelChatHistorialHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--dashboard-espacioMd);
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+    background-color: var(--dashboard-fondoSecundario);
+    flex-shrink: 0;
+}
+
+.panelChatHistorialTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.panelChatHistorialBotonParticipantes {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background: transparent;
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.panelChatHistorialBotonParticipantes:hover {
+    color: var(--dashboard-textoNormal);
+    border-color: var(--dashboard-textoApagado);
+    background-color: var(--dashboard-fondoHover);
+}
+
+.panelChatHistorialBotonParticipantes--activo {
+    color: var(--dashboard-textoActivo);
+    border-color: var(--dashboard-textoActivo);
+    background-color: rgba(34, 197, 94, 0.08);
+}
+
+/* 
+ * CONTENIDO
+ */
+.panelChatHistorialContenido {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 
+ * TIMELINE UNIFICADO
+ */
+.panelChatHistorialTimeline {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.timelineContenedor {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--dashboard-espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+}
+
+/* Scrollbar */
+.timelineContenedor::-webkit-scrollbar {
+    width: var(--dashboard-scrollbarAncho);
+}
+
+.timelineContenedor::-webkit-scrollbar-track {
+    background: var(--dashboard-scrollbarFondo);
+}
+
+.timelineContenedor::-webkit-scrollbar-thumb {
+    background: var(--dashboard-scrollbarThumb);
+    border-radius: 2px;
+}
+
+/* Firefox */
+.timelineContenedor {
+    scrollbar-width: thin;
+    scrollbar-color: var(--dashboard-scrollbarThumb) var(--dashboard-scrollbarFondo);
+}
+
+/* 
+ * MENSAJE SISTEMA (HISTORIAL)
+ * Centrado, muy sutil, sin icono
+ */
+.timelineMensajeSistema {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioSm);
+    padding: 2px 0;
+    opacity: 0.6;
+}
+
+.timelineMensajeSistemaIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoMuyApagado);
+    flex-shrink: 0;
+}
+
+.timelineMensajeSistemaTexto {
+    color: var(--dashboard-textoApagado);
+    font-size: 0.7rem;
+    font-style: italic;
+}
+
+.timelineMensajeSistemaFecha {
+    color: var(--dashboard-textoMuyApagado);
+    font-size: 0.6rem;
+    white-space: nowrap;
+}
+
+/* 
+ * MENSAJE USUARIO (CHAT)
+ * Burbujas alineadas izq/der
+ */
+.timelineMensajeUsuario {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+    max-width: 85%;
+}
+
+.timelineMensajeUsuario--enviado {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.timelineMensajeUsuario--recibido {
+    align-self: flex-start;
+}
+
+.timelineMensajeAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.timelineMensajeAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.timelineMensajeAvatar span {
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-weight: 600;
+}
+
+.timelineMensajeBurbuja {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    max-width: 100%;
+}
+
+.timelineMensajeUsuario--enviado .timelineMensajeBurbuja {
+    background-color: rgba(34, 197, 94, 0.08);
+    border-color: rgba(34, 197, 94, 0.25);
+}
+
+.timelineMensajeNombre {
+    color: var(--dashboard-textoApagado);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.timelineMensajeContenido {
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.timelineMensajeFecha {
+    color: var(--dashboard-textoMuyApagado);
+    font-size: 0.65rem;
+    align-self: flex-end;
+}
+
+/* 
+ * INPUT DE MENSAJE
+ */
+.timelineInput {
+    display: flex;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd);
+    border-top: 1px solid var(--dashboard-bordePrincipal);
+    background-color: var(--dashboard-fondoSecundario);
+    flex-shrink: 0;
+    max-height: 58px;
+}
+
+.timelineInputTexto {
+    flex: 1;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    outline: none;
+    transition: border-color var(--dashboard-transicionNormal);
+}
+
+.timelineInputTexto:focus {
+    border-color: var(--dashboard-textoApagado);
+}
+
+.timelineInputTexto:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.timelineInputTexto::placeholder {
+    color: var(--dashboard-textoPlaceholder);
+}
+
+.timelineBotonEnviar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    color: var(--dashboard-textoApagado);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+}
+
+.timelineBotonEnviar:hover:not(:disabled) {
+    color: var(--dashboard-textoActivo);
+    border-color: var(--dashboard-textoApagado);
+}
+
+.timelineBotonEnviar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 
+ * VISTA: PARTICIPANTES
+ */
+.panelChatHistorialParticipantes {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--dashboard-espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+}
+
+.panelChatHistorialParticipante {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.panelChatHistorialParticipanteAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.panelChatHistorialParticipanteAvatarPlaceholder {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--dashboard-fondoPrincipal);
+    border: 1px solid var(--dashboard-bordePrincipal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.panelChatHistorialParticipanteNombre {
+    color: var(--dashboard-textoNormal);
+    font-size: var(--dashboard-tamanoBase);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 
+ * ESTADO VACIO
+ */
+.panelChatHistorialVacio {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioMd);
+    color: var(--dashboard-textoMuyApagado);
+    padding: var(--dashboard-espacioXl);
+}
+
+.panelChatHistorialVacio span {
+    font-size: var(--dashboard-tamanoBase);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* 
+ * SEPARADOR DE DÍA
+ * Línea horizontal con fecha centrada
+ */
+.timelineSeparadorDia {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioMd);
+    padding: var(--dashboard-espacioSm) 0;
+    margin: var(--dashboard-espacioSm) 0;
+}
+
+.timelineSeparadorDiaLinea {
+    flex: 1;
+    height: 1px;
+    background-color: var(--dashboard-bordePrincipal);
+}
+
+.timelineSeparadorDiaTexto {
+    color: var(--dashboard-textoMuyApagado);
+    font-size: 0.7rem;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    padding: var(--dashboard-espacioXs) var(--dashboard-espacioSm);
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordePrincipal);
+}
+
+/* 
+ * LEGACY: Clases antiguas de pestañas (mantener por compatibilidad)
+ */
+.panelChatHistorialPestanas {
+    display: none;
+}

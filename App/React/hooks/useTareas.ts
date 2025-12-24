@@ -8,6 +8,7 @@ import {useCallback} from 'react';
 import type {Tarea, DatosEdicionTarea} from '../types/dashboard';
 import {obtenerFechaHoy, sumarDias} from '../utils/fecha';
 import {obtenerSubtareas} from '../utils/jerarquiaTareas';
+import {registrarEventoSistema, type AccionSistema} from './useMensajes';
 
 export interface UseTareasParams {
     tareas: Tarea[];
@@ -22,6 +23,64 @@ export interface UseTareasReturn {
     editarTarea: (id: number, datos: DatosEdicionTarea) => void;
     eliminarTarea: (id: number) => void;
     reordenarTareas: (tareas: Tarea[]) => void;
+}
+
+/*
+ * Detecta cambios entre la tarea anterior y los nuevos datos
+ * Registra cada cambio como un evento en el sistema de historial
+ */
+function registrarEventosCambios(tareaId: number, tareaAnterior: Tarea, datos: DatosEdicionTarea): void {
+    /* Evitar registrar eventos para IDs temporales (creación local) */
+    if (tareaId <= 0) return;
+
+    /* Cambio de nombre */
+    if (datos.texto !== undefined && datos.texto !== tareaAnterior.texto) {
+        registrarEventoSistema('tarea', tareaId, 'nombre', `"${tareaAnterior.texto}" → "${datos.texto}"`);
+    }
+
+    /* Cambio de prioridad */
+    if (datos.prioridad !== undefined && datos.prioridad !== tareaAnterior.prioridad) {
+        const anterior = tareaAnterior.prioridad || 'sin prioridad';
+        const nuevo = datos.prioridad || 'sin prioridad';
+        registrarEventoSistema('tarea', tareaId, 'prioridad', `${anterior} → ${nuevo}`);
+    }
+
+    /* Cambio de urgencia */
+    if (datos.urgencia !== undefined && datos.urgencia !== tareaAnterior.urgencia) {
+        const anterior = tareaAnterior.urgencia || 'normal';
+        const nuevo = datos.urgencia || 'normal';
+        registrarEventoSistema('tarea', tareaId, 'urgencia', `${anterior} → ${nuevo}`);
+    }
+
+    /* Cambio de fecha límite */
+    const fechaAnterior = tareaAnterior.configuracion?.fechaMaxima;
+    const fechaNueva = datos.configuracion?.fechaMaxima;
+    if (fechaNueva !== undefined && fechaNueva !== fechaAnterior) {
+        const anterior = fechaAnterior || 'sin fecha';
+        const nuevo = fechaNueva || 'sin fecha';
+        registrarEventoSistema('tarea', tareaId, 'fecha_limite', `${anterior} → ${nuevo}`);
+    }
+
+    /* Cambio de descripción */
+    const descAnterior = tareaAnterior.configuracion?.descripcion;
+    const descNueva = datos.configuracion?.descripcion;
+    if (descNueva !== undefined && descNueva !== descAnterior) {
+        registrarEventoSistema('tarea', tareaId, 'descripcion');
+    }
+
+    /* Cambio de asignación */
+    if (datos.asignadoA !== undefined && datos.asignadoA !== tareaAnterior.asignadoA) {
+        if (datos.asignadoA === null && tareaAnterior.asignadoA) {
+            /* Desasignación: solo si había alguien asignado previamente */
+            registrarEventoSistema('tarea', tareaId, 'desasignado', tareaAnterior.asignadoANombre || 'usuario');
+        } else if (datos.asignadoA && !tareaAnterior.asignadoA && datos.asignadoANombre) {
+            /* Nueva asignación: solo si hay un nombre válido */
+            registrarEventoSistema('tarea', tareaId, 'asignado', datos.asignadoANombre);
+        } else if (datos.asignadoA && tareaAnterior.asignadoA && datos.asignadoANombre) {
+            /* Cambio de asignación: solo si ambos nombres están disponibles */
+            registrarEventoSistema('tarea', tareaId, 'asignado', `${tareaAnterior.asignadoANombre || 'anterior'} → ${datos.asignadoANombre}`);
+        }
+    }
 }
 
 export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: UseTareasParams): UseTareasReturn {
@@ -92,6 +151,10 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
 
                 return actualizadas;
             });
+
+            /* Registrar evento en el sistema de historial */
+            const accionSistema: AccionSistema = estadoAnterior ? 'reabierto' : 'completado';
+            registrarEventoSistema('tarea', id, accionSistema);
 
             registrarAccion(`Tarea "${tarea.texto.substring(0, 30)}..." ${accion}`, () => {
                 setTareas(prev => {
@@ -166,6 +229,10 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                 return nuevaLista.map((t, idx) => ({...t, orden: idx}));
             });
 
+            /* Nota: El evento 'creado' se registra después de que la tarea se sincronice
+             * con el servidor y obtenga un ID real. Esto evita registrar eventos
+             * para IDs temporales que luego cambian. */
+
             registrarAccion(`Tarea creada`, () => {
                 setTareas(prev => prev.filter(t => t.id !== nuevoId));
             });
@@ -227,6 +294,7 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
 
     /*
      * Editar una tarea existente con soporte de deshacer
+     * Registra eventos del sistema cuando se detectan cambios significativos
      */
     const editarTarea = useCallback(
         (id: number, datos: DatosEdicionTarea) => {
@@ -291,6 +359,9 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                     return tareaActualizada;
                 })
             );
+
+            /* Registrar eventos del sistema para cambios detectados */
+            registrarEventosCambios(id, tareaAnterior, datos);
 
             registrarAccion(`Tarea editada`, () => {
                 setTareas(prev => prev.map(t => (t.id === id ? tareaAnterior : t)));

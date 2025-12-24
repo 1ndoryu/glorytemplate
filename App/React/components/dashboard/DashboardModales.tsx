@@ -58,20 +58,11 @@ export function DashboardModales({ctx}: DashboardModalesProps): JSX.Element {
 
             {/* Modales de Hábitos */}
             <ModalHabito estaAbierto={dashboard.modalCrearHabitoAbierto} onCerrar={dashboard.cerrarModalCrearHabito} onGuardar={dashboard.crearHabito} />
-            <ModalHabito estaAbierto={dashboard.habitoEditando !== null} onCerrar={dashboard.cerrarModalEditarHabito} onGuardar={datos => dashboard.editarHabito(dashboard.habitoEditando!.id, datos)} onEliminar={() => dashboard.eliminarHabito(dashboard.habitoEditando!.id)} habito={dashboard.habitoEditando ?? undefined} />
+            <ModalHabito estaAbierto={dashboard.habitoEditando !== null} onCerrar={dashboard.cerrarModalEditarHabito} onGuardar={datos => dashboard.editarHabito(dashboard.habitoEditando!.id, datos)} habito={dashboard.habitoEditando ?? undefined} />
 
             {/* Modales de Proyectos */}
             <ModalProyecto estaAbierto={modales.modalCrearProyectoAbierto} onCerrar={modales.cerrarModalCrearProyecto} onGuardar={acciones.manejarGuardarNuevoProyecto} />
-            <ModalProyecto
-                estaAbierto={modales.proyectoEditando !== null}
-                onCerrar={modales.cerrarModalEditarProyecto}
-                onGuardar={acciones.manejarGuardarEdicionProyecto}
-                onEliminar={() => {
-                    dashboard.eliminarProyecto(modales.proyectoEditando!.id);
-                    modales.cerrarModalEditarProyecto();
-                }}
-                proyecto={modales.proyectoEditando ?? undefined}
-            />
+            <ModalProyecto estaAbierto={modales.proyectoEditando !== null} onCerrar={modales.cerrarModalEditarProyecto} onGuardar={acciones.manejarGuardarEdicionProyecto} proyecto={modales.proyectoEditando ?? undefined} participantes={modales.proyectoEditando ? compartir.cacheParticipantesProyecto.get(modales.proyectoEditando.id) ?? [] : []} />
 
             {/* Modales de Configuración */}
             <ModalConfiguracionTareas estaAbierto={modales.modalConfigTareasAbierto} onCerrar={modales.cerrarModalConfigTareas} configuracion={configTareas.configuracion} onToggleCompletadas={configTareas.toggleOcultarCompletadas} onToggleBadgeProyecto={configTareas.toggleOcultarBadgeProyecto} onToggleEliminarCompletadas={configTareas.toggleEliminarCompletadasDespuesDeUnDia} onToggleMostrarHabitos={configTareas.toggleMostrarHabitosEnEjecucion} />

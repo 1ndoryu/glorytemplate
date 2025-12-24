@@ -24,3 +24,5 @@ export {useAlertas} from './useAlertas';
 export type {TipoAlerta, AlertaToast, AlertaConfirmacion, UseAlertasReturn} from './useAlertas';
 export {useAlmacenamiento} from './useAlmacenamiento';
 export {useAdjuntos} from './useAdjuntos';
+export {useMensajes, useMensajesNoLeidos, registrarEventoSistema, obtenerTipoVisual, obtenerIconoAccion} from './useMensajes';
+export type {MensajeTimeline, TipoMensaje, AccionSistema} from './useMensajes';

@@ -481,12 +481,66 @@ class NotificacionesService
             $usuarioDestinoId,
             self::TIPO_TAREA_REMOVIDA,
             "Tarea desasignada",
-            "Ya no estás asignado a la tarea: \"{$textoCorto}\"",
+            "Ya no estas asignado a la tarea: \"{$textoCorto}\"",
             [
                 'tareaId' => $tareaId,
                 'tareaTexto' => $tareaTexto,
                 'removidoPor' => $usuarioOrigenId,
                 'removidoPorNombre' => $nombreOrigen,
+            ]
+        );
+    }
+
+    /**
+     * Crea notificacion cuando se recibe un mensaje en un elemento compartido
+     *
+     * @param int $usuarioDestinoId Usuario que recibe la notificacion
+     * @param int $usuarioOrigenId Usuario que envio el mensaje
+     * @param string $tipoElemento Tipo de elemento (tarea, proyecto, habito)
+     * @param int $elementoId ID del elemento
+     * @param string $elementoNombre Nombre/texto del elemento
+     * @param string $mensajePreview Preview del mensaje (primeros caracteres)
+     * @return array Resultado de la operacion
+     */
+    public function notificarMensajeChat(
+        int $usuarioDestinoId,
+        int $usuarioOrigenId,
+        string $tipoElemento,
+        int $elementoId,
+        string $elementoNombre,
+        string $mensajePreview
+    ): array {
+        $usuarioOrigen = get_user_by('ID', $usuarioOrigenId);
+        $nombreOrigen = $usuarioOrigen ? $usuarioOrigen->display_name : 'Alguien';
+
+        $tiposLegibles = [
+            'tarea' => 'tarea',
+            'proyecto' => 'proyecto',
+            'habito' => 'habito'
+        ];
+        $tipoLegible = $tiposLegibles[$tipoElemento] ?? $tipoElemento;
+
+        $elementoCorto = strlen($elementoNombre) > 30
+            ? substr($elementoNombre, 0, 30) . '...'
+            : $elementoNombre;
+
+        $mensajeCorto = strlen($mensajePreview) > 50
+            ? substr($mensajePreview, 0, 50) . '...'
+            : $mensajePreview;
+
+        return $this->crear(
+            $usuarioDestinoId,
+            self::TIPO_MENSAJE_CHAT,
+            "Nuevo mensaje de {$nombreOrigen}",
+            "En {$tipoLegible} \"{$elementoCorto}\": \"{$mensajeCorto}\"",
+            [
+                'tipoElemento' => $tipoElemento,
+                'elementoId' => $elementoId,
+                'elementoNombre' => $elementoNombre,
+                'mensajePreview' => $mensajePreview,
+                'enviadoPor' => $usuarioOrigenId,
+                'enviadoPorNombre' => $nombreOrigen,
+                'enviadoPorAvatar' => $usuarioOrigen ? get_avatar_url($usuarioOrigenId, ['size' => 48]) : '',
             ]
         );
     }

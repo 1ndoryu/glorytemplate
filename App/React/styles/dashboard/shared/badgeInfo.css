@@ -260,3 +260,43 @@
         transform: rotate(360deg);
     }
 }
+
+/* 
+ * MENSAJE NO LEIDO
+ * Badge para indicar mensajes sin leer en tareas compartidas
+ * Color azul distintivo con animación de pulsación
+ */
+.badgeInfo--mensajeNoLeido {
+    color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.4);
+    font-weight: 600;
+    padding: 2px 6px;
+    animation: pulsarMensaje 2s ease-in-out infinite;
+}
+
+.badgeInfo--mensajeNoLeido .badgeInfoIcono {
+    animation: reboteMensaje 1s ease-in-out infinite;
+}
+
+@keyframes pulsarMensaje {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.85;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes reboteMensaje {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-1px);
+    }
+}

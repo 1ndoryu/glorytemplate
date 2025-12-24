@@ -16,9 +16,11 @@ interface AccionesFormularioProps {
     /* Si se proporciona, muestra la zona de peligro */
     onEliminar?: () => void;
     textoEliminar?: string;
+    /* Elementos adicionales (botones extra) */
+    children?: React.ReactNode;
 }
 
-export function AccionesFormulario({onCancelar, onGuardar, textoGuardar = 'Guardar', guardando = false, onEliminar, textoEliminar = 'Eliminar'}: AccionesFormularioProps): JSX.Element {
+export function AccionesFormulario({onCancelar, onGuardar, textoGuardar = 'Guardar', guardando = false, onEliminar, textoEliminar = 'Eliminar', children}: AccionesFormularioProps): JSX.Element {
     const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
 
     return (
@@ -49,6 +51,8 @@ export function AccionesFormulario({onCancelar, onGuardar, textoGuardar = 'Guard
 
             {/* Botones de accion principales */}
             <div className="accionesFormularioContenedor">
+                {/* Elementos adicionales a la izquierda */}
+                {children && <div className="accionesFormularioExtra">{children}</div>}
                 <button type="button" className="accionesFormularioBotonCancelar" onClick={onCancelar} disabled={guardando}>
                     Cancelar
                 </button>

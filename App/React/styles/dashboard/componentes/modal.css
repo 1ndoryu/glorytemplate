@@ -22,7 +22,7 @@
 .modalContenedor {
     width: 100%;
     max-width: 420px;
-    max-height: calc(100vh - 2rem);
+    max-height: calc(100vh - 1rem);
     display: flex;
     flex-direction: column;
     background-color: var(--dashboard-fondoSecundario);
@@ -96,4 +96,33 @@
 .modalContenido {
     scrollbar-width: thin;
     scrollbar-color: var(--dashboard-scrollbarThumb) var(--dashboard-scrollbarFondo);
+}
+
+/* 
+ * MODAL EXPANDIDO - DOBLE COLUMNA
+ * Variante para modales con 2 columnas (ej: tarea con chat)
+ */
+.modalContenedor--expandido {
+    max-width: 825px;
+}
+
+.modalContenedor--expandido .modalContenido {
+    padding: 0;
+}
+
+/* 
+ * Responsive: en pantallas pequeñas, el modal expandido ocupa todo el ancho
+ */
+@media (max-width: 960px) {
+    .modalContenedor--expandido {
+        max-width: calc(100vw - 2rem);
+    }
+}
+
+/* 
+ * MODAL COLAPSADO - CHAT OCULTO
+ * Cuando el panel de chat está oculto, el modal es más angosto
+ */
+.modalContenedor--expandido:has(.panelConfiguracionDosColumnas--sinChat) {
+    max-width: 425px;
 }

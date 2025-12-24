@@ -6,9 +6,9 @@ class Schema
 {
     /**
      * Versión actual de la base de datos
-     * v1.0.6: Reparación de tabla compartidos (columnas fecha_compartido, propietario_id)
+     * v1.0.8: Tabla de mensajes_leidos para sistema de notificaciones no leídas
      */
-    public const DB_VERSION = '1.0.6';
+    public const DB_VERSION = '1.0.8';
 
     /**
      * Nombre de la opción donde guardamos la versión instalada
@@ -36,18 +36,18 @@ class Schema
     private static function repairTables(): void
     {
         global $wpdb;
-        
+
         $table_compartidos = $wpdb->prefix . 'glory_compartidos';
-        
+
         /* Verificar si la tabla existe */
         $tabla_existe = $wpdb->get_var(
             $wpdb->prepare("SHOW TABLES LIKE %s", $table_compartidos)
         );
-        
+
         if (!$tabla_existe) {
             return;
         }
-        
+
         /* Verificar y añadir columna propietario_id si falta */
         $columna_propietario = $wpdb->get_var(
             $wpdb->prepare(
@@ -57,12 +57,12 @@ class Schema
                 $table_compartidos
             )
         );
-        
+
         if (!$columna_propietario) {
             $wpdb->query("ALTER TABLE $table_compartidos ADD COLUMN propietario_id bigint(20) NOT NULL AFTER elemento_id");
             $wpdb->query("ALTER TABLE $table_compartidos ADD KEY propietario_id (propietario_id)");
         }
-        
+
         /* Verificar y añadir columna fecha_compartido si falta */
         $columna_fecha = $wpdb->get_var(
             $wpdb->prepare(
@@ -72,11 +72,11 @@ class Schema
                 $table_compartidos
             )
         );
-        
+
         if (!$columna_fecha) {
             $wpdb->query("ALTER TABLE $table_compartidos ADD COLUMN fecha_compartido datetime DEFAULT CURRENT_TIMESTAMP AFTER rol");
         }
-        
+
         /* Verificar y añadir columna rol si falta */
         $columna_rol = $wpdb->get_var(
             $wpdb->prepare(
@@ -86,7 +86,7 @@ class Schema
                 $table_compartidos
             )
         );
-        
+
         if (!$columna_rol) {
             $wpdb->query("ALTER TABLE $table_compartidos ADD COLUMN rol varchar(50) DEFAULT 'colaborador' AFTER usuario_id");
         }
@@ -233,12 +233,58 @@ class Schema
             UNIQUE KEY elemento_usuario (tipo, elemento_id, propietario_id, usuario_id)
         ) $charset_collate;";
 
+        /* Tabla de Mensajes (Timeline Unificado Chat + Historial)
+         * tipo_elemento: 'tarea', 'proyecto', 'habito'
+         * tipo_mensaje: 'usuario' (chat), 'sistema' (historial de cambios)
+         * accion_sistema: 'creado', 'editado', 'completado', 'reabierto', 'asignado', 'adjunto', 'prioridad', 'urgencia', 'fecha_limite'
+         */
+        $table_mensajes = $wpdb->prefix . 'glory_mensajes';
+        $sql_mensajes = "CREATE TABLE $table_mensajes (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            tipo_elemento varchar(50) NOT NULL,
+            elemento_id bigint(20) NOT NULL,
+            usuario_id bigint(20) NOT NULL,
+            tipo_mensaje varchar(50) NOT NULL DEFAULT 'usuario',
+            contenido text NOT NULL,
+            accion_sistema varchar(50) DEFAULT NULL,
+            datos_extra longtext DEFAULT NULL,
+            fecha_creacion datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY tipo_elemento (tipo_elemento),
+            KEY elemento_id (elemento_id),
+            KEY usuario_id (usuario_id),
+            KEY tipo_mensaje (tipo_mensaje),
+            KEY fecha_creacion (fecha_creacion)
+        ) $charset_collate;";
+
+        /* 
+         * Tabla de Mensajes Leídos (Sistema de Notificaciones No Leídas)
+         * Trackea el último mensaje visto por cada usuario en cada elemento
+         * Permite calcular cuántos mensajes nuevos hay sin leer
+         */
+        $table_mensajes_leidos = $wpdb->prefix . 'glory_mensajes_leidos';
+        $sql_mensajes_leidos = "CREATE TABLE $table_mensajes_leidos (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            usuario_id bigint(20) NOT NULL,
+            tipo_elemento varchar(50) NOT NULL,
+            elemento_id bigint(20) NOT NULL,
+            ultimo_mensaje_leido bigint(20) NOT NULL DEFAULT 0,
+            fecha_lectura datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            UNIQUE KEY usuario_elemento (usuario_id, tipo_elemento, elemento_id),
+            KEY usuario_id (usuario_id),
+            KEY tipo_elemento (tipo_elemento),
+            KEY elemento_id (elemento_id)
+        ) $charset_collate;";
+
         dbDelta($sql_habitos);
         dbDelta($sql_equipos);
         dbDelta($sql_notificaciones);
         dbDelta($sql_tareas);
         dbDelta($sql_proyectos);
         dbDelta($sql_compartidos);
+        dbDelta($sql_mensajes);
+        dbDelta($sql_mensajes_leidos);
     }
 
     /**
@@ -248,5 +294,32 @@ class Schema
     {
         global $wpdb;
         return $wpdb->prefix . 'glory_' . $entity;
+    }
+
+    /**
+     * Asegura que una tabla existe, creandola si es necesario
+     * Util para tablas nuevas que pueden no existir en instalaciones antiguas
+     */
+    public static function ensureTableExists(string $entity): bool
+    {
+        global $wpdb;
+        $table = self::getTableName($entity);
+
+        /* Verificar si la tabla existe */
+        $tableExists = $wpdb->get_var(
+            $wpdb->prepare("SHOW TABLES LIKE %s", $table)
+        );
+
+        if ($tableExists) {
+            return true;
+        }
+
+        /* Si no existe, forzar la creacion de todas las tablas */
+        self::createTables();
+
+        /* Verificar nuevamente */
+        return (bool)$wpdb->get_var(
+            $wpdb->prepare("SHOW TABLES LIKE %s", $table)
+        );
     }
 }

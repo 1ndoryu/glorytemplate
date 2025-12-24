@@ -91,3 +91,10 @@
         transform: translateY(0);
     }
 }
+
+/* 
+ * CLASES DE UTILIDAD PARA ANIMACIONES
+ */
+.animacionGirar {
+    animation: rotarSpinner 1s linear infinite;
+}

@@ -4,6 +4,7 @@
  * Responsabilidad: prioridad, fecha limite, descripcion, repeticion, asignacion
  *
  * Usa campos compartidos: CampoTexto, CampoPrioridad, CampoFechaLimite
+ * Layout: 2 columnas (configuracion + chat/historial)
  */
 
 import {useState, useEffect, useRef, useCallback} from 'react';
@@ -12,6 +13,9 @@ import {AccionesFormulario, Modal, SeccionPanel, ToggleSwitch, CampoTexto, Campo
 import {SelectorFrecuencia} from './SelectorFrecuencia';
 import {SeccionAdjuntos} from './SeccionAdjuntos';
 import {SelectorAsignado} from '../compartidos/SelectorAsignado';
+import {PanelChatHistorial} from './PanelChatHistorial';
+import {useMensajesNoLeidos} from '../../hooks/useMensajes';
+import {MessageSquare, MessageSquareOff} from 'lucide-react';
 import type {FrecuenciaHabito, Adjunto} from '../../types/dashboard';
 
 export interface PanelConfiguracionTareaProps {
@@ -22,6 +26,8 @@ export interface PanelConfiguracionTareaProps {
     /* Participantes disponibles para asignar (opcional, solo si es tarea compartida) */
     participantes?: Participante[];
 }
+
+type PestanaModal = 'configuracion' | 'chat';
 
 export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar, participantes = []}: PanelConfiguracionTareaProps): JSX.Element | null {
     /* Estado local para edicion */
@@ -38,6 +44,15 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
     const [asignadoA, setAsignadoA] = useState<number | null>(tarea?.asignadoA || null);
     const [asignadoANombre, setAsignadoANombre] = useState<string>(tarea?.asignadoANombre || '');
     const [asignadoAAvatar, setAsignadoAAvatar] = useState<string>(tarea?.asignadoAAvatar || '');
+
+    /* Estado para pestañas responsive */
+    const [pestanaActiva, setPestanaActiva] = useState<PestanaModal>('configuracion');
+
+    /* Estado para visibilidad del panel de chat (persistido) */
+    const [chatVisible, setChatVisible] = useState<boolean>(() => {
+        const guardado = localStorage.getItem('glory_chat_panel_visible');
+        return guardado !== 'false';
+    });
 
     /* Referencia al estado inicial para detectar cambios */
     const estadoInicialRef = useRef<{
@@ -221,52 +236,106 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
     const esModoCreacion = !tarea;
     const tieneParticipantes = participantes.length > 0;
 
+    /* Toggle visibilidad del panel de chat */
+    const toggleChatVisible = useCallback(() => {
+        setChatVisible(prev => {
+            const nuevoValor = !prev;
+            localStorage.setItem('glory_chat_panel_visible', String(nuevoValor));
+            return nuevoValor;
+        });
+    }, []);
+
+    /* Obtener mensajes no leídos para esta tarea */
+    const tareaIdParaMensajes = tarea?.id && tarea.id > 0 ? [tarea.id] : [];
+    const {noLeidos: mensajesNoLeidos} = useMensajesNoLeidos('tarea', tareaIdParaMensajes);
+    const tieneMensajesSinLeer = tarea?.id ? (mensajesNoLeidos[tarea.id] || 0) > 0 : false;
+
+    /* Participantes para el panel de chat */
+    const participantesChat = participantes.map(p => ({
+        id: p.usuarioId,
+        nombre: p.nombre,
+        avatar: p.avatar
+    }));
+
     return (
-        <Modal estaAbierto={estaAbierto} onCerrar={manejarCerrarConGuardado} titulo={esModoCreacion ? 'Nueva Tarea' : 'Configurar Tarea'} claseExtra="panelConfiguracionContenedor">
-            <div className="panelConfiguracionContenido" style={{padding: 0}}>
-                {/* Nombre de la tarea - Campo reutilizable */}
-                <CampoTexto titulo="Nombre de la tarea" valor={texto} onChange={setTexto} placeholder="Nombre de la tarea" />
-
-                {/* Prioridad - Campo reutilizable */}
-                <CampoPrioridad<NivelPrioridad> tipo="prioridad" valor={prioridad} onChange={setPrioridad} permitirNulo={true} />
-
-                {/* Urgencia - Temporalidad (bloqueante, urgente, normal, chill) */}
-                <CampoUrgencia valor={urgencia} onChange={setUrgencia} permitirNulo={true} />
-
-                {/* Fecha Limite - Campo reutilizable */}
-                <CampoFechaLimite valor={fechaMaxima} onChange={setFechaMaxima} />
-
-                {/* Descripcion - Campo reutilizable */}
-                <CampoTexto titulo="Descripcion" valor={descripcion} onChange={setDescripcion} placeholder="Notas adicionales sobre esta tarea..." tipo="textarea" filas={3} />
-
-                {/* Seccion: Asignacion (solo si hay participantes) */}
-                {tieneParticipantes && (
-                    <SeccionPanel titulo="Asignar a">
-                        <SelectorAsignado participantes={participantes} asignadoActual={asignadoA} onAsignar={manejarAsignacion} />
-                    </SeccionPanel>
-                )}
-
-                {/* Seccion: Repeticion */}
-                <SeccionPanel titulo="Repeticion">
-                    <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '-1.5rem'}}>
-                        <ToggleSwitch checked={tieneRepeticion} onChange={setTieneRepeticion} className="panelConfiguracionToggle" />
-                    </div>
-
-                    {tieneRepeticion && (
-                        <div className="panelConfiguracionRepeticion">
-                            <div style={{marginTop: '1rem'}}>
-                                <SelectorFrecuencia frecuencia={frecuencia} onChange={setFrecuencia} />
-                            </div>
-                        </div>
-                    )}
-                </SeccionPanel>
-
-                {/* Seccion: Adjuntos */}
-                <SeccionAdjuntos adjuntos={adjuntos} onChange={setAdjuntos} />
+        <Modal estaAbierto={estaAbierto} onCerrar={manejarCerrarConGuardado} titulo={esModoCreacion ? 'Nueva Tarea' : 'Configurar Tarea'} claseExtra="panelConfiguracionContenedor modalContenedor--expandido">
+            {/* Pestañas para móvil */}
+            <div className="panelConfiguracionPestanas">
+                <button type="button" className={`panelConfiguracionPestana ${pestanaActiva === 'configuracion' ? 'panelConfiguracionPestana--activa' : ''}`} onClick={() => setPestanaActiva('configuracion')}>
+                    Configuracion
+                </button>
+                <button type="button" className={`panelConfiguracionPestana ${pestanaActiva === 'chat' ? 'panelConfiguracionPestana--activa' : ''}`} onClick={() => setPestanaActiva('chat')}>
+                    Chat / Historial
+                </button>
             </div>
 
-            {/* Acciones reutilizables */}
-            <AccionesFormulario onCancelar={manejarCancelar} onGuardar={manejarGuardar} textoGuardar={esModoCreacion ? 'Crear Tarea' : 'Guardar'} />
+            {/* Layout de 2 columnas (o 1 si chat está oculto) */}
+            <div className={`panelConfiguracionDosColumnas ${!chatVisible ? 'panelConfiguracionDosColumnas--sinChat' : ''}`}>
+                {/* Columna Izquierda: Configuracion */}
+                <div className={`panelConfiguracionColumnaIzquierda ${pestanaActiva === 'configuracion' ? 'panelConfiguracionColumnaIzquierda--activa' : ''}`}>
+                    <div className="panelConfiguracionColumnaScroll">
+                        {/* Nombre de la tarea */}
+                        <CampoTexto titulo="Nombre de la tarea" valor={texto} onChange={setTexto} placeholder="Nombre de la tarea" />
+
+                        {/* Prioridad */}
+                        <CampoPrioridad<NivelPrioridad> tipo="prioridad" valor={prioridad} onChange={setPrioridad} permitirNulo={true} />
+
+                        {/* Urgencia */}
+                        <CampoUrgencia valor={urgencia} onChange={setUrgencia} permitirNulo={true} />
+
+                        {/* Fecha Limite */}
+                        <CampoFechaLimite valor={fechaMaxima} onChange={setFechaMaxima} />
+
+                        {/* Descripcion */}
+                        <CampoTexto titulo="Descripcion" valor={descripcion} onChange={setDescripcion} placeholder="Notas adicionales sobre esta tarea..." tipo="textarea" filas={3} />
+
+                        {/* Asignacion (solo si hay participantes) */}
+                        {tieneParticipantes && (
+                            <SeccionPanel titulo="Asignar a">
+                                <SelectorAsignado participantes={participantes} asignadoActual={asignadoA} onAsignar={manejarAsignacion} />
+                            </SeccionPanel>
+                        )}
+
+                        {/* Repeticion */}
+                        <SeccionPanel titulo="Repeticion">
+                            <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '-1.5rem'}}>
+                                <ToggleSwitch checked={tieneRepeticion} onChange={setTieneRepeticion} className="panelConfiguracionToggle" />
+                            </div>
+
+                            {tieneRepeticion && (
+                                <div className="panelConfiguracionRepeticion">
+                                    <div style={{marginTop: '1rem'}}>
+                                        <SelectorFrecuencia frecuencia={frecuencia} onChange={setFrecuencia} />
+                                    </div>
+                                </div>
+                            )}
+                        </SeccionPanel>
+
+                        {/* Adjuntos */}
+                        <SeccionAdjuntos adjuntos={adjuntos} onChange={setAdjuntos} />
+                    </div>
+
+                    {/* Acciones del formulario */}
+                    <AccionesFormulario onCancelar={manejarCancelar} onGuardar={manejarGuardar} textoGuardar={esModoCreacion ? 'Crear Tarea' : 'Guardar'}>
+                        {/* Botón para toggle del chat */}
+                        <button type="button" className={`accionesFormularioBotonChat ${tieneMensajesSinLeer && !chatVisible ? 'accionesFormularioBotonChat--noLeidos' : ''}`} onClick={toggleChatVisible} title={chatVisible ? 'Ocultar chat' : `Mostrar chat${tieneMensajesSinLeer ? ' (mensajes sin leer)' : ''}`}>
+                            {chatVisible ? <MessageSquareOff size={14} /> : <MessageSquare size={14} />}
+                        </button>
+                    </AccionesFormulario>
+                </div>
+
+                {/* Columna Derecha: Chat e Historial */}
+                {chatVisible && (
+                    <div className={`panelConfiguracionColumnaDerecha ${pestanaActiva === 'chat' ? 'panelConfiguracionColumnaDerecha--activa' : ''}`}>
+                        {tarea && <PanelChatHistorial elementoId={tarea.id} elementoTipo="tarea" participantes={participantesChat} />}
+                        {!tarea && (
+                            <div className="panelChatHistorialVacio">
+                                <span>Chat disponible despues de crear la tarea</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
         </Modal>
     );
 }

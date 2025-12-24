@@ -5,14 +5,19 @@
  *
  * Auto-guardado: al cerrar (overlay, ESC, X)
  * Cancelar: descarta cambios y cierra
+ *
+ * Fase 7.6: Incluye panel de chat/historial siempre en modo edición
+ * El historial es útil para ver cambios aunque no esté compartido
  */
 
 import {useState, useCallback, useEffect, useRef} from 'react';
-import {Plus, Tag} from 'lucide-react';
-import type {NivelImportancia, DatosNuevoHabito, FrecuenciaHabito, Habito} from '../../types/dashboard';
+import {MessageSquare, MessageSquareOff} from 'lucide-react';
+import type {NivelImportancia, DatosNuevoHabito, FrecuenciaHabito, Habito, Participante} from '../../types/dashboard';
 import {FRECUENCIA_POR_DEFECTO} from '../../types/dashboard';
 import {SelectorFrecuencia} from './SelectorFrecuencia';
 import {AccionesFormulario, Modal, SeccionPanel, SelectorNivel} from '../shared';
+import {PanelChatHistorial} from './PanelChatHistorial';
+import {useMensajesNoLeidos} from '../../hooks/useMensajes';
 
 type DatosFormulario = DatosNuevoHabito;
 
@@ -20,13 +25,16 @@ interface ModalHabitoProps {
     estaAbierto: boolean;
     onCerrar: () => void;
     onGuardar: (datos: DatosFormulario) => void;
-    onEliminar?: () => void;
     habito?: Habito;
+    /* Participantes del hábito (si está compartido - futuro Fase 10) */
+    participantes?: Participante[];
 }
 
 const IMPORTANCIAS: NivelImportancia[] = ['Alta', 'Media', 'Baja'];
 
-export function ModalHabito({estaAbierto, onCerrar, onGuardar, onEliminar, habito}: ModalHabitoProps): JSX.Element | null {
+type PestanaModal = 'configuracion' | 'chat';
+
+export function ModalHabito({estaAbierto, onCerrar, onGuardar, habito, participantes = []}: ModalHabitoProps): JSX.Element | null {
     const modoEdicion = !!habito;
 
     /* Estado local para edicion */
@@ -36,6 +44,15 @@ export function ModalHabito({estaAbierto, onCerrar, onGuardar, onEliminar, habit
     const [frecuencia, setFrecuencia] = useState<FrecuenciaHabito>(habito?.frecuencia || FRECUENCIA_POR_DEFECTO);
     const [nuevoTag, setNuevoTag] = useState('');
     const [errores, setErrores] = useState<{nombre?: string}>({});
+
+    /* Estado para pestañas responsive */
+    const [pestanaActiva, setPestanaActiva] = useState<PestanaModal>('configuracion');
+
+    /* Estado para visibilidad del panel de chat (persistido) */
+    const [chatVisible, setChatVisible] = useState<boolean>(() => {
+        const guardado = localStorage.getItem('glory_chat_panel_visible');
+        return guardado !== 'false';
+    });
 
     /* Referencia al estado inicial para detectar cambios */
     const estadoInicialRef = useRef<{
@@ -134,87 +151,97 @@ export function ModalHabito({estaAbierto, onCerrar, onGuardar, onEliminar, habit
         onCerrar();
     }, [onCerrar]);
 
-    const agregarTag = useCallback(() => {
-        const tagLimpio = nuevoTag
-            .trim()
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, '');
+    /* Toggle visibilidad del panel de chat */
+    const toggleChatVisible = useCallback(() => {
+        setChatVisible(prev => {
+            const nuevoValor = !prev;
+            localStorage.setItem('glory_chat_panel_visible', String(nuevoValor));
+            return nuevoValor;
+        });
+    }, []);
 
-        if (tagLimpio && !tags.includes(tagLimpio) && tags.length < 5) {
-            setTags([...tags, tagLimpio]);
-            setNuevoTag('');
-        }
-    }, [nuevoTag, tags]);
+    /* Obtener mensajes no leídos para este hábito */
+    const habitoIdParaMensajes = habito?.id && habito.id > 0 ? [habito.id] : [];
+    const {noLeidos: mensajesNoLeidos} = useMensajesNoLeidos('habito', habitoIdParaMensajes);
+    const tieneMensajesSinLeer = habito?.id ? (mensajesNoLeidos[habito.id] || 0) > 0 : false;
 
-    const manejarTeclaTag = useCallback(
-        (evento: React.KeyboardEvent) => {
-            if (evento.key === 'Enter') {
-                evento.preventDefault();
-                agregarTag();
-            }
-        },
-        [agregarTag]
-    );
+    /* Participantes para el panel de chat */
+    const participantesChat = participantes.map(p => ({
+        id: p.usuarioId,
+        nombre: p.nombre,
+        avatar: p.avatar
+    }));
 
-    const eliminarTag = useCallback(
-        (tagAEliminar: string) => {
-            setTags(tags.filter(t => t !== tagAEliminar));
-        },
-        [tags]
+    /* Mostrar chat siempre en modo edición (útil para ver historial) */
+    const mostrarChat = modoEdicion;
+    const mostrarChatColumna = mostrarChat && chatVisible;
+
+    /* Clase extra para modal expandido */
+    const claseModal = mostrarChat ? 'panelConfiguracionContenedor modalContenedor--expandido' : '';
+
+    /* Contenido del formulario (reutilizado en ambos modos) */
+    const renderizarFormulario = () => (
+        <>
+            {/* Campo Nombre */}
+            <SeccionPanel titulo="Nombre del habito">
+                <input id="habito-nombre" type="text" className={`formularioInput ${errores.nombre ? 'formularioInputError' : ''}`} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Leer 30 minutos" autoFocus />
+                {errores.nombre && <span className="formularioMensajeError">{errores.nombre}</span>}
+            </SeccionPanel>
+
+            {/* Campo Importancia */}
+            <SeccionPanel titulo="Importancia">
+                <SelectorNivel<NivelImportancia> niveles={IMPORTANCIAS} seleccionado={importancia} onSeleccionar={setImportancia} />
+            </SeccionPanel>
+
+            {/* Campo Frecuencia */}
+            <div className="formularioCampo">
+                <SelectorFrecuencia frecuencia={frecuencia} onChange={setFrecuencia} />
+            </div>
+        </>
     );
 
     return (
-        <Modal estaAbierto={estaAbierto} onCerrar={manejarCerrarConGuardado} titulo={modoEdicion ? 'Editar Habito' : 'Nuevo Habito'}>
-            <div id="modal-habito-contenido" className="formularioHabito">
-                {/* Campo Nombre */}
-                <SeccionPanel titulo="Nombre del habito">
-                    <input id="habito-nombre" type="text" className={`formularioInput ${errores.nombre ? 'formularioInputError' : ''}`} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Leer 30 minutos" autoFocus />
-                    {errores.nombre && <span className="formularioMensajeError">{errores.nombre}</span>}
-                </SeccionPanel>
-
-                {/* Campo Importancia */}
-                <SeccionPanel titulo="Importancia">
-                    <SelectorNivel<NivelImportancia> niveles={IMPORTANCIAS} seleccionado={importancia} onSeleccionar={setImportancia} />
-                </SeccionPanel>
-
-                {/* Campo Frecuencia */}
-                <div className="formularioCampo">
-                    <SelectorFrecuencia frecuencia={frecuencia} onChange={setFrecuencia} />
-                </div>
-
-                {/*
-                 * Campo Tags - OCULTO TEMPORALMENTE
-                 * El componente está funcional pero los tags no se usan actualmente.
-                 * Mantener el código para posible uso futuro.
-                 */}
-                {/* <div className="formularioCampo">
-                    <label htmlFor="habito-tags" className="formularioEtiqueta">
-                        Tags <span className="formularioEtiquetaOpcional">(opcional, max 5)</span>
-                    </label>
-                    <div className="formularioTagsInput">
-                        <Tag size={12} className="formularioTagsIcono" />
-                        <input id="habito-tags" type="text" className="formularioInputTag" value={nuevoTag} onChange={e => setNuevoTag(e.target.value)} onKeyDown={manejarTeclaTag} placeholder="Escribe y presiona Enter" disabled={tags.length >= 5} />
-                        <button type="button" className="formularioBotonAgregarTag" onClick={agregarTag} disabled={!nuevoTag.trim() || tags.length >= 5}>
-                            <Plus size={12} />
+        <Modal estaAbierto={estaAbierto} onCerrar={manejarCerrarConGuardado} titulo={modoEdicion ? 'Editar Habito' : 'Nuevo Habito'} claseExtra={claseModal}>
+            {mostrarChat ? (
+                <>
+                    {/* Pestañas para móvil */}
+                    <div className="panelConfiguracionPestanas">
+                        <button type="button" className={`panelConfiguracionPestana ${pestanaActiva === 'configuracion' ? 'panelConfiguracionPestana--activa' : ''}`} onClick={() => setPestanaActiva('configuracion')}>
+                            Configuracion
+                        </button>
+                        <button type="button" className={`panelConfiguracionPestana ${pestanaActiva === 'chat' ? 'panelConfiguracionPestana--activa' : ''}`} onClick={() => setPestanaActiva('chat')}>
+                            Chat / Historial
                         </button>
                     </div>
-                    {tags.length > 0 && (
-                        <div className="formularioTagsLista">
-                            {tags.map(tag => (
-                                <span key={tag} className="formularioTag">
-                                    #{tag}
-                                    <button type="button" className="formularioTagEliminar" onClick={() => eliminarTag(tag)}>
-                                        x
-                                    </button>
-                                </span>
-                            ))}
-                        </div>
-                    )}
-                </div> */}
-            </div>
 
-            {/* Acciones reutilizables */}
-            <AccionesFormulario onCancelar={manejarCancelar} onGuardar={manejarGuardar} textoGuardar={modoEdicion ? 'Guardar cambios' : 'Crear habito'} onEliminar={modoEdicion && onEliminar ? onEliminar : undefined} textoEliminar="Eliminar habito" />
+                    {/* Layout de 2 columnas */}
+                    <div className={`panelConfiguracionDosColumnas ${!mostrarChatColumna ? 'panelConfiguracionDosColumnas--sinChat' : ''}`}>
+                        {/* Columna Izquierda: Formulario */}
+                        <div className={`panelConfiguracionColumnaIzquierda ${pestanaActiva === 'configuracion' ? 'panelConfiguracionColumnaIzquierda--activa' : ''}`}>
+                            <div className="panelConfiguracionColumnaScroll">{renderizarFormulario()}</div>
+
+                            {/* Acciones - sin botón eliminar */}
+                            <AccionesFormulario onCancelar={manejarCancelar} onGuardar={manejarGuardar} textoGuardar="Guardar cambios">
+                                {/* Botón para toggle del chat */}
+                                <button type="button" className={`accionesFormularioBotonChat ${tieneMensajesSinLeer && !chatVisible ? 'accionesFormularioBotonChat--noLeidos' : ''}`} onClick={toggleChatVisible} title={chatVisible ? 'Ocultar chat' : `Mostrar chat${tieneMensajesSinLeer ? ' (mensajes sin leer)' : ''}`}>
+                                    {chatVisible ? <MessageSquareOff size={14} /> : <MessageSquare size={14} />}
+                                </button>
+                            </AccionesFormulario>
+                        </div>
+
+                        {/* Columna Derecha: Chat e Historial */}
+                        {mostrarChatColumna && <div className={`panelConfiguracionColumnaDerecha ${pestanaActiva === 'chat' ? 'panelConfiguracionColumnaDerecha--activa' : ''}`}>{habito && <PanelChatHistorial elementoId={habito.id} elementoTipo="habito" participantes={participantesChat} />}</div>}
+                    </div>
+                </>
+            ) : (
+                /* Modo simple para crear hábito nuevo */
+                <>
+                    <div id="modal-habito-contenido" className="formularioHabito">
+                        {renderizarFormulario()}
+                    </div>
+                    <AccionesFormulario onCancelar={manejarCancelar} onGuardar={manejarGuardar} textoGuardar="Crear habito" />
+                </>
+            )}
         </Modal>
     );
 }

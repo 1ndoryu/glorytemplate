@@ -15,6 +15,7 @@ import {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
 import {ModalMoverTarea} from './ModalMoverTarea';
 import {obtenerSubtareas, tieneSubtareas as utilTieneSubtareas, contarSubtareas as utilContarSubtareas, puedeSerSubtareaDe} from '../../utils/jerarquiaTareas';
 import {DashboardPanel} from '../shared/DashboardPanel';
+import {useMensajesNoLeidos} from '../../hooks/useMensajes';
 
 interface ListaTareasProps {
     tareas: Tarea[];
@@ -76,6 +77,13 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
      * Tareas-hábito pendientes (se renderizan sin drag)
      */
     const tareasHabitoPendientes = useMemo(() => pendientes.filter(t => esTareaHabito(t)), [pendientes]);
+
+    /*
+     * Hook para obtener mensajes no leídos de todas las tareas
+     * Solo consultamos tareas reales (no hábitos virtuales con IDs negativos)
+     */
+    const tareasIdsReales = useMemo(() => tareas.filter(t => t.id > 0).map(t => t.id), [tareas]);
+    const {noLeidos: mensajesNoLeidosPorTarea} = useMensajesNoLeidos('tarea', tareasIdsReales);
 
     /*
      * Umbral de pixels para detectar gesto horizontal
@@ -317,7 +325,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
 
         return (
             <div className="tareaConColapsador" key={`wrapper-${tarea.id}`}>
-                <TareaItem tarea={tarea} esSubtarea={esSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} onMoverProyecto={() => setTareaMoviendo(tarea)} onCompartir={() => onCompartirTarea?.(tarea)} estaCompartida={estaCompartida?.(tarea.id) ?? false} />
+                <TareaItem tarea={tarea} esSubtarea={esSubtarea} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onIndent={() => handleIndent(tarea.id)} onOutdent={() => handleOutdent(tarea.id)} onCrearNueva={handleCrearNueva} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} onMoverProyecto={() => setTareaMoviendo(tarea)} onCompartir={() => onCompartirTarea?.(tarea)} estaCompartida={estaCompartida?.(tarea.id) ?? false} mensajesNoLeidos={mensajesNoLeidosPorTarea[tarea.id] || 0} />
                 {/* Boton de colapsar a la derecha, solo si tiene subtareas */}
                 {esColapsable && (
                     <button className="tareaColapsadorBoton" onClick={() => toggleColapsar(tarea.id)} title={estaColapsada ? `Expandir ${numSubtareas.total} subtareas` : `Colapsar ${numSubtareas.total} subtareas`}>
@@ -431,7 +439,7 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
                         }
                     }
 
-                    return <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} onMoverProyecto={() => setTareaMoviendo(tarea)} onCompartir={() => onCompartirTarea?.(tarea)} estaCompartida={estaCompartida?.(tarea.id) ?? false} />;
+                    return <TareaItem key={tarea.id} tarea={tarea} esSubtarea={!!tarea.parentId} onToggle={() => onToggleTarea?.(tarea.id)} onEditar={datos => onEditarTarea?.(tarea.id, datos)} onEliminar={() => onEliminarTarea?.(tarea.id)} onConfigurar={() => abrirConfiguracion(tarea.id)} nombreProyecto={nombreProyecto} soloIconoProyecto={soloIcono} onMoverProyecto={() => setTareaMoviendo(tarea)} onCompartir={() => onCompartirTarea?.(tarea)} estaCompartida={estaCompartida?.(tarea.id) ?? false} mensajesNoLeidos={mensajesNoLeidosPorTarea[tarea.id] || 0} />;
                 })}
 
             {/* Panel de configuración */}

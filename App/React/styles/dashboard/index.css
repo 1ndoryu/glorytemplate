@@ -78,3 +78,6 @@
 
 /* Sistema de Compartidos */
 @import './componentes/compartidos.css';
+
+/* Chat e Historial */
+@import './componentes/chatHistorial.css';

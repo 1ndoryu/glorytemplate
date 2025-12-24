@@ -196,3 +196,146 @@
  * ACCIONES DEL PANEL
  * Gestionado por AccionesFormulario.tsx
  */
+
+/* 
+ * LAYOUT DOS COLUMNAS - MODAL EXPANDIDO
+ * Estructura para mostrar configuracion + chat/historial
+ */
+.panelConfiguracionDosColumnas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: calc(100vh - 10rem);
+    max-height: 600px;
+    min-height: 400px;
+}
+
+/* Variante sin chat: una sola columna */
+.panelConfiguracionDosColumnas--sinChat {
+    grid-template-columns: 1fr;
+}
+
+.panelConfiguracionDosColumnas--sinChat .panelConfiguracionColumnaIzquierda {
+    border-right: none;
+}
+
+.panelConfiguracionColumnaIzquierda {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--dashboard-bordePrincipal);
+    overflow: hidden;
+}
+
+/* 
+ * Ajuste para botones de acción dentro del modal expandido
+ * Centrados y con padding correcto
+ */
+.panelConfiguracionColumnaIzquierda .accionesFormularioContenedor {
+    padding: var(--dashboard-espacioMd) var(--dashboard-espacioLg);
+    background-color: var(--dashboard-fondoSecundario);
+    border-top: 1px solid var(--dashboard-bordePrincipal);
+    margin-top: 0;
+}
+
+.panelConfiguracionColumnaDerecha {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: var(--dashboard-fondoPrincipal);
+}
+
+.panelConfiguracionColumnaScroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--dashboard-espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioLg);
+}
+
+/* Scrollbar para columnas */
+.panelConfiguracionColumnaScroll::-webkit-scrollbar {
+    width: var(--dashboard-scrollbarAncho);
+}
+
+.panelConfiguracionColumnaScroll::-webkit-scrollbar-track {
+    background: var(--dashboard-scrollbarFondo);
+}
+
+.panelConfiguracionColumnaScroll::-webkit-scrollbar-thumb {
+    background: var(--dashboard-scrollbarThumb);
+    border-radius: 2px;
+}
+
+.panelConfiguracionColumnaScroll::-webkit-scrollbar-thumb:hover {
+    background: var(--dashboard-scrollbarThumbHover);
+}
+
+/* Firefox */
+.panelConfiguracionColumnaScroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--dashboard-scrollbarThumb) var(--dashboard-scrollbarFondo);
+}
+
+/* 
+ * PESTANAS PARA MOVIL
+ * En pantallas pequeñas, las columnas se convierten en pestañas
+ */
+.panelConfiguracionPestanas {
+    display: none;
+    border-bottom: 1px solid var(--dashboard-bordePrincipal);
+}
+
+.panelConfiguracionPestana {
+    flex: 1;
+    padding: var(--dashboard-espacioMd);
+    background: transparent;
+    border: none;
+    color: var(--dashboard-textoApagado);
+    font-size: var(--dashboard-tamanoBase);
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+    border-bottom: 2px solid transparent;
+}
+
+.panelConfiguracionPestana:hover {
+    color: var(--dashboard-textoNormal);
+    background-color: var(--dashboard-fondoHover);
+}
+
+.panelConfiguracionPestana--activa {
+    color: var(--dashboard-textoActivo);
+    border-bottom-color: var(--dashboard-textoActivo);
+}
+
+/* 
+ * RESPONSIVE: Modo pestañas en móvil
+ */
+@media (max-width: 700px) {
+    .panelConfiguracionDosColumnas {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .panelConfiguracionPestanas {
+        display: flex;
+    }
+
+    .panelConfiguracionColumnaIzquierda {
+        border-right: none;
+    }
+
+    .panelConfiguracionColumnaIzquierda,
+    .panelConfiguracionColumnaDerecha {
+        display: none;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .panelConfiguracionColumnaIzquierda--activa,
+    .panelConfiguracionColumnaDerecha--activa {
+        display: flex;
+    }
+}

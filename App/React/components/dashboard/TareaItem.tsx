@@ -4,7 +4,7 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
-import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder, Share2, Users, Zap, Repeat2} from 'lucide-react';
+import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder, Share2, Users, Zap, Repeat2, MessageCircle} from 'lucide-react';
 import type {Tarea, NivelPrioridad, NivelUrgencia, DatosEdicionTarea} from '../../types/dashboard';
 import {esTareaHabito} from '../../types/dashboard';
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
@@ -35,6 +35,8 @@ export interface TareaItemProps {
     onCompartir?: () => void;
     /* Indica si la tarea esta siendo compartida */
     estaCompartida?: boolean;
+    /* Contador de mensajes no leídos (para badge) */
+    mensajesNoLeidos?: number;
 }
 
 export interface MenuContextualEstado {
@@ -43,7 +45,7 @@ export interface MenuContextualEstado {
     y: number;
 }
 
-export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir, estaCompartida = false}: TareaItemProps): JSX.Element {
+export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir, estaCompartida = false, mensajesNoLeidos = 0}: TareaItemProps): JSX.Element {
     const [mostrarAcciones, setMostrarAcciones] = useState(false);
     const [editando, setEditando] = useState(false);
     const [textoEditado, setTextoEditado] = useState(tarea.texto);
@@ -322,6 +324,16 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
         return <BadgeInfo tipo="personalizado" icono={<Repeat2 size={10} />} texto={textoRacha} titulo={`Hábito: ${tarea.habitoNombre}${tarea.habitoRacha > 0 ? ` (racha: ${tarea.habitoRacha})` : ''}`} variante="habito" />;
     };
 
+    /* Renderizado del badge de mensajes no leídos */
+    const renderBadgeMensajesNoLeidos = () => {
+        if (mensajesNoLeidos <= 0) return null;
+
+        const texto = mensajesNoLeidos > 9 ? '9+' : mensajesNoLeidos.toString();
+        const titulo = mensajesNoLeidos === 1 ? '1 mensaje sin leer' : `${mensajesNoLeidos} mensajes sin leer`;
+
+        return <BadgeInfo tipo="personalizado" icono={<MessageCircle size={10} />} texto={texto} titulo={titulo} variante="mensajeNoLeido" onClick={onConfigurar} />;
+    };
+
     if (editando) {
         return (
             <div className={`tareaItem tareaItemEditando ${esSubtarea ? 'tareaItemSubtarea' : ''}`}>
@@ -354,6 +366,7 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                             {renderIndicadorPrioridad()}
                             {renderIndicadorUrgencia()}
                             {renderBadgeHabito()}
+                            {renderBadgeMensajesNoLeidos()}
                         </BadgeGroup>
                     </div>
                 </div>
