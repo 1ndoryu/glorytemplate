@@ -6,9 +6,9 @@ class Schema
 {
     /**
      * Versión actual de la base de datos
-     * v1.0.5: Añadido campo urgencia a tareas y proyectos para sistema de temporalidad
+     * v1.0.6: Reparación de tabla compartidos (columnas fecha_compartido, propietario_id)
      */
-    public const DB_VERSION = '1.0.5';
+    public const DB_VERSION = '1.0.6';
 
     /**
      * Nombre de la opción donde guardamos la versión instalada
@@ -24,7 +24,71 @@ class Schema
 
         if ($installed_ver !== self::DB_VERSION) {
             self::createTables();
+            self::repairTables();
             update_option(self::OPTION_DB_VERSION, self::DB_VERSION);
+        }
+    }
+
+    /**
+     * Repara tablas existentes añadiendo columnas faltantes
+     * Necesario porque dbDelta no siempre añade nuevas columnas correctamente
+     */
+    private static function repairTables(): void
+    {
+        global $wpdb;
+        
+        $table_compartidos = $wpdb->prefix . 'glory_compartidos';
+        
+        /* Verificar si la tabla existe */
+        $tabla_existe = $wpdb->get_var(
+            $wpdb->prepare("SHOW TABLES LIKE %s", $table_compartidos)
+        );
+        
+        if (!$tabla_existe) {
+            return;
+        }
+        
+        /* Verificar y añadir columna propietario_id si falta */
+        $columna_propietario = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+                 WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = 'propietario_id'",
+                DB_NAME,
+                $table_compartidos
+            )
+        );
+        
+        if (!$columna_propietario) {
+            $wpdb->query("ALTER TABLE $table_compartidos ADD COLUMN propietario_id bigint(20) NOT NULL AFTER elemento_id");
+            $wpdb->query("ALTER TABLE $table_compartidos ADD KEY propietario_id (propietario_id)");
+        }
+        
+        /* Verificar y añadir columna fecha_compartido si falta */
+        $columna_fecha = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+                 WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = 'fecha_compartido'",
+                DB_NAME,
+                $table_compartidos
+            )
+        );
+        
+        if (!$columna_fecha) {
+            $wpdb->query("ALTER TABLE $table_compartidos ADD COLUMN fecha_compartido datetime DEFAULT CURRENT_TIMESTAMP AFTER rol");
+        }
+        
+        /* Verificar y añadir columna rol si falta */
+        $columna_rol = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+                 WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = 'rol'",
+                DB_NAME,
+                $table_compartidos
+            )
+        );
+        
+        if (!$columna_rol) {
+            $wpdb->query("ALTER TABLE $table_compartidos ADD COLUMN rol varchar(50) DEFAULT 'colaborador' AFTER usuario_id");
         }
     }
 

@@ -144,8 +144,9 @@ export function SeccionAdjuntos({adjuntos, onChange, modoLegacy = false}: Seccio
 
     /**
      * Elimina un adjunto (de la lista y del servidor si es físico)
+     * Usa optimistic update: primero quita del UI, luego del servidor
      */
-    const eliminarAdjunto = async (id: number) => {
+    const eliminarAdjunto = (id: number) => {
         const adjunto = adjuntos.find(a => a.id === id);
         if (!adjunto) return;
 
@@ -155,13 +156,15 @@ export function SeccionAdjuntos({adjuntos, onChange, modoLegacy = false}: Seccio
             setPlayingId(null);
         }
 
-        /* Si es archivo físico (no Base64), eliminarlo del servidor */
-        if (!esBase64(adjunto.url)) {
-            await eliminarArchivoFisico(adjunto);
-        }
-
-        /* Quitar de la lista local */
+        /* Optimistic update: quitar de la lista local inmediatamente */
         onChange(adjuntos.filter(a => a.id !== id));
+
+        /* Si es archivo físico (no Base64), eliminarlo del servidor en segundo plano */
+        if (!esBase64(adjunto.url)) {
+            eliminarArchivoFisico(adjunto).catch(err => {
+                console.error('Error eliminando archivo del servidor:', err);
+            });
+        }
     };
 
     /* Funciones de Audio */
@@ -231,11 +234,21 @@ export function SeccionAdjuntos({adjuntos, onChange, modoLegacy = false}: Seccio
             setCargandoDescifrado(prev => ({...prev, [adjunto.id]: true}));
 
             try {
+                /* Obtener nonce para autenticación */
+                const gloryData = (window as any).gloryDashboard;
+                const nonce = gloryData?.nonce || '';
+
                 const response = await fetch(adjunto.url, {
-                    credentials: 'same-origin'
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-WP-Nonce': nonce
+                    }
                 });
 
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Sesión expirada. Recarga la página.');
+                    }
                     throw new Error('Error descargando archivo');
                 }
 
@@ -249,7 +262,8 @@ export function SeccionAdjuntos({adjuntos, onChange, modoLegacy = false}: Seccio
                     setPreviewImage({...adjunto, url: urlObjeto});
                 }
             } catch (err) {
-                setError('Error al cargar archivo cifrado');
+                const mensaje = err instanceof Error ? err.message : 'Error al cargar archivo cifrado';
+                setError(mensaje);
             } finally {
                 setCargandoDescifrado(prev => ({...prev, [adjunto.id]: false}));
             }

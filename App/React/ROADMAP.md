@@ -36,19 +36,18 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ### Críticos
 
-| Bug                          | Descripción                                                           | Posible Causa                                                                                           |
-| ---------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| **BD Compartidos**           | Error `Unknown column 'c.fecha_compartido'` y `c.propietario_id`      | Tabla `wp_glory_compartidos` no se creó o no se actualizó. Verificar que `glory_db_version` sea `1.0.4` |
-| **401 en Adjuntos Cifrados** | Error 401 Unauthorized al cargar imágenes `.enc` después de un tiempo | Token expirado o sesión perdida. Investigar si fue por refactorización o timeout                        |
+| Bug                              | Descripción                                                           | Estado                                                              |
+| -------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| ~~**BD Compartidos**~~           | Error `Unknown column 'c.fecha_compartido'` y `c.propietario_id`      | ✅ Arreglado v1.0.6 - Añadida función `repairTables()` en Schema.php |
+| ~~**401 en Adjuntos Cifrados**~~ | Error 401 Unauthorized al cargar imágenes `.enc` después de un tiempo | ✅ Arreglado - Añadido header `X-WP-Nonce` en SeccionAdjuntos.tsx    |
 
 ### Menores
 
-| Bug | Descripción | Estado |
-| --- | ----------- | ------ |
-
-| **Tooltips desbordados** | Los tooltips se salen de la pantalla a veces                            | Investigar posicionamiento |
-| **Adjuntos eliminados**  | Al eliminar adjunto, no se quita instantáneamente del UI                | Pendiente                  |
-| **Adjuntos múltiples**   | Al eliminar múltiples adjuntos, reaparecen algunos                      | Estado React               |
+| Bug                          | Descripción                                              | Estado                                                 |
+| ---------------------------- | -------------------------------------------------------- | ------------------------------------------------------ |
+| ~~**Tooltips desbordados**~~ | Los tooltips se salen de la pantalla a veces             | ✅ Arreglado - Detección de bordes en TooltipSystem.tsx |
+| ~~**Adjuntos eliminados**~~  | Al eliminar adjunto, no se quita instantáneamente del UI | ✅ Arreglado - Optimistic update en SeccionAdjuntos.tsx |
+| **Adjuntos múltiples**       | Al eliminar múltiples adjuntos, reaparecen algunos       | Pendiente - Investigar estado React                    |
 
 ---
 
