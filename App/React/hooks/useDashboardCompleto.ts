@@ -4,6 +4,7 @@
  * Simplifica el componente principal evitando múltiples llamadas a hooks
  */
 
+import {useMemo} from 'react';
 import {useDashboard} from './useDashboard';
 import {useAuth} from './useAuth';
 import {useSuscripcion} from './useSuscripcion';
@@ -22,6 +23,8 @@ import {useModalesDashboard} from './useModalesDashboard';
 import {useCompartirDashboard} from './useCompartirDashboard';
 import {useOpcionesDashboard} from './useOpcionesDashboard';
 import {useAccionesDashboard} from './useAccionesDashboard';
+import {useHabitosComoTareas} from './useHabitosComoTareas';
+import type {Tarea} from '../types/dashboard';
 
 export function useDashboardCompleto() {
     const dashboard = useDashboard();
@@ -36,12 +39,26 @@ export function useDashboardCompleto() {
 
     const ordenHabitos = useOrdenarHabitos(dashboard.habitos);
     const filtroTareas = useFiltroTareas(dashboard.tareas, dashboard.proyectos || []);
-    const ordenTareas = useOrdenarTareas(filtroTareas.tareasFiltradas);
 
     const configTareas = useConfiguracionTareas();
     const configHabitos = useConfiguracionHabitos();
     const configProyectos = useConfiguracionProyectos();
     const configScratchpad = useConfiguracionScratchpad();
+
+    /* Hook para convertir hábitos en tareas virtuales */
+    const habitosComoTareas = useHabitosComoTareas({
+        habitos: dashboard.habitos,
+        mostrarHabitos: configTareas.configuracion.mostrarHabitosEnEjecucion,
+        onToggleHabito: dashboard.toggleHabito
+    });
+
+    /* Combinar tareas filtradas con tareas-hábito */
+    const tareasConHabitos = useMemo<Tarea[]>(() => {
+        return [...filtroTareas.tareasFiltradas, ...habitosComoTareas.tareasHabito];
+    }, [filtroTareas.tareasFiltradas, habitosComoTareas.tareasHabito]);
+
+    /* Ordenar la combinación de tareas + tareas-hábito */
+    const ordenTareas = useOrdenarTareas(tareasConHabitos);
 
     const layout = useConfiguracionLayout();
     const arrastre = useArrastrePaneles(layout.ordenPaneles, layout.reordenarPanel);
@@ -86,6 +103,7 @@ export function useDashboardCompleto() {
         ordenHabitos,
         filtroTareas,
         ordenTareas,
+        habitosComoTareas,
         configTareas,
         configHabitos,
         configProyectos,

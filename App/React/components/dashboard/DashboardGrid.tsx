@@ -4,6 +4,7 @@
  * Extraído para reducir la complejidad de DashboardIsland
  */
 
+import {useCallback} from 'react';
 import {PanelArrastrable, HandleArrastre} from '../shared';
 import {PanelFocoPrioritario, PanelProyectos, PanelEjecucion, PanelScratchpad} from '../paneles';
 
@@ -15,7 +16,22 @@ interface DashboardGridProps {
 }
 
 export function DashboardGrid({ctx}: DashboardGridProps): JSX.Element {
-    const {dashboard, modales, compartir, ordenHabitos, filtroTareas, ordenTareas, configTareas, configHabitos, configProyectos, configScratchpad, layout, arrastre, opciones, acciones, valorFiltroActual} = ctx;
+    const {dashboard, modales, compartir, ordenHabitos, filtroTareas, ordenTareas, habitosComoTareas, configTareas, configHabitos, configProyectos, configScratchpad, layout, arrastre, opciones, acciones, valorFiltroActual} = ctx;
+
+    /*
+     * Handler que intercepta toggles de tareas-hábito
+     * Si es una tarea-hábito (ID negativo), llama al toggle del hábito
+     * Si es una tarea normal, llama al toggle de tarea
+     */
+    const manejarToggleTarea = useCallback(
+        (id: number) => {
+            const fueHabito = habitosComoTareas.manejarToggleTareaHabito(id);
+            if (!fueHabito) {
+                dashboard.toggleTarea(id);
+            }
+        },
+        [habitosComoTareas, dashboard]
+    );
 
     const renderizarContenidoPanel = (panelId: PanelId): JSX.Element | null => {
         const handleArrastreElement = <HandleArrastre panelId={panelId} onMouseDown={arrastre.iniciarArrastre} estaArrastrando={arrastre.panelArrastrando === panelId} />;
@@ -37,7 +53,7 @@ export function DashboardGrid({ctx}: DashboardGridProps): JSX.Element {
                     esOrdenManual={ordenTareas.esOrdenManual}
                     onAbrirModalNuevaTarea={modales.abrirModalNuevaTarea}
                     onAbrirModalConfigTareas={modales.abrirModalConfigTareas}
-                    onToggleTarea={dashboard.toggleTarea}
+                    onToggleTarea={manejarToggleTarea}
                     onCrearTarea={dashboard.crearTarea}
                     onEditarTarea={dashboard.editarTarea}
                     onEliminarTarea={dashboard.eliminarTarea}

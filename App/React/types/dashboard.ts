@@ -175,6 +175,36 @@ export interface Tarea {
     miRol?: RolCompartido;
 }
 
+/*
+ * Tarea virtual derivada de un hábito
+ * Aparece en Ejecución cuando "toca hoy" y está habilitada la opción
+ * La urgencia se calcula automáticamente basada en días de inactividad
+ */
+export interface TareaHabito extends Tarea {
+    /* Indica que es una tarea virtual de hábito */
+    esHabito: true;
+    /* ID del hábito origen */
+    habitoId: number;
+    /* Nombre del hábito (para mostrar badge) */
+    habitoNombre: string;
+    /* Racha actual del hábito */
+    habitoRacha: number;
+    /* Importancia del hábito */
+    habitoImportancia: 'Alta' | 'Media' | 'Baja';
+}
+
+/*
+ * Tipo unión para tareas regulares y tareas-hábito
+ */
+export type TareaOHabito = Tarea | TareaHabito;
+
+/*
+ * Type guard para verificar si una tarea es un hábito virtual
+ */
+export function esTareaHabito(tarea: TareaOHabito): tarea is TareaHabito {
+    return 'esHabito' in tarea && tarea.esHabito === true;
+}
+
 export interface DashboardData {
     habitos: Habito[];
     tareas: Tarea[];

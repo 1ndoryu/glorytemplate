@@ -3,7 +3,6 @@
  * Modal para ajustar preferencias de visualización de tareas
  */
 
-import {Settings} from 'lucide-react';
 import {Modal} from '../shared/Modal';
 import {ToggleSwitch} from '../shared/ToggleSwitch';
 import type {ConfiguracionTareas} from '../../hooks/useConfiguracionTareas';
@@ -15,9 +14,10 @@ interface ModalConfiguracionTareasProps {
     onToggleCompletadas: () => void;
     onToggleBadgeProyecto: () => void;
     onToggleEliminarCompletadas: () => void;
+    onToggleMostrarHabitos: () => void;
 }
 
-export function ModalConfiguracionTareas({estaAbierto, onCerrar, configuracion, onToggleCompletadas, onToggleBadgeProyecto, onToggleEliminarCompletadas}: ModalConfiguracionTareasProps): JSX.Element {
+export function ModalConfiguracionTareas({estaAbierto, onCerrar, configuracion, onToggleCompletadas, onToggleBadgeProyecto, onToggleEliminarCompletadas, onToggleMostrarHabitos}: ModalConfiguracionTareasProps): JSX.Element {
     return (
         <Modal estaAbierto={estaAbierto} onCerrar={onCerrar} titulo="Configuracion de Vista">
             <div className="contenedorOpcionesConfig">
@@ -30,7 +30,6 @@ export function ModalConfiguracionTareas({estaAbierto, onCerrar, configuracion, 
                     <ToggleSwitch checked={configuracion.ocultarCompletadas} onChange={onToggleCompletadas} />
                 </div>
 
-                {/* Separador */}
                 <div className="separadorOpcionesConfig" />
 
                 {/* Opcion 2: Ocultar Badge Proyecto */}
@@ -50,6 +49,16 @@ export function ModalConfiguracionTareas({estaAbierto, onCerrar, configuracion, 
                         <span className="descripcionOpcionConfig">Eliminar tareas completadas después de 24 horas</span>
                     </div>
                     <ToggleSwitch checked={configuracion.eliminarCompletadasDespuesDeUnDia} onChange={onToggleEliminarCompletadas} />
+                </div>
+                <div className="separadorOpcionesConfig" />
+
+                {/* Opcion 4: Mostrar Hábitos en Ejecución */}
+                <div className="itemOpcionConfig">
+                    <div className="detallesOpcionConfig">
+                        <span className="tituloOpcionConfig">Mostrar hábitos en Ejecución</span>
+                        <span className="descripcionOpcionConfig">Los hábitos que tocan hoy aparecerán como tareas en la lista</span>
+                    </div>
+                    <ToggleSwitch checked={configuracion.mostrarHabitosEnEjecucion} onChange={onToggleMostrarHabitos} />
                 </div>
             </div>
         </Modal>

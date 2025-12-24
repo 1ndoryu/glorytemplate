@@ -4,8 +4,9 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
-import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder, Share2, Users, Zap} from 'lucide-react';
-import type {Tarea, NivelPrioridad, NivelUrgencia, DatosEdicionTarea, TareaConfiguracion} from '../../types/dashboard';
+import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder, Share2, Users, Zap, Repeat2} from 'lucide-react';
+import type {Tarea, NivelPrioridad, NivelUrgencia, DatosEdicionTarea} from '../../types/dashboard';
+import {esTareaHabito} from '../../types/dashboard';
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
 import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
 import {AccionesItem} from '../shared/AccionesItem';
@@ -48,6 +49,9 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
     const [textoEditado, setTextoEditado] = useState(tarea.texto);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    /* Detectar si es una tarea-hábito virtual */
+    const esHabito = esTareaHabito(tarea);
+
     /* Estado menu contextual */
     const [menuContextual, setMenuContextual] = useState<MenuContextualEstado>({
         visible: false,
@@ -66,9 +70,11 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
     }, [editando]);
 
     const iniciarEdicion = useCallback(() => {
+        /* No permitir edición inline en tareas-hábito */
+        if (esHabito) return;
         setTextoEditado(tarea.texto);
         setEditando(true);
-    }, [tarea.texto]);
+    }, [tarea.texto, esHabito]);
 
     const guardarEdicion = useCallback(() => {
         const textoLimpio = textoEditado.trim();
@@ -307,6 +313,15 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
         );
     };
 
+    /* Renderizado del badge de hábito (para tareas-hábito virtuales) */
+    const renderBadgeHabito = () => {
+        if (!esTareaHabito(tarea)) return null;
+
+        const textoRacha = tarea.habitoRacha > 0 ? `${tarea.habitoRacha}` : undefined;
+
+        return <BadgeInfo tipo="personalizado" icono={<Repeat2 size={10} />} texto={textoRacha} titulo={`Hábito: ${tarea.habitoNombre}${tarea.habitoRacha > 0 ? ` (racha: ${tarea.habitoRacha})` : ''}`} variante="habito" />;
+    };
+
     if (editando) {
         return (
             <div className={`tareaItem tareaItemEditando ${esSubtarea ? 'tareaItemSubtarea' : ''}`}>
@@ -338,10 +353,11 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                             {nombreProyecto && <BadgeInfo tipo="personalizado" icono={<Folder size={10} />} texto={soloIconoProyecto ? undefined : nombreProyecto} titulo={`Proyecto: ${nombreProyecto}`} variante="normal" />}
                             {renderIndicadorPrioridad()}
                             {renderIndicadorUrgencia()}
+                            {renderBadgeHabito()}
                         </BadgeGroup>
                     </div>
                 </div>
-                {mostrarAcciones && <AccionesItem mostrarConfigurar={true} mostrarEliminar={true} onConfigurar={onConfigurar} onEliminar={onEliminar} />}
+                {mostrarAcciones && !esHabito && <AccionesItem mostrarConfigurar={true} mostrarEliminar={true} onConfigurar={onConfigurar} onEliminar={onEliminar} />}
             </div>
 
             {menuContextual.visible && <MenuContextual opciones={opcionesMenu} posicionX={menuContextual.x} posicionY={menuContextual.y} onSeleccionar={manejarOpcionMenu} onCerrar={cerrarMenuContextual} />}

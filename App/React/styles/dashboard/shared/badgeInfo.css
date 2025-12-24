@@ -235,3 +235,28 @@
     border: none;
     opacity: 0.8;
 }
+
+/* 
+ * HABITO (tarea virtual de hábito)
+ * Color cyan/turquesa distintivo
+ */
+.badgeInfo--habito {
+    color: #06b6d4;
+    background-color: rgba(6, 182, 212, 0.1);
+    border-color: rgba(6, 182, 212, 0.3);
+    font-weight: 600;
+    padding: 2px 6px;
+}
+
+.badgeInfo--habito .badgeInfoIcono {
+    animation: rotarHabito 4s linear infinite;
+}
+
+@keyframes rotarHabito {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
