@@ -599,6 +599,7 @@ class CompartidosService
         /* 
          * Buscar tareas donde asignadoA = $usuarioId en el JSON data
          * Nota: MySQL 5.7+ soporta JSON_EXTRACT
+         * Se valida que data sea JSON válido antes de extraer para evitar errores
          */
         $tareas = $this->wpdb->get_results($this->wpdb->prepare(
             "SELECT t.id_local, t.data, t.user_id as propietario_id,
@@ -607,6 +608,9 @@ class CompartidosService
              JOIN {$this->wpdb->users} u ON t.user_id = u.ID
              WHERE t.deleted_at IS NULL
                AND t.user_id != %d
+               AND t.data IS NOT NULL
+               AND t.data != ''
+               AND JSON_VALID(t.data)
                AND JSON_EXTRACT(t.data, '$.asignadoA') = %d",
             $usuarioId,
             $usuarioId
