@@ -8,6 +8,7 @@ import {useState, useCallback, useMemo, useRef} from 'react';
 import {Reorder} from 'framer-motion';
 import {ChevronRight} from 'lucide-react';
 import type {Tarea, DatosEdicionTarea, TareaConfiguracion, NivelPrioridad, NivelUrgencia, Proyecto, Participante} from '../../types/dashboard';
+import {esTareaHabito} from '../../types/dashboard';
 import {TareaItem} from './TareaItem';
 import {InputNuevaTarea} from './InputNuevaTarea';
 import {PanelConfiguracionTarea} from './PanelConfiguracionTarea';
@@ -67,8 +68,14 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
     /*
      * Obtener solo tareas principales para el reorder
      * Las subtareas se moverán automáticamente con su padre
+     * Las tareas-hábito se excluyen del reorder (no son arrastrables)
      */
-    const tareasPrincipalesPendientes = useMemo(() => pendientes.filter(t => !t.parentId), [pendientes]);
+    const tareasPrincipalesPendientes = useMemo(() => pendientes.filter(t => !t.parentId && !esTareaHabito(t)), [pendientes]);
+
+    /*
+     * Tareas-hábito pendientes (se renderizan sin drag)
+     */
+    const tareasHabitoPendientes = useMemo(() => pendientes.filter(t => esTareaHabito(t)), [pendientes]);
 
     /*
      * Umbral de pixels para detectar gesto horizontal
@@ -336,43 +343,78 @@ export function ListaTareas({tareas, proyectoId, onToggleTarea, onCrearTarea, on
         <DashboardPanel id="lista-tareas">
             {onCrearTarea && <InputNuevaTarea onCrear={crearTareaConProyecto} />}
 
-            <Reorder.Group axis="y" values={tareasPrincipalesPendientes} onReorder={handleReorder} className="listaTareasPendientes">
-                {tareasPrincipalesPendientes.map(tareaPadre => {
-                    const subtareasVisibles = obtenerSubtareasVisibles(tareaPadre.id);
+            {/* Modo manual: Reorder para tareas reales, hábitos aparte */}
+            {habilitarDrag ? (
+                <>
+                    <Reorder.Group axis="y" values={tareasPrincipalesPendientes} onReorder={handleReorder} className="listaTareasPendientes">
+                        {tareasPrincipalesPendientes.map(tareaPadre => {
+                            const subtareasVisibles = obtenerSubtareasVisibles(tareaPadre.id);
 
-                    return (
-                        <Reorder.Item
-                            key={tareaPadre.id}
-                            value={tareaPadre}
-                            as="div"
-                            style={{position: 'relative'}}
-                            className={`tareaPadreReorder ${tareaArrastrandoId === tareaPadre.id ? 'tareaPadreReorderArrastrando' : ''} ${tareaArrastrandoId === tareaPadre.id && esGestoSubtarea ? 'tareaPadreReorderGestoSubtarea' : ''}`}
-                            dragListener={habilitarDrag}
-                            onPointerDown={e => habilitarDrag && handleDragStart(tareaPadre.id, e)}
-                            onDragEnd={handleDragEnd}
-                            onDrag={(_, info) => {
-                                dragCurrentXRef.current = dragStartXRef.current + info.offset.x;
-                                const nuevoEsGesto = info.offset.x > UMBRAL_INDENT;
-                                if (nuevoEsGesto !== esGestoSubtarea) {
-                                    setEsGestoSubtarea(nuevoEsGesto);
-                                }
-                            }}>
-                            {/* Indicador visual de gesto horizontal hacia subtarea */}
-                            {tareaArrastrandoId === tareaPadre.id && esGestoSubtarea && <div className="tareaDropIndicador tareaDropIndicadorSubtarea tareaDropIndicadorActivo" style={{top: 0}} />}
+                            return (
+                                <Reorder.Item
+                                    key={tareaPadre.id}
+                                    value={tareaPadre}
+                                    as="div"
+                                    style={{position: 'relative'}}
+                                    className={`tareaPadreReorder ${tareaArrastrandoId === tareaPadre.id ? 'tareaPadreReorderArrastrando' : ''} ${tareaArrastrandoId === tareaPadre.id && esGestoSubtarea ? 'tareaPadreReorderGestoSubtarea' : ''}`}
+                                    dragListener={true}
+                                    onPointerDown={e => handleDragStart(tareaPadre.id, e)}
+                                    onDragEnd={handleDragEnd}
+                                    onDrag={(_, info) => {
+                                        dragCurrentXRef.current = dragStartXRef.current + info.offset.x;
+                                        const nuevoEsGesto = info.offset.x > UMBRAL_INDENT;
+                                        if (nuevoEsGesto !== esGestoSubtarea) {
+                                            setEsGestoSubtarea(nuevoEsGesto);
+                                        }
+                                    }}>
+                                    {/* Indicador visual de gesto horizontal hacia subtarea */}
+                                    {tareaArrastrandoId === tareaPadre.id && esGestoSubtarea && <div className="tareaDropIndicador tareaDropIndicadorSubtarea tareaDropIndicadorActivo" style={{top: 0}} />}
 
-                            {/* Tarea padre */}
-                            {renderTareaConColapsador(tareaPadre, false)}
+                                    {/* Tarea padre */}
+                                    {renderTareaConColapsador(tareaPadre, false)}
 
-                            {/* Subtareas (no son draggables individualmente) */}
-                            {subtareasVisibles.map(subtarea => (
-                                <div key={subtarea.id} className="subtareaContenedor">
-                                    {renderTareaConColapsador(subtarea, true)}
+                                    {/* Subtareas (no son draggables individualmente) */}
+                                    {subtareasVisibles.map(subtarea => (
+                                        <div key={subtarea.id} className="subtareaContenedor">
+                                            {renderTareaConColapsador(subtarea, true)}
+                                        </div>
+                                    ))}
+                                </Reorder.Item>
+                            );
+                        })}
+                    </Reorder.Group>
+
+                    {/* Tareas-hábito en modo manual (sin drag, al final) */}
+                    {tareasHabitoPendientes.map(tareaHabito => (
+                        <div key={tareaHabito.id} className="tareaHabitoContenedor">
+                            {renderTareaConColapsador(tareaHabito, false)}
+                        </div>
+                    ))}
+                </>
+            ) : (
+                /* Modo no-manual: renderizar en orden (tareas + hábitos mezclados por algoritmo inteligente) */
+                <div className="listaTareasPendientes">
+                    {pendientes
+                        .filter(t => !t.parentId)
+                        .map(tareaPadre => {
+                            const subtareasVisibles = obtenerSubtareasVisibles(tareaPadre.id);
+
+                            return (
+                                <div key={tareaPadre.id} className="tareaPadreContenedor">
+                                    {renderTareaConColapsador(tareaPadre, false)}
+
+                                    {/* Subtareas (solo para tareas reales, no hábitos) */}
+                                    {!esTareaHabito(tareaPadre) &&
+                                        subtareasVisibles.map(subtarea => (
+                                            <div key={subtarea.id} className="subtareaContenedor">
+                                                {renderTareaConColapsador(subtarea, true)}
+                                            </div>
+                                        ))}
                                 </div>
-                            ))}
-                        </Reorder.Item>
-                    );
-                })}
-            </Reorder.Group>
+                            );
+                        })}
+                </div>
+            )}
 
             {pendientes.length > 0 && completadas.length > 0 && !ocultarCompletadas && <div className="listaTareasSeparador" />}
 

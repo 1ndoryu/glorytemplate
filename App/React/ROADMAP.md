@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.3-beta  
 **Ultima actualizacion:** 2025-12-23
-**Estado:** Refactorización Formularios completada - Siguiente: Modal Chat + Historial (Fase 7)
+**Estado:** Hábitos en Ejecución completado - Siguiente: Modal Chat + Historial (Fase 7)
 
 ---
 
@@ -257,6 +257,63 @@ Peso Fecha:
 - [x] Solo se muestra "deshacer" cuando hay cambios reales
 
 **Complejidad:** Media | **Dependencias:** Fase 6
+
+---
+
+## Fase 6.6: Hábitos en Ejecución [COMPLETADA]
+
+**Objetivo:** Mostrar hábitos que "tocan hoy" como tareas virtuales en el panel de Ejecución, permitiendo un flujo unificado de trabajo.
+
+> **Concepto:** Los hábitos son como tareas recurrentes. Cuando está habilitada la opción, aparecen en Ejecución con su urgencia calculada automáticamente basada en días de inactividad.
+
+### 6.6.1 Modelo TareaHabito ✅
+
+- [x] Tipo `TareaHabito` que extiende `Tarea` con campos específicos
+- [x] IDs negativos para evitar colisión con tareas reales (`-habitoId - 10000`)
+- [x] Type guard `esTareaHabito()` para detectar tareas virtuales
+- [x] Campos: `esHabito`, `habitoId`, `habitoNombre`, `habitoRacha`, `habitoImportancia`
+
+### 6.6.2 Urgencia Automática ✅
+
+**Fórmula de urgencia basada en días de inactividad:**
+
+| Días Inactivo | Urgencia     | Descripción                        |
+| ------------- | ------------ | ---------------------------------- |
+| 0-1 + racha   | `chill`      | Todo bien, mantiene la racha       |
+| 1-2           | `normal`     | Debería hacerse pronto             |
+| 3-4           | `urgente`    | Atención, la racha está en peligro |
+| 5+            | `bloqueante` | Crítico, la racha se perderá       |
+
+### 6.6.3 Integración Frontend ✅
+
+- [x] Hook `useHabitosComoTareas` convierte hábitos a tareas virtuales
+- [x] Hook `useConfiguracionTareas` con toggle `mostrarHabitosEnEjecucion`
+- [x] `useDashboardCompleto` combina tareas + tareas-hábito
+- [x] `useOrdenarTareas` ordena la combinación con el algoritmo inteligente
+- [x] `DashboardGrid` intercepta toggle de tareas-hábito
+
+### 6.6.4 UI/UX ✅
+
+- [x] Badge de hábito con icono `Repeat2` y racha actual
+- [x] Variante CSS `.badgeInfo--habito`
+- [x] Toggle en `ModalConfiguracionTareas` (desactivado por defecto)
+- [x] Sin menú contextual para tareas-hábito (valores dependen del hábito)
+- [x] Sin acciones inline (configurar/eliminar) para tareas-hábito
+- [x] Sin edición inline del texto
+
+### 6.6.5 Drag & Drop ✅
+
+- [x] Tareas-hábito excluidas del `Reorder.Group` (no arrastrables)
+- [x] En modo manual: tareas-hábito aparecen después de tareas reales
+- [x] En modo inteligente/fecha/prioridad: tareas mezcladas según algoritmo
+
+### 6.6.6 Comportamiento de Toggle ✅
+
+- [x] Al marcar completada una tarea-hábito, se completa el hábito original
+- [x] La tarea-hábito desaparece de Ejecución (ya no "toca hoy")
+- [x] La racha del hábito aumenta normalmente
+
+**Complejidad:** Media | **Dependencias:** Fase 5, 6
 
 ---
 
@@ -529,6 +586,7 @@ styles/
 | 5    | Sistema de Urgencia            | Media       | ✅ Completada   |
 | 6    | Mejoras UX Rápidas             | Baja        | ✅ Completada   |
 | 6.5  | Refact. Formularios            | Media       | ✅ Completada   |
+| 6.6  | Hábitos en Ejecución           | Media       | ✅ Completada   |
 | 7    | **Modal Chat + Historial**     | Muy Alta    | 🔜 Siguiente    |
 | 8    | Mapa de Calor                  | Media-Alta  | Planificada    |
 | 9    | Scratchpad + File Manager      | Alta        | Baja Prioridad |
