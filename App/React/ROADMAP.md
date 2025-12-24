@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.3-beta  
 **Ultima actualizacion:** 2025-12-23
-**Estado:** Mejoras UX completadas - Siguiente: Refactorización Formularios (Fase 6.5)
+**Estado:** Refactorización Formularios completada - Siguiente: Modal Chat + Historial (Fase 7)
 
 ---
 
@@ -228,27 +228,34 @@ Peso Fecha:
 
 ---
 
-## Fase 6.5: Refactorización Formularios Hábitos/Proyectos [SIGUIENTE]
+## Fase 6.5: Refactorización Formularios Hábitos/Proyectos [COMPLETADA]
 
 **Objetivo:** Unificar arquitectura de formularios para permitir auto-guardado completo.
 
-> **Problema actual:** `FormularioHabito` y `FormularioProyecto` están contenidos dentro de un `<Modal>` externo en `DashboardModales.tsx`. Esto impide implementar auto-guardado porque el Modal no tiene acceso al estado interno del formulario.
+> **Problema resuelto:** `FormularioHabito` y `FormularioProyecto` ahora manejan su propio `<Modal>` interno, permitiendo auto-guardado con detección de cambios.
 
-### 6.5.1 Refactorizar FormularioHabito
+### 6.5.1 Refactorizar FormularioHabito ✅
 
-- [ ] Convertir `FormularioHabito` a `ModalHabito` (similar a `PanelConfiguracionTarea`)
-- [ ] El componente maneja su propio `<Modal>` interno
-- [ ] Implementar auto-guardado al cerrar (overlay, ESC, X)
-- [ ] Mantener botón "Cancelar" para descartar cambios
-- [ ] Actualizar `DashboardModales.tsx` para usar el nuevo componente
+- [x] Convertir `FormularioHabito` a `ModalHabito` (similar a `PanelConfiguracionTarea`)
+- [x] El componente maneja su propio `<Modal>` interno
+- [x] Implementar auto-guardado al cerrar (overlay, ESC, X) **solo si hay cambios**
+- [x] Mantener botón "Cancelar" para descartar cambios
+- [x] Actualizar `DashboardModales.tsx` para usar el nuevo componente
 
-### 6.5.2 Refactorizar FormularioProyecto
+### 6.5.2 Refactorizar FormularioProyecto ✅
 
-- [ ] Convertir `FormularioProyecto` a `ModalProyecto` (similar a `PanelConfiguracionTarea`)
-- [ ] El componente maneja su propio `<Modal>` interno
-- [ ] Implementar auto-guardado al cerrar
-- [ ] Mantener botón "Cancelar" para descartar cambios
-- [ ] Actualizar `DashboardModales.tsx` para usar el nuevo componente
+- [x] Convertir `FormularioProyecto` a `ModalProyecto` (similar a `PanelConfiguracionTarea`)
+- [x] El componente maneja su propio `<Modal>` interno
+- [x] Implementar auto-guardado al cerrar **solo si hay cambios**
+- [x] Mantener botón "Cancelar" para descartar cambios
+- [x] Actualizar `DashboardModales.tsx` para usar el nuevo componente
+
+### 6.5.3 Detección de Cambios ✅
+
+- [x] `PanelConfiguracionTarea`: Detecta cambios antes de guardar
+- [x] `ModalHabito`: Detecta cambios antes de guardar
+- [x] `ModalProyecto`: Detecta cambios antes de guardar
+- [x] Solo se muestra "deshacer" cuando hay cambios reales
 
 **Complejidad:** Media | **Dependencias:** Fase 6
 
@@ -522,8 +529,8 @@ styles/
 | 4    | Compartir Tareas/Proyectos     | Muy Alta    | ✅ Completada   |
 | 5    | Sistema de Urgencia            | Media       | ✅ Completada   |
 | 6    | Mejoras UX Rápidas             | Baja        | ✅ Completada   |
-| 6.5  | **Refact. Formularios**        | Media       | 🔜 Siguiente    |
-| 7    | Modal Chat + Historial         | Muy Alta    | Planificada    |
+| 6.5  | Refact. Formularios            | Media       | ✅ Completada   |
+| 7    | **Modal Chat + Historial**     | Muy Alta    | 🔜 Siguiente    |
 | 8    | Mapa de Calor                  | Media-Alta  | Planificada    |
 | 9    | Scratchpad + File Manager      | Alta        | Baja Prioridad |
 | 10   | Compartir Hábitos              | Media       | Baja Prioridad |

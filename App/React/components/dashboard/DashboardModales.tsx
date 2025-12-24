@@ -5,8 +5,8 @@
  */
 
 import {Bell} from 'lucide-react';
-import {FormularioHabito} from './FormularioHabito';
-import {FormularioProyecto} from './proyectos/FormularioProyecto';
+import {ModalHabito} from './ModalHabito';
+import {ModalProyecto} from './proyectos/ModalProyecto';
 import {ModalLogin} from './ModalLogin';
 import {PanelSeguridad} from './PanelSeguridad';
 import {ModalConfiguracionLayout} from './ModalConfiguracionLayout';
@@ -17,7 +17,7 @@ import {ModalConfiguracionTareas} from './ModalConfiguracionTareas';
 import {ModalConfiguracionHabitos} from './ModalConfiguracionHabitos';
 import {ModalConfiguracionScratchpad} from './ModalConfiguracionScratchpad';
 
-import {Modal, ToastDeshacer, ModalUpgrade, TooltipSystem, BarraPanelesOcultos, IndicadorArrastre, ModalVersiones} from '../shared';
+import {ToastDeshacer, ModalUpgrade, TooltipSystem, BarraPanelesOcultos, IndicadorArrastre, ModalVersiones} from '../shared';
 import {PanelAdministracion} from '../admin';
 import {ModalEquipos} from '../equipos';
 import {ModalNotificaciones} from '../notificaciones';
@@ -57,50 +57,21 @@ export function DashboardModales({ctx}: DashboardModalesProps): JSX.Element {
             <ModalEquipos estaAbierto={modales.modalEquiposAbierto} onCerrar={modales.cerrarModalEquipos} />
 
             {/* Modales de Hábitos */}
-            <Modal estaAbierto={dashboard.modalCrearHabitoAbierto} onCerrar={dashboard.cerrarModalCrearHabito} titulo="Nuevo Habito">
-                <FormularioHabito onGuardar={dashboard.crearHabito} onCancelar={dashboard.cerrarModalCrearHabito} />
-            </Modal>
-            <Modal estaAbierto={dashboard.habitoEditando !== null} onCerrar={dashboard.cerrarModalEditarHabito} titulo="Editar Habito">
-                {dashboard.habitoEditando && (
-                    <FormularioHabito
-                        onGuardar={datos => dashboard.editarHabito(dashboard.habitoEditando!.id, datos)}
-                        onCancelar={dashboard.cerrarModalEditarHabito}
-                        onEliminar={() => dashboard.eliminarHabito(dashboard.habitoEditando!.id)}
-                        datosIniciales={{
-                            nombre: dashboard.habitoEditando.nombre,
-                            importancia: dashboard.habitoEditando.importancia,
-                            tags: dashboard.habitoEditando.tags,
-                            frecuencia: dashboard.habitoEditando.frecuencia
-                        }}
-                        modoEdicion
-                    />
-                )}
-            </Modal>
+            <ModalHabito estaAbierto={dashboard.modalCrearHabitoAbierto} onCerrar={dashboard.cerrarModalCrearHabito} onGuardar={dashboard.crearHabito} />
+            <ModalHabito estaAbierto={dashboard.habitoEditando !== null} onCerrar={dashboard.cerrarModalEditarHabito} onGuardar={datos => dashboard.editarHabito(dashboard.habitoEditando!.id, datos)} onEliminar={() => dashboard.eliminarHabito(dashboard.habitoEditando!.id)} habito={dashboard.habitoEditando ?? undefined} />
 
             {/* Modales de Proyectos */}
-            <Modal estaAbierto={modales.modalCrearProyectoAbierto} onCerrar={modales.cerrarModalCrearProyecto} titulo="Nuevo Proyecto">
-                <FormularioProyecto onGuardar={acciones.manejarGuardarNuevoProyecto} onCancelar={modales.cerrarModalCrearProyecto} />
-            </Modal>
-            <Modal estaAbierto={modales.proyectoEditando !== null} onCerrar={modales.cerrarModalEditarProyecto} titulo="Editar Proyecto">
-                {modales.proyectoEditando && (
-                    <FormularioProyecto
-                        onGuardar={acciones.manejarGuardarEdicionProyecto}
-                        onCancelar={modales.cerrarModalEditarProyecto}
-                        onEliminar={() => {
-                            dashboard.eliminarProyecto(modales.proyectoEditando!.id);
-                            modales.cerrarModalEditarProyecto();
-                        }}
-                        datosIniciales={{
-                            nombre: modales.proyectoEditando.nombre,
-                            descripcion: modales.proyectoEditando.descripcion,
-                            prioridad: modales.proyectoEditando.prioridad,
-                            urgencia: modales.proyectoEditando.urgencia,
-                            fechaLimite: modales.proyectoEditando.fechaLimite
-                        }}
-                        modoEdicion
-                    />
-                )}
-            </Modal>
+            <ModalProyecto estaAbierto={modales.modalCrearProyectoAbierto} onCerrar={modales.cerrarModalCrearProyecto} onGuardar={acciones.manejarGuardarNuevoProyecto} />
+            <ModalProyecto
+                estaAbierto={modales.proyectoEditando !== null}
+                onCerrar={modales.cerrarModalEditarProyecto}
+                onGuardar={acciones.manejarGuardarEdicionProyecto}
+                onEliminar={() => {
+                    dashboard.eliminarProyecto(modales.proyectoEditando!.id);
+                    modales.cerrarModalEditarProyecto();
+                }}
+                proyecto={modales.proyectoEditando ?? undefined}
+            />
 
             {/* Modales de Configuración */}
             <ModalConfiguracionTareas estaAbierto={modales.modalConfigTareasAbierto} onCerrar={modales.cerrarModalConfigTareas} configuracion={configTareas.configuracion} onToggleCompletadas={configTareas.toggleOcultarCompletadas} onToggleBadgeProyecto={configTareas.toggleOcultarBadgeProyecto} onToggleEliminarCompletadas={configTareas.toggleEliminarCompletadasDespuesDeUnDia} />

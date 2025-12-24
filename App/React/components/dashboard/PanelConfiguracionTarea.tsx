@@ -39,6 +39,18 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
     const [asignadoANombre, setAsignadoANombre] = useState<string>(tarea?.asignadoANombre || '');
     const [asignadoAAvatar, setAsignadoAAvatar] = useState<string>(tarea?.asignadoAAvatar || '');
 
+    /* Referencia al estado inicial para detectar cambios */
+    const estadoInicialRef = useRef<{
+        prioridad: NivelPrioridad | null;
+        urgencia: NivelUrgencia | null;
+        fechaMaxima: string;
+        descripcion: string;
+        tieneRepeticion: boolean;
+        texto: string;
+        asignadoA: number | null;
+        adjuntos: Adjunto[];
+    } | null>(null);
+
     /* Sincronizar estado cuando cambia la tarea (solo por ID, no por referencia) */
     useEffect(() => {
         if (tarea) {
@@ -69,6 +81,18 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
             setAsignadoA(tarea.asignadoA || null);
             setAsignadoANombre(tarea.asignadoANombre || '');
             setAsignadoAAvatar(tarea.asignadoAAvatar || '');
+
+            /* Guardar estado inicial para detección de cambios */
+            estadoInicialRef.current = {
+                prioridad: tarea.prioridad || null,
+                urgencia: tarea.urgencia || null,
+                fechaMaxima: tarea.configuracion?.fechaMaxima || '',
+                descripcion: tarea.configuracion?.descripcion || '',
+                tieneRepeticion: !!tarea.configuracion?.repeticion,
+                texto: tarea.texto,
+                asignadoA: tarea.asignadoA || null,
+                adjuntos: tarea.configuracion?.adjuntos || []
+            };
         } else {
             /* Resetear si no hay tarea (modo creacion) */
             setPrioridad(null);
@@ -82,8 +106,42 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
             setAsignadoA(null);
             setAsignadoANombre('');
             setAsignadoAAvatar('');
+            estadoInicialRef.current = null;
         }
     }, [tarea?.id]);
+
+    /* Detectar si hubo cambios respecto al estado inicial */
+    const hayCambios = useCallback((): boolean => {
+        const inicial = estadoInicialRef.current;
+
+        /* Si es modo creación, hay cambios si hay texto */
+        if (!inicial) {
+            return texto.trim().length > 0;
+        }
+
+        /* Comparar cada campo */
+        if (prioridad !== inicial.prioridad) return true;
+        if (urgencia !== inicial.urgencia) return true;
+        if (fechaMaxima !== inicial.fechaMaxima) return true;
+        if (descripcion.trim() !== inicial.descripcion) return true;
+        if (tieneRepeticion !== inicial.tieneRepeticion) return true;
+        if (texto.trim() !== inicial.texto) return true;
+        if (asignadoA !== inicial.asignadoA) return true;
+
+        /* Comparar adjuntos (por longitud y IDs) */
+        if (adjuntos.length !== inicial.adjuntos.length) return true;
+        const idsActuales = adjuntos
+            .map(a => a.id)
+            .sort()
+            .join(',');
+        const idsIniciales = inicial.adjuntos
+            .map(a => a.id)
+            .sort()
+            .join(',');
+        if (idsActuales !== idsIniciales) return true;
+
+        return false;
+    }, [prioridad, urgencia, fechaMaxima, descripcion, tieneRepeticion, texto, asignadoA, adjuntos]);
 
     /* Manejador de cambio de asignacion */
     const manejarAsignacion = (usuarioId: number | null, nombre: string, avatar: string) => {
@@ -146,10 +204,14 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
         onCerrar();
     }, [fechaMaxima, descripcion, tieneRepeticion, frecuencia, adjuntos, asignadoA, asignadoANombre, asignadoAAvatar, prioridad, texto, urgencia, onGuardar, onCerrar]);
 
-    /* Auto-guardado: al cerrar el modal (overlay, ESC, X), guardar automáticamente */
+    /* Auto-guardado: al cerrar el modal, guardar solo si hay cambios */
     const manejarCerrarConGuardado = useCallback(() => {
-        manejarGuardar();
-    }, [manejarGuardar]);
+        if (hayCambios()) {
+            manejarGuardar();
+        } else {
+            onCerrar();
+        }
+    }, [hayCambios, manejarGuardar, onCerrar]);
 
     /* Cancelar: cerrar sin guardar (descartar cambios) */
     const manejarCancelar = useCallback(() => {

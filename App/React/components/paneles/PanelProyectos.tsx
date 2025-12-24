@@ -4,6 +4,7 @@
  * Responsabilidad única: renderizar la lista de proyectos con sus controles
  */
 
+import {useState} from 'react';
 import {Folder, ArrowUpDown, Plus, Settings} from 'lucide-react';
 import {SeccionEncabezado, ListaProyectos} from '../dashboard';
 import {SelectorBadge} from '../shared/SelectorBadge';
@@ -32,6 +33,9 @@ interface PanelProyectosProps {
 }
 
 export function PanelProyectos({proyectos, tareas, configuracion, opcionesOrdenProyectos, onAbrirModalCrearProyecto, onAbrirModalEditarProyecto, onAbrirModalConfigProyectos, onEliminarProyecto, onCambiarEstadoProyecto, onCambiarOrdenProyectos, onCompartirProyecto, estaCompartido, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, handleArrastre}: PanelProyectosProps): JSX.Element {
+    /* Estado local para el proyecto seleccionado/expandido */
+    const [proyectoSeleccionadoId, setProyectoSeleccionadoId] = useState<number | null>(null);
+
     return (
         <div className="panelDashboard">
             <SeccionEncabezado
@@ -54,7 +58,7 @@ export function PanelProyectos({proyectos, tareas, configuracion, opcionesOrdenP
                     </>
                 }
             />
-            <ListaProyectos proyectos={proyectos} tareas={tareas} onCrearProyecto={onAbrirModalCrearProyecto} onSeleccionarProyecto={() => {}} onEditarProyecto={onAbrirModalEditarProyecto} onEliminarProyecto={onEliminarProyecto} onCambiarEstadoProyecto={onCambiarEstadoProyecto} onCompartirProyecto={onCompartirProyecto} estaCompartido={estaCompartido} onToggleTarea={onToggleTarea} onCrearTarea={onCrearTarea} onEditarTarea={onEditarTarea} onEliminarTarea={onEliminarTarea} onReordenarTareas={onReordenarTareas} ocultarCompletados={configuracion.ocultarCompletados} ordenDefecto={configuracion.ordenDefecto} mostrarProgreso={configuracion.mostrarProgreso} />
+            <ListaProyectos proyectos={proyectos} tareas={tareas} onCrearProyecto={onAbrirModalCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={onAbrirModalEditarProyecto} onEliminarProyecto={onEliminarProyecto} onCambiarEstadoProyecto={onCambiarEstadoProyecto} onCompartirProyecto={onCompartirProyecto} estaCompartido={estaCompartido} onToggleTarea={onToggleTarea} onCrearTarea={onCrearTarea} onEditarTarea={onEditarTarea} onEliminarTarea={onEliminarTarea} onReordenarTareas={onReordenarTareas} ocultarCompletados={configuracion.ocultarCompletados} ordenDefecto={configuracion.ordenDefecto} mostrarProgreso={configuracion.mostrarProgreso} />
         </div>
     );
 }
