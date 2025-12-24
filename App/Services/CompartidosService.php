@@ -598,9 +598,10 @@ class CompartidosService
 
         /* 
          * Primero detectar y registrar tareas con JSON inválido para diagnóstico
+         * Nota: La tabla solo tiene updated_at, no created_at
          */
         $tareasInvalidas = $this->wpdb->get_results($this->wpdb->prepare(
-            "SELECT t.id_local, t.user_id, t.data, t.created_at, t.updated_at
+            "SELECT t.id_local, t.user_id, t.data, t.updated_at
              FROM $tablaTareas t
              WHERE t.deleted_at IS NULL
                AND t.user_id != %d
@@ -619,11 +620,10 @@ class CompartidosService
                 $dataLength = is_null($tarea->data) ? 0 : strlen($tarea->data);
 
                 error_log(sprintf(
-                    "[CompartidosService] JSON INVALIDO detectado en tarea - id_local: %d, user_id: %d, longitud_data: %d, created_at: %s, updated_at: %s, preview_data: %s",
+                    "[CompartidosService] JSON INVALIDO detectado en tarea - id_local: %d, user_id: %d, longitud_data: %d, updated_at: %s, preview_data: %s",
                     $tarea->id_local,
                     $tarea->user_id,
                     $dataLength,
-                    $tarea->created_at ?? 'N/A',
                     $tarea->updated_at ?? 'N/A',
                     $dataPreview
                 ));

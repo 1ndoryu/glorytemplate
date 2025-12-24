@@ -6,13 +6,13 @@
 
 import {useCallback} from 'react';
 import {useAlertasContext} from '../context/AlertasContext';
-import type {Proyecto, NivelPrioridad, TareaConfiguracion} from '../types/dashboard';
+import type {Proyecto, NivelPrioridad, NivelUrgencia, TareaConfiguracion} from '../types/dashboard';
 import type {EstadoFiltro} from './useFiltroTareas';
 
 interface UseAccionesDashboardProps {
     filtroActual: EstadoFiltro;
     notas: string;
-    crearTarea: (datos: {texto: string; prioridad: NivelPrioridad | null; configuracion: TareaConfiguracion; proyectoId?: number; completado: boolean}) => void;
+    crearTarea: (datos: {texto: string; prioridad: NivelPrioridad | null; urgencia?: NivelUrgencia | null; configuracion: TareaConfiguracion; proyectoId?: number; completado: boolean}) => void;
     actualizarNotas: (notas: string) => void;
     crearProyecto: (datos: any) => void;
     editarProyecto: (id: number, datos: any) => void;
@@ -32,7 +32,7 @@ interface UseAccionesDashboardProps {
 interface UseAccionesDashboardReturn {
     manejarCambioFiltro: (valor: string) => void;
     manejarLimpiarScratchpad: () => Promise<void>;
-    manejarCrearNuevaTareaGlobal: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string) => void;
+    manejarCrearNuevaTareaGlobal: (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null) => void;
     manejarGuardarNuevoProyecto: (datos: any) => void;
     manejarGuardarEdicionProyecto: (datos: any) => void;
     manejarClickNotificaciones: (evento: React.MouseEvent) => void;
@@ -71,10 +71,10 @@ export function useAccionesDashboard(props: UseAccionesDashboardProps): UseAccio
     }, [notas, confirmar, actualizarNotas]);
 
     const manejarCrearNuevaTareaGlobal = useCallback(
-        (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string) => {
+        (configuracion: TareaConfiguracion, prioridad: NivelPrioridad | null, texto?: string, _asignacion?: {asignadoA: number | null; asignadoANombre: string; asignadoAAvatar: string}, urgencia?: NivelUrgencia | null) => {
             if (!texto) return;
             const proyectoId = filtroActual.tipo === 'proyecto' ? filtroActual.proyectoId : undefined;
-            crearTarea({texto, prioridad, configuracion, proyectoId, completado: false});
+            crearTarea({texto, prioridad, urgencia, configuracion, proyectoId, completado: false});
             cerrarModalNuevaTarea();
         },
         [filtroActual, crearTarea, cerrarModalNuevaTarea]
