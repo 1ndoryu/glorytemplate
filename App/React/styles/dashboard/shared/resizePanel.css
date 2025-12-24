@@ -1,0 +1,131 @@
+/*
+ * RESIZE PANEL
+ * Estilos para el sistema de redimensionamiento de altura de paneles
+ * Reutilizable en todos los paneles del dashboard
+ */
+
+.panelConResize {
+    display: flex;
+    flex-direction: column;
+}
+
+/*
+ * Modo altura auto: el panel crece con su contenido
+ */
+.panelAlturaAuto .panelDashboard {
+    height: auto;
+    min-height: unset;
+}
+
+/*
+ * Modo altura fija: el panel tiene altura definida y scroll interno
+ */
+.panelAlturaFija .panelDashboard {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/*
+ * El encabezado principal del panel no debe encogerse
+ */
+.panelAlturaFija .panelDashboard > .seccionEncabezado {
+    flex-shrink: 0;
+}
+
+/*
+ * El DashboardPanel interno debe tomar el espacio restante
+ */
+.panelAlturaFija .panelDashboard > .dashboardPanel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/*
+ * El contenido del DashboardPanel tiene el scroll
+ */
+.panelAlturaFija .panelDashboard .dashboardPanelContent {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/*
+ * Handle de resize
+ * Minimalista, aparece al hacer hover sobre el panel
+ */
+.panelResizeHandle {
+    height: 10px;
+    width: 100%;
+    cursor: ns-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.panelConResize:hover .panelResizeHandle,
+.panelRedimensionando .panelResizeHandle {
+    opacity: 1;
+}
+
+.panelResizeLine {
+    width: 40px;
+    height: 3px;
+    background-color: var(--dashboard-bordeSutil);
+    border-radius: 2px;
+    transition: background-color 0.2s, width 0.2s;
+}
+
+.panelResizeHandle:hover .panelResizeLine {
+    background-color: var(--dashboard-bordePrincipal);
+    width: 60px;
+}
+
+/*
+ * Indicador visual para modo auto (anclado)
+ * Línea verde indica que el panel crece con el contenido
+ */
+.panelResizeLineAuto {
+    background-color: #22c55e;
+    width: 50px;
+}
+
+.panelResizeHandle:hover .panelResizeLineAuto {
+    background-color: #16a34a;
+    width: 70px;
+}
+
+/*
+ * Estado de redimensionamiento activo
+ * Optimizaciones para evitar parpadeo
+ */
+.panelRedimensionando {
+    user-select: none;
+}
+
+.panelRedimensionando .panelDashboard {
+    pointer-events: none;
+    will-change: height;
+    transition: none !important;
+}
+
+.panelRedimensionando .panelDashboard * {
+    transition: none !important;
+}
+
+/*
+ * Contenedor con scroll interno (clase auxiliar)
+ */
+.panelContenidoScroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    min-height: 0;
+}

@@ -218,6 +218,13 @@
     border-right: none;
 }
 
+/* 
+ * MODO CREACION (sin clase --expandido en el modal)
+ * Nota: En modal.css quitamos padding y overflow de .modalContenido
+ * para que el scroll y padding los maneje .panelConfiguracionColumnaScroll
+ * Los botones quedan fijos gracias a la estructura flexbox existente.
+ */
+
 .panelConfiguracionColumnaIzquierda {
     display: flex;
     flex-direction: column;
@@ -245,36 +252,21 @@
 
 .panelConfiguracionColumnaScroll {
     flex: 1;
-    overflow-y: auto;
+    /* 
+     * Usar scroll fijo en vez de auto para evitar parpadeo 
+     * del scrollbar al escribir/editar contenido 
+     */
+    overflow-y: scroll;
     padding: var(--dashboard-espacioLg);
     display: flex;
     flex-direction: column;
     gap: var(--dashboard-espacioLg);
 }
 
-/* Scrollbar para columnas */
-.panelConfiguracionColumnaScroll::-webkit-scrollbar {
-    width: var(--dashboard-scrollbarAncho);
-}
-
-.panelConfiguracionColumnaScroll::-webkit-scrollbar-track {
-    background: var(--dashboard-scrollbarFondo);
-}
-
-.panelConfiguracionColumnaScroll::-webkit-scrollbar-thumb {
-    background: var(--dashboard-scrollbarThumb);
-    border-radius: 2px;
-}
-
-.panelConfiguracionColumnaScroll::-webkit-scrollbar-thumb:hover {
-    background: var(--dashboard-scrollbarThumbHover);
-}
-
-/* Firefox */
-.panelConfiguracionColumnaScroll {
-    scrollbar-width: thin;
-    scrollbar-color: var(--dashboard-scrollbarThumb) var(--dashboard-scrollbarFondo);
-}
+/* 
+ * Los estilos de scrollbar ya estan definidos globalmente en base.css
+ * No es necesario repetirlos aqui
+ */
 
 /* 
  * PESTANAS PARA MOVIL

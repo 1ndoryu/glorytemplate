@@ -22,11 +22,12 @@ interface PanelFocoPrioritarioProps {
     onEliminarHabito: (id: number) => void;
     onCambiarModoHabitos: (modo: any) => void;
     handleArrastre: JSX.Element;
+    handleMinimizar: JSX.Element;
 }
 
-export function PanelFocoPrioritario({habitos, modoOrdenHabitos, opcionesOrdenHabitos, configuracion, onAbrirModalCrearHabito, onAbrirModalConfigHabitos, onToggleHabito, onEditarHabito, onEliminarHabito, onCambiarModoHabitos, handleArrastre}: PanelFocoPrioritarioProps): JSX.Element {
+export function PanelFocoPrioritario({habitos, modoOrdenHabitos, opcionesOrdenHabitos, configuracion, onAbrirModalCrearHabito, onAbrirModalConfigHabitos, onToggleHabito, onEditarHabito, onEliminarHabito, onCambiarModoHabitos, handleArrastre, handleMinimizar}: PanelFocoPrioritarioProps): JSX.Element {
     return (
-        <div className="panelDashboard">
+        <>
             <SeccionEncabezado
                 icono={<AlertCircle size={12} />}
                 titulo="Foco Prioritario"
@@ -44,10 +45,11 @@ export function PanelFocoPrioritario({habitos, modoOrdenHabitos, opcionesOrdenHa
                                 <Settings size={10} />
                             </span>
                         </button>
+                        {handleMinimizar}
                     </>
                 }
             />
             <TablaHabitos habitos={habitos} onAñadirHabito={onAbrirModalCrearHabito} onToggleHabito={onToggleHabito} onEditarHabito={onEditarHabito} onEliminarHabito={onEliminarHabito} configuracion={configuracion} />
-        </div>
+        </>
     );
 }

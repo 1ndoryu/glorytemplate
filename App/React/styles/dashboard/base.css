@@ -15,6 +15,39 @@
     padding: var(--dashboard-espacioXl);
 }
 
+/* 
+ * SCROLLBAR GLOBAL - BODY Y HTML
+ * Aplica el estilo minimalista dark mode al scroll de la pagina principal
+ */
+html,
+body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--dashboard-scrollbarThumb) var(--dashboard-scrollbarFondo);
+    background-color: var(--dashboard-fondoPrincipal);
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: var(--dashboard-scrollbarAncho);
+    height: var(--dashboard-scrollbarAncho);
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+    background: var(--dashboard-scrollbarFondo);
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+    background: var(--dashboard-scrollbarThumb);
+    border-radius: 2px;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+    background: var(--dashboard-scrollbarThumbHover);
+}
+
 .dashboardContenedor::selection {
     background-color: #333;
     color: white;

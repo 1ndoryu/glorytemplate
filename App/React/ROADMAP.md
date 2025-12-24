@@ -7,9 +7,9 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 ## Estado Actual
 
 **Fecha de inicio:** 2025-12-19  
-**Version:** v1.1.4-beta  
+**Version:** v1.0.3-beta  
 **Ultima actualizacion:** 2025-12-24
-**Estado:** Fase 7 - COMPLETADA (Modal Chat + Historial)
+**Estado:** Fase 7.5 - EN PROGRESO (Pendiente: Redimensionamiento y Scratchpad guardado)
 
 ---
 
@@ -29,30 +29,6 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 | **Layout**          | Columnas, paneles ocultos, Drag & Drop reordenamiento                         |
 | **Perfil**          | Avatar, contraseña, integración WordPress                                     |
 | **Configuración**   | Opciones por panel (hábitos, tareas, proyectos, scratchpad)                   |
-
----
-
-## 🐛 Bugs Conocidos (Investigar)
-
-### Críticos
-
-| Bug                                    | Descripción                                                                                                                                                       | Estado                                                                                                                                |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| ~~**Urgencia no se guarda al crear**~~ | Al crear tarea desde badge +, la urgencia no se registra. Solo funciona al editar directamente.                                                                   | ✅ Arreglado v1.0.9 - Añadido parámetro `urgencia` en `useAccionesDashboard.manejarCrearNuevaTareaGlobal`                              |
-| ~~**Columna created_at no existe**~~   | Error SQL `Unknown column 't.created_at'` en `CompartidosService.obtenerTareasAsignadasAMi`. La tabla `wp_glory_tareas` no tiene esa columna.                     | ✅ Arreglado v1.0.9 - Query de diagnóstico ahora usa solo `updated_at` que sí existe en la tabla                                       |
-| ~~**Scratchpad Pierde Datos**~~        | Al escribir en Scratchpad, dice \"Guardado\" pero al recargar se pierde el contenido.                                                                             | ✅ Arreglado v1.0.8 - `useRef` para evitar race condition al sincronizar datos del servidor mientras usuario edita                     |
-| ~~**Sincronización Multi-Ventana**~~   | Las tareas no se sincronizaban entre diferentes ventanas/dispositivos. Cuando la carga del servidor fallaba, se sobrescribían los datos reales con datos locales. | ✅ Arreglado v1.0.7 - Eliminado auto-guardado en servidor cuando carga falla, añadida ventana de gracia para evitar parpadeo del badge |
-| ~~**BD Compartidos**~~                 | Error `Unknown column 'c.fecha_compartido'` y `c.propietario_id`                                                                                                  | ✅ Arreglado v1.0.6 - Añadida función `repairTables()` en Schema.php                                                                   |
-| ~~**401 en Adjuntos Cifrados**~~       | Error 401 Unauthorized al cargar imágenes `.enc` después de un tiempo                                                                                             | ✅ Arreglado - Añadido header `X-WP-Nonce` en SeccionAdjuntos.tsx                                                                      |
-
-### Menores
-
-| Bug                            | Descripción                                                                     | Estado                                                                                             |
-| ------------------------------ | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| **Thumbnails Warning en Prod** | Warning: "No se pudo generar thumbnail" en producción. Servidor sin GD/Imagick. | ⏳ Pendiente - Migrar servidor de PHP 8.4 a PHP 8.3 (el paquete php8.4-gd no existe en repositorio) |
-| ~~**Tooltips desbordados**~~   | Los tooltips se salen de la pantalla a veces                                    | ✅ Arreglado - Detección de bordes en TooltipSystem.tsx                                             |
-| ~~**Adjuntos eliminados**~~    | Al eliminar adjunto, no se quita instantáneamente del UI                        | ✅ Arreglado - Optimistic update en SeccionAdjuntos.tsx                                             |
-| **Adjuntos múltiples**         | Al eliminar múltiples adjuntos, reaparecen algunos                              | Pendiente - Investigar estado React                                                                |
 
 ---
 
@@ -125,331 +101,196 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ---
 
-## Fase 5: Sistema de Urgencia [COMPLETADO]
+## Fases 5-7: Completadas (v1.0.3-beta)
 
-**Objetivo:** Diferenciar entre importancia (prioridad) y temporalidad (urgencia) para mejorar el ordenamiento inteligente de tareas.
+> **Detalle completo:** Ver historial de commits o changelog.
 
-> **Concepto clave:** Una tarea puede ser importante (alta prioridad) pero no urgente (puede hacerse en el futuro), o puede ser urgente (debe hacerse ya) aunque no sea tan importante.
-
-### 5.5.1 Modelo de Urgencia
-
-**Valores de urgencia:**
-
-| Valor | Nombre       | Descripción                                                           | Badge                                     |
-| ----- | ------------ | --------------------------------------------------------------------- | ----------------------------------------- |
-| 4     | `bloqueante` | 200% urgente. No se puede evitar, debe hacerse SÍ o SÍ                | Rojo (mismo color que prioridad alta)     |
-| 3     | `urgente`    | Debe hacerse pronto, no puede esperar mucho                           | Naranja (mismo color que prioridad media) |
-| 2     | `normal`     | **Default oculto**. No se muestra badge, se asume si no se elige otro | Sin badge                                 |
-| 1     | `chill`      | Puede hacerse en cualquier momento sin presión temporal               | Verde/Gris suave                          |
-
-> **Nota:** Los colores son los mismos de prioridad para mantener coherencia visual. La diferenciación es por icono (Zap/rayo).
-
-### 5.5.2 Implementación Backend ✅
-
-- [x] Agregar campo `urgencia` a tabla `wp_glory_tareas` (enum: bloqueante, urgente, normal, chill)
-- [x] Agregar campo `urgencia` a tabla `wp_glory_proyectos`
-- [x] Migración para tareas/proyectos existentes → `normal` por defecto (Schema v1.0.5)
-- [x] Actualizar `TareasRepository.php` para guardar/leer urgencia
-- [x] Actualizar `ProyectosRepository.php` para guardar/leer urgencia
-
-### 5.5.3 Implementación Frontend ✅
-
-- [x] Agregar tipo `NivelUrgencia` al `dashboard.ts` 
-- [x] Agregar campo `urgencia` a interfaces `Tarea` y `Proyecto`
-- [x] Crear componente `CampoUrgencia` (similar a `CampoPrioridad`)
-- [x] Integrar en `PanelConfiguracionTarea.tsx`
-- [x] Integrar en `FormularioProyecto.tsx`
-- [x] Mostrar badge de urgencia en `TareaItem.tsx` (si no es `normal`)
-- [x] La urgencia también aplica a subtareas
-
-### 5.5.4 Filtro Inteligente Mejorado ✅
-
-**Fórmula actual:** `fecha_limite + prioridad`
-
-**Nueva fórmula:** `urgencia_peso + prioridad_peso + fecha_peso`
-
-```
-Peso Urgencia:
-  - bloqueante: 1000 (siempre primero)
-  - urgente: 500
-  - normal: 0
-  - chill: -200
-
-Peso Prioridad:
-  - alta: 300
-  - media: 100 (default si no se especifica)
-  - baja: 0
-
-Peso Fecha:
-  - Vencida: +400
-  - Hoy: +300
-  - Mañana: +200
-  - Esta semana: +100
-  - Sin fecha: 0
-```
-
-- [x] Actualizar lógica de ordenamiento en `useOrdenarTareas.ts`
-- [ ] Considerar urgencia en el conteo de "Tareas importantes para hoy" (pendiente)
-
-### 5.5.5 UI/UX ✅
-
-- [x] Badge de urgencia junto a prioridad (icono Zap/rayo)
-- [x] Tooltip explicativo de la diferencia prioridad vs urgencia
-- [x] Valor default `normal` nunca muestra badge
-
-**Complejidad:** Media | **Dependencias:** Ninguna (independiente)
-**Aplica a:** Tareas, Subtareas, Proyectos (NO hábitos - los hábitos ya tienen periodicidad fija)
+| Fase | Nombre                  | Descripción Resumida                                                            |
+| ---- | ----------------------- | ------------------------------------------------------------------------------- |
+| 5    | Sistema de Urgencia     | Niveles bloqueante/urgente/normal/chill, ordenamiento inteligente mejorado      |
+| 6    | Mejoras UX Rápidas      | Lectura automática notificaciones, exportar/importar al menú perfil             |
+| 6.3  | Auto-Guardado Modales   | Guardado al cerrar modal (overlay/ESC/X), detección de cambios                  |
+| 6.5  | Refact. Formularios     | ModalHabito y ModalProyecto con auto-guardado                                   |
+| 6.6  | Hábitos en Ejecución    | Hábitos como tareas virtuales, urgencia automática por días inactivos           |
+| 7    | Modal Chat + Historial  | Timeline unificado, mensajes + eventos sistema, notificaciones, mensajes leídos |
+| 7.1  | Diseño Modal Expandido  | 2 columnas: formulario + chat/historial, responsive                             |
+| 7.2  | Sistema Mensajes        | Tabla BD, endpoints API, hook useMensajes, registro eventos                     |
+| 7.3  | Mensajes No Leídos      | Badge en tareas, marcar como leído automático                                   |
+| 7.4  | UI Timeline             | Burbujas usuario, líneas sistema, fechas separadoras                            |
+| 7.5  | Participantes           | Lista participantes con avatar, nombre, rol                                     |
+| 7.6  | Proyectos y Hábitos     | Chat/historial reutilizable en todos los modales                                |
+| 7.7  | Notificaciones Mensajes | Notificar a participantes al recibir mensaje                                    |
 
 ---
 
-## Fase 6: Mejoras UX Rápidas [COMPLETADA]
+## Fase 7.5: Correcciones UX y Redimensionamiento [EN PROGRESO]
 
-**Objetivo:** Pequeñas mejoras de experiencia de usuario identificadas.
+**Objetivo:** Pulir la experiencia de usuario con correcciones específicas y añadir funcionalidades de redimensionamiento.
 
-### 6.1 Notificaciones - Lectura Automática ✅
+### 7.5.1 Modal de Tarea - Ocultar Chat en Creación ✅
 
-- [x] Las notificaciones se marcan como leídas automáticamente al abrir el panel
-- [x] Eliminar botón "Marcar todas como leídas" (ya no es necesario)
-- [x] Las notificaciones existentes cargan instantáneamente (cache local con `cargandoPrimeraVez`)
-- [x] Solo mostrar "Cargando..." para la primera carga sin datos en cache
+> **Problema:** Al crear tarea desde el badge "+", aparece el panel de chat/historial aunque no tiene sentido (tarea nueva, sin historial).
 
-### 6.2 Exportar/Importar - Mover al Menú de Perfil ✅
+**Implementado:**
+- [x] Detectar si la tarea es nueva (sin `id` o `esModoCreacion`)
+- [x] Ocultar columna derecha (chat/historial) cuando es modo creación
+- [x] Mostrar solo formulario de creación centrado (modal sin clase --expandido)
+- [x] Ocultar pestañas móvil y botón toggle chat en modo creación
+- [x] Al guardar y reabrir, ya mostrar chat/historial normalmente
 
-- [x] Quitar panel de Exportar/Importar del grid de columnas
-- [x] Agregar opciones "Exportar datos" e "Importar datos" al menú contextual del perfil (header)
+**Bug corregido: Doble padding en modo creación**
 
-### 6.3 Auto-Guardado en Modales de Configuración ✅
+> **Problema resuelto:** `.panelConfiguracionColumnaScroll` y `modalContenido` tenían padding simultáneo.
 
-> **Implementado para:** Modal de configuración de Tareas (PanelConfiguracionTarea)
+**Solución aplicada:**
+- En `modal.css`: Añadida regla `.panelConfiguracionContenedor:not(.modalContenedor--expandido) .modalContenido { padding: 0; overflow: visible; }`
+- Esto hace que en modo creación, `.modalContenido` no tenga padding ni scroll
+- El padding y scroll los maneja `.panelConfiguracionColumnaScroll` 
+- Los botones quedan fijos gracias a la estructura flexbox existente
 
-- [x] Los cambios se guardan automáticamente al cerrar el modal (overlay, ESC, X)
-- [x] El botón "Cancelar" descarta los cambios y cierra el modal
-- [x] El botón "Guardar" se mantiene (guarda y cierra inmediatamente)
 
-> **Nota:** Hábitos y Proyectos usan arquitectura diferente (formulario dentro de Modal externo). Ver Fase 6.5 para refactorización.
+### 7.5.2 Filtro "Mis Asignadas" - Excluir Hábitos ✅
 
-**Complejidad:** Baja | **Dependencias:** Ninguna
+> **Problema:** Cuando se filtra por "Mis Asignadas" se muestran hábitos aunque "Mostrar hábitos en Ejecución" esté activo.
 
----
+- [x] El filtro "Mis Asignadas" muestra SOLO tareas asignadas por otros usuarios
+- [x] Cuando el filtro es "asignadas", no se incluyen hábitos-como-tareas
+- [x] Modificado `useDashboardCompleto.ts` para excluir hábitos del combinar
 
-## Fase 6.5: Refactorización Formularios Hábitos/Proyectos [COMPLETADA]
+### 7.5.3 Columnas Visibles por Defecto en Hábitos ✅
 
-**Objetivo:** Unificar arquitectura de formularios para permitir auto-guardado completo.
+> **Problema:** Por defecto se muestran columnas poco útiles en la tabla de hábitos.
 
-> **Problema resuelto:** `FormularioHabito` y `FormularioProyecto` ahora manejan su propio `<Modal>` interno, permitiendo auto-guardado con detección de cambios.
+**Columnas visibles por defecto:**
+- [x] Frecuencia ✅
+- [x] Importancia (Prioridad) ✅
+- [x] TocaHoy (Días) ✅
 
-### 6.5.1 Refactorizar FormularioHabito ✅
+**Columnas ocultas por defecto:**
+- [x] Racha ❌
+- [x] Urgencia ❌
+- [x] Inactividad ❌
 
-- [x] Convertir `FormularioHabito` a `ModalHabito` (similar a `PanelConfiguracionTarea`)
-- [x] El componente maneja su propio `<Modal>` interno
-- [x] Implementar auto-guardado al cerrar (overlay, ESC, X) **solo si hay cambios**
-- [x] Mantener botón "Cancelar" para descartar cambios
-- [x] Actualizar `DashboardModales.tsx` para usar el nuevo componente
+- [x] Actualizado `COLUMNAS_POR_DEFECTO` en `useConfiguracionHabitos.ts`
+- [x] Usuarios existentes no se ven afectados (solo nuevos usuarios)
 
-### 6.5.2 Refactorizar FormularioProyecto ✅
+### 7.5.4 Orden de Paneles por Defecto ✅
 
-- [x] Convertir `FormularioProyecto` a `ModalProyecto` (similar a `PanelConfiguracionTarea`)
-- [x] El componente maneja su propio `<Modal>` interno
-- [x] Implementar auto-guardado al cerrar **solo si hay cambios**
-- [x] Mantener botón "Cancelar" para descartar cambios
-- [x] Actualizar `DashboardModales.tsx` para usar el nuevo componente
+> **Problema:** El orden inicial de los paneles no es óptimo.
 
-### 6.5.3 Detección de Cambios ✅
+**Nuevo orden por defecto:**
+| Fila | Columna 1 | Columna 2  | Columna 3 |
+| ---- | --------- | ---------- | --------- |
+| 1    | Ejecución | Proyectos  | ...       |
+| 2    | Hábitos   | Scratchpad | ...       |
 
-- [x] `PanelConfiguracionTarea`: Detecta cambios antes de guardar
-- [x] `ModalHabito`: Detecta cambios antes de guardar
-- [x] `ModalProyecto`: Detecta cambios antes de guardar
-- [x] Solo se muestra "deshacer" cuando hay cambios reales
+- [x] Ejecución ahora está en la primera fila
+- [x] Hábitos en la segunda fila
+- [x] Actualizado `ORDEN_PANELES_DEFECTO` en `useConfiguracionLayout.ts`
 
-**Complejidad:** Media | **Dependencias:** Fase 6
+### 7.5.5 Botón Minimizar en Paneles ✅
 
----
+> **Problema:** No hay forma rápida de ocultar un panel sin ir a configuración.
 
-## Fase 6.6: Hábitos en Ejecución [COMPLETADA]
+- [x] Creado componente `BotonMinimizarPanel.tsx`
+- [x] Icono: `Minus` de Lucide
+- [x] Al hacer clic: oculta panel usando `layout.ocultarPanel()`
+- [x] Agregado a todos los paneles (FocoPrioritario, Proyectos, Ejecucion, Scratchpad)
+- [x] Para restaurar: usar la barra de paneles ocultos existente
 
-**Objetivo:** Mostrar hábitos que "tocan hoy" como tareas virtuales en el panel de Ejecución, permitiendo un flujo unificado de trabajo.
+### 7.5.6 Redimensionar Ancho de Columnas
 
-> **Concepto:** Los hábitos son como tareas recurrentes. Cuando está habilitada la opción, aparecen en Ejecución con su urgencia calculada automáticamente basada en días de inactividad.
+> **Problema:** Solo Scratchpad tiene resize de altura. Las columnas no se pueden redimensionar.
 
-### 6.6.1 Modelo TareaHabito ✅
+**Implementación:**
+- [ ] Barra de arrastre vertical entre columnas (similar al resize de Scratchpad)
+- [ ] Estilo minimalista y sencillo (línea delgada, cursor resize)
+- [ ] Al soltar: guardar anchos en localStorage
 
-- [x] Tipo `TareaHabito` que extiende `Tarea` con campos específicos
-- [x] IDs negativos para evitar colisión con tareas reales (`-habitoId - 10000`)
-- [x] Type guard `esTareaHabito()` para detectar tareas virtuales
-- [x] Campos: `esHabito`, `habitoId`, `habitoNombre`, `habitoRacha`, `habitoImportancia`
+**Asistencia automática de balance:**
+- [ ] Botón o doble-clic para "balancear" columnas automáticamente
+- [ ] Distribuye el ancho equitativamente entre columnas visibles
+- [ ] Opción en menú contextual: "Igualar anchos"
 
-### 6.6.2 Urgencia Automática ✅
+### 7.5.7 Redimensionar Altura de Paneles ✅
 
-**Fórmula de urgencia basada en días de inactividad:**
+> **Problema resuelto:** Otros paneles no tenían resize de altura como Scratchpad.
 
-| Días Inactivo | Urgencia     | Descripción                        |
-| ------------- | ------------ | ---------------------------------- |
-| 0-1 + racha   | `chill`      | Todo bien, mantiene la racha       |
-| 1-2           | `normal`     | Debería hacerse pronto             |
-| 3-4           | `urgente`    | Atención, la racha está en peligro |
-| 5+            | `bloqueante` | Crítico, la racha se perderá       |
+**Implementación inteligente:**
+- [x] Componente reutilizable `ResizeHandlePanel` con lógica de anclaje automático
+- [x] Modo "auto": el panel crece con su contenido (comportamiento por defecto)
+- [x] Si se arrastra hacia abajo y supera el contenido: se ancla automáticamente a "auto"
+- [x] Si se arrastra hacia arriba: altura fija con scroll interno
+- [x] Indicador visual: línea verde = modo auto (anclado), línea gris = altura fija
+- [x] Doble clic en handle: alterna entre modo auto y modo fijo
+- [x] Alturas persistidas en localStorage por panel
+- [x] Mínimo 120px para evitar paneles demasiado pequeños
 
-### 6.6.3 Integración Frontend ✅
+### 7.5.8 Scroll Unificado y Bug de Parpadeo ✅
 
-- [x] Hook `useHabitosComoTareas` convierte hábitos a tareas virtuales
-- [x] Hook `useConfiguracionTareas` con toggle `mostrarHabitosEnEjecucion`
-- [x] `useDashboardCompleto` combina tareas + tareas-hábito
-- [x] `useOrdenarTareas` ordena la combinación con el algoritmo inteligente
-- [x] `DashboardGrid` intercepta toggle de tareas-hábito
+> **Problema resuelto:** El scroll parpadeaba al editar tareas debido al uso de `overflow-y: auto`.
 
-### 6.6.4 UI/UX ✅
+**Scroll unificado:**
+- [x] Estilos de scrollbar globales ya estaban en `base.css`
+- [x] Todas las variables CSS de scrollbar centralizadas en `variables.css`
+- [x] Eliminado código redundante de scrollbar en `panelConfiguracion.css`
 
-- [x] Badge de hábito con icono `Repeat2` y racha actual
-- [x] Variante CSS `.badgeInfo--habito`
-- [x] Toggle en `ModalConfiguracionTareas` (desactivado por defecto)
-- [x] Sin menú contextual para tareas-hábito (valores dependen del hábito)
-- [x] Sin acciones inline (configurar/eliminar) para tareas-hábito
-- [x] Sin edición inline del texto
+**Bug de parpadeo:**
+- [x] Causa identificada: `overflow-y: auto` causa recálculo del layout al aparecer/desaparecer scrollbar
+- [x] Solución aplicada: usar `overflow-y: scroll` fijo en `.panelConfiguracionColumnaScroll`
 
-### 6.6.5 Drag & Drop ✅
+### 7.5.9 Scratchpad - Sistema de Guardado
 
-- [x] Tareas-hábito excluidas del `Reorder.Group` (no arrastrables)
-- [x] En modo manual: tareas-hábito aparecen después de tareas reales
-- [x] En modo inteligente/fecha/prioridad: tareas mezcladas según algoritmo
+> **Requisito:** Antes de File Manager, Scratchpad debe tener su función de guardar implementada.
 
-### 6.6.6 Comportamiento de Toggle ✅
-
-- [x] Al marcar completada una tarea-hábito, se completa el hábito original
-- [x] La tarea-hábito desaparece de Ejecución (ya no "toca hoy")
-- [x] La racha del hábito aumenta normalmente
-
-**Complejidad:** Media | **Dependencias:** Fase 5, 6
-
----
-
-## Fase 7: Modal Expandido con Chat e Historial [EN PROGRESO]
-
-**Objetivo:** Comunicación y trazabilidad en tareas/proyectos/hábitos compartidos.
-
-### 7.1 Nuevo Diseño del Modal de Tarea ✅
-
-> El modal actual se expande al doble de ancho con 2 columnas.
-
-**Columna Izquierda (existente):**
-- [x] Información de la tarea (nombre, descripción, prioridad, etc.)
-- [x] Adjuntos
-- [x] Configuración (repetición, asignación)
-
-**Columna Derecha (nueva):**
-- [x] Panel con pestañas Chat/Historial/Participantes
-- [x] Estructura visual placeholder
-- [x] Responsive: pestañas en móvil
-
-**Archivos creados:**
-- `components/dashboard/PanelChatHistorial.tsx`
-- `styles/dashboard/componentes/chatHistorial.css`
-
-**Archivos modificados:**
-- `components/dashboard/PanelConfiguracionTarea.tsx` - Layout 2 columnas
-- `styles/dashboard/componentes/modal.css` - Variante `.modalContenedor--expandido`
-- `styles/dashboard/componentes/panelConfiguracion.css` - Grid 2 columnas + responsive
-
-### 7.1.1 Correcciones ✅
-
-- [x] **Botones Cancelar/Guardar**: Centrados en el contenedor fijo con estilos específicos
-- [x] **Unificar Chat + Historial**: Timeline único sin pestañas separadas, participantes como toggle en header
-
-### 7.2 Sistema Unificado de Chat + Historial
-
-> **Concepto clave:** Chat e Historial son UN SOLO timeline. Los mensajes del sistema SON el historial.
-
-**Tipos de mensaje en el timeline:**
-
-| Tipo       | Descripción                     | Estilo Visual                           |
-| ---------- | ------------------------------- | --------------------------------------- |
-| `enviado`  | Mensaje del usuario actual      | Alineado a la derecha, fondo destacado  |
-| `recibido` | Mensaje de otro participante    | Alineado a la izquierda, fondo normal   |
-| `sistema`  | Acción de historial (inmutable) | Centrado, estilo sutil, icono de acción |
-
-**Backend:** ✅
-- [x] Tabla BD: `wp_glory_mensajes` (id, tipo_elemento, elemento_id, usuario_id, contenido, tipo_mensaje, fecha)
-  - `tipo_elemento`: 'tarea' | 'proyecto' | 'habito'
-  - `tipo_mensaje`: 'usuario' | 'sistema'
-- [x] Endpoint: `POST /mensajes` - Enviar mensaje
-- [x] Endpoint: `GET /mensajes/{tipo}/{id}` - Obtener timeline
-- [x] `MensajesRepository.php` - Persistencia de mensajes
-- [x] `MensajesService.php` - Registro de eventos del sistema
-- [x] `Schema::ensureTableExists()` - Migración automática de tablas
-- [x] Endpoint: `POST /mensajes/evento` - Registrar eventos desde frontend
-- [x] Integrar `registrarEventoSistema()` en `useTareas`
-
-**Frontend:** ✅
-- [x] Hook `useMensajes.ts` - Comunicación con API
-- [x] Componente `PanelChatHistorial` conectado a la API real
-- [x] Input de mensaje con Enter para enviar
-- [x] Scroll automático al último mensaje
-- [x] Función `registrarEventoSistema()` para registrar cambios
-- [x] Toggle para ocultar/mostrar panel de chat (persistente en localStorage)
-- [x] Indicador de mensajes sin leer en botón de toggle
-- [ ] Indicador de "escribiendo..." (futuro)
-
-**Acciones que generan mensaje sistema:** ✅
-- [x] Infraestructura lista (endpoint + función)
-- [x] Integrado en `useTareas.toggleTarea()` - Completado/Reabierto
-- [x] Integrado en `useTareas.editarTarea()` con detección de cambios:
-  - Cambio de nombre
-  - Cambio de descripción  
-  - Cambio de prioridad
-  - Cambio de urgencia
-  - Cambio de fecha límite
-  - Cambio de asignación (asignado/desasignado)
-
-### 7.3 Sistema de Mensajes No Leídos ✅
-
-> **Tu sugerencia:** Badge de notificación cuando hay mensajes/cambios sin leer.
+**Funcionalidad:**
+- [ ] Botón badge "Guardar nota" (icono: `Save` o `Download`)
+- [ ] Al guardar: almacenar nota con título automático (primeras palabras) y fecha
+- [ ] Botón badge "Carpeta" (icono: `Folder`) junto al de guardar
+- [ ] Al hacer clic en Carpeta: abrir lista de notas guardadas
+- [ ] Las notas guardadas se pueden reabrir en el Scratchpad
+- [ ] Las notas se pueden buscar por título/contenido
 
 **Backend:**
-- [x] Tabla BD: `wp_glory_mensajes_leidos` (usuario_id, tipo_elemento, elemento_id, ultimo_mensaje_leido)
-- [x] Endpoint: `POST /mensajes/marcar-leido` - Marcar como leído
-- [x] Endpoint: `GET /mensajes/no-leidos/{tipo}/{id}` - Contar no leídos de un elemento
-- [x] Endpoint: `POST /mensajes/no-leidos-masivo` - Contar no leídos de múltiples elementos
-- [x] `MensajesRepository::marcarComoLeido()` - Actualiza último visto
-- [x] `MensajesRepository::contarNoLeidos()` - Cuenta mensajes nuevos
-- [x] `MensajesRepository::contarNoLeidosMasivo()` - Optimizado para listas
-- [x] Auto-marcar como leído al ver el timeline
+- [ ] Tabla BD: `wp_glory_notas` (id, user_id, titulo, contenido, fecha_creacion)
+- [ ] Endpoint: `POST /notas` - Guardar nota
+- [ ] Endpoint: `GET /notas` - Listar notas del usuario
+- [ ] Endpoint: `DELETE /notas/{id}` - Eliminar nota
 
-**Frontend:**
-- [x] Hook `useMensajesNoLeidos` - Obtiene conteo para badges
-- [x] Prop `mensajesNoLeidos` en `TareaItem`
-- [x] Función `renderBadgeMensajesNoLeidos()` con icono MessageCircle
-- [x] Variante CSS `badgeInfo--mensajeNoLeido` con color azul y animación
-- [x] Integrar hook en `ListaTareas` para pasar conteo
+**UI:**
+- [ ] Modal o dropdown con lista de notas guardadas
+- [ ] Preview del contenido en hover o expansión
+- [ ] Opción de eliminar nota
 
-### 7.4 UI del Timeline ✅
+### 7.5.10 Bug Fuente Pequeña en Scratchpad ✅
 
-- [x] Timeline unificado (scroll único)
-- [x] Mensajes usuario: burbuja con avatar
-- [x] Mensajes sistema: línea con icono y texto pequeño
-- [x] Fecha separadora por día
-- [x] Badge de mensajes no leídos (infraestructura lista)
+> **Problema resuelto:** La fuente "pequeña" era igual a "normal" (ambas 12px).
 
-### 7.5 Pestaña Participantes ✅
+- [x] Identificado que `--dashboard-tamanoBase` = 12px y `0.75rem` = 12px (iguales)
+- [x] Corregidos tamaños a valores fijos con diferencia visible:
+  - Pequeña: 11px
+  - Normal: 13px 
+  - Grande: 16px
+- [x] Añadido `line-height` apropiado para cada tamaño
 
-- [x] Lista de participantes del elemento compartido
-- [x] Avatar + nombre + rol (propietario/colaborador)
-- [x] Solo visible si el elemento está compartido
+---
 
-### 7.6 Aplicar a Proyectos y Hábitos ✅
+### Resumen de Fase 7.5
 
-- [x] Modal de proyecto con timeline (siempre visible en modo edición)
-- [x] Modal de hábito con timeline (siempre visible en modo edición)
-- [x] Componente `PanelChatHistorial` reutilizable
-- [x] Sin botón eliminar en modales (consistente con tareas)
-- [x] Toggle chat/historial persistente en localStorage
+| Tarea                            | Complejidad | Prioridad | Estado |
+| -------------------------------- | ----------- | --------- | ------ |
+| Ocultar chat en creación         | Baja        | Alta      | ✅      |
+| Filtro mis asignadas sin hábitos | Baja        | Alta      | ✅      |
+| Columnas visibles hábitos        | Baja        | Media     | ✅      |
+| Orden paneles por defecto        | Baja        | Media     | ✅      |
+| Botón minimizar paneles          | Baja        | Alta      | ✅      |
+| Redimensionar ancho columnas     | Media-Alta  | Media     | ⏳      |
+| Redimensionar altura paneles     | Media       | Media     | ✅      |
+| Scroll unificado + bug parpadeo  | Media       | Alta      | ✅      |
+| Scratchpad guardado              | Media-Alta  | Alta      | ⏳      |
+| Bug fuente pequeña Scratchpad    | Baja        | Baja      | ✅      |
 
-### 7.7 Notificaciones de Mensajes ✅
-
-- [x] `NotificacionesService::notificarMensajeChat()` - Crea notificación
-- [x] `MensajesApiController::notificarParticipantes()` - Obtiene participantes
-- [x] Al enviar mensaje, se notifica a todos los participantes excepto al remitente
-- [x] Notificación incluye: nombre del remitente, tipo elemento, preview del mensaje
-
-**Complejidad:** Muy Alta | **Dependencias:** Fase 2, 3, 4 (requiere sistema social completo)
+**Complejidad Total:** Media | **Dependencias:** Fase 7 (modales completados)
 
 ---
 
@@ -665,6 +506,7 @@ styles/
 | 6.5  | Refact. Formularios            | Media       | ✅ Completada   |
 | 6.6  | Hábitos en Ejecución           | Media       | ✅ Completada   |
 | 7    | **Modal Chat + Historial**     | Muy Alta    | ✅ Completada   |
+| 7.5  | **Correcciones UX + Resize**   | Media       | ⏳ En Progreso  |
 | 8    | Mapa de Calor                  | Media-Alta  | Planificada    |
 | 9    | Scratchpad + File Manager      | Alta        | Baja Prioridad |
 | 10   | Compartir Hábitos              | Media       | Baja Prioridad |

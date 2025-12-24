@@ -21,13 +21,13 @@ export interface ConfiguracionHabitos {
 export const COLUMNAS_POR_DEFECTO: ColumnasHabitos = {
     indice: true,
     nombre: true,
-    racha: true,
-    frecuencia: false,
-    importancia: true,
-    tocaHoy: true,
+    racha: false /* Oculta por defecto */,
+    frecuencia: true /* Visible por defecto */,
+    importancia: true /* Prioridad visible */,
+    tocaHoy: true /* Días visible */,
     acciones: false,
-    urgencia: true,
-    inactividad: true
+    urgencia: false /* Oculta por defecto */,
+    inactividad: false
 };
 
 export const CONFIG_HABITOS_POR_DEFECTO: ConfiguracionHabitos = {

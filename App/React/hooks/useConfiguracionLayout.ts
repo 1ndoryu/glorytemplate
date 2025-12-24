@@ -38,12 +38,21 @@ export interface OrdenPanel {
     posicion: number;
 }
 
+/* Configuración de alturas de paneles (en píxeles o 'auto') */
+export interface AlturasPaneles {
+    focoPrioritario: string;
+    proyectos: string;
+    ejecucion: string;
+    scratchpad: string;
+}
+
 /* Configuración completa del layout */
 export interface ConfiguracionLayout {
     modoColumnas: ModoColumnas;
     anchos: AnchoColumnas;
     visibilidad: VisibilidadPaneles;
     ordenPaneles: OrdenPanel[];
+    alturas: AlturasPaneles;
 }
 
 /* Valores por defecto */
@@ -55,27 +64,28 @@ export const TODOS_LOS_PANELES: PanelId[] = ['focoPrioritario', 'proyectos', 'ej
 
 /*
  * Orden de paneles por defecto según modo de columnas
+ * Ejecución (tareas) siempre primero, Hábitos en segundo lugar
  * 1 columna: todo vertical en columna 1
- * 2 columnas: habitos/proyectos en col1, tareas/scratchpad en col2
- * 3 columnas: habitos col1, proyectos col2, tareas/scratchpad col3
+ * 2 columnas: ejecucion/habitos en col1, proyectos/scratchpad en col2
+ * 3 columnas: ejecucion col1, habitos col2, proyectos/scratchpad col3
  */
 export const ORDEN_PANELES_DEFECTO: Record<ModoColumnas, OrdenPanel[]> = {
     1: [
-        {id: 'focoPrioritario', columna: 1, posicion: 0},
-        {id: 'proyectos', columna: 1, posicion: 1},
-        {id: 'ejecucion', columna: 1, posicion: 2},
+        {id: 'ejecucion', columna: 1, posicion: 0},
+        {id: 'focoPrioritario', columna: 1, posicion: 1},
+        {id: 'proyectos', columna: 1, posicion: 2},
         {id: 'scratchpad', columna: 1, posicion: 3}
     ],
     2: [
-        {id: 'focoPrioritario', columna: 1, posicion: 0},
-        {id: 'proyectos', columna: 1, posicion: 1},
-        {id: 'ejecucion', columna: 2, posicion: 0},
+        {id: 'ejecucion', columna: 1, posicion: 0},
+        {id: 'focoPrioritario', columna: 1, posicion: 1},
+        {id: 'proyectos', columna: 2, posicion: 0},
         {id: 'scratchpad', columna: 2, posicion: 1}
     ],
     3: [
-        {id: 'focoPrioritario', columna: 1, posicion: 0},
-        {id: 'proyectos', columna: 2, posicion: 0},
-        {id: 'ejecucion', columna: 3, posicion: 0},
+        {id: 'ejecucion', columna: 1, posicion: 0},
+        {id: 'focoPrioritario', columna: 2, posicion: 0},
+        {id: 'proyectos', columna: 3, posicion: 0},
         {id: 'scratchpad', columna: 3, posicion: 1}
     ]
 };
@@ -93,7 +103,13 @@ export const CONFIG_LAYOUT_DEFECTO: ConfiguracionLayout = {
         ejecucion: true,
         scratchpad: true
     },
-    ordenPaneles: ORDEN_PANELES_DEFECTO[2]
+    ordenPaneles: ORDEN_PANELES_DEFECTO[2],
+    alturas: {
+        focoPrioritario: 'auto',
+        proyectos: 'auto',
+        ejecucion: 'auto',
+        scratchpad: '200px'
+    }
 };
 
 /* Presets de anchos según modo de columnas */
@@ -109,36 +125,47 @@ export function useConfiguracionLayout() {
     });
 
     /*
-     * Migración automática: si no existe ordenPaneles, generarlo
-     * Esto asegura compatibilidad con usuarios existentes
+     * Migración automática: asegura compatibilidad con usuarios existentes
+     * - Si no existe ordenPaneles, generarlo
+     * - Si no existen alturas, usar valores por defecto
      */
     const configuracionNormalizada = useMemo(() => {
-        if (!valor.ordenPaneles || valor.ordenPaneles.length === 0) {
-            return {
-                ...valor,
-                ordenPaneles: ORDEN_PANELES_DEFECTO[valor.modoColumnas]
+        let config = {...valor};
+
+        /* Migrar ordenPaneles si no existe */
+        if (!config.ordenPaneles || config.ordenPaneles.length === 0) {
+            config = {
+                ...config,
+                ordenPaneles: ORDEN_PANELES_DEFECTO[config.modoColumnas]
             };
         }
 
         /* Verificar que todos los paneles existan en el orden */
-        const panelesExistentes = new Set(valor.ordenPaneles.map(p => p.id));
+        const panelesExistentes = new Set(config.ordenPaneles.map(p => p.id));
         const panelesFaltantes = TODOS_LOS_PANELES.filter(id => !panelesExistentes.has(id));
 
         if (panelesFaltantes.length > 0) {
-            /* Agregar paneles faltantes al final de la primera columna */
-            const ultimaPosicion = Math.max(...valor.ordenPaneles.filter(p => p.columna === 1).map(p => p.posicion), -1);
+            const ultimaPosicion = Math.max(...config.ordenPaneles.filter(p => p.columna === 1).map(p => p.posicion), -1);
             const panelesNuevos = panelesFaltantes.map((id, idx) => ({
                 id,
                 columna: 1 as const,
                 posicion: ultimaPosicion + 1 + idx
             }));
-            return {
-                ...valor,
-                ordenPaneles: [...valor.ordenPaneles, ...panelesNuevos]
+            config = {
+                ...config,
+                ordenPaneles: [...config.ordenPaneles, ...panelesNuevos]
             };
         }
 
-        return valor;
+        /* Migrar alturas si no existen */
+        if (!config.alturas) {
+            config = {
+                ...config,
+                alturas: CONFIG_LAYOUT_DEFECTO.alturas
+            };
+        }
+
+        return config;
     }, [valor]);
 
     /*
@@ -435,6 +462,28 @@ export function useConfiguracionLayout() {
         setValor(CONFIG_LAYOUT_DEFECTO);
     }, [setValor]);
 
+    /* Cambiar altura de un panel específico */
+    const cambiarAlturaPanel = useCallback(
+        (panel: PanelId, altura: string) => {
+            setValor(prev => ({
+                ...prev,
+                alturas: {
+                    ...(prev.alturas || CONFIG_LAYOUT_DEFECTO.alturas),
+                    [panel]: altura
+                }
+            }));
+        },
+        [setValor]
+    );
+
+    /* Obtener altura de un panel */
+    const obtenerAlturaPanel = useCallback(
+        (panel: PanelId): string => {
+            return configuracionNormalizada.alturas?.[panel] || CONFIG_LAYOUT_DEFECTO.alturas[panel];
+        },
+        [configuracionNormalizada]
+    );
+
     /* Obtener paneles ocultos */
     const panelesOcultos = Object.entries(configuracionNormalizada.visibilidad)
         .filter(([, visible]) => !visible)
@@ -449,6 +498,7 @@ export function useConfiguracionLayout() {
         anchos: configuracionNormalizada.anchos,
         visibilidad: configuracionNormalizada.visibilidad,
         ordenPaneles: configuracionNormalizada.ordenPaneles,
+        alturas: configuracionNormalizada.alturas || CONFIG_LAYOUT_DEFECTO.alturas,
         panelesOcultos,
         cantidadPanelesVisibles,
         cambiarModoColumnas,
@@ -465,6 +515,8 @@ export function useConfiguracionLayout() {
         obtenerOrdenPanel,
         resetearOrdenPaneles,
         resetearLayout,
+        cambiarAlturaPanel,
+        obtenerAlturaPanel,
         actualizarConfiguracion: setValor
     };
 }

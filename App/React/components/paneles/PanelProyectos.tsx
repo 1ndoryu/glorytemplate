@@ -30,14 +30,15 @@ interface PanelProyectosProps {
     onEliminarTarea: (id: number) => void;
     onReordenarTareas: (tareas: Tarea[]) => void;
     handleArrastre: JSX.Element;
+    handleMinimizar: JSX.Element;
 }
 
-export function PanelProyectos({proyectos, tareas, configuracion, opcionesOrdenProyectos, onAbrirModalCrearProyecto, onAbrirModalEditarProyecto, onAbrirModalConfigProyectos, onEliminarProyecto, onCambiarEstadoProyecto, onCambiarOrdenProyectos, onCompartirProyecto, estaCompartido, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, handleArrastre}: PanelProyectosProps): JSX.Element {
+export function PanelProyectos({proyectos, tareas, configuracion, opcionesOrdenProyectos, onAbrirModalCrearProyecto, onAbrirModalEditarProyecto, onAbrirModalConfigProyectos, onEliminarProyecto, onCambiarEstadoProyecto, onCambiarOrdenProyectos, onCompartirProyecto, estaCompartido, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, handleArrastre, handleMinimizar}: PanelProyectosProps): JSX.Element {
     /* Estado local para el proyecto seleccionado/expandido */
     const [proyectoSeleccionadoId, setProyectoSeleccionadoId] = useState<number | null>(null);
 
     return (
-        <div className="panelDashboard">
+        <>
             <SeccionEncabezado
                 titulo="Proyectos"
                 icono={<Folder size={12} />}
@@ -55,10 +56,11 @@ export function PanelProyectos({proyectos, tareas, configuracion, opcionesOrdenP
                                 <Settings size={10} />
                             </span>
                         </button>
+                        {handleMinimizar}
                     </>
                 }
             />
             <ListaProyectos proyectos={proyectos} tareas={tareas} onCrearProyecto={onAbrirModalCrearProyecto} onSeleccionarProyecto={setProyectoSeleccionadoId} proyectoSeleccionadoId={proyectoSeleccionadoId} onEditarProyecto={onAbrirModalEditarProyecto} onEliminarProyecto={onEliminarProyecto} onCambiarEstadoProyecto={onCambiarEstadoProyecto} onCompartirProyecto={onCompartirProyecto} estaCompartido={estaCompartido} onToggleTarea={onToggleTarea} onCrearTarea={onCrearTarea} onEditarTarea={onEditarTarea} onEliminarTarea={onEliminarTarea} onReordenarTareas={onReordenarTareas} ocultarCompletados={configuracion.ocultarCompletados} ordenDefecto={configuracion.ordenDefecto} mostrarProgreso={configuracion.mostrarProgreso} />
-        </div>
+        </>
     );
 }

@@ -11,6 +11,28 @@ export interface Version {
 
 export const HISTORIAL_VERSIONES: Version[] = [
     {
+        version: 'v1.0.3-beta',
+        fecha: '2025-12-24',
+        cambios: [
+            {tipo: 'nuevo', descripcion: 'Sistema de Urgencia: niveles bloqueante, urgente, normal, chill'},
+            {tipo: 'nuevo', descripcion: 'Ordenamiento inteligente mejorado: urgencia + prioridad + fecha'},
+            {tipo: 'nuevo', descripcion: 'Hábitos en Ejecución: aparecen como tareas con urgencia automática'},
+            {tipo: 'nuevo', descripcion: 'Modal expandido con Chat e Historial para tareas compartidas'},
+            {tipo: 'nuevo', descripcion: 'Timeline unificado: mensajes + eventos del sistema'},
+            {tipo: 'nuevo', descripcion: 'Notificaciones de mensajes de chat a participantes'},
+            {tipo: 'nuevo', descripcion: 'Indicador de mensajes sin leer en tareas'},
+            {tipo: 'nuevo', descripcion: 'Botón minimizar en todos los paneles'},
+            {tipo: 'mejora', descripcion: 'Auto-guardado en modales de Tareas, Hábitos y Proyectos'},
+            {tipo: 'mejora', descripcion: 'Toggle para ocultar/mostrar panel de chat (persistente)'},
+            {tipo: 'mejora', descripcion: 'Columnas por defecto optimizadas en tabla de hábitos'},
+            {tipo: 'mejora', descripcion: 'Orden de paneles por defecto mejorado'},
+            {tipo: 'arreglo', descripcion: 'Modal de creación sin chat innecesario'},
+            {tipo: 'arreglo', descripcion: 'Filtro Mis Asignadas excluye hábitos correctamente'},
+            {tipo: 'arreglo', descripcion: 'Scroll unificado sin parpadeo'},
+            {tipo: 'arreglo', descripcion: 'Tamaño de fuente pequeña en Scratchpad visible'}
+        ]
+    },
+    {
         version: 'v1.0.2-beta',
         fecha: '2025-12-23',
         cambios: [

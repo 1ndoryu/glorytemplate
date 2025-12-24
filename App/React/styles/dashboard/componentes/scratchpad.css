@@ -46,17 +46,23 @@
     /* Altura por defecto, puede ser sobreescrita por inline style */
 }
 
-/* Modificadores de fuente */
+/*
+ * Modificadores de fuente
+ * Nota: --dashboard-tamanoBase = 12px, por eso usamos valores distintos
+ */
 .scratchpadFuente-pequeno {
-    font-size: 0.75rem; /* ~12px */
+    font-size: 11px;
+    line-height: 1.4;
 }
 
 .scratchpadFuente-normal {
-    font-size: var(--dashboard-tamanoBase); /* ~13-14px */
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .scratchpadFuente-grande {
-    font-size: 0.95rem; /* ~15px */
+    font-size: 16px;
+    line-height: 1.6;
     letter-spacing: 0.02em;
 }
 

@@ -126,3 +126,14 @@
 .modalContenedor--expandido:has(.panelConfiguracionDosColumnas--sinChat) {
     max-width: 425px;
 }
+
+/* 
+ * MODAL DE CONFIGURACION SIN EXPANDIR (modo creacion)
+ * Cuando NO es --expandido pero contiene el panel de configuracion,
+ * quitamos el overflow y padding de modalContenido para evitar conflictos.
+ * El scroll lo maneja .panelConfiguracionColumnaScroll
+ */
+.panelConfiguracionContenedor:not(.modalContenedor--expandido) .modalContenido {
+    padding: 0;
+    overflow: visible;
+}

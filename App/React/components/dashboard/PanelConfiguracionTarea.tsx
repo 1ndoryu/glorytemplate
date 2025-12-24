@@ -236,6 +236,12 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
     const esModoCreacion = !tarea;
     const tieneParticipantes = participantes.length > 0;
 
+    /*
+     * En modo creación, ocultar el panel de chat/historial
+     * No tiene sentido mostrar historial de algo que no existe aún
+     */
+    const mostrarPanelChat = !esModoCreacion && chatVisible;
+
     /* Toggle visibilidad del panel de chat */
     const toggleChatVisible = useCallback(() => {
         setChatVisible(prev => {
@@ -258,19 +264,21 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
     }));
 
     return (
-        <Modal estaAbierto={estaAbierto} onCerrar={manejarCerrarConGuardado} titulo={esModoCreacion ? 'Nueva Tarea' : 'Configurar Tarea'} claseExtra="panelConfiguracionContenedor modalContenedor--expandido">
-            {/* Pestañas para móvil */}
-            <div className="panelConfiguracionPestanas">
-                <button type="button" className={`panelConfiguracionPestana ${pestanaActiva === 'configuracion' ? 'panelConfiguracionPestana--activa' : ''}`} onClick={() => setPestanaActiva('configuracion')}>
-                    Configuracion
-                </button>
-                <button type="button" className={`panelConfiguracionPestana ${pestanaActiva === 'chat' ? 'panelConfiguracionPestana--activa' : ''}`} onClick={() => setPestanaActiva('chat')}>
-                    Chat / Historial
-                </button>
-            </div>
+        <Modal estaAbierto={estaAbierto} onCerrar={manejarCerrarConGuardado} titulo={esModoCreacion ? 'Nueva Tarea' : 'Configurar Tarea'} claseExtra={`panelConfiguracionContenedor ${esModoCreacion ? '' : 'modalContenedor--expandido'}`}>
+            {/* Pestañas para móvil - Solo en modo edición */}
+            {!esModoCreacion && (
+                <div className="panelConfiguracionPestanas">
+                    <button type="button" className={`panelConfiguracionPestana ${pestanaActiva === 'configuracion' ? 'panelConfiguracionPestana--activa' : ''}`} onClick={() => setPestanaActiva('configuracion')}>
+                        Configuracion
+                    </button>
+                    <button type="button" className={`panelConfiguracionPestana ${pestanaActiva === 'chat' ? 'panelConfiguracionPestana--activa' : ''}`} onClick={() => setPestanaActiva('chat')}>
+                        Chat / Historial
+                    </button>
+                </div>
+            )}
 
-            {/* Layout de 2 columnas (o 1 si chat está oculto) */}
-            <div className={`panelConfiguracionDosColumnas ${!chatVisible ? 'panelConfiguracionDosColumnas--sinChat' : ''}`}>
+            {/* Layout de 2 columnas (o 1 si chat está oculto/modo creación) */}
+            <div className={`panelConfiguracionDosColumnas ${!mostrarPanelChat ? 'panelConfiguracionDosColumnas--sinChat' : ''}`}>
                 {/* Columna Izquierda: Configuracion */}
                 <div className={`panelConfiguracionColumnaIzquierda ${pestanaActiva === 'configuracion' ? 'panelConfiguracionColumnaIzquierda--activa' : ''}`}>
                     <div className="panelConfiguracionColumnaScroll">
@@ -317,22 +325,19 @@ export function PanelConfiguracionTarea({tarea, estaAbierto, onCerrar, onGuardar
 
                     {/* Acciones del formulario */}
                     <AccionesFormulario onCancelar={manejarCancelar} onGuardar={manejarGuardar} textoGuardar={esModoCreacion ? 'Crear Tarea' : 'Guardar'}>
-                        {/* Botón para toggle del chat */}
-                        <button type="button" className={`accionesFormularioBotonChat ${tieneMensajesSinLeer && !chatVisible ? 'accionesFormularioBotonChat--noLeidos' : ''}`} onClick={toggleChatVisible} title={chatVisible ? 'Ocultar chat' : `Mostrar chat${tieneMensajesSinLeer ? ' (mensajes sin leer)' : ''}`}>
-                            {chatVisible ? <MessageSquareOff size={14} /> : <MessageSquare size={14} />}
-                        </button>
+                        {/* Botón para toggle del chat - Solo en modo edición */}
+                        {!esModoCreacion && (
+                            <button type="button" className={`accionesFormularioBotonChat ${tieneMensajesSinLeer && !chatVisible ? 'accionesFormularioBotonChat--noLeidos' : ''}`} onClick={toggleChatVisible} title={chatVisible ? 'Ocultar chat' : `Mostrar chat${tieneMensajesSinLeer ? ' (mensajes sin leer)' : ''}`}>
+                                {chatVisible ? <MessageSquareOff size={14} /> : <MessageSquare size={14} />}
+                            </button>
+                        )}
                     </AccionesFormulario>
                 </div>
 
-                {/* Columna Derecha: Chat e Historial */}
-                {chatVisible && (
+                {/* Columna Derecha: Chat e Historial - Solo en modo edición */}
+                {mostrarPanelChat && tarea && (
                     <div className={`panelConfiguracionColumnaDerecha ${pestanaActiva === 'chat' ? 'panelConfiguracionColumnaDerecha--activa' : ''}`}>
-                        {tarea && <PanelChatHistorial elementoId={tarea.id} elementoTipo="tarea" participantes={participantesChat} />}
-                        {!tarea && (
-                            <div className="panelChatHistorialVacio">
-                                <span>Chat disponible despues de crear la tarea</span>
-                            </div>
-                        )}
+                        <PanelChatHistorial elementoId={tarea.id} elementoTipo="tarea" participantes={participantesChat} />
                     </div>
                 )}
             </div>

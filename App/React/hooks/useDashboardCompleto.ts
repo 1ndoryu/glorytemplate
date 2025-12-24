@@ -52,10 +52,18 @@ export function useDashboardCompleto() {
         onToggleHabito: dashboard.toggleHabito
     });
 
-    /* Combinar tareas filtradas con tareas-hábito */
+    /*
+     * Combinar tareas filtradas con tareas-hábito
+     * NOTA: Cuando el filtro es "asignadas", NO incluir hábitos
+     * Los hábitos nunca son "asignados" por otros usuarios
+     */
     const tareasConHabitos = useMemo<Tarea[]>(() => {
+        /* Si el filtro es "asignadas", solo mostrar tareas reales asignadas */
+        if (filtroTareas.filtroActual.tipo === 'asignadas') {
+            return filtroTareas.tareasFiltradas;
+        }
         return [...filtroTareas.tareasFiltradas, ...habitosComoTareas.tareasHabito];
-    }, [filtroTareas.tareasFiltradas, habitosComoTareas.tareasHabito]);
+    }, [filtroTareas.tareasFiltradas, filtroTareas.filtroActual.tipo, habitosComoTareas.tareasHabito]);
 
     /* Ordenar la combinación de tareas + tareas-hábito */
     const ordenTareas = useOrdenarTareas(tareasConHabitos);

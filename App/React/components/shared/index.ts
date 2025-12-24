@@ -27,3 +27,5 @@ export * from './ModalVersiones';
 export * from './AlertaToast';
 export * from './AlertaConfirmacion';
 export * from './ContenedorAlertas';
+export * from './BotonMinimizarPanel';
+export * from './ResizeHandlePanel';

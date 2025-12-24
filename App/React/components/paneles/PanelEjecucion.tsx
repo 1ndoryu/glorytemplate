@@ -40,11 +40,12 @@ interface PanelEjecucionProps {
     estaCompartida: (id: number) => boolean;
     obtenerParticipantes: (tarea: Tarea) => Participante[];
     handleArrastre: JSX.Element;
+    handleMinimizar: JSX.Element;
 }
 
-export function PanelEjecucion({tareas, proyectos, proyectoIdActual, ocultarCompletadas, ocultarBadgeProyecto, modoOrden, valorFiltroActual, opcionesFiltro, opcionesOrdenTareas, esOrdenManual, onAbrirModalNuevaTarea, onAbrirModalConfigTareas, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, onCambiarFiltro, onCambiarModoOrden, onCompartirTarea, estaCompartida, obtenerParticipantes, handleArrastre}: PanelEjecucionProps): JSX.Element {
+export function PanelEjecucion({tareas, proyectos, proyectoIdActual, ocultarCompletadas, ocultarBadgeProyecto, modoOrden, valorFiltroActual, opcionesFiltro, opcionesOrdenTareas, esOrdenManual, onAbrirModalNuevaTarea, onAbrirModalConfigTareas, onToggleTarea, onCrearTarea, onEditarTarea, onEliminarTarea, onReordenarTareas, onCambiarFiltro, onCambiarModoOrden, onCompartirTarea, estaCompartida, obtenerParticipantes, handleArrastre, handleMinimizar}: PanelEjecucionProps): JSX.Element {
     return (
-        <div className="panelDashboard internaColumna">
+        <>
             <SeccionEncabezado
                 icono={<Terminal size={12} />}
                 titulo="Ejecucion"
@@ -63,10 +64,11 @@ export function PanelEjecucion({tareas, proyectos, proyectoIdActual, ocultarComp
                                 <Settings size={10} />
                             </span>
                         </button>
+                        {handleMinimizar}
                     </>
                 }
             />
             <ListaTareas tareas={tareas} proyectoId={proyectoIdActual} proyectos={proyectos} ocultarCompletadas={ocultarCompletadas} ocultarBadgeProyecto={ocultarBadgeProyecto} onToggleTarea={onToggleTarea} onCrearTarea={onCrearTarea} onEditarTarea={onEditarTarea} onEliminarTarea={onEliminarTarea} onReordenarTareas={esOrdenManual ? onReordenarTareas : undefined} habilitarDrag={esOrdenManual} onCompartirTarea={onCompartirTarea} estaCompartida={estaCompartida} obtenerParticipantes={obtenerParticipantes} />
-        </div>
+        </>
     );
 }

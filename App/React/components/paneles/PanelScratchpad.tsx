@@ -16,9 +16,10 @@ interface PanelScratchpadProps {
     onAbrirModalConfigScratchpad: () => void;
     onCambiarAltura: (altura: string) => void;
     handleArrastre: JSX.Element;
+    handleMinimizar: JSX.Element;
 }
 
-export function PanelScratchpad({notas, configuracion, onActualizarNotas, onLimpiarScratchpad, onAbrirModalConfigScratchpad, onCambiarAltura, handleArrastre}: PanelScratchpadProps): JSX.Element {
+export function PanelScratchpad({notas, configuracion, onActualizarNotas, onLimpiarScratchpad, onAbrirModalConfigScratchpad, onCambiarAltura, handleArrastre, handleMinimizar}: PanelScratchpadProps): JSX.Element {
     return (
         <div className="panelDashboard internaColumna">
             <SeccionEncabezado
@@ -38,6 +39,7 @@ export function PanelScratchpad({notas, configuracion, onActualizarNotas, onLimp
                                 <Settings size={10} />
                             </span>
                         </button>
+                        {handleMinimizar}
                     </>
                 }
             />
