@@ -134,16 +134,28 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                     indiceInsercion = primeraCompletada === -1 ? prev.length : primeraCompletada;
                 }
 
-                /* Crear tarea con orden basado en la posición */
+                /*
+                 * Crear tarea incluyendo TODOS los campos de DatosEdicionTarea
+                 * Esto garantiza que configuracion, urgencia, asignadoA, etc. se incluyan
+                 * Los campos que pueden ser null se normalizan a undefined
+                 */
                 const nuevaTarea: Tarea = {
+                    /* Campos obligatorios */
                     id: nuevoId,
                     texto: datos.texto || 'Nueva tarea',
-                    completado: false,
+                    completado: datos.completado ?? false,
                     fechaCreacion: hoy,
-                    prioridad: datos.prioridad ?? undefined,
+                    orden: indiceInsercion,
+                    /* Campos opcionales de DatosEdicionTarea */
                     parentId: datos.parentId,
                     proyectoId: datos.proyectoId,
-                    orden: indiceInsercion
+                    configuracion: datos.configuracion,
+                    /* Normalizar campos que pueden ser null -> undefined */
+                    prioridad: datos.prioridad ?? undefined,
+                    urgencia: datos.urgencia ?? undefined,
+                    asignadoA: datos.asignadoA ?? undefined,
+                    asignadoANombre: datos.asignadoANombre,
+                    asignadoAAvatar: datos.asignadoAAvatar
                 };
 
                 /* Insertar y recalcular orden de todas las tareas */
@@ -227,10 +239,10 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                     if (t.id !== id) return t;
 
                     /*
-                     * Crear objeto base excluyendo prioridad y asignadoA de datos si es null
-                     * Para estos campos, null significa "quitar"
+                     * Crear objeto base excluyendo campos que pueden ser null o no pertenecen a Tarea
+                     * Para prioridad/urgencia/asignadoA, null significa "quitar"
                      */
-                    const {prioridad: nuevaPrioridad, configuracion: nuevaConfiguracion, asignadoA: nuevoAsignadoA, asignadoANombre, asignadoAAvatar, ...restoDatos} = datos;
+                    const {prioridad: nuevaPrioridad, urgencia: nuevaUrgencia, configuracion: nuevaConfiguracion, asignadoA: nuevoAsignadoA, asignadoANombre, asignadoAAvatar, insertarDespuesDe: _, ...restoDatos} = datos;
 
                     const tareaActualizada: Tarea = {
                         ...t,
@@ -242,6 +254,13 @@ export function useTareas({tareas, setTareas, registrarAccion, mostrarMensaje}: 
                         delete tareaActualizada.prioridad;
                     } else if (nuevaPrioridad !== undefined) {
                         tareaActualizada.prioridad = nuevaPrioridad;
+                    }
+
+                    /* Si urgencia es null, eliminar; si tiene valor, asignar */
+                    if (nuevaUrgencia === null) {
+                        delete tareaActualizada.urgencia;
+                    } else if (nuevaUrgencia !== undefined) {
+                        tareaActualizada.urgencia = nuevaUrgencia;
                     }
 
                     /* Si asignadoA es null, eliminar asignación; si tiene valor, asignar */

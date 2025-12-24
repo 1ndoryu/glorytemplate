@@ -41,9 +41,24 @@ export function Scratchpad({valorInicial = '', placeholder = '// Escribe tus not
         }
     }, [altura, isResizing]);
 
-    /* Sincronizar con valor externo cuando cambia */
+    /*
+     * Sincronizar con valor externo solo en el montaje inicial o cuando el usuario
+     * no tiene cambios pendientes. Esto previene la race condition donde datos
+     * del servidor sobreescriben cambios locales no guardados.
+     */
+    const ultimoValorServidorRef = useRef(valorInicial);
+    const usuarioEditandoRef = useRef(false);
+
     useEffect(() => {
-        setValor(valorInicial);
+        /* Solo sincronizar si el valor del servidor cambió Y el usuario no está editando */
+        if (valorInicial !== ultimoValorServidorRef.current) {
+            ultimoValorServidorRef.current = valorInicial;
+
+            /* Si el usuario no ha modificado el valor local, sincronizar */
+            if (!usuarioEditandoRef.current) {
+                setValor(valorInicial);
+            }
+        }
     }, [valorInicial]);
 
     /* Callback debounceado para guardar */

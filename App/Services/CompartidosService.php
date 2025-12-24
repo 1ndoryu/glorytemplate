@@ -597,6 +597,45 @@ class CompartidosService
         $tablaTareas = Schema::getTableName('tareas');
 
         /* 
+         * Primero detectar y registrar tareas con JSON inválido para diagnóstico
+         */
+        $tareasInvalidas = $this->wpdb->get_results($this->wpdb->prepare(
+            "SELECT t.id_local, t.user_id, t.data, t.created_at, t.updated_at
+             FROM $tablaTareas t
+             WHERE t.deleted_at IS NULL
+               AND t.user_id != %d
+               AND (t.data IS NULL OR t.data = '' OR NOT JSON_VALID(t.data))",
+            $usuarioId
+        ));
+
+        if (!empty($tareasInvalidas)) {
+            foreach ($tareasInvalidas as $tarea) {
+                $dataPreview = is_null($tarea->data)
+                    ? 'NULL'
+                    : (empty($tarea->data)
+                        ? 'VACIO'
+                        : substr($tarea->data, 0, 100) . '...');
+
+                $dataLength = is_null($tarea->data) ? 0 : strlen($tarea->data);
+
+                error_log(sprintf(
+                    "[CompartidosService] JSON INVALIDO detectado en tarea - id_local: %d, user_id: %d, longitud_data: %d, created_at: %s, updated_at: %s, preview_data: %s",
+                    $tarea->id_local,
+                    $tarea->user_id,
+                    $dataLength,
+                    $tarea->created_at ?? 'N/A',
+                    $tarea->updated_at ?? 'N/A',
+                    $dataPreview
+                ));
+            }
+
+            error_log(sprintf(
+                "[CompartidosService] Total de tareas con JSON invalido: %d",
+                count($tareasInvalidas)
+            ));
+        }
+
+        /* 
          * Buscar tareas donde asignadoA = $usuarioId en el JSON data
          * Nota: MySQL 5.7+ soporta JSON_EXTRACT
          * Se valida que data sea JSON válido antes de extraer para evitar errores

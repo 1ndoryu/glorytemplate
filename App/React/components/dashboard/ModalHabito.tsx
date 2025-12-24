@@ -182,8 +182,12 @@ export function ModalHabito({estaAbierto, onCerrar, onGuardar, onEliminar, habit
                     <SelectorFrecuencia frecuencia={frecuencia} onChange={setFrecuencia} />
                 </div>
 
-                {/* Campo Tags */}
-                <div className="formularioCampo">
+                {/*
+                 * Campo Tags - OCULTO TEMPORALMENTE
+                 * El componente está funcional pero los tags no se usan actualmente.
+                 * Mantener el código para posible uso futuro.
+                 */}
+                {/* <div className="formularioCampo">
                     <label htmlFor="habito-tags" className="formularioEtiqueta">
                         Tags <span className="formularioEtiquetaOpcional">(opcional, max 5)</span>
                     </label>
@@ -206,7 +210,7 @@ export function ModalHabito({estaAbierto, onCerrar, onGuardar, onEliminar, habit
                             ))}
                         </div>
                     )}
-                </div>
+                </div> */}
             </div>
 
             {/* Acciones reutilizables */}

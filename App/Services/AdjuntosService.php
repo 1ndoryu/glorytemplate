@@ -377,24 +377,31 @@ class AdjuntosService
 
     /**
      * Genera un thumbnail para imágenes
+     * Si falla (ej. servidor sin GD/Imagick), retorna null pero NO detiene el proceso
      */
     private function generarThumbnail(string $rutaImagen, string $nombreBase): ?string
     {
-        /* Usar funciones de WordPress para redimensionar */
+        /* Intentar cargar el editor de imagen */
         $editor = wp_get_image_editor($rutaImagen);
 
+        /* Si falla (común en ciertos hostings), retornar null silenciosamente */
         if (is_wp_error($editor)) {
-            error_log('[AdjuntosService] Error creando editor de imagen: ' . $editor->get_error_message());
+            /* Loguear solo como advertencia para depuración, no como error crítico */
+            error_log('[AdjuntosService] Warning: No se pudo generar thumbnail (posible falta de GD/Imagick): ' . $editor->get_error_message());
             return null;
         }
 
-        $editor->resize(self::TAMAÑO_THUMBNAIL, self::TAMAÑO_THUMBNAIL, true);
+        /* Redimensionar */
+        $resultadoResize = $editor->resize(self::TAMAÑO_THUMBNAIL, self::TAMAÑO_THUMBNAIL, true);
+        if (is_wp_error($resultadoResize)) {
+            return null;
+        }
 
         $rutaThumb = trailingslashit($this->getRutaThumbnails()) . $nombreBase . '.jpg';
         $resultado = $editor->save($rutaThumb, 'image/jpeg');
 
         if (is_wp_error($resultado)) {
-            error_log('[AdjuntosService] Error guardando thumbnail: ' . $resultado->get_error_message());
+            error_log('[AdjuntosService] Warning: Error guardando archivo thumbnail: ' . $resultado->get_error_message());
             return null;
         }
 

@@ -38,17 +38,20 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 | Bug                                  | Descripción                                                                                                                                                       | Estado                                                                                                                                |
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~**Crear Tarea desde Badge**~~      | Al crear tarea desde el badge +, solo se guarda prioridad y nombre.                                                                                               | ✅ Arreglado v1.0.8 - `useTareas.crearTarea` ahora propaga todos los campos (urgencia, config, asignación)                             |
+| ~~**Scratchpad Pierde Datos**~~      | Al escribir en Scratchpad, dice "Guardado" pero al recargar se pierde el contenido.                                                                               | ✅ Arreglado v1.0.8 - `useRef` para evitar race condition al sincronizar datos del servidor mientras usuario edita                     |
 | ~~**Sincronización Multi-Ventana**~~ | Las tareas no se sincronizaban entre diferentes ventanas/dispositivos. Cuando la carga del servidor fallaba, se sobrescribían los datos reales con datos locales. | ✅ Arreglado v1.0.7 - Eliminado auto-guardado en servidor cuando carga falla, añadida ventana de gracia para evitar parpadeo del badge |
 | ~~**BD Compartidos**~~               | Error `Unknown column 'c.fecha_compartido'` y `c.propietario_id`                                                                                                  | ✅ Arreglado v1.0.6 - Añadida función `repairTables()` en Schema.php                                                                   |
 | ~~**401 en Adjuntos Cifrados**~~     | Error 401 Unauthorized al cargar imágenes `.enc` después de un tiempo                                                                                             | ✅ Arreglado - Añadido header `X-WP-Nonce` en SeccionAdjuntos.tsx                                                                      |
 
 ### Menores
 
-| Bug                          | Descripción                                              | Estado                                                 |
-| ---------------------------- | -------------------------------------------------------- | ------------------------------------------------------ |
-| ~~**Tooltips desbordados**~~ | Los tooltips se salen de la pantalla a veces             | ✅ Arreglado - Detección de bordes en TooltipSystem.tsx |
-| ~~**Adjuntos eliminados**~~  | Al eliminar adjunto, no se quita instantáneamente del UI | ✅ Arreglado - Optimistic update en SeccionAdjuntos.tsx |
-| **Adjuntos múltiples**       | Al eliminar múltiples adjuntos, reaparecen algunos       | Pendiente - Investigar estado React                    |
+| Bug                              | Descripción                                              | Estado                                                                                                 |
+| -------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| ~~**Thumbnails en Producción**~~ | Los thumbnails no cargan en prod (error editor imagen).  | ✅ Arreglado v1.0.8 - Fallback silencioso (warning) en `AdjuntosService` si falla `wp_get_image_editor` |
+| ~~**Tooltips desbordados**~~     | Los tooltips se salen de la pantalla a veces             | ✅ Arreglado - Detección de bordes en TooltipSystem.tsx                                                 |
+| ~~**Adjuntos eliminados**~~      | Al eliminar adjunto, no se quita instantáneamente del UI | ✅ Arreglado - Optimistic update en SeccionAdjuntos.tsx                                                 |
+| **Adjuntos múltiples**           | Al eliminar múltiples adjuntos, reaparecen algunos       | Pendiente - Investigar estado React                                                                    |
 
 ---
 
