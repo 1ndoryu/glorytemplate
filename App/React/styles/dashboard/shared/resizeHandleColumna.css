@@ -1,0 +1,133 @@
+/*
+ * ESTILOS RESIZE HANDLE COLUMNA
+ * Handles para redimensionar columnas del dashboard
+ * Incluye handles internos (entre columnas) y externo (ancho total)
+ */
+
+/* 
+ * HANDLE BASE 
+ */
+.resizeHandleColumna {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 12px;
+    cursor: col-resize;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.3;
+    transition: opacity var(--dashboard-transicionNormal);
+}
+
+/* Handle externo empieza oculto */
+.resizeHandleColumnaExterno {
+    opacity: 0;
+}
+
+.dashboardGridContenedor:hover .resizeHandleColumnaExterno {
+    opacity: 0.6;
+}
+
+.resizeHandleColumna:hover,
+.resizeHandleColumna--arrastrando {
+    opacity: 1 !important;
+}
+
+/* 
+ * LINEA VISUAL DEL HANDLE 
+ */
+.resizeHandleColumnaLinea {
+    width: 2px;
+    height: 40px;
+    background: var(--dashboard-bordePrincipal);
+    border-radius: 1px;
+    transition: background var(--dashboard-transicionRapida), height var(--dashboard-transicionRapida), box-shadow var(--dashboard-transicionRapida);
+}
+
+.resizeHandleColumna:hover .resizeHandleColumnaLinea,
+.resizeHandleColumna--arrastrando .resizeHandleColumnaLinea {
+    background: var(--dashboard-textoNormal);
+    height: 80px;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* 
+ * HANDLE INTERNO - Entre columnas 
+ * Se posiciona en el borde derecho de la columna que lo contiene
+ * con un offset de la mitad del gap para centrarse entre columnas
+ */
+.resizeHandleColumnaInterno {
+    left: auto;
+    right: calc(-1 * var(--dashboard-espacioXl) / 2);
+    transform: translateX(50%);
+}
+
+/* Columna con handle necesita position relative */
+.dashboardGridColumna--conHandle {
+    position: relative;
+}
+
+/* 
+ * HANDLE EXTERNO - Borde derecho del grid 
+ */
+.resizeHandleColumnaExterno {
+    right: -6px;
+}
+
+.resizeHandleColumnaExterno .resizeHandleColumnaLinea {
+    background: var(--dashboard-textoApagado);
+}
+
+.resizeHandleColumnaExterno:hover .resizeHandleColumnaLinea,
+.resizeHandleColumnaExterno.resizeHandleColumna--arrastrando .resizeHandleColumnaLinea {
+    background: var(--dashboard-estadoExito);
+    box-shadow: 0 0 8px var(--dashboard-estadoExito);
+}
+
+/* 
+ * CONTENEDOR DEL GRID CON RESIZE 
+ */
+.dashboardGridContenedor {
+    position: relative;
+    margin: 0 auto;
+    transition: width var(--dashboard-transicionNormal);
+}
+
+/* 
+ * GRID INTERNO CON COLUMNAS DINAMICAS 
+ * Usamos fr para evitar overflow con gaps
+ */
+.dashboardGridColumnas {
+    display: grid;
+    gap: var(--dashboard-espacioXl);
+    position: relative;
+    width: 100%;
+}
+
+.dashboardGridColumnas--1col {
+    grid-template-columns: 1fr;
+}
+
+/* 
+ * Convertimos porcentajes a proporciones fr
+ * Ejemplo: 58% y 42% se convierten a 58fr y 42fr
+ */
+.dashboardGridColumnas--2col {
+    grid-template-columns: var(--col1-fr, 58fr) var(--col2-fr, 42fr);
+}
+
+.dashboardGridColumnas--3col {
+    grid-template-columns: var(--col1-fr, 35fr) var(--col2-fr, 35fr) var(--col3-fr, 30fr);
+}
+
+/* 
+ * COLUMNA INDIVIDUAL 
+ */
+.dashboardGridColumna {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioLg);
+    min-width: 0;
+}

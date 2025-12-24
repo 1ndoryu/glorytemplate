@@ -9,7 +9,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 **Fecha de inicio:** 2025-12-19  
 **Version:** v1.0.3-beta  
 **Ultima actualizacion:** 2025-12-24
-**Estado:** Fase 7.5 - EN PROGRESO (Pendiente: Redimensionamiento y Scratchpad guardado)
+**Estado:** Fase 7.5 - EN PROGRESO (Pendiente: Scratchpad guardado)
 
 ---
 
@@ -198,19 +198,21 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [x] Agregado a todos los paneles (FocoPrioritario, Proyectos, Ejecucion, Scratchpad)
 - [x] Para restaurar: usar la barra de paneles ocultos existente
 
-### 7.5.6 Redimensionar Ancho de Columnas
+### 7.5.6 Redimensionar Ancho de Columnas ✅
 
-> **Problema:** Solo Scratchpad tiene resize de altura. Las columnas no se pueden redimensionar.
+> **Problema resuelto:** Las columnas no se podían redimensionar manualmente.
 
 **Implementación:**
-- [ ] Barra de arrastre vertical entre columnas (similar al resize de Scratchpad)
-- [ ] Estilo minimalista y sencillo (línea delgada, cursor resize)
-- [ ] Al soltar: guardar anchos en localStorage
+- [x] Componente `ResizeHandleColumn` para handles internos y externos
+- [x] Handles internos entre columnas (1 para 2 col, 2 para 3 col)
+- [x] Handle externo para controlar ancho total del grid (60-100%)
+- [x] Estilo minimalista: línea delgada, visible al hover, cursor resize
+- [x] Anchos persistidos en localStorage
+- [x] CSS grid con unidades `fr` para distribución proporcional
 
 **Asistencia automática de balance:**
-- [ ] Botón o doble-clic para "balancear" columnas automáticamente
-- [ ] Distribuye el ancho equitativamente entre columnas visibles
-- [ ] Opción en menú contextual: "Igualar anchos"
+- [x] Doble clic en handle interno: iguala anchos de todas las columnas
+- [x] Doble clic en handle externo: resetea a 100%
 
 ### 7.5.7 Redimensionar Altura de Paneles ✅
 
@@ -284,7 +286,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 | Columnas visibles hábitos        | Baja        | Media     | ✅      |
 | Orden paneles por defecto        | Baja        | Media     | ✅      |
 | Botón minimizar paneles          | Baja        | Alta      | ✅      |
-| Redimensionar ancho columnas     | Media-Alta  | Media     | ⏳      |
+| Redimensionar ancho columnas     | Media-Alta  | Media     | ✅      |
 | Redimensionar altura paneles     | Media       | Media     | ✅      |
 | Scroll unificado + bug parpadeo  | Media       | Alta      | ✅      |
 | Scratchpad guardado              | Media-Alta  | Alta      | ⏳      |

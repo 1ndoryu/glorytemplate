@@ -24,10 +24,11 @@
  * SUBTAREAS
  */
 .tareaItemSubtarea {
-    margin-left: var(--dashboard-espacioLg);
+    padding-left: 30px;
     width: calc(100% - var(--dashboard-espacioLg));
-    border-left: 2px solid var(--dashboard-bordeSutil);
-    background-color: rgba(0, 0, 0, 0.02); /* Sutil diferenciacion de fondo */
+    /* border-left: 2px solid var(--dashboard-bordeSutil); */
+    /* background-color: #0000; */
+    /* background-color: #00000005; */
 }
 
 .tareaItemSubtarea:hover {
@@ -519,19 +520,6 @@
  */
 .subtareaContenedor {
     position: relative;
-}
-
-/* 
- * Indicador visual de que la subtarea pertenece al padre
- */
-.subtareaContenedor::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background-color: var(--dashboard-bordeSutil);
 }
 
 .listaTareasSeparador {

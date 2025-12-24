@@ -50,6 +50,7 @@ export interface AlturasPaneles {
 export interface ConfiguracionLayout {
     modoColumnas: ModoColumnas;
     anchos: AnchoColumnas;
+    anchoTotal: number;
     visibilidad: VisibilidadPaneles;
     ordenPaneles: OrdenPanel[];
     alturas: AlturasPaneles;
@@ -97,6 +98,7 @@ export const CONFIG_LAYOUT_DEFECTO: ConfiguracionLayout = {
         columna2: 42,
         columna3: 0
     },
+    anchoTotal: 100,
     visibilidad: {
         focoPrioritario: true,
         proyectos: true,
@@ -162,6 +164,14 @@ export function useConfiguracionLayout() {
             config = {
                 ...config,
                 alturas: CONFIG_LAYOUT_DEFECTO.alturas
+            };
+        }
+
+        /* Migrar anchoTotal si no existe */
+        if (config.anchoTotal === undefined) {
+            config = {
+                ...config,
+                anchoTotal: CONFIG_LAYOUT_DEFECTO.anchoTotal
             };
         }
 
@@ -492,10 +502,23 @@ export function useConfiguracionLayout() {
     /* Obtener cantidad de paneles visibles */
     const cantidadPanelesVisibles = Object.values(configuracionNormalizada.visibilidad).filter(Boolean).length;
 
+    /* Cambiar ancho total del grid */
+    const cambiarAnchoTotal = useCallback(
+        (ancho: number) => {
+            const anchoValidado = Math.min(100, Math.max(60, ancho));
+            setValor(prev => ({
+                ...prev,
+                anchoTotal: anchoValidado
+            }));
+        },
+        [setValor]
+    );
+
     return {
         configuracion: configuracionNormalizada,
         modoColumnas: configuracionNormalizada.modoColumnas,
         anchos: configuracionNormalizada.anchos,
+        anchoTotal: configuracionNormalizada.anchoTotal ?? 100,
         visibilidad: configuracionNormalizada.visibilidad,
         ordenPaneles: configuracionNormalizada.ordenPaneles,
         alturas: configuracionNormalizada.alturas || CONFIG_LAYOUT_DEFECTO.alturas,
@@ -504,6 +527,7 @@ export function useConfiguracionLayout() {
         cambiarModoColumnas,
         ajustarAnchoColumna,
         ajustarAnchos,
+        cambiarAnchoTotal,
         toggleVisibilidadPanel,
         mostrarPanel,
         ocultarPanel,

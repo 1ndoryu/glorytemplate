@@ -29,3 +29,4 @@ export * from './AlertaConfirmacion';
 export * from './ContenedorAlertas';
 export * from './BotonMinimizarPanel';
 export * from './ResizeHandlePanel';
+export * from './ResizeHandleColumn';

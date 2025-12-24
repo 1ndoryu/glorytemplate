@@ -4,8 +4,8 @@
  * Extraído para reducir la complejidad de DashboardIsland
  */
 
-import {useCallback} from 'react';
-import {PanelArrastrable, HandleArrastre, BotonMinimizarPanel, ResizeHandlePanel} from '../shared';
+import {useCallback, useMemo, CSSProperties} from 'react';
+import {PanelArrastrable, HandleArrastre, BotonMinimizarPanel, ResizeHandlePanel, ResizeHandleColumn} from '../shared';
 import {PanelFocoPrioritario, PanelProyectos, PanelEjecucion, PanelScratchpad} from '../paneles';
 
 import type {DashboardCompletoRetorno} from '../../hooks/useDashboardCompleto';
@@ -114,13 +114,42 @@ export function DashboardGrid({ctx}: DashboardGridProps): JSX.Element {
 
     const renderizarColumna = (columna: 1 | 2 | 3): JSX.Element[] => layout.obtenerPanelesColumna(columna).map(renderizarPanel);
 
+    /* Calcular estilos dinámicos con CSS variables para anchos de columna (fr units) */
+    const estiloGrid = useMemo((): CSSProperties => {
+        const anchos = layout.anchos;
+        return {
+            '--col1-ancho': `${anchos.columna1}%`,
+            '--col2-ancho': `${anchos.columna2}%`,
+            '--col3-ancho': `${anchos.columna3}%`,
+            '--col1-fr': `${anchos.columna1}fr`,
+            '--col2-fr': `${anchos.columna2}fr`,
+            '--col3-fr': `${anchos.columna3}fr`
+        } as CSSProperties;
+    }, [layout.anchos]);
+
     return (
-        <div className={`dashboardGrid dashboardGrid--${layout.modoColumnas}col ${arrastre.panelArrastrando ? 'arrastrandoPanel' : ''}`}>
-            <div className="columnaDashboard">{renderizarColumna(1)}</div>
+        <div className="dashboardGridContenedor" style={{width: `${layout.anchoTotal}%`}}>
+            <div className={`dashboardGridColumnas dashboardGridColumnas--${layout.modoColumnas}col ${arrastre.panelArrastrando ? 'arrastrandoPanel' : ''}`} style={estiloGrid}>
+                {/* Columna 1 con handle al final si hay más columnas */}
+                <div className="dashboardGridColumna dashboardGridColumna--conHandle">
+                    {renderizarColumna(1)}
+                    {layout.modoColumnas >= 2 && <ResizeHandleColumn tipo="interno" posicion={1} modoColumnas={layout.modoColumnas} anchos={layout.anchos} anchoTotal={layout.anchoTotal} onCambiarAnchos={layout.ajustarAnchos} onCambiarAnchoTotal={layout.cambiarAnchoTotal} />}
+                </div>
 
-            {layout.modoColumnas >= 2 && <div className="columnaDashboard">{renderizarColumna(2)}</div>}
+                {/* Columna 2 con handle al final si hay 3 columnas */}
+                {layout.modoColumnas >= 2 && (
+                    <div className="dashboardGridColumna dashboardGridColumna--conHandle">
+                        {renderizarColumna(2)}
+                        {layout.modoColumnas === 3 && <ResizeHandleColumn tipo="interno" posicion={2} modoColumnas={layout.modoColumnas} anchos={layout.anchos} anchoTotal={layout.anchoTotal} onCambiarAnchos={layout.ajustarAnchos} onCambiarAnchoTotal={layout.cambiarAnchoTotal} />}
+                    </div>
+                )}
 
-            {layout.modoColumnas === 3 && <div className="columnaDashboard">{renderizarColumna(3)}</div>}
+                {/* Columna 3 sin handle */}
+                {layout.modoColumnas === 3 && <div className="dashboardGridColumna">{renderizarColumna(3)}</div>}
+            </div>
+
+            {/* Handle externo para ancho total */}
+            <ResizeHandleColumn tipo="externo" modoColumnas={layout.modoColumnas} anchos={layout.anchos} anchoTotal={layout.anchoTotal} onCambiarAnchos={layout.ajustarAnchos} onCambiarAnchoTotal={layout.cambiarAnchoTotal} />
         </div>
     );
 }

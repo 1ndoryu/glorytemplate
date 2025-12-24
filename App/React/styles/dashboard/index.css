@@ -41,6 +41,7 @@
 @import './shared/alertas.css';
 @import './shared/indicadorAlmacenamiento.css';
 @import './shared/resizePanel.css';
+@import './shared/resizeHandleColumna.css';
 
 /* Componentes */
 @import './componentes/encabezado.css';
