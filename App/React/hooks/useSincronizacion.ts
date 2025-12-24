@@ -45,6 +45,7 @@ interface UseSincronizacionReturn {
     sincronizarAhora: () => Promise<void>;
     marcarCambiosPendientes: () => void;
     estaLogueado: boolean;
+    cargandoDesdeServidor: boolean;
 }
 
 /*
@@ -63,9 +64,6 @@ function obtenerUserId(): number {
     return wpData?.userId || 0;
 }
 
-/**
- * Hook principal de sincronización
- */
 export function useSincronizacion(datosLocales: DatosLocales, onDatosServidor: (datos: DashboardData) => void): UseSincronizacionReturn {
     const {estado: estadoApi, cargar, guardar, sincronizar} = useDashboardApi();
 
@@ -97,17 +95,44 @@ export function useSincronizacion(datosLocales: DatosLocales, onDatosServidor: (
                 const datosServidor = await cargar();
 
                 if (datosServidor) {
+                    /*
+                     * Aplicar datos del servidor.
+                     * El servidor es la fuente de verdad.
+                     */
                     onDatosServidor(datosServidor);
+
+                    /*
+                     * Ventana de gracia para evitar parpadeo del badge.
+                     */
+                    setTimeout(() => {
+                        setEstado(prev => ({
+                            ...prev,
+                            sincronizado: true,
+                            ultimaSync: new Date(),
+                            cargandoServidor: false,
+                            error: null
+                        }));
+                    }, 50);
+                } else {
+                    /*
+                     * IMPORTANTE: Si datosServidor es null, puede ser porque:
+                     * 1. Es la primera vez del usuario (no hay datos en servidor)
+                     * 2. Hubo un error de red/servidor
+                     *
+                     * Por seguridad, verificamos si hay error antes de subir datos locales.
+                     * Si hay error, NO debemos sobrescribir el servidor.
+                     */
                     setEstado(prev => ({
                         ...prev,
-                        sincronizado: true,
-                        ultimaSync: new Date(),
                         cargandoServidor: false,
-                        error: null
+                        sincronizado: false
                     }));
-                } else {
-                    /* No hay datos en servidor, subir los locales */
-                    await guardarEnServidor();
+                    /*
+                     * NO llamamos a guardarEnServidor() automáticamente.
+                     * El usuario puede sincronizar manualmente si lo desea.
+                     * Esto evita sobrescribir datos del servidor con datos locales
+                     * en caso de errores de red.
+                     */
                 }
             } catch (error) {
                 const mensaje = error instanceof Error ? error.message : 'Error de conexión';
@@ -264,7 +289,8 @@ export function useSincronizacion(datosLocales: DatosLocales, onDatosServidor: (
         estado,
         sincronizarAhora,
         marcarCambiosPendientes,
-        estaLogueado
+        estaLogueado,
+        cargandoDesdeServidor: estado.cargandoServidor
     };
 }
 

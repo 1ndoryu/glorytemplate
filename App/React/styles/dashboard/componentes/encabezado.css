@@ -382,11 +382,20 @@
     color: #9ca3af;
     border-color: rgba(156, 163, 175, 0.3);
     cursor: pointer;
+    gap: var(--dashboard-espacioXs);
 }
 
 .estadoConexionIcono--desconectado:hover {
     background-color: rgba(156, 163, 175, 0.25);
     border-color: rgba(156, 163, 175, 0.5);
+}
+
+.estadoConexionIcono__texto {
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    font-size: var(--dashboard-tamanoPequeno);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .estadoConexionIcono--error {

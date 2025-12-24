@@ -113,7 +113,8 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.2-
                 icono: <WifiOff size={14} />,
                 clase: 'estadoConexionIcono--desconectado',
                 titulo: 'Modo local - Click para iniciar sesión',
-                onClick: sincronizacion?.onLogin
+                onClick: sincronizacion?.onLogin,
+                texto: 'Iniciar sesión'
             };
         }
 
@@ -194,6 +195,7 @@ export function DashboardEncabezado({titulo = 'DASHBOARD_01', version = 'v1.0.2-
                 {estadoConexion.onClick ? (
                     <button type="button" className={`estadoConexionIcono ${estadoConexion.clase}`} title={estadoConexion.titulo} onClick={estadoConexion.onClick}>
                         {estadoConexion.icono}
+                        {'texto' in estadoConexion && estadoConexion.texto && <span className="estadoConexionIcono__texto">{estadoConexion.texto}</span>}
                     </button>
                 ) : (
                     <span className={`estadoConexionIcono ${estadoConexion.clase}`} title={estadoConexion.titulo}>

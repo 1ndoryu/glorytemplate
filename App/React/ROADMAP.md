@@ -36,10 +36,11 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ### Críticos
 
-| Bug                              | Descripción                                                           | Estado                                                              |
-| -------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| ~~**BD Compartidos**~~           | Error `Unknown column 'c.fecha_compartido'` y `c.propietario_id`      | ✅ Arreglado v1.0.6 - Añadida función `repairTables()` en Schema.php |
-| ~~**401 en Adjuntos Cifrados**~~ | Error 401 Unauthorized al cargar imágenes `.enc` después de un tiempo | ✅ Arreglado - Añadido header `X-WP-Nonce` en SeccionAdjuntos.tsx    |
+| Bug                                  | Descripción                                                                                                                                                       | Estado                                                                                                                                |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~**Sincronización Multi-Ventana**~~ | Las tareas no se sincronizaban entre diferentes ventanas/dispositivos. Cuando la carga del servidor fallaba, se sobrescribían los datos reales con datos locales. | ✅ Arreglado v1.0.7 - Eliminado auto-guardado en servidor cuando carga falla, añadida ventana de gracia para evitar parpadeo del badge |
+| ~~**BD Compartidos**~~               | Error `Unknown column 'c.fecha_compartido'` y `c.propietario_id`                                                                                                  | ✅ Arreglado v1.0.6 - Añadida función `repairTables()` en Schema.php                                                                   |
+| ~~**401 en Adjuntos Cifrados**~~     | Error 401 Unauthorized al cargar imágenes `.enc` después de un tiempo                                                                                             | ✅ Arreglado - Añadido header `X-WP-Nonce` en SeccionAdjuntos.tsx                                                                      |
 
 ### Menores
 

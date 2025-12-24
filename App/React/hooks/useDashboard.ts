@@ -149,15 +149,22 @@ export function useDashboard(): UseDashboardReturn {
 
     const handleDatosServidor = useCallback(
         (datos: DashboardData) => {
-            if (datos.habitos?.length) setHabitos(datos.habitos);
-            if (datos.tareas?.length) setTareas(datos.tareas);
-            if (datos.proyectos?.length) setProyectos(datos.proyectos);
-            if (datos.notas) setNotas(datos.notas);
+            /*
+             * Al recibir datos del servidor, REEMPLAZAR completamente los datos locales.
+             * Esto es importante porque al iniciar sesión en otro dispositivo,
+             * los datos del servidor son la fuente de verdad.
+             * NO verificamos si hay datos - el servidor puede tener arrays vacíos
+             * que son datos válidos (el usuario borró todo).
+             */
+            if (datos.habitos !== undefined) setHabitos(datos.habitos);
+            if (datos.tareas !== undefined) setTareas(datos.tareas);
+            if (datos.proyectos !== undefined) setProyectos(datos.proyectos);
+            if (datos.notas !== undefined) setNotas(datos.notas);
         },
         [setHabitos, setTareas, setProyectos, setNotas]
     );
 
-    const {estado: estadoSync, sincronizarAhora, marcarCambiosPendientes, estaLogueado} = useSincronizacion(datosParaSync, handleDatosServidor);
+    const {estado: estadoSync, sincronizarAhora, marcarCambiosPendientes, estaLogueado, cargandoDesdeServidor} = useSincronizacion(datosParaSync, handleDatosServidor);
 
     /* Marcar cambios pendientes cuando los datos cambian */
     const datosVersion = useRef({habitos: 0, tareas: 0, proyectos: 0, notas: ''});
@@ -170,12 +177,17 @@ export function useDashboard(): UseDashboardReturn {
             notas: notas.slice(0, 50)
         };
 
-        /* Solo sincronizar si hubo cambios reales después de la carga inicial */
-        if (!cargandoDatos && JSON.stringify(nuevaVersion) !== JSON.stringify(datosVersion.current)) {
+        /*
+         * Solo sincronizar si hubo cambios reales después de la carga inicial.
+         * IMPORTANTE: No marcar cambios pendientes mientras estamos cargando datos del servidor,
+         * ya que esos datos ya están sincronizados y no necesitan subirse de nuevo.
+         * Esto evita el parpadeo rojo->verde del badge de sincronización.
+         */
+        if (!cargandoDatos && !cargandoDesdeServidor && JSON.stringify(nuevaVersion) !== JSON.stringify(datosVersion.current)) {
             datosVersion.current = nuevaVersion;
             marcarCambiosPendientes();
         }
-    }, [habitos, tareas, proyectos, notas, cargandoDatos, marcarCambiosPendientes]);
+    }, [habitos, tareas, proyectos, notas, cargandoDatos, cargandoDesdeServidor, marcarCambiosPendientes]);
 
     const [importando, setImportando] = useState(false);
     const [mensajeEstado, setMensajeEstado] = useState<string | null>(null);
