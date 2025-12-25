@@ -45,9 +45,9 @@ export function DashboardGrid({ctx}: DashboardGridProps): JSX.Element {
         const handleArrastreElement = <HandleArrastre panelId={panelId} onMouseDown={arrastre.iniciarArrastre} estaArrastrando={arrastre.panelArrastrando === panelId} />;
         const handleMinimizarElement = <BotonMinimizarPanel panelId={panelId} onMinimizar={layout.ocultarPanel} />;
 
-        /* Scratchpad tiene su propio sistema de resize interno */
+        /* Scratchpad tiene su propio sistema de resize interno y gestiona sus notas */
         if (panelId === 'scratchpad') {
-            return <PanelScratchpad notas={dashboard.notas} configuracion={configScratchpad.configuracion} onActualizarNotas={dashboard.actualizarNotas} onLimpiarScratchpad={acciones.manejarLimpiarScratchpad} onAbrirModalConfigScratchpad={modales.abrirModalConfigScratchpad} onCambiarAltura={configScratchpad.cambiarAltura} handleArrastre={handleArrastreElement} handleMinimizar={handleMinimizarElement} />;
+            return <PanelScratchpad configuracion={configScratchpad.configuracion} onAbrirModalConfigScratchpad={modales.abrirModalConfigScratchpad} onCambiarAltura={configScratchpad.cambiarAltura} handleArrastre={handleArrastreElement} handleMinimizar={handleMinimizarElement} />;
         }
 
         /* Obtener altura del panel desde configuración */

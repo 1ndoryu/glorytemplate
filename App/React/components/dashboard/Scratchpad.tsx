@@ -29,12 +29,12 @@ export function Scratchpad({valorInicial = '', placeholder = '// Escribe tus not
     const [valor, setValor] = useState(valorInicial);
     const [estadoGuardado, setEstadoGuardado] = useState<EstadoGuardado>('inactivo');
 
-    // Estados para resizing
+    /* Estados para resizing */
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isResizing, setIsResizing] = useState(false);
     const [localHeight, setLocalHeight] = useState<string>(altura);
 
-    // Sincronizar altura si no se está redimensionando
+    /* Sincronizar altura si no se está redimensionando */
     useEffect(() => {
         if (!isResizing) {
             setLocalHeight(altura);
@@ -42,22 +42,16 @@ export function Scratchpad({valorInicial = '', placeholder = '// Escribe tus not
     }, [altura, isResizing]);
 
     /*
-     * Sincronizar con valor externo solo en el montaje inicial o cuando el usuario
-     * no tiene cambios pendientes. Esto previene la race condition donde datos
-     * del servidor sobreescriben cambios locales no guardados.
+     * Sincronizar con valor externo cuando cambia el valorInicial.
+     * Esto ocurre cuando el usuario selecciona otra nota desde el modal.
      */
-    const ultimoValorServidorRef = useRef(valorInicial);
-    const usuarioEditandoRef = useRef(false);
+    const prevValorInicialRef = useRef(valorInicial);
 
     useEffect(() => {
-        /* Solo sincronizar si el valor del servidor cambió Y el usuario no está editando */
-        if (valorInicial !== ultimoValorServidorRef.current) {
-            ultimoValorServidorRef.current = valorInicial;
-
-            /* Si el usuario no ha modificado el valor local, sincronizar */
-            if (!usuarioEditandoRef.current) {
-                setValor(valorInicial);
-            }
+        if (valorInicial !== prevValorInicialRef.current) {
+            prevValorInicialRef.current = valorInicial;
+            setValor(valorInicial);
+            setEstadoGuardado('inactivo');
         }
     }, [valorInicial]);
 

@@ -137,3 +137,18 @@
     padding: 0;
     overflow: visible;
 }
+
+/* 
+ * MODAL DE NOTAS - ANCHO EXTRA
+ * Para el selector de notas guardadas del Scratchpad
+ */
+.modalNotasContenedor {
+    max-width: 900px;
+    width: 90vw;
+}
+
+@media (max-width: 960px) {
+    .modalNotasContenedor {
+        max-width: calc(100vw - 2rem);
+    }
+}

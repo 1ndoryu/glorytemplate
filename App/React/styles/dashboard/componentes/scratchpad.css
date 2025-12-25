@@ -167,3 +167,173 @@
     user-select: none; /* Prevenir selección de texto al arrastrar */
     pointer-events: none; /* Desactivar eventos de panel interno */
 }
+
+/* 
+ * MODAL NOTAS GUARDADAS
+ * Grid de notas con búsqueda
+ * Nota: El ancho del contenedor está en modal.css (.modalNotasContenedor)
+ */
+
+.modalNotasGuardadas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioMd);
+    min-height: 400px;
+    max-height: 70vh;
+}
+
+.modalNotasBusqueda {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: var(--dashboard-radioBase);
+}
+
+.modalNotasBusquedaIcono {
+    color: var(--dashboard-textoMuyApagado);
+    flex-shrink: 0;
+}
+
+.modalNotasBusquedaInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--dashboard-textoPrincipal);
+    font-size: var(--dashboard-tamanoBase);
+}
+
+.modalNotasBusquedaInput::placeholder {
+    color: var(--dashboard-textoPlaceholder);
+}
+
+.modalNotasBusquedaLoader {
+    color: var(--dashboard-textoMuyApagado);
+    flex-shrink: 0;
+}
+
+/* Grid de notas - 3 columnas flexibles */
+.modalNotasGrid {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--dashboard-espacioMd);
+    align-content: start;
+}
+
+.modalNotasVacio,
+.modalNotasError {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dashboard-espacioSm);
+    color: var(--dashboard-textoMuyApagado);
+    text-align: center;
+    padding: var(--dashboard-espacioXl);
+}
+
+.modalNotasVacio p {
+    font-size: var(--dashboard-tamanoPequeno);
+    margin: 0;
+}
+
+.modalNotasError {
+    color: var(--dashboard-estadoError);
+}
+
+.modalNotasItem {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioMd);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: var(--dashboard-radioBase);
+    cursor: pointer;
+    transition: all var(--dashboard-transicionRapida);
+    min-height: 120px;
+    position: relative;
+}
+
+.modalNotasItem:hover {
+    border-color: var(--dashboard-bordePrincipal);
+    background: var(--dashboard-fondoHover);
+}
+
+.modalNotasItemEliminando {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.modalNotasItemContenido {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-espacioXs);
+}
+
+.modalNotasItemTitulo {
+    font-weight: 500;
+    color: var(--dashboard-textoPrincipal);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.modalNotasItemPreview {
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoSecundario);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-family: var(--dashboard-fuenteMonoespaciada);
+    flex: 1;
+}
+
+.modalNotasItemFecha {
+    display: flex;
+    align-items: center;
+    gap: var(--dashboard-espacioXs);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoMuyApagado);
+}
+
+.modalNotasItemEliminar {
+    position: absolute;
+    top: var(--dashboard-espacioSm);
+    right: var(--dashboard-espacioSm);
+    padding: var(--dashboard-espacioXs);
+    background: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordeSutil);
+    color: var(--dashboard-textoMuyApagado);
+    cursor: pointer;
+    border-radius: var(--dashboard-radioBase);
+    transition: all var(--dashboard-transicionRapida);
+    opacity: 0;
+}
+
+.modalNotasItem:hover .modalNotasItemEliminar {
+    opacity: 1;
+}
+
+.modalNotasItemEliminar:hover {
+    color: var(--dashboard-estadoError);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.modalNotasFooter {
+    padding-top: var(--dashboard-espacioSm);
+    border-top: 1px solid var(--dashboard-bordeSutil);
+    font-size: var(--dashboard-tamanoPequeno);
+    color: var(--dashboard-textoMuyApagado);
+    text-align: center;
+}

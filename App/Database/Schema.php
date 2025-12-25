@@ -6,9 +6,9 @@ class Schema
 {
     /**
      * Versión actual de la base de datos
-     * v1.0.8: Tabla de mensajes_leidos para sistema de notificaciones no leídas
+     * v1.0.9: Tabla de notas para sistema de guardado del Scratchpad
      */
-    public const DB_VERSION = '1.0.8';
+    public const DB_VERSION = '1.0.9';
 
     /**
      * Nombre de la opción donde guardamos la versión instalada
@@ -277,6 +277,23 @@ class Schema
             KEY elemento_id (elemento_id)
         ) $charset_collate;";
 
+        /* 
+         * Tabla de Notas (Sistema de Guardado del Scratchpad)
+         * Permite guardar notas del scratchpad con título automático
+         */
+        $table_notas = $wpdb->prefix . 'glory_notas';
+        $sql_notas = "CREATE TABLE $table_notas (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) NOT NULL,
+            titulo varchar(255) NOT NULL,
+            contenido longtext NOT NULL,
+            fecha_creacion datetime DEFAULT CURRENT_TIMESTAMP,
+            fecha_modificacion datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY user_id (user_id),
+            KEY fecha_creacion (fecha_creacion)
+        ) $charset_collate;";
+
         dbDelta($sql_habitos);
         dbDelta($sql_equipos);
         dbDelta($sql_notificaciones);
@@ -285,6 +302,7 @@ class Schema
         dbDelta($sql_compartidos);
         dbDelta($sql_mensajes);
         dbDelta($sql_mensajes_leidos);
+        dbDelta($sql_notas);
     }
 
     /**

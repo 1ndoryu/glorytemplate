@@ -26,3 +26,5 @@ export {useAlmacenamiento} from './useAlmacenamiento';
 export {useAdjuntos} from './useAdjuntos';
 export {useMensajes, useMensajesNoLeidos, registrarEventoSistema, obtenerTipoVisual, obtenerIconoAccion} from './useMensajes';
 export type {MensajeTimeline, TipoMensaje, AccionSistema} from './useMensajes';
+export {useNotas} from './useNotas';
+export type {Nota, NotaActiva} from './useNotas';

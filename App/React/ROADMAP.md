@@ -7,9 +7,9 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 ## Estado Actual
 
 **Fecha de inicio:** 2025-12-19  
-**Version:** v1.0.3-beta  
+**Version:** v1.0.4-beta  
 **Ultima actualizacion:** 2025-12-24
-**Estado:** Fase 7.5 - EN PROGRESO (Pendiente: Scratchpad guardado)
+**Estado:** Fase 7.5 - COMPLETADA
 
 ---
 
@@ -123,7 +123,7 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ---
 
-## Fase 7.5: Correcciones UX y Redimensionamiento [EN PROGRESO]
+## Fase 7.5: Correcciones UX y Redimensionamiento [COMPLETADA]
 
 **Objetivo:** Pulir la experiencia de usuario con correcciones específicas y añadir funcionalidades de redimensionamiento.
 
@@ -241,28 +241,28 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [x] Causa identificada: `overflow-y: auto` causa recálculo del layout al aparecer/desaparecer scrollbar
 - [x] Solución aplicada: usar `overflow-y: scroll` fijo en `.panelConfiguracionColumnaScroll`
 
-### 7.5.9 Scratchpad - Sistema de Guardado
+### 7.5.9 Scratchpad - Sistema de Guardado ✅
 
-> **Requisito:** Antes de File Manager, Scratchpad debe tener su función de guardar implementada.
+> **Requisito completado:** Sistema de guardado de notas implementado.
 
-**Funcionalidad:**
-- [ ] Botón badge "Guardar nota" (icono: `Save` o `Download`)
-- [ ] Al guardar: almacenar nota con título automático (primeras palabras) y fecha
-- [ ] Botón badge "Carpeta" (icono: `Folder`) junto al de guardar
-- [ ] Al hacer clic en Carpeta: abrir lista de notas guardadas
-- [ ] Las notas guardadas se pueden reabrir en el Scratchpad
-- [ ] Las notas se pueden buscar por título/contenido
+**Funcionalidad implementada:**
+- [x] Botón badge "Guardar nota" (icono: `Save`) en el encabezado del Scratchpad
+- [x] Al guardar: almacenar nota con título automático (primeras palabras) y fecha
+- [x] Botón badge "Carpeta" (icono: `FolderOpen`) junto al de guardar
+- [x] Al hacer clic en Carpeta: abrir modal de notas guardadas
+- [x] Las notas guardadas se pueden reabrir en el Scratchpad
+- [x] Las notas se pueden buscar por título/contenido con debounce
 
-**Backend:**
-- [ ] Tabla BD: `wp_glory_notas` (id, user_id, titulo, contenido, fecha_creacion)
-- [ ] Endpoint: `POST /notas` - Guardar nota
-- [ ] Endpoint: `GET /notas` - Listar notas del usuario
-- [ ] Endpoint: `DELETE /notas/{id}` - Eliminar nota
+**Backend implementado:**
+- [x] Tabla BD: `wp_glory_notas` (id, user_id, titulo, contenido, fecha_creacion, fecha_modificacion)
+- [x] `NotasRepository.php`: CRUD completo con búsqueda y título automático
+- [x] `NotasApiController.php`: Endpoints REST (GET, POST, PUT, DELETE, búsqueda)
 
-**UI:**
-- [ ] Modal o dropdown con lista de notas guardadas
-- [ ] Preview del contenido en hover o expansión
-- [ ] Opción de eliminar nota
+**UI implementada:**
+- [x] `ModalNotasGuardadas.tsx`: Modal con lista de notas, búsqueda y eliminación
+- [x] Preview del contenido en cada nota
+- [x] Indicadores de fecha relativa
+- [x] Hook `useNotas.ts` para gestionar estado
 
 ### 7.5.10 Bug Fuente Pequeña en Scratchpad ✅
 
@@ -289,10 +289,107 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 | Redimensionar ancho columnas     | Media-Alta  | Media     | ✅      |
 | Redimensionar altura paneles     | Media       | Media     | ✅      |
 | Scroll unificado + bug parpadeo  | Media       | Alta      | ✅      |
-| Scratchpad guardado              | Media-Alta  | Alta      | ⏳      |
+| Scratchpad guardado              | Media-Alta  | Alta      | ✅      |
 | Bug fuente pequeña Scratchpad    | Baja        | Baja      | ✅      |
 
 **Complejidad Total:** Media | **Dependencias:** Fase 7 (modales completados)
+
+---
+
+## Fase 7.6: Mejoras de Hábitos y Correcciones [PLANIFICADA]
+
+**Objetivo:** Mejorar la funcionalidad de hábitos en el panel de ejecución, añadir sistema de posponer, y corregir bugs críticos.
+
+### 7.6.1 Hábitos Editables desde Panel de Ejecución
+
+> **Problema:** Los hábitos mostrados como "tareas virtuales" en Ejecución no se pueden editar ni eliminar.
+
+**Implementación:**
+- [ ] Al hacer clic en editar un hábito-tarea: abrir `ModalHabito` (no `PanelConfiguracionTarea`)
+- [ ] Al eliminar: mostrar alerta de confirmación indicando que eliminará el hábito permanentemente
+- [ ] Los cambios modifican directamente el hábito subyacente
+- [ ] Reutilizar menú contextual existente con acciones adaptadas
+
+### 7.6.2 Sistema de Posponer Hábitos
+
+> **Requisito:** Permitir posponer hábitos cuando no es posible cumplirlos (ej: recuperación de ejercicio).
+
+**Estados del hábito (3 estados):**
+- [ ] **Pendiente**: estado por defecto, toca hoy pero no se ha hecho
+- [ ] **Completado**: se cumplió el hábito
+- [ ] **Pospuesto**: se decidió no hacerlo hoy, se "perdona" sin romper racha
+
+**Métodos para posponer:**
+- [ ] Triple clic en checkbox: pendiente → completado → pospuesto → pendiente
+- [ ] Menú contextual: opción "Posponer hábito"
+- [ ] Badge visual diferente para estado pospuesto (icono calendario o reloj)
+
+**Lógica de posponer:**
+- [ ] Pospuesto no cuenta como incumplimiento para la racha
+- [ ] Pospuesto no suma días de inactividad para cálculo de urgencia
+- [ ] Límite opcional de veces que se puede posponer por período
+
+### 7.6.3 Configuración de Tolerancia de Urgencia de Hábitos
+
+> **Requisito:** Cada usuario puede definir qué tan estricto es el sistema de urgencia para sus hábitos.
+
+**Niveles de urgencia (igual que tareas):**
+| Nivel      | Multiplicador | Color   |
+| ---------- | ------------- | ------- |
+| Chill      | 100%          | Verde   |
+| Normal     | 150%          | Gris    |
+| Urgente    | 175%          | Naranja |
+| Bloqueante | 200%          | Rojo    |
+
+**Configuración de tolerancia:**
+- [ ] Nueva opción en configuración del panel de hábitos: "Tolerancia a inactividad"
+- [ ] Slider o selector con presets:
+  - **Muy estricto**: 1 día de inactividad = Bloqueante
+  - **Estricto**: 2-3 días = Alta, 4+ días = Bloqueante
+  - **Moderado** (default): 3-5 días = Urgente, 6-7 días = Alta, 8+ = Bloqueante
+  - **Relajado**: 1 semana = Urgente, 2 semanas = Alta, 3+ = Bloqueante
+  - **Personalizado**: inputs manuales para cada umbral
+- [ ] Fórmula: `urgencia = min(200%, 100% + (diasInactivo / tolerancia) * 100%)`
+- [ ] La tolerancia afecta el cálculo en `calcularUrgenciaHabito()`
+
+### 7.6.4 Ocultar Tareas Completadas en Proyectos
+
+> **Problema:** El panel de Proyectos no tiene opción de ocultar tareas completadas como sí la tiene Ejecución.
+
+- [ ] Nueva opción en configuración de Proyectos: "Ocultar tareas completadas"
+- [ ] Aplicar filtro en `ListaProyectos` o `ProyectoExpandido`
+- [ ] Persistir en `useConfiguracionProyectos`
+
+### 7.6.5 Bug: Subtareas no Persisten
+
+> **Bug crítico:** Las subtareas se guardan pero no persisten como subtareas después de recargar.
+
+**Investigar:**
+- [ ] Verificar si `subtareas` se incluye en el payload de creación/edición de tareas
+- [ ] Verificar si el backend guarda y retorna `subtareas` correctamente
+- [ ] Verificar si la migración/parseo de `data` JSON incluye subtareas
+
+### 7.6.6 Bug Visual: Scroll en Scratchpad
+
+> **Bug visual:** El scroll está dentro del elemento con padding en lugar del panel en sí.
+
+- [ ] Mover scroll al contenedor externo del Scratchpad
+- [ ] Mantener padding visual pero con scroll en nivel correcto
+
+---
+
+### Resumen de Fase 7.6
+
+| Tarea                             | Complejidad | Prioridad | Estado |
+| --------------------------------- | ----------- | --------- | ------ |
+| Hábitos editables desde Ejecución | Media       | Alta      | ⏳      |
+| Sistema de posponer hábitos       | Alta        | Media     | ⏳      |
+| Tolerancia de urgencia hábitos    | Media-Alta  | Media     | ⏳      |
+| Ocultar completadas en Proyectos  | Baja        | Media     | ⏳      |
+| Bug: Subtareas no persisten       | Media       | Crítica   | ⏳      |
+| Bug: Scroll en Scratchpad         | Baja        | Baja      | ⏳      |
+
+**Complejidad Total:** Alta | **Dependencias:** Fase 7.5, sistema de hábitos-como-tareas
 
 ---
 
@@ -508,8 +605,9 @@ styles/
 | 6.5  | Refact. Formularios            | Media       | ✅ Completada   |
 | 6.6  | Hábitos en Ejecución           | Media       | ✅ Completada   |
 | 7    | **Modal Chat + Historial**     | Muy Alta    | ✅ Completada   |
-| 7.5  | **Correcciones UX + Resize**   | Media       | ⏳ En Progreso  |
-| 8    | Mapa de Calor                  | Media-Alta  | Planificada    |
+| 7.5  | **Correcciones UX + Resize**   | Media       | ✅ Completada   |
+| 7.6  | **Mejoras Hábitos + Bugs**     | Alta        | Planificada    |
+| 8    | Mapa de Calor + historial      | Media-Alta  | Planificada    |
 | 9    | Scratchpad + File Manager      | Alta        | Baja Prioridad |
 | 10   | Compartir Hábitos              | Media       | Baja Prioridad |
 | 11   | Futuro                         | Variable    | Pendiente      |
