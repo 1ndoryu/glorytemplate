@@ -2,14 +2,14 @@
  * PanelScratchpad
  * Componente que renderiza el panel de notas rápidas (Scratchpad)
  *
- * Sistema de notas persistentes:
+ * Sistema de notas persistentes con autoguardado:
  * - Siempre hay una nota activa siendo editada
- * - Al guardar se actualiza la nota activa (no crea nueva si ya existe)
+ * - Los cambios se guardan automáticamente después de 2 segundos de inactividad
  * - El título se extrae de la primera línea con #
  */
 
 import {useState} from 'react';
-import {FileText, Eraser, Settings, Save, FolderOpen, Loader, Plus} from 'lucide-react';
+import {FileText, Eraser, Settings, FolderOpen, Plus} from 'lucide-react';
 import {SeccionEncabezado, Scratchpad, ModalNotasGuardadas} from '../dashboard';
 import {useNotas} from '../../hooks';
 import type {Nota} from '../../hooks';
@@ -26,25 +26,10 @@ interface PanelScratchpadProps {
 
 export function PanelScratchpad({configuracion, onAbrirModalConfigScratchpad, onCambiarAltura, handleArrastre, handleMinimizar}: PanelScratchpadProps): JSX.Element {
     const [modalNotasAbierto, setModalNotasAbierto] = useState(false);
-    const {estado, guardarNotaActiva, seleccionarNota, crearNuevaNota, actualizarContenido, obtenerTituloDeContenido} = useNotas();
-    const {mostrarExito, mostrarError, mostrarAdvertencia} = useAlertas();
+    const {estado, seleccionarNota, crearNuevaNota, actualizarContenido, obtenerTituloDeContenido, guardarNotaActiva} = useNotas();
+    const {mostrarExito} = useAlertas();
 
     const {notaActiva} = estado;
-
-    const manejarGuardarNota = async () => {
-        if (!notaActiva.contenido.trim() || notaActiva.contenido === '# Nueva nota\n\n') {
-            mostrarAdvertencia('Escribe algo antes de guardar');
-            return;
-        }
-
-        const nota = await guardarNotaActiva();
-        if (nota) {
-            const accion = notaActiva.id ? 'actualizada' : 'guardada';
-            mostrarExito(`Nota "${obtenerTituloDeContenido(nota.contenido)}" ${accion}`);
-        } else {
-            mostrarError('Error al guardar la nota');
-        }
-    };
 
     const manejarSeleccionarNota = (nota: Nota) => {
         seleccionarNota(nota);
@@ -59,6 +44,16 @@ export function PanelScratchpad({configuracion, onAbrirModalConfigScratchpad, on
 
     const manejarLimpiar = () => {
         crearNuevaNota();
+    };
+
+    /* Guardar la nota activa antes de abrir el modal de notas guardadas
+     * para evitar que la nota editándose aparezca desincronizada */
+    const manejarAbrirCarpeta = async () => {
+        /* Si hay contenido modificado, guardarlo primero */
+        if (notaActiva.modificada && notaActiva.contenido.trim()) {
+            await guardarNotaActiva();
+        }
+        setModalNotasAbierto(true);
     };
 
     /* Título de la nota activa para mostrar en el encabezado */
@@ -80,12 +75,8 @@ export function PanelScratchpad({configuracion, onAbrirModalConfigScratchpad, on
                                 <Plus size={10} />
                             </span>
                         </button>
-                        {/* Botón guardar nota */}
-                        <button className="selectorBadgeBoton selectorBadgeBotonCompacto" onClick={manejarGuardarNota} title={notaActiva.id ? 'Guardar cambios' : 'Guardar nota'} disabled={estado.guardando}>
-                            <span className="selectorBadgeIcono">{estado.guardando ? <Loader size={10} className="animacionGirar" /> : <Save size={10} />}</span>
-                        </button>
                         {/* Botón abrir notas guardadas */}
-                        <button className="selectorBadgeBoton selectorBadgeBotonCompacto" onClick={() => setModalNotasAbierto(true)} title="Ver notas guardadas">
+                        <button className="selectorBadgeBoton selectorBadgeBotonCompacto" onClick={manejarAbrirCarpeta} title="Ver notas guardadas">
                             <span className="selectorBadgeIcono">
                                 <FolderOpen size={10} />
                             </span>

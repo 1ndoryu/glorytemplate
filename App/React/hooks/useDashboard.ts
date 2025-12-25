@@ -41,6 +41,7 @@ interface UseDashboardReturn {
     eliminarTarea: (id: number) => void;
     actualizarNotas: (valor: string) => void;
     toggleHabito: (id: number) => void;
+    posponerHabito: (id: number) => void;
     crearHabito: (datos: DatosNuevoHabito) => void;
     editarHabito: (id: number, datos: DatosNuevoHabito) => void;
     eliminarHabito: (id: number) => void;
@@ -167,14 +168,25 @@ export function useDashboard(): UseDashboardReturn {
     const {estado: estadoSync, sincronizarAhora, marcarCambiosPendientes, estaLogueado, cargandoDesdeServidor} = useSincronizacion(datosParaSync, handleDatosServidor);
 
     /* Marcar cambios pendientes cuando los datos cambian */
-    const datosVersion = useRef({habitos: 0, tareas: 0, proyectos: 0, notas: ''});
+    const datosVersion = useRef({habitos: '', tareas: '', proyectos: '', notas: ''});
 
     useEffect(() => {
+        /*
+         * Crear un hash simple del contenido para detectar cambios reales.
+         * No solo contamos el length porque cambios en el contenido (parentId, texto, etc.)
+         * no cambiarían el length pero sí necesitan sincronizarse.
+         */
+        const hashSimple = (arr: unknown[]): string => {
+            if (arr.length === 0) return '0';
+            /* Usamos JSON.stringify para capturar cambios en cualquier campo */
+            return `${arr.length}_${JSON.stringify(arr).length}`;
+        };
+
         const nuevaVersion = {
-            habitos: habitos.length,
-            tareas: tareas.length,
-            proyectos: proyectos.length,
-            notas: notas.slice(0, 50)
+            habitos: hashSimple(habitos),
+            tareas: hashSimple(tareas),
+            proyectos: hashSimple(proyectos),
+            notas: notas.slice(0, 100)
         };
 
         /*
@@ -423,6 +435,59 @@ export function useDashboard(): UseDashboardReturn {
         [habitos, setHabitos, registrarAccion]
     );
 
+    /*
+     * Posponer hábito: marca como pospuesto hoy sin romper la racha
+     * El hábito pospuesto no cuenta como incumplimiento
+     */
+    const posponerHabito = useCallback(
+        (id: number) => {
+            const hoy = obtenerFechaHoy();
+            const habito = habitos.find(h => h.id === id);
+
+            if (!habito) return;
+
+            const estadoAnterior = {...habito, historialPospuestos: [...(habito.historialPospuestos || [])]};
+            const estabaPospuestoHoy = habito.historialPospuestos?.includes(hoy) ?? false;
+
+            if (estabaPospuestoHoy) {
+                /* Quitar pospuesto */
+                setHabitos(prev =>
+                    prev.map(h => {
+                        if (h.id !== id) return h;
+                        return {
+                            ...h,
+                            historialPospuestos: (h.historialPospuestos || []).filter(f => f !== hoy)
+                        };
+                    })
+                );
+
+                registrarAccion(`"${habito.nombre}" ya no está pospuesto`, () => {
+                    setHabitos(prev => prev.map(h => (h.id === id ? estadoAnterior : h)));
+                });
+            } else {
+                /* Posponer hoy */
+                const nuevoHistorialPospuestos = [...(habito.historialPospuestos || []), hoy].slice(-90);
+
+                setHabitos(prev =>
+                    prev.map(h => {
+                        if (h.id !== id) return h;
+                        return {
+                            ...h,
+                            historialPospuestos: nuevoHistorialPospuestos
+                        };
+                    })
+                );
+
+                mostrarMensaje(`"${habito.nombre}" pospuesto para hoy`, 'exito');
+
+                registrarAccion(`"${habito.nombre}" pospuesto`, () => {
+                    setHabitos(prev => prev.map(h => (h.id === id ? estadoAnterior : h)));
+                });
+            }
+        },
+        [habitos, setHabitos, registrarAccion, mostrarMensaje]
+    );
+
     const exportarTodosDatos = useCallback(() => {
         try {
             exportarDatos(habitos, tareas, notas, proyectos);
@@ -467,6 +532,7 @@ export function useDashboard(): UseDashboardReturn {
         cambiarEstadoProyecto,
         actualizarNotas,
         toggleHabito,
+        posponerHabito,
         crearHabito,
         editarHabito,
         eliminarHabito,

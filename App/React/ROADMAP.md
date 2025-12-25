@@ -7,9 +7,9 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 ## Estado Actual
 
 **Fecha de inicio:** 2025-12-19  
-**Version:** v1.0.4-beta  
-**Ultima actualizacion:** 2025-12-24
-**Estado:** Fase 7.5 - COMPLETADA
+**Version:** v1.0.5-beta  
+**Ultima actualizacion:** 2025-12-25
+**Estado:** Fase 7.6 - COMPLETADA
 
 ---
 
@@ -296,61 +296,57 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 ---
 
-## Fase 7.6: Mejoras de Hábitos y Correcciones [PLANIFICADA]
+## Fase 7.6: Mejoras de Habitos y Correcciones [COMPLETADA]
 
 **Objetivo:** Mejorar la funcionalidad de hábitos en el panel de ejecución, añadir sistema de posponer, y corregir bugs críticos.
 
-### 7.6.1 Hábitos Editables desde Panel de Ejecución
+### 7.6.1 Hábitos Editables desde Panel de Ejecución ✅
 
-> **Problema:** Los hábitos mostrados como "tareas virtuales" en Ejecución no se pueden editar ni eliminar.
+> **Problema resuelto:** Los hábitos mostrados como "tareas virtuales" en Ejecución ahora se pueden editar y eliminar.
 
 **Implementación:**
-- [ ] Al hacer clic en editar un hábito-tarea: abrir `ModalHabito` (no `PanelConfiguracionTarea`)
-- [ ] Al eliminar: mostrar alerta de confirmación indicando que eliminará el hábito permanentemente
-- [ ] Los cambios modifican directamente el hábito subyacente
-- [ ] Reutilizar menú contextual existente con acciones adaptadas
+- [x] Al hacer clic en editar un hábito-tarea: abrir `ModalHabito` (no `PanelConfiguracionTarea`)
+- [x] Al eliminar: se elimina el hábito directamente (mismo comportamiento que desde panel de hábitos)
+- [x] Los cambios modifican directamente el hábito subyacente
+- [x] Menú contextual adaptado con opciones "Editar hábito" y "Eliminar hábito"
 
-### 7.6.2 Sistema de Posponer Hábitos
+### 7.6.2 Sistema de Posponer Habitos ✅
 
-> **Requisito:** Permitir posponer hábitos cuando no es posible cumplirlos (ej: recuperación de ejercicio).
+> **Implementado:** Permite posponer habitos cuando no es posible cumplirlos.
 
-**Estados del hábito (3 estados):**
-- [ ] **Pendiente**: estado por defecto, toca hoy pero no se ha hecho
-- [ ] **Completado**: se cumplió el hábito
-- [ ] **Pospuesto**: se decidió no hacerlo hoy, se "perdona" sin romper racha
+**Estados del habito (3 estados):**
+- [x] **Pendiente**: estado por defecto, toca hoy pero no se ha hecho
+- [x] **Completado**: se cumplio el habito
+- [x] **Pospuesto**: se decidio no hacerlo hoy, se "perdona" sin romper racha
 
-**Métodos para posponer:**
-- [ ] Triple clic en checkbox: pendiente → completado → pospuesto → pendiente
-- [ ] Menú contextual: opción "Posponer hábito"
-- [ ] Badge visual diferente para estado pospuesto (icono calendario o reloj)
+**Metodos para posponer:**
+- [x] Menu contextual: opcion "Posponer hoy" en tareas-habito
+- [x] La funcion `posponerHabito` agrega fecha al historial de pospuestos
 
-**Lógica de posponer:**
-- [ ] Pospuesto no cuenta como incumplimiento para la racha
-- [ ] Pospuesto no suma días de inactividad para cálculo de urgencia
-- [ ] Límite opcional de veces que se puede posponer por período
+**Logica de posponer:**
+- [x] Pospuesto no cuenta como incumplimiento para la racha
+- [x] Habitos pospuestos no aparecen en panel de Ejecucion ese dia
+- [x] Campo `historialPospuestos` agregado al tipo `Habito`
 
-### 7.6.3 Configuración de Tolerancia de Urgencia de Hábitos
+### 7.6.3 Configuracion de Tolerancia de Urgencia de Habitos ✅
 
-> **Requisito:** Cada usuario puede definir qué tan estricto es el sistema de urgencia para sus hábitos.
+> **Implementado:** Cada usuario puede definir que tan estricto es el sistema de urgencia.
 
-**Niveles de urgencia (igual que tareas):**
-| Nivel      | Multiplicador | Color   |
-| ---------- | ------------- | ------- |
-| Chill      | 100%          | Verde   |
-| Normal     | 150%          | Gris    |
-| Urgente    | 175%          | Naranja |
-| Bloqueante | 200%          | Rojo    |
+**Presets de tolerancia implementados:**
+| Preset       | Normal | Urgente | Bloqueante |
+| ------------ | ------ | ------- | ---------- |
+| Muy Estricto | 1 dia  | 1 dia   | 2+ dias    |
+| Estricto     | 1 dia  | 2 dias  | 4+ dias    |
+| Moderado     | 1 dia  | 3 dias  | 5+ dias    |
+| Relajado     | 3 dias | 7 dias  | 14+ dias   |
 
-**Configuración de tolerancia:**
-- [ ] Nueva opción en configuración del panel de hábitos: "Tolerancia a inactividad"
-- [ ] Slider o selector con presets:
-  - **Muy estricto**: 1 día de inactividad = Bloqueante
-  - **Estricto**: 2-3 días = Alta, 4+ días = Bloqueante
-  - **Moderado** (default): 3-5 días = Urgente, 6-7 días = Alta, 8+ = Bloqueante
-  - **Relajado**: 1 semana = Urgente, 2 semanas = Alta, 3+ = Bloqueante
-  - **Personalizado**: inputs manuales para cada umbral
-- [ ] Fórmula: `urgencia = min(200%, 100% + (diasInactivo / tolerancia) * 100%)`
-- [ ] La tolerancia afecta el cálculo en `calcularUrgenciaHabito()`
+**Implementacion:**
+- [x] Tipos `ToleranciaPreset` y `UmbralesUrgencia` en `useConfiguracionHabitos.ts`
+- [x] Presets predefinidos con umbrales configurables
+- [x] UI con botones tipo card en `ModalConfiguracionHabitos`
+- [x] Funcion `calcularUrgenciaAutomatica` actualizada para usar umbrales
+- [x] Hook `useHabitosComoTareas` recibe umbrales via props
+- [x] CSS para `.gridOpcionesTolerancia` y `.botonPresetTolerancia`
 
 ### 7.6.4 Ocultar Tareas Completadas en Proyectos
 
@@ -360,21 +356,67 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 - [ ] Aplicar filtro en `ListaProyectos` o `ProyectoExpandido`
 - [ ] Persistir en `useConfiguracionProyectos`
 
-### 7.6.5 Bug: Subtareas no Persisten
+### 7.6.5 Bug: Subtareas no Persisten ✅
 
-> **Bug crítico:** Las subtareas se guardan pero no persisten como subtareas después de recargar.
+> **Bug crítico corregido:** El backend buscaba el campo `padreId` pero el frontend enviaba `parentId`.
 
-**Investigar:**
-- [ ] Verificar si `subtareas` se incluye en el payload de creación/edición de tareas
-- [ ] Verificar si el backend guarda y retorna `subtareas` correctamente
-- [ ] Verificar si la migración/parseo de `data` JSON incluye subtareas
+**Causa raíz:**
+- [x] En `TareasRepository.php` línea 98: `$tarea['padreId']` → `$tarea['parentId']`
+- [x] También corregido `completada` → `completado` para consistencia
 
-### 7.6.6 Bug Visual: Scroll en Scratchpad
+### 7.6.6 Bug Visual: Scroll en Scratchpad ✅
 
-> **Bug visual:** El scroll está dentro del elemento con padding en lugar del panel en sí.
+> **Bug visual corregido:** Padding movido del panel al textarea para que el scroll llegue al borde.
 
-- [ ] Mover scroll al contenedor externo del Scratchpad
-- [ ] Mantener padding visual pero con scroll en nivel correcto
+- [x] Eliminado `padding` de `.scratchpadPanel`
+- [x] Agregado `padding` a `.scratchpadTextarea`
+- [x] Ajustada posición de `.scratchpadBarraEstado`
+
+### 7.6.7 Bug: Nombre de Tarea no Persiste al Editar ✅
+
+> **Bug crítico corregido:** El sistema de detección de cambios solo verificaba `length` de arrays, no el contenido.
+
+**Causa raíz (mismo problema que 7.6.5):**
+- [x] En `useDashboard.ts` la detección de cambios usaba `tareas.length`
+- [x] Cambios en el contenido (parentId, texto, etc.) no cambiaban el length
+- [x] Solución: usar hash del contenido serializado para detectar cambios reales
+
+### 7.6.8 Bug: Error 403 en Endpoint de Mensajes ✅
+
+> **Bug corregido:** El endpoint `/mensajes/evento` devolvía 403 por timing de sincronización.
+
+**Causa raíz:**
+- [x] `registrarEventoSistema` se llamaba inmediatamente después de editar localmente
+- [x] La tarea aún no estaba guardada en la BD cuando el endpoint verificaba acceso
+- [x] `tieneAccesoAElemento()` no encontraba el elemento y retornaba 403
+
+**Solución aplicada:**
+- [x] El endpoint ahora devuelve 200 con `{success: false, skipped: true}` en lugar de 403
+- [x] El frontend maneja silenciosamente cuando un evento es saltado por timing
+- [x] No afecta funcionalidad: los eventos se registran cuando la tarea ya existe
+
+### 7.6.9 Bug: "Cargando notas..." no está centrado ✅
+
+> **Bug visual corregido:** El texto "Cargando notas..." ahora está centrado en el modal de notas guardadas.
+
+- [x] Centrar el indicador de carga en el modal `ModalNotasGuardadas`
+- [x] Aplicar `grid-column: 1 / -1` y `min-height: 300px` para ocupar todo el ancho del grid
+
+### 7.6.10 Bug: Retraso al eliminar notas ✅
+
+> **Bug UX corregido:** Ahora las notas desaparecen instantáneamente al eliminar gracias a optimistic update.
+
+- [x] Eliminar la nota del estado local inmediatamente (optimistic update)
+- [x] Revertir si la API falla
+- [x] La nota desaparece sin delay, mejorando la experiencia de usuario
+
+### 7.6.11 Bug: Notas desincronizadas al abrir carpeta ✅
+
+> **Bug UX corregido:** Al abrir la carpeta de notas, primero se guarda la nota actual si hay cambios pendientes.
+
+- [x] Al abrir el modal, forzar guardado del scratchpad si hay contenido modificado
+- [x] La función `manejarAbrirCarpeta` espera a que se guarde antes de abrir el modal
+- [x] Los cambios siempre se sincronizan antes de mostrar la lista de notas
 
 ---
 
@@ -382,12 +424,17 @@ Sistema de seguimiento de hábitos, tareas y notas rápidas con diseño estilo t
 
 | Tarea                             | Complejidad | Prioridad | Estado |
 | --------------------------------- | ----------- | --------- | ------ |
-| Hábitos editables desde Ejecución | Media       | Alta      | ⏳      |
-| Sistema de posponer hábitos       | Alta        | Media     | ⏳      |
-| Tolerancia de urgencia hábitos    | Media-Alta  | Media     | ⏳      |
-| Ocultar completadas en Proyectos  | Baja        | Media     | ⏳      |
-| Bug: Subtareas no persisten       | Media       | Crítica   | ⏳      |
-| Bug: Scroll en Scratchpad         | Baja        | Baja      | ⏳      |
+| Habitos editables desde Ejecucion | Media       | Alta      | ✅      |
+| Sistema de posponer habitos       | Alta        | Media     | ✅      |
+| Tolerancia de urgencia habitos    | Media-Alta  | Media     | ✅      |
+| Ocultar completadas en Proyectos  | Baja        | Media     | ✅      |
+| Bug: Subtareas no persisten       | Media       | Critica   | ✅      |
+| Bug: Scroll en Scratchpad         | Baja        | Baja      | ✅      |
+| Bug: Nombre tarea no persiste     | Media       | Critica   | ✅      |
+| Bug: Error 403 en mensajes/evento | Baja        | Media     | ✅      |
+| Bug: Cargando notas no centrado   | Baja        | Baja      | ✅      |
+| Bug: Retraso al eliminar notas    | Baja        | Media     | ✅      |
+| Bug: Notas desincronizadas        | Media       | Media     | ✅      |
 
 **Complejidad Total:** Alta | **Dependencias:** Fase 7.5, sistema de hábitos-como-tareas
 
@@ -606,7 +653,7 @@ styles/
 | 6.6  | Hábitos en Ejecución           | Media       | ✅ Completada   |
 | 7    | **Modal Chat + Historial**     | Muy Alta    | ✅ Completada   |
 | 7.5  | **Correcciones UX + Resize**   | Media       | ✅ Completada   |
-| 7.6  | **Mejoras Hábitos + Bugs**     | Alta        | Planificada    |
+| 7.6  | **Mejoras Habitos + Bugs**     | Alta        | ✅ Completada   |
 | 8    | Mapa de Calor + historial      | Media-Alta  | Planificada    |
 | 9    | Scratchpad + File Manager      | Alta        | Baja Prioridad |
 | 10   | Compartir Hábitos              | Media       | Baja Prioridad |

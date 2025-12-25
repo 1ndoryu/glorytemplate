@@ -288,7 +288,9 @@ export async function registrarEventoSistema(tipoElemento: 'tarea' | 'proyecto' 
             return false;
         }
 
-        const data = (await response.json()) as {success: boolean};
+        const data = (await response.json()) as {success: boolean; skipped?: boolean};
+
+        /* Si fue saltado por timing de sincronización, no es un error - simplemente retornar false silenciosamente */
         return data.success;
     } catch (error) {
         console.warn('Error al registrar evento del sistema:', error);

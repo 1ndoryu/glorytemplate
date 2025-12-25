@@ -13,7 +13,7 @@
     position: relative;
     flex-grow: 1;
     min-height: 150px;
-    padding: var(--dashboard-espacioLg);
+    /* padding movido al textarea para que el scroll llegue al borde */
     display: flex;
     flex-direction: column;
 }
@@ -43,6 +43,8 @@
     color: var(--dashboard-textoSecundario);
     font-family: var(--dashboard-fuenteMonoespaciada);
     font-size: var(--dashboard-tamanoBase);
+    /* Padding en el textarea para que el scroll llegue al borde del panel */
+    padding: var(--dashboard-espacioLg);
     /* Altura por defecto, puede ser sobreescrita por inline style */
 }
 
@@ -76,8 +78,8 @@
  */
 .scratchpadBarraEstado {
     position: absolute;
-    bottom: var(--dashboard-espacioSm);
-    right: var(--dashboard-espacioMd);
+    bottom: var(--dashboard-espacioMd);
+    right: var(--dashboard-espacioLg);
     display: flex;
     align-items: center;
     gap: var(--dashboard-espacioSm);
@@ -236,6 +238,9 @@
     color: var(--dashboard-textoMuyApagado);
     text-align: center;
     padding: var(--dashboard-espacioXl);
+    /* Ocupar todo el ancho del grid para centrar correctamente */
+    grid-column: 1 / -1;
+    min-height: 300px;
 }
 
 .modalNotasVacio p {

@@ -64,3 +64,72 @@
     border-bottom: 2px solid var(--dashboard-fondoHover);
     display: inline-block;
 }
+
+/* 
+ * Seccion de tolerancia de urgencia
+ * Grid de botones para seleccionar preset
+ */
+.descripcionSeccionConfig {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--dashboard-textoApagado);
+    margin-bottom: var(--dashboard-espacioMd);
+    line-height: 1.4;
+}
+
+.gridOpcionesTolerancia {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--dashboard-espacioSm);
+}
+
+.botonPresetTolerancia {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: var(--dashboard-espacioSm) var(--dashboard-espacioMd);
+    background-color: var(--dashboard-fondoSecundario);
+    border: 1px solid var(--dashboard-bordeSutil);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all var(--dashboard-transicionNormal);
+    text-align: left;
+}
+
+.botonPresetTolerancia:hover {
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-textoApagado);
+}
+
+.botonPresetTolerancia--activo {
+    background-color: var(--dashboard-fondoHover);
+    border-color: var(--dashboard-primario);
+    box-shadow: 0 0 0 1px var(--dashboard-primario);
+}
+
+.botonPresetTolerancia--activo:hover {
+    border-color: var(--dashboard-primario);
+}
+
+.etiquetaPreset {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--dashboard-textoNormal);
+}
+
+.botonPresetTolerancia--activo .etiquetaPreset {
+    color: var(--dashboard-primario);
+}
+
+.descripcionPreset {
+    font-size: 0.65rem;
+    color: var(--dashboard-textoApagado);
+    line-height: 1.3;
+}
+
+@media (max-width: 480px) {
+    .gridOpcionesTolerancia {
+        grid-template-columns: 1fr;
+    }
+}

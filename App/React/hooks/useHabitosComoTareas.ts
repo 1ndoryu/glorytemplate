@@ -9,6 +9,12 @@ import type {Habito, TareaHabito, NivelUrgencia, NivelPrioridad} from '../types/
 import {tocaHoy} from '../utils/frecuenciaHabitos';
 import {FRECUENCIA_POR_DEFECTO} from '../types/dashboard';
 import {obtenerFechaHoy} from '../utils/fecha';
+import type {UmbralesUrgencia} from './useConfiguracionHabitos';
+
+/*
+ * Umbrales por defecto (moderado)
+ */
+const UMBRALES_DEFECTO: UmbralesUrgencia = {normal: 1, urgente: 3, bloqueante: 5};
 
 /*
  * Mapea importancia de hábito a prioridad de tarea
@@ -23,23 +29,25 @@ const mapearImportanciaAPrioridad = (importancia: Habito['importancia']): NivelP
 };
 
 /*
- * Calcula urgencia automática basada en días de inactividad
+ * Calcula urgencia automática basada en días de inactividad y umbrales configurables
  * Mayor inactividad = mayor urgencia
  */
-const calcularUrgenciaAutomatica = (diasInactividad: number, racha: number): NivelUrgencia => {
-    /* Si tiene racha y pocos días sin hacer, es chill */
-    if (racha > 0 && diasInactividad <= 1) {
+const calcularUrgenciaAutomatica = (diasInactividad: number, racha: number, umbrales: UmbralesUrgencia = UMBRALES_DEFECTO): NivelUrgencia => {
+    /* Si tiene racha y está dentro del umbral normal, es chill */
+    if (racha > 0 && diasInactividad < umbrales.normal) {
         return 'chill';
     }
 
-    /* Si lleva varios días sin hacer, aumenta la urgencia */
-    if (diasInactividad >= 5) {
+    /* Si supera el umbral bloqueante */
+    if (diasInactividad >= umbrales.bloqueante) {
         return 'bloqueante';
     }
-    if (diasInactividad >= 3) {
+    /* Si supera el umbral urgente */
+    if (diasInactividad >= umbrales.urgente) {
         return 'urgente';
     }
-    if (diasInactividad >= 1) {
+    /* Si supera el umbral normal */
+    if (diasInactividad >= umbrales.normal) {
         return 'normal';
     }
 
@@ -54,10 +62,18 @@ const generarIdTareaHabito = (habitoId: number): number => {
     return -habitoId - 10000;
 };
 
+/*
+ * Verifica si un hábito fue pospuesto hoy
+ */
+const fuePospuestoHoy = (habito: Habito, fechaHoy: string): boolean => {
+    return habito.historialPospuestos?.includes(fechaHoy) ?? false;
+};
+
 interface UseHabitosComoTareasParams {
     habitos: Habito[];
     mostrarHabitos: boolean;
     onToggleHabito: (habitoId: number) => void;
+    umbralesUrgencia?: UmbralesUrgencia;
 }
 
 interface UseHabitosComoTareasReturn {
@@ -65,7 +81,9 @@ interface UseHabitosComoTareasReturn {
     manejarToggleTareaHabito: (tareaId: number) => boolean;
 }
 
-export function useHabitosComoTareas({habitos, mostrarHabitos, onToggleHabito}: UseHabitosComoTareasParams): UseHabitosComoTareasReturn {
+export function useHabitosComoTareas({habitos, mostrarHabitos, onToggleHabito, umbralesUrgencia}: UseHabitosComoTareasParams): UseHabitosComoTareasReturn {
+    const umbrales = umbralesUrgencia || UMBRALES_DEFECTO;
+
     const tareasHabito = useMemo<TareaHabito[]>(() => {
         if (!mostrarHabitos) return [];
 
@@ -74,13 +92,14 @@ export function useHabitosComoTareas({habitos, mostrarHabitos, onToggleHabito}: 
         return habitos
             .filter(habito => {
                 const frecuencia = habito.frecuencia || FRECUENCIA_POR_DEFECTO;
-                /* Solo incluir hábitos que tocan hoy y no están completados hoy */
+                /* Solo incluir hábitos que tocan hoy y no están completados hoy ni pospuestos */
                 const tocaHoyResult = tocaHoy(frecuencia, habito.ultimoCompletado);
                 const completadoHoy = habito.ultimoCompletado === hoy;
-                return tocaHoyResult && !completadoHoy;
+                const pospuestoHoy = fuePospuestoHoy(habito, hoy);
+                return tocaHoyResult && !completadoHoy && !pospuestoHoy;
             })
             .map(habito => {
-                const urgenciaAutomatica = calcularUrgenciaAutomatica(habito.diasInactividad, habito.racha);
+                const urgenciaAutomatica = calcularUrgenciaAutomatica(habito.diasInactividad, habito.racha, umbrales);
 
                 const tareaHabito: TareaHabito = {
                     id: generarIdTareaHabito(habito.id),
@@ -99,7 +118,7 @@ export function useHabitosComoTareas({habitos, mostrarHabitos, onToggleHabito}: 
 
                 return tareaHabito;
             });
-    }, [habitos, mostrarHabitos]);
+    }, [habitos, mostrarHabitos, umbrales]);
 
     /*
      * Maneja el toggle de una tarea-hábito

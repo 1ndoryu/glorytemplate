@@ -5,7 +5,7 @@
 
 import {useState, useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent} from 'react';
 import {Check, X, Flag, Trash2, Settings, Calendar, Paperclip, FileText, Repeat, Folder, Share2, Users, Zap, Repeat2, MessageCircle} from 'lucide-react';
-import type {Tarea, NivelPrioridad, NivelUrgencia, DatosEdicionTarea} from '../../types/dashboard';
+import type {Tarea, NivelPrioridad, NivelUrgencia, DatosEdicionTarea, TareaHabito} from '../../types/dashboard';
 import {esTareaHabito} from '../../types/dashboard';
 import {MenuContextual, type OpcionMenu} from '../shared/MenuContextual';
 import {BadgeInfo, BadgeGroup} from '../shared/BadgeInfo';
@@ -37,6 +37,10 @@ export interface TareaItemProps {
     estaCompartida?: boolean;
     /* Contador de mensajes no leídos (para badge) */
     mensajesNoLeidos?: number;
+    /* Callbacks específicos para tareas-hábito (Fase 7.6.1) */
+    onEditarHabito?: (habitoId: number) => void;
+    onEliminarHabito?: (habitoId: number) => void;
+    onPosponerHabito?: (habitoId: number) => void;
 }
 
 export interface MenuContextualEstado {
@@ -45,7 +49,7 @@ export interface MenuContextualEstado {
     y: number;
 }
 
-export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir, estaCompartida = false, mensajesNoLeidos = 0}: TareaItemProps): JSX.Element {
+export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = false, onIndent, onOutdent, onCrearNueva, onConfigurar, nombreProyecto, soloIconoProyecto = false, onMoverProyecto, onCompartir, estaCompartida = false, mensajesNoLeidos = 0, onEditarHabito, onEliminarHabito, onPosponerHabito}: TareaItemProps): JSX.Element {
     const [mostrarAcciones, setMostrarAcciones] = useState(false);
     const [editando, setEditando] = useState(false);
     const [textoEditado, setTextoEditado] = useState(tarea.texto);
@@ -140,12 +144,25 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
 
     const manejarOpcionMenu = useCallback(
         (opcionId: string) => {
+            /* Acciones específicas para hábitos */
+            if (esHabito) {
+                const tareaHabito = tarea as TareaHabito;
+                if (opcionId === 'editar-habito') {
+                    onEditarHabito?.(tareaHabito.habitoId);
+                } else if (opcionId === 'posponer-habito') {
+                    onPosponerHabito?.(tareaHabito.habitoId);
+                } else if (opcionId === 'eliminar-habito') {
+                    onEliminarHabito?.(tareaHabito.habitoId);
+                }
+                return;
+            }
+
+            /* Acciones para tareas normales */
             if (opcionId === 'eliminar') {
                 onEliminar?.();
             } else if (opcionId === 'configurar') {
                 onConfigurar?.();
             } else if (opcionId === 'sin-prioridad') {
-                /* Quitar prioridad enviando null */
                 onEditar?.({prioridad: null});
             } else if (opcionId === 'mover-proyecto') {
                 onMoverProyecto?.();
@@ -157,7 +174,7 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                 });
             }
         },
-        [onEliminar, onEditar, onConfigurar, onMoverProyecto, onCompartir]
+        [onEliminar, onEditar, onConfigurar, onMoverProyecto, onCompartir, esHabito, tarea, onEditarHabito, onEliminarHabito, onPosponerHabito]
     );
 
     /* Opciones del menu contextual */
@@ -214,6 +231,27 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
         icono: <Trash2 size={12} />,
         peligroso: true
     });
+
+    /* Opciones de menú contextual específicas para hábitos */
+    const opcionesMenuHabito: OpcionMenu[] = [
+        {
+            id: 'editar-habito',
+            etiqueta: 'Editar habito',
+            icono: <Settings size={12} />
+        },
+        {
+            id: 'posponer-habito',
+            etiqueta: 'Posponer hoy',
+            icono: <Calendar size={12} />,
+            separadorDespues: true
+        },
+        {
+            id: 'eliminar-habito',
+            etiqueta: 'Eliminar habito',
+            icono: <Trash2 size={12} />,
+            peligroso: true
+        }
+    ];
 
     /* Renderizado del indicador de prioridad como badge (unificado con habitos) */
     const renderIndicadorPrioridad = () => {
@@ -371,9 +409,11 @@ export function TareaItem({tarea, onToggle, onEditar, onEliminar, esSubtarea = f
                     </div>
                 </div>
                 {mostrarAcciones && !esHabito && <AccionesItem mostrarConfigurar={true} mostrarEliminar={true} onConfigurar={onConfigurar} onEliminar={onEliminar} />}
+                {mostrarAcciones && esHabito && onEditarHabito && <AccionesItem mostrarConfigurar={true} mostrarEliminar={!!onEliminarHabito} onConfigurar={() => onEditarHabito((tarea as TareaHabito).habitoId)} onEliminar={onEliminarHabito ? () => onEliminarHabito((tarea as TareaHabito).habitoId) : undefined} />}
             </div>
 
             {menuContextual.visible && !esHabito && <MenuContextual opciones={opcionesMenu} posicionX={menuContextual.x} posicionY={menuContextual.y} onSeleccionar={manejarOpcionMenu} onCerrar={cerrarMenuContextual} />}
+            {menuContextual.visible && esHabito && <MenuContextual opciones={opcionesMenuHabito} posicionX={menuContextual.x} posicionY={menuContextual.y} onSeleccionar={manejarOpcionMenu} onCerrar={cerrarMenuContextual} />}
         </>
     );
 }

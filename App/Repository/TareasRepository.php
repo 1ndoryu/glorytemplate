@@ -93,9 +93,9 @@ class TareasRepository
             $textoOriginal = sanitize_text_field($tarea['texto'] ?? '');
             $texto = $this->cifradoHabilitado ? '[CIFRADO]' : $textoOriginal;
 
-            $completada = !empty($tarea['completada']) ? 1 : 0;
+            $completada = !empty($tarea['completado']) ? 1 : 0;
             $proyectoId = isset($tarea['proyectoId']) ? (int)$tarea['proyectoId'] : null;
-            $padreId = isset($tarea['padreId']) ? (int)$tarea['padreId'] : null;
+            $padreId = isset($tarea['parentId']) ? (int)$tarea['parentId'] : null;
             $prioridad = $tarea['prioridad'] ?? null;
             $urgencia = $tarea['urgencia'] ?? 'normal';
 

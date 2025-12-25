@@ -299,11 +299,32 @@ export function useNotas(): UseNotasReturn {
     }, [estado.notaActiva, fetchApi]);
 
     /**
-     * Elimina una nota
+     * Elimina una nota (optimistic update)
+     * Elimina visualmente de inmediato y restaura si hay error
      */
     const eliminarNota = useCallback(
         async (id: number): Promise<boolean> => {
-            setEstado(prev => ({...prev, eliminando: true, error: null}));
+            /* Guardar nota actual para posible restauración */
+            let notaEliminada: Nota | undefined;
+            let notaActivaAnterior: NotaActiva | undefined;
+
+            /* Optimistic update: eliminar inmediatamente del estado */
+            setEstado(prev => {
+                notaEliminada = prev.notas.find(n => n.id === id);
+                notaActivaAnterior = prev.notaActiva;
+
+                const nuevasNotas = prev.notas.filter(n => n.id !== id);
+                const nuevaActiva = prev.notaActiva.id === id ? {id: null, contenido: CONTENIDO_NOTA_NUEVA, modificada: false} : prev.notaActiva;
+
+                return {
+                    ...prev,
+                    eliminando: true,
+                    error: null,
+                    notas: nuevasNotas,
+                    total: prev.total - 1,
+                    notaActiva: nuevaActiva
+                };
+            });
 
             try {
                 const response = await fetchApi<{
@@ -316,26 +337,26 @@ export function useNotas(): UseNotasReturn {
                     throw new Error('Error al eliminar nota');
                 }
 
-                /* Remover nota del estado */
-                setEstado(prev => {
-                    const nuevasNotas = prev.notas.filter(n => n.id !== id);
+                /* Confirmar eliminación exitosa */
+                setEstado(prev => ({...prev, eliminando: false}));
+                return true;
+            } catch (error) {
+                /* Rollback: restaurar la nota eliminada */
+                const mensaje = error instanceof Error ? error.message : 'Error desconocido';
 
-                    /* Si la nota eliminada era la activa, crear una nueva */
-                    const nuevaActiva = prev.notaActiva.id === id ? {id: null, contenido: CONTENIDO_NOTA_NUEVA, modificada: false} : prev.notaActiva;
+                setEstado(prev => {
+                    const notasRestauradas = notaEliminada ? [...prev.notas, notaEliminada].sort((a, b) => new Date(b.fechaModificacion).getTime() - new Date(a.fechaModificacion).getTime()) : prev.notas;
 
                     return {
                         ...prev,
                         eliminando: false,
-                        notas: nuevasNotas,
-                        total: prev.total - 1,
-                        notaActiva: nuevaActiva
+                        error: mensaje,
+                        notas: notasRestauradas,
+                        total: prev.total + 1,
+                        notaActiva: notaActivaAnterior ?? prev.notaActiva
                     };
                 });
 
-                return true;
-            } catch (error) {
-                const mensaje = error instanceof Error ? error.message : 'Error desconocido';
-                setEstado(prev => ({...prev, eliminando: false, error: mensaje}));
                 return false;
             }
         },
@@ -434,6 +455,45 @@ export function useNotas(): UseNotasReturn {
             }
         };
     }, [cargarNotas]);
+
+    /*
+     * Autoguardado con debounce
+     * Guarda automáticamente cuando el usuario deja de escribir
+     */
+    const autoguardadoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const contenidoAnteriorRef = useRef<string>(estado.notaActiva.contenido);
+
+    useEffect(() => {
+        const {notaActiva} = estado;
+
+        /* No autoguardar si el contenido no ha cambiado */
+        if (notaActiva.contenido === contenidoAnteriorRef.current) {
+            return;
+        }
+
+        /* No autoguardar contenido vacío o nota nueva sin contenido real */
+        if (!notaActiva.contenido.trim() || notaActiva.contenido === CONTENIDO_NOTA_NUEVA) {
+            contenidoAnteriorRef.current = notaActiva.contenido;
+            return;
+        }
+
+        /* Cancelar timeout anterior */
+        if (autoguardadoTimeoutRef.current) {
+            clearTimeout(autoguardadoTimeoutRef.current);
+        }
+
+        /* Programar autoguardado después de 2 segundos de inactividad */
+        autoguardadoTimeoutRef.current = setTimeout(async () => {
+            contenidoAnteriorRef.current = notaActiva.contenido;
+            await guardarNotaActiva();
+        }, 2000);
+
+        return () => {
+            if (autoguardadoTimeoutRef.current) {
+                clearTimeout(autoguardadoTimeoutRef.current);
+            }
+        };
+    }, [estado.notaActiva.contenido, estado.notaActiva.id, guardarNotaActiva]);
 
     return {
         estado,

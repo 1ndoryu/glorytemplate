@@ -5,7 +5,7 @@
  */
 
 import {useState, useCallback} from 'react';
-import {Clock, Check, Edit3, AlertTriangle, Flame} from 'lucide-react';
+import {Clock, Check, Edit3, AlertTriangle, Flame, Calendar, Pause} from 'lucide-react';
 import type {Habito} from '../../types/dashboard';
 import {FRECUENCIA_POR_DEFECTO} from '../../types/dashboard';
 import {tocaHoy, describirFrecuencia, obtenerIntervaloFrecuencia, calcularUmbralInactividad} from '../../utils/frecuenciaHabitos';
@@ -23,6 +23,7 @@ interface TablaHabitosProps {
     onToggleHabito?: (id: number) => void;
     onEditarHabito?: (habito: Habito) => void;
     onEliminarHabito?: (id: number) => void;
+    onPosponerHabito?: (id: number) => void;
     configuracion?: ConfiguracionHabitos;
 }
 
@@ -38,12 +39,21 @@ function obtenerVariantePrioridad(importancia: Habito['importancia']): VarianteB
 }
 
 /*
- * Determina si el hábito fue completado hoy
+ * Determina si el habito fue completado hoy
  */
 function fueCompletadoHoy(ultimoCompletado: string | undefined): boolean {
     if (!ultimoCompletado) return false;
     const hoy = new Date().toISOString().split('T')[0];
     return ultimoCompletado === hoy;
+}
+
+/*
+ * Determina si el habito fue pospuesto hoy
+ */
+function fuePospuestoHoy(historialPospuestos: string[] | undefined): boolean {
+    if (!historialPospuestos || historialPospuestos.length === 0) return false;
+    const hoy = new Date().toISOString().split('T')[0];
+    return historialPospuestos.includes(hoy);
 }
 
 interface FilaHabitoProps {
@@ -52,6 +62,7 @@ interface FilaHabitoProps {
     onToggle?: (id: number) => void;
     onEditar?: (habito: Habito) => void;
     onEliminar?: (id: number) => void;
+    onPosponer?: (id: number) => void;
     configuracion: ConfiguracionHabitos;
     estiloGrid: React.CSSProperties;
 }
@@ -62,7 +73,7 @@ interface MenuContextualEstado {
     y: number;
 }
 
-function FilaHabito({habito, indice, onToggle, onEditar, onEliminar, configuracion, estiloGrid}: FilaHabitoProps): JSX.Element {
+function FilaHabito({habito, indice, onToggle, onEditar, onEliminar, onPosponer, configuracion, estiloGrid}: FilaHabitoProps): JSX.Element {
     /* Advertencia de racha: mostrar cuando faltan pocos dias para perderla */
     const DIAS_ADVERTENCIA_RACHA = 2;
 
@@ -83,6 +94,7 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar, configuraci
     const completadoHoy = fueCompletadoHoy(habito.ultimoCompletado);
 
     const habitoTocaHoy = tocaHoy(frecuencia, habito.ultimoCompletado);
+    const pospuestoHoy = fuePospuestoHoy(habito.historialPospuestos);
     const textoFrecuencia = describirFrecuencia(frecuencia);
     const intervaloFrecuencia = obtenerIntervaloFrecuencia(frecuencia);
 
@@ -126,12 +138,15 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar, configuraci
                 case 'toggle':
                     onToggle?.(habito.id);
                     break;
+                case 'posponer':
+                    onPosponer?.(habito.id);
+                    break;
                 case 'eliminar':
                     onEliminar?.(habito.id);
                     break;
             }
         },
-        [habito, onEditar, onToggle, onEliminar]
+        [habito, onEditar, onToggle, onPosponer, onEliminar]
     );
 
     /* Opciones del menu contextual */
@@ -140,6 +155,11 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar, configuraci
             id: 'toggle',
             etiqueta: completadoHoy ? 'Desmarcar' : 'Marcar completado',
             icono: <Check size={12} />
+        },
+        {
+            id: 'posponer',
+            etiqueta: 'Posponer hoy',
+            icono: <Calendar size={12} />
         },
         {
             id: 'editar',
@@ -180,7 +200,8 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar, configuraci
                         <span className={`filaNombre ${completadoHoy ? 'filaNombreCompletado' : ''}`}>{habito.nombre}</span>
                         <BadgeGroup>
                             {configuracion.columnasVisibles.frecuencia && intervaloFrecuencia !== null && <BadgeInfo tipo="frecuencia" icono={<Clock size={10} />} texto={intervaloFrecuencia.toString()} titulo={`Frecuencia: ${textoFrecuencia}`} variante="frecuencia" />}
-                            {configuracion.columnasVisibles.tocaHoy && habitoTocaHoy && !completadoHoy && <BadgeInfo tipo="destacado" texto="Hoy" variante="destacado" />}
+                            {configuracion.columnasVisibles.tocaHoy && pospuestoHoy && <BadgeInfo tipo="personalizado" icono={<Pause size={10} />} texto="Pospuesto" variante="pospuesto" />}
+                            {configuracion.columnasVisibles.tocaHoy && habitoTocaHoy && !completadoHoy && !pospuestoHoy && <BadgeInfo tipo="destacado" texto="Hoy" variante="destacado" />}
                         </BadgeGroup>
                     </div>
                 </div>
@@ -236,7 +257,7 @@ function FilaHabito({habito, indice, onToggle, onEditar, onEliminar, configuraci
     );
 }
 
-export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditarHabito, onEliminarHabito, configuracion = CONFIG_HABITOS_POR_DEFECTO}: TablaHabitosProps): JSX.Element {
+export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditarHabito, onEliminarHabito, onPosponerHabito, configuracion = CONFIG_HABITOS_POR_DEFECTO}: TablaHabitosProps): JSX.Element {
     // Filtrar habitos segun configuracion
     const habitosVisibles = habitos.filter(habito => {
         if (configuracion.ocultarCompletadosHoy && fueCompletadoHoy(habito.ultimoCompletado)) {
@@ -275,7 +296,7 @@ export function TablaHabitos({habitos, onAñadirHabito, onToggleHabito, onEditar
 
             {/* Filas de habitos */}
             {habitosVisibles.map((habito, index) => (
-                <FilaHabito key={habito.id} habito={habito} indice={index} onToggle={onToggleHabito} onEditar={onEditarHabito} onEliminar={onEliminarHabito} configuracion={configuracion} estiloGrid={estiloGrid} />
+                <FilaHabito key={habito.id} habito={habito} indice={index} onToggle={onToggleHabito} onEditar={onEditarHabito} onEliminar={onEliminarHabito} onPosponer={onPosponerHabito} configuracion={configuracion} estiloGrid={estiloGrid} />
             ))}
 
             {/* Añadir habito */}

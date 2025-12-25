@@ -33,6 +33,20 @@ export function DashboardGrid({ctx}: DashboardGridProps): JSX.Element {
         [habitosComoTareas, dashboard]
     );
 
+    /*
+     * Handler para editar hábito por ID (para tareas-hábito en Ejecución)
+     * Busca el hábito completo para pasarlo al modal
+     */
+    const manejarEditarHabitoPorId = useCallback(
+        (habitoId: number) => {
+            const habito = dashboard.habitos.find(h => h.id === habitoId);
+            if (habito) {
+                dashboard.abrirModalEditarHabito(habito);
+            }
+        },
+        [dashboard]
+    );
+
     /* Handler genérico para cambiar altura de paneles */
     const manejarCambiarAlturaPanel = useCallback(
         (panelId: PanelId, altura: string) => {
@@ -56,7 +70,7 @@ export function DashboardGrid({ctx}: DashboardGridProps): JSX.Element {
         const panelesContenido: Partial<Record<PanelId, (alturaProps: {altura: string; isResizing: boolean; contenedorRef: React.RefObject<HTMLDivElement>; esAuto: boolean}) => JSX.Element>> = {
             focoPrioritario: ({altura, contenedorRef, esAuto}) => (
                 <div ref={contenedorRef} className="panelDashboard" style={esAuto ? undefined : {height: altura}}>
-                    <PanelFocoPrioritario habitos={ordenHabitos.habitosOrdenados} modoOrdenHabitos={ordenHabitos.modoActual} opcionesOrdenHabitos={opciones.opcionesOrdenHabitos} configuracion={configHabitos.configuracion} onAbrirModalCrearHabito={dashboard.abrirModalCrearHabito} onAbrirModalConfigHabitos={modales.abrirModalConfigHabitos} onToggleHabito={dashboard.toggleHabito} onEditarHabito={dashboard.abrirModalEditarHabito} onEliminarHabito={dashboard.eliminarHabito} onCambiarModoHabitos={ordenHabitos.cambiarModo} handleArrastre={handleArrastreElement} handleMinimizar={handleMinimizarElement} />
+                    <PanelFocoPrioritario habitos={ordenHabitos.habitosOrdenados} modoOrdenHabitos={ordenHabitos.modoActual} opcionesOrdenHabitos={opciones.opcionesOrdenHabitos} configuracion={configHabitos.configuracion} onAbrirModalCrearHabito={dashboard.abrirModalCrearHabito} onAbrirModalConfigHabitos={modales.abrirModalConfigHabitos} onToggleHabito={dashboard.toggleHabito} onEditarHabito={dashboard.abrirModalEditarHabito} onEliminarHabito={dashboard.eliminarHabito} onPosponerHabito={dashboard.posponerHabito} onCambiarModoHabitos={ordenHabitos.cambiarModo} handleArrastre={handleArrastreElement} handleMinimizar={handleMinimizarElement} />
                 </div>
             ),
             proyectos: ({altura, contenedorRef, esAuto}) => (
@@ -91,6 +105,9 @@ export function DashboardGrid({ctx}: DashboardGridProps): JSX.Element {
                         obtenerParticipantes={compartir.obtenerParticipantesTarea}
                         handleArrastre={handleArrastreElement}
                         handleMinimizar={handleMinimizarElement}
+                        onEditarHabito={manejarEditarHabitoPorId}
+                        onEliminarHabito={dashboard.eliminarHabito}
+                        onPosponerHabito={dashboard.posponerHabito}
                     />
                 </div>
             )

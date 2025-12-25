@@ -470,11 +470,18 @@ class MensajesApiController
         $accion = $request->get_param('accion');
         $detalle = $request->get_param('detalle');
 
+        /* 
+         * Para eventos del sistema, no devolvemos 403 si el elemento no existe.
+         * Esto puede ocurrir por timing de sincronización: el frontend intenta
+         * registrar un evento antes de que la tarea se haya guardado en la BD.
+         * En ese caso, simplemente retornamos success: false sin error HTTP.
+         */
         if (!self::tieneAccesoAElemento($userId, $tipoElemento, $elementoId)) {
             return new \WP_REST_Response([
                 'success' => false,
-                'error' => 'No tienes acceso a este elemento'
-            ], 403);
+                'skipped' => true,
+                'reason' => 'elemento_no_encontrado'
+            ], 200);
         }
 
         try {

@@ -22,7 +22,6 @@ export function ModalNotasGuardadas({abierto, onCerrar, onSeleccionarNota}: Moda
     const [terminoBusqueda, setTerminoBusqueda] = useState('');
     const [resultadosBusqueda, setResultadosBusqueda] = useState<Nota[] | null>(null);
     const [buscando, setBuscando] = useState(false);
-    const [notaAEliminar, setNotaAEliminar] = useState<number | null>(null);
 
     /* Cargar notas cuando se abre el modal */
     useEffect(() => {
@@ -59,13 +58,10 @@ export function ModalNotasGuardadas({abierto, onCerrar, onSeleccionarNota}: Moda
     );
 
     const manejarEliminar = useCallback(
-        async (e: React.MouseEvent, notaId: number) => {
+        (e: React.MouseEvent, notaId: number) => {
             e.stopPropagation();
-            setNotaAEliminar(notaId);
-            const exito = await eliminarNota(notaId);
-            if (exito) {
-                setNotaAEliminar(null);
-            }
+            /* Optimistic update: la nota desaparece inmediatamente */
+            eliminarNota(notaId);
         },
         [eliminarNota]
     );
@@ -104,9 +100,9 @@ export function ModalNotasGuardadas({abierto, onCerrar, onSeleccionarNota}: Moda
                         </div>
                     ) : (
                         notasMostrar.map(nota => (
-                            <div key={nota.id} className={`modalNotasItem ${notaAEliminar === nota.id ? 'modalNotasItemEliminando' : ''}`} onClick={() => manejarSeleccionar(nota)}>
-                                <button className="modalNotasItemEliminar" onClick={e => manejarEliminar(e, nota.id)} title="Eliminar nota" disabled={notaAEliminar === nota.id}>
-                                    {notaAEliminar === nota.id ? <Loader size={14} className="animacionGirar" /> : <Trash2 size={14} />}
+                            <div key={nota.id} className="modalNotasItem" onClick={() => manejarSeleccionar(nota)}>
+                                <button className="modalNotasItemEliminar" onClick={e => manejarEliminar(e, nota.id)} title="Eliminar nota">
+                                    <Trash2 size={14} />
                                 </button>
                                 <div className="modalNotasItemContenido">
                                     <div className="modalNotasItemTitulo">{nota.titulo}</div>

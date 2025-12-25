@@ -49,7 +49,8 @@ export function useDashboardCompleto() {
     const habitosComoTareas = useHabitosComoTareas({
         habitos: dashboard.habitos,
         mostrarHabitos: configTareas.configuracion.mostrarHabitosEnEjecucion,
-        onToggleHabito: dashboard.toggleHabito
+        onToggleHabito: dashboard.toggleHabito,
+        umbralesUrgencia: configHabitos.obtenerUmbralesActuales()
     });
 
     /*

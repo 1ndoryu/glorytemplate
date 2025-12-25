@@ -4,12 +4,14 @@ export type OrdenamientoProyectos = 'nombre' | 'fecha' | 'prioridad';
 
 export interface ConfiguracionProyectos {
     ocultarCompletados: boolean;
+    ocultarTareasCompletadas: boolean;
     ordenDefecto: OrdenamientoProyectos;
     mostrarProgreso: boolean;
 }
 
 export const CONFIG_PROYECTOS_DEFECTO: ConfiguracionProyectos = {
     ocultarCompletados: false,
+    ocultarTareasCompletadas: false,
     ordenDefecto: 'fecha',
     mostrarProgreso: true
 };
@@ -31,10 +33,15 @@ export function useConfiguracionProyectos() {
         setValor(prev => ({...prev, mostrarProgreso: !prev.mostrarProgreso}));
     };
 
+    const toggleOcultarTareasCompletadas = () => {
+        setValor(prev => ({...prev, ocultarTareasCompletadas: !prev.ocultarTareasCompletadas}));
+    };
+
     return {
         configuracion: valor,
         actualizarConfiguracion: setValor,
         toggleOcultarCompletados,
+        toggleOcultarTareasCompletadas,
         cambiarOrdenDefecto,
         toggleMostrarProgreso
     };

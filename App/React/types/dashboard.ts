@@ -70,6 +70,8 @@ export interface Habito {
     racha: number;
     tags: string[];
     historialCompletados: string[] /* Fechas ISO de completados */;
+    /* Historial de fechas pospuestas (no cuentan como incumplimiento) */
+    historialPospuestos?: string[];
     ultimoCompletado?: string /* Fecha ISO del ultimo completado */;
     fechaCreacion: string /* Fecha ISO de cuando se creo el habito */;
     /* Frecuencia del habito (opcional, por defecto diario) */
