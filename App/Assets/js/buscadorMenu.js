@@ -2,18 +2,20 @@
  * Buscador del Menu Principal
  *
  * Maneja la busqueda de productos Amazon desde el icono del header.
- * Requiere que el plugin AmazonProduct este activo y tenga el objeto
- * amazonProductAjax disponible en el frontend.
+ * Usa busqueda del lado del cliente para respuestas instantaneas.
+ * Fallback a AJAX si el indice no esta disponible.
  */
 (function () {
     'use strict';
 
-    const DEBOUNCE_MS = 200;
+    const DEBOUNCE_MS = 50;
     const MIN_CARACTERES = 2;
 
     let buscadorAbierto = false;
     let timeoutBusqueda = null;
     let abortController = null;
+    let usarBusquedaLocal = false;
+    let indiceCargado = false;
 
     function init() {
         /* Solo activo en desktop (min-width: 834px) */
@@ -90,6 +92,28 @@
             const input = panel.querySelector('#inputBuscadorMenu');
             if (input) input.focus();
         }, 100);
+
+        /* Cargar indice de busqueda al abrir el buscador */
+        if (!indiceCargado && window.BuscadorCliente) {
+            cargarIndiceEnBackground();
+        }
+    }
+
+    /**
+     * Carga el indice de busqueda en background.
+     * Muestra mensaje temporal si es la primera vez.
+     */
+    async function cargarIndiceEnBackground() {
+        if (indiceCargado || !window.BuscadorCliente) return;
+
+        try {
+            await window.BuscadorCliente.cargarIndice();
+            indiceCargado = true;
+            usarBusquedaLocal = true;
+        } catch (error) {
+            console.warn('No se pudo cargar el indice de busqueda:', error);
+            usarBusquedaLocal = false;
+        }
     }
 
     function cerrarBuscador() {
@@ -123,16 +147,43 @@
             return;
         }
 
+        /* Si tenemos busqueda local, usarla inmediatamente */
+        if (usarBusquedaLocal && window.BuscadorCliente) {
+            buscarProductosLocal(termino);
+            return;
+        }
+
+        /* Fallback a busqueda AJAX con debounce */
         timeoutBusqueda = setTimeout(() => {
-            buscarProductos(termino);
-        }, DEBOUNCE_MS);
+            buscarProductosAjax(termino);
+        }, 200);
     }
 
-    function buscarProductos(termino) {
-        /*
-         * Verificar que el objeto amazonProductAjax exista.
-         * Este objeto es localizado por el plugin AmazonProduct.
-         */
+    /**
+     * Busqueda instantanea en el cliente usando el indice local.
+     */
+    function buscarProductosLocal(termino) {
+        const resultado = window.BuscadorCliente.buscar(termino, 5);
+
+        if (resultado.productos.length === 0) {
+            mostrarSinResultados();
+            return;
+        }
+
+        const productos = resultado.productos.map(p => ({
+            url: p.url || '#',
+            imagen: p.image || '',
+            titulo: p.title || '',
+            precio: p.price ? `${p.price} €` : ''
+        }));
+
+        mostrarResultados(productos, resultado.total);
+    }
+
+    /**
+     * Busqueda via AJAX (fallback si el indice no esta disponible).
+     */
+    function buscarProductosAjax(termino) {
         if (typeof amazonProductAjax === 'undefined') {
             mostrarError('El buscador de productos no esta disponible.');
             return;
@@ -145,7 +196,6 @@
 
         mostrarCargando();
 
-        /* Usar endpoint ligero optimizado para busqueda rapida */
         const formData = new FormData();
         formData.append('action', 'amazon_quick_search');
         formData.append('nonce', amazonProductAjax.nonce);

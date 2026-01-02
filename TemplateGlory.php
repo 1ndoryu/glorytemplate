@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Template Name: Glory Central Template
  *
@@ -24,8 +25,12 @@ if ($modo === 'editor') {
         }
     }
 } elseif ($funcionRenderizar && function_exists($funcionRenderizar)) {
-    // Llama a la función específica de la página (ej: home(), contacto(), etc.)
+    // Capturar la salida de la función y procesar shortcodes
+    ob_start();
     call_user_func($funcionRenderizar);
+    $contenido = ob_get_clean();
+    // Procesar shortcodes para que [hero_page], [amazon_deals], etc. funcionen
+    echo do_shortcode($contenido);
 } else {
     // Contenido de respaldo si algo falla
     echo '<h1>Error: Página no configurada correctamente.</h1>';
