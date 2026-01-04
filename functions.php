@@ -16,7 +16,7 @@ if (file_exists($autoloader)) {
  */
 try {
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-    $dotenv->load();
+    $dotenv->safeLoad();
 } catch (Exception $e) {
     error_log('Error al cargar el archivo .env: ' . $e->getMessage());
 }
