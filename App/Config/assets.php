@@ -35,7 +35,7 @@ if ((defined('LOCAL') && LOCAL) || AssetManager::isGlobalDevMode()) {
             'header.css' => 40,
             'footer.css' => 50,
         ];
-        $criticos = ['init.css','Pages.css','home.css'];
+        $criticos = ['init.css', 'Pages.css', 'home.css'];
         $archivos = array_values(array_filter($archivos, function ($ruta) use ($excluir) {
             return !in_array(basename($ruta), $excluir, true);
         }));
@@ -47,7 +47,9 @@ if ((defined('LOCAL') && LOCAL) || AssetManager::isGlobalDevMode()) {
         });
         if (!$archivos) return [null, null];
         $destDir = get_template_directory() . '/Glory/cache';
-        if (!is_dir($destDir)) { @mkdir($destDir, 0755, true); }
+        if (!is_dir($destDir)) {
+            @mkdir($destDir, 0755, true);
+        }
         $destCrit = $destDir . '/tema-critical.css';
         $destResto = $destDir . '/tema-resto.css';
         $contenidoCrit = '';
@@ -91,7 +93,7 @@ if ((defined('LOCAL') && LOCAL) || AssetManager::isGlobalDevMode()) {
         $excluir = ['task.css', 'admin-elementor.css'];
         // Si hay crítico, podemos excluir los que metimos en crítico para reducir duplicación
         if ($bundleCrit) {
-            $excluir = array_merge($excluir, ['init.css','Pages.css','home.css']);
+            $excluir = array_merge($excluir, ['init.css', 'Pages.css', 'home.css']);
         }
         AssetManager::defineFolder(
             'style',
@@ -129,41 +131,25 @@ AssetManager::defineFolder(
 
 // Optimización de jQuery: quitar jquery-migrate (mantener jQuery en el head para compatibilidad)
 add_action('wp_default_scripts', function ($scripts) {
-    if (is_admin()) { return; }
-    if (!isset($scripts->registered['jquery'])) { return; }
+    if (is_admin()) {
+        return;
+    }
+    if (!isset($scripts->registered['jquery'])) {
+        return;
+    }
     $scripts->registered['jquery']->deps = array_values(array_diff(
         $scripts->registered['jquery']->deps ?? [],
         ['jquery-migrate']
     ));
 });
 
-// Añadir defer a jQuery y a todo script que dependa de jQuery para evitar bloqueo (solo frontend)
-add_filter('script_loader_tag', function ($tag, $handle) {
-    // Nunca tocar el admin: muchos scripts de WP dependen del orden exacto
-    if (is_admin()) {
-        return $tag;
-    }
-
-    if (!function_exists('wp_scripts')) {
-        return $tag;
-    }
-
-    $wpScripts  = wp_scripts();
-    $registered = $wpScripts ? ($wpScripts->registered[$handle] ?? null) : null;
-
-    $shouldDefer = false;
-    if (in_array($handle, ['jquery', 'jquery-core'], true)) {
-        $shouldDefer = true;
-    } elseif ($registered && is_array($registered->deps) && in_array('jquery', $registered->deps, true)) {
-        $shouldDefer = true;
-    }
-
-    if ($shouldDefer && strpos($tag, ' defer') === false) {
-        $tag = str_replace(' src=', ' defer src=', $tag);
-    }
-
-    return $tag;
-}, 10, 2);
+/* 
+ * DESHABILITADO: El defer en jQuery causa conflictos con scripts de 
+ * WP Core (wp-backbone, media-models, media-views, etc.) que se cargan
+ * síncronamente y esperan que jQuery ya esté disponible.
+ * 
+ * Resultado: "jQuery is not defined" en el panel de administración y media library.
+ */
 
 // Asegurar que estilos no necesarios no se encolen en el frontend
 add_action('wp_enqueue_scripts', function () {
@@ -173,7 +159,7 @@ add_action('wp_enqueue_scripts', function () {
 }, 1000);
 
 // Asegurar jQuery en frontend (algunas integraciones lo requieren)
-add_action('wp_enqueue_scripts', function(){
+add_action('wp_enqueue_scripts', function () {
     // Encolar jQuery de WP para compatibilidad (se marca defer más abajo)
     wp_enqueue_script('jquery');
 }, 1);
@@ -184,11 +170,10 @@ add_action('wp_enqueue_scripts', function () {
     if ((defined('LOCAL') && LOCAL) || AssetManager::isGlobalDevMode()) return;
     // Solo desregistrar individuales si existe el bundle 'tema-resto'
     if (wp_style_is('tema-resto', 'registered') || wp_style_is('tema-resto', 'enqueued')) {
-        $temaHandles = ['tema-init','tema-header','tema-pages','tema-home','tema-footer'];
+        $temaHandles = ['tema-init', 'tema-header', 'tema-pages', 'tema-home', 'tema-footer'];
         foreach ($temaHandles as $h) {
             wp_dequeue_style($h);
             wp_deregister_style($h);
         }
     }
 }, 1001);
-
