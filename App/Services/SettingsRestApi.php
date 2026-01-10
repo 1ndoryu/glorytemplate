@@ -100,7 +100,18 @@ class SettingsRestApi
         $options = [];
 
         foreach (self::ALLOWED_OPTIONS as $key) {
-            $options[$key] = OpcionManager::get($key, '');
+            // Obtener valor (usando el default del registro si no existe en BD)
+            $value = OpcionManager::get($key);
+
+            // Si es una imagen y el valor esta vacio (guardado vacio en BD), forzar el default
+            if (empty($value) && (strpos($key, '_image_') !== false)) {
+                $def = \Glory\Core\OpcionRegistry::getDefinicion($key);
+                if ($def && !empty($def['valorDefault'])) {
+                    $value = $def['valorDefault'];
+                }
+            }
+
+            $options[$key] = $value;
         }
 
         return new \WP_REST_Response([
