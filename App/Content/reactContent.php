@@ -117,8 +117,22 @@ ReactContentProvider::registerStatic('siteConfig', [
 
     // Imagenes del sitio
     'images' => [
-        'hero' => OpcionManager::get('glory_image_hero', ''),
-        'secondary' => OpcionManager::get('glory_image_secondary', ''),
+        'hero' => (function () {
+            $val = OpcionManager::get('glory_image_hero');
+            if (empty($val)) {
+                $def = \Glory\Core\OpcionRegistry::getDefinicion('glory_image_hero');
+                return $def['valorDefault'] ?? '';
+            }
+            return $val;
+        })(),
+        'secondary' => (function () {
+            $val = OpcionManager::get('glory_image_secondary');
+            if (empty($val)) {
+                $def = \Glory\Core\OpcionRegistry::getDefinicion('glory_image_secondary');
+                return $def['valorDefault'] ?? '';
+            }
+            return $val;
+        })(),
         'logo' => OpcionManager::get('glory_logo_image', ''),
         'logoMode' => OpcionManager::get('glory_logo_mode', 'text'),
         'logoText' => OpcionManager::get('glory_logo_text', ''),
