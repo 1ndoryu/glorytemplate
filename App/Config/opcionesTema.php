@@ -189,7 +189,7 @@ $seccionImagenes = 'images';
 $etiquetaSeccionImagenes = 'Site Images';
 
 OpcionManager::register('glory_image_hero', [
-    'valorDefault'    => '',
+    'valorDefault'    => get_template_directory_uri() . '/App/Assets/images/default-hero-primary.webp',
     'tipo'            => 'imagen',
     'etiqueta'        => 'Hero/Profile Image',
     'descripcion'     => 'Main profile image used in Hero sections and About page.',
@@ -199,7 +199,7 @@ OpcionManager::register('glory_image_hero', [
 ]);
 
 OpcionManager::register('glory_image_secondary', [
-    'valorDefault'    => '',
+    'valorDefault'    => get_template_directory_uri() . '/App/Assets/images/default-hero-secondary.webp',
     'tipo'            => 'imagen',
     'etiqueta'        => 'Secondary/Working Image',
     'descripcion'     => 'Secondary image used in About section (e.g., working photo).',
