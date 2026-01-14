@@ -73,8 +73,8 @@ export function PageLayout({children, headerCtaText = 'Agendar 1:1', copyrightTy
                 <Footer columns={footerColumns} copyrightText={getCopyrightText(copyrightType)} />
             </div>
 
-            {/* THEME TOGGLE - Boton flotante para cambiar de tema */}
-            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+            {/* THEME TOGGLE - Desactivado para produccion (era solo para pruebas de estilo) */}
+            {/* <ThemeToggle theme={theme} onToggle={toggleTheme} /> */}
 
             {/* COOKIE BANNER - Gestion de consentimiento y activacion de GTM */}
             <CookieBanner />
