@@ -177,3 +177,13 @@ add_action('wp_enqueue_scripts', function () {
         }
     }
 }, 1001);
+
+/* 
+ * Favicon del Tema
+ * Usa el SVG del logo como favicon del sitio
+ */
+add_action('wp_head', function () {
+    $faviconUrl = get_template_directory_uri() . '/App/Assets/images/favicon.svg';
+    echo '<link rel="icon" type="image/svg+xml" href="' . esc_url($faviconUrl) . '">' . "\n";
+    echo '<link rel="apple-touch-icon" href="' . esc_url($faviconUrl) . '">' . "\n";
+}, 1);
