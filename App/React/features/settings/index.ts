@@ -12,6 +12,7 @@ export {ImagesTab} from './components/ImagesTab';
 export {IntegrationsTab} from './components/IntegrationsTab';
 export {LogoTab} from './components/LogoTab';
 export {PricingTab} from './components/PricingTab';
+export {SmtpTab} from './components/SmtpTab';
 
 // Componentes auxiliares
 export {SettingsField} from './components/SettingsField';

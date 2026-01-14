@@ -19,9 +19,9 @@
  */
 
 import {useState, useEffect} from 'react';
-import {Settings, Building2, Calendar, Share2, Image, LineChart, Save, RotateCcw, Check, X, AlertCircle, DollarSign} from 'lucide-react';
+import {Settings, Building2, Calendar, Share2, Image, LineChart, Save, RotateCcw, Check, X, AlertCircle, DollarSign, Mail} from 'lucide-react';
 import {PageLayout} from '../components/layout';
-import {IdentityTab, ContactTab, SocialTab, ImagesTab, IntegrationsTab, LogoTab, PricingTab, useSettingsApi} from '../features/settings';
+import {IdentityTab, ContactTab, SocialTab, ImagesTab, IntegrationsTab, LogoTab, PricingTab, SmtpTab, useSettingsApi} from '../features/settings';
 import type {SettingsTab} from '../features/settings';
 
 interface TabConfig {
@@ -37,7 +37,8 @@ const TABS: TabConfig[] = [
     {id: 'images', label: 'Imágenes', icon: Image},
     {id: 'logo', label: 'Logo', icon: Image},
     {id: 'integrations', label: 'Integraciones', icon: LineChart},
-    {id: 'pricing', label: 'Precios', icon: DollarSign}
+    {id: 'pricing', label: 'Precios', icon: DollarSign},
+    {id: 'smtp', label: 'SMTP', icon: Mail}
 ];
 
 export function SettingsIsland(): JSX.Element {
@@ -177,6 +178,8 @@ function TabContent({activeTab, settings}: TabContentProps): JSX.Element | null 
             return <IntegrationsTab options={settings.options} onUpdate={settings.updateOption} />;
         case 'pricing':
             return <PricingTab options={settings.options} onUpdate={settings.updateOption} />;
+        case 'smtp':
+            return <SmtpTab options={settings.options} onUpdate={settings.updateOption} />;
         default:
             return null;
     }

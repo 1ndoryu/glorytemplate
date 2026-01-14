@@ -15,7 +15,7 @@ interface SettingsFieldProps {
     onChange: (value: string) => void;
     description?: string;
     placeholder?: string;
-    inputType?: 'text' | 'email' | 'url' | 'tel';
+    inputType?: 'text' | 'email' | 'url' | 'tel' | 'password';
     icon?: ReactNode;
     rows?: number;
     required?: boolean;

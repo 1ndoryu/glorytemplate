@@ -137,6 +137,13 @@ if (file_exists($contactFormApiPath)) {
     \App\Services\ContactFormRestApi::register();
 }
 
+// Cargar servicio SMTP para envio de correos externos
+$smtpServicePath = get_template_directory() . '/App/Services/SmtpService.php';
+if (file_exists($smtpServicePath)) {
+    require_once $smtpServicePath;
+    \App\Services\SmtpService::register();
+}
+
 // ============================================================================
 // APLICAR MODO REACT
 // ============================================================================
