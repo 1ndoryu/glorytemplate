@@ -118,8 +118,11 @@ export function ContactForm({title = 'Si prefieres escribirme ahora', subtitle}:
         setErrorMessage('');
 
         try {
-            // Enviar al endpoint REST API
-            const response = await fetch('/wp-json/glory/v1/contact', {
+            /*
+             * Nota: La URL debe terminar en "/" para evitar redirect 301 de Apache
+             * que convierte POST en GET y causa error "no route"
+             */
+            const response = await fetch('/wp-json/glory/v1/contact/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
