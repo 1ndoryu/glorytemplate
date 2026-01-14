@@ -6,7 +6,7 @@
  * Configura PHPMailer para enviar correos via SMTP en lugar de usar
  * la función mail() de PHP que no funciona en servidores sin servidor de correo.
  *
- * Configuración requerida en Theme Options:
+ * Configuración requerida en opciones de WordPress:
  * - glory_smtp_enabled: Activar/desactivar SMTP
  * - glory_smtp_host: Servidor SMTP (ej: smtp-relay.brevo.com)
  * - glory_smtp_port: Puerto (587 para TLS, 465 para SSL)
@@ -20,7 +20,6 @@
 
 namespace App\Services;
 
-use Glory\Manager\OpcionManager;
 use PHPMailer\PHPMailer\PHPMailer;
 
 class SmtpService
@@ -69,25 +68,24 @@ class SmtpService
 
     /**
      * Configurar PHPMailer con las credenciales SMTP
+     * 
+     * Nota: Usamos get_option() directamente porque las opciones SMTP
+     * se guardan como opciones de WordPress estándar, no pasan por OpcionRegistry.
      */
     public static function configureSmtp(PHPMailer $phpmailer): void
     {
-        if (!class_exists('Glory\Manager\OpcionManager')) {
-            return;
-        }
-
-        $smtpEnabled = OpcionManager::get('glory_smtp_enabled', false);
+        $smtpEnabled = get_option('glory_smtp_enabled', false);
 
         if (!$smtpEnabled) {
             return;
         }
 
-        $host = OpcionManager::get('glory_smtp_host', '');
-        $port = OpcionManager::get('glory_smtp_port', 587);
-        $user = OpcionManager::get('glory_smtp_user', '');
-        $password = OpcionManager::get('glory_smtp_password', '');
-        $fromEmail = OpcionManager::get('glory_smtp_from_email', '');
-        $fromName = OpcionManager::get('glory_smtp_from_name', get_bloginfo('name'));
+        $host = get_option('glory_smtp_host', '');
+        $port = get_option('glory_smtp_port', 587);
+        $user = get_option('glory_smtp_user', '');
+        $password = get_option('glory_smtp_password', '');
+        $fromEmail = get_option('glory_smtp_from_email', '');
+        $fromName = get_option('glory_smtp_from_name', get_bloginfo('name'));
 
         if (empty($host) || empty($user) || empty($password)) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -118,18 +116,14 @@ class SmtpService
      */
     public static function getConfig(): array
     {
-        if (!class_exists('Glory\Manager\OpcionManager')) {
-            return ['error' => 'OpcionManager no disponible'];
-        }
-
         return [
-            'enabled' => OpcionManager::get('glory_smtp_enabled', false),
-            'host' => OpcionManager::get('glory_smtp_host', ''),
-            'port' => OpcionManager::get('glory_smtp_port', 587),
-            'user' => OpcionManager::get('glory_smtp_user', ''),
-            'password' => !empty(OpcionManager::get('glory_smtp_password', '')) ? '***' : '',
-            'from_email' => OpcionManager::get('glory_smtp_from_email', ''),
-            'from_name' => OpcionManager::get('glory_smtp_from_name', ''),
+            'enabled' => get_option('glory_smtp_enabled', false),
+            'host' => get_option('glory_smtp_host', ''),
+            'port' => get_option('glory_smtp_port', 587),
+            'user' => get_option('glory_smtp_user', ''),
+            'password' => !empty(get_option('glory_smtp_password', '')) ? '***' : '',
+            'from_email' => get_option('glory_smtp_from_email', ''),
+            'from_name' => get_option('glory_smtp_from_name', ''),
         ];
     }
 
