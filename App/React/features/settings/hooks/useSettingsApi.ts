@@ -10,6 +10,7 @@
 
 import {useState, useCallback, useEffect} from 'react';
 import type {SettingsState, SaveResult} from '../types';
+import {getWpNonce} from '../utils/getNonce';
 
 const API_BASE = '/wp-json/glory/v1/settings';
 
@@ -182,28 +183,4 @@ export function useSettingsApi(): UseSettingsApiReturn {
         clearMessages,
         resetChanges
     };
-}
-
-// Helper para obtener el nonce de WordPress
-function getWpNonce(): string {
-    // Opción 1: wpApiSettings (estándar de WordPress, inyectado por ContentAI loader)
-    const wpApiSettings = (window as unknown as {wpApiSettings?: {nonce?: string}}).wpApiSettings;
-    if (wpApiSettings?.nonce) {
-        return wpApiSettings.nonce;
-    }
-
-    // Opción 2: Meta tag
-    const nonceElement = document.querySelector('meta[name="wp-api-nonce"]');
-    if (nonceElement) {
-        return nonceElement.getAttribute('content') || '';
-    }
-
-    // Opción 3: gloryReactContent
-    const gloryContent = (window as unknown as {gloryReactContent?: {nonce?: string}}).gloryReactContent;
-    if (gloryContent?.nonce) {
-        return gloryContent.nonce;
-    }
-
-    console.warn('[Settings] No se encontró el nonce de WordPress');
-    return '';
 }

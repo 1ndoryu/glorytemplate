@@ -8,6 +8,7 @@
 import {Mail, Server, Key, User, Send} from 'lucide-react';
 import {SettingsField} from './SettingsField';
 import {useState} from 'react';
+import {getWpNonce} from '../utils/getNonce';
 
 interface SmtpTabProps {
     options: Record<string, string>;
@@ -39,7 +40,7 @@ export function SmtpTab({options, onUpdate}: SmtpTabProps): JSX.Element {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': (window as unknown as {gloryReactContent?: {nonce?: string}}).gloryReactContent?.nonce || ''
+                    'X-WP-Nonce': getWpNonce()
                 },
                 body: JSON.stringify({email: testEmail})
             });
