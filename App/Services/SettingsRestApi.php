@@ -54,6 +54,30 @@ class SettingsRestApi
         'glory_pricing_total',
         'glory_pricing_currency',
         'glory_pricing_period',
+        // SMTP
+        'glory_smtp_enabled',
+        'glory_smtp_host',
+        'glory_smtp_port',
+        'glory_smtp_user',
+        'glory_smtp_password',
+        'glory_smtp_from_email',
+        'glory_smtp_from_name',
+        'glory_smtp_bcc_email',
+    ];
+
+    /**
+     * Opciones SMTP que se guardan directamente en wp_options
+     * (no pasan por OpcionRegistry/OpcionRepository)
+     */
+    private const SMTP_OPTIONS = [
+        'glory_smtp_enabled',
+        'glory_smtp_host',
+        'glory_smtp_port',
+        'glory_smtp_user',
+        'glory_smtp_password',
+        'glory_smtp_from_email',
+        'glory_smtp_from_name',
+        'glory_smtp_bcc_email',
     ];
 
     /**
@@ -100,6 +124,12 @@ class SettingsRestApi
         $options = [];
 
         foreach (self::ALLOWED_OPTIONS as $key) {
+            // Las opciones SMTP se leen directamente de wp_options
+            if (in_array($key, self::SMTP_OPTIONS, true)) {
+                $options[$key] = get_option($key, '');
+                continue;
+            }
+
             // Obtener valor (usando el default del registro si no existe en BD)
             $value = OpcionManager::get($key);
 
@@ -148,6 +178,13 @@ class SettingsRestApi
 
             // Sanitizar segun tipo
             $sanitizedValue = self::sanitizeOption($key, $value);
+
+            // Las opciones SMTP se guardan directamente en wp_options
+            if (in_array($key, self::SMTP_OPTIONS, true)) {
+                update_option($key, $sanitizedValue);
+                $saved[] = $key;
+                continue;
+            }
 
             // Guardar usando OpcionRepository (que aplica el prefijo correcto)
             // OpcionManager lee desde OpcionRepository, no directamente desde wp_options
@@ -202,6 +239,16 @@ class SettingsRestApi
         // Imagenes (URLs)
         if (strpos($key, '_image_') !== false || $key === 'glory_logo_image') {
             return esc_url_raw($value);
+        }
+
+        // SMTP password - no sanitizar para preservar caracteres especiales
+        if ($key === 'glory_smtp_password') {
+            return $value;
+        }
+
+        // SMTP port - asegurar que sea numerico
+        if ($key === 'glory_smtp_port') {
+            return (string) absint($value);
         }
 
         // Default: sanitizar texto
