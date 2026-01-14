@@ -14,8 +14,6 @@
 
 namespace App\Services;
 
-use Glory\Manager\OpcionManager;
-
 class ContactFormRestApi
 {
     /**
@@ -157,15 +155,15 @@ class ContactFormRestApi
 
     /**
      * Obtener email de destino desde Theme Options o fallback a admin
+     * 
+     * Nota: Usamos get_option() directamente porque glory_site_email
+     * se guarda via REST API y no pasa por OpcionRegistry.
      */
     private static function getDestinationEmail(): string
     {
-        // Intentar obtener de glory_site_email
-        if (class_exists('Glory\Manager\OpcionManager')) {
-            $configuredEmail = OpcionManager::get('glory_site_email', '');
-            if (!empty($configuredEmail) && is_email($configuredEmail)) {
-                return $configuredEmail;
-            }
+        $configuredEmail = get_option('glory_site_email', '');
+        if (!empty($configuredEmail) && is_email($configuredEmail)) {
+            return $configuredEmail;
         }
 
         // Fallback: email del administrador de WordPress
@@ -192,12 +190,14 @@ class ContactFormRestApi
             'Reply-To: ' . $formData['nombre'] . ' <' . $formData['email'] . '>',
         ];
 
-        // Añadir BCC si está configurado
-        if (class_exists('Glory\Manager\OpcionManager')) {
-            $bccEmail = OpcionManager::get('glory_smtp_bcc_email', '');
-            if (!empty($bccEmail) && is_email($bccEmail)) {
-                $headers[] = 'Bcc: ' . $bccEmail;
-            }
+        /* 
+         * Añadir BCC si está configurado
+         * Nota: Usamos get_option() porque glory_smtp_bcc_email
+         * se guarda via REST API y no pasa por OpcionRegistry.
+         */
+        $bccEmail = get_option('glory_smtp_bcc_email', '');
+        if (!empty($bccEmail) && is_email($bccEmail)) {
+            $headers[] = 'Bcc: ' . $bccEmail;
         }
 
         // Enviar usando wp_mail
