@@ -141,4 +141,3 @@ TemplateRegistry::register(
         ],
     ]
 );
-?>

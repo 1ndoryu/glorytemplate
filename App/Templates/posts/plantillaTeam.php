@@ -99,6 +99,3 @@ if (class_exists(TemplateRegistry::class)) {
         ]
     );
 }
-?>
-
-

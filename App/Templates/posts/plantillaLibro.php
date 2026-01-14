@@ -24,5 +24,3 @@ function plantillaLibro(\WP_Post $post, string $itemClass): void
     </div>
 <?php
 }
-
-?>
