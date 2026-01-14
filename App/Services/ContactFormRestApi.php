@@ -192,6 +192,14 @@ class ContactFormRestApi
             'Reply-To: ' . $formData['nombre'] . ' <' . $formData['email'] . '>',
         ];
 
+        // Añadir BCC si está configurado
+        if (class_exists('Glory\Manager\OpcionManager')) {
+            $bccEmail = OpcionManager::get('glory_smtp_bcc_email', '');
+            if (!empty($bccEmail) && is_email($bccEmail)) {
+                $headers[] = 'Bcc: ' . $bccEmail;
+            }
+        }
+
         // Enviar usando wp_mail
         return wp_mail($toEmail, $subject, $message, $headers);
     }

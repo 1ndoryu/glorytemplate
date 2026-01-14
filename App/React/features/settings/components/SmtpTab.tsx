@@ -118,6 +118,8 @@ export function SmtpTab({options, onUpdate}: SmtpTabProps): JSX.Element {
                             <SettingsField id="glory_smtp_from_email" label="Email Remitente" type="text" inputType="email" value={options.glory_smtp_from_email || ''} onChange={(value: string) => onUpdate('glory_smtp_from_email', value)} description="Email desde el cual se enviaran los correos (debe estar verificado en tu proveedor SMTP)" placeholder="noreply@tudominio.com" />
 
                             <SettingsField id="glory_smtp_from_name" label="Nombre Remitente" type="text" value={options.glory_smtp_from_name || ''} onChange={(value: string) => onUpdate('glory_smtp_from_name', value)} description="Nombre que aparecera como remitente (ej: nombre del sitio)" placeholder="Mi Sitio Web" />
+
+                            <SettingsField id="glory_smtp_bcc_email" label="Email de Copia (BCC)" type="text" inputType="email" value={options.glory_smtp_bcc_email || ''} onChange={(value: string) => onUpdate('glory_smtp_bcc_email', value)} description="Opcional. Recibe una copia oculta de todos los correos del formulario de contacto para monitorear." placeholder="tu@email.com" />
                         </div>
 
                         <div className="settings-field-group">
