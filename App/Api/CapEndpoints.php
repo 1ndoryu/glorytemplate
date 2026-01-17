@@ -12,6 +12,7 @@ use Glory\App\Services\CalendarEngine;
 use Glory\App\Models\Alumno;
 use Glory\App\Models\Clase;
 use Glory\App\Models\Configuracion;
+use Glory\App\Database\CapSeeder;
 
 class CapEndpoints
 {
@@ -90,6 +91,25 @@ class CapEndpoints
             ['methods' => 'GET', 'callback' => [$this, 'obtenerDisponibilidad'], 'permission_callback' => [$this, 'verificarPermisos']],
             ['methods' => 'POST', 'callback' => [$this, 'guardarDisponibilidad'], 'permission_callback' => [$this, 'verificarPermisos']],
         ]);
+
+        /* Endpoints de modo demo (solo administradores) */
+        register_rest_route(self::NAMESPACE, '/demo/status', [
+            'methods' => 'GET',
+            'callback' => [$this, 'obtenerEstadoDemo'],
+            'permission_callback' => [$this, 'verificarPermisosAdmin'],
+        ]);
+
+        register_rest_route(self::NAMESPACE, '/demo/seed', [
+            'methods' => 'POST',
+            'callback' => [$this, 'seedDatosDemo'],
+            'permission_callback' => [$this, 'verificarPermisosAdmin'],
+        ]);
+
+        register_rest_route(self::NAMESPACE, '/demo/clean', [
+            'methods' => 'DELETE',
+            'callback' => [$this, 'limpiarDatosDemo'],
+            'permission_callback' => [$this, 'verificarPermisosAdmin'],
+        ]);
     }
 
     public function verificarPermisos(): bool
@@ -97,6 +117,16 @@ class CapEndpoints
         if (!is_user_logged_in()) return false;
         $user = wp_get_current_user();
         return in_array('cap_admin', $user->roles) || in_array('administrator', $user->roles);
+    }
+
+    /**
+     * Verifica que el usuario sea administrator (para modo demo)
+     */
+    public function verificarPermisosAdmin(): bool
+    {
+        if (!is_user_logged_in()) return false;
+        $user = wp_get_current_user();
+        return in_array('administrator', $user->roles);
     }
 
     public function obtenerConfig(\WP_REST_Request $request): \WP_REST_Response
@@ -505,5 +535,59 @@ class CapEndpoints
         }
 
         return new \WP_REST_Response(['exito' => true, 'message' => 'Disponibilidad guardada']);
+    }
+
+    /**
+     * Obtiene el estado del modo demo
+     */
+    public function obtenerEstadoDemo(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $seeder = new CapSeeder($centroId);
+        return new \WP_REST_Response($seeder->obtenerEstado());
+    }
+
+    /**
+     * Pobla datos de demostración
+     */
+    public function seedDatosDemo(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $seeder = new CapSeeder($centroId);
+        $resultado = $seeder->seedAll();
+
+        $statusCode = $resultado['exito'] ? 200 : 400;
+        return new \WP_REST_Response($resultado, $statusCode);
+    }
+
+    /**
+     * Limpia datos de demostración
+     */
+    public function limpiarDatosDemo(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $seeder = new CapSeeder($centroId);
+        $resultado = $seeder->cleanAll();
+
+        $statusCode = $resultado['exito'] ? 200 : 400;
+        return new \WP_REST_Response($resultado, $statusCode);
     }
 }

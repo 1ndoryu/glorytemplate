@@ -6,7 +6,7 @@
  */
 
 import {useConfiguracion} from '../../hooks/useConfiguracion';
-import {PanelCentro, PanelHorarios, PanelCapacidad, PanelSuscripcion} from '../configuracion';
+import {PanelCentro, PanelHorarios, PanelCapacidad, PanelSuscripcion, PanelDemo} from '../configuracion';
 import {Alerta, Spinner} from '../ui';
 
 interface SeccionConfiguracionProps {
@@ -57,10 +57,12 @@ export function SeccionConfiguracion({userName, userEmail}: SeccionConfiguracion
                     <PanelHorarios config={config} guardando={guardandoHorarios} onGuardar={guardarHorarios} />
                 </div>
 
-                {/* Columna derecha: Capacidad y Suscripción */}
+                {/* Columna derecha: Capacidad, Suscripción y Demo */}
                 <div className="capFlexCol capGap--lg">
                     <PanelCapacidad config={config} guardando={guardandoHorarios} onGuardar={guardarHorarios} />
                     <PanelSuscripcion suscripcion={suscripcion} userName={userName} userEmail={userEmail} />
+                    {/* Panel Demo: solo visible si el modo está permitido (WP_DEBUG o CAP_ALLOW_DEMO_MODE) */}
+                    <PanelDemo />
                 </div>
             </div>
         </div>

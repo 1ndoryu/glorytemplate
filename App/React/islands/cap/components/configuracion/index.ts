@@ -8,3 +8,4 @@ export {PanelCentro} from './PanelCentro';
 export {PanelHorarios} from './PanelHorarios';
 export {PanelCapacidad} from './PanelCapacidad';
 export {PanelSuscripcion} from './PanelSuscripcion';
+export {PanelDemo} from './PanelDemo';

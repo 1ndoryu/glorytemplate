@@ -214,3 +214,86 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================
+   Panel Demo - Estilos específicos
+   ========================================== */
+
+.capPanelConfig--demo {
+    border: 1px dashed var(--cap-advertencia-300);
+    background: linear-gradient(135deg, var(--cap-advertencia-50), transparent);
+}
+
+.capPanelConfig__icono--advertencia {
+    background: var(--cap-advertencia-100);
+    color: var(--cap-advertencia-600);
+}
+
+.capDemoInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+}
+
+.capDemoInfo__advertencia {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    background: var(--cap-advertencia-50);
+    border: 1px solid var(--cap-advertencia-200);
+    border-radius: var(--cap-radio-md);
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-advertencia-700);
+}
+
+.capDemoInfo__advertencia svg {
+    flex-shrink: 0;
+}
+
+.capDemoInfo__estadisticas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cap-espacio-md);
+    padding: var(--cap-espacio-md);
+    background: var(--cap-fondo-sutil);
+    border-radius: var(--cap-radio-md);
+}
+
+.capDemoInfo__stat {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+}
+
+.capDemoInfo__stat svg {
+    color: var(--cap-primario-500);
+}
+
+.capDemoInfo__mensaje {
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    border-radius: var(--cap-radio-md);
+    font-size: var(--cap-texto-sm);
+}
+
+.capDemoInfo__mensaje--exito {
+    background: var(--cap-exito-50);
+    color: var(--cap-exito-700);
+    border: 1px solid var(--cap-exito-200);
+}
+
+.capDemoInfo__mensaje--error {
+    background: var(--cap-error-50);
+    color: var(--cap-error-700);
+    border: 1px solid var(--cap-error-200);
+}
+
+.capDemoInfo__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cap-espacio-sm);
+    padding-top: var(--cap-espacio-sm);
+    border-top: 1px solid var(--cap-borde-sutil);
+}

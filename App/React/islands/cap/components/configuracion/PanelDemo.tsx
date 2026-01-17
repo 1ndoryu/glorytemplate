@@ -1,0 +1,192 @@
+/**
+ * PanelDemo
+ *
+ * Panel de control para el modo demo.
+ * Permite poblar y limpiar datos de ejemplo para testing y demos comerciales.
+ * Solo visible para administradores en entornos de desarrollo.
+ */
+
+import {useState, useEffect} from 'react';
+import {Boton, Tarjeta, TarjetaHeader, TarjetaBody, Badge, Spinner} from '../ui';
+import {IconoBaseDatos, IconoAdvertencia, IconoEliminar, IconoUsuarios} from '../icons';
+
+interface EstadoDemo {
+    activo: boolean;
+    permitido: boolean;
+    estadisticas: {
+        alumnos: number;
+        clases: number;
+    };
+}
+
+export function PanelDemo() {
+    const [estado, setEstado] = useState<EstadoDemo | null>(null);
+    const [cargando, setCargando] = useState(true);
+    const [ejecutando, setEjecutando] = useState<'seed' | 'clean' | null>(null);
+    const [mensaje, setMensaje] = useState<{tipo: 'exito' | 'error'; texto: string} | null>(null);
+
+    /* Obtener estado inicial */
+    useEffect(() => {
+        obtenerEstado();
+    }, []);
+
+    const obtenerEstado = async () => {
+        try {
+            const response = await fetch('/wp-json/cap/v1/demo/status', {
+                headers: {
+                    'X-WP-Nonce': window.wpApiSettings?.nonce || ''
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setEstado(data);
+            }
+        } catch (error) {
+            console.error('Error al obtener estado demo:', error);
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const poblarDatos = async () => {
+        setEjecutando('seed');
+        setMensaje(null);
+
+        try {
+            const response = await fetch('/wp-json/cap/v1/demo/seed', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': window.wpApiSettings?.nonce || ''
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.exito) {
+                setMensaje({
+                    tipo: 'exito',
+                    texto: `Datos creados: ${data.estadisticas.alumnos} alumnos, ${data.estadisticas.clases} clases`
+                });
+                obtenerEstado();
+            } else {
+                setMensaje({tipo: 'error', texto: data.error || 'Error al poblar datos'});
+            }
+        } catch (error) {
+            setMensaje({tipo: 'error', texto: 'Error de conexión'});
+        } finally {
+            setEjecutando(null);
+        }
+    };
+
+    const limpiarDatos = async () => {
+        if (!confirm('¿Estás seguro de que deseas eliminar todos los datos de demostración?')) {
+            return;
+        }
+
+        setEjecutando('clean');
+        setMensaje(null);
+
+        try {
+            const response = await fetch('/wp-json/cap/v1/demo/clean', {
+                method: 'DELETE',
+                headers: {
+                    'X-WP-Nonce': window.wpApiSettings?.nonce || ''
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.exito) {
+                setMensaje({
+                    tipo: 'exito',
+                    texto: `Datos eliminados: ${data.eliminados.alumnos} alumnos, ${data.eliminados.clases} clases`
+                });
+                obtenerEstado();
+            } else {
+                setMensaje({tipo: 'error', texto: data.error || 'Error al limpiar datos'});
+            }
+        } catch (error) {
+            setMensaje({tipo: 'error', texto: 'Error de conexión'});
+        } finally {
+            setEjecutando(null);
+        }
+    };
+
+    /* Mientras carga, mostrar spinner */
+    if (cargando) {
+        return (
+            <Tarjeta className="capPanelConfig capPanelConfig--demo">
+                <TarjetaBody>
+                    <div className="capFlexCenter" style={{padding: '2rem'}}>
+                        <Spinner tamano="md" />
+                    </div>
+                </TarjetaBody>
+            </Tarjeta>
+        );
+    }
+
+    /* Si no está permitido el modo demo, no mostrar */
+    if (!estado?.permitido) {
+        return null;
+    }
+
+    return (
+        <Tarjeta className="capPanelConfig capPanelConfig--demo">
+            <TarjetaHeader>
+                <div className="capFlexStart capGap--sm">
+                    <span className="capPanelConfig__icono capPanelConfig__icono--advertencia">
+                        <IconoBaseDatos />
+                    </span>
+                    <h3 className="capTitulo capTitulo--sm">Modo Demo</h3>
+                    {estado.activo && <Badge variante="advertencia">Activo</Badge>}
+                </div>
+            </TarjetaHeader>
+            <TarjetaBody>
+                <div className="capDemoInfo">
+                    {/* Advertencia */}
+                    <div className="capDemoInfo__advertencia">
+                        <IconoAdvertencia size={16} />
+                        <span>Solo disponible en modo desarrollo (WP_DEBUG)</span>
+                    </div>
+
+                    {/* Estado actual */}
+                    {estado.activo && (
+                        <div className="capDemoInfo__estadisticas">
+                            <div className="capDemoInfo__stat">
+                                <IconoUsuarios size={16} />
+                                <span>{estado.estadisticas.alumnos} alumnos demo</span>
+                            </div>
+                            <div className="capDemoInfo__stat">
+                                <span>{estado.estadisticas.clases} clases demo</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Mensaje de feedback */}
+                    {mensaje && <div className={`capDemoInfo__mensaje capDemoInfo__mensaje--${mensaje.tipo}`}>{mensaje.texto}</div>}
+
+                    {/* Acciones */}
+                    <div className="capDemoInfo__acciones">
+                        <Boton variante="outline" tamano="sm" onClick={poblarDatos} disabled={ejecutando !== null}>
+                            {ejecutando === 'seed' ? <Spinner tamano="sm" /> : <IconoBaseDatos size={16} />}
+                            Poblar datos demo
+                        </Boton>
+
+                        {estado.activo && (
+                            <Boton variante="peligro" tamano="sm" onClick={limpiarDatos} disabled={ejecutando !== null}>
+                                {ejecutando === 'clean' ? <Spinner tamano="sm" /> : <IconoEliminar size={16} />}
+                                Limpiar datos demo
+                            </Boton>
+                        )}
+                    </div>
+
+                    <p className="capTexto capTexto--xs capTexto--terciario capMt--sm">Los datos demo son identificables por emails terminados en @ejemplo.com</p>
+                </div>
+            </TarjetaBody>
+        </Tarjeta>
+    );
+}
+
+export default PanelDemo;
