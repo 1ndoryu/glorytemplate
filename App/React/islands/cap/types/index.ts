@@ -88,7 +88,8 @@ export interface Clase {
     fecha: string;
     horaInicio: string;
     horaFin: string;
-    asignaturaId: number;
+    /** ID numérico o código string de la asignatura (el seeder PHP usa códigos) */
+    asignaturaId: number | string;
     bloqueada: boolean;
     alumnosIds: number[];
 }

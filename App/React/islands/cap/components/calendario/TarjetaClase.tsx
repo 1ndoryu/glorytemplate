@@ -6,7 +6,7 @@
  */
 
 import type {Clase} from '../../types';
-import {getAsignatura} from '../../constants';
+import {getAsignatura, getAsignaturaPorCodigo} from '../../constants';
 import {IconoCandado, IconoReloj, IconoUsuarios} from '../icons';
 
 interface TarjetaClaseProps {
@@ -16,7 +16,11 @@ interface TarjetaClaseProps {
 }
 
 export function TarjetaClase({clase, onToggleBloqueo, onClick}: TarjetaClaseProps) {
-    const asignatura = getAsignatura(clase.asignaturaId);
+    /*
+     * Soporte dual: asignaturaId puede ser número (ID) o string (código)
+     * El seeder PHP usa códigos snake_case, el algoritmo usa IDs numéricos
+     */
+    const asignatura = typeof clase.asignaturaId === 'number' ? getAsignatura(clase.asignaturaId) : getAsignaturaPorCodigo(String(clase.asignaturaId));
     const numAlumnos = clase.alumnosIds?.length || 0;
 
     const handleBloqueoClick = (e: React.MouseEvent) => {

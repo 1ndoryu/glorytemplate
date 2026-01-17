@@ -109,9 +109,46 @@ export const ASIGNATURAS_CAP: Asignatura[] = [
 /* Mapa de asignaturas por ID para acceso rápido */
 export const ASIGNATURAS_MAP = new Map(ASIGNATURAS_CAP.map(asig => [asig.id, asig]));
 
+/* Mapa de asignaturas por código para acceso rápido */
+export const ASIGNATURAS_POR_CODIGO = new Map(ASIGNATURAS_CAP.map(asig => [asig.codigo, asig]));
+
+/*
+ * Mapeo de códigos snake_case (del seeder PHP) a códigos estándar
+ * Esto permite compatibilidad entre backend y frontend
+ */
+const CODIGOS_ALIAS: Record<string, string> = {
+    racionalizacion: 'CR',
+    conduccion_racional: 'CR',
+    reglamentacion: 'REG',
+    seguridad_vial: 'SV',
+    servicio_logistica: 'SL',
+    salud_ergonomia: 'SS',
+    salud_seguridad: 'SS',
+    entorno_economico: 'MA',
+    medio_ambiente: 'MA',
+    evaluacion: 'VIA',
+    viajeros: 'VIA',
+    mercancias_peligrosas: 'MP'
+};
+
 /* Función helper para obtener asignatura por ID */
 export function getAsignatura(id: number): Asignatura | undefined {
     return ASIGNATURAS_MAP.get(id);
+}
+
+/* Función helper para obtener asignatura por código (soporta alias snake_case) */
+export function getAsignaturaPorCodigo(codigo: string): Asignatura | undefined {
+    /* Intentar primero con el código directo */
+    const directa = ASIGNATURAS_POR_CODIGO.get(codigo);
+    if (directa) return directa;
+
+    /* Buscar alias si existe */
+    const codigoNormalizado = CODIGOS_ALIAS[codigo];
+    if (codigoNormalizado) {
+        return ASIGNATURAS_POR_CODIGO.get(codigoNormalizado);
+    }
+
+    return undefined;
 }
 
 /* Colores de asignaturas para uso directo */
