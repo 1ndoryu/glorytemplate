@@ -447,55 +447,43 @@ class CapSeeder
     /**
      * Asigna alumnos a clases según su disponibilidad
      */
+    /**
+     * Asigna alumnos a clases de forma rotativa
+     * Para demo, no verificamos disponibilidad estricta - simplemente distribuimos alumnos
+     */
     private function asignarAsistencias(array $alumnos, array $clases): void
     {
         global $wpdb;
         $tablaAsistencia = $this->prefix . 'asistencia';
-        $tablaDisponibilidad = $this->prefix . 'disponibilidad';
 
-        $diasMap = [
-            1 => 'lunes',
-            2 => 'martes',
-            3 => 'miercoles',
-            4 => 'jueves',
-            5 => 'viernes',
-        ];
+        /* Cantidad de alumnos por clase (entre 4 y 8 para realismo) */
+        $alumnosTotal = count($alumnos);
 
-        foreach ($clases as $clase) {
-            $fechaObj = new \DateTime($clase['fecha']);
-            $diaSemana = (int) $fechaObj->format('N');
-            $dia = $diasMap[$diaSemana] ?? null;
+        foreach ($clases as $indexClase => $clase) {
+            /* Determinar cuántos alumnos asignar a esta clase */
+            $cantidadAlumnos = 4 + ($indexClase % 5);
 
-            if (!$dia) continue;
+            /* Rotar el inicio de alumnos para variedad */
+            $offset = ($indexClase * 3) % $alumnosTotal;
 
-            $horaClase = substr($clase['hora'], 0, 5);
+            for ($i = 0; $i < $cantidadAlumnos && $i < $alumnosTotal; $i++) {
+                $indexAlumno = ($offset + $i) % $alumnosTotal;
+                $alumno = $alumnos[$indexAlumno];
 
-            /* Buscar alumnos disponibles para este slot */
-            foreach ($alumnos as $alumno) {
-                /* Verificar si el alumno está disponible */
-                $disponible = $wpdb->get_var($wpdb->prepare(
-                    "SELECT COUNT(*) FROM {$tablaDisponibilidad} 
-                     WHERE alumno_id = %d AND dia = %s AND hora = %s AND disponible = 1",
-                    $alumno['id'],
-                    $dia,
-                    $horaClase
+                /* Verificar si ya está asignado (evitar duplicados) */
+                $yaAsignado = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(*) FROM {$tablaAsistencia} WHERE clase_id = %d AND alumno_id = %d",
+                    $clase['id'],
+                    $alumno['id']
                 ));
 
-                if ($disponible) {
-                    /* Limitar alumnos por clase para simular realismo */
-                    $asistentesActuales = $wpdb->get_var($wpdb->prepare(
-                        "SELECT COUNT(*) FROM {$tablaAsistencia} WHERE clase_id = %d",
-                        $clase['id']
-                    ));
-
-                    if ($asistentesActuales < 8) {
-                        $wpdb->insert($tablaAsistencia, [
-                            'clase_id' => $clase['id'],
-                            'alumno_id' => $alumno['id'],
-                            'asistio' => 1,
-                            'created_at' => current_time('mysql'),
-                        ]);
-                    }
+                if (!$yaAsignado) {
+                    $wpdb->insert($tablaAsistencia, [
+                        'clase_id' => $clase['id'],
+                        'alumno_id' => $alumno['id'],
+                        'asistio' => 1,
+                        'created_at' => current_time('mysql'),
+                    ]);
                 }
             }
         }
