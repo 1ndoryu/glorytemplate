@@ -38,12 +38,10 @@ PageManager::setDefaultContentMode('code');
  */
 
 // Pagina estatica sin Page Builder (ejemplo de uso simple)
-/*
 PageManager::reactPage('home-static', 'HomeStaticIsland', [
     'siteName' => get_bloginfo('name') ?: 'Glory',
     'stripeUrl' => 'https://buy.stripe.com/8x26oG58XchA56va31cAo0c'
 ]);
-*/
 
 /*
  * =====================================================
@@ -57,14 +55,12 @@ PageManager::reactPage('home-static', 'HomeStaticIsland', [
  */
 
 // Home con Page Builder (necesita template PHP por los props dinamicos)
-/*
 PageManager::registerReactFullPages(['home', 'editor']);
 PageManager::define('home', 'home');
 PageManager::define('editor', 'editor');
 
 // Pagina de prueba
 PageManager::define('test', 'test');
-*/
 
 /*
  * =====================================================
@@ -73,9 +69,9 @@ PageManager::define('test', 'test');
  */
 
 if (GloryFeatures::isActive('task') !== false) {
-    // PageManager::define('task', 'task');
+    PageManager::define('task', 'task');
 }
 
 if (GloryFeatures::isActive('amazonProduct') !== false) {
-    // PageManager::define('amazon-demo', 'Glory\Plugins\AmazonProduct\Controller\DemoController::render');
+    PageManager::define('amazon-demo', 'Glory\Plugins\AmazonProduct\Controller\DemoController::render');
 }
