@@ -5,6 +5,7 @@
  * Punto de entrada que ensambla el layout y las secciones.
  */
 
+import {useEffect} from 'react';
 import {CapLayout} from './components/layout';
 import {SeccionCalendario, SeccionAlumnos, SeccionConfiguracion} from './components/secciones';
 import {useDashboardStore} from './stores/useDashboardStore';
@@ -21,7 +22,17 @@ interface CapDashboardIslandProps {
     siteUrl: string;
 }
 
-export function CapDashboardIsland({user, siteUrl}: CapDashboardIslandProps) {
+export function CapDashboardIsland({user, restNonce, restUrl, siteUrl}: CapDashboardIslandProps) {
+    /*
+     * H.4 Fix: Inyectar nonce y url en window.wpApiSettings
+     * para que los hooks de API REST puedan acceder correctamente
+     */
+    useEffect(() => {
+        (window as any).wpApiSettings = {
+            nonce: restNonce,
+            root: restUrl
+        };
+    }, [restNonce, restUrl]);
     const seccionActiva = useDashboardStore(state => state.seccionActiva);
 
     const renderContenido = () => {

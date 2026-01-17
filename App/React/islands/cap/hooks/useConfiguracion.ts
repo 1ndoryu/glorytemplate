@@ -39,12 +39,17 @@ export interface EstadoSuscripcion {
     diasRestantes: number;
 }
 
+/*
+ * H.6 Fix: Estados de carga separados por tipo de operación
+ * Cada panel tiene su propio estado de guardado independiente
+ */
 interface EstadoConfiguracion {
     centro: DatosCentro | null;
     config: ConfiguracionHorarios | null;
     suscripcion: EstadoSuscripcion | null;
     cargando: boolean;
-    guardando: boolean;
+    guardandoCentro: boolean;
+    guardandoHorarios: boolean;
     error: string | null;
     exito: string | null;
 }
@@ -64,7 +69,8 @@ export function useConfiguracion(): UseConfiguracionReturn {
         config: null,
         suscripcion: null,
         cargando: true,
-        guardando: false,
+        guardandoCentro: false,
+        guardandoHorarios: false,
         error: null,
         exito: null
     });
@@ -119,7 +125,7 @@ export function useConfiguracion(): UseConfiguracionReturn {
     }, []);
 
     const guardarCentro = useCallback(async (datos: Partial<DatosCentro>): Promise<boolean> => {
-        setEstado(prev => ({...prev, guardando: true, error: null, exito: null}));
+        setEstado(prev => ({...prev, guardandoCentro: true, error: null, exito: null}));
 
         try {
             const respuesta = await fetch(`${API_BASE}/config`, {
@@ -140,7 +146,7 @@ export function useConfiguracion(): UseConfiguracionReturn {
             setEstado(prev => ({
                 ...prev,
                 centro: prev.centro ? {...prev.centro, ...datos} : null,
-                guardando: false,
+                guardandoCentro: false,
                 exito: 'Datos del centro actualizados correctamente'
             }));
 
@@ -148,7 +154,7 @@ export function useConfiguracion(): UseConfiguracionReturn {
         } catch (err) {
             setEstado(prev => ({
                 ...prev,
-                guardando: false,
+                guardandoCentro: false,
                 error: err instanceof Error ? err.message : 'Error al guardar'
             }));
             return false;
@@ -156,7 +162,7 @@ export function useConfiguracion(): UseConfiguracionReturn {
     }, []);
 
     const guardarHorarios = useCallback(async (datos: Partial<ConfiguracionHorarios>): Promise<boolean> => {
-        setEstado(prev => ({...prev, guardando: true, error: null, exito: null}));
+        setEstado(prev => ({...prev, guardandoHorarios: true, error: null, exito: null}));
 
         try {
             const respuesta = await fetch(`${API_BASE}/config`, {
@@ -176,7 +182,7 @@ export function useConfiguracion(): UseConfiguracionReturn {
             setEstado(prev => ({
                 ...prev,
                 config: prev.config ? {...prev.config, ...datos} : null,
-                guardando: false,
+                guardandoHorarios: false,
                 exito: 'Configuración de horarios actualizada'
             }));
 
@@ -184,7 +190,7 @@ export function useConfiguracion(): UseConfiguracionReturn {
         } catch (err) {
             setEstado(prev => ({
                 ...prev,
-                guardando: false,
+                guardandoHorarios: false,
                 error: err instanceof Error ? err.message : 'Error al guardar'
             }));
             return false;

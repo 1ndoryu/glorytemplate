@@ -15,7 +15,7 @@ interface SeccionConfiguracionProps {
 }
 
 export function SeccionConfiguracion({userName, userEmail}: SeccionConfiguracionProps) {
-    const {centro, config, suscripcion, cargando, guardando, error, exito, guardarCentro, guardarHorarios, limpiarMensajes} = useConfiguracion();
+    const {centro, config, suscripcion, cargando, guardandoCentro, guardandoHorarios, error, exito, guardarCentro, guardarHorarios, limpiarMensajes} = useConfiguracion();
 
     /* Limpiar mensajes después de 4 segundos */
     if (exito || error) {
@@ -49,17 +49,17 @@ export function SeccionConfiguracion({userName, userEmail}: SeccionConfiguracion
                 </Alerta>
             )}
 
-            {/* Grid de paneles */}
+            {/* Grid de paneles - cada uno con su estado de carga independiente */}
             <div className="capConfigGrid capMt--lg">
                 {/* Columna izquierda: Centro y Horarios */}
                 <div className="capFlexCol capGap--lg">
-                    <PanelCentro centro={centro} guardando={guardando} onGuardar={guardarCentro} />
-                    <PanelHorarios config={config} guardando={guardando} onGuardar={guardarHorarios} />
+                    <PanelCentro centro={centro} guardando={guardandoCentro} onGuardar={guardarCentro} />
+                    <PanelHorarios config={config} guardando={guardandoHorarios} onGuardar={guardarHorarios} />
                 </div>
 
                 {/* Columna derecha: Capacidad y Suscripción */}
                 <div className="capFlexCol capGap--lg">
-                    <PanelCapacidad config={config} guardando={guardando} onGuardar={guardarHorarios} />
+                    <PanelCapacidad config={config} guardando={guardandoHorarios} onGuardar={guardarHorarios} />
                     <PanelSuscripcion suscripcion={suscripcion} userName={userName} userEmail={userEmail} />
                 </div>
             </div>

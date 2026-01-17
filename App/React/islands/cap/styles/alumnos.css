@@ -1,0 +1,271 @@
+/**
+ * Estilos del módulo de gestión de alumnos
+ */
+
+/* Contenedor principal de la tabla */
+.capTablaAlumnos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-lg);
+}
+
+/* Barra de búsqueda */
+.capTablaAlumnos__busqueda {
+    display: flex;
+    gap: var(--cap-espacio-sm);
+    align-items: flex-end;
+}
+
+.capTablaAlumnos__inputBusqueda {
+    flex: 1;
+    max-width: 400px;
+}
+
+/* Contenedor de tabla con scroll horizontal */
+.capTabla__contenedor {
+    background: var(--cap-fondo-tarjeta);
+    border-radius: var(--cap-radio-lg);
+    border: 1px solid var(--cap-borde-suave);
+    overflow: hidden;
+    min-height: 200px;
+}
+
+.capTabla__cargando,
+.capTabla__vacio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: var(--cap-espacio-xl);
+}
+
+/* Tabla base */
+.capTabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.capTabla__th {
+    padding: var(--cap-espacio-md) var(--cap-espacio-lg);
+    text-align: left;
+    font-weight: var(--cap-peso-semibold);
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+    background: var(--cap-fondo-sutil);
+    border-bottom: 1px solid var(--cap-borde-suave);
+    white-space: nowrap;
+}
+
+.capTabla__th--ordenable {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+    transition: color var(--cap-transicion-rapida);
+}
+
+.capTabla__th--ordenable:hover {
+    color: var(--cap-primario-600);
+}
+
+.capTabla__th--activa {
+    color: var(--cap-primario-600);
+}
+
+.capTabla__iconoOrden {
+    opacity: 0.5;
+    transition: opacity var(--cap-transicion-rapida);
+}
+
+.capTabla__th--activa .capTabla__iconoOrden {
+    opacity: 1;
+}
+
+.capTabla__th--acciones {
+    text-align: center;
+    width: 100px;
+}
+
+/* Filas de la tabla */
+.capTabla__tr {
+    transition: background-color var(--cap-transicion-rapida);
+}
+
+.capTabla__tr:hover {
+    background: var(--cap-fondo-sutil);
+}
+
+.capTabla__td {
+    padding: var(--cap-espacio-md) var(--cap-espacio-lg);
+    border-bottom: 1px solid var(--cap-borde-suave);
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-principal);
+    vertical-align: middle;
+}
+
+.capTabla__tr:last-child .capTabla__td {
+    border-bottom: none;
+}
+
+.capTabla__td--nombre {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.capTabla__nombreCompleto {
+    font-weight: var(--cap-peso-medium);
+}
+
+.capTabla__dni {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-terciario);
+}
+
+.capTabla__td--acciones {
+    text-align: center;
+}
+
+.capTabla__acciones {
+    display: flex;
+    justify-content: center;
+    gap: var(--cap-espacio-xs);
+}
+
+/* Botón ghost peligro (para eliminar) */
+.capBoton--peligroGhost {
+    color: var(--cap-error-600);
+}
+
+.capBoton--peligroGhost:hover:not(:disabled) {
+    background: var(--cap-error-50);
+}
+
+/* Barra de progreso inline */
+.capProgresoCelda {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    min-width: 140px;
+}
+
+.capProgreso {
+    flex: 1;
+    height: 8px;
+    background: var(--cap-gris-200);
+    border-radius: var(--cap-radio-full);
+    overflow: hidden;
+}
+
+.capProgreso__barra {
+    height: 100%;
+    border-radius: var(--cap-radio-full);
+    transition: width 0.3s ease-out;
+}
+
+.capProgreso--ok .capProgreso__barra {
+    background: linear-gradient(90deg, var(--cap-primario-400), var(--cap-primario-500));
+}
+
+.capProgreso--warning .capProgreso__barra {
+    background: linear-gradient(90deg, var(--cap-warning-400), var(--cap-warning-500));
+}
+
+.capProgreso--completed .capProgreso__barra {
+    background: linear-gradient(90deg, var(--cap-exito-400), var(--cap-exito-500));
+}
+
+.capProgreso__texto {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-terciario);
+    white-space: nowrap;
+    min-width: 45px;
+    text-align: right;
+}
+
+/* Paginación */
+.capPaginacion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--cap-espacio-md);
+    padding: var(--cap-espacio-md) 0;
+}
+
+.capPaginacion__info {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+}
+
+.capPaginacion__controles {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+}
+
+.capPaginacion__paginas {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-principal);
+    padding: 0 var(--cap-espacio-sm);
+}
+
+/* Formulario de alumno (modal) */
+.capFormAlumno {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-lg);
+}
+
+.capFormAlumno__acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cap-espacio-md);
+    padding-top: var(--cap-espacio-md);
+    border-top: 1px solid var(--cap-borde-suave);
+}
+
+/* Header de sección alumnos */
+.capSeccionAlumnos__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--cap-espacio-md);
+}
+
+.capSeccionAlumnos__acciones {
+    display: flex;
+    gap: var(--cap-espacio-sm);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .capTabla__contenedor {
+        overflow-x: auto;
+    }
+
+    .capTabla {
+        min-width: 600px;
+    }
+
+    .capPaginacion {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .capPaginacion__controles {
+        justify-content: center;
+    }
+
+    .capTablaAlumnos__busqueda {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .capTablaAlumnos__inputBusqueda {
+        max-width: 100%;
+    }
+}

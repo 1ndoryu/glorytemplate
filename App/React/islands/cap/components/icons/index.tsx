@@ -231,3 +231,68 @@ export function IconoEnlaceExterno({size = 20, className = ''}: IconoProps) {
         </svg>
     );
 }
+
+/* Icono de editar (lápiz) */
+export function IconoEditar({size = 20, className = ''}: IconoProps) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+            <path d="m15 5 4 4" />
+        </svg>
+    );
+}
+
+/* Icono de eliminar (papelera) */
+export function IconoEliminar({size = 20, className = ''}: IconoProps) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="M3 6h18" />
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            <line x1="10" x2="10" y1="11" y2="17" />
+            <line x1="14" x2="14" y1="11" y2="17" />
+        </svg>
+    );
+}
+
+/* Icono de ordenar (flechas arriba/abajo) */
+interface IconoOrdenarProps extends IconoProps {
+    direccion?: 'ASC' | 'DESC';
+}
+
+export function IconoOrdenar({size = 16, className = '', direccion}: IconoOrdenarProps) {
+    /* Si tiene dirección, mostrar solo una flecha */
+    if (direccion === 'ASC') {
+        return (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="m18 15-6-6-6 6" />
+            </svg>
+        );
+    }
+    if (direccion === 'DESC') {
+        return (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="m6 9 6 6 6-6" />
+            </svg>
+        );
+    }
+    /* Sin dirección: mostrar ambas flechas (ascendente/descendente) */
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="m7 15 5 5 5-5" />
+            <path d="m7 9 5-5 5 5" />
+        </svg>
+    );
+}
+
+/* Icono de añadir usuario */
+export function IconoUsuarioMas({size = 20, className = ''}: IconoProps) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <line x1="19" x2="19" y1="8" y2="14" />
+            <line x1="22" x2="16" y1="11" y2="11" />
+        </svg>
+    );
+}
