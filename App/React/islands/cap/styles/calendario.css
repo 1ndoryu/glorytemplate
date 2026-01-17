@@ -488,3 +488,183 @@
         font-size: 10px;
     }
 }
+
+/* Modal de detalle de clase */
+.capModalDetalleClase {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-lg);
+}
+
+.capModalDetalleClase__seccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-sm);
+}
+
+.capModalDetalleClase__seccionTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-principal);
+    margin: 0;
+}
+
+.capModalDetalleClase__seccionTitulo svg {
+    color: var(--cap-primario-500);
+}
+
+.capModalDetalleClase__select {
+    width: 100%;
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    font-size: var(--cap-texto-base);
+    border: 1px solid var(--cap-borde-medio);
+    border-radius: var(--cap-radio-md);
+    background: var(--cap-fondo-tarjeta);
+    color: var(--cap-texto-principal);
+    cursor: pointer;
+    transition: border-color var(--cap-transicion-rapida);
+}
+
+.capModalDetalleClase__select:hover:not(:disabled) {
+    border-color: var(--cap-primario-400);
+}
+
+.capModalDetalleClase__select:focus {
+    outline: none;
+    border-color: var(--cap-primario-500);
+    box-shadow: 0 0 0 2px var(--cap-primario-100);
+}
+
+.capModalDetalleClase__select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--cap-fondo-sutil);
+}
+
+.capModalDetalleClase__select--hora {
+    width: auto;
+    min-width: 100px;
+}
+
+.capModalDetalleClase__infoAsignatura {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+    margin: 0;
+}
+
+.capModalDetalleClase__horarios {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--cap-espacio-md);
+    flex-wrap: wrap;
+}
+
+.capModalDetalleClase__campoHora {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-xs);
+}
+
+.capModalDetalleClase__label {
+    font-size: var(--cap-texto-xs);
+    font-weight: var(--cap-peso-medium);
+    color: var(--cap-texto-secundario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.capModalDetalleClase__separadorHora {
+    color: var(--cap-texto-terciario);
+    padding-bottom: var(--cap-espacio-sm);
+}
+
+/* Lista de alumnos */
+.capModalDetalleClase__listaAlumnos {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-xs);
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.capModalDetalleClase__alumnoItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--cap-espacio-sm);
+    background: var(--cap-fondo-sutil);
+    border-radius: var(--cap-radio-md);
+}
+
+.capModalDetalleClase__alumnoNombre {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-principal);
+    font-weight: var(--cap-peso-medium);
+}
+
+.capModalDetalleClase__alumnoProgreso {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-secundario);
+    background: var(--cap-fondo-tarjeta);
+    padding: 2px 8px;
+    border-radius: var(--cap-radio-full);
+}
+
+.capModalDetalleClase__sinAlumnos {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-terciario);
+    font-style: italic;
+    margin: 0;
+}
+
+/* Estado de bloqueo */
+.capModalDetalleClase__estadoBloqueo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--cap-espacio-md);
+    background: var(--cap-fondo-sutil);
+    border-radius: var(--cap-radio-md);
+}
+
+.capModalDetalleClase__bloqueoIndicador {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-exito-600);
+}
+
+.capModalDetalleClase__bloqueoIndicador svg {
+    color: inherit;
+}
+
+.capModalDetalleClase__bloqueoIndicador--bloqueada {
+    color: var(--cap-error-600);
+}
+
+.capModalDetalleClase__advertenciaBloqueo {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-advertencia-600);
+    background: var(--cap-advertencia-50);
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    border-radius: var(--cap-radio-md);
+    margin: 0;
+    border-left: 3px solid var(--cap-advertencia-500);
+}
+
+/* Acciones del modal */
+.capModalDetalleClase__acciones {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--cap-espacio-md);
+    padding-top: var(--cap-espacio-md);
+    border-top: 1px solid var(--cap-borde-sutil);
+}

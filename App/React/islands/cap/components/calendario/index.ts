@@ -8,3 +8,5 @@ export {NavegadorSemana} from './NavegadorSemana';
 export {BarraAcciones} from './BarraAcciones';
 export {ColumnaDia} from './ColumnaDia';
 export {ModalConflictoAforo} from './ModalConflictoAforo';
+export {ModalDetalleClase} from './ModalDetalleClase';
+export type {CambiosClase} from './ModalDetalleClase';

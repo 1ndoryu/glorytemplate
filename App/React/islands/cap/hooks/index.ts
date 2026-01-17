@@ -14,3 +14,5 @@ export {useDisponibilidad, DIAS_SEMANA, HORAS_DISPONIBLES} from './useDisponibil
 export type {DiaSemana, SlotDisponibilidad, DisponibilidadAlumno} from './useDisponibilidad';
 
 export {useCalendario} from './useCalendario';
+
+export {useHistorial} from './useHistorial';
