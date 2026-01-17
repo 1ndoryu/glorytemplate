@@ -206,7 +206,7 @@ class CapSeeder
                 return [
                     'exito' => true,
                     'mensaje' => 'No hay datos demo para limpiar',
-                    'eliminados' => 0
+                    'eliminados' => ['alumnos' => 0, 'clases' => 0]
                 ];
             }
 
@@ -216,20 +216,23 @@ class CapSeeder
             $tablaAsistencia = $this->prefix . 'asistencia';
             $wpdb->query("DELETE FROM {$tablaAsistencia} WHERE alumno_id IN ({$idsPlaceholder})");
 
-            /* Obtener clases que solo tienen alumnos demo */
+            /* Eliminar clases de la semana actual (las creadas por el seeder) */
             $tablaClases = $this->prefix . 'clases';
-            $clasesAEliminar = $wpdb->get_col("
-                SELECT c.id FROM {$tablaClases} c
-                WHERE c.centro_id = {$this->centroId}
-                AND NOT EXISTS (
-                    SELECT 1 FROM {$tablaAsistencia} a 
-                    JOIN {$tablaAlumnos} al ON a.alumno_id = al.id
-                    WHERE a.clase_id = c.id AND al.email NOT LIKE '%@ejemplo.com'
-                )
-                AND EXISTS (
-                    SELECT 1 FROM {$tablaAsistencia} a2 WHERE a2.clase_id = c.id
-                )
-            ");
+            $hoy = new \DateTime();
+            $diaSemana = (int) $hoy->format('N');
+            $lunes = clone $hoy;
+            $lunes->modify('-' . ($diaSemana - 1) . ' days');
+            $viernes = clone $lunes;
+            $viernes->modify('+4 days');
+
+            $clasesEliminadas = $wpdb->query($wpdb->prepare(
+                "DELETE FROM {$tablaClases} 
+                 WHERE centro_id = %d 
+                 AND fecha BETWEEN %s AND %s",
+                $this->centroId,
+                $lunes->format('Y-m-d'),
+                $viernes->format('Y-m-d')
+            ));
 
             /* Eliminar disponibilidad de alumnos demo */
             $tablaDisponibilidad = $this->prefix . 'disponibilidad';
@@ -238,12 +241,6 @@ class CapSeeder
             /* Eliminar alumnos demo */
             $wpdb->query("DELETE FROM {$tablaAlumnos} WHERE id IN ({$idsPlaceholder})");
 
-            /* Eliminar clases vacías (solo alumnos demo) */
-            if (!empty($clasesAEliminar)) {
-                $clasesPlaceholder = implode(',', array_map('intval', $clasesAEliminar));
-                $wpdb->query("DELETE FROM {$tablaClases} WHERE id IN ({$clasesPlaceholder})");
-            }
-
             $this->registrarAccion('clean', count($alumnosIds));
 
             return [
@@ -251,7 +248,7 @@ class CapSeeder
                 'mensaje' => 'Datos de demostración eliminados',
                 'eliminados' => [
                     'alumnos' => count($alumnosIds),
-                    'clases' => count($clasesAEliminar),
+                    'clases' => (int) $clasesEliminadas,
                 ]
             ];
         } catch (\Exception $e) {
