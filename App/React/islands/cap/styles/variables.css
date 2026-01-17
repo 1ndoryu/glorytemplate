@@ -34,18 +34,30 @@
     /* Semánticos */
     --cap-exito-50: hsl(145, 80%, 96%);
     --cap-exito-100: hsl(145, 75%, 85%);
+    --cap-exito-200: hsl(145, 72%, 75%);
+    --cap-exito-300: hsl(145, 70%, 60%);
+    --cap-exito-400: hsl(145, 70%, 50%);
     --cap-exito-500: hsl(145, 70%, 42%);
     --cap-exito-600: hsl(145, 75%, 35%);
+    --cap-exito-700: hsl(145, 78%, 28%);
 
     --cap-advertencia-50: hsl(40, 95%, 96%);
     --cap-advertencia-100: hsl(40, 90%, 85%);
+    --cap-advertencia-200: hsl(40, 88%, 75%);
+    --cap-advertencia-300: hsl(40, 86%, 62%);
+    --cap-advertencia-400: hsl(40, 85%, 55%);
     --cap-advertencia-500: hsl(40, 85%, 50%);
     --cap-advertencia-600: hsl(40, 90%, 42%);
+    --cap-advertencia-700: hsl(40, 92%, 35%);
 
     --cap-error-50: hsl(0, 85%, 97%);
     --cap-error-100: hsl(0, 80%, 90%);
+    --cap-error-200: hsl(0, 78%, 80%);
+    --cap-error-300: hsl(0, 76%, 68%);
+    --cap-error-400: hsl(0, 75%, 60%);
     --cap-error-500: hsl(0, 75%, 55%);
     --cap-error-600: hsl(0, 80%, 45%);
+    --cap-error-700: hsl(0, 82%, 38%);
 
     --cap-info-50: hsl(200, 90%, 96%);
     --cap-info-100: hsl(200, 85%, 88%);

@@ -104,18 +104,29 @@ class CapSeeder
             '%@ejemplo.com'
         ));
 
-        $clasesDemo = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$tablaClases} 
-             WHERE centro_id = %d 
-             AND id IN (
-                SELECT DISTINCT clase_id FROM {$this->prefix}asistencia 
-                WHERE alumno_id IN (
-                    SELECT id FROM {$tablaAlumnos} WHERE email LIKE %s
-                )
-             )",
-            $this->centroId,
-            '%@ejemplo.com'
-        ));
+        /* 
+         * Contar clases de la semana actual del centro
+         * Las clases demo se crean junto con los alumnos demo
+         */
+        $clasesDemo = 0;
+        if ((int)$alumnosDemo > 0) {
+            /* Obtener inicio de la semana actual */
+            $hoy = new \DateTime();
+            $diaSemana = (int) $hoy->format('N');
+            $lunes = clone $hoy;
+            $lunes->modify('-' . ($diaSemana - 1) . ' days');
+            $viernes = clone $lunes;
+            $viernes->modify('+4 days');
+
+            $clasesDemo = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM {$tablaClases} 
+                 WHERE centro_id = %d 
+                 AND fecha BETWEEN %s AND %s",
+                $this->centroId,
+                $lunes->format('Y-m-d'),
+                $viernes->format('Y-m-d')
+            ));
+        }
 
         return [
             'activo' => $this->hayDatosDemo(),

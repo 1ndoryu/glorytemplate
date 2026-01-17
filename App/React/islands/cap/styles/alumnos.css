@@ -59,10 +59,13 @@
 .capTabla__th--ordenable {
     cursor: pointer;
     user-select: none;
-    display: flex;
-    align-items: center;
-    gap: var(--cap-espacio-xs);
     transition: color var(--cap-transicion-rapida);
+}
+
+.capTabla__th--ordenable > span,
+.capTabla__th--ordenable > svg {
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .capTabla__th--ordenable:hover {
@@ -169,7 +172,7 @@
 }
 
 .capProgreso--warning .capProgreso__barra {
-    background: linear-gradient(90deg, var(--cap-warning-400), var(--cap-warning-500));
+    background: linear-gradient(90deg, var(--cap-advertencia-400), var(--cap-advertencia-500));
 }
 
 .capProgreso--completed .capProgreso__barra {

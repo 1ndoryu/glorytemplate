@@ -10,6 +10,16 @@ import {useState, useEffect} from 'react';
 import {Boton, Tarjeta, TarjetaHeader, TarjetaBody, Badge, Spinner} from '../ui';
 import {IconoBaseDatos, IconoAdvertencia, IconoEliminar, IconoUsuarios} from '../icons';
 
+/* Declaración de tipo para wpApiSettings de WordPress */
+declare global {
+    interface Window {
+        wpApiSettings?: {
+            nonce: string;
+            root: string;
+        };
+    }
+}
+
 interface EstadoDemo {
     activo: boolean;
     permitido: boolean;
@@ -69,12 +79,13 @@ export function PanelDemo() {
                     tipo: 'exito',
                     texto: `Datos creados: ${data.estadisticas.alumnos} alumnos, ${data.estadisticas.clases} clases`
                 });
-                obtenerEstado();
+                /* Refrescar estado en segundo plano (sin afectar mensaje) */
+                obtenerEstado().catch(() => {});
             } else {
                 setMensaje({tipo: 'error', texto: data.error || 'Error al poblar datos'});
             }
         } catch (error) {
-            setMensaje({tipo: 'error', texto: 'Error de conexión'});
+            setMensaje({tipo: 'error', texto: 'Error de conexión al poblar datos'});
         } finally {
             setEjecutando(null);
         }
@@ -103,12 +114,13 @@ export function PanelDemo() {
                     tipo: 'exito',
                     texto: `Datos eliminados: ${data.eliminados.alumnos} alumnos, ${data.eliminados.clases} clases`
                 });
-                obtenerEstado();
+                /* Refrescar estado en segundo plano */
+                obtenerEstado().catch(() => {});
             } else {
                 setMensaje({tipo: 'error', texto: data.error || 'Error al limpiar datos'});
             }
         } catch (error) {
-            setMensaje({tipo: 'error', texto: 'Error de conexión'});
+            setMensaje({tipo: 'error', texto: 'Error de conexión al limpiar datos'});
         } finally {
             setEjecutando(null);
         }
