@@ -25,6 +25,13 @@ import {registerAppBlocks} from './blocks';
 registerAppBlocks();
 
 /**
+ * AppProvider opcional para contexto global de la aplicacion
+ * Si no se necesita contexto global, exportar como undefined
+ * main.tsx verificara si existe antes de usarlo
+ */
+export const AppProvider: React.ComponentType<{children: React.ReactNode}> | undefined = undefined;
+
+/**
  * Registro de islas de la aplicacion
  * La clave es el nombre usado en data-island, el valor es el componente
  */
