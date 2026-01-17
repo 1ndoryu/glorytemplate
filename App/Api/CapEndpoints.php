@@ -78,9 +78,19 @@ class CapEndpoints
         if (!$centroId) return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
 
         $configModel = new Configuracion();
+
+        /* Obtener datos de suscripción */
+        global $wpdb;
+        $tablaSuscripciones = $wpdb->prefix . 'cap_suscripciones';
+        $suscripcion = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$tablaSuscripciones} WHERE centro_id = %d ORDER BY id DESC LIMIT 1",
+            $centroId
+        ), ARRAY_A);
+
         return new \WP_REST_Response([
             'config' => $configModel->obtener($centroId),
             'centro' => $configModel->obtenerDatosCentro($centroId),
+            'suscripcion' => $suscripcion,
         ]);
     }
 

@@ -17,3 +17,6 @@
 @import '../components/ui/Alerta/Alerta.css';
 @import '../components/ui/Spinner/Spinner.css';
 @import '../components/ui/Badge/Badge.css';
+
+/* Módulos */
+@import './configuracion.css';

@@ -1,0 +1,216 @@
+/**
+ * Estilos del Módulo de Configuración
+ * 
+ * Estilos para los paneles de configuración, formularios,
+ * toggle switches y barras de progreso.
+ */
+
+/* Panel de configuración */
+.capPanelConfig {
+    height: fit-content;
+}
+
+.capPanelConfig__icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--cap-radio-md);
+    background: var(--cap-primario-50);
+    color: var(--cap-primario-600);
+}
+
+.capPanelConfig__icono--destacado {
+    background: linear-gradient(135deg, var(--cap-primario-500), var(--cap-primario-600));
+    color: var(--cap-texto-invertido);
+}
+
+/* Formulario de configuración */
+.capFormConfig {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-lg);
+}
+
+.capFormConfig__seccion {
+    padding-top: var(--cap-espacio-md);
+    border-top: 1px solid var(--cap-borde-sutil);
+}
+
+.capFormConfig__seccion:first-child {
+    padding-top: 0;
+    border-top: none;
+}
+
+.capFormConfig__subSeccion {
+    margin-top: var(--cap-espacio-md);
+    padding-left: var(--cap-espacio-lg);
+    border-left: 2px solid var(--cap-primario-200);
+}
+
+.capFormConfig__acciones {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--cap-espacio-sm);
+    padding-top: var(--cap-espacio-md);
+    border-top: 1px solid var(--cap-borde-sutil);
+}
+
+/* Toggle switch */
+.capToggle {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-md);
+    cursor: pointer;
+    user-select: none;
+}
+
+.capToggle__input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.capToggle__track {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: var(--cap-gris-300);
+    border-radius: var(--cap-radio-full);
+    transition: background var(--cap-transicion-rapida);
+    flex-shrink: 0;
+}
+
+.capToggle__track::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: var(--cap-sombra-sm);
+    transition: transform var(--cap-transicion-rapida);
+}
+
+.capToggle__input:checked + .capToggle__track {
+    background: var(--cap-primario-500);
+}
+
+.capToggle__input:checked + .capToggle__track::after {
+    transform: translateX(20px);
+}
+
+.capToggle__input:focus-visible + .capToggle__track {
+    outline: 2px solid var(--cap-focus-ring);
+    outline-offset: 2px;
+}
+
+.capToggle__label {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-principal);
+    font-weight: var(--cap-peso-medium);
+}
+
+/* Info de suscripción */
+.capSuscripcionInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+}
+
+.capSuscripcionInfo__fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.capSuscripcionInfo__etiqueta {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+}
+
+.capSuscripcionInfo__valor {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-principal);
+    font-weight: var(--cap-peso-medium);
+}
+
+.capSuscripcionInfo__separador {
+    height: 1px;
+    background: var(--cap-borde-sutil);
+    margin: var(--cap-espacio-sm) 0;
+}
+
+.capSuscripcionInfo__progreso {
+    padding: var(--cap-espacio-md);
+    background: var(--cap-fondo-sutil);
+    border-radius: var(--cap-radio-md);
+}
+
+.capSuscripcionInfo__progresoHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cap-espacio-sm);
+}
+
+/* Barra de progreso */
+.capProgresoBarra {
+    height: 8px;
+    background: var(--cap-gris-200);
+    border-radius: var(--cap-radio-full);
+    overflow: hidden;
+}
+
+.capProgresoBarra__relleno {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cap-primario-400), var(--cap-primario-600));
+    border-radius: var(--cap-radio-full);
+    transition: width var(--cap-transicion-suave);
+}
+
+/* Item de configuración (para display readonly) */
+.capConfigItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--cap-espacio-sm) 0;
+}
+
+.capConfigItem:not(:last-child) {
+    border-bottom: 1px solid var(--cap-borde-sutil);
+}
+
+.capConfigItem__label {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+}
+
+.capConfigItem__value {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-principal);
+    font-weight: var(--cap-peso-medium);
+}
+
+/* Texto color primario */
+.capTexto--primario {
+    color: var(--cap-primario-600);
+    font-weight: var(--cap-peso-semibold);
+}
+
+/* Layout de la sección configuración */
+.capConfigGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--cap-espacio-lg);
+}
+
+@media (max-width: 1024px) {
+    .capConfigGrid {
+        grid-template-columns: 1fr;
+    }
+}

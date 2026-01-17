@@ -1,11 +1,13 @@
 /**
  * SeccionConfiguracion
  *
- * Vista de configuración del centro y suscripción.
- * Placeholder que se implementará en Fase 3.
+ * Vista de configuración del centro, horarios, capacidad y suscripción.
+ * Implementación completa de la Fase 3 del ROADMAP.
  */
 
-import {Boton, Tarjeta, TarjetaHeader, TarjetaBody, Badge} from '../ui';
+import {useConfiguracion} from '../../hooks/useConfiguracion';
+import {PanelCentro, PanelHorarios, PanelCapacidad, PanelSuscripcion} from '../configuracion';
+import {Alerta, Spinner} from '../ui';
 
 interface SeccionConfiguracionProps {
     userName: string;
@@ -13,48 +15,53 @@ interface SeccionConfiguracionProps {
 }
 
 export function SeccionConfiguracion({userName, userEmail}: SeccionConfiguracionProps) {
+    const {centro, config, suscripcion, cargando, guardando, error, exito, guardarCentro, guardarHorarios, limpiarMensajes} = useConfiguracion();
+
+    /* Limpiar mensajes después de 4 segundos */
+    if (exito || error) {
+        setTimeout(limpiarMensajes, 4000);
+    }
+
+    if (cargando) {
+        return (
+            <div className="capSeccion capFlexCenter" style={{minHeight: '400px'}}>
+                <Spinner tamano="lg" />
+            </div>
+        );
+    }
+
     return (
         <div className="capSeccion capAnimFadeIn">
             <div className="capSeccion__header">
                 <h2 className="capTitulo capTitulo--lg">Configuración</h2>
-                <p className="capTexto capTexto--secundario">Ajustes de tu centro y suscripción</p>
+                <p className="capTexto capTexto--secundario">Ajustes de tu centro, horarios y suscripción</p>
             </div>
 
-            <div className="capGrid capGrid--2cols capGap--lg capMt--lg">
-                <Tarjeta>
-                    <TarjetaHeader>
-                        <h3 className="capTitulo capTitulo--sm">Perfil</h3>
-                    </TarjetaHeader>
-                    <TarjetaBody>
-                        <div className="capConfigItem">
-                            <span className="capConfigItem__label">Nombre</span>
-                            <span className="capConfigItem__value">{userName}</span>
-                        </div>
-                        <div className="capConfigItem">
-                            <span className="capConfigItem__label">Email</span>
-                            <span className="capConfigItem__value">{userEmail}</span>
-                        </div>
-                    </TarjetaBody>
-                </Tarjeta>
+            {/* Mensajes de feedback */}
+            {error && (
+                <Alerta variante="error" className="capMt--md capAnimSlideUp">
+                    {error}
+                </Alerta>
+            )}
+            {exito && (
+                <Alerta variante="exito" className="capMt--md capAnimSlideUp">
+                    {exito}
+                </Alerta>
+            )}
 
-                <Tarjeta>
-                    <TarjetaHeader>
-                        <h3 className="capTitulo capTitulo--sm">Suscripción</h3>
-                    </TarjetaHeader>
-                    <TarjetaBody>
-                        <div className="capConfigItem">
-                            <span className="capConfigItem__label">Plan</span>
-                            <Badge variante="exito">Activo</Badge>
-                        </div>
-                        <div className="capConfigItem">
-                            <span className="capConfigItem__label">Próxima facturación</span>
-                            <span className="capConfigItem__value">Período de prueba</span>
-                        </div>
-                        <Boton variante="outline" tamano="sm" className="capMt--md" disabled>
-                            Gestionar Pagos
-                        </Boton>
-                    </TarjetaBody>
-                </Tarjeta>
+            {/* Grid de paneles */}
+            <div className="capConfigGrid capMt--lg">
+                {/* Columna izquierda: Centro y Horarios */}
+                <div className="capFlexCol capGap--lg">
+                    <PanelCentro centro={centro} guardando={guardando} onGuardar={guardarCentro} />
+                    <PanelHorarios config={config} guardando={guardando} onGuardar={guardarHorarios} />
+                </div>
+
+                {/* Columna derecha: Capacidad y Suscripción */}
+                <div className="capFlexCol capGap--lg">
+                    <PanelCapacidad config={config} guardando={guardando} onGuardar={guardarHorarios} />
+                    <PanelSuscripcion suscripcion={suscripcion} userName={userName} userEmail={userEmail} />
+                </div>
             </div>
         </div>
     );
