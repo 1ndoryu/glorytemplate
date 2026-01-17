@@ -20,58 +20,37 @@
  */
 
 use Glory\Manager\PageManager;
-use Glory\Core\GloryFeatures;
 
 PageManager::setDefaultContentMode('code');
 
 /*
  * =====================================================
- * PAGINAS REACT (usando reactPage - simplificado)
+ * PAGINAS DEL MODULO CAP
  * =====================================================
  * 
  * Solo necesitas:
- * 1. Crear el Island en App/React/islands/
+ * 1. Crear el Island en App/React/islands/cap/
  * 2. Registrar en App/React/appIslands.tsx
  * 3. Agregar aqui con reactPage()
  * 
  * NO necesitas crear archivo PHP en templates/pages/
  */
 
-// Pagina estatica sin Page Builder (ejemplo de uso simple)
-PageManager::reactPage('home-static', 'HomeStaticIsland', [
-    'siteName' => get_bloginfo('name') ?: 'Glory',
-    'stripeUrl' => 'https://buy.stripe.com/8x26oG58XchA56va31cAo0c'
-]);
-
-/*
- * =====================================================
- * PAGINAS CON TEMPLATES PHP PERSONALIZADOS
- * =====================================================
+/* 
+ * TO-DO: Descomentar cuando se implemente Fase 1
  * 
- * Usa define() cuando necesitas:
- * - Logica PHP compleja para obtener props
- * - Acceso a funciones de WordPress que no estan disponibles durante config
- * - Compatibilidad con codigo existente
+ * PageManager::reactPage('cap-login', 'CapLoginIsland');
+ * 
+ * PageManager::reactPage('cap-registro', 'CapRegistroIsland');
+ * 
+ * PageManager::reactPage('cap-dashboard', 'CapDashboardIsland', function($pageId) {
+ *     return [
+ *         'user' => [
+ *             'id' => get_current_user_id(),
+ *             'name' => wp_get_current_user()->display_name,
+ *             'email' => wp_get_current_user()->user_email,
+ *         ],
+ *         'restNonce' => wp_create_nonce('wp_rest'),
+ *     ];
+ * });
  */
-
-// Home con Page Builder (necesita template PHP por los props dinamicos)
-PageManager::registerReactFullPages(['home', 'editor']);
-PageManager::define('home', 'home');
-PageManager::define('editor', 'editor');
-
-// Pagina de prueba
-PageManager::define('test', 'test');
-
-/*
- * =====================================================
- * PAGINAS CONDICIONALES (solo si feature activa)
- * =====================================================
- */
-
-if (GloryFeatures::isActive('task') !== false) {
-    PageManager::define('task', 'task');
-}
-
-if (GloryFeatures::isActive('amazonProduct') !== false) {
-    PageManager::define('amazon-demo', 'Glory\Plugins\AmazonProduct\Controller\DemoController::render');
-}
