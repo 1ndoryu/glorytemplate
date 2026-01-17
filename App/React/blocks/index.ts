@@ -13,37 +13,31 @@
 import {BlockRegistry} from '@/pageBuilder';
 
 // Importar bloques y sus definiciones
-import {HeroBlock, heroBlockDefinition} from './HeroBlock';
-import {FeaturesBlock, featuresBlockDefinition} from './FeaturesBlock';
-import {PricingBlock, pricingBlockDefinition} from './PricingBlock';
+// (Bloques de ejemplo eliminados)
 
 /*
  * Array de todas las definiciones de bloque del proyecto
  */
-const blockDefinitions = [heroBlockDefinition, featuresBlockDefinition, pricingBlockDefinition];
+const blockDefinitions: any[] = [];
 
 /*
  * Registrar todos los bloques en Glory
  */
 export function registerAppBlocks(): void {
-    BlockRegistry.registerAll(blockDefinitions);
+    if (blockDefinitions.length > 0) {
+        BlockRegistry.registerAll(blockDefinitions);
+    }
     console.log(`[App Blocks] ${blockDefinitions.length} bloques registrados`);
 }
 
 /*
  * Exportar componentes individuales para uso directo
  */
-export {HeroBlock, heroBlockDefinition};
-export {FeaturesBlock, featuresBlockDefinition};
-export {PricingBlock, pricingBlockDefinition};
+// export {HeroBlock, heroBlockDefinition};
 
 /*
  * Exportar todos los bloques como objeto
  */
-export const AppBlocks = {
-    HeroBlock,
-    FeaturesBlock,
-    PricingBlock
-};
+export const AppBlocks = {};
 
 export default AppBlocks;

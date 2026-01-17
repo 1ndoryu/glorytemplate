@@ -13,8 +13,6 @@
  */
 
 // Islas del proyecto
-import {HomeIsland} from './islands/HomeIsland';
-import {HomeStaticIsland} from './islands/HomeStaticIsland';
 import {PageEditorIsland} from './islands/PageEditorIsland';
 
 // Estilos especificos del proyecto
@@ -36,8 +34,6 @@ export const AppProvider: React.ComponentType<{children: React.ReactNode}> | und
  * La clave es el nombre usado en data-island, el valor es el componente
  */
 export const appIslands: Record<string, React.ComponentType<Record<string, unknown>>> = {
-    HomeIsland: HomeIsland,
-    HomeStaticIsland: HomeStaticIsland,
     PageEditorIsland: PageEditorIsland
 };
 
