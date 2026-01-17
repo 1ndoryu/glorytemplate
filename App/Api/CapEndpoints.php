@@ -62,6 +62,12 @@ class CapEndpoints
             'callback' => [$this, 'registrarUsuario'],
             'permission_callback' => '__return_true',
         ]);
+
+        /* Endpoints de disponibilidad */
+        register_rest_route(self::NAMESPACE, '/disponibilidad/(?P<alumnoId>\d+)', [
+            ['methods' => 'GET', 'callback' => [$this, 'obtenerDisponibilidad'], 'permission_callback' => [$this, 'verificarPermisos']],
+            ['methods' => 'POST', 'callback' => [$this, 'guardarDisponibilidad'], 'permission_callback' => [$this, 'verificarPermisos']],
+        ]);
     }
 
     public function verificarPermisos(): bool
@@ -75,6 +81,7 @@ class CapEndpoints
     {
         $capService = CapService::getInstance();
         $centroId = $capService->getCentroIdActual();
+
         if (!$centroId) return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
 
         $configModel = new Configuracion();
@@ -300,5 +307,93 @@ class CapEndpoints
             'userId' => $userId,
             'centroId' => $centroId
         ], 201);
+    }
+
+    /**
+     * Obtiene la disponibilidad horaria de un alumno
+     */
+    public function obtenerDisponibilidad(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $alumnoId = (int) $request->get_param('alumnoId');
+
+        if (!$alumnoId) {
+            return new \WP_REST_Response(['error' => 'ID de alumno requerido'], 400);
+        }
+
+        global $wpdb;
+        $tabla = $wpdb->prefix . 'cap_disponibilidad';
+
+        $slots = $wpdb->get_results($wpdb->prepare(
+            "SELECT dia, hora, disponible FROM {$tabla} WHERE alumno_id = %d",
+            $alumnoId
+        ), ARRAY_A);
+
+        /* Convertir disponible a boolean */
+        $slotsFormateados = array_map(function ($slot) {
+            return [
+                'dia' => $slot['dia'],
+                'hora' => $slot['hora'],
+                'disponible' => (bool) $slot['disponible']
+            ];
+        }, $slots);
+
+        return new \WP_REST_Response(['slots' => $slotsFormateados]);
+    }
+
+    /**
+     * Guarda la disponibilidad horaria de un alumno
+     */
+    public function guardarDisponibilidad(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $alumnoId = (int) $request->get_param('alumnoId');
+        $datos = $request->get_json_params();
+
+        if (!$alumnoId) {
+            return new \WP_REST_Response(['error' => 'ID de alumno requerido'], 400);
+        }
+
+        if (!isset($datos['slots']) || !is_array($datos['slots'])) {
+            return new \WP_REST_Response(['error' => 'Datos de slots requeridos'], 400);
+        }
+
+        global $wpdb;
+        $tabla = $wpdb->prefix . 'cap_disponibilidad';
+
+        /* Eliminar disponibilidad anterior del alumno */
+        $wpdb->delete($tabla, ['alumno_id' => $alumnoId]);
+
+        /* Insertar nuevos slots */
+        $diasValidos = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
+
+        foreach ($datos['slots'] as $slot) {
+            if (!isset($slot['dia']) || !isset($slot['hora'])) {
+                continue;
+            }
+
+            $dia = sanitize_text_field($slot['dia']);
+            $hora = sanitize_text_field($slot['hora']);
+            $disponible = isset($slot['disponible']) ? (bool) $slot['disponible'] : true;
+
+            /* Validar día */
+            if (!in_array($dia, $diasValidos)) {
+                continue;
+            }
+
+            /* Validar formato de hora (HH:MM) */
+            if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $hora)) {
+                continue;
+            }
+
+            $wpdb->insert($tabla, [
+                'alumno_id' => $alumnoId,
+                'dia' => $dia,
+                'hora' => $hora,
+                'disponible' => $disponible ? 1 : 0,
+                'created_at' => current_time('mysql'),
+                'updated_at' => current_time('mysql'),
+            ]);
+        }
+
+        return new \WP_REST_Response(['exito' => true, 'message' => 'Disponibilidad guardada']);
     }
 }

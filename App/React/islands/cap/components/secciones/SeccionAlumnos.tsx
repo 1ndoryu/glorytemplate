@@ -2,12 +2,12 @@
  * SeccionAlumnos
  *
  * Vista de gestión de alumnos del módulo CAP.
- * Implementa tabla con CRUD, búsqueda, ordenación y paginación.
+ * Implementa tabla con CRUD, búsqueda, ordenación, paginación y matriz de disponibilidad.
  */
 
 import {useState} from 'react';
-import {Boton, Alerta, Tarjeta, TarjetaBody} from '../ui';
-import {TablaAlumnos, FormularioAlumno} from '../alumnos';
+import {Boton, Alerta, Modal} from '../ui';
+import {TablaAlumnos, FormularioAlumno, MatrizDisponibilidad} from '../alumnos';
 import {IconoUsuarioMas} from '../icons';
 import {useAlumnos, type Alumno} from '../../hooks/useAlumnos';
 
@@ -17,6 +17,10 @@ export function SeccionAlumnos() {
     const [modalVisible, setModalVisible] = useState(false);
     const [alumnoEditar, setAlumnoEditar] = useState<Alumno | null>(null);
     const [confirmandoEliminar, setConfirmandoEliminar] = useState<number | null>(null);
+
+    /* Estado para modal de disponibilidad */
+    const [modalDisponibilidadVisible, setModalDisponibilidadVisible] = useState(false);
+    const [alumnoDisponibilidad, setAlumnoDisponibilidad] = useState<Alumno | null>(null);
 
     /* Limpiar mensajes después de 4 segundos */
     if (exito || error) {
@@ -58,6 +62,17 @@ export function SeccionAlumnos() {
         setAlumnoEditar(null);
     };
 
+    /* Handlers para disponibilidad */
+    const handleAbrirDisponibilidad = (alumno: Alumno) => {
+        setAlumnoDisponibilidad(alumno);
+        setModalDisponibilidadVisible(true);
+    };
+
+    const handleCerrarDisponibilidad = () => {
+        setModalDisponibilidadVisible(false);
+        setAlumnoDisponibilidad(null);
+    };
+
     return (
         <div className="capSeccion capAnimFadeIn">
             {/* Header con título y botón de crear */}
@@ -88,11 +103,16 @@ export function SeccionAlumnos() {
 
             {/* Tabla de alumnos */}
             <div className="capMt--lg">
-                <TablaAlumnos alumnos={alumnos} total={total} cargando={cargando} eliminando={eliminando} filtros={filtros} onCambiarFiltros={cambiarFiltros} onEditar={handleEditar} onEliminar={handleEliminar} />
+                <TablaAlumnos alumnos={alumnos} total={total} cargando={cargando} eliminando={eliminando} filtros={filtros} onCambiarFiltros={cambiarFiltros} onEditar={handleEditar} onEliminar={handleEliminar} onDisponibilidad={handleAbrirDisponibilidad} />
             </div>
 
             {/* Modal de creación/edición */}
             <FormularioAlumno visible={modalVisible} alumno={alumnoEditar} guardando={guardando} onCerrar={handleCerrarModal} onGuardar={handleGuardar} />
+
+            {/* Modal de disponibilidad */}
+            <Modal abierto={modalDisponibilidadVisible} onCerrar={handleCerrarDisponibilidad} titulo="Disponibilidad Horaria" tamano="lg">
+                {alumnoDisponibilidad && <MatrizDisponibilidad alumnoId={alumnoDisponibilidad.id} alumnoNombre={alumnoDisponibilidad.nombre} onGuardadoExitoso={handleCerrarDisponibilidad} />}
+            </Modal>
         </div>
     );
 }

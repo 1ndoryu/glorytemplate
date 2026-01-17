@@ -4,3 +4,4 @@
 
 export {TablaAlumnos} from './TablaAlumnos';
 export {FormularioAlumno} from './FormularioAlumno';
+export {MatrizDisponibilidad} from './MatrizDisponibilidad';

@@ -37,6 +37,7 @@ class CapService
 
     /**
      * Obtiene el ID del centro asociado al usuario actual
+     * Si el usuario no tiene centro y tiene rol apropiado, lo crea automáticamente
      */
     public function getCentroIdActual(): ?int
     {
@@ -45,7 +46,40 @@ class CapService
             return null;
         }
 
-        return $this->configModel->getCentroIdByUserId($userId);
+        $centroId = $this->configModel->getCentroIdByUserId($userId);
+
+        /*
+         * H.7 Fix: Si el usuario tiene rol cap_admin o administrator pero no tiene centro,
+         * crear uno automáticamente. Esto soluciona el caso de usuarios que no
+         * pasaron por el flujo de registro.
+         */
+        if (!$centroId) {
+            $user = wp_get_current_user();
+            $tieneRolValido = in_array('cap_admin', $user->roles) || in_array('administrator', $user->roles);
+
+            if ($tieneRolValido) {
+                $nombreCentro = 'Centro de ' . $user->display_name;
+                $centroId = $this->configModel->crearCentro($userId, $nombreCentro);
+
+                if ($centroId) {
+                    /* Crear suscripción trial para el nuevo centro */
+                    global $wpdb;
+                    $tablaSuscripciones = $wpdb->prefix . 'cap_suscripciones';
+                    $wpdb->insert($tablaSuscripciones, [
+                        'centro_id' => $centroId,
+                        'estado' => 'activa',
+                        'fecha_inicio' => current_time('mysql'),
+                        'fecha_fin' => date('Y-m-d', strtotime('+14 days')),
+                        'created_at' => current_time('mysql'),
+                        'updated_at' => current_time('mysql'),
+                    ]);
+
+                    error_log("[CAP] Centro creado automáticamente para user_id: {$userId}, centro_id: {$centroId}");
+                }
+            }
+        }
+
+        return $centroId;
     }
 
     /**

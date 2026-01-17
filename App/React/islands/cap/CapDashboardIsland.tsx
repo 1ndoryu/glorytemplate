@@ -5,7 +5,6 @@
  * Punto de entrada que ensambla el layout y las secciones.
  */
 
-import {useEffect} from 'react';
 import {CapLayout} from './components/layout';
 import {SeccionCalendario, SeccionAlumnos, SeccionConfiguracion} from './components/secciones';
 import {useDashboardStore} from './stores/useDashboardStore';
@@ -22,17 +21,27 @@ interface CapDashboardIslandProps {
     siteUrl: string;
 }
 
+/*
+ * H.7 Fix: Inyectar wpApiSettings de forma global
+ * Se debe hacer FUERA del componente o de forma síncrona
+ * para evitar condiciones de carrera con los hooks que usan la API
+ */
+function initWpApiSettings(nonce: string, root: string) {
+    if (!(window as any).wpApiSettings) {
+        (window as any).wpApiSettings = {nonce, root};
+    } else {
+        (window as any).wpApiSettings.nonce = nonce;
+        (window as any).wpApiSettings.root = root;
+    }
+}
+
 export function CapDashboardIsland({user, restNonce, restUrl, siteUrl}: CapDashboardIslandProps) {
     /*
-     * H.4 Fix: Inyectar nonce y url en window.wpApiSettings
-     * para que los hooks de API REST puedan acceder correctamente
+     * Inyección síncrona del nonce ANTES de que se ejecuten los useEffect de los hijos
+     * Esto garantiza que las llamadas API tengan el nonce disponible
      */
-    useEffect(() => {
-        (window as any).wpApiSettings = {
-            nonce: restNonce,
-            root: restUrl
-        };
-    }, [restNonce, restUrl]);
+    initWpApiSettings(restNonce, restUrl);
+
     const seccionActiva = useDashboardStore(state => state.seccionActiva);
 
     const renderContenido = () => {

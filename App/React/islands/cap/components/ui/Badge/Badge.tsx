@@ -7,7 +7,7 @@
 import {type ReactNode} from 'react';
 import './Badge.css';
 
-type VarianteBadge = 'default' | 'primario' | 'exito' | 'advertencia' | 'error' | 'info';
+type VarianteBadge = 'default' | 'primario' | 'exito' | 'advertencia' | 'error' | 'info' | 'neutral';
 type TamanoBadge = 'sm' | 'md';
 
 interface BadgeProps {
