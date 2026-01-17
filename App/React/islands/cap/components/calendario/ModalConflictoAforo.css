@@ -1,0 +1,216 @@
+/**
+ * ModalConflictoAforo Styles
+ *
+ * Estilos para el modal de resolución de conflictos de aforo.
+ * Usa variables CSS del sistema de diseño CAP.
+ */
+
+.conflictoAforo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-lg);
+}
+
+.conflictoAforo__descripcion {
+    background: var(--cap-fondo-sutil);
+    border-radius: var(--cap-radio-md);
+    padding: var(--cap-espacio-md);
+}
+
+.conflictoAforo__descripcion p {
+    margin: 0;
+    color: var(--cap-texto-secundario);
+    font-size: var(--cap-texto-sm);
+    line-height: 1.5;
+}
+
+.conflictoAforo__descripcion p + p {
+    margin-top: var(--cap-espacio-xs);
+}
+
+.conflictoAforo__descripcion strong {
+    color: var(--cap-texto-primario);
+}
+
+/* Lista de conflictos */
+.conflictoAforo__lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Slot individual */
+.conflictoAforo__slot {
+    border: 1px solid var(--cap-borde);
+    border-radius: var(--cap-radio-md);
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+.conflictoAforo__slot--resuelto {
+    border-color: var(--cap-exito);
+    background: var(--cap-exito-sutil);
+}
+
+/* Header del slot */
+.conflictoAforo__slotHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    background: var(--cap-fondo-sutil);
+    border-bottom: 1px solid var(--cap-borde);
+    flex-wrap: wrap;
+    gap: var(--cap-espacio-sm);
+}
+
+.conflictoAforo__slotInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.conflictoAforo__fecha {
+    font-weight: 600;
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-primario);
+    text-transform: capitalize;
+}
+
+.conflictoAforo__hora {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-secundario);
+    font-family: var(--cap-familia-mono);
+}
+
+/* Stats del conflicto */
+.conflictoAforo__stats {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-md);
+    flex-wrap: wrap;
+}
+
+.conflictoAforo__demanda,
+.conflictoAforo__capacidad {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-secundario);
+}
+
+.conflictoAforo__demanda strong {
+    color: var(--cap-peligro);
+}
+
+.conflictoAforo__capacidad strong {
+    color: var(--cap-texto-primario);
+}
+
+.conflictoAforo__exceso {
+    font-size: var(--cap-texto-xs);
+    font-weight: 600;
+    color: var(--cap-peligro);
+    background: var(--cap-peligro-sutil);
+    padding: 2px 8px;
+    border-radius: var(--cap-radio-sm);
+}
+
+.conflictoAforo__ok {
+    font-size: var(--cap-texto-xs);
+    font-weight: 600;
+    color: var(--cap-exito);
+    background: var(--cap-exito-sutil);
+    padding: 2px 8px;
+    border-radius: var(--cap-radio-sm);
+}
+
+/* Lista de alumnos */
+.conflictoAforo__alumnos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--cap-espacio-xs);
+    padding: var(--cap-espacio-md);
+}
+
+.conflictoAforo__cargando {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--cap-texto-terciario);
+    font-size: var(--cap-texto-sm);
+    padding: var(--cap-espacio-md);
+}
+
+/* Alumno individual */
+.conflictoAforo__alumno {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    padding: var(--cap-espacio-xs) var(--cap-espacio-sm);
+    border-radius: var(--cap-radio-sm);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.conflictoAforo__alumno:hover {
+    background: var(--cap-fondo-hover);
+}
+
+.conflictoAforo__alumno--excluido {
+    background: var(--cap-peligro-sutil);
+}
+
+.conflictoAforo__alumno--excluido:hover {
+    background: var(--cap-peligro-sutil);
+    opacity: 0.8;
+}
+
+.conflictoAforo__checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--cap-peligro);
+    cursor: pointer;
+}
+
+.conflictoAforo__alumnoNombre {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-primario);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.conflictoAforo__alumno--excluido .conflictoAforo__alumnoNombre {
+    text-decoration: line-through;
+    color: var(--cap-texto-terciario);
+}
+
+/* Acciones del modal */
+.conflictoAforo__acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cap-espacio-sm);
+    border-top: 1px solid var(--cap-borde);
+    padding-top: var(--cap-espacio-md);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .conflictoAforo__slotHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .conflictoAforo__alumnos {
+        grid-template-columns: 1fr;
+    }
+
+    .conflictoAforo__acciones {
+        flex-direction: column;
+    }
+
+    .conflictoAforo__acciones .capBoton {
+        width: 100%;
+    }
+}

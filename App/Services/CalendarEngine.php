@@ -4,6 +4,13 @@
  * Motor de generación de calendarios CAP
  * Implementa el algoritmo de asignación respetando reglas legales
  * 
+ * Algoritmo:
+ * 1. Crear slots disponibles según configuración del centro
+ * 2. Cruzar con disponibilidad de cada alumno
+ * 3. Detectar conflictos de aforo
+ * 4. Distribuir asignaturas óptimamente
+ * 5. Respetar clases bloqueadas
+ * 
  * @package Glory\App\Services
  */
 
@@ -20,20 +27,23 @@ class CalendarEngine
 
     /* Asignaturas del CAP con sus duraciones en horas */
     const ASIGNATURAS = [
-        'conduccion_prevencion' => ['nombre' => 'Conducción y Prevención', 'horas' => 7],
-        'reglamentacion' => ['nombre' => 'Reglamentación', 'horas' => 4],
-        'logistica' => ['nombre' => 'Logística', 'horas' => 4],
-        'medio_ambiente' => ['nombre' => 'Medio Ambiente', 'horas' => 4],
-        'seguridad_vial' => ['nombre' => 'Seguridad Vial', 'horas' => 4],
-        'salud' => ['nombre' => 'Salud', 'horas' => 4],
-        'servicio' => ['nombre' => 'Servicio', 'horas' => 4],
-        'emergencias' => ['nombre' => 'Emergencias', 'horas' => 4],
+        'conduccion_racional' => ['nombre' => 'Conducción racional', 'codigo' => 'CR', 'horas' => 7],
+        'reglamentacion' => ['nombre' => 'Reglamentación', 'codigo' => 'REG', 'horas' => 4],
+        'seguridad_vial' => ['nombre' => 'Seguridad vial', 'codigo' => 'SV', 'horas' => 6],
+        'servicio_logistica' => ['nombre' => 'Servicio y logística', 'codigo' => 'SL', 'horas' => 4],
+        'salud_seguridad' => ['nombre' => 'Salud y seguridad', 'codigo' => 'SS', 'horas' => 4],
+        'medio_ambiente' => ['nombre' => 'Medio ambiente', 'codigo' => 'MA', 'horas' => 4],
+        'mercancias_peligrosas' => ['nombre' => 'Mercancías peligrosas', 'codigo' => 'MP', 'horas' => 3],
+        'viajeros' => ['nombre' => 'Viajeros', 'codigo' => 'VIA', 'horas' => 3],
     ];
 
     private int $centroId;
     private array $configuracion;
     private array $disponibilidadAlumnos;
     private array $clasesBloquedas;
+    private array $slotsDisponibles;
+    private int $duracionClase;
+    private int $alumnosMaxClase;
 
     public function __construct(int $centroId)
     {
@@ -55,6 +65,8 @@ class CalendarEngine
         ), ARRAY_A);
 
         $this->configuracion = $config ?: $this->configuracionDefecto();
+        $this->duracionClase = (int) ($this->configuracion['duracion_clase'] ?? 60);
+        $this->alumnosMaxClase = (int) ($this->configuracion['alumnos_max_clase'] ?? 20);
     }
 
     /**
@@ -70,7 +82,8 @@ class CalendarEngine
             'viernes_especial' => false,
             'hora_fin_viernes' => '15:00',
             'alumnos_max_clase' => 20,
-            'duracion_clase' => 60, // minutos
+            'duracion_clase' => 60,
+            'duracion_descanso' => 15,
         ];
     }
 
@@ -83,25 +96,49 @@ class CalendarEngine
      */
     public function generar(string $fechaInicioSemana, array $alumnosIds): array
     {
+        if (empty($alumnosIds)) {
+            return [
+                'exito' => false,
+                'clases' => [],
+                'conflictos' => [],
+                'mensaje' => 'No hay alumnos seleccionados para generar el calendario'
+            ];
+        }
+
         $this->cargarDisponibilidad($alumnosIds);
         $this->cargarClasesBloqueadas($fechaInicioSemana);
+        $this->generarSlotsDisponibles($fechaInicioSemana);
 
         $conflictos = [];
         $clasesGeneradas = [];
 
-        /* 
-         * TO-DO: Implementar algoritmo completo de asignación
-         * 1. Crear matriz de slots disponibles por día
-         * 2. Cruzar con disponibilidad de cada alumno
-         * 3. Detectar conflictos de aforo
-         * 4. Distribuir asignaturas óptimamente
-         * 5. Respetar clases bloqueadas
-         */
+        /* Paso 1: Crear matriz de demanda por slot */
+        $demandaPorSlot = $this->calcularDemandaPorSlot($alumnosIds);
+
+        /* Paso 2: Detectar conflictos de aforo */
+        $conflictos = $this->detectarConflictosAforo($demandaPorSlot);
+
+        /* Paso 3: Si hay conflictos, retornar para que el usuario resuelva */
+        if (!empty($conflictos)) {
+            return [
+                'exito' => false,
+                'clases' => [],
+                'conflictos' => $conflictos,
+                'mensaje' => 'Se detectaron conflictos de aforo que requieren atención'
+            ];
+        }
+
+        /* Paso 4: Generar distribución de asignaturas */
+        $distribucion = $this->distribuirAsignaturas($demandaPorSlot);
+
+        /* Paso 5: Crear las clases en la base de datos */
+        $clasesGeneradas = $this->crearClases($distribucion, $fechaInicioSemana);
 
         return [
-            'exito' => empty($conflictos),
+            'exito' => true,
             'clases' => $clasesGeneradas,
-            'conflictos' => $conflictos,
+            'conflictos' => [],
+            'mensaje' => 'Calendario generado exitosamente'
         ];
     }
 
@@ -112,6 +149,11 @@ class CalendarEngine
     {
         global $wpdb;
         $tabla = $wpdb->prefix . 'cap_disponibilidad';
+
+        if (empty($alumnosIds)) {
+            $this->disponibilidadAlumnos = [];
+            return;
+        }
 
         $placeholders = implode(',', array_fill(0, count($alumnosIds), '%d'));
         $query = $wpdb->prepare(
@@ -130,7 +172,7 @@ class CalendarEngine
                 $this->disponibilidadAlumnos[$alumnoId] = [];
             }
             $this->disponibilidadAlumnos[$alumnoId][] = [
-                'dia' => $row['dia_semana'],
+                'dia' => (int) $row['dia_semana'],
                 'inicio' => $row['hora_inicio'],
                 'fin' => $row['hora_fin'],
             ];
@@ -159,6 +201,348 @@ class CalendarEngine
     }
 
     /**
+     * Genera los slots disponibles para la semana según la configuración
+     */
+    private function generarSlotsDisponibles(string $fechaInicioSemana): void
+    {
+        $this->slotsDisponibles = [];
+        $descanso = (int) ($this->configuracion['duracion_descanso'] ?? 15);
+
+        for ($dia = 0; $dia < 5; $dia++) {
+            $fecha = date('Y-m-d', strtotime($fechaInicioSemana . " +{$dia} days"));
+            $diaSemana = $dia + 1; // 1 = Lunes ... 5 = Viernes
+
+            /* Slots de mañana */
+            $slotsMorning = $this->generarSlotsRango(
+                $this->configuracion['hora_inicio_manana'],
+                $this->configuracion['hora_fin_manana'],
+                $fecha,
+                $diaSemana
+            );
+
+            /* Slots de tarde */
+            $horaFinTarde = $this->configuracion['hora_fin_tarde'];
+            if ($diaSemana === 5 && $this->configuracion['viernes_especial']) {
+                $horaFinTarde = $this->configuracion['hora_fin_viernes'];
+            }
+
+            $slotsAfternoon = $this->generarSlotsRango(
+                $this->configuracion['hora_inicio_tarde'],
+                $horaFinTarde,
+                $fecha,
+                $diaSemana
+            );
+
+            $this->slotsDisponibles[$fecha] = array_merge($slotsMorning, $slotsAfternoon);
+        }
+    }
+
+    /**
+     * Genera slots para un rango horario específico
+     */
+    private function generarSlotsRango(string $horaInicio, string $horaFin, string $fecha, int $diaSemana): array
+    {
+        $slots = [];
+        $inicio = strtotime($horaInicio);
+        $fin = strtotime($horaFin);
+        $duracion = $this->duracionClase * 60; // en segundos
+
+        while ($inicio + $duracion <= $fin) {
+            $slotKey = date('H:i', $inicio);
+            $slotFin = date('H:i', $inicio + $duracion);
+
+            /* Verificar que el slot no esté bloqueado */
+            $estaBloqueado = $this->slotEstaBloqueado($fecha, $slotKey);
+
+            if (!$estaBloqueado) {
+                $slots[] = [
+                    'fecha' => $fecha,
+                    'dia_semana' => $diaSemana,
+                    'hora_inicio' => $slotKey,
+                    'hora_fin' => $slotFin,
+                    'disponible' => true
+                ];
+            }
+
+            $inicio += $duracion;
+        }
+
+        return $slots;
+    }
+
+    /**
+     * Verifica si un slot está bloqueado por una clase existente
+     */
+    private function slotEstaBloqueado(string $fecha, string $horaInicio): bool
+    {
+        foreach ($this->clasesBloquedas as $clase) {
+            if ($clase['fecha'] === $fecha && $clase['hora_inicio'] === $horaInicio) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Calcula la demanda de alumnos por cada slot
+     */
+    private function calcularDemandaPorSlot(array $alumnosIds): array
+    {
+        $demanda = [];
+
+        foreach ($this->slotsDisponibles as $fecha => $slots) {
+            foreach ($slots as $slot) {
+                $slotKey = $fecha . '_' . $slot['hora_inicio'];
+                $demanda[$slotKey] = [
+                    'fecha' => $fecha,
+                    'dia_semana' => $slot['dia_semana'],
+                    'hora_inicio' => $slot['hora_inicio'],
+                    'hora_fin' => $slot['hora_fin'],
+                    'alumnos' => [],
+                    'total' => 0
+                ];
+
+                /* Contar alumnos disponibles para este slot */
+                foreach ($alumnosIds as $alumnoId) {
+                    if ($this->alumnoDisponibleEnSlot($alumnoId, $slot['dia_semana'], $slot['hora_inicio'], $slot['hora_fin'])) {
+                        $demanda[$slotKey]['alumnos'][] = $alumnoId;
+                        $demanda[$slotKey]['total']++;
+                    }
+                }
+            }
+        }
+
+        return $demanda;
+    }
+
+    /**
+     * Verifica si un alumno está disponible en un slot específico
+     */
+    private function alumnoDisponibleEnSlot(int $alumnoId, int $diaSemana, string $horaInicio, string $horaFin): bool
+    {
+        if (!isset($this->disponibilidadAlumnos[$alumnoId])) {
+            return false;
+        }
+
+        $inicioSlot = strtotime($horaInicio);
+        $finSlot = strtotime($horaFin);
+
+        foreach ($this->disponibilidadAlumnos[$alumnoId] as $disponibilidad) {
+            if ($disponibilidad['dia'] !== $diaSemana) {
+                continue;
+            }
+
+            $inicioDisp = strtotime($disponibilidad['inicio']);
+            $finDisp = strtotime($disponibilidad['fin']);
+
+            /* El slot debe estar completamente dentro de la disponibilidad */
+            if ($inicioSlot >= $inicioDisp && $finSlot <= $finDisp) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Detecta conflictos de aforo (más alumnos que capacidad)
+     */
+    private function detectarConflictosAforo(array $demandaPorSlot): array
+    {
+        $conflictos = [];
+
+        foreach ($demandaPorSlot as $slotKey => $datos) {
+            if ($datos['total'] > $this->alumnosMaxClase) {
+                $conflictos[] = [
+                    'tipo' => 'aforo',
+                    'slot_key' => $slotKey,
+                    'fecha' => $datos['fecha'],
+                    'hora_inicio' => $datos['hora_inicio'],
+                    'hora_fin' => $datos['hora_fin'],
+                    'demanda' => $datos['total'],
+                    'capacidad' => $this->alumnosMaxClase,
+                    'exceso' => $datos['total'] - $this->alumnosMaxClase,
+                    'alumnos' => $datos['alumnos']
+                ];
+            }
+        }
+
+        return $conflictos;
+    }
+
+    /**
+     * Distribuye las asignaturas en los slots disponibles
+     */
+    private function distribuirAsignaturas(array $demandaPorSlot): array
+    {
+        $distribucion = [];
+        $asignaturasRestantes = [];
+
+        /* Inicializar horas restantes por asignatura */
+        foreach (self::ASIGNATURAS as $key => $asignatura) {
+            $asignaturasRestantes[$key] = $asignatura['horas'] * 60; // en minutos
+        }
+
+        /* Ordenar slots por fecha y hora */
+        uksort($demandaPorSlot, function ($a, $b) {
+            return strcmp($a, $b);
+        });
+
+        foreach ($demandaPorSlot as $slotKey => $datos) {
+            if ($datos['total'] === 0) {
+                continue; // Saltar slots sin alumnos
+            }
+
+            /* Seleccionar asignatura con más minutos restantes */
+            $asignaturaSeleccionada = null;
+            $maxMinutos = 0;
+
+            foreach ($asignaturasRestantes as $key => $minutos) {
+                if ($minutos > $maxMinutos) {
+                    $maxMinutos = $minutos;
+                    $asignaturaSeleccionada = $key;
+                }
+            }
+
+            if ($asignaturaSeleccionada === null) {
+                continue; // Todas las asignaturas completas
+            }
+
+            /* Asignar este slot a la asignatura */
+            $distribucion[] = [
+                'fecha' => $datos['fecha'],
+                'hora_inicio' => $datos['hora_inicio'],
+                'hora_fin' => $datos['hora_fin'],
+                'asignatura' => $asignaturaSeleccionada,
+                'asignatura_nombre' => self::ASIGNATURAS[$asignaturaSeleccionada]['nombre'],
+                'alumnos' => $datos['alumnos']
+            ];
+
+            /* Restar minutos de la asignatura */
+            $asignaturasRestantes[$asignaturaSeleccionada] -= $this->duracionClase;
+            if ($asignaturasRestantes[$asignaturaSeleccionada] < 0) {
+                $asignaturasRestantes[$asignaturaSeleccionada] = 0;
+            }
+        }
+
+        return $distribucion;
+    }
+
+    /**
+     * Crea las clases en la base de datos
+     */
+    private function crearClases(array $distribucion, string $fechaInicioSemana): array
+    {
+        global $wpdb;
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+
+        /* Primero eliminar clases no bloqueadas de la semana */
+        $fechaFin = date('Y-m-d', strtotime($fechaInicioSemana . ' +4 days'));
+        $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$tablaClases} 
+             WHERE centro_id = %d 
+             AND fecha BETWEEN %s AND %s 
+             AND bloqueada = 0",
+            $this->centroId,
+            $fechaInicioSemana,
+            $fechaFin
+        ));
+
+        $clasesCreadas = [];
+
+        foreach ($distribucion as $clase) {
+            /* Crear la clase */
+            $insertado = $wpdb->insert($tablaClases, [
+                'centro_id' => $this->centroId,
+                'fecha' => $clase['fecha'],
+                'hora_inicio' => $clase['hora_inicio'],
+                'hora_fin' => $clase['hora_fin'],
+                'asignatura' => $clase['asignatura'],
+                'duracion_minutos' => $this->duracionClase,
+                'bloqueada' => 0,
+                'created_at' => current_time('mysql')
+            ]);
+
+            if ($insertado) {
+                $claseId = $wpdb->insert_id;
+
+                /* Asignar alumnos a la clase */
+                foreach ($clase['alumnos'] as $alumnoId) {
+                    $wpdb->insert($tablaAsistencia, [
+                        'clase_id' => $claseId,
+                        'alumno_id' => $alumnoId,
+                        'asistio' => 0,
+                        'created_at' => current_time('mysql')
+                    ]);
+                }
+
+                $clasesCreadas[] = [
+                    'id' => $claseId,
+                    'fecha' => $clase['fecha'],
+                    'hora_inicio' => $clase['hora_inicio'],
+                    'hora_fin' => $clase['hora_fin'],
+                    'asignatura' => $clase['asignatura'],
+                    'asignatura_nombre' => $clase['asignatura_nombre'],
+                    'alumnos_count' => count($clase['alumnos'])
+                ];
+            }
+        }
+
+        return $clasesCreadas;
+    }
+
+    /**
+     * Genera con resolución de conflictos (alumnos excluidos)
+     * 
+     * @param string $fechaInicioSemana Fecha del lunes
+     * @param array $alumnosIds Todos los alumnos
+     * @param array $exclusiones Array de [slot_key => [alumno_ids excluidos]]
+     */
+    public function generarConExclusiones(string $fechaInicioSemana, array $alumnosIds, array $exclusiones): array
+    {
+        $this->cargarDisponibilidad($alumnosIds);
+        $this->cargarClasesBloqueadas($fechaInicioSemana);
+        $this->generarSlotsDisponibles($fechaInicioSemana);
+
+        /* Calcular demanda aplicando exclusiones */
+        $demandaPorSlot = $this->calcularDemandaPorSlot($alumnosIds);
+
+        /* Aplicar exclusiones */
+        foreach ($exclusiones as $slotKey => $alumnosExcluidos) {
+            if (isset($demandaPorSlot[$slotKey])) {
+                $demandaPorSlot[$slotKey]['alumnos'] = array_diff(
+                    $demandaPorSlot[$slotKey]['alumnos'],
+                    $alumnosExcluidos
+                );
+                $demandaPorSlot[$slotKey]['total'] = count($demandaPorSlot[$slotKey]['alumnos']);
+            }
+        }
+
+        /* Verificar que no quedan conflictos */
+        $conflictos = $this->detectarConflictosAforo($demandaPorSlot);
+        if (!empty($conflictos)) {
+            return [
+                'exito' => false,
+                'clases' => [],
+                'conflictos' => $conflictos,
+                'mensaje' => 'Aún hay conflictos de aforo sin resolver'
+            ];
+        }
+
+        /* Generar distribución y crear clases */
+        $distribucion = $this->distribuirAsignaturas($demandaPorSlot);
+        $clasesGeneradas = $this->crearClases($distribucion, $fechaInicioSemana);
+
+        return [
+            'exito' => true,
+            'clases' => $clasesGeneradas,
+            'conflictos' => [],
+            'mensaje' => 'Calendario generado exitosamente'
+        ];
+    }
+
+    /**
      * Valida que un calendario cumple las reglas del CAP
      */
     public function validarReglas(array $clases, int $alumnoId): array
@@ -184,21 +568,77 @@ class CalendarEngine
         return $errores;
     }
 
+    /**
+     * Calcula las horas totales asignadas a un alumno
+     */
     private function calcularHorasTotales(array $clases, int $alumnoId): float
     {
-        /* TO-DO: Implementar cálculo real */
-        return 0;
+        $minutosTotales = 0;
+
+        foreach ($clases as $clase) {
+            if (in_array($alumnoId, $clase['alumnos'] ?? [])) {
+                $minutosTotales += $this->duracionClase;
+            }
+        }
+
+        return $minutosTotales / 60;
     }
 
+    /**
+     * Cuenta los días únicos con clases para un alumno
+     */
     private function contarDiasUnicos(array $clases, int $alumnoId): int
     {
-        /* TO-DO: Implementar conteo real */
-        return 0;
+        $dias = [];
+
+        foreach ($clases as $clase) {
+            if (in_array($alumnoId, $clase['alumnos'] ?? [])) {
+                $dias[$clase['fecha']] = true;
+            }
+        }
+
+        return count($dias);
     }
 
+    /**
+     * Calcula el máximo de horas en un día para un alumno
+     */
     private function calcularMaxHorasDia(array $clases, int $alumnoId): float
     {
-        /* TO-DO: Implementar cálculo real */
-        return 0;
+        $minutosPorDia = [];
+
+        foreach ($clases as $clase) {
+            if (in_array($alumnoId, $clase['alumnos'] ?? [])) {
+                $fecha = $clase['fecha'];
+                if (!isset($minutosPorDia[$fecha])) {
+                    $minutosPorDia[$fecha] = 0;
+                }
+                $minutosPorDia[$fecha] += $this->duracionClase;
+            }
+        }
+
+        return empty($minutosPorDia) ? 0 : max($minutosPorDia) / 60;
+    }
+
+    /**
+     * Obtiene estadísticas de generación para preview
+     */
+    public function obtenerPreview(string $fechaInicioSemana, array $alumnosIds): array
+    {
+        $this->cargarDisponibilidad($alumnosIds);
+        $this->generarSlotsDisponibles($fechaInicioSemana);
+
+        $demandaPorSlot = $this->calcularDemandaPorSlot($alumnosIds);
+        $conflictos = $this->detectarConflictosAforo($demandaPorSlot);
+
+        $slotsConDemanda = array_filter($demandaPorSlot, fn($s) => $s['total'] > 0);
+
+        return [
+            'total_slots' => count($slotsConDemanda),
+            'total_horas_estimadas' => count($slotsConDemanda) * $this->duracionClase / 60,
+            'conflictos' => count($conflictos),
+            'alumnos' => count($alumnosIds),
+            'puede_generar' => empty($conflictos)
+        ];
     }
 }

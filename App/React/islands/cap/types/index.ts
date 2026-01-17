@@ -130,9 +130,35 @@ export interface ApiResponse<T> {
 
 /* Conflictos de Aforo */
 export interface ConflictoAforo {
-    dia: DiaSemana;
-    hora: string;
+    tipo: 'aforo';
+    slotKey: string;
+    fecha: string;
+    horaInicio: string;
+    horaFin: string;
     demanda: number;
     capacidad: number;
-    alumnosExceso: Alumno[];
+    exceso: number;
+    alumnos: number[];
+}
+
+/* Exclusiones para resolver conflictos */
+export interface ExclusionesConflicto {
+    [slotKey: string]: number[];
+}
+
+/* Resultado de generación */
+export interface ResultadoGeneracion {
+    exito: boolean;
+    clases: Clase[];
+    conflictos: ConflictoAforo[];
+    mensaje?: string;
+}
+
+/* Preview de generación */
+export interface PreviewGeneracion {
+    totalSlots: number;
+    totalHorasEstimadas: number;
+    conflictos: number;
+    alumnos: number;
+    puedeGenerar: boolean;
 }

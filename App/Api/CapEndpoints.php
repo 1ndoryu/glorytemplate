@@ -8,6 +8,7 @@
 namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
+use Glory\App\Services\CalendarEngine;
 use Glory\App\Models\Alumno;
 use Glory\App\Models\Clase;
 use Glory\App\Models\Configuracion;
@@ -47,6 +48,27 @@ class CapEndpoints
         register_rest_route(self::NAMESPACE, '/generar', [
             'methods' => 'POST',
             'callback' => [$this, 'generarCalendario'],
+            'permission_callback' => [$this, 'verificarPermisos'],
+        ]);
+
+        /* Preview antes de generar */
+        register_rest_route(self::NAMESPACE, '/generar/preview', [
+            'methods' => 'POST',
+            'callback' => [$this, 'previewCalendario'],
+            'permission_callback' => [$this, 'verificarPermisos'],
+        ]);
+
+        /* Generar con exclusiones (resolver conflictos) */
+        register_rest_route(self::NAMESPACE, '/generar/con-exclusiones', [
+            'methods' => 'POST',
+            'callback' => [$this, 'generarConExclusiones'],
+            'permission_callback' => [$this, 'verificarPermisos'],
+        ]);
+
+        /* Toggle bloqueo de clase */
+        register_rest_route(self::NAMESPACE, '/clases/(?P<id>\d+)/toggle-bloqueo', [
+            'methods' => 'POST',
+            'callback' => [$this, 'toggleBloqueoClase'],
             'permission_callback' => [$this, 'verificarPermisos'],
         ]);
 
@@ -186,10 +208,98 @@ class CapEndpoints
     {
         $capService = CapService::getInstance();
         $centroId = $capService->getCentroIdActual();
-        if (!$centroId) return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
 
-        /* TO-DO: Implementar llamada al CalendarEngine */
-        return new \WP_REST_Response(['exito' => true, 'clases' => [], 'conflictos' => []]);
+        $datos = $request->get_json_params();
+        $semana = $datos['semana'] ?? date('Y-m-d');
+        $alumnosIds = $datos['alumnos'] ?? [];
+
+        /* Si no se especifican alumnos, obtener todos los activos del centro */
+        if (empty($alumnosIds)) {
+            $alumnoModel = new Alumno();
+            $alumnos = $alumnoModel->obtenerPorCentro($centroId, ['limite' => 1000]);
+            $alumnosIds = array_map(fn($a) => (int) $a['id'], $alumnos);
+        }
+
+        $engine = new CalendarEngine($centroId);
+        $resultado = $engine->generar($semana, $alumnosIds);
+
+        $statusCode = $resultado['exito'] ? 200 : 409;
+        return new \WP_REST_Response($resultado, $statusCode);
+    }
+
+    /**
+     * Preview de generación (estadísticas antes de generar)
+     */
+    public function previewCalendario(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $datos = $request->get_json_params();
+        $semana = $datos['semana'] ?? date('Y-m-d');
+        $alumnosIds = $datos['alumnos'] ?? [];
+
+        /* Si no se especifican alumnos, obtener todos los activos */
+        if (empty($alumnosIds)) {
+            $alumnoModel = new Alumno();
+            $alumnos = $alumnoModel->obtenerPorCentro($centroId, ['limite' => 1000]);
+            $alumnosIds = array_map(fn($a) => (int) $a['id'], $alumnos);
+        }
+
+        $engine = new CalendarEngine($centroId);
+        $preview = $engine->obtenerPreview($semana, $alumnosIds);
+
+        return new \WP_REST_Response($preview);
+    }
+
+    /**
+     * Genera calendario con exclusiones para resolver conflictos de aforo
+     */
+    public function generarConExclusiones(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $datos = $request->get_json_params();
+        $semana = $datos['semana'] ?? date('Y-m-d');
+        $alumnosIds = $datos['alumnos'] ?? [];
+        $exclusiones = $datos['exclusiones'] ?? [];
+
+        if (empty($alumnosIds)) {
+            $alumnoModel = new Alumno();
+            $alumnos = $alumnoModel->obtenerPorCentro($centroId, ['limite' => 1000]);
+            $alumnosIds = array_map(fn($a) => (int) $a['id'], $alumnos);
+        }
+
+        $engine = new CalendarEngine($centroId);
+        $resultado = $engine->generarConExclusiones($semana, $alumnosIds, $exclusiones);
+
+        $statusCode = $resultado['exito'] ? 200 : 409;
+        return new \WP_REST_Response($resultado, $statusCode);
+    }
+
+    /**
+     * Toggle bloqueo de una clase
+     */
+    public function toggleBloqueoClase(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $claseId = (int) $request->get_param('id');
+        $claseModel = new Clase();
+
+        if (!$claseModel->toggleBloqueo($claseId)) {
+            return new \WP_REST_Response(['error' => 'Error al cambiar bloqueo'], 400);
+        }
+
+        return new \WP_REST_Response(['exito' => true]);
     }
 
     public function obtenerDashboard(\WP_REST_Request $request): \WP_REST_Response

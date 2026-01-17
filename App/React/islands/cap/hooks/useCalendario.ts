@@ -5,11 +5,12 @@
  * - Navegación entre semanas
  * - Clases de la semana actual
  * - Bloqueo/desbloqueo de clases
+ * - Generación con detección de conflictos
  * - Comunicación con API
  */
 
 import {useState, useCallback, useEffect} from 'react';
-import type {Clase, DiaSemana} from '../types';
+import type {Clase, DiaSemana, ConflictoAforo, ExclusionesConflicto, ResultadoGeneracion, PreviewGeneracion} from '../types';
 import {getLunesDeSemana, getFechasSemana, DIAS_SEMANA} from '../constants';
 
 interface EstadoCalendario {
@@ -19,6 +20,8 @@ interface EstadoCalendario {
     cargando: boolean;
     error: string | null;
     generando: boolean;
+    conflictos: ConflictoAforo[];
+    mostrarModalConflictos: boolean;
 }
 
 interface AccionesCalendario {
@@ -26,9 +29,12 @@ interface AccionesCalendario {
     irSemanaSiguiente: () => void;
     irASemana: (fecha: Date) => void;
     irASemanaActual: () => void;
-    toggleBloqueoClase: (claseId: number) => void;
+    toggleBloqueoClase: (claseId: number) => Promise<void>;
     recargarClases: () => Promise<void>;
     generarCalendario: () => Promise<void>;
+    generarConExclusiones: (exclusiones: ExclusionesConflicto) => Promise<void>;
+    cerrarModalConflictos: () => void;
+    limpiarError: () => void;
 }
 
 export function useCalendario(): EstadoCalendario & AccionesCalendario {
@@ -38,6 +44,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [generando, setGenerando] = useState(false);
+    const [conflictos, setConflictos] = useState<ConflictoAforo[]>([]);
+    const [mostrarModalConflictos, setMostrarModalConflictos] = useState(false);
 
     /* Fechas de la semana actual */
     const fechasSemana = getFechasSemana(semanaActual);
@@ -50,18 +58,20 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         return '';
     }, []);
 
+    /* Formatear fecha para API */
+    const formatearFechaApi = useCallback((fecha: Date): string => {
+        return fecha.toISOString().split('T')[0];
+    }, []);
+
     /* Cargar clases de la semana desde API */
     const cargarClases = useCallback(async () => {
         setCargando(true);
         setError(null);
 
         try {
-            const fechaInicio = semanaActual.toISOString().split('T')[0];
-            const fechaFin = new Date(semanaActual);
-            fechaFin.setDate(fechaFin.getDate() + 4);
-            const fechaFinStr = fechaFin.toISOString().split('T')[0];
+            const fechaInicio = formatearFechaApi(semanaActual);
 
-            const response = await fetch(`/wp-json/cap/v1/clases?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFinStr}`, {
+            const response = await fetch(`/wp-json/cap/v1/clases?semana=${fechaInicio}`, {
                 headers: {
                     'X-WP-Nonce': getNonce()
                 }
@@ -72,15 +82,27 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             }
 
             const data = await response.json();
-            setClases(data.clases || []);
+
+            /* Mapear respuesta del backend a formato frontend */
+            const clasesFormateadas = (data.clases || []).map((c: any) => ({
+                id: c.id,
+                centroId: c.centro_id,
+                fecha: c.fecha,
+                horaInicio: c.hora_inicio,
+                horaFin: c.hora_fin,
+                asignaturaId: c.asignatura,
+                bloqueada: Boolean(c.bloqueada),
+                alumnosIds: (c.alumnos || []).map((a: any) => a.id)
+            }));
+
+            setClases(clasesFormateadas);
         } catch (err) {
             console.error('Error cargando clases:', err);
             setError(err instanceof Error ? err.message : 'Error desconocido');
-            /* No limpiar clases existentes si hay error */
         } finally {
             setCargando(false);
         }
-    }, [semanaActual, getNonce]);
+    }, [semanaActual, getNonce, formatearFechaApi]);
 
     /* Cargar clases al cambiar de semana */
     useEffect(() => {
@@ -122,13 +144,12 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             setClases(prev => prev.map(c => (c.id === claseId ? {...c, bloqueada: !c.bloqueada} : c)));
 
             try {
-                const response = await fetch(`/wp-json/cap/v1/clases/${claseId}/bloqueo`, {
-                    method: 'PUT',
+                const response = await fetch(`/wp-json/cap/v1/clases/${claseId}/toggle-bloqueo`, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-WP-Nonce': getNonce()
-                    },
-                    body: JSON.stringify({bloqueada: !clase.bloqueada})
+                    }
                 });
 
                 if (!response.ok) {
@@ -152,6 +173,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
     const generarCalendario = useCallback(async () => {
         setGenerando(true);
         setError(null);
+        setConflictos([]);
 
         try {
             const response = await fetch('/wp-json/cap/v1/generar', {
@@ -161,36 +183,92 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                     'X-WP-Nonce': getNonce()
                 },
                 body: JSON.stringify({
-                    semana_inicio: semanaActual.toISOString().split('T')[0]
+                    semana: formatearFechaApi(semanaActual)
                 })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Error al generar calendario');
-            }
+            const resultado: ResultadoGeneracion = await response.json();
 
-            /* Recargar clases tras generación exitosa */
-            await cargarClases();
+            /* Mapear claves snake_case a camelCase */
+            const conflictosFormateados = (resultado.conflictos || []).map((c: any) => ({
+                tipo: c.tipo,
+                slotKey: c.slot_key,
+                fecha: c.fecha,
+                horaInicio: c.hora_inicio,
+                horaFin: c.hora_fin,
+                demanda: c.demanda,
+                capacidad: c.capacidad,
+                exceso: c.exceso,
+                alumnos: c.alumnos
+            }));
+
+            if (!resultado.exito && conflictosFormateados.length > 0) {
+                /* Hay conflictos de aforo, mostrar modal */
+                setConflictos(conflictosFormateados);
+                setMostrarModalConflictos(true);
+            } else if (resultado.exito) {
+                /* Generación exitosa, recargar clases */
+                await cargarClases();
+            } else {
+                /* Error sin conflictos */
+                setError(resultado.mensaje || 'Error al generar calendario');
+            }
         } catch (err) {
             console.error('Error generando calendario:', err);
             setError(err instanceof Error ? err.message : 'Error al generar');
         } finally {
             setGenerando(false);
         }
-    }, [semanaActual, getNonce, cargarClases]);
+    }, [semanaActual, getNonce, formatearFechaApi, cargarClases]);
 
-    /* Obtener clases agrupadas por día */
-    const getClasesPorDia = useCallback(
-        (dia: DiaSemana): Clase[] => {
-            const indiceDia = DIAS_SEMANA.indexOf(dia);
-            const fechaDia = fechasSemana[indiceDia];
-            const fechaStr = fechaDia.toISOString().split('T')[0];
+    /* Generar con exclusiones (después de resolver conflictos) */
+    const generarConExclusiones = useCallback(
+        async (exclusiones: ExclusionesConflicto) => {
+            setGenerando(true);
+            setError(null);
 
-            return clases.filter(c => c.fecha === fechaStr).sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
+            try {
+                const response = await fetch('/wp-json/cap/v1/generar/con-exclusiones', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-WP-Nonce': getNonce()
+                    },
+                    body: JSON.stringify({
+                        semana: formatearFechaApi(semanaActual),
+                        exclusiones
+                    })
+                });
+
+                const resultado: ResultadoGeneracion = await response.json();
+
+                if (resultado.exito) {
+                    setConflictos([]);
+                    setMostrarModalConflictos(false);
+                    await cargarClases();
+                } else {
+                    setError(resultado.mensaje || 'Error al generar con exclusiones');
+                }
+            } catch (err) {
+                console.error('Error generando con exclusiones:', err);
+                setError(err instanceof Error ? err.message : 'Error al generar');
+            } finally {
+                setGenerando(false);
+            }
         },
-        [clases, fechasSemana]
+        [semanaActual, getNonce, formatearFechaApi, cargarClases]
     );
+
+    /* Cerrar modal de conflictos */
+    const cerrarModalConflictos = useCallback(() => {
+        setMostrarModalConflictos(false);
+        setConflictos([]);
+    }, []);
+
+    /* Limpiar error */
+    const limpiarError = useCallback(() => {
+        setError(null);
+    }, []);
 
     return {
         clases,
@@ -199,12 +277,17 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         cargando,
         error,
         generando,
+        conflictos,
+        mostrarModalConflictos,
         irSemanaAnterior,
         irSemanaSiguiente,
         irASemana,
         irASemanaActual,
         toggleBloqueoClase,
         recargarClases,
-        generarCalendario
+        generarCalendario,
+        generarConExclusiones,
+        cerrarModalConflictos,
+        limpiarError
     };
 }
