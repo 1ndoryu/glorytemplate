@@ -1,0 +1,214 @@
+/**
+ * CAP Module - Design System Variables
+ * 
+ * Sistema de diseño base para la plataforma de gestión CAP.
+ * Paleta profesional azul con soporte para modo oscuro.
+ */
+
+:root {
+    /* ========================================
+       Paleta de Colores Principal
+       Azul profesional para transmitir confianza
+       ======================================== */
+
+    /* Primario - Azul corporativo */
+    --cap-primario-50: hsl(217, 91%, 97%);
+    --cap-primario-100: hsl(217, 89%, 93%);
+    --cap-primario-200: hsl(217, 87%, 85%);
+    --cap-primario-300: hsl(217, 85%, 73%);
+    --cap-primario-400: hsl(217, 83%, 60%);
+    --cap-primario-500: hsl(217, 80%, 50%);
+    --cap-primario-600: hsl(217, 85%, 42%);
+    --cap-primario-700: hsl(217, 88%, 35%);
+    --cap-primario-800: hsl(217, 90%, 28%);
+    --cap-primario-900: hsl(217, 92%, 22%);
+
+    /* Secundario - Cyan para acentos */
+    --cap-secundario-50: hsl(190, 95%, 97%);
+    --cap-secundario-100: hsl(190, 90%, 90%);
+    --cap-secundario-200: hsl(190, 85%, 78%);
+    --cap-secundario-300: hsl(190, 80%, 65%);
+    --cap-secundario-400: hsl(190, 75%, 50%);
+    --cap-secundario-500: hsl(190, 80%, 42%);
+
+    /* Semánticos */
+    --cap-exito-50: hsl(145, 80%, 96%);
+    --cap-exito-100: hsl(145, 75%, 85%);
+    --cap-exito-500: hsl(145, 70%, 42%);
+    --cap-exito-600: hsl(145, 75%, 35%);
+
+    --cap-advertencia-50: hsl(40, 95%, 96%);
+    --cap-advertencia-100: hsl(40, 90%, 85%);
+    --cap-advertencia-500: hsl(40, 85%, 50%);
+    --cap-advertencia-600: hsl(40, 90%, 42%);
+
+    --cap-error-50: hsl(0, 85%, 97%);
+    --cap-error-100: hsl(0, 80%, 90%);
+    --cap-error-500: hsl(0, 75%, 55%);
+    --cap-error-600: hsl(0, 80%, 45%);
+
+    --cap-info-50: hsl(200, 90%, 96%);
+    --cap-info-100: hsl(200, 85%, 88%);
+    --cap-info-500: hsl(200, 80%, 50%);
+
+    /* Neutros - Escala de grises con tinte azul */
+    --cap-gris-50: hsl(220, 20%, 98%);
+    --cap-gris-100: hsl(220, 18%, 95%);
+    --cap-gris-200: hsl(220, 15%, 90%);
+    --cap-gris-300: hsl(220, 12%, 80%);
+    --cap-gris-400: hsl(220, 10%, 60%);
+    --cap-gris-500: hsl(220, 8%, 46%);
+    --cap-gris-600: hsl(220, 10%, 35%);
+    --cap-gris-700: hsl(220, 12%, 25%);
+    --cap-gris-800: hsl(220, 15%, 18%);
+    --cap-gris-900: hsl(220, 18%, 12%);
+    --cap-gris-950: hsl(220, 20%, 8%);
+
+    /* ========================================
+       Tema Claro (default)
+       ======================================== */
+
+    --cap-fondo-base: var(--cap-gris-50);
+    --cap-fondo-tarjeta: hsl(0, 0%, 100%);
+    --cap-fondo-elevado: hsl(0, 0%, 100%);
+    --cap-fondo-sutil: var(--cap-gris-100);
+    --cap-fondo-overlay: hsla(220, 20%, 10%, 0.5);
+
+    --cap-texto-principal: var(--cap-gris-900);
+    --cap-texto-secundario: var(--cap-gris-600);
+    --cap-texto-terciario: var(--cap-gris-500);
+    --cap-texto-invertido: hsl(0, 0%, 100%);
+
+    --cap-borde-sutil: var(--cap-gris-200);
+    --cap-borde-medio: var(--cap-gris-300);
+    --cap-borde-fuerte: var(--cap-gris-400);
+
+    --cap-focus-ring: hsla(217, 80%, 50%, 0.4);
+
+    /* ========================================
+       Espaciado
+       Escala basada en 4px
+       ======================================== */
+
+    --cap-espacio-xs: 0.25rem; /* 4px */
+    --cap-espacio-sm: 0.5rem; /* 8px */
+    --cap-espacio-md: 1rem; /* 16px */
+    --cap-espacio-lg: 1.5rem; /* 24px */
+    --cap-espacio-xl: 2rem; /* 32px */
+    --cap-espacio-2xl: 3rem; /* 48px */
+    --cap-espacio-3xl: 4rem; /* 64px */
+
+    /* ========================================
+       Tipografía
+       Inter para texto legible y profesional
+       ======================================== */
+
+    --cap-fuente-principal: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --cap-fuente-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+    --cap-texto-xs: 0.75rem; /* 12px */
+    --cap-texto-sm: 0.875rem; /* 14px */
+    --cap-texto-base: 1rem; /* 16px */
+    --cap-texto-lg: 1.125rem; /* 18px */
+    --cap-texto-xl: 1.25rem; /* 20px */
+    --cap-texto-2xl: 1.5rem; /* 24px */
+    --cap-texto-3xl: 1.875rem; /* 30px */
+    --cap-texto-4xl: 2.25rem; /* 36px */
+
+    --cap-line-height-tight: 1.25;
+    --cap-line-height-normal: 1.5;
+    --cap-line-height-relaxed: 1.75;
+
+    --cap-peso-normal: 400;
+    --cap-peso-medium: 500;
+    --cap-peso-semibold: 600;
+    --cap-peso-bold: 700;
+
+    /* ========================================
+       Bordes y Sombras
+       ======================================== */
+
+    --cap-radio-sm: 0.25rem; /* 4px */
+    --cap-radio-md: 0.5rem; /* 8px */
+    --cap-radio-lg: 0.75rem; /* 12px */
+    --cap-radio-xl: 1rem; /* 16px */
+    --cap-radio-full: 9999px;
+
+    --cap-sombra-xs: 0 1px 2px hsla(220, 20%, 10%, 0.05);
+    --cap-sombra-sm: 0 1px 3px hsla(220, 20%, 10%, 0.1), 0 1px 2px hsla(220, 20%, 10%, 0.06);
+    --cap-sombra-md: 0 4px 6px hsla(220, 20%, 10%, 0.1), 0 2px 4px hsla(220, 20%, 10%, 0.06);
+    --cap-sombra-lg: 0 10px 15px hsla(220, 20%, 10%, 0.1), 0 4px 6px hsla(220, 20%, 10%, 0.05);
+    --cap-sombra-xl: 0 20px 25px hsla(220, 20%, 10%, 0.1), 0 10px 10px hsla(220, 20%, 10%, 0.04);
+
+    /* ========================================
+       Transiciones
+       ======================================== */
+
+    --cap-transicion-rapida: 150ms ease;
+    --cap-transicion-normal: 250ms ease;
+    --cap-transicion-lenta: 350ms ease;
+    --cap-transicion-suave: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ========================================
+       Z-Index
+       ======================================== */
+
+    --cap-z-base: 0;
+    --cap-z-dropdown: 100;
+    --cap-z-sticky: 200;
+    --cap-z-modal-backdrop: 400;
+    --cap-z-modal: 500;
+    --cap-z-tooltip: 600;
+    --cap-z-toast: 700;
+
+    /* ========================================
+       Layout
+       ======================================== */
+
+    --cap-sidebar-ancho: 260px;
+    --cap-sidebar-ancho-colapsado: 72px;
+    --cap-header-alto: 64px;
+    --cap-contenido-max-ancho: 1200px;
+}
+
+/* ========================================
+   Tema Oscuro
+   ======================================== */
+
+[data-theme='dark'],
+.capTemaOscuro {
+    --cap-fondo-base: var(--cap-gris-950);
+    --cap-fondo-tarjeta: var(--cap-gris-900);
+    --cap-fondo-elevado: var(--cap-gris-800);
+    --cap-fondo-sutil: var(--cap-gris-800);
+    --cap-fondo-overlay: hsla(0, 0%, 0%, 0.7);
+
+    --cap-texto-principal: var(--cap-gris-100);
+    --cap-texto-secundario: var(--cap-gris-400);
+    --cap-texto-terciario: var(--cap-gris-500);
+
+    --cap-borde-sutil: var(--cap-gris-800);
+    --cap-borde-medio: var(--cap-gris-700);
+    --cap-borde-fuerte: var(--cap-gris-600);
+
+    /* Ajustes de sombras para modo oscuro */
+    --cap-sombra-sm: 0 1px 3px hsla(0, 0%, 0%, 0.3), 0 1px 2px hsla(0, 0%, 0%, 0.2);
+    --cap-sombra-md: 0 4px 6px hsla(0, 0%, 0%, 0.4), 0 2px 4px hsla(0, 0%, 0%, 0.2);
+    --cap-sombra-lg: 0 10px 15px hsla(0, 0%, 0%, 0.4), 0 4px 6px hsla(0, 0%, 0%, 0.2);
+}
+
+/* ========================================
+   Colores de Asignaturas CAP
+   Cada asignatura tiene su color distintivo
+   ======================================== */
+
+:root {
+    --cap-asignatura-1: hsl(217, 80%, 55%); /* Conducción racional */
+    --cap-asignatura-2: hsl(145, 70%, 45%); /* Reglamentación */
+    --cap-asignatura-3: hsl(40, 85%, 50%); /* Seguridad vial */
+    --cap-asignatura-4: hsl(280, 65%, 55%); /* Servicio y logística */
+    --cap-asignatura-5: hsl(0, 70%, 55%); /* Salud y seguridad */
+    --cap-asignatura-6: hsl(190, 75%, 45%); /* Medio ambiente */
+    --cap-asignatura-7: hsl(320, 60%, 55%); /* Mercancías peligrosas */
+    --cap-asignatura-8: hsl(30, 80%, 50%); /* Viajeros */
+}

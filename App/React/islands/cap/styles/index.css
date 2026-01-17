@@ -1,0 +1,19 @@
+/**
+ * CAP Module - Main Styles
+ * 
+ * Archivo principal de estilos del módulo CAP.
+ * Importa variables, base y estilos de componentes.
+ */
+
+/* Sistema de diseño */
+@import './variables.css';
+@import './base.css';
+
+/* Componentes UI */
+@import '../components/ui/Boton/Boton.css';
+@import '../components/ui/Input/Input.css';
+@import '../components/ui/Tarjeta/Tarjeta.css';
+@import '../components/ui/Modal/Modal.css';
+@import '../components/ui/Alerta/Alerta.css';
+@import '../components/ui/Spinner/Spinner.css';
+@import '../components/ui/Badge/Badge.css';

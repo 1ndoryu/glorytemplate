@@ -1,0 +1,104 @@
+/**
+ * Alerta Component Styles
+ */
+
+.capAlerta {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cap-espacio-sm);
+    padding: var(--cap-espacio-md);
+    border-radius: var(--cap-radio-md);
+    border: 1px solid;
+}
+
+/* Icono */
+.capAlerta__icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Contenido */
+.capAlerta__contenido {
+    flex: 1;
+    min-width: 0;
+}
+
+.capAlerta__titulo {
+    margin: 0 0 var(--cap-espacio-xs) 0;
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-semibold);
+}
+
+.capAlerta__mensaje {
+    margin: 0;
+    font-size: var(--cap-texto-sm);
+    line-height: var(--cap-line-height-relaxed);
+}
+
+/* Botón cerrar */
+.capAlerta__cerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    margin: -4px -4px -4px 0;
+    background: transparent;
+    border: none;
+    border-radius: var(--cap-radio-sm);
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity var(--cap-transicion-rapida);
+}
+
+.capAlerta__cerrar:hover {
+    opacity: 1;
+}
+
+/* Variante: Info */
+.capAlerta--info {
+    background-color: var(--cap-info-50);
+    border-color: var(--cap-info-500);
+    color: var(--cap-primario-800);
+}
+
+.capAlerta--info .capAlerta__icono {
+    color: var(--cap-info-500);
+}
+
+/* Variante: Éxito */
+.capAlerta--exito {
+    background-color: var(--cap-exito-50);
+    border-color: var(--cap-exito-500);
+    color: hsl(145, 70%, 20%);
+}
+
+.capAlerta--exito .capAlerta__icono {
+    color: var(--cap-exito-500);
+}
+
+/* Variante: Advertencia */
+.capAlerta--advertencia {
+    background-color: var(--cap-advertencia-50);
+    border-color: var(--cap-advertencia-500);
+    color: hsl(40, 80%, 20%);
+}
+
+.capAlerta--advertencia .capAlerta__icono {
+    color: var(--cap-advertencia-600);
+}
+
+/* Variante: Error */
+.capAlerta--error {
+    background-color: var(--cap-error-50);
+    border-color: var(--cap-error-500);
+    color: hsl(0, 70%, 25%);
+}
+
+.capAlerta--error .capAlerta__icono {
+    color: var(--cap-error-500);
+}

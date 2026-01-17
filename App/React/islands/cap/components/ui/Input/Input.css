@@ -1,0 +1,135 @@
+/**
+ * Input Component Styles
+ */
+
+.capInput {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-xs);
+    width: 100%;
+}
+
+/* Etiqueta */
+.capInput__etiqueta {
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-medium);
+    color: var(--cap-texto-principal);
+}
+
+/* Contenedor del input */
+.capInput__contenedor {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Campo de entrada */
+.capInput__campo {
+    width: 100%;
+    height: 42px;
+    padding: 0 var(--cap-espacio-md);
+    font-family: var(--cap-fuente-principal);
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-principal);
+    background-color: var(--cap-fondo-tarjeta);
+    border: 1px solid var(--cap-borde-medio);
+    border-radius: var(--cap-radio-md);
+    outline: none;
+    transition: all var(--cap-transicion-rapida);
+}
+
+.capInput__campo::placeholder {
+    color: var(--cap-texto-terciario);
+}
+
+.capInput__campo:hover:not(:disabled) {
+    border-color: var(--cap-borde-fuerte);
+}
+
+.capInput__campo:focus {
+    border-color: var(--cap-primario-500);
+    box-shadow: 0 0 0 3px var(--cap-focus-ring);
+}
+
+.capInput__campo:disabled {
+    background-color: var(--cap-fondo-sutil);
+    color: var(--cap-texto-terciario);
+    cursor: not-allowed;
+}
+
+/* Con icono izquierda */
+.capInput--conIcono .capInput__campo {
+    padding-left: calc(var(--cap-espacio-md) * 2 + 1em);
+}
+
+/* Con icono derecha */
+.capInput--conIconoDerecha .capInput__campo {
+    padding-right: calc(var(--cap-espacio-md) * 2 + 1em);
+}
+
+/* Iconos */
+.capInput__icono {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cap-texto-terciario);
+    pointer-events: none;
+}
+
+.capInput__icono svg {
+    width: 1.125em;
+    height: 1.125em;
+}
+
+.capInput__icono--izquierda {
+    left: var(--cap-espacio-md);
+}
+
+.capInput__icono--derecha {
+    right: var(--cap-espacio-md);
+}
+
+/* Estado error */
+.capInput--error .capInput__campo {
+    border-color: var(--cap-error-500);
+}
+
+.capInput--error .capInput__campo:focus {
+    box-shadow: 0 0 0 3px hsla(0, 75%, 55%, 0.2);
+}
+
+.capInput__error {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-error-500);
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+}
+
+/* Ayuda */
+.capInput__ayuda {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-terciario);
+}
+
+/* Estado deshabilitado */
+.capInput--deshabilitado .capInput__etiqueta {
+    color: var(--cap-texto-terciario);
+}
+
+/* Input tipo number - ocultar spinners */
+.capInput__campo[type='number']::-webkit-inner-spin-button,
+.capInput__campo[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.capInput__campo[type='number'] {
+    -moz-appearance: textfield;
+}
+
+/* Input tipo search - ocultar botón clear */
+.capInput__campo[type='search']::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+}

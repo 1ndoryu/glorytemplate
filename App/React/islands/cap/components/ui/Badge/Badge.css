@@ -1,0 +1,119 @@
+/**
+ * Badge Component Styles
+ */
+
+.capBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cap-espacio-xs);
+    font-family: var(--cap-fuente-principal);
+    font-weight: var(--cap-peso-medium);
+    white-space: nowrap;
+    border-radius: var(--cap-radio-full);
+    vertical-align: middle;
+}
+
+/* Tamaños */
+.capBadge--sm {
+    height: 20px;
+    padding: 0 var(--cap-espacio-sm);
+    font-size: var(--cap-texto-xs);
+}
+
+.capBadge--md {
+    height: 24px;
+    padding: 0 var(--cap-espacio-sm);
+    font-size: var(--cap-texto-xs);
+}
+
+/* Icono */
+.capBadge__icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.capBadge__icono svg {
+    width: 0.875em;
+    height: 0.875em;
+}
+
+/* Variante: Default */
+.capBadge--default {
+    background-color: var(--cap-gris-200);
+    color: var(--cap-texto-secundario);
+}
+
+/* Variante: Primario */
+.capBadge--primario {
+    background-color: var(--cap-primario-100);
+    color: var(--cap-primario-700);
+}
+
+/* Variante: Éxito */
+.capBadge--exito {
+    background-color: var(--cap-exito-100);
+    color: var(--cap-exito-600);
+}
+
+/* Variante: Advertencia */
+.capBadge--advertencia {
+    background-color: var(--cap-advertencia-100);
+    color: var(--cap-advertencia-600);
+}
+
+/* Variante: Error */
+.capBadge--error {
+    background-color: var(--cap-error-100);
+    color: var(--cap-error-600);
+}
+
+/* Variante: Info */
+.capBadge--info {
+    background-color: var(--cap-info-100);
+    color: var(--cap-primario-700);
+}
+
+/* Modo punto (indicador pequeño sin texto) */
+.capBadge--punto {
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    padding: 0;
+}
+
+.capBadge--punto.capBadge--sm {
+    width: 6px;
+    height: 6px;
+    min-width: 6px;
+}
+
+.capBadge--punto.capBadge--default {
+    background-color: var(--cap-gris-400);
+}
+
+.capBadge--punto.capBadge--primario {
+    background-color: var(--cap-primario-500);
+}
+
+.capBadge--punto.capBadge--exito {
+    background-color: var(--cap-exito-500);
+}
+
+.capBadge--punto.capBadge--advertencia {
+    background-color: var(--cap-advertencia-500);
+}
+
+.capBadge--punto.capBadge--error {
+    background-color: var(--cap-error-500);
+}
+
+.capBadge--punto.capBadge--info {
+    background-color: var(--cap-info-500);
+}
+
+/* Animación de pulso para notificaciones */
+.capBadge--pulsando {
+    animation: capPulse 2s ease-in-out infinite;
+}

@@ -1,0 +1,387 @@
+/**
+ * CAP Module - Base Styles
+ * 
+ * Estilos base y utilidades del módulo CAP.
+ * Importar después de variables.css
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ========================================
+   Reset y Base
+   ======================================== */
+
+.capApp {
+    font-family: var(--cap-fuente-principal);
+    font-size: var(--cap-texto-base);
+    line-height: var(--cap-line-height-normal);
+    color: var(--cap-texto-principal);
+    background-color: var(--cap-fondo-base);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.capApp *,
+.capApp *::before,
+.capApp *::after {
+    box-sizing: border-box;
+}
+
+/* ========================================
+   Contenedor Principal
+   ======================================== */
+
+.capContenedor {
+    width: 100%;
+    max-width: var(--cap-contenido-max-ancho);
+    margin: 0 auto;
+    padding: 0 var(--cap-espacio-md);
+}
+
+.capContenedorFluido {
+    width: 100%;
+    padding: 0 var(--cap-espacio-md);
+}
+
+/* ========================================
+   Tipografía
+   ======================================== */
+
+.capTitulo {
+    font-weight: var(--cap-peso-bold);
+    line-height: var(--cap-line-height-tight);
+    color: var(--cap-texto-principal);
+    margin: 0;
+}
+
+.capTitulo--xl {
+    font-size: var(--cap-texto-4xl);
+}
+
+.capTitulo--lg {
+    font-size: var(--cap-texto-3xl);
+}
+
+.capTitulo--md {
+    font-size: var(--cap-texto-2xl);
+}
+
+.capTitulo--sm {
+    font-size: var(--cap-texto-xl);
+}
+
+.capTexto {
+    color: var(--cap-texto-principal);
+    margin: 0;
+}
+
+.capTexto--secundario {
+    color: var(--cap-texto-secundario);
+}
+
+.capTexto--terciario {
+    color: var(--cap-texto-terciario);
+}
+
+.capTexto--sm {
+    font-size: var(--cap-texto-sm);
+}
+
+.capTexto--xs {
+    font-size: var(--cap-texto-xs);
+}
+
+/* ========================================
+   Layout Flex Utilities
+   ======================================== */
+
+.capFlex {
+    display: flex;
+}
+
+.capFlexCol {
+    display: flex;
+    flex-direction: column;
+}
+
+.capFlexCenter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.capFlexBetween {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.capFlexStart {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.capFlexEnd {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.capFlexWrap {
+    flex-wrap: wrap;
+}
+
+.capGap--xs {
+    gap: var(--cap-espacio-xs);
+}
+.capGap--sm {
+    gap: var(--cap-espacio-sm);
+}
+.capGap--md {
+    gap: var(--cap-espacio-md);
+}
+.capGap--lg {
+    gap: var(--cap-espacio-lg);
+}
+.capGap--xl {
+    gap: var(--cap-espacio-xl);
+}
+
+/* ========================================
+   Grid Utilities
+   ======================================== */
+
+.capGrid {
+    display: grid;
+}
+
+.capGrid--2cols {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.capGrid--3cols {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.capGrid--4cols {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 768px) {
+    .capGrid--2cols,
+    .capGrid--3cols,
+    .capGrid--4cols {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   Espaciado
+   ======================================== */
+
+.capMb--xs {
+    margin-bottom: var(--cap-espacio-xs);
+}
+.capMb--sm {
+    margin-bottom: var(--cap-espacio-sm);
+}
+.capMb--md {
+    margin-bottom: var(--cap-espacio-md);
+}
+.capMb--lg {
+    margin-bottom: var(--cap-espacio-lg);
+}
+.capMb--xl {
+    margin-bottom: var(--cap-espacio-xl);
+}
+
+.capMt--xs {
+    margin-top: var(--cap-espacio-xs);
+}
+.capMt--sm {
+    margin-top: var(--cap-espacio-sm);
+}
+.capMt--md {
+    margin-top: var(--cap-espacio-md);
+}
+.capMt--lg {
+    margin-top: var(--cap-espacio-lg);
+}
+.capMt--xl {
+    margin-top: var(--cap-espacio-xl);
+}
+
+.capP--xs {
+    padding: var(--cap-espacio-xs);
+}
+.capP--sm {
+    padding: var(--cap-espacio-sm);
+}
+.capP--md {
+    padding: var(--cap-espacio-md);
+}
+.capP--lg {
+    padding: var(--cap-espacio-lg);
+}
+.capP--xl {
+    padding: var(--cap-espacio-xl);
+}
+
+/* ========================================
+   Estados Interactivos
+   ======================================== */
+
+.capInteractivo {
+    cursor: pointer;
+    transition: all var(--cap-transicion-rapida);
+}
+
+.capInteractivo:hover {
+    opacity: 0.85;
+}
+
+.capInteractivo:active {
+    transform: scale(0.98);
+}
+
+/* Focus visible para accesibilidad */
+.capFocusVisible:focus-visible {
+    outline: 2px solid var(--cap-primario-500);
+    outline-offset: 2px;
+}
+
+/* ========================================
+   Animaciones Base
+   ======================================== */
+
+@keyframes capFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes capSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes capSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes capScaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes capSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes capPulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.capAnimFadeIn {
+    animation: capFadeIn var(--cap-transicion-normal) ease forwards;
+}
+
+.capAnimSlideUp {
+    animation: capSlideUp var(--cap-transicion-normal) ease forwards;
+}
+
+.capAnimScaleIn {
+    animation: capScaleIn var(--cap-transicion-normal) ease forwards;
+}
+
+/* ========================================
+   Scrollbar Personalizado
+   ======================================== */
+
+.capApp ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.capApp ::-webkit-scrollbar-track {
+    background: var(--cap-fondo-sutil);
+    border-radius: var(--cap-radio-full);
+}
+
+.capApp ::-webkit-scrollbar-thumb {
+    background: var(--cap-gris-400);
+    border-radius: var(--cap-radio-full);
+}
+
+.capApp ::-webkit-scrollbar-thumb:hover {
+    background: var(--cap-gris-500);
+}
+
+/* ========================================
+   Ocultar Elementos
+   ======================================== */
+
+.capSrOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.capOcultoMovil {
+    display: block;
+}
+
+.capVisibleMovil {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .capOcultoMovil {
+        display: none;
+    }
+
+    .capVisibleMovil {
+        display: block;
+    }
+}

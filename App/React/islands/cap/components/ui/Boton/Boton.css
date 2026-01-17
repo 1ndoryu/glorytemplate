@@ -1,0 +1,154 @@
+/**
+ * Boton Component Styles
+ */
+
+.capBoton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cap-espacio-sm);
+    font-family: var(--cap-fuente-principal);
+    font-weight: var(--cap-peso-medium);
+    border: none;
+    border-radius: var(--cap-radio-md);
+    cursor: pointer;
+    transition: all var(--cap-transicion-rapida);
+    outline: none;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.capBoton:focus-visible {
+    box-shadow: 0 0 0 3px var(--cap-focus-ring);
+}
+
+.capBoton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Tamaños */
+.capBoton--sm {
+    height: 32px;
+    padding: 0 var(--cap-espacio-sm);
+    font-size: var(--cap-texto-sm);
+}
+
+.capBoton--md {
+    height: 40px;
+    padding: 0 var(--cap-espacio-md);
+    font-size: var(--cap-texto-sm);
+}
+
+.capBoton--lg {
+    height: 48px;
+    padding: 0 var(--cap-espacio-lg);
+    font-size: var(--cap-texto-base);
+}
+
+/* Variante: Primario */
+.capBoton--primario {
+    background: linear-gradient(135deg, var(--cap-primario-500) 0%, var(--cap-primario-600) 100%);
+    color: var(--cap-texto-invertido);
+    box-shadow: var(--cap-sombra-sm);
+}
+
+.capBoton--primario:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--cap-primario-400) 0%, var(--cap-primario-500) 100%);
+    box-shadow: var(--cap-sombra-md);
+    transform: translateY(-1px);
+}
+
+.capBoton--primario:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: var(--cap-sombra-xs);
+}
+
+/* Variante: Secundario */
+.capBoton--secundario {
+    background: var(--cap-fondo-sutil);
+    color: var(--cap-texto-principal);
+    border: 1px solid var(--cap-borde-medio);
+}
+
+.capBoton--secundario:hover:not(:disabled) {
+    background: var(--cap-gris-200);
+    border-color: var(--cap-borde-fuerte);
+}
+
+/* Variante: Peligro */
+.capBoton--peligro {
+    background: linear-gradient(135deg, var(--cap-error-500) 0%, var(--cap-error-600) 100%);
+    color: var(--cap-texto-invertido);
+    box-shadow: var(--cap-sombra-sm);
+}
+
+.capBoton--peligro:hover:not(:disabled) {
+    opacity: 0.9;
+    box-shadow: var(--cap-sombra-md);
+    transform: translateY(-1px);
+}
+
+/* Variante: Ghost */
+.capBoton--ghost {
+    background: transparent;
+    color: var(--cap-texto-principal);
+}
+
+.capBoton--ghost:hover:not(:disabled) {
+    background: var(--cap-fondo-sutil);
+}
+
+/* Variante: Outline */
+.capBoton--outline {
+    background: transparent;
+    color: var(--cap-primario-600);
+    border: 1px solid var(--cap-primario-500);
+}
+
+.capBoton--outline:hover:not(:disabled) {
+    background: var(--cap-primario-50);
+}
+
+/* Modificadores */
+.capBoton--anchoCompleto {
+    width: 100%;
+}
+
+.capBoton--iconoDerecha {
+    flex-direction: row-reverse;
+}
+
+.capBoton--cargando {
+    position: relative;
+    pointer-events: none;
+}
+
+/* Icono */
+.capBoton__icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.capBoton__icono svg {
+    width: 1.125em;
+    height: 1.125em;
+}
+
+/* Spinner de carga */
+.capBoton__spinner {
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: var(--cap-radio-full);
+    animation: capSpin 0.6s linear infinite;
+}
+
+/* Texto */
+.capBoton__texto {
+    display: inline-flex;
+    align-items: center;
+}

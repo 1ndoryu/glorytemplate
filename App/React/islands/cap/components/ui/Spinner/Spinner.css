@@ -1,0 +1,64 @@
+/**
+ * Spinner Component Styles
+ */
+
+.capSpinner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cap-espacio-sm);
+    color: var(--cap-primario-500);
+}
+
+/* Icono SVG */
+.capSpinner__icono {
+    animation: capSpin 1s linear infinite;
+}
+
+.capSpinner__circulo {
+    opacity: 0.25;
+}
+
+.capSpinner__arco {
+    opacity: 1;
+}
+
+/* Tamaños */
+.capSpinner--sm .capSpinner__icono {
+    width: 16px;
+    height: 16px;
+}
+
+.capSpinner--md .capSpinner__icono {
+    width: 24px;
+    height: 24px;
+}
+
+.capSpinner--lg .capSpinner__icono {
+    width: 40px;
+    height: 40px;
+}
+
+/* Texto */
+.capSpinner__texto {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+}
+
+.capSpinner--sm .capSpinner__texto {
+    font-size: var(--cap-texto-xs);
+}
+
+.capSpinner--lg .capSpinner__texto {
+    font-size: var(--cap-texto-base);
+}
+
+/* Spinner de pantalla completa */
+.capSpinnerPantalla {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    gap: var(--cap-espacio-md);
+}

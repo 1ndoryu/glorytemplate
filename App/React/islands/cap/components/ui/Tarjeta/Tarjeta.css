@@ -1,0 +1,96 @@
+/**
+ * Tarjeta Component Styles
+ */
+
+.capTarjeta {
+    background-color: var(--cap-fondo-tarjeta);
+    border-radius: var(--cap-radio-lg);
+    transition: all var(--cap-transicion-normal);
+}
+
+/* Variantes */
+.capTarjeta--default {
+    box-shadow: var(--cap-sombra-sm);
+    border: 1px solid var(--cap-borde-sutil);
+}
+
+.capTarjeta--elevada {
+    box-shadow: var(--cap-sombra-lg);
+}
+
+.capTarjeta--outline {
+    box-shadow: none;
+    border: 1px solid var(--cap-borde-medio);
+}
+
+.capTarjeta--sutil {
+    background-color: var(--cap-fondo-sutil);
+    box-shadow: none;
+    border: none;
+}
+
+/* Padding */
+.capTarjeta--padding-none {
+    padding: 0;
+}
+
+.capTarjeta--padding-sm {
+    padding: var(--cap-espacio-sm);
+}
+
+.capTarjeta--padding-md {
+    padding: var(--cap-espacio-md);
+}
+
+.capTarjeta--padding-lg {
+    padding: var(--cap-espacio-lg);
+}
+
+/* Interactiva */
+.capTarjeta--interactiva {
+    cursor: pointer;
+}
+
+.capTarjeta--interactiva:hover {
+    box-shadow: var(--cap-sombra-md);
+    transform: translateY(-2px);
+    border-color: var(--cap-primario-300);
+}
+
+.capTarjeta--interactiva:active {
+    transform: translateY(0);
+    box-shadow: var(--cap-sombra-sm);
+}
+
+/* Subcomponentes */
+.capTarjeta__header {
+    padding-bottom: var(--cap-espacio-md);
+    border-bottom: 1px solid var(--cap-borde-sutil);
+    margin-bottom: var(--cap-espacio-md);
+}
+
+.capTarjeta__body {
+    flex: 1;
+}
+
+.capTarjeta__footer {
+    padding-top: var(--cap-espacio-md);
+    border-top: 1px solid var(--cap-borde-sutil);
+    margin-top: var(--cap-espacio-md);
+}
+
+/* Ajuste cuando está dentro de tarjeta sin padding */
+.capTarjeta--padding-none .capTarjeta__header,
+.capTarjeta--padding-none .capTarjeta__body,
+.capTarjeta--padding-none .capTarjeta__footer {
+    padding-left: var(--cap-espacio-md);
+    padding-right: var(--cap-espacio-md);
+}
+
+.capTarjeta--padding-none .capTarjeta__header {
+    padding-top: var(--cap-espacio-md);
+}
+
+.capTarjeta--padding-none .capTarjeta__footer {
+    padding-bottom: var(--cap-espacio-md);
+}
