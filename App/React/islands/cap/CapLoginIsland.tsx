@@ -7,41 +7,9 @@
 
 import {useState, type FormEvent} from 'react';
 import {Input, Boton, Alerta} from './components/ui';
+import {IconoUsuario, IconoCandado, IconoLogoCap} from './components/icons';
 import './styles/index.css';
 import './components/auth/login.css';
-
-/* Iconos inline para evitar dependencias */
-function IconoUsuario() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-        </svg>
-    );
-}
-
-function IconoCandado() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
-    );
-}
-
-function IconoLogo() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M8 6v6" />
-            <path d="M15 6v6" />
-            <path d="M2 12h19.6" />
-            <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" />
-            <circle cx="7" cy="18" r="2" />
-            <path d="M9 18h5" />
-            <circle cx="16" cy="18" r="2" />
-        </svg>
-    );
-}
 
 interface CapLoginIslandProps {
     siteUrl?: string;
@@ -126,7 +94,7 @@ export function CapLoginIsland({siteUrl = '', redirectTo = '/cap-dashboard/', re
                     {/* Header */}
                     <div className="capLoginHeader">
                         <div className="capLoginLogo">
-                            <IconoLogo />
+                            <IconoLogoCap size={40} />
                         </div>
                         <h1 className="capLoginTitulo">Bienvenido</h1>
                         <p className="capLoginSubtitulo">Accede a tu panel de gestión CAP</p>

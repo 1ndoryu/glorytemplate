@@ -80,3 +80,27 @@ PageManager::reactPage('cap-dashboard', 'CapDashboardIsland', function ($pageId)
         'siteUrl' => home_url(),
     ];
 });
+
+/*
+ * H.2 Fix: Redirección inteligente en la página de inicio
+ * Si el usuario está logueado con rol cap_admin -> dashboard
+ * Si no está logueado -> login
+ */
+add_action('template_redirect', function () {
+    /* Solo aplicar en la página de inicio */
+    if (!is_front_page()) {
+        return;
+    }
+
+    if (is_user_logged_in()) {
+        $user = wp_get_current_user();
+        if (in_array('cap_admin', $user->roles) || in_array('administrator', $user->roles)) {
+            wp_redirect(home_url('/cap-dashboard/'));
+            exit;
+        }
+    }
+
+    /* Usuario no logueado o sin rol CAP -> login */
+    wp_redirect(home_url('/cap-login/'));
+    exit;
+});

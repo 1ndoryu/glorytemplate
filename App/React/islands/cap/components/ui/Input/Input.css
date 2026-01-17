@@ -59,12 +59,12 @@
 
 /* Con icono izquierda */
 .capInput--conIcono .capInput__campo {
-    padding-left: calc(var(--cap-espacio-md) * 2 + 1em);
+    padding-left: calc(var(--cap-espacio-md) + 28px);
 }
 
 /* Con icono derecha */
 .capInput--conIconoDerecha .capInput__campo {
-    padding-right: calc(var(--cap-espacio-md) * 2 + 1em);
+    padding-right: calc(var(--cap-espacio-md) + 28px);
 }
 
 /* Iconos */

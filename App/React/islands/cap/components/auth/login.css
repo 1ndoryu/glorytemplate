@@ -139,9 +139,9 @@
     background: var(--cap-gris-50);
     border: 1.5px solid var(--cap-gris-200);
     border-radius: var(--cap-radio-md);
-    padding: var(--cap-espacio-md);
     font-size: var(--cap-texto-base);
     transition: all var(--cap-transicion-rapida);
+    /* H.1 Fix: No sobrescribir padding, se hereda del componente Input base */
 }
 
 .capLoginFormulario .capInput__campo:focus {

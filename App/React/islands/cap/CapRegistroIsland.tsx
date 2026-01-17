@@ -7,68 +7,9 @@
 
 import {useState, type FormEvent} from 'react';
 import {Input, Boton, Alerta} from './components/ui';
+import {IconoUsuario, IconoCorreo, IconoCandado, IconoEdificio, IconoLogoCap, IconoCheck} from './components/icons';
 import './styles/index.css';
 import './components/auth/login.css';
-
-/* Iconos inline */
-function IconoUsuario() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-        </svg>
-    );
-}
-
-function IconoCorreo() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="20" height="16" x="2" y="4" rx="2" />
-            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-        </svg>
-    );
-}
-
-function IconoCandado() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
-    );
-}
-
-function IconoEdificio() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
-            <path d="M9 22v-4h6v4" />
-            <path d="M8 6h.01" />
-            <path d="M16 6h.01" />
-            <path d="M12 6h.01" />
-            <path d="M12 10h.01" />
-            <path d="M12 14h.01" />
-            <path d="M16 10h.01" />
-            <path d="M16 14h.01" />
-            <path d="M8 10h.01" />
-            <path d="M8 14h.01" />
-        </svg>
-    );
-}
-
-function IconoLogo() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M8 6v6" />
-            <path d="M15 6v6" />
-            <path d="M2 12h19.6" />
-            <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" />
-            <circle cx="7" cy="18" r="2" />
-            <path d="M9 18h5" />
-            <circle cx="16" cy="18" r="2" />
-        </svg>
-    );
-}
 
 interface CapRegistroIslandProps {
     restUrl?: string;
@@ -195,10 +136,7 @@ export function CapRegistroIsland({restUrl = '/wp-json/cap/v1', restNonce = '', 
                     <div className="capLoginTarjeta">
                         <div className="capLoginHeader">
                             <div className="capLoginLogo" style={{background: 'linear-gradient(135deg, var(--cap-exito-500), var(--cap-exito-600))'}}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                    <polyline points="22 4 12 14.01 9 11.01" />
-                                </svg>
+                                <IconoCheck size={40} />
                             </div>
                             <h1 className="capLoginTitulo">¡Registro Exitoso!</h1>
                             <p className="capLoginSubtitulo">Tu cuenta ha sido creada correctamente</p>
@@ -224,7 +162,7 @@ export function CapRegistroIsland({restUrl = '/wp-json/cap/v1', restNonce = '', 
                     {/* Header */}
                     <div className="capLoginHeader">
                         <div className="capLoginLogo">
-                            <IconoLogo />
+                            <IconoLogoCap size={40} />
                         </div>
                         <h1 className="capLoginTitulo">Crear Cuenta</h1>
                         <p className="capLoginSubtitulo">Registra tu autoescuela en la plataforma CAP</p>
