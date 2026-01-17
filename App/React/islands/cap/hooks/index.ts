@@ -12,3 +12,5 @@ export type {Alumno, FiltrosAlumnos} from './useAlumnos';
 
 export {useDisponibilidad, DIAS_SEMANA, HORAS_DISPONIBLES} from './useDisponibilidad';
 export type {DiaSemana, SlotDisponibilidad, DisponibilidadAlumno} from './useDisponibilidad';
+
+export {useCalendario} from './useCalendario';

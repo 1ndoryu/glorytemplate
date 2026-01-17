@@ -1,0 +1,490 @@
+/**
+ * Estilos del módulo Calendario CAP
+ * 
+ * Grid semanal, tarjetas de clase, navegación y estados visuales.
+ */
+
+/* Contenedor principal del calendario */
+.capCalendario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+}
+
+/* Header del calendario con navegación */
+.capCalendario__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--cap-espacio-md);
+}
+
+.capCalendario__titulo {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+}
+
+.capCalendario__semanaInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.capCalendario__semanaLabel {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+}
+
+.capCalendario__semanaFechas {
+    font-size: var(--cap-texto-lg);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-principal);
+}
+
+/* Navegador de semanas */
+.capNavegadorSemana {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+}
+
+.capNavegadorSemana__boton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--cap-borde-medio);
+    background: var(--cap-fondo-tarjeta);
+    border-radius: var(--cap-radio-md);
+    color: var(--cap-texto-principal);
+    cursor: pointer;
+    transition: all var(--cap-transicion-rapida);
+}
+
+.capNavegadorSemana__boton:hover {
+    background: var(--cap-fondo-sutil);
+    border-color: var(--cap-primario-500);
+    color: var(--cap-primario-500);
+}
+
+.capNavegadorSemana__boton:active {
+    transform: scale(0.95);
+}
+
+.capNavegadorSemana__hoy {
+    padding: var(--cap-espacio-xs) var(--cap-espacio-md);
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-medium);
+    border: 1px solid var(--cap-borde-medio);
+    background: var(--cap-fondo-tarjeta);
+    border-radius: var(--cap-radio-md);
+    color: var(--cap-texto-principal);
+    cursor: pointer;
+    transition: all var(--cap-transicion-rapida);
+}
+
+.capNavegadorSemana__hoy:hover {
+    background: var(--cap-primario-50);
+    border-color: var(--cap-primario-500);
+    color: var(--cap-primario-500);
+}
+
+/* Barra de acciones */
+.capBarraAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    flex-wrap: wrap;
+}
+
+.capBarraAcciones__separador {
+    width: 1px;
+    height: 24px;
+    background: var(--cap-borde-medio);
+    margin: 0 var(--cap-espacio-xs);
+}
+
+/* Grid semanal del calendario */
+.capCalendarioGrid {
+    display: grid;
+    grid-template-columns: 60px repeat(5, 1fr);
+    gap: 1px;
+    background: var(--cap-borde-sutil);
+    border: 1px solid var(--cap-borde-sutil);
+    border-radius: var(--cap-radio-lg);
+    overflow: hidden;
+    min-height: 500px;
+}
+
+/* Columna de horas (izquierda) */
+.capCalendarioGrid__horas {
+    background: var(--cap-fondo-sutil);
+    display: flex;
+    flex-direction: column;
+}
+
+.capCalendarioGrid__horaHeader {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cap-fondo-tarjeta);
+    border-bottom: 1px solid var(--cap-borde-sutil);
+}
+
+.capCalendarioGrid__horaSlot {
+    height: 60px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: var(--cap-espacio-xs);
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-terciario);
+    background: var(--cap-fondo-tarjeta);
+    border-bottom: 1px solid var(--cap-borde-sutil);
+}
+
+/* Columna de día */
+.capColumnaDia {
+    background: var(--cap-fondo-tarjeta);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.capColumnaDia__header {
+    height: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cap-espacio-xs);
+    border-bottom: 1px solid var(--cap-borde-sutil);
+    background: var(--cap-fondo-sutil);
+}
+
+.capColumnaDia__nombre {
+    font-size: var(--cap-texto-xs);
+    font-weight: var(--cap-peso-medium);
+    color: var(--cap-texto-secundario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.capColumnaDia__fecha {
+    font-size: var(--cap-texto-lg);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-principal);
+}
+
+.capColumnaDia--hoy .capColumnaDia__header {
+    background: var(--cap-primario-50);
+}
+
+.capColumnaDia--hoy .capColumnaDia__fecha {
+    background: var(--cap-primario-500);
+    color: var(--cap-texto-invertido);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--cap-radio-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Contenedor de slots del día */
+.capColumnaDia__slots {
+    flex: 1;
+    position: relative;
+    padding: var(--cap-espacio-xs);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-xs);
+}
+
+.capColumnaDia__vacia {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--cap-texto-terciario);
+    font-size: var(--cap-texto-sm);
+    padding: var(--cap-espacio-lg);
+    text-align: center;
+}
+
+/* Tarjeta de clase */
+.capTarjetaClase {
+    background: var(--cap-fondo-tarjeta);
+    border-radius: var(--cap-radio-md);
+    border-left: 4px solid var(--cap-primario-500);
+    padding: var(--cap-espacio-sm);
+    cursor: pointer;
+    transition: all var(--cap-transicion-rapida);
+    position: relative;
+    overflow: hidden;
+}
+
+.capTarjetaClase:hover {
+    box-shadow: var(--cap-sombra-md);
+    transform: translateY(-1px);
+}
+
+.capTarjetaClase--bloqueada {
+    background: var(--cap-error-50);
+    border-left-color: var(--cap-error-500);
+}
+
+.capTarjetaClase--bloqueada::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(45deg, transparent, transparent 10px, hsla(0, 0%, 0%, 0.03) 10px, hsla(0, 0%, 0%, 0.03) 20px);
+    pointer-events: none;
+}
+
+/* Colores de asignaturas aplicados al borde */
+.capTarjetaClase[data-asignatura='1'] {
+    border-left-color: var(--cap-asignatura-1);
+}
+.capTarjetaClase[data-asignatura='2'] {
+    border-left-color: var(--cap-asignatura-2);
+}
+.capTarjetaClase[data-asignatura='3'] {
+    border-left-color: var(--cap-asignatura-3);
+}
+.capTarjetaClase[data-asignatura='4'] {
+    border-left-color: var(--cap-asignatura-4);
+}
+.capTarjetaClase[data-asignatura='5'] {
+    border-left-color: var(--cap-asignatura-5);
+}
+.capTarjetaClase[data-asignatura='6'] {
+    border-left-color: var(--cap-asignatura-6);
+}
+.capTarjetaClase[data-asignatura='7'] {
+    border-left-color: var(--cap-asignatura-7);
+}
+.capTarjetaClase[data-asignatura='8'] {
+    border-left-color: var(--cap-asignatura-8);
+}
+
+.capTarjetaClase__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--cap-espacio-xs);
+    margin-bottom: var(--cap-espacio-xs);
+}
+
+.capTarjetaClase__asignatura {
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-principal);
+    line-height: 1.2;
+}
+
+.capTarjetaClase__codigo {
+    font-size: var(--cap-texto-xs);
+    font-weight: var(--cap-peso-bold);
+    color: var(--cap-texto-invertido);
+    background: var(--cap-primario-500);
+    padding: 2px 6px;
+    border-radius: var(--cap-radio-sm);
+    flex-shrink: 0;
+}
+
+.capTarjetaClase[data-asignatura='1'] .capTarjetaClase__codigo {
+    background: var(--cap-asignatura-1);
+}
+.capTarjetaClase[data-asignatura='2'] .capTarjetaClase__codigo {
+    background: var(--cap-asignatura-2);
+}
+.capTarjetaClase[data-asignatura='3'] .capTarjetaClase__codigo {
+    background: var(--cap-asignatura-3);
+}
+.capTarjetaClase[data-asignatura='4'] .capTarjetaClase__codigo {
+    background: var(--cap-asignatura-4);
+}
+.capTarjetaClase[data-asignatura='5'] .capTarjetaClase__codigo {
+    background: var(--cap-asignatura-5);
+}
+.capTarjetaClase[data-asignatura='6'] .capTarjetaClase__codigo {
+    background: var(--cap-asignatura-6);
+}
+.capTarjetaClase[data-asignatura='7'] .capTarjetaClase__codigo {
+    background: var(--cap-asignatura-7);
+}
+.capTarjetaClase[data-asignatura='8'] .capTarjetaClase__codigo {
+    background: var(--cap-asignatura-8);
+}
+
+.capTarjetaClase__horario {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-secundario);
+    margin-bottom: var(--cap-espacio-xs);
+}
+
+.capTarjetaClase__horario svg {
+    flex-shrink: 0;
+}
+
+.capTarjetaClase__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cap-espacio-xs);
+}
+
+.capTarjetaClase__alumnos {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-secundario);
+}
+
+.capTarjetaClase__bloqueo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--cap-texto-terciario);
+    cursor: pointer;
+    border-radius: var(--cap-radio-sm);
+    transition: all var(--cap-transicion-rapida);
+}
+
+.capTarjetaClase__bloqueo:hover {
+    background: var(--cap-fondo-sutil);
+    color: var(--cap-error-500);
+}
+
+.capTarjetaClase--bloqueada .capTarjetaClase__bloqueo {
+    color: var(--cap-error-500);
+}
+
+/* Estado vacío del calendario */
+.capCalendario__vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cap-espacio-3xl);
+    text-align: center;
+    grid-column: 2 / -1;
+    background: var(--cap-fondo-tarjeta);
+}
+
+.capCalendario__vacioIcono {
+    color: var(--cap-texto-terciario);
+    margin-bottom: var(--cap-espacio-md);
+}
+
+.capCalendario__vacioTexto {
+    font-size: var(--cap-texto-lg);
+    color: var(--cap-texto-secundario);
+    margin-bottom: var(--cap-espacio-lg);
+}
+
+/* Indicador de semana actual */
+.capIndicadorSemana {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+    padding: var(--cap-espacio-xs) var(--cap-espacio-sm);
+    background: var(--cap-exito-50);
+    color: var(--cap-exito-600);
+    border-radius: var(--cap-radio-full);
+    font-size: var(--cap-texto-xs);
+    font-weight: var(--cap-peso-medium);
+}
+
+.capIndicadorSemana__punto {
+    width: 6px;
+    height: 6px;
+    background: var(--cap-exito-500);
+    border-radius: var(--cap-radio-full);
+    animation: capPulse 2s infinite;
+}
+
+/* Tooltip de clase (al hacer hover) */
+.capTarjetaClase__tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--cap-espacio-sm);
+    background: var(--cap-gris-900);
+    color: var(--cap-gris-100);
+    border-radius: var(--cap-radio-md);
+    font-size: var(--cap-texto-xs);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--cap-transicion-rapida);
+    z-index: var(--cap-z-tooltip);
+    pointer-events: none;
+}
+
+.capTarjetaClase:hover .capTarjetaClase__tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-4px);
+}
+
+/* Estado de carga del calendario */
+.capCalendario__cargando {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cap-espacio-3xl);
+    grid-column: 1 / -1;
+    background: var(--cap-fondo-tarjeta);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .capCalendarioGrid {
+        grid-template-columns: 50px repeat(5, 1fr);
+    }
+
+    .capTarjetaClase__asignatura {
+        font-size: var(--cap-texto-xs);
+    }
+}
+
+@media (max-width: 768px) {
+    .capCalendario__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .capBarraAcciones {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    /* En móvil, scroll horizontal para el grid */
+    .capCalendarioGrid {
+        overflow-x: auto;
+        min-width: 700px;
+    }
+
+    .capColumnaDia__nombre {
+        font-size: 10px;
+    }
+}

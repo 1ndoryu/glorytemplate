@@ -2,13 +2,21 @@
  * SeccionCalendario
  *
  * Vista del calendario de clases CAP.
- * Placeholder que se implementará en Fase 5.
+ * Integra el calendario semanal con navegación y generación.
  */
 
-import {Boton, Tarjeta, TarjetaBody} from '../ui';
-import {IconoCalendario} from '../icons';
+import {CalendarioSemanal} from '../calendario';
+import {useCalendario} from '../../hooks/useCalendario';
+import {Alerta} from '../ui';
 
 export function SeccionCalendario() {
+    const {clases, semanaActual, fechasSemana, cargando, error, generando, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario} = useCalendario();
+
+    const handleClaseClick = (clase: any) => {
+        /* TO-DO: Abrir modal de detalle/edición de clase */
+        console.log('Clase seleccionada:', clase);
+    };
+
     return (
         <div className="capSeccion capAnimFadeIn">
             <div className="capSeccion__header">
@@ -16,18 +24,15 @@ export function SeccionCalendario() {
                 <p className="capTexto capTexto--secundario">Gestiona las clases del curso CAP</p>
             </div>
 
-            <Tarjeta className="capMt--lg">
-                <TarjetaBody>
-                    <div className="capPlaceholder">
-                        <IconoCalendario size={48} />
-                        <h3 className="capTitulo capTitulo--sm capMt--md">Próximamente</h3>
-                        <p className="capTexto capTexto--secundario capMt--sm">El calendario de clases estará disponible en la siguiente fase de desarrollo.</p>
-                        <Boton variante="primario" className="capMt--lg" disabled>
-                            Generar Calendario
-                        </Boton>
-                    </div>
-                </TarjetaBody>
-            </Tarjeta>
+            {error && (
+                <Alerta variante="error" className="capMt--md" cerrable>
+                    {error}
+                </Alerta>
+            )}
+
+            <div className="capMt--lg">
+                <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={generarCalendario} onClaseClick={handleClaseClick} />
+            </div>
         </div>
     );
 }
