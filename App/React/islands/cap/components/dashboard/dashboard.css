@@ -1,0 +1,365 @@
+/**
+ * CAP Dashboard - Estilos
+ * 
+ * Layout principal con sidebar y área de contenido.
+ */
+
+/* ========================================
+   Layout Principal
+   ======================================== */
+
+.capDashboard {
+    display: flex;
+    min-height: 100vh;
+    background: var(--cap-fondo-base);
+}
+
+/* ========================================
+   Sidebar
+   ======================================== */
+
+.capDashboard__sidebar {
+    width: var(--cap-sidebar-ancho);
+    background: var(--cap-fondo-tarjeta);
+    border-right: 1px solid var(--cap-borde-sutil);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: var(--cap-z-sticky);
+    transition: transform var(--cap-transicion-normal);
+}
+
+/* Header del sidebar */
+.capSidebar__header {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    padding: var(--cap-espacio-lg);
+    border-bottom: 1px solid var(--cap-borde-sutil);
+}
+
+.capSidebar__logo {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--cap-primario-500), var(--cap-secundario-500));
+    border-radius: var(--cap-radio-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px hsla(217, 80%, 50%, 0.25);
+}
+
+.capSidebar__titulo {
+    font-size: var(--cap-texto-lg);
+    font-weight: var(--cap-peso-bold);
+    color: var(--cap-texto-principal);
+    letter-spacing: -0.025em;
+}
+
+/* Navegación */
+.capSidebar__nav {
+    flex: 1;
+    padding: var(--cap-espacio-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-xs);
+    overflow-y: auto;
+}
+
+.capSidebar__item {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    border-radius: var(--cap-radio-md);
+    border: none;
+    background: transparent;
+    color: var(--cap-texto-secundario);
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-medium);
+    cursor: pointer;
+    transition: all var(--cap-transicion-rapida);
+    text-align: left;
+    width: 100%;
+}
+
+.capSidebar__item:hover {
+    background: var(--cap-fondo-sutil);
+    color: var(--cap-texto-principal);
+}
+
+.capSidebar__item--activo {
+    background: var(--cap-primario-50);
+    color: var(--cap-primario-600);
+}
+
+.capSidebar__item--activo:hover {
+    background: var(--cap-primario-100);
+}
+
+.capSidebar__itemIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.capSidebar__itemLabel {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Footer del sidebar */
+.capSidebar__footer {
+    padding: var(--cap-espacio-md);
+    border-top: 1px solid var(--cap-borde-sutil);
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+}
+
+.capSidebar__usuario {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    flex: 1;
+    min-width: 0;
+}
+
+.capSidebar__avatar {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--cap-primario-400), var(--cap-primario-600));
+    border-radius: var(--cap-radio-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: var(--cap-peso-semibold);
+    font-size: var(--cap-texto-sm);
+    flex-shrink: 0;
+}
+
+.capSidebar__usuarioInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.capSidebar__usuarioNombre {
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-medium);
+    color: var(--cap-texto-principal);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.capSidebar__cerrarSesion {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: var(--cap-radio-md);
+    color: var(--cap-texto-terciario);
+    cursor: pointer;
+    transition: all var(--cap-transicion-rapida);
+    flex-shrink: 0;
+}
+
+.capSidebar__cerrarSesion:hover {
+    background: var(--cap-error-50);
+    color: var(--cap-error-500);
+}
+
+/* ========================================
+   Área Principal
+   ======================================== */
+
+.capDashboard__main {
+    flex: 1;
+    margin-left: var(--cap-sidebar-ancho);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header móvil */
+.capDashboard__header {
+    display: none;
+    align-items: center;
+    gap: var(--cap-espacio-md);
+    padding: var(--cap-espacio-md);
+    background: var(--cap-fondo-tarjeta);
+    border-bottom: 1px solid var(--cap-borde-sutil);
+    position: sticky;
+    top: 0;
+    z-index: var(--cap-z-sticky);
+}
+
+.capDashboard__menuBtn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: var(--cap-radio-md);
+    color: var(--cap-texto-principal);
+    cursor: pointer;
+    transition: background var(--cap-transicion-rapida);
+}
+
+.capDashboard__menuBtn:hover {
+    background: var(--cap-fondo-sutil);
+}
+
+.capDashboard__headerTitulo {
+    flex: 1;
+    font-size: var(--cap-texto-lg);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-principal);
+    margin: 0;
+}
+
+.capDashboard__headerAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+}
+
+/* Contenido */
+.capDashboard__contenido {
+    flex: 1;
+    padding: var(--cap-espacio-xl);
+}
+
+/* Overlay móvil */
+.capDashboard__overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--cap-fondo-overlay);
+    z-index: calc(var(--cap-z-sticky) - 1);
+    animation: capFadeIn var(--cap-transicion-rapida) ease forwards;
+}
+
+/* ========================================
+   Secciones
+   ======================================== */
+
+.capSeccion__header {
+    margin-bottom: var(--cap-espacio-lg);
+}
+
+/* Placeholder para secciones en desarrollo */
+.capPlaceholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cap-espacio-3xl) var(--cap-espacio-lg);
+    text-align: center;
+}
+
+.capPlaceholder svg {
+    width: 48px;
+    height: 48px;
+    color: var(--cap-gris-300);
+}
+
+/* Items de configuración */
+.capConfigItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--cap-espacio-sm) 0;
+    border-bottom: 1px solid var(--cap-borde-sutil);
+}
+
+.capConfigItem:last-of-type {
+    border-bottom: none;
+}
+
+.capConfigItem__label {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+}
+
+.capConfigItem__value {
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-medium);
+    color: var(--cap-texto-principal);
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .capDashboard__contenido {
+        padding: var(--cap-espacio-lg);
+    }
+}
+
+@media (max-width: 768px) {
+    .capDashboard__sidebar {
+        transform: translateX(-100%);
+    }
+
+    .capDashboard__sidebar--abierto {
+        transform: translateX(0);
+        box-shadow: var(--cap-sombra-xl);
+    }
+
+    .capDashboard__main {
+        margin-left: 0;
+    }
+
+    .capDashboard__header {
+        display: flex;
+    }
+
+    .capDashboard__overlay {
+        display: block;
+    }
+
+    .capDashboard__contenido {
+        padding: var(--cap-espacio-md);
+    }
+
+    .capGrid--2cols {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   Tema Oscuro
+   ======================================== */
+
+[data-theme='dark'] .capSidebar__item--activo {
+    background: hsla(217, 80%, 50%, 0.15);
+    color: var(--cap-primario-400);
+}
+
+[data-theme='dark'] .capSidebar__item--activo:hover {
+    background: hsla(217, 80%, 50%, 0.2);
+}
+
+[data-theme='dark'] .capSidebar__cerrarSesion:hover {
+    background: hsla(0, 70%, 50%, 0.15);
+    color: var(--cap-error-400);
+}

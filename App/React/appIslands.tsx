@@ -10,8 +10,10 @@
  * 3. Registrar en App/Config/pages.php con PageManager::reactPage()
  */
 
-/* Islas del proyecto - Importar aquí */
-// import { MiIsland } from './islands/MiIsland';
+/* Islas del módulo CAP */
+import {CapLoginIsland} from './islands/cap/CapLoginIsland';
+import {CapRegistroIsland} from './islands/cap/CapRegistroIsland';
+import {CapDashboardIsland} from './islands/cap/CapDashboardIsland';
 
 /**
  * AppProvider opcional para contexto global de la aplicación
@@ -24,8 +26,10 @@ export const AppProvider: React.ComponentType<{children: React.ReactNode}> | und
  * La clave es el nombre usado en data-island, el valor es el componente
  */
 export const appIslands: Record<string, React.ComponentType<Record<string, unknown>>> = {
-    /* Registrar islas aquí */
-    // MiIsland: MiIsland,
+    /* Módulo CAP */
+    CapLoginIsland: CapLoginIsland,
+    CapRegistroIsland: CapRegistroIsland,
+    CapDashboardIsland: CapDashboardIsland
 };
 
 export default appIslands;

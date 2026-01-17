@@ -55,6 +55,13 @@ class CapEndpoints
             'callback' => [$this, 'obtenerDashboard'],
             'permission_callback' => [$this, 'verificarPermisos'],
         ]);
+
+        /* Endpoint público de registro */
+        register_rest_route(self::NAMESPACE, '/registro', [
+            'methods' => 'POST',
+            'callback' => [$this, 'registrarUsuario'],
+            'permission_callback' => '__return_true',
+        ]);
     }
 
     public function verificarPermisos(): bool
@@ -172,5 +179,116 @@ class CapEndpoints
     {
         $capService = CapService::getInstance();
         return new \WP_REST_Response($capService->getDashboardResumen());
+    }
+
+    /**
+     * Registra un nuevo usuario con rol cap_admin y crea su centro
+     */
+    public function registrarUsuario(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $datos = $request->get_json_params();
+
+        /* Validación de campos obligatorios */
+        $requeridos = ['nombreCentro', 'nombreUsuario', 'email', 'password'];
+        foreach ($requeridos as $campo) {
+            if (empty($datos[$campo])) {
+                return new \WP_REST_Response([
+                    'error' => true,
+                    'message' => "El campo {$campo} es obligatorio"
+                ], 400);
+            }
+        }
+
+        $nombreUsuario = sanitize_user($datos['nombreUsuario']);
+        $email = sanitize_email($datos['email']);
+        $password = $datos['password'];
+        $nombreCentro = sanitize_text_field($datos['nombreCentro']);
+
+        /* Validar que el usuario no exista */
+        if (username_exists($nombreUsuario)) {
+            return new \WP_REST_Response([
+                'error' => true,
+                'message' => 'El nombre de usuario ya está en uso'
+            ], 409);
+        }
+
+        if (email_exists($email)) {
+            return new \WP_REST_Response([
+                'error' => true,
+                'message' => 'El correo electrónico ya está registrado'
+            ], 409);
+        }
+
+        /* Validar longitud de contraseña */
+        if (strlen($password) < 8) {
+            return new \WP_REST_Response([
+                'error' => true,
+                'message' => 'La contraseña debe tener mínimo 8 caracteres'
+            ], 400);
+        }
+
+        /* Crear usuario WordPress */
+        $userId = wp_create_user($nombreUsuario, $password, $email);
+
+        if (is_wp_error($userId)) {
+            return new \WP_REST_Response([
+                'error' => true,
+                'message' => $userId->get_error_message()
+            ], 500);
+        }
+
+        /* Asignar rol cap_admin */
+        $user = new \WP_User($userId);
+        $user->set_role('cap_admin');
+
+        /* Crear centro asociado */
+        global $wpdb;
+        $tablaCentros = $wpdb->prefix . 'cap_centros';
+
+        $wpdb->insert($tablaCentros, [
+            'user_id' => $userId,
+            'nombre' => $nombreCentro,
+            'email' => $email,
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql'),
+        ]);
+
+        $centroId = $wpdb->insert_id;
+
+        /* Crear configuración por defecto del centro */
+        $tablaConfig = $wpdb->prefix . 'cap_configuracion';
+        $wpdb->insert($tablaConfig, [
+            'centro_id' => $centroId,
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql'),
+        ]);
+
+        /* Crear suscripción inicial (trial) */
+        $tablaSuscripciones = $wpdb->prefix . 'cap_suscripciones';
+        $wpdb->insert($tablaSuscripciones, [
+            'centro_id' => $centroId,
+            'estado' => 'activa',
+            'fecha_inicio' => current_time('mysql'),
+            'fecha_fin' => date('Y-m-d', strtotime('+14 days')),
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql'),
+        ]);
+
+        /* Enviar email de bienvenida (opcional) */
+        $asunto = 'Bienvenido a la plataforma CAP';
+        $mensaje = sprintf(
+            "Hola %s,\n\nTu cuenta ha sido creada exitosamente.\n\nCentro: %s\nUsuario: %s\n\n¡Gracias por registrarte!",
+            $nombreUsuario,
+            $nombreCentro,
+            $nombreUsuario
+        );
+        wp_mail($email, $asunto, $mensaje);
+
+        return new \WP_REST_Response([
+            'exito' => true,
+            'message' => 'Usuario registrado correctamente',
+            'userId' => $userId,
+            'centroId' => $centroId
+        ], 201);
     }
 }

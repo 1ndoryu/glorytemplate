@@ -1,0 +1,425 @@
+/**
+ * CAP Login - Estilos
+ * 
+ * Diseño premium para las páginas de acceso al sistema.
+ * Incluye login, registro y recuperación de contraseña.
+ */
+
+/* ========================================
+   Fondo con gradiente animado
+   ======================================== */
+
+.capLoginPagina {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cap-espacio-md);
+    background: linear-gradient(135deg, var(--cap-primario-900) 0%, var(--cap-primario-700) 50%, var(--cap-secundario-500) 100%);
+    background-size: 400% 400%;
+    animation: capGradienteAnimado 15s ease infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes capGradienteAnimado {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Patrón de fondo decorativo */
+.capLoginPagina::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 20% 80%, hsla(217, 80%, 60%, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, hsla(190, 75%, 50%, 0.15) 0%, transparent 50%), radial-gradient(circle at 40% 40%, hsla(217, 85%, 55%, 0.1) 0%, transparent 40%);
+    pointer-events: none;
+}
+
+/* Círculos flotantes decorativos */
+.capLoginPagina::after {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, hsla(217, 80%, 60%, 0.08), hsla(190, 75%, 50%, 0.05));
+    top: -200px;
+    right: -200px;
+    pointer-events: none;
+}
+
+/* ========================================
+   Contenedor del formulario
+   ======================================== */
+
+.capLoginContenedor {
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 1;
+    animation: capSlideUp var(--cap-transicion-suave) ease forwards;
+}
+
+/* Tarjeta del formulario con glassmorphism */
+.capLoginTarjeta {
+    background: hsla(0, 0%, 100%, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: var(--cap-radio-xl);
+    box-shadow:
+        0 25px 50px hsla(217, 80%, 15%, 0.25),
+        0 10px 20px hsla(217, 80%, 15%, 0.15),
+        inset 0 1px 0 hsla(0, 0%, 100%, 0.6);
+    padding: var(--cap-espacio-2xl);
+    border: 1px solid hsla(0, 0%, 100%, 0.2);
+}
+
+/* ========================================
+   Header del login
+   ======================================== */
+
+.capLoginHeader {
+    text-align: center;
+    margin-bottom: var(--cap-espacio-xl);
+}
+
+.capLoginLogo {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto var(--cap-espacio-md);
+    background: linear-gradient(135deg, var(--cap-primario-500), var(--cap-secundario-500));
+    border-radius: var(--cap-radio-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 8px 16px hsla(217, 80%, 50%, 0.3),
+        inset 0 1px 0 hsla(0, 0%, 100%, 0.2);
+}
+
+.capLoginLogo svg {
+    width: 40px;
+    height: 40px;
+    color: white;
+}
+
+.capLoginTitulo {
+    font-size: var(--cap-texto-2xl);
+    font-weight: var(--cap-peso-bold);
+    color: var(--cap-gris-900);
+    margin: 0 0 var(--cap-espacio-xs);
+    letter-spacing: -0.025em;
+}
+
+.capLoginSubtitulo {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-gris-500);
+    margin: 0;
+}
+
+/* ========================================
+   Formulario
+   ======================================== */
+
+.capLoginFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+}
+
+.capLoginFormulario .capInput__campo {
+    background: var(--cap-gris-50);
+    border: 1.5px solid var(--cap-gris-200);
+    border-radius: var(--cap-radio-md);
+    padding: var(--cap-espacio-md);
+    font-size: var(--cap-texto-base);
+    transition: all var(--cap-transicion-rapida);
+}
+
+.capLoginFormulario .capInput__campo:focus {
+    background: white;
+    border-color: var(--cap-primario-500);
+    box-shadow:
+        0 0 0 3px var(--cap-focus-ring),
+        0 2px 8px hsla(217, 80%, 50%, 0.1);
+    outline: none;
+}
+
+.capLoginFormulario .capInput__etiqueta {
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-medium);
+    color: var(--cap-gris-700);
+    margin-bottom: var(--cap-espacio-xs);
+}
+
+.capLoginFormulario .capInput--error .capInput__campo {
+    border-color: var(--cap-error-500);
+    background: var(--cap-error-50);
+}
+
+/* ========================================
+   Opciones del formulario
+   ======================================== */
+
+.capLoginOpciones {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: var(--cap-espacio-xs) 0;
+}
+
+.capLoginRecordar {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    cursor: pointer;
+}
+
+.capLoginRecordar input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--cap-primario-500);
+    cursor: pointer;
+}
+
+.capLoginRecordar span {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-gris-600);
+}
+
+.capLoginEnlace {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-primario-500);
+    text-decoration: none;
+    font-weight: var(--cap-peso-medium);
+    transition: color var(--cap-transicion-rapida);
+}
+
+.capLoginEnlace:hover {
+    color: var(--cap-primario-600);
+    text-decoration: underline;
+}
+
+/* ========================================
+   Botón de envío
+   ======================================== */
+
+.capLoginBoton {
+    margin-top: var(--cap-espacio-sm);
+    padding: var(--cap-espacio-md) var(--cap-espacio-lg);
+    font-size: var(--cap-texto-base);
+    font-weight: var(--cap-peso-semibold);
+    border-radius: var(--cap-radio-md);
+    background: linear-gradient(135deg, var(--cap-primario-500), var(--cap-primario-600));
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all var(--cap-transicion-rapida);
+    box-shadow:
+        0 4px 12px hsla(217, 80%, 50%, 0.35),
+        inset 0 1px 0 hsla(0, 0%, 100%, 0.15);
+}
+
+.capLoginBoton:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--cap-primario-600), var(--cap-primario-700));
+    box-shadow:
+        0 6px 20px hsla(217, 80%, 50%, 0.4),
+        inset 0 1px 0 hsla(0, 0%, 100%, 0.15);
+    transform: translateY(-1px);
+}
+
+.capLoginBoton:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.capLoginBoton:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   Divisor
+   ======================================== */
+
+.capLoginDivisor {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-md);
+    margin: var(--cap-espacio-lg) 0;
+}
+
+.capLoginDivisor::before,
+.capLoginDivisor::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--cap-gris-200);
+}
+
+.capLoginDivisor span {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-gris-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ========================================
+   Footer del login
+   ======================================== */
+
+.capLoginFooter {
+    text-align: center;
+    margin-top: var(--cap-espacio-lg);
+    padding-top: var(--cap-espacio-lg);
+    border-top: 1px solid var(--cap-gris-100);
+}
+
+.capLoginFooter p {
+    margin: 0;
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-gris-600);
+}
+
+.capLoginFooter a {
+    color: var(--cap-primario-500);
+    font-weight: var(--cap-peso-semibold);
+    text-decoration: none;
+    transition: color var(--cap-transicion-rapida);
+}
+
+.capLoginFooter a:hover {
+    color: var(--cap-primario-600);
+    text-decoration: underline;
+}
+
+/* ========================================
+   Mensajes de estado
+   ======================================== */
+
+.capLoginMensaje {
+    padding: var(--cap-espacio-md);
+    border-radius: var(--cap-radio-md);
+    font-size: var(--cap-texto-sm);
+    margin-bottom: var(--cap-espacio-md);
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+}
+
+.capLoginMensaje--error {
+    background: var(--cap-error-50);
+    color: var(--cap-error-600);
+    border: 1px solid var(--cap-error-100);
+}
+
+.capLoginMensaje--exito {
+    background: var(--cap-exito-50);
+    color: var(--cap-exito-600);
+    border: 1px solid var(--cap-exito-100);
+}
+
+.capLoginMensaje svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* ========================================
+   Indicador de carga
+   ======================================== */
+
+.capLoginCargando {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cap-espacio-sm);
+}
+
+.capLoginSpinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid hsla(0, 0%, 100%, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: capSpin 0.8s linear infinite;
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 480px) {
+    .capLoginPagina {
+        padding: var(--cap-espacio-sm);
+    }
+
+    .capLoginTarjeta {
+        padding: var(--cap-espacio-lg);
+        border-radius: var(--cap-radio-lg);
+    }
+
+    .capLoginLogo {
+        width: 60px;
+        height: 60px;
+    }
+
+    .capLoginLogo svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    .capLoginTitulo {
+        font-size: var(--cap-texto-xl);
+    }
+
+    .capLoginOpciones {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--cap-espacio-sm);
+    }
+}
+
+/* ========================================
+   Tema oscuro
+   ======================================== */
+
+[data-theme='dark'] .capLoginTarjeta {
+    background: hsla(220, 18%, 12%, 0.95);
+    border-color: hsla(220, 15%, 25%, 0.5);
+}
+
+[data-theme='dark'] .capLoginTitulo {
+    color: var(--cap-gris-100);
+}
+
+[data-theme='dark'] .capLoginSubtitulo {
+    color: var(--cap-gris-400);
+}
+
+[data-theme='dark'] .capLoginFormulario .capInput__campo {
+    background: var(--cap-gris-800);
+    border-color: var(--cap-gris-700);
+    color: var(--cap-gris-100);
+}
+
+[data-theme='dark'] .capLoginFormulario .capInput__campo:focus {
+    background: var(--cap-gris-900);
+    border-color: var(--cap-primario-400);
+}
+
+[data-theme='dark'] .capLoginRecordar span,
+[data-theme='dark'] .capLoginFooter p {
+    color: var(--cap-gris-400);
+}
+
+[data-theme='dark'] .capLoginFooter {
+    border-top-color: var(--cap-gris-800);
+}
