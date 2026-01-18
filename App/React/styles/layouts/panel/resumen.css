@@ -1,0 +1,118 @@
+/* Estilos para Vista Resumen */
+
+.resumenTitulo {
+    font-size: 1.25rem;
+    font-weight: 300;
+    color: var(--nakomi-textoActivo);
+    margin: 0;
+}
+.resumenSubtitulo {
+    font-size: 0.75rem;
+    color: var(--nakomi-textoApagado);
+    margin-top: 4px;
+}
+
+.placeholderServicios {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px dashed var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioMd);
+    text-align: center;
+    color: var(--nakomi-textoApagado);
+    gap: 1rem;
+    transition: all 0.2s ease;
+}
+.placeholderServicios:hover {
+    border-color: var(--nakomi-acento);
+    background-color: var(--nakomi-fondoHover);
+    color: var(--nakomi-textoNormal);
+    cursor: pointer;
+}
+.placeholderIcon {
+    opacity: 0.5;
+}
+
+.dashboardGrid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1rem;
+}
+@media (min-width: 768px) {
+    .dashboardGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.statCard {
+    padding: 1rem;
+}
+
+.statHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.iconoAcento {
+    color: var(--nakomi-acento);
+}
+.iconoSecundario {
+    color: var(--nakomi-textoSecundario);
+}
+
+.seccionProyectos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.tituloSeccion {
+    margin-bottom: 1rem;
+}
+
+.listaProyectos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.itemProyecto {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    cursor: pointer;
+}
+
+.proyectoInfoPrincipal {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.iconoProyecto {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    background: var(--nakomi-fondoTerciario);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nakomi-textoApagado);
+}
+
+.nombreProyecto {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--nakomi-textoNormal);
+    margin: 0;
+}
+
+.servicioProyecto {
+    font-size: 0.75rem;
+    color: var(--nakomi-textoApagado);
+    margin: 2px 0 0 0;
+}

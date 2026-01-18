@@ -9,7 +9,7 @@ import React from 'react';
  * Reemplaza: tarjetaEtiqueta, precioEtiqueta, servicioCategoria, blogEtiqueta
  */
 
-type VarianteEtiqueta = 'default' | 'categoria' | 'precio' | 'estado' | 'destacado';
+type VarianteEtiqueta = 'default' | 'categoria' | 'precio' | 'estado' | 'destacado' | 'exito' | 'alerta' | 'info' | 'neutro';
 type TamanoEtiqueta = 'xs' | 'sm' | 'md';
 
 interface EtiquetaProps {
@@ -30,7 +30,11 @@ const mapeoVariante: Record<VarianteEtiqueta, string> = {
     categoria: 'etiquetaCategoria',
     precio: 'etiquetaPrecio',
     estado: 'etiquetaEstado',
-    destacado: 'etiquetaDestacado'
+    destacado: 'etiquetaDestacado',
+    exito: 'etiquetaExito',
+    alerta: 'etiquetaAlerta',
+    info: 'etiquetaInfo',
+    neutro: 'etiquetaNeutro'
 };
 
 export const Etiqueta: React.FC<EtiquetaProps> = ({children, variante = 'default', tamano = 'sm', className = ''}) => {

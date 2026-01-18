@@ -17,23 +17,17 @@ Se irán detallando conforme avancemos.
 
 ## Fase 3: Panel Cliente Base (En Progreso)
 
-**Estado Actual:** Diseño "Nakomi Dashboard" implementado con éxito. Interfaz compacta y moderna.
+> **Detalle Completo:** Ver [Detalle Funcional Fase 3](./fase-3-panel-cliente-funcionalidad.md)
 
-**Arquitectura y Diseño:**
-- [x] Rediseño completo estilo "IDE/Dashboard" minimalista (colores oscuros, bordes sutiles).
-- [x] Implementación de **Lucide React** para iconografía consistente (16px).
-- [x] Layout compacto de alta densidad (Header 48px, Sidebar 48px).
-- [x] Sidebar navegación fija con tooltips.
-- [x] Header con pestañas de navegación (Tabs).
+**Estado Actual:** Refactorizando diseño y lógica de navegación.
 
-**Funcionalidades:**
-- [x] Integración real con sesión de WordPress (window.GLORY_AUTH).
-- [x] Redirección automática LoggedIn -> Panel.
-- [x] Vista "Resumen General" con stats y servicios activos.
-- [x] Vista "Hosting" con simulación de terminal y recursos del servidor.
-- [x] Vista "Marketplace" de servicios.
-- [ ] Conectar datos reales de backend (Servicios de WP).
-- [ ] Implementar Logout real (backend).
+**Tareas Inmediatas (Correcciones):**
+- [ ] **Core:** Mover detalle funcional a md individual (Completado).
+- [ ] **Tabs:** Corregir concepto. No son cerrables, son navegación interna de sección. Sin bordes.
+- [ ] **Header:** Limpiar títulos. Menú contextual en perfil de usuario.
+- [ ] **Layout:** Contenido `max-width: 800px`.
+- [ ] **Dashboard:** Quitar widgets dummy (Servicios, Facturas, Mensajes).
+- [ ] **Lógica:** Planificar funcionalidad real (no dummy).
 
 ---
 

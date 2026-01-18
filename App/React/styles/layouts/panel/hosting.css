@@ -1,0 +1,193 @@
+/* Estilos para Vista Hosting */
+
+.hostingHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.hostingInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.hostingTitulo {
+    font-size: 1.25rem;
+    color: var(--nakomi-textoActivo);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 300;
+    margin: 0;
+}
+
+.iconoHostingWrapper {
+    padding: 6px;
+    background: var(--nakomi-fondoTerciario);
+    border-radius: 4px;
+    color: var(--nakomi-acento);
+    display: flex;
+}
+
+.hostingMeta {
+    font-size: 0.75rem;
+    font-family: var(--nakomi-fuenteMono);
+    color: var(--nakomi-textoApagado);
+    margin-top: 0.5rem;
+    margin-left: 4px;
+}
+
+.hostingAcciones {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.botonAlerta {
+    color: #f87171 !important;
+    background: rgba(153, 27, 27, 0.1) !important;
+    border-color: rgba(153, 27, 27, 0.2) !important;
+}
+.botonExito {
+    color: #4ade80 !important;
+    background: rgba(22, 101, 52, 0.1) !important;
+    border-color: rgba(22, 101, 52, 0.2) !important;
+}
+
+.hostingTabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--nakomi-bordePrincipal);
+    padding-bottom: 0.75rem;
+}
+
+.hostingTabBtn {
+    padding: 6px 16px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    color: var(--nakomi-textoApagado);
+    background-color: transparent;
+    transition: all 0.2s;
+}
+
+.hostingTabBtn.active,
+.hostingTabBtn:hover {
+    color: var(--nakomi-textoActivo);
+    background-color: var(--nakomi-fondoHover);
+}
+
+.hostingContenido {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.hostingGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.hostingCard {
+    padding: 1rem;
+}
+.tituloCard {
+    margin-bottom: 1.25rem;
+}
+
+.recursosLista {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.recursoItem {
+    width: 100%;
+}
+
+.recursoLabel {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+    color: var(--nakomi-textoApagado);
+}
+
+.barraProgresoFondo {
+    height: 6px;
+    width: 100%;
+    background: var(--nakomi-fondoTerciario);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.barraProgresoRelleno {
+    height: 100%;
+    background: var(--nakomi-acento);
+    border-radius: 999px;
+}
+.barraProgresoRelleno.colorSecundario {
+    background: #a855f7;
+}
+
+.sshBox {
+    background: var(--nakomi-fondoPrincipal);
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--nakomi-bordeSutil);
+    font-family: var(--nakomi-fuenteMono);
+    font-size: 0.75rem;
+    color: var(--nakomi-textoApagado);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.sshNota {
+    font-size: 10px;
+    color: var(--nakomi-textoMuyApagado);
+    margin-top: 0.75rem;
+}
+
+.terminalWindow {
+    min-height: 400px;
+    background: #050505;
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: 6px;
+    padding: 1rem;
+    font-family: var(--nakomi-fuenteMono);
+    font-size: 0.75rem;
+    line-height: 1.6;
+}
+
+.terminalLine {
+    margin-bottom: 4px;
+}
+.terminalLine.exito {
+    color: #22c55e;
+}
+.terminalLine.blanco {
+    color: #fff;
+    margin-bottom: 8px;
+}
+.terminalLine.gris {
+    color: var(--nakomi-textoSecundario);
+    white-space: pre-wrap;
+    margin-bottom: 8px;
+}
+
+.terminalInput {
+    display: flex;
+    align-items: center;
+}
+.terminalPrompt {
+    color: #22c55e;
+    margin-right: 8px;
+}
+.terminalCursor {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background: #fff;
+}

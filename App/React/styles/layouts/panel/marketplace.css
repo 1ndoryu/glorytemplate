@@ -1,0 +1,173 @@
+/* Estilos para Vista Marketplace
+ * Ubicación: App/React/styles/layouts/panel/marketplace.css
+ */
+
+/* Contenedor principal sin restricción de ancho */
+.marketplaceView {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Header con Búsqueda */
+.marketplaceHeader {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--nakomi-bordeSutil);
+}
+
+.titleArea {
+    flex: 1;
+    min-width: 200px;
+}
+
+.marketplaceTitulo {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--nakomi-textoActivo);
+    margin: 0;
+}
+
+.marketplaceSubtitulo {
+    font-size: 0.85rem;
+    color: var(--nakomi-textoApagado);
+    margin-top: 4px;
+}
+
+.barraBusquedaCompacta {
+    width: 300px;
+    max-width: 100%;
+    position: relative;
+    z-index: 20;
+}
+
+/* Barra de Herramientas (Filtros) */
+.barraHerramientas {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Alineado a la izquierda */
+    gap: 2rem;
+    padding: 0 0 1rem 0; /* Espaciado inferior */
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.grupoFiltros {
+    display: flex;
+    gap: 1rem;
+}
+
+.resumenResultados {
+    font-size: 0.8rem;
+    color: var(--nakomi-textoApagado);
+    font-weight: 500;
+    margin-left: auto; /* Empuja el contador a la derecha */
+    padding-left: 1rem;
+    border-left: 1px solid var(--nakomi-bordeSutil);
+}
+
+/* Dropdown Filtros */
+.opcionCategoria {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    color: var(--nakomi-textoNormal);
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: var(--nakomi-radioSm);
+}
+
+.opcionCategoria:hover {
+    background-color: var(--nakomi-fondoHover);
+}
+
+.opcionCategoria.seleccionada {
+    color: var(--nakomi-acento);
+    font-weight: 500;
+    background-color: var(--nakomi-fondoTerciario);
+}
+
+.contenedorSliderPrecio {
+    padding: 1rem;
+    width: 100%;
+}
+
+.etiquetaPrecio {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--nakomi-textoSecundario);
+    margin-bottom: 0.75rem;
+}
+
+.sliderPrecio {
+    width: 100%;
+    accent-color: var(--nakomi-acento);
+}
+
+/* Grid de Resultados - Diseño Fluido por Breakpoints */
+.marketplaceGrid {
+    display: grid;
+    grid-template-columns: 1fr; /* Móvil por defecto */
+    gap: 1.5rem;
+    width: 100%;
+}
+
+/* Override para que las tarjetas ocupen todo el ancho de la celda del grid */
+.marketplaceGrid .tarjetaServicio {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* Tablet (2 columnas) */
+@media (min-width: 640px) {
+    .marketplaceGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Laptop (3 columnas) */
+@media (min-width: 1024px) {
+    .marketplaceGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Desktop (4 columnas) */
+@media (min-width: 1280px) {
+    .marketplaceGrid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.sinResultados {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--nakomi-textoSecundario);
+    grid-column: 1 / -1;
+}
+
+.btnLimpiar {
+    margin-top: 1rem;
+    background: none;
+    border: 1px solid var(--nakomi-bordePrincipal);
+    padding: 0.5rem 1rem;
+    border-radius: var(--nakomi-radioSm);
+    color: var(--nakomi-textoActivo);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btnLimpiar:hover {
+    background-color: var(--nakomi-fondoHover);
+    border-color: var(--nakomi-bordeSutil);
+}

@@ -1,0 +1,67 @@
+/*
+ * Estilos para VistaFacturas
+ * Ubicación: App/React/styles/layouts/panel/facturas.css
+ */
+
+.tablaFacturasContenedor {
+    padding: 0;
+    overflow: hidden;
+}
+
+.tablaFacturas {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.tablaFacturas th {
+    text-align: left;
+    padding: 1rem 1.5rem;
+    background-color: var(--nakomi-neutral-50);
+    color: var(--nakomi-neutral-600);
+    font-weight: 500;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--nakomi-borde);
+}
+
+.tablaFacturas td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--nakomi-borde);
+    color: var(--nakomi-texto);
+}
+
+.tablaFacturas tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.tablaFacturas tbody tr:hover {
+    background-color: var(--nakomi-neutral-50);
+}
+
+.tablaFacturas .font-mono {
+    font-family: var(--fuente-mono, monospace);
+    color: var(--nakomi-neutral-500);
+}
+
+.tablaFacturas .font-bold {
+    font-weight: 600;
+}
+
+.tablaFacturas .text-right {
+    text-align: right;
+}
+
+/* Responsive para tablas */
+@media (max-width: 640px) {
+    .tablaFacturas th,
+    .tablaFacturas td {
+        padding: 0.75rem 1rem;
+    }
+
+    .tablaFacturas th:nth-child(2), /* Concepto */
+    .tablaFacturas td:nth-child(2) {
+        display: none;
+    }
+}
