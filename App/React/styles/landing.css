@@ -1449,7 +1449,7 @@ html {
 /* Tabla de pedidos compacta */
 .pedidoTablaHeader {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 2fr 0.8fr 1fr 0.5fr 1fr;
     padding: 0 var(--nakomi-espacioSm) var(--nakomi-espacioXs);
     border-bottom: 1px solid var(--nakomi-bordeSutil);
     margin-bottom: var(--nakomi-espacioXs);
@@ -1457,7 +1457,9 @@ html {
 
 .columnaNombre,
 .columnaEstado,
-.columnaProgreso {
+.columnaProgreso,
+.columnaEntrega,
+.columnaAcciones {
     font-size: 0.55rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -1466,7 +1468,7 @@ html {
 
 .pedidoFila {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 2fr 0.8fr 1fr 0.5fr 1fr;
     align-items: center;
     padding: var(--nakomi-espacioSm);
     border-radius: var(--nakomi-radioSm);
@@ -1580,6 +1582,42 @@ html {
     height: 100%;
     border-radius: 2px;
     background-color: var(--nakomi-textoSecundario);
+}
+
+/* Nuevas columnas */
+.tiempoEntrega {
+    font-size: 0.65rem;
+    color: var(--nakomi-textoApagado);
+    font-variant-numeric: tabular-nums;
+}
+
+.celdaAcciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.accionBoton {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    border-radius: 4px;
+    color: var(--nakomi-textoApagado);
+    cursor: pointer;
+    transition: all var(--nakomi-transicionRapida);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.accionBoton:hover {
+    background-color: var(--nakomi-fondoHover);
+    color: var(--nakomi-textoActivo);
+}
+
+.accionPeligro:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
 }
 
 /* Responsive para tarjeta grande */

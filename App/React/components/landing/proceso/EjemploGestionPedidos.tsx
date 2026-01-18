@@ -9,6 +9,8 @@ export const EjemploGestionPedidos: React.FC = () => {
                 <span className="columnaNombre">Proyecto</span>
                 <span className="columnaEstado">Estado</span>
                 <span className="columnaProgreso">Progreso</span>
+                <span className="columnaEntrega">Entrega</span>
+                <span className="columnaAcciones"></span>
             </div>
 
             {/* Fila 1 */}
@@ -29,6 +31,28 @@ export const EjemploGestionPedidos: React.FC = () => {
                     <div className="barraFina">
                         <div className="progresoFino" style={{width: '65%'}}></div>
                     </div>
+                </div>
+                <div className="celdaEntrega">
+                    <span className="tiempoEntrega">14 d</span>
+                </div>
+                <div className="celdaAcciones">
+                    <button className="accionBoton" title="Pausar">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="6" y="4" width="4" height="16" />
+                            <rect x="14" y="4" width="4" height="16" />
+                        </svg>
+                    </button>
+                    <button className="accionBoton" title="Mensaje">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                    </button>
+                    <button className="accionBoton accionPeligro" title="Cancelar">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
                 </div>
             </div>
 
@@ -51,6 +75,28 @@ export const EjemploGestionPedidos: React.FC = () => {
                         <div className="progresoFino" style={{width: '90%'}}></div>
                     </div>
                 </div>
+                <div className="celdaEntrega">
+                    <span className="tiempoEntrega">2 d</span>
+                </div>
+                <div className="celdaAcciones">
+                    <button className="accionBoton" title="Pausar">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="6" y="4" width="4" height="16" />
+                            <rect x="14" y="4" width="4" height="16" />
+                        </svg>
+                    </button>
+                    <button className="accionBoton" title="Mensaje">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                    </button>
+                    <button className="accionBoton accionPeligro" title="Cancelar">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             {/* Fila 3 */}
@@ -71,6 +117,28 @@ export const EjemploGestionPedidos: React.FC = () => {
                     <div className="barraFina">
                         <div className="progresoFino" style={{width: '15%'}}></div>
                     </div>
+                </div>
+                <div className="celdaEntrega">
+                    <span className="tiempoEntrega">--</span>
+                </div>
+                <div className="celdaAcciones">
+                    <button className="accionBoton" title="Pausar">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="6" y="4" width="4" height="16" />
+                            <rect x="14" y="4" width="4" height="16" />
+                        </svg>
+                    </button>
+                    <button className="accionBoton" title="Mensaje">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                    </button>
+                    <button className="accionBoton accionPeligro" title="Cancelar">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
                 </div>
             </div>
         </VentanaEjemplo>
