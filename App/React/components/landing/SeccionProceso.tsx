@@ -1,8 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
-import { EjemploListaServicios } from './proceso/EjemploListaServicios';
-import { EjemploProgresoPago } from './proceso/EjemploProgresoPago';
-import { EjemploTerminalDespliegue } from './proceso/EjemploTerminalDespliegue';
-import { EjemploGestionPedidos } from './proceso/EjemploGestionPedidos';
+import {EjemploListaServicios} from './proceso/EjemploListaServicios';
+import {EjemploProgresoPago} from './proceso/EjemploProgresoPago';
+import {EjemploTerminalDespliegue} from './proceso/EjemploTerminalDespliegue';
+import {EjemploGestionPedidos} from './proceso/EjemploGestionPedidos';
 
 /*
  * SeccionProceso: Sección de 3 columnas que muestra el proceso de trabajo.
@@ -50,7 +50,7 @@ export const SeccionProceso: React.FC = () => {
                     <article className={`tarjetaProceso ${tarjetasVisibles[0] ? 'tarjetaProcesoVisible' : ''}`}>
                         <h3 className="procesoTitulo">Elige tu servicio</h3>
                         <p className="procesoDescripcion">Selecciona el servicio que necesitas y define el tiempo de entrega según tus requerimientos.</p>
-                        <div className="procesoEjemploVisual">
+                        <div className="procesoEjemploVisual" style={{backgroundImage: "url('/wp-content/themes/glory/Glory/assets/images/colors/47252f8c0c7f5dae7657ca6eed05eeca.jpg')"}}>
                             <EjemploListaServicios />
                         </div>
                     </article>
@@ -59,7 +59,7 @@ export const SeccionProceso: React.FC = () => {
                     <article className={`tarjetaProceso ${tarjetasVisibles[1] ? 'tarjetaProcesoVisible' : ''}`} style={{'--delay': '0.1s'} as React.CSSProperties}>
                         <h3 className="procesoTitulo">Pago seguro</h3>
                         <p className="procesoDescripcion">Tu pago queda protegido con nuestro sistema de garantía. Atención inmediata desde el primer momento.</p>
-                        <div className="procesoEjemploVisual">
+                        <div className="procesoEjemploVisual" style={{backgroundImage: "url('/wp-content/themes/glory/Glory/assets/images/colors/c5f3015667280079a5a6299c0ac16e83.jpg')"}}>
                             <EjemploProgresoPago />
                         </div>
                     </article>
@@ -68,7 +68,7 @@ export const SeccionProceso: React.FC = () => {
                     <article className={`tarjetaProceso ${tarjetasVisibles[2] ? 'tarjetaProcesoVisible' : ''}`} style={{'--delay': '0.2s'} as React.CSSProperties}>
                         <h3 className="procesoTitulo">Despliegue completo</h3>
                         <p className="procesoDescripcion">Nos encargamos del hosting y dominio. Gestiona todo desde nuestra plataforma de forma sencilla.</p>
-                        <div className="procesoEjemploVisual">
+                        <div className="procesoEjemploVisual" style={{backgroundImage: "url('/wp-content/themes/glory/Glory/assets/images/colors/3450083cb428563c30f4544d5e5a7e82.jpg')"}}>
                             <EjemploTerminalDespliegue />
                         </div>
                     </article>

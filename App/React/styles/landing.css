@@ -1449,7 +1449,7 @@ html {
 /* Tabla de pedidos compacta */
 .pedidoTablaHeader {
     display: grid;
-    grid-template-columns: 2fr 0.8fr 1fr 0.5fr 1fr;
+    grid-template-columns: 2fr 0.8fr 0.6fr 0.4fr 1fr;
     padding: 0 var(--nakomi-espacioSm) var(--nakomi-espacioXs);
     border-bottom: 1px solid var(--nakomi-bordeSutil);
     margin-bottom: var(--nakomi-espacioXs);
@@ -1466,9 +1466,13 @@ html {
     color: var(--nakomi-textoMuyApagado);
 }
 
+.columnaEntrega {
+    text-align: right;
+}
+
 .pedidoFila {
     display: grid;
-    grid-template-columns: 2fr 0.8fr 1fr 0.5fr 1fr;
+    grid-template-columns: 2fr 0.8fr 0.6fr 0.4fr 1fr;
     align-items: center;
     padding: var(--nakomi-espacioSm);
     border-radius: var(--nakomi-radioSm);
@@ -1572,7 +1576,7 @@ html {
 
 .barraFina {
     width: 100%;
-    height: 3px;
+    height: 2px;
     background-color: var(--nakomi-bordeSutil);
     border-radius: 2px;
     overflow: hidden;
@@ -1584,7 +1588,10 @@ html {
     background-color: var(--nakomi-textoSecundario);
 }
 
-/* Nuevas columnas */
+.celdaEntrega {
+    text-align: right;
+}
+
 .tiempoEntrega {
     font-size: 0.65rem;
     color: var(--nakomi-textoApagado);
