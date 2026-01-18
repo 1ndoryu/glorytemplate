@@ -75,27 +75,6 @@
     gap: var(--nakomi-espacioSm);
 }
 
-.resenaAvatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.resenaAvatarPlaceholder {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--nakomi-gradienteAvatar);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: white;
-    flex-shrink: 0;
-}
-
 .resenaInfo {
     display: flex;
     flex-direction: column;

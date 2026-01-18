@@ -1,5 +1,5 @@
 import React from 'react';
-import {Tarjeta, TarjetaFooter, Boton} from '../ui';
+import {Tarjeta, TarjetaFooter, Boton, Avatar} from '../ui';
 
 /*
  * TarjetaResena: Tarjeta individual de reseña/testimonio.
@@ -21,20 +21,12 @@ interface TarjetaResenaProps {
 }
 
 export const TarjetaResena: React.FC<TarjetaResenaProps> = ({resena}) => {
-    /* Avatar placeholder si no hay imagen */
-    const iniciales = resena.autor
-        .split(' ')
-        .map(n => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
-
     return (
         <Tarjeta className="tarjetaResena">
             <p className="resenaTexto">{resena.texto}</p>
             <TarjetaFooter className="resenaFooter">
                 <div className="resenaAutor">
-                    {resena.avatar ? <img src={resena.avatar} alt={resena.autor} className="resenaAvatar" /> : <div className="resenaAvatarPlaceholder">{iniciales}</div>}
+                    <Avatar src={resena.avatar} nombre={resena.autor} tamano="md" />
                     <div className="resenaInfo">
                         <span className="resenaNombre">{resena.autor}</span>
                         <span className="resenaCargo">{resena.cargo}</span>

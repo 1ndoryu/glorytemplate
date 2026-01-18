@@ -281,20 +281,38 @@ Glory ya cuenta con utilidades robustas en **`Glory\Utility\AssetsUtility`** y *
   - O usar hook para obtener imágenes dinámicamente
 
 ### 8.2 Otras tareas pendientes
-- [ ] **Crear componente `Avatar`**: Extraer lógica de avatar con placeholder como componente UI
-- [ ] **Documentar sistema de tokens**: Crear guía de uso de variables CSS
+- [x] **Crear componente `Avatar`**: Extraído a `components/ui/Avatar.tsx` con soporte para:
+  - Imágenes de avatar o placeholder con iniciales
+  - Tamaños: xs, sm, md, lg, xl
+  - Variantes: gradiente, solido, personalizado
+  - Estilos en `styles/components/avatar.css`
+  - Refactorizados `TarjetaResena` y `EjemploRecibeClientes` para usarlo
+- [x] **Documentar sistema de tokens**: Creada guía completa en `agente/tokens.md`
 - [ ] **Revisar responsividad**: Auditar media queries para consistencia
-- [ ] **Componente `Icon`**: Abstraer iconos SVG en componente reutilizable
+- [x] **Componente `Icon`**: Creado `components/ui/Icono.tsx` con catálogo de iconos SVG:
+  - Iconos: flecha-derecha, flecha-izquierda, cerrar, menu, buscar, check, estrella, usuario, mas, menos, externo
+  - Tamaños: xs, sm, md, lg, xl
+  - Soporte para accesibilidad (aria-label)
 - [ ] **Componente `Input`**: Crear input con variantes para formularios
-- [ ] **Componente `Texto`**: Crear tipografía componente para H1-H6, body, caption
+- [x] **Componente `Texto`**: Creado `components/ui/Texto.tsx` para tipografía semántica:
+  - Variantes: display, h1-h4, body, bodyGrande, caption, etiqueta, mono
+  - Colores: activo, normal, secundario, apagado, muyApagado, acento, inherit
+  - Pesos y alineación personalizables
+  - Estilos en `styles/components/texto.css`
 
 ## 10. Métricas de Refactorización
 
-| Métrica                     | Antes | Después | Mejora       |
-| --------------------------- | ----- | ------- | ------------ |
-| Líneas en LandingIsland.tsx | 281   | ~52     | **-81%**     |
-| Archivos de datos separados | 0     | 5       | +5 archivos  |
-| Hooks reutilizables         | 1     | 3       | +2 hooks     |
-| Líneas CSS landing.css      | ~1800 | ~45     | **-97%**     |
-| Archivos CSS modulares      | 1     | 16+     | +15 archivos |
+| Métrica                     | Antes | Después | Mejora         |
+| --------------------------- | ----- | ------- | -------------- |
+| Líneas en LandingIsland.tsx | 281   | ~52     | **-81%**       |
+| Archivos de datos separados | 0     | 5       | +5 archivos    |
+| Hooks reutilizables         | 1     | 3       | +2 hooks       |
+| Líneas CSS landing.css      | ~1800 | ~45     | **-97%**       |
+| Archivos CSS modulares      | 1     | 18+     | +17 archivos   |
+| Componentes UI atómicos     | 5     | 11      | +6 componentes |
+
+### Componentes UI creados en Fase 8
+- `Avatar.tsx` - Avatares con imagen/iniciales
+- `Icono.tsx` - Catálogo de iconos SVG
+- `Texto.tsx` - Tipografía semántica
 

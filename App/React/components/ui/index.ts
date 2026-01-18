@@ -8,6 +8,9 @@ export {Boton} from './Boton';
 export {Contenedor} from './Contenedor';
 export {Seccion} from './Seccion';
 export {Etiqueta} from './Etiqueta';
+export {Avatar} from './Avatar';
+export {Icono} from './Icono';
+export {Texto} from './Texto';
 
 /* Componente Tarjeta y sus sub-componentes */
 export {Tarjeta, TarjetaImagen, TarjetaOverlay, TarjetaCuerpo, TarjetaHeader, TarjetaFooter} from './Tarjeta';
