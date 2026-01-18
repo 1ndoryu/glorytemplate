@@ -13,7 +13,7 @@
 
 /* --- Cabecera Centrada --- */
 .cabeceraServicios {
-    padding: var(--nakomi-espacioXl) var(--nakomi-espacioLg);
+    padding: 120px var(--nakomi-espacioLg);
     max-width: var(--landing-anchoMaximo);
     margin: 0 auto;
     display: flex;
@@ -74,7 +74,7 @@
     justify-content: space-between;
     gap: var(--nakomi-espacioMd);
     margin-bottom: var(--nakomi-espacioLg);
-    padding: 0 var(--nakomi-espacioLg);
+    padding: 0;
     max-width: var(--landing-anchoMaximo);
     margin-left: auto;
     margin-right: auto;
@@ -152,7 +152,7 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     border-radius: var(--nakomi-radioSm);
     transition: background-color 0.1s;
 }
@@ -184,7 +184,7 @@
 }
 
 .etiquetaPrecio {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--nakomi-textoSecundario);
     display: flex;
     justify-content: space-between;
@@ -204,7 +204,7 @@
     grid-template-columns: repeat(4, 1fr);
     gap: var(--nakomi-espacioMd);
     /* Padding ajustado para evitar exceso de espacio */
-    padding: 0 var(--nakomi-espacioLg) var(--nakomi-espacio2xl);
+    padding: 0 0 var(--nakomi-espacio2xl);
     max-width: var(--landing-anchoMaximo);
     margin: 0 auto;
 }
