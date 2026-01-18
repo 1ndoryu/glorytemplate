@@ -43,6 +43,9 @@ PageManager::setDefaultContentMode('code');
 // Landing principal del sitio
 PageManager::reactPage('home', 'LandingIsland');
 
+// Panel de cliente (Redirecciona internamente a LandingIsland en modo panel)
+PageManager::reactPage('panel', 'LandingIsland', ['mostrarPanel' => true]);
+
 /*
  * =====================================================
  * PAGINAS CON TEMPLATES PHP PERSONALIZADOS

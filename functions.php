@@ -69,3 +69,15 @@ add_filter('mime_types', function ($mimes) {
     $mimes['svg'] = 'image/svg+xml';
     return $mimes;
 });
+
+/**
+ * Inyectar estado de sesión para React.
+ * Define window.GLORY_AUTH antes de que cargue la app.
+ */
+add_action('wp_head', function() {
+    $estado = [
+        'isLoggedIn' => is_user_logged_in(),
+        'user' => is_user_logged_in() ? wp_get_current_user()->display_name : null
+    ];
+    echo '<script>window.GLORY_AUTH = ' . json_encode($estado) . ';</script>';
+}, 1); // Prioridad alta para salir antes que el bundle React

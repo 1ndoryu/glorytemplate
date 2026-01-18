@@ -9,9 +9,10 @@ interface ModalAuthProps {
     visible: boolean;
     onCerrar: () => void;
     modoInicial?: 'login' | 'registro';
+    onLoginExitoso?: () => void;
 }
 
-export const ModalAuth: React.FC<ModalAuthProps> = ({visible, onCerrar, modoInicial = 'login'}) => {
+export const ModalAuth: React.FC<ModalAuthProps> = ({visible, onCerrar, modoInicial = 'login', onLoginExitoso}) => {
     const [modo, setModo] = useState<'login' | 'registro'>(modoInicial);
     const [cargando, setCargando] = useState(false);
     const [form, setForm] = useState({usuario: '', password: '', nombre: ''});
@@ -28,6 +29,7 @@ export const ModalAuth: React.FC<ModalAuthProps> = ({visible, onCerrar, modoInic
             setCargando(false);
             onCerrar();
             setForm({usuario: '', password: '', nombre: ''});
+            if (onLoginExitoso) onLoginExitoso();
         }, 1500);
     };
 
