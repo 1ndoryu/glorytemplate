@@ -10,9 +10,9 @@ export const VistaResumen: React.FC = () => {
 
     return (
         <div className="bloqueVista animate-fade-in">
-            <div className="resumenHeader">
-                <h2 className="resumenTitulo">Hola, Nakomi</h2>
-                <p className="resumenSubtitulo">{hasProjects ? 'Estos son tus proyectos en progreso.' : 'No tienes nada pendiente.'}</p>
+            <div className="vistaHeader">
+                <h2 className="vistaTitulo">Hola, Nakomi</h2>
+                <p className="vistaSubtitulo">{hasProjects ? 'Estos son tus proyectos en progreso.' : 'No tienes nada pendiente.'}</p>
             </div>
 
             {/* Lista Proyectos o Placeholder */}

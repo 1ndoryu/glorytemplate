@@ -1,17 +1,5 @@
 /* Estilos para Vista Resumen */
 
-.resumenTitulo {
-    font-size: 1.25rem;
-    font-weight: 300;
-    color: var(--nakomi-textoActivo);
-    margin: 0;
-}
-.resumenSubtitulo {
-    font-size: 0.75rem;
-    color: var(--nakomi-textoApagado);
-    margin-top: 4px;
-}
-
 .placeholderServicios {
     display: flex;
     flex-direction: column;

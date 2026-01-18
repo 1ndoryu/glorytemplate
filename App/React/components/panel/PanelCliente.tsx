@@ -109,11 +109,6 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                     </div>
 
                     <div className="headerTools">
-                        <div className="searchBox">
-                            <Search className="searchIcon" />
-                            <input type="text" placeholder="Buscar en Nakomi..." className="searchInput" />
-                        </div>
-
                         <div className="userProfile">
                             <button className="botonNotificacion">
                                 <Bell size={16} />

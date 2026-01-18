@@ -455,3 +455,21 @@
     color: var(--nakomi-textoActivo);
     margin-top: 0.25rem;
 }
+
+/* Headers de Vistas (Estándar) */
+.vistaHeader {
+    margin-bottom: 0.5rem;
+}
+
+.vistaTitulo {
+    font-size: 1.25rem;
+    font-weight: 300;
+    color: var(--nakomi-textoActivo);
+    margin: 0;
+}
+
+.vistaSubtitulo {
+    font-size: 0.75rem;
+    color: var(--nakomi-textoApagado);
+    margin-top: 4px;
+}

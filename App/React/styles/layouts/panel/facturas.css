@@ -6,47 +6,59 @@
 .tablaFacturasContenedor {
     padding: 0;
     overflow: hidden;
+    border: 1px solid var(--nakomi-bordePrincipal);
+    box-shadow: var(--nakomi-sombraSutil);
 }
 
 .tablaFacturas {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
+    font-size: 0.9rem; /* Standardized size */
 }
 
 .tablaFacturas th {
     text-align: left;
     padding: 1rem 1.5rem;
-    background-color: var(--nakomi-neutral-50);
-    color: var(--nakomi-neutral-600);
-    font-weight: 500;
-    font-size: 0.8rem;
+    background-color: var(--nakomi-fondoTerciario);
+    color: var(--nakomi-textoSecundario);
+    font-weight: 400; /* No bold */
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    border-bottom: 1px solid var(--nakomi-borde);
+    border-bottom: 1px solid var(--nakomi-bordePrincipal);
 }
 
 .tablaFacturas td {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--nakomi-borde);
-    color: var(--nakomi-texto);
+    border-bottom: 1px solid var(--nakomi-bordeSutil);
+    color: var(--nakomi-textoNormal);
+    vertical-align: middle;
+    font-weight: 400; /* Ensure no bold */
 }
 
 .tablaFacturas tbody tr:last-child td {
     border-bottom: none;
 }
 
+.tablaFacturas tbody tr {
+    transition: background-color var(--nakomi-transicionRapida);
+}
+
 .tablaFacturas tbody tr:hover {
-    background-color: var(--nakomi-neutral-50);
+    background-color: var(--nakomi-fondoHover);
 }
 
 .tablaFacturas .font-mono {
-    font-family: var(--fuente-mono, monospace);
-    color: var(--nakomi-neutral-500);
+    font-family: var(--nakomi-fuenteMono);
+    color: var(--nakomi-textoApagado);
+    font-size: 0.85rem;
+    white-space: nowrap; /* Prevent breaking */
 }
 
 .tablaFacturas .font-bold {
-    font-weight: 600;
+    font-weight: 400; /* Removed bold */
+    color: var(--nakomi-textoActivo); /* Keep white color for emphasis */
+    font-size: 1rem; /* Slightly larger but not huge */
 }
 
 .tablaFacturas .text-right {
@@ -57,11 +69,16 @@
 @media (max-width: 640px) {
     .tablaFacturas th,
     .tablaFacturas td {
-        padding: 0.75rem 1rem;
+        padding: 1rem;
     }
 
     .tablaFacturas th:nth-child(2), /* Concepto */
     .tablaFacturas td:nth-child(2) {
+        display: none;
+    }
+
+    .tablaFacturas th:nth-child(3), /* Fecha */
+    .tablaFacturas td:nth-child(3) {
         display: none;
     }
 }
