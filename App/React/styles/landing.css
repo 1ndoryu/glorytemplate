@@ -351,7 +351,7 @@ html {
 
 /* Seccion Manifiesto - texto que aparece al scroll */
 .seccionManifiesto {
-    min-height: 80vh;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -403,6 +403,9 @@ html {
 
 /* Seccion Servicios - carrusel minimalista */
 .seccionServicios {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
     padding: var(--nakomi-espacio2xl) 0;
     padding-bottom: calc(var(--nakomi-espacio2xl) * 2);
     overflow: hidden;
@@ -457,6 +460,24 @@ html {
     display: flex;
     gap: var(--nakomi-espacioMd);
     will-change: transform;
+}
+
+/* Grid de servicios - modo estatico de 3 columnas */
+.serviciosGridContenedor {
+    max-width: var(--landing-anchoMaximo);
+    margin: 0 auto;
+    padding: 0 var(--nakomi-espacioMd);
+}
+
+.serviciosGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--nakomi-espacioMd);
+}
+
+/* En modo grid, las tarjetas se adaptan al contenedor */
+.serviciosGrid .tarjetaServicio {
+    width: 100%;
 }
 
 /* Tarjeta de servicio individual - ancho fijo para carrusel */
@@ -698,6 +719,11 @@ html {
         width: 240px;
     }
 
+    /* Grid de servicios en tablets: 2 columnas */
+    .serviciosGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
     .gridResenas {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -728,6 +754,11 @@ html {
         width: 220px;
     }
 
+    /* Grid de servicios en movil: 1 columna */
+    .serviciosGrid {
+        grid-template-columns: 1fr;
+    }
+
     .seccionServicios {
         padding: var(--nakomi-espacioLg) 0;
     }
@@ -743,14 +774,17 @@ html {
 
 /* Seccion Ecosistema - Hero con imagen full width */
 .seccionEcosistema {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     padding: var(--nakomi-espacio2xl) 0;
-    padding-bottom: 0;
 }
 
 .ecosistemaContenedor {
     max-width: var(--landing-anchoMaximo);
+    width: 100%;
     margin: 0 auto var(--nakomi-espacioLg);
-    padding: 0 var(--nakomi-espacioLg);
 }
 
 .ecosistemaHeader {
@@ -795,6 +829,8 @@ html {
 
 .ecosistemaImagenContenedor {
     width: 100%;
+    max-width: var(--landing-anchoMaximo);
+    margin: 0 auto;
     overflow: hidden;
 }
 
@@ -813,12 +849,17 @@ html {
 
 /* Seccion Blog - Grid de articulos */
 .seccionBlog {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
     padding: var(--nakomi-espacio2xl) var(--nakomi-espacioLg);
+    background-color: var(--nakomi-fondoSecundario);
 }
 
 .blogSeccionContenedor {
     max-width: var(--landing-anchoMaximo);
     margin: 0 auto;
+    width: 100%;
 }
 
 .blogHeader {
@@ -914,6 +955,7 @@ html {
     color: var(--nakomi-textoActivo);
     margin-bottom: var(--nakomi-espacioSm);
     line-height: 1.4;
+    max-width: 85%;
 }
 
 .blogExtracto {
@@ -921,6 +963,7 @@ html {
     color: var(--nakomi-textoApagado);
     line-height: 1.6;
     margin-bottom: var(--nakomi-espacioMd);
+    max-width: 85%;
     /*
      * Limitar a 3 lineas con ellipsis para mantener
      * uniformidad en las tarjetas
@@ -983,10 +1026,6 @@ html {
     .ecosistemaTituloGrande,
     .blogTituloGrande {
         font-size: 1.2rem;
-    }
-
-    .ecosistemaContenedor {
-        padding: 0 var(--nakomi-espacioMd);
     }
 
     .gridBlog {

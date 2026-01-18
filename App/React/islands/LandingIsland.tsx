@@ -224,7 +224,7 @@ export const LandingIsland: React.FC<LandingIslandProps> = ({mostrarPanel = fals
 
             <IntroManifiesto />
 
-            <GridServicios servicios={serviciosEjemplo} />
+            <GridServicios servicios={serviciosEjemplo} modo="grid" />
 
             <GridResenas resenas={resenasEjemplo} />
 

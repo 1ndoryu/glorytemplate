@@ -1,8 +1,9 @@
 import React, {useEffect, useRef} from 'react';
 
 /*
- * GridServicios: Carrusel automático de servicios estilo Fiverr.
- * Los servicios se desplazan suavemente de manera infinita.
+ * GridServicios: Visualización de servicios con dos modos:
+ * - carrusel: Desplazamiento infinito horizontal (estilo Fiverr)
+ * - grid: Grid estático de 3 columnas
  */
 
 export interface Servicio {
@@ -13,9 +14,14 @@ export interface Servicio {
     imagen: string;
 }
 
+/* Tipo para los modos de visualización disponibles */
+export type ModoVisualizacion = 'carrusel' | 'grid';
+
 interface GridServiciosProps {
     servicios: Servicio[];
     id?: string;
+    /* Modo de visualización: 'carrusel' (infinito) o 'grid' (3 columnas) */
+    modo?: ModoVisualizacion;
 }
 
 /* Tarjeta individual de servicio */
@@ -37,19 +43,22 @@ const TarjetaServicio: React.FC<{servicio: Servicio}> = ({servicio}) => {
     );
 };
 
-export const GridServicios: React.FC<GridServiciosProps> = ({servicios, id = 'seccionServicios'}) => {
+export const GridServicios: React.FC<GridServiciosProps> = ({servicios, id = 'seccionServicios', modo = 'carrusel'}) => {
     const carruselRef = useRef<HTMLDivElement>(null);
     const posicionRef = useRef(0);
     const pausadoRef = useRef(false);
 
-    /* Duplicar servicios para efecto de loop infinito */
-    const serviciosDuplicados = [...servicios, ...servicios];
+    /* Duplicar servicios solo para modo carrusel (loop infinito) */
+    const serviciosMostrar = modo === 'carrusel' ? [...servicios, ...servicios] : servicios;
 
     const manejarPausa = (pausar: boolean) => {
         pausadoRef.current = pausar;
     };
 
+    /* Animación solo activa en modo carrusel */
     useEffect(() => {
+        if (modo !== 'carrusel') return;
+
         const carrusel = carruselRef.current;
         if (!carrusel) return;
 
@@ -72,7 +81,33 @@ export const GridServicios: React.FC<GridServiciosProps> = ({servicios, id = 'se
         animacionId = requestAnimationFrame(animar);
 
         return () => cancelAnimationFrame(animacionId);
-    }, []);
+    }, [modo]);
+
+    /* Renderizado condicional según el modo */
+    const renderContenido = () => {
+        if (modo === 'grid') {
+            return (
+                <div className="serviciosGridContenedor">
+                    <div className="serviciosGrid">
+                        {serviciosMostrar.map(servicio => (
+                            <TarjetaServicio key={servicio.id} servicio={servicio} />
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        /* Modo carrusel (por defecto) */
+        return (
+            <div className="carruselContenedor" onMouseEnter={() => manejarPausa(true)} onMouseLeave={() => manejarPausa(false)}>
+                <div className="carruselServicios" ref={carruselRef}>
+                    {serviciosMostrar.map((servicio, indice) => (
+                        <TarjetaServicio key={`${servicio.id}-${indice}`} servicio={servicio} />
+                    ))}
+                </div>
+            </div>
+        );
+    };
 
     return (
         <section id={id} className="seccionServicios">
@@ -83,13 +118,7 @@ export const GridServicios: React.FC<GridServiciosProps> = ({servicios, id = 'se
                         Ver servicios
                     </a>
                 </header>
-                <div className="carruselContenedor" onMouseEnter={() => manejarPausa(true)} onMouseLeave={() => manejarPausa(false)}>
-                    <div className="carruselServicios" ref={carruselRef}>
-                        {serviciosDuplicados.map((servicio, indice) => (
-                            <TarjetaServicio key={`${servicio.id}-${indice}`} servicio={servicio} />
-                        ))}
-                    </div>
-                </div>
+                {renderContenido()}
             </div>
         </section>
     );

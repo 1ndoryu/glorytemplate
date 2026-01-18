@@ -15,6 +15,6 @@ export {SeccionEcosistema} from './SeccionEcosistema';
 export {SeccionBlog} from './SeccionBlog';
 
 export type {Proyecto} from './TarjetaProyecto';
-export type {Servicio} from './GridServicios';
+export type {Servicio, ModoVisualizacion} from './GridServicios';
 export type {Resena} from './GridResenas';
 export type {ArticuloBlog} from './SeccionBlog';
