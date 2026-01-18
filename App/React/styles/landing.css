@@ -1409,7 +1409,7 @@ html {
     border: 1px solid var(--nakomi-bordeSutil);
     border-radius: var(--nakomi-radioMd);
     padding: var(--nakomi-espacioLg);
-    margin-top: var(--nakomi-espacioMd);
+    margin-top: 100px;
     min-height: 500px;
     transition: border-color var(--nakomi-transicionRapida);
 }
