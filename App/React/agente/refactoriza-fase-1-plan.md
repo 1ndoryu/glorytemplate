@@ -95,7 +95,48 @@ App/React/
     - `.blogLeerMas` - Eliminada (reemplazada por componente Boton)
 *   [x] **Reducción de `landing.css`**: El archivo pasó de ~1800 líneas a ~1650 líneas (~150 líneas eliminadas de CSS duplicado).
 
-## 5. Instrucciones para el Agente (Self-Correction)
+### Fase 5: Modularización CSS ✅ COMPLETADA
+*   [x] **Dividir `landing.css`**: El archivo se redujo de ~1660 líneas a **~45 líneas** mediante extracción a 12 archivos modulares:
+    - `layouts/navegacion.css` (~90 líneas) - Barra de navegación principal
+    - `layouts/hero.css` (~70 líneas) - Sección hero y grid portafolio base
+    - `layouts/portafolio.css` (~145 líneas) - Tarjetas proyecto y modal
+    - `layouts/manifiesto.css` (~50 líneas) - Sección manifiesto animado
+    - `layouts/seccion-servicios.css` (~160 líneas) - Carrusel y grid servicios
+    - `layouts/resenas.css` (~115 líneas) - Grid de reseñas
+    - `layouts/ecosistema.css` (~80 líneas) - Sección ecosistema
+    - `layouts/blog.css` (~135 líneas) - Grid de artículos blog
+    - `layouts/proceso.css` (~125 líneas) - Sección proceso y tarjeta grande
+    - `layouts/ejemplos-visuales.css` (~220 líneas) - Ventanas de ejemplo UI
+    - `layouts/pedidos.css` (~165 líneas) - Tabla de pedidos demo
+    - `layouts/ejemplos-adicionales.css` (~140 líneas) - Stats y notificaciones
+*   [x] **Actualizar `layouts/index.css`**: Punto de entrada que importa todos los módulos CSS.
+
+## 5. Resumen de Archivos CSS por Tipo
+
+### Base (~200 líneas total)
+- `base/reset.css` - Reset y scrollbar
+- `base/tipografia.css` - Sistema tipográfico
+
+### Componentes UI (~400 líneas total)
+- `components/boton.css` - Sistema de botones
+- `components/tarjeta.css` - Sistema de tarjetas
+- `components/etiqueta.css` - Sistema de etiquetas/badges
+
+### Layouts (~1400 líneas total, distribuidas)
+- Cada archivo de layout <= 220 líneas (cumple con el límite de 300)
+
+### Landing Base (~45 líneas)
+- Solo contiene `.contenedorLanding` y footer minimalista
+
+## 6. Instrucciones para el Agente (Self-Correction)
 *   **No romper el build**: Cada refactorización debe comprobarse (mentalmente o via revisión estática) para asegurar que no se pierden imports.
 *   **Mantener la estética**: La refactorización es estructural, el diseño visual ("wow effect") debe mantenerse intacto o mejorar.
 *   **Atomicidad**: No hacer cambios masivos en un solo paso. Ir componente por componente.
+*   **Límites de archivo**: Ningún archivo CSS debe superar 300 líneas (cumplido).
+
+## 7. Próximos Pasos (TO-DO Fase 6)
+
+- [ ] **Reorganizar componentes landing**: Mover componentes específicos de landing a `components/features/landing/`
+- [ ] **Crear componente `TarjetaBlog`**: Extraer la tarjeta de blog como componente reutilizable
+- [ ] **Crear componente `TarjetaResena`**: Extraer la tarjeta de reseña como componente
+- [ ] **Revisar uso de variables**: Auditar todos los archivos CSS para asegurar uso consistente de tokens

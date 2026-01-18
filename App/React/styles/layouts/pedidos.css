@@ -1,0 +1,195 @@
+/*
+ * Estilos de Tabla de Pedidos
+ * Componente de ejemplo para gestión de pedidos
+ */
+
+/* Ventana legacy support */
+.ventanaPedidos {
+    height: 100%;
+    width: 100%;
+}
+
+/* Tabla de pedidos compacta */
+.pedidoTablaHeader {
+    display: grid;
+    grid-template-columns: 2fr 0.8fr 0.5fr 0.8fr 1fr;
+    padding: 0 var(--nakomi-espacioSm) var(--nakomi-espacioXs);
+    border-bottom: 1px solid var(--nakomi-bordeSutil);
+    margin-bottom: var(--nakomi-espacioXs);
+}
+
+.columnaNombre,
+.columnaEstado,
+.columnaProgreso,
+.columnaEntrega,
+.columnaAcciones {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--nakomi-textoMuyApagado);
+}
+
+.columnaEntrega {
+    text-align: center;
+}
+
+.pedidoFila {
+    display: grid;
+    grid-template-columns: 2fr 0.8fr 0.5fr 0.8fr 1fr;
+    align-items: center;
+    padding: var(--nakomi-espacioSm);
+    border-radius: var(--nakomi-radioSm);
+    transition: background-color var(--nakomi-transicionRapida);
+    cursor: default;
+}
+
+.pedidoFila:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.celdaInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    overflow: hidden;
+}
+
+.iconoProyecto {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.6rem;
+    font-weight: 600;
+}
+
+.iconoProyecto.amarillo {
+    background-color: rgba(234, 179, 8, 0.2);
+    color: #eab308;
+}
+
+.iconoProyecto.azul {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+}
+
+.iconoProyecto.verde {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.textoInfo {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.nombreProyecto {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nombreCliente {
+    font-size: 0.6rem;
+    color: var(--nakomi-textoApagado);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.celdaEstado {
+    display: flex;
+    align-items: center;
+}
+
+.estadoBadge {
+    font-size: 0.55rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.estadoBadge.enProgreso {
+    background-color: rgba(234, 179, 8, 0.1);
+    color: #eab308;
+    border: 1px solid rgba(234, 179, 8, 0.2);
+}
+
+.estadoBadge.revision {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.estadoBadge.planificacion {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--nakomi-textoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+}
+
+.celdaProgreso {
+    display: flex;
+    align-items: center;
+}
+
+.barraFina {
+    width: 100%;
+    height: 2px;
+    background-color: var(--nakomi-bordeSutil);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progresoFino {
+    height: 100%;
+    border-radius: 2px;
+    background-color: var(--nakomi-textoSecundario);
+}
+
+.celdaEntrega {
+    text-align: center;
+}
+
+.tiempoEntrega {
+    font-size: 0.65rem;
+    color: var(--nakomi-textoApagado);
+    font-variant-numeric: tabular-nums;
+}
+
+.celdaAcciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.accionBoton {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    border-radius: 4px;
+    color: var(--nakomi-textoApagado);
+    cursor: pointer;
+    transition: all var(--nakomi-transicionRapida);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.accionBoton:hover {
+    background-color: var(--nakomi-fondoHover);
+    color: var(--nakomi-textoActivo);
+}
+
+.accionPeligro:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}

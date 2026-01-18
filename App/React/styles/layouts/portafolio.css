@@ -1,0 +1,159 @@
+/*
+ * Estilos de Portafolio
+ * Tarjetas de proyecto y Modal de detalle
+ */
+
+/* Tarjeta de proyecto */
+.tarjetaProyecto {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    cursor: pointer;
+    transition: border-color var(--nakomi-transicionRapida);
+}
+
+.tarjetaProyecto:hover {
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+.tarjetaProyecto:hover .tarjetaImagen {
+    transform: scale(1.03);
+}
+
+.tarjetaProyecto:hover .tarjetaOverlay {
+    opacity: 1;
+}
+
+.tarjetaImagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--nakomi-transicionLenta);
+}
+
+.tarjetaOverlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(9, 9, 9, 0.95) 0%, rgba(9, 9, 9, 0.4) 50%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: var(--nakomi-espacioMd);
+    opacity: 0;
+    transition: opacity var(--nakomi-transicionNormal);
+}
+
+.tarjetaNombre {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    margin-bottom: var(--nakomi-espacioXs);
+}
+
+.tarjetaCategoria {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoApagado);
+}
+
+/* Modal de proyecto */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background-color: var(--nakomi-superposicionOscuro);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--nakomi-espacioLg);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity var(--nakomi-transicionNormal),
+        visibility var(--nakomi-transicionNormal);
+}
+
+.modalOverlayVisible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modalContenido {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    overflow: hidden;
+    transform: scale(0.95);
+    transition: transform var(--nakomi-transicionNormal);
+}
+
+.modalOverlayVisible .modalContenido {
+    transform: scale(1);
+}
+
+.modalCerrar {
+    position: absolute;
+    top: var(--nakomi-espacioMd);
+    right: var(--nakomi-espacioMd);
+    z-index: 10;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--nakomi-fondoTerciario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    color: var(--nakomi-textoSecundario);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.modalCerrar:hover {
+    background-color: var(--nakomi-fondoHover);
+    color: var(--nakomi-textoActivo);
+}
+
+.modalImagen {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+.modalInfo {
+    padding: var(--nakomi-espacioLg);
+}
+
+.modalTitulo {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    margin-bottom: var(--nakomi-espacioSm);
+}
+
+.modalCategoria {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--nakomi-acento);
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.modalDescripcion {
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: var(--nakomi-textoSecundario);
+}
+
+/* Responsive modal */
+@media (max-width: 600px) {
+    .modalInfo {
+        padding: var(--nakomi-espacioMd);
+    }
+}

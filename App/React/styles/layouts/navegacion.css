@@ -1,0 +1,94 @@
+/*
+ * Estilos de Navegación Principal
+ * Barra de navegación fija con logo, enlaces y botón login
+ */
+
+.navegacionPrincipal {
+    position: fixed;
+    top: var(--nakomi-espacioMd);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    width: calc(100% - var(--nakomi-espacioLg) * 2);
+    max-width: var(--nakomi-anchoMaximo);
+    padding: var(--nakomi-espacioMd) var(--nakomi-espacioMd);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(9, 9, 9, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+}
+
+.navegacionLogo {
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: none;
+    color: var(--nakomi-textoActivo);
+    flex-shrink: 0;
+}
+
+.navegacionEnlaces {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: var(--nakomi-espacioMd);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navegacionEnlace {
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: none;
+    color: var(--nakomi-textoSecundario);
+    text-decoration: none;
+    transition: color var(--nakomi-transicionRapida);
+    cursor: pointer;
+}
+
+.navegacionEnlace:hover {
+    color: var(--nakomi-textoActivo);
+}
+
+.navegacionEnlaceActivo {
+    color: var(--nakomi-acento);
+}
+
+.navegacionBotonLogin {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--nakomi-fondoPrincipal);
+    background-color: var(--nakomi-textoActivo);
+    text-decoration: none;
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioMd);
+    border: none;
+    border-radius: var(--nakomi-radioSm);
+    transition: all var(--nakomi-transicionRapida);
+    flex-shrink: 0;
+}
+
+.navegacionBotonLogin:hover {
+    background-color: #ffffff;
+}
+
+/* Responsive navegacion */
+@media (max-width: 900px) {
+    .navegacionPrincipal {
+        width: calc(100% - var(--nakomi-espacioMd) * 2);
+        top: var(--nakomi-espacioSm);
+        padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    }
+}
+
+@media (max-width: 600px) {
+    .navegacionEnlaces {
+        display: none;
+    }
+}

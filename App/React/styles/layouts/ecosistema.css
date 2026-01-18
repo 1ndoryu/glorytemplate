@@ -1,0 +1,88 @@
+/*
+ * Estilos de Sección Ecosistema
+ * Hero con imagen full width para presentar el ecosistema
+ */
+
+/* Seccion Ecosistema - Hero con imagen full width */
+.seccionEcosistema {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--nakomi-espacio2xl) 0;
+}
+
+.ecosistemaContenedor {
+    max-width: var(--nakomi-anchoMaximo);
+    width: 100%;
+    margin: 0 auto var(--nakomi-espacioLg);
+}
+
+.ecosistemaHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.ecosistemaTituloGrande {
+    font-family: 'Gothic60', var(--nakomi-fuentePrincipal);
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--nakomi-textoActivo);
+}
+
+.ecosistemaDescripcion {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--nakomi-textoSecundario);
+    max-width: 700px;
+}
+
+.ecosistemaImagenContenedor {
+    width: 100%;
+    max-width: var(--nakomi-anchoMaximo);
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.ecosistemaImagen {
+    width: 100%;
+    height: auto;
+    max-height: 500px;
+    object-fit: cover;
+    display: block;
+    transition: transform var(--nakomi-transicionLenta);
+}
+
+.ecosistemaImagenContenedor:hover .ecosistemaImagen {
+    transform: scale(1.02);
+}
+
+/* Responsive ecosistema */
+@media (max-width: 900px) {
+    .ecosistemaTituloGrande {
+        font-size: 1.5rem;
+    }
+
+    .ecosistemaImagen {
+        max-height: 400px;
+    }
+}
+
+@media (max-width: 600px) {
+    .ecosistemaHeader {
+        flex-direction: column;
+        gap: var(--nakomi-espacioMd);
+        align-items: flex-start;
+    }
+
+    .ecosistemaTituloGrande {
+        font-size: 1.2rem;
+    }
+
+    .ecosistemaImagen {
+        max-height: 300px;
+    }
+}

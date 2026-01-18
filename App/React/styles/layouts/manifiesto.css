@@ -1,0 +1,47 @@
+/*
+ * Estilos de Sección Manifiesto
+ * Texto animado que aparece al scroll
+ */
+
+.seccionManifiesto {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--nakomi-espacio2xl) var(--nakomi-espacioLg);
+}
+
+.manifiestoContenedor {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.manifiestoTexto {
+    font-size: clamp(1.2rem, 3vw, 2.2rem);
+    font-weight: 300;
+    line-height: 1.3;
+    color: var(--nakomi-textoActivo);
+    letter-spacing: -0.01em;
+}
+
+.manifestoPalabra {
+    display: inline-block;
+    margin-right: 0.3em;
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+    will-change: opacity, transform;
+}
+
+/* Responsive manifiesto */
+@media (max-width: 600px) {
+    .seccionManifiesto {
+        min-height: 60vh;
+        padding: var(--nakomi-espacioLg) var(--nakomi-espacioMd);
+    }
+
+    .manifiestoTexto {
+        font-size: 1.1rem;
+    }
+}

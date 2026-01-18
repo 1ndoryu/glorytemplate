@@ -1,0 +1,70 @@
+/*
+ * Estilos de Sección Hero
+ * Hero con logo dinámico y grid de portafolio
+ */
+
+/* Variables específicas del landing */
+:root {
+    /* Separación entre el hero y la sección de proyectos - negativo los acerca */
+    --landing-separacionProyectos: -100px;
+}
+
+/* Hero con logo dinamico */
+.seccionHero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+}
+
+.logoHero {
+    width: calc(100% - 40px);
+    max-width: var(--nakomi-anchoMaximo);
+    margin: 0 auto;
+    /* Flexbox para centrar el texto incluso con overflow */
+    display: flex;
+    justify-content: center;
+    user-select: none;
+    overflow: hidden;
+    padding: 0;
+}
+
+.logoTexto {
+    font-family: 'Gothic60', var(--nakomi-fuentePrincipal);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 0.85;
+    color: var(--nakomi-textoActivo);
+    white-space: nowrap;
+    text-transform: uppercase;
+}
+
+/* Grid del portafolio - 2 columnas, mas ancho */
+.seccionPortafolio {
+    padding: var(--nakomi-espacioLg);
+    /* Usa margin-top para permitir valores negativos y acercar al hero */
+    margin-top: var(--landing-separacionProyectos);
+    padding-bottom: calc(var(--nakomi-espacio2xl) * 2);
+}
+
+.gridPortafolio {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--nakomi-espacioMd);
+    max-width: var(--nakomi-anchoMaximo);
+    margin: 0 auto;
+}
+
+/* Responsive portafolio */
+@media (max-width: 600px) {
+    .gridPortafolio {
+        grid-template-columns: 1fr;
+        gap: var(--nakomi-espacioSm);
+    }
+
+    .seccionPortafolio {
+        padding: var(--nakomi-espacioLg) var(--nakomi-espacioSm);
+    }
+}

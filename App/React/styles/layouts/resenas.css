@@ -1,0 +1,131 @@
+/*
+ * Estilos de Sección Reseñas
+ * Grid de testimonios de clientes
+ */
+
+/* Seccion Resenas - testimonios de clientes */
+.seccionResenas {
+    min-height: 100vh;
+    padding: var(--nakomi-espacio2xl) var(--nakomi-espacioLg);
+    display: flex;
+    align-items: center;
+}
+
+.resenasContenedor {
+    max-width: var(--nakomi-anchoMaximo);
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Header de reseñas con título y botón */
+.resenasHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--nakomi-espacioLg);
+}
+
+.resenasTituloGrande {
+    font-family: 'Gothic60', var(--nakomi-fuentePrincipal);
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--nakomi-textoActivo);
+}
+
+.gridResenas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--nakomi-espacioMd);
+}
+
+/* Tarjeta de reseña */
+.tarjetaResena {
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    padding: var(--nakomi-espacioLg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--nakomi-espacioLg);
+    transition: border-color var(--nakomi-transicionRapida);
+}
+
+.tarjetaResena:hover {
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+.resenaTexto {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--nakomi-textoApagado);
+}
+
+.resenaFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--nakomi-espacioMd);
+}
+
+.resenaAutor {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+}
+
+.resenaAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.resenaAvatarPlaceholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+}
+
+.resenaInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.resenaNombre {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+}
+
+.resenaCargo {
+    font-size: 0.7rem;
+    color: var(--nakomi-textoApagado);
+}
+
+/* Responsive reseñas */
+@media (max-width: 900px) {
+    .gridResenas {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .gridResenas {
+        grid-template-columns: 1fr;
+    }
+
+    .seccionResenas {
+        padding: var(--nakomi-espacioLg) var(--nakomi-espacioMd);
+    }
+}

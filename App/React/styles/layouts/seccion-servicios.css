@@ -1,0 +1,175 @@
+/*
+ * Estilos de Sección Servicios (Landing)
+ * Carrusel y grid de servicios con tarjetas
+ */
+
+/* Seccion Servicios - carrusel minimalista */
+.seccionServicios {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: var(--nakomi-espacio2xl) 0;
+    padding-bottom: calc(var(--nakomi-espacio2xl) * 2);
+    overflow: hidden;
+}
+
+.serviciosContenedor {
+    width: 100%;
+}
+
+/* Header de servicios con título y botón */
+.serviciosHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: var(--nakomi-anchoMaximo);
+    margin: 0 auto var(--nakomi-espacioLg);
+}
+
+.serviciosTituloGrande {
+    font-family: 'Gothic60', var(--nakomi-fuentePrincipal);
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--nakomi-textoActivo);
+}
+
+/* Carrusel de servicios */
+.carruselContenedor {
+    width: 100%;
+    overflow: hidden;
+}
+
+.carruselServicios {
+    display: flex;
+    gap: var(--nakomi-espacioMd);
+    will-change: transform;
+}
+
+/* Grid de servicios - modo estatico de 3 columnas */
+.serviciosGridContenedor {
+    max-width: var(--nakomi-anchoMaximo);
+    margin: 0 auto;
+}
+
+.serviciosGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--nakomi-espacioMd);
+}
+
+/* En modo grid, las tarjetas se adaptan al contenedor */
+.serviciosGrid .tarjetaServicio {
+    width: 100%;
+}
+
+/* Tarjeta de servicio individual - ancho fijo para carrusel */
+.tarjetaServicio {
+    flex-shrink: 0;
+    width: 280px;
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    overflow: hidden;
+    transition: border-color var(--nakomi-transicionRapida);
+    cursor: pointer;
+}
+
+.tarjetaServicio:hover {
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+.tarjetaServicio:hover .servicioImagen {
+    transform: scale(1.03);
+}
+
+.servicioImagenContenedor {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+}
+
+.servicioImagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--nakomi-transicionLenta);
+}
+
+.servicioInfo {
+    padding: var(--nakomi-espacioMd);
+}
+
+.servicioNombre {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    margin-bottom: var(--nakomi-espacioXs);
+}
+
+.servicioDescripcion {
+    font-size: 0.7rem;
+    color: var(--nakomi-textoApagado);
+    line-height: 1.5;
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.servicioPrecio {
+    display: flex;
+    align-items: baseline;
+    gap: var(--nakomi-espacioXs);
+}
+
+.precioEtiqueta {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoMuyApagado);
+}
+
+.precioValor {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+}
+
+/* Responsive servicios */
+@media (max-width: 900px) {
+    .serviciosTituloGrande {
+        font-size: 1.5rem;
+    }
+
+    .tarjetaServicio {
+        width: 240px;
+    }
+
+    /* Grid de servicios en tablets: 2 columnas */
+    .serviciosGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .serviciosHeader {
+        flex-direction: column;
+        gap: var(--nakomi-espacioMd);
+        align-items: flex-start;
+        padding: 0 var(--nakomi-espacioMd);
+    }
+
+    .serviciosTituloGrande {
+        font-size: 1.2rem;
+    }
+
+    .tarjetaServicio {
+        width: 220px;
+    }
+
+    /* Grid de servicios en movil: 1 columna */
+    .serviciosGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .seccionServicios {
+        padding: var(--nakomi-espacioLg) 0;
+    }
+}

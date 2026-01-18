@@ -1,0 +1,143 @@
+/*
+ * Estilos de Sección Proceso
+ * Grid de 3 columnas con flujo de trabajo y ejemplos visuales
+ */
+
+/* Seccion Proceso - Grid de 3 columnas con el flujo de trabajo */
+.seccionProceso {
+    padding: var(--nakomi-espacio2xl) var(--nakomi-espacioLg);
+    padding-bottom: calc(var(--nakomi-espacio2xl) * 2);
+}
+
+.procesoContenedor {
+    max-width: var(--nakomi-anchoMaximo);
+    margin: 0 auto;
+}
+
+.procesoGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--nakomi-espacioMd);
+}
+
+.tarjetaProceso {
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    padding: var(--nakomi-espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+        opacity 0.5s ease,
+        transform 0.5s ease,
+        border-color var(--nakomi-transicionRapida);
+    transition-delay: var(--delay, 0s);
+}
+
+.tarjetaProcesoVisible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tarjetaProceso:hover {
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+.procesoTitulo {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    margin: 0;
+}
+
+.procesoDescripcion {
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--nakomi-textoApagado);
+    margin: 0;
+    margin-bottom: var(--nakomi-espacioSm);
+}
+
+/* Ejemplo visual generico - altura fija para uniformidad */
+.procesoEjemploVisual {
+    background-color: var(--nakomi-fondoTerciario);
+    background-size: cover;
+    background-position: center;
+    border-radius: var(--nakomi-radioSm);
+    padding: 20px;
+    margin-top: auto;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Tarjeta Grande - Gestión de pedidos */
+.tarjetaProcesoGrande {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--nakomi-espacioLg);
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    padding: var(--nakomi-espacioLg);
+    margin-top: 100px;
+    min-height: 500px;
+    transition: border-color var(--nakomi-transicionRapida);
+}
+
+.tarjetaProcesoGrande:hover {
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+.procesoGrandeTexto {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--nakomi-espacioSm);
+}
+
+.procesoGrandeEjemplo {
+    background-color: var(--nakomi-fondoTerciario);
+    background-image: url('/wp-content/themes/glory/Glory/assets/images/colors/47252f8c0c7f5dae7657ca6eed05eeca.jpg');
+    background-size: cover;
+    background-position: center;
+    border-radius: var(--nakomi-radioSm);
+    overflow: hidden;
+    min-height: 280px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Responsive proceso */
+@media (max-width: 900px) {
+    .procesoGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tarjetaProcesoGrande {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .procesoGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .seccionProceso {
+        padding: var(--nakomi-espacioLg) var(--nakomi-espacioMd);
+    }
+
+    .procesoEjemploVisual {
+        height: auto;
+    }
+
+    .tarjetaProcesoGrande {
+        padding: var(--nakomi-espacioMd);
+    }
+}

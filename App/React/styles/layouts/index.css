@@ -1,6 +1,27 @@
 /*
- * Índice de estilos de layouts
- * Importa todos los layouts estructurales
+ * Índice de Layouts - Estilos estructurales
+ * Importa todos los estilos de secciones/layouts
  */
 
+/* Contenedor base */
 @import './contenedor.css';
+
+/* Navegación */
+@import './navegacion.css';
+
+/* Hero y portafolio */
+@import './hero.css';
+@import './portafolio.css';
+
+/* Secciones principales */
+@import './manifiesto.css';
+@import './seccion-servicios.css';
+@import './resenas.css';
+@import './ecosistema.css';
+@import './blog.css';
+
+/* Sección proceso */
+@import './proceso.css';
+@import './ejemplos-visuales.css';
+@import './pedidos.css';
+@import './ejemplos-adicionales.css';
