@@ -1,0 +1,18 @@
+/*
+ * Índice de componentes UI
+ * Exporta todos los componentes atómicos reutilizables
+ */
+
+/* Componentes base */
+export {Boton} from './Boton';
+export {Contenedor} from './Contenedor';
+export {Seccion} from './Seccion';
+export {Etiqueta} from './Etiqueta';
+
+/* Componente Tarjeta y sus sub-componentes */
+export {Tarjeta, TarjetaImagen, TarjetaOverlay, TarjetaCuerpo, TarjetaHeader, TarjetaFooter} from './Tarjeta';
+
+/* Componentes existentes */
+export {DropdownMinimal} from './DropdownMinimal';
+export {InputBusqueda} from './InputBusqueda';
+export {VentanaEjemplo} from './VentanaEjemplo';

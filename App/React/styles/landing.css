@@ -1,43 +1,19 @@
 /*
  * Estilos del Landing Page Nakomi
- * Diseño ultra minimalista con tipografía compacta
+ * 
+ * MIGRACIÓN EN PROGRESO:
+ * Los estilos base (reset, scrollbar, tipografía) se movieron a:
+ * - styles/base/reset.css
+ * - styles/base/tipografia.css
+ * Los componentes UI reutilizables están en:
+ * - styles/components/boton.css
+ * - styles/components/tarjeta.css
  */
 
-/* Variables de espaciado del landing - AJUSTAR AQUI */
+/* Variables específicas del landing (no globales) */
 :root {
-    /* Ancho maximo del contenido (header y grid de proyectos) */
-    --landing-anchoMaximo: 1300px;
-    /* Separacion entre el hero y la seccion de proyectos - negativo los acerca */
+    /* Separación entre el hero y la sección de proyectos - negativo los acerca */
     --landing-separacionProyectos: -100px;
-}
-
-/* Scrollbar minimalista global */
-html {
-    background-color: var(--nakomi-fondoPrincipal);
-}
-
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--nakomi-fondoPrincipal);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--nakomi-scrollbarThumb);
-    border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--nakomi-scrollbarThumbHover);
-}
-
-/* Firefox */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: var(--nakomi-scrollbarThumb) var(--nakomi-fondoPrincipal);
 }
 
 /* Base del landing */
@@ -57,7 +33,7 @@ html {
     transform: translateX(-50%);
     z-index: 100;
     width: calc(100% - var(--nakomi-espacioLg) * 2);
-    max-width: var(--landing-anchoMaximo);
+    max-width: var(--nakomi-anchoMaximo);
     padding: var(--nakomi-espacioMd) var(--nakomi-espacioMd);
     display: flex;
     justify-content: space-between;
@@ -137,7 +113,7 @@ html {
 
 .logoHero {
     width: calc(100% - 40px);
-    max-width: var(--landing-anchoMaximo);
+    max-width: var(--nakomi-anchoMaximo);
     margin: 0 auto;
     /* Flexbox para centrar el texto incluso con overflow */
     display: flex;
@@ -169,7 +145,7 @@ html {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--nakomi-espacioMd);
-    max-width: var(--landing-anchoMaximo);
+    max-width: var(--nakomi-anchoMaximo);
     margin: 0 auto;
 }
 
@@ -420,7 +396,7 @@ html {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: var(--landing-anchoMaximo);
+    max-width: var(--nakomi-anchoMaximo);
     margin: 0 auto var(--nakomi-espacioLg);
 }
 
@@ -464,7 +440,7 @@ html {
 
 /* Grid de servicios - modo estatico de 3 columnas */
 .serviciosGridContenedor {
-    max-width: var(--landing-anchoMaximo);
+    max-width: var(--nakomi-anchoMaximo);
     margin: 0 auto;
 }
 
@@ -571,7 +547,7 @@ html {
 }
 
 .resenasContenedor {
-    max-width: var(--landing-anchoMaximo);
+    max-width: var(--nakomi-anchoMaximo);
     margin: 0 auto;
     width: 100%;
 }
@@ -781,7 +757,7 @@ html {
 }
 
 .ecosistemaContenedor {
-    max-width: var(--landing-anchoMaximo);
+    max-width: var(--nakomi-anchoMaximo);
     width: 100%;
     margin: 0 auto var(--nakomi-espacioLg);
 }
@@ -828,7 +804,7 @@ html {
 
 .ecosistemaImagenContenedor {
     width: 100%;
-    max-width: var(--landing-anchoMaximo);
+    max-width: var(--nakomi-anchoMaximo);
     margin: 0 auto;
     overflow: hidden;
 }
@@ -856,7 +832,7 @@ html {
 }
 
 .blogSeccionContenedor {
-    max-width: var(--landing-anchoMaximo);
+    max-width: var(--nakomi-anchoMaximo);
     margin: 0 auto;
     width: 100%;
 }
@@ -1047,7 +1023,7 @@ html {
 }
 
 .procesoContenedor {
-    max-width: var(--landing-anchoMaximo);
+    max-width: var(--nakomi-anchoMaximo);
     margin: 0 auto;
 }
 

@@ -1,0 +1,82 @@
+/*
+ * Componente Etiqueta - Estilos unificados para badges/tags
+ * Reemplaza: tarjetaEtiqueta, precioEtiqueta, servicioCategoria, blogEtiqueta
+ */
+
+/* === Base de la Etiqueta === */
+.etiqueta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* === Tamaños === */
+.etiquetaXs {
+    font-size: 0.55rem;
+    padding: 2px var(--nakomi-espacioXs);
+}
+
+.etiquetaSm {
+    font-size: 0.6rem;
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
+}
+
+.etiquetaMd {
+    font-size: 0.7rem;
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioMd);
+}
+
+/* === Variante Default (neutra) === */
+.etiquetaDefault {
+    color: var(--nakomi-textoSecundario);
+    background-color: var(--nakomi-superposicionClara);
+    border-radius: var(--nakomi-radioSm);
+}
+
+/* === Variante Categoria (para categorías de servicios/proyectos) === */
+.etiquetaCategoria {
+    color: var(--nakomi-textoApagado);
+    background-color: transparent;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* === Variante Precio (para etiquetas de precio) === */
+.etiquetaPrecio {
+    color: var(--nakomi-textoMuyApagado);
+    background-color: transparent;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* === Variante Estado (para estados de progreso, etc.) === */
+.etiquetaEstado {
+    color: var(--nakomi-textoActivo);
+    background-color: rgba(9, 9, 9, 0.85);
+    backdrop-filter: blur(4px);
+    border-radius: var(--nakomi-radioSm);
+}
+
+/* === Variante Destacado (con acento de color) === */
+.etiquetaDestacado {
+    color: var(--nakomi-fondoPrincipal);
+    background-color: var(--nakomi-acento);
+    border-radius: var(--nakomi-radioSm);
+}
+
+/* === Posicionamiento absoluto (para uso dentro de tarjetas) === */
+.etiquetaAbsoluta {
+    position: absolute;
+    top: var(--nakomi-espacioSm);
+    left: var(--nakomi-espacioSm);
+}
+
+.etiquetaAbsolutaDerecha {
+    position: absolute;
+    top: var(--nakomi-espacioSm);
+    right: var(--nakomi-espacioSm);
+}

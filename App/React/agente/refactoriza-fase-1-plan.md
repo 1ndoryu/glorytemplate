@@ -61,11 +61,18 @@ App/React/
     - `styles/index.css` - Punto de entrada principal
 *   [x] **Crear sistema de tipografía en CSS**: Clases para H1-H4, body, caption, etiquetas y modificadores
 
-### Fase 2: Componentes UI Base (Átomos)
-*   [ ] **Componente `Button`**: Crear un componente flexible que acepte variantes (`primary`, `outline`, `ghost`, `link`) y tamaños. Reemplazar todos los `<a>` y `<button>` hardcodeados.
-*   [ ] **Componente `Container` / `Section`**: Estandarizar los anchos máximos y paddings que ahora se repiten en cada sección (`section`, `div.contenedor`).
-*   [ ] **Componente `Badge` / `Tag`**: Para categorías y etiquetas de precios.
-*   [ ] **Componente `Card`**: Abstracción base para tarjetas de proyectos, servicios y blog.
+### Fase 2: Componentes UI Base (Átomos) ✅ COMPLETADA
+*   [x] **Componente `Boton`**: Creado en `components/ui/Boton.tsx` con variantes (`solid`, `outline`, `ghost`, `link`, `acento`) y tamaños (`sm`, `md`, `lg`). Soporta iconos, estados cargando/disabled, renderizado como `<a>` o `<button>`.
+*   [x] **Componente `Contenedor`**: Creado en `components/ui/Contenedor.tsx` con variantes (`normal`, `texto`, `flush`, `full`) para anchos máximos estandarizados.
+*   [x] **Componente `Seccion`**: Creado en `components/ui/Seccion.tsx` para secciones de página con `alturaMinima`, `centrada` y `padding` opcionales.
+*   [x] **Componente `Etiqueta`**: Creado en `components/ui/Etiqueta.tsx` con variantes (`default`, `categoria`, `precio`, `estado`, `destacado`) y tamaños (`xs`, `sm`, `md`). Estilos en `styles/components/etiqueta.css`.
+*   [x] **Componente `Tarjeta`**: Creado en `components/ui/Tarjeta.tsx` como abstracción base con sub-componentes:
+    - `TarjetaImagen` - Para imágenes con contenedor
+    - `TarjetaOverlay` - Para overlays con gradiente
+    - `TarjetaCuerpo` - Para contenido con padding
+    - `TarjetaHeader` - Para cabeceras con flex
+    - `TarjetaFooter` - Para pies con flex
+*   [x] **Índice de exportaciones**: Creado `components/ui/index.ts` para facilitar importaciones centralizadas.
 
 ### Fase 3: Refactorización de Componentes Landing (Moleculas/Organismos)
 *   [ ] **Refactorizar `SeccionServicios`**: Usar `Grid` y `ServiceCard` (nueva).
