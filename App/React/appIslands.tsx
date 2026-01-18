@@ -13,14 +13,10 @@
  */
 
 // Islas del proyecto
-import {PageEditorIsland} from './islands/PageEditorIsland';
+import {LandingIsland} from './islands/LandingIsland';
 
 // Estilos especificos del proyecto
-import './styles/editorPagina.css';
-
-// Registrar bloques del proyecto en Glory BlockRegistry
-import {registerAppBlocks} from './blocks';
-registerAppBlocks();
+import './styles/landing.css';
 
 /**
  * AppProvider opcional para contexto global de la aplicacion
@@ -34,7 +30,7 @@ export const AppProvider: React.ComponentType<{children: React.ReactNode}> | und
  * La clave es el nombre usado en data-island, el valor es el componente
  */
 export const appIslands: Record<string, React.ComponentType<Record<string, unknown>>> = {
-    PageEditorIsland: PageEditorIsland
+    LandingIsland
 };
 
 /**

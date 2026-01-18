@@ -16,9 +16,9 @@
 
 ### 1. Configuración Base
 
-- [ ] Renombrar variables CSS de `--dashboard-*` a `--nakomi-*`
-- [ ] Crear `variables.css` en `App/React/styles/`
-- [ ] Limpiar estilos del editor anterior si aplica
+- [x] Renombrar variables CSS de `--dashboard-*` a `--nakomi-*`
+- [x] Crear `variables.css` en `App/React/styles/`
+- [x] Limpiar estilos del editor anterior si aplica
 
 ### 2. Estructura de Componentes
 
@@ -41,20 +41,20 @@ App/React/
 
 ### 3. Componentes a Desarrollar
 
-- [ ] **LogoHero**: Texto "nakomi" que escala al ancho del viewport
-- [ ] **Navegacion**: Links compactos (Inicio, Servicios, Proyectos, Apps, Nosotros, Login)
-- [ ] **GridPortafolio**: Grid responsive de proyectos (6 items de ejemplo)
-- [ ] **ModalProyecto**: Modal sin recarga para ver detalles del proyecto
-- [ ] **LandingIsland**: Composición de todos los componentes
+- [x] **LogoHero**: Texto "nakomi" que escala al ancho del viewport
+- [x] **Navegacion**: Links compactos (Inicio, Servicios, Proyectos, Apps, Nosotros, Login)
+- [x] **GridPortafolio**: Grid responsive de proyectos (6 items de ejemplo)
+- [x] **ModalProyecto**: Modal sin recarga para ver detalles del proyecto
+- [x] **LandingIsland**: Composición de todos los componentes
 
 ### 4. Registro
 
-- [ ] Registrar `LandingIsland` en `appIslands.tsx`
-- [ ] Configurar ruta en `pages.php` (probablemente como `home`)
+- [x] Registrar `LandingIsland` en `appIslands.tsx`
+- [x] Configurar ruta en `pages.php` (registrado como `home` - página frontal)
 
 ### 5. Datos de Ejemplo
 
-Proyectos a mostrar en el portafolio (temporalmente con imágenes placeholder):
+Proyectos a mostrar en el portafolio (temporalmente con imágenes placeholder de la carpeta colors de Glory):
 1. Mabuhay Viajes
 2. Entretenedores
 3. Cosmo Revenue
@@ -75,9 +75,10 @@ Proyectos a mostrar en el portafolio (temporalmente con imágenes placeholder):
 
 ## Criterios de Completado
 
-- [ ] Landing renderiza correctamente en `/` o `/home`
-- [ ] Grid muestra 6 proyectos de ejemplo
-- [ ] Modal abre/cierra sin recargar página
-- [ ] Navegación funcional (puede ser placeholder por ahora)
-- [ ] Variables CSS con prefijo `--nakomi-`
-- [ ] Diseño extremadamente minimalista
+- [x] Landing renderiza correctamente en `/` o `/home`
+- [x] Grid muestra 6 proyectos de ejemplo
+- [x] Modal abre/cierra sin recargar página
+- [x] Navegación funcional (puede ser placeholder por ahora)
+- [x] Variables CSS con prefijo `--nakomi-`
+- [x] Diseño extremadamente minimalista
+
