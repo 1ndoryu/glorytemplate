@@ -1427,7 +1427,7 @@ html {
 
 .procesoGrandeEjemplo {
     background-color: var(--nakomi-fondoTerciario);
-    /* background-image: url('/wp-content/themes/glory/Glory/assets/images/colors/47252f8c0c7f5dae7657ca6eed05eeca.jpg'); */
+    background-image: url('/wp-content/themes/glory/Glory/assets/images/colors/47252f8c0c7f5dae7657ca6eed05eeca.jpg');
     background-size: cover;
     background-position: center;
     border-radius: var(--nakomi-radioSm);
@@ -1446,74 +1446,140 @@ html {
 /* ventanaHeader y puntos ahora son globales */
 
 /* Item de pedido */
-.pedidoItem {
-    background-color: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--nakomi-bordeSutil);
+/* Tabla de pedidos compacta */
+.pedidoTablaHeader {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    padding: 0 var(--nakomi-espacioSm) var(--nakomi-espacioXs);
+    border-bottom: 1px solid var(--nakomi-bordeSutil);
+    margin-bottom: var(--nakomi-espacioXs);
+}
+
+.columnaNombre,
+.columnaEstado,
+.columnaProgreso {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--nakomi-textoMuyApagado);
+}
+
+.pedidoFila {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    align-items: center;
+    padding: var(--nakomi-espacioSm);
     border-radius: var(--nakomi-radioSm);
-    padding: var(--nakomi-espacioMd);
+    transition: background-color var(--nakomi-transicionRapida);
+    cursor: default;
+}
+
+.pedidoFila:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.celdaInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    overflow: hidden;
+}
+
+.iconoProyecto {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.6rem;
+    font-weight: 600;
+}
+
+.iconoProyecto.amarillo {
+    background-color: rgba(234, 179, 8, 0.2);
+    color: #eab308;
+}
+.iconoProyecto.azul {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+}
+.iconoProyecto.verde {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.textoInfo {
     display: flex;
     flex-direction: column;
-    gap: var(--nakomi-espacioSm);
+    min-width: 0;
 }
 
-.pedidoInfo {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.pedidoNombre {
-    font-size: 0.8rem;
+.nombreProyecto {
+    font-size: 0.75rem;
     font-weight: 500;
     color: var(--nakomi-textoActivo);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.pedidoCliente {
-    font-size: 0.65rem;
+.nombreCliente {
+    font-size: 0.6rem;
     color: var(--nakomi-textoApagado);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.pedidoMeta {
+.celdaEstado {
     display: flex;
-    justify-content: space-between;
     align-items: center;
 }
 
-.pedidoFecha {
-    font-size: 0.65rem;
-    color: var(--nakomi-textoApagado);
-}
-
-.pedidoEstado {
+.estadoBadge {
     font-size: 0.55rem;
-    padding: 2px 8px;
-    border-radius: var(--nakomi-radioSm);
+    padding: 2px 6px;
+    border-radius: 4px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-weight: 500;
+    letter-spacing: 0.02em;
 }
 
-.pedidoEnProgreso {
-    color: #3b82f6;
-    background-color: rgba(59, 130, 246, 0.1);
-}
-
-.pedidoRevision {
-    color: #eab308;
+.estadoBadge.enProgreso {
     background-color: rgba(234, 179, 8, 0.1);
+    color: #eab308;
+    border: 1px solid rgba(234, 179, 8, 0.2);
+}
+.estadoBadge.revision {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.estadoBadge.planificacion {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--nakomi-textoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
 }
 
-.pedidoProgreso {
+.celdaProgreso {
+    display: flex;
+    align-items: center;
+}
+
+.barraFina {
+    width: 100%;
     height: 3px;
     background-color: var(--nakomi-bordeSutil);
     border-radius: 2px;
     overflow: hidden;
 }
 
-.pedidoProgresoBar {
+.progresoFino {
     height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
     border-radius: 2px;
-    transition: width 0.3s ease;
+    background-color: var(--nakomi-textoSecundario);
 }
 
 /* Responsive para tarjeta grande */

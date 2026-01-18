@@ -4,30 +4,73 @@ import {VentanaEjemplo} from '../../ui/VentanaEjemplo';
 export const EjemploGestionPedidos: React.FC = () => {
     return (
         <VentanaEjemplo titulo="Mis Pedidos">
-            <div className="pedidoItem">
-                <div className="pedidoInfo">
-                    <span className="pedidoNombre">Diseño Web Premium</span>
-                    <span className="pedidoCliente">Cliente: TechVentures</span>
+            {/* Encabezado de tabla simulado */}
+            <div className="pedidoTablaHeader">
+                <span className="columnaNombre">Proyecto</span>
+                <span className="columnaEstado">Estado</span>
+                <span className="columnaProgreso">Progreso</span>
+            </div>
+
+            {/* Fila 1 */}
+            <div className="pedidoFila">
+                <div className="celdaInfo">
+                    <div className="iconoProyecto amarillo">
+                        <span className="inicial">W</span>
+                    </div>
+                    <div className="textoInfo">
+                        <span className="nombreProyecto">Diseño Web Premium</span>
+                        <span className="nombreCliente">TechVentures</span>
+                    </div>
                 </div>
-                <div className="pedidoMeta">
-                    <span className="pedidoFecha">Entrega: 25 Ene</span>
-                    <span className="pedidoEstado pedidoEnProgreso">En progreso</span>
+                <div className="celdaEstado">
+                    <span className="estadoBadge enProgreso">Activo</span>
                 </div>
-                <div className="pedidoProgreso">
-                    <div className="pedidoProgresoBar" style={{width: '65%'}}></div>
+                <div className="celdaProgreso">
+                    <div className="barraFina">
+                        <div className="progresoFino" style={{width: '65%'}}></div>
+                    </div>
                 </div>
             </div>
-            <div className="pedidoItem">
-                <div className="pedidoInfo">
-                    <span className="pedidoNombre">E-commerce Avanzado</span>
-                    <span className="pedidoCliente">Cliente: StyleStore</span>
+
+            {/* Fila 2 */}
+            <div className="pedidoFila">
+                <div className="celdaInfo">
+                    <div className="iconoProyecto azul">
+                        <span className="inicial">E</span>
+                    </div>
+                    <div className="textoInfo">
+                        <span className="nombreProyecto">E-commerce Pro</span>
+                        <span className="nombreCliente">StyleStore</span>
+                    </div>
                 </div>
-                <div className="pedidoMeta">
-                    <span className="pedidoFecha">Entrega: 02 Feb</span>
-                    <span className="pedidoEstado pedidoRevision">En revisión</span>
+                <div className="celdaEstado">
+                    <span className="estadoBadge revision">Revisión</span>
                 </div>
-                <div className="pedidoProgreso">
-                    <div className="pedidoProgresoBar" style={{width: '90%'}}></div>
+                <div className="celdaProgreso">
+                    <div className="barraFina">
+                        <div className="progresoFino" style={{width: '90%'}}></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Fila 3 */}
+            <div className="pedidoFila">
+                <div className="celdaInfo">
+                    <div className="iconoProyecto verde">
+                        <span className="inicial">A</span>
+                    </div>
+                    <div className="textoInfo">
+                        <span className="nombreProyecto">App Corporativa</span>
+                        <span className="nombreCliente">GlobalSys</span>
+                    </div>
+                </div>
+                <div className="celdaEstado">
+                    <span className="estadoBadge planificacion">Inicio</span>
+                </div>
+                <div className="celdaProgreso">
+                    <div className="barraFina">
+                        <div className="progresoFino" style={{width: '15%'}}></div>
+                    </div>
                 </div>
             </div>
         </VentanaEjemplo>
