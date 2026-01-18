@@ -1,0 +1,7 @@
+/*
+ * Índice de estilos de componentes UI
+ * Importa todos los componentes atómicos
+ */
+
+@import './boton.css';
+@import './tarjeta.css';

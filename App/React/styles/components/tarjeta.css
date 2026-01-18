@@ -1,0 +1,149 @@
+/*
+ * Componente Tarjeta - Estilos base unificados
+ * Base reutilizable para tarjetaServicio, tarjetaProyecto, 
+ * tarjetaResena, tarjetaBlog, tarjetaProceso
+ */
+
+/* === Base de la Tarjeta === */
+.tarjeta {
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    overflow: hidden;
+    transition: border-color var(--nakomi-transicionRapida);
+}
+
+.tarjeta:hover {
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+/* === Variante con cursor pointer === */
+.tarjetaInteractiva {
+    cursor: pointer;
+}
+
+/* === Contenedor de imagen para tarjetas === */
+.tarjetaImagenContenedor {
+    position: relative;
+    overflow: hidden;
+}
+
+.tarjetaImagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--nakomi-transicionLenta);
+}
+
+.tarjeta:hover .tarjetaImagen {
+    transform: scale(1.03);
+}
+
+/* === Overlay para tarjetas con imagen === */
+.tarjetaOverlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(9, 9, 9, 0.95) 0%, rgba(9, 9, 9, 0.4) 50%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: var(--nakomi-espacioMd);
+    opacity: 0;
+    transition: opacity var(--nakomi-transicionNormal);
+}
+
+.tarjeta:hover .tarjetaOverlay {
+    opacity: 1;
+}
+
+/* === Cuerpo / Contenido de la tarjeta === */
+.tarjetaCuerpo {
+    padding: var(--nakomi-espacioMd);
+}
+
+.tarjetaCuerpoLg {
+    padding: var(--nakomi-espacioLg);
+}
+
+/* === Header de la tarjeta === */
+.tarjetaHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--nakomi-espacioSm);
+    margin-bottom: var(--nakomi-espacioSm);
+}
+
+/* === Footer de la tarjeta === */
+.tarjetaFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    margin-top: auto;
+}
+
+/* === Etiqueta/Badge en tarjeta === */
+.tarjetaEtiqueta {
+    position: absolute;
+    top: var(--nakomi-espacioSm);
+    left: var(--nakomi-espacioSm);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoActivo);
+    background-color: rgba(9, 9, 9, 0.85);
+    backdrop-filter: blur(4px);
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
+    border-radius: var(--nakomi-radioSm);
+}
+
+/* === Aspect ratios comunes === */
+.tarjetaRatio16-10 {
+    aspect-ratio: 16 / 10;
+}
+
+.tarjetaRatio16-9 {
+    aspect-ratio: 16 / 9;
+}
+
+.tarjetaRatio4-3 {
+    aspect-ratio: 4 / 3;
+}
+
+.tarjetaRatio1-1 {
+    aspect-ratio: 1 / 1;
+}
+
+/* === Variante con flex column (para tarjetas verticales) === */
+.tarjetaFlex {
+    display: flex;
+    flex-direction: column;
+}
+
+/* === Animación de entrada === */
+.tarjetaAnimada {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+        opacity 0.5s ease,
+        transform 0.5s ease,
+        border-color var(--nakomi-transicionRapida);
+    transition-delay: var(--delay, 0s);
+}
+
+.tarjetaAnimadaVisible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* === Tarjeta con gap interno === */
+.tarjetaConGap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+
+.tarjetaConGapLg {
+    gap: var(--nakomi-espacioLg);
+}

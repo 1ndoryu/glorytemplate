@@ -15,10 +15,14 @@
 // Islas del proyecto
 import {LandingIsland} from './islands/LandingIsland';
 
-// Estilos especificos del proyecto
+/*
+ * Sistema de estilos modular
+ * index.css importa: tokens -> base -> components -> layouts -> ui.css
+ * landing.css y servicios.css se mantienen temporalmente durante la migración
+ */
+import './styles/index.css';
 import './styles/landing.css';
 import './styles/servicios.css';
-import './styles/ui.css';
 
 /**
  * AppProvider opcional para contexto global de la aplicacion

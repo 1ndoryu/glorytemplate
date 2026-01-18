@@ -1,0 +1,142 @@
+/*
+ * Layouts de Contenedor
+ * Anchos máximos y espaciados estándar para secciones
+ */
+
+/* === Contenedor principal centrado === */
+.contenedor {
+    width: 100%;
+    max-width: var(--nakomi-anchoMaximo);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--nakomi-espacioLg);
+    padding-right: var(--nakomi-espacioLg);
+}
+
+/* === Contenedor de contenido (más estrecho para texto) === */
+.contenedorTexto {
+    max-width: var(--nakomi-anchoContenido);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* === Sin padding lateral === */
+.contenedorFlush {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* === Full width (rompe el contenedor padre) === */
+.contenedorFull {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+}
+
+/* === Sección base === */
+.seccionBase {
+    padding-top: var(--nakomi-espacio2xl);
+    padding-bottom: var(--nakomi-espacio2xl);
+}
+
+.seccionMinima {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.seccionCentrada {
+    align-items: center;
+    justify-content: center;
+}
+
+/* === Grid layouts comunes === */
+.grid2Columnas {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--nakomi-espacioMd);
+}
+
+.grid3Columnas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--nakomi-espacioMd);
+}
+
+.grid4Columnas {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--nakomi-espacioMd);
+}
+
+/* === Flex layouts === */
+.flexEntreMedio {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.flexColumna {
+    display: flex;
+    flex-direction: column;
+}
+
+.flexCentrado {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* === Gaps === */
+.gapXs {
+    gap: var(--nakomi-espacioXs);
+}
+
+.gapSm {
+    gap: var(--nakomi-espacioSm);
+}
+
+.gapMd {
+    gap: var(--nakomi-espacioMd);
+}
+
+.gapLg {
+    gap: var(--nakomi-espacioLg);
+}
+
+/* === Header de sección (título + botón) === */
+.seccionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--nakomi-espacioLg);
+}
+
+/* === Responsive === */
+@media (max-width: 900px) {
+    .contenedor {
+        padding-left: var(--nakomi-espacioMd);
+        padding-right: var(--nakomi-espacioMd);
+    }
+
+    .grid3Columnas {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid4Columnas {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .grid2Columnas,
+    .grid3Columnas,
+    .grid4Columnas {
+        grid-template-columns: 1fr;
+    }
+
+    .seccionHeader {
+        flex-direction: column;
+        gap: var(--nakomi-espacioMd);
+        align-items: flex-start;
+    }
+}

@@ -1,0 +1,177 @@
+/*
+ * Sistema de Tipografía Nakomi
+ * Clases utilitarias para textos reutilizables
+ */
+
+/* === Titulos Display (Para hero y secciones principales) === */
+.tituloDisplay {
+    font-family: 'Gothic60', var(--nakomi-fuentePrincipal);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--nakomi-textoActivo);
+}
+
+.tituloDisplayXl {
+    font-size: clamp(4rem, 15vw, 20rem);
+    line-height: 0.85;
+}
+
+.tituloDisplayLg {
+    font-size: 2rem;
+}
+
+.tituloDisplayMd {
+    font-size: 1.5rem;
+}
+
+/* === Headings (Para secciones y tarjetas) === */
+.tituloH1 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    letter-spacing: -0.01em;
+}
+
+.tituloH2 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+}
+
+.tituloH3 {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+}
+
+.tituloH4 {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+}
+
+/* === Body Text === */
+.textoBody {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--nakomi-textoSecundario);
+}
+
+.textoBodySm {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--nakomi-textoSecundario);
+}
+
+.textoBodyXs {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--nakomi-textoApagado);
+}
+
+/* === Captions y Etiquetas === */
+.textoCaption {
+    font-size: 0.7rem;
+    color: var(--nakomi-textoApagado);
+    line-height: 1.5;
+}
+
+.textoEtiqueta {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoMuyApagado);
+}
+
+/* === Texto Link === */
+.textoEnlace {
+    font-size: 0.8rem;
+    color: var(--nakomi-textoSecundario);
+    transition: color var(--nakomi-transicionRapida);
+    cursor: pointer;
+}
+
+.textoEnlace:hover {
+    color: var(--nakomi-textoActivo);
+}
+
+/* === Modificadores de color === */
+.textoActivo {
+    color: var(--nakomi-textoActivo);
+}
+
+.textoSecundario {
+    color: var(--nakomi-textoSecundario);
+}
+
+.textoApagado {
+    color: var(--nakomi-textoApagado);
+}
+
+.textoMuyApagado {
+    color: var(--nakomi-textoMuyApagado);
+}
+
+.textoAcento {
+    color: var(--nakomi-acento);
+}
+
+/* === Texto monospace (código) === */
+.textoMono {
+    font-family: var(--nakomi-fuenteMono);
+    font-size: 0.75rem;
+}
+
+/* === Modificadores de peso === */
+.pesoNormal {
+    font-weight: 400;
+}
+
+.pesoMedio {
+    font-weight: 500;
+}
+
+.pesoSemibold {
+    font-weight: 600;
+}
+
+/* === Alineación === */
+.textoCentrado {
+    text-align: center;
+}
+
+.textoDerecha {
+    text-align: right;
+}
+
+/* === Texto truncado === */
+.textoTruncado {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.textoTruncadoLineas {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.textoLineas2 {
+    -webkit-line-clamp: 2;
+}
+
+.textoLineas3 {
+    -webkit-line-clamp: 3;
+}
+
+/* === Responsive === */
+@media (max-width: 900px) {
+    .tituloDisplayLg {
+        font-size: 1.5rem;
+    }
+
+    .tituloDisplayMd {
+        font-size: 1.2rem;
+    }
+}

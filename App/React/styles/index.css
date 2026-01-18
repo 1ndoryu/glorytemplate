@@ -1,0 +1,28 @@
+/*
+ * Punto de entrada principal de estilos Nakomi
+ * Orden de importación: Tokens -> Base -> Components -> Layouts
+ * 
+ * MIGRACIÓN EN PROGRESO:
+ * Los estilos específicos de landing.css se migrarán gradualmente
+ * a este sistema modular.
+ */
+
+/* 1. Tokens / Variables CSS */
+@import './tokens/variables.css';
+
+/* 2. Estilos base (reset, tipografía) */
+@import './base/index.css';
+
+/* 3. Componentes UI atómicos */
+@import './components/index.css';
+
+/* 4. Layouts estructurales */
+@import './layouts/index.css';
+
+/* 5. Componentes UI específicos (legacy, migrar gradualmente) */
+@import './ui.css';
+
+/*
+ * NOTA: landing.css y servicios.css aún se importan por separado
+ * hasta completar la migración. Ver refactoriza-fase-1-plan.md
+ */

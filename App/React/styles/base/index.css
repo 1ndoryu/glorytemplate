@@ -1,0 +1,7 @@
+/*
+ * Índice de estilos base
+ * Importa todos los archivos base en el orden correcto
+ */
+
+@import './reset.css';
+@import './tipografia.css';

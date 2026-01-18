@@ -83,3 +83,10 @@ Proyectos a mostrar en el portafolio (temporalmente con imágenes placeholder de
 - [x] Variables CSS con prefijo `--nakomi-`
 - [x] Diseño extremadamente minimalista
 
+---
+
+## Siguientes Pasos (Refactorización)
+
+Se ha creado un plan detallado para la refactorización y limpieza del código base de esta fase.
+Ver: [Plan de Refactorización](./refactoriza-fase-1-plan.md)
+

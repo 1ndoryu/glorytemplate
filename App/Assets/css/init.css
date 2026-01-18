@@ -13,8 +13,8 @@
     font-display: swap;
 }
 
-/* Importar variables Nakomi desde App/React/styles */
-@import '../../React/styles/variables.css';
+/* Importar variables Nakomi desde el sistema modular de estilos */
+@import '../../React/styles/tokens/variables.css';
 
 /*
  * Variables de compatibilidad con el sistema Glory

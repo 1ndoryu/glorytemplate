@@ -1,24 +1,24 @@
 /*
  * Variables globales del proyecto Nakomi
- * Paleta oscura minimalista
+ * Paleta oscura minimalista - Sistema de Tokens
  */
 
 :root {
-    /* Fondos */
+    /* === Fondos === */
     --nakomi-fondoPrincipal: #090909;
     --nakomi-fondoSecundario: #0c0c0c;
     --nakomi-fondoTerciario: #151515;
     --nakomi-fondoHover: #1e1e1e;
 
-    /* Acento */
+    /* === Acento === */
     --nakomi-acento: #60a5fa;
     --nakomi-acentoHover: #3b82f6;
 
-    /* Bordes */
+    /* === Bordes === */
     --nakomi-bordePrincipal: #1a1a1a;
     --nakomi-bordeSutil: #222;
 
-    /* Textos */
+    /* === Textos === */
     --nakomi-textoActivo: #f5f5f5;
     --nakomi-textoNormal: #e0e0e0;
     --nakomi-textoSecundario: #a0a0a0;
@@ -27,13 +27,13 @@
     --nakomi-textoIndice: #505050;
     --nakomi-textoPlaceholder: #404040;
 
-    /* Barras y scrollbar */
+    /* === Barras y Scrollbar === */
     --nakomi-barraFondo: #2a2a2a;
     --nakomi-barraNormal: #555555;
     --nakomi-scrollbarThumb: rgba(255, 255, 255, 0.2);
     --nakomi-scrollbarThumbHover: rgba(255, 255, 255, 0.35);
 
-    /* Superposiciones */
+    /* === Superposiciones === */
     --nakomi-superposicionClara: rgba(255, 255, 255, 0.03);
     --nakomi-superposicionMuyClara: rgba(255, 255, 255, 0.01);
     --nakomi-superposicionSutil: rgba(255, 255, 255, 0.06);
@@ -41,25 +41,40 @@
     --nakomi-superposicionMedioOscuro: rgba(0, 0, 0, 0.3);
     --nakomi-superposicionOscuro: rgba(0, 0, 0, 0.6);
 
-    /* Radios */
+    /* === Radios === */
+    --nakomi-radioXs: 2px;
     --nakomi-radioSm: 4px;
     --nakomi-radioMd: 6px;
     --nakomi-radioLg: 8px;
+    --nakomi-radioXl: 12px;
+    --nakomi-radioFull: 9999px;
 
-    /* Tipografía */
+    /* === Tipografía === */
     --nakomi-fuentePrincipal: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --nakomi-fuenteDisplay: 'Gothic60', var(--nakomi-fuentePrincipal);
     --nakomi-fuenteMono: 'JetBrains Mono', 'Fira Code', monospace;
 
-    /* Espaciado base */
+    /* === Espaciado === */
     --nakomi-espacioXs: 4px;
     --nakomi-espacioSm: 8px;
     --nakomi-espacioMd: 16px;
     --nakomi-espacioLg: 24px;
     --nakomi-espacioXl: 32px;
     --nakomi-espacio2xl: 48px;
+    --nakomi-espacio3xl: 64px;
 
-    /* Transiciones */
+    /* === Transiciones === */
     --nakomi-transicionRapida: 150ms ease;
     --nakomi-transicionNormal: 250ms ease;
     --nakomi-transicionLenta: 400ms ease;
+
+    /* === Sombras === */
+    --nakomi-sombraSutil: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --nakomi-sombraMd: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --nakomi-sombraLg: 0 10px 40px rgba(0, 0, 0, 0.5);
+    --nakomi-sombraDropdown: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+    /* === Tamaños de contenedor === */
+    --nakomi-anchoMaximo: 1300px;
+    --nakomi-anchoContenido: 900px;
 }
