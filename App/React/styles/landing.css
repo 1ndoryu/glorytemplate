@@ -1427,7 +1427,7 @@ html {
 
 .procesoGrandeEjemplo {
     background-color: var(--nakomi-fondoTerciario);
-    background-image: url('/wp-content/themes/glory/Glory/assets/images/colors/47252f8c0c7f5dae7657ca6eed05eeca.jpg');
+    /* background-image: url('/wp-content/themes/glory/Glory/assets/images/colors/47252f8c0c7f5dae7657ca6eed05eeca.jpg'); */
     background-size: cover;
     background-position: center;
     border-radius: var(--nakomi-radioSm);
