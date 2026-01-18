@@ -1,8 +1,10 @@
 import React from 'react';
+import {Boton} from '../ui';
 
 /*
  * Navegacion: Barra de navegacion minimalista fija en la parte superior.
  * Los enlaces pueden ser internos (scroll) o externos.
+ * Refactorizado para usar Boton del sistema UI.
  */
 
 interface EnlaceNav {
@@ -66,9 +68,9 @@ export const Navegacion: React.FC<NavegacionProps> = ({enlaces = enlacesPorDefec
                 )}
             </ul>
 
-            <a href="/login" className="navegacionBotonLogin">
+            <Boton href="/login" variante="solid" tamano="sm" className="navegacionBotonLogin">
                 Login
-            </a>
+            </Boton>
         </nav>
     );
 };

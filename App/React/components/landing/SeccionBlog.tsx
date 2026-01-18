@@ -1,8 +1,10 @@
 import React from 'react';
+import {Tarjeta, TarjetaImagen, TarjetaCuerpo, TarjetaFooter, Etiqueta, Boton} from '../ui';
 
 /*
  * SeccionBlog: Sección de artículos del blog con grid de tarjetas.
  * Cada artículo muestra imagen, categoría, título, extracto y fecha.
+ * Refactorizado para usar sistema UI base.
  */
 
 export interface ArticuloBlog {
@@ -22,25 +24,27 @@ interface SeccionBlogProps {
     botonEnlace?: string;
 }
 
-/* Componente para tarjeta individual de blog */
+/* Componente para tarjeta individual de blog usando sistema UI */
 const TarjetaBlog: React.FC<{articulo: ArticuloBlog}> = ({articulo}) => {
     return (
-        <article className="tarjetaBlog">
+        <Tarjeta interactiva className="tarjetaBlog">
             <div className="blogImagenContenedor">
-                <img src={articulo.imagen} alt={articulo.titulo} className="blogImagen" loading="lazy" />
-                <span className="blogCategoria">{articulo.categoria}</span>
+                <TarjetaImagen src={articulo.imagen} alt={articulo.titulo} />
+                <Etiqueta variante="categoria" tamano="xs" className="blogCategoria">
+                    {articulo.categoria}
+                </Etiqueta>
             </div>
-            <div className="blogContenido">
+            <TarjetaCuerpo className="blogContenido">
                 <h3 className="blogTitulo">{articulo.titulo}</h3>
                 <p className="blogExtracto">{articulo.extracto}</p>
-                <div className="blogFooter">
+                <TarjetaFooter className="blogFooter">
                     <time className="blogFecha">{articulo.fecha}</time>
-                    <a href={articulo.enlace || '#'} className="blogLeerMas">
+                    <Boton href={articulo.enlace || '#'} variante="link" tamano="sm">
                         Leer más
-                    </a>
-                </div>
-            </div>
-        </article>
+                    </Boton>
+                </TarjetaFooter>
+            </TarjetaCuerpo>
+        </Tarjeta>
     );
 };
 
@@ -50,9 +54,9 @@ export const SeccionBlog: React.FC<SeccionBlogProps> = ({articulos, tituloSeccio
             <div className="blogSeccionContenedor">
                 <header className="blogHeader">
                     <h2 className="blogTituloGrande">{tituloSeccion}</h2>
-                    <a href={botonEnlace} className="blogBotonVer">
+                    <Boton href={botonEnlace} variante="outline" tamano="sm">
                         {botonTexto}
-                    </a>
+                    </Boton>
                 </header>
                 <div className="gridBlog">
                     {articulos.map(articulo => (

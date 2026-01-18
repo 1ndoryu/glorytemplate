@@ -1,8 +1,10 @@
 import React from 'react';
+import {Tarjeta, TarjetaFooter, Boton} from '../ui';
 
 /*
  * GridResenas: Grid de testimonios/reseñas de clientes.
  * Tarjetas con texto, avatar, nombre, cargo y enlace al proyecto.
+ * Refactorizado para usar sistema UI base.
  */
 
 export interface Resena {
@@ -19,7 +21,7 @@ interface GridResenasProps {
     id?: string;
 }
 
-/* Tarjeta individual de reseña */
+/* Tarjeta individual de reseña usando sistema UI */
 const TarjetaResena: React.FC<{resena: Resena}> = ({resena}) => {
     /* Avatar placeholder si no hay imagen */
     const iniciales = resena.autor
@@ -30,9 +32,9 @@ const TarjetaResena: React.FC<{resena: Resena}> = ({resena}) => {
         .slice(0, 2);
 
     return (
-        <article className="tarjetaResena">
+        <Tarjeta className="tarjetaResena">
             <p className="resenaTexto">{resena.texto}</p>
-            <div className="resenaFooter">
+            <TarjetaFooter className="resenaFooter">
                 <div className="resenaAutor">
                     {resena.avatar ? <img src={resena.avatar} alt={resena.autor} className="resenaAvatar" /> : <div className="resenaAvatarPlaceholder">{iniciales}</div>}
                     <div className="resenaInfo">
@@ -41,12 +43,12 @@ const TarjetaResena: React.FC<{resena: Resena}> = ({resena}) => {
                     </div>
                 </div>
                 {resena.proyecto && (
-                    <a href={resena.proyecto} className="resenaBotonProyecto">
+                    <Boton href={resena.proyecto} variante="ghost" tamano="sm">
                         Ver proyecto
-                    </a>
+                    </Boton>
                 )}
-            </div>
-        </article>
+            </TarjetaFooter>
+        </Tarjeta>
     );
 };
 
@@ -56,9 +58,9 @@ export const GridResenas: React.FC<GridResenasProps> = ({resenas, id = 'seccionR
             <div className="resenasContenedor">
                 <header className="resenasHeader">
                     <h2 className="resenasTituloGrande">RESEÑAS</h2>
-                    <a href="/resenas" className="resenasBotonVer">
+                    <Boton href="/resenas" variante="outline" tamano="sm">
                         Ver todas
-                    </a>
+                    </Boton>
                 </header>
                 <div className="gridResenas">
                     {resenas.map(resena => (

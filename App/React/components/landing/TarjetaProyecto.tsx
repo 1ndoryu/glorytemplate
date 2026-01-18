@@ -1,8 +1,10 @@
 import React from 'react';
+import {Tarjeta, TarjetaImagen, TarjetaOverlay, Etiqueta} from '../ui';
 
 /*
  * TarjetaProyecto: Tarjeta individual del grid de portafolio.
  * Muestra imagen, nombre y categoria con overlay al hover.
+ * Refactorizado para usar sistema UI base.
  */
 
 export interface Proyecto {
@@ -26,13 +28,15 @@ export const TarjetaProyecto: React.FC<TarjetaProyectoProps> = ({proyecto, onCli
     };
 
     return (
-        <article className="tarjetaProyecto" onClick={manejarClick} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && manejarClick()} aria-label={`Ver proyecto ${proyecto.nombre}`}>
-            <img src={proyecto.imagen} alt={proyecto.nombre} className="tarjetaImagen" loading="lazy" />
-            <div className="tarjetaOverlay">
+        <Tarjeta interactiva ratio="16-10" className="tarjetaProyecto" onClick={manejarClick}>
+            <TarjetaImagen src={proyecto.imagen} alt={proyecto.nombre} />
+            <TarjetaOverlay>
                 <h3 className="tarjetaNombre">{proyecto.nombre}</h3>
-                <span className="tarjetaCategoria">{proyecto.categoria}</span>
-            </div>
-        </article>
+                <Etiqueta variante="categoria" tamano="xs">
+                    {proyecto.categoria}
+                </Etiqueta>
+            </TarjetaOverlay>
+        </Tarjeta>
     );
 };
 

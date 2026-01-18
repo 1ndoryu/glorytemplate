@@ -74,14 +74,17 @@ App/React/
     - `TarjetaFooter` - Para pies con flex
 *   [x] **Índice de exportaciones**: Creado `components/ui/index.ts` para facilitar importaciones centralizadas.
 
-### Fase 3: Refactorización de Componentes Landing (Moleculas/Organismos)
-*   [ ] **Refactorizar `SeccionServicios`**: Usar `Grid` y `ServiceCard` (nueva).
-*   [ ] **Refactorizar `SeccionProyectos`**: Usar `ProjectCard` (nueva).
-*   [ ] **Refactorizar `Navegacion`**: Usar `Button` para el login y enlaces estandarizados.
-*   [ ] **Refactorizar `Footer`**: Componentizar enlaces y estructura.
+### Fase 3: Refactorización de Componentes Landing (Moleculas/Organismos) ✅ COMPLETADA
+*   [x] **Refactorizar `TarjetaServicio`**: Ahora usa `Tarjeta`, `TarjetaImagen`, `TarjetaCuerpo` y `Etiqueta` del sistema UI.
+*   [x] **Refactorizar `TarjetaProyecto`**: Ahora usa `Tarjeta`, `TarjetaImagen`, `TarjetaOverlay` y `Etiqueta` del sistema UI.
+*   [x] **Refactorizar `GridServicios`**: Usa `Boton` del sistema UI para el enlace "Ver servicios".
+*   [x] **Refactorizar `GridResenas`**: Usa `Tarjeta`, `TarjetaCuerpo`, `TarjetaFooter` y `Boton` del sistema UI.
+*   [x] **Refactorizar `SeccionBlog`**: Usa `Tarjeta`, `TarjetaImagen`, `TarjetaCuerpo`, `TarjetaFooter`, `Etiqueta` y `Boton` del sistema UI.
+*   [x] **Refactorizar `SeccionEcosistema`**: Usa `Boton` para el CTA.
+*   [x] **Refactorizar `Navegacion`**: Usa `Boton` para el login.
 
 ### Fase 4: Limpieza
-*   [ ] Eliminar clases CSS obsoletas de `landing.css`.
+*   [ ] Eliminar clases CSS obsoletas de `landing.css` (ej: `ecosistemaBotonVer`, `serviciosBotonVer`, `resenasBotonVer`, `blogBotonVer`, `blogLeerMas`, `resenaBotonProyecto`).
 *   [ ] Verificar que `App/React/styles/landing.css` quede reducido a orquestación de layout básica o desaparezca si es posible.
 
 ## 5. Instrucciones para el Agente (Self-Correction)

@@ -1,8 +1,10 @@
 import React from 'react';
+import {Boton} from '../ui';
 
 /*
  * SeccionEcosistema: Sección hero sobre el ecosistema de aplicaciones.
  * Muestra título, descripción, botón CTA y una imagen de ancho completo.
+ * Refactorizado para usar Boton del sistema UI.
  */
 
 interface SeccionEcosistemaProps {
@@ -19,9 +21,9 @@ export const SeccionEcosistema: React.FC<SeccionEcosistemaProps> = ({titulo = 'E
             <div className="ecosistemaContenedor">
                 <header className="ecosistemaHeader">
                     <h2 className="ecosistemaTituloGrande">{titulo}</h2>
-                    <a href={botonEnlace} className="ecosistemaBotonVer">
+                    <Boton href={botonEnlace} variante="outline" tamano="sm">
                         {botonTexto}
-                    </a>
+                    </Boton>
                 </header>
                 <p className="ecosistemaDescripcion">{descripcion}</p>
             </div>

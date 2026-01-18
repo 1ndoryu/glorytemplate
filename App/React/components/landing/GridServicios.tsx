@@ -1,9 +1,11 @@
 import React, {useEffect, useRef} from 'react';
+import {Boton} from '../ui';
 
 /*
  * GridServicios: Visualización de servicios con dos modos:
  * - carrusel: Desplazamiento infinito horizontal (estilo Fiverr)
  * - grid: Grid estático de 3 columnas
+ * Refactorizado para usar Boton del sistema UI.
  */
 
 export interface Servicio {
@@ -97,9 +99,9 @@ export const GridServicios: React.FC<GridServiciosProps> = ({servicios, id = 'se
             <div className="serviciosContenedor">
                 <header className="serviciosHeader">
                     <h2 className="serviciosTituloGrande">SERVICIOS</h2>
-                    <a href="/servicios" className="serviciosBotonVer">
+                    <Boton href="/servicios" variante="outline" tamano="sm">
                         Ver servicios
-                    </a>
+                    </Boton>
                 </header>
                 {renderContenido()}
             </div>
