@@ -19,3 +19,6 @@ export {Tarjeta, TarjetaImagen, TarjetaOverlay, TarjetaCuerpo, TarjetaHeader, Ta
 export {DropdownMinimal} from './DropdownMinimal';
 export {InputBusqueda} from './InputBusqueda';
 export {VentanaEjemplo} from './VentanaEjemplo';
+
+/* Sistema de imágenes optimizadas */
+export {ImagenGlory} from './ImagenGlory';

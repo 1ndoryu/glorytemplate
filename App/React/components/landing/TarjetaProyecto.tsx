@@ -1,5 +1,5 @@
 import React from 'react';
-import {Tarjeta, TarjetaImagen, TarjetaOverlay, Etiqueta} from '../ui';
+import {Tarjeta, TarjetaOverlay, Etiqueta, ImagenGlory} from '../ui';
 
 /*
  * TarjetaProyecto: Tarjeta individual del grid de portafolio.
@@ -12,6 +12,7 @@ export interface Proyecto {
     nombre: string;
     categoria: string;
     imagen: string;
+    imagenRef?: string;
     descripcion?: string;
 }
 
@@ -29,7 +30,7 @@ export const TarjetaProyecto: React.FC<TarjetaProyectoProps> = ({proyecto, onCli
 
     return (
         <Tarjeta interactiva ratio="16-10" className="tarjetaProyecto" onClick={manejarClick}>
-            <TarjetaImagen src={proyecto.imagen} alt={proyecto.nombre} />
+            <ImagenGlory src={proyecto.imagenRef || proyecto.imagen} alt={proyecto.nombre} className="tarjetaImagen" variante="cover" />
             <TarjetaOverlay>
                 <h3 className="tarjetaNombre">{proyecto.nombre}</h3>
                 <Etiqueta variante="categoria" tamano="xs">

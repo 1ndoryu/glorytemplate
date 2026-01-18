@@ -14,6 +14,7 @@ export interface Servicio {
     descripcionCorta: string;
     precioDesde: number;
     imagen: string;
+    imagenRef?: string;
 }
 
 /* Tipo para los modos de visualización disponibles */

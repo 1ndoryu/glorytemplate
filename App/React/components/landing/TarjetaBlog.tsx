@@ -1,5 +1,5 @@
 import React from 'react';
-import {Tarjeta, TarjetaImagen, TarjetaCuerpo, TarjetaFooter, Etiqueta, Boton} from '../ui';
+import {Tarjeta, TarjetaCuerpo, TarjetaFooter, Etiqueta, Boton, ImagenGlory} from '../ui';
 
 /*
  * TarjetaBlog: Tarjeta individual de artículo de blog.
@@ -13,6 +13,7 @@ export interface ArticuloBlog {
     extracto: string;
     categoria: string;
     imagen: string;
+    imagenRef?: string;
     fecha: string;
     enlace?: string;
 }
@@ -25,7 +26,7 @@ export const TarjetaBlog: React.FC<TarjetaBlogProps> = ({articulo}) => {
     return (
         <Tarjeta interactiva className="tarjetaBlog">
             <div className="blogImagenContenedor">
-                <TarjetaImagen src={articulo.imagen} alt={articulo.titulo} />
+                <ImagenGlory src={articulo.imagenRef || articulo.imagen} alt={articulo.titulo} className="tarjetaImagen" variante="cover" />
                 <Etiqueta variante="categoria" tamano="xs" className="blogCategoria">
                     {articulo.categoria}
                 </Etiqueta>

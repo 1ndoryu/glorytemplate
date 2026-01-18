@@ -1,5 +1,5 @@
 import React from 'react';
-import {Tarjeta, Etiqueta} from '../ui';
+import {Tarjeta, Etiqueta, ImagenGlory} from '../ui';
 import {Servicio} from './GridServicios';
 
 /*
@@ -16,7 +16,7 @@ export const TarjetaServicio: React.FC<TarjetaServicioProps> = ({servicio}) => {
     return (
         <Tarjeta interactiva className="tarjetaServicio">
             <div className="servicioImagenContenedor">
-                <img src={servicio.imagen} alt={servicio.nombre} className="servicioImagen" loading="lazy" />
+                <ImagenGlory src={servicio.imagenRef || servicio.imagen} alt={servicio.nombre} className="servicioImagen" variante="cover" />
             </div>
             <div className="servicioInfo">
                 <h3 className="servicioNombre">{servicio.nombre}</h3>

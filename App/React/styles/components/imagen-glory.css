@@ -1,0 +1,88 @@
+/*
+ * Estilos para el componente ImagenGlory
+ * Sistema de imágenes optimizadas con lazy loading y placeholders
+ */
+
+/* Contenedor base */
+.imagenGlory {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--nakomi-fondoTerciario);
+}
+
+/* Estado de carga - mantiene dimensiones */
+.imagenGloryCargando {
+    min-height: 100px;
+}
+
+/* Placeholder con shimmer */
+.imagenGloryPlaceholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, var(--nakomi-fondoTerciario) 0%, var(--nakomi-fondoSecundario) 50%, var(--nakomi-fondoTerciario) 100%);
+    background-size: 200% 100%;
+    animation: imagenGloryShimmer 1.5s infinite;
+}
+
+/* Animación shimmer para placeholder */
+@keyframes imagenGloryShimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Estado de error */
+.imagenGloryError {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+    color: var(--nakomi-textoApagado);
+    background-color: var(--nakomi-fondoTerciario);
+}
+
+/* Imagen dentro del contenedor */
+.imagenGlory img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Variantes de ajuste */
+.imagenGloryContain img {
+    object-fit: contain;
+}
+
+.imagenGloryFill img {
+    object-fit: fill;
+}
+
+.imagenGloryNone img {
+    object-fit: none;
+}
+
+/* Efecto hover opcional */
+.imagenGloryHover:hover img {
+    transform: scale(1.05);
+    transition:
+        transform 0.4s ease-out,
+        opacity 0.3s ease-in-out;
+}
+
+/* Borde redondeado */
+.imagenGloryRedondeada {
+    border-radius: var(--nakomi-radioMedio);
+}
+
+.imagenGloryCircular {
+    border-radius: 50%;
+}
+
+/* Sombra */
+.imagenGlorySombra {
+    box-shadow: var(--nakomi-sombraTarjeta);
+}

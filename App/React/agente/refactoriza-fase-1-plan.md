@@ -251,34 +251,27 @@ Glory ya cuenta con utilidades robustas en **`Glory\Utility\AssetsUtility`** y *
 
 #### Enfoque de Integración React
 
-**Opción A: API REST + React Hook (Recomendado)**
-1. Crear endpoint REST en Glory que exponga las imágenes del alias con metadata
-2. Hook `useGloryImages(alias, opciones)` que consume el endpoint
-3. Componente `<ImagenGlory src="colors::imagen.jpg" />` que usa CDN automáticamente
+#### Enfoque de Integración React (Implementado)
 
-**Opción B: Pre-generación estática**
-1. Script PHP que genera `catalogo.json` con todas las imágenes y metadata
-2. Importar catálogo en React como constante
-3. Utilidad TypeScript para filtrar/seleccionar
+**Opción A: API REST + React Hook (Implementada ✅)**
+1. Endpoint REST `/glory/v1/images` activo (Controlador: `Glory\Api\ImagesController.php`).
+2. Hook `useGloryImages` implementado en frontend.
+3. Componente `<ImagenGlory>` en desarrollo/planificación.
 
-**Tareas planificadas**:
-- [ ] **Crear endpoint REST `/glory/v1/images`**: 
+**Tareas completadas**:
+- [x] **Endpoint REST `/glory/v1/images`**: Ya existía en el backend (`ImagesController.php`).
   - Acepta alias, cantidad, tamaño mínimo
-  - Retorna array con URLs optimizadas (CDN en producción)
-  - Evita repetir imágenes en la sesión
-- [ ] **Crear hook `useGloryImages.ts`**: 
-  - Wrapper del endpoint con cache
-  - Tracking de imágenes ya usadas (Context o Zustand)
-  - Prefetch opcional
-- [ ] **Crear componente `ImagenGlory.tsx`**: 
-  - Acepta referencia `alias::archivo` 
-  - Lazy loading nativo con `loading="lazy"`
-  - Placeholder blur (CSS o base64)
-  - Fallback si imagen no carga
-  - Props para ancho/alto/clases
-- [ ] **Migrar mocks a sistema integrado**:
-  - Reemplazar rutas hardcodeadas por referencias `colors::filename.jpg`
-  - O usar hook para obtener imágenes dinámicamente
+  - Retorna array con URLs optimizadas
+- [x] **Hook `useGloryImages.ts`**: Ya existía en `App/React/hooks`.
+  - Wrapper del endpoint con cache y tracking de usadas.
+- [x] **Crear componente `ImagenGlory.tsx`**: Implementado con soporte para `alias::archivo`, CDN y caching.
+  - Abstracción para renderizar `alias::archivo`.
+- [x] **Migrar mocks a sistema integrado**:
+  - `articulos.ts`: Refactorizado para usar `alias::archivo`.
+  - `proyectos.ts`: Refactorizado para usar `alias::archivo`.
+  - `servicios.ts`: Refactorizado para usar `alias::archivo`.
+  - Actualizados `TarjetaBlog`, `TarjetaProyecto` y `TarjetaServicio` para usar `ImagenGlory` y soportar `imagenRef`.
+  - **Limpieza**: Eliminado array hardcodeado `IMAGENES_COLORS_EJEMPLO` de `imagenUtils.ts`.
 
 ### 8.2 Otras tareas pendientes
 - [x] **Crear componente `Avatar`**: Extraído a `components/ui/Avatar.tsx` con soporte para:
