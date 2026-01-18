@@ -86,7 +86,7 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    background: var(--nakomi-gradienteAvatar);
     display: flex;
     align-items: center;
     justify-content: center;

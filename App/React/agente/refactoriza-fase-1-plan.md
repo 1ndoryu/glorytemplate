@@ -23,29 +23,28 @@ App/React/
 ├── agente/                 # Documentación y planes del agente
 ├── components/
 │   ├── ui/                 # Átomos reutilizables (Button, Input, Badge, Typography)
-│   │   ├── Button.tsx
-│   │   ├── Badge.tsx
-│   │   ├── Container.tsx
-│   │   └── Typography.tsx
-│   ├── layout/             # Componentes estructurales (Grid, Section, Header, Footer)
-│   │   ├── Grid.tsx
-│   │   └── Section.tsx
-│   ├── features/           # Componentes de negocio complejos
-│   │   ├── landing/        # Bloques específicos del Landing
-│   │   │   ├── Hero.tsx
-│   │   │   ├── ServicesGrid.tsx
-│   │   │   └── Manifesto.tsx
-│   │   └── portfolio/      # Bloques de portafolio
-│   │       ├── ProjectCard.tsx
-│   │       └── ProjectModal.tsx
+│   │   ├── Boton.tsx
+│   │   ├── Etiqueta.tsx
+│   │   ├── Contenedor.tsx
+│   │   ├── Tarjeta.tsx
+│   │   └── index.ts
+│   ├── landing/            # Componentes específicos del Landing
+│   │   ├── TarjetaBlog.tsx
+│   │   ├── TarjetaResena.tsx
+│   │   ├── TarjetaServicio.tsx
+│   │   ├── SeccionBlog.tsx
+│   │   └── ...
 │   └── icons/              # Iconos SVG centralizados
+├── hooks/                  # Hooks personalizados
+│   ├── useIntersectionReveal.ts
+│   └── index.ts
 ├── islands/                # Puntos de entrada / Orquestadores (LandingIsland)
 ├── styles/                 # Estilos globales y módulos
 │   ├── base/               # Resets, tipografía base
-│   ├── tokens/             # Variables (Colores, Espaciado)
+│   ├── tokens/             # Variables (Colores, Espaciado, Semánticos)
 │   ├── components/         # Estilos de componentes UI (btn.css, input.css)
-│   └── layouts/            # Estilos de secciones (landing.css refactorizado)
-└── utils/                  # Utilidades y hooks
+│   └── layouts/            # Estilos de secciones (12 archivos modulares)
+└── utils/                  # Utilidades
 ```
 
 ## 4. Plan de Acción (Fases)
@@ -111,11 +110,25 @@ App/React/
     - `layouts/ejemplos-adicionales.css` (~140 líneas) - Stats y notificaciones
 *   [x] **Actualizar `layouts/index.css`**: Punto de entrada que importa todos los módulos CSS.
 
+### Fase 6: Extracción de Componentes y Auditoría ✅ COMPLETADA
+*   [x] **Crear componente `TarjetaBlog`**: Extraído de `SeccionBlog.tsx` a archivo independiente `components/landing/TarjetaBlog.tsx`
+*   [x] **Crear componente `TarjetaResena`**: Extraído de `GridResenas.tsx` a archivo independiente `components/landing/TarjetaResena.tsx`
+*   [x] **Crear hook `useIntersectionReveal`**: Extraída lógica duplicada de `SeccionProceso` a `hooks/useIntersectionReveal.ts`
+*   [x] **Refactorizar `SeccionProceso`**: Ahora usa el hook y centraliza datos en arrays (de 157 líneas a ~120 líneas, código más DRY)
+*   [x] **Auditoría de variables CSS**: 
+    - Agregadas variables de colores semánticos (`--nakomi-exito`, `--nakomi-warning`, `--nakomi-error`, `--nakomi-info`)
+    - Eliminados ~20 colores hardcodeados en archivos CSS de layouts
+    - Agregada variable `--nakomi-gradienteAvatar` para gradientes
+*   [x] **Actualizar barrel exports**: `components/landing/index.ts` ahora exporta todos los componentes extraídos
+
 ## 5. Resumen de Archivos CSS por Tipo
 
 ### Base (~200 líneas total)
 - `base/reset.css` - Reset y scrollbar
 - `base/tipografia.css` - Sistema tipográfico
+
+### Tokens (~105 líneas)
+- `tokens/variables.css` - Todas las variables CSS incluyendo colores semánticos
 
 ### Componentes UI (~400 líneas total)
 - `components/boton.css` - Sistema de botones
@@ -128,15 +141,26 @@ App/React/
 ### Landing Base (~45 líneas)
 - Solo contiene `.contenedorLanding` y footer minimalista
 
-## 6. Instrucciones para el Agente (Self-Correction)
+## 6. Resumen de Hooks
+
+### `hooks/useIntersectionReveal.ts`
+Hook para animaciones de entrada al viewport con revelación escalonada:
+- `cantidadElementos`: Número de elementos a animar
+- `delayEntreCada`: Delay en ms entre cada animación
+- `threshold`: Umbral de intersección (0-1)
+- `disparaUnaVez`: Si solo se anima una vez o cada vez que entra en viewport
+
+## 7. Instrucciones para el Agente (Self-Correction)
 *   **No romper el build**: Cada refactorización debe comprobarse (mentalmente o via revisión estática) para asegurar que no se pierden imports.
 *   **Mantener la estética**: La refactorización es estructural, el diseño visual ("wow effect") debe mantenerse intacto o mejorar.
 *   **Atomicidad**: No hacer cambios masivos en un solo paso. Ir componente por componente.
 *   **Límites de archivo**: Ningún archivo CSS debe superar 300 líneas (cumplido).
+*   **Usar variables CSS**: Siempre usar tokens de `variables.css` para colores, espaciados, radios, etc.
 
-## 7. Próximos Pasos (TO-DO Fase 6)
+## 8. Próximos Pasos (TO-DO Fase 7)
 
-- [ ] **Reorganizar componentes landing**: Mover componentes específicos de landing a `components/features/landing/`
-- [ ] **Crear componente `TarjetaBlog`**: Extraer la tarjeta de blog como componente reutilizable
-- [ ] **Crear componente `TarjetaResena`**: Extraer la tarjeta de reseña como componente
-- [ ] **Revisar uso de variables**: Auditar todos los archivos CSS para asegurar uso consistente de tokens
+- [ ] **Reorganizar componentes landing**: Considerar mover a estructura `components/features/landing/` para escalabilidad
+- [ ] **Crear componente `Avatar`**: Extraer lógica de avatar con placeholder como componente UI
+- [ ] **Documentar sistema de tokens**: Crear guía de uso de variables CSS
+- [ ] **Revisar responsividad**: Auditar media queries para consistencia
+- [ ] **Componente `Icon`**: Abstraer iconos SVG en componente reutilizable

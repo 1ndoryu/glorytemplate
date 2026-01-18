@@ -74,6 +74,28 @@
     --nakomi-sombraLg: 0 10px 40px rgba(0, 0, 0, 0.5);
     --nakomi-sombraDropdown: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
 
+    /* === Colores Semánticos === */
+    --nakomi-exito: #4ade80;
+    --nakomi-exitoFondo: rgba(74, 222, 128, 0.1);
+    --nakomi-exitoBorde: rgba(74, 222, 128, 0.2);
+    --nakomi-exitoSecundario: #22c55e;
+    --nakomi-exitoSecundarioFondo: rgba(34, 197, 94, 0.2);
+
+    --nakomi-warning: #eab308;
+    --nakomi-warningFondo: rgba(234, 179, 8, 0.1);
+    --nakomi-warningBorde: rgba(234, 179, 8, 0.2);
+    --nakomi-warningSecundario: rgba(234, 179, 8, 0.2);
+
+    --nakomi-error: #ef4444;
+    --nakomi-errorFondo: rgba(239, 68, 68, 0.1);
+    --nakomi-errorBorde: rgba(239, 68, 68, 0.2);
+
+    --nakomi-info: #3b82f6;
+    --nakomi-infoFondo: rgba(59, 130, 246, 0.1);
+    --nakomi-infoBorde: rgba(59, 130, 246, 0.2);
+
+    --nakomi-gradienteAvatar: linear-gradient(135deg, #3b82f6, #8b5cf6);
+
     /* === Tamaños de contenedor === */
     --nakomi-anchoMaximo: 1300px;
     --nakomi-anchoContenido: 900px;

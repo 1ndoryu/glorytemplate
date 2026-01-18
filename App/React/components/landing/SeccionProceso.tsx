@@ -1,4 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React from 'react';
+import {useIntersectionReveal} from '../../hooks';
 import {EjemploListaServicios} from './proceso/EjemploListaServicios';
 import {EjemploProgresoPago} from './proceso/EjemploProgresoPago';
 import {EjemploTerminalDespliegue} from './proceso/EjemploTerminalDespliegue';
@@ -10,101 +11,72 @@ import {EjemploCrecePlataforma} from './proceso/EjemploCrecePlataforma';
 /*
  * SeccionProceso: Sección de 3 columnas que muestra el proceso de trabajo.
  * Diseño ultra minimalista con ejemplos visuales estáticos más detallados.
- * Altura uniforme en todos los ejemplos.
+ * Refactorizado para usar hook useIntersectionReveal.
  */
 
+/* Datos de las tarjetas del proceso para centralizar contenido */
+const tarjetasSuperior = [
+    {
+        titulo: 'Elige tu servicio',
+        descripcion: 'Selecciona el servicio que necesitas y define el tiempo de entrega según tus requerimientos.',
+        Ejemplo: EjemploListaServicios
+    },
+    {
+        titulo: 'Pago seguro',
+        descripcion: 'Tu pago queda protegido con nuestro sistema de garantía. Atención inmediata desde el primer momento.',
+        Ejemplo: EjemploProgresoPago
+    },
+    {
+        titulo: 'Despliegue completo',
+        descripcion: 'Nos encargamos del hosting y dominio. Gestiona todo desde nuestra plataforma de forma sencilla.',
+        Ejemplo: EjemploTerminalDespliegue
+    }
+];
+
+const tarjetasInferior = [
+    {
+        titulo: 'Publica tu servicio',
+        descripcion: 'Sube tu portafolio y define tus ofertas con un sistema simplificado y potente.',
+        Ejemplo: EjemploPublicaServicio
+    },
+    {
+        titulo: 'Recibe clientes',
+        descripcion: 'Sistema de notificaciones en tiempo real y bandeja de entrada centralizada.',
+        Ejemplo: EjemploRecibeClientes
+    },
+    {
+        titulo: 'Crece y avanza',
+        descripcion: 'Sube de nivel, desbloquea beneficios y aumenta tu visibilidad automáticamente.',
+        Ejemplo: EjemploCrecePlataforma
+    }
+];
+
 export const SeccionProceso: React.FC = () => {
-    const contenedorRef = useRef<HTMLDivElement>(null);
-    const gridInferiorRef = useRef<HTMLDivElement>(null);
-    const [tarjetasVisibles, setTarjetasVisibles] = useState<boolean[]>([false, false, false]);
-    const [tarjetasInferioresVisibles, setTarjetasInferioresVisibles] = useState<boolean[]>([false, false, false]);
+    const {ref: refSuperior, visibles: tarjetasVisibles} = useIntersectionReveal<HTMLDivElement>({
+        cantidadElementos: 3,
+        delayEntreCada: 150,
+        threshold: 0.2
+    });
 
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        [0, 1, 2].forEach(index => {
-                            setTimeout(() => {
-                                setTarjetasVisibles(prev => {
-                                    const nuevo = [...prev];
-                                    nuevo[index] = true;
-                                    return nuevo;
-                                });
-                            }, index * 150);
-                        });
-                        observer.disconnect();
-                    }
-                });
-            },
-            {threshold: 0.2}
-        );
-
-        if (contenedorRef.current) {
-            observer.observe(contenedorRef.current);
-        }
-
-        return () => observer.disconnect();
-    }, []);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        [0, 1, 2].forEach(index => {
-                            setTimeout(() => {
-                                setTarjetasInferioresVisibles(prev => {
-                                    const nuevo = [...prev];
-                                    nuevo[index] = true;
-                                    return nuevo;
-                                });
-                            }, index * 150);
-                        });
-                        observer.disconnect();
-                    }
-                });
-            },
-            {threshold: 0.2}
-        );
-
-        if (gridInferiorRef.current) {
-            observer.observe(gridInferiorRef.current);
-        }
-
-        return () => observer.disconnect();
-    }, []);
+    const {ref: refInferior, visibles: tarjetasInferioresVisibles} = useIntersectionReveal<HTMLDivElement>({
+        cantidadElementos: 3,
+        delayEntreCada: 150,
+        threshold: 0.2
+    });
 
     return (
-        <section id="seccionProceso" className="seccionProceso" ref={contenedorRef}>
+        <section id="seccionProceso" className="seccionProceso" ref={refSuperior}>
             <div className="procesoContenedor">
                 <div className="procesoGrid">
-                    {/* Tarjeta 1: Elige tu servicio */}
-                    <article className={`tarjetaProceso ${tarjetasVisibles[0] ? 'tarjetaProcesoVisible' : ''}`}>
-                        <h3 className="procesoTitulo">Elige tu servicio</h3>
-                        <p className="procesoDescripcion">Selecciona el servicio que necesitas y define el tiempo de entrega según tus requerimientos.</p>
-                        <div className="procesoEjemploVisual">
-                            <EjemploListaServicios />
-                        </div>
-                    </article>
-
-                    {/* Tarjeta 2: Pago seguro */}
-                    <article className={`tarjetaProceso ${tarjetasVisibles[1] ? 'tarjetaProcesoVisible' : ''}`} style={{'--delay': '0.1s'} as React.CSSProperties}>
-                        <h3 className="procesoTitulo">Pago seguro</h3>
-                        <p className="procesoDescripcion">Tu pago queda protegido con nuestro sistema de garantía. Atención inmediata desde el primer momento.</p>
-                        <div className="procesoEjemploVisual">
-                            <EjemploProgresoPago />
-                        </div>
-                    </article>
-
-                    {/* Tarjeta 3: Despliegue completo */}
-                    <article className={`tarjetaProceso ${tarjetasVisibles[2] ? 'tarjetaProcesoVisible' : ''}`} style={{'--delay': '0.2s'} as React.CSSProperties}>
-                        <h3 className="procesoTitulo">Despliegue completo</h3>
-                        <p className="procesoDescripcion">Nos encargamos del hosting y dominio. Gestiona todo desde nuestra plataforma de forma sencilla.</p>
-                        <div className="procesoEjemploVisual">
-                            <EjemploTerminalDespliegue />
-                        </div>
-                    </article>
+                    {tarjetasSuperior.map((tarjeta, index) => (
+                        <article key={tarjeta.titulo} className={`tarjetaProceso ${tarjetasVisibles[index] ? 'tarjetaProcesoVisible' : ''}`} style={index > 0 ? ({'--delay': `${index * 0.1}s`} as React.CSSProperties) : undefined}>
+                            <h3 className="procesoTitulo">{tarjeta.titulo}</h3>
+                            <p className="procesoDescripcion">{tarjeta.descripcion}</p>
+                            <div className="procesoEjemploVisual">
+                                <tarjeta.Ejemplo />
+                            </div>
+                        </article>
+                    ))}
                 </div>
 
                 {/* Tarjeta Grande: Gestión de pedidos */}
@@ -120,33 +92,16 @@ export const SeccionProceso: React.FC = () => {
                     </div>
                 </article>
 
-                <div className="procesoGrid" ref={gridInferiorRef} style={{marginTop: 'var(--nakomi-espacioLg)', paddingTop: '100px'}}>
-                    {/* Tarjeta 4: Publica tu servicio */}
-                    <article className={`tarjetaProceso ${tarjetasInferioresVisibles[0] ? 'tarjetaProcesoVisible' : ''}`}>
-                        <h3 className="procesoTitulo">Publica tu servicio</h3>
-                        <p className="procesoDescripcion">Sube tu portafolio y define tus ofertas con un sistema simplificado y potente.</p>
-                        <div className="procesoEjemploVisual">
-                            <EjemploPublicaServicio />
-                        </div>
-                    </article>
-
-                    {/* Tarjeta 5: Recibe clientes */}
-                    <article className={`tarjetaProceso ${tarjetasInferioresVisibles[1] ? 'tarjetaProcesoVisible' : ''}`} style={{'--delay': '0.1s'} as React.CSSProperties}>
-                        <h3 className="procesoTitulo">Recibe clientes</h3>
-                        <p className="procesoDescripcion">Sistema de notificaciones en tiempo real y bandeja de entrada centralizada.</p>
-                        <div className="procesoEjemploVisual">
-                            <EjemploRecibeClientes />
-                        </div>
-                    </article>
-
-                    {/* Tarjeta 6: Crece en la plataforma */}
-                    <article className={`tarjetaProceso ${tarjetasInferioresVisibles[2] ? 'tarjetaProcesoVisible' : ''}`} style={{'--delay': '0.2s'} as React.CSSProperties}>
-                        <h3 className="procesoTitulo">Crece y avanza</h3>
-                        <p className="procesoDescripcion">Sube de nivel, desbloquea beneficios y aumenta tu visibilidad automáticamente.</p>
-                        <div className="procesoEjemploVisual">
-                            <EjemploCrecePlataforma />
-                        </div>
-                    </article>
+                <div className="procesoGrid" ref={refInferior} style={{marginTop: 'var(--nakomi-espacioLg)', paddingTop: '100px'}}>
+                    {tarjetasInferior.map((tarjeta, index) => (
+                        <article key={tarjeta.titulo} className={`tarjetaProceso ${tarjetasInferioresVisibles[index] ? 'tarjetaProcesoVisible' : ''}`} style={index > 0 ? ({'--delay': `${index * 0.1}s`} as React.CSSProperties) : undefined}>
+                            <h3 className="procesoTitulo">{tarjeta.titulo}</h3>
+                            <p className="procesoDescripcion">{tarjeta.descripcion}</p>
+                            <div className="procesoEjemploVisual">
+                                <tarjeta.Ejemplo />
+                            </div>
+                        </article>
+                    ))}
                 </div>
             </div>
         </section>

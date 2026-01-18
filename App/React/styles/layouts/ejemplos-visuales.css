@@ -39,15 +39,15 @@
 }
 
 .ventanaRojo {
-    background-color: #ef4444;
+    background-color: var(--nakomi-error);
 }
 
 .ventanaAmarillo {
-    background-color: #eab308;
+    background-color: var(--nakomi-warning);
 }
 
 .ventanaVerde {
-    background-color: #22c55e;
+    background-color: var(--nakomi-exitoSecundario);
 }
 
 .ventanaTitulo {
@@ -102,7 +102,7 @@
 }
 
 .ejemploCheck {
-    color: #4ade80;
+    color: var(--nakomi-exito);
     flex-shrink: 0;
 }
 
@@ -162,7 +162,7 @@
 }
 
 .progresoActivo {
-    background-color: #4ade80;
+    background-color: var(--nakomi-exito);
 }
 
 .progresoTramo {
@@ -172,7 +172,7 @@
 }
 
 .progresoTramoActivo {
-    background-color: #4ade80;
+    background-color: var(--nakomi-exito);
 }
 
 .progresoEtiquetas {
@@ -218,8 +218,8 @@
 
 .estadoBadge {
     font-size: 0.55rem;
-    color: #4ade80;
-    background-color: rgba(74, 222, 128, 0.1);
+    color: var(--nakomi-exito);
+    background-color: var(--nakomi-exitoFondo);
     padding: 2px 6px;
     border-radius: var(--nakomi-radioSm);
     text-transform: uppercase;
@@ -248,7 +248,7 @@
 
 .terminalPrompt {
     font-size: 0.7rem;
-    color: #4ade80;
+    color: var(--nakomi-exito);
 }
 
 .terminalComando {
@@ -261,7 +261,7 @@
 }
 
 .terminalExito {
-    color: #4ade80;
+    color: var(--nakomi-exito);
 }
 
 .terminalTexto {

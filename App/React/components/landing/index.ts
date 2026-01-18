@@ -5,6 +5,9 @@
 export {LogoHero} from './LogoHero';
 export {Navegacion} from './Navegacion';
 export {TarjetaProyecto} from './TarjetaProyecto';
+export {TarjetaServicio} from './TarjetaServicio';
+export {TarjetaBlog} from './TarjetaBlog';
+export {TarjetaResena} from './TarjetaResena';
 export {GridPortafolio} from './GridPortafolio';
 export {ModalProyecto} from './ModalProyecto';
 export {IntroManifiesto} from './IntroManifiesto';
@@ -18,5 +21,5 @@ export {PaginaServicios} from './PaginaServicios';
 
 export type {Proyecto} from './TarjetaProyecto';
 export type {Servicio, ModoVisualizacion} from './GridServicios';
-export type {Resena} from './GridResenas';
-export type {ArticuloBlog} from './SeccionBlog';
+export type {Resena} from './TarjetaResena';
+export type {ArticuloBlog} from './TarjetaBlog';

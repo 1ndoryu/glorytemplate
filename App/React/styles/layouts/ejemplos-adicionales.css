@@ -112,7 +112,7 @@
 }
 
 .statValor.positivo {
-    color: #4ade80;
+    color: var(--nakomi-exito);
 }
 
 .statBarraContenedor {
@@ -145,12 +145,12 @@
 .nivelIconoBg {
     width: 28px;
     height: 28px;
-    background-color: rgba(234, 179, 8, 0.2);
+    background-color: var(--nakomi-warningSecundario);
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #eab308;
+    color: var(--nakomi-warning);
     flex-shrink: 0;
 }
 
@@ -162,7 +162,7 @@
 .nivelTitulo {
     font-size: 0.7rem;
     font-weight: 500;
-    color: #eab308;
+    color: var(--nakomi-warning);
 }
 
 .nivelSub {

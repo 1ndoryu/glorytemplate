@@ -1,21 +1,13 @@
 import React from 'react';
-import {Tarjeta, TarjetaImagen, TarjetaCuerpo, TarjetaFooter, Etiqueta, Boton} from '../ui';
+import {Boton} from '../ui';
+import {TarjetaBlog, ArticuloBlog} from './TarjetaBlog';
 
 /*
  * SeccionBlog: Sección de artículos del blog con grid de tarjetas.
- * Cada artículo muestra imagen, categoría, título, extracto y fecha.
- * Refactorizado para usar sistema UI base.
+ * Refactorizado para usar TarjetaBlog como componente separado.
  */
 
-export interface ArticuloBlog {
-    id: string;
-    titulo: string;
-    extracto: string;
-    categoria: string;
-    imagen: string;
-    fecha: string;
-    enlace?: string;
-}
+export type {ArticuloBlog};
 
 interface SeccionBlogProps {
     articulos: ArticuloBlog[];
@@ -23,30 +15,6 @@ interface SeccionBlogProps {
     botonTexto?: string;
     botonEnlace?: string;
 }
-
-/* Componente para tarjeta individual de blog usando sistema UI */
-const TarjetaBlog: React.FC<{articulo: ArticuloBlog}> = ({articulo}) => {
-    return (
-        <Tarjeta interactiva className="tarjetaBlog">
-            <div className="blogImagenContenedor">
-                <TarjetaImagen src={articulo.imagen} alt={articulo.titulo} />
-                <Etiqueta variante="categoria" tamano="xs" className="blogCategoria">
-                    {articulo.categoria}
-                </Etiqueta>
-            </div>
-            <TarjetaCuerpo className="blogContenido">
-                <h3 className="blogTitulo">{articulo.titulo}</h3>
-                <p className="blogExtracto">{articulo.extracto}</p>
-                <TarjetaFooter className="blogFooter">
-                    <time className="blogFecha">{articulo.fecha}</time>
-                    <Boton href={articulo.enlace || '#'} variante="link" tamano="sm">
-                        Leer más
-                    </Boton>
-                </TarjetaFooter>
-            </TarjetaCuerpo>
-        </Tarjeta>
-    );
-};
 
 export const SeccionBlog: React.FC<SeccionBlogProps> = ({articulos, tituloSeccion = 'Blog', botonTexto = 'Ver todos', botonEnlace = '/blog'}) => {
     return (
