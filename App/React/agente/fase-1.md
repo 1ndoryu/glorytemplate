@@ -46,7 +46,7 @@ App/React/
 - [x] **GridPortafolio**: Grid responsive de proyectos (6 items de ejemplo)
 - [x] **ModalProyecto**: Modal sin recarga para ver detalles del proyecto
 - [x] **LandingIsland**: Composición de todos los componentes
-- [x] **PaginaServicios**: Vista dedicada con filtros avanzados (categoría, precio, búsqueda)
+- [x] **PaginaServicios**: Vista dedicada con filtros minimalistas (dropdowns) y diseño consistente con landing (mismo grid y tarjetas)
 
 ### 4. Registro
 

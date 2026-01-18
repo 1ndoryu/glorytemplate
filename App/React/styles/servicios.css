@@ -1,0 +1,269 @@
+/*
+ * Estilos específicos para la página de servicios (PaginaServicios.tsx)
+ * Mantiene consistencia con variables.css y la estética minimalista de Nakomi
+ */
+
+.paginaServicios {
+    min-height: 100vh;
+    padding-top: 80px; /* Ajustado para estar justo debajo del navbar */
+    background-color: var(--nakomi-fondoPrincipal);
+    color: var(--nakomi-textoNormal);
+    animation: fadeIn var(--nakomi-transicionNormal);
+}
+
+/* --- Cabecera Centrada --- */
+.cabeceraServicios {
+    padding: var(--nakomi-espacioXl) var(--nakomi-espacioLg);
+    max-width: var(--landing-anchoMaximo);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nakomi-espacioMd);
+    text-align: center;
+}
+
+.tituloPaginaServicios {
+    font-size: 2rem;
+    color: var(--nakomi-textoActivo);
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+/* --- Buscador Compacto Centrado --- */
+.barraBusquedaCompacta {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+}
+
+.iconoBusqueda {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--nakomi-textoApagado);
+    width: 16px;
+    height: 16px;
+}
+
+.inputBusqueda {
+    width: 100%;
+    padding: 10px 12px 10px 38px;
+    background-color: var(--nakomi-fondoTerciario);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    border-radius: 9999px; /* Pill shape */
+    color: var(--nakomi-textoActivo);
+    font-size: 0.9rem;
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.inputBusqueda:focus {
+    background-color: var(--nakomi-fondoHover);
+    border-color: var(--nakomi-acento);
+    outline: none;
+    box-shadow: 0 0 0 1px var(--nakomi-superposicionSutil);
+}
+
+/* --- Barra de Herramientas (Filtros + Contador) --- */
+.barraHerramientas {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nakomi-espacioMd);
+    margin-bottom: var(--nakomi-espacioLg);
+    padding: 0 var(--nakomi-espacioLg);
+    max-width: var(--landing-anchoMaximo);
+    margin-left: auto;
+    margin-right: auto;
+    flex-wrap: wrap;
+}
+
+.grupoFiltros {
+    display: flex;
+    gap: var(--nakomi-espacioSm);
+    align-items: center;
+}
+
+.filtroItem {
+    position: relative;
+}
+
+/* Botón Filtro Minimalista */
+.botonFiltro {
+    background: transparent;
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: 9999px; /* Pill shape */
+    padding: 6px 14px;
+    color: var(--nakomi-textoSecundario);
+    font-size: 0.75rem; /* Fuente pequeña requerida */
+    cursor: pointer;
+    transition: all var(--nakomi-transicionRapida);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.botonFiltro:hover,
+.botonFiltro.activo {
+    border-color: var(--nakomi-textoIndice);
+    color: var(--nakomi-textoActivo);
+    background-color: var(--nakomi-fondoTerciario);
+}
+
+.flechaFiltro {
+    font-size: 0.65em;
+    transition: transform 0.2s;
+    opacity: 0.7;
+}
+
+.botonFiltro.activo .flechaFiltro {
+    transform: rotate(180deg);
+}
+
+/* Dropdowns de filtros - Solución Z-Index */
+.menuFiltro {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    background-color: #1a1a1a; /* Fondo más sólido */
+    border: 1px solid var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioMd);
+    padding: var(--nakomi-espacioSm);
+    min-width: 180px;
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+    z-index: 1000; /* Asegurar visibilidad sobre otros elementos */
+    animation: fadeIn 0.15s ease-out;
+}
+
+.opcionFiltro,
+.opcionCategoria {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 6px 10px;
+    color: var(--nakomi-textoNormal);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    border-radius: var(--nakomi-radioSm);
+    transition: background-color 0.1s;
+}
+
+.opcionFiltro:hover,
+.opcionCategoria:hover {
+    background-color: var(--nakomi-fondoTerciario);
+    color: white;
+}
+
+.opcionCategoria.seleccionada {
+    color: var(--nakomi-acento);
+    font-weight: 500;
+}
+
+/* Slider de precio en dropdown */
+.contenedorSliderPrecio {
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+
+.sliderPrecio {
+    width: 100%;
+    cursor: pointer;
+    accent-color: var(--nakomi-acento);
+    height: 4px;
+}
+
+.etiquetaPrecio {
+    font-size: 0.75rem;
+    color: var(--nakomi-textoSecundario);
+    display: flex;
+    justify-content: space-between;
+}
+
+/* --- Contador de Resultados --- */
+.resumenResultados {
+    color: var(--nakomi-textoApagado);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* --- Grid de Resultados --- */
+.gridResultados {
+    display: grid;
+    /* Forzamos 4 columnas en desktop grande */
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--nakomi-espacioMd);
+    /* Padding ajustado para evitar exceso de espacio */
+    padding: 0 var(--nakomi-espacioLg) var(--nakomi-espacio2xl);
+    max-width: var(--landing-anchoMaximo);
+    margin: 0 auto;
+}
+
+/* Asegurar que las tarjetas ocupen todo el ancho de la celda del grid */
+.gridResultados .tarjetaServicio {
+    width: 100% !important; /* Forzar ancho completo */
+    margin: 0;
+}
+
+.sinResultados {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--nakomi-espacio2xl) 0;
+    color: var(--nakomi-textoSecundario);
+    gap: var(--nakomi-espacioMd);
+}
+
+.btnLimpiar {
+    border: none;
+    background: transparent;
+    text-decoration: underline;
+    cursor: pointer;
+    color: var(--nakomi-acento);
+    font-size: 0.85rem;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .gridResultados {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .gridResultados {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .barraHerramientas {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--nakomi-espacioSm);
+    }
+
+    .resumenResultados {
+        margin-left: 4px;
+    }
+}
+
+@media (max-width: 600px) {
+    .gridResultados {
+        grid-template-columns: 1fr;
+    }
+
+    .tituloPaginaServicios {
+        font-size: 1.5rem;
+    }
+}

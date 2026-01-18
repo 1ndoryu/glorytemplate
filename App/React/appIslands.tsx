@@ -17,6 +17,7 @@ import {LandingIsland} from './islands/LandingIsland';
 
 // Estilos especificos del proyecto
 import './styles/landing.css';
+import './styles/servicios.css';
 
 /**
  * AppProvider opcional para contexto global de la aplicacion

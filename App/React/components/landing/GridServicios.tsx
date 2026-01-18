@@ -17,31 +17,14 @@ export interface Servicio {
 /* Tipo para los modos de visualización disponibles */
 export type ModoVisualizacion = 'carrusel' | 'grid';
 
+import {TarjetaServicio} from './TarjetaServicio';
+
 interface GridServiciosProps {
     servicios: Servicio[];
     id?: string;
     /* Modo de visualización: 'carrusel' (infinito) o 'grid' (3 columnas) */
     modo?: ModoVisualizacion;
 }
-
-/* Tarjeta individual de servicio */
-const TarjetaServicio: React.FC<{servicio: Servicio}> = ({servicio}) => {
-    return (
-        <article className="tarjetaServicio">
-            <div className="servicioImagenContenedor">
-                <img src={servicio.imagen} alt={servicio.nombre} className="servicioImagen" loading="lazy" />
-            </div>
-            <div className="servicioInfo">
-                <h3 className="servicioNombre">{servicio.nombre}</h3>
-                <p className="servicioDescripcion">{servicio.descripcionCorta}</p>
-                <div className="servicioPrecio">
-                    <span className="precioEtiqueta">Desde</span>
-                    <span className="precioValor">${servicio.precioDesde.toLocaleString()}</span>
-                </div>
-            </div>
-        </article>
-    );
-};
 
 export const GridServicios: React.FC<GridServiciosProps> = ({servicios, id = 'seccionServicios', modo = 'carrusel'}) => {
     const carruselRef = useRef<HTMLDivElement>(null);
