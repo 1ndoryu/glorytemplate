@@ -1639,3 +1639,153 @@ html {
         padding: var(--nakomi-espacioMd);
     }
 }
+
+/* Estilos para Ejemplo Publica Servicio */
+.ejemploPlaceholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nakomi-espacioMd);
+}
+
+.placeholderIcono {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px dashed var(--nakomi-bordeSutil);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nakomi-textoApagado);
+}
+
+.placeholderTexto {
+    font-size: 0.7rem;
+    color: var(--nakomi-textoSecundario);
+    text-align: center;
+}
+
+.ejemploBotonNeutro {
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioLg);
+    background-color: transparent;
+    border: 1px solid var(--nakomi-bordeSutil);
+    color: var(--nakomi-textoSecundario);
+    font-size: 0.65rem;
+    font-weight: 500;
+    border-radius: var(--nakomi-radioSm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: default;
+}
+
+/* Estilos para Ejemplo Recibe Clientes */
+.ejemploListaNotif {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioXs);
+}
+.notifItem {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: var(--nakomi-radioSm);
+}
+.notifAvatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+.notifTexto {
+    display: flex;
+    flex-direction: column;
+}
+.notifTitulo {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--nakomi-textoSecundario);
+}
+.notifSub {
+    font-size: 0.6rem;
+    color: var(--nakomi-textoMuyApagado);
+}
+
+/* Estilos para Ejemplo Crece Plataforma */
+.ejemploStats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+.statFila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.statLabel {
+    font-size: 0.65rem;
+    color: var(--nakomi-textoApagado);
+}
+.statValor {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--nakomi-textoActivo);
+}
+.statValor.positivo {
+    color: #4ade80;
+}
+.statBarraContenedor {
+    height: 4px;
+    background-color: var(--nakomi-bordeSutil);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.statBarraProgreso {
+    height: 100%;
+    background-color: var(--nakomi-acento);
+}
+.statSeparador {
+    height: 1px;
+    background-color: var(--nakomi-bordeSutil);
+    margin: var(--nakomi-espacioXs) 0;
+}
+.statBadgeNivel {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: var(--nakomi-espacioSm);
+    border-radius: var(--nakomi-radioSm);
+}
+.nivelIconoBg {
+    width: 28px;
+    height: 28px;
+    background-color: rgba(234, 179, 8, 0.2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #eab308;
+    flex-shrink: 0;
+}
+.nivelInfo {
+    display: flex;
+    flex-direction: column;
+}
+.nivelTitulo {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #eab308;
+}
+.nivelSub {
+    font-size: 0.6rem;
+    color: var(--nakomi-textoApagado);
+}
