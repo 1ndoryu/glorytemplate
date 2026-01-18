@@ -1,9 +1,13 @@
 import React, {useEffect, useRef, useState} from 'react';
+import { EjemploListaServicios } from './proceso/EjemploListaServicios';
+import { EjemploProgresoPago } from './proceso/EjemploProgresoPago';
+import { EjemploTerminalDespliegue } from './proceso/EjemploTerminalDespliegue';
+import { EjemploGestionPedidos } from './proceso/EjemploGestionPedidos';
 
 /*
  * SeccionProceso: Sección de 3 columnas que muestra el proceso de trabajo.
- * Diseño ultra minimalista con ejemplos visuales estáticos debajo de cada descripción.
- * Sin iconos, enfocado en claridad y simplicidad.
+ * Diseño ultra minimalista con ejemplos visuales estáticos más detallados.
+ * Altura uniforme en todos los ejemplos.
  */
 
 export const SeccionProceso: React.FC = () => {
@@ -46,19 +50,8 @@ export const SeccionProceso: React.FC = () => {
                     <article className={`tarjetaProceso ${tarjetasVisibles[0] ? 'tarjetaProcesoVisible' : ''}`}>
                         <h3 className="procesoTitulo">Elige tu servicio</h3>
                         <p className="procesoDescripcion">Selecciona el servicio que necesitas y define el tiempo de entrega según tus requerimientos.</p>
-                        <div className="procesoEjemploVisual">
-                            <div className="ejemploLista">
-                                <div className="ejemploItem">
-                                    <span className="ejemploTexto">Diseño Web Premium</span>
-                                    <span className="ejemploCheck">✓</span>
-                                </div>
-                                <div className="ejemploItem ejemploItemInactivo">
-                                    <span className="ejemploTexto">E-commerce Avanzado</span>
-                                </div>
-                                <div className="ejemploItem ejemploItemInactivo">
-                                    <span className="ejemploTexto">Aplicación a Medida</span>
-                                </div>
-                            </div>
+                        <div className="procesoEjemploVisual" style={{backgroundImage: "url('/wp-content/themes/glory/Glory/assets/images/colors/47252f8c0c7f5dae7657ca6eed05eeca.jpg')"}}>
+                            <EjemploListaServicios />
                         </div>
                     </article>
 
@@ -66,21 +59,8 @@ export const SeccionProceso: React.FC = () => {
                     <article className={`tarjetaProceso ${tarjetasVisibles[1] ? 'tarjetaProcesoVisible' : ''}`} style={{'--delay': '0.1s'} as React.CSSProperties}>
                         <h3 className="procesoTitulo">Pago seguro</h3>
                         <p className="procesoDescripcion">Tu pago queda protegido con nuestro sistema de garantía. Atención inmediata desde el primer momento.</p>
-                        <div className="procesoEjemploVisual">
-                            <div className="ejemploProgreso">
-                                <div className="progresoLinea">
-                                    <div className="progresoPunto progresoActivo"></div>
-                                    <div className="progresoTramo progresoTramoActivo"></div>
-                                    <div className="progresoPunto progresoActivo"></div>
-                                    <div className="progresoTramo"></div>
-                                    <div className="progresoPunto"></div>
-                                </div>
-                                <div className="progresoEtiquetas">
-                                    <span className="progresoEtiqueta">Pago</span>
-                                    <span className="progresoEtiqueta">Verificado</span>
-                                    <span className="progresoEtiqueta progresoEtiquetaInactiva">Entregado</span>
-                                </div>
-                            </div>
+                        <div className="procesoEjemploVisual" style={{backgroundImage: "url('/wp-content/themes/glory/Glory/assets/images/colors/c5f3015667280079a5a6299c0ac16e83.jpg')"}}>
+                            <EjemploProgresoPago />
                         </div>
                     </article>
 
@@ -88,19 +68,24 @@ export const SeccionProceso: React.FC = () => {
                     <article className={`tarjetaProceso ${tarjetasVisibles[2] ? 'tarjetaProcesoVisible' : ''}`} style={{'--delay': '0.2s'} as React.CSSProperties}>
                         <h3 className="procesoTitulo">Despliegue completo</h3>
                         <p className="procesoDescripcion">Nos encargamos del hosting y dominio. Gestiona todo desde nuestra plataforma de forma sencilla.</p>
-                        <div className="procesoEjemploVisual">
-                            <div className="ejemploTerminal">
-                                <div className="terminalLinea">
-                                    <span className="terminalPrompt">→</span>
-                                    <span className="terminalComando">deploy --production</span>
-                                </div>
-                                <div className="terminalLinea terminalExito">
-                                    <span className="terminalTexto">✓ Desplegado en tudominio.com</span>
-                                </div>
-                            </div>
+                        <div className="procesoEjemploVisual" style={{backgroundImage: "url('/wp-content/themes/glory/Glory/assets/images/colors/3450083cb428563c30f4544d5e5a7e82.jpg')"}}>
+                            <EjemploTerminalDespliegue />
                         </div>
                     </article>
                 </div>
+
+                {/* Tarjeta Grande: Gestión de pedidos */}
+                <article className="tarjetaProcesoGrande">
+                    <div className="procesoGrandeTexto">
+                        <h3 className="procesoTitulo">Gestiona tus pedidos</h3>
+                        <p className="procesoDescripcion">Visualiza el estado de todos tus proyectos en tiempo real. Comunícate directamente con el equipo y recibe actualizaciones al instante.</p>
+                    </div>
+                    <div className="procesoGrandeEjemplo">
+                        <div className="ventanaPedidos" style={{height: '100%'}}>
+                            <EjemploGestionPedidos />
+                        </div>
+                    </div>
+                </article>
             </div>
         </section>
     );

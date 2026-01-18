@@ -43,3 +43,8 @@
     --color-accent-primary: var(--nakomi-acento);
     --color-accent-hover: var(--nakomi-acentoHover);
 }
+
+html {
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+}

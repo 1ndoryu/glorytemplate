@@ -1098,12 +1098,91 @@ html {
     margin-bottom: var(--nakomi-espacioSm);
 }
 
-/* Ejemplo visual generico */
+/* Ejemplo visual generico - altura fija para uniformidad */
+/* Ejemplo visual generico - altura fija para uniformidad */
 .procesoEjemploVisual {
     background-color: var(--nakomi-fondoTerciario);
+    background-size: cover;
+    background-position: center;
     border-radius: var(--nakomi-radioSm);
-    padding: var(--nakomi-espacioMd);
+    padding: 20px;
     margin-top: auto;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Ventana Unificada (reemplaza ventanaEjemploPequeno y ventanaPedidos) */
+.ventanaEjemplo {
+    background-color: var(--nakomi-fondoPrincipal);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.ventanaHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    border-bottom: 1px solid var(--nakomi-bordeSutil);
+    background-color: rgba(255, 255, 255, 0.01);
+}
+
+.ventanaControles {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+/* Reutilizar puntos de ventana */
+.ventanaPunto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.ventanaRojo {
+    background-color: #ef4444;
+}
+
+.ventanaAmarillo {
+    background-color: #eab308;
+}
+
+.ventanaVerde {
+    background-color: #22c55e;
+}
+
+.ventanaTitulo {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--nakomi-textoApagado);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ventanaContenido {
+    padding: var(--nakomi-espacioMd);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioMd);
+    overflow-y: auto;
+}
+
+/* Separador entre secciones del ejemplo */
+.ejemploSeparador {
+    height: 1px;
+    background-color: var(--nakomi-bordeSutil);
+    margin: var(--nakomi-espacioMd) 0;
 }
 
 /* Ejemplo Lista de servicios */
@@ -1133,8 +1212,41 @@ html {
 }
 
 .ejemploCheck {
-    font-size: 0.65rem;
     color: #4ade80;
+    flex-shrink: 0;
+}
+
+/* Selector de tiempo de entrega */
+.ejemploEntrega {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioXs);
+}
+
+.ejemploEtiqueta {
+    font-size: 0.6rem;
+    color: var(--nakomi-textoMuyApagado);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ejemploOpciones {
+    display: flex;
+    gap: var(--nakomi-espacioXs);
+}
+
+.ejemploOpcion {
+    font-size: 0.65rem;
+    color: var(--nakomi-textoApagado);
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioSm);
+}
+
+.ejemploOpcionActiva {
+    color: var(--nakomi-textoActivo);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--nakomi-bordePrincipal);
 }
 
 /* Ejemplo Progreso de pago */
@@ -1147,7 +1259,7 @@ html {
 .progresoLinea {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: 0;
 }
 
@@ -1164,7 +1276,7 @@ html {
 }
 
 .progresoTramo {
-    width: 40px;
+    flex: 1;
     height: 2px;
     background-color: var(--nakomi-bordeSutil);
 }
@@ -1187,8 +1299,52 @@ html {
     color: var(--nakomi-textoMuyApagado);
 }
 
-/* Ejemplo Terminal de despliegue */
+/* Estado de seguridad */
+.ejemploEstado {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioXs);
+}
+
+.estadoFila {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioXs) 0;
+}
+
+.estadoIcono {
+    width: 14px;
+    height: 14px;
+    color: var(--nakomi-textoApagado);
+    flex-shrink: 0;
+}
+
+.estadoTexto {
+    font-size: 0.7rem;
+    color: var(--nakomi-textoSecundario);
+    flex: 1;
+}
+
+.estadoBadge {
+    font-size: 0.55rem;
+    color: #4ade80;
+    background-color: rgba(74, 222, 128, 0.1);
+    padding: 2px 6px;
+    border-radius: var(--nakomi-radioSm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Ejemplo Terminal actualizado */
 .ejemploTerminal {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+/* Header eliminado porque ahora usa ventanaEjemplo */
+
+.terminalContenido {
     display: flex;
     flex-direction: column;
     gap: var(--nakomi-espacioXs);
@@ -1203,12 +1359,16 @@ html {
 
 .terminalPrompt {
     font-size: 0.7rem;
-    color: var(--nakomi-textoApagado);
+    color: #4ade80;
 }
 
 .terminalComando {
     font-size: 0.7rem;
     color: var(--nakomi-textoSecundario);
+}
+
+.terminalInfo {
+    opacity: 0.6;
 }
 
 .terminalExito {
@@ -1233,5 +1393,138 @@ html {
 
     .seccionProceso {
         padding: var(--nakomi-espacioLg) var(--nakomi-espacioMd);
+    }
+
+    .procesoEjemploVisual {
+        height: auto;
+    }
+}
+
+/* Tarjeta Grande - Gestión de pedidos */
+.tarjetaProcesoGrande {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--nakomi-espacioLg);
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    padding: var(--nakomi-espacioLg);
+    margin-top: var(--nakomi-espacioMd);
+    min-height: 500px;
+    transition: border-color var(--nakomi-transicionRapida);
+}
+
+.tarjetaProcesoGrande:hover {
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+.procesoGrandeTexto {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--nakomi-espacioSm);
+}
+
+.procesoGrandeEjemplo {
+    background-color: var(--nakomi-fondoTerciario);
+    background-image: url('/wp-content/themes/glory/Glory/assets/images/colors/47252f8c0c7f5dae7657ca6eed05eeca.jpg');
+    background-size: cover;
+    background-position: center;
+    border-radius: var(--nakomi-radioSm);
+    overflow: hidden;
+    min-height: 280px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ventana de pedidos (legacy styles support if needed, mostly redundant now) */
+.ventanaPedidos {
+    height: 100%;
+    width: 100%;
+}
+/* ventanaHeader y puntos ahora son globales */
+
+/* Item de pedido */
+.pedidoItem {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioSm);
+    padding: var(--nakomi-espacioMd);
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+
+.pedidoInfo {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.pedidoNombre {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+}
+
+.pedidoCliente {
+    font-size: 0.65rem;
+    color: var(--nakomi-textoApagado);
+}
+
+.pedidoMeta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pedidoFecha {
+    font-size: 0.65rem;
+    color: var(--nakomi-textoApagado);
+}
+
+.pedidoEstado {
+    font-size: 0.55rem;
+    padding: 2px 8px;
+    border-radius: var(--nakomi-radioSm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.pedidoEnProgreso {
+    color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.pedidoRevision {
+    color: #eab308;
+    background-color: rgba(234, 179, 8, 0.1);
+}
+
+.pedidoProgreso {
+    height: 3px;
+    background-color: var(--nakomi-bordeSutil);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.pedidoProgresoBar {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* Responsive para tarjeta grande */
+@media (max-width: 900px) {
+    .tarjetaProcesoGrande {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .tarjetaProcesoGrande {
+        padding: var(--nakomi-espacioMd);
     }
 }
