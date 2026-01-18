@@ -58,7 +58,7 @@ html {
     z-index: 100;
     width: calc(100% - var(--nakomi-espacioLg) * 2);
     max-width: var(--landing-anchoMaximo);
-    padding: var(--nakomi-espacioMd) var(--nakomi-espacioLg);
+    padding: var(--nakomi-espacioMd) var(--nakomi-espacioMd);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -74,9 +74,13 @@ html {
     letter-spacing: 0.05em;
     text-transform: none;
     color: var(--nakomi-textoActivo);
+    flex-shrink: 0;
 }
 
 .navegacionEnlaces {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     gap: var(--nakomi-espacioMd);
     list-style: none;
@@ -100,6 +104,25 @@ html {
 
 .navegacionEnlaceActivo {
     color: var(--nakomi-acento);
+}
+
+.navegacionBotonLogin {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--nakomi-fondoPrincipal);
+    background-color: var(--nakomi-textoActivo);
+    text-decoration: none;
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioMd);
+    border: none;
+    border-radius: var(--nakomi-radioSm);
+    transition: all var(--nakomi-transicionRapida);
+    flex-shrink: 0;
+}
+
+.navegacionBotonLogin:hover {
+    background-color: #ffffff;
 }
 
 /* Hero con logo dinamico */
@@ -323,5 +346,658 @@ html {
 
     .modalInfo {
         padding: var(--nakomi-espacioMd);
+    }
+}
+
+/* Seccion Manifiesto - texto que aparece al scroll */
+.seccionManifiesto {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--nakomi-espacio2xl) var(--nakomi-espacioLg);
+}
+
+.manifiestoContenedor {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.manifiestoTexto {
+    font-size: clamp(1.2rem, 3vw, 2.2rem);
+    font-weight: 300;
+    line-height: 1.3;
+    color: var(--nakomi-textoActivo);
+    letter-spacing: -0.01em;
+}
+
+.manifestoPalabra {
+    display: inline-block;
+    margin-right: 0.3em;
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+    will-change: opacity, transform;
+}
+
+.manifiestoBoton {
+    display: inline-block;
+    margin-top: var(--nakomi-espacioLg);
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioLg);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoSecundario);
+    text-decoration: none;
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.manifiestoBoton:hover {
+    color: var(--nakomi-textoActivo);
+    border-color: var(--nakomi-bordePrincipal);
+    background-color: var(--nakomi-superposicionClara);
+}
+
+/* Seccion Servicios - carrusel minimalista */
+.seccionServicios {
+    padding: var(--nakomi-espacio2xl) 0;
+    padding-bottom: calc(var(--nakomi-espacio2xl) * 2);
+    overflow: hidden;
+}
+
+.serviciosContenedor {
+    width: 100%;
+}
+
+/* Header de servicios con título y botón */
+.serviciosHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: var(--landing-anchoMaximo);
+    margin: 0 auto var(--nakomi-espacioLg);
+}
+
+.serviciosTituloGrande {
+    font-family: 'Gothic60', var(--nakomi-fuentePrincipal);
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--nakomi-textoActivo);
+}
+
+.serviciosBotonVer {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoSecundario);
+    text-decoration: none;
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.serviciosBotonVer:hover {
+    color: var(--nakomi-textoActivo);
+    border-color: var(--nakomi-bordePrincipal);
+    background-color: var(--nakomi-superposicionClara);
+}
+
+/* Carrusel de servicios */
+.carruselContenedor {
+    width: 100%;
+    overflow: hidden;
+}
+
+.carruselServicios {
+    display: flex;
+    gap: var(--nakomi-espacioMd);
+    will-change: transform;
+}
+
+/* Tarjeta de servicio individual - ancho fijo para carrusel */
+.tarjetaServicio {
+    flex-shrink: 0;
+    width: 280px;
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    overflow: hidden;
+    transition: border-color var(--nakomi-transicionRapida);
+    cursor: pointer;
+}
+
+.tarjetaServicio:hover {
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+.tarjetaServicio:hover .servicioImagen {
+    transform: scale(1.03);
+}
+
+.servicioImagenContenedor {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+}
+
+.servicioImagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--nakomi-transicionLenta);
+}
+
+.servicioInfo {
+    padding: var(--nakomi-espacioMd);
+}
+
+.servicioNombre {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    margin-bottom: var(--nakomi-espacioXs);
+}
+
+.servicioDescripcion {
+    font-size: 0.7rem;
+    color: var(--nakomi-textoApagado);
+    line-height: 1.5;
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.servicioPrecio {
+    display: flex;
+    align-items: baseline;
+    gap: var(--nakomi-espacioXs);
+}
+
+.precioEtiqueta {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoMuyApagado);
+}
+
+.precioValor {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+}
+
+/* Footer minimalista */
+.footerMinimal {
+    padding: var(--nakomi-espacioLg) var(--nakomi-espacioMd);
+    text-align: center;
+    border-top: 1px solid var(--nakomi-bordeSutil);
+}
+
+.footerTexto {
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoMuyApagado);
+}
+
+/* Seccion Resenas - testimonios de clientes */
+.seccionResenas {
+    min-height: 100vh;
+    padding: var(--nakomi-espacio2xl) var(--nakomi-espacioLg);
+    display: flex;
+    align-items: center;
+}
+
+.resenasContenedor {
+    max-width: var(--landing-anchoMaximo);
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Header de reseñas con título y botón */
+.resenasHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--nakomi-espacioLg);
+}
+
+.resenasTituloGrande {
+    font-family: 'Gothic60', var(--nakomi-fuentePrincipal);
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--nakomi-textoActivo);
+}
+
+.resenasBotonVer {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoSecundario);
+    text-decoration: none;
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.resenasBotonVer:hover {
+    color: var(--nakomi-textoActivo);
+    border-color: var(--nakomi-bordePrincipal);
+    background-color: var(--nakomi-superposicionClara);
+}
+
+.gridResenas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--nakomi-espacioMd);
+}
+
+/* Tarjeta de reseña */
+.tarjetaResena {
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    padding: var(--nakomi-espacioLg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--nakomi-espacioLg);
+    transition: border-color var(--nakomi-transicionRapida);
+}
+
+.tarjetaResena:hover {
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+.resenaTexto {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--nakomi-textoApagado);
+}
+
+.resenaFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--nakomi-espacioMd);
+}
+
+.resenaAutor {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+}
+
+.resenaAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.resenaAvatarPlaceholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+}
+
+.resenaInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.resenaNombre {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+}
+
+.resenaCargo {
+    font-size: 0.7rem;
+    color: var(--nakomi-textoApagado);
+}
+
+.resenaBotonProyecto {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoApagado);
+    text-decoration: none;
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioSm);
+    transition: all var(--nakomi-transicionRapida);
+    white-space: nowrap;
+}
+
+.resenaBotonProyecto:hover {
+    color: var(--nakomi-textoActivo);
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .serviciosTituloGrande {
+        font-size: 1.5rem;
+    }
+
+    .tarjetaServicio {
+        width: 240px;
+    }
+
+    .gridResenas {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .seccionManifiesto {
+        min-height: 60vh;
+        padding: var(--nakomi-espacioLg) var(--nakomi-espacioMd);
+    }
+
+    .manifiestoTexto {
+        font-size: 1.1rem;
+    }
+
+    .serviciosHeader {
+        flex-direction: column;
+        gap: var(--nakomi-espacioMd);
+        align-items: flex-start;
+        padding: 0 var(--nakomi-espacioMd);
+    }
+
+    .serviciosTituloGrande {
+        font-size: 1.2rem;
+    }
+
+    .tarjetaServicio {
+        width: 220px;
+    }
+
+    .seccionServicios {
+        padding: var(--nakomi-espacioLg) 0;
+    }
+
+    .gridResenas {
+        grid-template-columns: 1fr;
+    }
+
+    .seccionResenas {
+        padding: var(--nakomi-espacioLg) var(--nakomi-espacioMd);
+    }
+}
+
+/* Seccion Ecosistema - Hero con imagen full width */
+.seccionEcosistema {
+    padding: var(--nakomi-espacio2xl) 0;
+    padding-bottom: 0;
+}
+
+.ecosistemaContenedor {
+    max-width: var(--landing-anchoMaximo);
+    margin: 0 auto var(--nakomi-espacioLg);
+    padding: 0 var(--nakomi-espacioLg);
+}
+
+.ecosistemaHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.ecosistemaTituloGrande {
+    font-family: 'Gothic60', var(--nakomi-fuentePrincipal);
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--nakomi-textoActivo);
+}
+
+.ecosistemaBotonVer {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoSecundario);
+    text-decoration: none;
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.ecosistemaBotonVer:hover {
+    color: var(--nakomi-textoActivo);
+    border-color: var(--nakomi-bordePrincipal);
+    background-color: var(--nakomi-superposicionClara);
+}
+
+.ecosistemaDescripcion {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--nakomi-textoSecundario);
+    max-width: 700px;
+}
+
+.ecosistemaImagenContenedor {
+    width: 100%;
+    overflow: hidden;
+}
+
+.ecosistemaImagen {
+    width: 100%;
+    height: auto;
+    max-height: 500px;
+    object-fit: cover;
+    display: block;
+    transition: transform var(--nakomi-transicionLenta);
+}
+
+.ecosistemaImagenContenedor:hover .ecosistemaImagen {
+    transform: scale(1.02);
+}
+
+/* Seccion Blog - Grid de articulos */
+.seccionBlog {
+    padding: var(--nakomi-espacio2xl) var(--nakomi-espacioLg);
+}
+
+.blogSeccionContenedor {
+    max-width: var(--landing-anchoMaximo);
+    margin: 0 auto;
+}
+
+.blogHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--nakomi-espacioLg);
+}
+
+.blogTituloGrande {
+    font-family: 'Gothic60', var(--nakomi-fuentePrincipal);
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--nakomi-textoActivo);
+}
+
+.blogBotonVer {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoSecundario);
+    text-decoration: none;
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.blogBotonVer:hover {
+    color: var(--nakomi-textoActivo);
+    border-color: var(--nakomi-bordePrincipal);
+    background-color: var(--nakomi-superposicionClara);
+}
+
+.gridBlog {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--nakomi-espacioMd);
+}
+
+/* Tarjeta de articulo del blog */
+.tarjetaBlog {
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    overflow: hidden;
+    transition: border-color var(--nakomi-transicionRapida);
+}
+
+.tarjetaBlog:hover {
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+.tarjetaBlog:hover .blogImagen {
+    transform: scale(1.05);
+}
+
+.blogImagenContenedor {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+}
+
+.blogImagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--nakomi-transicionLenta);
+}
+
+.blogCategoria {
+    position: absolute;
+    top: var(--nakomi-espacioSm);
+    left: var(--nakomi-espacioSm);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoActivo);
+    background-color: rgba(9, 9, 9, 0.85);
+    backdrop-filter: blur(4px);
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
+    border-radius: var(--nakomi-radioSm);
+}
+
+.blogContenido {
+    padding: var(--nakomi-espacioMd);
+}
+
+.blogTitulo {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    margin-bottom: var(--nakomi-espacioSm);
+    line-height: 1.4;
+}
+
+.blogExtracto {
+    font-size: 0.75rem;
+    color: var(--nakomi-textoApagado);
+    line-height: 1.6;
+    margin-bottom: var(--nakomi-espacioMd);
+    /*
+     * Limitar a 3 lineas con ellipsis para mantener
+     * uniformidad en las tarjetas
+     */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.blogFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.blogFecha {
+    font-size: 0.65rem;
+    color: var(--nakomi-textoMuyApagado);
+    letter-spacing: 0.05em;
+}
+
+.blogLeerMas {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--nakomi-textoSecundario);
+    text-decoration: none;
+    transition: color var(--nakomi-transicionRapida);
+}
+
+.blogLeerMas:hover {
+    color: var(--nakomi-textoActivo);
+}
+
+/* Responsive para Ecosistema y Blog */
+@media (max-width: 900px) {
+    .ecosistemaTituloGrande,
+    .blogTituloGrande {
+        font-size: 1.5rem;
+    }
+
+    .gridBlog {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ecosistemaImagen {
+        max-height: 400px;
+    }
+}
+
+@media (max-width: 600px) {
+    .ecosistemaHeader,
+    .blogHeader {
+        flex-direction: column;
+        gap: var(--nakomi-espacioMd);
+        align-items: flex-start;
+    }
+
+    .ecosistemaTituloGrande,
+    .blogTituloGrande {
+        font-size: 1.2rem;
+    }
+
+    .ecosistemaContenedor {
+        padding: 0 var(--nakomi-espacioMd);
+    }
+
+    .gridBlog {
+        grid-template-columns: 1fr;
+    }
+
+    .seccionBlog {
+        padding: var(--nakomi-espacioLg) var(--nakomi-espacioMd);
+    }
+
+    .ecosistemaImagen {
+        max-height: 300px;
     }
 }

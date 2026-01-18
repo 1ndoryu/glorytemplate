@@ -65,6 +65,10 @@ export const Navegacion: React.FC<NavegacionProps> = ({enlaces = enlacesPorDefec
                     </li>
                 )}
             </ul>
+
+            <a href="/login" className="navegacionBotonLogin">
+                Login
+            </a>
         </nav>
     );
 };
