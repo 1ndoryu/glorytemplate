@@ -83,9 +83,17 @@ App/React/
 *   [x] **Refactorizar `SeccionEcosistema`**: Usa `Boton` para el CTA.
 *   [x] **Refactorizar `Navegacion`**: Usa `Boton` para el login.
 
-### Fase 4: Limpieza
-*   [ ] Eliminar clases CSS obsoletas de `landing.css` (ej: `ecosistemaBotonVer`, `serviciosBotonVer`, `resenasBotonVer`, `blogBotonVer`, `blogLeerMas`, `resenaBotonProyecto`).
-*   [ ] Verificar que `App/React/styles/landing.css` quede reducido a orquestación de layout básica o desaparezca si es posible.
+### Fase 4: Limpieza ✅ COMPLETADA
+*   [x] **Refactorizar `IntroManifiesto`**: Ahora usa `Boton` del sistema UI para el CTA "Conócenos".
+*   [x] **Eliminar clases CSS obsoletas de `landing.css`**:
+    - `.manifiestoBoton` - Eliminada (reemplazada por componente Boton)
+    - `.serviciosBotonVer` - Eliminada (reemplazada por componente Boton)
+    - `.resenasBotonVer` - Eliminada (reemplazada por componente Boton)
+    - `.resenaBotonProyecto` - Eliminada (reemplazada por componente Boton)
+    - `.ecosistemaBotonVer` - Eliminada (reemplazada por componente Boton)
+    - `.blogBotonVer` - Eliminada (reemplazada por componente Boton)
+    - `.blogLeerMas` - Eliminada (reemplazada por componente Boton)
+*   [x] **Reducción de `landing.css`**: El archivo pasó de ~1800 líneas a ~1650 líneas (~150 líneas eliminadas de CSS duplicado).
 
 ## 5. Instrucciones para el Agente (Self-Correction)
 *   **No romper el build**: Cada refactorización debe comprobarse (mentalmente o via revisión estática) para asegurar que no se pierden imports.

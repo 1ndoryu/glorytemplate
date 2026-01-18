@@ -1,7 +1,9 @@
 /*
  * Componente Boton - Estilos unificados
- * Reemplaza: manifiestoBoton, serviciosBotonVer, ecosistemaBotonVer, 
- *            blogBotonVer, resenasBotonVer, navegacionBotonLogin
+ * 
+ * Clases CSS obsoletas ya eliminadas de landing.css:
+ * manifiestoBoton, serviciosBotonVer, ecosistemaBotonVer, 
+ * blogBotonVer, blogLeerMas, resenasBotonVer, resenaBotonProyecto
  */
 
 /* === Base del Boton === */

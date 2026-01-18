@@ -357,25 +357,7 @@
     will-change: opacity, transform;
 }
 
-.manifiestoBoton {
-    display: inline-block;
-    margin-top: var(--nakomi-espacioLg);
-    padding: var(--nakomi-espacioSm) var(--nakomi-espacioLg);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--nakomi-textoSecundario);
-    text-decoration: none;
-    border: 1px solid var(--nakomi-bordeSutil);
-    border-radius: var(--nakomi-radioMd);
-    transition: all var(--nakomi-transicionRapida);
-}
-
-.manifiestoBoton:hover {
-    color: var(--nakomi-textoActivo);
-    border-color: var(--nakomi-bordePrincipal);
-    background-color: var(--nakomi-superposicionClara);
-}
+/* Clase .manifiestoBoton eliminada - usar componente Boton */
 
 /* Seccion Servicios - carrusel minimalista */
 .seccionServicios {
@@ -408,23 +390,7 @@
     color: var(--nakomi-textoActivo);
 }
 
-.serviciosBotonVer {
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--nakomi-textoSecundario);
-    text-decoration: none;
-    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
-    border: 1px solid var(--nakomi-bordeSutil);
-    border-radius: var(--nakomi-radioMd);
-    transition: all var(--nakomi-transicionRapida);
-}
-
-.serviciosBotonVer:hover {
-    color: var(--nakomi-textoActivo);
-    border-color: var(--nakomi-bordePrincipal);
-    background-color: var(--nakomi-superposicionClara);
-}
+/* Clase .serviciosBotonVer eliminada - usar componente Boton */
 
 /* Carrusel de servicios */
 .carruselContenedor {
@@ -568,23 +534,7 @@
     color: var(--nakomi-textoActivo);
 }
 
-.resenasBotonVer {
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--nakomi-textoSecundario);
-    text-decoration: none;
-    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
-    border: 1px solid var(--nakomi-bordeSutil);
-    border-radius: var(--nakomi-radioMd);
-    transition: all var(--nakomi-transicionRapida);
-}
-
-.resenasBotonVer:hover {
-    color: var(--nakomi-textoActivo);
-    border-color: var(--nakomi-bordePrincipal);
-    background-color: var(--nakomi-superposicionClara);
-}
+/* Clase .resenasBotonVer eliminada - usar componente Boton */
 
 .gridResenas {
     display: grid;
@@ -666,23 +616,7 @@
     color: var(--nakomi-textoApagado);
 }
 
-.resenaBotonProyecto {
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--nakomi-textoApagado);
-    text-decoration: none;
-    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
-    border: 1px solid var(--nakomi-bordeSutil);
-    border-radius: var(--nakomi-radioSm);
-    transition: all var(--nakomi-transicionRapida);
-    white-space: nowrap;
-}
-
-.resenaBotonProyecto:hover {
-    color: var(--nakomi-textoActivo);
-    border-color: var(--nakomi-bordePrincipal);
-}
+/* Clase .resenaBotonProyecto eliminada - usar componente Boton */
 
 /* Responsive */
 @media (max-width: 900px) {
@@ -777,23 +711,7 @@
     color: var(--nakomi-textoActivo);
 }
 
-.ecosistemaBotonVer {
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--nakomi-textoSecundario);
-    text-decoration: none;
-    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
-    border: 1px solid var(--nakomi-bordeSutil);
-    border-radius: var(--nakomi-radioMd);
-    transition: all var(--nakomi-transicionRapida);
-}
-
-.ecosistemaBotonVer:hover {
-    color: var(--nakomi-textoActivo);
-    border-color: var(--nakomi-bordePrincipal);
-    background-color: var(--nakomi-superposicionClara);
-}
+/* Clase .ecosistemaBotonVer eliminada - usar componente Boton */
 
 .ecosistemaDescripcion {
     font-size: 0.9rem;
@@ -852,23 +770,7 @@
     color: var(--nakomi-textoActivo);
 }
 
-.blogBotonVer {
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--nakomi-textoSecundario);
-    text-decoration: none;
-    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
-    border: 1px solid var(--nakomi-bordeSutil);
-    border-radius: var(--nakomi-radioMd);
-    transition: all var(--nakomi-transicionRapida);
-}
-
-.blogBotonVer:hover {
-    color: var(--nakomi-textoActivo);
-    border-color: var(--nakomi-bordePrincipal);
-    background-color: var(--nakomi-superposicionClara);
-}
+/* Clase .blogBotonVer eliminada - usar componente Boton */
 
 .gridBlog {
     display: grid;
@@ -961,18 +863,7 @@
     letter-spacing: 0.05em;
 }
 
-.blogLeerMas {
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--nakomi-textoSecundario);
-    text-decoration: none;
-    transition: color var(--nakomi-transicionRapida);
-}
-
-.blogLeerMas:hover {
-    color: var(--nakomi-textoActivo);
-}
+/* Clase .blogLeerMas eliminada - usar componente Boton */
 
 /* Responsive para Ecosistema y Blog */
 @media (max-width: 900px) {

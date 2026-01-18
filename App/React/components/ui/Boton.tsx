@@ -7,8 +7,12 @@ import React from 'react';
  * Tamaños: sm, md, lg
  * Extras: bloque (full width), pill (bordes redondeados)
  *
- * Reemplaza: manifiestoBoton, ecosistemaBotonVer, serviciosBotonVer,
- *            blogBotonVer, resenasBotonVer, navegacionBotonLogin
+ * Este componente reemplaza las siguientes clases CSS obsoletas (ya eliminadas):
+ * manifiestoBoton, ecosistemaBotonVer, serviciosBotonVer,
+ * blogBotonVer, blogLeerMas, resenasBotonVer, resenaBotonProyecto
+ *
+ * TO-DO: navegacionBotonLogin todavía necesita estilos específicos en landing.css
+ * Considerar crear una variante 'invertido' para botones con fondo claro.
  */
 
 type VarianteBoton = 'solid' | 'outline' | 'ghost' | 'link' | 'acento';

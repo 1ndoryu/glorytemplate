@@ -1,8 +1,10 @@
 import React, {useEffect, useRef, useState} from 'react';
+import {Boton} from '../ui';
 
 /*
  * IntroManifiesto: Sección de texto que aparece progresivamente al hacer scroll.
  * Presenta la esencia de Nakomi con un efecto de revelación elegante.
+ * Refactorizado para usar Boton del sistema UI.
  */
 
 interface IntroManifiestoProps {
@@ -79,9 +81,9 @@ export const IntroManifiesto: React.FC<IntroManifiestoProps> = ({id = 'seccionMa
                         );
                     })}
                 </p>
-                <a href="/nosotros" className="manifiestoBoton">
+                <Boton href="/nosotros" variante="outline" tamano="sm">
                     Conócenos
-                </a>
+                </Boton>
             </div>
         </section>
     );
