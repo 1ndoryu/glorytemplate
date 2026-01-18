@@ -157,10 +157,144 @@ Hook para animaciones de entrada al viewport con revelación escalonada:
 *   **Límites de archivo**: Ningún archivo CSS debe superar 300 líneas (cumplido).
 *   **Usar variables CSS**: Siempre usar tokens de `variables.css` para colores, espaciados, radios, etc.
 
-## 8. Próximos Pasos (TO-DO Fase 7)
+## 8. Fase 7: Refactorizar LandingIsland.tsx ✅ COMPLETADA
 
-- [ ] **Reorganizar componentes landing**: Considerar mover a estructura `components/features/landing/` para escalabilidad
+### Problema identificado
+El archivo `LandingIsland.tsx` tenía **281 líneas** y violaba SRP al contener:
+- **~180 líneas de datos mock** (proyectos, servicios, reseñas, artículos)
+- **Lógica de navegación** (~30 líneas) que podría ser un hook
+- **Lógica de modal** que se repite en otros componentes
+- **Estado de enrutamiento interno** (vistaActual) que podría manejarse diferente
+
+### Tareas de extracción ✅
+
+#### 7.1 Extraer datos mock a archivos separados ✅
+- [x] **Crear `data/mocks/proyectos.ts`**: Movido `proyectosEjemplo` (55 líneas)
+- [x] **Crear `data/mocks/servicios.ts`**: Movido `serviciosEjemplo` (65 líneas)  
+- [x] **Crear `data/mocks/resenas.ts`**: Movido `resenasEjemplo` (52 líneas)
+- [x] **Crear `data/mocks/articulos.ts`**: Movido `articulosEjemplo` (37 líneas)
+- [x] **Crear `data/mocks/index.ts`**: Barrel export para todos los mocks
+
+*Resultado: ~172 líneas eliminadas del Island*
+
+#### 7.2 Extraer hooks de lógica ✅
+- [x] **Crear `hooks/useNavegacionLanding.ts`**: Hook para navegación con scroll suave (55 líneas)
+  - Encapsula `handleNavegar`
+  - Maneja cambio de vista y scroll a secciones
+  - Retorna `{handleNavegar, vistaActual, setVistaActual}`
+
+- [x] **Crear `hooks/useModal.ts`**: Hook genérico para manejo de modales (44 líneas)
+  - Estado de visibilidad
+  - Item seleccionado con tipo genérico
+  - Funciones `abrir` y `cerrar` con delay para animaciones
+  - Reutilizable en cualquier modal del proyecto
+
+#### 7.3 Refactorizar LandingIsland.tsx ✅
+- [x] Importar datos desde `data/mocks`
+- [x] Usar `useNavegacionLanding` para navegación
+- [x] Usar `useModal<Proyecto>` para el modal de proyecto
+- [x] **Resultado final: Componente reducido de 281 a ~52 líneas** (solo composición de UI)
+
+### Arquitectura después de Fase 7
+
+```text
+App/React/
+├── data/
+│   └── mocks/              # Datos de ejemplo/placeholder
+│       ├── proyectos.ts    # 55 líneas
+│       ├── servicios.ts    # 65 líneas
+│       ├── resenas.ts      # 52 líneas
+│       ├── articulos.ts    # 37 líneas
+│       └── index.ts        # Barrel export
+├── hooks/
+│   ├── useIntersectionReveal.ts  # Existente
+│   ├── useNavegacionLanding.ts   # Nuevo - 55 líneas
+│   ├── useModal.ts               # Nuevo - 44 líneas
+│   └── index.ts                  # Barrel export actualizado
+├── islands/
+│   └── LandingIsland.tsx   # Reducido a ~52 líneas ✅
+└── ...
+```
+
+## 9. Próximos Pasos (TO-DO Fase 8)
+
+### 8.1 Sistema de Imágenes Optimizadas (Prioridad Alta)
+
+**Problema**: Las rutas de imágenes están hardcodeadas en los mocks usando `/wp-content/themes/glory/Glory/assets/images/colors/`. Esto dificulta:
+- Optimización de carga (diferentes resoluciones según contexto)
+- Prevención de imágenes repetidas
+- Filtrado de imágenes de baja resolución
+- Mantenibilidad si la estructura de carpetas cambia
+
+#### Sistema Glory Existente (Backend PHP)
+
+Glory ya cuenta con utilidades robustas en **`Glory\Utility\AssetsUtility`** y **`Glory\Utility\ImageUtility`**:
+
+**Aliases registrados**:
+- `glory` → `Glory/assets/images`
+- `colors` → `Glory/assets/images/colors`
+- `elements` → `Glory/assets/images/elements`
+- `logos` → `Glory/assets/images/logos`
+- `tema` → `App/Assets/images`
+
+**Funciones útiles de `AssetsUtility`**:
+- `listImagesForAlias($alias, $extensiones)` - Lista todas las imágenes de un alias
+- `listImagesForAliasWithMinSize($alias, $minBytes)` - Filtra por tamaño mínimo (bytes)
+- `pickRandomImages($alias, $cantidad, $minBytes)` - Selección aleatoria sin repetir
+- `imagenUrl($ref)` - Obtiene URL optimizada usando sintaxis `alias::archivo`
+- `getRandomUniqueImagesFromAlias($alias, $cantidad)` - Aleatorias únicas
+
+**CDN y optimización en `ImageUtility`**:
+- `jetpack_photon_url($url, $args)` - Transforma a CDN de Jetpack (i0.wp.com)
+- Soporta parámetros: `quality`, `strip`, `resize`
+- En local (`LOCAL=true`) devuelve URL sin CDN
+
+#### Enfoque de Integración React
+
+**Opción A: API REST + React Hook (Recomendado)**
+1. Crear endpoint REST en Glory que exponga las imágenes del alias con metadata
+2. Hook `useGloryImages(alias, opciones)` que consume el endpoint
+3. Componente `<ImagenGlory src="colors::imagen.jpg" />` que usa CDN automáticamente
+
+**Opción B: Pre-generación estática**
+1. Script PHP que genera `catalogo.json` con todas las imágenes y metadata
+2. Importar catálogo en React como constante
+3. Utilidad TypeScript para filtrar/seleccionar
+
+**Tareas planificadas**:
+- [ ] **Crear endpoint REST `/glory/v1/images`**: 
+  - Acepta alias, cantidad, tamaño mínimo
+  - Retorna array con URLs optimizadas (CDN en producción)
+  - Evita repetir imágenes en la sesión
+- [ ] **Crear hook `useGloryImages.ts`**: 
+  - Wrapper del endpoint con cache
+  - Tracking de imágenes ya usadas (Context o Zustand)
+  - Prefetch opcional
+- [ ] **Crear componente `ImagenGlory.tsx`**: 
+  - Acepta referencia `alias::archivo` 
+  - Lazy loading nativo con `loading="lazy"`
+  - Placeholder blur (CSS o base64)
+  - Fallback si imagen no carga
+  - Props para ancho/alto/clases
+- [ ] **Migrar mocks a sistema integrado**:
+  - Reemplazar rutas hardcodeadas por referencias `colors::filename.jpg`
+  - O usar hook para obtener imágenes dinámicamente
+
+### 8.2 Otras tareas pendientes
 - [ ] **Crear componente `Avatar`**: Extraer lógica de avatar con placeholder como componente UI
 - [ ] **Documentar sistema de tokens**: Crear guía de uso de variables CSS
 - [ ] **Revisar responsividad**: Auditar media queries para consistencia
 - [ ] **Componente `Icon`**: Abstraer iconos SVG en componente reutilizable
+- [ ] **Componente `Input`**: Crear input con variantes para formularios
+- [ ] **Componente `Texto`**: Crear tipografía componente para H1-H6, body, caption
+
+## 10. Métricas de Refactorización
+
+| Métrica                     | Antes | Después | Mejora       |
+| --------------------------- | ----- | ------- | ------------ |
+| Líneas en LandingIsland.tsx | 281   | ~52     | **-81%**     |
+| Archivos de datos separados | 0     | 5       | +5 archivos  |
+| Hooks reutilizables         | 1     | 3       | +2 hooks     |
+| Líneas CSS landing.css      | ~1800 | ~45     | **-97%**     |
+| Archivos CSS modulares      | 1     | 16+     | +15 archivos |
+
