@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {LogoHero, Navegacion, GridPortafolio, ModalProyecto, IntroManifiesto, GridServicios, GridResenas, SeccionEcosistema, SeccionBlog, FooterMinimal, Proyecto, Servicio, Resena, ArticuloBlog} from '../components/landing';
+import {LogoHero, Navegacion, GridPortafolio, ModalProyecto, IntroManifiesto, GridServicios, GridResenas, SeccionEcosistema, SeccionBlog, FooterMinimal, SeccionProceso, Proyecto, Servicio, Resena, ArticuloBlog} from '../components/landing';
 
 /*
  * LandingIsland: Isla principal del landing page.
@@ -223,6 +223,8 @@ export const LandingIsland: React.FC<LandingIslandProps> = ({mostrarPanel = fals
             <GridPortafolio proyectos={proyectosEjemplo} onSeleccionarProyecto={abrirModal} columnas={3} cantidadVisible={3} />
 
             <IntroManifiesto />
+
+            <SeccionProceso />
 
             <GridServicios servicios={serviciosEjemplo} modo="grid" />
 

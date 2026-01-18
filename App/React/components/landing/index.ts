@@ -13,6 +13,7 @@ export {FooterMinimal} from './FooterMinimal';
 export {GridResenas} from './GridResenas';
 export {SeccionEcosistema} from './SeccionEcosistema';
 export {SeccionBlog} from './SeccionBlog';
+export {SeccionProceso} from './SeccionProceso';
 
 export type {Proyecto} from './TarjetaProyecto';
 export type {Servicio, ModoVisualizacion} from './GridServicios';

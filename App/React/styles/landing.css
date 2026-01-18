@@ -466,12 +466,11 @@ html {
 .serviciosGridContenedor {
     max-width: var(--landing-anchoMaximo);
     margin: 0 auto;
-    padding: 0 var(--nakomi-espacioMd);
 }
 
 .serviciosGrid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--nakomi-espacioMd);
 }
 
@@ -1038,5 +1037,201 @@ html {
 
     .ecosistemaImagen {
         max-height: 300px;
+    }
+}
+
+/* Seccion Proceso - Grid de 3 columnas con el flujo de trabajo */
+.seccionProceso {
+    padding: var(--nakomi-espacio2xl) var(--nakomi-espacioLg);
+    padding-bottom: calc(var(--nakomi-espacio2xl) * 2);
+}
+
+.procesoContenedor {
+    max-width: var(--landing-anchoMaximo);
+    margin: 0 auto;
+}
+
+.procesoGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--nakomi-espacioMd);
+}
+
+.tarjetaProceso {
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    padding: var(--nakomi-espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+        opacity 0.5s ease,
+        transform 0.5s ease,
+        border-color var(--nakomi-transicionRapida);
+    transition-delay: var(--delay, 0s);
+}
+
+.tarjetaProcesoVisible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tarjetaProceso:hover {
+    border-color: var(--nakomi-bordePrincipal);
+}
+
+.procesoTitulo {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    margin: 0;
+}
+
+.procesoDescripcion {
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--nakomi-textoApagado);
+    margin: 0;
+    margin-bottom: var(--nakomi-espacioSm);
+}
+
+/* Ejemplo visual generico */
+.procesoEjemploVisual {
+    background-color: var(--nakomi-fondoTerciario);
+    border-radius: var(--nakomi-radioSm);
+    padding: var(--nakomi-espacioMd);
+    margin-top: auto;
+}
+
+/* Ejemplo Lista de servicios */
+.ejemploLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioXs);
+}
+
+.ejemploItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--nakomi-radioSm);
+}
+
+.ejemploItemInactivo {
+    opacity: 0.4;
+    background-color: transparent;
+}
+
+.ejemploTexto {
+    font-size: 0.7rem;
+    color: var(--nakomi-textoSecundario);
+}
+
+.ejemploCheck {
+    font-size: 0.65rem;
+    color: #4ade80;
+}
+
+/* Ejemplo Progreso de pago */
+.ejemploProgreso {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+
+.progresoLinea {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+}
+
+.progresoPunto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--nakomi-bordeSutil);
+    flex-shrink: 0;
+}
+
+.progresoActivo {
+    background-color: #4ade80;
+}
+
+.progresoTramo {
+    width: 40px;
+    height: 2px;
+    background-color: var(--nakomi-bordeSutil);
+}
+
+.progresoTramoActivo {
+    background-color: #4ade80;
+}
+
+.progresoEtiquetas {
+    display: flex;
+    justify-content: space-between;
+}
+
+.progresoEtiqueta {
+    font-size: 0.6rem;
+    color: var(--nakomi-textoSecundario);
+}
+
+.progresoEtiquetaInactiva {
+    color: var(--nakomi-textoMuyApagado);
+}
+
+/* Ejemplo Terminal de despliegue */
+.ejemploTerminal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioXs);
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.terminalLinea {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+}
+
+.terminalPrompt {
+    font-size: 0.7rem;
+    color: var(--nakomi-textoApagado);
+}
+
+.terminalComando {
+    font-size: 0.7rem;
+    color: var(--nakomi-textoSecundario);
+}
+
+.terminalExito {
+    color: #4ade80;
+}
+
+.terminalTexto {
+    font-size: 0.65rem;
+}
+
+/* Responsive para Proceso */
+@media (max-width: 900px) {
+    .procesoGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .procesoGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .seccionProceso {
+        padding: var(--nakomi-espacioLg) var(--nakomi-espacioMd);
     }
 }
