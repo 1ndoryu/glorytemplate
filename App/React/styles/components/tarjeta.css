@@ -88,7 +88,7 @@
     position: absolute;
     top: var(--nakomi-espacioSm);
     left: var(--nakomi-espacioSm);
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--nakomi-textoActivo);

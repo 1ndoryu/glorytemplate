@@ -37,7 +37,7 @@
 }
 
 .footerTexto {
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--nakomi-textoMuyApagado);

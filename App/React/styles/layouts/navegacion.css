@@ -22,7 +22,7 @@
 }
 
 .navegacionLogo {
-    font-size: 0.9rem;
+    font-size: var(--nakomi-fuenteMd);
     font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: none;
@@ -42,7 +42,7 @@
 }
 
 .navegacionEnlace {
-    font-size: 0.8rem;
+    font-size: var(--nakomi-fuenteSm);
     letter-spacing: 0.05em;
     text-transform: none;
     color: var(--nakomi-textoSecundario);
@@ -60,7 +60,7 @@
 }
 
 .navegacionBotonLogin {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;

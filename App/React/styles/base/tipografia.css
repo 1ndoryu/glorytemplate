@@ -17,67 +17,67 @@
 }
 
 .tituloDisplayLg {
-    font-size: 2rem;
+    font-size: 2rem; /* Mantener valor display */
 }
 
 .tituloDisplayMd {
-    font-size: 1.5rem;
+    font-size: var(--nakomi-fuenteXl);
 }
 
 /* === Headings (Para secciones y tarjetas) === */
 .tituloH1 {
-    font-size: 1.5rem;
+    font-size: 1.5rem; /* Necesita estar asi sin variable NO USAR VARIABLE ACA */
     font-weight: 500;
     color: var(--nakomi-textoActivo);
     letter-spacing: -0.01em;
 }
 
 .tituloH2 {
-    font-size: 1.1rem;
+    font-size: var(--nakomi-fuenteLg);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
 }
 
 .tituloH3 {
-    font-size: 0.9rem;
+    font-size: var(--nakomi-fuenteMd);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
 }
 
 .tituloH4 {
-    font-size: 0.85rem;
+    font-size: var(--nakomi-fuenteMd);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
 }
 
 /* === Body Text === */
 .textoBody {
-    font-size: 0.9rem;
+    font-size: var(--nakomi-fuenteMd);
     line-height: 1.6;
     color: var(--nakomi-textoSecundario);
 }
 
 .textoBodySm {
-    font-size: 0.8rem;
+    font-size: var(--nakomi-fuenteSm);
     line-height: 1.5;
     color: var(--nakomi-textoSecundario);
 }
 
 .textoBodyXs {
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     line-height: 1.5;
     color: var(--nakomi-textoApagado);
 }
 
 /* === Captions y Etiquetas === */
 .textoCaption {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoApagado);
     line-height: 1.5;
 }
 
 .textoEtiqueta {
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--nakomi-textoMuyApagado);
@@ -85,7 +85,7 @@
 
 /* === Texto Link === */
 .textoEnlace {
-    font-size: 0.8rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoSecundario);
     transition: color var(--nakomi-transicionRapida);
     cursor: pointer;
@@ -119,7 +119,7 @@
 /* === Texto monospace (código) === */
 .textoMono {
     font-family: var(--nakomi-fuenteMono);
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
 }
 
 /* === Modificadores de peso === */
@@ -168,10 +168,10 @@
 /* === Responsive === */
 @media (max-width: 900px) {
     .tituloDisplayLg {
-        font-size: 1.5rem;
+        font-size: var(--nakomi-fuenteXl);
     }
 
     .tituloDisplayMd {
-        font-size: 1.2rem;
+        font-size: var(--nakomi-fuenteLg);
     }
 }

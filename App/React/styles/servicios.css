@@ -56,7 +56,7 @@
     border: 1px solid var(--nakomi-bordePrincipal);
     border-radius: 9999px; /* Pill shape */
     color: var(--nakomi-textoActivo);
-    font-size: 0.9rem;
+    font-size: var(--nakomi-fuenteMd);
     transition: all var(--nakomi-transicionRapida);
 }
 
@@ -98,7 +98,7 @@
     border-radius: 9999px; /* Pill shape */
     padding: 6px 14px;
     color: var(--nakomi-textoSecundario);
-    font-size: 0.75rem; /* Fuente pequeña requerida */
+    font-size: var(--nakomi-fuenteSm); /* Fuente pequeña requerida */
     cursor: pointer;
     transition: all var(--nakomi-transicionRapida);
     display: flex;
@@ -152,7 +152,7 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     border-radius: var(--nakomi-radioSm);
     transition: background-color 0.1s;
 }
@@ -184,7 +184,7 @@
 }
 
 .etiquetaPrecio {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoSecundario);
     display: flex;
     justify-content: space-between;
@@ -193,7 +193,7 @@
 /* --- Contador de Resultados --- */
 .resumenResultados {
     color: var(--nakomi-textoApagado);
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
 }
 
@@ -232,7 +232,7 @@
     text-decoration: underline;
     cursor: pointer;
     color: var(--nakomi-acento);
-    font-size: 0.85rem;
+    font-size: var(--nakomi-fuenteMd);
 }
 
 /* Responsive */
@@ -264,6 +264,6 @@
     }
 
     .tituloPaginaServicios {
-        font-size: 1.5rem;
+        font-size: var(--nakomi-fuenteXl);
     }
 }

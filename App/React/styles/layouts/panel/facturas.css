@@ -13,7 +13,7 @@
 .tablaFacturas {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem; /* Standardized size */
+    font-size: var(--nakomi-fuenteSm); /* Standardized size */
 }
 
 .tablaFacturas th {
@@ -22,7 +22,7 @@
     background-color: var(--nakomi-fondoTerciario);
     color: var(--nakomi-textoSecundario);
     font-weight: 400; /* No bold */
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border-bottom: 1px solid var(--nakomi-bordePrincipal);
@@ -51,14 +51,8 @@
 .tablaFacturas .font-mono {
     font-family: var(--nakomi-fuenteMono);
     color: var(--nakomi-textoApagado);
-    font-size: 0.85rem;
+    font-size: var(--nakomi-fuenteSm);
     white-space: nowrap; /* Prevent breaking */
-}
-
-.tablaFacturas .font-bold {
-    font-weight: 400; /* Removed bold */
-    color: var(--nakomi-textoActivo); /* Keep white color for emphasis */
-    font-size: 1rem; /* Slightly larger but not huge */
 }
 
 .tablaFacturas .text-right {

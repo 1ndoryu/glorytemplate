@@ -25,7 +25,7 @@
 }
 
 .placeholderTexto {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoSecundario);
     text-align: center;
 }
@@ -35,7 +35,7 @@
     background-color: transparent;
     border: 1px solid var(--nakomi-bordeSutil);
     color: var(--nakomi-textoSecundario);
-    font-size: 0.65rem;
+    font-size: var(--nakomi-fuenteXs);
     font-weight: 500;
     border-radius: var(--nakomi-radioSm);
     text-transform: uppercase;
@@ -65,13 +65,13 @@
 }
 
 .notifTitulo {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
     color: var(--nakomi-textoSecundario);
 }
 
 .notifSub {
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoMuyApagado);
 }
 
@@ -89,12 +89,12 @@
 }
 
 .statLabel {
-    font-size: 0.65rem;
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoApagado);
 }
 
 .statValor {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 600;
     color: var(--nakomi-textoActivo);
 }
@@ -148,12 +148,12 @@
 }
 
 .nivelTitulo {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
     color: var(--nakomi-warning);
 }
 
 .nivelSub {
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoApagado);
 }

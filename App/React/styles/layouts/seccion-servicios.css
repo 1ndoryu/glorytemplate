@@ -100,14 +100,14 @@
 }
 
 .servicioNombre {
-    font-size: 0.8rem;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
     margin-bottom: var(--nakomi-espacioXs);
 }
 
 .servicioDescripcion {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoApagado);
     line-height: 1.5;
     margin-bottom: var(--nakomi-espacioMd);
@@ -120,14 +120,14 @@
 }
 
 .precioEtiqueta {
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--nakomi-textoMuyApagado);
 }
 
 .precioValor {
-    font-size: 0.85rem;
+    font-size: var(--nakomi-fuenteMd);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
 }
@@ -135,7 +135,7 @@
 /* Responsive servicios */
 @media (max-width: 900px) {
     .serviciosTituloGrande {
-        font-size: 1.5rem;
+        font-size: var(--nakomi-fuenteXl);
     }
 
     .tarjetaServicio {
@@ -157,7 +157,7 @@
     }
 
     .serviciosTituloGrande {
-        font-size: 1.2rem;
+        font-size: var(--nakomi-fuenteXl);
     }
 
     .tarjetaServicio {

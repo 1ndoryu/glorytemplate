@@ -73,7 +73,7 @@
     position: absolute;
     top: var(--nakomi-espacioSm);
     left: var(--nakomi-espacioSm);
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--nakomi-textoActivo);
@@ -88,7 +88,7 @@
 }
 
 .blogTitulo {
-    font-size: 0.9rem;
+    font-size: var(--nakomi-fuenteMd);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
     margin-bottom: var(--nakomi-espacioSm);
@@ -97,7 +97,7 @@
 }
 
 .blogExtracto {
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoApagado);
     line-height: 1.6;
     margin-bottom: var(--nakomi-espacioMd);
@@ -119,7 +119,7 @@
 }
 
 .blogFecha {
-    font-size: 0.65rem;
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoMuyApagado);
     letter-spacing: 0.05em;
 }
@@ -127,7 +127,7 @@
 /* Responsive blog */
 @media (max-width: 900px) {
     .blogTituloGrande {
-        font-size: 1.5rem;
+        font-size: var(--nakomi-fuenteXl);
     }
 
     .gridBlog {
@@ -143,7 +143,7 @@
     }
 
     .blogTituloGrande {
-        font-size: 1.2rem;
+        font-size: var(--nakomi-fuenteXl);
     }
 
     .gridBlog {

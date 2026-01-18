@@ -16,17 +16,17 @@
 
 /* === Tamaños === */
 .etiquetaXs {
-    font-size: 0.55rem;
+    font-size: var(--nakomi-fuenteXs);
     padding: 2px var(--nakomi-espacioXs);
 }
 
 .etiquetaSm {
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
 }
 
 .etiquetaMd {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     padding: var(--nakomi-espacioXs) var(--nakomi-espacioMd);
 }
 

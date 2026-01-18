@@ -93,14 +93,14 @@
 }
 
 .nombreProyecto {
-    font-size: 0.875rem;
+    font-size: var(--nakomi-fuenteMd);
     font-weight: 500;
     color: var(--nakomi-textoNormal);
     margin: 0;
 }
 
 .servicioProyecto {
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoApagado);
     margin: 2px 0 0 0;
 }

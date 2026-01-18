@@ -13,7 +13,7 @@
 }
 
 .hostingTitulo {
-    font-size: 1.25rem;
+    font-size: var(--nakomi-fuenteXl);
     color: var(--nakomi-textoActivo);
     display: flex;
     align-items: center;
@@ -31,7 +31,7 @@
 }
 
 .hostingMeta {
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     font-family: var(--nakomi-fuenteMono);
     color: var(--nakomi-textoApagado);
     margin-top: 0.5rem;
@@ -63,7 +63,7 @@
 
 .hostingTabBtn {
     padding: 6px 16px;
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
     border-radius: 999px;
     border: none;
@@ -110,7 +110,7 @@
 .recursoLabel {
     display: flex;
     justify-content: space-between;
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     margin-bottom: 0.5rem;
     color: var(--nakomi-textoApagado);
 }
@@ -138,14 +138,14 @@
     border-radius: 4px;
     border: 1px solid var(--nakomi-bordeSutil);
     font-family: var(--nakomi-fuenteMono);
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoApagado);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 .sshNota {
-    font-size: 10px;
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoMuyApagado);
     margin-top: 0.75rem;
 }
@@ -157,7 +157,7 @@
     border-radius: 6px;
     padding: 1rem;
     font-family: var(--nakomi-fuenteMono);
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     line-height: 1.6;
 }
 

@@ -12,7 +12,7 @@
     align-items: center;
     justify-content: center;
     gap: var(--nakomi-espacioSm);
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -26,7 +26,7 @@
 /* === Tamaños === */
 .botonSm {
     padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
-    font-size: 0.65rem;
+    font-size: var(--nakomi-fuenteXs);
 }
 
 .botonMd {
@@ -35,7 +35,7 @@
 
 .botonLg {
     padding: var(--nakomi-espacioMd) var(--nakomi-espacioLg);
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
 }
 
 /* === Variante Outline (por defecto) === */

@@ -28,14 +28,14 @@
 }
 
 .marketplaceTitulo {
-    font-size: 1.5rem;
+    font-size: var(--nakomi-fuenteXl);
     font-weight: 300;
     color: var(--nakomi-textoActivo);
     margin: 0;
 }
 
 .marketplaceSubtitulo {
-    font-size: 0.85rem;
+    font-size: var(--nakomi-fuenteMd);
     color: var(--nakomi-textoApagado);
     margin-top: 4px;
 }
@@ -64,7 +64,7 @@
 }
 
 .resumenResultados {
-    font-size: 0.8rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoApagado);
     font-weight: 500;
     margin-left: auto; /* Empuja el contador a la derecha */
@@ -80,7 +80,7 @@
     border: none;
     padding: 0.5rem 0.75rem;
     color: var(--nakomi-textoNormal);
-    font-size: 0.85rem;
+    font-size: var(--nakomi-fuenteMd);
     cursor: pointer;
     border-radius: var(--nakomi-radioSm);
 }
@@ -103,7 +103,7 @@
 .etiquetaPrecio {
     display: flex;
     justify-content: space-between;
-    font-size: 0.8rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoSecundario);
     margin-bottom: 0.75rem;
 }
@@ -163,7 +163,7 @@
     border-radius: var(--nakomi-radioSm);
     color: var(--nakomi-textoActivo);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: var(--nakomi-fuenteMd);
     transition: all 0.2s;
 }
 

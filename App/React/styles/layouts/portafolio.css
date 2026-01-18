@@ -46,14 +46,14 @@
 }
 
 .tarjetaNombre {
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
     margin-bottom: var(--nakomi-espacioXs);
 }
 
 .tarjetaCategoria {
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--nakomi-textoApagado);
@@ -110,7 +110,7 @@
     background-color: var(--nakomi-fondoTerciario);
     border: 1px solid var(--nakomi-bordeSutil);
     color: var(--nakomi-textoSecundario);
-    font-size: 1rem;
+    font-size: var(--nakomi-fuenteLg);
     cursor: pointer;
     transition: all var(--nakomi-transicionRapida);
 }
@@ -131,14 +131,14 @@
 }
 
 .modalTitulo {
-    font-size: 1rem;
+    font-size: var(--nakomi-fuenteLg);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
     margin-bottom: var(--nakomi-espacioSm);
 }
 
 .modalCategoria {
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--nakomi-acento);
@@ -146,7 +146,7 @@
 }
 
 .modalDescripcion {
-    font-size: 0.8rem;
+    font-size: var(--nakomi-fuenteSm);
     line-height: 1.7;
     color: var(--nakomi-textoSecundario);
 }

@@ -28,7 +28,7 @@
     border: 1px solid var(--nakomi-bordeSutil);
     border-radius: 9999px;
     color: var(--nakomi-textoActivo);
-    font-size: 0.85rem;
+    font-size: var(--nakomi-fuenteMd);
     transition: all var(--nakomi-transicionRapida);
 }
 
@@ -55,7 +55,7 @@
     border-radius: 9999px;
     padding: 6px 14px;
     color: var(--nakomi-textoSecundario);
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     cursor: pointer;
     transition: all var(--nakomi-transicionRapida);
     display: flex;

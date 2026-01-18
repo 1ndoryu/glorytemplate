@@ -23,7 +23,7 @@
 .columnaProgreso,
 .columnaEntrega,
 .columnaAcciones {
-    font-size: 0.55rem;
+    font-size: var(--nakomi-fuenteXs);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--nakomi-textoMuyApagado);
@@ -62,7 +62,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     font-weight: 600;
 }
 
@@ -88,7 +88,7 @@
 }
 
 .nombreProyecto {
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
     white-space: nowrap;
@@ -97,7 +97,7 @@
 }
 
 .nombreCliente {
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoApagado);
     white-space: nowrap;
     overflow: hidden;
@@ -110,7 +110,7 @@
 }
 
 .estadoBadge {
-    font-size: 0.55rem;
+    font-size: var(--nakomi-fuenteXs);
     padding: 2px 6px;
     border-radius: 4px;
     text-transform: uppercase;
@@ -160,7 +160,7 @@
 }
 
 .tiempoEntrega {
-    font-size: 0.65rem;
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoApagado);
     font-variant-numeric: tabular-nums;
 }

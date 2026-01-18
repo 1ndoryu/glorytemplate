@@ -51,7 +51,7 @@
 }
 
 .ventanaTitulo {
-    font-size: 0.65rem;
+    font-size: var(--nakomi-fuenteXs);
     font-weight: 500;
     color: var(--nakomi-textoApagado);
     white-space: nowrap;
@@ -97,7 +97,7 @@
 }
 
 .ejemploTexto {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoSecundario);
 }
 
@@ -114,7 +114,7 @@
 }
 
 .ejemploEtiqueta {
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoMuyApagado);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -126,7 +126,7 @@
 }
 
 .ejemploOpcion {
-    font-size: 0.65rem;
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoApagado);
     padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
     border: 1px solid var(--nakomi-bordeSutil);
@@ -181,7 +181,7 @@
 }
 
 .progresoEtiqueta {
-    font-size: 0.6rem;
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoSecundario);
 }
 
@@ -211,13 +211,13 @@
 }
 
 .estadoTexto {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoSecundario);
     flex: 1;
 }
 
 .estadoBadge {
-    font-size: 0.55rem;
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-exito);
     background-color: var(--nakomi-exitoFondo);
     padding: 2px 6px;
@@ -247,12 +247,12 @@
 }
 
 .terminalPrompt {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-exito);
 }
 
 .terminalComando {
-    font-size: 0.7rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoSecundario);
 }
 
@@ -265,5 +265,5 @@
 }
 
 .terminalTexto {
-    font-size: 0.65rem;
+    font-size: var(--nakomi-fuenteXs);
 }

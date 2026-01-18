@@ -43,14 +43,14 @@
 }
 
 .perfilInfo .perfilNombre {
-    font-size: 1.1rem;
+    font-size: var(--nakomi-fuenteLg);
     font-weight: 600;
     color: var(--nakomi-texto-titulo);
     margin-bottom: 0.25rem;
 }
 
 .perfilInfo .perfilRol {
-    font-size: 0.9rem;
+    font-size: var(--nakomi-fuenteMd);
     color: var(--nakomi-texto-secundario);
 }
 
@@ -69,7 +69,7 @@
 }
 
 .formGrupo label {
-    font-size: 0.9rem;
+    font-size: var(--nakomi-fuenteMd);
     font-weight: 500;
     color: var(--nakomi-texto-titulo);
 }
@@ -91,7 +91,7 @@
     padding: 0.75rem 1rem 0.75rem 2.8rem;
     border: 1px solid var(--nakomi-borde);
     border-radius: var(--radio-md);
-    font-size: 0.95rem;
+    font-size: var(--nakomi-fuenteMd);
     background: var(--nakomi-blanco);
     transition: all 0.2s ease;
 }
@@ -109,7 +109,7 @@
 }
 
 .formAyuda {
-    font-size: 0.8rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-texto-terciario);
 }
 
@@ -134,6 +134,6 @@
     .perfilAvatar {
         width: 4rem;
         height: 4rem;
-        font-size: 1.5rem;
+        font-size: var(--nakomi-fuenteXl);
     }
 }

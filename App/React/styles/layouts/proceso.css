@@ -47,14 +47,14 @@
 }
 
 .procesoTitulo {
-    font-size: 0.85rem;
+    font-size: var(--nakomi-fuenteMd);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
     margin: 0;
 }
 
 .procesoDescripcion {
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     line-height: 1.6;
     color: var(--nakomi-textoApagado);
     margin: 0;

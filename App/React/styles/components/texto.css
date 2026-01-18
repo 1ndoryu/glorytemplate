@@ -46,25 +46,25 @@
 }
 
 .texto--body {
-    font-size: 0.9rem;
+    font-size: var(--nakomi-fuenteMd);
     font-weight: 400;
     line-height: 1.6;
 }
 
 .texto--bodyGrande {
-    font-size: 1rem;
+    font-size: var(--nakomi-fuenteLg);
     font-weight: 400;
     line-height: 1.7;
 }
 
 .texto--caption {
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 400;
     line-height: 1.5;
 }
 
 .texto--etiqueta {
-    font-size: 0.65rem;
+    font-size: var(--nakomi-fuenteXs);
     font-weight: 600;
     line-height: 1.4;
     letter-spacing: 0.08em;
@@ -73,7 +73,7 @@
 
 .texto--mono {
     font-family: var(--nakomi-fuenteMono);
-    font-size: 0.85rem;
+    font-size: var(--nakomi-fuenteMd);
     line-height: 1.5;
 }
 

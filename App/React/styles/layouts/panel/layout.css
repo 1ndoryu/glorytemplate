@@ -13,7 +13,7 @@
     background-color: var(--nakomi-fondoPrincipal);
     color: var(--nakomi-textoNormal);
     font-family: var(--nakomi-fuentePrincipal);
-    font-size: 13px;
+    font-size: var(--nakomi-fuenteMd);
 }
 
 /* Scrollbar personalizada */
@@ -64,7 +64,7 @@
     justify-content: center;
     color: var(--nakomi-acento);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: var(--nakomi-fuenteMd);
 }
 
 .sidebarNav {
@@ -147,7 +147,7 @@
     color: var(--nakomi-textoActivo);
     padding: 3px 6px;
     border-radius: 3px;
-    font-size: 10px;
+    font-size: var(--nakomi-fuenteXs);
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;
@@ -179,7 +179,7 @@
 
 .headerTab {
     padding: 0 16px;
-    font-size: 0.8rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoApagado);
     cursor: pointer;
     transition: color 0.2s;
@@ -256,7 +256,7 @@
     border-radius: var(--nakomi-radioSm);
     padding: 6px 12px 6px 30px;
     color: var(--nakomi-textoNormal);
-    font-size: 0.8rem;
+    font-size: var(--nakomi-fuenteSm);
     outline: none;
     transition: all 0.2s;
     height: 28px;
@@ -345,12 +345,12 @@
 .dropdownName {
     font-weight: 600;
     color: var(--nakomi-textoActivo);
-    font-size: 0.85rem;
+    font-size: var(--nakomi-fuenteMd);
     line-height: 1.2;
 }
 
 .dropdownRole {
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoApagado);
     margin-top: 2px;
 }
@@ -371,7 +371,7 @@
     align-items: center;
     gap: 0.75rem;
     color: var(--nakomi-textoNormal);
-    font-size: 0.8rem;
+    font-size: var(--nakomi-fuenteSm);
     border-radius: var(--nakomi-radioSm);
     cursor: pointer;
     transition: all 0.2s;
@@ -400,7 +400,7 @@
     justify-content: center;
     color: #fff;
     font-weight: 700;
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
@@ -443,14 +443,14 @@
 /* Utilidades Texto Comunes */
 .textIndice {
     color: var(--nakomi-textoApagado);
-    font-size: 0.65rem;
+    font-size: var(--nakomi-fuenteXs);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .dataBig {
-    font-size: 1.5rem;
+    font-size: var(--nakomi-fuenteXl);
     font-weight: 300;
     color: var(--nakomi-textoActivo);
     margin-top: 0.25rem;
@@ -462,14 +462,14 @@
 }
 
 .vistaTitulo {
-    font-size: 1.25rem;
+    font-size: var(--nakomi-fuenteXl);
     font-weight: 300;
     color: var(--nakomi-textoActivo);
     margin: 0;
 }
 
 .vistaSubtitulo {
-    font-size: 0.75rem;
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoApagado);
     margin-top: 4px;
 }

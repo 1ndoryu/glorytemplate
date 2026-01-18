@@ -42,6 +42,6 @@
     }
 
     .manifiestoTexto {
-        font-size: 1.1rem;
+        font-size: var(--nakomi-fuenteLg);
     }
 }
