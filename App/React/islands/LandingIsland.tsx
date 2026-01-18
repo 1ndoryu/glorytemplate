@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {LogoHero, Navegacion, GridPortafolio, ModalProyecto, IntroManifiesto, GridServicios, GridResenas, SeccionEcosistema, SeccionBlog, FooterMinimal, SeccionProceso, Proyecto, Servicio, Resena, ArticuloBlog} from '../components/landing';
+import {LogoHero, Navegacion, GridPortafolio, ModalProyecto, IntroManifiesto, GridServicios, GridResenas, SeccionEcosistema, SeccionBlog, FooterMinimal, SeccionProceso, Proyecto, Servicio, Resena, ArticuloBlog, PaginaServicios} from '../components/landing';
 
 /*
  * LandingIsland: Isla principal del landing page.
@@ -197,6 +197,36 @@ interface LandingIslandProps {
 export const LandingIsland: React.FC<LandingIslandProps> = ({mostrarPanel = false}) => {
     const [proyectoSeleccionado, setProyectoSeleccionado] = useState<Proyecto | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [vistaActual, setVistaActual] = useState<'landing' | 'servicios'>('landing');
+
+    const handleNavegar = (id: string) => {
+        if (id === 'servicios') {
+            setVistaActual('servicios');
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        } else {
+            /* Si estamos en otra vista, volver a landing primero */
+            if (vistaActual !== 'landing') {
+                setVistaActual('landing');
+                /* Pequeño delay para permitir que el DOM se actualice antes de hacer scroll */
+                setTimeout(() => {
+                    const elemento = document.getElementById(`seccion${id.charAt(0).toUpperCase() + id.slice(1)}`);
+                    if (elemento) {
+                        elemento.scrollIntoView({behavior: 'smooth'});
+                    } else if (id === 'inicio') {
+                        window.scrollTo({top: 0, behavior: 'smooth'});
+                    }
+                }, 100);
+            } else {
+                /* Comportamiento normal si ya estamos en landing */
+                if (id === 'inicio') {
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                } else {
+                    const elemento = document.getElementById(`seccion${id.charAt(0).toUpperCase() + id.slice(1)}`);
+                    if (elemento) elemento.scrollIntoView({behavior: 'smooth'});
+                }
+            }
+        }
+    };
 
     const abrirModal = (proyecto: Proyecto) => {
         setProyectoSeleccionado(proyecto);
@@ -216,23 +246,29 @@ export const LandingIsland: React.FC<LandingIslandProps> = ({mostrarPanel = fals
 
     return (
         <div id="contenedorLanding" className="contenedorLanding">
-            <Navegacion mostrarPanel={mostrarPanel} />
+            <Navegacion mostrarPanel={mostrarPanel} onNavegar={handleNavegar} />
 
-            <LogoHero />
+            {vistaActual === 'landing' ? (
+                <>
+                    <LogoHero />
 
-            <GridPortafolio proyectos={proyectosEjemplo} onSeleccionarProyecto={abrirModal} columnas={3} cantidadVisible={3} />
+                    <GridPortafolio proyectos={proyectosEjemplo} onSeleccionarProyecto={abrirModal} columnas={3} cantidadVisible={3} />
 
-            <IntroManifiesto />
+                    <IntroManifiesto />
 
-            <SeccionProceso />
+                    <SeccionProceso />
 
-            <GridServicios servicios={serviciosEjemplo} modo="grid" />
+                    <GridServicios servicios={serviciosEjemplo} modo="grid" />
 
-            <GridResenas resenas={resenasEjemplo} />
+                    <GridResenas resenas={resenasEjemplo} />
 
-            <SeccionEcosistema />
+                    <SeccionEcosistema />
 
-            <SeccionBlog articulos={articulosEjemplo} />
+                    <SeccionBlog articulos={articulosEjemplo} />
+                </>
+            ) : (
+                <PaginaServicios servicios={serviciosEjemplo} />
+            )}
 
             <FooterMinimal />
 

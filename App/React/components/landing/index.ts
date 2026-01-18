@@ -14,6 +14,7 @@ export {GridResenas} from './GridResenas';
 export {SeccionEcosistema} from './SeccionEcosistema';
 export {SeccionBlog} from './SeccionBlog';
 export {SeccionProceso} from './SeccionProceso';
+export {PaginaServicios} from './PaginaServicios';
 
 export type {Proyecto} from './TarjetaProyecto';
 export type {Servicio, ModoVisualizacion} from './GridServicios';
