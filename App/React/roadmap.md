@@ -1,7 +1,7 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
 > **Última actualización:** 2026-01-18  
-> **Estado:** ✅ Fase 7.2 + 7.3 completadas - Pendiente: 7.1 (Drag & Drop) y Fase 8 (Reportes)  
+> **Estado:** ✅ Fase 7 completada - Pendiente: Fase 8 (Reportes)  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 ---
@@ -362,10 +362,10 @@ App/
 
 ### Fase 7: Edición Interactiva del Calendario
 
-- [ ] **7.1** Drag & Drop de clases
-  - [ ] 7.1.1 Librería: `@dnd-kit/core`
-  - [ ] 7.1.2 Validación en tiempo real
-  - [ ] 7.1.3 Feedback visual durante arrastre
+- [x] **7.1** Drag & Drop de clases
+  - [x] 7.1.1 Librería: `@dnd-kit/core`
+  - [x] 7.1.2 Validación en tiempo real
+  - [x] 7.1.3 Feedback visual durante arrastre
 
 - [x] **7.2** Historial de cambios (Undo)
   - [x] 7.2.1 Hook `useHistorial.ts`

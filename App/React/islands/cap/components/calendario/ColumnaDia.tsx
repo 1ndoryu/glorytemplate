@@ -3,11 +3,13 @@
  *
  * Columna del calendario que representa un día de la semana.
  * Contiene las tarjetas de clases programadas para ese día.
+ * Ahora soporta drag & drop con @dnd-kit.
  */
 
 import type {Clase, DiaSemana} from '../../types';
 import {DIAS_LABELS} from '../../constants';
-import {TarjetaClase} from './TarjetaClase';
+import {TarjetaClaseDraggable} from './TarjetaClaseDraggable';
+import {ZonaDropDia} from './ZonaDropDia';
 
 interface ColumnaDiaProps {
     dia: DiaSemana;
@@ -16,9 +18,10 @@ interface ColumnaDiaProps {
     esHoy: boolean;
     onToggleBloqueo: (claseId: number) => void;
     onClaseClick?: (clase: Clase) => void;
+    dndActivo?: boolean;
 }
 
-export function ColumnaDia({dia, fecha, clases, esHoy, onToggleBloqueo, onClaseClick}: ColumnaDiaProps) {
+export function ColumnaDia({dia, fecha, clases, esHoy, onToggleBloqueo, onClaseClick, dndActivo = false}: ColumnaDiaProps) {
     const diaNumero = fecha.getDate();
 
     return (
@@ -28,15 +31,17 @@ export function ColumnaDia({dia, fecha, clases, esHoy, onToggleBloqueo, onClaseC
                 <span className="capColumnaDia__fecha">{diaNumero}</span>
             </div>
 
-            <div className="capColumnaDia__slots">
-                {clases.length === 0 ? (
-                    <div className="capColumnaDia__vacia">
-                        <span>Sin clases</span>
-                    </div>
-                ) : (
-                    clases.map(clase => <TarjetaClase key={clase.id} clase={clase} onToggleBloqueo={onToggleBloqueo} onClick={onClaseClick} />)
-                )}
-            </div>
+            <ZonaDropDia dia={dia} fecha={fecha} esActivo={dndActivo}>
+                <div className="capColumnaDia__slots">
+                    {clases.length === 0 ? (
+                        <div className="capColumnaDia__vacia">
+                            <span>Sin clases</span>
+                        </div>
+                    ) : (
+                        clases.map(clase => <TarjetaClaseDraggable key={clase.id} clase={clase} onToggleBloqueo={onToggleBloqueo} onClick={onClaseClick} />)
+                    )}
+                </div>
+            </ZonaDropDia>
         </div>
     );
 }

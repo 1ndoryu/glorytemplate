@@ -340,7 +340,7 @@ class CapEndpoints
     }
 
     /**
-     * Actualiza una clase existente (hora, asignatura)
+     * Actualiza una clase existente (hora, asignatura, fecha)
      */
     public function actualizarClase(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -377,6 +377,14 @@ class CapEndpoints
         }
         if (isset($datos['asignatura'])) {
             $datosActualizar['asignatura'] = (int) $datos['asignatura'];
+        }
+        /* Soporte para cambio de fecha (drag & drop entre días) */
+        if (isset($datos['fecha'])) {
+            $fecha = sanitize_text_field($datos['fecha']);
+            /* Validar formato de fecha YYYY-MM-DD */
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+                $datosActualizar['fecha'] = $fecha;
+            }
         }
 
         if (empty($datosActualizar)) {

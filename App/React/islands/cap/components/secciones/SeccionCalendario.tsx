@@ -14,7 +14,7 @@ import {Alerta} from '../ui';
 import type {ExclusionesConflicto, Clase} from '../../types';
 
 export function SeccionCalendario() {
-    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer} = useCalendario();
+    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase} = useCalendario();
 
     /* Obtener lista de alumnos para mostrar en modal de edición */
     const {alumnos} = useAlumnos();
@@ -54,7 +54,7 @@ export function SeccionCalendario() {
             )}
 
             <div className="capMt--lg">
-                <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={generarCalendario} onClaseClick={handleClaseClick} puedeDeshacer={puedeDeshacer} onDeshacer={deshacer} />
+                <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={generarCalendario} onClaseClick={handleClaseClick} puedeDeshacer={puedeDeshacer} onDeshacer={deshacer} onMoverClase={moverClase} />
             </div>
 
             {/* Modal para resolver conflictos de aforo */}

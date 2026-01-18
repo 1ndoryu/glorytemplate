@@ -668,3 +668,96 @@
     padding-top: var(--cap-espacio-md);
     border-top: 1px solid var(--cap-borde-sutil);
 }
+
+/* =========================================================
+   Drag & Drop - Estilos para arrastre de clases
+   ========================================================= */
+
+/* Wrapper draggable para la tarjeta */
+.capTarjetaClaseDraggable {
+    touch-action: none;
+    user-select: none;
+}
+
+.capTarjetaClaseDraggable:not(.capTarjetaClaseDraggable--deshabilitado):hover {
+    cursor: grab;
+}
+
+.capTarjetaClaseDraggable:not(.capTarjetaClaseDraggable--deshabilitado):active {
+    cursor: grabbing;
+}
+
+.capTarjetaClaseDraggable--arrastrando {
+    opacity: 0.5;
+}
+
+.capTarjetaClaseDraggable--deshabilitado {
+    cursor: not-allowed;
+}
+
+/* Overlay que sigue al cursor durante el arrastre */
+.capDragOverlay {
+    box-shadow: var(--cap-sombra-lg);
+    transform: rotate(3deg);
+    cursor: grabbing;
+    z-index: var(--cap-z-tooltip);
+    opacity: 0.95;
+    background: var(--cap-fondo-tarjeta);
+}
+
+/* Zona drop para cada día */
+.capZonaDropDia {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+    border-radius: var(--cap-radio-md);
+    transition: all var(--cap-transicion-rapida);
+}
+
+/* Feedback visual cuando el cursor está sobre la zona */
+.capZonaDropDia--sobre {
+    background: var(--cap-primario-50);
+    outline: 2px dashed var(--cap-primario-400);
+    outline-offset: -2px;
+}
+
+/* Feedback visual mientras hay arrastre activo */
+.capZonaDropDia--activo {
+    outline: 2px dashed var(--cap-borde-medio);
+    outline-offset: -2px;
+}
+
+.capZonaDropDia--activo:not(.capZonaDropDia--sobre) {
+    background: var(--cap-fondo-sutil);
+}
+
+/* Animación sutil al soltar */
+@keyframes capDropBounce {
+    0% {
+        transform: scale(0.95);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.capTarjetaClaseDraggable:not(.capTarjetaClaseDraggable--arrastrando) .capTarjetaClase {
+    animation: capDropBounce 0.2s ease-out;
+}
+
+/* Indicador visual para clases bloqueadas (no arrastrables) */
+.capTarjetaClaseDraggable--deshabilitado .capTarjetaClase::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    cursor: not-allowed;
+    pointer-events: none;
+}

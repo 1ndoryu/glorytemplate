@@ -4,6 +4,9 @@
 
 export {CalendarioSemanal} from './CalendarioSemanal';
 export {TarjetaClase} from './TarjetaClase';
+export {TarjetaClaseDraggable} from './TarjetaClaseDraggable';
+export {DragOverlayClase} from './DragOverlayClase';
+export {ZonaDropDia} from './ZonaDropDia';
 export {NavegadorSemana} from './NavegadorSemana';
 export {BarraAcciones} from './BarraAcciones';
 export {ColumnaDia} from './ColumnaDia';

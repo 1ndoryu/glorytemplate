@@ -34,6 +34,8 @@ interface EstadoCalendario {
     mostrarModalEdicion: boolean;
     guardandoEdicion: boolean;
     puedeDeshacer: boolean;
+    /* Estado para drag & drop */
+    moviendo: boolean;
 }
 
 interface AccionesCalendario {
@@ -52,6 +54,8 @@ interface AccionesCalendario {
     cerrarModalEdicion: () => void;
     actualizarClase: (claseId: number, cambios: CambiosClase) => Promise<void>;
     deshacer: () => void;
+    /* Acción para drag & drop */
+    moverClase: (claseId: number, nuevaFecha: string) => Promise<void>;
 }
 
 export function useCalendario(): EstadoCalendario & AccionesCalendario {
@@ -72,6 +76,9 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
     /* Historial de cambios para undo */
     const [historialClases, setHistorialClases] = useState<Clase[][]>([]);
     const puedeDeshacer = historialClases.length > 0;
+
+    /* Estado para drag & drop */
+    const [moviendo, setMoviendo] = useState(false);
 
     /* Fechas de la semana actual */
     const fechasSemana = getFechasSemana(semanaActual);
@@ -386,6 +393,64 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         setHistorialClases(prev => prev.slice(0, -1));
     }, [historialClases]);
 
+    /* Mover clase a otro día (drag & drop) */
+    const moverClase = useCallback(
+        async (claseId: number, nuevaFecha: string) => {
+            const clase = clases.find(c => c.id === claseId);
+            if (!clase) return;
+
+            /* No mover clases bloqueadas */
+            if (clase.bloqueada) {
+                setError('No se puede mover una clase bloqueada');
+                return;
+            }
+
+            setMoviendo(true);
+            setError(null);
+
+            /* Guardar snapshot antes del cambio */
+            guardarSnapshot();
+
+            /* Actualización optimista */
+            setClases(prev =>
+                prev.map(c => {
+                    if (c.id === claseId) {
+                        return {...c, fecha: nuevaFecha};
+                    }
+                    return c;
+                })
+            );
+
+            try {
+                const response = await fetch(`/wp-json/cap/v1/clases/${claseId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-WP-Nonce': getNonce()
+                    },
+                    body: JSON.stringify({
+                        fecha: nuevaFecha
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al mover la clase');
+                }
+            } catch (err) {
+                /* Revertir cambio optimista usando el último snapshot */
+                const ultimo = historialClases[historialClases.length - 1];
+                if (ultimo) {
+                    setClases(ultimo);
+                    setHistorialClases(prev => prev.slice(0, -1));
+                }
+                setError(err instanceof Error ? err.message : 'Error al mover clase');
+            } finally {
+                setMoviendo(false);
+            }
+        },
+        [clases, getNonce, guardarSnapshot, historialClases]
+    );
+
     return {
         clases,
         semanaActual,
@@ -399,6 +464,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         mostrarModalEdicion,
         guardandoEdicion,
         puedeDeshacer,
+        moviendo,
         irSemanaAnterior,
         irSemanaSiguiente,
         irASemana,
@@ -412,6 +478,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         seleccionarClase,
         cerrarModalEdicion,
         actualizarClase,
-        deshacer
+        deshacer,
+        moverClase
     };
 }
