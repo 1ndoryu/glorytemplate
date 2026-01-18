@@ -18,6 +18,7 @@ export {SeccionEcosistema} from './SeccionEcosistema';
 export {SeccionBlog} from './SeccionBlog';
 export {SeccionProceso} from './SeccionProceso';
 export {PaginaServicios} from './PaginaServicios';
+export {PaginaProyecto} from './PaginaProyecto';
 
 export type {Proyecto} from './TarjetaProyecto';
 export type {Servicio, ModoVisualizacion} from './GridServicios';

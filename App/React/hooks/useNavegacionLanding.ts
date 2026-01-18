@@ -6,22 +6,33 @@ import {useState, useCallback} from 'react';
  * Soporta navegación a secciones por ID y cambio entre vistas (landing/servicios).
  */
 
-type VistaLanding = 'landing' | 'servicios';
+export type VistaLanding = 'landing' | 'servicios' | 'proyecto';
 
 interface UseNavegacionLandingReturn {
     vistaActual: VistaLanding;
-    setVistaActual: (vista: VistaLanding) => void;
-    handleNavegar: (id: string) => void;
+    datosVista: any;
+    setVistaActual: (vista: VistaLanding, datos?: any) => void;
+    handleNavegar: (id: string, datos?: any) => void;
 }
 
 export function useNavegacionLanding(vistaInicial: VistaLanding = 'landing'): UseNavegacionLandingReturn {
-    const [vistaActual, setVistaActual] = useState<VistaLanding>(vistaInicial);
+    const [vistaActual, setVistaActualState] = useState<VistaLanding>(vistaInicial);
+    const [datosVista, setDatosVista] = useState<any>(null);
+
+    const setVistaActual = useCallback((vista: VistaLanding, datos: any = null) => {
+        setVistaActualState(vista);
+        setDatosVista(datos);
+        if (vista !== 'landing') {
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+    }, []);
 
     const handleNavegar = useCallback(
-        (id: string) => {
+        (id: string, datos: any = null) => {
             if (id === 'servicios') {
                 setVistaActual('servicios');
-                window.scrollTo({top: 0, behavior: 'smooth'});
+            } else if (id === 'proyecto') {
+                setVistaActual('proyecto', datos);
             } else {
                 /* Si estamos en otra vista, volver a landing primero */
                 if (vistaActual !== 'landing') {
@@ -36,10 +47,10 @@ export function useNavegacionLanding(vistaInicial: VistaLanding = 'landing'): Us
                 }
             }
         },
-        [vistaActual]
+        [vistaActual, setVistaActual]
     );
 
-    return {vistaActual, setVistaActual, handleNavegar};
+    return {vistaActual, datosVista, setVistaActual, handleNavegar};
 }
 
 /*

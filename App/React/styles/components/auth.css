@@ -1,0 +1,142 @@
+/*
+ * Estilos para el Modal de Autenticación
+ * Minimalismo oscuro
+ */
+
+.authModalContenido {
+    width: 100%;
+    max-width: 360px; /* Reducido de 420px */
+    padding: var(--nakomi-espacioLg); /* Reducido de Xl */
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioLg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.authTabs {
+    display: flex;
+    gap: var(--nakomi-espacioLg);
+    margin-bottom: var(--nakomi-espacioLg); /* Reducido de Xl */
+    border-bottom: 2px solid var(--nakomi-bordeSutil);
+    width: 100%;
+    justify-content: center;
+}
+
+.authTab {
+    padding-bottom: var(--nakomi-espacioSm);
+    background: none;
+    border: none;
+    color: var(--nakomi-textoSecundario);
+    font-size: 0.9rem; /* Reducido de 1rem */
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--nakomi-transicionRapida);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px; /* para superponer al borde del contenedor */
+}
+
+.authTab:hover {
+    color: var(--nakomi-textoActivo);
+}
+
+.authTabActiva {
+    color: var(--nakomi-textoActivo);
+    border-bottom-color: var(--nakomi-acento);
+}
+
+.authForm {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm); /* Reducido de Md */
+}
+
+.authInput {
+    width: 100%;
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd); /* Altura reducida */
+    background-color: var(--nakomi-fondoPrincipal);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    color: var(--nakomi-textoActivo);
+    font-size: 0.85rem; /* Reducido de 0.95rem */
+    transition: border-color var(--nakomi-transicionRapida);
+}
+
+.authInput:focus {
+    outline: none;
+    border-color: var(--nakomi-acento);
+}
+
+.authInput::placeholder {
+    color: var(--nakomi-textoPlaceholder);
+}
+
+.authBotonSubmit {
+    width: 100%;
+    padding: var(--nakomi-espacioSm); /* Reducido de Md */
+    background-color: var(--nakomi-fondoTerciario);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
+    color: var(--nakomi-textoActivo);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--nakomi-transicionRapida);
+    margin-top: var(--nakomi-espacioXs); /* Reducido de Sm */
+}
+
+.authBotonSubmit:hover {
+    background-color: var(--nakomi-acento);
+    border-color: var(--nakomi-acento);
+}
+
+.authSeparador {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: var(--nakomi-espacioMd) 0; /* Reducido de Lg */
+    color: var(--nakomi-textoPlaceholder);
+    font-size: 0.7rem; /* Reducido de 0.8rem */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.authSeparador::before,
+.authSeparador::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--nakomi-bordeSutil);
+}
+
+.authSeparador span {
+    padding: 0 var(--nakomi-espacioMd);
+}
+
+.authGoogleBoton {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioSm); /* Reducido de Md */
+    background-color: white;
+    color: black;
+    border: none;
+    border-radius: var(--nakomi-radioMd);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform var(--nakomi-transicionRapida);
+}
+
+.authGoogleBoton:hover {
+    transform: scale(1.02);
+}
+
+.authGoogleIcon {
+    width: 20px;
+    height: 20px;
+}

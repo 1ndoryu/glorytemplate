@@ -18,6 +18,7 @@ interface NavegacionProps {
     enlaces?: EnlaceNav[];
     mostrarPanel?: boolean;
     onNavegar?: (id: string) => void;
+    onLoginClick?: () => void;
 }
 
 const enlacesPorDefecto: EnlaceNav[] = [
@@ -28,7 +29,7 @@ const enlacesPorDefecto: EnlaceNav[] = [
     {id: 'nosotros', texto: 'Nosotros'}
 ];
 
-export const Navegacion: React.FC<NavegacionProps> = ({enlaces = enlacesPorDefecto, mostrarPanel = false, onNavegar}) => {
+export const Navegacion: React.FC<NavegacionProps> = ({enlaces = enlacesPorDefecto, mostrarPanel = false, onNavegar, onLoginClick}) => {
     const manejarClick = (enlace: EnlaceNav) => {
         if (enlace.esExterno && enlace.href) {
             window.open(enlace.href, '_blank');
@@ -68,7 +69,7 @@ export const Navegacion: React.FC<NavegacionProps> = ({enlaces = enlacesPorDefec
                 )}
             </ul>
 
-            <Boton href="/login" variante="solid" tamano="sm" className="navegacionBotonLogin">
+            <Boton onClick={onLoginClick || (() => (window.location.href = '/login'))} variante="solid" tamano="sm" className="navegacionBotonLogin">
                 Login
             </Boton>
         </nav>

@@ -1,0 +1,139 @@
+/*
+ * Estilos para la Página de Detalle de Proyecto (Case Study)
+ * Diseño inspirado en DashDigital (Fitsole)
+ */
+
+.proyectoDetalle {
+    width: 100%;
+    min-height: 100vh;
+    background-color: var(--nakomi-fondoPrincipal);
+    color: var(--nakomi-textoNormal);
+    padding: var(--nakomi-espacioLg); /* Padding general de la página */
+    box-sizing: border-box;
+    padding-top: 100px;
+}
+
+/* Header Simple Superior */
+.proyectoHeaderSimple {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--nakomi-espacio3xl);
+    font-size: 0.8rem;
+    color: var(--nakomi-textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.botonVolverSuperior {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    text-transform: inherit;
+    letter-spacing: inherit;
+    transition: color var(--nakomi-transicionRapida);
+}
+
+.botonVolverSuperior:hover {
+    color: var(--nakomi-textoActivo);
+}
+
+/* Manifiesto Grande */
+.proyectoManifiestoContenedor {
+    margin-bottom: 8vw; /* Espacio amplio antes del contenido */
+    max-width: 1400px; /* Limite para pantallas ultramchas */
+}
+
+.proyectoManifiestoTexto {
+    font-family: var(--nakomi-fuentePrincipal);
+    font-size: clamp(1.5rem, 3.5vw, 3rem); /* Reducido considerablemente */
+    line-height: 1.1;
+    font-weight: 400; /* Regular, no bold */
+    color: var(--nakomi-textoActivo); /* Color casi blanco */
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+}
+
+/* Grid Principal 2 Columnas */
+.proyectoGridPrincipal {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--nakomi-espacio3xl);
+    max-width: 1400px;
+}
+
+@media (min-width: 900px) {
+    .proyectoGridPrincipal {
+        grid-template-columns: 400px 1fr; /* Columna fija izq, flexible der */
+        gap: var(--nakomi-espacio3xl);
+    }
+}
+
+/* Columna Lateral (Aside) */
+.proyectoColumnaLateral {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacio3xl);
+}
+
+.bloqueInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioMd);
+    align-items: flex-start;
+}
+
+.tituloInfo {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--nakomi-textoSecundario);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+}
+
+.textoInfo {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--nakomi-textoMuyApagado);
+    text-transform: uppercase;
+}
+
+/* Columna Contenido (Derecha) */
+.proyectoColumnaContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioLg);
+}
+
+.bloqueContenido {
+    margin-bottom: var(--nakomi-espacioLg);
+}
+
+.tituloSeccion {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--nakomi-textoSecundario);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.parrafoContenido {
+    font-size: 0.8rem; /* Reducido de 1.1rem */
+    line-height: 1.6;
+    color: var(--nakomi-textoSecundario);
+    max-width: 800px;
+}
+
+.proyectoImagenSeparador img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+    border-radius: var(--nakomi-radioSm);
+    opacity: 0.8;
+}
