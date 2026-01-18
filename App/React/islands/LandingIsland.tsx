@@ -83,7 +83,7 @@ export const LandingIsland: React.FC<LandingIslandProps> = ({mostrarPanel = fals
         <div id="contenedorLanding" className="contenedorLanding">
             <Navegacion mostrarPanel={mostrarPanel} />
 
-            <LogoHero subtitulo="Desarrollo web & aplicaciones" />
+            <LogoHero />
 
             <GridPortafolio proyectos={proyectosEjemplo} onSeleccionarProyecto={abrirModal} />
 

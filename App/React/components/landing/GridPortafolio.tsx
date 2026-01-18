@@ -14,8 +14,6 @@ interface GridPortafolioProps {
 export const GridPortafolio: React.FC<GridPortafolioProps> = ({proyectos, onSeleccionarProyecto}) => {
     return (
         <section id="seccionProyectos" className="seccionPortafolio">
-            <h2 className="tituloSeccion">Proyectos</h2>
-
             <div className="gridPortafolio">
                 {proyectos.map(proyecto => (
                     <TarjetaProyecto key={proyecto.id} proyecto={proyecto} onClick={onSeleccionarProyecto} />

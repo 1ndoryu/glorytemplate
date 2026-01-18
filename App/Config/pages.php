@@ -38,7 +38,6 @@ PageManager::setDefaultContentMode('code');
  */
 
 // Pagina estatica sin Page Builder (ejemplo de uso simple)
-// Pagina estatica sin Page Builder (ejemplo de uso simple) - COMENTADO/LIMPIADO
 // PageManager::reactPage('home-static', 'HomeStaticIsland', ...);
 
 // Landing principal del sitio

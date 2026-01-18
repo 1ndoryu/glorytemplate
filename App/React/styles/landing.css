@@ -3,6 +3,43 @@
  * Diseño ultra minimalista con tipografía compacta
  */
 
+/* Variables de espaciado del landing - AJUSTAR AQUI */
+:root {
+    /* Ancho maximo del contenido (header y grid de proyectos) */
+    --landing-anchoMaximo: 1300px;
+    /* Separacion entre el hero y la seccion de proyectos - negativo los acerca */
+    --landing-separacionProyectos: -100px;
+}
+
+/* Scrollbar minimalista global */
+html {
+    background-color: var(--nakomi-fondoPrincipal);
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--nakomi-fondoPrincipal);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--nakomi-scrollbarThumb);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--nakomi-scrollbarThumbHover);
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--nakomi-scrollbarThumb) var(--nakomi-fondoPrincipal);
+}
+
 /* Base del landing */
 .contenedorLanding {
     min-height: 100vh;
@@ -12,20 +49,23 @@
     overflow-x: hidden;
 }
 
-/* Navegacion */
+/* Navegacion - separada de la pantalla con ancho maximo */
 .navegacionPrincipal {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: var(--nakomi-espacioMd);
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 100;
-    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    width: calc(100% - var(--nakomi-espacioLg) * 2);
+    max-width: var(--landing-anchoMaximo);
+    padding: var(--nakomi-espacioMd) var(--nakomi-espacioLg);
     display: flex;
     justify-content: space-between;
     align-items: center;
     background-color: rgba(9, 9, 9, 0.85);
     backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--nakomi-bordeSutil);
+    border: 1px solid var(--nakomi-bordeSutil);
+    border-radius: var(--nakomi-radioMd);
 }
 
 .navegacionLogo {
@@ -69,54 +109,44 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: var(--nakomi-espacio2xl) var(--nakomi-espacioMd);
+    padding: 0;
 }
 
 .logoHero {
-    width: 100%;
-    text-align: center;
+    width: calc(100% - 40px);
+    max-width: var(--landing-anchoMaximo);
+    margin: 0 auto;
+    /* Flexbox para centrar el texto incluso con overflow */
+    display: flex;
+    justify-content: center;
     user-select: none;
+    overflow: hidden;
+    padding: 0;
 }
 
 .logoTexto {
-    font-family: var(--nakomi-fuentePrincipal);
-    font-weight: 200;
+    font-family: 'Gothic60', var(--nakomi-fuentePrincipal);
+    font-weight: 400;
     letter-spacing: -0.02em;
     line-height: 0.85;
     color: var(--nakomi-textoActivo);
     white-space: nowrap;
-    text-transform: lowercase;
-}
-
-.subtituloHero {
-    margin-top: var(--nakomi-espacioLg);
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--nakomi-textoApagado);
 }
 
-/* Grid del portafolio */
+/* Grid del portafolio - 2 columnas, mas ancho */
 .seccionPortafolio {
-    padding: var(--nakomi-espacio2xl) var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioLg);
+    /* Usa margin-top para permitir valores negativos y acercar al hero */
+    margin-top: var(--landing-separacionProyectos);
     padding-bottom: calc(var(--nakomi-espacio2xl) * 2);
-}
-
-.tituloSeccion {
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--nakomi-textoApagado);
-    margin-bottom: var(--nakomi-espacioLg);
-    text-align: center;
 }
 
 .gridPortafolio {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--nakomi-espacioSm);
-    max-width: 1200px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--nakomi-espacioMd);
+    max-width: var(--landing-anchoMaximo);
     margin: 0 auto;
 }
 
@@ -270,8 +300,10 @@
 
 /* Responsive */
 @media (max-width: 900px) {
-    .gridPortafolio {
-        grid-template-columns: repeat(2, 1fr);
+    .navegacionPrincipal {
+        width: calc(100% - var(--nakomi-espacioMd) * 2);
+        top: var(--nakomi-espacioSm);
+        padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
     }
 }
 
@@ -282,7 +314,7 @@
 
     .gridPortafolio {
         grid-template-columns: 1fr;
-        gap: var(--nakomi-espacioXs);
+        gap: var(--nakomi-espacioSm);
     }
 
     .seccionPortafolio {

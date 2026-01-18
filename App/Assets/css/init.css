@@ -1,0 +1,45 @@
+/*
+ * Init CSS - Variables base del proyecto Nakomi
+ * Este archivo es importado por Glory/assets/react/src/index.css
+ * para exponer las variables CSS al sistema de Tailwind.
+ */
+
+/* Fuente personalizada para el logo */
+@font-face {
+    font-family: 'Gothic60';
+    src: url('../fonts/Gothic60-Regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Importar variables Nakomi desde App/React/styles */
+@import '../../React/styles/variables.css';
+
+/*
+ * Variables de compatibilidad con el sistema Glory
+ * Mapean las variables Nakomi al esquema de colores esperado por Glory
+ */
+:root {
+    /* Colores de texto */
+    --color-text-primary: var(--nakomi-textoActivo);
+    --color-text-secondary: var(--nakomi-textoNormal);
+    --color-text-muted: var(--nakomi-textoSecundario);
+    --color-text-subtle: var(--nakomi-textoApagado);
+
+    /* Colores de fondo */
+    --color-bg-primary: var(--nakomi-fondoPrincipal);
+    --color-bg-secondary: var(--nakomi-fondoSecundario);
+    --color-bg-tertiary: var(--nakomi-fondoTerciario);
+    --color-bg-surface: var(--nakomi-fondoSecundario);
+    --color-bg-elevated: var(--nakomi-fondoHover);
+
+    /* Colores de borde */
+    --color-border-primary: var(--nakomi-bordePrincipal);
+    --color-border-secondary: var(--nakomi-bordeSutil);
+    --color-border-subtle: var(--nakomi-bordeSutil);
+
+    /* Colores de acento */
+    --color-accent-primary: var(--nakomi-acento);
+    --color-accent-hover: var(--nakomi-acentoHover);
+}

@@ -7,7 +7,7 @@
 - Extremadamente minimalista
 - Tipografía pequeña, todo compacto
 - Fondo oscuro (#090909)
-- Logo "nakomi" en texto que ocupa el ancho completo dinámicamente
+- Logo "nakomi" en texto que ocupa el ancho del contenedor dinámicamente
 - Sin animaciones excesivas, elegancia en la simplicidad
 
 ---
@@ -41,7 +41,7 @@ App/React/
 
 ### 3. Componentes a Desarrollar
 
-- [x] **LogoHero**: Texto "nakomi" que escala al ancho del viewport
+- [x] **LogoHero**: Texto "nakomi" que escala al ancho del contenedor (page width)
 - [x] **Navegacion**: Links compactos (Inicio, Servicios, Proyectos, Apps, Nosotros, Login)
 - [x] **GridPortafolio**: Grid responsive de proyectos (6 items de ejemplo)
 - [x] **ModalProyecto**: Modal sin recarga para ver detalles del proyecto
