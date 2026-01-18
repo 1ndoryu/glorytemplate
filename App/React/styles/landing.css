@@ -1449,7 +1449,7 @@ html {
 /* Tabla de pedidos compacta */
 .pedidoTablaHeader {
     display: grid;
-    grid-template-columns: 2fr 0.8fr 0.6fr 0.4fr 1fr;
+    grid-template-columns: 2fr 0.8fr 0.5fr 0.8fr 1fr;
     padding: 0 var(--nakomi-espacioSm) var(--nakomi-espacioXs);
     border-bottom: 1px solid var(--nakomi-bordeSutil);
     margin-bottom: var(--nakomi-espacioXs);
@@ -1467,12 +1467,12 @@ html {
 }
 
 .columnaEntrega {
-    text-align: right;
+    text-align: center;
 }
 
 .pedidoFila {
     display: grid;
-    grid-template-columns: 2fr 0.8fr 0.6fr 0.4fr 1fr;
+    grid-template-columns: 2fr 0.8fr 0.5fr 0.8fr 1fr;
     align-items: center;
     padding: var(--nakomi-espacioSm);
     border-radius: var(--nakomi-radioSm);
@@ -1589,7 +1589,7 @@ html {
 }
 
 .celdaEntrega {
-    text-align: right;
+    text-align: center;
 }
 
 .tiempoEntrega {
