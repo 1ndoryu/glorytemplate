@@ -1,6 +1,8 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {Servicio} from './GridServicios';
 import {TarjetaServicio} from './TarjetaServicio';
+import {DropdownMinimal} from '../ui/DropdownMinimal';
+import {InputBusqueda} from '../ui/InputBusqueda';
 
 /*
  * PaginaServicios: Vista completa de servicios
@@ -20,26 +22,6 @@ export const PaginaServicios: React.FC<PaginaServiciosProps> = ({servicios}) => 
 
     const [serviciosFiltrados, setServiciosFiltrados] = useState<Servicio[]>(servicios);
 
-    // Refs para cerrar dropdowns al clicar fuera
-    const precioRef = useRef<HTMLDivElement>(null);
-    const categoriaRef = useRef<HTMLDivElement>(null);
-
-    const CATEGORIAS_FILTRO = ['Todas', 'Diseño', 'Web', 'App', 'Marketing', 'Consultoría', 'SEO', 'E-commerce'];
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (precioRef.current && !precioRef.current.contains(event.target as Node)) {
-                setMostrandoFiltroPrecio(false);
-            }
-            if (categoriaRef.current && !categoriaRef.current.contains(event.target as Node)) {
-                setMostrandoFiltroCategoria(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
     useEffect(() => {
         const filtrados = servicios.filter(servicio => {
             const coincideTexto = servicio.nombre.toLowerCase().includes(busqueda.toLowerCase()) || servicio.descripcionCorta.toLowerCase().includes(busqueda.toLowerCase());
@@ -53,65 +35,45 @@ export const PaginaServicios: React.FC<PaginaServiciosProps> = ({servicios}) => 
         setServiciosFiltrados(filtrados);
     }, [busqueda, categoriaSeleccionada, precioMaximo, servicios]);
 
+    const CATEGORIAS_FILTRO = ['Todas', 'Diseño', 'Web', 'App', 'Marketing', 'Consultoría', 'SEO', 'E-commerce'];
+
     return (
         <div className="paginaServicios animate-fade-in">
             <header className="cabeceraServicios">
                 <h1 className="tituloPaginaServicios">Servicios</h1>
 
                 <div className="barraBusquedaCompacta">
-                    <svg className="iconoBusqueda" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input type="text" placeholder="Buscar servicios..." value={busqueda} onChange={e => setBusqueda(e.target.value)} className="inputBusqueda" />
+                    <InputBusqueda placeholder="Buscar servicios..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
                 </div>
             </header>
 
             <div className="barraHerramientas">
                 <div className="grupoFiltros">
                     {/* Filtro Categoría */}
-                    <div className="filtroItem" ref={categoriaRef}>
-                        <button className={`botonFiltro ${categoriaSeleccionada !== 'Todas' ? 'activo' : ''}`} onClick={() => setMostrandoFiltroCategoria(!mostrandoFiltroCategoria)}>
-                            {categoriaSeleccionada === 'Todas' ? 'Categoría' : categoriaSeleccionada}
-                            <span className="flechaFiltro">▼</span>
-                        </button>
-
-                        {mostrandoFiltroCategoria && (
-                            <div className="menuFiltro">
-                                {CATEGORIAS_FILTRO.map(cat => (
-                                    <button
-                                        key={cat}
-                                        className={`opcionCategoria ${categoriaSeleccionada === cat ? 'seleccionada' : ''}`}
-                                        onClick={() => {
-                                            setCategoriaSeleccionada(cat);
-                                            setMostrandoFiltroCategoria(false);
-                                        }}>
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    <DropdownMinimal etiqueta={categoriaSeleccionada === 'Todas' ? 'Categoría' : categoriaSeleccionada} estaAbierto={mostrandoFiltroCategoria} onToggle={() => setMostrandoFiltroCategoria(!mostrandoFiltroCategoria)} onCerrar={() => setMostrandoFiltroCategoria(false)} activo={categoriaSeleccionada !== 'Todas'} anchoMenu="180px">
+                        {CATEGORIAS_FILTRO.map(cat => (
+                            <button
+                                key={cat}
+                                className={`opcionCategoria ${categoriaSeleccionada === cat ? 'seleccionada' : ''}`}
+                                onClick={() => {
+                                    setCategoriaSeleccionada(cat);
+                                    setMostrandoFiltroCategoria(false);
+                                }}>
+                                {cat}
+                            </button>
+                        ))}
+                    </DropdownMinimal>
 
                     {/* Filtro Precio */}
-                    <div className="filtroItem" ref={precioRef}>
-                        <button className={`botonFiltro ${precioMaximo < 10000 ? 'activo' : ''}`} onClick={() => setMostrandoFiltroPrecio(!mostrandoFiltroPrecio)}>
-                            {precioMaximo < 10000 ? `Max: $${precioMaximo}` : 'Presupuesto'}
-                            <span className="flechaFiltro">▼</span>
-                        </button>
-
-                        {mostrandoFiltroPrecio && (
-                            <div className="menuFiltro">
-                                <div className="contenedorSliderPrecio">
-                                    <div className="etiquetaPrecio">
-                                        <span>$0</span>
-                                        <span>${precioMaximo.toLocaleString()}</span>
-                                    </div>
-                                    <input type="range" min="0" max="10000" step="500" value={precioMaximo} onChange={e => setPrecioMaximo(Number(e.target.value))} className="sliderPrecio" />
-                                </div>
+                    <DropdownMinimal etiqueta={precioMaximo < 10000 ? `Max: $${precioMaximo}` : 'Presupuesto'} estaAbierto={mostrandoFiltroPrecio} onToggle={() => setMostrandoFiltroPrecio(!mostrandoFiltroPrecio)} onCerrar={() => setMostrandoFiltroPrecio(false)} activo={precioMaximo < 10000} anchoMenu="220px">
+                        <div className="contenedorSliderPrecio">
+                            <div className="etiquetaPrecio">
+                                <span>$0</span>
+                                <span>${precioMaximo.toLocaleString()}</span>
                             </div>
-                        )}
-                    </div>
+                            <input type="range" min="0" max="10000" step="500" value={precioMaximo} onChange={e => setPrecioMaximo(Number(e.target.value))} className="sliderPrecio" />
+                        </div>
+                    </DropdownMinimal>
                 </div>
 
                 <div className="resumenResultados">{serviciosFiltrados.length} servicios</div>
