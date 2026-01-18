@@ -6,9 +6,10 @@
  */
 
 import {useState, useEffect} from 'react';
-import type {Clase, Alumno, Asignatura} from '../../types';
-import {CAP_ASIGNATURAS, getAsignatura, getAsignaturaPorCodigo, SLOTS_HORARIOS} from '../../constants';
-import {Modal} from '../ui';
+import type {Clase} from '../../types';
+import type {Alumno} from '../../hooks/useAlumnos';
+import {ASIGNATURAS_CAP, getAsignatura, getAsignaturaPorCodigo, SLOTS_HORARIOS} from '../../constants';
+import {Modal, Boton} from '../ui';
 import {IconoReloj, IconoUsuarios, IconoCandado, IconoGuardar, IconoLibro} from '../icons';
 
 interface ModalDetalleClaseProps {
@@ -104,7 +105,7 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
                         Asignatura
                     </h4>
                     <select className="capModalDetalleClase__select" value={asignaturaId} onChange={e => setAsignaturaId(Number(e.target.value))} disabled={clase.bloqueada}>
-                        {CAP_ASIGNATURAS.map(asig => (
+                        {ASIGNATURAS_CAP.map(asig => (
                             <option key={asig.id} value={asig.id}>
                                 {asig.codigo} - {asig.nombre}
                             </option>
@@ -159,7 +160,7 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
                             {alumnosClase.map(alumno => (
                                 <li key={alumno.id} className="capModalDetalleClase__alumnoItem">
                                     <span className="capModalDetalleClase__alumnoNombre">{alumno.nombre}</span>
-                                    <span className="capModalDetalleClase__alumnoProgreso">{alumno.horasCompletadas}/35h</span>
+                                    <span className="capModalDetalleClase__alumnoProgreso">{alumno.horas_completadas}/35h</span>
                                 </li>
                             ))}
                         </ul>
@@ -174,22 +175,21 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
                         <IconoCandado size={14} />
                         <span>{clase.bloqueada ? 'Clase bloqueada' : 'Clase editable'}</span>
                     </div>
-                    <button type="button" className={`capBoton capBoton--sm ${clase.bloqueada ? 'capBoton--secundario' : 'capBoton--ghost'}`} onClick={handleBloqueo}>
+                    <Boton variante={clase.bloqueada ? 'secundario' : 'ghost'} tamano="sm" onClick={handleBloqueo}>
                         {clase.bloqueada ? 'Desbloquear' : 'Bloquear'}
-                    </button>
+                    </Boton>
                 </div>
 
                 {clase.bloqueada && <p className="capModalDetalleClase__advertenciaBloqueo">Las clases bloqueadas no se modifican al regenerar el calendario.</p>}
 
                 {/* Acciones */}
                 <div className="capModalDetalleClase__acciones">
-                    <button type="button" className="capBoton capBoton--secundario" onClick={onCerrar}>
+                    <Boton variante="secundario" onClick={onCerrar}>
                         Cancelar
-                    </button>
-                    <button type="button" className="capBoton capBoton--primario" onClick={handleGuardar} disabled={!hayCambios || guardando || clase.bloqueada}>
-                        <IconoGuardar size={16} />
-                        {guardando ? 'Guardando...' : 'Guardar cambios'}
-                    </button>
+                    </Boton>
+                    <Boton variante="primario" onClick={handleGuardar} disabled={!hayCambios || guardando || clase.bloqueada} cargando={guardando} icono={<IconoGuardar size={16} />}>
+                        Guardar cambios
+                    </Boton>
                 </div>
             </div>
         </Modal>

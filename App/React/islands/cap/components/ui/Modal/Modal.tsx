@@ -15,13 +15,14 @@ interface ModalProps {
     abierto: boolean;
     onCerrar: () => void;
     titulo?: string;
+    subtitulo?: string;
     tamano?: TamanoModal;
     cerrarConOverlay?: boolean;
     cerrarConEscape?: boolean;
     children: ReactNode;
 }
 
-export function Modal({abierto, onCerrar, titulo, tamano = 'md', cerrarConOverlay = true, cerrarConEscape = true, children}: ModalProps): JSX.Element | null {
+export function Modal({abierto, onCerrar, titulo, subtitulo, tamano = 'md', cerrarConOverlay = true, cerrarConEscape = true, children}: ModalProps): JSX.Element | null {
     /* Cerrar con tecla Escape */
     const manejarTecla = useCallback(
         (e: KeyboardEvent) => {
@@ -57,9 +58,12 @@ export function Modal({abierto, onCerrar, titulo, tamano = 'md', cerrarConOverla
             <div className={`capModal__contenido capModal__contenido--${tamano}`}>
                 {titulo && (
                     <div className="capModal__header">
-                        <h2 id="modal-titulo" className="capModal__titulo">
-                            {titulo}
-                        </h2>
+                        <div className="capModal__headerTexto">
+                            <h2 id="modal-titulo" className="capModal__titulo">
+                                {titulo}
+                            </h2>
+                            {subtitulo && <p className="capModal__subtitulo">{subtitulo}</p>}
+                        </div>
                         <button type="button" className="capModal__cerrar" onClick={onCerrar} aria-label="Cerrar modal">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M18 6L6 18M6 6l12 12" />

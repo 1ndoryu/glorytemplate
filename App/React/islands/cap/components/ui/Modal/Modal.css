@@ -67,11 +67,22 @@
     flex-shrink: 0;
 }
 
+.capModal__headerTexto {
+    flex: 1;
+    min-width: 0;
+}
+
 .capModal__titulo {
     margin: 0;
     font-size: var(--cap-texto-xl);
     font-weight: var(--cap-peso-semibold);
     color: var(--cap-texto-principal);
+}
+
+.capModal__subtitulo {
+    margin: var(--cap-espacio-xs) 0 0 0;
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
 }
 
 .capModal__cerrar {

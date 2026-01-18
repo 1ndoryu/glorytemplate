@@ -5,6 +5,7 @@
  * Integra el calendario semanal con navegación, generación, edición y resolución de conflictos.
  */
 
+import {useMemo} from 'react';
 import {CalendarioSemanal, ModalConflictoAforo, ModalDetalleClase} from '../calendario';
 import type {CambiosClase} from '../calendario';
 import {useCalendario} from '../../hooks/useCalendario';
@@ -17,6 +18,15 @@ export function SeccionCalendario() {
 
     /* Obtener lista de alumnos para mostrar en modal de edición */
     const {alumnos} = useAlumnos();
+
+    /*
+     * Obtener la clase actualizada desde el array de clases
+     * Esto asegura que el modal refleja cambios en tiempo real (ej: toggle bloqueo)
+     */
+    const claseActualizada = useMemo(() => {
+        if (!claseSeleccionada) return null;
+        return clases.find(c => c.id === claseSeleccionada.id) || claseSeleccionada;
+    }, [clases, claseSeleccionada]);
 
     const handleClaseClick = (clase: Clase) => {
         seleccionarClase(clase);
@@ -50,8 +60,8 @@ export function SeccionCalendario() {
             {/* Modal para resolver conflictos de aforo */}
             <ModalConflictoAforo abierto={mostrarModalConflictos} conflictos={conflictos} onCerrar={cerrarModalConflictos} onConfirmar={handleConfirmarExclusiones} cargando={generando} />
 
-            {/* Modal para editar detalles de clase */}
-            <ModalDetalleClase clase={claseSeleccionada} alumnos={alumnos} abierto={mostrarModalEdicion} onCerrar={cerrarModalEdicion} onGuardar={handleGuardarClase} onToggleBloqueo={toggleBloqueoClase} guardando={guardandoEdicion} />
+            {/* Modal para editar detalles de clase - usa claseActualizada para reflejar cambios en tiempo real */}
+            <ModalDetalleClase clase={claseActualizada} alumnos={alumnos} abierto={mostrarModalEdicion} onCerrar={cerrarModalEdicion} onGuardar={handleGuardarClase} onToggleBloqueo={toggleBloqueoClase} guardando={guardandoEdicion} />
         </div>
     );
 }
