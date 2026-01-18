@@ -21,15 +21,6 @@ export const EjemploListaServicios: React.FC = () => {
                     <span className="ejemploTexto">Branding Digital</span>
                 </div>
             </div>
-            <div className="ejemploSeparador"></div>
-            <div className="ejemploEntrega">
-                <span className="ejemploEtiqueta">Tiempo de entrega</span>
-                <div className="ejemploOpciones">
-                    <span className="ejemploOpcion">Express</span>
-                    <span className="ejemploOpcion ejemploOpcionActiva">Standard</span>
-                    <span className="ejemploOpcion">Flexible</span>
-                </div>
-            </div>
         </VentanaEjemplo>
     );
 };
