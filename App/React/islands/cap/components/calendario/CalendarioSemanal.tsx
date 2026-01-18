@@ -26,9 +26,11 @@ interface CalendarioSemanalProps {
     onToggleBloqueo: (claseId: number) => void;
     onGenerar: () => void;
     onClaseClick?: (clase: Clase) => void;
+    puedeDeshacer?: boolean;
+    onDeshacer?: () => void;
 }
 
-export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando, generando, onSemanaAnterior, onSemanaSiguiente, onIrHoy, onToggleBloqueo, onGenerar, onClaseClick}: CalendarioSemanalProps) {
+export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando, generando, onSemanaAnterior, onSemanaSiguiente, onIrHoy, onToggleBloqueo, onGenerar, onClaseClick, puedeDeshacer = false, onDeshacer}: CalendarioSemanalProps) {
     /* Verificar si estamos en la semana actual */
     const esSemanaActual = useMemo(() => {
         const lunesActual = getLunesDeSemana(new Date());
@@ -85,7 +87,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
             <div className="capCalendario__header">
                 <NavegadorSemana semanaActual={semanaActual} fechasSemana={fechasSemana} onSemanaAnterior={onSemanaAnterior} onSemanaSiguiente={onSemanaSiguiente} onIrHoy={onIrHoy} esSemanaActual={esSemanaActual} />
 
-                <BarraAcciones onGenerar={onGenerar} generando={generando} puedeDeshacer={false} />
+                <BarraAcciones onGenerar={onGenerar} generando={generando} puedeDeshacer={puedeDeshacer} onDeshacer={onDeshacer} />
             </div>
 
             {/* Grid del calendario */}

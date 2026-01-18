@@ -93,6 +93,26 @@ class Clase
     }
 
     /**
+     * Obtiene una clase por su ID
+     */
+    public function obtenerPorId(int $id): ?array
+    {
+        global $wpdb;
+
+        $clase = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$this->tabla} WHERE id = %d",
+            $id
+        ), ARRAY_A);
+
+        if (!$clase) {
+            return null;
+        }
+
+        $clase['alumnos'] = $this->obtenerAlumnosClase($id);
+        return $clase;
+    }
+
+    /**
      * Crea una nueva clase
      */
     public function crear(array $datos): int|false

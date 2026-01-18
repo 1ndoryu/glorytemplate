@@ -1,7 +1,7 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
-> **Última actualización:** 2026-01-17  
-> **Estado:** ✅ Fase 6 + 10.3 completadas - Próximo: Fase 7 (Edición Interactiva)  
+> **Última actualización:** 2026-01-18  
+> **Estado:** ✅ Fase 7.2 + 7.3 completadas - Pendiente: 7.1 (Drag & Drop) y Fase 8 (Reportes)  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 ---
@@ -367,15 +367,16 @@ App/
   - [ ] 7.1.2 Validación en tiempo real
   - [ ] 7.1.3 Feedback visual durante arrastre
 
-- [ ] **7.2** Historial de cambios (Undo)
-  - [ ] 7.2.1 Hook `useHistorial.ts`
-  - [ ] 7.2.2 Guardar snapshot antes de cada cambio
-  - [ ] 7.2.3 Límite de snapshots en memoria
+- [x] **7.2** Historial de cambios (Undo)
+  - [x] 7.2.1 Hook `useHistorial.ts`
+  - [x] 7.2.2 Guardar snapshot antes de cada cambio
+  - [x] 7.2.3 Límite de snapshots en memoria (máx 20)
 
-- [ ] **7.3** Edición inline
-  - [ ] 7.3.1 Click en clase para expandir opciones
-  - [ ] 7.3.2 Cambiar hora/asignatura
-  - [ ] 7.3.3 Ver alumnos asignados
+- [x] **7.3** Edición inline
+  - [x] 7.3.1 Click en clase para abrir modal de edición
+  - [x] 7.3.2 Cambiar hora/asignatura (con validación de bloqueo)
+  - [x] 7.3.3 Ver alumnos asignados con progreso
+  - [x] 7.3.4 Endpoint `PUT /clases/{id}` para actualizar
 
 ---
 

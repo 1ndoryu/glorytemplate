@@ -13,6 +13,13 @@ import {useState, useCallback, useEffect} from 'react';
 import type {Clase, DiaSemana, ConflictoAforo, ExclusionesConflicto, ResultadoGeneracion, PreviewGeneracion} from '../types';
 import {getLunesDeSemana, getFechasSemana, DIAS_SEMANA} from '../constants';
 
+/* Interfaz para cambios de una clase */
+interface CambiosClase {
+    horaInicio?: string;
+    horaFin?: string;
+    asignaturaId?: number;
+}
+
 interface EstadoCalendario {
     clases: Clase[];
     semanaActual: Date;
@@ -22,6 +29,11 @@ interface EstadoCalendario {
     generando: boolean;
     conflictos: ConflictoAforo[];
     mostrarModalConflictos: boolean;
+    /* Nuevos estados para edición inline */
+    claseSeleccionada: Clase | null;
+    mostrarModalEdicion: boolean;
+    guardandoEdicion: boolean;
+    puedeDeshacer: boolean;
 }
 
 interface AccionesCalendario {
@@ -35,6 +47,11 @@ interface AccionesCalendario {
     generarConExclusiones: (exclusiones: ExclusionesConflicto) => Promise<void>;
     cerrarModalConflictos: () => void;
     limpiarError: () => void;
+    /* Nuevas acciones para edición inline */
+    seleccionarClase: (clase: Clase) => void;
+    cerrarModalEdicion: () => void;
+    actualizarClase: (claseId: number, cambios: CambiosClase) => Promise<void>;
+    deshacer: () => void;
 }
 
 export function useCalendario(): EstadoCalendario & AccionesCalendario {
@@ -46,6 +63,15 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
     const [generando, setGenerando] = useState(false);
     const [conflictos, setConflictos] = useState<ConflictoAforo[]>([]);
     const [mostrarModalConflictos, setMostrarModalConflictos] = useState(false);
+
+    /* Estado para edición inline */
+    const [claseSeleccionada, setClaseSeleccionada] = useState<Clase | null>(null);
+    const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+    const [guardandoEdicion, setGuardandoEdicion] = useState(false);
+
+    /* Historial de cambios para undo */
+    const [historialClases, setHistorialClases] = useState<Clase[][]>([]);
+    const puedeDeshacer = historialClases.length > 0;
 
     /* Fechas de la semana actual */
     const fechasSemana = getFechasSemana(semanaActual);
@@ -270,6 +296,96 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         setError(null);
     }, []);
 
+    /* Seleccionar clase para edición */
+    const seleccionarClase = useCallback((clase: Clase) => {
+        setClaseSeleccionada(clase);
+        setMostrarModalEdicion(true);
+    }, []);
+
+    /* Cerrar modal de edición */
+    const cerrarModalEdicion = useCallback(() => {
+        setMostrarModalEdicion(false);
+        setClaseSeleccionada(null);
+    }, []);
+
+    /* Guardar snapshot antes de un cambio (para undo) */
+    const guardarSnapshot = useCallback(() => {
+        setHistorialClases(prev => {
+            const nuevo = [...prev, JSON.parse(JSON.stringify(clases))];
+            /* Limitar a 20 snapshots máximo */
+            if (nuevo.length > 20) nuevo.shift();
+            return nuevo;
+        });
+    }, [clases]);
+
+    /* Actualizar clase con cambios */
+    const actualizarClase = useCallback(
+        async (claseId: number, cambios: CambiosClase) => {
+            setGuardandoEdicion(true);
+            setError(null);
+
+            /* Guardar snapshot antes del cambio */
+            guardarSnapshot();
+
+            /* Actualización optimista */
+            setClases(prev =>
+                prev.map(c => {
+                    if (c.id === claseId) {
+                        return {
+                            ...c,
+                            horaInicio: cambios.horaInicio ?? c.horaInicio,
+                            horaFin: cambios.horaFin ?? c.horaFin,
+                            asignaturaId: cambios.asignaturaId ?? c.asignaturaId
+                        };
+                    }
+                    return c;
+                })
+            );
+
+            try {
+                const response = await fetch(`/wp-json/cap/v1/clases/${claseId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-WP-Nonce': getNonce()
+                    },
+                    body: JSON.stringify({
+                        hora_inicio: cambios.horaInicio,
+                        hora_fin: cambios.horaFin,
+                        asignatura: cambios.asignaturaId
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al actualizar la clase');
+                }
+
+                /* Cerrar modal tras éxito */
+                cerrarModalEdicion();
+            } catch (err) {
+                /* Revertir cambio optimista usando el último snapshot */
+                const ultimo = historialClases[historialClases.length - 1];
+                if (ultimo) {
+                    setClases(ultimo);
+                    setHistorialClases(prev => prev.slice(0, -1));
+                }
+                setError(err instanceof Error ? err.message : 'Error al actualizar');
+            } finally {
+                setGuardandoEdicion(false);
+            }
+        },
+        [getNonce, guardarSnapshot, cerrarModalEdicion, historialClases]
+    );
+
+    /* Deshacer último cambio */
+    const deshacer = useCallback(() => {
+        if (historialClases.length === 0) return;
+
+        const estadoAnterior = historialClases[historialClases.length - 1];
+        setClases(estadoAnterior);
+        setHistorialClases(prev => prev.slice(0, -1));
+    }, [historialClases]);
+
     return {
         clases,
         semanaActual,
@@ -279,6 +395,10 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         generando,
         conflictos,
         mostrarModalConflictos,
+        claseSeleccionada,
+        mostrarModalEdicion,
+        guardandoEdicion,
+        puedeDeshacer,
         irSemanaAnterior,
         irSemanaSiguiente,
         irASemana,
@@ -288,6 +408,10 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         generarCalendario,
         generarConExclusiones,
         cerrarModalConflictos,
-        limpiarError
+        limpiarError,
+        seleccionarClase,
+        cerrarModalEdicion,
+        actualizarClase,
+        deshacer
     };
 }

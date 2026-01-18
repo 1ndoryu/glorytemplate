@@ -46,6 +46,13 @@ class CapEndpoints
             'permission_callback' => [$this, 'verificarPermisos'],
         ]);
 
+        /* Actualizar clase individual */
+        register_rest_route(self::NAMESPACE, '/clases/(?P<id>\d+)', [
+            'methods' => 'PUT',
+            'callback' => [$this, 'actualizarClase'],
+            'permission_callback' => [$this, 'verificarPermisos'],
+        ]);
+
         register_rest_route(self::NAMESPACE, '/generar', [
             'methods' => 'POST',
             'callback' => [$this, 'generarCalendario'],
@@ -330,6 +337,60 @@ class CapEndpoints
         }
 
         return new \WP_REST_Response(['exito' => true]);
+    }
+
+    /**
+     * Actualiza una clase existente (hora, asignatura)
+     */
+    public function actualizarClase(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $claseId = (int) $request->get_param('id');
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $datos = $request->get_json_params();
+        $claseModel = new Clase();
+
+        /* Verificar que la clase pertenece al centro */
+        $clase = $claseModel->obtenerPorId($claseId);
+        if (!$clase || (int)$clase['centro_id'] !== $centroId) {
+            return new \WP_REST_Response(['error' => 'Clase no encontrada'], 404);
+        }
+
+        /* Verificar que la clase no esté bloqueada */
+        if ($clase['bloqueada']) {
+            return new \WP_REST_Response(['error' => 'No se puede editar una clase bloqueada'], 400);
+        }
+
+        /* Preparar datos para actualización */
+        $datosActualizar = [];
+
+        if (isset($datos['hora_inicio'])) {
+            $datosActualizar['hora_inicio'] = sanitize_text_field($datos['hora_inicio']);
+        }
+        if (isset($datos['hora_fin'])) {
+            $datosActualizar['hora_fin'] = sanitize_text_field($datos['hora_fin']);
+        }
+        if (isset($datos['asignatura'])) {
+            $datosActualizar['asignatura'] = (int) $datos['asignatura'];
+        }
+
+        if (empty($datosActualizar)) {
+            return new \WP_REST_Response(['error' => 'No hay datos para actualizar'], 400);
+        }
+
+        if (!$claseModel->actualizar($claseId, $datosActualizar)) {
+            return new \WP_REST_Response(['error' => 'Error al actualizar la clase'], 400);
+        }
+
+        return new \WP_REST_Response([
+            'exito' => true,
+            'clase' => $claseModel->obtenerPorId($claseId)
+        ]);
     }
 
     public function obtenerDashboard(\WP_REST_Request $request): \WP_REST_Response

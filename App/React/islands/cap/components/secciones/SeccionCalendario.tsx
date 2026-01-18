@@ -2,24 +2,32 @@
  * SeccionCalendario
  *
  * Vista del calendario de clases CAP.
- * Integra el calendario semanal con navegación, generación y resolución de conflictos.
+ * Integra el calendario semanal con navegación, generación, edición y resolución de conflictos.
  */
 
-import {CalendarioSemanal, ModalConflictoAforo} from '../calendario';
+import {CalendarioSemanal, ModalConflictoAforo, ModalDetalleClase} from '../calendario';
+import type {CambiosClase} from '../calendario';
 import {useCalendario} from '../../hooks/useCalendario';
+import {useAlumnos} from '../../hooks/useAlumnos';
 import {Alerta} from '../ui';
-import type {ExclusionesConflicto} from '../../types';
+import type {ExclusionesConflicto, Clase} from '../../types';
 
 export function SeccionCalendario() {
-    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError} = useCalendario();
+    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer} = useCalendario();
 
-    const handleClaseClick = (clase: any) => {
-        /* TO-DO: Abrir modal de detalle/edición de clase */
-        console.log('Clase seleccionada:', clase);
+    /* Obtener lista de alumnos para mostrar en modal de edición */
+    const {alumnos} = useAlumnos();
+
+    const handleClaseClick = (clase: Clase) => {
+        seleccionarClase(clase);
     };
 
     const handleConfirmarExclusiones = (exclusiones: ExclusionesConflicto) => {
         generarConExclusiones(exclusiones);
+    };
+
+    const handleGuardarClase = async (claseId: number, cambios: CambiosClase) => {
+        await actualizarClase(claseId, cambios);
     };
 
     return (
@@ -36,11 +44,14 @@ export function SeccionCalendario() {
             )}
 
             <div className="capMt--lg">
-                <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={generarCalendario} onClaseClick={handleClaseClick} />
+                <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={generarCalendario} onClaseClick={handleClaseClick} puedeDeshacer={puedeDeshacer} onDeshacer={deshacer} />
             </div>
 
             {/* Modal para resolver conflictos de aforo */}
             <ModalConflictoAforo abierto={mostrarModalConflictos} conflictos={conflictos} onCerrar={cerrarModalConflictos} onConfirmar={handleConfirmarExclusiones} cargando={generando} />
+
+            {/* Modal para editar detalles de clase */}
+            <ModalDetalleClase clase={claseSeleccionada} alumnos={alumnos} abierto={mostrarModalEdicion} onCerrar={cerrarModalEdicion} onGuardar={handleGuardarClase} onToggleBloqueo={toggleBloqueoClase} guardando={guardandoEdicion} />
         </div>
     );
 }
