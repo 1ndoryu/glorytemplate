@@ -66,9 +66,9 @@
 .capMatriz__grid {
     display: grid;
     /* 1 columna para hora + 5 columnas para días */
-    grid-template-columns: 60px repeat(5, 1fr);
-    gap: 4px;
-    min-width: 360px;
+    grid-template-columns: 50px repeat(5, 1fr);
+    gap: 3px;
+    min-width: 300px;
 }
 
 /* Celda esquina vacía */
@@ -139,10 +139,11 @@
 /* Celdas de slots */
 .capMatriz__celda {
     aspect-ratio: 1;
-    min-height: 32px;
-    min-width: 32px;
+    min-height: 24px;
+    min-width: 24px;
+    max-width: 40px;
     background: var(--cap-gris-100);
-    border: 2px solid transparent;
+    border: 1px solid transparent;
     border-radius: var(--cap-radio-sm);
     cursor: pointer;
     transition: all var(--cap-transicion-rapida);
@@ -225,12 +226,14 @@
     }
 
     .capMatriz__grid {
-        grid-template-columns: 50px repeat(5, 1fr);
+        grid-template-columns: 42px repeat(5, 1fr);
+        gap: 2px;
     }
 
     .capMatriz__celda {
-        min-height: 28px;
-        min-width: 28px;
+        min-height: 22px;
+        min-width: 22px;
+        max-width: 36px;
     }
 
     .capMatriz__headerDia {

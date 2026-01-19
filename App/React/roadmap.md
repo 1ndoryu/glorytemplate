@@ -170,6 +170,31 @@ App/
   - [x] H.14.3 Causa: Variables CSS (`--cap-fondo-secundario`, etc.) faltaban en `variables.css`
   - [x] H.14.4 Fix: Agregados aliases de compatibilidad en `variables.css`
 
+- [x] **H.15** Motor de generación no lee disponibilidad correctamente (CORREGIDO)
+  - [x] H.15.1 Al crear alumno con disponibilidad y presionar "Generar", no se crean clases
+  - [x] H.15.2 Causa: **Incompatibilidad total entre esquema BD y consulta SQL**
+    - Tabla usa: `dia` (varchar: "lunes"), `hora` (slot: "09:00")
+    - CalendarEngine buscaba: `dia_semana` (int 1-5), `hora_inicio`/`hora_fin` (rangos)
+  - [x] H.15.3 Archivos corregidos:
+    - `App/Services/CalendarEngine.php` - método `cargarDisponibilidad()`
+  - [x] H.15.4 Solución: Modificado `CalendarEngine.php` para leer columnas correctas
+  - [x] H.15.5 Añadido mapeo `DIAS_A_NUMERO` para convertir "lunes" → 1, "martes" → 2, etc.
+  - [x] H.15.6 Cada slot se trata como disponibilidad puntual de 1 hora (duración de clase)
+
+- [x] **H.16** Grilla de disponibilidad muy grande (CORREGIDO)
+  - [x] H.16.1 Los cuadros de selección de hora eran demasiado grandes
+  - [x] H.16.2 Compactado el tamaño de celdas en `disponibilidad.css`
+  - [x] H.16.3 Reducido de 32px → 24px en desktop, 28px → 22px en mobile
+  - [x] H.16.4 Añadido max-width para evitar celdas gigantes en pantallas grandes
+
+- [ ] **H.17** 🟠 Clases bloqueadas desaparecen al regenerar (PENDIENTE VERIFICACIÓN)
+  - [ ] H.17.1 Usuario reporta que con datos demo, clases bloqueadas también desaparecen
+  - [ ] H.17.2 `CalendarEngine::crearClases()` elimina solo `WHERE bloqueada = 0` (correcto)
+  - [ ] H.17.3 `CapSeeder::cleanAll()` elimina TODAS las clases sin filtrar bloqueo
+  - [ ] H.17.4 Verificar: ¿problema ocurre con datos NO demo?
+  - [ ] H.17.5 Verificar: ¿semana de generación = semana de las clases?
+  - [ ] H.17.6 Verificar: ¿clases realmente tenían `bloqueada = 1` en BD?
+
 ---
 
 ### Fase 0: Infraestructura Base
@@ -467,15 +492,6 @@ App/
 ---
 
 ### Fase 10: Testing y QA
-
-- [ ] **10.1** Tests manuales
-  - [ ] 10.1.1 Flujo completo de usuario
-  - [ ] 10.1.2 Edge cases del algoritmo
-  - [ ] 10.1.3 Responsividad mobile
-
-- [ ] **10.2** Tests automatizados (opcional)
-  - [ ] 10.2.1 Tests unitarios del algoritmo PHP
-  - [ ] 10.2.2 Tests de componentes React
 
 - [x] **10.3** Datos de ejemplo (Seeding/Demo)
   > **Propósito:** Facilitar testing y demos comerciales con datos realistas.

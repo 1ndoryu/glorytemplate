@@ -143,7 +143,22 @@ class CalendarEngine
     }
 
     /**
+     * Mapeo de nombre de día a número (1=lunes ... 5=viernes)
+     */
+    private const DIAS_A_NUMERO = [
+        'lunes' => 1,
+        'martes' => 2,
+        'miercoles' => 3,
+        'miércoles' => 3,
+        'jueves' => 4,
+        'viernes' => 5,
+    ];
+
+    /**
      * Carga la disponibilidad de los alumnos seleccionados
+     * 
+     * Lee columnas dia (varchar: "lunes", "martes"...) y hora (slot: "09:00")
+     * del esquema real y las convierte al formato interno del motor.
      */
     private function cargarDisponibilidad(array $alumnosIds): void
     {
@@ -157,9 +172,10 @@ class CalendarEngine
 
         $placeholders = implode(',', array_fill(0, count($alumnosIds), '%d'));
         $query = $wpdb->prepare(
-            "SELECT alumno_id, dia_semana, hora_inicio, hora_fin 
+            "SELECT alumno_id, dia, hora, disponible 
              FROM {$tabla} 
-             WHERE alumno_id IN ($placeholders)",
+             WHERE alumno_id IN ($placeholders)
+             AND disponible = 1",
             $alumnosIds
         );
 
@@ -167,14 +183,27 @@ class CalendarEngine
 
         $this->disponibilidadAlumnos = [];
         foreach ($resultados as $row) {
-            $alumnoId = $row['alumno_id'];
+            $alumnoId = (int) $row['alumno_id'];
+            $diaTexto = strtolower(trim($row['dia']));
+            $hora = $row['hora'];
+
+            /* Convertir nombre de día a número */
+            $diaSemana = self::DIAS_A_NUMERO[$diaTexto] ?? null;
+            if ($diaSemana === null) {
+                continue; // Día inválido, saltar
+            }
+
             if (!isset($this->disponibilidadAlumnos[$alumnoId])) {
                 $this->disponibilidadAlumnos[$alumnoId] = [];
             }
+
+            /* Cada slot es una disponibilidad puntual de 1 hora (duración de clase) */
+            $horaFin = date('H:i', strtotime($hora) + ($this->duracionClase * 60));
+
             $this->disponibilidadAlumnos[$alumnoId][] = [
-                'dia' => (int) $row['dia_semana'],
-                'inicio' => $row['hora_inicio'],
-                'fin' => $row['hora_fin'],
+                'dia' => $diaSemana,
+                'inicio' => $hora,
+                'fin' => $horaFin,
             ];
         }
     }
