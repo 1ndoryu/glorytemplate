@@ -74,6 +74,7 @@ PageManager::reactPage('cap-dashboard', 'CapDashboardIsland', function ($pageId)
             'id' => get_current_user_id(),
             'name' => wp_get_current_user()->display_name,
             'email' => wp_get_current_user()->user_email,
+            'isAdmin' => in_array('administrator', $user->roles),
         ],
         'restNonce' => wp_create_nonce('wp_rest'),
         'restUrl' => rest_url('cap/v1'),

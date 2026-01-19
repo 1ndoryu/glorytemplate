@@ -10,6 +10,7 @@ namespace Glory\App\Api;
 use Glory\App\Services\CapService;
 use Glory\App\Services\CalendarEngine;
 use Glory\App\Services\ReporteService;
+use Glory\App\Services\StripeService;
 use Glory\App\Models\Alumno;
 use Glory\App\Models\Clase;
 use Glory\App\Models\Configuracion;
@@ -130,6 +131,33 @@ class CapEndpoints
             'methods' => 'GET',
             'callback' => [$this, 'generarReporteControlHoras'],
             'permission_callback' => [$this, 'verificarPermisos'],
+        ]);
+
+        /* Endpoints de Stripe - Configuración (solo admin) */
+        register_rest_route(self::NAMESPACE, '/stripe/config', [
+            ['methods' => 'GET', 'callback' => [$this, 'obtenerConfigStripe'], 'permission_callback' => [$this, 'verificarPermisosAdmin']],
+            ['methods' => 'POST', 'callback' => [$this, 'guardarConfigStripe'], 'permission_callback' => [$this, 'verificarPermisosAdmin']],
+        ]);
+
+        /* Checkout (usuarios autenticados) */
+        register_rest_route(self::NAMESPACE, '/stripe/checkout', [
+            'methods' => 'POST',
+            'callback' => [$this, 'crearStripeCheckout'],
+            'permission_callback' => [$this, 'verificarPermisos'],
+        ]);
+
+        /* Portal de cliente (usuarios autenticados) */
+        register_rest_route(self::NAMESPACE, '/stripe/portal', [
+            'methods' => 'POST',
+            'callback' => [$this, 'obtenerStripePortal'],
+            'permission_callback' => [$this, 'verificarPermisos'],
+        ]);
+
+        /* Webhook de Stripe (público, validado por firma) */
+        register_rest_route(self::NAMESPACE, '/stripe-webhook', [
+            'methods' => 'POST',
+            'callback' => [$this, 'procesarStripeWebhook'],
+            'permission_callback' => '__return_true',
         ]);
     }
 
@@ -747,4 +775,132 @@ class CapEndpoints
         echo $pdf;
         exit;
     }
+
+    /* ============================================
+     * ENDPOINTS DE STRIPE
+     * ============================================ */
+
+    /**
+     * Obtiene el estado de configuración de Stripe
+     */
+    public function obtenerConfigStripe(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $stripeService = new StripeService();
+        return new \WP_REST_Response($stripeService->obtenerEstadoConfiguracion());
+    }
+
+    /**
+     * Guarda la configuración de Stripe (solo admin)
+     */
+    public function guardarConfigStripe(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $datos = $request->get_json_params();
+        $stripeService = new StripeService();
+        $resultado = $stripeService->guardarConfiguracion($datos);
+
+        $statusCode = $resultado['exito'] ? 200 : 400;
+        return new \WP_REST_Response($resultado, $statusCode);
+    }
+
+    /**
+     * Crea una sesión de checkout de Stripe
+     */
+    public function crearStripeCheckout(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $datos = $request->get_json_params();
+        $user = wp_get_current_user();
+
+        $urlExito = $datos['urlExito'] ?? home_url('/cap-dashboard/?pago=exitoso');
+        $urlCancelado = $datos['urlCancelado'] ?? home_url('/cap-dashboard/?pago=cancelado');
+
+        $stripeService = new StripeService();
+
+        if (!$stripeService->estaConfigurado()) {
+            return new \WP_REST_Response([
+                'error' => 'Stripe no está configurado. Contacta con el administrador.'
+            ], 503);
+        }
+
+        $resultado = $stripeService->crearCheckoutSession(
+            $centroId,
+            $user->user_email,
+            $urlExito,
+            $urlCancelado
+        );
+
+        if (isset($resultado['error'])) {
+            return new \WP_REST_Response(['error' => $resultado['error']], 400);
+        }
+
+        return new \WP_REST_Response($resultado);
+    }
+
+    /**
+     * Obtiene URL del portal de cliente de Stripe
+     */
+    public function obtenerStripePortal(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        /* Obtener el stripe_customer_id del centro */
+        global $wpdb;
+        $tabla = $wpdb->prefix . 'cap_suscripciones';
+        $suscripcion = $wpdb->get_row($wpdb->prepare(
+            "SELECT stripe_customer_id FROM {$tabla} WHERE centro_id = %d AND stripe_customer_id IS NOT NULL ORDER BY id DESC LIMIT 1",
+            $centroId
+        ), ARRAY_A);
+
+        if (!$suscripcion || empty($suscripcion['stripe_customer_id'])) {
+            return new \WP_REST_Response([
+                'error' => 'No tienes una suscripción activa con Stripe'
+            ], 404);
+        }
+
+        $datos = $request->get_json_params();
+        $urlRetorno = $datos['urlRetorno'] ?? home_url('/cap-dashboard/');
+
+        $stripeService = new StripeService();
+        $url = $stripeService->getPortalUrl($suscripcion['stripe_customer_id'], $urlRetorno);
+
+        if (!$url) {
+            return new \WP_REST_Response(['error' => 'Error al generar enlace del portal'], 500);
+        }
+
+        return new \WP_REST_Response(['url' => $url]);
+    }
+
+    /**
+     * Procesa webhooks de Stripe
+     * Este endpoint es público pero valida la firma del webhook
+     */
+    public function procesarStripeWebhook(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $payload = $request->get_body();
+        $sigHeader = $request->get_header('Stripe-Signature');
+
+        if (empty($sigHeader)) {
+            return new \WP_REST_Response(['error' => 'Falta header de firma'], 400);
+        }
+
+        $stripeService = new StripeService();
+        $resultado = $stripeService->procesarWebhook($payload, $sigHeader);
+
+        $statusCode = $resultado['status'] ?? ($resultado['exito'] ? 200 : 400);
+        unset($resultado['status']);
+
+        return new \WP_REST_Response($resultado, $statusCode);
+    }
 }
+

@@ -15,6 +15,7 @@ interface CapDashboardIslandProps {
         id: number;
         name: string;
         email: string;
+        isAdmin?: boolean;
     };
     restNonce: string;
     restUrl: string;
@@ -51,7 +52,7 @@ export function CapDashboardIsland({user, restNonce, restUrl, siteUrl}: CapDashb
             case 'alumnos':
                 return <SeccionAlumnos />;
             case 'configuracion':
-                return <SeccionConfiguracion userName={user.name} userEmail={user.email} />;
+                return <SeccionConfiguracion userName={user.name} userEmail={user.email} isAdmin={user.isAdmin} />;
             case 'reportes':
                 return <SeccionReportes />;
             default:

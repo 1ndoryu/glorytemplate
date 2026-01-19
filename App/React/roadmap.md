@@ -1,7 +1,7 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
-> **Última actualización:** 2026-01-18  
-> **Estado:** ✅ Fase 8 completada - Inicio Fase 9 (Stripe)  
+> **Última actualización:** 2026-01-19  
+> **Estado:** ✅ Fase 9 (Stripe) - Backend y configuración completados  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 ---
@@ -436,24 +436,33 @@ App/
 
 ### Fase 9: Pasarela de Pago (Stripe)
 
-- [ ] **9.1** Configuración de Stripe
-  - [ ] 9.1.1 Clase `StripeService.php`
-  - [ ] 9.1.2 Keys en `wp-config.php` o opciones
-  - [ ] 9.1.3 Productos y precios en Stripe Dashboard
+- [x] **9.1** Configuración de Stripe
+  - [x] 9.1.1 Clase `StripeService.php` con encriptación de keys
+  - [x] 9.1.2 Keys configurables desde panel admin (no requiere wp-config)
+  - [x] 9.1.3 Panel `PanelStripe.tsx` para configurar API keys (solo administrators)
+  - [ ] 9.1.4 Productos y precios en Stripe Dashboard (requiere acción manual del cliente)
 
-- [ ] **9.2** Flujo de suscripción
-  - [ ] 9.2.1 Checkout de Stripe al registrarse
-  - [ ] 9.2.2 Webhook: `POST /wp-json/cap/v1/stripe-webhook`
-  - [ ] 9.2.3 Activación de cuenta tras pago
+- [x] **9.2** Flujo de suscripción
+  - [x] 9.2.1 Endpoint: `POST /wp-json/cap/v1/stripe/checkout`
+  - [x] 9.2.2 Webhook: `POST /wp-json/cap/v1/stripe-webhook`
+  - [x] 9.2.3 Activación de cuenta tras checkout completado
+  - [ ] 9.2.4 Integrar checkout en flujo de registro (pendiente)
 
-- [ ] **9.3** Gestión de suscripción
-  - [ ] 9.3.1 Enlace a Stripe Customer Portal
-  - [ ] 9.3.2 Actualizar estado en `wp_cap_suscripciones`
+- [x] **9.3** Gestión de suscripción
+  - [x] 9.3.1 Endpoint: `POST /wp-json/cap/v1/stripe/portal`
+  - [x] 9.3.2 Actualización automática de estados via webhooks
 
-- [ ] **9.4** Manejo de estados
-  - [ ] 9.4.1 Activa → acceso completo
-  - [ ] 9.4.2 Expirada → acceso limitado + banner
-  - [ ] 9.4.3 Pago fallido → gracia de 3 días
+- [x] **9.4** Manejo de estados (via webhooks)
+  - [x] 9.4.1 Activa → `checkout.session.completed`, `invoice.payment_succeeded`
+  - [x] 9.4.2 Pago fallido → `invoice.payment_failed` → 3 días de gracia
+  - [x] 9.4.3 Cancelada → `customer.subscription.deleted`
+
+> **Nota:** Para completar la integración, el cliente debe:
+> 1. Crear cuenta en Stripe y configurar productos/precios
+> 2. Ingresar las API keys en el panel de configuración
+> 3. Configurar el webhook en Stripe Dashboard apuntando a la URL mostrada
+> 4. Instalar SDK: `composer require stripe/stripe-php`
+
 
 ---
 
@@ -580,23 +589,28 @@ Fase 3  Fase 4 (Alumnos)
 
 ## 7. Endpoints REST API
 
-| Método | Endpoint                                    | Descripción              |
-| ------ | ------------------------------------------- | ------------------------ |
-| GET    | `/wp-json/cap/v1/config`                    | Configuración del centro |
-| POST   | `/wp-json/cap/v1/config`                    | Guardar configuración    |
-| GET    | `/wp-json/cap/v1/alumnos`                   | Lista de alumnos         |
-| POST   | `/wp-json/cap/v1/alumnos`                   | Crear alumno             |
-| PUT    | `/wp-json/cap/v1/alumnos/{id}`              | Editar alumno            |
-| DELETE | `/wp-json/cap/v1/alumnos/{id}`              | Eliminar alumno          |
-| GET    | `/wp-json/cap/v1/disponibilidad/{alumnoId}` | Disponibilidad de alumno |
-| POST   | `/wp-json/cap/v1/disponibilidad/{alumnoId}` | Guardar disponibilidad   |
-| GET    | `/wp-json/cap/v1/clases`                    | Clases de la semana      |
-| POST   | `/wp-json/cap/v1/generar`                   | Ejecutar algoritmo       |
-| GET    | `/wp-json/cap/v1/reportes/{tipo}`           | Generar PDF              |
-| POST   | `/wp-json/cap/v1/stripe-webhook`            | Webhook de Stripe        |
-| POST   | `/wp-json/cap/v1/demo/seed`                 | Poblar datos de ejemplo  |
-| DELETE | `/wp-json/cap/v1/demo/clean`                | Limpiar datos de ejemplo |
-| GET    | `/wp-json/cap/v1/demo/status`               | Estado del modo demo     |
+| Método | Endpoint                                    | Descripción                   |
+| ------ | ------------------------------------------- | ----------------------------- |
+| GET    | `/wp-json/cap/v1/config`                    | Configuración del centro      |
+| POST   | `/wp-json/cap/v1/config`                    | Guardar configuración         |
+| GET    | `/wp-json/cap/v1/alumnos`                   | Lista de alumnos              |
+| POST   | `/wp-json/cap/v1/alumnos`                   | Crear alumno                  |
+| PUT    | `/wp-json/cap/v1/alumnos/{id}`              | Editar alumno                 |
+| DELETE | `/wp-json/cap/v1/alumnos/{id}`              | Eliminar alumno               |
+| GET    | `/wp-json/cap/v1/disponibilidad/{alumnoId}` | Disponibilidad de alumno      |
+| POST   | `/wp-json/cap/v1/disponibilidad/{alumnoId}` | Guardar disponibilidad        |
+| GET    | `/wp-json/cap/v1/clases`                    | Clases de la semana           |
+| POST   | `/wp-json/cap/v1/generar`                   | Ejecutar algoritmo            |
+| GET    | `/wp-json/cap/v1/reportes/{tipo}`           | Generar PDF                   |
+| GET    | `/wp-json/cap/v1/stripe/config`             | Estado config Stripe (admin)  |
+| POST   | `/wp-json/cap/v1/stripe/config`             | Guardar config Stripe (admin) |
+| POST   | `/wp-json/cap/v1/stripe/checkout`           | Crear sesión de checkout      |
+| POST   | `/wp-json/cap/v1/stripe/portal`             | URL portal cliente Stripe     |
+| POST   | `/wp-json/cap/v1/stripe-webhook`            | Webhook de Stripe             |
+| POST   | `/wp-json/cap/v1/demo/seed`                 | Poblar datos de ejemplo       |
+| DELETE | `/wp-json/cap/v1/demo/clean`                | Limpiar datos de ejemplo      |
+| GET    | `/wp-json/cap/v1/demo/status`               | Estado del modo demo          |
+
 
 ---
 

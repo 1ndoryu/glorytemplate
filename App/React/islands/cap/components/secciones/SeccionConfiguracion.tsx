@@ -3,18 +3,20 @@
  *
  * Vista de configuración del centro, horarios, capacidad y suscripción.
  * Implementación completa de la Fase 3 del ROADMAP.
+ * Incluye configuración de Stripe (solo para administradores).
  */
 
 import {useConfiguracion} from '../../hooks/useConfiguracion';
-import {PanelCentro, PanelHorarios, PanelCapacidad, PanelSuscripcion, PanelDemo} from '../configuracion';
+import {PanelCentro, PanelHorarios, PanelCapacidad, PanelSuscripcion, PanelDemo, PanelStripe} from '../configuracion';
 import {Alerta, Spinner} from '../ui';
 
 interface SeccionConfiguracionProps {
     userName: string;
     userEmail: string;
+    isAdmin?: boolean;
 }
 
-export function SeccionConfiguracion({userName, userEmail}: SeccionConfiguracionProps) {
+export function SeccionConfiguracion({userName, userEmail, isAdmin = false}: SeccionConfiguracionProps) {
     const {centro, config, suscripcion, cargando, guardandoCentro, guardandoHorarios, error, exito, guardarCentro, guardarHorarios, limpiarMensajes} = useConfiguracion();
 
     /* Limpiar mensajes después de 4 segundos */
@@ -57,12 +59,14 @@ export function SeccionConfiguracion({userName, userEmail}: SeccionConfiguracion
                     <PanelHorarios config={config} guardando={guardandoHorarios} onGuardar={guardarHorarios} />
                 </div>
 
-                {/* Columna derecha: Capacidad, Suscripción y Demo */}
+                {/* Columna derecha: Capacidad, Suscripción, Demo y Stripe */}
                 <div className="capFlexCol capGap--lg">
                     <PanelCapacidad config={config} guardando={guardandoHorarios} onGuardar={guardarHorarios} />
                     <PanelSuscripcion suscripcion={suscripcion} userName={userName} userEmail={userEmail} />
                     {/* Panel Demo: solo visible si el modo está permitido (WP_DEBUG o CAP_ALLOW_DEMO_MODE) */}
                     <PanelDemo />
+                    {/* Panel Stripe: solo visible para administradores */}
+                    {isAdmin && <PanelStripe />}
                 </div>
             </div>
         </div>

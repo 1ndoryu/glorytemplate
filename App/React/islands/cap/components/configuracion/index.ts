@@ -9,3 +9,4 @@ export {PanelHorarios} from './PanelHorarios';
 export {PanelCapacidad} from './PanelCapacidad';
 export {PanelSuscripcion} from './PanelSuscripcion';
 export {PanelDemo} from './PanelDemo';
+export {PanelStripe} from './PanelStripe';
