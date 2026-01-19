@@ -6,6 +6,7 @@
  */
 
 import {useState, useCallback, useEffect} from 'react';
+import {procesarErrorApi, obtenerMensajeContextual, interpretarErrorRed, formatearMensajeError} from '../constants/cap-errores';
 
 export type DiaSemana = 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes';
 
@@ -90,7 +91,8 @@ export function useDisponibilidad(alumnoIdInicial?: number): UseDisponibilidadRe
                     }));
                     return;
                 }
-                throw new Error('Error al cargar disponibilidad');
+                const mensajeError = await procesarErrorApi(respuesta, 'disponibilidad', 'cargar');
+                throw new Error(mensajeError);
             }
 
             const datos = await respuesta.json();
@@ -112,10 +114,18 @@ export function useDisponibilidad(alumnoIdInicial?: number): UseDisponibilidadRe
                 cargando: false
             }));
         } catch (err) {
+            const contextual = obtenerMensajeContextual('disponibilidad', 'cargar');
+            let mensajeError = err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`;
+
+            if (err instanceof Error && err.message.includes('fetch')) {
+                const errorRed = interpretarErrorRed(err);
+                mensajeError = formatearMensajeError(errorRed);
+            }
+
             setEstado(prev => ({
                 ...prev,
                 cargando: false,
-                error: err instanceof Error ? err.message : 'Error desconocido'
+                error: mensajeError
             }));
         }
     }, []);
@@ -197,7 +207,8 @@ export function useDisponibilidad(alumnoIdInicial?: number): UseDisponibilidadRe
             });
 
             if (!respuesta.ok) {
-                throw new Error('Error al guardar disponibilidad');
+                const mensajeError = await procesarErrorApi(respuesta, 'disponibilidad', 'guardar');
+                throw new Error(mensajeError);
             }
 
             setEstado(prev => ({
@@ -209,10 +220,11 @@ export function useDisponibilidad(alumnoIdInicial?: number): UseDisponibilidadRe
 
             return true;
         } catch (err) {
+            const contextual = obtenerMensajeContextual('disponibilidad', 'guardar');
             setEstado(prev => ({
                 ...prev,
                 guardando: false,
-                error: err instanceof Error ? err.message : 'Error al guardar'
+                error: err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`
             }));
             return false;
         }

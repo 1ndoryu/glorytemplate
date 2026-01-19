@@ -6,6 +6,7 @@
  */
 
 import {useState, useEffect, useCallback} from 'react';
+import {procesarErrorApi, obtenerMensajeContextual, interpretarErrorRed, formatearMensajeError} from '../constants/cap-errores';
 
 export interface DatosCentro {
     id: number;
@@ -85,7 +86,8 @@ export function useConfiguracion(): UseConfiguracionReturn {
             });
 
             if (!respuesta.ok) {
-                throw new Error('Error al cargar configuración');
+                const mensajeError = await procesarErrorApi(respuesta, 'configuracion', 'cargar');
+                throw new Error(mensajeError);
             }
 
             const datos = await respuesta.json();
@@ -116,10 +118,18 @@ export function useConfiguracion(): UseConfiguracionReturn {
                 cargando: false
             }));
         } catch (err) {
+            const contextual = obtenerMensajeContextual('configuracion', 'cargar');
+            let mensajeError = err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`;
+
+            if (err instanceof Error && err.message.includes('fetch')) {
+                const errorRed = interpretarErrorRed(err);
+                mensajeError = formatearMensajeError(errorRed);
+            }
+
             setEstado(prev => ({
                 ...prev,
                 cargando: false,
-                error: err instanceof Error ? err.message : 'Error desconocido'
+                error: mensajeError
             }));
         }
     }, []);
@@ -139,7 +149,8 @@ export function useConfiguracion(): UseConfiguracionReturn {
             });
 
             if (!respuesta.ok) {
-                throw new Error('Error al guardar datos del centro');
+                const mensajeError = await procesarErrorApi(respuesta, 'configuracion', 'guardar');
+                throw new Error(mensajeError);
             }
 
             /* Actualizar estado local */
@@ -152,10 +163,11 @@ export function useConfiguracion(): UseConfiguracionReturn {
 
             return true;
         } catch (err) {
+            const contextual = obtenerMensajeContextual('configuracion', 'guardar');
             setEstado(prev => ({
                 ...prev,
                 guardandoCentro: false,
-                error: err instanceof Error ? err.message : 'Error al guardar'
+                error: err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`
             }));
             return false;
         }
@@ -176,7 +188,8 @@ export function useConfiguracion(): UseConfiguracionReturn {
             });
 
             if (!respuesta.ok) {
-                throw new Error('Error al guardar configuración de horarios');
+                const mensajeError = await procesarErrorApi(respuesta, 'configuracion', 'guardar');
+                throw new Error(mensajeError);
             }
 
             setEstado(prev => ({
@@ -188,10 +201,11 @@ export function useConfiguracion(): UseConfiguracionReturn {
 
             return true;
         } catch (err) {
+            const contextual = obtenerMensajeContextual('configuracion', 'guardar');
             setEstado(prev => ({
                 ...prev,
                 guardandoHorarios: false,
-                error: err instanceof Error ? err.message : 'Error al guardar'
+                error: err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`
             }));
             return false;
         }

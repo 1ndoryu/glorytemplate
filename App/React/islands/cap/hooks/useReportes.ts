@@ -7,6 +7,7 @@
 
 import {useState, useCallback} from 'react';
 import type {Alumno} from '../types';
+import {obtenerMensajeContextual, interpretarErrorHttp, formatearMensajeError} from '../constants/cap-errores';
 
 interface EstadoReportes {
     generando: boolean;
@@ -56,7 +57,13 @@ export function useReportes(): UseReportesReturn {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || 'Error al generar el reporte');
+                const contextual = obtenerMensajeContextual('reportes', 'generar');
+                const mensajeBackend = errorData.error || errorData.message;
+                if (mensajeBackend) {
+                    const interpretado = interpretarErrorHttp(response.status, mensajeBackend);
+                    throw new Error(formatearMensajeError(interpretado));
+                }
+                throw new Error(`${contextual.fallback} ${contextual.sugerencia}`);
             }
 
             /* Obtener el blob del PDF */
@@ -79,7 +86,8 @@ export function useReportes(): UseReportesReturn {
                 exito: `Reporte de ${nombreAlumno} descargado correctamente`
             }));
         } catch (err) {
-            const mensaje = err instanceof Error ? err.message : 'Error desconocido';
+            const contextual = obtenerMensajeContextual('reportes', 'generar');
+            const mensaje = err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`;
             setEstado(prev => ({
                 ...prev,
                 generando: false,
@@ -112,7 +120,13 @@ export function useReportes(): UseReportesReturn {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || 'Error al generar el reporte');
+                const contextual = obtenerMensajeContextual('reportes', 'generar');
+                const mensajeBackend = errorData.error || errorData.message;
+                if (mensajeBackend) {
+                    const interpretado = interpretarErrorHttp(response.status, mensajeBackend);
+                    throw new Error(formatearMensajeError(interpretado));
+                }
+                throw new Error(`${contextual.fallback} ${contextual.sugerencia}`);
             }
 
             /* Obtener el blob del PDF */
@@ -135,7 +149,8 @@ export function useReportes(): UseReportesReturn {
                 exito: 'Reporte semanal descargado correctamente'
             }));
         } catch (err) {
-            const mensaje = err instanceof Error ? err.message : 'Error desconocido';
+            const contextual = obtenerMensajeContextual('reportes', 'generar');
+            const mensaje = err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`;
             setEstado(prev => ({
                 ...prev,
                 generando: false,

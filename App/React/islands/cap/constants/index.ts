@@ -3,3 +3,4 @@
  */
 
 export * from './cap-constants';
+export * from './cap-errores';

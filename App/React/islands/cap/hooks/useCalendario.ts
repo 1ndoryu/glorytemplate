@@ -12,6 +12,7 @@
 import {useState, useCallback, useEffect} from 'react';
 import type {Clase, DiaSemana, ConflictoAforo, ExclusionesConflicto, ResultadoGeneracion, PreviewGeneracion} from '../types';
 import {getLunesDeSemana, getFechasSemana, DIAS_SEMANA} from '../constants';
+import {interpretarErrorHttp, interpretarErrorRed, formatearMensajeError, obtenerMensajeContextual, procesarErrorApi} from '../constants/cap-errores';
 
 /* Interfaz para cambios de una clase */
 interface CambiosClase {
@@ -111,7 +112,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             });
 
             if (!response.ok) {
-                throw new Error('Error al cargar las clases');
+                const mensajeError = await procesarErrorApi(response, 'calendario', 'cargar');
+                throw new Error(mensajeError);
             }
 
             const data = await response.json();
@@ -131,7 +133,12 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             setClases(clasesFormateadas);
         } catch (err) {
             console.error('Error cargando clases:', err);
-            setError(err instanceof Error ? err.message : 'Error desconocido');
+            if (err instanceof Error && err.message.includes('fetch')) {
+                const errorRed = interpretarErrorRed(err);
+                setError(formatearMensajeError(errorRed));
+            } else {
+                setError(err instanceof Error ? err.message : 'Error desconocido al cargar las clases.');
+            }
         } finally {
             setCargando(false);
         }
@@ -186,12 +193,14 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Error al actualizar bloqueo');
+                    const mensajeError = await procesarErrorApi(response, 'calendario', 'bloquear');
+                    throw new Error(mensajeError);
                 }
             } catch (err) {
                 /* Revertir cambio optimista */
                 setClases(prev => prev.map(c => (c.id === claseId ? {...c, bloqueada: clase.bloqueada} : c)));
-                setError('Error al cambiar el bloqueo de la clase');
+                const contextual = obtenerMensajeContextual('calendario', 'bloquear');
+                setError(err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`);
             }
         },
         [clases, getNonce]
@@ -244,11 +253,13 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 await cargarClases();
             } else {
                 /* Error sin conflictos */
-                setError(resultado.mensaje || 'Error al generar calendario');
+                const contextual = obtenerMensajeContextual('calendario', 'generar');
+                setError(resultado.mensaje || `${contextual.fallback} ${contextual.sugerencia}`);
             }
         } catch (err) {
             console.error('Error generando calendario:', err);
-            setError(err instanceof Error ? err.message : 'Error al generar');
+            const contextual = obtenerMensajeContextual('calendario', 'generar');
+            setError(err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`);
         } finally {
             setGenerando(false);
         }
@@ -280,11 +291,13 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                     setMostrarModalConflictos(false);
                     await cargarClases();
                 } else {
-                    setError(resultado.mensaje || 'Error al generar con exclusiones');
+                    const contextual = obtenerMensajeContextual('calendario', 'generar');
+                    setError(resultado.mensaje || `${contextual.fallback} ${contextual.sugerencia}`);
                 }
             } catch (err) {
                 console.error('Error generando con exclusiones:', err);
-                setError(err instanceof Error ? err.message : 'Error al generar');
+                const contextual = obtenerMensajeContextual('calendario', 'generar');
+                setError(err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`);
             } finally {
                 setGenerando(false);
             }
@@ -364,7 +377,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Error al actualizar la clase');
+                    const mensajeError = await procesarErrorApi(response, 'calendario', 'actualizar');
+                    throw new Error(mensajeError);
                 }
 
                 /* Cerrar modal tras éxito */
@@ -376,7 +390,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                     setClases(ultimo);
                     setHistorialClases(prev => prev.slice(0, -1));
                 }
-                setError(err instanceof Error ? err.message : 'Error al actualizar');
+                const contextual = obtenerMensajeContextual('calendario', 'actualizar');
+                setError(err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`);
             } finally {
                 setGuardandoEdicion(false);
             }
@@ -401,7 +416,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
 
             /* No mover clases bloqueadas */
             if (clase.bloqueada) {
-                setError('No se puede mover una clase bloqueada');
+                setError('No se puede mover una clase bloqueada. Desbloquéala primero si necesitas cambiarla de día.');
                 return;
             }
 
@@ -434,7 +449,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Error al mover la clase');
+                    const mensajeError = await procesarErrorApi(response, 'calendario', 'mover');
+                    throw new Error(mensajeError);
                 }
             } catch (err) {
                 /* Revertir cambio optimista usando el último snapshot */
@@ -443,7 +459,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                     setClases(ultimo);
                     setHistorialClases(prev => prev.slice(0, -1));
                 }
-                setError(err instanceof Error ? err.message : 'Error al mover clase');
+                const contextual = obtenerMensajeContextual('calendario', 'mover');
+                setError(err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`);
             } finally {
                 setMoviendo(false);
             }

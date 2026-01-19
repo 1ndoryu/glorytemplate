@@ -6,6 +6,7 @@
  */
 
 import {useState, useEffect, useCallback} from 'react';
+import {procesarErrorApi, obtenerMensajeContextual, interpretarErrorRed, formatearMensajeError} from '../constants/cap-errores';
 
 export interface Alumno {
     id: number;
@@ -88,7 +89,8 @@ export function useAlumnos(): UseAlumnosReturn {
             });
 
             if (!respuesta.ok) {
-                throw new Error('Error al cargar alumnos');
+                const mensajeError = await procesarErrorApi(respuesta, 'alumnos', 'cargar');
+                throw new Error(mensajeError);
             }
 
             const datos = await respuesta.json();
@@ -100,10 +102,18 @@ export function useAlumnos(): UseAlumnosReturn {
                 cargando: false
             }));
         } catch (err) {
+            const contextual = obtenerMensajeContextual('alumnos', 'cargar');
+            let mensajeError = err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`;
+
+            if (err instanceof Error && err.message.includes('fetch')) {
+                const errorRed = interpretarErrorRed(err);
+                mensajeError = formatearMensajeError(errorRed);
+            }
+
             setEstado(prev => ({
                 ...prev,
                 cargando: false,
-                error: err instanceof Error ? err.message : 'Error desconocido'
+                error: mensajeError
             }));
         }
     }, [estado.filtros]);
@@ -124,8 +134,9 @@ export function useAlumnos(): UseAlumnosReturn {
                 });
 
                 if (!respuesta.ok) {
-                    const errorData = await respuesta.json();
-                    throw new Error(errorData.error || 'Error al crear alumno');
+                    const errorData = await respuesta.json().catch(() => ({}));
+                    const contextual = obtenerMensajeContextual('alumnos', 'crear');
+                    throw new Error(errorData.error || `${contextual.fallback} ${contextual.sugerencia}`);
                 }
 
                 setEstado(prev => ({
@@ -138,10 +149,11 @@ export function useAlumnos(): UseAlumnosReturn {
                 await cargarAlumnos();
                 return true;
             } catch (err) {
+                const contextual = obtenerMensajeContextual('alumnos', 'crear');
                 setEstado(prev => ({
                     ...prev,
                     guardando: false,
-                    error: err instanceof Error ? err.message : 'Error al crear'
+                    error: err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`
                 }));
                 return false;
             }
@@ -164,7 +176,8 @@ export function useAlumnos(): UseAlumnosReturn {
             });
 
             if (!respuesta.ok) {
-                throw new Error('Error al actualizar alumno');
+                const mensajeError = await procesarErrorApi(respuesta, 'alumnos', 'actualizar');
+                throw new Error(mensajeError);
             }
 
             /* Actualizar en estado local */
@@ -177,10 +190,11 @@ export function useAlumnos(): UseAlumnosReturn {
 
             return true;
         } catch (err) {
+            const contextual = obtenerMensajeContextual('alumnos', 'actualizar');
             setEstado(prev => ({
                 ...prev,
                 guardando: false,
-                error: err instanceof Error ? err.message : 'Error al actualizar'
+                error: err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`
             }));
             return false;
         }
@@ -199,7 +213,8 @@ export function useAlumnos(): UseAlumnosReturn {
             });
 
             if (!respuesta.ok) {
-                throw new Error('Error al eliminar alumno');
+                const mensajeError = await procesarErrorApi(respuesta, 'alumnos', 'eliminar');
+                throw new Error(mensajeError);
             }
 
             /* Eliminar del estado local */
@@ -213,10 +228,11 @@ export function useAlumnos(): UseAlumnosReturn {
 
             return true;
         } catch (err) {
+            const contextual = obtenerMensajeContextual('alumnos', 'eliminar');
             setEstado(prev => ({
                 ...prev,
                 eliminando: null,
-                error: err instanceof Error ? err.message : 'Error al eliminar'
+                error: err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`
             }));
             return false;
         }

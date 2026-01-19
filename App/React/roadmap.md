@@ -134,15 +134,15 @@ App/
   - [x] H.8.4 Solución: Añadido `CODIGOS_ALIAS` en `cap-constants.ts` para mapear códigos snake_case
   - [x] H.8.5 `TarjetaClase.tsx` ahora usa `getAsignaturaPorCodigo()` cuando recibe un string
 
-- [ ] **H.9** Mensajes de error explicativos para el usuario
-  - [ ] H.9.1 Actualmente los errores muestran mensajes genéricos ("Error al mover la clase")
-  - [ ] H.9.2 Implementar mensajes descriptivos que expliquen la causa del problema
-  - [ ] H.9.3 Ejemplos de mejora:
-    - "No se puede mover: ya existe una clase en ese horario"
-    - "No se puede mover una clase bloqueada"
-    - "Error de conexión: intenta de nuevo"
-  - [ ] H.9.4 Revisar todos los puntos que muestran errores y mejorar los mensajes
-  - [ ] H.9.5 Considerar internacionalización futura (i18n)
+- [x] **H.9** Mensajes de error explicativos para el usuario
+  - [x] H.9.1 Actualmente los errores muestran mensajes genéricos (resuelto)
+  - [x] H.9.2 Implementar mensajes descriptivos que expliquen la causa del problema
+  - [x] H.9.3 Ejemplos implementados:
+    - "No se puede mover: la clase está bloqueada. Desbloquéala primero"
+    - "Error de conexión: verifica tu internet"
+    - "Centro no encontrado: contacta con soporte"
+  - [x] H.9.4 Creado sistema centralizado en `cap-errores.ts`
+  - [x] H.9.5 Preparado para internacionalización futura (estructura modular)
 
 ---
 
