@@ -688,7 +688,8 @@
 }
 
 .capTarjetaClaseDraggable--arrastrando {
-    opacity: 0.5;
+    opacity: 0.4;
+    transform: scale(0.98);
 }
 
 .capTarjetaClaseDraggable--deshabilitado {
@@ -697,12 +698,16 @@
 
 /* Overlay que sigue al cursor durante el arrastre */
 .capDragOverlay {
-    box-shadow: var(--cap-sombra-lg);
-    transform: rotate(3deg);
+    box-shadow:
+        0 8px 24px hsla(var(--cap-primario-hsl), 0.25),
+        0 4px 12px hsla(0, 0%, 0%, 0.15);
+    transform: rotate(3deg) scale(1.05);
     cursor: grabbing;
     z-index: var(--cap-z-tooltip);
     opacity: 0.95;
     background: var(--cap-fondo-tarjeta);
+    border-radius: var(--cap-radio-md);
+    transition: transform 0.15s ease;
 }
 
 /* Zona drop para cada día */
@@ -712,24 +717,59 @@
     flex-direction: column;
     min-height: 200px;
     border-radius: var(--cap-radio-md);
-    transition: all var(--cap-transicion-rapida);
+    transition: all 0.2s ease;
+    position: relative;
 }
 
-/* Feedback visual cuando el cursor está sobre la zona */
-.capZonaDropDia--sobre {
-    background: var(--cap-primario-50);
-    outline: 2px dashed var(--cap-primario-400);
-    outline-offset: -2px;
+/* Animación de pulso para zonas activas */
+@keyframes capDropZonePulse {
+    0%,
+    100% {
+        opacity: 1;
+        background: var(--cap-fondo-sutil);
+    }
+    50% {
+        opacity: 0.7;
+        background: hsla(var(--cap-primario-hsl), 0.08);
+    }
 }
 
-/* Feedback visual mientras hay arrastre activo */
+/* Feedback visual mientras hay arrastre activo (todas las zonas) */
 .capZonaDropDia--activo {
     outline: 2px dashed var(--cap-borde-medio);
     outline-offset: -2px;
+    animation: capDropZonePulse 1.5s ease-in-out infinite;
 }
 
 .capZonaDropDia--activo:not(.capZonaDropDia--sobre) {
     background: var(--cap-fondo-sutil);
+}
+
+/* Feedback visual cuando el cursor está sobre la zona (hover) */
+.capZonaDropDia--sobre {
+    background: hsla(var(--cap-primario-hsl), 0.12);
+    outline: 2px solid var(--cap-primario-400);
+    outline-offset: -2px;
+    animation: none;
+}
+
+/* Indicador "Soltar aquí" al hacer hover */
+.capZonaDropDia--sobre::before {
+    content: '↓ Soltar aquí';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--cap-primario-500);
+    color: var(--cap-texto-invertido);
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    border-radius: var(--cap-radio-md);
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-semibold);
+    z-index: 10;
+    pointer-events: none;
+    box-shadow: var(--cap-sombra-md);
+    white-space: nowrap;
 }
 
 /* Animación sutil al soltar */

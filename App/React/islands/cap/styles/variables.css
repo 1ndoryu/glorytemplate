@@ -12,6 +12,8 @@
        ======================================== */
 
     /* Primario - Azul corporativo */
+    /* Base HSL para uso con transparencias: hsla(var(--cap-primario-hsl), 0.5) */
+    --cap-primario-hsl: 217, 80%, 50%;
     --cap-primario-50: hsl(217, 91%, 97%);
     --cap-primario-100: hsl(217, 89%, 93%);
     --cap-primario-200: hsl(217, 87%, 85%);
