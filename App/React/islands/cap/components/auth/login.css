@@ -388,6 +388,66 @@
 }
 
 /* ========================================
+   Opciones post-registro (Stripe/Trial)
+   ======================================== */
+
+.capRegistroOpciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+}
+
+.capRegistroOpcion {
+    padding: var(--cap-espacio-md);
+    border-radius: var(--cap-radio-md);
+    background: var(--cap-gris-50);
+    border: 1px solid var(--cap-gris-200);
+}
+
+.capRegistroOpcion h3 {
+    font-size: var(--cap-texto-base);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-gris-800);
+    margin: 0 0 var(--cap-espacio-xs);
+}
+
+.capRegistroOpcion p {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-gris-600);
+    margin: 0 0 var(--cap-espacio-md);
+}
+
+.capRegistroOpcion--destacada {
+    background: linear-gradient(135deg, var(--cap-primario-50), var(--cap-secundario-50));
+    border-color: var(--cap-primario-200);
+}
+
+.capRegistroOpcion--destacada h3 {
+    color: var(--cap-primario-700);
+}
+
+.capRegistroSeparador {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-md);
+}
+
+.capRegistroSeparador::before,
+.capRegistroSeparador::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--cap-gris-200);
+}
+
+.capRegistroSeparador span {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-gris-400);
+    text-transform: uppercase;
+    font-weight: var(--cap-peso-medium);
+}
+
+/* ========================================
    Tema oscuro
    ======================================== */
 

@@ -40,6 +40,11 @@ export function CapRegistroIsland({restUrl = '/wp-json/cap/v1', restNonce = '', 
     const [errorGeneral, setErrorGeneral] = useState('');
     const [registroExitoso, setRegistroExitoso] = useState(false);
 
+    /* Estado para checkout de Stripe */
+    const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState<string | null>(null);
+    const [diasTrial, setDiasTrial] = useState(14);
+    const [redireccionando, setRedireccionando] = useState(false);
+
     /* Validación de formulario */
     const validarFormulario = (): boolean => {
         const nuevosErrores: ErroresFormulario = {};
@@ -120,11 +125,27 @@ export function CapRegistroIsland({restUrl = '/wp-json/cap/v1', restNonce = '', 
                 throw new Error(data.message || 'Error al registrar');
             }
 
+            /* Guardar información de Stripe si está disponible */
+            if (data.stripeCheckoutUrl) {
+                setStripeCheckoutUrl(data.stripeCheckoutUrl);
+            }
+            if (data.diasTrial) {
+                setDiasTrial(data.diasTrial);
+            }
+
             setRegistroExitoso(true);
         } catch (err) {
             setErrorGeneral(err instanceof Error ? err.message : 'Error al crear la cuenta');
         } finally {
             setCargando(false);
+        }
+    };
+
+    /* Handler para ir al checkout de Stripe */
+    const irACheckout = () => {
+        if (stripeCheckoutUrl) {
+            setRedireccionando(true);
+            window.location.href = stripeCheckoutUrl;
         }
     };
 
@@ -143,12 +164,49 @@ export function CapRegistroIsland({restUrl = '/wp-json/cap/v1', restNonce = '', 
                         </div>
 
                         <Alerta variante="exito" className="capMb--md">
-                            Hemos enviado un correo de verificación a <strong>{email}</strong>
+                            Hemos enviado un correo de confirmación a <strong>{email}</strong>
                         </Alerta>
 
-                        <Boton variante="primario" anchoCompleto onClick={() => (window.location.href = loginUrl)} className="capLoginBoton">
-                            Ir a Iniciar Sesión
-                        </Boton>
+                        {/* Opciones post-registro */}
+                        <div className="capRegistroOpciones">
+                            {stripeCheckoutUrl ? (
+                                <>
+                                    {/* Opción premium: Suscribirse ahora */}
+                                    <div className="capRegistroOpcion capRegistroOpcion--destacada">
+                                        <h3>🚀 Acceso Completo</h3>
+                                        <p>Suscríbete ahora y desbloquea todas las funcionalidades sin límites.</p>
+                                        <Boton variante="primario" anchoCompleto onClick={irACheckout} cargando={redireccionando} className="capLoginBoton">
+                                            {redireccionando ? 'Redirigiendo a pago...' : 'Suscribirme Ahora'}
+                                        </Boton>
+                                    </div>
+
+                                    <div className="capRegistroSeparador">
+                                        <span>o</span>
+                                    </div>
+
+                                    {/* Opción trial */}
+                                    <div className="capRegistroOpcion">
+                                        <h3>🎁 Prueba Gratuita</h3>
+                                        <p>
+                                            Explora la plataforma durante <strong>{diasTrial} días</strong> sin compromiso.
+                                        </p>
+                                        <Boton variante="secundario" anchoCompleto onClick={() => (window.location.href = loginUrl)} className="capLoginBoton">
+                                            Comenzar Prueba Gratuita
+                                        </Boton>
+                                    </div>
+                                </>
+                            ) : (
+                                /* Sin Stripe configurado: solo trial */
+                                <>
+                                    <Alerta variante="info" className="capMb--md">
+                                        Tienes <strong>{diasTrial} días de prueba gratuita</strong> para explorar todas las funcionalidades.
+                                    </Alerta>
+                                    <Boton variante="primario" anchoCompleto onClick={() => (window.location.href = loginUrl)} className="capLoginBoton">
+                                        Ir a Iniciar Sesión
+                                    </Boton>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

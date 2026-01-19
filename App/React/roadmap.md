@@ -1,7 +1,7 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
 > **Última actualización:** 2026-01-19  
-> **Estado:** ✅ Fase 9 (Stripe) - Backend y configuración completados  
+> **Estado:** ✅ Fase 9 (Stripe) - Integración completa con flujo de registro  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 ---
@@ -446,7 +446,7 @@ App/
   - [x] 9.2.1 Endpoint: `POST /wp-json/cap/v1/stripe/checkout`
   - [x] 9.2.2 Webhook: `POST /wp-json/cap/v1/stripe-webhook`
   - [x] 9.2.3 Activación de cuenta tras checkout completado
-  - [ ] 9.2.4 Integrar checkout en flujo de registro (pendiente)
+  - [x] 9.2.4 Integrar checkout en flujo de registro (pantalla post-registro con opciones)
 
 - [x] **9.3** Gestión de suscripción
   - [x] 9.3.1 Endpoint: `POST /wp-json/cap/v1/stripe/portal`

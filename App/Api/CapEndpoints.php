@@ -545,19 +545,44 @@ class CapEndpoints
         /* Enviar email de bienvenida (opcional) */
         $asunto = 'Bienvenido a la plataforma CAP';
         $mensaje = sprintf(
-            "Hola %s,\n\nTu cuenta ha sido creada exitosamente.\n\nCentro: %s\nUsuario: %s\n\n¡Gracias por registrarte!",
+            "Hola %s,\n\nTu cuenta ha sido creada exitosamente.\n\nCentro: %s\nUsuario: %s\n\nTienes 14 días de prueba gratuita para explorar todas las funcionalidades.\n\n¡Gracias por registrarte!",
             $nombreUsuario,
             $nombreCentro,
             $nombreUsuario
         );
         wp_mail($email, $asunto, $mensaje);
 
-        return new \WP_REST_Response([
+        /* Preparar respuesta base */
+        $respuesta = [
             'exito' => true,
             'message' => 'Usuario registrado correctamente',
             'userId' => $userId,
-            'centroId' => $centroId
-        ], 201);
+            'centroId' => $centroId,
+            'diasTrial' => 14,
+        ];
+
+        /* Intentar generar URL de checkout de Stripe si está configurado */
+        $stripeService = new StripeService();
+        if ($stripeService->estaConfigurado()) {
+            $urlExito = home_url('/cap-dashboard/?pago=exitoso&registro=nuevo');
+            $urlCancelado = home_url('/cap-login/?registro=pendiente');
+
+            $checkoutResult = $stripeService->crearCheckoutSession(
+                $centroId,
+                $email,
+                $urlExito,
+                $urlCancelado
+            );
+
+            if (!isset($checkoutResult['error']) && isset($checkoutResult['url'])) {
+                $respuesta['stripeCheckoutUrl'] = $checkoutResult['url'];
+                $respuesta['stripeConfigurado'] = true;
+            }
+        } else {
+            $respuesta['stripeConfigurado'] = false;
+        }
+
+        return new \WP_REST_Response($respuesta, 201);
     }
 
     /**
@@ -903,4 +928,3 @@ class CapEndpoints
         return new \WP_REST_Response($resultado, $statusCode);
     }
 }
-
