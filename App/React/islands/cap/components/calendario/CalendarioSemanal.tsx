@@ -18,6 +18,16 @@ import {DragOverlayClase} from './DragOverlayClase';
 import {Spinner} from '../ui';
 import {IconoCalendario} from '../icons';
 
+/*
+ * Parsea una fecha YYYY-MM-DD como fecha local (no UTC).
+ * Evita el problema de new Date("YYYY-MM-DD") que interpreta
+ * la fecha como medianoche UTC, causando desfase en zonas horarias negativas.
+ */
+function parsearFechaLocal(fechaStr: string): Date {
+    const [anio, mes, dia] = fechaStr.split('-').map(Number);
+    return new Date(anio, mes - 1, dia);
+}
+
 interface CalendarioSemanalProps {
     clases: Clase[];
     semanaActual: Date;
@@ -69,7 +79,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
         };
 
         clases.forEach(clase => {
-            const fechaClase = new Date(clase.fecha);
+            const fechaClase = parsearFechaLocal(clase.fecha);
             const indiceDia = fechaClase.getDay();
             /* getDay(): 0=domingo, 1=lunes, ..., 5=viernes */
             const diasMap: Record<number, DiaSemana> = {
@@ -120,9 +130,6 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
             const diaDestino = over.data.current?.fecha as string | undefined;
 
             if (!claseData || !diaDestino) return;
-
-            /* DEBUG: ver qué fechas se están manejando */
-            console.log('[D&D Debug] Clase:', claseData.id, 'Fecha origen:', claseData.fecha, 'Fecha destino:', diaDestino);
 
             /* No hacer nada si se suelta en el mismo día */
             if (claseData.fecha === diaDestino) return;

@@ -161,51 +161,40 @@ Mejorar la experiencia de arrastrar clases entre días añadiendo **asistencia v
 
 ## 7. 🐛 BUG: Desfase de Fecha al Mover Clases
 
-> **Estado:** 🔴 Pendiente de resolver  
+> **Estado:** ✅ Resuelto  
 > **Síntoma:** Al arrastrar una clase a un día, se mueve al día **anterior**
 
-### 7.1 Diagnóstico Realizado
+### 7.1 Causa Raíz Identificada
 
-1. **Primer intento de fix:** Se reemplazó `toISOString().split('T')[0]` por `formatearFechaLocal()` en `ZonaDropDia.tsx`
-   - Razón: `toISOString()` convierte a UTC, causando desfase en zonas horarias negativas (ej: GMT-4)
-   - **Resultado:** El problema persiste
+El problema estaba en cómo se parseaban las fechas en `CalendarioSemanal.tsx`:
 
-2. **Se añadió console.log de debug** en `CalendarioSemanal.tsx` línea 124:
-   ```ts
-   console.log('[D&D Debug] Clase:', claseData.id, 'Fecha origen:', claseData.fecha, 'Fecha destino:', diaDestino);
-   ```
+```ts
+// PROBLEMA: new Date("YYYY-MM-DD") se interpreta como medianoche UTC
+const fechaClase = new Date(clase.fecha);
+```
 
-### 7.2 Archivos Involucrados en el Flujo
+En zonas horarias negativas (ej: GMT-4), una fecha como `"2026-01-19"` se interpreta como:
+- `2026-01-19 00:00 UTC` = `2026-01-18 20:00 local`
+- Entonces `getDay()` devuelve el día **anterior**
 
-| Archivo                 | Rol                                                   |
-| ----------------------- | ----------------------------------------------------- |
-| `ZonaDropDia.tsx`       | Genera `fecha` en `data` del droppable                |
-| `CalendarioSemanal.tsx` | Extrae `diaDestino` del evento y llama `onMoverClase` |
-| `useCalendario.ts`      | Función `moverClase()` hace PUT a la API              |
-| `CapEndpoints.php`      | Recibe `fecha` y llama a `Clase::actualizar()`        |
-| `Clase.php`             | Guarda la fecha en la BD                              |
+### 7.2 Solución Implementada
 
-### 7.3 Próximos Pasos de Debugging
+Se añadió una función `parsearFechaLocal()` que parsea los componentes de la fecha manualmente:
 
-1. [ ] **Revisar el console.log** - Ver qué valores muestra:
-   - Si `Fecha destino` ya viene mal → problema en `ZonaDropDia.tsx` o `getFechasSemana()`
-   - Si `Fecha destino` viene correcta → problema en backend PHP
+```ts
+function parsearFechaLocal(fechaStr: string): Date {
+    const [anio, mes, dia] = fechaStr.split('-').map(Number);
+    return new Date(anio, mes - 1, dia);
+}
+```
 
-2. [ ] **Verificar `getFechasSemana()`** en `cap-constants.ts`:
-   - La función crea fechas a partir del lunes de la semana
-   - Revisar si hay problema con `setDate()` que pueda afectar la hora y causar rollback de día
+Esta función crea la fecha usando el constructor `new Date(year, month, day)` que interpreta los valores como **tiempo local**, no UTC.
 
-3. [ ] **Revisar la BD directamente**:
-   - Tras mover, verificar qué valor se guardó en `wp_cap_clases.fecha`
-   - Comparar con lo esperado
+### 7.3 Archivos Modificados
 
-4. [ ] **Posible causa adicional:**
-   - Las columnas del grid usan índice 0-4 (lunes-viernes)
-   - Verificar que `DIAS_SEMANA.map((dia, idx) => ...)` corresponde correctamente con `fechasSemana[idx]`
-
-### 7.4 Hipótesis Principal
-
-El array `fechasSemana` podría tener un desfase de índice o las fechas podrían estar mal calculadas en `getFechasSemana()` cuando se usa `setDate()` en objetos Date clonados.
+| Archivo                 | Cambio                                                          |
+| ----------------------- | --------------------------------------------------------------- |
+| `CalendarioSemanal.tsx` | Añadida función `parsearFechaLocal()` y usada en `clasesPorDia` |
 
 ---
 
@@ -213,13 +202,14 @@ El array `fechasSemana` podría tener un desfase de índice o las fechas podría
 
 ### 8.1 Área de Drop Pequeña
 
+> **Estado:** ✅ Resuelto
+
 **Síntoma:** Hay que mover al centro de la columna para que funcione el drop.
 
-**Causa probable:** Las tarjetas de clase (`TarjetaClaseDraggable`) están dentro de `ZonaDropDia`, y el área clickeable de las tarjetas puede estar capturando eventos.
-
-**Solución propuesta:**
-- Hacer que toda la columna (`capColumnaDia`) sea la zona de drop, no solo el contenedor interno
-- O aumentar el área de detección con CSS (padding/min-height)
+**Solución implementada:**
+- Aumentado `min-height` de `.capZonaDropDia` de 200px a 400px
+- Añadido padding a la zona de drop para ampliar el área clickeable
+- Eliminado el padding duplicado de `.capColumnaDia__slots`
 
 ---
 
