@@ -122,8 +122,7 @@ export function SeccionReportes() {
                         )}
                     </div>
 
-                    <Boton variante="primario" onClick={handleDescargarPlanAlumno} disabled={!alumnoSeleccionado || generando} cargando={generando && tipoGenerando === 'plan-alumno'} className="capReporteTarjeta__boton">
-                        <Download size={16} />
+                    <Boton variante="primario" onClick={handleDescargarPlanAlumno} disabled={!alumnoSeleccionado || generando} cargando={generando && tipoGenerando === 'plan-alumno'} className="capReporteTarjeta__boton" anchoCompleto icono={<Download size={16} />}>
                         Descargar PDF
                     </Boton>
                 </Tarjeta>
@@ -150,8 +149,7 @@ export function SeccionReportes() {
                         </div>
                     </div>
 
-                    <Boton variante="primario" onClick={handleDescargarControlHoras} disabled={generando} cargando={generando && tipoGenerando === 'control-horas'} className="capReporteTarjeta__boton">
-                        <Download size={16} />
+                    <Boton variante="primario" onClick={handleDescargarControlHoras} disabled={generando} cargando={generando && tipoGenerando === 'control-horas'} className="capReporteTarjeta__boton" anchoCompleto icono={<Download size={16} />}>
                         Descargar PDF
                     </Boton>
                 </Tarjeta>

@@ -85,11 +85,14 @@ class CapSchema
         $sql = "CREATE TABLE {$tabla} (
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             alumno_id bigint(20) UNSIGNED NOT NULL,
-            dia_semana tinyint(1) NOT NULL COMMENT '1=Lunes, 5=Viernes',
-            hora_inicio time NOT NULL,
-            hora_fin time NOT NULL,
+            dia varchar(20) NOT NULL COMMENT 'lunes, martes...',
+            hora varchar(10) NOT NULL COMMENT '08:00',
+            disponible tinyint(1) DEFAULT 1,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
-            KEY alumno_id (alumno_id)
+            KEY alumno_id (alumno_id),
+            KEY dia_hora (dia, hora)
         ) {$this->charsetCollate};";
 
         dbDelta($sql);

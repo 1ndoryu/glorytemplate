@@ -108,7 +108,7 @@ export function FormularioAlumno({visible, alumno, guardando, onCerrar, onGuarda
     };
 
     return (
-        <Modal visible={visible} titulo={esEdicion ? 'Editar Alumno' : 'Nuevo Alumno'} onCerrar={onCerrar} ancho="md">
+        <Modal abierto={visible} titulo={esEdicion ? 'Editar Alumno' : 'Nuevo Alumno'} onCerrar={onCerrar} tamano="md">
             <form onSubmit={handleSubmit} className="capFormAlumno">
                 <Input etiqueta="Nombre completo" value={formData.nombre} onChange={e => handleChange('nombre', e.target.value)} placeholder="Juan García López" error={enviado ? errores.nombre : undefined} required autoFocus />
 

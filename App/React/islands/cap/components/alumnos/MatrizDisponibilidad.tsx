@@ -5,7 +5,7 @@
  * Permite click individual, click en fila (hora), click en columna (día).
  */
 
-import {useEffect} from 'react';
+import {useEffect, Fragment} from 'react';
 import {Boton, Spinner, Alerta} from '../ui';
 import {IconoGuardar} from '../icons';
 import {useDisponibilidad, DIAS_SEMANA, HORAS_DISPONIBLES, type DiaSemana} from '../../hooks/useDisponibilidad';
@@ -131,9 +131,9 @@ export function MatrizDisponibilidad({alumnoId, alumnoNombre, onGuardadoExitoso}
 
                     {/* Filas de horas */}
                     {HORAS_DISPONIBLES.map(hora => (
-                        <>
+                        <Fragment key={hora}>
                             {/* Header de hora (fila) */}
-                            <button key={`hora-${hora}`} type="button" className={`capMatriz__headerHora ${filaCompleta(hora) ? 'capMatriz__headerHora--activo' : ''}`} onClick={() => toggleFila(hora)} disabled={guardando} title={`Toggle ${hora}`}>
+                            <button type="button" className={`capMatriz__headerHora ${filaCompleta(hora) ? 'capMatriz__headerHora--activo' : ''}`} onClick={() => toggleFila(hora)} disabled={guardando} title={`Toggle ${hora}`}>
                                 {formatearHora(hora)}
                             </button>
 
@@ -142,7 +142,7 @@ export function MatrizDisponibilidad({alumnoId, alumnoNombre, onGuardadoExitoso}
                                 const disponible = esDisponible(dia, hora);
                                 return <button key={`${dia}-${hora}`} type="button" className={`capMatriz__celda ${disponible ? 'capMatriz__celda--activa' : ''}`} onClick={() => toggleSlot(dia, hora)} disabled={guardando} aria-label={`${dia} ${hora}: ${disponible ? 'disponible' : 'no disponible'}`} aria-pressed={disponible} />;
                             })}
-                        </>
+                        </Fragment>
                     ))}
                 </div>
             </div>

@@ -14,7 +14,7 @@ use Glory\App\Database\CapSchema;
 class CapBootstrap
 {
     private const VERSION_OPTION = 'cap_db_version';
-    private const CURRENT_VERSION = '1.0.0';
+    private const CURRENT_VERSION = '1.0.1';
 
     /**
      * Inicializa el módulo CAP registrando todos los hooks necesarios

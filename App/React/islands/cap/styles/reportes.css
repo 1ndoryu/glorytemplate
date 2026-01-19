@@ -78,7 +78,6 @@
 /* Botón de descarga */
 .capReporteTarjeta__boton {
     margin-top: auto;
-    padding-top: var(--cap-espacio-md);
 }
 
 /* Selector de semana personalizado */

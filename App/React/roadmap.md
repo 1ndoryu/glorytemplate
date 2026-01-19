@@ -144,6 +144,32 @@ App/
   - [x] H.9.4 Creado sistema centralizado en `cap-errores.ts`
   - [x] H.9.5 Preparado para internacionalización futura (estructura modular)
 
+- [x] **H.10** Modal de editar alumno no funciona
+  - [x] H.10.1 Al hacer click en "Editar" no pasa nada
+  - [x] H.10.2 Revisar handler `onEditar` en `SeccionAlumnos.tsx`
+  - [x] H.10.3 Fix: `FormularioAlumno` pasaba props `visible/ancho` a `Modal` que esperaba `abierto/tamano`
+
+- [x] **H.11** Modal de nuevo alumno no funciona
+  - [x] H.11.1 El formulario de crear alumno no se abre o no funciona
+  - [x] H.11.2 Fix: Idéntico a H.10, corrección de props en `FormularioAlumno.tsx`
+
+- [x] **H.12** Endpoint de disponibilidad devuelve HTML en vez de JSON
+  - [x] H.12.1 Error: `Unexpected token '<', "<div id="e"... is not valid JSON`
+  - [x] H.12.2 Causa: Esquema de BD incorrecto (rangos vs slots) causaba error SQL
+  - [x] H.12.3 Fix: Actualizado `CapSchema.php` con estructura correcta y bump versión DB
+  - [x] H.12.4 Tablas se actualizan automáticamente al recargar (v1.0.1)
+
+- [x] **H.13** Warning de key prop en MatrizDisponibilidad
+  - [x] H.13.1 Warning: `Each child in a list should have a unique "key" prop`
+  - [x] H.13.2 Fix: Reemplazado Fragment corto `<>` por `<Fragment key={...}>` en loop
+  - [x] H.13.3 Agregado `Fragment` a imports
+
+- [x] **H.14** Estilos rotos en SeccionReportes
+  - [x] H.14.1 Los select y botones no se ven correctamente
+  - [x] H.14.2 La nota "Los reportes se generan en formato PDF" no tiene fondo visible
+  - [x] H.14.3 Causa: Variables CSS (`--cap-fondo-secundario`, etc.) faltaban en `variables.css`
+  - [x] H.14.4 Fix: Agregados aliases de compatibilidad en `variables.css`
+
 ---
 
 ### Fase 0: Infraestructura Base

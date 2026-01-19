@@ -99,6 +99,13 @@
 
     --cap-focus-ring: hsla(217, 80%, 50%, 0.4);
 
+    /* Aliases para compatibilidad */
+    --cap-fondo-primario: var(--cap-fondo-tarjeta);
+    --cap-fondo-secundario: var(--cap-fondo-sutil);
+    --cap-fondo-deshabilitado: var(--cap-gris-100);
+    --cap-texto-primario: var(--cap-texto-principal);
+    --cap-borde: var(--cap-borde-medio);
+
     /* ========================================
        Espaciado
        Escala basada en 4px
