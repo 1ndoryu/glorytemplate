@@ -195,6 +195,26 @@ App/
   - [x] H.17.5 Ahora tanto el motor como el seeder respetan clases bloqueadas
   - [x] H.17.6 El problema solo ocurría con datos demo al hacer clean/seed
 
+- [ ] **H.18** Error al descargar PDF "Plan de Formación"
+  - [ ] H.18.1 Usuario reporta que al pulsar "Descargar PDF" en este reporte no ocurre nada
+  - [ ] H.18.2 El reporte "Control de Horas" sí funciona correctamente
+  - [ ] H.18.3 Pendiente de investigar logs JS y respuesta del endpoint `reportes/plan-alumno`
+
+- [ ] **H.19** Incoherencia en conteo de alumnos (Tarjeta vs Modal)
+  - [ ] H.19.1 Tarjeta de clase muestra "5 alumnos" (ejemplo), pero al abrir el detalle aparecen menos (ej: 3)
+  - [ ] H.19.2 Posible desincronización entre el conteo resumido (`clase.alumnos_count`) y la lista real (`clase.asistencias`)
+  - [ ] H.19.3 Ocurre con datos de prueba (seed), verificar si afecta datos reales
+
+- [ ] **H.20** Error visual en rango horario del modal detalle
+  - [ ] H.20.1 Al abrir el detalle de clase, el horario en el cuerpo muestra siempre "08:00 - 08:00"
+  - [ ] H.20.2 El header del modal sí muestra la fecha y hora correctas
+  - [ ] H.20.3 Revisar componente `ModalDetalleClase` y su manejo de props de hora
+
+- [ ] **H.21** Inconsistencia de clases bloqueadas en PDF
+  - [ ] H.21.1 En el calendario todas las clases de un día aparecen bloqueadas
+  - [ ] H.21.2 En el PDF generado, solo una aparece marcada como bloqueada o con símbolo extraño (?)
+  - [ ] H.21.3 Revisar lógica de generación en `ReporteService.php` y cómo interpreta el campo `bloqueada`
+
 ---
 
 ### Fase 0: Infraestructura Base

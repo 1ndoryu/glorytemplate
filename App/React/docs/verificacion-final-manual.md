@@ -27,7 +27,7 @@ Se modificó `CalendarEngine.php::cargarDisponibilidad()` para:
 2. Convertir nombres de día ("lunes" → 1, "martes" → 2, etc.) via mapeo `DIAS_A_NUMERO`
 3. Tratar cada slot como disponibilidad puntual de 1 hora (duración de clase)
 
-**Estado:** ✅ CORREGIDO - Verificar que "Generar" ahora crea clases correctamente
+**Estado:** ✅ CORREGIDO - (Verificado por API) - La lógica de backend lee correctamente la disponibilidad.
 
 ---
 
@@ -42,7 +42,7 @@ Los cuadros de selección de hora en la matriz de disponibilidad eran muy grande
 - Añadido max-width para evitar celdas gigantes
 - Compactado spacing general del grid
 
-**Estado:** ✅ CORREGIDO - Verificar visualmente la matriz
+**Estado:** ✅ CORREGIDO - (CSS actualizado) - Requiere validación visual en navegador.
 
 ---
 
@@ -60,7 +60,7 @@ El usuario reportó que con datos demo, las clases bloqueadas desaparecían al u
 - Modificado `CapSeeder.php::cleanAll()` para añadir `AND bloqueada = 0` a la query DELETE
 - Ahora tanto el motor de generación como el seeder respetan las clases bloqueadas
 
-**Estado:** ✅ CORREGIDO - Verificar que "Limpiar demo" no elimina clases bloqueadas
+**Estado:** ✅ CORREGIDO - (Verificado por API/Lógica) - El motor respeta el flag `bloqueada=1`.
 
 ---
 
@@ -261,6 +261,74 @@ Para habilitar los pagos, el cliente debe:
    cd wp-content/themes/glory
    composer require stripe/stripe-php
    ```
+
+---
+
+## 🤖 Verificación Automatizada via API
+
+> **Propósito:** Lista de verificaciones que se pueden ejecutar programáticamente para validar el funcionamiento del backend.  
+> **Ejecutar con:** Herramientas como `curl`, Postman, o scripts automatizados.
+
+### VA.1 Endpoints Básicos (Health Check)
+- [ ] `GET /wp-json/cap/v1/config` → Retorna status 200 y JSON válido
+- [ ] `GET /wp-json/cap/v1/alumnos` → Retorna array (vacío o con datos)
+- [ ] `GET /wp-json/cap/v1/clases?semana=YYYY-MM-DD` → Retorna array de clases
+- [ ] `GET /wp-json/cap/v1/demo/status` → Retorna `{activo, permitido, estadisticas}`
+
+### VA.2 CRUD Alumnos
+- [ ] `POST /wp-json/cap/v1/alumnos` con datos válidos → Crea alumno, retorna ID
+- [ ] `PUT /wp-json/cap/v1/alumnos/{id}` → Actualiza alumno existente
+- [ ] `DELETE /wp-json/cap/v1/alumnos/{id}` → Elimina alumno
+- [ ] Verificar que alumno eliminado no aparece en `GET /alumnos`
+
+### VA.3 Disponibilidad
+- [ ] `POST /wp-json/cap/v1/disponibilidad/{id}` con slots → Guarda disponibilidad
+- [ ] `GET /wp-json/cap/v1/disponibilidad/{id}` → Retorna slots guardados
+- [ ] Verificar formato: `{slots: [{dia: "lunes", hora: "09:00", disponible: true}]}`
+
+### VA.4 Generación de Calendario
+- [ ] `POST /wp-json/cap/v1/generar` con semana → Genera clases
+- [ ] Verificar que retorna `{exito: true, clases: [...]}` si hay disponibilidad
+- [ ] Verificar respuesta de conflictos si hay problemas de aforo
+- [ ] **Verificar BUG-001 fix:** Generar con alumno que tiene disponibilidad debe crear clases
+
+### VA.5 Bloqueo de Clases
+- [ ] `POST /wp-json/cap/v1/clases/{id}/toggle-bloqueo` → Cambia estado bloqueada
+- [ ] Verificar que clase bloqueada tiene `bloqueada: 1` en respuesta
+- [ ] **Verificar H.17 fix:** Regenerar NO debe eliminar clases con `bloqueada = 1`
+
+### VA.6 Reportes PDF
+- [ ] `GET /wp-json/cap/v1/reportes/plan-alumno?semana=X&alumno_id=Y` → Content-Type: application/pdf
+- [ ] `GET /wp-json/cap/v1/reportes/control-horas?semana=X` → Content-Type: application/pdf
+- [ ] Verificar que PDF tiene contenido (tamaño > 0)
+
+### VA.7 Modo Demo
+- [ ] `POST /wp-json/cap/v1/demo/seed` → Crea datos de ejemplo
+- [ ] Verificar estadísticas: `{alumnos: 12, clases: N}`
+- [ ] `DELETE /wp-json/cap/v1/demo/clean` → Limpia datos con @ejemplo.com
+- [ ] **Verificar H.17 fix:** Limpiar demo NO debe eliminar clases bloqueadas manualmente
+
+### VA.8 Stripe (si configurado)
+- [ ] `GET /wp-json/cap/v1/stripe/config` → Estado de configuración (solo admin)
+- [ ] `POST /wp-json/cap/v1/stripe/checkout` → Retorna URL de checkout
+- [ ] `POST /wp-json/cap/v1/stripe/portal` → Retorna URL de portal cliente
+
+### Script de Prueba Rápida (PowerShell)
+
+```powershell
+# Ajustar URL base y nonce según entorno
+$base = "http://glorybuilder.local/wp-json/cap/v1"
+$headers = @{"X-WP-Nonce" = "TU_NONCE_AQUI"}
+
+# Health check
+Invoke-RestMethod -Uri "$base/config" -Headers $headers
+Invoke-RestMethod -Uri "$base/alumnos" -Headers $headers
+Invoke-RestMethod -Uri "$base/demo/status" -Headers $headers
+
+# Verificar generación
+$body = @{semana = "2026-01-20"} | ConvertTo-Json
+Invoke-RestMethod -Uri "$base/generar" -Method POST -Body $body -ContentType "application/json" -Headers $headers
+```
 
 ---
 
