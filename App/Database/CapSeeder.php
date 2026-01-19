@@ -225,10 +225,15 @@ class CapSeeder
             $viernes = clone $lunes;
             $viernes->modify('+4 days');
 
+            /* 
+             * Eliminar solo clases NO bloqueadas de la semana demo
+             * Las clases con bloqueada = 1 deben preservarse
+             */
             $clasesEliminadas = $wpdb->query($wpdb->prepare(
                 "DELETE FROM {$tablaClases} 
                  WHERE centro_id = %d 
-                 AND fecha BETWEEN %s AND %s",
+                 AND fecha BETWEEN %s AND %s
+                 AND bloqueada = 0",
                 $this->centroId,
                 $lunes->format('Y-m-d'),
                 $viernes->format('Y-m-d')

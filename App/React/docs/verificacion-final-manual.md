@@ -46,22 +46,21 @@ Los cuadros de selección de hora en la matriz de disponibilidad eran muy grande
 
 ---
 
-### BUG-003: Verificar clases bloqueadas al regenerar (EN INVESTIGACIÓN)
+### BUG-003: Clases bloqueadas desaparecen al regenerar demo (✅ CORREGIDO)
 
 **Descripción:**  
-El usuario reporta que al tener datos de prueba con clases bloqueadas y presionar "Generar", todas las clases desaparecen incluyendo las bloqueadas.
+El usuario reportó que con datos demo, las clases bloqueadas desaparecían al usar funciones de limpieza o regeneración.
 
-**Análisis actual:**
+**Causa raíz identificada:**
 - `CalendarEngine::crearClases()` elimina solo `WHERE bloqueada = 0` ✅ (correcto)
-- `CapSeeder::cleanAll()` elimina **TODAS** las clases de la semana sin filtrar por bloqueo ⚠️
-- Posible confusión: si el seeder limpia datos antes de generar, borra todo
+- `CapSeeder::cleanAll()` eliminaba **TODAS** las clases sin filtrar por bloqueo ⚠️
+- El problema solo ocurría cuando el seeder ejecutaba `cleanAll()` antes de poblar datos
 
-**Verificar:**
-1. ¿El problema ocurre con datos NO demo?
-2. ¿Se genera para la misma semana donde están las clases?
-3. ¿Las clases demo realmente tenían `bloqueada = 1` en la BD?
+**Solución aplicada:**
+- Modificado `CapSeeder.php::cleanAll()` para añadir `AND bloqueada = 0` a la query DELETE
+- Ahora tanto el motor de generación como el seeder respetan las clases bloqueadas
 
-**Prioridad:** 🔴 CRÍTICA si afecta flujo normal (no solo demo)
+**Estado:** ✅ CORREGIDO - Verificar que "Limpiar demo" no elimina clases bloqueadas
 
 ---
 
