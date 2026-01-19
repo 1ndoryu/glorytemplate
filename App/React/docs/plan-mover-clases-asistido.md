@@ -159,19 +159,74 @@ Mejorar la experiencia de arrastrar clases entre días añadiendo **asistencia v
 
 ---
 
-## 7. Problemas a Resolver Primero
+## 7. 🐛 BUG: Desfase de Fecha al Mover Clases
 
-Antes de implementar mejoras visuales, hay que resolver:
+> **Estado:** 🔴 Pendiente de resolver  
+> **Síntoma:** Al arrastrar una clase a un día, se mueve al día **anterior**
 
-1. **Dependencias:** Asegurar que @dnd-kit esté correctamente instalado en `Glory/assets/react/`
-2. **Cache de Vite:** Limpiar `.vite` si hay errores
-3. **Un solo servidor:** Cerrar todos los procesos de Vite y ejecutar solo uno
+### 7.1 Diagnóstico Realizado
+
+1. **Primer intento de fix:** Se reemplazó `toISOString().split('T')[0]` por `formatearFechaLocal()` en `ZonaDropDia.tsx`
+   - Razón: `toISOString()` convierte a UTC, causando desfase en zonas horarias negativas (ej: GMT-4)
+   - **Resultado:** El problema persiste
+
+2. **Se añadió console.log de debug** en `CalendarioSemanal.tsx` línea 124:
+   ```ts
+   console.log('[D&D Debug] Clase:', claseData.id, 'Fecha origen:', claseData.fecha, 'Fecha destino:', diaDestino);
+   ```
+
+### 7.2 Archivos Involucrados en el Flujo
+
+| Archivo                 | Rol                                                   |
+| ----------------------- | ----------------------------------------------------- |
+| `ZonaDropDia.tsx`       | Genera `fecha` en `data` del droppable                |
+| `CalendarioSemanal.tsx` | Extrae `diaDestino` del evento y llama `onMoverClase` |
+| `useCalendario.ts`      | Función `moverClase()` hace PUT a la API              |
+| `CapEndpoints.php`      | Recibe `fecha` y llama a `Clase::actualizar()`        |
+| `Clase.php`             | Guarda la fecha en la BD                              |
+
+### 7.3 Próximos Pasos de Debugging
+
+1. [ ] **Revisar el console.log** - Ver qué valores muestra:
+   - Si `Fecha destino` ya viene mal → problema en `ZonaDropDia.tsx` o `getFechasSemana()`
+   - Si `Fecha destino` viene correcta → problema en backend PHP
+
+2. [ ] **Verificar `getFechasSemana()`** en `cap-constants.ts`:
+   - La función crea fechas a partir del lunes de la semana
+   - Revisar si hay problema con `setDate()` que pueda afectar la hora y causar rollback de día
+
+3. [ ] **Revisar la BD directamente**:
+   - Tras mover, verificar qué valor se guardó en `wp_cap_clases.fecha`
+   - Comparar con lo esperado
+
+4. [ ] **Posible causa adicional:**
+   - Las columnas del grid usan índice 0-4 (lunes-viernes)
+   - Verificar que `DIAS_SEMANA.map((dia, idx) => ...)` corresponde correctamente con `fechasSemana[idx]`
+
+### 7.4 Hipótesis Principal
+
+El array `fechasSemana` podría tener un desfase de índice o las fechas podrían estar mal calculadas en `getFechasSemana()` cuando se usa `setDate()` en objetos Date clonados.
 
 ---
 
-## 8. Próximos Pasos
+## 8. Otros Problemas Detectados
 
-1. Verificar que el drag & drop funciona básicamente
-2. Implementar mejoras visuales en CSS
-3. Probar y ajustar
-4. Commit de los cambios
+### 8.1 Área de Drop Pequeña
+
+**Síntoma:** Hay que mover al centro de la columna para que funcione el drop.
+
+**Causa probable:** Las tarjetas de clase (`TarjetaClaseDraggable`) están dentro de `ZonaDropDia`, y el área clickeable de las tarjetas puede estar capturando eventos.
+
+**Solución propuesta:**
+- Hacer que toda la columna (`capColumnaDia`) sea la zona de drop, no solo el contenedor interno
+- O aumentar el área de detección con CSS (padding/min-height)
+
+---
+
+## 9. Notas sobre el Diseño
+
+Según el ROADMAP:
+- **Mover entre días** → Drag & Drop ✅
+- **Cambiar hora** → Via modal de edición (Fase 7.3)
+
+El drag & drop solo mueve entre días, no entre horas. Para cambiar la hora, el usuario hace click en la clase y usa el modal de edición.

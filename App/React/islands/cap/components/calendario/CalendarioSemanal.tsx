@@ -121,6 +121,9 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
 
             if (!claseData || !diaDestino) return;
 
+            /* DEBUG: ver qué fechas se están manejando */
+            console.log('[D&D Debug] Clase:', claseData.id, 'Fecha origen:', claseData.fecha, 'Fecha destino:', diaDestino);
+
             /* No hacer nada si se suelta en el mismo día */
             if (claseData.fecha === diaDestino) return;
 

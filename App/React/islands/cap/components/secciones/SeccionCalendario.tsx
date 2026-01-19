@@ -11,7 +11,7 @@ import type {CambiosClase} from '../calendario';
 import {useCalendario} from '../../hooks/useCalendario';
 import {useAlumnos} from '../../hooks/useAlumnos';
 import {Alerta} from '../ui';
-import type {ExclusionesConflicto, Clase} from '../../types';
+import type {ExclusionesConflicto, Clase, DiaSemana} from '../../types';
 
 export function SeccionCalendario() {
     const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase} = useCalendario();
@@ -28,6 +28,38 @@ export function SeccionCalendario() {
         return clases.find(c => c.id === claseSeleccionada.id) || claseSeleccionada;
     }, [clases, claseSeleccionada]);
 
+    /*
+     * Calcular clases por día para el selector de movimiento
+     * Se necesita para mostrar el contador de clases en cada día
+     */
+    const clasesPorDia = useMemo(() => {
+        const mapa: Record<DiaSemana, Clase[]> = {
+            lunes: [],
+            martes: [],
+            miercoles: [],
+            jueves: [],
+            viernes: []
+        };
+
+        clases.forEach(clase => {
+            const fechaClase = new Date(clase.fecha);
+            const indiceDia = fechaClase.getDay();
+            const diasMap: Record<number, DiaSemana> = {
+                1: 'lunes',
+                2: 'martes',
+                3: 'miercoles',
+                4: 'jueves',
+                5: 'viernes'
+            };
+            const dia = diasMap[indiceDia];
+            if (dia) {
+                mapa[dia].push(clase);
+            }
+        });
+
+        return mapa;
+    }, [clases]);
+
     const handleClaseClick = (clase: Clase) => {
         seleccionarClase(clase);
     };
@@ -38,6 +70,10 @@ export function SeccionCalendario() {
 
     const handleGuardarClase = async (claseId: number, cambios: CambiosClase) => {
         await actualizarClase(claseId, cambios);
+    };
+
+    const handleMoverClase = async (claseId: number, nuevaFecha: string) => {
+        await moverClase(claseId, nuevaFecha);
     };
 
     return (
@@ -61,7 +97,18 @@ export function SeccionCalendario() {
             <ModalConflictoAforo abierto={mostrarModalConflictos} conflictos={conflictos} onCerrar={cerrarModalConflictos} onConfirmar={handleConfirmarExclusiones} cargando={generando} />
 
             {/* Modal para editar detalles de clase - usa claseActualizada para reflejar cambios en tiempo real */}
-            <ModalDetalleClase clase={claseActualizada} alumnos={alumnos} abierto={mostrarModalEdicion} onCerrar={cerrarModalEdicion} onGuardar={handleGuardarClase} onToggleBloqueo={toggleBloqueoClase} guardando={guardandoEdicion} />
+            <ModalDetalleClase
+                clase={claseActualizada}
+                alumnos={alumnos}
+                abierto={mostrarModalEdicion}
+                onCerrar={cerrarModalEdicion}
+                onGuardar={handleGuardarClase}
+                onToggleBloqueo={toggleBloqueoClase}
+                onMoverClase={handleMoverClase}
+                fechasSemana={fechasSemana}
+                clasesPorDia={clasesPorDia}
+                guardando={guardandoEdicion}
+            />
         </div>
     );
 }
