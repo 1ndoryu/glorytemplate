@@ -21,9 +21,10 @@ interface TablaAlumnosProps {
     onEditar: (alumno: Alumno) => void;
     onEliminar: (id: number) => void;
     onDisponibilidad?: (alumno: Alumno) => void;
+    onVerProgreso?: (alumno: Alumno) => void;
 }
 
-export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onCambiarFiltros, onEditar, onEliminar, onDisponibilidad}: TablaAlumnosProps) {
+export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onCambiarFiltros, onEditar, onEliminar, onDisponibilidad, onVerProgreso}: TablaAlumnosProps) {
     const [busquedaLocal, setBusquedaLocal] = useState(filtros.busqueda);
 
     const handleBusqueda = (e: React.FormEvent) => {
@@ -55,7 +56,8 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
         return <Badge variante={variantes[estado] || 'neutral'}>{etiquetas[estado] || estado}</Badge>;
     };
 
-    const renderProgreso = (horas: number) => {
+    const renderProgreso = (alumno: Alumno) => {
+        const horas = alumno.horas_completadas || 0;
         const porcentaje = calcularProgreso(horas);
         const estado = estadoProgreso(horas);
         const claseEstado = {
@@ -64,8 +66,16 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
             completed: 'capProgreso--completed'
         }[estado];
 
+        const esClickeable = Boolean(onVerProgreso);
+
+        const handleClick = () => {
+            if (onVerProgreso) {
+                onVerProgreso(alumno);
+            }
+        };
+
         return (
-            <div className="capProgresoCelda">
+            <div className={`capProgresoCelda ${esClickeable ? 'capProgresoCelda--clickeable' : ''}`} onClick={esClickeable ? handleClick : undefined} title={esClickeable ? 'Ver desglose por asignatura' : undefined}>
                 <div className={`capProgreso ${claseEstado}`}>
                     <div className="capProgreso__barra" style={{width: `${porcentaje}%`}} />
                 </div>
@@ -125,7 +135,7 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
                                     </td>
                                     <td className="capTabla__td">{alumno.email || '-'}</td>
                                     <td className="capTabla__td">{alumno.telefono || '-'}</td>
-                                    <td className="capTabla__td">{renderProgreso(alumno.horas_completadas || 0)}</td>
+                                    <td className="capTabla__td">{renderProgreso(alumno)}</td>
                                     <td className="capTabla__td">{renderEstadoBadge(alumno.estado)}</td>
                                     <td className="capTabla__td capTabla__td--acciones">
                                         <div className="capTabla__acciones">

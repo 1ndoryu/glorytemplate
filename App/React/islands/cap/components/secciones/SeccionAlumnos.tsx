@@ -7,7 +7,7 @@
 
 import {useState} from 'react';
 import {Boton, Alerta, Modal} from '../ui';
-import {TablaAlumnos, FormularioAlumno, MatrizDisponibilidad} from '../alumnos';
+import {TablaAlumnos, FormularioAlumno, MatrizDisponibilidad, ModalProgresoAlumno} from '../alumnos';
 import {IconoUsuarioMas} from '../icons';
 import {useAlumnos, type Alumno} from '../../hooks/useAlumnos';
 
@@ -21,6 +21,10 @@ export function SeccionAlumnos() {
     /* Estado para modal de disponibilidad */
     const [modalDisponibilidadVisible, setModalDisponibilidadVisible] = useState(false);
     const [alumnoDisponibilidad, setAlumnoDisponibilidad] = useState<Alumno | null>(null);
+
+    /* Estado para modal de progreso por asignatura */
+    const [modalProgresoVisible, setModalProgresoVisible] = useState(false);
+    const [alumnoProgreso, setAlumnoProgreso] = useState<Alumno | null>(null);
 
     /* Limpiar mensajes después de 4 segundos */
     if (exito || error) {
@@ -73,6 +77,17 @@ export function SeccionAlumnos() {
         setAlumnoDisponibilidad(null);
     };
 
+    /* Handlers para modal de progreso */
+    const handleVerProgreso = (alumno: Alumno) => {
+        setAlumnoProgreso(alumno);
+        setModalProgresoVisible(true);
+    };
+
+    const handleCerrarProgreso = () => {
+        setModalProgresoVisible(false);
+        setAlumnoProgreso(null);
+    };
+
     return (
         <div className="capSeccion capAnimFadeIn">
             {/* Header con título y botón de crear */}
@@ -103,7 +118,7 @@ export function SeccionAlumnos() {
 
             {/* Tabla de alumnos */}
             <div className="capMt--lg">
-                <TablaAlumnos alumnos={alumnos} total={total} cargando={cargando} eliminando={eliminando} filtros={filtros} onCambiarFiltros={cambiarFiltros} onEditar={handleEditar} onEliminar={handleEliminar} onDisponibilidad={handleAbrirDisponibilidad} />
+                <TablaAlumnos alumnos={alumnos} total={total} cargando={cargando} eliminando={eliminando} filtros={filtros} onCambiarFiltros={cambiarFiltros} onEditar={handleEditar} onEliminar={handleEliminar} onDisponibilidad={handleAbrirDisponibilidad} onVerProgreso={handleVerProgreso} />
             </div>
 
             {/* Modal de creación/edición */}
@@ -113,6 +128,9 @@ export function SeccionAlumnos() {
             <Modal abierto={modalDisponibilidadVisible} onCerrar={handleCerrarDisponibilidad} titulo="Disponibilidad Horaria" tamano="lg">
                 {alumnoDisponibilidad && <MatrizDisponibilidad alumnoId={alumnoDisponibilidad.id} alumnoNombre={alumnoDisponibilidad.nombre} onGuardadoExitoso={handleCerrarDisponibilidad} />}
             </Modal>
+
+            {/* Modal de progreso por asignatura */}
+            <ModalProgresoAlumno visible={modalProgresoVisible} alumno={alumnoProgreso} onCerrar={handleCerrarProgreso} />
         </div>
     );
 }

@@ -272,3 +272,197 @@
         max-width: 100%;
     }
 }
+
+/* Modal de Progreso por Asignatura */
+.capProgresoModal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-lg);
+}
+
+.capProgresoModal__resumen {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--cap-espacio-lg);
+    background: var(--cap-fondo-sutil);
+    border-radius: var(--cap-radio-lg);
+}
+
+.capProgresoModal__resumenPrincipal {
+    display: flex;
+    align-items: baseline;
+    gap: var(--cap-espacio-sm);
+}
+
+.capProgresoModal__horasTotales {
+    font-size: var(--cap-texto-3xl);
+    font-weight: var(--cap-peso-bold);
+    color: var(--cap-primario-600);
+}
+
+.capProgresoModal__horasLabel {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+}
+
+/* Barra de progreso general */
+.capProgresoModal__barraGeneral {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-md);
+}
+
+.capProgresoModal__barraGeneralFondo {
+    flex: 1;
+    height: 12px;
+    background: var(--cap-gris-200);
+    border-radius: var(--cap-radio-full);
+    overflow: hidden;
+}
+
+.capProgresoModal__barraGeneralRelleno {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cap-primario-400), var(--cap-primario-600));
+    border-radius: var(--cap-radio-full);
+    transition: width 0.4s ease-out;
+}
+
+.capProgresoModal__porcentaje {
+    font-size: var(--cap-texto-lg);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-principal);
+    min-width: 50px;
+    text-align: right;
+}
+
+/* Desglose por asignatura */
+.capProgresoModal__desglose {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+}
+
+.capProgresoModal__desgloseHeader {
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-secundario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.capProgresoModal__asignaturas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-sm);
+}
+
+.capProgresoModal__asignatura {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-xs);
+    padding: var(--cap-espacio-sm);
+    background: var(--cap-fondo-tarjeta);
+    border: 1px solid var(--cap-borde-suave);
+    border-radius: var(--cap-radio-md);
+    transition: box-shadow var(--cap-transicion-rapida);
+}
+
+.capProgresoModal__asignatura:hover {
+    box-shadow: var(--cap-sombra-sm);
+}
+
+.capProgresoModal__asignaturaHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.capProgresoModal__asignaturaInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+}
+
+.capProgresoModal__asignaturaCodigo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    padding: var(--cap-espacio-xs) var(--cap-espacio-sm);
+    font-size: var(--cap-texto-xs);
+    font-weight: var(--cap-peso-bold);
+    color: white;
+    border-radius: var(--cap-radio-sm);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.capProgresoModal__asignaturaNombre {
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-medium);
+    color: var(--cap-texto-principal);
+}
+
+.capProgresoModal__asignaturaHoras {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-terciario);
+}
+
+.capProgresoModal__asignaturaHoras--completada {
+    color: var(--cap-exito-600);
+    font-weight: var(--cap-peso-semibold);
+}
+
+.capProgresoModal__asignaturaBarra {
+    height: 6px;
+    background: var(--cap-gris-200);
+    border-radius: var(--cap-radio-full);
+    overflow: hidden;
+}
+
+.capProgresoModal__asignaturaBarraRelleno {
+    height: 100%;
+    border-radius: var(--cap-radio-full);
+    transition: width 0.3s ease-out;
+}
+
+.capProgresoModal__asignaturaBarraRelleno--completada {
+    background: var(--cap-exito-500) !important;
+}
+
+/* Info adicional */
+.capProgresoModal__info {
+    padding-top: var(--cap-espacio-md);
+    border-top: 1px solid var(--cap-borde-suave);
+}
+
+.capProgresoModal__infoTexto {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+    margin: 0;
+}
+
+.capProgresoModal__infoTexto strong {
+    color: var(--cap-texto-principal);
+}
+
+.capProgresoModal__infoNota {
+    margin-top: var(--cap-espacio-sm);
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-terciario);
+    font-style: italic;
+}
+
+/* Celda de progreso clickeable */
+.capProgresoCelda--clickeable {
+    cursor: pointer;
+    border-radius: var(--cap-radio-sm);
+    padding: var(--cap-espacio-xs);
+    margin: calc(-1 * var(--cap-espacio-xs));
+    transition: background-color var(--cap-transicion-rapida);
+}
+
+.capProgresoCelda--clickeable:hover {
+    background: var(--cap-fondo-sutil);
+}

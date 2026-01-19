@@ -1,7 +1,7 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
 > **Última actualización:** 2026-01-18  
-> **Estado:** ✅ Fase 8 en progreso - Reportes PDF implementados  
+> **Estado:** ✅ Fase 8 completada - Inicio Fase 9 (Stripe)  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 ---
@@ -104,7 +104,7 @@ App/
   - [x] H.4.2 Al guardar aparece "Error al guardar datos del centro"
   - [x] H.4.3 Causa inicial: faltaba nonce en headers
   - [x] H.4.4 Fix aplicado: inyectar nonce en window.wpApiSettings desde CapDashboardIsland
-  - [ ] H.4.5 **Problema persiste**: errores siguen apareciendo brevemente al recargar/guardar
+  - [x] H.4.5 Fix: errores solucionados en sistema centralizado de errores
 
 - [x] **H.5** Espaciado en botones con icono
   - [x] H.5.1 El icono y texto están pegados (sin gap)
@@ -301,7 +301,7 @@ App/
 
 - [x] **4.4** Progreso del alumno
   - [x] 4.4.1 Barra de progreso visual (X/35h)
-  - [ ] 4.4.2 Desglose por asignatura (requiere modal detalle)
+  - [x] 4.4.2 Desglose por asignatura (modal detalle con barras por cada asignatura)
   - [x] 4.4.3 Estados: `ok`, `warning`, `completed`
 
 ---
