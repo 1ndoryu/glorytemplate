@@ -9,6 +9,7 @@ namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
 use Glory\App\Services\CalendarEngine;
+use Glory\App\Services\ReporteService;
 use Glory\App\Models\Alumno;
 use Glory\App\Models\Clase;
 use Glory\App\Models\Configuracion;
@@ -116,6 +117,19 @@ class CapEndpoints
             'methods' => 'DELETE',
             'callback' => [$this, 'limpiarDatosDemo'],
             'permission_callback' => [$this, 'verificarPermisosAdmin'],
+        ]);
+
+        /* Endpoints de reportes PDF */
+        register_rest_route(self::NAMESPACE, '/reportes/plan-alumno/(?P<alumnoId>\d+)', [
+            'methods' => 'GET',
+            'callback' => [$this, 'generarReportePlanAlumno'],
+            'permission_callback' => [$this, 'verificarPermisos'],
+        ]);
+
+        register_rest_route(self::NAMESPACE, '/reportes/control-horas', [
+            'methods' => 'GET',
+            'callback' => [$this, 'generarReporteControlHoras'],
+            'permission_callback' => [$this, 'verificarPermisos'],
         ]);
     }
 
@@ -658,5 +672,79 @@ class CapEndpoints
 
         $statusCode = $resultado['exito'] ? 200 : 400;
         return new \WP_REST_Response($resultado, $statusCode);
+    }
+
+    /**
+     * Genera el reporte PDF del plan de formación de un alumno
+     */
+    public function generarReportePlanAlumno(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $alumnoId = (int) $request->get_param('alumnoId');
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $reporteService = new ReporteService($centroId);
+        $pdf = $reporteService->generarPlanAlumno($alumnoId);
+
+        if ($pdf === false) {
+            return new \WP_REST_Response(['error' => 'Alumno no encontrado o no pertenece al centro'], 404);
+        }
+
+        /* Obtener nombre del alumno para el archivo */
+        $alumnoModel = new Alumno();
+        $alumno = $alumnoModel->obtenerPorId($alumnoId);
+        $nombreArchivo = 'plan-formacion-' . sanitize_file_name($alumno['nombre']) . '.pdf';
+
+        /* Devolver PDF como respuesta binaria */
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
+        header('Content-Length: ' . strlen($pdf));
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: public');
+
+        echo $pdf;
+        exit;
+    }
+
+    /**
+     * Genera el reporte PDF de control de horas semanal
+     */
+    public function generarReporteControlHoras(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        /* Obtener fecha de la semana (lunes) */
+        $semana = $request->get_param('semana');
+        if (!$semana) {
+            /* Calcular lunes de la semana actual */
+            $hoy = new \DateTime();
+            $diaSemana = (int) $hoy->format('N');
+            $diasHastaLunes = $diaSemana - 1;
+            $semana = $hoy->modify("-{$diasHastaLunes} days")->format('Y-m-d');
+        }
+
+        $reporteService = new ReporteService($centroId);
+        $pdf = $reporteService->generarControlHoras($semana);
+
+        $nombreArchivo = 'control-horas-' . $semana . '.pdf';
+
+        /* Devolver PDF como respuesta binaria */
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
+        header('Content-Length: ' . strlen($pdf));
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: public');
+
+        echo $pdf;
+        exit;
     }
 }

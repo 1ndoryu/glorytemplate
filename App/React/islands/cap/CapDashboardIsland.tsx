@@ -6,7 +6,7 @@
  */
 
 import {CapLayout} from './components/layout';
-import {SeccionCalendario, SeccionAlumnos, SeccionConfiguracion} from './components/secciones';
+import {SeccionCalendario, SeccionAlumnos, SeccionConfiguracion, SeccionReportes} from './components/secciones';
 import {useDashboardStore} from './stores/useDashboardStore';
 import './styles/index.css';
 
@@ -52,6 +52,8 @@ export function CapDashboardIsland({user, restNonce, restUrl, siteUrl}: CapDashb
                 return <SeccionAlumnos />;
             case 'configuracion':
                 return <SeccionConfiguracion userName={user.name} userEmail={user.email} />;
+            case 'reportes':
+                return <SeccionReportes />;
             default:
                 return <SeccionCalendario />;
         }

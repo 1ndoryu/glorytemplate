@@ -1,0 +1,183 @@
+/**
+ * Estilos para la sección de Reportes del módulo CAP
+ * 
+ * Diseño de tarjetas para selección y descarga de reportes PDF.
+ */
+
+/* Grid de reportes: 2 columnas en desktop, 1 en móvil */
+.capReportesGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--cap-espacio-lg);
+}
+
+@media (max-width: 768px) {
+    .capReportesGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tarjeta de reporte individual */
+.capReporteTarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+    padding: var(--cap-espacio-xl);
+}
+
+/* Icono destacado de la tarjeta */
+.capReporteTarjeta__icono {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--cap-radio-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.capReporteTarjeta__icono--azul {
+    background: linear-gradient(135deg, var(--cap-primario-100), var(--cap-primario-200));
+    color: var(--cap-primario-600);
+}
+
+.capReporteTarjeta__icono--verde {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #16a34a;
+}
+
+.capReporteTarjeta__icono--naranja {
+    background: linear-gradient(135deg, #fed7aa, #fdba74);
+    color: #ea580c;
+}
+
+/* Título de tarjeta */
+.capReporteTarjeta__titulo {
+    font-size: var(--nakomi-fuenteLg);
+    font-weight: 600;
+    color: var(--cap-texto-primario);
+    margin: 0;
+}
+
+/* Descripción */
+.capReporteTarjeta__descripcion {
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--cap-texto-secundario);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Área de controles (inputs, selects) */
+.capReporteTarjeta__controles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-sm);
+    margin-top: var(--cap-espacio-sm);
+}
+
+/* Botón de descarga */
+.capReporteTarjeta__boton {
+    margin-top: auto;
+    padding-top: var(--cap-espacio-md);
+}
+
+/* Selector de semana personalizado */
+.capSelectorSemana {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-sm);
+    background: var(--cap-fondo-secundario);
+    border-radius: var(--cap-radio-md);
+    padding: var(--cap-espacio-xs);
+}
+
+.capSelectorSemana__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--cap-fondo-primario);
+    border-radius: var(--cap-radio-sm);
+    cursor: pointer;
+    color: var(--cap-texto-secundario);
+    transition: all 0.2s ease;
+}
+
+.capSelectorSemana__btn:hover {
+    background: var(--cap-primario-100);
+    color: var(--cap-primario-600);
+}
+
+.capSelectorSemana__btn:active {
+    transform: scale(0.95);
+}
+
+.capSelectorSemana__texto {
+    flex: 1;
+    text-align: center;
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--cap-texto-primario);
+    padding: var(--cap-espacio-xs) var(--cap-espacio-sm);
+}
+
+/* Panel informativo */
+.capReportesInfo {
+    display: flex;
+    gap: var(--cap-espacio-md);
+    padding: var(--cap-espacio-lg);
+    background: var(--cap-fondo-secundario);
+    border-radius: var(--cap-radio-lg);
+    border-left: 3px solid var(--cap-primario-500);
+}
+
+.capReportesInfo__icono {
+    flex-shrink: 0;
+    color: var(--cap-primario-500);
+}
+
+/* Select nativo estilizado */
+.capSelect {
+    width: 100%;
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    font-size: var(--nakomi-fuenteSm);
+    font-family: inherit;
+    border: 1px solid var(--cap-borde);
+    border-radius: var(--cap-radio-md);
+    background: var(--cap-fondo-primario);
+    color: var(--cap-texto-primario);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+.capSelect:hover {
+    border-color: var(--cap-primario-300);
+}
+
+.capSelect:focus {
+    outline: none;
+    border-color: var(--cap-primario-500);
+    box-shadow: 0 0 0 3px var(--cap-primario-100);
+}
+
+.capSelect:disabled {
+    background: var(--cap-fondo-deshabilitado);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Label para controles */
+.capLabel {
+    font-size: var(--nakomi-fuenteXs);
+    font-weight: 500;
+    color: var(--cap-texto-secundario);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}

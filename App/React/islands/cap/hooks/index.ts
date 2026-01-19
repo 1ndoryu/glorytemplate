@@ -16,3 +16,5 @@ export type {DiaSemana, SlotDisponibilidad, DisponibilidadAlumno} from './useDis
 export {useCalendario} from './useCalendario';
 
 export {useHistorial} from './useHistorial';
+
+export {useReportes} from './useReportes';

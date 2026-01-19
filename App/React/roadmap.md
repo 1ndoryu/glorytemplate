@@ -1,7 +1,7 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
 > **Última actualización:** 2026-01-18  
-> **Estado:** ✅ Fase 7 completada - Pendiente: Fase 8 (Reportes)  
+> **Estado:** ✅ Fase 8 en progreso - Reportes PDF implementados  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 ---
@@ -133,6 +133,16 @@ App/
   - [x] H.8.3 Causa: El mapeo de código → nombre de asignatura difiere entre seeder y constantes
   - [x] H.8.4 Solución: Añadido `CODIGOS_ALIAS` en `cap-constants.ts` para mapear códigos snake_case
   - [x] H.8.5 `TarjetaClase.tsx` ahora usa `getAsignaturaPorCodigo()` cuando recibe un string
+
+- [ ] **H.9** Mensajes de error explicativos para el usuario
+  - [ ] H.9.1 Actualmente los errores muestran mensajes genéricos ("Error al mover la clase")
+  - [ ] H.9.2 Implementar mensajes descriptivos que expliquen la causa del problema
+  - [ ] H.9.3 Ejemplos de mejora:
+    - "No se puede mover: ya existe una clase en ese horario"
+    - "No se puede mover una clase bloqueada"
+    - "Error de conexión: intenta de nuevo"
+  - [ ] H.9.4 Revisar todos los puntos que muestran errores y mejorar los mensajes
+  - [ ] H.9.5 Considerar internacionalización futura (i18n)
 
 ---
 
@@ -382,15 +392,19 @@ App/
 
 ### Fase 8: Módulo de Reportes
 
-- [ ] **8.1** Generación de PDF
-  - [ ] 8.1.1 Librería PHP: `dompdf` o `tcpdf`
-  - [ ] 8.1.2 Endpoint: `GET /wp-json/cap/v1/reportes/{tipo}`
-  - [ ] 8.1.3 Tipos: `plan-alumno`, `control-horas`
+- [x] **8.1** Generación de PDF
+  - [x] 8.1.1 Librería PHP: `dompdf` instalada
+  - [x] 8.1.2 Endpoint: `GET /wp-json/cap/v1/reportes/{tipo}`
+  - [x] 8.1.3 Tipos: `plan-alumno`, `control-horas`
+  - [x] 8.1.4 Servicio `ReporteService.php` con estilos profesionales
 
-- [ ] **8.2** Interfaz de descarga
-  - [ ] 8.2.1 Selector de tipo de reporte
-  - [ ] 8.2.2 Selector de semana/alumno
-  - [ ] 8.2.3 Botón de descarga
+- [x] **8.2** Interfaz de descarga
+  - [x] 8.2.1 Selector de tipo de reporte (tarjetas)
+  - [x] 8.2.2 Selector de semana/alumno
+  - [x] 8.2.3 Botón de descarga con feedback de carga
+  - [x] 8.2.4 Componente `SeccionReportes.tsx`
+  - [x] 8.2.5 Hook `useReportes.ts`
+  - [x] 8.2.6 Navegación desde sidebar
 
 ---
 

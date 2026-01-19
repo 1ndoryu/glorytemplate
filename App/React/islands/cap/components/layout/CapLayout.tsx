@@ -8,7 +8,7 @@
 
 import type {ReactNode} from 'react';
 import {Badge} from '../ui';
-import {IconoCalendario, IconoUsuarios, IconoConfiguracion, IconoCerrarSesion, IconoMenu, IconoLogoCap} from '../icons';
+import {IconoCalendario, IconoUsuarios, IconoConfiguracion, IconoCerrarSesion, IconoMenu, IconoLogoCap, IconoReportes} from '../icons';
 import {useDashboardStore, type SeccionActiva} from '../../stores/useDashboardStore';
 import '../dashboard/dashboard.css';
 
@@ -21,6 +21,7 @@ interface ItemNavegacion {
 const itemsNavegacion: ItemNavegacion[] = [
     {id: 'calendario', label: 'Calendario', icono: <IconoCalendario />},
     {id: 'alumnos', label: 'Alumnos', icono: <IconoUsuarios />},
+    {id: 'reportes', label: 'Reportes', icono: <IconoReportes />},
     {id: 'configuracion', label: 'Configuración', icono: <IconoConfiguracion />}
 ];
 

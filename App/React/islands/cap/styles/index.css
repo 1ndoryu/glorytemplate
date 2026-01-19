@@ -23,4 +23,5 @@
 @import './alumnos.css';
 @import './disponibilidad.css';
 @import './calendario.css';
+@import './reportes.css';
 @import '../components/calendario/ModalConflictoAforo.css';

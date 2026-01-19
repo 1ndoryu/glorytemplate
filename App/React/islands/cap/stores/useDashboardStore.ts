@@ -7,14 +7,11 @@
 
 import {create} from 'zustand';
 
-export type SeccionActiva = 'calendario' | 'alumnos' | 'configuracion';
+export type SeccionActiva = 'calendario' | 'alumnos' | 'configuracion' | 'reportes';
 
 interface DashboardState {
-    /* Estado de navegación */
     seccionActiva: SeccionActiva;
     sidebarAbierto: boolean;
-
-    /* Acciones */
     setSeccionActiva: (seccion: SeccionActiva) => void;
     toggleSidebar: () => void;
     abrirSidebar: () => void;
@@ -22,11 +19,8 @@ interface DashboardState {
 }
 
 export const useDashboardStore = create<DashboardState>(set => ({
-    /* Estado inicial */
     seccionActiva: 'calendario',
     sidebarAbierto: false,
-
-    /* Acciones */
     setSeccionActiva: seccion => set({seccionActiva: seccion, sidebarAbierto: false}),
     toggleSidebar: () => set(state => ({sidebarAbierto: !state.sidebarAbierto})),
     abrirSidebar: () => set({sidebarAbierto: true}),
