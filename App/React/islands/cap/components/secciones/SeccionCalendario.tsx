@@ -80,7 +80,7 @@ export function SeccionCalendario() {
         <div className="capSeccion capAnimFadeIn">
             <div className="capSeccion__header">
                 <h2 className="capTitulo capTitulo--lg">Calendario</h2>
-                <p className="capTexto capTexto--secundario">Gestiona las clases del curso CAP</p>
+                <p className="capTexto capTexto--secundario">Gestiona las clases del curso CAP!</p>
             </div>
 
             {error && (

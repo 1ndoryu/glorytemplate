@@ -195,31 +195,31 @@ App/
   - [x] H.17.5 Ahora tanto el motor como el seeder respetan clases bloqueadas
   - [x] H.17.6 El problema solo ocurría con datos demo al hacer clean/seed
 
-- [x] **H.18** Error al descargar PDF "Plan de Formación" (CORREGIDO)
-  - [x] H.18.1 Usuario reportaba que al pulsar "Descargar PDF" no ocurría nada
-  - [x] H.18.2 Causa: Output buffer previo contaminaba respuesta PDF
-  - [x] H.18.3 Fix: Limpieza de output buffer con `ob_end_clean()` antes de enviar PDF
-  - [x] H.18.4 Fix: Envuelto en try-catch para capturar errores de Dompdf
-  - [x] H.18.5 Aplicado mismo tratamiento a endpoint de Control de Horas
+- [ ] **H.18** Error al descargar PDF "Plan de Formación"
+  - [ ] H.18.1 Al pulsar "Descargar PDF" no ocurre nada
+  - [ ] H.18.2 El reporte "Control de Horas" SÍ funciona correctamente
+  - [ ] H.18.3 Se intentó limpiar output buffer, pero no resolvió
+  - [ ] H.18.4 Pendiente investigar causa raíz
 
-- [x] **H.19** Incoherencia en conteo de alumnos (Tarjeta vs Modal) (CORREGIDO)
-  - [x] H.19.1 Tarjeta mostraba N alumnos pero modal listaba menos
-  - [x] H.19.2 Causa: `alumnosIds` contiene IDs de alumnos eliminados que ya no existen
-  - [x] H.19.3 Fix: Modal ahora detecta discrepancia y muestra advertencia "(X en BD)"
-  - [x] H.19.4 Fix: Mensaje claro cuando alumnos asignados ya no existen en el sistema
+- [ ] **H.19** Incoherencia en conteo de alumnos (Tarjeta vs Modal)
+  - [ ] H.19.1 Tarjeta muestra N alumnos pero modal lista menos
+  - [ ] H.19.2 Modal muestra "(X en BD)" de forma confusa
+  - [ ] H.19.3 Problema ocurre con datos de prueba (seed)
+  - [ ] H.19.4 Revisar lógica del seeder y de la respuesta API
 
 - [x] **H.20** Error visual en rango horario del modal detalle (CORREGIDO)
-  - [x] H.20.1 Horario mostraba "08:00 - 08:00" al abrir
-  - [x] H.20.2 Causa: Estado local se inicializaba con strings vacíos `''`
-  - [x] H.20.3 Fix: Inicializar estado con valores de la clase si existe
-  - [x] H.20.4 Valores por defecto sensatos (08:00 - 09:00) si clase es null
+  - [x] H.20.1 Horario muestra "08:00 - 08:00" en lugar del horario real de la clase
+  - [x] H.20.2 El header del modal SÍ muestra la hora correcta (ej: 10:00:00 - 11:00:00)
+  - [x] H.20.3 Los selectores de hora no se sincronizan con la clase seleccionada
+  - [x] H.20.4 **Causa raíz:** API devuelve horas con segundos ("10:00:00"), pero selectores solo manejan "HH:MM"
+  - [x] H.20.5 **Fix:** Añadido `formatearHora()` en useEffect para normalizar horas a formato "HH:MM"
+  - [x] H.20.6 También se añadió `abierto` como dependencia del useEffect para re-sincronizar al abrir
 
-- [x] **H.21** Inconsistencia de clases bloqueadas en PDF (CORREGIDO)
-  - [x] H.21.1 En PDF aparecía símbolo extraño (?) en lugar de indicador de bloqueo
-  - [x] H.21.2 Causa 1: Emoji 🔒 no soportado por dompdf (fuente PDF)
-  - [x] H.21.3 Causa 2: Campo `bloqueada` comparado como truthy sin cast explícito
-  - [x] H.21.4 Fix: Reemplazado emoji por texto "[B] Bloqueada"
-  - [x] H.21.5 Fix: Cast explícito `(int) $clase['bloqueada'] === 1`
+- [ ] **H.21** Inconsistencia de clases bloqueadas (UI vs PDF)
+  - [x] H.21.1 El símbolo extraño (?) ya no aparece en PDF - CORREGIDO
+  - [ ] H.21.2 En el calendario (UI) TODAS las clases aparecen bloqueadas con datos de prueba
+  - [ ] H.21.3 En el PDF generado solo 1-2 clases aparecen como "[B] Bloqueada"
+  - [ ] H.21.4 El problema parece estar en el frontend o en el seeder, no en la generación del PDF
 
 ---
 

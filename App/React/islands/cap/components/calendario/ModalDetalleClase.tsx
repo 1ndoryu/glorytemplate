@@ -6,7 +6,7 @@
  */
 
 import {useState, useEffect} from 'react';
-import type {Clase} from '../../types';
+import type {Clase, DiaSemana} from '../../types';
 import type {Alumno} from '../../hooks/useAlumnos';
 import {ASIGNATURAS_CAP, getAsignatura, getAsignaturaPorCodigo, SLOTS_HORARIOS} from '../../constants';
 import {Modal, Boton} from '../ui';
@@ -19,6 +19,9 @@ interface ModalDetalleClaseProps {
     onCerrar: () => void;
     onGuardar: (claseId: number, cambios: CambiosClase) => Promise<void>;
     onToggleBloqueo: (claseId: number) => void;
+    onMoverClase?: (claseId: number, nuevaFecha: string) => Promise<void>;
+    fechasSemana?: Record<DiaSemana, string>;
+    clasesPorDia?: Record<DiaSemana, Clase[]>;
     guardando?: boolean;
 }
 
@@ -28,33 +31,46 @@ export interface CambiosClase {
     asignaturaId?: number;
 }
 
-export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar, onToggleBloqueo, guardando = false}: ModalDetalleClaseProps) {
-    /* Estado local para edición - inicializado con valores de la clase si existe */
-    const [horaInicio, setHoraInicio] = useState(clase?.horaInicio || '08:00');
-    const [horaFin, setHoraFin] = useState(clase?.horaFin || '09:00');
+export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar, onToggleBloqueo, onMoverClase, fechasSemana, clasesPorDia, guardando = false}: ModalDetalleClaseProps) {
+    /*
+     * Estado local para edición.
+     * Nota: La inicialización con clase?.horaInicio se hace en useEffect para garantizar
+     * que siempre se sincronice correctamente cuando cambia la clase seleccionada.
+     */
+    const [horaInicio, setHoraInicio] = useState('08:00');
+    const [horaFin, setHoraFin] = useState('09:00');
     const [asignaturaId, setAsignaturaId] = useState<number>(1);
     const [hayCambios, setHayCambios] = useState(false);
 
-    /* Sincronizar estado local con la clase seleccionada */
+    /*
+     * Sincronizar estado local con la clase seleccionada.
+     * Se ejecuta cada vez que la clase cambia para reflejar los valores correctos.
+     * Esto corrige H.20 donde los selectores mostraban "08:00" en lugar del horario real.
+     */
     useEffect(() => {
         if (clase) {
-            setHoraInicio(clase.horaInicio);
-            setHoraFin(clase.horaFin);
+            /* Formatear hora quitando segundos si los tiene (ej: "10:00:00" -> "10:00") */
+            const formatearHora = (hora: string) => hora.substring(0, 5);
+
+            setHoraInicio(formatearHora(clase.horaInicio));
+            setHoraFin(formatearHora(clase.horaFin));
 
             /* Obtener asignatura (puede ser número o string) */
             const asig = typeof clase.asignaturaId === 'number' ? getAsignatura(clase.asignaturaId) : getAsignaturaPorCodigo(String(clase.asignaturaId));
             setAsignaturaId(asig?.id || 1);
             setHayCambios(false);
         }
-    }, [clase]);
+    }, [clase, abierto]);
 
-    /* Detectar cambios */
+    /* Detectar cambios comparando con valores originales */
     useEffect(() => {
         if (!clase) return;
 
+        const formatearHora = (hora: string) => hora.substring(0, 5);
         const asigOriginal = typeof clase.asignaturaId === 'number' ? clase.asignaturaId : getAsignaturaPorCodigo(String(clase.asignaturaId))?.id || 1;
 
-        const cambiosDetectados = horaInicio !== clase.horaInicio || horaFin !== clase.horaFin || asignaturaId !== asigOriginal;
+        /* Comparar horas formateadas para evitar falsos positivos por segundos */
+        const cambiosDetectados = horaInicio !== formatearHora(clase.horaInicio) || horaFin !== formatearHora(clase.horaFin) || asignaturaId !== asigOriginal;
 
         setHayCambios(cambiosDetectados);
     }, [clase, horaInicio, horaFin, asignaturaId]);
@@ -71,10 +87,12 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
 
         const cambios: CambiosClase = {};
 
-        if (horaInicio !== clase.horaInicio) {
+        const formatearHora = (hora: string) => hora.substring(0, 5);
+
+        if (horaInicio !== formatearHora(clase.horaInicio)) {
             cambios.horaInicio = horaInicio;
         }
-        if (horaFin !== clase.horaFin) {
+        if (horaFin !== formatearHora(clase.horaFin)) {
             cambios.horaFin = horaFin;
         }
 
