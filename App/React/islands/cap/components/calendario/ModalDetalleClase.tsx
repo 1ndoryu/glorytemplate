@@ -5,7 +5,7 @@
  * Permite cambiar hora, asignatura y ver alumnos asignados.
  */
 
-import {useState, useEffect} from 'react';
+import {useState} from 'react';
 import type {Clase, DiaSemana} from '../../types';
 import type {Alumno} from '../../hooks/useAlumnos';
 import {ASIGNATURAS_CAP, getAsignatura, getAsignaturaPorCodigo, SLOTS_HORARIOS} from '../../constants';
@@ -20,7 +20,7 @@ interface ModalDetalleClaseProps {
     onGuardar: (claseId: number, cambios: CambiosClase) => Promise<void>;
     onToggleBloqueo: (claseId: number) => void;
     onMoverClase?: (claseId: number, nuevaFecha: string) => Promise<void>;
-    fechasSemana?: Record<DiaSemana, string>;
+    fechasSemana?: Date[];
     clasesPorDia?: Record<DiaSemana, Clase[]>;
     guardando?: boolean;
 }
@@ -33,47 +33,43 @@ export interface CambiosClase {
 
 export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar, onToggleBloqueo, onMoverClase, fechasSemana, clasesPorDia, guardando = false}: ModalDetalleClaseProps) {
     /*
-     * Estado local para edición.
-     * Nota: La inicialización con clase?.horaInicio se hace en useEffect para garantizar
-     * que siempre se sincronice correctamente cuando cambia la clase seleccionada.
+     * Función helper para formatear hora (quita segundos).
+     * Ej: "10:00:00" -> "10:00"
      */
-    const [horaInicio, setHoraInicio] = useState('08:00');
-    const [horaFin, setHoraFin] = useState('09:00');
-    const [asignaturaId, setAsignaturaId] = useState<number>(1);
-    const [hayCambios, setHayCambios] = useState(false);
+    const formatearHora = (hora: string | undefined | null): string => {
+        if (!hora) return '08:00';
+        return hora.substring(0, 5);
+    };
+
+    /* Obtener ID de asignatura inicial de la clase */
+    const obtenerAsignaturaIdInicial = (): number => {
+        if (!clase) return 1;
+        if (typeof clase.asignaturaId === 'number') {
+            return clase.asignaturaId;
+        }
+        return getAsignaturaPorCodigo(String(clase.asignaturaId))?.id || 1;
+    };
 
     /*
-     * Sincronizar estado local con la clase seleccionada.
-     * Se ejecuta cada vez que la clase cambia para reflejar los valores correctos.
-     * Esto corrige H.20 donde los selectores mostraban "08:00" en lugar del horario real.
+     * Estado local para edición.
+     * Gracias a la key en el componente padre (SeccionCalendario),
+     * el componente se remonta cuando cambia la clase seleccionada.
+     * Por eso podemos inicializar directamente con los valores de la clase.
      */
-    useEffect(() => {
-        if (clase) {
-            /* Formatear hora quitando segundos si los tiene (ej: "10:00:00" -> "10:00") */
-            const formatearHora = (hora: string) => hora.substring(0, 5);
-
-            setHoraInicio(formatearHora(clase.horaInicio));
-            setHoraFin(formatearHora(clase.horaFin));
-
-            /* Obtener asignatura (puede ser número o string) */
-            const asig = typeof clase.asignaturaId === 'number' ? getAsignatura(clase.asignaturaId) : getAsignaturaPorCodigo(String(clase.asignaturaId));
-            setAsignaturaId(asig?.id || 1);
-            setHayCambios(false);
-        }
-    }, [clase, abierto]);
+    const [horaInicio, setHoraInicio] = useState(() => formatearHora(clase?.horaInicio));
+    const [horaFin, setHoraFin] = useState(() => formatearHora(clase?.horaFin));
+    const [asignaturaId, setAsignaturaId] = useState<number>(obtenerAsignaturaIdInicial);
 
     /* Detectar cambios comparando con valores originales */
-    useEffect(() => {
-        if (!clase) return;
+    const hayCambios = (() => {
+        if (!clase) return false;
 
-        const formatearHora = (hora: string) => hora.substring(0, 5);
-        const asigOriginal = typeof clase.asignaturaId === 'number' ? clase.asignaturaId : getAsignaturaPorCodigo(String(clase.asignaturaId))?.id || 1;
+        const horaInicioOriginal = formatearHora(clase.horaInicio);
+        const horaFinOriginal = formatearHora(clase.horaFin);
+        const asigOriginal = obtenerAsignaturaIdInicial();
 
-        /* Comparar horas formateadas para evitar falsos positivos por segundos */
-        const cambiosDetectados = horaInicio !== formatearHora(clase.horaInicio) || horaFin !== formatearHora(clase.horaFin) || asignaturaId !== asigOriginal;
-
-        setHayCambios(cambiosDetectados);
-    }, [clase, horaInicio, horaFin, asignaturaId]);
+        return horaInicio !== horaInicioOriginal || horaFin !== horaFinOriginal || asignaturaId !== asigOriginal;
+    })();
 
     /* Obtener alumnos asignados a esta clase */
     const alumnosClase = alumnos.filter(a => clase?.alumnosIds?.includes(a.id));

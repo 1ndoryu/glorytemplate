@@ -97,18 +97,8 @@ export function SeccionCalendario() {
             <ModalConflictoAforo abierto={mostrarModalConflictos} conflictos={conflictos} onCerrar={cerrarModalConflictos} onConfirmar={handleConfirmarExclusiones} cargando={generando} />
 
             {/* Modal para editar detalles de clase - usa claseActualizada para reflejar cambios en tiempo real */}
-            <ModalDetalleClase
-                clase={claseActualizada}
-                alumnos={alumnos}
-                abierto={mostrarModalEdicion}
-                onCerrar={cerrarModalEdicion}
-                onGuardar={handleGuardarClase}
-                onToggleBloqueo={toggleBloqueoClase}
-                onMoverClase={handleMoverClase}
-                fechasSemana={fechasSemana}
-                clasesPorDia={clasesPorDia}
-                guardando={guardandoEdicion}
-            />
+            {/* La key fuerza un remount cuando cambia la clase, reseteando el estado interno */}
+            <ModalDetalleClase key={`modal-clase-${claseActualizada?.id ?? 'none'}`} clase={claseActualizada} alumnos={alumnos} abierto={mostrarModalEdicion} onCerrar={cerrarModalEdicion} onGuardar={handleGuardarClase} onToggleBloqueo={toggleBloqueoClase} onMoverClase={handleMoverClase} fechasSemana={fechasSemana} clasesPorDia={clasesPorDia} guardando={guardandoEdicion} />
         </div>
     );
 }

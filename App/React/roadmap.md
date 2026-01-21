@@ -211,15 +211,28 @@ App/
   - [x] H.20.1 Horario muestra "08:00 - 08:00" en lugar del horario real de la clase
   - [x] H.20.2 El header del modal SÍ muestra la hora correcta (ej: 10:00:00 - 11:00:00)
   - [x] H.20.3 Los selectores de hora no se sincronizan con la clase seleccionada
-  - [x] H.20.4 **Causa raíz:** API devuelve horas con segundos ("10:00:00"), pero selectores solo manejan "HH:MM"
-  - [x] H.20.5 **Fix:** Añadido `formatearHora()` en useEffect para normalizar horas a formato "HH:MM"
-  - [x] H.20.6 También se añadió `abierto` como dependencia del useEffect para re-sincronizar al abrir
+  - [x] H.20.4 **Causa raíz 1:** API devuelve horas con segundos ("10:00:00") - Fix: `formatearHora()` normaliza a "HH:MM"
+  - [x] H.20.5 **Causa raíz 2:** `SLOTS_HORARIOS` solo tenía intervalos de 45 min (08:45, 09:30...) pero seeder usa horas redondas (09:00, 10:00...)
+  - [x] H.20.6 **Fix:** Añadidas horas redondas a `SLOTS_HORARIOS` en `cap-constants.ts`
+  - [x] H.20.7 Añadida key dinámica al ModalDetalleClase para forzar remount al cambiar clase
 
 - [ ] **H.21** Inconsistencia de clases bloqueadas (UI vs PDF)
   - [x] H.21.1 El símbolo extraño (?) ya no aparece en PDF - CORREGIDO
   - [ ] H.21.2 En el calendario (UI) TODAS las clases aparecen bloqueadas con datos de prueba
   - [ ] H.21.3 En el PDF generado solo 1-2 clases aparecen como "[B] Bloqueada"
   - [ ] H.21.4 El problema parece estar en el frontend o en el seeder, no en la generación del PDF
+
+- [ ] **H.22** Falta opción para eliminar clases manualmente
+  - [ ] H.22.1 No existe un botón para eliminar una clase individual desde el modal de detalles
+  - [ ] H.22.2 Necesario para corregir errores o eliminar clases mal generadas
+  - [ ] H.22.3 Añadir botón "Eliminar clase" con confirmación al modal `ModalDetalleClase`
+  - [ ] H.22.4 Crear endpoint `DELETE /wp-json/cap/v1/clases/{id}`
+
+- [ ] **H.23** Clases huérfanas no se pueden borrar
+  - [ ] H.23.1 Si se generan datos demo y se borran rápidamente, quedan clases "huérfanas"
+  - [ ] H.23.2 Estas clases no pertenecen al seeder ni al generador, no hay forma de eliminarlas
+  - [ ] H.23.3 Añadir botón "Borrar TODAS las clases" en PanelDemo (con doble confirmación)
+  - [ ] H.23.4 Este botón debe borrar incluso clases generadas manualmente, no solo las de demo
 
 ---
 

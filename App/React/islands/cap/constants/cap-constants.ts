@@ -163,8 +163,12 @@ export const COLORES_ASIGNATURAS: Record<number, string> = {
     8: 'var(--cap-asignatura-8)'
 };
 
-/* Slots horarios estándar (formato 24h) */
-export const SLOTS_HORARIOS = ['08:00', '08:45', '09:30', '10:15', '11:00', '11:45', '12:30', '13:15', '14:00', '15:00', '15:45', '16:30', '17:15', '18:00', '18:45', '19:30', '20:15'];
+/*
+ * Slots horarios disponibles (formato 24h).
+ * Incluye tanto intervalos de 45 min como horas redondas para
+ * compatibilidad con datos del seeder y del motor de generación.
+ */
+export const SLOTS_HORARIOS = ['08:00', '08:45', '09:00', '09:30', '10:00', '10:15', '11:00', '11:45', '12:00', '12:30', '13:00', '13:15', '14:00', '15:00', '15:45', '16:00', '16:30', '17:00', '17:15', '18:00', '18:45', '19:00', '19:30', '20:00', '20:15', '21:00'].sort();
 
 /* Helpers de formato de fecha */
 export function formatearFecha(fecha: Date): string {
