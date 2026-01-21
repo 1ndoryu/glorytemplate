@@ -841,6 +841,7 @@ class CapEndpoints
 
     /**
      * Genera el reporte PDF del plan de formación de un alumno
+     * Devuelve el PDF codificado en base64 para descarga desde el frontend
      */
     public function generarReportePlanAlumno(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -895,20 +896,13 @@ class CapEndpoints
 
             $nombreArchivo = 'plan-formacion-' . sanitize_file_name($alumno['nombre']) . '.pdf';
 
-            /* Limpiar cualquier output buffer pendiente */
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-
-            /* Devolver PDF como respuesta binaria */
-            header('Content-Type: application/pdf');
-            header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
-            header('Content-Length: ' . strlen($pdf));
-            header('Cache-Control: private, max-age=0, must-revalidate');
-            header('Pragma: public');
-
-            echo $pdf;
-            exit;
+            /* Devolver PDF como base64 para que el frontend lo descargue */
+            return new \WP_REST_Response([
+                'exito' => true,
+                'pdf' => base64_encode($pdf),
+                'nombre' => $nombreArchivo,
+                'tipo' => 'application/pdf'
+            ]);
         } catch (\Exception $e) {
             /* Limpiar buffers en caso de error */
             while (ob_get_level() > 0) {

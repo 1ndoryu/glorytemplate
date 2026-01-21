@@ -63,7 +63,9 @@ export function SeccionReportes() {
     /* Manejar descarga de plan alumno */
     const handleDescargarPlanAlumno = () => {
         if (!alumnoSeleccionado) return;
-        const alumno = alumnos.find(a => a.id === alumnoSeleccionado);
+
+        /* Usar Number() para normalizar tipos (API puede devolver string o number) */
+        const alumno = alumnos.find(a => Number(a.id) === Number(alumnoSeleccionado));
         if (alumno) {
             descargarPlanAlumno(alumnoSeleccionado, alumno.nombre);
         }

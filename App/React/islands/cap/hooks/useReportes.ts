@@ -55,10 +55,11 @@ export function useReportes(): UseReportesReturn {
                 }
             });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
+            const data = await response.json();
+
+            if (!response.ok || data.error) {
                 const contextual = obtenerMensajeContextual('reportes', 'generar');
-                const mensajeBackend = errorData.error || errorData.message;
+                const mensajeBackend = data.error || data.message;
                 if (mensajeBackend) {
                     const interpretado = interpretarErrorHttp(response.status, mensajeBackend);
                     throw new Error(formatearMensajeError(interpretado));
@@ -66,18 +67,36 @@ export function useReportes(): UseReportesReturn {
                 throw new Error(`${contextual.fallback} ${contextual.sugerencia}`);
             }
 
-            /* Obtener el blob del PDF */
-            const blob = await response.blob();
+            if (!data.pdf) {
+                throw new Error('El servidor no devolvió el PDF correctamente');
+            }
+
+            /* Decodificar base64 a blob */
+            const binaryString = atob(data.pdf);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], {type: data.tipo || 'application/pdf'});
 
             /* Crear URL temporal y descargar */
-            const url = window.URL.createObjectURL(blob);
+            const blobUrl = window.URL.createObjectURL(blob);
+            const nombreArchivo = data.nombre || `plan-formacion-${nombreAlumno.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `plan-formacion-${nombreAlumno.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+            a.style.display = 'none';
+            a.href = blobUrl;
+            a.download = nombreArchivo;
             document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+
+            /* Limpiar después de un breve delay */
+            setTimeout(() => {
+                if (a.parentNode) {
+                    document.body.removeChild(a);
+                }
+                window.URL.revokeObjectURL(blobUrl);
+            }, 150);
 
             setEstado(prev => ({
                 ...prev,

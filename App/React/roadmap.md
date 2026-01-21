@@ -187,7 +187,7 @@ App/
   - [x] H.16.3 Reducido de 32px → 24px en desktop, 28px → 22px en mobile
   - [x] H.16.4 Añadido max-width para evitar celdas gigantes en pantallas grandes
 
-- [x] **H.17** � Clases bloqueadas desaparecen al regenerar (CORREGIDO)
+- [x] **H.17** Clases bloqueadas desaparecen al regenerar (CORREGIDO)
   - [x] H.17.1 Usuario reportó que con datos demo, clases bloqueadas desaparecían
   - [x] H.17.2 `CalendarEngine::crearClases()` elimina solo `WHERE bloqueada = 0` (correcto)
   - [x] H.17.3 **Causa raíz:** `CapSeeder::cleanAll()` eliminaba TODAS las clases sin filtrar bloqueo
@@ -195,13 +195,18 @@ App/
   - [x] H.17.5 Ahora tanto el motor como el seeder respetan clases bloqueadas
   - [x] H.17.6 El problema solo ocurría con datos demo al hacer clean/seed
 
-- [~] **H.18** Error al descargar PDF "Plan de Formación" *(mejorado)*
+- [x] **H.18** Error al descargar PDF "Plan de Formación" *(CORREGIDO)*
   - [x] H.18.1 Al pulsar "Descargar PDF" no ocurre nada
   - [x] H.18.2 El reporte "Control de Horas" SÍ funciona correctamente
   - [x] H.18.3 Se intentó limpiar output buffer, pero no resolvió
   - [x] H.18.4 Mejorado manejo de errores en endpoint para mejor diagnóstico
   - [x] H.18.5 Añadido buffer de captura para detectar outputs accidentales
   - [x] H.18.6 Validaciones adicionales antes de generar el PDF
+  - [x] H.18.7 **Causa raíz 1:** `echo/exit` no compatible con WordPress REST API
+  - [x] H.18.8 **Fix 1:** Endpoint ahora devuelve PDF como base64 en JSON
+  - [x] H.18.9 Frontend decodifica base64 a blob para descargar
+  - [x] H.18.10 **Causa raíz 2:** Comparación de IDs con tipos distintos (string vs number)
+  - [x] H.18.11 **Fix 2:** Usar `Number()` para normalizar tipos antes de comparar en `SeccionReportes.tsx`
 
 - [ ] **H.19** Incoherencia en conteo de alumnos (Tarjeta vs Modal)
   - [ ] H.19.1 Tarjeta muestra N alumnos pero modal lista menos
@@ -240,6 +245,13 @@ App/
   - [x] H.23.4 Este botón debe borrar incluso clases generadas manualmente, no solo las de demo
   - [x] H.23.5 Endpoint `DELETE /wp-json/cap/v1/clases/limpiar-todas` creado
   - [x] H.23.6 Requiere confirmación escrita "ELIMINAR_TODO"
+
+- [x] **H.24** Deshacer no funciona al eliminar/generar clases *(CORREGIDO)*
+  - [x] H.24.1 Al borrar una clase, no se puede deshacer
+  - [x] H.24.2 Al generar calendario, no se puede deshacer si las clases cambiaron
+  - [x] H.24.3 **Causa raíz:** `eliminarClase` y `generarCalendario` no guardaban snapshot
+  - [x] H.24.4 **Fix:** Añadido `guardarSnapshot()` antes de ambas operaciones en `useCalendario.ts`
+  - [x] H.24.5 Actualizadas dependencias de `useCallback` para incluir `guardarSnapshot`
 
 
 ---

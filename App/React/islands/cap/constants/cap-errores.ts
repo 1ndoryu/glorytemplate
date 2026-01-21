@@ -226,6 +226,10 @@ export const MENSAJES_CONTEXTUALES = {
         bloquear: {
             fallback: 'No se pudo cambiar el estado de bloqueo.',
             sugerencia: 'Recarga la página e intenta de nuevo.'
+        },
+        eliminar: {
+            fallback: 'No se pudo eliminar la clase.',
+            sugerencia: 'Intenta de nuevo. Si está bloqueada, desbloquéala primero.'
         }
     },
     alumnos: {

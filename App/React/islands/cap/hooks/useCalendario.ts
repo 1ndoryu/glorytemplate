@@ -218,8 +218,21 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         await cargarClases();
     }, [cargarClases]);
 
+    /* Guardar snapshot antes de un cambio (para undo) */
+    const guardarSnapshot = useCallback(() => {
+        setHistorialClases(prev => {
+            const nuevo = [...prev, JSON.parse(JSON.stringify(clases))];
+            /* Limitar a 20 snapshots máximo */
+            if (nuevo.length > 20) nuevo.shift();
+            return nuevo;
+        });
+    }, [clases]);
+
     /* Generar calendario */
     const generarCalendario = useCallback(async () => {
+        /* Guardar snapshot antes de generar para poder deshacer */
+        guardarSnapshot();
+
         setGenerando(true);
         setError(null);
         setConflictos([]);
@@ -270,7 +283,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         } finally {
             setGenerando(false);
         }
-    }, [semanaActual, getNonce, formatearFechaApi, cargarClases]);
+    }, [semanaActual, getNonce, formatearFechaApi, cargarClases, guardarSnapshot]);
 
     /* Generar con exclusiones (después de resolver conflictos) */
     const generarConExclusiones = useCallback(
@@ -334,16 +347,6 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         setMostrarModalEdicion(false);
         setClaseSeleccionada(null);
     }, []);
-
-    /* Guardar snapshot antes de un cambio (para undo) */
-    const guardarSnapshot = useCallback(() => {
-        setHistorialClases(prev => {
-            const nuevo = [...prev, JSON.parse(JSON.stringify(clases))];
-            /* Limitar a 20 snapshots máximo */
-            if (nuevo.length > 20) nuevo.shift();
-            return nuevo;
-        });
-    }, [clases]);
 
     /* Actualizar clase con cambios */
     const actualizarClase = useCallback(
@@ -478,6 +481,9 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
     /* Eliminar una clase */
     const eliminarClase = useCallback(
         async (claseId: number, forzar: boolean) => {
+            /* Guardar snapshot antes de eliminar para poder deshacer */
+            guardarSnapshot();
+
             setEliminando(true);
             setError(null);
 
@@ -508,7 +514,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 setEliminando(false);
             }
         },
-        [getNonce, cerrarModalEdicion]
+        [getNonce, cerrarModalEdicion, guardarSnapshot]
     );
 
     return {
