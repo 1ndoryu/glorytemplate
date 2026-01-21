@@ -32,8 +32,9 @@ interface EstadoDemo {
 export function PanelDemo() {
     const [estado, setEstado] = useState<EstadoDemo | null>(null);
     const [cargando, setCargando] = useState(true);
-    const [ejecutando, setEjecutando] = useState<'seed' | 'clean' | null>(null);
+    const [ejecutando, setEjecutando] = useState<'seed' | 'clean' | 'limpiarTodas' | null>(null);
     const [mensaje, setMensaje] = useState<{tipo: 'exito' | 'error'; texto: string} | null>(null);
+    const [confirmandoLimpiarTodas, setConfirmandoLimpiarTodas] = useState(false);
 
     /* Obtener estado inicial */
     useEffect(() => {
@@ -139,6 +140,58 @@ export function PanelDemo() {
         }
     };
 
+    /* Función para eliminar TODAS las clases (incluso huérfanas) */
+    const limpiarTodasLasClases = async () => {
+        if (!confirmandoLimpiarTodas) {
+            /* Primera vez: mostrar confirmación */
+            setConfirmandoLimpiarTodas(true);
+            setMensaje({tipo: 'error', texto: '¡ATENCIÓN! Esto eliminará TODAS las clases. Click de nuevo para confirmar.'});
+            /* Reset automático después de 5 segundos */
+            setTimeout(() => {
+                setConfirmandoLimpiarTodas(false);
+                setMensaje(null);
+            }, 5000);
+            return;
+        }
+
+        /* Segunda confirmación con prompt */
+        const confirmacion = prompt('Escribe ELIMINAR_TODO para confirmar:');
+        if (confirmacion !== 'ELIMINAR_TODO') {
+            setMensaje({tipo: 'error', texto: 'Operación cancelada'});
+            setConfirmandoLimpiarTodas(false);
+            return;
+        }
+
+        setEjecutando('limpiarTodas');
+        setMensaje(null);
+        setConfirmandoLimpiarTodas(false);
+
+        try {
+            const response = await fetch('/wp-json/cap/v1/clases/limpiar-todas?confirmar=ELIMINAR_TODO&incluirBloqueadas=true', {
+                method: 'DELETE',
+                headers: {
+                    'X-WP-Nonce': window.wpApiSettings?.nonce || ''
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.exito) {
+                setMensaje({
+                    tipo: 'exito',
+                    texto: data.mensaje || `Se eliminaron ${data.eliminadas} clases`
+                });
+                await obtenerEstado();
+            } else {
+                setMensaje({tipo: 'error', texto: data.error || 'Error al limpiar clases'});
+            }
+        } catch (error) {
+            setMensaje({tipo: 'error', texto: 'Error de conexión al limpiar clases'});
+        } finally {
+            setEjecutando(null);
+        }
+    };
+
     /* Mientras carga, mostrar spinner */
     if (cargando) {
         return (
@@ -205,6 +258,12 @@ export function PanelDemo() {
                                 Limpiar datos demo
                             </Boton>
                         )}
+
+                        {/* Botón para limpiar TODAS las clases (incluye huérfanas) */}
+                        <Boton variante={confirmandoLimpiarTodas ? 'peligro' : 'outline'} tamano="sm" onClick={limpiarTodasLasClases} disabled={ejecutando !== null}>
+                            {ejecutando === 'limpiarTodas' ? <Spinner tamano="sm" /> : <IconoEliminar size={16} />}
+                            {confirmandoLimpiarTodas ? '¡CONFIRMAR ELIMINACIÓN!' : 'Eliminar TODAS las clases'}
+                        </Boton>
                     </div>
 
                     <p className="capTexto capTexto--xs capTexto--terciario capMt--sm">Los datos demo son identificables por emails terminados en @ejemplo.com</p>

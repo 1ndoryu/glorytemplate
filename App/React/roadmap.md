@@ -195,11 +195,13 @@ App/
   - [x] H.17.5 Ahora tanto el motor como el seeder respetan clases bloqueadas
   - [x] H.17.6 El problema solo ocurría con datos demo al hacer clean/seed
 
-- [ ] **H.18** Error al descargar PDF "Plan de Formación"
-  - [ ] H.18.1 Al pulsar "Descargar PDF" no ocurre nada
-  - [ ] H.18.2 El reporte "Control de Horas" SÍ funciona correctamente
-  - [ ] H.18.3 Se intentó limpiar output buffer, pero no resolvió
-  - [ ] H.18.4 Pendiente investigar causa raíz
+- [~] **H.18** Error al descargar PDF "Plan de Formación" *(mejorado)*
+  - [x] H.18.1 Al pulsar "Descargar PDF" no ocurre nada
+  - [x] H.18.2 El reporte "Control de Horas" SÍ funciona correctamente
+  - [x] H.18.3 Se intentó limpiar output buffer, pero no resolvió
+  - [x] H.18.4 Mejorado manejo de errores en endpoint para mejor diagnóstico
+  - [x] H.18.5 Añadido buffer de captura para detectar outputs accidentales
+  - [x] H.18.6 Validaciones adicionales antes de generar el PDF
 
 - [ ] **H.19** Incoherencia en conteo de alumnos (Tarjeta vs Modal)
   - [ ] H.19.1 Tarjeta muestra N alumnos pero modal lista menos
@@ -216,23 +218,29 @@ App/
   - [x] H.20.6 **Fix:** Añadidas horas redondas a `SLOTS_HORARIOS` en `cap-constants.ts`
   - [x] H.20.7 Añadida key dinámica al ModalDetalleClase para forzar remount al cambiar clase
 
-- [ ] **H.21** Inconsistencia de clases bloqueadas (UI vs PDF)
+- [x] **H.21** Inconsistencia de clases bloqueadas (UI vs PDF) *(CORREGIDO)*
   - [x] H.21.1 El símbolo extraño (?) ya no aparece en PDF - CORREGIDO
-  - [ ] H.21.2 En el calendario (UI) TODAS las clases aparecen bloqueadas con datos de prueba
-  - [ ] H.21.3 En el PDF generado solo 1-2 clases aparecen como "[B] Bloqueada"
-  - [ ] H.21.4 El problema parece estar en el frontend o en el seeder, no en la generación del PDF
+  - [x] H.21.2 En el calendario (UI) TODAS las clases aparecen bloqueadas con datos de prueba
+  - [x] H.21.3 En el PDF generado solo 1-2 clases aparecen como "[B] Bloqueada"
+  - [x] H.21.4 **Causa raíz:** `Boolean("0")` devuelve `true` en JS (string no vacío)
+  - [x] H.21.5 **Fix:** Cambiado `Boolean(c.bloqueada)` por comparación explícita en `useCalendario.ts`
 
-- [ ] **H.22** Falta opción para eliminar clases manualmente
-  - [ ] H.22.1 No existe un botón para eliminar una clase individual desde el modal de detalles
-  - [ ] H.22.2 Necesario para corregir errores o eliminar clases mal generadas
-  - [ ] H.22.3 Añadir botón "Eliminar clase" con confirmación al modal `ModalDetalleClase`
-  - [ ] H.22.4 Crear endpoint `DELETE /wp-json/cap/v1/clases/{id}`
+- [x] **H.22** Falta opción para eliminar clases manualmente *(COMPLETADO)*
+  - [x] H.22.1 No existe un botón para eliminar una clase individual desde el modal de detalles
+  - [x] H.22.2 Necesario para corregir errores o eliminar clases mal generadas
+  - [x] H.22.3 Añadir botón "Eliminar clase" con confirmación al modal `ModalDetalleClase`
+  - [x] H.22.4 Crear endpoint `DELETE /wp-json/cap/v1/clases/{id}`
+  - [x] H.22.5 Botón con confirmación de doble click (3 segundos timeout)
+  - [x] H.22.6 Soporte para forzar eliminación de clases bloqueadas
 
-- [ ] **H.23** Clases huérfanas no se pueden borrar
-  - [ ] H.23.1 Si se generan datos demo y se borran rápidamente, quedan clases "huérfanas"
-  - [ ] H.23.2 Estas clases no pertenecen al seeder ni al generador, no hay forma de eliminarlas
-  - [ ] H.23.3 Añadir botón "Borrar TODAS las clases" en PanelDemo (con doble confirmación)
-  - [ ] H.23.4 Este botón debe borrar incluso clases generadas manualmente, no solo las de demo
+- [x] **H.23** Clases huérfanas no se pueden borrar *(COMPLETADO)*
+  - [x] H.23.1 Si se generan datos demo y se borran rápidamente, quedan clases "huérfanas"
+  - [x] H.23.2 Estas clases no pertenecen al seeder ni al generador, no hay forma de eliminarlas
+  - [x] H.23.3 Añadir botón "Borrar TODAS las clases" en PanelDemo (con doble confirmación)
+  - [x] H.23.4 Este botón debe borrar incluso clases generadas manualmente, no solo las de demo
+  - [x] H.23.5 Endpoint `DELETE /wp-json/cap/v1/clases/limpiar-todas` creado
+  - [x] H.23.6 Requiere confirmación escrita "ELIMINAR_TODO"
+
 
 ---
 

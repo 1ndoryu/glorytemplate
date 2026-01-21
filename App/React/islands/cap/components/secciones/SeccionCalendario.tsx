@@ -14,7 +14,7 @@ import {Alerta} from '../ui';
 import type {ExclusionesConflicto, Clase, DiaSemana} from '../../types';
 
 export function SeccionCalendario() {
-    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase} = useCalendario();
+    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, eliminando, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase, eliminarClase} = useCalendario();
 
     /* Obtener lista de alumnos para mostrar en modal de edición */
     const {alumnos} = useAlumnos();
@@ -76,6 +76,10 @@ export function SeccionCalendario() {
         await moverClase(claseId, nuevaFecha);
     };
 
+    const handleEliminarClase = async (claseId: number, forzar: boolean) => {
+        await eliminarClase(claseId, forzar);
+    };
+
     return (
         <div className="capSeccion capAnimFadeIn">
             <div className="capSeccion__header">
@@ -98,7 +102,7 @@ export function SeccionCalendario() {
 
             {/* Modal para editar detalles de clase - usa claseActualizada para reflejar cambios en tiempo real */}
             {/* La key fuerza un remount cuando cambia la clase, reseteando el estado interno */}
-            <ModalDetalleClase key={`modal-clase-${claseActualizada?.id ?? 'none'}`} clase={claseActualizada} alumnos={alumnos} abierto={mostrarModalEdicion} onCerrar={cerrarModalEdicion} onGuardar={handleGuardarClase} onToggleBloqueo={toggleBloqueoClase} onMoverClase={handleMoverClase} fechasSemana={fechasSemana} clasesPorDia={clasesPorDia} guardando={guardandoEdicion} />
+            <ModalDetalleClase key={`modal-clase-${claseActualizada?.id ?? 'none'}`} clase={claseActualizada} alumnos={alumnos} abierto={mostrarModalEdicion} onCerrar={cerrarModalEdicion} onGuardar={handleGuardarClase} onToggleBloqueo={toggleBloqueoClase} onMoverClase={handleMoverClase} fechasSemana={fechasSemana} clasesPorDia={clasesPorDia} guardando={guardandoEdicion} onEliminar={handleEliminarClase} eliminando={eliminando} />
         </div>
     );
 }

@@ -669,10 +669,18 @@
 .capModalDetalleClase__acciones {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: var(--cap-espacio-md);
     padding-top: var(--cap-espacio-md);
     border-top: 1px solid var(--cap-borde-sutil);
+    flex-wrap: wrap;
+}
+
+.capModalDetalleClase__accionesPrincipales {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-md);
+    margin-left: auto;
 }
 
 /* =========================================================

@@ -48,11 +48,10 @@ class CapEndpoints
             'permission_callback' => [$this, 'verificarPermisos'],
         ]);
 
-        /* Actualizar clase individual */
+        /* Actualizar o eliminar clase individual */
         register_rest_route(self::NAMESPACE, '/clases/(?P<id>\d+)', [
-            'methods' => 'PUT',
-            'callback' => [$this, 'actualizarClase'],
-            'permission_callback' => [$this, 'verificarPermisos'],
+            ['methods' => 'PUT', 'callback' => [$this, 'actualizarClase'], 'permission_callback' => [$this, 'verificarPermisos']],
+            ['methods' => 'DELETE', 'callback' => [$this, 'eliminarClase'], 'permission_callback' => [$this, 'verificarPermisos']],
         ]);
 
         register_rest_route(self::NAMESPACE, '/generar', [
@@ -117,6 +116,13 @@ class CapEndpoints
         register_rest_route(self::NAMESPACE, '/demo/clean', [
             'methods' => 'DELETE',
             'callback' => [$this, 'limpiarDatosDemo'],
+            'permission_callback' => [$this, 'verificarPermisosAdmin'],
+        ]);
+
+        /* Endpoint para eliminar todas las clases (incluye huérfanas) */
+        register_rest_route(self::NAMESPACE, '/clases/limpiar-todas', [
+            'methods' => 'DELETE',
+            'callback' => [$this, 'eliminarTodasLasClases'],
             'permission_callback' => [$this, 'verificarPermisosAdmin'],
         ]);
 
@@ -443,6 +449,112 @@ class CapEndpoints
         ]);
     }
 
+    /**
+     * Elimina una clase individual
+     * Las clases bloqueadas requieren confirmación explícita vía parámetro
+     */
+    public function eliminarClase(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $claseId = (int) $request->get_param('id');
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $claseModel = new Clase();
+        $clase = $claseModel->obtenerPorId($claseId);
+
+        if (!$clase || (int)$clase['centro_id'] !== $centroId) {
+            return new \WP_REST_Response(['error' => 'Clase no encontrada'], 404);
+        }
+
+        /* Verificar si está bloqueada y requiere confirmación */
+        $forzar = $request->get_param('forzar') === 'true' || $request->get_param('forzar') === true;
+        if ($clase['bloqueada'] && !$forzar) {
+            return new \WP_REST_Response([
+                'error' => 'La clase está bloqueada. Envía forzar=true para eliminarla igualmente.',
+                'requiereConfirmacion' => true
+            ], 409);
+        }
+
+        /* Eliminar asistencias y clase */
+        global $wpdb;
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+
+        $wpdb->delete($tablaAsistencia, ['clase_id' => $claseId]);
+        $eliminado = $wpdb->delete($tablaClases, ['id' => $claseId]);
+
+        if ($eliminado === false) {
+            return new \WP_REST_Response(['error' => 'Error al eliminar la clase'], 500);
+        }
+
+        return new \WP_REST_Response(['exito' => true, 'mensaje' => 'Clase eliminada correctamente']);
+    }
+
+    /**
+     * Elimina todas las clases del centro (solo admin)
+     * Útil para limpiar clases huérfanas o resetear el calendario
+     */
+    public function eliminarTodasLasClases(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        /* Requiere confirmación explícita */
+        $confirmacion = $request->get_param('confirmar');
+        if ($confirmacion !== 'ELIMINAR_TODO') {
+            return new \WP_REST_Response([
+                'error' => 'Se requiere confirmación. Envía confirmar=ELIMINAR_TODO para proceder.',
+                'requiereConfirmacion' => true
+            ], 409);
+        }
+
+        $incluirBloqueadas = $request->get_param('incluirBloqueadas') === 'true' || $request->get_param('incluirBloqueadas') === true;
+
+        global $wpdb;
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+
+        /* Obtener IDs de clases a eliminar */
+        $where = $incluirBloqueadas ? '' : ' AND bloqueada = 0';
+        $clasesIds = $wpdb->get_col($wpdb->prepare(
+            "SELECT id FROM {$tablaClases} WHERE centro_id = %d{$where}",
+            $centroId
+        ));
+
+        if (empty($clasesIds)) {
+            return new \WP_REST_Response([
+                'exito' => true,
+                'mensaje' => 'No hay clases para eliminar',
+                'eliminadas' => 0
+            ]);
+        }
+
+        $idsPlaceholder = implode(',', array_map('intval', $clasesIds));
+
+        /* Eliminar asistencias primero */
+        $wpdb->query("DELETE FROM {$tablaAsistencia} WHERE clase_id IN ({$idsPlaceholder})");
+
+        /* Eliminar clases */
+        $eliminadas = $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$tablaClases} WHERE centro_id = %d{$where}",
+            $centroId
+        ));
+
+        return new \WP_REST_Response([
+            'exito' => true,
+            'mensaje' => "Se eliminaron {$eliminadas} clases",
+            'eliminadas' => (int) $eliminadas
+        ]);
+    }
+
     public function obtenerDashboard(\WP_REST_Request $request): \WP_REST_Response
     {
         $capService = CapService::getInstance();
@@ -740,25 +852,50 @@ class CapEndpoints
             return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
         }
 
+        if (!$alumnoId) {
+            return new \WP_REST_Response(['error' => 'ID de alumno requerido'], 400);
+        }
+
+        /* Verificar que el alumno existe primero */
+        $alumnoModel = new Alumno();
+        $alumno = $alumnoModel->obtenerPorId($alumnoId);
+
+        if (!$alumno) {
+            return new \WP_REST_Response(['error' => 'Alumno no encontrado'], 404);
+        }
+
+        if ((int)$alumno['centro_id'] !== $centroId) {
+            return new \WP_REST_Response(['error' => 'El alumno no pertenece a este centro'], 403);
+        }
+
         try {
+            /* Iniciar buffer para capturar cualquier output accidental */
+            ob_start();
+
             $reporteService = new ReporteService($centroId);
             $pdf = $reporteService->generarPlanAlumno($alumnoId);
 
-            if ($pdf === false) {
-                return new \WP_REST_Response(['error' => 'Alumno no encontrado o no pertenece al centro'], 404);
+            /* Limpiar cualquier output que se haya generado */
+            $output = ob_get_clean();
+            if (!empty($output)) {
+                error_log('CAP PDF Warning: Output capturado antes del PDF: ' . substr($output, 0, 500));
             }
 
-            /* Obtener nombre del alumno para el archivo */
-            $alumnoModel = new Alumno();
-            $alumno = $alumnoModel->obtenerPorId($alumnoId);
+            if ($pdf === false) {
+                return new \WP_REST_Response([
+                    'error' => 'No se pudo generar el PDF. El alumno podría no tener datos suficientes.'
+                ], 500);
+            }
 
-            if (!$alumno) {
-                return new \WP_REST_Response(['error' => 'Alumno no encontrado'], 404);
+            if (empty($pdf)) {
+                return new \WP_REST_Response([
+                    'error' => 'El PDF generado está vacío'
+                ], 500);
             }
 
             $nombreArchivo = 'plan-formacion-' . sanitize_file_name($alumno['nombre']) . '.pdf';
 
-            /* Limpiar cualquier output previo (warnings, notices) */
+            /* Limpiar cualquier output buffer pendiente */
             while (ob_get_level() > 0) {
                 ob_end_clean();
             }
@@ -773,8 +910,14 @@ class CapEndpoints
             echo $pdf;
             exit;
         } catch (\Exception $e) {
-            error_log('CAP PDF Error (plan-alumno): ' . $e->getMessage());
-            return new \WP_REST_Response(['error' => 'Error al generar el PDF: ' . $e->getMessage()], 500);
+            /* Limpiar buffers en caso de error */
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            error_log('CAP PDF Error (plan-alumno): ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
+            return new \WP_REST_Response([
+                'error' => 'Error al generar el PDF: ' . $e->getMessage()
+            ], 500);
         }
     }
 

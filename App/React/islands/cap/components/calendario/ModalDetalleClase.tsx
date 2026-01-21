@@ -5,12 +5,12 @@
  * Permite cambiar hora, asignatura y ver alumnos asignados.
  */
 
-import {useState} from 'react';
+import {useState, useCallback} from 'react';
 import type {Clase, DiaSemana} from '../../types';
 import type {Alumno} from '../../hooks/useAlumnos';
 import {ASIGNATURAS_CAP, getAsignatura, getAsignaturaPorCodigo, SLOTS_HORARIOS} from '../../constants';
 import {Modal, Boton} from '../ui';
-import {IconoReloj, IconoUsuarios, IconoCandado, IconoGuardar, IconoLibro} from '../icons';
+import {IconoReloj, IconoUsuarios, IconoCandado, IconoGuardar, IconoLibro, IconoEliminar} from '../icons';
 
 interface ModalDetalleClaseProps {
     clase: Clase | null;
@@ -23,6 +23,8 @@ interface ModalDetalleClaseProps {
     fechasSemana?: Date[];
     clasesPorDia?: Record<DiaSemana, Clase[]>;
     guardando?: boolean;
+    onEliminar?: (claseId: number, forzar: boolean) => Promise<void>;
+    eliminando?: boolean;
 }
 
 export interface CambiosClase {
@@ -31,7 +33,7 @@ export interface CambiosClase {
     asignaturaId?: number;
 }
 
-export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar, onToggleBloqueo, onMoverClase, fechasSemana, clasesPorDia, guardando = false}: ModalDetalleClaseProps) {
+export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar, onToggleBloqueo, onMoverClase, fechasSemana, clasesPorDia, guardando = false, onEliminar, eliminando = false}: ModalDetalleClaseProps) {
     /*
      * Función helper para formatear hora (quita segundos).
      * Ej: "10:00:00" -> "10:00"
@@ -59,6 +61,7 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
     const [horaInicio, setHoraInicio] = useState(() => formatearHora(clase?.horaInicio));
     const [horaFin, setHoraFin] = useState(() => formatearHora(clase?.horaFin));
     const [asignaturaId, setAsignaturaId] = useState<number>(obtenerAsignaturaIdInicial);
+    const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
 
     /* Detectar cambios comparando con valores originales */
     const hayCambios = (() => {
@@ -106,6 +109,22 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
             onToggleBloqueo(clase.id);
         }
     };
+
+    /* Manejar eliminación con doble confirmación */
+    const handleEliminar = useCallback(async () => {
+        if (!clase || !onEliminar) return;
+
+        if (!confirmandoEliminar) {
+            /* Primera vez: mostrar confirmación */
+            setConfirmandoEliminar(true);
+            /* Reset automático después de 3 segundos */
+            setTimeout(() => setConfirmandoEliminar(false), 3000);
+            return;
+        }
+
+        /* Segunda vez: eliminar */
+        await onEliminar(clase.id, clase.bloqueada);
+    }, [clase, onEliminar, confirmandoEliminar]);
 
     if (!clase) return null;
 
@@ -203,12 +222,19 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
 
                 {/* Acciones */}
                 <div className="capModalDetalleClase__acciones">
-                    <Boton variante="secundario" onClick={onCerrar}>
-                        Cancelar
-                    </Boton>
-                    <Boton variante="primario" onClick={handleGuardar} disabled={!hayCambios || guardando || clase.bloqueada} cargando={guardando} icono={<IconoGuardar size={16} />}>
-                        Guardar cambios
-                    </Boton>
+                    {onEliminar && (
+                        <Boton variante="peligro" onClick={handleEliminar} disabled={eliminando} cargando={eliminando} icono={<IconoEliminar size={16} />}>
+                            {confirmandoEliminar ? '¡Click para confirmar!' : 'Eliminar'}
+                        </Boton>
+                    )}
+                    <div className="capModalDetalleClase__accionesPrincipales">
+                        <Boton variante="secundario" onClick={onCerrar}>
+                            Cancelar
+                        </Boton>
+                        <Boton variante="primario" onClick={handleGuardar} disabled={!hayCambios || guardando || clase.bloqueada} cargando={guardando} icono={<IconoGuardar size={16} />}>
+                            Guardar cambios
+                        </Boton>
+                    </div>
                 </div>
             </div>
         </Modal>

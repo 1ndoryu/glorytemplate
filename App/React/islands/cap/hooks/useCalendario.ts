@@ -37,6 +37,8 @@ interface EstadoCalendario {
     puedeDeshacer: boolean;
     /* Estado para drag & drop */
     moviendo: boolean;
+    /* Estado para eliminar clase */
+    eliminando: boolean;
 }
 
 interface AccionesCalendario {
@@ -57,6 +59,8 @@ interface AccionesCalendario {
     deshacer: () => void;
     /* Acción para drag & drop */
     moverClase: (claseId: number, nuevaFecha: string) => Promise<void>;
+    /* Acción para eliminar clase */
+    eliminarClase: (claseId: number, forzar: boolean) => Promise<void>;
 }
 
 export function useCalendario(): EstadoCalendario & AccionesCalendario {
@@ -80,6 +84,9 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
 
     /* Estado para drag & drop */
     const [moviendo, setMoviendo] = useState(false);
+
+    /* Estado para eliminar clase */
+    const [eliminando, setEliminando] = useState(false);
 
     /* Fechas de la semana actual */
     const fechasSemana = getFechasSemana(semanaActual);
@@ -126,7 +133,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 horaInicio: c.hora_inicio,
                 horaFin: c.hora_fin,
                 asignaturaId: c.asignatura,
-                bloqueada: Boolean(c.bloqueada),
+                bloqueada: c.bloqueada === true || c.bloqueada === 1 || c.bloqueada === '1',
                 alumnosIds: (c.alumnos || []).map((a: any) => a.id)
             }));
 
@@ -468,6 +475,42 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         [clases, getNonce, guardarSnapshot, historialClases]
     );
 
+    /* Eliminar una clase */
+    const eliminarClase = useCallback(
+        async (claseId: number, forzar: boolean) => {
+            setEliminando(true);
+            setError(null);
+
+            try {
+                const url = forzar ? `/wp-json/cap/v1/clases/${claseId}?forzar=true` : `/wp-json/cap/v1/clases/${claseId}`;
+
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-WP-Nonce': getNonce()
+                    }
+                });
+
+                if (!response.ok) {
+                    const mensajeError = await procesarErrorApi(response, 'calendario', 'eliminar');
+                    throw new Error(mensajeError);
+                }
+
+                /* Eliminar de la lista local */
+                setClases(prev => prev.filter(c => c.id !== claseId));
+
+                /* Cerrar modal */
+                cerrarModalEdicion();
+            } catch (err) {
+                const contextual = obtenerMensajeContextual('calendario', 'eliminar');
+                setError(err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`);
+            } finally {
+                setEliminando(false);
+            }
+        },
+        [getNonce, cerrarModalEdicion]
+    );
+
     return {
         clases,
         semanaActual,
@@ -496,6 +539,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         cerrarModalEdicion,
         actualizarClase,
         deshacer,
-        moverClase
+        moverClase,
+        eliminarClase,
+        eliminando
     };
 }
