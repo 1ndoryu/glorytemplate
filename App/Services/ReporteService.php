@@ -476,8 +476,10 @@ HTML;
                     $horario = substr($clase['hora_inicio'], 0, 5) . ' - ' . substr($clase['hora_fin'], 0, 5);
                     $asignatura = $this->getNombreAsignatura($clase['asignatura']);
                     $numAlumnos = is_array($clase['alumnos']) ? count($clase['alumnos']) : 0;
-                    $bloqueada = $clase['bloqueada'] ? '🔒 Bloqueada' : 'Libre';
-                    $claseBloqueada = $clase['bloqueada'] ? 'bloqueada' : '';
+                    /* Cast explícito para evitar problemas con strings "0"/"1" de la BD */
+                    $esBloqueada = (int) $clase['bloqueada'] === 1;
+                    $bloqueada = $esBloqueada ? '[B] Bloqueada' : 'Libre';
+                    $claseBloqueada = $esBloqueada ? 'bloqueada' : '';
 
                     $html .= <<<HTML
                 <tr class="{$claseBloqueada}">

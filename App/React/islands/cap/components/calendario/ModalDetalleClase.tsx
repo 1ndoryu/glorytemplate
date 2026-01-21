@@ -29,9 +29,9 @@ export interface CambiosClase {
 }
 
 export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar, onToggleBloqueo, guardando = false}: ModalDetalleClaseProps) {
-    /* Estado local para edición */
-    const [horaInicio, setHoraInicio] = useState('');
-    const [horaFin, setHoraFin] = useState('');
+    /* Estado local para edición - inicializado con valores de la clase si existe */
+    const [horaInicio, setHoraInicio] = useState(clase?.horaInicio || '08:00');
+    const [horaFin, setHoraFin] = useState(clase?.horaFin || '09:00');
     const [asignaturaId, setAsignaturaId] = useState<number>(1);
     const [hayCambios, setHayCambios] = useState(false);
 
@@ -61,6 +61,9 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
 
     /* Obtener alumnos asignados a esta clase */
     const alumnosClase = alumnos.filter(a => clase?.alumnosIds?.includes(a.id));
+    /* Detectar si hay alumnos asignados que no están en la lista (fueron eliminados) */
+    const alumnosAsignados = clase?.alumnosIds?.length || 0;
+    const hayAlumnosNoEncontrados = alumnosAsignados > alumnosClase.length;
 
     /* Manejar guardado */
     const handleGuardar = async () => {
@@ -153,7 +156,7 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
                 <div className="capModalDetalleClase__seccion">
                     <h4 className="capModalDetalleClase__seccionTitulo">
                         <IconoUsuarios size={16} />
-                        Alumnos asignados ({alumnosClase.length})
+                        Alumnos asignados ({alumnosClase.length}){hayAlumnosNoEncontrados && <span className="capModalDetalleClase__advertencia"> ({alumnosAsignados} en BD)</span>}
                     </h4>
                     {alumnosClase.length > 0 ? (
                         <ul className="capModalDetalleClase__listaAlumnos">
@@ -164,6 +167,8 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
                                 </li>
                             ))}
                         </ul>
+                    ) : alumnosAsignados > 0 ? (
+                        <p className="capModalDetalleClase__sinAlumnos">Los {alumnosAsignados} alumno(s) asignado(s) ya no existen en el sistema</p>
                     ) : (
                         <p className="capModalDetalleClase__sinAlumnos">No hay alumnos asignados a esta clase</p>
                     )}

@@ -1,6 +1,6 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
-> **Última actualización:** 2026-01-19  
+> **Última actualización:** 2026-01-21  
 > **Estado:** ✅ Fase 9 (Stripe) - Integración completa con flujo de registro  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
@@ -195,25 +195,31 @@ App/
   - [x] H.17.5 Ahora tanto el motor como el seeder respetan clases bloqueadas
   - [x] H.17.6 El problema solo ocurría con datos demo al hacer clean/seed
 
-- [ ] **H.18** Error al descargar PDF "Plan de Formación"
-  - [ ] H.18.1 Usuario reporta que al pulsar "Descargar PDF" en este reporte no ocurre nada
-  - [ ] H.18.2 El reporte "Control de Horas" sí funciona correctamente
-  - [ ] H.18.3 Pendiente de investigar logs JS y respuesta del endpoint `reportes/plan-alumno`
+- [x] **H.18** Error al descargar PDF "Plan de Formación" (CORREGIDO)
+  - [x] H.18.1 Usuario reportaba que al pulsar "Descargar PDF" no ocurría nada
+  - [x] H.18.2 Causa: Output buffer previo contaminaba respuesta PDF
+  - [x] H.18.3 Fix: Limpieza de output buffer con `ob_end_clean()` antes de enviar PDF
+  - [x] H.18.4 Fix: Envuelto en try-catch para capturar errores de Dompdf
+  - [x] H.18.5 Aplicado mismo tratamiento a endpoint de Control de Horas
 
-- [ ] **H.19** Incoherencia en conteo de alumnos (Tarjeta vs Modal)
-  - [ ] H.19.1 Tarjeta de clase muestra "5 alumnos" (ejemplo), pero al abrir el detalle aparecen menos (ej: 3)
-  - [ ] H.19.2 Posible desincronización entre el conteo resumido (`clase.alumnos_count`) y la lista real (`clase.asistencias`)
-  - [ ] H.19.3 Ocurre con datos de prueba (seed), verificar si afecta datos reales
+- [x] **H.19** Incoherencia en conteo de alumnos (Tarjeta vs Modal) (CORREGIDO)
+  - [x] H.19.1 Tarjeta mostraba N alumnos pero modal listaba menos
+  - [x] H.19.2 Causa: `alumnosIds` contiene IDs de alumnos eliminados que ya no existen
+  - [x] H.19.3 Fix: Modal ahora detecta discrepancia y muestra advertencia "(X en BD)"
+  - [x] H.19.4 Fix: Mensaje claro cuando alumnos asignados ya no existen en el sistema
 
-- [ ] **H.20** Error visual en rango horario del modal detalle
-  - [ ] H.20.1 Al abrir el detalle de clase, el horario en el cuerpo muestra siempre "08:00 - 08:00"
-  - [ ] H.20.2 El header del modal sí muestra la fecha y hora correctas
-  - [ ] H.20.3 Revisar componente `ModalDetalleClase` y su manejo de props de hora
+- [x] **H.20** Error visual en rango horario del modal detalle (CORREGIDO)
+  - [x] H.20.1 Horario mostraba "08:00 - 08:00" al abrir
+  - [x] H.20.2 Causa: Estado local se inicializaba con strings vacíos `''`
+  - [x] H.20.3 Fix: Inicializar estado con valores de la clase si existe
+  - [x] H.20.4 Valores por defecto sensatos (08:00 - 09:00) si clase es null
 
-- [ ] **H.21** Inconsistencia de clases bloqueadas en PDF
-  - [ ] H.21.1 En el calendario todas las clases de un día aparecen bloqueadas
-  - [ ] H.21.2 En el PDF generado, solo una aparece marcada como bloqueada o con símbolo extraño (?)
-  - [ ] H.21.3 Revisar lógica de generación en `ReporteService.php` y cómo interpreta el campo `bloqueada`
+- [x] **H.21** Inconsistencia de clases bloqueadas en PDF (CORREGIDO)
+  - [x] H.21.1 En PDF aparecía símbolo extraño (?) en lugar de indicador de bloqueo
+  - [x] H.21.2 Causa 1: Emoji 🔒 no soportado por dompdf (fuente PDF)
+  - [x] H.21.3 Causa 2: Campo `bloqueada` comparado como truthy sin cast explícito
+  - [x] H.21.4 Fix: Reemplazado emoji por texto "[B] Bloqueada"
+  - [x] H.21.5 Fix: Cast explícito `(int) $clase['bloqueada'] === 1`
 
 ---
 

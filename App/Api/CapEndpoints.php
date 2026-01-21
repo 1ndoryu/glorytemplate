@@ -740,27 +740,42 @@ class CapEndpoints
             return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
         }
 
-        $reporteService = new ReporteService($centroId);
-        $pdf = $reporteService->generarPlanAlumno($alumnoId);
+        try {
+            $reporteService = new ReporteService($centroId);
+            $pdf = $reporteService->generarPlanAlumno($alumnoId);
 
-        if ($pdf === false) {
-            return new \WP_REST_Response(['error' => 'Alumno no encontrado o no pertenece al centro'], 404);
+            if ($pdf === false) {
+                return new \WP_REST_Response(['error' => 'Alumno no encontrado o no pertenece al centro'], 404);
+            }
+
+            /* Obtener nombre del alumno para el archivo */
+            $alumnoModel = new Alumno();
+            $alumno = $alumnoModel->obtenerPorId($alumnoId);
+
+            if (!$alumno) {
+                return new \WP_REST_Response(['error' => 'Alumno no encontrado'], 404);
+            }
+
+            $nombreArchivo = 'plan-formacion-' . sanitize_file_name($alumno['nombre']) . '.pdf';
+
+            /* Limpiar cualquier output previo (warnings, notices) */
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+
+            /* Devolver PDF como respuesta binaria */
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
+            header('Content-Length: ' . strlen($pdf));
+            header('Cache-Control: private, max-age=0, must-revalidate');
+            header('Pragma: public');
+
+            echo $pdf;
+            exit;
+        } catch (\Exception $e) {
+            error_log('CAP PDF Error (plan-alumno): ' . $e->getMessage());
+            return new \WP_REST_Response(['error' => 'Error al generar el PDF: ' . $e->getMessage()], 500);
         }
-
-        /* Obtener nombre del alumno para el archivo */
-        $alumnoModel = new Alumno();
-        $alumno = $alumnoModel->obtenerPorId($alumnoId);
-        $nombreArchivo = 'plan-formacion-' . sanitize_file_name($alumno['nombre']) . '.pdf';
-
-        /* Devolver PDF como respuesta binaria */
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
-        header('Content-Length: ' . strlen($pdf));
-        header('Cache-Control: private, max-age=0, must-revalidate');
-        header('Pragma: public');
-
-        echo $pdf;
-        exit;
     }
 
     /**
@@ -775,30 +790,40 @@ class CapEndpoints
             return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
         }
 
-        /* Obtener fecha de la semana (lunes) */
-        $semana = $request->get_param('semana');
-        if (!$semana) {
-            /* Calcular lunes de la semana actual */
-            $hoy = new \DateTime();
-            $diaSemana = (int) $hoy->format('N');
-            $diasHastaLunes = $diaSemana - 1;
-            $semana = $hoy->modify("-{$diasHastaLunes} days")->format('Y-m-d');
+        try {
+            /* Obtener fecha de la semana (lunes) */
+            $semana = $request->get_param('semana');
+            if (!$semana) {
+                /* Calcular lunes de la semana actual */
+                $hoy = new \DateTime();
+                $diaSemana = (int) $hoy->format('N');
+                $diasHastaLunes = $diaSemana - 1;
+                $semana = $hoy->modify("-{$diasHastaLunes} days")->format('Y-m-d');
+            }
+
+            $reporteService = new ReporteService($centroId);
+            $pdf = $reporteService->generarControlHoras($semana);
+
+            $nombreArchivo = 'control-horas-' . $semana . '.pdf';
+
+            /* Limpiar cualquier output previo (warnings, notices) */
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+
+            /* Devolver PDF como respuesta binaria */
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
+            header('Content-Length: ' . strlen($pdf));
+            header('Cache-Control: private, max-age=0, must-revalidate');
+            header('Pragma: public');
+
+            echo $pdf;
+            exit;
+        } catch (\Exception $e) {
+            error_log('CAP PDF Error (control-horas): ' . $e->getMessage());
+            return new \WP_REST_Response(['error' => 'Error al generar el PDF: ' . $e->getMessage()], 500);
         }
-
-        $reporteService = new ReporteService($centroId);
-        $pdf = $reporteService->generarControlHoras($semana);
-
-        $nombreArchivo = 'control-horas-' . $semana . '.pdf';
-
-        /* Devolver PDF como respuesta binaria */
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
-        header('Content-Length: ' . strlen($pdf));
-        header('Cache-Control: private, max-age=0, must-revalidate');
-        header('Pragma: public');
-
-        echo $pdf;
-        exit;
     }
 
     /* ============================================

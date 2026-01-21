@@ -658,6 +658,13 @@
     border-left: 3px solid var(--cap-advertencia-500);
 }
 
+/* Advertencia de inconsistencia de datos (alumnos no encontrados) */
+.capModalDetalleClase__advertencia {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-advertencia-600);
+    font-weight: var(--cap-peso-medium);
+}
+
 /* Acciones del modal */
 .capModalDetalleClase__acciones {
     display: flex;
