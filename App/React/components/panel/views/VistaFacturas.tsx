@@ -1,68 +1,63 @@
-import React from 'react';
-import {Download} from 'lucide-react';
-import {Tarjeta} from '../../ui/Tarjeta';
-import {Etiqueta} from '../../ui/Etiqueta';
-import {Boton} from '../../ui/Boton';
-import {usePanel} from '../../../context/PanelContext';
-
-/**
- * VistaFacturas: Lista de facturas y pagos del cliente.
+/*
+ * VistaFacturas: Vista principal de facturación del panel cliente.
+ * Muestra resumen de deuda, lista filtrable y modal de pago.
  */
-export const VistaFacturas: React.FC = () => {
-    const {facturas} = usePanel();
 
-    const getEstadoColor = (estado: string) => {
-        switch (estado) {
-            case 'pagada':
-                return 'exito';
-            case 'pendiente':
-                return 'alerta';
-            case 'procesando':
-                return 'info';
-            default:
-                return 'neutro';
-        }
+import React, {useState, useMemo} from 'react';
+import {ResumenDeuda} from './facturas/ResumenDeuda';
+import {ListaFacturas} from './facturas/ListaFacturas';
+import {ModalPagarFactura} from './facturas/ModalPagarFactura';
+import {usePanel} from '../../../context/PanelContext';
+import {facturasCompletas, calcularTotalPendiente} from '../../../data/mocks/facturas';
+import {Factura} from '../../../data/types/facturacion';
+
+export const VistaFacturas: React.FC = () => {
+    const {user} = usePanel();
+    const [facturaSeleccionada, setFacturaSeleccionada] = useState<Factura | null>(null);
+    const [modalVisible, setModalVisible] = useState(false);
+
+    /* Obtener facturas del cliente actual (mock: CLI-001) */
+    const clienteId = 'CLI-001';
+    const facturas = useMemo(() => facturasCompletas.filter(f => f.clienteId === clienteId), [clienteId]);
+
+    const totalPendiente = useMemo(() => calcularTotalPendiente(clienteId), [clienteId]);
+
+    const cantidadPendientes = useMemo(() => facturas.filter(f => f.estado === 'pendiente' || f.estado === 'vencida').length, [facturas]);
+
+    const handlePagar = (factura: Factura) => {
+        setFacturaSeleccionada(factura);
+        setModalVisible(true);
+    };
+
+    const handleVerDetalle = (factura: Factura) => {
+        setFacturaSeleccionada(factura);
+        setModalVisible(true);
+    };
+
+    const handleConfirmarPago = (factura: Factura) => {
+        /* TO-DO: Implementar integración Stripe en Fase 5 */
+        console.log('Procesando pago de factura:', factura.referencia);
+        setModalVisible(false);
+        setFacturaSeleccionada(null);
+    };
+
+    const handleCerrarModal = () => {
+        setModalVisible(false);
+        setFacturaSeleccionada(null);
     };
 
     return (
-        <div className="bloqueVista">
+        <div className="bloqueVista" id="vistaFacturas">
             <header className="vistaHeader">
                 <h2 className="vistaTitulo">Facturación</h2>
-                <p className="vistaSubtitulo">Gestiona tus pagos y descarga tus facturas.</p>
+                <p className="vistaSubtitulo">Gestiona tus pagos y revisa el historial de facturas.</p>
             </header>
 
-            <Tarjeta className="tablaFacturasContenedor">
-                <table className="tablaFacturas">
-                    <thead>
-                        <tr>
-                            <th>Referencia</th>
-                            <th>Concepto</th>
-                            <th>Fecha</th>
-                            <th>Importe</th>
-                            <th>Estado</th>
-                            <th className="text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {facturas.map(factura => (
-                            <tr key={factura.id}>
-                                <td className="font-mono">{factura.id}</td>
-                                <td>{factura.concepto}</td>
-                                <td>{factura.fecha}</td>
-                                <td className="font-bold">${factura.importe.toFixed(2)}</td>
-                                <td>
-                                    <Etiqueta variante={getEstadoColor(factura.estado)}>{factura.estado.charAt(0).toUpperCase() + factura.estado.slice(1)}</Etiqueta>
-                                </td>
-                                <td className="text-right">
-                                    <Boton variante="ghost" tamano="sm" icono={<Download size={14} />}>
-                                        PDF
-                                    </Boton>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </Tarjeta>
+            <ResumenDeuda totalPendiente={totalPendiente} cantidadFacturas={cantidadPendientes} />
+
+            <ListaFacturas facturas={facturas} onPagar={handlePagar} onVerDetalle={handleVerDetalle} />
+
+            <ModalPagarFactura factura={facturaSeleccionada} visible={modalVisible} onCerrar={handleCerrarModal} onConfirmarPago={handleConfirmarPago} />
         </div>
     );
 };

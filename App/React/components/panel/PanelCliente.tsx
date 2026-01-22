@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
-import {LayoutDashboard, Server, ShoppingBag, MessageSquare, CreditCard, Settings, LogOut, Plus, X, Search, Bell, Globe, User, HelpCircle, ChevronDown} from 'lucide-react';
+import {LayoutDashboard, Server, ShoppingBag, MessageSquare, CreditCard, Settings, LogOut, Plus, X, Search, Bell, Globe, User, HelpCircle, ChevronDown, Briefcase} from 'lucide-react';
 import {VistaResumen} from './views/VistaResumen';
 import {VistaHosting} from './views/VistaHosting';
 import {VistaMarketplace} from './views/VistaMarketplace';
 import {VistaFacturas} from './views/VistaFacturas';
 import {VistaPerfil} from './views/VistaPerfil';
+import {VistaServicios} from './views/VistaServicios';
 import {PanelProvider, usePanel} from '../../context/PanelContext';
 
 /*
@@ -33,9 +34,9 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
 
     const menuItems = [
         {id: 'resumen', icon: <LayoutDashboard size={22} />, label: 'Resumen'},
-        {id: 'servicios', icon: <ShoppingBag size={22} />, label: 'Marketplace'},
-        {id: 'hosting', icon: <Server size={22} />, label: 'Hosting', badge: true},
-        {id: 'proyectos', icon: <Globe size={22} />, label: 'Portafolio'},
+        {id: 'marketplace', icon: <ShoppingBag size={22} />, label: 'Marketplace'},
+        {id: 'misServicios', icon: <Briefcase size={22} />, label: 'Mis Servicios'},
+        {id: 'hosting', icon: <Server size={22} />, label: 'Mis Hostings'},
         {id: 'mensajes', icon: <MessageSquare size={22} />, label: 'Mensajes', badge: mensajes > 0},
         {id: 'pagos', icon: <CreditCard size={22} />, label: 'Facturación'}
     ];
@@ -51,8 +52,10 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                 return <VistaResumen />;
             case 'hosting':
                 return <VistaHosting />;
-            case 'servicios':
+            case 'marketplace':
                 return <VistaMarketplace />;
+            case 'misServicios':
+                return <VistaServicios />;
             case 'pagos':
                 return <VistaFacturas />;
             case 'perfil':
@@ -65,7 +68,6 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
     // Obtener título de la vista actual
     const getActiveTitle = () => {
         const item = menuItems.find(i => i.id === vista);
-        if (vista === 'hosting') return 'srv-nakomi-01'; // Override específico
         return item ? item.label : 'Panel';
     };
 
@@ -117,14 +119,14 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
 
                             <div className="userMenuWrapper" style={{position: 'relative'}}>
                                 <button className="userAvatarBtn" onClick={() => setShowUserMenu(!showUserMenu)}>
-                                    <div className="userAvatar">U</div>
+                                    <div className="userAvatar">G</div>
                                 </button>
 
                                 {showUserMenu && (
                                     <div className="dropdownMenu">
                                         <div className="dropdownHeader">
-                                            <p className="dropdownName">Admin User</p>
-                                            <p className="dropdownRole">nakomi@example.com</p>
+                                            <p className="dropdownName">Guillermo</p>
+                                            <p className="dropdownRole">guillermo@example.com</p>
                                         </div>
                                         <div className="dropdownDivider"></div>
                                         <button

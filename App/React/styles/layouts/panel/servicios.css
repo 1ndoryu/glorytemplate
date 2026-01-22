@@ -1,0 +1,207 @@
+/*
+ * Estilos para Vista de Servicios Contratados
+ * Componentes: VistaServicios, TarjetaServicioContratado
+ */
+
+/* === Sección de Servicios === */
+.serviciosSeccion {
+    margin-bottom: var(--nakomi-espacioXl);
+}
+
+.serviciosSeccionTitulo {
+    font-size: var(--nakomi-fuenteMd);
+    font-weight: 500;
+    color: var(--nakomi-textoSecundario);
+    margin-bottom: var(--nakomi-espacioMd);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.serviciosLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioMd);
+}
+
+.serviciosVacio {
+    padding: var(--nakomi-espacio2xl);
+    text-align: center;
+    color: var(--nakomi-textoApagado);
+    background: var(--nakomi-fondoSecundario);
+    border-radius: var(--nakomi-radioLg);
+    border: 1px dashed var(--nakomi-bordePrincipal);
+}
+
+/* === Tarjeta de Servicio Contratado === */
+.tarjetaServicioContratado {
+    padding: var(--nakomi-espacioLg);
+    border-radius: var(--nakomi-radioLg);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    background: var(--nakomi-fondoSecundario);
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.tarjetaServicioContratado:hover {
+    border-color: var(--nakomi-bordeSutil);
+    background: var(--nakomi-fondoTerciario);
+}
+
+.tarjetaServicioContratado.estadoenprogreso {
+    border-left: 3px solid var(--nakomi-info);
+}
+
+.tarjetaServicioContratado.estadopendiente {
+    border-left: 3px solid var(--nakomi-textoApagado);
+}
+
+.tarjetaServicioContratado.estadocompletado {
+    border-left: 3px solid var(--nakomi-exito);
+}
+
+.tarjetaServicioContratado.estadocancelado {
+    border-left: 3px solid var(--nakomi-error);
+    opacity: 0.7;
+}
+
+/* === Header del Servicio === */
+.servicioContratadoHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nakomi-espacioMd);
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.servicioContratadoIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--nakomi-acento), #8b5cf6);
+    border-radius: var(--nakomi-radioMd);
+    color: var(--nakomi-textoActivo);
+    flex-shrink: 0;
+}
+
+.servicioContratadoInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.servicioContratadoNombre {
+    font-size: var(--nakomi-fuenteLg);
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    margin: 0 0 var(--nakomi-espacioXs) 0;
+}
+
+.servicioContratadoDescripcion {
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-textoSecundario);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* === Detalles del Servicio === */
+.servicioContratadoDetalles {
+    display: flex;
+    gap: var(--nakomi-espacioXl);
+    margin-bottom: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioMd);
+    background: var(--nakomi-fondoTerciario);
+    border-radius: var(--nakomi-radioMd);
+}
+
+.servicioContratadoDetalle {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.servicioDetalleLabel {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.servicioDetalleValor {
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-textoNormal);
+    font-weight: 500;
+}
+
+.servicioDetalleValor.precio {
+    font-size: var(--nakomi-fuenteLg);
+    color: var(--nakomi-acento);
+    font-weight: 600;
+}
+
+/* === Incluye === */
+.servicioContratadoIncluye {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    margin-bottom: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    background: var(--nakomi-exitoFondo);
+    border: 1px solid var(--nakomi-exitoBorde);
+    border-radius: var(--nakomi-radioMd);
+}
+
+.incluyeLabel {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.incluyeItems {
+    display: flex;
+    gap: var(--nakomi-espacioMd);
+    flex-wrap: wrap;
+}
+
+.incluyeItem {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-exito);
+}
+
+/* === Indicador de Pago === */
+.servicioContratadoPago {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    background: var(--nakomi-warningFondo);
+    border: 1px solid var(--nakomi-warningBorde);
+    border-radius: var(--nakomi-radioMd);
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-warning);
+}
+
+/* === Responsive === */
+@media (max-width: 640px) {
+    .servicioContratadoHeader {
+        flex-direction: column;
+    }
+
+    .servicioContratadoDetalles {
+        flex-direction: column;
+        gap: var(--nakomi-espacioSm);
+    }
+
+    .servicioContratadoIncluye {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--nakomi-espacioSm);
+    }
+
+    .incluyeItems {
+        flex-direction: column;
+        gap: var(--nakomi-espacioXs);
+    }
+}

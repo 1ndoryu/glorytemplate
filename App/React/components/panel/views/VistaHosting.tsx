@@ -1,100 +1,37 @@
-import React, {useState} from 'react';
-import {Server, Terminal} from 'lucide-react';
-import {Tarjeta} from '../../ui/Tarjeta';
-import {Boton} from '../../ui/Boton';
+/*
+ * VistaHosting: Vista de hostings contratados del cliente.
+ * Muestra los sitios web activos sin datos técnicos de Coolify.
+ */
+
+import React from 'react';
+import {ResumenHostings} from './hosting/ResumenHostings';
+import {ListaHostingsCliente} from './hosting/ListaHostingsCliente';
 import {usePanel} from '../../../context/PanelContext';
+import {HostingContratado} from '../../../data/types/hosting';
 
 export const VistaHosting: React.FC = () => {
-    const {serverStats} = usePanel();
-    const [tab, setTab] = useState('general');
-    const tabs = ['General', 'Archivos', 'Terminal', 'Logs'];
+    const {hostingsContratados} = usePanel();
+
+    const handleVerDetalle = (hosting: HostingContratado) => {
+        /* TO-DO: Implementar vista de detalle expandido */
+        console.log('Ver detalle de hosting:', hosting.dominio);
+    };
+
+    const handleCambiarPlan = (hosting: HostingContratado) => {
+        /* TO-DO: Implementar modal de cambio de plan */
+        console.log('Cambiar plan de hosting:', hosting.dominio, 'Plan actual:', hosting.plan);
+    };
 
     return (
-        <div className="bloqueVista">
-            <header className="hostingHeader">
-                <div className="hostingInfo">
-                    <h2 className="hostingTitulo">
-                        <div className="iconoHostingWrapper">
-                            <Server size={18} />
-                        </div>
-                        srv-nakomi-01
-                    </h2>
-                    <p className="hostingMeta">
-                        IP: {serverStats.ip} • {serverStats.os}
-                    </p>
-                </div>
-                <div className="hostingAcciones">
-                    <Boton variante="ghost" tamano="sm" className="botonAlerta">
-                        Detener
-                    </Boton>
-                    <Boton variante="ghost" tamano="sm" className="botonExito">
-                        Reiniciar
-                    </Boton>
-                </div>
+        <div className="bloqueVista" id="vistaHosting">
+            <header className="vistaHeader">
+                <h2 className="vistaTitulo">Mis Hostings</h2>
+                <p className="vistaSubtitulo">Gestiona tus sitios web y planes de hosting.</p>
             </header>
 
-            <div className="hostingTabs">
-                {tabs.map(t => (
-                    <button key={t} onClick={() => setTab(t.toLowerCase())} className={`hostingTabBtn ${tab === t.toLowerCase() ? 'active' : ''}`}>
-                        {t}
-                    </button>
-                ))}
-            </div>
+            <ResumenHostings hostings={hostingsContratados} />
 
-            <div className="hostingContenido">
-                {tab === 'general' && (
-                    <div className="hostingGrid">
-                        <Tarjeta className="hostingCard">
-                            <h4 className="textIndice tituloCard">Recursos del Sistema</h4>
-                            <div className="recursosLista">
-                                <div className="recursoItem">
-                                    <div className="recursoLabel">
-                                        <span>CPU Load</span>
-                                        <span>{serverStats.cpu}%</span>
-                                    </div>
-                                    <div className="barraProgresoFondo">
-                                        <div className="barraProgresoRelleno" style={{width: `${serverStats.cpu}%`}} />
-                                    </div>
-                                </div>
-                                <div className="recursoItem">
-                                    <div className="recursoLabel">
-                                        <span>RAM Usage</span>
-                                        <span>
-                                            {serverStats.ram}GB / {serverStats.ramTotal}GB
-                                        </span>
-                                    </div>
-                                    <div className="barraProgresoFondo">
-                                        <div className="barraProgresoRelleno colorSecundario" style={{width: `${(serverStats.ram / serverStats.ramTotal) * 100}%`}} />
-                                    </div>
-                                </div>
-                            </div>
-                        </Tarjeta>
-                        <Tarjeta className="hostingCard">
-                            <h4 className="textIndice tituloCard">Acceso SSH Rápido</h4>
-                            <div className="sshBox">
-                                <span>ssh nakomi@{serverStats.ip} -p 22</span>
-                                <Terminal size={14} />
-                            </div>
-                            <p className="sshNota">Utiliza tu clave privada configurada en el perfil.</p>
-                        </Tarjeta>
-                    </div>
-                )}
-                {tab === 'terminal' && (
-                    <div className="terminalWindow">
-                        <div className="terminalLine exito">nakomi@server:~$ status check</div>
-                        <div className="terminalLine blanco">All systems operational. Uptime: {serverStats.uptime}.</div>
-                        <div className="terminalLine exito">nakomi@server:~$ docker ps</div>
-                        <div className="terminalLine gris">
-                            CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS{'\n'}
-                            a1b2c3d4e5f6 nginx:latest "/docker-entrypoint.…" 2 days ago Up 2 days 0.0.0.0:80{'>'}80/tcp
-                        </div>
-                        <div className="terminalInput">
-                            <span className="terminalPrompt">nakomi@server:~$</span>
-                            <span className="terminalCursor"></span>
-                        </div>
-                    </div>
-                )}
-            </div>
+            <ListaHostingsCliente hostings={hostingsContratados} onVerDetalle={handleVerDetalle} onCambiarPlan={handleCambiarPlan} />
         </div>
     );
 };

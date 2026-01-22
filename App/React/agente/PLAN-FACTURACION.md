@@ -1,7 +1,7 @@
 # Plan: Sistema de Facturación y Panel Cliente
 
 > **Prioridad:** Alta  
-> **Estado:** Planificación  
+> **Estado:** En Progreso (Fases 1-4 completadas)  
 > **Última actualización:** 2026-01-22
 
 ---
@@ -10,17 +10,22 @@
 
 ### Cliente: Guillermo
 
-| Producto  | Detalle                           | Precio           | Estado                         |
-| --------- | --------------------------------- | ---------------- | ------------------------------ |
-| Hosting 1 | guillechatbots.es                 | $3/mes o $36/año | Activo, impago                 |
-| Hosting 2 | materialdepadel.es                | $3/mes o $36/año | Activo, impago                 |
-| Hosting 3 | cap.wandori.us (dominio temporal) | $3/mes o $36/año | Activo, impago                 |
-| Dominio 1 | guillechatbots.es                 | (incluido/año)   | Por definir                    |
-| Dominio 2 | materialdepadel.es                | (incluido/año)   | Por definir                    |
-| Dominio 3 | [pendiente de comprar]            | (incluido/año)   | Pendiente                      |
-| Servicio  | Diseño web (cap)                  | $270             | En progreso, pago al finalizar |
+| Producto  | Detalle                           | Precio           | Fecha Compra | Estado                         |
+| --------- | --------------------------------- | ---------------- | ------------ | ------------------------------ |
+| Hosting 1 | guillechatbots.es                 | $3/mes o $36/año | Enero 2026   | Activo, impago                 |
+| Hosting 2 | materialdepadel.es                | $3/mes o $36/año | Enero 2026   | Activo, impago                 |
+| Hosting 3 | cap.wandori.us (dominio temporal) | $3/mes o $36/año | Enero 2026   | Activo, impago                 |
+| Dominio 1 | guillechatbots.es                 | $11/año          | Enero 2026   | Activo, impago                 |
+| Dominio 2 | materialdepadel.es                | $11/año          | Enero 2026   | Activo, impago                 |
+| Dominio 3 | [pendiente de comprar para CAP]   | $11/año          | -            | Pendiente                      |
+| Servicio  | Diseño web (CAP)                  | $270             | Enero 2026   | En progreso, pago al finalizar |
 
 **Nota:** El servicio de diseño ($270) incluye dominio + hosting del primer año.
+
+**Resumen pendiente Enero 2026:**
+- 3 Hostings: $9 (3 x $3)
+- 2 Dominios: $22 (2 x $11)
+- **Total pendiente:** $31
 
 ---
 
@@ -134,9 +139,9 @@ interface FacturaItem {
 - `data/mocks/facturas.ts` - Actualizar con facturas reales pendientes
 
 **Tareas:**
-- [ ] Crear estructura de tipos
-- [ ] Crear datos mock de Guillermo
-- [ ] Crear facturas pendientes reales
+- [x] Crear estructura de tipos
+- [x] Crear datos mock de Guillermo
+- [x] Crear facturas pendientes reales
 
 ---
 

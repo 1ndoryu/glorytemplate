@@ -7,3 +7,10 @@ export {proyectosEjemplo} from './proyectos';
 export {serviciosEjemplo} from './servicios';
 export {resenasEjemplo} from './resenas';
 export {articulosEjemplo} from './articulos';
+
+/* Mocks del sistema de facturación */
+export {clientesEjemplo, obtenerClientePorId} from './clientes';
+export {hostingsContratados, obtenerHostingsPorCliente} from './hostingsContratados';
+export {dominiosContratados, obtenerDominiosPorCliente} from './dominiosContratados';
+export {serviciosContratados, obtenerServiciosPorCliente} from './serviciosContratados';
+export {facturasCompletas, facturasEjemplo, obtenerFacturasPorCliente, calcularTotalPendiente} from './facturas';

@@ -1,7 +1,11 @@
 import React, {createContext, useContext, useState, useEffect, ReactNode} from 'react';
 import {Servicio} from '../components/landing/GridServicios';
 import {serviciosEjemplo} from '../data/mocks/servicios';
-import {Factura, facturasEjemplo} from '../data/mocks/facturas';
+import {FacturaSimple, facturasEjemplo} from '../data/mocks/facturas';
+import {hostingsContratados as hostingsMock} from '../data/mocks/hostingsContratados';
+import {serviciosContratados as serviciosMock} from '../data/mocks/serviciosContratados';
+import {HostingContratado} from '../data/types/hosting';
+import {ServicioContratado} from '../data/types/servicio';
 
 // Interfaces
 export interface Proyecto {
@@ -33,7 +37,9 @@ interface PanelContextType {
     servicios: Servicio[];
     serverStats: ServerStats;
     mensajes: number;
-    facturas: Factura[];
+    facturas: FacturaSimple[];
+    hostingsContratados: HostingContratado[];
+    serviciosContratados: ServicioContratado[];
     user: UserProfile;
     loading: boolean;
     refreshData: () => Promise<void>;
@@ -50,20 +56,22 @@ const defaultStats: ServerStats = {
 };
 
 const defaultUser: UserProfile = {
-    name: 'Admin User',
-    email: 'nakomi@example.com',
-    role: 'Administrador',
-    avatar: 'U'
+    name: 'Guillermo',
+    email: 'guillermo@example.com',
+    role: 'Cliente',
+    avatar: 'G'
 };
 
 const PanelContext = createContext<PanelContextType | undefined>(undefined);
 
 export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
     const [proyectos, setProyectos] = useState<Proyecto[]>([]);
-    const [servicios, setServicios] = useState<Servicio[]>([]); // Inicializado vacío
+    const [servicios, setServicios] = useState<Servicio[]>([]);
     const [serverStats, setServerStats] = useState<ServerStats>(defaultStats);
     const [mensajes, setMensajes] = useState(0);
-    const [facturas, setFacturas] = useState<Factura[]>([]); // Typed empty array
+    const [facturas, setFacturas] = useState<FacturaSimple[]>([]);
+    const [hostingsContratados, setHostingsContratados] = useState<HostingContratado[]>([]);
+    const [serviciosContratados, setServiciosContratados] = useState<ServicioContratado[]>([]);
     const [user, setUser] = useState<UserProfile>(defaultUser);
     const [loading, setLoading] = useState(true);
 
@@ -73,10 +81,7 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
         await new Promise(resolve => setTimeout(resolve, 600));
 
         setProyectos([]);
-
-        // IMPORTANTE: Usamos serviciosEjemplo que respeta la interface Servicio (id: string, imagen: string)
         setServicios(serviciosEjemplo);
-
         setServerStats({
             cpu: 45,
             ram: 2.4,
@@ -88,6 +93,8 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
 
         setMensajes(1);
         setFacturas(facturasEjemplo);
+        setHostingsContratados(hostingsMock);
+        setServiciosContratados(serviciosMock);
         setLoading(false);
     };
 
@@ -103,6 +110,8 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
                 serverStats,
                 mensajes,
                 facturas,
+                hostingsContratados,
+                serviciosContratados,
                 user,
                 loading,
                 refreshData

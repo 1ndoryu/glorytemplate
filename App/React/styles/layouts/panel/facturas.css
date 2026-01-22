@@ -1,78 +1,465 @@
 /*
- * Estilos para VistaFacturas
- * Ubicación: App/React/styles/layouts/panel/facturas.css
+ * Estilos para el sistema de facturación mejorado
+ * Incluye: ResumenDeuda, TarjetaFactura, ListaFacturas, ModalPagarFactura
  */
 
-.tablaFacturasContenedor {
-    padding: 0;
-    overflow: hidden;
-    border: 1px solid var(--nakomi-bordePrincipal);
-    box-shadow: var(--nakomi-sombraSutil);
+/* === Resumen de Deuda === */
+.resumenDeuda {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioLg);
+    padding: var(--nakomi-espacioLg);
+    margin-bottom: var(--nakomi-espacioLg);
+    border-radius: var(--nakomi-radioLg);
 }
 
-.tablaFacturas {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--nakomi-fuenteSm); /* Standardized size */
+.resumenDeuda.conDeuda {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.02));
+    border: 1px solid var(--nakomi-errorBorde);
 }
 
-.tablaFacturas th {
-    text-align: left;
-    padding: 1rem 1.5rem;
-    background-color: var(--nakomi-fondoTerciario);
+.resumenDeuda.sinDeuda {
+    background: linear-gradient(135deg, rgba(74, 222, 128, 0.08), rgba(74, 222, 128, 0.02));
+    border: 1px solid var(--nakomi-exitoBorde);
+}
+
+.resumenDeudaIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--nakomi-radioFull);
+    flex-shrink: 0;
+}
+
+.resumenDeuda.conDeuda .resumenDeudaIcono {
+    background: var(--nakomi-errorFondo);
+    color: var(--nakomi-error);
+}
+
+.resumenDeuda.sinDeuda .resumenDeudaIcono {
+    background: var(--nakomi-exitoFondo);
+    color: var(--nakomi-exito);
+}
+
+.checkIcono {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.resumenDeudaContenido {
+    flex: 1;
+}
+
+.resumenDeudaTitulo {
+    font-size: var(--nakomi-fuenteLg);
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    margin-bottom: var(--nakomi-espacioXs);
+}
+
+.resumenDeudaTexto {
+    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoSecundario);
-    font-weight: 400; /* No bold */
-    font-size: var(--nakomi-fuenteSm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 1px solid var(--nakomi-bordePrincipal);
 }
 
-.tablaFacturas td {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--nakomi-bordeSutil);
-    color: var(--nakomi-textoNormal);
-    vertical-align: middle;
-    font-weight: 400; /* Ensure no bold */
-}
-
-.tablaFacturas tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.tablaFacturas tbody tr {
-    transition: background-color var(--nakomi-transicionRapida);
-}
-
-.tablaFacturas tbody tr:hover {
-    background-color: var(--nakomi-fondoHover);
-}
-
-.tablaFacturas .font-mono {
-    font-family: var(--nakomi-fuenteMono);
-    color: var(--nakomi-textoApagado);
-    font-size: var(--nakomi-fuenteSm);
-    white-space: nowrap; /* Prevent breaking */
-}
-
-.tablaFacturas .text-right {
+.resumenDeudaMonto {
     text-align: right;
 }
 
-/* Responsive para tablas */
+.montoTotal {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--nakomi-textoActivo);
+}
+
+.resumenDeuda.conDeuda .montoTotal {
+    color: var(--nakomi-error);
+}
+
+.resumenDeuda.sinDeuda .montoTotal {
+    color: var(--nakomi-exito);
+}
+
+.montoLabel {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* === Lista de Facturas === */
+.listaFacturasContenedor {
+    margin-top: var(--nakomi-espacioMd);
+}
+
+.facturasTabs {
+    display: flex;
+    gap: var(--nakomi-espacioSm);
+    margin-bottom: var(--nakomi-espacioLg);
+    border-bottom: 1px solid var(--nakomi-bordePrincipal);
+    padding-bottom: var(--nakomi-espacioSm);
+}
+
+.facturasTab {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    background: transparent;
+    border: none;
+    border-radius: var(--nakomi-radioMd);
+    color: var(--nakomi-textoSecundario);
+    font-size: var(--nakomi-fuenteSm);
+    cursor: pointer;
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.facturasTab:hover {
+    color: var(--nakomi-textoActivo);
+    background: var(--nakomi-fondoHover);
+}
+
+.facturasTab.activa {
+    color: var(--nakomi-acento);
+    background: var(--nakomi-infoFondo);
+}
+
+.facturasTabConteo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--nakomi-fondoTerciario);
+    border-radius: var(--nakomi-radioFull);
+    font-size: var(--nakomi-fuenteXs);
+    font-weight: 500;
+}
+
+.facturasTab.activa .facturasTabConteo {
+    background: var(--nakomi-acento);
+    color: var(--nakomi-fondoPrincipal);
+}
+
+.facturasLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioMd);
+}
+
+.facturasVacio {
+    padding: var(--nakomi-espacio2xl);
+    text-align: center;
+    color: var(--nakomi-textoApagado);
+    background: var(--nakomi-fondoSecundario);
+    border-radius: var(--nakomi-radioLg);
+    border: 1px dashed var(--nakomi-bordePrincipal);
+}
+
+/* === Tarjeta de Factura === */
+.tarjetaFactura {
+    padding: var(--nakomi-espacioMd) var(--nakomi-espacioLg);
+    border-radius: var(--nakomi-radioLg);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    background: var(--nakomi-fondoSecundario);
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.tarjetaFactura:hover {
+    border-color: var(--nakomi-bordeSutil);
+    background: var(--nakomi-fondoTerciario);
+}
+
+.tarjetaFactura.estadoVencida {
+    border-left: 3px solid var(--nakomi-error);
+}
+
+.tarjetaFactura.estadoPendiente {
+    border-left: 3px solid var(--nakomi-warning);
+}
+
+.tarjetaFactura.estadoPagada {
+    border-left: 3px solid var(--nakomi-exito);
+}
+
+.tarjetaFacturaHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--nakomi-espacioSm);
+}
+
+.tarjetaFacturaInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+}
+
+.facturaReferencia {
+    font-family: var(--nakomi-fuenteMono);
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-textoApagado);
+}
+
+.facturaMonto {
+    font-size: var(--nakomi-fuenteLg);
+    font-weight: 600;
+    color: var(--nakomi-textoActivo);
+}
+
+.facturaConcepto {
+    font-size: var(--nakomi-fuenteMd);
+    color: var(--nakomi-textoNormal);
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.tarjetaFacturaFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--nakomi-espacioMd);
+    border-top: 1px solid var(--nakomi-bordePrincipal);
+}
+
+.facturaFechas {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.facturaFecha {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+}
+
+.facturaFecha.vencimiento {
+    color: var(--nakomi-warning);
+}
+
+.facturaAcciones {
+    display: flex;
+    gap: var(--nakomi-espacioSm);
+}
+
+/* === Modal de Pago === */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--nakomi-espacioLg);
+}
+
+.modalPagarFactura {
+    width: 100%;
+    max-width: 520px;
+    background: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioXl);
+    box-shadow: var(--nakomi-sombraLg);
+    overflow: hidden;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--nakomi-espacioLg);
+    border-bottom: 1px solid var(--nakomi-bordePrincipal);
+}
+
+.modalTituloWrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    color: var(--nakomi-textoActivo);
+}
+
+.modalTitulo {
+    font-size: var(--nakomi-fuenteLg);
+    font-weight: 500;
+}
+
+.modalCerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    border-radius: var(--nakomi-radioMd);
+    color: var(--nakomi-textoApagado);
+    cursor: pointer;
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.modalCerrar:hover {
+    background: var(--nakomi-fondoHover);
+    color: var(--nakomi-textoActivo);
+}
+
+.modalContenido {
+    padding: var(--nakomi-espacioLg);
+}
+
+.facturaDetalleHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--nakomi-espacioLg);
+    padding-bottom: var(--nakomi-espacioMd);
+    border-bottom: 1px solid var(--nakomi-bordePrincipal);
+}
+
+.facturaDetalleRef {
+    font-family: var(--nakomi-fuenteMono);
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-acento);
+    display: block;
+    margin-bottom: var(--nakomi-espacioXs);
+}
+
+.facturaDetalleConcepto {
+    font-size: var(--nakomi-fuenteMd);
+    color: var(--nakomi-textoNormal);
+}
+
+.facturaDetalleFechas {
+    text-align: right;
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.facturaItems {
+    margin-bottom: var(--nakomi-espacioLg);
+}
+
+.facturaItemsHeader {
+    display: grid;
+    grid-template-columns: 1fr 60px 80px 80px;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioSm) 0;
+    border-bottom: 1px solid var(--nakomi-bordePrincipal);
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.facturaItem {
+    display: grid;
+    grid-template-columns: 1fr 60px 80px 80px;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioSm) 0;
+    border-bottom: 1px solid var(--nakomi-bordeSutil);
+    font-size: var(--nakomi-fuenteSm);
+}
+
+.facturaItem:last-child {
+    border-bottom: none;
+}
+
+.itemDescripcion {
+    color: var(--nakomi-textoNormal);
+}
+
+.itemCantidad,
+.itemPrecio {
+    color: var(--nakomi-textoSecundario);
+    text-align: center;
+}
+
+.itemTotal {
+    color: var(--nakomi-textoActivo);
+    text-align: right;
+    font-weight: 500;
+}
+
+.facturaTotales {
+    background: var(--nakomi-fondoTerciario);
+    padding: var(--nakomi-espacioMd);
+    border-radius: var(--nakomi-radioMd);
+}
+
+.facturaTotalLinea {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--nakomi-espacioXs) 0;
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-textoSecundario);
+}
+
+.facturaTotalLinea.totalFinal {
+    padding-top: var(--nakomi-espacioSm);
+    margin-top: var(--nakomi-espacioSm);
+    border-top: 1px solid var(--nakomi-bordePrincipal);
+    font-size: var(--nakomi-fuenteLg);
+    font-weight: 600;
+    color: var(--nakomi-textoActivo);
+}
+
+.modalFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioLg);
+    border-top: 1px solid var(--nakomi-bordePrincipal);
+    background: var(--nakomi-fondoTerciario);
+}
+
+/* === Responsive === */
 @media (max-width: 640px) {
-    .tablaFacturas th,
-    .tablaFacturas td {
-        padding: 1rem;
+    .resumenDeuda {
+        flex-direction: column;
+        text-align: center;
     }
 
-    .tablaFacturas th:nth-child(2), /* Concepto */
-    .tablaFacturas td:nth-child(2) {
-        display: none;
+    .resumenDeudaMonto {
+        text-align: center;
     }
 
-    .tablaFacturas th:nth-child(3), /* Fecha */
-    .tablaFacturas td:nth-child(3) {
+    .tarjetaFacturaHeader {
+        flex-direction: column;
+        gap: var(--nakomi-espacioSm);
+    }
+
+    .tarjetaFacturaInfo {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .tarjetaFacturaFooter {
+        flex-direction: column;
+        gap: var(--nakomi-espacioMd);
+        align-items: stretch;
+    }
+
+    .facturaAcciones {
+        justify-content: stretch;
+    }
+
+    .facturaAcciones > * {
+        flex: 1;
+    }
+
+    .facturaItemsHeader,
+    .facturaItem {
+        grid-template-columns: 1fr 50px 60px;
+    }
+
+    .facturaItemsHeader span:nth-child(2),
+    .facturaItem .itemCantidad {
         display: none;
     }
 }
