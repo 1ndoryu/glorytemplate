@@ -1,5 +1,209 @@
-/* Estilos para Vista Resumen */
+/*
+ * Estilos para Vista Resumen (Dashboard)
+ * Dashboard principal con resumen de cuenta, servicios y renovaciones
+ */
 
+/* === Tarjetas de Resumen (Stats) === */
+.dashboardResumen {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: var(--nakomi-espacioMd);
+    margin-bottom: var(--nakomi-espacioXl);
+}
+
+@media (min-width: 768px) {
+    .dashboardResumen {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.tarjetaResumen {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioMd) var(--nakomi-espacioLg);
+}
+
+.resumenIcono {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--nakomi-radioMd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.resumenIconoDeuda {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+.resumenIconoServicios {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+}
+
+.resumenIconoRenovaciones {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+.resumenContenido {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.resumenEtiqueta {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.resumenValor {
+    font-size: var(--nakomi-fuenteLg);
+    font-weight: 600;
+    color: var(--nakomi-textoActivo);
+}
+
+.resumenValor.valorAlerta {
+    color: var(--nakomi-error);
+}
+
+/* === Secciones del Dashboard === */
+.dashboardSeccion {
+    margin-bottom: var(--nakomi-espacioXl);
+}
+
+.dashboardSeccionTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoApagado);
+    margin-bottom: var(--nakomi-espacioMd);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dashboardSeccionTitulo .iconoAlerta {
+    color: var(--nakomi-warning);
+}
+
+.dashboardSeccionLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+
+/* === Tarjeta de Renovación === */
+.tarjetaRenovacion {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioMd);
+}
+
+.renovacionIcono {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--nakomi-radioSm);
+    background: var(--nakomi-fondoTerciario);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nakomi-textoApagado);
+    flex-shrink: 0;
+}
+
+.renovacionInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.renovacionNombre {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.renovacionTipo {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+}
+
+.renovacionFecha {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.renovacionDias {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoNormal);
+}
+
+.renovacionDias.diasUrgente {
+    color: var(--nakomi-warning);
+}
+
+.renovacionFechaTexto {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+}
+
+/* === Tarjeta de Factura Pendiente === */
+.tarjetaFacturaPendiente {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioMd);
+    border-left: 3px solid var(--nakomi-warning);
+}
+
+.facturaInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.facturaConcepto {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.facturaFecha {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+}
+
+.facturaMonto {
+    font-size: var(--nakomi-fuenteMd);
+    font-weight: 600;
+    color: var(--nakomi-textoActivo);
+    flex-shrink: 0;
+}
+
+/* === Placeholder Vacío === */
 .placeholderServicios {
     display: flex;
     flex-direction: column;
@@ -14,21 +218,76 @@
     gap: 1rem;
     transition: all 0.2s ease;
 }
+
 .placeholderServicios:hover {
     border-color: var(--nakomi-acento);
     background-color: var(--nakomi-fondoHover);
     color: var(--nakomi-textoNormal);
     cursor: pointer;
 }
+
 .placeholderIcon {
     opacity: 0.5;
 }
 
+.placeholderTexto {
+    text-align: center;
+}
+
+.placeholderTitulo {
+    font-weight: 500;
+    margin-bottom: var(--nakomi-espacioXs);
+    color: var(--nakomi-textoNormal);
+}
+
+.placeholderSubtitulo {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    margin: 0;
+}
+
+/* === Responsive === */
+@media (max-width: 640px) {
+    .tarjetaRenovacion,
+    .tarjetaFacturaPendiente {
+        flex-wrap: wrap;
+    }
+
+    .renovacionIcono {
+        display: none;
+    }
+
+    .renovacionInfo,
+    .facturaInfo {
+        flex-basis: 100%;
+        order: 1;
+    }
+
+    .renovacionFecha {
+        order: 2;
+        align-items: flex-start;
+        flex-direction: row;
+        gap: var(--nakomi-espacioSm);
+    }
+
+    .tarjetaRenovacion .boton,
+    .tarjetaFacturaPendiente .boton {
+        order: 3;
+        margin-left: auto;
+    }
+
+    .facturaMonto {
+        order: 2;
+    }
+}
+
+/* === Legacy (compatibilidad) === */
 .dashboardGrid {
     display: grid;
     grid-template-columns: repeat(1, 1fr);
     gap: 1rem;
 }
+
 @media (min-width: 768px) {
     .dashboardGrid {
         grid-template-columns: repeat(3, 1fr);
@@ -48,6 +307,7 @@
 .iconoAcento {
     color: var(--nakomi-acento);
 }
+
 .iconoSecundario {
     color: var(--nakomi-textoSecundario);
 }
@@ -57,6 +317,7 @@
     flex-direction: column;
     gap: 0.75rem;
 }
+
 .tituloSeccion {
     margin-bottom: 1rem;
 }

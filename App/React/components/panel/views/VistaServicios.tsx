@@ -1,21 +1,18 @@
 /*
- * VistaServicios: Vista dual según el rol del usuario.
- * - Admin/Proveedor: Muestra servicios publicados (los que ofrece)
- * - Cliente: Muestra servicios contratados (los que ha comprado)
+ * VistaServicios: Muestra servicios PUBLICADOS por el usuario.
+ * Tanto admins como clientes pueden publicar servicios (modelo Fiverr).
+ * Los servicios CONTRATADOS se muestran en el Dashboard (VistaResumen).
  */
 
 import React, {useState} from 'react';
-import {TarjetaServicioContratado} from './servicios/TarjetaServicioContratado';
 import {ListaServiciosPublicados} from './servicios/ListaServiciosPublicados';
 import {ModalEditarServicio} from './servicios/ModalEditarServicio';
-import {usePanel} from '../../../context/PanelContext';
 import {useUsuario} from '../../../context/UsuarioContext';
 import {serviciosPublicados as serviciosIniciales} from '../../../data/mocks/serviciosPublicados';
 import {ServicioPublicado} from '../../../data/types/servicio';
 
 export const VistaServicios: React.FC = () => {
-    const {serviciosContratados} = usePanel();
-    const {usuario, esAdmin, simulando} = useUsuario();
+    const {usuario} = useUsuario();
 
     /* Estado local para servicios publicados (simulación de BD) */
     const [servicios, setServicios] = useState<ServicioPublicado[]>(serviciosIniciales);
@@ -25,11 +22,8 @@ export const VistaServicios: React.FC = () => {
     const [servicioEditar, setServicioEditar] = useState<ServicioPublicado | null>(null);
     const [modoCrear, setModoCrear] = useState(false);
 
-    /* Si es admin y NO está simulando, mostrar vista de proveedor */
-    const mostrarVistaProveedor = esAdmin && !simulando;
-
-    /* Servicios publicados por el usuario actual (si es proveedor) */
-    const misServiciosPublicados = mostrarVistaProveedor ? servicios.filter(s => s.proveedorId === usuario.id) : [];
+    /* Servicios publicados por el usuario actual */
+    const misServiciosPublicados = servicios.filter(s => s.proveedorId === usuario.id);
 
     /* Handler para crear nuevo servicio */
     const handleCrearServicio = () => {
@@ -77,60 +71,16 @@ export const VistaServicios: React.FC = () => {
         setServicioEditar(null);
     };
 
-    /* Vista de Proveedor (Admin) */
-    if (mostrarVistaProveedor) {
-        return (
-            <div className="bloqueVista" id="vistaServiciosProveedor">
-                <header className="vistaHeader">
-                    <h2 className="vistaTitulo">Mis Servicios Publicados</h2>
-                    <p className="vistaSubtitulo">Gestiona los servicios que ofreces a tus clientes.</p>
-                </header>
-
-                <ListaServiciosPublicados servicios={misServiciosPublicados} onCrear={handleCrearServicio} onEditar={handleEditarServicio} onEliminar={handleEliminarServicio} onToggleActivo={handleToggleActivo} />
-
-                <ModalEditarServicio servicio={servicioEditar} visible={modalVisible} onCerrar={handleCerrarModal} onGuardar={handleGuardarServicio} modoCrear={modoCrear} />
-            </div>
-        );
-    }
-
-    /* Vista de Cliente */
-    const serviciosEnProgreso = serviciosContratados.filter(s => s.estado === 'pendiente' || s.estado === 'en_progreso');
-    const serviciosCompletados = serviciosContratados.filter(s => s.estado === 'completado');
-
     return (
-        <div className="bloqueVista" id="vistaServicios">
+        <div className="bloqueVista" id="vistaServiciosPublicados">
             <header className="vistaHeader">
                 <h2 className="vistaTitulo">Mis Servicios</h2>
-                <p className="vistaSubtitulo">Servicios contratados y su estado actual.</p>
+                <p className="vistaSubtitulo">Gestiona los servicios que ofreces a otros usuarios.</p>
             </header>
 
-            {serviciosEnProgreso.length > 0 && (
-                <section className="serviciosSeccion">
-                    <h3 className="serviciosSeccionTitulo">En progreso</h3>
-                    <div className="serviciosLista">
-                        {serviciosEnProgreso.map(servicio => (
-                            <TarjetaServicioContratado key={servicio.id} servicio={servicio} />
-                        ))}
-                    </div>
-                </section>
-            )}
+            <ListaServiciosPublicados servicios={misServiciosPublicados} onCrear={handleCrearServicio} onEditar={handleEditarServicio} onEliminar={handleEliminarServicio} onToggleActivo={handleToggleActivo} />
 
-            {serviciosCompletados.length > 0 && (
-                <section className="serviciosSeccion">
-                    <h3 className="serviciosSeccionTitulo">Completados</h3>
-                    <div className="serviciosLista">
-                        {serviciosCompletados.map(servicio => (
-                            <TarjetaServicioContratado key={servicio.id} servicio={servicio} />
-                        ))}
-                    </div>
-                </section>
-            )}
-
-            {serviciosContratados.length === 0 && (
-                <div className="serviciosVacio">
-                    <p>No tienes servicios contratados.</p>
-                </div>
-            )}
+            <ModalEditarServicio servicio={servicioEditar} visible={modalVisible} onCerrar={handleCerrarModal} onGuardar={handleGuardarServicio} modoCrear={modoCrear} />
         </div>
     );
 };

@@ -420,14 +420,14 @@ El panel debe soportar dos modos de operación claramente diferenciados:
 ### Cambios Necesarios por Vista
 
 **VistaServicios.tsx:**
-- [ ] Eliminar lógica de mostrar servicios contratados (mover al Dashboard)
-- [ ] Mostrar siempre servicios PUBLICADOS del usuario actual
-- [ ] Si el usuario no tiene servicios publicados, mostrar CTA para crear uno
+- [x] Eliminar lógica de mostrar servicios contratados (mover al Dashboard)
+- [x] Mostrar siempre servicios PUBLICADOS del usuario actual
+- [x] Si el usuario no tiene servicios publicados, mostrar CTA para crear uno
 
-**VistaDashboard.tsx (a crear o modificar):**
-- [ ] Agregar sección de "Servicios Contratados" con `TarjetaServicioContratado`
-- [ ] Resumen de deuda pendiente
-- [ ] Próximas renovaciones (hostings, dominios)
+**VistaResumen.tsx (Dashboard):**
+- [x] Agregar sección de "Servicios Contratados" con `TarjetaServicioContratado`
+- [x] Resumen de deuda pendiente
+- [x] Próximas renovaciones (hostings, dominios)
 
 **VistaHosting.tsx:**
 - [ ] Detectar si es admin: mostrar todos los hostings con columna "Cliente"
@@ -443,8 +443,8 @@ El panel debe soportar dos modos de operación claramente diferenciados:
 
 ### Prioridad de Implementación
 
-1. **Alta:** Corregir VistaServicios (separar publicados de contratados)
-2. **Alta:** Mover servicios contratados al Dashboard
+1. ~~**Alta:** Corregir VistaServicios (separar publicados de contratados)~~ ✅
+2. ~~**Alta:** Mover servicios contratados al Dashboard~~ ✅
 3. **Media:** Adaptar vistas de Hosting/Dominios/Facturas para admin
 4. **Alta:** Implementar seguridad en backend cuando se conecte a WP
 
