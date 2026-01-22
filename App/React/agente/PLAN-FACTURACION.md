@@ -1,7 +1,7 @@
 # Plan: Sistema de Facturación y Panel Cliente
 
 > **Prioridad:** Alta  
-> **Estado:** En Progreso (Fases 1-4 + Rev completadas)  
+> **Estado:** En Progreso (Fases 1-4, Rev, 7, 8 completadas)  
 > **Última actualización:** 2026-01-22
 
 ---
@@ -357,13 +357,97 @@ components/panel/views/
 
 ### Confusión de Vistas de Servicios
 
-**Problema identificado:** La vista "Mis Servicios" actualmente muestra servicios contratados, pero debería mostrar servicios PUBLICADOS por el usuario.
+**Problema identificado:** La vista "Mis Servicios" actualmente muestra servicios contratados cuando el usuario es cliente, pero debería mostrar servicios PUBLICADOS por el usuario.
 
 **Corrección necesaria:**
-- **"Mis Servicios"** = Servicios que el usuario PUBLICA (modelo Fiverr)
+- **"Mis Servicios"** = Servicios que el usuario PUBLICA (modelo Fiverr) - Tanto admin como clientes pueden publicar
 - **Dashboard/Resumen** = Donde aparece `TarjetaServicioContratado` (servicios que el cliente ha comprado)
 
-**Acción:** Refactorizar la sección "Mis Servicios" del sidebar y mover `TarjetaServicioContratado` al Dashboard.
+**Acción:** Refactorizar la vista "Mis Servicios" para que SIEMPRE muestre servicios publicados del usuario. Mover `TarjetaServicioContratado` al Dashboard.
+
+---
+
+## Sistema de Vistas por Rol (Planificación)
+
+### Arquitectura General
+
+El panel debe soportar dos modos de operación claramente diferenciados:
+
+| Vista | Admin | Cliente |
+|-------|-------|---------|
+| **Dashboard** | Resumen global + servicios que ha contratado (si aplica) | Resumen + servicios contratados |
+| **Mis Servicios** | Sus servicios publicados | Sus servicios publicados |
+| **Hostings** | TODOS los hostings de TODOS los clientes | Solo sus hostings |
+| **Dominios** | TODOS los dominios de TODOS los clientes | Solo sus dominios |
+| **Facturas** | TODAS las facturas de TODOS los clientes | Solo sus facturas |
+
+### Vista Admin - Panel de Administración
+
+**Objetivo:** El admin necesita ver y gestionar TODOS los recursos de todos los clientes.
+
+**Hostings (Admin):**
+- Lista completa de hostings de todos los clientes
+- Filtros: por cliente, por estado, por fecha
+- Columna adicional: "Cliente" mostrando a quién pertenece
+- Acciones: suspender, reactivar, cambiar plan, gestionar en Coolify
+
+**Dominios (Admin):**
+- Lista completa de dominios de todos los clientes
+- Filtros: por cliente, por estado, próximos a vencer
+- Columna adicional: "Cliente"
+- Acciones: renovar, transferir, cancelar
+
+**Facturas (Admin):**
+- Lista completa de facturas de todos los clientes
+- Filtros: por cliente, por estado (pendiente/pagada/vencida), por fecha
+- Columna adicional: "Cliente"
+- Acciones: marcar como pagada, reenviar, anular
+- Posibilidad de pagar en nombre del cliente (para casos de pago manual)
+
+### Seguridad - Crítico ⚠️
+
+**Frontend:**
+- El filtrado por usuario se realiza en el frontend actualmente (mocks)
+- Cuando se implemente el backend, NUNCA confiar en el frontend para filtrar datos sensibles
+
+**Backend (TO-DO - Fase 11):**
+- Verificar siempre el rol del usuario en CADA endpoint
+- Los endpoints de cliente solo devuelven recursos del usuario autenticado
+- Los endpoints de admin verifican permisos antes de devolver todos los recursos
+- Usar middleware de autenticación de WordPress
+- Registrar accesos a datos sensibles (audit log)
+
+### Cambios Necesarios por Vista
+
+**VistaServicios.tsx:**
+- [ ] Eliminar lógica de mostrar servicios contratados (mover al Dashboard)
+- [ ] Mostrar siempre servicios PUBLICADOS del usuario actual
+- [ ] Si el usuario no tiene servicios publicados, mostrar CTA para crear uno
+
+**VistaDashboard.tsx (a crear o modificar):**
+- [ ] Agregar sección de "Servicios Contratados" con `TarjetaServicioContratado`
+- [ ] Resumen de deuda pendiente
+- [ ] Próximas renovaciones (hostings, dominios)
+
+**VistaHosting.tsx:**
+- [ ] Detectar si es admin: mostrar todos los hostings con columna "Cliente"
+- [ ] Detectar si es cliente: filtrar solo sus hostings
+
+**VistaDominios.tsx:**
+- [ ] Detectar si es admin: mostrar todos los dominios con columna "Cliente"
+- [ ] Detectar si es cliente: filtrar solo sus dominios
+
+**VistaFacturas.tsx:**
+- [ ] Detectar si es admin: mostrar todas las facturas con columna "Cliente"
+- [ ] Detectar si es cliente: filtrar solo sus facturas
+
+### Prioridad de Implementación
+
+1. **Alta:** Corregir VistaServicios (separar publicados de contratados)
+2. **Alta:** Mover servicios contratados al Dashboard
+3. **Media:** Adaptar vistas de Hosting/Dominios/Facturas para admin
+4. **Alta:** Implementar seguridad en backend cuando se conecte a WP
+
 
 ---
 
@@ -471,10 +555,10 @@ const {usuario, esAdmin, simulando, toggleSimulacion} = useUsuario();
 - [x] Crear entidad `ServicioPublicado` con imagen y datos del servicio
 - [x] Relacionar `ServicioContratado` con `ServicioPublicado`
 - [x] Vista "Mis Servicios" para publicar/gestionar servicios (Admin ve sus servicios publicados)
-- [ ] Página individual de servicio (estilo Fiverr)
+- [x] Modal de edición de servicio publicado (Fase 8 completada)
+- [ ] Página individual (single post) de servicio (estilo Fiverr)
 - [ ] Catálogo de servicios disponibles
 - [ ] Sistema de categorías
-- [ ] Modal de edición de servicio publicado
 
 ### Sistema de Usuarios
 - [x] Hook `useUsuarioPanel` para obtener usuario actual
@@ -486,6 +570,69 @@ const {usuario, esAdmin, simulando, toggleSimulacion} = useUsuario();
 - [ ] Crear componente genérico `TarjetaProducto` para reutilizar en hostings/dominios/servicios
 - [ ] Unificar estilos de estados (activo/pendiente/suspendido) en variables CSS
 - [x] Componente `MenuContextual` reutilizable
+
+### Bugs Conocidos
+- [ ] **Menús contextuales cortados** - Los menús de 3 puntos se cortan al tamaño del contenedor padre (overflow). Afecta a `TarjetaServicioContratado` y `TarjetaServicioPublicado`. Solución: usar portal o ajustar overflow del contenedor.
+
+---
+
+## Fases Futuras - Planificación
+
+### Fase 8: Modal de Edición de Servicio ✅ COMPLETADA
+
+**Objetivo:** Permitir editar servicios publicados sin salir del panel.
+
+**Componentes creados:**
+- `ModalEditarServicio.tsx` - Formulario completo con validación
+- Estilos en `servicios.css` (campos, toggle, previsualización imagen)
+
+**Funcionalidades implementadas:**
+- Crear nuevo servicio desde botón "Nuevo Servicio"
+- Editar servicio existente desde menú de 3 puntos
+- Validación de campos obligatorios (nombre, descripción, precio, tiempo)
+- Previsualización de imagen en tiempo real
+- Toggle para activar/desactivar servicio
+- Estado local reactivo (simula BD)
+
+---
+
+### Fase 9: Single de Servicio (Página Individual)
+
+**Objetivo:** Página pública de cada servicio estilo Fiverr.
+
+**Ruta:** `/servicio/{slug}` o `?servicio={id}`
+
+**Componentes:**
+- `PaginaServicio.tsx` - Layout completo
+- Secciones: Hero con imagen, descripción, precio, botón contratar, reviews (futuro)
+
+**Diseño:**
+- Columna izquierda: Imagen grande, descripción extendida
+- Columna derecha: Card de precio, tiempo entrega, botón "Contratar"
+
+---
+
+### Fase 10: Catálogo de Servicios
+
+**Objetivo:** Grid público de servicios disponibles para contratar.
+
+**Componentes:**
+- `VistaCatalogo.tsx` - Grid de `TarjetaServicioPublicado` (versión pública)
+- Filtros: Por categoría, precio, tiempo de entrega
+
+**Ubicación:** Accesible desde Marketplace o sección pública
+
+---
+
+### Fase 11: Integración WordPress Real
+
+**Objetivo:** Conectar con usuarios y datos reales de WP.
+
+**Tareas:**
+1. Leer `window.wpUser` para obtener usuario logueado
+2. Endpoint REST `/wp-json/glory/v1/usuario` para datos del cliente
+3. Endpoint REST `/wp-json/glory/v1/servicios` para servicios publicados
+4. Migrar mocks a CPT (Custom Post Type) o ACF
 
 ---
 

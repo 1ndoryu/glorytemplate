@@ -4,42 +4,77 @@
  * - Cliente: Muestra servicios contratados (los que ha comprado)
  */
 
-import React from 'react';
+import React, {useState} from 'react';
 import {TarjetaServicioContratado} from './servicios/TarjetaServicioContratado';
 import {ListaServiciosPublicados} from './servicios/ListaServiciosPublicados';
+import {ModalEditarServicio} from './servicios/ModalEditarServicio';
 import {usePanel} from '../../../context/PanelContext';
 import {useUsuario} from '../../../context/UsuarioContext';
-import {serviciosPublicados, obtenerServiciosPorProveedor} from '../../../data/mocks/serviciosPublicados';
+import {serviciosPublicados as serviciosIniciales} from '../../../data/mocks/serviciosPublicados';
+import {ServicioPublicado} from '../../../data/types/servicio';
 
 export const VistaServicios: React.FC = () => {
     const {serviciosContratados} = usePanel();
     const {usuario, esAdmin, simulando} = useUsuario();
 
+    /* Estado local para servicios publicados (simulación de BD) */
+    const [servicios, setServicios] = useState<ServicioPublicado[]>(serviciosIniciales);
+
+    /* Estado del modal */
+    const [modalVisible, setModalVisible] = useState(false);
+    const [servicioEditar, setServicioEditar] = useState<ServicioPublicado | null>(null);
+    const [modoCrear, setModoCrear] = useState(false);
+
     /* Si es admin y NO está simulando, mostrar vista de proveedor */
     const mostrarVistaProveedor = esAdmin && !simulando;
 
     /* Servicios publicados por el usuario actual (si es proveedor) */
-    const misServiciosPublicados = mostrarVistaProveedor ? obtenerServiciosPorProveedor(usuario.id) : [];
+    const misServiciosPublicados = mostrarVistaProveedor ? servicios.filter(s => s.proveedorId === usuario.id) : [];
 
-    /* Handlers para gestión de servicios (TO-DO: implementar acciones reales) */
+    /* Handler para crear nuevo servicio */
     const handleCrearServicio = () => {
-        console.log('Crear nuevo servicio');
-        /* TO-DO: Abrir modal de creación */
+        setServicioEditar(null);
+        setModoCrear(true);
+        setModalVisible(true);
     };
 
-    const handleEditarServicio = (servicio: any) => {
-        console.log('Editar servicio:', servicio.id);
-        /* TO-DO: Abrir modal de edición */
+    /* Handler para editar servicio existente */
+    const handleEditarServicio = (servicio: ServicioPublicado) => {
+        setServicioEditar(servicio);
+        setModoCrear(false);
+        setModalVisible(true);
     };
 
+    /* Handler para eliminar servicio */
     const handleEliminarServicio = (id: string) => {
-        console.log('Eliminar servicio:', id);
-        /* TO-DO: Confirmar y eliminar */
+        /* Confirmación simple por ahora, TO-DO: modal de confirmación */
+        if (window.confirm('¿Estás seguro de eliminar este servicio?')) {
+            setServicios(prev => prev.filter(s => s.id !== id));
+        }
     };
 
+    /* Handler para toggle activo/inactivo */
     const handleToggleActivo = (id: string) => {
-        console.log('Toggle activo:', id);
-        /* TO-DO: Cambiar estado activo/inactivo */
+        setServicios(prev => prev.map(s => (s.id === id ? {...s, activo: !s.activo} : s)));
+    };
+
+    /* Handler para guardar (crear o actualizar) */
+    const handleGuardarServicio = (servicio: ServicioPublicado) => {
+        if (modoCrear) {
+            /* Agregar nuevo servicio */
+            setServicios(prev => [servicio, ...prev]);
+        } else {
+            /* Actualizar servicio existente */
+            setServicios(prev => prev.map(s => (s.id === servicio.id ? servicio : s)));
+        }
+        setModalVisible(false);
+        setServicioEditar(null);
+    };
+
+    /* Cerrar modal */
+    const handleCerrarModal = () => {
+        setModalVisible(false);
+        setServicioEditar(null);
     };
 
     /* Vista de Proveedor (Admin) */
@@ -52,6 +87,8 @@ export const VistaServicios: React.FC = () => {
                 </header>
 
                 <ListaServiciosPublicados servicios={misServiciosPublicados} onCrear={handleCrearServicio} onEditar={handleEditarServicio} onEliminar={handleEliminarServicio} onToggleActivo={handleToggleActivo} />
+
+                <ModalEditarServicio servicio={servicioEditar} visible={modalVisible} onCerrar={handleCerrarModal} onGuardar={handleGuardarServicio} modoCrear={modoCrear} />
             </div>
         );
     }
