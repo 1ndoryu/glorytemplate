@@ -1,0 +1,211 @@
+/*
+ * Estilos para Vista Dominios del Cliente
+ * Diseño minimalista de 1 columna, consistente con hosting.css
+ */
+
+/* === Resumen de Dominios === */
+.resumenDominios {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioMd);
+    margin-bottom: var(--nakomi-espacioMd);
+    background: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioMd);
+}
+
+.resumenDominiosIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--nakomi-infoFondo);
+    border-radius: var(--nakomi-radioMd);
+    color: var(--nakomi-info);
+    flex-shrink: 0;
+}
+
+.resumenDominiosInfo {
+    flex: 1;
+}
+
+.resumenDominiosTitulo {
+    font-size: var(--nakomi-fuenteMd);
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    margin-bottom: 2px;
+}
+
+.resumenDominiosDetalle {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoSecundario);
+}
+
+.dominiosProxExp {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+    color: var(--nakomi-warning);
+}
+
+/* === Lista de Dominios (1 columna) === */
+.dominiosGrid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioMd);
+    margin-top: var(--nakomi-espacioMd);
+}
+
+.dominiosVacio {
+    padding: var(--nakomi-espacioXl);
+    text-align: center;
+    color: var(--nakomi-textoApagado);
+    font-size: var(--nakomi-fuenteSm);
+}
+
+/* === Tarjeta de Dominio Minimalista === */
+.tarjetaDominio {
+    padding: var(--nakomi-espacioMd);
+    border-radius: var(--nakomi-radioMd);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    background: var(--nakomi-fondoSecundario);
+    transition: border-color var(--nakomi-transicionRapida);
+}
+
+.tarjetaDominio:hover {
+    border-color: var(--nakomi-bordeSutil);
+}
+
+.tarjetaDominio.estadoActivo {
+    border-left: 2px solid var(--nakomi-exito);
+}
+
+.tarjetaDominio.estadoExpirado {
+    border-left: 2px solid var(--nakomi-error);
+}
+
+.tarjetaDominio.estadoPendiente {
+    border-left: 2px solid var(--nakomi-warning);
+}
+
+/* Header horizontal compacto */
+.dominioHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    margin-bottom: var(--nakomi-espacioSm);
+}
+
+.dominioIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--nakomi-fondoTerciario);
+    border-radius: var(--nakomi-radioSm);
+    color: var(--nakomi-acento);
+    flex-shrink: 0;
+}
+
+.dominioInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.dominioNombre {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    margin: 0;
+    font-family: var(--nakomi-fuenteMono);
+}
+
+.dominioIncluidoEn {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+}
+
+/* Detalles inline */
+.dominioDetalles {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioLg);
+    margin-bottom: var(--nakomi-espacioSm);
+    font-size: var(--nakomi-fuenteXs);
+}
+
+.dominioDetalle {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+}
+
+.dominioDetalle .detalleLabel {
+    color: var(--nakomi-textoApagado);
+}
+
+.dominioDetalle .detalleValor {
+    color: var(--nakomi-textoNormal);
+    font-weight: 500;
+}
+
+.dominioDetalle .valorExpiracion {
+    font-family: var(--nakomi-fuenteMono);
+}
+
+/* Indicador de renovación automática */
+.dominioRenovacionAuto {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
+    background: var(--nakomi-exitoFondo);
+    border-radius: var(--nakomi-radioSm);
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-exito);
+}
+
+/* Alerta de expiración próxima */
+.dominioAlerta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
+    background: var(--nakomi-warningFondo);
+    border-radius: var(--nakomi-radioSm);
+    margin-bottom: var(--nakomi-espacioSm);
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-warning);
+}
+
+/* Acciones compactas */
+.dominioAcciones {
+    display: flex;
+    gap: var(--nakomi-espacioSm);
+    padding-top: var(--nakomi-espacioSm);
+    border-top: 1px solid var(--nakomi-bordePrincipal);
+}
+
+/* === Responsive === */
+@media (max-width: 640px) {
+    .resumenDominios {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .resumenDominiosDetalle {
+        flex-direction: column;
+        gap: var(--nakomi-espacioXs);
+    }
+
+    .dominioDetalles {
+        flex-wrap: wrap;
+        gap: var(--nakomi-espacioSm);
+    }
+}

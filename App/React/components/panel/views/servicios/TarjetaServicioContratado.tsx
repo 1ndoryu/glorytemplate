@@ -1,82 +1,125 @@
 /*
  * TarjetaServicioContratado: Muestra un servicio contratado del cliente.
- * Ej: Diseño web en progreso con pago al finalizar.
+ * Diseño compacto de una sola fila con imagen real, nombre, precio, tiempo restante, estado y menú contextual.
  */
 
 import React from 'react';
-import {Palette, Clock, CheckCircle, AlertCircle, Package} from 'lucide-react';
+import {Eye, MessageCircle, FileText, AlertTriangle, Clock} from 'lucide-react';
 import {Tarjeta} from '../../../ui/Tarjeta';
-import {Etiqueta} from '../../../ui/Etiqueta';
+import {MenuContextual, AccionMenu} from '../../../ui/MenuContextual';
 import {ServicioContratado} from '../../../../data/types/servicio';
 
 interface TarjetaServicioContratadoProps {
     servicio: ServicioContratado;
+    onVerDetalles?: (servicio: ServicioContratado) => void;
+    onContactarProveedor?: (servicio: ServicioContratado) => void;
+    onDescargarFactura?: (servicio: ServicioContratado) => void;
+    onReportarProblema?: (servicio: ServicioContratado) => void;
 }
 
-const iconosTipo = {
-    diseno_web: <Palette size={16} />,
-    mantenimiento: <Clock size={16} />,
-    desarrollo: <Package size={16} />
+/* Configuración de estados con colores semánticos */
+const estadoConfig = {
+    pendiente: {label: 'Pendiente', clase: 'estadoPendiente'},
+    en_progreso: {label: 'En progreso', clase: 'estadoEnProgreso'},
+    completado: {label: 'Completado', clase: 'estadoCompletado'},
+    cancelado: {label: 'Cancelado', clase: 'estadoCancelado'}
 };
 
-const etiquetasEstado = {
-    pendiente: {label: 'Pendiente', variante: 'neutro' as const},
-    en_progreso: {label: 'En progreso', variante: 'info' as const},
-    completado: {label: 'Completado', variante: 'exito' as const},
-    cancelado: {label: 'Cancelado', variante: 'alerta' as const}
+/* Calcula días restantes hasta una fecha */
+const calcularDiasRestantes = (fechaIso: string): number => {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const fechaEntrega = new Date(fechaIso);
+    fechaEntrega.setHours(0, 0, 0, 0);
+    const diferencia = fechaEntrega.getTime() - hoy.getTime();
+    return Math.ceil(diferencia / (1000 * 60 * 60 * 24));
 };
 
-export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps> = ({servicio}) => {
-    const estadoConfig = etiquetasEstado[servicio.estado];
-    const icono = iconosTipo[servicio.tipo] || <Package size={24} />;
+/* Formatea días restantes en texto natural */
+const formatearDiasRestantes = (dias: number): string => {
+    if (dias < 0) return `${Math.abs(dias)} días de retraso`;
+    if (dias === 0) return 'Hoy';
+    if (dias === 1) return 'Mañana';
+    return `${dias} días`;
+};
 
-    const formatearFecha = (fechaIso: string): string => {
-        const fecha = new Date(fechaIso);
-        return fecha.toLocaleDateString('es-ES', {day: '2-digit', month: 'long', year: 'numeric'});
-    };
+/* Imagen fallback cuando no hay imagen real */
+const IMAGEN_FALLBACK = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"%3E%3Crect fill="%231a1a2e" width="80" height="80"/%3E%3Ctext x="40" y="45" font-family="system-ui" font-size="12" fill="%236b7280" text-anchor="middle"%3EServicio%3C/text%3E%3C/svg%3E';
 
-    const incluyeItems: string[] = [];
-    if (servicio.incluyeHosting) {
-        incluyeItems.push(`Hosting (${servicio.hostingMesesIncluidos} meses)`);
+export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps> = ({servicio, onVerDetalles, onContactarProveedor, onDescargarFactura, onReportarProblema}) => {
+    const config = estadoConfig[servicio.estado];
+    const diasRestantes = servicio.fechaEntregaEstimada ? calcularDiasRestantes(servicio.fechaEntregaEstimada) : null;
+
+    /* Construir acciones del menú contextual */
+    const acciones: AccionMenu[] = [
+        {
+            id: 'ver',
+            label: 'Ver detalles',
+            icono: <Eye size={14} />,
+            onClick: () => onVerDetalles?.(servicio)
+        },
+        {
+            id: 'progreso',
+            label: 'Ver progreso',
+            icono: <Clock size={14} />,
+            onClick: () => console.log('TO-DO: Ver progreso del servicio')
+        },
+        {
+            id: 'contactar',
+            label: 'Contactar proveedor',
+            icono: <MessageCircle size={14} />,
+            onClick: () => onContactarProveedor?.(servicio)
+        }
+    ];
+
+    /* Agregar descarga de factura solo si está pagado o completado */
+    if (servicio.estado === 'completado') {
+        acciones.push({
+            id: 'factura',
+            label: 'Descargar factura',
+            icono: <FileText size={14} />,
+            onClick: () => onDescargarFactura?.(servicio)
+        });
     }
-    if (servicio.incluyeDominio) {
-        incluyeItems.push('Dominio');
-    }
+
+    /* Reportar problema siempre al final */
+    acciones.push({
+        id: 'reportar',
+        label: 'Reportar problema',
+        icono: <AlertTriangle size={14} />,
+        onClick: () => onReportarProblema?.(servicio),
+        peligroso: true
+    });
 
     return (
-        <Tarjeta className={`tarjetaServicioContratado estado${servicio.estado.replace('_', '')}`}>
-            <div className="servicioContratadoHeader">
-                <div className="servicioContratadoIcono">{icono}</div>
-                <div className="servicioContratadoInfo">
-                    <h3 className="servicioContratadoNombre">{servicio.nombre}</h3>
-                    <p className="servicioContratadoDescripcion">{servicio.descripcion}</p>
+        <Tarjeta className="tarjetaServicioContratado">
+            <div className="servicioContratadoFila">
+                {/* Imagen real del servicio */}
+                <div className="servicioContratadoImagen">
+                    <img
+                        src={servicio.imagenUrl || IMAGEN_FALLBACK}
+                        alt={servicio.nombre}
+                        onError={e => {
+                            (e.target as HTMLImageElement).src = IMAGEN_FALLBACK;
+                        }}
+                    />
                 </div>
-                <Etiqueta variante={estadoConfig.variante}>{estadoConfig.label}</Etiqueta>
-            </div>
 
-            <div className="servicioContratadoDetalles">
-                <div className="servicioContratadoDetalle">
-                    <span className="servicioDetalleLabel">Precio</span>
-                    <span className="servicioDetalleValor precio">${servicio.precio}</span>
-                </div>
-                <div className="servicioContratadoDetalle">
-                    <span className="servicioDetalleLabel">Inicio</span>
-                    <span className="servicioDetalleValor">{formatearFecha(servicio.fechaInicio)}</span>
-                </div>
-                {servicio.fechaEntregaEstimada && (
-                    <div className="servicioContratadoDetalle">
-                        <span className="servicioDetalleLabel">Entrega estimada</span>
-                        <span className="servicioDetalleValor">{formatearFecha(servicio.fechaEntregaEstimada)}</span>
-                    </div>
-                )}
-            </div>
+                {/* Nombre del servicio */}
+                <span className="servicioContratadoNombre">{servicio.nombre}</span>
 
-            {servicio.pagoAlFinalizar && servicio.estado !== 'completado' && (
-                <div className="servicioContratadoPago">
-                    <AlertCircle size={14} />
-                    <span>Pago pendiente al finalizar</span>
-                </div>
-            )}
+                {/* Precio */}
+                <span className="servicioContratadoPrecio">${servicio.precio}</span>
+
+                {/* Tiempo restante */}
+                {diasRestantes !== null && <span className={`servicioContratadoTiempo ${diasRestantes < 0 ? 'tiempoRetrasado' : ''}`}>{formatearDiasRestantes(diasRestantes)}</span>}
+
+                {/* Estado con color */}
+                <span className={`servicioContratadoEstado ${config.clase}`}>{config.label}</span>
+
+                {/* Menú contextual de acciones */}
+                <MenuContextual acciones={acciones} ariaLabel={`Acciones para ${servicio.nombre}`} />
+            </div>
         </Tarjeta>
     );
 };

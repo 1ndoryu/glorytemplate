@@ -3,8 +3,10 @@ import {Servicio} from '../components/landing/GridServicios';
 import {serviciosEjemplo} from '../data/mocks/servicios';
 import {FacturaSimple, facturasEjemplo} from '../data/mocks/facturas';
 import {hostingsContratados as hostingsMock} from '../data/mocks/hostingsContratados';
+import {dominiosContratados as dominiosMock} from '../data/mocks/dominiosContratados';
 import {serviciosContratados as serviciosMock} from '../data/mocks/serviciosContratados';
 import {HostingContratado} from '../data/types/hosting';
+import {DominioContratado} from '../data/types/dominio';
 import {ServicioContratado} from '../data/types/servicio';
 
 // Interfaces
@@ -39,6 +41,7 @@ interface PanelContextType {
     mensajes: number;
     facturas: FacturaSimple[];
     hostingsContratados: HostingContratado[];
+    dominiosContratados: DominioContratado[];
     serviciosContratados: ServicioContratado[];
     user: UserProfile;
     loading: boolean;
@@ -71,6 +74,7 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
     const [mensajes, setMensajes] = useState(0);
     const [facturas, setFacturas] = useState<FacturaSimple[]>([]);
     const [hostingsContratados, setHostingsContratados] = useState<HostingContratado[]>([]);
+    const [dominiosContratados, setDominiosContratados] = useState<DominioContratado[]>([]);
     const [serviciosContratados, setServiciosContratados] = useState<ServicioContratado[]>([]);
     const [user, setUser] = useState<UserProfile>(defaultUser);
     const [loading, setLoading] = useState(true);
@@ -94,6 +98,7 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
         setMensajes(1);
         setFacturas(facturasEjemplo);
         setHostingsContratados(hostingsMock);
+        setDominiosContratados(dominiosMock);
         setServiciosContratados(serviciosMock);
         setLoading(false);
     };
@@ -111,6 +116,7 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
                 mensajes,
                 facturas,
                 hostingsContratados,
+                dominiosContratados,
                 serviciosContratados,
                 user,
                 loading,

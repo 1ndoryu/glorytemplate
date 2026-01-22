@@ -298,7 +298,7 @@ App/React/
 | 2    | Vista Facturación       | Media       | ✅ Completada |
 | 3    | Vista Hostings          | Media       | ✅ Completada |
 | 4    | Vista Servicios         | Baja        | ✅ Completada |
-| 4.5  | Vista Dominios          | Baja        | ⏳ Pendiente  |
+| 4.5  | Vista Dominios          | Baja        | ✅ Completada |
 | Rev  | Revisiones UI/UX        | Media       | ✅ Completada |
 | 5    | Stripe                  | Alta        | ⏳ Pendiente  |
 | 6    | Cuenta Guillermo        | Baja        | ⏳ Pendiente  |
@@ -352,18 +352,145 @@ components/panel/views/
 
 ---
 
+## Clarificaciones Importantes
+
+### Confusión de Vistas de Servicios
+
+**Problema identificado:** La vista "Mis Servicios" actualmente muestra servicios contratados, pero debería mostrar servicios PUBLICADOS por el usuario.
+
+**Corrección necesaria:**
+- **"Mis Servicios"** = Servicios que el usuario PUBLICA (modelo Fiverr)
+- **Dashboard/Resumen** = Donde aparece `TarjetaServicioContratado` (servicios que el cliente ha comprado)
+
+**Acción:** Refactorizar la sección "Mis Servicios" del sidebar y mover `TarjetaServicioContratado` al Dashboard.
+
+---
+
+## Sistema de Servicios (Modelo Fiverr)
+
+### Concepto General
+
+Similar a Fiverr, los usuarios pueden publicar servicios que otros usuarios contratan. Por ahora:
+- **Proveedor inicial:** La agencia (nosotros) publica los servicios
+- **Cliente:** Guillermo contrata servicios de la agencia
+- **Futuro:** Cualquier usuario podrá publicar servicios
+
+### Estructura de Datos de Servicios
+
+```typescript
+// Servicio publicado (lo que el proveedor ofrece)
+interface ServicioPublicado {
+    id: string;
+    proveedorId: string;          // Usuario que publica el servicio
+    nombre: string;               // Ej: "Diseño Web Profesional"
+    descripcion: string;
+    precio: number;
+    imagenUrl: string;            // Imagen real del servicio
+    categoria: string;
+    tiempoEntregaDias: number;
+    activo: boolean;
+    fechaCreacion: string;
+}
+
+// Servicio contratado (lo que el cliente compra)
+interface ServicioContratado {
+    id: string;
+    servicioPublicadoId: string;  // Referencia al servicio original
+    clienteId: string;
+    proveedorId: string;
+    nombrePersonalizado?: string; // Ej: "Diseño Web - CAP" (para Guillermo)
+    // ... resto de campos existentes
+}
+```
+
+### Vistas Necesarias
+
+| Vista            | Rol       | Descripción                                             |
+| ---------------- | --------- | ------------------------------------------------------- |
+| Mis Servicios    | Proveedor | Servicios que publico/ofrezco                           |
+| Dashboard        | Cliente   | Servicios que he contratado (TarjetaServicioContratado) |
+| Catálogo         | Todos     | Explorar servicios disponibles (futuro)                 |
+| Detalle Servicio | Todos     | Ver un servicio con sus planes y contratar              |
+
+### Imagen del Servicio
+
+**Problema actual:** La imagen es aleatoria y cambia en cada render.
+
+**Solución:** El servicio debe tener un campo `imagenUrl` que apunte a la imagen real del servicio publicado. El `ServicioContratado` hereda la imagen del `ServicioPublicado` al que hace referencia.
+
+---
+
+## Sistema de Usuarios y Simulación
+
+### Problema Actual
+
+Cuando se accede con usuario admin, el panel muestra datos de Guillermo. Esto es útil para pruebas pero confuso.
+
+### Solución Propuesta
+
+1. **Botón de cambio de rol** - En la UI agregar toggle para:
+   - "Ver como Admin" (datos reales del admin)
+   - "Ver como Cliente" (simular ser Guillermo para pruebas)
+
+2. **Lógica de usuario real:**
+   - Leer usuario de WordPress actual
+   - Si es admin, mostrar vista admin con opción de simular
+   - Si es cliente, mostrar solo sus datos
+
+3. **Flujo a implementar:**
+   ```
+   useUsuarioPanel() {
+       const wpUser = obtenerUsuarioWP();
+       const [simulando, setSimulando] = useState(false);
+       
+       if (wpUser.rol === 'admin' && simulando) {
+           return clienteMock; // Guillermo
+       }
+       return wpUser;
+   }
+   ```
+
+---
+
+## Mejoras de UI Pendientes
+
+### TarjetaServicioContratado
+
+- [x] **Imagen real del servicio** - No aleatoria, desde ServicioPublicado
+- [x] **Botón contextual** - Reemplazar "Ver" por icono de 3 puntos (menú contextual)
+- [x] **Menú de acciones** - Al hacer clic: Ver detalles, Contactar proveedor, etc.
+
+### Menú Contextual de Servicios
+
+✅ Acciones implementadas:
+- Ver detalles del servicio
+- Ver progreso (si aplica)
+- Contactar proveedor
+- Descargar factura (si está pagado)
+- Reportar problema
+
+---
+
 ## Notas Pendientes
 
-### Servicios (planificar después)
+### Servicios - Planificación Detallada
+- [x] Crear entidad `ServicioPublicado` con imagen y datos del servicio
+- [x] Relacionar `ServicioContratado` con `ServicioPublicado`
+- [ ] Vista "Mis Servicios" para publicar/gestionar servicios
 - [ ] Página individual de servicio (estilo Fiverr)
-- [ ] Planes y características
-- [ ] Gestión desde lado proveedor
-- [ ] Gestión desde lado cliente
+- [ ] Catálogo de servicios disponibles
+- [ ] Sistema de categorías
+
+### Sistema de Usuarios
+- [ ] Hook `useUsuarioPanel` para obtener usuario actual
+- [ ] Botón toggle "Ver como Admin" / "Ver como Cliente"
+- [ ] Integración con usuarios reales de WordPress
 
 ### Mejoras arquitectónicas detectadas
 - [ ] Extraer lógica de formateo de fechas a un hook/util
 - [ ] Crear componente genérico `TarjetaProducto` para reutilizar en hostings/dominios/servicios
 - [ ] Unificar estilos de estados (activo/pendiente/suspendido) en variables CSS
+- [x] Componente `MenuContextual` reutilizable
 
 ---
 

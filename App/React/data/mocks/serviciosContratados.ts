@@ -9,6 +9,8 @@ export const serviciosContratados: ServicioContratado[] = [
     {
         id: 'SRV-001',
         clienteId: 'CLI-001',
+        servicioPublicadoId: 'SRVPUB-001',
+        imagenUrl: '/wp-content/themes/glory/assets/img/servicios/diseno-web.jpg',
         tipo: 'diseno_web',
         nombre: 'Diseño Web - CAP',
         descripcion: 'Diseño y desarrollo de landing page para CAP. Incluye dominio y hosting del primer año.',

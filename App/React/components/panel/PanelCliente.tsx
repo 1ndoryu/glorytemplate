@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {LayoutDashboard, Server, ShoppingBag, MessageSquare, CreditCard, Settings, LogOut, Plus, X, Search, Bell, Globe, User, HelpCircle, ChevronDown, Briefcase} from 'lucide-react';
 import {VistaResumen} from './views/VistaResumen';
 import {VistaHosting} from './views/VistaHosting';
+import {VistaDominios} from './views/VistaDominios';
 import {VistaMarketplace} from './views/VistaMarketplace';
 import {VistaFacturas} from './views/VistaFacturas';
 import {VistaPerfil} from './views/VistaPerfil';
@@ -37,6 +38,7 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
         {id: 'marketplace', icon: <ShoppingBag size={22} />, label: 'Marketplace'},
         {id: 'misServicios', icon: <Briefcase size={22} />, label: 'Mis Servicios'},
         {id: 'hosting', icon: <Server size={22} />, label: 'Mis Hostings'},
+        {id: 'dominios', icon: <Globe size={22} />, label: 'Mis Dominios'},
         {id: 'mensajes', icon: <MessageSquare size={22} />, label: 'Mensajes', badge: mensajes > 0},
         {id: 'pagos', icon: <CreditCard size={22} />, label: 'Facturación'}
     ];
@@ -52,6 +54,8 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                 return <VistaResumen />;
             case 'hosting':
                 return <VistaHosting />;
+            case 'dominios':
+                return <VistaDominios />;
             case 'marketplace':
                 return <VistaMarketplace />;
             case 'misServicios':

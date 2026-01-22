@@ -6,6 +6,7 @@
 @import './panel/layout.css';
 @import './panel/resumen.css';
 @import './panel/hosting.css';
+@import './panel/dominios.css';
 @import './panel/marketplace.css';
 @import './panel/facturas.css';
 @import './panel/perfil.css';

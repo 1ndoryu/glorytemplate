@@ -1,6 +1,6 @@
 /*
  * Estilos para Vista de Servicios Contratados
- * Diseño minimalista
+ * Diseño compacto de fila única
  */
 
 /* === Sección de Servicios === */
@@ -20,7 +20,7 @@
 .serviciosLista {
     display: flex;
     flex-direction: column;
-    gap: var(--nakomi-espacioMd);
+    gap: var(--nakomi-espacioSm);
 }
 
 .serviciosVacio {
@@ -30,9 +30,9 @@
     font-size: var(--nakomi-fuenteSm);
 }
 
-/* === Tarjeta de Servicio Minimalista === */
+/* === Tarjeta de Servicio Compacta === */
 .tarjetaServicioContratado {
-    padding: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioMd) var(--nakomi-espacioMd);
     border-radius: var(--nakomi-radioMd);
     border: 1px solid var(--nakomi-bordePrincipal);
     background: var(--nakomi-fondoSecundario);
@@ -43,139 +43,135 @@
     border-color: var(--nakomi-bordeSutil);
 }
 
-.tarjetaServicioContratado.estadoenprogreso {
-    border-left: 2px solid var(--nakomi-info);
-}
-
-.tarjetaServicioContratado.estadopendiente {
-    border-left: 2px solid var(--nakomi-textoApagado);
-}
-
-.tarjetaServicioContratado.estadocompletado {
-    border-left: 2px solid var(--nakomi-exito);
-}
-
-.tarjetaServicioContratado.estadocancelado {
-    border-left: 2px solid var(--nakomi-error);
-    opacity: 0.6;
-}
-
-/* Header compacto */
-.servicioContratadoHeader {
-    display: flex;
-    align-items: center;
-    gap: var(--nakomi-espacioSm);
-    margin-bottom: var(--nakomi-espacioSm);
-}
-
-.servicioContratadoIcono {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: var(--nakomi-fondoTerciario);
-    border-radius: var(--nakomi-radioSm);
-    color: var(--nakomi-acento);
-    flex-shrink: 0;
-}
-
-.servicioContratadoInfo {
-    flex: 1;
-    min-width: 0;
-}
-
-.servicioContratadoNombre {
-    font-size: var(--nakomi-fuenteSm);
-    font-weight: 500;
-    color: var(--nakomi-textoActivo);
-    margin: 0;
-}
-
-.servicioContratadoDescripcion {
-    font-size: var(--nakomi-fuenteXs);
-    color: var(--nakomi-textoSecundario);
-    line-height: 1.4;
-    margin: 2px 0 0 0;
-}
-
-/* Detalles inline */
-.servicioContratadoDetalles {
+/* Fila única con todos los elementos */
+.servicioContratadoFila {
     display: flex;
     align-items: center;
     gap: var(--nakomi-espacioLg);
-    margin-bottom: var(--nakomi-espacioSm);
-    font-size: var(--nakomi-fuenteXs);
+    width: 100%;
 }
 
-.servicioContratadoDetalle {
-    display: flex;
-    align-items: center;
-    gap: var(--nakomi-espacioXs);
+/* Imagen del servicio */
+.servicioContratadoImagen {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--nakomi-radioSm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--nakomi-fondoTerciario);
 }
 
-.servicioDetalleLabel {
-    color: var(--nakomi-textoApagado);
+.servicioContratadoImagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.servicioDetalleValor {
-    color: var(--nakomi-textoNormal);
+/* Nombre del servicio */
+.servicioContratadoNombre {
+    flex: 1;
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 120px;
 }
 
-.servicioDetalleValor.precio {
-    color: var(--nakomi-acento);
-    font-weight: 600;
-}
-
-/* Incluye inline */
-.servicioContratadoIncluye {
-    display: flex;
-    align-items: center;
-    gap: var(--nakomi-espacioSm);
-    margin-bottom: var(--nakomi-espacioSm);
+/* Precio - mismo estilo que otros elementos */
+.servicioContratadoPrecio {
     font-size: var(--nakomi-fuenteXs);
+    font-weight: 500;
+    color: var(--nakomi-textoNormal);
+    flex-shrink: 0;
+    min-width: 60px;
+    text-align: center;
 }
 
-.incluyeLabel {
+/* Tiempo restante */
+.servicioContratadoTiempo {
+    font-size: var(--nakomi-fuenteXs);
+    font-weight: 500;
+    color: var(--nakomi-textoSecundario);
+    flex-shrink: 0;
+    min-width: 80px;
+    text-align: center;
+}
+
+.servicioContratadoTiempo.tiempoRetrasado {
+    color: var(--nakomi-error);
+}
+
+/* Estados con colores */
+.servicioContratadoEstado {
+    font-size: var(--nakomi-fuenteXs);
+    font-weight: 500;
+    flex-shrink: 0;
+    min-width: 90px;
+    text-align: center;
+}
+
+.servicioContratadoEstado.estadoPendiente {
     color: var(--nakomi-textoApagado);
 }
 
-.incluyeItems {
-    display: flex;
-    gap: var(--nakomi-espacioMd);
-    flex-wrap: wrap;
+.servicioContratadoEstado.estadoEnProgreso {
+    color: var(--nakomi-info);
 }
 
-.incluyeItem {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
+.servicioContratadoEstado.estadoCompletado {
     color: var(--nakomi-exito);
 }
 
-/* Alerta de pago compacta */
-.servicioContratadoPago {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nakomi-espacioXs);
-    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
-    background: var(--nakomi-warningFondo);
-    border-radius: var(--nakomi-radioSm);
-    font-size: var(--nakomi-fuenteXs);
-    color: var(--nakomi-warning);
+.servicioContratadoEstado.estadoCancelado {
+    color: var(--nakomi-error);
+}
+
+/* Botón alineado a la derecha */
+.servicioContratadoFila .boton {
+    margin-left: auto;
 }
 
 /* === Responsive === */
-@media (max-width: 640px) {
-    .servicioContratadoDetalles {
+@media (max-width: 768px) {
+    .servicioContratadoFila {
         flex-wrap: wrap;
         gap: var(--nakomi-espacioSm);
     }
 
-    .servicioContratadoIncluye {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--nakomi-espacioXs);
+    .servicioContratadoNombre {
+        flex-basis: calc(100% - 52px);
+        order: 1;
+    }
+
+    .servicioContratadoImagen {
+        order: 0;
+    }
+
+    .servicioContratadoPrecio,
+    .servicioContratadoTiempo,
+    .servicioContratadoEstado {
+        order: 2;
+    }
+
+    .servicioContratadoFila .boton {
+        order: 3;
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .tarjetaServicioContratado {
+        padding: var(--nakomi-espacioSm);
+    }
+
+    .servicioContratadoImagen {
+        width: 32px;
+        height: 32px;
+    }
+
+    .servicioContratadoNombre {
+        flex-basis: calc(100% - 48px);
     }
 }

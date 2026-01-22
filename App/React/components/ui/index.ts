@@ -17,6 +17,8 @@ export {Tarjeta, TarjetaImagen, TarjetaOverlay, TarjetaCuerpo, TarjetaHeader, Ta
 
 /* Componentes existentes */
 export {DropdownMinimal} from './DropdownMinimal';
+export {MenuContextual} from './MenuContextual';
+export type {AccionMenu} from './MenuContextual';
 export {InputBusqueda} from './InputBusqueda';
 export {VentanaEjemplo} from './VentanaEjemplo';
 

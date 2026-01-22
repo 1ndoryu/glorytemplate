@@ -101,3 +101,81 @@
     flex-direction: column;
     gap: 2px;
 }
+
+/* --- Menú Contextual (3 puntos) --- */
+.menuContextualContenedor {
+    position: relative;
+    display: inline-flex;
+}
+
+.menuContextualBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: var(--nakomi-radioSm);
+    color: var(--nakomi-textoApagado);
+    cursor: pointer;
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.menuContextualBoton:hover,
+.menuContextualBoton.activo {
+    background: var(--nakomi-fondoTerciario);
+    color: var(--nakomi-textoActivo);
+}
+
+.menuContextualLista {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 180px;
+    background-color: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioMd);
+    padding: var(--nakomi-espacioXs);
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+    z-index: 1000;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.menuContextualItem {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    width: 100%;
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    background: transparent;
+    border: none;
+    border-radius: var(--nakomi-radioSm);
+    color: var(--nakomi-textoNormal);
+    font-size: var(--nakomi-fuenteSm);
+    cursor: pointer;
+    transition: background var(--nakomi-transicionRapida);
+    text-align: left;
+}
+
+.menuContextualItem:hover {
+    background: var(--nakomi-fondoTerciario);
+    color: var(--nakomi-textoActivo);
+}
+
+.menuContextualItem.peligroso {
+    color: var(--nakomi-error);
+}
+
+.menuContextualItem.peligroso:hover {
+    background: var(--nakomi-errorFondo);
+}
+
+.menuContextualIcono {
+    display: flex;
+    align-items: center;
+    color: inherit;
+}
