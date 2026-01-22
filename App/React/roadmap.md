@@ -208,11 +208,15 @@ App/
   - [x] H.18.10 **Causa raíz 2:** Comparación de IDs con tipos distintos (string vs number)
   - [x] H.18.11 **Fix 2:** Usar `Number()` para normalizar tipos antes de comparar en `SeccionReportes.tsx`
 
-- [ ] **H.19** Incoherencia en conteo de alumnos (Tarjeta vs Modal)
-  - [ ] H.19.1 Tarjeta muestra N alumnos pero modal lista menos
-  - [ ] H.19.2 Modal muestra "(X en BD)" de forma confusa
-  - [ ] H.19.3 Problema ocurre con datos de prueba (seed)
-  - [ ] H.19.4 Revisar lógica del seeder y de la respuesta API
+- [x] **H.19** Incoherencia en conteo de alumnos (Tarjeta vs Modal) *(CORREGIDO)*
+  - [x] H.19.1 Tarjeta muestra N alumnos pero modal lista menos
+  - [x] H.19.2 Modal muestra "(X en BD)" de forma confusa
+  - [x] H.19.3 Problema ocurre con datos de prueba (seed)
+  - [x] H.19.4 **Causa raíz:** Modal usaba lista paginada de `useAlumnos` (10 registros) para filtrar
+  - [x] H.19.5 **Fix:** La API ya devuelve datos de alumnos con cada clase (`alumnosData`)
+  - [x] H.19.6 Añadido tipo `AlumnoClase` y propiedad `alumnosData` en interfaz `Clase`
+  - [x] H.19.7 `ModalDetalleClase` ahora usa `clase.alumnosData` directamente
+  - [x] H.19.8 Eliminado mensaje confuso "(X en BD)" y dependencia de `useAlumnos`
 
 - [x] **H.20** Error visual en rango horario del modal detalle (CORREGIDO)
   - [x] H.20.1 Horario muestra "08:00 - 08:00" en lugar del horario real de la clase

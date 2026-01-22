@@ -615,6 +615,12 @@
     border-radius: var(--cap-radio-full);
 }
 
+.capModalDetalleClase__asistioMarca {
+    color: var(--cap-exito-500);
+    font-weight: var(--cap-peso-bold);
+    margin-left: var(--cap-espacio-xs);
+}
+
 .capModalDetalleClase__sinAlumnos {
     font-size: var(--cap-texto-sm);
     color: var(--cap-texto-terciario);

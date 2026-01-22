@@ -6,15 +6,13 @@
  */
 
 import {useState, useCallback} from 'react';
-import type {Clase, DiaSemana} from '../../types';
-import type {Alumno} from '../../hooks/useAlumnos';
+import type {Clase, DiaSemana, AlumnoClase} from '../../types';
 import {ASIGNATURAS_CAP, getAsignatura, getAsignaturaPorCodigo, SLOTS_HORARIOS} from '../../constants';
 import {Modal, Boton} from '../ui';
 import {IconoReloj, IconoUsuarios, IconoCandado, IconoGuardar, IconoLibro, IconoEliminar} from '../icons';
 
 interface ModalDetalleClaseProps {
     clase: Clase | null;
-    alumnos: Alumno[];
     abierto: boolean;
     onCerrar: () => void;
     onGuardar: (claseId: number, cambios: CambiosClase) => Promise<void>;
@@ -33,7 +31,7 @@ export interface CambiosClase {
     asignaturaId?: number;
 }
 
-export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar, onToggleBloqueo, onMoverClase, fechasSemana, clasesPorDia, guardando = false, onEliminar, eliminando = false}: ModalDetalleClaseProps) {
+export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggleBloqueo, onMoverClase, fechasSemana, clasesPorDia, guardando = false, onEliminar, eliminando = false}: ModalDetalleClaseProps) {
     /*
      * Función helper para formatear hora (quita segundos).
      * Ej: "10:00:00" -> "10:00"
@@ -74,11 +72,11 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
         return horaInicio !== horaInicioOriginal || horaFin !== horaFinOriginal || asignaturaId !== asigOriginal;
     })();
 
-    /* Obtener alumnos asignados a esta clase */
-    const alumnosClase = alumnos.filter(a => clase?.alumnosIds?.includes(a.id));
-    /* Detectar si hay alumnos asignados que no están en la lista (fueron eliminados) */
-    const alumnosAsignados = clase?.alumnosIds?.length || 0;
-    const hayAlumnosNoEncontrados = alumnosAsignados > alumnosClase.length;
+    /*
+     * Usamos alumnosData que viene directamente de la API con cada clase.
+     * Esto evita el problema de paginación del hook useAlumnos.
+     */
+    const alumnosClase: AlumnoClase[] = clase?.alumnosData || [];
 
     /* Manejar guardado */
     const handleGuardar = async () => {
@@ -189,19 +187,19 @@ export function ModalDetalleClase({clase, alumnos, abierto, onCerrar, onGuardar,
                 <div className="capModalDetalleClase__seccion">
                     <h4 className="capModalDetalleClase__seccionTitulo">
                         <IconoUsuarios size={16} />
-                        Alumnos asignados ({alumnosClase.length}){hayAlumnosNoEncontrados && <span className="capModalDetalleClase__advertencia"> ({alumnosAsignados} en BD)</span>}
+                        Alumnos asignados ({alumnosClase.length})
                     </h4>
                     {alumnosClase.length > 0 ? (
                         <ul className="capModalDetalleClase__listaAlumnos">
                             {alumnosClase.map(alumno => (
                                 <li key={alumno.id} className="capModalDetalleClase__alumnoItem">
-                                    <span className="capModalDetalleClase__alumnoNombre">{alumno.nombre}</span>
-                                    <span className="capModalDetalleClase__alumnoProgreso">{alumno.horas_completadas}/35h</span>
+                                    <span className="capModalDetalleClase__alumnoNombre">
+                                        {alumno.nombre}
+                                        {alumno.asistio && <span className="capModalDetalleClase__asistioMarca"> ✓</span>}
+                                    </span>
                                 </li>
                             ))}
                         </ul>
-                    ) : alumnosAsignados > 0 ? (
-                        <p className="capModalDetalleClase__sinAlumnos">Los {alumnosAsignados} alumno(s) asignado(s) ya no existen en el sistema</p>
                     ) : (
                         <p className="capModalDetalleClase__sinAlumnos">No hay alumnos asignados a esta clase</p>
                     )}

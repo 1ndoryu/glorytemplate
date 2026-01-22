@@ -82,6 +82,16 @@ export interface DisponibilidadAlumno {
 /* Calendario y Clases */
 export type DiaSemana = 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes';
 
+/*
+ * Datos del alumno asignado a una clase.
+ * Viene directamente de la API (obtenerAlumnosClase).
+ */
+export interface AlumnoClase {
+    id: number;
+    nombre: string;
+    asistio: boolean;
+}
+
 export interface Clase {
     id: number;
     centroId: number;
@@ -92,6 +102,8 @@ export interface Clase {
     asignaturaId: number | string;
     bloqueada: boolean;
     alumnosIds: number[];
+    /** Datos completos de los alumnos asignados (viene de la API) */
+    alumnosData: AlumnoClase[];
 }
 
 /* Asignaturas CAP */

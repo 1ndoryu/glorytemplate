@@ -134,7 +134,13 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 horaFin: c.hora_fin,
                 asignaturaId: c.asignatura,
                 bloqueada: c.bloqueada === true || c.bloqueada === 1 || c.bloqueada === '1',
-                alumnosIds: (c.alumnos || []).map((a: any) => a.id)
+                alumnosIds: (c.alumnos || []).map((a: any) => a.id),
+                /* Guardamos los datos completos de alumnos para evitar buscar en lista paginada */
+                alumnosData: (c.alumnos || []).map((a: any) => ({
+                    id: a.id,
+                    nombre: a.nombre,
+                    asistio: a.asistio === true || a.asistio === 1 || a.asistio === '1'
+                }))
             }));
 
             setClases(clasesFormateadas);
