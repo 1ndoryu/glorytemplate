@@ -1,28 +1,28 @@
 /*
  * Estilos para Vista Hosting del Cliente
- * Componentes: ResumenHostings, TarjetaHostingCliente, ListaHostingsCliente
+ * Diseño minimalista de 1 columna
  */
 
 /* === Resumen de Hostings === */
 .resumenHostings {
     display: flex;
     align-items: center;
-    gap: var(--nakomi-espacioLg);
-    padding: var(--nakomi-espacioLg);
-    margin-bottom: var(--nakomi-espacioLg);
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.02));
-    border: 1px solid var(--nakomi-infoBorde);
-    border-radius: var(--nakomi-radioLg);
+    gap: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioMd);
+    margin-bottom: var(--nakomi-espacioMd);
+    background: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioMd);
 }
 
 .resumenHostingsIcono {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     background: var(--nakomi-infoFondo);
-    border-radius: var(--nakomi-radioFull);
+    border-radius: var(--nakomi-radioMd);
     color: var(--nakomi-info);
     flex-shrink: 0;
 }
@@ -32,17 +32,17 @@
 }
 
 .resumenHostingsTitulo {
-    font-size: var(--nakomi-fuenteLg);
+    font-size: var(--nakomi-fuenteMd);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
-    margin-bottom: var(--nakomi-espacioXs);
+    margin-bottom: 2px;
 }
 
 .resumenHostingsDetalle {
     display: flex;
     align-items: center;
     gap: var(--nakomi-espacioMd);
-    font-size: var(--nakomi-fuenteSm);
+    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoSecundario);
 }
 
@@ -53,65 +53,63 @@
     color: var(--nakomi-warning);
 }
 
-/* === Grid de Hostings === */
+/* === Lista de Hostings (1 columna) === */
 .hostingsGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--nakomi-espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioMd);
     margin-top: var(--nakomi-espacioMd);
 }
 
 .hostingsVacio {
-    padding: var(--nakomi-espacio2xl);
+    padding: var(--nakomi-espacioXl);
     text-align: center;
     color: var(--nakomi-textoApagado);
-    background: var(--nakomi-fondoSecundario);
-    border-radius: var(--nakomi-radioLg);
-    border: 1px dashed var(--nakomi-bordePrincipal);
+    font-size: var(--nakomi-fuenteSm);
 }
 
-/* === Tarjeta de Hosting === */
+/* === Tarjeta de Hosting Minimalista === */
 .tarjetaHostingCliente {
-    padding: var(--nakomi-espacioLg);
-    border-radius: var(--nakomi-radioLg);
+    padding: var(--nakomi-espacioMd);
+    border-radius: var(--nakomi-radioMd);
     border: 1px solid var(--nakomi-bordePrincipal);
     background: var(--nakomi-fondoSecundario);
-    transition: all var(--nakomi-transicionRapida);
+    transition: border-color var(--nakomi-transicionRapida);
 }
 
 .tarjetaHostingCliente:hover {
     border-color: var(--nakomi-bordeSutil);
-    background: var(--nakomi-fondoTerciario);
 }
 
 .tarjetaHostingCliente.estadoActivo {
-    border-left: 3px solid var(--nakomi-exito);
+    border-left: 2px solid var(--nakomi-exito);
 }
 
 .tarjetaHostingCliente.estadoSuspendido {
-    border-left: 3px solid var(--nakomi-error);
+    border-left: 2px solid var(--nakomi-error);
 }
 
 .tarjetaHostingCliente.estadoCancelado {
-    border-left: 3px solid var(--nakomi-textoApagado);
-    opacity: 0.7;
+    border-left: 2px solid var(--nakomi-textoApagado);
+    opacity: 0.6;
 }
 
+/* Header horizontal compacto */
 .hostingClienteHeader {
     display: flex;
-    align-items: flex-start;
-    gap: var(--nakomi-espacioMd);
-    margin-bottom: var(--nakomi-espacioMd);
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    margin-bottom: var(--nakomi-espacioSm);
 }
 
 .hostingClienteIcono {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     background: var(--nakomi-fondoTerciario);
-    border-radius: var(--nakomi-radioMd);
+    border-radius: var(--nakomi-radioSm);
     color: var(--nakomi-acento);
     flex-shrink: 0;
 }
@@ -122,46 +120,38 @@
 }
 
 .hostingClienteDominio {
-    font-size: var(--nakomi-fuenteMd);
+    font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
     color: var(--nakomi-textoActivo);
     margin: 0;
-    word-break: break-word;
 }
 
 .hostingClienteTemporal {
-    display: block;
     font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoApagado);
     font-family: var(--nakomi-fuenteMono);
-    margin-top: 2px;
 }
 
-/* === Detalles del Hosting === */
+/* Detalles inline */
 .hostingClienteDetalles {
     display: flex;
+    align-items: center;
     gap: var(--nakomi-espacioLg);
-    margin-bottom: var(--nakomi-espacioMd);
-    padding: var(--nakomi-espacioMd);
-    background: var(--nakomi-fondoTerciario);
-    border-radius: var(--nakomi-radioMd);
+    margin-bottom: var(--nakomi-espacioSm);
+    font-size: var(--nakomi-fuenteXs);
 }
 
 .hostingClienteDetalle {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
 }
 
 .detalleLabel {
-    font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoApagado);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 .detalleValor {
-    font-size: var(--nakomi-fuenteSm);
     color: var(--nakomi-textoNormal);
     font-weight: 500;
 }
@@ -170,30 +160,25 @@
     color: var(--nakomi-acento);
 }
 
-/* === Alerta de Pago === */
+/* Alerta de pago compacta */
 .hostingClienteAlerta {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: var(--nakomi-espacioSm);
-    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    gap: var(--nakomi-espacioXs);
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
     background: var(--nakomi-warningFondo);
-    border: 1px solid var(--nakomi-warningBorde);
-    border-radius: var(--nakomi-radioMd);
-    margin-bottom: var(--nakomi-espacioMd);
+    border-radius: var(--nakomi-radioSm);
+    margin-bottom: var(--nakomi-espacioSm);
     font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-warning);
 }
 
-/* === Acciones del Hosting === */
+/* Acciones compactas */
 .hostingClienteAcciones {
     display: flex;
     gap: var(--nakomi-espacioSm);
-    padding-top: var(--nakomi-espacioMd);
+    padding-top: var(--nakomi-espacioSm);
     border-top: 1px solid var(--nakomi-bordePrincipal);
-}
-
-.hostingClienteAcciones > * {
-    flex: 1;
 }
 
 /* === Responsive === */
@@ -205,15 +190,11 @@
 
     .resumenHostingsDetalle {
         flex-direction: column;
-        gap: var(--nakomi-espacioSm);
-    }
-
-    .hostingsGrid {
-        grid-template-columns: 1fr;
+        gap: var(--nakomi-espacioXs);
     }
 
     .hostingClienteDetalles {
-        flex-direction: column;
+        flex-wrap: wrap;
         gap: var(--nakomi-espacioSm);
     }
 }

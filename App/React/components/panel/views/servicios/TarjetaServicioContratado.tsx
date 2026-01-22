@@ -14,9 +14,9 @@ interface TarjetaServicioContratadoProps {
 }
 
 const iconosTipo = {
-    diseno_web: <Palette size={24} />,
-    mantenimiento: <Clock size={24} />,
-    desarrollo: <Package size={24} />
+    diseno_web: <Palette size={16} />,
+    mantenimiento: <Clock size={16} />,
+    desarrollo: <Package size={16} />
 };
 
 const etiquetasEstado = {

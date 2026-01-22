@@ -1,7 +1,7 @@
 # Plan: Sistema de Facturación y Panel Cliente
 
 > **Prioridad:** Alta  
-> **Estado:** En Progreso (Fases 1-4 completadas)  
+> **Estado:** En Progreso (Fases 1-4 + Rev completadas)  
 > **Última actualización:** 2026-01-22
 
 ---
@@ -292,18 +292,63 @@ App/React/
 
 ## Estimación de Esfuerzo
 
-| Fase | Descripción             | Complejidad |
-| ---- | ----------------------- | ----------- |
-| 1    | Modelo de datos y mocks | Baja        |
-| 2    | Vista Facturación       | Media       |
-| 3    | Vista Hostings          | Media       |
-| 4    | Vista Servicios         | Baja        |
-| 5    | Stripe                  | Alta        |
-| 6    | Cuenta Guillermo        | Baja        |
+| Fase | Descripción             | Complejidad | Estado       |
+| ---- | ----------------------- | ----------- | ------------ |
+| 1    | Modelo de datos y mocks | Baja        | ✅ Completada |
+| 2    | Vista Facturación       | Media       | ✅ Completada |
+| 3    | Vista Hostings          | Media       | ✅ Completada |
+| 4    | Vista Servicios         | Baja        | ✅ Completada |
+| 4.5  | Vista Dominios          | Baja        | ⏳ Pendiente  |
+| Rev  | Revisiones UI/UX        | Media       | ✅ Completada |
+| 5    | Stripe                  | Alta        | ⏳ Pendiente  |
+| 6    | Cuenta Guillermo        | Baja        | ⏳ Pendiente  |
 
-**Orden recomendado:** 1 → 2 → 3 → 4 → 6 → 5
+**Orden recomendado:** 1 → 2 → 3 → 4 → **Rev** → 4.5 → 6 → 5
 
-Primero tener todo visible con mocks, luego integrar pagos reales.
+---
+
+## Revisiones Pendientes (UI/UX)
+
+### Prioridad Alta - Antes de continuar
+
+- [x] **Hostings: Layout 1 columna** - Cambiar grid de 2 columnas a 1 columna
+- [x] **Hostings: Diseño minimalista** - Simplificar tarjetas, menos ruido visual
+- [x] **Servicios: Diseño minimalista** - Reducir elementos, tarjeta más limpia
+- [x] **Auditar uso de `<Boton>`** - Verificar que todos los botones usen el componente UI
+- [x] **Verificar variables CSS** - Asegurar uso de `--nakomi-*` en todos los estilos
+
+### Funcionalidad pendiente
+
+- [ ] **Pago por hosting individual** - El cliente puede pagar hostings uno por uno
+- [ ] **Cambiar plan: mensual ↔ anual** - Modal para cambiar plan con diferencia de precio
+- [ ] **Modal confirmación cambio plan** - Mostrar nuevo precio y fecha de renovación
+
+---
+
+## Fase 4.5: Vista de Dominios (Nueva)
+
+**Objetivo:** El cliente ve sus dominios contratados.
+
+**Componentes:**
+```
+components/panel/views/
+├── VistaDominios.tsx      # Nueva vista
+├── dominios/
+│   ├── ListaDominios.tsx
+│   └── TarjetaDominio.tsx
+```
+
+**Diseño:**
+- Lista vertical (1 columna) como hostings
+- Cada tarjeta muestra:
+  - Nombre del dominio
+  - Fecha de expiración
+  - Estado (activo/expirado)
+  - Indicador si está pendiente de pago
+- Botón renovar (si aplica)
+
+**Navegación:**
+- Agregar al sidebar del panel: "Mis Dominios"
 
 ---
 
@@ -315,6 +360,12 @@ Primero tener todo visible con mocks, luego integrar pagos reales.
 - [ ] Gestión desde lado proveedor
 - [ ] Gestión desde lado cliente
 
+### Mejoras arquitectónicas detectadas
+- [ ] Extraer lógica de formateo de fechas a un hook/util
+- [ ] Crear componente genérico `TarjetaProducto` para reutilizar en hostings/dominios/servicios
+- [ ] Unificar estilos de estados (activo/pendiente/suspendido) en variables CSS
+
 ---
 
 *Este documento se actualizará conforme avance la implementación.*
+*Última actualización: 2026-01-22*

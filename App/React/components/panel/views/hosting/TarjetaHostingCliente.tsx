@@ -35,7 +35,7 @@ export const TarjetaHostingCliente: React.FC<TarjetaHostingClienteProps> = ({hos
         <Tarjeta className={`tarjetaHostingCliente estado${hosting.estado.charAt(0).toUpperCase() + hosting.estado.slice(1)}`}>
             <div className="hostingClienteHeader">
                 <div className="hostingClienteIcono">
-                    <Globe size={20} />
+                    <Globe size={16} />
                 </div>
                 <div className="hostingClienteInfo">
                     <h3 className="hostingClienteDominio">{hosting.dominio}</h3>
