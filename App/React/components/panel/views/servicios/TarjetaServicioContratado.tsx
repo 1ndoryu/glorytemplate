@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import {Palette, Clock, CheckCircle, AlertCircle, X, Package} from 'lucide-react';
+import {Palette, Clock, CheckCircle, AlertCircle, Package} from 'lucide-react';
 import {Tarjeta} from '../../../ui/Tarjeta';
 import {Etiqueta} from '../../../ui/Etiqueta';
 import {ServicioContratado} from '../../../../data/types/servicio';
@@ -20,10 +20,10 @@ const iconosTipo = {
 };
 
 const etiquetasEstado = {
-    pendiente: {label: 'Pendiente', variante: 'neutro' as const, icono: <Clock size={12} />},
-    en_progreso: {label: 'En progreso', variante: 'info' as const, icono: <Clock size={12} />},
-    completado: {label: 'Completado', variante: 'exito' as const, icono: <CheckCircle size={12} />},
-    cancelado: {label: 'Cancelado', variante: 'error' as const, icono: <X size={12} />}
+    pendiente: {label: 'Pendiente', variante: 'neutro' as const},
+    en_progreso: {label: 'En progreso', variante: 'info' as const},
+    completado: {label: 'Completado', variante: 'exito' as const},
+    cancelado: {label: 'Cancelado', variante: 'alerta' as const}
 };
 
 export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps> = ({servicio}) => {
@@ -51,9 +51,7 @@ export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps>
                     <h3 className="servicioContratadoNombre">{servicio.nombre}</h3>
                     <p className="servicioContratadoDescripcion">{servicio.descripcion}</p>
                 </div>
-                <Etiqueta variante={estadoConfig.variante} icono={estadoConfig.icono}>
-                    {estadoConfig.label}
-                </Etiqueta>
+                <Etiqueta variante={estadoConfig.variante}>{estadoConfig.label}</Etiqueta>
             </div>
 
             <div className="servicioContratadoDetalles">
@@ -72,20 +70,6 @@ export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps>
                     </div>
                 )}
             </div>
-
-            {incluyeItems.length > 0 && (
-                <div className="servicioContratadoIncluye">
-                    <span className="incluyeLabel">Incluye:</span>
-                    <div className="incluyeItems">
-                        {incluyeItems.map((item, i) => (
-                            <span key={i} className="incluyeItem">
-                                <CheckCircle size={12} />
-                                {item}
-                            </span>
-                        ))}
-                    </div>
-                </div>
-            )}
 
             {servicio.pagoAlFinalizar && servicio.estado !== 'completado' && (
                 <div className="servicioContratadoPago">

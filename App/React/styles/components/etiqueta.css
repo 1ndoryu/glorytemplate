@@ -8,10 +8,10 @@
     display: inline-flex;
     align-items: center;
     gap: var(--nakomi-espacioXs);
+    font-family: var(--nakomi-fuentePrincipal);
     font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     white-space: nowrap;
+    border-radius: var(--nakomi-radioSm);
 }
 
 /* === Tamaños === */
