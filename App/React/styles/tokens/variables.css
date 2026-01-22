@@ -56,7 +56,7 @@
 
     /* === Tamaños Tipográficos === */
     --nakomi-fuenteXs: 0.65rem; /* ~10.4px - Etiquetas, badges, captions extra pequeños */
-    --nakomi-fuenteSm: 0.72rem; /* ~12px - Captions, metadatos, texto auxiliar */
+    --nakomi-fuenteSm: 11px; /* ~12px - Captions, metadatos, texto auxiliar */
     --nakomi-fuenteMd: 0.75rem; /* ~14px - Texto base, cuerpo de texto normal */
     --nakomi-fuenteLg: 1rem; /* ~16px - Texto destacado, subtítulos */
     --nakomi-fuenteXl: 1.25rem; /* ~20px - Títulos de sección, headings */

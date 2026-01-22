@@ -1,10 +1,11 @@
 /*
  * TarjetaServicioPublicado: Tarjeta para servicios que el proveedor ofrece.
- * Muestra info del servicio con opciones de edición.
+ * Usa MenuContextual reutilizable para acciones.
  */
 
-import React, {useState, useRef, useEffect} from 'react';
-import {MoreVertical, Edit2, Eye, Trash2, ToggleLeft, ToggleRight, Clock, DollarSign} from 'lucide-react';
+import React from 'react';
+import {Edit2, Trash2, ToggleLeft, ToggleRight, Clock, DollarSign} from 'lucide-react';
+import {MenuContextual, AccionMenu} from '../../../ui/MenuContextual';
 import {ServicioPublicado} from '../../../../data/types/servicio';
 
 interface TarjetaServicioPublicadoProps {
@@ -15,40 +16,29 @@ interface TarjetaServicioPublicadoProps {
 }
 
 export const TarjetaServicioPublicado: React.FC<TarjetaServicioPublicadoProps> = ({servicio, onEditar, onEliminar, onToggleActivo}) => {
-    const [menuAbierto, setMenuAbierto] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-
-    /* Cerrar menú al hacer clic fuera */
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setMenuAbierto(false);
-            }
-        };
-
-        if (menuAbierto) {
-            document.addEventListener('mousedown', handleClickOutside);
+    /* Construir acciones del menú contextual */
+    const acciones: AccionMenu[] = [
+        {
+            id: 'editar',
+            label: 'Editar',
+            icono: <Edit2 size={14} />,
+            onClick: () => onEditar?.(servicio)
+        },
+        {
+            id: 'toggle',
+            label: servicio.activo ? 'Desactivar' : 'Activar',
+            icono: servicio.activo ? <ToggleLeft size={14} /> : <ToggleRight size={14} />,
+            onClick: () => onToggleActivo?.(servicio.id)
+        },
+        {
+            id: 'eliminar',
+            label: 'Eliminar',
+            icono: <Trash2 size={14} />,
+            onClick: () => onEliminar?.(servicio.id),
+            peligroso: true,
+            separadorAntes: true
         }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [menuAbierto]);
-
-    const handleAccion = (accion: string) => {
-        setMenuAbierto(false);
-        switch (accion) {
-            case 'editar':
-                onEditar?.(servicio);
-                break;
-            case 'eliminar':
-                onEliminar?.(servicio.id);
-                break;
-            case 'toggle':
-                onToggleActivo?.(servicio.id);
-                break;
-        }
-    };
+    ];
 
     return (
         <article className={`tarjetaServicioPublicado ${!servicio.activo ? 'inactivo' : ''}`}>
@@ -60,29 +50,7 @@ export const TarjetaServicioPublicado: React.FC<TarjetaServicioPublicadoProps> =
             <div className="servicioPublicadoContenido">
                 <div className="servicioPublicadoHeader">
                     <h3 className="servicioPublicadoNombre">{servicio.nombre}</h3>
-                    <div className="servicioPublicadoMenu" ref={menuRef}>
-                        <button className="botonMenuServicio" onClick={() => setMenuAbierto(!menuAbierto)} aria-label="Menú de opciones">
-                            <MoreVertical size={16} />
-                        </button>
-
-                        {menuAbierto && (
-                            <div className="menuServicioPublicado">
-                                <button onClick={() => handleAccion('editar')}>
-                                    <Edit2 size={14} />
-                                    <span>Editar</span>
-                                </button>
-                                <button onClick={() => handleAccion('toggle')}>
-                                    {servicio.activo ? <ToggleLeft size={14} /> : <ToggleRight size={14} />}
-                                    <span>{servicio.activo ? 'Desactivar' : 'Activar'}</span>
-                                </button>
-                                <div className="menuDivider"></div>
-                                <button className="opcionEliminar" onClick={() => handleAccion('eliminar')}>
-                                    <Trash2 size={14} />
-                                    <span>Eliminar</span>
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    <MenuContextual acciones={acciones} ariaLabel={`Opciones de ${servicio.nombre}`} />
                 </div>
 
                 <p className="servicioPublicadoDescripcion">{servicio.descripcion}</p>

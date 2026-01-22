@@ -4,6 +4,12 @@
  */
 
 /* --- Input Busqueda Minimalista --- */
+
+.menuContextualIcono {
+    height: 13px;
+    width: 13px;
+}
+
 .contenedorInputBusqueda {
     position: relative;
     width: 100%;
@@ -16,8 +22,8 @@
     top: 50%;
     transform: translateY(-50%);
     color: var(--nakomi-textoApagado);
-    width: 14px; /* Icono más pequeño */
-    height: 14px;
+    width: 12px; /* Icono más pequeño */
+    height: 12px;
     pointer-events: none;
 }
 
@@ -55,7 +61,7 @@
     border-radius: 9999px;
     padding: 6px 14px;
     color: var(--nakomi-textoSecundario);
-    font-size: var(--nakomi-fuenteSm);
+    font-size: var(--nakomi-fuenteXs);
     cursor: pointer;
     transition: all var(--nakomi-transicionRapida);
     display: flex;
@@ -130,30 +136,26 @@
 }
 
 .menuContextualLista {
-    position: absolute;
-    top: calc(100% + 4px);
-    right: 0;
-    min-width: 180px;
+    min-width: 140px;
     background-color: var(--nakomi-fondoSecundario);
     border: 1px solid var(--nakomi-bordePrincipal);
-    border-radius: var(--nakomi-radioMd);
-    padding: var(--nakomi-espacioXs);
+    border-radius: var(--nakomi-radioSm);
+    padding: 4px;
     box-shadow:
-        0 10px 40px rgba(0, 0, 0, 0.5),
+        0 8px 24px rgba(0, 0, 0, 0.4),
         0 0 0 1px rgba(255, 255, 255, 0.05);
-    z-index: 1000;
-    animation: fadeIn 0.15s ease-out;
+    animation: fadeIn 0.1s ease-out;
 }
 
 .menuContextualItem {
     display: flex;
     align-items: center;
-    gap: var(--nakomi-espacioSm);
+    gap: 8px;
     width: 100%;
-    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    padding: 8px 10px;
     background: transparent;
     border: none;
-    border-radius: var(--nakomi-radioSm);
+    border-radius: var(--nakomi-radioXs);
     color: var(--nakomi-textoNormal);
     font-size: var(--nakomi-fuenteSm);
     cursor: pointer;
@@ -178,4 +180,10 @@
     display: flex;
     align-items: center;
     color: inherit;
+}
+
+.menuContextualSeparador {
+    height: 1px;
+    background: var(--nakomi-bordePrincipal);
+    margin: 4px 0;
 }

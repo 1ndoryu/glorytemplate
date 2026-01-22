@@ -373,13 +373,13 @@ components/panel/views/
 
 El panel debe soportar dos modos de operación claramente diferenciados:
 
-| Vista | Admin | Cliente |
-|-------|-------|---------|
-| **Dashboard** | Resumen global + servicios que ha contratado (si aplica) | Resumen + servicios contratados |
-| **Mis Servicios** | Sus servicios publicados | Sus servicios publicados |
-| **Hostings** | TODOS los hostings de TODOS los clientes | Solo sus hostings |
-| **Dominios** | TODOS los dominios de TODOS los clientes | Solo sus dominios |
-| **Facturas** | TODAS las facturas de TODOS los clientes | Solo sus facturas |
+| Vista             | Admin                                                    | Cliente                         |
+| ----------------- | -------------------------------------------------------- | ------------------------------- |
+| **Dashboard**     | Resumen global + servicios que ha contratado (si aplica) | Resumen + servicios contratados |
+| **Mis Servicios** | Sus servicios publicados                                 | Sus servicios publicados        |
+| **Hostings**      | TODOS los hostings de TODOS los clientes                 | Solo sus hostings               |
+| **Dominios**      | TODOS los dominios de TODOS los clientes                 | Solo sus dominios               |
+| **Facturas**      | TODAS las facturas de TODOS los clientes                 | Solo sus facturas               |
 
 ### Vista Admin - Panel de Administración
 
@@ -572,7 +572,7 @@ const {usuario, esAdmin, simulando, toggleSimulacion} = useUsuario();
 - [x] Componente `MenuContextual` reutilizable
 
 ### Bugs Conocidos
-- [ ] **Menús contextuales cortados** - Los menús de 3 puntos se cortan al tamaño del contenedor padre (overflow). Afecta a `TarjetaServicioContratado` y `TarjetaServicioPublicado`. Solución: usar portal o ajustar overflow del contenedor.
+- [x] **Menús contextuales cortados** - Resuelto usando Portal de React. El menú ahora se renderiza directamente en el `<body>` con posicionamiento fixed, evitando cortes por overflow de contenedores padre.
 
 ---
 
