@@ -302,6 +302,7 @@ App/React/
 | Rev  | Revisiones UI/UX        | Media       | ✅ Completada |
 | 5    | Stripe                  | Alta        | ⏳ Pendiente  |
 | 6    | Cuenta Guillermo        | Baja        | ⏳ Pendiente  |
+| 7    | Sistema de Usuarios     | Media       | ✅ Completada |
 
 **Orden recomendado:** 1 → 2 → 3 → 4 → **Rev** → 4.5 → 6 → 5
 
@@ -426,29 +427,22 @@ interface ServicioContratado {
 
 Cuando se accede con usuario admin, el panel muestra datos de Guillermo. Esto es útil para pruebas pero confuso.
 
-### Solución Propuesta
+### Solución Implementada ✅
 
-1. **Botón de cambio de rol** - En la UI agregar toggle para:
-   - "Ver como Admin" (datos reales del admin)
-   - "Ver como Cliente" (simular ser Guillermo para pruebas)
+1. **UsuarioContext** - Contexto React para gestionar usuario actual
+2. **ToggleSimulacion** - Botón en header para admins
+3. **useUsuario hook** - Acceso al usuario actual y funciones de simulación
 
-2. **Lógica de usuario real:**
-   - Leer usuario de WordPress actual
-   - Si es admin, mostrar vista admin con opción de simular
-   - Si es cliente, mostrar solo sus datos
+**Archivos creados:**
+- `data/types/usuario.ts` - Tipos de usuario
+- `data/mocks/usuarios.ts` - Mock de usuarios (admin + Guillermo)
+- `context/UsuarioContext.tsx` - Contexto y provider
+- `components/panel/ToggleSimulacion.tsx` - Componente toggle
 
-3. **Flujo a implementar:**
-   ```
-   useUsuarioPanel() {
-       const wpUser = obtenerUsuarioWP();
-       const [simulando, setSimulando] = useState(false);
-       
-       if (wpUser.rol === 'admin' && simulando) {
-           return clienteMock; // Guillermo
-       }
-       return wpUser;
-   }
-   ```
+**Uso:**
+```tsx
+const {usuario, esAdmin, simulando, toggleSimulacion} = useUsuario();
+```
 
 ---
 
@@ -476,15 +470,16 @@ Cuando se accede con usuario admin, el panel muestra datos de Guillermo. Esto es
 ### Servicios - Planificación Detallada
 - [x] Crear entidad `ServicioPublicado` con imagen y datos del servicio
 - [x] Relacionar `ServicioContratado` con `ServicioPublicado`
-- [ ] Vista "Mis Servicios" para publicar/gestionar servicios
+- [x] Vista "Mis Servicios" para publicar/gestionar servicios (Admin ve sus servicios publicados)
 - [ ] Página individual de servicio (estilo Fiverr)
 - [ ] Catálogo de servicios disponibles
 - [ ] Sistema de categorías
+- [ ] Modal de edición de servicio publicado
 
 ### Sistema de Usuarios
-- [ ] Hook `useUsuarioPanel` para obtener usuario actual
-- [ ] Botón toggle "Ver como Admin" / "Ver como Cliente"
-- [ ] Integración con usuarios reales de WordPress
+- [x] Hook `useUsuarioPanel` para obtener usuario actual
+- [x] Botón toggle "Ver como Admin" / "Ver como Cliente"
+- [ ] Integración con usuarios reales de WordPress (TO-DO: leer window.wpUser)
 
 ### Mejoras arquitectónicas detectadas
 - [ ] Extraer lógica de formateo de fechas a un hook/util

@@ -7,3 +7,4 @@ export * from './hosting';
 export * from './dominio';
 export * from './servicio';
 export * from './facturacion';
+export * from './usuario';

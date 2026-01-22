@@ -14,3 +14,7 @@ export {hostingsContratados, obtenerHostingsPorCliente} from './hostingsContrata
 export {dominiosContratados, obtenerDominiosPorCliente} from './dominiosContratados';
 export {serviciosContratados, obtenerServiciosPorCliente} from './serviciosContratados';
 export {facturasCompletas, facturasEjemplo, obtenerFacturasPorCliente, calcularTotalPendiente} from './facturas';
+
+/* Mocks de usuarios y servicios publicados */
+export {usuarioAdmin, usuarioGuillermo, usuariosMock, obtenerUsuarioPorWpId, obtenerUsuarioPorId} from './usuarios';
+export {serviciosPublicados, obtenerServiciosPorProveedor, obtenerServicioPublicadoPorId, obtenerServiciosActivos} from './serviciosPublicados';

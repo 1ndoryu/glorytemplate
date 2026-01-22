@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {LayoutDashboard, Server, ShoppingBag, MessageSquare, CreditCard, Settings, LogOut, Plus, X, Search, Bell, Globe, User, HelpCircle, ChevronDown, Briefcase} from 'lucide-react';
+import {LayoutDashboard, Server, ShoppingBag, MessageSquare, CreditCard, Settings, LogOut, Bell, Globe, User, HelpCircle, Briefcase, Eye} from 'lucide-react';
 import {VistaResumen} from './views/VistaResumen';
 import {VistaHosting} from './views/VistaHosting';
 import {VistaDominios} from './views/VistaDominios';
@@ -8,6 +8,8 @@ import {VistaFacturas} from './views/VistaFacturas';
 import {VistaPerfil} from './views/VistaPerfil';
 import {VistaServicios} from './views/VistaServicios';
 import {PanelProvider, usePanel} from '../../context/PanelContext';
+import {UsuarioProvider, useUsuario} from '../../context/UsuarioContext';
+import {ToggleSimulacion} from './ToggleSimulacion';
 
 /*
  * PanelCliente: Vista principal del usuario logueado (Fase 3).
@@ -22,14 +24,17 @@ interface PanelClienteProps {
 
 export const PanelCliente: React.FC<PanelClienteProps> = props => {
     return (
-        <PanelProvider>
-            <PanelLayout {...props} />
-        </PanelProvider>
+        <UsuarioProvider>
+            <PanelProvider>
+                <PanelLayout {...props} />
+            </PanelProvider>
+        </UsuarioProvider>
     );
 };
 
 const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
     const {mensajes} = usePanel();
+    const {usuario, esAdmin, simulando} = useUsuario();
     const [vista, setVista] = useState('resumen');
     const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -116,6 +121,7 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
 
                     <div className="headerTools">
                         <div className="userProfile">
+                            <ToggleSimulacion />
                             <button className="botonNotificacion">
                                 <Bell size={16} />
                                 <span className="notificacionDot"></span>
@@ -123,14 +129,14 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
 
                             <div className="userMenuWrapper" style={{position: 'relative'}}>
                                 <button className="userAvatarBtn" onClick={() => setShowUserMenu(!showUserMenu)}>
-                                    <div className="userAvatar">G</div>
+                                    <div className="userAvatar">{usuario.avatar}</div>
                                 </button>
 
                                 {showUserMenu && (
                                     <div className="dropdownMenu">
                                         <div className="dropdownHeader">
-                                            <p className="dropdownName">Guillermo</p>
-                                            <p className="dropdownRole">guillermo@example.com</p>
+                                            <p className="dropdownName">{usuario.nombre}</p>
+                                            <p className="dropdownRole">{usuario.email}</p>
                                         </div>
                                         <div className="dropdownDivider"></div>
                                         <button

@@ -473,3 +473,57 @@
     color: var(--nakomi-textoApagado);
     margin-top: 4px;
 }
+
+/* Toggle Simulación (Admin) */
+.botonToggleSimulacion {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background-color: var(--nakomi-fondoTerciario);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioSm);
+    color: var(--nakomi-textoApagado);
+    font-size: var(--nakomi-fuenteXs);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.botonToggleSimulacion:hover {
+    background-color: var(--nakomi-fondoHover);
+    color: var(--nakomi-textoNormal);
+    border-color: var(--nakomi-bordeSutil);
+}
+
+.botonToggleSimulacion.simulando {
+    background-color: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+}
+
+.botonToggleSimulacion.simulando:hover {
+    background-color: rgba(59, 130, 246, 0.25);
+}
+
+.toggleTexto {
+    font-weight: 500;
+}
+
+/* Banner de Simulación */
+.bannerSimulacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    font-size: var(--nakomi-fuenteXs);
+    font-weight: 500;
+}
+
+.bannerSimulacion svg {
+    flex-shrink: 0;
+}
