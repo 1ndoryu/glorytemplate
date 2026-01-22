@@ -65,11 +65,11 @@ export const TarjetaFactura: React.FC<TarjetaFacturaProps> = ({factura, onPagar,
                     {factura.estado !== 'pagada' && <span className="facturaFecha vencimiento">Vence: {formatearFecha(factura.fechaVencimiento)}</span>}
                 </div>
                 <div className="facturaAcciones">
-                    <Boton variante="ghost" tamano="sm" onClick={() => onVerDetalle(factura)}>
+                    <Boton variante="outline" tamano="sm" onClick={() => onVerDetalle(factura)}>
                         Ver detalle
                     </Boton>
                     {esPagable && (
-                        <Boton variante="primario" tamano="sm" onClick={() => onPagar(factura)}>
+                        <Boton variante="acento" tamano="sm" onClick={() => onPagar(factura)}>
                             Pagar
                         </Boton>
                     )}

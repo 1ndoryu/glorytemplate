@@ -12,10 +12,9 @@
     align-items: center;
     justify-content: center;
     gap: var(--nakomi-espacioSm);
+    font-family: var(--nakomi-fuentePrincipal);
     font-size: var(--nakomi-fuenteSm);
     font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     text-decoration: none;
     border-radius: var(--nakomi-radioMd);
     transition: all var(--nakomi-transicionRapida);
@@ -81,7 +80,6 @@
     background-color: transparent;
     border: none;
     padding: 0;
-    letter-spacing: 0.08em;
 }
 
 .botonLink:hover {

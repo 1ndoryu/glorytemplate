@@ -65,10 +65,10 @@ export const TarjetaHostingCliente: React.FC<TarjetaHostingClienteProps> = ({hos
             )}
 
             <div className="hostingClienteAcciones">
-                <Boton variante="ghost" tamano="sm" icono={<ExternalLink size={14} />} onClick={() => window.open(urlSitio, '_blank')}>
+                <Boton variante="outline" tamano="sm" icono={<ExternalLink size={14} />} onClick={() => window.open(urlSitio, '_blank')}>
                     Visitar sitio
                 </Boton>
-                <Boton variante="ghost" tamano="sm" onClick={() => onCambiarPlan(hosting)}>
+                <Boton variante="outline" tamano="sm" onClick={() => onCambiarPlan(hosting)}>
                     Cambiar plan
                 </Boton>
             </div>
