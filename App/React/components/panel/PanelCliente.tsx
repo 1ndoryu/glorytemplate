@@ -141,7 +141,7 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
 
                                 <div className="userMenuWrapper" style={{position: 'relative'}}>
                                     <button className="userAvatarBtn" onClick={() => setShowUserMenu(!showUserMenu)}>
-                                        <div className="userAvatar">{usuario.avatar}</div>
+                                        <div className="userAvatar">{usuario.avatar && usuario.avatar.includes('http') ? <img src={usuario.avatar} alt={usuario.nombre} style={{width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover'}} /> : usuario.avatar}</div>
                                     </button>
 
                                     {showUserMenu && (
