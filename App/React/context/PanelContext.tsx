@@ -1,24 +1,21 @@
 /*
  * Contexto del Panel Cliente.
  * Provee datos filtrados según el rol del usuario actual.
- * Admin: ve todos los recursos de todos los clientes.
- * Cliente: ve solo sus propios recursos.
+ * Usa facturacionService para obtener datos reales de WordPress/BD.
  */
 
 import React, {createContext, useContext, useState, useEffect, useMemo, ReactNode} from 'react';
-import {Servicio} from '../components/landing/GridServicios';
-import {serviciosEjemplo} from '../data/mocks/servicios';
-import {FacturaSimple, facturasEjemplo} from '../data/mocks/facturas';
-import {facturasCompletas} from '../data/mocks/facturas';
-import {hostingsContratados as hostingsMock} from '../data/mocks/hostingsContratados';
-import {dominiosContratados as dominiosMock} from '../data/mocks/dominiosContratados';
-import {serviciosContratados as serviciosMock} from '../data/mocks/serviciosContratados';
-import {clientesEjemplo} from '../data/mocks/clientes';
+import {useUsuario} from './UsuarioContext';
+import {facturacionService} from '../services/facturacionService';
+import {formatearFecha} from '../utils/fechaUtils';
+
+/* Tipos */
+import {ServicioPublicado} from '../data/types/servicio';
+import {Factura, FacturaSimple} from '../data/types/facturacion';
 import {HostingContratado} from '../data/types/hosting';
 import {DominioContratado} from '../data/types/dominio';
 import {ServicioContratado} from '../data/types/servicio';
 import {Cliente} from '../data/types/cliente';
-import {useUsuario} from './UsuarioContext';
 
 export interface Proyecto {
     id: number;
@@ -46,10 +43,10 @@ export interface UserProfile {
 
 interface PanelContextType {
     proyectos: Proyecto[];
-    servicios: Servicio[];
+    servicios: ServicioPublicado[];
     serverStats: ServerStats;
     mensajes: number;
-    facturas: FacturaSimple[];
+    facturas: Factura[];
     hostingsContratados: HostingContratado[];
     dominiosContratados: DominioContratado[];
     serviciosContratados: ServicioContratado[];
@@ -75,26 +72,24 @@ const defaultStats: ServerStats = {
     os: 'Linux'
 };
 
-const defaultUser: UserProfile = {
-    name: 'Guillermo',
-    email: 'guillermo@example.com',
-    role: 'Cliente',
-    avatar: 'G'
-};
-
 const PanelContext = createContext<PanelContextType | undefined>(undefined);
 
 export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
     const {usuario, clienteId, esAdmin, simulando} = useUsuario();
 
+    // Data States
     const [proyectos, setProyectos] = useState<Proyecto[]>([]);
-    const [servicios, setServicios] = useState<Servicio[]>([]);
+    const [servicios, setServicios] = useState<ServicioPublicado[]>([]);
+    const [facturasRaw, setFacturasRaw] = useState<Factura[]>([]);
+    const [allHostings, setAllHostings] = useState<HostingContratado[]>([]);
+    const [allDominios, setAllDominios] = useState<DominioContratado[]>([]);
+    const [allServiciosContratados, setAllServiciosContratados] = useState<ServicioContratado[]>([]);
+    const [clientes, setClientes] = useState<Cliente[]>([]);
+
+    // UI States
     const [serverStats, setServerStats] = useState<ServerStats>(defaultStats);
     const [mensajes, setMensajes] = useState(0);
-    const [facturas, setFacturas] = useState<FacturaSimple[]>([]);
     const [loading, setLoading] = useState(true);
-
-    // Estado de navegación
     const [vistaActual, setVistaActual] = useState('resumen');
     const [parametrosVista, setParametrosVista] = useState<any>(null);
 
@@ -106,10 +101,54 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
     /* Determinar si estamos en vista admin (ve todos los recursos) */
     const esVistaAdmin = useMemo(() => esAdmin && !simulando, [esAdmin, simulando]);
 
-    /* Filtrar hostings según rol */
-    const [allHostings, setAllHostings] = useState<HostingContratado[]>(hostingsMock);
+    /* Carga de datos inicial */
+    const refreshData = async () => {
+        setLoading(true);
+        try {
+            // Cargar datos básicos siempre (servicios públicos)
+            const serviciosData = await facturacionService.getServiciosPublicados();
+            setServicios(serviciosData.filter(s => s.activo !== false));
 
-    /* Filtrar hostings según rol */
+            // Cargar recursos
+            const [hostings, dominios, trabajos, facturasData] = await Promise.all([facturacionService.getHostingsContratados(), facturacionService.getDominiosContratados(), facturacionService.getServiciosContratados(), facturacionService.getFacturas()]);
+
+            setAllHostings(hostings);
+            setAllDominios(dominios);
+            setAllServiciosContratados(trabajos);
+            setFacturasRaw(facturasData);
+
+            // Cargar clientes solo si es admin
+            if (esAdmin) {
+                const clientesData = await facturacionService.getClientes();
+                setClientes(clientesData);
+            }
+
+            // Mocks para stats (Backend no provee endpoint aun o es simulado)
+            setServerStats({
+                cpu: 45,
+                ram: 2.4,
+                ramTotal: 4,
+                uptime: '14 days, 2 hours',
+                ip: '192.168.1.45',
+                os: 'Ubuntu 22.04'
+            });
+            setMensajes(1);
+        } catch (error) {
+            console.error('Error cargando datos del panel:', error);
+            // Podríamos mostrar notificación de error aquí
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        refreshData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [esAdmin]); // Recargar si cambia rol (aunque requiere reload usualmente)
+
+    /* Filtrado de recursos según rol y simulación */
+
+    // Hostings
     const hostingsContratados = useMemo(() => {
         if (esVistaAdmin) {
             return allHostings;
@@ -121,10 +160,7 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
         setAllHostings(prev => prev.map(h => (h.id === hosting.id ? hosting : h)));
     };
 
-    /* Estado reactivo para dominios */
-    const [allDominios, setAllDominios] = useState<DominioContratado[]>(dominiosMock);
-
-    /* Filtrar dominios según rol */
+    // Dominios
     const dominiosContratados = useMemo(() => {
         if (esVistaAdmin) {
             return allDominios;
@@ -136,27 +172,29 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
         setAllDominios(prev => prev.map(d => (d.id === dominio.id ? dominio : d)));
     };
 
-    /*
-     * Sincroniza estado de pago entre facturas y productos.
-     * Cuando se paga una factura, marca los hostings/dominios referenciados como pagados.
-     */
+    // Services Contratados
+    const serviciosContratados = useMemo(() => {
+        if (esVistaAdmin) {
+            return allServiciosContratados;
+        }
+        return allServiciosContratados.filter(s => s.clienteId === clienteId);
+    }, [esVistaAdmin, clienteId, allServiciosContratados]);
+
+    // Facturas
+    const facturas = useMemo<Factura[]>(() => {
+        if (!esVistaAdmin) {
+            return facturasRaw.filter(f => f.clienteId === clienteId);
+        }
+        return facturasRaw;
+    }, [esVistaAdmin, clienteId, facturasRaw]);
+
+    /* Helpers */
     const marcarProductosComoPagados = (productosRef: string[]) => {
         setAllHostings(prev => prev.map(h => (productosRef.includes(h.id) ? {...h, pagado: true} : h)));
         setAllDominios(prev => prev.map(d => (productosRef.includes(d.id) ? {...d, pagado: true} : d)));
     };
 
-    /* Filtrar servicios contratados según rol */
-    const serviciosContratados = useMemo(() => {
-        if (esVistaAdmin) {
-            return serviciosMock;
-        }
-        return serviciosMock.filter(s => s.clienteId === clienteId);
-    }, [esVistaAdmin, clienteId]);
-
-    /* Lista de clientes (solo útil para admin) */
-    const clientes = useMemo(() => clientesEjemplo, []);
-
-    /* User profile basado en el usuario actual */
+    /* User profile */
     const user = useMemo<UserProfile>(
         () => ({
             name: usuario.nombre,
@@ -166,30 +204,6 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
         }),
         [usuario]
     );
-
-    const refreshData = async () => {
-        setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 600));
-
-        setProyectos([]);
-        setServicios(serviciosEjemplo.filter(s => s.activo !== false));
-        setServerStats({
-            cpu: 45,
-            ram: 2.4,
-            ramTotal: 4,
-            uptime: '14 days, 2 hours',
-            ip: '192.168.1.45',
-            os: 'Ubuntu 22.04'
-        });
-
-        setMensajes(1);
-        setFacturas(facturasEjemplo);
-        setLoading(false);
-    };
-
-    useEffect(() => {
-        refreshData();
-    }, []);
 
     return (
         <PanelContext.Provider

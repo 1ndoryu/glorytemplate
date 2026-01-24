@@ -9,31 +9,17 @@ import {ResumenDeuda} from './facturas/ResumenDeuda';
 import {ListaFacturas} from './facturas/ListaFacturas';
 import {ModalPagarFactura} from './facturas/ModalPagarFactura';
 import {usePanel} from '../../../context/PanelContext';
-import {useUsuario} from '../../../context/UsuarioContext';
-import {facturasCompletas, calcularTotalPendiente} from '../../../data/mocks/facturas';
 import {Factura} from '../../../data/types/facturacion';
 
 export const VistaFacturas: React.FC = () => {
-    const {esVistaAdmin, clientes, marcarProductosComoPagados} = usePanel();
-    const {clienteId} = useUsuario();
+    const {esVistaAdmin, clientes, marcarProductosComoPagados, facturas} = usePanel();
     const [facturaSeleccionada, setFacturaSeleccionada] = useState<Factura | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
 
-    /* Filtrar facturas según rol */
-    const facturas = useMemo(() => {
-        if (esVistaAdmin) {
-            return facturasCompletas;
-        }
-        return facturasCompletas.filter(f => f.clienteId === clienteId);
-    }, [esVistaAdmin, clienteId]);
-
-    /* Total pendiente (para admin es de todos, para cliente solo suyo) */
+    /* Total pendiente (basado en facturas ya filtradas por el contexto) */
     const totalPendiente = useMemo(() => {
-        if (esVistaAdmin) {
-            return facturasCompletas.filter(f => f.estado === 'pendiente' || f.estado === 'vencida').reduce((sum, f) => sum + f.total, 0);
-        }
-        return clienteId ? calcularTotalPendiente(clienteId) : 0;
-    }, [esVistaAdmin, clienteId]);
+        return facturas.filter(f => f.estado === 'pendiente' || f.estado === 'vencida').reduce((sum, f) => sum + f.total, 0);
+    }, [facturas]);
 
     const cantidadPendientes = useMemo(() => facturas.filter(f => f.estado === 'pendiente' || f.estado === 'vencida').length, [facturas]);
 

@@ -4,18 +4,23 @@
  * Los servicios CONTRATADOS se muestran en el Dashboard (VistaResumen).
  */
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {ListaServiciosPublicados} from './servicios/ListaServiciosPublicados';
 import {ModalEditarServicio} from './servicios/ModalEditarServicio';
 import {useUsuario} from '../../../context/UsuarioContext';
-import {serviciosPublicados as serviciosIniciales} from '../../../data/mocks/serviciosPublicados';
+import {usePanel} from '../../../context/PanelContext';
 import {ServicioPublicado} from '../../../data/types/servicio';
 
 export const VistaServicios: React.FC = () => {
     const {usuario} = useUsuario();
+    const {servicios: serviciosContext} = usePanel();
 
-    /* Estado local para servicios publicados (simulación de BD) */
-    const [servicios, setServicios] = useState<ServicioPublicado[]>(serviciosIniciales);
+    /* Estado local para servicios publicados */
+    const [servicios, setServicios] = useState<ServicioPublicado[]>([]);
+
+    useEffect(() => {
+        setServicios(serviciosContext);
+    }, [serviciosContext]);
 
     /* Estado del modal */
     const [modalVisible, setModalVisible] = useState(false);

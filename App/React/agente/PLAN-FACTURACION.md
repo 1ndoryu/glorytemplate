@@ -8,22 +8,22 @@
 
 ## Resumen de Fases
 
-| Fase | Descripción                    | Estado          |
-| ---- | ------------------------------ | --------------- |
-| 1    | Modelo de datos y mocks        | ✅ Completada    |
-| 2    | Vista Facturación              | ✅ Completada    |
-| 3    | Vista Hostings                 | ✅ Completada    |
-| 4    | Vista Servicios                | ✅ Completada    |
-| 4.5  | Vista Dominios                 | ✅ Completada    |
-| Rev  | Revisiones UI/UX               | ✅ Completada    |
-| 7    | Sistema de Usuarios/Simulación | ✅ Completada    |
-| 8    | Modal Edición Servicio         | ✅ Completada    |
-| 9    | Single de Servicio             | ✅ Completada    |
-| 10   | Catálogo/Marketplace           | ✅ Completada    |
-| 5    | Stripe                         | ⏳ Pendiente     |
-| 6    | Cuenta Guillermo               | ⏳ Pendiente     |
-| 11   | Integración WordPress Real     | 🚧 Backend Listo |
-| 12   | Dashboard Admin diferenciado   | ✅ Completada    |
+| Fase | Descripción                    | Estado                          |
+| ---- | ------------------------------ | ------------------------------- |
+| 1    | Modelo de datos y mocks        | ✅ Completada                    |
+| 2    | Vista Facturación              | ✅ Completada                    |
+| 3    | Vista Hostings                 | ✅ Completada                    |
+| 4    | Vista Servicios                | ✅ Completada                    |
+| 4.5  | Vista Dominios                 | ✅ Completada                    |
+| Rev  | Revisiones UI/UX               | ✅ Completada                    |
+| 7    | Sistema de Usuarios/Simulación | ✅ Completada                    |
+| 8    | Modal Edición Servicio         | ✅ Completada                    |
+| 9    | Single de Servicio             | ✅ Completada                    |
+| 10   | Catálogo/Marketplace           | ✅ Completada                    |
+| 5    | Stripe                         | ⏳ Pendiente (Scaffolding listo) |
+| 6    | Cuenta Guillermo               | ⏳ Pendiente                     |
+| 11   | Integración WordPress Real     | ✅ Completada                    |
+| 12   | Dashboard Admin diferenciado   | ✅ Completada                    |
 
 ---
 
@@ -284,11 +284,11 @@ PROVEEDOR                               CLIENTE
 
 ### Tareas de implementación
 
-1. **Crear CPTs** - Archivo `App/PostTypes/FacturacionPostTypes.php`
-2. **Crear endpoints** - Archivo `App/Api/FacturacionApi.php`
-3. **Leer usuario WP** - Modificar `UsuarioContext.tsx` para leer `window.wpUser`
-4. **Migrar mocks** - Reemplazar imports de mocks por llamadas fetch a API
-5. **Permisos** - Middleware que verifica rol en cada endpoint
+- [x] **Crear CPTs** - Archivo `App/PostTypes/FacturacionPostTypes.php`
+- [x] **Crear endpoints** - Archivo `App/Api/FacturacionApi.php`
+- [x] **Leer usuario WP** - Modificar `UsuarioContext.tsx` para leer `window.wpUser`
+- [x] **Migrar mocks** - Reemplazar imports de mocks por llamadas fetch a API (`facturacionService.ts`)
+- [x] **Permisos** - Middleware que verifica rol en cada endpoint
 
 ---
 
@@ -302,7 +302,7 @@ PROVEEDOR                               CLIENTE
 
 ### Pendientes
 - [x] Componente genérico `TarjetaProducto` (hostings/dominios/servicios) - ver TarjetaBase
-- [ ] Integración usuarios reales WordPress
+- [x] Integración usuarios reales WordPress
 - [x] Campo `pagado` en DominioContratado ✅
 - [x] Sincronización de pago entre facturas y productos ✅
 

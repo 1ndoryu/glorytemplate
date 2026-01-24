@@ -15,10 +15,17 @@ interface UsuarioContextType {
 const UsuarioContext = createContext<UsuarioContextType | undefined>(undefined);
 
 /*
- * Por ahora, simulamos que el usuario admin está logueado.
- * TO-DO: Integrar con usuario real de WordPress (window.wpUser)
+ * Obtiene el usuario actual desde WordPress (inyectado en window.wpUser)
+ * Si no existe (ej: entorno local sin WP), usa el mock del admin.
  */
 const obtenerUsuarioWP = (): UsuarioPanel => {
+    // @ts-ignore - window.wpUser está definido en types/window.d.ts pero puede necesitar reinicio de TS
+    if (typeof window !== 'undefined' && window.wpUser) {
+        return window.wpUser;
+    }
+
+    // Fallback para desarrollo local (npm run dev sin WP)
+    console.warn('UsuarioContext: No se detectó window.wpUser, usando mock local.');
     const wpUserId = 1;
     return obtenerUsuarioPorWpId(wpUserId) || usuarioAdmin;
 };

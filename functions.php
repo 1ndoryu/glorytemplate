@@ -74,10 +74,43 @@ add_filter('mime_types', function ($mimes) {
  * Inyectar estado de sesión para React.
  * Define window.GLORY_AUTH antes de que cargue la app.
  */
-add_action('wp_head', function() {
+add_action('wp_head', function () {
     $estado = [
         'isLoggedIn' => is_user_logged_in(),
         'user' => is_user_logged_in() ? wp_get_current_user()->display_name : null
     ];
     echo '<script>window.GLORY_AUTH = ' . json_encode($estado) . ';</script>';
-}, 1); // Prioridad alta para salir antes que el bundle React
+
+    /* Inyectar datos completos del usuario para el Panel React */
+    $userData = null;
+    if (is_user_logged_in()) {
+        $user = wp_get_current_user();
+        $roles = (array) $user->roles;
+
+        // Mapeo simple de roles
+        $rolPanel = 'cliente';
+        if (in_array('administrator', $roles)) {
+            $rolPanel = 'admin';
+        } elseif (in_array('editor', $roles) || in_array('author', $roles)) {
+            $rolPanel = 'proveedor';
+        }
+
+        $userData = [
+            'id' => (string) $user->ID,
+            'wpUserId' => $user->ID,
+            'nombre' => $user->display_name,
+            'email' => $user->user_email,
+            'avatar' => get_avatar_url($user->ID),
+            'rol' => $rolPanel,
+            'fechaRegistro' => $user->user_registered
+        ];
+    }
+    echo '<script>window.wpUser = ' . json_encode($userData) . ';</script>';
+
+    /* Configuración de API REST */
+    $apiSettings = [
+        'root' => esc_url_raw(rest_url()),
+        'nonce' => wp_create_nonce('wp_rest')
+    ];
+    echo '<script>window.gloryApiSettings = ' . json_encode($apiSettings) . ';</script>';
+}, 1);
