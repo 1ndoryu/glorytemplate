@@ -1,9 +1,13 @@
 /*
  * ModalEditarServicio: Modal para crear/editar servicios publicados.
  * Permite modificar todos los campos del servicio.
+ *
+ * Usa createPortal hacia #modal-root (definido en PanelCliente.tsx) para
+ * renderizar fuera del panelLayout y evitar el overflow:hidden del layout.
  */
 
 import React, {useState, useEffect} from 'react';
+import {createPortal} from 'react-dom';
 import {X, Package, DollarSign, Clock, Tag, Image, FileText, Save} from 'lucide-react';
 import {Boton} from '../../../ui/Boton';
 import {ServicioPublicado, CategoriaServicio} from '../../../../data/types/servicio';
@@ -105,9 +109,15 @@ export const ModalEditarServicio: React.FC<ModalEditarServicioProps> = ({servici
 
     const titulo = modoCrear ? 'Nuevo Servicio' : 'Editar Servicio';
 
-    return (
+    /*
+     * Renderiza en #modal-root (fuera de panelLayout) para evitar overflow:hidden.
+     * Si #modal-root no existe, usa document.body como fallback.
+     */
+    const modalRoot = document.getElementById('modal-root') || document.body;
+
+    return createPortal(
         <div className="modalOverlay" onClick={onCerrar}>
-            <div className="modalEditarServicio" onClick={e => e.stopPropagation()}>
+            <div className="modalVentana modalEditarServicio" onClick={e => e.stopPropagation()}>
                 <header className="modalHeader">
                     <div className="modalTituloWrapper">
                         <Package size={20} />
@@ -215,7 +225,8 @@ export const ModalEditarServicio: React.FC<ModalEditarServicioProps> = ({servici
                     </Boton>
                 </footer>
             </div>
-        </div>
+        </div>,
+        modalRoot
     );
 };
 

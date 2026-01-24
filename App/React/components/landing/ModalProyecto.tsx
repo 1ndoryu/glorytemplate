@@ -46,8 +46,8 @@ export const ModalProyecto: React.FC<ModalProyectoProps> = ({proyecto, visible, 
     if (!proyecto) return null;
 
     return (
-        <div className={`modalOverlay ${visible ? 'modalOverlayVisible' : ''}`} onClick={manejarClickOverlay} role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
-            <div className="modalContenido">
+        <div className={`modalOverlayLanding ${visible ? 'modalOverlayLandingVisible' : ''}`} onClick={manejarClickOverlay} role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+            <div className="modalContenidoLanding">
                 <button className="modalCerrar" onClick={onCerrar} aria-label="Cerrar modal">
                     ×
                 </button>

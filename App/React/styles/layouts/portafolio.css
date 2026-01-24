@@ -59,8 +59,8 @@
     color: var(--nakomi-textoApagado);
 }
 
-/* Modal de proyecto */
-.modalOverlay {
+/* Modal de proyecto - Landing/Portafolio */
+.modalOverlayLanding {
     position: fixed;
     inset: 0;
     z-index: 1000;
@@ -76,12 +76,12 @@
         visibility var(--nakomi-transicionNormal);
 }
 
-.modalOverlayVisible {
+.modalOverlayLandingVisible {
     opacity: 1;
     visibility: visible;
 }
 
-.modalContenido {
+.modalContenidoLanding {
     position: relative;
     width: 100%;
     max-width: 900px;
@@ -93,7 +93,7 @@
     transition: transform var(--nakomi-transicionNormal);
 }
 
-.modalOverlayVisible .modalContenido {
+.modalOverlayLandingVisible .modalContenidoLanding {
     transform: scale(1);
 }
 

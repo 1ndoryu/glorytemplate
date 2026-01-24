@@ -88,96 +88,100 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
     };
 
     return (
-        <div className="panelLayout">
-            {/* Sidebar */}
-            <aside className="panelSidebar">
-                <div className="sidebarLogoArea">
-                    <div className="logoIcon">N</div>
-                </div>
-
-                <nav className="sidebarNav">
-                    {menuItems.map(item => (
-                        <button key={item.id} onClick={() => navegarA(item.id)} className={`navIconBtn ${vistaActual === item.id ? 'active' : ''}`}>
-                            {getMenuIcon(item)}
-                            <span className="tooltip">{item.label}</span>
-                            {(item.badge || (item.id === 'mensajes' && mensajes > 0)) && <span className="badgeDot"></span>}
-                        </button>
-                    ))}
-                </nav>
-
-                <div className="sidebarFooter">
-                    <button className="navIconBtn">
-                        <Settings size={16} />
-                        <span className="tooltip">Configuración</span>
-                    </button>
-                    <button className="navIconBtn botonSalir" onClick={onLogout}>
-                        <LogOut size={16} />
-                        <span className="tooltip">Salir</span>
-                    </button>
-                </div>
-            </aside>
-
-            {/* Contenido */}
-            <div className="panelContentWrapper">
-                <header className="panelHeader">
-                    <div className="headerTabs">
-                        <div className="headerTab active">
-                            <span>{getActiveTitle()}</span>
-                        </div>
+        <>
+            <div className="panelLayout">
+                {/* Sidebar */}
+                <aside className="panelSidebar">
+                    <div className="sidebarLogoArea">
+                        <div className="logoIcon">N</div>
                     </div>
 
-                    <div className="headerTools">
-                        <div className="userProfile">
-                            <ToggleSimulacion />
-                            <button className="botonNotificacion">
-                                <Bell size={16} />
-                                <span className="notificacionDot"></span>
+                    <nav className="sidebarNav">
+                        {menuItems.map(item => (
+                            <button key={item.id} onClick={() => navegarA(item.id)} className={`navIconBtn ${vistaActual === item.id ? 'active' : ''}`}>
+                                {getMenuIcon(item)}
+                                <span className="tooltip">{item.label}</span>
+                                {(item.badge || (item.id === 'mensajes' && mensajes > 0)) && <span className="badgeDot"></span>}
                             </button>
+                        ))}
+                    </nav>
 
-                            <div className="userMenuWrapper" style={{position: 'relative'}}>
-                                <button className="userAvatarBtn" onClick={() => setShowUserMenu(!showUserMenu)}>
-                                    <div className="userAvatar">{usuario.avatar}</div>
-                                </button>
+                    <div className="sidebarFooter">
+                        <button className="navIconBtn">
+                            <Settings size={16} />
+                            <span className="tooltip">Configuración</span>
+                        </button>
+                        <button className="navIconBtn botonSalir" onClick={onLogout}>
+                            <LogOut size={16} />
+                            <span className="tooltip">Salir</span>
+                        </button>
+                    </div>
+                </aside>
 
-                                {showUserMenu && (
-                                    <div className="dropdownMenu">
-                                        <div className="dropdownHeader">
-                                            <p className="dropdownName">{usuario.nombre}</p>
-                                            <p className="dropdownRole">{usuario.email}</p>
-                                        </div>
-                                        <div className="dropdownDivider"></div>
-                                        <button
-                                            className="dropdownItem"
-                                            onClick={() => {
-                                                navegarA('perfil');
-                                                setShowUserMenu(false);
-                                            }}>
-                                            <User size={14} />
-                                            <span>Mi Perfil</span>
-                                        </button>
-                                        <button className="dropdownItem">
-                                            <Settings size={14} />
-                                            <span>Configuración</span>
-                                        </button>
-                                        <button className="dropdownItem">
-                                            <HelpCircle size={14} />
-                                            <span>Ayuda</span>
-                                        </button>
-                                        <div className="dropdownDivider"></div>
-                                        <button className="dropdownItem text-red" onClick={onLogout}>
-                                            <LogOut size={14} />
-                                            <span>Cerrar Sesión</span>
-                                        </button>
-                                    </div>
-                                )}
+                {/* Contenido */}
+                <div className="panelContentWrapper">
+                    <header className="panelHeader">
+                        <div className="headerTabs">
+                            <div className="headerTab active">
+                                <span>{getActiveTitle()}</span>
                             </div>
                         </div>
-                    </div>
-                </header>
 
-                <main className="mainView">{getVistaComponent()}</main>
+                        <div className="headerTools">
+                            <div className="userProfile">
+                                <ToggleSimulacion />
+                                <button className="botonNotificacion">
+                                    <Bell size={16} />
+                                    <span className="notificacionDot"></span>
+                                </button>
+
+                                <div className="userMenuWrapper" style={{position: 'relative'}}>
+                                    <button className="userAvatarBtn" onClick={() => setShowUserMenu(!showUserMenu)}>
+                                        <div className="userAvatar">{usuario.avatar}</div>
+                                    </button>
+
+                                    {showUserMenu && (
+                                        <div className="dropdownMenu">
+                                            <div className="dropdownHeader">
+                                                <p className="dropdownName">{usuario.nombre}</p>
+                                                <p className="dropdownRole">{usuario.email}</p>
+                                            </div>
+                                            <div className="dropdownDivider"></div>
+                                            <button
+                                                className="dropdownItem"
+                                                onClick={() => {
+                                                    navegarA('perfil');
+                                                    setShowUserMenu(false);
+                                                }}>
+                                                <User size={14} />
+                                                <span>Mi Perfil</span>
+                                            </button>
+                                            <button className="dropdownItem">
+                                                <Settings size={14} />
+                                                <span>Configuración</span>
+                                            </button>
+                                            <button className="dropdownItem">
+                                                <HelpCircle size={14} />
+                                                <span>Ayuda</span>
+                                            </button>
+                                            <div className="dropdownDivider"></div>
+                                            <button className="dropdownItem text-red" onClick={onLogout}>
+                                                <LogOut size={14} />
+                                                <span>Cerrar Sesión</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="mainView">{getVistaComponent()}</main>
+                </div>
             </div>
-        </div>
+            {/* Contenedor para modales - fuera del panelLayout para evitar overflow:hidden */}
+            <div id="modal-root"></div>
+        </>
     );
 };
 

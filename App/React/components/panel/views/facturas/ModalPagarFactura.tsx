@@ -1,9 +1,12 @@
 /*
  * ModalPagarFactura: Modal con detalle de factura y botón de pago.
  * Ubicación: components/panel/views/facturas/
+ *
+ * Usa createPortal hacia #modal-root para renderizar fuera del panelLayout.
  */
 
 import React from 'react';
+import {createPortal} from 'react-dom';
 import {X, CreditCard, FileText} from 'lucide-react';
 import {Boton} from '../../../ui/Boton';
 import {Factura} from '../../../../data/types/facturacion';
@@ -24,7 +27,9 @@ export const ModalPagarFactura: React.FC<ModalPagarFacturaProps> = ({factura, vi
         onConfirmarPago(factura);
     };
 
-    return (
+    const modalRoot = document.getElementById('modal-root') || document.body;
+
+    return createPortal(
         <div className="modalOverlay" onClick={onCerrar}>
             <div className="modalVentana" onClick={e => e.stopPropagation()}>
                 <header className="modalHeader">
@@ -93,6 +98,7 @@ export const ModalPagarFactura: React.FC<ModalPagarFacturaProps> = ({factura, vi
                     </Boton>
                 </footer>
             </div>
-        </div>
+        </div>,
+        modalRoot
     );
 };

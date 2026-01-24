@@ -61,8 +61,8 @@
    - **TO-DO:** Revisar origen de datos en `VistaMarketplace.tsx`
 
 6. **Incoherencia de datos entre vistas**
-   - Los hostings muestran botón "Pagar" pero los dominios no
-   - Las facturas no reflejan exactamente los items pendientes
+   - Los hostings muestran botón "Pagar" pero los dominios no (resuelto)
+   - Las facturas no reflejan exactamente los items pendientes (ES CONSISTENTE; TIENE QUE SER REALISTA CON LO QUE REALMENTE ESTA PENDIENTE DE PAGAR; CADA COSA INDIVIDUALMENTE)
    - **TO-DO:** Sincronizar lógica de estado de pago entre entidades
 
 ---

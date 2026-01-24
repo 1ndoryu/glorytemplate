@@ -58,7 +58,7 @@ export const ModalAuth: React.FC<ModalAuthProps> = ({visible, onCerrar, modoInic
     if (!visible) return null;
 
     return (
-        <div className="modalOverlay modalOverlayVisible" onClick={e => e.target === e.currentTarget && onCerrar()}>
+        <div className="modalOverlayLanding modalOverlayLandingVisible" onClick={e => e.target === e.currentTarget && onCerrar()}>
             <div className="authModalContenido" role="dialog" aria-modal="true">
                 <div className="authTabs">
                     <button className={`authTab ${modo === 'login' ? 'authTabActiva' : ''}`} onClick={() => setModo('login')}>

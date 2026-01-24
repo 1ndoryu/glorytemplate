@@ -1,9 +1,12 @@
 /*
  * ModalCambiarPlan: Permite cambiar entre plan mensual y anual.
  * Muestra la diferencia de precio y confirma el cambio.
+ *
+ * Usa createPortal hacia #modal-root para renderizar fuera del panelLayout.
  */
 
 import React from 'react';
+import {createPortal} from 'react-dom';
 import {X, Check, AlertCircle, Calendar, ArrowRight} from 'lucide-react';
 import {Boton} from '../../../ui/Boton';
 import {HostingContratado} from '../../../../data/types/hosting';
@@ -29,7 +32,9 @@ export const ModalCambiarPlan: React.FC<ModalCambiarPlanProps> = ({hosting, visi
     const ahorro = hosting.precioMensual * 12 - hosting.precioAnual;
     const mostrarAhorro = nuevoPlan === 'anual' && ahorro > 0;
 
-    return (
+    const modalRoot = document.getElementById('modal-root') || document.body;
+
+    return createPortal(
         <div className="modalOverlay" onClick={onCerrar}>
             <div className="modalVentana" onClick={e => e.stopPropagation()}>
                 <header className="modalHeader">
@@ -93,6 +98,7 @@ export const ModalCambiarPlan: React.FC<ModalCambiarPlanProps> = ({hosting, visi
                     </Boton>
                 </footer>
             </div>
-        </div>
+        </div>,
+        modalRoot
     );
 };
