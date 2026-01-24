@@ -59,6 +59,8 @@ interface PanelContextType {
     esVistaAdmin: boolean;
     refreshData: () => Promise<void>;
     actualizarHosting: (hosting: HostingContratado) => void;
+    actualizarDominio: (dominio: DominioContratado) => void;
+    marcarProductosComoPagados: (productosRef: string[]) => void;
     vistaActual: string;
     parametrosVista: any;
     navegarA: (vista: string, params?: any) => void;
@@ -119,13 +121,29 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
         setAllHostings(prev => prev.map(h => (h.id === hosting.id ? hosting : h)));
     };
 
+    /* Estado reactivo para dominios */
+    const [allDominios, setAllDominios] = useState<DominioContratado[]>(dominiosMock);
+
     /* Filtrar dominios según rol */
     const dominiosContratados = useMemo(() => {
         if (esVistaAdmin) {
-            return dominiosMock;
+            return allDominios;
         }
-        return dominiosMock.filter(d => d.clienteId === clienteId);
-    }, [esVistaAdmin, clienteId]);
+        return allDominios.filter(d => d.clienteId === clienteId);
+    }, [esVistaAdmin, clienteId, allDominios]);
+
+    const actualizarDominio = (dominio: DominioContratado) => {
+        setAllDominios(prev => prev.map(d => (d.id === dominio.id ? dominio : d)));
+    };
+
+    /*
+     * Sincroniza estado de pago entre facturas y productos.
+     * Cuando se paga una factura, marca los hostings/dominios referenciados como pagados.
+     */
+    const marcarProductosComoPagados = (productosRef: string[]) => {
+        setAllHostings(prev => prev.map(h => (productosRef.includes(h.id) ? {...h, pagado: true} : h)));
+        setAllDominios(prev => prev.map(d => (productosRef.includes(d.id) ? {...d, pagado: true} : d)));
+    };
 
     /* Filtrar servicios contratados según rol */
     const serviciosContratados = useMemo(() => {
@@ -190,6 +208,8 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
                 esVistaAdmin,
                 refreshData,
                 actualizarHosting,
+                actualizarDominio,
+                marcarProductosComoPagados,
                 vistaActual,
                 parametrosVista,
                 navegarA

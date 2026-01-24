@@ -14,7 +14,7 @@ import {facturasCompletas, calcularTotalPendiente} from '../../../data/mocks/fac
 import {Factura} from '../../../data/types/facturacion';
 
 export const VistaFacturas: React.FC = () => {
-    const {esVistaAdmin, clientes} = usePanel();
+    const {esVistaAdmin, clientes, marcarProductosComoPagados} = usePanel();
     const {clienteId} = useUsuario();
     const [facturaSeleccionada, setFacturaSeleccionada] = useState<Factura | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
@@ -47,9 +47,18 @@ export const VistaFacturas: React.FC = () => {
         setModalVisible(true);
     };
 
+    /*
+     * Al confirmar pago, sincronizamos el estado pagado de los productos.
+     * TO-DO Fase 5: Integrar con Stripe antes de marcar como pagado.
+     */
     const handleConfirmarPago = (factura: Factura) => {
-        /* TO-DO: Implementar integración Stripe en Fase 5 */
-        console.log('Procesando pago de factura:', factura.referencia);
+        const productosRef = factura.items.map(item => item.productoRef).filter((ref): ref is string => !!ref);
+
+        if (productosRef.length > 0) {
+            marcarProductosComoPagados(productosRef);
+        }
+
+        console.log('Pago confirmado. Productos actualizados:', productosRef);
         setModalVisible(false);
         setFacturaSeleccionada(null);
     };

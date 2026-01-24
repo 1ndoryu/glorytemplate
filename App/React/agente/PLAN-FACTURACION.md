@@ -2,7 +2,7 @@
 
 > **Prioridad:** Alta  
 > **Estado:** En Progreso  
-> **Última actualización:** 2026-01-24T15:48
+> **Última actualización:** 2026-01-24T16:10
 
 ---
 
@@ -38,9 +38,11 @@
    - Se añadieron campos `progreso`, `fechaContratacion`, `revisionesRestantes` al tipo
 
 2. **No se pueden editar servicios publicados** ✅ **RESUELTO**
-   - Ubicación: `VistaServicios.tsx` / `ListaServiciosPublicados.tsx`
-   - El botón de editar en menú de 3 puntos no dispara el modal
-   - 
+   - Handler `handleEditarServicio` definido en `VistaServicios.tsx`
+   - Se pasa como prop `onEditar` a `ListaServiciosPublicados.tsx`
+   - `TarjetaServicioPublicado.tsx` conecta la acción "Editar" del `MenuContextual`
+   - El modal `ModalEditarServicio.tsx` recibe el servicio y permite edición
+
 3. ~~**Dominios sin opción de pago**~~ ✅ **RESUELTO**
    - Se añadió `pagado: boolean` y `precioAnual: number` a DominioContratado
    - Se agregó alerta visual de "Pago pendiente" en TarjetaDominio
@@ -59,10 +61,11 @@
    - `PanelContext.tsx` ahora filtra solo servicios activos para el Marketplace
    - Marketplace mostrará únicamente servicios con `activo: true`
 
-6. **Incoherencia de datos entre vistas**
-   - Los hostings muestran botón "Pagar" pero los dominios no (resuelto)
-   - Las facturas no reflejan exactamente los items pendientes (ES CONSISTENTE; TIENE QUE SER REALISTA CON LO QUE REALMENTE ESTA PENDIENTE DE PAGAR; CADA COSA INDIVIDUALMENTE)
-   - **TO-DO:** Sincronizar lógica de estado de pago entre entidades
+6. **Incoherencia de datos entre vistas** ✅ **RESUELTO**
+   - Se añadió `marcarProductosComoPagados()` en `PanelContext.tsx`
+   - Al pagar factura, los hostings/dominios referenciados se marcan como `pagado: true`
+   - `VistaFacturas.handleConfirmarPago` extrae `productoRef` de cada item y sincroniza
+   - Los mocks de dominios ahora usan estado reactivo (useState) igual que hostings
 
 ---
 
@@ -309,10 +312,10 @@ PROVEEDOR                               CLIENTE
 - [x] Componente `MenuContextual` reutilizable
 
 ### Pendientes
-- [ ] Componente genérico `TarjetaProducto` (hostings/dominios/servicios)
+- [x] Componente genérico `TarjetaProducto` (hostings/dominios/servicios) - ver TarjetaBase
 - [ ] Integración usuarios reales WordPress
 - [x] Campo `pagado` en DominioContratado ✅
-- [ ] Desglose de items en facturas
+- [x] Sincronización de pago entre facturas y productos ✅
 
 ---
 
