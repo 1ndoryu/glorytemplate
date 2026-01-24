@@ -4,10 +4,10 @@
  */
 
 import React from 'react';
-import {Plus} from 'lucide-react';
+import {Plus, Package} from 'lucide-react';
 import {ServicioPublicado} from '../../../../data/types/servicio';
 import {TarjetaServicioPublicado} from './TarjetaServicioPublicado';
-import {Boton} from '../../../ui';
+import {Boton, PlaceholderVacio} from '../../../ui';
 
 interface ListaServiciosPublicadosProps {
     servicios: ServicioPublicado[];
@@ -43,12 +43,7 @@ export const ListaServiciosPublicados: React.FC<ListaServiciosPublicadosProps> =
                     ))}
                 </div>
             ) : (
-                <div className="serviciosVacio">
-                    <p>No tienes servicios publicados.</p>
-                    <Boton variante="secundario" onClick={onCrear}>
-                        Crear tu primer servicio
-                    </Boton>
-                </div>
+                <PlaceholderVacio icono={Package} titulo="No tienes servicios publicados" subtitulo="Crea tu primer servicio para empezar a recibir clientes." textoBoton="Crear mi primer servicio" onAccion={onCrear} />
             )}
         </div>
     );

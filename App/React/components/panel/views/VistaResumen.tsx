@@ -7,6 +7,7 @@ import React from 'react';
 import {DollarSign, Calendar, Package, ShoppingBag, AlertCircle} from 'lucide-react';
 import {Tarjeta} from '../../ui/Tarjeta';
 import {Boton} from '../../ui/Boton';
+import {PlaceholderVacio} from '../../ui/PlaceholderVacio';
 import {usePanel} from '../../../context/PanelContext';
 import {useUsuario} from '../../../context/UsuarioContext';
 import {TarjetaServicioContratado} from './servicios/TarjetaServicioContratado';
@@ -175,15 +176,7 @@ export const VistaResumen: React.FC = () => {
             )}
 
             {/* Placeholder si no hay contenido */}
-            {!tieneContenido && (
-                <div className="placeholderServicios">
-                    <ShoppingBag className="placeholderIcon" size={32} />
-                    <div className="placeholderTexto">
-                        <p className="placeholderTitulo">Empieza tu primer proyecto</p>
-                        <p className="placeholderSubtitulo">Visita el Marketplace para contratar servicios.</p>
-                    </div>
-                </div>
-            )}
+            {!tieneContenido && <PlaceholderVacio icono={ShoppingBag} titulo="Empieza tu primer proyecto" subtitulo="Visita el Marketplace para contratar servicios." />}
         </div>
     );
 };

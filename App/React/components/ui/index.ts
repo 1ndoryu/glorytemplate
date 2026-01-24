@@ -24,3 +24,6 @@ export {VentanaEjemplo} from './VentanaEjemplo';
 
 /* Sistema de imágenes optimizadas */
 export {ImagenGlory} from './ImagenGlory';
+
+/* Estados y feedback */
+export {PlaceholderVacio} from './PlaceholderVacio';
