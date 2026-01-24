@@ -11,21 +11,7 @@ import {PlaceholderVacio} from '../../ui/PlaceholderVacio';
 import {usePanel} from '../../../context/PanelContext';
 import {useUsuario} from '../../../context/UsuarioContext';
 import {TarjetaServicioContratado} from './servicios/TarjetaServicioContratado';
-
-/* Formatea fecha ISO a texto legible */
-const formatearFecha = (fechaIso: string): string => {
-    const fecha = new Date(fechaIso);
-    return fecha.toLocaleDateString('es-ES', {day: 'numeric', month: 'short', year: 'numeric'});
-};
-
-/* Calcula días restantes hasta una fecha */
-const calcularDiasRestantes = (fechaIso: string): number => {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    const fecha = new Date(fechaIso);
-    fecha.setHours(0, 0, 0, 0);
-    return Math.ceil((fecha.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
-};
+import {formatearFecha, diasHastaFecha} from '../../../utils/fechaUtils';
 
 export const VistaResumen: React.FC = () => {
     const {serviciosContratados, hostingsContratados, dominiosContratados, facturas} = usePanel();
@@ -42,25 +28,25 @@ export const VistaResumen: React.FC = () => {
     const proximasRenovaciones = [
         ...hostingsContratados
             .filter(h => {
-                const dias = calcularDiasRestantes(h.fechaProximaRenovacion);
+                const dias = diasHastaFecha(h.fechaProximaRenovacion);
                 return dias >= 0 && dias <= 30;
             })
             .map(h => ({
                 tipo: 'hosting' as const,
                 nombre: h.dominio,
                 fecha: h.fechaProximaRenovacion,
-                dias: calcularDiasRestantes(h.fechaProximaRenovacion)
+                dias: diasHastaFecha(h.fechaProximaRenovacion)
             })),
         ...dominiosContratados
             .filter(d => {
-                const dias = calcularDiasRestantes(d.fechaExpiracion);
+                const dias = diasHastaFecha(d.fechaExpiracion);
                 return dias >= 0 && dias <= 30;
             })
             .map(d => ({
                 tipo: 'dominio' as const,
                 nombre: d.nombre,
                 fecha: d.fechaExpiracion,
-                dias: calcularDiasRestantes(d.fechaExpiracion)
+                dias: diasHastaFecha(d.fechaExpiracion)
             }))
     ].sort((a, b) => a.dias - b.dias);
 

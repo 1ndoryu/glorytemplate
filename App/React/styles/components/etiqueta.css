@@ -68,6 +68,43 @@
     border-radius: var(--nakomi-radioSm);
 }
 
+/* === Variantes Semánticas (estados de sistemas) === */
+
+/* Éxito: completado, activo, pagado */
+.etiquetaExito {
+    color: var(--nakomi-exito);
+    background-color: var(--nakomi-exitoFondo);
+    border: 1px solid var(--nakomi-exitoBorde);
+}
+
+/* Alerta: pendiente, requiere atención */
+.etiquetaAlerta {
+    color: var(--nakomi-warning);
+    background-color: var(--nakomi-warningFondo);
+    border: 1px solid var(--nakomi-warningBorde);
+}
+
+/* Error: vencido, expirado, cancelado crítico */
+.etiquetaError {
+    color: var(--nakomi-error);
+    background-color: var(--nakomi-errorFondo);
+    border: 1px solid var(--nakomi-errorBorde);
+}
+
+/* Info: información neutral importante */
+.etiquetaInfo {
+    color: var(--nakomi-info);
+    background-color: var(--nakomi-infoFondo);
+    border: 1px solid var(--nakomi-infoBorde);
+}
+
+/* Neutro: estados inactivos, cancelados */
+.etiquetaNeutro {
+    color: var(--nakomi-textoApagado);
+    background-color: var(--nakomi-fondoTerciario);
+    border: 1px solid var(--nakomi-bordeSutil);
+}
+
 /* === Posicionamiento absoluto (para uso dentro de tarjetas) === */
 .etiquetaAbsoluta {
     position: absolute;

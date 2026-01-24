@@ -9,7 +9,7 @@ import React from 'react';
  * Reemplaza: tarjetaEtiqueta, precioEtiqueta, servicioCategoria, blogEtiqueta
  */
 
-type VarianteEtiqueta = 'default' | 'categoria' | 'precio' | 'estado' | 'destacado' | 'exito' | 'alerta' | 'info' | 'neutro';
+type VarianteEtiqueta = 'default' | 'categoria' | 'precio' | 'estado' | 'destacado' | 'exito' | 'alerta' | 'error' | 'info' | 'neutro';
 type TamanoEtiqueta = 'xs' | 'sm' | 'md';
 
 interface EtiquetaProps {
@@ -34,6 +34,7 @@ const mapeoVariante: Record<VarianteEtiqueta, string> = {
     destacado: 'etiquetaDestacado',
     exito: 'etiquetaExito',
     alerta: 'etiquetaAlerta',
+    error: 'etiquetaError',
     info: 'etiquetaInfo',
     neutro: 'etiquetaNeutro'
 };

@@ -101,6 +101,57 @@
     --nakomi-infoFondo: rgba(59, 130, 246, 0.1);
     --nakomi-infoBorde: rgba(59, 130, 246, 0.2);
 
+    /* === Estados de Productos (Hostings, Dominios, Servicios) === */
+    /* Estado: Activo */
+    --nakomi-estadoActivo: var(--nakomi-exito);
+    --nakomi-estadoActivoFondo: var(--nakomi-exitoFondo);
+    --nakomi-estadoActivoBorde: var(--nakomi-exitoBorde);
+
+    /* Estado: Suspendido / En Alerta */
+    --nakomi-estadoSuspendido: var(--nakomi-warning);
+    --nakomi-estadoSuspendidoFondo: var(--nakomi-warningFondo);
+    --nakomi-estadoSuspendidoBorde: var(--nakomi-warningBorde);
+
+    /* Estado: Cancelado / Error */
+    --nakomi-estadoCancelado: var(--nakomi-error);
+    --nakomi-estadoCanceladoFondo: var(--nakomi-errorFondo);
+    --nakomi-estadoCanceladoBorde: var(--nakomi-errorBorde);
+
+    /* Estado: Pendiente */
+    --nakomi-estadoPendiente: var(--nakomi-warning);
+    --nakomi-estadoPendienteFondo: var(--nakomi-warningFondo);
+    --nakomi-estadoPendienteBorde: var(--nakomi-warningBorde);
+
+    /* Estado: Expirado */
+    --nakomi-estadoExpirado: var(--nakomi-error);
+    --nakomi-estadoExpiradoFondo: var(--nakomi-errorFondo);
+    --nakomi-estadoExpiradoBorde: var(--nakomi-errorBorde);
+
+    /* Estado: Vencido (similar a expirado) */
+    --nakomi-estadoVencido: var(--nakomi-error);
+    --nakomi-estadoVencidoFondo: var(--nakomi-errorFondo);
+    --nakomi-estadoVencidoBorde: var(--nakomi-errorBorde);
+
+    /* Estado: En Progreso */
+    --nakomi-estadoEnProgreso: var(--nakomi-info);
+    --nakomi-estadoEnProgresoFondo: var(--nakomi-infoFondo);
+    --nakomi-estadoEnProgresoBorde: var(--nakomi-infoBorde);
+
+    /* Estado: Completado */
+    --nakomi-estadoCompletado: var(--nakomi-exito);
+    --nakomi-estadoCompletadoFondo: var(--nakomi-exitoFondo);
+    --nakomi-estadoCompletadoBorde: var(--nakomi-exitoBorde);
+
+    /* Estado: Pagado */
+    --nakomi-estadoPagado: var(--nakomi-exito);
+    --nakomi-estadoPagadoFondo: var(--nakomi-exitoFondo);
+    --nakomi-estadoPagadoBorde: var(--nakomi-exitoBorde);
+
+    /* Estado: Neutro / Desconocido */
+    --nakomi-estadoNeutro: var(--nakomi-textoApagado);
+    --nakomi-estadoNeutroFondo: var(--nakomi-fondoTerciario);
+    --nakomi-estadoNeutroBorde: var(--nakomi-bordeSutil);
+
     --nakomi-gradienteAvatar: linear-gradient(135deg, #3b82f6, #8b5cf6);
 
     /* === Tamaños de contenedor === */

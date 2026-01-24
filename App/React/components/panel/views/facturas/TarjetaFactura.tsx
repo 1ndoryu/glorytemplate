@@ -9,6 +9,7 @@ import {Tarjeta} from '../../../ui/Tarjeta';
 import {Etiqueta} from '../../../ui/Etiqueta';
 import {Boton} from '../../../ui/Boton';
 import {Factura} from '../../../../data/types/facturacion';
+import {formatearFecha} from '../../../../utils/fechaUtils';
 
 interface TarjetaFacturaProps {
     factura: Factura;
@@ -40,11 +41,6 @@ const etiquetasEstado = {
 
 export const TarjetaFactura: React.FC<TarjetaFacturaProps> = ({factura, onPagar, onVerDetalle, nombreCliente}) => {
     const esPagable = factura.estado === 'pendiente' || factura.estado === 'vencida';
-
-    const formatearFecha = (fechaIso: string): string => {
-        const fecha = new Date(fechaIso);
-        return fecha.toLocaleDateString('es-ES', {day: '2-digit', month: 'short', year: 'numeric'});
-    };
 
     return (
         <Tarjeta className={`tarjetaFactura estado${factura.estado.charAt(0).toUpperCase() + factura.estado.slice(1)}`}>

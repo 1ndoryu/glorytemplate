@@ -7,6 +7,7 @@ import React from 'react';
 import {X, CreditCard, FileText} from 'lucide-react';
 import {Boton} from '../../../ui/Boton';
 import {Factura} from '../../../../data/types/facturacion';
+import {formatearFecha} from '../../../../utils/fechaUtils';
 
 interface ModalPagarFacturaProps {
     factura: Factura | null;
@@ -17,11 +18,6 @@ interface ModalPagarFacturaProps {
 
 export const ModalPagarFactura: React.FC<ModalPagarFacturaProps> = ({factura, visible, onCerrar, onConfirmarPago}) => {
     if (!visible || !factura) return null;
-
-    const formatearFecha = (fechaIso: string): string => {
-        const fecha = new Date(fechaIso);
-        return fecha.toLocaleDateString('es-ES', {day: '2-digit', month: 'long', year: 'numeric'});
-    };
 
     const handlePagar = () => {
         /* TO-DO: Integrar con Stripe en Fase 5 */
@@ -48,8 +44,8 @@ export const ModalPagarFactura: React.FC<ModalPagarFacturaProps> = ({factura, vi
                             <p className="facturaDetalleConcepto">{factura.concepto}</p>
                         </div>
                         <div className="facturaDetalleFechas">
-                            <span>Emitida: {formatearFecha(factura.fechaEmision)}</span>
-                            <span>Vence: {formatearFecha(factura.fechaVencimiento)}</span>
+                            <span>Emitida: {formatearFecha(factura.fechaEmision, 'largo')}</span>
+                            <span>Vence: {formatearFecha(factura.fechaVencimiento, 'largo')}</span>
                         </div>
                     </div>
 

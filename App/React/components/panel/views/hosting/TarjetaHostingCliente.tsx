@@ -10,6 +10,7 @@ import {Tarjeta} from '../../../ui/Tarjeta';
 import {Etiqueta} from '../../../ui/Etiqueta';
 import {Boton} from '../../../ui/Boton';
 import {HostingContratado} from '../../../../data/types/hosting';
+import {formatearFecha} from '../../../../utils/fechaUtils';
 
 interface TarjetaHostingClienteProps {
     hosting: HostingContratado;
@@ -28,11 +29,6 @@ const etiquetasEstado = {
 export const TarjetaHostingCliente: React.FC<TarjetaHostingClienteProps> = ({hosting, onVerDetalle, onCambiarPlan, onPagar, nombreCliente}) => {
     const estadoConfig = etiquetasEstado[hosting.estado];
     const urlSitio = hosting.dominioTemporal ? `https://${hosting.dominioTemporal}` : `https://${hosting.dominio}`;
-
-    const formatearFecha = (fechaIso: string): string => {
-        const fecha = new Date(fechaIso);
-        return fecha.toLocaleDateString('es-ES', {day: '2-digit', month: 'short', year: 'numeric'});
-    };
 
     return (
         <Tarjeta className={`tarjetaHostingCliente estado${hosting.estado.charAt(0).toUpperCase() + hosting.estado.slice(1)}`}>
