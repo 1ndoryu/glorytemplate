@@ -3,5 +3,6 @@
  * Importa todos los archivos base en el orden correcto
  */
 
+@import './fonts.css';
 @import './reset.css';
 @import './tipografia.css';

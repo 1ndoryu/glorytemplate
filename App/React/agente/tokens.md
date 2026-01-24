@@ -96,8 +96,8 @@ Para feedback de estado (éxito, advertencia, error, información):
 ### Familias
 
 ```css
---nakomi-fuentePrincipal: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
---nakomi-fuenteDisplay: 'Gothic60', var(--nakomi-fuentePrincipal);
+--nakomi-fuentePrincipal: "CursorGothic", "CursorGothic Fallback", system-ui, Helvetica Neue, Helvetica, Arial, sans-serif;
+--nakomi-fuenteDisplay: "CursorGothic", var(--nakomi-fuentePrincipal);
 --nakomi-fuenteMono: 'JetBrains Mono', 'Fira Code', monospace;
 ```
 
