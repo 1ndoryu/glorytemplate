@@ -8,6 +8,7 @@ import {VistaFacturas} from './views/VistaFacturas';
 import {VistaPerfil} from './views/VistaPerfil';
 import {VistaServicios} from './views/VistaServicios';
 import {PaginaServicio} from './views/PaginaServicio';
+import {PaginaServicioContratado} from './views/PaginaServicioContratado';
 import {PanelProvider, usePanel} from '../../context/PanelContext';
 import {UsuarioProvider, useUsuario} from '../../context/UsuarioContext';
 import {ToggleSimulacion} from './ToggleSimulacion';
@@ -71,6 +72,8 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                 return <VistaPerfil />;
             case 'detalle_servicio':
                 return <PaginaServicio />;
+            case 'detalle_servicio_contratado':
+                return <PaginaServicioContratado />;
             default:
                 return <div className="vistaConstruccion">Sección en construcción</div>;
         }
@@ -79,6 +82,7 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
     // Obtener título de la vista actual
     const getActiveTitle = () => {
         if (vistaActual === 'detalle_servicio') return 'Detalle del Servicio';
+        if (vistaActual === 'detalle_servicio_contratado') return 'Mi Servicio';
         const item = menuItems.find(i => i.id === vistaActual);
         return item ? item.label : 'Panel';
     };

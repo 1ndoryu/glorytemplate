@@ -11,10 +11,11 @@ import {PlaceholderVacio} from '../../ui/PlaceholderVacio';
 import {usePanel} from '../../../context/PanelContext';
 import {useUsuario} from '../../../context/UsuarioContext';
 import {TarjetaServicioContratado} from './servicios/TarjetaServicioContratado';
+import {ServicioContratado} from '../../../data/types/servicio';
 import {formatearFecha, diasHastaFecha} from '../../../utils/fechaUtils';
 
 export const VistaResumen: React.FC = () => {
-    const {serviciosContratados, hostingsContratados, dominiosContratados, facturas} = usePanel();
+    const {serviciosContratados, hostingsContratados, dominiosContratados, facturas, navegarA} = usePanel();
     const {usuario} = useUsuario();
 
     /* Calcular deuda pendiente (solo facturas pendientes/vencidas) */
@@ -51,6 +52,11 @@ export const VistaResumen: React.FC = () => {
     ].sort((a, b) => a.dias - b.dias);
 
     const tieneContenido = serviciosActivos.length > 0 || proximasRenovaciones.length > 0 || deudaTotal > 0;
+
+    /* Handler para ver detalle de un servicio contratado */
+    const handleVerDetallesServicio = (servicio: ServicioContratado) => {
+        navegarA('detalle_servicio_contratado', {id: servicio.id});
+    };
 
     return (
         <div className="bloqueVista animate-fade-in" id="vistaDashboard">
@@ -106,7 +112,7 @@ export const VistaResumen: React.FC = () => {
                     <h3 className="dashboardSeccionTitulo">Servicios en progreso</h3>
                     <div className="dashboardSeccionLista">
                         {serviciosActivos.map(servicio => (
-                            <TarjetaServicioContratado key={servicio.id} servicio={servicio} />
+                            <TarjetaServicioContratado key={servicio.id} servicio={servicio} onVerDetalles={handleVerDetallesServicio} />
                         ))}
                     </div>
                 </section>

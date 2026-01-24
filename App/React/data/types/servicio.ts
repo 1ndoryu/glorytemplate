@@ -34,7 +34,10 @@ export interface ServicioContratado {
     precio: number;
     estado: EstadoServicio;
     fechaInicio: string;
+    fechaContratacion?: string;
     fechaEntregaEstimada?: string;
+    progreso?: number;
+    revisionesRestantes?: number;
     pagoAlFinalizar: boolean;
     incluyeHosting: boolean;
     incluyeDominio: boolean;

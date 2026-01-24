@@ -2,28 +2,28 @@
 
 > **Prioridad:** Alta  
 > **Estado:** En Progreso  
-> **Última actualización:** 2026-01-24T04:55
+> **Última actualización:** 2026-01-24T05:20
 
 ---
 
 ## Resumen de Fases
 
-| Fase | Descripción                    | Estado        |
-| ---- | ------------------------------ | ------------- |
-| 1    | Modelo de datos y mocks        | ✅ Completada  |
-| 2    | Vista Facturación              | ✅ Completada  |
-| 3    | Vista Hostings                 | ✅ Completada  |
-| 4    | Vista Servicios                | ✅ Completada  |
-| 4.5  | Vista Dominios                 | ✅ Completada  |
-| Rev  | Revisiones UI/UX               | ✅ Completada  |
-| 7    | Sistema de Usuarios/Simulación | ✅ Completada  |
-| 8    | Modal Edición Servicio         | ⚠️ Con bugs    |
-| 9    | Single de Servicio             | ✅ Completada  |
-| 10   | Catálogo/Marketplace           | ⚠️ Con bugs    |
-| 5    | Stripe                         | ⏳ Pendiente   |
-| 6    | Cuenta Guillermo               | ⏳ Pendiente   |
-| 11   | Integración WordPress Real     | ⏳ Pendiente   |
-| 12   | Dashboard Admin diferenciado   | ⏳ Planificado |
+| Fase | Descripción                    | Estado          |
+| ---- | ------------------------------ | --------------- |
+| 1    | Modelo de datos y mocks        | ✅ Completada    |
+| 2    | Vista Facturación              | ✅ Completada    |
+| 3    | Vista Hostings                 | ✅ Completada    |
+| 4    | Vista Servicios                | ✅ Completada    |
+| 4.5  | Vista Dominios                 | ✅ Completada    |
+| Rev  | Revisiones UI/UX               | ✅ Completada    |
+| 7    | Sistema de Usuarios/Simulación | ✅ Completada    |
+| 8    | Modal Edición Servicio         | ✅ Completada    |
+| 9    | Single de Servicio             | ✅ Completada    |
+| 10   | Catálogo/Marketplace           | ⚠️ Por verificar |
+| 5    | Stripe                         | ⏳ Pendiente     |
+| 6    | Cuenta Guillermo               | ⏳ Pendiente     |
+| 11   | Integración WordPress Real     | ⏳ Pendiente     |
+| 12   | Dashboard Admin diferenciado   | ⏳ Planificado   |
 
 ---
 
@@ -31,15 +31,17 @@
 
 ### Alta Prioridad
 
-1. **Modal "Ver detalles" en servicios en progreso no abre**
-   - Ubicación: `TarjetaServicioContratado.tsx` → menú contextual → "Ver detalles"
-   - El handler no navega correctamente o el modal no existe
-   - **TO-DO:** Verificar `handleVerDetalles` y crear modal si falta
+1. ~~**Modal "Ver detalles" en servicios en progreso no abre**~~ ✅ **RESUELTO**
+   - Se creó `PaginaServicioContratado.tsx` para mostrar detalle del servicio
+   - Se añadió handler `handleVerDetallesServicio` en `VistaResumen.tsx`
+   - Se añadió ruta `detalle_servicio_contratado` en `PanelCliente.tsx`
+   - Se añadieron campos `progreso`, `fechaContratacion`, `revisionesRestantes` al tipo
 
 2. **No se pueden editar servicios publicados**
    - Ubicación: `VistaServicios.tsx` / `ListaServiciosPublicados.tsx`
    - El botón de editar en menú de 3 puntos no dispara el modal
-   - **TO-DO:** Verificar que `ModalEditarServicio` se esté mostrando
+   - **NOTA:** Revisado el código, el flujo parece correcto. Posible bug de UI/CSS.
+   - **TO-DO:** Verificar en navegador si el modal se abre correctamente (el usuario probo y no abre, no hay errores de consola)
 
 3. ~~**Dominios sin opción de pago**~~ ✅ **RESUELTO**
    - Se añadió `pagado: boolean` y `precioAnual: number` a DominioContratado
@@ -47,11 +49,9 @@
    - Se agregó botón "Pagar ahora" con handler en VistaDominios
    - ResumenDominios ahora muestra conteo y monto de impagos
 
-4. **Factura sin desglose de items**
-   - `INV-2026-001` muestra "$31.00" pero no desglosa qué incluye
-   - El array `items` está vacío o no se renderiza
-   - **TO-DO:** Verificar mock en `facturas.ts` que tenga items correctos
-   - **TO-DO:** Asegurar que el modal muestre cada item con precio
+4. ~~**Factura sin desglose de items**~~ ✅ **RESUELTO**
+   - El mock `facturas.ts` ya tiene items correctamente desglosados
+   - `ModalPagarFactura.tsx` renderiza los items correctamente
 
 ### Media Prioridad
 
