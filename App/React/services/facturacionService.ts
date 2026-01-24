@@ -13,37 +13,50 @@ interface AdminStats {
     montoPendiente: number;
 }
 
+interface ApiResponse<T> {
+    success: boolean;
+    data: T;
+    message?: string;
+}
+
 export const facturacionService = {
     /* Servicios Publicados (Catálogo) */
     getServiciosPublicados: async (): Promise<ServicioPublicado[]> => {
-        return apiClient.get<ServicioPublicado[]>('glory/v1/servicios');
+        const response = await apiClient.get<ApiResponse<ServicioPublicado[]>>('glory/v1/servicios');
+        return response.data || [];
     },
 
     getServicioPublicado: async (id: string): Promise<ServicioPublicado> => {
-        return apiClient.get<ServicioPublicado>(`glory/v1/servicios/${id}`);
+        const response = await apiClient.get<ApiResponse<ServicioPublicado>>(`glory/v1/servicios/${id}`);
+        return response.data;
     },
 
     /* Hostings y Dominios */
     getHostingsContratados: async (): Promise<HostingContratado[]> => {
-        return apiClient.get<HostingContratado[]>('glory/v1/hostings');
+        const response = await apiClient.get<ApiResponse<HostingContratado[]>>('glory/v1/hostings');
+        return response.data || [];
     },
 
     getDominiosContratados: async (): Promise<DominioContratado[]> => {
-        return apiClient.get<DominioContratado[]>('glory/v1/dominios');
+        const response = await apiClient.get<ApiResponse<DominioContratado[]>>('glory/v1/dominios');
+        return response.data || [];
     },
 
     /* Trabajos (Servicios Contratados) */
     getServiciosContratados: async (): Promise<ServicioContratado[]> => {
-        return apiClient.get<ServicioContratado[]>('glory/v1/trabajos');
+        const response = await apiClient.get<ApiResponse<ServicioContratado[]>>('glory/v1/trabajos');
+        return response.data || [];
     },
 
     getServicioContratado: async (id: string): Promise<ServicioContratado> => {
-        return apiClient.get<ServicioContratado>(`glory/v1/trabajos/${id}`);
+        const response = await apiClient.get<ApiResponse<ServicioContratado>>(`glory/v1/trabajos/${id}`);
+        return response.data;
     },
 
     /* Facturas */
     getFacturas: async (): Promise<Factura[]> => {
-        return apiClient.get<Factura[]>('glory/v1/facturas');
+        const response = await apiClient.get<ApiResponse<Factura[]>>('glory/v1/facturas');
+        return response.data || [];
     },
 
     pagarFactura: async (id: string, metodoPago: string): Promise<{success: boolean; message: string}> => {
@@ -53,10 +66,12 @@ export const facturacionService = {
 
     /* Admin */
     getClientes: async (): Promise<Cliente[]> => {
-        return apiClient.get<Cliente[]>('glory/v1/admin/clientes');
+        const response = await apiClient.get<ApiResponse<Cliente[]>>('glory/v1/admin/clientes');
+        return response.data || [];
     },
 
     getEstadisticasAdmin: async (): Promise<AdminStats> => {
-        return apiClient.get<AdminStats>('glory/v1/admin/stats');
+        const response = await apiClient.get<ApiResponse<AdminStats>>('glory/v1/admin/stats');
+        return response.data;
     }
 };
