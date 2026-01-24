@@ -39,6 +39,12 @@ export const VistaHosting: React.FC = () => {
         }
     };
 
+    const handlePagar = (hosting: HostingContratado) => {
+        /* TO-DO: Buscar factura asociada y abrir modal de pago */
+        /* Por ahora, simulación */
+        alert(`Iniciando proceso de pago para hosting: ${hosting.dominio}\n(Funcionalidad en desarrollo - Fase Stripe)`);
+    };
+
     /* Helper para obtener nombre del cliente */
     const obtenerNombreCliente = (clienteId: string): string => {
         const cliente = clientes.find(c => c.id === clienteId);
@@ -54,7 +60,7 @@ export const VistaHosting: React.FC = () => {
 
             <ResumenHostings hostings={hostingsContratados} />
 
-            <ListaHostingsCliente hostings={hostingsContratados} onVerDetalle={handleVerDetalle} onCambiarPlan={handleCambiarPlan} mostrarCliente={esVistaAdmin} obtenerNombreCliente={obtenerNombreCliente} />
+            <ListaHostingsCliente hostings={hostingsContratados} onVerDetalle={handleVerDetalle} onCambiarPlan={handleCambiarPlan} mostrarCliente={esVistaAdmin} obtenerNombreCliente={obtenerNombreCliente} onPagar={handlePagar} />
 
             {/* Modales */}
             <ModalCambiarPlan hosting={hostingSeleccionado} visible={modalVisible} onCerrar={() => setModalVisible(false)} onConfirmar={confirmarCambioPlan} />

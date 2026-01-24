@@ -13,9 +13,10 @@ interface ListaHostingsClienteProps {
     onCambiarPlan: (hosting: HostingContratado) => void;
     mostrarCliente?: boolean;
     obtenerNombreCliente?: (clienteId: string) => string;
+    onPagar?: (hosting: HostingContratado) => void;
 }
 
-export const ListaHostingsCliente: React.FC<ListaHostingsClienteProps> = ({hostings, onVerDetalle, onCambiarPlan, mostrarCliente = false, obtenerNombreCliente}) => {
+export const ListaHostingsCliente: React.FC<ListaHostingsClienteProps> = ({hostings, onVerDetalle, onCambiarPlan, mostrarCliente = false, obtenerNombreCliente, onPagar}) => {
     if (hostings.length === 0) {
         return (
             <div className="hostingsVacio">
@@ -27,7 +28,7 @@ export const ListaHostingsCliente: React.FC<ListaHostingsClienteProps> = ({hosti
     return (
         <div className="hostingsGrid">
             {hostings.map(hosting => (
-                <TarjetaHostingCliente key={hosting.id} hosting={hosting} onVerDetalle={onVerDetalle} onCambiarPlan={onCambiarPlan} nombreCliente={mostrarCliente && obtenerNombreCliente ? obtenerNombreCliente(hosting.clienteId) : undefined} />
+                <TarjetaHostingCliente key={hosting.id} hosting={hosting} onVerDetalle={onVerDetalle} onCambiarPlan={onCambiarPlan} nombreCliente={mostrarCliente && obtenerNombreCliente ? obtenerNombreCliente(hosting.clienteId) : undefined} onPagar={onPagar} />
             ))}
         </div>
     );

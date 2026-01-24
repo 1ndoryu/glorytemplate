@@ -19,8 +19,8 @@ interface TarjetaDominioProps {
 
 const etiquetasEstado = {
     activo: {label: 'Activo', variante: 'exito' as const, icono: <CheckCircle size={12} />},
-    expirado: {label: 'Expirado', variante: 'error' as const, icono: <AlertCircle size={12} />},
-    pendiente: {label: 'Pendiente', variante: 'warning' as const, icono: <Clock size={12} />}
+    expirado: {label: 'Expirado', variante: 'alerta' as const, icono: <AlertCircle size={12} />},
+    pendiente: {label: 'Pendiente', variante: 'alerta' as const, icono: <Clock size={12} />}
 };
 
 export const TarjetaDominio: React.FC<TarjetaDominioProps> = ({dominio, onRenovar, nombreCliente}) => {

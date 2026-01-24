@@ -320,7 +320,7 @@ App/React/
 
 ### Funcionalidad pendiente
 
-- [ ] **Pago por hosting individual** - El cliente puede pagar hostings uno por uno
+- [x] **Pago por hosting individual** - El cliente puede pagar hostings uno por uno (Mock implementado)
 - [x] **Cambiar plan: mensual ↔ anual** - Modal para cambiar plan con diferencia de precio
 - [x] **Modal confirmación cambio plan** - Mostrar nuevo precio y fecha de renovación
 

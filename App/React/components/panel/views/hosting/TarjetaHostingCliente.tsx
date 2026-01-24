@@ -15,16 +15,17 @@ interface TarjetaHostingClienteProps {
     hosting: HostingContratado;
     onVerDetalle: (hosting: HostingContratado) => void;
     onCambiarPlan: (hosting: HostingContratado) => void;
+    onPagar?: (hosting: HostingContratado) => void;
     nombreCliente?: string;
 }
 
 const etiquetasEstado = {
     activo: {label: 'Activo', variante: 'exito' as const, icono: <CheckCircle size={12} />},
-    suspendido: {label: 'Suspendido', variante: 'error' as const, icono: <AlertCircle size={12} />},
+    suspendido: {label: 'Suspendido', variante: 'alerta' as const, icono: <AlertCircle size={12} />},
     cancelado: {label: 'Cancelado', variante: 'neutro' as const, icono: <AlertCircle size={12} />}
 };
 
-export const TarjetaHostingCliente: React.FC<TarjetaHostingClienteProps> = ({hosting, onVerDetalle, onCambiarPlan, nombreCliente}) => {
+export const TarjetaHostingCliente: React.FC<TarjetaHostingClienteProps> = ({hosting, onVerDetalle, onCambiarPlan, onPagar, nombreCliente}) => {
     const estadoConfig = etiquetasEstado[hosting.estado];
     const urlSitio = hosting.dominioTemporal ? `https://${hosting.dominioTemporal}` : `https://${hosting.dominio}`;
 
@@ -80,6 +81,11 @@ export const TarjetaHostingCliente: React.FC<TarjetaHostingClienteProps> = ({hos
                 <Boton variante="outline" tamano="sm" onClick={() => onCambiarPlan(hosting)}>
                     Cambiar plan
                 </Boton>
+                {!hosting.pagado && onPagar && (
+                    <Boton variante="acento" tamano="sm" onClick={() => onPagar(hosting)}>
+                        Pagar ahora
+                    </Boton>
+                )}
             </div>
         </Tarjeta>
     );
