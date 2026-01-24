@@ -636,5 +636,152 @@ const {usuario, esAdmin, simulando, toggleSimulacion} = useUsuario();
 
 ---
 
+## Sistema de Servicios y Trabajos - Arquitectura Completa
+
+### Flujo de Trabajo
+
+```
+ADMIN (Proveedor)                        CLIENTE
+─────────────────                        ───────
+1. Publica servicios en catálogo         
+                                         2. Explora catálogo
+                                         3. Contrata servicio
+4. Recibe notificación de nuevo trabajo  
+5. Acepta/Rechaza el trabajo             
+6. Trabaja en el proyecto                7. Ve progreso en Dashboard
+   ↳ Actualiza progreso (%)              
+   ↳ Sube entregables                    8. Recibe notificación de avance
+   ↳ Envía mensaje                       9. Responde mensaje
+10. Marca como "Listo para revisión"     
+                                         11. Revisa entrega
+                                         12a. Aprueba → Completado
+                                         12b. Solicita revisión → Vuelve a paso 6
+13. Sistema genera factura automática    14. Paga factura vía Stripe
+15. Recibe pago                          
+```
+
+### Entidades de Datos en WordPress
+
+#### ServicioPublicado (CPT: `glory_servicio`)
+
+```
+glory_servicio (Custom Post Type)
+├── post_title: "Diseño Web Profesional"
+├── post_content: descripción larga
+├── post_author: ID del proveedor
+├── post_status: publish/draft
+├── post_meta:
+│   ├── _precio: 270
+│   ├── _tiempo_entrega_dias: 30
+│   ├── _categoria: "diseno_web"
+│   ├── _imagen_destacada: URL
+│   ├── _incluye_hosting_meses: 12
+│   ├── _incluye_dominio: true
+│   └── _activo: true
+```
+
+#### ServicioContratado (CPT: `glory_trabajo`)
+
+```
+glory_trabajo (Custom Post Type)
+├── post_title: "Diseño Web - CAP" (generado)
+├── post_author: ID del cliente
+├── post_status: publish
+├── post_meta:
+│   ├── _servicio_publicado_id: ID del servicio base
+│   ├── _proveedor_id: ID del proveedor
+│   ├── _estado: "en_progreso" | "revision" | "completado" | "cancelado"
+│   ├── _progreso_porcentaje: 65
+│   ├── _fecha_contratacion: "2026-01-01"
+│   ├── _fecha_entrega_estimada: "2026-01-31"
+│   ├── _fecha_completado: null
+│   ├── _precio_acordado: 270
+│   ├── _revisiones_restantes: 2
+│   ├── _notas_internas: "Cliente pidió diseño oscuro"
+│   └── _factura_id: null (se genera al completar)
+```
+
+#### Actualizaciones de Progreso (CPT: `glory_actualizacion`)
+
+```
+glory_actualizacion (Custom Post Type)
+├── post_title: "Avance del diseño"
+├── post_content: "He completado la estructura..."
+├── post_author: ID de quien publica
+├── post_parent: ID del trabajo
+├── post_meta:
+│   ├── _tipo: "progreso" | "entrega" | "revision_solicitada"
+│   ├── _porcentaje_anterior: 30
+│   ├── _porcentaje_nuevo: 65
+│   └── _archivos: ["url1.jpg", "url2.pdf"]
+```
+
+#### Mensajes (CPT: `glory_mensaje`)
+
+```
+glory_mensaje (Custom Post Type)
+├── post_content: contenido del mensaje
+├── post_author: ID del remitente
+├── post_parent: ID del trabajo
+├── post_date: timestamp
+├── post_meta:
+│   ├── _leido: false
+│   └── _archivos: [] (adjuntos opcionales)
+```
+
+### Sistema de Revisiones
+
+| Campo                   | Descripción                            |
+| ----------------------- | -------------------------------------- |
+| `_revisiones_restantes` | Número de revisiones incluidas (ej: 2) |
+| `_revisiones_usadas`    | Contador de revisiones solicitadas     |
+
+**Flujo de revisión:**
+1. Proveedor marca trabajo como "Listo para revisión"
+2. Cliente revisa y puede:
+   - **Aprobar** → Estado cambia a "completado", se genera factura
+   - **Solicitar revisión** → `_revisiones_usadas++`, estado vuelve a "en_progreso"
+3. Si `_revisiones_usadas >= _revisiones_restantes`, revisiones extra tienen costo adicional
+
+### Generación Automática de Facturas
+
+**Trigger:** Cuando `_estado` cambia a `"completado"`
+
+**Proceso:**
+1. Sistema lee `_precio_acordado` del trabajo
+2. Crea nueva factura en `glory_factura` (CPT)
+3. Asocia items: servicio base + extras si hubo revisiones adicionales
+4. Estado inicial: `"pendiente"`
+5. Notifica al cliente por email
+
+### Endpoints REST Necesarios
+
+| Endpoint                           | Método   | Descripción                           |
+| ---------------------------------- | -------- | ------------------------------------- |
+| `/glory/v1/servicios`              | GET      | Lista servicios publicados (catálogo) |
+| `/glory/v1/servicios/{id}`         | GET      | Detalle de un servicio                |
+| `/glory/v1/trabajos`               | GET      | Trabajos del usuario actual           |
+| `/glory/v1/trabajos/{id}`          | GET      | Detalle de un trabajo                 |
+| `/glory/v1/trabajos/{id}/progreso` | POST     | Actualizar progreso                   |
+| `/glory/v1/trabajos/{id}/mensajes` | GET/POST | Leer/enviar mensajes                  |
+| `/glory/v1/trabajos/{id}/revision` | POST     | Solicitar revisión                    |
+| `/glory/v1/trabajos/{id}/aprobar`  | POST     | Aprobar entrega                       |
+| `/glory/v1/facturas`               | GET      | Facturas del usuario                  |
+| `/glory/v1/facturas/{id}/pagar`    | POST     | Iniciar pago Stripe                   |
+
+---
+
+## Nota sobre Datos Mock
+
+Los datos de prueba actuales (María López, sus hostings, dominios y factura) son **temporales** para desarrollo. Al implementar la Fase 11, serán reemplazados por datos reales de WordPress.
+
+**Datos reales confirmados:**
+- Cliente: Guillermo (CLI-001)
+- 3 Hostings reales
+- 2 Dominios reales
+- 1 Servicio contratado: Diseño Web CAP
+
+---
+
 *Este documento se actualizará conforme avance la implementación.*
-*Última actualización: 2026-01-22*
+*Última actualización: 2026-01-23*
