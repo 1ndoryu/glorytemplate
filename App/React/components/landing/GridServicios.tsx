@@ -19,6 +19,7 @@ export interface Servicio {
     categoria?: string;
     tiempoEstimado?: string;
     imagenUrl?: string; /* Deuda técnica: Unificar con imagen/imagenRef en el futuro */
+    activo?: boolean; /* Para filtrar servicios disponibles en Marketplace */
 }
 
 /* Tipo para los modos de visualización disponibles */

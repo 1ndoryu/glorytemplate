@@ -29,7 +29,8 @@ export const serviciosEjemplo: Servicio[] = [
         imagenUrl: refAUrl(IMAGENES_SERVICIOS.diseno)!,
         descripcion: 'Transforma tu presencia en línea con un diseño web premium. Creamos sitios web únicos, rápidos y optimizados para SEO que no solo se ven increíbles, sino que también convierten visitantes en clientes.',
         categoria: 'Diseño',
-        tiempoEstimado: '2-3 semanas'
+        tiempoEstimado: '2-3 semanas',
+        activo: true
     },
     {
         id: 'aplicaciones',
@@ -41,7 +42,8 @@ export const serviciosEjemplo: Servicio[] = [
         imagenUrl: refAUrl(IMAGENES_SERVICIOS.aplicaciones)!,
         descripcion: 'Desarrollamos aplicaciones móviles y web a medida, escalables y seguras, diseñadas específicamente para cubrir las necesidades únicas de tu negocio y usuarios.',
         categoria: 'Desarrollo',
-        tiempoEstimado: '4-8 semanas'
+        tiempoEstimado: '4-8 semanas',
+        activo: true
     },
     {
         id: 'ecommerce',
@@ -53,7 +55,8 @@ export const serviciosEjemplo: Servicio[] = [
         imagenUrl: refAUrl(IMAGENES_SERVICIOS.ecommerce)!,
         descripcion: 'Lanza tu tienda online con una plataforma robusta, segura y fácil de gestionar. Optimizada para ventas y conversión desde el primer día.',
         categoria: 'E-commerce',
-        tiempoEstimado: '3-4 semanas'
+        tiempoEstimado: '3-4 semanas',
+        activo: true
     },
     {
         id: 'branding',
@@ -65,7 +68,8 @@ export const serviciosEjemplo: Servicio[] = [
         imagenUrl: refAUrl(IMAGENES_SERVICIOS.branding)!,
         descripcion: 'Creamos identidades de marca memorables. Desde el logotipo hasta la guía de estilo completa, te ayudamos a comunicar la esencia de tu negocio.',
         categoria: 'Diseño',
-        tiempoEstimado: '1-2 semanas'
+        tiempoEstimado: '1-2 semanas',
+        activo: true
     },
     {
         id: 'automatizacion',
@@ -77,7 +81,8 @@ export const serviciosEjemplo: Servicio[] = [
         imagenUrl: refAUrl(IMAGENES_SERVICIOS.automatizacion)!,
         descripcion: 'Ahorra tiempo y recursos automatizando tareas repetitivas. Conectamos tus herramientas favoritas y creamos flujos de trabajo eficientes.',
         categoria: 'Automatización',
-        tiempoEstimado: '1 semana'
+        tiempoEstimado: '1 semana',
+        activo: true
     },
     {
         id: 'consultoria',
@@ -89,7 +94,8 @@ export const serviciosEjemplo: Servicio[] = [
         imagenUrl: refAUrl(IMAGENES_SERVICIOS.consultoria)!,
         descripcion: 'Obtén asesoramiento experto para tomar decisiones tecnológicas informadas. Analizamos tu situación y proponemos las mejores soluciones.',
         categoria: 'Consultoría',
-        tiempoEstimado: 'Por horas / Proyecto'
+        tiempoEstimado: 'Por horas / Proyecto',
+        activo: true
     },
     {
         id: 'mantenimiento',
@@ -101,7 +107,8 @@ export const serviciosEjemplo: Servicio[] = [
         imagenUrl: refAUrl(IMAGENES_SERVICIOS.mantenimiento)!,
         descripcion: 'Mantén tu sitio web seguro, rápido y actualizado. Nos encargamos de las copias de seguridad, actualizaciones y pequeños cambios.',
         categoria: 'Mantenimiento',
-        tiempoEstimado: 'Mensual'
+        tiempoEstimado: 'Mensual',
+        activo: true
     },
     {
         id: 'seo',
@@ -113,6 +120,7 @@ export const serviciosEjemplo: Servicio[] = [
         imagenUrl: refAUrl(IMAGENES_SERVICIOS.seo)!,
         descripcion: 'Mejora tu visibilidad en Google y atrae más tráfico orgánico. Estrategias de SEO on-page, off-page y análisis de rendimiento.',
         categoria: 'Marketing',
-        tiempoEstimado: 'Mensual'
+        tiempoEstimado: 'Mensual',
+        activo: true
     }
 ];

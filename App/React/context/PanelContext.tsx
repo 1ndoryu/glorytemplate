@@ -154,7 +154,7 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
         await new Promise(resolve => setTimeout(resolve, 600));
 
         setProyectos([]);
-        setServicios(serviciosEjemplo);
+        setServicios(serviciosEjemplo.filter(s => s.activo !== false));
         setServerStats({
             cpu: 45,
             ram: 2.4,

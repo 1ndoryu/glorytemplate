@@ -2,28 +2,28 @@
 
 > **Prioridad:** Alta  
 > **Estado:** En Progreso  
-> **Última actualización:** 2026-01-24T05:20
+> **Última actualización:** 2026-01-24T15:48
 
 ---
 
 ## Resumen de Fases
 
-| Fase | Descripción                    | Estado          |
-| ---- | ------------------------------ | --------------- |
-| 1    | Modelo de datos y mocks        | ✅ Completada    |
-| 2    | Vista Facturación              | ✅ Completada    |
-| 3    | Vista Hostings                 | ✅ Completada    |
-| 4    | Vista Servicios                | ✅ Completada    |
-| 4.5  | Vista Dominios                 | ✅ Completada    |
-| Rev  | Revisiones UI/UX               | ✅ Completada    |
-| 7    | Sistema de Usuarios/Simulación | ✅ Completada    |
-| 8    | Modal Edición Servicio         | ✅ Completada    |
-| 9    | Single de Servicio             | ✅ Completada    |
-| 10   | Catálogo/Marketplace           | ⚠️ Por verificar |
-| 5    | Stripe                         | ⏳ Pendiente     |
-| 6    | Cuenta Guillermo               | ⏳ Pendiente     |
-| 11   | Integración WordPress Real     | ⏳ Pendiente     |
-| 12   | Dashboard Admin diferenciado   | ⏳ Planificado   |
+| Fase | Descripción                    | Estado        |
+| ---- | ------------------------------ | ------------- |
+| 1    | Modelo de datos y mocks        | ✅ Completada  |
+| 2    | Vista Facturación              | ✅ Completada  |
+| 3    | Vista Hostings                 | ✅ Completada  |
+| 4    | Vista Servicios                | ✅ Completada  |
+| 4.5  | Vista Dominios                 | ✅ Completada  |
+| Rev  | Revisiones UI/UX               | ✅ Completada  |
+| 7    | Sistema de Usuarios/Simulación | ✅ Completada  |
+| 8    | Modal Edición Servicio         | ✅ Completada  |
+| 9    | Single de Servicio             | ✅ Completada  |
+| 10   | Catálogo/Marketplace           | ✅ Completada  |
+| 5    | Stripe                         | ⏳ Pendiente   |
+| 6    | Cuenta Guillermo               | ⏳ Pendiente   |
+| 11   | Integración WordPress Real     | ⏳ Pendiente   |
+| 12   | Dashboard Admin diferenciado   | ⏳ Planificado |
 
 ---
 
@@ -37,12 +37,10 @@
    - Se añadió ruta `detalle_servicio_contratado` en `PanelCliente.tsx`
    - Se añadieron campos `progreso`, `fechaContratacion`, `revisionesRestantes` al tipo
 
-2. **No se pueden editar servicios publicados**
+2. **No se pueden editar servicios publicados** ✅ **RESUELTO**
    - Ubicación: `VistaServicios.tsx` / `ListaServiciosPublicados.tsx`
    - El botón de editar en menú de 3 puntos no dispara el modal
-   - **NOTA:** Revisado el código, el flujo parece correcto. Posible bug de UI/CSS.
-   - **TO-DO:** Verificar en navegador si el modal se abre correctamente (el usuario probo y no abre, no hay errores de consola)
-
+   - 
 3. ~~**Dominios sin opción de pago**~~ ✅ **RESUELTO**
    - Se añadió `pagado: boolean` y `precioAnual: number` a DominioContratado
    - Se agregó alerta visual de "Pago pendiente" en TarjetaDominio
@@ -55,10 +53,11 @@
 
 ### Media Prioridad
 
-5. **Inconsistencia en Marketplace**
-   - Marketplace debería mostrar servicios PUBLICADOS activos
-   - Verificar que filtre solo `activo: true`
-   - **TO-DO:** Revisar origen de datos en `VistaMarketplace.tsx`
+5. ~~**Inconsistencia en Marketplace**~~ ✅ **RESUELTO**
+   - Se añadió propiedad `activo?: boolean` al tipo `Servicio`
+   - Se añadió `activo: true` a todos los servicios del mock `servicios.ts`
+   - `PanelContext.tsx` ahora filtra solo servicios activos para el Marketplace
+   - Marketplace mostrará únicamente servicios con `activo: true`
 
 6. **Incoherencia de datos entre vistas**
    - Los hostings muestran botón "Pagar" pero los dominios no (resuelto)
