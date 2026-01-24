@@ -5,7 +5,8 @@
  */
 
 import React, {useMemo} from 'react';
-import {Users, DollarSign, Briefcase, AlertTriangle, TrendingUp} from 'lucide-react';
+import {Users, DollarSign, Briefcase, AlertTriangle, TrendingUp, Database} from 'lucide-react';
+import {apiClient} from '../../../../data/api/client';
 import {usePanel} from '../../../../context/PanelContext';
 import {useUsuario} from '../../../../context/UsuarioContext';
 import {TarjetaResumenGlobal, DatosResumenGlobal} from './TarjetaResumenGlobal';
@@ -151,11 +152,28 @@ export const VistaResumenAdmin: React.FC = () => {
         navegarA('detalle_servicio_contratado', {id: trabajo.id});
     };
 
+    const handleSeed = async () => {
+        if (!confirm('¿Estás seguro de inicializar los datos de prueba? Esto creará usuarios y posts si no existen.')) return;
+        try {
+            const res = await apiClient.post<any>('glory/v1/seed', {});
+            alert('Seed completado: ' + JSON.stringify(res.message));
+            window.location.reload();
+        } catch (e) {
+            alert('Error al ejecutar seed: ' + e);
+        }
+    };
+
     return (
         <div className="bloqueVista animate-fade-in" id="vistaDashboardAdmin">
-            <div className="vistaHeader">
-                <h2 className="vistaTitulo">Hola, {usuario.nombre}</h2>
-                <p className="vistaSubtitulo">Panel de administración</p>
+            <div className="vistaHeader flex justify-between items-center">
+                <div>
+                    <h2 className="vistaTitulo">Hola, {usuario.nombre}</h2>
+                    <p className="vistaSubtitulo">Panel de administración</p>
+                </div>
+                <button onClick={handleSeed} className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition">
+                    <Database size={16} />
+                    Inicializar Datos Demo
+                </button>
             </div>
 
             {/* Tarjetas de resumen global */}

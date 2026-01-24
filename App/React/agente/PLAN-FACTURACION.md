@@ -2,7 +2,7 @@
 
 > **Prioridad:** Alta  
 > **Estado:** En Progreso  
-> **Última actualización:** 2026-01-24T16:10
+> **Última actualización:** 2026-01-24T18:00 (Seeder & CPTs)
 
 ---
 
@@ -21,8 +21,8 @@
 | 9    | Single de Servicio             | ✅ Completada                 |
 | 10   | Catálogo/Marketplace           | ✅ Completada                 |
 | 5    | Stripe                         | ⏳ En Progreso (UI & Backend) |
-| 6    | Cuenta Guillermo               | ⏳ Pendiente                  |
-| 11   | Integración WordPress Real     | ⏳ En Progreso (CPTs & Rutas) |
+| 6    | Cuenta Guillermo               | ✅ Completada (Seeder)        |
+| 11   | Integración WordPress Real     | ✅ Completada                 |
 | 12   | Dashboard Admin diferenciado   | ✅ Completada                 |
 
 ---
@@ -285,10 +285,11 @@ PROVEEDOR                               CLIENTE
 ### Tareas de implementación
 
 - [x] **Crear CPTs** - Archivo `App/PostTypes/FacturacionPostTypes.php`
-- [x] **Crear endpoints** - Archivo `App/Api/FacturacionApi.php`
+- [x] **Crear endpoints** - Archivo `App/Api/Facturacion/FacturacionRouter.php`
 - [x] **Leer usuario WP** - Modificar `UsuarioContext.tsx` para leer `window.wpUser`
 - [x] **Migrar mocks** - Reemplazar imports de mocks por llamadas fetch a API (`facturacionService.ts`)
 - [x] **Permisos** - Middleware que verifica rol en cada endpoint
+- [x] **Seeder** - Script de inicialización de datos (`App/Setup/GlorySeeder.php`) y botón en Dashboard Admin
 
 ---
 

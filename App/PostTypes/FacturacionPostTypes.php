@@ -15,6 +15,7 @@ class FacturacionPostTypes
         self::registrarTrabajo();
         self::registrarFactura();
         self::registrarHosting();
+        self::registrarDominio();
     }
 
     private static function registrarServicioPublicado()
@@ -138,6 +139,36 @@ class FacturacionPostTypes
             'hierarchical'       => false,
             'menu_position'      => 23,
             'menu_icon'          => 'dashicons-cloud',
+            'supports'           => ['title', 'author', 'custom-fields'],
+            'show_in_rest'       => true,
+        ]);
+    }
+
+    private static function registrarDominio()
+    {
+        $labels = [
+            'name'                  => 'Dominios',
+            'singular_name'         => 'Dominio',
+            'menu_name'             => 'Dominios',
+            'name_admin_bar'        => 'Dominio',
+            'all_items'             => 'Todos los Dominios',
+            'add_new_item'          => 'Registrar Dominio',
+            'edit_item'             => 'Editar Dominio',
+            'view_item'             => 'Ver Dominio',
+        ];
+
+        register_post_type('glory_dominio', [
+            'labels'             => $labels,
+            'public'             => false,
+            'publicly_queryable' => false,
+            'show_ui'            => true,
+            'show_in_menu'       => true,
+            'query_var'          => false,
+            'capability_type'    => 'post',
+            'has_archive'        => false,
+            'hierarchical'       => false,
+            'menu_position'      => 24,
+            'menu_icon'          => 'dashicons-admin-site',
             'supports'           => ['title', 'author', 'custom-fields'],
             'show_in_rest'       => true,
         ]);

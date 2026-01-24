@@ -8,6 +8,7 @@ use App\Api\Facturacion\Controllers\FacturasController;
 use App\Api\Facturacion\Controllers\ProductosController;
 use App\Api\Facturacion\Controllers\UsuarioController;
 use App\Api\Facturacion\Controllers\AdminStatsController;
+use App\Api\Facturacion\Controllers\SetupController;
 use App\Api\Facturacion\Controllers\BaseController;
 use WP_REST_Server;
 
@@ -117,6 +118,13 @@ class FacturacionRouter
         register_rest_route(self::API_NAMESPACE, '/admin/stats', [
             'methods' => WP_REST_Server::READABLE,
             'callback' => [AdminStatsController::class, 'getEstadisticasAdmin'],
+            'permission_callback' => [BaseController::class, 'esAdmin'],
+        ]);
+
+        /* Setup / Seed */
+        register_rest_route(self::API_NAMESPACE, '/seed', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [SetupController::class, 'runSeed'],
             'permission_callback' => [BaseController::class, 'esAdmin'],
         ]);
     }
