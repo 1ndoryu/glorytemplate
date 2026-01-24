@@ -25,7 +25,11 @@ export const serviciosEjemplo: Servicio[] = [
         descripcionCorta: 'Sitios web únicos con atención al detalle',
         precioDesde: 2500,
         imagen: refAUrl(IMAGENES_SERVICIOS.diseno)!,
-        imagenRef: IMAGENES_SERVICIOS.diseno
+        imagenRef: IMAGENES_SERVICIOS.diseno,
+        imagenUrl: refAUrl(IMAGENES_SERVICIOS.diseno)!,
+        descripcion: 'Transforma tu presencia en línea con un diseño web premium. Creamos sitios web únicos, rápidos y optimizados para SEO que no solo se ven increíbles, sino que también convierten visitantes en clientes.',
+        categoria: 'Diseño',
+        tiempoEstimado: '2-3 semanas'
     },
     {
         id: 'aplicaciones',
@@ -33,7 +37,11 @@ export const serviciosEjemplo: Servicio[] = [
         descripcionCorta: 'Software personalizado para tu negocio',
         precioDesde: 5000,
         imagen: refAUrl(IMAGENES_SERVICIOS.aplicaciones)!,
-        imagenRef: IMAGENES_SERVICIOS.aplicaciones
+        imagenRef: IMAGENES_SERVICIOS.aplicaciones,
+        imagenUrl: refAUrl(IMAGENES_SERVICIOS.aplicaciones)!,
+        descripcion: 'Desarrollamos aplicaciones móviles y web a medida, escalables y seguras, diseñadas específicamente para cubrir las necesidades únicas de tu negocio y usuarios.',
+        categoria: 'Desarrollo',
+        tiempoEstimado: '4-8 semanas'
     },
     {
         id: 'ecommerce',
@@ -41,7 +49,11 @@ export const serviciosEjemplo: Servicio[] = [
         descripcionCorta: 'Tiendas online optimizadas para conversión',
         precioDesde: 3500,
         imagen: refAUrl(IMAGENES_SERVICIOS.ecommerce)!,
-        imagenRef: IMAGENES_SERVICIOS.ecommerce
+        imagenRef: IMAGENES_SERVICIOS.ecommerce,
+        imagenUrl: refAUrl(IMAGENES_SERVICIOS.ecommerce)!,
+        descripcion: 'Lanza tu tienda online con una plataforma robusta, segura y fácil de gestionar. Optimizada para ventas y conversión desde el primer día.',
+        categoria: 'E-commerce',
+        tiempoEstimado: '3-4 semanas'
     },
     {
         id: 'branding',
@@ -49,7 +61,11 @@ export const serviciosEjemplo: Servicio[] = [
         descripcionCorta: 'Identidad visual que perdura',
         precioDesde: 1500,
         imagen: refAUrl(IMAGENES_SERVICIOS.branding)!,
-        imagenRef: IMAGENES_SERVICIOS.branding
+        imagenRef: IMAGENES_SERVICIOS.branding,
+        imagenUrl: refAUrl(IMAGENES_SERVICIOS.branding)!,
+        descripcion: 'Creamos identidades de marca memorables. Desde el logotipo hasta la guía de estilo completa, te ayudamos a comunicar la esencia de tu negocio.',
+        categoria: 'Diseño',
+        tiempoEstimado: '1-2 semanas'
     },
     {
         id: 'automatizacion',
@@ -57,7 +73,11 @@ export const serviciosEjemplo: Servicio[] = [
         descripcionCorta: 'Flujos inteligentes que optimizan tu tiempo',
         precioDesde: 2000,
         imagen: refAUrl(IMAGENES_SERVICIOS.automatizacion)!,
-        imagenRef: IMAGENES_SERVICIOS.automatizacion
+        imagenRef: IMAGENES_SERVICIOS.automatizacion,
+        imagenUrl: refAUrl(IMAGENES_SERVICIOS.automatizacion)!,
+        descripcion: 'Ahorra tiempo y recursos automatizando tareas repetitivas. Conectamos tus herramientas favoritas y creamos flujos de trabajo eficientes.',
+        categoria: 'Automatización',
+        tiempoEstimado: '1 semana'
     },
     {
         id: 'consultoria',
@@ -65,7 +85,11 @@ export const serviciosEjemplo: Servicio[] = [
         descripcionCorta: 'Asesoría estratégica para tu transformación digital',
         precioDesde: 800,
         imagen: refAUrl(IMAGENES_SERVICIOS.consultoria)!,
-        imagenRef: IMAGENES_SERVICIOS.consultoria
+        imagenRef: IMAGENES_SERVICIOS.consultoria,
+        imagenUrl: refAUrl(IMAGENES_SERVICIOS.consultoria)!,
+        descripcion: 'Obtén asesoramiento experto para tomar decisiones tecnológicas informadas. Analizamos tu situación y proponemos las mejores soluciones.',
+        categoria: 'Consultoría',
+        tiempoEstimado: 'Por horas / Proyecto'
     },
     {
         id: 'mantenimiento',
@@ -73,7 +97,11 @@ export const serviciosEjemplo: Servicio[] = [
         descripcionCorta: 'Soporte continuo y actualizaciones',
         precioDesde: 500,
         imagen: refAUrl(IMAGENES_SERVICIOS.mantenimiento)!,
-        imagenRef: IMAGENES_SERVICIOS.mantenimiento
+        imagenRef: IMAGENES_SERVICIOS.mantenimiento,
+        imagenUrl: refAUrl(IMAGENES_SERVICIOS.mantenimiento)!,
+        descripcion: 'Mantén tu sitio web seguro, rápido y actualizado. Nos encargamos de las copias de seguridad, actualizaciones y pequeños cambios.',
+        categoria: 'Mantenimiento',
+        tiempoEstimado: 'Mensual'
     },
     {
         id: 'seo',
@@ -81,6 +109,10 @@ export const serviciosEjemplo: Servicio[] = [
         descripcionCorta: 'Posicionamiento y análisis de datos',
         precioDesde: 1200,
         imagen: refAUrl(IMAGENES_SERVICIOS.seo)!,
-        imagenRef: IMAGENES_SERVICIOS.seo
+        imagenRef: IMAGENES_SERVICIOS.seo,
+        imagenUrl: refAUrl(IMAGENES_SERVICIOS.seo)!,
+        descripcion: 'Mejora tu visibilidad en Google y atrae más tráfico orgánico. Estrategias de SEO on-page, off-page y análisis de rendimiento.',
+        categoria: 'Marketing',
+        tiempoEstimado: 'Mensual'
     }
 ];

@@ -1,6 +1,6 @@
 import React from 'react';
 import {ArrowLeft} from 'lucide-react';
-import {usePanel} from '../../context/PanelContext';
+import {usePanel} from '../../../context/PanelContext';
 
 export const PaginaServicio: React.FC = () => {
     const {navegarA, parametrosVista, servicios} = usePanel();

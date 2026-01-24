@@ -15,6 +15,10 @@ export interface Servicio {
     precioDesde: number;
     imagen: string;
     imagenRef?: string;
+    descripcion?: string; /* Descripción larga */
+    categoria?: string;
+    tiempoEstimado?: string;
+    imagenUrl?: string; /* Deuda técnica: Unificar con imagen/imagenRef en el futuro */
 }
 
 /* Tipo para los modos de visualización disponibles */
