@@ -7,6 +7,7 @@ import {VistaMarketplace} from './views/VistaMarketplace';
 import {VistaFacturas} from './views/VistaFacturas';
 import {VistaPerfil} from './views/VistaPerfil';
 import {VistaServicios} from './views/VistaServicios';
+import {PaginaServicio} from './views/PaginaServicio';
 import {PanelProvider, usePanel} from '../../context/PanelContext';
 import {UsuarioProvider, useUsuario} from '../../context/UsuarioContext';
 import {ToggleSimulacion} from './ToggleSimulacion';
@@ -33,9 +34,8 @@ export const PanelCliente: React.FC<PanelClienteProps> = props => {
 };
 
 const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
-    const {mensajes} = usePanel();
+    const {mensajes, vistaActual, navegarA} = usePanel();
     const {usuario, esAdmin, simulando} = useUsuario();
-    const [vista, setVista] = useState('resumen');
     const [showUserMenu, setShowUserMenu] = useState(false);
 
     const menuItems = [
@@ -54,7 +54,7 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
     }
 
     const getVistaComponent = () => {
-        switch (vista) {
+        switch (vistaActual) {
             case 'resumen':
                 return <VistaResumen />;
             case 'hosting':
@@ -69,6 +69,8 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                 return <VistaFacturas />;
             case 'perfil':
                 return <VistaPerfil />;
+            case 'detalle_servicio':
+                return <PaginaServicio />;
             default:
                 return <div className="vistaConstruccion">Sección en construcción</div>;
         }
@@ -76,7 +78,8 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
 
     // Obtener título de la vista actual
     const getActiveTitle = () => {
-        const item = menuItems.find(i => i.id === vista);
+        if (vistaActual === 'detalle_servicio') return 'Detalle del Servicio';
+        const item = menuItems.find(i => i.id === vistaActual);
         return item ? item.label : 'Panel';
     };
 
@@ -90,7 +93,7 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
 
                 <nav className="sidebarNav">
                     {menuItems.map(item => (
-                        <button key={item.id} onClick={() => setVista(item.id)} className={`navIconBtn ${vista === item.id ? 'active' : ''}`}>
+                        <button key={item.id} onClick={() => navegarA(item.id)} className={`navIconBtn ${vistaActual === item.id ? 'active' : ''}`}>
                             {getMenuIcon(item)}
                             <span className="tooltip">{item.label}</span>
                             {(item.badge || (item.id === 'mensajes' && mensajes > 0)) && <span className="badgeDot"></span>}
@@ -142,7 +145,7 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                                         <button
                                             className="dropdownItem"
                                             onClick={() => {
-                                                setVista('perfil');
+                                                navegarA('perfil');
                                                 setShowUserMenu(false);
                                             }}>
                                             <User size={14} />

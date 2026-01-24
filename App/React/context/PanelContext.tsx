@@ -59,6 +59,9 @@ interface PanelContextType {
     esVistaAdmin: boolean;
     refreshData: () => Promise<void>;
     actualizarHosting: (hosting: HostingContratado) => void;
+    vistaActual: string;
+    parametrosVista: any;
+    navegarA: (vista: string, params?: any) => void;
 }
 
 const defaultStats: ServerStats = {
@@ -88,6 +91,15 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
     const [mensajes, setMensajes] = useState(0);
     const [facturas, setFacturas] = useState<FacturaSimple[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Estado de navegación
+    const [vistaActual, setVistaActual] = useState('resumen');
+    const [parametrosVista, setParametrosVista] = useState<any>(null);
+
+    const navegarA = (vista: string, params?: any) => {
+        setVistaActual(vista);
+        setParametrosVista(params || null);
+    };
 
     /* Determinar si estamos en vista admin (ve todos los recursos) */
     const esVistaAdmin = useMemo(() => esAdmin && !simulando, [esAdmin, simulando]);
@@ -177,7 +189,10 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
                 loading,
                 esVistaAdmin,
                 refreshData,
-                actualizarHosting
+                actualizarHosting,
+                vistaActual,
+                parametrosVista,
+                navegarA
             }}>
             {children}
         </PanelContext.Provider>

@@ -10,11 +10,12 @@ import {Servicio} from './GridServicios';
 
 export interface TarjetaServicioProps {
     servicio: Servicio;
+    onClick?: () => void;
 }
 
-export const TarjetaServicio: React.FC<TarjetaServicioProps> = ({servicio}) => {
+export const TarjetaServicio: React.FC<TarjetaServicioProps> = ({servicio, onClick}) => {
     return (
-        <Tarjeta interactiva className="tarjetaServicio">
+        <Tarjeta interactiva className="tarjetaServicio" onClick={onClick}>
             <div className="servicioImagenContenedor">
                 <ImagenGlory src={servicio.imagenRef || servicio.imagen} alt={servicio.nombre} className="servicioImagen" variante="cover" />
             </div>

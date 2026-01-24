@@ -1,7 +1,7 @@
 # Plan: Sistema de Facturación y Panel Cliente
 
 > **Prioridad:** Alta  
-> **Estado:** En Progreso (Fases 1-4, Rev, 7, 8, Vistas Rol completadas)  
+> **Estado:** En Progreso (Fases 1-4, Rev, 7-9, Vistas Rol completadas)  
 > **Última actualización:** 2026-01-23
 
 ---
@@ -596,15 +596,16 @@ const {usuario, esAdmin, simulando, toggleSimulacion} = useUsuario();
 
 ---
 
-### Fase 9: Single de Servicio (Página Individual)
+### Fase 9: Single de Servicio (Página Individual) ✅ COMPLETADA
 
 **Objetivo:** Página pública de cada servicio estilo Fiverr.
 
-**Ruta:** `/servicio/{slug}` o `?servicio={id}`
+**Ruta:** Vista virtual `detalle_servicio` (via `navegarA`)
 
 **Componentes:**
-- `PaginaServicio.tsx` - Layout completo
-- Secciones: Hero con imagen, descripción, precio, botón contratar, reviews (futuro)
+- `PaginaServicio.tsx` - Layout completo (implementado)
+- Integración en `PanelCliente` y `VistaMarketplace`
+- Secciones: Hero con imagen, descripción, precio, botón contratar
 
 **Diseño:**
 - Columna izquierda: Imagen grande, descripción extendida

@@ -10,7 +10,7 @@ import {DropdownMinimal} from '../../ui/DropdownMinimal';
  * Reutiliza TarjetaServicio y agrega lógica de filtrado del sistema.
  */
 export const VistaMarketplace: React.FC = () => {
-    const {servicios} = usePanel();
+    const {servicios, navegarA} = usePanel();
 
     // Estados de filtrado y búsqueda
     const [busqueda, setBusqueda] = useState('');
@@ -83,7 +83,7 @@ export const VistaMarketplace: React.FC = () => {
 
             <div className="marketplaceGrid">
                 {serviciosFiltrados.length > 0 ? (
-                    serviciosFiltrados.map(s => <TarjetaServicio key={s.id} servicio={s} />)
+                    serviciosFiltrados.map(s => <TarjetaServicio key={s.id} servicio={s} onClick={() => navegarA('detalle_servicio', {id: s.id})} />)
                 ) : (
                     <div className="sinResultados">
                         <p>No se encontraron servicios.</p>
