@@ -28,8 +28,25 @@ export const usuarioGuillermo: UsuarioPanel = {
     fechaRegistro: '2025-11-01'
 };
 
+/* Usuario Cliente - María */
+export const usuarioMaria: UsuarioPanel = {
+    id: 'USR-003',
+    wpUserId: 3,
+    nombre: 'María López',
+    email: 'maria@example.com',
+    avatar: 'M',
+    rol: 'cliente',
+    fechaRegistro: '2025-12-15'
+};
+
 /* Lista de todos los usuarios */
-export const usuariosMock: UsuarioPanel[] = [usuarioAdmin, usuarioGuillermo];
+export const usuariosMock: UsuarioPanel[] = [usuarioAdmin, usuarioGuillermo, usuarioMaria];
+
+/* Mapeo de usuario a cliente (para filtrar datos) */
+export const usuarioClienteMap: Record<string, string> = {
+    'USR-002': 'CLI-001',
+    'USR-003': 'CLI-002'
+};
 
 /* Helper para obtener usuario por ID de WordPress */
 export const obtenerUsuarioPorWpId = (wpUserId: number): UsuarioPanel | undefined => {

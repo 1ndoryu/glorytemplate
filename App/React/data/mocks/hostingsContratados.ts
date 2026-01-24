@@ -42,6 +42,31 @@ export const hostingsContratados: HostingContratado[] = [
         fechaProximaRenovacion: '2026-02-01',
         estado: 'activo',
         pagado: false
+    },
+    /* Hostings de María (CLI-002) */
+    {
+        id: 'HST-004',
+        clienteId: 'CLI-002',
+        dominio: 'tiendamaria.es',
+        plan: 'anual',
+        precioMensual: 3,
+        precioAnual: 36,
+        fechaInicio: '2025-12-15',
+        fechaProximaRenovacion: '2026-12-15',
+        estado: 'activo',
+        pagado: true
+    },
+    {
+        id: 'HST-005',
+        clienteId: 'CLI-002',
+        dominio: 'blogmaria.com',
+        plan: 'mensual',
+        precioMensual: 3,
+        precioAnual: 36,
+        fechaInicio: '2026-01-10',
+        fechaProximaRenovacion: '2026-02-10',
+        estado: 'activo',
+        pagado: false
     }
 ];
 

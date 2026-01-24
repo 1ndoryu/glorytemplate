@@ -12,6 +12,13 @@ export const clientesEjemplo: Cliente[] = [
         email: 'guillermo@example.com',
         telefono: '+34 600 000 000',
         fechaRegistro: '2025-11-01'
+    },
+    {
+        id: 'CLI-002',
+        nombre: 'María López',
+        email: 'maria@example.com',
+        telefono: '+34 611 222 333',
+        fechaRegistro: '2025-12-15'
     }
 ];
 

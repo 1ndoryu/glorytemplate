@@ -1,10 +1,11 @@
 /*
- * TarjetaHostingCliente: Muestra un hosting contratado del cliente.
+ * TarjetaHostingCliente: Muestra un hosting contratado.
  * Vista simplificada sin datos técnicos de Coolify.
+ * Opcionalmente muestra el nombre del cliente (vista admin).
  */
 
 import React from 'react';
-import {Globe, ExternalLink, AlertCircle, CheckCircle} from 'lucide-react';
+import {Globe, ExternalLink, AlertCircle, CheckCircle, User} from 'lucide-react';
 import {Tarjeta} from '../../../ui/Tarjeta';
 import {Etiqueta} from '../../../ui/Etiqueta';
 import {Boton} from '../../../ui/Boton';
@@ -14,6 +15,7 @@ interface TarjetaHostingClienteProps {
     hosting: HostingContratado;
     onVerDetalle: (hosting: HostingContratado) => void;
     onCambiarPlan: (hosting: HostingContratado) => void;
+    nombreCliente?: string;
 }
 
 const etiquetasEstado = {
@@ -22,7 +24,7 @@ const etiquetasEstado = {
     cancelado: {label: 'Cancelado', variante: 'neutro' as const, icono: <AlertCircle size={12} />}
 };
 
-export const TarjetaHostingCliente: React.FC<TarjetaHostingClienteProps> = ({hosting, onVerDetalle, onCambiarPlan}) => {
+export const TarjetaHostingCliente: React.FC<TarjetaHostingClienteProps> = ({hosting, onVerDetalle, onCambiarPlan, nombreCliente}) => {
     const estadoConfig = etiquetasEstado[hosting.estado];
     const urlSitio = hosting.dominioTemporal ? `https://${hosting.dominioTemporal}` : `https://${hosting.dominio}`;
 
@@ -45,6 +47,13 @@ export const TarjetaHostingCliente: React.FC<TarjetaHostingClienteProps> = ({hos
                     {estadoConfig.label}
                 </Etiqueta>
             </div>
+
+            {nombreCliente && (
+                <div className="hostingClientePropietario">
+                    <User size={14} />
+                    <span>{nombreCliente}</span>
+                </div>
+            )}
 
             <div className="hostingClienteDetalles">
                 <div className="hostingClienteDetalle">

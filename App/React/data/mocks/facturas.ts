@@ -56,6 +56,28 @@ export const facturasCompletas: Factura[] = [
         estado: 'pendiente',
         fechaEmision: '2026-01-01',
         fechaVencimiento: '2026-01-31'
+    },
+    /* Factura de María (CLI-002) */
+    {
+        id: 'FAC-2026-002',
+        clienteId: 'CLI-002',
+        referencia: 'INV-2026-002',
+        concepto: 'Hosting blogmaria.com - Enero 2026',
+        items: [
+            {
+                descripcion: 'Hosting blogmaria.com (Enero 2026)',
+                cantidad: 1,
+                precioUnitario: 3,
+                total: 3,
+                productoRef: 'HST-005'
+            }
+        ],
+        subtotal: 3,
+        impuestos: 0,
+        total: 3,
+        estado: 'pendiente',
+        fechaEmision: '2026-01-10',
+        fechaVencimiento: '2026-02-10'
     }
 ];
 

@@ -1,10 +1,11 @@
 /*
- * TarjetaDominio: Muestra un dominio contratado del cliente.
+ * TarjetaDominio: Muestra un dominio contratado.
  * Vista simplificada con información de expiración y renovación.
+ * Opcionalmente muestra el nombre del cliente (vista admin).
  */
 
 import React from 'react';
-import {Globe, AlertCircle, CheckCircle, Clock, RefreshCw} from 'lucide-react';
+import {Globe, AlertCircle, CheckCircle, Clock, RefreshCw, User} from 'lucide-react';
 import {Tarjeta} from '../../../ui/Tarjeta';
 import {Etiqueta} from '../../../ui/Etiqueta';
 import {Boton} from '../../../ui/Boton';
@@ -13,6 +14,7 @@ import {DominioContratado} from '../../../../data/types/dominio';
 interface TarjetaDominioProps {
     dominio: DominioContratado;
     onRenovar: (dominio: DominioContratado) => void;
+    nombreCliente?: string;
 }
 
 const etiquetasEstado = {
@@ -21,7 +23,7 @@ const etiquetasEstado = {
     pendiente: {label: 'Pendiente', variante: 'warning' as const, icono: <Clock size={12} />}
 };
 
-export const TarjetaDominio: React.FC<TarjetaDominioProps> = ({dominio, onRenovar}) => {
+export const TarjetaDominio: React.FC<TarjetaDominioProps> = ({dominio, onRenovar, nombreCliente}) => {
     const estadoConfig = etiquetasEstado[dominio.estado];
 
     const formatearFecha = (fechaIso: string): string => {
@@ -37,7 +39,6 @@ export const TarjetaDominio: React.FC<TarjetaDominioProps> = ({dominio, onRenova
         return diasRestantes <= 30 && diasRestantes > 0;
     };
 
-    /* Nombre capitalizado para la clase CSS */
     const estadoClase = `estado${dominio.estado.charAt(0).toUpperCase() + dominio.estado.slice(1)}`;
 
     return (
@@ -54,6 +55,13 @@ export const TarjetaDominio: React.FC<TarjetaDominioProps> = ({dominio, onRenova
                     {estadoConfig.label}
                 </Etiqueta>
             </div>
+
+            {nombreCliente && (
+                <div className="dominioPropietario">
+                    <User size={14} />
+                    <span>{nombreCliente}</span>
+                </div>
+            )}
 
             <div className="dominioDetalles">
                 <div className="dominioDetalle">

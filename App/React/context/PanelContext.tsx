@@ -1,15 +1,25 @@
-import React, {createContext, useContext, useState, useEffect, ReactNode} from 'react';
+/*
+ * Contexto del Panel Cliente.
+ * Provee datos filtrados según el rol del usuario actual.
+ * Admin: ve todos los recursos de todos los clientes.
+ * Cliente: ve solo sus propios recursos.
+ */
+
+import React, {createContext, useContext, useState, useEffect, useMemo, ReactNode} from 'react';
 import {Servicio} from '../components/landing/GridServicios';
 import {serviciosEjemplo} from '../data/mocks/servicios';
 import {FacturaSimple, facturasEjemplo} from '../data/mocks/facturas';
+import {facturasCompletas} from '../data/mocks/facturas';
 import {hostingsContratados as hostingsMock} from '../data/mocks/hostingsContratados';
 import {dominiosContratados as dominiosMock} from '../data/mocks/dominiosContratados';
 import {serviciosContratados as serviciosMock} from '../data/mocks/serviciosContratados';
+import {clientesEjemplo} from '../data/mocks/clientes';
 import {HostingContratado} from '../data/types/hosting';
 import {DominioContratado} from '../data/types/dominio';
 import {ServicioContratado} from '../data/types/servicio';
+import {Cliente} from '../data/types/cliente';
+import {useUsuario} from './UsuarioContext';
 
-// Interfaces
 export interface Proyecto {
     id: number;
     nombre: string;
@@ -43,12 +53,13 @@ interface PanelContextType {
     hostingsContratados: HostingContratado[];
     dominiosContratados: DominioContratado[];
     serviciosContratados: ServicioContratado[];
+    clientes: Cliente[];
     user: UserProfile;
     loading: boolean;
+    esVistaAdmin: boolean;
     refreshData: () => Promise<void>;
 }
 
-// Default State
 const defaultStats: ServerStats = {
     cpu: 0,
     ram: 0,
@@ -68,20 +79,58 @@ const defaultUser: UserProfile = {
 const PanelContext = createContext<PanelContextType | undefined>(undefined);
 
 export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
+    const {usuario, clienteId, esAdmin, simulando} = useUsuario();
+
     const [proyectos, setProyectos] = useState<Proyecto[]>([]);
     const [servicios, setServicios] = useState<Servicio[]>([]);
     const [serverStats, setServerStats] = useState<ServerStats>(defaultStats);
     const [mensajes, setMensajes] = useState(0);
     const [facturas, setFacturas] = useState<FacturaSimple[]>([]);
-    const [hostingsContratados, setHostingsContratados] = useState<HostingContratado[]>([]);
-    const [dominiosContratados, setDominiosContratados] = useState<DominioContratado[]>([]);
-    const [serviciosContratados, setServiciosContratados] = useState<ServicioContratado[]>([]);
-    const [user, setUser] = useState<UserProfile>(defaultUser);
     const [loading, setLoading] = useState(true);
+
+    /* Determinar si estamos en vista admin (ve todos los recursos) */
+    const esVistaAdmin = useMemo(() => esAdmin && !simulando, [esAdmin, simulando]);
+
+    /* Filtrar hostings según rol */
+    const hostingsContratados = useMemo(() => {
+        if (esVistaAdmin) {
+            return hostingsMock;
+        }
+        return hostingsMock.filter(h => h.clienteId === clienteId);
+    }, [esVistaAdmin, clienteId]);
+
+    /* Filtrar dominios según rol */
+    const dominiosContratados = useMemo(() => {
+        if (esVistaAdmin) {
+            return dominiosMock;
+        }
+        return dominiosMock.filter(d => d.clienteId === clienteId);
+    }, [esVistaAdmin, clienteId]);
+
+    /* Filtrar servicios contratados según rol */
+    const serviciosContratados = useMemo(() => {
+        if (esVistaAdmin) {
+            return serviciosMock;
+        }
+        return serviciosMock.filter(s => s.clienteId === clienteId);
+    }, [esVistaAdmin, clienteId]);
+
+    /* Lista de clientes (solo útil para admin) */
+    const clientes = useMemo(() => clientesEjemplo, []);
+
+    /* User profile basado en el usuario actual */
+    const user = useMemo<UserProfile>(
+        () => ({
+            name: usuario.nombre,
+            email: usuario.email,
+            role: usuario.rol === 'admin' ? 'Administrador' : 'Cliente',
+            avatar: usuario.avatar
+        }),
+        [usuario]
+    );
 
     const refreshData = async () => {
         setLoading(true);
-        // Simular llamada API
         await new Promise(resolve => setTimeout(resolve, 600));
 
         setProyectos([]);
@@ -97,9 +146,6 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
 
         setMensajes(1);
         setFacturas(facturasEjemplo);
-        setHostingsContratados(hostingsMock);
-        setDominiosContratados(dominiosMock);
-        setServiciosContratados(serviciosMock);
         setLoading(false);
     };
 
@@ -118,8 +164,10 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
                 hostingsContratados,
                 dominiosContratados,
                 serviciosContratados,
+                clientes,
                 user,
                 loading,
+                esVistaAdmin,
                 refreshData
             }}>
             {children}

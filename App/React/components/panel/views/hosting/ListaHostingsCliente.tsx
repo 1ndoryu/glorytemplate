@@ -1,6 +1,6 @@
 /*
- * ListaHostingsCliente: Grid de hostings contratados del cliente.
- * Ubicación: components/panel/views/hosting/
+ * ListaHostingsCliente: Grid de hostings contratados.
+ * Soporta vista admin (con nombre de cliente) y vista cliente.
  */
 
 import React from 'react';
@@ -11,9 +11,11 @@ interface ListaHostingsClienteProps {
     hostings: HostingContratado[];
     onVerDetalle: (hosting: HostingContratado) => void;
     onCambiarPlan: (hosting: HostingContratado) => void;
+    mostrarCliente?: boolean;
+    obtenerNombreCliente?: (clienteId: string) => string;
 }
 
-export const ListaHostingsCliente: React.FC<ListaHostingsClienteProps> = ({hostings, onVerDetalle, onCambiarPlan}) => {
+export const ListaHostingsCliente: React.FC<ListaHostingsClienteProps> = ({hostings, onVerDetalle, onCambiarPlan, mostrarCliente = false, obtenerNombreCliente}) => {
     if (hostings.length === 0) {
         return (
             <div className="hostingsVacio">
@@ -25,7 +27,7 @@ export const ListaHostingsCliente: React.FC<ListaHostingsClienteProps> = ({hosti
     return (
         <div className="hostingsGrid">
             {hostings.map(hosting => (
-                <TarjetaHostingCliente key={hosting.id} hosting={hosting} onVerDetalle={onVerDetalle} onCambiarPlan={onCambiarPlan} />
+                <TarjetaHostingCliente key={hosting.id} hosting={hosting} onVerDetalle={onVerDetalle} onCambiarPlan={onCambiarPlan} nombreCliente={mostrarCliente && obtenerNombreCliente ? obtenerNombreCliente(hosting.clienteId) : undefined} />
             ))}
         </div>
     );

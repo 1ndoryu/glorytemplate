@@ -1,10 +1,10 @@
 /*
  * TarjetaFactura: Card individual de factura con estado visual.
- * Ubicación: components/panel/views/facturas/
+ * Opcionalmente muestra el nombre del cliente (vista admin).
  */
 
 import React from 'react';
-import {FileText, Clock, AlertTriangle, CheckCircle} from 'lucide-react';
+import {FileText, Clock, AlertTriangle, CheckCircle, User} from 'lucide-react';
 import {Tarjeta} from '../../../ui/Tarjeta';
 import {Etiqueta} from '../../../ui/Etiqueta';
 import {Boton} from '../../../ui/Boton';
@@ -14,6 +14,7 @@ interface TarjetaFacturaProps {
     factura: Factura;
     onPagar: (factura: Factura) => void;
     onVerDetalle: (factura: Factura) => void;
+    nombreCliente?: string;
 }
 
 const iconosEstado = {
@@ -37,7 +38,7 @@ const etiquetasEstado = {
     cancelada: 'Cancelada'
 };
 
-export const TarjetaFactura: React.FC<TarjetaFacturaProps> = ({factura, onPagar, onVerDetalle}) => {
+export const TarjetaFactura: React.FC<TarjetaFacturaProps> = ({factura, onPagar, onVerDetalle, nombreCliente}) => {
     const esPagable = factura.estado === 'pendiente' || factura.estado === 'vencida';
 
     const formatearFecha = (fechaIso: string): string => {
@@ -56,6 +57,13 @@ export const TarjetaFactura: React.FC<TarjetaFacturaProps> = ({factura, onPagar,
                 </div>
                 <span className="facturaMonto">${factura.total.toFixed(2)}</span>
             </div>
+
+            {nombreCliente && (
+                <div className="facturaCliente">
+                    <User size={14} />
+                    <span>{nombreCliente}</span>
+                </div>
+            )}
 
             <p className="facturaConcepto">{factura.concepto}</p>
 

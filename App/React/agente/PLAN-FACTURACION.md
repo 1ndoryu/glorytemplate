@@ -1,8 +1,8 @@
 # Plan: Sistema de Facturación y Panel Cliente
 
 > **Prioridad:** Alta  
-> **Estado:** En Progreso (Fases 1-4, Rev, 7, 8 completadas)  
-> **Última actualización:** 2026-01-22
+> **Estado:** En Progreso (Fases 1-4, Rev, 7, 8, Vistas Rol completadas)  
+> **Última actualización:** 2026-01-23
 
 ---
 
@@ -430,22 +430,22 @@ El panel debe soportar dos modos de operación claramente diferenciados:
 - [x] Próximas renovaciones (hostings, dominios)
 
 **VistaHosting.tsx:**
-- [ ] Detectar si es admin: mostrar todos los hostings con columna "Cliente"
-- [ ] Detectar si es cliente: filtrar solo sus hostings
+- [x] Detectar si es admin: mostrar todos los hostings con columna "Cliente"
+- [x] Detectar si es cliente: filtrar solo sus hostings
 
 **VistaDominios.tsx:**
-- [ ] Detectar si es admin: mostrar todos los dominios con columna "Cliente"
-- [ ] Detectar si es cliente: filtrar solo sus dominios
+- [x] Detectar si es admin: mostrar todos los dominios con columna "Cliente"
+- [x] Detectar si es cliente: filtrar solo sus dominios
 
 **VistaFacturas.tsx:**
-- [ ] Detectar si es admin: mostrar todas las facturas con columna "Cliente"
-- [ ] Detectar si es cliente: filtrar solo sus facturas
+- [x] Detectar si es admin: mostrar todas las facturas con columna "Cliente"
+- [x] Detectar si es cliente: filtrar solo sus facturas
 
 ### Prioridad de Implementación
 
 1. ~~**Alta:** Corregir VistaServicios (separar publicados de contratados)~~ ✅
 2. ~~**Alta:** Mover servicios contratados al Dashboard~~ ✅
-3. **Media:** Adaptar vistas de Hosting/Dominios/Facturas para admin
+3. ~~**Media:** Adaptar vistas de Hosting/Dominios/Facturas para admin~~ ✅
 4. **Alta:** Implementar seguridad en backend cuando se conecte a WP
 
 

@@ -1,6 +1,7 @@
 /*
- * VistaDominios: Vista de dominios contratados del cliente.
- * Muestra los dominios registrados con información de expiración.
+ * VistaDominios: Vista de dominios contratados.
+ * Admin: ve todos los dominios con columna de cliente.
+ * Cliente: ve solo sus dominios.
  */
 
 import React from 'react';
@@ -10,23 +11,29 @@ import {usePanel} from '../../../context/PanelContext';
 import {DominioContratado} from '../../../data/types/dominio';
 
 export const VistaDominios: React.FC = () => {
-    const {dominiosContratados} = usePanel();
+    const {dominiosContratados, esVistaAdmin, clientes} = usePanel();
 
     const handleRenovar = (dominio: DominioContratado) => {
         /* TO-DO: Implementar flujo de renovación de dominio */
         console.log('Renovar dominio:', dominio.nombre);
     };
 
+    /* Helper para obtener nombre del cliente */
+    const obtenerNombreCliente = (clienteId: string): string => {
+        const cliente = clientes.find(c => c.id === clienteId);
+        return cliente?.nombre || 'Desconocido';
+    };
+
     return (
         <div className="bloqueVista" id="vistaDominios">
             <header className="vistaHeader">
-                <h2 className="vistaTitulo">Mis Dominios</h2>
-                <p className="vistaSubtitulo">Gestiona tus dominios registrados y renovaciones.</p>
+                <h2 className="vistaTitulo">{esVistaAdmin ? 'Todos los Dominios' : 'Mis Dominios'}</h2>
+                <p className="vistaSubtitulo">{esVistaAdmin ? `Gestiona los dominios de todos los clientes (${dominiosContratados.length} total).` : 'Gestiona tus dominios registrados y renovaciones.'}</p>
             </header>
 
             <ResumenDominios dominios={dominiosContratados} />
 
-            <ListaDominios dominios={dominiosContratados} onRenovar={handleRenovar} />
+            <ListaDominios dominios={dominiosContratados} onRenovar={handleRenovar} mostrarCliente={esVistaAdmin} obtenerNombreCliente={obtenerNombreCliente} />
         </div>
     );
 };

@@ -211,6 +211,19 @@
     color: var(--nakomi-textoActivo);
 }
 
+/* Indicador de cliente (vista admin) */
+.facturaCliente {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+    padding: var(--nakomi-espacioXs) var(--nakomi-espacioSm);
+    background: var(--nakomi-infoFondo);
+    border-radius: var(--nakomi-radioSm);
+    margin-bottom: var(--nakomi-espacioSm);
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-info);
+}
+
 .facturaConcepto {
     font-size: var(--nakomi-fuenteMd);
     color: var(--nakomi-textoNormal);

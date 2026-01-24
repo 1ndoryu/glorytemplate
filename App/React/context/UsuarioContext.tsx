@@ -1,11 +1,6 @@
-/*
- * Contexto de Usuario del Panel.
- * Gestiona el usuario actual y la simulación de cliente (para admins).
- */
-
 import React, {createContext, useContext, useState, useCallback, useMemo, ReactNode} from 'react';
 import {UsuarioPanel} from '../data/types/usuario';
-import {usuarioAdmin, usuarioGuillermo, obtenerUsuarioPorWpId} from '../data/mocks/usuarios';
+import {usuarioAdmin, usuarioGuillermo, obtenerUsuarioPorWpId, usuarioClienteMap} from '../data/mocks/usuarios';
 
 interface UsuarioContextType {
     usuario: UsuarioPanel;
@@ -57,13 +52,18 @@ export const UsuarioProvider: React.FC<UsuarioProviderProps> = ({children}) => {
         setClienteSimulado(cliente);
     }, []);
 
-    /* Obtener ID del cliente actual (para filtrar datos) */
+    /*
+     * Obtener ID del cliente actual (para filtrar datos).
+     * Admin sin simulación = null (ve todos los datos).
+     * Admin con simulación = cliente del usuario simulado.
+     * Cliente = su propio clienteId.
+     */
     const clienteId = useMemo(() => {
-        if (usuario.rol === 'cliente') {
-            if (usuario.id === 'USR-002') return 'CLI-001';
+        if (usuario.rol === 'admin' && !simulando) {
+            return null;
         }
-        return null;
-    }, [usuario]);
+        return usuarioClienteMap[usuario.id] || null;
+    }, [usuario, simulando]);
 
     const value = useMemo(
         () => ({
