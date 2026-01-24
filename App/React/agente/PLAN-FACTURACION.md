@@ -8,22 +8,22 @@
 
 ## Resumen de Fases
 
-| Fase | Descripción                    | Estado        |
-| ---- | ------------------------------ | ------------- |
-| 1    | Modelo de datos y mocks        | ✅ Completada  |
-| 2    | Vista Facturación              | ✅ Completada  |
-| 3    | Vista Hostings                 | ✅ Completada  |
-| 4    | Vista Servicios                | ✅ Completada  |
-| 4.5  | Vista Dominios                 | ✅ Completada  |
-| Rev  | Revisiones UI/UX               | ✅ Completada  |
-| 7    | Sistema de Usuarios/Simulación | ✅ Completada  |
-| 8    | Modal Edición Servicio         | ✅ Completada  |
-| 9    | Single de Servicio             | ✅ Completada  |
-| 10   | Catálogo/Marketplace           | ✅ Completada  |
-| 5    | Stripe                         | ⏳ Pendiente   |
-| 6    | Cuenta Guillermo               | ⏳ Pendiente   |
-| 11   | Integración WordPress Real     | ⏳ Pendiente   |
-| 12   | Dashboard Admin diferenciado   | ⏳ Planificado |
+| Fase | Descripción                    | Estado       |
+| ---- | ------------------------------ | ------------ |
+| 1    | Modelo de datos y mocks        | ✅ Completada |
+| 2    | Vista Facturación              | ✅ Completada |
+| 3    | Vista Hostings                 | ✅ Completada |
+| 4    | Vista Servicios                | ✅ Completada |
+| 4.5  | Vista Dominios                 | ✅ Completada |
+| Rev  | Revisiones UI/UX               | ✅ Completada |
+| 7    | Sistema de Usuarios/Simulación | ✅ Completada |
+| 8    | Modal Edición Servicio         | ✅ Completada |
+| 9    | Single de Servicio             | ✅ Completada |
+| 10   | Catálogo/Marketplace           | ✅ Completada |
+| 5    | Stripe                         | ⏳ Pendiente  |
+| 6    | Cuenta Guillermo               | ⏳ Pendiente  |
+| 11   | Integración WordPress Real     | ⏳ Pendiente  |
+| 12   | Dashboard Admin diferenciado   | ✅ Completada |
 
 ---
 
@@ -117,55 +117,44 @@
 
 ---
 
-## Fase 12: Dashboard Admin (PLANIFICACIÓN)
+## Fase 12: Dashboard Admin ✅ COMPLETADA
 
-### Problema Actual
-El Dashboard es idéntico para Admin y Cliente. El Admin necesita un panel de gestión diferenciado.
+### Implementación
 
-### Dashboard Cliente (actual - OK)
-- Resumen de deuda pendiente
-- Servicios contratados en progreso
-- Próximas renovaciones (hostings, dominios)
+El Dashboard Admin se activa automáticamente cuando:
+- El usuario tiene rol `admin`
+- NO está en modo simulación (toggle "Ver como cliente")
 
-### Dashboard Admin (TO-DO)
+### Componentes Creados (`views/admin/`)
 
-**Secciones propuestas:**
+1. **`VistaResumenAdmin.tsx`** - Dashboard principal del admin
+   - Grid de métricas globales (clientes, ingresos, trabajos, alertas)
+   - Integración de todos los sub-componentes
+   - Cálculos automáticos basados en datos del contexto
 
-1. **Resumen Global**
-   - Total clientes activos
-   - Ingresos del mes
-   - Facturas pendientes totales
-   - Servicios en progreso
+2. **`TarjetaResumenGlobal.tsx`** - Tarjeta de estadística
+   - Props: etiqueta, valor, subtexto, icono, variante
+   - 4 variantes de color: primario, exito, alerta, error
 
-2. **Lista de Clientes**
-   - Tabla: nombre, email, deuda, servicios activos
-   - Filtros: estado, deuda pendiente
-   - Acciones: ver perfil, enviar factura
+3. **`TablaClientes.tsx`** - Lista de clientes
+   - Muestra: nombre, email, deuda, servicios activos
+   - Acciones: ver cliente, enviar recordatorio
 
-3. **Últimos Pagos Recibidos**
-   - Tabla: cliente, monto, fecha, concepto
+4. **`ListaTrabajosActivos.tsx`** - Servicios en progreso
+   - Barra de progreso visual
+   - Metadatos: cliente, fecha entrega
+   - Acción: ver detalle del trabajo
 
-4. **Servicios en Progreso**
-   - Lista con porcentaje de avance
-   - Cliente asignado, fecha entrega
-   - Botones: actualizar progreso, marcar entregado
+5. **`ListaAlertasAdmin.tsx`** - Alertas del sistema
+   - Tipos: factura_vencida, hosting_impago, dominio_expira
+   - Iconos y colores diferenciados por tipo
 
-5. **Próximas Renovaciones**
-   - Hostings/dominios que renuevan en 30 días
-   - Indicador de deuda del cliente
-   - Acciones: enviar recordatorio
+### Estilos
 
-6. **Alertas**
-   - Facturas vencidas
-   - Hostings impagos
-   - Dominios por expirar
-
-**Componentes a crear:**
-- `DashboardAdmin.tsx`
-- `TarjetaResumenGlobal.tsx`
-- `TablaClientes.tsx`
-- `ListaUltimosPagos.tsx`
-- `ListaTrabajosActivos.tsx`
+- `styles/layouts/panel/dashboardAdmin.css`
+- Grid responsive 1→2→4 columnas
+- Barras de progreso animadas
+- Alertas con borde lateral colorizado
 
 ---
 

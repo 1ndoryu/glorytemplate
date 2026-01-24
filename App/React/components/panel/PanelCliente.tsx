@@ -9,6 +9,7 @@ import {VistaPerfil} from './views/VistaPerfil';
 import {VistaServicios} from './views/VistaServicios';
 import {PaginaServicio} from './views/PaginaServicio';
 import {PaginaServicioContratado} from './views/PaginaServicioContratado';
+import {VistaResumenAdmin} from './views/admin';
 import {PanelProvider, usePanel} from '../../context/PanelContext';
 import {UsuarioProvider, useUsuario} from '../../context/UsuarioContext';
 import {ToggleSimulacion} from './ToggleSimulacion';
@@ -55,9 +56,12 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
     }
 
     const getVistaComponent = () => {
+        /* Admin sin simulación ve dashboard admin, en simulación ve dashboard cliente */
+        const esVistaAdmin = esAdmin && !simulando;
+
         switch (vistaActual) {
             case 'resumen':
-                return <VistaResumen />;
+                return esVistaAdmin ? <VistaResumenAdmin /> : <VistaResumen />;
             case 'hosting':
                 return <VistaHosting />;
             case 'dominios':
