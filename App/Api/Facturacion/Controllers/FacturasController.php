@@ -7,6 +7,11 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WP_Query;
 
+use App\Api\Facturacion\Controllers\BaseController;
+use Stripe\Stripe;
+use Stripe\PaymentIntent;
+use Exception;
+
 class FacturasController extends BaseController
 {
     public static function getFacturas(WP_REST_Request $request): WP_REST_Response
@@ -60,12 +65,37 @@ class FacturasController extends BaseController
             return self::error('Esta factura ya está pagada');
         }
 
-        /* TO-DO Fase 5: Implementar Stripe PaymentIntent */
-        return self::success([
-            'facturaId' => $id,
-            'total' => (float) get_post_meta($id, '_total', true),
-            'stripeConfigured' => false,
-        ], 200, 'Stripe no configurado aún');
+        $total = (float) get_post_meta($id, '_total', true);
+        $stripeKey = $_ENV['STRIPE_SECRET_KEY'] ?? null;
+
+        if (!$stripeKey) {
+            return self::error('Sistema de pagos no configurado (Falta STRIPE_SECRET_KEY)', 500);
+        }
+
+        try {
+            Stripe::setApiKey($stripeKey); // @phpstan-ignore-line
+
+            $paymentIntent = PaymentIntent::create([
+                'amount' => (int) round($total * 100), // Centavos
+                'currency' => 'usd', // TODO: Hacer configurable via opciones
+                'metadata' => [
+                    'factura_id' => $id,
+                    'wp_user_id' => get_current_user_id()
+                ],
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                ],
+            ]);
+
+            return self::success([
+                'clientSecret' => $paymentIntent->client_secret,
+                'facturaId' => $id,
+                'total' => $total,
+                'stripePublicKey' => $_ENV['STRIPE_PUBLIC_KEY'] ?? ''
+            ]);
+        } catch (Exception $e) {
+            return self::error('Error Stripe: ' . $e->getMessage(), 500);
+        }
     }
 
     /* Permisos */

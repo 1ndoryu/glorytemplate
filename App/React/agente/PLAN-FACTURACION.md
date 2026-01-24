@@ -8,22 +8,22 @@
 
 ## Resumen de Fases
 
-| Fase | Descripción                    | Estado                          |
-| ---- | ------------------------------ | ------------------------------- |
-| 1    | Modelo de datos y mocks        | ✅ Completada                    |
-| 2    | Vista Facturación              | ✅ Completada                    |
-| 3    | Vista Hostings                 | ✅ Completada                    |
-| 4    | Vista Servicios                | ✅ Completada                    |
-| 4.5  | Vista Dominios                 | ✅ Completada                    |
-| Rev  | Revisiones UI/UX               | ✅ Completada                    |
-| 7    | Sistema de Usuarios/Simulación | ✅ Completada                    |
-| 8    | Modal Edición Servicio         | ✅ Completada                    |
-| 9    | Single de Servicio             | ✅ Completada                    |
-| 10   | Catálogo/Marketplace           | ✅ Completada                    |
-| 5    | Stripe                         | ⏳ Pendiente (Scaffolding listo) |
-| 6    | Cuenta Guillermo               | ⏳ Pendiente                     |
-| 11   | Integración WordPress Real     | ✅ Completada                    |
-| 12   | Dashboard Admin diferenciado   | ✅ Completada                    |
+| Fase | Descripción                    | Estado                       |
+| ---- | ------------------------------ | ---------------------------- |
+| 1    | Modelo de datos y mocks        | ✅ Completada                 |
+| 2    | Vista Facturación              | ✅ Completada                 |
+| 3    | Vista Hostings                 | ✅ Completada                 |
+| 4    | Vista Servicios                | ✅ Completada                 |
+| 4.5  | Vista Dominios                 | ✅ Completada                 |
+| Rev  | Revisiones UI/UX               | ✅ Completada                 |
+| 7    | Sistema de Usuarios/Simulación | ✅ Completada                 |
+| 8    | Modal Edición Servicio         | ✅ Completada                 |
+| 9    | Single de Servicio             | ✅ Completada                 |
+| 10   | Catálogo/Marketplace           | ✅ Completada                 |
+| 5    | Stripe                         | ⏳ En Progreso (UI & Backend) |
+| 6    | Cuenta Guillermo               | ⏳ Pendiente                  |
+| 11   | Integración WordPress Real     | ⏳ En Progreso (CPTs & Rutas) |
+| 12   | Dashboard Admin diferenciado   | ✅ Completada                 |
 
 ---
 
@@ -320,7 +320,11 @@ PROVEEDOR                               CLIENTE
 - Endpoints cliente: solo recursos del usuario autenticado
 - Endpoints admin: verificar `capability` antes de devolver datos
 - Usar nonce de WordPress para CSRF
+- Usar nonce de WordPress para CSRF
 - Audit log para accesos sensibles
+
+### Correcciones Críticas
+- **Autoloading PHP**: Se añadió `App/` al `composer.json` para evitar errores de orden de carga manual (`Fatal Error: Class not found`).
 
 ---
 
