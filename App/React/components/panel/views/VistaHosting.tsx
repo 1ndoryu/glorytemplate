@@ -4,14 +4,17 @@
  * Cliente: ve solo sus hostings.
  */
 
-import React from 'react';
+import React, {useState} from 'react';
 import {ResumenHostings} from './hosting/ResumenHostings';
 import {ListaHostingsCliente} from './hosting/ListaHostingsCliente';
+import {ModalCambiarPlan} from './hosting/ModalCambiarPlan';
 import {usePanel} from '../../../context/PanelContext';
 import {HostingContratado} from '../../../data/types/hosting';
 
 export const VistaHosting: React.FC = () => {
-    const {hostingsContratados, esVistaAdmin, clientes} = usePanel();
+    const {hostingsContratados, esVistaAdmin, clientes, actualizarHosting} = usePanel();
+    const [modalVisible, setModalVisible] = useState(false);
+    const [hostingSeleccionado, setHostingSeleccionado] = useState<HostingContratado | null>(null);
 
     const handleVerDetalle = (hosting: HostingContratado) => {
         /* TO-DO: Implementar vista de detalle expandido */
@@ -19,8 +22,21 @@ export const VistaHosting: React.FC = () => {
     };
 
     const handleCambiarPlan = (hosting: HostingContratado) => {
-        /* TO-DO: Implementar modal de cambio de plan */
-        console.log('Cambiar plan de hosting:', hosting.dominio, 'Plan actual:', hosting.plan);
+        setHostingSeleccionado(hosting);
+        setModalVisible(true);
+    };
+
+    const confirmarCambioPlan = (nuevoPlan: 'mensual' | 'anual') => {
+        if (hostingSeleccionado) {
+            const hostingActualizado = {
+                ...hostingSeleccionado,
+                plan: nuevoPlan
+            };
+            actualizarHosting(hostingActualizado);
+            console.log(`Plan cambiado a ${nuevoPlan} para ${hostingSeleccionado.dominio}`);
+            setModalVisible(false);
+            setHostingSeleccionado(null);
+        }
     };
 
     /* Helper para obtener nombre del cliente */
@@ -39,6 +55,9 @@ export const VistaHosting: React.FC = () => {
             <ResumenHostings hostings={hostingsContratados} />
 
             <ListaHostingsCliente hostings={hostingsContratados} onVerDetalle={handleVerDetalle} onCambiarPlan={handleCambiarPlan} mostrarCliente={esVistaAdmin} obtenerNombreCliente={obtenerNombreCliente} />
+
+            {/* Modales */}
+            <ModalCambiarPlan hosting={hostingSeleccionado} visible={modalVisible} onCerrar={() => setModalVisible(false)} onConfirmar={confirmarCambioPlan} />
         </div>
     );
 };

@@ -30,7 +30,7 @@ export const ModalPagarFactura: React.FC<ModalPagarFacturaProps> = ({factura, vi
 
     return (
         <div className="modalOverlay" onClick={onCerrar}>
-            <div className="modalPagarFactura" onClick={e => e.stopPropagation()}>
+            <div className="modalVentana" onClick={e => e.stopPropagation()}>
                 <header className="modalHeader">
                     <div className="modalTituloWrapper">
                         <FileText size={20} />
@@ -92,7 +92,7 @@ export const ModalPagarFactura: React.FC<ModalPagarFacturaProps> = ({factura, vi
                     <Boton variante="ghost" onClick={onCerrar}>
                         Cancelar
                     </Boton>
-                    <Boton variante="primario" icono={<CreditCard size={16} />} onClick={handlePagar}>
+                    <Boton variante="solid" icono={<CreditCard size={16} />} onClick={handlePagar}>
                         Pagar ${factura.total.toFixed(2)}
                     </Boton>
                 </footer>

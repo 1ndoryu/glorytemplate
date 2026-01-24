@@ -1,0 +1,82 @@
+/*
+ * Estilos genéricos para Modales del Panel
+ * Ubicación: styles/layouts/panel/modal.css
+ */
+
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--nakomi-espacioLg);
+}
+
+.modalVentana {
+    width: 100%;
+    max-width: 520px;
+    background: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioXl);
+    box-shadow: var(--nakomi-sombraLg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--nakomi-espacioLg);
+    border-bottom: 1px solid var(--nakomi-bordePrincipal);
+}
+
+.modalTituloWrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    color: var(--nakomi-textoActivo);
+}
+
+.modalTitulo {
+    font-size: var(--nakomi-fuenteLg);
+    font-weight: 500;
+}
+
+.modalCerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    border-radius: var(--nakomi-radioMd);
+    color: var(--nakomi-textoApagado);
+    cursor: pointer;
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.modalCerrar:hover {
+    background: var(--nakomi-fondoHover);
+    color: var(--nakomi-textoActivo);
+}
+
+.modalContenido {
+    padding: var(--nakomi-espacioLg);
+    flex: 1;
+    overflow-y: auto;
+}
+
+.modalFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioLg);
+    border-top: 1px solid var(--nakomi-bordePrincipal);
+    background: var(--nakomi-fondoTerciario);
+}

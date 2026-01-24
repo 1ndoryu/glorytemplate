@@ -58,6 +58,7 @@ interface PanelContextType {
     loading: boolean;
     esVistaAdmin: boolean;
     refreshData: () => Promise<void>;
+    actualizarHosting: (hosting: HostingContratado) => void;
 }
 
 const defaultStats: ServerStats = {
@@ -92,12 +93,19 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
     const esVistaAdmin = useMemo(() => esAdmin && !simulando, [esAdmin, simulando]);
 
     /* Filtrar hostings según rol */
+    const [allHostings, setAllHostings] = useState<HostingContratado[]>(hostingsMock);
+
+    /* Filtrar hostings según rol */
     const hostingsContratados = useMemo(() => {
         if (esVistaAdmin) {
-            return hostingsMock;
+            return allHostings;
         }
-        return hostingsMock.filter(h => h.clienteId === clienteId);
-    }, [esVistaAdmin, clienteId]);
+        return allHostings.filter(h => h.clienteId === clienteId);
+    }, [esVistaAdmin, clienteId, allHostings]);
+
+    const actualizarHosting = (hosting: HostingContratado) => {
+        setAllHostings(prev => prev.map(h => (h.id === hosting.id ? hosting : h)));
+    };
 
     /* Filtrar dominios según rol */
     const dominiosContratados = useMemo(() => {
@@ -168,7 +176,8 @@ export const PanelProvider: React.FC<{children: ReactNode}> = ({children}) => {
                 user,
                 loading,
                 esVistaAdmin,
-                refreshData
+                refreshData,
+                actualizarHosting
             }}>
             {children}
         </PanelContext.Provider>
