@@ -53,6 +53,13 @@
     color: var(--nakomi-warning);
 }
 
+.dominiosPendientePago {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+    color: var(--nakomi-error);
+}
+
 /* === Lista de Dominios (1 columna) === */
 .dominiosGrid {
     display: flex;
@@ -182,6 +189,12 @@
     margin-bottom: var(--nakomi-espacioSm);
     font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-warning);
+}
+
+/* Variante de alerta para pago pendiente */
+.dominioAlerta.alertaPago {
+    background: var(--nakomi-errorFondo);
+    color: var(--nakomi-error);
 }
 
 /* Indicador de propietario (vista admin) */

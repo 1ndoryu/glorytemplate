@@ -2,7 +2,7 @@
 
 > **Prioridad:** Alta  
 > **Estado:** En Progreso  
-> **Última actualización:** 2026-01-24
+> **Última actualización:** 2026-01-24T04:55
 
 ---
 
@@ -17,9 +17,9 @@
 | 4.5  | Vista Dominios                 | ✅ Completada  |
 | Rev  | Revisiones UI/UX               | ✅ Completada  |
 | 7    | Sistema de Usuarios/Simulación | ✅ Completada  |
-| 8    | Modal Edición Servicio         | ✅ Completada  |
+| 8    | Modal Edición Servicio         | ⚠️ Con bugs    |
 | 9    | Single de Servicio             | ✅ Completada  |
-| 10   | Catálogo/Marketplace           | ✅ Completada  |
+| 10   | Catálogo/Marketplace           | ⚠️ Con bugs    |
 | 5    | Stripe                         | ⏳ Pendiente   |
 | 6    | Cuenta Guillermo               | ⏳ Pendiente   |
 | 11   | Integración WordPress Real     | ⏳ Pendiente   |
@@ -27,41 +27,91 @@
 
 ---
 
-## Cliente de Referencia: Guillermo
+## 🐛 Bugs y Correcciones Pendientes
 
-| Producto  | Detalle            | Precio  | Estado                         |
-| --------- | ------------------ | ------- | ------------------------------ |
-| Hosting 1 | guillechatbots.es  | $3/mes  | Activo, impago                 |
-| Hosting 2 | materialdepadel.es | $3/mes  | Activo, impago                 |
-| Hosting 3 | cap.wandori.us     | $3/mes  | Activo, impago                 |
-| Dominio 1 | guillechatbots.es  | $11/año | Activo, impago                 |
-| Dominio 2 | materialdepadel.es | $11/año | Activo, impago                 |
-| Servicio  | Diseño web (CAP)   | $270    | En progreso, pago al finalizar |
+### Alta Prioridad
 
-**Total pendiente:** $31 (hostings + dominios)
+1. **Modal "Ver detalles" en servicios en progreso no abre**
+   - Ubicación: `TarjetaServicioContratado.tsx` → menú contextual → "Ver detalles"
+   - El handler no navega correctamente o el modal no existe
+   - **TO-DO:** Verificar `handleVerDetalles` y crear modal si falta
+
+2. **No se pueden editar servicios publicados**
+   - Ubicación: `VistaServicios.tsx` / `ListaServiciosPublicados.tsx`
+   - El botón de editar en menú de 3 puntos no dispara el modal
+   - **TO-DO:** Verificar que `ModalEditarServicio` se esté mostrando
+
+3. ~~**Dominios sin opción de pago**~~ ✅ **RESUELTO**
+   - Se añadió `pagado: boolean` y `precioAnual: number` a DominioContratado
+   - Se agregó alerta visual de "Pago pendiente" en TarjetaDominio
+   - Se agregó botón "Pagar ahora" con handler en VistaDominios
+   - ResumenDominios ahora muestra conteo y monto de impagos
+
+4. **Factura sin desglose de items**
+   - `INV-2026-001` muestra "$31.00" pero no desglosa qué incluye
+   - El array `items` está vacío o no se renderiza
+   - **TO-DO:** Verificar mock en `facturas.ts` que tenga items correctos
+   - **TO-DO:** Asegurar que el modal muestre cada item con precio
+
+### Media Prioridad
+
+5. **Inconsistencia en Marketplace**
+   - Marketplace debería mostrar servicios PUBLICADOS activos
+   - Verificar que filtre solo `activo: true`
+   - **TO-DO:** Revisar origen de datos en `VistaMarketplace.tsx`
+
+6. **Incoherencia de datos entre vistas**
+   - Los hostings muestran botón "Pagar" pero los dominios no
+   - Las facturas no reflejan exactamente los items pendientes
+   - **TO-DO:** Sincronizar lógica de estado de pago entre entidades
 
 ---
 
-## Arquitectura de Datos (Tipos principales)
+## Cliente de Referencia: Guillermo
 
-Los tipos están definidos en `data/types/`:
-- `cliente.ts` - Cliente, HostingContratado, DominioContratado
+| Producto  | Detalle            | Precio  | Estado   | Pagado         |
+| --------- | ------------------ | ------- | -------- | -------------- |
+| Hosting 1 | guillechatbots.es  | $3/mes  | Activo   | ❌ No           |
+| Hosting 2 | materialdepadel.es | $3/mes  | Activo   | ❌ No           |
+| Hosting 3 | cap.wandori.us     | $3/mes  | Activo   | ❌ No           |
+| Dominio 1 | guillechatbots.es  | $11/año | Activo   | ❌ No           |
+| Dominio 2 | materialdepadel.es | $11/año | Activo   | ❌ No           |
+| Servicio  | Diseño web (CAP)   | $270    | Progreso | ⏳ Al finalizar |
+
+**Total pendiente:** $31 (3 hostings × $3 + 2 dominios × $11)
+
+---
+
+## Arquitectura de Datos
+
+### Tipos principales (`data/types/`)
+- `cliente.ts` - Cliente
+- `hosting.ts` - HostingContratado
+- `dominio.ts` - DominioContratado (✅ con campo `pagado` y `precioAnual`)
 - `facturacion.ts` - Factura, FacturaItem
 - `servicio.ts` - ServicioPublicado, ServicioContratado
 - `usuario.ts` - Usuario, roles
+
+### Mocks (`data/mocks/`)
+- `clientes.ts` - Datos de Guillermo
+- `hostingsContratados.ts` - Sus 3 hostings
+- `dominiosContratados.ts` - Sus 2 dominios (✅ con `pagado: false`)
+- `facturas.ts` - Factura pendiente (⚠️ verificar items desglosados)
+- `serviciosContratados.ts` - Servicio CAP
+- `serviciosPublicados.ts` - Catálogo de la agencia
 
 ---
 
 ## Sistema de Vistas por Rol
 
-| Vista             | Admin                       | Cliente                  |
-| ----------------- | --------------------------- | ------------------------ |
-| **Dashboard**     | Panel de gestión global     | Resumen personal         |
-| **Mis Servicios** | Sus servicios publicados    | Sus servicios publicados |
-| **Hostings**      | TODOS (con columna Cliente) | Solo sus hostings        |
-| **Dominios**      | TODOS (con columna Cliente) | Solo sus dominios        |
-| **Facturas**      | TODAS (con columna Cliente) | Solo sus facturas        |
-| **Marketplace**   | Explorar servicios          | Explorar servicios       |
+| Vista             | Admin                       | Cliente                    |
+| ----------------- | --------------------------- | -------------------------- |
+| **Dashboard**     | Panel de gestión global     | Resumen personal           |
+| **Mis Servicios** | Sus servicios publicados    | Sus servicios publicados   |
+| **Hostings**      | TODOS (con columna Cliente) | Solo sus hostings          |
+| **Dominios**      | TODOS (con columna Cliente) | Solo sus dominios          |
+| **Facturas**      | TODAS (con columna Cliente) | Solo sus facturas          |
+| **Marketplace**   | Explorar servicios activos  | Explorar servicios activos |
 
 ---
 
@@ -76,9 +126,9 @@ El Dashboard es idéntico para Admin y Cliente. El Admin necesita un panel de ge
 - Próximas renovaciones (hostings, dominios)
 
 ### Dashboard Admin (TO-DO)
-**Objetivo:** Panel de control para gestionar todos los clientes y recursos.
 
 **Secciones propuestas:**
+
 1. **Resumen Global**
    - Total clientes activos
    - Ingresos del mes
@@ -86,27 +136,26 @@ El Dashboard es idéntico para Admin y Cliente. El Admin necesita un panel de ge
    - Servicios en progreso
 
 2. **Lista de Clientes**
-   - Tabla con: nombre, email, deuda, servicios activos
-   - Filtros: por estado, deuda pendiente
+   - Tabla: nombre, email, deuda, servicios activos
+   - Filtros: estado, deuda pendiente
    - Acciones: ver perfil, enviar factura
 
 3. **Últimos Pagos Recibidos**
-   - Tabla con: cliente, monto, fecha, concepto
-   - Marcas de tiempo relativas ("hace 2 días")
+   - Tabla: cliente, monto, fecha, concepto
 
 4. **Servicios en Progreso**
-   - Lista de trabajos activos con porcentaje
-   - Cliente asignado, fecha entrega estimada
+   - Lista con porcentaje de avance
+   - Cliente asignado, fecha entrega
    - Botones: actualizar progreso, marcar entregado
 
 5. **Próximas Renovaciones**
-   - Hostings y dominios que renuevan en los próximos 30 días
-   - Indicador si el cliente tiene deuda
-   - Acciones: enviar recordatorio, renovar manualmente
+   - Hostings/dominios que renuevan en 30 días
+   - Indicador de deuda del cliente
+   - Acciones: enviar recordatorio
 
 6. **Alertas**
-   - Facturas vencidas sin pagar
-   - Hostings impagos hace más de X días
+   - Facturas vencidas
+   - Hostings impagos
    - Dominios por expirar
 
 **Componentes a crear:**
@@ -118,32 +167,137 @@ El Dashboard es idéntico para Admin y Cliente. El Admin necesita un panel de ge
 
 ---
 
-## Fase 5: Integración Stripe (Pendiente)
+## Fase 5: Integración Stripe
 
-**Flujo:**
+**Flujo de pago:**
 1. Cliente clic en "Pagar" → Frontend llama endpoint WP
 2. Backend crea PaymentIntent → Devuelve clientSecret
-3. Modal Stripe Elements → Cliente paga
-4. Webhook actualiza factura a "pagada"
+3. Modal Stripe Elements → Cliente ingresa tarjeta
+4. Stripe procesa → Webhook notifica a WP
+5. Backend actualiza factura a "pagada"
+6. Frontend refleja cambio
 
 **Archivos necesarios:**
-- Backend: `App/Api/stripe-endpoints.php`
-- Frontend: componente `ModalStripe.tsx`
-- Configurar `STRIPE_SECRET_KEY` y `STRIPE_WEBHOOK_SECRET`
+- `App/Api/StripeEndpoints.php` - Crear PaymentIntent, webhook
+- `components/panel/ModalStripe.tsx` - UI de pago
+- Configurar en `.env`: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
 
 ---
 
-## Fase 11: Integración WordPress Real (Pendiente)
+## Fase 11: Integración WordPress Real
 
-**Tareas:**
-1. Leer `window.wpUser` para usuario logueado
-2. Endpoints REST: `/glory/v1/usuario`, `/glory/v1/servicios`, etc.
-3. Migrar mocks a CPT (Custom Post Types)
+### Objetivo
+Migrar de mocks a datos reales almacenados en WordPress usando CPT y REST API.
 
-**CPTs planificados:**
-- `glory_servicio` - Servicios publicados
-- `glory_trabajo` - Servicios contratados
-- `glory_factura` - Facturas
+### Custom Post Types (CPTs) a crear
+
+#### `glory_servicio` (Servicios Publicados)
+```
+├── post_title: "Diseño Web Profesional"
+├── post_content: descripción larga
+├── post_author: ID del proveedor
+├── post_status: publish/draft
+├── post_meta:
+│   ├── _precio: 270
+│   ├── _tiempo_entrega_dias: 30
+│   ├── _categoria: "diseno_web"
+│   ├── _imagen_destacada: URL
+│   ├── _incluye_hosting_meses: 12
+│   ├── _incluye_dominio: true
+│   └── _activo: true
+```
+
+#### `glory_trabajo` (Servicios Contratados)
+```
+├── post_title: "Diseño Web - CAP"
+├── post_author: ID del cliente
+├── post_meta:
+│   ├── _servicio_publicado_id: ID servicio base
+│   ├── _proveedor_id: ID proveedor
+│   ├── _estado: "en_progreso" | "revision" | "completado"
+│   ├── _progreso_porcentaje: 65
+│   ├── _fecha_contratacion: "2026-01-01"
+│   ├── _fecha_entrega_estimada: "2026-01-31"
+│   ├── _precio_acordado: 270
+│   ├── _revisiones_restantes: 2
+│   └── _factura_id: null
+```
+
+#### `glory_factura` (Facturas)
+```
+├── post_title: "INV-2026-001"
+├── post_author: ID del cliente
+├── post_meta:
+│   ├── _items: JSON array de items
+│   ├── _subtotal: 31.00
+│   ├── _impuestos: 0
+│   ├── _total: 31.00
+│   ├── _estado: "pendiente" | "pagada" | "vencida"
+│   ├── _fecha_vencimiento: "2026-02-15"
+│   └── _stripe_payment_id: null
+```
+
+#### `glory_hosting` (Hostings Contratados)
+```
+├── post_title: "guillechatbots.es"
+├── post_author: ID del cliente
+├── post_meta:
+│   ├── _dominio: "guillechatbots.es"
+│   ├── _dominio_temporal: null
+│   ├── _stack_uuid: "uuid-coolify"
+│   ├── _plan: "mensual" | "anual"
+│   ├── _precio_mensual: 3
+│   ├── _fecha_inicio: "2026-01-01"
+│   ├── _fecha_renovacion: "2026-02-01"
+│   ├── _estado: "activo" | "suspendido"
+│   └── _pagado: false
+```
+
+### Endpoints REST necesarios
+
+| Endpoint                           | Método | Descripción                     |
+| ---------------------------------- | ------ | ------------------------------- |
+| `/glory/v1/usuario`                | GET    | Usuario actual con rol          |
+| `/glory/v1/servicios`              | GET    | Servicios publicados (catálogo) |
+| `/glory/v1/servicios/{id}`         | GET    | Detalle de un servicio          |
+| `/glory/v1/servicios`              | POST   | Crear servicio (proveedor)      |
+| `/glory/v1/trabajos`               | GET    | Trabajos del usuario            |
+| `/glory/v1/trabajos/{id}`          | GET    | Detalle de un trabajo           |
+| `/glory/v1/trabajos/{id}/progreso` | POST   | Actualizar progreso             |
+| `/glory/v1/trabajos/{id}/aprobar`  | POST   | Aprobar entrega                 |
+| `/glory/v1/hostings`               | GET    | Hostings del usuario            |
+| `/glory/v1/dominios`               | GET    | Dominios del usuario            |
+| `/glory/v1/facturas`               | GET    | Facturas del usuario            |
+| `/glory/v1/facturas/{id}/pagar`    | POST   | Iniciar pago Stripe             |
+
+### Flujo de trabajo completo
+
+```
+PROVEEDOR                               CLIENTE
+─────────                               ───────
+1. Publica servicio en catálogo         
+                                        2. Explora catálogo
+                                        3. Contrata servicio
+4. Recibe notificación                  
+5. Acepta trabajo                       
+6. Trabaja en proyecto                  7. Ve progreso en Dashboard
+   ↳ Actualiza porcentaje               
+   ↳ Sube entregables                   8. Recibe notificación
+10. Marca "Listo para revisión"         
+                                        11. Revisa entrega
+                                        12a. Aprueba → Completado
+                                        12b. Pide revisión → Paso 6
+13. Sistema genera factura              14. Paga vía Stripe
+15. Recibe pago                         
+```
+
+### Tareas de implementación
+
+1. **Crear CPTs** - Archivo `App/PostTypes/FacturacionPostTypes.php`
+2. **Crear endpoints** - Archivo `App/Api/FacturacionApi.php`
+3. **Leer usuario WP** - Modificar `UsuarioContext.tsx` para leer `window.wpUser`
+4. **Migrar mocks** - Reemplazar imports de mocks por llamadas fetch a API
+5. **Permisos** - Middleware que verifica rol en cada endpoint
 
 ---
 
@@ -158,6 +312,8 @@ El Dashboard es idéntico para Admin y Cliente. El Admin necesita un panel de ge
 ### Pendientes
 - [ ] Componente genérico `TarjetaProducto` (hostings/dominios/servicios)
 - [ ] Integración usuarios reales WordPress
+- [x] Campo `pagado` en DominioContratado ✅
+- [ ] Desglose de items en facturas
 
 ---
 
@@ -168,12 +324,13 @@ El Dashboard es idéntico para Admin y Cliente. El Admin necesita un panel de ge
 - `ToggleSimulacion.tsx` - Botón para admins (ver como cliente)
 - Hook: `useUsuario()` → `{usuario, esAdmin, simulando, toggleSimulacion}`
 
-### Seguridad (Backend - TO-DO)
+### Seguridad Backend (TO-DO)
 - Verificar rol en CADA endpoint
 - Endpoints cliente: solo recursos del usuario autenticado
-- Endpoints admin: verificar permisos antes de devolver datos
+- Endpoints admin: verificar `capability` antes de devolver datos
+- Usar nonce de WordPress para CSRF
 - Audit log para accesos sensibles
 
 ---
 
-*Documento compactado el 2026-01-24*
+*Última actualización: 2026-01-24*

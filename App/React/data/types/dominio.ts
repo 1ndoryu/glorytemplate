@@ -12,4 +12,6 @@ export interface DominioContratado {
     renovacionAutomatica: boolean;
     estado: EstadoDominio;
     incluidoEnServicio?: string;
+    precioAnual: number;
+    pagado: boolean;
 }

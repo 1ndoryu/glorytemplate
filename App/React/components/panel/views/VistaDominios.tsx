@@ -18,6 +18,11 @@ export const VistaDominios: React.FC = () => {
         console.log('Renovar dominio:', dominio.nombre);
     };
 
+    const handlePagar = (dominio: DominioContratado) => {
+        /* TO-DO: Integrar con Stripe para pago real (Fase 5) */
+        console.log('Pagar dominio:', dominio.nombre, '$' + dominio.precioAnual);
+    };
+
     /* Helper para obtener nombre del cliente */
     const obtenerNombreCliente = (clienteId: string): string => {
         const cliente = clientes.find(c => c.id === clienteId);
@@ -33,7 +38,7 @@ export const VistaDominios: React.FC = () => {
 
             <ResumenDominios dominios={dominiosContratados} />
 
-            <ListaDominios dominios={dominiosContratados} onRenovar={handleRenovar} mostrarCliente={esVistaAdmin} obtenerNombreCliente={obtenerNombreCliente} />
+            <ListaDominios dominios={dominiosContratados} onRenovar={handleRenovar} onPagar={handlePagar} mostrarCliente={esVistaAdmin} obtenerNombreCliente={obtenerNombreCliente} />
         </div>
     );
 };

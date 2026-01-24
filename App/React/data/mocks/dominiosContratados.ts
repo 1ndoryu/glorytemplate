@@ -12,7 +12,9 @@ export const dominiosContratados: DominioContratado[] = [
         nombre: 'guillechatbots.es',
         fechaExpiracion: '2027-01-15',
         renovacionAutomatica: false,
-        estado: 'activo'
+        estado: 'activo',
+        precioAnual: 11,
+        pagado: false
     },
     {
         id: 'DOM-002',
@@ -20,16 +22,20 @@ export const dominiosContratados: DominioContratado[] = [
         nombre: 'materialdepadel.es',
         fechaExpiracion: '2027-01-15',
         renovacionAutomatica: false,
-        estado: 'activo'
+        estado: 'activo',
+        precioAnual: 11,
+        pagado: false
     },
-    /* Dominios de María (CLI-002) */
+    /* Dominios de María (CLI-002) - pagados */
     {
         id: 'DOM-003',
         clienteId: 'CLI-002',
         nombre: 'tiendamaria.es',
         fechaExpiracion: '2026-12-15',
         renovacionAutomatica: true,
-        estado: 'activo'
+        estado: 'activo',
+        precioAnual: 11,
+        pagado: true
     },
     {
         id: 'DOM-004',
@@ -37,7 +43,9 @@ export const dominiosContratados: DominioContratado[] = [
         nombre: 'blogmaria.com',
         fechaExpiracion: '2027-01-10',
         renovacionAutomatica: false,
-        estado: 'activo'
+        estado: 'activo',
+        precioAnual: 11,
+        pagado: true
     }
 ];
 

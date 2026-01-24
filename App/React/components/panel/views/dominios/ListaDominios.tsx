@@ -10,11 +10,12 @@ import {DominioContratado} from '../../../../data/types/dominio';
 interface ListaDominiosProps {
     dominios: DominioContratado[];
     onRenovar: (dominio: DominioContratado) => void;
+    onPagar?: (dominio: DominioContratado) => void;
     mostrarCliente?: boolean;
     obtenerNombreCliente?: (clienteId: string) => string;
 }
 
-export const ListaDominios: React.FC<ListaDominiosProps> = ({dominios, onRenovar, mostrarCliente = false, obtenerNombreCliente}) => {
+export const ListaDominios: React.FC<ListaDominiosProps> = ({dominios, onRenovar, onPagar, mostrarCliente = false, obtenerNombreCliente}) => {
     if (dominios.length === 0) {
         return (
             <div className="dominiosVacio">
@@ -26,7 +27,7 @@ export const ListaDominios: React.FC<ListaDominiosProps> = ({dominios, onRenovar
     return (
         <div className="dominiosGrid">
             {dominios.map(dominio => (
-                <TarjetaDominio key={dominio.id} dominio={dominio} onRenovar={onRenovar} nombreCliente={mostrarCliente && obtenerNombreCliente ? obtenerNombreCliente(dominio.clienteId) : undefined} />
+                <TarjetaDominio key={dominio.id} dominio={dominio} onRenovar={onRenovar} onPagar={onPagar} nombreCliente={mostrarCliente && obtenerNombreCliente ? obtenerNombreCliente(dominio.clienteId) : undefined} />
             ))}
         </div>
     );
