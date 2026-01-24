@@ -47,3 +47,10 @@ if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
         }
     });
 }
+
+/* 
+ * API Routers 
+ */
+if (class_exists(\App\Api\Facturacion\FacturacionRouter::class)) {
+    \App\Api\Facturacion\FacturacionRouter::register();
+}

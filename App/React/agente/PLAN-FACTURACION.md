@@ -8,22 +8,22 @@
 
 ## Resumen de Fases
 
-| Fase | Descripción                    | Estado       |
-| ---- | ------------------------------ | ------------ |
-| 1    | Modelo de datos y mocks        | ✅ Completada |
-| 2    | Vista Facturación              | ✅ Completada |
-| 3    | Vista Hostings                 | ✅ Completada |
-| 4    | Vista Servicios                | ✅ Completada |
-| 4.5  | Vista Dominios                 | ✅ Completada |
-| Rev  | Revisiones UI/UX               | ✅ Completada |
-| 7    | Sistema de Usuarios/Simulación | ✅ Completada |
-| 8    | Modal Edición Servicio         | ✅ Completada |
-| 9    | Single de Servicio             | ✅ Completada |
-| 10   | Catálogo/Marketplace           | ✅ Completada |
-| 5    | Stripe                         | ⏳ Pendiente  |
-| 6    | Cuenta Guillermo               | ⏳ Pendiente  |
-| 11   | Integración WordPress Real     | ⏳ Pendiente  |
-| 12   | Dashboard Admin diferenciado   | ✅ Completada |
+| Fase | Descripción                    | Estado          |
+| ---- | ------------------------------ | --------------- |
+| 1    | Modelo de datos y mocks        | ✅ Completada    |
+| 2    | Vista Facturación              | ✅ Completada    |
+| 3    | Vista Hostings                 | ✅ Completada    |
+| 4    | Vista Servicios                | ✅ Completada    |
+| 4.5  | Vista Dominios                 | ✅ Completada    |
+| Rev  | Revisiones UI/UX               | ✅ Completada    |
+| 7    | Sistema de Usuarios/Simulación | ✅ Completada    |
+| 8    | Modal Edición Servicio         | ✅ Completada    |
+| 9    | Single de Servicio             | ✅ Completada    |
+| 10   | Catálogo/Marketplace           | ✅ Completada    |
+| 5    | Stripe                         | ⏳ Pendiente     |
+| 6    | Cuenta Guillermo               | ⏳ Pendiente     |
+| 11   | Integración WordPress Real     | 🚧 Backend Listo |
+| 12   | Dashboard Admin diferenciado   | ✅ Completada    |
 
 ---
 
