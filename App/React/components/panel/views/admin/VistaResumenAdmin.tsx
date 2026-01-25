@@ -42,9 +42,6 @@ export const VistaResumenAdmin: React.FC = () => {
                     <h2 className="vistaTitulo">Hola, {usuario.nombre}</h2>
                     <p className="vistaSubtitulo">Panel de administración</p>
                 </div>
-                <Boton onClick={handleSeed} tamano="sm" variante="outline" icono={<Database size={16} />} className="botonSeed">
-                    Inicializar Datos Demo
-                </Boton>
             </div>
 
             {/* Tarjetas de resumen global */}

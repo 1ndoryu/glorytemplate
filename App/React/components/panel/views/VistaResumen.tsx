@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import {DollarSign, Calendar, Package, ShoppingBag, AlertCircle} from 'lucide-react';
+import {Calendar, Package, ShoppingBag, AlertCircle} from 'lucide-react';
 import {Tarjeta} from '../../ui/Tarjeta';
 import {Boton} from '../../ui/Boton';
 import {PlaceholderVacio} from '../../ui/PlaceholderVacio';
@@ -14,13 +14,30 @@ import {TarjetaServicioContratado} from './servicios/TarjetaServicioContratado';
 import {ServicioContratado} from '../../../data/types/servicio';
 import {formatearFecha, diasHastaFecha} from '../../../utils/fechaUtils';
 
+interface TarjetaResumenClienteProps {
+    etiqueta: string;
+    valor: string | number;
+    valorDestacado?: boolean;
+    accion?: React.ReactNode;
+}
+
+const TarjetaResumenCliente: React.FC<TarjetaResumenClienteProps> = ({etiqueta, valor, valorDestacado, accion}) => (
+    <Tarjeta className="tarjetaResumen">
+        <div className="resumenContenido">
+            <span className="resumenEtiqueta">{etiqueta}</span>
+            <span className={`resumenValor ${valorDestacado ? 'valorAlerta' : ''}`}>{valor}</span>
+        </div>
+        {accion}
+    </Tarjeta>
+);
+
 export const VistaResumen: React.FC = () => {
     const {serviciosContratados, hostingsContratados, dominiosContratados, facturas, navegarA} = usePanel();
     const {usuario} = useUsuario();
 
     /* Calcular deuda pendiente (solo facturas pendientes/vencidas) */
-    const facturasPendientes = facturas.filter(f => f.estado === 'pendiente');
-    const deudaTotal = facturasPendientes.reduce((acc, f) => acc + f.importe, 0);
+    const facturasPendientes = facturas.filter(f => f.estado === 'pendiente' || f.estado === 'vencida');
+    const deudaTotal = facturasPendientes.reduce((acc, f) => acc + f.total, 0);
 
     /* Servicios activos (en progreso o pendientes) */
     const serviciosActivos = serviciosContratados.filter(s => s.estado === 'en_progreso' || s.estado === 'pendiente');
@@ -67,43 +84,20 @@ export const VistaResumen: React.FC = () => {
 
             {/* Tarjetas de resumen */}
             <div className="dashboardResumen">
-                {/* Deuda pendiente */}
-                <Tarjeta className="tarjetaResumen">
-                    <div className="resumenIcono resumenIconoDeuda">
-                        <DollarSign size={20} />
-                    </div>
-                    <div className="resumenContenido">
-                        <span className="resumenEtiqueta">Deuda pendiente</span>
-                        <span className={`resumenValor ${deudaTotal > 0 ? 'valorAlerta' : ''}`}>${deudaTotal.toFixed(2)}</span>
-                    </div>
-                    {deudaTotal > 0 && (
-                        <Boton variante="acento" tamano="sm">
-                            Pagar
-                        </Boton>
-                    )}
-                </Tarjeta>
-
-                {/* Servicios activos */}
-                <Tarjeta className="tarjetaResumen">
-                    <div className="resumenIcono resumenIconoServicios">
-                        <Package size={20} />
-                    </div>
-                    <div className="resumenContenido">
-                        <span className="resumenEtiqueta">Servicios activos</span>
-                        <span className="resumenValor">{serviciosActivos.length}</span>
-                    </div>
-                </Tarjeta>
-
-                {/* Próximas renovaciones */}
-                <Tarjeta className="tarjetaResumen">
-                    <div className="resumenIcono resumenIconoRenovaciones">
-                        <Calendar size={20} />
-                    </div>
-                    <div className="resumenContenido">
-                        <span className="resumenEtiqueta">Renovaciones próximas</span>
-                        <span className="resumenValor">{proximasRenovaciones.length}</span>
-                    </div>
-                </Tarjeta>
+                <TarjetaResumenCliente
+                    etiqueta="Deuda pendiente"
+                    valor={`$${deudaTotal.toFixed(2)}`}
+                    valorDestacado={deudaTotal > 0}
+                    accion={
+                        deudaTotal > 0 ? (
+                            <Boton variante="acento" tamano="sm">
+                                Pagar
+                            </Boton>
+                        ) : undefined
+                    }
+                />
+                <TarjetaResumenCliente etiqueta="Servicios activos" valor={serviciosActivos.length} />
+                <TarjetaResumenCliente etiqueta="Renovaciones próximas" valor={proximasRenovaciones.length} />
             </div>
 
             {/* Servicios contratados activos */}
@@ -155,9 +149,9 @@ export const VistaResumen: React.FC = () => {
                             <Tarjeta key={factura.id} className="tarjetaFacturaPendiente">
                                 <div className="facturaInfo">
                                     <span className="facturaConcepto">{factura.concepto}</span>
-                                    <span className="facturaFecha">{formatearFecha(factura.fecha)}</span>
+                                    <span className="facturaFecha">{formatearFecha(factura.fechaEmision)}</span>
                                 </div>
-                                <span className="facturaMonto">${factura.importe.toFixed(2)}</span>
+                                <span className="facturaMonto">${factura.total?.toFixed(2) || '0.00'}</span>
                                 <Boton variante="acento" tamano="sm">
                                     Pagar
                                 </Boton>

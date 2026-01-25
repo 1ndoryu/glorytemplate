@@ -84,3 +84,4 @@ glory_docs
 .agent/docs/*
 .agent/workflows/*
 App/React/roadmap.md
+.trae/.ignore

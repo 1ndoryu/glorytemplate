@@ -69,7 +69,7 @@ export const UsuarioProvider: React.FC<UsuarioProviderProps> = ({children}) => {
         if (usuario.rol === 'admin' && !simulando) {
             return null;
         }
-        return usuarioClienteMap[usuario.id] || null;
+        return usuarioClienteMap[usuario.id] || usuario.id;
     }, [usuario, simulando]);
 
     const value = useMemo(

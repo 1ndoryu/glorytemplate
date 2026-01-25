@@ -19,7 +19,7 @@ export const usuarioAdmin: UsuarioPanel = {
 
 /* Usuario Cliente - Guillermo */
 export const usuarioGuillermo: UsuarioPanel = {
-    id: 'USR-002',
+    id: 'usr_guillermo',
     wpUserId: 2,
     nombre: 'Guillermo',
     email: 'guillermo@example.com',
@@ -44,7 +44,7 @@ export const usuariosMock: UsuarioPanel[] = [usuarioAdmin, usuarioGuillermo, usu
 
 /* Mapeo de usuario a cliente (para filtrar datos) */
 export const usuarioClienteMap: Record<string, string> = {
-    'USR-002': 'CLI-001',
+    usr_guillermo: 'usr_guillermo',
     'USR-003': 'CLI-002'
 };
 

@@ -19,34 +19,9 @@
 
 .tarjetaResumen {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--nakomi-espacioMd);
-    padding: var(--nakomi-espacioMd) var(--nakomi-espacioLg);
-}
-
-.resumenIcono {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--nakomi-radioMd);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.resumenIconoDeuda {
-    background: rgba(239, 68, 68, 0.15);
-    color: #f87171;
-}
-
-.resumenIconoServicios {
-    background: rgba(59, 130, 246, 0.15);
-    color: #60a5fa;
-}
-
-.resumenIconoRenovaciones {
-    background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
+    padding: var(--nakomi-espacioMd);
 }
 
 .resumenContenido {
@@ -59,8 +34,6 @@
 .resumenEtiqueta {
     font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoApagado);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
 }
 
 .resumenValor {
