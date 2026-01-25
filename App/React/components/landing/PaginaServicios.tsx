@@ -3,6 +3,7 @@ import {Servicio} from './GridServicios';
 import {TarjetaServicio} from './TarjetaServicio';
 import {DropdownMinimal} from '../ui/DropdownMinimal';
 import {InputBusqueda} from '../ui/InputBusqueda';
+import {Boton} from '../ui/Boton';
 
 /*
  * PaginaServicios: Vista completa de servicios
@@ -52,15 +53,17 @@ export const PaginaServicios: React.FC<PaginaServiciosProps> = ({servicios}) => 
                     {/* Filtro Categoría */}
                     <DropdownMinimal etiqueta={categoriaSeleccionada === 'Todas' ? 'Categoría' : categoriaSeleccionada} estaAbierto={mostrandoFiltroCategoria} onToggle={() => setMostrandoFiltroCategoria(!mostrandoFiltroCategoria)} onCerrar={() => setMostrandoFiltroCategoria(false)} activo={categoriaSeleccionada !== 'Todas'} anchoMenu="180px">
                         {CATEGORIAS_FILTRO.map(cat => (
-                            <button
+                            <Boton
                                 key={cat}
+                                variante="ghost"
+                                bloque
                                 className={`opcionCategoria ${categoriaSeleccionada === cat ? 'seleccionada' : ''}`}
                                 onClick={() => {
                                     setCategoriaSeleccionada(cat);
                                     setMostrandoFiltroCategoria(false);
                                 }}>
                                 {cat}
-                            </button>
+                            </Boton>
                         ))}
                     </DropdownMinimal>
 
@@ -85,15 +88,15 @@ export const PaginaServicios: React.FC<PaginaServiciosProps> = ({servicios}) => 
                 ) : (
                     <div className="sinResultados">
                         <p>No se encontraron servicios.</p>
-                        <button
+                        <Boton
                             onClick={() => {
                                 setBusqueda('');
                                 setCategoriaSeleccionada('Todas');
                                 setPrecioMaximo(10000);
                             }}
-                            className="btnLimpiar">
+                            variante="outline">
                             Limpiar filtros
-                        </button>
+                        </Boton>
                     </div>
                 )}
             </div>

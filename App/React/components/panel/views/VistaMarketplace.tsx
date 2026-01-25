@@ -69,15 +69,17 @@ export const VistaMarketplace: React.FC = () => {
                     {/* Filtro Categoría */}
                     <DropdownMinimal etiqueta={categoriaSeleccionada === 'Todas' ? 'Categoría' : categoriaSeleccionada} estaAbierto={mostrandoFiltroCategoria} onToggle={() => setMostrandoFiltroCategoria(!mostrandoFiltroCategoria)} onCerrar={() => setMostrandoFiltroCategoria(false)} activo={categoriaSeleccionada !== 'Todas'} anchoMenu="180px">
                         {CATEGORIAS_FILTRO.map(cat => (
-                            <button
+                            <Boton
                                 key={cat}
+                                variante="ghost"
+                                bloque
                                 className={`opcionCategoria ${categoriaSeleccionada === cat ? 'seleccionada' : ''}`}
                                 onClick={() => {
                                     setCategoriaSeleccionada(cat);
                                     setMostrandoFiltroCategoria(false);
                                 }}>
                                 {cat}
-                            </button>
+                            </Boton>
                         ))}
                     </DropdownMinimal>
 

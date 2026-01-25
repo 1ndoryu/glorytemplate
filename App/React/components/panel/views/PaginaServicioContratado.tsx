@@ -28,10 +28,9 @@ export const PaginaServicioContratado: React.FC = () => {
     if (!servicio) {
         return (
             <div className="bloqueVista">
-                <button onClick={() => navegarA('resumen')} className="botonVolver">
-                    <ArrowLeft size={18} />
+                <Boton onClick={() => navegarA('resumen')} variante="ghost" icono={<ArrowLeft size={18} />} className="mb-4">
                     Volver al Dashboard
-                </button>
+                </Boton>
                 <div className="placeholderCentrado">
                     <AlertCircle size={48} className="iconoPlaceholder" />
                     <h2 className="placeholderTitulo">Servicio no encontrado</h2>
@@ -47,10 +46,9 @@ export const PaginaServicioContratado: React.FC = () => {
     return (
         <div className="bloqueVista paginaServicioContratado">
             <header className="paginaServicioHeader">
-                <button onClick={() => navegarA('resumen')} className="botonVolver">
-                    <ArrowLeft size={18} />
+                <Boton onClick={() => navegarA('resumen')} variante="ghost" icono={<ArrowLeft size={18} />}>
                     Volver
-                </button>
+                </Boton>
             </header>
 
             <div className="paginaServicioContenido">

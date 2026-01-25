@@ -33,6 +33,7 @@ interface BotonProps {
     className?: string;
     tipo?: 'button' | 'submit' | 'reset';
     target?: '_blank' | '_self' | '_parent' | '_top';
+    title?: string;
 }
 
 const mapeoTamano: Record<TamanoBoton, string> = {
@@ -49,7 +50,7 @@ const mapeoVariante: Record<VarianteBoton, string> = {
     acento: 'botonAcento'
 };
 
-export const Boton = React.forwardRef<HTMLButtonElement & HTMLAnchorElement, BotonProps>(({children, variante = 'outline', tamano = 'md', href, onClick, bloque = false, pill = false, disabled = false, cargando = false, icono, iconoPosicion = 'inicio', className = '', tipo = 'button', target}, ref) => {
+export const Boton = React.forwardRef<HTMLButtonElement & HTMLAnchorElement, BotonProps>(({children, variante = 'outline', tamano = 'md', href, onClick, bloque = false, pill = false, disabled = false, cargando = false, icono, iconoPosicion = 'inicio', className = '', tipo = 'button', target, title}, ref) => {
     const clases = ['boton', mapeoTamano[tamano], mapeoVariante[variante], bloque && 'botonBloque', pill && 'botonPill', disabled && 'botonDisabled', cargando && 'botonCargando', className].filter(Boolean).join(' ');
 
     const contenido = (
@@ -63,7 +64,7 @@ export const Boton = React.forwardRef<HTMLButtonElement & HTMLAnchorElement, Bot
     /* Si tiene href, renderiza como enlace */
     if (href) {
         return (
-            <a ref={ref as React.Ref<HTMLAnchorElement>} href={href} className={clases} target={target} rel={target === '_blank' ? 'noopener noreferrer' : undefined} onClick={disabled ? e => e.preventDefault() : onClick}>
+            <a ref={ref as React.Ref<HTMLAnchorElement>} href={href} className={clases} target={target} rel={target === '_blank' ? 'noopener noreferrer' : undefined} onClick={disabled ? e => e.preventDefault() : onClick} title={title}>
                 {contenido}
             </a>
         );
@@ -71,7 +72,7 @@ export const Boton = React.forwardRef<HTMLButtonElement & HTMLAnchorElement, Bot
 
     /* Si no tiene href, renderiza como botón */
     return (
-        <button ref={ref as React.Ref<HTMLButtonElement>} type={tipo} className={clases} onClick={onClick} disabled={disabled || cargando}>
+        <button ref={ref as React.Ref<HTMLButtonElement>} type={tipo} className={clases} onClick={onClick} disabled={disabled || cargando} title={title}>
             {contenido}
         </button>
     );
