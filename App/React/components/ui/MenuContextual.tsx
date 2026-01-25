@@ -6,6 +6,7 @@
 import React, {useState, useRef, useEffect, useCallback} from 'react';
 import {createPortal} from 'react-dom';
 import {MoreVertical} from 'lucide-react';
+import {Boton} from './Boton';
 
 export interface AccionMenu {
     id: string;
@@ -29,7 +30,7 @@ interface PosicionMenu {
 export const MenuContextual: React.FC<MenuContextualProps> = ({acciones, ariaLabel = 'Menú de acciones'}) => {
     const [abierto, setAbierto] = useState(false);
     const [posicion, setPosicion] = useState<PosicionMenu>({top: 0, left: 0});
-    const botonRef = useRef<HTMLButtonElement>(null);
+    const botonRef = useRef<HTMLButtonElement & HTMLAnchorElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
     /* Calcula la posición del menú basándose en el botón */
@@ -114,10 +115,9 @@ export const MenuContextual: React.FC<MenuContextualProps> = ({acciones, ariaLab
                   {acciones.map(accion => (
                       <React.Fragment key={accion.id}>
                           {accion.separadorAntes && <div className="menuContextualSeparador" />}
-                          <button className={`menuContextualItem ${accion.peligroso ? 'peligroso' : ''}`} onClick={() => handleAccionClick(accion)} role="menuitem">
-                              {accion.icono && <span className="menuContextualIcono">{accion.icono}</span>}
+                          <Boton variante="ghost" bloque className={`menuContextualItem ${accion.peligroso ? 'peligroso' : ''}`} onClick={() => handleAccionClick(accion)} icono={accion.icono}>
                               <span>{accion.label}</span>
-                          </button>
+                          </Boton>
                       </React.Fragment>
                   ))}
               </div>,
@@ -127,9 +127,7 @@ export const MenuContextual: React.FC<MenuContextualProps> = ({acciones, ariaLab
 
     return (
         <div className="menuContextualContenedor">
-            <button ref={botonRef} className={`menuContextualBoton ${abierto ? 'activo' : ''}`} onClick={toggleMenu} aria-label={ariaLabel} aria-expanded={abierto} aria-haspopup="true">
-                <MoreVertical size={16} />
-            </button>
+            <Boton ref={botonRef} variante="ghost" className={`menuContextualBoton ${abierto ? 'activo' : ''}`} onClick={toggleMenu} icono={<MoreVertical size={16} />} />
             {menuPortal}
         </div>
     );

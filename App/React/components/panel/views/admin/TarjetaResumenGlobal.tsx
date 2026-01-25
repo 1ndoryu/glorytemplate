@@ -11,7 +11,7 @@ export interface DatosResumenGlobal {
     etiqueta: string;
     valor: string | number;
     subtexto?: string;
-    icono: LucideIcon;
+    icono?: LucideIcon;
     variante: 'primario' | 'exito' | 'alerta' | 'error';
 }
 
@@ -24,9 +24,11 @@ export const TarjetaResumenGlobal: React.FC<TarjetaResumenGlobalProps> = ({datos
 
     return (
         <Tarjeta className="tarjetaResumenAdmin">
-            <div className={`resumenIconoAdmin resumenIcono--${variante}`}>
-                <Icono size={20} />
-            </div>
+            {Icono && (
+                <div className={`resumenIconoAdmin resumenIcono--${variante}`}>
+                    <Icono size={20} />
+                </div>
+            )}
             <div className="resumenContenidoAdmin">
                 <span className="resumenEtiquetaAdmin">{etiqueta}</span>
                 <span className="resumenValorAdmin">{valor}</span>

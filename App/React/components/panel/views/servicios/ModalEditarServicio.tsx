@@ -123,9 +123,7 @@ export const ModalEditarServicio: React.FC<ModalEditarServicioProps> = ({servici
                         <Package size={20} />
                         <h2 className="modalTitulo">{titulo}</h2>
                     </div>
-                    <button className="modalCerrar" onClick={onCerrar} type="button">
-                        <X size={18} />
-                    </button>
+                    <Boton variante="ghost" tamano="sm" onClick={onCerrar} icono={<X size={18} />} pill className="modalCerrar" />
                 </header>
 
                 <form className="modalContenido" onSubmit={handleSubmit}>

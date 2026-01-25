@@ -23,7 +23,7 @@
     display: flex;
     align-items: flex-start;
     gap: var(--nakomi-espacioMd);
-    padding: var(--nakomi-espacioLg);
+    padding: var(--nakomi-espacioMd);
 }
 
 .resumenIconoAdmin {
@@ -70,13 +70,13 @@
 .resumenEtiquetaAdmin {
     font-size: var(--nakomi-fuenteXs);
     color: var(--nakomi-textoApagado);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    /* text-transform: uppercase; Eliminado por solicitud */
+    /* letter-spacing: 0.05em; */
 }
 
 .resumenValorAdmin {
     font-size: var(--nakomi-fuenteXl);
-    font-weight: 700;
+    font-weight: 500;
     color: var(--nakomi-textoActivo);
     line-height: 1.2;
 }

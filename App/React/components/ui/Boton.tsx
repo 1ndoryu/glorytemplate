@@ -19,7 +19,7 @@ type VarianteBoton = 'solid' | 'outline' | 'ghost' | 'link' | 'acento';
 type TamanoBoton = 'sm' | 'md' | 'lg';
 
 interface BotonProps {
-    children: React.ReactNode;
+    children?: React.ReactNode;
     variante?: VarianteBoton;
     tamano?: TamanoBoton;
     href?: string;
@@ -49,7 +49,7 @@ const mapeoVariante: Record<VarianteBoton, string> = {
     acento: 'botonAcento'
 };
 
-export const Boton: React.FC<BotonProps> = ({children, variante = 'outline', tamano = 'md', href, onClick, bloque = false, pill = false, disabled = false, cargando = false, icono, iconoPosicion = 'inicio', className = '', tipo = 'button', target}) => {
+export const Boton = React.forwardRef<HTMLButtonElement & HTMLAnchorElement, BotonProps>(({children, variante = 'outline', tamano = 'md', href, onClick, bloque = false, pill = false, disabled = false, cargando = false, icono, iconoPosicion = 'inicio', className = '', tipo = 'button', target}, ref) => {
     const clases = ['boton', mapeoTamano[tamano], mapeoVariante[variante], bloque && 'botonBloque', pill && 'botonPill', disabled && 'botonDisabled', cargando && 'botonCargando', className].filter(Boolean).join(' ');
 
     const contenido = (
@@ -63,7 +63,7 @@ export const Boton: React.FC<BotonProps> = ({children, variante = 'outline', tam
     /* Si tiene href, renderiza como enlace */
     if (href) {
         return (
-            <a href={href} className={clases} target={target} rel={target === '_blank' ? 'noopener noreferrer' : undefined} onClick={disabled ? e => e.preventDefault() : onClick}>
+            <a ref={ref as React.Ref<HTMLAnchorElement>} href={href} className={clases} target={target} rel={target === '_blank' ? 'noopener noreferrer' : undefined} onClick={disabled ? e => e.preventDefault() : onClick}>
                 {contenido}
             </a>
         );
@@ -71,10 +71,10 @@ export const Boton: React.FC<BotonProps> = ({children, variante = 'outline', tam
 
     /* Si no tiene href, renderiza como botón */
     return (
-        <button type={tipo} className={clases} onClick={onClick} disabled={disabled || cargando}>
+        <button ref={ref as React.Ref<HTMLButtonElement>} type={tipo} className={clases} onClick={onClick} disabled={disabled || cargando}>
             {contenido}
         </button>
     );
-};
+});
 
 export default Boton;

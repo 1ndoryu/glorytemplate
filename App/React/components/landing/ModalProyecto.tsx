@@ -1,4 +1,6 @@
 import React, {useEffect, useCallback} from 'react';
+import {X} from 'lucide-react';
+import {Boton} from '../ui/Boton';
 import {Proyecto} from './TarjetaProyecto';
 
 /*
@@ -48,9 +50,7 @@ export const ModalProyecto: React.FC<ModalProyectoProps> = ({proyecto, visible, 
     return (
         <div className={`modalOverlayLanding ${visible ? 'modalOverlayLandingVisible' : ''}`} onClick={manejarClickOverlay} role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
             <div className="modalContenidoLanding">
-                <button className="modalCerrar" onClick={onCerrar} aria-label="Cerrar modal">
-                    ×
-                </button>
+                <Boton variante="ghost" tamano="sm" onClick={onCerrar} icono={<X size={20} />} pill className="modalCerrar" />
 
                 <img src={proyecto.imagen} alt={proyecto.nombre} className="modalImagen" />
 

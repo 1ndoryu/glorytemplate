@@ -37,9 +37,7 @@ export const ModalPagarFactura: React.FC<ModalPagarFacturaProps> = ({factura, vi
                         <FileText size={20} />
                         <h2 className="modalTitulo">Detalle de Factura</h2>
                     </div>
-                    <button className="modalCerrar" onClick={onCerrar}>
-                        <X size={18} />
-                    </button>
+                    <Boton variante="ghost" tamano="sm" onClick={onCerrar} icono={<X size={18} />} pill className="modalCerrar" />
                 </header>
 
                 <div className="modalContenido">

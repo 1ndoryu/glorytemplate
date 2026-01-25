@@ -5,7 +5,8 @@
  */
 
 import React, {useMemo} from 'react';
-import {Users, DollarSign, Briefcase, AlertTriangle, TrendingUp, Database} from 'lucide-react';
+import {Users, Briefcase, AlertTriangle, Database} from 'lucide-react';
+import {Boton} from '../../../../components/ui/Boton';
 import {apiClient} from '../../../../data/api/client';
 import {usePanel} from '../../../../context/PanelContext';
 import {useUsuario} from '../../../../context/UsuarioContext';
@@ -22,7 +23,7 @@ export const VistaResumenAdmin: React.FC = () => {
     /* Cálculos globales para las tarjetas de resumen */
     const metricas = useMemo(() => {
         const facturasPendientes = facturas.filter(f => f.estado === 'pendiente');
-        const ingresosPendientes = facturasPendientes.reduce((acc, f) => acc + f.importe, 0);
+        const ingresosPendientes = facturasPendientes.reduce((acc, f) => acc + f.total, 0);
 
         const trabajosEnProgreso = serviciosContratados.filter(s => s.estado === 'en_progreso' || s.estado === 'pendiente');
 
@@ -45,27 +46,21 @@ export const VistaResumenAdmin: React.FC = () => {
         {
             etiqueta: 'Clientes activos',
             valor: metricas.totalClientes,
-            icono: Users,
             variante: 'primario'
         },
         {
             etiqueta: 'Por cobrar',
             valor: `$${metricas.ingresosPendientes.toFixed(2)}`,
-            subtexto: `${metricas.facturasPendientes} facturas`,
-            icono: DollarSign,
             variante: metricas.ingresosPendientes > 0 ? 'alerta' : 'exito'
         },
         {
             etiqueta: 'Trabajos activos',
             valor: metricas.trabajosActivos,
-            icono: Briefcase,
             variante: 'primario'
         },
         {
             etiqueta: 'Alertas',
             valor: metricas.hostingsImpagos + metricas.dominiosImpagos,
-            subtexto: 'Productos impagos',
-            icono: AlertTriangle,
             variante: metricas.hostingsImpagos + metricas.dominiosImpagos > 0 ? 'error' : 'exito'
         }
     ];
@@ -170,10 +165,9 @@ export const VistaResumenAdmin: React.FC = () => {
                     <h2 className="vistaTitulo">Hola, {usuario.nombre}</h2>
                     <p className="vistaSubtitulo">Panel de administración</p>
                 </div>
-                <button onClick={handleSeed} className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition">
-                    <Database size={16} />
+                <Boton onClick={handleSeed} tamano="sm" variante="solid" icono={<Database size={16} />} className="botonSeed">
                     Inicializar Datos Demo
-                </button>
+                </Boton>
             </div>
 
             {/* Tarjetas de resumen global */}

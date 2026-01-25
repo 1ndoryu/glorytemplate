@@ -1,4 +1,5 @@
 import React, {useEffect, useRef} from 'react';
+import {Boton} from './Boton';
 
 /*
  * Dropdown minimalista reutilizable.
@@ -36,10 +37,10 @@ export const DropdownMinimal: React.FC<DropdownMinimalProps> = ({etiqueta, estaA
 
     return (
         <div className="contenedorDropdown" ref={contenedorRef}>
-            <button className={`botonDropdown ${activo ? 'activo' : ''} ${estaAbierto ? 'abierto' : ''}`} onClick={onToggle}>
+            <Boton variante="outline" className={`botonDropdown ${activo ? 'activo' : ''} ${estaAbierto ? 'abierto' : ''}`} onClick={onToggle}>
                 {etiqueta}
                 <span className="flechaDropdown">▼</span>
-            </button>
+            </Boton>
 
             {estaAbierto && (
                 <div className="menuDropdown" style={{width: anchoMenu}}>

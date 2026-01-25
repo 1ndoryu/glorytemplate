@@ -53,16 +53,17 @@
     --nakomi-fuentePrincipal: 'CursorGothic', 'CursorGothic Fallback', system-ui, Helvetica Neue, Helvetica, Arial, sans-serif;
     --nakomi-fuenteDisplay: 'CursorGothic', var(--nakomi-fuentePrincipal);
     --nakomi-fuenteMono: 'JetBrains Mono', 'Fira Code', monospace;
+    --nakomi-trackingGeneral: 0.3px;
 
     /* === Tamaños Tipográficos === */
     --nakomi-fuenteXs: 10px;
-    --nakomi-fuenteSm: 12px; /* ~12px - Captions, metadatos, texto auxiliar */
+    --nakomi-fuenteSm: 12px;
     --nakomi-fuenteMd: 0.75rem; /* ~14px - Texto base, cuerpo de texto normal */
     --nakomi-fuenteLg: 1rem; /* ~16px - Texto destacado, subtítulos */
     --nakomi-fuenteXl: 1.25rem; /* ~20px - Títulos de sección, headings */
 
     /* === Espaciado === */
-    --nakomi-espacioXs: 4px;
+    --nakomi-espacioXs: 6px;
     --nakomi-espacioSm: 8px;
     --nakomi-espacioMd: 16px;
     --nakomi-espacioLg: 24px;

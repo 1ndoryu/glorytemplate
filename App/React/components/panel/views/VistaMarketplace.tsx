@@ -4,6 +4,7 @@ import {usePanel} from '../../../context/PanelContext';
 import {Servicio} from '../../landing/GridServicios';
 import {InputBusqueda} from '../../ui/InputBusqueda';
 import {DropdownMinimal} from '../../ui/DropdownMinimal';
+import {Boton} from '../../ui/Boton';
 
 /**
  * VistaMarketplace: Catálogo de servicios disponibles en el panel.
@@ -25,15 +26,29 @@ export const VistaMarketplace: React.FC = () => {
     // Lógica de filtrado
     useEffect(() => {
         const filtrados = servicios.filter(servicio => {
-            const coincideTexto = servicio.nombre.toLowerCase().includes(busqueda.toLowerCase()) || servicio.descripcionCorta.toLowerCase().includes(busqueda.toLowerCase());
+            const coincideTexto = servicio.nombre.toLowerCase().includes(busqueda.toLowerCase()) || servicio.descripcion.toLowerCase().includes(busqueda.toLowerCase());
 
-            const coincidePrecio = servicio.precioDesde <= precioMaximo;
+            const coincidePrecio = servicio.precio <= precioMaximo;
 
-            const coincideCategoria = categoriaSeleccionada === 'Todas' || servicio.nombre.toLowerCase().includes(categoriaSeleccionada.toLowerCase());
+            const coincideCategoria = categoriaSeleccionada === 'Todas' || servicio.categoria?.toLowerCase() === categoriaSeleccionada.toLowerCase() || servicio.nombre.toLowerCase().includes(categoriaSeleccionada.toLowerCase());
 
             return coincideTexto && coincidePrecio && coincideCategoria;
         });
-        setServiciosFiltrados(filtrados);
+
+        const serviciosMapeados: Servicio[] = filtrados.map(s => ({
+            id: s.id,
+            nombre: s.nombre,
+            descripcionCorta: s.descripcion,
+            precioDesde: s.precio,
+            imagen: s.imagenUrl,
+            imagenUrl: s.imagenUrl,
+            descripcion: s.descripcion,
+            categoria: s.categoria,
+            tiempoEstimado: `${s.tiempoEntregaDias} días`,
+            activo: s.activo
+        }));
+
+        setServiciosFiltrados(serviciosMapeados);
     }, [busqueda, categoriaSeleccionada, precioMaximo, servicios]);
 
     return (
@@ -87,15 +102,15 @@ export const VistaMarketplace: React.FC = () => {
                 ) : (
                     <div className="sinResultados">
                         <p>No se encontraron servicios.</p>
-                        <button
+                        <Boton
                             onClick={() => {
                                 setBusqueda('');
                                 setCategoriaSeleccionada('Todas');
                                 setPrecioMaximo(10000);
                             }}
-                            className="btnLimpiar">
+                            variante="outline">
                             Limpiar filtros
-                        </button>
+                        </Boton>
                     </div>
                 )}
             </div>

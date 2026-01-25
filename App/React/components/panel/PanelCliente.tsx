@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {LayoutDashboard, Server, ShoppingBag, MessageSquare, CreditCard, Settings, LogOut, Bell, Globe, User, HelpCircle, Briefcase, Eye} from 'lucide-react';
+import {Boton} from '../ui/Boton';
 import {VistaResumen} from './views/VistaResumen';
 import {VistaHosting} from './views/VistaHosting';
 import {VistaDominios} from './views/VistaDominios';
@@ -102,23 +103,22 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
 
                     <nav className="sidebarNav">
                         {menuItems.map(item => (
-                            <button key={item.id} onClick={() => navegarA(item.id)} className={`navIconBtn ${vistaActual === item.id ? 'active' : ''}`}>
-                                {getMenuIcon(item)}
+                            <Boton key={item.id} onClick={() => navegarA(item.id)} className={`navIconBtn ${vistaActual === item.id ? 'active' : ''}`} variante="ghost" icono={getMenuIcon(item)}>
                                 <span className="tooltip">{item.label}</span>
                                 {(item.badge || (item.id === 'mensajes' && mensajes > 0)) && <span className="badgeDot"></span>}
-                            </button>
+                            </Boton>
                         ))}
                     </nav>
 
                     <div className="sidebarFooter">
-                        <button className="navIconBtn">
+                        <Boton variante="ghost" className="navIconBtn">
                             <Settings size={16} />
                             <span className="tooltip">Configuración</span>
-                        </button>
-                        <button className="navIconBtn botonSalir" onClick={onLogout}>
+                        </Boton>
+                        <Boton variante="ghost" className="navIconBtn botonSalir" onClick={onLogout}>
                             <LogOut size={16} />
                             <span className="tooltip">Salir</span>
-                        </button>
+                        </Boton>
                     </div>
                 </aside>
 
@@ -134,15 +134,14 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                         <div className="headerTools">
                             <div className="userProfile">
                                 <ToggleSimulacion />
-                                <button className="botonNotificacion">
-                                    <Bell size={16} />
+                                <Boton className="botonNotificacion" variante="ghost" icono={<Bell size={16} />}>
                                     <span className="notificacionDot"></span>
-                                </button>
+                                </Boton>
 
                                 <div className="userMenuWrapper" style={{position: 'relative'}}>
-                                    <button className="userAvatarBtn" onClick={() => setShowUserMenu(!showUserMenu)}>
+                                    <Boton className="userAvatarBtn" onClick={() => setShowUserMenu(!showUserMenu)} variante="ghost" pill>
                                         <div className="userAvatar">{usuario.avatar && usuario.avatar.includes('http') ? <img src={usuario.avatar} alt={usuario.nombre} style={{width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover'}} /> : usuario.avatar}</div>
-                                    </button>
+                                    </Boton>
 
                                     {showUserMenu && (
                                         <div className="dropdownMenu">
@@ -151,28 +150,27 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                                                 <p className="dropdownRole">{usuario.email}</p>
                                             </div>
                                             <div className="dropdownDivider"></div>
-                                            <button
+                                            <Boton
+                                                variante="ghost"
+                                                bloque
                                                 className="dropdownItem"
                                                 onClick={() => {
                                                     navegarA('perfil');
                                                     setShowUserMenu(false);
-                                                }}>
-                                                <User size={14} />
+                                                }}
+                                                icono={<User size={14} />}>
                                                 <span>Mi Perfil</span>
-                                            </button>
-                                            <button className="dropdownItem">
-                                                <Settings size={14} />
+                                            </Boton>
+                                            <Boton variante="ghost" bloque className="dropdownItem" icono={<Settings size={14} />}>
                                                 <span>Configuración</span>
-                                            </button>
-                                            <button className="dropdownItem">
-                                                <HelpCircle size={14} />
+                                            </Boton>
+                                            <Boton variante="ghost" bloque className="dropdownItem" icono={<HelpCircle size={14} />}>
                                                 <span>Ayuda</span>
-                                            </button>
+                                            </Boton>
                                             <div className="dropdownDivider"></div>
-                                            <button className="dropdownItem text-red" onClick={onLogout}>
-                                                <LogOut size={14} />
+                                            <Boton variante="ghost" bloque className="dropdownItem text-red" onClick={onLogout} icono={<LogOut size={14} />}>
                                                 <span>Cerrar Sesión</span>
-                                            </button>
+                                            </Boton>
                                         </div>
                                     )}
                                 </div>

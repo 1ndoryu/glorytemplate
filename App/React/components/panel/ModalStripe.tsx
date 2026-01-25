@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {loadStripe} from '@stripe/stripe-js';
 import {Elements, PaymentElement, useStripe, useElements} from '@stripe/react-stripe-js';
 import {X, Lock, CreditCard} from 'lucide-react';
+import {Boton} from '../ui/Boton';
 
 interface ModalStripeProps {
     clientSecret: string;
@@ -68,19 +69,12 @@ const FormularioPago = ({total, onSuccess, onClose}: {total: number; onSuccess: 
             {mensaje && <div className={`p-3 rounded texto-sm ${mensaje.includes('exitoso') ? 'bg-green-100 texto-green-700' : 'bg-red-100 texto-red-700'}`}>{mensaje}</div>}
 
             <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={onClose} className="px-4 py-2 texto-sm texto-slate-600 hover:texto-slate-800" disabled={cargando}>
+                <Boton tipo="button" onClick={onClose} variante="ghost" disabled={cargando}>
                     Cancelar
-                </button>
-                <button type="submit" disabled={!stripe || cargando} className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg texto-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-                    {cargando ? (
-                        'Procesando...'
-                    ) : (
-                        <>
-                            <CreditCard size={16} />
-                            Pagar ${total.toFixed(2)}
-                        </>
-                    )}
-                </button>
+                </Boton>
+                <Boton tipo="submit" variante="acento" disabled={!stripe} cargando={cargando} icono={<CreditCard size={16} />}>
+                    Pagar ${total.toFixed(2)}
+                </Boton>
             </div>
         </form>
     );
@@ -103,9 +97,7 @@ export default function ModalStripe({clientSecret, publishableKey, total, onClos
                 {/* Cabecera */}
                 <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                     <h3 className="font-semibold text-slate-800 flex items-center gap-2">Pago con Tarjeta</h3>
-                    <button onClick={onClose} className="p-1 hover:bg-slate-200 rounded-full transition-colors text-slate-400 hover:text-slate-600">
-                        <X size={20} />
-                    </button>
+                    <Boton variante="ghost" tamano="sm" onClick={onClose} icono={<X size={20} />} pill />
                 </div>
 
                 {/* Contenido */}
