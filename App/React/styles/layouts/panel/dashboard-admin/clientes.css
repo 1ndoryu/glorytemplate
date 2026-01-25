@@ -1,0 +1,119 @@
+/* === Tabla de Clientes === */
+.tablaClientes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+
+.tablaClientesEncabezado {
+    display: none;
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+@media (min-width: 768px) {
+    .tablaClientesEncabezado {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: var(--nakomi-espacioMd);
+    }
+}
+
+.filaCliente {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioMd);
+    transition: border-color 0.2s ease;
+}
+
+.filaCliente:hover {
+    border-color: var(--nakomi-acento);
+}
+
+@media (min-width: 768px) {
+    .filaCliente {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        flex-wrap: nowrap;
+    }
+}
+
+.clienteInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    min-width: 0;
+    flex: 1;
+}
+
+.clienteAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--nakomi-radioFull);
+    background: linear-gradient(135deg, var(--nakomi-acento), var(--nakomi-acentoHover));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--nakomi-fuenteSm);
+    flex-shrink: 0;
+}
+
+.clienteDatos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.clienteNombre {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.clienteEmail {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.clienteDeuda {
+    flex-shrink: 0;
+}
+
+.clienteServicios {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.serviciosContador,
+.hostingsContador {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+}
+
+.clienteAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    flex-shrink: 0;
+}
+
+.tablaVacia {
+    padding: var(--nakomi-espacioXl);
+    text-align: center;
+    color: var(--nakomi-textoApagado);
+}

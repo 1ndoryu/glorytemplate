@@ -55,8 +55,8 @@
     --nakomi-fuenteMono: 'JetBrains Mono', 'Fira Code', monospace;
 
     /* === Tamaños Tipográficos === */
-    --nakomi-fuenteXs: 0.65rem; /* ~10.4px - Etiquetas, badges, captions extra pequeños */
-    --nakomi-fuenteSm: 11px; /* ~12px - Captions, metadatos, texto auxiliar */
+    --nakomi-fuenteXs: 10px;
+    --nakomi-fuenteSm: 12px; /* ~12px - Captions, metadatos, texto auxiliar */
     --nakomi-fuenteMd: 0.75rem; /* ~14px - Texto base, cuerpo de texto normal */
     --nakomi-fuenteLg: 1rem; /* ~16px - Texto destacado, subtítulos */
     --nakomi-fuenteXl: 1.25rem; /* ~20px - Títulos de sección, headings */
@@ -157,4 +157,25 @@
     /* === Tamaños de contenedor === */
     --nakomi-anchoMaximo: 1300px;
     --nakomi-anchoContenido: 900px;
+
+    /* === Categorías === */
+    --nakomi-categoriaWeb: #60a5fa;
+    --nakomi-categoriaWebFondo: rgba(59, 130, 246, 0.15);
+
+    --nakomi-categoriaDesarrollo: #a78bfa;
+    --nakomi-categoriaDesarrolloFondo: rgba(139, 92, 246, 0.15);
+
+    --nakomi-categoriaDiseno: #f472b6;
+    --nakomi-categoriaDisenoFondo: rgba(236, 72, 153, 0.15);
+
+    --nakomi-categoriaConsultoria: #34d399;
+    --nakomi-categoriaConsultoriaFondo: rgba(16, 185, 129, 0.15);
+
+    --nakomi-categoriaMarketing: #fbbf24;
+    --nakomi-categoriaMarketingFondo: rgba(245, 158, 11, 0.15);
+
+    /* === Sombras Específicas === */
+    --nakomi-sombraCardHover: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --nakomi-sombraFocus: 0 0 0 2px rgba(59, 130, 246, 0.15);
+    --nakomi-sombraFocusError: 0 0 0 2px rgba(239, 68, 68, 0.15);
 }

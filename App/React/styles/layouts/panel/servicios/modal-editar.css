@@ -1,0 +1,198 @@
+/* ============================================
+   MODAL EDITAR SERVICIO
+   ============================================ */
+
+.modalEditarServicio {
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    background: var(--nakomi-fondoSecundario);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioXl);
+    box-shadow: var(--nakomi-sombraLg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modalEditarServicio .modalContenido {
+    overflow-y: auto;
+    padding: var(--nakomi-espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioMd);
+}
+
+/* === Campos del formulario === */
+.campoFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioXs);
+}
+
+.campoLabel {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoNormal);
+}
+
+.campoLabel svg {
+    color: var(--nakomi-textoApagado);
+}
+
+.campoInput {
+    width: 100%;
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    background: var(--nakomi-fondoPrincipal);
+    border: 1px solid var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioMd);
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-textoActivo);
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.campoInput::placeholder {
+    color: var(--nakomi-textoApagado);
+}
+
+.campoInput:focus {
+    outline: none;
+    border-color: var(--nakomi-acento);
+    box-shadow: var(--nakomi-sombraFocus);
+}
+
+.campoInput.campoError {
+    border-color: var(--nakomi-error);
+}
+
+.campoInput.campoError:focus {
+    box-shadow: var(--nakomi-sombraFocusError);
+}
+
+.campoTextarea {
+    min-height: 80px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.campoSelect {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+}
+
+.campoMensajeError {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-error);
+}
+
+.campoAyuda {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    margin-top: 2px;
+}
+
+/* Fila de campos lado a lado */
+.filaCampos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nakomi-espacioMd);
+}
+
+/* === Previsualización de imagen === */
+.previsualizacionImagen {
+    margin-top: var(--nakomi-espacioSm);
+    width: 100%;
+    max-height: 120px;
+    border-radius: var(--nakomi-radioMd);
+    overflow: hidden;
+    background: var(--nakomi-fondoTerciario);
+}
+
+.previsualizacionImagen img {
+    width: 100%;
+    height: 100%;
+    max-height: 120px;
+    object-fit: cover;
+}
+
+/* === Toggle Switch === */
+.campoToggle {
+    padding: var(--nakomi-espacioMd);
+    background: var(--nakomi-fondoTerciario);
+    border-radius: var(--nakomi-radioMd);
+}
+
+.toggleLabel {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggleLabel input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggleSwitch {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    background: var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioFull);
+    transition: background var(--nakomi-transicionRapida);
+    flex-shrink: 0;
+}
+
+.toggleSwitch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: var(--nakomi-textoApagado);
+    border-radius: var(--nakomi-radioFull);
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.toggleLabel input:checked + .toggleSwitch {
+    background: var(--nakomi-exito);
+}
+
+.toggleLabel input:checked + .toggleSwitch::after {
+    left: 20px;
+    background: white;
+}
+
+.toggleTexto {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoNormal);
+}
+
+/* === Responsive modal === */
+@media (max-width: 640px) {
+    .modalEditarServicio {
+        max-height: 95vh;
+        margin: var(--nakomi-espacioSm);
+    }
+
+    .filaCampos {
+        grid-template-columns: 1fr;
+    }
+
+    .modalEditarServicio .modalContenido {
+        padding: var(--nakomi-espacioMd);
+    }
+}

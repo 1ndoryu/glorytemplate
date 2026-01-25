@@ -1,0 +1,20 @@
+/* === Secciones Admin === */
+.seccionAdmin {
+    margin-bottom: var(--nakomi-espacioXl);
+}
+
+.seccionAdminTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoApagado);
+    margin-bottom: var(--nakomi-espacioMd);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.seccionAdminTitulo.alertaTitulo {
+    color: var(--nakomi-warning);
+}

@@ -1,0 +1,84 @@
+/* === Lista de Trabajos Activos === */
+.listaTrabajosActivos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+
+.tarjetaTrabajo {
+    padding: var(--nakomi-espacioMd);
+}
+
+.trabajoEncabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--nakomi-espacioMd);
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.trabajoInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.trabajoNombre {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.trabajoMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nakomi-espacioMd);
+}
+
+.trabajoCliente,
+.trabajoFecha {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+}
+
+.trabajoProgreso {
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.barraProgreso {
+    height: 6px;
+    background: var(--nakomi-fondoTerciario);
+    border-radius: var(--nakomi-radioFull);
+    overflow: hidden;
+}
+
+.barraProgresoRelleno {
+    height: 100%;
+    background: linear-gradient(90deg, var(--nakomi-acento), var(--nakomi-acentoHover));
+    border-radius: var(--nakomi-radioFull);
+    transition: width 0.3s ease;
+}
+
+.trabajoAcciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--nakomi-espacioSm);
+}
+
+.listaVacia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioXl);
+    text-align: center;
+    color: var(--nakomi-textoApagado);
+}
+
+.iconoVacio {
+    opacity: 0.5;
+}

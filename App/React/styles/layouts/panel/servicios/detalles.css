@@ -1,0 +1,283 @@
+/* ============================================
+   PÁGINA DETALLE SERVICIO CONTRATADO
+   ============================================ */
+
+.paginaServicioContratado {
+    padding: var(--nakomi-espacioLg);
+}
+
+.paginaServicioHeader {
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.botonVolver {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioMd);
+    background: transparent;
+    border: none;
+    border-radius: var(--nakomi-radioMd);
+    color: var(--nakomi-textoApagado);
+    font-size: var(--nakomi-fuenteSm);
+    cursor: pointer;
+    transition: all var(--nakomi-transicionRapida);
+}
+
+.botonVolver:hover {
+    background: var(--nakomi-fondoHover);
+    color: var(--nakomi-textoNormal);
+}
+
+/* Layout de dos columnas */
+.paginaServicioContenido {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: var(--nakomi-espacioLg);
+}
+
+.paginaServicioPrincipal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioMd);
+}
+
+.paginaServicioLateral {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioMd);
+}
+
+/* Tarjeta de info principal */
+.tarjetaInfoServicio {
+    padding: var(--nakomi-espacioLg);
+}
+
+.servicioHeaderInfo {
+    display: flex;
+    gap: var(--nakomi-espacioMd);
+    margin-bottom: var(--nakomi-espacioMd);
+}
+
+.servicioImagenGrande {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--nakomi-radioMd);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--nakomi-fondoTerciario);
+}
+
+.servicioImagenGrande img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.servicioImagenPlaceholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--nakomi-textoApagado);
+    font-size: var(--nakomi-fuenteXs);
+}
+
+.servicioDetalles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+
+.servicioNombreGrande {
+    font-size: var(--nakomi-fuenteLg);
+    font-weight: 600;
+    color: var(--nakomi-textoActivo);
+    margin: 0;
+    line-height: 1.3;
+}
+
+/* Barra de progreso */
+.servicioProgreso {
+    padding-top: var(--nakomi-espacioMd);
+    border-top: 1px solid var(--nakomi-bordePrincipal);
+}
+
+.progresoHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--nakomi-espacioSm);
+}
+
+.progresoLabel {
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-textoApagado);
+}
+
+.progresoPorcentaje {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 600;
+    color: var(--nakomi-textoActivo);
+}
+
+.progresoBarra {
+    height: 8px;
+    background: var(--nakomi-fondoTerciario);
+    border-radius: var(--nakomi-radioFull);
+    overflow: hidden;
+}
+
+.progresoBarraRelleno {
+    height: 100%;
+    background: linear-gradient(90deg, var(--nakomi-acento), var(--nakomi-exito));
+    border-radius: var(--nakomi-radioFull);
+    transition: width 0.3s ease-out;
+}
+
+/* Tarjeta de descripción */
+.tarjetaDescripcion {
+    padding: var(--nakomi-espacioLg);
+}
+
+.tarjetaSeccionTitulo {
+    font-size: var(--nakomi-fuenteMd);
+    font-weight: 600;
+    color: var(--nakomi-textoActivo);
+    margin: 0 0 var(--nakomi-espacioMd) 0;
+}
+
+.servicioDescripcion {
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-textoSecundario);
+    line-height: 1.7;
+    margin: 0;
+}
+
+/* Tarjeta resumen lateral */
+.tarjetaResumenServicio {
+    padding: var(--nakomi-espacioLg);
+}
+
+.resumenLineas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioMd);
+}
+
+.resumenLinea {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--nakomi-espacioMd);
+}
+
+.resumenLineaLabel {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioXs);
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-textoApagado);
+}
+
+.resumenLineaLabel svg {
+    flex-shrink: 0;
+}
+
+.resumenLineaValor {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    text-align: right;
+}
+
+.resumenLineaValor small {
+    font-weight: 400;
+    color: var(--nakomi-textoApagado);
+}
+
+.resumenLineaValor.valorRetrasado {
+    color: var(--nakomi-error);
+}
+
+/* Tarjeta de acciones */
+.tarjetaAcciones {
+    padding: var(--nakomi-espacioMd);
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+
+.tarjetaAcciones .botonAccion {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Placeholder cuando no hay servicio */
+.placeholderCentrado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--nakomi-espacioXl) var(--nakomi-espacioLg);
+    text-align: center;
+}
+
+.iconoPlaceholder {
+    color: var(--nakomi-textoApagado);
+    margin-bottom: var(--nakomi-espacioMd);
+    opacity: 0.5;
+}
+
+.placeholderTitulo {
+    font-size: var(--nakomi-fuenteLg);
+    font-weight: 600;
+    color: var(--nakomi-textoActivo);
+    margin: 0 0 var(--nakomi-espacioSm) 0;
+}
+
+.placeholderSubtitulo {
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-textoApagado);
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .paginaServicioContenido {
+        grid-template-columns: 1fr;
+    }
+
+    .paginaServicioLateral {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .tarjetaResumenServicio,
+    .tarjetaAcciones {
+        flex: 1;
+        min-width: 280px;
+    }
+}
+
+@media (max-width: 480px) {
+    .paginaServicioContratado {
+        padding: var(--nakomi-espacioMd);
+    }
+
+    .servicioHeaderInfo {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .servicioImagenGrande {
+        width: 100px;
+        height: 100px;
+    }
+
+    .servicioDetalles {
+        align-items: center;
+    }
+}

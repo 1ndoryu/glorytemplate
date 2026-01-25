@@ -1,0 +1,106 @@
+/* === Lista de Alertas === */
+.listaAlertas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+
+.alertaItem {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioMd);
+    border-left: 3px solid transparent;
+}
+
+.alertaItem.alertaError {
+    border-left-color: var(--nakomi-error);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.alertaItem.alertaWarning {
+    border-left-color: var(--nakomi-warning);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.alertaItem.alertaInfo {
+    border-left-color: var(--nakomi-info);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.alertaIcono {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--nakomi-radioSm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.alertaError .alertaIcono {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--nakomi-error);
+}
+
+.alertaWarning .alertaIcono {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--nakomi-warning);
+}
+
+.alertaInfo .alertaIcono {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--nakomi-info);
+}
+
+.alertaContenido {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.alertaTitulo {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+}
+
+.alertaDescripcion {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+}
+
+.alertaCliente {
+    font-weight: 500;
+}
+
+.alertaMonto {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 600;
+    color: var(--nakomi-textoActivo);
+    flex-shrink: 0;
+}
+
+.sinAlertas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioXl);
+    text-align: center;
+    color: var(--nakomi-textoApagado);
+}
+
+.iconoExito {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--nakomi-radioFull);
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--nakomi-categoriaConsultoria);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--nakomi-fuenteLg);
+}

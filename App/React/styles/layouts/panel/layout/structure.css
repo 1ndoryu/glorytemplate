@@ -1,0 +1,100 @@
+/* Layout Base y Estructura */
+
+.panelLayout {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+    overflow: hidden;
+    background-color: var(--nakomi-fondoPrincipal);
+    color: var(--nakomi-textoNormal);
+    font-family: var(--nakomi-fuentePrincipal);
+    font-size: var(--nakomi-fuenteMd);
+}
+
+/* Scrollbar personalizada */
+.panelLayout ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+.panelLayout ::-webkit-scrollbar-track {
+    background: var(--nakomi-fondoPrincipal);
+}
+.panelLayout ::-webkit-scrollbar-thumb {
+    background: var(--nakomi-barraNormal);
+    border-radius: 3px;
+}
+.panelLayout ::-webkit-scrollbar-thumb:hover {
+    background: var(--nakomi-textoApagado);
+}
+
+/* Contenido Principal Wrapper */
+.panelContentWrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--nakomi-fondoPrincipal);
+    min-width: 0;
+}
+
+.mainView {
+    flex: 1;
+    overflow-y: auto;
+    background-color: var(--nakomi-fondoPrincipal);
+    position: relative;
+    padding: 1.5rem;
+}
+
+/* Bloque Vista Común - Max Width aplicado */
+.bloqueVista {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.vistaConstruccion {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nakomi-textoApagado);
+}
+
+/* Utilidades Texto Comunes */
+.textIndice {
+    color: var(--nakomi-textoApagado);
+    font-size: var(--nakomi-fuenteXs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dataBig {
+    font-size: var(--nakomi-fuenteXl);
+    font-weight: 300;
+    color: var(--nakomi-textoActivo);
+    margin-top: 0.25rem;
+}
+
+/* Headers de Vistas (Estándar) */
+.vistaHeader {
+    margin-bottom: 0.5rem;
+}
+
+.vistaTitulo {
+    font-size: var(--nakomi-fuenteXl);
+    font-weight: 300;
+    color: var(--nakomi-textoActivo);
+    margin: 0;
+}
+
+.vistaSubtitulo {
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-textoApagado);
+    margin-top: 4px;
+}

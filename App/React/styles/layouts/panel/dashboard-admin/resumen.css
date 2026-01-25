@@ -1,0 +1,87 @@
+/* === Grid de Resumen Admin === */
+.gridResumenAdmin {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: var(--nakomi-espacioMd);
+    margin-bottom: var(--nakomi-espacioXl);
+}
+
+@media (min-width: 640px) {
+    .gridResumenAdmin {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .gridResumenAdmin {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* === Tarjetas de Resumen Admin === */
+.tarjetaResumenAdmin {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioLg);
+}
+
+.resumenIconoAdmin {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--nakomi-radioMd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.tarjetaResumenAdmin:hover .resumenIconoAdmin {
+    transform: scale(1.05);
+}
+
+.resumenIcono--primario {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+    color: #818cf8;
+}
+
+.resumenIcono--exito {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.2));
+    color: var(--nakomi-exito);
+}
+
+.resumenIcono--alerta {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.2));
+    color: var(--nakomi-warning);
+}
+
+.resumenIcono--error {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(248, 113, 113, 0.2));
+    color: var(--nakomi-error);
+}
+
+.resumenContenidoAdmin {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.resumenEtiquetaAdmin {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.resumenValorAdmin {
+    font-size: var(--nakomi-fuenteXl);
+    font-weight: 700;
+    color: var(--nakomi-textoActivo);
+    line-height: 1.2;
+}
+
+.resumenSubtextoAdmin {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+}
