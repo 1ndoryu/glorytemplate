@@ -1,7 +1,4 @@
 /* === Secciones Admin === */
-.seccionAdmin {
-    margin-bottom: var(--nakomi-espacioXl);
-}
 
 .seccionAdminTitulo {
     display: flex;
