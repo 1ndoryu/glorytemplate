@@ -71,29 +71,29 @@ Revisar incosistencias, mejorar código y refactorizar UI.
 
 ### Refinamiento UI/UX y Estructura (Mental Planning Processed)
 
-- [ ] **Consolidación de Tarjetas (Dashboard)**
-  - [ ] Unificar elementos dispersos en tarjetas contenedoras principales (ej. "Próximas renovaciones" y "Lista de clientes").
-  - [ ] Evitar "ruido visual" de múltiples tarjetas pequeñas separadas.
+- [x] **Consolidación de Tarjetas (Dashboard)**
+  - [x] Unificar elementos dispersos en tarjetas contenedoras principales (ej. "Próximas renovaciones" y "Lista de clientes").
+  - [x] Evitar "ruido visual" de múltiples tarjetas pequeñas separadas.
 
-- [ ] **Panel de Clientes (Admin)**
-  - [ ] Mover lista de clientes a su propio panel/sección dedicada.
-  - [ ] Encapsular tabla y listado dentro de una tarjeta principal.
-  - [ ] **Estilos:** Quitar efecto *hover* en las tarjetas de cliente individuales si existen.
-  - [ ] **Visibilidad:** Confirmar restricción estricta solo para Admin.
+- [x] **Panel de Clientes (Admin)**
+  - [x] Mover lista de clientes a su propio panel/sección dedicada.
+  - [x] Encapsular tabla y listado dentro de una tarjeta principal.
+  - [x] **Estilos:** Quitar efecto *hover* en las tarjetas de cliente individuales si existen.
+  - [x] **Visibilidad:** Confirmar restricción estricta solo para Admin.
 
-- [ ] **Mejoras en Facturación y Pagos**
-  - [ ] **Desglose:** Mostrar detalle exacto de ítems en la factura (actualmente no es claro).
-  - [ ] **Granularidad:** Permitir pago individual de ítems (si la lógica de negocio lo permite).
-  - [ ] **Periodicidad:** Implementar selectores para pago Mensual vs Anual (validar integración con Stripe).
+- [x] **Mejoras en Facturación y Pagos**
+  - [x] **Desglose:** Mostrar detalle exacto de ítems en la factura (mejorado tabla y estilos).
+  - [x] **Granularidad:** Permitir pago individual de ítems (checkboxes en modal).
+  - [ ] **Periodicidad:** Implementar selectores para pago Mensual vs Anual (requiere lógica backend).
 
-- [ ] **Estilos de Componentes UI**
-  - [ ] **Botón Notificaciones:** Crear estilo "Icon Only" (sin padding, estilo limpio).
-  - [ ] **Detalle de Servicios:**
-    - [ ] Ancho máximo de contenedor: `700px`.
-    - [ ] Tipografía reducida para el texto del resumen.
-    - [ ] Botón "Volver": cambiar a variante `outline`.
-  - [ ] **Tarjetas de Factura:** Eliminar bordes de color (ej. amarillo), mantener estilo limpio.
-  - [ ] **Botón Nuevo Servicio:** Cambiar a variante `outline`.
+- [x] **Estilos de Componentes UI**
+  - [x] **Botón Notificaciones:** Crear estilo "Icon Only" (sin padding, estilo limpio).
+  - [x] **Detalle de Servicios:**
+    - [x] Ancho máximo de contenedor: `700px`.
+    - [x] Tipografía reducida para el texto del resumen.
+    - [x] Botón "Volver": cambiar a variante `outline`.
+  - [x] **Tarjetas de Factura:** Eliminar bordes de color (ej. amarillo), mantener estilo limpio.
+  - [x] **Botón Nuevo Servicio:** Cambiar a variante `outline`.
 
 
 ## Espacio para planificación mental (No borrar)
