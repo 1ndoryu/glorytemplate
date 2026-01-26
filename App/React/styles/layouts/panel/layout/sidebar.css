@@ -1,23 +1,25 @@
 /* Sidebar */
 .panelSidebar {
-    width: 48px;
+    width: 200px;
     flex-shrink: 0;
     z-index: 50;
     height: 100%;
-    background-color: var(--nakomi-fondoSecundario);
-    border-right: 1px solid var(--nakomi-bordePrincipal);
+    background-color: transparent;
+    border-right: none;
+
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
 .sidebarLogoArea {
-    height: 48px;
+    height: 60px;
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid var(--nakomi-bordePrincipal);
+    justify-content: flex-start;
+    padding-left: 1.5rem;
+    border-bottom: none;
 }
 
 .logoIcon {
@@ -44,18 +46,20 @@
 }
 
 .navIconBtn {
-    width: 32px;
-    height: 32px;
+    width: calc(100% - 24px);
+    height: 36px;
     border-radius: var(--nakomi-radioMd);
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start; /* Alineado a la izquierda */
+    padding: 0 10px;
     color: var(--nakomi-textoSecundario);
     transition: all 0.2s;
     position: relative;
     border: none;
     background: transparent;
     cursor: pointer;
+    margin: 0 auto;
 }
 
 .navIconBtn:hover,
@@ -101,27 +105,14 @@
     color: var(--nakomi-error) !important;
 }
 
-/* Tooltip */
-.tooltip {
-    position: absolute;
-    left: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-left: 8px;
-    background-color: var(--nakomi-fondoHover);
-    border: 1px solid var(--nakomi-bordeSutil);
-    color: var(--nakomi-textoActivo);
-    padding: 3px 6px;
-    border-radius: 3px;
-    font-size: var(--nakomi-fuenteXs);
+/* Nav Label (Texto del botón) */
+.navLabel {
+    margin-left: 12px;
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
     white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-    z-index: 50;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-.navIconBtn:hover .tooltip {
-    opacity: 1;
+.tooltip {
+    display: none; /* Desactivar tooltips antiguos */
 }

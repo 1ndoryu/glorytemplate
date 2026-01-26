@@ -1,0 +1,88 @@
+/* === Tarjeta Resumen Unificada === */
+.tarjetaResumen {
+    display: flex;
+    align-items: flex-start; /* Alineación superior para iconos/acciones */
+    gap: var(--nakomi-espacioMd);
+    padding: var(--nakomi-espacioMd); /* Refuerzo de padding si Tarjeta lo varía */
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.tarjetaResumen:hover {
+    transform: translateY(-2px);
+}
+
+/* === Icono (Estilo Admin) === */
+.tarjetaResumenIcono {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--nakomi-radioMd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tarjetaResumenIcono--neutro {
+    background: var(--nakomi-fondoTerciario);
+    color: var(--nakomi-textoSecundario);
+}
+
+.tarjetaResumenIcono--primario {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+    color: #818cf8;
+}
+
+.tarjetaResumenIcono--exito {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.2));
+    color: var(--nakomi-exito);
+}
+
+.tarjetaResumenIcono--alerta {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.2));
+    color: var(--nakomi-warning);
+}
+
+.tarjetaResumenIcono--error {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(248, 113, 113, 0.2));
+    color: var(--nakomi-error);
+}
+
+/* === Contenido === */
+.tarjetaResumenContenido {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.tarjetaResumenEtiqueta {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    font-weight: 500;
+}
+
+.tarjetaResumenValor {
+    font-size: var(--nakomi-fuenteXl); /* Unificado a XL para impacto */
+    font-weight: 500;
+    color: var(--nakomi-textoActivo);
+    line-height: 1.2;
+}
+
+.tarjetaResumenValor.textoAlerta {
+    color: var(--nakomi-error);
+}
+
+.tarjetaResumenSubtexto {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    margin-top: 2px;
+}
+
+/* === Acción (Botón lateral) === */
+.tarjetaResumenAccion {
+    margin-left: auto;
+    flex-shrink: 0;
+}

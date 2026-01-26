@@ -44,13 +44,33 @@ Revisar incosistencias, mejorar código y refactorizar UI.
   - Implementar en `VistaResumen` y `VistaResumenAdmin`.
 
 
-- [ ] **Unificar Grid de Resumen**
+- [x] **Unificar Grid de Resumen**
   - `dashboardResumen` (Cliente) y `gridResumenAdmin` (Admin) hacen lo mismo.
   - Crear clase unificada `.gridResumen` en un archivo común o componente wrapper.
+  - ✅ Implementado `grid-resumen.css` y `TarjetaResumen.tsx` unificados.
 
-- [ ] **Auditoría de Inconsistencias CSS/Componentes en el panel**
-  - Buscar selectores duplicados o muy similares.
-  - Revisar estructuras de Layout repetidas.
+- [x] **Auditoría de Inconsistencias CSS/Componentes en el panel**
+  - [x] `SeccionPanel`: Unificado títulos y márgenes.
+  - [x] `CabeceraVista`: Unificado encabezados.
+  - [x] `MenuContextual`: Ajustado CSS y alineación ("texto centrado" corregido).
+  - [x] Nomenclatura: Admin ahora usa "Servicios en progreso" en lugar de "Trabajos en progreso".
+
+/* Notas de Planificación
+- Se ha unificado la arquitectura de estilos del panel.
+- Los componentes `TarjetaResumen` y `SeccionPanel` son ahora la fuente de verdad.
+*/
+
+- [x] **Unificación de Servicios en Progreso**
+  - Actual: `Servicios en progreso` (Cliente) vs `Trabajos en progreso` (Admin, obsoleto).
+  - Requisito: Unificar a "Servicios en progreso".
+  - ✅ Implementado: `TarjetaServicioContratado` incluye nombre de proveedor y barra de progreso. `ListaTrabajosActivos` usa nombre de cliente.
+
+
+- [x] **Experimentos de Diseño (Temporal)**
+  - ✅ Probar menú lateral sin fondo (transparent).
+  - ✅ Probar header sin fondo en el panel.
+  - Objetivo: Evaluar limpieza visual.
+
 
 ---
 

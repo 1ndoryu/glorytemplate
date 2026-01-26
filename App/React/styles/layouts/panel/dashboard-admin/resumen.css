@@ -1,22 +1,5 @@
 /* === Grid de Resumen Admin === */
-.gridResumenAdmin {
-    display: grid;
-    grid-template-columns: repeat(1, 1fr);
-    gap: var(--nakomi-espacioMd);
-    margin-bottom: var(--nakomi-espacioXl);
-}
-
-@media (min-width: 640px) {
-    .gridResumenAdmin {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1024px) {
-    .gridResumenAdmin {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
+/* Reemplazado por gridResumen */
 
 /* === Tarjetas de Resumen Admin === */
 .tarjetaResumenAdmin {

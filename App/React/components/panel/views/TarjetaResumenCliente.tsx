@@ -1,6 +1,5 @@
 import React from 'react';
-import {Tarjeta} from '../../ui/Tarjeta';
-import {Boton} from '../../ui/Boton';
+import {TarjetaResumen} from '../ui/TarjetaResumen';
 
 interface TarjetaResumenClienteProps {
     etiqueta: string;
@@ -9,12 +8,4 @@ interface TarjetaResumenClienteProps {
     accion?: React.ReactNode;
 }
 
-export const TarjetaResumenCliente: React.FC<TarjetaResumenClienteProps> = ({etiqueta, valor, valorDestacado, accion}) => (
-    <Tarjeta className="tarjetaResumen">
-        <div className="resumenContenido">
-            <span className="resumenEtiqueta">{etiqueta}</span>
-            <span className={`resumenValor ${valorDestacado ? 'valorAlerta' : ''}`}>{valor}</span>
-        </div>
-        {accion}
-    </Tarjeta>
-);
+export const TarjetaResumenCliente: React.FC<TarjetaResumenClienteProps> = ({etiqueta, valor, valorDestacado, accion}) => <TarjetaResumen etiqueta={etiqueta} valor={valor} variante={valorDestacado ? 'error' : 'neutro'} accion={accion} />;

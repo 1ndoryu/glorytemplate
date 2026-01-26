@@ -14,6 +14,7 @@ import {VistaResumenAdmin} from './views/admin';
 import {PanelProvider, usePanel} from '../../context/PanelContext';
 import {UsuarioProvider, useUsuario} from '../../context/UsuarioContext';
 import {ToggleSimulacion} from './ToggleSimulacion';
+import {MenuContextual} from '../ui/MenuContextual';
 
 /*
  * PanelCliente: Vista principal del usuario logueado (Fase 3).
@@ -39,7 +40,6 @@ export const PanelCliente: React.FC<PanelClienteProps> = props => {
 const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
     const {mensajes, vistaActual, navegarA} = usePanel();
     const {usuario, esAdmin, simulando} = useUsuario();
-    const [showUserMenu, setShowUserMenu] = useState(false);
 
     const menuItems = [
         {id: 'resumen', icon: <LayoutDashboard size={22} />, label: 'Resumen'},
@@ -104,7 +104,7 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                     <nav className="sidebarNav">
                         {menuItems.map(item => (
                             <Boton key={item.id} onClick={() => navegarA(item.id)} className={`navIconBtn ${vistaActual === item.id ? 'active' : ''}`} variante="ghost" icono={getMenuIcon(item)}>
-                                <span className="tooltip">{item.label}</span>
+                                <span className="navLabel">{item.label}</span>
                                 {(item.badge || (item.id === 'mensajes' && mensajes > 0)) && <span className="badgeDot"></span>}
                             </Boton>
                         ))}
@@ -113,11 +113,11 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                     <div className="sidebarFooter">
                         <Boton variante="ghost" className="navIconBtn">
                             <Settings size={16} />
-                            <span className="tooltip">Configuración</span>
+                            <span className="navLabel">Configuración</span>
                         </Boton>
                         <Boton variante="ghost" className="navIconBtn botonSalir" onClick={onLogout}>
                             <LogOut size={16} />
-                            <span className="tooltip">Salir</span>
+                            <span className="navLabel">Salir</span>
                         </Boton>
                     </div>
                 </aside>
@@ -138,42 +138,48 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                                     <span className="notificacionDot"></span>
                                 </Boton>
 
-                                <div className="userMenuWrapper" style={{position: 'relative'}}>
-                                    <Boton className="userAvatarBtn" onClick={() => setShowUserMenu(!showUserMenu)} variante="ghost" pill>
-                                        <div className="userAvatar">{usuario.avatar && usuario.avatar.includes('http') ? <img src={usuario.avatar} alt={usuario.nombre} style={{width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover'}} /> : usuario.avatar}</div>
-                                    </Boton>
-
-                                    {showUserMenu && (
-                                        <div className="dropdownMenu">
-                                            <div className="dropdownHeader">
-                                                <p className="dropdownName">{usuario.nombre}</p>
-                                                <p className="dropdownRole">{usuario.email}</p>
-                                            </div>
-                                            <div className="dropdownDivider"></div>
-                                            <Boton
-                                                variante="ghost"
-                                                bloque
-                                                className="dropdownItem"
-                                                onClick={() => {
-                                                    navegarA('perfil');
-                                                    setShowUserMenu(false);
-                                                }}
-                                                icono={<User size={14} />}>
-                                                <span>Mi Perfil</span>
-                                            </Boton>
-                                            <Boton variante="ghost" bloque className="dropdownItem" icono={<Settings size={14} />}>
-                                                <span>Configuración</span>
-                                            </Boton>
-                                            <Boton variante="ghost" bloque className="dropdownItem" icono={<HelpCircle size={14} />}>
-                                                <span>Ayuda</span>
-                                            </Boton>
-                                            <div className="dropdownDivider"></div>
-                                            <Boton variante="ghost" bloque className="dropdownItem text-red" onClick={onLogout} icono={<LogOut size={14} />}>
-                                                <span>Cerrar Sesión</span>
-                                            </Boton>
+                                <MenuContextual
+                                    trigger={
+                                        <Boton className="userAvatarBtn" variante="ghost" pill>
+                                            <div className="userAvatar">{usuario.avatar && usuario.avatar.includes('http') ? <img src={usuario.avatar} alt={usuario.nombre} style={{width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover'}} /> : usuario.avatar}</div>
+                                        </Boton>
+                                    }
+                                    cabecera={
+                                        <div>
+                                            <p className="dropdownName">{usuario.nombre}</p>
+                                            <p className="dropdownRole">{usuario.email}</p>
                                         </div>
-                                    )}
-                                </div>
+                                    }
+                                    anchoMinimo={200}
+                                    acciones={[
+                                        {
+                                            id: 'perfil',
+                                            label: 'Mi Perfil',
+                                            icono: <User size={14} />,
+                                            onClick: () => navegarA('perfil')
+                                        },
+                                        {
+                                            id: 'config',
+                                            label: 'Configuración',
+                                            icono: <Settings size={14} />,
+                                            onClick: () => {}
+                                        },
+                                        {
+                                            id: 'ayuda',
+                                            label: 'Ayuda',
+                                            icono: <HelpCircle size={14} />,
+                                            onClick: () => {}
+                                        },
+                                        {
+                                            id: 'salir',
+                                            label: 'Cerrar Sesión',
+                                            icono: <LogOut size={14} />,
+                                            onClick: onLogout,
+                                            peligroso: true,
+                                            separadorAntes: true
+                                        }
+                                    ]}
+                                />
                             </div>
                         </div>
                     </header>

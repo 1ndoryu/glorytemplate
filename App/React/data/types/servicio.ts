@@ -42,4 +42,6 @@ export interface ServicioContratado {
     incluyeHosting: boolean;
     incluyeDominio: boolean;
     hostingMesesIncluidos: number;
+    proveedorNombre?: string;
+    clienteNombre?: string;
 }

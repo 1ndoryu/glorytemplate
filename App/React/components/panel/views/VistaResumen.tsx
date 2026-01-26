@@ -31,7 +31,7 @@ export const VistaResumen: React.FC = () => {
             <CabeceraVista titulo={`Hola, ${usuario.nombre}`} subtitulo={tieneContenido ? 'Este es el resumen de tu cuenta.' : 'No tienes nada pendiente.'} />
 
             {/* Tarjetas de resumen (Stats) */}
-            <div className="dashboardResumen">
+            <div className="gridResumen">
                 <TarjetaResumenCliente
                     etiqueta="Deuda pendiente"
                     valor={`$${deudaTotal.toFixed(2)}`}

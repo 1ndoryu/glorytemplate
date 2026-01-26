@@ -1,0 +1,25 @@
+/* === Grid Resumen Unificado === */
+.gridResumen {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: var(--nakomi-espacioMd);
+    margin-bottom: var(--nakomi-espacioXl);
+}
+
+/* Tablet: 2 columnas por defecto */
+@media (min-width: 640px) {
+    .gridResumen {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop: Por defecto 3 columnas (Cliente), con modificador para 4 (Admin) */
+@media (min-width: 1024px) {
+    .gridResumen {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .gridResumen.cols-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

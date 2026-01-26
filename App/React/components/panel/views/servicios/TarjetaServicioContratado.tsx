@@ -8,6 +8,7 @@ import {Eye, MessageCircle, FileText, AlertTriangle, Clock} from 'lucide-react';
 import {Tarjeta} from '../../../ui/Tarjeta';
 import {MenuContextual, AccionMenu} from '../../../ui/MenuContextual';
 import {ServicioContratado} from '../../../../data/types/servicio';
+import {Boton} from '../../../ui/Boton';
 
 interface TarjetaServicioContratadoProps {
     servicio: ServicioContratado;
@@ -49,6 +50,7 @@ const IMAGEN_FALLBACK = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000
 export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps> = ({servicio, onVerDetalles, onContactarProveedor, onDescargarFactura, onReportarProblema}) => {
     const config = estadoConfig[servicio.estado];
     const diasRestantes = servicio.fechaEntregaEstimada ? calcularDiasRestantes(servicio.fechaEntregaEstimada) : null;
+    const porcentajeProgreso = servicio.progreso || 0;
 
     /* Construir acciones del menú contextual */
     const acciones: AccionMenu[] = [
@@ -93,6 +95,7 @@ export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps>
 
     return (
         <Tarjeta className="tarjetaServicioContratado">
+            {/* Fila principal */}
             <div className="servicioContratadoFila">
                 {/* Imagen real del servicio */}
                 <div className="servicioContratadoImagen">
@@ -105,14 +108,27 @@ export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps>
                     />
                 </div>
 
-                {/* Nombre del servicio */}
-                <span className="servicioContratadoNombre">{servicio.nombre}</span>
+                {/* Info principal: Nombre y Proveedor */}
+                <div className="servicioContratadoInfoPrincipal">
+                    <span className="servicioContratadoNombre">{servicio.nombre}</span>
+                    {servicio.proveedorNombre && <span className="servicioContratadoSubtexto">{servicio.proveedorNombre}</span>}
+                </div>
+
+                {/* Barra de progreso (Solo si está en progreso) */}
+                {servicio.estado === 'en_progreso' && (
+                    <div className="servicioContratadoProgreso">
+                        <div className="barraProgresoMini">
+                            <div className="barraProgresoRelleno" style={{width: `${porcentajeProgreso}%`}} />
+                        </div>
+                        <span className="textoProgreso">{porcentajeProgreso}%</span>
+                    </div>
+                )}
 
                 {/* Precio */}
                 <span className="servicioContratadoPrecio">${servicio.precio}</span>
 
-                {/* Tiempo restante */}
-                {diasRestantes !== null && <span className={`servicioContratadoTiempo ${diasRestantes < 0 ? 'tiempoRetrasado' : ''}`}>{formatearDiasRestantes(diasRestantes)}</span>}
+                {/* Tiempo restante (ocultar si está completado) */}
+                {diasRestantes !== null && servicio.estado !== 'completado' && <span className={`servicioContratadoTiempo ${diasRestantes < 0 ? 'tiempoRetrasado' : ''}`}>{formatearDiasRestantes(diasRestantes)}</span>}
 
                 {/* Estado con color */}
                 <span className={`servicioContratadoEstado ${config.clase}`}>{config.label}</span>

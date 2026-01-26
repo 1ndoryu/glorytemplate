@@ -40,7 +40,7 @@ export const ListaTrabajosActivos: React.FC<ListaTrabajosActivosProps> = ({traba
                                 <div className="trabajoMeta">
                                     <span className="trabajoCliente">
                                         <User size={12} />
-                                        {trabajo.clienteId}
+                                        {trabajo.clienteNombre || trabajo.clienteId}
                                     </span>
                                     {trabajo.fechaEntregaEstimada && (
                                         <span className="trabajoFecha">

@@ -15,3 +15,5 @@
 @import './panel/dashboardAdmin.css';
 @import '../components/panel/seccion-panel.css';
 @import '../components/panel/cabecera-vista.css';
+@import '../components/panel/grid-resumen.css';
+@import '../components/panel/tarjeta-resumen.css';

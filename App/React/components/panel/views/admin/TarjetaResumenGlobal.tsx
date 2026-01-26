@@ -5,7 +5,7 @@
 
 import React from 'react';
 import {LucideIcon} from 'lucide-react';
-import {Tarjeta} from '../../../ui/Tarjeta';
+import {TarjetaResumen} from '../../ui/TarjetaResumen';
 
 export interface DatosResumenGlobal {
     etiqueta: string;
@@ -20,20 +20,5 @@ interface TarjetaResumenGlobalProps {
 }
 
 export const TarjetaResumenGlobal: React.FC<TarjetaResumenGlobalProps> = ({datos}) => {
-    const {etiqueta, valor, subtexto, icono: Icono, variante} = datos;
-
-    return (
-        <Tarjeta className="tarjetaResumenAdmin">
-            {Icono && (
-                <div className={`resumenIconoAdmin resumenIcono--${variante}`}>
-                    <Icono size={20} />
-                </div>
-            )}
-            <div className="resumenContenidoAdmin">
-                <span className="resumenEtiquetaAdmin">{etiqueta}</span>
-                <span className="resumenValorAdmin">{valor}</span>
-                {subtexto && <span className="resumenSubtextoAdmin">{subtexto}</span>}
-            </div>
-        </Tarjeta>
-    );
+    return <TarjetaResumen etiqueta={datos.etiqueta} valor={datos.valor} subtexto={datos.subtexto} icono={datos.icono} variante={datos.variante} />;
 };

@@ -1,6 +1,7 @@
 /*
- * MenuContextual: Componente de menú desplegable con icono de tres puntos.
+ * MenuContextual: Componente de menú desplegable.
  * Usa Portal para renderizar fuera del DOM padre, evitando cortes por overflow.
+ * Soporta trigger personalizado y cabecera opcional.
  */
 
 import React, {useState, useRef, useEffect, useCallback} from 'react';
@@ -20,6 +21,9 @@ export interface AccionMenu {
 interface MenuContextualProps {
     acciones: AccionMenu[];
     ariaLabel?: string;
+    trigger?: React.ReactNode; /* Elemento que abre el menú. Por defecto icono 3 puntos. */
+    cabecera?: React.ReactNode; /* Contenido custom al tope de la lista */
+    anchoMinimo?: number; /* Ancho mínimo del menú (px) */
 }
 
 interface PosicionMenu {
@@ -27,27 +31,35 @@ interface PosicionMenu {
     left: number;
 }
 
-export const MenuContextual: React.FC<MenuContextualProps> = ({acciones, ariaLabel = 'Menú de acciones'}) => {
+export const MenuContextual: React.FC<MenuContextualProps> = ({acciones, ariaLabel = 'Menú de acciones', trigger, cabecera, anchoMinimo = 160}) => {
     const [abierto, setAbierto] = useState(false);
     const [posicion, setPosicion] = useState<PosicionMenu>({top: 0, left: 0});
-    const botonRef = useRef<HTMLButtonElement & HTMLAnchorElement>(null);
+    /* Usamos un div genérico para el trigger si viene personalizado, o Boton ref si no */
+    const triggerRef = useRef<HTMLElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    /* Calcula la posición del menú basándose en el botón */
+    /* Calcula la posición del menú basándose en el trigger */
     const calcularPosicion = useCallback(() => {
-        if (!botonRef.current) return;
+        if (!triggerRef.current) return;
 
-        const rect = botonRef.current.getBoundingClientRect();
-        const menuAncho = 160;
-        const menuAlto = acciones.length * 36 + 8;
+        const rect = triggerRef.current.getBoundingClientRect();
+        // Altura estimada (puede variar si hay cabecera, pero Portal ajusta)
+        const cabeceraAlto = cabecera ? 60 : 0;
+        const menuAlto = acciones.length * 36 + 8 + cabeceraAlto;
 
-        /* Posición inicial: debajo del botón, alineado a la derecha */
+        /* Posición inicial: debajo del botón, alineado a la derecha del botón */
         let top = rect.bottom + 4;
-        let left = rect.right - menuAncho;
+        let left = rect.right - anchoMinimo;
 
-        /* Ajustar si se sale por la derecha */
+        /* Ajustar si se sale por la izquierda */
         if (left < 8) {
-            left = 8;
+            // Si no cabe alineado a la derecha, intentar alinear a la izquierda
+            left = rect.left;
+        }
+
+        /* Ajustar si se sale por la derecha (viewport) */
+        if (left + anchoMinimo > window.innerWidth - 8) {
+            left = window.innerWidth - anchoMinimo - 8;
         }
 
         /* Ajustar si se sale por abajo */
@@ -56,7 +68,7 @@ export const MenuContextual: React.FC<MenuContextualProps> = ({acciones, ariaLab
         }
 
         setPosicion({top, left});
-    }, [acciones.length]);
+    }, [acciones.length, cabecera, anchoMinimo]);
 
     /* Abrir menú y calcular posición */
     const toggleMenu = () => {
@@ -70,10 +82,11 @@ export const MenuContextual: React.FC<MenuContextualProps> = ({acciones, ariaLab
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as Node;
-            const clickEnBoton = botonRef.current?.contains(target);
+            // Verificar si el click fue dentro del trigger (que puede ser un componente complejo)
+            const clickEnTrigger = triggerRef.current?.contains(target);
             const clickEnMenu = menuRef.current?.contains(target);
 
-            if (!clickEnBoton && !clickEnMenu) {
+            if (!clickEnTrigger && !clickEnMenu) {
                 setAbierto(false);
             }
         };
@@ -103,15 +116,23 @@ export const MenuContextual: React.FC<MenuContextualProps> = ({acciones, ariaLab
     const menuPortal = abierto
         ? createPortal(
               <div
-                  className="menuContextualLista"
+                  className="menuContextualLista fade-in"
                   ref={menuRef}
                   role="menu"
                   style={{
                       position: 'fixed',
                       top: posicion.top,
                       left: posicion.left,
-                      zIndex: 9999
+                      zIndex: 9999,
+                      minWidth: anchoMinimo
                   }}>
+                  {cabecera && (
+                      <div className="menuContextualCabecera">
+                          {cabecera}
+                          <div className="menuContextualSeparador" />
+                      </div>
+                  )}
+
                   {acciones.map(accion => (
                       <React.Fragment key={accion.id}>
                           {accion.separadorAntes && <div className="menuContextualSeparador" />}
@@ -125,9 +146,22 @@ export const MenuContextual: React.FC<MenuContextualProps> = ({acciones, ariaLab
           )
         : null;
 
+    /* Renderizar Trigger */
+    if (trigger) {
+        return (
+            <div className={`menuContextualContenedor ${abierto ? 'abierto' : ''}`}>
+                <div ref={triggerRef as React.RefObject<HTMLDivElement>} onClick={toggleMenu} style={{cursor: 'pointer', display: 'inline-block'}}>
+                    {trigger}
+                </div>
+                {menuPortal}
+            </div>
+        );
+    }
+
+    /* Trigger por defecto (Botón 3 puntos) */
     return (
         <div className="menuContextualContenedor">
-            <Boton ref={botonRef} variante="ghost" className={`menuContextualBoton ${abierto ? 'activo' : ''}`} onClick={toggleMenu} icono={<MoreVertical size={16} />} />
+            <Boton ref={triggerRef as React.RefObject<HTMLButtonElement>} variante="ghost" className={`menuContextualBoton ${abierto ? 'activo' : ''}`} onClick={toggleMenu} icono={<MoreVertical size={16} />} />
             {menuPortal}
         </div>
     );

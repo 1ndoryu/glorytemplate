@@ -42,17 +42,15 @@ export const VistaResumenAdmin: React.FC = () => {
             <CabeceraVista titulo={`Hola, ${usuario.nombre}`} subtitulo="Panel de administración" />
 
             {/* Tarjetas de resumen global */}
-            <section className="seccionAdmin">
-                <div className="gridResumenAdmin">
-                    {tarjetasResumen.map((datos, index) => (
-                        <TarjetaResumenGlobal key={index} datos={datos} />
-                    ))}
-                </div>
-            </section>
+            <div className="gridResumen cols-4">
+                {tarjetasResumen.map((datos, index) => (
+                    <TarjetaResumenGlobal key={index} datos={datos} />
+                ))}
+            </div>
 
             {/* Trabajos activos */}
             {metricas.trabajosEnProgreso.length > 0 && (
-                <SeccionPanel titulo="Trabajos en progreso">
+                <SeccionPanel titulo="Servicios en progreso">
                     <ListaTrabajosActivos trabajos={metricas.trabajosEnProgreso} onVerDetalle={handleVerDetalleServicio} />
                 </SeccionPanel>
             )}
