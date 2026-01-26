@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import {Eye, MessageCircle, FileText, AlertTriangle, Clock} from 'lucide-react';
+import {Eye, MessageCircle, FileText, AlertTriangle, Clock, CheckCircle} from 'lucide-react';
 import {Tarjeta} from '../../../ui/Tarjeta';
 import {MenuContextual, AccionMenu} from '../../../ui/MenuContextual';
 import {ServicioContratado} from '../../../../data/types/servicio';
@@ -16,6 +16,7 @@ interface TarjetaServicioContratadoProps {
     onContactarProveedor?: (servicio: ServicioContratado) => void;
     onDescargarFactura?: (servicio: ServicioContratado) => void;
     onReportarProblema?: (servicio: ServicioContratado) => void;
+    onMarcarCompletado?: (servicio: ServicioContratado) => void;
 }
 
 /* Configuración de estados con colores semánticos */
@@ -47,7 +48,7 @@ const formatearDiasRestantes = (dias: number): string => {
 /* Imagen fallback cuando no hay imagen real */
 const IMAGEN_FALLBACK = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"%3E%3Crect fill="%231a1a2e" width="80" height="80"/%3E%3Ctext x="40" y="45" font-family="system-ui" font-size="12" fill="%236b7280" text-anchor="middle"%3EServicio%3C/text%3E%3C/svg%3E';
 
-export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps> = ({servicio, onVerDetalles, onContactarProveedor, onDescargarFactura, onReportarProblema}) => {
+export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps> = ({servicio, onVerDetalles, onContactarProveedor, onDescargarFactura, onReportarProblema, onMarcarCompletado}) => {
     const config = estadoConfig[servicio.estado];
     const diasRestantes = servicio.fechaEntregaEstimada ? calcularDiasRestantes(servicio.fechaEntregaEstimada) : null;
     const porcentajeProgreso = servicio.progreso || 0;
@@ -60,6 +61,17 @@ export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps>
             icono: <Eye size={14} />,
             onClick: () => onVerDetalles?.(servicio)
         },
+        // Acción de admin: Marcar completado
+        ...(onMarcarCompletado && servicio.estado === 'en_progreso'
+            ? [
+                  {
+                      id: 'completar',
+                      label: 'Marcar entregado',
+                      icono: <CheckCircle size={14} />,
+                      onClick: () => onMarcarCompletado(servicio)
+                  }
+              ]
+            : []),
         {
             id: 'progreso',
             label: 'Ver progreso',
@@ -108,10 +120,11 @@ export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps>
                     />
                 </div>
 
-                {/* Info principal: Nombre y Proveedor */}
+                {/* Info principal: Nombre y Proveedor/Cliente */}
                 <div className="servicioContratadoInfoPrincipal">
                     <span className="servicioContratadoNombre">{servicio.nombre}</span>
                     {servicio.proveedorNombre && <span className="servicioContratadoSubtexto">{servicio.proveedorNombre}</span>}
+                    {servicio.clienteNombre && !servicio.proveedorNombre && <span className="servicioContratadoSubtexto">Cliente: {servicio.clienteNombre}</span>}
                 </div>
 
                 {/* Barra de progreso (Solo si está en progreso) */}

@@ -5,8 +5,8 @@
 
 :root {
     /* === Fondos === */
-    --nakomi-fondoPrincipal: #090909;
-    --nakomi-fondoSecundario: #0c0c0c;
+    --nakomi-fondoPrincipal: #040404;
+    --nakomi-fondoSecundario: #090909;
     --nakomi-fondoTerciario: #151515;
     --nakomi-fondoHover: #1e1e1e;
 
@@ -15,8 +15,8 @@
     --nakomi-acentoHover: #3b82f6;
 
     /* === Bordes === */
-    --nakomi-bordePrincipal: #1a1a1a;
-    --nakomi-bordeSutil: #222;
+    --nakomi-bordePrincipal: #2222226b;
+    --nakomi-bordeSutil: #2222226b;
 
     /* === Textos === */
     --nakomi-textoActivo: #f5f5f5;

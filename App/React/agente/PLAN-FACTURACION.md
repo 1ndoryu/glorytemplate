@@ -69,6 +69,7 @@ Revisar incosistencias, mejorar código y refactorizar UI.
 - [x] **Experimentos de Diseño (Temporal)**
   - ✅ Probar menú lateral sin fondo (transparent).
   - ✅ Probar header sin fondo en el panel.
+  - ↩️ **Revertido:** Se decidió mantener el diseño original opaco por preferencia del usuario.
   - Objetivo: Evaluar limpieza visual.
 
 

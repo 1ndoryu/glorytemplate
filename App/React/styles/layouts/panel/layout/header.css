@@ -1,8 +1,8 @@
 /* Header */
 .panelHeader {
     height: 48px;
-    background-color: transparent;
-    border-bottom: none;
+    background-color: var(--nakomi-fondoSecundario);
+    border-bottom: 1px solid var(--nakomi-bordePrincipal);
 
     display: flex;
     align-items: center;

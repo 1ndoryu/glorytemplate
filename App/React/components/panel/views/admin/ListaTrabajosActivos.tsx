@@ -4,12 +4,10 @@
  */
 
 import React from 'react';
-import {CheckCircle, Clock, User} from 'lucide-react';
+import {Clock} from 'lucide-react';
 import {Tarjeta} from '../../../ui/Tarjeta';
-import {Boton} from '../../../ui/Boton';
-import {Etiqueta} from '../../../ui/Etiqueta';
 import {ServicioContratado} from '../../../../data/types/servicio';
-import {formatearFecha} from '../../../../utils/fechaUtils';
+import {TarjetaServicioContratado} from '../servicios/TarjetaServicioContratado';
 
 interface ListaTrabajosActivosProps {
     trabajos: ServicioContratado[];
@@ -29,52 +27,9 @@ export const ListaTrabajosActivos: React.FC<ListaTrabajosActivosProps> = ({traba
 
     return (
         <div className="listaTrabajosActivos">
-            {trabajos.map(trabajo => {
-                const progreso = trabajo.progreso ?? 0;
-
-                return (
-                    <Tarjeta key={trabajo.id} className="tarjetaTrabajo">
-                        <div className="trabajoEncabezado">
-                            <div className="trabajoInfo">
-                                <span className="trabajoNombre">{trabajo.nombre}</span>
-                                <div className="trabajoMeta">
-                                    <span className="trabajoCliente">
-                                        <User size={12} />
-                                        {trabajo.clienteNombre || trabajo.clienteId}
-                                    </span>
-                                    {trabajo.fechaEntregaEstimada && (
-                                        <span className="trabajoFecha">
-                                            <Clock size={12} />
-                                            {formatearFecha(trabajo.fechaEntregaEstimada)}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                            <Etiqueta variante={progreso >= 80 ? 'exito' : 'info'}>{progreso}%</Etiqueta>
-                        </div>
-
-                        <div className="trabajoProgreso">
-                            <div className="barraProgreso">
-                                <div className="barraProgresoRelleno" style={{width: `${progreso}%`}} />
-                            </div>
-                        </div>
-
-                        <div className="trabajoAcciones">
-                            {onVerDetalle && (
-                                <Boton variante="ghost" tamano="sm" onClick={() => onVerDetalle(trabajo)}>
-                                    Ver detalle
-                                </Boton>
-                            )}
-                            {progreso >= 100 && onMarcarCompletado && (
-                                <Boton variante="acento" tamano="sm" onClick={() => onMarcarCompletado(trabajo)}>
-                                    <CheckCircle size={14} />
-                                    Marcar entregado
-                                </Boton>
-                            )}
-                        </div>
-                    </Tarjeta>
-                );
-            })}
+            {trabajos.map(trabajo => (
+                <TarjetaServicioContratado key={trabajo.id} servicio={trabajo} onVerDetalles={onVerDetalle} onMarcarCompletado={onMarcarCompletado} />
+            ))}
         </div>
     );
 };

@@ -104,7 +104,7 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                     <nav className="sidebarNav">
                         {menuItems.map(item => (
                             <Boton key={item.id} onClick={() => navegarA(item.id)} className={`navIconBtn ${vistaActual === item.id ? 'active' : ''}`} variante="ghost" icono={getMenuIcon(item)}>
-                                <span className="navLabel">{item.label}</span>
+                                <span className="tooltip">{item.label}</span>
                                 {(item.badge || (item.id === 'mensajes' && mensajes > 0)) && <span className="badgeDot"></span>}
                             </Boton>
                         ))}
@@ -113,11 +113,11 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                     <div className="sidebarFooter">
                         <Boton variante="ghost" className="navIconBtn">
                             <Settings size={16} />
-                            <span className="navLabel">Configuración</span>
+                            <span className="tooltip">Configuración</span>
                         </Boton>
                         <Boton variante="ghost" className="navIconBtn botonSalir" onClick={onLogout}>
                             <LogOut size={16} />
-                            <span className="navLabel">Salir</span>
+                            <span className="tooltip">Salir</span>
                         </Boton>
                     </div>
                 </aside>
