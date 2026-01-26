@@ -51,20 +51,20 @@ export const VistaResumen: React.FC = () => {
             {/* Seccion: Servicios Activos */}
             {serviciosActivos.length > 0 && (
                 <SeccionPanel titulo="Servicios en progreso">
-                    <div className="dashboardSeccionLista">
+                    <Tarjeta className="contenedorLista p-0">
                         {serviciosActivos.map(servicio => (
                             <TarjetaServicioContratado key={servicio.id} servicio={servicio} onVerDetalles={handleVerDetallesServicio} />
                         ))}
-                    </div>
+                    </Tarjeta>
                 </SeccionPanel>
             )}
 
             {/* Seccion: Próximas Renovaciones */}
             {proximasRenovaciones.length > 0 && (
                 <SeccionPanel titulo="Próximas renovaciones">
-                    <div className="dashboardSeccionLista">
+                    <Tarjeta className="contenedorLista p-0">
                         {proximasRenovaciones.map((item, index) => (
-                            <Tarjeta key={`${item.tipo}-${index}`} className="tarjetaRenovacion">
+                            <div key={`${item.tipo}-${index}`} className="renovacionItem itemLista">
                                 <div className="renovacionIcono">{item.tipo === 'hosting' ? <Package size={16} /> : <Calendar size={16} />}</div>
                                 <div className="renovacionInfo">
                                     <span className="renovacionNombre">{item.nombre}</span>
@@ -77,29 +77,29 @@ export const VistaResumen: React.FC = () => {
                                 <Boton variante="outline" tamano="sm">
                                     Renovar
                                 </Boton>
-                            </Tarjeta>
+                            </div>
                         ))}
-                    </div>
+                    </Tarjeta>
                 </SeccionPanel>
             )}
 
             {/* Seccion: Facturas Pendientes */}
             {facturasPendientes.length > 0 && (
-                <SeccionPanel titulo="Facturas pendientes" icono={<AlertCircle size={16} className="iconoAlerta" />}>
-                    <div className="dashboardSeccionLista">
+                <SeccionPanel titulo="Facturas pendientes" className="iconoAlerta">
+                    <Tarjeta className="contenedorLista p-0">
                         {facturasPendientes.slice(0, 3).map(factura => (
-                            <Tarjeta key={factura.id} className="tarjetaFacturaPendiente">
+                            <div key={factura.id} className="facturaItem itemLista">
                                 <div className="facturaInfo">
                                     <span className="facturaConcepto">{factura.concepto}</span>
                                     <span className="facturaFecha">{formatearFecha(factura.fechaEmision)}</span>
                                 </div>
                                 <span className="facturaMonto">${factura.total?.toFixed(2) || '0.00'}</span>
-                                <Boton variante="acento" tamano="sm">
+                                <Boton variante="outline" tamano="sm">
                                     Pagar
                                 </Boton>
-                            </Tarjeta>
+                            </div>
                         ))}
-                    </div>
+                    </Tarjeta>
                 </SeccionPanel>
             )}
 

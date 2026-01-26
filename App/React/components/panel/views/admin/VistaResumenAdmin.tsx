@@ -55,11 +55,6 @@ export const VistaResumenAdmin: React.FC = () => {
                 </SeccionPanel>
             )}
 
-            {/* Lista de clientes */}
-            <SeccionPanel titulo="Clientes">
-                <TablaClientes clientes={clientesConResumen} />
-            </SeccionPanel>
-
             {/* Alertas */}
             {alertas.length > 0 && (
                 <SeccionPanel titulo="Alertas del sistema" className="alertaTitulo">

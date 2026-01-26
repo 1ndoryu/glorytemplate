@@ -26,10 +26,10 @@ export const ListaTrabajosActivos: React.FC<ListaTrabajosActivosProps> = ({traba
     }
 
     return (
-        <div className="listaTrabajosActivos">
+        <Tarjeta className="listaTrabajosActivos contenedorLista p-0">
             {trabajos.map(trabajo => (
                 <TarjetaServicioContratado key={trabajo.id} servicio={trabajo} onVerDetalles={onVerDetalle} onMarcarCompletado={onMarcarCompletado} />
             ))}
-        </div>
+        </Tarjeta>
     );
 };

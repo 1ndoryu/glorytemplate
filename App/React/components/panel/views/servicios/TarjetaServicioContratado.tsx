@@ -106,7 +106,7 @@ export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps>
     });
 
     return (
-        <Tarjeta className="tarjetaServicioContratado">
+        <div className="tarjetaServicioContratado itemLista">
             {/* Fila principal */}
             <div className="servicioContratadoFila">
                 {/* Imagen real del servicio */}
@@ -149,6 +149,6 @@ export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps>
                 {/* Menú contextual de acciones */}
                 <MenuContextual acciones={acciones} ariaLabel={`Acciones para ${servicio.nombre}`} />
             </div>
-        </Tarjeta>
+        </div>
     );
 };

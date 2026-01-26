@@ -44,9 +44,9 @@ export const PaginaServicioContratado: React.FC = () => {
     const diasRestantes = servicio.fechaEntregaEstimada ? diasHastaFecha(servicio.fechaEntregaEstimada) : null;
 
     return (
-        <div className="bloqueVista paginaServicioContratado">
+        <div className="bloqueVista paginaServicioContratado" style={{maxWidth: '700px', margin: '0 auto'}}>
             <header className="paginaServicioHeader">
-                <Boton onClick={() => navegarA('resumen')} variante="ghost" icono={<ArrowLeft size={18} />}>
+                <Boton onClick={() => navegarA('resumen')} variante="outline" icono={<ArrowLeft size={18} />}>
                     Volver
                 </Boton>
             </header>
@@ -96,7 +96,7 @@ export const PaginaServicioContratado: React.FC = () => {
 
                 {/* Columna lateral */}
                 <div className="paginaServicioLateral">
-                    <Tarjeta className="tarjetaResumenServicio">
+                    <Tarjeta className="tarjetaResumenServicio" style={{fontSize: '0.9rem'}}>
                         <h3 className="tarjetaSeccionTitulo">Resumen</h3>
 
                         <div className="resumenLineas">

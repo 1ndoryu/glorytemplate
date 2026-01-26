@@ -55,10 +55,6 @@ Revisar incosistencias, mejorar código y refactorizar UI.
   - [x] `MenuContextual`: Ajustado CSS y alineación ("texto centrado" corregido).
   - [x] Nomenclatura: Admin ahora usa "Servicios en progreso" en lugar de "Trabajos en progreso".
 
-/* Notas de Planificación
-- Se ha unificado la arquitectura de estilos del panel.
-- Los componentes `TarjetaResumen` y `SeccionPanel` son ahora la fuente de verdad.
-*/
 
 - [x] **Unificación de Servicios en Progreso**
   - Actual: `Servicios en progreso` (Cliente) vs `Trabajos en progreso` (Admin, obsoleto).
@@ -72,6 +68,54 @@ Revisar incosistencias, mejorar código y refactorizar UI.
   - ↩️ **Revertido:** Se decidió mantener el diseño original opaco por preferencia del usuario.
   - Objetivo: Evaluar limpieza visual.
 
+
+### Refinamiento UI/UX y Estructura (Mental Planning Processed)
+
+- [ ] **Consolidación de Tarjetas (Dashboard)**
+  - [ ] Unificar elementos dispersos en tarjetas contenedoras principales (ej. "Próximas renovaciones" y "Lista de clientes").
+  - [ ] Evitar "ruido visual" de múltiples tarjetas pequeñas separadas.
+
+- [ ] **Panel de Clientes (Admin)**
+  - [ ] Mover lista de clientes a su propio panel/sección dedicada.
+  - [ ] Encapsular tabla y listado dentro de una tarjeta principal.
+  - [ ] **Estilos:** Quitar efecto *hover* en las tarjetas de cliente individuales si existen.
+  - [ ] **Visibilidad:** Confirmar restricción estricta solo para Admin.
+
+- [ ] **Mejoras en Facturación y Pagos**
+  - [ ] **Desglose:** Mostrar detalle exacto de ítems en la factura (actualmente no es claro).
+  - [ ] **Granularidad:** Permitir pago individual de ítems (si la lógica de negocio lo permite).
+  - [ ] **Periodicidad:** Implementar selectores para pago Mensual vs Anual (validar integración con Stripe).
+
+- [ ] **Estilos de Componentes UI**
+  - [ ] **Botón Notificaciones:** Crear estilo "Icon Only" (sin padding, estilo limpio).
+  - [ ] **Detalle de Servicios:**
+    - [ ] Ancho máximo de contenedor: `700px`.
+    - [ ] Tipografía reducida para el texto del resumen.
+    - [ ] Botón "Volver": cambiar a variante `outline`.
+  - [ ] **Tarjetas de Factura:** Eliminar bordes de color (ej. amarillo), mantener estilo limpio.
+  - [ ] **Botón Nuevo Servicio:** Cambiar a variante `outline`.
+
+
+## Espacio para planificación mental (No borrar)
+```php 
+/*  
+Detalles que planiicar
+
+Los ementos no deberían ir separados en tarjetas, deben estar todos en una tarjeta, por ejemplo en Próximas renovaciones y la lista de clientes
+
+La lista de cliente debe tener tu propio panel, y lo mismo, la tabla y los clientes deben estar dentro de la tarjeta, tammbien quitar el efecto hover que tienen las tarjeta de los cliente. El panel de clientne obviamente solo es visible para el usuario admin
+
+las factura de guillermo no desglosa que esta pagando exactamentne, y debería permitir pagar individualmente cada cosa, si es un servicio, debería permitirle pagar mensual o anual, pero supongo que esto se manejara con strope, no lo se,
+
+el boton de icono de noticacion, el estilo no es correcto, tal vez hacer un nuevo estilo para el boton donde solo es el icono sin padding 
+
+Los detalles de los servicios deben tener 700 de ancho, usar letra pequeña para el resumen. el boton de volver debe ser outline
+
+quitar el borde amarillo de la tarjeta de factura, nada de bordes raros
+
+el boton de nuevo servicio debe ser outline
+*/
+```
 
 ---
 

@@ -30,7 +30,7 @@ export const ListaServiciosPublicados: React.FC<ListaServiciosPublicadosProps> =
                         {serviciosInactivos.length > 0 && ` · ${serviciosInactivos.length} inactivo${serviciosInactivos.length !== 1 ? 's' : ''}`}
                     </span>
                 </div>
-                <Boton variante="acento" onClick={onCrear}>
+                <Boton variante="outline" onClick={onCrear}>
                     <Plus size={16} />
                     Nuevo Servicio
                 </Boton>

@@ -47,13 +47,13 @@ export const ListaAlertasAdmin: React.FC<ListaAlertasAdminProps> = ({alertas}) =
     }
 
     return (
-        <div className="listaAlertas">
+        <Tarjeta className="listaAlertas contenedorLista p-0">
             {alertas.map(alerta => {
                 const Icono = iconosPorTipo[alerta.tipo];
                 const claseAlerta = clasesPorTipo[alerta.tipo];
 
                 return (
-                    <Tarjeta key={alerta.id} className={`alertaItem ${claseAlerta}`}>
+                    <div key={alerta.id} className={`alertaItem itemLista ${claseAlerta}`}>
                         <div className="alertaIcono">
                             <Icono size={16} />
                         </div>
@@ -65,9 +65,9 @@ export const ListaAlertasAdmin: React.FC<ListaAlertasAdminProps> = ({alertas}) =
                             </span>
                         </div>
                         {alerta.monto && <span className="alertaMonto">${alerta.monto.toFixed(2)}</span>}
-                    </Tarjeta>
+                    </div>
                 );
             })}
-        </div>
+        </Tarjeta>
     );
 };

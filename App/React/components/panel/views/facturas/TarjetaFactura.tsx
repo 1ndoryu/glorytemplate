@@ -43,7 +43,7 @@ export const TarjetaFactura: React.FC<TarjetaFacturaProps> = ({factura, onPagar,
     const esPagable = factura.estado === 'pendiente' || factura.estado === 'vencida';
 
     return (
-        <Tarjeta className={`tarjetaFactura estado${factura.estado.charAt(0).toUpperCase() + factura.estado.slice(1)}`}>
+        <Tarjeta className="tarjetaFactura">
             <div className="tarjetaFacturaHeader">
                 <div className="tarjetaFacturaInfo">
                     <span className="facturaReferencia">{factura.referencia}</span>

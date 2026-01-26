@@ -20,10 +20,30 @@ interface ModalPagarFacturaProps {
 }
 
 export const ModalPagarFactura: React.FC<ModalPagarFacturaProps> = ({factura, visible, onCerrar, onConfirmarPago}) => {
+    /* Estado para selección de items (Granularidad) */
+    const [seccionados, setSeccionados] = React.useState<number[]>([]);
+
+    React.useEffect(() => {
+        if (factura && visible) {
+            /* Por defecto todos seleccionados */
+            setSeccionados(factura.items.map((_, i) => i));
+        }
+    }, [factura, visible]);
+
     if (!visible || !factura) return null;
 
+    const toggleItem = (index: number) => {
+        setSeccionados(prev => (prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]));
+    };
+
+    const subtotalCalculado = factura.items.filter((_, i) => seccionados.includes(i)).reduce((sum, item) => sum + item.total, 0);
+
+    /* Aproximación simple de impuestos proporcional */
+    const impuestosCalculados = factura.subtotal > 0 ? (subtotalCalculado / factura.subtotal) * factura.impuestos : 0;
+    const totalCalculado = subtotalCalculado + impuestosCalculados;
+
     const handlePagar = () => {
-        /* TO-DO: Integrar con Stripe en Fase 5 */
+        /* TO-DO: Integrar con Stripe y manejar pago parcial */
         onConfirmarPago(factura);
     };
 
@@ -53,36 +73,46 @@ export const ModalPagarFactura: React.FC<ModalPagarFacturaProps> = ({factura, vi
                     </div>
 
                     <div className="facturaItems">
-                        <div className="facturaItemsHeader">
+                        <div className="facturaItemsDataHeader">
+                            <span style={{width: '24px'}}></span>
                             <span>Descripción</span>
-                            <span>Cant.</span>
-                            <span>Precio</span>
-                            <span>Total</span>
+                            <span className="text-right">Cant.</span>
+                            <span className="text-right">Precio</span>
+                            <span className="text-right">Total</span>
                         </div>
-                        {factura.items.map((item, index) => (
-                            <div key={index} className="facturaItem">
-                                <span className="itemDescripcion">{item.descripcion}</span>
-                                <span className="itemCantidad">{item.cantidad}</span>
-                                <span className="itemPrecio">${item.precioUnitario.toFixed(2)}</span>
-                                <span className="itemTotal">${item.total.toFixed(2)}</span>
-                            </div>
-                        ))}
+                        {factura.items.map((item, index) => {
+                            const isSelected = seccionados.includes(index);
+                            return (
+                                <div key={index} className={`facturaItemRow ${isSelected ? 'selected' : ''}`} onClick={() => toggleItem(index)}>
+                                    <div className="itemCheckbox">
+                                        <input type="checkbox" checked={isSelected} readOnly />
+                                    </div>
+                                    <span className="itemDescripcion">{item.descripcion}</span>
+                                    <span className="itemCantidad text-right">{item.cantidad}</span>
+                                    <span className="itemPrecio text-right">${item.precioUnitario.toFixed(2)}</span>
+                                    <span className="itemTotal text-right">${item.total.toFixed(2)}</span>
+                                </div>
+                            );
+                        })}
                     </div>
 
                     <div className="facturaTotales">
-                        <div className="facturaTotalLinea">
-                            <span>Subtotal</span>
-                            <span>${factura.subtotal.toFixed(2)}</span>
+                        <div className="facturaTotalLinea semiBold">
+                            <span>Resumen de pago</span>
                         </div>
-                        {factura.impuestos > 0 && (
+                        <div className="facturaTotalLinea">
+                            <span>Subtotal selección</span>
+                            <span>${subtotalCalculado.toFixed(2)}</span>
+                        </div>
+                        {impuestosCalculados > 0 && (
                             <div className="facturaTotalLinea">
                                 <span>Impuestos</span>
-                                <span>${factura.impuestos.toFixed(2)}</span>
+                                <span>${impuestosCalculados.toFixed(2)}</span>
                             </div>
                         )}
                         <div className="facturaTotalLinea totalFinal">
                             <span>Total a pagar</span>
-                            <span>${factura.total.toFixed(2)}</span>
+                            <span>${totalCalculado.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
@@ -91,9 +121,11 @@ export const ModalPagarFactura: React.FC<ModalPagarFacturaProps> = ({factura, vi
                     <Boton variante="ghost" onClick={onCerrar}>
                         Cancelar
                     </Boton>
-                    <Boton variante="solid" icono={<CreditCard size={16} />} onClick={handlePagar}>
-                        Pagar ${factura.total.toFixed(2)}
-                    </Boton>
+                    {seccionados.length > 0 && (
+                        <Boton variante="solid" icono={<CreditCard size={16} />} onClick={handlePagar}>
+                            Pagar ${totalCalculado.toFixed(2)}
+                        </Boton>
+                    )}
                 </footer>
             </div>
         </div>,

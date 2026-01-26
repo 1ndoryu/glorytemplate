@@ -32,7 +32,7 @@ export const TablaClientes: React.FC<TablaClientesProps> = ({clientes, onVerClie
     }
 
     return (
-        <div className="tablaClientes">
+        <Tarjeta className="tablaClientes contenedorLista p-0">
             <div className="tablaClientesEncabezado">
                 <span className="columnaNombre">Cliente</span>
                 <span className="columnaDeuda">Deuda</span>
@@ -41,7 +41,7 @@ export const TablaClientes: React.FC<TablaClientesProps> = ({clientes, onVerClie
             </div>
 
             {clientes.map(cliente => (
-                <Tarjeta key={cliente.id} className="filaCliente">
+                <div key={cliente.id} className="filaCliente itemLista">
                     <div className="clienteInfo">
                         <div className="clienteAvatar">{cliente.nombre.charAt(0)}</div>
                         <div className="clienteDatos">
@@ -70,8 +70,8 @@ export const TablaClientes: React.FC<TablaClientesProps> = ({clientes, onVerClie
                             </Boton>
                         )}
                     </div>
-                </Tarjeta>
+                </div>
             ))}
-        </div>
+        </Tarjeta>
     );
 };

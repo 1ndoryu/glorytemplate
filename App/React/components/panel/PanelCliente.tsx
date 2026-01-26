@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {LayoutDashboard, Server, ShoppingBag, MessageSquare, CreditCard, Settings, LogOut, Bell, Globe, User, HelpCircle, Briefcase, Eye} from 'lucide-react';
+import {LayoutDashboard, Server, ShoppingBag, MessageSquare, CreditCard, Settings, LogOut, Bell, Globe, User, HelpCircle, Briefcase, Eye, Users} from 'lucide-react';
 import {Boton} from '../ui/Boton';
 import {VistaResumen} from './views/VistaResumen';
 import {VistaHosting} from './views/VistaHosting';
@@ -11,6 +11,7 @@ import {VistaServicios} from './views/VistaServicios';
 import {PaginaServicio} from './views/PaginaServicio';
 import {PaginaServicioContratado} from './views/PaginaServicioContratado';
 import {VistaResumenAdmin} from './views/admin';
+import {VistaClientesAdmin} from './views/admin/VistaClientesAdmin';
 import {PanelProvider, usePanel} from '../../context/PanelContext';
 import {UsuarioProvider, useUsuario} from '../../context/UsuarioContext';
 import {ToggleSimulacion} from './ToggleSimulacion';
@@ -41,15 +42,7 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
     const {mensajes, vistaActual, navegarA} = usePanel();
     const {usuario, esAdmin, simulando} = useUsuario();
 
-    const menuItems = [
-        {id: 'resumen', icon: <LayoutDashboard size={22} />, label: 'Resumen'},
-        {id: 'marketplace', icon: <ShoppingBag size={22} />, label: 'Marketplace'},
-        {id: 'misServicios', icon: <Briefcase size={22} />, label: 'Mis Servicios'},
-        {id: 'hosting', icon: <Server size={22} />, label: 'Mis Hostings'},
-        {id: 'dominios', icon: <Globe size={22} />, label: 'Mis Dominios'},
-        {id: 'mensajes', icon: <MessageSquare size={22} />, label: 'Mensajes', badge: mensajes > 0},
-        {id: 'pagos', icon: <CreditCard size={22} />, label: 'Facturación'}
-    ];
+    const menuItems = [{id: 'resumen', icon: <LayoutDashboard size={22} />, label: 'Resumen'}, ...(esAdmin && !simulando ? [{id: 'clientes', icon: <Users size={22} />, label: 'Clientes'}] : []), {id: 'marketplace', icon: <ShoppingBag size={22} />, label: 'Marketplace'}, {id: 'misServicios', icon: <Briefcase size={22} />, label: 'Mis Servicios'}, {id: 'hosting', icon: <Server size={22} />, label: 'Mis Hostings'}, {id: 'dominios', icon: <Globe size={22} />, label: 'Mis Dominios'}, {id: 'mensajes', icon: <MessageSquare size={22} />, label: 'Mensajes', badge: mensajes > 0}, {id: 'pagos', icon: <CreditCard size={22} />, label: 'Facturación'}];
 
     // Icono Globe dinámico para evitar error de importación si no se usa arriba
     function getMenuIcon(item: any) {
@@ -63,6 +56,8 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
         switch (vistaActual) {
             case 'resumen':
                 return esVistaAdmin ? <VistaResumenAdmin /> : <VistaResumen />;
+            case 'clientes':
+                return esVistaAdmin ? <VistaClientesAdmin /> : <VistaResumen />;
             case 'hosting':
                 return <VistaHosting />;
             case 'dominios':
@@ -134,7 +129,7 @@ const PanelLayout: React.FC<PanelClienteProps> = ({onLogout}) => {
                         <div className="headerTools">
                             <div className="userProfile">
                                 <ToggleSimulacion />
-                                <Boton className="botonNotificacion" variante="ghost" icono={<Bell size={16} />}>
+                                <Boton className="botonNotificacion" variante="ghost" icono={<Bell size={16} />} style={{padding: '0.6rem', minWidth: 'auto', borderRadius: '50%'}}>
                                     <span className="notificacionDot"></span>
                                 </Boton>
 
