@@ -1,6 +1,8 @@
 /* === Secciones Admin === */
 
-.seccionAdminTitulo {
+/* Obsoleto - Reemplazado por SeccionPanel */
+/*
+.dashboardSeccionTitulo {
     display: flex;
     align-items: center;
     gap: var(--nakomi-espacioSm);
@@ -8,10 +10,9 @@
     font-weight: 500;
     color: var(--nakomi-textoApagado);
     margin-bottom: var(--nakomi-espacioMd);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
-.seccionAdminTitulo.alertaTitulo {
+.dashboardSeccionTitulo.alertaTitulo {
     color: var(--nakomi-warning);
 }
+*/

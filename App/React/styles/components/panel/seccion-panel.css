@@ -1,0 +1,67 @@
+/*
+ * Estilos para el componente SeccionPanel
+ * Unifica el espaciado y estructura de las secciones en admin y cliente
+ */
+
+.seccionPanel {
+    margin-bottom: var(--nakomi-espacioXl);
+    width: 100%;
+}
+
+.seccionPanelCabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: var(--nakomi-espacioMd);
+    min-height: 32px; /* Alineación vertical */
+}
+
+.seccionPanelTituloContenedor {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+}
+
+.seccionPanelIcono {
+    color: var(--nakomi-textoApagado);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.seccionPanelTextos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.seccionPanelTitulo {
+    font-size: var(--nakomi-fuenteSm);
+    font-weight: 500;
+    color: var(--nakomi-textoApagado);
+    margin: 0;
+    line-height: normal;
+    /* Eliminado text-transform: uppercase por consistencia */
+}
+
+.seccionPanelSubtitulo {
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    margin: 0;
+    opacity: 0.8;
+}
+
+.seccionPanelAccion {
+    margin-left: auto;
+}
+
+.seccionPanelContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nakomi-espacioSm);
+}
+
+/* Modificadores */
+.seccionPanelTitulo.alerta {
+    color: var(--nakomi-warning);
+}

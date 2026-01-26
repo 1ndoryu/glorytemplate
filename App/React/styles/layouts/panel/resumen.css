@@ -47,26 +47,7 @@
 }
 
 /* === Secciones del Dashboard === */
-.dashboardSeccion {
-    margin-bottom: var(--nakomi-espacioXl);
-}
-
-.dashboardSeccionTitulo {
-    display: flex;
-    align-items: center;
-    gap: var(--nakomi-espacioXs);
-    font-size: var(--nakomi-fuenteSm);
-    font-weight: 500;
-    color: var(--nakomi-textoApagado);
-    margin-bottom: var(--nakomi-espacioMd);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.dashboardSeccionTitulo .iconoAlerta {
-    color: var(--nakomi-warning);
-}
-
+/* Reemplazado por SeccionPanel */
 .dashboardSeccionLista {
     display: flex;
     flex-direction: column;

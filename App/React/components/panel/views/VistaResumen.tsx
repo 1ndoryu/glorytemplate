@@ -13,6 +13,7 @@ import {useUsuario} from '../../../context/UsuarioContext';
 import {TarjetaServicioContratado} from './servicios/TarjetaServicioContratado';
 import {ServicioContratado} from '../../../data/types/servicio';
 import {formatearFecha, diasHastaFecha} from '../../../utils/fechaUtils';
+import {SeccionPanel} from '../ui/SeccionPanel';
 
 interface TarjetaResumenClienteProps {
     etiqueta: string;
@@ -102,20 +103,18 @@ export const VistaResumen: React.FC = () => {
 
             {/* Servicios contratados activos */}
             {serviciosActivos.length > 0 && (
-                <section className="dashboardSeccion">
-                    <h3 className="dashboardSeccionTitulo">Servicios en progreso</h3>
+                <SeccionPanel titulo="Servicios en progreso">
                     <div className="dashboardSeccionLista">
                         {serviciosActivos.map(servicio => (
                             <TarjetaServicioContratado key={servicio.id} servicio={servicio} onVerDetalles={handleVerDetallesServicio} />
                         ))}
                     </div>
-                </section>
+                </SeccionPanel>
             )}
 
             {/* Próximas renovaciones */}
             {proximasRenovaciones.length > 0 && (
-                <section className="dashboardSeccion">
-                    <h3 className="dashboardSeccionTitulo">Próximas renovaciones</h3>
+                <SeccionPanel titulo="Próximas renovaciones">
                     <div className="dashboardSeccionLista">
                         {proximasRenovaciones.map((item, index) => (
                             <Tarjeta key={`${item.tipo}-${index}`} className="tarjetaRenovacion">
@@ -134,16 +133,12 @@ export const VistaResumen: React.FC = () => {
                             </Tarjeta>
                         ))}
                     </div>
-                </section>
+                </SeccionPanel>
             )}
 
             {/* Alertas de facturas vencidas */}
             {facturasPendientes.length > 0 && (
-                <section className="dashboardSeccion">
-                    <h3 className="dashboardSeccionTitulo">
-                        <AlertCircle size={16} className="iconoAlerta" />
-                        Facturas pendientes
-                    </h3>
+                <SeccionPanel titulo="Facturas pendientes" icono={<AlertCircle size={16} className="iconoAlerta" />}>
                     <div className="dashboardSeccionLista">
                         {facturasPendientes.slice(0, 3).map(factura => (
                             <Tarjeta key={factura.id} className="tarjetaFacturaPendiente">
@@ -158,7 +153,7 @@ export const VistaResumen: React.FC = () => {
                             </Tarjeta>
                         ))}
                     </div>
-                </section>
+                </SeccionPanel>
             )}
 
             {/* Placeholder si no hay contenido */}

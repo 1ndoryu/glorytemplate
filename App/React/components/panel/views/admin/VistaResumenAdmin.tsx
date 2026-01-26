@@ -19,6 +19,7 @@ import {useMetricasAdmin} from './hooks/useMetricasAdmin';
 import {useClientesAdmin} from './hooks/useClientesAdmin';
 import {useAlertasAdmin} from './hooks/useAlertasAdmin';
 import {useAdminActions} from './hooks/useAdminActions';
+import {SeccionPanel} from '../../ui/SeccionPanel';
 
 export const VistaResumenAdmin: React.FC = () => {
     const {navegarA} = usePanel();
@@ -55,33 +56,21 @@ export const VistaResumenAdmin: React.FC = () => {
 
             {/* Trabajos activos */}
             {metricas.trabajosEnProgreso.length > 0 && (
-                <section className="seccionAdmin">
-                    <h3 className="seccionAdminTitulo">
-                        <Briefcase size={16} />
-                        Trabajos en progreso
-                    </h3>
+                <SeccionPanel titulo="Trabajos en progreso">
                     <ListaTrabajosActivos trabajos={metricas.trabajosEnProgreso} onVerDetalle={handleVerDetalleServicio} />
-                </section>
+                </SeccionPanel>
             )}
 
             {/* Lista de clientes */}
-            <section className="seccionAdmin">
-                <h3 className="seccionAdminTitulo">
-                    <Users size={16} />
-                    Clientes
-                </h3>
+            <SeccionPanel titulo="Clientes">
                 <TablaClientes clientes={clientesConResumen} />
-            </section>
+            </SeccionPanel>
 
             {/* Alertas */}
             {alertas.length > 0 && (
-                <section className="seccionAdmin">
-                    <h3 className="seccionAdminTitulo alertaTitulo">
-                        <AlertTriangle size={16} />
-                        Alertas del sistema
-                    </h3>
+                <SeccionPanel titulo="Alertas del sistema" className="alertaTitulo">
                     <ListaAlertasAdmin alertas={alertas} />
-                </section>
+                </SeccionPanel>
             )}
         </div>
     );

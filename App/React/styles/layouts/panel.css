@@ -13,3 +13,4 @@
 @import './panel/servicios.css';
 @import './panel/modal.css';
 @import './panel/dashboardAdmin.css';
+@import '../components/panel/seccion-panel.css';

@@ -8,22 +8,41 @@
 
 ## Resumen de Fases
 
-| Fase | Descripción                    | Estado                       |
-| ---- | ------------------------------ | ---------------------------- |
-| 1    | Modelo de datos y mocks        | ✅ Completada                 |
-| 2    | Vista Facturación              | ✅ Completada                 |
-| 3    | Vista Hostings                 | ✅ Completada                 |
-| 4    | Vista Servicios                | ✅ Completada                 |
-| 4.5  | Vista Dominios                 | ✅ Completada                 |
-| Rev  | Revisiones UI/UX               | ✅ Completada                 |
-| 7    | Sistema de Usuarios/Simulación | ✅ Completada                 |
-| 8    | Modal Edición Servicio         | ✅ Completada                 |
-| 9    | Single de Servicio             | ✅ Completada                 |
-| 10   | Catálogo/Marketplace           | ✅ Completada                 |
-| 5    | Stripe                         | ⏳ En Progreso (UI & Backend) |
-| 6    | Cuenta Guillermo               | ✅ Completada (Seeder)        |
-| 11   | Integración WordPress Real     | ✅ Completada                 |
-| 12   | Dashboard Admin diferenciado   | ✅ Completada                 |
+| Fase | Descripción                  | Estado                       |
+| ---- | ---------------------------- | ---------------------------- |
+| 1-4  | Vistas principales Cliente   | ✅ Completadas                |
+| 7-10 | Sistema Usuarios/Servicios   | ✅ Completadas                |
+| 5    | Stripe                       | ⏳ En Progreso (UI & Backend) |
+| 6    | Cuenta Guillermo             | ✅ Completada (Seeder)        |
+| 11   | Integración WordPress Real   | ✅ Completada                 |
+| 12   | Dashboard Admin diferenciado | ✅ Completada                 |
+| 13   | Refactorización y Mejoras    | 🚀 Pendiente                  |
+
+---
+
+## 🚀 Fase 13: Refactorización y Consistencia
+
+### Objetivos
+Revisar incosistencias, mejorar código y refactorizar UI.
+
+### Tareas Detectadas
+- [x] **Títulos de Sección Admin vs Cliente**
+  - `seccionAdminTitulo` tiene icono y mayúsculas (Inconsistente).
+  - `dashboardSeccionTitulo` (Cliente) debe ser el estándar (sin mayúsculas forzadas).
+  - Acción: Eliminar iconos en headers de Admin y quitar `uppercase` en ambos roles.
+
+- [x] **Componente `<Seccion />` Unificado**
+  - Existencia de múltiples clases CSS (`seccionAdmin`, `dashboardSeccion`...)
+  - Crear componente `Seccion.tsx` para estandarizar márgenes y títulos.
+  - Reemplazar uso en `VistaResumen` y `VistaResumenAdmin`.
+  - Limpiar CSS duplicado.
+
+- [ ] **Componente `<CabeceraVista />` (Header)**
+  - Patrón repetido: Title + Subtitle en `vistaHeader`.
+  - Crear componente reutilizable `CabeceraVista.tsx`.
+  - Props: `titulo`, `subtitulo`, `accion` (botones a la derecha).
+  - Implementar en `VistaResumen` y `VistaResumenAdmin`.
+
 
 ---
 
@@ -32,10 +51,6 @@
 ### Alta Prioridad
 
 1. ~~**Modal "Ver detalles" en servicios en progreso no abre**~~ ✅ **RESUELTO**
-   - Se creó `PaginaServicioContratado.tsx` para mostrar detalle del servicio
-   - Se añadió handler `handleVerDetallesServicio` en `VistaResumen.tsx`
-   - Se añadió ruta `detalle_servicio_contratado` en `PanelCliente.tsx`
-   - Se añadieron campos `progreso`, `fechaContratacion`, `revisionesRestantes` al tipo
 
 2. **No se pueden editar servicios publicados** ✅ **RESUELTO**
    - Handler `handleEditarServicio` definido en `VistaServicios.tsx`
@@ -44,28 +59,12 @@
    - El modal `ModalEditarServicio.tsx` recibe el servicio y permite edición
 
 3. ~~**Dominios sin opción de pago**~~ ✅ **RESUELTO**
-   - Se añadió `pagado: boolean` y `precioAnual: number` a DominioContratado
-   - Se agregó alerta visual de "Pago pendiente" en TarjetaDominio
-   - Se agregó botón "Pagar ahora" con handler en VistaDominios
-   - ResumenDominios ahora muestra conteo y monto de impagos
-
 4. ~~**Factura sin desglose de items**~~ ✅ **RESUELTO**
-   - El mock `facturas.ts` ya tiene items correctamente desglosados
-   - `ModalPagarFactura.tsx` renderiza los items correctamente
 
 ### Media Prioridad
 
 5. ~~**Inconsistencia en Marketplace**~~ ✅ **RESUELTO**
-   - Se añadió propiedad `activo?: boolean` al tipo `Servicio`
-   - Se añadió `activo: true` a todos los servicios del mock `servicios.ts`
-   - `PanelContext.tsx` ahora filtra solo servicios activos para el Marketplace
-   - Marketplace mostrará únicamente servicios con `activo: true`
-
 6. **Incoherencia de datos entre vistas** ✅ **RESUELTO**
-   - Se añadió `marcarProductosComoPagados()` en `PanelContext.tsx`
-   - Al pagar factura, los hostings/dominios referenciados se marcan como `pagado: true`
-   - `VistaFacturas.handleConfirmarPago` extrae `productoRef` de cada item y sincroniza
-   - Los mocks de dominios ahora usan estado reactivo (useState) igual que hostings
 
 ---
 
