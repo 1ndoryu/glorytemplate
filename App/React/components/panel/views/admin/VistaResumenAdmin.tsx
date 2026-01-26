@@ -20,6 +20,7 @@ import {useClientesAdmin} from './hooks/useClientesAdmin';
 import {useAlertasAdmin} from './hooks/useAlertasAdmin';
 import {useAdminActions} from './hooks/useAdminActions';
 import {SeccionPanel} from '../../ui/SeccionPanel';
+import {CabeceraVista} from '../../ui/CabeceraVista';
 
 export const VistaResumenAdmin: React.FC = () => {
     const {navegarA} = usePanel();
@@ -38,12 +39,7 @@ export const VistaResumenAdmin: React.FC = () => {
 
     return (
         <div className="bloqueVista animate-fade-in" id="vistaDashboardAdmin">
-            <div className="vistaHeader">
-                <div>
-                    <h2 className="vistaTitulo">Hola, {usuario.nombre}</h2>
-                    <p className="vistaSubtitulo">Panel de administración</p>
-                </div>
-            </div>
+            <CabeceraVista titulo={`Hola, ${usuario.nombre}`} subtitulo="Panel de administración" />
 
             {/* Tarjetas de resumen global */}
             <section className="seccionAdmin">

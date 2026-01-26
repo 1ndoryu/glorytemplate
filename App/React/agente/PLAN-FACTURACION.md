@@ -37,12 +37,20 @@ Revisar incosistencias, mejorar código y refactorizar UI.
   - Reemplazar uso en `VistaResumen` y `VistaResumenAdmin`.
   - Limpiar CSS duplicado.
 
-- [ ] **Componente `<CabeceraVista />` (Header)**
+- [x] **Componente `<CabeceraVista />` (Header)**
   - Patrón repetido: Title + Subtitle en `vistaHeader`.
   - Crear componente reutilizable `CabeceraVista.tsx`.
   - Props: `titulo`, `subtitulo`, `accion` (botones a la derecha).
   - Implementar en `VistaResumen` y `VistaResumenAdmin`.
 
+
+- [ ] **Unificar Grid de Resumen**
+  - `dashboardResumen` (Cliente) y `gridResumenAdmin` (Admin) hacen lo mismo.
+  - Crear clase unificada `.gridResumen` en un archivo común o componente wrapper.
+
+- [ ] **Auditoría de Inconsistencias CSS/Componentes en el panel**
+  - Buscar selectores duplicados o muy similares.
+  - Revisar estructuras de Layout repetidas.
 
 ---
 

@@ -1,0 +1,64 @@
+/*
+ * Estilos para el componente CabeceraVista
+ * Encabezado estándar para las vistas del panel
+ */
+
+.cabeceraVista {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end; /* Alineamos abajo para que los botones queden alineados con el texto si hay subtitulo, o start */
+    /* Mejor align-items: flex-start para multilineas, pero center si es simple. "Hola..." y subtitulo.
+       Si alineamos al centro, los botones flotan.
+       Structure anterior: block.
+       Vamos con flex-start y manejo de gaps.
+    */
+    align-items: flex-start;
+    gap: var(--nakomi-espacioMd);
+    margin-bottom: var(--nakomi-espacioSm); /* 0.5rem eq */
+    width: 100%;
+}
+
+.cabeceraVistaContenido {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0; /* Para que el texto trunque si es necesario */
+}
+
+.cabeceraVistaTitulo {
+    font-size: var(--nakomi-fuenteXl);
+    font-weight: 300;
+    color: var(--nakomi-textoActivo);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.cabeceraVistaSubtitulo {
+    font-size: var(--nakomi-fuenteSm);
+    color: var(--nakomi-textoApagado);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.cabeceraVistaAccion {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioSm);
+    margin-top: 4px; /* Ajuste visual para alinear con la primera linea de texto aprox */
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .cabeceraVista {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--nakomi-espacioMd);
+    }
+
+    .cabeceraVistaAccion {
+        margin-top: 0;
+        justify-content: flex-start;
+    }
+}
