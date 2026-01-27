@@ -1,0 +1,68 @@
+/* === Estilos para Grids de Facturas en Modal (con Checks) === */
+
+.facturaItemsDataHeader {
+    display: grid;
+    grid-template-columns: 24px 1fr 60px 80px 80px;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioXs);
+    border-bottom: 1px solid var(--nakomi-bordePrincipal);
+    font-size: var(--nakomi-fuenteXs);
+    color: var(--nakomi-textoApagado);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    align-items: center;
+}
+
+.facturaItemRow {
+    display: grid;
+    grid-template-columns: 24px 1fr 60px 80px 80px;
+    gap: var(--nakomi-espacioSm);
+    padding: var(--nakomi-espacioSm) var(--nakomi-espacioXs);
+    border-bottom: 1px solid var(--nakomi-bordeSutil);
+    font-size: var(--nakomi-fuenteSm);
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.facturaItemRow:last-child {
+    border-bottom: none;
+}
+
+.facturaItemRow:hover {
+    background-color: var(--nakomi-fondoHover);
+}
+
+.facturaItemRow.selected {
+    background-color: var(--nakomi-infoFondo);
+}
+
+.itemCheckbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.semiBold {
+    font-weight: 600;
+}
+
+/* Responsive para el modal de items */
+@media (max-width: 640px) {
+    .facturaItemsDataHeader,
+    .facturaItemRow {
+        grid-template-columns: 24px 1fr 60px;
+    }
+
+    /* Ocultar columnas menos importantes en móvil */
+    .facturaItemsDataHeader span:nth-child(3), /* Cant */
+    .facturaItemsDataHeader span:nth-child(4), /* Precio */
+    .facturaItemRow .itemCantidad,
+    .facturaItemRow .itemPrecio {
+        display: none;
+    }
+}

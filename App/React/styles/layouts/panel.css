@@ -9,6 +9,7 @@
 @import './panel/dominios.css';
 @import './panel/marketplace.css';
 @import './panel/facturas.css';
+@import './panel/facturas-items.css';
 @import './panel/perfil.css';
 @import './panel/servicios.css';
 @import './panel/modal.css';

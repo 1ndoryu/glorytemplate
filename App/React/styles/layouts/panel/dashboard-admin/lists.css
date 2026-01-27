@@ -1,0 +1,90 @@
+/* === Contenedores Unificados (Listas) === */
+.contenedorLista {
+    border: 1px solid var(--nakomi-bordePrincipal);
+    border-radius: var(--nakomi-radioMd);
+    background-color: var(--nakomi-fondoSecundario);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.contenedorLista.p-0 {
+    padding: 0 !important;
+}
+
+/* Items dentro de la lista (filas) */
+.itemLista {
+    display: flex;
+    align-items: center;
+    padding: var(--nakomi-espacioMd);
+    border-bottom: 1px solid var(--nakomi-bordeSecundario);
+    transition: background-color 0.2s ease;
+}
+
+.itemLista:last-child {
+    border-bottom: none;
+}
+
+.itemLista:hover {
+    background-color: var(--nakomi-fondoHover);
+}
+
+/* === Adaptaciones específicas para items dentro de listas === */
+
+/* Renovaciones */
+.renovacionItem.itemLista {
+    gap: var(--nakomi-espacioMd);
+}
+
+/* Clientes */
+.filaCliente.itemLista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nakomi-espacioMd);
+}
+
+@media (min-width: 768px) {
+    .filaCliente.itemLista {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+}
+
+/* Facturas */
+.facturaItem.itemLista {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    /* border-left: 3px solid transparent; Eliminamos bordes de color laterales para limpieza */
+}
+
+/* Alertas */
+.alertaItem.itemLista {
+    display: flex;
+    align-items: center;
+    gap: var(--nakomi-espacioMd);
+    background-color: transparent !important; /* Override de colores de fondo previos */
+    border-left: none !important;
+}
+
+/* Restaurar indicadores visuales sutiles para alertas */
+.alertaItem.itemLista.alertaError .alertaContenido {
+    color: var(--nakomi-error);
+}
+.alertaItem.itemLista.alertaWarning .alertaContenido {
+    color: var(--nakomi-warning-dark, #b45309);
+}
+.alertaItem.itemLista.alertaInfo .alertaContenido {
+    color: var(--nakomi-info);
+}
+
+/* === Tarjeta Servicio Contratado (Modo Lista) === */
+.tarjetaServicioContratado.itemLista {
+    width: 100%;
+    box-shadow: none;
+    background: transparent;
+    border-radius: 0;
+    border: none;
+}
