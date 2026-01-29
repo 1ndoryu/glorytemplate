@@ -8,9 +8,10 @@
 import {useState, useCallback} from 'react';
 import type {Clase, DiaSemana, AlumnoClase} from '../../types';
 import {ASIGNATURAS_CAP, getAsignatura, getAsignaturaPorCodigo, SLOTS_HORARIOS} from '../../constants';
-import {Modal, Boton, Alerta} from '../ui';
+import {Modal, Boton} from '../ui';
 import {IconoReloj, IconoUsuarios, IconoCandado, IconoGuardar, IconoLibro, IconoEliminar} from '../icons';
-import {detectarColision} from '../../utils/collisionUtils';
+import {detectarColision, resolverDesplazamientoCascada, encontrarHorarioDisponibleMasCercano} from '../../utils/collisionUtils';
+import {ModalConflictoDrag} from './ModalConflictoDrag';
 
 interface ModalDetalleClaseProps {
     clase: Clase | null;
@@ -21,6 +22,7 @@ interface ModalDetalleClaseProps {
     onMoverClase?: (claseId: number, nuevaFecha: string) => Promise<void>;
     fechasSemana?: Date[];
     clasesPorDia?: Record<DiaSemana, Clase[]>;
+    onMoverMultiplesClases?: (cambios: {clase: Clase; nuevoInicio: string; nuevoFin: string; nuevaFecha?: string}[]) => Promise<void>;
     guardando?: boolean;
     onEliminar?: (claseId: number, forzar: boolean) => Promise<void>;
     eliminando?: boolean;
@@ -32,7 +34,7 @@ export interface CambiosClase {
     asignaturaId?: number;
 }
 
-export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggleBloqueo, onMoverClase, fechasSemana, clasesPorDia, guardando = false, onEliminar, eliminando = false}: ModalDetalleClaseProps) {
+export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggleBloqueo, onMoverClase, fechasSemana, clasesPorDia, onMoverMultiplesClases, guardando = false, onEliminar, eliminando = false}: ModalDetalleClaseProps) {
     /*
      * Función helper para formatear hora (quita segundos).
      * Ej: "10:00:00" -> "10:00"
@@ -61,7 +63,12 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
     const [horaFin, setHoraFin] = useState(() => formatearHora(clase?.horaFin));
     const [asignaturaId, setAsignaturaId] = useState<number>(obtenerAsignaturaIdInicial);
     const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
-    const [mensajeConflicto, setMensajeConflicto] = useState<string | null>(null);
+    const [conflictoData, setConflictoData] = useState<{
+        claseMoviendo: Clase;
+        claseExistente: Clase;
+        nuevaHoraInicio: string;
+        nuevaHoraFin: string;
+    } | null>(null);
 
     /* Detectar cambios comparando con valores originales */
     const hayCambios = (() => {
@@ -110,10 +117,12 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
             const clasesDia = obtenerClasesDiaActual();
             const conflicto = detectarColision(horaInicio, horaFin, clasesDia, clase.id);
             if (conflicto) {
-                const nombreAsignatura = getAsignatura(clase.asignaturaId)?.nombre || 'clase';
-                setMensajeConflicto(
-                    `Estás intentando mover la clase ${nombreAsignatura} a las ${horaInicio}, pero ese horario ya está ocupado.`
-                );
+                setConflictoData({
+                    claseMoviendo: clase,
+                    claseExistente: conflicto,
+                    nuevaHoraInicio: horaInicio,
+                    nuevaHoraFin: horaFin
+                });
                 return;
             }
         }
@@ -140,9 +149,42 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
         }
     };
 
+    /* Resolver conflicto desplazando clases */
+    const handleDesplazarClases = async () => {
+        if (!clase || !conflictoData || !onMoverMultiplesClases) return;
+
+        const clasesDia = obtenerClasesDiaActual();
+        const cambios = resolverDesplazamientoCascada(clase, conflictoData.nuevaHoraInicio, conflictoData.nuevaHoraFin, clasesDia);
+
+        setConflictoData(null);
+        await onMoverMultiplesClases(cambios);
+        onCerrar();
+    };
+
+    /* Resolver conflicto moviendo al horario más cercano */
+    const handleMoverCercano = async () => {
+        if (!clase || !conflictoData) return;
+
+        const clasesDia = obtenerClasesDiaActual();
+        const horario = encontrarHorarioDisponibleMasCercano(
+            conflictoData.nuevaHoraInicio,
+            conflictoData.nuevaHoraFin,
+            clasesDia,
+            clase.id
+        );
+
+        if (!horario) {
+            setConflictoData(null);
+            return;
+        }
+
+        setConflictoData(null);
+        await onGuardar(clase.id, {horaInicio: horario.horaInicio, horaFin: horario.horaFin});
+    };
+
     /* Cerrar modal y limpiar alerta interna */
     const handleCerrar = () => {
-        setMensajeConflicto(null);
+        setConflictoData(null);
         onCerrar();
     };
 
@@ -168,13 +210,9 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
     const asignaturaActual = getAsignatura(asignaturaId);
 
     return (
-        <Modal abierto={abierto} onCerrar={handleCerrar} titulo="Detalles de la Clase" subtitulo={`${clase.fecha} • ${formatearHora(clase.horaInicio)} - ${formatearHora(clase.horaFin)}`}>
-            <div className="capModalDetalleClase">
-                {mensajeConflicto && (
-                    <Alerta variante="error" className="capMb--md" cerrable onCerrar={() => setMensajeConflicto(null)}>
-                        {mensajeConflicto}
-                    </Alerta>
-                )}
+        <>
+            <Modal abierto={abierto} onCerrar={handleCerrar} titulo="Detalles de la Clase" subtitulo={`${clase.fecha} • ${formatearHora(clase.horaInicio)} - ${formatearHora(clase.horaFin)}`}>
+                <div className="capModalDetalleClase">
                 {/* Sección: Información de la clase */}
                 <div className="capModalDetalleClase__seccion">
                     <h4 className="capModalDetalleClase__seccionTitulo">
@@ -209,7 +247,7 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
                                 value={horaInicio}
                                 onChange={e => {
                                     setHoraInicio(e.target.value);
-                                    setMensajeConflicto(null);
+                                    setConflictoData(null);
                                 }}
                                 disabled={clase.bloqueada}
                             >
@@ -228,7 +266,7 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
                                 value={horaFin}
                                 onChange={e => {
                                     setHoraFin(e.target.value);
-                                    setMensajeConflicto(null);
+                                    setConflictoData(null);
                                 }}
                                 disabled={clase.bloqueada}
                             >
@@ -293,8 +331,16 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
                         </Boton>
                     </div>
                 </div>
-            </div>
-        </Modal>
+                </div>
+            </Modal>
+            <ModalConflictoDrag
+                abierto={conflictoData !== null}
+                conflicto={conflictoData}
+                onCancelar={() => setConflictoData(null)}
+                onDesplazar={handleDesplazarClases}
+                onMoverCercano={handleMoverCercano}
+            />
+        </>
     );
 }
 

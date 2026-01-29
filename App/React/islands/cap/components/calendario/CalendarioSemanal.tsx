@@ -18,7 +18,7 @@ import {DragOverlayClase} from './DragOverlayClase';
 import {ModalConflictoDrag} from './ModalConflictoDrag';
 import {Spinner} from '../ui';
 import {IconoCalendario} from '../icons';
-import {validarMovimiento, resolverDesplazamientoCascada, horaAMinutos} from '../../utils/collisionUtils';
+import {validarMovimiento, resolverDesplazamientoCascada, horaAMinutos, encontrarHorarioDisponibleMasCercano} from '../../utils/collisionUtils';
 
 /*
  * Parsea una fecha YYYY-MM-DD como fecha local (no UTC).
@@ -338,6 +338,32 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
         setConflictoData(null);
     };
 
+    const moverHorarioCercano = useCallback(async () => {
+        if (!conflictoData) return;
+
+        const fechaObj = parsearFechaLocal(conflictoData.fechaDestino);
+        const diaIndices = {1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes'} as const;
+        const diaKey = diaIndices[fechaObj.getDay() as keyof typeof diaIndices];
+        if (!diaKey) return;
+
+        const clasesDestino = clasesPorDia[diaKey];
+        const horario = encontrarHorarioDisponibleMasCercano(
+            conflictoData.nuevaHoraInicio,
+            conflictoData.nuevaHoraFin,
+            clasesDestino,
+            conflictoData.claseMoviendo.id
+        );
+
+        if (!horario) {
+            notificarMovimiento('No hay un horario disponible cercano para mover la clase.');
+            setConflictoData(null);
+            return;
+        }
+
+        setConflictoData(null);
+        await onMoverClase(conflictoData.claseMoviendo.id, conflictoData.fechaDestino, horario.horaInicio, horario.horaFin);
+    }, [conflictoData, clasesPorDia, onMoverClase, notificarMovimiento]);
+
     return (
         <DndContext sensors={sensores} collisionDetection={collisionDetection} onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
             <div className="capCalendario">
@@ -395,7 +421,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
             </div>
 
             {/* Modal de Conflicto de Drag & Drop */}
-            <ModalConflictoDrag abierto={conflictoData !== null} conflicto={conflictoData} onCancelar={cancelarConflicto} onDesplazar={resolverConflicto} />
+            <ModalConflictoDrag abierto={conflictoData !== null} conflicto={conflictoData} onCancelar={cancelarConflicto} onDesplazar={resolverConflicto} onMoverCercano={moverHorarioCercano} />
 
             {/* Overlay que sigue al cursor durante el arrastre */}
             <DragOverlay dropAnimation={null}>{claseArrastrada && <DragOverlayClase clase={claseArrastrada} />}</DragOverlay>

@@ -6,7 +6,7 @@
  */
 
 import type {Clase} from '../types';
-import {CALENDARIO_CONFIG} from '../constants/cap-constants';
+import {CALENDARIO_CONFIG, SLOTS_HORARIOS} from '../constants/cap-constants';
 
 /* Resultado de una validación de movimiento */
 export interface ResultadoValidacion {
@@ -78,6 +78,48 @@ export function detectarColision(horaInicio: string, horaFin: string, clasesDia:
         // Se usa < y > estricto para permitir que una clase empiece justo cuando otra termina
         return nuevoInicio < fin && nuevoFin > inicio;
     });
+}
+
+/**
+ * Encuentra el horario disponible más cercano al intento original.
+ * Usa slots predefinidos y evita solapamientos.
+ */
+export function encontrarHorarioDisponibleMasCercano(
+    horaInicioDeseada: string,
+    horaFinDeseada: string,
+    clasesDia: Clase[],
+    ignorarClaseId?: number
+): {horaInicio: string; horaFin: string} | null {
+    const duracion = horaAMinutos(horaFinDeseada) - horaAMinutos(horaInicioDeseada);
+    if (duracion <= 0) return null;
+
+    const horaDeseadaMin = horaAMinutos(horaInicioDeseada);
+    const limiteMin = CALENDARIO_CONFIG.HORA_INICIO_DIA * 60;
+    const limiteMax = 23 * 60;
+
+    let mejor: {horaInicio: string; horaFin: string} | null = null;
+    let mejorDistancia = Number.POSITIVE_INFINITY;
+
+    SLOTS_HORARIOS.forEach(slot => {
+        const inicioMin = horaAMinutos(slot);
+        const finMin = inicioMin + duracion;
+
+        if (inicioMin < limiteMin || finMin > limiteMax) return;
+
+        const inicioStr = minutosAHora(inicioMin);
+        const finStr = minutosAHora(finMin);
+        const conflicto = detectarColision(inicioStr, finStr, clasesDia, ignorarClaseId);
+
+        if (!conflicto) {
+            const distancia = Math.abs(inicioMin - horaDeseadaMin);
+            if (distancia < mejorDistancia) {
+                mejorDistancia = distancia;
+                mejor = {horaInicio: inicioStr, horaFin: finStr};
+            }
+        }
+    });
+
+    return mejor;
 }
 
 /**

@@ -105,7 +105,7 @@ export function SeccionCalendario() {
             {/* Modal para editar detalles de clase - usa claseActualizada para reflejar cambios en tiempo real */}
             {/* La key fuerza un remount cuando cambia la clase, reseteando el estado interno */}
             {/* Los datos de alumnos vienen directamente con la clase (alumnosData) */}
-            <ModalDetalleClase key={`modal-clase-${claseActualizada?.id ?? 'none'}`} clase={claseActualizada} abierto={mostrarModalEdicion} onCerrar={cerrarModalEdicion} onGuardar={handleGuardarClase} onToggleBloqueo={toggleBloqueoClase} onMoverClase={handleMoverClase} fechasSemana={fechasSemana} clasesPorDia={clasesPorDia} guardando={guardandoEdicion} onEliminar={handleEliminarClase} eliminando={eliminando} />
+            <ModalDetalleClase key={`modal-clase-${claseActualizada?.id ?? 'none'}`} clase={claseActualizada} abierto={mostrarModalEdicion} onCerrar={cerrarModalEdicion} onGuardar={handleGuardarClase} onToggleBloqueo={toggleBloqueoClase} onMoverClase={handleMoverClase} fechasSemana={fechasSemana} clasesPorDia={clasesPorDia} onMoverMultiplesClases={moverMultiplesClases} guardando={guardandoEdicion} onEliminar={handleEliminarClase} eliminando={eliminando} />
         </div>
     );
 }

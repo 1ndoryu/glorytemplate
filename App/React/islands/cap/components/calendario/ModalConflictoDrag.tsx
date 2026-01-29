@@ -25,9 +25,10 @@ interface ModalConflictoDragProps {
     conflicto: ConflictoData | null;
     onCancelar: () => void;
     onDesplazar: () => void;
+    onMoverCercano?: () => void;
 }
 
-export function ModalConflictoDrag({abierto, conflicto, onCancelar, onDesplazar}: ModalConflictoDragProps) {
+export function ModalConflictoDrag({abierto, conflicto, onCancelar, onDesplazar, onMoverCercano}: ModalConflictoDragProps) {
     if (!conflicto) return null;
 
     const asigMoviendo = getAsignatura(conflicto.claseMoviendo.asignaturaId);
@@ -37,7 +38,7 @@ export function ModalConflictoDrag({abierto, conflicto, onCancelar, onDesplazar}
         <Modal abierto={abierto} onCerrar={onCancelar} titulo="Conflicto de Horario" tamano="md">
             <div className="conflictoDrag">
                 <p className="conflictoDrag__mensaje">
-                    Estás intentando mover la clase <strong>{asigMoviendo?.nombre}</strong> a las <strong>{conflicto.nuevaHoraInicio}</strong>, pero ese horario ya está ocupado.
+                    Estás intentando mover la clase <strong>{asigMoviendo?.nombre}</strong> a las <strong>{conflicto.nuevaHoraInicio}</strong>, pero ese horario ya está ocupado por <strong>{asigExistente?.nombre}</strong>.
                 </p>
 
                 <div className="conflictoDrag__comparacion">
@@ -62,6 +63,11 @@ export function ModalConflictoDrag({abierto, conflicto, onCancelar, onDesplazar}
                     <Boton variante="ghost" onClick={onCancelar}>
                         Cancelar
                     </Boton>
+                    {onMoverCercano && (
+                        <Boton variante="secundario" onClick={onMoverCercano}>
+                            Mover al más cercano
+                        </Boton>
+                    )}
                     <Boton variante="peligro" onClick={onDesplazar}>
                         Desplazar clases
                     </Boton>
