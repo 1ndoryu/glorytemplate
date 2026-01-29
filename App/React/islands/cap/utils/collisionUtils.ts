@@ -157,26 +157,43 @@ export function validarMovimiento(offsetY: number, clase: Clase, clasesDestino: 
 /**
  * Calcula los desplazamientos necesarios para resolver un conflicto.
  * Implementa una estrategia "Waterfall" (cascada): empuja las clases superpuestas hacia abajo.
+ * Las clases bloqueadas NO se mueven y actúan como obstáculos fijos.
  */
-export function resolverDesplazamientoCascada(claseMoviendo: Clase, nuevaHoraInicio: string, nuevaHoraFin: string, clasesDia: Clase[]): {clase: Clase; nuevoInicio: string; nuevoFin: string}[] {
+export function resolverDesplazamientoCascada(claseMoviendo: Clase, nuevaHoraInicio: string, nuevaHoraFin: string, clasesDia: Clase[]): {clase: Clase; nuevoInicio: string; nuevoFin: string; bloqueada?: boolean}[] | null {
     const nuevoInicioMin = horaAMinutos(nuevaHoraInicio);
     const nuevoFinMin = horaAMinutos(nuevaHoraFin);
 
-    // Lista de cambios a aplicar
+    /* Verificar si la nueva posición choca con alguna clase bloqueada */
+    const claseBloqueadaEnConflicto = clasesDia.find(c => {
+        if (c.id === claseMoviendo.id || !c.bloqueada) return false;
+        const inicio = horaAMinutos(c.horaInicio);
+        const fin = horaAMinutos(c.horaFin);
+        return nuevoInicioMin < fin && nuevoFinMin > inicio;
+    });
+
+    if (claseBloqueadaEnConflicto) {
+        /* No se puede desplazar porque hay una clase bloqueada en el camino */
+        return null;
+    }
+
+    /* Lista de cambios a aplicar */
     const cambios = [];
 
-    // Añadimos el movimiento principal
+    /* Añadimos el movimiento principal */
     cambios.push({
         clase: claseMoviendo,
         nuevoInicio: nuevaHoraInicio,
         nuevoFin: nuevaHoraFin
     });
 
-    // Filtramos las clases del día (excluyendo la que movemos)
-    // y las ordenamos por hora de inicio original para procesar en orden
-    const otrasClases = clasesDia.filter(c => c.id !== claseMoviendo.id).sort((a, b) => horaAMinutos(a.horaInicio) - horaAMinutos(b.horaInicio));
+    /* Filtramos las clases del día (excluyendo la que movemos y las bloqueadas) */
+    /* Las clases bloqueadas NO se mueven - son obstáculos fijos */
+    /* Ordenamos por hora de inicio original para procesar en orden */
+    const otrasClases = clasesDia
+        .filter(c => c.id !== claseMoviendo.id && !c.bloqueada)
+        .sort((a, b) => horaAMinutos(a.horaInicio) - horaAMinutos(b.horaInicio));
 
-    // Pointer indica dónde termina la última clase colocada "en la cadena de empuje"
+    /* Pointer indica dónde termina la última clase colocada "en la cadena de empuje" */
     let pointer = nuevoFinMin;
 
     for (const otra of otrasClases) {
@@ -184,20 +201,28 @@ export function resolverDesplazamientoCascada(claseMoviendo: Clase, nuevaHoraIni
         const otraFin = horaAMinutos(otra.horaFin);
         const duracion = otraFin - otraInicio;
 
-        // Si la clase termina antes de nuestro nuevo bloque, no la tocamos (está "por encima")
+        /* Si la clase termina antes de nuestro nuevo bloque, no la tocamos (está "por encima") */
         if (otraFin <= nuevoInicioMin) continue;
 
-        // Si la clase empieza después del puntero actual, hay un hueco libre.
-        // No necesitamos empujarla... A MENOS que hayamos empujado clases previas
-        // y el efecto cascada la alcance.
-
-        // CONDICIÓN DE EMPUJE:
-        // Si su inicio original es ANTERIOR al pointer actual, significa que
-        // la clase anterior (o la movida) se le ha echado encima.
+        /* CONDICIÓN DE EMPUJE: Si su inicio original es ANTERIOR al pointer actual,
+         * significa que la clase anterior (o la movida) se le ha echado encima */
         if (otraInicio < pointer) {
-            // Hay solapamiento con la cadena. Empujamos esta clase para que empiece en 'pointer'.
+            /* Hay solapamiento con la cadena. Empujamos esta clase para que empiece en 'pointer' */
             const nuevoInicio = pointer;
             const nuevoFin = nuevoInicio + duracion;
+
+            /* Verificar si el nuevo horario choca con alguna clase bloqueada */
+            const choqueConBloqueada = clasesDia.find(c => {
+                if (!c.bloqueada || c.id === otra.id) return false;
+                const inicio = horaAMinutos(c.horaInicio);
+                const fin = horaAMinutos(c.horaFin);
+                return nuevoInicio < fin && nuevoFin > inicio;
+            });
+
+            if (choqueConBloqueada) {
+                /* No se puede completar el desplazamiento porque hay una clase bloqueada en el camino */
+                return null;
+            }
 
             cambios.push({
                 clase: otra,
@@ -205,18 +230,8 @@ export function resolverDesplazamientoCascada(claseMoviendo: Clase, nuevaHoraIni
                 nuevoFin: minutosAHora(nuevoFin)
             });
 
-            // Actualizamos el pointer para la siguiente iteración
+            /* Actualizamos el pointer para la siguiente iteración */
             pointer = nuevoFin;
-        } else {
-            // Si hay un hueco y el pointer no la alcanza, se rompe la cadena de empuje.
-            // Las siguientes clases tampoco deberían verse afectadas (porque están ordenadas).
-            // Pero seguimos iterando por si acaso la lógica de ordenación tiene edge cases,
-            // aunque podemos optimizar con break si estamos seguros.
-            // Mejor seguimos pero actualizamos pointer al fin de esta clase "segura"
-            // por si queremos soportar huecos, pero en lógica "push"
-            // el pointer solo debe crecer si empujamos.
-            // Si no empujamos, el pointer no importa para las siguientes,
-            // salvo que haya OTRO bloque conflictivo más abajo (pero aquí solo resolvemos 1 cadena).
         }
     }
 

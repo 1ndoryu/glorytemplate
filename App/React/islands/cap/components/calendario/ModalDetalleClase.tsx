@@ -156,6 +156,13 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
         const clasesDia = obtenerClasesDiaActual();
         const cambios = resolverDesplazamientoCascada(clase, conflictoData.nuevaHoraInicio, conflictoData.nuevaHoraFin, clasesDia);
 
+        /* Si no se puede desplazar (clases bloqueadas en el camino), usar horario cercano */
+        if (!cambios) {
+            setConflictoData(null);
+            handleMoverCercano();
+            return;
+        }
+
         setConflictoData(null);
         await onMoverMultiplesClases(cambios);
         onCerrar();

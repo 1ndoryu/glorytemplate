@@ -309,37 +309,9 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
         setPreviewDrop(null);
     }, []);
 
-    /* Handler para resolver conflicto con desplazamiento (Push) */
-    const resolverConflicto = useCallback(async () => {
-        if (!conflictoData || !onMoverMultiplesClases) return;
-
-        /* Encontrar el día para obtener todas las clases */
-        const fechaObj = parsearFechaLocal(conflictoData.fechaDestino);
-        const diaIndices = {1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes'} as const;
-        const diaKey = diaIndices[fechaObj.getDay() as keyof typeof diaIndices];
-        if (!diaKey) return;
-
-        const clasesDestino = clasesPorDia[diaKey];
-
-        /* Calcular desplazamientos necesarios */
-        const cambios = resolverDesplazamientoCascada(conflictoData.claseMoviendo, conflictoData.nuevaHoraInicio, conflictoData.nuevaHoraFin, clasesDestino);
-
-        // Añadir fecha de destino a cada cambio si cambia de día
-        const cambiosConFecha = cambios.map(c => ({
-            ...c,
-            nuevaFecha: conflictoData.fechaDestino
-        }));
-
-        setConflictoData(null); // Cerrar modal
-        await onMoverMultiplesClases(cambiosConFecha);
-    }, [conflictoData, onMoverMultiplesClases, clasesPorDia]);
-
-    const cancelarConflicto = () => {
-        setConflictoData(null);
-    };
-
+    /* Mover clase al horario disponible más cercano */
     const moverHorarioCercano = useCallback(async () => {
-        if (!conflictoData) return;
+        if (!conflictoData || !onMoverClase) return;
 
         const fechaObj = parsearFechaLocal(conflictoData.fechaDestino);
         const diaIndices = {1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes'} as const;
@@ -363,6 +335,43 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
         setConflictoData(null);
         await onMoverClase(conflictoData.claseMoviendo.id, conflictoData.fechaDestino, horario.horaInicio, horario.horaFin);
     }, [conflictoData, clasesPorDia, onMoverClase, notificarMovimiento]);
+
+    const cancelarConflicto = () => {
+        setConflictoData(null);
+    };
+
+    /* Handler para resolver conflicto con desplazamiento (Push) */
+    const resolverConflicto = useCallback(async () => {
+        if (!conflictoData || !onMoverMultiplesClases) return;
+
+        /* Encontrar el día para obtener todas las clases */
+        const fechaObj = parsearFechaLocal(conflictoData.fechaDestino);
+        const diaIndices = {1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes'} as const;
+        const diaKey = diaIndices[fechaObj.getDay() as keyof typeof diaIndices];
+        if (!diaKey) return;
+
+        const clasesDestino = clasesPorDia[diaKey];
+
+        /* Calcular desplazamientos necesarios */
+        const cambios = resolverDesplazamientoCascada(conflictoData.claseMoviendo, conflictoData.nuevaHoraInicio, conflictoData.nuevaHoraFin, clasesDestino);
+
+        /* Si no se puede desplazar (clases bloqueadas en el camino), intentar encontrar horario cercano */
+        if (!cambios) {
+            notificarMovimiento('No se puede desplazar porque hay clases bloqueadas en el camino. Se buscará un horario alternativo.');
+            /* Intentar mover a horario cercano automáticamente */
+            moverHorarioCercano();
+            return;
+        }
+
+        /* Añadir fecha de destino a cada cambio si cambia de día */
+        const cambiosConFecha = cambios.map(c => ({
+            ...c,
+            nuevaFecha: conflictoData.fechaDestino
+        }));
+
+        setConflictoData(null);
+        await onMoverMultiplesClases(cambiosConFecha);
+    }, [conflictoData, onMoverMultiplesClases, clasesPorDia, notificarMovimiento, moverHorarioCercano]);
 
     return (
         <DndContext sensors={sensores} collisionDetection={collisionDetection} onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>

@@ -11,7 +11,7 @@
 
 import {useState, useCallback, useEffect} from 'react';
 import type {Clase, DiaSemana, ConflictoAforo, ExclusionesConflicto, ResultadoGeneracion, PreviewGeneracion} from '../types';
-import {getLunesDeSemana, getFechasSemana, DIAS_SEMANA} from '../constants';
+import {getLunesDeSemana, getFechasSemana, DIAS_SEMANA, getAsignatura} from '../constants';
 import {detectarColision} from '../utils/collisionUtils';
 import {interpretarErrorHttp, interpretarErrorRed, formatearMensajeError, obtenerMensajeContextual, procesarErrorApi} from '../constants/cap-errores';
 
@@ -531,6 +531,14 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
     const moverMultiplesClases = useCallback(
         async (cambios: {clase: Clase; nuevoInicio: string; nuevoFin: string; nuevaFecha?: string}[]) => {
             if (cambios.length === 0) return;
+
+            /* Verificar que ninguna de las clases a mover esté bloqueada */
+            const claseBloqueada = cambios.find(c => c.clase.bloqueada);
+            if (claseBloqueada) {
+                const asignatura = getAsignatura(claseBloqueada.clase.asignaturaId);
+                setError(`No se puede desplazar la clase "${asignatura?.nombre}" porque está bloqueada. Desbloquéala primero si necesitas cambiar su horario.`);
+                return;
+            }
 
             setMoviendo(true);
             setError(null);
