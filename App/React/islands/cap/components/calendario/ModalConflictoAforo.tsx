@@ -18,11 +18,10 @@ interface ModalConflictoAforoProps {
     conflictos: ConflictoAforo[];
     onCerrar: () => void;
     onConfirmar: (exclusiones: ExclusionesConflicto) => void;
-    onPosponerSemana?: () => void;
     cargando?: boolean;
 }
 
-export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar, onPosponerSemana, cargando = false}: ModalConflictoAforoProps): JSX.Element {
+export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar, cargando = false}: ModalConflictoAforoProps): JSX.Element {
     /* Estado de exclusiones: slotKey -> array de alumnoIds excluidos */
     const [exclusiones, setExclusiones] = useState<ExclusionesConflicto>({});
     const [alumnosInfo, setAlumnosInfo] = useState<Map<number, Alumno>>(new Map());
@@ -226,11 +225,6 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                         <Boton variante="secundario" onClick={resolverAleatoriamente} disabled={cargando || cargandoAlumnos}>
                             Resolver aleatoriamente
                         </Boton>
-                        {onPosponerSemana && (
-                            <Boton variante="outline" onClick={onPosponerSemana} disabled={cargando}>
-                                Posponer para la siguiente semana
-                            </Boton>
-                        )}
                     </div>
                 </div>
 

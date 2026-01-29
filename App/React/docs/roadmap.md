@@ -15,7 +15,15 @@
 - 2026-01-29: Modal de aforo ahora carga alumnos por IDs para mostrar la lista de exclusión.
 - 2026-01-29: Normalización defensiva de alumnos y fecha en conflictos de aforo.
 - 2026-01-29: UX modal de aforo con scroll único y acordeón por slot; limpieza de logs y endpoint dedicado de alumnos por IDs.
-- 2026-01-29: Corrección de fecha local en modal de aforo y acciones rápidas para resolver aleatorio o posponer a próxima semana.
+- 2026-01-29: Corrección de fecha local en modal de aforo y acción rápida para resolver aleatorio.
+
+**Plan de revisión profunda de fechas y zona horaria**
+1. Auditoría de parsing de fechas/horas en frontend (React): identificar usos de `new Date(...)`, `toISOString()`, y conversiones implícitas.
+2. Auditoría de fechas/horas en backend (PHP): normalización de `date()`, `DateTime`, y serialización hacia la API.
+3. Inventario de endpoints y payloads: mapa completo de campos `fecha`, `hora_inicio`, `hora_fin` y su formato real.
+4. Definir estándar único: fechas en `YYYY-MM-DD` sin TZ, horas en `HH:MM` sin segundos; TZ fija `Europe/Madrid` a nivel backend.
+5. Aplicar normalización y tests manuales: crear casos con lunes-viernes, validar que no se desplacen días.
+6. Documentar riesgos y puntos críticos en esta sección para seguimiento.
 
 **TO-DOs Pendientes**
 - Sin pendientes activos en este bloque.
