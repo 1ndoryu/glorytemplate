@@ -13,7 +13,7 @@ import {Alerta} from '../ui';
 import type {ExclusionesConflicto, Clase, DiaSemana} from '../../types';
 
 export function SeccionCalendario() {
-    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, eliminando, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase, moverMultiplesClases, eliminarClase} = useCalendario();
+    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, eliminando, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase, moverMultiplesClases, eliminarClase, borrarSemanacompleta} = useCalendario();
 
     /*
      * Obtener la clase actualizada desde el array de clases
@@ -91,7 +91,7 @@ export function SeccionCalendario() {
 
             <div className="capMt--lg">
                 <div className="capMt--lg">
-                    <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={generarCalendario} onClaseClick={handleClaseClick} puedeDeshacer={puedeDeshacer} onDeshacer={deshacer} onMoverClase={handleMoverClase} onMoverMultiplesClases={moverMultiplesClases} />
+                    <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={generarCalendario} onClaseClick={handleClaseClick} puedeDeshacer={puedeDeshacer} onDeshacer={deshacer} onBorrarSemana={borrarSemanacompleta} onMoverClase={handleMoverClase} onMoverMultiplesClases={moverMultiplesClases} />
                 </div>
             </div>
 

@@ -126,6 +126,13 @@ class CapEndpoints
             'permission_callback' => [$this, 'verificarPermisosAdmin'],
         ]);
 
+        /* Endpoint para eliminar clases de una semana específica */
+        register_rest_route(self::NAMESPACE, '/clases/limpiar-semana', [
+            'methods' => 'DELETE',
+            'callback' => [$this, 'eliminarClasesSemana'],
+            'permission_callback' => [$this, 'verificarPermisos'],
+        ]);
+
         /* Endpoints de reportes PDF */
         register_rest_route(self::NAMESPACE, '/reportes/plan-alumno/(?P<alumnoId>\d+)', [
             'methods' => 'GET',
@@ -555,11 +562,86 @@ class CapEndpoints
         ]);
     }
 
+    /**
+     * Elimina todas las clases de una semana específica
+     * Parámetro: 'fecha' (lunes de la semana en formato YYYY-MM-DD)
+     */
+    public function eliminarClasesSemana(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $fecha = $request->get_param('fecha');
+        if (!$fecha) {
+            return new \WP_REST_Response(['error' => 'Se requiere parámetro "fecha" (lunes de la semana)'], 400);
+        }
+
+        /*
+         * Calcular rango de la semana (lunes a viernes)
+         * La fecha debe ser el lunes
+         */
+        $inicio = new \DateTime($fecha);
+        if ($inicio->format('N') != 1) {
+            return new \WP_REST_Response(['error' => 'La fecha debe ser un lunes (formato YYYY-MM-DD)'], 400);
+        }
+
+        $fin = clone $inicio;
+        $fin->modify('+4 days'); /* Viernes */
+        $finDia = $fin->format('Y-m-d') . ' 23:59:59';
+
+        $incluirBloqueadas = $request->get_param('incluirBloqueadas') === 'true' || $request->get_param('incluirBloqueadas') === true;
+
+        global $wpdb;
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+
+        /* Obtener IDs de clases a eliminar dentro del rango de fecha */
+        $where = $incluirBloqueadas ? '' : ' AND bloqueada = 0';
+        $clasesIds = $wpdb->get_col($wpdb->prepare(
+            "SELECT id FROM {$tablaClases} WHERE centro_id = %d AND fecha >= %s AND fecha <= %s{$where}",
+            $centroId,
+            $fecha,
+            $finDia
+        ));
+
+        if (empty($clasesIds)) {
+            return new \WP_REST_Response([
+                'exito' => true,
+                'mensaje' => 'No hay clases para eliminar en esta semana',
+                'eliminadas' => 0
+            ]);
+        }
+
+        $idsPlaceholder = implode(',', array_map('intval', $clasesIds));
+
+        /* Eliminar asistencias primero */
+        $wpdb->query("DELETE FROM {$tablaAsistencia} WHERE clase_id IN ({$idsPlaceholder})");
+
+        /* Eliminar clases */
+        $eliminadas = $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$tablaClases} WHERE centro_id = %d AND fecha >= %s AND fecha <= %s{$where}",
+            $centroId,
+            $fecha,
+            $finDia
+        ));
+
+        return new \WP_REST_Response([
+            'exito' => true,
+            'mensaje' => "Se eliminaron {$eliminadas} clases de la semana",
+            'eliminadas' => (int) $eliminadas
+        ]);
+    }
+
     public function obtenerDashboard(\WP_REST_Request $request): \WP_REST_Response
     {
         $capService = CapService::getInstance();
         return new \WP_REST_Response($capService->getDashboardResumen());
     }
+
 
     /**
      * Registra un nuevo usuario con rol cap_admin y crea su centro

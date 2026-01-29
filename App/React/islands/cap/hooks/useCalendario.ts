@@ -62,6 +62,8 @@ interface AccionesCalendario {
     moverMultiplesClases: (cambios: {clase: Clase; nuevoInicio: string; nuevoFin: string; nuevaFecha?: string}[]) => Promise<void>;
     /* Acción para eliminar clase */
     eliminarClase: (claseId: number, forzar: boolean) => Promise<void>;
+    /* Acción para borrar semana completa */
+    borrarSemanacompleta: (incluirBloqueadas?: boolean) => Promise<void>;
 }
 
 export function useCalendario(): EstadoCalendario & AccionesCalendario {
@@ -597,6 +599,56 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         [getNonce, cerrarModalEdicion, guardarSnapshot]
     );
 
+    /*
+     * Borrar todas las clases de la semana actual
+     * Reversible con undo
+     */
+    const borrarSemanacompleta = useCallback(
+        async (incluirBloqueadas: boolean = false) => {
+            /* Guardar snapshot antes de borrar para poder deshacer */
+            guardarSnapshot();
+
+            setGenerando(true);
+            setError(null);
+
+            try {
+                const fechaLunes = formatearFechaApi(semanaActual);
+
+                const response = await fetch('/wp-json/cap/v1/clases/limpiar-semana', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-WP-Nonce': getNonce()
+                    },
+                    body: JSON.stringify({
+                        fecha: fechaLunes,
+                        incluirBloqueadas
+                    })
+                });
+
+                if (!response.ok) {
+                    const mensajeError = await procesarErrorApi(response, 'calendario', 'limpiar');
+                    throw new Error(mensajeError);
+                }
+
+                const data = await response.json();
+
+                if (data.exito) {
+                    /* Cargar clases de nuevo (ahora vacías) */
+                    setClases([]);
+                } else {
+                    throw new Error(data.error || 'Error al limpiar la semana');
+                }
+            } catch (err) {
+                const contextual = obtenerMensajeContextual('calendario', 'limpiar');
+                setError(err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`);
+            } finally {
+                setGenerando(false);
+            }
+        },
+        [semanaActual, getNonce, formatearFechaApi, guardarSnapshot]
+    );
+
     return {
         clases,
         semanaActual,
@@ -628,6 +680,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         moverClase,
         moverMultiplesClases,
         eliminarClase,
-        eliminando
+        eliminando,
+        borrarSemanacompleta
     };
 }

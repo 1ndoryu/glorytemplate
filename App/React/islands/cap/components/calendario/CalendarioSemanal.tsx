@@ -52,11 +52,12 @@ interface CalendarioSemanalProps {
     onClaseClick?: (clase: Clase) => void;
     puedeDeshacer?: boolean;
     onDeshacer?: () => void;
+    onBorrarSemana?: () => Promise<void>;
     onMoverClase?: (claseId: number, nuevaFecha: string, horaInicio?: string, horaFin?: string) => Promise<void>;
     onMoverMultiplesClases?: (cambios: {clase: Clase; nuevoInicio: string; nuevoFin: string; nuevaFecha?: string}[]) => Promise<void>;
 }
 
-export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando, generando, onSemanaAnterior, onSemanaSiguiente, onIrHoy, onToggleBloqueo, onGenerar, onClaseClick, puedeDeshacer = false, onDeshacer, onMoverClase, onMoverMultiplesClases}: CalendarioSemanalProps) {
+export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando, generando, onSemanaAnterior, onSemanaSiguiente, onIrHoy, onToggleBloqueo, onGenerar, onClaseClick, puedeDeshacer = false, onDeshacer, onBorrarSemana, onMoverClase, onMoverMultiplesClases}: CalendarioSemanalProps) {
     /* Estado para el arrastre activo */
     const [claseArrastrada, setClaseArrastrada] = useState<Clase | null>(null);
 
@@ -343,7 +344,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
                 {/* Header con navegación y acciones */}
                 <div className="capCalendario__header">
                     <NavegadorSemana semanaActual={semanaActual} fechasSemana={fechasSemana} onSemanaAnterior={onSemanaAnterior} onSemanaSiguiente={onSemanaSiguiente} onIrHoy={onIrHoy} esSemanaActual={esSemanaActual} />
-                    <BarraAcciones onGenerar={onGenerar} generando={generando} puedeDeshacer={puedeDeshacer} onDeshacer={onDeshacer} />
+                    <BarraAcciones onGenerar={onGenerar} generando={generando} puedeDeshacer={puedeDeshacer} onDeshacer={onDeshacer} onBorrarSemana={onBorrarSemana} />
                 </div>
 
                 {/* Grid del calendario */}

@@ -98,7 +98,7 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 
 #### 3. Nuevas Funcionalidades (Cambio de Lógica)
 - [x] **Flexibilidad Horaria Total:** Eliminar restricción Mañana/Tarde. Permitir horas libres por día. *(Fuente: Texto)*
-- [ ] **Botón 'Borrar Semana':** Limpiar calendario completo de una semana (además de Deshacer). *(Fuente: Texto)*
+- [x] **Botón 'Borrar Semana':** Limpiar calendario completo de una semana (además de Deshacer). *(Fuente: Texto)*
 
 
 ## Ultima actualización del cliente
