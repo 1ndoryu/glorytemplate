@@ -65,8 +65,8 @@ export function PanelTimezone({config, guardando, onGuardar}: PanelTimezoneProps
                         Configura la zona horaria de tu centro. Todas las fechas y horas del sistema se ajustarán a esta zona horaria.
                     </Alerta>
 
-                    <div className="capFormGroup">
-                        <label htmlFor="timezone" className="capLabel">
+                    <div className="capInput">
+                        <label htmlFor="timezone" className="capInput__etiqueta">
                             Zona Horaria
                         </label>
                         <select
@@ -81,12 +81,12 @@ export function PanelTimezone({config, guardando, onGuardar}: PanelTimezoneProps
                                 </option>
                             ))}
                         </select>
-                        <p className="capTexto capTexto--xs capTexto--gris capMt--xs">
+                        <p className="capInput__ayuda">
                             Zona horaria seleccionada: <strong>{timezone}</strong>
                         </p>
                     </div>
 
-                    <div className="capFormConfig__acciones capMt--lg">
+                    <div className="capFormConfig__acciones">
                         <Boton type="submit" variante="primario" tamano="md" disabled={!modificado || guardando} cargando={guardando}>
                             <IconoGuardar />
                             Guardar Zona Horaria
