@@ -66,7 +66,8 @@ fecha: 2026-01-29
 1. ✅ **Formato de fechas:** Todas las fechas se envían como `YYYY-MM-DD` sin componente de tiempo
 2. ✅ **Formato de horas:** Todas las horas usan formato `HH:MM` sin segundos
 3. ✅ **Parsing local:** Se usa función local `formatearFechaApi()` para evitar offset UTC
-4. ✅ **FIX CRÍTICO:** Eliminado uso de `toISOString()` en `useCalendario.ts` y `SeccionReportes.tsx` que causaba desfase de un día en generación de clases
+4. ✅ **FIX CRÍTICO #1:** Eliminado uso de `toISOString()` en `useCalendario.ts` y `SeccionReportes.tsx` que causaba desfase de un día en generación de clases
+5. ✅ **FIX CRÍTICO #2:** Corregido `getLunesDeSemana()` y `getFechasSemana()` para usar constructor local `new Date(year, month, day)` en lugar de `setDate()`, evitando conversiones a UTC que desplazaban las fechas
 
 **Función de normalización implementada:**
 ```typescript
@@ -79,6 +80,32 @@ const formatearFechaApi = (fecha: Date): string => {
 ```
 
 Esta función evita la conversión a UTC que `toISOString()` hace automáticamente y que causaba que las fechas se movieran un día hacia atrás cuando se generaban antes de la medianoche UTC.
+
+**Funciones de cálculo de fechas corregidas:**
+```typescript
+export function getLunesDeSemana(fecha: Date): Date {
+    const dia = fecha.getDay();
+    const diff = fecha.getDate() - dia + (dia === 0 ? -6 : 1);
+    /* Usar constructor local en lugar de setDate() para evitar offset UTC */
+    const lunes = new Date(fecha.getFullYear(), fecha.getMonth(), diff, 0, 0, 0, 0);
+    return lunes;
+}
+
+export function getFechasSemana(lunesSemana: Date): Date[] {
+    return DIAS_SEMANA.map((_, idx) => {
+        /* Usar constructor local para cada fecha */
+        const fecha = new Date(
+            lunesSemana.getFullYear(),
+            lunesSemana.getMonth(),
+            lunesSemana.getDate() + idx,
+            0, 0, 0, 0
+        );
+        return fecha;
+    });
+}
+```
+
+El problema identificado: cuando se crea un Date desde un string `'YYYY-MM-DD'`, JavaScript lo interpreta como medianoche UTC. En timezones detrás de UTC, al usar `getDate()` después de operaciones con `setDate()`, la fecha se desplaza un día hacia atrás. La solución es usar el constructor `new Date(year, month, day)` que siempre trabaja en timezone local.
 
 ---
 

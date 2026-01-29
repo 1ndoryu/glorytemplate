@@ -209,17 +209,21 @@ export function formatearFechaCorta(fecha: Date): string {
 export function getLunesDeSemana(fecha: Date): Date {
     const dia = fecha.getDay();
     const diff = fecha.getDate() - dia + (dia === 0 ? -6 : 1);
-    const lunes = new Date(fecha);
-    lunes.setDate(diff);
-    lunes.setHours(0, 0, 0, 0);
+    /* Crear nueva fecha usando componentes locales para evitar offset UTC */
+    const lunes = new Date(fecha.getFullYear(), fecha.getMonth(), diff, 0, 0, 0, 0);
     return lunes;
 }
 
 /* Obtener array de fechas para una semana */
 export function getFechasSemana(lunesSemana: Date): Date[] {
     return DIAS_SEMANA.map((_, idx) => {
-        const fecha = new Date(lunesSemana);
-        fecha.setDate(lunesSemana.getDate() + idx);
+        /* Crear fecha usando componentes locales para evitar offset UTC */
+        const fecha = new Date(
+            lunesSemana.getFullYear(),
+            lunesSemana.getMonth(),
+            lunesSemana.getDate() + idx,
+            0, 0, 0, 0
+        );
         return fecha;
     });
 }
