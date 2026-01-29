@@ -58,6 +58,7 @@ class Configuracion
     {
         return [
             'centro_id' => $centroId,
+            'timezone' => 'Europe/Madrid',
             'hora_inicio_manana' => '09:00',
             'hora_fin_manana' => '14:00',
             'hora_inicio_tarde' => '16:00',
@@ -208,6 +209,15 @@ class Configuracion
     {
         $validados = [];
 
+        /* Validación de timezone */
+        if (isset($datos['timezone'])) {
+            $tz = sanitize_text_field($datos['timezone']);
+            /* Verificar que sea una timezone válida */
+            if (in_array($tz, timezone_identifiers_list(), true)) {
+                $validados['timezone'] = $tz;
+            }
+        }
+
         /* Validación relajada de horas (acepta H:MM y HH:MM) */
         $horasValidas = function ($hora) {
             return preg_match('/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/', $hora);
@@ -290,16 +300,22 @@ class Configuracion
     }
 
     /**
-     * Método auxiliar para asegurar que la columna existe (Migración on-the-fly)
-     * Se puede llamar desde el constructor o antes de guardar
+     * Método auxiliar para asegurar que las columnas existen (Migración on-the-fly)
      */
     public function asegurarColumnaFlexibilidad(): void
     {
         global $wpdb;
+        
+        /* Verificar y crear columna horarios_semanales si no existe */
         $row = $wpdb->get_results("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$this->tablaConfig}' AND COLUMN_NAME = 'horarios_semanales'");
-
         if (empty($row)) {
             $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN horarios_semanales LONGTEXT NULL DEFAULT NULL");
+        }
+
+        /* Verificar y crear columna timezone si no existe */
+        $rowTz = $wpdb->get_results("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$this->tablaConfig}' AND COLUMN_NAME = 'timezone'");
+        if (empty($rowTz)) {
+            $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN timezone VARCHAR(100) DEFAULT 'Europe/Madrid'");
         }
     }
 }

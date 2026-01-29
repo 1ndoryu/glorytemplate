@@ -10,3 +10,4 @@ export {PanelCapacidad} from './PanelCapacidad';
 export {PanelSuscripcion} from './PanelSuscripcion';
 export {PanelDemo} from './PanelDemo';
 export {PanelStripe} from './PanelStripe';
+export {PanelTimezone} from './PanelTimezone';

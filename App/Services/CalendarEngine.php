@@ -49,6 +49,23 @@ class CalendarEngine
     {
         $this->centroId = $centroId;
         $this->cargarConfiguracion();
+        $this->aplicarTimezone();
+    }
+
+    /**
+     * Aplica la zona horaria configurada para el centro
+     */
+    private function aplicarTimezone(): void
+    {
+        $timezone = $this->configuracion['timezone'] ?? 'Europe/Madrid';
+        
+        /* Validar que la timezone sea válida */
+        if (in_array($timezone, timezone_identifiers_list(), true)) {
+            date_default_timezone_set($timezone);
+        } else {
+            /* Fallback a Europe/Madrid si la timezone no es válida */
+            date_default_timezone_set('Europe/Madrid');
+        }
     }
 
     /**
@@ -75,6 +92,7 @@ class CalendarEngine
     private function configuracionDefecto(): array
     {
         return [
+            'timezone' => 'Europe/Madrid',
             'hora_inicio_manana' => '09:00',
             'hora_fin_manana' => '14:00',
             'hora_inicio_tarde' => '16:00',

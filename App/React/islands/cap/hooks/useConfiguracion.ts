@@ -22,6 +22,7 @@ export interface DatosCentro {
 
 export interface ConfiguracionHorarios {
     centro_id: number;
+    timezone?: string;
     hora_inicio_manana: string;
     hora_fin_manana: string;
     hora_inicio_tarde: string;

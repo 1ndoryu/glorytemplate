@@ -143,6 +143,7 @@ class CapSchema
         $sql = "CREATE TABLE {$tabla} (
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             centro_id bigint(20) UNSIGNED NOT NULL,
+            timezone varchar(100) DEFAULT 'Europe/Madrid',
             hora_inicio_manana time DEFAULT '09:00:00',
             hora_fin_manana time DEFAULT '14:00:00',
             hora_inicio_tarde time DEFAULT '16:00:00',

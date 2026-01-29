@@ -5,6 +5,11 @@
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
+- 2026-01-29: **AUDITORÍA COMPLETA DE FECHAS/ZONA HORARIA** - Implementado sistema de timezone configurable por centro. Ver `AUDITORIA_FECHAS_TIMEZONE.md` para detalles completos.
+- 2026-01-29: Nuevo componente PanelTimezone en configuración con selector de zonas horarias comunes.
+- 2026-01-29: Backend (CalendarEngine y ReporteService) ahora aplica timezone del centro automáticamente.
+- 2026-01-29: Migración automática de BD para agregar columna `timezone` en tabla `cap_configuracion`.
+- 2026-01-29: Estándar único definido: fechas `YYYY-MM-DD` sin TZ, horas `HH:MM` sin segundos.
 - 2026-01-29: Fix crítico en modal de aforo - parsear IDs de alumnos a número para matching correcto.
 - 2026-01-29: Logs de depuración en modal de aforo para diagnosticar problema con lista de alumnos vacía.
 - 2026-01-29: Ajuste de colisiones DnD y toasts de movimiento inválido.
@@ -18,15 +23,18 @@
 - 2026-01-29: Corrección de fecha local en modal de aforo y acción rápida para resolver aleatorio.
 
 **Plan de revisión profunda de fechas y zona horaria**
-1. Auditoría de parsing de fechas/horas en frontend (React): identificar usos de `new Date(...)`, `toISOString()`, y conversiones implícitas.
-2. Auditoría de fechas/horas en backend (PHP): normalización de `date()`, `DateTime`, y serialización hacia la API.
-3. Inventario de endpoints y payloads: mapa completo de campos `fecha`, `hora_inicio`, `hora_fin` y su formato real.
-4. Definir estándar único: fechas en `YYYY-MM-DD` sin TZ, horas en `HH:MM` sin segundos; TZ fija `Europe/Madrid` a nivel backend.
-5. Aplicar normalización y tests manuales: crear casos con lunes-viernes, validar que no se desplacen días.
-6. Documentar riesgos y puntos críticos en esta sección para seguimiento.
+✅ **COMPLETADO** - Ver documento completo en `AUDITORIA_FECHAS_TIMEZONE.md`
+1. ✅ Auditoría de parsing de fechas/horas en frontend (React): 21 usos identificados y clasificados.
+2. ✅ Auditoría de fechas/horas en backend (PHP): 20+ usos normalizados con timezone.
+3. ✅ Inventario de endpoints y payloads: mapa completo documentado.
+4. ✅ Estándar único definido: fechas `YYYY-MM-DD` sin TZ, horas `HH:MM` sin segundos; TZ fija por centro configurable.
+5. ✅ Normalización aplicada: CalendarEngine y ReporteService usan timezone del centro.
+6. ✅ Documentación completa: Riesgos, puntos críticos y casos de prueba en `AUDITORIA_FECHAS_TIMEZONE.md`.
 
-**TO-DOs Pendientes**
-- Sin pendientes activos en este bloque.
+**TO-DOs Pendientes de Zona Horaria**
+- [ ] Tests manuales: Validar generación de calendario lunes-viernes sin desplazamiento de días.
+- [ ] StripeService: Aplicar timezone en cálculos de fechas de suscripción (prioridad baja).
+- [ ] Documentar en manual de usuario el impacto de cambiar timezone con clases existentes.
 
 ---
 

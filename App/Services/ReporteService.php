@@ -22,6 +22,7 @@ class ReporteService
 {
     private Dompdf $dompdf;
     private int $centroId;
+    private string $timezone;
 
     /* Constantes de asignaturas para referencia */
     private const ASIGNATURAS = [
@@ -54,6 +55,7 @@ class ReporteService
     public function __construct(int $centroId)
     {
         $this->centroId = $centroId;
+        $this->cargarTimezone();
 
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
@@ -63,6 +65,29 @@ class ReporteService
 
         $this->dompdf = new Dompdf($options);
         $this->dompdf->setPaper('A4', 'portrait');
+    }
+
+    /**
+     * Carga y aplica la zona horaria del centro
+     */
+    private function cargarTimezone(): void
+    {
+        global $wpdb;
+        $tabla = $wpdb->prefix . 'cap_configuracion';
+
+        $config = $wpdb->get_row($wpdb->prepare(
+            "SELECT timezone FROM {$tabla} WHERE centro_id = %d",
+            $this->centroId
+        ), 'ARRAY_A');
+
+        $this->timezone = $config['timezone'] ?? 'Europe/Madrid';
+
+        /* Aplicar timezone si es válida */
+        if (in_array($this->timezone, timezone_identifiers_list(), true)) {
+            date_default_timezone_set($this->timezone);
+        } else {
+            date_default_timezone_set('Europe/Madrid');
+        }
     }
 
     /**

@@ -97,7 +97,7 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
                     const horariosLimpio: HorariosSemanales = {};
                     DIAS_SEMANA.forEach(dia => {
                         const rangos = Array.isArray(parsed[dia.id]) ? parsed[dia.id] : [];
-                        horariosLimpio[dia.id] = rangos.map(rango => ({
+                        horariosLimpio[dia.id] = rangos.map((rango: { inicio: string | undefined; fin: string | undefined; }) => ({
                             inicio: normalizarHora(rango.inicio),
                             fin: normalizarHora(rango.fin)
                         }));

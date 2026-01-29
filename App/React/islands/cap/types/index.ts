@@ -33,6 +33,7 @@ export interface Centro {
 
 /* Configuración del Centro */
 export interface ConfiguracionHorario {
+    timezone?: string;
     mananaInicio: string;
     mananaFin: string;
     tardeInicio: string;

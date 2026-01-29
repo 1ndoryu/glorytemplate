@@ -7,7 +7,7 @@
  */
 
 import {useConfiguracion} from '../../hooks/useConfiguracion';
-import {PanelCentro, PanelHorarios, PanelCapacidad, PanelSuscripcion, PanelDemo, PanelStripe} from '../configuracion';
+import {PanelCentro, PanelHorarios, PanelCapacidad, PanelSuscripcion, PanelDemo, PanelStripe, PanelTimezone} from '../configuracion';
 import {Alerta, Spinner} from '../ui';
 
 interface SeccionConfiguracionProps {
@@ -53,9 +53,10 @@ export function SeccionConfiguracion({userName, userEmail, isAdmin = false}: Sec
 
             {/* Grid de paneles - cada uno con su estado de carga independiente */}
             <div className="capConfigGrid capMt--lg">
-                {/* Columna izquierda: Centro y Horarios */}
+                {/* Columna izquierda: Centro, Timezone y Horarios */}
                 <div className="capFlexCol capGap--lg">
                     <PanelCentro centro={centro} guardando={guardandoCentro} onGuardar={guardarCentro} />
+                    <PanelTimezone config={config} guardando={guardandoHorarios} onGuardar={guardarHorarios} />
                     <PanelHorarios config={config} guardando={guardandoHorarios} onGuardar={guardarHorarios} />
                 </div>
 
