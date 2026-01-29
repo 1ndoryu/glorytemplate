@@ -8,7 +8,7 @@
 
 import {useState} from 'react';
 import {useStripe} from '../../hooks/useStripe';
-import {Tarjeta, Boton, Input, Alerta, Spinner, Badge} from '../ui';
+import {Tarjeta, TarjetaHeader, Boton, Input, Alerta, Spinner, Badge} from '../ui';
 import {CreditCard, Key, Link, AlertTriangle, Check, Eye, EyeOff, Copy} from 'lucide-react';
 
 export function PanelStripe() {
@@ -36,11 +36,15 @@ export function PanelStripe() {
 
     if (cargando) {
         return (
-            <Tarjeta className="capAnimFadeIn">
-                <div className="capTarjeta__header">
-                    <CreditCard size={20} />
-                    <h3 className="capTarjeta__titulo">Stripe</h3>
-                </div>
+            <Tarjeta className="capPanelConfig capAnimFadeIn">
+                <TarjetaHeader>
+                    <div className="capFlexStart capGap--sm">
+                        <span className="capPanelConfig__icono">
+                            <CreditCard size={20} />
+                        </span>
+                        <h3 className="capTitulo capTitulo--sm">Stripe</h3>
+                    </div>
+                </TarjetaHeader>
                 <div className="capFlexCenter capPy--lg">
                     <Spinner />
                 </div>
@@ -49,12 +53,16 @@ export function PanelStripe() {
     }
 
     return (
-        <Tarjeta className="capAnimFadeIn">
-            <div className="capTarjeta__header">
-                <CreditCard size={20} />
-                <h3 className="capTarjeta__titulo">Configuración de Stripe</h3>
+        <Tarjeta className="capPanelConfig capAnimFadeIn">
+            <TarjetaHeader>
+                <div className="capFlexStart capGap--sm">
+                    <span className="capPanelConfig__icono">
+                        <CreditCard size={20} />
+                    </span>
+                    <h3 className="capTitulo capTitulo--sm">Configuración de Stripe</h3>
+                </div>
                 {estado?.configurado ? <Badge variante="exito">Configurado</Badge> : <Badge variante="advertencia">Sin configurar</Badge>}
-            </div>
+            </TarjetaHeader>
 
             <div className="capTarjeta__contenido capFlexCol capGap--md">
                 {/* Mensajes de feedback */}
