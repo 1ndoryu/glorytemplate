@@ -141,6 +141,14 @@
     padding: var(--cap-espacio-md);
 }
 
+.conflictoAforo__vacio {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--cap-texto-terciario);
+    font-size: var(--cap-texto-sm);
+    padding: var(--cap-espacio-md);
+}
+
 /* Alumno individual */
 .conflictoAforo__alumno {
     display: flex;

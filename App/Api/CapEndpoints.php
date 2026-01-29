@@ -237,6 +237,22 @@ class CapEndpoints
         if (!$centroId) return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
 
         $alumnoModel = new Alumno();
+        $idsParam = $request->get_param('ids');
+        if (!empty($idsParam)) {
+            $ids = is_array($idsParam) ? $idsParam : explode(',', (string) $idsParam);
+            $ids = array_values(array_unique(array_filter(array_map('absint', $ids))));
+
+            /*
+             * Filtro por IDs para mostrar nombres en conflictos de aforo.
+             */
+            $alumnos = $alumnoModel->obtenerPorIds($centroId, $ids);
+
+            return new \WP_REST_Response([
+                'alumnos' => $alumnos,
+                'total' => count($alumnos),
+            ]);
+        }
+
         $opciones = [
             'limite' => $request->get_param('limite') ?? 50,
             'offset' => $request->get_param('offset') ?? 0,

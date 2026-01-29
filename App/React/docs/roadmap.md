@@ -10,6 +10,7 @@
 - 2026-01-29: Fix de colisiones al editar hora y parseo local de fecha en clasesPorDia.
 - 2026-01-29: Modal de conflicto en edición con detalle de clase y opción de horario cercano.
 - 2026-01-29: Ocultar sábado/domingo en horarios flexibles y permitir colapsar el panel lateral.
+- 2026-01-29: Modal de aforo ahora carga alumnos por IDs para mostrar la lista de exclusión.
 
 ---
 

@@ -38,7 +38,14 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                 const alumnosIds = new Set<number>();
                 conflictos.forEach(c => c.alumnos.forEach(id => alumnosIds.add(id)));
 
-                const response = await fetch('/wp-json/cap/v1/alumnos', {
+                if (alumnosIds.size === 0) {
+                    setAlumnosInfo(new Map());
+                    return;
+                }
+
+                const idsQuery = Array.from(alumnosIds).join(',');
+
+                const response = await fetch(`/wp-json/cap/v1/alumnos?ids=${encodeURIComponent(idsQuery)}`, {
                     headers: {
                         'X-WP-Nonce': (window as any).wpApiSettings?.nonce || ''
                     }
@@ -63,6 +70,8 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                         }
                     });
                     setAlumnosInfo(mapa);
+                } else {
+                    setAlumnosInfo(new Map());
                 }
             } catch (err) {
                 console.error('Error cargando alumnos:', err);
@@ -165,6 +174,8 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                                 <div className="conflictoAforo__alumnos">
                                     {cargandoAlumnos ? (
                                         <span className="conflictoAforo__cargando">Cargando alumnos...</span>
+                                    ) : conflicto.alumnos.length === 0 ? (
+                                        <span className="conflictoAforo__vacio">No hay alumnos disponibles en este slot.</span>
                                     ) : (
                                         conflicto.alumnos.map(alumnoId => {
                                             const excluido = excluidos.includes(alumnoId);

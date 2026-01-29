@@ -64,6 +64,28 @@ class Alumno
     }
 
     /**
+     * Obtiene alumnos por IDs dentro de un centro.
+     * Se agrega para evitar cargar listas completas cuando solo se necesita un subconjunto.
+     */
+    public function obtenerPorIds(int $centroId, array $ids): array
+    {
+        global $wpdb;
+
+        $idsFiltrados = array_values(array_unique(array_filter(array_map('absint', $ids))));
+        if (empty($idsFiltrados)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($idsFiltrados), '%d'));
+        $query = $wpdb->prepare(
+            "SELECT * FROM {$this->tabla} WHERE centro_id = %d AND id IN ({$placeholders}) ORDER BY nombre ASC",
+            array_merge([$centroId], $idsFiltrados)
+        );
+
+        return $wpdb->get_results($query, ARRAY_A) ?: [];
+    }
+
+    /**
      * Obtiene un alumno por su ID
      */
     public function obtenerPorId(int $id): ?array
