@@ -60,8 +60,8 @@ export function PanelStripe() {
                         <CreditCard size={20} />
                     </span>
                     <h3 className="capTitulo capTitulo--sm">Configuración de Stripe</h3>
+                    {estado?.configurado ? <Badge variante="exito">Configurado</Badge> : <Badge variante="advertencia">Sin configurar</Badge>}
                 </div>
-                {estado?.configurado ? <Badge variante="exito">Configurado</Badge> : <Badge variante="advertencia">Sin configurar</Badge>}
             </TarjetaHeader>
 
             <div className="capTarjeta__contenido capFlexCol capGap--md">
