@@ -95,10 +95,13 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                     
                     const mapa = new Map<number, Alumno>();
                     (data.alumnos || []).forEach((a: any) => {
-                        if (alumnosIds.has(a.id)) {
-                            mapa.set(a.id, {
-                                id: a.id,
-                                centroId: a.centro_id,
+                        /* Normalizar ID a número para comparación correcta */
+                        const alumnoId = typeof a.id === 'number' ? a.id : parseInt(a.id, 10);
+                        
+                        if (alumnosIds.has(alumnoId)) {
+                            mapa.set(alumnoId, {
+                                id: alumnoId,
+                                centroId: typeof a.centro_id === 'number' ? a.centro_id : parseInt(a.centro_id, 10),
                                 nombre: a.nombre,
                                 email: a.email,
                                 telefono: a.telefono,
