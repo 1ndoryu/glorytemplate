@@ -683,6 +683,58 @@
     user-select: none;
 }
 
+/* Preview sutil de drop */
+.capTarjetaClasePreview {
+    background: hsla(var(--cap-primario-hsl), 0.08);
+    border: 1px dashed var(--cap-primario-400);
+    border-radius: var(--cap-radio-md);
+    pointer-events: none;
+}
+
+/* Notificaciones inferiores */
+.capToastContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: var(--cap-z-tooltip);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 360px;
+    width: 100%;
+    pointer-events: none;
+}
+
+.capToast {
+    pointer-events: auto;
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    border-radius: var(--cap-radio-md);
+    background: var(--cap-fondo-tarjeta);
+    color: var(--cap-texto-principal);
+    border: 1px solid var(--cap-borde-medio);
+    box-shadow: 0 10px 24px hsla(0, 0%, 0%, 0.15);
+    font-size: var(--cap-texto-xs);
+    line-height: 1.4;
+    animation: capToastIn 0.2s ease-out;
+}
+
+.capToast--error {
+    border-left: 4px solid var(--cap-error-500);
+    background: var(--cap-error-50);
+    color: var(--cap-error-700);
+}
+
+@keyframes capToastIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .capTarjetaClaseDraggable:not(.capTarjetaClaseDraggable--deshabilitado):hover {
     cursor: grab;
 }

@@ -19,9 +19,13 @@ interface ColumnaDiaProps {
     onToggleBloqueo: (claseId: number) => void;
     onClaseClick?: (clase: Clase) => void;
     dndActivo?: boolean;
+    preview?: {
+        top: number;
+        height: number;
+    } | null;
 }
 
-export function ColumnaDia({dia, fecha, clases, esHoy, onToggleBloqueo, onClaseClick, dndActivo = false}: ColumnaDiaProps) {
+export function ColumnaDia({dia, fecha, clases, esHoy, onToggleBloqueo, onClaseClick, dndActivo = false, preview = null}: ColumnaDiaProps) {
     const diaNumero = fecha.getDate();
 
     const calcularEstiloClase = (clase: Clase, indice: number): React.CSSProperties => {
@@ -59,6 +63,19 @@ export function ColumnaDia({dia, fecha, clases, esHoy, onToggleBloqueo, onClaseC
             <ZonaDropDia dia={dia} fecha={fecha} esActivo={dndActivo}>
                 {/* Contenedor relativo con altura fija para 15 horas (08:00 - 23:00) = 900 min * 1.5px = 1350px */}
                 <div className="capColumnaDia__slots" style={{position: 'relative', height: '1350px'}}>
+                    {preview && (
+                        <div
+                            className="capTarjetaClasePreview"
+                            style={{
+                                position: 'absolute',
+                                top: `${preview.top}px`,
+                                height: `${preview.height}px`,
+                                width: '94%',
+                                left: '3%',
+                                zIndex: 5
+                            }}
+                        />
+                    )}
                     {clases.map((clase, indice) => (
                         <TarjetaClaseDraggable key={clase.id} clase={clase} onToggleBloqueo={onToggleBloqueo} onClick={onClaseClick} style={calcularEstiloClase(clase, indice)} />
                     ))}

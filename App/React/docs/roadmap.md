@@ -1,0 +1,169 @@
+# ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
+
+> **Última actualización:** 2026-01-29  
+> **Estado:** ⏳ Fase 11 (Despliegue) - Sitio desplegado en cap.wandori.us  
+> **Arquitectura:** WordPress Backend + Glory React Islands
+
+**Notas de mantenimiento**
+- 2026-01-29: Ajuste de colisiones DnD y toasts de movimiento inválido.
+
+---
+
+## 1. Visión General del Proyecto
+
+### 1.1 Objetivo
+Plataforma web que permite a las autoescuelas automatizar la creación de calendarios para el curso CAP (Certificado de Aptitud Profesional) de 35 horas.
+
+### 1.2 Modelo de Negocio
+- Suscripción mensual para administradores de autoescuelas
+- Fase 1: Plan único estándar
+- Futuro: Niveles Básico/Premium
+
+### 1.3 Arquitectura Elegida
+
+| Capa              | Tecnología               | Ventaja               |
+| ----------------- | ------------------------ | --------------------- |
+| **Frontend**      | React Islands (Glory)    | HMR, TypeScript, SSG  |
+| **Estilos**       | CSS Vanilla + Variables  | Control total         |
+| **Backend**       | WordPress REST API       | Ya configurado        |
+| **Base de datos** | MySQL (tablas custom WP) | Sin config extra      |
+| **Autenticación** | Sistema nativo WordPress | Login, roles, cookies |
+| **Pagos**         | Stripe + WP              | Webhooks via REST     |
+| **Emails**        | wp_mail()                | SMTP ya configurado   |
+
+---
+
+## 2. Stack Técnico
+
+### 2.1 Estructura de Carpetas
+- **Frontend:** `App/React/islands/cap/` (componentes, hooks, types)
+- **Backend:** `App/Services/`, `App/Models/`, `App/Api/`, `App/Database/`
+
+### 2.2 Tablas MySQL
+`wp_cap_centros`, `wp_cap_alumnos`, `wp_cap_disponibilidad`, `wp_cap_clases`, `wp_cap_asistencia`, `wp_cap_configuracion`, `wp_cap_suscripciones`
+
+---
+
+## 3. Fases de Desarrollo
+
+### ✅ Hotfixes Resueltos (H.1-H.24)
+24 correcciones aplicadas: Input icons, redirección inicio, iconos centralizados, API nonce, estados independientes, endpoints REST, códigos asignatura, mensajes error, modales, esquema BD, warnings React, estilos reportes, motor generación, grilla disponibilidad, clases bloqueadas, PDF base64, conteo alumnos, horarios modal, UI/PDF consistencia, eliminar clases, clases huérfanas, undo funcional.
+
+### ✅ Fase 0-1: Infraestructura + Autenticación
+Estructura carpetas, sistema diseño CSS, componentes UI base, BD con versionado, login/registro WordPress, protección rutas, contexto usuario.
+
+### ✅ Fase 2-3: Layout + Configuración
+CapLayout sidebar/mobile, navegación Zustand, header contextual, config centro/horarios/capacidad, panel suscripción, API REST config.
+- [ ] 2.3.3 Acciones rápidas contextuales (pendiente por sección)
+- [ ] 3.1.3 Logo upload via WP Media
+
+### ✅ Fase 4-5: Alumnos + Calendario
+TablaAlumnos CRUD completo, MatrizDisponibilidad, progreso visual, CalendarioSemanal, TarjetaClase, reglas CAP, 8 asignaturas, sistema bloqueo.
+
+### ✅ Fase 6-7: Generación + Edición
+CalendarEngine PHP, conflictos aforo, Drag&Drop dnd-kit, historial undo, edición inline modal.
+
+### ✅ Fase 8-9: Reportes + Stripe
+PDF dompdf, SeccionReportes, StripeService encriptado, checkout/webhook/portal, flujo post-registro.
+- [ ] 9.1.4 Productos Stripe Dashboard (acción manual cliente)
+
+### ✅ Fase 10: Testing/Demo
+CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
+
+### Fase 11: Despliegue (EN PROGRESO)
+- [x] **11.1** Crear stack WordPress en Coolify (cap.wandori.us)
+- [x] **11.2** Desplegar tema Glory con branch `glory-react-calendarioesc`
+- [x] **11.3** Configurar URLs de WordPress
+- [x] **11.4** Activar tema Glory
+- [x] **11.5** Migrar base de datos local (si aplica)
+- [x] **11.6** Configurar Stripe en modo producción
+- [x] **11.7** Crear usuario admin de producción
+- [x] **11.8** Verificar todas las funcionalidades
+
+
+### 🚨 Errores Críticos y Solicitudes (Prioridad Alta)
+
+#### 1. Errores Críticos de Lógica y Persistencia
+- [x] **Configuración de Horarios:** La configuración no se aplica en nuevas semanas y se revierte al recargar. *(Fuente: Video 1 y Texto)*
+- [x] **Persistencia 'Alumnos Máximos':** Visualmente se guarda pero el motor de calendario la ignora. *(Fuente: Texto y Video 3)*
+
+#### 2. Problemas Visuales y de Interacción (Calendario)
+- [x] **Desalineación Vertical:** Bloques de clases no coinciden visualmente con su hora real. *(Fuente: Texto y Video 2)*
+- [x] **Edición Manual:** Cambiar hora manualmente no actualiza la posición vertical del bloque. *(Fuente: Texto y Video 2)*
+- [x] **Drag & Drop Roto:** No se pueden arrastrar clases hacia abajo ni retornarlas. *(Fuente: Video 2)*
+- [x] **Card Alumnos:** Siempre muestra "1 alumno" ignorando la capacidad real. *(Fuente: Texto y Video 3)*
+- [x] **Flechas de Navegación:** "Bailan" al cambiar de semana causando clics erróneos. *(Fuente: Audio)*
+- [x] **Alertas por movimiento inválido:** Notificación en esquina inferior cuando no se puede mover una clase. *(Fuente: Texto)*
+- [x] **Preview sutil de drop:** Asistencia visual para ver la posición destino antes de soltar. *(Fuente: Texto)*
+
+#### 3. Nuevas Funcionalidades (Cambio de Lógica)
+- [x] **Flexibilidad Horaria Total:** Eliminar restricción Mañana/Tarde. Permitir horas libres por día. *(Fuente: Texto)*
+- [ ] **Botón 'Borrar Semana':** Limpiar calendario completo de una semana (además de Deshacer). *(Fuente: Texto)*
+
+
+## Ultima actualización del cliente
+
+### 1. Errores Críticos de Lógica y Persistencia
+
+* **La Configuración de Horarios no se aplica:** Aunque el panel dice "Guardado correctamente", al generar el calendario en una semana nueva, sigue usando el horario antiguo (ej. de 9 a 14) e ignora los cambios recientes. Además, al recargar, la configuración vuelve a su estado anterior. *(Fuente: Video 1 y Texto)*.
+* **Persistencia de "Alumnos Máximos":** Reporta problemas al guardar la cantidad de alumnos máximos. Aunque en el Video 3 parece que visualmente se guarda en el *input*, en la generación del calendario no se refleja correctamente. *(Fuente: Texto y Video 3)*.
+
+### 2. Problemas Visuales y de Interacción (Calendario)
+
+* **Desalineación de Bloques (Posición vs. Hora):** Las clases no se pintan en la fila de su hora real. Una clase de las 13:00 aparece visualmente a la altura de las 09:00. *(Fuente: Texto y Video 2)*.
+    *   *Refactor Alineación (2026-01-29):* Se ha implementado un plan de alineación pixel-perfect. Ver `FIX_CALENDAR_ALIGNMENT.md`.
+* **Fallo en Edición Manual:** Si edita la hora manualmente (ej. cambiar de 10:00 a 11:00), el texto de la tarjeta cambia, pero el bloque **no se mueve** de posición vertical. *(Fuente: Texto y Video 2)*.
+* **Bloqueo de Movimiento (Drag & Drop):** No puede arrastrar las clases hacia abajo ni volverlas a subir; el sistema de arrastre falla o está bloqueado. *(Fuente: Video 2)*.
+* **Visualización de Alumnos (Card):** En la tarjeta del calendario siempre aparece el icono/texto de "1 alumno", ignorando la configuración real de capacidad (ej. 15 alumnos). *(Fuente: Texto y Video 3)*.
+* **Flechas de Navegación "Bailarinas":** Al cambiar de semana, la flecha se desplaza levemente de posición, lo que causa clics accidentales en el botón "Hoy". Pide fijar su posición estática. *(Fuente: Audio)*.
+
+### 3. Solicitud de Cambios de Lógica (Nuevas Funcionalidades)
+
+* **Flexibilidad Total en Horarios (Importante):** Pide **eliminar** la restricción de "Turno Mañana/Tarde". Necesita libertad total para configurar horas raras por día (ej. Lunes de 9 a 17, Miércoles de 10 a 20, etc.). Admite que esto cambia la lógica actual. *(Fuente: Texto)*.
+* **Botón "Borrar Calendario":** Quiere una opción para limpiar/borrar una semana entera (dejarla en blanco), aparte de la opción de "Deshacer". *(Fuente: Texto)*.
+* **Smart Drag & Drop y Sistema de Conflictos:** ✅ Implementado. Sistema fluido con detección de colisiones y resolución "Waterful" (cascada).
+    *   **Alertas de Colisión:** Modal obligatorio si una clase se suelta sobre otra existente.
+    *   **Resolución:** Opción de cancelar o desplazar clases afectadas.
+    *   *Plan Técnico Completo:* Ver `SMART_DRAG_DROP_PLAN.md`.
+
+---
+
+## 4. Estado del Proyecto
+
+| Fase | Descripción           | Estado      |
+| ---- | --------------------- | ----------- |
+| 0-10 | Desarrollo completo   | ✅ Completa  |
+| 11   | Despliegue producción | ⏳ Pendiente |
+
+---
+
+## 5. URLs del Sistema
+
+| Página    | Slug              | Isla React           |
+| --------- | ----------------- | -------------------- |
+| Login     | `/cap-login/`     | `CapLoginIsland`     |
+| Dashboard | `/cap-dashboard/` | `CapDashboardIsland` |
+| Registro  | `/cap-registro/`  | `CapRegistroIsland`  |
+
+---
+
+## 6. Endpoints REST API
+
+**Config:** GET/POST `/cap/v1/config`  
+**Alumnos:** GET/POST/PUT/DELETE `/cap/v1/alumnos`  
+**Disponibilidad:** GET/POST `/cap/v1/disponibilidad/{id}`  
+**Clases:** GET `/cap/v1/clases`, POST `/cap/v1/generar`  
+**Reportes:** GET `/cap/v1/reportes/{tipo}`  
+**Stripe:** GET/POST `/cap/v1/stripe/config`, POST `checkout`, `portal`, `stripe-webhook`  
+**Demo:** POST `seed`, DELETE `clean`, GET `status`
+
+---
+
+## 7. Referencias
+
+- Prototipo visual: `ejemplo.jsx` (login, layout, calendario, modal aforo, config, tabla)
+- Ahorro WordPress: ~18 días (login, roles, API, emails, hosting)
+
+---
+
+> **Siguiente paso:** Iniciar **Fase 11** de despliegue a producción.
