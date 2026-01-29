@@ -28,6 +28,7 @@ export interface ConfiguracionHorarios {
     hora_fin_tarde: string;
     viernes_especial: boolean;
     hora_fin_viernes: string;
+    horarios_semanales?: Record<string, Array<{inicio: string; fin: string}>> | string;
     alumnos_max_clase: number;
     duracion_clase: number;
     duracion_descanso: number;

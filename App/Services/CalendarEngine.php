@@ -62,7 +62,7 @@ class CalendarEngine
         $config = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$tabla} WHERE centro_id = %d",
             $this->centroId
-        ), ARRAY_A);
+        ), 'ARRAY_A');
 
         $this->configuracion = $config ?: $this->configuracionDefecto();
         $this->duracionClase = (int) ($this->configuracion['duracion_clase'] ?? 60);
@@ -179,7 +179,7 @@ class CalendarEngine
             $alumnosIds
         );
 
-        $resultados = $wpdb->get_results($query, ARRAY_A);
+        $resultados = $wpdb->get_results($query, 'ARRAY_A');
 
         $this->disponibilidadAlumnos = [];
         foreach ($resultados as $row) {
@@ -226,7 +226,7 @@ class CalendarEngine
             $this->centroId,
             $fechaInicioSemana,
             $fechaFin
-        ), ARRAY_A);
+        ), 'ARRAY_A');
     }
 
     /**
@@ -235,34 +235,58 @@ class CalendarEngine
     private function generarSlotsDisponibles(string $fechaInicioSemana): void
     {
         $this->slotsDisponibles = [];
-        $descanso = (int) ($this->configuracion['duracion_descanso'] ?? 15);
 
-        for ($dia = 0; $dia < 5; $dia++) {
+        /* Intentar usar configuración flexible (JSON) */
+        $horariosFlexibles = !empty($this->configuracion['horarios_semanales'])
+            ? json_decode($this->configuracion['horarios_semanales'], true)
+            : null;
+
+        /* Mapeo de índice de día (0-6) a claves del JSON */
+        $nombresDias = [0 => 'lunes', 1 => 'martes', 2 => 'miercoles', 3 => 'jueves', 4 => 'viernes', 5 => 'sabado', 6 => 'domingo'];
+
+        for ($dia = 0; $dia < 5; $dia++) { // Lunes a Viernes (expandible a fin de semana si se requiere)
             $fecha = date('Y-m-d', strtotime($fechaInicioSemana . " +{$dia} days"));
             $diaSemana = $dia + 1; // 1 = Lunes ... 5 = Viernes
+            $nombreDia = $nombresDias[$dia];
 
-            /* Slots de mañana */
-            $slotsMorning = $this->generarSlotsRango(
-                $this->configuracion['hora_inicio_manana'],
-                $this->configuracion['hora_fin_manana'],
-                $fecha,
-                $diaSemana
-            );
+            $this->slotsDisponibles[$fecha] = [];
 
-            /* Slots de tarde */
-            $horaFinTarde = $this->configuracion['hora_fin_tarde'];
-            if ($diaSemana === 5 && $this->configuracion['viernes_especial']) {
-                $horaFinTarde = $this->configuracion['hora_fin_viernes'];
+            if ($horariosFlexibles && isset($horariosFlexibles[$nombreDia]) && is_array($horariosFlexibles[$nombreDia])) {
+                /* Logica NUEVA: Usar rangos flexibles por día */
+                foreach ($horariosFlexibles[$nombreDia] as $rango) {
+                    if (!isset($rango['inicio']) || !isset($rango['fin'])) continue;
+
+                    $nuevosSlots = $this->generarSlotsRango(
+                        $rango['inicio'],
+                        $rango['fin'],
+                        $fecha,
+                        $diaSemana
+                    );
+                    $this->slotsDisponibles[$fecha] = array_merge($this->slotsDisponibles[$fecha], $nuevosSlots);
+                }
+            } else {
+                /* Logica LEGACY: Usar mañana/tarde fijo con viernes especial */
+                $slotsMorning = $this->generarSlotsRango(
+                    $this->configuracion['hora_inicio_manana'],
+                    $this->configuracion['hora_fin_manana'],
+                    $fecha,
+                    $diaSemana
+                );
+
+                $horaFinTarde = $this->configuracion['hora_fin_tarde'];
+                if ($diaSemana === 5 && $this->configuracion['viernes_especial']) {
+                    $horaFinTarde = $this->configuracion['hora_fin_viernes'];
+                }
+
+                $slotsAfternoon = $this->generarSlotsRango(
+                    $this->configuracion['hora_inicio_tarde'],
+                    $horaFinTarde,
+                    $fecha,
+                    $diaSemana
+                );
+
+                $this->slotsDisponibles[$fecha] = array_merge($slotsMorning, $slotsAfternoon);
             }
-
-            $slotsAfternoon = $this->generarSlotsRango(
-                $this->configuracion['hora_inicio_tarde'],
-                $horaFinTarde,
-                $fecha,
-                $diaSemana
-            );
-
-            $this->slotsDisponibles[$fecha] = array_merge($slotsMorning, $slotsAfternoon);
         }
     }
 
@@ -274,6 +298,10 @@ class CalendarEngine
         $slots = [];
         $inicio = strtotime($horaInicio);
         $fin = strtotime($horaFin);
+
+        /* Validación básica para evitar bucles infinitos si las horas están mal */
+        if ($inicio >= $fin) return [];
+
         $duracion = $this->duracionClase * 60; // en segundos
 
         while ($inicio + $duracion <= $fin) {

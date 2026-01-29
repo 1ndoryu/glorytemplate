@@ -135,7 +135,6 @@
 }
 
 .capCalendarioGrid__horaSlot {
-    height: 60px;
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -219,12 +218,16 @@
 .capTarjetaClase {
     background: var(--cap-fondo-tarjeta);
     border-radius: var(--cap-radio-md);
-    border-left: 4px solid var(--cap-primario-500);
+    border: 1px solid var(--cap-borde-medio);
     padding: var(--cap-espacio-sm);
     cursor: pointer;
     transition: all var(--cap-transicion-rapida);
     position: relative;
     overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .capTarjetaClase:hover {
@@ -234,7 +237,7 @@
 
 .capTarjetaClase--bloqueada {
     background: var(--cap-error-50);
-    border-left-color: var(--cap-error-500);
+    border-color: var(--cap-error-300);
 }
 
 .capTarjetaClase--bloqueada::before {
@@ -248,31 +251,12 @@
     pointer-events: none;
 }
 
-/* Colores de asignaturas aplicados al borde */
+/* Colores de asignaturas aplicados al borde - ELIMINADO POR PETICIÓN DE DISEÑO
 .capTarjetaClase[data-asignatura='1'] {
     border-left-color: var(--cap-asignatura-1);
 }
-.capTarjetaClase[data-asignatura='2'] {
-    border-left-color: var(--cap-asignatura-2);
-}
-.capTarjetaClase[data-asignatura='3'] {
-    border-left-color: var(--cap-asignatura-3);
-}
-.capTarjetaClase[data-asignatura='4'] {
-    border-left-color: var(--cap-asignatura-4);
-}
-.capTarjetaClase[data-asignatura='5'] {
-    border-left-color: var(--cap-asignatura-5);
-}
-.capTarjetaClase[data-asignatura='6'] {
-    border-left-color: var(--cap-asignatura-6);
-}
-.capTarjetaClase[data-asignatura='7'] {
-    border-left-color: var(--cap-asignatura-7);
-}
-.capTarjetaClase[data-asignatura='8'] {
-    border-left-color: var(--cap-asignatura-8);
-}
+...
+*/
 
 .capTarjetaClase__header {
     display: flex;
@@ -736,7 +720,7 @@
     display: flex;
     flex-direction: column;
     min-height: 400px;
-    padding: var(--cap-espacio-sm);
+    padding: 0;
     border-radius: var(--cap-radio-md);
     transition: all 0.2s ease;
     position: relative;
@@ -774,23 +758,9 @@
     animation: none;
 }
 
-/* Indicador "Soltar aquí" al hacer hover */
+/* Indicador eliminado para evitar solapamiento visual con clases */
 .capZonaDropDia--sobre::before {
-    content: '↓ Soltar aquí';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--cap-primario-500);
-    color: var(--cap-texto-invertido);
-    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
-    border-radius: var(--cap-radio-md);
-    font-size: var(--cap-texto-sm);
-    font-weight: var(--cap-peso-semibold);
-    z-index: 10;
-    pointer-events: none;
-    box-shadow: var(--cap-sombra-md);
-    white-space: nowrap;
+    display: none;
 }
 
 /* Animación sutil al soltar */

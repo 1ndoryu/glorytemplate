@@ -37,7 +37,7 @@ export function NavegadorSemana({semanaActual, fechasSemana, onSemanaAnterior, o
                 <IconoFlechaIzquierda size={18} />
             </button>
 
-            <div className="capCalendario__semanaInfo">
+            <div className="capCalendario__semanaInfo" style={{minWidth: '220px', textAlign: 'center'}}>
                 <span className="capCalendario__semanaLabel">Semana {getNumeroSemana(semanaActual)}</span>
                 <span className="capCalendario__semanaFechas">{rangoFechas}</span>
             </div>

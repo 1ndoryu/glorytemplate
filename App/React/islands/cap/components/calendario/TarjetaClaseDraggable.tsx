@@ -15,9 +15,10 @@ interface TarjetaClaseDraggableProps {
     onToggleBloqueo?: (claseId: number) => void;
     onClick?: (clase: Clase) => void;
     deshabilitado?: boolean;
+    style?: React.CSSProperties;
 }
 
-export function TarjetaClaseDraggable({clase, onToggleBloqueo, onClick, deshabilitado = false}: TarjetaClaseDraggableProps) {
+export function TarjetaClaseDraggable({clase, onToggleBloqueo, onClick, deshabilitado = false, style}: TarjetaClaseDraggableProps) {
     /* Las clases bloqueadas no se pueden arrastrar */
     const estaDeshabilitado = deshabilitado || clase.bloqueada;
 
@@ -34,7 +35,9 @@ export function TarjetaClaseDraggable({clase, onToggleBloqueo, onClick, deshabil
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
-        cursor: estaDeshabilitado ? 'default' : 'grab'
+        cursor: estaDeshabilitado ? 'default' : 'grab',
+        zIndex: isDragging ? 999 : 1,
+        ...style
     };
 
     return (

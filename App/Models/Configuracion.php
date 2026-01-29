@@ -18,6 +18,7 @@ class Configuracion
         global $wpdb;
         $this->tablaCentros = $wpdb->prefix . 'cap_centros';
         $this->tablaConfig = $wpdb->prefix . 'cap_configuracion';
+        $this->asegurarColumnaFlexibilidad();
     }
 
     /**
@@ -200,12 +201,16 @@ class Configuracion
     /**
      * Valida los datos de configuración
      */
+    /**
+     * Valida los datos de configuración
+     */
     private function validarDatos(array $datos): array
     {
         $validados = [];
 
+        /* Validación relajada de horas (acepta H:MM y HH:MM) */
         $horasValidas = function ($hora) {
-            return preg_match('/^\d{2}:\d{2}$/', $hora);
+            return preg_match('/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/', $hora);
         };
 
         if (isset($datos['hora_inicio_manana']) && $horasValidas($datos['hora_inicio_manana'])) {
@@ -232,6 +237,40 @@ class Configuracion
             $validados['viernes_especial'] = $datos['viernes_especial'] ? 1 : 0;
         }
 
+        /* Validación de Horarios Semanales (JSON Flexible) */
+        if (isset($datos['horarios_semanales'])) {
+            /* Si viene como string JSON, decodificar primero para validar */
+            $horarios = is_string($datos['horarios_semanales'])
+                ? json_decode($datos['horarios_semanales'], true)
+                : $datos['horarios_semanales'];
+
+            if (is_array($horarios)) {
+                /* Sanitizar estructura: { lunes: [{inicio: '09:00', fin: '14:00'}], ... } */
+                $horariosLimpios = [];
+                $diasValidos = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+
+                foreach ($diasValidos as $dia) {
+                    if (isset($horarios[$dia]) && is_array($horarios[$dia])) {
+                        $horariosLimpios[$dia] = [];
+                        foreach ($horarios[$dia] as $rango) {
+                            if (
+                                isset($rango['inicio'], $rango['fin']) &&
+                                $horasValidas($rango['inicio']) &&
+                                $horasValidas($rango['fin'])
+                            ) {
+                                $horariosLimpios[$dia][] = [
+                                    'inicio' => sanitize_text_field($rango['inicio']),
+                                    'fin' => sanitize_text_field($rango['fin'])
+                                ];
+                            }
+                        }
+                    }
+                }
+                /* Guardar como JSON string */
+                $validados['horarios_semanales'] = json_encode($horariosLimpios);
+            }
+        }
+
         if (isset($datos['alumnos_max_clase'])) {
             $max = absint($datos['alumnos_max_clase']);
             $validados['alumnos_max_clase'] = max(1, min(100, $max));
@@ -248,5 +287,19 @@ class Configuracion
         }
 
         return $validados;
+    }
+
+    /**
+     * Método auxiliar para asegurar que la columna existe (Migración on-the-fly)
+     * Se puede llamar desde el constructor o antes de guardar
+     */
+    public function asegurarColumnaFlexibilidad(): void
+    {
+        global $wpdb;
+        $row = $wpdb->get_results("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$this->tablaConfig}' AND COLUMN_NAME = 'horarios_semanales'");
+
+        if (empty($row)) {
+            $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN horarios_semanales LONGTEXT NULL DEFAULT NULL");
+        }
     }
 }

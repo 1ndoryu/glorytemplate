@@ -13,7 +13,7 @@ import {Alerta} from '../ui';
 import type {ExclusionesConflicto, Clase, DiaSemana} from '../../types';
 
 export function SeccionCalendario() {
-    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, eliminando, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase, eliminarClase} = useCalendario();
+    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, eliminando, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase, moverMultiplesClases, eliminarClase} = useCalendario();
 
     /*
      * Obtener la clase actualizada desde el array de clases
@@ -68,8 +68,8 @@ export function SeccionCalendario() {
         await actualizarClase(claseId, cambios);
     };
 
-    const handleMoverClase = async (claseId: number, nuevaFecha: string) => {
-        await moverClase(claseId, nuevaFecha);
+    const handleMoverClase = async (claseId: number, nuevaFecha: string, horaInicio?: string, horaFin?: string) => {
+        await moverClase(claseId, nuevaFecha, horaInicio, horaFin);
     };
 
     const handleEliminarClase = async (claseId: number, forzar: boolean) => {
@@ -90,7 +90,9 @@ export function SeccionCalendario() {
             )}
 
             <div className="capMt--lg">
-                <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={generarCalendario} onClaseClick={handleClaseClick} puedeDeshacer={puedeDeshacer} onDeshacer={deshacer} onMoverClase={moverClase} />
+                <div className="capMt--lg">
+                    <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={generarCalendario} onClaseClick={handleClaseClick} puedeDeshacer={puedeDeshacer} onDeshacer={deshacer} onMoverClase={handleMoverClase} onMoverMultiplesClases={moverMultiplesClases} />
+                </div>
             </div>
 
             {/* Modal para resolver conflictos de aforo */}

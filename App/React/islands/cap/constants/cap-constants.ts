@@ -7,6 +7,14 @@
 
 import type {Asignatura, DiaSemana} from '../types';
 
+/* Configuraciones visuales del calendario */
+export const CALENDARIO_CONFIG = {
+    PIXELS_POR_MINUTO: 1.5,
+    HORA_INICIO_DIA: 8, // 08:00
+    ALTO_MINIMO_CLASE: 30,
+    ALTURA_TOTAL_COLUMNA: 1350 // 15 horas * 60 min * 1.5px
+} as const;
+
 /* Reglas legales del curso CAP */
 export const CAP_REGLAS = {
     /** Total de horas del curso */
@@ -131,9 +139,20 @@ const CODIGOS_ALIAS: Record<string, string> = {
     mercancias_peligrosas: 'MP'
 };
 
-/* Función helper para obtener asignatura por ID */
-export function getAsignatura(id: number): Asignatura | undefined {
-    return ASIGNATURAS_MAP.get(id);
+/* Función helper para obtener asignatura por ID o Código */
+export function getAsignatura(idOrCodigo: number | string): Asignatura | undefined {
+    if (typeof idOrCodigo === 'number') {
+        return ASIGNATURAS_MAP.get(idOrCodigo);
+    }
+
+    /* Si es string, probar si es número parseable */
+    const parsed = parseInt(idOrCodigo, 10);
+    if (!isNaN(parsed) && ASIGNATURAS_MAP.has(parsed)) {
+        return ASIGNATURAS_MAP.get(parsed);
+    }
+
+    /* Si no, buscar por código */
+    return getAsignaturaPorCodigo(idOrCodigo);
 }
 
 /* Función helper para obtener asignatura por código (soporta alias snake_case) */

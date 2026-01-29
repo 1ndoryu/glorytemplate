@@ -58,7 +58,8 @@ interface AccionesCalendario {
     actualizarClase: (claseId: number, cambios: CambiosClase) => Promise<void>;
     deshacer: () => void;
     /* Acción para drag & drop */
-    moverClase: (claseId: number, nuevaFecha: string) => Promise<void>;
+    moverClase: (claseId: number, nuevaFecha: string, horaInicio?: string, horaFin?: string) => Promise<void>;
+    moverMultiplesClases: (cambios: {clase: Clase; nuevoInicio: string; nuevoFin: string; nuevaFecha?: string}[]) => Promise<void>;
     /* Acción para eliminar clase */
     eliminarClase: (claseId: number, forzar: boolean) => Promise<void>;
 }
@@ -424,9 +425,9 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         setHistorialClases(prev => prev.slice(0, -1));
     }, [historialClases]);
 
-    /* Mover clase a otro día (drag & drop) */
+    /* Mover clase a otro día (drag & drop) o cambiar hora */
     const moverClase = useCallback(
-        async (claseId: number, nuevaFecha: string) => {
+        async (claseId: number, nuevaFecha: string, nuevaHoraInicio?: string, nuevaHoraFin?: string) => {
             const clase = clases.find(c => c.id === claseId);
             if (!clase) return;
 
@@ -446,22 +447,29 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             setClases(prev =>
                 prev.map(c => {
                     if (c.id === claseId) {
-                        return {...c, fecha: nuevaFecha};
+                        return {
+                            ...c,
+                            fecha: nuevaFecha,
+                            horaInicio: nuevaHoraInicio || c.horaInicio,
+                            horaFin: nuevaHoraFin || c.horaFin
+                        };
                     }
                     return c;
                 })
             );
 
             try {
+                const body: any = {fecha: nuevaFecha};
+                if (nuevaHoraInicio) body.hora_inicio = nuevaHoraInicio;
+                if (nuevaHoraFin) body.hora_fin = nuevaHoraFin;
+
                 const response = await fetch(`/wp-json/cap/v1/clases/${claseId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-WP-Nonce': getNonce()
                     },
-                    body: JSON.stringify({
-                        fecha: nuevaFecha
-                    })
+                    body: JSON.stringify(body)
                 });
 
                 if (!response.ok) {
@@ -482,6 +490,72 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             }
         },
         [clases, getNonce, guardarSnapshot, historialClases]
+    );
+
+    /* Mover múltiples clases (para resolución de conflictos en cascada) */
+    const moverMultiplesClases = useCallback(
+        async (cambios: {clase: Clase; nuevoInicio: string; nuevoFin: string; nuevaFecha?: string}[]) => {
+            if (cambios.length === 0) return;
+
+            setMoviendo(true);
+            setError(null);
+            guardarSnapshot();
+
+            /* Actualización optimista masiva */
+            setClases(prev =>
+                prev.map(c => {
+                    const cambio = cambios.find(curr => curr.clase.id === c.id);
+                    if (cambio) {
+                        return {
+                            ...c,
+                            horaInicio: cambio.nuevoInicio,
+                            horaFin: cambio.nuevoFin,
+                            fecha: cambio.nuevaFecha || c.fecha
+                        };
+                    }
+                    return c;
+                })
+            );
+
+            try {
+                /* Ejecutar peticiones en paralelo */
+                const promesas = cambios.map(cambio => {
+                    const body: any = {
+                        hora_inicio: cambio.nuevoInicio,
+                        hora_fin: cambio.nuevoFin
+                    };
+                    if (cambio.nuevaFecha) body.fecha = cambio.nuevaFecha;
+
+                    return fetch(`/wp-json/cap/v1/clases/${cambio.clase.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-WP-Nonce': getNonce()
+                        },
+                        body: JSON.stringify(body)
+                    }).then(async res => {
+                        if (!res.ok) {
+                            const msg = await procesarErrorApi(res, 'calendario', 'mover');
+                            throw new Error(msg);
+                        }
+                        return res.json();
+                    });
+                });
+
+                await Promise.all(promesas);
+            } catch (err) {
+                /* Revertir todo si falla algo */
+                const ultimo = historialClases[historialClases.length - 1];
+                if (ultimo) {
+                    setClases(ultimo);
+                    setHistorialClases(prev => prev.slice(0, -1));
+                }
+                setError('Hubo un error al desplazar las clases. Se han revertido los cambios.');
+            } finally {
+                setMoviendo(false);
+            }
+        },
+        [getNonce, guardarSnapshot, historialClases]
     );
 
     /* Eliminar una clase */
@@ -552,6 +626,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         actualizarClase,
         deshacer,
         moverClase,
+        moverMultiplesClases,
         eliminarClase,
         eliminando
     };

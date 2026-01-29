@@ -1,0 +1,89 @@
+/**
+ * ModalConflictoDrag Styles
+ *
+ * Estilos para el modal de resolución de conflictos de drag & drop.
+ */
+
+.conflictoDrag {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-lg);
+}
+
+.conflictoDrag__mensaje {
+    color: var(--cap-texto-secundario);
+    font-size: var(--cap-texto-md);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.conflictoDrag__comparacion {
+    display: flex;
+    gap: var(--cap-espacio-md);
+    background: var(--cap-fondo-sutil);
+    padding: var(--cap-espacio-md);
+    border-radius: var(--cap-radio-md);
+    align-items: center;
+    justify-content: center;
+}
+
+.conflictoDrag__clase {
+    flex: 1;
+    padding: var(--cap-espacio-sm);
+    border-radius: var(--cap-radio-sm);
+    background: white;
+    box-shadow: var(--cap-sombra-sm);
+    border-left: 4px solid var(--cap-color-primario);
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Para que el texto corte bien */
+}
+
+.conflictoDrag__clase--existente {
+    opacity: 0.8;
+    background: #fff5f5; /* Fondo rojizo muy sutil */
+    border-left-color: var(--cap-peligro);
+}
+
+.conflictoDrag__flecha {
+    color: var(--cap-peligro);
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.conflictoDrag__tituloClase {
+    font-weight: 600;
+    font-size: var(--cap-texto-sm);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--cap-texto-primario);
+}
+
+.conflictoDrag__horaClase {
+    font-family: var(--cap-familia-mono);
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-secundario);
+}
+
+.conflictoDrag__acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cap-espacio-sm);
+    margin-top: var(--cap-espacio-xs);
+    border-top: 1px solid var(--cap-borde);
+    padding-top: var(--cap-espacio-md);
+}
+
+@media (max-width: 500px) {
+    .conflictoDrag__comparacion {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .conflictoDrag__flecha {
+        text-align: center;
+        transform: rotate(90deg);
+    }
+}

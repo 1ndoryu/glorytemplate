@@ -72,10 +72,54 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 - [x] **11.2** Desplegar tema Glory con branch `glory-react-calendarioesc`
 - [x] **11.3** Configurar URLs de WordPress
 - [x] **11.4** Activar tema Glory
-- [ ] **11.5** Migrar base de datos local (si aplica)
-- [ ] **11.6** Configurar Stripe en modo producción
-- [ ] **11.7** Crear usuario admin de producción
-- [ ] **11.8** Verificar todas las funcionalidades
+- [x] **11.5** Migrar base de datos local (si aplica)
+- [x] **11.6** Configurar Stripe en modo producción
+- [x] **11.7** Crear usuario admin de producción
+- [x] **11.8** Verificar todas las funcionalidades
+
+
+### 🚨 Errores Críticos y Solicitudes (Prioridad Alta)
+
+#### 1. Errores Críticos de Lógica y Persistencia
+- [x] **Configuración de Horarios:** La configuración no se aplica en nuevas semanas y se revierte al recargar. *(Fuente: Video 1 y Texto)*
+- [x] **Persistencia 'Alumnos Máximos':** Visualmente se guarda pero el motor de calendario la ignora. *(Fuente: Texto y Video 3)*
+
+#### 2. Problemas Visuales y de Interacción (Calendario)
+- [x] **Desalineación Vertical:** Bloques de clases no coinciden visualmente con su hora real. *(Fuente: Texto y Video 2)*
+- [x] **Edición Manual:** Cambiar hora manualmente no actualiza la posición vertical del bloque. *(Fuente: Texto y Video 2)*
+- [x] **Drag & Drop Roto:** No se pueden arrastrar clases hacia abajo ni retornarlas. *(Fuente: Video 2)*
+- [x] **Card Alumnos:** Siempre muestra "1 alumno" ignorando la capacidad real. *(Fuente: Texto y Video 3)*
+- [x] **Flechas de Navegación:** "Bailan" al cambiar de semana causando clics erróneos. *(Fuente: Audio)*
+
+#### 3. Nuevas Funcionalidades (Cambio de Lógica)
+- [x] **Flexibilidad Horaria Total:** Eliminar restricción Mañana/Tarde. Permitir horas libres por día. *(Fuente: Texto)*
+- [ ] **Botón 'Borrar Semana':** Limpiar calendario completo de una semana (además de Deshacer). *(Fuente: Texto)*
+
+
+## Ultima actualización del cliente
+
+### 1. Errores Críticos de Lógica y Persistencia
+
+* **La Configuración de Horarios no se aplica:** Aunque el panel dice "Guardado correctamente", al generar el calendario en una semana nueva, sigue usando el horario antiguo (ej. de 9 a 14) e ignora los cambios recientes. Además, al recargar, la configuración vuelve a su estado anterior. *(Fuente: Video 1 y Texto)*.
+* **Persistencia de "Alumnos Máximos":** Reporta problemas al guardar la cantidad de alumnos máximos. Aunque en el Video 3 parece que visualmente se guarda en el *input*, en la generación del calendario no se refleja correctamente. *(Fuente: Texto y Video 3)*.
+
+### 2. Problemas Visuales y de Interacción (Calendario)
+
+* **Desalineación de Bloques (Posición vs. Hora):** Las clases no se pintan en la fila de su hora real. Una clase de las 13:00 aparece visualmente a la altura de las 09:00. *(Fuente: Texto y Video 2)*.
+    *   *Refactor Alineación (2026-01-29):* Se ha implementado un plan de alineación pixel-perfect. Ver `FIX_CALENDAR_ALIGNMENT.md`.
+* **Fallo en Edición Manual:** Si edita la hora manualmente (ej. cambiar de 10:00 a 11:00), el texto de la tarjeta cambia, pero el bloque **no se mueve** de posición vertical. *(Fuente: Texto y Video 2)*.
+* **Bloqueo de Movimiento (Drag & Drop):** No puede arrastrar las clases hacia abajo ni volverlas a subir; el sistema de arrastre falla o está bloqueado. *(Fuente: Video 2)*.
+* **Visualización de Alumnos (Card):** En la tarjeta del calendario siempre aparece el icono/texto de "1 alumno", ignorando la configuración real de capacidad (ej. 15 alumnos). *(Fuente: Texto y Video 3)*.
+* **Flechas de Navegación "Bailarinas":** Al cambiar de semana, la flecha se desplaza levemente de posición, lo que causa clics accidentales en el botón "Hoy". Pide fijar su posición estática. *(Fuente: Audio)*.
+
+### 3. Solicitud de Cambios de Lógica (Nuevas Funcionalidades)
+
+* **Flexibilidad Total en Horarios (Importante):** Pide **eliminar** la restricción de "Turno Mañana/Tarde". Necesita libertad total para configurar horas raras por día (ej. Lunes de 9 a 17, Miércoles de 10 a 20, etc.). Admite que esto cambia la lógica actual. *(Fuente: Texto)*.
+* **Botón "Borrar Calendario":** Quiere una opción para limpiar/borrar una semana entera (dejarla en blanco), aparte de la opción de "Deshacer". *(Fuente: Texto)*.
+* **Smart Drag & Drop y Sistema de Conflictos:** ✅ Implementado. Sistema fluido con detección de colisiones y resolución "Waterful" (cascada).
+    *   **Alertas de Colisión:** Modal obligatorio si una clase se suelta sobre otra existente.
+    *   **Resolución:** Opción de cancelar o desplazar clases afectadas.
+    *   *Plan Técnico Completo:* Ver `SMART_DRAG_DROP_PLAN.md`.
 
 ---
 
