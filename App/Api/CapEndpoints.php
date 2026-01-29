@@ -36,10 +36,11 @@ class CapEndpoints
             ['methods' => 'GET', 'callback' => [$this, 'listarAlumnos'], 'permission_callback' => [$this, 'verificarPermisos']],
             ['methods' => 'POST', 'callback' => [$this, 'crearAlumno'], 'permission_callback' => [$this, 'verificarPermisos']],
         ]);
-            /* Endpoint dedicado para alumnos por IDs (evitar acoplamiento con listado general) */
-            register_rest_route(self::NAMESPACE, '/alumnos/por-ids', [
-                ['methods' => 'GET', 'callback' => [$this, 'listarAlumnosPorIds'], 'permission_callback' => [$this, 'verificarPermisos']],
-            ]);
+        
+        /* Endpoint dedicado para alumnos por IDs (evitar acoplamiento con listado general) */
+        register_rest_route(self::NAMESPACE, '/alumnos/por-ids', [
+            ['methods' => 'GET', 'callback' => [$this, 'listarAlumnosPorIds'], 'permission_callback' => [$this, 'verificarPermisos']],
+        ]);
 
         register_rest_route(self::NAMESPACE, '/alumnos/(?P<id>\d+)', [
             ['methods' => 'PUT', 'callback' => [$this, 'actualizarAlumno'], 'permission_callback' => [$this, 'verificarPermisos']],
@@ -246,8 +247,19 @@ class CapEndpoints
             /* Compatibilidad temporal: usar endpoint dedicado de IDs. */
             return $this->listarAlumnosPorIds($request);
         }
-     * Lista alumnos filtrando por IDs (endpoint dedicado)
-     */
+
+        $opciones = [
+            'limite' => $request->get_param('limite') ?? 50,
+            'offset' => $request->get_param('offset') ?? 0,
+            'busqueda' => $request->get_param('busqueda') ?? '',
+        ];
+
+        return new \WP_REST_Response([
+            'alumnos' => $alumnoModel->obtenerPorCentro($centroId, $opciones),
+            'total' => $alumnoModel->contarPorCentro($centroId),
+        ]);
+    }
+
     public function listarAlumnosPorIds(\WP_REST_Request $request): \WP_REST_Response
     {
         $capService = CapService::getInstance();
@@ -265,18 +277,6 @@ class CapEndpoints
         return new \WP_REST_Response([
             'alumnos' => $alumnos,
             'total' => count($alumnos),
-        ]);
-    }
-
-        $opciones = [
-            'limite' => $request->get_param('limite') ?? 50,
-            'offset' => $request->get_param('offset') ?? 0,
-            'busqueda' => $request->get_param('busqueda') ?? '',
-        ];
-
-        return new \WP_REST_Response([
-            'alumnos' => $alumnoModel->obtenerPorCentro($centroId, $opciones),
-            'total' => $alumnoModel->contarPorCentro($centroId),
         ]);
     }
 
