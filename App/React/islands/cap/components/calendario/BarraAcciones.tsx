@@ -82,3 +82,6 @@ function IconoBorrar({size = 20}: {size?: number}) {
             <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
             <line x1="10" y1="11" x2="10" y2="17" />
             <line x1="14" y1="11" x2="14" y2="17" />
+        </svg>
+    );
+}
