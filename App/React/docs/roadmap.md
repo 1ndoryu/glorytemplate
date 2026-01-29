@@ -11,6 +11,7 @@
 - 2026-01-29: Modal de conflicto en edición con detalle de clase y opción de horario cercano.
 - 2026-01-29: Ocultar sábado/domingo en horarios flexibles y permitir colapsar el panel lateral.
 - 2026-01-29: Modal de aforo ahora carga alumnos por IDs para mostrar la lista de exclusión.
+- TO-DO: agregar endpoint dedicado de alumnos por IDs para reducir acoplamiento con el listado general.
 
 ---
 
