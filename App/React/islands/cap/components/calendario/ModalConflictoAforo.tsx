@@ -26,6 +26,7 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
     const [exclusiones, setExclusiones] = useState<ExclusionesConflicto>({});
     const [alumnosInfo, setAlumnosInfo] = useState<Map<number, Alumno>>(new Map());
     const [cargandoAlumnos, setCargandoAlumnos] = useState(false);
+    const [slotsAbiertos, setSlotsAbiertos] = useState<Record<string, boolean>>({});
 
     /* Normalización defensiva para evitar formatos inesperados en la respuesta. */
     const normalizarIdsAlumnos = (lista: unknown): number[] => {
@@ -56,30 +57,20 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
         const cargarAlumnos = async () => {
             setCargandoAlumnos(true);
             try {
-                /* Debug: verificar conflictos recibidos */
-                console.log('[ModalConflictoAforo] Conflictos recibidos:', conflictos);
-
                 /* Obtener IDs únicos de alumnos */
                 const alumnosIds = new Set<number>();
                 conflictos.forEach(c => {
-                    console.log('[ModalConflictoAforo] Procesando conflicto:', c);
-                    console.log('[ModalConflictoAforo] c.alumnos:', c.alumnos);
                     const idsNormalizados = normalizarIdsAlumnos(c.alumnos);
-                    console.log('[ModalConflictoAforo] IDs normalizados:', idsNormalizados);
                     idsNormalizados.forEach(id => alumnosIds.add(id));
                 });
 
-                console.log('[ModalConflictoAforo] IDs únicos finales:', Array.from(alumnosIds));
-
                 if (alumnosIds.size === 0) {
-                    console.warn('[ModalConflictoAforo] No se encontraron IDs de alumnos');
                     setAlumnosInfo(new Map());
                     return;
                 }
 
                 const idsQuery = Array.from(alumnosIds).join(',');
-                const url = `/wp-json/cap/v1/alumnos?ids=${encodeURIComponent(idsQuery)}`;
-                console.log('[ModalConflictoAforo] Haciendo fetch a:', url);
+                const url = `/wp-json/cap/v1/alumnos/por-ids?ids=${encodeURIComponent(idsQuery)}`;
 
                 const response = await fetch(url, {
                     headers: {
@@ -87,11 +78,8 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                     }
                 });
 
-                console.log('[ModalConflictoAforo] Response status:', response.status);
-
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('[ModalConflictoAforo] Datos recibidos:', data);
                     
                     const mapa = new Map<number, Alumno>();
                     (data.alumnos || []).forEach((a: any) => {
@@ -112,7 +100,6 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                             });
                         }
                     });
-                    console.log('[ModalConflictoAforo] Mapa de alumnos generado:', mapa);
                     setAlumnosInfo(mapa);
                 } else {
                     console.error('[ModalConflictoAforo] Response no OK:', await response.text());
@@ -137,6 +124,14 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
         setExclusiones(inicial);
     }, [conflictos]);
 
+    useEffect(() => {
+        const inicial: Record<string, boolean> = {};
+        conflictos.forEach(c => {
+            inicial[c.slotKey] = true;
+        });
+        setSlotsAbiertos(inicial);
+    }, [conflictos]);
+
     /* Toggle exclusión de alumno */
     const toggleExclusion = (slotKey: string, alumnoId: number) => {
         setExclusiones(prev => {
@@ -150,6 +145,14 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
         });
     };
 
+    /* Toggle visual de lista por slot */
+    const toggleSlot = (slotKey: string) => {
+        setSlotsAbiertos(prev => ({
+            ...prev,
+            [slotKey]: !prev[slotKey]
+        }));
+    };
+
     /* Verificar si todas las exclusiones resuelven los conflictos */
     const exclusionesValidas = (): boolean => {
         return conflictos.every(c => {
@@ -161,7 +164,6 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
     /* Obtener nombre de alumno */
     const getNombreAlumno = (id: number): string => {
         const alumno = alumnosInfo.get(id);
-        console.log(`[ModalConflictoAforo] getNombreAlumno(${id}):`, alumno ? alumno.nombre : 'NO ENCONTRADO', 'Mapa size:', alumnosInfo.size);
         return alumno?.nombre || `Alumno #${id}`;
     };
 
@@ -186,7 +188,7 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
 
     return (
         <Modal abierto={abierto} onCerrar={onCerrar} titulo="Conflictos de Aforo" tamano="lg" cerrarConEscape={!cargando}>
-            <div className="conflictoAforo">
+            <div className="conflictoAforo" id="modalConflictoAforo">
                 <div className="conflictoAforo__descripcion">
                     <p>
                         Se han detectado <strong>{conflictos.length}</strong> slots horarios donde la demanda de alumnos <strong>supera la capacidad máxima</strong> por clase.
@@ -200,12 +202,8 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                         const excluidos = exclusiones[conflicto.slotKey] || [];
                         const faltan = conflicto.exceso - excluidos.length;
                         const resuelto = faltan <= 0;
-
-                        console.log(`[ModalConflictoAforo] Renderizando slot ${conflicto.slotKey}:`, {
-                            alumnosConflicto,
-                            cargandoAlumnos,
-                            alumnosInfoSize: alumnosInfo.size
-                        });
+                        const slotAbierto = slotsAbiertos[conflicto.slotKey] ?? true;
+                        const alumnosId = `conflictoAforo-alumnos-${conflicto.slotKey.replace(/[^a-zA-Z0-9_-]/g, '')}`;
 
                         return (
                             <div key={conflicto.slotKey} className={`conflictoAforo__slot ${resuelto ? 'conflictoAforo__slot--resuelto' : ''}`}>
@@ -225,25 +223,37 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                                         </span>
                                         {!resuelto && <span className="conflictoAforo__exceso">Excluir: {faltan} más</span>}
                                         {resuelto && <span className="conflictoAforo__ok">✓ Resuelto</span>}
+                                        <button
+                                            type="button"
+                                            className="conflictoAforo__toggle"
+                                            onClick={() => toggleSlot(conflicto.slotKey)}
+                                            aria-expanded={slotAbierto}
+                                            aria-controls={alumnosId}
+                                        >
+                                            {slotAbierto ? 'Ocultar alumnos' : `Mostrar alumnos (${alumnosConflicto.length})`}
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div className="conflictoAforo__alumnos">
-                                    {cargandoAlumnos ? (
-                                        <span className="conflictoAforo__cargando">Cargando alumnos...</span>
-                                    ) : alumnosConflicto.length === 0 ? (
-                                        <span className="conflictoAforo__vacio">No hay alumnos disponibles en este slot.</span>
-                                    ) : (
-                                        alumnosConflicto.map(alumnoId => {
-                                            const excluido = excluidos.includes(alumnoId);
-                                            return (
-                                                <label key={alumnoId} className={`conflictoAforo__alumno ${excluido ? 'conflictoAforo__alumno--excluido' : ''}`}>
-                                                    <input type="checkbox" checked={excluido} onChange={() => toggleExclusion(conflicto.slotKey, alumnoId)} className="conflictoAforo__checkbox" />
-                                                    <span className="conflictoAforo__alumnoNombre">{getNombreAlumno(alumnoId)}</span>
-                                                </label>
-                                            );
-                                        })
-                                    )}
+                                {/* Ajuste UX: acordeón por slot para evitar listas infinitas y unificar scroll. */}
+                                <div className={`conflictoAforo__slotContenido ${slotAbierto ? '' : 'conflictoAforo__slotContenido--colapsado'}`} id={alumnosId}>
+                                    <div className="conflictoAforo__alumnos">
+                                        {cargandoAlumnos ? (
+                                            <span className="conflictoAforo__cargando">Cargando alumnos...</span>
+                                        ) : alumnosConflicto.length === 0 ? (
+                                            <span className="conflictoAforo__vacio">No hay alumnos disponibles en este slot.</span>
+                                        ) : (
+                                            alumnosConflicto.map(alumnoId => {
+                                                const excluido = excluidos.includes(alumnoId);
+                                                return (
+                                                    <label key={alumnoId} className={`conflictoAforo__alumno ${excluido ? 'conflictoAforo__alumno--excluido' : ''}`}>
+                                                        <input type="checkbox" checked={excluido} onChange={() => toggleExclusion(conflicto.slotKey, alumnoId)} className="conflictoAforo__checkbox" />
+                                                        <span className="conflictoAforo__alumnoNombre">{getNombreAlumno(alumnoId)}</span>
+                                                    </label>
+                                                );
+                                            })
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         );

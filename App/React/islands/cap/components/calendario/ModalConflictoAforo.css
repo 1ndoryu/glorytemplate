@@ -9,6 +9,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--cap-espacio-lg);
+    max-height: 72vh;
+    overflow-y: auto;
+    padding-right: var(--cap-espacio-xs);
 }
 
 .conflictoAforo__descripcion {
@@ -36,16 +39,13 @@
 .conflictoAforo__lista {
     display: flex;
     flex-direction: column;
-    gap: var(--cap-espacio-md);
-    max-height: 400px;
-    overflow-y: auto;
+    gap: var(--cap-espacio-lg);
 }
 
 /* Slot individual */
 .conflictoAforo__slot {
     border: 1px solid var(--cap-borde);
     border-radius: var(--cap-radio-md);
-    overflow: hidden;
     transition: border-color 0.2s ease;
 }
 
@@ -89,7 +89,7 @@
 .conflictoAforo__stats {
     display: flex;
     align-items: center;
-    gap: var(--cap-espacio-md);
+    gap: var(--cap-espacio-sm);
     flex-wrap: wrap;
 }
 
@@ -125,11 +125,32 @@
     border-radius: var(--cap-radio-sm);
 }
 
+.conflictoAforo__toggle {
+    font-size: var(--cap-texto-xs);
+    font-weight: 600;
+    color: var(--cap-texto-primario);
+    background: var(--cap-fondo);
+    border: 1px solid var(--cap-borde);
+    padding: 4px 10px;
+    border-radius: var(--cap-radio-sm);
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.conflictoAforo__toggle:hover {
+    background: var(--cap-fondo-hover);
+    border-color: var(--cap-borde);
+}
+
+.conflictoAforo__slotContenido--colapsado {
+    display: none;
+}
+
 /* Lista de alumnos */
 .conflictoAforo__alumnos {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: var(--cap-espacio-xs);
+    gap: var(--cap-espacio-sm);
     padding: var(--cap-espacio-md);
 }
 

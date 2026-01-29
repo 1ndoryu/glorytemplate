@@ -36,6 +36,10 @@ class CapEndpoints
             ['methods' => 'GET', 'callback' => [$this, 'listarAlumnos'], 'permission_callback' => [$this, 'verificarPermisos']],
             ['methods' => 'POST', 'callback' => [$this, 'crearAlumno'], 'permission_callback' => [$this, 'verificarPermisos']],
         ]);
+            /* Endpoint dedicado para alumnos por IDs (evitar acoplamiento con listado general) */
+            register_rest_route(self::NAMESPACE, '/alumnos/por-ids', [
+                ['methods' => 'GET', 'callback' => [$this, 'listarAlumnosPorIds'], 'permission_callback' => [$this, 'verificarPermisos']],
+            ]);
 
         register_rest_route(self::NAMESPACE, '/alumnos/(?P<id>\d+)', [
             ['methods' => 'PUT', 'callback' => [$this, 'actualizarAlumno'], 'permission_callback' => [$this, 'verificarPermisos']],
@@ -239,24 +243,30 @@ class CapEndpoints
         $alumnoModel = new Alumno();
         $idsParam = $request->get_param('ids');
         if (!empty($idsParam)) {
-            $ids = is_array($idsParam) ? $idsParam : explode(',', (string) $idsParam);
-            $ids = array_values(array_unique(array_filter(array_map('absint', $ids))));
-
-            error_log('[CapEndpoints] Solicitud de alumnos por IDs: ' . print_r($ids, true));
-
-            /*
-             * Filtro por IDs para mostrar nombres en conflictos de aforo.
-             */
-            $alumnos = $alumnoModel->obtenerPorIds($centroId, $ids);
-
-            error_log('[CapEndpoints] Alumnos encontrados: ' . count($alumnos));
-            error_log('[CapEndpoints] Datos: ' . print_r($alumnos, true));
-
-            return new \WP_REST_Response([
-                'alumnos' => $alumnos,
-                'total' => count($alumnos),
-            ]);
+            /* Compatibilidad temporal: usar endpoint dedicado de IDs. */
+            return $this->listarAlumnosPorIds($request);
         }
+     * Lista alumnos filtrando por IDs (endpoint dedicado)
+     */
+    public function listarAlumnosPorIds(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+        if (!$centroId) return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+
+        $idsParam = $request->get_param('ids');
+        $ids = is_array($idsParam) ? $idsParam : explode(',', (string) $idsParam);
+        $ids = array_values(array_unique(array_filter(array_map('absint', $ids))));
+
+        /* Arreglo: endpoint dedicado para evitar mezclar filtros en el listado general. */
+        $alumnoModel = new Alumno();
+        $alumnos = $alumnoModel->obtenerPorIds($centroId, $ids);
+
+        return new \WP_REST_Response([
+            'alumnos' => $alumnos,
+            'total' => count($alumnos),
+        ]);
+    }
 
         $opciones = [
             'limite' => $request->get_param('limite') ?? 50,
@@ -338,12 +348,6 @@ class CapEndpoints
 
         $engine = new CalendarEngine($centroId);
         $resultado = $engine->generar($semana, $alumnosIds);
-
-        error_log('[CapEndpoints] Resultado de generación - exito: ' . ($resultado['exito'] ? 'true' : 'false'));
-        error_log('[CapEndpoints] Total conflictos: ' . count($resultado['conflictos']));
-        if (!empty($resultado['conflictos'])) {
-            error_log('[CapEndpoints] Primer conflicto: ' . print_r($resultado['conflictos'][0], true));
-        }
 
         $statusCode = $resultado['exito'] ? 200 : 409;
         return new \WP_REST_Response($resultado, $statusCode);

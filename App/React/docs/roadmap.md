@@ -14,22 +14,10 @@
 - 2026-01-29: Ocultar sábado/domingo en horarios flexibles y permitir colapsar el panel lateral.
 - 2026-01-29: Modal de aforo ahora carga alumnos por IDs para mostrar la lista de exclusión.
 - 2026-01-29: Normalización defensiva de alumnos y fecha en conflictos de aforo.
+- 2026-01-29: UX modal de aforo con scroll único y acordeón por slot; limpieza de logs y endpoint dedicado de alumnos por IDs.
 
 **TO-DOs Pendientes**
-- **Rediseño UX Modal de Conflictos de Aforo:**
-  - Problema: overflow:hidden oculta alumnos, doble scrollbar (modal + lista), slots comprimidos con muchas opciones
-  - Solución propuesta: 
-    * Eliminar overflow:hidden o reemplazar con scroll controlado
-    * Unificar scrolling (solo una barra de scroll en todo el modal)
-    * Mejorar espaciado vertical entre slots
-    * Considerar diseño tipo accordion o tabs para slots con muchos alumnos
-    * Asegurar que todos los alumnos sean visibles y seleccionables cómodamente
-  - Archivos afectados: `ModalConflictoAforo.css`, `ModalConflictoAforo.tsx`
-- **Limpieza de logs de depuración:**
-  - Eliminar todos los console.log agregados en `ModalConflictoAforo.tsx`
-  - Eliminar error_log en `CapEndpoints.php` (listarAlumnos, generarCalendario)
-  - Conservar solo logs de errores críticos
-- **Endpoint dedicado de alumnos por IDs:** Reducir acoplamiento con listado general (actualmente usa mismo endpoint con parámetro ?ids=)
+- Sin pendientes activos en este bloque.
 
 ---
 
