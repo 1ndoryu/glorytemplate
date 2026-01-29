@@ -103,9 +103,12 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         return '';
     }, []);
 
-    /* Formatear fecha para API */
+    /* Formatear fecha para API (sin conversión a UTC) */
     const formatearFechaApi = useCallback((fecha: Date): string => {
-        return fecha.toISOString().split('T')[0];
+        const year = fecha.getFullYear();
+        const month = String(fecha.getMonth() + 1).padStart(2, '0');
+        const day = String(fecha.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }, []);
 
     /* Normalizar formato de hora a HH:MM para evitar segundos */

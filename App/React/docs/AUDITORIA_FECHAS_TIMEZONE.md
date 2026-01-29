@@ -65,7 +65,20 @@ fecha: 2026-01-29
 
 1. ✅ **Formato de fechas:** Todas las fechas se envían como `YYYY-MM-DD` sin componente de tiempo
 2. ✅ **Formato de horas:** Todas las horas usan formato `HH:MM` sin segundos
-3. ✅ **Parsing local:** Se usa `formatearFechaLocal()` para evitar offset UTC
+3. ✅ **Parsing local:** Se usa función local `formatearFechaApi()` para evitar offset UTC
+4. ✅ **FIX CRÍTICO:** Eliminado uso de `toISOString()` en `useCalendario.ts` y `SeccionReportes.tsx` que causaba desfase de un día en generación de clases
+
+**Función de normalización implementada:**
+```typescript
+const formatearFechaApi = (fecha: Date): string => {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+```
+
+Esta función evita la conversión a UTC que `toISOString()` hace automáticamente y que causaba que las fechas se movieran un día hacia atrás cuando se generaban antes de la medianoche UTC.
 
 ---
 

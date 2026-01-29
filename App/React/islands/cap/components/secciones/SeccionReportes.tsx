@@ -46,9 +46,12 @@ export function SeccionReportes() {
         return `${formatoCorto(fecha)} - ${formatoCorto(viernes)}`;
     };
 
-    /* Formato de fecha para API (YYYY-MM-DD) */
+    /* Formato de fecha para API (YYYY-MM-DD) sin conversión a UTC */
     const formatearFechaApi = (fecha: Date): string => {
-        return fecha.toISOString().split('T')[0];
+        const year = fecha.getFullYear();
+        const month = String(fecha.getMonth() + 1).padStart(2, '0');
+        const day = String(fecha.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     };
 
     /* Navegación de semanas */
