@@ -27,6 +27,28 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
     const [alumnosInfo, setAlumnosInfo] = useState<Map<number, Alumno>>(new Map());
     const [cargandoAlumnos, setCargandoAlumnos] = useState(false);
 
+    /* Normalización defensiva para evitar formatos inesperados en la respuesta. */
+    const normalizarIdsAlumnos = (lista: unknown): number[] => {
+        if (!Array.isArray(lista)) return [];
+
+        return lista
+            .map(item => {
+                if (typeof item === 'number') return item;
+                if (typeof item === 'string') {
+                    const parsed = Number(item);
+                    return Number.isFinite(parsed) ? parsed : null;
+                }
+                if (item && typeof item === 'object') {
+                    const candidato = (item as {id?: number; alumnoId?: number; alumno_id?: number}).id
+                        ?? (item as {id?: number; alumnoId?: number; alumno_id?: number}).alumnoId
+                        ?? (item as {id?: number; alumnoId?: number; alumno_id?: number}).alumno_id;
+                    return typeof candidato === 'number' ? candidato : null;
+                }
+                return null;
+            })
+            .filter((id): id is number => Number.isFinite(id));
+    };
+
     /* Cargar información de alumnos al abrir */
     useEffect(() => {
         if (!abierto || conflictos.length === 0) return;
@@ -36,7 +58,7 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
             try {
                 /* Obtener IDs únicos de alumnos */
                 const alumnosIds = new Set<number>();
-                conflictos.forEach(c => c.alumnos.forEach(id => alumnosIds.add(id)));
+                conflictos.forEach(c => normalizarIdsAlumnos(c.alumnos).forEach(id => alumnosIds.add(id)));
 
                 if (alumnosIds.size === 0) {
                     setAlumnosInfo(new Map());
@@ -121,6 +143,9 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
     /* Formatear fecha legible */
     const formatearFecha = (fecha: string): string => {
         const d = new Date(fecha);
+        if (Number.isNaN(d.getTime())) {
+            return fecha;
+        }
         return d.toLocaleDateString('es-ES', {
             weekday: 'long',
             day: 'numeric',
@@ -146,6 +171,7 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
 
                 <div className="conflictoAforo__lista">
                     {conflictos.map(conflicto => {
+                        const alumnosConflicto = normalizarIdsAlumnos(conflicto.alumnos);
                         const excluidos = exclusiones[conflicto.slotKey] || [];
                         const faltan = conflicto.exceso - excluidos.length;
                         const resuelto = faltan <= 0;
@@ -174,10 +200,10 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                                 <div className="conflictoAforo__alumnos">
                                     {cargandoAlumnos ? (
                                         <span className="conflictoAforo__cargando">Cargando alumnos...</span>
-                                    ) : conflicto.alumnos.length === 0 ? (
+                                    ) : alumnosConflicto.length === 0 ? (
                                         <span className="conflictoAforo__vacio">No hay alumnos disponibles en este slot.</span>
                                     ) : (
-                                        conflicto.alumnos.map(alumnoId => {
+                                        alumnosConflicto.map(alumnoId => {
                                             const excluido = excluidos.includes(alumnoId);
                                             return (
                                                 <label key={alumnoId} className={`conflictoAforo__alumno ${excluido ? 'conflictoAforo__alumno--excluido' : ''}`}>
