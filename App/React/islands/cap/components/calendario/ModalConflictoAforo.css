@@ -31,6 +31,13 @@
     margin-top: var(--cap-espacio-xs);
 }
 
+.conflictoAforo__accionesRapidas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cap-espacio-sm);
+    margin-top: var(--cap-espacio-sm);
+}
+
 .conflictoAforo__descripcion strong {
     color: var(--cap-texto-primario);
 }

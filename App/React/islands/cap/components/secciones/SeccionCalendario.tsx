@@ -68,6 +68,12 @@ export function SeccionCalendario() {
         generarConExclusiones(exclusiones);
     };
 
+    const handlePosponerSemana = () => {
+        /* Ajuste rápido: cerrar conflictos y pasar a la siguiente semana. */
+        cerrarModalConflictos();
+        irSemanaSiguiente();
+    };
+
     const handleGuardarClase = async (claseId: number, cambios: CambiosClase) => {
         await actualizarClase(claseId, cambios);
     };
@@ -100,7 +106,7 @@ export function SeccionCalendario() {
             </div>
 
             {/* Modal para resolver conflictos de aforo */}
-            <ModalConflictoAforo abierto={mostrarModalConflictos} conflictos={conflictos} onCerrar={cerrarModalConflictos} onConfirmar={handleConfirmarExclusiones} cargando={generando} />
+            <ModalConflictoAforo abierto={mostrarModalConflictos} conflictos={conflictos} onCerrar={cerrarModalConflictos} onConfirmar={handleConfirmarExclusiones} onPosponerSemana={handlePosponerSemana} cargando={generando} />
 
             {/* Modal para editar detalles de clase - usa claseActualizada para reflejar cambios en tiempo real */}
             {/* La key fuerza un remount cuando cambia la clase, reseteando el estado interno */}

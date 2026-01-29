@@ -15,6 +15,7 @@
 - 2026-01-29: Modal de aforo ahora carga alumnos por IDs para mostrar la lista de exclusión.
 - 2026-01-29: Normalización defensiva de alumnos y fecha en conflictos de aforo.
 - 2026-01-29: UX modal de aforo con scroll único y acordeón por slot; limpieza de logs y endpoint dedicado de alumnos por IDs.
+- 2026-01-29: Corrección de fecha local en modal de aforo y acciones rápidas para resolver aleatorio o posponer a próxima semana.
 
 **TO-DOs Pendientes**
 - Sin pendientes activos en este bloque.

@@ -18,10 +18,11 @@ interface ModalConflictoAforoProps {
     conflictos: ConflictoAforo[];
     onCerrar: () => void;
     onConfirmar: (exclusiones: ExclusionesConflicto) => void;
+    onPosponerSemana?: () => void;
     cargando?: boolean;
 }
 
-export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar, cargando = false}: ModalConflictoAforoProps): JSX.Element {
+export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar, onPosponerSemana, cargando = false}: ModalConflictoAforoProps): JSX.Element {
     /* Estado de exclusiones: slotKey -> array de alumnoIds excluidos */
     const [exclusiones, setExclusiones] = useState<ExclusionesConflicto>({});
     const [alumnosInfo, setAlumnosInfo] = useState<Map<number, Alumno>>(new Map());
@@ -167,9 +168,15 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
         return alumno?.nombre || `Alumno #${id}`;
     };
 
-    /* Formatear fecha legible */
+    /* Formatear fecha legible evitando desfase por zona horaria. */
     const formatearFecha = (fecha: string): string => {
-        const d = new Date(fecha);
+        const esFechaSimple = /^\d{4}-\d{2}-\d{2}$/.test(fecha);
+        const d = esFechaSimple
+            ? (() => {
+                const [anio, mes, dia] = fecha.split('-').map(Number);
+                return new Date(anio, mes - 1, dia);
+            })()
+            : new Date(fecha);
         if (Number.isNaN(d.getTime())) {
             return fecha;
         }
@@ -178,6 +185,27 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
             day: 'numeric',
             month: 'long'
         });
+    };
+
+    /* Resolver automáticamente excluyendo alumnos al azar por slot. */
+    const resolverAleatoriamente = () => {
+        const nuevasExclusiones: ExclusionesConflicto = {};
+
+        conflictos.forEach(conflicto => {
+            const alumnosConflicto = normalizarIdsAlumnos(conflicto.alumnos);
+            const exceso = Math.max(conflicto.exceso, 0);
+
+            if (exceso === 0 || alumnosConflicto.length === 0) {
+                nuevasExclusiones[conflicto.slotKey] = [];
+                return;
+            }
+
+            const mezcla = [...alumnosConflicto].sort(() => Math.random() - 0.5);
+            nuevasExclusiones[conflicto.slotKey] = mezcla.slice(0, Math.min(exceso, mezcla.length));
+        });
+
+        setExclusiones(nuevasExclusiones);
+        onConfirmar(nuevasExclusiones);
     };
 
     const handleConfirmar = () => {
@@ -194,6 +222,16 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                         Se han detectado <strong>{conflictos.length}</strong> slots horarios donde la demanda de alumnos <strong>supera la capacidad máxima</strong> por clase.
                     </p>
                     <p>Selecciona qué alumnos excluir de cada slot para resolver los conflictos.</p>
+                    <div className="conflictoAforo__accionesRapidas">
+                        <Boton variante="secundario" onClick={resolverAleatoriamente} disabled={cargando || cargandoAlumnos}>
+                            Resolver aleatoriamente
+                        </Boton>
+                        {onPosponerSemana && (
+                            <Boton variante="outline" onClick={onPosponerSemana} disabled={cargando}>
+                                Posponer para la siguiente semana
+                            </Boton>
+                        )}
+                    </div>
                 </div>
 
                 <div className="conflictoAforo__lista">
