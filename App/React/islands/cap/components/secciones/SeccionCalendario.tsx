@@ -37,8 +37,12 @@ export function SeccionCalendario() {
             viernes: []
         };
 
+        const parsearFechaLocal = (fechaStr: string): Date => {
+            return new Date(`${fechaStr}T00:00:00`);
+        };
+
         clases.forEach(clase => {
-            const fechaClase = new Date(clase.fecha);
+            const fechaClase = parsearFechaLocal(clase.fecha);
             const indiceDia = fechaClase.getDay();
             const diasMap: Record<number, DiaSemana> = {
                 1: 'lunes',

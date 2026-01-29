@@ -12,6 +12,7 @@
 import {useState, useCallback, useEffect} from 'react';
 import type {Clase, DiaSemana, ConflictoAforo, ExclusionesConflicto, ResultadoGeneracion, PreviewGeneracion} from '../types';
 import {getLunesDeSemana, getFechasSemana, DIAS_SEMANA} from '../constants';
+import {detectarColision} from '../utils/collisionUtils';
 import {interpretarErrorHttp, interpretarErrorRed, formatearMensajeError, obtenerMensajeContextual, procesarErrorApi} from '../constants/cap-errores';
 
 /* Interfaz para cambios de una clase */
@@ -367,6 +368,28 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
     /* Actualizar clase con cambios */
     const actualizarClase = useCallback(
         async (claseId: number, cambios: CambiosClase) => {
+            const claseActual = clases.find(c => c.id === claseId);
+            if (!claseActual) return;
+
+            const horaInicioOriginal = normalizarHora(claseActual.horaInicio);
+            const horaFinOriginal = normalizarHora(claseActual.horaFin);
+            const horaInicioNueva = normalizarHora(cambios.horaInicio ?? horaInicioOriginal);
+            const horaFinNueva = normalizarHora(cambios.horaFin ?? horaFinOriginal);
+            const cambiaHorario = horaInicioNueva !== horaInicioOriginal || horaFinNueva !== horaFinOriginal;
+
+            /* Ajuste: validar conflictos al editar hora desde modal */
+            if (cambiaHorario) {
+                const clasesDia = clases.filter(c => c.fecha === claseActual.fecha);
+                const conflicto = detectarColision(horaInicioNueva, horaFinNueva, clasesDia, claseId);
+                if (conflicto) {
+                    const contexto = obtenerMensajeContextual('calendario', 'mover');
+                    setError(
+                        `Estás intentando mover la clase a las ${horaInicioNueva}, pero ese horario ya está ocupado. ${contexto.sugerencia}`
+                    );
+                    return;
+                }
+            }
+
             setGuardandoEdicion(true);
             setError(null);
 
@@ -379,8 +402,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                     if (c.id === claseId) {
                         return {
                             ...c,
-                            horaInicio: normalizarHora(cambios.horaInicio ?? c.horaInicio),
-                            horaFin: normalizarHora(cambios.horaFin ?? c.horaFin),
+                            horaInicio: horaInicioNueva,
+                            horaFin: horaFinNueva,
                             asignaturaId: cambios.asignaturaId ?? c.asignaturaId
                         };
                     }
@@ -422,7 +445,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 setGuardandoEdicion(false);
             }
         },
-        [getNonce, guardarSnapshot, cerrarModalEdicion, historialClases, normalizarHora]
+        [clases, getNonce, guardarSnapshot, cerrarModalEdicion, historialClases, normalizarHora]
     );
 
     /* Deshacer último cambio */

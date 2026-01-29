@@ -7,6 +7,7 @@
 **Notas de mantenimiento**
 - 2026-01-29: Ajuste de colisiones DnD y toasts de movimiento inválido.
 - 2026-01-29: Validación de conflicto al editar hora en modal y normalización de formato HH:MM.
+- 2026-01-29: Fix de colisiones al editar hora y parseo local de fecha en clasesPorDia.
 
 ---
 
