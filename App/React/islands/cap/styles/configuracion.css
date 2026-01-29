@@ -51,11 +51,43 @@
 
 .capFormConfig__acciones {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
     gap: var(--cap-espacio-sm);
     padding-top: var(--cap-espacio-md);
     border-top: 1px solid var(--cap-borde-sutil);
+}
+
+.capHorarioDia {
+    border-bottom: 1px solid var(--cap-borde);
+    padding-bottom: var(--cap-espacio-md);
+}
+
+.capHorarioFila {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--cap-espacio-xs);
+}
+
+.capHorarioCampo {
+    flex: 1;
+}
+
+.capBotonEliminarRango {
+    background: none;
+    border: none;
+    color: var(--cap-rojo);
+    cursor: pointer;
+    padding: var(--cap-espacio-xs);
+    margin-bottom: var(--cap-espacio-xxs, 0.25rem);
+}
+
+.capBotonIcono {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
 }
 
 /* Toggle switch */

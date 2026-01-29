@@ -35,6 +35,28 @@ const DIAS_SEMANA = [
     {id: 'domingo', label: 'Domingo'}
 ];
 
+const construirHorariosPorDefecto = (configuracion: ConfiguracionHorarios | null): HorariosSemanales => {
+    const base: HorariosSemanales = {};
+    const manana = {inicio: configuracion?.hora_inicio_manana || '09:00', fin: configuracion?.hora_fin_manana || '14:00'};
+    const tarde = {inicio: configuracion?.hora_inicio_tarde || '16:00', fin: configuracion?.hora_fin_tarde || '21:00'};
+
+    DIAS_SEMANA.forEach(dia => {
+        base[dia.id] = [];
+        if (dia.id === 'sabado' || dia.id === 'domingo') return;
+
+        base[dia.id].push({...manana});
+
+        if (dia.id === 'viernes' && configuracion?.viernes_especial && configuracion?.hora_fin_viernes) {
+            base[dia.id].push({inicio: configuracion.hora_inicio_tarde || '16:00', fin: configuracion.hora_fin_viernes});
+            return;
+        }
+
+        base[dia.id].push({...tarde});
+    });
+
+    return base;
+};
+
 export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps) {
     const [horarios, setHorarios] = useState<HorariosSemanales>({});
     const [modificado, setModificado] = useState(false);
@@ -52,37 +74,15 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
                         horariosLimpio[dia.id] = Array.isArray(parsed[dia.id]) ? parsed[dia.id] : [];
                     });
                     setHorarios(horariosLimpio);
+                    setHorariosOriginales(JSON.parse(JSON.stringify(horariosLimpio)));
                     return;
                 } catch (e) {
                     console.error('Error al parsear horarios semanales', e);
                 }
             }
 
-            /* Fallback: Migrar configuración legacy a flexible */
-            const fallback: HorariosSemanales = {};
-            const manana = {inicio: config.hora_inicio_manana || '09:00', fin: config.hora_fin_manana || '14:00'};
-            const tarde = {inicio: config.hora_inicio_tarde || '16:00', fin: config.hora_fin_tarde || '21:00'};
-            const tardeViernes = {inicio: config.hora_inicio_tarde || '16:00', fin: config.hora_fin_viernes || '15:00'};
-
-            DIAS_SEMANA.forEach(dia => {
-                fallback[dia.id] = [];
-                if (dia.id === 'sabado' || dia.id === 'domingo') return;
-
-                /* Añadir turnos por defecto */
-                fallback[dia.id].push({...manana});
-
-                if (dia.id === 'viernes' && config.viernes_especial) {
-                    /* Viernes especial a veces no tiene tarde o termina antes */
-                    // Si el horario especial implica solo mañana extendida o diferente:
-                    // La lógica antigua era confusa, aqui simplificamos a lo que haya en variables
-                    if (config.hora_fin_viernes) {
-                        // Asumimos que viernes especial reemplaza la tarde normal
-                        fallback[dia.id].push({inicio: config.hora_inicio_tarde || '16:00', fin: config.hora_fin_viernes});
-                    }
-                } else {
-                    fallback[dia.id].push({...tarde});
-                }
-            });
+            /* Fallback: Construir configuración por defecto */
+            const fallback = construirHorariosPorDefecto(config);
             setHorarios(fallback);
         }
     }, [config]);
@@ -125,6 +125,18 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
         if (exito) setModificado(false);
     };
 
+    const handleRestablecer = () => {
+        const confirmacion = window.confirm(
+            '¿Estás seguro de que deseas restablecer los horarios a la configuración por defecto? Los cambios sin guardar se perderán.'
+        );
+
+        if (confirmacion) {
+            /* Ajuste: restablecer vuelve al horario por defecto, no al último guardado. */
+            setHorarios(construirHorariosPorDefecto(config));
+            setModificado(true);
+        }
+    };
+
     return (
         <Tarjeta className="capPanelConfig">
             <TarjetaHeader>
@@ -143,10 +155,10 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
 
                     <div className="capGrid capGap--lg">
                         {DIAS_SEMANA.map(dia => (
-                            <div key={dia.id} className="capHorarioDia" style={{borderBottom: '1px solid var(--cap-borde)', paddingBottom: '1rem'}}>
+                            <div key={dia.id} className="capHorarioDia">
                                 <div className="capFlexBetween capMb--sm">
                                     <h4 className="capTexto capTexto--negrita">{dia.label}</h4>
-                                    <Boton type="button" onClick={() => agregarRango(dia.id)} variante="secundario" tamano="sm" className="capBtnIcono" title="Añadir tramo horario">
+                                    <Boton type="button" onClick={() => agregarRango(dia.id)} variante="secundario" tamano="sm" className="capBotonIcono" title="Añadir tramo horario">
                                         <IconoMas size={16} /> Añadir
                                     </Boton>
                                 </div>
@@ -154,25 +166,17 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
                                 {horarios[dia.id] && horarios[dia.id].length > 0 ? (
                                     <div className="capGrid capGrid--2cols capGap--sm">
                                         {horarios[dia.id].map((rango, index) => (
-                                            <div key={index} className="capFlexCenter capGap--xs" style={{alignItems: 'flex-end'}}>
-                                                <div style={{flex: 1}}>
+                                            <div key={index} className="capHorarioFila">
+                                                <div className="capHorarioCampo">
                                                     <Input tipo="text" value={rango.inicio} onChange={e => handleRangoChange(dia.id, index, 'inicio', e.target.value)} placeholder="09:00" etiqueta={index === 0 ? 'Inicio' : undefined} />
                                                 </div>
-                                                <div style={{flex: 1}}>
+                                                <div className="capHorarioCampo">
                                                     <Input tipo="text" value={rango.fin} onChange={e => handleRangoChange(dia.id, index, 'fin', e.target.value)} placeholder="14:00" etiqueta={index === 0 ? 'Fin' : undefined} />
                                                 </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => eliminarRango(dia.id, index)}
-                                                    className="capBtnEliminarRango"
-                                                    style={{
-                                                        background: 'none',
-                                                        border: 'none',
-                                                        color: 'var(--cap-rojo)',
-                                                        cursor: 'pointer',
-                                                        padding: '0.5rem',
-                                                        marginBottom: '0.2rem'
-                                                    }}
+                                                    className="capBotonEliminarRango"
                                                     title="Eliminar tramo">
                                                     <IconoEliminar size={18} />
                                                 </button>
@@ -187,6 +191,9 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
                     </div>
 
                     <div className="capFormConfig__acciones capMt--lg">
+                        <Boton type="button" variante="secundario" tamano="md" onClick={handleRestablecer} disabled={guardando} title="Restablecer a valores por defecto">
+                            Restablecer
+                        </Boton>
                         <Boton type="submit" variante="primario" tamano="md" disabled={!modificado || guardando} cargando={guardando}>
                             <IconoGuardar />
                             Guardar Horarios
