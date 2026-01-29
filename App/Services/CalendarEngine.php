@@ -234,7 +234,15 @@ class CalendarEngine
         global $wpdb;
         $tabla = $wpdb->prefix . 'cap_clases';
 
-        $fechaFin = date('Y-m-d', strtotime($fechaInicioSemana . ' +4 days'));
+        /* Usar DateTime para calcular fecha fin, evitando problemas de timezone */
+        $fechaBase = \DateTime::createFromFormat('!Y-m-d', $fechaInicioSemana);
+        if (!$fechaBase) {
+            $this->clasesBloquedas = [];
+            return;
+        }
+        $fechaFinObj = clone $fechaBase;
+        $fechaFinObj->modify('+4 days');
+        $fechaFin = $fechaFinObj->format('Y-m-d');
 
         $this->clasesBloquedas = $wpdb->get_results($wpdb->prepare(
             "SELECT * FROM {$tabla} 
@@ -262,8 +270,21 @@ class CalendarEngine
         /* Mapeo de índice de día (0-6) a claves del JSON */
         $nombresDias = [0 => 'lunes', 1 => 'martes', 2 => 'miercoles', 3 => 'jueves', 4 => 'viernes', 5 => 'sabado', 6 => 'domingo'];
 
-        for ($dia = 0; $dia < 5; $dia++) { // Lunes a Viernes (expandible a fin de semana si se requiere)
-            $fecha = date('Y-m-d', strtotime($fechaInicioSemana . " +{$dia} days"));
+        /*
+         * Usar DateTime para evitar problemas de timezone con strtotime.
+         * DateTime::createFromFormat con '!' inicializa la hora a 00:00:00
+         */
+        $fechaBase = \DateTime::createFromFormat('!Y-m-d', $fechaInicioSemana);
+        if (!$fechaBase) {
+            error_log("[CAP ENGINE ERROR] No se pudo parsear fecha: '$fechaInicioSemana'");
+            return;
+        }
+
+        for ($dia = 0; $dia < 5; $dia++) { // Lunes a Viernes
+            $fechaObj = clone $fechaBase;
+            $fechaObj->modify("+{$dia} days");
+            $fecha = $fechaObj->format('Y-m-d');
+            
             $diaSemana = $dia + 1; // 1 = Lunes ... 5 = Viernes
             $nombreDia = $nombresDias[$dia];
 
@@ -512,8 +533,11 @@ class CalendarEngine
         $tablaClases = $wpdb->prefix . 'cap_clases';
         $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
 
+        /* Calcular fecha fin usando DateTime para evitar problemas de timezone */
+        $fechaBase = \DateTime::createFromFormat('!Y-m-d', $fechaInicioSemana);
+        $fechaFin = $fechaBase ? (clone $fechaBase)->modify('+4 days')->format('Y-m-d') : $fechaInicioSemana;
+
         /* Primero eliminar clases no bloqueadas de la semana */
-        $fechaFin = date('Y-m-d', strtotime($fechaInicioSemana . ' +4 days'));
         $wpdb->query($wpdb->prepare(
             "DELETE FROM {$tablaClases} 
              WHERE centro_id = %d 
