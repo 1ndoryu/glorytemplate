@@ -56,25 +56,43 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
         const cargarAlumnos = async () => {
             setCargandoAlumnos(true);
             try {
+                /* Debug: verificar conflictos recibidos */
+                console.log('[ModalConflictoAforo] Conflictos recibidos:', conflictos);
+
                 /* Obtener IDs únicos de alumnos */
                 const alumnosIds = new Set<number>();
-                conflictos.forEach(c => normalizarIdsAlumnos(c.alumnos).forEach(id => alumnosIds.add(id)));
+                conflictos.forEach(c => {
+                    console.log('[ModalConflictoAforo] Procesando conflicto:', c);
+                    console.log('[ModalConflictoAforo] c.alumnos:', c.alumnos);
+                    const idsNormalizados = normalizarIdsAlumnos(c.alumnos);
+                    console.log('[ModalConflictoAforo] IDs normalizados:', idsNormalizados);
+                    idsNormalizados.forEach(id => alumnosIds.add(id));
+                });
+
+                console.log('[ModalConflictoAforo] IDs únicos finales:', Array.from(alumnosIds));
 
                 if (alumnosIds.size === 0) {
+                    console.warn('[ModalConflictoAforo] No se encontraron IDs de alumnos');
                     setAlumnosInfo(new Map());
                     return;
                 }
 
                 const idsQuery = Array.from(alumnosIds).join(',');
+                const url = `/wp-json/cap/v1/alumnos?ids=${encodeURIComponent(idsQuery)}`;
+                console.log('[ModalConflictoAforo] Haciendo fetch a:', url);
 
-                const response = await fetch(`/wp-json/cap/v1/alumnos?ids=${encodeURIComponent(idsQuery)}`, {
+                const response = await fetch(url, {
                     headers: {
                         'X-WP-Nonce': (window as any).wpApiSettings?.nonce || ''
                     }
                 });
 
+                console.log('[ModalConflictoAforo] Response status:', response.status);
+
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('[ModalConflictoAforo] Datos recibidos:', data);
+                    
                     const mapa = new Map<number, Alumno>();
                     (data.alumnos || []).forEach((a: any) => {
                         if (alumnosIds.has(a.id)) {
@@ -91,12 +109,14 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                             });
                         }
                     });
+                    console.log('[ModalConflictoAforo] Mapa de alumnos generado:', mapa);
                     setAlumnosInfo(mapa);
                 } else {
+                    console.error('[ModalConflictoAforo] Response no OK:', await response.text());
                     setAlumnosInfo(new Map());
                 }
             } catch (err) {
-                console.error('Error cargando alumnos:', err);
+                console.error('[ModalConflictoAforo] Error cargando alumnos:', err);
             } finally {
                 setCargandoAlumnos(false);
             }

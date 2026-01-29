@@ -242,10 +242,15 @@ class CapEndpoints
             $ids = is_array($idsParam) ? $idsParam : explode(',', (string) $idsParam);
             $ids = array_values(array_unique(array_filter(array_map('absint', $ids))));
 
+            error_log('[CapEndpoints] Solicitud de alumnos por IDs: ' . print_r($ids, true));
+
             /*
              * Filtro por IDs para mostrar nombres en conflictos de aforo.
              */
             $alumnos = $alumnoModel->obtenerPorIds($centroId, $ids);
+
+            error_log('[CapEndpoints] Alumnos encontrados: ' . count($alumnos));
+            error_log('[CapEndpoints] Datos: ' . print_r($alumnos, true));
 
             return new \WP_REST_Response([
                 'alumnos' => $alumnos,
@@ -333,6 +338,12 @@ class CapEndpoints
 
         $engine = new CalendarEngine($centroId);
         $resultado = $engine->generar($semana, $alumnosIds);
+
+        error_log('[CapEndpoints] Resultado de generación - exito: ' . ($resultado['exito'] ? 'true' : 'false'));
+        error_log('[CapEndpoints] Total conflictos: ' . count($resultado['conflictos']));
+        if (!empty($resultado['conflictos'])) {
+            error_log('[CapEndpoints] Primer conflicto: ' . print_r($resultado['conflictos'][0], true));
+        }
 
         $statusCode = $resultado['exito'] ? 200 : 409;
         return new \WP_REST_Response($resultado, $statusCode);
