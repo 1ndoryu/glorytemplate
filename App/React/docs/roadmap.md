@@ -32,7 +32,7 @@
 6. ✅ Documentación completa: Riesgos, puntos críticos y casos de prueba en `AUDITORIA_FECHAS_TIMEZONE.md`.
 
 **TO-DOs Pendientes de Zona Horaria**
-- [ ] Tests manuales: Validar generación de calendario lunes-viernes sin desplazamiento de días.
+- [x] Tests manuales: Validar generación de calendario lunes-viernes sin desplazamiento de días.
 - [ ] StripeService: Aplicar timezone en cálculos de fechas de suscripción (prioridad baja).
 - [ ] Documentar en manual de usuario el impacto de cambiar timezone con clases existentes.
 
