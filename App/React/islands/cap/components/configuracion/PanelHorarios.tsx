@@ -35,10 +35,32 @@ const DIAS_SEMANA = [
     {id: 'domingo', label: 'Domingo'}
 ];
 
+const normalizarHora = (hora?: string): string => {
+    if (!hora) return '';
+    const partes = hora.split(':');
+    if (partes.length < 2) return hora;
+    const horas = partes[0].padStart(2, '0');
+    const minutos = partes[1].padStart(2, '0');
+    return `${horas}:${minutos}`;
+};
+
+const horaAMinutos = (hora?: string): number => {
+    if (!hora) return 0;
+    const limpia = normalizarHora(hora);
+    const [h, m] = limpia.split(':').map(Number);
+    return (h || 0) * 60 + (m || 0);
+};
+
 const construirHorariosPorDefecto = (configuracion: ConfiguracionHorarios | null): HorariosSemanales => {
     const base: HorariosSemanales = {};
-    const manana = {inicio: configuracion?.hora_inicio_manana || '09:00', fin: configuracion?.hora_fin_manana || '14:00'};
-    const tarde = {inicio: configuracion?.hora_inicio_tarde || '16:00', fin: configuracion?.hora_fin_tarde || '21:00'};
+    const manana = {
+        inicio: normalizarHora(configuracion?.hora_inicio_manana || '09:00'),
+        fin: normalizarHora(configuracion?.hora_fin_manana || '14:00')
+    };
+    const tarde = {
+        inicio: normalizarHora(configuracion?.hora_inicio_tarde || '16:00'),
+        fin: normalizarHora(configuracion?.hora_fin_tarde || '21:00')
+    };
 
     DIAS_SEMANA.forEach(dia => {
         base[dia.id] = [];
@@ -47,7 +69,11 @@ const construirHorariosPorDefecto = (configuracion: ConfiguracionHorarios | null
         base[dia.id].push({...manana});
 
         if (dia.id === 'viernes' && configuracion?.viernes_especial && configuracion?.hora_fin_viernes) {
-            base[dia.id].push({inicio: configuracion.hora_inicio_tarde || '16:00', fin: configuracion.hora_fin_viernes});
+            const inicioViernes = normalizarHora(configuracion.hora_inicio_tarde || '16:00');
+            const finViernes = normalizarHora(configuracion.hora_fin_viernes);
+            if (horaAMinutos(finViernes) > horaAMinutos(inicioViernes)) {
+                base[dia.id].push({inicio: inicioViernes, fin: finViernes});
+            }
             return;
         }
 
@@ -71,19 +97,25 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
                     /* Asegurar estructura de array por día */
                     const horariosLimpio: HorariosSemanales = {};
                     DIAS_SEMANA.forEach(dia => {
-                        horariosLimpio[dia.id] = Array.isArray(parsed[dia.id]) ? parsed[dia.id] : [];
+                        const rangos = Array.isArray(parsed[dia.id]) ? parsed[dia.id] : [];
+                        horariosLimpio[dia.id] = rangos.map(rango => ({
+                            inicio: normalizarHora(rango.inicio),
+                            fin: normalizarHora(rango.fin)
+                        }));
                     });
                     setHorarios(horariosLimpio);
-                    setHorariosOriginales(JSON.parse(JSON.stringify(horariosLimpio)));
+                    setModificado(false);
                     return;
                 } catch (e) {
                     console.error('Error al parsear horarios semanales', e);
+                    return;
                 }
             }
 
             /* Fallback: Construir configuración por defecto */
             const fallback = construirHorariosPorDefecto(config);
             setHorarios(fallback);
+            setModificado(false);
         }
     }, [config]);
 
@@ -190,7 +222,7 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
                         ))}
                     </div>
 
-                    <div className="capFormConfig__acciones capMt--lg">
+                    <div className="capFormConfig__acciones capFormConfig__acciones--horarios capMt--lg">
                         <Boton type="button" variante="secundario" tamano="md" onClick={handleRestablecer} disabled={guardando} title="Restablecer a valores por defecto">
                             Restablecer
                         </Boton>

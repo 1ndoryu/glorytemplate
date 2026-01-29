@@ -51,13 +51,18 @@
 
 .capFormConfig__acciones {
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--cap-espacio-sm);
+    padding-top: var(--cap-espacio-md);
+    border-top: 1px solid var(--cap-borde-sutil);
+}
+
+.capFormConfig__acciones--horarios {
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
     flex-wrap: wrap;
-    gap: var(--cap-espacio-sm);
-    padding-top: var(--cap-espacio-md);
-    border-top: 1px solid var(--cap-borde-sutil);
 }
 
 .capHorarioDia {
@@ -76,12 +81,27 @@
 }
 
 .capBotonEliminarRango {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: none;
     border: none;
     color: var(--cap-rojo);
     cursor: pointer;
     padding: var(--cap-espacio-xs);
     margin-bottom: var(--cap-espacio-xxs, 0.25rem);
+    border-radius: var(--cap-radio-sm);
+    transition: background var(--cap-transicion-rapida), color var(--cap-transicion-rapida);
+}
+
+.capBotonEliminarRango:hover {
+    background: var(--cap-rojo-100, rgba(220, 53, 69, 0.12));
+    color: var(--cap-rojo-700, var(--cap-rojo));
+}
+
+.capBotonEliminarRango:focus-visible {
+    outline: 2px solid var(--cap-focus-ring);
+    outline-offset: 2px;
 }
 
 .capBotonIcono {
