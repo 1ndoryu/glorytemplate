@@ -25,14 +25,13 @@ interface HorariosSemanales {
     [key: string]: RangoHorario[];
 }
 
+/* Ajuste: ocultar fin de semana en horarios flexibles. */
 const DIAS_SEMANA = [
     {id: 'lunes', label: 'Lunes'},
     {id: 'martes', label: 'Martes'},
     {id: 'miercoles', label: 'Miércoles'},
     {id: 'jueves', label: 'Jueves'},
-    {id: 'viernes', label: 'Viernes'},
-    {id: 'sabado', label: 'Sábado'},
-    {id: 'domingo', label: 'Domingo'}
+    {id: 'viernes', label: 'Viernes'}
 ];
 
 const normalizarHora = (hora?: string): string => {

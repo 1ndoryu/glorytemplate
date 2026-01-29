@@ -8,7 +8,7 @@
 
 import type {ReactNode} from 'react';
 import {Badge} from '../ui';
-import {IconoCalendario, IconoUsuarios, IconoConfiguracion, IconoCerrarSesion, IconoMenu, IconoLogoCap, IconoReportes} from '../icons';
+import {IconoCalendario, IconoUsuarios, IconoConfiguracion, IconoCerrarSesion, IconoMenu, IconoLogoCap, IconoReportes, IconoFlechaIzquierda, IconoFlechaDerecha} from '../icons';
 import {useDashboardStore, type SeccionActiva} from '../../stores/useDashboardStore';
 import '../dashboard/dashboard.css';
 
@@ -32,7 +32,7 @@ interface CapLayoutProps {
 }
 
 export function CapLayout({children, userName, siteUrl}: CapLayoutProps) {
-    const {seccionActiva, sidebarAbierto, setSeccionActiva, abrirSidebar, cerrarSidebar} = useDashboardStore();
+    const {seccionActiva, sidebarAbierto, sidebarColapsado, setSeccionActiva, abrirSidebar, cerrarSidebar, toggleSidebarColapsado} = useDashboardStore();
 
     const handleCerrarSesion = () => {
         const logoutUrl = `${siteUrl}/wp-login.php?action=logout`;
@@ -47,12 +47,21 @@ export function CapLayout({children, userName, siteUrl}: CapLayoutProps) {
             {sidebarAbierto && <div className="capDashboard__overlay" onClick={cerrarSidebar} />}
 
             {/* Sidebar */}
-            <aside className={`capDashboard__sidebar ${sidebarAbierto ? 'capDashboard__sidebar--abierto' : ''}`}>
+            <aside className={`capDashboard__sidebar ${sidebarAbierto ? 'capDashboard__sidebar--abierto' : ''} ${sidebarColapsado ? 'capDashboard__sidebar--colapsado' : ''}`}>
                 <div className="capSidebar__header">
                     <div className="capSidebar__logo">
                         <IconoLogoCap />
                     </div>
                     <span className="capSidebar__titulo">Gestor CAP</span>
+                    <button
+                        type="button"
+                        className="capSidebar__toggle capOcultoMovil"
+                        onClick={toggleSidebarColapsado}
+                        title={sidebarColapsado ? 'Expandir panel lateral' : 'Contraer panel lateral'}
+                        aria-label={sidebarColapsado ? 'Expandir panel lateral' : 'Contraer panel lateral'}
+                    >
+                        {sidebarColapsado ? <IconoFlechaDerecha size={16} /> : <IconoFlechaIzquierda size={16} />}
+                    </button>
                 </div>
 
                 <nav className="capSidebar__nav">
@@ -81,7 +90,7 @@ export function CapLayout({children, userName, siteUrl}: CapLayoutProps) {
             </aside>
 
             {/* Contenido principal */}
-            <main className="capDashboard__main">
+            <main className={`capDashboard__main ${sidebarColapsado ? 'capDashboard__main--colapsado' : ''}`}>
                 {/* Header móvil */}
                 <header className="capDashboard__header">
                     <button className="capDashboard__menuBtn" onClick={abrirSidebar}>
