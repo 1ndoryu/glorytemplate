@@ -8,8 +8,9 @@
 import {useState, useCallback} from 'react';
 import type {Clase, DiaSemana, AlumnoClase} from '../../types';
 import {ASIGNATURAS_CAP, getAsignatura, getAsignaturaPorCodigo, SLOTS_HORARIOS} from '../../constants';
-import {Modal, Boton} from '../ui';
+import {Modal, Boton, Alerta} from '../ui';
 import {IconoReloj, IconoUsuarios, IconoCandado, IconoGuardar, IconoLibro, IconoEliminar} from '../icons';
+import {detectarColision} from '../../utils/collisionUtils';
 
 interface ModalDetalleClaseProps {
     clase: Clase | null;
@@ -60,6 +61,7 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
     const [horaFin, setHoraFin] = useState(() => formatearHora(clase?.horaFin));
     const [asignaturaId, setAsignaturaId] = useState<number>(obtenerAsignaturaIdInicial);
     const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
+    const [mensajeConflicto, setMensajeConflicto] = useState<string | null>(null);
 
     /* Detectar cambios comparando con valores originales */
     const hayCambios = (() => {
@@ -78,18 +80,48 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
      */
     const alumnosClase: AlumnoClase[] = clase?.alumnosData || [];
 
+    /* Resolver clases del día actual para validar conflictos de horario */
+    const obtenerClasesDiaActual = (): Clase[] => {
+        if (!clase || !clasesPorDia) return [];
+
+        const fechaClase = new Date(`${clase.fecha}T00:00:00`);
+        const diaIndices: Record<number, DiaSemana> = {
+            1: 'lunes',
+            2: 'martes',
+            3: 'miercoles',
+            4: 'jueves',
+            5: 'viernes'
+        };
+        const diaKey = diaIndices[fechaClase.getDay()];
+        return diaKey ? clasesPorDia[diaKey] || [] : [];
+    };
+
     /* Manejar guardado */
     const handleGuardar = async () => {
         if (!clase || !hayCambios) return;
 
         const cambios: CambiosClase = {};
 
-        const formatearHora = (hora: string) => hora.substring(0, 5);
+        /* Validación rápida para evitar solapamientos en el modal */
+        const horaInicioOriginal = formatearHora(clase.horaInicio);
+        const horaFinOriginal = formatearHora(clase.horaFin);
+        const cambiaHorario = horaInicio !== horaInicioOriginal || horaFin !== horaFinOriginal;
+        if (cambiaHorario) {
+            const clasesDia = obtenerClasesDiaActual();
+            const conflicto = detectarColision(horaInicio, horaFin, clasesDia, clase.id);
+            if (conflicto) {
+                const nombreAsignatura = getAsignatura(clase.asignaturaId)?.nombre || 'clase';
+                setMensajeConflicto(
+                    `Estás intentando mover la clase ${nombreAsignatura} a las ${horaInicio}, pero ese horario ya está ocupado.`
+                );
+                return;
+            }
+        }
 
-        if (horaInicio !== formatearHora(clase.horaInicio)) {
+        if (horaInicio !== horaInicioOriginal) {
             cambios.horaInicio = horaInicio;
         }
-        if (horaFin !== formatearHora(clase.horaFin)) {
+        if (horaFin !== horaFinOriginal) {
             cambios.horaFin = horaFin;
         }
 
@@ -106,6 +138,12 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
         if (clase) {
             onToggleBloqueo(clase.id);
         }
+    };
+
+    /* Cerrar modal y limpiar alerta interna */
+    const handleCerrar = () => {
+        setMensajeConflicto(null);
+        onCerrar();
     };
 
     /* Manejar eliminación con doble confirmación */
@@ -130,8 +168,13 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
     const asignaturaActual = getAsignatura(asignaturaId);
 
     return (
-        <Modal abierto={abierto} onCerrar={onCerrar} titulo="Detalles de la Clase" subtitulo={`${clase.fecha} • ${clase.horaInicio} - ${clase.horaFin}`}>
+        <Modal abierto={abierto} onCerrar={handleCerrar} titulo="Detalles de la Clase" subtitulo={`${clase.fecha} • ${formatearHora(clase.horaInicio)} - ${formatearHora(clase.horaFin)}`}>
             <div className="capModalDetalleClase">
+                {mensajeConflicto && (
+                    <Alerta variante="error" className="capMb--md" cerrable onCerrar={() => setMensajeConflicto(null)}>
+                        {mensajeConflicto}
+                    </Alerta>
+                )}
                 {/* Sección: Información de la clase */}
                 <div className="capModalDetalleClase__seccion">
                     <h4 className="capModalDetalleClase__seccionTitulo">
@@ -161,7 +204,15 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
                     <div className="capModalDetalleClase__horarios">
                         <div className="capModalDetalleClase__campoHora">
                             <label className="capModalDetalleClase__label">Inicio</label>
-                            <select className="capModalDetalleClase__select capModalDetalleClase__select--hora" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} disabled={clase.bloqueada}>
+                            <select
+                                className="capModalDetalleClase__select capModalDetalleClase__select--hora"
+                                value={horaInicio}
+                                onChange={e => {
+                                    setHoraInicio(e.target.value);
+                                    setMensajeConflicto(null);
+                                }}
+                                disabled={clase.bloqueada}
+                            >
                                 {SLOTS_HORARIOS.map(hora => (
                                     <option key={hora} value={hora}>
                                         {hora}
@@ -172,7 +223,15 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
                         <span className="capModalDetalleClase__separadorHora">—</span>
                         <div className="capModalDetalleClase__campoHora">
                             <label className="capModalDetalleClase__label">Fin</label>
-                            <select className="capModalDetalleClase__select capModalDetalleClase__select--hora" value={horaFin} onChange={e => setHoraFin(e.target.value)} disabled={clase.bloqueada}>
+                            <select
+                                className="capModalDetalleClase__select capModalDetalleClase__select--hora"
+                                value={horaFin}
+                                onChange={e => {
+                                    setHoraFin(e.target.value);
+                                    setMensajeConflicto(null);
+                                }}
+                                disabled={clase.bloqueada}
+                            >
                                 {SLOTS_HORARIOS.map(hora => (
                                     <option key={hora} value={hora}>
                                         {hora}
@@ -226,7 +285,7 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
                         </Boton>
                     )}
                     <div className="capModalDetalleClase__accionesPrincipales">
-                        <Boton variante="secundario" onClick={onCerrar}>
+                        <Boton variante="secundario" onClick={handleCerrar}>
                             Cancelar
                         </Boton>
                         <Boton variante="primario" onClick={handleGuardar} disabled={!hayCambios || guardando || clase.bloqueada} cargando={guardando} icono={<IconoGuardar size={16} />}>

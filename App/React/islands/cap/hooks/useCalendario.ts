@@ -107,6 +107,12 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         return fecha.toISOString().split('T')[0];
     }, []);
 
+    /* Normalizar formato de hora a HH:MM para evitar segundos */
+    const normalizarHora = useCallback((hora?: string | null): string => {
+        if (!hora) return '00:00';
+        return hora.substring(0, 5);
+    }, []);
+
     /* Cargar clases de la semana desde API */
     const cargarClases = useCallback(async () => {
         setCargando(true);
@@ -133,8 +139,9 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 id: c.id,
                 centroId: c.centro_id,
                 fecha: c.fecha,
-                horaInicio: c.hora_inicio,
-                horaFin: c.hora_fin,
+                /* Ajuste: normalizar horas sin segundos para evitar inconsistencias */
+                horaInicio: normalizarHora(c.hora_inicio),
+                horaFin: normalizarHora(c.hora_fin),
                 asignaturaId: c.asignatura,
                 bloqueada: c.bloqueada === true || c.bloqueada === 1 || c.bloqueada === '1',
                 alumnosIds: (c.alumnos || []).map((a: any) => a.id),
@@ -158,7 +165,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         } finally {
             setCargando(false);
         }
-    }, [semanaActual, getNonce, formatearFechaApi]);
+    }, [semanaActual, getNonce, formatearFechaApi, normalizarHora]);
 
     /* Cargar clases al cambiar de semana */
     useEffect(() => {
@@ -372,8 +379,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                     if (c.id === claseId) {
                         return {
                             ...c,
-                            horaInicio: cambios.horaInicio ?? c.horaInicio,
-                            horaFin: cambios.horaFin ?? c.horaFin,
+                            horaInicio: normalizarHora(cambios.horaInicio ?? c.horaInicio),
+                            horaFin: normalizarHora(cambios.horaFin ?? c.horaFin),
                             asignaturaId: cambios.asignaturaId ?? c.asignaturaId
                         };
                     }
@@ -415,7 +422,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 setGuardandoEdicion(false);
             }
         },
-        [getNonce, guardarSnapshot, cerrarModalEdicion, historialClases]
+        [getNonce, guardarSnapshot, cerrarModalEdicion, historialClases, normalizarHora]
     );
 
     /* Deshacer último cambio */
@@ -452,8 +459,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                         return {
                             ...c,
                             fecha: nuevaFecha,
-                            horaInicio: nuevaHoraInicio || c.horaInicio,
-                            horaFin: nuevaHoraFin || c.horaFin
+                            horaInicio: normalizarHora(nuevaHoraInicio || c.horaInicio),
+                            horaFin: normalizarHora(nuevaHoraFin || c.horaFin)
                         };
                     }
                     return c;
@@ -491,7 +498,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 setMoviendo(false);
             }
         },
-        [clases, getNonce, guardarSnapshot, historialClases]
+        [clases, getNonce, guardarSnapshot, historialClases, normalizarHora]
     );
 
     /* Mover múltiples clases (para resolución de conflictos en cascada) */
@@ -510,8 +517,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                     if (cambio) {
                         return {
                             ...c,
-                            horaInicio: cambio.nuevoInicio,
-                            horaFin: cambio.nuevoFin,
+                            horaInicio: normalizarHora(cambio.nuevoInicio),
+                            horaFin: normalizarHora(cambio.nuevoFin),
                             fecha: cambio.nuevaFecha || c.fecha
                         };
                     }
@@ -557,7 +564,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 setMoviendo(false);
             }
         },
-        [getNonce, guardarSnapshot, historialClases]
+        [getNonce, guardarSnapshot, historialClases, normalizarHora]
     );
 
     /* Eliminar una clase */
