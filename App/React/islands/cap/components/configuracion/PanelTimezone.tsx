@@ -7,7 +7,7 @@
 
 import {useState} from 'react';
 import {Boton, Tarjeta, TarjetaHeader, TarjetaBody, Alerta} from '../ui';
-import {IconoGuardar} from '../icons';
+import {IconoGuardar, IconoGlobo} from '../icons';
 import type {ConfiguracionHorarios} from '../../hooks/useConfiguracion';
 
 interface PanelTimezoneProps {
@@ -53,7 +53,9 @@ export function PanelTimezone({config, guardando, onGuardar}: PanelTimezoneProps
         <Tarjeta className="capPanelConfig">
             <TarjetaHeader>
                 <div className="capFlexStart capGap--sm">
-                    <span className="capPanelConfig__icono">🌍</span>
+                    <span className="capPanelConfig__icono">
+                        <IconoGlobo />
+                    </span>
                     <h3 className="capTitulo capTitulo--sm">Zona Horaria</h3>
                 </div>
             </TarjetaHeader>
@@ -69,7 +71,7 @@ export function PanelTimezone({config, guardando, onGuardar}: PanelTimezoneProps
                         </label>
                         <select
                             id="timezone"
-                            className="capInput"
+                            className="capInput__campo"
                             value={timezone}
                             onChange={handleTimezoneChange}
                             disabled={guardando}>
