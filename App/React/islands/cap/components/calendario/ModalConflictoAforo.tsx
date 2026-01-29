@@ -160,7 +160,9 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
 
     /* Obtener nombre de alumno */
     const getNombreAlumno = (id: number): string => {
-        return alumnosInfo.get(id)?.nombre || `Alumno #${id}`;
+        const alumno = alumnosInfo.get(id);
+        console.log(`[ModalConflictoAforo] getNombreAlumno(${id}):`, alumno ? alumno.nombre : 'NO ENCONTRADO', 'Mapa size:', alumnosInfo.size);
+        return alumno?.nombre || `Alumno #${id}`;
     };
 
     /* Formatear fecha legible */
@@ -198,6 +200,12 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                         const excluidos = exclusiones[conflicto.slotKey] || [];
                         const faltan = conflicto.exceso - excluidos.length;
                         const resuelto = faltan <= 0;
+
+                        console.log(`[ModalConflictoAforo] Renderizando slot ${conflicto.slotKey}:`, {
+                            alumnosConflicto,
+                            cargandoAlumnos,
+                            alumnosInfoSize: alumnosInfo.size
+                        });
 
                         return (
                             <div key={conflicto.slotKey} className={`conflictoAforo__slot ${resuelto ? 'conflictoAforo__slot--resuelto' : ''}`}>
