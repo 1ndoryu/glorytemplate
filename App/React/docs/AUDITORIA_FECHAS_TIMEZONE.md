@@ -306,7 +306,7 @@ private function aplicarTimezone(): void {
 #### Backend:
 1. ✅ `App/Database/CapSchema.php` - Agregado campo `timezone`
 2. ✅ `App/Models/Configuracion.php` - Validación y migración de timezone
-3. ✅ `App/Services/CalendarEngine.php` - Aplicación de timezone
+3. ✅ `App/Services/CalendarEngine.php` - Aplicación de timezone + **FIX DateTime**
 4. ✅ `App/Services/ReporteService.php` - Aplicación de timezone
 
 #### Frontend:
@@ -315,22 +315,83 @@ private function aplicarTimezone(): void {
 7. ✅ `App/React/islands/cap/components/configuracion/PanelTimezone.tsx` - **NUEVO**
 8. ✅ `App/React/islands/cap/components/configuracion/index.ts` - Export de PanelTimezone
 9. ✅ `App/React/islands/cap/components/secciones/SeccionConfiguracion.tsx` - Integración
+10. ✅ `App/React/islands/cap/constants/cap-constants.ts` - **FIX getLunesDeSemana() y getFechasSemana()**
+11. ✅ `App/React/islands/cap/hooks/useCalendario.ts` - Ya usa formatearFechaApi() correctamente
+
+### Fixes críticos aplicados (desfase de día):
+
+#### Fix #1: Frontend - Funciones de cálculo de fechas
+```typescript
+// Antes (INCORRECTO - causaba offset UTC):
+const lunes = new Date(fecha);
+lunes.setDate(diff);
+
+// Después (CORRECTO - usa constructor local):
+const lunes = new Date(fecha.getFullYear(), fecha.getMonth(), diff, 0, 0, 0, 0);
+```
+
+#### Fix #2: Backend - Cálculo de fechas en CalendarEngine
+```php
+// Antes (INCORRECTO - strtotime depende de TZ):
+$fecha = date('Y-m-d', strtotime($fechaInicioSemana . " +{$dia} days"));
+
+// Después (CORRECTO - DateTime sin hora):
+$fechaBase = \DateTime::createFromFormat('!Y-m-d', $fechaInicioSemana);
+$fechaObj = clone $fechaBase;
+$fechaObj->modify("+{$dia} days");
+$fecha = $fechaObj->format('Y-m-d');
+```
 
 ### TO-DOs futuros:
 
 - [ ] Aplicar timezone en StripeService para cálculos de suscripción
 - [ ] Tests manuales completos en producción
 - [ ] Documentar en manual de usuario el cambio de timezone
+- [ ] **INVESTIGAR:** A pesar de los fixes aplicados, el problema persiste (29-ene-2026)
 
 ---
 
-## 8. CONCLUSIÓN
+## 8. ESTADO ACTUAL Y PROBLEMAS PENDIENTES
 
-La auditoría completa ha identificado y resuelto:
+### Cambios implementados:
 - ✅ **21 usos** de `new Date()` en frontend (todos revisados y clasificados)
 - ✅ **20+ usos** de `date()`/`DateTime` en backend (normalizados)
 - ✅ **Zona horaria configurable** implementada en BD, backend y frontend
 - ✅ **Estándar único** definido: `YYYY-MM-DD` sin TZ, `HH:MM` sin segundos
 - ✅ **Migración automática** de BD para agregar columna timezone
+- ✅ **Fix #1:** Corregidas funciones de cálculo de fechas en frontend (getLunesDeSemana, getFechasSemana)
+- ✅ **Fix #2:** Reemplazado `strtotime()` por `DateTime::createFromFormat()` en backend
 
-**Estado final:** Sistema preparado para manejar fechas/horas de forma consistente con timezone configurable por centro.
+### ⚠️ Problema persistente (29-ene-2026):
+
+**Síntoma:** Las clases se generan con un día de retraso respecto a las fechas esperadas.
+
+**Investigación realizada:**
+1. ✅ Frontend envía fecha correcta en formato `YYYY-MM-DD`
+2. ✅ Backend parsea fecha correctamente con `DateTime`
+3. ✅ Las fechas se calculan correctamente (lunes + 0, +1, +2, +3, +4 días)
+4. ✅ Las clases se agrupan correctamente por día basándose en `getDay()`
+
+**Posibles causas no verificadas:**
+- [ ] Timezone del servidor PHP diferente a la esperada
+- [ ] Base de datos almacenando fechas con conversión automática de timezone
+- [ ] Problema en la visualización/agrupación en el frontend (aunque el código parece correcto)
+- [ ] Datos existentes en BD con fechas incorrectas que confunden el análisis
+
+**Próximos pasos recomendados:**
+1. Borrar TODAS las clases de la BD y generar desde cero
+2. Verificar `date_default_timezone_get()` en PHP al momento de generar
+3. Agregar logging detallado para seguir el flujo completo:
+   - Fecha enviada desde frontend
+   - Fecha recibida en backend
+   - Fechas generadas para cada día
+   - Fechas almacenadas en BD
+   - Fechas recuperadas de BD
+4. Verificar configuración de timezone en WordPress (wp-config.php)
+5. Revisar si hay algún hook/filtro de WordPress interceptando las fechas
+
+---
+
+## 9. CONCLUSIÓN
+
+Sistema preparado teóricamente para manejar fechas/horas de forma consistente con timezone configurable por centro, pero el problema de desfase de un día **persiste a pesar de múltiples correcciones**. Se requiere investigación más profunda con logging detallado para identificar el punto exacto donde se produce el desfase.
