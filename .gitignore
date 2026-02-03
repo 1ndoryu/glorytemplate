@@ -30,7 +30,7 @@ wp-config-sample.php
 # Database SQL
 *.sql
 *.sql.gz
-.env 
+.env
 .env.local
 # Nano save file
 *.swp
@@ -42,7 +42,7 @@ node_modules/
 composer.lock
 
 # NPM
-package.json
+
 npm-debug.log
 grunt
 .history/
@@ -76,11 +76,34 @@ site.webmanifest
 wp-cli.yml
 wp-mail.php
 wp-options.php
-Glory/
+
 status.md
 dev-tools/
-glory_docs/ 
-glory_docs
-.agent/docs/*
-.agent/workflows/*
-App/React/roadmap.md
+glory_docs/
+
+# MCP Server
+mcp/dist/
+mcp/.env
+mcp/node_modules/
+
+# Archivos locales con información sensible (Client IDs, etc.)
+*.LOCAL.md
+App/React/agente/CONFIG_ACTUAL.md
+
+
+# Configuración local de desarrollo (no versionada)
+App/React/capacitor.config.local.json
+App/React/android/app/src/main/res/values/strings.local.xml
+.agent/docs/CONTEXTO_SMTP_GUILLERMO.md
+.gitignore
+.agent/docs/migracion-nuevo-vps.md
+.agent/docs/OPTIMIZACION_GLORY_LITE.md
+.agent/docs/protocolo-coolify-wordpress.md
+.gitignore
+.agent/docs/api-tareas.md
+.agent/docs/infeccion-vps-167.86.117.147.md
+App/React/android
+coolify-manager 
+/coolify-manager 
+# Separate Extensions
+css-vars-validator/
