@@ -235,6 +235,65 @@
     transform: translateY(-1px);
 }
 
+/* Variante: sin horario (30-44 min) - más compacta */
+.capTarjetaClase--sinHorario {
+    padding: var(--cap-espacio-xs) var(--cap-espacio-sm);
+}
+
+.capTarjetaClase--sinHorario .capTarjetaClase__header {
+    margin-bottom: 2px;
+}
+
+.capTarjetaClase--sinHorario .capTarjetaClase__asignatura {
+    font-size: var(--cap-texto-xs);
+}
+
+/* Variante: compacta (20-29 min) - una sola fila */
+.capTarjetaClase--compacto {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--cap-espacio-xs);
+    padding: 2px var(--cap-espacio-sm);
+}
+
+.capTarjetaClase--compacto .capTarjetaClase__codigo {
+    flex-shrink: 0;
+}
+
+.capTarjetaClase--compacto .capTarjetaClase__nombreCorto {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-secundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+}
+
+.capTarjetaClase--compacto .capTarjetaClase__miniCandado {
+    color: var(--cap-error-500);
+    flex-shrink: 0;
+}
+
+/* Variante: mínima (< 20 min) - solo código */
+.capTarjetaClase--minimo {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 2px 4px;
+}
+
+.capTarjetaClase--minimo .capTarjetaClase__codigo {
+    margin: 0;
+}
+
+.capTarjetaClase--minimo .capTarjetaClase__miniCandado {
+    color: var(--cap-error-500);
+    flex-shrink: 0;
+}
+
 .capTarjetaClase--bloqueada {
     background: var(--cap-error-50);
     border-color: var(--cap-error-300);

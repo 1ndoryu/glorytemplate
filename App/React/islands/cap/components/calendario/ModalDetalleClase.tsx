@@ -3,15 +3,34 @@
  *
  * Modal para ver y editar los detalles de una clase.
  * Permite cambiar hora, asignatura y ver alumnos asignados.
+ * Al cambiar hora de inicio, recalcula automáticamente la hora fin
+ * para mantener la duración original de la asignatura.
  */
 
-import {useState, useCallback} from 'react';
+import {useState, useCallback, useMemo} from 'react';
 import type {Clase, DiaSemana, AlumnoClase} from '../../types';
 import {ASIGNATURAS_CAP, getAsignatura, getAsignaturaPorCodigo, SLOTS_HORARIOS} from '../../constants';
 import {Modal, Boton} from '../ui';
 import {IconoReloj, IconoUsuarios, IconoCandado, IconoGuardar, IconoLibro, IconoEliminar} from '../icons';
 import {detectarColision, resolverDesplazamientoCascada, encontrarHorarioDisponibleMasCercano} from '../../utils/collisionUtils';
 import {ModalConflictoDrag} from './ModalConflictoDrag';
+
+/*
+ * Convierte hora HH:MM a minutos totales desde medianoche.
+ */
+function horaAMinutos(hora: string): number {
+    const [h, m] = hora.split(':').map(Number);
+    return h * 60 + m;
+}
+
+/*
+ * Convierte minutos totales a formato HH:MM.
+ */
+function minutosAHora(minutos: number): string {
+    const h = Math.floor(minutos / 60);
+    const m = minutos % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+}
 
 interface ModalDetalleClaseProps {
     clase: Clase | null;
@@ -54,6 +73,17 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
     };
 
     /*
+     * Calcular duración original de la clase en minutos.
+     * Se usa para recalcular la hora fin cuando cambia la hora inicio.
+     */
+    const duracionOriginalMinutos = useMemo(() => {
+        if (!clase) return 60; // 1 hora por defecto
+        const inicio = horaAMinutos(formatearHora(clase.horaInicio));
+        const fin = horaAMinutos(formatearHora(clase.horaFin));
+        return fin - inicio;
+    }, [clase]);
+
+    /*
      * Estado local para edición.
      * Gracias a la key en el componente padre (SeccionCalendario),
      * el componente se remonta cuando cambia la clase seleccionada.
@@ -69,6 +99,23 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
         nuevaHoraInicio: string;
         nuevaHoraFin: string;
     } | null>(null);
+
+    /*
+     * Handler para cambio de hora de inicio.
+     * Recalcula automáticamente la hora fin manteniendo la duración original.
+     */
+    const handleCambioHoraInicio = (nuevaHoraInicio: string) => {
+        setHoraInicio(nuevaHoraInicio);
+        setConflictoData(null);
+        
+        /* Recalcular hora fin automáticamente */
+        const minutosInicio = horaAMinutos(nuevaHoraInicio);
+        const minutosFin = minutosInicio + duracionOriginalMinutos;
+        
+        /* Limitar a las 23:00 como máximo */
+        const minutosFinLimitados = Math.min(minutosFin, 23 * 60);
+        setHoraFin(minutosAHora(minutosFinLimitados));
+    };
 
     /* Detectar cambios comparando con valores originales */
     const hayCambios = (() => {
@@ -252,10 +299,7 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
                             <select
                                 className="capModalDetalleClase__select capModalDetalleClase__select--hora"
                                 value={horaInicio}
-                                onChange={e => {
-                                    setHoraInicio(e.target.value);
-                                    setConflictoData(null);
-                                }}
+                                onChange={e => handleCambioHoraInicio(e.target.value)}
                                 disabled={clase.bloqueada}
                             >
                                 {SLOTS_HORARIOS.map(hora => (
@@ -285,6 +329,9 @@ export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggle
                             </select>
                         </div>
                     </div>
+                    <p className="capModalDetalleClase__infoAsignatura">
+                        Duración: <strong>{Math.round(duracionOriginalMinutos / 60 * 10) / 10}h</strong> (se mantiene al cambiar hora de inicio)
+                    </p>
                 </div>
 
                 {/* Sección: Alumnos */}

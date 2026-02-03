@@ -130,6 +130,25 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 - [x] **Flexibilidad Horaria Total:** Eliminar restricción Mañana/Tarde. Permitir horas libres por día. *(Fuente: Texto)*
 - [x] **Botón 'Borrar Semana':** Limpiar calendario completo de una semana (además de Deshacer). *(Fuente: Texto)*
 
+### 📋 Feedback Cliente 02/02/2026 (Nuevo)
+
+#### 1. Clarificaciones del Algoritmo de Generación
+- [ ] **Aviso de Horas No Cubiertas:** Cuando no hay suficientes alumnos para llenar todas las horas del día, mostrar un aviso explicativo. El algoritmo funciona correctamente (llena hasta el máximo legal de 9h o disponibilidad), pero el cliente no entendía por qué solo veía una clase (era porque solo había 3 alumnos).
+
+#### 2. Bugs de Edición Manual en Modal
+- [x] **Bug Duración al Editar Hora:** Al cambiar la hora de inicio manualmente, la duración de la clase se altera incorrectamente. La hora fin debe recalcularse automáticamente: `Hora Fin = Nueva Hora Inicio + Duración Asignatura Original`. *(Corregido 2026-02-03)*
+- [x] **Granularidad del Selector de Hora:** Los selectores de tiempo deben permitir intervalos de **15 minutos** (09:00, 09:15, 09:30, 09:45...) para mayor precisión. *(Corregido 2026-02-03)*
+
+#### 3. Visualización de Tarjetas Cortas (UI)
+- [x] **Tarjetas Adaptativas para Clases Cortas:** Cuando una clase dura menos de 45 minutos, el texto se corta. Implementar simplificación progresiva: *(Corregido 2026-02-03)*
+    - **Duración < 45 min:** Ocultar la línea de horario (ya está implícita en la posición).
+    - **Duración < 30 min:** Todo el contenido en una sola fila compacta (código + nombre asignatura abreviado).
+    - **Duración < 20 min:** Solo mostrar código de asignatura con tooltip para detalles.
+
+#### 4. Puntos Aprobados (No tocar)
+- ✅ Nueva creación de Horarios de Clase (Flexible).
+- ✅ Opción de Borrar Semana.
+
 
 ## Ultima actualización del cliente
 
