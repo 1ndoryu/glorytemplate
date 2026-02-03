@@ -133,7 +133,10 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 ### 📋 Feedback Cliente 02/02/2026 (Nuevo)
 
 #### 1. Clarificaciones del Algoritmo de Generación
-- [ ] **Aviso de Horas No Cubiertas:** Cuando no hay suficientes alumnos para llenar todas las horas del día, mostrar un aviso explicativo. El algoritmo funciona correctamente (llena hasta el máximo legal de 9h o disponibilidad), pero el cliente no entendía por qué solo veía una clase (era porque solo había 3 alumnos).
+- [x] **Aviso de Horas No Cubiertas:** Cuando no hay suficientes alumnos para llenar todas las horas del día, mostrar un aviso explicativo. El algoritmo funciona correctamente (llena hasta el máximo legal de 9h o disponibilidad), pero el cliente no entendía por qué solo veía una clase (era porque solo había 3 alumnos). *(Implementado 2026-02-03)*
+    - Backend: `CalendarEngine::calcularAvisosHorasNoCubiertas()` calcula slots sin cobertura por día.
+    - Frontend: `ModalAvisoGeneracion` muestra detalles por día con rangos horarios exactos sin cubrir.
+    - Explicación clara: razón de los huecos + sugerencias de acción.
 
 #### 2. Bugs de Edición Manual en Modal
 - [x] **Bug Duración al Editar Hora:** Al cambiar la hora de inicio manualmente, la duración de la clase se altera incorrectamente. La hora fin debe recalcularse automáticamente: `Hora Fin = Nueva Hora Inicio + Duración Asignatura Original`. *(Corregido 2026-02-03)*
@@ -144,8 +147,13 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
     - **Duración < 45 min:** Ocultar la línea de horario (ya está implícita en la posición).
     - **Duración < 30 min:** Todo el contenido en una sola fila compacta (código + nombre asignatura abreviado).
     - **Duración < 20 min:** Solo mostrar código de asignatura con tooltip para detalles.
+- [x] **Vista Mínima Mejorada:** Candado alineado a la derecha, texto de 11px para mayor legibilidad. *(Corregido 2026-02-03)*
 
-#### 4. Puntos Aprobados (No tocar)
+#### 4. Correcciones de CSS
+- [x] **Variables CSS inválidas:** Corregidas 6+ referencias a variables inexistentes en ModalConflictoDrag.css y calendario.css. *(Corregido 2026-02-03)*
+- [x] **Nueva variable `--cap-texto-xxs`:** Añadida en variables.css (0.6875rem / 11px) para textos extra pequeños.
+
+#### 5. Puntos Aprobados (No tocar)
 - ✅ Nueva creación de Horarios de Clase (Flexible).
 - ✅ Opción de Borrar Semana.
 

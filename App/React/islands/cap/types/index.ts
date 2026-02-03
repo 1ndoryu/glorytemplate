@@ -166,6 +166,24 @@ export interface ResultadoGeneracion {
     clases: Clase[];
     conflictos: ConflictoAforo[];
     mensaje?: string;
+    /** Avisos informativos (ej: horas no cubiertas) */
+    avisos?: AvisoGeneracion[];
+}
+
+/* Aviso de horas no cubiertas por día */
+export interface AvisoGeneracion {
+    tipo: 'horas_no_cubiertas';
+    fecha: string;
+    diaSemana: string;
+    horasDisponiblesCentro: number;
+    horasAsignadas: number;
+    horasSinCubrir: number;
+    /** Rangos horarios consecutivos sin cubrir (ej: ["09:00 - 11:00", "14:00 - 15:00"]) */
+    rangosNoCubiertos?: string[];
+    /** Campos opcionales de contexto */
+    alumnosActivos?: number;
+    maxHorasDiaAlumno?: number;
+    capacidadClase?: number;
 }
 
 /* Preview de generación */

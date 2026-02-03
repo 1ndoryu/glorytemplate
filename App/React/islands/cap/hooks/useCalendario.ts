@@ -10,7 +10,7 @@
  */
 
 import {useState, useCallback, useEffect} from 'react';
-import type {Clase, DiaSemana, ConflictoAforo, ExclusionesConflicto, ResultadoGeneracion, PreviewGeneracion} from '../types';
+import type {Clase, DiaSemana, ConflictoAforo, ExclusionesConflicto, ResultadoGeneracion, PreviewGeneracion, AvisoGeneracion} from '../types';
 import {getLunesDeSemana, getFechasSemana, DIAS_SEMANA, getAsignatura} from '../constants';
 import {detectarColision} from '../utils/collisionUtils';
 import {interpretarErrorHttp, interpretarErrorRed, formatearMensajeError, obtenerMensajeContextual, procesarErrorApi} from '../constants/cap-errores';
@@ -31,6 +31,9 @@ interface EstadoCalendario {
     generando: boolean;
     conflictos: ConflictoAforo[];
     mostrarModalConflictos: boolean;
+    /* Avisos de generación (ej: horas no cubiertas) */
+    avisosGeneracion: AvisoGeneracion[];
+    mostrarModalAvisos: boolean;
     /* Nuevos estados para edición inline */
     claseSeleccionada: Clase | null;
     mostrarModalEdicion: boolean;
@@ -52,6 +55,7 @@ interface AccionesCalendario {
     generarCalendario: () => Promise<void>;
     generarConExclusiones: (exclusiones: ExclusionesConflicto) => Promise<void>;
     cerrarModalConflictos: () => void;
+    cerrarModalAvisos: () => void;
     limpiarError: () => void;
     /* Nuevas acciones para edición inline */
     seleccionarClase: (clase: Clase) => void;
@@ -76,6 +80,10 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
     const [generando, setGenerando] = useState(false);
     const [conflictos, setConflictos] = useState<ConflictoAforo[]>([]);
     const [mostrarModalConflictos, setMostrarModalConflictos] = useState(false);
+
+    /* Estado para avisos de generación */
+    const [avisosGeneracion, setAvisosGeneracion] = useState<AvisoGeneracion[]>([]);
+    const [mostrarModalAvisos, setMostrarModalAvisos] = useState(false);
 
     /* Estado para edición inline */
     const [claseSeleccionada, setClaseSeleccionada] = useState<Clase | null>(null);
@@ -256,6 +264,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         setGenerando(true);
         setError(null);
         setConflictos([]);
+        setAvisosGeneracion([]);
 
         try {
             const response = await fetch('/wp-json/cap/v1/generar', {
@@ -284,6 +293,21 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 alumnos: c.alumnos
             }));
 
+            /* Mapear avisos de generación (ej: horas no cubiertas) */
+            const avisosFormateados = (resultado.avisos || []).map((a: any) => ({
+                tipo: 'horas_no_cubiertas' as const,
+                fecha: a.fecha,
+                diaSemana: a.diaNombre || a.dia_nombre,
+                horasDisponiblesCentro: a.horasDisponibles ?? a.horas_disponibles ?? 0,
+                horasAsignadas: a.horasCubiertas ?? a.horas_cubiertas ?? 0,
+                horasSinCubrir: a.horasNoCubiertas ?? a.horas_no_cubiertas ?? 0,
+                rangosNoCubiertos: a.rangosNoCubiertos ?? a.rangos_no_cubiertos ?? [],
+                /* Campos de configuración (se pueden obtener del backend o usar defaults) */
+                alumnosActivos: a.alumnosActivos ?? a.alumnos_activos ?? 0,
+                maxHorasDiaAlumno: a.maxHorasDiaAlumno ?? a.max_horas_dia_alumno ?? 9,
+                capacidadClase: a.capacidadClase ?? a.capacidad_clase ?? 20
+            }));
+
             if (!resultado.exito && conflictosFormateados.length > 0) {
                 /* Hay conflictos de aforo, mostrar modal */
                 setConflictos(conflictosFormateados);
@@ -291,6 +315,12 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             } else if (resultado.exito) {
                 /* Generación exitosa, recargar clases */
                 await cargarClases();
+
+                /* Si hay avisos, mostrar modal informativo */
+                if (avisosFormateados.length > 0) {
+                    setAvisosGeneracion(avisosFormateados);
+                    setMostrarModalAvisos(true);
+                }
             } else {
                 /* Error sin conflictos */
                 const contextual = obtenerMensajeContextual('calendario', 'generar');
@@ -349,6 +379,12 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
     const cerrarModalConflictos = useCallback(() => {
         setMostrarModalConflictos(false);
         setConflictos([]);
+    }, []);
+
+    /* Cerrar modal de avisos */
+    const cerrarModalAvisos = useCallback(() => {
+        setMostrarModalAvisos(false);
+        setAvisosGeneracion([]);
     }, []);
 
     /* Limpiar error */
@@ -699,6 +735,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         generando,
         conflictos,
         mostrarModalConflictos,
+        avisosGeneracion,
+        mostrarModalAvisos,
         claseSeleccionada,
         mostrarModalEdicion,
         guardandoEdicion,
@@ -713,6 +751,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         generarCalendario,
         generarConExclusiones,
         cerrarModalConflictos,
+        cerrarModalAvisos,
         limpiarError,
         seleccionarClase,
         cerrarModalEdicion,

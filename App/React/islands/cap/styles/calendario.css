@@ -276,22 +276,36 @@
     flex-shrink: 0;
 }
 
-/* Variante: mínima (< 20 min) - solo código */
+/* Variante: mínima (< 20 min) - código + nombre abreviado + candado */
 .capTarjetaClase--minimo {
     flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 4px;
-    padding: 2px 4px;
+    padding: 2px 6px;
 }
 
 .capTarjetaClase--minimo .capTarjetaClase__codigo {
     margin: 0;
+    flex-shrink: 0;
+    font-size: var(--cap-texto-xxs);
+    padding: 1px 4px;
+}
+
+.capTarjetaClase--minimo .capTarjetaClase__nombreMini {
+    font-size: var(--cap-texto-xxs);
+    color: var(--cap-texto-secundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
 }
 
 .capTarjetaClase--minimo .capTarjetaClase__miniCandado {
     color: var(--cap-error-500);
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .capTarjetaClase--bloqueada {
@@ -527,7 +541,7 @@
     }
 
     .capColumnaDia__nombre {
-        font-size: 10px;
+        font-size: var(--cap-texto-xxs);
     }
 }
 

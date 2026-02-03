@@ -13,4 +13,6 @@ export {ColumnaDia} from './ColumnaDia';
 export {ModalConflictoAforo} from './ModalConflictoAforo';
 export {ModalConflictoDrag} from './ModalConflictoDrag';
 export {ModalDetalleClase} from './ModalDetalleClase';
+export {ModalAvisoGeneracion} from './ModalAvisoGeneracion';
 export type {CambiosClase} from './ModalDetalleClase';
+export type {InfoHorasNoCubiertas} from './ModalAvisoGeneracion';

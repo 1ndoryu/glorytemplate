@@ -45,7 +45,7 @@ export function TarjetaClase({clase, onToggleBloqueo, onClick}: TarjetaClaseProp
      * - compacto: 20-29 min (una fila)
      * - minimo: < 20 min (solo código)
      */
-    const modoVisualizacion = duracionMinutos >= 45 ? 'completo' : duracionMinutos >= 30 ? 'sinHorario' : duracionMinutos >= 20 ? 'compacto' : 'minimo';
+    const modoVisualizacion = duracionMinutos >= 46 ? 'completo' : duracionMinutos >= 31 ? 'sinHorario' : duracionMinutos >= 20 ? 'compacto' : 'minimo';
 
     const handleBloqueoClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -59,8 +59,12 @@ export function TarjetaClase({clase, onToggleBloqueo, onClick}: TarjetaClaseProp
     /* Tooltip con información completa para modos reducidos */
     const tooltipInfo = `${asignatura?.nombre || 'Sin asignar'}\n${clase.horaInicio} - ${clase.horaFin}\n${numAlumnos} alumno${numAlumnos !== 1 ? 's' : ''}`;
 
-    /* Vista mínima: solo código */
+    /* Vista mínima: código + nombre abreviado + candado a la derecha */
     if (modoVisualizacion === 'minimo') {
+        /* Nombre muy corto para encajar en espacio reducido */
+        const nombreMini = asignatura?.nombre
+            ? (asignatura.nombre.length > 8 ? asignatura.nombre.substring(0, 6) + '..' : asignatura.nombre)
+            : '—';
         return (
             <div
                 className={`capTarjetaClase capTarjetaClase--minimo ${clase.bloqueada ? 'capTarjetaClase--bloqueada' : ''}`}
@@ -72,6 +76,7 @@ export function TarjetaClase({clase, onToggleBloqueo, onClick}: TarjetaClaseProp
                 title={tooltipInfo}
             >
                 <span className="capTarjetaClase__codigo">{asignatura?.codigo || '—'}</span>
+                <span className="capTarjetaClase__nombreMini">{nombreMini}</span>
                 {clase.bloqueada && <IconoCandado size={10} className="capTarjetaClase__miniCandado" />}
             </div>
         );

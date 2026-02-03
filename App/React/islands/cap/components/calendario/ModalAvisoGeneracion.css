@@ -1,0 +1,211 @@
+/**
+ * ModalAvisoGeneracion Styles
+ *
+ * Estilos para el modal de aviso de horas no cubiertas.
+ */
+
+.avisoGeneracion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-lg);
+}
+
+/* Introducción con icono */
+.avisoGeneracion__intro {
+    display: flex;
+    gap: var(--cap-espacio-md);
+    padding: var(--cap-espacio-md);
+    background: var(--cap-info-50);
+    border-radius: var(--cap-radio-md);
+    border-left: 4px solid var(--cap-info-500);
+}
+
+.avisoGeneracion__iconoInfo {
+    color: var(--cap-info-500);
+    flex-shrink: 0;
+}
+
+.avisoGeneracion__mensaje {
+    color: var(--cap-texto-principal);
+    font-size: var(--cap-texto-base);
+    line-height: 1.5;
+    margin: 0 0 var(--cap-espacio-xs) 0;
+}
+
+.avisoGeneracion__submensaje {
+    color: var(--cap-texto-secundario);
+    font-size: var(--cap-texto-sm);
+    margin: 0;
+}
+
+/* Lista de días */
+.avisoGeneracion__lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-sm);
+}
+
+.avisoGeneracion__listaTitulo {
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-principal);
+    margin: 0 0 var(--cap-espacio-xs) 0;
+}
+
+.avisoGeneracion__dia {
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    background: var(--cap-fondo-sutil);
+    border-radius: var(--cap-radio-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-xs);
+}
+
+.avisoGeneracion__diaHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.avisoGeneracion__diaNombre {
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-principal);
+    font-size: var(--cap-texto-sm);
+}
+
+.avisoGeneracion__diaFecha {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-terciario);
+}
+
+.avisoGeneracion__diaStats {
+    display: flex;
+    gap: var(--cap-espacio-md);
+    flex-wrap: wrap;
+}
+
+.avisoGeneracion__stat {
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-secundario);
+}
+
+.avisoGeneracion__stat svg {
+    color: var(--cap-primario-500);
+}
+
+.avisoGeneracion__stat--alerta {
+    color: var(--cap-advertencia-600);
+    background: var(--cap-advertencia-50);
+    padding: 2px var(--cap-espacio-sm);
+    border-radius: var(--cap-radio-sm);
+}
+
+/* Rangos de horas no cubiertas */
+.avisoGeneracion__rangos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+    padding-top: var(--cap-espacio-xs);
+    border-top: 1px dashed var(--cap-borde-sutil);
+    margin-top: var(--cap-espacio-xs);
+}
+
+.avisoGeneracion__rangosLabel {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-terciario);
+}
+
+.avisoGeneracion__rangosList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cap-espacio-xs);
+}
+
+.avisoGeneracion__rango {
+    font-size: var(--cap-texto-xs);
+    font-family: var(--cap-fuente-mono);
+    background: var(--cap-advertencia-100);
+    color: var(--cap-advertencia-700);
+    padding: 2px var(--cap-espacio-sm);
+    border-radius: var(--cap-radio-sm);
+}
+
+/* Explicación */
+.avisoGeneracion__explicacion {
+    padding: var(--cap-espacio-md);
+    background: var(--cap-fondo-sutil);
+    border-radius: var(--cap-radio-md);
+}
+
+.avisoGeneracion__explicacionTitulo {
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-texto-principal);
+    margin: 0 0 var(--cap-espacio-sm) 0;
+}
+
+.avisoGeneracion__explicacionLista {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-sm);
+}
+
+.avisoGeneracion__explicacionLista li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cap-espacio-sm);
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+}
+
+.avisoGeneracion__explicacionLista li svg {
+    color: var(--cap-primario-500);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Sugerencias */
+.avisoGeneracion__sugerencias {
+    padding: var(--cap-espacio-md);
+    background: var(--cap-exito-50);
+    border-radius: var(--cap-radio-md);
+    border-left: 4px solid var(--cap-exito-500);
+}
+
+.avisoGeneracion__sugerenciasTitulo {
+    font-size: var(--cap-texto-sm);
+    font-weight: var(--cap-peso-semibold);
+    color: var(--cap-exito-700);
+    margin: 0 0 var(--cap-espacio-sm) 0;
+}
+
+.avisoGeneracion__sugerenciasLista {
+    margin: 0;
+    padding-left: var(--cap-espacio-lg);
+}
+
+.avisoGeneracion__sugerenciasLista li {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-secundario);
+    margin-bottom: var(--cap-espacio-xs);
+}
+
+.avisoGeneracion__sugerenciasLista li:last-child {
+    margin-bottom: 0;
+}
+
+/* Acciones */
+.avisoGeneracion__acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cap-espacio-sm);
+    padding-top: var(--cap-espacio-md);
+    border-top: 1px solid var(--cap-borde-sutil);
+}

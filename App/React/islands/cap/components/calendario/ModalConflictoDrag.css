@@ -12,7 +12,7 @@
 
 .conflictoDrag__mensaje {
     color: var(--cap-texto-secundario);
-    font-size: var(--cap-texto-md);
+    font-size: var(--cap-texto-base);
     line-height: 1.5;
     margin: 0;
 }
@@ -31,9 +31,9 @@
     flex: 1;
     padding: var(--cap-espacio-sm);
     border-radius: var(--cap-radio-sm);
-    background: white;
+    background: var(--cap-fondo-tarjeta);
     box-shadow: var(--cap-sombra-sm);
-    border-left: 4px solid var(--cap-color-primario);
+    border-left: 4px solid var(--cap-primario-500);
     display: flex;
     flex-direction: column;
     min-width: 0; /* Para que el texto corte bien */
@@ -41,12 +41,12 @@
 
 .conflictoDrag__clase--existente {
     opacity: 0.8;
-    background: #fff5f5; /* Fondo rojizo muy sutil */
-    border-left-color: var(--cap-peligro);
+    background: var(--cap-error-50);
+    border-left-color: var(--cap-error-500);
 }
 
 .conflictoDrag__flecha {
-    color: var(--cap-peligro);
+    color: var(--cap-error-500);
     font-size: 1.5rem;
     flex-shrink: 0;
 }
@@ -58,11 +58,11 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--cap-texto-primario);
+    color: var(--cap-texto-principal);
 }
 
 .conflictoDrag__horaClase {
-    font-family: var(--cap-familia-mono);
+    font-family: var(--cap-fuente-mono);
     font-size: var(--cap-texto-xs);
     color: var(--cap-texto-secundario);
 }

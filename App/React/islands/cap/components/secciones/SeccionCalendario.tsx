@@ -6,14 +6,14 @@
  */
 
 import {useMemo} from 'react';
-import {CalendarioSemanal, ModalConflictoAforo, ModalDetalleClase} from '../calendario';
-import type {CambiosClase} from '../calendario';
+import {CalendarioSemanal, ModalConflictoAforo, ModalDetalleClase, ModalAvisoGeneracion} from '../calendario';
+import type {CambiosClase, InfoHorasNoCubiertas} from '../calendario';
 import {useCalendario} from '../../hooks/useCalendario';
 import {Alerta} from '../ui';
 import type {ExclusionesConflicto, Clase, DiaSemana} from '../../types';
 
 export function SeccionCalendario() {
-    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, eliminando, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase, moverMultiplesClases, eliminarClase, borrarSemanacompleta} = useCalendario();
+    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, avisosGeneracion, mostrarModalAvisos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, eliminando, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, cerrarModalAvisos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase, moverMultiplesClases, eliminarClase, borrarSemanacompleta} = useCalendario();
 
     /*
      * Obtener la clase actualizada desde el array de clases
@@ -106,6 +106,9 @@ export function SeccionCalendario() {
             {/* La key fuerza un remount cuando cambia la clase, reseteando el estado interno */}
             {/* Los datos de alumnos vienen directamente con la clase (alumnosData) */}
             <ModalDetalleClase key={`modal-clase-${claseActualizada?.id ?? 'none'}`} clase={claseActualizada} abierto={mostrarModalEdicion} onCerrar={cerrarModalEdicion} onGuardar={handleGuardarClase} onToggleBloqueo={toggleBloqueoClase} onMoverClase={handleMoverClase} fechasSemana={fechasSemana} clasesPorDia={clasesPorDia} onMoverMultiplesClases={moverMultiplesClases} guardando={guardandoEdicion} onEliminar={handleEliminarClase} eliminando={eliminando} />
+
+            {/* Modal informativo de horas no cubiertas */}
+            <ModalAvisoGeneracion abierto={mostrarModalAvisos} avisos={avisosGeneracion as InfoHorasNoCubiertas[]} onCerrar={cerrarModalAvisos} />
         </div>
     );
 }

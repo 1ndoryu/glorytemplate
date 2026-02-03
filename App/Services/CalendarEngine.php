@@ -152,10 +152,14 @@ class CalendarEngine
         /* Paso 5: Crear las clases en la base de datos */
         $clasesGeneradas = $this->crearClases($distribucion, $fechaInicioSemana);
 
+        /* Paso 6: Calcular avisos de horas no cubiertas */
+        $avisos = $this->calcularAvisosHorasNoCubiertas($demandaPorSlot, $fechaInicioSemana);
+
         return [
             'exito' => true,
             'clases' => $clasesGeneradas,
             'conflictos' => [],
+            'avisos' => $avisos,
             'mensaje' => 'Calendario generado exitosamente'
         ];
     }
@@ -633,10 +637,14 @@ class CalendarEngine
         $distribucion = $this->distribuirAsignaturas($demandaPorSlot);
         $clasesGeneradas = $this->crearClases($distribucion, $fechaInicioSemana);
 
+        /* Calcular avisos de horas no cubiertas */
+        $avisos = $this->calcularAvisosHorasNoCubiertas($demandaPorSlot, $fechaInicioSemana);
+
         return [
             'exito' => true,
             'clases' => $clasesGeneradas,
             'conflictos' => [],
+            'avisos' => $avisos,
             'mensaje' => 'Calendario generado exitosamente'
         ];
     }
@@ -739,5 +747,125 @@ class CalendarEngine
             'alumnos' => count($alumnosIds),
             'puede_generar' => empty($conflictos)
         ];
+    }
+
+    /**
+     * Calcula avisos de horas no cubiertas por día
+     * 
+     * Compara los slots disponibles del centro contra los slots que 
+     * efectivamente tienen alumnos asignados para detectar huecos.
+     * 
+     * @param array $demandaPorSlot Demanda calculada por slot
+     * @param string $fechaInicioSemana Fecha inicio de la semana
+     * @return array Lista de avisos por día con horas no cubiertas
+     */
+    private function calcularAvisosHorasNoCubiertas(array $demandaPorSlot, string $fechaInicioSemana): array
+    {
+        $avisos = [];
+        $nombresDias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+        /* Agrupar slots por fecha */
+        $slotsPorFecha = [];
+        foreach ($this->slotsDisponibles as $fecha => $slots) {
+            $slotsPorFecha[$fecha] = [
+                'disponibles' => count($slots),
+                'cubiertos' => 0,
+                'horasDisponibles' => 0,
+                'horasCubiertas' => 0,
+                'slotsNoCubiertos' => []
+            ];
+            
+            foreach ($slots as $slot) {
+                $slotsPorFecha[$fecha]['horasDisponibles'] += $this->duracionClase / 60;
+            }
+        }
+
+        /* Contar slots cubiertos (con al menos 1 alumno) */
+        foreach ($demandaPorSlot as $slotKey => $datos) {
+            $fecha = $datos['fecha'];
+            if (!isset($slotsPorFecha[$fecha])) {
+                continue;
+            }
+
+            if ($datos['total'] > 0) {
+                $slotsPorFecha[$fecha]['cubiertos']++;
+                $slotsPorFecha[$fecha]['horasCubiertas'] += $this->duracionClase / 60;
+            } else {
+                /* Registrar slot sin cobertura */
+                $slotsPorFecha[$fecha]['slotsNoCubiertos'][] = [
+                    'inicio' => $datos['hora_inicio'],
+                    'fin' => $datos['hora_fin']
+                ];
+            }
+        }
+
+        /* Generar avisos para días con huecos */
+        foreach ($slotsPorFecha as $fecha => $stats) {
+            $noCubiertos = $stats['disponibles'] - $stats['cubiertos'];
+            
+            if ($noCubiertos > 0) {
+                /* Calcular día de la semana */
+                $timestamp = strtotime($fecha);
+                $diaSemana = (int) date('N', $timestamp); // 1=lunes, 7=domingo
+                $nombreDia = $nombresDias[$diaSemana - 1] ?? 'Día';
+
+                /* Agrupar rangos consecutivos de horas no cubiertas */
+                $rangosNoCubiertos = $this->agruparRangosConsecutivos($stats['slotsNoCubiertos']);
+
+                $avisos[] = [
+                    'fecha' => $fecha,
+                    'diaNombre' => $nombreDia,
+                    'horasDisponibles' => round($stats['horasDisponibles'], 1),
+                    'horasCubiertas' => round($stats['horasCubiertas'], 1),
+                    'horasNoCubiertas' => round($stats['horasDisponibles'] - $stats['horasCubiertas'], 1),
+                    'rangosNoCubiertos' => $rangosNoCubiertos
+                ];
+            }
+        }
+
+        return $avisos;
+    }
+
+    /**
+     * Agrupa slots consecutivos en rangos para mostrar en avisos
+     * Ej: [09:00-10:00, 10:00-11:00, 14:00-15:00] => ["09:00 - 11:00", "14:00 - 15:00"]
+     */
+    private function agruparRangosConsecutivos(array $slots): array
+    {
+        if (empty($slots)) {
+            return [];
+        }
+
+        /* Ordenar por hora de inicio */
+        usort($slots, function ($a, $b) {
+            return strcmp($a['inicio'], $b['inicio']);
+        });
+
+        $rangos = [];
+        $rangoActual = [
+            'inicio' => $slots[0]['inicio'],
+            'fin' => $slots[0]['fin']
+        ];
+
+        for ($i = 1; $i < count($slots); $i++) {
+            $slot = $slots[$i];
+            
+            /* Si este slot comienza donde termina el anterior, extender el rango */
+            if ($slot['inicio'] === $rangoActual['fin']) {
+                $rangoActual['fin'] = $slot['fin'];
+            } else {
+                /* Guardar rango actual y empezar uno nuevo */
+                $rangos[] = $rangoActual['inicio'] . ' - ' . $rangoActual['fin'];
+                $rangoActual = [
+                    'inicio' => $slot['inicio'],
+                    'fin' => $slot['fin']
+                ];
+            }
+        }
+
+        /* Agregar último rango */
+        $rangos[] = $rangoActual['inicio'] . ' - ' . $rangoActual['fin'];
+
+        return $rangos;
     }
 }
