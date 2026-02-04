@@ -165,10 +165,21 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
     - **Solución:** Interpolación de disponibilidad. Si un alumno está disponible de 09:00-10:00, ahora cubre clases de 09:00-09:30 Y 09:30-10:00.
     - **Archivos modificados:** `CalendarEngine.php` - métodos `cargarDisponibilidad()` y `alumnoDisponibleEnSlot()`
     
-#### 2. Investigación Pendiente: Descansos entre Clases
-- [ ] **¿Se usa "Duración de descanso (min)" en la generación?** Verificar si el campo de configuración de descansos afecta la generación de slots o si actualmente se ignora.
-    - Según requerimientos: "Si hace 6h: 30 min descanso", "Si hace 9h: 45 min descanso"
-    - Esto debería ser automático después de X horas consecutivas, no entre cada clase.
+#### 2. Investigación: Descansos entre Clases *(Investigado 2026-02-04)*
+- [x] **¿Se usa "Duración de descanso (min)" en la generación?** 
+    - **Hallazgo:** El campo existe en UI y BD pero **NO se usa en absoluto** en CalendarEngine.
+    - Las constantes `DESCANSO_6_HORAS = 30` y `DESCANSO_9_HORAS = 45` están definidas pero nunca se invocan.
+    - El label actual "Tiempo entre clases" es **incorrecto** según requerimientos.
+    
+- **Requerimiento legal real:**
+    - Si alumno hace 6h consecutivas → 30 min de descanso obligatorio
+    - Si alumno hace 9h consecutivas → 45 min de descanso obligatorio
+    - El sistema debería insertar estos descansos automáticamente en la generación
+    
+- **Estado: NO IMPLEMENTADO** - Decisión pendiente:
+    - [ ] **Opción A:** Implementar descansos automáticos legales (insertar huecos después de 6h/9h)
+    - [ ] **Opción B:** Eliminar el campo de UI si no se va a usar
+    - [ ] **Opción C:** Usar el campo como "gap" entre clases (diseño original aparente)
 
 
 ## Ultima actualización del cliente
