@@ -45,7 +45,7 @@ export function TarjetaClase({clase, onToggleBloqueo, onClick}: TarjetaClaseProp
      * - compacto: 20-29 min (una fila)
      * - minimo: < 20 min (solo código)
      */
-    const modoVisualizacion = duracionMinutos >= 46 ? 'completo' : duracionMinutos >= 31 ? 'sinHorario' : duracionMinutos >= 20 ? 'compacto' : 'minimo';
+    const modoVisualizacion = duracionMinutos >= 46 ? 'completo' : duracionMinutos >= 35 ? 'sinHorario' : duracionMinutos >= 20 ? 'compacto' : 'minimo';
 
     const handleBloqueoClick = (e: React.MouseEvent) => {
         e.stopPropagation();
