@@ -181,6 +181,10 @@ class CalendarEngine
      * 
      * Lee columnas dia (varchar: "lunes", "martes"...) y hora (slot: "09:00")
      * del esquema real y las convierte al formato interno del motor.
+     * 
+     * NOTA: La grilla de disponibilidad guarda slots de 1 hora (09:00, 10:00...).
+     * La interpolación se hace en alumnoDisponibleEnSlot() para soportar
+     * duraciones de clase menores a 1 hora.
      */
     private function cargarDisponibilidad(array $alumnosIds): void
     {
@@ -219,8 +223,12 @@ class CalendarEngine
                 $this->disponibilidadAlumnos[$alumnoId] = [];
             }
 
-            /* Cada slot es una disponibilidad puntual de 1 hora (duración de clase) */
-            $horaFin = date('H:i', strtotime($hora) + ($this->duracionClase * 60));
+            /*
+             * Cada registro de disponibilidad representa 1 hora completa.
+             * Ej: hora=09:00 significa disponible de 09:00 a 10:00.
+             * Esto permite clases de 30, 45 o 60 min dentro de ese bloque.
+             */
+            $horaFin = date('H:i', strtotime($hora) + 3600); // Siempre 1 hora
 
             $this->disponibilidadAlumnos[$alumnoId][] = [
                 'dia' => $diaSemana,
@@ -417,6 +425,10 @@ class CalendarEngine
 
     /**
      * Verifica si un alumno está disponible en un slot específico
+     * 
+     * Soporta interpolación: si la disponibilidad está guardada en bloques de 1 hora
+     * (ej: 09:00-10:00) y la clase dura menos (ej: 30 min), una clase de 09:30-10:00
+     * se considera cubierta porque cae dentro del bloque de disponibilidad.
      */
     private function alumnoDisponibleEnSlot(int $alumnoId, int $diaSemana, string $horaInicio, string $horaFin): bool
     {
@@ -435,7 +447,13 @@ class CalendarEngine
             $inicioDisp = strtotime($disponibilidad['inicio']);
             $finDisp = strtotime($disponibilidad['fin']);
 
-            /* El slot debe estar completamente dentro de la disponibilidad */
+            /*
+             * Interpolación: el slot de clase debe estar COMPLETAMENTE contenido
+             * dentro del bloque de disponibilidad.
+             * 
+             * Ej: Disponibilidad 09:00-10:00, Clase 09:30-10:00 → OK
+             * Ej: Disponibilidad 09:00-10:00, Clase 09:45-10:15 → NO (se pasa del bloque)
+             */
             if ($inicioSlot >= $inicioDisp && $finSlot <= $finDisp) {
                 return true;
             }

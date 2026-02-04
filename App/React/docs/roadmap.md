@@ -157,6 +157,19 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 - ✅ Nueva creación de Horarios de Clase (Flexible).
 - ✅ Opción de Borrar Semana.
 
+### 📋 Feedback Cliente 04/02/2026
+
+#### 1. Bug Crítico: Huecos entre Clases con Duración < 60min
+- [x] **Clases de 30min dejan huecos de 30min:** Cuando la duración de clase es 30 minutos, el sistema genera clases en 10:00, 11:00, 12:00 (saltando media hora). *(Corregido 2026-02-04)*
+    - **Causa raíz:** La grilla de disponibilidad guarda slots de 1 hora (09:00, 10:00...), pero el CalendarEngine calculaba la disponibilidad usando `duracionClase` en lugar de 1 hora fija.
+    - **Solución:** Interpolación de disponibilidad. Si un alumno está disponible de 09:00-10:00, ahora cubre clases de 09:00-09:30 Y 09:30-10:00.
+    - **Archivos modificados:** `CalendarEngine.php` - métodos `cargarDisponibilidad()` y `alumnoDisponibleEnSlot()`
+    
+#### 2. Investigación Pendiente: Descansos entre Clases
+- [ ] **¿Se usa "Duración de descanso (min)" en la generación?** Verificar si el campo de configuración de descansos afecta la generación de slots o si actualmente se ignora.
+    - Según requerimientos: "Si hace 6h: 30 min descanso", "Si hace 9h: 45 min descanso"
+    - Esto debería ser automático después de X horas consecutivas, no entre cada clase.
+
 
 ## Ultima actualización del cliente
 
