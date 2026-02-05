@@ -1,7 +1,7 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
-> **Última actualización:** 2026-01-29  
-> **Estado:** ⏳ Fase 11 (Despliegue) - Sitio desplegado en cap.wandori.us  
+> **Última actualización:** 2026-02-05  
+> **Estado:** ⏳ Fase 11 + Feedback (Mejoras de UX/Visualización pendientes)  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
@@ -182,30 +182,59 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
     - [ ] **Opción C:** Usar el campo como "gap" entre clases (diseño original aparente)
 
 
-## Ultima actualización del cliente
+## 📋 Feedback Cliente 05/02/2026 (Nuevo)
 
-### 1. Errores Críticos de Lógica y Persistencia
+### 1. Resolución Inteligente de Conflictos de Aforo
+- [ ] **Opción "Priorizar por Proximidad":** Nueva opción en el modal de Conflicto de Aforo (además de Manual y Aleatorio).
+    - **Criterio 1:** Priorizar alumnos que estén más cerca de terminar cada asignatura (menos horas restantes).
+    - **Criterio 2:** Evitar fragmentación de clases. Si un alumno tiene que volver más tarde, es peor que otro alumno que haría sus clases seguidas.
+    - **Ejemplo:** Entre 2 alumnos, si uno le queda 1h para terminar la asignatura y al otro le quedan 5h, priorizar al primero.
+    - **Continuidad:** Asegurar que el alumno priorizado no tenga que volver más tarde en el día (clases seguidas).
+    
+### 2. Mejoras de Visualización del Calendario
 
-* **La Configuración de Horarios no se aplica:** Aunque el panel dice "Guardado correctamente", al generar el calendario en una semana nueva, sigue usando el horario antiguo (ej. de 9 a 14) e ignora los cambios recientes. Además, al recargar, la configuración vuelve a su estado anterior. *(Fuente: Video 1 y Texto)*.
-* **Persistencia de "Alumnos Máximos":** Reporta problemas al guardar la cantidad de alumnos máximos. Aunque en el Video 3 parece que visualmente se guarda en el *input*, en la generación del calendario no se refleja correctamente. *(Fuente: Texto y Video 3)*.
+#### 2.1 Modal de Configuración del Calendario
+- [ ] **Botón de configuración:** Agregar icono de engranaje en la barra del calendario que abre un modal.
+- [ ] **Opción "Ocultar horas cerradas":** Toggle para ocultar el rango de horas en que la autoescuela está cerrada.
+    - Calcula automáticamente la hora más temprana y más tarde según la configuración de horarios de toda la semana.
+    - Ejemplo: Si la hora mínima de apertura es 10:00 y máxima 22:00, ocultar 08:00-09:00 y 23:00+.
+    - La lógica es por semana, no por día (si el lunes abren a las 10 y el viernes a las 12, la hora mínima sigue siendo 10).
+- [ ] **Control de Zoom Vertical:** Slider o selector para ajustar la escala vertical del calendario.
+    - Opción de "30 min = 1 fila" en lugar de "60 min = 1 fila" (duplicar el espacio).
+    - Control granular (ej. 1x, 1.3x, 1.5x, 2x).
 
-### 2. Problemas Visuales y de Interacción (Calendario)
+#### 2.2 Mejoras en la Vista por Defecto de las Tarjetas ✅
+- [x] **Zoom vertical por defecto +30%:** Umbral de visualización aumentado de 40 a 52 minutos. *(Implementado 2026-02-05)*
+- [x] **Texto sin cortar:** Nombres usan `word-break` y `line-clamp` para saltos de línea.
+- [x] **Simplificar con Badges:** Vista compacta ahora tiene:
+    - Línea 1: Nombre completo de la asignatura.
+    - Línea 2: 3 badges → [Código] [N alumnos] [HH:MM-HH:MM]
+- [x] **Redefinir niveles de visualización:**
+    - **Compacto (<52 min):** Nombre + badges (reemplaza la vista mínima y sin horario).
+    - **Completo (>=52 min):** Se mantiene con todas las secciones.
 
-* **Desalineación de Bloques (Posición vs. Hora):** Las clases no se pintan en la fila de su hora real. Una clase de las 13:00 aparece visualmente a la altura de las 09:00. *(Fuente: Texto y Video 2)*.
-    *   *Refactor Alineación (2026-01-29):* Se ha implementado un plan de alineación pixel-perfect. Ver `FIX_CALENDAR_ALIGNMENT.md`.
-* **Fallo en Edición Manual:** Si edita la hora manualmente (ej. cambiar de 10:00 a 11:00), el texto de la tarjeta cambia, pero el bloque **no se mueve** de posición vertical. *(Fuente: Texto y Video 2)*.
-* **Bloqueo de Movimiento (Drag & Drop):** No puede arrastrar las clases hacia abajo ni volverlas a subir; el sistema de arrastre falla o está bloqueado. *(Fuente: Video 2)*.
-* **Visualización de Alumnos (Card):** En la tarjeta del calendario siempre aparece el icono/texto de "1 alumno", ignorando la configuración real de capacidad (ej. 15 alumnos). *(Fuente: Texto y Video 3)*.
-* **Flechas de Navegación "Bailarinas":** Al cambiar de semana, la flecha se desplaza levemente de posición, lo que causa clics accidentales en el botón "Hoy". Pide fijar su posición estática. *(Fuente: Audio)*.
+### 3. Disponibilidad de Alumnos - Adaptar al Horario de Autoescuela ✅
+- [x] **Horas dinámicas:** La grilla de disponibilidad de alumnos ahora muestra las horas configuradas en "Configuración → Horarios de Clase (Flexible)". *(Implementado 2026-02-05)*
+    - Creado `utils/horariosUtils.ts` con `calcularRangoHoras()` que analiza `horarios_semanales`.
+    - `useDisponibilidad` ahora acepta `horasDisponibles` como opción.
+    - `MatrizDisponibilidad` recibe las horas dinámicas desde `SeccionAlumnos`.
+- [x] **Leer configuración:** El hook obtiene el rango desde la configuración del centro automáticamente.
 
-### 3. Solicitud de Cambios de Lógica (Nuevas Funcionalidades)
+---
 
-* **Flexibilidad Total en Horarios (Importante):** Pide **eliminar** la restricción de "Turno Mañana/Tarde". Necesita libertad total para configurar horas raras por día (ej. Lunes de 9 a 17, Miércoles de 10 a 20, etc.). Admite que esto cambia la lógica actual. *(Fuente: Texto)*.
-* **Botón "Borrar Calendario":** Quiere una opción para limpiar/borrar una semana entera (dejarla en blanco), aparte de la opción de "Deshacer". *(Fuente: Texto)*.
-* **Smart Drag & Drop y Sistema de Conflictos:** ✅ Implementado. Sistema fluido con detección de colisiones y resolución "Waterful" (cascada).
-    *   **Alertas de Colisión:** Modal obligatorio si una clase se suelta sobre otra existente.
-    *   **Resolución:** Opción de cancelar o desplazar clases afectadas.
-    *   *Plan Técnico Completo:* Ver `SMART_DRAG_DROP_PLAN.md`.
+## Historial de Feedback (Resuelto)
+
+### Actualización 04/02/2026
+- [x] **Clases de 30min dejan huecos de 30min** - Corregido con interpolación de disponibilidad.
+- [x] **Investigación de Descansos** - Documentado estado actual.
+
+### Actualización 02/02/2026
+- [x] Aviso de Horas No Cubiertas
+- [x] Bug Duración al Editar Hora
+- [x] Granularidad del Selector de Hora (15 min)
+- [x] Tarjetas Adaptativas para Clases Cortas
+- [x] Vista Mínima Mejorada
+- [x] Variables CSS inválidas corregidas
 
 ---
 

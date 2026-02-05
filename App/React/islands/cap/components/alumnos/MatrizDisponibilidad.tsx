@@ -3,17 +3,21 @@
  *
  * Componente de grid interactivo para gestionar la disponibilidad horaria de un alumno.
  * Permite click individual, click en fila (hora), click en columna (día).
+ *
+ * Las horas mostradas se adaptan al horario configurado de la autoescuela.
  */
 
 import {useEffect, Fragment} from 'react';
 import {Boton, Spinner, Alerta} from '../ui';
 import {IconoGuardar} from '../icons';
-import {useDisponibilidad, DIAS_SEMANA, HORAS_DISPONIBLES, type DiaSemana} from '../../hooks/useDisponibilidad';
+import {useDisponibilidad, DIAS_SEMANA, HORAS_DISPONIBLES_DEFAULT, type DiaSemana} from '../../hooks/useDisponibilidad';
 
 interface MatrizDisponibilidadProps {
     alumnoId: number;
     alumnoNombre?: string;
     onGuardadoExitoso?: () => void;
+    /** Horas a mostrar en la matriz, derivadas del horario de la autoescuela */
+    horasDisponibles?: string[];
 }
 
 /* Nombres legibles para los días */
@@ -30,8 +34,11 @@ function formatearHora(hora: string): string {
     return hora.replace(':00', 'h');
 }
 
-export function MatrizDisponibilidad({alumnoId, alumnoNombre, onGuardadoExitoso}: MatrizDisponibilidadProps) {
-    const {slots, cargando, guardando, error, exito, hayCambios, toggleSlot, toggleFila, toggleColumna, seleccionarTodo, limpiarTodo, guardar, cargar, limpiarMensajes} = useDisponibilidad();
+export function MatrizDisponibilidad({alumnoId, alumnoNombre, onGuardadoExitoso, horasDisponibles}: MatrizDisponibilidadProps) {
+    /* Usar horas proporcionadas o las por defecto */
+    const horasActivas = horasDisponibles ?? HORAS_DISPONIBLES_DEFAULT;
+
+    const {slots, cargando, guardando, error, exito, hayCambios, toggleSlot, toggleFila, toggleColumna, seleccionarTodo, limpiarTodo, guardar, cargar, limpiarMensajes} = useDisponibilidad({horasDisponibles: horasActivas});
 
     /* Cargar disponibilidad cuando cambia el alumno */
     useEffect(() => {
@@ -56,7 +63,7 @@ export function MatrizDisponibilidad({alumnoId, alumnoNombre, onGuardadoExitoso}
 
     /* Verificar si toda la columna (día) está seleccionada */
     const columnaCompleta = (dia: DiaSemana): boolean => {
-        return HORAS_DISPONIBLES.every(hora => esDisponible(dia, hora));
+        return horasActivas.every(hora => esDisponible(dia, hora));
     };
 
     /* Verificar si toda la fila (hora) está seleccionada */
@@ -66,7 +73,7 @@ export function MatrizDisponibilidad({alumnoId, alumnoNombre, onGuardadoExitoso}
 
     /* Contar slots seleccionados */
     const totalSeleccionados = slots.filter(s => s.disponible).length;
-    const totalSlots = DIAS_SEMANA.length * HORAS_DISPONIBLES.length;
+    const totalSlots = DIAS_SEMANA.length * horasActivas.length;
 
     const handleGuardar = async () => {
         const exito = await guardar();
@@ -130,7 +137,7 @@ export function MatrizDisponibilidad({alumnoId, alumnoNombre, onGuardadoExitoso}
                     ))}
 
                     {/* Filas de horas */}
-                    {HORAS_DISPONIBLES.map(hora => (
+                    {horasActivas.map(hora => (
                         <Fragment key={hora}>
                             {/* Header de hora (fila) */}
                             <button type="button" className={`capMatriz__headerHora ${filaCompleta(hora) ? 'capMatriz__headerHora--activo' : ''}`} onClick={() => toggleFila(hora)} disabled={guardando} title={`Toggle ${hora}`}>

@@ -3,6 +3,8 @@
  *
  * Vista de gestión de alumnos del módulo CAP.
  * Implementa tabla con CRUD, búsqueda, ordenación, paginación y matriz de disponibilidad.
+ *
+ * Las horas de disponibilidad se adaptan al horario configurado de la autoescuela.
  */
 
 import {useState} from 'react';
@@ -10,9 +12,15 @@ import {Boton, Alerta, Modal} from '../ui';
 import {TablaAlumnos, FormularioAlumno, MatrizDisponibilidad, ModalProgresoAlumno} from '../alumnos';
 import {IconoUsuarioMas} from '../icons';
 import {useAlumnos, type Alumno} from '../../hooks/useAlumnos';
+import {useConfiguracion} from '../../hooks/useConfiguracion';
+import {calcularRangoHoras} from '../../utils/horariosUtils';
 
 export function SeccionAlumnos() {
     const {alumnos, total, cargando, guardando, eliminando, error, exito, filtros, crearAlumno, actualizarAlumno, eliminarAlumno, cambiarFiltros, limpiarMensajes} = useAlumnos();
+
+    /* Obtener configuración del centro para las horas de disponibilidad */
+    const {config} = useConfiguracion();
+    const rangoHoras = calcularRangoHoras(config);
 
     const [modalVisible, setModalVisible] = useState(false);
     const [alumnoEditar, setAlumnoEditar] = useState<Alumno | null>(null);
@@ -124,9 +132,9 @@ export function SeccionAlumnos() {
             {/* Modal de creación/edición */}
             <FormularioAlumno visible={modalVisible} alumno={alumnoEditar} guardando={guardando} onCerrar={handleCerrarModal} onGuardar={handleGuardar} />
 
-            {/* Modal de disponibilidad */}
+            {/* Modal de disponibilidad - Las horas se adaptan al horario de la autoescuela */}
             <Modal abierto={modalDisponibilidadVisible} onCerrar={handleCerrarDisponibilidad} titulo="Disponibilidad Horaria" tamano="lg">
-                {alumnoDisponibilidad && <MatrizDisponibilidad alumnoId={alumnoDisponibilidad.id} alumnoNombre={alumnoDisponibilidad.nombre} onGuardadoExitoso={handleCerrarDisponibilidad} />}
+                {alumnoDisponibilidad && <MatrizDisponibilidad alumnoId={alumnoDisponibilidad.id} alumnoNombre={alumnoDisponibilidad.nombre} onGuardadoExitoso={handleCerrarDisponibilidad} horasDisponibles={rangoHoras.horasDisponibles} />}
             </Modal>
 
             {/* Modal de progreso por asignatura */}
