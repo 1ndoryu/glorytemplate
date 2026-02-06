@@ -5,14 +5,16 @@
  * Basado en el Real Decreto 1032/2007 y normativa vigente.
  */
 
-import type {Asignatura, DiaSemana} from '../types';
+import type { Asignatura, DiaSemana } from '../types';
 
-/* Configuraciones visuales del calendario */
+/* Configuraciones visuales del calendario
+ * Zoom +30% aplicado para mejor visualización de tarjetas
+ */
 export const CALENDARIO_CONFIG = {
-    PIXELS_POR_MINUTO: 1.5,
+    PIXELS_POR_MINUTO: 1.95, // +30% zoom (era 1.5)
     HORA_INICIO_DIA: 8, // 08:00
-    ALTO_MINIMO_CLASE: 30,
-    ALTURA_TOTAL_COLUMNA: 1350 // 15 horas * 60 min * 1.5px
+    ALTO_MINIMO_CLASE: 39, // +30% (era 30)
+    ALTURA_TOTAL_COLUMNA: 1755 // 15 horas * 60 min * 1.95px
 } as const;
 
 /* Reglas legales del curso CAP */

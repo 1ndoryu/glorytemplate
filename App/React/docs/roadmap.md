@@ -204,7 +204,7 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
     - Control granular (ej. 1x, 1.3x, 1.5x, 2x).
 
 #### 2.2 Mejoras en la Vista por Defecto de las Tarjetas ✅
-- [x] **Zoom vertical por defecto +30%:** Umbral de visualización aumentado de 40 a 52 minutos. *(Implementado 2026-02-05)*
+- [x] **Zoom vertical por defecto +30%:** Píxeles por minuto aumentados de 1.5 a 1.95, altura slots de 90px a 117px. *(Implementado completamente 2026-02-06)*
 - [x] **Texto sin cortar:** Nombres usan `word-break` y `line-clamp` para saltos de línea.
 - [x] **Simplificar con Badges:** Vista compacta ahora tiene:
     - Línea 1: Nombre completo de la asignatura.

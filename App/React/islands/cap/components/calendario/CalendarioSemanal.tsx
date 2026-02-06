@@ -6,19 +6,19 @@
  * Ahora soporta Smart Drag & Drop con detección de conflictos.
  */
 
-import {useMemo, useState, useCallback} from 'react';
-import {DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors, pointerWithin, rectIntersection} from '@dnd-kit/core';
-import type {DragStartEvent, DragEndEvent, DragMoveEvent, CollisionDetection} from '@dnd-kit/core';
-import type {Clase, DiaSemana} from '../../types';
-import {DIAS_SEMANA, CALENDARIO_CONFIG} from '../../constants/cap-constants';
-import {NavegadorSemana} from './NavegadorSemana';
-import {BarraAcciones} from './BarraAcciones';
-import {ColumnaDia} from './ColumnaDia';
-import {DragOverlayClase} from './DragOverlayClase';
-import {ModalConflictoDrag} from './ModalConflictoDrag';
-import {Spinner} from '../ui';
-import {IconoCalendario} from '../icons';
-import {validarMovimiento, resolverDesplazamientoCascada, horaAMinutos, encontrarHorarioDisponibleMasCercano} from '../../utils/collisionUtils';
+import { useMemo, useState, useCallback } from 'react';
+import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors, pointerWithin, rectIntersection } from '@dnd-kit/core';
+import type { DragStartEvent, DragEndEvent, DragMoveEvent, CollisionDetection } from '@dnd-kit/core';
+import type { Clase, DiaSemana } from '../../types';
+import { DIAS_SEMANA, CALENDARIO_CONFIG } from '../../constants/cap-constants';
+import { NavegadorSemana } from './NavegadorSemana';
+import { BarraAcciones } from './BarraAcciones';
+import { ColumnaDia } from './ColumnaDia';
+import { DragOverlayClase } from './DragOverlayClase';
+import { ModalConflictoDrag } from './ModalConflictoDrag';
+import { Spinner } from '../ui';
+import { IconoCalendario } from '../icons';
+import { validarMovimiento, resolverDesplazamientoCascada, horaAMinutos, encontrarHorarioDisponibleMasCercano } from '../../utils/collisionUtils';
 
 /*
  * Parsea una fecha YYYY-MM-DD como fecha local (no UTC).
@@ -54,18 +54,18 @@ interface CalendarioSemanalProps {
     onDeshacer?: () => void;
     onBorrarSemana?: () => Promise<void>;
     onMoverClase?: (claseId: number, nuevaFecha: string, horaInicio?: string, horaFin?: string) => Promise<void>;
-    onMoverMultiplesClases?: (cambios: {clase: Clase; nuevoInicio: string; nuevoFin: string; nuevaFecha?: string}[]) => Promise<void>;
+    onMoverMultiplesClases?: (cambios: { clase: Clase; nuevoInicio: string; nuevoFin: string; nuevaFecha?: string }[]) => Promise<void>;
 }
 
-export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando, generando, onSemanaAnterior, onSemanaSiguiente, onIrHoy, onToggleBloqueo, onGenerar, onClaseClick, puedeDeshacer = false, onDeshacer, onBorrarSemana, onMoverClase, onMoverMultiplesClases}: CalendarioSemanalProps) {
+export function CalendarioSemanal({ clases, semanaActual, fechasSemana, cargando, generando, onSemanaAnterior, onSemanaSiguiente, onIrHoy, onToggleBloqueo, onGenerar, onClaseClick, puedeDeshacer = false, onDeshacer, onBorrarSemana, onMoverClase, onMoverMultiplesClases }: CalendarioSemanalProps) {
     /* Estado para el arrastre activo */
     const [claseArrastrada, setClaseArrastrada] = useState<Clase | null>(null);
 
     /* Estado para preview de drop */
-    const [previewDrop, setPreviewDrop] = useState<{fecha: string; top: number; height: number} | null>(null);
+    const [previewDrop, setPreviewDrop] = useState<{ fecha: string; top: number; height: number } | null>(null);
 
     /* Notificaciones UI */
-    const [notificaciones, setNotificaciones] = useState<{id: string; mensaje: string}[]>([]);
+    const [notificaciones, setNotificaciones] = useState<{ id: string; mensaje: string }[]>([]);
 
     /* Estado para conflicto detectado */
     const [conflictoData, setConflictoData] = useState<{
@@ -142,7 +142,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
 
     const notificarMovimiento = useCallback((mensaje: string) => {
         const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        setNotificaciones(prev => [...prev, {id, mensaje}]);
+        setNotificaciones(prev => [...prev, { id, mensaje }]);
 
         window.setTimeout(() => {
             setNotificaciones(prev => prev.filter(item => item.id !== id));
@@ -155,7 +155,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
          * Esto evita errores en runtime al filtrar por día.
          */
         const obtenerData = (id: string | number) =>
-            args.droppableContainers.find(container => container.id === id)?.data?.current as {type?: string} | undefined;
+            args.droppableContainers.find(container => container.id === id)?.data?.current as { type?: string } | undefined;
 
         const pointerCollisions = pointerWithin(args);
         const baseCollisions = pointerCollisions.length ? pointerCollisions : rectIntersection(args);
@@ -171,7 +171,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
 
     /* Handlers de drag & drop */
     const handleDragStart = useCallback((event: DragStartEvent) => {
-        const {active} = event;
+        const { active } = event;
         const claseData = active.data.current?.clase as Clase | undefined;
         if (claseData) {
             setClaseArrastrada(claseData);
@@ -180,7 +180,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
 
     const handleDragMove = useCallback(
         (event: DragMoveEvent) => {
-            const {active, over, delta} = event;
+            const { active, over, delta } = event;
 
             const claseData = active.data.current?.clase as Clase | undefined;
             if (!claseData || claseData.bloqueada) {
@@ -202,7 +202,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
             const nuevoTopRaw = Math.max(0, Math.min(topOriginal + delta.y, CALENDARIO_CONFIG.ALTURA_TOTAL_COLUMNA - altura));
 
             const fechaObj = parsearFechaLocal(fechaDestino);
-            const diaIndices = {1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes'} as const;
+            const diaIndices = { 1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes' } as const;
             const diaKey = diaIndices[fechaObj.getDay() as keyof typeof diaIndices];
 
             if (!diaKey) {
@@ -226,7 +226,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
 
     const handleDragEnd = useCallback(
         async (event: DragEndEvent) => {
-            const {active, over, delta} = event;
+            const { active, over, delta } = event;
 
             setClaseArrastrada(null);
             setPreviewDrop(null);
@@ -267,7 +267,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
             /* Obtener clases del día destino para validar colisiones */
             /* Encontrar el día de la semana basado en la fecha string */
             const fechaObj = parsearFechaLocal(fechaDestino);
-            const diaIndices = {1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes'} as const;
+            const diaIndices = { 1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes' } as const;
             const diaKey = diaIndices[fechaObj.getDay() as keyof typeof diaIndices];
 
             // Si el día no es lunes-viernes (ej fin de semana), abortar (aunque el droppable no debería estar ahí)
@@ -314,7 +314,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
         if (!conflictoData || !onMoverClase) return;
 
         const fechaObj = parsearFechaLocal(conflictoData.fechaDestino);
-        const diaIndices = {1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes'} as const;
+        const diaIndices = { 1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes' } as const;
         const diaKey = diaIndices[fechaObj.getDay() as keyof typeof diaIndices];
         if (!diaKey) return;
 
@@ -346,7 +346,7 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
 
         /* Encontrar el día para obtener todas las clases */
         const fechaObj = parsearFechaLocal(conflictoData.fechaDestino);
-        const diaIndices = {1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes'} as const;
+        const diaIndices = { 1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes' } as const;
         const diaKey = diaIndices[fechaObj.getDay() as keyof typeof diaIndices];
         if (!diaKey) return;
 
@@ -386,10 +386,11 @@ export function CalendarioSemanal({clases, semanaActual, fechasSemana, cargando,
                 <div className="capCalendarioGrid">
                     {/* Columna de horas */}
                     <div className="capCalendarioGrid__horas">
-                        <div className="capCalendarioGrid__horaHeader" style={{borderBottom: '1px solid var(--cap-borde-suave, #eee)', boxSizing: 'border-box'}} />
-                        {Array.from({length: 15}, (_, i) => i + 8).map(hora => (
-                            <div key={hora} className="capCalendarioGrid__horaSlot" style={{height: '90px', borderBottom: '1px solid var(--cap-borde-suave, #eee)', boxSizing: 'border-box', position: 'relative'}}>
-                                <span style={{position: 'absolute', top: '-10px', right: '10px', fontSize: '0.75rem', color: 'var(--cap-texto-secundario, #666)'}}>{hora.toString().padStart(2, '0')}:00</span>
+                        <div className="capCalendarioGrid__horaHeader" style={{ borderBottom: '1px solid var(--cap-borde-suave, #eee)', boxSizing: 'border-box' }} />
+                        {/* Altura: 117px = 60min * 1.95px/min (+30% zoom) */}
+                        {Array.from({ length: 15 }, (_, i) => i + 8).map(hora => (
+                            <div key={hora} className="capCalendarioGrid__horaSlot" style={{ height: '117px', borderBottom: '1px solid var(--cap-borde-suave, #eee)', boxSizing: 'border-box', position: 'relative' }}>
+                                <span style={{ position: 'absolute', top: '-10px', right: '10px', fontSize: '0.75rem', color: 'var(--cap-texto-secundario, #666)' }}>{hora.toString().padStart(2, '0')}:00</span>
                             </div>
                         ))}
                     </div>
