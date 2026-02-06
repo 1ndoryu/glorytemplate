@@ -8,7 +8,7 @@
 
 import { useMemo, useState, useCallback } from 'react';
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors, pointerWithin, rectIntersection } from '@dnd-kit/core';
-import type { DragStartEvent, DragEndEvent, DragMoveEvent, CollisionDetection } from '@dnd-kit/core';
+import type { DragStartEvent, DragEndEvent, DragMoveEvent, CollisionDetection, DroppableContainer, Collision } from '@dnd-kit/core';
 import type { Clase, DiaSemana } from '../../types';
 import { DIAS_SEMANA, CALENDARIO_CONFIG } from '../../constants/cap-constants';
 import { NavegadorSemana } from './NavegadorSemana';
@@ -149,24 +149,24 @@ export function CalendarioSemanal({ clases, semanaActual, fechasSemana, cargando
         }, 3200);
     }, []);
 
-    const collisionDetection: CollisionDetection = useCallback(args => {
+    const collisionDetection: CollisionDetection = useCallback((args: Parameters<CollisionDetection>[0]) => {
         /*
          * Corrige acceso a droppableContainers: es un array, no Map.
          * Esto evita errores en runtime al filtrar por día.
          */
         const obtenerData = (id: string | number) =>
-            args.droppableContainers.find(container => container.id === id)?.data?.current as { type?: string } | undefined;
+            args.droppableContainers.find((container: DroppableContainer) => container.id === id)?.data?.current as { type?: string } | undefined;
 
         const pointerCollisions = pointerWithin(args);
         const baseCollisions = pointerCollisions.length ? pointerCollisions : rectIntersection(args);
 
-        const soloDias = baseCollisions.filter(collision => obtenerData(collision.id)?.type === 'dia');
+        const soloDias = baseCollisions.filter((collision: Collision) => obtenerData(collision.id)?.type === 'dia');
 
         if (soloDias.length > 0) {
             return soloDias;
         }
 
-        return closestCenter(args).filter(collision => obtenerData(collision.id)?.type === 'dia');
+        return closestCenter(args).filter((collision: Collision) => obtenerData(collision.id)?.type === 'dia');
     }, []);
 
     /* Handlers de drag & drop */

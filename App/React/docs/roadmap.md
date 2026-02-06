@@ -185,11 +185,12 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 ## 📋 Feedback Cliente 05/02/2026 (Nuevo)
 
 ### 1. Resolución Inteligente de Conflictos de Aforo
-- [ ] **Opción "Priorizar por Proximidad":** Nueva opción en el modal de Conflicto de Aforo (además de Manual y Aleatorio).
-    - **Criterio 1:** Priorizar alumnos que estén más cerca de terminar cada asignatura (menos horas restantes).
-    - **Criterio 2:** Evitar fragmentación de clases. Si un alumno tiene que volver más tarde, es peor que otro alumno que haría sus clases seguidas.
+- [x] **Opción "Priorizar por Proximidad":** Nueva opción en el modal de Conflicto de Aforo (además de Manual y Aleatorio). *(Implementado 2026-02-06)*
+    - **Criterio 1:** Prioriza alumnos que estén más cerca de terminar cada asignatura (menos horas restantes).
+    - **Criterio 2:** Evita fragmentación de clases. Si un alumno tiene que volver más tarde, es peor que otro alumno que haría sus clases seguidas.
     - **Ejemplo:** Entre 2 alumnos, si uno le queda 1h para terminar la asignatura y al otro le quedan 5h, priorizar al primero.
-    - **Continuidad:** Asegurar que el alumno priorizado no tenga que volver más tarde en el día (clases seguidas).
+    - **Continuidad:** Asegura que el alumno priorizado no tenga que volver más tarde en el día (clases seguidas).
+    - **Archivos:** `utils/priorizacionAforo.ts` (algoritmo), `ModalConflictoAforo.tsx` (UI)
     
 ### 2. Mejoras de Visualización del Calendario
 

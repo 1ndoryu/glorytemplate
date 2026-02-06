@@ -7,10 +7,11 @@
  * Permite al usuario seleccionar qué alumnos excluir de cada slot conflictivo.
  */
 
-import {useState, useEffect} from 'react';
-import {Modal} from '../ui';
-import {Boton} from '../ui';
-import type {ConflictoAforo, ExclusionesConflicto, Alumno} from '../../types';
+import { useState, useEffect } from 'react';
+import { Modal } from '../ui';
+import { Boton } from '../ui';
+import type { ConflictoAforo, ExclusionesConflicto, Alumno } from '../../types';
+import { priorizarPorProximidad, type AlumnoConProgreso } from '../../utils/priorizacionAforo';
 import './ModalConflictoAforo.css';
 
 interface ModalConflictoAforoProps {
@@ -21,7 +22,7 @@ interface ModalConflictoAforoProps {
     cargando?: boolean;
 }
 
-export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar, cargando = false}: ModalConflictoAforoProps): JSX.Element {
+export function ModalConflictoAforo({ abierto, conflictos, onCerrar, onConfirmar, cargando = false }: ModalConflictoAforoProps): JSX.Element {
     /* Estado de exclusiones: slotKey -> array de alumnoIds excluidos */
     const [exclusiones, setExclusiones] = useState<ExclusionesConflicto>({});
     const [alumnosInfo, setAlumnosInfo] = useState<Map<number, Alumno>>(new Map());
@@ -40,9 +41,9 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                     return Number.isFinite(parsed) ? parsed : null;
                 }
                 if (item && typeof item === 'object') {
-                    const candidato = (item as {id?: number; alumnoId?: number; alumno_id?: number}).id
-                        ?? (item as {id?: number; alumnoId?: number; alumno_id?: number}).alumnoId
-                        ?? (item as {id?: number; alumnoId?: number; alumno_id?: number}).alumno_id;
+                    const candidato = (item as { id?: number; alumnoId?: number; alumno_id?: number }).id
+                        ?? (item as { id?: number; alumnoId?: number; alumno_id?: number }).alumnoId
+                        ?? (item as { id?: number; alumnoId?: number; alumno_id?: number }).alumno_id;
                     return typeof candidato === 'number' ? candidato : null;
                 }
                 return null;
@@ -80,12 +81,12 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
 
                 if (response.ok) {
                     const data = await response.json();
-                    
+
                     const mapa = new Map<number, Alumno>();
                     (data.alumnos || []).forEach((a: any) => {
                         /* Normalizar ID a número para comparación correcta */
                         const alumnoId = typeof a.id === 'number' ? a.id : parseInt(a.id, 10);
-                        
+
                         if (alumnosIds.has(alumnoId)) {
                             mapa.set(alumnoId, {
                                 id: alumnoId,
@@ -207,6 +208,26 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
         onConfirmar(nuevasExclusiones);
     };
 
+    /*
+     * Resolver inteligentemente priorizando por proximidad (horas restantes + continuidad).
+     * Usa el algoritmo de priorizacionAforo.ts que:
+     * 1. Prioriza alumnos con menos horas restantes (cercanos a terminar)
+     * 2. Evita fragmentar el horario (favorece clases seguidas)
+     */
+    const resolverPorProximidad = () => {
+        /* Convertir Map a AlumnoConProgreso para el algoritmo */
+        const alumnosConProgreso = new Map<number, AlumnoConProgreso>();
+        alumnosInfo.forEach((alumno, id) => {
+            alumnosConProgreso.set(id, alumno as AlumnoConProgreso);
+        });
+
+        /* Usar el algoritmo inteligente de priorización */
+        const nuevasExclusiones = priorizarPorProximidad(conflictos, alumnosConProgreso);
+
+        setExclusiones(nuevasExclusiones);
+        onConfirmar(nuevasExclusiones);
+    };
+
     const handleConfirmar = () => {
         if (exclusionesValidas()) {
             onConfirmar(exclusiones);
@@ -220,11 +241,24 @@ export function ModalConflictoAforo({abierto, conflictos, onCerrar, onConfirmar,
                     <p>
                         Se han detectado <strong>{conflictos.length}</strong> slots horarios donde la demanda de alumnos <strong>supera la capacidad máxima</strong> por clase.
                     </p>
-                    <p>Selecciona qué alumnos excluir de cada slot para resolver los conflictos.</p>
+                    <p>Selecciona qué alumnos excluir de cada slot para resolver los conflictos, o usa una de las opciones automáticas:</p>
                     <div className="conflictoAforo__accionesRapidas">
-                        <Boton variante="secundario" onClick={resolverAleatoriamente} disabled={cargando || cargandoAlumnos}>
-                            Resolver aleatoriamente
-                        </Boton>
+                        <div className="conflictoAforo__opcionRapida">
+                            <Boton variante="primario" onClick={resolverPorProximidad} disabled={cargando || cargandoAlumnos}>
+                                Priorizar por proximidad
+                            </Boton>
+                            <span className="conflictoAforo__opcionDescripcion">
+                                Prioriza alumnos cercanos a terminar y evita fragmentar horarios
+                            </span>
+                        </div>
+                        <div className="conflictoAforo__opcionRapida">
+                            <Boton variante="secundario" onClick={resolverAleatoriamente} disabled={cargando || cargandoAlumnos}>
+                                Resolver aleatoriamente
+                            </Boton>
+                            <span className="conflictoAforo__opcionDescripcion">
+                                Selecciona alumnos al azar
+                            </span>
+                        </div>
                     </div>
                 </div>
 
