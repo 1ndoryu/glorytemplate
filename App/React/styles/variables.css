@@ -2,26 +2,43 @@
  * Variables globales CSS - Core Theme
  */
 
+@import './init.css';
+
 :root {
     /* Colors - Backgrounds */
-    --bg-primary: #ffffff;
+    --bg-primary: #f0eee6;
     --bg-secondary: #f3f4f6;
     --bg-accent: #eef2ff;
+    --overlay-hover: rgba(0, 0, 0, 0.05);
 
     /* Colors - Text */
-    --text-primary: #111827;
+    --text-primary: #151411;
     --text-secondary: #4b5563;
     --text-muted: #9ca3af;
 
     /* Colors - Brand */
     --primary-500: #6366f1;
     --secondary-500: #a855f7;
+    --brand-black: #151411;
 
     /* Fonts */
-    --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
-    --font-mono: 'Fira Code', monospace;
+    --font-primary: 'Neue Montreal', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Anthropic Serif', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-sans-alt: 'Anthropic Sans', sans-serif;
 
     /* Spacing & Sizing */
-    --text-3xl: 3rem;
-    --text-4xl: 4.5rem;
+    --container-width: 1300px;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 2rem;
+    --spacing-xl: 4rem;
+
+    /* Typography Sizes */
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-xl: 1.3rem;
+    --text-3xl: 3rem; /* Mobile Hero Title */
+    --text-4xl: 4rem;
+    --text-5xl: 5rem; /* Hero Title */
 }
