@@ -1,0 +1,92 @@
+/* Seccion Contacto (CTA) */
+.seccionContacto {
+    padding: var(--spacing-xl) 0;
+    background-color: var(--bg-primary); /* Light background */
+    color: var(--text-primary);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+.contactoContenedor {
+    width: 100%;
+    max-width: var(--container-width);
+    padding: 0 var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-lg);
+}
+
+.contactoTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-5xl);
+    font-weight: 500;
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin-top: var(--spacing-xl);
+}
+
+.contactoDescripcion {
+    font-family: var(--font-sans-alt);
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+    max-width: 60ch;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.contactoBotones {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    flex-wrap: wrap; /* Mobile friendly */
+    justify-content: center;
+}
+
+.contactoBotonLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: 4px; /* Standard radius */
+    font-family: var(--font-primary);
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: var(--text-base);
+    cursor: pointer;
+}
+
+.contactoBotonPrimario {
+    background-color: var(--text-primary); /* Dark button */
+    color: var(--bg-primary); /* Light text */
+    border: 1px solid var(--text-primary);
+}
+
+.contactoBotonPrimario:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.contactoBotonSecundario {
+    background-color: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color); /* Using border variable */
+}
+
+.contactoBotonSecundario:hover {
+    background-color: var(--overlay-hover);
+    transform: translateY(-2px);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .contactoTitulo {
+        font-size: var(--text-3xl);
+    }
+}

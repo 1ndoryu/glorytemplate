@@ -20,9 +20,9 @@ export const SeccionHero = (): JSX.Element => {
                 </div>
 
                 <div className="heroDescripcion">
-                    <p>AI will have a vast impact on the world. Glory is a public benefit corporation dedicated to securing its benefits and mitigating its risks.</p>
+                    <p>AI will have a vast impact on the world. Nakomi is a public benefit corporation dedicated to securing its benefits and mitigating its risks.</p>
                     <Button variante="primario" tamano="mediano" className="heroBoton">
-                        Try Glory
+                        Try Nakomi
                     </Button>
                 </div>
             </div>

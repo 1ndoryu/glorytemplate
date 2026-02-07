@@ -4,12 +4,22 @@
  */
 
 .seccionServicios {
-    padding: var(--spacing-xl) 0;
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
+    padding: var(--spacing-xl) 0 calc(var(--spacing-xl) * 1.5);
+    background-color: var(--bg-secondary);
+    color: var(--bg-primary);
     width: 100%;
     display: flex;
     justify-content: center;
+}
+
+/* Override para SeccionHeader dentro de este contexto oscuro */
+.seccionServicios .seccionHeader {
+    border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.seccionServicios .seccionTitulo {
+    color: var(--bg-primary);
+    opacity: 0.9;
 }
 
 .serviciosContenedor {
@@ -32,15 +42,20 @@
 .servicioItem {
     display: flex;
     align-items: center;
-    padding: var(--spacing-sm) 0;
-    border-bottom: 1px solid var(--border-color);
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
     gap: var(--spacing-lg);
     text-decoration: none;
-    color: inherit;
+    color: var(--bg-primary);
 }
 
+.servicioItem:hover {
+    border-bottom-color: var(--bg-primary);
+}
 
 /* Imagen del servicio */
 .servicioImagenWrapper {
@@ -83,12 +98,14 @@
     font-family: var(--font-primary);
     font-size: var(--text-2xl); /* Grande como en la referencia */
     letter-spacing: -0.02em;
-    color: var(--text-secondary);
+    color: var(--bg-primary);
     margin: 0;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
 }
 
-.servicioTitulo:hover {
-    color: var(--text-primary);
+.servicioItem:hover .servicioTitulo {
+    opacity: 1;
 }
 .servicioArrow {
     width: var(--text-xl);

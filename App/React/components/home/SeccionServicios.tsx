@@ -41,6 +41,18 @@ const SERVICIOS: Servicio[] = [
         titulo: 'Framer development',
         imagen: 'https://placehold.co/300x200/ffedd5/151411?text=Framer', // Naranja suave
         link: '#'
+    },
+    {
+        id: 5,
+        titulo: 'SEO Strategy',
+        imagen: 'https://placehold.co/300x200/e0f2fe/151411?text=SEO', // Azul claro suave
+        link: '#'
+    },
+    {
+        id: 6,
+        titulo: 'Brand Identity',
+        imagen: 'https://placehold.co/300x200/fce7f3/151411?text=Brand', // Rosa suave
+        link: '#'
     }
 ];
 

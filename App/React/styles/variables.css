@@ -7,7 +7,7 @@
 :root {
     /* Colors - Backgrounds */
     --bg-primary: #f0eee6;
-    --bg-secondary: #4b5563;
+    --bg-secondary: #141413;
     --bg-accent: #eef2ff;
     --overlay-hover: rgba(0, 0, 0, 0.05);
 
@@ -17,7 +17,7 @@
 
     /* Colors - Text */
     --text-primary: #151411;
-    --text-secondary: #4b5563;
+    --text-secondary: #141413;
     --text-muted: #9ca3af;
 
     /* Colors - Brand */

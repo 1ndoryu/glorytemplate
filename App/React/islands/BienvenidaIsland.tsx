@@ -11,8 +11,10 @@ import {SeccionClientes} from '../components/home/SeccionClientes';
 import {SeccionTestimonios} from '../components/home/SeccionTestimonios';
 import {SeccionServicios} from '../components/home/SeccionServicios';
 import {SeccionBlog} from '../components/home/SeccionBlog';
+import {SeccionContacto} from '../components/home/SeccionContacto';
 import {SeccionShowcase} from '../components/home/SeccionShowcase';
 import {Header} from '../components/layout/Header';
+import {Footer} from '../components/layout/Footer';
 
 interface BienvenidaIslandProps {
     titulo?: string;
@@ -29,8 +31,10 @@ export const BienvenidaIsland = ({titulo, bgImage = ''}: BienvenidaIslandProps):
                 <SeccionShowcase />
                 <SeccionTestimonios />
                 <SeccionServicios />
+                <SeccionContacto />
                 <SeccionBlog />
             </main>
+            <Footer />
         </>
     );
 };

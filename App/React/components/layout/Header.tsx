@@ -38,7 +38,7 @@ export const Header: React.FC = () => {
 
             <div className="accionCabecera">
                 <Button variante="primario" tamano="pequeno" className="botonHeader">
-                    Try Glory
+                    Try Nakomi
                     <ChevronRight size={14} strokeWidth={3} />
                 </Button>
             </div>

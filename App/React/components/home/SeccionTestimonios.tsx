@@ -22,14 +22,14 @@ interface TestimonioData {
 const TESTIMONIOS: TestimonioData[] = [
     {
         id: 1,
-        texto: 'I would highly, highly recommend Glory. They took our often naively lofty aspirations for our new website, creative visuals, and brand touch up and overdelivered on all of them.',
+        texto: 'I would highly, highly recommend Nakomi. They took our often naively lofty aspirations for our new website, creative visuals, and brand touch up and overdelivered on all of them.',
         autor: 'Rory Codrington',
         cargo: 'CEO, Trust Keith',
         avatar: 'https://i.pravatar.cc/150?u=rory' // Placeholder avatar
     },
     {
         id: 2,
-        texto: 'Glory is a fantastic quality designer. His communication is top notch, making him a breeze to work with. We worked together on onfolk.com and have confidence that the result will help us.',
+        texto: 'Nakomi is a fantastic quality designer. His communication is top notch, making him a breeze to work with. We worked together on onfolk.com and have confidence that the result will help us.',
         autor: 'Naz Malik',
         cargo: 'Founder, Onfolk',
         avatar: 'https://i.pravatar.cc/150?u=naz'

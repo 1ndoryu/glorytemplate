@@ -1,11 +1,21 @@
 /* Seccion Clientes */
 .seccionClientes {
     padding: var(--spacing-xl) 0;
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+    color: var(--bg-primary);
     width: 100%;
     display: flex;
     justify-content: center;
+}
+
+/* Override para SeccionHeader dentro de este contexto oscuro */
+.seccionClientes .seccionHeader {
+    border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.seccionClientes .seccionTitulo {
+    color: var(--bg-primary);
+    opacity: 0.9;
 }
 
 .clientesContenedor {
@@ -90,31 +100,33 @@
     align-items: center;
     justify-content: center;
     aspect-ratio: 3/2;
-    background-color: var(--bg-card-subtle);
+    background-color: rgba(255, 255, 255, 0.05);
     border-radius: 4px;
     padding: var(--spacing-md);
     transition: background-color 0.3s ease;
+    overflow: hidden; /* Necesario para el hack de color SVG */
 }
 
 .clienteLogoCard:hover {
-    background-color: var(--bg-card-hover);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .clienteLogoImg {
     max-width: 80%;
-    height: 40px; /* Altura fija para uniformidad, ajustado segun sea necesario */
+    height: 40px;
     width: auto;
     object-fit: contain;
-    opacity: 0.6; /* Unificar opacidad para todos */
-    filter: grayscale(100%) brightness(0); /* Forzar negro absoluto para uniformidad de color */
-    transition:
-        opacity 0.3s,
-        filter 0.3s;
+
+    /* Hack para colorear SVG/IMG exactamente con una variable CSS */
+    transform: translateY(-10000px);
+    filter: drop-shadow(0 10000px 0 var(--bg-primary));
+    opacity: 0.7;
+
+    transition: opacity 0.3s;
 }
 
 .clienteLogoCard:hover .clienteLogoImg {
     opacity: 1;
-    filter: grayscale(0%); /* Volver a color original en hover si se desea, o mantener negro */
 }
 
 /* Footer Texto */
@@ -127,7 +139,8 @@
 .clientesDescripcion {
     max-width: 600px;
     font-family: var(--font-sans-alt);
-    font-size: var(--text-base); /* Size un poco mas grande como en la referencia */
-    color: var(--text-primary);
+    font-size: var(--text-base);
+    color: var(--bg-primary);
     line-height: 1.5;
+    opacity: 0.9;
 }
