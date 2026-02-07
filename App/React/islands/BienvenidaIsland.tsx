@@ -10,6 +10,7 @@ import {SeccionHero} from '../components/home/SeccionHero';
 import {SeccionClientes} from '../components/home/SeccionClientes';
 import {SeccionTestimonios} from '../components/home/SeccionTestimonios';
 import {SeccionServicios} from '../components/home/SeccionServicios';
+import {SeccionBlog} from '../components/home/SeccionBlog';
 import {SeccionShowcase} from '../components/home/SeccionShowcase';
 import {Header} from '../components/layout/Header';
 
@@ -28,6 +29,7 @@ export const BienvenidaIsland = ({titulo, bgImage = ''}: BienvenidaIslandProps):
                 <SeccionShowcase />
                 <SeccionTestimonios />
                 <SeccionServicios />
+                <SeccionBlog />
             </main>
         </>
     );
