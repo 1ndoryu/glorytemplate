@@ -1,0 +1,27 @@
+/*
+ * Variables globales CSS - Core Theme
+ */
+
+:root {
+    /* Colors - Backgrounds */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f3f4f6;
+    --bg-accent: #eef2ff;
+
+    /* Colors - Text */
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #9ca3af;
+
+    /* Colors - Brand */
+    --primary-500: #6366f1;
+    --secondary-500: #a855f7;
+
+    /* Fonts */
+    --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', monospace;
+
+    /* Spacing & Sizing */
+    --text-3xl: 3rem;
+    --text-4xl: 4.5rem;
+}

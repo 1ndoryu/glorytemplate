@@ -39,8 +39,12 @@ PageManager::setDefaultContentMode('code');
 
 // Pagina estatica sin Page Builder (ejemplo de uso simple)
 PageManager::reactPage('home-static', 'HomeStaticIsland', [
-    'siteName' => get_bloginfo('name') ?: 'Glory',
     'stripeUrl' => 'https://buy.stripe.com/8x26oG58XchA56va31cAo0c'
+]);
+
+// Home (Bienvenida)
+PageManager::reactPage('home', 'BienvenidaIsland', [
+    'titulo' => 'Bienvenido a Glory React'
 ]);
 
 /*
@@ -55,8 +59,9 @@ PageManager::reactPage('home-static', 'HomeStaticIsland', [
  */
 
 // Home con Page Builder (necesita template PHP por los props dinamicos)
-PageManager::registerReactFullPages(['home', 'editor']);
-PageManager::define('home', 'home');
+// PageManager::registerReactFullPages(['home', 'editor']);
+PageManager::registerReactFullPages(['editor']);
+// PageManager::define('home', 'home');
 PageManager::define('editor', 'editor');
 
 // Pagina de prueba
