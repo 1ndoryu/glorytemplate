@@ -21,22 +21,7 @@
     gap: var(--spacing-xl);
 }
 
-/* Header similar a Clientes y Testimonios */
-.serviciosHeader {
-    display: flex;
-    justify-content: flex-start; /* Alineacion a la izquierda */
-    align-items: center;
-    margin-bottom: var(--spacing-md);
-    /* Sin borde */
-}
-
-.serviciosTitulo {
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-secondary);
-}
+/* Header manejado por SeccionHeader.css */
 
 .serviciosLista {
     display: flex;
@@ -56,9 +41,6 @@
     color: inherit;
 }
 
-.servicioItem:first-child {
-    border-top: 1px solid var(--border-color);
-}
 
 /* Imagen del servicio */
 .servicioImagenWrapper {

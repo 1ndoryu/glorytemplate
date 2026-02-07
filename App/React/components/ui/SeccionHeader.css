@@ -1,0 +1,19 @@
+/* Estilos base para el encabezado de sección */
+.seccionHeader {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color); /* Borde solicitado */
+    width: 100%;
+}
+
+.seccionTitulo {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin: 0;
+}

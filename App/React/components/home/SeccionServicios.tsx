@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import {ArrowRight} from 'lucide-react';
+import {SeccionHeader} from '../ui/SeccionHeader';
 import './SeccionServicios.css';
 
 interface Servicio {
@@ -47,9 +48,7 @@ export const SeccionServicios: React.FC = () => {
     return (
         <section className="seccionServicios" id="servicios">
             <div className="serviciosContenedor">
-                <header className="serviciosHeader">
-                    <span className="serviciosTitulo">Services</span>
-                </header>
+                <SeccionHeader titulo="Services" />
                 <div className="serviciosLista">
                     {SERVICIOS.map(servicio => (
                         <a key={servicio.id} href={servicio.link} className="servicioItem">

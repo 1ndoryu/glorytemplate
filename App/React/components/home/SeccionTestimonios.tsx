@@ -7,6 +7,7 @@ import React from 'react';
 import './SeccionTestimonios.css';
 import {useCarruselInfinito} from '../../hooks/useCarruselInfinito';
 import {Button} from '../ui/Button';
+import {SeccionHeader} from '../ui/SeccionHeader';
 
 // Interfaz para los datos del testimonio
 interface TestimonioData {
@@ -88,9 +89,7 @@ export const SeccionTestimonios: React.FC = () => {
     return (
         <section className="seccionTestimonios">
             <div className="testimoniosContenedor">
-                <header className="testimoniosHeader">
-                    <span className="testimoniosTitulo">Testimonials</span>
-                </header>
+                <SeccionHeader titulo="Testimonials" />
 
                 <div
                     className="testimoniosCarruselWindow"

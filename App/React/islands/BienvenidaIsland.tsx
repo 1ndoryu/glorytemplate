@@ -10,6 +10,7 @@ import {SeccionHero} from '../components/home/SeccionHero';
 import {SeccionClientes} from '../components/home/SeccionClientes';
 import {SeccionTestimonios} from '../components/home/SeccionTestimonios';
 import {SeccionServicios} from '../components/home/SeccionServicios';
+import {SeccionShowcase} from '../components/home/SeccionShowcase';
 import {Header} from '../components/layout/Header';
 
 interface BienvenidaIslandProps {
@@ -24,6 +25,7 @@ export const BienvenidaIsland = ({titulo, bgImage = ''}: BienvenidaIslandProps):
             <main className="mainContainer">
                 <SeccionHero />
                 <SeccionClientes />
+                <SeccionShowcase />
                 <SeccionTestimonios />
                 <SeccionServicios />
             </main>

@@ -4,6 +4,7 @@
  * Sigue el estilo visual de la referencia (minimalista, logos en escala de grises).
  */
 import React from 'react';
+import {SeccionHeader} from '../ui/SeccionHeader';
 import './SeccionClientes.css';
 
 // Importacion dinamica de imagenes (logos) usando Vite
@@ -22,10 +23,8 @@ export const SeccionClientes: React.FC = () => {
     return (
         <section className="seccionClientes" id="seccionClientes">
             <div className="clientesContenedor">
-                {/* Header: Titulo y Boton de "Our Work" */}
-                <header className="clientesHeader">
-                    <span className="clientesTitulo">Clients this year</span>
-                </header>
+                {/* Header reutilizable */}
+                <SeccionHeader titulo="Clients this year" />
 
                 {/* Grid de Logos */}
                 <div className="clientesGrid">

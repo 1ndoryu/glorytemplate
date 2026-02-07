@@ -17,21 +17,7 @@
     gap: var(--spacing-lg);
 }
 
-/* Header: Titulo y Boton */
-.clientesHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--spacing-md);
-}
-
-.clientesTitulo {
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-secondary);
-}
+/* Header manejado por SeccionHeader.css */
 
 .clientesBotonBox {
     display: flex;

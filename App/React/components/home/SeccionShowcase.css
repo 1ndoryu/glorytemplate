@@ -1,0 +1,117 @@
+/*
+ * Estilos para SeccionShowcase
+ * Sección que muestra proyectos destacados organizados por categoría.
+ */
+
+.seccionShowcase {
+    padding: var(--spacing-xl) 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    background-color: var(--bg-primary);
+}
+
+.showcaseContenedor {
+    width: 100%;
+    max-width: var(--container-width);
+    padding: 0 var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+/* Header manejado por SeccionHeader.css */
+
+/* Fila de categoría + proyectos */
+.showcaseFila {
+    display: grid;
+    grid-template-columns: 250px 1fr; /* Ancho fijo para categoría, resto para proyectos */
+    gap: var(--spacing-xl);
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .showcaseFila {
+        grid-template-columns: 1fr; /* Apilar en móviles/tablets verticales */
+        gap: var(--spacing-lg);
+    }
+}
+
+/* Columna Izquierda: Categoría */
+.showcaseCategoria {
+    position: sticky;
+    top: var(--spacing-xl);
+}
+
+.showcaseTituloCategoria {
+    font-family: var(--font-primary);
+    font-size: var(--text-xl);
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin: 0;
+    max-width: 200px;
+}
+
+/* Columna Derecha: Grid de 3 Proyectos */
+.showcaseGridProyectos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .showcaseGridProyectos {
+        grid-template-columns: 1fr; /* Uno por fila en móvil */
+    }
+}
+
+/* Tarjeta de Proyecto (inspirado en CarruselShowcase) */
+.proyectoCard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer; /* Para indicar interactividad */
+}
+
+.proyectoImagenWrapper {
+    width: 100%;
+    /* Altura libre eliminando aspect-ratio */
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--bg-secondary);
+}
+
+.proyectoImagen {
+    width: 100%;
+    height: auto; /* Altura automatica basada en le imagen */
+    display: block; /* Eliminar espacio extra en inline-block */
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.proyectoCard:hover .proyectoImagen {
+    transform: scale(1.05);
+}
+
+.proyectoInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.proyectoTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.proyectoSubtitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
