@@ -95,7 +95,7 @@
 
 @media (min-width: 1024px) {
     .clientesGrid {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(6, 1fr);
     }
 }
 
@@ -116,10 +116,11 @@
 
 .clienteLogoImg {
     max-width: 80%;
-    max-height: 60%;
+    height: 40px; /* Altura fija para uniformidad, ajustado segun sea necesario */
+    width: auto;
     object-fit: contain;
-    opacity: 0.8;
-    filter: grayscale(100%); /* Logos en escala de grises para uniformidad */
+    opacity: 0.6; /* Unificar opacidad para todos */
+    filter: grayscale(100%) brightness(0); /* Forzar negro absoluto para uniformidad de color */
     transition:
         opacity 0.3s,
         filter 0.3s;
@@ -127,7 +128,7 @@
 
 .clienteLogoCard:hover .clienteLogoImg {
     opacity: 1;
-    filter: grayscale(0%);
+    filter: grayscale(0%); /* Volver a color original en hover si se desea, o mantener negro */
 }
 
 /* Footer Texto */
@@ -140,7 +141,7 @@
 .clientesDescripcion {
     max-width: 600px;
     font-family: var(--font-sans-alt);
-    font-size: var(--text-xl); /* Size un poco mas grande como en la referencia */
+    font-size: var(--text-base); /* Size un poco mas grande como en la referencia */
     color: var(--text-secondary);
     line-height: 1.5;
 }
