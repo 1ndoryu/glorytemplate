@@ -1,0 +1,104 @@
+/* Estilos para el Carrusel Showcase */
+:root {
+    --carrusel-item-width: 300px;
+    --carrusel-item-height: 400px;
+    --carrusel-item-gap: 20px;
+}
+
+@media (min-width: 768px) {
+    :root {
+        --carrusel-item-width: 450px;
+        --carrusel-item-height: 550px;
+        --carrusel-item-gap: 32px;
+    }
+}
+
+@media (min-width: 1440px) {
+    :root {
+        --carrusel-item-width: 450px;
+        --carrusel-item-height: 600px;
+        --carrusel-item-gap: 48px;
+    }
+}
+
+.carruselContenedorPrincipal {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    /* Alineacion inicial con el contenedor principal usando la variable + el espaciado extra solicitado */
+    padding-left: calc(max(1rem, (100% - var(--container-width)) / 2) + var(--spacing-lg));
+}
+
+.carruselPista {
+    display: flex;
+    width: max-content;
+    /* La transformacion se manejara via React style inline para el slider */
+    transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); /* Suave 'ease-out' */
+    will-change: transform;
+    gap: var(--carrusel-item-gap);
+}
+
+.carruselItem {
+    flex: 0 0 auto;
+    /* Usamos variables para controlar el tamano dinamicamente */
+    width: var(--carrusel-item-width);
+    /* Altura automatica para acomodar texto debajo */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    transition: transform 0.3s ease;
+    position: relative;
+}
+
+.carruselImagenWrapper {
+    width: 100%;
+    height: var(--carrusel-item-height);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.carruselImagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.carruselOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    /* Degradado sutil en los bordes */
+    background: linear-gradient(90deg, var(--bg-primary) 0%, transparent 15%, transparent 85%, var(--bg-primary) 100%);
+    z-index: 10;
+}
+
+/* Estilos adicionales para textos y tags del carrusel */
+.carruselContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: 0 4px; /* Pequeno ajuste visual */
+}
+
+.carruselTitulo {
+    font-size: var(--text-base);
+    font-weight: 600;
+    /* Usar variable de color o fallback */
+    color: var(--text-primary);
+    margin: 0;
+    font-family: inherit;
+}
+
+.carruselTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}

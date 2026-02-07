@@ -1,0 +1,11 @@
+/* Estilos base para el componente Badge */
+.badge {
+    font-size: var(--text-sm);
+    padding: 4px 12px;
+    border-radius: 100px;
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+    display: inline-block;
+}

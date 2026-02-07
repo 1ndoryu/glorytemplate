@@ -28,7 +28,7 @@
     --font-sans-alt: 'Anthropic Sans', sans-serif;
 
     /* Spacing & Sizing */
-    --container-width: 1300px;
+    --container-width: 86rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 2rem;
@@ -41,4 +41,7 @@
     --text-3xl: 3rem; /* Mobile Hero Title */
     --text-4xl: 4rem;
     --text-5xl: 5rem; /* Hero Title */
+
+    --border-color: #151411;
 }
+

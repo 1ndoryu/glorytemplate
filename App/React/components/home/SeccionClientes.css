@@ -1,0 +1,146 @@
+/* Seccion Clientes */
+.seccionClientes {
+    padding: var(--spacing-xl) 0;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.clientesContenedor {
+    width: 100%;
+    max-width: var(--container-width);
+    padding: 0 var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+/* Header: Titulo y Boton */
+.clientesHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-md);
+}
+
+.clientesTitulo {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.clientesBotonBox {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color); /* o un color mas suave */
+    border-radius: 4px; /* Ajustar segun variables globales si hay radius */
+    background-color: transparent;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.clientesBotonBox:hover {
+    background-color: var(--overlay-hover);
+}
+
+.clientesBotonIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
+    border-radius: 4px;
+}
+
+.clientesBotonTexto {
+    display: flex;
+    flex-direction: column;
+}
+
+.clientesBotonTitulo {
+    font-family: var(--font-sans-alt);
+    font-size: var(--text-base);
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.clientesBotonSubtitulo {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Grid de Logos */
+.clientesGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+}
+
+@media (min-width: 768px) {
+    .clientesGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .clientesGrid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+.clienteLogoCard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 3/2;
+    background-color: rgba(0, 0, 0, 0.03); /* Color sutil de fondo para las tarjetas */
+    border-radius: 4px;
+    padding: var(--spacing-md);
+    transition: background-color 0.3s ease;
+}
+
+.clienteLogoCard:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+.clienteLogoImg {
+    max-width: 80%;
+    max-height: 60%;
+    object-fit: contain;
+    opacity: 0.8;
+    filter: grayscale(100%); /* Logos en escala de grises para uniformidad */
+    transition:
+        opacity 0.3s,
+        filter 0.3s;
+}
+
+.clienteLogoCard:hover .clienteLogoImg {
+    opacity: 1;
+    filter: grayscale(0%);
+}
+
+/* Footer Texto */
+.clientesFooter {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--spacing-lg);
+}
+
+.clientesDescripcion {
+    max-width: 600px;
+    font-family: var(--font-sans-alt);
+    font-size: var(--text-xl); /* Size un poco mas grande como en la referencia */
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
