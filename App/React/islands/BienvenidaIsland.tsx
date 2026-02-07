@@ -21,27 +21,29 @@ export const BienvenidaIsland = ({titulo, bgImage = ''}: BienvenidaIslandProps):
     return (
         <>
             <Header />
-            <main className="seccionHero">
-                <div className="heroContenido">
-                    <div>
-                        <h1 className="heroTitulo">
-                            AI <span>research</span> and <span>products</span> that put safety at the frontier
-                        </h1>
+            <main className="mainContainer">
+                <section className="seccionHero">
+                    <div className="heroContenido">
+                        <div>
+                            <h1 className="heroTitulo">
+                                AI <span>research</span> and <span>products</span> that put safety at the frontier
+                            </h1>
+                        </div>
+
+                        <div className="heroDescripcion">
+                            <p>AI will have a vast impact on the world. Glory is a public benefit corporation dedicated to securing its benefits and mitigating its risks.</p>
+                            <Button variante="primario" tamano="mediano" className="heroBoton">
+                                Try Glory
+                            </Button>
+                        </div>
                     </div>
 
-                    <div className="heroDescripcion">
-                        <p>AI will have a vast impact on the world. Glory is a public benefit corporation dedicated to securing its benefits and mitigating its risks.</p>
-                        <Button variante="primario" tamano="mediano" className="heroBoton">
-                            Try Glory
-                        </Button>
+                    <div className="heroImagenFondo">
+                        <CarruselShowcase />
                     </div>
-                </div>
-
-                <div className="heroImagenFondo">
-                    <CarruselShowcase />
-                </div>
+                </section>
+                <SeccionClientes />
             </main>
-            <SeccionClientes />
         </>
     );
 };

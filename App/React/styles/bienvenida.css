@@ -12,6 +12,13 @@
     overflow: hidden;
 }
 
+.mainContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+    background: var(--bg-primary);
+}
+
 .heroContenido {
     position: relative;
     z-index: 2;
