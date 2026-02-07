@@ -37,7 +37,8 @@ PageManager::setDefaultContentMode('code');
  */
 
 // Home (Bienvenida)
-PageManager::reactPage('home', 'BienvenidaIsland', [
+// Usa callback fn($id) para evaluación lazy (AssetHelper se carga después de Config/)
+PageManager::reactPage('home', 'BienvenidaIsland', fn($id) => [
     'titulo' => 'Bienvenido a Glory React',
     'bgImage' => \App\Helpers\AssetHelper::getRandomHeroImage()
 ]);
