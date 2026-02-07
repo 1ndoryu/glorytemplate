@@ -51,7 +51,6 @@ const IMAGEN_FALLBACK = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000
 export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps> = ({servicio, onVerDetalles, onContactarProveedor, onDescargarFactura, onReportarProblema, onMarcarCompletado}) => {
     const config = estadoConfig[servicio.estado];
     const diasRestantes = servicio.fechaEntregaEstimada ? calcularDiasRestantes(servicio.fechaEntregaEstimada) : null;
-    const porcentajeProgreso = servicio.progreso || 0;
 
     /* Construir acciones del menú contextual */
     const acciones: AccionMenu[] = [
@@ -126,16 +125,6 @@ export const TarjetaServicioContratado: React.FC<TarjetaServicioContratadoProps>
                     {servicio.proveedorNombre && <span className="servicioContratadoSubtexto">{servicio.proveedorNombre}</span>}
                     {servicio.clienteNombre && !servicio.proveedorNombre && <span className="servicioContratadoSubtexto">Cliente: {servicio.clienteNombre}</span>}
                 </div>
-
-                {/* Barra de progreso (Solo si está en progreso) */}
-                {servicio.estado === 'en_progreso' && (
-                    <div className="servicioContratadoProgreso">
-                        <div className="barraProgresoMini">
-                            <div className="barraProgresoRelleno" style={{width: `${porcentajeProgreso}%`}} />
-                        </div>
-                        <span className="textoProgreso">{porcentajeProgreso}%</span>
-                    </div>
-                )}
 
                 {/* Precio */}
                 <span className="servicioContratadoPrecio">${servicio.precio}</span>

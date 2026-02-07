@@ -39,18 +39,15 @@
 }
 
 .alertaError .alertaIcono {
-    background: rgba(239, 68, 68, 0.15);
-    color: var(--nakomi-error);
+    border: 1px solid var(--nakomi-bordeSutil);
 }
 
 .alertaWarning .alertaIcono {
-    background: rgba(245, 158, 11, 0.15);
-    color: var(--nakomi-warning);
+    border: 1px solid var(--nakomi-bordeSutil);
 }
 
 .alertaInfo .alertaIcono {
-    background: rgba(59, 130, 246, 0.15);
-    color: var(--nakomi-info);
+    border: 1px solid var(--nakomi-bordeSutil);
 }
 
 .alertaContenido {
@@ -78,9 +75,9 @@
 
 .alertaMonto {
     font-size: var(--nakomi-fuenteSm);
-    font-weight: 600;
     color: var(--nakomi-textoActivo);
     flex-shrink: 0;
+    padding: 0px 10px;
 }
 
 .sinAlertas {

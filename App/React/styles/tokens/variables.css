@@ -5,7 +5,7 @@
 
 :root {
     /* === Fondos === */
-    --nakomi-fondoPrincipal: #040404;
+    --nakomi-fondoPrincipal: #090909;
     --nakomi-fondoSecundario: #090909;
     --nakomi-fondoTerciario: #151515;
     --nakomi-fondoHover: #1e1e1e;
@@ -15,8 +15,8 @@
     --nakomi-acentoHover: #3b82f6;
 
     /* === Bordes === */
-    --nakomi-bordePrincipal: #2222226b;
-    --nakomi-bordeSutil: #2222226b;
+    --nakomi-bordePrincipal: #222222;
+    --nakomi-bordeSutil: #222222;
 
     /* === Textos === */
     --nakomi-textoActivo: #f5f5f5;
@@ -56,8 +56,8 @@
     --nakomi-trackingGeneral: 0.3px;
 
     /* === Tamaños Tipográficos === */
-    --nakomi-fuenteXs: 10px;
-    --nakomi-fuenteSm: 12px;
+    --nakomi-fuenteXs: 11px;
+    --nakomi-fuenteSm: 13px;
     --nakomi-fuenteMd: 0.75rem; /* ~14px - Texto base, cuerpo de texto normal */
     --nakomi-fuenteLg: 1rem; /* ~16px - Texto destacado, subtítulos */
     --nakomi-fuenteXl: 1.25rem; /* ~20px - Títulos de sección, headings */
@@ -94,7 +94,7 @@
     --nakomi-warningBorde: rgba(234, 179, 8, 0.2);
     --nakomi-warningSecundario: rgba(234, 179, 8, 0.2);
 
-    --nakomi-error: #ef4444;
+    --nakomi-error: #ce5a5a;
     --nakomi-errorFondo: rgba(239, 68, 68, 0.1);
     --nakomi-errorBorde: rgba(239, 68, 68, 0.2);
 

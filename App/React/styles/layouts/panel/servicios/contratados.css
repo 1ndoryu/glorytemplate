@@ -98,37 +98,6 @@
 }
 
 /* Barra de Progreso en tarjeta */
-.servicioContratadoProgreso {
-    display: flex;
-    align-items: center;
-    gap: var(--nakomi-espacioSm);
-    flex-shrink: 0;
-    min-width: 100px;
-    margin-right: var(--nakomi-espacioMd);
-}
-
-.barraProgresoMini {
-    width: 80px;
-    height: 6px;
-    background: var(--nakomi-bordeSutil);
-    border-radius: 999px;
-    overflow: hidden;
-}
-
-.barraProgresoRelleno {
-    height: 100%;
-    background: var(--nakomi-primario);
-    border-radius: 999px;
-    transition: width 0.5s ease-out;
-}
-
-.textoProgreso {
-    font-size: var(--nakomi-fuenteXs);
-    color: var(--nakomi-textoSecundario);
-    font-weight: 500;
-    width: 32px; /* Espacio fijo para % */
-    text-align: right;
-}
 
 /* Precio - mismo estilo que otros elementos */
 .servicioContratadoPrecio {
@@ -194,13 +163,6 @@
     .servicioContratadoInfoPrincipal {
         flex-basis: calc(100% - 52px);
         order: 1;
-    }
-
-    .servicioContratadoProgreso {
-        order: 4; /* Nueva fila en móvil */
-        width: 100%;
-        margin-right: 0;
-        margin-top: var(--nakomi-espacioXs);
     }
 
     .servicioContratadoImagen {
