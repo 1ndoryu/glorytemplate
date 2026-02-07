@@ -1,0 +1,40 @@
+/*
+ * Estilos para GridServicios
+ * Layout grid de 3 columnas responsive.
+ */
+
+.gridServicios {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+    width: 100%;
+}
+
+@media (min-width: 640px) {
+    .gridServicios {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-lg);
+    }
+}
+
+@media (min-width: 1024px) {
+    .gridServicios {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-xl);
+    }
+}
+
+/* Estado vacío */
+.gridVacio {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.gridVacioTexto {
+    font-family: var(--font-primary);
+    font-size: var(--text-base);
+    color: var(--text-muted);
+}

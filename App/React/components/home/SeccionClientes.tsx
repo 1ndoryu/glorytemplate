@@ -24,7 +24,7 @@ export const SeccionClientes: React.FC = () => {
         <section className="seccionClientes" id="seccionClientes">
             <div className="clientesContenedor">
                 {/* Header reutilizable */}
-                <SeccionHeader titulo="Clients this year" />
+                <SeccionHeader titulo="Ultimos clientes" />
 
                 {/* Grid de Logos */}
                 <div className="clientesGrid">
@@ -37,7 +37,7 @@ export const SeccionClientes: React.FC = () => {
 
                 {/* Footer: Texto descriptivo */}
                 <footer className="clientesFooter">
-                    <p className="clientesDescripcion">With over a decade of experience in the industry, we take pride in our journey so far. Over the years, we have successfully completed over 300 projects, each one leaving a mark in the landscape.</p>
+                    <p className="clientesDescripcion">Cada proyecto es una oportunidad para crear algo único. Trabajamos de cerca con nuestros clientes para entender sus necesidades y transformarlas en soluciones digitales que destacan.</p>
                 </footer>
             </div>
         </section>

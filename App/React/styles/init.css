@@ -63,8 +63,11 @@ html,
 body {
     height: 100%;
     width: 100%;
+    font-family: var(--font-sans-alt);
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    -webkit-font-smoothing: antialiased;
 }
-
 
 html {
     overflow-x: hidden;

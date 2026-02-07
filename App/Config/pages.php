@@ -42,3 +42,8 @@ PageManager::reactPage('home', 'BienvenidaIsland', fn($id) => [
     'titulo' => 'Bienvenido a Glory React',
     'bgImage' => \App\Helpers\AssetHelper::getRandomHeroImage()
 ]);
+
+// Servicios
+PageManager::reactPage('servicios', 'ServiciosIsland', [
+    'titulo' => 'Nuestros Servicios'
+]);

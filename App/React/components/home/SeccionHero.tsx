@@ -15,14 +15,14 @@ export const SeccionHero = (): JSX.Element => {
             <div className="heroContenido">
                 <div>
                     <h1 className="heroTitulo">
-                        AI <span>research</span> and <span>products</span> that put safety at the frontier
+                        Estudio creativo especializado en <span>diseño web</span> y <span>software</span>.
                     </h1>
                 </div>
 
                 <div className="heroDescripcion">
-                    <p>AI will have a vast impact on the world. Nakomi is a public benefit corporation dedicated to securing its benefits and mitigating its risks.</p>
+                    <p>Fusionamos diseño gráfico con ingeniería de software para crear soluciones web, aplicaciones y herramientas de inteligencia artificial que destacan por su estética y rendimiento.</p>
                     <Button variante="primario" tamano="mediano" className="heroBoton">
-                        Try Nakomi
+                        Comenzar proyecto
                     </Button>
                 </div>
             </div>

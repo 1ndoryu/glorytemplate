@@ -1,0 +1,90 @@
+/*
+ * Estilos para BarraFiltros
+ * Barra de filtrado minimalista.
+ */
+
+.barraFiltros {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    width: 100%;
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--bg-card-subtle);
+}
+
+@media (min-width: 768px) {
+    .barraFiltros {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+/* Categorías */
+.filtrosCategorias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.filtroBoton {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--bg-card-subtle);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filtroBoton:hover {
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+}
+
+.filtroBoton.activo {
+    background-color: var(--text-primary);
+    border-color: var(--text-primary);
+    color: var(--bg-primary);
+}
+
+/* Búsqueda */
+.filtroBusqueda {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--bg-card-subtle);
+    border-radius: 999px;
+    background: transparent;
+    transition: border-color 0.2s ease;
+    max-width: 280px;
+    width: 100%;
+}
+
+.filtroBusqueda:focus-within {
+    border-color: var(--text-primary);
+}
+
+.busquedaIcono {
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.busquedaInput {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    width: 100%;
+}
+
+.busquedaInput::placeholder {
+    color: var(--text-muted);
+}
