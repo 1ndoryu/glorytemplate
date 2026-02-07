@@ -1,0 +1,68 @@
+/**
+ * Componente: SeccionServicios
+ * Muestra una lista de servicios ofrecidos con imágenes y enlaces.
+ * Diseño minimalista con tipografía grande.
+ */
+import React from 'react';
+import './SeccionServicios.css';
+
+interface Servicio {
+    id: number;
+    titulo: string;
+    imagen: string; // URL o path
+    link: string;
+}
+
+// Datos de los servicios
+// Nota: Usando placeholders para las imagenes ya que no tenemos los assets exactos de la referencia.
+const SERVICIOS: Servicio[] = [
+    {
+        id: 1,
+        titulo: 'Website design',
+        imagen: 'https://placehold.co/300x200/f3e8ff/151411?text=WD', // Morado suave
+        link: '#'
+    },
+    {
+        id: 2,
+        titulo: 'Digital product design',
+        imagen: 'https://placehold.co/300x200/f0fdf4/151411?text=DPD', // Verde suave
+        link: '#'
+    },
+    {
+        id: 3,
+        titulo: 'Webflow development',
+        imagen: 'https://placehold.co/300x200/ecfdf5/151411?text=Webflow', // Verde azulado
+        link: '#'
+    },
+    {
+        id: 4,
+        titulo: 'Framer development',
+        imagen: 'https://placehold.co/300x200/ffedd5/151411?text=Framer', // Naranja suave
+        link: '#'
+    }
+];
+
+export const SeccionServicios: React.FC = () => {
+    return (
+        <section className="seccionServicios" id="servicios">
+            <div className="serviciosContenedor">
+                <header className="serviciosHeader">
+                    <span className="serviciosTitulo">Services</span>
+                </header>
+                <div className="serviciosLista">
+                    {SERVICIOS.map(servicio => (
+                        <a key={servicio.id} href={servicio.link} className="servicioItem">
+                            <div className="servicioImagenWrapper">
+                                <img src={servicio.imagen} alt={servicio.titulo} className="servicioImagen" loading="lazy" />
+                            </div>
+                            <div className="servicioContenido">
+                                <h3 className="servicioTitulo">{servicio.titulo}</h3>
+                                <span className="servicioArrow">→</span>
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};

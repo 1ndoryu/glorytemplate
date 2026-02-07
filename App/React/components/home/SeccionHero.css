@@ -1,0 +1,73 @@
+/*
+ * Estilos para el componente SeccionHero
+ * Define la estructura y presentacion de la seccion principal (Hero)
+ */
+
+.seccionHero {
+    position: relative;
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-primary);
+    overflow: hidden;
+}
+
+.heroContenido {
+    position: relative;
+    z-index: 2;
+    padding: var(--spacing-xl) var(--spacing-lg);
+    max-width: var(--container-width);
+    margin: 0 auto;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    padding-top: 15vh;
+}
+
+.heroTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-4xl);
+    line-height: 0.95;
+    font-weight: 500;
+    color: var(--brand-black);
+    letter-spacing: -0.02em;
+}
+
+.heroTitulo span {
+    text-decoration: underline;
+    text-decoration-thickness: 4px;
+    text-underline-offset: 6px;
+}
+
+.heroDescripcion {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    line-height: 1.4;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 500px;
+}
+
+.heroBoton {
+    margin-top: var(--spacing-lg);
+}
+
+@media (max-width: 768px) {
+    .heroContenido {
+        grid-template-columns: 1fr;
+        padding-top: 10vh;
+        gap: var(--spacing-lg);
+    }
+
+    .heroTitulo {
+        font-size: var(--text-3xl);
+    }
+
+    .heroImagenFondo {
+        height: 40vh;
+    }
+}
