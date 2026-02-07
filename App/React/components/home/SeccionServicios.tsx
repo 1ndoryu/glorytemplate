@@ -4,6 +4,7 @@
  * Diseño minimalista con tipografía grande.
  */
 import React from 'react';
+import {ArrowRight} from 'lucide-react';
 import './SeccionServicios.css';
 
 interface Servicio {
@@ -57,7 +58,7 @@ export const SeccionServicios: React.FC = () => {
                             </div>
                             <div className="servicioContenido">
                                 <h3 className="servicioTitulo">{servicio.titulo}</h3>
-                                <span className="servicioArrow">→</span>
+                                <ArrowRight className="servicioArrow" />
                             </div>
                         </a>
                     ))}

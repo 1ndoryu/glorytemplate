@@ -101,12 +101,16 @@
     font-family: var(--font-primary);
     font-size: var(--text-2xl); /* Grande como en la referencia */
     letter-spacing: -0.02em;
-    color: var(--brand-black);
+    color: var(--text-secondary);
     margin: 0;
 }
 
+.servicioTitulo:hover {
+    color: var(--text-primary);
+}
 .servicioArrow {
-    font-size: var(--text-3xl);
+    width: var(--text-xl);
+    height: var(--text-xl);
     transition: transform 0.2s ease;
 }
 
@@ -120,6 +124,7 @@
     }
 
     .servicioArrow {
-        font-size: var(--text-xl);
+        width: var(--text-base);
+        height: var(--text-base);
     }
 }

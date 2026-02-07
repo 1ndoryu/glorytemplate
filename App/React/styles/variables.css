@@ -7,7 +7,7 @@
 :root {
     /* Colors - Backgrounds */
     --bg-primary: #f0eee6;
-    --bg-secondary: #f3f4f6;
+    --bg-secondary: #4b5563;
     --bg-accent: #eef2ff;
     --overlay-hover: rgba(0, 0, 0, 0.05);
 
@@ -48,5 +48,5 @@
     --text-4xl: 4rem;
     --text-5xl: 5rem; /* Hero Title */
 
-    --border-color: #151411;
+    --border-color: #4b5563;
 }
