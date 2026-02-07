@@ -11,7 +11,7 @@
 .clientesContenedor {
     width: 100%;
     max-width: var(--container-width);
-    padding: 0 var(--spacing-md);
+    padding: 0 var(--spacing-lg);
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
@@ -76,7 +76,7 @@
 
 .clientesBotonSubtitulo {
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
     color: var(--text-secondary);
 }
 
@@ -104,14 +104,14 @@
     align-items: center;
     justify-content: center;
     aspect-ratio: 3/2;
-    background-color: rgba(0, 0, 0, 0.03); /* Color sutil de fondo para las tarjetas */
+    background-color: var(--bg-card-subtle);
     border-radius: 4px;
     padding: var(--spacing-md);
     transition: background-color 0.3s ease;
 }
 
 .clienteLogoCard:hover {
-    background-color: rgba(0, 0, 0, 0.06);
+    background-color: var(--bg-card-hover);
 }
 
 .clienteLogoImg {

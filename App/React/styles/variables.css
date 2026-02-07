@@ -11,6 +11,10 @@
     --bg-accent: #eef2ff;
     --overlay-hover: rgba(0, 0, 0, 0.05);
 
+    /* Colors - Cards */
+    --bg-card-subtle: rgba(0, 0, 0, 0.03);
+    --bg-card-hover: rgba(0, 0, 0, 0.06);
+
     /* Colors - Text */
     --text-primary: #151411;
     --text-secondary: #4b5563;
@@ -35,6 +39,7 @@
     --spacing-xl: 4rem;
 
     /* Typography Sizes */
+    --text-xs: 0.75rem;
     --text-sm: 0.875rem;
     --text-base: 1rem;
     --text-xl: 1.3rem;
@@ -44,4 +49,3 @@
 
     --border-color: #151411;
 }
-
