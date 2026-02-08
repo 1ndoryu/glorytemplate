@@ -5,6 +5,7 @@
  * TO-DO: Conectar con backend REST API, JWT, OAuth.
  */
 import {useState, useEffect, useRef, useCallback} from 'react';
+import {useFocusTrap} from './useFocusTrap';
 
 export type VistaModal = 'login' | 'registro' | 'recuperar';
 
@@ -49,6 +50,9 @@ export const useAutenticacion = (abierto: boolean, onCerrar: () => void): Retorn
     const modalRef = useRef<HTMLDivElement>(null);
 
     const [login, setLogin] = useState<EstadoLogin>({email: '', password: ''});
+
+    /* Focus trap: atrapa Tab dentro del modal cuando está abierto */
+    useFocusTrap(modalRef, abierto);
     const [registro, setRegistro] = useState<EstadoRegistro>({nombre: '', email: '', password: '', confirmar: ''});
     const [recuperar, setRecuperar] = useState<EstadoRecuperar>({email: '', enviado: false});
 

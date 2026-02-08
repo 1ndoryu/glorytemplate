@@ -6,6 +6,7 @@
  */
 import React, {useState, useEffect, useRef} from 'react';
 import {Button} from '../ui/Button';
+import {useFocusTrap} from '../../hooks/useFocusTrap';
 import './ModalTestimonio.css';
 
 interface ModalTestimonioProps {
@@ -36,6 +37,9 @@ export const ModalTestimonio: React.FC<ModalTestimonioProps> = ({abierto, onCerr
     const [previewFoto, setPreviewFoto] = useState<string | null>(null);
     const [estado, setEstado] = useState<'idle' | 'enviando' | 'exito' | 'error'>('idle');
     const modalRef = useRef<HTMLDivElement>(null);
+
+    /* Focus trap: atrapa Tab dentro del modal */
+    useFocusTrap(modalRef, abierto);
 
     /* Cerrar con Escape y bloquear scroll */
     useEffect(() => {

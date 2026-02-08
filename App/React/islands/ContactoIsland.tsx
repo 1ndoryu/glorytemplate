@@ -73,7 +73,7 @@ export const ContactoIsland = ({titulo = 'Contacto'}: ContactoIslandProps): JSX.
             <section className="contactoFormularioSeccion">
                 <div className="contactoFormularioContenedor">
                     {enviado ? (
-                        <div className="contactoExito">
+                        <div className="contactoExito" role="status" aria-live="polite">
                             <h2 className="contactoExitoTitulo">Mensaje enviado</h2>
                             <p className="contactoExitoTexto">
                                 Gracias por contactarnos. Revisaremos tu solicitud y te
@@ -180,7 +180,7 @@ export const ContactoIsland = ({titulo = 'Contacto'}: ContactoIslandProps): JSX.
                     )}
 
                     {/* Info lateral - datos centralizados */}
-                    <aside className="contactoInfo">
+                    <aside className="contactoInfo" aria-label="Información de contacto">
                         <div className="contactoInfoBloque">
                             <h3 className="contactoInfoTitulo">Email</h3>
                             <a href={`mailto:${INFO_CONTACTO.email}`} className="contactoInfoEnlace">{INFO_CONTACTO.email}</a>

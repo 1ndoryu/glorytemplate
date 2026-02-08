@@ -60,7 +60,7 @@ export const Footer: React.FC = () => {
     };
 
     return (
-        <footer className="footer" id="footer">
+        <footer className="footer" id="footer" role="contentinfo">
             <div className="footerContenedor">
                 <div className="footerTop">
                     <div className="footerBrand">
@@ -69,13 +69,18 @@ export const Footer: React.FC = () => {
                     </div>
 
                     <div className="footerNewsletter">
-                        <h4 className="footerNewsletterTitulo">Stay updated</h4>
-                        {estado === 'exito' ? (
-                            <p className="footerNewsletterExito">{mensaje}</p>
-                        ) : (
+                        <h4 className="footerNewsletterTitulo" id="newsletter-titulo">Stay updated</h4>
+                        <div aria-live="polite" aria-atomic="true">
+                            {estado === 'exito' && (
+                                <p className="footerNewsletterExito">{mensaje}</p>
+                            )}
+                        </div>
+                        {estado !== 'exito' && (
                             <>
-                                <form className="footerForm" onSubmit={handleSubscribe}>
+                                <form className="footerForm" onSubmit={handleSubscribe} aria-labelledby="newsletter-titulo">
+                                    <label htmlFor="footer-email" className="soloLectores">Correo electrónico</label>
                                     <input
+                                        id="footer-email"
                                         type="email"
                                         placeholder="Enter your email address"
                                         className="footerInput"
@@ -83,25 +88,29 @@ export const Footer: React.FC = () => {
                                         onChange={e => setEmail(e.target.value)}
                                         required
                                         disabled={estado === 'enviando'}
+                                        aria-describedby={estado === 'error' ? 'newsletter-error' : undefined}
+                                        aria-invalid={estado === 'error' ? true : undefined}
                                     />
                                     <Button variante="outline" className="botonFooter" disabled={estado === 'enviando'}>
                                         {estado === 'enviando' ? 'Sending...' : 'Subscribe'}
                                     </Button>
                                 </form>
-                                {estado === 'error' && <p className="footerNewsletterError">{mensaje}</p>}
+                                {estado === 'error' && (
+                                    <p className="footerNewsletterError" id="newsletter-error" role="alert">{mensaje}</p>
+                                )}
                             </>
                         )}
                     </div>
                 </div>
 
                 <div className="footerBottom">
-                    <div className="footerLinks">
+                    <nav className="footerLinks" aria-label="Enlaces del pie de página">
                         {ENLACES_FOOTER.map(enlace => (
                             <a key={enlace.label} href={enlace.href} className="footerLink">
                                 {enlace.label}
                             </a>
                         ))}
-                    </div>
+                    </nav>
 
                     <span className="footerCopyright">&copy; {currentYear} Nakomi Template. All rights reserved.</span>
                 </div>

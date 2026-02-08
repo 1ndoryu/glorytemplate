@@ -26,6 +26,8 @@
     --primary-500: #6366f1;
     --secondary-500: #a855f7;
     --brand-black: #151411;
+    --accent-primary: var(--primary-500);
+    --border-primary: var(--border-color);
 
     /* Fonts */
     --font-primary: 'Neue Montreal', system-ui, -apple-system, sans-serif;

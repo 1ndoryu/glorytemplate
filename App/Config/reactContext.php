@@ -14,56 +14,73 @@ use Glory\Utility\AssetsUtility;
 add_filter('glory_react_context', function ($context) {
 
     /* -------------------------------------------------------------------------
-       1. Servicios (Desde DefaultContentRegistry)
+       1. Servicios (Desde DefaultContentRegistry + WP Real)
        ------------------------------------------------------------------------- */
     $serviciosConfig = DefaultContentRegistry::getDefinicion('servicio');
     $rawServices = $serviciosConfig['definicionesPost'] ?? [];
 
-    $servicios = array_map(function ($svc) {
-        $imgRef = $svc['imagenDestacadaAsset'] ?? '';
+    /* Indexar definiciones por slug y título para búsqueda rápida */
+    $servicesBySlug = [];
+    foreach ($rawServices as $svc) {
+        if (!empty($svc['slugDefault'])) {
+            $servicesBySlug[$svc['slugDefault']] = $svc;
+        }
+        if (!empty($svc['titulo'])) {
+            $servicesBySlug[sanitize_title($svc['titulo'])] = $svc;
+        }
+    }
+
+    /* Obtener posts reales de WP */
+    $wpServices = get_posts([
+        'post_type'      => 'servicio',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'orderby'        => 'menu_order',
+        'order'          => 'ASC',
+    ]);
+
+    $servicios = array_map(function ($post) use ($servicesBySlug) {
+        $slugReal = $post->post_name;
+
+        /* Buscar definición coincidente en registro (por slug o título sanitizado) */
+        $def = $servicesBySlug[$slugReal] ?? $servicesBySlug[sanitize_title($post->post_title)] ?? [];
+
+        /* Datos base desde WP (Fuente de la verdad para slugs y títulos) */
+        $titulo      = $post->post_title;
+        $contenido   = $post->post_content;
+        $descripcion = $post->post_excerpt ?: wp_trim_words(strip_tags($contenido), 20);
+
+        /* Meta y Assets (Prioridad: WP > Registry) */
+        $meta   = $def['metaEntrada'] ?? [];
+        $imgRef = $def['imagenDestacadaAsset'] ?? '';
         $imgUrl = '';
-        if ($imgRef && class_exists(AssetsUtility::class)) {
+
+        if (has_post_thumbnail($post->ID)) {
+            $imgUrl = get_the_post_thumbnail_url($post->ID, 'large');
+        } elseif ($imgRef && class_exists(AssetsUtility::class)) {
             $imgUrl = AssetsUtility::imagenUrl($imgRef);
         }
 
-        $meta = $svc['metaEntrada'] ?? [];
-        $descripcion = $svc['extracto'] ?? '';
-
-        if (empty($descripcion)) {
-            $contenido = strip_tags($svc['contenido'] ?? '');
-            $descripcion = mb_substr($contenido, 0, 120) . '...';
+        /* Skills */
+        $skillsRaw = $meta['skills'] ?? $def['skills'] ?? [];
+        if (empty($skillsRaw)) {
+            /* Fallback a meta de WP si existe */
+            $skillsRaw = get_post_meta($post->ID, 'skills', true) ?: [];
         }
 
-        /* Skills del servicio: cada skill tiene titulo y descripcion */
-        $skillsRaw = $meta['skills'] ?? $svc['skills'] ?? [];
         $skills = array_map(function ($skill, $idx) {
+            $t = is_array($skill) ? ($skill['titulo'] ?? '') : (is_string($skill) ? $skill : '');
+            $d = is_array($skill) ? ($skill['descripcion'] ?? '') : '';
             return [
                 'id'          => $idx + 1,
-                'titulo'      => $skill['titulo'] ?? $skill,
-                'descripcion' => $skill['descripcion'] ?? '',
+                'titulo'      => $t,
+                'descripcion' => $d,
             ];
         }, $skillsRaw, array_keys($skillsRaw));
 
-        /*
-         * Obtener el slug real del post WP.
-         * El permalink debe coincidir con la URL real que WP genera,
-         * no con el slugDefault que puede diferir (WP sanitiza títulos).
-         */
-        $slugReal = $svc['slugDefault'];
-        $postReal = get_posts([
-            'post_type'      => 'servicio',
-            'name'           => $svc['slugDefault'],
-            'posts_per_page' => 1,
-            'post_status'    => 'publish',
-        ]);
-
-        if (!empty($postReal)) {
-            $slugReal = $postReal[0]->post_name;
-        }
-
         return [
             'id'          => $slugReal,
-            'titulo'      => $svc['titulo'],
+            'titulo'      => $titulo,
             'descripcion' => $descripcion,
             'imagen'      => $imgUrl,
             'categorias'  => $meta['categorias'] ?? [],
@@ -72,69 +89,82 @@ add_filter('glory_react_context', function ($context) {
             'cta'         => [
                 'titulo'      => $meta['cta_titulo'] ?? '',
                 'descripcion' => $meta['cta_descripcion'] ?? '',
-                'precio'      => $meta['precio_desde'] ?? '',
+                'precio'      => $meta['precio_desde'] ?? get_post_meta($post->ID, 'precio_desde', true) ?: '',
                 'botones'     => [
-                    'primario'   => 'Contratar desde ' . ($meta['precio_desde'] ?? ''),
+                    'primario'   => 'Contratar desde ' . ($meta['precio_desde'] ?? get_post_meta($post->ID, 'precio_desde', true) ?: ''),
                     'secundario' => 'Contactar',
                 ]
             ]
         ];
-    }, $rawServices);
+    }, $wpServices);
 
     $context['servicios'] = $servicios;
 
     /* -------------------------------------------------------------------------
-       2. Proyectos (Portfolio / Showcase)
+       2. Proyectos (Desde DefaultContentRegistry + WP Real)
        ------------------------------------------------------------------------- */
     $proyectosConfig = DefaultContentRegistry::getDefinicion('proyecto');
     $rawProyectos = $proyectosConfig['definicionesPost'] ?? [];
 
-    $proyectos = array_map(function ($proy) {
-        $imgRef = $proy['imagenDestacadaAsset'] ?? '';
+    $projectsBySlug = [];
+    foreach ($rawProyectos as $proy) {
+        if (!empty($proy['slugDefault'])) {
+            $projectsBySlug[$proy['slugDefault']] = $proy;
+        }
+        if (!empty($proy['titulo'])) {
+            $projectsBySlug[sanitize_title($proy['titulo'])] = $proy;
+        }
+    }
+
+    $wpProyectos = get_posts([
+        'post_type'      => 'proyecto',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'orderby'        => 'menu_order',
+        'order'          => 'ASC',
+    ]);
+
+    $proyectos = array_map(function ($post) use ($projectsBySlug) {
+        $slugReal = $post->post_name;
+        $def      = $projectsBySlug[$slugReal] ?? $projectsBySlug[sanitize_title($post->post_title)] ?? [];
+
+        $titulo      = $post->post_title;
+        $contenido   = $post->post_content;
+        $descripcion = $post->post_excerpt ?: wp_trim_words(strip_tags($contenido), 30);
+
+        $meta   = $def['metaEntrada'] ?? [];
+        $imgRef = $def['imagenDestacadaAsset'] ?? '';
         $imgUrl = '';
-        if ($imgRef && class_exists(AssetsUtility::class)) {
+
+        if (has_post_thumbnail($post->ID)) {
+            $imgUrl = get_the_post_thumbnail_url($post->ID, 'large');
+        } elseif ($imgRef && class_exists(AssetsUtility::class)) {
             $imgUrl = AssetsUtility::imagenUrl($imgRef);
         }
 
-        $meta = $proy['metaEntrada'] ?? [];
-
-        $skillsRaw = $meta['skills'] ?? $proy['skills'] ?? [];
+        $skillsRaw = $meta['skills'] ?? $def['skills'] ?? [];
         $skills = array_map(function ($skill, $idx) {
-            if (is_string($skill)) {
-                return ['id' => $idx + 1, 'titulo' => $skill, 'descripcion' => ''];
-            }
+            $t = is_array($skill) ? ($skill['titulo'] ?? '') : (is_string($skill) ? $skill : '');
+            $d = is_array($skill) ? ($skill['descripcion'] ?? '') : '';
             return [
                 'id'          => $idx + 1,
-                'titulo'      => $skill['titulo'] ?? $skill,
-                'descripcion' => $skill['descripcion'] ?? '',
+                'titulo'      => $t,
+                'descripcion' => $d,
             ];
         }, $skillsRaw, array_keys($skillsRaw));
 
-        /* Obtener slug real del post WP para coincidir con URL real */
-        $slugReal = $proy['slugDefault'];
-        $postReal = get_posts([
-            'post_type'      => 'proyecto',
-            'name'           => $proy['slugDefault'],
-            'posts_per_page' => 1,
-            'post_status'    => 'publish',
-        ]);
-
-        if (!empty($postReal)) {
-            $slugReal = $postReal[0]->post_name;
-        }
-
         return [
             'id'          => $slugReal,
-            'titulo'      => $proy['titulo'],
-            'descripcion' => $proy['extracto'] ?? mb_substr(strip_tags($proy['contenido'] ?? ''), 0, 160),
-            'contenido'   => $proy['contenido'] ?? '',
+            'titulo'      => $titulo,
+            'descripcion' => $descripcion,
+            'contenido'   => $contenido,
             'imagen'      => $imgUrl,
-            'categorias'  => $meta['categorias'] ?? $proy['categorias'] ?? [],
-            'cliente'     => $meta['cliente'] ?? $proy['cliente'] ?? '',
+            'categorias'  => $meta['categorias'] ?? $def['categorias'] ?? [],
+            'cliente'     => $meta['cliente'] ?? $def['cliente'] ?? '',
             'link'        => '/proyectos/' . $slugReal,
             'skills'      => $skills,
         ];
-    }, $rawProyectos);
+    }, $wpProyectos);
 
     $context['proyectos'] = $proyectos;
 

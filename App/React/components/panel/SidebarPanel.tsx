@@ -17,7 +17,7 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({seccionActiva, onCamb
     const usuario = obtenerUsuarioActual();
 
     return (
-        <aside className="panelSidebar">
+        <aside className="panelSidebar" aria-label="Panel de navegación del usuario">
             {/* Info usuario */}
             <div className="sidebarUsuario">
                 <div className="sidebarAvatar">
@@ -33,12 +33,13 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({seccionActiva, onCamb
             </div>
 
             {/* Navegacion */}
-            <nav className="sidebarNav">
+            <nav className="sidebarNav" aria-label="Secciones del panel">
                 {TABS_PANEL.map(tab => (
                     <button
                         key={tab.id}
                         className={`sidebarItem ${seccionActiva === tab.id ? 'sidebarItemActivo' : ''}`}
                         onClick={() => onCambiarSeccion(tab.id)}
+                        aria-current={seccionActiva === tab.id ? 'page' : undefined}
                     >
                         <span className="sidebarItemTexto">{tab.label}</span>
                     </button>

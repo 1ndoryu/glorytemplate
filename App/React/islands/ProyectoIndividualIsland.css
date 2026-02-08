@@ -92,15 +92,6 @@
     width: 100%;
 }
 
-.proyectoRelacionadosHeader {
-    font-family: var(--font-primary);
-    font-size: var(--text-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-tertiary);
-    margin: 0 0 var(--spacing-xl);
-}
-
 .proyectoRelacionadosGrid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

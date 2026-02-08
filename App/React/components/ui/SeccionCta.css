@@ -5,7 +5,7 @@
      * En el home el gap del contenedor padre ya aporta espacio inferior,
      * por eso se usa la clase .seccionCtaCompacta para reducir padding-bottom.
      */
-    padding: var(--spacing-3xl) var(--spacing-lg) var(--spacing-3xl);
+    padding: var(--spacing-3xl) 0 var(--spacing-3xl);
     background-color: var(--bg-primary);
     display: flex;
     justify-content: center;
@@ -20,6 +20,8 @@
 .ctaContenedor {
     max-width: var(--container-width);
     width: 100%;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
     display: flex;
     flex-direction: column;
     align-items: flex-start;

@@ -170,8 +170,43 @@
     gap: 8px;
 }
 
+/* Botón hamburguesa para móvil */
+.botonMenuMovil {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    padding: var(--spacing-xs);
+    line-height: 0;
+}
+
 @media (max-width: 1024px) {
+    .botonMenuMovil {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     .navegacionPrincipal {
         display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        background: var(--bg-primary);
+        border-top: 1px solid var(--border-primary);
+        padding: var(--spacing-md) var(--spacing-lg);
+        gap: var(--spacing-sm);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .navegacionPrincipal.navegacionAbierta {
+        display: flex;
+    }
+
+    .accionCabecera {
+        margin-left: 0;
     }
 }

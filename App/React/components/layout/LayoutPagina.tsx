@@ -16,8 +16,11 @@ interface LayoutPaginaProps {
 export const LayoutPagina: React.FC<LayoutPaginaProps> = ({children, className = '', id}) => {
     return (
         <>
+            <a href="#contenido-principal" className="enlaceSaltarContenido">
+                Ir al contenido principal
+            </a>
             <Header />
-            <main className={className} id={id}>
+            <main className={className} id={id || 'contenido-principal'} role="main">
                 {children}
             </main>
             <Footer />
