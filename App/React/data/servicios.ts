@@ -13,6 +13,14 @@ declare global {
             marcas?: unknown[];
             miembros?: unknown[];
             blog?: unknown[];
+            isLoggedIn?: boolean;
+            usuarioActual?: {
+                id: number;
+                nombre: string;
+                email: string;
+                avatar: string;
+                rol: string;
+            } | null;
         };
     }
 }
@@ -84,7 +92,7 @@ const SERVICIOS_FALLBACK: Servicio[] = [
         descripcion: 'Interfaces intuitivas centradas en la experiencia del usuario.',
         imagen: obtenerImagen(30),
         categorias: ['web', 'software'],
-        link: '/servicios/ux-ui'
+        link: '/servicios/diseno-ux-ui'
     },
     {
         id: '8',

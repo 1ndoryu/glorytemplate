@@ -98,7 +98,7 @@ $serviciosBase = [
         ],
     ],
     [
-        'slugDefault' => 'ux-ui',
+        'slugDefault' => 'diseno-ux-ui',
         'titulo'      => 'Diseño UX/UI',
         'contenido'   => 'Interfaces intuitivas centradas en el usuario. Investigación y prototipado para asegurar interacciones fluidas que mejoran la retención y fidelización de tus clientes en cada punto de contacto.',
         'categorias'  => ['web', 'software'],
@@ -475,3 +475,40 @@ $miembrosBase = [
 ];
 
 DefaultContentManager::define('miembro', $miembrosBase);
+
+/* =====================================================
+ * POSTS DE BLOG (nativos de WP, type = post)
+ * ===================================================== */
+
+$blogPostsBase = [
+    [
+        'slugDefault' => 'the-future-of-digital-design',
+        'titulo'      => 'The Future of Digital Design',
+        'contenido'   => '<p>Exploring how AI and spatial computing are reshaping the landscape of user interfaces and experience design.</p><p>The convergence of artificial intelligence, augmented reality, and new interaction paradigms is creating unprecedented opportunities for designers. We\'re no longer just designing for screens — we\'re designing for environments, conversations, and adaptive experiences that respond to user context in real time.</p><p>Key trends to watch include generative UI systems, voice-first interfaces, and the rise of design engineering as a discipline that bridges the gap between creative vision and technical implementation.</p>',
+        'extracto'    => 'Exploring how AI and spatial computing are reshaping the landscape of user interfaces and experience design in 2026.',
+        'categorias'  => ['Design'],
+        'imagenDestacadaAsset' => !empty($poolImagenes) ? 'colors::' . $poolImagenes[0 % max(1, $totalImagenes)] : '',
+    ],
+    [
+        'slugDefault' => 'building-scalable-systems',
+        'titulo'      => 'Building Scalable Systems',
+        'contenido'   => '<p>A comprehensive guide to architecting modern web applications that can handle millions of users without compromising performance.</p><p>Scalability isn\'t just about handling more traffic — it\'s about building systems that remain maintainable, debuggable, and cost-effective as they grow. This article covers the fundamental patterns: horizontal scaling, caching strategies, database sharding, and event-driven architectures.</p><p>We also explore how modern tools like edge computing, serverless functions, and CDN-first architectures are changing the game for developers building global products.</p>',
+        'extracto'    => 'A comprehensive guide to architecting modern web applications that can handle millions of users without compromising performance.',
+        'categorias'  => ['Engineering'],
+        'imagenDestacadaAsset' => !empty($poolImagenes) ? 'colors::' . $poolImagenes[1 % max(1, $totalImagenes)] : '',
+    ],
+    [
+        'slugDefault' => 'brand-identity-in-the-ai-era',
+        'titulo'      => 'Brand Identity in the AI Era',
+        'contenido'   => '<p>How brands can maintain authenticity and emotional connection in a world increasingly saturated with synthetic content.</p><p>As AI-generated content becomes ubiquitous, the value of authentic brand voice, genuine human stories, and purposeful design choices increases exponentially. Brands that invest in distinctive visual languages and consistent emotional narratives will stand out.</p><p>This article explores strategies for building brand resilience: owning your aesthetic DNA, leveraging AI as a creative amplifier rather than a replacement, and creating brand experiences that feel unmistakably human.</p>',
+        'extracto'    => 'How brands can maintain authenticity and emotional connection in a world increasingly saturated with synthetic content.',
+        'categorias'  => ['Strategy'],
+        'imagenDestacadaAsset' => !empty($poolImagenes) ? 'colors::' . $poolImagenes[2 % max(1, $totalImagenes)] : '',
+    ],
+];
+
+/*
+ * Registrar blog posts como posts nativos de WP (type = post).
+ * DefaultContentManager los creará como posts estándar.
+ */
+DefaultContentManager::define('post', $blogPostsBase);

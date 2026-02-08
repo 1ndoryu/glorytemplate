@@ -129,6 +129,13 @@
     color: var(--text-muted);
 }
 
+.tarjetaProyectoTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin-top: 4px;
+}
+
 .proyectosSinResultados {
     text-align: center;
     color: var(--text-tertiary);

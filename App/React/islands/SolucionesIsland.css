@@ -46,13 +46,12 @@
 
 /* Contenido */
 .solucionesContenido {
-    padding: 0 0 var(--spacing-4xl);
+    padding: 0 var(--seccion-padding-x) var(--spacing-4xl);
 }
 
 .solucionesContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
-    padding: 0 var(--seccion-padding-x);
 }
 
 .solucionesGrid {

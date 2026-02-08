@@ -384,67 +384,138 @@ Estado: PENDIENTE | EN PROGRESO | COMPLETADO
 
 ---
 
-### FASE 13: INTERNACIONALIZACION (i18n)
+### FASE 13: CORRECCIONES POST-12.1 (Comentarios nuevos)
 
-#### 13.1 PENDIENTE - Sistema de idiomas espanol/ingles
+#### 13.1 COMPLETADO - Selected Work sin duplicados (Nuevo #1)
+- CATEGORIAS_SHOWCASE repetía proyectos entre categorías (ej: aureva en branding y web)
+- Fix: filtrar proyectos ya usados en categoría anterior para evitar repetición
+- Usar categorías reales del backend (project.categorias)
+
+#### 13.2 COMPLETADO - Tags/Badge consistente en todo el sitio (Nuevo #2)
+- ProyectosIsland no usaba Badge para mostrar categorías
+- SeccionShowcase no usaba Badge para categorías
+- Fix: Badge como componente reutilizable en todas las tarjetas de proyecto
+
+#### 13.3 COMPLETADO - Fix padding/max-width global (Nuevo #3)
+- NosotrosIsland, BlogIsland, SolucionesIsland, PanelIsland tenían padding inconsistente
+- Causa raíz: secciones de contenido no usaban --container-width + --seccion-padding-x
+- Fix: normalizar todas las secciones para usar mismas variables CSS
+
+#### 13.4 COMPLETADO - Fix estructura BlogContenedor (Nuevo #4)
+- postDestacado estaba fuera del div blogListaArticulos
+- Fix: todos los artículos van dentro de blogListaArticulos
+
+#### 13.5 COMPLETADO - Tarjeta artículo layout horizontal (Nuevo #5)
+- Tarjeta de blog tenía flex-direction: column
+- Fix: flex-direction: row con imagen más pequeña a la izquierda
+
+#### 13.6 COMPLETADO - Blog single post no carga (Nuevo #6)
+- single.php busca post WP real pero los datos son de fallback
+- Fix: registrar single-blog en pages.php para capturar la ruta
+- Slug de posts coincide con data/blog.ts
+
+#### 13.7 COMPLETADO - Centralizar info de contacto (Nuevo #7)
+- Email, ubicación, redes sociales hardcoded en ContactoIsland y Footer
+- Fix: crear data/contacto.ts como fuente única de verdad
+- Incluir teléfono de contacto
+
+#### 13.8 COMPLETADO - Modal escribir testimonio (Nuevo #8)
+- SeccionTestimonios no tiene opción de escribir comentario
+- Fix: crear ModalTestimonio.tsx con campos: foto, nombre, puesto, servicio/proyecto, red social
+- Comentario queda pendiente de aprobación (no se muestra en tiempo real)
+- Botón "Escribir un comentario" en hero de testimonios
+
+#### 13.9 COMPLETADO - Fix slug servicios mismatch (Nuevo #9)
+- Backend WP genera slug 'diseno-ux-ui' pero slugDefault era 'ux-ui'
+- Fix: cambiar slugDefault a 'diseno-ux-ui' en defaultContent.php
+- Actualizar link en data/servicios.ts fallback
+
+#### 13.10 COMPLETADO - Detección login en Header (Nuevo #10)
+- Header mostraba "Acceder" incluso si el usuario estaba logeado
+- Fix: inyectar isLoggedIn/usuarioActual en window.GLORY_CONTEXT desde reactContext.php
+- Header.tsx lee obtenerEstadoSesion() para adaptar UI:
+  - Logueado: "Panel" (enlaza /panel/) | En panel: "Volver" (enlaza /)
+  - Logueado: botón CTA cambia de "Contacto" a "Chat"
+  - No logueado: "Acceder" abre ModalAutenticacion (sin renderizar modal si logueado)
+- Tipo GLORY_CONTEXT actualizado en data/servicios.ts con isLoggedIn + usuarioActual
+- TO-DO futuro: Sistema de chat WebSocket con Glory/Ratchet
+
+#### 13.11 COMPLETADO - Panel max-width y padding (Nuevo #11)
+- PanelIsland no usaba max-width
+- Fix: agregar max-width: var(--container-width) y margin: 0 auto
+
+#### 13.12 COMPLETADO - Soluciones sub-páginas no cargan (Nuevo #12)
+- Causa raíz: reactPage() validaba slugs con regex que no permite '/'
+- Slugs 'soluciones/hosting', 'soluciones/vps', 'soluciones/agentes-ia' nunca se registraban
+- Fix en PageManager.php (3 métodos):
+  - reactPage(): detecta '/' en slug, separa parentSlug/childSlug, valida cada segmento
+  - interceptarPlantilla(): busca primero por post_name, fallback a get_page_uri() para path completo
+  - renderReactIsland(): misma resolución dual para encontrar config de páginas hijas
+- Las páginas WP se crearán como hijas de 'soluciones' automáticamente al siguiente load
+
+---
+
+### FASE 14: INTERNACIONALIZACION (i18n)
+
+#### 14.1 PENDIENTE - Sistema de idiomas espanol/ingles
 - Crear sistema de traducciones (context + hook `useIdioma`)
 - Archivo de traducciones: `i18n/es.ts`, `i18n/en.ts`
 - Selector de idioma en el Header
 - URLs con prefijo para SEO (/en/servicios/, /es/servicios/)
 
-#### 13.2 PENDIENTE - SEO bilingue
+#### 14.2 PENDIENTE - SEO bilingue
 - Meta tags `hreflang`, `<link rel="alternate">`
 - Sitemap XML y Schema.org bilingue
 
 ---
 
-### FASE 14: SEO AVANZADO
+### FASE 15: SEO AVANZADO
 
-#### 14.1 PENDIENTE - SEO tecnico
+#### 15.1 PENDIENTE - SEO tecnico
 - Meta tags dinamicos, Schema.org JSON-LD, OG, Twitter Cards
 - Canonical URLs, Sitemap XML, robots.txt
 
-#### 14.2 PENDIENTE - Rendimiento y Core Web Vitals
+#### 15.2 PENDIENTE - Rendimiento y Core Web Vitals
 - Lazy loading, WebP/AVIF, preload fuentes, critical CSS
 
 ---
 
-### FASE 15: SERVICIOS - PLANES Y PAGOS
+### FASE 16: SERVICIOS - PLANES Y PAGOS
 
-#### 15.1 PENDIENTE - Planes por servicio
+#### 16.1 PENDIENTE - Planes por servicio
 - Plan Basico, Avanzado, Personalizado por servicio
 - UI: `PlanesServicio.tsx`, datos como meta en PHP
 
-#### 15.2 PENDIENTE - Integracion Stripe (futuro)
+#### 16.2 PENDIENTE - Integracion Stripe (futuro)
 - API keys desde .env, checkout directo
 - NOTA: Implementar cuando el usuario configure las keys
 
 ---
 
-### FASE 16: CONTACTO Y CHATBOT
+### FASE 17: CONTACTO Y CHATBOT
 
-#### 16.1 PENDIENTE - Formulario de contacto mejorado
+#### 17.1 PENDIENTE - Formulario de contacto mejorado
 - Campos: nombre, correo, descripcion, presupuesto
 - Al enviar -> abre chat en tiempo real
 
-#### 16.2 PENDIENTE - Chatbot inteligente
+#### 17.2 PENDIENTE - Chatbot inteligente
 - WebSocket (Ratchet) o API polling
 - Flujo: detalles -> presupuesto -> pago
 - NOTA: Implementar cuando el usuario provea APIs
 
 ---
 
-### FASE 17: AUDITORIA SOLID Y LIMPIEZA
+### FASE 18: AUDITORIA SOLID Y LIMPIEZA
 
-#### 17.1 PENDIENTE - Revision profunda SOLID
+#### 18.1 PENDIENTE - Revision profunda SOLID
 - [ ] SRP: max 3 useState por componente
 - [ ] Limites de archivo: 300 componentes, 120 hooks, 150 utils
 - [ ] ISP, DIP, OCP verificados
 
-#### 17.2 PENDIENTE - Accesibilidad (a11y)
+#### 18.2 PENDIENTE - Accesibilidad (a11y)
 - aria-labels, navegacion teclado, skip links, contraste WCAG AA
 
-#### 17.3 PENDIENTE - Tests
+#### 18.3 PENDIENTE - Tests
 - Tests unitarios hooks, tests integracion navegacion SPA
 
 ---
@@ -467,17 +538,30 @@ Estado: PENDIENTE | EN PROGRESO | COMPLETADO
 
 0. [RESUELTO] Eliminados emojis del roadmap, todo con texto.
 1. [RESUELTO] Submenu hover se cerraba al mover cursor. Fix: eliminado margin-top, reemplazado con padding-top transparente para mantener continuidad del hover.
-2. [EN PROGRESO] Pagina de servicio error + navegacion no es fluida. El error 500 se arreglo (has_archive conflict), pero la navegacion SPA depende de AjaxNav de Glory. TO-DO: verificar que AjaxNav rehidrate islands correctamente despues de navegacion AJAX.
-3. [EN REVISION] Imagenes de Selected Work: usan import.meta.glob de Glory/assets/images/showcase/. Las imagenes existen. Posible problema: Vite en dev mode no resuelve los paths correctamente o falta rebuild. Verificar en navegador.
-4. Journal se desconfiguro por la refactorizacion, tiene que ser 3 columnas y aparece.
-5. http://glory.local/proyectos/ aparece sin imagenes, tiene que ser las de Glory/assets/images/showcase/
-6. Si los padding estan centralizados pero la pagina de nosotros tiene padding diferentes, Have a project in mind? en nosotros no tiene el padding botton que hay en el home (que es el correcto) (parece que es casi toda las have a  project, ese padding botton debe ser general), esto no esta centralizado. Igualmente acabo de notar en blog pasa lo mismo, el filtrado en blog debería ser igual a de las otras paginas, verificar que esto este centralizado, los blog deberían mostrar imagenes al menos por default de portada, lo de los padding igualmente pasa en los single post de proyectos, y los blog deberían tener single post y en hero de soluciones.
+2. [RESUELTO] Pagina de servicio error + navegacion no es fluida. Error 500 arreglado (has_archive conflict). Navegación SPA pendiente de verificar con AjaxNav.
+3. [RESUELTO] Imagenes de Selected Work resueltas con fallback en data/showcase.ts.
+4. [RESUELTO] Journal se desconfiguro por la refactorizacion, tiene que ser 3 columnas y aparece. (Fix: clase CSS renombrada para evitar colision global)
+5. [RESUELTO] http://glory.local/proyectos/ aparece sin imagenes, tiene que ser las de Glory/assets/images/showcase/ (Fix: fallback en data/showcase.ts + TarjetaProyecto siempre renderiza img)
+6. [RESUELTO] Padding de "Have a project in mind?" inconsistente + blog sin imagenes + blog sin single post + hero soluciones sin padding. (Fix: variable --seccion-cta-padding-bottom, imagenes portada blog, BlogSingleIsland creado, hero soluciones arreglado)
+7. [RESUELTO] La pagina de contacto debe existir. (Fix: ContactoIsland.tsx creada con formulario completo, registrada en pages.php y appIslands.tsx)
+8. [RESUELTO] Solo 4 marcas, deberian ser 12, Ultimos clientes no usa backend para SVGs. (Fix: 12 marcas en defaultContent.php, SeccionClientes consume MARCAS_DATA del backend)
+9. [RESUELTO] Los proyectos del home en el hero deben usar el backend. (Fix: CarruselShowcase usa PROYECTOS_DATA con Badge de categorias reales)
+10. [RESUELTO] En el home "Services" no esta usando el backend. (Fix: verificado que window.GLORY_CONTEXT.servicios se inyecta y servicios.ts lo consume)
+11. [RESUELTO] en "More Services" no debe aparecer el mismo servicio que se esta cargando. (Fix: obtenerServiciosRelacionados() filtra por servicioActualId)
+12. [RESUELTO] Login, modal autenticacion, panel placeholder. (Fix: ModalAutenticacion.tsx con login/registro/recuperar, PanelIsland.tsx con 3 tabs placeholder)
+13. [RESUELTO] Hacer la logica de Stay updated. (Fix: Footer.tsx con newsletter funcional, NewsletterController.php con tabla WP custom)
 
-Comentarios extra, me doy cuenta que esta diferencia de padding botton de Have a project in mind? sucede porque en el home agrega 4 rem de gap mas 4 rem de padding top de la seccion de abajo, entonces, lo ideal es que en el home se deje con las 4 rem y el resto de lugares con 8 donde no haya un gap o un padding bottom que sume ese espacio.
-7. La pagina de contacto debe existir, actualmente en header esta el boton de contacto que lleva a la seccion de contacto pero esta seccion no esta en todas las paginas y deberia existir la pagina entonces.
-8. Hay solo 4 marcas de default content, deberían ser 12 y usar svg aleatoreos de Glory, y estar en la seccion de Ultimos clientes, a veces no cargan esos svg a veces si, Ultimos clientes no esta usando el backend para los svg.
-9. Los proyectos del home en el hero deben usar el backend, mantener el diseño.
-10. En el home "Services" no esta usando el backend 
-11. en "More Services" no debe aparecer el mismo servicio que se esta cargando.
-12. Login y inicio de seccion, al lado de boton de contacto normal sin boton, como un menu mas poner "acceder", abrira un modal para iniciar seccion, crear el registro, autenticacion, recuperacion de contraseña, inicio seccion con google, etc, planificara un panel, este panel es sencillo, el mismo menu adaptado con una navegacion Distinta, Mis proyectos (Un Dashboard en donde el cliente vera sus servicios en progreso o terminados, esto requiere una logica que se debe planificar con cuidado, y es que como dije anteriormente, los pagos se haran en la plataforma mediante stripe, la cuestion es que al realizar el pago, el cliente tenga estar logeado, el registro debe ser muy sencillo, agregar chapchat anti bots, al hacer el pago, el cliente tendra un dashboard donde vera su servicio en progreso, todo minimalista, los detalles del proyecto se veran ahi, estaran ocultos y se expandiran, esto sería despues hacer la logica para el chat en tiempo real porque no es solo el chat bot, se van a necesitar un dashboard para el admin para conversar con los clientes, interrumpir el chatbot, etc), Servicios (El cliente vera sus servicios contratados, hosting, vps, etc), Pagos (El cliente vera un historial de pagos realizados), se que estas paginas son muy complicadas pero por el momento se pueden planificar como pendientes y dejar un placeholder de "En construccion".
-13. Hacer la logica de Stay updated
+### Comentarios despues de llegar al 12.1
+
+1. En Selected Work no repertirse proyectos por categorías, asegurarse que se esten usando categorías reales del backend.
+2. La pagina de servicios usa un componente de tags, pero la de proyectos tanto como para el home y la pagina no, debería usarse, no es si realmente lo de "cardTags" o "Tags" es un componente pero debería y usarse en todo.
+3. La pagina de nosotros sigue teniendo un padding distinto a los lados incoherente con las demas paginas (igual blog) estos padding deben ser igual a la pagina de home, la seccion de Clientes que confían en nosotros debería ser igual a la que esta en el home. Igualmente el hero de soluciones no tiene el padding que usan las secciones home. Todos estos problemas probablemente de deben a estas partes de la pagina no estan usando la variable ancho maximo, solucionar este problema de alguna forma inteligente.
+4. Algo esta mal con la estructura de blogContenedor, tiene un articulo fuera de blogListaArticulos. 
+5. La tarjeta de articulo debe tener display: flex; flex-direction: row; y el titulo la descripcion y esas cosa en un flex column, la imagen un poco mas pequeña.
+6. Los contenidos de http://glory.local/blog/the-future-of-digital-design ejemplo, no carga, ya actualice los enlaces permanentes.
+7. Asegurarse de centralizar las deficiones de Email, Ubicación, Redes sociales, etc, y numero de contacto (deberia ponerse en la pagina de contacto)
+8. Agregar un boton el hero de Testimonials de "Escribir un comentario" Esto abrira un modal para escribir un comentario, agregar una foto, nombre y puesto, y otro de servicio o proyecto relacionado (escribe libremente), red social, esto no agrega el comentario en tiempo real, solo lo deja pendiente de aprobación.
+9. No se si en http://glory.local/servicios/ estan cargando los servicios reales pero por ejemplo esta el servicio de Diseño UX/UI en esa pagina y el backen me sale pero me sale con "http://glory.local/servicios/diseno-ux-ui/" y en la pagina de servicios con "http://glory.local/servicios/ux-ui"
+10. Estoy logeada y aparece acceder, debe detectar si el usuario esta logeado y mostrar "Panel" cuando se esta en el panel se puede volver al Home diciendo "Volver" El boton de contacto se cambiara por Chat cuando se esta logeado y abrira el chat. Se que el chat no esta planificado detalladamente pero adelanto, el chat tendrá 2 formas, el modal en la esquina similar como funciona en facebook, mostrara un circulo pequeño de chat y abrira un modal de chat en la esquina, y luego estara el chat expandido en la pagina /mensajes en la que sera como en messenger de facebook cuando el chat esta expandido, Glory tiene un sistema de socket, este chat tiene que funcionar tanto en local para pruebas (entornos windows y en linux cuando se suba a producción), tanto para los usuarios normales como para el admin quien es quien responde los mensajes, pueden haber varios admins, y se asignara un rol extra para quienes puedan atender clientes y atender servicios. 
+11. El panel tambien debe tener el ancho maximo y el padding general.
+12. Las paginas de soluciones no cargan.

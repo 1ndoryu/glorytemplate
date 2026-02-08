@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import {SeccionHeader} from '../ui/SeccionHeader';
+import {Badge} from '../ui/Badge';
 import {CATEGORIAS_SHOWCASE} from '../../data/showcase';
 import './SeccionShowcase.css';
 
@@ -30,7 +31,11 @@ export const SeccionShowcase = (): JSX.Element => {
                                         <h3 className="proyectoTitulo">
                                             {proyecto.titulo} <span className="proyectoCliente">- {proyecto.cliente}</span>
                                         </h3>
-                                        <span className="proyectoSubtitulo">{proyecto.categorias}</span>
+                                        <div className="proyectoTags">
+                                            {(Array.isArray(proyecto.categorias) ? proyecto.categorias : [proyecto.categorias]).map(cat => (
+                                                <Badge key={cat} label={cat} />
+                                            ))}
+                                        </div>
                                     </div>
                                 </a>
                             ))}

@@ -9,6 +9,7 @@ import {LayoutPagina} from '../components/layout/LayoutPagina';
 import {PROYECTOS_DATA} from '../data/showcase';
 import {CATEGORIAS_PROYECTOS} from '../data/navegacion';
 import {BarraFiltros} from '../components/servicios/BarraFiltros';
+import {Badge} from '../components/ui/Badge';
 import {obtenerImagenShowcase} from '../hooks/useImagenes';
 import {Proyecto} from '../types/contenido';
 
@@ -18,9 +19,7 @@ interface ProyectosIslandProps {
 
 /* Componente tarjeta de proyecto individual */
 const TarjetaProyecto: React.FC<{proyecto: Proyecto; indice: number}> = ({proyecto, indice}) => {
-    const categoriasTexto = Array.isArray(proyecto.categorias)
-        ? proyecto.categorias.join(', ')
-        : proyecto.categorias;
+    const categorias = Array.isArray(proyecto.categorias) ? proyecto.categorias : [proyecto.categorias];
 
     /* Fallback a imagen showcase si el backend no resolvió la URL */
     const imagenSrc = proyecto.imagen || obtenerImagenShowcase(indice);
@@ -33,7 +32,11 @@ const TarjetaProyecto: React.FC<{proyecto: Proyecto; indice: number}> = ({proyec
             <div className="tarjetaProyectoInfo">
                 <h3 className="tarjetaProyectoTitulo">{proyecto.titulo}</h3>
                 <span className="tarjetaProyectoCliente">{proyecto.cliente}</span>
-                <span className="tarjetaProyectoCategorias">{categoriasTexto}</span>
+                <div className="tarjetaProyectoTags">
+                    {categorias.map(cat => (
+                        <Badge key={cat} label={cat} />
+                    ))}
+                </div>
             </div>
         </a>
     );

@@ -8,6 +8,7 @@ import '../styles/variables.css';
 import './ContactoIsland.css';
 import {LayoutPagina} from '../components/layout/LayoutPagina';
 import {Button} from '../components/ui/Button';
+import {INFO_CONTACTO} from '../data/contacto';
 
 interface ContactoIslandProps {
     titulo?: string;
@@ -178,22 +179,28 @@ export const ContactoIsland = ({titulo = 'Contacto'}: ContactoIslandProps): JSX.
                         </form>
                     )}
 
-                    {/* Info lateral */}
+                    {/* Info lateral - datos centralizados */}
                     <aside className="contactoInfo">
                         <div className="contactoInfoBloque">
                             <h3 className="contactoInfoTitulo">Email</h3>
-                            <a href="mailto:hello@nakomi.studio" className="contactoInfoEnlace">hello@nakomi.studio</a>
+                            <a href={`mailto:${INFO_CONTACTO.email}`} className="contactoInfoEnlace">{INFO_CONTACTO.email}</a>
+                        </div>
+                        <div className="contactoInfoBloque">
+                            <h3 className="contactoInfoTitulo">Teléfono</h3>
+                            <a href={`tel:${INFO_CONTACTO.telefono.replace(/\s/g, '')}`} className="contactoInfoEnlace">{INFO_CONTACTO.telefono}</a>
                         </div>
                         <div className="contactoInfoBloque">
                             <h3 className="contactoInfoTitulo">Ubicación</h3>
-                            <p className="contactoInfoTexto">Disponibles mundialmente.<br />Oficina en Madrid, España.</p>
+                            <p className="contactoInfoTexto">{INFO_CONTACTO.ubicacionDetalle}</p>
                         </div>
                         <div className="contactoInfoBloque">
                             <h3 className="contactoInfoTitulo">Redes</h3>
                             <div className="contactoInfoRedes">
-                                <a href="#" className="contactoInfoEnlace">LinkedIn</a>
-                                <a href="#" className="contactoInfoEnlace">Twitter</a>
-                                <a href="#" className="contactoInfoEnlace">Dribbble</a>
+                                {INFO_CONTACTO.redesSociales.map(red => (
+                                    <a key={red.nombre} href={red.url} className="contactoInfoEnlace" target="_blank" rel="noopener noreferrer">
+                                        {red.nombre}
+                                    </a>
+                                ))}
                             </div>
                         </div>
                     </aside>

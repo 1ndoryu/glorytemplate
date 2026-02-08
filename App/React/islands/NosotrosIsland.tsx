@@ -7,10 +7,10 @@ import '../styles/variables.css';
 import './NosotrosIsland.css';
 import {LayoutPagina} from '../components/layout/LayoutPagina';
 import {SeccionTestimonios} from '../components/home/SeccionTestimonios';
+import {SeccionClientes} from '../components/home/SeccionClientes';
 import {SeccionContacto} from '../components/home/SeccionContacto';
 import {MIEMBROS_DATA} from '../data/miembros';
-import {MARCAS_DATA} from '../data/marcas';
-import {Miembro, Marca} from '../types/contenido';
+import {Miembro} from '../types/contenido';
 
 interface NosotrosIslandProps {
     titulo?: string;
@@ -45,24 +45,6 @@ const TarjetaMiembro: React.FC<{miembro: Miembro}> = ({miembro}) => (
             </div>
         </div>
     </article>
-);
-
-/* Logo de marca/cliente */
-const LogoMarca: React.FC<{marca: Marca}> = ({marca}) => (
-    <div className="marcaLogo">
-        {marca.url ? (
-            <a href={marca.url} target="_blank" rel="noopener noreferrer" title={marca.nombre}>
-                {marca.logo
-                    ? <img src={marca.logo} alt={marca.nombre} loading="lazy" />
-                    : <span className="marcaNombreTexto">{marca.nombre}</span>
-                }
-            </a>
-        ) : (
-            marca.logo
-                ? <img src={marca.logo} alt={marca.nombre} loading="lazy" />
-                : <span className="marcaNombreTexto">{marca.nombre}</span>
-        )}
-    </div>
 );
 
 export const NosotrosIsland = ({titulo = 'Sobre Nosotros'}: NosotrosIslandProps): JSX.Element => {
@@ -128,19 +110,8 @@ export const NosotrosIsland = ({titulo = 'Sobre Nosotros'}: NosotrosIslandProps)
                 </div>
             </section>
 
-            {/* Marcas / Clientes */}
-            {MARCAS_DATA.length > 0 && (
-                <section className="nosotrosMarcas">
-                    <div className="nosotrosMarcasContenedor">
-                        <h2 className="marcasHeader">Clientes que confían en nosotros</h2>
-                        <div className="marcasGrid">
-                            {MARCAS_DATA.map(marca => (
-                                <LogoMarca key={marca.id} marca={marca} />
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )}
+            {/* Marcas / Clientes - Reutiliza el mismo componente del home para consistencia */}
+            <SeccionClientes />
 
             {/* Testimonios reutilizado del home */}
             <SeccionTestimonios />

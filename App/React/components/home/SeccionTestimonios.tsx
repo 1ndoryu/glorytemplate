@@ -2,16 +2,19 @@
  * Componente: SeccionTestimonios
  * Muestra un carrusel interactivo de testimonios.
  * Datos centralizados en data/testimonios.ts (DRY).
+ * Incluye botón para escribir un testimonio (abre modal).
  */
-import React from 'react';
+import React, {useState} from 'react';
 import './SeccionTestimonios.css';
 import {useCarruselInfinito} from '../../hooks/useCarruselInfinito';
 import {SeccionHeader} from '../ui/SeccionHeader';
 import {TESTIMONIOS} from '../../data/testimonios';
+import {ModalTestimonio} from './ModalTestimonio';
 
 export const SeccionTestimonios: React.FC = () => {
     const items = TESTIMONIOS;
     const itemsVisuales = [...items, ...items];
+    const [modalAbierto, setModalAbierto] = useState(false);
 
     const {indiceActual, conTransicion, dragOffset, handlers} = useCarruselInfinito({
         totalItems: items.length,
@@ -22,7 +25,12 @@ export const SeccionTestimonios: React.FC = () => {
     return (
         <section className="seccionTestimonios">
             <div className="testimoniosContenedor">
-                <SeccionHeader titulo="Testimonials" />
+                <div className="testimoniosHeader">
+                    <SeccionHeader titulo="Testimonials" />
+                    <button className="testimoniosBotonEscribir" onClick={() => setModalAbierto(true)}>
+                        Escribir un comentario
+                    </button>
+                </div>
 
                 <div
                     className="testimoniosCarruselWindow"
@@ -50,6 +58,8 @@ export const SeccionTestimonios: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <ModalTestimonio abierto={modalAbierto} onCerrar={() => setModalAbierto(false)} />
         </section>
     );
 };

@@ -15,7 +15,7 @@ interface BlogIslandProps {
     titulo?: string;
 }
 
-/* Tarjeta de artículo */
+/* Tarjeta de artículo con layout horizontal */
 const TarjetaArticulo: React.FC<{post: PostBlog; destacado?: boolean}> = ({post, destacado = false}) => (
     <a href={post.link || '#'} className={`tarjetaArticulo ${destacado ? 'tarjetaArticuloDestacado' : ''}`}>
         {post.imagen && (
@@ -23,13 +23,15 @@ const TarjetaArticulo: React.FC<{post: PostBlog; destacado?: boolean}> = ({post,
                 <img src={post.imagen} alt={post.titulo} className="articuloImagen" loading="lazy" />
             </div>
         )}
-        <div className="articuloMeta">
-            <span className="articuloCategoria">{post.categoria}</span>
-            <span className="articuloFecha">{post.fecha}</span>
+        <div className="articuloContenido">
+            <div className="articuloMeta">
+                <span className="articuloCategoria">{post.categoria}</span>
+                <span className="articuloFecha">{post.fecha}</span>
+            </div>
+            <h3 className="articuloTitulo">{post.titulo}</h3>
+            <p className="articuloResumen">{post.resumen}</p>
+            <span className="articuloLeer">Leer artículo →</span>
         </div>
-        <h3 className="articuloTitulo">{post.titulo}</h3>
-        <p className="articuloResumen">{post.resumen}</p>
-        <span className="articuloLeer">Leer artículo →</span>
     </a>
 );
 
@@ -46,10 +48,6 @@ export const BlogIsland = ({titulo = 'Blog'}: BlogIslandProps): JSX.Element => {
         if (categoriaActiva === 'todos') return POSTS_BLOG;
         return POSTS_BLOG.filter(p => p.categoria === categoriaActiva);
     }, [categoriaActiva]);
-
-    /* El primer post puede ser destacado */
-    const postDestacado = postsFiltrados[0];
-    const restoDePostos = postsFiltrados.slice(1);
 
     return (
         <LayoutPagina className="blogMain" id="paginaBlog">
@@ -80,16 +78,11 @@ export const BlogIsland = ({titulo = 'Blog'}: BlogIslandProps): JSX.Element => {
                         ))}
                     </div>
 
-                    {/* Post destacado */}
-                    {postDestacado && (
-                        <TarjetaArticulo post={postDestacado} destacado />
-                    )}
-
-                    {/* Grid de posts restantes */}
-                    {restoDePostos.length > 0 && (
+                    {/* Todos los posts dentro de un solo contenedor */}
+                    {postsFiltrados.length > 0 && (
                         <div className="blogListaArticulos">
-                            {restoDePostos.map(post => (
-                                <TarjetaArticulo key={post.id} post={post} />
+                            {postsFiltrados.map((post, i) => (
+                                <TarjetaArticulo key={post.id} post={post} destacado={i === 0} />
                             ))}
                         </div>
                     )}

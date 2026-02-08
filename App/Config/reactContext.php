@@ -175,5 +175,53 @@ add_filter('glory_react_context', function ($context) {
 
     $context['miembros'] = $miembros;
 
+    /* -------------------------------------------------------------------------
+       6. Blog Posts (nativos de WP)
+       ------------------------------------------------------------------------- */
+    $blogPosts = get_posts([
+        'post_type'      => 'post',
+        'post_status'    => 'publish',
+        'posts_per_page' => 10,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ]);
+
+    $blog = array_map(function ($post) {
+        $categorias = get_the_category($post->ID);
+        $categoriaNombre = !empty($categorias) ? $categorias[0]->name : 'General';
+
+        $imagen = '';
+        if (has_post_thumbnail($post->ID)) {
+            $imagen = get_the_post_thumbnail_url($post->ID, 'large');
+        }
+
+        return [
+            'id'        => $post->ID,
+            'titulo'    => $post->post_title,
+            'resumen'   => get_the_excerpt($post) ?: wp_trim_words(strip_tags($post->post_content), 30),
+            'fecha'     => get_the_date('M j, Y', $post),
+            'categoria' => $categoriaNombre,
+            'link'      => get_permalink($post),
+            'imagen'    => $imagen,
+        ];
+    }, $blogPosts);
+
+    $context['blog'] = $blog;
+
+    /* -------------------------------------------------------------------------
+       7. Estado de autenticación del usuario
+       ------------------------------------------------------------------------- */
+    $context['isLoggedIn'] = is_user_logged_in();
+    if (is_user_logged_in()) {
+        $usuario = wp_get_current_user();
+        $context['usuarioActual'] = [
+            'id'     => $usuario->ID,
+            'nombre' => $usuario->display_name,
+            'email'  => $usuario->user_email,
+            'avatar' => get_avatar_url($usuario->ID, ['size' => 48]),
+            'rol'    => !empty($usuario->roles) ? $usuario->roles[0] : 'subscriber',
+        ];
+    }
+
     return $context;
 });

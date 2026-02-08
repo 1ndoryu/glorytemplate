@@ -17,7 +17,7 @@ const PROYECTOS_FALLBACK: Proyecto[] = [
         link: '/proyectos/aureva',
         skills: [
             {id: 1, titulo: 'Branding', descripcion: 'Identidad visual completa desde cero.'},
-            {id: 2, titulo: 'Web Design', descripcion: 'Sitio web que refleja elegancia y sofisticación.'},
+            {id: 2, titulo: 'Web Design', descripcion: 'Sitio web que refleja elegancia y sofisticación.'}
         ]
     },
     {
@@ -30,7 +30,7 @@ const PROYECTOS_FALLBACK: Proyecto[] = [
         link: '/proyectos/venture',
         skills: [
             {id: 1, titulo: 'Product Design', descripcion: 'Diseño de producto digital end-to-end.'},
-            {id: 2, titulo: 'Design System', descripcion: 'Sistema escalable de componentes.'},
+            {id: 2, titulo: 'Design System', descripcion: 'Sistema escalable de componentes.'}
         ]
     },
     {
@@ -43,7 +43,7 @@ const PROYECTOS_FALLBACK: Proyecto[] = [
         link: '/proyectos/payby',
         skills: [
             {id: 1, titulo: 'App Design', descripcion: 'Diseño mobile-first para fintech.'},
-            {id: 2, titulo: 'Motion Design', descripcion: 'Micro-interacciones que generan confianza.'},
+            {id: 2, titulo: 'Motion Design', descripcion: 'Micro-interacciones que generan confianza.'}
         ]
     },
     {
@@ -95,21 +95,36 @@ export const PROYECTOS_DATA: Proyecto[] = getProyectosData();
 
 /*
  * Agrupar proyectos en categorías para la sección showcase del home.
- * Se dividen en 2 grupos para el carrusel de categorías.
+ * Se dividen en 2 grupos. Los proyectos NO se repiten entre categorías:
+ * una vez asignado a un grupo, se excluye del siguiente.
  */
-export const CATEGORIAS_SHOWCASE: CategoriaShowcase[] = [
-    {
-        titulo: 'Website & Digital Experiences',
-        proyectos: PROYECTOS_DATA.filter(p => {
+const buildCategoriasShowcase = (): CategoriaShowcase[] => {
+    const usados = new Set<string | number>();
+
+    const filtrarSinRepetir = (filtro: (cats: string[]) => boolean, max: number): Proyecto[] => {
+        const resultado: Proyecto[] = [];
+        for (const p of PROYECTOS_DATA) {
+            if (usados.has(p.id)) continue;
             const cats = Array.isArray(p.categorias) ? p.categorias : [p.categorias];
-            return cats.includes('web') || cats.includes('app');
-        }).slice(0, 3)
-    },
-    {
-        titulo: 'Brand Identity & Strategy',
-        proyectos: PROYECTOS_DATA.filter(p => {
-            const cats = Array.isArray(p.categorias) ? p.categorias : [p.categorias];
-            return cats.includes('branding');
-        }).slice(0, 3)
-    }
-];
+            if (filtro(cats)) {
+                resultado.push(p);
+                usados.add(p.id);
+                if (resultado.length >= max) break;
+            }
+        }
+        return resultado;
+    };
+
+    return [
+        {
+            titulo: 'Website & Digital Experiences',
+            proyectos: filtrarSinRepetir(cats => cats.includes('web') || cats.includes('app'), 3)
+        },
+        {
+            titulo: 'Brand Identity & Strategy',
+            proyectos: filtrarSinRepetir(cats => cats.includes('branding'), 3)
+        }
+    ];
+};
+
+export const CATEGORIAS_SHOWCASE: CategoriaShowcase[] = buildCategoriasShowcase();

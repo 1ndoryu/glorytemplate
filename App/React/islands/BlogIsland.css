@@ -46,13 +46,12 @@
 
 /* Contenido */
 .blogContenido {
-    padding: 0 0 var(--spacing-4xl);
+    padding: 0 var(--seccion-padding-x) var(--spacing-4xl);
 }
 
 .blogContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
-    padding: 0 var(--seccion-padding-x);
 }
 
 /* Filtros */
@@ -60,7 +59,6 @@
     display: flex;
     gap: var(--spacing-sm);
     flex-wrap: wrap;
-    margin-bottom: var(--spacing-xl);
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     padding-bottom: var(--spacing-md);
 }
@@ -86,16 +84,17 @@
     font-weight: 500;
 }
 
-/* Tarjeta de artículo */
+/* Tarjeta de artículo - layout horizontal */
 .tarjetaArticulo {
     display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
+    flex-direction: row;
+    gap: var(--spacing-lg);
     text-decoration: none;
     color: inherit;
     padding: var(--spacing-lg) 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     transition: background-color var(--transicion-rapida);
+    align-items: flex-start;
 }
 
 .tarjetaArticulo:hover {
@@ -107,14 +106,14 @@
     border-radius: 8px;
 }
 
-/* Imagen del articulo */
+/* Imagen del articulo - proporcion reducida en layout horizontal */
 .articuloImagenWrapper {
-    width: 100%;
-    aspect-ratio: 16 / 9;
+    flex: 0 0 240px;
+    width: 240px;
+    aspect-ratio: 4 / 3;
     overflow: hidden;
     border-radius: 8px;
     background-color: var(--bg-card-subtle);
-    margin-bottom: var(--spacing-sm);
 }
 
 .articuloImagen {
@@ -128,9 +127,19 @@
     transform: scale(1.03);
 }
 
+/* Contenido textual al lado de la imagen */
+.articuloContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    flex: 1;
+    min-width: 0;
+}
+
 /* El destacado muestra imagen mas grande */
 .tarjetaArticuloDestacado .articuloImagenWrapper {
-    aspect-ratio: 2 / 1;
+    flex: 0 0 320px;
+    width: 320px;
 }
 
 /* Tarjeta destacada */
@@ -221,6 +230,21 @@
 
     .blogHeroTitulo {
         font-size: var(--text-3xl);
+    }
+
+    .tarjetaArticulo {
+        flex-direction: column;
+    }
+
+    .articuloImagenWrapper {
+        flex: none;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+    }
+
+    .tarjetaArticuloDestacado .articuloImagenWrapper {
+        flex: none;
+        width: 100%;
     }
 
     .tarjetaArticuloDestacado .articuloTitulo {

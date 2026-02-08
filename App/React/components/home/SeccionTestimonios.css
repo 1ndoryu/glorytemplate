@@ -35,6 +35,32 @@
 
 /* Header manejado por SeccionHeader.css */
 
+/* Contenedor del header + botón de escribir */
+.testimoniosHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+}
+
+.testimoniosBotonEscribir {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    background: none;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--transicion-rapida), border-color var(--transicion-rapida);
+}
+
+.testimoniosBotonEscribir:hover {
+    color: var(--brand-black);
+    border-color: rgba(0, 0, 0, 0.3);
+}
+
 /* Pista del Carrusel */
 .testimoniosCarruselWindow {
     width: 100%;

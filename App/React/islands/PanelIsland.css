@@ -2,6 +2,8 @@
 
 .panelContenedor {
     min-height: 80vh;
+    max-width: var(--container-width);
+    margin: 0 auto;
     padding: calc(80px + var(--spacing-3xl)) var(--seccion-padding-x) var(--spacing-3xl);
 }
 

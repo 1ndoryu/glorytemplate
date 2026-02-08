@@ -69,3 +69,34 @@ add_filter('mime_types', function ($mimes) {
     $mimes['svg'] = 'image/svg+xml';
     return $mimes;
 });
+
+/*
+ * Estructura de permalinks: /blog/%postname%/ para que
+ * los posts nativos de WP coincidan con los links de React.
+ * Solo se aplica una vez (after_switch_theme) para no pisar config manual.
+ */
+add_action('after_switch_theme', function () {
+    global $wp_rewrite;
+    $wp_rewrite->set_permalink_structure('/blog/%postname%/');
+    $wp_rewrite->flush_rules();
+});
+
+/*
+ * Si la estructura actual no es la esperada, sugerir flush.
+ * Esto cubre el caso donde el tema ya estaba activo.
+ */
+add_action('init', function () {
+    $estructura = get_option('permalink_structure');
+    if ($estructura && $estructura !== '/blog/%postname%/') {
+        /* Solo registramos: la estructura la cambia el usuario en Settings > Permalinks */
+        if (!get_option('glory_permalink_notice_shown')) {
+            add_action('admin_notices', function () {
+                echo '<div class="notice notice-warning is-dismissible"><p>';
+                echo '<strong>Glory Template:</strong> Se recomienda usar la estructura de permalinks <code>/blog/%postname%/</code> para compatibilidad con las rutas de React. ';
+                echo 'Ve a <a href="' . admin_url('options-permalink.php') . '">Ajustes → Enlaces permanentes</a> y selecciona "Estructura personalizada" con <code>/blog/%postname%/</code>.';
+                echo '</p></div>';
+            });
+            update_option('glory_permalink_notice_shown', true);
+        }
+    }
+});
