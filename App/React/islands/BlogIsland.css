@@ -1,0 +1,203 @@
+/* Estilos para BlogIsland */
+
+.blogMain {
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+}
+
+/* Hero */
+.blogHero {
+    padding: 0 var(--seccion-padding-x);
+}
+
+.blogHeroContenido {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    padding-top: 15vh;
+    padding-bottom: var(--spacing-xl);
+}
+
+.blogHeroTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-4xl);
+    font-weight: 500;
+    color: var(--brand-black);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.blogHeroDescripcion {
+    display: flex;
+    align-items: flex-end;
+}
+
+.blogHeroDescripcion p {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 50ch;
+}
+
+/* Contenido */
+.blogContenido {
+    padding: 0 0 var(--spacing-4xl);
+}
+
+.blogContenedor {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--seccion-padding-x);
+}
+
+/* Filtros */
+.blogFiltros {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-xl);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding-bottom: var(--spacing-md);
+}
+
+.blogFiltroBtn {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    background: none;
+    border: none;
+    padding: var(--spacing-xs) var(--spacing-md);
+    cursor: pointer;
+    transition: color var(--transicion-rapida);
+    text-transform: capitalize;
+}
+
+.blogFiltroBtn:hover {
+    color: var(--brand-black);
+}
+
+.blogFiltroBtnActivo {
+    color: var(--brand-black);
+    font-weight: 500;
+}
+
+/* Tarjeta de artículo */
+.tarjetaArticulo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    text-decoration: none;
+    color: inherit;
+    padding: var(--spacing-lg) 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    transition: background-color var(--transicion-rapida);
+}
+
+.tarjetaArticulo:hover {
+    background-color: var(--bg-card-subtle);
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+    margin-left: calc(-1 * var(--spacing-md));
+    margin-right: calc(-1 * var(--spacing-md));
+    border-radius: 8px;
+}
+
+/* Tarjeta destacada */
+.tarjetaArticuloDestacado {
+    padding: var(--spacing-xl) 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: var(--spacing-md);
+}
+
+.tarjetaArticuloDestacado .articuloTitulo {
+    font-size: var(--text-3xl);
+}
+
+.tarjetaArticuloDestacado .articuloResumen {
+    font-size: var(--text-lg);
+    max-width: 70ch;
+}
+
+/* Meta */
+.articuloMeta {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.articuloCategoria {
+    font-family: var(--font-primary);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+}
+
+.articuloFecha {
+    font-family: var(--font-primary);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.articuloTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-2xl);
+    font-weight: 500;
+    color: var(--brand-black);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.articuloResumen {
+    font-family: var(--font-serif);
+    font-size: var(--text-base);
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 65ch;
+}
+
+.articuloLeer {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    transition: color var(--transicion-rapida);
+}
+
+.tarjetaArticulo:hover .articuloLeer {
+    color: var(--brand-black);
+}
+
+/* Grid de posts secundarios */
+.blogGrid {
+    display: flex;
+    flex-direction: column;
+}
+
+.blogSinResultados {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    padding: var(--spacing-2xl);
+}
+
+@media (max-width: 768px) {
+    .blogHeroContenido {
+        grid-template-columns: 1fr;
+        padding-top: 12vh;
+    }
+
+    .blogHeroTitulo {
+        font-size: var(--text-3xl);
+    }
+
+    .tarjetaArticuloDestacado .articuloTitulo {
+        font-size: var(--text-2xl);
+    }
+}

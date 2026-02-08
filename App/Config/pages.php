@@ -47,3 +47,39 @@ PageManager::reactPage('home', 'BienvenidaIsland', fn($id) => [
 PageManager::reactPage('servicios', 'ServiciosIsland', [
     'titulo' => 'Nuestros Servicios'
 ]);
+
+// Proyectos
+PageManager::reactPage('proyectos', 'ProyectosIsland', [
+    'titulo' => 'Nuestros Proyectos'
+]);
+
+// Nosotros
+PageManager::reactPage('nosotros', 'NosotrosIsland', [
+    'titulo' => 'Sobre Nosotros'
+]);
+
+// Blog
+PageManager::reactPage('blog', 'BlogIsland', [
+    'titulo' => 'Blog'
+]);
+
+// Soluciones - Landing principal
+PageManager::reactPage('soluciones', 'SolucionesIsland', [
+    'titulo' => 'Soluciones'
+]);
+
+// Soluciones - Sub-páginas (placeholder)
+PageManager::reactPage('soluciones/hosting', 'SolucionPlaceholderIsland', [
+    'titulo' => 'Hosting Administrado',
+    'descripcion' => 'Estamos preparando toda la información sobre nuestro servicio de hosting profesional. Pronto podrás ver planes, precios y beneficios.'
+]);
+
+PageManager::reactPage('soluciones/vps', 'SolucionPlaceholderIsland', [
+    'titulo' => 'Servidores VPS',
+    'descripcion' => 'Nuestras soluciones de servidores VPS están en camino. Muy pronto podrás conocer todas las opciones disponibles.'
+]);
+
+PageManager::reactPage('soluciones/agentes-ia', 'SolucionPlaceholderIsland', [
+    'titulo' => 'Agentes de IA',
+    'descripcion' => 'Estamos diseñando las mejores soluciones de inteligencia artificial para tu negocio. Contáctanos para una consulta personalizada.'
+]);

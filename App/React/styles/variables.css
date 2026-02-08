@@ -1,5 +1,6 @@
 /*
  * Variables globales CSS - Core Theme
+ * Centralización de todos los tokens de diseño.
  */
 
 @import './init.css';
@@ -43,6 +44,13 @@
     --spacing-3xl: 8rem;
     --spacing-4xl: 10rem;
 
+    /*
+     * Padding centralizado de secciones.
+     * Todas las secciones deben usar estos valores para consistencia.
+     */
+    --seccion-padding-x: var(--spacing-lg);
+    --seccion-padding-y: var(--spacing-xl);
+
     /* Colors - Overlay & Utilities */
     --white-5: rgba(255, 255, 255, 0.05);
     --white-10: rgba(255, 255, 255, 0.1);
@@ -57,9 +65,13 @@
     --text-lg: 1.125rem;
     --text-xl: 1.3rem;
     --text-2xl: 2rem;
-    --text-3xl: 3rem; /* Mobile Hero Title */
+    --text-3xl: 3rem;
     --text-4xl: 4rem;
-    --text-5xl: 5rem; /* Hero Title */
+    --text-5xl: 5rem;
 
     --border-color: #4b5563;
+
+    /* Transitions */
+    --transicion-rapida: 0.2s ease;
+    --transicion-media: 0.3s ease;
 }

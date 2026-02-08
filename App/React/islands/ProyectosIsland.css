@@ -1,0 +1,153 @@
+/* Estilos para ProyectosIsland */
+
+.proyectosMain {
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+}
+
+.proyectosHero {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-primary);
+}
+
+.proyectosHero .heroContenido {
+    position: relative;
+    z-index: 2;
+    padding: var(--seccion-padding-y) var(--seccion-padding-x);
+    max-width: var(--container-width);
+    margin: 0 auto;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    padding-top: 15vh;
+    padding-bottom: var(--spacing-xl);
+}
+
+.proyectosHero .heroTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-4xl);
+    line-height: 0.95;
+    font-weight: 500;
+    color: var(--brand-black);
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.proyectosHero .heroDescripcion {
+    display: flex;
+    align-items: flex-end;
+}
+
+.proyectosHero .heroDescripcion p {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 50ch;
+}
+
+.proyectosContenido {
+    padding: 0 0 var(--spacing-4xl);
+}
+
+.proyectosContenedor {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--seccion-padding-x);
+}
+
+/* Grid de tarjetas de proyecto */
+.proyectosGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+}
+
+.tarjetaProyecto {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    transition: transform var(--transicion-media);
+}
+
+.tarjetaProyecto:hover {
+    transform: translateY(-4px);
+}
+
+.tarjetaProyectoImagen {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 8px;
+    background-color: var(--bg-card-subtle);
+}
+
+.tarjetaProyectoImagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transicion-media);
+}
+
+.tarjetaProyecto:hover .tarjetaProyectoImagen img {
+    transform: scale(1.03);
+}
+
+.tarjetaProyectoInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tarjetaProyectoTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-xl);
+    font-weight: 500;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.tarjetaProyectoCliente {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tarjetaProyectoCategorias {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+.proyectosSinResultados {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    padding: var(--spacing-xl);
+}
+
+@media (max-width: 768px) {
+    .proyectosHero .heroContenido {
+        grid-template-columns: 1fr;
+        padding-top: 12vh;
+    }
+
+    .proyectosHero .heroTitulo {
+        font-size: var(--text-3xl);
+    }
+
+    .proyectosGrid {
+        grid-template-columns: 1fr;
+    }
+}

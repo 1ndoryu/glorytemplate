@@ -1,13 +1,18 @@
 import {Servicio} from '../types/servicios';
+import {Skill} from '../types/contenido';
 import {obtenerImagen} from '../hooks/useImagenes';
 
 /* Fuente única de verdad para los servicios */
 
-// Definición de tipo para el contexto global
 declare global {
     interface Window {
         GLORY_CONTEXT?: {
             servicios?: Servicio[];
+            proyectos?: unknown[];
+            testimonios?: unknown[];
+            marcas?: unknown[];
+            miembros?: unknown[];
+            blog?: unknown[];
         };
     }
 }
@@ -19,7 +24,13 @@ const SERVICIOS_FALLBACK: Servicio[] = [
         descripcion: 'Sitios web únicos y memorables que destacan tu marca y conectan con tu audiencia.',
         imagen: obtenerImagen(0),
         categorias: ['web', 'branding'],
-        link: '/servicios/diseno-web'
+        link: '/servicios/diseno-web',
+        skills: [
+            {id: 1, titulo: 'Responsive Design', descripcion: 'Diseño adaptativo para todos los dispositivos.'},
+            {id: 2, titulo: 'Performance', descripcion: 'Optimización de velocidad de carga.'},
+            {id: 3, titulo: 'SEO On-page', descripcion: 'Estructura semántica y meta tags optimizados.'},
+            {id: 4, titulo: 'CMS Integration', descripcion: 'Integración con WordPress u otros CMS.'},
+        ]
     },
     {
         id: '2',
@@ -27,7 +38,13 @@ const SERVICIOS_FALLBACK: Servicio[] = [
         descripcion: 'Software a medida para automatizar y optimizar tus procesos de negocio.',
         imagen: obtenerImagen(5),
         categorias: ['software'],
-        link: '/servicios/desarrollo-apps'
+        link: '/servicios/desarrollo-apps',
+        skills: [
+            {id: 1, titulo: 'React / React Native', descripcion: 'Framework para apps web y móviles.'},
+            {id: 2, titulo: 'API Development', descripcion: 'APIs REST y GraphQL robustas.'},
+            {id: 3, titulo: 'Cloud Architecture', descripcion: 'Infraestructura escalable en la nube.'},
+            {id: 4, titulo: 'Testing & QA', descripcion: 'Suite de tests automatizados.'},
+        ]
     },
     {
         id: '3',
@@ -87,7 +104,7 @@ const SERVICIOS_FALLBACK: Servicio[] = [
     }
 ];
 
-// Intentar obtener datos del contexto global (PHP) o usar fallback
+/* Intentar obtener datos del contexto global (PHP) o usar fallback */
 const getServiciosData = (): Servicio[] => {
     if (typeof window !== 'undefined' && window.GLORY_CONTEXT?.servicios) {
         return window.GLORY_CONTEXT.servicios;

@@ -22,7 +22,7 @@ export const SeccionShowcase = (): JSX.Element => {
 
                         <div className="showcaseGridProyectos">
                             {categoria.proyectos.map(proyecto => (
-                                <div key={proyecto.id} className="proyectoCard">
+                                <a key={proyecto.id} href={proyecto.link || '#'} className="proyectoCard">
                                     <div className="proyectoImagenWrapper">
                                         <img src={proyecto.imagen} alt={proyecto.titulo} className="proyectoImagen" loading="lazy" />
                                     </div>
@@ -32,7 +32,7 @@ export const SeccionShowcase = (): JSX.Element => {
                                         </h3>
                                         <span className="proyectoSubtitulo">{proyecto.categorias}</span>
                                     </div>
-                                </div>
+                                </a>
                             ))}
                         </div>
                     </div>

@@ -14,7 +14,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-md) var(--seccion-padding-x);
     background-color: var(--bg-primary);
     font-family: var(--font-primary);
     font-size: var(--text-sm);
@@ -26,6 +26,12 @@
     align-items: center;
     width: 20px;
     height: 20px;
+}
+
+.logoEnlace {
+    display: flex;
+    width: 100%;
+    height: 100%;
 }
 
 .logoSvg {
@@ -41,6 +47,11 @@
     align-items: center;
 }
 
+/* Wrapper para cada enlace, permite posicionar el submenú */
+.enlaceNavegacionWrapper {
+    position: relative;
+}
+
 .enlaceNavegacion {
     text-decoration: none;
     color: var(--text-secondary);
@@ -49,7 +60,7 @@
     font-size: var(--text-base);
     align-items: center;
     gap: 4px;
-    transition: color 0.2s ease;
+    transition: color var(--transicion-rapida);
 }
 
 .enlaceNavegacion:hover {
@@ -58,6 +69,78 @@
 
 .iconoDesplegable {
     opacity: 0.6;
+    transition: transform var(--transicion-rapida);
+}
+
+.enlaceNavegacionWrapper:hover .iconoDesplegable {
+    transform: rotate(180deg);
+}
+
+/* Submenú dropdown - padding-top reemplaza margin-top para evitar hueco de hover */
+.subMenuDesplegable {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-top: var(--spacing-xs);
+    background-color: transparent;
+    min-width: 180px;
+    z-index: 100;
+}
+
+/* Contenedor visual real del submenú */
+.subMenuDesplegable::before {
+    content: '';
+    position: absolute;
+    top: var(--spacing-xs);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--bg-card-subtle);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    z-index: -1;
+    animation: desplegableEntrada 0.15s ease-out;
+}
+
+@keyframes desplegableEntrada {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.subMenuEnlace {
+    display: block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-top: 0;
+    position: relative;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    transition: background-color var(--transicion-rapida), color var(--transicion-rapida);
+    white-space: nowrap;
+}
+
+.subMenuEnlace:first-child {
+    padding-top: calc(var(--spacing-xs) + var(--spacing-sm));
+    border-radius: 8px 8px 0 0;
+}
+
+.subMenuEnlace:last-child {
+    padding-bottom: calc(var(--spacing-xs) + var(--spacing-sm));
+    border-radius: 0 0 8px 8px;
+}
+
+.subMenuEnlace:hover {
+    background-color: var(--overlay-hover);
+    color: var(--brand-black);
 }
 
 .accionCabecera {
@@ -70,6 +153,6 @@
 
 @media (max-width: 1024px) {
     .navegacionPrincipal {
-        display: none; /* Hide on mobile/tablet for now or use hamburger */
+        display: none;
     }
 }

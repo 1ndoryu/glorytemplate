@@ -5,6 +5,7 @@
  * 
  * Define qué datos del backend se inyectan en window.GLORY_CONTEXT
  * para ser consumidos por los componentes de React.
+ * Cada PostType tiene su propio bloque de contexto.
  */
 
 use Glory\Core\DefaultContentRegistry;
@@ -19,7 +20,6 @@ add_filter('glory_react_context', function ($context) {
     $rawServices = $serviciosConfig['definicionesPost'] ?? [];
 
     $servicios = array_map(function ($svc) {
-        // Resolver URL de imagen
         $imgRef = $svc['imagenDestacadaAsset'] ?? '';
         $imgUrl = '';
         if ($imgRef && class_exists(AssetsUtility::class)) {
@@ -29,11 +29,20 @@ add_filter('glory_react_context', function ($context) {
         $meta = $svc['metaEntrada'] ?? [];
         $descripcion = $svc['extracto'] ?? '';
 
-        // Fallback descripción (si no hay extracto)
         if (empty($descripcion)) {
             $contenido = strip_tags($svc['contenido'] ?? '');
             $descripcion = mb_substr($contenido, 0, 120) . '...';
         }
+
+        /* Skills del servicio: cada skill tiene titulo y descripcion */
+        $skillsRaw = $meta['skills'] ?? $svc['skills'] ?? [];
+        $skills = array_map(function ($skill, $idx) {
+            return [
+                'id'          => $idx + 1,
+                'titulo'      => $skill['titulo'] ?? $skill,
+                'descripcion' => $skill['descripcion'] ?? '',
+            ];
+        }, $skillsRaw, array_keys($skillsRaw));
 
         return [
             'id'          => $svc['slugDefault'],
@@ -42,6 +51,7 @@ add_filter('glory_react_context', function ($context) {
             'imagen'      => $imgUrl,
             'categorias'  => $meta['categorias'] ?? [],
             'link'        => '/servicios/' . $svc['slugDefault'],
+            'skills'      => $skills,
             'cta'         => [
                 'titulo'      => $meta['cta_titulo'] ?? '',
                 'descripcion' => $meta['cta_descripcion'] ?? '',
@@ -57,9 +67,105 @@ add_filter('glory_react_context', function ($context) {
     $context['servicios'] = $servicios;
 
     /* -------------------------------------------------------------------------
-       2. Otros contextos futuros...
+       2. Proyectos (Portfolio / Showcase)
        ------------------------------------------------------------------------- */
-    // $context['usuario'] = ...
+    $proyectosConfig = DefaultContentRegistry::getDefinicion('proyecto');
+    $rawProyectos = $proyectosConfig['definicionesPost'] ?? [];
+
+    $proyectos = array_map(function ($proy) {
+        $imgRef = $proy['imagenDestacadaAsset'] ?? '';
+        $imgUrl = '';
+        if ($imgRef && class_exists(AssetsUtility::class)) {
+            $imgUrl = AssetsUtility::imagenUrl($imgRef);
+        }
+
+        $meta = $proy['metaEntrada'] ?? [];
+
+        $skillsRaw = $meta['skills'] ?? $proy['skills'] ?? [];
+        $skills = array_map(function ($skill, $idx) {
+            if (is_string($skill)) {
+                return ['id' => $idx + 1, 'titulo' => $skill, 'descripcion' => ''];
+            }
+            return [
+                'id'          => $idx + 1,
+                'titulo'      => $skill['titulo'] ?? $skill,
+                'descripcion' => $skill['descripcion'] ?? '',
+            ];
+        }, $skillsRaw, array_keys($skillsRaw));
+
+        return [
+            'id'          => $proy['slugDefault'],
+            'titulo'      => $proy['titulo'],
+            'descripcion' => $proy['extracto'] ?? mb_substr(strip_tags($proy['contenido'] ?? ''), 0, 160),
+            'contenido'   => $proy['contenido'] ?? '',
+            'imagen'      => $imgUrl,
+            'categorias'  => $meta['categorias'] ?? $proy['categorias'] ?? [],
+            'cliente'     => $meta['cliente'] ?? $proy['cliente'] ?? '',
+            'link'        => '/proyectos/' . $proy['slugDefault'],
+            'skills'      => $skills,
+        ];
+    }, $rawProyectos);
+
+    $context['proyectos'] = $proyectos;
+
+    /* -------------------------------------------------------------------------
+       3. Testimonios
+       ------------------------------------------------------------------------- */
+    $testimoniosConfig = DefaultContentRegistry::getDefinicion('testimonio');
+    $rawTestimonios = $testimoniosConfig['definicionesPost'] ?? [];
+
+    $testimonios = array_map(function ($test) {
+        $meta = $test['metaEntrada'] ?? [];
+        return [
+            'id'     => $test['slugDefault'] ?? '',
+            'texto'  => $test['contenido'] ?? '',
+            'autor'  => $test['titulo'] ?? '',
+            'cargo'  => $meta['cargo'] ?? '',
+            'avatar' => $meta['avatar'] ?? '',
+        ];
+    }, $rawTestimonios);
+
+    $context['testimonios'] = $testimonios;
+
+    /* -------------------------------------------------------------------------
+       4. Marcas / Clientes
+       ------------------------------------------------------------------------- */
+    $marcasConfig = DefaultContentRegistry::getDefinicion('marca');
+    $rawMarcas = $marcasConfig['definicionesPost'] ?? [];
+
+    $marcas = array_map(function ($marca) {
+        $meta = $marca['metaEntrada'] ?? [];
+        /* TO-DO: Cuando las marcas tengan thumbnail real usar get_the_post_thumbnail_url */
+        return [
+            'id'     => $marca['slugDefault'] ?? '',
+            'nombre' => $marca['titulo'] ?? '',
+            'url'    => $meta['url'] ?? '',
+        ];
+    }, $rawMarcas);
+
+    $context['marcas'] = $marcas;
+
+    /* -------------------------------------------------------------------------
+       5. Miembros del equipo
+       ------------------------------------------------------------------------- */
+    $miembrosConfig = DefaultContentRegistry::getDefinicion('miembro');
+    $rawMiembros = $miembrosConfig['definicionesPost'] ?? [];
+
+    $miembros = array_map(function ($miembro) {
+        $meta = $miembro['metaEntrada'] ?? [];
+        return [
+            'id'       => $miembro['slugDefault'] ?? '',
+            'nombre'   => $miembro['titulo'] ?? '',
+            'bio'      => $miembro['contenido'] ?? '',
+            'cargo'    => $meta['cargo'] ?? '',
+            'avatar'   => $meta['avatar'] ?? '',
+            'linkedin' => $meta['linkedin'] ?? '',
+            'twitter'  => $meta['twitter'] ?? '',
+            'github'   => $meta['github'] ?? '',
+        ];
+    }, $rawMiembros);
+
+    $context['miembros'] = $miembros;
 
     return $context;
 });

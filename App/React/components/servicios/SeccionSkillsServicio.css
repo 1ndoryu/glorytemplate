@@ -1,8 +1,8 @@
 /* Estilos para SeccionSkillsServicio */
 .seccionSkillsServicio {
     padding: var(--spacing-4xl) 0;
-    background-color: var(--bg-secondary); /* Fondo oscuro como en Home */
-    color: var(--bg-primary); /* Texto claro */
+    background-color: var(--bg-secondary);
+    color: var(--bg-primary);
     width: 100%;
     margin: 0;
 }
@@ -19,7 +19,7 @@
 .skillsContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
-    padding: 0 var(--spacing-lg);
+    padding: 0 var(--seccion-padding-x);
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xl);
@@ -33,15 +33,20 @@
 
 .skillItem {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     padding: var(--spacing-lg) 0;
     border-bottom: 1px solid var(--white-15);
-    transition: all 0.2s ease;
-    gap: var(--spacing-lg);
+    transition: border-color var(--transicion-rapida);
+    cursor: pointer;
+    user-select: none;
 }
 
 .skillItem:hover {
     border-bottom-color: var(--bg-primary);
+}
+
+.skillItemActivo {
+    border-bottom-color: var(--white-40);
 }
 
 .skillContenido {
@@ -68,31 +73,39 @@
 .skillArrow {
     width: 24px;
     height: 24px;
-    transition: transform 0.2s ease;
+    transition: transform var(--transicion-rapida);
 }
 
 .skillItem:hover .skillArrow {
     transform: translateX(5px);
 }
 
-/* Imagen oculta por defecto para replicar estructura home */
-.skillImagenWrapper {
-    display: none;
+.skillItemActivo .skillArrow {
+    transform: rotate(90deg);
 }
 
-@media (min-width: 768px) {
-    .skillImagenWrapper {
-        display: block;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        overflow: hidden;
-        background-color: var(--white-10);
-    }
+/* Descripción expandible al hacer click */
+.skillDescripcion {
+    padding-top: var(--spacing-md);
+    animation: skillDescripcionEntrada 0.25s ease-out;
+}
 
-    .skillImagen {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+.skillDescripcion p {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    color: var(--white-40);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 60ch;
+}
+
+@keyframes skillDescripcionEntrada {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

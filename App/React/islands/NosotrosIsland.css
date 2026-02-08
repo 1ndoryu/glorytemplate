@@ -1,0 +1,276 @@
+/* Estilos para NosotrosIsland */
+
+.nosotrosMain {
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+}
+
+/* Hero */
+.nosotrosHero {
+    padding: 0 var(--seccion-padding-x);
+}
+
+.nosotrosHeroContenido {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    padding-top: 15vh;
+    padding-bottom: var(--spacing-xl);
+}
+
+.nosotrosHeroTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-4xl);
+    font-weight: 500;
+    color: var(--brand-black);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.nosotrosHeroDescripcion {
+    display: flex;
+    align-items: flex-end;
+}
+
+.nosotrosHeroDescripcion p {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 50ch;
+}
+
+/* Sección Misión */
+.nosotrosMision {
+    padding: var(--spacing-2xl) var(--seccion-padding-x);
+    background-color: var(--bg-secondary);
+}
+
+.nosotrosMisionContenedor {
+    max-width: var(--container-width);
+    margin: 0 auto;
+}
+
+.misionGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-xl);
+}
+
+.misionItem {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.misionItemTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--white-40);
+    margin: 0;
+}
+
+.misionItemTexto {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.7;
+    margin: 0;
+}
+
+/* Sección Equipo */
+.nosotrosEquipo {
+    padding: var(--spacing-2xl) var(--seccion-padding-x);
+}
+
+.nosotrosEquipoContenedor {
+    max-width: var(--container-width);
+    margin: 0 auto;
+}
+
+.equipoHeader {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin: 0 0 var(--spacing-xl);
+}
+
+.equipoGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-xl);
+}
+
+.tarjetaMiembro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.miembroAvatar {
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 8px;
+    background-color: var(--bg-card-subtle);
+}
+
+.miembroAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(30%);
+    transition: filter var(--transicion-media);
+}
+
+.tarjetaMiembro:hover .miembroAvatar img {
+    filter: grayscale(0%);
+}
+
+.miembroInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.miembroNombre {
+    font-family: var(--font-primary);
+    font-size: var(--text-xl);
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.miembroCargo {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.miembroBio {
+    font-family: var(--font-serif);
+    font-size: var(--text-base);
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: var(--spacing-xs) 0 0;
+}
+
+.miembroRedes {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xs);
+}
+
+.miembroRedes a {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    text-decoration: none;
+    transition: color var(--transicion-rapida);
+}
+
+.miembroRedes a:hover {
+    color: var(--brand-black);
+}
+
+/* Sección Marcas */
+.nosotrosMarcas {
+    padding: var(--spacing-2xl) var(--seccion-padding-x);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.nosotrosMarcasContenedor {
+    max-width: var(--container-width);
+    margin: 0 auto;
+}
+
+.marcasHeader {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin: 0 0 var(--spacing-xl);
+    text-align: center;
+}
+
+.marcasGrid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-xl);
+}
+
+.marcaLogo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+}
+
+.marcaLogo a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.marcaLogo img {
+    max-height: 40px;
+    width: auto;
+    filter: grayscale(100%);
+    opacity: 0.6;
+    transition: filter var(--transicion-media), opacity var(--transicion-media);
+}
+
+.marcaLogo:hover img {
+    filter: grayscale(0%);
+    opacity: 1;
+}
+
+.marcaNombreTexto {
+    font-family: var(--font-primary);
+    font-size: var(--text-xl);
+    font-weight: 500;
+    color: var(--text-muted);
+    opacity: 0.6;
+    transition: opacity var(--transicion-media);
+}
+
+.marcaLogo:hover .marcaNombreTexto {
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .nosotrosHeroContenido {
+        grid-template-columns: 1fr;
+        padding-top: 12vh;
+    }
+
+    .nosotrosHeroTitulo {
+        font-size: var(--text-3xl);
+    }
+
+    .misionGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .equipoGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .equipoGrid {
+        grid-template-columns: 1fr;
+    }
+}

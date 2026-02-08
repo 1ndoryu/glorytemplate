@@ -1,0 +1,141 @@
+/* Estilos para SolucionesIsland */
+
+.solucionesMain {
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+}
+
+/* Hero */
+.solucionesHero {
+    padding: 0 var(--seccion-padding-x);
+}
+
+.solucionesHeroContenido {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    padding-top: 15vh;
+    padding-bottom: var(--spacing-xl);
+}
+
+.solucionesHeroTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-4xl);
+    font-weight: 500;
+    color: var(--brand-black);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.solucionesHeroDescripcion {
+    display: flex;
+    align-items: flex-end;
+}
+
+.solucionesHeroDescripcion p {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 50ch;
+}
+
+/* Contenido */
+.solucionesContenido {
+    padding: 0 0 var(--spacing-4xl);
+}
+
+.solucionesContenedor {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--seccion-padding-x);
+}
+
+.solucionesGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+}
+
+/* Tarjeta de solución */
+.tarjetaSolucion {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-decoration: none;
+    color: inherit;
+    padding: var(--spacing-xl);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    background-color: var(--bg-primary);
+    transition: border-color var(--transicion-media), box-shadow var(--transicion-media), transform var(--transicion-media);
+    min-height: 320px;
+}
+
+.tarjetaSolucion:hover {
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    transform: translateY(-4px);
+}
+
+.solucionContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.solucionEtiqueta {
+    font-family: var(--font-primary);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+}
+
+.solucionTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-2xl);
+    font-weight: 500;
+    color: var(--brand-black);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.solucionDescripcion {
+    font-family: var(--font-serif);
+    font-size: var(--text-base);
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin: 0;
+}
+
+.solucionEnlace {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    margin-top: var(--spacing-lg);
+    transition: color var(--transicion-rapida);
+}
+
+.tarjetaSolucion:hover .solucionEnlace {
+    color: var(--brand-black);
+}
+
+@media (max-width: 768px) {
+    .solucionesHeroContenido {
+        grid-template-columns: 1fr;
+        padding-top: 12vh;
+    }
+
+    .solucionesHeroTitulo {
+        font-size: var(--text-3xl);
+    }
+
+    .solucionesGrid {
+        grid-template-columns: 1fr;
+    }
+}
