@@ -83,3 +83,13 @@ PageManager::reactPage('soluciones/agentes-ia', 'SolucionPlaceholderIsland', [
     'titulo' => 'Agentes de IA',
     'descripcion' => 'Estamos diseñando las mejores soluciones de inteligencia artificial para tu negocio. Contáctanos para una consulta personalizada.'
 ]);
+
+// Contacto
+PageManager::reactPage('contacto', 'ContactoIsland', [
+    'titulo' => 'Contacto'
+]);
+
+// Panel de usuario (placeholder, requiere autenticación futura)
+PageManager::reactPage('panel', 'PanelIsland', [
+    'titulo' => 'Mi Panel'
+]);

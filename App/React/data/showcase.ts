@@ -78,7 +78,15 @@ const PROYECTOS_FALLBACK: Proyecto[] = [
 /* Obtener proyectos del contexto PHP o usar fallback */
 const getProyectosData = (): Proyecto[] => {
     if (typeof window !== 'undefined' && window.GLORY_CONTEXT?.proyectos) {
-        return window.GLORY_CONTEXT.proyectos as Proyecto[];
+        const raw = window.GLORY_CONTEXT.proyectos as Proyecto[];
+        /*
+         * Si el backend no resuelve las imágenes correctamente,
+         * asignamos fallback de las imágenes showcase locales.
+         */
+        return raw.map((p, i) => ({
+            ...p,
+            imagen: p.imagen || obtenerImagenShowcase(i)
+        }));
     }
     return PROYECTOS_FALLBACK;
 };

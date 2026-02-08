@@ -1,11 +1,20 @@
 .seccionCta {
     width: 100%;
-    /* Padding estandar */
-    padding: var(--spacing-4xl) var(--spacing-lg);
+    /*
+     * Padding centralizado para consistencia.
+     * En el home el gap del contenedor padre ya aporta espacio inferior,
+     * por eso se usa la clase .seccionCtaCompacta para reducir padding-bottom.
+     */
+    padding: var(--spacing-3xl) var(--spacing-lg) var(--spacing-3xl);
     background-color: var(--bg-primary);
     display: flex;
     justify-content: center;
     border-top: none;
+}
+
+/* Variante compacta: para cuando el contenedor padre ya tiene gap */
+.seccionCtaCompacta {
+    padding-bottom: var(--spacing-xl);
 }
 
 .ctaContenedor {

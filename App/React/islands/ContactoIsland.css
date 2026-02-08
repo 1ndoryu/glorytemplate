@@ -1,0 +1,259 @@
+/* Estilos para ContactoIsland */
+
+.contactoMain {
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+}
+
+/* Hero */
+.contactoHero {
+    padding: 0 var(--seccion-padding-x);
+}
+
+.contactoHeroContenido {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    padding-top: 15vh;
+    padding-bottom: var(--spacing-xl);
+}
+
+.contactoHeroTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-4xl);
+    font-weight: 500;
+    color: var(--brand-black);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.contactoHeroDescripcion {
+    display: flex;
+    align-items: flex-end;
+}
+
+.contactoHeroDescripcion p {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 50ch;
+}
+
+/* Formulario seccion */
+.contactoFormularioSeccion {
+    padding: 0 var(--seccion-padding-x) var(--spacing-4xl);
+}
+
+.contactoFormularioContenedor {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--spacing-4xl);
+    align-items: start;
+}
+
+/* Formulario */
+.contactoFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.formularioGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+}
+
+/* Campos */
+.campoCampo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.campoCompleto {
+    grid-column: 1 / -1;
+}
+
+.campoEtiqueta {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+}
+
+.campoInput,
+.campoSelect,
+.campoTextarea {
+    font-family: var(--font-primary);
+    font-size: var(--text-base);
+    color: var(--text-primary);
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    padding: var(--spacing-md) 0;
+    outline: none;
+    transition: border-color var(--transicion-rapida);
+    width: 100%;
+}
+
+.campoInput:focus,
+.campoSelect:focus,
+.campoTextarea:focus {
+    border-bottom-color: var(--brand-black);
+}
+
+.campoInput::placeholder,
+.campoTextarea::placeholder {
+    color: var(--text-tertiary);
+    opacity: 0.5;
+}
+
+.campoSelect {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0 center;
+    padding-right: var(--spacing-lg);
+    cursor: pointer;
+}
+
+.campoTextarea {
+    resize: vertical;
+    min-height: 120px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: var(--spacing-md);
+}
+
+.campoTextarea:focus {
+    border-color: var(--brand-black);
+}
+
+/* Acciones del formulario */
+.formularioAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.formularioBoton {
+    min-width: 200px;
+}
+
+.formularioNota {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+/* Estado de exito */
+.contactoExito {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-2xl) 0;
+}
+
+.contactoExitoTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-3xl);
+    font-weight: 500;
+    color: var(--brand-black);
+    margin: 0;
+}
+
+.contactoExitoTexto {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 50ch;
+    margin: 0;
+}
+
+/* Info lateral */
+.contactoInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+    padding-top: var(--spacing-md);
+}
+
+.contactoInfoBloque {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.contactoInfoTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+.contactoInfoEnlace {
+    font-family: var(--font-primary);
+    font-size: var(--text-base);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color var(--transicion-rapida);
+}
+
+.contactoInfoEnlace:hover {
+    color: var(--text-muted);
+}
+
+.contactoInfoTexto {
+    font-family: var(--font-primary);
+    font-size: var(--text-base);
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.contactoInfoRedes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .contactoHeroContenido {
+        grid-template-columns: 1fr;
+        padding-top: 12vh;
+    }
+
+    .contactoHeroTitulo {
+        font-size: var(--text-3xl);
+    }
+
+    .contactoFormularioContenedor {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-2xl);
+    }
+
+    .formularioGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .formularioAcciones {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

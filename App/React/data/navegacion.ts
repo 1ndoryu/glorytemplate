@@ -30,7 +30,7 @@ export const ENLACES_FOOTER: EnlaceFooter[] = [
     {label: 'Proyectos', href: '/proyectos/'},
     {label: 'Nosotros', href: '/nosotros/'},
     {label: 'Blog', href: '/blog/'},
-    {label: 'Contacto', href: '#contacto'},
+    {label: 'Contacto', href: '/contacto/'},
     {label: 'Política de Privacidad', href: '/politica-privacidad/'}
 ];
 

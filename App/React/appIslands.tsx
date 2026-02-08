@@ -17,6 +17,9 @@ import {NosotrosIsland} from './islands/NosotrosIsland';
 import {BlogIsland} from './islands/BlogIsland';
 import {SolucionesIsland} from './islands/SolucionesIsland';
 import {SolucionPlaceholderIsland} from './islands/SolucionPlaceholderIsland';
+import {ContactoIsland} from './islands/ContactoIsland';
+import {PanelIsland} from './islands/PanelIsland';
+import {BlogSingleIsland} from './islands/BlogSingleIsland';
 
 registerAppBlocks();
 
@@ -39,7 +42,10 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     NosotrosIsland: NosotrosIsland as React.ComponentType<Record<string, unknown>>,
     BlogIsland: BlogIsland as React.ComponentType<Record<string, unknown>>,
     SolucionesIsland: SolucionesIsland as React.ComponentType<Record<string, unknown>>,
-    SolucionPlaceholderIsland: SolucionPlaceholderIsland as React.ComponentType<Record<string, unknown>>
+    SolucionPlaceholderIsland: SolucionPlaceholderIsland as React.ComponentType<Record<string, unknown>>,
+    ContactoIsland: ContactoIsland as React.ComponentType<Record<string, unknown>>,
+    PanelIsland: PanelIsland as React.ComponentType<Record<string, unknown>>,
+    BlogSingleIsland: BlogSingleIsland as React.ComponentType<Record<string, unknown>>
 };
 
 export default appIslands;

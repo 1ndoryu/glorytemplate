@@ -18,6 +18,7 @@ export interface PostBlog {
     fecha: string;
     categoria: string;
     link?: string;
+    imagen?: string;
 }
 
 export interface Proyecto {

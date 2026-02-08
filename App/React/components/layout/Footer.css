@@ -87,6 +87,23 @@
     background-color: var(--white-10);
 }
 
+/* Mensajes de estado del newsletter */
+.footerNewsletterExito {
+    font-family: var(--font-serif);
+    font-size: var(--text-sm);
+    color: var(--bg-primary);
+    opacity: 0.8;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.footerNewsletterError {
+    font-family: var(--font-primary);
+    font-size: var(--text-xs);
+    color: #ff6b6b;
+    margin: var(--spacing-xs) 0 0;
+}
+
 /* Sección Inferior: Links y Copyright */
 .footerBottom {
     display: flex;

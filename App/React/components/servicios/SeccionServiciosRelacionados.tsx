@@ -1,22 +1,32 @@
 /**
  * Componente: SeccionServiciosRelacionados
- * Descripcion: Muestra 3 servicios relacionados para continuar navegacion.
+ * Descripcion: Muestra 3 servicios relacionados excluyendo el actual.
  */
-import React from 'react';
+import React, {useMemo} from 'react';
 import {SeccionHeader} from '../ui/SeccionHeader';
 import {ServiceCard} from '../ui/ServiceCard';
-import {SERVICIOS_RELACIONADOS} from '../../data/servicios';
+import {obtenerServiciosRelacionados} from '../../data/servicios';
 import './SeccionServiciosRelacionados.css';
 
-export const SeccionServiciosRelacionados: React.FC = () => {
+interface SeccionServiciosRelacionadosProps {
+    servicioActualId?: string;
+}
+
+export const SeccionServiciosRelacionados: React.FC<SeccionServiciosRelacionadosProps> = ({servicioActualId}) => {
+    const servicios = useMemo(
+        () => obtenerServiciosRelacionados(servicioActualId, 3),
+        [servicioActualId]
+    );
+
+    if (servicios.length === 0) return null;
+
     return (
         <section className="seccionServiciosRelacionados">
             <div className="relacionadosContenedor">
-                {/* Título ligero sobre fondo claro */}
                 <SeccionHeader titulo="More Services" />
 
                 <div className="relacionadosLista">
-                    {SERVICIOS_RELACIONADOS.map(servicio => (
+                    {servicios.map(servicio => (
                         <ServiceCard key={servicio.id} servicio={servicio} variant="simple" />
                     ))}
                 </div>

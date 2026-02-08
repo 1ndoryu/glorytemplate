@@ -18,6 +18,11 @@ interface BlogIslandProps {
 /* Tarjeta de artículo */
 const TarjetaArticulo: React.FC<{post: PostBlog; destacado?: boolean}> = ({post, destacado = false}) => (
     <a href={post.link || '#'} className={`tarjetaArticulo ${destacado ? 'tarjetaArticuloDestacado' : ''}`}>
+        {post.imagen && (
+            <div className="articuloImagenWrapper">
+                <img src={post.imagen} alt={post.titulo} className="articuloImagen" loading="lazy" />
+            </div>
+        )}
         <div className="articuloMeta">
             <span className="articuloCategoria">{post.categoria}</span>
             <span className="articuloFecha">{post.fecha}</span>
@@ -82,7 +87,7 @@ export const BlogIsland = ({titulo = 'Blog'}: BlogIslandProps): JSX.Element => {
 
                     {/* Grid de posts restantes */}
                     {restoDePostos.length > 0 && (
-                        <div className="blogGrid">
+                        <div className="blogListaArticulos">
                             {restoDePostos.map(post => (
                                 <TarjetaArticulo key={post.id} post={post} />
                             ))}

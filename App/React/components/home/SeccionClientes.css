@@ -129,6 +129,21 @@
     opacity: 1;
 }
 
+/* Texto fallback cuando no hay logo SVG */
+.clienteLogoTexto {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--bg-primary);
+    opacity: 0.6;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.clienteLogoCard:hover .clienteLogoTexto {
+    opacity: 0.9;
+}
+
 /* Footer Texto */
 .clientesFooter {
     display: flex;

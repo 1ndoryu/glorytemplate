@@ -316,7 +316,8 @@ $marcasBase = [
         'titulo'      => 'Trust Keith',
         'contenido'   => 'Empresa de consultoría y confianza digital.',
         'metaEntrada' => [
-            'url' => 'https://trustkeith.com',
+            'url'  => 'https://trustkeith.com',
+            'logo' => 'logos::adidas.svg',
         ]
     ],
     [
@@ -324,7 +325,8 @@ $marcasBase = [
         'titulo'      => 'Onfolk',
         'contenido'   => 'Plataforma de gestión de nóminas moderna.',
         'metaEntrada' => [
-            'url' => 'https://onfolk.com',
+            'url'  => 'https://onfolk.com',
+            'logo' => 'logos::slack.svg',
         ]
     ],
     [
@@ -332,7 +334,8 @@ $marcasBase = [
         'titulo'      => 'TechStart',
         'contenido'   => 'Aceleradora de startups tecnológicas.',
         'metaEntrada' => [
-            'url' => 'https://techstart.com',
+            'url'  => 'https://techstart.com',
+            'logo' => 'logos::gitlab.svg',
         ]
     ],
     [
@@ -340,7 +343,80 @@ $marcasBase = [
         'titulo'      => 'Innovate',
         'contenido'   => 'Consultora de innovación y diseño de producto.',
         'metaEntrada' => [
-            'url' => 'https://innovate.io',
+            'url'  => 'https://innovate.io',
+            'logo' => 'logos::dropbox.svg',
+        ]
+    ],
+    [
+        'slugDefault' => 'playzone',
+        'titulo'      => 'PlayZone',
+        'contenido'   => 'Entretenimiento y gaming digital.',
+        'metaEntrada' => [
+            'url'  => 'https://playzone.com',
+            'logo' => 'logos::playstation.svg',
+        ]
+    ],
+    [
+        'slugDefault' => 'visualdev',
+        'titulo'      => 'VisualDev',
+        'contenido'   => 'Herramientas de desarrollo visual.',
+        'metaEntrada' => [
+            'url'  => 'https://visualdev.io',
+            'logo' => 'logos::visual-studio.svg',
+        ]
+    ],
+    [
+        'slugDefault' => 'sportline',
+        'titulo'      => 'SportLine',
+        'contenido'   => 'Equipamiento deportivo premium.',
+        'metaEntrada' => [
+            'url'  => 'https://sportline.com',
+            'logo' => 'logos::head.svg',
+        ]
+    ],
+    [
+        'slugDefault' => 'dribblex',
+        'titulo'      => 'DribbleX',
+        'contenido'   => 'Comunidad de diseñadores creativos.',
+        'metaEntrada' => [
+            'url'  => 'https://dribblex.com',
+            'logo' => 'logos::dribble.svg',
+        ]
+    ],
+    [
+        'slugDefault' => 'crown-sports',
+        'titulo'      => 'Crown Sports',
+        'contenido'   => 'Marca deportiva de alto rendimiento.',
+        'metaEntrada' => [
+            'url'  => 'https://crownsports.com',
+            'logo' => 'logos::black-crown.svg',
+        ]
+    ],
+    [
+        'slugDefault' => 'vibora-tech',
+        'titulo'      => 'Vibora Tech',
+        'contenido'   => 'Tecnología de punta para deportes.',
+        'metaEntrada' => [
+            'url'  => 'https://viboratech.com',
+            'logo' => 'logos::vibor-a.svg',
+        ]
+    ],
+    [
+        'slugDefault' => 'nox-digital',
+        'titulo'      => 'Nox Digital',
+        'contenido'   => 'Agencia digital de marketing.',
+        'metaEntrada' => [
+            'url'  => 'https://noxdigital.com',
+            'logo' => 'logos::nox.svg',
+        ]
+    ],
+    [
+        'slugDefault' => 'wilson-brand',
+        'titulo'      => 'Wilson Brand',
+        'contenido'   => 'Marca global de artículos deportivos.',
+        'metaEntrada' => [
+            'url'  => 'https://wilsonbrand.com',
+            'logo' => 'logos::wilson.svg',
         ]
     ],
 ];

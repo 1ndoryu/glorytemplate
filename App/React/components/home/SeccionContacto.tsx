@@ -1,15 +1,22 @@
 /**
  * Componente: SeccionContacto (CTA)
- * Section "Have a project in mind?" above Blog.
+ * Section "Have a project in mind?" reutilizable.
+ * Acepta prop compacto para reducir padding cuando el contenedor padre ya tiene gap.
  */
 import React from 'react';
 import {SeccionHeader} from '../ui/SeccionHeader';
 import {Button} from '../ui/Button';
 import './SeccionContacto.css';
 
-export const SeccionContacto: React.FC = () => {
+interface SeccionContactoProps {
+    compacto?: boolean;
+}
+
+export const SeccionContacto: React.FC<SeccionContactoProps> = ({compacto = false}) => {
+    const claseExtra = compacto ? 'seccionContactoCompacta' : '';
+
     return (
-        <section className="seccionContacto" id="contacto">
+        <section className={`seccionContacto ${claseExtra}`} id="contacto">
             <div className="contactoContenedor">
                 <SeccionHeader titulo="Get in Touch" />
                 <h2 className="contactoTitulo">Have a project in mind?</h2>
@@ -19,10 +26,10 @@ export const SeccionContacto: React.FC = () => {
                 </div>
 
                 <div className="contactoBotones">
-                    <Button variante="primario" onClick={() => (window.location.href = '#contacto')}>
+                    <Button variante="primario" onClick={() => (window.location.href = '/contacto/')}>
                         Contact
                     </Button>
-                    <Button variante="outline" onClick={() => (window.location.href = '#servicios')}>
+                    <Button variante="outline" onClick={() => (window.location.href = '/servicios/')}>
                         Hire Service
                     </Button>
                 </div>

@@ -1,22 +1,32 @@
 /// <reference types="vite/client" />
 /*
  * Componente: CarruselShowcase
- * Carrusel infinito de imágenes con desplazamiento automático y soporte drag.
- * Imágenes centralizadas en hooks/useImagenes.ts (DRY).
+ * Carrusel infinito de proyectos con desplazamiento automatico y soporte drag.
+ * Datos desde backend (PROYECTOS_DATA) con imagenes reales, titulo y categorias.
  */
 import React from 'react';
 import {Badge} from '../ui/Badge';
 import './CarruselShowcase.css';
 import {useCarruselInfinito} from '../../hooks/useCarruselInfinito';
+import {PROYECTOS_DATA} from '../../data/showcase';
 import {IMAGENES_SHOWCASE} from '../../hooks/useImagenes';
 
 export const CarruselShowcase: React.FC = () => {
-    if (IMAGENES_SHOWCASE.length === 0) return null;
+    /*
+     * Usar imagenes de proyectos del backend si tienen imagen,
+     * sino fallback a IMAGENES_SHOWCASE del import.meta.glob.
+     */
+    const proyectosConImagen = PROYECTOS_DATA.map((proyecto, idx) => ({
+        ...proyecto,
+        imagen: proyecto.imagen || (IMAGENES_SHOWCASE.length > 0 ? IMAGENES_SHOWCASE[idx % IMAGENES_SHOWCASE.length] : ''),
+    }));
 
-    const itemsTotales = [...IMAGENES_SHOWCASE, ...IMAGENES_SHOWCASE];
+    if (proyectosConImagen.length === 0) return null;
+
+    const itemsTotales = [...proyectosConImagen, ...proyectosConImagen];
 
     const {indiceActual, conTransicion, dragOffset, handlers} = useCarruselInfinito({
-        totalItems: IMAGENES_SHOWCASE.length,
+        totalItems: proyectosConImagen.length,
         tiempoEspera: 8000,
         tiempoTransicion: 800
     });
@@ -34,26 +44,34 @@ export const CarruselShowcase: React.FC = () => {
                         touchAction: 'pan-y'
                     } as React.CSSProperties
                 }>
-                {itemsTotales.map((src, index) => (
-                    <div key={`img-${index}`} className="carruselItem">
-                        <div className="carruselImagenWrapper">
-                            <img
-                                src={src}
-                                alt={`Imagen showcase ${index + 1}`}
-                                className="carruselImagen"
-                                draggable={false}
-                            />
-                        </div>
-                        <div className="carruselContenido">
-                            <h3 className="carruselTitulo">Proyecto {index + 1}</h3>
-                            <div className="carruselTags">
-                                <Badge label="Diseño" />
-                                <Badge label="UX/UI" />
-                                <Badge label="Branding" />
+                {itemsTotales.map((proyecto, index) => {
+                    const categoriasArr = Array.isArray(proyecto.categorias)
+                        ? proyecto.categorias
+                        : (proyecto.categorias ? [proyecto.categorias] : []);
+
+                    return (
+                        <a key={`proj-${index}`} href={proyecto.link || '#'} className="carruselItem" draggable={false}>
+                            <div className="carruselImagenWrapper">
+                                {proyecto.imagen && (
+                                    <img
+                                        src={proyecto.imagen}
+                                        alt={proyecto.titulo}
+                                        className="carruselImagen"
+                                        draggable={false}
+                                    />
+                                )}
                             </div>
-                        </div>
-                    </div>
-                ))}
+                            <div className="carruselContenido">
+                                <h3 className="carruselTitulo">{proyecto.titulo}</h3>
+                                <div className="carruselTags">
+                                    {categoriasArr.slice(0, 3).map(cat => (
+                                        <Badge key={cat} label={cat} />
+                                    ))}
+                                </div>
+                            </div>
+                        </a>
+                    );
+                })}
             </div>
             <div className="carruselOverlay" />
         </div>

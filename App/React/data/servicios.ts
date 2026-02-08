@@ -116,8 +116,22 @@ export const SERVICIOS_DATA: Servicio[] = getServiciosData();
 
 /* Subconjuntos derivados para uso en diferentes secciones */
 
-// Para la Home (primeros 6)
+/* Para la Home (primeros 6) */
 export const SERVICIOS_PRINCIPALES = SERVICIOS_DATA.slice(0, 6);
 
-// Para Servicios Relacionados (selección aleatoria o específica, aquí fijos 3)
+/*
+ * Obtener servicios relacionados excluyendo el servicio actual.
+ * Si no se pasa ID, retorna 3 servicios aleatorios.
+ */
+export const obtenerServiciosRelacionados = (servicioActualId?: string, cantidad: number = 3): Servicio[] => {
+    const filtrados = servicioActualId
+        ? SERVICIOS_DATA.filter(s => String(s.id) !== String(servicioActualId))
+        : SERVICIOS_DATA;
+
+    /* Mezcla simple para variedad */
+    const mezclados = [...filtrados].sort(() => Math.random() - 0.5);
+    return mezclados.slice(0, cantidad);
+};
+
+/* Alias retrocompatible (sin filtro) */
 export const SERVICIOS_RELACIONADOS = SERVICIOS_DATA.slice(0, 3);

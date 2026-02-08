@@ -145,6 +145,25 @@
 
 .accionCabecera {
     margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.enlaceAcceder {
+    font-family: var(--font-primary);
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color var(--transicion-rapida);
+}
+
+.enlaceAcceder:hover {
+    color: var(--brand-black);
 }
 
 .botonHeader {

@@ -28,7 +28,7 @@ export const BienvenidaIsland = ({titulo, bgImage = ''}: BienvenidaIslandProps):
             <SeccionShowcase />
             <SeccionTestimonios />
             <SeccionServicios />
-            <SeccionContacto />
+            <SeccionContacto compacto />
             <SeccionBlog />
         </LayoutPagina>
     );

@@ -1,15 +1,15 @@
 /**
  * Componente: SeccionClientes
- * Muestra una cuadrícula de logos de clientes.
- * Imágenes centralizadas en hooks/useImagenes.ts (DRY).
+ * Muestra una cuadricula de logos de clientes/marcas.
+ * Datos desde backend (MARCAS_DATA) con fallback a import.meta.glob.
  */
 import React from 'react';
 import {SeccionHeader} from '../ui/SeccionHeader';
-import {LOGOS_CLIENTES} from '../../hooks/useImagenes';
+import {MARCAS_DATA} from '../../data/marcas';
 import './SeccionClientes.css';
 
 export const SeccionClientes: React.FC = () => {
-    if (LOGOS_CLIENTES.length === 0) return null;
+    if (MARCAS_DATA.length === 0) return null;
 
     return (
         <section className="seccionClientes" id="seccionClientes">
@@ -17,9 +17,13 @@ export const SeccionClientes: React.FC = () => {
                 <SeccionHeader titulo="Ultimos clientes" />
 
                 <div className="clientesGrid">
-                    {LOGOS_CLIENTES.map((src, index) => (
-                        <div key={`logo-${index}`} className="clienteLogoCard">
-                            <img src={src} alt={`Cliente ${index + 1}`} className="clienteLogoImg" loading="lazy" />
+                    {MARCAS_DATA.map((marca) => (
+                        <div key={marca.id} className="clienteLogoCard">
+                            {marca.logo ? (
+                                <img src={marca.logo} alt={marca.nombre} className="clienteLogoImg" loading="lazy" />
+                            ) : (
+                                <span className="clienteLogoTexto">{marca.nombre}</span>
+                            )}
                         </div>
                     ))}
                 </div>

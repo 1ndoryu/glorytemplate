@@ -11,9 +11,10 @@ export interface SeccionCtaProps {
     linkBotonSecundario?: string;
     onBotonPrimarioClick?: () => void;
     onBotonSecundarioClick?: () => void;
+    className?: string;
 }
 
-export const SeccionCta: React.FC<SeccionCtaProps> = ({titulo, descripcion, textoBotonPrimario, linkBotonPrimario, textoBotonSecundario, linkBotonSecundario, onBotonPrimarioClick, onBotonSecundarioClick}) => {
+export const SeccionCta: React.FC<SeccionCtaProps> = ({titulo, descripcion, textoBotonPrimario, linkBotonPrimario, textoBotonSecundario, linkBotonSecundario, onBotonPrimarioClick, onBotonSecundarioClick, className = ''}) => {
     const parrafos = Array.isArray(descripcion) ? descripcion : descripcion ? [descripcion] : [];
 
     const handlePrimarioClick = () => {
@@ -33,7 +34,7 @@ export const SeccionCta: React.FC<SeccionCtaProps> = ({titulo, descripcion, text
     };
 
     return (
-        <section className="seccionCta">
+        <section className={`seccionCta ${className}`}>
             <div className="ctaContenedor">
                 <div className="ctaTexto">
                     {titulo && <h2 className="ctaTitulo">{titulo}</h2>}

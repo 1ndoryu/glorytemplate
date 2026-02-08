@@ -1,12 +1,21 @@
 /* Seccion Contacto (CTA) */
 .seccionContacto {
-    padding: var(--spacing-xl) 0;
-    background-color: var(--bg-primary); /* Light background */
+    /*
+     * Padding consistente con el resto de CTAs.
+     * padding-bottom generoso para separar del footer u otra seccion.
+     */
+    padding: var(--spacing-3xl) 0;
+    background-color: var(--bg-primary);
     color: var(--text-primary);
     width: 100%;
     display: flex;
     justify-content: center;
     text-align: center;
+}
+
+/* Variante compacta para el home (el gap del contenedor ya espacía) */
+.seccionContactoCompacta {
+    padding-bottom: var(--spacing-xl);
 }
 
 .contactoContenedor {

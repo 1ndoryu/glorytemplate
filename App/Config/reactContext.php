@@ -135,11 +135,19 @@ add_filter('glory_react_context', function ($context) {
 
     $marcas = array_map(function ($marca) {
         $meta = $marca['metaEntrada'] ?? [];
-        /* TO-DO: Cuando las marcas tengan thumbnail real usar get_the_post_thumbnail_url */
+
+        /* Resolver logo SVG si tiene referencia de asset */
+        $logoUrl = '';
+        $logoRef = $meta['logo'] ?? '';
+        if ($logoRef && class_exists(AssetsUtility::class)) {
+            $logoUrl = AssetsUtility::imagenUrl($logoRef);
+        }
+
         return [
             'id'     => $marca['slugDefault'] ?? '',
             'nombre' => $marca['titulo'] ?? '',
             'url'    => $meta['url'] ?? '',
+            'logo'   => $logoUrl,
         ];
     }, $rawMarcas);
 

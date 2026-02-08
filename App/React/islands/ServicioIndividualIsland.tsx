@@ -20,16 +20,20 @@ interface ServicioIndividualIslandProps {
     titulo?: string;
     descripcion?: string;
     precio_desde?: string;
+    slug?: string;
 }
 
-export const ServicioIndividualIsland = ({titulo, descripcion, precio_desde}: ServicioIndividualIslandProps): JSX.Element => {
+export const ServicioIndividualIsland = ({titulo, descripcion, precio_desde, slug}: ServicioIndividualIslandProps): JSX.Element => {
+    /* ID del servicio actual para excluirlo de relacionados */
+    const servicioId = slug || titulo?.toLowerCase().replace(/\s+/g, '-') || '';
+
     return (
         <LayoutPagina className="servicioIndividualMain">
             <SeccionHeroServicio titulo={titulo} descripcion={descripcion} />
             <SeccionGaleriaServicio />
-            <SeccionCta descripcion={['¿Listo para llevar tu proyecto al siguiente nivel? Nuestro equipo de expertos está preparado para transformar tu visión en una solución digital de alto impacto.', 'No esperes más para destacar en el mercado. Contáctanos hoy mismo para discutir los detalles y dar el primer paso hacia el éxito de tu negocio.']} textoBotonPrimario={`Contratar desde ${precio_desde || '$997'}`} linkBotonPrimario="#contacto" textoBotonSecundario="Contactar" linkBotonSecundario="#contacto" />
+            <SeccionCta descripcion={['¿Listo para llevar tu proyecto al siguiente nivel? Nuestro equipo de expertos está preparado para transformar tu visión en una solución digital de alto impacto.', 'No esperes más para destacar en el mercado. Contáctanos hoy mismo para discutir los detalles y dar el primer paso hacia el éxito de tu negocio.']} textoBotonPrimario={`Contratar desde ${precio_desde || '$997'}`} linkBotonPrimario="/contacto/" textoBotonSecundario="Contactar" linkBotonSecundario="/contacto/" />
             <SeccionSkillsServicio skills={SKILLS_POR_DEFECTO} />
-            <SeccionServiciosRelacionados />
+            <SeccionServiciosRelacionados servicioActualId={servicioId} />
             <SeccionContacto />
         </LayoutPagina>
     );

@@ -9,6 +9,7 @@ import {LayoutPagina} from '../components/layout/LayoutPagina';
 import {PROYECTOS_DATA} from '../data/showcase';
 import {CATEGORIAS_PROYECTOS} from '../data/navegacion';
 import {BarraFiltros} from '../components/servicios/BarraFiltros';
+import {obtenerImagenShowcase} from '../hooks/useImagenes';
 import {Proyecto} from '../types/contenido';
 
 interface ProyectosIslandProps {
@@ -16,17 +17,18 @@ interface ProyectosIslandProps {
 }
 
 /* Componente tarjeta de proyecto individual */
-const TarjetaProyecto: React.FC<{proyecto: Proyecto}> = ({proyecto}) => {
+const TarjetaProyecto: React.FC<{proyecto: Proyecto; indice: number}> = ({proyecto, indice}) => {
     const categoriasTexto = Array.isArray(proyecto.categorias)
         ? proyecto.categorias.join(', ')
         : proyecto.categorias;
 
+    /* Fallback a imagen showcase si el backend no resolvió la URL */
+    const imagenSrc = proyecto.imagen || obtenerImagenShowcase(indice);
+
     return (
         <a href={proyecto.link || '#'} className="tarjetaProyecto">
             <div className="tarjetaProyectoImagen">
-                {proyecto.imagen && (
-                    <img src={proyecto.imagen} alt={proyecto.titulo} loading="lazy" />
-                )}
+                <img src={imagenSrc} alt={proyecto.titulo} loading="lazy" />
             </div>
             <div className="tarjetaProyectoInfo">
                 <h3 className="tarjetaProyectoTitulo">{proyecto.titulo}</h3>
@@ -75,8 +77,8 @@ export const ProyectosIsland = ({titulo = 'Nuestros Proyectos'}: ProyectosIsland
                         onBusquedaChange={setBusqueda}
                     />
                     <div className="proyectosGrid">
-                        {proyectosFiltrados.map(proyecto => (
-                            <TarjetaProyecto key={proyecto.id} proyecto={proyecto} />
+                        {proyectosFiltrados.map((proyecto, i) => (
+                            <TarjetaProyecto key={proyecto.id} proyecto={proyecto} indice={i} />
                         ))}
                     </div>
                     {proyectosFiltrados.length === 0 && (
