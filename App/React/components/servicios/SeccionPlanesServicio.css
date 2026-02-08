@@ -7,7 +7,7 @@
 /* Seccion contenedora */
 .planesSeccion {
     width: 100%;
-    padding: var(--spacing-3xl) 0;
+    padding: var(--spacing-2xl) 0;
     background-color: var(--bg-card-subtle);
 }
 

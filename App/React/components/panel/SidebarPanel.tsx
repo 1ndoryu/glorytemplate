@@ -1,10 +1,10 @@
 /**
  * Componente: SidebarPanel
  * Barra lateral de navegacion del panel de usuario.
- * Muestra avatar, nombre, rol y links de navegacion.
+ * Muestra avatar, nombre, rol y links de navegacion con iconos.
  */
 import React from 'react';
-import {Button} from '../ui/Button';
+import {FolderOpen, Briefcase, Receipt, User, CreditCard} from 'lucide-react';
 import {TABS_PANEL, obtenerUsuarioActual, type SeccionPanel} from '../../data/panel';
 import './SidebarPanel.css';
 
@@ -12,6 +12,15 @@ interface SidebarPanelProps {
     seccionActiva: SeccionPanel;
     onCambiarSeccion: (seccion: SeccionPanel) => void;
 }
+
+/* Mapa de iconos por seccion */
+const ICONOS_SECCION: Record<SeccionPanel, React.ElementType> = {
+    'proyectos': FolderOpen,
+    'servicios': Briefcase,
+    'pagos': Receipt,
+    'perfil': User,
+    'metodos-pago': CreditCard,
+};
 
 export const SidebarPanel: React.FC<SidebarPanelProps> = ({seccionActiva, onCambiarSeccion}) => {
     const usuario = obtenerUsuarioActual();
@@ -32,26 +41,23 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({seccionActiva, onCamb
                 </div>
             </div>
 
-            {/* Navegacion */}
+            {/* Navegacion con iconos */}
             <nav className="sidebarNav" aria-label="Secciones del panel">
-                {TABS_PANEL.map(tab => (
-                    <button
-                        key={tab.id}
-                        className={`sidebarItem ${seccionActiva === tab.id ? 'sidebarItemActivo' : ''}`}
-                        onClick={() => onCambiarSeccion(tab.id)}
-                        aria-current={seccionActiva === tab.id ? 'page' : undefined}
-                    >
-                        <span className="sidebarItemTexto">{tab.label}</span>
-                    </button>
-                ))}
+                {TABS_PANEL.map(tab => {
+                    const Icono = ICONOS_SECCION[tab.id];
+                    return (
+                        <button
+                            key={tab.id}
+                            className={`sidebarItem ${seccionActiva === tab.id ? 'sidebarItemActivo' : ''}`}
+                            onClick={() => onCambiarSeccion(tab.id)}
+                            aria-current={seccionActiva === tab.id ? 'page' : undefined}
+                        >
+                            <Icono size={18} className="sidebarItemIcono" aria-hidden="true" />
+                            <span className="sidebarItemTexto">{tab.label}</span>
+                        </button>
+                    );
+                })}
             </nav>
-
-            {/* Footer */}
-            <div className="sidebarFooter">
-                <Button variante="outline" tamano="pequeno" onClick={() => window.location.href = '/'}>
-                    Volver al inicio
-                </Button>
-            </div>
         </aside>
     );
 };

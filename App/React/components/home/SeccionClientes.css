@@ -117,9 +117,11 @@
     width: auto;
     object-fit: contain;
 
-    /* Hack para colorear SVG/IMG exactamente con una variable CSS */
-    transform: translateY(-10000px);
-    filter: drop-shadow(0 10000px 0 var(--bg-primary));
+    /*
+     * Colorear SVG a blanco sobre fondo oscuro.
+     * Reemplaza el hack de translateY/drop-shadow que causaba carga intermitente.
+     */
+    filter: brightness(0) invert(1);
     opacity: 0.7;
 
     transition: opacity 0.3s;

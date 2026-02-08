@@ -21,6 +21,8 @@ declare global {
                 avatar: string;
                 rol: string;
             } | null;
+            nonce?: string;
+            stripePublishableKey?: string;
         };
     }
 }

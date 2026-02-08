@@ -283,5 +283,16 @@ add_filter('glory_react_context', function ($context) {
         ];
     }
 
+    /* -------------------------------------------------------------------------
+       8. Stripe: clave pública para el frontend + nonce REST
+       ------------------------------------------------------------------------- */
+    if (is_user_logged_in()) {
+        $context['nonce'] = wp_create_nonce('wp_rest');
+    }
+
+    if (defined('GLORY_STRIPE_PUBLISHABLE_KEY') && GLORY_STRIPE_PUBLISHABLE_KEY) {
+        $context['stripePublishableKey'] = GLORY_STRIPE_PUBLISHABLE_KEY;
+    }
+
     return $context;
 });

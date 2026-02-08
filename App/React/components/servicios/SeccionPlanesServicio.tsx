@@ -2,20 +2,76 @@
  * Componente: SeccionPlanesServicio
  * Muestra las tarjetas de precios (pricing cards) de un servicio.
  * Recibe el slug del servicio y renderiza los 3 tiers.
- * TO-DO: Integrar checkout Stripe en los botones CTA.
+ * Conecta con Stripe Checkout cuando el plan tiene stripePriceId.
  */
-import React from 'react';
+import React, {useState} from 'react';
 import {obtenerPlanesServicio, type PlanServicio} from '../../data/planes/index';
 import {Button} from '../ui/Button';
+import {navegar} from '../../navegacionSPA';
 import './SeccionPlanesServicio.css';
 
 interface SeccionPlanesServicioProps {
     slug: string;
 }
 
+/*
+ * Inicia el checkout de Stripe llamando al endpoint REST.
+ * Si el plan no tiene stripePriceId, redirige al link de contacto.
+ */
+async function iniciarCheckout(plan: PlanServicio): Promise<void> {
+    if (!plan.stripePriceId) {
+        navegar(plan.ctaLink);
+        return;
+    }
+
+    const ctx = typeof window !== 'undefined' ? window.GLORY_CONTEXT : undefined;
+    if (!ctx?.isLoggedIn) {
+        navegar(plan.ctaLink);
+        return;
+    }
+
+    try {
+        const response = await fetch('/wp-json/glory/v1/stripe/checkout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-WP-Nonce': ctx.nonce || '',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                planId: plan.id,
+                modo: plan.stripeModo || 'payment',
+            }),
+        });
+
+        const data = await response.json();
+
+        if (data.url) {
+            window.location.href = data.url;
+        } else {
+            console.error('[Stripe] Error:', data.error);
+            navegar(plan.ctaLink);
+        }
+    } catch (error) {
+        console.error('[Stripe] Error de red:', error);
+        navegar(plan.ctaLink);
+    }
+}
+
 const TarjetaPlan: React.FC<{plan: PlanServicio}> = ({plan}) => {
+    const [cargando, setCargando] = useState(false);
     const claseDestacado = plan.destacado ? 'tarjetaPlanDestacado' : '';
     const clasePersonalizado = plan.esPersonalizado ? 'tarjetaPlanPersonalizado' : '';
+
+    const handleClick = async () => {
+        if (cargando) return;
+        setCargando(true);
+        try {
+            await iniciarCheckout(plan);
+        } finally {
+            setCargando(false);
+        }
+    };
 
     return (
         <div className={`tarjetaPlan ${claseDestacado} ${clasePersonalizado}`}>
@@ -54,9 +110,10 @@ const TarjetaPlan: React.FC<{plan: PlanServicio}> = ({plan}) => {
                 <Button
                     variante={plan.destacado ? 'primario' : 'outline'}
                     tamano="mediano"
-                    onClick={() => window.location.href = plan.ctaLink}
+                    onClick={handleClick}
+                    disabled={cargando}
                 >
-                    {plan.ctaTexto}
+                    {cargando ? 'Procesando...' : plan.ctaTexto}
                 </Button>
             </div>
         </div>

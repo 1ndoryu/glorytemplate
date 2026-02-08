@@ -7,17 +7,15 @@
     min-height: 80vh;
     max-width: var(--container-width);
     margin: 0 auto;
-    padding: 15vh 0 var(--spacing-3xl);
+    padding: var(--spacing-md) 0 var(--spacing-3xl);
 }
 
 /* Layout horizontal: sidebar + contenido */
 .panelLayout {
     display: flex;
     min-height: 60vh;
-    border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 16px;
     overflow: hidden;
-    background-color: var(--brand-white);
 }
 
 /* Contenido principal (a la derecha del sidebar) */
@@ -31,6 +29,7 @@
 .panelContenidoCabecera {
     padding: var(--spacing-lg) var(--spacing-xl);
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    display: none;
 }
 
 .panelTitulo {

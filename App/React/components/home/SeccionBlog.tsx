@@ -17,7 +17,7 @@ export const SeccionBlog: React.FC = () => {
                 <SeccionHeader titulo="Journal" />
 
                 <div className="blogGrid">
-                    {POSTS_BLOG.map(post => (
+                    {POSTS_BLOG.slice(0, 3).map(post => (
                         <article key={post.id} className="blogCard">
                             <div className="blogImagenWrapper">
                                 <img src={obtenerImagenBlog(post.id)} alt={post.titulo} className="blogImagen" loading="lazy" />

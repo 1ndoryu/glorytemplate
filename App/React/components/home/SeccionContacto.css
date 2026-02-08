@@ -1,10 +1,10 @@
 /* Seccion Contacto (CTA) */
 .seccionContacto {
     /*
-     * Padding consistente con el resto de CTAs.
-     * padding-bottom generoso para separar del footer u otra seccion.
+     * Padding reducido para evitar espacio excesivo.
+     * El footer aporta su propio padding-top.
      */
-    padding: var(--spacing-3xl) 0;
+    padding: var(--spacing-2xl) 0 var(--spacing-xl);
     background-color: var(--bg-primary);
     color: var(--text-primary);
     width: 100%;

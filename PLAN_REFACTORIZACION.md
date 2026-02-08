@@ -622,65 +622,6 @@ Estado: PENDIENTE | EN PROGRESO | COMPLETADO
 
 ---
 
-## 7. Dudas para el usuario (responder aqui mismo)
-
-1. **AjaxNav vs React Router**: Glory usa AjaxNav en config.php. Se prueba primero, si no es compatible con islands se implementa React Router. RESUELTO.
-
-2. **URLs i18n**: Prefijo URL para SEO (/en/services/). RESUELTO.
-
-3. **Blog**: Posts nativos de WP. RESUELTO.
-
-4. **Nombre del sitio**: Nakomi. RESUELTO.
-
-5. **Hosting/VPS/Agentes IA**: Seran paginas independientes (PageManager). RESUELTO y creadas como placeholders.
-
----
-
-## Comentarios del usuario (area de comunicacion)
-
-0. [RESUELTO] Eliminados emojis del roadmap, todo con texto.
-1. [RESUELTO] Submenu hover se cerraba al mover cursor. Fix: eliminado margin-top, reemplazado con padding-top transparente para mantener continuidad del hover.
-2. [RESUELTO] Pagina de servicio error + navegacion no es fluida. Error 500 arreglado (has_archive conflict). Navegación SPA pendiente de verificar con AjaxNav.
-3. [RESUELTO] Imagenes de Selected Work resueltas con fallback en data/showcase.ts.
-4. [RESUELTO] Journal se desconfiguro por la refactorizacion, tiene que ser 3 columnas y aparece. (Fix: clase CSS renombrada para evitar colision global)
-5. [RESUELTO] http://glory.local/proyectos/ aparece sin imagenes, tiene que ser las de Glory/assets/images/showcase/ (Fix: fallback en data/showcase.ts + TarjetaProyecto siempre renderiza img)
-6. [RESUELTO] Padding de "Have a project in mind?" inconsistente + blog sin imagenes + blog sin single post + hero soluciones sin padding. (Fix: variable --seccion-cta-padding-bottom, imagenes portada blog, BlogSingleIsland creado, hero soluciones arreglado)
-7. [RESUELTO] La pagina de contacto debe existir. (Fix: ContactoIsland.tsx creada con formulario completo, registrada en pages.php y appIslands.tsx)
-8. [RESUELTO] Solo 4 marcas, deberian ser 12, Ultimos clientes no usa backend para SVGs. (Fix: 12 marcas en defaultContent.php, SeccionClientes consume MARCAS_DATA del backend)
-9. [RESUELTO] Los proyectos del home en el hero deben usar el backend. (Fix: CarruselShowcase usa PROYECTOS_DATA con Badge de categorias reales)
-10. [RESUELTO] En el home "Services" no esta usando el backend. (Fix: verificado que window.GLORY_CONTEXT.servicios se inyecta y servicios.ts lo consume)
-11. [RESUELTO] en "More Services" no debe aparecer el mismo servicio que se esta cargando. (Fix: obtenerServiciosRelacionados() filtra por servicioActualId)
-12. [RESUELTO] Login, modal autenticacion, panel placeholder. (Fix: ModalAutenticacion.tsx con login/registro/recuperar, PanelIsland.tsx con 3 tabs placeholder)
-13. [RESUELTO] Hacer la logica de Stay updated. (Fix: Footer.tsx con newsletter funcional, NewsletterController.php con tabla WP custom)
-
-### Comentarios v1.2 (Resumen - ya trabajados en FASE 13)
-
-1. [RESUELTO] Selected Work sin duplicados + categorías reales backend.
-2. [RESUELTO] Badge como componente reutilizable en todas las tarjetas.
-3. [RESUELTO] Padding/max-width normalizado con variables CSS (parcial, ver v1.3 #1).
-4. [RESUELTO] blogContenedor estructura corregida.
-5. [RESUELTO] Tarjeta artículo layout horizontal (flex-direction: row).
-6. [RESUELTO] Blog single post carga correctamente.
-7. [RESUELTO] Info contacto centralizada en data/contacto.ts.
-8. [RESUELTO] ModalTestimonio creado con campos completos.
-9. [RESUELTO] Slug mismatch servicios corregido (diseno-ux-ui).
-10. [RESUELTO] Detección login en Header (Panel/Volver/Chat). Chat pendiente FASE 17.
-11. [RESUELTO] Panel max-width y padding.
-12. [RESUELTO] Soluciones sub-páginas cargan (fix PageManager regex).
-
-### Comentarios nuevos despues v1.2 (v1.3)
-
-1. LOS PADDING O ANCHO MAXIMO DE HE LA PAGINA DE CONTACTO Y NOSOTROS SON INCOHERENTES; EL PROBLEMA DE INCOHERENCIA NO ESTA RESUELTO; NO ESTA CENTRALIZADA LA CONFIGURACION DE PAGINA TODAS LAS SECCIONES TIENEN QUE TENER EL MISMO PADDING Y ANCHO; EL DEL HOME ESTA BIEN ¿PORQUE LA DE CONTACTO; NOSOTROS; EL HERO DE BLOG; EL SINGLE PAGE DE LOS BLOGS; Y LA IMAGEN DE EL SINGLE POST DE PROYECTO NO SON COHERENTES?
-2. En la pagina de blog no aparece la imagen, tiene que haber un feedback de colors cuando no haya imagen.
-3. La parte de Have a project in mind? en los blog se ve diferente al resto de project in Mind? esto esta centralizado o se olvido usar el componente?
-4. LOS SLUG DE LOS SERVICIOS PORQUE SON DIFERENTES A LOS REALES ¿? ¿ACASO NO SE ESTA IMPRIMIENDO LOS SERVICIOS REALES? O SE ESTA ROMPIENDO LOS PRINCIPIOS SOLID
-5. en panelUsuario hay un padding top excesivo.
-6. En Ultimos clientes de la pagina de clientes no cargan los svg.
-7. En panel hacer que el panel sea lateral, y agregar uno nuevo de configuracion de perfil donde el usuario puede elegir su nombre para mostrar, imagen, descripcion, redes sociales, etc. Tambien una nueva seccion de configurar pagos, donde el cliente administrara su tarjeta de credito registrada, dirección, etc, lo relacionado con los metodos de pago. "Escribir un comentario" debe detectar estas configuraciones si el usuario esta logeado (configuraciones de perfil)
-8. Simplifica los comentarios de ### Comentarios despues de llegar al 12.1 (v1.2)**YA REVISADOS** para ahorrar tokens de contexto en las proximas secciones.
-
----
-
 ### FASE 19: CORRECCIONES v1.3
 
 #### 19.1 COMPLETADO - Centralizar layout de página (padding/max-width coherente)
@@ -754,46 +695,53 @@ Estado: PENDIENTE | EN PROGRESO | COMPLETADO
 - Checkout directo con Stripe Elements
 - Panel de usuario: mis pagos, estado del servicio
 
-#### Aclaciones de las tareas pendientes.
 
-1. Los planes son personalizados para cada servicio, tienen que ser reales, inventalos mientras tanto yo mas adelante corrijo. El tercer plan de Personalizado por servicio es que el cliente puede manejar las caracteristicas, ajustarlas y el precio aparecera automatico, esto requiere que definamos los servicios reales supongo, tu ayudas a intuir carasteristicas para los planes si es que faltan, yo voy a hablar de forma subjetiva pero se va a necesitar que las caracteristicas sea medibles y objetivas (4 paginas, 3 funciones avanzadas, asi cosas medibles), cuando un cliente contra algunos de los planes, abrira el chat para definir correctamente las carecteristicas.
+# Comentarios del usuario (area de comunicacion)
 
-se que voy a omitir muchas cosas, tu me ayudas a aclarar y objetivizar todo friamente, despues haremos una investigacion de mercado para elegir precios mas acordes, pero estos son relativamente baratos porque estamos iniciando como nueva agencia.
+### Comentarios v1.1
 
-## Diseño de paginas web.
+0. [RESUELTO] Eliminados emojis del roadmap, todo con texto.
+1. [RESUELTO] Submenu hover se cerraba al mover cursor. Fix: eliminado margin-top, reemplazado con padding-top transparente para mantener continuidad del hover.
+2. [RESUELTO] Pagina de servicio error + navegacion no es fluida. Error 500 arreglado (has_archive conflict). Navegación SPA pendiente de verificar con AjaxNav.
+3. [RESUELTO] Imagenes de Selected Work resueltas con fallback en data/showcase.ts.
+4. [RESUELTO] Journal se desconfiguro por la refactorizacion, tiene que ser 3 columnas y aparece. (Fix: clase CSS renombrada para evitar colision global)
+5. [RESUELTO] http://glory.local/proyectos/ aparece sin imagenes, tiene que ser las de Glory/assets/images/showcase/ (Fix: fallback en data/showcase.ts + TarjetaProyecto siempre renderiza img)
+6. [RESUELTO] Padding de "Have a project in mind?" inconsistente + blog sin imagenes + blog sin single post + hero soluciones sin padding. (Fix: variable --seccion-cta-padding-bottom, imagenes portada blog, BlogSingleIsland creado, hero soluciones arreglado)
+7. [RESUELTO] La pagina de contacto debe existir. (Fix: ContactoIsland.tsx creada con formulario completo, registrada en pages.php y appIslands.tsx)
+8. [RESUELTO] Solo 4 marcas, deberian ser 12, Ultimos clientes no usa backend para SVGs. (Fix: 12 marcas en defaultContent.php, SeccionClientes consume MARCAS_DATA del backend)
+9. [RESUELTO] Los proyectos del home en el hero deben usar el backend. (Fix: CarruselShowcase usa PROYECTOS_DATA con Badge de categorias reales)
+10. [RESUELTO] En el home "Services" no esta usando el backend. (Fix: verificado que window.GLORY_CONTEXT.servicios se inyecta y servicios.ts lo consume)
+11. [RESUELTO] en "More Services" no debe aparecer el mismo servicio que se esta cargando. (Fix: obtenerServiciosRelacionados() filtra por servicioActualId)
+12. [RESUELTO] Login, modal autenticacion, panel placeholder. (Fix: ModalAutenticacion.tsx con login/registro/recuperar, PanelIsland.tsx con 3 tabs placeholder)
+13. [RESUELTO] Hacer la logica de Stay updated. (Fix: Footer.tsx con newsletter funcional, NewsletterController.php con tabla WP custom)
 
-- Diseño de pagina web, plan basico desde 100$, un landing page o 5 paginas, sin diseño de marca, informativo, en wordpress, 1 sola pagina funcional, incluye contacto, 5 secciones, 1 o 2 plugin o funciones avanzadas.
-- Diseño de pagina web avanzado desde 250$, pueden ser paneles avanzados para gestionar diferentes tipos de productos, ecommerce, funciones avanzadas extras, puede ser wordpress o cualquier otro framework, seo basico, identidad basica.
-- Personalizado, puede elegir entre numero de paginas, si es un landing page, si incluye panel administrativo, si incluye ecommerce, funciones avanzadas,seo, si incluye apk.
+### Comentarios v1.2 (Resumen - ya trabajados en FASE 13)
 
-## Desarrollo de aplicaciones moviles (200$ Basico, 500$ avanzado)
+1. [RESUELTO] Selected Work sin duplicados + categorías reales backend.
+2. [RESUELTO] Badge como componente reutilizable en todas las tarjetas.
+3. [RESUELTO] Padding/max-width normalizado con variables CSS (parcial, ver v1.3 #1).
+4. [RESUELTO] blogContenedor estructura corregida.
+5. [RESUELTO] Tarjeta artículo layout horizontal (flex-direction: row).
+6. [RESUELTO] Blog single post carga correctamente.
+7. [RESUELTO] Info contacto centralizada en data/contacto.ts.
+8. [RESUELTO] ModalTestimonio creado con campos completos.
+9. [RESUELTO] Slug mismatch servicios corregido (diseno-ux-ui).
+10. [RESUELTO] Detección login en Header (Panel/Volver/Chat). Chat pendiente FASE 17.
+11. [RESUELTO] Panel max-width y padding.
+12. [RESUELTO] Soluciones sub-páginas cargan (fix PageManager regex).
 
-- Inventa algo para los 2 planes y la caracteristicas, no se me ocurre algo ahora.
+### Comentarios v1.4
 
-## Agentes de IA (60$ Mensual Basico y 300$ Mensual Avanzado)
-
-- Inventa.
-
-## Identidad de Marca (150$ Basico, 400$ Avanzado)
-
-- Inventa.
-
-## Chatbots (Igual que agentes de IA)
-
-- Inventa
-
-## SEO (150$ Basico, 400$ Avanzado)
-
-- Inventa
-
-## Marketing Digital (150$ Basico, 400$ Avanzado)
-
-- Inventa
-
-2. Integración de Stripe
-
-Luego de que el cliente haga el pago el servicio queda en proceso, el admin lo recibe en su panel con sus requerimientos, y detalles que saco el chatbot. Puse GLORY_STRIPE_SECRET_KEY y GLORY_STRIPE_PUBLISHABLE_KEY en el env
-
-3. Chatbot
-
-Puse GOOGLE_GEMINI_API en el env, usaramos gemini flash 3 para probar el chatbot, esto lo dejaremos para el final, yo lo planificare mejor mas adelante pero por el momento el chat debe ser funcional y ser respondido por los usuarios encargados.
+0. [RESUELTO] Resumir tareas completadas y ordenar pendientes.
+1. [RESUELTO] Navegación SPA sin recarga entre páginas. Motor SPA creado en `navegacionSPA.ts`: intercepta clicks en `<a>`, fetch + parse de HTML, monta nueva isla React via `createRoot`. Transición fade 150ms. History API (pushState/popstate). Función `navegar()` para navegación programática. Todos los `window.location.href` reemplazados por `navegar()`.
+2. [RESUELTO] Botón "Comenzar Proyecto" ahora enlaza a `/contacto/`.
+3. [RESUELTO] SVGs de "Últimos clientes" intermitentes. Causa: CSS hack `translateY(-10000px) + drop-shadow`. Solución: `filter: brightness(0) invert(1)` + componente `LogoMarca` con `onError` fallback a texto.
+4. [RESUELTO] Padding excesivo reducido en: SeccionCta, Skills, Servicios Relacionados, Proyectos Relacionados, BlogContenedor, Planes. De `spacing-3xl/4xl` a `spacing-2xl/xl`.
+5. [RESUELTO] Hero de proyectos ahora usa `SeccionGaleriaServicio` (carrusel), igual que servicios. Prop `imagen` eliminada de ProyectoIndividualIsland.
+6. [RESUELTO] Journal en home limitado a 3 posts con `.slice(0, 3)`.
+7. [RESUELTO] Imágenes de blog proporción 4:3 (landscape). `aspect-ratio: 4 / 3` en BlogSingleIsland y cards.
+8. [RESUELTO] `blogSingleArticulo` ancho cambiado a `50rem` (~800px).
+9. [RESUELTO] Panel: header propio (`HeaderPanel.tsx`) con logo, Chat, Salir, avatar 40x40. Sin Header/Footer global. Sidebar con iconos lucide-react, sin sidebarFooter.
+10. [RESUELTO] Planes visibles en todos los servicios. Creado `planesExtras.ts` con planes para ecommerce, diseno-ux-ui, automatizacion, consultoria. Registrados en `index.ts` (11 servicios × 3 tiers).
+11. [RESUELTO] Integración Stripe implementada: Bridge `.env` → constantes PHP en `environment.php`. `StripeController.php` con endpoints REST (checkout, portal, webhook). `WebhookHandler.php` concreto. `stripePriceId` y `stripeModo` agregados al tipo `PlanServicio`. `SeccionPlanesServicio` conecta con checkout API. Nonce REST + publishable key inyectados en GLORY_CONTEXT. Autoload `App\` registrado en composer. Pendiente: configurar priceId de cada plan en Stripe Dashboard y guardar en `wp_options`.
+12. [RESUELTO] Planificación del chat detallada en `PLAN_CHAT.md`. Incluye: Fase 1 (chat humano en tiempo real), Fase 2 (chatbot IA con Gemini), modelo de datos (3 tablas SQL), protocolo WebSocket, 15+ componentes frontend, 8 endpoints REST, rol `encargado`, roadmap paso a paso.

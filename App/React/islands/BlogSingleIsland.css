@@ -63,6 +63,7 @@
     padding: 0 var(--spacing-lg) var(--spacing-xl);
     border-radius: 12px;
     overflow: hidden;
+    aspect-ratio: 4 / 3;
 }
 
 .blogSingleImagen {
@@ -77,7 +78,7 @@
 }
 
 .blogSingleArticulo {
-    max-width: 680px;
+    max-width: 50rem;
     margin: 0 auto;
     padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-3xl);
 }
@@ -174,7 +175,7 @@
 }
 
 .blogSingleRelacionadoImagen {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 4 / 3;
     border-radius: 8px;
     overflow: hidden;
     background-color: var(--bg-secondary);

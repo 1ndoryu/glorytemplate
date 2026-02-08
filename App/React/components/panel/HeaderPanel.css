@@ -1,0 +1,75 @@
+/*
+ * CSS: HeaderPanel
+ * Header minimalista para el panel de usuario.
+ * Usa los mismos estilos de enlaceNavegacionWrapper del header global.
+ */
+.headerPanel {
+    width: 100%;
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: var(--spacing-md) var(--seccion-padding-x);
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+}
+
+.headerPanelContenedor {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logo */
+.headerPanelLogo {
+    display: flex;
+    width: 20px;
+    height: 20px;
+}
+
+.headerPanelLogoSvg {
+    width: 100%;
+    height: 100%;
+    fill: var(--brand-black);
+}
+
+/* Acciones a la derecha */
+.headerPanelAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+/*
+ * Estilo identico a enlaceNavegacionWrapper del header global.
+ * Simples enlaces de texto con hover sutil.
+ */
+.headerPanelEnlace {
+    font-family: var(--font-primary);
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color var(--transicion-rapida);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.headerPanelEnlace:hover {
+    color: var(--brand-black);
+}
+
+/* Avatar del usuario */
+.headerPanelAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.headerPanelAvatarImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

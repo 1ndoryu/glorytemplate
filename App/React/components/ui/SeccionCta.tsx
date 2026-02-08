@@ -1,5 +1,6 @@
 import React from 'react';
 import {Button} from './Button';
+import {navegar} from '../../navegacionSPA';
 import './SeccionCta.css';
 
 export interface SeccionCtaProps {
@@ -21,7 +22,7 @@ export const SeccionCta: React.FC<SeccionCtaProps> = ({titulo, descripcion, text
         if (onBotonPrimarioClick) {
             onBotonPrimarioClick();
         } else if (linkBotonPrimario) {
-            window.location.href = linkBotonPrimario;
+            navegar(linkBotonPrimario);
         }
     };
 
@@ -29,7 +30,7 @@ export const SeccionCta: React.FC<SeccionCtaProps> = ({titulo, descripcion, text
         if (onBotonSecundarioClick) {
             onBotonSecundarioClick();
         } else if (linkBotonSecundario) {
-            window.location.href = linkBotonSecundario;
+            navegar(linkBotonSecundario);
         }
     };
 

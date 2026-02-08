@@ -3,10 +3,29 @@
  * Muestra una cuadricula de logos de clientes/marcas.
  * Datos desde backend (MARCAS_DATA) con fallback a import.meta.glob.
  */
-import React from 'react';
+import React, {useState} from 'react';
 import {SeccionHeader} from '../ui/SeccionHeader';
 import {MARCAS_DATA} from '../../data/marcas';
 import './SeccionClientes.css';
+
+/* Wrapper de logo con fallback a texto si la imagen falla */
+const LogoMarca: React.FC<{nombre: string; logo: string}> = ({nombre, logo}) => {
+    const [error, setError] = useState(false);
+
+    if (!logo || error) {
+        return <span className="clienteLogoTexto">{nombre}</span>;
+    }
+
+    return (
+        <img
+            src={logo}
+            alt={nombre}
+            className="clienteLogoImg"
+            loading="lazy"
+            onError={() => setError(true)}
+        />
+    );
+};
 
 export const SeccionClientes: React.FC = () => {
     if (MARCAS_DATA.length === 0) return null;
@@ -19,11 +38,7 @@ export const SeccionClientes: React.FC = () => {
                 <div className="clientesGrid">
                     {MARCAS_DATA.map((marca) => (
                         <div key={marca.id} className="clienteLogoCard">
-                            {marca.logo ? (
-                                <img src={marca.logo} alt={marca.nombre} className="clienteLogoImg" loading="lazy" />
-                            ) : (
-                                <span className="clienteLogoTexto">{marca.nombre}</span>
-                            )}
+                            <LogoMarca nombre={marca.nombre} logo={marca.logo} />
                         </div>
                     ))}
                 </div>

@@ -8,6 +8,7 @@ import '../styles/variables.css';
 import './ProyectoIndividualIsland.css';
 import {LayoutPagina} from '../components/layout/LayoutPagina';
 import {SeccionSkillsServicio} from '../components/servicios/SeccionSkillsServicio';
+import {SeccionGaleriaServicio} from '../components/servicios/SeccionGaleriaServicio';
 import {SeccionCta} from '../components/ui/SeccionCta';
 import {SeccionContacto} from '../components/home/SeccionContacto';
 import {PROYECTOS_DATA} from '../data/showcase';
@@ -34,13 +35,12 @@ const TarjetaRelacionado: React.FC<{proyecto: Proyecto}> = ({proyecto}) => (
     </a>
 );
 
-export const ProyectoIndividualIsland = ({titulo = 'Proyecto', descripcion = '', cliente = '', categorias = '', imagen = '', slug = ''}: ProyectoIndividualIslandProps): JSX.Element => {
+export const ProyectoIndividualIsland = ({titulo = 'Proyecto', descripcion = '', cliente = '', categorias = '', slug = ''}: ProyectoIndividualIslandProps): JSX.Element => {
     /* Buscar datos enriquecidos desde el contexto */
     const proyectoContexto = PROYECTOS_DATA.find(p => p.titulo.toLowerCase() === titulo.toLowerCase() || String(p.id) === slug);
 
     const skills = proyectoContexto?.skills || [];
     const desc = descripcion || proyectoContexto?.descripcion || '';
-    const img = imagen || proyectoContexto?.imagen || '';
     const cats = categorias || (Array.isArray(proyectoContexto?.categorias) ? proyectoContexto.categorias.join(', ') : proyectoContexto?.categorias || '');
 
     /* Proyectos relacionados: misma categoría, excluyendo el actual */
@@ -65,20 +65,14 @@ export const ProyectoIndividualIsland = ({titulo = 'Proyecto', descripcion = '',
                 </div>
             </section>
 
-            {/* Imagen principal */}
-            {img && (
-                <section className="proyectoImagenPrincipal">
-                    <div className="proyectoImagenContenedor">
-                        <img src={img} alt={titulo} className="proyectoImagen" />
-                    </div>
-                </section>
-            )}
+            {/* Galería de imagenes con carrusel (usa colors temporales, igual que servicios) */}
+            <SeccionGaleriaServicio />
 
             {/* Skills del proyecto */}
             {skills.length > 0 && <SeccionSkillsServicio skills={skills} />}
 
             {/* CTA */}
-            <SeccionCta descripcion={['¿Te gustaría un proyecto similar? Estamos listos para transformar tu idea en una experiencia digital excepcional.', 'Contáctanos para discutir tu visión y hagamos algo increíble juntos.']} textoBotonPrimario="Comenzar Proyecto" linkBotonPrimario="#contacto" textoBotonSecundario="Ver más proyectos" linkBotonSecundario="/proyectos" />
+            <SeccionCta descripcion={['¿Te gustaría un proyecto similar? Estamos listos para transformar tu idea en una experiencia digital excepcional.', 'Contáctanos para discutir tu visión y hagamos algo increíble juntos.']} textoBotonPrimario="Comenzar Proyecto" linkBotonPrimario="/contacto/" textoBotonSecundario="Ver más proyectos" linkBotonSecundario="/proyectos/" />
 
             {/* Proyectos relacionados */}
             {relacionados.length > 0 && (

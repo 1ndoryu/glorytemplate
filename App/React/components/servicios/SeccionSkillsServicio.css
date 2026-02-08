@@ -1,6 +1,6 @@
 /* Estilos para SeccionSkillsServicio */
 .seccionSkillsServicio {
-    padding: var(--spacing-4xl) 0;
+    padding: var(--spacing-2xl) 0;
     background-color: var(--bg-secondary);
     color: var(--bg-primary);
     width: 100%;

@@ -6,6 +6,7 @@
  */
 
 import {registerAppBlocks} from './blocks/index';
+import {inicializarSPA} from './navegacionSPA';
 
 /* Importar Islas */
 import {BienvenidaIsland} from './islands/BienvenidaIsland';
@@ -49,3 +50,16 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
 };
 
 export default appIslands;
+
+/*
+ * Inicializar SPA tras el montaje inicial de main.tsx.
+ * requestAnimationFrame asegura que el DOM esté listo y la isla montada.
+ */
+if (typeof window !== 'undefined') {
+    const arrancaSPA = () => inicializarSPA(appIslands, AppProvider);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => requestAnimationFrame(arrancaSPA));
+    } else {
+        requestAnimationFrame(arrancaSPA);
+    }
+}

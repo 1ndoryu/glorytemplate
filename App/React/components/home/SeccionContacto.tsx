@@ -6,6 +6,7 @@
 import React from 'react';
 import {SeccionHeader} from '../ui/SeccionHeader';
 import {Button} from '../ui/Button';
+import {navegar} from '../../navegacionSPA';
 import './SeccionContacto.css';
 
 interface SeccionContactoProps {
@@ -26,10 +27,10 @@ export const SeccionContacto: React.FC<SeccionContactoProps> = ({compacto = fals
                 </div>
 
                 <div className="contactoBotones">
-                    <Button variante="primario" onClick={() => (window.location.href = '/contacto/')}>
+                    <Button variante="primario" onClick={() => navegar('/contacto/')}>
                         Contact
                     </Button>
-                    <Button variante="outline" onClick={() => (window.location.href = '/servicios/')}>
+                    <Button variante="outline" onClick={() => navegar('/servicios/')}>
                         Hire Service
                     </Button>
                 </div>

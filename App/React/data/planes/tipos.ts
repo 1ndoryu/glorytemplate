@@ -1,6 +1,6 @@
 /**
  * Tipos compartidos para el sistema de planes de precios.
- * TO-DO: Conectar con Stripe para checkout real.
+ * Integración con Stripe via stripePriceId (opcional hasta configurar IDs en Stripe Dashboard).
  */
 
 export interface CaracteristicaPlan {
@@ -19,6 +19,10 @@ export interface PlanServicio {
     esPersonalizado?: boolean;
     ctaTexto: string;
     ctaLink: string;
+    /* ID del precio en Stripe Dashboard. Vacío = redirige a contacto */
+    stripePriceId?: string;
+    /* Modo de checkout: payment (único) o subscription (recurrente) */
+    stripeModo?: 'payment' | 'subscription';
 }
 
 export interface PlanesDeServicio {

@@ -52,7 +52,7 @@
 .blogContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
-    padding: 0 var(--spacing-lg) var(--spacing-4xl);
+    padding: 0 var(--spacing-lg) var(--spacing-xl);
     width: 100%;
 }
 

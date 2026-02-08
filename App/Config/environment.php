@@ -28,3 +28,20 @@ AssetManager::setGlobalDevMode($globalDev);
 
 // Log de estado de entorno
 #error_log('[ENV] LOCAL=' . ($localValue ? 'true' : 'false') . ' | GLOBAL_DEV_MODE=' . ($globalDev ? 'true' : 'false'));
+
+/*
+ * Stripe: Propagar claves de .env a constantes PHP.
+ * StripeConfig busca constantes definidas con define() o get_option().
+ */
+$stripeKeys = [
+    'GLORY_STRIPE_SECRET_KEY',
+    'GLORY_STRIPE_PUBLISHABLE_KEY',
+    'GLORY_STRIPE_WEBHOOK_SECRET',
+];
+
+foreach ($stripeKeys as $key) {
+    $value = $_ENV[$key] ?? getenv($key);
+    if ($value && !defined($key)) {
+        define($key, $value);
+    }
+}

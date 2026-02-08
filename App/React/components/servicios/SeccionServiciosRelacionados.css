@@ -1,8 +1,8 @@
 /* Estilos para SeccionServiciosRelacionados (Light Theme) */
 .seccionServiciosRelacionados {
-    padding: var(--spacing-4xl) 0;
-    background-color: var(--bg-primary); /* Fondo claro */
-    color: var(--text-primary); /* Texto oscuro */
+    padding: var(--spacing-2xl) 0;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     width: 100%;
 }
 

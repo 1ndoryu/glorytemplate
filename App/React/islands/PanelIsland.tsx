@@ -1,16 +1,17 @@
 /**
  * Island: PanelIsland
- * Panel de usuario con sidebar lateral.
+ * Panel de usuario con header custom (sin header/footer global) y sidebar lateral.
  * Secciones: Proyectos, Servicios, Pagos, Perfil, Metodos de Pago.
  * TO-DO: Integrar con backend real (auth, Stripe, dashboards).
  */
 import React, {useState} from 'react';
-import {LayoutPagina} from '../components/layout/LayoutPagina';
+import {HeaderPanel} from '../components/panel/HeaderPanel';
 import {SeccionPerfil} from '../components/panel/SeccionPerfil';
 import {SeccionMetodosPago} from '../components/panel/SeccionMetodosPago';
 import {SidebarPanel} from '../components/panel/SidebarPanel';
 import {PlaceholderSeccion} from '../components/panel/PlaceholderSeccion';
 import {TABS_PANEL, type SeccionPanel} from '../data/panel';
+import '../styles/variables.css';
 import './PanelIsland.css';
 
 export const PanelIsland: React.FC = () => {
@@ -30,7 +31,8 @@ export const PanelIsland: React.FC = () => {
     };
 
     return (
-        <LayoutPagina>
+        <>
+            <HeaderPanel />
             <section id="panelUsuario" className="panelContenedor">
                 <div className="panelLayout">
                     <SidebarPanel
@@ -48,6 +50,6 @@ export const PanelIsland: React.FC = () => {
                     </main>
                 </div>
             </section>
-        </LayoutPagina>
+        </>
     );
 };
