@@ -108,6 +108,12 @@
     margin: 0;
 }
 
+/* Subtexto del cliente dentro del título */
+.proyectoCliente {
+    font-weight: 400;
+    color: var(--text-tertiary);
+}
+
 .proyectoSubtitulo {
     font-family: var(--font-primary);
     font-size: var(--text-xs);

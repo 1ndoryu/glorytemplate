@@ -69,8 +69,8 @@
 .footerInput {
     flex: 1;
     padding: var(--spacing-sm) var(--spacing-md);
-    background-color: rgba(255, 255, 255, 0.05); /* Translucent dark mode input */
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: var(--white-5);
+    border: 1px solid var(--white-20);
     border-radius: 4px;
     color: var(--bg-primary);
     font-family: var(--font-primary);
@@ -78,13 +78,13 @@
 }
 
 .footerInput::placeholder {
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--white-40);
 }
 
 .footerInput:focus {
     outline: none;
     border-color: var(--bg-primary);
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--white-10);
 }
 
 /* Sección Inferior: Links y Copyright */
@@ -93,7 +93,7 @@
     justify-content: space-between;
     align-items: center;
     padding-top: var(--spacing-lg);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--white-10);
     flex-wrap: wrap;
     gap: var(--spacing-md);
 }
@@ -120,6 +120,12 @@
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     opacity: 0.4;
+}
+
+/* Botón outline invertido para fondo oscuro */
+.botonFooter {
+    border-color: var(--bg-primary);
+    color: var(--bg-primary);
 }
 
 /* Responsive */

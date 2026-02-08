@@ -1,6 +1,6 @@
 /*
  * Estilos para SeccionTestimonios
- * Hereda estructura base de SeccionClientes pero con comportamiento de carrusel
+ * Carrusel infinito con drag. El slide-unit se calcula via CSS vars (no JS).
  */
 
 .seccionTestimonios {
@@ -10,7 +10,18 @@
     width: 100%;
     display: flex;
     justify-content: center;
-    overflow: hidden; /* Importante para el carrusel */
+    overflow: hidden;
+
+    /* Dimensiones del slide para transform calc() */
+    --testimonio-card-width: 350px;
+    --testimonio-gap: var(--spacing-lg);
+    --testimonio-slide-unit: calc(var(--testimonio-card-width) + var(--testimonio-gap));
+}
+
+@media (min-width: 768px) {
+    .seccionTestimonios {
+        --testimonio-card-width: 450px;
+    }
 }
 
 .testimoniosContenedor {
@@ -47,8 +58,7 @@
 
 /* Tarjeta de Testimonio */
 .testimonioCard {
-    /* Anchos fijos o calculados para el carrusel */
-    width: 350px;
+    width: var(--testimonio-card-width);
     min-width: 300px;
     flex: 0 0 auto;
 
@@ -64,12 +74,6 @@
     /* Evitar seleccion de texto al arrastrar */
     user-select: none;
     -webkit-user-select: none;
-}
-
-@media (min-width: 768px) {
-    .testimonioCard {
-        width: 450px;
-    }
 }
 
 .testimonioTexto {

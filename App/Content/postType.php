@@ -26,4 +26,18 @@ PostTypeManager::define(
     'Tareas'
 );
 
+PostTypeManager::define(
+    'servicio',
+    [
+        'public' => true,
+        'show_in_rest' => true,
+        'has_archive' => true,
+        'supports' => ['title', 'editor', 'thumbnail', 'excerpt'],
+        'menu_icon' => 'dashicons-grid-view',
+        'rewrite' => ['slug' => 'servicios']
+    ],
+    'Servicio',
+    'Servicios'
+);
+
 

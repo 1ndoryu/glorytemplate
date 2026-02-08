@@ -1,0 +1,8 @@
+/* CSS ServicioIndividualIsland */
+/* Principalmente contenedores, ya que los componentes tienen sus estilos */
+.servicioIndividualMain {
+    background-color: var(--bg-primary);
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+}

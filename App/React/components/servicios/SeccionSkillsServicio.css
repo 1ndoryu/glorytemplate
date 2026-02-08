@@ -1,0 +1,98 @@
+/* Estilos para SeccionSkillsServicio */
+.seccionSkillsServicio {
+    padding: var(--spacing-4xl) 0;
+    background-color: var(--bg-secondary); /* Fondo oscuro como en Home */
+    color: var(--bg-primary); /* Texto claro */
+    width: 100%;
+    margin: 0;
+}
+
+/* Ajustes de color para el Header en fondo oscuro */
+.seccionSkillsServicio .seccionHeader {
+    border-bottom-color: var(--white-20);
+}
+
+.seccionSkillsServicio .seccionTitulo {
+    color: var(--bg-primary);
+}
+
+.skillsContenedor {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.skillsLista {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.skillItem {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-lg) 0;
+    border-bottom: 1px solid var(--white-15);
+    transition: all 0.2s ease;
+    gap: var(--spacing-lg);
+}
+
+.skillItem:hover {
+    border-bottom-color: var(--bg-primary);
+}
+
+.skillContenido {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.skillTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-2xl);
+    color: var(--bg-primary);
+    margin: 0;
+    font-weight: 400;
+}
+
+.skillIcono {
+    color: var(--bg-primary);
+    display: flex;
+    align-items: center;
+}
+
+.skillArrow {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.2s ease;
+}
+
+.skillItem:hover .skillArrow {
+    transform: translateX(5px);
+}
+
+/* Imagen oculta por defecto para replicar estructura home */
+.skillImagenWrapper {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .skillImagenWrapper {
+        display: block;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: var(--white-10);
+    }
+
+    .skillImagen {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}

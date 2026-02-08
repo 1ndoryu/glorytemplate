@@ -1,0 +1,72 @@
+.seccionCta {
+    width: 100%;
+    /* Padding estandar */
+    padding: var(--spacing-4xl) var(--spacing-lg);
+    background-color: var(--bg-primary);
+    display: flex;
+    justify-content: center;
+    border-top: none;
+}
+
+.ctaContenedor {
+    max-width: var(--container-width);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: var(--spacing-xl);
+}
+
+.ctaTexto {
+    width: 100%;
+    max-width: 800px;
+}
+
+.ctaTitulo {
+    /* Assuming styles for h2 but defaulting to project standards if not specified */
+    margin-bottom: var(--spacing-md);
+    font-size: var(--text-3xl);
+    /* Add more styles if needed based on original */
+}
+
+.ctaTexto p {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl); /* Aumentado de lg a xl */
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.ctaTexto p:last-child {
+    margin-bottom: 0;
+}
+
+.ctaBotones {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-top: 0;
+}
+
+.ctaBotonPrimario {
+    min-width: 220px;
+}
+
+.ctaBotonSecundario {
+    min-width: 180px;
+}
+
+@media (max-width: 768px) {
+    .ctaBotones {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .ctaBotonPrimario,
+    .ctaBotonSecundario {
+        width: 100%;
+        min-width: 0;
+    }
+}

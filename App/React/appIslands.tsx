@@ -10,6 +10,7 @@ import {registerAppBlocks} from './blocks/index';
 // Importar Islas
 import {BienvenidaIsland} from './islands/BienvenidaIsland';
 import {ServiciosIsland} from './islands/ServiciosIsland';
+import {ServicioIndividualIsland} from './islands/ServicioIndividualIsland';
 
 // Register blocks
 registerAppBlocks();
@@ -27,7 +28,8 @@ export const AppProvider: React.ComponentType<{children: React.ReactNode}> | und
  */
 export const appIslands: Record<string, React.ComponentType<Record<string, unknown>>> = {
     BienvenidaIsland: BienvenidaIsland as React.ComponentType<Record<string, unknown>>,
-    ServiciosIsland: ServiciosIsland as React.ComponentType<Record<string, unknown>>
+    ServiciosIsland: ServiciosIsland as React.ComponentType<Record<string, unknown>>,
+    ServicioIndividualIsland: ServicioIndividualIsland as React.ComponentType<Record<string, unknown>>
 };
 
 export default appIslands;

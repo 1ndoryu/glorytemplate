@@ -1,0 +1,67 @@
+/* Estilos para el Hero de Servicio */
+.heroServicio {
+    width: 100%;
+    /* Padding eliminado de aqui para evitar duplicidad y matching con ServiciosIsland */
+    background-color: var(--bg-primary);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* Contenedor principal: Grid 2 columnas como en ServiciosIsland */
+.heroServicioContenedor {
+    max-width: var(--container-width);
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    /* Padding base igual a ServiciosIsland */
+    padding: var(--spacing-xl) var(--spacing-lg);
+    /* Overrides especificos de altura */
+    padding-top: 15vh;
+    padding-bottom: var(--spacing-xl);
+    text-align: left;
+    margin: 0 auto;
+}
+
+.heroServicioTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-4xl); /* Igualado a ServiciosIsland (era 5xl) */
+    font-weight: 500;
+    line-height: 0.95;
+    color: var(--brand-black);
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.heroServicioDescripcionWrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.heroServicioDescripcion {
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    line-height: 1.4;
+    color: var(--text-primary);
+    max-width: 500px;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .heroServicioContenedor {
+        grid-template-columns: 1fr;
+        padding-top: 10vh;
+        gap: var(--spacing-lg);
+    }
+
+    .heroServicioTitulo {
+        font-size: var(--text-3xl);
+    }
+
+    .heroServicioDescripcion {
+        font-size: var(--text-lg);
+    }
+}

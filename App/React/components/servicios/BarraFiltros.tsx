@@ -1,15 +1,12 @@
 /**
  * Componente: BarraFiltros
- * Barra de búsqueda y filtrado minimalista para la página de servicios.
+ * Barra de búsqueda y filtrado para la página de servicios.
+ * Tipo FiltroCategoria centralizado en types/navegacion.ts (DRY).
  */
 import React from 'react';
 import {Search} from 'lucide-react';
+import {FiltroCategoria} from '../../types/navegacion';
 import './BarraFiltros.css';
-
-interface FiltroCategoria {
-    id: string;
-    label: string;
-}
 
 interface BarraFiltrosProps {
     categorias: FiltroCategoria[];

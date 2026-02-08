@@ -3,11 +3,12 @@
  * Grid de 3 columnas para mostrar las tarjetas de servicios.
  */
 import React from 'react';
-import {TarjetaServicio, ServicioData} from './TarjetaServicio';
+import {Servicio} from '../../types/servicios';
+import {ServiceCard} from '../ui/ServiceCard';
 import './GridServicios.css';
 
 interface GridServiciosProps {
-    servicios: ServicioData[];
+    servicios: Servicio[];
 }
 
 export const GridServicios: React.FC<GridServiciosProps> = ({servicios}) => {
@@ -22,7 +23,7 @@ export const GridServicios: React.FC<GridServiciosProps> = ({servicios}) => {
     return (
         <div className="gridServicios">
             {servicios.map(servicio => (
-                <TarjetaServicio key={servicio.id} servicio={servicio} />
+                <ServiceCard key={servicio.id} servicio={servicio} variant="detailed" />
             ))}
         </div>
     );

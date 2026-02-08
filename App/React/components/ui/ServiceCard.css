@@ -1,0 +1,190 @@
+/*
+ * Estilos para ServiceCard
+ * Componente unificado para tarjetas de servicio.
+ * Variantes: .detailed (Grid principal) y .simple (Listado Home)
+ */
+
+/* ==========================================================================
+   Variante: Detailed (Tarjeta completa 1:1)
+   ========================================================================== */
+.serviceCard.detailed {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    text-decoration: none;
+    color: inherit; /* Hereda color del contenedor padre */
+    transition: transform 0.3s ease;
+}
+
+.serviceCard.detailed:hover {
+    transform: translateY(-4px);
+}
+
+/* Imagen */
+.serviceCard.detailed .cardImageWrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--bg-card-subtle);
+}
+
+.serviceCard.detailed .cardImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.serviceCard.detailed:hover .cardImage {
+    transform: scale(1.03);
+}
+
+/* Overlay */
+.serviceCard.detailed .cardOverlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.3) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.serviceCard.detailed:hover .cardOverlay {
+    opacity: 1;
+}
+
+/* Contenido */
+.serviceCard.detailed .cardContent {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: 0 var(--spacing-xs);
+}
+
+.serviceCard.detailed .cardTitle {
+    font-family: var(--font-primary);
+    font-size: var(--text-lg);
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.3;
+}
+
+.serviceCard.detailed .cardDescription {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.serviceCard.detailed .cardTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-xs);
+}
+
+/* ==========================================================================
+   Variante: Simple (Lista horizontal)
+   ========================================================================== */
+.serviceCard.simple {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Asume contexto oscuro por defecto, ajustar con vars si necesario */
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+    gap: var(--spacing-lg);
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+}
+
+.serviceCard.simple:hover {
+    border-bottom-color: currentColor;
+}
+
+/* Imagen Simple */
+.serviceCard.simple .simpleImageWrapper {
+    width: 120px;
+    height: 80px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background-color: var(--white-10);
+    display: none; /* Oculto por defecto en móvil según diseño anterior */
+}
+
+@media (min-width: 768px) {
+    .serviceCard.simple .simpleImageWrapper {
+        display: block;
+        width: 180px;
+        height: 100px;
+    }
+}
+
+.serviceCard.simple .simpleImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.serviceCard.simple:hover .simpleImage {
+    transform: scale(1.05);
+}
+
+/* Contenido Simple */
+.serviceCard.simple .simpleContent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: var(--spacing-md);
+}
+
+.serviceCard.simple .simpleTitle {
+    font-family: var(--font-primary);
+    font-size: var(--text-2xl);
+    letter-spacing: -0.02em;
+    color: inherit;
+    margin: 0;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.serviceCard.simple:hover .simpleTitle {
+    opacity: 1;
+}
+
+.serviceCard.simple .simpleArrow {
+    width: var(--text-xl);
+    height: var(--text-xl);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.serviceCard.simple:hover .simpleArrow {
+    transform: translateX(8px);
+}
+
+@media (max-width: 768px) {
+    .serviceCard.simple .simpleTitle {
+        font-size: var(--text-xl);
+    }
+
+    .serviceCard.simple .simpleArrow {
+        width: var(--text-base);
+        height: var(--text-base);
+    }
+}

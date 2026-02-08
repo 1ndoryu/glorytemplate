@@ -1,9 +1,11 @@
 /**
  * Componente: Footer
- * Pie de página global con newsletter integrada y enlaces de navegación.
+ * Pie de página global con newsletter y navegación.
+ * Enlaces centralizados en data/navegacion.ts (DRY).
  */
 import React from 'react';
 import {Button} from '../ui/Button';
+import {ENLACES_FOOTER} from '../../data/navegacion';
 import './Footer.css';
 
 export const Footer: React.FC = () => {
@@ -12,7 +14,6 @@ export const Footer: React.FC = () => {
     return (
         <footer className="footer" id="footer">
             <div className="footerContenedor">
-                {/* Top Section: Brand & Newsletter */}
                 <div className="footerTop">
                     <div className="footerBrand">
                         <h3 className="footerLogo">Nakomi.</h3>
@@ -23,33 +24,23 @@ export const Footer: React.FC = () => {
                         <h4 className="footerNewsletterTitulo">Stay updated</h4>
                         <form className="footerForm" onSubmit={e => e.preventDefault()}>
                             <input type="email" placeholder="Enter your email address" className="footerInput" required />
-                            {/* Reusing existing Button component but forcing outline variant logic manually via CSS or creating a new prop if needed. 
-                                For now, primary button on dark bg works well. */}
-                            <Button variante="outline" className="footerButton" style={{borderColor: 'var(--bg-primary)', color: 'var(--bg-primary)'}}>
+                            <Button variante="outline" className="botonFooter">
                                 Subscribe
                             </Button>
                         </form>
                     </div>
                 </div>
 
-                {/* Bottom Section: Links & Copyright */}
                 <div className="footerBottom">
                     <div className="footerLinks">
-                        <a href="#" className="footerLink">
-                            Home
-                        </a>
-                        <a href="#servicios" className="footerLink">
-                            Services
-                        </a>
-                        <a href="#contacto" className="footerLink">
-                            Contact
-                        </a>
-                        <a href="#" className="footerLink">
-                            Privacy Policy
-                        </a>
+                        {ENLACES_FOOTER.map(enlace => (
+                            <a key={enlace.label} href={enlace.href} className="footerLink">
+                                {enlace.label}
+                            </a>
+                        ))}
                     </div>
 
-                    <span className="footerCopyright">© {currentYear} Nakomi Template. All rights reserved.</span>
+                    <span className="footerCopyright">&copy; {currentYear} Nakomi Template. All rights reserved.</span>
                 </div>
             </div>
         </footer>
