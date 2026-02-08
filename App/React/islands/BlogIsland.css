@@ -7,17 +7,17 @@
 
 /* Hero */
 .blogHero {
-    padding: 0 var(--seccion-padding-x);
+    padding: 0;
 }
 
 .blogHeroContenido {
     max-width: var(--container-width);
     margin: 0 auto;
+    padding: 15vh var(--spacing-lg) var(--spacing-xl);
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--spacing-xl);
-    padding-top: 15vh;
-    padding-bottom: var(--spacing-xl);
 }
 
 .blogHeroTitulo {
@@ -46,12 +46,14 @@
 
 /* Contenido */
 .blogContenido {
-    padding: 0 var(--seccion-padding-x) var(--spacing-4xl);
+    padding: 0;
 }
 
 .blogContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
+    padding: 0 var(--spacing-lg) var(--spacing-4xl);
+    width: 100%;
 }
 
 /* Filtros */

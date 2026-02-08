@@ -47,6 +47,7 @@ use Glory\Services\ReactIslands;
             'titulo' => get_the_title(),
             'descripcion' => get_the_excerpt() ?: 'Servicio profesional especializado.',
             'precio_desde' => get_post_meta(get_the_ID(), 'precio_desde', true) ?: '$997',
+            'slug' => get_post_field('post_name', get_the_ID()),
         ]);
     } else {
         echo '<p style="text-align:center; padding: 2rem;">Error: Servicio ReactIslands no disponible.</p>';

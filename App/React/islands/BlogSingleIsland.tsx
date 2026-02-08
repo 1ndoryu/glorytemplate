@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import {LayoutPagina} from '../components/layout/LayoutPagina';
-import {SeccionCta} from '../components/ui/SeccionCta';
+import {SeccionContacto} from '../components/home/SeccionContacto';
 import {POSTS_BLOG} from '../data/blog';
 import {obtenerImagenBlog} from '../hooks/useImagenes';
 import './BlogSingleIsland.css';
@@ -126,12 +126,7 @@ export const BlogSingleIsland = ({
                 </div>
             </section>
 
-            <SeccionCta
-                titulo="Have a project in mind?"
-                descripcion="If you want to discuss your project or just say hello, I'd love to hear from you."
-                textoBotonPrimario="Get in touch"
-                linkBotonPrimario="/contacto/"
-            />
+            <SeccionContacto />
         </LayoutPagina>
     );
 };

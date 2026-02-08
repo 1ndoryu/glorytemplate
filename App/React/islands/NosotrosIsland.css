@@ -7,17 +7,17 @@
 
 /* Hero */
 .nosotrosHero {
-    padding: 0 var(--seccion-padding-x);
+    padding: 0;
 }
 
 .nosotrosHeroContenido {
     max-width: var(--container-width);
     margin: 0 auto;
+    padding: 15vh var(--spacing-lg) var(--spacing-xl);
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--spacing-xl);
-    padding-top: 15vh;
-    padding-bottom: var(--spacing-xl);
 }
 
 .nosotrosHeroTitulo {
@@ -46,13 +46,15 @@
 
 /* Sección Misión */
 .nosotrosMision {
-    padding: var(--spacing-2xl) var(--seccion-padding-x);
+    padding: var(--spacing-2xl) 0;
     background-color: var(--bg-secondary);
 }
 
 .nosotrosMisionContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    width: 100%;
 }
 
 .misionGrid {
@@ -79,19 +81,21 @@
 .misionItemTexto {
     font-family: var(--font-serif);
     font-size: var(--text-lg);
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--white-85);
     line-height: 1.7;
     margin: 0;
 }
 
 /* Sección Equipo */
 .nosotrosEquipo {
-    padding: var(--spacing-2xl) var(--seccion-padding-x);
+    padding: var(--spacing-2xl) 0;
 }
 
 .nosotrosEquipoContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    width: 100%;
 }
 
 .equipoHeader {
@@ -185,13 +189,15 @@
 
 /* Sección Marcas */
 .nosotrosMarcas {
-    padding: var(--spacing-2xl) var(--seccion-padding-x);
+    padding: var(--spacing-2xl) 0;
     border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .nosotrosMarcasContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    width: 100%;
 }
 
 .marcasHeader {
@@ -229,7 +235,9 @@
     width: auto;
     filter: grayscale(100%);
     opacity: 0.6;
-    transition: filter var(--transicion-media), opacity var(--transicion-media);
+    transition:
+        filter var(--transicion-media),
+        opacity var(--transicion-media);
 }
 
 .marcaLogo:hover img {

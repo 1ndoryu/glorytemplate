@@ -7,17 +7,17 @@
 
 /* Hero */
 .contactoHero {
-    padding: 0 var(--seccion-padding-x);
+    padding: 0;
 }
 
 .contactoHeroContenido {
     max-width: var(--container-width);
     margin: 0 auto;
+    padding: 15vh var(--spacing-lg) var(--spacing-xl);
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--spacing-xl);
-    padding-top: 15vh;
-    padding-bottom: var(--spacing-xl);
 }
 
 .contactoHeroTitulo {
@@ -46,12 +46,14 @@
 
 /* Formulario seccion */
 .contactoFormularioSeccion {
-    padding: 0 var(--seccion-padding-x) var(--spacing-4xl);
+    padding: 0;
 }
 
 .contactoFormularioContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
+    padding: 0 var(--spacing-lg) var(--spacing-4xl);
+    width: 100%;
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: var(--spacing-4xl);

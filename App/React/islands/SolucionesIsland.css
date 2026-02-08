@@ -7,17 +7,17 @@
 
 /* Hero */
 .solucionesHero {
-    padding: 0 var(--seccion-padding-x);
+    padding: 0;
 }
 
 .solucionesHeroContenido {
     max-width: var(--container-width);
     margin: 0 auto;
+    padding: 15vh var(--spacing-lg) var(--spacing-xl);
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--spacing-xl);
-    padding-top: 15vh;
-    padding-bottom: var(--spacing-xl);
 }
 
 .solucionesHeroTitulo {
@@ -46,12 +46,14 @@
 
 /* Contenido */
 .solucionesContenido {
-    padding: 0 var(--seccion-padding-x) var(--spacing-4xl);
+    padding: 0;
 }
 
 .solucionesContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
+    padding: 0 var(--spacing-lg) var(--spacing-4xl);
+    width: 100%;
 }
 
 .solucionesGrid {
@@ -71,12 +73,15 @@
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 12px;
     background-color: var(--bg-primary);
-    transition: border-color var(--transicion-media), box-shadow var(--transicion-media), transform var(--transicion-media);
+    transition:
+        border-color var(--transicion-media),
+        box-shadow var(--transicion-media),
+        transform var(--transicion-media);
     min-height: 320px;
 }
 
 .tarjetaSolucion:hover {
-    border-color: rgba(0, 0, 0, 0.2);
+    border-color: var(--border-hover);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
     transform: translateY(-4px);
 }

@@ -1,0 +1,118 @@
+/*
+ * CSS: SeccionMetodosPago
+ * Gestion de tarjetas y direccion de facturacion.
+ * Reutiliza patron de formulario del panel.
+ */
+.metodosPagoSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.metodosPagoIntro {
+    font-family: var(--font-serif);
+    font-size: var(--text-base);
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Tarjetas lista */
+.tarjetasLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.tarjetaVacia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl);
+    background-color: var(--bg-card-subtle);
+    border-radius: 12px;
+    border: 2px dashed rgba(0, 0, 0, 0.1);
+}
+
+.tarjetaVaciaIcono {
+    color: var(--text-tertiary);
+    opacity: 0.5;
+}
+
+.tarjetaVaciaTexto {
+    font-family: var(--font-serif);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+/* Subtitulo */
+.metodosPagoSubtitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-lg);
+    font-weight: 500;
+    color: var(--brand-black);
+    margin: 0;
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Formulario */
+.metodosPagoFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.metodosPagoGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+.metodosPagoCampo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.metodosPagoEtiqueta {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--brand-black);
+}
+
+.metodosPagoInput {
+    font-family: var(--font-serif);
+    font-size: var(--text-base);
+    color: var(--brand-black);
+    background-color: var(--brand-white);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: border-color var(--transicion-rapida);
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.metodosPagoInput:focus {
+    border-color: var(--brand-black);
+}
+
+/* Acciones */
+.metodosPagoAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .metodosPagoGrid {
+        grid-template-columns: 1fr;
+    }
+}

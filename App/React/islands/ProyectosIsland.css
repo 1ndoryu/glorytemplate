@@ -16,15 +16,13 @@
 .proyectosHero .heroContenido {
     position: relative;
     z-index: 2;
-    padding: var(--seccion-padding-y) var(--seccion-padding-x);
+    padding: 15vh var(--spacing-lg) var(--spacing-xl);
     max-width: var(--container-width);
     margin: 0 auto;
     width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--spacing-xl);
-    padding-top: 15vh;
-    padding-bottom: var(--spacing-xl);
 }
 
 .proyectosHero .heroTitulo {
@@ -58,7 +56,8 @@
 .proyectosContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
-    padding: 0 var(--seccion-padding-x);
+    padding: 0 var(--spacing-lg);
+    width: 100%;
 }
 
 /* Grid de tarjetas de proyecto */

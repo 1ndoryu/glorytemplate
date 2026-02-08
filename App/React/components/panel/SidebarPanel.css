@@ -1,0 +1,153 @@
+/*
+ * CSS: SidebarPanel
+ * Barra lateral del panel de usuario.
+ * Layout fijo a la izquierda con links de navegacion.
+ */
+.panelSidebar {
+    display: flex;
+    flex-direction: column;
+    width: 280px;
+    min-width: 280px;
+    background-color: var(--bg-card-subtle);
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+    padding: var(--spacing-lg);
+    gap: var(--spacing-lg);
+}
+
+/* Info usuario en sidebar */
+.sidebarUsuario {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.sidebarAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.sidebarAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sidebarInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.sidebarNombre {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--brand-black);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebarRol {
+    font-family: var(--font-serif);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    text-transform: capitalize;
+}
+
+/* Navegacion sidebar */
+.sidebarNav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.sidebarItem {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transicion-rapida);
+    text-align: left;
+    width: 100%;
+}
+
+.sidebarItem:hover {
+    color: var(--brand-black);
+    background-color: var(--bg-item-hover);
+}
+
+.sidebarItemActivo {
+    color: var(--brand-black);
+    background-color: var(--bg-item-active);
+    font-weight: 600;
+}
+
+.sidebarItemTexto {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Footer sidebar */
+.sidebarFooter {
+    padding-top: var(--spacing-md);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.sidebarFooter .botonBase {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Responsive: sidebar colapsa a top bar en movil */
+@media (max-width: 768px) {
+    .panelSidebar {
+        width: 100%;
+        min-width: unset;
+        flex-direction: row;
+        flex-wrap: wrap;
+        border-right: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        padding: var(--spacing-md);
+        gap: var(--spacing-sm);
+    }
+
+    .sidebarUsuario {
+        width: 100%;
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .sidebarNav {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 4px;
+    }
+
+    .sidebarItem {
+        white-space: nowrap;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--text-xs);
+    }
+
+    .sidebarFooter {
+        width: 100%;
+        padding-top: var(--spacing-sm);
+    }
+}

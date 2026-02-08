@@ -82,11 +82,20 @@ App/React/
 │   ├── navegacion.ts       <- Links, categorias filtro, CATEGORIAS_PROYECTOS
 │   ├── skills.ts           <- Skills por defecto (con descripcion)
 │   ├── miembros.ts         <- Equipo (PHP -> Fallback)
-│   └── marcas.ts           <- 12 Clientes (PHP -> Fallback con logos SVG)
+│   ├── marcas.ts           <- 12 Clientes (PHP -> Fallback con logos SVG)
+│   ├── panel.ts            <- Tabs panel, tipos SeccionPanel, obtenerUsuarioActual
+│   └── planes/
+│       ├── tipos.ts        <- CaracteristicaPlan, PlanServicio, PlanesDeServicio
+│       ├── planesCreacion.ts  <- Web, Apps, Branding (3 tiers c/u)
+│       ├── planesIA.ts        <- Agentes IA, Chatbots (3 tiers c/u)
+│       ├── planesCrecimiento.ts <- SEO, Marketing (3 tiers c/u)
+│       └── index.ts        <- Re-exports + obtenerPlanesServicio(slug)
 ├── hooks/
 │   ├── useImagenes.ts      <- UNICO punto de import.meta.glob (DRY)
 │   ├── useServicios.ts     <- Logica filtrado/busqueda
-│   └── useCarruselInfinito.ts <- Logica carrusel drag + autoplay
+│   ├── useCarruselInfinito.ts <- Logica carrusel drag + autoplay
+│   ├── usePerfil.ts        <- Estado perfil usuario (SRP extract)
+│   └── useAutenticacion.ts <- Estado auth modal (SRP extract, 9 useState -> 3)
 ├── styles/
 │   ├── init.css             <- Reset y fuentes
 │   ├── variables.css        <- Variables CSS (padding, transiciones, colores)
@@ -104,13 +113,13 @@ App/React/
 │   ├── SolucionesIsland.tsx          <- Landing soluciones
 │   ├── SolucionPlaceholderIsland.tsx  <- Placeholder sub-soluciones
 │   ├── ContactoIsland.tsx            <- Pagina /contacto/ formulario completo
-│   └── PanelIsland.tsx               <- Panel usuario placeholder (3 tabs)
+│   └── PanelIsland.tsx               <- Panel usuario sidebar (5 secciones)
 ├── components/
 │   ├── layout/
 │   │   ├── LayoutPagina.tsx    <- Wrapper Header+main+Footer (DRY)
 │   │   ├── Header.tsx          <- Submenu dropdown, Acceder + modal, Contacto
 │   │   ├── Footer.tsx          <- Newsletter funcional (Stay Updated)
-│   │   ├── ModalAutenticacion.tsx <- Login/Registro/Recuperar + Google OAuth
+│   │   ├── ModalAutenticacion.tsx <- Login/Registro/Recuperar (usa useAutenticacion)
 │   │   └── ModalAutenticacion.css
 │   ├── ui/
 │   │   ├── Button.tsx, Badge.tsx, SeccionHeader.tsx
@@ -120,10 +129,20 @@ App/React/
 │   │   ├── SeccionHero, SeccionClientes (backend SVGs), SeccionShowcase
 │   │   ├── CarruselShowcase (backend datos), SeccionTestimonios, SeccionServicios
 │   │   ├── SeccionContacto (compacto prop), SeccionBlog (3 cols), RandomImage
+│   ├── panel/
+│   │   ├── SidebarPanel.tsx       <- Nav sidebar con avatar + tabs
+│   │   ├── SidebarPanel.css
+│   │   ├── SeccionPerfil.tsx      <- Config perfil (usa usePerfil)
+│   │   ├── SeccionPerfil.css
+│   │   ├── SeccionMetodosPago.tsx  <- Tarjetas + facturacion
+│   │   ├── SeccionMetodosPago.css
+│   │   ├── PlaceholderSeccion.tsx <- Placeholder secciones en construccion
+│   │   └── PlaceholderSeccion.css
 │   └── servicios/
 │       ├── BarraFiltros, GridServicios, SeccionHeroServicio
 │       ├── SeccionGaleriaServicio, SeccionSkillsServicio (click-to-expand)
-│       └── SeccionServiciosRelacionados (filtra servicio actual)
+│       ├── SeccionServiciosRelacionados (filtra servicio actual)
+│       └── SeccionPlanesServicio.tsx <- Pricing cards (3 tiers por servicio)
 App/Content/
     ├── defaultContent.php   <- 9 servicios, 6 proyectos, 4 testimonios, 12 marcas, 4 miembros
     └── postType.php         <- PostTypes: servicio, proyecto, testimonio, marca, miembro
@@ -482,9 +501,9 @@ Estado: PENDIENTE | EN PROGRESO | COMPLETADO
 
 ### FASE 16: SERVICIOS - PLANES Y PAGOS
 
-#### 16.1 PENDIENTE - Planes por servicio
-- Plan Basico, Avanzado, Personalizado por servicio
-- UI: `PlanesServicio.tsx`, datos como meta en PHP
+#### 16.1 COMPLETADO (via FASE 20.1) - Planes por servicio
+- Implementado en FASE 20.1 con data/planes/ + SeccionPlanesServicio.tsx
+- 7 servicios × 3 tiers (Basico, Avanzado, Personalizado)
 
 #### 16.2 PENDIENTE - Integracion Stripe (futuro)
 - API keys desde .env, checkout directo
@@ -507,10 +526,13 @@ Estado: PENDIENTE | EN PROGRESO | COMPLETADO
 
 ### FASE 18: AUDITORIA SOLID Y LIMPIEZA
 
-#### 18.1 PENDIENTE - Revision profunda SOLID
-- [ ] SRP: max 3 useState por componente
-- [ ] Limites de archivo: 300 componentes, 120 hooks, 150 utils
-- [ ] ISP, DIP, OCP verificados
+#### 18.1 COMPLETADO - Revision profunda SOLID
+- [x] SRP: max 3 useState por componente - Violaciones corregidas:
+  - ModalAutenticacion.tsx (9 useState -> hook useAutenticacion.ts)
+  - SeccionPerfil.tsx (6 useState -> hook usePerfil.ts)
+- [x] Limites de archivo: planes.ts (457 líneas) dividido en data/planes/ (4 archivos, ~150 c/u)
+- [x] Todos los archivos pasan auditoría de líneas (300/120/150)
+- [x] ISP, DIP, OCP verificados
 
 #### 18.2 PENDIENTE - Accesibilidad (a11y)
 - aria-labels, navegacion teclado, skip links, contraste WCAG AA
@@ -551,17 +573,129 @@ Estado: PENDIENTE | EN PROGRESO | COMPLETADO
 12. [RESUELTO] Login, modal autenticacion, panel placeholder. (Fix: ModalAutenticacion.tsx con login/registro/recuperar, PanelIsland.tsx con 3 tabs placeholder)
 13. [RESUELTO] Hacer la logica de Stay updated. (Fix: Footer.tsx con newsletter funcional, NewsletterController.php con tabla WP custom)
 
-### Comentarios despues de llegar al 12.1
+### Comentarios v1.2 (Resumen - ya trabajados en FASE 13)
 
-1. En Selected Work no repertirse proyectos por categorías, asegurarse que se esten usando categorías reales del backend.
-2. La pagina de servicios usa un componente de tags, pero la de proyectos tanto como para el home y la pagina no, debería usarse, no es si realmente lo de "cardTags" o "Tags" es un componente pero debería y usarse en todo.
-3. La pagina de nosotros sigue teniendo un padding distinto a los lados incoherente con las demas paginas (igual blog) estos padding deben ser igual a la pagina de home, la seccion de Clientes que confían en nosotros debería ser igual a la que esta en el home. Igualmente el hero de soluciones no tiene el padding que usan las secciones home. Todos estos problemas probablemente de deben a estas partes de la pagina no estan usando la variable ancho maximo, solucionar este problema de alguna forma inteligente.
-4. Algo esta mal con la estructura de blogContenedor, tiene un articulo fuera de blogListaArticulos. 
-5. La tarjeta de articulo debe tener display: flex; flex-direction: row; y el titulo la descripcion y esas cosa en un flex column, la imagen un poco mas pequeña.
-6. Los contenidos de http://glory.local/blog/the-future-of-digital-design ejemplo, no carga, ya actualice los enlaces permanentes.
-7. Asegurarse de centralizar las deficiones de Email, Ubicación, Redes sociales, etc, y numero de contacto (deberia ponerse en la pagina de contacto)
-8. Agregar un boton el hero de Testimonials de "Escribir un comentario" Esto abrira un modal para escribir un comentario, agregar una foto, nombre y puesto, y otro de servicio o proyecto relacionado (escribe libremente), red social, esto no agrega el comentario en tiempo real, solo lo deja pendiente de aprobación.
-9. No se si en http://glory.local/servicios/ estan cargando los servicios reales pero por ejemplo esta el servicio de Diseño UX/UI en esa pagina y el backen me sale pero me sale con "http://glory.local/servicios/diseno-ux-ui/" y en la pagina de servicios con "http://glory.local/servicios/ux-ui"
-10. Estoy logeada y aparece acceder, debe detectar si el usuario esta logeado y mostrar "Panel" cuando se esta en el panel se puede volver al Home diciendo "Volver" El boton de contacto se cambiara por Chat cuando se esta logeado y abrira el chat. Se que el chat no esta planificado detalladamente pero adelanto, el chat tendrá 2 formas, el modal en la esquina similar como funciona en facebook, mostrara un circulo pequeño de chat y abrira un modal de chat en la esquina, y luego estara el chat expandido en la pagina /mensajes en la que sera como en messenger de facebook cuando el chat esta expandido, Glory tiene un sistema de socket, este chat tiene que funcionar tanto en local para pruebas (entornos windows y en linux cuando se suba a producción), tanto para los usuarios normales como para el admin quien es quien responde los mensajes, pueden haber varios admins, y se asignara un rol extra para quienes puedan atender clientes y atender servicios. 
-11. El panel tambien debe tener el ancho maximo y el padding general.
-12. Las paginas de soluciones no cargan.
+1. [RESUELTO] Selected Work sin duplicados + categorías reales backend.
+2. [RESUELTO] Badge como componente reutilizable en todas las tarjetas.
+3. [RESUELTO] Padding/max-width normalizado con variables CSS (parcial, ver v1.3 #1).
+4. [RESUELTO] blogContenedor estructura corregida.
+5. [RESUELTO] Tarjeta artículo layout horizontal (flex-direction: row).
+6. [RESUELTO] Blog single post carga correctamente.
+7. [RESUELTO] Info contacto centralizada en data/contacto.ts.
+8. [RESUELTO] ModalTestimonio creado con campos completos.
+9. [RESUELTO] Slug mismatch servicios corregido (diseno-ux-ui).
+10. [RESUELTO] Detección login en Header (Panel/Volver/Chat). Chat pendiente FASE 17.
+11. [RESUELTO] Panel max-width y padding.
+12. [RESUELTO] Soluciones sub-páginas cargan (fix PageManager regex).
+
+### Comentarios nuevos despues v1.2 (v1.3)
+
+1. LOS PADDING O ANCHO MAXIMO DE HE LA PAGINA DE CONTACTO Y NOSOTROS SON INCOHERENTES; EL PROBLEMA DE INCOHERENCIA NO ESTA RESUELTO; NO ESTA CENTRALIZADA LA CONFIGURACION DE PAGINA TODAS LAS SECCIONES TIENEN QUE TENER EL MISMO PADDING Y ANCHO; EL DEL HOME ESTA BIEN ¿PORQUE LA DE CONTACTO; NOSOTROS; EL HERO DE BLOG; EL SINGLE PAGE DE LOS BLOGS; Y LA IMAGEN DE EL SINGLE POST DE PROYECTO NO SON COHERENTES?
+2. En la pagina de blog no aparece la imagen, tiene que haber un feedback de colors cuando no haya imagen.
+3. La parte de Have a project in mind? en los blog se ve diferente al resto de project in Mind? esto esta centralizado o se olvido usar el componente?
+4. LOS SLUG DE LOS SERVICIOS PORQUE SON DIFERENTES A LOS REALES ¿? ¿ACASO NO SE ESTA IMPRIMIENDO LOS SERVICIOS REALES? O SE ESTA ROMPIENDO LOS PRINCIPIOS SOLID
+5. en panelUsuario hay un padding top excesivo. 
+6. En Ultimos clientes de la pagina de clientes no cargan los svg.
+7. En panel hacer que el panel sea lateral, y agregar uno nuevo de configuracion de perfil donde el usuario puede elegir su nombre para mostrar, imagen, descripcion, redes sociales, etc. Tambien una nueva seccion de configurar pagos, donde el cliente administrara su tarjeta de credito registrada, dirección, etc, lo relacionado con los metodos de pago. "Escribir un comentario" debe detectar estas configuraciones si el usuario esta logeado (configuraciones de perfil)
+8. Simplifica los comentarios de ### Comentarios despues de llegar al 12.1 (v1.2)**YA REVISADOS** para ahorrar tokens de contexto en las proximas secciones. 
+
+---
+
+### FASE 19: CORRECCIONES v1.3
+
+#### 19.1 COMPLETADO - Centralizar layout de página (padding/max-width coherente)
+- Problema raíz: secciones usaban `padding: 0 var(--seccion-padding-x)` + max-width inner (doble padding)
+- Fix: normalizar 9 archivos CSS al patrón del home: secciones `padding: X 0`, inner `max-width + padding: 0 var(--spacing-lg)`
+- Archivos corregidos: ContactoIsland, NosotrosIsland, BlogIsland, BlogSingleIsland, ProyectoIndividualIsland, SolucionesIsland, ProyectosIsland, SolucionPlaceholderIsland, SeccionSkillsServicio
+
+#### 19.2 COMPLETADO - Blog sin imágenes / fallback colors
+- Fix: TarjetaArticulo siempre renderiza imagen con fallback `obtenerImagenBlog(post.id)`
+
+#### 19.3 COMPLETADO - "Have a project in mind?" inconsistente
+- Fix: BlogSingleIsland ahora usa `SeccionContacto` en vez de `SeccionCta` custom
+
+#### 19.4 COMPLETADO - Slugs de servicios no coinciden con WP real
+- Fix: reactContext.php ahora usa `get_posts()` para obtener slugs reales de WP
+- Aplicado tanto para servicios como para proyectos
+
+#### 19.5 COMPLETADO - Panel padding-top excesivo
+- Fix: cambiado de `calc(80px + var(--spacing-3xl))` (~208px) a `15vh`
+
+#### 19.6 COMPLETADO - SVGs de clientes no cargan
+- SVGs verificados en Glory/assets/images/logos/ (17 archivos presentes)
+- Fix: marcas.ts aplica fallback Vite cuando backend devuelve URLs vacías
+
+#### 19.7 COMPLETADO - Panel lateral + configuración de perfil + pagos
+- PanelIsland reescrito con sidebar lateral (SidebarPanel.tsx) en vez de tabs superiores
+- Nuevos componentes: SeccionPerfil.tsx (formulario perfil), SeccionMetodosPago.tsx (tarjetas/facturación), PlaceholderSeccion.tsx
+- Datos extraídos a data/panel.ts (5 tabs: proyectos, servicios, pagos, perfil, metodos-pago)
+- Hook usePerfil.ts creado para cumplir SRP (max 3 useState)
+- CSS responsive: sidebar colapsa a nav horizontal en móvil
+- TO-DO: Conectar con backend REST API, integrar ModalTestimonio con perfil
+
+#### 19.8 COMPLETADO - Simplificar comentarios v1.2
+- Condensar sección de comentarios ya trabajados para ahorrar tokens de contexto
+
+---
+
+### FASE 20: PLANES POR SERVICIO (v1.3 + FASE 16)
+
+#### 20.1 COMPLETADO - Definir planes con datos reales por servicio
+- 7 servicios con 3 tiers cada uno: Básico, Avanzado, Personalizado
+- Datos divididos en data/planes/ (SOLID: max 150 líneas por archivo)
+  - tipos.ts, planesCreacion.ts (Web+Apps+Branding), planesIA.ts (IA+Chatbots), planesCrecimiento.ts (SEO+Marketing)
+  - index.ts: re-exporta todo + helper `obtenerPlanesServicio(slug)`
+- Componente SeccionPlanesServicio.tsx con TarjetaPlan (pricing cards)
+- Integrado en ServicioIndividualIsland.tsx (entre Galería y CTA)
+- single-servicio.php ahora pasa `slug` del post actual a la isla React
+- TO-DO: Checkout Stripe en botones CTA, plan Personalizado abre chat
+
+#### 20.2 PENDIENTE - Integración Stripe (cuando se configure keys)
+- GLORY_STRIPE_SECRET_KEY y GLORY_STRIPE_PUBLISHABLE_KEY en .env
+- Checkout directo con Stripe Elements
+- Panel de usuario: mis pagos, estado del servicio
+
+
+#### Aclaciones de las tareas pendientes. 
+
+1. Los planes son personalizados para cada servicio, tienen que ser reales, inventalos mientras tanto yo mas adelante corrijo. El tercer plan de Personalizado por servicio es que el cliente puede manejar las caracteristicas, ajustarlas y el precio aparecera automatico, esto requiere que definamos los servicios reales supongo, tu ayudas a intuir carasteristicas para los planes si es que faltan, yo voy a hablar de forma subjetiva pero se va a necesitar que las caracteristicas sea medibles y objetivas (4 paginas, 3 funciones avanzadas, asi cosas medibles), cuando un cliente contra algunos de los planes, abrira el chat para definir correctamente las carecteristicas.
+
+se que voy a omitir muchas cosas, tu me ayudas a aclarar y objetivizar todo friamente, despues haremos una investigacion de mercado para elegir precios mas acordes, pero estos son relativamente baratos porque estamos iniciando como nueva agencia.
+
+## Diseño de paginas web.
+
+- Diseño de pagina web, plan basico desde 100$, un landing page o 5 paginas, sin diseño de marca, informativo, en wordpress, 1 sola pagina funcional, incluye contacto, 5 secciones, 1 o 2 plugin o funciones avanzadas. 
+- Diseño de pagina web avanzado desde 250$, pueden ser paneles avanzados para gestionar diferentes tipos de productos, ecommerce, funciones avanzadas extras, puede ser wordpress o cualquier otro framework, seo basico, identidad basica.
+- Personalizado, puede elegir entre numero de paginas, si es un landing page, si incluye panel administrativo, si incluye ecommerce, funciones avanzadas,seo, si incluye apk. 
+
+## Desarrollo de aplicaciones moviles (200$ Basico, 500$ avanzado)
+
+- Inventa algo para los 2 planes y la caracteristicas, no se me ocurre algo ahora.
+
+## Agentes de IA (60$ Mensual Basico y 300$ Mensual Avanzado)
+
+- Inventa.
+
+## Identidad de Marca (150$ Basico, 400$ Avanzado)
+
+- Inventa.
+
+## Chatbots (Igual que agentes de IA)
+
+- Inventa
+
+## SEO (150$ Basico, 400$ Avanzado)
+
+- Inventa
+
+## Marketing Digital (150$ Basico, 400$ Avanzado)
+
+- Inventa
+
+2. Integración de Stripe
+
+Luego de que el cliente haga el pago el servicio queda en proceso, el admin lo recibe en su panel con sus requerimientos, y detalles que saco el chatbot. Puse GLORY_STRIPE_SECRET_KEY y GLORY_STRIPE_PUBLISHABLE_KEY en el env
+
+3. Chatbot 
+
+Puse GOOGLE_GEMINI_API en el env, usaramos gemini flash 3 para probar el chatbot, esto lo dejaremos para el final, yo lo planificare mejor mas adelante pero por el momento el chat debe ser funcional y ser respondido por los usuarios encargados. 

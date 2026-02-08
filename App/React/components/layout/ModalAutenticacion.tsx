@@ -1,11 +1,13 @@
 /**
  * Componente: ModalAutenticacion
  * Modal con tabs para Iniciar Sesion / Registrarse.
- * Incluye: login, registro, recuperacion de contraseña, login con Google.
+ * Incluye: login, registro, recuperacion de contrasena, login con Google.
+ * La logica de estado se delega al hook useAutenticacion (SRP).
  * TO-DO: Conectar con backend (REST API, JWT, OAuth) cuando esten las credenciales.
  */
-import React, {useState, useEffect, useRef} from 'react';
+import React from 'react';
 import {Button} from '../ui/Button';
+import {useAutenticacion} from '../../hooks/useAutenticacion';
 import './ModalAutenticacion.css';
 
 interface ModalAutenticacionProps {
@@ -13,87 +15,20 @@ interface ModalAutenticacionProps {
     onCerrar: () => void;
 }
 
-type VistaModal = 'login' | 'registro' | 'recuperar';
-
 export const ModalAutenticacion: React.FC<ModalAutenticacionProps> = ({abierto, onCerrar}) => {
-    const [vista, setVista] = useState<VistaModal>('login');
-    const [cargando, setCargando] = useState(false);
-    const modalRef = useRef<HTMLDivElement>(null);
-
-    /* Formulario login */
-    const [loginEmail, setLoginEmail] = useState('');
-    const [loginPassword, setLoginPassword] = useState('');
-
-    /* Formulario registro */
-    const [regNombre, setRegNombre] = useState('');
-    const [regEmail, setRegEmail] = useState('');
-    const [regPassword, setRegPassword] = useState('');
-    const [regConfirmar, setRegConfirmar] = useState('');
-
-    /* Formulario recuperar */
-    const [recEmail, setRecEmail] = useState('');
-    const [recEnviado, setRecEnviado] = useState(false);
-
-    /* Cerrar con Escape */
-    useEffect(() => {
-        const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onCerrar();
-        };
-        if (abierto) {
-            document.addEventListener('keydown', handleEsc);
-            document.body.style.overflow = 'hidden';
-        }
-        return () => {
-            document.removeEventListener('keydown', handleEsc);
-            document.body.style.overflow = '';
-        };
-    }, [abierto, onCerrar]);
+    const {
+        vista, setVista, cargando, modalRef,
+        login, registro, recuperar,
+        actualizarLogin, actualizarRegistro, actualizarRecuperar,
+        handleLogin, handleRegistro, handleRecuperar,
+        handleGoogleLogin, resetRecuperacion
+    } = useAutenticacion(abierto, onCerrar);
 
     /* Cerrar al click fuera del modal */
     const handleOverlayClick = (e: React.MouseEvent) => {
         if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
             onCerrar();
         }
-    };
-
-    /* TO-DO: Integrar con backend REST API */
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        setCargando(true);
-        setTimeout(() => {
-            setCargando(false);
-            /* TO-DO: Llamar endpoint de login */
-            alert('Funcionalidad de login pendiente de integración con backend.');
-        }, 500);
-    };
-
-    const handleRegistro = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (regPassword !== regConfirmar) {
-            alert('Las contraseñas no coinciden.');
-            return;
-        }
-        setCargando(true);
-        setTimeout(() => {
-            setCargando(false);
-            /* TO-DO: Llamar endpoint de registro */
-            alert('Funcionalidad de registro pendiente de integración con backend.');
-        }, 500);
-    };
-
-    const handleRecuperar = (e: React.FormEvent) => {
-        e.preventDefault();
-        setCargando(true);
-        setTimeout(() => {
-            setCargando(false);
-            setRecEnviado(true);
-            /* TO-DO: Llamar endpoint de recuperación */
-        }, 500);
-    };
-
-    /* TO-DO: Implementar OAuth con Google cuando se configuren las credenciales */
-    const handleGoogleLogin = () => {
-        alert('Inicio de sesión con Google pendiente de configuración OAuth.');
     };
 
     if (!abierto) return null;
@@ -143,8 +78,8 @@ export const ModalAutenticacion: React.FC<ModalAutenticacionProps> = ({abierto, 
                             <input
                                 type="email"
                                 id="loginEmail"
-                                value={loginEmail}
-                                onChange={e => setLoginEmail(e.target.value)}
+                                value={login.email}
+                                onChange={e => actualizarLogin('email', e.target.value)}
                                 placeholder="tu@email.com"
                                 className="modalInput"
                                 required
@@ -155,8 +90,8 @@ export const ModalAutenticacion: React.FC<ModalAutenticacionProps> = ({abierto, 
                             <input
                                 type="password"
                                 id="loginPassword"
-                                value={loginPassword}
-                                onChange={e => setLoginPassword(e.target.value)}
+                                value={login.password}
+                                onChange={e => actualizarLogin('password', e.target.value)}
                                 placeholder="Tu contraseña"
                                 className="modalInput"
                                 required
@@ -197,8 +132,8 @@ export const ModalAutenticacion: React.FC<ModalAutenticacionProps> = ({abierto, 
                             <input
                                 type="text"
                                 id="regNombre"
-                                value={regNombre}
-                                onChange={e => setRegNombre(e.target.value)}
+                                value={registro.nombre}
+                                onChange={e => actualizarRegistro('nombre', e.target.value)}
                                 placeholder="Tu nombre"
                                 className="modalInput"
                                 required
@@ -209,8 +144,8 @@ export const ModalAutenticacion: React.FC<ModalAutenticacionProps> = ({abierto, 
                             <input
                                 type="email"
                                 id="regEmail"
-                                value={regEmail}
-                                onChange={e => setRegEmail(e.target.value)}
+                                value={registro.email}
+                                onChange={e => actualizarRegistro('email', e.target.value)}
                                 placeholder="tu@email.com"
                                 className="modalInput"
                                 required
@@ -221,8 +156,8 @@ export const ModalAutenticacion: React.FC<ModalAutenticacionProps> = ({abierto, 
                             <input
                                 type="password"
                                 id="regPassword"
-                                value={regPassword}
-                                onChange={e => setRegPassword(e.target.value)}
+                                value={registro.password}
+                                onChange={e => actualizarRegistro('password', e.target.value)}
                                 placeholder="Mínimo 8 caracteres"
                                 className="modalInput"
                                 minLength={8}
@@ -234,8 +169,8 @@ export const ModalAutenticacion: React.FC<ModalAutenticacionProps> = ({abierto, 
                             <input
                                 type="password"
                                 id="regConfirmar"
-                                value={regConfirmar}
-                                onChange={e => setRegConfirmar(e.target.value)}
+                                value={registro.confirmar}
+                                onChange={e => actualizarRegistro('confirmar', e.target.value)}
                                 placeholder="Repite la contraseña"
                                 className="modalInput"
                                 minLength={8}
@@ -269,12 +204,12 @@ export const ModalAutenticacion: React.FC<ModalAutenticacionProps> = ({abierto, 
                 {/* Contenido: Recuperar contraseña */}
                 {vista === 'recuperar' && (
                     <div className="modalFormulario">
-                        {recEnviado ? (
+                        {recuperar.enviado ? (
                             <div className="modalExito">
                                 <p className="modalExitoTexto">
                                     Si el correo existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña.
                                 </p>
-                                <Button variante="outline" onClick={() => { setVista('login'); setRecEnviado(false); }}>
+                                <Button variante="outline" onClick={resetRecuperacion}>
                                     Volver al login
                                 </Button>
                             </div>
@@ -288,8 +223,8 @@ export const ModalAutenticacion: React.FC<ModalAutenticacionProps> = ({abierto, 
                                     <input
                                         type="email"
                                         id="recEmail"
-                                        value={recEmail}
-                                        onChange={e => setRecEmail(e.target.value)}
+                                        value={recuperar.email}
+                                        onChange={e => actualizarRecuperar('email', e.target.value)}
                                         placeholder="tu@email.com"
                                         className="modalInput"
                                         required

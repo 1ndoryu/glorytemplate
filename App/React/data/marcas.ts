@@ -30,9 +30,17 @@ const MARCAS_FALLBACK: Marca[] = [
     {id: 'wilson-brand', nombre: 'Wilson Brand', url: 'https://wilsonbrand.com', logo: obtenerLogoFallback(11)},
 ];
 
+/*
+ * getMarcasData: si el backend da logo vacío, asigna fallback de Vite.
+ * Esto asegura que siempre se muestre un SVG si existe en el bundle.
+ */
 const getMarcasData = (): Marca[] => {
     if (typeof window !== 'undefined' && window.GLORY_CONTEXT?.marcas) {
-        return window.GLORY_CONTEXT.marcas as Marca[];
+        const marcasBackend = window.GLORY_CONTEXT.marcas as Marca[];
+        return marcasBackend.map((marca, idx) => ({
+            ...marca,
+            logo: marca.logo || obtenerLogoFallback(idx),
+        }));
     }
     return MARCAS_FALLBACK;
 };

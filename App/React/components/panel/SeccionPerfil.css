@@ -1,0 +1,149 @@
+/*
+ * CSS: SeccionPerfil
+ * Formulario de configuracion de perfil del usuario.
+ * Estilos de campos, avatar y grid de formulario.
+ */
+.perfilSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.perfilDescripcionIntro {
+    font-family: var(--font-serif);
+    font-size: var(--text-base);
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Avatar */
+.perfilAvatarSeccion {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background-color: var(--bg-card-subtle);
+    border-radius: 12px;
+}
+
+.perfilAvatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.perfilAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.perfilAvatarAcciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.perfilAvatarNota {
+    font-family: var(--font-serif);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+
+/* Formulario */
+.perfilFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.perfilFormGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+.perfilCampo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.perfilCampoEtiqueta {
+    font-family: var(--font-primary);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--brand-black);
+}
+
+.perfilCampoInput,
+.perfilCampoTextarea {
+    font-family: var(--font-serif);
+    font-size: var(--text-base);
+    color: var(--brand-black);
+    background-color: var(--brand-white);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: border-color var(--transicion-rapida);
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.perfilCampoInput:focus,
+.perfilCampoTextarea:focus {
+    border-color: var(--brand-black);
+}
+
+.perfilCampoInput:disabled {
+    background-color: var(--bg-card-subtle);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+}
+
+.perfilCampoTextarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Subseccion titulo */
+.perfilSubseccionTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-lg);
+    font-weight: 500;
+    color: var(--brand-black);
+    margin: 0;
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Acciones */
+.perfilFormAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding-top: var(--spacing-sm);
+}
+
+.perfilGuardadoExito {
+    font-family: var(--font-serif);
+    font-size: var(--text-sm);
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .perfilFormGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .perfilAvatarSeccion {
+        flex-direction: column;
+        text-align: center;
+    }
+}

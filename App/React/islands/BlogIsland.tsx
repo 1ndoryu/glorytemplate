@@ -10,30 +10,36 @@ import {LayoutPagina} from '../components/layout/LayoutPagina';
 import {SeccionContacto} from '../components/home/SeccionContacto';
 import {POSTS_BLOG} from '../data/blog';
 import {PostBlog} from '../types/contenido';
+import {obtenerImagenBlog} from '../hooks/useImagenes';
 
 interface BlogIslandProps {
     titulo?: string;
 }
 
-/* Tarjeta de artículo con layout horizontal */
-const TarjetaArticulo: React.FC<{post: PostBlog; destacado?: boolean}> = ({post, destacado = false}) => (
-    <a href={post.link || '#'} className={`tarjetaArticulo ${destacado ? 'tarjetaArticuloDestacado' : ''}`}>
-        {post.imagen && (
+/*
+ * Tarjeta de artículo con layout horizontal.
+ * Siempre muestra imagen: backend -> fallback colors (obtenerImagenBlog).
+ */
+const TarjetaArticulo: React.FC<{post: PostBlog; destacado?: boolean}> = ({post, destacado = false}) => {
+    const imagenFinal = post.imagen || obtenerImagenBlog(post.id);
+
+    return (
+        <a href={post.link || '#'} className={`tarjetaArticulo ${destacado ? 'tarjetaArticuloDestacado' : ''}`}>
             <div className="articuloImagenWrapper">
-                <img src={post.imagen} alt={post.titulo} className="articuloImagen" loading="lazy" />
+                <img src={imagenFinal} alt={post.titulo} className="articuloImagen" loading="lazy" />
             </div>
-        )}
-        <div className="articuloContenido">
-            <div className="articuloMeta">
-                <span className="articuloCategoria">{post.categoria}</span>
-                <span className="articuloFecha">{post.fecha}</span>
+            <div className="articuloContenido">
+                <div className="articuloMeta">
+                    <span className="articuloCategoria">{post.categoria}</span>
+                    <span className="articuloFecha">{post.fecha}</span>
+                </div>
+                <h3 className="articuloTitulo">{post.titulo}</h3>
+                <p className="articuloResumen">{post.resumen}</p>
+                <span className="articuloLeer">Leer artículo →</span>
             </div>
-            <h3 className="articuloTitulo">{post.titulo}</h3>
-            <p className="articuloResumen">{post.resumen}</p>
-            <span className="articuloLeer">Leer artículo →</span>
-        </div>
-    </a>
-);
+        </a>
+    );
+};
 
 export const BlogIsland = ({titulo = 'Blog'}: BlogIslandProps): JSX.Element => {
     const [categoriaActiva, setCategoriaActiva] = useState('todos');

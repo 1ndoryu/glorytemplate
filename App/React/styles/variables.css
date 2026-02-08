@@ -57,6 +57,14 @@
     --white-15: rgba(255, 255, 255, 0.15);
     --white-20: rgba(255, 255, 255, 0.2);
     --white-40: rgba(255, 255, 255, 0.4);
+    --white-85: rgba(255, 255, 255, 0.85);
+
+    /* Item States */
+    --bg-item-hover: rgba(0, 0, 0, 0.04);
+    --bg-item-active: rgba(0, 0, 0, 0.06);
+    --border-hover: rgba(0, 0, 0, 0.2);
+    --border-hover-strong: rgba(0, 0, 0, 0.3);
+    --success-color: #16a34a;
 
     /* Typography Sizes */
     --text-xs: 0.75rem;
@@ -69,7 +77,9 @@
     --text-4xl: 4rem;
     --text-5xl: 5rem;
 
+    --brand-white: #ffffff;
     --border-color: #4b5563;
+    --border-light: rgba(0, 0, 0, 0.15);
 
     /* Transitions */
     --transicion-rapida: 0.2s ease;

@@ -1,0 +1,244 @@
+/*
+ * CSS: SeccionPlanesServicio
+ * Tarjetas de precios (pricing cards) estilo minimalista.
+ * Grid de 3 columnas, tarjeta central destacada.
+ */
+
+/* Seccion contenedora */
+.planesSeccion {
+    width: 100%;
+    padding: var(--spacing-3xl) 0;
+    background-color: var(--bg-card-subtle);
+}
+
+.planesContenedor {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Cabecera */
+.planesCabecera {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.planesTitulo {
+    font-family: var(--font-primary);
+    font-size: var(--text-3xl);
+    font-weight: 500;
+    color: var(--brand-black);
+    margin: 0 0 var(--spacing-sm);
+}
+
+.planesSubtitulo {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Grid de tarjetas */
+.planesGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+    align-items: start;
+}
+
+/* Tarjeta individual */
+.tarjetaPlan {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--brand-white);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    padding: var(--spacing-xl);
+    position: relative;
+    transition:
+        transform var(--transicion-rapida),
+        box-shadow var(--transicion-rapida);
+}
+
+.tarjetaPlan:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Tarjeta destacada (plan recomendado) */
+.tarjetaPlanDestacado {
+    border-color: var(--brand-black);
+    border-width: 2px;
+    transform: scale(1.02);
+}
+
+.tarjetaPlanDestacado:hover {
+    transform: scale(1.02) translateY(-4px);
+}
+
+/* Badge recomendado */
+.tarjetaPlanBadge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-primary);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--brand-white);
+    background-color: var(--brand-black);
+    padding: 6px var(--spacing-md);
+    border-radius: 100px;
+    white-space: nowrap;
+}
+
+/* Cabecera de tarjeta */
+.tarjetaPlanCabecera {
+    text-align: center;
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    margin-bottom: var(--spacing-lg);
+}
+
+.tarjetaPlanNombre {
+    font-family: var(--font-primary);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--brand-black);
+    margin: 0 0 var(--spacing-md);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.tarjetaPlanPrecio {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 2px;
+    margin-bottom: var(--spacing-sm);
+}
+
+.tarjetaPlanPrecioCifra {
+    font-family: var(--font-primary);
+    font-size: var(--text-4xl);
+    font-weight: 500;
+    color: var(--brand-black);
+    line-height: 1;
+}
+
+.tarjetaPlanPrecioPeriodo {
+    font-family: var(--font-serif);
+    font-size: var(--text-base);
+    color: var(--text-muted);
+}
+
+.tarjetaPlanDescripcion {
+    font-family: var(--font-serif);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Lista de caracteristicas */
+.tarjetaPlanCaracteristicas {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    flex: 1;
+}
+
+.tarjetaPlanItem {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+}
+
+.tarjetaPlanItemIcono {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.tarjetaPlanItemIncluido .tarjetaPlanItemIcono {
+    color: var(--brand-black);
+}
+
+.tarjetaPlanItemNoIncluido .tarjetaPlanItemIcono {
+    color: var(--text-tertiary);
+    opacity: 0.4;
+}
+
+.tarjetaPlanItemIncluido .tarjetaPlanItemTexto {
+    font-family: var(--font-serif);
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.tarjetaPlanItemNoIncluido .tarjetaPlanItemTexto {
+    font-family: var(--font-serif);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    line-height: 1.4;
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+/* Accion (boton) */
+.tarjetaPlanAccion {
+    margin-top: auto;
+}
+
+.tarjetaPlanAccion .botonBase {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Tarjeta personalizada (borde diferente) */
+.tarjetaPlanPersonalizado {
+    border-style: dashed;
+    border-color: var(--border-light);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .planesGrid {
+        grid-template-columns: 1fr;
+        max-width: 420px;
+        margin: 0 auto;
+    }
+
+    .tarjetaPlanDestacado {
+        transform: none;
+        order: -1;
+    }
+
+    .tarjetaPlanDestacado:hover {
+        transform: translateY(-4px);
+    }
+}
+
+@media (max-width: 768px) {
+    .planesTitulo {
+        font-size: var(--text-2xl);
+    }
+
+    .tarjetaPlan {
+        padding: var(--spacing-lg);
+    }
+
+    .tarjetaPlanPrecioCifra {
+        font-size: var(--text-3xl);
+    }
+}

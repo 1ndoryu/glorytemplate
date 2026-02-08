@@ -44,13 +44,30 @@ add_filter('glory_react_context', function ($context) {
             ];
         }, $skillsRaw, array_keys($skillsRaw));
 
+        /*
+         * Obtener el slug real del post WP.
+         * El permalink debe coincidir con la URL real que WP genera,
+         * no con el slugDefault que puede diferir (WP sanitiza títulos).
+         */
+        $slugReal = $svc['slugDefault'];
+        $postReal = get_posts([
+            'post_type'      => 'servicio',
+            'name'           => $svc['slugDefault'],
+            'posts_per_page' => 1,
+            'post_status'    => 'publish',
+        ]);
+
+        if (!empty($postReal)) {
+            $slugReal = $postReal[0]->post_name;
+        }
+
         return [
-            'id'          => $svc['slugDefault'],
+            'id'          => $slugReal,
             'titulo'      => $svc['titulo'],
             'descripcion' => $descripcion,
             'imagen'      => $imgUrl,
             'categorias'  => $meta['categorias'] ?? [],
-            'link'        => '/servicios/' . $svc['slugDefault'],
+            'link'        => '/servicios/' . $slugReal,
             'skills'      => $skills,
             'cta'         => [
                 'titulo'      => $meta['cta_titulo'] ?? '',
@@ -93,15 +110,28 @@ add_filter('glory_react_context', function ($context) {
             ];
         }, $skillsRaw, array_keys($skillsRaw));
 
+        /* Obtener slug real del post WP para coincidir con URL real */
+        $slugReal = $proy['slugDefault'];
+        $postReal = get_posts([
+            'post_type'      => 'proyecto',
+            'name'           => $proy['slugDefault'],
+            'posts_per_page' => 1,
+            'post_status'    => 'publish',
+        ]);
+
+        if (!empty($postReal)) {
+            $slugReal = $postReal[0]->post_name;
+        }
+
         return [
-            'id'          => $proy['slugDefault'],
+            'id'          => $slugReal,
             'titulo'      => $proy['titulo'],
             'descripcion' => $proy['extracto'] ?? mb_substr(strip_tags($proy['contenido'] ?? ''), 0, 160),
             'contenido'   => $proy['contenido'] ?? '',
             'imagen'      => $imgUrl,
             'categorias'  => $meta['categorias'] ?? $proy['categorias'] ?? [],
             'cliente'     => $meta['cliente'] ?? $proy['cliente'] ?? '',
-            'link'        => '/proyectos/' . $proy['slugDefault'],
+            'link'        => '/proyectos/' . $slugReal,
             'skills'      => $skills,
         ];
     }, $rawProyectos);

@@ -10,7 +10,7 @@
     align-items: center;
     justify-content: center;
     min-height: 70vh;
-    padding: 15vh var(--seccion-padding-x) var(--spacing-2xl);
+    padding: 15vh var(--spacing-lg) var(--spacing-2xl);
 }
 
 .placeholderContenido {
@@ -66,12 +66,14 @@
     padding: var(--spacing-sm) var(--spacing-md);
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 6px;
-    transition: color var(--transicion-rapida), border-color var(--transicion-rapida);
+    transition:
+        color var(--transicion-rapida),
+        border-color var(--transicion-rapida);
 }
 
 .placeholderBoton:hover {
     color: var(--brand-black);
-    border-color: rgba(0, 0, 0, 0.3);
+    border-color: var(--border-hover-strong);
 }
 
 .placeholderBotonContacto {

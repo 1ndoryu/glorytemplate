@@ -7,13 +7,14 @@
 
 /* Hero del proyecto */
 .proyectoHero {
-    padding: 15vh var(--seccion-padding-x) var(--spacing-2xl);
-    max-width: var(--container-width);
-    margin: 0 auto;
-    width: 100%;
+    padding: 0;
 }
 
 .proyectoHeroContenido {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 15vh var(--spacing-lg) var(--spacing-2xl);
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
@@ -58,12 +59,14 @@
 
 /* Imagen principal */
 .proyectoImagenPrincipal {
-    padding: 0 var(--seccion-padding-x) var(--spacing-2xl);
+    padding: 0;
 }
 
 .proyectoImagenContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
+    padding: 0 var(--spacing-lg) var(--spacing-2xl);
+    width: 100%;
     overflow: hidden;
     border-radius: 12px;
 }
@@ -85,7 +88,8 @@
 .proyectoRelacionadosContenedor {
     max-width: var(--container-width);
     margin: 0 auto;
-    padding: 0 var(--seccion-padding-x);
+    padding: 0 var(--spacing-lg);
+    width: 100%;
 }
 
 .proyectoRelacionadosHeader {
