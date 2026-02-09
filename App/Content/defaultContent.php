@@ -429,45 +429,34 @@ DefaultContentManager::define('marca', $marcasBase);
 
 $miembrosBase = [
     [
-        'slugDefault' => 'carlos-nakomi',
-        'titulo'      => 'Carlos Nakomi',
-        'contenido'   => 'Fundador y director creativo con más de 10 años de experiencia en diseño digital y desarrollo de software. Apasionado por la intersección entre estética y tecnología.',
+        'slugDefault' => 'wan',
+        'titulo'      => 'Wan',
+        'contenido'   => 'Fundadora y directora creativa con visión estratégica para soluciones digitales de alto impacto.',
         'metaEntrada' => [
-            'cargo'    => 'CEO & Director Creativo',
-            'avatar'   => 'https://i.pravatar.cc/300?u=carlos',
-            'linkedin' => '#',
-            'twitter'  => '#',
-        ]
-    ],
-    [
-        'slugDefault' => 'maria-design',
-        'titulo'      => 'María López',
-        'contenido'   => 'Diseñadora UX/UI senior especializada en sistemas de diseño y accesibilidad. Lidera los proyectos de experiencia de usuario garantizando interfaces intuitivas.',
-        'metaEntrada' => [
-            'cargo'    => 'Lead UX/UI Designer',
-            'avatar'   => 'https://i.pravatar.cc/300?u=maria',
-            'linkedin' => '#',
-            'twitter'  => '#',
-        ]
-    ],
-    [
-        'slugDefault' => 'andres-dev',
-        'titulo'      => 'Andrés Rivero',
-        'contenido'   => 'Ingeniero de software full-stack con expertise en React, TypeScript y arquitecturas serverless. Construye las soluciones técnicas que dan vida a los diseños.',
-        'metaEntrada' => [
-            'cargo'    => 'Lead Software Engineer',
-            'avatar'   => 'https://i.pravatar.cc/300?u=andres',
+            'cargo'    => 'CEO & Founder',
+            'avatar'   => 'equipo::wan.jpg',
             'linkedin' => '#',
             'github'   => '#',
         ]
     ],
     [
-        'slugDefault' => 'lucia-ai',
-        'titulo'      => 'Lucía Fernández',
-        'contenido'   => 'Especialista en inteligencia artificial y machine learning. Diseña e implementa los agentes de IA y chatbots que potencian los proyectos del estudio.',
+        'slugDefault' => 'anthony',
+        'titulo'      => 'Anthony',
+        'contenido'   => 'Ingeniero de software principal, especializado en arquitecturas escalables y rendimiento.',
         'metaEntrada' => [
-            'cargo'    => 'AI & ML Engineer',
-            'avatar'   => 'https://i.pravatar.cc/300?u=lucia',
+            'cargo'    => 'Lead Developer',
+            'avatar'   => 'equipo::anthony.jpg',
+            'linkedin' => '#',
+            'github'   => '#',
+        ]
+    ],
+    [
+        'slugDefault' => 'misael',
+        'titulo'      => 'Misael',
+        'contenido'   => 'Ingeniero DevOps enfocado en la automatización, despliegue continuo y estabilidad de infraestructura.',
+        'metaEntrada' => [
+            'cargo'    => 'DevOps Engineer',
+            'avatar'   => 'equipo::misael.jpg',
             'linkedin' => '#',
             'github'   => '#',
         ]

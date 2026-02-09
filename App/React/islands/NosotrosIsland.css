@@ -98,18 +98,9 @@
     width: 100%;
 }
 
-.equipoHeader {
-    font-family: var(--font-primary);
-    font-size: var(--text-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-tertiary);
-    margin: 0 0 var(--spacing-xl);
-}
-
 .equipoGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-xl);
 }
 

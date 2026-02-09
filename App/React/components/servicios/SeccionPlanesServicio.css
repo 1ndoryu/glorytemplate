@@ -8,7 +8,6 @@
 .planesSeccion {
     width: 100%;
     padding: var(--spacing-2xl) 0;
-    background-color: var(--bg-card-subtle);
 }
 
 .planesContenedor {
@@ -56,7 +55,7 @@
 .tarjetaPlan {
     display: flex;
     flex-direction: column;
-    background-color: var(--brand-white);
+    background-color: var(--bg-card-subtle);
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 16px;
     padding: var(--spacing-xl);

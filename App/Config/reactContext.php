@@ -221,12 +221,24 @@ add_filter('glory_react_context', function ($context) {
 
     $miembros = array_map(function ($miembro) {
         $meta = $miembro['metaEntrada'] ?? [];
+
+        $avatarRef = $meta['avatar'] ?? '';
+        $avatarUrl = $avatarRef;
+
+        /* Resolver avatar de asset si es posible */
+        if ($avatarRef && class_exists(AssetsUtility::class)) {
+            $resolved = AssetsUtility::imagenUrl($avatarRef);
+            if ($resolved) {
+                $avatarUrl = $resolved;
+            }
+        }
+
         return [
             'id'       => $miembro['slugDefault'] ?? '',
             'nombre'   => $miembro['titulo'] ?? '',
             'bio'      => $miembro['contenido'] ?? '',
             'cargo'    => $meta['cargo'] ?? '',
-            'avatar'   => $meta['avatar'] ?? '',
+            'avatar'   => $avatarUrl,
             'linkedin' => $meta['linkedin'] ?? '',
             'twitter'  => $meta['twitter'] ?? '',
             'github'   => $meta['github'] ?? '',

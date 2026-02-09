@@ -7,6 +7,7 @@ import '../styles/variables.css';
 import './NosotrosIsland.css';
 import {LayoutPagina} from '../components/layout/LayoutPagina';
 import {SeccionTestimonios} from '../components/home/SeccionTestimonios';
+import {SeccionHeader} from '../components/ui/SeccionHeader';
 import {SeccionClientes} from '../components/home/SeccionClientes';
 import {SeccionContacto} from '../components/home/SeccionContacto';
 import {MIEMBROS_DATA} from '../data/miembros';
@@ -32,11 +33,6 @@ const TarjetaMiembro: React.FC<{miembro: Miembro}> = ({miembro}) => (
                         LinkedIn
                     </a>
                 )}
-                {miembro.twitter && (
-                    <a href={miembro.twitter} target="_blank" rel="noopener noreferrer" aria-label="Twitter">
-                        Twitter
-                    </a>
-                )}
                 {miembro.github && (
                     <a href={miembro.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
                         GitHub
@@ -57,11 +53,7 @@ export const NosotrosIsland = ({titulo = 'Sobre Nosotros'}: NosotrosIslandProps)
                         <h1 className="nosotrosHeroTitulo">{titulo}</h1>
                     </div>
                     <div className="nosotrosHeroDescripcion">
-                        <p>
-                            Somos un equipo multidisciplinario que combina diseño, tecnología e
-                            inteligencia artificial para crear experiencias digitales que generan
-                            impacto real en los negocios de nuestros clientes.
-                        </p>
+                        <p>Somos un equipo multidisciplinario que combina diseño, tecnología e inteligencia artificial para crear experiencias digitales que generan impacto real en los negocios de nuestros clientes.</p>
                     </div>
                 </div>
             </section>
@@ -72,27 +64,15 @@ export const NosotrosIsland = ({titulo = 'Sobre Nosotros'}: NosotrosIslandProps)
                     <div className="misionGrid">
                         <div className="misionItem">
                             <h3 className="misionItemTitulo">Nuestra Misión</h3>
-                            <p className="misionItemTexto">
-                                Democratizar el acceso a soluciones digitales de alto nivel,
-                                combinando diseño premium con tecnología de vanguardia para
-                                que cada negocio pueda competir al más alto nivel.
-                            </p>
+                            <p className="misionItemTexto">Democratizar el acceso a soluciones digitales de alto nivel, combinando diseño premium con tecnología de vanguardia para que cada negocio pueda competir al más alto nivel.</p>
                         </div>
                         <div className="misionItem">
                             <h3 className="misionItemTitulo">Nuestro Enfoque</h3>
-                            <p className="misionItemTexto">
-                                Creemos en la intersección entre estética y funcionalidad.
-                                Cada proyecto es una oportunidad de crear algo que no solo
-                                se vea increíble, sino que también genere resultados medibles.
-                            </p>
+                            <p className="misionItemTexto">Creemos en la intersección entre estética y funcionalidad. Cada proyecto es una oportunidad de crear algo que no solo se vea increíble, sino que también genere resultados medibles.</p>
                         </div>
                         <div className="misionItem">
                             <h3 className="misionItemTitulo">Nuestros Valores</h3>
-                            <p className="misionItemTexto">
-                                Transparencia, excelencia técnica y obsesión por los detalles
-                                guían cada decisión que tomamos, desde el primer wireframe
-                                hasta el deploy final.
-                            </p>
+                            <p className="misionItemTexto">Transparencia, excelencia técnica y obsesión por los detalles guían cada decisión que tomamos, desde el primer wireframe hasta el deploy final.</p>
                         </div>
                     </div>
                 </div>
@@ -101,7 +81,7 @@ export const NosotrosIsland = ({titulo = 'Sobre Nosotros'}: NosotrosIslandProps)
             {/* Equipo */}
             <section className="nosotrosEquipo">
                 <div className="nosotrosEquipoContenedor">
-                    <h2 className="equipoHeader">El Equipo</h2>
+                    <SeccionHeader titulo="El Equipo" />
                     <div className="equipoGrid">
                         {MIEMBROS_DATA.map(miembro => (
                             <TarjetaMiembro key={miembro.id} miembro={miembro} />

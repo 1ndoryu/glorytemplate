@@ -3,41 +3,35 @@
  * Fuente: window.GLORY_CONTEXT.miembros (PHP) → Fallback estático.
  */
 import {Miembro} from '../types/contenido';
+import wanImg from '../../Assets/equipo/wan.jpg';
+import anthonyImg from '../../Assets/equipo/anthony.jpg';
+import misaelImg from '../../Assets/equipo/misael.jpg';
 
 const MIEMBROS_FALLBACK: Miembro[] = [
     {
-        id: 'carlos-nakomi',
-        nombre: 'Carlos Nakomi',
-        bio: 'Fundador y director creativo con más de 10 años de experiencia en diseño digital y desarrollo de software.',
-        cargo: 'CEO & Director Creativo',
-        avatar: 'https://i.pravatar.cc/300?u=carlos',
-        linkedin: '#',
-        twitter: '#'
-    },
-    {
-        id: 'maria-design',
-        nombre: 'María López',
-        bio: 'Diseñadora UX/UI senior especializada en sistemas de diseño y accesibilidad.',
-        cargo: 'Lead UX/UI Designer',
-        avatar: 'https://i.pravatar.cc/300?u=maria',
-        linkedin: '#',
-        twitter: '#'
-    },
-    {
-        id: 'andres-dev',
-        nombre: 'Andrés Rivero',
-        bio: 'Ingeniero de software full-stack con expertise en React, TypeScript y arquitecturas serverless.',
-        cargo: 'Lead Software Engineer',
-        avatar: 'https://i.pravatar.cc/300?u=andres',
+        id: 'wan',
+        nombre: 'Wan',
+        bio: 'Fundadora y directora creativa con visión estratégica para soluciones digitales de alto impacto.',
+        cargo: 'CEO & Founder',
+        avatar: wanImg,
         linkedin: '#',
         github: '#'
     },
     {
-        id: 'lucia-ai',
-        nombre: 'Lucía Fernández',
-        bio: 'Especialista en inteligencia artificial y machine learning. Diseña los agentes de IA del estudio.',
-        cargo: 'AI & ML Engineer',
-        avatar: 'https://i.pravatar.cc/300?u=lucia',
+        id: 'anthony',
+        nombre: 'Anthony',
+        bio: 'Ingeniero de software principal, especializado en arquitecturas escalables y rendimiento.',
+        cargo: 'Lead Developer',
+        avatar: anthonyImg,
+        linkedin: '#',
+        github: '#'
+    },
+    {
+        id: 'misael',
+        nombre: 'Misael',
+        bio: 'Ingeniero DevOps enfocado en la automatización, despliegue continuo y estabilidad de infraestructura.',
+        cargo: 'DevOps Engineer',
+        avatar: misaelImg,
         linkedin: '#',
         github: '#'
     }
