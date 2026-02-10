@@ -29,9 +29,15 @@ interface TablaAlumnosProps {
 export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onCambiarFiltros, onEditar, onEliminar, onDisponibilidad, onVerProgreso, onDescargarPlan, descargando}: TablaAlumnosProps) {
     const [busquedaLocal, setBusquedaLocal] = useState(filtros.busqueda);
 
-    const formatearHoras = (valor: number) => {
-        if (!Number.isFinite(valor)) return '0';
-        const redondeado = Math.round(valor * 10) / 10;
+    const normalizarNumero = (valor: number | string | undefined) => {
+        if (valor === undefined || valor === null) return 0;
+        const numero = typeof valor === 'string' ? parseFloat(valor) : valor;
+        return Number.isFinite(numero) ? numero : 0;
+    };
+
+    const formatearHoras = (valor: number | string | undefined) => {
+        const numero = normalizarNumero(valor);
+        const redondeado = Math.round(numero * 10) / 10;
         return Number.isInteger(redondeado) ? redondeado.toString() : redondeado.toFixed(1);
     };
 
@@ -65,8 +71,10 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
     };
 
     const renderProgreso = (alumno: Alumno) => {
-        const horasCompletadas = alumno.horas_completadas || 0;
-        const horasAsignadas = alumno.horas_asignadas ?? horasCompletadas;
+        const horasCompletadas = normalizarNumero(alumno.horas_completadas);
+        const horasAsignadas = alumno.horas_asignadas !== undefined
+            ? normalizarNumero(alumno.horas_asignadas)
+            : horasCompletadas;
         const porcentaje = calcularProgreso(horasCompletadas);
         const estado = estadoProgreso(horasCompletadas);
         const claseEstado = {

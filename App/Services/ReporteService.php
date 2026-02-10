@@ -117,11 +117,16 @@ class ReporteService
         /* Generar HTML del reporte */
         $html = $this->generarHtmlPlanAlumno($alumno, $progreso, $clases, $centro);
 
-        /* Renderizar PDF */
-        $this->dompdf->loadHtml($html);
-        $this->dompdf->render();
+        try {
+            /* Renderizar PDF */
+            $this->dompdf->loadHtml($html);
+            $this->dompdf->render();
 
-        return $this->dompdf->output();
+            return $this->dompdf->output();
+        } catch (\Throwable $e) {
+            error_log('CAP PDF Error (reporte-plan): ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
