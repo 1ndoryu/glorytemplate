@@ -1133,7 +1133,7 @@ class CapEndpoints
                 'nombre' => $nombreArchivo,
                 'tipo' => 'application/pdf'
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             /* Limpiar buffers en caso de error */
             while (ob_get_level() > 0) {
                 ob_end_clean();

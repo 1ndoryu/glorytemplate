@@ -29,6 +29,12 @@ interface TablaAlumnosProps {
 export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onCambiarFiltros, onEditar, onEliminar, onDisponibilidad, onVerProgreso, onDescargarPlan, descargando}: TablaAlumnosProps) {
     const [busquedaLocal, setBusquedaLocal] = useState(filtros.busqueda);
 
+    const formatearHoras = (valor: number) => {
+        if (!Number.isFinite(valor)) return '0';
+        const redondeado = Math.round(valor * 10) / 10;
+        return Number.isInteger(redondeado) ? redondeado.toString() : redondeado.toFixed(1);
+    };
+
     const handleBusqueda = (e: React.FormEvent) => {
         e.preventDefault();
         onCambiarFiltros({busqueda: busquedaLocal});
@@ -83,8 +89,8 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
                     <div className="capProgreso__barra" style={{width: `${porcentaje}%`}} />
                 </div>
                 <div className="capProgreso__textos">
-                    <span className="capProgreso__texto">Completadas: {horasCompletadas}/35h</span>
-                    <span className="capProgreso__textoSec">Plan: {horasAsignadas}h</span>
+                    <span className="capProgreso__texto">Completadas: {formatearHoras(horasCompletadas)}/35h</span>
+                    <span className="capProgreso__textoSec">Plan: {formatearHoras(horasAsignadas)}h</span>
                 </div>
             </div>
         );

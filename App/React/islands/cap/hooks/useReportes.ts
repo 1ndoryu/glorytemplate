@@ -55,11 +55,16 @@ export function useReportes(): UseReportesReturn {
                 }
             });
 
-            const data = await response.json();
+            let data: any = null;
+            try {
+                data = await response.json();
+            } catch {
+                data = null;
+            }
 
-            if (!response.ok || data.error) {
+            if (!response.ok || data?.error) {
                 const contextual = obtenerMensajeContextual('reportes', 'generar');
-                const mensajeBackend = data.error || data.message;
+                const mensajeBackend = data?.error || data?.message;
                 if (mensajeBackend) {
                     const interpretado = interpretarErrorHttp(response.status, mensajeBackend);
                     throw new Error(formatearMensajeError(interpretado));
@@ -67,7 +72,7 @@ export function useReportes(): UseReportesReturn {
                 throw new Error(`${contextual.fallback} ${contextual.sugerencia}`);
             }
 
-            if (!data.pdf) {
+            if (!data?.pdf) {
                 throw new Error('El servidor no devolvió el PDF correctamente');
             }
 

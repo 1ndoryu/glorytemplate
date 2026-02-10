@@ -121,14 +121,21 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
 
     if (!alumno) return null;
 
-    const horasTotales = horasAsignadas;
+    const formatearHoras = (valor: number) => {
+        if (!Number.isFinite(valor)) return '0';
+        const redondeado = Math.round(valor * 10) / 10;
+        return Number.isInteger(redondeado) ? redondeado.toString() : redondeado.toFixed(1);
+    };
+
+    const horasTotales = horasCompletadas;
     const porcentajeTotal = Math.min(100, Math.round((horasTotales / CAP_REGLAS.HORAS_TOTALES) * 100));
+    const porcentajePlan = Math.min(100, Math.round((horasAsignadas / CAP_REGLAS.HORAS_TOTALES) * 100));
 
     const getEstadoGeneral = () => {
-        if (porcentajeTotal >= 100) return {texto: 'Plan completo', variante: 'exito' as const};
-        if (porcentajeTotal >= 75) return {texto: 'Plan avanzado', variante: 'advertencia' as const};
-        if (porcentajeTotal >= 25) return {texto: 'Plan en curso', variante: 'info' as const};
-        return {texto: 'Plan inicial', variante: 'neutral' as const};
+        if (porcentajeTotal >= 100) return {texto: 'Completado', variante: 'exito' as const};
+        if (porcentajeTotal >= 75) return {texto: 'Casi listo', variante: 'advertencia' as const};
+        if (porcentajeTotal >= 25) return {texto: 'En progreso', variante: 'info' as const};
+        return {texto: 'Iniciando', variante: 'neutral' as const};
     };
 
     const estadoGeneral = getEstadoGeneral();
@@ -145,9 +152,9 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                         {/* Resumen general */}
                         <div className="capProgresoModal__resumen">
                             <div className="capProgresoModal__resumenPrincipal">
-                                <span className="capProgresoModal__horasTotales">{horasTotales}</span>
-                                <span className="capProgresoModal__horasLabel">de {CAP_REGLAS.HORAS_TOTALES}h asignadas</span>
-                                <span className="capProgresoModal__horasSecundarias">Completadas: {horasCompletadas}h</span>
+                                <span className="capProgresoModal__horasTotales">{formatearHoras(horasTotales)}</span>
+                                <span className="capProgresoModal__horasLabel">de {CAP_REGLAS.HORAS_TOTALES}h completadas</span>
+                                <span className="capProgresoModal__horasSecundarias">Plan asignado: {formatearHoras(horasAsignadas)}h ({porcentajePlan}%)</span>
                             </div>
                             <Badge variante={estadoGeneral.variante}>{estadoGeneral.texto}</Badge>
                         </div>
@@ -169,8 +176,8 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                     const progresoComp = progresoCompletado.find(p => p.asignaturaId === asignatura.id);
                                     const horasAsig = progresoAsig?.horasCompletadas || 0;
                                     const horasComp = progresoComp?.horasCompletadas || 0;
-                                    const porcentajeAsig = Math.min(100, Math.round((horasAsig / asignatura.duracionHoras) * 100));
-                                    const completada = porcentajeAsig >= 100;
+                                    const porcentajeAsig = Math.min(100, Math.round((horasComp / asignatura.duracionHoras) * 100));
+                                    const completada = horasComp >= asignatura.duracionHoras;
 
                                     return (
                                         <div key={asignatura.id} className="capProgresoModal__asignatura">
@@ -182,8 +189,8 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                                     <span className="capProgresoModal__asignaturaNombre">{asignatura.nombre}</span>
                                                 </div>
                                                 <span className={`capProgresoModal__asignaturaHoras ${completada ? 'capProgresoModal__asignaturaHoras--completada' : ''}`}>
-                                                    {horasAsig}/{asignatura.duracionHoras}h
-                                                    <span className="capProgresoModal__asignaturaHorasSec">Completadas: {horasComp}h</span>
+                                                    <span className="capProgresoModal__asignaturaHorasPrim">Asignadas: {formatearHoras(horasAsig)}/{asignatura.duracionHoras}h</span>
+                                                    <span className="capProgresoModal__asignaturaHorasSec">Completadas: {formatearHoras(horasComp)}h</span>
                                                 </span>
                                             </div>
                                             <div className="capProgresoModal__asignaturaBarra">
