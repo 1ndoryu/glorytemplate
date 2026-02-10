@@ -19,9 +19,13 @@ interface ProgresoAsignatura {
 interface ProgresoApiResponse {
     alumnoId: number;
     horasCompletadas: number;
+    horasAsignadas?: number;
     horasTotales: number;
-    porcentaje: number;
+    porcentajeCompletadas?: number;
+    porcentajeAsignadas?: number;
     asignaturas: Array<{asignatura: string; horas: string}>;
+    asignaturasCompletadas?: Array<{asignatura: string; horas: string}>;
+    asignaturasAsignadas?: Array<{asignatura: string; horas: string}>;
 }
 
 interface ModalProgresoAlumnoProps {
@@ -48,8 +52,10 @@ const CODIGO_A_ID: Record<string, number> = {
 
 export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAlumnoProps) {
     const [cargando, setCargando] = useState(false);
-    const [progresoReal, setProgresoReal] = useState<ProgresoAsignatura[]>([]);
-    const [horasReales, setHorasReales] = useState(0);
+    const [progresoAsignado, setProgresoAsignado] = useState<ProgresoAsignatura[]>([]);
+    const [progresoCompletado, setProgresoCompletado] = useState<ProgresoAsignatura[]>([]);
+    const [horasAsignadas, setHorasAsignadas] = useState(0);
+    const [horasCompletadas, setHorasCompletadas] = useState(0);
 
     /* Fetch progreso real cuando se abre el modal */
     useEffect(() => {
@@ -69,30 +75,42 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                 const data: ProgresoApiResponse = await response.json();
 
                 /* Mapear respuesta del backend a formato del frontend */
-                const progMapeado: ProgresoAsignatura[] = ASIGNATURAS_CAP.map(asig => ({
+                const baseAsignaturas: ProgresoAsignatura[] = ASIGNATURAS_CAP.map(asig => ({
                     asignaturaId: asig.id,
                     horasCompletadas: 0
                 }));
 
-                (data.asignaturas || []).forEach(item => {
-                    const id = CODIGO_A_ID[item.asignatura];
-                    if (id) {
-                        const idx = progMapeado.findIndex(p => p.asignaturaId === id);
-                        if (idx !== -1) {
-                            progMapeado[idx].horasCompletadas += parseFloat(item.horas) || 0;
+                const mapearAsignaturas = (items: Array<{asignatura: string; horas: string}>) => {
+                    const mapeado = baseAsignaturas.map(item => ({...item}));
+                    (items || []).forEach(item => {
+                        const id = CODIGO_A_ID[item.asignatura];
+                        if (id) {
+                            const idx = mapeado.findIndex(p => p.asignaturaId === id);
+                            if (idx !== -1) {
+                                mapeado[idx].horasCompletadas += parseFloat(item.horas) || 0;
+                            }
                         }
-                    }
-                });
+                    });
+                    return mapeado;
+                };
 
-                setProgresoReal(progMapeado);
-                setHorasReales(data.horasCompletadas || 0);
+                const asignadas = data.asignaturasAsignadas || data.asignaturas || [];
+                const completadas = data.asignaturasCompletadas || data.asignaturas || [];
+
+                setProgresoAsignado(mapearAsignaturas(asignadas));
+                setProgresoCompletado(mapearAsignaturas(completadas));
+                setHorasAsignadas(data.horasAsignadas || 0);
+                setHorasCompletadas(data.horasCompletadas || 0);
             } catch {
                 /* En caso de error usar datos del alumno como fallback */
-                setProgresoReal(ASIGNATURAS_CAP.map(asig => ({
+                const fallback = ASIGNATURAS_CAP.map(asig => ({
                     asignaturaId: asig.id,
                     horasCompletadas: 0
-                })));
-                setHorasReales(alumno.horas_completadas || 0);
+                }));
+                setProgresoAsignado(fallback);
+                setProgresoCompletado(fallback);
+                setHorasAsignadas(alumno.horas_completadas || 0);
+                setHorasCompletadas(alumno.horas_completadas || 0);
             } finally {
                 setCargando(false);
             }
@@ -103,14 +121,14 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
 
     if (!alumno) return null;
 
-    const horasTotales = horasReales;
+    const horasTotales = horasAsignadas;
     const porcentajeTotal = Math.min(100, Math.round((horasTotales / CAP_REGLAS.HORAS_TOTALES) * 100));
 
     const getEstadoGeneral = () => {
-        if (porcentajeTotal >= 100) return {texto: 'Completado', variante: 'exito' as const};
-        if (porcentajeTotal >= 75) return {texto: 'Casi listo', variante: 'advertencia' as const};
-        if (porcentajeTotal >= 25) return {texto: 'En progreso', variante: 'info' as const};
-        return {texto: 'Iniciando', variante: 'neutral' as const};
+        if (porcentajeTotal >= 100) return {texto: 'Plan completo', variante: 'exito' as const};
+        if (porcentajeTotal >= 75) return {texto: 'Plan avanzado', variante: 'advertencia' as const};
+        if (porcentajeTotal >= 25) return {texto: 'Plan en curso', variante: 'info' as const};
+        return {texto: 'Plan inicial', variante: 'neutral' as const};
     };
 
     const estadoGeneral = getEstadoGeneral();
@@ -128,7 +146,8 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                         <div className="capProgresoModal__resumen">
                             <div className="capProgresoModal__resumenPrincipal">
                                 <span className="capProgresoModal__horasTotales">{horasTotales}</span>
-                                <span className="capProgresoModal__horasLabel">de {CAP_REGLAS.HORAS_TOTALES}h completadas</span>
+                                <span className="capProgresoModal__horasLabel">de {CAP_REGLAS.HORAS_TOTALES}h asignadas</span>
+                                <span className="capProgresoModal__horasSecundarias">Completadas: {horasCompletadas}h</span>
                             </div>
                             <Badge variante={estadoGeneral.variante}>{estadoGeneral.texto}</Badge>
                         </div>
@@ -146,8 +165,10 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                             <h4 className="capProgresoModal__desgloseHeader">Desglose por Asignatura</h4>
                             <div className="capProgresoModal__asignaturas">
                                 {ASIGNATURAS_CAP.map(asignatura => {
-                                    const progresoAsig = progresoReal.find(p => p.asignaturaId === asignatura.id);
+                                    const progresoAsig = progresoAsignado.find(p => p.asignaturaId === asignatura.id);
+                                    const progresoComp = progresoCompletado.find(p => p.asignaturaId === asignatura.id);
                                     const horasAsig = progresoAsig?.horasCompletadas || 0;
+                                    const horasComp = progresoComp?.horasCompletadas || 0;
                                     const porcentajeAsig = Math.min(100, Math.round((horasAsig / asignatura.duracionHoras) * 100));
                                     const completada = porcentajeAsig >= 100;
 
@@ -162,6 +183,7 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                                 </div>
                                                 <span className={`capProgresoModal__asignaturaHoras ${completada ? 'capProgresoModal__asignaturaHoras--completada' : ''}`}>
                                                     {horasAsig}/{asignatura.duracionHoras}h
+                                                    <span className="capProgresoModal__asignaturaHorasSec">Completadas: {horasComp}h</span>
                                                 </span>
                                             </div>
                                             <div className="capProgresoModal__asignaturaBarra">
@@ -185,7 +207,7 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                 <strong>Horas restantes:</strong> {Math.max(0, CAP_REGLAS.HORAS_TOTALES - horasTotales)}h
                             </p>
                             <p className="capProgresoModal__infoTexto capProgresoModal__infoNota">
-                                El progreso se calcula automáticamente. Clases con fecha pasada cuentan como completadas.
+                                El progreso muestra horas asignadas. Clases con fecha pasada cuentan como completadas.
                             </p>
                         </div>
                     </>

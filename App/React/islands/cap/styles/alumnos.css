@@ -306,6 +306,12 @@
     color: var(--cap-texto-secundario);
 }
 
+.capProgresoModal__horasSecundarias {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-secundario);
+    margin-left: var(--cap-espacio-sm);
+}
+
 /* Barra de progreso general */
 .capProgresoModal__barraGeneral {
     display: flex;
@@ -407,6 +413,15 @@
 .capProgresoModal__asignaturaHoras {
     font-size: var(--cap-texto-sm);
     color: var(--cap-texto-terciario);
+    display: flex;
+    align-items: center;
+    gap: var(--cap-espacio-xs);
+}
+
+.capProgresoModal__asignaturaHorasSec {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-terciario);
+    margin-left: var(--cap-espacio-xs);
 }
 
 .capProgresoModal__asignaturaHoras--completada {

@@ -344,18 +344,25 @@ class CapEndpoints
             return new \WP_REST_Response(['error' => 'Alumno no encontrado'], 404);
         }
 
-        /* Recalcular horas totales (actualiza cache en BD) */
-        $horasTotales = $alumnoModel->recalcularHorasCompletadas($alumnoId);
+        /* Recalcular horas completadas (actualiza cache en BD) */
+        $horasCompletadas = $alumnoModel->recalcularHorasCompletadas($alumnoId);
 
-        /* Obtener desglose por asignatura */
-        $progresoPorAsignatura = $alumnoModel->obtenerProgreso($alumnoId);
+        /* Obtener desglose por asignatura (completadas y asignadas) */
+        $progresoCompletado = $alumnoModel->obtenerProgreso($alumnoId);
+        $progresoAsignado = $alumnoModel->obtenerProgresoAsignado($alumnoId);
+        $horasAsignadas = $alumnoModel->obtenerHorasAsignadas($alumnoId);
 
         return new \WP_REST_Response([
             'alumnoId' => $alumnoId,
-            'horasCompletadas' => $horasTotales,
+            'horasCompletadas' => $horasCompletadas,
+            'horasAsignadas' => $horasAsignadas,
             'horasTotales' => 35,
-            'porcentaje' => min(100, round(($horasTotales / 35) * 100, 1)),
-            'asignaturas' => $progresoPorAsignatura
+            'porcentajeCompletadas' => min(100, round(($horasCompletadas / 35) * 100, 1)),
+            'porcentajeAsignadas' => min(100, round(($horasAsignadas / 35) * 100, 1)),
+            /* Compatibilidad: asignaturas completadas en clave legacy */
+            'asignaturas' => $progresoCompletado,
+            'asignaturasCompletadas' => $progresoCompletado,
+            'asignaturasAsignadas' => $progresoAsignado
         ]);
     }
 

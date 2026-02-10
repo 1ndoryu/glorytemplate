@@ -229,6 +229,16 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 
 - [x] `overflow: visible` en `.capReportesGrid` y `.capReporteTarjeta` para evitar que el calendario desplegable se corte.
 
+#### 12.1.4 Desincronizacion de progreso UI vs backend (en investigacion)
+
+ - [x] Progreso en frontend aparece en 0h mientras backend acumula horas.
+ - [x] Se detecta borrado de clases con horas persistiendo en backend.
+ - [x] Revisar fuentes de verdad: cache `horas_completadas` vs calculo en tiempo real.
+ - [x] Auditar endpoints de progreso y queries de conteo por alumno.
+ - [x] Endpoint de progreso ahora expone horas asignadas y completadas.
+ - [x] Modal muestra horas asignadas (plan) y completadas (real).
+ - [x] Tabla de alumnos usa `horas_asignadas` para evitar progreso vacío.
+
 ---
 
 #### Épica 3: Cancelado

@@ -41,21 +41,31 @@ class Alumno
         }
         $orden = strtoupper($orden) === 'DESC' ? 'DESC' : 'ASC';
 
-        $where = "centro_id = %d";
+        $where = "a.centro_id = %d";
         $params = [$centroId];
 
         if (!empty($busqueda)) {
-            $where .= " AND (nombre LIKE %s OR email LIKE %s OR dni LIKE %s)";
+            $where .= " AND (a.nombre LIKE %s OR a.email LIKE %s OR a.dni LIKE %s)";
             $busquedaLike = '%' . $wpdb->esc_like($busqueda) . '%';
             $params[] = $busquedaLike;
             $params[] = $busquedaLike;
             $params[] = $busquedaLike;
         }
 
+        $ordenarPorSql = "a.{$ordenarPor}";
+
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+
         $query = $wpdb->prepare(
-            "SELECT * FROM {$this->tabla} 
-             WHERE {$where} 
-             ORDER BY {$ordenarPor} {$orden}
+            "SELECT a.*, 
+                (SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
+                 FROM {$tablaAsistencia} ca
+                 JOIN {$tablaClases} c ON c.id = ca.clase_id
+                 WHERE ca.alumno_id = a.id) as horas_asignadas
+             FROM {$this->tabla} a
+             WHERE {$where}
+             ORDER BY {$ordenarPorSql} {$orden}
              LIMIT %d OFFSET %d",
             array_merge($params, [$limite, $offset])
         );
@@ -77,8 +87,17 @@ class Alumno
         }
 
         $placeholders = implode(',', array_fill(0, count($idsFiltrados), '%d'));
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
         $query = $wpdb->prepare(
-            "SELECT * FROM {$this->tabla} WHERE centro_id = %d AND id IN ({$placeholders}) ORDER BY nombre ASC",
+            "SELECT a.*, 
+                (SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
+                 FROM {$tablaAsistencia} ca
+                 JOIN {$tablaClases} c ON c.id = ca.clase_id
+                 WHERE ca.alumno_id = a.id) as horas_asignadas
+             FROM {$this->tabla} a
+             WHERE a.centro_id = %d AND a.id IN ({$placeholders})
+             ORDER BY a.nombre ASC",
             array_merge([$centroId], $idsFiltrados)
         );
 
@@ -255,6 +274,46 @@ class Alumno
         ), ARRAY_A);
 
         return $progreso ?: [];
+    }
+
+    /**
+     * Obtiene el progreso asignado de un alumno por asignatura.
+     * Considera todas las clases (pasadas y futuras) asignadas al alumno.
+     */
+    public function obtenerProgresoAsignado(int $alumnoId): array
+    {
+        global $wpdb;
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+
+        $progreso = $wpdb->get_results($wpdb->prepare(
+            "SELECT c.asignatura, SUM(c.duracion_minutos) / 60 as horas
+             FROM {$tablaAsistencia} a
+             JOIN {$tablaClases} c ON a.clase_id = c.id
+             WHERE a.alumno_id = %d
+             GROUP BY c.asignatura",
+            $alumnoId
+        ), ARRAY_A);
+
+        return $progreso ?: [];
+    }
+
+    /**
+     * Obtiene el total de horas asignadas (pasadas y futuras).
+     */
+    public function obtenerHorasAsignadas(int $alumnoId): float
+    {
+        global $wpdb;
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+
+        return (float) $wpdb->get_var($wpdb->prepare(
+            "SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
+             FROM {$tablaAsistencia} a
+             JOIN {$tablaClases} c ON a.clase_id = c.id
+             WHERE a.alumno_id = %d",
+            $alumnoId
+        ));
     }
 
     /**

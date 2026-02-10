@@ -59,7 +59,7 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
     };
 
     const renderProgreso = (alumno: Alumno) => {
-        const horas = alumno.horas_completadas || 0;
+        const horas = alumno.horas_asignadas ?? alumno.horas_completadas || 0;
         const porcentaje = calcularProgreso(horas);
         const estado = estadoProgreso(horas);
         const claseEstado = {
