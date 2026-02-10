@@ -321,9 +321,10 @@ class Alumno
      * 
      * @param int $centroId ID del centro (para validación de pertenencia)
      * @param array $alumnosIds Lista de IDs de alumnos a filtrar
+     * @param string $semanaExcluir Fecha del lunes de la semana a excluir (si se regenera)
      * @return array Lista de IDs de alumnos que aún necesitan más horas
      */
-    public function filtrarAlumnosNoCompletados(int $centroId, array $alumnosIds): array
+    public function filtrarAlumnosNoCompletados(int $centroId, array $alumnosIds, string $semanaExcluir = ''): array
     {
         global $wpdb;
 
@@ -337,20 +338,42 @@ class Alumno
         }
 
         /* 35 horas = límite del curso CAP */
-        $limitHoras = 35;
+        $limitMinutos = 35 * 60;
 
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
         $placeholders = implode(',', array_fill(0, count($idsFiltrados), '%d'));
+
+        $condicionExcluir = '';
+        $params = [$centroId, $centroId];
+
+        if (!empty($semanaExcluir)) {
+            $fechaBase = \DateTime::createFromFormat('!Y-m-d', $semanaExcluir);
+            if ($fechaBase) {
+                $fechaFinSemana = (clone $fechaBase)->modify('+4 days')->format('Y-m-d');
+                $condicionExcluir = ' AND (c.fecha < %s OR c.fecha > %s)';
+                $params[] = $semanaExcluir;
+                $params[] = $fechaFinSemana;
+            }
+        }
+
         $query = $wpdb->prepare(
-            "SELECT id FROM {$this->tabla} 
-             WHERE centro_id = %d 
-             AND id IN ({$placeholders}) 
-             AND (horas_completadas IS NULL OR horas_completadas < %f)
-             ORDER BY id",
-            array_merge([$centroId], $idsFiltrados, [$limitHoras])
+            "SELECT a.id
+             FROM {$this->tabla} a
+             LEFT JOIN {$tablaAsistencia} ca ON ca.alumno_id = a.id
+             LEFT JOIN {$tablaClases} c ON c.id = ca.clase_id
+                AND c.centro_id = %d
+                {$condicionExcluir}
+             WHERE a.centro_id = %d
+             AND a.id IN ({$placeholders})
+             GROUP BY a.id
+             HAVING COALESCE(SUM(c.duracion_minutos), 0) < %d
+             ORDER BY a.id",
+            array_merge($params, $idsFiltrados, [$limitMinutos])
         );
 
         $idsValidos = $wpdb->get_col($query);
-        
+
         return array_map('intval', $idsValidos ?: []);
     }
 }

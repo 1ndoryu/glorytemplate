@@ -329,16 +329,15 @@ class CalendarEngine
             }
         }
 
-        $resultados = $wpdb->get_results($wpdb->prepare(
-            "SELECT a.alumno_id, COALESCE(SUM(c.duracion_minutos), 0) as minutos_completados
-             FROM {$tablaAsistencia} a
-             JOIN {$tablaClases} c ON a.clase_id = c.id
-             WHERE a.alumno_id IN ({$placeholders})
-             AND c.centro_id = %d
-             {$condicionExcluir}
-             GROUP BY a.alumno_id",
-            $params
-        ), ARRAY_A);
+           $queryStr = "SELECT a.alumno_id, COALESCE(SUM(c.duracion_minutos), 0) as minutos_completados
+               FROM {$tablaAsistencia} a
+               JOIN {$tablaClases} c ON a.clase_id = c.id
+               WHERE a.alumno_id IN ({$placeholders})
+               AND c.centro_id = %d
+               {$condicionExcluir}
+               GROUP BY a.alumno_id";
+
+           $resultados = $wpdb->get_results($wpdb->prepare($queryStr, $params), ARRAY_A);
 
         /* Inicializar todos en 0 */
         foreach ($alumnosIds as $alumnoId) {

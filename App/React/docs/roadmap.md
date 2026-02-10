@@ -217,6 +217,7 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 - [x] Endpoints `generarCalendario` y `generarConExclusiones` ahora recalculan progreso antes de filtrar.
 - [x] Si todos los alumnos ya completaron las 35h, se retorna mensaje informativo en lugar de generar vacío.
 - [x] **FIX:** Consulta SQL ahora cuenta clases de TODAS las semanas (no solo `fecha <= hoy`), excluyendo la semana actual que se regenera.
+- [x] **FIX:** El filtro de alumnos ahora usa horas totales asignadas (pasadas + futuras), excluyendo la semana regenerada.
 
 #### 12.1.2 Modal de advertencia para semana pasada ✅
 

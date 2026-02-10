@@ -397,7 +397,7 @@ class CapEndpoints
          * luego filtramos los que ya llegaron al límite.
          */
         $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
-        $alumnosIds = $alumnoModel->filtrarAlumnosNoCompletados($centroId, $alumnosIds);
+        $alumnosIds = $alumnoModel->filtrarAlumnosNoCompletados($centroId, $alumnosIds, $semana);
 
         if (empty($alumnosIds)) {
             return new \WP_REST_Response([
@@ -476,7 +476,7 @@ class CapEndpoints
          * FILTRO CRÍTICO: Excluir alumnos que ya completaron las 35 horas del curso.
          */
         $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
-        $alumnosIds = $alumnoModel->filtrarAlumnosNoCompletados($centroId, $alumnosIds);
+        $alumnosIds = $alumnoModel->filtrarAlumnosNoCompletados($centroId, $alumnosIds, $semana);
 
         if (empty($alumnosIds)) {
             return new \WP_REST_Response([
