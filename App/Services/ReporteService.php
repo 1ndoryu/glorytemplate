@@ -375,12 +375,21 @@ HTML;
         if (empty($clases)) {
             $html .= '<tr><td colspan="4" class="centrado">Sin clases asignadas</td></tr>';
         } else {
+            /* Ajuste: asumir asistencia en fechas pasadas, pendientes en futuras */
+            $fechaHoy = date('Y-m-d');
+
             foreach ($clases as $clase) {
                 $fecha = date('d/m/Y', strtotime($clase['fecha']));
                 $horario = substr($clase['hora_inicio'], 0, 5) . ' - ' . substr($clase['hora_fin'], 0, 5);
                 $asignatura = $this->getNombreAsignatura($clase['asignatura']);
-                $asistio = $clase['asistio'] ? '✓ Asistió' : '✗ No asistió';
-                $claseAsistencia = $clase['asistio'] ? 'asistio' : 'noAsistio';
+
+                if ($clase['fecha'] > $fechaHoy) {
+                    $asistio = 'Pendiente';
+                    $claseAsistencia = 'pendiente';
+                } else {
+                    $asistio = '✓ Asistió';
+                    $claseAsistencia = 'asistio';
+                }
 
                 $html .= <<<HTML
                 <tr>

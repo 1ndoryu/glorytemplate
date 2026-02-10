@@ -241,6 +241,7 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
  - [x] FIX: Orden de parámetros corregido en filtro de alumnos al excluir semana.
  - [x] FIX: Listado de alumnos usa horas completadas calculadas (no cache). 
  - [x] FIX: Reporte plan alumno valida disponibilidad de Dompdf.
+ - [x] FIX: PDF marca clases futuras como pendientes y pasadas como asistidas.
 
 ---
 
