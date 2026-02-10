@@ -187,6 +187,19 @@
     text-align: right;
 }
 
+.capProgreso__textos {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.capProgreso__textoSec {
+    font-size: var(--cap-texto-2xs, 11px);
+    color: var(--cap-texto-secundario);
+    white-space: nowrap;
+}
+
 /* Paginación */
 .capPaginacion {
     display: flex;

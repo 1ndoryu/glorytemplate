@@ -59,9 +59,10 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
     };
 
     const renderProgreso = (alumno: Alumno) => {
-        const horas = (alumno.horas_asignadas ?? alumno.horas_completadas) || 0;
-        const porcentaje = calcularProgreso(horas);
-        const estado = estadoProgreso(horas);
+        const horasCompletadas = alumno.horas_completadas || 0;
+        const horasAsignadas = alumno.horas_asignadas ?? horasCompletadas;
+        const porcentaje = calcularProgreso(horasCompletadas);
+        const estado = estadoProgreso(horasCompletadas);
         const claseEstado = {
             ok: 'capProgreso--ok',
             warning: 'capProgreso--warning',
@@ -81,7 +82,10 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
                 <div className={`capProgreso ${claseEstado}`}>
                     <div className="capProgreso__barra" style={{width: `${porcentaje}%`}} />
                 </div>
-                <span className="capProgreso__texto">{horas}/35h</span>
+                <div className="capProgreso__textos">
+                    <span className="capProgreso__texto">Completadas: {horasCompletadas}/35h</span>
+                    <span className="capProgreso__textoSec">Plan: {horasAsignadas}h</span>
+                </div>
             </div>
         );
     };
