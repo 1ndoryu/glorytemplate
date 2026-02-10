@@ -17,6 +17,7 @@ export interface Alumno {
     dni?: string;
     horas_completadas: number;
     horas_asignadas?: number;
+    horas_completadas_calculadas?: number;
     estado: 'activo' | 'completado' | 'pausado';
     created_at: string;
     updated_at: string;

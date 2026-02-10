@@ -239,6 +239,8 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
  - [x] Modal muestra horas asignadas (plan) y completadas (real).
  - [x] Tabla de alumnos usa `horas_asignadas` para evitar progreso vacío.
  - [x] FIX: Orden de parámetros corregido en filtro de alumnos al excluir semana.
+ - [x] FIX: Listado de alumnos usa horas completadas calculadas (no cache). 
+ - [x] FIX: Reporte plan alumno valida disponibilidad de Dompdf.
 
 ---
 

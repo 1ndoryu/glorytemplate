@@ -71,7 +71,9 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
     };
 
     const renderProgreso = (alumno: Alumno) => {
-        const horasCompletadas = normalizarNumero(alumno.horas_completadas);
+        const horasCompletadas = alumno.horas_completadas_calculadas !== undefined
+            ? normalizarNumero(alumno.horas_completadas_calculadas)
+            : normalizarNumero(alumno.horas_completadas);
         const horasAsignadas = alumno.horas_asignadas !== undefined
             ? normalizarNumero(alumno.horas_asignadas)
             : horasCompletadas;

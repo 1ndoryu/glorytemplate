@@ -1099,6 +1099,12 @@ class CapEndpoints
             return new \WP_REST_Response(['error' => 'El alumno no pertenece a este centro'], 403);
         }
 
+        if (!class_exists('Dompdf\\Options')) {
+            return new \WP_REST_Response([
+                'error' => 'Dompdf no está disponible. Ejecuta composer install en el tema.'
+            ], 500);
+        }
+
         try {
             /* Iniciar buffer para capturar cualquier output accidental */
             ob_start();

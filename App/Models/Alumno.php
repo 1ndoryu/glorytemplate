@@ -62,7 +62,13 @@ class Alumno
                 (SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
                  FROM {$tablaAsistencia} ca
                  JOIN {$tablaClases} c ON c.id = ca.clase_id
-                 WHERE ca.alumno_id = a.id) as horas_asignadas
+                 WHERE ca.alumno_id = a.id) as horas_asignadas,
+                (SELECT COALESCE(SUM(c2.duracion_minutos) / 60, 0)
+                 FROM {$tablaAsistencia} ca2
+                 JOIN {$tablaClases} c2 ON c2.id = ca2.clase_id
+                 WHERE ca2.alumno_id = a.id
+                 AND c2.centro_id = a.centro_id
+                 AND c2.fecha <= CURDATE()) as horas_completadas_calculadas
              FROM {$this->tabla} a
              WHERE {$where}
              ORDER BY {$ordenarPorSql} {$orden}
@@ -94,7 +100,13 @@ class Alumno
                 (SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
                  FROM {$tablaAsistencia} ca
                  JOIN {$tablaClases} c ON c.id = ca.clase_id
-                 WHERE ca.alumno_id = a.id) as horas_asignadas
+                 WHERE ca.alumno_id = a.id) as horas_asignadas,
+                (SELECT COALESCE(SUM(c2.duracion_minutos) / 60, 0)
+                 FROM {$tablaAsistencia} ca2
+                 JOIN {$tablaClases} c2 ON c2.id = ca2.clase_id
+                 WHERE ca2.alumno_id = a.id
+                 AND c2.centro_id = a.centro_id
+                 AND c2.fecha <= CURDATE()) as horas_completadas_calculadas
              FROM {$this->tabla} a
              WHERE a.centro_id = %d AND a.id IN ({$placeholders})
              ORDER BY a.nombre ASC",
