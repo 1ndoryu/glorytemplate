@@ -311,7 +311,7 @@
     font-size: var(--cap-texto-xxs);
     font-weight: var(--cap-peso-medium);
     padding: 1px 4px;
-    border-radius: var(--cap-radio-xs);
+    border-radius: var(--cap-radio-sm);
     white-space: nowrap;
     line-height: 1.3;
 }
@@ -888,7 +888,9 @@
 
 /* Overlay que sigue al cursor durante el arrastre */
 .capDragOverlay {
-    box-shadow: 0 8px 24px hsla(var(--cap-primario-hsl), 0.25), 0 4px 12px hsla(0, 0%, 0%, 0.15);
+    box-shadow:
+        0 8px 24px hsla(var(--cap-primario-hsl), 0.25),
+        0 4px 12px hsla(0, 0%, 0%, 0.15);
     transform: rotate(3deg) scale(1.05);
     cursor: grabbing;
     z-index: var(--cap-z-tooltip);

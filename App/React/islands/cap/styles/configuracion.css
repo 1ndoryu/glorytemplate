@@ -86,17 +86,19 @@
     justify-content: center;
     background: none;
     border: none;
-    color: var(--cap-rojo);
+    color: var(--cap-error-500);
     cursor: pointer;
     padding: var(--cap-espacio-xs);
     margin-bottom: var(--cap-espacio-xxs, 0.25rem);
     border-radius: var(--cap-radio-sm);
-    transition: background var(--cap-transicion-rapida), color var(--cap-transicion-rapida);
+    transition:
+        background var(--cap-transicion-rapida),
+        color var(--cap-transicion-rapida);
 }
 
 .capBotonEliminarRango:hover {
-    background: var(--cap-rojo-100, rgba(220, 53, 69, 0.12));
-    color: var(--cap-rojo-700, var(--cap-rojo));
+    background: var(--cap-error-50);
+    color: var(--cap-error-700);
 }
 
 .capBotonEliminarRango:focus-visible {

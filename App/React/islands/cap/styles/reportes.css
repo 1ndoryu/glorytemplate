@@ -9,6 +9,8 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--cap-espacio-lg);
+    /* Permitir que desplegables sobresalgan del grid */
+    overflow: visible;
 }
 
 @media (max-width: 768px) {
@@ -23,6 +25,8 @@
     flex-direction: column;
     gap: var(--cap-espacio-md);
     padding: var(--cap-espacio-xl);
+    /* Permitir que desplegables como el calendario se muestren sobre la tarjeta */
+    overflow: visible;
 }
 
 /* Icono destacado de la tarjeta */
@@ -42,18 +46,18 @@
 }
 
 .capReporteTarjeta__icono--verde {
-    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-    color: #16a34a;
+    background: linear-gradient(135deg, var(--cap-exito-100), var(--cap-exito-200));
+    color: var(--cap-exito-600);
 }
 
 .capReporteTarjeta__icono--naranja {
-    background: linear-gradient(135deg, #fed7aa, #fdba74);
-    color: #ea580c;
+    background: linear-gradient(135deg, var(--cap-advertencia-200), var(--cap-advertencia-300));
+    color: var(--cap-advertencia-600);
 }
 
 /* Título de tarjeta */
 .capReporteTarjeta__titulo {
-    font-size: var(--nakomi-fuenteLg);
+    font-size: var(--cap-texto-lg);
     font-weight: 600;
     color: var(--cap-texto-primario);
     margin: 0;
@@ -61,7 +65,7 @@
 
 /* Descripción */
 .capReporteTarjeta__descripcion {
-    font-size: var(--nakomi-fuenteSm);
+    font-size: var(--cap-texto-sm);
     color: var(--cap-texto-secundario);
     line-height: 1.5;
     margin: 0;
@@ -116,7 +120,7 @@
 .capSelectorSemana__texto {
     flex: 1;
     text-align: center;
-    font-size: var(--nakomi-fuenteSm);
+    font-size: var(--cap-texto-sm);
     font-weight: 500;
     color: var(--cap-texto-primario);
     padding: var(--cap-espacio-xs) var(--cap-espacio-sm);
@@ -141,7 +145,7 @@
 .capSelect {
     width: 100%;
     padding: var(--cap-espacio-sm) var(--cap-espacio-md);
-    font-size: var(--nakomi-fuenteSm);
+    font-size: var(--cap-texto-sm);
     font-family: inherit;
     border: 1px solid var(--cap-borde);
     border-radius: var(--cap-radio-md);
@@ -174,7 +178,7 @@
 
 /* Label para controles */
 .capLabel {
-    font-size: var(--nakomi-fuenteXs);
+    font-size: var(--cap-texto-xs);
     font-weight: 500;
     color: var(--cap-texto-secundario);
     text-transform: uppercase;

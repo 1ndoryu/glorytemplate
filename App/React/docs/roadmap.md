@@ -1,11 +1,16 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
-> **Última actualización:** 2026-02-11  
-> **Estado:** ✅ Fase 12 - Progreso, Reportes y UX Final  
+> **Última actualización:** 2026-02-10  
+> **Estado:** ✅ Fase 12.1 - Correcciones Críticas de Progreso  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
 
+- 2026-02-10: **FIX CRÍTICO: Límite de 35 horas en generación** - Alumnos con ≥35 horas completadas ya no son incluidos en nuevas generaciones de calendario. Corregido el problema de alumnos que superaban el límite del curso (60h de 35h).
+- 2026-02-10: Nuevo método `Alumno::filtrarAlumnosNoCompletados()` para filtrar alumnos que ya terminaron el curso.
+- 2026-02-10: Modal de advertencia para generar en semana pasada - ahora muestra claramente que se asumirá asistencia retroactiva.
+- 2026-02-10: Recálculo automático de progreso antes de filtrar alumnos en generación para datos actualizados.
+- 2026-02-10: CSS fix para que el calendario desplegable del SelectorFechaSemana no se corte en las tarjetas de reportes.
 - 2026-01-29: **FIX CRÍTICO: Sistema de colisiones con clases bloqueadas** - Corregido manejo de desplazamientos cuando hay clases bloqueadas en el camino. Las clases bloqueadas ahora actúan como obstáculos fijos que no se mueven. Si el desplazamiento es imposible, el sistema busca automáticamente el horario más cercano disponible.
 - 2026-01-29: **AUDITORÍA COMPLETA DE FECHAS/ZONA HORARIA** - Implementado sistema de timezone configurable por centro. Ver `AUDITORIA_FECHAS_TIMEZONE.md` para detalles completos.
 - 2026-01-29: Nuevo componente PanelTimezone en configuración con selector de zonas horarias comunes.
@@ -193,6 +198,29 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 - [x] Click en rango de fechas abre calendario visual. Seleccionar cualquier día elige su semana.
 - [x] Mantiene flechas de navegación rápida.
 - [x] Día actual con indicador visual, semana seleccionada resaltada.
+
+---
+
+### ✅ Fase 12.1: Correcciones Críticas de Progreso (2026-02-10)
+
+> **Problema identificado:** Alumnos superaban las 35 horas del curso (algunos con 60h de 35h máximas).
+
+#### 12.1.1 Filtro de límite 35 horas en generación ✅
+
+- [x] `Alumno::filtrarAlumnosNoCompletados()` — Nuevo método que filtra alumnos con `horas_completadas >= 35`.
+- [x] Endpoints `generarCalendario` y `generarConExclusiones` ahora recalculan progreso antes de filtrar.
+- [x] Si todos los alumnos ya completaron las 35h, se retorna mensaje informativo en lugar de generar vacío.
+- [x] La priorización por proximidad ya tenía en cuenta las 35h en el frontend (sin cambios necesarios).
+
+#### 12.1.2 Modal de advertencia para semana pasada ✅
+
+- [x] Detección de `esSemanaAnterior` en `SeccionCalendario` — compara si el viernes de la semana ya pasó.
+- [x] Modal de advertencia explícita al generar en semana anterior con confirmación obligatoria.
+- [x] Texto claro: "Se asumirá que todos los alumnos asignados asistieron a dichas clases".
+
+#### 12.1.3 CSS SelectorFechaSemana ✅
+
+- [x] `overflow: visible` en `.capReportesGrid` y `.capReporteTarjeta` para evitar que el calendario desplegable se corte.
 
 ---
 

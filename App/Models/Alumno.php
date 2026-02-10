@@ -314,4 +314,43 @@ class Alumno
             $this->recalcularHorasCompletadas((int) $alumnoId);
         }
     }
+
+    /**
+     * Filtra una lista de alumnos para devolver solo los que NO han completado las 35 horas.
+     * Esto previene que el motor de calendario siga asignando clases a alumnos que ya terminaron.
+     * 
+     * @param int $centroId ID del centro (para validación de pertenencia)
+     * @param array $alumnosIds Lista de IDs de alumnos a filtrar
+     * @return array Lista de IDs de alumnos que aún necesitan más horas
+     */
+    public function filtrarAlumnosNoCompletados(int $centroId, array $alumnosIds): array
+    {
+        global $wpdb;
+
+        if (empty($alumnosIds)) {
+            return [];
+        }
+
+        $idsFiltrados = array_values(array_unique(array_filter(array_map('absint', $alumnosIds))));
+        if (empty($idsFiltrados)) {
+            return [];
+        }
+
+        /* 35 horas = límite del curso CAP */
+        $limitHoras = 35;
+
+        $placeholders = implode(',', array_fill(0, count($idsFiltrados), '%d'));
+        $query = $wpdb->prepare(
+            "SELECT id FROM {$this->tabla} 
+             WHERE centro_id = %d 
+             AND id IN ({$placeholders}) 
+             AND (horas_completadas IS NULL OR horas_completadas < %f)
+             ORDER BY id",
+            array_merge([$centroId], $idsFiltrados, [$limitHoras])
+        );
+
+        $idsValidos = $wpdb->get_col($query);
+        
+        return array_map('intval', $idsValidos ?: []);
+    }
 }

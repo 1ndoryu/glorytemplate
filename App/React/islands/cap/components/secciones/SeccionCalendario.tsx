@@ -10,7 +10,7 @@ import {useMemo, useState, useCallback} from 'react';
 import {CalendarioSemanal, ModalConflictoAforo, ModalDetalleClase, ModalAvisoGeneracion, ModalGeneracionParcial} from '../calendario';
 import type {CambiosClase, InfoHorasNoCubiertas} from '../calendario';
 import {useCalendario} from '../../hooks/useCalendario';
-import {Alerta} from '../ui';
+import {Alerta, Modal, Boton} from '../ui';
 import type {ExclusionesConflicto, Clase, DiaSemana} from '../../types';
 
 const NOMBRES_DIAS: Record<number, string> = {
@@ -22,6 +22,8 @@ export function SeccionCalendario() {
 
     /* Estado para modal de generación parcial */
     const [mostrarModalParcial, setMostrarModalParcial] = useState(false);
+    /* Estado para modal de advertencia de semana pasada */
+    const [mostrarModalSemanaPasada, setMostrarModalSemanaPasada] = useState(false);
 
     /*
      * Obtener la clase actualizada desde el array de clases
@@ -69,8 +71,8 @@ export function SeccionCalendario() {
     }, [clases]);
 
     /*
-     * Detectar si la semana actual incluye el día de hoy
-     * y si hoy no es lunes, para mostrar modal de generación parcial
+     * Detectar si la semana actual incluye el día de hoy,
+     * si hoy no es lunes, o si es una semana pasada (para mostrar advertencia).
      */
     const infoGeneracion = useMemo(() => {
         const hoy = new Date();
@@ -86,6 +88,8 @@ export function SeccionCalendario() {
         const viernesNorm = new Date(viernesSemana.getFullYear(), viernesSemana.getMonth(), viernesSemana.getDate());
 
         const esSemanaActual = hoyNorm >= lunesNorm && hoyNorm <= viernesNorm;
+        /* Semana pasada: viernes de esa semana ya pasó */
+        const esSemanaAnterior = viernesNorm < hoyNorm;
         const esLunes = diaHoy === 1;
         const esDiaLaboral = diaHoy >= 1 && diaHoy <= 5;
 
@@ -97,6 +101,7 @@ export function SeccionCalendario() {
 
         return {
             esSemanaActual,
+            esSemanaAnterior,
             esLunes,
             esDiaLaboral,
             fechaHoy,
@@ -126,16 +131,24 @@ export function SeccionCalendario() {
     };
 
     /*
-     * Interceptar generación para detectar si se necesita modal parcial.
-     * Si hoy no es lunes y se está viendo la semana actual, preguntar al usuario.
+     * Interceptar generación para detectar si se necesita modal parcial o advertencia.
+     * - Semana pasada: Mostrar advertencia de que se asumirá asistencia retroactiva.
+     * - Semana actual, día != lunes: Preguntar si generar desde hoy o completa.
      */
     const handleGenerar = useCallback(() => {
-        if (infoGeneracion.necesitaModalParcial) {
+        if (infoGeneracion.esSemanaAnterior) {
+            setMostrarModalSemanaPasada(true);
+        } else if (infoGeneracion.necesitaModalParcial) {
             setMostrarModalParcial(true);
         } else {
             generarCalendario();
         }
     }, [infoGeneracion, generarCalendario]);
+
+    const handleConfirmarSemanaPasada = useCallback(() => {
+        setMostrarModalSemanaPasada(false);
+        generarCalendario();
+    }, [generarCalendario]);
 
     const handleGenerarDesdeHoy = useCallback(() => {
         setMostrarModalParcial(false);
@@ -176,6 +189,26 @@ export function SeccionCalendario() {
                 onGenerarSemanaCompleta={handleGenerarSemanaCompleta}
                 generando={generando}
             />
+
+            {/* Modal de advertencia para generar en semana pasada */}
+            <Modal abierto={mostrarModalSemanaPasada} onCerrar={() => setMostrarModalSemanaPasada(false)} titulo="Generar en Semana Anterior" tamano="md">
+                <div className="capModalGeneracion">
+                    <Alerta variante="advertencia" className="capMb--md">
+                        Estás a punto de generar el calendario para una <strong>semana pasada</strong>.
+                    </Alerta>
+                    <p className="capTexto capMb--md">
+                        Al generar clases para fechas anteriores a hoy, el sistema asumirá que todos los alumnos asignados <strong>asistieron</strong> a dichas clases. Su progreso de horas se actualizará automáticamente.
+                    </p>
+                    <div className="capModalGeneracion__confirmar">
+                        <Boton variante="secundario" onClick={() => setMostrarModalSemanaPasada(false)} disabled={generando}>
+                            Cancelar
+                        </Boton>
+                        <Boton variante="primario" onClick={handleConfirmarSemanaPasada} cargando={generando} disabled={generando}>
+                            Continuar y Generar
+                        </Boton>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Modal para resolver conflictos de aforo */}
             <ModalConflictoAforo abierto={mostrarModalConflictos} conflictos={conflictos} onCerrar={cerrarModalConflictos} onConfirmar={handleConfirmarExclusiones} cargando={generando} />

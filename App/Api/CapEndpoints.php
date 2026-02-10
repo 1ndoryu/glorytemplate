@@ -383,11 +383,29 @@ class CapEndpoints
         $alumnosIds = $datos['alumnos'] ?? [];
         $fechaDesde = $datos['fechaDesde'] ?? null;
 
+        $alumnoModel = new Alumno();
+
         /* Si no se especifican alumnos, obtener todos los activos del centro */
         if (empty($alumnosIds)) {
-            $alumnoModel = new Alumno();
             $alumnos = $alumnoModel->obtenerPorCentro($centroId, ['limite' => 1000]);
             $alumnosIds = array_map(fn($a) => (int) $a['id'], $alumnos);
+        }
+
+        /*
+         * FILTRO CRÍTICO: Excluir alumnos que ya completaron las 35 horas del curso.
+         * Primero recalculamos el progreso para tener datos actualizados,
+         * luego filtramos los que ya llegaron al límite.
+         */
+        $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
+        $alumnosIds = $alumnoModel->filtrarAlumnosNoCompletados($centroId, $alumnosIds);
+
+        if (empty($alumnosIds)) {
+            return new \WP_REST_Response([
+                'exito' => false,
+                'clases' => [],
+                'conflictos' => [],
+                'mensaje' => 'Todos los alumnos ya han completado las 35 horas del curso CAP.'
+            ], 200);
         }
 
         $engine = new CalendarEngine($centroId);
@@ -447,10 +465,26 @@ class CapEndpoints
         $alumnosIds = $datos['alumnos'] ?? [];
         $exclusiones = $datos['exclusiones'] ?? [];
 
+        $alumnoModel = new Alumno();
+
         if (empty($alumnosIds)) {
-            $alumnoModel = new Alumno();
             $alumnos = $alumnoModel->obtenerPorCentro($centroId, ['limite' => 1000]);
             $alumnosIds = array_map(fn($a) => (int) $a['id'], $alumnos);
+        }
+
+        /*
+         * FILTRO CRÍTICO: Excluir alumnos que ya completaron las 35 horas del curso.
+         */
+        $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
+        $alumnosIds = $alumnoModel->filtrarAlumnosNoCompletados($centroId, $alumnosIds);
+
+        if (empty($alumnosIds)) {
+            return new \WP_REST_Response([
+                'exito' => false,
+                'clases' => [],
+                'conflictos' => [],
+                'mensaje' => 'Todos los alumnos ya han completado las 35 horas del curso CAP.'
+            ], 200);
         }
 
         $engine = new CalendarEngine($centroId);
