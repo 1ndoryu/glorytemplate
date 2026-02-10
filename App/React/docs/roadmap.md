@@ -6,7 +6,8 @@
 
 **Notas de mantenimiento**
 
-- 2026-02-10: **FIX CRÍTICO: Límite de 35 horas en generación** - Alumnos con ≥35 horas completadas ya no son incluidos en nuevas generaciones de calendario. Corregido el problema de alumnos que superaban el límite del curso (60h de 35h).
+- 2026-02-10: **FIX CRÍTICO: Motor de generación respeta límite 35h por alumno** - `CalendarEngine::distribuirAsignaturas()` ahora verifica las horas completadas de cada alumno ANTES de asignarle clases. Nuevos métodos `cargarHorasCompletadasAlumnos()`, `alumnoNecesitaMasHoras()` y `registrarMinutosAsignados()` para trackear el progreso durante la generación.
+- 2026-02-10: Alumnos con ≥35 horas completadas ya no reciben más clases en nuevas generaciones.
 - 2026-02-10: Nuevo método `Alumno::filtrarAlumnosNoCompletados()` para filtrar alumnos que ya terminaron el curso.
 - 2026-02-10: Modal de advertencia para generar en semana pasada - ahora muestra claramente que se asumirá asistencia retroactiva.
 - 2026-02-10: Recálculo automático de progreso antes de filtrar alumnos en generación para datos actualizados.
@@ -203,14 +204,18 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 
 ### ✅ Fase 12.1: Correcciones Críticas de Progreso (2026-02-10)
 
-> **Problema identificado:** Alumnos superaban las 35 horas del curso (algunos con 60h de 35h máximas).
+> **Problema identificado:** Alumnos superaban las 35 horas del curso (algunos con 54h+ de 35h máximas).
+> **Causa raíz:** El motor de calendario no verificaba las horas completadas de cada alumno antes de asignarle más clases.
 
-#### 12.1.1 Filtro de límite 35 horas en generación ✅
+#### 12.1.1 Motor de generación respeta límite 35h por alumno ✅
 
-- [x] `Alumno::filtrarAlumnosNoCompletados()` — Nuevo método que filtra alumnos con `horas_completadas >= 35`.
+- [x] `CalendarEngine::cargarHorasCompletadasAlumnos()` — Carga horas completadas de cada alumno al inicio de generación.
+- [x] `CalendarEngine::alumnoNecesitaMasHoras()` — Verifica si un alumno puede recibir más horas (completadas + asignadas < 35h).
+- [x] `CalendarEngine::registrarMinutosAsignados()` — Trackea minutos asignados durante la generación.
+- [x] `CalendarEngine::distribuirAsignaturas()` — Ahora filtra alumnos elegibles en CADA slot según su progreso acumulado.
+- [x] `Alumno::filtrarAlumnosNoCompletados()` — Filtro inicial en endpoints como primera línea de defensa.
 - [x] Endpoints `generarCalendario` y `generarConExclusiones` ahora recalculan progreso antes de filtrar.
 - [x] Si todos los alumnos ya completaron las 35h, se retorna mensaje informativo en lugar de generar vacío.
-- [x] La priorización por proximidad ya tenía en cuenta las 35h en el frontend (sin cambios necesarios).
 
 #### 12.1.2 Modal de advertencia para semana pasada ✅
 

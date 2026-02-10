@@ -44,6 +44,11 @@ class CalendarEngine
     private array $slotsDisponibles;
     private int $duracionClase;
     private int $alumnosMaxClase;
+    
+    /* Horas ya completadas por cada alumno (minutos) - para limitar a 35h */
+    private array $minutosCompletadosPorAlumno = [];
+    /* Horas asignadas durante esta generación (minutos) */
+    private array $minutosAsignadosPorAlumno = [];
 
     public function __construct(int $centroId)
     {
@@ -126,6 +131,7 @@ class CalendarEngine
 
         $this->cargarDisponibilidad($alumnosIds);
         $this->cargarClasesBloqueadas($fechaInicioSemana);
+        $this->cargarHorasCompletadasAlumnos($alumnosIds);
         $this->generarSlotsDisponibles($fechaInicioSemana);
 
         /*
@@ -274,6 +280,77 @@ class CalendarEngine
             $fechaInicioSemana,
             $fechaFin
         ), 'ARRAY_A');
+    }
+
+    /**
+     * Carga las horas ya completadas de cada alumno.
+     * 
+     * Esto es CRÍTICO para no asignar más de 35h por alumno.
+     * Consulta las clases con fecha <= hoy donde el alumno está asignado.
+     */
+    private function cargarHorasCompletadasAlumnos(array $alumnosIds): void
+    {
+        global $wpdb;
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+
+        $this->minutosCompletadosPorAlumno = [];
+        $this->minutosAsignadosPorAlumno = [];
+
+        if (empty($alumnosIds)) {
+            return;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($alumnosIds), '%d'));
+
+        /*
+         * Sumar minutos de clases completadas (fecha <= hoy) para cada alumno.
+         * Esto nos da el progreso real antes de esta generación.
+         */
+        $resultados = $wpdb->get_results($wpdb->prepare(
+            "SELECT a.alumno_id, COALESCE(SUM(c.duracion_minutos), 0) as minutos_completados
+             FROM {$tablaAsistencia} a
+             JOIN {$tablaClases} c ON a.clase_id = c.id
+             WHERE a.alumno_id IN ({$placeholders})
+             AND c.fecha <= CURDATE()
+             GROUP BY a.alumno_id",
+            $alumnosIds
+        ), ARRAY_A);
+
+        /* Inicializar todos en 0 */
+        foreach ($alumnosIds as $alumnoId) {
+            $this->minutosCompletadosPorAlumno[(int) $alumnoId] = 0;
+            $this->minutosAsignadosPorAlumno[(int) $alumnoId] = 0;
+        }
+
+        /* Actualizar con los valores reales */
+        foreach ($resultados as $row) {
+            $this->minutosCompletadosPorAlumno[(int) $row['alumno_id']] = (int) $row['minutos_completados'];
+        }
+    }
+
+    /**
+     * Verifica si un alumno puede recibir más horas (no ha llegado a 35h).
+     * Considera las horas ya completadas + las asignadas durante esta generación.
+     */
+    private function alumnoNecesitaMasHoras(int $alumnoId): bool
+    {
+        $limitMinutos = self::HORAS_TOTALES_CURSO * 60; /* 35h = 2100 min */
+        $minutosActuales = ($this->minutosCompletadosPorAlumno[$alumnoId] ?? 0) 
+                         + ($this->minutosAsignadosPorAlumno[$alumnoId] ?? 0);
+        
+        return $minutosActuales < $limitMinutos;
+    }
+
+    /**
+     * Registra minutos asignados a un alumno durante esta generación.
+     */
+    private function registrarMinutosAsignados(int $alumnoId, int $minutos): void
+    {
+        if (!isset($this->minutosAsignadosPorAlumno[$alumnoId])) {
+            $this->minutosAsignadosPorAlumno[$alumnoId] = 0;
+        }
+        $this->minutosAsignadosPorAlumno[$alumnoId] += $minutos;
     }
 
     /**
@@ -498,7 +575,10 @@ class CalendarEngine
     }
 
     /**
-     * Distribuye las asignaturas en los slots disponibles
+     * Distribuye las asignaturas en los slots disponibles.
+     * 
+     * IMPORTANTE: Solo asigna alumnos que aún no han completado las 35h del curso.
+     * Cada vez que se asigna una clase, se registran los minutos para ese alumno.
      */
     private function distribuirAsignaturas(array $demandaPorSlot): array
     {
@@ -520,6 +600,22 @@ class CalendarEngine
                 continue; // Saltar slots sin alumnos
             }
 
+            /*
+             * FILTRO CRÍTICO: Solo incluir alumnos que aún necesitan más horas.
+             * Esto previene que un alumno supere las 35h del curso.
+             */
+            $alumnosElegibles = [];
+            foreach ($datos['alumnos'] as $alumnoId) {
+                if ($this->alumnoNecesitaMasHoras((int) $alumnoId)) {
+                    $alumnosElegibles[] = $alumnoId;
+                }
+            }
+
+            /* Si no hay alumnos elegibles para este slot, saltarlo */
+            if (empty($alumnosElegibles)) {
+                continue;
+            }
+
             /* Seleccionar asignatura con más minutos restantes */
             $asignaturaSeleccionada = null;
             $maxMinutos = 0;
@@ -535,15 +631,24 @@ class CalendarEngine
                 continue; // Todas las asignaturas completas
             }
 
-            /* Asignar este slot a la asignatura */
+            /* Asignar este slot a la asignatura con los alumnos elegibles */
             $distribucion[] = [
                 'fecha' => $datos['fecha'],
                 'hora_inicio' => $datos['hora_inicio'],
                 'hora_fin' => $datos['hora_fin'],
                 'asignatura' => $asignaturaSeleccionada,
                 'asignatura_nombre' => self::ASIGNATURAS[$asignaturaSeleccionada]['nombre'],
-                'alumnos' => $datos['alumnos']
+                'alumnos' => $alumnosElegibles
             ];
+
+            /*
+             * Registrar los minutos asignados a cada alumno.
+             * Esto es fundamental para que en el próximo slot
+             * se considere el progreso acumulado.
+             */
+            foreach ($alumnosElegibles as $alumnoId) {
+                $this->registrarMinutosAsignados((int) $alumnoId, $this->duracionClase);
+            }
 
             /* Restar minutos de la asignatura */
             $asignaturasRestantes[$asignaturaSeleccionada] -= $this->duracionClase;
@@ -638,6 +743,7 @@ class CalendarEngine
     {
         $this->cargarDisponibilidad($alumnosIds);
         $this->cargarClasesBloqueadas($fechaInicioSemana);
+        $this->cargarHorasCompletadasAlumnos($alumnosIds);
         $this->generarSlotsDisponibles($fechaInicioSemana);
 
         /* Calcular demanda aplicando exclusiones */
@@ -765,6 +871,7 @@ class CalendarEngine
     public function obtenerPreview(string $fechaInicioSemana, array $alumnosIds): array
     {
         $this->cargarDisponibilidad($alumnosIds);
+        $this->cargarHorasCompletadasAlumnos($alumnosIds);
         $this->generarSlotsDisponibles($fechaInicioSemana);
 
         $demandaPorSlot = $this->calcularDemandaPorSlot($alumnosIds);
