@@ -20,15 +20,7 @@ interface ModalGeneracionParcialProps {
     generando: boolean;
 }
 
-export function ModalGeneracionParcial({
-    abierto,
-    nombreDiaHoy,
-    fechaHoy,
-    onCerrar,
-    onGenerarDesdeHoy,
-    onGenerarSemanaCompleta,
-    generando
-}: ModalGeneracionParcialProps) {
+export function ModalGeneracionParcial({abierto, nombreDiaHoy, fechaHoy, onCerrar, onGenerarDesdeHoy, onGenerarSemanaCompleta, generando}: ModalGeneracionParcialProps) {
     const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
     const handleSemanaCompleta = () => {
@@ -51,24 +43,18 @@ export function ModalGeneracionParcial({
             <div className="capModalGeneracion">
                 {!mostrarConfirmacion ? (
                     <>
-                        <p className="capTexto capMb--md">
-                            Hoy es <strong>{nombreDiaHoy}</strong>. ¿Desde qué día deseas generar el calendario?
-                        </p>
+                        <div className="capModalGeneracion__header capMb--lg">
+                            <span className="capTexto capTexto--secundario">Hoy es</span>
+                            <h3 className="capTexto capTexto--3xl capTexto--primario capTexto--bold capTt--cap">{nombreDiaHoy}</h3>
+                            <p className="capTexto capTexto--secundario">¿Desde qué día deseas generar el calendario?</p>
+                        </div>
 
                         <div className="capModalGeneracion__opciones">
                             <div className="capModalGeneracion__opcion">
-                                <Boton
-                                    variante="primario"
-                                    anchoCompleto
-                                    onClick={onGenerarDesdeHoy}
-                                    cargando={generando}
-                                    disabled={generando}
-                                >
+                                <Boton variante="primario" anchoCompleto onClick={onGenerarDesdeHoy} cargando={generando} disabled={generando}>
                                     Generar desde {nombreDiaHoy}
                                 </Boton>
-                                <p className="capTexto capTexto--sm capTexto--secundario capMt--xs">
-                                    Solo genera clases de {nombreDiaHoy} a viernes.
-                                </p>
+                                <p className="capTexto capTexto--sm capTexto--secundario capMt--xs">Solo genera clases de {nombreDiaHoy} a viernes.</p>
                             </div>
 
                             <div className="capModalGeneracion__separador">
@@ -76,45 +62,26 @@ export function ModalGeneracionParcial({
                             </div>
 
                             <div className="capModalGeneracion__opcion">
-                                <Boton
-                                    variante="secundario"
-                                    anchoCompleto
-                                    onClick={handleSemanaCompleta}
-                                    disabled={generando}
-                                >
+                                <Boton variante="secundario" anchoCompleto onClick={handleSemanaCompleta} disabled={generando}>
                                     Generar semana completa
                                 </Boton>
-                                <p className="capTexto capTexto--sm capTexto--secundario capMt--xs">
-                                    Genera lunes a viernes (incluye días pasados).
-                                </p>
+                                <p className="capTexto capTexto--sm capTexto--secundario capMt--xs">Genera lunes a viernes (incluye días pasados).</p>
                             </div>
                         </div>
                     </>
                 ) : (
                     <>
                         <Alerta variante="advertencia" className="capMb--md">
-                            Se asumirá que todos los alumnos asignados a clases de lunes a {nombreDiaHoy === 'martes' ? 'lunes' : `antes del ${nombreDiaHoy}`} asistieron.
-                            Su progreso se actualizará automáticamente.
+                            Se asumirá que todos los alumnos asignados a clases de lunes a {nombreDiaHoy === 'martes' ? 'lunes' : `antes del ${nombreDiaHoy}`} asistieron. Su progreso se actualizará automáticamente.
                         </Alerta>
 
-                        <p className="capTexto capMb--lg">
-                            ¿Continuar con la generación de semana completa?
-                        </p>
+                        <p className="capTexto capMb--lg">¿Continuar con la generación de semana completa?</p>
 
                         <div className="capModalGeneracion__confirmar">
-                            <Boton
-                                variante="secundario"
-                                onClick={() => setMostrarConfirmacion(false)}
-                                disabled={generando}
-                            >
+                            <Boton variante="secundario" onClick={() => setMostrarConfirmacion(false)} disabled={generando}>
                                 Volver
                             </Boton>
-                            <Boton
-                                variante="primario"
-                                onClick={handleSemanaCompleta}
-                                cargando={generando}
-                                disabled={generando}
-                            >
+                            <Boton variante="primario" onClick={handleSemanaCompleta} cargando={generando} disabled={generando}>
                                 Sí, generar semana completa
                             </Boton>
                         </div>

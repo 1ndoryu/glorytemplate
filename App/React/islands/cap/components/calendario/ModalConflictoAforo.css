@@ -27,7 +27,7 @@
     line-height: 1.5;
 }
 
-.conflictoAforo__descripcion p+p {
+.conflictoAforo__descripcion p + p {
     margin-top: var(--cap-espacio-xs);
 }
 
@@ -81,8 +81,8 @@
 }
 
 .conflictoAforo__slot--resuelto {
-    border-color: var(--cap-exito);
-    background: var(--cap-exito-sutil);
+    border-color: var(--cap-exito-500);
+    background: var(--cap-exito-50);
 }
 
 /* Header del slot */
@@ -113,7 +113,7 @@
 .conflictoAforo__hora {
     font-size: var(--cap-texto-xs);
     color: var(--cap-texto-secundario);
-    font-family: var(--cap-familia-mono);
+    font-family: var(--cap-fuente-mono);
 }
 
 /* Stats del conflicto */
@@ -131,7 +131,7 @@
 }
 
 .conflictoAforo__demanda strong {
-    color: var(--cap-peligro);
+    color: var(--cap-error-600);
 }
 
 .conflictoAforo__capacidad strong {
@@ -141,8 +141,8 @@
 .conflictoAforo__exceso {
     font-size: var(--cap-texto-xs);
     font-weight: 600;
-    color: var(--cap-peligro);
-    background: var(--cap-peligro-sutil);
+    color: var(--cap-error-600);
+    background: var(--cap-error-50);
     padding: 2px 8px;
     border-radius: var(--cap-radio-sm);
 }
@@ -150,8 +150,8 @@
 .conflictoAforo__ok {
     font-size: var(--cap-texto-xs);
     font-weight: 600;
-    color: var(--cap-exito);
-    background: var(--cap-exito-sutil);
+    color: var(--cap-exito-600);
+    background: var(--cap-exito-50);
     padding: 2px 8px;
     border-radius: var(--cap-radio-sm);
 }
@@ -160,16 +160,18 @@
     font-size: var(--cap-texto-xs);
     font-weight: 600;
     color: var(--cap-texto-primario);
-    background: var(--cap-fondo);
+    background: var(--cap-fondo-tarjeta);
     border: 1px solid var(--cap-borde);
     padding: 4px 10px;
     border-radius: var(--cap-radio-sm);
     cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
 }
 
 .conflictoAforo__toggle:hover {
-    background: var(--cap-fondo-hover);
+    background: var(--cap-fondo-sutil);
     border-color: var(--cap-borde);
 }
 
@@ -213,22 +215,22 @@
 }
 
 .conflictoAforo__alumno:hover {
-    background: var(--cap-fondo-hover);
+    background: var(--cap-fondo-sutil);
 }
 
 .conflictoAforo__alumno--excluido {
-    background: var(--cap-peligro-sutil);
+    background: var(--cap-error-50);
 }
 
 .conflictoAforo__alumno--excluido:hover {
-    background: var(--cap-peligro-sutil);
+    background: var(--cap-error-50);
     opacity: 0.8;
 }
 
 .conflictoAforo__checkbox {
     width: 16px;
     height: 16px;
-    accent-color: var(--cap-peligro);
+    accent-color: var(--cap-error-500);
     cursor: pointer;
 }
 

@@ -90,7 +90,7 @@
 }
 
 .capAutocompletado__limpiar:hover {
-    background: var(--cap-error-100, #fee2e2);
+    background: var(--cap-error-100);
     color: var(--cap-error-500);
 }
 
@@ -132,7 +132,7 @@
 
 .capAutocompletado__opcion:hover,
 .capAutocompletado__opcion--foco {
-    background: var(--cap-primario-50, #eff6ff);
+    background: var(--cap-primario-50);
 }
 
 .capAutocompletado__opcion--seleccionada {

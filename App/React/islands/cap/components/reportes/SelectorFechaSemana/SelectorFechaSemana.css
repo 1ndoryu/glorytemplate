@@ -106,7 +106,7 @@
 
 .capCalendarioMini__diaSemana {
     text-align: center;
-    font-size: 11px;
+    font-size: var(--cap-texto-xxs);
     font-weight: 600;
     color: var(--cap-texto-terciario);
     padding: 4px 0;
@@ -129,7 +129,7 @@
     background: transparent;
     border-radius: var(--cap-radio-sm);
     cursor: pointer;
-    font-size: 12px;
+    font-size: var(--cap-texto-xs);
     font-family: inherit;
     color: var(--cap-texto-principal);
     transition: all 0.1s ease;
