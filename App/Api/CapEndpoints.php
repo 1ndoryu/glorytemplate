@@ -734,7 +734,7 @@ class CapEndpoints
         }
 
         $fin = clone $inicio;
-        $fin->modify('+4 days'); /* Viernes */
+        $fin->modify('+6 days'); /* Domingo */
         $finDia = $fin->format('Y-m-d') . ' 23:59:59';
 
         $incluirBloqueadas = $request->get_param('incluirBloqueadas') === 'true' || $request->get_param('incluirBloqueadas') === true;

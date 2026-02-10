@@ -243,6 +243,7 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
  - [x] FIX: Reporte plan alumno valida disponibilidad de Dompdf.
  - [x] FIX: PDF marca clases futuras como pendientes y pasadas como asistidas.
  - [x] FIX: Priorizar por proximidad evita excluir siempre a los mismos alumnos.
+ - [x] FIX: Se bloquea crear/mover clases en fin de semana y limpiar semana borra sabado/domingo.
 
 ---
 
