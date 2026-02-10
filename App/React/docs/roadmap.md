@@ -209,13 +209,14 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 
 #### 12.1.1 Motor de generación respeta límite 35h por alumno ✅
 
-- [x] `CalendarEngine::cargarHorasCompletadasAlumnos()` — Carga horas completadas de cada alumno al inicio de generación.
+- [x] `CalendarEngine::cargarHorasCompletadasAlumnos()` — Cuenta TODAS las clases (pasadas + futuras) excluyendo la semana que se regenera.
 - [x] `CalendarEngine::alumnoNecesitaMasHoras()` — Verifica si un alumno puede recibir más horas (completadas + asignadas < 35h).
 - [x] `CalendarEngine::registrarMinutosAsignados()` — Trackea minutos asignados durante la generación.
 - [x] `CalendarEngine::distribuirAsignaturas()` — Ahora filtra alumnos elegibles en CADA slot según su progreso acumulado.
 - [x] `Alumno::filtrarAlumnosNoCompletados()` — Filtro inicial en endpoints como primera línea de defensa.
 - [x] Endpoints `generarCalendario` y `generarConExclusiones` ahora recalculan progreso antes de filtrar.
 - [x] Si todos los alumnos ya completaron las 35h, se retorna mensaje informativo en lugar de generar vacío.
+- [x] **FIX:** Consulta SQL ahora cuenta clases de TODAS las semanas (no solo `fecha <= hoy`), excluyendo la semana actual que se regenera.
 
 #### 12.1.2 Modal de advertencia para semana pasada ✅
 

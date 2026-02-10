@@ -131,7 +131,7 @@ class CalendarEngine
 
         $this->cargarDisponibilidad($alumnosIds);
         $this->cargarClasesBloqueadas($fechaInicioSemana);
-        $this->cargarHorasCompletadasAlumnos($alumnosIds);
+        $this->cargarHorasCompletadasAlumnos($alumnosIds, $fechaInicioSemana);
         $this->generarSlotsDisponibles($fechaInicioSemana);
 
         /*
@@ -283,12 +283,16 @@ class CalendarEngine
     }
 
     /**
-     * Carga las horas ya completadas de cada alumno.
+     * Carga las horas ya asignadas de cada alumno.
      * 
      * Esto es CRÍTICO para no asignar más de 35h por alumno.
-     * Consulta las clases con fecha <= hoy donde el alumno está asignado.
+     * Cuenta TODAS las clases asignadas EXCEPTO las de la semana que se está
+     * regenerando (porque esas se borran y se reemplazan).
+     * 
+     * @param array $alumnosIds IDs de alumnos
+     * @param string $semanaExcluir Fecha del lunes de la semana a excluir (que se regenera)
      */
-    private function cargarHorasCompletadasAlumnos(array $alumnosIds): void
+    private function cargarHorasCompletadasAlumnos(array $alumnosIds, string $semanaExcluir = ''): void
     {
         global $wpdb;
         $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
@@ -304,17 +308,36 @@ class CalendarEngine
         $placeholders = implode(',', array_fill(0, count($alumnosIds), '%d'));
 
         /*
-         * Sumar minutos de clases completadas (fecha <= hoy) para cada alumno.
-         * Esto nos da el progreso real antes de esta generación.
+         * Sumar minutos de TODAS las clases asignadas a cada alumno,
+         * excluyendo la semana que se está regenerando.
+         * Esto incluye clases pasadas y futuras de otras semanas.
          */
+        $condicionExcluir = '';
+        $params = $alumnosIds;
+        
+        /* Añadir centro_id después de los alumno_ids */
+        $params[] = $this->centroId;
+
+        if (!empty($semanaExcluir)) {
+            /* Calcular rango de la semana a excluir (lunes a viernes) */
+            $fechaBase = \DateTime::createFromFormat('!Y-m-d', $semanaExcluir);
+            if ($fechaBase) {
+                $fechaFinSemana = (clone $fechaBase)->modify('+4 days')->format('Y-m-d');
+                $condicionExcluir = ' AND (c.fecha < %s OR c.fecha > %s)';
+                $params[] = $semanaExcluir;
+                $params[] = $fechaFinSemana;
+            }
+        }
+
         $resultados = $wpdb->get_results($wpdb->prepare(
             "SELECT a.alumno_id, COALESCE(SUM(c.duracion_minutos), 0) as minutos_completados
              FROM {$tablaAsistencia} a
              JOIN {$tablaClases} c ON a.clase_id = c.id
              WHERE a.alumno_id IN ({$placeholders})
-             AND c.fecha <= CURDATE()
+             AND c.centro_id = %d
+             {$condicionExcluir}
              GROUP BY a.alumno_id",
-            $alumnosIds
+            $params
         ), ARRAY_A);
 
         /* Inicializar todos en 0 */
@@ -743,7 +766,7 @@ class CalendarEngine
     {
         $this->cargarDisponibilidad($alumnosIds);
         $this->cargarClasesBloqueadas($fechaInicioSemana);
-        $this->cargarHorasCompletadasAlumnos($alumnosIds);
+        $this->cargarHorasCompletadasAlumnos($alumnosIds, $fechaInicioSemana);
         $this->generarSlotsDisponibles($fechaInicioSemana);
 
         /* Calcular demanda aplicando exclusiones */
@@ -871,7 +894,7 @@ class CalendarEngine
     public function obtenerPreview(string $fechaInicioSemana, array $alumnosIds): array
     {
         $this->cargarDisponibilidad($alumnosIds);
-        $this->cargarHorasCompletadasAlumnos($alumnosIds);
+        $this->cargarHorasCompletadasAlumnos($alumnosIds, $fechaInicioSemana);
         $this->generarSlotsDisponibles($fechaInicioSemana);
 
         $demandaPorSlot = $this->calcularDemandaPorSlot($alumnosIds);
