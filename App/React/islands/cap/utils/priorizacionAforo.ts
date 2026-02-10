@@ -110,7 +110,8 @@ function calcularPuntuacionAlumno(
     alumnoInfo: AlumnoConProgreso | undefined,
     slotActual: SlotInfo,
     todosLosSlots: SlotInfo[],
-    conflictosDelDia: ConflictoAforo[]
+    conflictosDelDia: ConflictoAforo[],
+    exclusionesPrevias: number
 ): PuntuacionAlumno {
     /* Calcular horas restantes totales del curso (35h) */
     const horasCompletadas = alumnoInfo?.horasCompletadas ?? 0;
@@ -146,8 +147,10 @@ function calcularPuntuacionAlumno(
      * Puntuación final:
      * - Peso principal: horas restantes (quien tenga menos, más prioritario)
      * - Peso secundario: continuidad (evitar fragmentar)
+     * - Ajuste: evitar excluir siempre a los mismos alumnos
      */
-    const puntuacion = (horasRestantes * 10) + penalizacionFragmentacion;
+    const ajusteRepeticion = exclusionesPrevias * 60;
+    const puntuacion = (horasRestantes * 10) + penalizacionFragmentacion - ajusteRepeticion;
 
     return {
         alumnoId,
@@ -175,6 +178,7 @@ export function priorizarPorProximidad(
     alumnosInfo: Map<number, AlumnoConProgreso>
 ): ExclusionesConflicto {
     const exclusiones: ExclusionesConflicto = {};
+    const exclusionesPorAlumno = new Map<number, number>();
 
     if (conflictos.length === 0) return exclusiones;
 
@@ -212,12 +216,14 @@ export function priorizarPorProximidad(
         /* Calcular puntuación para cada alumno */
         const puntuaciones: PuntuacionAlumno[] = alumnosConflicto.map(alumnoId => {
             const alumnoInfo = alumnosInfo.get(alumnoId);
+            const exclusionesPrevias = exclusionesPorAlumno.get(alumnoId) ?? 0;
             return calcularPuntuacionAlumno(
                 alumnoId,
                 alumnoInfo,
                 slotActual,
                 todosLosSlots,
-                conflictosDelDia
+                conflictosDelDia,
+                exclusionesPrevias
             );
         });
 
@@ -233,6 +239,11 @@ export function priorizarPorProximidad(
             .map(p => p.alumnoId);
 
         exclusiones[conflicto.slotKey] = alumnosAExcluir;
+
+        alumnosAExcluir.forEach(alumnoId => {
+            const actual = exclusionesPorAlumno.get(alumnoId) ?? 0;
+            exclusionesPorAlumno.set(alumnoId, actual + 1);
+        });
     }
 
     return exclusiones;
