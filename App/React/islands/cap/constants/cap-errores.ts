@@ -230,6 +230,10 @@ export const MENSAJES_CONTEXTUALES = {
         eliminar: {
             fallback: 'No se pudo eliminar la clase.',
             sugerencia: 'Intenta de nuevo. Si está bloqueada, desbloquéala primero.'
+        },
+        limpiar: {
+            fallback: 'No se pudo limpiar la semana.',
+            sugerencia: 'Intenta de nuevo. Si hay clases bloqueadas, verifica la opción de incluir bloqueadas.'
         }
     },
     alumnos: {

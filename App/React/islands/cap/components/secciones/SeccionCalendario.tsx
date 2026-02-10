@@ -3,17 +3,25 @@
  *
  * Vista del calendario de clases CAP.
  * Integra el calendario semanal con navegación, generación, edición y resolución de conflictos.
+ * Incluye detección inteligente de día actual para generación parcial.
  */
 
-import {useMemo} from 'react';
-import {CalendarioSemanal, ModalConflictoAforo, ModalDetalleClase, ModalAvisoGeneracion} from '../calendario';
+import {useMemo, useState, useCallback} from 'react';
+import {CalendarioSemanal, ModalConflictoAforo, ModalDetalleClase, ModalAvisoGeneracion, ModalGeneracionParcial} from '../calendario';
 import type {CambiosClase, InfoHorasNoCubiertas} from '../calendario';
 import {useCalendario} from '../../hooks/useCalendario';
 import {Alerta} from '../ui';
 import type {ExclusionesConflicto, Clase, DiaSemana} from '../../types';
 
+const NOMBRES_DIAS: Record<number, string> = {
+    1: 'lunes', 2: 'martes', 3: 'miércoles', 4: 'jueves', 5: 'viernes'
+};
+
 export function SeccionCalendario() {
     const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, avisosGeneracion, mostrarModalAvisos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, eliminando, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, cerrarModalAvisos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase, moverMultiplesClases, eliminarClase, borrarSemanacompleta} = useCalendario();
+
+    /* Estado para modal de generación parcial */
+    const [mostrarModalParcial, setMostrarModalParcial] = useState(false);
 
     /*
      * Obtener la clase actualizada desde el array de clases
@@ -60,6 +68,43 @@ export function SeccionCalendario() {
         return mapa;
     }, [clases]);
 
+    /*
+     * Detectar si la semana actual incluye el día de hoy
+     * y si hoy no es lunes, para mostrar modal de generación parcial
+     */
+    const infoGeneracion = useMemo(() => {
+        const hoy = new Date();
+        const diaHoy = hoy.getDay(); /* 0=dom, 1=lun ... */
+
+        /* Calcular si hoy cae en la semana que se está viendo */
+        const lunesSemana = new Date(semanaActual);
+        const viernesSemana = new Date(semanaActual);
+        viernesSemana.setDate(viernesSemana.getDate() + 4);
+
+        const hoyNorm = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+        const lunesNorm = new Date(lunesSemana.getFullYear(), lunesSemana.getMonth(), lunesSemana.getDate());
+        const viernesNorm = new Date(viernesSemana.getFullYear(), viernesSemana.getMonth(), viernesSemana.getDate());
+
+        const esSemanaActual = hoyNorm >= lunesNorm && hoyNorm <= viernesNorm;
+        const esLunes = diaHoy === 1;
+        const esDiaLaboral = diaHoy >= 1 && diaHoy <= 5;
+
+        /* Formato YYYY-MM-DD del día de hoy */
+        const year = hoy.getFullYear();
+        const month = String(hoy.getMonth() + 1).padStart(2, '0');
+        const day = String(hoy.getDate()).padStart(2, '0');
+        const fechaHoy = `${year}-${month}-${day}`;
+
+        return {
+            esSemanaActual,
+            esLunes,
+            esDiaLaboral,
+            fechaHoy,
+            nombreDiaHoy: NOMBRES_DIAS[diaHoy] || 'hoy',
+            necesitaModalParcial: esSemanaActual && !esLunes && esDiaLaboral
+        };
+    }, [semanaActual]);
+
     const handleClaseClick = (clase: Clase) => {
         seleccionarClase(clase);
     };
@@ -80,6 +125,28 @@ export function SeccionCalendario() {
         await eliminarClase(claseId, forzar);
     };
 
+    /*
+     * Interceptar generación para detectar si se necesita modal parcial.
+     * Si hoy no es lunes y se está viendo la semana actual, preguntar al usuario.
+     */
+    const handleGenerar = useCallback(() => {
+        if (infoGeneracion.necesitaModalParcial) {
+            setMostrarModalParcial(true);
+        } else {
+            generarCalendario();
+        }
+    }, [infoGeneracion, generarCalendario]);
+
+    const handleGenerarDesdeHoy = useCallback(() => {
+        setMostrarModalParcial(false);
+        generarCalendario(infoGeneracion.fechaHoy);
+    }, [generarCalendario, infoGeneracion.fechaHoy]);
+
+    const handleGenerarSemanaCompleta = useCallback(() => {
+        setMostrarModalParcial(false);
+        generarCalendario();
+    }, [generarCalendario]);
+
     return (
         <div className="capSeccion capAnimFadeIn">
             <div className="capSeccion__header">
@@ -95,9 +162,20 @@ export function SeccionCalendario() {
 
             <div className="capMt--lg">
                 <div className="capMt--lg">
-                    <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={generarCalendario} onClaseClick={handleClaseClick} puedeDeshacer={puedeDeshacer} onDeshacer={deshacer} onBorrarSemana={borrarSemanacompleta} onMoverClase={handleMoverClase} onMoverMultiplesClases={moverMultiplesClases} />
+                    <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={handleGenerar} onClaseClick={handleClaseClick} puedeDeshacer={puedeDeshacer} onDeshacer={deshacer} onBorrarSemana={borrarSemanacompleta} onMoverClase={handleMoverClase} onMoverMultiplesClases={moverMultiplesClases} />
                 </div>
             </div>
+
+            {/* Modal para generación parcial (día != lunes) */}
+            <ModalGeneracionParcial
+                abierto={mostrarModalParcial}
+                nombreDiaHoy={infoGeneracion.nombreDiaHoy}
+                fechaHoy={infoGeneracion.fechaHoy}
+                onCerrar={() => setMostrarModalParcial(false)}
+                onGenerarDesdeHoy={handleGenerarDesdeHoy}
+                onGenerarSemanaCompleta={handleGenerarSemanaCompleta}
+                generando={generando}
+            />
 
             {/* Modal para resolver conflictos de aforo */}
             <ModalConflictoAforo abierto={mostrarModalConflictos} conflictos={conflictos} onCerrar={cerrarModalConflictos} onConfirmar={handleConfirmarExclusiones} cargando={generando} />

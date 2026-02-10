@@ -235,7 +235,9 @@ class Alumno
     }
 
     /**
-     * Obtiene el progreso de un alumno por asignatura
+     * Obtiene el progreso real de un alumno por asignatura.
+     * El calendario es la fuente de verdad: toda clase con fecha <= hoy
+     * se cuenta como completada, sin depender del campo asistio.
      */
     public function obtenerProgreso(int $alumnoId): array
     {
@@ -247,11 +249,69 @@ class Alumno
             "SELECT c.asignatura, SUM(c.duracion_minutos) / 60 as horas
              FROM {$tablaAsistencia} a
              JOIN {$tablaClases} c ON a.clase_id = c.id
-             WHERE a.alumno_id = %d AND a.asistio = 1
+             WHERE a.alumno_id = %d AND c.fecha <= CURDATE()
              GROUP BY c.asignatura",
             $alumnoId
         ), ARRAY_A);
 
         return $progreso ?: [];
+    }
+
+    /**
+     * Recalcula y actualiza horas_completadas de un alumno.
+     * Suma la duración de todas las clases con fecha <= hoy asignadas al alumno.
+     * Retorna el total de horas actualizado.
+     */
+    public function recalcularHorasCompletadas(int $alumnoId): float
+    {
+        global $wpdb;
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+
+        $horas = (float) $wpdb->get_var($wpdb->prepare(
+            "SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
+             FROM {$tablaAsistencia} a
+             JOIN {$tablaClases} c ON a.clase_id = c.id
+             WHERE a.alumno_id = %d AND c.fecha <= CURDATE()",
+            $alumnoId
+        ));
+
+        /* Actualizar cache en tabla de alumnos */
+        $wpdb->update(
+            $this->tabla,
+            ['horas_completadas' => $horas, 'updated_at' => current_time('mysql')],
+            ['id' => $alumnoId]
+        );
+
+        return $horas;
+    }
+
+    /**
+     * Recalcula horas_completadas de todos los alumnos de un centro.
+     * Útil tras generar o eliminar clases.
+     */
+    public function recalcularProgresoCentro(int $centroId): void
+    {
+        global $wpdb;
+
+        $alumnosIds = $wpdb->get_col($wpdb->prepare(
+            "SELECT id FROM {$this->tabla} WHERE centro_id = %d",
+            $centroId
+        ));
+
+        foreach ($alumnosIds as $alumnoId) {
+            $this->recalcularHorasCompletadas((int) $alumnoId);
+        }
+    }
+
+    /**
+     * Recalcula horas_completadas de un conjunto específico de alumnos.
+     * Se usa tras generar calendario para actualizar solo los alumnos afectados.
+     */
+    public function recalcularProgresoAlumnos(array $alumnosIds): void
+    {
+        foreach ($alumnosIds as $alumnoId) {
+            $this->recalcularHorasCompletadas((int) $alumnoId);
+        }
     }
 }

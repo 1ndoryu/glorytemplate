@@ -2,10 +2,12 @@
  * ModalProgresoAlumno
  *
  * Modal que muestra el desglose de progreso por asignatura de un alumno.
- * Incluye barras de progreso visuales para cada asignatura del CAP.
+ * Consume el endpoint real /alumnos/{id}/progreso para obtener datos actualizados.
+ * El calendario es la fuente de verdad: clases con fecha <= hoy.
  */
 
-import {Modal, Badge} from '../ui';
+import {useState, useEffect} from 'react';
+import {Modal, Badge, Spinner} from '../ui';
 import {ASIGNATURAS_CAP, CAP_REGLAS} from '../../constants';
 import type {Alumno} from '../../hooks/useAlumnos';
 
@@ -14,49 +16,95 @@ interface ProgresoAsignatura {
     horasCompletadas: number;
 }
 
+interface ProgresoApiResponse {
+    alumnoId: number;
+    horasCompletadas: number;
+    horasTotales: number;
+    porcentaje: number;
+    asignaturas: Array<{asignatura: string; horas: string}>;
+}
+
 interface ModalProgresoAlumnoProps {
     visible: boolean;
     alumno: Alumno | null;
-    /** Progreso por asignatura, si no se proporciona se usa datos mock */
-    progresoAsignaturas?: ProgresoAsignatura[];
     onCerrar: () => void;
 }
 
 /*
- * Genera datos mock de progreso basándose en las horas totales del alumno.
- * Distribuye las horas completadas proporcionalmente entre las asignaturas.
+ * Normaliza códigos de asignatura del backend a IDs numéricos del frontend.
+ * El backend puede devolver nombres internos como "conduccion_racional".
  */
-function generarProgresoMock(horasCompletadas: number): ProgresoAsignatura[] {
-    if (horasCompletadas === 0) {
-        return ASIGNATURAS_CAP.map(asig => ({
-            asignaturaId: asig.id,
-            horasCompletadas: 0
-        }));
-    }
+const CODIGO_A_ID: Record<string, number> = {
+    conduccion_racional: 1, CR: 1,
+    reglamentacion: 2, REG: 2,
+    seguridad_vial: 3, SV: 3,
+    servicio_logistica: 4, SL: 4,
+    salud_seguridad: 5, SS: 5, salud_ergonomia: 5,
+    medio_ambiente: 6, MA: 6, entorno_economico: 6,
+    mercancias_peligrosas: 7, MP: 7,
+    viajeros: 8, VIA: 8, evaluacion: 8,
+    racionalizacion: 1
+};
 
-    /* Distribuir horas proporcionalmente según duración de cada asignatura */
-    const factorCompletado = horasCompletadas / CAP_REGLAS.HORAS_TOTALES;
+export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAlumnoProps) {
+    const [cargando, setCargando] = useState(false);
+    const [progresoReal, setProgresoReal] = useState<ProgresoAsignatura[]>([]);
+    const [horasReales, setHorasReales] = useState(0);
 
-    return ASIGNATURAS_CAP.map(asig => {
-        const horasEsperadas = asig.duracionHoras * factorCompletado;
-        /* Añadir algo de variación para que no sea exactamente proporcional */
-        const variacion = Math.random() * 0.2 - 0.1;
-        const horas = Math.max(0, Math.min(asig.duracionHoras, horasEsperadas * (1 + variacion)));
-        return {
-            asignaturaId: asig.id,
-            horasCompletadas: Math.round(horas * 10) / 10
+    /* Fetch progreso real cuando se abre el modal */
+    useEffect(() => {
+        if (!visible || !alumno) return;
+
+        const cargarProgreso = async () => {
+            setCargando(true);
+            try {
+                const nonce = (window as any).wpApiSettings?.nonce || '';
+                const response = await fetch(`/wp-json/cap/v1/alumnos/${alumno.id}/progreso`, {
+                    headers: {'X-WP-Nonce': nonce},
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) throw new Error('Error al cargar progreso');
+
+                const data: ProgresoApiResponse = await response.json();
+
+                /* Mapear respuesta del backend a formato del frontend */
+                const progMapeado: ProgresoAsignatura[] = ASIGNATURAS_CAP.map(asig => ({
+                    asignaturaId: asig.id,
+                    horasCompletadas: 0
+                }));
+
+                (data.asignaturas || []).forEach(item => {
+                    const id = CODIGO_A_ID[item.asignatura];
+                    if (id) {
+                        const idx = progMapeado.findIndex(p => p.asignaturaId === id);
+                        if (idx !== -1) {
+                            progMapeado[idx].horasCompletadas += parseFloat(item.horas) || 0;
+                        }
+                    }
+                });
+
+                setProgresoReal(progMapeado);
+                setHorasReales(data.horasCompletadas || 0);
+            } catch {
+                /* En caso de error usar datos del alumno como fallback */
+                setProgresoReal(ASIGNATURAS_CAP.map(asig => ({
+                    asignaturaId: asig.id,
+                    horasCompletadas: 0
+                })));
+                setHorasReales(alumno.horas_completadas || 0);
+            } finally {
+                setCargando(false);
+            }
         };
-    });
-}
 
-export function ModalProgresoAlumno({visible, alumno, progresoAsignaturas, onCerrar}: ModalProgresoAlumnoProps) {
+        cargarProgreso();
+    }, [visible, alumno]);
+
     if (!alumno) return null;
 
-    const horasTotales = alumno.horas_completadas || 0;
+    const horasTotales = horasReales;
     const porcentajeTotal = Math.min(100, Math.round((horasTotales / CAP_REGLAS.HORAS_TOTALES) * 100));
-
-    /* Usar datos reales si están disponibles, sino mock */
-    const progreso = progresoAsignaturas || generarProgresoMock(horasTotales);
 
     const getEstadoGeneral = () => {
         if (porcentajeTotal >= 100) return {texto: 'Completado', variante: 'exito' as const};
@@ -70,68 +118,78 @@ export function ModalProgresoAlumno({visible, alumno, progresoAsignaturas, onCer
     return (
         <Modal abierto={visible} onCerrar={onCerrar} titulo="Progreso del Alumno" subtitulo={alumno.nombre} tamano="md">
             <div className="capProgresoModal">
-                {/* Resumen general */}
-                <div className="capProgresoModal__resumen">
-                    <div className="capProgresoModal__resumenPrincipal">
-                        <span className="capProgresoModal__horasTotales">{horasTotales}</span>
-                        <span className="capProgresoModal__horasLabel">de {CAP_REGLAS.HORAS_TOTALES}h completadas</span>
+                {cargando ? (
+                    <div className="capFlexCenter capPadding--lg">
+                        <Spinner tamano="md" />
                     </div>
-                    <Badge variante={estadoGeneral.variante}>{estadoGeneral.texto}</Badge>
-                </div>
+                ) : (
+                    <>
+                        {/* Resumen general */}
+                        <div className="capProgresoModal__resumen">
+                            <div className="capProgresoModal__resumenPrincipal">
+                                <span className="capProgresoModal__horasTotales">{horasTotales}</span>
+                                <span className="capProgresoModal__horasLabel">de {CAP_REGLAS.HORAS_TOTALES}h completadas</span>
+                            </div>
+                            <Badge variante={estadoGeneral.variante}>{estadoGeneral.texto}</Badge>
+                        </div>
 
-                {/* Barra de progreso general */}
-                <div className="capProgresoModal__barraGeneral">
-                    <div className="capProgresoModal__barraGeneralFondo">
-                        <div className="capProgresoModal__barraGeneralRelleno" style={{width: `${porcentajeTotal}%`}} />
-                    </div>
-                    <span className="capProgresoModal__porcentaje">{porcentajeTotal}%</span>
-                </div>
+                        {/* Barra de progreso general */}
+                        <div className="capProgresoModal__barraGeneral">
+                            <div className="capProgresoModal__barraGeneralFondo">
+                                <div className="capProgresoModal__barraGeneralRelleno" style={{width: `${porcentajeTotal}%`}} />
+                            </div>
+                            <span className="capProgresoModal__porcentaje">{porcentajeTotal}%</span>
+                        </div>
 
-                {/* Desglose por asignatura */}
-                <div className="capProgresoModal__desglose">
-                    <h4 className="capProgresoModal__desgloseHeader">Desglose por Asignatura</h4>
-                    <div className="capProgresoModal__asignaturas">
-                        {ASIGNATURAS_CAP.map(asignatura => {
-                            const progresoAsig = progreso.find(p => p.asignaturaId === asignatura.id);
-                            const horasAsig = progresoAsig?.horasCompletadas || 0;
-                            const porcentajeAsig = Math.min(100, Math.round((horasAsig / asignatura.duracionHoras) * 100));
-                            const completada = porcentajeAsig >= 100;
+                        {/* Desglose por asignatura */}
+                        <div className="capProgresoModal__desglose">
+                            <h4 className="capProgresoModal__desgloseHeader">Desglose por Asignatura</h4>
+                            <div className="capProgresoModal__asignaturas">
+                                {ASIGNATURAS_CAP.map(asignatura => {
+                                    const progresoAsig = progresoReal.find(p => p.asignaturaId === asignatura.id);
+                                    const horasAsig = progresoAsig?.horasCompletadas || 0;
+                                    const porcentajeAsig = Math.min(100, Math.round((horasAsig / asignatura.duracionHoras) * 100));
+                                    const completada = porcentajeAsig >= 100;
 
-                            return (
-                                <div key={asignatura.id} className="capProgresoModal__asignatura">
-                                    <div className="capProgresoModal__asignaturaHeader">
-                                        <div className="capProgresoModal__asignaturaInfo">
-                                            <span className="capProgresoModal__asignaturaCodigo" style={{backgroundColor: asignatura.color}}>
-                                                {asignatura.codigo}
-                                            </span>
-                                            <span className="capProgresoModal__asignaturaNombre">{asignatura.nombre}</span>
+                                    return (
+                                        <div key={asignatura.id} className="capProgresoModal__asignatura">
+                                            <div className="capProgresoModal__asignaturaHeader">
+                                                <div className="capProgresoModal__asignaturaInfo">
+                                                    <span className="capProgresoModal__asignaturaCodigo" style={{backgroundColor: asignatura.color}}>
+                                                        {asignatura.codigo}
+                                                    </span>
+                                                    <span className="capProgresoModal__asignaturaNombre">{asignatura.nombre}</span>
+                                                </div>
+                                                <span className={`capProgresoModal__asignaturaHoras ${completada ? 'capProgresoModal__asignaturaHoras--completada' : ''}`}>
+                                                    {horasAsig}/{asignatura.duracionHoras}h
+                                                </span>
+                                            </div>
+                                            <div className="capProgresoModal__asignaturaBarra">
+                                                <div
+                                                    className={`capProgresoModal__asignaturaBarraRelleno ${completada ? 'capProgresoModal__asignaturaBarraRelleno--completada' : ''}`}
+                                                    style={{
+                                                        width: `${porcentajeAsig}%`,
+                                                        backgroundColor: completada ? 'var(--cap-exito-500)' : asignatura.color
+                                                    }}
+                                                />
+                                            </div>
                                         </div>
-                                        <span className={`capProgresoModal__asignaturaHoras ${completada ? 'capProgresoModal__asignaturaHoras--completada' : ''}`}>
-                                            {horasAsig}/{asignatura.duracionHoras}h
-                                        </span>
-                                    </div>
-                                    <div className="capProgresoModal__asignaturaBarra">
-                                        <div
-                                            className={`capProgresoModal__asignaturaBarraRelleno ${completada ? 'capProgresoModal__asignaturaBarraRelleno--completada' : ''}`}
-                                            style={{
-                                                width: `${porcentajeAsig}%`,
-                                                backgroundColor: completada ? 'var(--cap-exito-500)' : asignatura.color
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
 
-                {/* Info adicional */}
-                <div className="capProgresoModal__info">
-                    <p className="capProgresoModal__infoTexto">
-                        <strong>Horas restantes:</strong> {Math.max(0, CAP_REGLAS.HORAS_TOTALES - horasTotales)}h
-                    </p>
-                    <p className="capProgresoModal__infoTexto capProgresoModal__infoNota">El progreso detallado se actualiza automáticamente al registrar asistencia.</p>
-                </div>
+                        {/* Info adicional */}
+                        <div className="capProgresoModal__info">
+                            <p className="capProgresoModal__infoTexto">
+                                <strong>Horas restantes:</strong> {Math.max(0, CAP_REGLAS.HORAS_TOTALES - horasTotales)}h
+                            </p>
+                            <p className="capProgresoModal__infoTexto capProgresoModal__infoNota">
+                                El progreso se calcula automáticamente. Clases con fecha pasada cuentan como completadas.
+                            </p>
+                        </div>
+                    </>
+                )}
             </div>
         </Modal>
     );

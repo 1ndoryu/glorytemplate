@@ -25,3 +25,6 @@ export {Spinner} from './Spinner';
 
 /* Badge */
 export {Badge} from './Badge';
+
+/* InputAutocompletado */
+export {InputAutocompletado} from './InputAutocompletado';

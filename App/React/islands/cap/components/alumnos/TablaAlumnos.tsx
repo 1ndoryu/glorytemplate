@@ -2,12 +2,12 @@
  * TablaAlumnos
  *
  * Tabla con lista de alumnos, ordenación, búsqueda y paginación.
- * Renderiza filas con acciones de editar/eliminar/disponibilidad.
+ * Renderiza filas con acciones de editar/eliminar/disponibilidad/descarga.
  */
 
 import {useState} from 'react';
 import {Input, Boton, Badge, Spinner} from '../ui';
-import {IconoBuscar, IconoEditar, IconoEliminar, IconoOrdenar, IconoReloj} from '../icons';
+import {IconoBuscar, IconoEditar, IconoEliminar, IconoOrdenar, IconoReloj, IconoDescargar} from '../icons';
 import type {Alumno, FiltrosAlumnos} from '../../hooks/useAlumnos';
 import {calcularProgreso, estadoProgreso} from '../../hooks/useAlumnos';
 
@@ -22,9 +22,11 @@ interface TablaAlumnosProps {
     onEliminar: (id: number) => void;
     onDisponibilidad?: (alumno: Alumno) => void;
     onVerProgreso?: (alumno: Alumno) => void;
+    onDescargarPlan?: (alumno: Alumno) => void;
+    descargando?: number | null;
 }
 
-export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onCambiarFiltros, onEditar, onEliminar, onDisponibilidad, onVerProgreso}: TablaAlumnosProps) {
+export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onCambiarFiltros, onEditar, onEliminar, onDisponibilidad, onVerProgreso, onDescargarPlan, descargando}: TablaAlumnosProps) {
     const [busquedaLocal, setBusquedaLocal] = useState(filtros.busqueda);
 
     const handleBusqueda = (e: React.FormEvent) => {
@@ -142,6 +144,11 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
                                             {onDisponibilidad && (
                                                 <Boton variante="ghost" tamano="sm" onClick={() => onDisponibilidad(alumno)} title="Disponibilidad horaria">
                                                     <IconoReloj />
+                                                </Boton>
+                                            )}
+                                            {onDescargarPlan && (
+                                                <Boton variante="ghost" tamano="sm" onClick={() => onDescargarPlan(alumno)} cargando={descargando === alumno.id} title="Descargar plan de formación">
+                                                    <IconoDescargar />
                                                 </Boton>
                                             )}
                                             <Boton variante="ghost" tamano="sm" onClick={() => onEditar(alumno)} title="Editar alumno">

@@ -2,21 +2,24 @@
  * SeccionAlumnos
  *
  * Vista de gestión de alumnos del módulo CAP.
- * Implementa tabla con CRUD, búsqueda, ordenación, paginación y matriz de disponibilidad.
+ * Implementa tabla con CRUD, búsqueda, ordenación, paginación, matriz de disponibilidad
+ * y descarga individual de plan de formación.
  *
  * Las horas de disponibilidad se adaptan al horario configurado de la autoescuela.
  */
 
-import {useState} from 'react';
+import {useState, useCallback} from 'react';
 import {Boton, Alerta, Modal} from '../ui';
 import {TablaAlumnos, FormularioAlumno, MatrizDisponibilidad, ModalProgresoAlumno} from '../alumnos';
 import {IconoUsuarioMas} from '../icons';
 import {useAlumnos, type Alumno} from '../../hooks/useAlumnos';
+import {useReportes} from '../../hooks/useReportes';
 import {useConfiguracion} from '../../hooks/useConfiguracion';
 import {calcularRangoHoras} from '../../utils/horariosUtils';
 
 export function SeccionAlumnos() {
     const {alumnos, total, cargando, guardando, eliminando, error, exito, filtros, crearAlumno, actualizarAlumno, eliminarAlumno, cambiarFiltros, limpiarMensajes} = useAlumnos();
+    const {descargarPlanAlumno} = useReportes();
 
     /* Obtener configuración del centro para las horas de disponibilidad */
     const {config} = useConfiguracion();
@@ -33,6 +36,9 @@ export function SeccionAlumnos() {
     /* Estado para modal de progreso por asignatura */
     const [modalProgresoVisible, setModalProgresoVisible] = useState(false);
     const [alumnoProgreso, setAlumnoProgreso] = useState<Alumno | null>(null);
+
+    /* Estado para descarga individual de plan de formación */
+    const [descargandoAlumno, setDescargandoAlumno] = useState<number | null>(null);
 
     /* Limpiar mensajes después de 4 segundos */
     if (exito || error) {
@@ -96,6 +102,16 @@ export function SeccionAlumnos() {
         setAlumnoProgreso(null);
     };
 
+    /* Handler para descarga individual del plan de formación desde la tabla */
+    const handleDescargarPlan = useCallback(async (alumno: Alumno) => {
+        setDescargandoAlumno(alumno.id);
+        try {
+            await descargarPlanAlumno(alumno.id, alumno.nombre);
+        } finally {
+            setDescargandoAlumno(null);
+        }
+    }, [descargarPlanAlumno]);
+
     return (
         <div className="capSeccion capAnimFadeIn">
             {/* Header con título y botón de crear */}
@@ -126,7 +142,7 @@ export function SeccionAlumnos() {
 
             {/* Tabla de alumnos */}
             <div className="capMt--lg">
-                <TablaAlumnos alumnos={alumnos} total={total} cargando={cargando} eliminando={eliminando} filtros={filtros} onCambiarFiltros={cambiarFiltros} onEditar={handleEditar} onEliminar={handleEliminar} onDisponibilidad={handleAbrirDisponibilidad} onVerProgreso={handleVerProgreso} />
+                <TablaAlumnos alumnos={alumnos} total={total} cargando={cargando} eliminando={eliminando} filtros={filtros} onCambiarFiltros={cambiarFiltros} onEditar={handleEditar} onEliminar={handleEliminar} onDisponibilidad={handleAbrirDisponibilidad} onVerProgreso={handleVerProgreso} onDescargarPlan={handleDescargarPlan} descargando={descargandoAlumno} />
             </div>
 
             {/* Modal de creación/edición */}

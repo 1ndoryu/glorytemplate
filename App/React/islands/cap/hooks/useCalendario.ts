@@ -52,7 +52,7 @@ interface AccionesCalendario {
     irASemanaActual: () => void;
     toggleBloqueoClase: (claseId: number) => Promise<void>;
     recargarClases: () => Promise<void>;
-    generarCalendario: () => Promise<void>;
+    generarCalendario: (fechaDesde?: string) => Promise<void>;
     generarConExclusiones: (exclusiones: ExclusionesConflicto) => Promise<void>;
     cerrarModalConflictos: () => void;
     cerrarModalAvisos: () => void;
@@ -256,8 +256,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         });
     }, [clases]);
 
-    /* Generar calendario */
-    const generarCalendario = useCallback(async () => {
+    /* Generar calendario con soporte para generación parcial */
+    const generarCalendario = useCallback(async (fechaDesde?: string) => {
         /* Guardar snapshot antes de generar para poder deshacer */
         guardarSnapshot();
 
@@ -267,15 +267,20 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         setAvisosGeneracion([]);
 
         try {
+            const body: any = {
+                semana: formatearFechaApi(semanaActual)
+            };
+            if (fechaDesde) {
+                body.fechaDesde = fechaDesde;
+            }
+
             const response = await fetch('/wp-json/cap/v1/generar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-WP-Nonce': getNonce()
                 },
-                body: JSON.stringify({
-                    semana: formatearFechaApi(semanaActual)
-                })
+                    body: JSON.stringify(body)
             });
 
             const resultado: ResultadoGeneracion = await response.json();

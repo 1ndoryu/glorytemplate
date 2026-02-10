@@ -47,6 +47,13 @@ class CapEndpoints
             ['methods' => 'DELETE', 'callback' => [$this, 'eliminarAlumno'], 'permission_callback' => [$this, 'verificarPermisos']],
         ]);
 
+        /* Endpoint de progreso real por asignatura de un alumno */
+        register_rest_route(self::NAMESPACE, '/alumnos/(?P<id>\d+)/progreso', [
+            'methods' => 'GET',
+            'callback' => [$this, 'obtenerProgresoAlumno'],
+            'permission_callback' => [$this, 'verificarPermisos'],
+        ]);
+
         register_rest_route(self::NAMESPACE, '/clases', [
             'methods' => 'GET',
             'callback' => [$this, 'obtenerClases'],
@@ -316,6 +323,42 @@ class CapEndpoints
         return new \WP_REST_Response(['exito' => true]);
     }
 
+    /**
+     * Obtiene el progreso real de un alumno desglosado por asignatura.
+     * El calendario es la fuente de verdad: clases con fecha <= hoy.
+     */
+    public function obtenerProgresoAlumno(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $alumnoId = (int) $request->get_param('id');
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $alumnoModel = new Alumno();
+        $alumno = $alumnoModel->obtenerPorId($alumnoId);
+
+        if (!$alumno || (int)$alumno['centro_id'] !== $centroId) {
+            return new \WP_REST_Response(['error' => 'Alumno no encontrado'], 404);
+        }
+
+        /* Recalcular horas totales (actualiza cache en BD) */
+        $horasTotales = $alumnoModel->recalcularHorasCompletadas($alumnoId);
+
+        /* Obtener desglose por asignatura */
+        $progresoPorAsignatura = $alumnoModel->obtenerProgreso($alumnoId);
+
+        return new \WP_REST_Response([
+            'alumnoId' => $alumnoId,
+            'horasCompletadas' => $horasTotales,
+            'horasTotales' => 35,
+            'porcentaje' => min(100, round(($horasTotales / 35) * 100, 1)),
+            'asignaturas' => $progresoPorAsignatura
+        ]);
+    }
+
     public function obtenerClases(\WP_REST_Request $request): \WP_REST_Response
     {
         $capService = CapService::getInstance();
@@ -338,6 +381,7 @@ class CapEndpoints
         $datos = $request->get_json_params();
         $semana = $datos['semana'] ?? date('Y-m-d');
         $alumnosIds = $datos['alumnos'] ?? [];
+        $fechaDesde = $datos['fechaDesde'] ?? null;
 
         /* Si no se especifican alumnos, obtener todos los activos del centro */
         if (empty($alumnosIds)) {
@@ -347,7 +391,13 @@ class CapEndpoints
         }
 
         $engine = new CalendarEngine($centroId);
-        $resultado = $engine->generar($semana, $alumnosIds);
+        $resultado = $engine->generar($semana, $alumnosIds, $fechaDesde);
+
+        /* Recalcular progreso de alumnos afectados tras generar */
+        if ($resultado['exito'] && !empty($alumnosIds)) {
+            $alumnoModel = $alumnoModel ?? new Alumno();
+            $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
+        }
 
         $statusCode = $resultado['exito'] ? 200 : 409;
         return new \WP_REST_Response($resultado, $statusCode);
@@ -405,6 +455,12 @@ class CapEndpoints
 
         $engine = new CalendarEngine($centroId);
         $resultado = $engine->generarConExclusiones($semana, $alumnosIds, $exclusiones);
+
+        /* Recalcular progreso de alumnos afectados tras generar con exclusiones */
+        if ($resultado['exito'] && !empty($alumnosIds)) {
+            $alumnoModel = $alumnoModel ?? new Alumno();
+            $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
+        }
 
         $statusCode = $resultado['exito'] ? 200 : 409;
         return new \WP_REST_Response($resultado, $statusCode);
@@ -522,11 +578,23 @@ class CapEndpoints
         $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
         $tablaClases = $wpdb->prefix . 'cap_clases';
 
+        /* Obtener alumnos afectados antes de eliminar */
+        $alumnosAfectados = $wpdb->get_col($wpdb->prepare(
+            "SELECT alumno_id FROM {$tablaAsistencia} WHERE clase_id = %d",
+            $claseId
+        ));
+
         $wpdb->delete($tablaAsistencia, ['clase_id' => $claseId]);
         $eliminado = $wpdb->delete($tablaClases, ['id' => $claseId]);
 
         if ($eliminado === false) {
             return new \WP_REST_Response(['error' => 'Error al eliminar la clase'], 500);
+        }
+
+        /* Recalcular progreso de alumnos afectados */
+        if (!empty($alumnosAfectados)) {
+            $alumnoModel = new Alumno();
+            $alumnoModel->recalcularProgresoAlumnos($alumnosAfectados);
         }
 
         return new \WP_REST_Response(['exito' => true, 'mensaje' => 'Clase eliminada correctamente']);
@@ -585,6 +653,10 @@ class CapEndpoints
             "DELETE FROM {$tablaClases} WHERE centro_id = %d{$where}",
             $centroId
         ));
+
+        /* Recalcular progreso de todos los alumnos del centro */
+        $alumnoModel = new Alumno();
+        $alumnoModel->recalcularProgresoCentro($centroId);
 
         return new \WP_REST_Response([
             'exito' => true,
@@ -659,6 +731,10 @@ class CapEndpoints
             $fecha,
             $finDia
         ));
+
+        /* Recalcular progreso de todos los alumnos del centro */
+        $alumnoModel = new Alumno();
+        $alumnoModel->recalcularProgresoCentro($centroId);
 
         return new \WP_REST_Response([
             'exito' => true,

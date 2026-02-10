@@ -1,0 +1,172 @@
+/**
+ * Estilos del SelectorFechaSemana
+ *
+ * Mini-calendario desplegable para selección de semanas.
+ */
+
+.capSelectorFechaSemana {
+    position: relative;
+}
+
+/* Botón central que abre el calendario */
+.capSelectorFechaSemana__textoBtn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cap-espacio-xs);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: var(--cap-texto-sm);
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--cap-texto-primario);
+    padding: var(--cap-espacio-xs) var(--cap-espacio-sm);
+    border-radius: var(--cap-radio-sm);
+    transition: all 0.15s ease;
+}
+
+.capSelectorFechaSemana__textoBtn:hover {
+    background: var(--cap-primario-50);
+    color: var(--cap-primario-600);
+}
+
+.capSelectorFechaSemana__iconoCal {
+    opacity: 0.6;
+}
+
+/* Mini-calendario desplegable */
+.capCalendarioMini {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    background: var(--cap-fondo-tarjeta);
+    border: 1px solid var(--cap-borde-medio);
+    border-radius: var(--cap-radio-lg);
+    box-shadow: var(--cap-sombra-lg);
+    padding: var(--cap-espacio-md);
+    z-index: 60;
+    animation: capCalMiniAparecer 0.15s ease;
+}
+
+@keyframes capCalMiniAparecer {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Cabecera con navegación de meses */
+.capCalendarioMini__cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--cap-espacio-sm);
+}
+
+.capCalendarioMini__mesAnio {
+    font-size: var(--cap-texto-sm);
+    font-weight: 600;
+    color: var(--cap-texto-principal);
+}
+
+.capCalendarioMini__navBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: var(--cap-radio-sm);
+    cursor: pointer;
+    color: var(--cap-texto-terciario);
+    transition: all 0.15s ease;
+}
+
+.capCalendarioMini__navBtn:hover {
+    background: var(--cap-fondo-sutil);
+    color: var(--cap-texto-principal);
+}
+
+/* Fila de días de la semana */
+.capCalendarioMini__diasSemana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    margin-bottom: var(--cap-espacio-xs);
+}
+
+.capCalendarioMini__diaSemana {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cap-texto-terciario);
+    padding: 4px 0;
+}
+
+/* Grid de días del mes */
+.capCalendarioMini__grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.capCalendarioMini__dia {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1;
+    border: none;
+    background: transparent;
+    border-radius: var(--cap-radio-sm);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--cap-texto-principal);
+    transition: all 0.1s ease;
+}
+
+.capCalendarioMini__dia:hover {
+    background: var(--cap-primario-50);
+}
+
+/* Día de otro mes (atenuado) */
+.capCalendarioMini__dia--otroMes {
+    color: var(--cap-texto-terciario);
+    opacity: 0.5;
+}
+
+/* Día dentro de la semana seleccionada */
+.capCalendarioMini__dia--enSemana {
+    background: var(--cap-primario-100);
+    color: var(--cap-primario-700);
+    font-weight: 600;
+}
+
+.capCalendarioMini__dia--enSemana:hover {
+    background: var(--cap-primario-200);
+}
+
+/* Día de hoy */
+.capCalendarioMini__dia--hoy {
+    position: relative;
+}
+
+.capCalendarioMini__dia--hoy::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--cap-primario-500);
+}

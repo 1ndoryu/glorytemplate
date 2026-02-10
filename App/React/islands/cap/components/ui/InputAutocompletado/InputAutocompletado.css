@@ -1,0 +1,155 @@
+/**
+ * Estilos del componente InputAutocompletado
+ *
+ * Dropdown de búsqueda con autocompletado para listas largas.
+ */
+
+.capAutocompletado {
+    position: relative;
+    width: 100%;
+}
+
+.capAutocompletado__etiqueta {
+    display: block;
+    font-size: var(--cap-texto-xs);
+    font-weight: 500;
+    color: var(--cap-texto-terciario);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: var(--cap-espacio-xs);
+}
+
+/* Contenedor del input con icono */
+.capAutocompletado__inputContenedor {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.capAutocompletado__icono {
+    position: absolute;
+    left: var(--cap-espacio-md);
+    display: flex;
+    align-items: center;
+    color: var(--cap-texto-terciario);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.capAutocompletado__icono svg {
+    width: 1.125em;
+    height: 1.125em;
+}
+
+.capAutocompletado__input {
+    width: 100%;
+    height: 42px;
+    padding: 0 var(--cap-espacio-md);
+    font-family: var(--cap-fuente-principal);
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-principal);
+    background-color: var(--cap-fondo-tarjeta);
+    border: 1px solid var(--cap-borde-medio);
+    border-radius: var(--cap-radio-md);
+    outline: none;
+    transition: all var(--cap-transicion-rapida);
+}
+
+.capAutocompletado__input--conIcono {
+    padding-left: calc(var(--cap-espacio-md) + 28px);
+}
+
+.capAutocompletado__input::placeholder {
+    color: var(--cap-texto-terciario);
+}
+
+.capAutocompletado__input:hover {
+    border-color: var(--cap-borde-fuerte);
+}
+
+.capAutocompletado__input:focus {
+    border-color: var(--cap-primario-500);
+    box-shadow: 0 0 0 3px var(--cap-focus-ring);
+}
+
+/* Botón de limpiar la selección */
+.capAutocompletado__limpiar {
+    position: absolute;
+    right: var(--cap-espacio-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: var(--cap-fondo-sutil);
+    border-radius: var(--cap-radio-sm);
+    cursor: pointer;
+    color: var(--cap-texto-terciario);
+    transition: all 0.15s ease;
+}
+
+.capAutocompletado__limpiar:hover {
+    background: var(--cap-error-100, #fee2e2);
+    color: var(--cap-error-500);
+}
+
+/* Lista desplegable de opciones */
+.capAutocompletado__lista {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin: 4px 0 0;
+    padding: var(--cap-espacio-xs) 0;
+    list-style: none;
+    background: var(--cap-fondo-tarjeta);
+    border: 1px solid var(--cap-borde-medio);
+    border-radius: var(--cap-radio-md);
+    box-shadow: var(--cap-sombra-md);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 50;
+}
+
+/* Mensaje de estado (cargando, sin resultados) */
+.capAutocompletado__mensaje {
+    padding: var(--cap-espacio-md);
+    text-align: center;
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-terciario);
+}
+
+/* Opción individual */
+.capAutocompletado__opcion {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    cursor: pointer;
+    transition: background 0.1s ease;
+}
+
+.capAutocompletado__opcion:hover,
+.capAutocompletado__opcion--foco {
+    background: var(--cap-primario-50, #eff6ff);
+}
+
+.capAutocompletado__opcion--seleccionada {
+    background: var(--cap-primario-100);
+}
+
+.capAutocompletado__opcion--seleccionada .capAutocompletado__opcionTexto {
+    font-weight: 600;
+    color: var(--cap-primario-700);
+}
+
+.capAutocompletado__opcionTexto {
+    font-size: var(--cap-texto-sm);
+    color: var(--cap-texto-principal);
+}
+
+.capAutocompletado__opcionDetalle {
+    font-size: var(--cap-texto-xs);
+    color: var(--cap-texto-terciario);
+}

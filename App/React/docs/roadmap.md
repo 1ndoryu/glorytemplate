@@ -1,7 +1,7 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
-> **Última actualización:** 2026-02-10  
-> **Estado:** 🔧 Fase 12 - Progreso, Reportes y UX Final  
+> **Última actualización:** 2026-02-11  
+> **Estado:** ✅ Fase 12 - Progreso, Reportes y UX Final  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
@@ -129,95 +129,70 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 
 ---
 
-### � Fase 12: Progreso, Reportes y UX Final (EN PROGRESO)
+### ✅ Fase 12: Progreso, Reportes y UX Final (COMPLETADA)
 
 > **Fuente:** Feedback cliente 10/02/2026 + Evaluación interna
+> **Completada:** 2026-02-11
 
 ---
 
-#### Épica 1: Sistema de Progreso de Alumnos (CRÍTICO - Bug principal)
+#### Épica 1: Sistema de Progreso de Alumnos ✅
 
-**Diagnóstico del problema:**
-El progreso de todos los alumnos se muestra en 0%. Después de investigar el código, se identifican **dos causas raíz:**
+**Problema resuelto:** Progreso siempre en 0% — `horas_completadas` nunca se recalculaba y `asistio` siempre era 0.
 
-1. **`horas_completadas` en `wp_cap_alumnos` es un campo estático** que nunca se actualiza automáticamente. El frontend (`TablaAlumnos`, `ModalProgresoAlumno`) lee `alumno.horas_completadas` que siempre es `0` porque ningún proceso lo recalcula.
-2. **`asistio` siempre es `0`** en `wp_cap_asistencia`. Al generar clases en `CalendarEngine::crearClases()`, cada registro de asistencia se inserta con `'asistio' => 0`. No existe ningún mecanismo automático que marque la asistencia como completada.
-
-**Diseño propuesto: El calendario como fuente de verdad**
-
-La lógica actual espera que alguien marque asistencia manualmente (`asistio = 1`), pero eso no tiene sentido en este contexto (el alumno fue asignado por el sistema a esa clase). El enfoque correcto es:
+**Solución implementada: El calendario como fuente de verdad.**
 
 > **Regla:** Si una clase existe en el calendario y su fecha es **<= hoy**, el alumno asistió. El calendario ES la fuente de verdad.
 
-Esto simplifica enormemente el sistema y elimina el estado fantasma de `asistio`.
+##### 12.1.1 Backend: Recalcular progreso en tiempo real ✅
 
-##### 12.1.1 Backend: Recalcular progreso en tiempo real 🔴
+- [x] `Alumno::obtenerProgreso()` corregido — Usa `fecha <= CURDATE()` en vez de `asistio = 1`.
+- [x] `Alumno::recalcularHorasCompletadas()` — Suma duración de clases pasadas, actualiza cache en BD.
+- [x] `Alumno::recalcularProgresoCentro()` y `recalcularProgresoAlumnos()` — Recálculo masivo.
+- [x] Endpoint GET `/cap/v1/alumnos/{id}/progreso` con desglose por asignatura.
+- [x] Hooks de recálculo en 5 endpoints: generarCalendario, generarConExclusiones, eliminarClase, eliminarTodasLasClases, eliminarClasesSemana.
 
-- [ ] **Nuevo método `Alumno::calcularProgresoReal(int $alumnoId): array`**
-    - Consulta: `SELECT asignatura, SUM(duracion_minutos)/60 as horas FROM cap_clases c JOIN cap_asistencia a ON c.id = a.clase_id WHERE a.alumno_id = ? AND c.fecha <= CURDATE() GROUP BY c.asignatura`
-    - No depende de `asistio`. Toda clase con fecha pasada cuenta como completada.
-    - Devuelve progreso real desglosado por asignatura.
-- [ ] **Nuevo método `Alumno::recalcularHorasCompletadas(int $alumnoId): float`**
-    - Calcula `SUM(duracion_minutos)/60` de todas las clases con `fecha <= CURDATE()` del alumno.
-    - Actualiza el campo `horas_completadas` en `wp_cap_alumnos` como cache.
-- [ ] **Endpoint GET `/cap/v1/alumnos/{id}/progreso`** para obtener progreso detallado por asignatura.
-- [ ] **Hook en `CalendarEngine::crearClases()`** para recalcular `horas_completadas` de cada alumno afectado después de generar.
-- [ ] **Hook en eliminación de clases** para recalcular progreso cuando se borran clases.
+##### 12.1.2 Frontend: Mostrar progreso real ✅
 
-##### 12.1.2 Frontend: Mostrar progreso real 🔴
+- [x] `ModalProgresoAlumno` reescrito — Eliminado mock, fetch real al endpoint `/alumnos/{id}/progreso`.
+- [x] `TablaAlumnos` refleja `horas_completadas` actualizado por los hooks de recálculo.
+- [x] `SeccionAlumnos` dispara fetch al endpoint real al abrir modal de progreso.
 
-- [ ] **`ModalProgresoAlumno`**: Eliminar `generarProgresoMock()`. Llamar al nuevo endpoint `/alumnos/{id}/progreso` para obtener datos reales.
-- [ ] **`TablaAlumnos`**: La barra de progreso debe reflejar el valor actualizado de `horas_completadas` (que ahora sí se recalcula).
-- [ ] **`SeccionAlumnos`**: Al abrir el modal de progreso, disparar fetch al endpoint real.
+##### 12.1.3 Generación inteligente por fecha actual ✅
 
-##### 12.1.3 Generación inteligente por fecha actual 🟡
+- [x] Backend: `CalendarEngine::generar()` acepta `$fechaDesde` opcional, `filtrarSlotsDesdeFecha()` elimina slots anteriores.
+- [x] Frontend: `ModalGeneracionParcial` con dos opciones (generar desde hoy / semana completa).
+- [x] `SeccionCalendario` detecta día de la semana e intercepta generación si no es lunes.
+- [x] `useCalendario.generarCalendario(fechaDesde?)` pasa parámetro opcional al backend.
 
-- [ ] **Detección de día actual en generación:** Cuando se pulsa "Generar", el sistema detecta si hoy NO es lunes.
-    - **Si es lunes:** Genera la semana completa (lunes a viernes) normalmente.
-    - **Si es otro día (ej. jueves):**
-        1. Mostrar modal con dos opciones:
-            - **"Generar desde hoy":** Solo genera clases de jueves a viernes.
-            - **"Generar semana completa":** Genera lunes a viernes, pero muestra un segundo modal de advertencia.
-        2. El segundo modal (si se elige semana completa) avisa:
-            > "Se asumirá que todos los alumnos asignados a clases de lunes a miércoles asistieron. Su progreso se actualizará automáticamente. ¿Continuar?"
-- [ ] **Frontend:** Nuevo `ModalGeneracionParcial` con las dos opciones.
-- [ ] **Backend:** `CalendarEngine::generar()` recibe parámetro opcional `$fechaDesde` para generar solo desde esa fecha.
+##### 12.1.4 Recálculo retroactivo al regenerar ✅
 
-##### 12.1.4 Recálculo retroactivo al regenerar 🟡
-
-- [ ] Si se regenera una semana que ya pasó (o parcialmente pasada), el sistema debe:
-    1. Eliminar clases no bloqueadas de esa semana (ya lo hace).
-    2. Crear las nuevas clases.
-    3. Recalcular `horas_completadas` de TODOS los alumnos afectados.
-- [ ] Si se eliminan clases individuales, también recalcular el progreso del alumno afectado.
+- [x] Todos los endpoints que modifican clases tienen hooks de recálculo automático.
+- [x] Regenerar semana pasada recalcula horas_completadas de todos los alumnos afectados.
+- [x] Eliminar clases individuales también recalcula progreso del alumno.
 
 ---
 
-#### Épica 2: Mejoras en Reportes 🟢
+#### Épica 2: Mejoras en Reportes ✅
 
-##### 12.2.1 Buscador de alumnos en Plan de Formación
+##### 12.2.1 Buscador de alumnos en Plan de Formación ✅
 
-- [ ] **Reemplazar `<select>` por input con autocompletado** en la tarjeta "Plan de Formación" de `SeccionReportes`.
-    - Input de texto con filtro en tiempo real sobre la lista de alumnos.
-    - Dropdown con resultados filtrados.
-    - Selección por click o teclado (Enter/flechas).
-    - Mostrar nombre + horas completadas en cada opción.
-    - Componente reutilizable: `BuscadorAlumnos` o `InputAutocompletado`.
+- [x] Componente `InputAutocompletado` reutilizable con filtro en tiempo real, navegación teclado, botón limpiar.
+- [x] Reemplazado `<select>` por autocompletado en `SeccionReportes`.
+- [x] Muestra nombre + horas completadas + DNI en cada opción.
 
-##### 12.2.2 Botón de descarga individual en panel de alumnos
+##### 12.2.2 Botón de descarga individual en panel de alumnos ✅
 
-- [ ] **Agregar botón "Descargar Reporte" en cada fila de `TablaAlumnos`**.
-    - Icono de descarga junto a las acciones existentes (editar, eliminar, disponibilidad, progreso).
-    - Al hacer click, descarga directamente el PDF de Plan de Formación del alumno.
-    - Reutilizar `useReportes::descargarPlanAlumno()`.
+- [x] `IconoDescargar` añadido al sistema de iconos.
+- [x] Botón de descarga en cada fila de `TablaAlumnos` con estado de carga individual.
+- [x] Reutiliza `useReportes::descargarPlanAlumno()` desde `SeccionAlumnos`.
 
-##### 12.2.3 Calendario en Control de Horas
+##### 12.2.3 Calendario en Control de Horas ✅
 
-- [ ] **Reemplazar las flechas de navegación por un selector de fecha con calendario** en la tarjeta "Control de Horas" de `SeccionReportes`.
-    - Al hacer click en la fecha actual se abre un date picker (calendario visual).
-    - Permite saltar a cualquier semana directamente sin navegar flecha por flecha.
-    - Mantener las flechas como navegación rápida adicional.
-    - El calendario muestra semanas (seleccionar cualquier día selecciona su semana).
+- [x] Componente `SelectorFechaSemana` con mini-calendario mensual desplegable.
+- [x] Click en rango de fechas abre calendario visual. Seleccionar cualquier día elige su semana.
+- [x] Mantiene flechas de navegación rápida.
+- [x] Día actual con indicador visual, semana seleccionada resaltada.
 
 ---
 
@@ -231,6 +206,31 @@ Esto simplifica enormemente el sistema y elimina el estado fantasma de `asistio`
     > **Cancelado** por decisión de producto (10/02/2026). No se implementará.
 
 ---
+
+### Ultimos comentarios
+
+## Mi evaluación
+
+1. Sobre el progreso de los alumnos, esto me genera conflicto, porque, claro, no esta dejando claro como debe resolverse este problema, pero surgen 2 cuestiones.
+
+1.2 El botón de generar genera la semana entera sin importar que los dias hayan pasado, asi que esto genera un conflicto, si hoy es jueves, entonces se genera la clase y se asume que los dias anteriores de la semana esos alumnos asistieron. ¿Como es posible si se genero el jueves? Es dificil dar por hecho de que siempre se va a generar el lunes, y tambien de que no se va a regenerar despues, y de que no se van agregar mas alumnos a mitad de semana, el sistema esta dando por hecho de que siempre va ser un lunes, y no se va a regenerar despues el horario. A que lleva esto, simplificación, al generar el horario, si es lunes obviamente lo generará normal, si es un dia de semana, preguntar si generar apartir de solo ese día o el horario completo, si se elige el horario completo pasa al siguiente modal avisa que asumirá que todos los alumnos de los dias posteriores a la semana actual asistieron a clase y su progreso se actualizará. 
+1.3 No se si el mecanismo realmente esta funcionando pero ciertamente la semana anterior tenia alumnos y paso la semana y no se actualizo el progreso, doy por hecho de que no funciona, entonces, la cuestión es revisar profundamente esta cuestión, esta muy relacionado con 1.2, porque incluye que si se genera un calendario la semana anterior tambien se asume todos esos alumnos asistieron, y sistema debe actualizar el progreso real basandose en la fecha actual y las clases existente para calcular el progreso, no esperar que la semana termine, tiene que ser si hoy es 10 de febrero y clases de 1 a 10 de febrero, todo eso presenta un progreso, y debe actualizarse con cada cambio, si se elimina una clase entonces se elimina el progreso que representaba esas clases, el calendario ahora la fuente de la verdad para representar el progreso de cada alumno.
+
+Sobre el punto 1 si hay otra logica mejor que esta, por favor plantearla 
+
+2. Esta bien lo que dice agregar un buscador, lo mejor sería agregar un boton adicional en el panel de alumnos para que descargar el reporte de ese alumno.
+3. Creo que dando click a la fecha podría abrirse un calendario para cambiar de fecha.
+
+## Comentario de cliente
+
+Hola Wan! He revisado todos las correcciones que has hecho y está fantástico. Todo bien! He visto lo siguiente:
+- El progreso de los alumnos no avanza, se queda siempre en 0%. Hay alumnos que completaron clases la semana pasada pero la barra de porcentaje no avanza a pesar de que ya han completado algunas clases. 
+En cuanto a la pestaña de Reportes:
+- En Plan de Formación todo está bien, no hay que hacer nada, pero estaría bien añadir un buscador de alumno para que la autoescuela, cuando tenga cientos de alumnos, pueda buscar por nombre y no volver loco buscando en el desplegable.
+- En Control de Horas todo está bien pero añadiría un calendario para que, en caso de que la autoescuela quiera descargar un reporte de hace mucho tiempo, pueda ir atrás en el tiempo de forma más rápida.
+
+Por mi parte esto sería todo, luego hay que presentarlo a las autoescuelas y puede que tengamos que retocar algo, pero eso lo veremos en el futuro. También me gustaría saber cómo se suscriben ellos a la web, es decir, cómo es el proceso para que se registren y se suscriban a la suscripción mensual.
+
 
 ### 🚨 Errores Críticos y Solicitudes Anteriores - RESUELTOS
 
@@ -294,7 +294,7 @@ Esto simplifica enormemente el sistema y elimina el estado fantasma de `asistio`
 | ---- | ----------------------------- | ----------- |
 | 0-10 | Desarrollo completo           | ✅ Completa |
 | 11   | Despliegue producción         | ✅ Completa |
-| 12   | Progreso, Reportes y UX Final | 🔧 En curso |
+| 12   | Progreso, Reportes y UX Final | ✅ Completa |
 
 ---
 
@@ -327,4 +327,4 @@ Esto simplifica enormemente el sistema y elimina el estado fantasma de `asistio`
 
 ---
 
-> **Siguiente paso:** Iniciar **Épica 1** (12.1.1) - Recálculo de progreso en backend.
+> **Fase 12 completada.** Todas las épicas implementadas. Pendiente: testing en producción y feedback del cliente.

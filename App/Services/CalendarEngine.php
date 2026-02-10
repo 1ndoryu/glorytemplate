@@ -110,9 +110,10 @@ class CalendarEngine
      * 
      * @param string $fechaInicioSemana Fecha del lunes (Y-m-d)
      * @param array $alumnosIds IDs de alumnos a incluir
+     * @param string|null $fechaDesde Si se especifica, solo genera desde esta fecha (Y-m-d)
      * @return array Resultado con clases generadas y posibles conflictos
      */
-    public function generar(string $fechaInicioSemana, array $alumnosIds): array
+    public function generar(string $fechaInicioSemana, array $alumnosIds, ?string $fechaDesde = null): array
     {
         if (empty($alumnosIds)) {
             return [
@@ -126,6 +127,14 @@ class CalendarEngine
         $this->cargarDisponibilidad($alumnosIds);
         $this->cargarClasesBloqueadas($fechaInicioSemana);
         $this->generarSlotsDisponibles($fechaInicioSemana);
+
+        /*
+         * Si se recibió fechaDesde, filtrar slots para no generar
+         * antes de esa fecha. Útil cuando se genera a mitad de semana.
+         */
+        if ($fechaDesde !== null) {
+            $this->filtrarSlotsDesdeFecha($fechaDesde);
+        }
 
         $conflictos = [];
         $clasesGeneradas = [];
@@ -150,7 +159,7 @@ class CalendarEngine
         $distribucion = $this->distribuirAsignaturas($demandaPorSlot);
 
         /* Paso 5: Crear las clases en la base de datos */
-        $clasesGeneradas = $this->crearClases($distribucion, $fechaInicioSemana);
+        $clasesGeneradas = $this->crearClases($distribucion, $fechaInicioSemana, $fechaDesde);
 
         /* Paso 6: Calcular avisos de horas no cubiertas */
         $avisos = $this->calcularAvisosHorasNoCubiertas($demandaPorSlot, $fechaInicioSemana);
@@ -548,8 +557,10 @@ class CalendarEngine
 
     /**
      * Crea las clases en la base de datos
+     * 
+     * @param string|null $fechaDesde Si se pasa, solo borra clases desde esta fecha en adelante
      */
-    private function crearClases(array $distribucion, string $fechaInicioSemana): array
+    private function crearClases(array $distribucion, string $fechaInicioSemana, ?string $fechaDesde = null): array
     {
         global $wpdb;
         $tablaClases = $wpdb->prefix . 'cap_clases';
@@ -559,14 +570,17 @@ class CalendarEngine
         $fechaBase = \DateTime::createFromFormat('!Y-m-d', $fechaInicioSemana);
         $fechaFin = $fechaBase ? (clone $fechaBase)->modify('+4 days')->format('Y-m-d') : $fechaInicioSemana;
 
-        /* Primero eliminar clases no bloqueadas de la semana */
+        /* Determinar desde qué fecha borrar clases */
+        $fechaBorradoDesde = $fechaDesde ?? $fechaInicioSemana;
+
+        /* Primero eliminar clases no bloqueadas del rango */
         $wpdb->query($wpdb->prepare(
             "DELETE FROM {$tablaClases} 
              WHERE centro_id = %d 
              AND fecha BETWEEN %s AND %s 
              AND bloqueada = 0",
             $this->centroId,
-            $fechaInicioSemana,
+            $fechaBorradoDesde,
             $fechaFin
         ));
 
@@ -842,6 +856,19 @@ class CalendarEngine
         }
 
         return $avisos;
+    }
+
+    /**
+     * Filtra los slots disponibles para solo incluir los de fechaDesde en adelante.
+     * Se usa cuando se genera desde un día específico (no desde el lunes).
+     */
+    private function filtrarSlotsDesdeFecha(string $fechaDesde): void
+    {
+        foreach ($this->slotsDisponibles as $fecha => $slots) {
+            if ($fecha < $fechaDesde) {
+                unset($this->slotsDisponibles[$fecha]);
+            }
+        }
     }
 
     /**

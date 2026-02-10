@@ -3,16 +3,18 @@
  *
  * Vista para la generación y descarga de reportes PDF del módulo CAP.
  * Permite generar reportes de:
- * - Plan de formación individual por alumno
- * - Control de horas semanal
+ * - Plan de formación individual por alumno (con buscador autocompletado)
+ * - Control de horas semanal (con calendario visual de selección de semana)
  */
 
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import {useReportes} from '../../hooks/useReportes';
 import {useAlumnos} from '../../hooks/useAlumnos';
-import {Tarjeta, Boton, Alerta, Spinner} from '../ui';
+import {Tarjeta, Boton, Alerta, Spinner, InputAutocompletado} from '../ui';
+import {SelectorFechaSemana} from '../reportes';
 import {getLunesDeSemana} from '../../constants/cap-constants';
-import {FileText, Download, Users, Calendar, ChevronLeft, ChevronRight} from 'lucide-react';
+import {FileText, Download, Users, Calendar} from 'lucide-react';
+import {IconoBuscar} from '../icons';
 
 export function SeccionReportes() {
     const {generando, tipoGenerando, error, exito, descargarPlanAlumno, descargarControlHoras, limpiarMensajes} = useReportes();
@@ -37,7 +39,16 @@ export function SeccionReportes() {
         }
     }, [exito, error, limpiarMensajes]);
 
-    /* Formato de fecha para mostrar */
+    /* Opciones formateadas para el autocompletado de alumnos */
+    const opcionesAlumnos = useMemo(() => {
+        return alumnos.map(alumno => ({
+            id: Number(alumno.id),
+            etiqueta: alumno.nombre,
+            detalle: `${alumno.horas_completadas || 0}h completadas${alumno.dni ? ` · DNI: ${alumno.dni}` : ''}`
+        }));
+    }, [alumnos]);
+
+    /* Formato de fecha para mostrar rango de semana */
     const formatearSemana = (fecha: Date): string => {
         const viernes = new Date(fecha);
         viernes.setDate(fecha.getDate() + 4);
@@ -54,20 +65,15 @@ export function SeccionReportes() {
         return `${year}-${month}-${day}`;
     };
 
-    /* Navegación de semanas */
-    const cambiarSemana = (direccion: 'anterior' | 'siguiente') => {
-        setSemanaSeleccionada(prev => {
-            const nueva = new Date(prev);
-            nueva.setDate(prev.getDate() + (direccion === 'anterior' ? -7 : 7));
-            return nueva;
-        });
+    /* Manejar selección de alumno desde el autocompletado */
+    const handleSeleccionarAlumno = (id: number | string | null) => {
+        setAlumnoSeleccionado(id !== null ? Number(id) : null);
     };
 
     /* Manejar descarga de plan alumno */
     const handleDescargarPlanAlumno = () => {
         if (!alumnoSeleccionado) return;
 
-        /* Usar Number() para normalizar tipos (API puede devolver string o number) */
         const alumno = alumnos.find(a => Number(a.id) === Number(alumnoSeleccionado));
         if (alumno) {
             descargarPlanAlumno(alumnoSeleccionado, alumno.nombre);
@@ -100,7 +106,7 @@ export function SeccionReportes() {
 
             {/* Grid de tarjetas de reportes */}
             <div className="capReportesGrid capMt--lg">
-                {/* Tarjeta: Plan de Formación por Alumno */}
+                {/* Tarjeta: Plan de Formación por Alumno — con buscador autocompletado */}
                 <Tarjeta className="capReporteTarjeta">
                     <div className="capReporteTarjeta__icono capReporteTarjeta__icono--azul">
                         <Users size={24} />
@@ -110,20 +116,20 @@ export function SeccionReportes() {
                     <p className="capReporteTarjeta__descripcion">Genera un PDF con el plan de formación completo de un alumno, incluyendo su progreso por asignatura e historial de clases.</p>
 
                     <div className="capReporteTarjeta__controles">
-                        <label className="capLabel">Seleccionar alumno</label>
                         {cargandoAlumnos ? (
                             <div className="capFlexCenter capPadding--md">
                                 <Spinner tamano="sm" />
                             </div>
                         ) : (
-                            <select className="capSelect" value={alumnoSeleccionado || ''} onChange={e => setAlumnoSeleccionado(e.target.value ? Number(e.target.value) : null)}>
-                                <option value="">-- Selecciona un alumno --</option>
-                                {alumnos.map(alumno => (
-                                    <option key={alumno.id} value={alumno.id}>
-                                        {alumno.nombre} ({alumno.horas_completadas || 0}h completadas)
-                                    </option>
-                                ))}
-                            </select>
+                            <InputAutocompletado
+                                opciones={opcionesAlumnos}
+                                valorSeleccionado={alumnoSeleccionado}
+                                onSeleccionar={handleSeleccionarAlumno}
+                                placeholder="Buscar alumno por nombre o DNI..."
+                                etiqueta="Seleccionar alumno"
+                                icono={<IconoBuscar />}
+                                cargando={cargandoAlumnos}
+                            />
                         )}
                     </div>
 
@@ -132,7 +138,7 @@ export function SeccionReportes() {
                     </Boton>
                 </Tarjeta>
 
-                {/* Tarjeta: Control de Horas Semanal */}
+                {/* Tarjeta: Control de Horas Semanal — con calendario visual */}
                 <Tarjeta className="capReporteTarjeta">
                     <div className="capReporteTarjeta__icono capReporteTarjeta__icono--verde">
                         <Calendar size={24} />
@@ -143,15 +149,11 @@ export function SeccionReportes() {
 
                     <div className="capReporteTarjeta__controles">
                         <label className="capLabel">Semana a reportar</label>
-                        <div className="capSelectorSemana">
-                            <button type="button" className="capSelectorSemana__btn" onClick={() => cambiarSemana('anterior')} aria-label="Semana anterior">
-                                <ChevronLeft size={18} />
-                            </button>
-                            <span className="capSelectorSemana__texto">{formatearSemana(semanaSeleccionada)}</span>
-                            <button type="button" className="capSelectorSemana__btn" onClick={() => cambiarSemana('siguiente')} aria-label="Semana siguiente">
-                                <ChevronRight size={18} />
-                            </button>
-                        </div>
+                        <SelectorFechaSemana
+                            semanaSeleccionada={semanaSeleccionada}
+                            onCambiarSemana={setSemanaSeleccionada}
+                            formatearSemana={formatearSemana}
+                        />
                     </div>
 
                     <Boton variante="primario" onClick={handleDescargarControlHoras} disabled={generando} cargando={generando && tipoGenerando === 'control-horas'} className="capReporteTarjeta__boton" anchoCompleto icono={<Download size={16} />}>
