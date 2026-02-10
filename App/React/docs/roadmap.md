@@ -238,6 +238,7 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
  - [x] Endpoint de progreso ahora expone horas asignadas y completadas.
  - [x] Modal muestra horas asignadas (plan) y completadas (real).
  - [x] Tabla de alumnos usa `horas_asignadas` para evitar progreso vacío.
+ - [x] FIX: Orden de parámetros corregido en filtro de alumnos al excluir semana.
 
 ---
 

@@ -404,7 +404,7 @@ class Alumno
         $placeholders = implode(',', array_fill(0, count($idsFiltrados), '%d'));
 
         $condicionExcluir = '';
-        $params = [$centroId, $centroId];
+        $params = [$centroId];
 
         if (!empty($semanaExcluir)) {
             $fechaBase = \DateTime::createFromFormat('!Y-m-d', $semanaExcluir);
@@ -415,6 +415,8 @@ class Alumno
                 $params[] = $fechaFinSemana;
             }
         }
+
+        $params[] = $centroId;
 
         $query = $wpdb->prepare(
             "SELECT a.id
