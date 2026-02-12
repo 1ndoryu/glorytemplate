@@ -39,7 +39,12 @@ class CapEndpoints
             }
         }
 
-        return sanitize_text_field((string) $asignatura);
+        /*
+         * Usar el mapa canónico del modelo para normalizar variantes legacy.
+         * Así cualquier edición manual siempre persiste el código correcto.
+         */
+        $normalizado = Alumno::normalizarCodigoAsignatura(sanitize_text_field((string) $asignatura));
+        return $normalizado;
     }
 
     public function registrar(): void
@@ -178,6 +183,17 @@ class CapEndpoints
             'methods' => 'GET',
             'callback' => [$this, 'generarReporteControlHoras'],
             'permission_callback' => [$this, 'verificarPermisos'],
+        ]);
+
+        /*
+         * Endpoint de diagnóstico de progreso (solo admin).
+         * Compara datos crudos de BD con datos normalizados para un alumno.
+         * Uso temporal para auditar incongruencias.
+         */
+        register_rest_route(self::NAMESPACE, '/debug/progreso/(?P<id>\d+)', [
+            'methods' => 'GET',
+            'callback' => [$this, 'debugProgresoAlumno'],
+            'permission_callback' => [$this, 'verificarPermisosAdmin'],
         ]);
 
         /* Endpoints de Stripe - Configuración (solo admin) */
@@ -348,6 +364,10 @@ class CapEndpoints
     /**
      * Obtiene el progreso real de un alumno desglosado por asignatura.
      * El calendario es la fuente de verdad: clases con fecha <= hoy.
+     *
+     * FUENTE ÚNICA: Los totales globales se calculan como suma de los desgloses
+     * normalizados por asignatura, garantizando consistencia matemática
+     * entre la tarjeta resumen y el desglose visual.
      */
     public function obtenerProgresoAlumno(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -366,13 +386,40 @@ class CapEndpoints
             return new \WP_REST_Response(['error' => 'Alumno no encontrado'], 404);
         }
 
-        /* Recalcular horas completadas (actualiza cache en BD) */
-        $horasCompletadas = $alumnoModel->recalcularHorasCompletadas($alumnoId);
+        /*
+         * Normalizar asignaturas legacy en BD (idempotente).
+         * Convierte variantes como racionalizacion → conduccion_racional
+         * para que el GROUP BY produzca filas limpias.
+         */
+        $alumnoModel->normalizarAsignaturasEnBD($centroId);
 
-        /* Obtener desglose por asignatura (completadas y asignadas) */
+        /*
+         * Obtener desglose por asignatura (ya normalizados en el modelo).
+         * obtenerProgreso: clases con fecha <= hoy (completadas)
+         * obtenerProgresoAsignado: todas las clases (pasadas + futuras)
+         */
         $progresoCompletado = $alumnoModel->obtenerProgreso($alumnoId);
         $progresoAsignado = $alumnoModel->obtenerProgresoAsignado($alumnoId);
-        $horasAsignadas = $alumnoModel->obtenerHorasAsignadas($alumnoId);
+
+        /*
+         * Calcular totales globales como SUMA de los desgloses normalizados.
+         * Esto garantiza que: total global === suma de asignaturas en pantalla.
+         * Antes se usaban queries separados que podían divergir por alias.
+         */
+        $horasCompletadas = 0;
+        foreach ($progresoCompletado as $fila) {
+            $horasCompletadas += (float) $fila['horas'];
+        }
+        $horasCompletadas = round($horasCompletadas, 2);
+
+        $horasAsignadas = 0;
+        foreach ($progresoAsignado as $fila) {
+            $horasAsignadas += (float) $fila['horas'];
+        }
+        $horasAsignadas = round($horasAsignadas, 2);
+
+        /* Actualizar cache de horas_completadas en la tabla alumnos */
+        $alumnoModel->actualizar($alumnoId, ['horas_completadas' => $horasCompletadas]);
 
         return new \WP_REST_Response([
             'alumnoId' => $alumnoId,
@@ -1089,6 +1136,131 @@ class CapEndpoints
 
         $statusCode = $resultado['exito'] ? 200 : 400;
         return new \WP_REST_Response($resultado, $statusCode);
+    }
+
+    /**
+     * Endpoint de diagnóstico de progreso (solo admin).
+     * Compara datos crudos (sin normalizar) con datos normalizados
+     * para detectar incongruencias entre total global y desglose por asignatura.
+     *
+     * Muestra: clases crudas en BD, GROUP BY crudo vs normalizado,
+     * totales flat vs sum-of-parts.
+     */
+    public function debugProgresoAlumno(\WP_REST_Request $request): \WP_REST_Response
+    {
+        global $wpdb;
+
+        $alumnoId = (int) $request->get_param('id');
+        $capService = CapService::getInstance();
+        $centroId = $capService->getCentroIdActual();
+
+        if (!$centroId) {
+            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        }
+
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAlumnos = $wpdb->prefix . 'cap_alumnos';
+
+        /* Datos del alumno */
+        $alumno = $wpdb->get_row($wpdb->prepare(
+            "SELECT id, nombre, horas_completadas, centro_id FROM {$tablaAlumnos} WHERE id = %d",
+            $alumnoId
+        ), ARRAY_A);
+
+        if (!$alumno || (int) $alumno['centro_id'] !== $centroId) {
+            return new \WP_REST_Response(['error' => 'Alumno no encontrado en este centro'], 404);
+        }
+
+        /* Clases individuales asignadas (crudo) */
+        $clasesRaw = $wpdb->get_results($wpdb->prepare(
+            "SELECT c.id, c.fecha, c.hora_inicio, c.hora_fin, c.asignatura,
+                    c.duracion_minutos, c.bloqueada
+             FROM {$tablaAsistencia} a
+             JOIN {$tablaClases} c ON a.clase_id = c.id
+             WHERE a.alumno_id = %d
+             ORDER BY c.fecha ASC, c.hora_inicio ASC",
+            $alumnoId
+        ), ARRAY_A);
+
+        /* GROUP BY crudo (sin normalizar) */
+        $groupByCrudo = $wpdb->get_results($wpdb->prepare(
+            "SELECT c.asignatura, SUM(c.duracion_minutos) / 60 as horas, COUNT(*) as num_clases
+             FROM {$tablaAsistencia} a
+             JOIN {$tablaClases} c ON a.clase_id = c.id
+             WHERE a.alumno_id = %d
+             GROUP BY c.asignatura",
+            $alumnoId
+        ), ARRAY_A);
+
+        /* Total flat (sin GROUP BY) */
+        $totalFlat = (float) $wpdb->get_var($wpdb->prepare(
+            "SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
+             FROM {$tablaAsistencia} a
+             JOIN {$tablaClases} c ON a.clase_id = c.id
+             WHERE a.alumno_id = %d",
+            $alumnoId
+        ));
+
+        /* Total flat solo completadas (fecha <= hoy) */
+        $totalFlatCompletadas = (float) $wpdb->get_var($wpdb->prepare(
+            "SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
+             FROM {$tablaAsistencia} a
+             JOIN {$tablaClases} c ON a.clase_id = c.id
+             WHERE a.alumno_id = %d AND c.fecha <= CURDATE()",
+            $alumnoId
+        ));
+
+        /* Datos normalizados (lo que devuelve la API) */
+        $alumnoModel = new Alumno();
+        $progresoCompletado = $alumnoModel->obtenerProgreso($alumnoId);
+        $progresoAsignado = $alumnoModel->obtenerProgresoAsignado($alumnoId);
+
+        $sumaCompletadoNormalizado = 0;
+        foreach ($progresoCompletado as $fila) {
+            $sumaCompletadoNormalizado += (float) $fila['horas'];
+        }
+
+        $sumaAsignadoNormalizado = 0;
+        foreach ($progresoAsignado as $fila) {
+            $sumaAsignadoNormalizado += (float) $fila['horas'];
+        }
+
+        /* Detectar códigos no canónicos */
+        $codigosNoCanonicos = [];
+        foreach ($groupByCrudo as $fila) {
+            $canonico = Alumno::normalizarCodigoAsignatura($fila['asignatura']);
+            if ($canonico !== $fila['asignatura']) {
+                $codigosNoCanonicos[] = [
+                    'original' => $fila['asignatura'],
+                    'canonico' => $canonico,
+                    'horas' => $fila['horas'],
+                ];
+            }
+        }
+
+        return new \WP_REST_Response([
+            'alumno' => $alumno,
+            'totalClases' => count($clasesRaw),
+            'clasesDetalle' => $clasesRaw,
+            'groupByCrudo' => $groupByCrudo,
+            'totalFlatAsignadas' => round($totalFlat, 2),
+            'totalFlatCompletadas' => round($totalFlatCompletadas, 2),
+            'progresoNormalizadoCompletado' => $progresoCompletado,
+            'progresoNormalizadoAsignado' => $progresoAsignado,
+            'sumaCompletadoNormalizado' => round($sumaCompletadoNormalizado, 2),
+            'sumaAsignadoNormalizado' => round($sumaAsignadoNormalizado, 2),
+            'codigosNoCanonicos' => $codigosNoCanonicos,
+            'diagnostico' => [
+                'flatVsSumaAsignadas' => abs($totalFlat - $sumaAsignadoNormalizado) < 0.01
+                    ? 'OK: Totales coinciden'
+                    : 'ALERTA: Divergencia de ' . round(abs($totalFlat - $sumaAsignadoNormalizado), 2) . 'h',
+                'flatVsSumaCompletadas' => abs($totalFlatCompletadas - $sumaCompletadoNormalizado) < 0.01
+                    ? 'OK: Totales coinciden'
+                    : 'ALERTA: Divergencia de ' . round(abs($totalFlatCompletadas - $sumaCompletadoNormalizado), 2) . 'h',
+                'hayCodigosLegacy' => count($codigosNoCanonicos) > 0,
+            ],
+        ]);
     }
 
     /**

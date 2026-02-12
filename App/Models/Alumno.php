@@ -12,6 +12,131 @@ class Alumno
 {
     private string $tabla;
 
+    /*
+     * Mapa completo de alias de asignatura a códigos canónicos.
+     * Incluye IDs numéricos, códigos cortos y variantes legacy del seeder.
+     * Fuente de verdad única para normalizar cualquier valor de asignatura.
+     */
+    private const ASIGNATURA_ALIAS = [
+        /* IDs numéricos */
+        '1' => 'conduccion_racional',
+        '2' => 'reglamentacion',
+        '3' => 'seguridad_vial',
+        '4' => 'servicio_logistica',
+        '5' => 'salud_seguridad',
+        '6' => 'medio_ambiente',
+        '7' => 'mercancias_peligrosas',
+        '8' => 'viajeros',
+        /* Códigos cortos del frontend */
+        'CR' => 'conduccion_racional',
+        'REG' => 'reglamentacion',
+        'SV' => 'seguridad_vial',
+        'SL' => 'servicio_logistica',
+        'SS' => 'salud_seguridad',
+        'MA' => 'medio_ambiente',
+        'MP' => 'mercancias_peligrosas',
+        'VIA' => 'viajeros',
+        /* Variantes legacy del seeder */
+        'racionalizacion' => 'conduccion_racional',
+        'salud_ergonomia' => 'salud_seguridad',
+        'entorno_economico' => 'medio_ambiente',
+        'evaluacion' => 'viajeros',
+    ];
+
+    /*
+     * Los 8 códigos canónicos que son la fuente de verdad.
+     * Cualquier otro valor debe mapearse a uno de estos.
+     */
+    public const ASIGNATURAS_CANONICAS = [
+        'conduccion_racional',
+        'reglamentacion',
+        'seguridad_vial',
+        'servicio_logistica',
+        'salud_seguridad',
+        'medio_ambiente',
+        'mercancias_peligrosas',
+        'viajeros',
+    ];
+
+    /**
+     * Normaliza un código de asignatura a su forma canónica.
+     * Maneja IDs numéricos, códigos cortos y variantes legacy.
+     *
+     * @param string $codigo Valor crudo de asignatura desde la BD
+     * @return string Código canónico (o el original si no hay alias definido)
+     */
+    public static function normalizarCodigoAsignatura(string $codigo): string
+    {
+        $codigo = trim($codigo);
+        return self::ASIGNATURA_ALIAS[$codigo] ?? $codigo;
+    }
+
+    /**
+     * Normaliza y fusiona resultados GROUP BY asignatura.
+     * Múltiples variantes del mismo código se suman bajo la clave canónica.
+     * Garantiza que la suma de las filas devueltas coincida con el total flat.
+     *
+     * @param array $progreso Rows con claves 'asignatura' y 'horas'
+     * @return array Rows normalizadas y fusionadas
+     */
+    private function normalizarProgresoAsignaturas(array $progreso): array
+    {
+        $normalizado = [];
+
+        foreach ($progreso as $fila) {
+            $codigoCanon = self::normalizarCodigoAsignatura($fila['asignatura']);
+
+            if (!isset($normalizado[$codigoCanon])) {
+                $normalizado[$codigoCanon] = [
+                    'asignatura' => $codigoCanon,
+                    'horas' => 0,
+                ];
+            }
+
+            $normalizado[$codigoCanon]['horas'] += (float) $fila['horas'];
+        }
+
+        /* Redondear a 2 decimales para evitar errores de punto flotante */
+        foreach ($normalizado as &$fila) {
+            $fila['horas'] = round($fila['horas'], 2);
+        }
+
+        return array_values($normalizado);
+    }
+
+    /**
+     * Normaliza los valores de asignatura directamente en la BD para un centro.
+     * Convierte variantes legacy/alias a códigos canónicos.
+     * Operación idempotente: ejecutar varias veces no causa daño.
+     */
+    public function normalizarAsignaturasEnBD(int $centroId): int
+    {
+        global $wpdb;
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $totalActualizados = 0;
+
+        foreach (self::ASIGNATURA_ALIAS as $alias => $canonico) {
+            if ($alias === $canonico) {
+                continue;
+            }
+
+            $actualizados = $wpdb->query($wpdb->prepare(
+                "UPDATE {$tablaClases}
+                 SET asignatura = %s
+                 WHERE centro_id = %d AND asignatura = %s",
+                $canonico,
+                $centroId,
+                $alias
+            ));
+
+            if ($actualizados > 0) {
+                $totalActualizados += $actualizados;
+            }
+        }
+
+        return $totalActualizados;
+    }
+
     public function __construct()
     {
         global $wpdb;
@@ -269,6 +394,7 @@ class Alumno
      * Obtiene el progreso real de un alumno por asignatura.
      * El calendario es la fuente de verdad: toda clase con fecha <= hoy
      * se cuenta como completada, sin depender del campo asistio.
+     * Los códigos de asignatura se normalizan y fusionan a sus formas canónicas.
      */
     public function obtenerProgreso(int $alumnoId): array
     {
@@ -285,12 +411,13 @@ class Alumno
             $alumnoId
         ), ARRAY_A);
 
-        return $progreso ?: [];
+        return $this->normalizarProgresoAsignaturas($progreso ?: []);
     }
 
     /**
      * Obtiene el progreso asignado de un alumno por asignatura.
      * Considera todas las clases (pasadas y futuras) asignadas al alumno.
+     * Los códigos de asignatura se normalizan y fusionan a sus formas canónicas.
      */
     public function obtenerProgresoAsignado(int $alumnoId): array
     {
@@ -307,7 +434,7 @@ class Alumno
             $alumnoId
         ), ARRAY_A);
 
-        return $progreso ?: [];
+        return $this->normalizarProgresoAsignaturas($progreso ?: []);
     }
 
     /**

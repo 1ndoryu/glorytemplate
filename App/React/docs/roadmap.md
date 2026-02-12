@@ -6,7 +6,17 @@
 
 **Notas de mantenimiento**
 
-- 2026-02-12: **FIX CRÍTICO: Incongruencia entre horas planificadas totales y desglose por asignatura** - Se normaliza `asignatura` al guardar edición de clase (`CapEndpoints::actualizarClase`) para persistir siempre códigos canónicos en lugar de IDs numéricos.
+- 2026-02-12: **FIX DEFINITIVO: Incongruencia de progreso total vs desglose por asignatura**
+    - **Causa raíz**: El CapSeeder usaba códigos de asignatura diferentes a CalendarEngine (`racionalizacion` vs `conduccion_racional`, `entorno_economico` vs `medio_ambiente`, etc.), además con duraciones incorrectas. El GROUP BY en BD producía filas separadas para la misma asignatura bajo diferentes alias, y el backend computaba totales globales con queries independientes del desglose, permitiendo divergencias.
+    - **Fix aplicado**:
+        1) `Alumno::normalizarCodigoAsignatura()` — Mapa canónico centralizado que traduce IDs numéricos, códigos cortos y variantes legacy a los 8 códigos canónicos de CalendarEngine.
+        2) `Alumno::normalizarProgresoAsignaturas()` — Fusiona filas GROUP BY que mapean al mismo código canónico.
+        3) `Alumno::normalizarAsignaturasEnBD()` — Migración in-place que corrige variantes legacy directamente en `cap_clases` (idempotente).
+        4) Endpoint `/alumnos/{id}/progreso` ahora calcula totales globales como SUMA de los desgloses normalizados (fuente única), eliminando la posibilidad de divergencia.
+        5) `CapEndpoints::normalizarAsignaturaParaPersistencia()` ahora usa el mapa canónico del modelo para cubrir variantes legacy.
+        6) `CapSeeder` corregido: mismos códigos y duraciones que CalendarEngine.
+        7) Nuevo endpoint de debug `/debug/progreso/{id}` (solo admin) para auditar datos crudos vs normalizados.
+    - **Verificación**: La normalización de BD se ejecuta automáticamente al consultar progreso; en futuros seedeos y generaciones los datos serán consistentes desde el inicio.
 - 2026-02-12: `ModalProgresoAlumno` ahora interpreta asignaturas históricas numéricas (`"1".."8"`) además de códigos (`conduccion_racional`, `CR`, etc.), evitando pérdida de horas en el desglose.
 - 2026-02-12: Tooltips de progreso muestran también horas faltantes (global y por asignatura) para auditar mejor diferencias de planificación.
 - 2026-02-12: `ModalProgresoAlumno` calcula métricas globales (completadas/planificadas) desde la misma agregación mapeada por asignatura que se renderiza en pantalla, garantizando consistencia visual entre tarjeta resumen y desglose.
@@ -234,7 +244,7 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
 
 - [x] `overflow: visible` en `.capReportesGrid` y `.capReporteTarjeta` para evitar que el calendario desplegable se corte.
 
-#### 12.1.4 Desincronizacion de progreso UI vs backend (en investigacion)
+#### 12.1.4 Desincronizacion de progreso UI vs backend ✅
 
  - [x] Progreso en frontend aparece en 0h mientras backend acumula horas.
  - [x] Se detecta borrado de clases con horas persistiendo en backend.
@@ -249,6 +259,11 @@ CapSeeder, PanelDemo, endpoints demo, seguridad WP_DEBUG.
  - [x] FIX: PDF marca clases futuras como pendientes y pasadas como asistidas.
  - [x] FIX: Priorizar por proximidad evita excluir siempre a los mismos alumnos.
  - [x] FIX: Se bloquea crear/mover clases en fin de semana y limpiar semana borra sabado/domingo.
+ - [x] FIX DEFINITIVO: Normalización canónica de asignaturas en backend (Alumno model).
+ - [x] FIX DEFINITIVO: Endpoint progreso usa fuente única (suma de desglose normalizado = total global).
+ - [x] FIX DEFINITIVO: CapSeeder alineado con CalendarEngine (mismos códigos y duraciones).
+ - [x] FIX DEFINITIVO: Migración automática de datos legacy en BD via `normalizarAsignaturasEnBD()`.
+ - [x] Endpoint debug `/debug/progreso/{id}` (admin) para trazabilidad por alumno/clase.
 
 ---
 

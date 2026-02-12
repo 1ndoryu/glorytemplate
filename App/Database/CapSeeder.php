@@ -33,16 +33,20 @@ class CapSeeder
         ['nombre' => 'Antonio Díaz Serrano', 'email' => 'antonio.diaz@ejemplo.com', 'telefono' => '612345012', 'dni' => '21234567L'],
     ];
 
-    /* Asignaturas CAP con sus duraciones en horas */
+    /*
+     * Asignaturas CAP con sus duraciones en horas.
+     * Usan los mismos códigos canónicos que CalendarEngine::ASIGNATURAS
+     * para evitar inconsistencias en GROUP BY de progreso.
+     */
     private array $asignaturas = [
-        ['codigo' => 'racionalizacion', 'nombre' => 'Racionalización de la conducción', 'duracion' => 7],
-        ['codigo' => 'reglamentacion', 'nombre' => 'Reglamentación del transporte', 'duracion' => 4],
-        ['codigo' => 'seguridad_vial', 'nombre' => 'Seguridad vial', 'duracion' => 7],
-        ['codigo' => 'servicio_logistica', 'nombre' => 'Servicio y logística', 'duracion' => 7],
-        ['codigo' => 'entorno_economico', 'nombre' => 'Entorno económico', 'duracion' => 4],
-        ['codigo' => 'salud_ergonomia', 'nombre' => 'Salud y ergonomía', 'duracion' => 3],
-        ['codigo' => 'conduccion_racional', 'nombre' => 'Conducción racional', 'duracion' => 2],
-        ['codigo' => 'evaluacion', 'nombre' => 'Evaluación y cierre', 'duracion' => 1],
+        ['codigo' => 'conduccion_racional', 'nombre' => 'Conducción racional', 'duracion' => 7],
+        ['codigo' => 'reglamentacion', 'nombre' => 'Reglamentación', 'duracion' => 4],
+        ['codigo' => 'seguridad_vial', 'nombre' => 'Seguridad vial', 'duracion' => 6],
+        ['codigo' => 'servicio_logistica', 'nombre' => 'Servicio y logística', 'duracion' => 4],
+        ['codigo' => 'salud_seguridad', 'nombre' => 'Salud y seguridad', 'duracion' => 4],
+        ['codigo' => 'medio_ambiente', 'nombre' => 'Medio ambiente', 'duracion' => 4],
+        ['codigo' => 'mercancias_peligrosas', 'nombre' => 'Mercancías peligrosas', 'duracion' => 3],
+        ['codigo' => 'viajeros', 'nombre' => 'Viajeros', 'duracion' => 3],
     ];
 
     public function __construct(int $centroId)
