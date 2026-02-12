@@ -1,0 +1,61 @@
+.capTooltip-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.capTooltip-content {
+    position: absolute;
+    background: var(--cap-texto-principal);
+    color: var(--cap-texto-invertido);
+    padding: var(--cap-espacio-sm) var(--cap-espacio-md);
+    border-radius: var(--cap-radio-sm);
+    font-size: var(--cap-texto-xs);
+    z-index: var(--cap-z-tooltip);
+    white-space: nowrap;
+    box-shadow: var(--cap-sombra-md);
+    pointer-events: none;
+    line-height: var(--cap-line-height-tight);
+}
+
+.capTooltip-content--top {
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: var(--cap-espacio-sm);
+}
+
+.capTooltip-content--bottom {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: var(--cap-espacio-sm);
+}
+
+.capTooltip-content--left {
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: var(--cap-espacio-sm);
+}
+
+.capTooltip-content--right {
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: var(--cap-espacio-sm);
+}
+
+.capTooltip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+
+.capTooltip-content--top .capTooltip-arrow {
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px 6px 0 6px;
+    border-color: var(--cap-texto-principal) transparent transparent transparent;
+}

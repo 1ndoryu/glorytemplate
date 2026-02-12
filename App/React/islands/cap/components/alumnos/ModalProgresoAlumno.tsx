@@ -7,7 +7,7 @@
  */
 
 import {useState, useEffect} from 'react';
-import {Modal, Badge, Spinner} from '../ui';
+import {Modal, Badge, Spinner, Tooltip} from '../ui';
 import {ASIGNATURAS_CAP, CAP_REGLAS} from '../../constants';
 import type {Alumno} from '../../hooks/useAlumnos';
 
@@ -39,14 +39,25 @@ interface ModalProgresoAlumnoProps {
  * El backend puede devolver nombres internos como "conduccion_racional".
  */
 const CODIGO_A_ID: Record<string, number> = {
-    conduccion_racional: 1, CR: 1,
-    reglamentacion: 2, REG: 2,
-    seguridad_vial: 3, SV: 3,
-    servicio_logistica: 4, SL: 4,
-    salud_seguridad: 5, SS: 5, salud_ergonomia: 5,
-    medio_ambiente: 6, MA: 6, entorno_economico: 6,
-    mercancias_peligrosas: 7, MP: 7,
-    viajeros: 8, VIA: 8, evaluacion: 8,
+    conduccion_racional: 1,
+    CR: 1,
+    reglamentacion: 2,
+    REG: 2,
+    seguridad_vial: 3,
+    SV: 3,
+    servicio_logistica: 4,
+    SL: 4,
+    salud_seguridad: 5,
+    SS: 5,
+    salud_ergonomia: 5,
+    medio_ambiente: 6,
+    MA: 6,
+    entorno_economico: 6,
+    mercancias_peligrosas: 7,
+    MP: 7,
+    viajeros: 8,
+    VIA: 8,
+    evaluacion: 8,
     racionalizacion: 1
 };
 
@@ -156,34 +167,75 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                     </div>
                 ) : (
                     <>
-                        {/* Resumen general */}
-                        <div className="capProgresoModal__resumen">
-                            <div className="capProgresoModal__resumenPrincipal">
-                                <span className="capProgresoModal__horasTotales">{formatearHoras(horasTotales)}</span>
-                                <span className="capProgresoModal__horasLabel">de {CAP_REGLAS.HORAS_TOTALES}h completadas</span>
-                                <span className="capProgresoModal__horasSecundarias">Plan asignado: {formatearHoras(horasPlan)}h ({porcentajePlan}%)</span>
+                        {/* Resumen de Estadísticas */}
+                        <div className="capGrid capGrid--3cols capGap--md capMb--lg">
+                            <div className="capTarjetaEstadistica capTarjetaEstadistica--exito">
+                                <span className="capTexto--xs capTexto--secundario capMb--xs">Completadas</span>
+                                <div className="capFlexCenter capGap--xs">
+                                    <span className="capTitulo--xl capTexto--exito">{formatearHoras(horasTotales)}h</span>
+                                    <span className="capTexto--xs capTexto--terciario">/ 35h</span>
+                                </div>
                             </div>
-                            <Badge variante={estadoGeneral.variante}>{estadoGeneral.texto}</Badge>
+                            <div className="capTarjetaEstadistica capTarjetaEstadistica--info">
+                                <span className="capTexto--xs capTexto--secundario capMb--xs">Planificadas</span>
+                                <div className="capFlexCenter capGap--xs">
+                                    <span className="capTitulo--xl capTexto--info">{formatearHoras(horasPlan)}h</span>
+                                    <span className="capTexto--xs capTexto--terciario">Total</span>
+                                </div>
+                            </div>
+                            <div className="capTarjetaEstadistica">
+                                <span className="capTexto--xs capTexto--secundario capMb--xs">Estado</span>
+                                <div className="capFlexCenter">
+                                    <Badge variante={estadoGeneral.variante}>{estadoGeneral.texto}</Badge>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Barra de progreso general */}
-                        <div className="capProgresoModal__barraGeneral">
-                            <div className="capProgresoModal__barraGeneralFondo">
-                                <div className="capProgresoModal__barraGeneralRelleno" style={{width: `${porcentajeTotal}%`}} />
+                        <div className="capMb--xl">
+                            <div className="capFlexBetween capMb--sm">
+                                <span className="capTexto--sm capTexto--secundario">Progreso Global</span>
+                                <span className="capTexto--lg capTexto--principal capPeso--bold">{porcentajeTotal}%</span>
                             </div>
-                            <span className="capProgresoModal__porcentaje">{porcentajeTotal}%</span>
+                            <Tooltip
+                                content={
+                                    <div className="capFlexCol capGap--xs">
+                                        <div>
+                                            Completadas: <strong>{formatearHoras(horasTotales)}h</strong>
+                                        </div>
+                                        <div>
+                                            Planificadas: <strong>{formatearHoras(Math.max(0, horasPlan - horasTotales))}h</strong>
+                                        </div>
+                                        <div style={{borderTop: '1px solid currentColor', paddingTop: 2, marginTop: 2}}>
+                                            Total: <strong>{formatearHoras(horasPlan)}h</strong> / 35h
+                                        </div>
+                                    </div>
+                                }
+                                position="top"
+                                className="capWidth100">
+                                <div className="capProgreso capProgreso--multi capProgreso--lg">
+                                    <div className="capProgreso__barra--completado" style={{width: `${(horasTotales / CAP_REGLAS.HORAS_TOTALES) * 100}%`}} />
+                                    <div className="capProgreso__barra--planificado" style={{width: `${(Math.max(0, horasPlan - horasTotales) / CAP_REGLAS.HORAS_TOTALES) * 100}%`}} />
+                                </div>
+                            </Tooltip>
                         </div>
 
                         {/* Desglose por asignatura */}
                         <div className="capProgresoModal__desglose">
-                            <h4 className="capProgresoModal__desgloseHeader">Desglose por Asignatura</h4>
+                            <h4 className="capProgresoModal__desgloseHeader capMb--md">Desglose por Asignatura</h4>
                             <div className="capProgresoModal__asignaturas">
                                 {ASIGNATURAS_CAP.map(asignatura => {
                                     const progresoAsig = progresoAsignado.find(p => p.asignaturaId === asignatura.id);
                                     const progresoComp = progresoCompletado.find(p => p.asignaturaId === asignatura.id);
                                     const horasAsig = normalizarNumero(progresoAsig?.horasCompletadas);
                                     const horasComp = normalizarNumero(progresoComp?.horasCompletadas);
-                                    const porcentajeAsig = Math.min(100, Math.round((horasComp / asignatura.duracionHoras) * 100));
+
+                                    /* Cálculos para barra multi-segmento por asignatura */
+                                    /* Base: duracionHoras */
+                                    const pctComp = Math.min(100, (horasComp / asignatura.duracionHoras) * 100);
+                                    const horasRestantes = Math.max(0, horasAsig - horasComp);
+                                    const pctPlan = Math.min(100 - pctComp, (horasRestantes / asignatura.duracionHoras) * 100);
+
                                     const completada = horasComp >= asignatura.duracionHoras;
 
                                     return (
@@ -196,18 +248,38 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                                     <span className="capProgresoModal__asignaturaNombre">{asignatura.nombre}</span>
                                                 </div>
                                                 <span className={`capProgresoModal__asignaturaHoras ${completada ? 'capProgresoModal__asignaturaHoras--completada' : ''}`}>
-                                                    <span className="capProgresoModal__asignaturaHorasPrim">Asignadas: {formatearHoras(horasAsig)}/{asignatura.duracionHoras}h</span>
-                                                    <span className="capProgresoModal__asignaturaHorasSec">Completadas: {formatearHoras(horasComp)}h</span>
+                                                    {horasComp >= asignatura.duracionHoras ? (
+                                                        <span className="capFlexStart capGap--xs">
+                                                            <span className="capPunto capPunto--completado"></span> Completada
+                                                        </span>
+                                                    ) : (
+                                                        <span>
+                                                            {formatearHoras(horasComp)} / {asignatura.duracionHoras}h
+                                                        </span>
+                                                    )}
                                                 </span>
                                             </div>
-                                            <div className="capProgresoModal__asignaturaBarra">
-                                                <div
-                                                    className={`capProgresoModal__asignaturaBarraRelleno ${completada ? 'capProgresoModal__asignaturaBarraRelleno--completada' : ''}`}
-                                                    style={{
-                                                        width: `${porcentajeAsig}%`,
-                                                        backgroundColor: completada ? 'var(--cap-exito-500)' : asignatura.color
-                                                    }}
-                                                />
+
+                                            <div className="capMt--sm">
+                                                <Tooltip
+                                                    content={
+                                                        <div className="capFlexCol capGap--xs">
+                                                            <div>{asignatura.nombre}</div>
+                                                            <div style={{borderTop: '1px solid currentColor', paddingTop: 2, marginTop: 2}}>
+                                                                Completadas: <strong>{formatearHoras(horasComp)}h</strong>
+                                                            </div>
+                                                            <div>
+                                                                Planificadas: <strong>{formatearHoras(horasRestantes)}h</strong>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    position="top"
+                                                    className="capWidth100">
+                                                    <div className="capProgreso capProgreso--multi">
+                                                        <div className="capProgreso__barra--completado" style={{width: `${pctComp}%`, backgroundColor: completada ? 'var(--cap-exito-500)' : asignatura.color}} />
+                                                        <div className="capProgreso__barra--planificado" style={{width: `${pctPlan}%`, opacity: 0.3, backgroundColor: asignatura.color}} />
+                                                    </div>
+                                                </Tooltip>
                                             </div>
                                         </div>
                                     );
@@ -217,12 +289,7 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
 
                         {/* Info adicional */}
                         <div className="capProgresoModal__info">
-                            <p className="capProgresoModal__infoTexto">
-                                <strong>Horas restantes:</strong> {Math.max(0, CAP_REGLAS.HORAS_TOTALES - horasTotales)}h
-                            </p>
-                            <p className="capProgresoModal__infoTexto capProgresoModal__infoNota">
-                                El progreso muestra horas asignadas. Clases con fecha pasada cuentan como completadas.
-                            </p>
+                            <p className="capProgresoModal__infoTexto capProgresoModal__infoNota">El progreso 'Planificado' incluye clases futuras asignadas en el calendario.</p>
                         </div>
                     </>
                 )}

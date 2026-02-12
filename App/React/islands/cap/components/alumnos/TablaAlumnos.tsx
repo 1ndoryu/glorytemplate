@@ -6,7 +6,7 @@
  */
 
 import {useState} from 'react';
-import {Input, Boton, Badge, Spinner} from '../ui';
+import {Input, Boton, Badge, Spinner, Tooltip} from '../ui';
 import {IconoBuscar, IconoEditar, IconoEliminar, IconoOrdenar, IconoReloj, IconoDescargar} from '../icons';
 import type {Alumno, FiltrosAlumnos} from '../../hooks/useAlumnos';
 import {calcularProgreso, estadoProgreso} from '../../hooks/useAlumnos';
@@ -71,19 +71,15 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
     };
 
     const renderProgreso = (alumno: Alumno) => {
-        const horasCompletadas = alumno.horas_completadas_calculadas !== undefined
-            ? normalizarNumero(alumno.horas_completadas_calculadas)
-            : normalizarNumero(alumno.horas_completadas);
-        const horasAsignadas = alumno.horas_asignadas !== undefined
-            ? normalizarNumero(alumno.horas_asignadas)
-            : horasCompletadas;
-        const porcentaje = calcularProgreso(horasCompletadas);
-        const estado = estadoProgreso(horasCompletadas);
-        const claseEstado = {
-            ok: 'capProgreso--ok',
-            warning: 'capProgreso--warning',
-            completed: 'capProgreso--completed'
-        }[estado];
+        const horasCompletadas = alumno.horas_completadas_calculadas !== undefined ? normalizarNumero(alumno.horas_completadas_calculadas) : normalizarNumero(alumno.horas_completadas);
+        const horasAsignadas = alumno.horas_asignadas !== undefined ? normalizarNumero(alumno.horas_asignadas) : horasCompletadas;
+
+        const maxHoras = 35; // CAP_REGLAS.HORAS_TOTALES ideally
+        const pctCompletado = Math.min(100, (horasCompletadas / maxHoras) * 100);
+
+        // Calculamos el porcentaje visual de lo planificado (lo que falta por completar del plan)
+        const horasRestantesPlan = Math.max(0, horasAsignadas - horasCompletadas);
+        const pctPlanificado = Math.min(100 - pctCompletado, (horasRestantesPlan / maxHoras) * 100);
 
         const esClickeable = Boolean(onVerProgreso);
 
@@ -93,14 +89,39 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
             }
         };
 
-        return (
-            <div className={`capProgresoCelda ${esClickeable ? 'capProgresoCelda--clickeable' : ''}`} onClick={esClickeable ? handleClick : undefined} title={esClickeable ? 'Ver desglose por asignatura' : undefined}>
-                <div className={`capProgreso ${claseEstado}`}>
-                    <div className="capProgreso__barra" style={{width: `${porcentaje}%`}} />
+        const tooltipContent = (
+            <div className="capFlexCol capGap--xs">
+                <div>
+                    Completadas: <strong>{formatearHoras(horasCompletadas)}h</strong>
                 </div>
+                <div>
+                    Planificadas: <strong>{formatearHoras(horasRestantesPlan)}h</strong>
+                </div>
+                <div style={{borderTop: '1px solid currentColor', paddingTop: 2, marginTop: 2}}>
+                    Total Estimado: <strong>{formatearHoras(horasCompletadas + horasRestantesPlan)}h</strong> / 35h
+                </div>
+            </div>
+        );
+
+        return (
+            <div className={`capProgresoCelda ${esClickeable ? 'capProgresoCelda--clickeable' : ''}`} onClick={esClickeable ? handleClick : undefined} title={undefined /* Removed native title to use Tooltip */}>
+                <Tooltip content={tooltipContent} position="top" className="capFlex-1">
+                    <div className="capProgreso capProgreso--multi">
+                        <div className="capProgreso__barra--completado" style={{width: `${pctCompletado}%`}} />
+                        <div className="capProgreso__barra--planificado" style={{width: `${pctPlanificado}%`}} />
+                    </div>
+                </Tooltip>
+
                 <div className="capProgreso__textos">
-                    <span className="capProgreso__texto">Completadas: {formatearHoras(horasCompletadas)}/35h</span>
-                    <span className="capProgreso__textoSec">Plan: {formatearHoras(horasAsignadas)}h</span>
+                    <span className="capProgreso__texto">
+                        <span className="capProgreso__texto--completado">{formatearHoras(horasCompletadas)}h</span>
+                        <span className="capTexto--terciario"> / 35h</span>
+                    </span>
+                    {horasRestantesPlan > 0.1 && (
+                        <span className="capProgreso__textoSec capFlexStart capGap--xs">
+                            <span className="capPunto capPunto--planificado"></span>+{formatearHoras(horasRestantesPlan)}h plan
+                        </span>
+                    )}
                 </div>
             </div>
         );
@@ -125,6 +146,18 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
                     Buscar
                 </Boton>
             </form>
+
+            {/* Leyenda de Progreso */}
+            <div className="capFlexEnd capMb--sm capGap--md">
+                <div className="capFlexStart capGap--xs">
+                    <span className="capPunto capPunto--completado"></span>
+                    <span className="capTexto--xs capTexto--secundario">Completadas</span>
+                </div>
+                <div className="capFlexStart capGap--xs">
+                    <span className="capPunto capPunto--planificado"></span>
+                    <span className="capTexto--xs capTexto--secundario">Planificadas</span>
+                </div>
+            </div>
 
             {/* Tabla */}
             <div className="capTabla__contenedor">

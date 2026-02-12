@@ -39,7 +39,16 @@
     padding: var(--cap-espacio-xl);
 }
 
+.capFlex-1 {
+    flex: 1;
+    min-width: 0; /* Evita desbordamiento en flex items */
+}
+
 /* Tabla base */
+.capWidth100 {
+    width: 100%;
+}
+
 .capTabla {
     width: 100%;
     border-collapse: collapse;
@@ -179,6 +188,58 @@
     background: linear-gradient(90deg, var(--cap-exito-400), var(--cap-exito-500));
 }
 
+/* Barra multiprogreso */
+.capProgreso--multi {
+    display: flex;
+    width: 100%;
+}
+
+.capProgreso--lg {
+    height: 12px;
+}
+
+.capProgreso__barra--completado {
+    height: 100%;
+    background: var(--cap-exito-500);
+    transition: width 0.3s ease-out;
+}
+
+.capProgreso__barra--planificado {
+    height: 100%;
+    background: var(--cap-primario-200); /* Color suave para lo planificado */
+    transition: width 0.3s ease-out;
+}
+
+/* Tarjetas de estadística en modal */
+.capTarjetaEstadistica {
+    background: var(--cap-fondo-tarjeta);
+    border: 1px solid var(--cap-borde-sutil);
+    border-radius: var(--cap-radio-md);
+    padding: var(--cap-espacio-md);
+    display: flex;
+    flex-direction: column;
+}
+
+.capTarjetaEstadistica--exito {
+    background: var(--cap-exito-50);
+    border-color: var(--cap-exito-100);
+}
+
+.capTarjetaEstadistica--info {
+    background: var(--cap-secundario-50);
+    border-color: var(--cap-secundario-100);
+}
+
+.capTexto--exito {
+    color: var(--cap-exito-600);
+}
+.capTexto--info {
+    color: var(--cap-primario-600);
+}
+.capPeso--bold {
+    font-weight: var(--cap-peso-bold);
+}
+
 .capProgreso__texto {
     font-size: var(--cap-texto-xs);
     color: var(--cap-texto-terciario);
@@ -187,15 +248,24 @@
     text-align: right;
 }
 
+.capProgreso__texto--completado {
+    color: var(--cap-exito-600);
+    font-weight: var(--cap-peso-medium);
+}
+
+.capProgreso__texto--planificado {
+    color: var(--cap-primario-600);
+}
+
 .capProgreso__textos {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 2px;
+    gap: 0; /* Minimalista */
 }
 
 .capProgreso__textoSec {
-    font-size: var(--cap-texto-2xs, 11px);
+    font-size: var(--cap-texto-xxs);
     color: var(--cap-texto-secundario);
     white-space: nowrap;
 }
@@ -499,4 +569,20 @@
 
 .capProgresoCelda--clickeable:hover {
     background: var(--cap-fondo-sutil);
+}
+
+/* Puntos indicadores */
+.capPunto {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.capPunto--planificado {
+    background: var(--cap-primario-200);
+}
+
+.capPunto--completado {
+    background: var(--cap-exito-500);
 }
