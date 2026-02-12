@@ -122,10 +122,22 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                 const asignadas = data.asignaturasAsignadas || data.asignaturas || [];
                 const completadas = data.asignaturasCompletadas || data.asignaturas || [];
 
-                setProgresoAsignado(mapearAsignaturas(asignadas));
-                setProgresoCompletado(mapearAsignaturas(completadas));
-                setHorasAsignadas(data.horasAsignadas || 0);
-                setHorasCompletadas(data.horasCompletadas || 0);
+                const progresoAsignadoMapeado = mapearAsignaturas(asignadas);
+                const progresoCompletadoMapeado = mapearAsignaturas(completadas);
+
+                const totalAsignadoMapeado = progresoAsignadoMapeado.reduce((acc, item) => acc + (parseFloat(String(item.horasCompletadas)) || 0), 0);
+                const totalCompletadoMapeado = progresoCompletadoMapeado.reduce((acc, item) => acc + (parseFloat(String(item.horasCompletadas)) || 0), 0);
+
+                setProgresoAsignado(progresoAsignadoMapeado);
+                setProgresoCompletado(progresoCompletadoMapeado);
+
+                /*
+                 * Usar SIEMPRE la misma fuente de verdad que el desglose visual.
+                 * Así evitamos mostrar un total global que no coincide con la suma
+                 * de las asignaturas renderizadas en el modal.
+                 */
+                setHorasAsignadas(totalAsignadoMapeado);
+                setHorasCompletadas(totalCompletadoMapeado);
             } catch {
                 /* En caso de error usar datos del alumno como fallback */
                 const fallback = ASIGNATURAS_CAP.map(asig => ({

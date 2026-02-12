@@ -9,6 +9,7 @@
 - 2026-02-12: **FIX CRÍTICO: Incongruencia entre horas planificadas totales y desglose por asignatura** - Se normaliza `asignatura` al guardar edición de clase (`CapEndpoints::actualizarClase`) para persistir siempre códigos canónicos en lugar de IDs numéricos.
 - 2026-02-12: `ModalProgresoAlumno` ahora interpreta asignaturas históricas numéricas (`"1".."8"`) además de códigos (`conduccion_racional`, `CR`, etc.), evitando pérdida de horas en el desglose.
 - 2026-02-12: Tooltips de progreso muestran también horas faltantes (global y por asignatura) para auditar mejor diferencias de planificación.
+- 2026-02-12: `ModalProgresoAlumno` calcula métricas globales (completadas/planificadas) desde la misma agregación mapeada por asignatura que se renderiza en pantalla, garantizando consistencia visual entre tarjeta resumen y desglose.
 
 - 2026-02-10: **FIX CRÍTICO: Motor de generación respeta límite 35h por alumno** - `CalendarEngine::distribuirAsignaturas()` ahora verifica las horas completadas de cada alumno ANTES de asignarle clases. Nuevos métodos `cargarHorasCompletadasAlumnos()`, `alumnoNecesitaMasHoras()` y `registrarMinutosAsignados()` para trackear el progreso durante la generación.
 - 2026-02-10: Alumnos con ≥35 horas completadas ya no reciben más clases en nuevas generaciones.
