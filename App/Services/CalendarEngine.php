@@ -599,17 +599,26 @@ class CalendarEngine
     /**
      * Distribuye las asignaturas en los slots disponibles.
      * 
-     * IMPORTANTE: Solo asigna alumnos que aún no han completado las 35h del curso.
+     * IMPORTANTE: Solo asigna alumnos que aun no han completado las 35h del curso.
      * Cada vez que se asigna una clase, se registran los minutos para ese alumno.
+     *
+     * Algoritmo de seleccion proporcional: en cada slot se elige la asignatura
+     * con mayor ratio pendiente/total. Esto garantiza distribucion uniforme
+     * respetando las horas requeridas de cada asignatura (7+4+6+4+4+4+3+3=35).
+     * Ante empate de ratio, se prefiere la asignatura con mas minutos absolutos
+     * restantes para priorizar las que requieren mas horas.
      */
     private function distribuirAsignaturas(array $demandaPorSlot): array
     {
         $distribucion = [];
         $asignaturasRestantes = [];
+        $asignaturasTotal = [];
 
-        /* Inicializar horas restantes por asignatura */
+        /* Inicializar horas restantes y totales por asignatura */
         foreach (self::ASIGNATURAS as $key => $asignatura) {
-            $asignaturasRestantes[$key] = $asignatura['horas'] * 60; // en minutos
+            $minutosTotal = $asignatura['horas'] * 60;
+            $asignaturasRestantes[$key] = $minutosTotal;
+            $asignaturasTotal[$key] = $minutosTotal;
         }
 
         /* Ordenar slots por fecha y hora */
@@ -619,11 +628,11 @@ class CalendarEngine
 
         foreach ($demandaPorSlot as $slotKey => $datos) {
             if ($datos['total'] === 0) {
-                continue; // Saltar slots sin alumnos
+                continue;
             }
 
             /*
-             * FILTRO CRÍTICO: Solo incluir alumnos que aún necesitan más horas.
+             * FILTRO CRITICO: Solo incluir alumnos que aun necesitan mas horas.
              * Esto previene que un alumno supere las 35h del curso.
              */
             $alumnosElegibles = [];
@@ -633,27 +642,43 @@ class CalendarEngine
                 }
             }
 
-            /* Si no hay alumnos elegibles para este slot, saltarlo */
             if (empty($alumnosElegibles)) {
                 continue;
             }
 
-            /* Seleccionar asignatura con más minutos restantes */
+            /*
+             * Seleccionar asignatura con distribucion proporcional.
+             * Ratio = minutosRestantes / minutosOriginales
+             * Esto evita el sesgo del algoritmo voraz anterior que favorecia
+             * las asignaturas al inicio del array cuando habia empates.
+             */
             $asignaturaSeleccionada = null;
-            $maxMinutos = 0;
+            $maxRatio = -1;
+            $maxMinutos = -1;
 
             foreach ($asignaturasRestantes as $key => $minutos) {
-                if ($minutos > $maxMinutos) {
+                if ($minutos <= 0) {
+                    continue;
+                }
+
+                $ratio = $minutos / max(1, $asignaturasTotal[$key]);
+
+                /*
+                 * Priorizar por ratio mas alto (mas pendiente proporcionalmente).
+                 * Ante empate de ratio, preferir la que tiene mas minutos absolutos
+                 * restantes (asignaturas mas largas primero).
+                 */
+                if ($ratio > $maxRatio || ($ratio === $maxRatio && $minutos > $maxMinutos)) {
+                    $maxRatio = $ratio;
                     $maxMinutos = $minutos;
                     $asignaturaSeleccionada = $key;
                 }
             }
 
             if ($asignaturaSeleccionada === null) {
-                continue; // Todas las asignaturas completas
+                continue;
             }
 
-            /* Asignar este slot a la asignatura con los alumnos elegibles */
             $distribucion[] = [
                 'fecha' => $datos['fecha'],
                 'hora_inicio' => $datos['hora_inicio'],
@@ -665,14 +690,12 @@ class CalendarEngine
 
             /*
              * Registrar los minutos asignados a cada alumno.
-             * Esto es fundamental para que en el próximo slot
-             * se considere el progreso acumulado.
+             * Fundamental para que en el proximo slot se considere el progreso acumulado.
              */
             foreach ($alumnosElegibles as $alumnoId) {
                 $this->registrarMinutosAsignados((int) $alumnoId, $this->duracionClase);
             }
 
-            /* Restar minutos de la asignatura */
             $asignaturasRestantes[$asignaturaSeleccionada] -= $this->duracionClase;
             if ($asignaturasRestantes[$asignaturaSeleccionada] < 0) {
                 $asignaturasRestantes[$asignaturaSeleccionada] = 0;
