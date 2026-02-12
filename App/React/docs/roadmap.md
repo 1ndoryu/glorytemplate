@@ -6,12 +6,17 @@
 
 **Notas de mantenimiento**
 
+- 2026-02-12: **RESUELTO Y VERIFICADO EN DEBUG.LOG: Progreso por asignatura consistente + horarios flexibles respetados**
+    - `CalendarEngine::distribuirAsignaturas()` pasó a lógica por **déficit real por alumno/asignatura** en cada slot. Resultado verificado: asignadas=35h y desglose exacto `7+4+6+4+4+4+3+3` por alumno.
+    - Se mantiene la regla de 35h máximas por alumno y se descartan en cada clase los alumnos que no requieren la asignatura seleccionada.
+    - `generarSlotsDisponibles()` ahora prioriza `horarios_semanales` normalizados (claves de día y horas), evitando fallback inesperado al modo legacy cuando hay configuración flexible válida.
+    - Debug temporal activo para validación (`WP_DEBUG` o `?debug=1`) y log de modo del motor (`flexible|legacy`).
+
 - 2026-02-12: ~~**INVESTIGACION EN CURSO**~~ **RESUELTO: Distribución desigual de asignaturas por alumno**
     - **Causa raíz real (2da iteracion)**: `CalendarEngine::distribuirAsignaturas()` usaba comparacion estricta `>` para seleccionar la asignatura con mas minutos restantes. Cuando varias asignaturas tenian la misma cantidad de minutos pendientes, siempre ganaba la primera en el array (`conduccion_racional`). Esto acumulaba sesgo: CR recibia +2h de exceso y asignaturas al final (-1.5h deficit en `servicio_logistica`).
     - **Fix aplicado**: Reemplazo del algoritmo voraz con **seleccion proporcional por ratio** (`minutosRestantes / minutosOriginales`). Desempate secundario por minutos absolutos. Esto distribuye proporcionalmente las asignaturas sin sesgo de posicion en el array.
     - **Logs de diagnostico**: Removidos del endpoint para produccion. El debug endpoint `/debug/progreso/{id}` se mantiene para auditorias admin.
     - **Accion requerida**: Regenerar el calendario para que la nueva distribucion tome efecto. Los datos existentes no se modifican automaticamente.
-- 2026-02-12: **FIX DEFINITIVO: Incongruencia de progreso total vs desglose por asignatura**
 - 2026-02-12: **FIX DEFINITIVO: Incongruencia de progreso total vs desglose por asignatura**
     - **Causa raíz**: El CapSeeder usaba códigos de asignatura diferentes a CalendarEngine (`racionalizacion` vs `conduccion_racional`, `entorno_economico` vs `medio_ambiente`, etc.), además con duraciones incorrectas. El GROUP BY en BD producía filas separadas para la misma asignatura bajo diferentes alias, y el backend computaba totales globales con queries independientes del desglose, permitiendo divergencias.
     - **Fix aplicado**:

@@ -114,6 +114,8 @@
     font-size: var(--cap-texto-sm);
     color: var(--cap-texto-principal);
     vertical-align: middle;
+    min-height: 68px;
+    justify-content: center;
 }
 
 .capTabla__tr:last-child .capTabla__td {
