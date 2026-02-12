@@ -388,16 +388,55 @@ class CapEndpoints
             return new \WP_REST_Response(['error' => 'Alumno no encontrado'], 404);
         }
 
+        $debugProgreso = (defined('WP_DEBUG') && WP_DEBUG) || ((int) $request->get_param('debug') === 1);
+
+        if ($debugProgreso) {
+            error_log("=== PROGRESO ALUMNO #{$alumnoId} ({$alumno['nombre']}) ===");
+        }
+
         /*
          * Normalizar asignaturas legacy en BD (idempotente).
          */
-        $alumnoModel->normalizarAsignaturasEnBD($centroId);
+        $normalizados = $alumnoModel->normalizarAsignaturasEnBD($centroId);
+
+        if ($debugProgreso && $normalizados > 0) {
+            error_log("  [NORM] {$normalizados} clases normalizadas en BD");
+        }
 
         /*
          * Obtener desglose por asignatura (ya normalizados en el modelo).
          */
         $progresoCompletado = $alumnoModel->obtenerProgreso($alumnoId);
         $progresoAsignado = $alumnoModel->obtenerProgresoAsignado($alumnoId);
+
+        if ($debugProgreso) {
+            $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+
+            $duplicados = (int) $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM (
+                    SELECT clase_id, alumno_id, COUNT(*) as cnt
+                    FROM {$tablaAsistencia}
+                    WHERE alumno_id = %d
+                    GROUP BY clase_id, alumno_id
+                    HAVING cnt > 1
+                ) as dupes",
+                $alumnoId
+            ));
+
+            if ($duplicados > 0) {
+                error_log("  [ALERTA] {$duplicados} pares duplicados en cap_asistencia para alumno #{$alumnoId}");
+            }
+
+            error_log("  [NORMALIZADO] progresoAsignado:");
+            foreach ($progresoAsignado as $fila) {
+                error_log("    - {$fila['asignatura']}: {$fila['horas']}h asignadas");
+            }
+
+            error_log("  [NORMALIZADO] progresoCompletado:");
+            foreach ($progresoCompletado as $fila) {
+                error_log("    - {$fila['asignatura']}: {$fila['horas']}h completadas");
+            }
+        }
 
         /*
          * Calcular totales globales como SUMA de los desgloses normalizados.
@@ -414,6 +453,37 @@ class CapEndpoints
             $horasAsignadas += (float) $fila['horas'];
         }
         $horasAsignadas = round($horasAsignadas, 2);
+
+        if ($debugProgreso) {
+            $requeridas = [
+                'conduccion_racional' => 7,
+                'reglamentacion' => 4,
+                'seguridad_vial' => 6,
+                'servicio_logistica' => 4,
+                'salud_seguridad' => 4,
+                'medio_ambiente' => 4,
+                'mercancias_peligrosas' => 3,
+                'viajeros' => 3,
+            ];
+
+            error_log('  [COMPARACION] Asignadas vs requeridas por asignatura:');
+            foreach ($requeridas as $codigo => $horasReq) {
+                $horasAsig = 0.0;
+                foreach ($progresoAsignado as $fila) {
+                    if ($fila['asignatura'] === $codigo) {
+                        $horasAsig = (float) $fila['horas'];
+                        break;
+                    }
+                }
+
+                $diff = round($horasAsig - $horasReq, 2);
+                $estado = $diff >= 0 ? 'OK' : 'FALTANTE';
+                error_log("    - {$codigo}: asignadas={$horasAsig}h, requeridas={$horasReq}h, diff={$diff}h [{$estado}]");
+            }
+
+            error_log("  [RESULTADO] horasCompletadas={$horasCompletadas}h, horasAsignadas={$horasAsignadas}h");
+            error_log("=== FIN PROGRESO ALUMNO #{$alumnoId} ===");
+        }
 
         /* Actualizar cache de horas_completadas en la tabla alumnos */
         $alumnoModel->actualizar($alumnoId, ['horas_completadas' => $horasCompletadas]);

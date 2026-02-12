@@ -49,6 +49,8 @@ class CalendarEngine
     private array $minutosCompletadosPorAlumno = [];
     /* Horas asignadas durante esta generación (minutos) */
     private array $minutosAsignadosPorAlumno = [];
+    /* Minutos restantes por asignatura para cada alumno */
+    private array $minutosRestantesAsignaturaPorAlumno = [];
 
     public function __construct(int $centroId)
     {
@@ -132,6 +134,7 @@ class CalendarEngine
         $this->cargarDisponibilidad($alumnosIds);
         $this->cargarClasesBloqueadas($fechaInicioSemana);
         $this->cargarHorasCompletadasAlumnos($alumnosIds, $fechaInicioSemana);
+        $this->cargarMinutosRestantesAsignaturaAlumnos($alumnosIds, $fechaInicioSemana);
         $this->generarSlotsDisponibles($fechaInicioSemana);
 
         /*
@@ -383,9 +386,13 @@ class CalendarEngine
         $this->slotsDisponibles = [];
 
         /* Intentar usar configuración flexible (JSON) */
-        $horariosFlexibles = !empty($this->configuracion['horarios_semanales'])
-            ? json_decode($this->configuracion['horarios_semanales'], true)
-            : null;
+        $horariosFlexibles = $this->obtenerHorariosFlexiblesNormalizados();
+        $usarHorarioFlexible = $horariosFlexibles !== null;
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $modo = $usarHorarioFlexible ? 'flexible' : 'legacy';
+            error_log("[CAP ENGINE] generarSlotsDisponibles usando modo: {$modo}");
+        }
 
         /* Mapeo de índice de día (0-6) a claves del JSON */
         $nombresDias = [0 => 'lunes', 1 => 'martes', 2 => 'miercoles', 3 => 'jueves', 4 => 'viernes', 5 => 'sabado', 6 => 'domingo'];
@@ -410,9 +417,10 @@ class CalendarEngine
 
             $this->slotsDisponibles[$fecha] = [];
 
-            if ($horariosFlexibles && isset($horariosFlexibles[$nombreDia]) && is_array($horariosFlexibles[$nombreDia])) {
+            if ($usarHorarioFlexible) {
                 /* Logica NUEVA: Usar rangos flexibles por día */
-                foreach ($horariosFlexibles[$nombreDia] as $rango) {
+                $rangosDia = $horariosFlexibles[$nombreDia] ?? [];
+                foreach ($rangosDia as $rango) {
                     if (!isset($rango['inicio']) || !isset($rango['fin'])) continue;
 
                     $nuevosSlots = $this->generarSlotsRango(
@@ -447,6 +455,95 @@ class CalendarEngine
                 $this->slotsDisponibles[$fecha] = array_merge($slotsMorning, $slotsAfternoon);
             }
         }
+    }
+
+    /**
+     * Obtiene horarios flexibles normalizados por día.
+     * Devuelve null cuando no hay configuración flexible válida.
+     */
+    private function obtenerHorariosFlexiblesNormalizados(): ?array
+    {
+        $raw = $this->configuracion['horarios_semanales'] ?? null;
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        $horarios = is_string($raw) ? json_decode($raw, true) : $raw;
+        if (!is_array($horarios)) {
+            return null;
+        }
+
+        $dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+        $normalizados = [];
+        foreach ($dias as $dia) {
+            $normalizados[$dia] = [];
+        }
+
+        foreach ($horarios as $diaRaw => $rangosRaw) {
+            if (!is_string($diaRaw)) {
+                continue;
+            }
+
+            $dia = $this->normalizarClaveDia($diaRaw);
+            if (!isset($normalizados[$dia])) {
+                continue;
+            }
+
+            $rangos = $rangosRaw;
+            if (is_array($rangosRaw) && isset($rangosRaw['rangos']) && is_array($rangosRaw['rangos'])) {
+                $rangos = $rangosRaw['rangos'];
+            }
+
+            if (!is_array($rangos)) {
+                continue;
+            }
+
+            foreach ($rangos as $rango) {
+                if (!is_array($rango) || !isset($rango['inicio'], $rango['fin'])) {
+                    continue;
+                }
+
+                $inicio = $this->normalizarHora($rango['inicio']);
+                $fin = $this->normalizarHora($rango['fin']);
+
+                if ($inicio === '' || $fin === '' || strtotime($inicio) >= strtotime($fin)) {
+                    continue;
+                }
+
+                $normalizados[$dia][] = [
+                    'inicio' => $inicio,
+                    'fin' => $fin,
+                ];
+            }
+        }
+
+        return $normalizados;
+    }
+
+    /**
+     * Normaliza claves de día para soportar tildes y variantes.
+     */
+    private function normalizarClaveDia(string $dia): string
+    {
+        $dia = strtolower(trim($dia));
+        $dia = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $dia);
+        return $dia;
+    }
+
+    /**
+     * Normaliza hora a HH:MM y valida formato.
+     */
+    private function normalizarHora(string $hora): string
+    {
+        $hora = trim($hora);
+
+        if (!preg_match('/^([0-1]?\d|2[0-3]):([0-5]\d)$/', $hora, $matches)) {
+            return '';
+        }
+
+        $h = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+        $m = $matches[2];
+        return "{$h}:{$m}";
     }
 
     /**
@@ -598,28 +695,14 @@ class CalendarEngine
 
     /**
      * Distribuye las asignaturas en los slots disponibles.
-     * 
-     * IMPORTANTE: Solo asigna alumnos que aun no han completado las 35h del curso.
-     * Cada vez que se asigna una clase, se registran los minutos para ese alumno.
      *
-     * Algoritmo de seleccion proporcional: en cada slot se elige la asignatura
-     * con mayor ratio pendiente/total. Esto garantiza distribucion uniforme
-     * respetando las horas requeridas de cada asignatura (7+4+6+4+4+4+3+3=35).
-     * Ante empate de ratio, se prefiere la asignatura con mas minutos absolutos
-     * restantes para priorizar las que requieren mas horas.
+     * IMPORTANTE: la selección se hace por déficit real de los alumnos
+     * disponibles en cada slot. Se evita así asignar horas de asignaturas
+     * ya cubiertas para ese alumno y se corrige la desviación por desglose.
      */
     private function distribuirAsignaturas(array $demandaPorSlot): array
     {
         $distribucion = [];
-        $asignaturasRestantes = [];
-        $asignaturasTotal = [];
-
-        /* Inicializar horas restantes y totales por asignatura */
-        foreach (self::ASIGNATURAS as $key => $asignatura) {
-            $minutosTotal = $asignatura['horas'] * 60;
-            $asignaturasRestantes[$key] = $minutosTotal;
-            $asignaturasTotal[$key] = $minutosTotal;
-        }
 
         /* Ordenar slots por fecha y hora */
         uksort($demandaPorSlot, function ($a, $b) {
@@ -646,36 +729,51 @@ class CalendarEngine
                 continue;
             }
 
-            /*
-             * Seleccionar asignatura con distribucion proporcional.
-             * Ratio = minutosRestantes / minutosOriginales
-             * Esto evita el sesgo del algoritmo voraz anterior que favorecia
-             * las asignaturas al inicio del array cuando habia empates.
-             */
             $asignaturaSeleccionada = null;
-            $maxRatio = -1;
-            $maxMinutos = -1;
+            $alumnosParaAsignar = [];
+            $mejorScore = -1.0;
+            $mejorCantidad = -1;
+            $mejorMinutos = -1;
 
-            foreach ($asignaturasRestantes as $key => $minutos) {
-                if ($minutos <= 0) {
+            foreach (array_keys(self::ASIGNATURAS) as $codigoAsignatura) {
+                $score = 0.0;
+                $cantidad = 0;
+                $minutosPendientes = 0;
+                $candidatos = [];
+
+                foreach ($alumnosElegibles as $alumnoId) {
+                    $alumnoIdInt = (int) $alumnoId;
+                    $minutosRestantes = $this->obtenerMinutosRestantesAsignatura($alumnoIdInt, $codigoAsignatura);
+
+                    if ($minutosRestantes <= 0) {
+                        continue;
+                    }
+
+                    $candidatos[] = $alumnoIdInt;
+                    $cantidad++;
+                    $minutosPendientes += $minutosRestantes;
+                    $totalAsignatura = self::ASIGNATURAS[$codigoAsignatura]['horas'] * 60;
+                    $score += $minutosRestantes / max(1, $totalAsignatura);
+                }
+
+                if ($cantidad === 0) {
                     continue;
                 }
 
-                $ratio = $minutos / max(1, $asignaturasTotal[$key]);
-
-                /*
-                 * Priorizar por ratio mas alto (mas pendiente proporcionalmente).
-                 * Ante empate de ratio, preferir la que tiene mas minutos absolutos
-                 * restantes (asignaturas mas largas primero).
-                 */
-                if ($ratio > $maxRatio || ($ratio === $maxRatio && $minutos > $maxMinutos)) {
-                    $maxRatio = $ratio;
-                    $maxMinutos = $minutos;
-                    $asignaturaSeleccionada = $key;
+                if (
+                    $score > $mejorScore
+                    || ($score === $mejorScore && $cantidad > $mejorCantidad)
+                    || ($score === $mejorScore && $cantidad === $mejorCantidad && $minutosPendientes > $mejorMinutos)
+                ) {
+                    $mejorScore = $score;
+                    $mejorCantidad = $cantidad;
+                    $mejorMinutos = $minutosPendientes;
+                    $asignaturaSeleccionada = $codigoAsignatura;
+                    $alumnosParaAsignar = $candidatos;
                 }
             }
 
-            if ($asignaturaSeleccionada === null) {
+            if ($asignaturaSeleccionada === null || empty($alumnosParaAsignar)) {
                 continue;
             }
 
@@ -685,24 +783,135 @@ class CalendarEngine
                 'hora_fin' => $datos['hora_fin'],
                 'asignatura' => $asignaturaSeleccionada,
                 'asignatura_nombre' => self::ASIGNATURAS[$asignaturaSeleccionada]['nombre'],
-                'alumnos' => $alumnosElegibles
+                'alumnos' => $alumnosParaAsignar
             ];
 
             /*
              * Registrar los minutos asignados a cada alumno.
              * Fundamental para que en el proximo slot se considere el progreso acumulado.
              */
-            foreach ($alumnosElegibles as $alumnoId) {
+            foreach ($alumnosParaAsignar as $alumnoId) {
                 $this->registrarMinutosAsignados((int) $alumnoId, $this->duracionClase);
-            }
-
-            $asignaturasRestantes[$asignaturaSeleccionada] -= $this->duracionClase;
-            if ($asignaturasRestantes[$asignaturaSeleccionada] < 0) {
-                $asignaturasRestantes[$asignaturaSeleccionada] = 0;
+                $this->registrarMinutosAsignadosAsignatura((int) $alumnoId, $asignaturaSeleccionada, $this->duracionClase);
             }
         }
 
         return $distribucion;
+    }
+
+    /**
+     * Carga minutos restantes por asignatura para cada alumno.
+     */
+    private function cargarMinutosRestantesAsignaturaAlumnos(array $alumnosIds, string $semanaExcluir = ''): void
+    {
+        global $wpdb;
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+
+        $this->minutosRestantesAsignaturaPorAlumno = [];
+
+        if (empty($alumnosIds)) {
+            return;
+        }
+
+        foreach ($alumnosIds as $alumnoId) {
+            $alumnoIdInt = (int) $alumnoId;
+            $this->minutosRestantesAsignaturaPorAlumno[$alumnoIdInt] = [];
+            foreach (self::ASIGNATURAS as $codigo => $asignatura) {
+                $this->minutosRestantesAsignaturaPorAlumno[$alumnoIdInt][$codigo] = (int) $asignatura['horas'] * 60;
+            }
+        }
+
+        $placeholders = implode(',', array_fill(0, count($alumnosIds), '%d'));
+        $condicionExcluir = '';
+        $params = $alumnosIds;
+        $params[] = $this->centroId;
+
+        if (!empty($semanaExcluir)) {
+            $fechaBase = \DateTime::createFromFormat('!Y-m-d', $semanaExcluir);
+            if ($fechaBase) {
+                $fechaFinSemana = (clone $fechaBase)->modify('+4 days')->format('Y-m-d');
+                $condicionExcluir = ' AND (c.fecha < %s OR c.fecha > %s)';
+                $params[] = $semanaExcluir;
+                $params[] = $fechaFinSemana;
+            }
+        }
+
+        $queryStr = "SELECT a.alumno_id, c.asignatura, COALESCE(SUM(c.duracion_minutos), 0) as minutos
+            FROM {$tablaAsistencia} a
+            JOIN {$tablaClases} c ON a.clase_id = c.id
+            WHERE a.alumno_id IN ({$placeholders})
+              AND c.centro_id = %d
+              {$condicionExcluir}
+            GROUP BY a.alumno_id, c.asignatura";
+
+        $resultados = $wpdb->get_results($wpdb->prepare($queryStr, $params), ARRAY_A);
+
+        foreach ($resultados as $row) {
+            $alumnoId = (int) $row['alumno_id'];
+            $codigo = $this->normalizarCodigoAsignatura((string) $row['asignatura']);
+            if (!isset(self::ASIGNATURAS[$codigo])) {
+                continue;
+            }
+
+            $minutosAsignados = (int) $row['minutos'];
+            $restanteActual = $this->minutosRestantesAsignaturaPorAlumno[$alumnoId][$codigo] ?? 0;
+            $this->minutosRestantesAsignaturaPorAlumno[$alumnoId][$codigo] = max(0, $restanteActual - $minutosAsignados);
+        }
+    }
+
+    /**
+     * Obtiene minutos restantes por asignatura para un alumno.
+     */
+    private function obtenerMinutosRestantesAsignatura(int $alumnoId, string $asignatura): int
+    {
+        return (int) ($this->minutosRestantesAsignaturaPorAlumno[$alumnoId][$asignatura] ?? 0);
+    }
+
+    /**
+     * Registra minutos asignados en la asignatura para un alumno.
+     */
+    private function registrarMinutosAsignadosAsignatura(int $alumnoId, string $asignatura, int $minutos): void
+    {
+        if (!isset($this->minutosRestantesAsignaturaPorAlumno[$alumnoId][$asignatura])) {
+            return;
+        }
+
+        $restante = $this->minutosRestantesAsignaturaPorAlumno[$alumnoId][$asignatura];
+        $this->minutosRestantesAsignaturaPorAlumno[$alumnoId][$asignatura] = max(0, $restante - $minutos);
+    }
+
+    /**
+     * Normaliza codigos legacy de asignatura a codigo canonico.
+     */
+    private function normalizarCodigoAsignatura(string $codigo): string
+    {
+        $codigoLimpio = strtolower(trim($codigo));
+        $alias = [
+            '1' => 'conduccion_racional',
+            '2' => 'reglamentacion',
+            '3' => 'seguridad_vial',
+            '4' => 'servicio_logistica',
+            '5' => 'salud_seguridad',
+            '6' => 'medio_ambiente',
+            '7' => 'mercancias_peligrosas',
+            '8' => 'viajeros',
+            'cr' => 'conduccion_racional',
+            'reg' => 'reglamentacion',
+            'sv' => 'seguridad_vial',
+            'sl' => 'servicio_logistica',
+            'ss' => 'salud_seguridad',
+            'ma' => 'medio_ambiente',
+            'mp' => 'mercancias_peligrosas',
+            'via' => 'viajeros',
+            'racionalizacion' => 'conduccion_racional',
+            'entorno_economico' => 'medio_ambiente',
+            'operativa' => 'servicio_logistica',
+            'normativa' => 'reglamentacion',
+            'conduccion_economica' => 'conduccion_racional',
+        ];
+
+        return $alias[$codigoLimpio] ?? $codigoLimpio;
     }
 
     /**
@@ -789,6 +998,7 @@ class CalendarEngine
         $this->cargarDisponibilidad($alumnosIds);
         $this->cargarClasesBloqueadas($fechaInicioSemana);
         $this->cargarHorasCompletadasAlumnos($alumnosIds, $fechaInicioSemana);
+        $this->cargarMinutosRestantesAsignaturaAlumnos($alumnosIds, $fechaInicioSemana);
         $this->generarSlotsDisponibles($fechaInicioSemana);
 
         /* Calcular demanda aplicando exclusiones */
