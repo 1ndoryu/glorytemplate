@@ -365,12 +365,14 @@ class CapEndpoints
      * Obtiene el progreso real de un alumno desglosado por asignatura.
      * El calendario es la fuente de verdad: clases con fecha <= hoy.
      *
-     * FUENTE ÚNICA: Los totales globales se calculan como suma de los desgloses
-     * normalizados por asignatura, garantizando consistencia matemática
+     * FUENTE UNICA: Los totales globales se calculan como suma de los desgloses
+     * normalizados por asignatura, garantizando consistencia matematica
      * entre la tarjeta resumen y el desglose visual.
      */
     public function obtenerProgresoAlumno(\WP_REST_Request $request): \WP_REST_Response
     {
+        global $wpdb;
+
         $alumnoId = (int) $request->get_param('id');
         $capService = CapService::getInstance();
         $centroId = $capService->getCentroIdActual();
@@ -386,25 +388,117 @@ class CapEndpoints
             return new \WP_REST_Response(['error' => 'Alumno no encontrado'], 404);
         }
 
+        error_log("=== PROGRESO ALUMNO #{$alumnoId} ({$alumno['nombre']}) ===");
+
         /*
          * Normalizar asignaturas legacy en BD (idempotente).
-         * Convierte variantes como racionalizacion → conduccion_racional
-         * para que el GROUP BY produzca filas limpias.
          */
-        $alumnoModel->normalizarAsignaturasEnBD($centroId);
+        $normalizados = $alumnoModel->normalizarAsignaturasEnBD($centroId);
+        if ($normalizados > 0) {
+            error_log("  [NORM] {$normalizados} clases normalizadas en BD");
+        }
+
+        /* Diagnostico: verificar duplicados en cap_asistencia */
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+
+        $duplicados = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM (
+                SELECT clase_id, alumno_id, COUNT(*) as cnt
+                FROM {$tablaAsistencia}
+                WHERE alumno_id = %d
+                GROUP BY clase_id, alumno_id
+                HAVING cnt > 1
+             ) as dupes",
+            $alumnoId
+        ));
+        if ((int) $duplicados > 0) {
+            error_log("  [ALERTA] {$duplicados} pares duplicados en cap_asistencia para alumno #{$alumnoId}");
+        }
+
+        /* Diagnostico: listar TODAS las clases asignadas con su asignatura */
+        $clasesRaw = $wpdb->get_results($wpdb->prepare(
+            "SELECT c.id, c.fecha, c.asignatura, c.duracion_minutos,
+                    (c.fecha <= CURDATE()) as es_pasada
+             FROM {$tablaAsistencia} a
+             JOIN {$tablaClases} c ON a.clase_id = c.id
+             WHERE a.alumno_id = %d
+             ORDER BY c.fecha ASC, c.hora_inicio ASC",
+            $alumnoId
+        ), ARRAY_A);
+
+        error_log("  [CLASES] Total clases asignadas: " . count($clasesRaw));
+
+        /* Contar por asignatura (raw, sin normalizar) para diagnostico */
+        $porAsignaturaRaw = [];
+        $totalMinutosRaw = 0;
+        $totalMinutosCompletadosRaw = 0;
+        foreach ($clasesRaw as $c) {
+            $asig = $c['asignatura'];
+            if (!isset($porAsignaturaRaw[$asig])) {
+                $porAsignaturaRaw[$asig] = ['total' => 0, 'completadas' => 0, 'minutos_total' => 0, 'minutos_completadas' => 0];
+            }
+            $porAsignaturaRaw[$asig]['total']++;
+            $porAsignaturaRaw[$asig]['minutos_total'] += (int) $c['duracion_minutos'];
+            $totalMinutosRaw += (int) $c['duracion_minutos'];
+            if ((int) $c['es_pasada']) {
+                $porAsignaturaRaw[$asig]['completadas']++;
+                $porAsignaturaRaw[$asig]['minutos_completadas'] += (int) $c['duracion_minutos'];
+                $totalMinutosCompletadosRaw += (int) $c['duracion_minutos'];
+            }
+        }
+
+        error_log("  [RAW] Total minutos asignados: {$totalMinutosRaw} (" . round($totalMinutosRaw / 60, 2) . "h)");
+        error_log("  [RAW] Total minutos completados: {$totalMinutosCompletadosRaw} (" . round($totalMinutosCompletadosRaw / 60, 2) . "h)");
+        error_log("  [RAW] Desglose por asignatura (directo de BD):");
+        foreach ($porAsignaturaRaw as $asig => $datos) {
+            $horasTotal = round($datos['minutos_total'] / 60, 2);
+            $horasComp = round($datos['minutos_completadas'] / 60, 2);
+            error_log("    - {$asig}: {$datos['total']} clases, {$horasTotal}h asignadas, {$horasComp}h completadas");
+        }
 
         /*
          * Obtener desglose por asignatura (ya normalizados en el modelo).
-         * obtenerProgreso: clases con fecha <= hoy (completadas)
-         * obtenerProgresoAsignado: todas las clases (pasadas + futuras)
          */
         $progresoCompletado = $alumnoModel->obtenerProgreso($alumnoId);
         $progresoAsignado = $alumnoModel->obtenerProgresoAsignado($alumnoId);
 
+        error_log("  [NORMALIZADO] progresoAsignado (lo que ve el frontend):");
+        foreach ($progresoAsignado as $fila) {
+            error_log("    - {$fila['asignatura']}: {$fila['horas']}h asignadas");
+        }
+        error_log("  [NORMALIZADO] progresoCompletado:");
+        foreach ($progresoCompletado as $fila) {
+            error_log("    - {$fila['asignatura']}: {$fila['horas']}h completadas");
+        }
+
+        /* Comparar asignadas por asignatura vs requeridas */
+        $requeridas = [
+            'conduccion_racional' => 7, 'reglamentacion' => 4, 'seguridad_vial' => 6,
+            'servicio_logistica' => 4, 'salud_seguridad' => 4, 'medio_ambiente' => 4,
+            'mercancias_peligrosas' => 3, 'viajeros' => 3,
+        ];
+        error_log("  [COMPARACION] Asignadas vs Requeridas por asignatura:");
+        $sumaAsignadas = 0;
+        $sumaRequeridas = 0;
+        foreach ($requeridas as $codigo => $horasReq) {
+            $horasAsig = 0;
+            foreach ($progresoAsignado as $fila) {
+                if ($fila['asignatura'] === $codigo) {
+                    $horasAsig = (float) $fila['horas'];
+                    break;
+                }
+            }
+            $diff = round($horasAsig - $horasReq, 2);
+            $estado = $diff >= 0 ? 'OK' : 'FALTANTE';
+            error_log("    - {$codigo}: asignadas={$horasAsig}h, requeridas={$horasReq}h, diff={$diff}h [{$estado}]");
+            $sumaAsignadas += $horasAsig;
+            $sumaRequeridas += $horasReq;
+        }
+        error_log("  [TOTALES] Suma asignadas={$sumaAsignadas}h, Suma requeridas={$sumaRequeridas}h");
+
         /*
          * Calcular totales globales como SUMA de los desgloses normalizados.
-         * Esto garantiza que: total global === suma de asignaturas en pantalla.
-         * Antes se usaban queries separados que podían divergir por alias.
          */
         $horasCompletadas = 0;
         foreach ($progresoCompletado as $fila) {
@@ -417,6 +511,9 @@ class CapEndpoints
             $horasAsignadas += (float) $fila['horas'];
         }
         $horasAsignadas = round($horasAsignadas, 2);
+
+        error_log("  [RESULTADO] horasCompletadas={$horasCompletadas}h, horasAsignadas={$horasAsignadas}h");
+        error_log("=== FIN PROGRESO ALUMNO #{$alumnoId} ===");
 
         /* Actualizar cache de horas_completadas en la tabla alumnos */
         $alumnoModel->actualizar($alumnoId, ['horas_completadas' => $horasCompletadas]);
