@@ -19,6 +19,28 @@ use Glory\App\Database\CapSeeder;
 class CapEndpoints
 {
     private const NAMESPACE = 'cap/v1';
+    private const ASIGNATURAS_ID_A_CODIGO = [
+        1 => 'conduccion_racional',
+        2 => 'reglamentacion',
+        3 => 'seguridad_vial',
+        4 => 'servicio_logistica',
+        5 => 'salud_seguridad',
+        6 => 'medio_ambiente',
+        7 => 'mercancias_peligrosas',
+        8 => 'viajeros',
+    ];
+
+    private function normalizarAsignaturaParaPersistencia($asignatura): string
+    {
+        if (is_numeric($asignatura)) {
+            $id = (int) $asignatura;
+            if (isset(self::ASIGNATURAS_ID_A_CODIGO[$id])) {
+                return self::ASIGNATURAS_ID_A_CODIGO[$id];
+            }
+        }
+
+        return sanitize_text_field((string) $asignatura);
+    }
 
     public function registrar(): void
     {
@@ -559,7 +581,7 @@ class CapEndpoints
             $datosActualizar['hora_fin'] = sanitize_text_field($datos['hora_fin']);
         }
         if (isset($datos['asignatura'])) {
-            $datosActualizar['asignatura'] = (int) $datos['asignatura'];
+            $datosActualizar['asignatura'] = $this->normalizarAsignaturaParaPersistencia($datos['asignatura']);
         }
         /* Soporte para cambio de fecha (drag & drop entre días) */
         if (isset($datos['fecha'])) {

@@ -61,6 +61,20 @@ const CODIGO_A_ID: Record<string, number> = {
     racionalizacion: 1
 };
 
+const obtenerAsignaturaId = (valorAsignatura: string): number | null => {
+    const idDirecto = CODIGO_A_ID[valorAsignatura];
+    if (idDirecto) {
+        return idDirecto;
+    }
+
+    const numero = parseInt(valorAsignatura, 10);
+    if (!Number.isNaN(numero) && numero >= 1 && numero <= 8) {
+        return numero;
+    }
+
+    return null;
+};
+
 export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAlumnoProps) {
     const [cargando, setCargando] = useState(false);
     const [progresoAsignado, setProgresoAsignado] = useState<ProgresoAsignatura[]>([]);
@@ -94,8 +108,8 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                 const mapearAsignaturas = (items: Array<{asignatura: string; horas: string}>) => {
                     const mapeado = baseAsignaturas.map(item => ({...item}));
                     (items || []).forEach(item => {
-                        const id = CODIGO_A_ID[item.asignatura];
-                        if (id) {
+                        const id = obtenerAsignaturaId(String(item.asignatura));
+                        if (id !== null) {
                             const idx = mapeado.findIndex(p => p.asignaturaId === id);
                             if (idx !== -1) {
                                 mapeado[idx].horasCompletadas += parseFloat(item.horas) || 0;
@@ -148,6 +162,7 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
     const horasPlan = normalizarNumero(horasAsignadas);
     const porcentajeTotal = Math.min(100, Math.round((horasTotales / CAP_REGLAS.HORAS_TOTALES) * 100));
     const porcentajePlan = Math.min(100, Math.round((horasPlan / CAP_REGLAS.HORAS_TOTALES) * 100));
+    const horasFaltantesGlobal = Math.max(0, CAP_REGLAS.HORAS_TOTALES - horasPlan);
 
     const getEstadoGeneral = () => {
         if (porcentajeTotal >= 100) return {texto: 'Completado', variante: 'exito' as const};
@@ -206,6 +221,9 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                         <div>
                                             Planificadas: <strong>{formatearHoras(Math.max(0, horasPlan - horasTotales))}h</strong>
                                         </div>
+                                        <div>
+                                            Faltantes: <strong>{formatearHoras(horasFaltantesGlobal)}h</strong>
+                                        </div>
                                         <div style={{borderTop: '1px solid currentColor', paddingTop: 2, marginTop: 2}}>
                                             Total: <strong>{formatearHoras(horasPlan)}h</strong> / 35h
                                         </div>
@@ -234,6 +252,7 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                     /* Base: duracionHoras */
                                     const pctComp = Math.min(100, (horasComp / asignatura.duracionHoras) * 100);
                                     const horasRestantes = Math.max(0, horasAsig - horasComp);
+                                    const horasFaltantesAsignatura = Math.max(0, asignatura.duracionHoras - horasAsig);
                                     const pctPlan = Math.min(100 - pctComp, (horasRestantes / asignatura.duracionHoras) * 100);
 
                                     const completada = horasComp >= asignatura.duracionHoras;
@@ -270,6 +289,9 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                                             </div>
                                                             <div>
                                                                 Planificadas: <strong>{formatearHoras(horasRestantes)}h</strong>
+                                                            </div>
+                                                            <div>
+                                                                Faltantes: <strong>{formatearHoras(horasFaltantesAsignatura)}h</strong>
                                                             </div>
                                                         </div>
                                                     }
