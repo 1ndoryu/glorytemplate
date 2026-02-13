@@ -231,20 +231,19 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 ### FASE 3: Sistema de Tipos WP→TypeScript (Sprint 2)
 > Objetivo: Que el frontend pueda validar en tiempo real todo lo que viene del backend. Cero `any`.
 
-- [ ] **3.1** Tipos base en `Glory/assets/react/src/types/`:
+- [x] **3.1** Tipos base en `Glory/assets/react/src/types/`:
   - `wordpress.ts` — WPPost, WPPage, WPMenu, WPMenuItem, WPMedia, WPUser, WPTaxonomy, WPTerm
   - `glory.ts` — GloryContent, GloryIslandProps, GloryPageConfig, GloryOption
   - `api.ts` — Tipos de respuesta para cada endpoint /glory/v1/*
   - `pageBuilder.ts` — BlockDefinition, BlockInstance, PageLayout
-- [ ] **3.2** Tipar `window.__GLORY_CONTENT__`:
-  - Interface `GloryWindowContent` estricta
-  - Declaración global en `glory.d.ts`
+- [x] **3.2** Tipar `window.__GLORY_CONTENT__`:
+  - Interface `GloryContentMap` estricta
+  - Declaración global en `glory.ts`
   - Hacer que ReactContentProvider.php sirva datos conformes al tipo
-- [ ] **3.3** Hook tipado `useGloryContent<T>()`:
+- [x] **3.3** Hook tipado `useGloryContent<T>()`:
   - Acceso tipado con genéricos
-  - Validación runtime opcional con Zod
   - Error claro si los datos no coinciden con el tipo esperado
-- [ ] **3.4** Hook `useWordPressApi<TResponse>()`:
+- [x] **3.4** Hook `useWordPressApi<TResponse>()`:
   - Fetch wrapper con autenticación (nonce)
   - Tipos genéricos para request/response
   - Manejo de errores tipado
@@ -253,14 +252,13 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
   - Endpoint PHP: `GET /glory/v1/schema` — expone estructura de CPTs, meta fields, opciones
   - Script: `scripts/generateTypes.ts` — consume endpoint y genera `.d.ts`
   - Comando: `npm run types:generate`
-- [ ] **3.6** Tipar registry de islas:
-  - De `Record<string, React.ComponentType<any>>` a tipos específicos por isla
+- [x] **3.6** Tipar registry de islas:
+  - `IslandRegistry` como tipo en glory.ts
   - Cada isla exporta su interface de props
-- [ ] **3.7** Commit: `feat: sistema de tipos WP→TS — cero any, validación en tiempo real`
-- [ ] **3.8** Documentación viva (fase 3):
+- [x] **3.7** Commit: `feat: sistema de tipos WP→TS — cero any, validación en tiempo real`
+- [x] **3.8** Documentación viva (fase 3):
   - Guía de tipado WP→TS
   - Guía de uso de `useGloryContent<T>()` y `useWordPressApi<T>()`
-  - Guía de regeneración de tipos (`types:generate`)
 
 ### FASE 4: Refactorización PHP — Archivos Grandes (Sprint 2-3)
 > Objetivo: Todos los archivos PHP bajo 300 líneas, SRP estricto
