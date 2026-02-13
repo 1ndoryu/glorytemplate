@@ -29,6 +29,16 @@ class CapEndpoints
         7 => 'mercancias_peligrosas',
         8 => 'viajeros',
     ];
+    private const LOGS_ACTIVOS = false;
+
+    /* Controla el activado centralizado para los registros de error_log. */
+    private function registrarLog(string $mensaje): void
+    {
+        if (!self::LOGS_ACTIVOS) {
+            return;
+        }
+        error_log($mensaje);
+    }
 
     private function normalizarAsignaturaParaPersistencia($asignatura): string
     {
@@ -391,7 +401,7 @@ class CapEndpoints
         $debugProgreso = (defined('WP_DEBUG') && WP_DEBUG) || ((int) $request->get_param('debug') === 1);
 
         if ($debugProgreso) {
-            error_log("=== PROGRESO ALUMNO #{$alumnoId} ({$alumno['nombre']}) ===");
+            $this->registrarLog("=== PROGRESO ALUMNO #{$alumnoId} ({$alumno['nombre']}) ===");
         }
 
         /*
@@ -400,7 +410,7 @@ class CapEndpoints
         $normalizados = $alumnoModel->normalizarAsignaturasEnBD($centroId);
 
         if ($debugProgreso && $normalizados > 0) {
-            error_log("  [NORM] {$normalizados} clases normalizadas en BD");
+            $this->registrarLog("  [NORM] {$normalizados} clases normalizadas en BD");
         }
 
         /*
@@ -424,17 +434,17 @@ class CapEndpoints
             ));
 
             if ($duplicados > 0) {
-                error_log("  [ALERTA] {$duplicados} pares duplicados en cap_asistencia para alumno #{$alumnoId}");
+                $this->registrarLog("  [ALERTA] {$duplicados} pares duplicados en cap_asistencia para alumno #{$alumnoId}");
             }
 
-            error_log("  [NORMALIZADO] progresoAsignado:");
+            $this->registrarLog("  [NORMALIZADO] progresoAsignado:");
             foreach ($progresoAsignado as $fila) {
-                error_log("    - {$fila['asignatura']}: {$fila['horas']}h asignadas");
+                $this->registrarLog("    - {$fila['asignatura']}: {$fila['horas']}h asignadas");
             }
 
-            error_log("  [NORMALIZADO] progresoCompletado:");
+            $this->registrarLog("  [NORMALIZADO] progresoCompletado:");
             foreach ($progresoCompletado as $fila) {
-                error_log("    - {$fila['asignatura']}: {$fila['horas']}h completadas");
+                $this->registrarLog("    - {$fila['asignatura']}: {$fila['horas']}h completadas");
             }
         }
 
@@ -466,7 +476,7 @@ class CapEndpoints
                 'viajeros' => 3,
             ];
 
-            error_log('  [COMPARACION] Asignadas vs requeridas por asignatura:');
+            $this->registrarLog('  [COMPARACION] Asignadas vs requeridas por asignatura:');
             foreach ($requeridas as $codigo => $horasReq) {
                 $horasAsig = 0.0;
                 foreach ($progresoAsignado as $fila) {
@@ -478,11 +488,11 @@ class CapEndpoints
 
                 $diff = round($horasAsig - $horasReq, 2);
                 $estado = $diff >= 0 ? 'OK' : 'FALTANTE';
-                error_log("    - {$codigo}: asignadas={$horasAsig}h, requeridas={$horasReq}h, diff={$diff}h [{$estado}]");
+                $this->registrarLog("    - {$codigo}: asignadas={$horasAsig}h, requeridas={$horasReq}h, diff={$diff}h [{$estado}]");
             }
 
-            error_log("  [RESULTADO] horasCompletadas={$horasCompletadas}h, horasAsignadas={$horasAsignadas}h");
-            error_log("=== FIN PROGRESO ALUMNO #{$alumnoId} ===");
+            $this->registrarLog("  [RESULTADO] horasCompletadas={$horasCompletadas}h, horasAsignadas={$horasAsignadas}h");
+            $this->registrarLog("=== FIN PROGRESO ALUMNO #{$alumnoId} ===");
         }
 
         /* Actualizar cache de horas_completadas en la tabla alumnos */
@@ -1376,7 +1386,7 @@ class CapEndpoints
             /* Limpiar cualquier output que se haya generado */
             $output = ob_get_clean();
             if (!empty($output)) {
-                error_log('CAP PDF Warning: Output capturado antes del PDF: ' . substr($output, 0, 500));
+                $this->registrarLog('CAP PDF Warning: Output capturado antes del PDF: ' . substr($output, 0, 500));
             }
 
             if ($pdf === false) {
@@ -1405,7 +1415,7 @@ class CapEndpoints
             while (ob_get_level() > 0) {
                 ob_end_clean();
             }
-            error_log('CAP PDF Error (plan-alumno): ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
+            $this->registrarLog('CAP PDF Error (plan-alumno): ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
             return new \WP_REST_Response([
                 'error' => 'Error al generar el PDF: ' . $e->getMessage()
             ], 500);
@@ -1455,7 +1465,7 @@ class CapEndpoints
             echo $pdf;
             exit;
         } catch (\Exception $e) {
-            error_log('CAP PDF Error (control-horas): ' . $e->getMessage());
+            $this->registrarLog('CAP PDF Error (control-horas): ' . $e->getMessage());
             return new \WP_REST_Response(['error' => 'Error al generar el PDF: ' . $e->getMessage()], 500);
         }
     }
