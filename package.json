@@ -1,6 +1,9 @@
 {
     "name": "glory-theme",
     "version": "1.0.0",
+    "bin": {
+        "glory": "./Glory/cli/glory.mjs"
+    },
     "scripts": {
         "dev": "npm run dev --prefix Glory/assets/react",
         "build": "npm run build --prefix Glory/assets/react",
@@ -11,6 +14,7 @@
         "format": "npm run format --prefix Glory/assets/react",
         "format:check": "npm run format:check --prefix Glory/assets/react",
         "type-check": "npm run type-check --prefix Glory/assets/react",
+        "create": "node Glory/cli/glory.mjs create",
         "install:all": "npm install && npm install --prefix Glory/assets/react && npm install --prefix App/React",
         "install:subdeps": "npm install --prefix Glory/assets/react --ignore-scripts && npm install --prefix App/React --ignore-scripts",
         "postinstall": "npm run install:subdeps",
