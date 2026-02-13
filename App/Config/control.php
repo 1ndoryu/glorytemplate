@@ -39,6 +39,15 @@ GloryFeatures::disable('amazonProduct');
 GloryFeatures::disable('queryProfiler');
 
 /* 
+ * Frontend Opt-in: Tailwind CSS y shadcn/ui
+ * Activar/desactivar via feature flags.
+ * Tailwind v4 ya esta integrado en Vite; este flag controla si PHP lo referencia.
+ * shadcn/ui requiere que Tailwind este activo.
+ */
+GloryFeatures::disable('tailwind');
+GloryFeatures::disable('shadcnUI');
+
+/* 
  * Handlers AJAX del proyecto (App) 
  */
 if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
