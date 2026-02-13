@@ -378,11 +378,11 @@ Las referencias a `App/` en `vite.config.ts`, `tsconfig.json`, `eslint.config.js
 | Archivo | Líneas | Acción |
 |---------|--------|--------|
 | `SyncManager.php` | 399 | [x] Extraído `CachePurger.php`. SyncManager ahora ~310 l |
-| `ReactIslands.php` | 376 | [ ] Extraer `ReactAssetLoader.php` (~80 l) para enqueue dev/prod. Quedaría ~296 |
-| `PerformanceProfiler.php` | 350 | [ ] Extraer profiling HTTP a `HttpProfiler.php` (~50 l). Quedaría ~300 |
-| `AssetManager.php` | 335 | [ ] Extraer `resolveFeature()` como método DRY (duplicado L35-51 y L194-213). Reducir ~20 l |
-| `FeaturedImageRepair.php` | 326 | [ ] Refactorizar `repairFeaturedImage()` (~100 l) en sub-métodos. No necesita clase nueva |
-| `GloryLogger.php` | 311 | [ ] Extraer `LogFormatter.php` (~50 l). Quedaría ~260 |
+| `ReactIslands.php` | 376 | [~] Diferido a Fase 11 (6.4) |
+| `PerformanceProfiler.php` | 350 | [~] Diferido a Fase 11 (6.4) |
+| `AssetManager.php` | 335 | [~] Diferido a Fase 11 (6.1.8) |
+| `FeaturedImageRepair.php` | 326 | [~] Diferido a Fase 11 (6.4) |
+| `GloryLogger.php` | 311 | [~] Diferido a Fase 11 (6.4) |
 | `WebScraperProvider.php` | 801 | [ ] Dividir en `ScraperHttpClient`, `SearchResultParser`, `ProductPageParser` (AmazonProduct plugin — baja prioridad) |
 | `StripeWebhookHandler.php` | 535 | [ ] Dividir por tipo de evento en clases Strategy (AmazonProduct plugin — baja prioridad) |
 | `ApiEndpoints.php` (Amazon) | 380 | [ ] Extraer `DiagnosticEndpoints.php` (AmazonProduct plugin — baja prioridad) |
@@ -422,6 +422,92 @@ Las referencias a `App/` en `vite.config.ts`, `tsconfig.json`, `eslint.config.js
 
 ---
 
+## 6. Pulido Framework — Fase 11 (13-02-2026)
+
+> Auditoría de segundo nivel: SOLID pendientes, rendimiento crítico, seguridad residual, agnosticismo, contracts, documentación.
+
+### 6.1 Quick Wins — Limpieza de código
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| 1 | `EventBus.php` L5 | Import muerto `use GloryLogger` — nunca se usa | [x] |
+| 2 | `OpcionPanelSaver.php` L28 | `$opcionesOmitidas` declarado, nunca recibe items, `count()` siempre 0 | [x] |
+| 3 | `GloryLogger.php` L280 | Switch de niveles → array constante | [x] |
+| 4 | `PostActionManager.php` | Nomenclatura mixta español/inglés (`crearPost` vs `updatePost`) | [x] |
+| 5 | `ScheduleManager.php` | Mensajes de log en inglés, framework usa español | [~] Pausado |
+| 6 | `ReactIslands.php` L88-96 | `$_SERVER` sin `sanitize_text_field()` en `isLocalEnvironment()` | [x] |
+| 7 | `todo.md` | Archivo vacío — eliminar | [x] |
+| 8 | `AssetManager.php` L127+L194 | `resolveFeature()` duplicado → método DRY `esFeatureActiva()` | [x] |
+| 9 | `PerformanceProfiler.php` L139 | `error_log()` en cada medición → buffer en memoria + flush en shutdown | [x] |
+
+### 6.2 Seguridad Residual
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| 1 | `ImagesController.php` L164 | Path traversal: `../` en param `archivo` no validado | [x] |
+| 2 | `ImagesController.php` | Endpoints públicos exponen filesystem — agregar rate limit header | [~] Pausado |
+| 3 | `NewsletterController.php` | Sin rate limiting — spam de suscripciones | [x] |
+| 4 | `PageBlocksController.php` L127 | `saveBlocks()` sin límite de tamaño del payload JSON | [x] |
+| 5 | `SyncManager.php` L225 | `showSyncNotice()` usa `echo` sin escaping | [x] |
+
+### 6.3 Rendimiento Crítico
+
+| # | Archivo | Problema | Impacto | Estado |
+|---|---------|----------|---------|--------|
+| 1 | `ReactContentProvider.php` L131-175 | **N+1 queries**: `formatPost()` hace 6+ queries por post | Alto | [x] |
+| 2 | `ReactContentProvider.php` L105 | `getAllContent()` ejecuta N WP_Queries secuenciales | Medio | [~] Pausado |
+| 3 | `AssetResolver.php` L95-128 | `glob()` x6 por llamada sin cache en memoria | Bajo | [x] |
+| 4 | `CachePurger.php` L25-33 | 4 queries `DELETE ... LIKE` (full table scan) | Bajo | [~] Pausado |
+
+### 6.4 SOLID — Splits pendientes (archivos >300 líneas)
+
+| Archivo | Líneas | Extracción | Estado |
+|---------|--------|------------|--------|
+| `ReactIslands.php` | ~384→~300 | Extraído `ReactAssetLoader.php` | [x] |
+| `PerformanceProfiler.php` | ~341→~295 | Extraído `HttpProfiler.php` | [x] |
+| `AssetManager.php` | ~335→~310 | Extraído `esFeatureActiva()` DRY (6.1.8) | [x] |
+| `FeaturedImageRepair.php` | ~322 | Dividir `repairFeaturedImage()` en sub-métodos privados | [~] Pausado |
+| `GloryLogger.php` | ~312→~270 | Extraído `LogFormatter.php` — delega `crearEntradaLog()` | [x] |
+| `ImagesController.php` | ~371 | Extraer validaciones repetidas a trait o helper privado | [~] Pausado |
+
+### 6.5 Agnosticismo del Framework
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| 1 | `MenuDefinition.php` L89-97 | Lógica hardcoded `'Marcas'`/`'Productos'` — específica de proyecto | [~] Pausado |
+| 2 | `MenuDefinition.php` L26-32 | `obtenerSeedPorDefecto()` con items `'example'` hardcoded | [~] Pausado |
+
+### 6.6 Framework Madurez — Contracts e Infraestructura
+
+| # | Mejora | Estado |
+|---|--------|--------|
+| 1 | Crear `Glory/src/Contracts/` con interfaces: `PostServiceInterface`, `EventBusInterface`, `ContentProviderInterface` | [~] Pausado |
+| 2 | Health check endpoint: `GET /glory/v1/health` con versión, features activas, estado cache | [~] Pausado |
+| 3 | `ErrorResponse` trait para unificar respuestas de error REST | [~] Pausado |
+| 4 | Validación de config en `GloryConfig::load()` — schema con keys requeridas/opcionales | [~] Pausado |
+
+### 6.7 Documentación
+
+| # | Área | Problema | Estado |
+|---|------|----------|--------|
+| 1 | `Glory/readme.md` | No documenta servicios PHP (EventBus, PostActionManager, ReactContentProvider) | [~] Pausado |
+| 2 | `Glory/docs/php/arquitectura-php.md` | Falta `CachePurger`, `GloryConfig` en tablas | [~] Pausado |
+| 3 | `Glory/docs/php/rest-api.md` | No documenta permisos ni rate limiting por endpoint | [~] Pausado |
+| 4 | `Glory/todo.md` | Vacío — a eliminar | [x] Eliminado |
+| 5 | `glory-plan.md` sección 5.6 | Checkboxes pendientes aunque Fase 10 dice "Completada" — corregir | [x] Corregidos en sesión anterior |
+
+### 6.8 Orden de ejecución
+
+1. Quick wins y limpieza (6.1) — máximo impacto/mínimo riesgo
+2. Seguridad residual (6.2)
+3. Rendimiento crítico (6.3) — N+1 en ReactContentProvider
+4. SOLID splits (6.4)
+5. Agnosticismo (6.5)
+6. Contracts + Health endpoint (6.6)
+7. Documentación (6.7)
+
+---
+
 ## ESTADO DEL PLAN
 
 | Fase | Estado | Notas |
@@ -436,4 +522,5 @@ Las referencias a `App/` en `vite.config.ts`, `tsconfig.json`, `eslint.config.js
 | Fase 8: Documentacion | Completada | README reescrito, guias, API reference, consolidacion |
 | Fase 9: Revision Tecnica | Completada | lint, type-check, build en verde |
 | Fase 10: Hardening | Completada | Seguridad, desacoplamiento, rendimiento, SOLID, dead code. SOLID splits menores diferidos. |
+| Fase 11: Pulido Framework | Pausada (parcial) | SOLID splits, N+1 fixes, seguridad — completados parcialmente. Items restantes pausados para evaluar migración a TypeScript. |
 
