@@ -625,6 +625,37 @@ PHP solo hace:
 
 ---
 
+## 9. Revision Tecnica Extensiva (13-02-2026)
+
+### 9.1 Estado Detectado (pre-fix)
+
+- [x] `npm run lint` falla (24 problemas: 18 errores, 6 warnings)
+  - `core/DevOverlay.tsx`: acceso/mutacion de `ref.current` en render
+  - `pageBuilder/components/PageBuilder.tsx`: hooks ejecutados condicionalmente
+  - `pageBuilder/BlockEditorModal.tsx`: `setState` sincronico en `useEffect`
+  - `types/wordpress.ts`: interfaz vacia (`no-empty-object-type`)
+- [x] `npm run type-check` falla
+  - `tsconfig.json`: `ignoreDeprecations: "6.0"` invalido para TS actual
+- [x] `npm run build` compila bundle, pero falla en prerender
+  - `scripts/prerender.ts`: error intermitente `Request is outdated` al prerenderizar `BienvenidaIsland`
+
+### 9.2 Objetivo de Correccion Inmediata
+
+- [x] Corregir configuracion TS para pasar `type-check`
+- [x] Corregir errores ESLint de hooks/refs y tipado
+- [x] Estabilizar flujo de prerender para que `build` finalice correctamente
+- [x] Re-ejecutar `lint`, `type-check`, `build` hasta estado verde
+
+### 9.3 Cierre de la Revision (post-fix)
+
+- [x] `npm run type-check` en verde
+- [x] `npm run lint` en verde (sin warnings bloqueantes)
+- [x] `npm run prerender --prefix Glory/assets/react` finaliza sin cuelgue
+- [x] `npm run build` completo finaliza correctamente (vite build + prerender)
+- [x] Se elimino el bloqueo por event-loop abierto de `vite-node` forzando salida explicita del script de prerender
+
+---
+
 ## ESTADO DEL PLAN
 
 | Fase | Estado | Notas |

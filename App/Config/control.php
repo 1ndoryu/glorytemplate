@@ -47,15 +47,3 @@ GloryFeatures::disable('queryProfiler');
 GloryFeatures::disable('tailwind');
 GloryFeatures::disable('shadcnUI');
 
-/* 
- * Handlers AJAX del proyecto (App) 
- */
-if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
-    \App\Handlers\ContentAjaxHandler::register();
-} else {
-    add_action('init', function () {
-        if (class_exists(\App\Handlers\ContentAjaxHandler::class)) {
-            \App\Handlers\ContentAjaxHandler::register();
-        }
-    });
-}
