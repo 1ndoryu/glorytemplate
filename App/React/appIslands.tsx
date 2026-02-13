@@ -25,7 +25,7 @@ export const AppProvider: React.ComponentType<{children: React.ReactNode}> | und
  * La clave es el nombre usado en PHP (PageManager::reactPage)
  */
 export const appIslands: Record<string, React.ComponentType<Record<string, unknown>>> = {
-    BienvenidaIsland: BienvenidaIsland as React.ComponentType<Record<string, unknown>>
+    BienvenidaIsland: BienvenidaIsland as React.ComponentType<Record<string, unknown>>,
 };
 
 export default appIslands;

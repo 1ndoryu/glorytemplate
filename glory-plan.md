@@ -344,18 +344,18 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 ### FASE 6: CLI de Scaffolding (Sprint 4)
 > Objetivo: `glory create island MiIsla` genera todo automáticamente
 
-- [ ] **6.1** Script CLI en Node.js: `npx glory create`
+- [x] **6.1** Script CLI en Node.js: `npx glory create`
   - `glory create island <Nombre>` — .tsx + .css + registro en appIslands.tsx
   - `glory create page <nombre>` — isla + registro en pages.php
   - `glory create component <Nombre>` — componente en App/React/components/
   - `glory create hook <nombre>` — hook en App/React/hooks/
-- [ ] **6.2** Templates de scaffolding con tipos:
+- [x] **6.2** Templates de scaffolding con tipos:
   - Isla: interface de props + componente + CSS + export
   - Página: isla + registro PHP con SEO defaults
   - Componente: interface de props + componente atómico
   - Hook: función con tipos de retorno
-- [ ] **6.3** Commit: `feat: CLI scaffolding — glory create island/page/component/hook`
-- [ ] **6.4** Documentación viva (fase 6):
+- [x] **6.3** Commit: `feat: CLI scaffolding — glory create island/page/component/hook`
+- [x] **6.4** Documentación viva (fase 6):
   - Manual del CLI con ejemplos reales
   - Tabla de comandos y parámetros
 
@@ -634,7 +634,7 @@ PHP solo hace:
 | Fase 3: Tipos WP->TS | Completada | Tipos base, hooks tipados (3.5 diferido) |
 | Fase 4: Dividir PHP | Completada | 7 archivos divididos, 22 archivos resultantes, todos <300 lineas |
 | Fase 5: Arquitectura React | Completada | core/, hooks, GloryProvider, lazy loading, error boundaries |
-| Fase 6: CLI Scaffolding | Pendiente | DX avanzado |
+| Fase 6: CLI Scaffolding | Completada | npx glory create island/page/component/hook |
 | Fase 7: Instalador | Pendiente | Comando `glory new` (Windows/Linux) |
 | Fase 8: Documentacion | Pendiente | README + guias + consolidacion incremental |
 
