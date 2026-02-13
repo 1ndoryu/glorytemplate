@@ -60,7 +60,7 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 - [ ] MenuManager.php: 796 líneas
 - [ ] AssetsUtility.php: 674 líneas
 - [x] GestorCssCritico.php: 639 líneas (eliminado)
-- [ ] SeoFrontendRenderer.php: 599 líneas
+- [x] SeoFrontendRenderer.php: 599 líneas (dividido en MetaTagRenderer, OpenGraphRenderer, JsonLdRenderer + fachada)
 - [ ] MediaIntegrityService.php: 531 líneas
 - [ ] ManejadorGit.php: 433 líneas
 - [ ] AssetManager.php: 430 líneas
@@ -276,10 +276,11 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
   - `AssetResolver.php` — resolución flexible de paths
   - `AssetImporter.php` — importación a Media Library
   - `AssetLister.php` — listado y selección de assets
-- [ ] **4.4** Dividir `SeoFrontendRenderer.php` (599 líneas):
-  - `MetaTagRenderer.php` — title, description, canonical
-  - `OpenGraphRenderer.php` — OG + Twitter Cards
-  - `JsonLdRenderer.php` — JSON-LD schemas (FAQ, Breadcrumb, Organization, Article)
+- [x] **4.4** Dividir `SeoFrontendRenderer.php` (599 líneas):
+  - `MetaTagRenderer.php` — title, description, canonical, helpers compartidos (~175 líneas)
+  - `OpenGraphRenderer.php` — OG + Twitter Cards (~95 líneas)
+  - `JsonLdRenderer.php` — JSON-LD schemas FAQ, Breadcrumb, Organization, Article (~250 líneas)
+  - `SeoFrontendRenderer.php` — fachada delegadora (~55 líneas)
 - [ ] **4.5** Dividir `MediaIntegrityService.php` (531 líneas):
   - `FeaturedImageRepair.php`
   - `GalleryRepair.php`
