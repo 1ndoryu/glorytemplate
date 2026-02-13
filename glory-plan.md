@@ -56,14 +56,14 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 - [x] **CSS legacy App/Assets/css/:** task.css (935), header.css (416), home.css (242) — 1593 líneas inútiles
 
 #### Archivos Gigantes (violan SRP, >300 líneas)
-- [ ] PageManager.php: 802 líneas
-- [ ] MenuManager.php: 796 líneas
-- [ ] AssetsUtility.php: 674 líneas
+- [x] PageManager.php: 802 lineas
+- [x] MenuManager.php: 796 lineas
+- [x] AssetsUtility.php: 674 lineas
 - [x] GestorCssCritico.php: 639 líneas (eliminado)
 - [x] SeoFrontendRenderer.php: 599 líneas (dividido en MetaTagRenderer, OpenGraphRenderer, JsonLdRenderer + fachada)
-- [ ] MediaIntegrityService.php: 531 líneas
-- [ ] ManejadorGit.php: 433 líneas
-- [ ] AssetManager.php: 430 líneas
+- [x] MediaIntegrityService.php: 531 lineas
+- [x] ManejadorGit.php: 433 lineas
+- [x] AssetManager.php: 430 lineas
 
 #### TypeScript/DX
 - [ ] **Sin ESLint:** No hay config de calidad
@@ -263,41 +263,43 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 ### FASE 4: Refactorización PHP — Archivos Grandes (Sprint 2-3)
 > Objetivo: Todos los archivos PHP bajo 300 líneas, SRP estricto
 
-- [ ] **4.1** Dividir `PageManager.php` (802 líneas):
-  - `PageDefinition.php` — define(), reactPage(), registerReactFullPages()
-  - `PageTemplateInterceptor.php` — intercepción de templates WP
-  - `PageSeoDefaults.php` — SEO defaults por página
-  - Eliminar todo código de modo `code` (renderizado PHP de páginas)
-- [ ] **4.2** Dividir `MenuManager.php` (796 líneas):
-  - `MenuDefinition.php` — definición de menús por código
-  - `MenuSync.php` — sincronización con DB
-  - `MenuNormalizer.php` — normalización de placeholders y URLs
-- [ ] **4.3** Dividir `AssetsUtility.php` (674 líneas):
-  - `AssetResolver.php` — resolución flexible de paths
-  - `AssetImporter.php` — importación a Media Library
-  - `AssetLister.php` — listado y selección de assets
+- [x] **4.1** Dividir `PageManager.php` (802 → 95 líneas, fachada):
+  - `PageDefinition.php` (246 l) — define(), reactPage(), registerReactFullPages()
+  - `PageTemplateInterceptor.php` (80 l) — intercepción de templates WP
+  - `PageSeoDefaults.php` (60 l) — SEO defaults por página
+  - `PageProcessor.php` (215 l) — CRUD, creación/actualización de páginas
+  - `PageReconciler.php` (115 l) — reconciliación de páginas obsoletas
+- [x] **4.2** Dividir `MenuManager.php` (796 → 145 líneas, fachada):
+  - `MenuDefinition.php` (161 l) — definición de menús por código
+  - `MenuSync.php` (268 l) — sincronización con DB
+  - `MenuNormalizer.php` (199 l) — normalización de placeholders y URLs
+- [x] **4.3** Dividir `AssetsUtility.php` (674 → 85 líneas, fachada):
+  - `AssetResolver.php` (169 l) — resolución flexible de paths
+  - `AssetImporter.php` (289 l) — importación a Media Library
+  - `AssetLister.php` (205 l) — listado y selección de assets
 - [x] **4.4** Dividir `SeoFrontendRenderer.php` (599 líneas):
   - `MetaTagRenderer.php` — title, description, canonical, helpers compartidos (~175 líneas)
   - `OpenGraphRenderer.php` — OG + Twitter Cards (~95 líneas)
   - `JsonLdRenderer.php` — JSON-LD schemas FAQ, Breadcrumb, Organization, Article (~250 líneas)
   - `SeoFrontendRenderer.php` — fachada delegadora (~55 líneas)
-- [ ] **4.5** Dividir `MediaIntegrityService.php` (531 líneas):
-  - `FeaturedImageRepair.php`
-  - `GalleryRepair.php`
-  - `ContentSanitizer.php`
-- [ ] **4.6** Dividir `AssetManager.php` (430 líneas):
-  - Extraer `FolderScanner.php` como helper
-  - Eliminar integración con GestorCssCritico (ya eliminado)
-- [ ] **4.7** Mover `ManejadorGit.php` (433 líneas) a `Glory/src/Tools/`
-- [ ] **4.8** Commit: `refactor: dividir archivos PHP — SRP estricto, max 300 líneas`
-- [ ] **4.9** Documentación viva (fase 4):
+- [x] **4.5** Dividir `MediaIntegrityService.php` (531 → 33 líneas, orquestador):
+  - `FeaturedImageRepair.php` (287 l)
+  - `GalleryRepair.php` (131 l)
+  - `ContentSanitizer.php` (99 l)
+- [x] **4.6** Dividir `AssetManager.php` (389 → 279 líneas):
+  - Extraer `FolderScanner.php` (63 l) como helper
+  - Integración con GestorCssCritico ya eliminada en Phase 1
+- [x] **4.7** Mover `ManejadorGit.php` (432 → 249 líneas) a `Glory/src/Tools/`
+  - Extraer `GitCommandRunner.php` (76 l) para ejecución de comandos CLI
+- [x] **4.8** Commit: `refactor: dividir archivos PHP — SRP estricto, max 300 líneas`
+- [x] **4.9** Documentación viva (fase 4):
   - Mapa de clases nuevas por responsabilidad
   - Tabla "antes/después" para facilitar mantenimiento
 
 ### FASE 5: Arquitectura React Definitiva (Sprint 3)
 > Objetivo: Hooks, providers, lazy loading, error boundaries — framework React de verdad
 
-- [ ] **5.1** Estructura de directorios React:
+- [x] **5.1** Estructura de directorios React:
   ```
   Glory/assets/react/src/
   ├── core/                    # Engine del framework
@@ -319,22 +321,22 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
   ├── pageBuilder/             # Page Builder system
   └── styles/                  # Estilos base
   ```
-- [ ] **5.2** Crear hooks core del framework:
+- [x] **5.2** Crear hooks core del framework:
   - `useGloryContent<T>()` — genéricos, validación runtime
   - `useGloryOptions()` — opciones del tema reactivas
   - `useWordPressApi<T>()` — fetch con auth, tipos, cache
   - `useGloryMedia(alias)` — imágenes vía /glory/v1/images
   - `useIslandProps<T>()` — props tipados de la isla actual
-- [ ] **5.3** GloryProvider:
+- [x] **5.3** GloryProvider:
   - Context con datos globales inyectados desde PHP
   - Wrapper automático de cada isla en main.tsx
   - DevTools: overlay de debug (nombre isla, props, renders)
-- [ ] **5.4** Mejorar sistema de islas:
+- [x] **5.4** Mejorar sistema de islas:
   - Lazy loading: `React.lazy()` + `Suspense` por isla
   - Error boundaries individuales con UI de fallback
   - Registro tipado: error de compilación si props no coinciden
-- [ ] **5.5** Commit: `feat: arquitectura React — hooks, providers, lazy loading, error boundaries`
-- [ ] **5.6** Documentación viva (fase 5):
+- [x] **5.5** Commit: `feat: arquitectura React — hooks, providers, lazy loading, error boundaries`
+- [x] **5.6** Documentación viva (fase 5):
   - Guía de arquitectura de islas
   - Guía de providers y hooks core
   - Ejemplos de error boundaries y lazy loading
@@ -627,12 +629,12 @@ PHP solo hace:
 
 | Fase | Estado | Notas |
 |------|--------|-------|
-| Fase 1: Purga Total | Pendiente | Prioridad 1 — eliminar todo el legacy |
-| Fase 2: Tooling TS | Pendiente | ESLint + Prettier + Tailwind/shadcn opt-in |
-| Fase 3: Tipos WP→TS | Pendiente | Core de la propuesta de valor |
-| Fase 4: Dividir PHP | Pendiente | SRP para el bridge |
-| Fase 5: Arquitectura React | Pendiente | Hooks, providers, lazy loading |
+| Fase 1: Purga Total | Completada | Eliminado modo hibrido, PHP frontend, codigo muerto |
+| Fase 2: Tooling TS | Completada | ESLint + Prettier + Tailwind/shadcn opt-in |
+| Fase 3: Tipos WP->TS | Completada | Tipos base, hooks tipados (3.5 diferido) |
+| Fase 4: Dividir PHP | Completada | 7 archivos divididos, 22 archivos resultantes, todos <300 lineas |
+| Fase 5: Arquitectura React | Completada | core/, hooks, GloryProvider, lazy loading, error boundaries |
 | Fase 6: CLI Scaffolding | Pendiente | DX avanzado |
 | Fase 7: Instalador | Pendiente | Comando `glory new` (Windows/Linux) |
-| Fase 8: Documentación | Pendiente | README + guías + consolidación incremental |
+| Fase 8: Documentacion | Pendiente | README + guias + consolidacion incremental |
 
