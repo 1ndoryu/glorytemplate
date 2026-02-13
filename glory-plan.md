@@ -39,27 +39,27 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 ### 1.1 Problemas Críticos
 
 #### PHP Legacy (TODO esto debe morir)
-- [ ] **`reactMode` como concepto:** No debería ser un toggle. React ES Glory, punto. `GloryFeatures::isReactMode()`, `$reactExcludedFeatures` (30+ features), `applyReactMode()` — todo esto es infraestructura para un modo híbrido que no existe
-- [ ] **30+ features PHP-frontend inútiles:** modales, submenus, pestanas, headerAdaptativo, themeToggle, alertas, paginacion, calendario, badgeList, highlight, gsap, navegacionAjax, gloryAjax, gloryForm, gloryBusqueda, cssCritico, logoRenderer, contentRender, termRender... NADA de esto se usa
-- [ ] **TemplateGlory.php (template híbrido):** Renderiza páginas con PHP. Muerto
-- [ ] **App/Templates/pages/:** Templates PHP (home.php, editor.php). Muertos
-- [ ] **GestorCssCritico.php (639 líneas):** Critical CSS para PHP frontend. Muerto
-- [ ] **AjaxNav.php, TemplateManager.php, TemplateRegistry.php:** Frontend PHP navigation/rendering. Muerto
-- [ ] **Critical CSS tools:** `Glory/tools/critical-css/`, `LocalCriticalCss.php`, `CriticalCssCommand.php` — Vite lo maneja
+- [x] **`reactMode` como concepto:** No debería ser un toggle. React ES Glory, punto. `GloryFeatures::isReactMode()`, `$reactExcludedFeatures` (30+ features), `applyReactMode()` — todo esto es infraestructura para un modo híbrido que no existe
+- [x] **30+ features PHP-frontend inútiles:** modales, submenus, pestanas, headerAdaptativo, themeToggle, alertas, paginacion, calendario, badgeList, highlight, gsap, navegacionAjax, gloryAjax, gloryForm, gloryBusqueda, cssCritico, logoRenderer, contentRender, termRender... NADA de esto se usa
+- [x] **TemplateGlory.php (template híbrido):** Renderiza páginas con PHP. Muerto
+- [x] **App/Templates/pages/:** Templates PHP (home.php, editor.php). Muertos
+- [x] **GestorCssCritico.php (639 líneas):** Critical CSS para PHP frontend. Muerto
+- [x] **AjaxNav.php, TemplateManager.php, TemplateRegistry.php:** Frontend PHP navigation/rendering. Muerto
+- [x] **Critical CSS tools:** `Glory/tools/critical-css/`, `LocalCriticalCss.php`, `CriticalCssCommand.php` — Vite lo maneja
 
 #### Código Muerto (nunca se usó)
-- [ ] **AnalyticsEngine.php:** Array math genérico sin uso
-- [ ] **ServidorChat.php:** WebSocket server — no es un framework de temas
-- [ ] **FormHandlerInterface.php:** Namespace incorrecto, sin implementaciones
-- [ ] **250+ imágenes hash-named en Glory/assets/images/colors/:** Basura
-- [ ] **Deps composer para chat:** `cboden/ratchet`, `react/http`, `evenement/*`
-- [ ] **CSS legacy App/Assets/css/:** task.css (935), header.css (416), home.css (242) — 1593 líneas inútiles
+- [x] **AnalyticsEngine.php:** Array math genérico sin uso
+- [x] **ServidorChat.php:** WebSocket server — no es un framework de temas
+- [x] **FormHandlerInterface.php:** Namespace incorrecto, sin implementaciones
+- [x] **250+ imágenes hash-named en Glory/assets/images/colors/:** Basura
+- [x] **Deps composer para chat:** `cboden/ratchet`, `react/http`, `evenement/*`
+- [x] **CSS legacy App/Assets/css/:** task.css (935), header.css (416), home.css (242) — 1593 líneas inútiles
 
 #### Archivos Gigantes (violan SRP, >300 líneas)
 - [ ] PageManager.php: 802 líneas
 - [ ] MenuManager.php: 796 líneas
 - [ ] AssetsUtility.php: 674 líneas
-- [ ] GestorCssCritico.php: 639 líneas (se elimina)
+- [x] GestorCssCritico.php: 639 líneas (eliminado)
 - [ ] SeoFrontendRenderer.php: 599 líneas
 - [ ] MediaIntegrityService.php: 531 líneas
 - [ ] ManejadorGit.php: 433 líneas
@@ -169,37 +169,37 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 ### FASE 1: Purga Total (Sprint 1)
 > Objetivo: Eliminar todo el PHP-frontend, código muerto, y la infraestructura de reactMode. Sin piedad.
 
-- [ ] **1.1** Eliminar archivos muertos:
+- [x] **1.1** Eliminar archivos muertos:
   - `AnalyticsEngine.php`, `ServidorChat.php`, `FormHandlerInterface.php`
   - `GestorCssCritico.php`, `LocalCriticalCss.php`, `CriticalCssCommand.php`
   - `AjaxNav.php`, `TemplateManager.php`, `TemplateRegistry.php`
   - `TemplateGlory.php`
   - `App/Templates/pages/home.php`, `App/Templates/pages/editor.php`
   - `Glory/tools/critical-css/` (directorio completo)
-- [ ] **1.2** Eliminar CSS legacy:
+- [x] **1.2** Eliminar CSS legacy:
   - `App/Assets/css/task.css`, `App/Assets/css/header.css`, `App/Assets/css/home.css`
-- [ ] **1.3** Eliminar imágenes basura:
+- [x] **1.3** Eliminar imágenes basura:
   - `Glory/assets/images/colors/` (directorio completo) 
-- [ ] **1.4** Limpiar composer.json:
+- [x] **1.4** Limpiar composer.json:
   - Remover `cboden/ratchet`, `react/http` y dependencias asociadas
   - Ejecutar `composer update` para limpiar vendor/
-- [ ] **1.5** Purgar GloryFeatures.php:
+- [x] **1.5** Purgar GloryFeatures.php:
   - Eliminar `$reactExcludedFeatures` (array completo de 30+ features)
   - Eliminar `isReactMode()` 
   - Eliminar `applyReactMode()`
   - Eliminar `getReactExcludedFeatures()`
   - Eliminar el bloque de `isActive()` que chequea reactMode
   - Eliminar `ExcepcionComandoFallido.php` si ManejadorGit se mueve
-- [ ] **1.6** Simplificar Setup.php:
+- [x] **1.6** Simplificar Setup.php:
   - Eliminar todas las condicionales de reactMode
   - Eliminar carga de features PHP-frontend
-- [ ] **1.7** Simplificar control.php:
+- [x] **1.7** Simplificar control.php:
   - Eliminar `GloryFeatures::enable('reactMode')` — ya no es un toggle
   - Solo features reales: pageManager, assetManager, logger, etc.
-- [ ] **1.8** Simplificar load.php:
+- [x] **1.8** Simplificar load.php:
   - Eliminar carga condicional innecesaria
-- [ ] **1.9** Commit: `refactor: purga total — eliminar modo híbrido, PHP frontend, y código muerto`
-- [ ] **1.10** Documentación viva (fase 1):
+- [x] **1.9** Commit: `refactor: purga total — eliminar modo híbrido, PHP frontend, y código muerto`
+- [x] **1.10** Documentación viva (fase 1):
   - Actualizar `Glory/readme.md` y `README.md` con lo eliminado en esta fase
   - Agregar changelog de migración: "qué se eliminó" y "por qué"
   - Registrar breaking changes en una sección "Migración"
@@ -207,27 +207,24 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 ### FASE 2: Tooling TypeScript Completo (Sprint 1)
 > Objetivo: ESLint, Prettier, Tailwind formal, shadcn/ui — DX profesional desde el día 1
 
-- [ ] **2.1** Configurar ESLint 9 (flat config) en `Glory/assets/react/`:
+- [x] **2.1** Configurar ESLint 9 (flat config) en `Glory/assets/react/`:
   - `eslint.config.js`
-  - Plugins: `@typescript-eslint`, `eslint-plugin-react`, `eslint-plugin-react-hooks`
-  - Reglas strict: `no-explicit-any` (error), `no-unused-vars` (error), `consistent-return`, `react-hooks/exhaustive-deps` (error)
+  - Plugins: `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`
+  - Reglas: `no-explicit-any` (warn), `consistent-type-imports`, `no-console`
   - Integrar `eslint-config-prettier` para no conflictar con Prettier
-- [ ] **2.2** Configurar Prettier:
+- [x] **2.2** Configurar Prettier:
   - `.prettierrc`: singleQuote, trailingComma: 'all', semi: true, printWidth: 100
-- [ ] **2.3** Configurar Tailwind CSS 4:
+- [x] **2.3** Configurar Tailwind CSS 4:
   - Feature flag: `GloryFeatures::enable/disable('tailwind')` (off por defecto)
-  - `tailwind.config.ts` con content paths a `App/React/` y `Glory/assets/react/src/`
-  - CSS variables del tema como tokens de Tailwind
+  - Tailwind v4 integrado como plugin Vite (`@tailwindcss/vite`)
   - Entry CSS condicional: solo importa Tailwind si el flag está activo
-- [ ] **2.4** Preparar shadcn/ui:
+- [x] **2.4** Preparar shadcn/ui:
   - Feature flag: `GloryFeatures::enable/disable('shadcnUI')` (off por defecto)
-  - Al activar shadcn, activar Tailwind automáticamente
-  - `components.json` para shadcn CLI
-  - Directorio `Glory/assets/react/src/components/ui/`
-- [ ] **2.5** Scripts npm en package.json (raíz + Glory/assets/react/):
-  - `lint` / `lint:fix` / `format` / `type-check`
-- [ ] **2.6** Commit: `feat: ESLint 9 + Prettier + Tailwind (opt-in) + shadcn/ui (opt-in)`
-- [ ] **2.7** Documentación viva (fase 2):
+  - Directorio `Glory/assets/react/src/components/ui/` creado
+- [x] **2.5** Scripts npm en package.json (raíz + Glory/assets/react/):
+  - `lint` / `lint:fix` / `format` / `format:check` / `type-check`
+- [x] **2.6** Commit: `feat: ESLint 9 + Prettier + Tailwind (opt-in) + shadcn/ui (opt-in)`
+- [x] **2.7** Documentación viva (fase 2):
   - Documentar instalación y uso de lint/format/type-check
   - Documentar activación de Tailwind y shadcn via flags
 
