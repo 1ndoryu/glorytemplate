@@ -47,3 +47,12 @@ GloryFeatures::disable('queryProfiler');
 GloryFeatures::disable('tailwind');
 GloryFeatures::disable('shadcnUI');
 
+/*
+ * Asset paths del proyecto — registra alias para AssetResolver.
+ * Esto evita que Glory hardcodee rutas de App/.
+ */
+add_action('glory/register_asset_paths', function () {
+    \Glory\Utility\AssetResolver::registerAssetPath('equipo', 'App/Assets/equipo');
+    \Glory\Utility\AssetResolver::registerAssetPath('tema', 'App/Assets/images');
+});
+
