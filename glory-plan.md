@@ -523,4 +523,57 @@ Las referencias a `App/` en `vite.config.ts`, `tsconfig.json`, `eslint.config.js
 | Fase 9: Revision Tecnica | Completada | lint, type-check, build en verde |
 | Fase 10: Hardening | Completada | Seguridad, desacoplamiento, rendimiento, SOLID, dead code. SOLID splits menores diferidos. |
 | Fase 11: Pulido Framework | Pausada (parcial) | SOLID splits, N+1 fixes, seguridad — completados parcialmente. Items restantes pausados para evaluar migración a TypeScript. |
+| Fase 12: Auditoría Integral | Completada | Auditoría PHP + React/TS. 38 hallazgos React + ~39 PHP. Fixes críticos aplicados. |
+
+---
+
+## 7. Auditoría Integral — Fase 12 (13-02-2026)
+
+> Auditoría profunda de seguridad, rendimiento, SOLID, tipado, accesibilidad y agnosticismo del codebase completo.
+
+### 7.1 P0 Críticos — CORREGIDOS
+
+| # | Archivo | Problema | Fix |
+|---|---------|----------|-----|
+| 1 | `useWordPressApi.ts` | `options` en dependency array de `useCallback` causa bucle infinito de re-fetches (potencial DDoS) | [x] Serializar options via JSON.stringify para estabilizar deps. Documentar que consumidor debe memoizar. |
+| 2 | `installer.mjs` L73 | Command injection: `execSync` con interpolación de `nombre` sin validar | [x] Validar con `validateName()` antes de usar. Cambiar a `execFileSync` que evita shell. |
+| 3 | `useWordPressApi.ts` | `apiCache` sin límite de entries — posible memory leak | [x] LRU con MAX_CACHE_ENTRIES=100. Limpieza automática de entries expiradas. |
+
+### 7.2 P1 Altos — CORREGIDOS
+
+| # | Archivo | Problema | Fix |
+|---|---------|----------|-----|
+| 1 | `BlockRegistry.ts` L42 | `registerAll` usaba `BlockDefinition<any>[]` — pierde tipado | [x] Cambiado a `BlockDefinition<Record<string, unknown>>[]` |
+| 2 | `PageBuilder.tsx` | `alert()` y `confirm()` bloquean hilo principal, no testeables | [x] Eliminados. Solo se usan callbacks `onSaveSuccess`/`onSaveError`. |
+| 3 | `PageBuilder.tsx` | `console.warn` en producción (guardado exitoso) | [x] Envuelto en `import.meta.env.DEV` |
+| 4 | `BlockEditorModal.tsx` | Modal sin `role="dialog"` ni `aria-modal="true"` | [x] Agregados atributos ARIA completos |
+| 5 | `ExampleIsland.tsx` | Botones +/- sin `aria-label` | [x] Agregados `aria-label="Incrementar/Decrementar contador"` |
+| 6 | `BlockRenderer.tsx` | Botones ↑/↓/eliminar sin `aria-label`, emoji en código | [x] Agregados aria-labels. Reemplazado emoji por "X". |
+| 7 | `main.tsx` | `ExampleIsland` se importa y registra en producción — aumenta bundle | [x] Envuelto en `import.meta.env.DEV` con import dinámico |
+| 8 | `PageBlocksController.php` | `canReadBlocks()` retornaba `true` para pageId=0 | [x] Validar pageId > 0, verificar post existe |
+| 9 | `PageBlocksController.php` | `current_time('mysql')` deprecado | [x] Cambiado a `gmdate('Y-m-d H:i:s')` |
+| 10 | `ReactContentProvider.php` | `posts_per_page => -1` sin cota | [x] Limitado a count(slugs) o 100 máximo |
+
+### 7.3 P2 Medios — CORREGIDOS
+
+| # | Archivo | Problema | Fix |
+|---|---------|----------|-----|
+| 1 | `glory.ts` | `GloryContext` propiedades opcionales innecesariamente | [x] Propiedades core obligatorias. `Partial<GloryContext>` solo en `window.GLORY_CONTEXT`. Eliminado index signature `[key: string]: unknown` → `extra?` |
+| 2 | `PageLayout.tsx` | `key={i}` en listas de links/socialLinks | [x] Cambiado a `key={link.href \|\| i}` |
+| 3 | `BienvenidaIsland.tsx` | Import innecesario de `React` + tipo `React.JSX.Element` | [x] Eliminado import, cambiado a `JSX.Element` |
+| 4 | `App/React/blocks/index.ts` | `console.log` en producción sin bloquear | [x] Eliminado — función vacía con comentario |
+| 5 | `pageBuilder/types.ts` | `PageBuilderContextType` exportado pero nunca usado | [x] Documentado con TO-DO para future context pattern |
+| 6 | `useWordPressApi.ts` | `getNonce()`/`getRestUrl()` leían `window` en cada llamada | [x] Singleton cacheado con `resetApiCredentials()` para invalidar |
+
+### 7.4 Pendientes de Fase 12 (diferidos)
+
+| Item | Razón de diferir |
+|------|------------------|
+| Inline styles masivos en PageBuilder/BlockRenderer/BlockEditorModal | Requiere creación de archivos CSS dedicados — iteración de estilos |
+| `FieldRenderer`/`ArrayFieldRenderer` sin `React.memo` | Optimización menor, solo relevante con muchos campos |
+| `renderBlock` es función, no componente (pierde memoización) | Requiere refactor mayor del BlockRenderer |
+| Migrar CLI `.mjs` a `.mts` con tipos | Cosmético, no afecta runtime |
+| `PageBuilderContextType` implementar context pattern | Feature futura, no hay caso de uso actual |
+| Duplicación `configurarFlags` entre setup.mjs e installer.mjs | Baja prioridad |
+| `editorjs.d.ts` tipos vagos `unknown` | Requiere investigar @types disponibles |
 

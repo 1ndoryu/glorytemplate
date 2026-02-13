@@ -3,5 +3,5 @@
  */
 
 export function registerAppBlocks(): void {
-    console.log('[App Blocks] No blocks registered.');
+    /* Sin bloques registrados por ahora */
 }
