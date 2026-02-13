@@ -45,7 +45,7 @@ export function FormularioContacto({
         privacidad: false,
     });
 
-    const { estado, enviar, reiniciar } = useGloryForm();
+    const { estado, enviar } = useGloryForm();
 
     const handleCambio = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;

@@ -4,7 +4,7 @@
  */
 
 import { BlockRegistry } from '@/pageBuilder';
-import type { BlockDefinition, BlockComponentProps } from '@/pageBuilder/types';
+import type { BlockDefinition } from '@/pageBuilder/types';
 import React from 'react';
 
 /* Importar componentes reutilizables para los bloques */
@@ -15,7 +15,7 @@ import { FormularioContacto } from '@app/components/forms/FormularioContacto';
 
 /* Bloque: Hero */
 interface HeroBlockProps { titulo: string; subtitulo: string; textoBoton: string; enlaceBoton: string; }
-function HeroBlockComponent({ data }: BlockComponentProps<HeroBlockProps>): React.JSX.Element {
+function HeroBlockComponent({ data }: { data: HeroBlockProps; blockId: string }): React.JSX.Element {
     return (
         <section className="paginaHero" style={{ minHeight: '60vh' }}>
             <div className="heroContenido">
@@ -33,13 +33,13 @@ function HeroBlockComponent({ data }: BlockComponentProps<HeroBlockProps>): Reac
 
 /* Bloque: Encabezado de Sección */
 interface EncabezadoBlockProps { titulo: string; subtitulo: string; etiqueta: string; }
-function EncabezadoBlockComponent({ data }: BlockComponentProps<EncabezadoBlockProps>): React.JSX.Element {
+function EncabezadoBlockComponent({ data }: { data: EncabezadoBlockProps }): React.JSX.Element {
     return <EncabezadoSeccion titulo={data.titulo} subtitulo={data.subtitulo} etiqueta={data.etiqueta} />;
 }
 
 /* Bloque: Texto */
 interface TextoBlockProps { contenido: string; }
-function TextoBlockComponent({ data }: BlockComponentProps<TextoBlockProps>): React.JSX.Element {
+function TextoBlockComponent({ data }: { data: TextoBlockProps }): React.JSX.Element {
     return (
         <div className="bloqueTexto" style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px' }}>
             <div
@@ -52,7 +52,7 @@ function TextoBlockComponent({ data }: BlockComponentProps<TextoBlockProps>): Re
 
 /* Bloque: Imagen */
 interface ImagenBlockProps { src: string; alt: string; ancho: string; }
-function ImagenBlockComponent({ data }: BlockComponentProps<ImagenBlockProps>): React.JSX.Element {
+function ImagenBlockComponent({ data }: { data: ImagenBlockProps }): React.JSX.Element {
     return (
         <div style={{ maxWidth: data.ancho || '100%', margin: '40px auto', textAlign: 'center' }}>
             <img src={data.src} alt={data.alt} style={{ width: '100%', borderRadius: '12px' }} loading="lazy" />
@@ -62,20 +62,20 @@ function ImagenBlockComponent({ data }: BlockComponentProps<ImagenBlockProps>): 
 
 /* Bloque: Marquee */
 interface MarqueeBlockProps { textos: string; variante: 'light' | 'dark'; }
-function MarqueeBlockComponent({ data }: BlockComponentProps<MarqueeBlockProps>): React.JSX.Element {
+function MarqueeBlockComponent({ data }: { data: MarqueeBlockProps }): React.JSX.Element {
     const items = data.textos.split('|').map(t => t.trim()).filter(Boolean);
     return <Marquee textos={items} variante={data.variante} />;
 }
 
 /* Bloque: Cita */
 interface CitaBlockProps { texto: string; autor: string; }
-function CitaBlockComponent({ data }: BlockComponentProps<CitaBlockProps>): React.JSX.Element {
+function CitaBlockComponent({ data }: { data: CitaBlockProps }): React.JSX.Element {
     return <BloqueCita texto={data.texto} autor={data.autor} />;
 }
 
 /* Bloque: CTA */
 interface CtaBlockProps { titulo: string; texto: string; textoBoton: string; enlaceBoton: string; }
-function CtaBlockComponent({ data }: BlockComponentProps<CtaBlockProps>): React.JSX.Element {
+function CtaBlockComponent({ data }: { data: CtaBlockProps }): React.JSX.Element {
     return (
         <section className="ctaCasos">
             <h2 className="tituloCta">{data.titulo}</h2>
@@ -87,7 +87,7 @@ function CtaBlockComponent({ data }: BlockComponentProps<CtaBlockProps>): React.
 
 /* Bloque: Formulario */
 interface FormBlockProps { formId: string; titulo: string; }
-function FormBlockComponent({ data }: BlockComponentProps<FormBlockProps>): React.JSX.Element {
+function FormBlockComponent({ data }: { data: FormBlockProps }): React.JSX.Element {
     return (
         <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px' }}>
             <FormularioContacto formId={data.formId} titulo={data.titulo} />
@@ -97,13 +97,13 @@ function FormBlockComponent({ data }: BlockComponentProps<FormBlockProps>): Reac
 
 /* Bloque: Espaciador */
 interface EspaciadorBlockProps { altura: string; }
-function EspaciadorBlockComponent({ data }: BlockComponentProps<EspaciadorBlockProps>): React.JSX.Element {
+function EspaciadorBlockComponent({ data }: { data: EspaciadorBlockProps }): React.JSX.Element {
     return <div style={{ height: data.altura || '60px' }} />;
 }
 
 /* Bloque: Columnas (2 cols texto) */
 interface ColumnasBlockProps { izquierda: string; derecha: string; }
-function ColumnasBlockComponent({ data }: BlockComponentProps<ColumnasBlockProps>): React.JSX.Element {
+function ColumnasBlockComponent({ data }: { data: ColumnasBlockProps }): React.JSX.Element {
     return (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', maxWidth: '1200px', margin: '40px auto', padding: '0 20px' }}>
             <div
@@ -118,13 +118,14 @@ function ColumnasBlockComponent({ data }: BlockComponentProps<ColumnasBlockProps
     );
 }
 
-/* Definiciones de bloques */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* Definiciones de bloques — se usa any en component para satisfacer el genérico BlockDefinition */
 const bloques: BlockDefinition[] = [
     {
         type: 'hero',
         label: 'Hero',
         icon: 'image',
-        component: HeroBlockComponent as React.ComponentType<BlockComponentProps>,
+        component: HeroBlockComponent as any,
         defaultProps: { titulo: 'Título Hero', subtitulo: '', textoBoton: '', enlaceBoton: '' },
         editableFields: [
             { key: 'titulo', label: 'Título', type: 'text' },
@@ -137,7 +138,7 @@ const bloques: BlockDefinition[] = [
         type: 'encabezado',
         label: 'Encabezado de Sección',
         icon: 'heading',
-        component: EncabezadoBlockComponent as React.ComponentType<BlockComponentProps>,
+        component: EncabezadoBlockComponent as any,
         defaultProps: { titulo: 'Título', subtitulo: '', etiqueta: '' },
         editableFields: [
             { key: 'titulo', label: 'Título', type: 'text' },
@@ -149,7 +150,7 @@ const bloques: BlockDefinition[] = [
         type: 'texto',
         label: 'Texto',
         icon: 'type',
-        component: TextoBlockComponent as React.ComponentType<BlockComponentProps>,
+        component: TextoBlockComponent as any,
         defaultProps: { contenido: '<p>Escribe aquí tu contenido...</p>' },
         editableFields: [
             { key: 'contenido', label: 'Contenido HTML', type: 'textarea' },
@@ -159,7 +160,7 @@ const bloques: BlockDefinition[] = [
         type: 'imagen',
         label: 'Imagen',
         icon: 'image',
-        component: ImagenBlockComponent as React.ComponentType<BlockComponentProps>,
+        component: ImagenBlockComponent as any,
         defaultProps: { src: '', alt: 'Imagen', ancho: '100%' },
         editableFields: [
             { key: 'src', label: 'URL de la imagen', type: 'url' },
@@ -171,7 +172,7 @@ const bloques: BlockDefinition[] = [
         type: 'marquee',
         label: 'Marquee',
         icon: 'move-horizontal',
-        component: MarqueeBlockComponent as React.ComponentType<BlockComponentProps>,
+        component: MarqueeBlockComponent as any,
         defaultProps: { textos: 'Texto 1|Texto 2|Texto 3', variante: 'dark' },
         editableFields: [
             { key: 'textos', label: 'Textos (separados por |)', type: 'text' },
@@ -185,7 +186,7 @@ const bloques: BlockDefinition[] = [
         type: 'cita',
         label: 'Cita',
         icon: 'quote',
-        component: CitaBlockComponent as React.ComponentType<BlockComponentProps>,
+        component: CitaBlockComponent as any,
         defaultProps: { texto: 'Texto de la cita...', autor: '— Autor' },
         editableFields: [
             { key: 'texto', label: 'Texto de la cita', type: 'textarea' },
@@ -196,7 +197,7 @@ const bloques: BlockDefinition[] = [
         type: 'cta',
         label: 'Call to Action',
         icon: 'megaphone',
-        component: CtaBlockComponent as React.ComponentType<BlockComponentProps>,
+        component: CtaBlockComponent as any,
         defaultProps: { titulo: '¿Listo para empezar?', texto: '', textoBoton: 'Contactar', enlaceBoton: '/contacto/' },
         editableFields: [
             { key: 'titulo', label: 'Título', type: 'text' },
@@ -209,7 +210,7 @@ const bloques: BlockDefinition[] = [
         type: 'formulario',
         label: 'Formulario de Contacto',
         icon: 'mail',
-        component: FormBlockComponent as React.ComponentType<BlockComponentProps>,
+        component: FormBlockComponent as any,
         defaultProps: { formId: 'constructor-form', titulo: 'Contacto' },
         editableFields: [
             { key: 'formId', label: 'ID del formulario', type: 'text' },
@@ -220,7 +221,7 @@ const bloques: BlockDefinition[] = [
         type: 'espaciador',
         label: 'Espaciador',
         icon: 'separator',
-        component: EspaciadorBlockComponent as React.ComponentType<BlockComponentProps>,
+        component: EspaciadorBlockComponent as any,
         defaultProps: { altura: '60px' },
         editableFields: [
             { key: 'altura', label: 'Altura (px)', type: 'text' },
@@ -230,7 +231,7 @@ const bloques: BlockDefinition[] = [
         type: 'columnas',
         label: 'Dos Columnas',
         icon: 'columns',
-        component: ColumnasBlockComponent as React.ComponentType<BlockComponentProps>,
+        component: ColumnasBlockComponent as any,
         defaultProps: { izquierda: '<p>Columna izquierda</p>', derecha: '<p>Columna derecha</p>' },
         editableFields: [
             { key: 'izquierda', label: 'Columna Izquierda (HTML)', type: 'textarea' },

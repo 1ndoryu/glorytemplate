@@ -16,6 +16,7 @@ import { useIslandProps } from '@/hooks';
 
 interface ServicioDetalleProps {
     planSlug?: string;
+    [key: string]: unknown;
 }
 
 export function ServicioDetalleIsland(rawProps: Record<string, unknown>): React.JSX.Element {

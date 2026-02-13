@@ -69,9 +69,9 @@ export function useGloryForm(): ResultadoGloryForm {
 
         try {
             /* Construir URL del endpoint REST de Glory */
-            const baseUrl = (window as Record<string, unknown>).__GLORY_CONTEXT__
-                ? ((window as Record<string, unknown>).__GLORY_CONTEXT__ as Record<string, string>).restUrl
-                : '/wp-json/';
+            const gloryCtx = (window as unknown as Record<string, unknown>).__GLORY_CONTEXT__ as
+                Record<string, string> | undefined;
+            const baseUrl = gloryCtx?.restUrl ?? '/wp-json/';
 
             const url = `${baseUrl}glory/v1/form`;
 
