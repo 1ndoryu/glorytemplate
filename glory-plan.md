@@ -34,385 +34,77 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 
 ---
 
-## 1. Diagnóstico del Estado Actual
+## 1. Resumen de Fases Completadas (1-9)
 
-### 1.1 Problemas Críticos
+<details>
+<summary>Fase 1: Purga Total — COMPLETADA</summary>
 
-#### PHP Legacy (TODO esto debe morir)
-- [x] **`reactMode` como concepto:** No debería ser un toggle. React ES Glory, punto. `GloryFeatures::isReactMode()`, `$reactExcludedFeatures` (30+ features), `applyReactMode()` — todo esto es infraestructura para un modo híbrido que no existe
-- [x] **30+ features PHP-frontend inútiles:** modales, submenus, pestanas, headerAdaptativo, themeToggle, alertas, paginacion, calendario, badgeList, highlight, gsap, navegacionAjax, gloryAjax, gloryForm, gloryBusqueda, cssCritico, logoRenderer, contentRender, termRender... NADA de esto se usa
-- [x] **TemplateGlory.php (template híbrido):** Renderiza páginas con PHP. Muerto
-- [x] **App/Templates/pages/:** Templates PHP (home.php, editor.php). Muertos
-- [x] **GestorCssCritico.php (639 líneas):** Critical CSS para PHP frontend. Muerto
-- [x] **AjaxNav.php, TemplateManager.php, TemplateRegistry.php:** Frontend PHP navigation/rendering. Muerto
-- [x] **Critical CSS tools:** `Glory/tools/critical-css/`, `LocalCriticalCss.php`, `CriticalCssCommand.php` — Vite lo maneja
+Eliminados 15+ archivos PHP de frontend híbrido (`GestorCssCritico`, `ServidorChat`, `AnalyticsEngine`, `TemplateManager`, `AjaxNav`, etc.), 30+ features PHP-frontend de `GloryFeatures`, toda la infraestructura `reactMode`, 1593 líneas de CSS legacy, 250+ imágenes basura, y dependencias composer de WebSocket (`cboden/ratchet`, `react/http`). Simplificados `Setup.php`, `GloryFeatures.php`, `control.php`, `load.php`.
+</details>
 
-#### Código Muerto (nunca se usó)
-- [x] **AnalyticsEngine.php:** Array math genérico sin uso
-- [x] **ServidorChat.php:** WebSocket server — no es un framework de temas
-- [x] **FormHandlerInterface.php:** Namespace incorrecto, sin implementaciones
-- [x] **250+ imágenes hash-named en Glory/assets/images/colors/:** Basura
-- [x] **Deps composer para chat:** `cboden/ratchet`, `react/http`, `evenement/*`
-- [x] **CSS legacy App/Assets/css/:** task.css (935), header.css (416), home.css (242) — 1593 líneas inútiles
+<details>
+<summary>Fase 2: Tooling TypeScript — COMPLETADA</summary>
 
-#### Archivos Gigantes (violan SRP, >300 líneas)
-- [x] PageManager.php: 802 lineas
-- [x] MenuManager.php: 796 lineas
-- [x] AssetsUtility.php: 674 lineas
-- [x] GestorCssCritico.php: 639 líneas (eliminado)
-- [x] SeoFrontendRenderer.php: 599 líneas (dividido en MetaTagRenderer, OpenGraphRenderer, JsonLdRenderer + fachada)
-- [x] MediaIntegrityService.php: 531 lineas
-- [x] ManejadorGit.php: 433 lineas
-- [x] AssetManager.php: 430 lineas
+ESLint 9 flat config + Prettier + Tailwind CSS 4 (opt-in via feature flag) + shadcn/ui (opt-in). Scripts `lint`/`format`/`type-check` en package.json.
+</details>
 
-#### TypeScript/DX
-- [ ] **Sin ESLint:** No hay config de calidad
-- [ ] **Sin Prettier:** Formato inconsistente
-- [ ] **Tipos inexistentes:** Solo editorjs.d.ts y styles.d.ts — WordPress devuelve datos sin tipar
-- [ ] **Sin scaffolding:** Crear isla/componente es manual y propenso a errores
-- [ ] **PHP manda datos que TS no puede validar:** `window.__GLORY_CONTENT__` es `any`
+<details>
+<summary>Fase 3: Sistema de Tipos WP→TS — COMPLETADA (3.5 diferido)</summary>
 
-### 1.2 Lo Que Funciona Bien (conservar y potenciar)
-- **ReactIslands.php + main.tsx:** Motor de islas sólido (hidratación/CSR)
-- **ReactContentProvider.php:** Puente datos WP→React
-- **PageManager.reactPage():** Registro declarativo de páginas
-- **Sistema de opciones** (Registry → Repository → Manager): Bien estratificado
-- **DefaultContent system:** Sincronización de contenido robusta
-- **Vite config:** HMR, aliases, dedup
-- **SEO backend** (SeoMetabox + SeoFrontendRenderer): SEO server-side funcional
-- **REST API Controllers:** Images, PageBlocks, MCP, Newsletter — bien separados
-- **GloryFeatures como sistema de flags:** El mecanismo es bueno, solo hay que limpiar el bagaje de reactMode
+Tipos base: `wordpress.ts`, `glory.ts`, `api.ts`, `pageBuilder.ts`. Hooks tipados: `useGloryContent<T>()`, `useWordPressApi<T>()`. `window.__GLORY_CONTENT__` con interface estricta. Registry de islas tipado. **Pendiente 3.5:** generador automático de tipos (`GET /glory/v1/schema` → `.d.ts`).
+</details>
 
----
+<details>
+<summary>Fase 4: Dividir PHP — COMPLETADA</summary>
 
-## 2. Inventario de Archivos — Decisiones
+7 archivos divididos → 22 resultantes, todos <300 líneas:
+- `PageManager` (802→95 fachada) → `PageDefinition`, `PageTemplateInterceptor`, `PageSeoDefaults`, `PageProcessor`, `PageReconciler`
+- `MenuManager` (796→145) → `MenuDefinition`, `MenuSync`, `MenuNormalizer`
+- `AssetsUtility` (674→85) → `AssetResolver`, `AssetImporter`, `AssetLister`
+- `SeoFrontendRenderer` (599→55) → `MetaTagRenderer`, `OpenGraphRenderer`, `JsonLdRenderer`
+- `MediaIntegrityService` (531→33) → `FeaturedImageRepair`, `GalleryRepair`, `ContentSanitizer`
+- `AssetManager` (430→279) → extraído `FolderScanner`
+- `ManejadorGit` (433→249) → movido a `Tools/`, extraído `GitCommandRunner`
+</details>
 
-### 2.1 ELIMINAR (código muerto, frontend PHP, infraestructura híbrida)
+<details>
+<summary>Fase 5: Arquitectura React — COMPLETADA</summary>
 
-| Archivo | Razón |
-|---------|-------|
-| **Frontend PHP (muerto)** | |
-| `Glory/src/Services/GestorCssCritico.php` | 639 líneas de Critical CSS para PHP frontend |
-| `Glory/src/Services/LocalCriticalCss.php` | Ejecuta Node para CSS crítico PHP |
-| `Glory/src/Console/CriticalCssCommand.php` | WP-CLI para critical CSS |
-| `Glory/src/Helpers/AjaxNav.php` | Navegación AJAX PHP — React maneja routing |
-| `Glory/src/Manager/TemplateManager.php` | Escanea/resuelve templates PHP |
-| `Glory/src/Utility/TemplateRegistry.php` | Registry de templates PHP |
-| `Glory/tools/critical-css/` (directorio) | Penthouse/Puppeteer para CSS crítico |
-| `TemplateGlory.php` | Template híbrido PHP — solo queda TemplateReact.php |
-| `App/Templates/pages/home.php` | Template PHP de home |
-| `App/Templates/pages/editor.php` | Template PHP de editor |
-| **Código muerto** | |
-| `Glory/src/Contracts/FormHandlerInterface.php` | Namespace incorrecto, 0 implementaciones |
-| `Glory/src/Services/AnalyticsEngine.php` | Math genérico sin uso |
-| `Glory/src/Services/ServidorChat.php` | WebSocket chat — fuera de scope |
-| `Glory/assets/images/colors/` (~250 imgs) | Imágenes hash sin propósito |
-| `App/Assets/css/task.css` | 935 líneas CSS de sistema inactivo |
-| `App/Assets/css/header.css` | 416 líneas CSS de header PHP |
-| `App/Assets/css/home.css` | 242 líneas CSS de home PHP |
-| **Deps innecesarias** | |
-| composer: `cboden/ratchet` | Solo para ServidorChat |
-| composer: `react/http` | Solo para ServidorChat |
-| composer: `evenement/*` | Dependencia de ratchet |
-| **Infraestructura reactMode** | |
-| `GloryFeatures::$reactExcludedFeatures` (array 30+) | No hay modo alternativo, sobra |
-| `GloryFeatures::isReactMode()` | React no es un "modo", es el único camino |
-| `GloryFeatures::applyReactMode()` | Desactivaba features PHP — ya no existen |
-| `GloryFeatures::getReactExcludedFeatures()` | Panel hybrid — ya no existe |
-| Toda la lógica `reactMode` en `isActive()` | Simplificar: si la feature no existe, no carga |
-| `ExcepcionComandoFallido.php` | Solo para ManejadorGit si se elimina |
+`core/` (IslandRegistry, GloryProvider, hydration, ErrorBoundary), hooks del framework (useGloryContent, useGloryOptions, useWordPressApi, useGloryMedia, useIslandProps), lazy loading por isla con Suspense, error boundaries individuales, DevOverlay de debug.
+</details>
 
-### 2.2 MANTENER Y REFACTORIZAR
+<details>
+<summary>Fase 6: CLI Scaffolding — COMPLETADA</summary>
 
-| Archivo | Líneas | Acción |
-|---------|--------|--------|
-| `GloryFeatures.php` | 284 | **Simplificar radicalmente:** eliminar reactMode, $reactExcludedFeatures, isReactMode(), applyReactMode(). Solo queda enable/disable/isActive para features reales (tailwind, shadcn, stripe, etc.) |
-| `PageManager.php` | 802 | Dividir en: `PageDefinition.php`, `PageTemplateInterceptor.php`, `PageSeoDefaults.php`. Eliminar todo lo de modo `code` PHP |
-| `MenuManager.php` | 796 | Dividir en: `MenuDefinition.php`, `MenuSync.php`, `MenuNormalizer.php` |
-| `AssetsUtility.php` | 674 | Dividir en: `AssetResolver.php`, `AssetImporter.php`, `AssetLister.php` |
-| `SeoFrontendRenderer.php` | 599 | Dividir en: `MetaTagRenderer.php`, `OpenGraphRenderer.php`, `JsonLdRenderer.php` |
-| `MediaIntegrityService.php` | 531 | Dividir en: `FeaturedImageRepair.php`, `GalleryRepair.php`, `ContentSanitizer.php` |
-| `AssetManager.php` | 430 | Extraer `FolderScanner.php`. Eliminar integración con GestorCssCritico |
-| `ManejadorGit.php` | 433 | Mover a `Glory/src/Tools/` |
-| `Setup.php` | 170 | Simplificar: eliminar todas las referencias a reactMode y features PHP-frontend |
+`npx glory create island|page|component|hook <Nombre>` — genera .tsx + .css + registro automático con tipos.
+</details>
 
-### 2.3 MANTENER COMO ESTÁ (core del framework)
+<details>
+<summary>Fase 7: Instalador — COMPLETADA</summary>
 
-| Archivo | Rol |
-|---------|-----|
-| `ReactIslands.php` | Motor de islas React |
-| `ReactContentProvider.php` | Puente datos WP→React |
-| `PageBlocksController.php` | API para page builder React |
-| `ImagesController.php` | API de imágenes para React |
-| `MCPController.php` | Flujo desarrollo con IA |
-| `OpcionManager/Registry/Repository` | Sistema de opciones |
-| `DefaultContent*` | Sincronización de contenido |
-| `main.tsx` | Entry point React Islands |
-| `vite.config.ts` | Build config |
-| `TemplateReact.php` | Único template — 100% React |
-| `SeoMetabox.php` | SEO admin — funcional |
-| `SyncManager.php` | Sync admin bar (dividir si >300) |
-| `BusquedaService.php` | Backend de búsqueda para React |
-| `EventBus.php` | Bus de eventos para invalidación |
-| `PostActionManager.php` | CRUD wrapper para posts |
-| `TokenManager.php` | Seguridad API |
-| `PerformanceProfiler.php` | Debug dev |
-| `QueryProfiler.php` | Debug dev |
-| `Services/Stripe/*` | Módulo opcional completo |
-| `Services/Sync/*` | Sistema de sincronización |
-| `Plugins/AmazonProduct/*` | Plugin independiente |
+`glory new <proyecto>` cross-platform (Windows/Linux) con flags `--minimal`, `--tailwind`, `--shadcn`, `--with-stripe`. Valida prerequisitos, instala deps, configura flags.
+</details>
+
+<details>
+<summary>Fase 8: Documentación — COMPLETADA</summary>
+
+README reescritos (Glory + glorytemplate), guías de arquitectura, API reference, VitePress docs site.
+</details>
+
+<details>
+<summary>Fase 9: Revisión Técnica — COMPLETADA</summary>
+
+`lint`, `type-check`, `build` en verde. Corregido: tsconfig deprecation, hooks condicionales, refs en render, prerender event-loop blocking.
+</details>
+
+### Pendientes de fases anteriores
+- [ ] **3.5** Generador automático de tipos: `GET /glory/v1/schema` → `npm run types:generate`
 
 ---
 
-## 3. Plan de Ejecución — Fases
+## 2. Arquitectura Objetivo
 
-### FASE 1: Purga Total (Sprint 1)
-> Objetivo: Eliminar todo el PHP-frontend, código muerto, y la infraestructura de reactMode. Sin piedad.
-
-- [x] **1.1** Eliminar archivos muertos:
-  - `AnalyticsEngine.php`, `ServidorChat.php`, `FormHandlerInterface.php`
-  - `GestorCssCritico.php`, `LocalCriticalCss.php`, `CriticalCssCommand.php`
-  - `AjaxNav.php`, `TemplateManager.php`, `TemplateRegistry.php`
-  - `TemplateGlory.php`
-  - `App/Templates/pages/home.php`, `App/Templates/pages/editor.php`
-  - `Glory/tools/critical-css/` (directorio completo)
-- [x] **1.2** Eliminar CSS legacy:
-  - `App/Assets/css/task.css`, `App/Assets/css/header.css`, `App/Assets/css/home.css`
-- [x] **1.3** Eliminar imágenes basura:
-  - `Glory/assets/images/colors/` (directorio completo) 
-- [x] **1.4** Limpiar composer.json:
-  - Remover `cboden/ratchet`, `react/http` y dependencias asociadas
-  - Ejecutar `composer update` para limpiar vendor/
-- [x] **1.5** Purgar GloryFeatures.php:
-  - Eliminar `$reactExcludedFeatures` (array completo de 30+ features)
-  - Eliminar `isReactMode()` 
-  - Eliminar `applyReactMode()`
-  - Eliminar `getReactExcludedFeatures()`
-  - Eliminar el bloque de `isActive()` que chequea reactMode
-  - Eliminar `ExcepcionComandoFallido.php` si ManejadorGit se mueve
-- [x] **1.6** Simplificar Setup.php:
-  - Eliminar todas las condicionales de reactMode
-  - Eliminar carga de features PHP-frontend
-- [x] **1.7** Simplificar control.php:
-  - Eliminar `GloryFeatures::enable('reactMode')` — ya no es un toggle
-  - Solo features reales: pageManager, assetManager, logger, etc.
-- [x] **1.8** Simplificar load.php:
-  - Eliminar carga condicional innecesaria
-- [x] **1.9** Commit: `refactor: purga total — eliminar modo híbrido, PHP frontend, y código muerto`
-- [x] **1.10** Documentación viva (fase 1):
-  - Actualizar `Glory/readme.md` y `README.md` con lo eliminado en esta fase
-  - Agregar changelog de migración: "qué se eliminó" y "por qué"
-  - Registrar breaking changes en una sección "Migración"
-
-### FASE 2: Tooling TypeScript Completo (Sprint 1)
-> Objetivo: ESLint, Prettier, Tailwind formal, shadcn/ui — DX profesional desde el día 1
-
-- [x] **2.1** Configurar ESLint 9 (flat config) en `Glory/assets/react/`:
-  - `eslint.config.js`
-  - Plugins: `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`
-  - Reglas: `no-explicit-any` (warn), `consistent-type-imports`, `no-console`
-  - Integrar `eslint-config-prettier` para no conflictar con Prettier
-- [x] **2.2** Configurar Prettier:
-  - `.prettierrc`: singleQuote, trailingComma: 'all', semi: true, printWidth: 100
-- [x] **2.3** Configurar Tailwind CSS 4:
-  - Feature flag: `GloryFeatures::enable/disable('tailwind')` (off por defecto)
-  - Tailwind v4 integrado como plugin Vite (`@tailwindcss/vite`)
-  - Entry CSS condicional: solo importa Tailwind si el flag está activo
-- [x] **2.4** Preparar shadcn/ui:
-  - Feature flag: `GloryFeatures::enable/disable('shadcnUI')` (off por defecto)
-  - Directorio `Glory/assets/react/src/components/ui/` creado
-- [x] **2.5** Scripts npm en package.json (raíz + Glory/assets/react/):
-  - `lint` / `lint:fix` / `format` / `format:check` / `type-check`
-- [x] **2.6** Commit: `feat: ESLint 9 + Prettier + Tailwind (opt-in) + shadcn/ui (opt-in)`
-- [x] **2.7** Documentación viva (fase 2):
-  - Documentar instalación y uso de lint/format/type-check
-  - Documentar activación de Tailwind y shadcn via flags
-
-### FASE 3: Sistema de Tipos WP→TypeScript (Sprint 2)
-> Objetivo: Que el frontend pueda validar en tiempo real todo lo que viene del backend. Cero `any`.
-
-- [x] **3.1** Tipos base en `Glory/assets/react/src/types/`:
-  - `wordpress.ts` — WPPost, WPPage, WPMenu, WPMenuItem, WPMedia, WPUser, WPTaxonomy, WPTerm
-  - `glory.ts` — GloryContent, GloryIslandProps, GloryPageConfig, GloryOption
-  - `api.ts` — Tipos de respuesta para cada endpoint /glory/v1/*
-  - `pageBuilder.ts` — BlockDefinition, BlockInstance, PageLayout
-- [x] **3.2** Tipar `window.__GLORY_CONTENT__`:
-  - Interface `GloryContentMap` estricta
-  - Declaración global en `glory.ts`
-  - Hacer que ReactContentProvider.php sirva datos conformes al tipo
-- [x] **3.3** Hook tipado `useGloryContent<T>()`:
-  - Acceso tipado con genéricos
-  - Error claro si los datos no coinciden con el tipo esperado
-- [x] **3.4** Hook `useWordPressApi<TResponse>()`:
-  - Fetch wrapper con autenticación (nonce)
-  - Tipos genéricos para request/response
-  - Manejo de errores tipado
-  - Cache con stale-while-revalidate
-- [ ] **3.5** Generador automático de tipos:
-  - Endpoint PHP: `GET /glory/v1/schema` — expone estructura de CPTs, meta fields, opciones
-  - Script: `scripts/generateTypes.ts` — consume endpoint y genera `.d.ts`
-  - Comando: `npm run types:generate`
-- [x] **3.6** Tipar registry de islas:
-  - `IslandRegistry` como tipo en glory.ts
-  - Cada isla exporta su interface de props
-- [x] **3.7** Commit: `feat: sistema de tipos WP→TS — cero any, validación en tiempo real`
-- [x] **3.8** Documentación viva (fase 3):
-  - Guía de tipado WP→TS
-  - Guía de uso de `useGloryContent<T>()` y `useWordPressApi<T>()`
-
-### FASE 4: Refactorización PHP — Archivos Grandes (Sprint 2-3)
-> Objetivo: Todos los archivos PHP bajo 300 líneas, SRP estricto
-
-- [x] **4.1** Dividir `PageManager.php` (802 → 95 líneas, fachada):
-  - `PageDefinition.php` (246 l) — define(), reactPage(), registerReactFullPages()
-  - `PageTemplateInterceptor.php` (80 l) — intercepción de templates WP
-  - `PageSeoDefaults.php` (60 l) — SEO defaults por página
-  - `PageProcessor.php` (215 l) — CRUD, creación/actualización de páginas
-  - `PageReconciler.php` (115 l) — reconciliación de páginas obsoletas
-- [x] **4.2** Dividir `MenuManager.php` (796 → 145 líneas, fachada):
-  - `MenuDefinition.php` (161 l) — definición de menús por código
-  - `MenuSync.php` (268 l) — sincronización con DB
-  - `MenuNormalizer.php` (199 l) — normalización de placeholders y URLs
-- [x] **4.3** Dividir `AssetsUtility.php` (674 → 85 líneas, fachada):
-  - `AssetResolver.php` (169 l) — resolución flexible de paths
-  - `AssetImporter.php` (289 l) — importación a Media Library
-  - `AssetLister.php` (205 l) — listado y selección de assets
-- [x] **4.4** Dividir `SeoFrontendRenderer.php` (599 líneas):
-  - `MetaTagRenderer.php` — title, description, canonical, helpers compartidos (~175 líneas)
-  - `OpenGraphRenderer.php` — OG + Twitter Cards (~95 líneas)
-  - `JsonLdRenderer.php` — JSON-LD schemas FAQ, Breadcrumb, Organization, Article (~250 líneas)
-  - `SeoFrontendRenderer.php` — fachada delegadora (~55 líneas)
-- [x] **4.5** Dividir `MediaIntegrityService.php` (531 → 33 líneas, orquestador):
-  - `FeaturedImageRepair.php` (287 l)
-  - `GalleryRepair.php` (131 l)
-  - `ContentSanitizer.php` (99 l)
-- [x] **4.6** Dividir `AssetManager.php` (389 → 279 líneas):
-  - Extraer `FolderScanner.php` (63 l) como helper
-  - Integración con GestorCssCritico ya eliminada en Phase 1
-- [x] **4.7** Mover `ManejadorGit.php` (432 → 249 líneas) a `Glory/src/Tools/`
-  - Extraer `GitCommandRunner.php` (76 l) para ejecución de comandos CLI
-- [x] **4.8** Commit: `refactor: dividir archivos PHP — SRP estricto, max 300 líneas`
-- [x] **4.9** Documentación viva (fase 4):
-  - Mapa de clases nuevas por responsabilidad
-  - Tabla "antes/después" para facilitar mantenimiento
-
-### FASE 5: Arquitectura React Definitiva (Sprint 3)
-> Objetivo: Hooks, providers, lazy loading, error boundaries — framework React de verdad
-
-- [x] **5.1** Estructura de directorios React:
-  ```
-  Glory/assets/react/src/
-  ├── core/                    # Engine del framework
-  │   ├── IslandRegistry.ts    # Registry tipado de islas
-  │   ├── GloryProvider.tsx    # Context global (content, options, user)
-  │   ├── hydration.ts         # Lógica de mount/hydrate
-  │   └── ErrorBoundary.tsx    # Error boundary por isla
-  ├── hooks/                   # Hooks del framework
-  │   ├── useGloryContent.ts   # Acceso tipado a content WP
-  │   ├── useGloryOptions.ts   # Opciones del tema
-  │   ├── useWordPressApi.ts   # Fetch wrapper tipado
-  │   ├── useGloryMedia.ts     # Acceso a imágenes vía API
-  │   └── useIslandProps.ts    # Props de la isla actual
-  ├── components/
-  │   └── ui/                  # shadcn/ui (auto-generados, opt-in)
-  ├── types/                   # Tipos compartidos WP + Glory
-  ├── utils/                   # Utilidades TS
-  ├── islands/                 # Islas de ejemplo del framework
-  ├── pageBuilder/             # Page Builder system
-  └── styles/                  # Estilos base
-  ```
-- [x] **5.2** Crear hooks core del framework:
-  - `useGloryContent<T>()` — genéricos, validación runtime
-  - `useGloryOptions()` — opciones del tema reactivas
-  - `useWordPressApi<T>()` — fetch con auth, tipos, cache
-  - `useGloryMedia(alias)` — imágenes vía /glory/v1/images
-  - `useIslandProps<T>()` — props tipados de la isla actual
-- [x] **5.3** GloryProvider:
-  - Context con datos globales inyectados desde PHP
-  - Wrapper automático de cada isla en main.tsx
-  - DevTools: overlay de debug (nombre isla, props, renders)
-- [x] **5.4** Mejorar sistema de islas:
-  - Lazy loading: `React.lazy()` + `Suspense` por isla
-  - Error boundaries individuales con UI de fallback
-  - Registro tipado: error de compilación si props no coinciden
-- [x] **5.5** Commit: `feat: arquitectura React — hooks, providers, lazy loading, error boundaries`
-- [x] **5.6** Documentación viva (fase 5):
-  - Guía de arquitectura de islas
-  - Guía de providers y hooks core
-  - Ejemplos de error boundaries y lazy loading
-
-### FASE 6: CLI de Scaffolding (Sprint 4)
-> Objetivo: `glory create island MiIsla` genera todo automáticamente
-
-- [x] **6.1** Script CLI en Node.js: `npx glory create`
-  - `glory create island <Nombre>` — .tsx + .css + registro en appIslands.tsx
-  - `glory create page <nombre>` — isla + registro en pages.php
-  - `glory create component <Nombre>` — componente en App/React/components/
-  - `glory create hook <nombre>` — hook en App/React/hooks/
-- [x] **6.2** Templates de scaffolding con tipos:
-  - Isla: interface de props + componente + CSS + export
-  - Página: isla + registro PHP con SEO defaults
-  - Componente: interface de props + componente atómico
-  - Hook: función con tipos de retorno
-- [x] **6.3** Commit: `feat: CLI scaffolding — glory create island/page/component/hook`
-- [x] **6.4** Documentación viva (fase 6):
-  - Manual del CLI con ejemplos reales
-  - Tabla de comandos y parámetros
-
-### FASE 7: Instalador Tipo Laravel (Sprint 4)
-> Objetivo: Instalación guiada del proyecto con una sola experiencia, soporte nativo Windows y Linux.
-
-- [x] **7.1** Diseñar comando de instalación único:
-  - `glory new <nombre-proyecto>` (inspirado en Laravel)
-  - Genera estructura base lista para WordPress + React + TypeScript
-- [x] **7.2** Implementar instalador cross-platform:
-  - Script Node.js principal (`bin/glory.js`)
-  - Soporte Windows (PowerShell/CMD)
-  - Soporte Linux (bash/sh)
-- [x] **7.3** Flujo del instalador:
-  - Validar prerequisitos (Node, npm, PHP, Composer, WP local)
-  - Clonar/copiar plantilla oficial
-  - Instalar dependencias (`composer install`, `npm install`)
-  - Configurar `.env` inicial
-  - Configurar flags iniciales (`tailwind`, `shadcnUI`)
-- [x] **7.4** Modos del instalador:
-  - `--minimal` (solo React + TS + ESLint)
-  - `--tailwind`
-  - `--shadcn` (implica tailwind)
-  - `--with-stripe` (opcional)
-- [x] **7.5** Post-instalación automática:
-  - Crear primera isla de ejemplo
-  - Validar `type-check` y `lint`
-  - Mostrar checklist final de arranque
-- [x] **7.6** Commit: `feat: instalador glory new cross-platform (windows/linux)`
-- [x] **7.7** Documentación viva (fase 7):
-  - Guía rápida de instalación para Windows
-  - Guía rápida de instalación para Linux
-  - Troubleshooting por plataforma
-
-### FASE 8: Documentación (Sprint 4)
-> Objetivo: README profesional, docs que explican la filosofía
-
-- [x] **8.1** Reescribir `Glory/readme.md`:
-  - Filosofía: WordPress como CMS, TypeScript como lenguaje, React como UI
-  - Quick start (5 minutos): instalar, crear isla, ver en browser
-  - Arquitectura: diagrama WP ← PHP Bridge → React Islands
-  - Guía: Crear tu primera isla
-  - Guía: Registrar una página React
-  - API Reference: hooks, tipos, providers
-  - Feature flags: Tailwind, shadcn, Stripe, etc.
-- [x] **8.2** Reescribir `glorytemplate/README.md`:
-  - Setup del tema
-  - Estructura App/ vs Glory/
-  - Workflow de desarrollo
-- [x] **8.3** Consolidar documentación incremental de todas las fases en versión final
-- [x] **8.4** Commit: `docs: README reescrito — filosofía TS-first, guías, API reference`
-
----
-
-## 4. Arquitectura Objetivo
-
-### 4.1 Principio Fundamental
+### 2.1 Principio Fundamental
 
 ```
 WordPress (CMS)  ──solo datos──>  PHP Bridge (mínimo)  ──tipado──>  React (todo el UI)
@@ -425,7 +117,7 @@ WordPress (CMS)  ──solo datos──>  PHP Bridge (mínimo)  ──tipado─�
 
 **Regla de oro:** Si puedes hacerlo en TypeScript, hazlo en TypeScript. PHP solo para lo que WordPress OBLIGA que sea PHP (registrar post types, servir HTML inicial, SEO meta tags, REST endpoints).
 
-### 4.2 Flujo de Ejecución
+### 2.2 Flujo de Ejecución
 
 ```
 WordPress
@@ -454,7 +146,7 @@ WordPress
         └── React Islands (TypeScript strict, 0 any)
 ```
 
-### 4.3 Estructura de Directorios
+### 2.3 Estructura de Directorios
 
 ```
 glorytemplate/
@@ -509,7 +201,7 @@ glorytemplate/
 └── glory-plan.md                 # Este archivo
 ```
 
-### 4.4 Feature Flags (simplificado)
+### 2.4 Feature Flags
 
 ```php
 /* En App/Config/control.php */
@@ -536,21 +228,21 @@ No hay `reactMode`. No hay lista de `reactExcludedFeatures`. No hay 30+ features
 
 ---
 
-## 5. Decisiones Técnicas
+## 3. Decisiones Técnicas
 
-### 5.1 ¿Por qué React Islands y no SPA completa?
+### 3.1 ¿Por qué React Islands y no SPA completa?
 - WordPress controla el routing para SEO server-side (meta tags, JSON-LD)
 - SSG prerendering funciona por isla individual
 - Cada página puede tener su propia isla con props tipados
 - No necesitamos React Router — WordPress ya hace routing
 
-### 5.2 ¿Por qué Tailwind off por defecto?
+### 3.2 ¿Por qué Tailwind off por defecto?
 - Muchos proyectos prefieren CSS puro o CSS variables
 - Tailwind agrega overhead de build
 - shadcn/ui depende de Tailwind — activar shadcn activa Tailwind automáticamente
 - Es un feature flag, no una decisión permanente
 
-### 5.3 ¿Por qué eliminar todo el PHP legacy en vez de deprecar?
+### 3.3 ¿Por qué eliminar todo el PHP legacy en vez de deprecar?
 - **Ningún sitio usa modo híbrido** — no hay migración que proteger
 - **No habrá sitios híbridos** — la decisión es definitiva
 - El código deprecado genera ruido, confusión, y hace que `GloryFeatures` sea innecesariamente complejo
@@ -558,14 +250,14 @@ No hay `reactMode`. No hay lista de `reactExcludedFeatures`. No hay 30+ features
 - Eliminar es más seguro que deprecar: código eliminado no puede causar bugs
 - Si algún día se necesita (no va a pasar), está en el historial de Git
 
-### 5.4 TypeScript como lengua franca
+### 3.4 TypeScript como lengua franca
 - `window.__GLORY_CONTENT__` tiene interface estricta, no `any`
 - Props de islas son interfaces exportadas — error de compilación si no coinciden
 - `useWordPressApi<T>()` tipado end-to-end
 - Generador automático: CPTs de WordPress → interfaces TypeScript
 - **Objetivo DX:** Si PHP manda un campo nuevo, TypeScript grita hasta que tipas el campo en el frontend. Si el frontend espera un campo, TypeScript grita hasta que PHP lo envía. Validación bidireccional en tiempo de compilación.
 
-### 5.5 Filosofía de PHP en Glory
+### 3.5 Filosofía de PHP en Glory
 PHP en Glory tiene UN solo propósito: ser el traductor entre lo que WordPress necesita nativamente (hooks, filters, templates) y lo que React consume (JSON tipado). Cualquier lógica que pueda vivir en TypeScript, DEBE vivir en TypeScript:
 - Validación de formularios → TypeScript (Zod)
 - Estado de la aplicación → TypeScript (Zustand)
@@ -582,40 +274,7 @@ PHP solo hace:
 
 ---
 
-## 6. Orden de Prioridad
-
-| # | Fase | Impacto | Esfuerzo | Por qué primero |
-|---|------|---------|----------|-----------------|
-| 1 | Fase 1: Purga | Muy alto | Bajo | Elimina ruido, simplifica todo lo demás |
-| 2 | Fase 2: Tooling TS | Alto | Medio | DX inmediato, calidad desde el día 1 |
-| 3 | Fase 3: Tipos WP→TS | Muy alto | Alto | Core de la propuesta: validación en tiempo real |
-| 4 | Fase 4: Dividir PHP | Alto | Alto | Mantenibilidad del bridge |
-| 5 | Fase 5: Arquitectura React | Muy alto | Alto | Valor del framework como producto |
-| 6 | Fase 6: CLI | Medio | Medio | DX avanzado |
-| 7 | Fase 7: Instalador | Muy alto | Medio | Onboarding inmediato (Windows/Linux) |
-| 8 | Fase 8: Docs | Alto | Medio | Adopción + consolidación final |
-
----
-
-## 7. Métricas de Éxito
-
-- [ ] 0 archivos PHP > 300 líneas
-- [ ] 0 referencias a `reactMode` en todo el codebase
-- [ ] 0 features PHP-frontend en GloryFeatures
-- [ ] 0 `any` en código TypeScript (ESLint `no-explicit-any: error`)
-- [ ] 100% de props de islas tipados con interfaces
-- [ ] `window.__GLORY_CONTENT__` tipado, no `any`
-- [ ] `npm run type-check` pasa sin errores
-- [ ] `npm run lint` pasa sin errores
-- [ ] `npm run build` genera bundles de producción
-- [ ] `glory create island MiIsla` funciona end-to-end
-- [ ] `glory new mi-proyecto` funciona en Windows y Linux
-- [ ] README permite setup funcional en < 5 minutos
-- [ ] La documentación se actualiza al cierre de cada fase (no solo al final)
-
----
-
-## 8. Extras (futuro, no bloquean)
+## 4. Extras (futuro, no bloquean)
 
 - **Vitest:** Tests unitarios para hooks y componentes
 - **Storybook:** Catálogo visual de componentes
@@ -625,34 +284,141 @@ PHP solo hace:
 
 ---
 
-## 9. Revision Tecnica Extensiva (13-02-2026)
+## 5. Hardening, Desacoplamiento y Limpieza Final (13-02-2026)
 
-### 9.1 Estado Detectado (pre-fix)
+> Auditoría post-fases: seguridad, SOLID, rendimiento, agnosticismo del framework, basura residual.
 
-- [x] `npm run lint` falla (24 problemas: 18 errores, 6 warnings)
-  - `core/DevOverlay.tsx`: acceso/mutacion de `ref.current` en render
-  - `pageBuilder/components/PageBuilder.tsx`: hooks ejecutados condicionalmente
-  - `pageBuilder/BlockEditorModal.tsx`: `setState` sincronico en `useEffect`
-  - `types/wordpress.ts`: interfaz vacia (`no-empty-object-type`)
-- [x] `npm run type-check` falla
-  - `tsconfig.json`: `ignoreDeprecations: "6.0"` invalido para TS actual
-- [x] `npm run build` compila bundle, pero falla en prerender
-  - `scripts/prerender.ts`: error intermitente `Request is outdated` al prerenderizar `BienvenidaIsland`
+### 5.1 Basura Residual (CSS + Config)
 
-### 9.2 Objetivo de Correccion Inmediata
+| Archivo | Estado | Acción |
+|---------|--------|--------|
+| `Glory/assets/css/admin-elementor.css` | 0 refs | [x] Eliminado |
+| `Glory/assets/css/alert.css` | 0 refs | [x] Eliminado |
+| `Glory/assets/css/dateRange.css` | 0 refs | [x] Eliminado |
+| `Glory/Config/exampleOptions.php` | 100% comentado, 0 refs | [x] Movido a `Glory/docs/examples/` |
+| `Glory/Config/scriptSetup.php` | Stub vacío, cargado por load.php | [x] Eliminado; load.php actualizado |
 
-- [x] Corregir configuracion TS para pasar `type-check`
-- [x] Corregir errores ESLint de hooks/refs y tipado
-- [x] Estabilizar flujo de prerender para que `build` finalice correctamente
-- [x] Re-ejecutar `lint`, `type-check`, `build` hasta estado verde
+### 5.2 Seguridad P0 (CORREGIR INMEDIATAMENTE)
 
-### 9.3 Cierre de la Revision (post-fix)
+| Archivo | Problema | Fix |
+|---------|----------|-----|
+| `OpcionPanelSaver.php` L1 | `<?` en vez de `<?php` | [x] Cambiado a `<?php` |
+| `PanelDataProvider.php` L1 | Mismo problema | [x] Cambiado a `<?php` |
+| `SyncManager.php` L85-110 | **CSRF**: links de admin bar sin nonce | [x] Agregado `wp_nonce_url()` y `wp_verify_nonce()` |
+| `TaxonomyMetaManager.php` L65 | `saveCategoryMeta()` sin verificar nonce | [x] Agregado `wp_nonce_field()` y `wp_verify_nonce()` |
 
-- [x] `npm run type-check` en verde
-- [x] `npm run lint` en verde (sin warnings bloqueantes)
-- [x] `npm run prerender --prefix Glory/assets/react` finaliza sin cuelgue
-- [x] `npm run build` completo finaliza correctamente (vite build + prerender)
-- [x] Se elimino el bloqueo por event-loop abierto de `vite-node` forzando salida explicita del script de prerender
+### 5.3 Seguridad P1 (PRIORITARIO)
+
+| Archivo | Problema | Fix |
+|---------|----------|-----|
+| `ReactIslands.php` L263 | **XSS**: `json_encode($context)` en `<script>` | [x] `wp_json_encode()` con `JSON_HEX_TAG` flags |
+| `ReactContentProvider.php` L275 | Mismo XSS | [x] Flags `JSON_HEX_TAG \| JSON_HEX_AMP` agregados |
+| `FolderScanner.php` L46 | `include $cacheFile` ejecuta PHP desde caché | [x] Cambiado a `json_decode(file_get_contents())` |
+| `QueryProfiler.php` | Queries SQL sin capability check | [x] `current_user_can('manage_options')` agregado |
+| `MCPController.php` L82 | `canManageToken()` requería `edit_posts` | [x] Cambiado a `manage_options` |
+| `PageBlocksController.php` L86 | `canReadBlocks()` retornaba `true` siempre | [x] Verifica `post_status === 'publish'` |
+| `NewsletterController.php` L58 | `SHOW TABLES` en cada page load | [x] `get_option` check agregado |
+| `NewsletterController.php` L97 | `$_SERVER['REMOTE_ADDR']` sin sanitizar | [x] `sanitize_text_field()` aplicado |
+| `ImagesController.php` | Endpoints sin autenticación | [ ] Diferido: requiere decisión de producto |
+| `PostActionManager.php` | CRUD sin capabilities | [x] `current_user_can()` en crear/update/delete + fix short tag |
+
+### 5.4 Desacoplamiento Glory↔App (42 violaciones → framework agnóstico)
+
+> **Principio:** Glory NO debe saber que `App/` existe. Todas las rutas deben ser configurables o resolverse por convención configurable.
+
+#### 5.4.1 Solución arquitectónica: `glory.config.php`
+
+Crear un archivo de convención en la raíz del tema que defina las rutas del proyecto:
+
+```php
+/* glory.config.php — raíz del tema */
+return [
+    'config_dir'    => 'App/Config',
+    'content_dir'   => 'App/Content',
+    'assets_dir'    => 'App/Assets',
+    'react_dir'     => 'App/React',
+    'templates_dir' => 'App/Templates',
+];
+```
+
+Glory lee este archivo UNA vez al boot y expone las rutas via `GloryConfig::get('react_dir')`. Si el archivo no existe, usa defaults convencionales (que coinciden con `App/`).
+
+#### 5.4.2 Violaciones PHP core (CRÍTICO)
+
+| # | Archivo | Referencia hardcodeada | Fix |
+|---|---------|------------------------|-----|
+| 1 | `Setup.php` L198 | `\App\Handlers\StripeController::class` | [x] Ya usa `class_exists()` — OK como extension point |
+| 2 | `MenuDefinition.php` L13 | `RUTA_MENU_CODIGO = '/App/Content/menu.php'` | [x] Usa `GloryConfig::path('content_dir')` |
+| 3 | `AssetResolver.php` L27-28 | `'App/Assets/equipo'`, `'App/Assets/images'` | [x] Hook `glory/register_asset_paths` desde `App/Config/control.php` |
+| 4 | `FeaturedImageRepair.php` L227 | `'tema' => 'App/Assets/images'` | [x] Usa `AssetResolver::getAssetPaths()` |
+| 5 | `PostSyncHandler.php` L226 | Mismo aliasMap hardcodeado | [x] Idem |
+| 6 | `load.php` L33,39 | `'/App/Config/control.php'` | [x] Usa `GloryConfig::path('config_dir')` |
+| 7 | `PostActionManager.php` L2 | Comentario ruta legacy | [x] Actualizado |
+
+#### 5.4.3 Violaciones en build tooling (ALTO — diferir a iteración futura)
+
+Las referencias a `App/` en `vite.config.ts`, `tsconfig.json`, `eslint.config.js`, `main.tsx`, `index.css`, `package.json`, CLI scripts son numerosas (~20) y requieren un sistema de configuración JS/TS (`glory.config.ts`). **Diferir** a una iteración dedicada al build — el impacto en DX de romper esto ahora es mayor que el beneficio.
+
+> **Decisión:** Fijar las violaciones PHP (core y load.php) en esta iteración. Las violaciones de build/CLI se documentan como TO-DO para la siguiente iteración.
+
+### 5.5 Rendimiento
+
+| Archivo | Problema | Fix |
+|---------|----------|-----|
+| `MenuNormalizer.php` L125-160 | `wp_get_nav_menu_items` 3 veces en loop | [x] Una sola llamada fuera del foreach |
+| `ReactIslands.php` L82 | HTTP check a localhost:5173 en cada request | [x] Transient `glory_vite_dev_mode` (30s) |
+| `SyncManager.php` L44-50 | `runFullSync()` en cada admin load | [x] Throttle con transient (60s cooldown) |
+| `NewsletterController.php` L58 | `SHOW TABLES` en cada page load | [x] `get_option` check |
+| `EventBus.php` L18-38 | `get/update_option` x2-3 por emisión | [x] Batch en memoria + flush en `shutdown` |
+| `GloryLogger.php` L167 | `serialize + md5()` en cada log | [x] `crc32($mensaje)` sin serializar |
+| `GloryLogger.php` L218 | `debug_backtrace()` en cada log | [x] Solo si nivel >= advertencia |
+
+### 5.6 SOLID — Archivos que volvieron a exceder 300 líneas
+
+| Archivo | Líneas | Acción |
+|---------|--------|--------|
+| `SyncManager.php` | 399 | [x] Extraído `CachePurger.php`. SyncManager ahora ~310 l |
+| `ReactIslands.php` | 376 | [ ] Extraer `ReactAssetLoader.php` (~80 l) para enqueue dev/prod. Quedaría ~296 |
+| `PerformanceProfiler.php` | 350 | [ ] Extraer profiling HTTP a `HttpProfiler.php` (~50 l). Quedaría ~300 |
+| `AssetManager.php` | 335 | [ ] Extraer `resolveFeature()` como método DRY (duplicado L35-51 y L194-213). Reducir ~20 l |
+| `FeaturedImageRepair.php` | 326 | [ ] Refactorizar `repairFeaturedImage()` (~100 l) en sub-métodos. No necesita clase nueva |
+| `GloryLogger.php` | 311 | [ ] Extraer `LogFormatter.php` (~50 l). Quedaría ~260 |
+| `WebScraperProvider.php` | 801 | [ ] Dividir en `ScraperHttpClient`, `SearchResultParser`, `ProductPageParser` (AmazonProduct plugin — baja prioridad) |
+| `StripeWebhookHandler.php` | 535 | [ ] Dividir por tipo de evento en clases Strategy (AmazonProduct plugin — baja prioridad) |
+| `ApiEndpoints.php` (Amazon) | 380 | [ ] Extraer `DiagnosticEndpoints.php` (AmazonProduct plugin — baja prioridad) |
+
+### 5.7 Dead Code y Cleanup menor
+
+| Archivo | Problema | Fix |
+|---------|----------|-----|
+| `QueryProfiler.php` L22-25 | `debugLog()` siempre retorna `return;` | [x] Método y 6 llamadas eliminados |
+| `PerformanceProfiler.php` L328 | `injectarDatosDebug()` vacío, obsoleto | [x] Método eliminado |
+| `ScheduleManager.php` L153 | Usa `goto` (anti-patrón) | [x] Refactorizado con `break 2` |
+| `PostActionManager.php` L2 | Comentario ruta legacy | [x] Actualizado |
+| Alias map duplicado en 3 archivos | `FeaturedImageRepair`, `PostSyncHandler`, `AssetResolver` | [x] Centralizado en `AssetResolver::getAssetPaths()` |
+
+### 5.8 Orden de ejecución
+
+> De mayor impacto/riesgo a menor. Seguridad primero, luego integridad, luego mejoras.
+
+1. **P0 Seguridad** (5.2) — short tags, CSRF SyncManager, CSRF TaxonomyMeta
+2. **P1 Seguridad** (5.3) — XSS ReactIslands/ContentProvider, FolderScanner include, QueryProfiler disclosure, API caps
+3. **Basura residual** (5.1) — exampleOptions, scriptSetup, load.php cleanup
+4. **Desacoplamiento PHP** (5.4.2) — GloryConfig, rutas configurables
+5. **Rendimiento** (5.5) — MenuNormalizer queries, dev server check, sync throttle, logger optimize
+6. **SOLID splits** (5.6) — SyncManager→CachePurger, ReactIslands→ReactAssetLoader, etc.
+7. **Dead code** (5.7) — debugLog muerto, goto, alias duplicado
+8. **Compactación del plan** — Comprimir secciones 1-9 completadas para reducir tamaño del doc
+
+### 5.9 Exclusiones conscientes (diferidas)
+
+| Item | Razón de diferir |
+|------|------------------|
+| Desacoplamiento build tooling (`vite.config.ts`, `tsconfig.json`, CLI scripts) | ~20 cambios que requieren `glory.config.ts` — iteración dedicada |
+| Split de `WebScraperProvider.php` (801 l) | Plugin AmazonProduct, baja prioridad para el framework core |
+| Split de `StripeWebhookHandler.php` (535 l) | Plugin AmazonProduct, baja prioridad |
+| `ImagesController.php` permisos | Requiere decisión de producto (¿público o autenticado?) |
+| Docs: generalizar referencias a `App/` en markdown | Cosmético, no afecta runtime |
 
 ---
 
@@ -668,4 +434,6 @@ PHP solo hace:
 | Fase 6: CLI Scaffolding | Completada | npx glory create island/page/component/hook |
 | Fase 7: Instalador | Completada | glory new/setup con --tailwind/--shadcn/--with-stripe |
 | Fase 8: Documentacion | Completada | README reescrito, guias, API reference, consolidacion |
+| Fase 9: Revision Tecnica | Completada | lint, type-check, build en verde |
+| Fase 10: Hardening | Completada | Seguridad, desacoplamiento, rendimiento, SOLID, dead code. SOLID splits menores diferidos. |
 
