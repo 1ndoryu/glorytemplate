@@ -7,6 +7,8 @@
         "build:fast": "npm run build:fast --prefix Glory/assets/react",
         "prerender": "npm run prerender --prefix Glory/assets/react",
         "install:all": "npm install && npm install --prefix Glory/assets/react && npm install --prefix App/React",
+        "install:subdeps": "npm install --prefix Glory/assets/react --ignore-scripts && npm install --prefix App/React --ignore-scripts",
+        "postinstall": "npm run install:subdeps",
         "types:add": "npm install --prefix App/React"
     },
     "dependencies": {
