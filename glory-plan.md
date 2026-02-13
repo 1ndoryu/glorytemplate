@@ -362,30 +362,30 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 ### FASE 7: Instalador Tipo Laravel (Sprint 4)
 > Objetivo: Instalación guiada del proyecto con una sola experiencia, soporte nativo Windows y Linux.
 
-- [ ] **7.1** Diseñar comando de instalación único:
+- [x] **7.1** Diseñar comando de instalación único:
   - `glory new <nombre-proyecto>` (inspirado en Laravel)
   - Genera estructura base lista para WordPress + React + TypeScript
-- [ ] **7.2** Implementar instalador cross-platform:
+- [x] **7.2** Implementar instalador cross-platform:
   - Script Node.js principal (`bin/glory.js`)
   - Soporte Windows (PowerShell/CMD)
   - Soporte Linux (bash/sh)
-- [ ] **7.3** Flujo del instalador:
+- [x] **7.3** Flujo del instalador:
   - Validar prerequisitos (Node, npm, PHP, Composer, WP local)
   - Clonar/copiar plantilla oficial
   - Instalar dependencias (`composer install`, `npm install`)
   - Configurar `.env` inicial
   - Configurar flags iniciales (`tailwind`, `shadcnUI`)
-- [ ] **7.4** Modos del instalador:
+- [x] **7.4** Modos del instalador:
   - `--minimal` (solo React + TS + ESLint)
   - `--tailwind`
   - `--shadcn` (implica tailwind)
   - `--with-stripe` (opcional)
-- [ ] **7.5** Post-instalación automática:
+- [x] **7.5** Post-instalación automática:
   - Crear primera isla de ejemplo
   - Validar `type-check` y `lint`
   - Mostrar checklist final de arranque
-- [ ] **7.6** Commit: `feat: instalador glory new cross-platform (windows/linux)`
-- [ ] **7.7** Documentación viva (fase 7):
+- [x] **7.6** Commit: `feat: instalador glory new cross-platform (windows/linux)`
+- [x] **7.7** Documentación viva (fase 7):
   - Guía rápida de instalación para Windows
   - Guía rápida de instalación para Linux
   - Troubleshooting por plataforma
@@ -393,7 +393,7 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 ### FASE 8: Documentación (Sprint 4)
 > Objetivo: README profesional, docs que explican la filosofía
 
-- [ ] **8.1** Reescribir `Glory/readme.md`:
+- [x] **8.1** Reescribir `Glory/readme.md`:
   - Filosofía: WordPress como CMS, TypeScript como lenguaje, React como UI
   - Quick start (5 minutos): instalar, crear isla, ver en browser
   - Arquitectura: diagrama WP ← PHP Bridge → React Islands
@@ -401,12 +401,12 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
   - Guía: Registrar una página React
   - API Reference: hooks, tipos, providers
   - Feature flags: Tailwind, shadcn, Stripe, etc.
-- [ ] **8.2** Reescribir `glorytemplate/README.md`:
+- [x] **8.2** Reescribir `glorytemplate/README.md`:
   - Setup del tema
   - Estructura App/ vs Glory/
   - Workflow de desarrollo
-- [ ] **8.3** Consolidar documentación incremental de todas las fases en versión final
-- [ ] **8.4** Commit: `docs: README reescrito — filosofía TS-first, guías, API reference`
+- [x] **8.3** Consolidar documentación incremental de todas las fases en versión final
+- [x] **8.4** Commit: `docs: README reescrito — filosofía TS-first, guías, API reference`
 
 ---
 
@@ -635,6 +635,6 @@ PHP solo hace:
 | Fase 4: Dividir PHP | Completada | 7 archivos divididos, 22 archivos resultantes, todos <300 lineas |
 | Fase 5: Arquitectura React | Completada | core/, hooks, GloryProvider, lazy loading, error boundaries |
 | Fase 6: CLI Scaffolding | Completada | npx glory create island/page/component/hook |
-| Fase 7: Instalador | Pendiente | Comando `glory new` (Windows/Linux) |
-| Fase 8: Documentacion | Pendiente | README + guias + consolidacion incremental |
+| Fase 7: Instalador | Completada | glory new/setup con --tailwind/--shadcn/--with-stripe |
+| Fase 8: Documentacion | Completada | README reescrito, guias, API reference, consolidacion |
 
