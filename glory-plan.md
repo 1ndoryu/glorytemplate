@@ -199,6 +199,10 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 - [ ] **1.8** Simplificar load.php:
   - Eliminar carga condicional innecesaria
 - [ ] **1.9** Commit: `refactor: purga total — eliminar modo híbrido, PHP frontend, y código muerto`
+- [ ] **1.10** Documentación viva (fase 1):
+  - Actualizar `Glory/readme.md` y `README.md` con lo eliminado en esta fase
+  - Agregar changelog de migración: "qué se eliminó" y "por qué"
+  - Registrar breaking changes en una sección "Migración"
 
 ### FASE 2: Tooling TypeScript Completo (Sprint 1)
 > Objetivo: ESLint, Prettier, Tailwind formal, shadcn/ui — DX profesional desde el día 1
@@ -223,6 +227,9 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
 - [ ] **2.5** Scripts npm en package.json (raíz + Glory/assets/react/):
   - `lint` / `lint:fix` / `format` / `type-check`
 - [ ] **2.6** Commit: `feat: ESLint 9 + Prettier + Tailwind (opt-in) + shadcn/ui (opt-in)`
+- [ ] **2.7** Documentación viva (fase 2):
+  - Documentar instalación y uso de lint/format/type-check
+  - Documentar activación de Tailwind y shadcn via flags
 
 ### FASE 3: Sistema de Tipos WP→TypeScript (Sprint 2)
 > Objetivo: Que el frontend pueda validar en tiempo real todo lo que viene del backend. Cero `any`.
@@ -253,6 +260,10 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
   - De `Record<string, React.ComponentType<any>>` a tipos específicos por isla
   - Cada isla exporta su interface de props
 - [ ] **3.7** Commit: `feat: sistema de tipos WP→TS — cero any, validación en tiempo real`
+- [ ] **3.8** Documentación viva (fase 3):
+  - Guía de tipado WP→TS
+  - Guía de uso de `useGloryContent<T>()` y `useWordPressApi<T>()`
+  - Guía de regeneración de tipos (`types:generate`)
 
 ### FASE 4: Refactorización PHP — Archivos Grandes (Sprint 2-3)
 > Objetivo: Todos los archivos PHP bajo 300 líneas, SRP estricto
@@ -283,6 +294,9 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
   - Eliminar integración con GestorCssCritico (ya eliminado)
 - [ ] **4.7** Mover `ManejadorGit.php` (433 líneas) a `Glory/src/Tools/`
 - [ ] **4.8** Commit: `refactor: dividir archivos PHP — SRP estricto, max 300 líneas`
+- [ ] **4.9** Documentación viva (fase 4):
+  - Mapa de clases nuevas por responsabilidad
+  - Tabla "antes/después" para facilitar mantenimiento
 
 ### FASE 5: Arquitectura React Definitiva (Sprint 3)
 > Objetivo: Hooks, providers, lazy loading, error boundaries — framework React de verdad
@@ -324,6 +338,10 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
   - Error boundaries individuales con UI de fallback
   - Registro tipado: error de compilación si props no coinciden
 - [ ] **5.5** Commit: `feat: arquitectura React — hooks, providers, lazy loading, error boundaries`
+- [ ] **5.6** Documentación viva (fase 5):
+  - Guía de arquitectura de islas
+  - Guía de providers y hooks core
+  - Ejemplos de error boundaries y lazy loading
 
 ### FASE 6: CLI de Scaffolding (Sprint 4)
 > Objetivo: `glory create island MiIsla` genera todo automáticamente
@@ -339,11 +357,45 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
   - Componente: interface de props + componente atómico
   - Hook: función con tipos de retorno
 - [ ] **6.3** Commit: `feat: CLI scaffolding — glory create island/page/component/hook`
+- [ ] **6.4** Documentación viva (fase 6):
+  - Manual del CLI con ejemplos reales
+  - Tabla de comandos y parámetros
 
-### FASE 7: Documentación (Sprint 4)
+### FASE 7: Instalador Tipo Laravel (Sprint 4)
+> Objetivo: Instalación guiada del proyecto con una sola experiencia, soporte nativo Windows y Linux.
+
+- [ ] **7.1** Diseñar comando de instalación único:
+  - `glory new <nombre-proyecto>` (inspirado en Laravel)
+  - Genera estructura base lista para WordPress + React + TypeScript
+- [ ] **7.2** Implementar instalador cross-platform:
+  - Script Node.js principal (`bin/glory.js`)
+  - Soporte Windows (PowerShell/CMD)
+  - Soporte Linux (bash/sh)
+- [ ] **7.3** Flujo del instalador:
+  - Validar prerequisitos (Node, npm, PHP, Composer, WP local)
+  - Clonar/copiar plantilla oficial
+  - Instalar dependencias (`composer install`, `npm install`)
+  - Configurar `.env` inicial
+  - Configurar flags iniciales (`tailwind`, `shadcnUI`)
+- [ ] **7.4** Modos del instalador:
+  - `--minimal` (solo React + TS + ESLint)
+  - `--tailwind`
+  - `--shadcn` (implica tailwind)
+  - `--with-stripe` (opcional)
+- [ ] **7.5** Post-instalación automática:
+  - Crear primera isla de ejemplo
+  - Validar `type-check` y `lint`
+  - Mostrar checklist final de arranque
+- [ ] **7.6** Commit: `feat: instalador glory new cross-platform (windows/linux)`
+- [ ] **7.7** Documentación viva (fase 7):
+  - Guía rápida de instalación para Windows
+  - Guía rápida de instalación para Linux
+  - Troubleshooting por plataforma
+
+### FASE 8: Documentación (Sprint 4)
 > Objetivo: README profesional, docs que explican la filosofía
 
-- [ ] **7.1** Reescribir `Glory/readme.md`:
+- [ ] **8.1** Reescribir `Glory/readme.md`:
   - Filosofía: WordPress como CMS, TypeScript como lenguaje, React como UI
   - Quick start (5 minutos): instalar, crear isla, ver en browser
   - Arquitectura: diagrama WP ← PHP Bridge → React Islands
@@ -351,11 +403,12 @@ PHP existe exclusivamente como puente mínimo entre WordPress y React. Nada de l
   - Guía: Registrar una página React
   - API Reference: hooks, tipos, providers
   - Feature flags: Tailwind, shadcn, Stripe, etc.
-- [ ] **7.2** Reescribir `glorytemplate/README.md`:
+- [ ] **8.2** Reescribir `glorytemplate/README.md`:
   - Setup del tema
   - Estructura App/ vs Glory/
   - Workflow de desarrollo
-- [ ] **7.3** Commit: `docs: README reescrito — filosofía TS-first, guías, API reference`
+- [ ] **8.3** Consolidar documentación incremental de todas las fases en versión final
+- [ ] **8.4** Commit: `docs: README reescrito — filosofía TS-first, guías, API reference`
 
 ---
 
@@ -541,7 +594,8 @@ PHP solo hace:
 | 4 | Fase 4: Dividir PHP | Alto | Alto | Mantenibilidad del bridge |
 | 5 | Fase 5: Arquitectura React | Muy alto | Alto | Valor del framework como producto |
 | 6 | Fase 6: CLI | Medio | Medio | DX avanzado |
-| 7 | Fase 7: Docs | Alto | Medio | Adopción |
+| 7 | Fase 7: Instalador | Muy alto | Medio | Onboarding inmediato (Windows/Linux) |
+| 8 | Fase 8: Docs | Alto | Medio | Adopción + consolidación final |
 
 ---
 
@@ -557,7 +611,9 @@ PHP solo hace:
 - [ ] `npm run lint` pasa sin errores
 - [ ] `npm run build` genera bundles de producción
 - [ ] `glory create island MiIsla` funciona end-to-end
+- [ ] `glory new mi-proyecto` funciona en Windows y Linux
 - [ ] README permite setup funcional en < 5 minutos
+- [ ] La documentación se actualiza al cierre de cada fase (no solo al final)
 
 ---
 
@@ -581,5 +637,6 @@ PHP solo hace:
 | Fase 4: Dividir PHP | Pendiente | SRP para el bridge |
 | Fase 5: Arquitectura React | Pendiente | Hooks, providers, lazy loading |
 | Fase 6: CLI Scaffolding | Pendiente | DX avanzado |
-| Fase 7: Documentación | Pendiente | README + guías |
+| Fase 7: Instalador | Pendiente | Comando `glory new` (Windows/Linux) |
+| Fase 8: Documentación | Pendiente | README + guías + consolidación incremental |
 
