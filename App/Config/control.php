@@ -2,15 +2,12 @@
 
 use Glory\Core\GloryFeatures;
 
-/* 
- * Glory React - Configuración de Features
- * Solo features esenciales para el sistema React Islands
+/*
+ * Cosmo Revenue - Features del tema
+ * Adaptado de App1 para arquitectura Glory React
  */
 
-/* 
- * Core Managers 
- */
-
+/* Core Managers */
 GloryFeatures::enable('assetManager');
 GloryFeatures::enable('opcionManagerSync');
 GloryFeatures::enable('syncManager');
@@ -20,37 +17,53 @@ GloryFeatures::enable('postTypeManager');
 GloryFeatures::enable('scheduleManager');
 GloryFeatures::enable('defaultContentManager');
 
-/* 
- * Theme Support 
- */
+/* Theme Support */
 GloryFeatures::enable('postThumbnails');
+GloryFeatures::enable('titleTag');
 
-/* 
- * Managers deshabilitados 
- */
-GloryFeatures::disable('menu');
+/* Navegacion */
+GloryFeatures::enable('menu');
+GloryFeatures::enable('navegacionAjax');
 
-/* 
- * Plugins del proyecto 
- */
+/* UI Components */
+GloryFeatures::enable('gsap');
+GloryFeatures::enable('highlight');
+GloryFeatures::enable('paginacion');
+GloryFeatures::enable('themeToggle');
+GloryFeatures::enable('gestionarPreviews');
+GloryFeatures::enable('logoRenderer');
 
-// GloryFeatures::enable('amazonProduct');
-GloryFeatures::disable('amazonProduct');
+/* Formulario de contacto */
+GloryFeatures::enable('gloryForm');
+GloryFeatures::enable('gloryAjax');
+
+/* Deshabilitados */
+GloryFeatures::disable('modales');
+GloryFeatures::disable('submenus');
+GloryFeatures::disable('pestanas');
+GloryFeatures::disable('scheduler');
+GloryFeatures::disable('headerAdaptativo');
+GloryFeatures::disable('alertas');
+GloryFeatures::disable('gloryFilters');
+GloryFeatures::disable('calendario');
+GloryFeatures::disable('badgeList');
+GloryFeatures::disable('gbnSplitContent');
+GloryFeatures::disable('gloryLinkCpt');
+GloryFeatures::disable('cssCritico');
+GloryFeatures::disable('gloryBusqueda');
+GloryFeatures::disable('gloryRealtime');
+GloryFeatures::disable('contentRender');
+GloryFeatures::disable('termRender');
+GloryFeatures::disable('avadaIntegration');
 GloryFeatures::disable('queryProfiler');
-
-/* 
- * Frontend Opt-in: Tailwind CSS y shadcn/ui
- * Activar/desactivar via feature flags.
- * Tailwind v4 ya esta integrado en Vite; este flag controla si PHP lo referencia.
- * shadcn/ui requiere que Tailwind este activo.
- */
+GloryFeatures::disable('performanceProfiler');
+GloryFeatures::disable('queryProfilerLogs');
+GloryFeatures::disable('amazonProduct');
+GloryFeatures::disable('task');
 GloryFeatures::disable('tailwind');
 GloryFeatures::disable('shadcnUI');
 
-/*
- * Asset paths del proyecto — registra alias para AssetResolver.
- * Esto evita que Glory hardcodee rutas de App/.
- */
+/* Asset paths del proyecto */
 add_action('glory/register_asset_paths', function () {
     \Glory\Utility\AssetResolver::registerAssetPath('equipo', 'App/Assets/equipo');
     \Glory\Utility\AssetResolver::registerAssetPath('tema', 'App/Assets/images');

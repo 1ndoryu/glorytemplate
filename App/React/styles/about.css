@@ -1,0 +1,230 @@
+/*
+ * About (Nosotros) Page - Cosmo Revenue
+ * Metodología timeline, bio, contacto
+ */
+
+/* Sección información */
+.contenedorAbout .seccionInfo {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--gap-section) var(--pad-xs);
+    text-align: center;
+}
+
+.contenedorAbout .tituloAbout {
+    font-family: var(--font-heading) !important;
+    font-size: var(--text-hero);
+    font-weight: normal;
+    margin-bottom: var(--gap-md);
+    color: #1a1a1a;
+}
+
+.contenedorAbout .subtituloAbout {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto var(--gap-lg);
+    line-height: 1.6;
+}
+
+/* Timeline metodología */
+.contenedorAbout .seccionMetodologia {
+    padding: var(--gap-section) 0;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.contenedorAbout .tituloMetodologia {
+    font-family: var(--font-heading) !important;
+    font-size: 48px;
+    font-weight: normal;
+    text-align: center;
+    margin-bottom: 60px;
+    color: #1a1a1a;
+}
+
+.contenedorAbout .gridTimeline {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr;
+    gap: 0;
+    align-items: stretch;
+    max-width: 950px;
+    margin: 0 auto;
+}
+
+/* Columnas del timeline */
+.contenedorAbout .columnaIzquierda,
+.contenedorAbout .columnaDerecha {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--pad-sm);
+}
+
+.contenedorAbout .columnaIzquierda { text-align: right; }
+.contenedorAbout .columnaDerecha { text-align: left; }
+
+.contenedorAbout .pasoTimeline {
+    display: contents;
+}
+
+/* Los pasos pares se muestran a la izquierda, impares a la derecha */
+.contenedorAbout .pasoContenido {
+    padding: var(--pad-sm);
+}
+
+.contenedorAbout .pasoContenido h3 {
+    font-family: var(--font-heading);
+    font-size: var(--text-lg);
+    margin-bottom: var(--gap-xs);
+    color: #1a1a1a;
+    font-weight: 400;
+}
+
+.contenedorAbout .pasoContenido p {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    color: #555;
+    margin: 0;
+}
+
+/* Línea central */
+.contenedorAbout .lineaCentral {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.contenedorAbout .lineaCentral::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e0e0e0;
+}
+
+.contenedorAbout .puntoTimeline {
+    width: 14px;
+    height: 14px;
+    min-height: 14px;
+    background: var(--color-accent);
+    border-radius: 50%;
+    position: relative;
+    z-index: 2;
+    margin-top: var(--pad-sm);
+}
+
+.contenedorAbout .celdasVacia {
+    visibility: hidden;
+}
+
+/* Sección Bio */
+.contenedorAbout .seccionBio {
+    background: #f9f9f9;
+    padding: var(--gap-section) var(--pad-xs);
+}
+
+.contenedorAbout .contenidoBio {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-lg);
+    max-width: 1050px;
+    margin: 0 auto;
+    align-items: center;
+}
+
+.contenedorAbout .imagenBio {
+    flex: 1;
+    min-width: 280px;
+}
+
+.contenedorAbout .imagenBio img {
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    object-fit: cover;
+    max-height: 500px;
+}
+
+.contenedorAbout .textoBio {
+    flex: 1;
+    min-width: 300px;
+    text-align: left;
+}
+
+.contenedorAbout .textoBio h3 {
+    font-family: var(--font-heading);
+    font-size: 36px;
+    margin-bottom: var(--gap-sm);
+    color: #1a1a1a;
+    font-weight: 400;
+}
+
+.contenedorAbout .textoBio p {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: #444;
+    line-height: 1.8;
+    margin-bottom: var(--gap-md);
+}
+
+.contenedorAbout .botonBio {
+    display: inline-block;
+    padding: 6px 19px;
+    background-color: #9da876;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 25px;
+    font-family: var(--font-body);
+    transition: background 0.3s;
+}
+
+.contenedorAbout .botonBio:hover {
+    background-color: #8a9466;
+}
+
+/* Sección Contacto (dentro de About) */
+.contenedorAbout .seccionContacto {
+    padding: var(--gap-section) var(--pad-xs);
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.contenedorAbout .tituloContacto {
+    font-family: var(--font-heading) !important;
+    font-size: 48px;
+    margin-bottom: var(--gap-sm);
+    color: #1a1a1a;
+    font-weight: 400;
+}
+
+/* Responsive */
+@container gbn-root (max-width: 768px) {
+    .contenedorAbout .tituloAbout {
+        font-size: 40px;
+    }
+    .contenedorAbout .gridTimeline {
+        grid-template-columns: 40px 1fr;
+        gap: 0;
+    }
+    .contenedorAbout .columnaIzquierda {
+        display: none;
+    }
+    .contenedorAbout .columnaDerecha {
+        text-align: left;
+    }
+    .contenedorAbout .celdasVacia {
+        display: none;
+    }
+    .contenedorAbout .contenidoBio {
+        flex-direction: column;
+    }
+    .contenedorAbout .tituloMetodologia,
+    .contenedorAbout .tituloContacto {
+        font-size: 36px;
+    }
+}

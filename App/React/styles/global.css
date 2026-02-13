@@ -1,0 +1,117 @@
+/*
+ * Reset y base global - Cosmo Revenue
+ * Equivalente funcional de la parte no-componente de init.css
+ */
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+html {
+    background: var(--bg);
+    font-size: 16px;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    background-color: #f5f5f5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+}
+
+p, a, h3, h4, h5, h6, span {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: unset;
+    text-decoration: unset;
+}
+
+ul {
+    list-style: none;
+}
+
+img {
+    border-style: none;
+    vertical-align: top;
+    max-width: 100%;
+    height: auto;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+button {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+input, textarea {
+    background: unset;
+    border: none;
+    font-size: 14px;
+    color: var(--text);
+    resize: none;
+    line-height: 1.5;
+    width: 100%;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+}
+
+input::placeholder, textarea::placeholder {
+    color: var(--muted);
+    opacity: 0.9;
+}
+
+/* Container query support */
+main,
+.contenedorIsla {
+    container-type: inline-size;
+    container-name: gbn-root;
+    width: 100%;
+}
+
+/* Sección genérica */
+section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-content: center;
+    width: 100%;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: none;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 1rem;
+}

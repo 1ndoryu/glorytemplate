@@ -1,0 +1,104 @@
+/*
+ * Contacto Page - Cosmo Revenue
+ */
+
+.contenedorPaginaContacto {
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Info cards */
+.seccionInfoContacto {
+    padding: var(--pad-lg) var(--pad-xs) 0;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.gridInfoContacto {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gap-md);
+    margin-bottom: var(--gap-section);
+}
+
+.tarjetaInfo {
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: var(--pad-lg);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tarjetaInfo:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.iconoInfo {
+    width: 48px;
+    height: 48px;
+    background: var(--color-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--gap-sm);
+    color: #fff;
+    font-size: 20px;
+}
+
+.tarjetaInfo h3 {
+    font-family: var(--font-heading);
+    font-size: var(--text-lg);
+    color: #1a1a1a;
+    margin: 0 0 var(--gap-xs) 0;
+    font-weight: 400;
+}
+
+.tarjetaInfo p {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: #666;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.tarjetaInfo a {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.tarjetaInfo a:hover {
+    color: #7a8460;
+}
+
+/* Sección formulario */
+.seccionFormContacto {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 var(--pad-xs) var(--gap-section);
+}
+
+.tituloFormContacto {
+    font-family: var(--font-heading) !important;
+    font-size: 48px;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: var(--gap-lg);
+    color: #1a1a1a;
+}
+
+/* Responsive */
+@container gbn-root (max-width: 768px) {
+    .gridInfoContacto {
+        grid-template-columns: 1fr;
+        gap: var(--gap-sm);
+    }
+    .tarjetaInfo {
+        padding: var(--pad-sm);
+    }
+    .tituloFormContacto {
+        font-size: 36px;
+    }
+}

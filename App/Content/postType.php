@@ -26,4 +26,21 @@ PostTypeManager::define(
     'Tareas'
 );
 
+/*
+ * Casos de éxito - Cosmo Revenue
+ * Slug de rewrite 'caso' (singular) para evitar conflicto con la pagina /casos/
+ */
+PostTypeManager::define(
+    'casos',
+    [
+        'public' => true,
+        'has_archive' => false,
+        'supports' => ['title', 'editor', 'thumbnail', 'excerpt'],
+        'menu_icon' => 'dashicons-building',
+        'rewrite' => ['slug' => 'caso', 'with_front' => false],
+    ],
+    'Casos',
+    'Casos'
+);
+
 

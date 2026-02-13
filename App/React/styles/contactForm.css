@@ -1,0 +1,165 @@
+/*
+ * Formulario de contacto - Estilos globales
+ * Usado por: landing, about, contacto, servicio-detalle
+ */
+
+.seccionContacto {
+    padding: var(--gap-section) 0;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.contenedorContacto {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.formularioContacto {
+    max-width: 850px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.filaFormulario {
+    display: flex;
+    gap: var(--pad-lg);
+    margin-bottom: var(--gap-md);
+}
+
+.grupoFormulario {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.grupoFormulario.anchoCompleto {
+    width: 100%;
+    margin-bottom: var(--gap-md);
+}
+
+.grupoFormulario label {
+    font-size: var(--text-base);
+    color: #292929;
+    font-family: var(--font-body);
+    font-weight: normal;
+    margin-bottom: 8px;
+}
+
+.grupoFormulario input,
+.grupoFormulario textarea {
+    border: none;
+    border-bottom: 1px solid #a0a0a0;
+    padding: var(--gap-xs) 0;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    outline: none;
+    transition: border-color 0.3s;
+    background: transparent;
+    width: 100%;
+}
+
+.grupoFormulario input:focus,
+.grupoFormulario textarea:focus {
+    border-bottom-color: #313131;
+}
+
+.grupoFormulario textarea {
+    resize: none;
+    min-height: 40px;
+}
+
+.pieFormulario {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--pad-lg);
+    flex-wrap: wrap;
+    gap: var(--gap-sm);
+}
+
+.etiquetaCheckbox {
+    font-size: var(--text-base);
+    color: #666;
+    font-family: var(--font-body);
+    font-weight: normal;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap-xs);
+    cursor: pointer;
+}
+
+.etiquetaCheckbox input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: #8f9b6b;
+}
+
+.botonEnviar {
+    background-color: #9da876;
+    color: #fff;
+    border: none;
+    padding: 6px var(--pad-sm);
+    border-radius: 25px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    transition: background 0.3s;
+}
+
+.botonEnviar:hover {
+    background-color: #8a9466;
+}
+
+/* Badge de servicio seleccionado */
+.badgeServicio {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    padding: var(--gap-xs) var(--pad-sm);
+    border-radius: 8px;
+    margin-bottom: var(--gap-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--gap-xs);
+    text-align: center;
+}
+
+.badgeServicio .badgeEtiqueta {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 1px;
+}
+
+.badgeServicio .badgeValor {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+/* Responsive */
+@container gbn-root (max-width: 768px) {
+    .filaFormulario {
+        flex-direction: column;
+        gap: var(--gap-sm);
+    }
+
+    .pieFormulario {
+        flex-direction: column;
+        gap: var(--gap-md);
+        align-items: stretch;
+    }
+
+    .botonEnviar {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+
+    .etiquetaCheckbox {
+        justify-content: center;
+    }
+}

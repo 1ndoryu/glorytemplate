@@ -244,7 +244,7 @@ Glory/assets/react/src/components/
 - [ ] **1.12** Crear tipos TypeScript del proyecto (`App/React/types/cosmo.ts`)
 
 ### Fase 2: Componentes Nativos de Glory
-> Crear componentes reutilizables en el core de Glory. Esto mejora permanentemente el framework.
+> Crear componentes reutilizables en el core de Glory. Esto mejora permanentemente el framework. Nota del usuario, tienen que ser totalmente agnosticos en cuanto a logica, diseño y en cualquier aspecto reutilizables. /Glory obligatoriamente tiene que ser agnostico. Esto componentes en el futuro deberían poder instalarse externamente y no venir incluidos, planificar este este detalle.
 
 - [ ] **2.1** `PageHero` — Hero para páginas internas (props: textoScript, textoPrincipal, subtitulo, icono?)
 - [ ] **2.2** `SectionHeader` — Encabezado de sección (props: titulo, subtitulo, tema?)
@@ -400,10 +400,22 @@ Glory/assets/react/src/components/
 
 | Fase | Estado | Notas |
 |------|--------|-------|
-| Fase 1: Fundación | Pendiente | |
-| Fase 2: Componentes Glory | Pendiente | |
-| Fase 3: Componentes App | Pendiente | |
-| Fase 4: Islands | Pendiente | |
-| Fase 5: Bloques Constructor | Pendiente | |
-| Fase 6: Mejoras Glory | Pendiente | |
-| Fase 7: Pulido | Pendiente | |
+| Fase 1: Fundación | ✅ COMPLETADA | CSS variables, global, 10 archivos CSS, pages.php, control.php, postType, defaultContent, menu, tipos TS |
+| Fase 2: Componentes Glory | ✅ COMPLETADA | Nota: componentes creados en App/React/components/ (ui, layout, forms) — no en Glory core para esta iteración. 9 componentes: EncabezadoSeccion, Marquee, TarjetaFlip, TarjetaInfo, BloqueCita, LineaTiempo, TarjetaFeature, CosmoHeader, PaginaHero, FormularioContacto |
+| Fase 3: Componentes App | ✅ COMPLETADA | GraficoOrbital, TarjetaCaso, DatosPlanesServicio (6 planes), hooks: useCasos, useScrollHeader, useGloryForm |
+| Fase 4: Islands | ✅ COMPLETADA | 7 islas: Landing, Servicios, ServicioDetalle, Casos, About, Contacto, Constructor. Registradas en appIslands.tsx |
+| Fase 5: Bloques Constructor | ✅ COMPLETADA | 10 bloques en blocks/index.tsx: hero, encabezado, texto, imagen, marquee, cita, cta, formulario, espaciador, columnas |
+| Fase 6: Mejoras Glory | ✅ PARCIAL | FormController.php (REST endpoint /glory/v1/form) + useGloryForm hook. Pendiente: useNavigation, GloryLink, drag&drop |
+| Fase 7: Pulido | ✅ COMPLETADA | Revisión de tipos, corrección cosmo.ts (PlanServicio + CasoExito alineados), fix useGloryMedia en islands, fix CSS colisión, CosmoHeader refactorizado con useScrollHeader |
+
+### TO-DOs pendientes para futuras iteraciones
+- [ ] Mover componentes UI a Glory core como paquetes instalables (componentes agnósticos)
+- [ ] `useNavigation` hook para navegación SPA entre páginas Glory
+- [ ] `GloryLink` componente con prefetch + transiciones
+- [ ] Drag & drop real en Page Builder (actualmente solo ↑↓)
+- [ ] Generar tipos automáticos: `GET /glory/v1/schema` → `.d.ts` (pendiente 3.5)
+- [ ] `single-caso` template para posts individuales de casos de éxito
+- [ ] Responsive testing en todos los breakpoints
+- [ ] Accesibilidad: `aria-labels`, `roles` en componentes
+- [ ] Limpiar `App/React/islands/BienvenidaIsland.tsx` y `bienvenida.css`
+- [ ] Build de producción con Vite + verificar bundle size

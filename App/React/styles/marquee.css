@@ -1,0 +1,85 @@
+/*
+ * Marquee - Componente de texto animado infinito
+ * Esquemas: .marquee--light (oscuro sobre claro) y .marquee--dark (claro sobre oscuro)
+ */
+
+.marquee {
+    width: 100%;
+    padding: 14px 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.marquee .marqueeTrack {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    width: max-content;
+    will-change: transform;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    animation: marquee-scroll 25s linear infinite;
+}
+
+.marquee .marqueeTexto {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-family: var(--font-body);
+    white-space: nowrap;
+}
+
+.marquee .marqueeIcono {
+    width: 19px;
+    height: 19px;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+/* Esquema claro */
+.marquee--light .marqueeTexto { color: #333; }
+.marquee--light .marqueeIcono path { fill: #333; }
+
+/* Esquema oscuro */
+.marquee--dark .marqueeTexto { color: #f4f4f4; }
+.marquee--dark .marqueeIcono path { fill: #f4f4f4; }
+
+@keyframes marquee-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* Contexto landing - hero marquee */
+.contenedorLanding .heroMarquee.marquee {
+    position: absolute;
+    bottom: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.contenedorLanding .heroMarquee .marqueeTexto { color: #fff; }
+.contenedorLanding .heroMarquee .marqueeIcono path { fill: #fff; }
+
+/* Cases marquee */
+.contenedorLanding .casosMarquee.marquee {
+    border-top: 2px solid rgba(58, 58, 58, 0.5);
+    margin-top: calc(2vh + 96px);
+}
+
+/* Methodology marquee */
+.contenedorLanding .metodologiaMarquee.marquee {
+    background-color: #1a1a1a;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* About marquee */
+.contenedorLanding .aboutMarquee.marquee {
+    border-top: 2px solid #ccc;
+    border-bottom: 2px solid #ccc;
+}
+
+@container gbn-root (max-width: 1024px) {
+    .marquee .marqueeTrack {
+        animation-duration: 20s;
+    }
+}

@@ -1,0 +1,120 @@
+/*
+ * Casos de Éxito Page - Cosmo Revenue
+ */
+
+/* Grid de casos */
+.seccionCasos {
+    padding: var(--pad-lg) var(--pad-xs) var(--gap-section);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Quote section */
+.seccionCita {
+    background-color: rgba(145, 150, 121);
+    padding: 100px var(--pad-xs);
+    text-align: center;
+}
+
+.contenidoCita {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.iconoCita {
+    font-size: 48px;
+    display: block;
+    opacity: 0.8;
+}
+
+.iconoCita svg {
+    color: #f4f4f4;
+    height: 64px;
+    width: 64px;
+}
+
+.textoCita {
+    font-family: var(--font-body) !important;
+    font-size: var(--text-lg) !important;
+    color: #f4f4f4 !important;
+    line-height: 1.4;
+    margin-bottom: var(--gap-md);
+}
+
+.autorCita {
+    font-family: var(--font-body) !important;
+    font-size: var(--text-base) !important;
+    color: #f4f4f4b4 !important;
+    letter-spacing: 1px;
+    opacity: 0.9;
+}
+
+/* CTA de casos */
+.ctaCasos {
+    text-align: center;
+    padding: 128px 0;
+    background-color: rgba(245, 245, 234);
+}
+
+.tituloCta {
+    font-family: var(--font-heading) !important;
+    font-weight: normal !important;
+    font-size: var(--text-hero) !important;
+    margin-bottom: var(--pad-xs) !important;
+    font-style: italic;
+    color: #1a1a1a;
+}
+
+.textoCta {
+    font-family: var(--font-body) !important;
+    font-size: var(--text-base);
+    color: #1d1d1d;
+    margin-bottom: var(--pad-lg);
+    max-width: 500px;
+    margin: auto;
+}
+
+.botonCta {
+    display: inline-block;
+    background-color: #9da876;
+    color: #fff;
+    padding: 5px var(--pad-xs);
+    border-radius: 30px;
+    margin-top: var(--gap-sm);
+    text-decoration: none;
+    border: 1px solid transparent;
+    font-size: var(--text-base);
+    transition: background 0.3s, transform 0.3s;
+}
+
+.botonCta:hover {
+    border: 1px solid #8c9669;
+    background-color: transparent;
+    color: #8c9669;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@container gbn-root (max-width: 768px) {
+    .seccionCita {
+        padding: 60px 20px;
+    }
+    .textoCita {
+        font-size: 22px !important;
+    }
+    .iconoCita svg {
+        width: 48px;
+        height: 48px;
+    }
+    .ctaCasos {
+        padding: 60px 20px;
+    }
+    .tituloCta {
+        font-size: 40px !important;
+        line-height: 1.1;
+    }
+    .textoCta {
+        font-size: 16px;
+        padding: 0 10px;
+    }
+}
