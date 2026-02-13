@@ -12,7 +12,7 @@ interface BienvenidaIslandProps {
     titulo?: string;
 }
 
-export const BienvenidaIsland = ({titulo = 'Bienvenido a Glory React'}: BienvenidaIslandProps): JSX.Element => {
+export const BienvenidaIsland = ({titulo = 'Bienvenido a Glory React'}: BienvenidaIslandProps): React.JSX.Element => {
     return (
         <div className="contenedorBienvenida">
             <h1 className="tituloBienvenida">{titulo}</h1>
