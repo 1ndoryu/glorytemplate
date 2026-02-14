@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useScrollHeader } from '@app/hooks/useScrollHeader';
+import { GloryLink } from '@/core/router';
 import '@app/styles/header.css';
 
 /*
@@ -31,9 +32,9 @@ export function CosmoHeader(): React.JSX.Element {
     return (
         <header className={`cosmoHeader ${scrolled ? 'scrolled' : ''} ${menuAbierto ? 'open' : ''}`} id="headerCosmo">
             <div className="cosmoHeaderLogo">
-                <a href="/" className="cosmoHeaderLogoSvg" aria-label="Inicio">
+                <GloryLink href="/" className="cosmoHeaderLogoSvg" aria-label="Inicio">
                     <img src={logoPrincipal} alt="Cosmo Revenue" className="cosmoHeaderLogoImagen" />
-                </a>
+                </GloryLink>
             </div>
 
             <button
@@ -55,9 +56,9 @@ export function CosmoHeader(): React.JSX.Element {
                 <ul>
                     {items.map((item, i) => (
                         <li key={item.url}>
-                            <a href={item.url} onClick={cerrarMenu}>
+                            <GloryLink href={item.url} onClick={cerrarMenu}>
                                 {item.titulo}
-                            </a>
+                            </GloryLink>
                         </li>
                     ))}
                 </ul>

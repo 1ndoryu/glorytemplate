@@ -1,4 +1,5 @@
 import React from 'react';
+import { GloryLink } from '@/core/router';
 
 interface TarjetaFeatureProps {
     icono?: React.ReactNode;
@@ -61,7 +62,7 @@ export function TarjetaFeature({
             </div>
             {enlace && (
                 <div className="card-footer">
-                    <a href={enlace} className="btn-card">{textoEnlace}</a>
+                    <GloryLink href={enlace} className="btn-card">{textoEnlace}</GloryLink>
                 </div>
             )}
         </div>

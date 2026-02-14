@@ -12,6 +12,7 @@ import { CosmoHeader } from '@app/components/layout/CosmoHeader';
 import { PaginaHero } from '@app/components/layout/PaginaHero';
 import { Marquee } from '@app/components/ui/Marquee';
 import { TarjetaFeature } from '@app/components/ui/TarjetaFeature';
+import { GloryLink } from '@/core/router';
 import {
     planesMarketing,
     planesConsultoria,
@@ -107,7 +108,7 @@ export function ServiciosIsland(): React.JSX.Element {
                                 </ul>
                             </div>
 
-                            <a href="/servicio-orbit/" className="btn-orbit">Solicitar diagnóstico +</a>
+                            <GloryLink href="/servicio-orbit/" className="btn-orbit">Solicitar diagnóstico +</GloryLink>
                         </div>
                     </div>
                 </div>
@@ -146,7 +147,7 @@ export function ServiciosIsland(): React.JSX.Element {
                     <div className="services-revenue-bottom-content">
                         <h2 className="section-title-italic">¿Dudas sobre qué plan elegir?</h2>
                         <p className="revenue-bottom-text">Hablemos. Analizaremos tu situación y te recomendamos la órbita adecuada para tu despegue.</p>
-                        <a href="/contacto/" className="btn-submit-revenue">Contactar</a>
+                        <GloryLink href="/contacto/" className="btn-submit-revenue">Contactar</GloryLink>
                     </div>
                 </div>
             </section>

@@ -13,6 +13,7 @@ import '@app/styles/landing.css';
 import { CosmoHeader } from '@app/components/layout/CosmoHeader';
 import { PaginaHero } from '@app/components/layout/PaginaHero';
 import { Marquee } from '@app/components/ui/Marquee';
+import { GloryLink } from '@/core/router';
 import { BloqueCita } from '@app/components/ui/BloqueCita';
 import { TarjetaCaso } from '@app/components/cosmo/TarjetaCaso';
 import { useCasos } from '@app/hooks/useCasos';
@@ -55,7 +56,7 @@ export function CasosIsland(): React.JSX.Element {
             <section className="casos-cta">
                 <h2 className="cta-title">¿Listo para escribir tu caso de éxito?</h2>
                 <p className="cta-text">Analicemos el potencial oculto de tu alojamiento. Empieza con una auditoría o una consulta estratégica hoy mismo.</p>
-                <a href="/contacto/" className="btn-cta">Contactar</a>
+                <GloryLink href="/contacto/" className="btn-cta">Contactar</GloryLink>
             </section>
         </div>
     );

@@ -18,6 +18,7 @@ import { GraficoOrbital } from '@app/components/cosmo/GraficoOrbital';
 import { TarjetaCaso } from '@app/components/cosmo/TarjetaCaso';
 import { useCasos } from '@app/hooks/useCasos';
 import { useGloryMedia } from '@/hooks';
+import { GloryLink } from '@/core/router';
 import type { CasoExito } from '@app/types/cosmo';
 
 function resolverImagenTema(alias: string, urlApi: string | null): string {
@@ -84,12 +85,12 @@ export function LandingIsland(): React.JSX.Element {
                         Ordenamos el universo de tus<br />
                         <span className="highlight-text">INGRESOS</span>
                     </h1>
-                    <a href="/contacto/" className="btn-auditoria">
+                    <GloryLink href="/contacto/" className="btn-auditoria">
                         <svg className="auditoria-icon" viewBox="0 0 26.19 26.19" fill="currentColor">
                             <path d="m13.09,0l1.37,8.33c.29,1.74,1.65,3.11,3.39,3.39l8.33,1.37-8.33,1.37c-1.74.29-3.11,1.65-3.39,3.39l-1.37,8.33-1.37-8.33c-.29-1.74-1.65-3.11-3.39-3.39L0,13.09l8.33-1.37c1.74-.29,3.11-1.65,3.39-3.39L13.09,0Z" />
                         </svg>
                         Reservar auditoría
-                    </a>
+                    </GloryLink>
                 </div>
                 <Marquee texto="ESTRATEGIA, ANÁLISIS y RESULTADOS REALES" variante="dark" className="hero-marquee" />
             </section>
@@ -152,7 +153,7 @@ export function LandingIsland(): React.JSX.Element {
                     <p className="about-text">
                         En Cosmo Revenue somos una consultoría boutique especializada en revenue management y RevOps para la industria hotelera. Nos dedicamos a brindar soluciones personalizadas, fundamentadas en datos reales y en un enfoque cercano y de confianza con nuestros clientes. Nuestro objetivo es empoderar a los hoteles para que tomen decisiones de ingresos con claridad y seguridad, generando resultados sostenibles y duraderos.
                     </p>
-                    <a href="/about/" className="btn-about">Leer más</a>
+                    <GloryLink href="/about/" className="btn-about">Leer más</GloryLink>
                 </div>
                 <Marquee texto="ES EL MEJOR MOMENTO PARA DESPEGAR" variante="light" className="about-marquee" />
             </section>

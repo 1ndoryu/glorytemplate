@@ -15,19 +15,24 @@ export function TarjetaCaso({
     caso,
     className = '',
 }: TarjetaCasoProps): React.JSX.Element {
+    const tituloTipo = caso.meta.caso_tipo || caso.titulo;
+    const ubicacion = caso.meta.caso_ubicacion || caso.slug;
+    const valor = caso.meta.caso_valor || caso.titulo;
+    const descripcion = caso.meta.caso_descripcion || caso.extracto;
+
     return (
         <article className={`case-card ${className}`}>
             <div className="case-meta">
-                <h3 className="case-flotante">{caso.meta.caso_tipo}</h3>
-                <span className="case-flotante">{caso.meta.caso_ubicacion}</span>
+                <h3 className="case-flotante">{tituloTipo}</h3>
+                <span className="case-flotante">{ubicacion}</span>
             </div>
             <div
                 className="case-image"
                 style={{ backgroundImage: `url(${caso.imagen})` }}
             >
                 <div className="case-stat">
-                    <h4>{caso.meta.caso_valor}</h4>
-                    <p>{caso.meta.caso_descripcion}</p>
+                    <h4>{valor}</h4>
+                    <p>{descripcion}</p>
                 </div>
             </div>
         </article>

@@ -6,6 +6,7 @@
 import { BlockRegistry } from '@/pageBuilder';
 import type { BlockDefinition } from '@/pageBuilder/types';
 import React from 'react';
+import { GloryLink } from '@/core/router';
 
 /* Importar componentes reutilizables para los bloques */
 import { EncabezadoSeccion } from '@app/components/ui/EncabezadoSeccion';
@@ -22,9 +23,9 @@ function HeroBlockComponent({ data }: { data: HeroBlockProps; blockId: string })
                 <h1 className="heroTitulo">{data.titulo}</h1>
                 {data.subtitulo && <p className="heroSubtitulo">{data.subtitulo}</p>}
                 {data.textoBoton && (
-                    <a href={data.enlaceBoton} className="botonAbout" style={{ marginTop: '20px', display: 'inline-block' }}>
+                    <GloryLink href={data.enlaceBoton} className="botonAbout" style={{ marginTop: '20px', display: 'inline-block' }}>
                         {data.textoBoton}
-                    </a>
+                    </GloryLink>
                 )}
             </div>
         </section>
@@ -79,7 +80,7 @@ function CtaBlockComponent({ data }: { data: CtaBlockProps }): React.JSX.Element
         <section className="ctaCasos">
             <h2 className="tituloCta">{data.titulo}</h2>
             <p className="textoCta">{data.texto}</p>
-            <a href={data.enlaceBoton} className="botonCta">{data.textoBoton}</a>
+            <GloryLink href={data.enlaceBoton} className="botonCta">{data.textoBoton}</GloryLink>
         </section>
     );
 }

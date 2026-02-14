@@ -8,7 +8,8 @@ interface CasoWpRaw {
     title: { rendered: string };
     excerpt: { rendered: string };
     content: { rendered: string };
-    meta: Record<string, string>;
+    meta: Record<string, unknown>;
+    acf?: Record<string, unknown>;
     _embedded?: {
         'wp:featuredmedia'?: Array<{ source_url: string }>;
     };
@@ -18,51 +19,93 @@ function limpiarHtml(texto: string): string {
     return texto.replace(/<[^>]+>/g, '').trim();
 }
 
+function valorMetaComoTexto(value: unknown): string {
+    if (typeof value === 'string') {
+        return value.trim();
+    }
+
+    if (typeof value === 'number' || typeof value === 'boolean') {
+        return String(value);
+    }
+
+    if (Array.isArray(value)) {
+        const primerValor = value.find((item) => item !== null && item !== undefined);
+        return valorMetaComoTexto(primerValor);
+    }
+
+    return '';
+}
+
+function normalizarClaveMeta(key: string): string {
+    return key.toLowerCase().replace(/^_+/, '').replace(/[^a-z0-9]/g, '');
+}
+
+function obtenerMetaTexto(meta: Record<string, unknown> | undefined, key: string): string {
+    if (!meta) {
+        return '';
+    }
+
+    const exacto = valorMetaComoTexto(meta[key]);
+    if (exacto) {
+        return exacto;
+    }
+
+    const objetivo = normalizarClaveMeta(key);
+    const encontrada = Object.keys(meta).find((candidate) => normalizarClaveMeta(candidate) === objetivo);
+
+    return encontrada ? valorMetaComoTexto(meta[encontrada]) : '';
+}
+
+function construirMetaCaso(metaOrigen: Record<string, unknown> | undefined, titulo: string, extracto: string): CasoExito['meta'] {
+    const casoTipo = obtenerMetaTexto(metaOrigen, 'caso_tipo') || titulo;
+    const casoDescripcion =
+        obtenerMetaTexto(metaOrigen, 'caso_descripcion') ||
+        extracto;
+
+    return {
+        caso_tipo: casoTipo,
+        caso_ubicacion: obtenerMetaTexto(metaOrigen, 'caso_ubicacion'),
+        caso_valor: obtenerMetaTexto(metaOrigen, 'caso_valor'),
+        caso_descripcion: casoDescripcion,
+        caso_cliente: obtenerMetaTexto(metaOrigen, 'caso_cliente'),
+        caso_servicios: obtenerMetaTexto(metaOrigen, 'caso_servicios'),
+        caso_duracion: obtenerMetaTexto(metaOrigen, 'caso_duracion'),
+        caso_cita: obtenerMetaTexto(metaOrigen, 'caso_cita'),
+        caso_cita_autor: obtenerMetaTexto(metaOrigen, 'caso_cita_autor'),
+        caso_resultados: obtenerMetaTexto(metaOrigen, 'caso_resultados'),
+    };
+}
+
 function mapearCasoDesdeRest(raw: CasoWpRaw): CasoExito {
+    const titulo = raw.title.rendered;
+    const extracto = limpiarHtml(raw.excerpt.rendered);
+    const metaOrigen = raw.meta && Object.keys(raw.meta).length > 0 ? raw.meta : raw.acf;
+
     return {
         id: raw.id,
         slug: raw.slug,
-        titulo: raw.title.rendered,
-        extracto: limpiarHtml(raw.excerpt.rendered),
+        titulo,
+        extracto,
         contenido: raw.content.rendered,
         imagen: raw._embedded?.['wp:featuredmedia']?.[0]?.source_url ?? '',
-        meta: {
-            caso_tipo: raw.meta?.caso_tipo ?? '',
-            caso_ubicacion: raw.meta?.caso_ubicacion ?? '',
-            caso_valor: raw.meta?.caso_valor ?? '',
-            caso_descripcion: raw.meta?.caso_descripcion ?? '',
-            caso_cliente: raw.meta?.caso_cliente ?? '',
-            caso_servicios: raw.meta?.caso_servicios ?? '',
-            caso_duracion: raw.meta?.caso_duracion ?? '',
-            caso_cita: raw.meta?.caso_cita ?? '',
-            caso_cita_autor: raw.meta?.caso_cita_autor ?? '',
-            caso_resultados: raw.meta?.caso_resultados ?? '',
-        },
+        meta: construirMetaCaso(metaOrigen, titulo, extracto),
     };
 }
 
 function mapearCasoDesdeGlory(raw: WPPost): CasoExito {
     const idNormalizado = typeof raw.id === 'number' ? raw.id : Number(raw.id);
-    const meta = raw.meta as Record<string, string>;
+    const titulo = typeof raw.title === 'string' ? raw.title : '';
+    const extracto = limpiarHtml(raw.excerpt ?? '');
+    const meta = raw.meta as Record<string, unknown>;
+
     return {
         id: Number.isNaN(idNormalizado) ? 0 : idNormalizado,
         slug: raw.slug,
-        titulo: raw.title,
-        extracto: limpiarHtml(raw.excerpt ?? ''),
+        titulo,
+        extracto,
         contenido: raw.content ?? '',
         imagen: raw.featuredImage?.url ?? '',
-        meta: {
-            caso_tipo: meta?.caso_tipo ?? '',
-            caso_ubicacion: meta?.caso_ubicacion ?? '',
-            caso_valor: meta?.caso_valor ?? '',
-            caso_descripcion: meta?.caso_descripcion ?? '',
-            caso_cliente: meta?.caso_cliente ?? '',
-            caso_servicios: meta?.caso_servicios ?? '',
-            caso_duracion: meta?.caso_duracion ?? '',
-            caso_cita: meta?.caso_cita ?? '',
-            caso_cita_autor: meta?.caso_cita_autor ?? '',
-            caso_resultados: meta?.caso_resultados ?? '',
-        },
+        meta: construirMetaCaso(meta, titulo, extracto),
     };
 }
 

@@ -425,10 +425,16 @@ Glory/assets/react/src/components/
 - [x] **Defensivo**: `useGloryContent` ahora normaliza `id` (acepta string numérico y lo castea a number) para ser resiliente a futuros cambios PHP.
 - [x] **Meta fields REST**: Registrados 10 meta fields del CPT `casos` con `register_post_meta()` + `show_in_rest => true` para que el fallback REST API también devuelva datos completos.
 
+### Ajustes iteración (13 feb 2026) — Normalización robusta de textos y meta
+- [x] `useCasos` normaliza meta desde múltiples fuentes (`meta`, `acf`, arrays y variantes de clave), evitando campos vacíos por diferencias de shape entre WordPress/Core/REST.
+- [x] `useCasos` añade fallback semántico por campo (`caso_tipo` → título, `caso_descripcion` → extracto) para preservar render útil incluso con datos incompletos.
+- [x] `TarjetaCaso` usa fallback de contenido para que nunca renderice tarjeta sin texto visible si algún meta viene ausente.
+
 ### TO-DOs pendientes para futuras iteraciones
-- [ ] Mover componentes UI a Glory core como paquetes instalables (componentes agnósticos)
-- [ ] `useNavigation` hook para navegación SPA entre páginas Glory
-- [ ] `GloryLink` componente con prefetch + transiciones
+- [x] `useNavigation` hook para navegación SPA entre páginas Glory
+- [x] `GloryLink` componente con prefetch + transiciones
+- [ ] Prefetch de islas al hover sobre GloryLink
+- [ ] Transiciones animadas entre páginas (framer-motion)
 - [ ] Drag & drop real en Page Builder (actualmente solo ↑↓)
 - [ ] Generar tipos automáticos: `GET /glory/v1/schema` → `.d.ts` (pendiente 3.5)
 - [ ] `single-caso` template para posts individuales de casos de éxito
@@ -436,3 +442,16 @@ Glory/assets/react/src/components/
 - [ ] Accesibilidad: `aria-labels`, `roles` en componentes
 - [ ] Limpiar `App/React/islands/BienvenidaIsland.tsx` y `bienvenida.css`
 - [ ] Build de producción con Vite + verificar bundle size
+
+### Iteración (13 feb 2026) — Navegación SPA nativa entre islas
+- [x] **PHP**: `PageDefinition::getReactPageRoutes()` — Serializa mapa de rutas React (slug → island + props + title).
+- [x] **PHP**: `ReactIslands::enqueueScripts()` — Inyecta `window.__GLORY_ROUTES__` y puebla `window.GLORY_CONTEXT` con datos base (siteUrl, nonce, restUrl, etc.).
+- [x] **React**: `navigationStore.ts` — Store Zustand con ruta actual, isla activa, navegación, historial (popstate).
+- [x] **React**: `GloryLink.tsx` — Componente `<a>` que intercepta clicks internos y navega via store SPA. Soporta Ctrl/Cmd+click, enlaces externos, forceReload.
+- [x] **React**: `PageRenderer.tsx` — Renderiza isla correspondiente a la ruta actual con ErrorBoundary y Suspense.
+- [x] **React**: `useNavigation.ts` — Hook público: `navegar()`, `volverAtras()`, `esRutaActiva()`, `rutaActual`.
+- [x] **React**: `hydration.tsx` — Detecta `__GLORY_ROUTES__` y activa modo SPA (PageRenderer) o modo clásico (islas individuales).
+- [x] **App**: Todos los `<a href>` internos reemplazados por `<GloryLink>` en CosmoHeader, LandingIsland, ServiciosIsland, CasosIsland, TarjetaFeature, blocks/index.
+- [x] **Tipos**: `glory.ts` actualizado con `GloryRouteConfig`, `GloryRoutesMap`, `window.__GLORY_ROUTES__`.
+- [x] **Exports**: `core/index.ts` y `hooks/index.ts` exportan módulos de router.
+- [x] **Docs**: Sección "Navegación SPA entre islas" añadida a `Glory/readme.md`.
