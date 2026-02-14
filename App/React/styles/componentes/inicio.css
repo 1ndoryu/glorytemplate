@@ -1,0 +1,145 @@
+/*
+ * inicio.css — Kamples
+ * Estilos del feed principal (InicioIsland).
+ */
+
+.inicioContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXl);
+    padding: var(--espacioLg);
+    max-width: var(--anchoMaximoContenido);
+    margin: 0 auto;
+}
+
+.inicioCabecera {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.inicioTitulo {
+    font-size: var(--fuente2xl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.inicioSubtitulo {
+    font-size: var(--fuenteBase);
+    color: var(--textoSecundario);
+    margin: 0;
+}
+
+/* Secciones del feed */
+.inicioSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.inicioSeccionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.inicioSeccionTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.inicioSeccionLink {
+    font-size: var(--fuenteSm);
+    color: var(--acento);
+    cursor: pointer;
+    transition: opacity var(--transicionBase);
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.inicioSeccionLink:hover {
+    opacity: 0.8;
+}
+
+/* Grid horizontal para tarjetas destacadas */
+.inicioGridHorizontal {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--espacioMd);
+}
+
+/* Card destacada (hero card) */
+.inicioHeroCard {
+    position: relative;
+    background: linear-gradient(135deg, var(--superficieElevada), var(--superficieSutil));
+    border: 1px solid var(--bordeClaro);
+    border-radius: var(--radioLg);
+    padding: var(--espacioXl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    overflow: hidden;
+}
+
+.inicioHeroCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, var(--acento) 0%, transparent 70%);
+    opacity: 0.05;
+    pointer-events: none;
+}
+
+.inicioHeroTitulo {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+}
+
+.inicioHeroDescripcion {
+    font-size: var(--fuenteBase);
+    color: var(--textoSecundario);
+    line-height: 1.6;
+}
+
+/* Lista vertical de samples */
+.inicioLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+/* Estado vacío */
+.inicioVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioXl);
+    color: var(--textoSecundario);
+    text-align: center;
+    min-height: 200px;
+}
+
+.inicioVacioIcono {
+    opacity: 0.4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .inicioGridHorizontal {
+        grid-template-columns: 1fr;
+    }
+
+    .inicioHeroCard {
+        padding: var(--espacioLg);
+    }
+}

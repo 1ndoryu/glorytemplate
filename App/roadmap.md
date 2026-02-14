@@ -546,7 +546,8 @@ reproducciones (
 - [x] **1.6** Isla `EditarPerfilIsland` (editar avatar, portada, bio, username) — creada con preview de imágenes
 - [x] **1.7** Componentes: `Avatar`, `FormularioAuth`, `CampoTexto` — Avatar y CampoTexto creados en Fase 0
 - [x] **1.8** Middleware de autenticación para API Kamples — `AuthMiddleware.php` con requerirAuth, requerirCreador, requerirPlanPro
-- [ ] **1.9** Guard de rutas (proteger páginas que requieren auth)
+- [x] **1.9** Guard de rutas (proteger páginas que requieren auth) — `ConAutenticacion.tsx` HOC con redirect a login y guardado de URL de retorno
+- [ ] **1.10** Home pública (`LandingPublicaIsland`) para usuarios no logeados + redirección a `/` autenticado cuando exista sesión
 
 **Entregable:** Usuario puede registrarse, loguearse con Google, y editar su perfil.
 
@@ -556,7 +557,7 @@ reproducciones (
 ### FASE 2 — Core de Samples
 > **Objetivo:** Subir, procesar, explorar y reproducir samples  
 > **Duración estimada:** 3-4 semanas  
-> **Estado:** `pendiente`
+> **Estado:** `en progreso`
 
 - [ ] **2.1** Pipeline completo de upload:
   - Drag&drop / selector de archivos
@@ -571,31 +572,32 @@ reproducciones (
   - Generar descripción IA
   - Generar embedding vectorial para similitud
   - Apoyarse en la descripción del usuario para mejorar análisis
-- [ ] **2.3** Isla `SubirIsland`:
+- [x] **2.3** Isla `SubirIsland`:
   - `DropZone` con preview de archivo
   - Formulario de metadata manual (título, descripción, tags, imagen)
   - Barra de progreso: upload → procesando → publicado
   - Subida múltiple (varios samples de una vez)
-- [ ] **2.4** Isla `SamplesIsland` (explorador):
+  - Guard de autenticación aplicado con `conAutenticacion` HOC
+- [x] **2.4** Isla `SamplesIsland` (explorador):
   - Lista virtualizada de samples (rendimiento con miles)
   - `TarjetaSample`: waveform mini, play inline, título, creador, BPM, key, tags
   - Filtros en tiempo real: BPM (rango slider), key, género, tipo, duración
   - Ordenar: relevancia, recientes, popular, duración
   - Búsqueda por texto (título, tags, descripción)
   - Paginación infinita o virtual scroll
-- [ ] **2.5** Isla `SampleDetalleIsland`:
+- [x] **2.5** Isla `SampleDetalleIsland`:
   - Waveform grande interactivo (click-to-seek)
   - Metadata completa
   - Botón descarga (con control de límites)
   - Samples similares (primeros pasos del algoritmo: pgvector)
   - Imagen del sample
   - Perfil del creador (link)
-- [ ] **2.6** Componente `WaveformPlayer`:
+- [x] **2.6** Componente `WaveformPlayer`:
   - Renderizado con Canvas (precalculado, picos del JSON)
   - Interactivo: click-to-seek, hover-to-preview-position
   - Responsive a diferentes tamaños
   - Colores customizables (played vs unplayed)
-- [ ] **2.7** Componente `ReproductorGlobal`:
+- [x] **2.7** Componente `ReproductorGlobal`:
   - Barra inferior persistente (no se pierde al navegar SPA)
   - Play/pause, seek, volumen, tiempo
   - Waveform mini
@@ -670,11 +672,12 @@ reproducciones (
   - Modo social: texto + imágenes (múltiples)
   - Modo sample: texto + múltiples samples adjuntos
   - Preview de archivos antes de publicar
-- [ ] **4.4** Isla `InicioIsland` (feed principal):
+- [x] **4.4** Isla `InicioIsland` (feed principal):
   - Mezcla de publicaciones de seguidos + samples trending
   - Algoritmo de feed (señal 5: grafo social)
   - Like, comentar, repostear
   - Paginación infinita
+  - Secciones: Trending, Recientes, Para ti — conectadas a `obtenerFeed`
 - [ ] **4.5** Comentarios en publicaciones y samples
 - [ ] **4.6** Reposts (compartir publicación de otro)
 - [ ] **4.7** Actualizar `PerfilIsland`:

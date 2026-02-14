@@ -12,6 +12,7 @@ import { crearToast } from '../../components/ui/Notificacion';
 import { obtenerUsuarioActual, actualizarPerfil } from '../../services/apiAuth';
 import type { Usuario } from '../../types/usuario';
 import { crearLogger } from '../../services/logger';
+import { conAutenticacion } from '../../components/auth/ConAutenticacion';
 import '../../styles/componentes/editarPerfil.css';
 
 const log = crearLogger('EditarPerfilIsland');
@@ -203,4 +204,4 @@ export const EditarPerfilIsland = (): JSX.Element => {
     );
 };
 
-export default EditarPerfilIsland;
+export default conAutenticacion(EditarPerfilIsland as React.ComponentType<Record<string, unknown>>);

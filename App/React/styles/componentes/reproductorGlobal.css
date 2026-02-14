@@ -1,0 +1,205 @@
+/*
+ * reproductorGlobal.css — Kamples
+ * Barra inferior persistente del reproductor de audio.
+ * Visible cuando hay un sample en reproducción.
+ */
+
+.reproductorGlobal {
+    position: fixed;
+    bottom: 0;
+    left: var(--anchoSidebar);
+    right: 0;
+    height: var(--altoReproductor);
+    background-color: var(--fondoElevado1);
+    border-top: 1px solid var(--bordeSutil);
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    align-items: center;
+    padding: 0 var(--espacioLg);
+    z-index: var(--zReproductor);
+    gap: var(--espacioLg);
+}
+
+/* Sección izquierda: info del sample */
+.reproductorInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    min-width: 0;
+    overflow: hidden;
+}
+
+.reproductorImagen {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radioSm);
+    background-color: var(--fondoElevado3);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--textoTerciario);
+    overflow: hidden;
+}
+
+.reproductorImagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.reproductorTextos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.reproductorTitulo {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reproductorArtista {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.reproductorArtista:hover {
+    color: var(--acentoTexto);
+}
+
+/* Sección central: controles + waveform */
+.reproductorCentro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.reproductorControles {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+}
+
+.reproductorControlBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    color: var(--textoSecundario);
+    border-radius: var(--radioFull);
+    cursor: pointer;
+    transition: color var(--transicionRapida);
+}
+
+.reproductorControlBtn:hover {
+    color: var(--textoPrimario);
+}
+
+.reproductorControlBtnActivo {
+    color: var(--acentoTexto);
+}
+
+/* Botón central play/pause más grande */
+.reproductorPlayBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background-color: var(--blanco);
+    color: var(--fondoBase);
+    border-radius: var(--radioFull);
+    cursor: pointer;
+    transition: transform var(--transicionRapida), background-color var(--transicionRapida);
+}
+
+.reproductorPlayBtn:hover {
+    transform: scale(1.05);
+}
+
+.reproductorPlayBtn:active {
+    transform: scale(0.95);
+}
+
+/* Barra de progreso + tiempos */
+.reproductorProgreso {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    width: 100%;
+    max-width: 500px;
+}
+
+.reproductorTiempo {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    min-width: 36px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.reproductorBarraProgreso {
+    flex: 1;
+    height: 4px;
+    background-color: var(--fondoElevado3);
+    border-radius: var(--radioFull);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.reproductorBarraRelleno {
+    height: 100%;
+    background-color: var(--acento);
+    border-radius: var(--radioFull);
+    transition: width 100ms linear;
+}
+
+.reproductorBarraProgreso:hover .reproductorBarraRelleno {
+    background-color: var(--acentoTexto);
+}
+
+/* Sección derecha: volumen + acciones */
+.reproductorDerecha {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--espacioMd);
+}
+
+.reproductorVolumen {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.reproductorVolumenBarra {
+    width: 80px;
+    height: 4px;
+    background-color: var(--fondoElevado3);
+    border-radius: var(--radioFull);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.reproductorVolumenRelleno {
+    height: 100%;
+    background-color: var(--textoPrimario);
+    border-radius: var(--radioFull);
+}

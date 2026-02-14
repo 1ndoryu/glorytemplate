@@ -17,3 +17,6 @@ export { DropZone } from './DropZone';
 export { BarraProgreso } from './BarraProgreso';
 export { MenuContextual } from './MenuContextual';
 export type { MenuItemDef } from './MenuContextual';
+export { WaveformPlayer } from './WaveformPlayer';
+export { TarjetaSample } from './TarjetaSample';
+export { ReproductorGlobal } from './ReproductorGlobal';

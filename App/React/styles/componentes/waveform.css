@@ -1,0 +1,78 @@
+/*
+ * waveform.css — Kamples
+ * Estilos del componente WaveformPlayer.
+ * Canvas interactivo para visualización de audio.
+ */
+
+.contenedorWaveform {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.waveformCanvas {
+    display: block;
+    width: 100%;
+    border-radius: var(--radioSm);
+}
+
+/* Superposición de hover para mostrar posición */
+.waveformOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Línea indicadora de tiempo actual */
+.waveformLinea {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    background-color: var(--blanco);
+    opacity: 0.8;
+    pointer-events: none;
+    transition: left var(--transicionRapida);
+}
+
+/* Tiempo flotante al hacer hover */
+.waveformTiempoFlotante {
+    position: absolute;
+    top: -24px;
+    transform: translateX(-50%);
+    background-color: var(--fondoElevado3);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteXs);
+    padding: 2px 6px;
+    border-radius: var(--radioSm);
+    pointer-events: none;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity var(--transicionRapida);
+}
+
+.contenedorWaveform:hover .waveformTiempoFlotante {
+    opacity: 1;
+}
+
+/* Tamaños */
+.waveformSm {
+    height: 32px;
+}
+
+.waveformMd {
+    height: 48px;
+}
+
+.waveformLg {
+    height: 80px;
+}
+
+.waveformXl {
+    height: 120px;
+}

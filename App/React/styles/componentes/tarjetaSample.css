@@ -1,0 +1,174 @@
+/*
+ * tarjetaSample.css — Kamples
+ * Tarjeta compacta de sample para listas y exploradores.
+ * Incluye waveform mini, play inline, metadata.
+ */
+
+.tarjetaSample {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    align-items: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioMd);
+    transition: background-color var(--transicionRapida);
+    cursor: pointer;
+}
+
+.tarjetaSample:hover {
+    background-color: var(--fondoElevado2);
+}
+
+.tarjetaSampleActiva {
+    background-color: var(--acentoMuted);
+}
+
+/* Botón play/pause */
+.tarjetaPlayBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radioFull);
+    background-color: var(--fondoElevado3);
+    border: none;
+    color: var(--textoPrimario);
+    cursor: pointer;
+    transition: background-color var(--transicionRapida), color var(--transicionRapida);
+    flex-shrink: 0;
+}
+
+.tarjetaPlayBtn:hover {
+    background-color: var(--acento);
+    color: var(--blanco);
+}
+
+.tarjetaPlayBtnActivo {
+    background-color: var(--acento);
+    color: var(--blanco);
+}
+
+/* Contenido central */
+.tarjetaContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    min-width: 0;
+    overflow: hidden;
+}
+
+.tarjetaCabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.tarjetaTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tarjetaCreador {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tarjetaCreador:hover {
+    color: var(--acentoTexto);
+}
+
+/* Fila de metadata (BPM, key, tags, etc) */
+.tarjetaMeta {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.tarjetaMetaItem {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    white-space: nowrap;
+}
+
+/* Waveform mini */
+.tarjetaWaveform {
+    flex: 1;
+    min-width: 80px;
+    max-width: 200px;
+}
+
+/* Acciones a la derecha */
+.tarjetaAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.tarjetaAccionBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: none;
+    color: var(--textoTerciario);
+    border-radius: var(--radioSm);
+    cursor: pointer;
+    transition: color var(--transicionRapida), background-color var(--transicionRapida);
+}
+
+.tarjetaAccionBtn:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado3);
+}
+
+.tarjetaAccionLiked {
+    color: var(--error);
+}
+
+.tarjetaAccionLiked:hover {
+    color: var(--error);
+}
+
+/* Duración y stats */
+.tarjetaDuracion {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    min-width: 36px;
+    text-align: right;
+}
+
+.tarjetaStats {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.tarjetaStatItem {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Badge premium */
+.tarjetaPremium {
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoSemibold);
+    color: var(--advertencia);
+    background-color: var(--advertenciaMuted);
+    padding: 1px 6px;
+    border-radius: var(--radioFull);
+}

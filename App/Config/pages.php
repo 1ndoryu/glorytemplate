@@ -45,10 +45,8 @@ PageManager::reactPage('home-static', 'HomeStaticIsland', [
 ]);
 */
 
-// Home (Bienvenida)
-PageManager::reactPage('home', 'BienvenidaIsland', [
-    'titulo' => 'Bienvenido a Glory React'
-]);
+// Home — Feed principal de Kamples
+PageManager::reactPage('home', 'InicioIsland');
 
 /*
  * =====================================================
@@ -71,6 +69,22 @@ PageManager::reactPage('perfil', 'PerfilIsland', function($pageId) {
 });
 
 PageManager::reactPage('perfil/editar', 'EditarPerfilIsland');
+
+/*
+ * =====================================================
+ * PAGINAS KAMPLES — Core de Samples (Fase 2)
+ * =====================================================
+ */
+PageManager::reactPage('explorar', 'SamplesIsland');
+PageManager::reactPage('subir', 'SubirIsland');
+
+/* Detalle de sample — recibe slug dinámico */
+PageManager::reactPage('sample', 'SampleDetalleIsland', function($pageId) {
+    $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+    $partes = explode('/', $path);
+    $slug = end($partes);
+    return ['slug' => sanitize_text_field($slug)];
+});
 
 /*
  * =====================================================

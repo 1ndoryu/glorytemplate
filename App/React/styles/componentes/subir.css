@@ -1,0 +1,196 @@
+/*
+ * subir.css — Kamples
+ * Estilos de la isla SubirIsland (subida de samples).
+ */
+
+.subirContenedor {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: var(--espacio2xl);
+}
+
+.subirTitulo {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    margin-bottom: var(--espacioSm);
+}
+
+.subirSubtitulo {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    margin-bottom: var(--espacio2xl);
+}
+
+/* Pasos del formulario */
+.subirPasos {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    margin-bottom: var(--espacio2xl);
+}
+
+.subirPaso {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+}
+
+.subirPasoActivo {
+    color: var(--acentoTexto);
+}
+
+.subirPasoCompletado {
+    color: var(--exito);
+}
+
+.subirPasoNumero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radioFull);
+    background-color: var(--fondoElevado3);
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoSemibold);
+}
+
+.subirPasoActivo .subirPasoNumero {
+    background-color: var(--acento);
+    color: var(--blanco);
+}
+
+.subirPasoCompletado .subirPasoNumero {
+    background-color: var(--exito);
+    color: var(--blanco);
+}
+
+.subirPasoLinea {
+    flex: 1;
+    height: 1px;
+    background-color: var(--bordeSutil);
+}
+
+/* Formulario de metadata */
+.subirFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+.subirFilaDoble {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--espacioLg);
+}
+
+.subirFilaTriple {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--espacioLg);
+}
+
+/* Selector de tags */
+.subirTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioSm);
+}
+
+.subirTagInput {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+/* Preview del archivo subido */
+.subirPreview {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioMd);
+    background-color: var(--fondoElevado2);
+    border-radius: var(--radioMd);
+    border: 1px solid var(--bordeSutil);
+}
+
+.subirPreviewIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radioMd);
+    background-color: var(--acentoMuted);
+    color: var(--acentoTexto);
+    flex-shrink: 0;
+}
+
+.subirPreviewInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.subirPreviewNombre {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.subirPreviewMeta {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.subirPreviewEliminar {
+    border: none;
+    background: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    padding: var(--espacioXs);
+}
+
+.subirPreviewEliminar:hover {
+    color: var(--error);
+}
+
+/* Acciones del formulario */
+.subirAcciones {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--espacioMd);
+    padding-top: var(--espacioLg);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+/* Select personalizado */
+.subirSelect {
+    background-color: var(--fondoElevado2);
+    color: var(--textoPrimario);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteMd);
+    cursor: pointer;
+    outline: none;
+    width: 100%;
+    transition: border-color var(--transicionRapida);
+}
+
+.subirSelect:focus {
+    border-color: var(--acento);
+}
+
+.subirSelectLabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    margin-bottom: var(--espacioXs);
+    display: block;
+}

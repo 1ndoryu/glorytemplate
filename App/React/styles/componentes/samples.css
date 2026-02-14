@@ -1,0 +1,182 @@
+/*
+ * samples.css — Kamples
+ * Estilos de la isla SamplesIsland (explorador de samples).
+ */
+
+.explorador {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+    padding: var(--espacioLg);
+    max-width: var(--anchoMaximoContenido);
+    margin: 0 auto;
+}
+
+.exploradorCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacioLg);
+    flex-wrap: wrap;
+}
+
+.exploradorTitulo {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+}
+
+.exploradorBusqueda {
+    flex: 1;
+    max-width: 400px;
+    min-width: 200px;
+}
+
+/* Panel de filtros */
+.exploradorFiltros {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    flex-wrap: wrap;
+    padding-bottom: var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.exploradorFiltroGrupo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.exploradorFiltroLabel {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: var(--espacioXs);
+}
+
+.exploradorFiltroSelect {
+    background-color: var(--fondoElevado2);
+    color: var(--textoPrimario);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    padding: var(--espacioXs) var(--espacioSm);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    outline: none;
+    transition: border-color var(--transicionRapida);
+}
+
+.exploradorFiltroSelect:focus {
+    border-color: var(--acento);
+}
+
+.exploradorFiltroSelect option {
+    background-color: var(--fondoElevado2);
+}
+
+/* Input de rango para BPM */
+.exploradorRango {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.exploradorRangoInput {
+    width: 50px;
+    background-color: var(--fondoElevado2);
+    color: var(--textoPrimario);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    padding: var(--espacioXs);
+    font-size: var(--fuenteSm);
+    text-align: center;
+    outline: none;
+}
+
+.exploradorRangoInput:focus {
+    border-color: var(--acento);
+}
+
+.exploradorRangoSeparador {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+/* Ordenamiento */
+.exploradorOrden {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    margin-left: auto;
+}
+
+/* Lista de resultados */
+.exploradorLista {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Info de resultados */
+.exploradorResultadosInfo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioSm) 0;
+}
+
+.exploradorConteo {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+/* Estado vacío */
+.exploradorVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espacio4xl) var(--espacioLg);
+    text-align: center;
+}
+
+.exploradorVacioIcono {
+    color: var(--textoTerciario);
+    margin-bottom: var(--espacioLg);
+}
+
+.exploradorVacioTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoMedio);
+    color: var(--textoSecundario);
+    margin-bottom: var(--espacioSm);
+}
+
+.exploradorVacioTexto {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+}
+
+/* Cargando */
+.exploradorCargando {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espacio3xl);
+    color: var(--textoTerciario);
+}
+
+/* Paginación */
+.exploradorPaginacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioLg) 0;
+}
+
+.exploradorPaginaInfo {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
