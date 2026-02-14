@@ -37,9 +37,6 @@ $funcionRenderizar = PageManager::getFuncionParaRenderizar();
     if ($funcionRenderizar && is_callable($funcionRenderizar)) {
         // Llamar a la funcion que renderiza la isla React
         call_user_func($funcionRenderizar);
-    } elseif (class_exists('Glory\\Manager\\PageDefinition')) {
-        // Fallback: intentar resolver y renderizar isla React por el contexto actual
-        \Glory\Manager\PageDefinition::renderReactIsland();
     } else {
         // Fallback: Mostrar mensaje de error
         echo '<div style="padding: 40px; text-align: center;">';

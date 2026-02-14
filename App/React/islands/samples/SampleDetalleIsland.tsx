@@ -15,12 +15,12 @@ import {
     AlertCircle,
 } from 'lucide-react';
 import {
-    WaveformPlayer,
-    TarjetaSample,
     Badge,
     Avatar,
     BotonBase,
 } from '@app/components/ui';
+import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
+import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { obtenerSample, listarSamples } from '@app/services/apiSamples';
 import { useReproductorStore } from '@app/stores/reproductorStore';
 import type { Sample, SampleResumen } from '@app/types';

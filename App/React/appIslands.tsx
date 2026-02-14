@@ -18,15 +18,19 @@ import {SamplesIsland} from './islands/samples/SamplesIsland';
 import {SubirIsland} from './islands/samples/SubirIsland';
 import {SampleDetalleIsland} from './islands/samples/SampleDetalleIsland';
 import {InicioIsland} from './islands/feed/InicioIsland';
+import {LayoutPrincipal} from './components/layout/LayoutPrincipal';
 
 // Register blocks
 registerAppBlocks();
 
 /**
- * AppProvider (Optional)
- * Export a component here to wrap the entire application (e.g. for Context)
+ * AppProvider
+ * Envuelve TODAS las islas en el layout base de Kamples (sidebar + topbar + reproductor).
+ * Glory lo inyecta automáticamente via hydration.tsx → wrapWithProviders.
  */
-export const AppProvider: React.ComponentType<{children: React.ReactNode}> | undefined = undefined;
+export const AppProvider: React.ComponentType<{children: React.ReactNode}> = ({ children }) => (
+    <LayoutPrincipal>{children}</LayoutPrincipal>
+);
 
 /**
  * App Islands Registry

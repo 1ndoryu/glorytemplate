@@ -7,10 +7,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Flame, Clock, Sparkles, Music } from 'lucide-react';
 import {
-    TarjetaSample,
-    ReproductorGlobal,
     BotonBase,
 } from '@app/components/ui';
+import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { obtenerFeed } from '@app/services/apiSamples';
 import { useReproductorStore } from '@app/stores/reproductorStore';
 import type { SampleResumen } from '@app/types';
@@ -177,8 +176,7 @@ export const InicioIsland = (): JSX.Element => {
                 </div>
             )}
 
-            {/* Reproductor global persistente */}
-            <ReproductorGlobal />
+            {/* Reproductor global vive en LayoutPrincipal */}
         </div>
     );
 };

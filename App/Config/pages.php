@@ -91,6 +91,7 @@ PageManager::reactPage('sample', 'SampleDetalleIsland', function($pageId) {
  * DEV — Showcase de componentes (solo desarrollo)
  * =====================================================
  */
+PageManager::reactPage('componentes', 'ShowcaseIsland');
 PageManager::reactPage('dev/componentes', 'ShowcaseIsland');
 
 /*

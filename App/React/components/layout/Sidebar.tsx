@@ -5,12 +5,12 @@
 
 import {
     Home,
-    Music,
     Compass,
     User,
     FolderOpen,
     Upload,
     MessageCircle,
+    AudioLines,
 } from 'lucide-react';
 import '../../styles/componentes/sidebar.css';
 
@@ -24,8 +24,7 @@ export interface SidebarItemDef {
 
 const itemsDefault: SidebarItemDef[] = [
     { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
-    { id: 'samples', etiqueta: 'Samples', icono: <Music size={20} />, ruta: '/samples' },
-    { id: 'descubrir', etiqueta: 'Descubrir', icono: <Compass size={20} />, ruta: '/descubrir' },
+    { id: 'explorar', etiqueta: 'Explorar', icono: <Compass size={20} />, ruta: '/explorar' },
     { id: 'perfil', etiqueta: 'Perfil', icono: <User size={20} />, ruta: '/perfil' },
     { id: 'libreria', etiqueta: 'Librería', icono: <FolderOpen size={20} />, ruta: '/libreria' },
     { id: 'subir', etiqueta: 'Subir', icono: <Upload size={20} />, ruta: '/subir' },
@@ -58,7 +57,7 @@ export const Sidebar = ({
     return (
         <div className="sidebar">
             <div className="sidebarLogo">
-                <Music size={24} />
+                <AudioLines size={24} />
             </div>
 
             <nav className="sidebarNav">
