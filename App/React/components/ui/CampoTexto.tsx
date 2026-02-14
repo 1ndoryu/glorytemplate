@@ -4,7 +4,7 @@
  */
 
 import { type InputHTMLAttributes, type TextareaHTMLAttributes, forwardRef } from 'react';
-import '../styles/componentes/campoTexto.css';
+import '../../styles/componentes/campoTexto.css';
 
 interface CampoTextoBaseProps {
     etiqueta?: string;

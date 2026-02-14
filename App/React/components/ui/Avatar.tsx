@@ -4,7 +4,7 @@
  * Soporta indicador de estado online.
  */
 
-import '../styles/componentes/avatar.css';
+import '../../styles/componentes/avatar.css';
 
 type TamanoAvatar = 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 type EstadoAvatar = 'online' | 'offline' | 'ninguno';

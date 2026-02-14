@@ -3,7 +3,7 @@
  * Barra de progreso reutilizable para uploads y procesamiento.
  */
 
-import '../styles/componentes/barraProgreso.css';
+import '../../styles/componentes/barraProgreso.css';
 
 type EstadoProgreso = 'normal' | 'exito' | 'error' | 'indeterminado';
 

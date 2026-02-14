@@ -1,0 +1,149 @@
+/*
+ * ShowcaseIsland — Kamples
+ * Página de demostración visual de todos los componentes.
+ * Permite ajustar visualmente cada elemento del design system.
+ */
+
+.showcaseContenedor {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--espacio2xl);
+    color: var(--textoPrimario);
+}
+
+.showcaseTitulo {
+    font-size: var(--fuente2xl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    margin-bottom: var(--espacioSm);
+}
+
+.showcaseSubtitulo {
+    font-size: var(--fuenteMd);
+    color: var(--textoSecundario);
+    margin-bottom: var(--espacio2xl);
+}
+
+.showcaseSeccion {
+    margin-bottom: var(--espacio3xl);
+    padding-bottom: var(--espacio2xl);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.showcaseSeccion:last-child {
+    border-bottom: none;
+}
+
+.showcaseSeccionTitulo {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoSemibold);
+    color: var(--acentoTexto);
+    margin-bottom: var(--espacioLg);
+}
+
+.showcaseSeccionDesc {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+    margin-bottom: var(--espacioLg);
+}
+
+.showcaseFila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espacioMd);
+    margin-bottom: var(--espacioLg);
+}
+
+.showcaseFilaVertical {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    margin-bottom: var(--espacioLg);
+}
+
+.showcaseEtiqueta {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: var(--espacioSm);
+}
+
+/* Paleta de colores */
+.showcasePaleta {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: var(--espacioSm);
+}
+
+.showcaseColor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    align-items: center;
+}
+
+.showcaseColorMuestra {
+    width: 100%;
+    height: 48px;
+    border-radius: var(--radioMd);
+    border: 1px solid var(--bordeSutil);
+}
+
+.showcaseColorNombre {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+}
+
+/* Grid de espaciados */
+.showcaseEspaciados {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--espacioMd);
+}
+
+.showcaseEspaciadoItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.showcaseEspaciadoBloque {
+    background-color: var(--acentoMuted);
+    border: 1px solid var(--acento);
+    border-radius: var(--radioSm);
+}
+
+/* Tipografía */
+.showcaseTipos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.showcaseTipoItem {
+    display: flex;
+    align-items: baseline;
+    gap: var(--espacioLg);
+}
+
+.showcaseTipoLabel {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    min-width: 80px;
+}
+
+/* Contenedor ancho para componentes grandes */
+.showcaseAnchoCompleto {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Preview de modal */
+.showcaseModalPreview {
+    padding: var(--espacioLg);
+    background-color: var(--fondoElevado1);
+    border-radius: var(--radioLg);
+}

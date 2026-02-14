@@ -8,6 +8,7 @@ import { useCallback } from 'react';
 import { useFiltrosStore } from '../stores/filtrosStore';
 import type { SampleResumen } from '../types/sample';
 import { listarSamples } from '../services/apiSamples';
+import type { FiltrosSamples } from '../services/apiSamples';
 import { crearLogger } from '../services/logger';
 import { useState } from 'react';
 
@@ -22,21 +23,21 @@ export const useFiltros = () => {
     const buscar = useCallback(async () => {
         setCargando(true);
         try {
-            const resp = await listarSamples({
+            const params: FiltrosSamples = {
                 busqueda: filtros.busqueda || undefined,
                 genero: filtros.genero || undefined,
-                bpmMin: filtros.bpmMin || undefined,
-                bpmMax: filtros.bpmMax || undefined,
+                bpmMin: filtros.bpmMin,
+                bpmMax: filtros.bpmMax,
                 key: filtros.key || undefined,
                 tipo: filtros.tipo || undefined,
-                ordenar: filtros.ordenar,
-                pagina: filtros.pagina,
-            });
+                page: filtros.pagina,
+            };
+            const resp = await listarSamples(params);
 
-            if (resp.ok && resp.datos) {
-                const datos = resp.datos as { items: SampleResumen[]; totalPaginas: number };
-                setResultados(datos.items ?? []);
-                setTotalPaginas(datos.totalPaginas ?? 1);
+            if (resp.ok && resp.data) {
+                const datos = resp.data;
+                setResultados(datos.data ?? []);
+                setTotalPaginas(datos.pagination?.pages ?? 1);
             }
         } catch (err) {
             log.error('Error buscando samples', err);

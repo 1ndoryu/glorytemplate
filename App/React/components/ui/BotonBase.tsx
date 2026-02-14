@@ -6,7 +6,7 @@
  */
 
 import { type ReactNode, type ButtonHTMLAttributes } from 'react';
-import '../styles/componentes/botonBase.css';
+import '../../styles/componentes/botonBase.css';
 
 type VarianteBoton = 'primario' | 'secundario' | 'ghost' | 'peligro';
 type TamanoBoton = 'sm' | 'md';

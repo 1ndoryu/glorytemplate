@@ -12,7 +12,7 @@ import {
     Upload,
     MessageCircle,
 } from 'lucide-react';
-import '../styles/componentes/sidebar.css';
+import '../../styles/componentes/sidebar.css';
 
 export interface SidebarItemDef {
     id: string;
@@ -73,6 +73,9 @@ export const Sidebar = ({
                     >
                         {item.icono}
                         {item.id === 'mensajes' && tieneMensajes && (
+                            <span className="sidebarBadge" />
+                        )}
+                        {item.id === 'notificaciones' && tieneNotificaciones && (
                             <span className="sidebarBadge" />
                         )}
                     </button>

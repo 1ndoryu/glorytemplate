@@ -13,7 +13,7 @@ import type { UsuarioAutenticado } from '../types/usuario';
 const log = crearLogger('useAuth');
 
 interface DatosRegistro {
-    nombre: string;
+    nombreVisible: string;
     username: string;
     email: string;
     password: string;
@@ -29,8 +29,8 @@ export const useAuth = () => {
         const verificar = async () => {
             try {
                 const resp = await obtenerUsuarioActual();
-                if (resp.ok && resp.datos) {
-                    setUsuario(resp.datos as unknown as UsuarioAutenticado);
+                if (resp.ok && resp.data) {
+                    setUsuario(resp.data as unknown as UsuarioAutenticado);
                 }
             } catch (err) {
                 log.debug('No hay sesión activa');
@@ -49,8 +49,8 @@ export const useAuth = () => {
         try {
             const resp = await login(email, password);
 
-            if (resp.ok && resp.datos) {
-                setUsuario(resp.datos as unknown as UsuarioAutenticado);
+            if (resp.ok && resp.data) {
+                setUsuario(resp.data as unknown as UsuarioAutenticado);
                 /* Redirigir a inicio después del login */
                 window.location.href = '/';
             } else {
@@ -69,10 +69,15 @@ export const useAuth = () => {
         setCargando(true);
 
         try {
-            const resp = await apiRegistrar(datos);
+            const resp = await apiRegistrar({
+                username: datos.username,
+                email: datos.email,
+                password: datos.password,
+                nombreVisible: datos.nombreVisible,
+            });
 
-            if (resp.ok && resp.datos) {
-                setUsuario(resp.datos as unknown as UsuarioAutenticado);
+            if (resp.ok && resp.data) {
+                setUsuario(resp.data as unknown as UsuarioAutenticado);
                 window.location.href = '/';
             } else {
                 setError(resp.error ?? 'Error al crear la cuenta');

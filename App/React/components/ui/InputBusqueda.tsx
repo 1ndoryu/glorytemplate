@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import { Search, X } from 'lucide-react';
-import '../styles/componentes/inputBusqueda.css';
+import '../../styles/componentes/inputBusqueda.css';
 
 interface InputBusquedaProps {
     placeholder?: string;

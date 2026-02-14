@@ -25,7 +25,7 @@ export const RegistroIsland = (): JSX.Element => {
             return;
         }
 
-        registrar({ nombre, username, email, password });
+        registrar({ nombreVisible: nombre, username, email, password });
     };
 
     const errorPassword =

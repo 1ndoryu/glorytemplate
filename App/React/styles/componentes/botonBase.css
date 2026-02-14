@@ -37,7 +37,7 @@
 /* Variante primario */
 .botonBase.variantePrimario {
     background-color: var(--acento);
-    color: #ffffff;
+    color: var(--blanco);
 }
 
 .botonBase.variantePrimario:hover {
@@ -74,11 +74,11 @@
 /* Variante peligro */
 .botonBase.variantePeligro {
     background-color: var(--error);
-    color: #ffffff;
+    color: var(--blanco);
 }
 
 .botonBase.variantePeligro:hover {
-    background-color: #dc2626;
+    background-color: var(--acentoHover);
 }
 
 /* Estado deshabilitado */

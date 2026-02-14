@@ -27,7 +27,7 @@ interface OpcionesPeticion {
  * Glory inyecta el nonce y la URL base via gloryState en window.
  */
 const obtenerBaseUrl = (): string => {
-    const glory = (window as Record<string, unknown>).gloryState as
+    const glory = (window as unknown as Record<string, unknown>).gloryState as
         | { apiUrl?: string; restUrl?: string }
         | undefined;
 
@@ -39,7 +39,7 @@ const obtenerBaseUrl = (): string => {
 };
 
 const obtenerNonce = (): string => {
-    const glory = (window as Record<string, unknown>).gloryState as
+    const glory = (window as unknown as Record<string, unknown>).gloryState as
         | { nonce?: string }
         | undefined;
     return glory?.nonce ?? '';

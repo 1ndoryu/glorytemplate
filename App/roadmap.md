@@ -28,7 +28,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 2. **Arquitectura profesional** — SOLID, separación por dominio, escalabilidad
 3. **Rendimiento primero** — Lazy loading, audio optimizado, queries eficientes
 4. **SEO absoluto** — SSR de meta tags, JSON-LD, Open Graph para cada sample/perfil
-5. **TypeScript-first** — Toda la lógica de negocio en TS cuando sea posible
+5. **TypeScript-first / PHP mínimo** — Toda la lógica de negocio, validación y UI en TypeScript. PHP se limita estrictamente a: registro de rutas (pages.php), endpoints REST (Controllers), bridge con WordPress (auth, wp_user_id) y acceso a PostgreSQL (queries). Cero lógica de dominio en PHP.
 6. **Componentes desde cero** — Botones, badges, menús, modales, waveforms propios
 7. **Depuración por niveles** — Logger con niveles (error por defecto, debug en dev)
 
@@ -549,7 +549,7 @@ reproducciones (
 - [ ] **1.9** Guard de rutas (proteger páginas que requieren auth)
 
 **Entregable:** Usuario puede registrarse, loguearse con Google, y editar su perfil.
-**Nota del usuario** Por fa, ve ejecutando comandos para probar que todo funciona, continua con el resto de fases probando y testeando. No tengo postgresql instalado pero ire instalandolo. Olvide mencionar que hay que intentar hacer la menor logica posible en php.
+
 
 ---
 
@@ -1059,6 +1059,33 @@ App/React/
 
 ---
 
+## Variables de Entorno Requeridas
+
+```dotenv
+# Entorno
+DEV=TRUE
+LOCAL=TRUE
+
+# Stripe
+GLORY_STRIPE_SECRET_KEY=sk_live_...
+GLORY_STRIPE_PUBLISHABLE_KEY=pk_live_...
+GLORY_STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Google OAuth + IA
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_GEMINI_API=...
+
+# PostgreSQL (Kamples)
+KAMPLES_PG_HOST=127.0.0.1
+KAMPLES_PG_PORT=5432
+KAMPLES_PG_DBNAME=kamples
+KAMPLES_PG_USER=postgres
+KAMPLES_PG_PASSWORD=root
+```
+
+---
+
 ## Notas y Decisiones Pendientes
 
 1. **Color de acento** — Definir paleta de acento (sugerencia: púrpura `#7c3aed` o cian `#06b6d4`) 
@@ -1069,3 +1096,4 @@ App/React/
 6. **Moderación de contenido** — Plan para samples con copyright, contenido inapropiado
 7. **Términos legales** — Licencia de uso de samples descargados (royalty-free, etc.)
 8. **Onboarding** — Flujo de primer uso (selección de géneros favoritos, etc.)
+9. **pgvector** — Instalar extensión pgvector en PostgreSQL local/VPS para embeddings de audio

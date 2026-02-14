@@ -4,7 +4,7 @@
  */
 
 import { type ReactNode } from 'react';
-import '../styles/componentes/tabBar.css';
+import '../../styles/componentes/tabBar.css';
 
 export interface TabDefinicion {
     id: string;

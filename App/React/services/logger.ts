@@ -34,7 +34,7 @@ const esDesarrollo = (): boolean => {
     try {
         return (
             typeof window !== 'undefined' &&
-            (window as Record<string, unknown>).__GLORY_DEV__ === true
+            (window as unknown as Record<string, unknown>).__GLORY_DEV__ === true
         );
     } catch {
         return false;
@@ -51,7 +51,6 @@ const formatearMensaje = (nivel: string, modulo: string, mensaje: string): strin
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        fractionalSecondDigits: 3,
     });
     return `${configuracionActual.prefijo} ${timestamp} [${nivel}] ${modulo}: ${mensaje}`;
 };

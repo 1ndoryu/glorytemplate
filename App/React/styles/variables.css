@@ -20,6 +20,8 @@
     --textoSecundario: #888888;
     --textoTerciario: #555555;
     --textoInverso: #050505;
+    --blanco: #ffffff;
+    --negro: #000000;
 
     /* Acento — púrpura */
     --acento: #7c3aed;
@@ -63,6 +65,7 @@
     /* Tipografía — pesos */
     --pesoNormal: 400;
     --pesoMedio: 500;
+    --pesoMedium: 500;
     --pesoSemibold: 600;
     --pesoBold: 700;
 
@@ -76,6 +79,8 @@
     --sombraElevada: 0 4px 24px rgba(0, 0, 0, 0.4);
     --sombraModal: 0 8px 32px rgba(0, 0, 0, 0.6);
     --sombraSutil: 0 1px 4px rgba(0, 0, 0, 0.2);
+    --overlayOscuro: rgba(0, 0, 0, 0.7);
+    --overlaySuave: rgba(0, 0, 0, 0.4);
 
     /* Transiciones */
     --transicionRapida: 150ms ease;

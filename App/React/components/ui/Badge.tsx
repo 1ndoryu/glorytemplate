@@ -4,7 +4,7 @@
  */
 
 import { type ReactNode } from 'react';
-import '../styles/componentes/badge.css';
+import '../../styles/componentes/badge.css';
 
 type VarianteBadge = 'neutro' | 'acento' | 'exito' | 'error' | 'advertencia' | 'info' | 'premium';
 type EstiloBadge = 'relleno' | 'borde';

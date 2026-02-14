@@ -10,6 +10,7 @@ import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
 import { crearToast } from '../../components/ui/Notificacion';
 import { obtenerUsuarioActual, actualizarPerfil } from '../../services/apiAuth';
+import type { Usuario } from '../../types/usuario';
 import { crearLogger } from '../../services/logger';
 import '../../styles/componentes/editarPerfil.css';
 
@@ -32,8 +33,8 @@ export const EditarPerfilIsland = (): JSX.Element => {
         const cargar = async () => {
             try {
                 const resp = await obtenerUsuarioActual();
-                if (resp.ok && resp.datos) {
-                    const u = resp.datos as Record<string, unknown>;
+                if (resp.ok && resp.data) {
+                    const u = resp.data as unknown as Record<string, unknown>;
                     setNombre((u.nombreDisplay as string) ?? '');
                     setUsername((u.username as string) ?? '');
                     setBio((u.bio as string) ?? '');
@@ -56,19 +57,19 @@ export const EditarPerfilIsland = (): JSX.Element => {
 
         try {
             const resp = await actualizarPerfil({
-                nombreDisplay: nombre,
+                nombreVisible: nombre,
                 username,
                 bio,
-            });
+            } as Partial<Usuario>);
 
             if (resp.ok) {
-                crearToast({ tipo: 'exito', mensaje: 'Perfil actualizado correctamente' });
+                crearToast('exito', 'Perfil actualizado correctamente');
             } else {
-                crearToast({ tipo: 'error', mensaje: resp.error ?? 'Error al actualizar' });
+                crearToast('error', resp.error ?? 'Error al actualizar');
             }
         } catch (err) {
             log.error('Error actualizando perfil', err);
-            crearToast({ tipo: 'error', mensaje: 'Error de conexión' });
+            crearToast('error', 'Error de conexión');
         } finally {
             setCargando(false);
         }
@@ -176,7 +177,7 @@ export const EditarPerfilIsland = (): JSX.Element => {
                         placeholder="Cuéntanos sobre ti..."
                         value={bio}
                         onChange={(e) => setBio(e.target.value)}
-                        multilinea
+                        multilínea
                     />
                 </div>
 

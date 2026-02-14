@@ -68,6 +68,6 @@
 /* Badge premium */
 .badge.badgePremium {
     background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: #ffffff;
+    color: var(--blanco);
     font-weight: var(--pesoSemibold);
 }

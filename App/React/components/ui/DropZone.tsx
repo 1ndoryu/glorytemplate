@@ -5,7 +5,7 @@
 
 import { useState, useRef, useCallback, type DragEvent, type ChangeEvent } from 'react';
 import { Upload } from 'lucide-react';
-import '../styles/componentes/dropZone.css';
+import '../../styles/componentes/dropZone.css';
 
 interface DropZoneProps {
     onArchivos: (archivos: File[]) => void;

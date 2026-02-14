@@ -6,7 +6,7 @@
 
 import { type ReactNode, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import '../styles/componentes/menuContextual.css';
+import '../../styles/componentes/menuContextual.css';
 
 export interface MenuItemDef {
     id: string;

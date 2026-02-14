@@ -6,7 +6,7 @@
 
 import { type ReactNode, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import '../styles/componentes/modal.css';
+import '../../styles/componentes/modal.css';
 
 type TamanoModal = 'pequeno' | 'normal' | 'grande';
 

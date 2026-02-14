@@ -74,6 +74,13 @@ PageManager::reactPage('perfil/editar', 'EditarPerfilIsland');
 
 /*
  * =====================================================
+ * DEV — Showcase de componentes (solo desarrollo)
+ * =====================================================
+ */
+PageManager::reactPage('dev/componentes', 'ShowcaseIsland');
+
+/*
+ * =====================================================
  * PAGINAS CON TEMPLATES PHP PERSONALIZADOS
  * =====================================================
  * 

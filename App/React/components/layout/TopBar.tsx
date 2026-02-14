@@ -6,7 +6,7 @@
 import { Bell, Mail } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Avatar } from '../ui/Avatar';
-import '../styles/componentes/topbar.css';
+import '../../styles/componentes/topbar.css';
 
 interface TopBarProps {
     onBuscar?: (valor: string) => void;

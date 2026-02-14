@@ -35,7 +35,7 @@ export const useReproductor = () => {
 
         const onError = (e: Event) => {
             log.error('Error de audio', e);
-            store.setPausa();
+            store.pause();
         };
 
         audio.addEventListener('loadedmetadata', onLoadedMetadata);
@@ -68,7 +68,7 @@ export const useReproductor = () => {
         if (store.reproduciendo) {
             audio.play().catch((err) => {
                 log.warn('No se pudo reproducir', err);
-                store.setPausa();
+                store.pause();
             });
 
             /* Actualizar progreso */
@@ -89,7 +89,7 @@ export const useReproductor = () => {
         const audio = audioRef.current;
         if (!audio || !store.sampleActual) return;
 
-        const urlAudio = store.sampleActual.rutaOptimizado ?? store.sampleActual.rutaPreview ?? '';
+        const urlAudio = store.sampleActual.rutaPreview ?? '';
         if (urlAudio && audio.src !== urlAudio) {
             audio.src = urlAudio;
             audio.load();
@@ -99,7 +99,6 @@ export const useReproductor = () => {
 
     const reproducir = useCallback((sample: SampleResumen) => {
         store.setSample(sample);
-        store.setReproduciendo();
     }, []);
 
     const seekTo = useCallback((tiempo: number) => {
@@ -118,7 +117,7 @@ export const useReproductor = () => {
         muted: store.muted,
         cola: store.cola,
         reproducir,
-        pausar: store.setPausa,
+        pausar: store.pause,
         togglePlay: store.togglePlay,
         siguiente: store.siguiente,
         anterior: store.anterior,

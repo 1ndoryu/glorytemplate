@@ -13,6 +13,7 @@ import {LoginIsland} from './islands/auth/LoginIsland';
 import {RegistroIsland} from './islands/auth/RegistroIsland';
 import {PerfilIsland} from './islands/social/PerfilIsland';
 import {EditarPerfilIsland} from './islands/social/EditarPerfilIsland';
+import {ShowcaseIsland} from './islands/dev/ShowcaseIsland';
 
 // Register blocks
 registerAppBlocks();
@@ -34,6 +35,7 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     RegistroIsland: RegistroIsland as React.ComponentType<Record<string, unknown>>,
     PerfilIsland: PerfilIsland as React.ComponentType<Record<string, unknown>>,
     EditarPerfilIsland: EditarPerfilIsland as React.ComponentType<Record<string, unknown>>,
+    ShowcaseIsland: ShowcaseIsland as React.ComponentType<Record<string, unknown>>,
 };
 
 export default appIslands;

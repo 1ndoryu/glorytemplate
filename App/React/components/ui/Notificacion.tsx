@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle, AlertTriangle, XCircle, Info, X } from 'lucide-react';
-import '../styles/componentes/notificacion.css';
+import '../../styles/componentes/notificacion.css';
 
 export type TipoToast = 'exito' | 'error' | 'advertencia' | 'info';
 

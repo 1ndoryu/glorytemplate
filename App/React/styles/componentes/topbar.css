@@ -64,8 +64,8 @@
     padding: 0 4px;
     border-radius: var(--radioFull);
     background-color: var(--error);
-    color: #ffffff;
-    font-size: 9px;
+    color: var(--blanco);
+    font-size: var(--fuenteXs);
     font-weight: var(--pesoBold);
     display: flex;
     align-items: center;

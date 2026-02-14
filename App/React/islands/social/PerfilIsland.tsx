@@ -38,8 +38,8 @@ export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
             setCargando(true);
             try {
                 const respuesta = await obtenerPerfil(username);
-                if (respuesta.ok && respuesta.datos) {
-                    setUsuario(respuesta.datos as unknown as Usuario);
+                if (respuesta.ok && respuesta.data) {
+                    setUsuario(respuesta.data as unknown as Usuario);
                 }
             } catch (err) {
                 log.error('Error cargando perfil', err);
@@ -79,7 +79,7 @@ export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
                 <div className="perfilAvatarWrapper">
                     <Avatar
                         src={usuario.avatarUrl}
-                        nombre={usuario.nombreDisplay}
+                        nombre={usuario.nombreVisible}
                         tamano="2xl"
                     />
                 </div>
@@ -88,7 +88,7 @@ export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
             <div className="perfilInfo">
                 <div className="perfilInfoTexto">
                     <h1 className="perfilNombre">
-                        {usuario.nombreDisplay}
+                        {usuario.nombreVisible}
                         {usuario.plan !== 'free' && (
                             <span className="perfilBadgePlan">
                                 <Badge variante={usuario.plan === 'premium' ? 'premium' : 'acento'}>
@@ -115,7 +115,7 @@ export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
                         </div>
                         <div className="perfilStat">
                             <span className="perfilStatValor">
-                                {usuario.totalSiguiendo ?? 0}
+                                {usuario.totalSeguidos ?? 0}
                             </span>
                             <span className="perfilStatLabel">Siguiendo</span>
                         </div>
