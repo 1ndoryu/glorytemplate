@@ -10,6 +10,7 @@ import '@app/styles/header.css';
 export function CosmoHeader(): React.JSX.Element {
     const scrolled = useScrollHeader(50);
     const [menuAbierto, setMenuAbierto] = useState(false);
+    const logoPrincipal = '/wp-content/themes/glorytemplate/App/Assets/images/logocuadradoblanco.png';
 
     const toggleMenu = useCallback(() => {
         setMenuAbierto((prev) => !prev);
@@ -31,7 +32,7 @@ export function CosmoHeader(): React.JSX.Element {
         <header className={`cosmoHeader ${scrolled ? 'scrolled' : ''} ${menuAbierto ? 'open' : ''}`} id="headerCosmo">
             <div className="cosmoHeaderLogo">
                 <a href="/" className="cosmoHeaderLogoSvg" aria-label="Inicio">
-                    COSMO
+                    <img src={logoPrincipal} alt="Cosmo Revenue" className="cosmoHeaderLogoImagen" />
                 </a>
             </div>
 

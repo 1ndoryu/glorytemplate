@@ -20,6 +20,15 @@ import { useCasos } from '@app/hooks/useCasos';
 import { useGloryMedia } from '@/hooks';
 import type { CasoExito } from '@app/types/cosmo';
 
+function resolverImagenTema(alias: string, urlApi: string | null): string {
+    if (urlApi) {
+        return urlApi;
+    }
+
+    const archivo = alias.replace('tema::', '');
+    return `/wp-content/themes/glorytemplate/App/Assets/images/${archivo}`;
+}
+
 /* Datos del grafico orbital (igual que el original) */
 const planetasMetodologia = [
     { letra: 'S', nombre: 'Signal', descripcion: 'Lectura del Mercado - Monitorizamos señales de demanda, eventos y elasticidad de precios en tiempo real.' },
@@ -57,7 +66,11 @@ export function LandingIsland(): React.JSX.Element {
     const imagenRevenue = useGloryMedia('tema::revenueNew.png');
     const imagenConsultoria = useGloryMedia('tema::consultoria.jpg');
 
-    const imagenes = [imagenMarketing.url, imagenRevenue.url, imagenConsultoria.url];
+    const imagenes = [
+        resolverImagenTema('tema::marketing.jpg', imagenMarketing.url),
+        resolverImagenTema('tema::revenueNew.png', imagenRevenue.url),
+        resolverImagenTema('tema::consultoria.jpg', imagenConsultoria.url),
+    ];
     const casosLimitados: CasoExito[] = casos.slice(0, 3);
 
     return (

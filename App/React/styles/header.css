@@ -77,8 +77,18 @@ ul#menu-main-menu > li:last-child > a:hover,
 .cosmoHeaderLogoSvg {
     width: 36px;
     height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: currentColor;
     transition: opacity 0.3s ease;
+}
+
+.cosmoHeaderLogoImagen {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    display: block;
 }
 
 .cosmoHeaderLogoSvg:hover {

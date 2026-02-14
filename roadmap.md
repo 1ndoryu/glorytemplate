@@ -408,6 +408,23 @@ Glory/assets/react/src/components/
 | Fase 6: Mejoras Glory | ✅ PARCIAL | FormController.php (REST endpoint /glory/v1/form) + useGloryForm hook. Pendiente: useNavigation, GloryLink, drag&drop |
 | Fase 7: Pulido | ✅ COMPLETADA | Revisión de tipos, corrección cosmo.ts (PlanServicio + CasoExito alineados), fix useGloryMedia en islands, fix CSS colisión, CosmoHeader refactorizado con useScrollHeader |
 
+### Ajustes iteración (13 feb 2026) — Home/Landing
+- [x] Header: logo restaurado como imagen (antes estaba texto `COSMO`).
+- [x] Landing: tarjetas flip con fallback local de imágenes si falla alias REST de media.
+- [x] Casos de éxito: CPT `casos` expuesto en REST (`show_in_rest`, `rest_base`) + fallback en `useCasos`.
+- [x] Formulario en landing: layout en 2 columnas en desktop (1 columna solo en móvil).
+
+### Ajustes iteración (13 feb 2026) — Solución real carga de casos
+- [x] Solución movida al core de Glory: `ReactContentProvider::bootstrap()` se ejecuta automáticamente y registra/injecta contenido en cualquier `reactPage` sin código por proyecto.
+- [x] Eliminado cableado específico de `App/Config/control.php`; la inyección ya no depende del proyecto Cosmo.
+- [x] `useCasos` prioriza contenido server-side (`useGloryContent('casos')`) y usa REST como respaldo operativo.
+
+### Ajustes iteración (13 feb 2026) — Fix real renderizado de casos
+- [x] **Bug crítico**: `ReactContentProvider::formatPost()` enviaba `id` como `(string)` → `useGloryContent` validaba `typeof id === 'number'` → **todos los items descartados silenciosamente**. Fix: `(int) $post->ID`.
+- [x] **Bug latente**: `registerFromDefaults()` buscaba key `['posts']` pero `DefaultContentRegistry` usa `['definicionesPost']` → filtro por slugs nunca se aplicaba. Fix: key corregida.
+- [x] **Defensivo**: `useGloryContent` ahora normaliza `id` (acepta string numérico y lo castea a number) para ser resiliente a futuros cambios PHP.
+- [x] **Meta fields REST**: Registrados 10 meta fields del CPT `casos` con `register_post_meta()` + `show_in_rest => true` para que el fallback REST API también devuelva datos completos.
+
 ### TO-DOs pendientes para futuras iteraciones
 - [ ] Mover componentes UI a Glory core como paquetes instalables (componentes agnósticos)
 - [ ] `useNavigation` hook para navegación SPA entre páginas Glory
