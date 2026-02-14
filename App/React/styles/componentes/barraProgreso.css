@@ -1,0 +1,66 @@
+/*
+ * BarraProgreso — Kamples
+ * Barra de progreso para uploads y procesamiento.
+ */
+
+.contenedorBarraProgreso {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    width: 100%;
+}
+
+.pistaProgreso {
+    width: 100%;
+    height: 4px;
+    background-color: var(--fondoElevado3);
+    border-radius: var(--radioFull);
+    overflow: hidden;
+}
+
+.rellenoProgreso {
+    height: 100%;
+    background-color: var(--acento);
+    border-radius: var(--radioFull);
+    transition: width var(--transicionNormal);
+}
+
+.rellenoProgreso.progresoExito {
+    background-color: var(--exito);
+}
+
+.rellenoProgreso.progresoError {
+    background-color: var(--error);
+}
+
+/* Animación indeterminada */
+.rellenoProgreso.progresoIndeterminado {
+    width: 40% !important;
+    animation: indeterminado 1.5s ease infinite;
+}
+
+.infoProgreso {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.textoProgreso {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+}
+
+.porcentajeProgreso {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    font-family: var(--fuenteMono);
+}
+
+@keyframes indeterminado {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(350%);
+    }
+}

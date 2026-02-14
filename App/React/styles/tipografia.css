@@ -1,0 +1,92 @@
+/*
+ * Tipografía — Kamples
+ * Clases utilitarias de texto y estilos tipográficos globales.
+ */
+
+.textoXs {
+    font-size: var(--fuenteXs);
+    line-height: 1.4;
+}
+
+.textoSm {
+    font-size: var(--fuenteSm);
+    line-height: 1.4;
+}
+
+.textoMd {
+    font-size: var(--fuenteMd);
+    line-height: 1.5;
+}
+
+.textoLg {
+    font-size: var(--fuenteLg);
+    line-height: 1.3;
+}
+
+.textoXl {
+    font-size: var(--fuenteXl);
+    line-height: 1.2;
+}
+
+.texto2xl {
+    font-size: var(--fuente2xl);
+    line-height: 1.1;
+}
+
+.texto3xl {
+    font-size: var(--fuente3xl);
+    line-height: 1.1;
+}
+
+/* Pesos */
+.pesoNormal {
+    font-weight: var(--pesoNormal);
+}
+
+.pesoMedio {
+    font-weight: var(--pesoMedio);
+}
+
+.pesoSemibold {
+    font-weight: var(--pesoSemibold);
+}
+
+.pesoBold {
+    font-weight: var(--pesoBold);
+}
+
+/* Colores de texto */
+.textoColorPrimario {
+    color: var(--textoPrimario);
+}
+
+.textoColorSecundario {
+    color: var(--textoSecundario);
+}
+
+.textoColorTerciario {
+    color: var(--textoTerciario);
+}
+
+.textoColorAcento {
+    color: var(--acentoTexto);
+}
+
+/* Truncado */
+.textoTruncado {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.textoTruncadoMultilinea {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Familia mono */
+.textoMono {
+    font-family: var(--fuenteMono);
+}

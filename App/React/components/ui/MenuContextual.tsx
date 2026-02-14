@@ -1,0 +1,91 @@
+/*
+ * Componente: MenuContextual
+ * Menú desplegable posicionado en coordenadas absolutas.
+ * Se cierra al hacer click fuera o presionar Escape.
+ */
+
+import { type ReactNode, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import '../styles/componentes/menuContextual.css';
+
+export interface MenuItemDef {
+    id: string;
+    etiqueta: string;
+    icono?: ReactNode;
+    peligro?: boolean;
+    separadorDespues?: boolean;
+    onClick: () => void;
+}
+
+interface MenuContextualProps {
+    abierto: boolean;
+    onCerrar: () => void;
+    items: MenuItemDef[];
+    x: number;
+    y: number;
+}
+
+export const MenuContextual = ({
+    abierto,
+    onCerrar,
+    items,
+    x,
+    y,
+}: MenuContextualProps): JSX.Element | null => {
+    const manejarKeyDown = useCallback(
+        (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onCerrar();
+            }
+        },
+        [onCerrar]
+    );
+
+    useEffect(() => {
+        if (!abierto) return;
+        document.addEventListener('keydown', manejarKeyDown);
+        return () => document.removeEventListener('keydown', manejarKeyDown);
+    }, [abierto, manejarKeyDown]);
+
+    if (!abierto) return null;
+
+    /* Ajustar posición para que no se salga de pantalla */
+    const menuAncho = 200;
+    const menuAlto = items.length * 36 + 8;
+    const ajusteX = x + menuAncho > window.innerWidth ? window.innerWidth - menuAncho - 8 : x;
+    const ajusteY = y + menuAlto > window.innerHeight ? window.innerHeight - menuAlto - 8 : y;
+
+    return createPortal(
+        <>
+            <div className="menuContextualOverlay" onClick={onCerrar} />
+            <div
+                className="menuContextual"
+                style={{ left: ajusteX, top: ajusteY }}
+                role="menu"
+            >
+                {items.map((item) => (
+                    <div key={item.id}>
+                        <button
+                            className={`menuContextualItem ${item.peligro ? 'itemPeligro' : ''}`}
+                            onClick={() => {
+                                item.onClick();
+                                onCerrar();
+                            }}
+                            role="menuitem"
+                            type="button"
+                        >
+                            {item.icono && (
+                                <span className="menuContextualItemIcono">{item.icono}</span>
+                            )}
+                            {item.etiqueta}
+                        </button>
+                        {item.separadorDespues && <div className="menuContextualSeparador" />}
+                    </div>
+                ))}
+            </div>
+        </>,
+        document.body
+    );
+};
+
+export default MenuContextual;

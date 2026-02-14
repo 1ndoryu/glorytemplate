@@ -1,27 +1,99 @@
 /*
- * Variables globales CSS - Core Theme
+ * Variables globales CSS — Kamples Design System
+ * Paleta oscura minimalista, fondo #050505, espaciados controlados.
+ * Fuente de verdad para colores, tipografía, radios y espaciados.
  */
 
 :root {
-    /* Colors - Backgrounds */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f3f4f6;
-    --bg-accent: #eef2ff;
+    /* Fondos y superficies */
+    --fondoBase: #050505;
+    --fondoElevado1: #0a0a0a;
+    --fondoElevado2: #111111;
+    --fondoElevado3: #1a1a1a;
 
-    /* Colors - Text */
-    --text-primary: #111827;
-    --text-secondary: #4b5563;
-    --text-muted: #9ca3af;
+    /* Bordes */
+    --bordeSutil: #1f1f1f;
+    --bordeActivo: #333333;
 
-    /* Colors - Brand */
-    --primary-500: #6366f1;
-    --secondary-500: #a855f7;
+    /* Texto */
+    --textoPrimario: #e5e5e5;
+    --textoSecundario: #888888;
+    --textoTerciario: #555555;
+    --textoInverso: #050505;
 
-    /* Fonts */
-    --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
-    --font-mono: 'Fira Code', monospace;
+    /* Acento — púrpura */
+    --acento: #7c3aed;
+    --acentoHover: #6d28d9;
+    --acentoMuted: rgba(124, 58, 237, 0.15);
+    --acentoTexto: #a78bfa;
 
-    /* Spacing & Sizing */
-    --text-3xl: 3rem;
-    --text-4xl: 4.5rem;
+    /* Estados */
+    --exito: #22c55e;
+    --exitoMuted: rgba(34, 197, 94, 0.15);
+    --error: #ef4444;
+    --errorMuted: rgba(239, 68, 68, 0.15);
+    --advertencia: #f59e0b;
+    --advertenciaMuted: rgba(245, 158, 11, 0.15);
+    --info: #3b82f6;
+    --infoMuted: rgba(59, 130, 246, 0.15);
+
+    /* Espaciados */
+    --espacioXs: 4px;
+    --espacioSm: 8px;
+    --espacioMd: 12px;
+    --espacioLg: 16px;
+    --espacioXl: 20px;
+    --espacio2xl: 32px;
+    --espacio3xl: 48px;
+    --espacio4xl: 64px;
+
+    /* Tipografía — tamaños */
+    --fuenteXs: 9px;
+    --fuenteSm: 11px;
+    --fuenteMd: 14px;
+    --fuenteLg: 18px;
+    --fuenteXl: 24px;
+    --fuente2xl: 32px;
+    --fuente3xl: 40px;
+
+    /* Tipografía — familias */
+    --fuentePrincipal: 'Inter', system-ui, -apple-system, sans-serif;
+    --fuenteMono: 'Fira Code', 'JetBrains Mono', monospace;
+
+    /* Tipografía — pesos */
+    --pesoNormal: 400;
+    --pesoMedio: 500;
+    --pesoSemibold: 600;
+    --pesoBold: 700;
+
+    /* Radios */
+    --radioSm: 4px;
+    --radioMd: 8px;
+    --radioLg: 12px;
+    --radioFull: 9999px;
+
+    /* Sombras */
+    --sombraElevada: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --sombraModal: 0 8px 32px rgba(0, 0, 0, 0.6);
+    --sombraSutil: 0 1px 4px rgba(0, 0, 0, 0.2);
+
+    /* Transiciones */
+    --transicionRapida: 150ms ease;
+    --transicionNormal: 250ms ease;
+    --transicionLenta: 400ms ease;
+
+    /* Z-index por capas */
+    --zBase: 1;
+    --zElevado: 10;
+    --zMenu: 100;
+    --zModal: 1000;
+    --zNotificacion: 2000;
+    --zReproductor: 500;
+
+    /* Dimensiones del layout */
+    --anchoSidebar: 60px;
+    --anchoSidebarExpandido: 220px;
+    --altoTopbar: 56px;
+    --altoReproductor: 72px;
+    --anchoMaximoContenido: 1200px;
 }

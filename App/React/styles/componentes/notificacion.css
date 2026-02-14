@@ -1,0 +1,133 @@
+/*
+ * Notificacion (Toast) — Kamples
+ * Sistema de notificaciones flotantes.
+ */
+
+.contenedorNotificaciones {
+    position: fixed;
+    top: var(--espacioXl);
+    right: var(--espacioXl);
+    z-index: var(--zNotificacion);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    pointer-events: none;
+    max-width: 380px;
+    width: 100%;
+}
+
+.notificacionToast {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--espacioMd);
+    padding: var(--espacioMd) var(--espacioLg);
+    border-radius: var(--radioMd);
+    background-color: var(--fondoElevado3);
+    border: 1px solid var(--bordeSutil);
+    box-shadow: var(--sombraElevada);
+    pointer-events: auto;
+    animation: slideInNotificacion var(--transicionNormal) ease;
+    min-width: 280px;
+}
+
+.notificacionToast.notificacionSaliendo {
+    animation: slideOutNotificacion var(--transicionNormal) ease forwards;
+}
+
+/* Tipos */
+.notificacionToast.notificacionExito {
+    border-left: 3px solid var(--exito);
+}
+
+.notificacionToast.notificacionError {
+    border-left: 3px solid var(--error);
+}
+
+.notificacionToast.notificacionAdvertencia {
+    border-left: 3px solid var(--advertencia);
+}
+
+.notificacionToast.notificacionInfo {
+    border-left: 3px solid var(--info);
+}
+
+.notificacionIcono {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.notificacionExito .notificacionIcono {
+    color: var(--exito);
+}
+
+.notificacionError .notificacionIcono {
+    color: var(--error);
+}
+
+.notificacionAdvertencia .notificacionIcono {
+    color: var(--advertencia);
+}
+
+.notificacionInfo .notificacionIcono {
+    color: var(--info);
+}
+
+.notificacionContenido {
+    flex: 1;
+    min-width: 0;
+}
+
+.notificacionTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    margin-bottom: 2px;
+}
+
+.notificacionMensaje {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    line-height: 1.4;
+}
+
+.notificacionCerrar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radioSm);
+    color: var(--textoTerciario);
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: all var(--transicionRapida);
+}
+
+.notificacionCerrar:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado2);
+}
+
+@keyframes slideInNotificacion {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutNotificacion {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}

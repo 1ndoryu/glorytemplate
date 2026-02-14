@@ -1,0 +1,92 @@
+/*
+ * Layout principal — Kamples
+ * Grid principal: sidebar + topbar + contenido + reproductor
+ */
+
+.layoutPrincipal {
+    display: grid;
+    grid-template-columns: var(--anchoSidebar) 1fr;
+    grid-template-rows: var(--altoTopbar) 1fr var(--altoReproductor);
+    grid-template-areas:
+        "sidebar topbar"
+        "sidebar contenido"
+        "reproductor reproductor";
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background-color: var(--fondoBase);
+}
+
+/* Sidebar izquierda (iconos) */
+.areaSidebar {
+    grid-area: sidebar;
+    background-color: var(--fondoElevado1);
+    border-right: 1px solid var(--bordeSutil);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: var(--espacioLg);
+    gap: var(--espacioSm);
+    z-index: var(--zMenu);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Topbar */
+.areaTopbar {
+    grid-area: topbar;
+    background-color: var(--fondoElevado1);
+    border-bottom: 1px solid var(--bordeSutil);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--espacioXl);
+    gap: var(--espacioLg);
+    z-index: var(--zElevado);
+}
+
+/* Contenido principal */
+.areaContenido {
+    grid-area: contenido;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: var(--espacio2xl);
+    background-color: var(--fondoBase);
+}
+
+/* Limitador de ancho para contenido */
+.contenedorContenido {
+    max-width: var(--anchoMaximoContenido);
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Reproductor global inferior */
+.areaReproductor {
+    grid-area: reproductor;
+    background-color: var(--fondoElevado2);
+    border-top: 1px solid var(--bordeSutil);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--espacioXl);
+    gap: var(--espacioLg);
+    z-index: var(--zReproductor);
+}
+
+/* Responsive - ocultar sidebar en mobile */
+@media (max-width: 768px) {
+    .layoutPrincipal {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "topbar"
+            "contenido"
+            "reproductor";
+    }
+
+    .areaSidebar {
+        display: none;
+    }
+
+    .areaContenido {
+        padding: var(--espacioLg);
+    }
+}

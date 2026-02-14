@@ -1,0 +1,68 @@
+/*
+ * TabBar — Kamples
+ * Tabs de navegación interna por página.
+ */
+
+.contenedorTabBar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-bottom: 1px solid var(--bordeSutil);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.contenedorTabBar::-webkit-scrollbar {
+    display: none;
+}
+
+.tabItem {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioMd) var(--espacioLg);
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoMedio);
+    color: var(--textoTerciario);
+    cursor: pointer;
+    transition: color var(--transicionRapida);
+    white-space: nowrap;
+    background: none;
+    border: none;
+    font-family: var(--fuentePrincipal);
+}
+
+.tabItem:hover {
+    color: var(--textoSecundario);
+}
+
+.tabItem.tabActivo {
+    color: var(--textoPrimario);
+}
+
+/* Línea indicadora inferior */
+.tabItem.tabActivo::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--acento);
+    border-radius: 2px 2px 0 0;
+}
+
+/* Contador opcional en tab */
+.tabContador {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    background-color: var(--fondoElevado3);
+    padding: 1px 6px;
+    border-radius: var(--radioFull);
+}
+
+.tabActivo .tabContador {
+    background-color: var(--acentoMuted);
+    color: var(--acentoTexto);
+}

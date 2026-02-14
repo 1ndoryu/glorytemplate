@@ -1,0 +1,124 @@
+/*
+ * BotonBase — Kamples
+ * Variantes: primario, secundario, ghost, peligro
+ * Tamaños: sm, md
+ */
+
+.botonBase {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    font-family: var(--fuentePrincipal);
+    font-weight: var(--pesoMedio);
+    border-radius: var(--radioMd);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    white-space: nowrap;
+    user-select: none;
+    border: 1px solid transparent;
+    line-height: 1;
+}
+
+/* Tamaño sm */
+.botonBase.tamanoSm {
+    font-size: var(--fuenteSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    height: 32px;
+}
+
+/* Tamaño md */
+.botonBase.tamanoMd {
+    font-size: var(--fuenteMd);
+    padding: var(--espacioSm) var(--espacioLg);
+    height: 40px;
+}
+
+/* Variante primario */
+.botonBase.variantePrimario {
+    background-color: var(--acento);
+    color: #ffffff;
+}
+
+.botonBase.variantePrimario:hover {
+    background-color: var(--acentoHover);
+}
+
+.botonBase.variantePrimario:active {
+    transform: scale(0.97);
+}
+
+/* Variante secundario */
+.botonBase.varianteSecundario {
+    background-color: transparent;
+    color: var(--textoPrimario);
+    border-color: var(--bordeSutil);
+}
+
+.botonBase.varianteSecundario:hover {
+    border-color: var(--bordeActivo);
+    background-color: var(--fondoElevado2);
+}
+
+/* Variante ghost */
+.botonBase.varianteGhost {
+    background-color: transparent;
+    color: var(--textoSecundario);
+}
+
+.botonBase.varianteGhost:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado2);
+}
+
+/* Variante peligro */
+.botonBase.variantePeligro {
+    background-color: var(--error);
+    color: #ffffff;
+}
+
+.botonBase.variantePeligro:hover {
+    background-color: #dc2626;
+}
+
+/* Estado deshabilitado */
+.botonBase:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Icono solo (cuadrado) */
+.botonBase.soloIcono {
+    padding: var(--espacioSm);
+    aspect-ratio: 1;
+}
+
+/* Ancho completo */
+.botonBase.anchoCompleto {
+    width: 100%;
+}
+
+/* Cargando */
+.botonBase.cargando {
+    pointer-events: none;
+    position: relative;
+    color: transparent;
+}
+
+.botonBase.cargando::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spinBoton 0.6s linear infinite;
+}
+
+@keyframes spinBoton {
+    to {
+        transform: rotate(360deg);
+    }
+}

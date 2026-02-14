@@ -1,0 +1,75 @@
+/*
+ * MenuContextual — Kamples
+ * Menú desplegable que aparece al hacer click derecho o click en botón.
+ */
+
+.menuContextualOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--zMenu);
+}
+
+.menuContextual {
+    position: fixed;
+    min-width: 180px;
+    max-width: 280px;
+    background-color: var(--fondoElevado3);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    box-shadow: var(--sombraElevada);
+    padding: var(--espacioXs) 0;
+    z-index: var(--zMenu);
+    animation: fadeInMenu var(--transicionRapida) ease;
+}
+
+.menuContextualItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    background: none;
+    border: none;
+    font-family: var(--fuentePrincipal);
+    text-align: left;
+}
+
+.menuContextualItem:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado2);
+}
+
+.menuContextualItem.itemPeligro {
+    color: var(--error);
+}
+
+.menuContextualItem.itemPeligro:hover {
+    background-color: var(--errorMuted);
+}
+
+.menuContextualSeparador {
+    height: 1px;
+    background-color: var(--bordeSutil);
+    margin: var(--espacioXs) 0;
+}
+
+.menuContextualItemIcono {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+@keyframes fadeInMenu {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

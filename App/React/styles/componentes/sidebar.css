@@ -1,0 +1,116 @@
+/*
+ * Sidebar — Kamples
+ * Navegación lateral con solo iconos.
+ */
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: var(--espacioLg) 0;
+    gap: var(--espacioXs);
+}
+
+.sidebarLogo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-bottom: var(--espacioLg);
+    flex-shrink: 0;
+}
+
+.sidebarLogo svg {
+    width: 24px;
+    height: 24px;
+    color: var(--acento);
+}
+
+.sidebarNav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXs);
+    width: 100%;
+    flex: 1;
+}
+
+.sidebarItem {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radioMd);
+    color: var(--textoTerciario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    background: none;
+    border: none;
+}
+
+.sidebarItem:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado2);
+}
+
+.sidebarItem.sidebarItemActivo {
+    color: var(--acento);
+    background-color: var(--acentoMuted);
+}
+
+/* Tooltip al hacer hover */
+.sidebarItem::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 4px 8px;
+    background-color: var(--fondoElevado3);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteXs);
+    border-radius: var(--radioSm);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transicionRapida);
+    z-index: var(--zMenu);
+}
+
+.sidebarItem:hover::after {
+    opacity: 1;
+}
+
+/* Separador */
+.sidebarSeparador {
+    width: 24px;
+    height: 1px;
+    background-color: var(--bordeSutil);
+    margin: var(--espacioSm) 0;
+}
+
+/* Badge de notificación */
+.sidebarBadge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radioFull);
+    background-color: var(--error);
+    border: 2px solid var(--fondoElevado1);
+}
+
+/* Parte inferior (configuración, etc.) */
+.sidebarFooter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXs);
+    margin-top: auto;
+}

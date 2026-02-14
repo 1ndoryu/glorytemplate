@@ -52,6 +52,28 @@ PageManager::reactPage('home', 'BienvenidaIsland', [
 
 /*
  * =====================================================
+ * PAGINAS KAMPLES — Autenticación y Perfiles (Fase 1)
+ * =====================================================
+ */
+PageManager::reactPage('auth/login', 'LoginIsland');
+PageManager::reactPage('auth/registro', 'RegistroIsland');
+
+/* Perfil público — recibe username como prop dinámica */
+PageManager::reactPage('perfil', 'PerfilIsland', function($pageId) {
+    $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+    $partes = explode('/', $path);
+    /* /perfil/{username} → username es el último segmento */
+    $username = end($partes);
+    if ($username === 'editar') {
+        return ['username' => ''];
+    }
+    return ['username' => sanitize_text_field($username)];
+});
+
+PageManager::reactPage('perfil/editar', 'EditarPerfilIsland');
+
+/*
+ * =====================================================
  * PAGINAS CON TEMPLATES PHP PERSONALIZADOS
  * =====================================================
  * 

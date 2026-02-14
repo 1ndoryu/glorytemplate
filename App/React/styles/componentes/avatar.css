@@ -1,0 +1,98 @@
+/*
+ * Avatar — Kamples
+ * Con estado online, tamaños variables.
+ */
+
+.avatar {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radioFull);
+    overflow: hidden;
+    background-color: var(--fondoElevado3);
+    flex-shrink: 0;
+}
+
+.avatarImagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatarIniciales {
+    font-weight: var(--pesoSemibold);
+    color: var(--textoSecundario);
+    text-transform: uppercase;
+    user-select: none;
+}
+
+/* Tamaños */
+.avatar.avatarSm {
+    width: 28px;
+    height: 28px;
+}
+
+.avatar.avatarSm .avatarIniciales {
+    font-size: var(--fuenteXs);
+}
+
+.avatar.avatarMd {
+    width: 36px;
+    height: 36px;
+}
+
+.avatar.avatarMd .avatarIniciales {
+    font-size: var(--fuenteSm);
+}
+
+.avatar.avatarLg {
+    width: 48px;
+    height: 48px;
+}
+
+.avatar.avatarLg .avatarIniciales {
+    font-size: var(--fuenteMd);
+}
+
+.avatar.avatarXl {
+    width: 80px;
+    height: 80px;
+}
+
+.avatar.avatarXl .avatarIniciales {
+    font-size: var(--fuenteXl);
+}
+
+.avatar.avatar2xl {
+    width: 120px;
+    height: 120px;
+}
+
+.avatar.avatar2xl .avatarIniciales {
+    font-size: var(--fuente2xl);
+}
+
+/* Indicador online */
+.avatarEstado {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radioFull);
+    border: 2px solid var(--fondoBase);
+}
+
+.avatarEstado.estadoOnline {
+    background-color: var(--exito);
+}
+
+.avatarEstado.estadoOffline {
+    background-color: var(--textoTerciario);
+}
+
+/* Borde para perfil */
+.avatar.avatarBorde {
+    border: 2px solid var(--bordeSutil);
+}

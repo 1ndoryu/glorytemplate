@@ -1,0 +1,58 @@
+/*
+ * DropZone — Kamples
+ * Área de drag&drop para subir archivos.
+ */
+
+.contenedorDropZone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    padding: var(--espacio3xl) var(--espacio2xl);
+    border: 2px dashed var(--bordeSutil);
+    border-radius: var(--radioLg);
+    background-color: var(--fondoElevado1);
+    cursor: pointer;
+    transition: all var(--transicionNormal);
+    text-align: center;
+    min-height: 200px;
+}
+
+.contenedorDropZone:hover {
+    border-color: var(--bordeActivo);
+    background-color: var(--fondoElevado2);
+}
+
+.contenedorDropZone.dropZoneActiva {
+    border-color: var(--acento);
+    background-color: var(--acentoMuted);
+}
+
+.dropZoneIcono {
+    color: var(--textoTerciario);
+    transition: color var(--transicionRapida);
+}
+
+.contenedorDropZone:hover .dropZoneIcono,
+.contenedorDropZone.dropZoneActiva .dropZoneIcono {
+    color: var(--acento);
+}
+
+.dropZoneTexto {
+    font-size: var(--fuenteMd);
+    color: var(--textoSecundario);
+}
+
+.dropZoneTexto strong {
+    color: var(--acentoTexto);
+}
+
+.dropZoneFormatos {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.dropZoneInput {
+    display: none;
+}

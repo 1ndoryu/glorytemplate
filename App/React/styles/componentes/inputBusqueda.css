@@ -1,0 +1,80 @@
+/*
+ * InputBusqueda — Kamples
+ * Input con icono, debounce, clear y sugerencias.
+ */
+
+.contenedorInputBusqueda {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 420px;
+}
+
+.iconoBusqueda {
+    position: absolute;
+    left: var(--espacioMd);
+    color: var(--textoTerciario);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    transition: color var(--transicionRapida);
+}
+
+.inputBusqueda {
+    width: 100%;
+    height: 40px;
+    padding: var(--espacioSm) var(--espacioLg);
+    padding-left: 40px;
+    padding-right: 40px;
+    background-color: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteMd);
+    font-family: var(--fuentePrincipal);
+    transition: all var(--transicionRapida);
+}
+
+.inputBusqueda::placeholder {
+    color: var(--textoTerciario);
+}
+
+.inputBusqueda:focus {
+    border-color: var(--acento);
+    outline: none;
+    background-color: var(--fondoElevado1);
+}
+
+.inputBusqueda:focus ~ .iconoBusqueda,
+.contenedorInputBusqueda:focus-within .iconoBusqueda {
+    color: var(--acento);
+}
+
+.botonLimpiar {
+    position: absolute;
+    right: var(--espacioSm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radioFull);
+    color: var(--textoTerciario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    background: none;
+    border: none;
+    font-size: var(--fuenteMd);
+}
+
+.botonLimpiar:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado3);
+}
+
+/* Variante compacta */
+.contenedorInputBusqueda.busquedaCompacta .inputBusqueda {
+    height: 32px;
+    font-size: var(--fuenteSm);
+}

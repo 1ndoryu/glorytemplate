@@ -1,0 +1,136 @@
+/*
+ * LoginIsland — Kamples
+ * Estilos para el formulario de login.
+ */
+
+.loginContenedor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: var(--espacioXl);
+    background-color: var(--fondoBase);
+}
+
+.loginCaja {
+    width: 100%;
+    max-width: 400px;
+    padding: var(--espacio2xl);
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+}
+
+.loginLogo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    margin-bottom: var(--espacio2xl);
+    color: var(--acento);
+}
+
+.loginLogo svg {
+    width: 32px;
+    height: 32px;
+}
+
+.loginLogoTexto {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    letter-spacing: -0.5px;
+}
+
+.loginTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    text-align: center;
+    margin-bottom: var(--espacioSm);
+}
+
+.loginSubtitulo {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    text-align: center;
+    margin-bottom: var(--espacioXl);
+}
+
+.loginFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.loginSeparador {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    margin: var(--espacioLg) 0;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.loginSeparador::before,
+.loginSeparador::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--bordeSutil);
+}
+
+.loginGoogleBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioLg);
+    border-radius: var(--radioMd);
+    border: 1px solid var(--bordeSutil);
+    background-color: var(--fondoElevado2);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoMedium);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.loginGoogleBtn:hover {
+    background-color: var(--fondoElevado3);
+    border-color: var(--bordeActivo);
+}
+
+.loginGoogleBtn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.loginError {
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioSm);
+    background-color: var(--errorMuted);
+    color: var(--error);
+    font-size: var(--fuenteSm);
+    text-align: center;
+}
+
+.loginFooter {
+    margin-top: var(--espacioXl);
+    text-align: center;
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+.loginFooter a {
+    color: var(--acento);
+    text-decoration: none;
+    font-weight: var(--pesoMedium);
+}
+
+.loginFooter a:hover {
+    text-decoration: underline;
+}

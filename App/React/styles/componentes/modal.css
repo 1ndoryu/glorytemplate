@@ -1,0 +1,107 @@
+/*
+ * Modal — Kamples
+ * Base reutilizable con portal, trap focus, animaciones.
+ */
+
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--zModal);
+    padding: var(--espacio2xl);
+    animation: fadeInOverlay var(--transicionNormal) ease;
+}
+
+.modalContenedor {
+    background-color: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+    box-shadow: var(--sombraModal);
+    max-width: 560px;
+    width: 100%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUpModal var(--transicionNormal) ease;
+    overflow: hidden;
+}
+
+/* Tamaño grande */
+.modalContenedor.modalGrande {
+    max-width: 800px;
+}
+
+/* Tamaño pequeño */
+.modalContenedor.modalPequeno {
+    max-width: 400px;
+}
+
+.modalCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioLg) var(--espacioXl);
+    border-bottom: 1px solid var(--bordeSutil);
+    flex-shrink: 0;
+}
+
+.modalTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.modalCerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radioMd);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    background: none;
+    border: none;
+    font-size: var(--fuenteLg);
+}
+
+.modalCerrar:hover {
+    background-color: var(--fondoElevado3);
+    color: var(--textoPrimario);
+}
+
+.modalCuerpo {
+    padding: var(--espacioXl);
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modalPie {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--espacioSm);
+    padding: var(--espacioLg) var(--espacioXl);
+    border-top: 1px solid var(--bordeSutil);
+    flex-shrink: 0;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUpModal {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
