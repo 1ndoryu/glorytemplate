@@ -127,23 +127,6 @@ export const ShowcaseIsland = (): JSX.Element => {
                 Galería visual de componentes. Revisa cada elemento antes de integrarlo.
             </p>
 
-            {/* ==== PALETA DE COLORES ==== */}
-            <section className="showcaseSeccion">
-                <h2 className="showcaseSeccionTitulo">Paleta de colores</h2>
-                <p className="showcaseSeccionDesc">Todas las variables CSS del tema oscuro.</p>
-                <div className="showcasePaleta">
-                    {COLORES_PALETA.map((c) => (
-                        <div className="showcaseColor" key={c.nombre}>
-                            <div
-                                className="showcaseColorMuestra"
-                                style={{ backgroundColor: c.valor }}
-                            />
-                            <span className="showcaseColorNombre">{c.nombre}</span>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
             {/* ==== ESPACIADOS ==== */}
             <section className="showcaseSeccion">
                 <h2 className="showcaseSeccionTitulo">Espaciados</h2>

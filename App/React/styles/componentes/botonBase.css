@@ -30,18 +30,20 @@
 /* Tamaño md */
 .botonBase.tamanoMd {
     font-size: var(--fuenteMd);
-    padding: var(--espacioSm) var(--espacioLg);
-    height: 40px;
+    padding: var(--espacioXs) var(--espacioLg);
+    height: 36px;
 }
 
 /* Variante primario */
 .botonBase.variantePrimario {
-    background-color: var(--acento);
-    color: var(--blanco);
+    background-color: var(--acento-blanco);
+    color: var(--textoInverso);
 }
 
 .botonBase.variantePrimario:hover {
     background-color: var(--acentoHover);
+    color: var(--acento-blanco);
+    border-color: var(--bordeSutil);
 }
 
 .botonBase.variantePrimario:active {
@@ -75,10 +77,12 @@
 .botonBase.variantePeligro {
     background-color: var(--error);
     color: var(--blanco);
+    
 }
 
 .botonBase.variantePeligro:hover {
     background-color: var(--acentoHover);
+    border-color: var(--bordeSutil);
 }
 
 /* Estado deshabilitado */
@@ -86,6 +90,9 @@
     opacity: 0.4;
     cursor: not-allowed;
     pointer-events: none;
+    background: unset;
+    border: 1px solid var(--bordeActivo);
+    color: var(--acento-blanco);
 }
 
 /* Icono solo (cuadrado) */
@@ -103,7 +110,10 @@
 .botonBase.cargando {
     pointer-events: none;
     position: relative;
-    color: transparent;
+    color: #00000000;
+    background: unset;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
 }
 
 .botonBase.cargando::after {

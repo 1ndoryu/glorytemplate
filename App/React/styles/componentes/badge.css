@@ -6,11 +6,11 @@
 .badge {
     display: inline-flex;
     align-items: center;
-    gap: var(--espacioXs);
+    gap: var(--espacioMd);
     font-family: var(--fuentePrincipal);
-    font-size: var(--fuenteXs);
+    font-size: var(--fuenteSm);
     font-weight: var(--pesoMedio);
-    padding: 2px var(--espacioSm);
+    padding: 4px var(--espacioMd);
     border-radius: var(--radioFull);
     white-space: nowrap;
     user-select: none;

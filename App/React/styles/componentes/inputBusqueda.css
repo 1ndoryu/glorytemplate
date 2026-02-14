@@ -23,7 +23,7 @@
 
 .inputBusqueda {
     width: 100%;
-    height: 40px;
+    height: 32px;
     padding: var(--espacioSm) var(--espacioLg);
     padding-left: 40px;
     padding-right: 40px;
@@ -34,6 +34,7 @@
     font-size: var(--fuenteMd);
     font-family: var(--fuentePrincipal);
     transition: all var(--transicionRapida);
+    background: unset;
 }
 
 .inputBusqueda::placeholder {

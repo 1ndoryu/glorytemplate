@@ -7,13 +7,13 @@
 :root {
     /* Fondos y superficies */
     --fondoBase: #050505;
-    --fondoElevado1: #0a0a0a;
-    --fondoElevado2: #111111;
+    --fondoElevado1: #070707;
+    --fondoElevado2: #101010;
     --fondoElevado3: #1a1a1a;
 
     /* Bordes */
-    --bordeSutil: #1f1f1f;
-    --bordeActivo: #333333;
+    --bordeSutil: #161616;
+    --bordeActivo: #161616;
 
     /* Texto */
     --textoPrimario: #e5e5e5;
@@ -23,11 +23,12 @@
     --blanco: #ffffff;
     --negro: #000000;
 
-    /* Acento — púrpura */
-    --acento: #7c3aed;
-    --acentoHover: #6d28d9;
-    --acentoMuted: rgba(124, 58, 237, 0.15);
-    --acentoTexto: #a78bfa;
+    /* Acento — */
+    --acento: #101010;
+    --acento-blanco: #e5e5e5;
+    --acentoHover: #070707;
+    --acentoMuted: unset;
+    --acentoTexto: #ffffff;
 
     /* Estados */
     --exito: #22c55e;
@@ -52,33 +53,33 @@
     /* Tipografía — tamaños */
     --fuenteXs: 9px;
     --fuenteSm: 11px;
-    --fuenteMd: 14px;
+    --fuenteMd: 12px;
     --fuenteLg: 18px;
     --fuenteXl: 24px;
     --fuente2xl: 32px;
     --fuente3xl: 40px;
 
     /* Tipografía — familias */
-    --fuentePrincipal: 'Inter', system-ui, -apple-system, sans-serif;
+    --fuentePrincipal: 'Source Sans Variable', system-ui, -apple-system, sans-serif;
     --fuenteMono: 'Fira Code', 'JetBrains Mono', monospace;
 
     /* Tipografía — pesos */
     --pesoNormal: 400;
-    --pesoMedio: 500;
-    --pesoMedium: 500;
-    --pesoSemibold: 600;
-    --pesoBold: 700;
+    --pesoMedio: 400;
+    --pesoMedium: 400;
+    --pesoSemibold: 500;
+    --pesoBold: 500;
 
     /* Radios */
     --radioSm: 4px;
-    --radioMd: 8px;
-    --radioLg: 12px;
+    --radioMd: 4px;
+    --radioLg: 4px;
     --radioFull: 9999px;
 
     /* Sombras */
-    --sombraElevada: 0 4px 24px rgba(0, 0, 0, 0.4);
-    --sombraModal: 0 8px 32px rgba(0, 0, 0, 0.6);
-    --sombraSutil: 0 1px 4px rgba(0, 0, 0, 0.2);
+    --sombraElevada: unset;
+    --sombraModal: unset;
+    --sombraSutil: unset;
     --overlayOscuro: rgba(0, 0, 0, 0.7);
     --overlaySuave: rgba(0, 0, 0, 0.4);
 
@@ -96,9 +97,9 @@
     --zReproductor: 500;
 
     /* Dimensiones del layout */
-    --anchoSidebar: 60px;
+    --anchoSidebar: 56px;
     --anchoSidebarExpandido: 220px;
-    --altoTopbar: 56px;
-    --altoReproductor: 72px;
+    --altoTopbar: 52px;
+    --altoReproductor: 56px;
     --anchoMaximoContenido: 1200px;
 }

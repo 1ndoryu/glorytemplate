@@ -11,9 +11,9 @@
 
 .menuContextual {
     position: fixed;
-    min-width: 180px;
+    min-width: 160px;
     max-width: 280px;
-    background-color: var(--fondoElevado3);
+    background-color: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
     box-shadow: var(--sombraElevada);
@@ -21,6 +21,7 @@
     z-index: var(--zMenu);
     animation: fadeInMenu var(--transicionRapida) ease;
 }
+
 
 .menuContextualItem {
     display: flex;
@@ -40,7 +41,6 @@
 
 .menuContextualItem:hover {
     color: var(--textoPrimario);
-    background-color: var(--fondoElevado2);
 }
 
 .menuContextualItem.itemPeligro {
@@ -48,7 +48,7 @@
 }
 
 .menuContextualItem.itemPeligro:hover {
-    background-color: var(--errorMuted);
+
 }
 
 .menuContextualSeparador {
