@@ -1,230 +1,511 @@
-/*
- * About (Nosotros) Page - Cosmo Revenue
- * Metodología timeline, bio, contacto
+/* 
+ * ESTILOS DE LA PAGINA SOBRE NOSOTROS (ABOUT)
+ * Hereda variables y resets de landing.css (base).
+ * Hereda estilos de hero de init.css (page-hero compartido).
  */
 
-/* Sección información */
-.contenedorAbout .seccionInfo {
-    max-width: 1200px;
+/* Los estilos de .about-hero ahora estan centralizados en init.css */
+
+/* --- METHOD SECTION --- */
+.about-container .method-section {
+    padding: 80px 20px;
+    max-width: 1000px;
     margin: 0 auto;
-    padding: var(--gap-section) var(--pad-xs);
     text-align: center;
 }
 
-.contenedorAbout .tituloAbout {
-    font-family: var(--font-heading) !important;
-    font-size: var(--text-hero);
-    font-weight: normal;
-    margin-bottom: var(--gap-md);
+.about-container .method-icon {
+    font-size: 48px;
+    color: #9da876;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.about-container .section-title {
+    font-family: var(--font-heading);
+    font-size: 56px;
+    margin-bottom: 32px;
     color: #1a1a1a;
 }
 
-.contenedorAbout .subtituloAbout {
-    font-family: var(--font-body);
-    font-size: var(--text-base);
-    color: #666;
-    max-width: 600px;
-    margin: 0 auto var(--gap-lg);
+.about-container .section-subtitle {
+    font-size: 18px;
+    color: #555;
+    max-width: 700px;
+    margin: 0 auto 128px;
     line-height: 1.6;
 }
 
-/* Timeline metodología */
-.contenedorAbout .seccionMetodologia {
-    padding: var(--gap-section) 0;
-    max-width: 1200px;
+/* --- TIME LINE GRID REFACTOR --- */
+.about-timeline {
+    padding: 128px 0;
+    position: relative;
+    max-width: 1000px;
     margin: 0 auto;
-}
-
-.contenedorAbout .tituloMetodologia {
-    font-family: var(--font-heading) !important;
-    font-size: 48px;
-    font-weight: normal;
-    text-align: center;
-    margin-bottom: 60px;
-    color: #1a1a1a;
-}
-
-.contenedorAbout .gridTimeline {
-    display: grid;
-    grid-template-columns: 1fr 80px 1fr;
-    gap: 0;
-    align-items: stretch;
-    max-width: 950px;
-    margin: 0 auto;
-}
-
-/* Columnas del timeline */
-.contenedorAbout .columnaIzquierda,
-.contenedorAbout .columnaDerecha {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding: var(--pad-sm);
+    padding-bottom: 40px;
 }
 
-.contenedorAbout .columnaIzquierda { text-align: right; }
-.contenedorAbout .columnaDerecha { text-align: left; }
-
-.contenedorAbout .pasoTimeline {
-    display: contents;
-}
-
-/* Los pasos pares se muestran a la izquierda, impares a la derecha */
-.contenedorAbout .pasoContenido {
-    padding: var(--pad-sm);
-}
-
-.contenedorAbout .pasoContenido h3 {
-    font-family: var(--font-heading);
-    font-size: var(--text-lg);
-    margin-bottom: var(--gap-xs);
-    color: #1a1a1a;
-    font-weight: 400;
-}
-
-.contenedorAbout .pasoContenido p {
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    line-height: 1.6;
-    color: #555;
-    margin: 0;
-}
-
-/* Línea central */
-.contenedorAbout .lineaCentral {
-    position: relative;
-    display: flex;
-    justify-content: center;
-}
-
-.contenedorAbout .lineaCentral::before {
+.about-timeline::before {
     content: '';
     position: absolute;
     top: 0;
     bottom: 0;
+    left: 50%;
     width: 2px;
-    background: #e0e0e0;
+    background: #4a5d4e;
+    /* Darker, more visible color */
+    transform: translateX(-50%);
+    z-index: 0;
 }
 
-.contenedorAbout .puntoTimeline {
-    width: 14px;
-    height: 14px;
-    min-height: 14px;
-    background: var(--color-accent);
+.method-step {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr;
+    align-items: start;
+    /* Align Marker with Top of Content (Subtitle) */
+    position: relative;
+    margin-bottom: 48px;
+    margin-top: 64px;
+    z-index: 1;
+}
+
+.method-step:last-child {
+    margin-bottom: 0;
+    margin-top: 64px;
+}
+
+.step-content {
+    grid-column: 1;
+    text-align: right;
+    padding-right: 40px;
+    position: relative;
+    /* Context for absolute title */
+}
+
+/* Switch sides for even items */
+.method-step:nth-child(even) .step-content {
+    grid-column: 3;
+    text-align: left;
+    padding-right: 0;
+    padding-left: 40px;
+}
+
+/* MARKER STYLE */
+.step-marker {
+    grid-column: 2;
+    width: 70px;
+    height: 70px;
+    background: #fdfdfd;
+    border: 1px solid #9da876;
     border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 35px;
+    color: #4a5d4e;
+    /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); */
     position: relative;
     z-index: 2;
-    margin-top: var(--pad-sm);
 }
 
-.contenedorAbout .celdasVacia {
-    visibility: hidden;
+/* 
+ * NOTA: Los valores top de cada step-marker-* ahora son calculados 
+ * dinamicamente por about-align.js para alinear cada marker con su step-name.
+ * Los valores originales hardcodeados han sido removidos.
+ */
+
+/* Double circle border effect */
+.step-marker::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    pointer-events: none;
 }
 
-/* Sección Bio */
-.contenedorAbout .seccionBio {
-    background: #f9f9f9;
-    padding: var(--gap-section) var(--pad-xs);
+/* TYPOGRAPHY */
+.step-title {
+    font-family: var(--font-heading) !important;
+    font-size: 64px !important;
+    color: #8f9b6b !important;
+    line-height: 1;
+    position: absolute;
+    bottom: 100%;
+    right: 40px;
+    margin-bottom: 10px !important;
+    white-space: nowrap;
 }
 
-.contenedorAbout .contenidoBio {
+.method-step:nth-child(even) .step-title {
+    right: auto;
+    left: 40px;
+    /* Match padding-left of content */
+}
+
+.step-text-wrapper {
+    /* Wrapper handles the "Body" which aligns with the marker */
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--gap-lg);
-    max-width: 1050px;
+    flex-direction: column;
+}
+
+.step-name {
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #333;
+    margin-bottom: 10px;
+    display: block;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    line-height: 1.5;
+    /* This line-height interacts with marker alignment */
+}
+
+.step-desc {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 350px;
+    display: inline-block;
+    margin: 0;
+}
+
+/* Align desc to the right for left items */
+.step-content p {
+    margin-left: auto;
+}
+
+/* Align desc to the left for right items */
+.method-step:nth-child(even) .step-content p {
+    margin-left: 0;
+}
+
+/* --- BIO SECTION --- */
+.about-container .bio-section {
+    background-color: rgba(245, 245, 234);
+    padding: 100px 40px;
+    margin-top: 80px;
+}
+
+.about-container .bio-content {
+    max-width: 1100px;
     margin: 0 auto;
-    align-items: center;
+    display: flex;
+    align-items: flex-start;
+    gap: 60px;
 }
 
-.contenedorAbout .imagenBio {
-    flex: 1;
-    min-width: 280px;
-}
-
-.contenedorAbout .imagenBio img {
-    width: 100%;
-    height: auto;
-    border-radius: 16px;
-    object-fit: cover;
-    max-height: 500px;
-}
-
-.contenedorAbout .textoBio {
+.about-container .bio-image {
     flex: 1;
     min-width: 300px;
-    text-align: left;
 }
 
-.contenedorAbout .textoBio h3 {
+.about-container .bio-image img {
+    width: 100%;
+    height: 500px;
+    object-fit: cover;
+    border-radius: 20px;
+    /* box-shadow: 10px 10px 0px rgba(74, 93, 78, 0.1); */
+}
+
+.about-container .bio-text {
+    flex: 1;
+    min-width: 300px;
+}
+
+.about-container .bio-title {
     font-family: var(--font-heading);
-    font-size: 36px;
-    margin-bottom: var(--gap-sm);
-    color: #1a1a1a;
-    font-weight: 400;
+    font-size: 56px;
+    color: #4a5d4e;
+    margin-bottom: 30px;
+    line-height: 1.1;
 }
 
-.contenedorAbout .textoBio p {
-    font-family: var(--font-body);
+.about-container .bio-desc p {
     font-size: var(--text-base);
     color: #444;
     line-height: 1.8;
-    margin-bottom: var(--gap-md);
+    margin-bottom: 20px;
 }
 
-.contenedorAbout .botonBio {
-    display: inline-block;
-    padding: 6px 19px;
-    background-color: #9da876;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 25px;
-    font-family: var(--font-body);
-    transition: background 0.3s;
-}
-
-.contenedorAbout .botonBio:hover {
-    background-color: #8a9466;
-}
-
-/* Sección Contacto (dentro de About) */
-.contenedorAbout .seccionContacto {
-    padding: var(--gap-section) var(--pad-xs);
-    text-align: center;
+/* --- CONTACT SECTION --- */
+.about-container .contact-section {
+    padding: 100px 40px;
     max-width: 900px;
     margin: 0 auto;
+    text-align: center;
 }
 
-.contenedorAbout .tituloContacto {
-    font-family: var(--font-heading) !important;
-    font-size: 48px;
-    margin-bottom: var(--gap-sm);
+.about-container .contact-title {
+    font-family: var(--font-heading);
+    font-size: 64px;
+    margin-bottom: 60px;
     color: #1a1a1a;
     font-weight: 400;
 }
 
-/* Responsive */
-@container gbn-root (max-width: 768px) {
-    .contenedorAbout .tituloAbout {
+.about-container .contact-form {
+    text-align: left;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.about-container .form-row {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.about-container .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.about-container .form-group.full-width {
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.about-container label {
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 500;
+    font-family: var(--font-body);
+}
+
+.about-container input,
+.about-container textarea {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #999;
+    padding: 10px 0;
+    font-size: 16px;
+    font-family: var(--font-body);
+    background: transparent;
+    outline: none;
+    transition: all 0.3s ease;
+    border-radius: 0;
+}
+
+.about-container input:focus,
+.about-container textarea:focus {
+    border-bottom-color: #4a5d4e;
+}
+
+.about-container textarea {
+    resize: none;
+    min-height: 40px;
+    overflow: hidden;
+    /* Auto-growth if JS were added, simpler just min-height */
+}
+
+.about-container .form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    /* Subtle separator as implied by spacing */
+    border-top: none;
+    /* Actually image doesn't show line, just space */
+}
+
+.about-container .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: #444;
+    cursor: pointer;
+    font-weight: 400;
+}
+
+.about-container .checkbox-label input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #757575;
+    border-radius: 2px;
+    margin: 0;
+    appearance: auto;
+    accent-color: #8f9b6b;
+}
+
+.about-container .btn-submit {
+    background-color: #8f9b6b;
+    /* Muted olive */
+    color: #fff;
+    border: none;
+    padding: 12px 50px;
+    border-radius: 50px;
+    /* Pill shape */
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: var(--font-body);
+    font-weight: 500;
+}
+
+.about-container .btn-submit:hover {
+    background-color: #7a865a;
+}
+
+/* Container Query: TABLET */
+@container gbn-root (max-width: 1024px) {
+    .about-container .hero-title {
+        font-size: 48px;
+    }
+
+    .about-container .hero-subtitle-big {
         font-size: 40px;
     }
-    .contenedorAbout .gridTimeline {
-        grid-template-columns: 40px 1fr;
-        gap: 0;
+
+    .about-container .section-title {
+        font-size: 48px;
     }
-    .contenedorAbout .columnaIzquierda {
-        display: none;
+
+    .about-container .step-title {
+        font-size: 48px !important;
     }
-    .contenedorAbout .columnaDerecha {
-        text-align: left;
+
+    .about-container .bio-content {
+        gap: 40px;
     }
-    .contenedorAbout .celdasVacia {
-        display: none;
+
+    .about-container .bio-image img {
+        height: 400px;
     }
-    .contenedorAbout .contenidoBio {
+
+    .about-container .bio-title {
+        font-size: 48px;
+    }
+
+    .about-container .contact-title {
+        font-size: 56px;
+    }
+}
+
+/* Container Query: MOVIL */
+@container gbn-root (max-width: 768px) {
+    .about-container .bio-content {
         flex-direction: column;
     }
-    .contenedorAbout .tituloMetodologia,
-    .contenedorAbout .tituloContacto {
-        font-size: 36px;
+
+    .about-container .bio-image img {
+        height: auto;
+        aspect-ratio: 4/3;
+    }
+
+    .method-step,
+    .method-step:nth-child(even) {
+        display: grid;
+        grid-template-columns: 80px 1fr;
+        align-items: start;
+        text-align: left;
+        gap: 0;
+        margin-top: 48px;
+        /* Altura minima uniforme para que las letras esten equidistantes */
+        min-height: 140px;
+    }
+    .step-content,
+    .method-step:nth-child(even) .step-content {
+        grid-column: 2;
+        text-align: left;
+        padding: 0 0 0 15px;
+        order: 2;
+        margin: 0;
+    }
+
+    .step-marker {
+        grid-column: 1;
+        margin: 0 auto;
+        order: 1;
+        width: 60px;
+        height: 60px;
+        font-size: 29px;
+        /* Reset: en mobile el JS controla la alineacion via margin-top */
+        position: relative;
+        top: auto;
+    }
+
+    /* Reset de las variantes de step-marker para mobile */
+    .step-marker-c,
+    .step-marker-o,
+    .step-marker-s,
+    .step-marker-m {
+        top: auto;
+    }
+
+    .step-marker::after {
+        top: 3px;
+        left: 3px;
+        right: 3px;
+        bottom: 3px;
+    }
+
+    .about-timeline::before {
+        display: block;
+        left: 40px;
+        transform: translateX(-50%);
+        width: 2px;
+        background: #4a5d4e;
+    }
+
+    .step-title,
+    .method-step:nth-child(even) .step-title {
+        position: static;
+        margin-bottom: 5px !important;
+        font-size: 35px !important;
+        text-align: left;
+    }
+
+    .step-content p {
+        margin: 0;
+        padding: 0;
+    }
+
+    .about-container .form-row {
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .about-container .form-footer {
+        flex-direction: column;
+        gap: 20px;
+        align-items: stretch;
+    }
+
+    .about-container .btn-submit {
+        width: 100%;
+        text-align: center;
+    }
+
+    .about-container .checkbox-label {
+        justify-content: center;
+    }
+
+    /* Hero Adjustments */
+    .about-container .about-hero {
+        padding: 60px 20px;
+        height: auto;
+        min-height: 400px;
+    }
+
+    .about-container .contact-section {
+        padding: 60px 20px;
+    }
+
+    .about-container .contact-title {
+        font-size: 40px;
     }
 }

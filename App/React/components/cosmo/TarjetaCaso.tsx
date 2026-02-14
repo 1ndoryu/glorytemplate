@@ -7,30 +7,29 @@ interface TarjetaCasoProps {
 }
 
 /*
- * Tarjeta de caso de éxito con imagen, meta flotante y estadística.
- * Enlaza al post individual del caso.
+ * Tarjeta de caso de éxito.
+ * Replica la estructura exacta de la case-card en landing.php/casos.php.
+ * Clases: case-card, case-meta, case-flotante, case-image, case-stat
  */
 export function TarjetaCaso({
     caso,
     className = '',
 }: TarjetaCasoProps): React.JSX.Element {
-    const enlace = `/caso/${caso.slug}/`;
-
     return (
-        <a href={enlace} className={`tarjetaCaso ${className}`} style={{ textDecoration: 'none' }}>
-            <div className="metaCaso">
-                <span className="metaCasoFlotante">{caso.meta.caso_tipo}</span>
-                <span className="metaCasoFlotante">{caso.meta.caso_ubicacion}</span>
+        <article className={`case-card ${className}`}>
+            <div className="case-meta">
+                <h3 className="case-flotante">{caso.meta.caso_tipo}</h3>
+                <span className="case-flotante">{caso.meta.caso_ubicacion}</span>
             </div>
             <div
-                className="imagenCaso"
+                className="case-image"
                 style={{ backgroundImage: `url(${caso.imagen})` }}
             >
-                <div className="estadisticaCaso">
+                <div className="case-stat">
                     <h4>{caso.meta.caso_valor}</h4>
                     <p>{caso.meta.caso_descripcion}</p>
                 </div>
             </div>
-        </a>
+        </article>
     );
 }

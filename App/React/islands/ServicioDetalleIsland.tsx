@@ -1,12 +1,13 @@
 /*
  * ServicioDetalleIsland - Pagina de detalle de un plan de servicio
- * Recibe planSlug como prop de PHP y muestra info + features + formulario
+ * Replica la estructura exacta de service-detail.php de App1.
+ * Clases: service-detail-container, service-detail-content, service-info-container,
+ * service-info, service-category-tag, service-detail-title, etc.
  */
 
 import React from 'react';
-import '@app/styles/variables.css';
-import '@app/styles/global.css';
-import '@app/styles/servicioDetalle.css';
+import '@app/styles/init.css';
+import '@app/styles/service-detail.css';
 
 import { CosmoHeader } from '@app/components/layout/CosmoHeader';
 import { PaginaHero } from '@app/components/layout/PaginaHero';
@@ -26,77 +27,82 @@ export function ServicioDetalleIsland(rawProps: Record<string, unknown>): React.
 
     if (!plan) {
         return (
-            <div className="contenedorServicioDetalle">
+            <div className="service-detail-container">
                 <CosmoHeader />
-                <PaginaHero titulo="Servicio no encontrado" />
-                <p style={{ textAlign: 'center', padding: '2rem' }}>
-                    El plan &quot;{slug}&quot; no existe.
-                </p>
+                <PaginaHero textoScript="Plan" textoPrincipal="NO ENCONTRADO" subtitulo={`El plan "${slug}" no existe.`} />
             </div>
         );
     }
 
-    /* Mapa de categorías a etiquetas legibles */
+    /* Mapa de categorias a etiquetas igual que el original */
     const etiquetaCategoria: Record<string, string> = {
-        marketing: 'Marketing Digital',
-        consultoria: 'Consultoría Estratégica',
+        marketing: 'Marketing y Estrategia',
+        consultoria: 'Consultoría y Mapeo',
         revenue: 'Revenue Management',
     };
 
     return (
-        <div className="contenedorServicioDetalle" id={`servicio-${slug}`}>
+        <div className="service-detail-container">
             <CosmoHeader />
-            <PaginaHero titulo={plan.nombre} tituloScript={plan.subtitulo} />
 
-            <div className="contenidoServicioDetalle">
-                <div className="contenedorInfoServicio">
-                    <div className="infoServicio">
-                        <span className="etiquetaCategoria">
-                            {etiquetaCategoria[plan.categoria] ?? plan.categoria}
-                        </span>
+            <PaginaHero
+                textoScript="Plan"
+                textoPrincipal={plan.nombre.toUpperCase()}
+                subtitulo={plan.descripcion}
+            />
 
-                        <h2 className="tituloServicioDetalle">{plan.nombre}</h2>
-                        <p className="taglineServicio">{plan.subtitulo}</p>
+            <section className="service-detail-content">
+                {/* Info del servicio */}
+                <div className="service-info-container">
+                    <div className="service-info">
+                        <div className="service-category-tag">
+                            <span>{etiquetaCategoria[plan.categoria] ?? plan.categoria}</span>
+                        </div>
 
-                        <div className="descripcionServicio">
+                        <h2 className="service-detail-title">{plan.nombre}</h2>
+                        <p className="service-detail-tagline">{plan.subtitulo}</p>
+
+                        <div className="service-detail-description">
                             <p>{plan.descripcion}</p>
                         </div>
 
-                        {/* Features */}
-                        <div className="seccionFeatures">
-                            <h3 className="tituloFeatures">Qué incluye</h3>
-                            <ul className="listaFeaturesServicio">
+                        <div className="service-features-section">
+                            <h3 className="features-title">Qué incluye</h3>
+                            <ul className="service-features-list">
                                 {plan.features.map((feature, i) => (
                                     <li key={i}>
-                                        <span className="iconoFeature">✦</span>
+                                        <span className="feature-icon">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+                                                <path d="M8 12L11 15L16 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                        </span>
                                         <span>{feature}</span>
                                     </li>
                                 ))}
                             </ul>
                         </div>
 
-                        {/* Ideal para */}
                         {plan.idealPara && (
-                            <div className="idealPara">
-                                <h4>Ideal para</h4>
+                            <div className="service-ideal-for">
+                                <h4>Ideal para:</h4>
                                 <p>{plan.idealPara}</p>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* Formulario de contacto */}
-                <div className="wrapperContactoServicio">
-                    <div className="seccionContactoServicio">
-                        <FormularioContacto
-                            formId={`servicio-${slug}`}
-                            servicioPreseleccionado={`${plan.nombre} - ${plan.subtitulo}`}
-                            mostrarBadgeServicio={true}
-                            titulo="¿Te interesa este plan?"
-                        />
-                    </div>
+                {/* Formulario con servicio preseleccionado */}
+                <div className="service-contact-wrapper">
+                    <FormularioContacto
+                        formId={`servicio-${slug}`}
+                        servicioPreseleccionado={`${plan.nombre} - ${etiquetaCategoria[plan.categoria] ?? plan.categoria}`}
+                        mostrarBadgeServicio={true}
+                        titulo={`Solicitar información sobre ${plan.nombre}`}
+                        mostrarHabitaciones={false}
+                    />
                 </div>
-            </div>
+            </section>
         </div>
     );
 }

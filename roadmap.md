@@ -293,7 +293,7 @@ Glory/assets/react/src/components/
 - [ ] **5.9** Bloque `SeccionCita` — Cita configurable
 - [ ] **5.10** Bloque `TarjetasInfo` — Grid de InfoCards
 - [ ] **5.11** Bloque `SeccionCTA` — Call to action
-- [ ] **5.12** Registrar bloques en `App/React/blocks/index.ts`
+- [ ] **5.12** Registrar bloques en `App/React/blocks/index.tsx`
 - [ ] **5.13** Probar constructor con la ConstructorIsland
 
 ### Fase 6: Mejoras al Núcleo de Glory

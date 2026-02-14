@@ -1,17 +1,22 @@
-/*
- * Servicios Page - Cosmo Revenue
- * Marketing cards, consulting, revenue sections
+/* 
+ * ESTILOS DE LA PAGINA DE SERVICIOS
+ * Hereda variables y resets de landing.css (base).
+ * Hereda estilos de hero de init.css (page-hero compartido).
  */
 
-.contenedorServicios .seccionMarketing,
-.contenedorServicios .seccionRevenue {
+/* Los estilos de .services-hero ahora estan centralizados en init.css 
+   junto con .casos-hero, .about-hero y .page-hero */
+
+/* --- SECCIONES COMUNES EN SERVICIOS --- */
+.services-container .marketing-section,
+.services-container .revenue-section {
     padding: var(--gap-section) var(--pad-xs);
     text-align: center;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-.contenedorServicios .etiquetaSeccion {
+.services-container .section-tag {
     margin-top: var(--gap-md);
     display: inline-flex;
     align-items: center;
@@ -23,27 +28,27 @@
     margin-bottom: var(--pad-sm);
 }
 
-.contenedorServicios .etiquetaSeccion svg {
+.services-container .section-tag svg {
     width: 13px;
     height: 13px;
 }
 
-.contenedorServicios .textoEtiqueta {
+.services-container .section-tag-text {
     font-family: var(--font-body);
     font-size: var(--text-xs);
+    color: var(--color-text);
     font-weight: normal;
     margin: 0;
 }
 
-.contenedorServicios .tituloSeccion {
-    font-family: var(--font-heading) !important;
+/* Override del título de sección para servicios (más pequeño que landing) */
+.services-container .section-title {
     font-size: 56px;
     font-weight: normal;
     margin: 0 0 var(--pad-xs) 0;
-    color: #1a1a1a;
 }
 
-.contenedorServicios .tituloSeccionItalic {
+.services-container .section-title-italic {
     font-family: var(--font-heading);
     font-weight: normal;
     font-style: italic;
@@ -51,23 +56,23 @@
     margin: 0 0 var(--pad-xs) 0;
 }
 
-.contenedorServicios .subtituloSeccion {
+.services-container .section-subtitle {
     font-family: var(--font-body);
     max-width: 700px;
     margin: 0 auto var(--gap-lg);
     font-size: var(--text-base);
-    color: #666;
 }
 
-/* Grid marketing */
-.contenedorServicios .gridMarketing {
+/* --- MARKETING SECTION --- */
+.services-container .marketing-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
 }
 
-.contenedorServicios .tarjetaMarketing {
+.services-container .marketing-card {
     background: #fff;
     border: 2.3px solid #4a5d4e48;
+    border-radius: 20px;
     padding: var(--pad-lg) var(--pad-sm);
     text-align: left;
     display: flex;
@@ -77,20 +82,70 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.contenedorServicios .tarjetaIzquierda { border-radius: 20px 0px 0px 20px; }
-.contenedorServicios .tarjetaCentro { border-right: 0; border-left: 0; }
-.contenedorServicios .tarjetaDerecha { border-radius: 0px 20px 20px 0px; }
-.contenedorServicios .tarjetaDerechaInferior { border-radius: 0px 20px 20px 0px; border-left: 0.5px; }
-
-.contenedorServicios .tarjetaMarketing:hover {
-    transform: translateY(-5px);
+.services-container .marketing-card-right {
+    background: #fff;
+    border: 2.3px solid #4a5d4e48;
+    border-radius: 0px 20px 20px 0px;
+    padding: var(--pad-lg) var(--pad-sm);
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.contenedorServicios .encabezadoTarjeta {
+.services-container .marketing-card-left {
+    background: #fff;
+    border: 2.3px solid #4a5d4e48;
+    border-radius: 20px 0px 0px 20px;
+    padding: var(--pad-lg) var(--pad-sm);
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.services-container .marketing-card-center {
+    background: #fff;
+    border: 2.3px solid #4a5d4e48;
+    border-right: 0;
+    border-left: 0;
+    padding: var(--pad-lg) var(--pad-sm);
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.services-container .marketing-card-right-bottom {
+    background: #fff;
+    border: 2.3px solid #4a5d4e48;
+    border-radius: 0px 20px 20px 0px;
+    border-left: 0.5px;
+    padding: var(--pad-lg) var(--pad-sm);
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.services-container .marketing-card:hover {
+    transform: translateY(-5px);
+    /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); */
+}
+
+.services-container .card-header {
     margin-bottom: var(--pad-xs);
 }
 
-.contenedorServicios .iconoTarjeta {
+.services-container .card-icon-wrapper {
     background-color: #f5f5f5;
     border-radius: 12px;
     width: 50px;
@@ -102,7 +157,10 @@
     margin-bottom: var(--gap-xs);
 }
 
-.contenedorServicios .tarjetaMarketing h3 {
+.services-container .marketing-card-left h3,
+.services-container .marketing-card-center h3,
+.services-container .marketing-card-right h3,
+.services-container .marketing-card-right-bottom h3 {
     font-family: var(--font-heading);
     font-size: 48px;
     margin: 0;
@@ -111,21 +169,22 @@
     font-weight: 400;
 }
 
-.contenedorServicios .subtituloTarjeta {
+.services-container .card-subtitle {
     font-family: var(--font-body);
     display: block;
     font-size: var(--text-xs);
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.5px;
+    color: var(--color-text);
     margin-bottom: 0;
 }
 
-.contenedorServicios .cuerpoTarjeta {
+.services-container .card-body {
     flex-grow: 1;
 }
 
-.contenedorServicios .descripcionTarjeta {
+.services-container .card-desc {
     font-size: var(--text-sm);
     color: #555;
     line-height: 1.6;
@@ -133,26 +192,32 @@
     margin-top: 5px;
 }
 
-.contenedorServicios .featuresListaTarjeta {
+.services-container .card-features {
     list-style: none;
     padding: 0;
     margin: 0 0 var(--gap-md) 0;
 }
 
-.contenedorServicios .featuresListaTarjeta li {
+.services-container .card-features li {
     font-size: var(--text-sm);
     color: #444;
     margin-bottom: var(--text-xs);
     display: flex;
     align-items: flex-start;
+    /* Align top for multi-line text */
     gap: var(--text-xs);
 }
 
-.contenedorServicios .pieTarjeta {
+.services-container .feature-check svg {
+    display: block;
+    color: #8c8c8c;
+}
+
+.services-container .card-footer {
     margin-top: auto;
 }
 
-.contenedorServicios .botonTarjeta {
+.services-container .btn-card {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -161,6 +226,7 @@
     padding: var(--text-xs) 0;
     border: 1px solid #757474;
     border-radius: 8px;
+    /* Slightly less rounded than card */
     text-align: center;
     text-decoration: none;
     color: #333;
@@ -169,21 +235,27 @@
     transition: all 0.3s ease;
 }
 
-.contenedorServicios .botonTarjeta:hover {
+.services-container .btn-card:hover {
     background: #1a1a1a;
     color: #fff;
     border-color: #1a1a1a;
 }
 
-/* Consulting section */
-.contenedorServicios .seccionConsultoria {
+.services-container .btn-card svg {
+    width: var(--gap-sm);
+    height: var(--gap-sm);
+}
+
+/* --- CONSULTING SECTION --- */
+
+.services-container .consulting-section {
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(251, 251, 248);
 }
 
-.contenedorServicios .contenidoConsultoria {
+.services-container .consulting-content {
     display: flex;
     flex-wrap: wrap;
     gap: 50px;
@@ -194,16 +266,16 @@
     margin: 0 auto;
 }
 
-.contenedorServicios .izquierdaConsultoria {
+.services-container .consulting-left {
     flex: 1;
     min-width: 300px;
 }
 
-.contenedorServicios .izquierdaConsultoria .tituloSeccion {
+.services-container .consulting-left .section-title {
     font-size: 48px !important;
 }
 
-.contenedorServicios .textoSeccion {
+.services-container .section-text {
     color: #555;
     line-height: 1.8;
     margin-bottom: var(--pad-xs);
@@ -212,13 +284,12 @@
     font-family: var(--font-body);
 }
 
-.contenedorServicios .derechaConsultoria {
+.services-container .consulting-right {
     flex: 1;
     min-width: 300px;
 }
 
-/* Orbit card */
-.contenedorServicios .tarjetaOrbit {
+.services-container .orbit-card {
     background: #111;
     color: #fff;
     border-radius: 20px;
@@ -227,14 +298,19 @@
     overflow: hidden;
 }
 
-.contenedorServicios .encabezadoOrbit {
+.services-container .orbit-header {
     display: flex;
     align-items: center;
     gap: var(--gap-sm);
     margin-bottom: var(--gap-xs);
 }
 
-.contenedorServicios .tarjetaOrbit h3 {
+.services-container .orbit-icon {
+    font-size: var(--pad-sm);
+    color: #d4e157;
+}
+
+.services-container .orbit-card h3 {
     color: #f4f4f4;
     font-family: var(--font-heading);
     font-size: var(--text-lg);
@@ -242,45 +318,55 @@
     font-style: italic;
 }
 
-.contenedorServicios .orbitDesc {
+.services-container .orbit-desc {
     font-size: var(--text-base);
     color: var(--color-accent);
     font-weight: normal;
+    font-family: var(--font-body);
     margin-bottom: var(--pad-xs);
     letter-spacing: 1px;
 }
 
-.contenedorServicios .orbitSubdesc {
+.services-container .orbit-subdesc {
     font-size: var(--text-sm);
     line-height: 1.6;
     margin-bottom: var(--gap-md);
     color: #ddd;
     font-weight: normal;
+    font-family: var(--font-body);
 }
 
-.contenedorServicios .orbitFeatures {
+.services-container .orbit-features {
     display: flex;
     gap: var(--gap-md);
     margin-bottom: var(--gap-md);
 }
 
-.contenedorServicios .orbitFeatures ul {
+.services-container .orbit-features ul {
     list-style: none;
     padding: 0;
     margin: 0;
     flex: 1;
 }
 
-.contenedorServicios .orbitFeatures li {
+.services-container .orbit-features li {
     font-size: var(--text-sm);
     margin-bottom: var(--text-xs);
     color: #ccc;
     display: flex;
     align-items: center;
     gap: var(--gap-xs);
+    font-weight: normal;
+    font-family: var(--font-body);
 }
 
-.contenedorServicios .botonOrbit {
+.services-container .orbit-features-list li svg {
+    color: var(--color-accent);
+    width: 22px;
+    height: 22px;
+}
+
+.services-container .btn-orbit {
     display: block;
     width: 100%;
     padding: var(--text-xs) 0;
@@ -293,26 +379,25 @@
     transition: background 0.3s;
 }
 
-.contenedorServicios .botonOrbit:hover {
+.services-container .btn-orbit:hover {
     background: #f0f0f0;
 }
 
-/* Revenue section */
-.contenedorServicios .seccionRevenue {
+.services-container .revenue-section {
     padding-bottom: 100px;
 }
 
-.contenedorServicios .gridRevenue {
+.services-revenue {
     max-width: 820px;
     margin: 0 auto;
 }
 
-.contenedorServicios .gridRevenueInner {
+.services-revenue-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
-.contenedorServicios .pieSectionRevenue {
+.services-revenue-bottom {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -321,7 +406,7 @@
     width: 100%;
 }
 
-.contenedorServicios .pieSectionContenido {
+.services-revenue-bottom-content {
     max-width: 950px;
     margin: 0 auto;
     display: flex;
@@ -330,13 +415,20 @@
     flex-direction: column;
 }
 
-.contenedorServicios .textoRevenuePie {
+.revenue-bottom-text {
     font-family: var(--font-body) !important;
     font-size: var(--text-base) !important;
     max-width: 70%;
 }
 
-.contenedorServicios .botonRevenue {
+/* Container Query: MOVIL */
+@container gbn-root (max-width: 768px) {
+    .revenue-bottom-text {
+        max-width: 95%;
+    }
+}
+
+.btn-submit-revenue {
     margin-top: 29px;
     background-color: #9da876;
     color: #f4f4f4;
@@ -351,38 +443,93 @@
     border: 1px solid transparent;
 }
 
-.contenedorServicios .botonRevenue:hover {
+.btn-submit-revenue:hover {
     background-color: transparent;
     color: var(--color-accent);
     border: 1px solid var(--color-accent);
 }
 
-/* Responsive */
+.rocket-icon-conl {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-accent);
+    /* Cambia el color aquí (hex o var) */
+}
+
+/* Lucide genera un SVG, así que usamos width/height para el tamaño */
+.rocket-icon-conl svg {
+    width: 32px;
+    height: 32px;
+    stroke-width: 1.5;
+}
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+/* Container Query: TABLET - mantiene 3 columnas en tablet */
 @container gbn-root (max-width: 1024px) {
-    .contenedorServicios .tarjetaIzquierda,
-    .contenedorServicios .tarjetaCentro,
-    .contenedorServicios .tarjetaDerecha,
-    .contenedorServicios .tarjetaDerechaInferior {
+    /* Resetear estilos específicos de posición para que parezcan tarjetas independientes */
+    .services-container .marketing-card-left,
+    .services-container .marketing-card-center,
+    .services-container .marketing-card-right,
+    .services-container .marketing-card-right-bottom {
         border-radius: 20px !important;
+        /* Bordes redondeados completos */
         border: 2.3px solid #4a5d4e48 !important;
+        /* Borde completo */
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        /* Sombra suave para destacar */
+    }
+
+    /* Ajustar padding de contenedores principales para evitar que se vea apretado */
+    .services-container .marketing-section,
+    .services-container .revenue-section,
+    .services-container .consulting-content {
+        padding-left: 24px;
+        padding-right: 24px;
     }
 }
 
+/* Container Query: MOVIL */
 @container gbn-root (max-width: 768px) {
-    .contenedorServicios .gridMarketing {
+    /* Marketing grid: 1 columna solo en movil */
+    .services-container .marketing-grid {
         grid-template-columns: 1fr;
         gap: var(--pad-xs);
     }
-    .contenedorServicios .tituloSeccion,
-    .contenedorServicios .tarjetaMarketing h3 {
-        font-size: 40px;
+
+    /* Ajustes adicionales para movil */
+    .services-container .hero-title,
+    .services-container .hero-title .script-text {
+        font-size: 48px;
+        /* Reducir tamano de titulo hero */
     }
-    .contenedorServicios .contenidoConsultoria {
+
+    .services-container .section-title,
+    .services-container .marketing-card-left h3,
+    .services-container .marketing-card-center h3,
+    .services-container .marketing-card-right h3 {
+        font-size: 40px;
+        /* Titulos de tarjetas mas pequenos */
+    }
+
+    .services-container .hero-subtitle {
+        font-size: 16px;
+        padding: 0 16px;
+    }
+
+    .services-container .marketing-card-left,
+    .services-container .marketing-card-center,
+    .services-container .marketing-card-right,
+    .services-container .marketing-card-right-bottom {
+        padding: 30px 20px;
+        /* Padding interno mas comodo para movil */
+        height: auto;
+        /* Altura automatica */
+        margin-bottom: var(--pad-xs);
+    }
+
+    .services-container .consulting-content {
         flex-direction: column;
         gap: 40px;
-    }
-    .contenedorServicios .textoRevenuePie {
-        max-width: 95%;
     }
 }

@@ -3,25 +3,26 @@ import React from 'react';
 interface TarjetaInfoProps {
     icono: React.ReactNode;
     titulo: string;
-    contenido: React.ReactNode;
+    texto: string;
     className?: string;
 }
 
 /*
- * Tarjeta de informacion simple con icono, titulo y contenido.
- * Usada en la pagina de contacto para email, telefono, ubicacion.
+ * Tarjeta de informacion de contacto.
+ * Replica la estructura exacta de contact_info() en contact.php.
+ * Clases: contact-info-card, info-icon, info-title, info-text
  */
 export function TarjetaInfo({
     icono,
     titulo,
-    contenido,
+    texto,
     className = '',
 }: TarjetaInfoProps): React.JSX.Element {
     return (
-        <div className={`tarjetaInfo ${className}`}>
-            <div className="iconoInfo">{icono}</div>
-            <h3>{titulo}</h3>
-            <div>{contenido}</div>
+        <div className={`contact-info-card ${className}`}>
+            <div className="info-icon">{icono}</div>
+            <h3 className="info-title">{titulo}</h3>
+            <p className="info-text">{texto}</p>
         </div>
     );
 }

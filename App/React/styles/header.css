@@ -1,8 +1,3 @@
-/*
- * Header - Cosmo Revenue
- * Estilos del header fixed con behavior de scroll
- */
-
 .cosmoHeaderContainer {
     display: flex;
     justify-content: space-between;
@@ -30,8 +25,11 @@ ul#menu-main-menu {
     gap: 30px;
 }
 
+/* Estado cuando el usuario hace scroll */
 .cosmoHeader.scrolled {
     background: rgb(20 20 20);
+    /* backdrop-filter: blur(10px); */
+    /* box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15); */
 }
 
 .cosmoHeader a {
@@ -39,7 +37,7 @@ ul#menu-main-menu {
     font-size: 14px;
 }
 
-/* CTA del menú (último item) */
+/* Ultimo item del menu como boton CTA (Contacto) */
 ul#menu-main-menu > li:last-child > a,
 .cosmoHeaderMenu ul > li:last-child > a {
     display: inline-block;
@@ -56,9 +54,15 @@ ul#menu-main-menu > li:last-child > a:hover,
     background-color: #8a9466;
 }
 
-.cosmoHeaderBurger { display: none; }
-.cosmoHeaderBackground { display: none; }
+.cosmoHeaderBurger {
+    display: none;
+}
 
+.cosmoHeaderBackground {
+    display: none;
+}
+
+/* Estilos del logo SVG - hereda color del contenedor para adaptarse al fondo */
 .cosmoHeaderLogo {
     display: flex;
     align-items: center;
@@ -77,11 +81,15 @@ ul#menu-main-menu > li:last-child > a:hover,
     transition: opacity 0.3s ease;
 }
 
-.cosmoHeaderLogoSvg:hover { opacity: 0.8; }
+.cosmoHeaderLogoSvg:hover {
+    opacity: 0.8;
+}
 
-/* Menú móvil abierto */
+/* Menu movil desplegable - Estado abierto */
 .cosmoHeader.open .cosmoHeaderBackground,
-[gloryHeader].open .cosmoHeaderBackground {
+[gloryHeader].open .cosmoHeaderBackground,
+.cosmoHeader.open .background,
+[gloryHeader].open .background {
     display: block;
     position: fixed;
     inset: 0;
@@ -108,13 +116,14 @@ ul#menu-main-menu > li:last-child > a:hover,
 
 .cosmoHeader.open ul#menu-main-menu a,
 .cosmoHeader.open .nav-links a,
+.cosmoHeader.open .cosmoHeaderMenu a,
 [gloryHeader].open ul#menu-main-menu a,
 [gloryHeader].open .nav-links a {
     font-size: 24px;
     color: #fff;
 }
 
-/* Botón burger */
+/* Estilos del boton burger - visible con icono SVG */
 .cosmoHeader .burger,
 .cosmoHeaderBurger,
 [gloryHeader] .burger {
@@ -137,7 +146,7 @@ ul#menu-main-menu > li:last-child > a:hover,
     height: 24px;
 }
 
-/* Responsive tablet */
+/* 2. TABLET - Container Query (header ahora dentro del main con container-type) */
 @container gbn-root (max-width: 1024px) {
     .cosmoHeaderBurger,
     .cosmoHeader .burger {
@@ -148,6 +157,7 @@ ul#menu-main-menu > li:last-child > a:hover,
         z-index: 110;
     }
 
+    /* Ocultar menu principal en tablet */
     ul#menu-main-menu,
     .cosmoHeaderMenu ul,
     .cosmoHeader .nav-links {
@@ -155,7 +165,7 @@ ul#menu-main-menu > li:last-child > a:hover,
     }
 }
 
-/* Responsive móvil */
+/* 3. MOVIL - Container Query */
 @container gbn-root (max-width: 768px) {
     .cosmoHeaderBurger,
     .cosmoHeader .burger {
@@ -166,6 +176,7 @@ ul#menu-main-menu > li:last-child > a:hover,
         z-index: 110;
     }
 
+    /* Ocultar menu principal en movil */
     ul#menu-main-menu,
     .cosmoHeaderMenu ul,
     .cosmoHeader .nav-links {
@@ -177,6 +188,7 @@ ul#menu-main-menu > li:last-child > a:hover,
     }
 }
 
+
 .cosmoHeaderMenu ul {
     display: flex;
     gap: 30px;
@@ -185,4 +197,42 @@ ul#menu-main-menu > li:last-child > a:hover,
 nav.cosmoHeaderMenu {
     display: flex;
     align-items: center;
+}
+
+/*
+ * Fallback @media para React (sin container gbn-root disponible).
+ * Replica los breakpoints de @container con @media estándar.
+ */
+@media (max-width: 1024px) {
+    .cosmoHeader .burger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 110;
+    }
+
+    .cosmoHeader .nav-links,
+    .cosmoHeaderMenu ul {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .cosmoHeader .burger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 110;
+    }
+
+    .cosmoHeader .nav-links,
+    .cosmoHeaderMenu ul {
+        display: none !important;
+    }
+
+    .cosmoHeader {
+        padding: 12px 20px;
+    }
 }

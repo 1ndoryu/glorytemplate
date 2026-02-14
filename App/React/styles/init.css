@@ -1,0 +1,1380 @@
+:root {
+    /*Cosmo*/
+    --color-negro: #000000;
+    --color-blanco: #ffffff;
+    --color-naranja-claro: #f6f3ec;
+    --color-gris: #cccccc;
+    --color-verde-1: #dde0cd;
+    --color-verde-2: #b2b88e;
+    --color-verde-marca: #8d926f;
+    --color-verde-oscuro: #545938;
+
+    --color-bg-dark: var(--color-negro);
+    --color-text-light: var(--color-blanco);
+    --color-text-muted: var(--color-gris);
+    --color-accent: var(--color-verde-marca);
+    --color-mint: var(--color-verde-1);
+
+    --color-mint-dark: var(--color-verde-2);
+    --font-heading: 'Instrument Serif', serif;
+    --font-body: 'Montserrat', sans-serif !important;
+    --font-brand: 'Archivo Black', sans-serif;
+    font-size: 16px;
+
+    /* Extra variables merged from header.css */
+    --color-black: var(--color-negro);
+    --color-blue: #0071e3;
+    --color-green: #00b982;
+    --color-greyDark: #1d1e20;
+    --color-greyLight: #efefef;
+    --color-greyLighter: #f8f8f8;
+    --color-offBlack: #0f1012;
+    --color-offWhite: #f2f2f4;
+    --color-orange: #ff5102;
+    --color-yellow: #fca311;
+    --color-white: var(--color-blanco);
+
+    /* Dimensions & Spacing Normalized */
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 20px;
+    --s-6: 24px;
+    --s-8: 32px;
+    --s-10: 40px;
+    --s-12: 48px;
+    --s-16: 64px;
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    --font-base: 'Instrument Serif', serif;
+    --font-heading: 'Instrument Serif', serif;
+    --font-brand: 'Archivo Black', sans-serif;
+    --font-body: 'Montserrat', sans-serif;
+
+    /* ========================================
+       DESIGN TOKENS CENTRALIZADOS
+       Usar estas variables en todas las páginas
+       para mantener consistencia visual.
+       ======================================== */
+
+    /* Tipografía - Tamaños de fuente */
+    --text-xs: 12px; /* Labels, tags, texto uppercase pequeño */
+    --text-sm: 14px; /* Subtítulos, descripciones secundarias */
+    --text-base: 14px; /* Párrafos, botones, texto normal */
+    --text-lg: 28px; /* Títulos de tarjetas, h3, headings medianos */
+    --text-hero: 78px; /* Títulos de sección y hero principales */
+
+    /* Spacing - Separación entre elementos */
+    --gap-xs: 8px; /* Separación mínima entre elementos inline */
+    --gap-sm: 16px; /* Separación estándar entre elementos */
+    --gap-md: 32px; /* Separación entre grupos de contenido */
+    --gap-lg: 60px; /* Separación entre secciones internas */
+    --gap-section: 80px; /* Padding vertical de secciones principales */
+
+    /* Padding - Espaciado interno de contenedores */
+    --pad-xs: 16px; /* Padding interno elementos pequeños */
+    --pad-sm: 24px; /* Padding interno contenedores medianos */
+    --pad-lg: 40px; /* Padding lateral de secciones y header */
+
+    --header-height: 126px;
+    --grid-columnCount: 5;
+    --grid-gutter: 2.5641025641vw;
+    --grid-outerGutter: 5.1282051282vw;
+
+    /* Tokens de tema (valores por defecto: claro) */
+    --bg: var(--color-blanco);
+    --text: #141414;
+    --muted: var(--color-gris);
+    --card-bg: #f8f8f8;
+    --card-hover: #e6e6e6;
+    --border-color: #e6e6e6;
+    --button-bg: transparent;
+    --button-text: var(--text);
+
+    --radius: var(--radius-md);
+    --padding: var(--s-8);
+    --ancho: 960px;
+
+    /* Variables antiguas para compatibilidad */
+    --fondo: var(--card-bg);
+    --borde: 1px var(--border-color) solid;
+    --bordeBoton: 1px rgba(31, 31, 31, 0.55) solid;
+    --blanco: var(--text);
+    font-size: 14px;
+}
+
+/* Container Query Support para GBN Responsive Preview
+   TEMPORAL: Permite que el cambio de viewport en GBN active estilos responsive
+   sin necesidad de iframe. Los @container queries responden al ancho del contenedor,
+   no al viewport del navegador. */
+[data-gbn-root],
+.landing-container,
+.casos-container,
+.about-container,
+.services-container,
+main {
+    container-type: inline-size;
+    container-name: gbn-root;
+}
+
+p,
+a,
+h3,
+h4,
+h5,
+h6,
+span {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: unset;
+    text-decoration: unset;
+}
+
+:where(
+
+    /* Modo oscuro */
+    html[data-theme='dark']) {
+    --bg: #080808;
+    --text: #d4d4d4;
+    --muted: #a2a2a2;
+    --card-bg: #0f0f0f;
+    --card-hover: #1a1a1a;
+    --border-color: #161616;
+    --button-bg: transparent;
+    --button-text: var(--text);
+
+    --fondo: var(--card-bg);
+    --borde: 1px var(--border-color) solid;
+    --bordeBoton: 1px rgba(31, 31, 31, 0.55) solid;
+}
+
+:where(
+
+    /* Glory Calendario (clases camelCase en español) */
+    .calCont) {
+    background-color: var(--fondo);
+    border: var(--borde);
+    border-radius: 8px;
+    padding: 12px;
+    width: 200px;
+}
+
+:where(.calNav) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+:where(.calMesAnio) {
+    font-size: 14px;
+    font-weight: 500;
+    color: #e2e8f0;
+}
+
+:where(.calNavBtn) {
+    height: 28px;
+    width: 28px;
+    background-color: transparent;
+    padding: 0;
+    border: var(--borde);
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #cbd5e0;
+}
+
+:where(.calTabla) {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+}
+
+:where(.calTabla th) {
+    color: #a0aec0;
+    border-radius: 6px;
+    width: calc(100% / 7);
+    font-weight: 400;
+    font-size: 13px;
+    padding-bottom: 8px;
+}
+
+:where(.calTabla td) {
+    padding: 0;
+    text-align: center;
+    font-size: 12px;
+    position: relative;
+}
+
+:where(.calDia) {
+    height: 32px;
+    width: 32px;
+    line-height: 32px;
+    padding: 0;
+    font-weight: 400;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-block;
+    color: #e2e8f0;
+    transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out;
+}
+
+:where(.calDia:hover) {
+    background-color: #2d2d2d;
+    color: #fff;
+}
+
+:where(.calDiaFuera) {
+    color: #4a5568;
+    opacity: 0.8;
+}
+
+:where(.calDiaFuera:hover) {
+    background-color: transparent;
+}
+
+:where(.calDiaHoy .calDiaNum) {
+    background-color: #2d2d2d;
+    color: #e2e8f0;
+    border-radius: 6px;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+}
+
+:where(.calDiaHoy.calDiaSel .calDiaNum) {
+    background-color: #3182ce;
+    color: #fff;
+}
+
+:where(.calDiaSel .calDiaNum) {
+    background-color: #3182ce;
+    color: #fff;
+    border-radius: 6px;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+}
+
+:where(.calDiaSel .calDiaNum:hover) {
+    background-color: #2c5282;
+}
+
+:where(.calDiaDeshab) {
+    color: #4a5568;
+    opacity: 0.5;
+    cursor: default;
+}
+
+:where(.calDiaDeshab:hover) {
+    background-color: transparent;
+}
+
+:where(.calAcciones) {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+}
+
+:where(.calBtnAccion) {
+    padding: 5px 12px;
+    border: var(--borde);
+    cursor: pointer;
+}
+
+:where(.calBtnAccion:hover) {
+    background-color: #2d2d2d;
+}
+
+:where(.calCont tr) {
+    padding: 1px 0px;
+    display: flex;
+    justify-content: space-around;
+}
+
+/* Google Fonts: cargadas de forma asincrona en header.php para evitar bloqueo de renderizado.
+   No usar @import aqui ya que bloquea el renderizado (~780ms segun PageSpeed). */
+
+:where(h1, h2) {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+}
+
+:where(html) {
+    background: var(--bg);
+    font-size: 16px;
+}
+
+:where(main) {
+    width: 100%;
+}
+
+:where(.firefox *) {
+    scrollbar-width: thin;
+    scrollbar-color: #373737 transparent;
+}
+
+:where(*) {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+:where(.bloque) {
+    display: flex;
+    background: var(--fondo);
+    border-radius: var(--radius);
+    padding: var(--padding);
+    border: var(--borde);
+    width: var(--ancho);
+    max-width: 100%;
+    gap: 16px;
+}
+
+:where(code) {
+    background: var(--card-hover);
+    padding: 2px 5px;
+    margin: 2px;
+}
+
+:where(img) {
+    border-style: none;
+    vertical-align: top;
+    max-width: 100%;
+    height: auto;
+}
+
+:where(.flex) {
+    display: flex;
+}
+
+:where(.gap) {
+    gap: 16px;
+}
+
+:where(.gap15) {
+    gap: 24px;
+}
+
+:where(.gap20) {
+    gap: 32px;
+}
+
+:where(body.noScroll) {
+    overflow: hidden;
+}
+
+:where(.oculto) {
+    display: none;
+}
+
+:where(.flexRow) {
+    flex-direction: row;
+}
+
+:where(.spaceBetween) {
+    justify-content: space-between;
+}
+
+:where(.alignItemCenter) {
+    align-items: center;
+}
+
+:where(.columna) {
+    flex-direction: column;
+}
+
+:where(.w100) {
+    width: 100%;
+}
+
+:where(.w50) {
+    width: 50%;
+}
+
+:where(body, body p, textarea) {
+    font-size: 19px;
+    display: block;
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    unicode-bidi: isolate;
+    color: var(--text);
+    line-height: 1.6;
+    font-family: var(--font-body);
+    letter-spacing: 0px;
+    font-weight: 400;
+    text-decoration: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    text-decoration: none;
+    text-wrap: pretty;
+}
+
+:where(.firefox *::-webkit-scrollbar) {
+    width: 6px;
+    background: transparent;
+}
+
+:where(.firefox *::-webkit-scrollbar-thumb) {
+    border-radius: 16px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+}
+
+:where(.firefox .menu-container) {
+    filter: url(#blur-effect);
+    background-color: rgba(9, 9, 9, 0.85);
+}
+
+:where(.firefox .panelperfilsupsec) {
+    background: #070707;
+    background-color: rgb(7, 7, 7);
+    filter: url(#blur-effect);
+    background-color: rgba(9, 9, 9, 0.85);
+}
+
+:where(::-webkit-scrollbar) {
+    width: 6px;
+    height: 6px;
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+:where(::-webkit-scrollbar-track) {
+    background: none;
+}
+
+:where(::-webkit-scrollbar-thumb) {
+    background: #555;
+    border-radius: 1rem;
+}
+
+:where(.scrollVisible::-webkit-scrollbar) {
+    width: 6px;
+    height: 6px;
+}
+
+:where(.scrollVisible::-webkit-scrollbar-thumb) {
+    background: unset;
+}
+
+:where(.scrollVisible::-webkit-scrollbar-thumb:hover) {
+    background: #888;
+}
+
+:where(.appAndroid p) {
+    font-size: 22px;
+}
+
+:where(.appAndroid button) {
+    font-size: 22px;
+}
+
+:where(.appAndroid a) {
+    font-size: 22px;
+}
+
+:where(.appAndroid .jhvsfw a) {
+    font-size: 24px;
+}
+
+:where(.appAndroid .zvjvza) {
+    padding-bottom: 0px;
+    line-height: 21px;
+    padding-top: 8px;
+}
+
+:where(.appAndroid .hqlxwd a) {
+    font-size: 19px;
+}
+
+@media (max-width: 640px) {
+    :where(::-webkit-scrollbar) {
+        width: 0px;
+        height: 0px;
+        transition: width 0.3s ease, height 0.3s ease;
+    }
+
+    :where(.scrollVisible::-webkit-scrollbar) {
+        width: 0px;
+        height: 0px;
+    }
+}
+
+:where(.appAndroid .infoIaBtn, .appAndroid span.postTag, .appAndroid .badge, .appAndroid .postTagToggle) {
+    font-size: 21px;
+}
+
+:where(ul) {
+    list-style: none;
+}
+
+:where(.borde) {
+    border: var(--borde);
+}
+
+:where(textarea) {
+    /* Adaptar al token de texto del tema */
+    color: var(--text);
+    border: none;
+    padding: 0px;
+    margin-bottom: 16px;
+    font-size: 19px;
+    background: none;
+    resize: none;
+    width: 100%;
+}
+
+:where(.seleccionado) {
+    filter: brightness(2);
+    opacity: 1;
+    border: 1px solid #676767;
+}
+
+:where(.botonesBloques button) {
+    width: -webkit-fill-available;
+    justify-content: center;
+}
+
+:where(button) {
+    all: unset;
+    display: flex;
+    margin: 0px;
+    /* Usar tokens de tema para que el color se adapte (light/dark) */
+    color: var(--button-text);
+    background: var(--button-bg);
+    font-size: 19px;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 13px 24px;
+    align-items: center;
+    height: fit-content;
+    gap: 8px;
+}
+
+:where(.botonPrincipal) {
+    background: transparent;
+    color: var(--button-text);
+    border: none;
+}
+
+:where(.preview) {
+    border: var(--borde);
+    border-radius: var(--radius);
+    display: flex;
+    align-content: center;
+    text-align: center;
+    padding: var(--padding);
+    min-height: 96px;
+    cursor: pointer;
+    width: 100%;
+    place-content: center;
+}
+
+:where(.noBorde) {
+    border: unset;
+}
+
+:where(body) {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+:where(label) {
+    /* +0.1rem respecto al valor anterior (1.2rem -> 1.3rem) y en negrita */
+    font-size: 21px;
+    font-weight: 700;
+}
+
+:where(
+
+    /* En formularios, forzar los labels en bloque para colocar inputs/selects debajo */
+    .gloryForm .formCampo>label) {
+    display: block;
+    margin-bottom: 10px;
+}
+
+:where(*) {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+:where(form) {
+    display: flex;
+    flex-direction: column;
+}
+
+:where(.heartAnimation) {
+    animation: fade 2s ease forwards;
+    color: red;
+    font-size: 48px;
+}
+
+:where(.waveformContainer) {
+    cursor: pointer;
+}
+
+:where(.modal) {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--fondo);
+    border: var(--borde);
+    padding: 32px;
+    border-radius: var(--radius);
+    width: 640px;
+    max-width: 90%;
+    z-index: 1006;
+    font-size: 18px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 16px;
+    max-height: 82%;
+    overflow: auto;
+}
+
+:where(.customCheckbox) {
+    display: flex;
+    cursor: pointer;
+    padding: 8px;
+    user-select: none;
+    color: #6b6b6b;
+    border: var(--borde);
+    border-radius: 8px;
+    width: 100%;
+    justify-content: center;
+}
+
+:where(.customCheckbox input[type='checkbox']) {
+    display: none;
+}
+
+:where(input, textarea) {
+    background: unset;
+    /* padding: 0.7rem 0rem; */
+    border-bottom: var(--borde);
+    font-size: 19px;
+    /* Usar token de tema para el color del texto */
+    color: var(--text);
+    border-radius: 0px;
+    border: none;
+    resize: none;
+    line-height: 1.5;
+    width: 100%;
+    margin: 6px 0;
+}
+
+:where(
+
+    /* Estilos para selects: similares a un input (borde inferior) */
+    select) {
+    width: 100%;
+    border: unset;
+    background: unset;
+    font-family: 'Source Sans 3';
+    padding: 8px;
+    padding-left: 0px;
+    margin: unset;
+    font-size: 19px;
+    /* igual a inputs */
+    border-bottom: var(--borde);
+    outline: none;
+    color: var(--text);
+    margin: 6px 0;
+}
+
+:where(select:focus) {
+    outline: none;
+}
+
+:where(select option) {
+    color: var(--text);
+    background: var(--bg);
+}
+
+:where(
+
+    /* Toggle estilo switch para checkboxes */
+    .opcionCheck) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 19px 24px;
+    border: var(--borde);
+    border-radius: 13px;
+}
+
+:where(.opcionCheck > div label) {
+    color: var(--text);
+    font-weight: 700;
+    display: block;
+    /* asegurar que el select quede debajo en bloques similares */
+}
+
+:where(.opcionCheck .description) {
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 22px;
+    max-width: 400px;
+}
+
+:where(.switch) {
+    position: relative;
+    display: inline-block;
+    width: 56px;
+    height: 29px;
+}
+
+:where(.switch input) {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+:where(.slider) {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--card-bg);
+    transition: background-color 0.18s ease, border-color 0.18s ease;
+    border-radius: 54px;
+    border: 1px solid var(--border-color);
+}
+
+:where(.slider:before) {
+    position: absolute;
+    content: '';
+    height: 26px;
+    width: 26px;
+    background-color: var(--bg);
+    transition: transform 0.18s ease;
+    border-radius: 50%;
+    /* box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.2); */
+}
+
+:where(.switch input:checked + .slider) {
+    background-color: var(--text);
+    border-color: var(--text);
+}
+
+:where(.switch input:checked + .slider:before) {
+    transform: translateX(27px);
+    background-color: var(--bg);
+}
+
+:where(.switch input:focus + .slider, .switch input:active + .slider) {
+    box-shadow: none;
+    /* eliminar halo que añade la sensación de grosor */
+}
+
+:where(
+
+    /* Minimal modern checkbox group */
+    .checkboxGroup) {
+    display: flex;
+    flex-direction: column;
+}
+
+:where(.checkboxGroup label) {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 10px 10px 48px;
+    /* espacio para la casilla personalizada */
+    border-radius: 13px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 120ms ease;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid transparent;
+    font-size: 19px;
+    /* igual que inputs */
+    font-weight: 400;
+    /* texto normal */
+}
+
+:where(
+
+    /* eliminar efecto hover visual para los checkboxes del grupo */
+    .checkboxGroup label:hover) {
+    background: transparent;
+}
+
+:where(.checkboxGroup input[type='checkbox']) {
+    display: none;
+}
+
+:where(.checkboxVisualWrapper) {
+    position: relative;
+}
+
+:where(.checkboxVisualWrapper::before) {
+    content: '';
+    position: absolute;
+    left: -45px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    /* sin background */
+    display: block;
+    box-sizing: border-box;
+}
+
+:where(.checkboxVisualWrapper::after) {
+    content: '✔';
+    position: absolute;
+    left: -45px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    font-size: 16px;
+    line-height: 22px;
+    text-align: center;
+}
+
+:where(
+
+    /* Mostrar checkmark cuando está marcado */
+    label input:checked+.checkboxVisualWrapper::after) {
+    display: block;
+}
+
+:where(label input:checked + .checkboxVisualWrapper::before) {
+    /* mantener sin background, solo cambiar color del borde si se desea */
+    background: transparent;
+    border-color: var(--text);
+}
+
+:where(
+
+    /* También un estilo para customCheckbox (campo individual con clase) para mantener coherencia */
+    .customCheckbox) {
+    justify-content: flex-start;
+    padding-left: 54px;
+    position: relative;
+}
+
+:where(.customCheckbox input[type='checkbox']) {
+    display: none;
+}
+
+:where(.customCheckbox::before) {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 29px;
+    height: 29px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--bg);
+}
+
+:where(input::placeholder, textarea::placeholder) {
+    color: var(--muted);
+    opacity: 0.9;
+}
+
+:where(input:focus, textarea:focus) {
+    outline: none;
+}
+
+:where(.preview img) {
+    max-height: 320px;
+    object-fit: cover;
+    width: 100%;
+}
+
+:where(.openModal) {
+    cursor: pointer;
+}
+
+:where(.activa) {
+    opacity: 1;
+}
+
+:where(.pestanas button) {
+    font-size: 21px;
+    padding: 0px;
+    font-weight: 500;
+    opacity: 0.6;
+}
+
+:where(.pestanas) {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 16px 29px;
+}
+
+:where(.submenus) {
+    display: none;
+    background: #080808;
+    padding: 16px 10px;
+    border-radius: 8px;
+    width: 240px;
+    overflow: auto;
+    border: var(--borde);
+    z-index: 1010;
+    position: fixed;
+    flex-direction: column;
+}
+
+:where(.submenus a) {
+    font-size: 19px;
+    padding: 8px;
+    padding-left: 16px;
+    cursor: pointer;
+    color: white;
+    width: -webkit-fill-available;
+    width: -moz-available;
+}
+
+:where(
+
+    /* Muestra el menú cuando está activo */
+    .submenus.activo) {
+    display: flex;
+}
+
+:where(.arrastrando) {
+    filter: brightness(1.2);
+}
+
+:where(.previewsForms.activo) {
+    display: flex;
+    /* o flex, grid, etc., según necesites */
+}
+
+:where(.gloryImageUploader) {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+:where(.previewImagen) {
+    border: var(--borde);
+    border-radius: var(--radius);
+    display: flex;
+    align-content: center;
+    text-align: center;
+    padding: var(--padding);
+    min-height: 176px;
+    cursor: pointer;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+:where(
+
+    /* Badges list component (Glory) */
+    .badgeList) {
+    display: flex;
+    gap: 13px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+:where(.badgeList .badge) {
+    /* basarse en variables del tema */
+    color: var(--muted);
+    background: var(--card-bg);
+    border-radius: 160px;
+    padding: 3px 18px;
+    cursor: pointer;
+    font-size: 19px;
+    /* 12px equivalente */
+    white-space: nowrap;
+    transition: opacity 120ms ease, transform 120ms ease, background-color 120ms ease, color 120ms ease;
+    opacity: 0.85;
+}
+
+:where(.badgeList .badge.activo) {
+    background: var(--card-bg);
+    color: var(--text);
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+:where(.badgeList .badge.inactivo) {
+    opacity: 0.45;
+}
+
+:where(.badgeList .badgeControl) {
+    font-size: 18px;
+    padding: 6px 13px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+}
+
+:where(.hljs) {
+    background: var(--card-bg);
+}
+
+:where(pre code.hljs) {
+    display: block;
+    overflow-x: auto;
+    padding: 1em;
+    font-size: 16px;
+}
+
+:where(button.previewRemover) {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(30px);
+    padding: 8px;
+}
+
+:where(.submenu) {
+    display: none;
+    position: fixed;
+    background: var(--fondo);
+    border: var(--borde);
+    border-radius: var(--radius);
+    /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); */
+    padding: 8px;
+    min-width: 150px;
+    z-index: 1001;
+    flex-direction: column;
+    gap: 5px;
+    list-style: none;
+}
+
+:where(.submenu.activo) {
+    display: flex;
+}
+
+:where(.submenu button) {
+    width: -webkit-fill-available;
+    width: -moz-available;
+    width: fill-available;
+    text-align: left;
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius);
+    color: var(--text);
+}
+
+:where(.submenu button:hover) {
+    background-color: var(--fondo);
+    filter: brightness(1.4);
+}
+
+:where(.gloryThemeToggle) {
+    color: var(--text);
+    background: var(--card-bg);
+    border: var(--borde);
+    width: 40px;
+    height: 40px;
+    padding: 0px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+}
+
+/* ========================================
+   PAGE HERO - Estilos compartidos para heros de paginas internas
+   Usado por: casos, about, services y otras paginas
+   ======================================== */
+
+.page-hero,
+.services-hero,
+.casos-hero,
+.about-hero {
+    position: relative;
+    height: 60vh;
+    min-height: 500px;
+    width: 100%;
+    background-color: #141414;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--pad-xs);
+}
+
+.page-hero .hero-content,
+.services-hero .hero-content,
+.casos-hero .hero-content,
+.about-hero .hero-content {
+    z-index: 2;
+    max-width: 800px;
+}
+
+.page-hero .hero-title,
+.services-hero .hero-title,
+.casos-hero .hero-title,
+.about-hero .hero-title {
+    font-family: var(--font-body);
+    margin-bottom: var(--pad-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #f4f4f4;
+    font-weight: normal;
+    font-size: var(--text-hero);
+    letter-spacing: 2px;
+    line-height: 1.2;
+}
+
+.page-hero .hero-title .script-text,
+.services-hero .hero-title .script-text,
+.casos-hero .hero-title .script-text,
+.about-hero .hero-title .script-text {
+    position: relative;
+    color: #f4f4f4;
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-size: var(--text-hero);
+    width: fit-content;
+    display: block;
+    margin-bottom: -10px;
+}
+
+.page-hero .script-icon,
+.services-hero .script-icon,
+.casos-hero .script-icon,
+.about-hero .script-icon {
+    position: absolute;
+    top: 18px;
+    right: -2%;
+    font-size: var(--text-lg);
+    color: #f7f7f7d7;
+    height: 24px;
+}
+
+.page-hero .hero-subtitle,
+.services-hero .hero-subtitle,
+.casos-hero .hero-subtitle,
+.about-hero .hero-subtitle {
+    color: #f4f4f4;
+    font-size: var(--text-base);
+    font-family: var(--font-body);
+    margin: 0 auto;
+    max-width: 540px;
+}
+
+/* Page Hero - Responsive */
+@container gbn-root (max-width: 768px) {
+    .page-hero,
+    .services-hero,
+    .casos-hero,
+    .about-hero {
+        height: auto;
+        min-height: 400px;
+        padding: 80px 20px 60px;
+    }
+
+    .page-hero .hero-title,
+    .services-hero .hero-title,
+    .casos-hero .hero-title,
+    .about-hero .hero-title {
+        font-size: 48px;
+        margin-bottom: 24px;
+    }
+
+    .page-hero .hero-title .script-text,
+    .services-hero .hero-title .script-text,
+    .casos-hero .hero-title .script-text,
+    .about-hero .hero-title .script-text {
+        font-size: 56px;
+    }
+
+    .page-hero .hero-subtitle,
+    .services-hero .hero-subtitle,
+    .casos-hero .hero-subtitle,
+    .about-hero .hero-subtitle {
+        font-size: 16px;
+        line-height: 1.4;
+    }
+}
+
+/* ========================================
+   CONTACT FORM - Estilos globales para formularios de contacto
+   Usado por: ContactForm helper y formularios en cualquier pagina
+   Clases identicas a landing.css para consistencia visual
+   ======================================== */
+
+/* Seccion de contacto global - aplica a cualquier contenedor */
+.contact-section {
+    padding: var(--gap-section) 0;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.contact-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Formulario de contacto */
+.contact-form {
+    max-width: 850px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.form-row {
+    display: flex;
+    gap: var(--pad-lg);
+    margin-bottom: var(--gap-md);
+}
+
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full-width {
+    width: 100%;
+    margin-bottom: var(--gap-md);
+}
+
+.form-group label {
+    font-size: var(--text-base);
+    color: #292929;
+    font-family: var(--font-body);
+    font-weight: normal;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea {
+    border: none;
+    border-bottom: 1px solid #a0a0a0;
+    padding: var(--gap-xs) 0;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    outline: none;
+    transition: border-color 0.3s;
+    background: transparent;
+    width: 100%;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-bottom-color: #313131;
+}
+
+.form-group textarea {
+    resize: none;
+    min-height: 40px;
+}
+
+.form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--pad-lg);
+    flex-wrap: wrap;
+    gap: var(--gap-sm);
+}
+
+.checkbox-label {
+    font-size: var(--text-base);
+    color: #666;
+    font-family: var(--font-body);
+    font-weight: normal;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap-xs);
+    cursor: pointer;
+}
+
+.checkbox-label input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: #8f9b6b;
+}
+
+.btn-submit {
+    background-color: #9da876;
+    color: #fff;
+    border: none;
+    padding: 6px var(--pad-sm);
+    border-radius: 25px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    transition: background 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: #8a9466;
+}
+
+/* Contact Form - Responsive */
+@container gbn-root (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: var(--gap-sm);
+    }
+
+    .form-footer {
+        flex-direction: column;
+        gap: var(--gap-md);
+        align-items: stretch;
+    }
+
+    .btn-submit {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+
+    .checkbox-label {
+        justify-content: center;
+    }
+
+    .section-title {
+        font-size: 40px;
+    }
+}
+

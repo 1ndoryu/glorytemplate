@@ -4,8 +4,8 @@ import '@app/styles/header.css';
 
 /*
  * Header fijo de Cosmo Revenue.
- * Añade clase 'scrolled' al hacer scroll para cambiar apariencia.
- * Incluye burger menu para mobile.
+ * Usa clases de header.css original de App1:
+ * cosmoHeader, scrolled, cosmoHeaderLogo, cosmoHeaderLogoSvg, burger, nav-links
  */
 export function CosmoHeader(): React.JSX.Element {
     const scrolled = useScrollHeader(50);
@@ -28,34 +28,39 @@ export function CosmoHeader(): React.JSX.Element {
     ];
 
     return (
-        <header className={`cosmoHeader ${scrolled ? 'scrolled' : ''}`} id="headerCosmo">
-            <div className="cosmoHeaderInner">
-                <a href="/" className="cosmoLogo" aria-label="Inicio">
+        <header className={`cosmoHeader ${scrolled ? 'scrolled' : ''} ${menuAbierto ? 'open' : ''}`} id="headerCosmo">
+            <div className="cosmoHeaderLogo">
+                <a href="/" className="cosmoHeaderLogoSvg" aria-label="Inicio">
                     COSMO
                 </a>
-
-                <button
-                    className={`burgerBtn ${menuAbierto ? 'activo' : ''}`}
-                    onClick={toggleMenu}
-                    aria-label="Abrir menu"
-                    aria-expanded={menuAbierto}
-                >
-                    <span /><span /><span />
-                </button>
-
-                <nav className={`cosmoNav ${menuAbierto ? 'abierto' : ''}`}>
-                    {items.map((item) => (
-                        <a
-                            key={item.url}
-                            href={item.url}
-                            className={`cosmoNavLink ${item.esCta ? 'menu-btn-cta' : ''}`}
-                            onClick={cerrarMenu}
-                        >
-                            {item.titulo}
-                        </a>
-                    ))}
-                </nav>
             </div>
+
+            <button
+                className="burger"
+                onClick={toggleMenu}
+                aria-label="Abrir menu"
+                aria-expanded={menuAbierto}
+            >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+
+            <div className={`background ${menuAbierto ? 'active' : ''}`} />
+
+            <nav className={`nav-links cosmoHeaderMenu ${menuAbierto ? 'open' : ''}`}>
+                <ul>
+                    {items.map((item, i) => (
+                        <li key={item.url}>
+                            <a href={item.url} onClick={cerrarMenu}>
+                                {item.titulo}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </nav>
         </header>
     );
 }

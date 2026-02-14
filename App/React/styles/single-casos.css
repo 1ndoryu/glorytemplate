@@ -1,0 +1,506 @@
+/* 
+ * Single Casos (Caso de Exito) Styles
+ * Estilos para la pagina individual de casos de exito
+ * Patron visual consistente con el tema Cosmo Revenue
+ */
+
+/* --- CONTAINER PRINCIPAL --- */
+.single-casos-container {
+    width: 100%;
+    background-color: #fdfdfd;
+}
+
+/* --- HERO SECTION --- */
+.single-casos-hero {
+    position: relative;
+    height: 70vh;
+    min-height: 550px;
+    width: 100%;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 20px 80px;
+}
+
+.single-casos-hero .hero-overlay {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.85) 100%);
+    z-index: 1;
+}
+
+.single-casos-hero .hero-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Hero Tags */
+.single-casos-hero .hero-tags {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.single-casos-hero .hero-tag {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: var(--text-xs);
+    color: #fff;
+    font-family: var(--font-body);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Hero Title */
+.single-casos-hero .hero-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-hero);
+    color: #fff;
+    font-style: italic;
+    font-weight: 400;
+    margin-bottom: 20px;
+    line-height: 1.1;
+    max-width: 700px;
+}
+
+.single-casos-hero .hero-excerpt {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 550px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+/* Hero Stat (valor destacado) */
+.single-casos-hero .hero-stat {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px 30px;
+    border-radius: 16px;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.single-casos-hero .stat-value {
+    font-family: var(--font-heading);
+    font-size: var(--text-lg);
+    color: var(--color-accent, #8d926f);
+    font-style: italic;
+    font-weight: 400;
+}
+
+.single-casos-hero .stat-label {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+/* --- CONTENT GRID --- */
+.casos-content-grid {
+    max-width: 1200px;
+    margin: 60px auto 80px;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 60px;
+}
+
+/* Main Content Column */
+.casos-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.casos-article .content-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-hero);
+    color: var(--color-accent, #8d926f);
+    font-style: italic;
+    font-weight: 400;
+    margin-bottom: 24px;
+    line-height: 1;
+}
+
+.casos-article .text-content {
+    font-family: var(--font-body);
+    color: #333;
+    font-size: var(--text-base);
+    line-height: 1.8;
+}
+
+.casos-article .text-content p {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: #333;
+    line-height: 1.8;
+    margin-bottom: 20px;
+}
+
+.casos-article .text-content h2 {
+    font-family: var(--font-heading);
+    font-size: var(--text-hero);
+    color: #1a1a1a;
+    margin: 30px 0 15px;
+    font-weight: 400;
+    font-style: italic;
+}
+
+.casos-article .text-content h3 {
+    font-family: var(--font-heading);
+    font-size: var(--text-lg);
+    color: #1a1a1a;
+    margin: 30px 0 15px;
+    font-weight: 400;
+    font-style: italic;
+}
+
+.casos-article .text-content img {
+    width: 100%;
+    border-radius: 12px;
+    margin: 30px 0;
+}
+
+/* Results Box */
+.results-box {
+    background-color: #f7f7f2;
+    border: 1px solid #e5e5da;
+    border-radius: 16px;
+    padding: 40px;
+}
+
+/* Cita con autor */
+.results-box .results-quote-wrapper {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #e5e5da;
+}
+
+.results-box .results-quote {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: #4a5d4e;
+    margin-bottom: 12px;
+    line-height: 1.6;
+    font-weight: 500;
+    font-style: italic;
+}
+
+.results-box .results-quote-author {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: #888;
+    font-weight: 400;
+    font-style: normal;
+}
+
+/* Seccion de resultados */
+.results-box .results-section {
+    margin-top: 0;
+}
+
+.results-box .results-title {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+}
+
+.results-box .results-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.results-box .results-list li {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 12px;
+    color: #444;
+    font-size: var(--text-sm);
+    font-family: var(--font-body);
+    line-height: 1.5;
+}
+
+.results-box .results-list li:last-child {
+    margin-bottom: 0;
+}
+
+.results-box .results-list li::before {
+    content: '+';
+    position: absolute;
+    left: 0;
+    color: var(--color-accent, #8d926f);
+    font-weight: bold;
+    font-size: var(--text-base);
+}
+
+/* --- SIDEBAR --- */
+.casos-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.sidebar-card {
+    background-color: #f7f7f2;
+    border: 1px solid #e5e5da;
+    border-radius: 16px;
+    padding: 30px;
+}
+
+/* CTA Card */
+.sidebar-cta .cta-heading {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-style: italic;
+    font-size: var(--text-lg);
+    color: var(--color-accent, #8d926f);
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.sidebar-cta .cta-desc {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: #555;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.sidebar-cta .btn-sidebar {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background-color: var(--color-accent, #8d926f);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-cta .btn-sidebar:hover {
+    background-color: #7b855a;
+}
+
+/* Info Card */
+.sidebar-info .info-card-title {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-info .info-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 12px 16px;
+    font-size: var(--text-sm);
+}
+
+.sidebar-info .info-label {
+    color: #666;
+    font-weight: 400;
+    font-family: var(--font-body);
+}
+
+.sidebar-info .info-value {
+    color: #1a1a1a;
+    font-weight: 600;
+    text-align: right;
+    font-family: var(--font-body);
+}
+
+/* Valor destacado con color accent */
+.sidebar-info .info-value-highlight {
+    color: var(--color-accent, #8d926f);
+}
+
+/* Servicios con texto ajustable */
+.sidebar-info .info-value-services {
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    font-weight: 500;
+}
+
+/* --- CTA SECTION FINAL --- */
+.casos-cta-section {
+    background-color: #f7f7f2;
+    padding: 100px 20px;
+    text-align: center;
+    border-top: 1px solid #e5e5da;
+}
+
+.casos-cta-section .cta-content {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.casos-cta-section .cta-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-hero);
+    font-weight: 400;
+    font-style: italic;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    line-height: 1.1;
+}
+
+.casos-cta-section .cta-text {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: #555;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.casos-cta-section .btn-cta {
+    display: inline-block;
+    background-color: var(--color-accent, #8d926f);
+    color: #fff;
+    padding: 12px 32px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.casos-cta-section .btn-cta:hover {
+    background-color: #7b855a;
+}
+
+/* --- BACK TO CASES LINK --- */
+.back-to-cases {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+}
+
+.back-to-cases .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    text-decoration: none;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    transition: color 0.3s ease;
+}
+
+.back-to-cases .back-link:hover {
+    color: var(--color-accent, #8d926f);
+}
+
+.back-to-cases .back-link svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* --- RESPONSIVE --- */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .casos-content-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .casos-sidebar {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .sidebar-card {
+        flex: 1;
+        min-width: 280px;
+    }
+
+    .single-casos-hero .hero-title {
+        font-size: 48px;
+    }
+
+    .casos-article .content-title {
+        font-size: 48px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .single-casos-hero {
+        height: auto;
+        min-height: 500px;
+        padding: 100px 20px 60px;
+    }
+
+    .single-casos-hero .hero-title {
+        font-size: 36px;
+    }
+
+    .single-casos-hero .hero-tags {
+        flex-wrap: wrap;
+    }
+
+    .single-casos-hero .hero-stat {
+        padding: 16px 24px;
+    }
+
+    .single-casos-hero .stat-value {
+        font-size: 22px;
+    }
+
+    .casos-content-grid {
+        margin: 40px auto 60px;
+    }
+
+    .casos-article .content-title {
+        font-size: 40px;
+    }
+
+    .results-box {
+        padding: 30px;
+    }
+
+    .casos-sidebar {
+        flex-direction: column;
+    }
+
+    .sidebar-card {
+        min-width: 100%;
+    }
+
+    .casos-cta-section {
+        padding: 60px 20px;
+    }
+
+    .casos-cta-section .cta-title {
+        font-size: 36px;
+    }
+
+    .back-to-cases {
+        padding: 30px 20px 60px;
+    }
+}

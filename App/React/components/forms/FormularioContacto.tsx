@@ -1,16 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { useGloryForm } from '@app/hooks/useGloryForm';
-import '@app/styles/contactForm.css';
 
 interface FormularioContactoProps {
-    /* ID del formulario para tracking */
     formId?: string;
-    /* Servicio preseleccionado (ej: desde pagina de servicio detalle) */
     servicioPreseleccionado?: string;
-    /* Titulo encima del formulario */
     titulo?: string;
-    /* Si true, muestra badge del servicio */
     mostrarBadgeServicio?: boolean;
+    mostrarHabitaciones?: boolean;
     className?: string;
 }
 
@@ -18,7 +14,9 @@ interface DatosLocales {
     nombre: string;
     email: string;
     telefono: string;
-    hotel: string;
+    alojamiento: string;
+    habitaciones: string;
+    pms: string;
     mensaje: string;
     servicio: string;
     privacidad: boolean;
@@ -26,20 +24,26 @@ interface DatosLocales {
 
 /*
  * Formulario de contacto reutilizable.
- * Usa useGloryForm para enviar datos al endpoint REST glory/v1/form.
+ * Replica la estructura exacta de ContactForm.php de App1.
+ * Clases: contact-section, contact-container, section-header, section-title,
+ * contact-form, form-row, form-group, full-width, form-footer, checkbox-label,
+ * btn-submit, service-contact-section, service-selected-badge, badge-label, badge-value
  */
 export function FormularioContacto({
     formId = 'contacto-general',
     servicioPreseleccionado = '',
-    titulo,
+    titulo = 'Contacto',
     mostrarBadgeServicio = false,
+    mostrarHabitaciones = true,
     className = '',
 }: FormularioContactoProps): React.JSX.Element {
     const [datos, setDatos] = useState<DatosLocales>({
         nombre: '',
         email: '',
         telefono: '',
-        hotel: '',
+        alojamiento: '',
+        habitaciones: '',
+        pms: '',
         mensaje: '',
         servicio: servicioPreseleccionado,
         privacidad: false,
@@ -57,10 +61,7 @@ export function FormularioContacto({
 
     const handleEnviar = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!datos.privacidad) {
-            return;
-        }
+        if (!datos.privacidad) return;
 
         const exito = await enviar({
             formId,
@@ -69,118 +70,104 @@ export function FormularioContacto({
             telefono: datos.telefono,
             mensaje: datos.mensaje,
             extra: {
-                hotel: datos.hotel,
+                alojamiento: datos.alojamiento,
+                habitaciones: datos.habitaciones,
+                pms: datos.pms,
                 servicio: datos.servicio,
             },
         });
 
         if (exito) {
             setDatos({
-                nombre: '', email: '', telefono: '', hotel: '',
-                mensaje: '', servicio: servicioPreseleccionado, privacidad: false,
+                nombre: '', email: '', telefono: '', alojamiento: '',
+                habitaciones: '', pms: '', mensaje: '',
+                servicio: servicioPreseleccionado, privacidad: false,
             });
         }
     }, [datos, formId, servicioPreseleccionado, enviar]);
 
+    const claseSeccion = mostrarBadgeServicio
+        ? `contact-section service-contact-section ${className}`
+        : `contact-section ${className}`;
+
     return (
-        <div className={`contenedorContacto ${className}`}>
-            {titulo && <h3 className="tituloFormulario">{titulo}</h3>}
-
-            {mostrarBadgeServicio && servicioPreseleccionado && (
-                <span className="badgeServicio">{servicioPreseleccionado}</span>
-            )}
-
-            <form className="formularioContacto" onSubmit={handleEnviar}>
-                <div className="filaFormulario">
-                    <div className="grupoFormulario">
-                        <input
-                            type="text"
-                            name="nombre"
-                            placeholder="Nombre"
-                            value={datos.nombre}
-                            onChange={handleCambio}
-                            required
-                        />
-                    </div>
-                    <div className="grupoFormulario">
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="Email"
-                            value={datos.email}
-                            onChange={handleCambio}
-                            required
-                        />
-                    </div>
-                </div>
-
-                <div className="filaFormulario">
-                    <div className="grupoFormulario">
-                        <input
-                            type="tel"
-                            name="telefono"
-                            placeholder="Teléfono"
-                            value={datos.telefono}
-                            onChange={handleCambio}
-                        />
-                    </div>
-                    <div className="grupoFormulario">
-                        <input
-                            type="text"
-                            name="hotel"
-                            placeholder="Hotel / Alojamiento"
-                            value={datos.hotel}
-                            onChange={handleCambio}
-                        />
-                    </div>
-                </div>
-
-                <div className="grupoFormulario campoCompleto">
-                    <textarea
-                        name="mensaje"
-                        placeholder="Cuéntanos sobre tu proyecto..."
-                        rows={4}
-                        value={datos.mensaje}
-                        onChange={handleCambio}
-                        required
-                    />
-                </div>
-
-                <div className="grupoCheckbox">
-                    <label>
-                        <input
-                            type="checkbox"
-                            name="privacidad"
-                            checked={datos.privacidad}
-                            onChange={handleCambio}
-                            required
-                        />
-                        <span>
-                            Acepto la{' '}
-                            <a href="/politica-privacidad/" target="_blank" rel="noopener">
-                                política de privacidad
-                            </a>
-                        </span>
-                    </label>
-                </div>
-
-                {(estado.exito !== null) && (
-                    <div className={`mensajeResultado ${estado.exito ? 'exito' : 'error'}`}>
-                        {estado.mensaje}
+        <section className={claseSeccion} style={{ width: '100%', maxWidth: 'unset' }}>
+            <div className="contact-container">
+                {titulo && (
+                    <div className="section-header">
+                        <h2 className="section-title">{titulo}</h2>
                     </div>
                 )}
 
-                {estado.errores.nombre && <span className="errorCampo">{estado.errores.nombre}</span>}
-                {estado.errores.email && <span className="errorCampo">{estado.errores.email}</span>}
+                {mostrarBadgeServicio && servicioPreseleccionado && (
+                    <div className="service-selected-badge">
+                        <span className="badge-label">Servicio seleccionado:</span>
+                        <span className="badge-value">{servicioPreseleccionado}</span>
+                    </div>
+                )}
 
-                <button
-                    type="submit"
-                    className="botonEnviar"
-                    disabled={estado.enviando}
-                >
-                    {estado.enviando ? 'Enviando...' : 'Solicitar auditoría gratuita'}
-                </button>
-            </form>
-        </div>
+                <form className="contact-form" onSubmit={handleEnviar}>
+                    {servicioPreseleccionado && (
+                        <input type="hidden" name="servicio_interes" value={servicioPreseleccionado} />
+                    )}
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Nombre</label>
+                            <input type="text" name="nombre" value={datos.nombre} onChange={handleCambio} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" value={datos.email} onChange={handleCambio} required />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Telefono</label>
+                            <input type="tel" name="telefono" value={datos.telefono} onChange={handleCambio} />
+                        </div>
+                        <div className="form-group">
+                            <label>Alojamiento</label>
+                            <input type="text" name="alojamiento" value={datos.alojamiento} onChange={handleCambio} />
+                        </div>
+                    </div>
+
+                    {mostrarHabitaciones && (
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>N habitaciones</label>
+                                <input type="text" name="habitaciones" value={datos.habitaciones} onChange={handleCambio} />
+                            </div>
+                            <div className="form-group">
+                                <label>PMS/Channel</label>
+                                <input type="text" name="pms" value={datos.pms} onChange={handleCambio} />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="form-group full-width">
+                        <label>Mensaje</label>
+                        <textarea name="mensaje" rows={1} value={datos.mensaje} onChange={handleCambio} />
+                    </div>
+
+                    <div className="form-footer">
+                        <label className="checkbox-label">
+                            <input type="checkbox" name="privacidad" checked={datos.privacidad} onChange={handleCambio} required />
+                            He leído y acepto la Politica de Privacidad.
+                        </label>
+                        <button type="submit" className="btn-submit" disabled={estado.enviando}>
+                            {estado.enviando ? 'Enviando...' : 'Enviar'}
+                        </button>
+                    </div>
+                </form>
+
+                {(estado.exito !== null) && (
+                    <div style={{ textAlign: 'center', padding: '1rem', color: estado.exito ? '#4caf50' : '#f44336' }}>
+                        {estado.mensaje}
+                    </div>
+                )}
+            </div>
+        </section>
     );
 }

@@ -561,7 +561,7 @@ Las referencias a `App/` en `vite.config.ts`, `tsconfig.json`, `eslint.config.js
 | 1 | `glory.ts` | `GloryContext` propiedades opcionales innecesariamente | [x] Propiedades core obligatorias. `Partial<GloryContext>` solo en `window.GLORY_CONTEXT`. Eliminado index signature `[key: string]: unknown` → `extra?` |
 | 2 | `PageLayout.tsx` | `key={i}` en listas de links/socialLinks | [x] Cambiado a `key={link.href \|\| i}` |
 | 3 | `BienvenidaIsland.tsx` | Import innecesario de `React` + tipo `React.JSX.Element` | [x] Eliminado import, cambiado a `JSX.Element` |
-| 4 | `App/React/blocks/index.ts` | `console.log` en producción sin bloquear | [x] Eliminado — función vacía con comentario |
+| 4 | `App/React/blocks/index.tsx` | `console.log` en producción sin bloquear | [x] Eliminado — función vacía con comentario |
 | 5 | `pageBuilder/types.ts` | `PageBuilderContextType` exportado pero nunca usado | [x] Documentado con TO-DO para future context pattern |
 | 6 | `useWordPressApi.ts` | `getNonce()`/`getRestUrl()` leían `window` en cada llamada | [x] Singleton cacheado con `resetApiCredentials()` para invalidar |
 

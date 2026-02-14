@@ -1,0 +1,241 @@
+.seccionComponente {
+    padding: 16px;
+    /* Usar inline-block para que fluya en columnas tipo masonry */
+    display: inline-block;
+    vertical-align: top;
+    width: 100%;
+    background-color: var(--bg);
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    -moz-column-break-inside: avoid;
+    /* espacio inferior entre items dentro de la columna */
+    margin-bottom: 24px;
+}
+
+main {
+    width: 100%;
+    background: var(--bg);
+}
+
+div#glory-component-examples {
+    background: var(--bg);
+    /* Layout tipo Pinterest: columnas con gap y items de altura variable */
+    display: block;
+    column-count: 2;
+    column-gap: 24px;
+    max-width: 1100px;
+    margin: auto;
+}
+
+/* Ajustes condicionales: 1 visible -> una columna y centrar el contenido */
+div#glory-component-examples:has(> .seccionComponente:not(.oculto)):not(:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto))) {
+    /* exactamente 1 visible */
+    column-count: 1;
+}
+
+/* Limitar el ancho del contenido cuando hay solo 1 visible para lograr centrado visual */
+div#glory-component-examples:has(> .seccionComponente:not(.oculto)):not(:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto))) > .seccionComponente:not(.oculto) .contenidoSeccionComponente {
+    max-width: var(--ancho);
+}
+
+/* Exactamente 2 visibles -> usar grid de 2 columnas para evitar que ambos caigan en la misma columna */
+div#glory-component-examples:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto)):not(:has(> .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto) ~ .seccionComponente:not(.oculto))) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    column-count: initial;
+}
+
+.bagdeList {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    max-width: 1100px;
+    margin: auto;
+}
+
+.contenidoSeccionComponente {
+    margin: auto;
+    /* Cada item ocupa todo el ancho de la columna */
+    width: 100%;
+    max-width: none;
+    background-color: var(--fondo);
+    padding: 40px;
+    border-radius: var(--radius);
+    text-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border: var(--borde);
+}
+
+.seccionComponente h2 {
+    font-size: 24px;
+}
+
+.seccionComponente .gloryForm {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.lista-libros-contenedor {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 32px;
+    width: 100%;
+}
+
+.libro-item a {
+    text-decoration: none;
+}
+
+.libro-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    /* box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.libro-card:hover {
+    transform: translateY(-5px);
+    /* box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); */
+}
+
+.libro-portada {
+    width: 100%;
+    height: 270px;
+    object-fit: cover;
+    display: block;
+}
+
+.libro-info {
+    padding: 16px;
+}
+
+.libro-titulo {
+    font-size: 16px;
+    margin: 0;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#resultados-busqueda-ejemplo {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.resultadoEnlace {
+    text-decoration: none;
+    color: inherit;
+}
+
+.resultadoItem {
+    display: flex;
+    align-items: center;
+    background: var(--card-bg);
+    padding: 10px;
+    border-radius: 8px;
+    /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08); */
+    transition: background-color 0.2s ease, filter 0.15s ease;
+}
+
+.resultadoEnlace:hover .resultadoItem {
+    background-color: var(--card-hover);
+}
+
+.resultadoImagen {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover;
+}
+
+.resultadoInfo h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.resultadoInfo p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
+    text-align: left;
+}
+
+.ui-examples-grid {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.ui-example {
+    padding: 24px;
+    border-radius: 8px;
+    border: var(--borde);
+}
+
+.ui-example h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.ui-example p {
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.ui-example button {
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.pestanasWrapper {
+    margin-top: 16px;
+}
+
+.pestanas {
+    display: flex;
+    border-bottom: var(--borde);
+    margin-bottom: 16px;
+}
+
+.pestanas button {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+
+.pestanas button.activa {
+    font-weight: bold;
+    color: var(--text);
+}
+
+.pestanaContenido {
+    display: none;
+}
+
+.pestanaContenido.activa {
+    display: block;
+}
+
+.flexUl {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}

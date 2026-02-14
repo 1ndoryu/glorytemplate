@@ -1,10 +1,52 @@
-/*
- * Landing Page - Cosmo Revenue
- * Hero, servicios flip cards, casos, metodología orbital, about, contacto
+/* 
+ * 3. ESTILOS DE LA LANDING (Y BASE DEL TEMA)
+ * Este archivo contiene las variables globales y estilos base, 
+ * además de los estilos específicos de la Landing Page.
  */
 
+/* --- 1. VARIABLES GLOBALES Y RESET --- */
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-body);
+    background-color: #f5f5f5;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* --- 2. UTILIDADES COMUNES (Compartidas entre páginas) --- */
+.section-header {
+    margin-bottom: var(--gap-lg);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.section-title {
+    font-family: var(--font-heading) !important;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+.section-subtitle {
+    color: #666;
+    line-height: 1.6;
+    font-size: var(--text-sm);
+    font-family: var(--font-body);
+    padding: var(--pad-xs);
+}
+
+/* --- 3. ESTILOS ESPECÍFICOS DE LANDING PAGE --- */
+
 /* Hero de Landing */
-.contenedorLanding .seccionHero {
+
+.landing-container .hero-section {
     position: relative;
     height: 100vh;
     min-height: 700px;
@@ -18,8 +60,8 @@
     overflow: hidden;
 }
 
-/* Fondo gradiente */
-.contenedorLanding .seccionHero::before {
+/* Fondo con intensidad aumentada via contraste */
+.landing-container .hero-section::before {
     content: '';
     position: absolute;
     top: 0;
@@ -28,57 +70,129 @@
     height: 100%;
     z-index: 0;
     background-color: #dbe4c8;
-    background-image:
-        radial-gradient(at 15% 25%, #f2d775 0px, transparent 50%),
-        radial-gradient(at 90% 15%, #77e3ba 0px, transparent 50%),
-        radial-gradient(at 10% 90%, #fca079 0px, transparent 50%),
-        radial-gradient(at 85% 85%, #e0bd50 0px, transparent 50%),
-        radial-gradient(at 50% 50%, #95c4a6 0px, transparent 50%);
+    background-image: radial-gradient(at 15% 25%, #f2d775 0px, transparent 50%), radial-gradient(at 90% 15%, #77e3ba 0px, transparent 50%), radial-gradient(at 10% 90%, #fca079 0px, transparent 50%), radial-gradient(at 85% 85%, #e0bd50 0px, transparent 50%), radial-gradient(at 50% 50%, #95c4a6 0px, transparent 50%);
     background-size: 100% 100%;
     pointer-events: none;
 }
 
-/* Contenido Hero */
-.contenedorLanding .heroContenido {
+.landing-nav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: var(--pad-xs) var(--pad-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+    z-index: 10;
+}
+
+.landing-nav .logo {
+    font-family: var(--font-brand);
+    font-weight: 400;
+    /* Archivo Black is usually black weight by default or specific weight, check if 700 is needed, usually 400 is fine if only one weight loaded but let's stick to variable */
+    font-size: 19px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #fff;
+    mix-blend-mode: difference;
+}
+
+.landing-nav .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+    margin: 0;
+    padding: 0;
+}
+
+.landing-nav .nav-links a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 19px;
+    /* Ajustado para consistencia */
+    mix-blend-mode: difference;
+    font-weight: 500;
+}
+
+.landing-nav .nav-links a:hover {
+    opacity: 0.8;
+}
+
+.landing-nav .btn-nav {
+    background: #000;
+    padding: 8px 20px;
+    border-radius: 20px;
+    color: #fff !important;
+    mix-blend-mode: normal !important;
+}
+
+.landing-container .titulo-responsive.hero-title {
+    font-size: clamp(48px, 7.5vw, 152px);
+    line-height: 0.9;
+}
+
+
+/* Contenido Hero Landing */
+.landing-container .hero-content {
     z-index: 2;
     max-width: 100%;
     width: 100%;
     padding: 30px;
 }
 
-.contenedorLanding .heroTitulo {
+.landing-container .hero-title {
     font-family: var(--font-heading) !important;
     font-weight: normal;
-    font-size: clamp(48px, 7.5vw, 152px);
-    line-height: 0.9;
+    font-size: var(--text-hero);
+    line-height: 1.1;
     margin-bottom: var(--pad-lg);
     color: #fff;
     font-style: normal;
 }
 
-.contenedorLanding .heroTitulo .textoDestacado {
+
+
+.landing-container .hero-title .highlight-text {
     font-weight: normal;
     font-family: var(--font-body);
     text-transform: uppercase;
     font-size: clamp(48px, 6.5vw, 120px);
 }
 
-.contenedorLanding .botonAuditoria {
+
+.landing-container .titulo-responsive.hero-title {
+    font-size: clamp(48px, 7.5vw, 152px);
+    line-height: 0.9;
+}
+
+
+/* Evita que la primera línea del hero se rompa en escritorio */
+@media (min-width: 1024px) {
+    .landing-container .hero-title .hero-line {
+        white-space: nowrap;
+    }
+}
+
+.landing-container .btn-auditoria {
     display: inline-flex;
     align-items: center;
     gap: var(--gap-xs);
-    padding: 12px 30px;
+    padding: var(--gap-xs) var(--gap-md);
     border: 1px solid #fff;
     border-radius: 46%;
     color: #ffffff;
     text-decoration: none;
-    font-size: 16px;
+    font-size: var(--text-base);
     transition: all 0.3s ease;
     backdrop-filter: blur(5px);
     position: relative;
+    font-size: 16px;
+    padding: 12px 30px;
 }
 
-.contenedorLanding .iconoAuditoria {
+.landing-container .auditoria-icon {
     position: absolute;
     width: 30px;
     height: 30px;
@@ -86,82 +200,72 @@
     top: -8px;
 }
 
-/* Secciones de Landing */
-.contenedorLanding .seccionServicios,
-.contenedorLanding .seccionMetodologia,
-.contenedorLanding .seccionContacto {
+/* Estilos de marquee centralizados en marquee.css */
+
+/* Secciones Landing */
+.landing-container .services-section,
+.landing-container .methodology-section,
+.landing-container .contact-section {
     padding: var(--gap-section) 0;
     background-color: #f9f9f9;
     text-align: center;
 }
 
-.contenedorLanding .contenedorContacto {
+.landing-container .contact-container {
     padding: var(--pad-lg);
     width: 100%;
 }
 
-.contenedorLanding .seccionAbout {
+.landing-container .about-section {
     padding: var(--gap-section) 0;
     padding-bottom: 0px;
     text-align: center;
 }
 
-.contenedorLanding .seccionCasos {
+.landing-container .cases-section,
+.casos-container .cases-section {
     padding: var(--gap-section) 0px;
     padding-bottom: 0px;
     background-color: #f9f9f9;
     text-align: center;
 }
 
-.contenedorLanding .contenedorCasos {
+.landing-container .cases-container,
+.casos-container .cases-wrapper {
     padding: 40px;
     width: 100%;
 }
 
-/* Títulos de Landing (más grandes) */
-.contenedorLanding .tituloSeccion {
+/* Títulos específicos de Landing (más grandes) */
+.landing-container .section-title {
     margin-top: var(--gap-md);
-    font-family: var(--font-heading) !important;
     font-size: var(--text-hero);
     font-weight: normal;
     margin-bottom: var(--gap-md);
     line-height: 0.9;
-    color: #1a1a1a;
 }
 
-.contenedorLanding .subtituloSeccion {
+.landing-container .section-subtitle {
     font-size: var(--text-sm);
     margin: auto;
     margin-bottom: var(--pad-xs);
     max-width: 530px;
-    color: #666;
-    line-height: 1.6;
-    font-family: var(--font-body);
-    padding: var(--pad-xs);
 }
 
-/* Encabezado de sección genérico */
-.encabezadoSeccion {
-    margin-bottom: var(--gap-lg);
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-}
-
-/* Grid de Cards Landing */
-.contenedorLanding .gridTarjetas {
+/* Cards Grid Landing */
+.landing-container .cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 100px;
+    gap: 0;
     max-width: 1200px;
     margin: 0 auto;
     justify-items: center;
     align-items: center;
     justify-content: center;
+    gap: 100px;
 }
 
-.contenedorLanding .tarjetaServicio {
+.landing-container .service-card {
     position: relative;
     height: 340px;
     width: 220px;
@@ -175,7 +279,7 @@
     cursor: pointer;
 }
 
-.contenedorLanding .tarjetaServicio::after {
+.landing-container .service-card::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -184,7 +288,11 @@
     pointer-events: none;
 }
 
-.contenedorLanding .tarjetaServicio .imagenFondo {
+.landing-container .service-card:hover {
+    transform: translateY(0px);
+}
+
+.landing-container .service-card .card-bg-image {
     position: absolute;
     top: 0;
     left: 0;
@@ -196,17 +304,17 @@
     transition: transform 0.5s ease;
 }
 
-.contenedorLanding .tarjetaServicio:hover .imagenFondo {
+.landing-container .service-card:hover .card-bg-image {
     transform: scale(1.05);
 }
 
-.contenedorLanding .tarjetaServicio .contenidoTarjeta {
+.landing-container .service-card .card-content {
     position: relative;
     z-index: 2;
     width: 100%;
 }
 
-.contenedorLanding .tarjetaServicio h3 {
+.landing-container .service-card h3 {
     font-family: var(--font-heading);
     font-weight: normal;
     font-size: var(--text-lg);
@@ -216,98 +324,11 @@
     line-height: 1;
 }
 
-/* ====== FLIP CARDS ====== */
-
-.contenedorLanding .flipCard {
-    perspective: 1000px;
-    width: 220px;
-    height: 340px;
-    cursor: pointer;
-}
-
-.contenedorLanding .flipCardInner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-style: preserve-3d;
-}
-
-.contenedorLanding .flipCard.volteada .flipCardInner {
-    transform: rotateY(180deg);
-}
-
-.contenedorLanding .flipCardFrente,
-.contenedorLanding .flipCardReverso {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.contenedorLanding .flipCardFrente {
-    z-index: 2;
-}
-
-.contenedorLanding .flipCardReverso {
-    transform: rotateY(180deg);
-    background: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--pad-sm);
-    box-sizing: border-box;
-    border: 1px solid #e0e0e0;
-}
-
-.contenedorLanding .contenidoReverso {
-    text-align: center;
-    color: #333;
-}
-
-.contenedorLanding .contenidoReverso p {
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    color: #444;
-    line-height: 1.6;
-    margin: 0;
-}
-
-.contenedorLanding .flipCard:not(.volteada):hover .flipCardInner {
-    transform: rotateY(10deg);
-}
-
-/* Flip cards - Desktop positioning */
-@container gbn-root (min-width: 1024px) {
-    .contenedorLanding .flipCard:nth-child(1) {
-        transform: rotate(-12deg) translateY(100px);
-    }
-    .contenedorLanding .flipCard:nth-child(1):hover {
-        transform: translateY(95px) rotate(-12deg) scale(1.05);
-    }
-    .contenedorLanding .flipCard:nth-child(2) {
-        transform: translateY(0px) scale(1.1);
-        z-index: 2;
-    }
-    .contenedorLanding .flipCard:nth-child(2):hover {
-        transform: translateY(-10px) scale(1.1);
-    }
-    .contenedorLanding .flipCard:nth-child(3) {
-        transform: rotate(12deg) translateY(100px);
-    }
-    .contenedorLanding .flipCard:nth-child(3):hover {
-        transform: rotate(12deg) translateY(95px) scale(1.05);
-    }
-}
-
-/* ====== CASES (Landing + Casos page) ====== */
-
-.gridCasos {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+/* Cases - Estilos compartidos entre landing y casos pages */
+.landing-container .cases-grid,
+.casos-container .cases-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
     gap: var(--gap-md);
     max-width: 1200px;
     margin: 0 auto;
@@ -315,7 +336,8 @@
     justify-content: center;
 }
 
-.tarjetaCaso {
+.landing-container .case-card,
+.casos-container .case-card {
     position: relative;
     background: transparent;
     border-radius: 0;
@@ -325,16 +347,20 @@
     margin-top: 30px;
     max-width: 340px;
     width: 100%;
+    /* Estilos para interactividad - click lleva al single page */
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.tarjetaCaso:hover {
+/* Efecto hover: levantamiento sutil y sombra */
+.landing-container .case-card:hover,
+.casos-container .case-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
 }
 
-.imagenCaso {
+.landing-container .case-image,
+.casos-container .case-image {
     position: relative;
     height: 500px;
     background-size: cover;
@@ -343,7 +369,7 @@
     margin-top: 8px;
 }
 
-.metaCasoFlotante {
+.case-flotante {
     background: #f9f9f9;
     padding: 5px var(--text-xs);
     border-radius: 100px;
@@ -351,7 +377,15 @@
     font-weight: 500;
 }
 
-.metaCaso {
+.landing-container .case-info,
+.casos-container .case-info {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.landing-container .case-meta,
+.casos-container .case-meta {
     position: absolute;
     top: var(--pad-xs);
     left: 0;
@@ -367,7 +401,8 @@
     z-index: 2;
 }
 
-.estadisticaCaso {
+.landing-container .case-stat,
+.casos-container .case-stat {
     position: absolute;
     bottom: 20px;
     left: 20px;
@@ -378,7 +413,8 @@
     pointer-events: auto;
 }
 
-.estadisticaCaso h4 {
+.landing-container .case-stat h4,
+.casos-container .case-stat h4 {
     font-family: var(--font-heading);
     color: var(--color-accent);
     font-size: 22px;
@@ -387,7 +423,8 @@
     font-weight: normal;
 }
 
-.estadisticaCaso p {
+.landing-container .case-stat p,
+.casos-container .case-stat p {
     margin: 0;
     font-size: var(--text-xs);
     color: #666;
@@ -397,9 +434,23 @@
     font-family: var(--font-body);
 }
 
-/* ====== METHODOLOGY ORBITAL ====== */
+/* Estilos de cases-marquee centralizados en marquee.css */
 
-.contenedorLanding .seccionMetodologia {
+.landing-container .case-icon,
+.casos-container .case-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.landing-container .case-icon svg,
+.casos-container .case-icon svg {
+    height: 16px;
+    width: 16px;
+}
+
+/* Methodology Landing */
+.landing-container .methodology-section {
     background-color: #141414;
     color: #fff;
     padding-bottom: 0;
@@ -407,19 +458,20 @@
     overflow: hidden;
 }
 
-.contenedorLanding .contenedorMetodologia {
+.landing-container .methodology-container {
     padding: 0 1.2rem;
-    display: flex;
-    flex-direction: column;
-    align-content: center;
-    gap: 40px;
-    padding-bottom: 40px;
 }
 
-.contenedorLanding .seccionMetodologia .tituloSeccion { color: #fff; }
-.contenedorLanding .seccionMetodologia .subtituloSeccion { color: #a0a0a0; }
+.landing-container .methodology-section .section-title {
+    color: #fff;
+}
 
-.contenedorLanding .graficoMetodologia {
+.landing-container .methodology-section .section-subtitle {
+    color: #a0a0a0;
+}
+
+.landing-container .methodology-graphic {
+    /* Responsive height based on viewport width, min 400px, max 700px */
     height: min(70vh, 700px);
     min-height: 400px;
     display: flex;
@@ -429,50 +481,58 @@
     position: relative;
 }
 
-.contenedorLanding .contenedorOrbital {
+/* Contenedor fluido */
+.landing-container .orbit-container {
     position: relative;
     width: 100%;
     max-width: 600px;
     aspect-ratio: 1 / 1;
 }
 
-.contenedorLanding .anilloOrbital {
+/* Anillos con tamanos porcentuales */
+.landing-container .orbit-ring {
     position: absolute;
     top: 50%;
     left: 50%;
+    /* Transform inicial debe coincidir con el primer frame de la animacion */
     transform: translate(-50%, -50%) rotate(0deg);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
+    /* overflow visible para que los tooltips no se corten */
     overflow: visible;
+    /* Forzar aplicacion inmediata de estilos de animacion */
     animation-fill-mode: both;
 }
 
-.contenedorLanding .anilloExterior {
+.landing-container .ring-outer {
     width: 100%;
     height: 100%;
     animation: orbit-spin-cw 120s linear infinite both;
+    /* z-index menor para no bloquear los anillos interiores */
     z-index: 1;
 }
 
-.contenedorLanding .anilloInterior {
+.landing-container .ring-inner {
     width: 78%;
     height: 78%;
     animation: orbit-spin-ccw 90s linear infinite both;
     z-index: 2;
 }
 
-.contenedorLanding .anilloInterior2 {
+.landing-container .ring-inner-2 {
     width: 52%;
     height: 52%;
     animation: orbit-spin-cw 60s linear infinite both;
+    /* z-index mayor para que C reciba eventos del mouse */
     z-index: 3;
 }
 
-.contenedorLanding .centroOrbital {
+.landing-container .orbit-center {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    /* Static center */
     width: 22%;
     height: 22%;
     background: var(--color-accent);
@@ -482,10 +542,11 @@
     justify-content: center;
     color: #eeeeee;
     font-size: clamp(16px, 3vw, 24px);
+    /* z-index bajo para no bloquear los tooltips de los planetas */
     z-index: 0;
 }
 
-.contenedorLanding .planetaOrbital {
+.landing-container .orbit-planet {
     position: absolute;
     width: clamp(40px, 10vw, 60px);
     height: clamp(40px, 10vw, 60px);
@@ -501,21 +562,25 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.contenedorLanding .planetaOrbital:hover {
+/* Hover en planetas - efecto visual */
+.landing-container .orbit-planet:hover {
     box-shadow: 0 0 20px var(--color-accent);
     transform: scale(1.1);
     z-index: 100;
 }
 
-.contenedorLanding .planetaOrbital p {
+.landing-container .orbit-planet p {
     margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-family: var(--font-heading);
     font-size: clamp(19px, 3vw, 32px);
     color: #f4f4f4;
 }
 
-/* Tooltip */
-.contenedorLanding .tooltipPlaneta {
+/* Tooltip de los planetas */
+.landing-container .planet-tooltip {
     position: absolute;
     bottom: calc(100% + 15px);
     left: 50%;
@@ -530,11 +595,12 @@
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
     pointer-events: none;
+    /* z-index muy alto para que siempre este por encima del logo central */
     z-index: 9999;
     text-align: left;
 }
 
-.contenedorLanding .tooltipPlaneta::after {
+.landing-container .planet-tooltip::after {
     content: '';
     position: absolute;
     top: 100%;
@@ -544,15 +610,16 @@
     border-top-color: var(--color-accent);
 }
 
-.contenedorLanding .tooltipPlaneta strong {
+.landing-container .planet-tooltip strong {
     display: block;
     font-family: var(--font-heading);
     font-size: 16px;
     color: var(--color-accent);
     margin-bottom: 4px;
+    line-height: 1.2;
 }
 
-.contenedorLanding .tooltipPlaneta span {
+.landing-container .planet-tooltip span {
     display: block;
     font-family: var(--font-body);
     font-size: 12px;
@@ -560,31 +627,62 @@
     line-height: 1.2;
 }
 
-.contenedorLanding .planetaOrbital:hover .tooltipPlaneta {
+/* Mostrar tooltip en hover */
+.landing-container .orbit-planet:hover .planet-tooltip {
     opacity: 1;
     visibility: visible;
 }
 
-/* Posiciones planetas */
-.contenedorLanding .planetaS {
-    top: 2%; left: 20%;
+/* Pausar animacion de anillos cuando se hace hover en un planeta */
+.landing-container .orbit-ring:has(.orbit-planet:hover) {
+    animation-play-state: paused;
+}
+
+/* Pausar contra-rotacion del planeta cuando se hace hover */
+.landing-container .orbit-planet:hover {
+    animation-play-state: paused;
+}
+
+.landing-container .methodology-container {
+    padding: 0 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    gap: 40px;
+    padding-bottom: 40px;
+}
+/* Posiciones iniciales de los planetas */
+.landing-container .planet-s {
+    top: 2%;
+    left: 20%;
     animation: planet-counter-cw 120s linear infinite;
 }
-.contenedorLanding .planetaM {
-    top: 10%; right: 28%;
+
+.landing-container .planet-m {
+    top: 10%;
+    right: 28%;
+    background: #141414 !important;
     animation: planet-counter-cw 120s linear infinite;
 }
-.contenedorLanding .planetaC {
-    top: 40%; right: -5%;
+
+.landing-container .planet-c {
+    top: 40%;
+    right: -5%;
     animation: planet-counter-cw 60s linear infinite;
 }
-.contenedorLanding .planetaO {
-    top: 45%; left: -6%;
+
+/* right adjusted for responsive */
+.landing-container .planet-o {
+    top: 45%;
+    left: -6%;
     animation: planet-counter-ccw 90s linear infinite;
 }
-.contenedorLanding .planetaOInferior {
+
+/* Ultima O - ahora dentro del anillo exterior, orbita con S y M */
+.landing-container .planet-bottom-o {
     position: absolute;
-    bottom: -3%; left: 45%;
+    bottom: -3%;
+    left: 45%;
     width: clamp(40px, 10vw, 60px);
     height: clamp(40px, 10vw, 60px);
     border: 1px solid var(--color-accent);
@@ -593,65 +691,100 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Contra-rotacion para mantener la letra legible mientras el anillo gira */
     animation: planet-counter-cw 120s linear infinite;
 }
 
-.contenedorLanding .planetaOInferior p {
+.landing-container .planet-bottom-o p {
     margin: 0;
     font-family: var(--font-heading);
     font-size: clamp(19px, 3vw, 32px);
     color: #f4f4f4;
 }
 
-/* Animaciones orbitales */
+/* Estilos de methodology-marquee centralizados en marquee.css */
+
+/* Animaciones */
 @keyframes orbit-spin-cw {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to { transform: translate(-50%, -50%) rotate(360deg); }
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
 }
 
 @keyframes orbit-spin-ccw {
-    from { transform: translate(-50%, -50%) rotate(360deg); }
-    to { transform: translate(-50%, -50%) rotate(0deg); }
+    from {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+
+    to {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
 }
 
+/* Contra-rotación para que las letras se mantengan legibles */
 @keyframes planet-counter-cw {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(-360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(-360deg);
+    }
 }
 
 @keyframes planet-counter-ccw {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-/* ====== ABOUT SECTION (Landing) ====== */
+/* About Landing */
 
-.contenedorLanding .seccionAbout .tituloSeccion {
+.landing-container .about-section .section-title {
     margin-top: var(--pad-sm);
     font-size: var(--text-hero);
     font-weight: normal;
     margin-bottom: var(--pad-sm);
 }
 
-.contenedorLanding .contenidoAbout {
+.landing-container .about-content {
     max-width: 750px;
     margin: 0 auto 100px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    align-content: center;
 }
 
-.contenedorLanding .textoAbout {
+.landing-container .about-container {
+    padding: var(--pad-xs);
+}
+
+.landing-container .about-image img {
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.landing-container .about-text {
     font-family: var(--font-body);
     font-size: var(--text-sm);
     line-height: 1.6;
     margin-bottom: var(--gap-md);
     color: #333;
-    padding: 0 20px;
 }
 
-.contenedorLanding .botonAbout {
+.landing-container .btn-about {
     font-family: var(--font-body);
     display: inline-block;
     padding: 6px 19px;
@@ -662,68 +795,583 @@
     transition: background 0.3s;
 }
 
-.contenedorLanding .botonAbout:hover {
+.landing-container .btn-about:hover {
     background-color: #8a9466;
 }
 
-/* ====== RESPONSIVE ====== */
+/* Estilos de about-marquee centralizados en marquee.css */
 
+/* Contact Landing */
+.landing-container .contact-form {
+    max-width: 850px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.landing-container .form-row {
+    display: flex;
+    gap: var(--pad-lg);
+    margin-bottom: var(--gap-md);
+}
+
+.landing-container .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.landing-container .form-group label {
+    font-size: var(--text-base);
+    color: #292929;
+    font-family: var(--font-body);
+    font-weight: normal;
+}
+
+.landing-container .form-group input,
+.landing-container .form-group textarea {
+    border: none;
+    border-bottom: 1px solid #a0a0a0;
+    padding: var(--gap-xs) 0;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    outline: none;
+    transition: border-color 0.3s;
+    background: transparent;
+}
+
+.landing-container .form-group input:focus,
+.landing-container .form-group textarea:focus {
+    border-bottom-color: #313131;
+}
+
+.landing-container .form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--pad-lg);
+    flex-wrap: wrap;
+    gap: var(--gap-sm);
+}
+
+.landing-container .checkbox-label {
+    font-size: var(--text-base);
+    color: #666;
+    font-family: var(--font-body);
+    font-weight: normal;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap-xs);
+}
+
+.landing-container .checkbox-label input {
+    margin-bottom: 0;
+    width: fit-content;
+}
+
+.landing-container .btn-submit {
+    background-color: #9da876;
+    color: #fff;
+    border: none;
+    padding: 6px var(--pad-sm);
+    border-radius: 25px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    transition: background 0.3s;
+}
+
+.landing-container .btn-submit:hover {
+    background-color: #8a9466;
+}
+
+/* Footer Global (o Landing) */
+.landing-footer {
+    padding: var(--gap-lg) var(--pad-lg) var(--pad-xs);
+    border-top: 1px solid #eee;
+    width: 100%;
+}
+
+.landing-footer .footer-content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: var(--pad-lg);
+    margin-bottom: var(--gap-lg);
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    flex-direction: row;
+}
+
+.landing-footer .footer-brand .logo {
+    margin-bottom: var(--pad-xs);
+}
+
+.landing-footer .footer-logo-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.landing-footer .footer-logo-svg {
+    width: 40px;
+    height: 40px;
+    color: #333;
+    transition: opacity 0.3s ease;
+}
+
+.landing-footer .footer-logo-svg:hover {
+    opacity: 0.7;
+}
+
+.landing-footer .footer-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.landing-footer .footer-nav li {
+    margin-bottom: var(--gap-xs);
+}
+
+.landing-footer .footer-nav a {
+    text-decoration: none;
+    color: #333;
+    font-size: var(--text-sm);
+}
+
+.landing-footer .footer-info {
+    display: flex;
+    gap: var(--gap-lg);
+}
+
+.landing-footer .info-col h4 {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: var(--gap-sm);
+}
+
+.landing-footer .info-col p {
+    margin: 5px 0;
+    font-size: var(--text-sm);
+}
+
+.landing-footer .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    padding-top: var(--pad-xs);
+    max-width: 1200px;
+    margin: 0 auto;
+    font-size: var(--text-xs);
+    color: #999;
+}
+
+.landing-footer .social-icons {
+    display: flex;
+    gap: var(--gap-sm);
+}
+
+.landing-footer .social-icons a {
+    text-decoration: none;
+    color: #333;
+    width: 30px;
+    height: 30px;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-xs);
+    transition: all 0.3s;
+    padding: 5px;
+}
+
+.landing-footer .social-icons a:hover {
+    background-color: #333;
+    color: #fff;
+    border-color: #333;
+}
+
+/* --- Marquee Infinite Scroll Support --- */
+.landing-container .marquee-track {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    width: max-content;
+    will-change: transform;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    animation: marquee-loop 40s linear infinite;
+}
+
+.landing-container .marquee-track span {
+    white-space: nowrap;
+}
+
+@keyframes marquee-loop {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+section.services-section,
+section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-content: center;
+}
+
+/* ==========================================================================
+   RESPONSIVE - CONTAINER QUERIES UNIFICADOS
+   Orden: Movil (768px) -> Tablet (1024px) -> Desktop (min-width: 1024px)
+   ========================================================================== */
+
+/* 1. MOVIL - max-width: 768px */
 @container gbn-root (max-width: 768px) {
-    .contenedorLanding .heroTitulo {
+    .landing-container .hero-title {
         font-size: 3rem;
     }
-    .contenedorLanding .heroTitulo .textoDestacado {
+
+    .landing-container .hero-title .highlight-text {
         font-size: 3rem;
     }
-    .contenedorLanding .tituloSeccion {
+
+    .landing-nav {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 15px;
+        background: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(5px);
+    }
+
+    .landing-nav .nav-links {
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .landing-nav .logo {
+        margin-bottom: 5px;
+    }
+
+    .landing-container .section-title {
         font-size: 3rem !important;
     }
-    .contenedorLanding .heroContenido {
+
+    .landing-container .form-row {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .landing-footer .footer-content {
+        flex-direction: column;
+        gap: 30px;
+        text-align: center;
+    }
+
+    .landing-footer .footer-info {
+        flex-direction: column;
+        gap: 30px;
+        align-items: center;
+    }
+
+    .landing-footer .footer-brand {
+        text-align: center;
+    }
+
+    .landing-footer .footer-nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .landing-footer .footer-nav li {
+        margin-bottom: 0;
+    }
+
+    .landing-footer .footer-bottom {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .landing-footer .social-icons {
+        justify-content: center;
+    }
+
+    .landing-footer {
+        padding: 40px 20px 20px;
+    }
+
+    .landing-footer .info-col {
+        text-align: center;
+    }
+
+    .landing-container .hero-content {
         padding: 0 15px;
     }
-    .contenedorLanding .graficoMetodologia {
+
+    .landing-container .methodology-graphic {
         height: unset;
         min-height: unset;
         margin: unset;
     }
-    .contenedorLanding .gridTarjetas {
+
+    .landing-container .cards-grid {
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         padding: 0 20px;
     }
-    .contenedorLanding .contenedorOrbital {
+
+    .landing-container .orbit-container {
         width: 90%;
     }
-    .contenedorLanding .flipCard {
+
+    .landing-container .planet-c {
+        right: -2%;
+    }
+
+    .landing-container .planet-o {
+        left: -2%;
+    }
+}
+
+/* 2. TABLET - entre 768px y 1024px */
+@container gbn-root (max-width: 1024px) {
+    .landing-container .cards-grid {
+        gap: 40px;
+        padding: 40px 20px;
+    }
+}
+
+/* Cases Grid - Tablet: 2 columnas (768px a 1024px) */
+@container gbn-root (min-width: 769px) and (max-width: 1024px) {
+    .landing-container .cases-grid,
+    .casos-container .cases-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* Cases Grid - Movil: 1 columna (menos de 768px) */
+@container gbn-root (max-width: 768px) {
+    .landing-container .cases-grid,
+    .casos-container .cases-grid {
+        grid-template-columns: 1fr !important;
+        gap: var(--gap-sm) !important;
+    }
+
+    .landing-container .case-image,
+    .casos-container .case-image {
+        height: 400px;
+    }
+}
+
+/* 3. DESKTOP - min-width: 1024px */
+@container gbn-root (min-width: 1024px) {
+    .landing-container .cards-grid {
+        align-items: center;
+        padding: 40px 0;
+    }
+
+    /* Los estilos de posicionamiento de tarjetas ahora se aplican a .flip-card 
+       en la seccion de FLIP CARDS - RESPONSIVE al final del archivo */
+
+    .footer-content.secundario {
+        display: flex;
+        flex-direction: row;
+    }
+}
+
+.logo-icon svg {
+    height: 40px;
+    width: 40px;
+    margin-top: 12px;
+}
+
+/* ==========================================================================
+   FLIP CARDS - Efecto de volteo para tarjetas de servicios
+   ========================================================================== */
+
+/* Contenedor principal de la flip card - establece la perspectiva 3D */
+.landing-container .flip-card {
+    perspective: 1000px;
+    width: 220px;
+    height: 340px;
+    cursor: pointer;
+}
+
+/* Contenedor interno que rotara */
+.landing-container .flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+/* Estado volteado - rota 180 grados en el eje Y */
+.landing-container .flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+/* Estilos compartidos para frente y reverso */
+.landing-container .flip-card-front,
+.landing-container .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* Frente de la tarjeta - hereda los estilos de service-card */
+.landing-container .flip-card-front {
+    z-index: 2;
+}
+
+/* Reverso de la tarjeta */
+.landing-container .flip-card-back {
+    transform: rotateY(180deg);
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--pad-sm);
+    box-sizing: border-box;
+    border: 1px solid #e0e0e0;
+}
+
+/* Contenido del reverso */
+.landing-container .flip-back-content {
+    text-align: center;
+    color: #333;
+}
+
+.landing-container .flip-back-content p {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: #444;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Efecto hover en flip card (antes de voltear) */
+.landing-container .flip-card:not(.flipped):hover .flip-card-inner {
+    transform: rotateY(10deg);
+}
+
+/* ==========================================================================
+   FLIP CARDS - RESPONSIVE
+   ========================================================================== */
+
+/* Desktop - posicionamiento de flip cards con rotacion */
+@container gbn-root (min-width: 1024px) {
+    /* Tarjeta Izquierda */
+    .landing-container .flip-card:nth-child(1) {
+        transform: rotate(-12deg) translateY(100px);
+    }
+
+    .landing-container .flip-card:nth-child(1):hover {
+        transform: translateY(95px) rotate(-12deg) scale(1.05);
+    }
+
+    /* Tarjeta Central */
+    .landing-container .flip-card:nth-child(2) {
+        transform: translateY(0px) scale(1.1);
+        z-index: 2;
+    }
+
+    .landing-container .flip-card:nth-child(2):hover {
+        transform: translateY(-10px) scale(1.1);
+    }
+
+    /* Tarjeta Derecha */
+    .landing-container .flip-card:nth-child(3) {
+        transform: rotate(12deg) translateY(100px);
+    }
+
+    .landing-container .flip-card:nth-child(3):hover {
+        transform: rotate(12deg) translateY(95px) scale(1.05);
+    }
+
+    /* Cuando estan volteadas, mantener la posicion pero voltear */
+    .landing-container .flip-card.flipped:nth-child(1) .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+
+    .landing-container .flip-card.flipped:nth-child(2) .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+
+    .landing-container .flip-card.flipped:nth-child(3) .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+}
+
+/* Movil - las flip cards se apilan verticalmente */
+@container gbn-root (max-width: 768px) {
+    .landing-container .flip-card {
         transform: none !important;
+    }
+
+    .landing-container .flip-card:hover {
+        transform: none !important;
+    }
+}
+
+/* ==========================================================================
+   CORRECCIONES ADICIONALES
+   ========================================================================== */
+
+/* Padding al texto de "Sobre mi" */
+.landing-container .about-text {
+    padding: 0 20px;
+}
+
+/* Tarjetas móviles: 70% de ancho y proporción correcta */
+@container gbn-root (max-width: 768px) {
+    /* Flip cards de servicios */
+    .landing-container .flip-card {
         width: 100% !important;
         max-width: none;
         aspect-ratio: 3/4;
     }
-    .contenedorLanding .flipCard:hover {
-        transform: none !important;
+
+    .landing-container .services-grid {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
     }
-    .gridCasos {
-        grid-template-columns: 1fr !important;
-        gap: var(--gap-sm) !important;
-    }
-    .imagenCaso {
-        height: 400px;
-    }
-    .tarjetaCaso {
+
+    /* Case cards */
+    .landing-container .case-card,
+    .casos-container .case-card {
         width: 100%;
         max-width: none;
     }
-}
 
-@container gbn-root (min-width: 769px) and (max-width: 1024px) {
-    .gridCasos {
-        grid-template-columns: repeat(2, 1fr) !important;
+    .landing-container .cases-grid,
+    .casos-container .cases-grid {
+        grid-template-columns: 1fr !important;
+        justify-items: center;
     }
-    .contenedorLanding .gridTarjetas {
-        gap: 40px;
-        padding: 40px 20px;
+
+    /* Ajuste del padding lateral general */
+    .landing-container .about-text {
+        padding: 0 20px;
     }
 }

@@ -8,14 +8,17 @@ interface TarjetaFeatureProps {
     features?: string[];
     enlace?: string;
     textoEnlace?: string;
-    /* Clase de posicion: tarjetaIzquierda, tarjetaCentro, tarjetaDerecha */
+    /* Clase de posicion original: left, center, right, right-bottom */
     posicion?: string;
     className?: string;
 }
 
 /*
- * Tarjeta de feature/servicio con icono, titulo, descripcion, lista y boton.
- * Usada en la pagina de Servicios para los planes de marketing y revenue.
+ * Tarjeta de feature/servicio.
+ * Replica la estructura exacta de render_marketing_card() en services.php.
+ * Clases: marketing-card, marketing-card-left/center/right, card-header,
+ * card-icon-wrapper, card-subtitle, card-body, card-desc, card-features,
+ * feature-check, feature-text, card-footer, btn-card
  */
 export function TarjetaFeature({
     icono,
@@ -24,35 +27,41 @@ export function TarjetaFeature({
     descripcion,
     features = [],
     enlace,
-    textoEnlace = 'Ver más',
+    textoEnlace = 'Solicitar info',
     posicion = '',
     className = '',
 }: TarjetaFeatureProps): React.JSX.Element {
+    /* Mapear posicion a clase CSS original */
+    const claseCard = posicion ? `marketing-card-${posicion}` : 'marketing-card';
+
     return (
-        <div className={`tarjetaMarketing ${posicion} ${className}`}>
-            <div className="encabezadoTarjeta">
-                {icono && <div className="iconoTarjeta">{icono}</div>}
+        <div className={`${claseCard} ${className}`}>
+            <div className="card-header">
+                {icono && <div className="card-icon-wrapper">{icono}</div>}
                 <h3>{titulo}</h3>
-                {subtitulo && <span className="subtituloTarjeta">{subtitulo}</span>}
+                {subtitulo && <span className="card-subtitle">{subtitulo}</span>}
             </div>
-            <div className="cuerpoTarjeta">
-                <p className="descripcionTarjeta">{descripcion}</p>
+            <div className="card-body">
+                <p className="card-desc">{descripcion}</p>
                 {features.length > 0 && (
-                    <ul className="featuresListaTarjeta">
+                    <ul className="card-features">
                         {features.map((f, i) => (
                             <li key={i}>
-                                <span>→</span>
-                                <span>{f}</span>
+                                <span className="feature-check">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="12" cy="12" r="11" stroke="#8c8c8c" strokeWidth="1" />
+                                        <path d="M8 12L11 15L16 9" stroke="#8c8c8c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                </span>
+                                <span className="feature-text">{f}</span>
                             </li>
                         ))}
                     </ul>
                 )}
             </div>
             {enlace && (
-                <div className="pieTarjeta">
-                    <a href={enlace} className="botonTarjeta">
-                        {textoEnlace} <span>→</span>
-                    </a>
+                <div className="card-footer">
+                    <a href={enlace} className="btn-card">{textoEnlace}</a>
                 </div>
             )}
         </div>

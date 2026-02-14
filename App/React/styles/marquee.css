@@ -1,8 +1,15 @@
-/*
- * Marquee - Componente de texto animado infinito
- * Esquemas: .marquee--light (oscuro sobre claro) y .marquee--dark (claro sobre oscuro)
+/* 
+ * Marquee Component Styles
+ * Estilos centralizados para elementos marquee animados.
+ * 
+ * Esquemas de color:
+ * - .marquee--light: Texto/iconos oscuros sobre fondos claros
+ * - .marquee--dark: Texto/iconos claros sobre fondos oscuros
+ * 
+ * Todos los marquees comparten el mismo estilo base unificado.
  */
 
+/* Estilos Base del Marquee - Unificados para todos */
 .marquee {
     width: 100%;
     padding: 14px 0;
@@ -11,7 +18,7 @@
     align-items: center;
 }
 
-.marquee .marqueeTrack {
+.marquee .marquee-track {
     display: flex;
     align-items: center;
     gap: 30px;
@@ -22,7 +29,7 @@
     animation: marquee-scroll 25s linear infinite;
 }
 
-.marquee .marqueeTexto {
+.marquee .marquee-text {
     display: block;
     font-size: 12px;
     text-transform: uppercase;
@@ -30,56 +37,81 @@
     white-space: nowrap;
 }
 
-.marquee .marqueeIcono {
+.marquee .marquee-icon {
     width: 19px;
     height: 19px;
     vertical-align: middle;
     flex-shrink: 0;
 }
 
-/* Esquema claro */
-.marquee--light .marqueeTexto { color: #333; }
-.marquee--light .marqueeIcono path { fill: #333; }
-
-/* Esquema oscuro */
-.marquee--dark .marqueeTexto { color: #f4f4f4; }
-.marquee--dark .marqueeIcono path { fill: #f4f4f4; }
-
-@keyframes marquee-scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+/* Esquema Light: texto/iconos oscuros sobre fondos claros */
+.marquee--light .marquee-text {
+    color: #333;
 }
 
-/* Contexto landing - hero marquee */
-.contenedorLanding .heroMarquee.marquee {
+.marquee--light .marquee-icon path {
+    fill: #333;
+}
+
+/* Esquema Dark: texto/iconos claros sobre fondos oscuros */
+.marquee--dark .marquee-text {
+    color: #f4f4f4;
+}
+
+.marquee--dark .marquee-icon path {
+    fill: #f4f4f4;
+}
+
+/* Animacion del Marquee */
+@keyframes marquee-scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Estilos de contexto para Landing Page */
+/* Solo posicionamiento y bordes especificos, el estilo base es compartido */
+
+/* Hero Marquee - posicionado en la parte inferior con borde */
+.landing-container .hero-marquee.marquee {
     position: absolute;
     bottom: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-.contenedorLanding .heroMarquee .marqueeTexto { color: #fff; }
-.contenedorLanding .heroMarquee .marqueeIcono path { fill: #fff; }
+/* Hero usa colores invertidos debido al fondo gradiente */
+.landing-container .hero-marquee .marquee-text {
+    color: #fff;
+}
 
-/* Cases marquee */
-.contenedorLanding .casosMarquee.marquee {
+.landing-container .hero-marquee .marquee-icon path {
+    fill: #fff;
+}
+
+/* Cases Marquee - borde superior, margen especifico */
+.landing-container .cases-marquee.marquee {
     border-top: 2px solid rgba(58, 58, 58, 0.5);
     margin-top: calc(2vh + 96px);
 }
 
-/* Methodology marquee */
-.contenedorLanding .metodologiaMarquee.marquee {
+/* Methodology Marquee - fondo oscuro, borde sutil */
+.landing-container .methodology-marquee.marquee {
     background-color: #1a1a1a;
     border-top: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-/* About marquee */
-.contenedorLanding .aboutMarquee.marquee {
+/* About Marquee - bordes superior e inferior */
+.landing-container .about-marquee.marquee {
     border-top: 2px solid #ccc;
     border-bottom: 2px solid #ccc;
 }
 
+/* Ajustes Responsive - Container Query */
 @container gbn-root (max-width: 1024px) {
-    .marquee .marqueeTrack {
+    .marquee .marquee-track {
         animation-duration: 20s;
     }
 }

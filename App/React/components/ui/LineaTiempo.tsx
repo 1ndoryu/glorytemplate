@@ -1,8 +1,11 @@
 import React from 'react';
 
 export interface PasoTimeline {
+    letra: string;
     titulo: string;
+    subtitulo: string;
     descripcion: string;
+    claseMarcador?: string;
 }
 
 interface LineaTiempoProps {
@@ -11,47 +14,31 @@ interface LineaTiempoProps {
 }
 
 /*
- * Timeline vertical con linea central y puntos.
- * Los pasos se alternan izquierda/derecha en desktop.
- * En mobile colapsa a una sola columna.
+ * Timeline vertical de la metodologia COSMO.
+ * Replica la estructura exacta de about_method() en about.php.
+ * Clases: about-timeline, method-step, step-content, step-title,
+ * step-text-wrapper, step-name, step-desc, step-marker, step-marker-c/o/s/m
  */
 export function LineaTiempo({
     pasos,
     className = '',
 }: LineaTiempoProps): React.JSX.Element {
     return (
-        <div className={`gridTimeline ${className}`}>
-            {pasos.map((paso, index) => {
-                const esIzquierda = index % 2 === 0;
-                return (
-                    <div key={index} className="pasoTimeline">
-                        {/* Columna izquierda: contenido en pasos pares, vacia en impares */}
-                        <div className={esIzquierda ? 'columnaIzquierda' : 'columnaIzquierda celdasVacia'}>
-                            {esIzquierda && (
-                                <div className="pasoContenido">
-                                    <h3>{paso.titulo}</h3>
-                                    <p>{paso.descripcion}</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Linea central con punto */}
-                        <div className="lineaCentral">
-                            <div className="puntoTimeline" />
-                        </div>
-
-                        {/* Columna derecha: contenido en pasos impares, vacia en pares */}
-                        <div className={!esIzquierda ? 'columnaDerecha' : 'columnaDerecha celdasVacia'}>
-                            {!esIzquierda && (
-                                <div className="pasoContenido">
-                                    <h3>{paso.titulo}</h3>
-                                    <p>{paso.descripcion}</p>
-                                </div>
-                            )}
+        <div className={`about-timeline ${className}`}>
+            {pasos.map((paso, index) => (
+                <div key={index} className="method-step">
+                    <div className="step-content">
+                        <h3 className="step-title">{paso.titulo}</h3>
+                        <div className="step-text-wrapper">
+                            <span className="step-name">{paso.subtitulo}</span>
+                            <p className="step-desc">{paso.descripcion}</p>
                         </div>
                     </div>
-                );
-            })}
+                    <div className={`step-marker ${paso.claseMarcador || ''}`}>
+                        {paso.letra}
+                    </div>
+                </div>
+            ))}
         </div>
     );
 }

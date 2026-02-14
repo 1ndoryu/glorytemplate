@@ -1,47 +1,58 @@
 /*
  * AboutIsland - Pagina Sobre Nosotros de Cosmo Revenue
- * Secciones: Hero, Info, Metodología timeline, Bio, Contacto
+ * Replica la estructura exacta de about.php de App1.
+ * Clases: about-container, method-section, method-icon, about-timeline,
+ * method-step, step-content, step-title, step-text-wrapper, step-name,
+ * step-desc, step-marker, bio-section, bio-content, bio-image, bio-text
  */
 
 import React from 'react';
-import '@app/styles/variables.css';
-import '@app/styles/global.css';
+import '@app/styles/init.css';
 import '@app/styles/about.css';
 
 import { CosmoHeader } from '@app/components/layout/CosmoHeader';
 import { PaginaHero } from '@app/components/layout/PaginaHero';
-import { Marquee } from '@app/components/ui/Marquee';
 import { LineaTiempo } from '@app/components/ui/LineaTiempo';
 import { FormularioContacto } from '@app/components/forms/FormularioContacto';
 import { useGloryMedia } from '@/hooks';
+import type { PasoTimeline } from '@app/components/ui/LineaTiempo';
 
-const textosMarquee = [
-    'Revenue Management',
-    'Consultoría Boutique',
-    'Marketing Hotelero',
-    'RevOps',
-];
-
-const pasosMetodologia = [
+/* Pasos del metodo COSMO, exactos del original about.php */
+const pasosMetodologia: PasoTimeline[] = [
     {
-        titulo: 'Diagnóstico',
-        descripcion: 'Analizamos tu operación actual: PMS, OTAs, canales directos, pricing y competencia para identificar oportunidades.',
+        letra: 'C',
+        titulo: 'Collect',
+        subtitulo: 'Recopilación y Saneamiento',
+        descripcion: 'Unificamos tus fuentes de datos (PMS, RMS, OTAs, web). Limpiamos y normalizamos la información para tener una base sólida y fiable.',
+        claseMarcador: 'step-marker-c',
     },
     {
-        titulo: 'Estrategia',
-        descripcion: 'Diseñamos un plan de acción personalizado con objetivos claros, KPIs medibles y timeline de implementación.',
+        letra: 'O',
+        titulo: 'Orchestrate',
+        subtitulo: 'Orquestación de Procesos',
+        descripcion: 'Definimos los KPIs críticos, las cadencias de revisión y asignamos responsables. Creamos un S&OP de ingresos claro.',
+        claseMarcador: 'step-marker-o',
     },
     {
-        titulo: 'Implementación',
-        descripcion: 'Ejecutamos las acciones definidas: configuración de herramientas, optimización de canales y pricing dinámico.',
+        letra: 'S',
+        titulo: 'Signal',
+        subtitulo: 'Lectura del Mercado',
+        descripcion: 'Monitorizamos señales de demanda: eventos, pick-up por segmento, elasticidad de precios y estacionalidad en tiempo real.',
+        claseMarcador: 'step-marker-s',
     },
     {
-        titulo: 'Monitorización',
-        descripcion: 'Seguimiento continuo de resultados con dashboards en tiempo real y reportes ejecutivos periódicos.',
+        letra: 'M',
+        titulo: 'Monetize',
+        subtitulo: 'Ejecución de Ventas',
+        descripcion: 'Aplicamos las reglas de precios, optimizamos el mix de canales y lanzamos campañas con retorno de inversión (ROI) medible.',
+        claseMarcador: 'step-marker-m',
     },
     {
-        titulo: 'Optimización',
-        descripcion: 'Ajustes constantes basados en datos para maximizar el rendimiento y adaptarnos a cambios del mercado.',
+        letra: 'O',
+        titulo: 'Optimize',
+        subtitulo: 'Mejora continua',
+        descripcion: 'Analizamos el post-mortem de cada acción. Aprendizaje continuo para iterar con rapidez y mejorar la rentabilidad futura.',
+        claseMarcador: 'step-marker-s',
     },
 ];
 
@@ -49,66 +60,51 @@ export function AboutIsland(): React.JSX.Element {
     const imagenEquipo = useGloryMedia('equipo::equipo.jpg');
 
     return (
-        <div className="contenedorAbout" id="aboutCosmo">
+        <div className="about-container">
             <CosmoHeader />
+
             <PaginaHero
-                titulo="Sobre"
-                tituloScript="Nosotros"
-                subtitulo="Una consultoría boutique de revenue y RevOps para hotelería."
+                textoScript="Sobre"
+                textoPrincipal="NOSOTROS"
+                subtitulo="Cosmo Revenue nace con un propósito claro: que los hoteles tomen decisiones de ingresos con claridad, confianza y control absoluto."
             />
 
-            <Marquee textos={textosMarquee} variante="dark" />
-
-            {/* Info */}
-            <section className="seccionInfo" id="infoAbout">
-                <h2 className="tituloAbout">Transformamos hoteles en negocios rentables</h2>
-                <p className="subtituloAbout">
-                    Cosmo Revenue nace de la pasión por la hotelería y la convicción de que cada
-                    alojamiento puede alcanzar su máximo potencial con la estrategia adecuada.
-                    Combinamos tecnología, datos y experiencia sectorial para ofrecer resultados
-                    medibles y sostenibles.
+            {/* Método COSMO */}
+            <section className="method-section">
+                <span className="method-icon">&#x2B22;</span>
+                <h2 className="section-title">El Método COSMO</h2>
+                <p className="section-subtitle">
+                    Cada hotel es un sistema vivo. Alineamos datos, procesos y ejecución en 5 fases orbitales para que todo gire a favor de tu rentabilidad.
                 </p>
-            </section>
 
-            {/* Metodología Timeline */}
-            <section className="seccionMetodologia" id="metodologiaAbout">
-                <h2 className="tituloMetodologia">Nuestra Metodología</h2>
                 <LineaTiempo pasos={pasosMetodologia} />
             </section>
 
-            {/* Bio / Equipo */}
-            <section className="seccionBio" id="bioAbout">
-                <div className="contenidoBio">
-                    <div className="imagenBio">
+            {/* Bio / Equipo (oculto como en el original) */}
+            <section className="bio-section" style={{ display: 'none' }}>
+                <div className="bio-content">
+                    <div className="bio-image">
                         {imagenEquipo.url && (
                             <img
                                 src={imagenEquipo.url}
-                                alt={imagenEquipo.alt || 'Equipo Cosmo Revenue'}
+                                alt={imagenEquipo.alt || 'Laura - Cosmo Revenue'}
                                 loading="lazy"
                             />
                         )}
                     </div>
-                    <div className="textoBio">
-                        <h3>Un equipo con experiencia</h3>
-                        <p>
-                            Nuestro equipo está formado por profesionales del sector hotelero con
-                            más de 10 años de experiencia en revenue management, marketing digital
-                            y consultoría estratégica.
-                        </p>
-                        <p>
-                            Hemos trabajado con hoteles independientes, cadenas y villas de lujo,
-                            adaptando nuestra metodología a las necesidades específicas de cada cliente.
-                        </p>
-                        <a href="/contacto/" className="botonBio">Conócenos</a>
+                    <div className="bio-text">
+                        <h2 className="bio-title">Hola, soy Laura</h2>
+                        <div className="bio-desc">
+                            <p>Lidero Cosmo Revenue como una consultoría boutique, alejándome de las grandes estructuras impersonales. Soy una profesional joven, independiente y cercana.</p>
+                            <p>Mi experiencia se centra en la Comunidad Valenciana, trabajando con hoteles, apartamentos, villas y hostels para optimizar su rendimiento en mercados clave como ES, FR, DE y UK.</p>
+                            <p>Creo firmemente que el Revenue Management no tiene por qué ser complejo ni opaco. Mi misión es traducir los datos en estrategias ejecutables que te den paz mental y resultados bancarios.</p>
+                        </div>
                     </div>
                 </div>
             </section>
 
             {/* Contacto */}
-            <section className="seccionContacto" id="contactoAbout">
-                <h2 className="tituloContacto">¿Hablamos?</h2>
-                <FormularioContacto formId="about-contacto" />
-            </section>
+            <FormularioContacto formId="about-contacto" titulo="Contacto" />
         </div>
     );
 }

@@ -63,8 +63,7 @@ function ImagenBlockComponent({ data }: { data: ImagenBlockProps }): React.JSX.E
 /* Bloque: Marquee */
 interface MarqueeBlockProps { textos: string; variante: 'light' | 'dark'; }
 function MarqueeBlockComponent({ data }: { data: MarqueeBlockProps }): React.JSX.Element {
-    const items = data.textos.split('|').map(t => t.trim()).filter(Boolean);
-    return <Marquee textos={items} variante={data.variante} />;
+    return <Marquee texto={data.textos} variante={data.variante} />;
 }
 
 /* Bloque: Cita */

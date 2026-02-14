@@ -1,23 +1,24 @@
 import React, { useState, useCallback } from 'react';
 
 interface TarjetaFlipProps {
-    /* Contenido del frente: imagen de fondo + titulo */
     imagenFrente: string;
     tituloFrente: string;
-    /* Texto del reverso */
     textoReverso: string;
+    variante?: 'dark' | 'light';
     className?: string;
 }
 
 /*
- * Tarjeta con efecto flip 3D al hacer click.
- * Frente: imagen con overlay gradiente + titulo.
- * Reverso: fondo blanco con texto descriptivo.
+ * Tarjeta con efecto flip 3D.
+ * Replica la estructura exacta de landing.php flip cards.
+ * Clases: flip-card, flipped, flip-card-inner, flip-card-front, service-card,
+ * card-dark/card-light, card-content, card-bg-image, flip-card-back, flip-back-content
  */
 export function TarjetaFlip({
     imagenFrente,
     tituloFrente,
     textoReverso,
+    variante = 'dark',
     className = '',
 }: TarjetaFlipProps): React.JSX.Element {
     const [volteada, setVolteada] = useState(false);
@@ -26,31 +27,25 @@ export function TarjetaFlip({
         setVolteada((prev) => !prev);
     }, []);
 
+    const claseVariante = variante === 'light' ? 'card-light' : 'card-dark';
+
     return (
         <div
-            className={`flipCard ${volteada ? 'volteada' : ''} ${className}`}
+            className={`flip-card ${volteada ? 'flipped' : ''} ${className}`}
             onClick={toggleFlip}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleFlip(); }}
-            aria-label={`${tituloFrente} - click para ver mas`}
         >
-            <div className="flipCardInner">
-                {/* Frente */}
-                <div className="flipCardFrente">
-                    <div className="tarjetaServicio">
-                        <div
-                            className="imagenFondo"
-                            style={{ backgroundImage: `url(${imagenFrente})` }}
-                        />
-                        <div className="contenidoTarjeta">
-                            <h3>{tituloFrente}</h3>
-                        </div>
+            <div className="flip-card-inner">
+                <div className={`flip-card-front service-card ${claseVariante}`}>
+                    <div className="card-content">
+                        <h3>{tituloFrente}</h3>
                     </div>
+                    <div
+                        className="card-bg-image"
+                        style={{ backgroundImage: `url(${imagenFrente})` }}
+                    />
                 </div>
-                {/* Reverso */}
-                <div className="flipCardReverso">
-                    <div className="contenidoReverso">
+                <div className="flip-card-back">
+                    <div className="flip-back-content">
                         <p>{textoReverso}</p>
                     </div>
                 </div>
