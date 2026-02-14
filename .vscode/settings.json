@@ -1,5 +1,14 @@
 {
     "postman.settings.dotenv-detection-notification-visibility": false,
+    "git.autoRepositoryDetection": "subFolders",
+    "git.detectSubmodules": true,
+    "git.repositoryScanMaxDepth": 4,
+    "git.repositoryScanIgnoredFolders": [
+        "vendor"
+    ],
+    "git.ignoredRepositories": [
+        "vendor/dealerdirect/phpcodesniffer-composer-installer"
+    ],
     "files.exclude": {
         "**/.history": true
     },
