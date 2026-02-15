@@ -2,36 +2,35 @@
  * Componente: DropdownNotificaciones — Kamples
  * Panel dropdown con la lista de notificaciones recientes.
  * Se muestra al hacer click en el icono de campana del TopBar.
+ * Conectado a API real via obtenerNotificaciones.
  */
 
-import { useCallback } from 'react';
-import { Bell, Heart, Download, UserPlus, MessageCircle } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Bell, Heart, Download, UserPlus, MessageCircle, Loader2 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
+import { obtenerNotificaciones, type Notificacion } from '@app/services/apiNotificaciones';
 import '../../styles/componentes/dropdownPanel.css';
-
-interface Notificacion {
-    id: number;
-    tipo: 'like' | 'descarga' | 'seguidor' | 'comentario' | 'sistema';
-    texto: string;
-    tiempo: string;
-    leida: boolean;
-}
-
-/* Mock de notificaciones para demostración */
-const notificacionesMock: Notificacion[] = [
-    { id: 1, tipo: 'like', texto: 'A @beatmaker le gustó tu sample "Kick Drill 808"', tiempo: 'Hace 5 min', leida: false },
-    { id: 2, tipo: 'seguidor', texto: '@prodmusic comenzó a seguirte', tiempo: 'Hace 20 min', leida: false },
-    { id: 3, tipo: 'descarga', texto: '@trapking descargó "Hi-Hat Roll Clean"', tiempo: 'Hace 1h', leida: true },
-    { id: 4, tipo: 'comentario', texto: '@lofibeats comentó en "Ambient Pad Cm"', tiempo: 'Hace 3h', leida: true },
-    { id: 5, tipo: 'sistema', texto: 'Tu sample "Snare Tight" fue aprobado', tiempo: 'Ayer', leida: true },
-];
 
 const ICONOS_NOTIFICACION: Record<string, JSX.Element> = {
     like: <Heart size={16} />,
     descarga: <Download size={16} />,
+    follow: <UserPlus size={16} />,
     seguidor: <UserPlus size={16} />,
     comentario: <MessageCircle size={16} />,
     sistema: <Bell size={16} />,
+    mensaje: <MessageCircle size={16} />,
+    pago: <Bell size={16} />,
+};
+
+/* Formatea fecha ISO a texto relativo */
+const formatearTiempo = (fecha: string): string => {
+    const diff = Date.now() - new Date(fecha).getTime();
+    const min = Math.floor(diff / 60000);
+    if (min < 60) return `Hace ${min} min`;
+    const hrs = Math.floor(min / 60);
+    if (hrs < 24) return `Hace ${hrs}h`;
+    const dias = Math.floor(hrs / 24);
+    return dias === 1 ? 'Ayer' : `Hace ${dias}d`;
 };
 
 interface DropdownNotificacionesProps {
@@ -40,13 +39,26 @@ interface DropdownNotificacionesProps {
 
 export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps): JSX.Element => {
     const { navegar } = useNavigationStore();
+    const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
+    const [cargando, setCargando] = useState(true);
+
+    useEffect(() => {
+        let cancelado = false;
+        obtenerNotificaciones().then((resp) => {
+            if (!cancelado && resp.ok && resp.data) {
+                setNotificaciones(resp.data);
+            }
+            setCargando(false);
+        });
+        return () => { cancelado = true; };
+    }, []);
 
     const irANotificaciones = useCallback(() => {
         navegar('/notificaciones');
         onCerrar();
     }, [navegar, onCerrar]);
 
-    const noLeidas = notificacionesMock.filter((n) => !n.leida).length;
+    const noLeidas = notificaciones.filter((n) => !n.leida).length;
 
     return (
         <>
@@ -62,13 +74,18 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                 </div>
 
                 <div className="dropdownPanelLista">
-                    {notificacionesMock.length === 0 ? (
+                    {cargando ? (
+                        <div className="dropdownPanelVacio">
+                            <Loader2 size={28} className="animacionGirar" />
+                            <p>Cargando...</p>
+                        </div>
+                    ) : notificaciones.length === 0 ? (
                         <div className="dropdownPanelVacio">
                             <Bell size={28} />
                             <p>Sin notificaciones</p>
                         </div>
                     ) : (
-                        notificacionesMock.map((noti) => (
+                        notificaciones.map((noti) => (
                             <div
                                 key={noti.id}
                                 className={`dropdownItem ${!noti.leida ? 'dropdownItemNoLeido' : ''}`}
@@ -77,8 +94,10 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                                     {ICONOS_NOTIFICACION[noti.tipo] ?? <Bell size={16} />}
                                 </div>
                                 <div className="dropdownItemContenido">
-                                    <span className="dropdownItemTexto">{noti.texto}</span>
-                                    <span className="dropdownItemTiempo">{noti.tiempo}</span>
+                                    <span className="dropdownItemTexto">{noti.mensaje}</span>
+                                    <span className="dropdownItemTiempo">
+                                        {formatearTiempo(noti.creadaAt)}
+                                    </span>
                                 </div>
                                 {!noti.leida && <div className="dropdownItemPunto" />}
                             </div>

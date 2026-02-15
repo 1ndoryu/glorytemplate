@@ -13,108 +13,12 @@ import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
-import { obtenerImagenColor } from '@app/services/imagenesColor';
 import type { Publicacion } from '@app/types';
 import '../../styles/componentes/comunidad.css';
 
 type FiltroComunidad = 'todos' | 'siguiendo' | 'populares';
 
-/* Mock data variado: texto, texto+imagen, texto+sample, repost */
-const publicacionesMock: Publicacion[] = [
-    {
-        id: 1,
-        autorId: 1,
-        tipo: 'social',
-        contenido: '¡Acabo de terminar un pack de lo-fi hip hop beats! 🎵 Inspirado en el jazz de los 50s con texturas modernas. Pronto disponible en mi perfil. #lofi #hiphop #jazz',
-        imagenes: [],
-        samplesAdjuntos: [],
-        totalLikes: 42,
-        totalComentarios: 8,
-        totalReposts: 3,
-        liked: false,
-        reposteado: false,
-        creadoAt: new Date(Date.now() - 3600000).toISOString(),
-        autor: { id: 1, username: 'beatmaker99', nombreVisible: 'BeatMaker99', avatarUrl: null, verificado: true },
-    },
-    {
-        id: 2,
-        autorId: 2,
-        tipo: 'social',
-        contenido: 'Nuevo setup listo para producir. Monitores nuevos + panel acústico. El sonido es completamente diferente ahora, se los recomiendo.',
-        imagenes: [obtenerImagenColor(100), obtenerImagenColor(101)],
-        samplesAdjuntos: [],
-        totalLikes: 85,
-        totalComentarios: 15,
-        totalReposts: 7,
-        liked: true,
-        reposteado: false,
-        creadoAt: new Date(Date.now() - 7200000).toISOString(),
-        autor: { id: 2, username: 'studiogirl', nombreVisible: 'Studio Girl', avatarUrl: null, verificado: false },
-    },
-    {
-        id: 3,
-        autorId: 3,
-        tipo: 'sample',
-        contenido: 'Les comparto este loop de guitarra latina que hice ayer. Ideal para trap melódico o reggaeton. #guitar #latin #trap',
-        imagenes: [],
-        samplesAdjuntos: [{
-            id: 301,
-            titulo: 'Guitar Latin Vibes',
-            slug: 'guitar-latin-vibes',
-            bpm: 92,
-            key: 'A',
-            escala: 'menor',
-            duracion: 8.5,
-            tags: ['guitar', 'latin', 'trap'],
-            tipo: 'loop',
-            esPremium: false,
-            rutaPreview: '/wp-content/themes/glorytemplate/App/Assets/audio/preview-latin.mp3',
-            rutaWaveform: '',
-            imagenUrl: null,
-            totalDescargas: 15,
-            totalLikes: 23,
-            creador: { id: 3, username: 'guitarking', nombreVisible: 'Guitar King', avatarUrl: null, verificado: true },
-            liked: false,
-        }],
-        totalLikes: 56,
-        totalComentarios: 12,
-        totalReposts: 9,
-        liked: false,
-        reposteado: false,
-        creadoAt: new Date(Date.now() - 14400000).toISOString(),
-        autor: { id: 3, username: 'guitarking', nombreVisible: 'Guitar King', avatarUrl: null, verificado: true },
-    },
-    {
-        id: 4,
-        autorId: 4,
-        tipo: 'social',
-        contenido: '¿Alguien más siente que mezclar en auriculares abiertos vs cerrados es un mundo de diferencia? Yo cambié hace 6 meses y nunca volvería atrás.',
-        imagenes: [],
-        samplesAdjuntos: [],
-        totalLikes: 28,
-        totalComentarios: 22,
-        totalReposts: 1,
-        liked: false,
-        reposteado: false,
-        creadoAt: new Date(Date.now() - 28800000).toISOString(),
-        autor: { id: 4, username: 'mixengineer', nombreVisible: 'Mix Engineer Pro', avatarUrl: null, verificado: false },
-    },
-    {
-        id: 5,
-        autorId: 5,
-        tipo: 'social',
-        contenido: 'Tutorial rápido: cómo crear risers épicos con un simple sweep de ruido blanco + automatización de filtro. El secreto está en la reverb larga al final.',
-        imagenes: [obtenerImagenColor(102)],
-        samplesAdjuntos: [],
-        totalLikes: 112,
-        totalComentarios: 31,
-        totalReposts: 18,
-        liked: true,
-        reposteado: true,
-        creadoAt: new Date(Date.now() - 43200000).toISOString(),
-        autor: { id: 5, username: 'sounddesigner', nombreVisible: 'Sound Designer', avatarUrl: null, verificado: true },
-    },
-];
+/* TO-DO: conectar a GET /kamples/v1/publicaciones cuando exista el endpoint */
 
 const formatearTiempoRelativo = (fecha: string): string => {
     const ahora = Date.now();
@@ -142,10 +46,10 @@ const ComunidadBase = (): JSX.Element => {
     }, [setTabs]);
 
     useEffect(() => {
-        /* TO-DO: conectar a API real GET /kamples/v1/publicaciones?filtro= */
+        /* TO-DO: GET /kamples/v1/publicaciones?filtro=${filtro} cuando el endpoint exista */
         setCargando(true);
         setTimeout(() => {
-            setPublicaciones(publicacionesMock);
+            setPublicaciones([]);
             setCargando(false);
         }, 300);
     }, [filtro]);

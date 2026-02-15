@@ -23,6 +23,7 @@ import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { agruparTagsPorCategoria, type CategoriaTag } from '@app/services/tagUtils';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
+import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
 import type { SampleResumen } from '@app/types';
 import type { TipoOrdenamiento, PeriodoDestacados } from '@app/stores/filtrosStore';
 import '../../styles/componentes/inicio.css';
@@ -534,6 +535,12 @@ const FeedUnificado = (): JSX.Element => {
             <ModalFiltros
                 abierto={filtrosAbierto}
                 onCerrar={() => setFiltrosAbierto(false)}
+            />
+
+            <ModalInspectorSample
+                abierto={!!menu.sampleInspeccion}
+                onCerrar={menu.cerrarInspeccion}
+                sample={menu.sampleInspeccion}
             />
         </div>
     );

@@ -1,7 +1,7 @@
 /*
  * Servicio: apiDescargas — Kamples (Fase 2.10)
  * Gestiona descargas de samples con control de límites por plan.
- * Incluye mock local para desarrollo.
+ * Conectado a API real, sin datos mock.
  */
 
 import { apiGet, apiPost } from './apiCliente';
@@ -14,7 +14,6 @@ export interface LimitesDescarga {
     plan: 'free' | 'pro' | 'premium';
     descargasHoy: number;
     limitesDiarios: number;
-    /* ilimitado para premium */
     ilimitado: boolean;
     calidadDisponible: 'mp3' | 'wav';
     resetEn: string;
@@ -27,30 +26,13 @@ export interface ResultadoDescarga {
     tamano: number;
 }
 
-/* Mock de límites para desarrollo — simula plan Free */
-const MOCK_LIMITES: LimitesDescarga = {
-    plan: 'free',
-    descargasHoy: 2,
-    limitesDiarios: 5,
-    ilimitado: false,
-    calidadDisponible: 'mp3',
-    resetEn: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
-};
-
-let mockDescargasHoy = 2;
-
 /* Obtener límites actuales del usuario */
 export const obtenerLimites = async (): Promise<RespuestaApi<LimitesDescarga>> => {
     try {
         return await apiGet<LimitesDescarga>('/kamples/v1/descargas/limites');
-    } catch {
-        log.debug('Usando límites mock');
-        return {
-            ok: true,
-            data: { ...MOCK_LIMITES, descargasHoy: mockDescargasHoy },
-            error: null,
-            status: 200,
-        };
+    } catch (err) {
+        log.error('Error obteniendo límites de descarga', err);
+        return { ok: false, data: null, error: 'Error de red', status: 500 };
     }
 };
 
@@ -60,22 +42,9 @@ export const descargarSample = async (
 ): Promise<RespuestaApi<ResultadoDescarga>> => {
     try {
         return await apiPost<ResultadoDescarga>(`/kamples/v1/descargas/${sampleId}`);
-    } catch {
-        /* Mock: simular descarga y conteo */
-        mockDescargasHoy += 1;
-        log.debug('Descarga mock', { sampleId, descargasHoy: mockDescargasHoy });
-
-        return {
-            ok: mockDescargasHoy <= MOCK_LIMITES.limitesDiarios,
-            data: {
-                url: `/storage/optimized/sample_${sampleId}.mp3`,
-                nombre: `sample_${sampleId}.mp3`,
-                formato: 'mp3',
-                tamano: 2048000,
-            },
-            error: mockDescargasHoy > MOCK_LIMITES.limitesDiarios ? 'Límite diario alcanzado' : null,
-            status: mockDescargasHoy <= MOCK_LIMITES.limitesDiarios ? 200 : 429,
-        };
+    } catch (err) {
+        log.error('Error descargando sample', err);
+        return { ok: false, data: null, error: 'Error de red', status: 500 };
     }
 };
 

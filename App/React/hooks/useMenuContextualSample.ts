@@ -23,6 +23,9 @@ interface RetornoMenuSample {
     items: MenuItemDef[];
     abrirMenu: (e: MouseEvent, sample: SampleResumen) => void;
     cerrarMenu: () => void;
+    /* Sample seleccionado para inspección — null si no hay */
+    sampleInspeccion: SampleResumen | null;
+    cerrarInspeccion: () => void;
 }
 
 export const useMenuContextualSample = (): RetornoMenuSample => {
@@ -32,6 +35,7 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
         y: 0,
         sample: null,
     });
+    const [sampleInspeccion, setSampleInspeccion] = useState<SampleResumen | null>(null);
 
     const { navegar } = useNavigationStore();
     const { setSample, agregarACola } = useReproductorStore();
@@ -50,6 +54,10 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
 
     const cerrarMenu = useCallback(() => {
         setEstado((prev) => ({ ...prev, abierto: false }));
+    }, []);
+
+    const cerrarInspeccion = useCallback(() => {
+        setSampleInspeccion(null);
     }, []);
 
     /* Acciones del menú — se arman dinámicamente */
@@ -107,6 +115,13 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                 separadorDespues: true,
             },
             {
+                id: 'inspeccionar',
+                etiqueta: 'Inspeccionar datos',
+                onClick: () => {
+                    if (estado.sample) setSampleInspeccion(estado.sample);
+                },
+            },
+            {
                 id: 'reportar',
                 etiqueta: 'Reportar',
                 peligro: true,
@@ -117,5 +132,5 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
         ]
         : [];
 
-    return { estado, items, abrirMenu, cerrarMenu };
+    return { estado, items, abrirMenu, cerrarMenu, sampleInspeccion, cerrarInspeccion };
 };

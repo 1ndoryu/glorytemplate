@@ -2,30 +2,27 @@
  * Componente: DropdownMensajes — Kamples
  * Panel dropdown con la lista de conversaciones recientes.
  * Se muestra al hacer click en el icono de correo del TopBar.
+ * Conectado a API real via obtenerConversaciones.
  */
 
-import { useCallback } from 'react';
-import { Mail } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Mail, Loader2 } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { useChatFlotanteStore } from '@app/stores/chatFlotanteStore';
+import { obtenerConversaciones } from '@app/services/apiMensajes';
+import type { Conversacion } from '@app/types';
 import '../../styles/componentes/dropdownPanel.css';
 
-interface ConversacionResumen {
-    id: number;
-    usuario: string;
-    avatarUrl: string | null;
-    ultimoMensaje: string;
-    tiempo: string;
-    sinLeer: boolean;
-}
-
-/* Mock de conversaciones para demostración */
-const conversacionesMock: ConversacionResumen[] = [
-    { id: 1, usuario: 'beatmaker', avatarUrl: null, ultimoMensaje: 'Bro, ese sample está increíble 🔥', tiempo: 'Hace 10 min', sinLeer: true },
-    { id: 2, usuario: 'prodmusic', avatarUrl: null, ultimoMensaje: '¿Puedo usar tu kick en mi beat?', tiempo: 'Hace 1h', sinLeer: true },
-    { id: 3, usuario: 'lofibeats', avatarUrl: null, ultimoMensaje: 'Gracias por el follow!', tiempo: 'Hace 3h', sinLeer: false },
-    { id: 4, usuario: 'trapking', avatarUrl: null, ultimoMensaje: 'Dale, te mando el collab.', tiempo: 'Ayer', sinLeer: false },
-];
+/* Formatea fecha ISO a texto relativo */
+const formatearTiempo = (fecha: string): string => {
+    const diff = Date.now() - new Date(fecha).getTime();
+    const min = Math.floor(diff / 60000);
+    if (min < 60) return `Hace ${min} min`;
+    const hrs = Math.floor(min / 60);
+    if (hrs < 24) return `Hace ${hrs}h`;
+    const dias = Math.floor(hrs / 24);
+    return dias === 1 ? 'Ayer' : `Hace ${dias}d`;
+};
 
 interface DropdownMensajesProps {
     onCerrar: () => void;
@@ -33,18 +30,30 @@ interface DropdownMensajesProps {
 
 export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Element => {
     const { abrirChat } = useChatFlotanteStore();
+    const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
+    const [cargando, setCargando] = useState(true);
 
-    /* Abrir chat flotante en vez de navegar a /mensajes */
-    const abrirConversacion = useCallback((conv: ConversacionResumen) => {
+    useEffect(() => {
+        let cancelado = false;
+        obtenerConversaciones().then((resp) => {
+            if (!cancelado && resp.ok && resp.data) {
+                setConversaciones(resp.data);
+            }
+            setCargando(false);
+        });
+        return () => { cancelado = true; };
+    }, []);
+
+    const abrirConversacion = useCallback((conv: Conversacion) => {
         abrirChat({
             conversacionId: conv.id,
-            nombreParticipante: conv.usuario,
-            avatarUrl: conv.avatarUrl,
+            nombreParticipante: conv.participante.nombreVisible,
+            avatarUrl: conv.participante.avatarUrl,
         });
         onCerrar();
     }, [abrirChat, onCerrar]);
 
-    const sinLeer = conversacionesMock.filter((c) => c.sinLeer).length;
+    const sinLeer = conversaciones.filter((c) => c.noLeidos > 0).length;
 
     return (
         <>
@@ -57,30 +66,37 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
                 </div>
 
                 <div className="dropdownPanelLista">
-                    {conversacionesMock.length === 0 ? (
+                    {cargando ? (
+                        <div className="dropdownPanelVacio">
+                            <Loader2 size={28} className="animacionGirar" />
+                            <p>Cargando...</p>
+                        </div>
+                    ) : conversaciones.length === 0 ? (
                         <div className="dropdownPanelVacio">
                             <Mail size={28} />
                             <p>Sin mensajes</p>
                         </div>
                     ) : (
-                        conversacionesMock.map((conv) => (
+                        conversaciones.map((conv) => (
                             <div
                                 key={conv.id}
-                                className={`dropdownItem ${conv.sinLeer ? 'dropdownItemNoLeido' : ''}`}
+                                className={`dropdownItem ${conv.noLeidos > 0 ? 'dropdownItemNoLeido' : ''}`}
                                 onClick={() => abrirConversacion(conv)}
                             >
                                 <Avatar
-                                    src={conv.avatarUrl}
-                                    nombre={conv.usuario}
+                                    src={conv.participante.avatarUrl}
+                                    nombre={conv.participante.nombreVisible}
                                     tamano="sm"
                                 />
                                 <div className="dropdownItemContenido">
                                     <span className="dropdownItemTexto">
-                                        <strong>@{conv.usuario}</strong> {conv.ultimoMensaje}
+                                        <strong>@{conv.participante.username}</strong> {conv.ultimoMensaje}
                                     </span>
-                                    <span className="dropdownItemTiempo">{conv.tiempo}</span>
+                                    <span className="dropdownItemTiempo">
+                                        {formatearTiempo(conv.ultimoMensajeAt)}
+                                    </span>
                                 </div>
-                                {conv.sinLeer && <div className="dropdownItemPunto" />}
+                                {conv.noLeidos > 0 && <div className="dropdownItemPunto" />}
                             </div>
                         ))
                     )}

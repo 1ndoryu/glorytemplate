@@ -1,0 +1,132 @@
+/*
+ * ModalInspector — Kamples
+ * Estilos para el modal de inspección técnica de samples.
+ * Muestra metadata, análisis IA, estadísticas y datos crudos.
+ */
+
+.inspectorContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+    padding: var(--espacioMd);
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
+.inspectorSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.inspectorSeccionTitulo {
+    font-size: var(--textoSm);
+    font-weight: 600;
+    color: var(--textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-bottom: var(--espacioXs);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.inspectorGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--espacioSm) var(--espacioMd);
+}
+
+.inspectorCampo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.inspectorCampoEtiqueta {
+    font-size: var(--textoXs);
+    color: var(--textoTerciario);
+    font-weight: 500;
+}
+
+.inspectorCampoValor {
+    font-size: var(--textoSm);
+    color: var(--textoPrimario);
+    word-break: break-word;
+}
+
+.inspectorCampoValor.inspectorNumerico {
+    font-family: var(--fuenteMono);
+    color: var(--acento);
+}
+
+.inspectorTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioXs);
+}
+
+.inspectorTag {
+    font-size: var(--textoXs);
+    background-color: var(--fondoElevado3);
+    color: var(--textoSecundario);
+    padding: 2px 8px;
+    border-radius: var(--radioSm);
+    border: 1px solid var(--bordeSutil);
+}
+
+.inspectorMetadataIA {
+    font-size: var(--textoSm);
+    color: var(--textoSecundario);
+    line-height: 1.5;
+    background-color: var(--fondoElevado1);
+    padding: var(--espacioSm);
+    border-radius: var(--radioSm);
+    border: 1px solid var(--bordeSutil);
+    white-space: pre-wrap;
+}
+
+.inspectorCreador {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.inspectorCreadorInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.inspectorCreadorNombre {
+    font-size: var(--textoSm);
+    font-weight: 600;
+    color: var(--textoPrimario);
+}
+
+.inspectorCreadorUsername {
+    font-size: var(--textoXs);
+    color: var(--textoTerciario);
+}
+
+.inspectorJsonCrudo {
+    font-family: var(--fuenteMono);
+    font-size: var(--textoXs);
+    background-color: var(--fondoBase);
+    color: var(--textoSecundario);
+    padding: var(--espacioSm);
+    border-radius: var(--radioSm);
+    border: 1px solid var(--bordeSutil);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Ancho completo en campos que lo necesiten */
+.inspectorCampoAncho {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 600px) {
+    .inspectorGrid {
+        grid-template-columns: 1fr;
+    }
+}

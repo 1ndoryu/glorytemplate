@@ -21,6 +21,94 @@ class KamplesController
     private const NAMESPACE = 'kamples/v1';
 
     /*
+     * Convierte un string PostgreSQL array ({val1,val2,...}) a array PHP.
+     * PDO no parsea automáticamente columnas text[] de Postgres.
+     */
+    private static function pgArrayToPhp(?string $pgArray): array
+    {
+        if ($pgArray === null || $pgArray === '' || $pgArray === '{}') return [];
+        $inner = trim($pgArray, '{}');
+        if ($inner === '') return [];
+        return str_getcsv($inner);
+    }
+
+    /*
+     * Normaliza un sample para la respuesta JSON.
+     * Convierte snake_case PG a camelCase, agrupa datos del creador como sub-objeto,
+     * convierte tags text[] a array PHP y metadata JSONB a objeto.
+     */
+    private static function normalizarSample(array $row): array
+    {
+        /* tags: text[] PG -> array PHP */
+        $tags = [];
+        if (isset($row['tags']) && is_string($row['tags'])) {
+            $tags = self::pgArrayToPhp($row['tags']);
+        } elseif (isset($row['tags']) && is_array($row['tags'])) {
+            $tags = $row['tags'];
+        }
+
+        /* metadata: JSONB PG -> objeto PHP */
+        $metadata = null;
+        if (isset($row['metadata']) && is_string($row['metadata'])) {
+            $metadata = json_decode($row['metadata'], true);
+        } elseif (isset($row['metadata']) && is_array($row['metadata'])) {
+            $metadata = $row['metadata'];
+        }
+
+        /* Construir objeto creador si los campos existen */
+        $creador = null;
+        if (isset($row['creador_id']) || isset($row['username'])) {
+            $creador = [
+                'id'             => (int) ($row['creador_id'] ?? 0),
+                'username'       => $row['username'] ?? '',
+                'nombreVisible'  => $row['nombre_visible'] ?? $row['username'] ?? '',
+                'avatarUrl'      => $row['avatar_url'] ?? null,
+                'verificado'     => (bool) ($row['verificado'] ?? false),
+            ];
+        }
+
+        /* Estructura normalizada camelCase para el frontend */
+        $normalizado = [
+            'id'               => (int) ($row['id'] ?? 0),
+            'titulo'           => $row['titulo'] ?? '',
+            'slug'             => $row['slug'] ?? '',
+            'idCorto'          => $row['id_corto'] ?? null,
+            'descripcion'      => $row['descripcion'] ?? '',
+            'bpm'              => isset($row['bpm']) ? (int) $row['bpm'] : null,
+            'key'              => $row['key'] ?? null,
+            'escala'           => $row['escala'] ?? null,
+            'duracion'         => isset($row['duracion']) ? (float) $row['duracion'] : 0,
+            'formato'          => $row['formato'] ?? null,
+            'tamano'           => isset($row['tamano']) ? (int) $row['tamano'] : 0,
+            'tags'             => $tags,
+            'tipo'             => $row['tipo'] ?? 'one shot',
+            'estado'           => $row['estado'] ?? 'procesando',
+            'esPremium'        => (bool) ($row['es_premium'] ?? false),
+            'metadata'         => $metadata,
+            'rutaPreview'      => $row['ruta_preview'] ?? '',
+            'rutaWaveform'     => $row['ruta_waveform'] ?? '',
+            'rutaOriginal'     => $row['ruta_original'] ?? '',
+            'rutaOptimizada'   => $row['ruta_optimizada'] ?? '',
+            'imagenUrl'        => $row['imagen_url'] ?? null,
+            'totalDescargas'   => (int) ($row['total_descargas'] ?? 0),
+            'totalLikes'       => (int) ($row['total_likes'] ?? 0),
+            'totalReproducciones' => (int) ($row['total_reproducciones'] ?? 0),
+            'creador'          => $creador,
+            'liked'            => (bool) ($row['liked'] ?? false),
+        ];
+
+        return $normalizado;
+    }
+
+    /*
+     * Normaliza un array de samples.
+     */
+    private static function normalizarSamples(array $samples): array
+    {
+        return array_map([self::class, 'normalizarSample'], $samples);
+    }
+
+    /*
      * Registra todos los endpoints de la API.
      * Se invoca desde el hook rest_api_init.
      */
@@ -404,7 +492,7 @@ class KamplesController
         );
 
         return new \WP_REST_Response([
-            'data'       => $samples,
+            'data'       => self::normalizarSamples($samples),
             'pagination' => [
                 'page'      => $page,
                 'per_page'  => $perPage,
@@ -437,7 +525,7 @@ class KamplesController
             ], 404);
         }
 
-        return new \WP_REST_Response(['data' => $sample], 200);
+        return new \WP_REST_Response(['data' => self::normalizarSample($sample)], 200);
     }
 
     /*
@@ -473,7 +561,7 @@ class KamplesController
         );
 
         return new \WP_REST_Response([
-            'data' => $samples,
+            'data' => self::normalizarSamples($samples),
             'feed' => $tipo,
             'page' => $page,
         ], 200);

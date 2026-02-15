@@ -111,6 +111,16 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **Upload + IA (U1):** Upload real conectado end-to-end. `apiCliente.ts` soporta FormData (sin JSON.stringify ni Content-Type forzado). `apiSamples.ts` con `subirSample(DatosSubida)` tipado + FormData. ModalCrear conectado al endpoint real `POST /samples/upload`, con UI error/éxito. `GeneradorIdCorto.php`: IDs 7 chars base62 con validación de unicidad contra BD. Migración v003: columnas `id_corto` UNIQUE, `permitir_descarga`, `licencia_libre` en tabla samples. `ServicioIA.php`: análisis audio con Gemini (fallback Flash 2.5→Pro 2.5→Flash 2.0), prompt estructurado, parser JSON robusto, validación de metadata. `PipelineAudio.php`: procesamiento completo al subir (duración, waveform peaks PHP, MP3/preview con FFmpeg, análisis IA, renombrado estandarizado `kamples_{tipo}_{genero}_{bpm}_{key}_{id}.ext`). `KamplesController::subirSample()` reescrito con ID corto + pipeline + respuesta enriquecida. CSS: mensajes error/éxito en modalCrear.
 
+### Registro de cambios U4 — Logs + Async + Debug
+
+**Archivos modificados:**
+- `App/Kamples/KamplesLogger.php` — NUEVO: sistema de logging dedicado con archivos propios en `App/logs/`
+- `App/Kamples/Api/KamplesController.php` — Pipeline ahora es ASÍNCRONO (shutdown hook + fastcgi_finish_request)
+- `App/Kamples/Api/ServicioIA.php` — Logging detallado: respuestas raw, HTTP codes, modelos intentados
+- `App/Kamples/Api/PipelineAudio.php` — FFmpeg detección mejorada (reconstruye LOCALAPPDATA) + KamplesLogger
+- `App/Kamples/Api/AnalizadorAudio.php` — error_log reemplazado por KamplesLogger
+- `App/logs/.gitignore` — Excluye archivos de log del repositorio
+
 ---
 
 ## Pendientes por Fase
@@ -459,25 +469,101 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
    - Se agregó `require_once ABSPATH . 'wp-admin/includes/file.php'` antes de la llamada.
    - Prefijo `\` añadido a funciones WP: `\wp_upload_dir`, `\wp_mkdir_p`, `\add_filter`, `\remove_filter`, `\wp_handle_upload`, `\sanitize_text_field`, `\sanitize_textarea_field`, `\sanitize_title`.
 
-8. ~~KamplesController esta rompiendo las reglas solid, y probablmente otros archivo, refactorizar los archivos con mas lineas en total.~~
-   - ✅ ANOTADO: KamplesController tiene ~1600 líneas, excede el límite de 300. Se planifica refactorización:
-   - Extraer `subirSample()` a un `SampleUploadController` o `SampleService`.
-   - Extraer endpoints de feed/perfil a `FeedController` y `PerfilController`.
-   - TO-DO para próxima iteración cuando se estabilice la funcionalidad actual.
+8. KamplesController esta rompiendo las reglas solid, y probablmente otros archivo, refactorizar los archivos con mas lineas en total.
+   - PENDIENTE: Refactoring mayor planificado. KamplesController (~1664 lineas) necesita dividirse en sub-controladores por dominio.
 
 9. ~~Creo que la idea anterior se maliterpreto, los modelos de grop no procesan imagenes ni audio, el unico modelo que procesa imagenes es Llama 4 Maverick 17B 128E, los modelos de groq deben usarse solo para las imagenes.~~
    - ✅ ACLARADO: La implementación actual YA es correcta — Groq NO recibe audio.
    - Gemini: recibe audio en base64 + texto → análisis creativo completo.
    - Groq: recibe SOLO texto enriquecido (BPM, key, tags, descripción, duración) → análisis sin audio.
    - El fallback Groq es un "mejor que nada" cuando Gemini falla por cuota.
-   - TO-DO: Agregar `llama-4-maverick-17b-128e` como modelo Groq para análisis de imágenes de portada (futuro).
+   - TO-DO: Agregar `llama-4-maverick-17b-128e` como modelo Groq para análisis de imágenes de portada (futuro). 
 
-## Registro de cambios U4 — Logs + Async + Debug
+10. Se puede aprovechar para usar Llama Prompt Guard 2 22M, y Llama 4 Scout 17B 16E tambien recibe imagenes. Ya tambien se puede aprovechar openai/gpt-oss-120b para modenar contenido de las publicaciones de la comunidad, y detectar si incumplen las reglas. Planificarlo para el futuro. 
+   - PLANIFICADO: Fase futura de moderacion de contenido. Modelos candidatos: Llama Prompt Guard 2 22M (toxicidad), Llama 4 Scout 17B 16E (imagenes), openai/gpt-oss-120b (moderacion texto comunidad).
 
-**Archivos modificados:**
-- `App/Kamples/KamplesLogger.php` — NUEVO: sistema de logging dedicado con archivos propios en `App/logs/`
-- `App/Kamples/Api/KamplesController.php` — Pipeline ahora es ASÍNCRONO (shutdown hook + fastcgi_finish_request)
-- `App/Kamples/Api/ServicioIA.php` — Logging detallado: respuestas raw, HTTP codes, modelos intentados
-- `App/Kamples/Api/PipelineAudio.php` — FFmpeg detección mejorada (reconstruye LOCALAPPDATA) + KamplesLogger
-- `App/Kamples/Api/AnalizadorAudio.php` — error_log reemplazado por KamplesLogger
-- `App/logs/.gitignore` — Excluye archivos de log del repositorio
+11. ~~me sale Error en isla "InicioIsland" s.tags?.forEach is not a function~~
+   - ✅ CORREGIDO (U5): `normalizarSample()` en KamplesController.php ahora convierte tags de string PG `"{tag1,tag2}"` a array PHP antes de enviar al frontend. La funcion `pgArrayToPhp()` maneja la conversion.
+
+12. ~~Quitar todos los contenido mockups, ya empezaré a probar contenido real.~~
+   - ✅ COMPLETADO (U5): Eliminados TODOS los mocks del proyecto:
+   - apiSamples.ts: reescrito sin duplicados ni fallback mock.
+   - apiNotificaciones.ts: eliminado array mockNotificaciones, catch retorna [].
+   - apiMensajes.ts: eliminados mockConversaciones + mockMensajesPorConversacion (~150 lineas mock).
+   - apiDescargas.ts: eliminados MOCK_LIMITES + mockDescargasHoy.
+   - apiPagos.ts: eliminados mockEstadisticas, mockTopSamples, mockTransacciones, generarMockIngresosDiarios (~80 lineas mock).
+   - DropdownMensajes.tsx: reescrito con useEffect + obtenerConversaciones() real. Sin mock inline.
+   - DropdownNotificaciones.tsx: reescrito con useEffect + obtenerNotificaciones() real. Sin mock inline.
+   - ComunidadIsland.tsx: eliminado publicacionesMock (~90 lineas), carga vacio hasta que exista endpoint.
+   - mockSamples.ts y datos/mockSamplesData.ts: ELIMINADOS del proyecto.
+
+13. ~~Veo demasiado errores... nombreVisible undefined... likes undefined... modal inspector~~
+   - ✅ CORREGIDO (U5): `normalizarSample()` reescrita completamente:
+     - Convierte snake_case a camelCase (total_likes → totalLikes, es_premium → esPremium, etc.).
+     - Agrupa campos de creador en sub-objeto `creador: { id, username, nombreVisible, avatarUrl, verificado }`.
+     - Cast de tipos: int para ids/contadores, float para duracion, bool para flags.
+   - ✅ CREADO (U5): ModalInspectorSample — modal de depuracion accesible desde menu contextual "Inspeccionar datos". Muestra:
+     - Info general (ID, titulo, slug, tipo, estado, formato, tamano).
+     - Analisis audio (BPM, key, escala, duracion, rutas preview/waveform).
+     - Tags listados como badges.
+     - Metadata IA (generos, instrumentos, sentimiento, descripcionIA).
+     - Estadisticas (descargas, likes, reproducciones).
+     - Info del creador (nombre, username, avatar, verificado).
+     - JSON crudo expandible para ver datos raw.
+
+14. Esto es para planificar en el roadmap:
+   - PLANIFICADO: Sistema de Colecciones (tipo Pinterest). Fase mayor. Incluye:
+
+Sistema de colecciones, las colecciones son la parte mas valiosa de kamples, asi como pinterest, los tablaros son esenciales, para kamples, las colecciones son esenciales, los usuarios las crean apartir de los audios que encuentra, le dan guardar en coleccion y asi como en pinteres pueden crear una colección a partir del audio, o guardarlo en una existente, el modal que aparece debe ser similar al de pinterest solo que este estara centrado, las primeras colecciones que aparecerán son las mas relevantes para el audio, si, pinterest de alguna forma tambien hace esto de que pone de primero los tablero que podrían ser mas relevantes para la imagen, aca en este caso, debe ser igual, las colecciones mas relevantes para el audio se ponen de primero, tomando en cuenta cosas como el uso frecuente, los tags comunes de la coleccion, etc.
+
+Las paginas individuales de las colecciones deben tener una tab de más ideas, donde mostrara samples similares a los que hay en la colección, para que el usuario pueda descubrir más contenido relacionado, y así mismo guardarlo en su colección, o crear una nueva colección a partir de ese audio, asi funciona pinterest, ejemplo, creo una colección de audios de "samples de memphis phonk" encuentro 10 audios relacionados y los guardo en esa colección, la funcionalidad de "más idea" me mostrara samples similares basandose en la metadata, obviamente no muestra samples guardado en esa colección, la lista de samples en las colecciones y mas ideas deben ser igual como el home, con lo mismos filtros y tags, por favor esto debe estar centralizado de alguna forma eficiente y solid. 
+
+Entiendo que costo computacional de esto debe ser alto a medida que suban mas samples, debe planificar un plan donde la eficiencia computacional sea prioritaria, no bloqueante y con estandares de calidad muy alto para que el algoritmo sea no solo eficiente sino tambien preciso, obviamente el algoritmo de más ideas, debe estar relacionado con el algoritmo principas, si todo esto se puede centralizar de forma eficiente es mucho mejor, primero que nada porque los smaples, a dar like (continuo en 14.1)
+
+14.1 Esto son extras que se me ocurren para aprovechar el algoritmo, por ejemplo a dar like a un sample, debe aparecer un modal al lado mostrando otros samples similares, es decir un modal de "Tambien te podría gustar", estos samples tambien podrían aparecer las paginas individuales mas abajo como "samples similares" 
+14.2 Como todo esto va a escalar, tambien hay que planificar tener centralizado todos los valores en un archivo, nada de harcode, 100% dinamico, entendible para el ser humano de como va funcionar el algoritmo, en ese archivo se controlara el peso de todo, los like, las interacciones, el peso de seguimiento, gustos del usuario, etc.
+14.3 No se si esta planificado pero se debe tener en cuenta las reproduciones, si, cada vez que se reproduce un sample debe registrarse en el sample y el usuario, esta informacion es util, por ejemplo, evitar mostrar samples que el usuario ya ha escuchado varias veces, y tambien, ofrecerle un historial de reproducciones, 
+
+---
+
+### Plan: Sistema de Colecciones + Algoritmo de Recomendacion (C14)
+
+**Prioridad:** Alta — Feature central de la plataforma.
+
+#### Fase A: Colecciones Base
+- [ ] Tabla `colecciones` en PG (id, usuario_id, nombre, descripcion, portada_url, publica, total_items, created_at, updated_at)
+- [ ] Tabla `coleccion_samples` (coleccion_id, sample_id, orden, added_at)
+- [ ] CRUD API: crear, listar, editar, eliminar colecciones
+- [ ] Modal "Guardar en coleccion" tipo Pinterest: centrado, muestra colecciones relevantes primero (por tags comunes, uso frecuente)
+- [ ] Pagina individual de coleccion con listado de samples (mismo formato que home, filtros y tags centralizados)
+
+#### Fase B: Tab "Mas Ideas" en Colecciones
+- [ ] Algoritmo de similitud basado en metadata (tags, genero, BPM range, key, sentimiento)
+- [ ] Endpoint GET /colecciones/{id}/sugerencias — devuelve samples similares NO incluidos en la coleccion
+- [ ] Tab "Mas Ideas" en la pagina de la coleccion
+- [ ] Centralizar componente de lista de samples (FeedSamples) para reutilizar en home, coleccion, mas ideas, perfil
+
+#### Fase C: Algoritmo Centralizado de Recomendacion (14.1 + 14.2)
+- [ ] Archivo de configuracion de pesos: `App/Kamples/Config/algoritmoPesos.php`
+  - Pesos de: likes, reproducciones, descargas, seguimiento, tags match, BPM proximity, key match, recencia, diversidad
+  - 100% dinamico, legible, sin hardcode
+- [ ] Motor de scoring centralizado: `App/Kamples/Services/MotorRecomendacion.php`
+  - Usado por: feed home, "mas ideas", "tambien te podria gustar", "samples similares"
+  - Entrada: sample(s) de referencia + contexto usuario + pesos
+  - Salida: lista rankeada con score
+- [ ] Modal "Tambien te podria gustar" al dar like (muestra 3-5 samples similares)
+- [ ] Seccion "Samples similares" en pagina individual de sample
+
+#### Fase D: Tracking de Reproducciones (14.3)
+- [ ] Tabla `reproducciones` (id, user_id, sample_id, duracion_escuchada, completada, created_at)
+- [ ] Endpoint POST /samples/{id}/reproduccion — registra play (debounce 3s minimo)
+- [ ] Historial de reproducciones en perfil del usuario
+- [ ] Filtro "Ya reproducidos" usa datos reales (actualmente mock)
+- [ ] Algoritmo penaliza samples escuchados muchas veces para promover descubrimiento
+
+#### Fase E: Moderacion IA (C10)
+- [ ] Llama Prompt Guard 2 22M: detectar toxicidad en textos de comunidad
+- [ ] Llama 4 Scout 17B 16E: moderar imagenes adjuntas
+- [ ] openai/gpt-oss-120b: moderacion contextual de publicaciones
+- [ ] Cola de moderacion async: publicaciones pasan a revision antes de ser visibles
+
