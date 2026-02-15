@@ -8,10 +8,12 @@
 import {
     Home,
     Compass,
+    Sparkles,
     User,
     FolderOpen,
     Upload,
     MessageCircle,
+    Bell,
     AudioLines,
     PenSquare,
 } from 'lucide-react';
@@ -33,10 +35,12 @@ export interface SidebarItemDef {
 const itemsDefault: SidebarItemDef[] = [
     { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
     { id: 'explorar', etiqueta: 'Explorar', icono: <Compass size={20} />, ruta: '/explorar' },
+    { id: 'descubrir', etiqueta: 'Descubrir', icono: <Sparkles size={20} />, ruta: '/descubrir' },
     { id: 'perfil', etiqueta: 'Perfil', icono: <User size={20} />, ruta: '/perfil' },
     { id: 'libreria', etiqueta: 'Librería', icono: <FolderOpen size={20} />, ruta: '/libreria' },
     { id: 'subir', etiqueta: 'Subir', icono: <Upload size={20} />, ruta: '', accion: 'modal-subir' },
     { id: 'publicar', etiqueta: 'Publicar', icono: <PenSquare size={20} />, ruta: '', accion: 'modal-publicar' },
+    { id: 'notificaciones', etiqueta: 'Notificaciones', icono: <Bell size={20} />, ruta: '/notificaciones' },
     { id: 'mensajes', etiqueta: 'Mensajes', icono: <MessageCircle size={20} />, ruta: '/mensajes' },
 ];
 

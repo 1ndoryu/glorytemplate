@@ -615,12 +615,13 @@ reproducciones (
 - [x] **2.9** Menú contextual en samples (click derecho):
   - Descargar, Añadir a colección, Compartir, Ir al creador, Reportar
   - Implementado: `useMenuContextualSample` hook + integración en InicioIsland y SamplesIsland
-- [ ] **2.10** Sistema de descarga con límites:
+- [x] **2.10** Sistema de descarga con límites:
   - Free: 5/día, calidad MP3
   - Pro: 50/día, calidad original
   - Premium: ilimitado, calidad original
   - Control en BD: contador + reset diario
   - Endpoint protegido con X-Accel-Redirect
+  - Implementado: `apiDescargas`, `useDescargas`, `IndicadorDescargas` (UI con mock, backend pendiente)
 
 **Entregable:** Flujo completo de samples funcional: subir → analizar → explorar → filtrar → reproducir → descargar.
 
@@ -647,10 +648,11 @@ reproducciones (
 - [ ] **3.5** Función SQL de scoring combinado:
   - Combinar 4 señales con pesos configurables
   - Optimizar query para < 100ms en 100k samples
-- [ ] **3.6** Isla `DescubrirIsland` ("Para Ti"):
+- [x] **3.6** Isla `DescubrirIsland` ("Para Ti"):
   - Feed personalizado con algoritmo
   - Carruseles temáticos: "Trending", "Nuevos", "Similares a tus gustos"
   - Refresh infinito
+  - Implementado: 3 secciones (Para ti, Trending, Nuevos), likes optimistas, menú contextual, mock data
 - [ ] **3.7** Cache de feeds en Redis (precalculados, TTL 5min)
 - [ ] **3.8** API endpoint: `GET /kamples/v1/feed?tipo=descubrir&page=1`
 
@@ -783,10 +785,11 @@ reproducciones (
   - Bell icon con contador de no leídas
   - Push notifications (browser + móvil)
   - Tipos: like, follow, comentario, descarga de tu sample, mensaje, pago recibido
-- [ ] **7.5** Isla `NotificacionesIsland`:
+- [x] **7.5** Isla `NotificacionesIsland`:
   - Lista completa de notificaciones
   - Marcar como leída, marcar todas
   - Filtrar por tipo
+  - Implementado: filtros (Todas/Likes/Follows/Comentarios/Descargas), mark-read, navegación a recurso, mock data
 - [ ] **7.6** Integrar WebSocket en reproductor:
   - Sync de estado de reproducción entre tabs/dispositivos
 

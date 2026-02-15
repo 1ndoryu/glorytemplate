@@ -80,6 +80,8 @@ PageManager::reactPage('explorar', 'SamplesIsland');
 
 PageManager::reactPage('libreria', 'LibreriaIsland');
 PageManager::reactPage('reproductor', 'ReproductorIsland');
+PageManager::reactPage('descubrir', 'DescubrirIsland');
+PageManager::reactPage('notificaciones', 'NotificacionesIsland');
 
 /* Detalle de sample — recibe slug dinámico */
 PageManager::reactPage('sample', 'SampleDetalleIsland', function($pageId) {

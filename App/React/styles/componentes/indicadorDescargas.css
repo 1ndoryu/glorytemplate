@@ -1,0 +1,61 @@
+/*
+ * indicadorDescargas.css — Kamples
+ * Indicador visual de descargas restantes por plan.
+ */
+
+.indicadorDescargas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+/* Barra de uso */
+.indicadorDescargasBarra {
+    height: 3px;
+    background-color: var(--fondoElevado3);
+    border-radius: var(--radioFull);
+    overflow: hidden;
+}
+
+.indicadorDescargasRelleno {
+    height: 100%;
+    background-color: var(--acento);
+    border-radius: var(--radioFull);
+    transition: width var(--transicionMedia);
+}
+
+/* Info textual */
+.indicadorDescargasInfo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacioSm);
+}
+
+.indicadorDescargasTexto {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.indicadorDescargasCalidad {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    background-color: var(--fondoElevado3);
+    padding: 1px 6px;
+    border-radius: var(--radioSm);
+    font-weight: var(--pesoMedio);
+}
+
+/* CTA upgrade */
+.indicadorDescargasUpgrade {
+    font-size: var(--fuenteXs);
+    color: var(--acentoTexto);
+    cursor: pointer;
+}
+
+.indicadorDescargasUpgrade:hover {
+    text-decoration: underline;
+}

@@ -26,8 +26,11 @@ interface LayoutPrincipalProps {
 const MAPA_RUTAS: Record<string, string> = {
     '/': 'inicio',
     '/explorar': 'explorar',
+    '/descubrir': 'descubrir',
     '/perfil': 'perfil',
     '/libreria': 'libreria',
+    '/reproductor': 'reproductor',
+    '/notificaciones': 'notificaciones',
     '/mensajes': 'mensajes',
     '/componentes': 'componentes',
     '/dev/componentes': 'componentes',
