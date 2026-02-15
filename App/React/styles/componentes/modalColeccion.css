@@ -1,0 +1,47 @@
+/*
+ * modalColeccion.css — Kamples
+ * Estilos para el modal de crear/editar colección.
+ */
+
+.modalColeccionContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+.modalColeccionIcono {
+    display: flex;
+    justify-content: center;
+    color: var(--textoTerciario);
+}
+
+.modalColeccionPublica {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    cursor: pointer;
+}
+
+.modalColeccionPublica input[type="checkbox"] {
+    accent-color: var(--acento);
+    width: 16px;
+    height: 16px;
+}
+
+.modalColeccionPublicaHint {
+    width: 100%;
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    padding-left: 24px;
+}
+
+.modalColeccionAcciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--espacioSm);
+    padding-top: var(--espacioSm);
+    border-top: 1px solid var(--bordeSutil);
+}

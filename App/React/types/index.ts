@@ -44,3 +44,8 @@ export type {
     NombrePlan,
     EstadoSuscripcion,
 } from './plan';
+
+export type {
+    Coleccion,
+    ColeccionResumen,
+} from './coleccion';

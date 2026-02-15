@@ -1,7 +1,7 @@
 /*
- * LibreriaIsland — Kamples (Fase 5.1)
- * Librería personal del usuario: descargas, favoritos, colecciones y subidos.
- * Cada tab muestra una lista filtrable de samples.
+ * LibreriaIsland — Kamples (Fase 5.1-5.4)
+ * Librería personal: descargas, favoritos, colecciones y subidos.
+ * Tab colecciones integra CRUD completo con ModalColeccion y TarjetaColeccion.
  */
 
 import { useState, useCallback, useEffect } from 'react';
@@ -14,14 +14,18 @@ import {
 import type { TabDefinicion } from '@app/components/ui';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
+import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
+import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
+import { listarColecciones, eliminarColeccion } from '@app/services/apiColecciones';
 import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useSubirModalStore } from '@app/stores/subirModalStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
-import type { SampleResumen } from '@app/types';
+import type { SampleResumen, Coleccion } from '@app/types';
+import { crearLogger } from '@app/services/logger';
 import '../../styles/componentes/libreria.css';
 
 const TABS_LIBRERIA: TabDefinicion[] = [
@@ -39,11 +43,18 @@ const ICONOS_TAB: Record<string, JSX.Element> = {
     subidos: <Upload size={16} />,
 };
 
+const log = crearLogger('LibreriaIsland');
+
 export const LibreriaIsland = (): JSX.Element => {
     const [tabActiva, setTabActiva] = useState('descargas');
     const [samples, setSamples] = useState<SampleResumen[]>([]);
+    const [colecciones, setColecciones] = useState<Coleccion[]>([]);
     const [cargando, setCargando] = useState(true);
     const [busqueda, setBusqueda] = useState('');
+
+    /* Modal de colección */
+    const [modalColeccionAbierto, setModalColeccionAbierto] = useState(false);
+    const [coleccionEditando, setColeccionEditando] = useState<Coleccion | null>(null);
 
     const { sampleActual, reproduciendo, progreso, setSample, play, pause } =
         useReproductorStore();
@@ -51,19 +62,28 @@ export const LibreriaIsland = (): JSX.Element => {
     const { abrir: abrirSubirModal } = useSubirModalStore();
     const menu = useMenuContextualSample();
 
-    /* Cargar datos según tab activa — usa mock data por ahora */
+    /* Cargar datos según tab activa */
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
-            /* TO-DO: endpoints dedicados para cada tab (/libreria/descargas, /favoritos, etc.) */
-            const resp = await listarSamples({
-                busqueda: busqueda || undefined,
-                perPage: 20,
-            });
-            if (resp.ok && resp.data) {
-                setSamples(resp.data.data ?? []);
+            if (tabActiva === 'colecciones') {
+                const resp = await listarColecciones();
+                if (resp.ok && resp.data) {
+                    setColecciones(resp.data);
+                } else {
+                    setColecciones([]);
+                }
             } else {
-                setSamples([]);
+                /* TO-DO: endpoints dedicados para cada tab */
+                const resp = await listarSamples({
+                    busqueda: busqueda || undefined,
+                    perPage: 20,
+                });
+                if (resp.ok && resp.data) {
+                    setSamples(resp.data.data ?? []);
+                } else {
+                    setSamples([]);
+                }
             }
             setCargando(false);
         };
@@ -102,6 +122,35 @@ export const LibreriaIsland = (): JSX.Element => {
         setBusqueda('');
     }, []);
 
+    /* Colecciones: crear/editar/eliminar */
+    const abrirNuevaColeccion = useCallback(() => {
+        setColeccionEditando(null);
+        setModalColeccionAbierto(true);
+    }, []);
+
+    const manejarEditarColeccion = useCallback((col: Coleccion) => {
+        setColeccionEditando(col);
+        setModalColeccionAbierto(true);
+    }, []);
+
+    const manejarEliminarColeccion = useCallback(async (col: Coleccion) => {
+        const resp = await eliminarColeccion(col.id);
+        if (resp.ok) {
+            setColecciones((prev) => prev.filter((c) => c.id !== col.id));
+            log.info('Colección eliminada', { id: col.id });
+        }
+    }, []);
+
+    const manejarGuardarColeccion = useCallback((col: Coleccion) => {
+        setColecciones((prev) => {
+            const existe = prev.find((c) => c.id === col.id);
+            if (existe) {
+                return prev.map((c) => (c.id === col.id ? col : c));
+            }
+            return [col, ...prev];
+        });
+    }, []);
+
     /* Mensajes vacíos por tab */
     const mensajeVacio: Record<string, { titulo: string; texto: string }> = {
         descargas: { titulo: 'Sin descargas', texto: 'Los samples que descargues aparecerán aquí.' },
@@ -116,7 +165,7 @@ export const LibreriaIsland = (): JSX.Element => {
                 <h1 className="libreriaTitulo">Tu Librería</h1>
                 <div className="libreriaAcciones">
                     {tabActiva === 'colecciones' && (
-                        <BotonBase variante="ghost" tamano="sm">
+                        <BotonBase variante="ghost" tamano="sm" onClick={abrirNuevaColeccion}>
                             <Plus size={14} /> Nueva colección
                         </BotonBase>
                     )}
@@ -142,6 +191,29 @@ export const LibreriaIsland = (): JSX.Element => {
                     <Music size={32} className="libreriaVacioIcono" />
                     <p>Cargando...</p>
                 </div>
+            ) : tabActiva === 'colecciones' ? (
+                /* Renderizar colecciones */
+                colecciones.length === 0 ? (
+                    <div className="libreriaVacio">
+                        <FolderOpen size={32} />
+                        <h3 className="libreriaVacioTitulo">Sin colecciones</h3>
+                        <p className="libreriaVacioTexto">Crea tu primera colección para organizar samples.</p>
+                        <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
+                            <Plus size={14} /> Nueva colección
+                        </BotonBase>
+                    </div>
+                ) : (
+                    <div className="libreriaListaColecciones">
+                        {colecciones.map((col) => (
+                            <TarjetaColeccion
+                                key={col.id}
+                                coleccion={col}
+                                onEditar={manejarEditarColeccion}
+                                onEliminar={manejarEliminarColeccion}
+                            />
+                        ))}
+                    </div>
+                )
             ) : samples.length === 0 ? (
                 <div className="libreriaVacio">
                     {ICONOS_TAB[tabActiva]}
@@ -178,6 +250,14 @@ export const LibreriaIsland = (): JSX.Element => {
                 items={menu.items}
                 x={menu.estado.x}
                 y={menu.estado.y}
+            />
+
+            {/* Modal para crear/editar colección */}
+            <ModalColeccion
+                abierto={modalColeccionAbierto}
+                onCerrar={() => setModalColeccionAbierto(false)}
+                onGuardar={manejarGuardarColeccion}
+                coleccion={coleccionEditando}
             />
         </div>
     );

@@ -37,6 +37,13 @@
     gap: 2px;
 }
 
+/* Grid de colecciones */
+.libreriaListaColecciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
 /* Estado vacío */
 .libreriaVacio {
     display: flex;
