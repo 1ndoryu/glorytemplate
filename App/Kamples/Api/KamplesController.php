@@ -1551,12 +1551,13 @@ class KamplesController
 
         /*
          * Ejecutar pipeline de procesamiento.
-         * Incluye: duración, waveform, MP3/preview (FFmpeg), análisis IA (Gemini), renombrado.
+         * Incluye: duración, BPM/key (AnalizadorAudio), IA creativa (Gemini),
+         * waveform, MP3/preview (FFmpeg), renombrado.
          * TO-DO: mover a background con wp_schedule_single_event() cuando el volumen crezca.
          */
         if ($sampleId) {
             try {
-                PipelineAudio::procesar($sampleId, $subido['file'], $audio['name'], $idCorto);
+                PipelineAudio::procesar($sampleId, $subido['file'], $audio['name'], $idCorto, $contenido);
             } catch (\Exception $e) {
                 error_log('[Kamples] Pipeline error (no bloqueante): ' . $e->getMessage());
             }

@@ -132,18 +132,21 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
     - **Prerrequisito:** Instalar VS Build Tools + compilar pgvector, o esperar binario precompilado PG18
     - **Impacto:** Sin pgvector el algoritmo de similitud no funciona, pero todo lo demás sí
 - [x] **0.2** Almacenamiento audio en WordPress ✓ (IMPLEMENTADO)
-    - Endpoint `POST /kamples/v1/samples/upload` con `wp_handle_upload()`
-    - Estructura: `kamples/{user_id}/{Y}/{m}/{archivo}`
+    - Endpoint `POST /kamples/v1/samples/up) + max 50MB
+    - INSERT en PostgreSQL con ID corto base62 (7 chars), estado 'procesando'
+    - Pipeline automático: IA + waveform + MP3/preview + renombrado
     - Validación MIME (wav, mp3, flac, aiff, ogg, m4a) + max 50MB
     - INSERT en PostgreSQL con slug generado (MD5 suffix), estado 'procesando'
     - TO-DO: htaccess deny direct access, servir via PHP con validación de permisos
-- [x] **0.3** Pipeline de procesamiento audio ✓ (IMPLEMENTADO)
+- [x] **0.3** Pipeline de procesamiento audio ✓ (IMPLEMENTADO v2)
     - `PipelineAudio.php`: ejecuta sincrónicamente al subir (TO-DO: mover a background)
-    - Calcula duración real (FFprobe o estimación por tamaño)
-    - Genera waveform peaks JSON (120 barras) leyendo WAV crudo con PHP
-    - Genera MP3 optimizado 320kbps + preview 30s 128kbps con fade-out (si FFmpeg disponible)
-    - Renombra archivo con formato estandarizado de la IA
-    - Actualiza registro en PostgreSQL y cambia estado a 'activo'
+    - FFmpeg OBLIGATORIO: detección cross-platform Win+Linux con `buscarBinario()`
+    - Análisis técnico (BPM/key) con `AnalizadorAudio.php` — herramientas de señal, no IA
+    - Análisis creativo (tags, emociones, etc.) con `ServicioIA.php` — Gemini
+    - Calcula duración real con FFprobe (fallback por tamaño)
+    - Genera waveform peaks JSON (120 barras) via FFmpeg→PCM→PHP
+    - Genera MP3 optimizado 320kbps + preview 30s 128kbps con fade-out
+    - Renombra archivo: `kamples_{tipo}_{nombre_base}_{bpm}_{key}_{idCorto}.{ext}`
     - TO-DO: mover a wp_schedule_single_event() cuando el volumen crezca
 - [x] **0.4** Imágenes colors/ dinámicas ✓ (IMPLEMENTADO)
     - Endpoint `GET /kamples/v1/colors` — lee directorio `colors/` en runtime
@@ -182,14 +185,18 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
     - UI: mensajes error/éxito (AlertCircle/CheckCircle), texto botón "Subiendo..."
     - Tags extraídos con # del texto, enviados como JSON array
     - Waveform preview del audio adjunto con reproducción inline (ya existía)
-- [x] **2.2** Análisis de audio con IA (Gemini multi-modelo con fallback) ✓ (IMPLEMENTADO)
-    - `ServicioIA.php`: cadena de fallback Gemini Flash 2.5 → Pro 2.5 → Flash 2.0
-    - Envía audio base64 + prompt estructurado, pide respuesta JSON directa (responseMimeType)
-    - Extrae: BPM, key, escala, tipo, género[], instrumentos[], sentimiento[], descripción, nombreSugerido
-    - Parser robusto: intenta JSON directo → bloque ```json``` → cualquier {}
-    - Validación estricta de metadata (rango BPM 20-300, notas/tipos válidos)
-    - Integrado en PipelineAudio: se ejecuta automáticamente al subir
-    - API key cargada desde .env (GOOGLE_GEMINI_API)
+- [x] **2.2** Análisis de audio (técnico + IA creativa) ✓ (IMPLEMENTADO v2)
+    - **Técnico** (`AnalizadorAudio.php`): BPM y key con procesamiento de señal, NO con IA
+      - BPM: detección onsets por energía + autocorrelación (FFmpeg→PCM 8kHz→PHP)
+      - Key: Goertzel (12 notas × 4 octavas) + correlación Krumhansl-Schmuckler
+      - Retorna `{bpm, key, escala, bpm_confianza, key_confianza}`
+    - **Creativo** (`ServicioIA.php`): Gemini multi-modelo (prompt bilingüe del usuario)
+      - Cadena fallback: gemini-2.5-flash → 2.5-pro → 2.0-flash
+      - Retorna: nombre_archivo_base, tags/tags_es, tipo ("one shot"/"loop"),
+        genero, emocion/emocion_es, instrumentos, artista_vibes,
+        descripcion/descripcion_es, descripcion_corta/descripcion_corta_es
+      - Parser robusto: JSON directo → bloque ```json``` → cualquier {}
+    - Ambos integrados en PipelineAudio, resultados merged en campo `metadata` (JSONB)
 - [ ] **2.3** Metadata de imágenes con Groq
     - Al subir imágenes en publicaciones, enviar a Groq API para generar metadata
     - Tags visuales, descripción, contenido relevante
@@ -412,28 +419,33 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ## Comentarios del usuario. (Marcar como completado cuando se cumpla con una tarea o dejar respuestas en caso de ser necesario)
 
-1. FFMPEG no puede ser opcional, debe funcionar para el entorno de windows y linux (detectar ambos entorno)
-2. El prompt de la IA debe ser
-        return <<<PROMPT
-Analiza este audio. {$promptContext}
-Tu tarea es generar ÚNICAMENTE un objeto JSON válido con la siguiente estructura. Sé creativo y preciso.
-NO incluyas en tu respuesta los campos puramente técnicos (bpm, tonalidad, escala), ya que esos se añadirán después. Tu respuesta DEBE ser solo el JSON.
+1. ~~FFMPEG no puede ser opcional, debe funcionar para el entorno de windows y linux (detectar ambos entorno)~~
+   - ✅ COMPLETADO: `PipelineAudio.php` ahora tiene detección cross-platform obligatoria.
+   - `buscarBinario()` busca en PATH + ubicaciones comunes: Win (`C:\ffmpeg\bin\`, scoop, LocalAppData) y Linux (`/usr/bin/`, `/usr/local/bin/`, snap, homebrew).
+   - Si no encuentra FFmpeg, lanza `RuntimeException` con instrucciones de instalación según OS.
+   - Soporta variable de entorno `FFMPEG_PATH` / `FFPROBE_PATH` como override.
 
-- "nombre_archivo_base": Un título corto y descriptivo para el sample, en inglés, en minúsculas y usando espacios. Ej: "deep kick 808", "sad guitar melody".
-- "tags": Array de strings con etiquetas descriptivas en INGLÉS (ej: "melodic", "dark", "808", "lo-fi").
-- "tags_es": Array de strings con las mismas etiquetas que 'tags' pero traducidas al ESPAÑOL.
-- "tipo": String, debe ser "one shot" o "loop".
-- "genero": Array de strings con géneros musicales en INGLÉS (ej: "hip hop", "trap", "electronic").
-- "emocion": Array de strings con emociones que evoca en INGLÉS (ej: "energetic", "sad", "chill").
-- "emocion_es": Array de strings con las mismas emociones que 'emocion' pero traducidas al ESPAÑOL.
-- "instrumentos": Array de strings con los instrumentos principales que detectes en INGLÉS (ej: "guitar", "piano", "synth", "drums").
-- "artista_vibes": Array de strings con nombres de artistas que tienen un estilo similar.
-- "descripcion_corta": Una descripción muy breve (10-15 palabras) en INGLÉS.
-- "descripcion_corta_es": La misma 'descripcion_corta' traducida al ESPAÑOL.
-- "descripcion": Una descripción detallada (30-50 palabras) en INGLÉS.
-- "descripcion_es": La misma 'descripcion' traducida al ESPAÑOL.
-PROMPT;
-
-Los bpm y la tonalidad y escala debe ser con herramientas especializadas para eso, no con ia. La estructura del json debe basarse en eso. 
+2. ~~El prompt de la IA debe ser bilingüe y sin campos técnicos (BPM/key/escala)~~
+   - ✅ COMPLETADO: `ServicioIA.php` reescrito con el prompt exacto especificado.
+   - Campos creativos bilingües: tags/tags_es, emocion/emocion_es, descripcion/descripcion_es, etc.
+   - Tipo simplificado: solo "one shot" o "loop".
+   - BPM + key + escala ahora los calcula `AnalizadorAudio.php` con procesamiento de señal:
+     - BPM: detección de onsets por energía + autocorrelación temporal (FFmpeg PCM → PHP)
+     - Key: algoritmo Goertzel para chroma + perfiles Krumhansl-Schmuckler (FFmpeg PCM → PHP)
+   - El JSON final en campo `metadata` (JSONB) combina datos creativos de IA + confianza técnica.
 
 3. He colocado la "GROQ_API" en el .env, leer la documentacion "https://console.groq.com/docs/overview" y elegir los mejores modelos (momo, los de openIA y hacer el mismo sistema de cuotas gratis de probar uno y si falla pasar al otro modelo)
+4. Ya esta instalado FFMPEG
+PS C:\Users\Owner> $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User"); ffmpeg -version
+ffmpeg version 8.0.1-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-lcms2 --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libopenjpeg --enable-libquirc --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-liboapv --enable-libqrencode --enable-librav1e --enable-libsvtav1 --enable-libvvenc --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-openal --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-liblc3 --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint --enable-whisper
+libavutil      60.  8.100 / 60.  8.100
+libavcodec     62. 11.100 / 62. 11.100
+libavformat    62.  3.100 / 62.  3.100
+libavdevice    62.  1.100 / 62.  1.100
+libavfilter    11.  4.100 / 11.  4.100
+libswscale      9.  1.100 /  9.  1.100
+libswresample   6.  1.100 /  6.  1.100
+
+5. No lo comente antes pero el $promptContext debe contener la descripcion del audio que puso el usuario y los tags, tambien, obligar al usuario a colocar al menos 5 tags para que la IA tenga mas contexto, y colocar un mensaje de error si no lo hace. El promptContext seria algo asi como "El usuario ha descrito el audio de esta manera: {descripcion} y ha colocado los siguientes tags: {tags}, el archivo se subio con este nombre, el archivo tiene este bpm y tonalidad, dura esto (esta informacion debe conseguirse antes para enviarselo a la IA)"

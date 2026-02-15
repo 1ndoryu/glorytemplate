@@ -1,11 +1,14 @@
 <?php
 
 /**
- * Kamples — Servicio de análisis de audio con IA (Gemini)
+ * Kamples — Servicio de análisis creativo de audio con IA (Gemini)
  *
- * Cadena de fallback: Gemini Flash 3.0 → Pro 2.5 → Flash 2.5 → Flash 2.0
- * Analiza archivos de audio para extraer: BPM, key, escala, tipo, género,
- * instrumentos, sentimiento, descripción y nombre estandarizado.
+ * Cadena de fallback: gemini-2.5-flash → gemini-2.5-pro → gemini-2.0-flash
+ * Analiza archivos de audio para extraer metadata CREATIVA:
+ * tags, emociones, instrumentos, géneros, descripción, artistas similares.
+ *
+ * NO analiza BPM, tonalidad ni escala — eso lo hace AnalizadorAudio.php
+ * con herramientas especializadas de procesamiento de señal.
  *
  * @package Kamples
  */
@@ -16,7 +19,6 @@ class ServicioIA
 {
     /*
      * Modelos en orden de preferencia (fallback por cuota/error).
-     * Gemini Flash 3.0 es el más reciente y capaz.
      */
     private const MODELOS = [
         'gemini-2.5-flash',
@@ -28,14 +30,16 @@ class ServicioIA
     private const MAX_TAMANO_AUDIO = 20 * 1024 * 1024; /* 20 MB para API */
 
     /*
-     * Analiza un archivo de audio y retorna metadata estructurada.
+     * Analiza un archivo de audio y retorna metadata creativa.
      * Envía el audio como base64 a Gemini y parsea la respuesta JSON.
+     * NO incluye campos técnicos (BPM, key, escala) — esos vienen de AnalizadorAudio.
      *
      * @param string $rutaArchivo Ruta absoluta al archivo de audio
      * @param string $nombreOriginal Nombre original del archivo
-     * @return array|null Metadata extraída o null si falla
+     * @param string $descripcionUsuario Descripción proporcionada por el usuario (opcional)
+     * @return array|null Metadata creativa extraída o null si falla
      */
-    public static function analizarAudio(string $rutaArchivo, string $nombreOriginal): ?array
+    public static function analizarAudio(string $rutaArchivo, string $nombreOriginal, string $descripcionUsuario = ''): ?array
     {
         $apiKey = self::obtenerApiKey();
         if (!$apiKey) {
@@ -54,7 +58,6 @@ class ServicioIA
             return null;
         }
 
-        /* Leer y codificar audio en base64 */
         $audioBytes = file_get_contents($rutaArchivo);
         if ($audioBytes === false) {
             error_log('[Kamples] ServicioIA: No se pudo leer el archivo');
@@ -66,7 +69,7 @@ class ServicioIA
 
         /* Intentar con cada modelo hasta que uno funcione */
         foreach (self::MODELOS as $modelo) {
-            $resultado = self::llamarGemini($modelo, $apiKey, $audioBase64, $mimeType, $nombreOriginal);
+            $resultado = self::llamarGemini($modelo, $apiKey, $audioBase64, $mimeType, $nombreOriginal, $descripcionUsuario);
             if ($resultado !== null) {
                 error_log('[Kamples] ServicioIA: Análisis exitoso con modelo ' . $modelo);
                 return $resultado;
@@ -79,18 +82,18 @@ class ServicioIA
 
     /*
      * Llama a la API de Gemini con un modelo específico.
-     * Retorna la metadata parseada o null si falla.
      */
     private static function llamarGemini(
         string $modelo,
         string $apiKey,
         string $audioBase64,
         string $mimeType,
-        string $nombreOriginal
+        string $nombreOriginal,
+        string $descripcionUsuario
     ): ?array {
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$modelo}:generateContent?key={$apiKey}";
 
-        $prompt = self::construirPrompt($nombreOriginal);
+        $prompt = self::construirPrompt($nombreOriginal, $descripcionUsuario);
 
         $payload = [
             'contents' => [
@@ -109,8 +112,8 @@ class ServicioIA
                 ],
             ],
             'generationConfig' => [
-                'temperature'     => 0.1,
-                'maxOutputTokens' => 1024,
+                'temperature'      => 0.2,
+                'maxOutputTokens'  => 1500,
                 'responseMimeType' => 'application/json',
             ],
         ];
@@ -146,34 +149,34 @@ class ServicioIA
     }
 
     /*
-     * Construye el prompt para el análisis de audio.
-     * Pide respuesta en JSON estricto con los campos necesarios.
+     * Construye el prompt para análisis creativo de audio.
+     * Excluye campos técnicos (BPM, tonalidad, escala) que se calculan aparte.
      */
-    private static function construirPrompt(string $nombreArchivo): string
+    private static function construirPrompt(string $nombreArchivo, string $descripcionUsuario): string
     {
+        $promptContext = "Archivo: \"{$nombreArchivo}\".";
+        if (!empty($descripcionUsuario)) {
+            $promptContext .= " Contexto del usuario: \"{$descripcionUsuario}\".";
+        }
+
         return <<<PROMPT
-Analiza este archivo de audio "{$nombreArchivo}" y responde EXCLUSIVAMENTE con un JSON válido con esta estructura exacta:
+Analiza este audio. {$promptContext}
+Tu tarea es generar ÚNICAMENTE un objeto JSON válido con la siguiente estructura. Sé creativo y preciso.
+NO incluyas en tu respuesta los campos puramente técnicos (bpm, tonalidad, escala), ya que esos se añadirán después. Tu respuesta DEBE ser solo el JSON.
 
-{
-  "bpm": (número entero o null si no aplica),
-  "key": (nota musical: "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" o null),
-  "escala": ("mayor" o "menor" o null),
-  "tipo": ("loop", "oneshot", "fx", "vocal", "stem" o "otro"),
-  "genero": (array de strings, máx 3 géneros musicales),
-  "instrumentos": (array de strings, instrumentos detectados),
-  "sentimiento": (array de strings, máx 3 sentimientos/moods),
-  "descripcion": (string, descripción breve en español, máx 100 chars),
-  "nombreSugerido": (string, nombre estandarizado formato: "Tipo_Genero_BPM_Key_Descriptor", ej: "Loop_Trap_140_Cm_DarkPad")
-}
-
-Reglas:
-- BPM debe ser preciso (si es rítmico). Si es ambiental/pad sin ritmo claro, null.
-- Key y escala: detectar la tonalidad principal. Si no es tonal, null.
-- Tipo: "loop" si se repite, "oneshot" si es un golpe/nota, "fx" si es efecto, "vocal" si tiene voz, "stem" si es una pista aislada.
-- Géneros en minúsculas y en español cuando haya traducción directa (ej: "trap", "house", "hip hop", "electrónica").
-- Instrumentos en español (ej: "bajo", "batería", "sintetizador", "guitarra", "piano").
-- Sentimientos en español (ej: "oscuro", "energético", "melancólico", "alegre").
-- El nombreSugerido usa PascalCase sin espacios, con guiones bajos separando secciones.
+- "nombre_archivo_base": Un título corto y descriptivo para el sample, en inglés, en minúsculas y usando espacios. Ej: "deep kick 808", "sad guitar melody".
+- "tags": Array de strings con etiquetas descriptivas en INGLÉS (ej: "melodic", "dark", "808", "lo-fi").
+- "tags_es": Array de strings con las mismas etiquetas que 'tags' pero traducidas al ESPAÑOL.
+- "tipo": String, debe ser "one shot" o "loop".
+- "genero": Array de strings con géneros musicales en INGLÉS (ej: "hip hop", "trap", "electronic").
+- "emocion": Array de strings con emociones que evoca en INGLÉS (ej: "energetic", "sad", "chill").
+- "emocion_es": Array de strings con las mismas emociones que 'emocion' pero traducidas al ESPAÑOL.
+- "instrumentos": Array de strings con los instrumentos principales que detectes en INGLÉS (ej: "guitar", "piano", "synth", "drums").
+- "artista_vibes": Array de strings con nombres de artistas que tienen un estilo similar.
+- "descripcion_corta": Una descripción muy breve (10-15 palabras) en INGLÉS.
+- "descripcion_corta_es": La misma 'descripcion_corta' traducida al ESPAÑOL.
+- "descripcion": Una descripción detallada (30-50 palabras) en INGLÉS.
+- "descripcion_es": La misma 'descripcion' traducida al ESPAÑOL.
 PROMPT;
     }
 
@@ -222,40 +225,42 @@ PROMPT;
     }
 
     /*
-     * Valida y normaliza la metadata extraída por la IA.
-     * Asegura que los campos existan con tipos correctos.
+     * Valida y normaliza la metadata creativa extraída por la IA.
+     * Solo valida campos creativos, NO campos técnicos.
      */
     private static function validarMetadata(array $data): array
     {
-        $notasValidas = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-        $tiposValidos = ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro'];
-        $escalasValidas = ['mayor', 'menor'];
+        $tiposValidos = ['one shot', 'loop'];
 
-        $bpm = isset($data['bpm']) && is_numeric($data['bpm']) ? (int) $data['bpm'] : null;
-        if ($bpm !== null && ($bpm < 20 || $bpm > 300)) {
-            $bpm = null;
-        }
-
-        $key = isset($data['key']) && in_array($data['key'], $notasValidas, true)
-            ? $data['key'] : null;
-
-        $escala = isset($data['escala']) && in_array($data['escala'], $escalasValidas, true)
-            ? $data['escala'] : null;
-
-        $tipo = isset($data['tipo']) && in_array($data['tipo'], $tiposValidos, true)
-            ? $data['tipo'] : 'otro';
+        $tipo = isset($data['tipo']) && in_array(strtolower($data['tipo']), $tiposValidos, true)
+            ? strtolower($data['tipo'])
+            : 'one shot';
 
         return [
-            'bpm'             => $bpm,
-            'key'             => $key,
-            'escala'          => $escala,
-            'tipo'            => $tipo,
-            'genero'          => self::validarArrayStrings($data['genero'] ?? [], 3),
-            'instrumentos'    => self::validarArrayStrings($data['instrumentos'] ?? [], 10),
-            'sentimiento'     => self::validarArrayStrings($data['sentimiento'] ?? [], 3),
-            'descripcion'     => substr(sanitize_text_field($data['descripcion'] ?? ''), 0, 200),
-            'nombreSugerido'  => sanitize_file_name($data['nombreSugerido'] ?? ''),
+            'nombre_archivo_base'  => self::sanitizarTexto($data['nombre_archivo_base'] ?? '', 80),
+            'tags'                 => self::validarArrayStrings($data['tags'] ?? [], 15),
+            'tags_es'              => self::validarArrayStrings($data['tags_es'] ?? [], 15),
+            'tipo'                 => $tipo,
+            'genero'               => self::validarArrayStrings($data['genero'] ?? [], 5),
+            'emocion'              => self::validarArrayStrings($data['emocion'] ?? [], 5),
+            'emocion_es'           => self::validarArrayStrings($data['emocion_es'] ?? [], 5),
+            'instrumentos'         => self::validarArrayStrings($data['instrumentos'] ?? [], 10),
+            'artista_vibes'        => self::validarArrayStrings($data['artista_vibes'] ?? [], 5),
+            'descripcion_corta'    => self::sanitizarTexto($data['descripcion_corta'] ?? '', 150),
+            'descripcion_corta_es' => self::sanitizarTexto($data['descripcion_corta_es'] ?? '', 150),
+            'descripcion'          => self::sanitizarTexto($data['descripcion'] ?? '', 500),
+            'descripcion_es'       => self::sanitizarTexto($data['descripcion_es'] ?? '', 500),
         ];
+    }
+
+    /*
+     * Sanitiza un string de texto: recorta, limpia HTML y limita longitud.
+     */
+    private static function sanitizarTexto(mixed $texto, int $maxLen): string
+    {
+        if (!is_string($texto)) return '';
+        $limpio = sanitize_text_field(trim($texto));
+        return mb_substr($limpio, 0, $maxLen);
     }
 
     /*
@@ -265,7 +270,7 @@ PROMPT;
     {
         if (!is_array($arr)) return [];
         return array_slice(
-            array_map('sanitize_text_field', array_filter($arr, 'is_string')),
+            array_map(fn($s) => sanitize_text_field(trim($s)), array_filter($arr, 'is_string')),
             0,
             $max
         );
@@ -278,11 +283,13 @@ PROMPT;
     {
         $ext = strtolower(pathinfo($ruta, PATHINFO_EXTENSION));
         return match ($ext) {
-            'wav'        => 'audio/wav',
-            'mp3'        => 'audio/mpeg',
-            'flac'       => 'audio/flac',
-            'aiff', 'aif' => 'audio/aiff',
-            default      => 'audio/wav',
+            'wav'          => 'audio/wav',
+            'mp3'          => 'audio/mpeg',
+            'flac'         => 'audio/flac',
+            'aiff', 'aif'  => 'audio/aiff',
+            'ogg'          => 'audio/ogg',
+            'm4a'          => 'audio/mp4',
+            default        => 'audio/wav',
         };
     }
 
