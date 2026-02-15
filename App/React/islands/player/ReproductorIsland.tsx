@@ -4,29 +4,13 @@
  * Waveform grande, cola editable, controles avanzados.
  */
 
-import { useCallback } from 'react';
-import {
-    Play,
-    Pause,
-    SkipBack,
-    SkipForward,
-    Repeat,
-    Shuffle,
-    Volume2,
-    VolumeX,
-    Music,
-    ListMusic,
-    Trash2,
-    ChevronUp,
-    ChevronDown,
-    Heart,
-    X,
-} from 'lucide-react';
-import { useReproductorStore } from '@app/stores/reproductorStore';
-import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
-import { Badge } from '@app/components/ui/Badge';
-import { useNavigationStore } from '@/core/router';
-import type { SampleResumen } from '@app/types';
+import {useCallback} from 'react';
+import {Play, Pause, SkipBack, SkipForward, Repeat, Shuffle, Volume2, VolumeX, Music, ListMusic, Trash2, ChevronUp, ChevronDown, Heart, X} from 'lucide-react';
+import {useReproductorStore} from '@app/stores/reproductorStore';
+import {WaveformPlayer} from '@app/components/ui/WaveformPlayer';
+import {Badge} from '@app/components/ui/Badge';
+import {useNavigationStore} from '@/core/router';
+import type {SampleResumen} from '@app/types';
 import '../../styles/componentes/reproductorIsland.css';
 
 /* Formatear segundos a mm:ss */
@@ -38,30 +22,9 @@ const formatearTiempo = (segundos: number): string => {
 };
 
 export const ReproductorIsland = (): JSX.Element => {
-    const {
-        sampleActual,
-        cola,
-        reproduciendo,
-        volumen,
-        progreso,
-        duracion,
-        muted,
-        repetir,
-        aleatorio,
-        togglePlay,
-        setVolumen,
-        toggleMute,
-        setProgreso,
-        toggleRepetir,
-        toggleAleatorio,
-        siguiente,
-        anterior,
-        setSample,
-        quitarDeCola,
-        limpiarCola,
-    } = useReproductorStore();
+    const {sampleActual, cola, reproduciendo, volumen, progreso, duracion, muted, repetir, aleatorio, togglePlay, setVolumen, toggleMute, setProgreso, toggleRepetir, toggleAleatorio, siguiente, anterior, setSample, quitarDeCola, limpiarCola} = useReproductorStore();
 
-    const { navegar } = useNavigationStore();
+    const {navegar} = useNavigationStore();
 
     /* Seek desde waveform */
     const manejarSeek = useCallback(
@@ -79,7 +42,7 @@ export const ReproductorIsland = (): JSX.Element => {
             if (destino < 0 || destino >= nuevaCola.length) return;
             [nuevaCola[indice], nuevaCola[destino]] = [nuevaCola[destino], nuevaCola[indice]];
             /* Actualizamos la cola completa reemplazando */
-            useReproductorStore.setState({ cola: nuevaCola });
+            useReproductorStore.setState({cola: nuevaCola});
         },
         [cola]
     );
@@ -124,11 +87,7 @@ export const ReproductorIsland = (): JSX.Element => {
                     {/* Info del sample */}
                     <div className="reproductorIslandInfo">
                         <h1 className="reproductorIslandTitulo">{sampleActual.titulo}</h1>
-                        <button
-                            className="reproductorIslandCreador"
-                            type="button"
-                            onClick={() => irAlCreador(sampleActual.creador.username)}
-                        >
+                        <button className="reproductorIslandCreador" type="button" onClick={() => irAlCreador(sampleActual.creador.username)}>
                             {sampleActual.creador.nombreVisible || sampleActual.creador.username}
                         </button>
 
@@ -141,7 +100,7 @@ export const ReproductorIsland = (): JSX.Element => {
                                 </Badge>
                             )}
                             {sampleActual.tipo && <Badge>{sampleActual.tipo}</Badge>}
-                            {sampleActual.tags?.slice(0, 3).map((tag) => (
+                            {sampleActual.tags?.slice(0, 3).map(tag => (
                                 <Badge key={tag}>{tag}</Badge>
                             ))}
                         </div>
@@ -149,13 +108,7 @@ export const ReproductorIsland = (): JSX.Element => {
 
                     {/* Waveform grande */}
                     <div className="reproductorIslandWaveform">
-                        <WaveformPlayer
-                            picos={null}
-                            progreso={progreso}
-                            duracion={duracion}
-                            onSeek={manejarSeek}
-                            tamano="xl"
-                        />
+                        <WaveformPlayer picos={null} progreso={progreso} duracion={duracion} onSeek={manejarSeek} tamano="xl" />
                     </div>
 
                     {/* Tiempos */}
@@ -166,79 +119,34 @@ export const ReproductorIsland = (): JSX.Element => {
 
                     {/* Controles */}
                     <div className="reproductorIslandControles">
-                        <button
-                            className={`reproductorIslandBtn ${aleatorio ? 'reproductorIslandBtnActivo' : ''}`}
-                            onClick={toggleAleatorio}
-                            type="button"
-                            aria-label="Aleatorio"
-                        >
+                        <button className={`reproductorIslandBtn ${aleatorio ? 'reproductorIslandBtnActivo' : ''}`} onClick={toggleAleatorio} type="button" aria-label="Aleatorio">
                             <Shuffle size={18} />
                         </button>
-                        <button
-                            className="reproductorIslandBtn"
-                            onClick={anterior}
-                            type="button"
-                            aria-label="Anterior"
-                        >
+                        <button className="reproductorIslandBtn" onClick={anterior} type="button" aria-label="Anterior">
                             <SkipBack size={22} />
                         </button>
-                        <button
-                            className="reproductorIslandPlayBtn"
-                            onClick={togglePlay}
-                            type="button"
-                            aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}
-                        >
+                        <button className="reproductorIslandPlayBtn" onClick={togglePlay} type="button" aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}>
                             {reproduciendo ? <Pause size={28} /> : <Play size={28} />}
                         </button>
-                        <button
-                            className="reproductorIslandBtn"
-                            onClick={siguiente}
-                            type="button"
-                            aria-label="Siguiente"
-                        >
+                        <button className="reproductorIslandBtn" onClick={siguiente} type="button" aria-label="Siguiente">
                             <SkipForward size={22} />
                         </button>
-                        <button
-                            className={`reproductorIslandBtn ${repetir ? 'reproductorIslandBtnActivo' : ''}`}
-                            onClick={toggleRepetir}
-                            type="button"
-                            aria-label="Repetir"
-                        >
+                        <button className={`reproductorIslandBtn ${repetir ? 'reproductorIslandBtnActivo' : ''}`} onClick={toggleRepetir} type="button" aria-label="Repetir">
                             <Repeat size={18} />
                         </button>
                     </div>
 
                     {/* Volumen */}
                     <div className="reproductorIslandVolumen">
-                        <button
-                            className="reproductorIslandBtn reproductorIslandBtnSm"
-                            onClick={toggleMute}
-                            type="button"
-                        >
+                        <button className="reproductorIslandBtn reproductorIslandBtnSm" onClick={toggleMute} type="button">
                             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                         </button>
-                        <input
-                            type="range"
-                            min={0}
-                            max={1}
-                            step={0.01}
-                            value={muted ? 0 : volumen}
-                            onChange={(e) => setVolumen(Number(e.target.value))}
-                            className="reproductorIslandSlider"
-                            aria-label="Volumen"
-                        />
+                        <input type="range" min={0} max={1} step={0.01} value={muted ? 0 : volumen} onChange={e => setVolumen(Number(e.target.value))} className="reproductorIslandSlider" aria-label="Volumen" />
                     </div>
                 </div>
 
                 {/* Panel derecho: cola de reproducción */}
-                <PanelCola
-                    cola={cola}
-                    sampleActualId={sampleActual.id}
-                    onSeleccionar={setSample}
-                    onQuitar={quitarDeCola}
-                    onMover={moverEnCola}
-                    onLimpiar={limpiarCola}
-                />
+                <PanelCola cola={cola} sampleActualId={sampleActual.id} onSeleccionar={setSample} onQuitar={quitarDeCola} onMover={moverEnCola} onLimpiar={limpiarCola} />
             </div>
         </div>
     );
@@ -254,26 +162,14 @@ interface PanelColaProps {
     onLimpiar: () => void;
 }
 
-const PanelCola = ({
-    cola,
-    sampleActualId,
-    onSeleccionar,
-    onQuitar,
-    onMover,
-    onLimpiar,
-}: PanelColaProps): JSX.Element => (
+const PanelCola = ({cola, sampleActualId, onSeleccionar, onQuitar, onMover, onLimpiar}: PanelColaProps): JSX.Element => (
     <div className="reproductorIslandCola">
         <div className="reproductorIslandColaHeader">
             <ListMusic size={18} />
             <h3>Cola de reproducción</h3>
             <span className="reproductorIslandColaCount">{cola.length}</span>
             {cola.length > 0 && (
-                <button
-                    className="reproductorIslandBtn reproductorIslandBtnSm"
-                    onClick={onLimpiar}
-                    type="button"
-                    aria-label="Limpiar cola"
-                >
+                <button className="reproductorIslandBtn reproductorIslandBtnSm" onClick={onLimpiar} type="button" aria-label="Limpiar cola">
                     <Trash2 size={14} />
                 </button>
             )}
@@ -287,59 +183,23 @@ const PanelCola = ({
         ) : (
             <div className="reproductorIslandColaLista">
                 {cola.map((sample, indice) => (
-                    <div
-                        key={sample.id}
-                        className={`reproductorIslandColaItem ${
-                            sample.id === sampleActualId ? 'reproductorIslandColaItemActivo' : ''
-                        }`}
-                    >
-                        <button
-                            className="reproductorIslandColaPlay"
-                            onClick={() => onSeleccionar(sample)}
-                            type="button"
-                        >
-                            <div className="reproductorIslandColaImagen">
-                                {sample.imagenUrl ? (
-                                    <img src={sample.imagenUrl} alt="" />
-                                ) : (
-                                    <Music size={14} />
-                                )}
-                            </div>
+                    <div key={sample.id} className={`reproductorIslandColaItem ${sample.id === sampleActualId ? 'reproductorIslandColaItemActivo' : ''}`}>
+                        <button className="reproductorIslandColaPlay" onClick={() => onSeleccionar(sample)} type="button">
+                            <div className="reproductorIslandColaImagen">{sample.imagenUrl ? <img src={sample.imagenUrl} alt="" /> : <Music size={14} />}</div>
                             <div className="reproductorIslandColaInfo">
-                                <span className="reproductorIslandColaTitulo">
-                                    {sample.titulo}
-                                </span>
-                                <span className="reproductorIslandColaArtista">
-                                    {sample.creador.nombreVisible || sample.creador.username}
-                                </span>
+                                <span className="reproductorIslandColaTitulo">{sample.titulo}</span>
+                                <span className="reproductorIslandColaArtista">{sample.creador.nombreVisible || sample.creador.username}</span>
                             </div>
                         </button>
 
                         <div className="reproductorIslandColaAcciones">
-                            <button
-                                className="reproductorIslandColaBtnMini"
-                                onClick={() => onMover(indice, 'arriba')}
-                                disabled={indice === 0}
-                                type="button"
-                                aria-label="Mover arriba"
-                            >
+                            <button className="reproductorIslandColaBtnMini" onClick={() => onMover(indice, 'arriba')} disabled={indice === 0} type="button" aria-label="Mover arriba">
                                 <ChevronUp size={12} />
                             </button>
-                            <button
-                                className="reproductorIslandColaBtnMini"
-                                onClick={() => onMover(indice, 'abajo')}
-                                disabled={indice === cola.length - 1}
-                                type="button"
-                                aria-label="Mover abajo"
-                            >
+                            <button className="reproductorIslandColaBtnMini" onClick={() => onMover(indice, 'abajo')} disabled={indice === cola.length - 1} type="button" aria-label="Mover abajo">
                                 <ChevronDown size={12} />
                             </button>
-                            <button
-                                className="reproductorIslandColaBtnMini"
-                                onClick={() => onQuitar(sample.id)}
-                                type="button"
-                                aria-label="Quitar de cola"
-                            >
+                            <button className="reproductorIslandColaBtnMini" onClick={() => onQuitar(sample.id)} type="button" aria-label="Quitar de cola">
                                 <X size={12} />
                             </button>
                         </div>

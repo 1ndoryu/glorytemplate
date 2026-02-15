@@ -1,0 +1,175 @@
+/*
+ * Estilos: MensajesIsland — Kamples (Fase 7.2)
+ * Lista de conversaciones con indicadores de estado.
+ */
+
+.mensajesIsland {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: var(--espacioLg) var(--espacioMd);
+}
+
+/* Header */
+.mensajesHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--espacioLg);
+}
+
+.mensajesHeaderTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    color: var(--textoPrimario);
+}
+
+.mensajesHeaderTitulo h1 {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoSemibold);
+    margin: 0;
+}
+
+.mensajesBadgeNoLeidos {
+    background: var(--acento);
+    color: var(--acentoTexto);
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoSemibold);
+    padding: 2px 6px;
+    border-radius: var(--radioFull);
+    min-width: 18px;
+    text-align: center;
+}
+
+/* Buscador */
+.mensajesBuscador {
+    margin-bottom: var(--espacioMd);
+}
+
+/* Lista */
+.mensajesLista {
+    display: flex;
+    flex-direction: column;
+}
+
+.mensajesItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioMd);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--bordeSutil);
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: background var(--transicionRapida);
+    color: var(--textoPrimario);
+}
+
+.mensajesItem:hover {
+    background: var(--fondoElevado1);
+}
+
+.mensajesItem:last-child {
+    border-bottom: none;
+}
+
+.mensajesItemNoLeido {
+    background: var(--fondoElevado1);
+}
+
+/* Avatar con indicador online */
+.mensajesItemAvatar {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.mensajesOnlineIndicador {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radioFull);
+    background: var(--exito);
+    border: 2px solid var(--fondoBase);
+}
+
+/* Contenido */
+.mensajesItemContenido {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mensajesItemSuperior {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mensajesItemNombre {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.mensajesItemTiempo {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+.mensajesItemInferior {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.mensajesItemUltimoMensaje {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+}
+
+.mensajesItemNoLeido .mensajesItemUltimoMensaje {
+    color: var(--textoPrimario);
+    font-weight: var(--pesoMedio);
+}
+
+.mensajesItemBadge {
+    background: var(--acento);
+    color: var(--acentoTexto);
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoSemibold);
+    padding: 1px 5px;
+    border-radius: var(--radioFull);
+    min-width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Empty state */
+.mensajesVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    padding: var(--espacio3xl) var(--espacioLg);
+    color: var(--textoTerciario);
+    text-align: center;
+}
+
+.mensajesVacio p {
+    margin: 0;
+    font-size: var(--fuenteMd);
+}

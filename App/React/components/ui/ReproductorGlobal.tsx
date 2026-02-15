@@ -5,20 +5,9 @@
  * Se conecta al reproductorStore (Zustand).
  */
 
-import { useCallback, useRef, useEffect, type MouseEvent } from 'react';
-import {
-    Play,
-    Pause,
-    SkipBack,
-    SkipForward,
-    Volume2,
-    VolumeX,
-    Repeat,
-    Shuffle,
-    Heart,
-    Music,
-} from 'lucide-react';
-import { useReproductorStore } from '../../stores/reproductorStore';
+import {useCallback, useRef, useEffect, type MouseEvent} from 'react';
+import {Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Shuffle, Heart, Music} from 'lucide-react';
+import {useReproductorStore} from '../../stores/reproductorStore';
 import '../../styles/componentes/reproductorGlobal.css';
 
 /* Formatear segundos a mm:ss */
@@ -30,31 +19,26 @@ const formatearTiempo = (segundos: number): string => {
 };
 
 export const ReproductorGlobal = (): JSX.Element | null => {
-    const {
-        sampleActual,
-        reproduciendo,
-        volumen,
-        progreso,
-        duracion,
-        muted,
-        repetir,
-        aleatorio,
-        play,
-        pause,
-        togglePlay,
-        setVolumen,
-        toggleMute,
-        setProgreso,
-        setDuracion,
-        toggleRepetir,
-        toggleAleatorio,
-        siguiente,
-        anterior,
-    } = useReproductorStore();
+    const {sampleActual, reproduciendo, volumen, progreso, duracion, muted, repetir, aleatorio, play, pause, togglePlay, setVolumen, toggleMute, setProgreso, setDuracion, toggleRepetir, toggleAleatorio, siguiente, anterior, cerrar} = useReproductorStore();
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const progresoBarraRef = useRef<HTMLDivElement>(null);
     const volumenBarraRef = useRef<HTMLDivElement>(null);
+    const contenedorRef = useRef<HTMLDivElement>(null);
+
+    /* Cerrar reproductor al hacer click fuera */
+    useEffect(() => {
+        if (!sampleActual) return;
+
+        const manejarClickFuera = (e: globalThis.MouseEvent) => {
+            if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) {
+                cerrar();
+            }
+        };
+
+        document.addEventListener('mousedown', manejarClickFuera);
+        return () => document.removeEventListener('mousedown', manejarClickFuera);
+    }, [sampleActual, cerrar]);
 
     /* Crear/actualizar elemento de audio */
     useEffect(() => {
@@ -158,27 +142,15 @@ export const ReproductorGlobal = (): JSX.Element | null => {
     if (!sampleActual) return null;
 
     return (
-        <div className="reproductorGlobal" id="reproductorGlobal">
+        <div className="reproductorGlobal" id="reproductorGlobal" ref={contenedorRef}>
             {/* Izquierda: info del sample */}
             <div className="reproductorInfo">
-                <div className="reproductorImagen">
-                    {sampleActual.imagenUrl ? (
-                        <img src={sampleActual.imagenUrl} alt={sampleActual.titulo} />
-                    ) : (
-                        <Music size={20} />
-                    )}
-                </div>
+                <div className="reproductorImagen">{sampleActual.imagenUrl ? <img src={sampleActual.imagenUrl} alt={sampleActual.titulo} /> : <Music size={20} />}</div>
                 <div className="reproductorTextos">
                     <span className="reproductorTitulo">{sampleActual.titulo}</span>
-                    <span className="reproductorArtista">
-                        {sampleActual.creador.nombreVisible || sampleActual.creador.username}
-                    </span>
+                    <span className="reproductorArtista">{sampleActual.creador.nombreVisible || sampleActual.creador.username}</span>
                 </div>
-                <button
-                    className={`reproductorControlBtn ${sampleActual.liked ? 'reproductorControlBtnActivo' : ''}`}
-                    type="button"
-                    aria-label="Like"
-                >
+                <button className={`reproductorControlBtn ${sampleActual.liked ? 'reproductorControlBtnActivo' : ''}`} type="button" aria-label="Like">
                     <Heart size={16} fill={sampleActual.liked ? 'currentColor' : 'none'} />
                 </button>
             </div>
@@ -186,98 +158,40 @@ export const ReproductorGlobal = (): JSX.Element | null => {
             {/* Centro: controles + progreso */}
             <div className="reproductorCentro">
                 <div className="reproductorControles">
-                    <button
-                        className={`reproductorControlBtn ${aleatorio ? 'reproductorControlBtnActivo' : ''}`}
-                        onClick={toggleAleatorio}
-                        type="button"
-                        aria-label="Aleatorio"
-                    >
+                    <button className={`reproductorControlBtn ${aleatorio ? 'reproductorControlBtnActivo' : ''}`} onClick={toggleAleatorio} type="button" aria-label="Aleatorio">
                         <Shuffle size={14} />
                     </button>
-                    <button
-                        className="reproductorControlBtn"
-                        onClick={anterior}
-                        type="button"
-                        aria-label="Anterior"
-                    >
+                    <button className="reproductorControlBtn" onClick={anterior} type="button" aria-label="Anterior">
                         <SkipBack size={16} />
                     </button>
-                    <button
-                        className="reproductorPlayBtn"
-                        onClick={togglePlay}
-                        type="button"
-                        aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}
-                    >
+                    <button className="reproductorPlayBtn" onClick={togglePlay} type="button" aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}>
                         {reproduciendo ? <Pause size={18} /> : <Play size={18} />}
                     </button>
-                    <button
-                        className="reproductorControlBtn"
-                        onClick={siguiente}
-                        type="button"
-                        aria-label="Siguiente"
-                    >
+                    <button className="reproductorControlBtn" onClick={siguiente} type="button" aria-label="Siguiente">
                         <SkipForward size={16} />
                     </button>
-                    <button
-                        className={`reproductorControlBtn ${repetir ? 'reproductorControlBtnActivo' : ''}`}
-                        onClick={toggleRepetir}
-                        type="button"
-                        aria-label="Repetir"
-                    >
+                    <button className={`reproductorControlBtn ${repetir ? 'reproductorControlBtnActivo' : ''}`} onClick={toggleRepetir} type="button" aria-label="Repetir">
                         <Repeat size={14} />
                     </button>
                 </div>
 
                 <div className="reproductorProgreso">
-                    <span className="reproductorTiempo">
-                        {formatearTiempo(progreso * duracion)}
-                    </span>
-                    <div
-                        ref={progresoBarraRef}
-                        className="reproductorBarraProgreso"
-                        onClick={manejarSeekProgreso}
-                        role="slider"
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={Math.round(progreso * 100)}
-                        aria-label="Progreso"
-                    >
-                        <div
-                            className="reproductorBarraRelleno"
-                            style={{ width: `${progreso * 100}%` }}
-                        />
+                    <span className="reproductorTiempo">{formatearTiempo(progreso * duracion)}</span>
+                    <div ref={progresoBarraRef} className="reproductorBarraProgreso" onClick={manejarSeekProgreso} role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progreso * 100)} aria-label="Progreso">
+                        <div className="reproductorBarraRelleno" style={{width: `${progreso * 100}%`}} />
                     </div>
-                    <span className="reproductorTiempo">
-                        {formatearTiempo(duracion)}
-                    </span>
+                    <span className="reproductorTiempo">{formatearTiempo(duracion)}</span>
                 </div>
             </div>
 
             {/* Derecha: volumen */}
             <div className="reproductorDerecha">
                 <div className="reproductorVolumen">
-                    <button
-                        className="reproductorControlBtn"
-                        onClick={toggleMute}
-                        type="button"
-                        aria-label={muted ? 'Activar sonido' : 'Silenciar'}
-                    >
+                    <button className="reproductorControlBtn" onClick={toggleMute} type="button" aria-label={muted ? 'Activar sonido' : 'Silenciar'}>
                         {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                     </button>
-                    <div
-                        ref={volumenBarraRef}
-                        className="reproductorVolumenBarra"
-                        onClick={manejarSeekVolumen}
-                        role="slider"
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={Math.round(volumen * 100)}
-                        aria-label="Volumen"
-                    >
-                        <div
-                            className="reproductorVolumenRelleno"
-                            style={{ width: `${(muted ? 0 : volumen) * 100}%` }}
-                        />
+                    <div ref={volumenBarraRef} className="reproductorVolumenBarra" onClick={manejarSeekVolumen} role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(volumen * 100)} aria-label="Volumen">
+                        <div className="reproductorVolumenRelleno" style={{width: `${(muted ? 0 : volumen) * 100}%`}} />
                     </div>
                 </div>
             </div>

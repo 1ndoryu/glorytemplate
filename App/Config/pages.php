@@ -82,6 +82,30 @@ PageManager::reactPage('libreria', 'LibreriaIsland');
 PageManager::reactPage('reproductor', 'ReproductorIsland');
 PageManager::reactPage('descubrir', 'DescubrirIsland');
 PageManager::reactPage('notificaciones', 'NotificacionesIsland');
+PageManager::reactPage('planes', 'PlanesIsland');
+
+/*
+ * =====================================================
+ * PAGINAS KAMPLES — Mensajería (Fase 7)
+ * =====================================================
+ */
+PageManager::reactPage('mensajes', 'MensajesIsland');
+
+/* Chat individual — recibe conversacionId como segmento dinámico */
+PageManager::reactPage('mensajes/chat', 'ChatIsland', function($pageId) {
+    $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+    $partes = explode('/', $path);
+    $idx = array_search('mensajes', $partes);
+    $convId = ($idx !== false && isset($partes[$idx + 1])) ? $partes[$idx + 1] : '';
+    return ['conversacionId' => sanitize_text_field($convId)];
+});
+
+/*
+ * =====================================================
+ * PAGINAS KAMPLES — Admin / Dashboard Creador (Fase 6)
+ * =====================================================
+ */
+PageManager::reactPage('admin/dashboard', 'DashboardCreadorIsland');
 
 /* Detalle de sample — recibe slug dinámico */
 PageManager::reactPage('sample', 'SampleDetalleIsland', function($pageId) {

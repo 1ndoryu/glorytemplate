@@ -665,7 +665,8 @@ reproducciones (
   - Refresh infinito
   - Implementado: 3 secciones (Para ti, Trending, Nuevos), likes optimistas, menú contextual, mock data
 - [ ] **3.7** Cache de feeds en Redis (precalculados, TTL 5min)
-- [ ] **3.8** API endpoint: `GET /kamples/v1/feed?tipo=descubrir&page=1`
+- [x] **3.8** API endpoint: `GET /kamples/v1/feed?tipo=descubrir&page=1`
+  - Endpoints registrados en KamplesController.php: feed, notificaciones CRUD, mensajes CRUD, dashboard stats
 
 **Entregable:** Algoritmo funcional con 4 señales, superando la búsqueda básica de Splice.
 
@@ -759,11 +760,12 @@ reproducciones (
   - Creadores pueden marcar samples como premium + precio
   - Compra individual (además de la suscripción)
   - Usuarios Pro/Premium acceden incluido en plan
-- [ ] **6.5** Isla `DashboardCreadorIsland`:
+- [x] **6.5** Isla `DashboardCreadorIsland`:
   - Ingresos totales y por período
   - Samples más descargados
   - Analytics: reproducciones, descargas, likes por sample
   - Historial de pagos
+  - Implementado: 4 tarjetas de stats, gráfica de ingresos 30 días (barras CSS), tabs Resumen/Samples/Transacciones, tabla top samples, historial transacciones, apiPagos.ts con mock data, endpoints PHP dashboard/stats, dashboard/top-samples, dashboard/transacciones, dashboard/ingresos
 - [ ] **6.6** Aplicar límites según plan:
   - Descargas/día
   - Calidad de descarga
@@ -783,15 +785,17 @@ reproducciones (
   - Autenticación por token (JWT)
   - Canales por usuario: `mensajes:{userId}`, `notif:{userId}`
   - Heartbeat + reconnect automático
-- [ ] **7.2** Isla `MensajesIsland`:
+- [x] **7.2** Isla `MensajesIsland`:
   - Lista de conversaciones (ordenadas por último mensaje)
   - Indicador de no leídos
   - Estado online/offline de contactos
-- [ ] **7.3** Isla `ChatIsland`:
+  - Implementado: búsqueda/filtro de conversaciones, indicadores online, badges no leídos, formato de tiempo relativo, apiMensajes.ts con mock data, mensajesStore.ts, endpoints PHP mensajes/conversaciones, mensajes/{id}, mensajes/{id}/leer, mensajes/nueva
+- [x] **7.3** Isla `ChatIsland`:
   - Mensajes en tiempo real
   - Indicador "escribiendo..."
   - Scroll infinito hacia arriba (historial)
   - Marcar como leído al abrir
+  - Implementado: burbujas de mensaje (mío/otro), agrupado por fecha, auto-scroll, envío optimista, Enter/Shift+Enter, navegación SPA a /mensajes/, conversacionId desde URL o props
 - [ ] **7.4** Notificaciones en tiempo real:
   - Bell icon con contador de no leídas
   - Push notifications (browser + móvil)

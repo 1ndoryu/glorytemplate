@@ -151,6 +151,112 @@ class KamplesController
                 'target_id' => ['required' => true, 'type' => 'integer'],
             ],
         ]);
+
+        /* =====================================================
+         * MENSAJERÍA (Fase 7.2-7.3)
+         * ===================================================== */
+
+        /* Lista de conversaciones del usuario */
+        register_rest_route(self::NAMESPACE, '/mensajes/conversaciones', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'listarConversaciones'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* Mensajes de una conversación */
+        register_rest_route(self::NAMESPACE, '/mensajes/(?P<conversacionId>\d+)', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'obtenerMensajes'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'conversacionId' => ['required' => true, 'type' => 'integer'],
+                'page'           => ['required' => false, 'type' => 'integer', 'default' => 1],
+            ],
+        ]);
+
+        /* Enviar mensaje */
+        register_rest_route(self::NAMESPACE, '/mensajes/(?P<conversacionId>\d+)', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'enviarMensaje'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'conversacionId' => ['required' => true, 'type' => 'integer'],
+            ],
+        ]);
+
+        /* Marcar conversación como leída */
+        register_rest_route(self::NAMESPACE, '/mensajes/(?P<conversacionId>\d+)/leer', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'marcarConversacionLeida'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* Iniciar nueva conversación */
+        register_rest_route(self::NAMESPACE, '/mensajes/nueva', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'iniciarConversacion'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* =====================================================
+         * DASHBOARD CREADOR (Fase 6.5)
+         * ===================================================== */
+
+        /* Estadísticas generales del creador */
+        register_rest_route(self::NAMESPACE, '/dashboard/stats', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'dashboardStats'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* Top samples del creador */
+        register_rest_route(self::NAMESPACE, '/dashboard/top-samples', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'dashboardTopSamples'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* Transacciones del creador */
+        register_rest_route(self::NAMESPACE, '/dashboard/transacciones', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'dashboardTransacciones'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'page' => ['required' => false, 'type' => 'integer', 'default' => 1],
+            ],
+        ]);
+
+        /* Ingresos por período (para gráfica) */
+        register_rest_route(self::NAMESPACE, '/dashboard/ingresos', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'dashboardIngresos'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'periodo' => ['required' => false, 'type' => 'string', 'default' => 'mes', 'enum' => ['semana', 'mes', 'anio']],
+            ],
+        ]);
+
+        /* Notificaciones */
+        register_rest_route(self::NAMESPACE, '/notificaciones', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'listarNotificaciones'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'page' => ['required' => false, 'type' => 'integer', 'default' => 1],
+            ],
+        ]);
+
+        register_rest_route(self::NAMESPACE, '/notificaciones/(?P<id>\d+)/leer', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'marcarNotificacionLeida'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        register_rest_route(self::NAMESPACE, '/notificaciones/leer-todas', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'marcarTodasNotificacionesLeidas'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     /* 
@@ -632,5 +738,563 @@ class KamplesController
                 'enum'     => ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro'],
             ],
         ];
+    }
+
+    /* =====================================================
+     * MENSAJERÍA — Implementaciones (Fase 7.2-7.3)
+     * ===================================================== */
+
+    /*
+     * Endpoint: GET /kamples/v1/mensajes/conversaciones
+     * Lista conversaciones del usuario autenticado.
+     */
+    public static function listarConversaciones(): \WP_REST_Response
+    {
+        $wpUserId = AuthMiddleware::obtenerWpUserId();
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        $userId = (int) $usuario['id'];
+
+        $conversaciones = PostgresService::consultar(
+            "SELECT c.id,
+                    CASE WHEN c.participante_1 = :userId THEN c.participante_2 ELSE c.participante_1 END as otro_id,
+                    c.ultimo_mensaje_at,
+                    c.created_at
+             FROM conversaciones c
+             WHERE c.participante_1 = :userId OR c.participante_2 = :userId
+             ORDER BY c.ultimo_mensaje_at DESC NULLS LAST",
+            ['userId' => $userId]
+        );
+
+        /* Enriquecer con datos del otro participante y último mensaje */
+        $resultado = [];
+        foreach ($conversaciones as $conv) {
+            $otroId = (int) $conv['otro_id'];
+
+            $otro = PostgresService::consultarUno(
+                "SELECT id, username, nombre_visible, avatar_url, verificado
+                 FROM usuarios_ext WHERE id = :id",
+                ['id' => $otroId]
+            );
+
+            $ultimoMsg = PostgresService::consultarUno(
+                "SELECT contenido, created_at FROM mensajes
+                 WHERE conversacion_id = :convId
+                 ORDER BY created_at DESC LIMIT 1",
+                ['convId' => $conv['id']]
+            );
+
+            $noLeidos = PostgresService::consultarUno(
+                "SELECT COUNT(*) as total FROM mensajes
+                 WHERE conversacion_id = :convId AND autor_id != :userId AND leido = false",
+                ['convId' => $conv['id'], 'userId' => $userId]
+            );
+
+            $resultado[] = [
+                'id'               => (int) $conv['id'],
+                'participante'     => $otro,
+                'ultimoMensaje'    => $ultimoMsg['contenido'] ?? '',
+                'ultimoMensajeAt'  => $ultimoMsg['created_at'] ?? $conv['created_at'],
+                'noLeidos'         => $noLeidos ? (int) $noLeidos['total'] : 0,
+                'enLinea'          => false,
+            ];
+        }
+
+        return new \WP_REST_Response(['data' => $resultado], 200);
+    }
+
+    /*
+     * Endpoint: GET /kamples/v1/mensajes/{conversacionId}
+     * Mensajes de una conversación con paginación.
+     */
+    public static function obtenerMensajes(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $wpUserId      = AuthMiddleware::obtenerWpUserId();
+        $conversacionId = (int) $request->get_param('conversacionId');
+        $page          = (int) $request->get_param('page');
+        $perPage       = 50;
+        $offset        = ($page - 1) * $perPage;
+
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        /* Verificar que el usuario participa en la conversación */
+        $conv = PostgresService::consultarUno(
+            "SELECT id FROM conversaciones
+             WHERE id = :convId AND (participante_1 = :userId OR participante_2 = :userId)",
+            ['convId' => $conversacionId, 'userId' => $usuario['id']]
+        );
+
+        if (!$conv) {
+            return new \WP_REST_Response(['code' => 'conversacion_no_encontrada'], 404);
+        }
+
+        $mensajes = PostgresService::consultar(
+            "SELECT id, conversacion_id as \"conversacionId\", autor_id as \"remitenteId\",
+                    contenido, leido, created_at as \"creadoAt\"
+             FROM mensajes
+             WHERE conversacion_id = :convId
+             ORDER BY created_at ASC
+             LIMIT :limit OFFSET :offset",
+            ['convId' => $conversacionId, 'limit' => $perPage, 'offset' => $offset]
+        );
+
+        return new \WP_REST_Response(['data' => $mensajes], 200);
+    }
+
+    /*
+     * Endpoint: POST /kamples/v1/mensajes/{conversacionId}
+     * Enviar un mensaje en una conversación.
+     */
+    public static function enviarMensaje(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $wpUserId       = AuthMiddleware::obtenerWpUserId();
+        $conversacionId = (int) $request->get_param('conversacionId');
+        $body           = $request->get_json_params();
+        $contenido      = sanitize_textarea_field($body['contenido'] ?? '');
+
+        if (empty($contenido)) {
+            return new \WP_REST_Response(['code' => 'mensaje_vacio', 'message' => 'El mensaje no puede estar vacío'], 400);
+        }
+
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        /* Verificar participación */
+        $conv = PostgresService::consultarUno(
+            "SELECT id FROM conversaciones
+             WHERE id = :convId AND (participante_1 = :userId OR participante_2 = :userId)",
+            ['convId' => $conversacionId, 'userId' => $usuario['id']]
+        );
+
+        if (!$conv) {
+            return new \WP_REST_Response(['code' => 'conversacion_no_encontrada'], 404);
+        }
+
+        /* Insertar mensaje */
+        $msgId = PostgresService::insertar(
+            "INSERT INTO mensajes (conversacion_id, autor_id, contenido)
+             VALUES (:convId, :autorId, :contenido)
+             RETURNING id",
+            ['convId' => $conversacionId, 'autorId' => $usuario['id'], 'contenido' => $contenido]
+        );
+
+        /* Actualizar timestamp de la conversación */
+        PostgresService::ejecutar(
+            "UPDATE conversaciones SET ultimo_mensaje_at = NOW() WHERE id = :convId",
+            ['convId' => $conversacionId]
+        );
+
+        $mensaje = PostgresService::consultarUno(
+            "SELECT id, conversacion_id as \"conversacionId\", autor_id as \"remitenteId\",
+                    contenido, leido, created_at as \"creadoAt\"
+             FROM mensajes WHERE id = :id",
+            ['id' => $msgId]
+        );
+
+        return new \WP_REST_Response(['data' => $mensaje], 201);
+    }
+
+    /*
+     * Endpoint: POST /kamples/v1/mensajes/{conversacionId}/leer
+     * Marcar todos los mensajes de una conversación como leídos.
+     */
+    public static function marcarConversacionLeida(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $wpUserId       = AuthMiddleware::obtenerWpUserId();
+        $conversacionId = (int) $request->get_param('conversacionId');
+
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        PostgresService::ejecutar(
+            "UPDATE mensajes SET leido = true
+             WHERE conversacion_id = :convId AND autor_id != :userId AND leido = false",
+            ['convId' => $conversacionId, 'userId' => $usuario['id']]
+        );
+
+        return new \WP_REST_Response(['ok' => true], 200);
+    }
+
+    /*
+     * Endpoint: POST /kamples/v1/mensajes/nueva
+     * Iniciar una nueva conversación con otro usuario.
+     */
+    public static function iniciarConversacion(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $wpUserId  = AuthMiddleware::obtenerWpUserId();
+        $body      = $request->get_json_params();
+        $otroId    = (int) ($body['usuarioId'] ?? 0);
+
+        if ($otroId <= 0) {
+            return new \WP_REST_Response(['code' => 'usuario_invalido'], 400);
+        }
+
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        $userId = (int) $usuario['id'];
+
+        if ($userId === $otroId) {
+            return new \WP_REST_Response(['code' => 'no_self_chat', 'message' => 'No puedes chatear contigo mismo'], 400);
+        }
+
+        /* Verificar si ya existe conversación */
+        $p1 = min($userId, $otroId);
+        $p2 = max($userId, $otroId);
+
+        $existente = PostgresService::consultarUno(
+            "SELECT id FROM conversaciones
+             WHERE participante_1 = :p1 AND participante_2 = :p2",
+            ['p1' => $p1, 'p2' => $p2]
+        );
+
+        if ($existente) {
+            return new \WP_REST_Response(['data' => ['id' => (int) $existente['id']]], 200);
+        }
+
+        /* Crear nueva conversación */
+        $convId = PostgresService::insertar(
+            "INSERT INTO conversaciones (participante_1, participante_2)
+             VALUES (:p1, :p2) RETURNING id",
+            ['p1' => $p1, 'p2' => $p2]
+        );
+
+        $otro = PostgresService::consultarUno(
+            "SELECT id, username, nombre_visible, avatar_url, verificado
+             FROM usuarios_ext WHERE id = :id",
+            ['id' => $otroId]
+        );
+
+        return new \WP_REST_Response([
+            'data' => [
+                'id'              => (int) $convId,
+                'participante'    => $otro,
+                'ultimoMensaje'   => '',
+                'ultimoMensajeAt' => (new \DateTime())->format('c'),
+                'noLeidos'        => 0,
+                'enLinea'         => false,
+            ]
+        ], 201);
+    }
+
+    /* =====================================================
+     * DASHBOARD CREADOR — Implementaciones (Fase 6.5)
+     * ===================================================== */
+
+    /*
+     * Endpoint: GET /kamples/v1/dashboard/stats
+     * Estadísticas generales del creador autenticado.
+     */
+    public static function dashboardStats(): \WP_REST_Response
+    {
+        $wpUserId = AuthMiddleware::obtenerWpUserId();
+        $usuario = PostgresService::consultarUno(
+            "SELECT id, total_seguidores, total_samples, total_descargas
+             FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        $userId = (int) $usuario['id'];
+
+        /* Descargas del mes actual */
+        $descargasMes = PostgresService::consultarUno(
+            "SELECT COUNT(*) as total FROM descargas d
+             JOIN samples s ON d.sample_id = s.id
+             WHERE s.creador_id = :userId
+             AND d.created_at >= date_trunc('month', NOW())",
+            ['userId' => $userId]
+        );
+
+        /* Reproducciones del mes */
+        $reproduccionesMes = PostgresService::consultarUno(
+            "SELECT COUNT(*) as total FROM reproducciones r
+             JOIN samples s ON r.sample_id = s.id
+             WHERE s.creador_id = :userId
+             AND r.created_at >= date_trunc('month', NOW())",
+            ['userId' => $userId]
+        );
+
+        /* Reproducciones totales */
+        $reproduccionesTotal = PostgresService::consultarUno(
+            "SELECT COALESCE(SUM(s.total_reproducciones), 0) as total
+             FROM samples s WHERE s.creador_id = :userId",
+            ['userId' => $userId]
+        );
+
+        /* Seguidores nuevos este mes */
+        $seguidoresNuevos = PostgresService::consultarUno(
+            "SELECT COUNT(*) as total FROM follows
+             WHERE seguido_id = :userId
+             AND created_at >= date_trunc('month', NOW())",
+            ['userId' => $userId]
+        );
+
+        /* Ingresos (transacciones) */
+        $ingresosMes = PostgresService::consultarUno(
+            "SELECT COALESCE(SUM(pago_creador), 0) as total FROM transacciones
+             WHERE creador_id = :userId AND estado = 'completed'
+             AND created_at >= date_trunc('month', NOW())",
+            ['userId' => $userId]
+        );
+
+        $ingresosAnterior = PostgresService::consultarUno(
+            "SELECT COALESCE(SUM(pago_creador), 0) as total FROM transacciones
+             WHERE creador_id = :userId AND estado = 'completed'
+             AND created_at >= date_trunc('month', NOW()) - INTERVAL '1 month'
+             AND created_at < date_trunc('month', NOW())",
+            ['userId' => $userId]
+        );
+
+        $ingresosTotal = PostgresService::consultarUno(
+            "SELECT COALESCE(SUM(pago_creador), 0) as total FROM transacciones
+             WHERE creador_id = :userId AND estado = 'completed'",
+            ['userId' => $userId]
+        );
+
+        return new \WP_REST_Response([
+            'data' => [
+                'ingresosTotal'       => (float) ($ingresosTotal['total'] ?? 0),
+                'ingresosMes'         => (float) ($ingresosMes['total'] ?? 0),
+                'ingresosAnterior'    => (float) ($ingresosAnterior['total'] ?? 0),
+                'descargasTotal'      => (int) ($usuario['total_descargas'] ?? 0),
+                'descargasMes'        => (int) ($descargasMes['total'] ?? 0),
+                'reproduccionesTotal' => (int) ($reproduccionesTotal['total'] ?? 0),
+                'reproduccionesMes'   => (int) ($reproduccionesMes['total'] ?? 0),
+                'seguidoresTotal'     => (int) ($usuario['total_seguidores'] ?? 0),
+                'seguidoresNuevosMes' => (int) ($seguidoresNuevos['total'] ?? 0),
+                'samplesPublicados'   => (int) ($usuario['total_samples'] ?? 0),
+            ],
+        ], 200);
+    }
+
+    /*
+     * Endpoint: GET /kamples/v1/dashboard/top-samples
+     * Los samples más descargados del creador.
+     */
+    public static function dashboardTopSamples(): \WP_REST_Response
+    {
+        $wpUserId = AuthMiddleware::obtenerWpUserId();
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        $samples = PostgresService::consultar(
+            "SELECT s.id, s.titulo, s.slug,
+                    s.total_descargas as descargas,
+                    s.total_reproducciones as reproducciones,
+                    s.total_likes as likes,
+                    COALESCE((SELECT SUM(t.pago_creador) FROM transacciones t WHERE t.sample_id = s.id AND t.estado = 'completed'), 0) as ingresos
+             FROM samples s
+             WHERE s.creador_id = :userId AND s.estado = 'activo'
+             ORDER BY s.total_descargas DESC
+             LIMIT 10",
+            ['userId' => $usuario['id']]
+        );
+
+        return new \WP_REST_Response(['data' => $samples], 200);
+    }
+
+    /*
+     * Endpoint: GET /kamples/v1/dashboard/transacciones
+     * Historial de transacciones del creador.
+     */
+    public static function dashboardTransacciones(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $wpUserId = AuthMiddleware::obtenerWpUserId();
+        $page     = (int) $request->get_param('page');
+        $perPage  = 20;
+        $offset   = ($page - 1) * $perPage;
+
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        $transacciones = PostgresService::consultar(
+            "SELECT t.id, t.created_at as fecha, t.monto, t.comision_plataforma as comision,
+                    t.pago_creador as neto, t.estado,
+                    s.titulo as sample,
+                    u.username as comprador
+             FROM transacciones t
+             LEFT JOIN samples s ON t.sample_id = s.id
+             LEFT JOIN usuarios_ext u ON t.comprador_id = u.id
+             WHERE t.creador_id = :userId
+             ORDER BY t.created_at DESC
+             LIMIT :limit OFFSET :offset",
+            ['userId' => $usuario['id'], 'limit' => $perPage, 'offset' => $offset]
+        );
+
+        return new \WP_REST_Response(['data' => $transacciones], 200);
+    }
+
+    /*
+     * Endpoint: GET /kamples/v1/dashboard/ingresos
+     * Ingresos agrupados por día para gráfica.
+     */
+    public static function dashboardIngresos(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $wpUserId = AuthMiddleware::obtenerWpUserId();
+        $periodo  = $request->get_param('periodo');
+
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        $intervalo = match ($periodo) {
+            'semana' => '7 days',
+            'anio'   => '365 days',
+            default  => '30 days',
+        };
+
+        $ingresos = PostgresService::consultar(
+            "SELECT DATE(created_at) as fecha,
+                    COALESCE(SUM(pago_creador), 0) as monto
+             FROM transacciones
+             WHERE creador_id = :userId
+             AND estado = 'completed'
+             AND created_at >= NOW() - INTERVAL '{$intervalo}'
+             GROUP BY DATE(created_at)
+             ORDER BY fecha ASC",
+            ['userId' => $usuario['id']]
+        );
+
+        return new \WP_REST_Response(['data' => $ingresos], 200);
+    }
+
+    /* =====================================================
+     * NOTIFICACIONES — Implementaciones (Fase 7.5)
+     * ===================================================== */
+
+    /*
+     * Endpoint: GET /kamples/v1/notificaciones
+     * Lista notificaciones del usuario autenticado.
+     */
+    public static function listarNotificaciones(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $wpUserId = AuthMiddleware::obtenerWpUserId();
+        $page     = (int) $request->get_param('page');
+        $perPage  = 30;
+        $offset   = ($page - 1) * $perPage;
+
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        $notificaciones = PostgresService::consultar(
+            "SELECT id, tipo, datos, leida, created_at as \"creadaAt\"
+             FROM notificaciones
+             WHERE usuario_id = :userId
+             ORDER BY created_at DESC
+             LIMIT :limit OFFSET :offset",
+            ['userId' => $usuario['id'], 'limit' => $perPage, 'offset' => $offset]
+        );
+
+        return new \WP_REST_Response(['data' => $notificaciones], 200);
+    }
+
+    /*
+     * Endpoint: POST /kamples/v1/notificaciones/{id}/leer
+     * Marcar una notificación como leída.
+     */
+    public static function marcarNotificacionLeida(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $wpUserId = AuthMiddleware::obtenerWpUserId();
+        $notifId  = (int) $request->get_param('id');
+
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        PostgresService::ejecutar(
+            "UPDATE notificaciones SET leida = true WHERE id = :id AND usuario_id = :userId",
+            ['id' => $notifId, 'userId' => $usuario['id']]
+        );
+
+        return new \WP_REST_Response(['ok' => true], 200);
+    }
+
+    /*
+     * Endpoint: POST /kamples/v1/notificaciones/leer-todas
+     * Marcar todas las notificaciones como leídas.
+     */
+    public static function marcarTodasNotificacionesLeidas(): \WP_REST_Response
+    {
+        $wpUserId = AuthMiddleware::obtenerWpUserId();
+
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
+        }
+
+        PostgresService::ejecutar(
+            "UPDATE notificaciones SET leida = true WHERE usuario_id = :userId AND leida = false",
+            ['userId' => $usuario['id']]
+        );
+
+        return new \WP_REST_Response(['ok' => true], 200);
     }
 }

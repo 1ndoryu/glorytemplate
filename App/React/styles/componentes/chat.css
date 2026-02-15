@@ -1,0 +1,228 @@
+/*
+ * Estilos: ChatIsland — Kamples (Fase 7.3)
+ * Conversación individual con burbujas, input y header.
+ */
+
+.chatIsland {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+/* Header */
+.chatHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+    flex-shrink: 0;
+}
+
+.chatVolver {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--textoSecundario);
+    cursor: pointer;
+    padding: var(--espacioXs);
+    border-radius: var(--radioMd);
+    transition: color var(--transicionRapida), background var(--transicionRapida);
+}
+
+.chatVolver:hover {
+    color: var(--textoPrimario);
+    background: var(--fondoElevado1);
+}
+
+.chatHeaderInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.chatHeaderTexto {
+    display: flex;
+    flex-direction: column;
+}
+
+.chatHeaderNombre {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.chatHeaderEstado {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+/* Área de mensajes */
+.chatMensajes {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--espacioMd);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.chatMensajes::-webkit-scrollbar {
+    width: 4px;
+}
+
+.chatMensajes::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chatMensajes::-webkit-scrollbar-thumb {
+    background: var(--bordeSutil);
+    border-radius: var(--radioFull);
+}
+
+/* Separador de fecha */
+.chatGrupoFecha {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.chatFechaSeparador {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacioSm) 0;
+}
+
+.chatFechaSeparador span {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    background: var(--fondoElevado2);
+    padding: 2px var(--espacioSm);
+    border-radius: var(--radioFull);
+}
+
+/* Burbujas de mensaje */
+.chatBurbuja {
+    display: flex;
+    max-width: 75%;
+}
+
+.chatBurbujaMia {
+    align-self: flex-end;
+}
+
+.chatBurbujaOtra {
+    align-self: flex-start;
+}
+
+.chatBurbujaContenido {
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioLg);
+    max-width: 100%;
+}
+
+.chatBurbujaMia .chatBurbujaContenido {
+    background: var(--fondoElevado3);
+    border-bottom-right-radius: var(--radioSm);
+}
+
+.chatBurbujaOtra .chatBurbujaContenido {
+    background: var(--fondoElevado1);
+    border-bottom-left-radius: var(--radioSm);
+}
+
+.chatBurbujaContenido p {
+    margin: 0;
+    font-size: var(--fuenteMd);
+    color: var(--textoPrimario);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.chatBurbujaHora {
+    display: block;
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    margin-top: 2px;
+    text-align: right;
+}
+
+/* Input de mensaje */
+.chatInputArea {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--espacioSm);
+    padding: var(--espacioMd);
+    border-top: 1px solid var(--bordeSutil);
+    flex-shrink: 0;
+}
+
+.chatInput {
+    flex: 1;
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioSm) var(--espacioMd);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteMd);
+    font-family: var(--fuentePrincipal);
+    resize: none;
+    min-height: 36px;
+    max-height: 120px;
+    outline: none;
+    transition: border-color var(--transicionRapida);
+}
+
+.chatInput::placeholder {
+    color: var(--textoTerciario);
+}
+
+.chatInput:focus {
+    border-color: var(--bordeActivo);
+}
+
+.chatEnviarBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--fondoElevado2);
+    border: none;
+    border-radius: var(--radioMd);
+    color: var(--textoTerciario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    flex-shrink: 0;
+}
+
+.chatEnviarBtn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.chatEnviarBtnActivo {
+    background: var(--acento);
+    color: var(--acentoTexto);
+}
+
+.chatEnviarBtnActivo:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+/* Empty state */
+.chatVacio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteMd);
+}
