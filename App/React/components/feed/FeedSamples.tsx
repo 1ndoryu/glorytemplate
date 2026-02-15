@@ -15,6 +15,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { Music, Plus, Minus, ChevronRight } from 'lucide-react';
+import '../../styles/componentes/feedSamples.css';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
