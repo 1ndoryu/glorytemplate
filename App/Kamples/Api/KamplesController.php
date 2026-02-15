@@ -14,6 +14,7 @@ namespace App\Kamples\Api;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Database\VerificarPgvector;
 use App\Kamples\Auth\AuthMiddleware;
+use App\Kamples\KamplesLogger;
 
 class KamplesController
 {
@@ -1505,8 +1506,8 @@ class KamplesController
         $contenido = \sanitize_textarea_field($request->get_param('contenido') ?? '');
         $tagsRaw = $request->get_param('tags');
         $tags = is_string($tagsRaw) ? json_decode($tagsRaw, true) ?? [] : (array) ($tagsRaw ?? []);
-        $permitirDescarga = filter_var($request->get_param('permitir_descarga') ?? true, FILTER_VALIDATE_BOOLEAN);
-        $licenciaLibre = filter_var($request->get_param('licencia_libre') ?? false, FILTER_VALIDATE_BOOLEAN);
+        $permitirDescarga = \filter_var($request->get_param('permitir_descarga') ?? true, \FILTER_VALIDATE_BOOLEAN);
+        $licenciaLibre = \filter_var($request->get_param('licencia_libre') ?? false, \FILTER_VALIDATE_BOOLEAN);
 
         /* Validar mínimo 5 tags para que la IA tenga suficiente contexto */
         if (count($tags) < 5) {
@@ -1560,45 +1561,64 @@ class KamplesController
 
             $sampleId = $resultado['id'] ?? null;
         } catch (\Exception $e) {
-            error_log('[Kamples] Error al insertar sample en Postgres: ' . $e->getMessage());
+            KamplesLogger::error('Error al insertar sample en Postgres', ['error' => $e->getMessage()]);
         }
 
         /*
-         * Ejecutar pipeline de procesamiento.
-         * Incluye: duración, BPM/key (AnalizadorAudio), IA creativa (Gemini),
-         * waveform, MP3/preview (FFmpeg), renombrado.
-         * TO-DO: mover a background con wp_schedule_single_event() cuando el volumen crezca.
+         * Pipeline de procesamiento ASÍNCRONO.
+         * Se ejecuta DESPUÉS de enviar la respuesta HTTP al cliente.
+         * Esto evita que el modal quede esperando mientras se procesa el audio.
+         *
+         * Flujo: respuesta 201 → fastcgi_finish_request() → pipeline en background.
+         * El sample queda en estado 'procesando' hasta que el pipeline lo active.
          */
         if ($sampleId) {
-            try {
-                PipelineAudio::procesar($sampleId, $subido['file'], $audio['name'], $idCorto, $contenido, $tags);
-            } catch (\Exception $e) {
-                error_log('[Kamples] Pipeline error (no bloqueante): ' . $e->getMessage());
-            }
+            $datosPipeline = [
+                'sampleId'        => $sampleId,
+                'rutaArchivo'     => $subido['file'],
+                'nombreOriginal'  => $audio['name'],
+                'idCorto'         => $idCorto,
+                'descripcion'     => $contenido,
+                'tags'            => $tags,
+            ];
+
+            \add_action('shutdown', function () use ($datosPipeline) {
+                /* Enviar respuesta al cliente antes de procesar */
+                if (function_exists('fastcgi_finish_request')) {
+                    \fastcgi_finish_request();
+                }
+
+                /* Ampliar límites para el procesamiento en background */
+                @set_time_limit(300);
+                @ini_set('memory_limit', '256M');
+
+                try {
+                    PipelineAudio::procesar(
+                        $datosPipeline['sampleId'],
+                        $datosPipeline['rutaArchivo'],
+                        $datosPipeline['nombreOriginal'],
+                        $datosPipeline['idCorto'],
+                        $datosPipeline['descripcion'],
+                        $datosPipeline['tags']
+                    );
+                } catch (\Throwable $e) {
+                    KamplesLogger::error('Pipeline async error', [
+                        'sampleId' => $datosPipeline['sampleId'],
+                        'error'    => $e->getMessage(),
+                        'archivo'  => $e->getFile() . ':' . $e->getLine(),
+                    ]);
+                }
+            }, 0);
         }
 
-        /* Recuperar el sample actualizado para retornar datos completos */
-        $sampleFinal = null;
-        if ($sampleId) {
-            $sampleFinal = PostgresService::consultarUno(
-                "SELECT id, titulo, slug, id_corto, bpm, key, escala, tipo, estado, metadata, tags,
-                        ruta_original, ruta_optimizada, ruta_preview, ruta_waveform
-                 FROM samples WHERE id = :id",
-                ['id' => $sampleId]
-            );
-        }
-
+        /* Respuesta inmediata al cliente — sample en estado 'procesando' */
         return new \WP_REST_Response([
             'ok'        => true,
             'sample_id' => $sampleId,
             'id_corto'  => $idCorto,
-            'slug'      => $sampleFinal['slug'] ?? $slug,
+            'slug'      => $slug,
             'url'       => $subido['url'],
-            'estado'    => $sampleFinal['estado'] ?? 'procesando',
-            'metadata'  => $sampleFinal['metadata'] ?? null,
-            'bpm'       => $sampleFinal['bpm'] ?? null,
-            'key'       => $sampleFinal['key'] ?? null,
-            'tipo'      => $sampleFinal['tipo'] ?? null,
+            'estado'    => 'procesando',
         ], 201);
     }
 }

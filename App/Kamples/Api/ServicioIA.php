@@ -21,6 +21,8 @@
 
 namespace App\Kamples\Api;
 
+use App\Kamples\KamplesLogger;
+
 class ServicioIA
 {
     /* Modelos Gemini en orden de preferencia (fallback por cuota/error) */
@@ -54,7 +56,7 @@ class ServicioIA
     public static function analizarAudio(string $rutaArchivo, string $nombreOriginal, string $descripcionUsuario = '', array $contextoTecnico = []): ?array
     {
         if (!file_exists($rutaArchivo)) {
-            error_log('[Kamples] ServicioIA: Archivo no encontrado — ' . $rutaArchivo);
+            KamplesLogger::error('ServicioIA: Archivo no encontrado', ['ruta' => $rutaArchivo]);
             return null;
         }
 
@@ -67,13 +69,13 @@ class ServicioIA
         }
 
         /* === Intento 2: Groq (solo texto con contexto enriquecido) === */
-        error_log('[Kamples] ServicioIA: Gemini agotado, intentando Groq como fallback');
+        KamplesLogger::warning('ServicioIA: Gemini agotado, intentando Groq como fallback');
         $resultadoGroq = self::intentarGroq($prompt);
         if ($resultadoGroq !== null) {
             return $resultadoGroq;
         }
 
-        error_log('[Kamples] ServicioIA: Todos los proveedores fallaron (Gemini + Groq)');
+        KamplesLogger::critical('ServicioIA: Todos los proveedores fallaron (Gemini + Groq)');
         return null;
     }
 
@@ -87,19 +89,19 @@ class ServicioIA
     {
         $apiKey = self::obtenerApiKey('GOOGLE_GEMINI_API');
         if (!$apiKey) {
-            error_log('[Kamples] ServicioIA: API key de Gemini no configurada');
+            KamplesLogger::warning('ServicioIA: API key de Gemini no configurada');
             return null;
         }
 
         $tamano = filesize($rutaArchivo);
         if ($tamano > self::MAX_TAMANO_AUDIO) {
-            error_log('[Kamples] ServicioIA: Archivo demasiado grande para Gemini — ' . $tamano . ' bytes');
+            KamplesLogger::warning('ServicioIA: Archivo demasiado grande para Gemini', ['tamano' => $tamano, 'max' => self::MAX_TAMANO_AUDIO]);
             return null;
         }
 
         $audioBytes = file_get_contents($rutaArchivo);
         if ($audioBytes === false) {
-            error_log('[Kamples] ServicioIA: No se pudo leer el archivo');
+            KamplesLogger::error('ServicioIA: No se pudo leer el archivo', ['ruta' => $rutaArchivo]);
             return null;
         }
 
@@ -107,14 +109,15 @@ class ServicioIA
         $mimeType = self::detectarMime($rutaArchivo);
 
         foreach (self::MODELOS_GEMINI as $modelo) {
+            KamplesLogger::info('ServicioIA: Intentando Gemini/' . $modelo);
             $resultado = self::llamarGemini($modelo, $apiKey, $audioBase64, $mimeType, $prompt);
             if ($resultado !== null) {
-                error_log('[Kamples] ServicioIA: Análisis exitoso con Gemini/' . $modelo);
+                KamplesLogger::info('ServicioIA: Análisis exitoso con Gemini/' . $modelo);
                 return $resultado;
             }
         }
 
-        error_log('[Kamples] ServicioIA: Todos los modelos Gemini fallaron');
+        KamplesLogger::warning('ServicioIA: Todos los modelos Gemini fallaron');
         return null;
     }
 
@@ -168,19 +171,20 @@ class ServicioIA
     {
         $apiKey = self::obtenerApiKey('GROQ_API');
         if (!$apiKey) {
-            error_log('[Kamples] ServicioIA: API key de Groq no configurada');
+            KamplesLogger::warning('ServicioIA: API key de Groq no configurada');
             return null;
         }
 
         foreach (self::MODELOS_GROQ as $modelo) {
+            KamplesLogger::info('ServicioIA: Intentando Groq/' . $modelo);
             $resultado = self::llamarGroq($modelo, $apiKey, $prompt);
             if ($resultado !== null) {
-                error_log('[Kamples] ServicioIA: Análisis exitoso con Groq/' . $modelo);
+                KamplesLogger::info('ServicioIA: Análisis exitoso con Groq/' . $modelo);
                 return $resultado;
             }
         }
 
-        error_log('[Kamples] ServicioIA: Todos los modelos Groq fallaron');
+        KamplesLogger::warning('ServicioIA: Todos los modelos Groq fallaron');
         return null;
     }
 
@@ -290,13 +294,19 @@ PROMPT;
     {
         $respuesta = json_decode($respuestaRaw, true);
         if (!$respuesta) {
-            error_log('[Kamples] ServicioIA: Respuesta Gemini no es JSON válido');
+            KamplesLogger::error('ServicioIA: Respuesta Gemini no es JSON válido', [
+                'respuesta_raw' => mb_substr($respuestaRaw, 0, 1000),
+            ]);
             return null;
         }
 
         $texto = $respuesta['candidates'][0]['content']['parts'][0]['text'] ?? null;
         if (!$texto) {
-            error_log('[Kamples] ServicioIA: Sin texto en respuesta Gemini');
+            KamplesLogger::error('ServicioIA: Sin texto en respuesta Gemini', [
+                'estructura' => array_keys($respuesta),
+                'candidates' => isset($respuesta['candidates']) ? count($respuesta['candidates']) : 0,
+                'error_api' => $respuesta['error'] ?? null,
+            ]);
             return null;
         }
 
@@ -310,13 +320,18 @@ PROMPT;
     {
         $respuesta = json_decode($respuestaRaw, true);
         if (!$respuesta) {
-            error_log('[Kamples] ServicioIA: Respuesta Groq no es JSON válido');
+            KamplesLogger::error('ServicioIA: Respuesta Groq no es JSON válido', [
+                'respuesta_raw' => mb_substr($respuestaRaw, 0, 1000),
+            ]);
             return null;
         }
 
         $texto = $respuesta['choices'][0]['message']['content'] ?? null;
         if (!$texto) {
-            error_log('[Kamples] ServicioIA: Sin texto en respuesta Groq');
+            KamplesLogger::error('ServicioIA: Sin texto en respuesta Groq', [
+                'estructura' => array_keys($respuesta),
+                'error_api' => $respuesta['error'] ?? null,
+            ]);
             return null;
         }
 
@@ -351,6 +366,10 @@ PROMPT;
         }
 
         error_log('[Kamples] ServicioIA: No se pudo extraer JSON de la respuesta');
+        KamplesLogger::error('ServicioIA: No se pudo extraer JSON de la respuesta IA', [
+            'texto_raw' => mb_substr($texto, 0, 1500),
+            'json_error' => json_last_error_msg(),
+        ]);
         return null;
     }
 
@@ -380,12 +399,14 @@ PROMPT;
         curl_close($ch);
 
         if ($curlError) {
-            error_log("[Kamples] ServicioIA: cURL error ({$etiqueta}) — {$curlError}");
+            KamplesLogger::error("ServicioIA: cURL error ({$etiqueta})", ['error' => $curlError]);
             return null;
         }
 
         if ($httpCode !== 200) {
-            error_log("[Kamples] ServicioIA: HTTP {$httpCode} ({$etiqueta}) — " . substr($respuesta, 0, 500));
+            KamplesLogger::error("ServicioIA: HTTP {$httpCode} ({$etiqueta})", [
+                'respuesta' => mb_substr($respuesta, 0, 1000),
+            ]);
             return null;
         }
 

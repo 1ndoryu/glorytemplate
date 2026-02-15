@@ -24,6 +24,7 @@
 namespace App\Kamples\Api;
 
 use App\Kamples\Database\PostgresService;
+use App\Kamples\KamplesLogger;
 
 class PipelineAudio
 {
@@ -48,6 +49,12 @@ class PipelineAudio
     public static function procesar(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario = '', array $tagsUsuario = []): void
     {
         error_log("[Kamples] PipelineAudio: Iniciando procesamiento para sample #{$sampleId}");
+        KamplesLogger::info("Pipeline: Iniciando procesamiento", [
+            'sampleId' => $sampleId,
+            'archivo' => basename($rutaArchivo),
+            'idCorto' => $idCorto,
+            'tagsCount' => count($tagsUsuario),
+        ]);
 
         /* Paso 0: Verificar FFmpeg (OBLIGATORIO) */
         $ffmpeg = self::obtenerFFmpeg();
@@ -59,6 +66,7 @@ class PipelineAudio
                 ? 'Descargar de https://ffmpeg.org/download.html y agregar al PATH o colocar en C:\\ffmpeg\\bin\\'
                 : 'Instalar con: sudo apt install ffmpeg (o equivalente)';
             error_log($msg);
+            KamplesLogger::critical('Pipeline: FFmpeg NO encontrado', ['os' => PHP_OS]);
             throw new \RuntimeException('FFmpeg es obligatorio para procesar audio. No se encontró en el sistema.');
         }
 
@@ -84,6 +92,11 @@ class PipelineAudio
             $analisisTecnico['key'] ?? 'N/A',
             $analisisTecnico['escala'] ?? ''
         ));
+        KamplesLogger::info('Pipeline: Análisis técnico completado', [
+            'bpm' => $analisisTecnico['bpm'],
+            'key' => $analisisTecnico['key'],
+            'escala' => $analisisTecnico['escala'],
+        ]);
 
         /* Paso 3: Análisis creativo — tags, emociones, etc. con IA (Gemini + Groq fallback) */
         $contextoTecnico = [
@@ -97,6 +110,7 @@ class PipelineAudio
 
         if ($metadataIA) {
             error_log("[Kamples] PipelineAudio: IA completada — tipo={$metadataIA['tipo']}");
+            KamplesLogger::info('Pipeline: IA completada', ['tipo' => $metadataIA['tipo']]);
 
             $actualizaciones['tipo'] = $metadataIA['tipo'];
 
@@ -134,6 +148,7 @@ class PipelineAudio
                     $rutaArchivo = $nuevaRuta;
                     $actualizaciones['ruta_original'] = $nuevaRuta;
                     error_log("[Kamples] PipelineAudio: Archivo renombrado a {$nuevoNombre}");
+                    KamplesLogger::info('Pipeline: Archivo renombrado', ['nombre' => $nuevoNombre]);
                 }
             }
         }
@@ -164,6 +179,7 @@ class PipelineAudio
         self::actualizarSample($sampleId, $actualizaciones);
 
         error_log("[Kamples] PipelineAudio: Procesamiento completado para sample #{$sampleId}");
+        KamplesLogger::info('Pipeline: Procesamiento completado', ['sampleId' => $sampleId, 'estado' => 'activo']);
     }
 
     /*
@@ -269,7 +285,7 @@ class PipelineAudio
         $peaks = [];
         $base = 0.4;
         for ($i = 0; $i < self::WAVEFORM_BARRAS; $i++) {
-            $variacion = sin($i * 0.3) * 0.2 + (mt_rand(0, 100) / 500);
+            $variacion = sin($i * 0.3) * 0.2 + (\mt_rand(0, 100) / 500);
             $peaks[] = round(min(1, max(0.05, $base + $variacion)), 4);
         }
         return $peaks;
@@ -299,7 +315,9 @@ class PipelineAudio
         self::$ffmpegBin = self::buscarBinario('ffmpeg');
 
         if (self::$ffmpegBin) {
-            error_log('[Kamples] FFmpeg encontrado en: ' . self::$ffmpegBin);
+            KamplesLogger::info('FFmpeg encontrado', ['ruta' => self::$ffmpegBin]);
+        } else {
+            KamplesLogger::warning('FFmpeg no encontrado en ninguna ubicación');
         }
 
         return self::$ffmpegBin ?: null;
@@ -313,6 +331,11 @@ class PipelineAudio
         if (self::$ffprobeBin !== null) return self::$ffprobeBin ?: null;
 
         self::$ffprobeBin = self::buscarBinario('ffprobe');
+
+        if (self::$ffprobeBin) {
+            KamplesLogger::debug('FFprobe encontrado', ['ruta' => self::$ffprobeBin]);
+        }
+
         return self::$ffprobeBin ?: null;
     }
 
@@ -322,6 +345,7 @@ class PipelineAudio
      *
      * PHP bajo Apache/LocalWP no hereda el PATH del usuario de Windows,
      * por eso es necesario buscar en rutas explícitas.
+     * Se intenta construir LOCALAPPDATA desde USERPROFILE si no está disponible.
      */
     private static function buscarBinario(string $nombre): string
     {
@@ -332,6 +356,7 @@ class PipelineAudio
         $envVar = strtoupper($nombre) . '_PATH';
         $envRuta = $_ENV[$envVar] ?? getenv($envVar) ?: null;
         if ($envRuta && file_exists($envRuta)) {
+            KamplesLogger::debug("Binario {$nombre} encontrado via .env", ['ruta' => $envRuta]);
             return $envRuta;
         }
 
@@ -345,6 +370,7 @@ class PipelineAudio
         if ($output) {
             $ruta = trim(explode("\n", $output)[0]);
             if (!empty($ruta) && file_exists($ruta)) {
+                KamplesLogger::debug("Binario {$nombre} encontrado via PATH", ['ruta' => $ruta]);
                 return $ruta;
             }
         }
@@ -353,6 +379,34 @@ class PipelineAudio
         if ($esWindows) {
             $localAppData = getenv('LOCALAPPDATA') ?: '';
             $userProfile = getenv('USERPROFILE') ?: '';
+
+            /*
+             * PHP bajo Apache/LocalWP a veces no hereda LOCALAPPDATA.
+             * Reconstruir desde USERPROFILE si está vacío.
+             */
+            if (!$localAppData && $userProfile) {
+                $localAppData = $userProfile . '\\AppData\\Local';
+            }
+
+            /*
+             * Último recurso: reconstruir desde SystemRoot (C:\Users\<usuario>).
+             * Usamos get_current_user() que en Windows devuelve el usuario de IIS/Apache.
+             */
+            if (!$localAppData) {
+                $systemDrive = getenv('SystemDrive') ?: 'C:';
+                $currentUser = get_current_user();
+                if ($currentUser) {
+                    $localAppData = "{$systemDrive}\\Users\\{$currentUser}\\AppData\\Local";
+                    if (!$userProfile) {
+                        $userProfile = "{$systemDrive}\\Users\\{$currentUser}";
+                    }
+                }
+            }
+
+            KamplesLogger::debug("Buscando {$nombre} en rutas Windows", [
+                'LOCALAPPDATA' => $localAppData,
+                'USERPROFILE' => $userProfile,
+            ]);
 
             $rutas = [
                 "C:\\ffmpeg\\bin\\{$ejecutable}",
@@ -378,6 +432,7 @@ class PipelineAudio
                     /* Última versión alfabéticamente = más reciente */
                     sort($encontrados);
                     $rutas[] = end($encontrados);
+                    KamplesLogger::debug("WinGet glob encontró {$nombre}", ['ruta' => end($encontrados)]);
                 }
             }
         } else {
@@ -391,10 +446,14 @@ class PipelineAudio
 
         foreach ($rutas as $ruta) {
             if (!empty($ruta) && file_exists($ruta)) {
+                KamplesLogger::debug("Binario {$nombre} encontrado en ruta manual", ['ruta' => $ruta]);
                 return $ruta;
             }
         }
 
+        KamplesLogger::warning("Binario {$nombre} no encontrado en ninguna ubicación", [
+            'rutasInspected' => count($rutas ?? []),
+        ]);
         return '';
     }
 
@@ -501,6 +560,10 @@ class PipelineAudio
             PostgresService::ejecutar($sql, $params);
         } catch (\Exception $e) {
             error_log('[Kamples] PipelineAudio: Error actualizando sample — ' . $e->getMessage());
+            KamplesLogger::error('Pipeline: Error actualizando sample en DB', [
+                'sampleId' => $sampleId,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }

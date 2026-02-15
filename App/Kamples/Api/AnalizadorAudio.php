@@ -16,6 +16,8 @@
 
 namespace App\Kamples\Api;
 
+use App\Kamples\KamplesLogger;
+
 class AnalizadorAudio
 {
     /* Configuración de análisis BPM */
@@ -92,8 +94,8 @@ class AnalizadorAudio
             $resultado['key_confianza'] = $keyData['confianza'];
         }
 
-        error_log(sprintf(
-            '[Kamples] AnalizadorAudio: BPM=%s (%.0f%%), Key=%s %s (%.0f%%)',
+        KamplesLogger::info(sprintf(
+            'AnalizadorAudio: BPM=%s (%.0f%%), Key=%s %s (%.0f%%)',
             $resultado['bpm'] ?? 'N/A',
             $resultado['bpm_confianza'] * 100,
             $resultado['key'] ?? 'N/A',
@@ -131,7 +133,7 @@ class AnalizadorAudio
         exec($cmd, $output, $returnCode);
 
         if ($returnCode !== 0 || !file_exists($tmpPcm)) {
-            error_log('[Kamples] AnalizadorAudio: Error exportando PCM para BPM');
+            KamplesLogger::error('AnalizadorAudio: Error exportando PCM para BPM');
             @unlink($tmpPcm);
             return null;
         }
@@ -258,7 +260,7 @@ class AnalizadorAudio
         exec($cmd, $output, $returnCode);
 
         if ($returnCode !== 0 || !file_exists($tmpPcm)) {
-            error_log('[Kamples] AnalizadorAudio: Error exportando PCM para key');
+            KamplesLogger::error('AnalizadorAudio: Error exportando PCM para key');
             @unlink($tmpPcm);
             return null;
         }

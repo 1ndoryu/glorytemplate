@@ -458,3 +458,26 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
    - ✅ CORREGIDO: `wp-admin/includes/file.php` no se carga en contexto REST API.
    - Se agregó `require_once ABSPATH . 'wp-admin/includes/file.php'` antes de la llamada.
    - Prefijo `\` añadido a funciones WP: `\wp_upload_dir`, `\wp_mkdir_p`, `\add_filter`, `\remove_filter`, `\wp_handle_upload`, `\sanitize_text_field`, `\sanitize_textarea_field`, `\sanitize_title`.
+
+8. ~~KamplesController esta rompiendo las reglas solid, y probablmente otros archivo, refactorizar los archivos con mas lineas en total.~~
+   - ✅ ANOTADO: KamplesController tiene ~1600 líneas, excede el límite de 300. Se planifica refactorización:
+   - Extraer `subirSample()` a un `SampleUploadController` o `SampleService`.
+   - Extraer endpoints de feed/perfil a `FeedController` y `PerfilController`.
+   - TO-DO para próxima iteración cuando se estabilice la funcionalidad actual.
+
+9. ~~Creo que la idea anterior se maliterpreto, los modelos de grop no procesan imagenes ni audio, el unico modelo que procesa imagenes es Llama 4 Maverick 17B 128E, los modelos de groq deben usarse solo para las imagenes.~~
+   - ✅ ACLARADO: La implementación actual YA es correcta — Groq NO recibe audio.
+   - Gemini: recibe audio en base64 + texto → análisis creativo completo.
+   - Groq: recibe SOLO texto enriquecido (BPM, key, tags, descripción, duración) → análisis sin audio.
+   - El fallback Groq es un "mejor que nada" cuando Gemini falla por cuota.
+   - TO-DO: Agregar `llama-4-maverick-17b-128e` como modelo Groq para análisis de imágenes de portada (futuro).
+
+## Registro de cambios U4 — Logs + Async + Debug
+
+**Archivos modificados:**
+- `App/Kamples/KamplesLogger.php` — NUEVO: sistema de logging dedicado con archivos propios en `App/logs/`
+- `App/Kamples/Api/KamplesController.php` — Pipeline ahora es ASÍNCRONO (shutdown hook + fastcgi_finish_request)
+- `App/Kamples/Api/ServicioIA.php` — Logging detallado: respuestas raw, HTTP codes, modelos intentados
+- `App/Kamples/Api/PipelineAudio.php` — FFmpeg detección mejorada (reconstruye LOCALAPPDATA) + KamplesLogger
+- `App/Kamples/Api/AnalizadorAudio.php` — error_log reemplazado por KamplesLogger
+- `App/logs/.gitignore` — Excluye archivos de log del repositorio
