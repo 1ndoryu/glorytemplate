@@ -18,7 +18,6 @@ import { listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { FiltrosSamples, RespuestaListaSamples } from '@app/services/apiSamples';
 import type { SampleResumen } from '@app/types';
-import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import '../../styles/componentes/samples.css';
@@ -40,8 +39,6 @@ export const SamplesIsland = (): JSX.Element => {
     const [paginacion, setPaginacion] = useState({ page: 1, pages: 1, total: 0 });
     const [tabActiva, setTabActiva] = useState('todos');
 
-    const { sampleActual, reproduciendo, progreso, setSample, pause } =
-        useReproductorStore();
     const { navegar } = useNavigationStore();
     const menu = useMenuContextualSample();
 
@@ -117,18 +114,6 @@ export const SamplesIsland = (): JSX.Element => {
     const irAPagina = useCallback((pagina: number) => {
         setFiltros((prev) => ({ ...prev, page: pagina }));
     }, []);
-
-    /* Reproducción */
-    const manejarPlay = useCallback(
-        (sample: SampleResumen) => {
-            setSample(sample);
-        },
-        [setSample]
-    );
-
-    const manejarPause = useCallback(() => {
-        pause();
-    }, [pause]);
 
     /* Tabs */
     const manejarTab = useCallback((tabId: string) => {
@@ -233,11 +218,6 @@ export const SamplesIsland = (): JSX.Element => {
                         <TarjetaSample
                             key={sample.id}
                             sample={sample}
-                            activa={sampleActual?.id === sample.id}
-                            reproduciendo={sampleActual?.id === sample.id && reproduciendo}
-                            progreso={sampleActual?.id === sample.id ? progreso : 0}
-                            onPlay={manejarPlay}
-                            onPause={manejarPause}
                             onLike={manejarLike}
                             onMenu={menu.abrirMenu}
                             onClickCreador={(u) => navegar(`/perfil/${u}`)}

@@ -119,17 +119,136 @@
 /* Sección de tags dinámicos */
 .inicioTags {
     display: flex;
-    align-items: center;
-    gap: var(--espacioSm);
-    flex-wrap: wrap;
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--espacioXl);
 }
 
 .inicioTagsLista {
     display: flex;
     align-items: center;
     gap: var(--espacioXs);
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.inicioTagsLista::-webkit-scrollbar {
+    display: none;
+}
+
+.inicioTagsListaArrastrando {
+    cursor: grabbing;
+}
+
+.inicioTagItem {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioFull);
+    color: var(--textoSecundario);
+    background-color: var(--fondoElevado3);
+    font-size: var(--fuenteSm);
+    padding: 2px var(--espacioMd);
+    white-space: nowrap;
+    flex-shrink: 0;
+    position: relative;
+    overflow: visible;
+}
+
+.inicioTagItemIncluido {
+    border-color: var(--acento);
+    color: var(--textoPrimario);
+}
+
+.inicioTagItemExcluido {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+.inicioTagTexto {
+    line-height: 2;
+    border: none;
+    background: none;
+    color: inherit;
+    font-size: inherit;
+    padding: 0;
+    cursor: pointer;
+}
+
+.inicioTagBoton {
+    position: relative;
+    width: 0;
+    height: 14px;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: var(--radioSm);
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    transition: width var(--transicionRapida), opacity var(--transicionRapida), margin var(--transicionRapida);
+}
+
+.inicioTagBotonRestar {
+    margin-right: 0;
+}
+
+.inicioTagBotonSumar {
+    margin-left: 0;
+}
+
+.inicioTagItem:hover .inicioTagBoton,
+.inicioTagItem:focus-within .inicioTagBoton {
+    width: 14px;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.inicioTagItem:hover .inicioTagBotonRestar,
+.inicioTagItem:focus-within .inicioTagBotonRestar {
+    margin-right: 2px;
+}
+
+.inicioTagItem:hover .inicioTagBotonSumar,
+.inicioTagItem:focus-within .inicioTagBotonSumar {
+    margin-left: 2px;
+}
+
+.inicioTagBoton:hover {
+    background-color: var(--fondoElevado2);
+}
+
+.inicioTagBotonSumar:hover {
+    color: var(--textoPrimario);
+}
+
+.inicioTagBotonRestar:hover {
+    color: var(--error);
+}
+
+.inicioTagsPie {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.inicioTagsContador {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
 }
 
 /* Botón de filtros avanzados */
@@ -139,9 +258,9 @@
     justify-content: center;
     gap: var(--espacioXs);
     background: none;
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioMd);
-    padding: var(--espacioXs) var(--espacioSm);
+    border: none;
+    border-radius: 0;
+    padding: 0;
     color: var(--textoSecundario);
     font-size: var(--fuenteSm);
     cursor: pointer;
@@ -152,8 +271,6 @@
 
 .inicioFiltrosBtn:hover {
     color: var(--textoPrimario);
-    border-color: var(--textoPrimario);
-    background-color: var(--fondoElevado2);
 }
 
 /* Estado vacío */
@@ -181,5 +298,10 @@
 
     .inicioHeroCard {
         padding: var(--espacioLg);
+    }
+
+    .inicioTagItem:active .inicioTagBoton {
+        opacity: 1;
+        pointer-events: auto;
     }
 }

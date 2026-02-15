@@ -20,7 +20,13 @@ const c3 = creadorDemo(3, 'trap_nation', 'Trap Nation');
 const c4 = creadorDemo(4, 'drumkit_pro', 'DrumKit Pro');
 const c5 = creadorDemo(5, 'vocal_queen', 'Vocal Queen');
 
-export const samplesMock: SampleResumen[] = [
+const RUTAS_PREVIEW_DEMO = [
+    '/wp-content/themes/glorytemplate/App/Assets/audio/demo-1.wav',
+    '/wp-content/themes/glorytemplate/App/Assets/audio/demo-2.wav',
+    '/wp-content/themes/glorytemplate/App/Assets/audio/demo-3.wav',
+];
+
+const samplesMockBase: SampleResumen[] = [
     {
         id: 1,
         titulo: 'Midnight Synth Pad',
@@ -239,6 +245,11 @@ export const samplesMock: SampleResumen[] = [
     },
 ];
 
+export const samplesMock: SampleResumen[] = samplesMockBase.map((sample, index) => ({
+    ...sample,
+    rutaPreview: RUTAS_PREVIEW_DEMO[index % RUTAS_PREVIEW_DEMO.length],
+}));
+
 /* Sample completo de detalle (para SampleDetalleIsland) */
 export const sampleDetalladoMock: Sample = {
     id: 1,
@@ -265,7 +276,7 @@ export const sampleDetalladoMock: Sample = {
     precio: null,
     rutaOriginal: '',
     rutaOptimizada: '',
-    rutaPreview: '',
+    rutaPreview: RUTAS_PREVIEW_DEMO[0],
     rutaWaveform: '',
     imagenUrl: null,
     totalDescargas: 1240,

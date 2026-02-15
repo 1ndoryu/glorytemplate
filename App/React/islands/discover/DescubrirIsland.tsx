@@ -11,7 +11,6 @@ import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { obtenerFeed } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
-import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import type { SampleResumen } from '@app/types';
@@ -28,7 +27,6 @@ export const DescubrirIsland = (): JSX.Element => {
     const [secciones, setSecciones] = useState<SeccionDescubrir[]>([]);
     const [cargando, setCargando] = useState(true);
 
-    const { sampleActual, reproduciendo, progreso, setSample } = useReproductorStore();
     const { navegar } = useNavigationStore();
     const menu = useMenuContextualSample();
 
@@ -107,10 +105,6 @@ export const DescubrirIsland = (): JSX.Element => {
         <TarjetaSample
             key={sample.id}
             sample={sample}
-            onPlay={(s) => setSample(s)}
-            activa={sampleActual?.id === sample.id}
-            reproduciendo={sampleActual?.id === sample.id && reproduciendo}
-            progreso={sampleActual?.id === sample.id ? progreso : 0}
             onLike={manejarLike}
             onMenu={menu.abrirMenu}
             onClickCreador={(u) => navegar(`/perfil/${u}/`)}

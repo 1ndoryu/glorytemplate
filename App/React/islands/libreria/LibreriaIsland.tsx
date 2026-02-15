@@ -19,7 +19,6 @@ import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { listarColecciones, eliminarColeccion } from '@app/services/apiColecciones';
-import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useSubirModalStore } from '@app/stores/subirModalStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
@@ -56,8 +55,6 @@ export const LibreriaIsland = (): JSX.Element => {
     const [modalColeccionAbierto, setModalColeccionAbierto] = useState(false);
     const [coleccionEditando, setColeccionEditando] = useState<Coleccion | null>(null);
 
-    const { sampleActual, reproduciendo, progreso, setSample, play, pause } =
-        useReproductorStore();
     const { navegar } = useNavigationStore();
     const { abrir: abrirSubirModal } = useSubirModalStore();
     const menu = useMenuContextualSample();
@@ -89,17 +86,6 @@ export const LibreriaIsland = (): JSX.Element => {
         };
         cargar();
     }, [tabActiva, busqueda]);
-
-    const manejarPlay = useCallback(
-        (sample: SampleResumen) => {
-            if (sampleActual?.id === sample.id) {
-                reproduciendo ? pause() : play();
-            } else {
-                setSample(sample);
-            }
-        },
-        [sampleActual, reproduciendo, pause, play, setSample]
-    );
 
     const manejarLike = useCallback(async (sampleId: number) => {
         setSamples((prev) =>
@@ -231,11 +217,6 @@ export const LibreriaIsland = (): JSX.Element => {
                         <TarjetaSample
                             key={sample.id}
                             sample={sample}
-                            activa={sampleActual?.id === sample.id}
-                            reproduciendo={sampleActual?.id === sample.id && reproduciendo}
-                            progreso={sampleActual?.id === sample.id ? progreso : 0}
-                            onPlay={() => manejarPlay(sample)}
-                            onPause={pause}
                             onLike={manejarLike}
                             onMenu={menu.abrirMenu}
                             onClickCreador={(u) => navegar(`/perfil/${u}`)}

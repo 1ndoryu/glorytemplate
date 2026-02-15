@@ -28,7 +28,7 @@
 }
 
 .landingHeroTitulo {
-    font-size: 32px;
+    font-size: var(--fuente2xl);
     font-weight: var(--pesoBold);
     color: var(--textoPrimario);
     line-height: 1.2;
@@ -167,7 +167,7 @@
 }
 
 .landingPlanPrecio {
-    font-size: 28px;
+    font-size: var(--fuenteXl);
     font-weight: var(--pesoBold);
     color: var(--textoPrimario);
 }

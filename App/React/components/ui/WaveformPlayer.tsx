@@ -25,6 +25,9 @@ interface WaveformPlayerProps {
     colorFondo?: string;
     className?: string;
     interactivo?: boolean;
+    anchoBarra?: number;
+    espacioBarra?: number;
+    simetrico?: boolean;
 }
 
 const ALTOS: Record<TamanoWaveform, number> = {
@@ -71,6 +74,9 @@ export const WaveformPlayer = ({
     colorFondo = 'transparent',
     className = '',
     interactivo = true,
+    anchoBarra,
+    espacioBarra,
+    simetrico = true,
 }: WaveformPlayerProps): JSX.Element => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const contenedorRef = useRef<HTMLDivElement>(null);
@@ -112,26 +118,31 @@ export const WaveformPlayer = ({
 
         const datos = datosPicos.current;
         const numBarras = datos.length;
-        const anchoBarra = anchoLogico / numBarras;
-        const gap = Math.max(1, anchoBarra * 0.2);
-        const anchoBarraReal = anchoBarra - gap;
+        const anchoBarraBase = anchoBarra ?? Math.max(1.5, anchoLogico / numBarras - 1);
+        const gap = espacioBarra ?? Math.max(1, (anchoLogico / numBarras) * 0.2);
+        const paso = anchoBarraBase + gap;
+        const anchoDibujo = numBarras * paso - gap;
+        const offsetX = Math.max(0, (anchoLogico - anchoDibujo) / 2);
         const mitad = altoLogico / 2;
         const puntoProgreso = progreso * anchoLogico;
 
         for (let i = 0; i < numBarras; i++) {
-            const x = i * anchoBarra + gap / 2;
+            const x = offsetX + i * paso;
             const altoPico = datos[i] * mitad * 0.9;
 
             /* Color según si ya se reprodujo */
             ctx.fillStyle = x < puntoProgreso ? colorReproducido : colorNoReproducido;
 
-            /* Barra superior (espejo) */
-            ctx.fillRect(x, mitad - altoPico, anchoBarraReal, altoPico);
+            if (simetrico) {
+                /* Barra superior (espejo) */
+                ctx.fillRect(x, mitad - altoPico, anchoBarraBase, altoPico);
 
-            /* Barra inferior (reflejo más tenue) */
-            ctx.globalAlpha = 0.4;
-            ctx.fillRect(x, mitad, anchoBarraReal, altoPico * 0.6);
-            ctx.globalAlpha = 1;
+                /* Barra inferior (espejo exacto) */
+                ctx.fillRect(x, mitad, anchoBarraBase, altoPico);
+            } else {
+                const altoClasico = Math.max(2, datos[i] * (altoLogico - 2));
+                ctx.fillRect(x, altoLogico - altoClasico, anchoBarraBase, altoClasico);
+            }
         }
 
         /* Línea de hover */
@@ -143,7 +154,7 @@ export const WaveformPlayer = ({
             ctx.lineTo(hoverX, altoLogico);
             ctx.stroke();
         }
-    }, [progreso, tamano, colorReproducido, colorNoReproducido, colorFondo, hoverX, interactivo]);
+    }, [progreso, tamano, colorReproducido, colorNoReproducido, colorFondo, hoverX, interactivo, anchoBarra, espacioBarra, simetrico]);
 
     /* Redibujar cuando cambian las dependencias */
     useEffect(() => {

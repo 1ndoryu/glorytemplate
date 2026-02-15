@@ -152,8 +152,12 @@
     overflow: hidden;
 }
 
-.crearImagenes1 { grid-template-columns: 1fr; }
-.crearImagenes2 { grid-template-columns: 1fr 1fr; }
+.crearImagenes1 {
+    grid-template-columns: 1fr;
+}
+.crearImagenes2 {
+    grid-template-columns: 1fr 1fr;
+}
 
 .crearImagenes3 {
     grid-template-columns: 1fr 1fr;
@@ -191,7 +195,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: var(--overlayOscuro);
     color: var(--textoPrimario);
     border: none;
     border-radius: var(--radioFull);
@@ -200,7 +204,7 @@
 }
 
 .crearImagenQuitar:hover {
-    background-color: rgba(200, 0, 0, 0.8);
+    background-color: var(--error);
 }
 
 /* Overlay de drag & drop (solo visible al arrastrar) */

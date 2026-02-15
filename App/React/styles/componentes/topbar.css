@@ -15,7 +15,7 @@
 .topbarTabs {
     display: flex;
     align-items: center;
-    gap: var(--espacioSm);
+    gap: var(--espacioMd);
     flex: 1;
 }
 
@@ -59,7 +59,7 @@
     background: none;
     border: none;
     padding: var(--espacioXs) var(--espacioMd);
-    font-size: var(--fuenteSm);
+    font-size: var(--fuenteMd);
     font-weight: var(--pesoMedium);
     color: var(--textoSecundario);
     cursor: pointer;

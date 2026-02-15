@@ -233,7 +233,7 @@ export const ModalCrear = (): JSX.Element | null => {
                     <Avatar
                         src={usuario?.avatarUrl ?? null}
                         nombre={usuario?.nombreVisible ?? ''}
-                        tamano="md"
+                        tamano="sm"
                     />
                     <span className="crearUsuario">
                         {usuario?.nombreVisible ?? usuario?.username}
@@ -248,7 +248,7 @@ export const ModalCrear = (): JSX.Element | null => {
                     value={contenido}
                     onChange={manejarCambioTexto}
                     onKeyDown={manejarKeyDown}
-                    rows={2}
+                    rows={1}
                     autoFocus
                 />
 
@@ -390,7 +390,7 @@ export const ModalCrear = (): JSX.Element | null => {
                             onClick={manejarPublicar}
                             disabled={!puedePublicar}
                         >
-                            {publicando ? 'Publicando...' : <Send size={14} />}
+                            {publicando ? 'Publicando...' : 'Publicar'}
                         </BotonBase>
                     </div>
                 </div>

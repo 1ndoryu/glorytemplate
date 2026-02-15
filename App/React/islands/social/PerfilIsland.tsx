@@ -17,7 +17,6 @@ import { obtenerPerfil } from '../../services/apiAuth';
 import { listarSamples } from '../../services/apiSamples';
 import { darLike, quitarLike } from '../../services/apiSocial';
 import { useAuthStore } from '../../stores/authStore';
-import { useReproductorStore } from '../../stores/reproductorStore';
 import { useTabsTopBarStore } from '../../stores/tabsTopBarStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '../../hooks/useMenuContextualSample';
@@ -49,7 +48,6 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
     const [cargandoTab, setCargandoTab] = useState(false);
 
     const { usuario: usuarioAuth } = useAuthStore();
-    const { sampleActual, reproduciendo, progreso, setSample, play, pause } = useReproductorStore();
     const { activa: tabActiva, setTabs } = useTabsTopBarStore();
     const { navegar } = useNavigationStore();
     const menu = useMenuContextualSample();
@@ -124,12 +122,6 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
         cargarTab();
     }, [usuario, tabActiva]);
 
-    /* Reproducción */
-    const manejarPlay = useCallback((sample: SampleResumen) => {
-        setSample(sample);
-        play();
-    }, [setSample, play]);
-
     /* Like con optimistic UI */
     const manejarLike = useCallback(async (sampleId: number) => {
         const actualizar = (lista: SampleResumen[]) =>
@@ -192,11 +184,6 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                     <TarjetaSample
                         key={sample.id}
                         sample={sample}
-                        activa={sampleActual?.id === sample.id}
-                        reproduciendo={sampleActual?.id === sample.id && reproduciendo}
-                        progreso={sampleActual?.id === sample.id ? progreso : 0}
-                        onPlay={manejarPlay}
-                        onPause={pause}
                         onLike={manejarLike}
                         onMenu={menu.abrirMenu}
                         onClickCreador={manejarClickCreador}

@@ -101,7 +101,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: var(--overlayOscuro);
     color: var(--textoPrimario);
     border: none;
     border-radius: var(--radioFull);
@@ -110,7 +110,7 @@
 }
 
 .publicarImagenQuitar:hover {
-    background-color: rgba(200, 0, 0, 0.8);
+    background-color: var(--error);
 }
 
 /* Barra de acciones inferior */

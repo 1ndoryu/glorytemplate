@@ -4,7 +4,7 @@
  * Muestra waveform grande, metadata, acciones y samples similares.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
     Play,
     Pause,
@@ -22,7 +22,6 @@ import {
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { obtenerSample, listarSamples } from '@app/services/apiSamples';
-import { useReproductorStore } from '@app/stores/reproductorStore';
 import type { Sample, SampleResumen } from '@app/types';
 import '../../styles/componentes/sampleDetalle.css';
 
@@ -37,19 +36,12 @@ export const SampleDetalleIsland = ({ slug }: SampleDetalleProps): JSX.Element =
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
     const [liked, setLiked] = useState(false);
+    const [reproduciendo, setReproduciendo] = useState(false);
+    const [progreso, setProgreso] = useState(0);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const rutaPreviewRef = useRef('');
 
-    const {
-        sampleActual,
-        reproduciendo,
-        progreso,
-        setSample: reproducir,
-        play,
-        pause,
-        setProgreso,
-    } = useReproductorStore();
-
-    const esActivo = sampleActual?.id === sample?.id;
-    const estaReproduciendo = esActivo && reproduciendo;
+    const estaReproduciendo = reproduciendo;
 
     /* Cargar sample al montar */
     useEffect(() => {
@@ -86,41 +78,73 @@ export const SampleDetalleIsland = ({ slug }: SampleDetalleProps): JSX.Element =
         cargar();
     }, [slug]);
 
-    /* Manejar play/pause */
-    const manejarPlay = useCallback(() => {
+    /* Inicializar/actualizar audio local */
+    useEffect(() => {
         if (!sample) return;
 
-        if (esActivo) {
-            estaReproduciendo ? pause() : play();
-        } else {
-            /* Crear SampleResumen mínimo para el reproductor */
-            const resumen: SampleResumen = {
-                id: sample.id,
-                titulo: sample.titulo,
-                slug: sample.slug,
-                bpm: sample.bpm,
-                key: sample.key,
-                escala: sample.escala,
-                duracion: sample.duracion,
-                tags: sample.tags,
-                tipo: sample.metadata.tipo,
-                esPremium: sample.esPremium,
-                rutaPreview: sample.rutaPreview,
-                rutaWaveform: sample.rutaWaveform,
-                imagenUrl: sample.imagenUrl,
-                totalDescargas: sample.totalDescargas,
-                totalLikes: sample.totalLikes,
-                creador: sample.creador ?? {
-                    id: sample.creadorId,
-                    username: '',
-                    nombreVisible: 'Desconocido',
-                    avatarUrl: null,
-                    verificado: false,
-                },
-            };
-            reproducir(resumen);
+        if (!audioRef.current) {
+            audioRef.current = new Audio(sample.rutaPreview);
+            rutaPreviewRef.current = sample.rutaPreview;
         }
-    }, [sample, esActivo, estaReproduciendo, pause, play, reproducir]);
+
+        const audio = audioRef.current;
+        if (rutaPreviewRef.current !== sample.rutaPreview) {
+            rutaPreviewRef.current = sample.rutaPreview;
+            audio.src = sample.rutaPreview;
+            audio.load();
+            setProgreso(0);
+            setReproduciendo(false);
+        }
+
+        const actualizarProgreso = () => {
+            if (!audio.duration) return;
+            setProgreso(audio.currentTime / audio.duration);
+        };
+
+        const manejarPlay = () => setReproduciendo(true);
+        const manejarPause = () => setReproduciendo(false);
+        const manejarFin = () => {
+            setReproduciendo(false);
+            setProgreso(0);
+            audio.currentTime = 0;
+        };
+
+        audio.addEventListener('timeupdate', actualizarProgreso);
+        audio.addEventListener('play', manejarPlay);
+        audio.addEventListener('pause', manejarPause);
+        audio.addEventListener('ended', manejarFin);
+
+        return () => {
+            audio.removeEventListener('timeupdate', actualizarProgreso);
+            audio.removeEventListener('play', manejarPlay);
+            audio.removeEventListener('pause', manejarPause);
+            audio.removeEventListener('ended', manejarFin);
+        };
+    }, [sample]);
+
+    useEffect(() => {
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, []);
+
+    /* Manejar play/pause */
+    const manejarPlay = useCallback(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        if (audio.paused) {
+            audio.play().catch(() => {
+                setReproduciendo(false);
+            });
+            return;
+        }
+
+        audio.pause();
+    }, []);
 
     /* Formatear duración en mm:ss */
     const formatearDuracion = (seg: number): string => {
@@ -166,12 +190,16 @@ export const SampleDetalleIsland = ({ slug }: SampleDetalleProps): JSX.Element =
                 <div className="detalleWaveform">
                     <WaveformPlayer
                         picos={null}
-                        progreso={esActivo ? progreso : 0}
+                        progreso={progreso}
                         duracion={sample.duracion}
                         tamano="xl"
                         interactivo
                         onSeek={(pct) => {
-                            if (esActivo) setProgreso(pct);
+                            const audio = audioRef.current;
+                            if (audio?.duration) {
+                                audio.currentTime = pct * audio.duration;
+                                setProgreso(pct);
+                            }
                         }}
                     />
                 </div>
@@ -297,11 +325,6 @@ export const SampleDetalleIsland = ({ slug }: SampleDetalleProps): JSX.Element =
                             <TarjetaSample
                                 key={s.id}
                                 sample={s}
-                                activa={sampleActual?.id === s.id}
-                                reproduciendo={sampleActual?.id === s.id && reproduciendo}
-                                progreso={sampleActual?.id === s.id ? progreso : 0}
-                                onPlay={() => reproducir(s)}
-                                onPause={pause}
                             />
                         ))}
                     </div>

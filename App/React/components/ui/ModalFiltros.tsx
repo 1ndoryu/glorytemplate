@@ -46,8 +46,6 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
     return (
         <Modal abierto={abierto} onCerrar={onCerrar}>
             <div className="filtrosContenido">
-                <h3 className="filtrosTitulo">Filtros</h3>
-
                 <div className="filtrosGrupo">
                     <label className="filtrosLabel">Tipo</label>
                     <select

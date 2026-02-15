@@ -16,9 +16,9 @@
 }
 
 .planesHeader h1 {
-    font-size: 28px;
+    font-size: var(--fuenteXl);
     font-weight: var(--pesoBold);
-    color: var(--textoBase);
+    color: var(--textoPrimario);
     margin-bottom: 8px;
 }
 
@@ -54,7 +54,7 @@
 
 .planesToggleBtnActivo {
     background: var(--acento);
-    color: var(--textoBase);
+    color: var(--textoPrimario);
 }
 
 /* Grid de planes */
@@ -105,14 +105,14 @@
 }
 
 .planTarjetaDestacada .planIcono {
-    color: var(--textoBase);
+    color: var(--textoPrimario);
 }
 
 /* Nombre */
 .planNombre {
-    font-size: 20px;
+    font-size: var(--fuenteLg);
     font-weight: var(--pesoBold);
-    color: var(--textoBase);
+    color: var(--textoPrimario);
     margin-bottom: 4px;
 }
 
@@ -132,20 +132,20 @@
 }
 
 .planPrecioCantidad {
-    font-size: 36px;
+    font-size: var(--fuente2xl);
     font-weight: var(--pesoBold);
-    color: var(--textoBase);
+    color: var(--textoPrimario);
     line-height: 1;
 }
 
 .planPrecioPeriodo {
-    font-size: 11px;
+    font-size: var(--fuenteSm);
     color: var(--textoSecundario);
 }
 
 .planAhorro {
-    font-size: 11px;
-    color: #22c55e;
+    font-size: var(--fuenteSm);
+    color: var(--exito);
     margin-top: 4px;
 }
 
@@ -174,11 +174,11 @@
 }
 
 .planCaracteristicaIncluida {
-    color: var(--textoBase);
+    color: var(--textoPrimario);
 }
 
 .planCaracteristicaIncluida svg {
-    color: #22c55e;
+    color: var(--exito);
     flex-shrink: 0;
 }
 
@@ -198,9 +198,9 @@
 }
 
 .planesFaq h2 {
-    font-size: 20px;
+    font-size: var(--fuenteLg);
     font-weight: var(--pesoBold);
-    color: var(--textoBase);
+    color: var(--textoPrimario);
     margin-bottom: 24px;
     text-align: center;
 }
@@ -219,9 +219,9 @@
 }
 
 .planesFaqItem h3 {
-    font-size: 13px;
+    font-size: var(--fuenteMd);
     font-weight: var(--pesoBold);
-    color: var(--textoBase);
+    color: var(--textoPrimario);
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -254,6 +254,6 @@
     }
 
     .planesHeader h1 {
-        font-size: 22px;
+        font-size: var(--fuenteXl);
     }
 }

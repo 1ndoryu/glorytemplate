@@ -104,5 +104,5 @@
 }
 
 .tarjetaColeccionBtnPeligro:hover {
-    color: var(--peligro);
+    color: var(--error);
 }

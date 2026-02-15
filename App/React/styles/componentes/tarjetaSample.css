@@ -91,9 +91,13 @@
 .tarjetaMeta {
     display: flex;
     align-items: center;
-    gap: var(--espacioSm);
+    gap: var(--espacioMd);
     flex-wrap: nowrap;
     overflow: hidden;
+}
+
+.tarjetaMeta .badge {
+    padding: 0;
 }
 
 .tarjetaMetaItem {
@@ -133,8 +137,11 @@
 }
 
 .tarjetaAccionContador {
+    display: inline-block;
+    width: 24px;
     font-size: var(--fuenteXs);
     font-variant-numeric: tabular-nums;
+    text-align: right;
 }
 
 .tarjetaAccionBtn:hover {

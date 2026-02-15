@@ -1142,6 +1142,88 @@ KAMPLES_PG_PASSWORD=root
 
 ---
 
+## Correcciones UI/UX Aplicadas (Iteración 3)
+
+> **Fecha:** 14/02/2026
+
+- [x] **C7** La reproducción de samples deja de abrir el reproductor global: `TarjetaSample` ahora usa audio local por tarjeta con waveform interactiva
+- [x] **C8** Reproducción exclusiva por contexto: al iniciar un sample se pausa automáticamente cualquier otro sample en reproducción
+- [x] **C9** Desacople de islas del `reproductorStore` para tarjetas: Inicio, Explorar, Descubrir, Perfil, Librería y Similares en detalle
+
+**Archivos modificados:** TarjetaSample.tsx, SamplesIsland.tsx, PerfilIsland.tsx, InicioIsland.tsx, DescubrirIsland.tsx, LibreriaIsland.tsx, SampleDetalleIsland.tsx
+
+---
+
+## Correcciones UI/UX Aplicadas (Iteración 4)
+
+> **Fecha:** 14/02/2026
+
+- [x] **C10** Se agregaron audios de prueba reales para mocks en `App/Assets/audio` y se enlazaron como `rutaPreview` en `mockSamples`
+- [x] **C11** La waveform de `TarjetaSample` ahora se genera desde el audio real (Web Audio API) en lugar de depender solo de placeholder
+
+**Archivos modificados:** mockSamples.ts, TarjetaSample.tsx, App/Assets/audio/demo-1.wav, App/Assets/audio/demo-2.wav, App/Assets/audio/demo-3.wav
+
+---
+
+## Correcciones UI/UX Aplicadas (Iteración 5)
+
+> **Fecha:** 14/02/2026
+
+- [x] **C12** Ajuste visual de waveform en `TarjetaSample` para parecerse al proyecto anterior: barras clásicas (2px), separación 1px, color gris/no reproducido y rojo/progreso
+- [x] **C13** Mejora de extracción de picos desde audio real (mezcla max+rms y suavizado local) para una forma más parecida al contenido del WAV
+
+**Archivos modificados:** WaveformPlayer.tsx, TarjetaSample.tsx
+
+---
+
+## Correcciones UI/UX Aplicadas (Iteración 6)
+
+> **Fecha:** 14/02/2026
+
+- [x] **C14** Waveform en espejo exacto: la onda inferior ahora replica 1:1 la superior (misma altura y opacidad), sin efecto de sombra
+- [x] **C15** `TarjetaSample` configurada en modo simétrico para mantener el look del ejemplo anterior
+
+**Archivos modificados:** WaveformPlayer.tsx, TarjetaSample.tsx
+
+---
+
+## Correcciones UI/UX Aplicadas (Iteración 7)
+
+> **Fecha:** 15/02/2026
+
+- [x] **C16** Contadores de acciones en `TarjetaSample` alineados con ancho fijo para evitar saltos por cifras grandes
+- [x] **C17** Abreviación de contadores: valores >= 1000 se muestran en formato `Nk` (ej: `1240 -> 1k`)
+- [x] **C18** Click en waveform ahora hace seek + reproducción desde el punto clickeado
+- [x] **C19** `inicioTagsLista` en una sola fila arrastrable horizontal, sin scrollbar visible y límite de 28 tags
+- [x] **C20** Nueva lógica de filtros por tags con suma/resta: incluir (`+`) y excluir (`-`) de forma combinable
+
+**Archivos modificados:** TarjetaSample.tsx, tarjetaSample.css, InicioIsland.tsx, inicio.css
+
+---
+
+## Correcciones UI/UX Aplicadas (Iteración 8)
+
+> **Fecha:** 15/02/2026
+
+- [x] **C21** Tags en formato `- tag +`: click en texto aplica inclusión (`+`) por defecto
+- [x] **C22** Botones `+/-` de tag no ocupan espacio hasta hover/focus (aparecen superpuestos)
+- [x] **C23** Debajo de la lista de tags se agregó barra con contador dinámico de samples y botón de filtros sin borde
+- [x] **C24** `ModalFiltros` sin header/título visual
+
+**Archivos modificados:** InicioIsland.tsx, inicio.css, ModalFiltros.tsx
+
+---
+
+## Correcciones UI/UX Aplicadas (Iteración 9)
+
+> **Fecha:** 15/02/2026
+
+- [x] **C25** Botones `+/-` de tags ajustados para ocupar espacio solo en hover/focus (expansión del badge en interacción)
+
+**Archivos modificados:** inicio.css
+
+---
+
 ## Notas y Decisiones Pendientes
 
 1. **Color de acento** — Definir paleta de acento (sugerencia: púrpura `#7c3aed` o cian `#06b6d4`) 

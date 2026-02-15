@@ -49,8 +49,12 @@
 }
 
 @keyframes girarSpinner {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Lista de colecciones */
@@ -99,7 +103,7 @@
 }
 
 .seleccionColeccionCheck {
-    color: var(--exitoTexto);
+    color: var(--exito);
 }
 
 /* Botón nueva colección */
@@ -114,7 +118,9 @@
     color: var(--textoSecundario);
     cursor: pointer;
     font-size: var(--fuenteSm);
-    transition: color var(--transicionRapida), border-color var(--transicionRapida);
+    transition:
+        color var(--transicionRapida),
+        border-color var(--transicionRapida);
 }
 
 .seleccionColeccionNueva:hover {

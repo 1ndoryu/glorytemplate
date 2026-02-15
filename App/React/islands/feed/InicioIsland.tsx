@@ -7,15 +7,14 @@
  * Si el usuario no está autenticado, muestra LandingPublica.
  */
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { Music, SlidersHorizontal } from 'lucide-react';
-import { BotonBase, Badge } from '@app/components/ui';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { Music, SlidersHorizontal, Plus, Minus } from 'lucide-react';
+import { BotonBase } from '@app/components/ui';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { LandingPublica } from '@app/components/social/LandingPublica';
 import { obtenerFeed, listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
-import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
@@ -58,10 +57,14 @@ export const InicioIsland = (): JSX.Element => {
 const FeedUnificado = (): JSX.Element => {
     const [samples, setSamples] = useState<SampleResumen[]>([]);
     const [cargando, setCargando] = useState(true);
-    const [tagActivo, setTagActivo] = useState<string | null>(null);
+    const [tagsIncluidos, setTagsIncluidos] = useState<string[]>([]);
+    const [tagsExcluidos, setTagsExcluidos] = useState<string[]>([]);
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
+    const [arrastrandoTags, setArrastrandoTags] = useState(false);
+    const inicioXArrastreRef = useRef(0);
+    const scrollInicialRef = useRef(0);
+    const listaTagsRef = useRef<HTMLDivElement | null>(null);
 
-    const { sampleActual, reproduciendo, progreso, setSample, play, pause } = useReproductorStore();
     const { navegar } = useNavigationStore();
     const { abrir: abrirCrear } = useCrearModalStore();
     const { activa: tabActiva, setTabs } = useTabsTopBarStore();
@@ -106,14 +109,54 @@ const FeedUnificado = (): JSX.Element => {
     const todosLosTags = useMemo(() => {
         const tagSet = new Set<string>();
         samples.forEach((s) => s.tags?.forEach((t) => tagSet.add(t)));
-        return Array.from(tagSet).slice(0, 24);
+        return Array.from(tagSet).slice(0, 28);
     }, [samples]);
 
-    /* Filtrar por tag localmente */
+    /* Filtrar por lógica de suma/resta de tags:
+     * - incluidos: el sample debe contener TODOS
+     * - excluidos: el sample no debe contener NINGUNO
+     */
     const samplesFiltrados = useMemo(() => {
-        if (!tagActivo) return samples;
-        return samples.filter((s) => s.tags?.includes(tagActivo));
-    }, [samples, tagActivo]);
+        if (tagsIncluidos.length === 0 && tagsExcluidos.length === 0) return samples;
+
+        return samples.filter((sample) => {
+            const tagsSample = sample.tags ?? [];
+            const cumpleIncluidos = tagsIncluidos.every((tag) => tagsSample.includes(tag));
+            const cumpleExcluidos = tagsExcluidos.every((tag) => !tagsSample.includes(tag));
+            return cumpleIncluidos && cumpleExcluidos;
+        });
+    }, [samples, tagsIncluidos, tagsExcluidos]);
+
+    const manejarIncluirTag = useCallback((tag: string) => {
+        setTagsExcluidos((prev) => prev.filter((item) => item !== tag));
+        setTagsIncluidos((prev) =>
+            prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]
+        );
+    }, []);
+
+    const manejarExcluirTag = useCallback((tag: string) => {
+        setTagsIncluidos((prev) => prev.filter((item) => item !== tag));
+        setTagsExcluidos((prev) =>
+            prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]
+        );
+    }, []);
+
+    const iniciarArrastreTags = useCallback((clientX: number) => {
+        if (!listaTagsRef.current) return;
+        setArrastrandoTags(true);
+        inicioXArrastreRef.current = clientX;
+        scrollInicialRef.current = listaTagsRef.current.scrollLeft;
+    }, []);
+
+    const moverArrastreTags = useCallback((clientX: number) => {
+        if (!arrastrandoTags || !listaTagsRef.current) return;
+        const delta = clientX - inicioXArrastreRef.current;
+        listaTagsRef.current.scrollLeft = scrollInicialRef.current - delta;
+    }, [arrastrandoTags]);
+
+    const finalizarArrastreTags = useCallback(() => {
+        setArrastrandoTags(false);
+    }, []);
 
     /* Like con optimistic UI */
     const manejarLike = useCallback(async (sampleId: number) => {
@@ -132,17 +175,6 @@ const FeedUnificado = (): JSX.Element => {
         }
     }, [samples]);
 
-    const manejarPlay = useCallback(
-        (sample: SampleResumen) => {
-            if (sampleActual?.id === sample.id) {
-                reproduciendo ? pause() : play();
-            } else {
-                setSample(sample);
-            }
-        },
-        [sampleActual, reproduciendo, pause, play, setSample]
-    );
-
     if (cargando) {
         return (
             <div className="inicioContenedor" id="seccionInicio">
@@ -158,19 +190,66 @@ const FeedUnificado = (): JSX.Element => {
         <div className="inicioContenedor" id="seccionInicio">
             {/* Tags dinámicos + botón filtros avanzados */}
             <div className="inicioTags">
-                <div className="inicioTagsLista">
+                <div
+                    ref={listaTagsRef}
+                    className={`inicioTagsLista ${arrastrandoTags ? 'inicioTagsListaArrastrando' : ''}`}
+                    onMouseDown={(e) => iniciarArrastreTags(e.clientX)}
+                    onMouseMove={(e) => moverArrastreTags(e.clientX)}
+                    onMouseUp={finalizarArrastreTags}
+                    onMouseLeave={finalizarArrastreTags}
+                    onTouchStart={(e) => iniciarArrastreTags(e.touches[0].clientX)}
+                    onTouchMove={(e) => moverArrastreTags(e.touches[0].clientX)}
+                    onTouchEnd={finalizarArrastreTags}
+                >
                     {todosLosTags.map((tag) => (
-                        <Badge
+                        <div
                             key={tag}
-                            variante={tagActivo === tag ? 'acento' : 'neutro'}
-                            estilo={tagActivo === tag ? 'relleno' : 'borde'}
-                            interactivo
-                            onClick={() => setTagActivo(tagActivo === tag ? null : tag)}
+                            className={`inicioTagItem ${tagsIncluidos.includes(tag) ? 'inicioTagItemIncluido' : ''} ${tagsExcluidos.includes(tag) ? 'inicioTagItemExcluido' : ''}`}
                         >
-                            {tag}
-                        </Badge>
+                            <button
+                                type="button"
+                                className="inicioTagBoton inicioTagBotonRestar"
+                                aria-label={`Excluir tag ${tag}`}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    manejarExcluirTag(tag);
+                                }}
+                            >
+                                <Minus size={10} />
+                            </button>
+
+                            <button
+                                type="button"
+                                className="inicioTagTexto"
+                                aria-label={`Incluir tag ${tag}`}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    manejarIncluirTag(tag);
+                                }}
+                            >
+                                {tag}
+                            </button>
+
+                            <button
+                                type="button"
+                                className="inicioTagBoton inicioTagBotonSumar"
+                                aria-label={`Incluir tag ${tag}`}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    manejarIncluirTag(tag);
+                                }}
+                            >
+                                <Plus size={10} />
+                            </button>
+                        </div>
                     ))}
                 </div>
+
+                <div className="inicioTagsPie">
+                    <span className="inicioTagsContador">{samplesFiltrados.length} samples</span>
                 <button
                     className="inicioFiltrosBtn"
                     onClick={() => setFiltrosAbierto(true)}
@@ -179,6 +258,7 @@ const FeedUnificado = (): JSX.Element => {
                 >
                     <SlidersHorizontal size={16} />
                 </button>
+                </div>
             </div>
 
             {/* Lista de samples */}
@@ -196,11 +276,6 @@ const FeedUnificado = (): JSX.Element => {
                         <TarjetaSample
                             key={s.id}
                             sample={s}
-                            activa={sampleActual?.id === s.id}
-                            reproduciendo={sampleActual?.id === s.id && reproduciendo}
-                            progreso={sampleActual?.id === s.id ? progreso : 0}
-                            onPlay={() => manejarPlay(s)}
-                            onPause={pause}
                             onLike={manejarLike}
                             onMenu={menu.abrirMenu}
                             onClickCreador={(u) => navegar(`/perfil/${u}`)}

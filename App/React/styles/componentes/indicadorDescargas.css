@@ -21,7 +21,7 @@
     height: 100%;
     background-color: var(--acento);
     border-radius: var(--radioFull);
-    transition: width var(--transicionMedia);
+    transition: width var(--transicionNormal);
 }
 
 /* Info textual */
