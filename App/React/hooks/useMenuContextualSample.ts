@@ -9,6 +9,7 @@ import type { SampleResumen } from '@app/types';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import { useNavigationStore } from '@/core/router';
 import { useReproductorStore } from '@app/stores/reproductorStore';
+import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 
 interface EstadoMenuSample {
     abierto: boolean;
@@ -33,7 +34,8 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
     });
 
     const { navegar } = useNavigationStore();
-    const { setSample } = useReproductorStore();
+    const { setSample, agregarACola } = useReproductorStore();
+    const { abrir: abrirColeccionPicker } = useColeccionPickerStore();
 
     const abrirMenu = useCallback((e: MouseEvent, sample: SampleResumen) => {
         e.preventDefault();
@@ -72,14 +74,14 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                 id: 'coleccion',
                 etiqueta: 'Añadir a colección',
                 onClick: () => {
-                    /* TO-DO: abrir modal de colecciones (Fase 5) */
+                    if (estado.sample) abrirColeccionPicker(estado.sample);
                 },
             },
             {
                 id: 'cola',
                 etiqueta: 'Añadir a la cola',
                 onClick: () => {
-                    /* TO-DO: implementar cola de reproducción */
+                    if (estado.sample) agregarACola(estado.sample);
                 },
                 separadorDespues: true,
             },

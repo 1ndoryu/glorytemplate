@@ -11,6 +11,7 @@ import { TopBar } from './TopBar';
 import { ReproductorGlobal } from '../ui/ReproductorGlobal';
 import { SubirModal } from '../ui/SubirModal';
 import { ModalPublicar } from '../social/ModalPublicar';
+import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
 import { useNavigationStore } from '@/core/router';
 import '../../styles/variables.css';
 import '../../styles/reset.css';
@@ -84,6 +85,9 @@ export const LayoutPrincipal = ({
 
             {/* Modal de publicación social */}
             <ModalPublicar />
+
+            {/* Modal selector de colección (menú contextual → añadir a colección) */}
+            <ModalSeleccionColeccion />
         </div>
     );
 };

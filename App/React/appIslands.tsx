@@ -18,6 +18,7 @@ import {SamplesIsland} from './islands/samples/SamplesIsland';
 import {SampleDetalleIsland} from './islands/samples/SampleDetalleIsland';
 import {InicioIsland} from './islands/feed/InicioIsland';
 import {LibreriaIsland} from './islands/libreria/LibreriaIsland';
+import {ReproductorIsland} from './islands/player/ReproductorIsland';
 import {LayoutPrincipal} from './components/layout/LayoutPrincipal';
 
 // Register blocks
@@ -48,6 +49,7 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     SampleDetalleIsland: SampleDetalleIsland as React.ComponentType<Record<string, unknown>>,
     InicioIsland: InicioIsland as React.ComponentType<Record<string, unknown>>,
     LibreriaIsland: LibreriaIsland as React.ComponentType<Record<string, unknown>>,
+    ReproductorIsland: ReproductorIsland as React.ComponentType<Record<string, unknown>>,
 };
 
 export default appIslands;

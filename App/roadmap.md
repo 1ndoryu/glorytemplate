@@ -548,6 +548,7 @@ reproducciones (
 - [x] **1.8** Middleware de autenticación para API Kamples — `AuthMiddleware.php` con requerirAuth, requerirCreador, requerirPlanPro
 - [x] **1.9** Guard de rutas (proteger páginas que requieren auth) — `ConAutenticacion.tsx` HOC con redirect a login y guardado de URL de retorno
 - [ ] **1.10** Home pública (`LandingPublicaIsland`) para usuarios no logeados + redirección a `/` autenticado cuando exista sesión
+  - Implementado: LandingPublica.tsx con hero, features, trending preview, planes; InicioIsland condicional por auth
 
 **Entregable:** Usuario puede registrarse, loguearse con Google, y editar su perfil.
 
@@ -604,12 +605,13 @@ reproducciones (
   - Info del sample actual
   - Botones: like, descargar, añadir a cola
   - Cola de reproducción
-- [ ] **2.8** Isla `ReproductorIsland` (reproductor completo expandido):
+- [x] **2.8** Isla `ReproductorIsland` (reproductor completo expandido):
   - Vista a pantalla completa del sample actual
   - Cola de reproducción editable (drag to reorder)
   - Playlist activa
   - Waveform grande
   - Controles avanzados (loop, shuffle)
+  - Implementado: grid principal+cola, WaveformPlayer xl, controles completos, reordenar cola
 - [x] **2.9** Menú contextual en samples (click derecho):
   - Descargar, Añadir a colección, Compartir, Ir al creador, Reportar
   - Implementado: `useMenuContextualSample` hook + integración en InicioIsland y SamplesIsland
@@ -708,12 +710,15 @@ reproducciones (
   - Tabs: Descargas | Favoritos | Colecciones | Subidos
   - Filtrar y buscar dentro de la librería personal
   - Implementado: 4 tabs, auth guard, menú contextual, likes, SPA nav
-- [ ] **5.2** CRUD de colecciones:
+- [x] **5.2** CRUD de colecciones:
   - Crear colección (nombre, descripción, imagen, pública/privada)
   - Añadir/quitar samples
   - Reordenar (drag to reorder)
-- [ ] **5.3** Colecciones públicas visitables por otros usuarios
-- [ ] **5.4** "Añadir a colección" desde menú contextual y detalle de sample
+  - Implementado: apiColecciones.ts CRUD completo, ModalColeccion, TarjetaColeccion, LibreriaIsland integrado
+- [x] **5.3** Colecciones públicas visitables por otros usuarios
+  - Implementado: flag esPublica en CRUD + visibilidad en TarjetaColeccion
+- [x] **5.4** "Añadir a colección" desde menú contextual y detalle de sample
+  - Implementado: coleccionPickerStore, ModalSeleccionColeccion, useMenuContextualSample conectado, "Añadir a la cola" también implementado
 
 **Entregable:** Usuarios organizan sus samples en colecciones/playlists personalizadas.
 

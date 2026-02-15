@@ -2,6 +2,7 @@
  * InicioIsland — Kamples
  * Feed principal: trending, recientes y recomendaciones.
  * Conecta con apiSamples.obtenerFeed para cada sección.
+ * Si el usuario no está autenticado, muestra LandingPublica.
  * Incluye menú contextual en samples y likes con optimistic UI.
  */
 
@@ -12,16 +13,30 @@ import {
 } from '@app/components/ui';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
+import { LandingPublica } from '@app/components/social/LandingPublica';
 import { obtenerFeed } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useSubirModalStore } from '@app/stores/subirModalStore';
+import { useAuthStore } from '@app/stores/authStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/inicio.css';
 
 export const InicioIsland = (): JSX.Element => {
+    const { autenticado } = useAuthStore();
+
+    /* Si no está autenticado, mostrar landing pública */
+    if (!autenticado) {
+        return <LandingPublica />;
+    }
+
+    return <FeedAutenticado />;
+};
+
+/* Feed separado para mantener SRP y evitar hooks condicionales */
+const FeedAutenticado = (): JSX.Element => {
     const [trending, setTrending] = useState<SampleResumen[]>([]);
     const [recientes, setRecientes] = useState<SampleResumen[]>([]);
     const [descubrir, setDescubrir] = useState<SampleResumen[]>([]);

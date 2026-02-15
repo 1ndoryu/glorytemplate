@@ -1,0 +1,210 @@
+/*
+ * landingPublica.css — Kamples
+ * Página de bienvenida para visitantes no autenticados.
+ * Hero, features, trending preview, planes.
+ */
+
+.landingPublica {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio2xl);
+    padding: var(--espacio2xl) var(--espacioXl);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Hero */
+.landingHero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--espacioLg);
+    padding: var(--espacio2xl) 0;
+}
+
+.landingHeroIcono {
+    color: var(--textoPrimario);
+}
+
+.landingHeroTitulo {
+    font-size: 32px;
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    line-height: 1.2;
+    margin: 0;
+}
+
+.landingHeroResaltado {
+    color: var(--acentoTexto);
+}
+
+.landingHeroDescripcion {
+    font-size: var(--fuenteMd);
+    color: var(--textoSecundario);
+    max-width: 500px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.landingHeroAcciones {
+    display: flex;
+    gap: var(--espacioMd);
+    align-items: center;
+}
+
+/* Features */
+.landingFeatures {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--espacioLg);
+}
+
+.landingFeature {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    padding: var(--espacioLg);
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+}
+
+.landingFeatureIcono {
+    color: var(--textoPrimario);
+}
+
+.landingFeature h3 {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.landingFeature p {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Trending */
+.landingTrending {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.landingTrendingHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.landingTrendingHeader h2 {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.landingTrendingLista {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.landingTrendingCta {
+    display: flex;
+    justify-content: center;
+    padding-top: var(--espacioMd);
+}
+
+/* Planes */
+.landingPlanes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXl);
+}
+
+.landingPlanes h2 {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.landingPlanesGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--espacioLg);
+    width: 100%;
+}
+
+.landingPlan {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    padding: var(--espacioXl);
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    align-items: center;
+    text-align: center;
+}
+
+.landingPlanDestacado {
+    border-color: var(--acento);
+    position: relative;
+}
+
+.landingPlan h3 {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.landingPlanPrecio {
+    font-size: 28px;
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+}
+
+.landingPlanPrecio small {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoNormal);
+    color: var(--textoTerciario);
+}
+
+.landingPlan ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.landingPlan li {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+/* Footer CTA */
+.landingFooterCta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioLg);
+    padding: var(--espacio2xl) 0;
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.landingFooterCta h2 {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    margin: 0;
+}

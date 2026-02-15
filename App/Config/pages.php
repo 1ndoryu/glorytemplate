@@ -79,6 +79,7 @@ PageManager::reactPage('explorar', 'SamplesIsland');
 /* Subir es ahora un modal global, no una página separada */
 
 PageManager::reactPage('libreria', 'LibreriaIsland');
+PageManager::reactPage('reproductor', 'ReproductorIsland');
 
 /* Detalle de sample — recibe slug dinámico */
 PageManager::reactPage('sample', 'SampleDetalleIsland', function($pageId) {

@@ -1,0 +1,394 @@
+/*
+ * reproductorIsland.css — Kamples
+ * Vista expandida del reproductor a pantalla completa.
+ * Grid de dos paneles: principal (waveform+controles) + cola.
+ */
+
+.reproductorIsland {
+    width: 100%;
+    min-height: calc(100vh - var(--altoTopbar) - var(--altoReproductor));
+    padding: var(--espacioXl);
+}
+
+/* Estado vacío */
+.reproductorIslandVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    min-height: 400px;
+    color: var(--textoTerciario);
+    text-align: center;
+}
+
+.reproductorIslandVacio h2 {
+    font-size: var(--fuenteLg);
+    color: var(--textoSecundario);
+    font-weight: var(--pesoMedio);
+}
+
+.reproductorIslandVacio p {
+    font-size: var(--fuenteSm);
+}
+
+/* Grid principal: player + cola */
+.reproductorIslandGrid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: var(--espacio2xl);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Panel principal */
+.reproductorIslandPrincipal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioLg);
+}
+
+/* Artwork */
+.reproductorIslandArt {
+    width: 280px;
+    height: 280px;
+    border-radius: var(--radioMd);
+    overflow: hidden;
+    background-color: var(--fondoElevado2);
+    flex-shrink: 0;
+}
+
+.reproductorIslandArt img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.reproductorIslandArtPlaceholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--textoTerciario);
+}
+
+/* Info */
+.reproductorIslandInfo {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.reproductorIslandTitulo {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.reproductorIslandCreador {
+    font-size: var(--fuenteMd);
+    color: var(--textoSecundario);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color var(--transicionRapida);
+}
+
+.reproductorIslandCreador:hover {
+    color: var(--acentoTexto);
+}
+
+.reproductorIslandBadges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioXs);
+    justify-content: center;
+}
+
+/* Waveform */
+.reproductorIslandWaveform {
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Tiempos */
+.reproductorIslandTiempos {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 600px;
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Controles */
+.reproductorIslandControles {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioLg);
+}
+
+.reproductorIslandBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: none;
+    color: var(--textoSecundario);
+    border-radius: var(--radioFull);
+    cursor: pointer;
+    transition: color var(--transicionRapida);
+}
+
+.reproductorIslandBtn:hover {
+    color: var(--textoPrimario);
+}
+
+.reproductorIslandBtnActivo {
+    color: var(--acentoTexto);
+}
+
+.reproductorIslandBtnSm {
+    width: 28px;
+    height: 28px;
+}
+
+.reproductorIslandPlayBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border: none;
+    background-color: var(--blanco);
+    color: var(--fondoBase);
+    border-radius: var(--radioFull);
+    cursor: pointer;
+    transition: transform var(--transicionRapida);
+}
+
+.reproductorIslandPlayBtn:hover {
+    transform: scale(1.06);
+}
+
+.reproductorIslandPlayBtn:active {
+    transform: scale(0.95);
+}
+
+/* Volumen */
+.reproductorIslandVolumen {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    width: 180px;
+}
+
+.reproductorIslandSlider {
+    flex: 1;
+    height: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--fondoElevado3);
+    border-radius: var(--radioFull);
+    outline: none;
+    cursor: pointer;
+}
+
+.reproductorIslandSlider::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radioFull);
+    background: var(--textoPrimario);
+    cursor: pointer;
+}
+
+.reproductorIslandSlider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radioFull);
+    background: var(--textoPrimario);
+    border: none;
+    cursor: pointer;
+}
+
+/* Panel cola */
+.reproductorIslandCola {
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - var(--altoTopbar) - var(--altoReproductor) - var(--espacio2xl) * 2);
+    overflow: hidden;
+}
+
+.reproductorIslandColaHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioMd) var(--espacioLg);
+    border-bottom: 1px solid var(--bordeSutil);
+    color: var(--textoPrimario);
+}
+
+.reproductorIslandColaHeader h3 {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    margin: 0;
+    flex: 1;
+}
+
+.reproductorIslandColaCount {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    background-color: var(--fondoElevado3);
+    padding: 2px 6px;
+    border-radius: var(--radioFull);
+}
+
+/* Cola vacía */
+.reproductorIslandColaVacia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espacio2xl) var(--espacioLg);
+    text-align: center;
+    gap: var(--espacioXs);
+}
+
+.reproductorIslandColaVacia p {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    margin: 0;
+}
+
+.reproductorIslandColaVacia span {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+/* Lista de items */
+.reproductorIslandColaLista {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.reproductorIslandColaItem {
+    display: flex;
+    align-items: center;
+    padding: var(--espacioSm) var(--espacioLg);
+    gap: var(--espacioSm);
+    transition: background-color var(--transicionRapida);
+}
+
+.reproductorIslandColaItem:hover {
+    background-color: var(--fondoElevado2);
+}
+
+.reproductorIslandColaItemActivo {
+    background-color: var(--fondoElevado2);
+    border-left: 2px solid var(--acento);
+}
+
+.reproductorIslandColaPlay {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.reproductorIslandColaImagen {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radioSm);
+    background-color: var(--fondoElevado3);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--textoTerciario);
+    overflow: hidden;
+}
+
+.reproductorIslandColaImagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.reproductorIslandColaInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    text-align: left;
+}
+
+.reproductorIslandColaTitulo {
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reproductorIslandColaArtista {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Acciones de item en cola */
+.reproductorIslandColaAcciones {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity var(--transicionRapida);
+}
+
+.reproductorIslandColaItem:hover .reproductorIslandColaAcciones {
+    opacity: 1;
+}
+
+.reproductorIslandColaBtnMini {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: none;
+    color: var(--textoTerciario);
+    border-radius: var(--radioSm);
+    cursor: pointer;
+}
+
+.reproductorIslandColaBtnMini:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado3);
+}
+
+.reproductorIslandColaBtnMini:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
