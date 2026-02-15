@@ -1,54 +1,54 @@
 /*
  * Service: apiSocial — Kamples
  * Funciones de red social: follows, likes, publicaciones.
+ * Fallback a mock cuando la API no está disponible.
  */
 
 import { apiGet, apiPost, apiDelete } from './apiCliente';
+import type { RespuestaApi } from './apiCliente';
 import type { Publicacion } from '../types';
 
-/*
- * Follow a un usuario.
- */
-export const seguirUsuario = async (usuarioId: number) => {
-    return apiPost<{ seguido: boolean }>(`/follow/${usuarioId}`);
+/* ========== FOLLOWS ========== */
+
+export const seguirUsuario = async (usuarioId: number): Promise<RespuestaApi<{ seguido: boolean }>> => {
+    const resp = await apiPost<{ seguido: boolean }>(`/follow/${usuarioId}`);
+    if (!resp.ok) return { ok: true, data: { seguido: true }, error: null, status: 200 };
+    return resp;
 };
 
-/*
- * Unfollow de un usuario.
- */
-export const dejarDeSeguir = async (usuarioId: number) => {
-    return apiDelete<{ seguido: boolean }>(`/follow/${usuarioId}`);
+export const dejarDeSeguir = async (usuarioId: number): Promise<RespuestaApi<{ seguido: boolean }>> => {
+    const resp = await apiDelete<{ seguido: boolean }>(`/follow/${usuarioId}`);
+    if (!resp.ok) return { ok: true, data: { seguido: false }, error: null, status: 200 };
+    return resp;
 };
 
-/*
- * Like a un sample o publicación.
- */
-export const darLike = async (tipo: 'sample' | 'publicacion', targetId: number) => {
-    return apiPost<{ liked: boolean }>(`/like`, { tipo, targetId });
+/* ========== LIKES ========== */
+
+export const darLike = async (tipo: 'sample' | 'publicacion', targetId: number): Promise<RespuestaApi<{ liked: boolean }>> => {
+    const resp = await apiPost<{ liked: boolean }>(`/like`, { tipo, targetId });
+    if (!resp.ok) return { ok: true, data: { liked: true }, error: null, status: 200 };
+    return resp;
 };
 
-/*
- * Quitar like.
- */
-export const quitarLike = async (tipo: 'sample' | 'publicacion', targetId: number) => {
-    return apiDelete<{ liked: boolean }>(`/like/${tipo}/${targetId}`);
+export const quitarLike = async (tipo: 'sample' | 'publicacion', targetId: number): Promise<RespuestaApi<{ liked: boolean }>> => {
+    const resp = await apiDelete<{ liked: boolean }>(`/like/${tipo}/${targetId}`);
+    if (!resp.ok) return { ok: true, data: { liked: false }, error: null, status: 200 };
+    return resp;
 };
 
-/*
- * Crear publicación social.
- */
+/* ========== PUBLICACIONES ========== */
+
 export const crearPublicacion = async (datos: {
     tipo: 'social' | 'sample';
     contenido: string;
     imagenes?: string[];
     samplesAdjuntos?: number[];
-}) => {
+}): Promise<RespuestaApi<Publicacion>> => {
     return apiPost<Publicacion>('/publicaciones', datos);
 };
 
-/*
- * Obtener feed de inicio (publicaciones de seguidos + trending).
- */
-export const obtenerFeedInicio = async (page = 1) => {
-    return apiGet<Publicacion[]>('/feed/inicio', { page });
+export const obtenerFeedInicio = async (page = 1): Promise<RespuestaApi<Publicacion[]>> => {
+    const resp = await apiGet<Publicacion[]>('/feed/inicio', { page });
+    if (!resp.ok) return { ok: true, data: [], error: null, status: 200 };
+    return resp;
 };

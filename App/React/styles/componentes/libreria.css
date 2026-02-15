@@ -1,0 +1,67 @@
+/*
+ * libreria.css — Kamples
+ * Estilos de la isla LibreriaIsland.
+ */
+
+.libreriaContenedor {
+    padding: var(--espacioLg);
+    max-width: 900px;
+}
+
+.libreriaCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--espacioLg);
+}
+
+.libreriaTitulo {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+}
+
+.libreriaAcciones {
+    display: flex;
+    gap: var(--espacioSm);
+}
+
+.libreriaBusqueda {
+    margin: var(--espacioMd) 0;
+    max-width: 400px;
+}
+
+.libreriaLista {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Estado vacío */
+.libreriaVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    padding: var(--espacio2xl);
+    color: var(--textoTerciario);
+    text-align: center;
+    min-height: 300px;
+}
+
+.libreriaVacioIcono {
+    opacity: 0.3;
+}
+
+.libreriaVacioTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoMedio);
+    color: var(--textoSecundario);
+}
+
+.libreriaVacioTexto {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+    max-width: 300px;
+}

@@ -1,0 +1,60 @@
+/*
+ * botonLike.css — Kamples
+ * Estilos del componente BotonLike con animación de corazón.
+ */
+
+.botonLike {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    border: none;
+    background: transparent;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    transition: color var(--transicionRapida);
+    padding: var(--espacioXs);
+    border-radius: var(--radioSm);
+}
+
+.botonLike-md {
+    padding: var(--espacioXs);
+}
+
+.botonLike-sm {
+    padding: 2px;
+}
+
+.botonLike:hover {
+    color: var(--error);
+}
+
+.botonLikeActivo {
+    color: var(--error);
+}
+
+.botonLikeContador {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    line-height: 1;
+}
+
+.botonLikeActivo .botonLikeContador {
+    color: var(--error);
+}
+
+/* Animación al dar like */
+@keyframes latido {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.3); }
+    50% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+.botonLikeAnimando svg {
+    animation: latido 0.3s ease-out;
+}
+
+.botonLike:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

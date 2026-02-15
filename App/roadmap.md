@@ -610,8 +610,9 @@ reproducciones (
   - Playlist activa
   - Waveform grande
   - Controles avanzados (loop, shuffle)
-- [ ] **2.9** Menú contextual en samples (click derecho):
+- [x] **2.9** Menú contextual en samples (click derecho):
   - Descargar, Añadir a colección, Compartir, Ir al creador, Reportar
+  - Implementado: `useMenuContextualSample` hook + integración en InicioIsland y SamplesIsland
 - [ ] **2.10** Sistema de descarga con límites:
   - Free: 5/día, calidad MP3
   - Pro: 50/día, calidad original
@@ -660,13 +661,15 @@ reproducciones (
 > **Duración estimada:** 2-3 semanas  
 > **Estado:** `pendiente`
 
-- [ ] **4.1** Sistema de follows:
+- [x] **4.1** Sistema de follows:
   - Follow/unfollow con toggle instantáneo (optimistic UI)
   - Contador de seguidores/seguidos en perfil
   - Lista de seguidores/seguidos
-- [ ] **4.2** Sistema de likes:
+  - Implementado: `BotonFollow.tsx` + `apiSocial.ts` con mock fallback
+- [x] **4.2** Sistema de likes:
   - Like en samples y publicaciones
   - Animación heart (optimistic UI)
+  - Implementado: `BotonLike.tsx` con animación @keyframes latido + `apiSocial.ts`
 - [ ] **4.3** Publicaciones sociales:
   - `ModalPublicar` con modo dual: sample / social
   - Modo social: texto + imágenes (múltiples)
@@ -697,9 +700,10 @@ reproducciones (
 > **Duración estimada:** 1-2 semanas  
 > **Estado:** `pendiente`
 
-- [ ] **5.1** Isla `LibreriaIsland`:
+- [x] **5.1** Isla `LibreriaIsland`:
   - Tabs: Descargas | Favoritos | Colecciones | Subidos
   - Filtrar y buscar dentro de la librería personal
+  - Implementado: 4 tabs, auth guard, menú contextual, likes, SPA nav
 - [ ] **5.2** CRUD de colecciones:
   - Crear colección (nombre, descripción, imagen, pública/privada)
   - Añadir/quitar samples

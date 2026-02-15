@@ -78,6 +78,8 @@ PageManager::reactPage('perfil/editar', 'EditarPerfilIsland');
 PageManager::reactPage('explorar', 'SamplesIsland');
 /* Subir es ahora un modal global, no una página separada */
 
+PageManager::reactPage('libreria', 'LibreriaIsland');
+
 /* Detalle de sample — recibe slug dinámico */
 PageManager::reactPage('sample', 'SampleDetalleIsland', function($pageId) {
     $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');

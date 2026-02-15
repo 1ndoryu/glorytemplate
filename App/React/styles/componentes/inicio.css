@@ -26,7 +26,7 @@
 }
 
 .inicioSubtitulo {
-    font-size: var(--fuenteBase);
+    font-size: var(--fuenteMd);
     color: var(--textoSecundario);
     margin: 0;
 }
@@ -54,7 +54,7 @@
     font-size: var(--fuenteSm);
     color: var(--acento);
     cursor: pointer;
-    transition: opacity var(--transicionBase);
+    transition: opacity var(--transicionNormal);
     text-decoration: none;
     background: none;
     border: none;
@@ -75,8 +75,8 @@
 /* Card destacada (hero card) */
 .inicioHeroCard {
     position: relative;
-    background: linear-gradient(135deg, var(--superficieElevada), var(--superficieSutil));
-    border: 1px solid var(--bordeClaro);
+    background: linear-gradient(135deg, var(--fondoElevado1), var(--fondoElevado2));
+    border: 1px solid var(--bordeSutil);
     border-radius: var(--radioLg);
     padding: var(--espacioXl);
     display: flex;
@@ -104,7 +104,7 @@
 }
 
 .inicioHeroDescripcion {
-    font-size: var(--fuenteBase);
+    font-size: var(--fuenteMd);
     color: var(--textoSecundario);
     line-height: 1.6;
 }

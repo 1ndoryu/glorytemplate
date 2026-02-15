@@ -1,0 +1,47 @@
+/*
+ * botonFollow.css — Kamples
+ * Estilos del componente BotonFollow.
+ */
+
+.botonFollow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: transparent;
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    white-space: nowrap;
+}
+
+.botonFollow-md {
+    padding: var(--espacioXs) var(--espacioMd);
+}
+
+.botonFollow-sm {
+    padding: 2px var(--espacioSm);
+    font-size: var(--fuenteXs);
+}
+
+.botonFollow:hover {
+    border-color: var(--textoSecundario);
+}
+
+.botonFollowActivo {
+    background-color: var(--fondoElevado2);
+    color: var(--textoSecundario);
+}
+
+.botonFollowActivo:hover {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+.botonFollow:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

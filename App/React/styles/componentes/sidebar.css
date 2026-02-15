@@ -45,7 +45,7 @@
     width: 40px;
     height: 40px;
     border-radius: var(--radioMd);
-    color: var(--textoTerciario);
+    color: var(--textoSecundario);
     cursor: pointer;
     transition: all var(--transicionRapida);
     background: none;

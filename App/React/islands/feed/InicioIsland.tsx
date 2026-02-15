@@ -2,7 +2,7 @@
  * InicioIsland — Kamples
  * Feed principal: trending, recientes y recomendaciones.
  * Conecta con apiSamples.obtenerFeed para cada sección.
- * Usa navegación SPA via Glory router.
+ * Incluye menú contextual en samples y likes con optimistic UI.
  */
 
 import { useEffect, useState, useCallback } from 'react';
@@ -11,10 +11,13 @@ import {
     BotonBase,
 } from '@app/components/ui';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { obtenerFeed } from '@app/services/apiSamples';
+import { darLike, quitarLike } from '@app/services/apiSocial';
 import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useSubirModalStore } from '@app/stores/subirModalStore';
 import { useNavigationStore } from '@/core/router';
+import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/inicio.css';
 
@@ -35,6 +38,27 @@ export const InicioIsland = (): JSX.Element => {
 
     const { navegar } = useNavigationStore();
     const { abrir: abrirSubirModal } = useSubirModalStore();
+    const menu = useMenuContextualSample();
+
+    /* Toggle like con optimistic UI en todas las secciones */
+    const manejarLike = useCallback(async (sampleId: number) => {
+        const actualizar = (lista: SampleResumen[]) =>
+            lista.map((s) =>
+                s.id === sampleId
+                    ? { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) }
+                    : s
+            );
+        setTrending(actualizar);
+        setRecientes(actualizar);
+        setDescubrir(actualizar);
+
+        const sample = [...trending, ...recientes, ...descubrir].find((s) => s.id === sampleId);
+        if (sample?.liked) {
+            await quitarLike('sample', sampleId);
+        } else {
+            await darLike('sample', sampleId);
+        }
+    }, [trending, recientes, descubrir]);
 
     /* Cargar las 3 secciones del feed */
     useEffect(() => {
@@ -123,6 +147,9 @@ export const InicioIsland = (): JSX.Element => {
                                 progreso={sampleActual?.id === s.id ? progreso : 0}
                                 onPlay={() => manejarPlay(s)}
                                 onPause={pause}
+                                onLike={manejarLike}
+                                onMenu={menu.abrirMenu}
+                                onClickCreador={(u) => navegar(`/perfil/${u}`)}
                             />
                         ))}
                     </div>
@@ -151,6 +178,9 @@ export const InicioIsland = (): JSX.Element => {
                                 progreso={sampleActual?.id === s.id ? progreso : 0}
                                 onPlay={() => manejarPlay(s)}
                                 onPause={pause}
+                                onLike={manejarLike}
+                                onMenu={menu.abrirMenu}
+                                onClickCreador={(u) => navegar(`/perfil/${u}`)}
                             />
                         ))}
                     </div>
@@ -176,11 +206,23 @@ export const InicioIsland = (): JSX.Element => {
                                 progreso={sampleActual?.id === s.id ? progreso : 0}
                                 onPlay={() => manejarPlay(s)}
                                 onPause={pause}
+                                onLike={manejarLike}
+                                onMenu={menu.abrirMenu}
+                                onClickCreador={(u) => navegar(`/perfil/${u}`)}
                             />
                         ))}
                     </div>
                 </div>
             )}
+
+            {/* Menú contextual de sample */}
+            <MenuContextual
+                abierto={menu.estado.abierto}
+                onCerrar={menu.cerrarMenu}
+                items={menu.items}
+                x={menu.estado.x}
+                y={menu.estado.y}
+            />
         </div>
     );
 };

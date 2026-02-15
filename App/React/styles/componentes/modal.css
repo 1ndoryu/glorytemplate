@@ -49,8 +49,8 @@
 }
 
 .modalTitulo {
-    font-size: var(--fuenteLg);
-    font-weight: var(--pesoSemibold);
+    font-size: var(--fuenteMd);
+    font-weight: unset;
     color: var(--textoPrimario);
 }
 

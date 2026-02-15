@@ -99,7 +99,7 @@
 
 .detalleMetaValor {
     font-size: var(--fuenteMd);
-    font-weight: var(--pesoSemibold);
+   font-weight: var(--pesoSemibold);
     color: var(--textoPrimario);
 }
 

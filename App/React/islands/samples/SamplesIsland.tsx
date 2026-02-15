@@ -1,7 +1,7 @@
 /*
  * SamplesIsland — Kamples
  * Explorador principal de samples con filtros, búsqueda y lista.
- * Conecta la API de samples con los componentes TarjetaSample y ReproductorGlobal.
+ * Incluye menú contextual, likes y navegación SPA.
  */
 
 import { useState, useCallback, useEffect, type ChangeEvent } from 'react';
@@ -13,10 +13,14 @@ import {
 } from '@app/components/ui';
 import type { TabDefinicion } from '@app/components/ui';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { listarSamples } from '@app/services/apiSamples';
+import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { FiltrosSamples, RespuestaListaSamples } from '@app/services/apiSamples';
 import type { SampleResumen } from '@app/types';
 import { useReproductorStore } from '@app/stores/reproductorStore';
+import { useNavigationStore } from '@/core/router';
+import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import '../../styles/componentes/samples.css';
 
 const NOTAS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -38,6 +42,25 @@ export const SamplesIsland = (): JSX.Element => {
 
     const { sampleActual, reproduciendo, progreso, setSample, pause } =
         useReproductorStore();
+    const { navegar } = useNavigationStore();
+    const menu = useMenuContextualSample();
+
+    /* Like con optimistic UI */
+    const manejarLike = useCallback(async (sampleId: number) => {
+        setSamples((prev) =>
+            prev.map((s) =>
+                s.id === sampleId
+                    ? { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) }
+                    : s
+            )
+        );
+        const sample = samples.find((s) => s.id === sampleId);
+        if (sample?.liked) {
+            await quitarLike('sample', sampleId);
+        } else {
+            await darLike('sample', sampleId);
+        }
+    }, [samples]);
 
     /* Cargar samples */
     const cargarSamples = useCallback(async () => {
@@ -215,6 +238,9 @@ export const SamplesIsland = (): JSX.Element => {
                             progreso={sampleActual?.id === sample.id ? progreso : 0}
                             onPlay={manejarPlay}
                             onPause={manejarPause}
+                            onLike={manejarLike}
+                            onMenu={menu.abrirMenu}
+                            onClickCreador={(u) => navegar(`/perfil/${u}`)}
                         />
                     ))}
                 </div>
@@ -245,6 +271,14 @@ export const SamplesIsland = (): JSX.Element => {
                 </div>
             )}
 
+            {/* Menú contextual de sample */}
+            <MenuContextual
+                abierto={menu.estado.abierto}
+                onCerrar={menu.cerrarMenu}
+                items={menu.items}
+                x={menu.estado.x}
+                y={menu.estado.y}
+            />
         </div>
     );
 };
