@@ -202,6 +202,9 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ### Registro de cambios R4 — Delete samples/colecciones + Badge plan
 
+**Fix: Tags sin estilos en FeedSamples:**
+- `FeedSamples.tsx`: faltaba `import '../../styles/componentes/feedSamples.css'` — el archivo CSS existía con todos los estilos de tags pero nunca fue importado por el componente, dejando `.feedTagItem`, `.feedTagItemIncluido`, `.feedTagItemExcluido`, etc. sin efecto visual.
+
 **Eliminación de samples (comentarios 18+19):**
 - `UsuarioHelper.php`: agregado `esAdmin()` — verifica rol WP administrator
 - `SamplesController.php`: ruta DELETE /samples/{id} + método `eliminar()` — verifica dueño/admin, borra archivos físicos (audio, mp3, preview, waveform), cascada BD (likes, coleccion_samples, reproducciones, descargas), logging
