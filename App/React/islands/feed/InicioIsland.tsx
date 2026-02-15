@@ -129,7 +129,12 @@ const FeedUnificado = (): JSX.Element => {
             setSamples(resultado);
             setCargando(false);
         } else {
-            setSamples((prev) => [...prev, ...resultado]);
+            /* Deduplicar por id para evitar repetidos en el feed */
+            setSamples((prev) => {
+                const idsExistentes = new Set(prev.map((s) => s.id));
+                const nuevos = resultado.filter((s) => !idsExistentes.has(s.id));
+                return [...prev, ...nuevos];
+            });
             setCargandoMas(false);
         }
     }, [ordenamiento, busqueda, periodoDestacados]);

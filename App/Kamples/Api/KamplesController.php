@@ -515,6 +515,7 @@ class KamplesController
     /*
      * Endpoint: PUT /kamples/v1/me
      * Actualiza datos del perfil del usuario autenticado.
+     * Acepta: nombreVisible (o nombreDisplay), username, bio, portadaUrl.
      */
     public static function actualizarPerfil(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -524,9 +525,11 @@ class KamplesController
         $campos = [];
         $params = ['wpId' => $wpUserId];
 
-        if (isset($body['nombreDisplay'])) {
+        /* Acepta nombreVisible o nombreDisplay (compatibilidad) */
+        $nombre = $body['nombreVisible'] ?? $body['nombreDisplay'] ?? null;
+        if ($nombre !== null) {
             $campos[]             = 'nombre_visible = :nombre';
-            $params['nombre']     = sanitize_text_field($body['nombreDisplay']);
+            $params['nombre']     = sanitize_text_field($nombre);
         }
 
         if (isset($body['username'])) {
@@ -537,6 +540,11 @@ class KamplesController
         if (isset($body['bio'])) {
             $campos[]         = 'bio = :bio';
             $params['bio']    = sanitize_textarea_field($body['bio']);
+        }
+
+        if (isset($body['portadaUrl'])) {
+            $campos[]              = 'portada_url = :portada';
+            $params['portada']     = esc_url_raw($body['portadaUrl']);
         }
 
         if (empty($campos)) {

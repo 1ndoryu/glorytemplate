@@ -192,6 +192,44 @@
     background-color: var(--acento-blanco);
 }
 
+/* Portada / Cover photo */
+.configPortadaContenedor {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    border-radius: var(--radioMd);
+    overflow: hidden;
+    background-color: var(--fondoElevado2);
+}
+
+.configPortadaImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.configPortadaBtn {
+    position: absolute;
+    bottom: var(--espacioSm);
+    right: var(--espacioSm);
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    border: none;
+    border-radius: var(--radioSm);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteXs);
+    cursor: pointer;
+    transition: background-color var(--transicionRapida);
+}
+
+.configPortadaBtn:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
 /* Input genérico */
 .configInput {
     width: 100%;

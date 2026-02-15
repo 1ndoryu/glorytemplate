@@ -6,7 +6,8 @@
  */
 
 import { useState, useCallback, useRef, useEffect, type ChangeEvent } from 'react';
-import { Camera, Save, Bell, BellOff, User, Shield, Palette, X } from 'lucide-react';
+import { Camera, ImagePlus, Save, Bell, BellOff, User, Shield, Palette, X } from 'lucide-react';
+import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
@@ -42,8 +43,10 @@ export const ModalConfiguracion = (): JSX.Element | null => {
     const [bio, setBio] = useState('');
     const [notificaciones, setNotificaciones] = useState(true);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [portadaPreview, setPortadaPreview] = useState<string | null>(null);
     const [guardando, setGuardando] = useState(false);
     const inputFotoRef = useRef<HTMLInputElement>(null);
+    const inputPortadaRef = useRef<HTMLInputElement>(null);
 
     /* Sincronizar campos cuando el modal se abre o los datos del usuario cambian */
     useEffect(() => {
@@ -51,16 +54,25 @@ export const ModalConfiguracion = (): JSX.Element | null => {
             setNombreVisible(usuario.nombreVisible ?? '');
             setUsername(usuario.username ?? '');
             setAvatarPreview(null);
+            setPortadaPreview(null);
             setSeccionActiva('perfil');
         }
     }, [abierto, usuario]);
 
-    /* Preview de foto nueva */
+    /* Preview de foto de perfil nueva */
     const manejarCambioFoto = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         const archivo = e.target.files?.[0];
         if (!archivo) return;
         const url = URL.createObjectURL(archivo);
         setAvatarPreview(url);
+    }, []);
+
+    /* Preview de portada nueva */
+    const manejarCambioPortada = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        const archivo = e.target.files?.[0];
+        if (!archivo) return;
+        const url = URL.createObjectURL(archivo);
+        setPortadaPreview(url);
     }, []);
 
     /* Guardar cambios — envía al backend y persiste en authStore */
@@ -76,7 +88,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                 bio: bio,
             } as any);
 
-            /* Persistir avatar local en el store (real upload TO-DO: FormData con archivo) */
+            /* Persistir cambios locales en el store (real upload TO-DO: FormData con archivo) */
             const nuevosDatos = {
                 ...usuario,
                 nombreVisible,
@@ -84,6 +96,9 @@ export const ModalConfiguracion = (): JSX.Element | null => {
             };
             if (avatarPreview) {
                 nuevosDatos.avatarUrl = avatarPreview;
+            }
+            if (portadaPreview) {
+                nuevosDatos.portadaUrl = portadaPreview;
             }
             setUsuario(nuevosDatos);
 
@@ -94,13 +109,14 @@ export const ModalConfiguracion = (): JSX.Element | null => {
 
         setGuardando(false);
         cerrar();
-    }, [guardando, usuario, nombreVisible, username, bio, avatarPreview, setUsuario, cerrar]);
+    }, [guardando, usuario, nombreVisible, username, bio, avatarPreview, portadaPreview, setUsuario, cerrar]);
 
     /* Cerrar sin guardar */
     const manejarCerrar = useCallback(() => {
         if (guardando) return;
         cerrar();
         setAvatarPreview(null);
+        setPortadaPreview(null);
     }, [cerrar, guardando]);
 
     if (!abierto || !autenticado) return null;
@@ -115,8 +131,37 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                     <>
                         <h2 className="configSeccionTitulo">Perfil</h2>
 
+                        {/* Portada / Cover */}
+                        <div className="configSeccion">
+                            <label className="configLabel">Portada</label>
+                            <div className="configPortadaContenedor">
+                                <img
+                                    src={portadaPreview || usuario?.portadaUrl || obtenerImagenColor((usuario?.id ?? 0) + 100)}
+                                    alt="Portada"
+                                    className="configPortadaImg"
+                                />
+                                <button
+                                    className="configPortadaBtn"
+                                    onClick={() => inputPortadaRef.current?.click()}
+                                    type="button"
+                                    aria-label="Cambiar portada"
+                                >
+                                    <ImagePlus size={16} />
+                                    Cambiar portada
+                                </button>
+                                <input
+                                    ref={inputPortadaRef}
+                                    type="file"
+                                    accept="image/*"
+                                    hidden
+                                    onChange={manejarCambioPortada}
+                                />
+                            </div>
+                        </div>
+
                         {/* Foto de perfil */}
                         <div className="configSeccion">
+                            <label className="configLabel">Foto de perfil</label>
                             <div className="configFotoContenedor">
                                 <Avatar
                                     src={avatarActual}

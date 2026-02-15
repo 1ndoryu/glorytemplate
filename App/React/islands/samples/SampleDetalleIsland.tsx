@@ -21,9 +21,15 @@ import {
 } from '@app/components/ui';
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { MenuContextual } from '@app/components/ui/MenuContextual';
+import { BotonFollow } from '@app/components/social/BotonFollow';
 import { obtenerSample, listarSamples } from '@app/services/apiSamples';
+import { darLike, quitarLike } from '@app/services/apiSocial';
+import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useAuthStore } from '@app/stores/authStore';
 import { useNavigationStore } from '@/core/router';
+import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import type { Sample, SampleResumen } from '@app/types';
 import '../../styles/componentes/sampleDetalle.css';
 
@@ -43,7 +49,10 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const rutaPreviewRef = useRef('');
     const { setTabs } = useTabsTopBarStore();
+    const { navegar } = useNavigationStore();
+    const { usuario: usuarioAuth } = useAuthStore();
     const rutaActual = useNavigationStore((s) => s.rutaActual);
+    const menu = useMenuContextualSample();
 
     /*
      * Resolver slug: priorizar la URL actual (SPA) sobre el prop de PHP.
@@ -66,7 +75,38 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
         return () => { setTabs([]); };
     }, [setTabs]);
 
-    const estaReproduciendo = reproduciendo;
+    const esPropietario = usuarioAuth && sample?.creadorId === usuarioAuth.id;
+
+    /* Like con llamada a API */
+    const manejarLike = useCallback(async () => {
+        if (!sample) return;
+        const nuevoLiked = !liked;
+        setLiked(nuevoLiked);
+        if (nuevoLiked) {
+            await darLike('sample', sample.id);
+        } else {
+            await quitarLike('sample', sample.id);
+        }
+    }, [liked, sample]);
+
+    /* Like en samples similares (optimistic UI) */
+    const manejarLikeSimilar = useCallback(async (sampleId: number) => {
+        let estabaLiked = false;
+        setSimilares((prev) =>
+            prev.map((s) => {
+                if (s.id === sampleId) {
+                    estabaLiked = s.liked ?? false;
+                    return { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) };
+                }
+                return s;
+            })
+        );
+        if (estabaLiked) {
+            await quitarLike('sample', sampleId);
+        } else {
+            await darLike('sample', sampleId);
+        }
+    }, []);
 
     /* Cargar sample al montar */
     useEffect(() => {
@@ -220,112 +260,148 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
 
     return (
         <div className="detalleContenedor" id="seccionSampleDetalle">
-            {/* Header con waveform y datos */}
-            <div className="detalleHeader">
-                <div className="detalleWaveform">
-                    <WaveformPlayer
-                        picos={null}
-                        progreso={progreso}
-                        duracion={sample.duracion}
-                        tamano="xl"
-                        interactivo
-                        onSeek={(pct) => {
-                            const audio = audioRef.current;
-                            if (audio?.duration) {
-                                audio.currentTime = pct * audio.duration;
-                                setProgreso(pct);
-                            }
-                        }}
-                    />
+            {/* Hero con imagen de fondo + waveform overlay */}
+            <div className="detalleHero">
+                <img
+                    src={sample.imagenUrl || obtenerImagenColor(sample.id)}
+                    alt={sample.titulo}
+                    className="detalleHeroImg"
+                />
+                <div className="detalleHeroOverlay">
+                    <div className="detalleHeroWaveform">
+                        <WaveformPlayer
+                            picos={null}
+                            progreso={progreso}
+                            duracion={sample.duracion}
+                            tamano="xl"
+                            interactivo
+                            onSeek={(pct) => {
+                                const audio = audioRef.current;
+                                if (audio?.duration) {
+                                    audio.currentTime = pct * audio.duration;
+                                    setProgreso(pct);
+                                }
+                            }}
+                        />
+                    </div>
+                    <button
+                        className={`detalleHeroPlayBtn ${reproduciendo ? 'detalleHeroPlayBtnActivo' : ''}`}
+                        onClick={manejarPlay}
+                        type="button"
+                        aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}
+                    >
+                        {reproduciendo ? <Pause size={28} /> : <Play size={28} />}
+                    </button>
                 </div>
+            </div>
 
-                <div className="detalleInfo">
+            {/* Info principal */}
+            <div className="detalleInfo">
+                <div className="detalleInfoPrincipal">
                     <h1 className="detalleTitulo">{sample.titulo}</h1>
 
                     {sample.creador && (
-                        <div className="detalleCreador">
+                        <button
+                            className="detalleCreador"
+                            onClick={() => navegar(`/perfil/${sample.creador.username}/`)}
+                            type="button"
+                        >
                             <Avatar
                                 src={sample.creador.avatarUrl}
                                 nombre={sample.creador.nombreVisible}
-                                tamano="sm"
+                                tamano="md"
                             />
-                            <span className="detalleCreadorNombre">
-                                por <strong>{sample.creador.nombreVisible}</strong>
+                            <div className="detalleCreadorTexto">
+                                <strong>{sample.creador.nombreVisible}</strong>
+                                <span>@{sample.creador.username}</span>
+                            </div>
+                            {!esPropietario && sample.creador && (
+                                <BotonFollow
+                                    usuarioId={sample.creador.id}
+                                    siguiendo={false}
+                                />
+                            )}
+                        </button>
+                    )}
+                </div>
+
+                {/* Metadata */}
+                <div className="detalleMeta">
+                    {sample.bpm && (
+                        <div className="detalleMetaItem">
+                            <span className="detalleMetaLabel">BPM</span>
+                            <span className="detalleMetaValor">{sample.bpm}</span>
+                        </div>
+                    )}
+                    {sample.key && (
+                        <div className="detalleMetaItem">
+                            <span className="detalleMetaLabel">Key</span>
+                            <span className="detalleMetaValor">
+                                {sample.key}
+                                {sample.escala === 'menor' ? 'm' : ''}
                             </span>
                         </div>
                     )}
-
-                    {/* Metadata */}
-                    <div className="detalleMeta">
-                        {sample.bpm && (
-                            <div className="detalleMetaItem">
-                                <span className="detalleMetaLabel">BPM</span>
-                                <span className="detalleMetaValor">{sample.bpm}</span>
-                            </div>
-                        )}
-                        {sample.key && (
-                            <div className="detalleMetaItem">
-                                <span className="detalleMetaLabel">Key</span>
-                                <span className="detalleMetaValor">
-                                    {sample.key}
-                                    {sample.escala === 'menor' ? 'm' : ''}
-                                </span>
-                            </div>
-                        )}
+                    {sample.tipo && (
                         <div className="detalleMetaItem">
-                            <span className="detalleMetaLabel">Duración</span>
-                            <span className="detalleMetaValor">
-                                {formatearDuracion(sample.duracion)}
-                            </span>
+                            <span className="detalleMetaLabel">Tipo</span>
+                            <span className="detalleMetaValor">{sample.tipo}</span>
                         </div>
-                        <div className="detalleMetaItem">
-                            <span className="detalleMetaLabel">Formato</span>
-                            <span className="detalleMetaValor">
-                                {sample.formato.toUpperCase()}
-                            </span>
-                        </div>
-                        <div className="detalleMetaItem">
-                            <span className="detalleMetaLabel">Tamaño</span>
-                            <span className="detalleMetaValor">
-                                {formatearTamano(sample.tamano)}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Acciones */}
-                    <div className="detalleAcciones">
-                        <BotonBase variante="primario" onClick={manejarPlay}>
-                            {estaReproduciendo
-                                ? <><Pause size={14} /> Pausar</>
-                                : <><Play size={14} /> Reproducir</>
-                            }
-                        </BotonBase>
-                        <BotonBase
-                            variante={liked ? 'primario' : 'ghost'}
-                            onClick={() => setLiked(!liked)}
-                        >
-                            <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
-                        </BotonBase>
-                        <BotonBase variante="ghost">
-                            <Download size={14} /> Descargar
-                        </BotonBase>
-                        <BotonBase variante="ghost">
-                            <Share2 size={14} />
-                        </BotonBase>
-                    </div>
-
-                    {/* Estadísticas */}
-                    <div className="detalleAcciones">
-                        <span className="detalleAccionEstadistica">
-                            <Eye size={14} /> {sample.totalReproducciones.toLocaleString()}
-                        </span>
-                        <span className="detalleAccionEstadistica">
-                            <Heart size={14} /> {sample.totalLikes.toLocaleString()}
-                        </span>
-                        <span className="detalleAccionEstadistica">
-                            <Download size={14} /> {sample.totalDescargas.toLocaleString()}
+                    )}
+                    <div className="detalleMetaItem">
+                        <span className="detalleMetaLabel">Duración</span>
+                        <span className="detalleMetaValor">
+                            {formatearDuracion(sample.duracion)}
                         </span>
                     </div>
+                    <div className="detalleMetaItem">
+                        <span className="detalleMetaLabel">Formato</span>
+                        <span className="detalleMetaValor">
+                            {sample.formato.toUpperCase()}
+                        </span>
+                    </div>
+                    <div className="detalleMetaItem">
+                        <span className="detalleMetaLabel">Tamaño</span>
+                        <span className="detalleMetaValor">
+                            {formatearTamano(sample.tamano)}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Acciones */}
+                <div className="detalleAcciones">
+                    <BotonBase variante="primario" onClick={manejarPlay}>
+                        {reproduciendo
+                            ? <><Pause size={14} /> Pausar</>
+                            : <><Play size={14} /> Reproducir</>
+                        }
+                    </BotonBase>
+                    <BotonBase
+                        variante={liked ? 'primario' : 'ghost'}
+                        onClick={manejarLike}
+                    >
+                        <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
+                        {sample.totalLikes > 0 && ` ${sample.totalLikes}`}
+                    </BotonBase>
+                    <BotonBase variante="ghost">
+                        <Download size={14} /> Descargar
+                    </BotonBase>
+                    <BotonBase variante="ghost">
+                        <Share2 size={14} />
+                    </BotonBase>
+                </div>
+
+                {/* Estadísticas */}
+                <div className="detalleEstadisticas">
+                    <span className="detalleAccionEstadistica">
+                        <Eye size={14} /> {sample.totalReproducciones.toLocaleString()} reproducciones
+                    </span>
+                    <span className="detalleAccionEstadistica">
+                        <Heart size={14} /> {sample.totalLikes.toLocaleString()} likes
+                    </span>
+                    <span className="detalleAccionEstadistica">
+                        <Download size={14} /> {sample.totalDescargas.toLocaleString()} descargas
+                    </span>
                 </div>
             </div>
 
@@ -351,7 +427,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                 </div>
             )}
 
-            {/* Samples similares */}
+            {/* Samples similares — navegables */}
             {similares.length > 0 && (
                 <div className="detalleSeccion">
                     <h2 className="detalleSeccionTitulo">Samples similares</h2>
@@ -360,11 +436,23 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                             <TarjetaSample
                                 key={s.id}
                                 sample={s}
+                                onLike={manejarLikeSimilar}
+                                onMenu={menu.abrirMenu}
+                                onClickCreador={(u) => navegar(`/perfil/${u}/`)}
                             />
                         ))}
                     </div>
                 </div>
             )}
+
+            {/* Menú contextual para samples similares */}
+            <MenuContextual
+                abierto={menu.estado.abierto}
+                onCerrar={menu.cerrarMenu}
+                items={menu.items}
+                x={menu.estado.x}
+                y={menu.estado.y}
+            />
         </div>
     );
 };

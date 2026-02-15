@@ -1,6 +1,7 @@
 /*
  * sampleDetalle.css — Kamples
  * Estilos de la página de detalle de un sample individual.
+ * Rediseñado: hero con imagen + waveform overlay, creador grande, acciones mejoradas.
  */
 
 .detalleContenedor {
@@ -12,27 +13,72 @@
     margin: 0 auto;
 }
 
-/* Header: waveform + info básica */
-.detalleHeader {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--espacioLg);
-    background: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioLg);
-    padding: var(--espacioLg);
-}
-
-.detalleWaveform {
+/* Hero: imagen de fondo con waveform overlay */
+.detalleHero {
+    position: relative;
     width: 100%;
-    border-radius: var(--radioMd);
+    height: 280px;
+    border-radius: var(--radioLg);
     overflow: hidden;
+    background-color: var(--fondoElevado2);
 }
 
+.detalleHeroImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.detalleHeroOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    padding: var(--espacioLg);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.1) 50%, transparent 100%);
+}
+
+.detalleHeroWaveform {
+    flex: 1;
+    min-width: 0;
+}
+
+.detalleHeroPlayBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border: none;
+    border-radius: var(--radioFull);
+    background-color: var(--acento-blanco);
+    color: var(--fondoBase);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    flex-shrink: 0;
+    margin-left: var(--espacioMd);
+}
+
+.detalleHeroPlayBtn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+}
+
+.detalleHeroPlayBtnActivo {
+    background-color: var(--acento);
+}
+
+/* Info principal: título + creador */
 .detalleInfo {
     display: flex;
     flex-direction: column;
     gap: var(--espacioMd);
+}
+
+.detalleInfoPrincipal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
 }
 
 .detalleTitulo {
@@ -42,26 +88,38 @@
     margin: 0;
 }
 
+/* Creador: clickeable, con avatar, nombre y username */
 .detalleCreador {
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
     cursor: pointer;
     transition: opacity var(--transicionNormal);
+    background: none;
+    border: none;
+    padding: var(--espacioXs) 0;
+    text-align: left;
 }
 
 .detalleCreador:hover {
     opacity: 0.8;
 }
 
-.detalleCreadorNombre {
-    font-size: var(--fuenteSm);
-    color: var(--textoSecundario);
+.detalleCreadorTexto {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
 }
 
-.detalleCreadorNombre strong {
+.detalleCreadorTexto strong {
+    font-size: var(--fuenteMd);
     color: var(--textoPrimario);
-    font-weight: var(--pesoMedium);
+    font-weight: var(--pesoSemibold);
+}
+
+.detalleCreadorTexto span {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
 }
 
 .detalleDescripcion {
@@ -71,7 +129,7 @@
     white-space: pre-wrap;
 }
 
-/* Meta info (BPM, Key, Tipo...) */
+/* Meta info (BPM, Key, Tipo, Duración...) */
 .detalleMeta {
     display: flex;
     flex-wrap: wrap;
@@ -99,7 +157,7 @@
 
 .detalleMetaValor {
     font-size: var(--fuenteMd);
-   font-weight: var(--pesoSemibold);
+    font-weight: var(--pesoSemibold);
     color: var(--textoPrimario);
 }
 
@@ -108,6 +166,14 @@
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
+    flex-wrap: wrap;
+}
+
+/* Estadísticas en línea */
+.detalleEstadisticas {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioLg);
     flex-wrap: wrap;
 }
 
@@ -126,7 +192,7 @@
     gap: var(--espacioXs);
 }
 
-/* Sección samples similares */
+/* Secciones (descripción, tags, similares) */
 .detalleSeccion {
     display: flex;
     flex-direction: column;
@@ -145,7 +211,7 @@
     gap: var(--espacioSm);
 }
 
-/* Estado de carga */
+/* Estado de carga y error */
 .detalleCargando {
     display: flex;
     justify-content: center;
@@ -166,9 +232,14 @@
     text-align: center;
 }
 
-/* Responsive: en pantallas grandes, el header usa 2 columnas */
-@media (min-width: 768px) {
-    .detalleHeader {
-        grid-template-columns: 2fr 1fr;
+/* Responsive */
+@media (max-width: 600px) {
+    .detalleHero {
+        height: 200px;
+    }
+
+    .detalleHeroPlayBtn {
+        width: 44px;
+        height: 44px;
     }
 }

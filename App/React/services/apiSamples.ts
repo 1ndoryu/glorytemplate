@@ -136,7 +136,11 @@ export const obtenerFeed = async (
 
     /* Fallback a mock si la API falla o retorna vacío */
     if (!resp.ok || !resp.data || (Array.isArray(resp.data) && resp.data.length === 0)) {
-        return { ok: true, data: datosMock, error: null, status: 200 };
+        /* Paginar mock para evitar duplicados en infinite scroll */
+        const porPagina = 20;
+        const inicio = (page - 1) * porPagina;
+        const paginado = datosMock.slice(inicio, inicio + porPagina);
+        return { ok: true, data: paginado, error: null, status: 200 };
     }
     return resp;
 };

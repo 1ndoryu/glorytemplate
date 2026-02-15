@@ -7,6 +7,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--espacioLg);
+    padding: var(--espacio2xl);
+    max-width: 800px;
+    margin: auto;
 }
 
 /* Filtros: Todos, Siguiendo, Populares */

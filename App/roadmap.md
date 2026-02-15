@@ -106,6 +106,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **UI/UX (C53-C59):** Dropdown ordenamiento plano: 4 opciones (Inteligente, Recientes, Top Semanal, Top Mensual) sin sub-menú. Infinite scroll con IntersectionObserver (rootMargin 200px) + virtualización DOM (MAX_RENDERIZADOS=50, spacer divs). Fix imagenesColor guard `Number.isFinite(id)` para evitar `colors/undefined`. Fix SampleDetalleIsland filter crash con try/catch + `Array.isArray` check. ModalConfiguracion conectado a `PUT /kamples/v1/me` + persist authStore. MenuContextual renderiza `<a href>` para items con URL (middle-click abre nueva pestaña nativo). DropdownMensajes abre ChatFlotante con `abrirChat()` en vez de navegar a /mensajes. TarjetaSample onClick en div externo reproduce audio. ComunidadIsland sin reproductor global (solo audio local).
 
+**UI/UX (C60-C63):** Fix infinite scroll duplicados: paginación mock en `obtenerFeed` + deduplicación por id en `cargarSamples`. Fix `PUT /me` acepta `nombreVisible` (no solo `nombreDisplay`) + campo `portadaUrl`. ModalConfiguracion: portada editable (cover photo) con preview, `ImagePlus` botón, input file. SampleDetalleIsland rediseñado: hero con imagen de fondo + waveform overlay + botón play 56px, creador navegable con avatar/nombre/@username + BotonFollow, like con API real, similares con like/menú contextual/navegación, campo Tipo visible, estadísticas con texto.
+
 ---
 
 ## Pendientes por Fase
@@ -149,9 +151,9 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
   - Integrado en LayoutPrincipal, abierto desde PerfilIsland
   - Conectado a `PUT /kamples/v1/me` para guardar cambios + persist en authStore
   - TO-DO: subida real de archivo avatar con FormData (endpoint no soporta multipart aún)
-- [ ] **1.3** Auto-creación `usuarios_ext` en Postgres
-  - Al hacer login por primera vez, crear registro automático en tabla Postgres
-  - Sincronizar datos base de WP → Postgres (id, username, email, avatar)
+- [x] **1.3** Auto-creación `usuarios_ext` en Postgres ✓ (IMPLEMENTADO)
+  - Endpoint GET /kamples/v1/me auto-crea registro si no existe
+  - Sincroniza wp_user_id, username, display_name, avatar_url de WP → Postgres
 - [ ] **1.4** Google OAuth (cuando las keys estén listas)
   - Variables en .env están vacías, preparar la integración para activarla cuando se tengan
 
@@ -198,6 +200,25 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
   - Las URLs deben encontrar samples por ID además de por slug: `/sample/1FK4433` o `/sample/{slug}`
   - Lookup dual: primero buscar por slug, si no existe buscar por ID corto
   - El ID se incluye en el nombre del archivo y en la URL como identificador primario
+- [ ] **2.8** Deduplicación de audio por fingerprint
+  - **Hash ligero diferido:** Al subir un audio, calcular un hash perceptual NO bloqueante
+    - Extraer los primeros 4 segundos + últimos 4 segundos del audio
+    - Generar fingerprint resistente a cambios de calidad, pitch y formato (ej: chromaprint/AcoustID)
+    - Proceso 100% en background (Action Scheduler o wp_schedule_single_event)
+    - Almacenar hash en columna `audio_hash` de `samples` (VARCHAR(64) + índice)
+  - **Supervisión de duplicados:**
+    - Al completar el hash, buscar coincidencias en BD (`WHERE audio_hash = :hash AND creador_id != :creadorId`)
+    - Si hay coincidencia con otro usuario → marcar sample como `estado = 'en_supervision'`
+    - Si coincide con sample del mismo usuario → permitir (duplicados propios son válidos)
+    - Panel de supervisión (futuro) para que admins revean samples marcados
+  - **Flujo de reporte al original:**
+    - Si se detecta duplicado entre usuarios, notificar al dueño original del sample
+    - El dueño original puede enviar un reporte marcando el audio como suyo
+    - El reportado recibe aviso y debe aportar pruebas de originalidad
+    - Sistema de disputa simple con estados: `reportado`, `en_revision`, `resuelto`, `rechazado`
+  - **Tabla `reportes_duplicados`:** id, sample_original_id, sample_duplicado_id, reportador_id,
+    estado (enum), pruebas_texto, created_at, resuelto_at
+  - **Prioridad:** MEDIA — implementar hash ligero primero, sistema de reportes después
 
 ### FASE 3 — Algoritmo v1 (pgvector local)
 > Prioridad: ALTA — diferenciador clave del producto
@@ -275,11 +296,15 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
   - Click en nombre de colección → navegar a /coleccion/{id}/ sin recargar
   - Back/forward del navegador funciona correctamente con popstate
   - Middle-click / Ctrl+click abre en nueva pestaña (elementos convertidos a `<a href>`)
-- [ ] **6.2** SampleDetalleIsland mejorado
-  - Tarjeta más grande y detallada en la página individual
-  - Waveform XL interactivo
-  - Metadata completa generada por IA (tags, instrumentos, sentimiento, artistas relevantes)
-  - Samples similares navegables (click → ir a su detalle sin recarga)
+- [x] **6.2** SampleDetalleIsland mejorado ✓ (IMPLEMENTADO)
+  - Hero con imagen de fondo (colors/) + waveform XL overlay + botón play grande
+  - Creador navegable (click → /perfil/{username}/) con avatar, nombre, @username
+  - Botón BotonFollow para el creador (si no es propietario)
+  - Like con API real (darLike/quitarLike)
+  - Similares navegables con like, menú contextual, click a creador
+  - Estadísticas con texto descriptivo (reproducciones, likes, descargas)
+  - Campo Tipo visible en metadata
+  - TO-DO: metadata generada por IA (instrumentos, sentimiento, artistas)
 - [x] **6.3** ColeccionDetalleIsland (NUEVA) ✓ (IMPLEMENTADO)
   - `ColeccionDetalleIsland.tsx` + `coleccionDetalle.css`
   - Ruta `/coleccion/{slug}` registrada en pages.php con slug dinámico
@@ -357,3 +382,4 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 10. **Colors/:** Lectura dinámica del directorio, no hardcodeado. Optimización de imágenes.
 11. **Naming IA:** Al subir audio, la IA genera nombre estandarizado: `kamples_{tipo}_{genero}_{usuario}_{idCorto}.wav`. IDs únicos cortos alfanuméricos para cada sample, URLs soportan lookup por ID o slug.
 12. **Explorar eliminado:** La búsqueda y descubrimiento se hace desde InicioIsland (feed principal). Página `/explorar` removida.
+13. **Deduplicación audio:** Hash perceptual ligero (primeros+últimos 4s) diferido en background. Duplicados del mismo usuario permitidos, entre usuarios distintos → supervisión. Sistema de reportes con disputa y pruebas. Tabla `reportes_duplicados` planificada.
