@@ -21,34 +21,41 @@ class StripeService
 {
     private const API_BASE = 'https://api.stripe.com/v1';
 
-    /* IDs de precios de Stripe (configurar en .env o aquí) */
+    /* Configuración de planes — subidas ilimitadas en todos, varía transferencia y descargas */
     private const PLANES = [
         'pro' => [
-            'precio_mensual' => 9.99,
-            'descargas_dia'  => 50,
-            'subidas_mes'    => 100,
-            'revenue_share'  => 0.70,
+            'precio_mensual'    => 9.99,
+            'descargas_dia'     => 50,
+            'subidas_mes'       => -1, /* ilimitadas */
+            'transferencia_gb'  => 10,
+            'revenue_share'     => 0.70,
         ],
         'premium' => [
-            'precio_mensual' => 19.99,
-            'descargas_dia'  => -1, /* ilimitadas */
-            'subidas_mes'    => -1,
-            'revenue_share'  => 0.80,
+            'precio_mensual'    => 19.99,
+            'descargas_dia'     => -1, /* ilimitadas */
+            'subidas_mes'       => -1,
+            'transferencia_gb'  => 50,
+            'revenue_share'     => 0.80,
         ],
         'free' => [
-            'precio_mensual' => 0,
-            'descargas_dia'  => 5,
-            'subidas_mes'    => 10,
-            'revenue_share'  => 0,
+            'precio_mensual'    => 0,
+            'descargas_dia'     => 5,
+            'subidas_mes'       => -1, /* ilimitadas */
+            'transferencia_gb'  => 1,
+            'revenue_share'     => 0,
+            'prueba_gratuita'   => 30, /* días */
+            'descargas_prueba'  => 20,
         ],
     ];
 
     /**
      * Obtiene la secret key de Stripe desde .env.
+     * Busca GLORY_STRIPE_SECRET_KEY primero, luego STRIPE_SECRET_KEY como fallback.
      */
     private static function obtenerSecretKey(): ?string
     {
-        $key = $_ENV['STRIPE_SECRET_KEY'] ?? getenv('STRIPE_SECRET_KEY') ?: null;
+        $key = $_ENV['GLORY_STRIPE_SECRET_KEY'] ?? getenv('GLORY_STRIPE_SECRET_KEY')
+            ?: $_ENV['STRIPE_SECRET_KEY'] ?? getenv('STRIPE_SECRET_KEY') ?: null;
         if (!$key) {
             KamplesLogger::warning('STRIPE_SECRET_KEY no configurada en .env');
         }
@@ -219,7 +226,8 @@ class StripeService
      */
     public static function verificarWebhook(string $payload, string $signature): bool
     {
-        $secret = $_ENV['STRIPE_WEBHOOK_SECRET'] ?? getenv('STRIPE_WEBHOOK_SECRET') ?: null;
+        $secret = $_ENV['GLORY_STRIPE_WEBHOOK_SECRET'] ?? getenv('GLORY_STRIPE_WEBHOOK_SECRET')
+            ?: $_ENV['STRIPE_WEBHOOK_SECRET'] ?? getenv('STRIPE_WEBHOOK_SECRET') ?: null;
         if (!$secret) return false;
 
         $elementos = [];
@@ -241,7 +249,9 @@ class StripeService
     private static function obtenerPriceId(string $plan): ?string
     {
         $key = 'STRIPE_PRICE_' . strtoupper($plan);
-        return $_ENV[$key] ?? getenv($key) ?: null;
+        $keyGlory = 'GLORY_' . $key;
+        return $_ENV[$keyGlory] ?? getenv($keyGlory)
+            ?: $_ENV[$key] ?? getenv($key) ?: null;
     }
 
     private static function obtenerCustomerId(int $userId): ?string

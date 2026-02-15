@@ -18,6 +18,8 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\ServicioImagenIA;
+use App\Kamples\KamplesLogger;
 
 class PublicacionesController
 {
@@ -125,6 +127,37 @@ class PublicacionesController
              VALUES (:autor, :contenido, :imagenes, :samples) RETURNING id",
             ['autor' => $userId, 'contenido' => $contenido, 'imagenes' => $imagenes, 'samples' => $samplesAdjuntos]
         );
+
+        /* Análisis async de imágenes con IA (no bloquea la respuesta) */
+        $urlsImagenes = $body['imagenes'] ?? [];
+        if (!empty($urlsImagenes) && is_array($urlsImagenes) && $id) {
+            $pubId = $id;
+            \add_action('shutdown', function () use ($pubId, $urlsImagenes) {
+                if (function_exists('fastcgi_finish_request')) {
+                    \fastcgi_finish_request();
+                }
+                try {
+                    $metadata = ServicioImagenIA::analizarMultiples($urlsImagenes);
+                    $metadataLimpia = array_filter($metadata, fn($m) => $m !== null);
+                    if (!empty($metadataLimpia)) {
+                        PostgresService::ejecutar(
+                            "UPDATE publicaciones SET imagenes_metadata = :meta WHERE id = :id",
+                            ['meta' => json_encode($metadataLimpia), 'id' => $pubId]
+                        );
+                        KamplesLogger::info('Imágenes analizadas para publicación', [
+                            'publicacionId' => $pubId,
+                            'totalImagenes' => count($urlsImagenes),
+                            'analizadas' => count($metadataLimpia),
+                        ]);
+                    }
+                } catch (\Throwable $e) {
+                    KamplesLogger::error('Error analizando imágenes de publicación', [
+                        'publicacionId' => $pubId,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }, 0);
+        }
 
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
     }

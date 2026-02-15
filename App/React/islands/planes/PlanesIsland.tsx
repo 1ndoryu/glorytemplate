@@ -1,10 +1,9 @@
 /*
- * Isla: PlanesIsland — Kamples (Fase 6.2)
- * Página de comparativa de planes con CTA de checkout.
- * Estado actual de suscripción del usuario + upgrade/downgrade.
+ * Isla: PlanesIsland — Página de planes con Stripe Checkout real.
+ * Comparativa de planes, checkout, portal de facturación, estados post-checkout.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Check,
     X,
@@ -13,11 +12,16 @@ import {
     Sparkles,
     ArrowRight,
     CreditCard,
+    Loader2,
+    Settings,
+    PartyPopper,
 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import { useAuthStore } from '@app/stores/authStore';
 import { useNavigationStore } from '@/core/router';
+import { crearSesionCheckout, abrirPortalFacturacion } from '@app/services/apiPagos';
+import type { PeriodoPlan } from '@app/services/apiPagos';
 import '../../styles/componentes/planes.css';
 
 type PlanId = 'free' | 'pro' | 'premium';
@@ -44,15 +48,15 @@ const PLANES: PlanInfo[] = [
         destacado: false,
         caracteristicas: [
             { texto: '5 descargas por día', incluido: true },
-            { texto: 'Calidad MP3 (128kbps)', incluido: true },
+            { texto: 'Calidad WAV original', incluido: true },
+            { texto: 'Subidas ilimitadas', incluido: true },
+            { texto: '1 GB transferencia/mes', incluido: true },
             { texto: 'Explorar y descubrir', incluido: true },
-            { texto: 'Subir hasta 10 samples', incluido: true },
             { texto: 'Perfil público', incluido: true },
-            { texto: 'Calidad WAV original', incluido: false },
+            { texto: 'Prueba gratuita 30 días', incluido: true },
             { texto: 'Monetizar samples', incluido: false },
             { texto: 'Analytics avanzados', incluido: false },
             { texto: 'Revenue share', incluido: false },
-            { texto: 'Soporte dedicado', incluido: false },
         ],
     },
     {
@@ -66,9 +70,9 @@ const PLANES: PlanInfo[] = [
         caracteristicas: [
             { texto: '50 descargas por día', incluido: true },
             { texto: 'Calidad WAV original', incluido: true },
-            { texto: 'Explorar y descubrir', incluido: true },
-            { texto: 'Subir hasta 100 samples', incluido: true },
-            { texto: 'Perfil público verificado', incluido: true },
+            { texto: 'Subidas ilimitadas', incluido: true },
+            { texto: '10 GB transferencia/mes', incluido: true },
+            { texto: 'Perfil verificado', incluido: true },
             { texto: 'Monetizar samples', incluido: true },
             { texto: 'Analytics avanzados', incluido: true },
             { texto: 'Revenue share 70/30', incluido: true },
@@ -87,14 +91,14 @@ const PLANES: PlanInfo[] = [
         caracteristicas: [
             { texto: 'Descargas ilimitadas', incluido: true },
             { texto: 'Calidad WAV original', incluido: true },
-            { texto: 'Explorar y descubrir', incluido: true },
-            { texto: 'Subir samples ilimitados', incluido: true },
-            { texto: 'Perfil público verificado', incluido: true },
+            { texto: 'Subidas ilimitadas', incluido: true },
+            { texto: '50 GB transferencia/mes', incluido: true },
+            { texto: 'Perfil verificado', incluido: true },
             { texto: 'Monetizar samples', incluido: true },
             { texto: 'Analytics avanzados', incluido: true },
             { texto: 'Revenue share 80/20', incluido: true },
             { texto: 'Soporte dedicado 24/7', incluido: true },
-            { texto: 'Acceso anticipado a funciones', incluido: true },
+            { texto: 'Acceso anticipado', incluido: true },
         ],
     },
 ];
@@ -114,11 +118,23 @@ const calcularAnual = (mensual: number): PrecioAnual => ({
 
 export const PlanesIsland = (): JSX.Element => {
     const [periodoAnual, setPeriodoAnual] = useState(false);
+    const [cargando, setCargando] = useState<PlanId | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [checkoutExito, setCheckoutExito] = useState(false);
     const { usuario, autenticado } = useAuthStore();
     const { navegar } = useNavigationStore();
 
-    /* Mock: plan actual del usuario */
     const planActual: PlanId = (usuario as { plan?: PlanId } | null)?.plan ?? 'free';
+
+    /* Detectar retorno de Stripe Checkout */
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('checkout') === 'exito') {
+            setCheckoutExito(true);
+            /* Limpiar la URL sin recargar */
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    }, []);
 
     const obtenerPrecio = (plan: PlanInfo): string => {
         if (plan.precio === 0) return 'Gratis';
@@ -132,22 +148,73 @@ export const PlanesIsland = (): JSX.Element => {
     const obtenerEtiquetaBoton = (planId: PlanId): string => {
         if (!autenticado) return 'Empezar';
         if (planId === planActual) return 'Plan actual';
+        if (planId === 'free') return 'Cambiar plan';
         const orden: PlanId[] = ['free', 'pro', 'premium'];
         return orden.indexOf(planId) > orden.indexOf(planActual) ? 'Mejorar plan' : 'Cambiar plan';
     };
 
-    const manejarSeleccion = (planId: PlanId) => {
+    const manejarSeleccion = async (planId: PlanId) => {
         if (!autenticado) {
             navegar('/auth/registro/');
             return;
         }
-        if (planId === planActual) return;
-        /* TO-DO: Redirigir a Stripe Checkout cuando se integre (6.1) */
-        console.log(`Checkout para plan: ${planId}, periodo: ${periodoAnual ? 'anual' : 'mensual'}`);
+        if (planId === planActual || planId === 'free') return;
+
+        setError(null);
+        setCargando(planId);
+
+        try {
+            const periodo: PeriodoPlan = periodoAnual ? 'anual' : 'mensual';
+            const resultado = await crearSesionCheckout(planId as 'pro' | 'premium', periodo);
+
+            if (resultado.ok && resultado.url) {
+                /* Redirigir a Stripe Checkout */
+                window.location.href = resultado.url;
+            } else {
+                setError(resultado.error ?? 'Error al crear sesión de pago');
+            }
+        } catch {
+            setError('Error de conexión. Intenta de nuevo.');
+        } finally {
+            setCargando(null);
+        }
+    };
+
+    const manejarPortal = async () => {
+        setCargando('free');
+        try {
+            const resultado = await abrirPortalFacturacion();
+            if (resultado.ok && resultado.url) {
+                window.location.href = resultado.url;
+            } else {
+                setError(resultado.error ?? 'Error al abrir portal');
+            }
+        } catch {
+            setError('Error de conexión');
+        } finally {
+            setCargando(null);
+        }
     };
 
     return (
         <div className="planesIsland" id="planesIsland">
+            {/* Banner post-checkout exitoso */}
+            {checkoutExito && (
+                <div className="planesAlertaExito">
+                    <PartyPopper size={20} />
+                    <span>¡Suscripción activada! Tu plan se actualizará en unos segundos.</span>
+                </div>
+            )}
+
+            {/* Banner de error */}
+            {error && (
+                <div className="planesAlertaError">
+                    <X size={16} />
+                    <span>{error}</span>
+                    <button onClick={() => setError(null)} className="planesAlertaCerrar">×</button>
+                </div>
+            )}
+
             {/* Header */}
             <header className="planesHeader">
                 <h1>Elige tu plan</h1>
@@ -215,10 +282,15 @@ export const PlanesIsland = (): JSX.Element => {
                             <BotonBase
                                 variante={plan.destacado ? 'primario' : 'secundario'}
                                 onClick={() => manejarSeleccion(plan.id)}
-                                disabled={esActual}
+                                disabled={esActual || cargando !== null}
                                 className="planBoton"
                             >
-                                {esActual ? (
+                                {cargando === plan.id ? (
+                                    <>
+                                        <Loader2 size={16} className="planBotonCargando" />
+                                        Redirigiendo...
+                                    </>
+                                ) : esActual ? (
                                     <>
                                         <Check size={16} />
                                         {obtenerEtiquetaBoton(plan.id)}
@@ -250,6 +322,20 @@ export const PlanesIsland = (): JSX.Element => {
                     );
                 })}
             </div>
+
+            {/* Botón gestionar suscripción (solo para usuarios con plan de pago) */}
+            {autenticado && planActual !== 'free' && (
+                <div className="planesPortal">
+                    <BotonBase
+                        variante="secundario"
+                        onClick={manejarPortal}
+                        disabled={cargando !== null}
+                    >
+                        <Settings size={16} />
+                        Gestionar suscripción
+                    </BotonBase>
+                </div>
+            )}
 
             {/* FAQ / Info adicional */}
             <section className="planesFaq">

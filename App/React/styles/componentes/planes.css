@@ -234,6 +234,61 @@
     line-height: 1.5;
 }
 
+/* Alertas post-checkout */
+.planesAlertaExito {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioMd);
+    border-radius: var(--radioMd);
+    background-color: color-mix(in srgb, #22c55e 12%, transparent);
+    color: #22c55e;
+    border: 1px solid color-mix(in srgb, #22c55e 30%, transparent);
+    margin-bottom: var(--espacioLg);
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoMedium);
+}
+
+.planesAlertaError {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioMd);
+    background-color: color-mix(in srgb, #ef4444 12%, transparent);
+    color: #ef4444;
+    border: 1px solid color-mix(in srgb, #ef4444 30%, transparent);
+    margin-bottom: var(--espacioLg);
+    font-size: var(--fuenteMd);
+}
+
+.planesAlertaCerrar {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+/* Portal de facturación */
+.planesPortal {
+    display: flex;
+    justify-content: center;
+    margin: var(--espacioLg) 0;
+}
+
+/* Spinner de carga en botón */
+.planBotonCargando {
+    animation: girarSpinner 1s linear infinite;
+}
+
+@keyframes girarSpinner {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* Responsive */
 @media (max-width: 900px) {
     .planesGrid {

@@ -1,7 +1,7 @@
 # Kamples — Roadmap Integral de Producto
 
 > **Versión:** 2.0  
-> **Última actualización:** 16/02/2026 (iteración v2.2)  
+> **Última actualización:** 16/02/2026 (iteración v2.3)  
 > **Stack base:** Glory Framework (WordPress + React Islands + TypeScript)  
 > **Competencia directa:** Splice
 
@@ -216,6 +216,30 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - `TopBar.tsx`: badge de plan (Free/Pro/Premium) entre botón crear (+) y notificaciones, con iconos Crown/Sparkles, navegación a /planes/
 - `topbar.css`: estilos `.topbarPlanBadge`, `.topbarPlanFree` (sutil), `.topbarPlanPro` (acento), `.topbarPlanPremium` (gradiente dorado)
 
+### Registro de cambios R5 — JSON repair + Imagen IA + Stripe Checkout
+
+**Reparación JSON en ServicioIA (comentario 21):**
+- `ServicioIA.php`: 5 estrategias de extracción JSON (directo → bloque json → regex → limpieza control chars → reparación Groq)
+- `limpiarJsonControlChars()`: limpia caracteres de control dentro de strings JSON (fix "Control character error")
+- `repararJsonConGroq()`: envía JSON roto a modelos Groq (gpt-oss-20b/120b) para corrección estructural sin cambiar contenido
+- Constante `MODELOS_REPARACION_JSON` para modelos baratos de reparación
+
+**Metadata de imágenes con Groq (2.3):**
+- `ServicioImagenIA.php` (NUEVO): análisis de imágenes con Llama 4 Maverick/Scout (Groq visión)
+- Genera: tags bilingües, descripción, tipo_contenido, sentimiento, flag seguridad
+- Migración `v005_imagenes_metadata.sql`: columna `imagenes_metadata JSONB` en publicaciones (ejecutada)
+- `PublicacionesController.php`: análisis async en shutdown hook al crear publicación con imágenes
+
+**Stripe Billing + PlanesIsland funcional (7.1 + 7.2):**
+- `PagosController.php` (NUEVO): POST /pagos/checkout, POST /pagos/portal, POST /pagos/webhook, GET /pagos/planes
+- Webhook handler: checkout.session.completed → activar plan, subscription.updated → mantener/degradar, subscription.deleted → free
+- `StripeService.php`: corregido naming env keys (busca GLORY_ prefix + fallback), subidas ilimitadas, transferencia GB
+- `KamplesController.php`: PagosController registrado en router
+- `apiPagos.ts`: crearSesionCheckout() + abrirPortalFacturacion()
+- `PlanesIsland.tsx`: conectado a Stripe Checkout real, estados carga/error/éxito, botón portal facturación, características actualizadas
+- `planes.css`: estilos alertas éxito/error, spinner, portal
+- BD: columna `stripe_subscription_id` agregada a usuarios_ext
+
 ---
 
 ## Pendientes por Fase
@@ -302,10 +326,12 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
           descripcion/descripcion_es, descripcion_corta/descripcion_corta_es
         - Parser robusto: JSON directo → bloque `json` → cualquier {}
     - Ambos integrados en PipelineAudio, resultados merged en campo `metadata` (JSONB)
-- [ ] **2.3** Metadata de imágenes con Groq
-    - Al subir imágenes en publicaciones, enviar a Groq API para generar metadata
-    - Tags visuales, descripción, contenido relevante
-    - Proceso en background, no bloquear subida
+- [x] **2.3** Metadata de imágenes con Groq ✔ (IMPLEMENTADO)
+    - `ServicioImagenIA.php`: análisis de imágenes con Llama 4 Maverick/Scout (Groq visión)
+    - Tags, descripción, tipo contenido, sentimiento, flag seguridad
+    - Migración v005: columna `imagenes_metadata JSONB` en publicaciones
+    - PublicacionesController: análisis async en shutdown hook al crear publicación
+    - No bloquea la respuesta al usuario
 - [x] **2.4** Remover campos manuales de ModalCrear ✓ (IMPLEMENTADO)
     - Eliminados selectores BPM, Key, Tipo, MetadataAudio interface, Sliders import
     - Waveform preview con Web Audio API (`generarPeaks`) + play/pause inline
@@ -456,13 +482,17 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 > Prioridad: MEDIA — keys live ya disponibles en .env
 
-- [ ] **7.1** Stripe Billing
-    - Checkout session para suscripciones Pro/Premium
-    - Webhooks: customer.subscription.created, updated, deleted
-    - Customer portal para gestionar suscripción
-- [ ] **7.2** PlanesIsland funcional
-    - Conectar botones CTA a Stripe Checkout real
-    - Mostrar plan actual del usuario
+- [x] **7.1** Stripe Billing ✔ (IMPLEMENTADO)
+    - PagosController.php: POST /pagos/checkout, POST /pagos/portal, POST /pagos/webhook, GET /pagos/planes
+    - StripeService.php: env keys unificadas (GLORY_ prefix), subidas ilimitadas, transferencia GB límite
+    - Webhook handler: checkout.session.completed, subscription.updated/deleted
+    - Tabla usuarios_ext: columna stripe_subscription_id agregada
+- [x] **7.2** PlanesIsland funcional ✔ (IMPLEMENTADO)
+    - Conectado a Stripe Checkout real via crearSesionCheckout()
+    - Estados: cargando (redirect), error (banner), éxito (PartyPopper banner)
+    - Botón "Gestionar suscripción" → Stripe Customer Portal
+    - Características actualizadas: subidas ilimitadas, transferencia GB, prueba gratuita 30 días
+    - apiPagos.ts: crearSesionCheckout() + abrirPortalFacturacion()
 - [ ] **7.3** Stripe Connect
     - Onboarding de creadores para recibir pagos
     - Revenue share configurable por plan (70/30, 80/20)
@@ -712,8 +742,10 @@ Entiendo que costo computacional de esto debe ser alto a medida que suban mas sa
 17. Me di cuenta que no sabes que la url del proyecto es http://glory.local/ , asi puedes testear las api, anota esa informacion en el roadmap bien clara para que estes informado.
 18. ~~Debería poder borrar mis samples en el menu contextual de los samples cuando son mios.~~ ✅ COMPLETADO — DELETE /samples/{id} + menú contextual condicional (solo dueño o admin). Borra archivos físicos + cascada BD.
 19. ~~Los usuarios admin deberían poder borrar cualquier sample y cualquier colección.~~ ✅ COMPLETADO — UsuarioHelper::esAdmin(), SamplesController::eliminar() y ColeccionesController::eliminar() permiten admin borrar cualquier contenido. 
-20. El diseño de las tags se ve mal como si no tuviera estilos, tal vez se borraron los estilos de los tags que estan arriba de la ista de sample o cambio la estructura 
-21. Aqui fallo una subida, pero, si fue porque la ia no hizo correctamente el json entonce podemos intentar groq para que arregle el json, no directamente reintentar con gemini (no se porque se detuvo hasta alli), para reparar el json podemos usar GPT OSS 20B 128k o GPT OSS 120B 128k o Kimi K2-0905 1T 256k, reintentar con cada uno en caso que falle el json, no pedirle a los modelos grok que lo generen porque no analicen audios, limitarlos a reparar json, tambien hay que reparar el porque se detuvo hasta ServicioIA: Intentando Gemini/gemini-2.5-pro sin mostrar error y cuando se detuvo el modal mostro Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+20. ~~El diseño de las tags se ve mal como si no tuviera estilos~~ ✅ COMPLETADO — Faltaba el import de feedSamples.css en FeedSamples.tsx. Agregado `import '../../styles/componentes/feedSamples.css'`.
+21. ~~Falló una subida por JSON roto de la IA~~ ✅ COMPLETADO — ServicioIA.php reescrito con 5 estrategias de extracción:
+    1. Parseo directo → 2. Bloque ```json → 3. Regex {} → 4. Limpieza caracteres de control → 5. Reparación con Groq (modelos gpt-oss-20b/120b).
+    Función `limpiarJsonControlChars()` resuelve el error "Control character error". Si sigue fallando, `repararJsonConGroq()` envía el JSON roto a Groq para corrección estructural sin cambiar contenido.
 [2026-02-15 22:19:11] [INFO] Pipeline: Iniciando procesamiento | sampleId=4, archivo=looperman-l-7509213-0393415-m45-ts-2.wav, idCorto=HiMnbqj, tagsCount=5
 [2026-02-15 22:19:11] [DEBUG] Binario ffmpeg encontrado via .env | ruta=C:\Users\Owner\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe
 [2026-02-15 22:19:11] [INFO] FFmpeg encontrado | ruta=C:\Users\Owner\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe
@@ -791,6 +823,6 @@ Entiendo que costo computacional de esto debe ser alto a medida que suban mas sa
   "descripcion_corta_es": "Un pad de sintetizador oscuro y evolutivo que crea un telón de fondo cinemático tenso y atmosférico.",
   "descripcion": "This loop features a deep, evolving synth pad with a dark and mysterious character. Its sustained, atmospheric texture builds a sense of tension and melancholy, perfect for cinematic scores, ambient tracks, or adding a somber underscore to any, json_error=Control character error, possibly incorrectly encoded
 [2026-02-15 22:19:48] [INFO] ServicioIA: Intentando Gemini/gemini-2.5-pro
-
+22. Los feedTagItem eran badge, se cambiaron a boton por error, eran badge con bordes y fondo 
 
 ---

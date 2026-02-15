@@ -23,6 +23,7 @@ use App\Kamples\Api\Controladores\ReproduccionesController;
 use App\Kamples\Api\Controladores\PublicacionesController;
 use App\Kamples\Api\Controladores\DescargasController;
 use App\Kamples\Api\Controladores\ColoresController;
+use App\Kamples\Api\Controladores\PagosController;
 
 class KamplesController
 {
@@ -57,5 +58,6 @@ class KamplesController
         PublicacionesController::registrarRutas($ns);
         DescargasController::registrarRutas($ns);
         ColoresController::registrarRutas($ns);
+        PagosController::registrarRutas($ns);
     }
 }

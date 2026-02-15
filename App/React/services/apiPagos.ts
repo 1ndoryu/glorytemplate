@@ -116,3 +116,44 @@ export const solicitarPayout = async (): Promise<RespuestaApi<{ monto: number; e
         return { ok: false, data: null, error: 'Error de red', status: 500 };
     }
 };
+
+/* ===================== CHECKOUT STRIPE ===================== */
+
+export type PeriodoPlan = 'mensual' | 'anual';
+
+/*
+ * Crea una sesión de Stripe Checkout y retorna la URL de redirección.
+ * El backend crea la session y envía la URL al frontend para redirect.
+ */
+export const crearSesionCheckout = async (
+    plan: 'pro' | 'premium',
+    periodo: PeriodoPlan = 'mensual'
+): Promise<{ ok: boolean; url?: string; error?: string }> => {
+    try {
+        const resp = await apiPost<{ ok: boolean; url: string }>('/pagos/checkout', { plan, periodo });
+        if (resp.ok && resp.data?.url) {
+            return { ok: true, url: resp.data.url };
+        }
+        return { ok: false, error: resp.error ?? 'Error al crear sesión de checkout' };
+    } catch (err) {
+        log.error('Error creando sesión checkout', err);
+        return { ok: false, error: 'Error de conexión' };
+    }
+};
+
+/*
+ * Abre el Customer Portal de Stripe para gestionar suscripción.
+ * Redirige al usuario al portal de Stripe.
+ */
+export const abrirPortalFacturacion = async (): Promise<{ ok: boolean; url?: string; error?: string }> => {
+    try {
+        const resp = await apiPost<{ ok: boolean; url: string }>('/pagos/portal');
+        if (resp.ok && resp.data?.url) {
+            return { ok: true, url: resp.data.url };
+        }
+        return { ok: false, error: resp.error ?? 'Error al abrir portal de facturación' };
+    } catch (err) {
+        log.error('Error abriendo portal de facturación', err);
+        return { ok: false, error: 'Error de conexión' };
+    }
+};

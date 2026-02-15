@@ -39,6 +39,12 @@ class ServicioIA
         'openai/gpt-oss-20b',
     ];
 
+    /* Modelos para reparación de JSON roto (contexto largo, sin audio) */
+    private const MODELOS_REPARACION_JSON = [
+        'openai/gpt-oss-20b',
+        'openai/gpt-oss-120b',
+    ];
+
     private const TIMEOUT = 60;
     private const MAX_TAMANO_AUDIO = 20 * 1024 * 1024; /* 20 MB para API */
 
@@ -340,16 +346,17 @@ PROMPT;
 
     /*
      * Intenta extraer JSON de metadata desde un texto (compartido entre proveedores).
+     * Estrategias en orden: parseo directo → bloque ```json → regex {} → limpieza de control chars → reparación con Groq.
      */
     private static function extraerJsonDeTexto(string $texto): ?array
     {
-        /* Intentar parsear directamente */
+        /* Estrategia 1: parsear directamente */
         $metadata = json_decode($texto, true);
         if ($metadata && is_array($metadata)) {
             return self::validarMetadata($metadata);
         }
 
-        /* Intentar extraer JSON de un bloque ```json ... ``` */
+        /* Estrategia 2: extraer bloque ```json ... ``` */
         if (preg_match('/```json\s*(.*?)\s*```/s', $texto, $matches)) {
             $metadata = json_decode($matches[1], true);
             if ($metadata && is_array($metadata)) {
@@ -357,19 +364,146 @@ PROMPT;
             }
         }
 
-        /* Intentar extraer cualquier {} */
+        /* Estrategia 3: extraer cualquier {} */
+        $jsonCandidato = null;
         if (preg_match('/\{.*\}/s', $texto, $matches)) {
-            $metadata = json_decode($matches[0], true);
+            $jsonCandidato = $matches[0];
+            $metadata = json_decode($jsonCandidato, true);
             if ($metadata && is_array($metadata)) {
                 return self::validarMetadata($metadata);
             }
         }
 
-        error_log('[Kamples] ServicioIA: No se pudo extraer JSON de la respuesta');
-        KamplesLogger::error('ServicioIA: No se pudo extraer JSON de la respuesta IA', [
+        /* Estrategia 4: limpiar caracteres de control dentro de strings JSON */
+        $textoLimpio = $jsonCandidato ?? $texto;
+        $textoSanitizado = self::limpiarJsonControlChars($textoLimpio);
+        if ($textoSanitizado !== $textoLimpio) {
+            $metadata = json_decode($textoSanitizado, true);
+            if ($metadata && is_array($metadata)) {
+                KamplesLogger::info('ServicioIA: JSON recuperado tras limpiar caracteres de control');
+                return self::validarMetadata($metadata);
+            }
+        }
+
+        /* Estrategia 5: enviar JSON roto a Groq para reparación */
+        KamplesLogger::warning('ServicioIA: JSON irrecuperable localmente, intentando reparación con Groq', [
+            'json_error' => json_last_error_msg(),
+        ]);
+        $jsonReparado = self::repararJsonConGroq($textoLimpio);
+        if ($jsonReparado !== null) {
+            return $jsonReparado;
+        }
+
+        KamplesLogger::error('ServicioIA: No se pudo extraer JSON incluso con reparación', [
             'texto_raw' => mb_substr($texto, 0, 1500),
             'json_error' => json_last_error_msg(),
         ]);
+        return null;
+    }
+
+    /*
+     * Limpia caracteres de control problemáticos dentro de strings JSON.
+     * Reemplaza newlines/tabs literales dentro de valores por espacios,
+     * eliminando la causa principal del error "Control character error".
+     */
+    private static function limpiarJsonControlChars(string $json): string
+    {
+        /*
+         * Reemplazar caracteres de control (U+0000–U+001F) excepto los
+         * que JSON ya permite escapados (\n, \r, \t → se convierten a espacio).
+         * Solo dentro de strings (entre comillas).
+         */
+        return preg_replace_callback('/"((?:[^"\\\\]|\\\\.)*)"/s', function ($m) {
+            $interior = $m[1];
+            /* Reemplazar newlines/tabs/control chars literales por espacio */
+            $limpio = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $interior);
+            /* Normalizar espacios múltiples */
+            $limpio = preg_replace('/\s{2,}/', ' ', trim($limpio));
+            return '"' . $limpio . '"';
+        }, $json);
+    }
+
+    /*
+     * Envía JSON roto a Groq para que lo repare sin cambiar el contenido.
+     * Usa modelos baratos y rápidos. Solo corrige estructura JSON, no genera nuevo contenido.
+     */
+    private static function repararJsonConGroq(string $jsonRoto): ?array
+    {
+        $apiKey = self::obtenerApiKey('GROQ_API');
+        if (!$apiKey) {
+            return null;
+        }
+
+        /* Truncar a 4000 chars para no agotar contexto */
+        $fragmento = mb_substr($jsonRoto, 0, 4000);
+
+        $promptReparacion = <<<PROMPT
+El siguiente texto es un JSON roto generado por una IA de análisis de audio. 
+Tu ÚNICA tarea es reparar la estructura JSON para que sea válido.
+NO cambies el contenido, NO agregues campos, NO traduzcas. Solo repara:
+- Comillas sin cerrar
+- Comas sobrantes (trailing commas)
+- Caracteres de control
+- Strings truncados (ciérralos con texto razonable)
+- Arrays/objetos sin cerrar
+
+Responde SOLO con el JSON reparado, sin explicaciones.
+
+JSON roto:
+{$fragmento}
+PROMPT;
+
+        $url = 'https://api.groq.com/openai/v1/chat/completions';
+
+        foreach (self::MODELOS_REPARACION_JSON as $modelo) {
+            KamplesLogger::info('ServicioIA: Intentando reparación JSON con Groq/' . $modelo);
+
+            $payload = [
+                'model'    => $modelo,
+                'messages' => [
+                    [
+                        'role'    => 'system',
+                        'content' => 'Eres un reparador de JSON. Solo corrige la estructura, no modifiques el contenido.',
+                    ],
+                    [
+                        'role'    => 'user',
+                        'content' => $promptReparacion,
+                    ],
+                ],
+                'temperature'     => 0.0,
+                'max_tokens'      => 2000,
+                'response_format' => ['type' => 'json_object'],
+            ];
+
+            $headers = [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $apiKey,
+            ];
+
+            $respuesta = self::peticionCurl($url, $payload, $headers, "Groq-Reparar/{$modelo}");
+            if ($respuesta === null) continue;
+
+            $decodificado = json_decode($respuesta, true);
+            $textoReparado = $decodificado['choices'][0]['message']['content'] ?? null;
+            if (!$textoReparado) continue;
+
+            $metadata = json_decode($textoReparado, true);
+            if ($metadata && is_array($metadata)) {
+                KamplesLogger::info('ServicioIA: JSON reparado exitosamente con Groq/' . $modelo);
+                return self::validarMetadata($metadata);
+            }
+
+            /* Intentar extraer {} del texto reparado */
+            if (preg_match('/\{.*\}/s', $textoReparado, $matches)) {
+                $metadata = json_decode($matches[0], true);
+                if ($metadata && is_array($metadata)) {
+                    KamplesLogger::info('ServicioIA: JSON reparado (extraído) con Groq/' . $modelo);
+                    return self::validarMetadata($metadata);
+                }
+            }
+        }
+
+        KamplesLogger::warning('ServicioIA: Reparación JSON con Groq falló en todos los modelos');
         return null;
     }
 
