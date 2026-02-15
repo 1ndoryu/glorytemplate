@@ -116,6 +116,19 @@
     gap: var(--espacioSm);
 }
 
+/* Centinela de scroll infinito */
+.inicioSentinela {
+    min-height: 1px;
+    padding: var(--espacioMd) 0;
+}
+
+.inicioCargandoMas {
+    text-align: center;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+    padding: var(--espacioMd) 0;
+}
+
 /* Sección de tags dinámicos */
 .inicioTags {
     display: flex;

@@ -11,6 +11,7 @@ import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { useAuthStore } from '@app/stores/authStore';
+import { actualizarPerfil } from '@app/services/apiAuth';
 import { crearLogger } from '@app/services/logger';
 import '../../styles/componentes/modalConfiguracion.css';
 
@@ -33,7 +34,7 @@ const SECCIONES_NAV: NavItemConfig[] = [
 
 export const ModalConfiguracion = (): JSX.Element | null => {
     const { abierto, cerrar } = useConfiguracionModalStore();
-    const { usuario, autenticado } = useAuthStore();
+    const { usuario, autenticado, setUsuario } = useAuthStore();
 
     const [seccionActiva, setSeccionActiva] = useState<SeccionConfig>('perfil');
     const [nombreVisible, setNombreVisible] = useState(usuario?.nombreVisible ?? '');
@@ -62,19 +63,38 @@ export const ModalConfiguracion = (): JSX.Element | null => {
         setAvatarPreview(url);
     }, []);
 
-    /* Guardar cambios */
+    /* Guardar cambios — envía al backend y persiste en authStore */
     const manejarGuardar = useCallback(async () => {
-        if (guardando) return;
+        if (guardando || !usuario) return;
         setGuardando(true);
 
-        log.info('Guardando configuración', { nombreVisible, username, notificaciones });
+        try {
+            /* Enviar campos de texto al backend */
+            await actualizarPerfil({
+                nombreVisible: nombreVisible,
+                username: username,
+                bio: bio,
+            } as any);
 
-        /* TO-DO: PUT /kamples/v1/perfil con FormData (incluir avatar si cambió) */
-        await new Promise((r) => setTimeout(r, 800));
+            /* Persistir avatar local en el store (real upload TO-DO: FormData con archivo) */
+            const nuevosDatos = {
+                ...usuario,
+                nombreVisible,
+                username,
+            };
+            if (avatarPreview) {
+                nuevosDatos.avatarUrl = avatarPreview;
+            }
+            setUsuario(nuevosDatos);
+
+            log.info('Configuración guardada', { nombreVisible, username });
+        } catch (err) {
+            log.error('Error al guardar configuración', err);
+        }
 
         setGuardando(false);
         cerrar();
-    }, [guardando, nombreVisible, username, notificaciones, cerrar]);
+    }, [guardando, usuario, nombreVisible, username, bio, avatarPreview, setUsuario, cerrar]);
 
     /* Cerrar sin guardar */
     const manejarCerrar = useCallback(() => {

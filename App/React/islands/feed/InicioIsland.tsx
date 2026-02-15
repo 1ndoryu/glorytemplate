@@ -52,16 +52,24 @@ export const InicioIsland = (): JSX.Element => {
 const FeedUnificado = (): JSX.Element => {
     const [samples, setSamples] = useState<SampleResumen[]>([]);
     const [cargando, setCargando] = useState(true);
+    const [cargandoMas, setCargandoMas] = useState(false);
+    const [paginaActual, setPaginaActual] = useState(1);
+    const [hayMasPaginas, setHayMasPaginas] = useState(true);
     const [tagsIncluidos, setTagsIncluidos] = useState<string[]>([]);
     const [tagsExcluidos, setTagsExcluidos] = useState<string[]>([]);
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
-    const [menuDestacados, setMenuDestacados] = useState(false);
     const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
     const [arrastrandoTags, setArrastrandoTags] = useState(false);
     const [tagsExpandidos, setTagsExpandidos] = useState(false);
     const inicioXArrastreRef = useRef(0);
     const scrollInicialRef = useRef(0);
     const listaTagsRef = useRef<HTMLDivElement | null>(null);
+    const sentinelaRef = useRef<HTMLDivElement | null>(null);
+
+    /* Virtualización: rango visible de samples para optimizar DOM */
+    const [indiceInicio, setIndiceInicio] = useState(0);
+    const MAX_RENDERIZADOS = 50;
+    const ALTURA_TARJETA = 72;
 
     /* Cache por tipo de ordenamiento para evitar re-fetch innecesarios */
     const cacheFeedRef = useRef<Record<string, SampleResumen[]>>({});
@@ -78,45 +86,95 @@ const FeedUnificado = (): JSX.Element => {
         return () => { setTabs([]); };
     }, [setTabs]);
 
-    /* Cargar samples según el ordenamiento activo — con cache por tipo */
-    useEffect(() => {
-        const claveCache = `${ordenamiento}_${busqueda || ''}_${periodoDestacados}`;
+    /* Cargar samples según el ordenamiento activo — con cache y paginación */
+    const cargarSamples = useCallback(async (pagina: number, esNuevo: boolean) => {
+        const claveCache = `${ordenamiento}_${busqueda || ''}_${periodoDestacados}_p${pagina}`;
 
-        /* Si ya tenemos datos en cache para esta combinación, usarlos instantáneo */
-        if (cacheFeedRef.current[claveCache]) {
-            setSamples(cacheFeedRef.current[claveCache]);
-            setCargando(false);
-            return;
+        if (esNuevo) {
+            setCargando(true);
+            setIndiceInicio(0);
+        } else {
+            setCargandoMas(true);
         }
 
-        const cargar = async () => {
-            setCargando(true);
+        let resultado: SampleResumen[] = [];
 
-            let resultado: SampleResumen[] = [];
-
+        /* Si hay cache para esta página, usarla */
+        if (cacheFeedRef.current[claveCache]) {
+            resultado = cacheFeedRef.current[claveCache];
+        } else {
             if (ordenamiento === 'recientes') {
-                const resp = await obtenerFeed('recientes');
+                const resp = await obtenerFeed('recientes', pagina);
                 if (resp.ok && resp.data) resultado = resp.data;
             } else if (ordenamiento === 'destacados') {
-                const resp = await obtenerFeed('trending');
+                const resp = await obtenerFeed('trending', pagina);
                 if (resp.ok && resp.data) resultado = resp.data;
             } else {
-                /* Inteligente: usa listarSamples con búsqueda */
                 const resp = await listarSamples({
-                    page: 1,
+                    page: pagina,
                     perPage: 30,
                     busqueda: busqueda || undefined,
                 });
                 if (resp.ok && resp.data) resultado = resp.data.data ?? [];
             }
-
-            /* Guardar en cache y actualizar estado */
             cacheFeedRef.current[claveCache] = resultado;
+        }
+
+        /* Si devolvió 0 resultados, no hay más páginas */
+        if (resultado.length === 0) {
+            setHayMasPaginas(false);
+        }
+
+        if (esNuevo) {
             setSamples(resultado);
             setCargando(false);
-        };
-        cargar();
+        } else {
+            setSamples((prev) => [...prev, ...resultado]);
+            setCargandoMas(false);
+        }
     }, [ordenamiento, busqueda, periodoDestacados]);
+
+    /* Carga inicial y al cambiar filtros */
+    useEffect(() => {
+        setPaginaActual(1);
+        setHayMasPaginas(true);
+        cargarSamples(1, true);
+    }, [cargarSamples]);
+
+    /* Infinite scroll: IntersectionObserver en el centinela al final de la lista */
+    useEffect(() => {
+        const sentinela = sentinelaRef.current;
+        if (!sentinela) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && !cargandoMas && hayMasPaginas && !cargando) {
+                    const nuevaPagina = paginaActual + 1;
+                    setPaginaActual(nuevaPagina);
+                    cargarSamples(nuevaPagina, false);
+                }
+            },
+            { rootMargin: '200px' }
+        );
+
+        observer.observe(sentinela);
+        return () => observer.disconnect();
+    }, [cargandoMas, hayMasPaginas, cargando, paginaActual, cargarSamples]);
+
+    /* Virtualización: al hacer scroll, ajustar el rango visible de samples */
+    useEffect(() => {
+        const contenedor = document.getElementById('seccionInicio');
+        if (!contenedor) return;
+
+        const manejarScroll = () => {
+            const scrollTop = contenedor.scrollTop || window.scrollY;
+            const nuevoInicio = Math.max(0, Math.floor(scrollTop / ALTURA_TARJETA) - 10);
+            setIndiceInicio(nuevoInicio);
+        };
+
+        window.addEventListener('scroll', manejarScroll, { passive: true });
+        return () => window.removeEventListener('scroll', manejarScroll);
+    }, []);
 
     /* Tags dinámicos ordenados por frecuencia de aparición */
     const todosLosTags = useMemo(() => {
@@ -223,17 +281,13 @@ const FeedUnificado = (): JSX.Element => {
         }
     }, []);
 
-    /* Manejar selección de periodo en submenu Destacados */
-    const manejarPeriodo = useCallback((periodo: PeriodoDestacados) => {
-        setPeriodoDestacados(periodo);
-        setMenuDestacados(false);
-    }, [setPeriodoDestacados]);
-
-    const etiquetasOrden: Record<TipoOrdenamiento, string> = {
-        inteligente: 'Inteligente',
-        recientes: 'Recientes',
-        destacados: 'Destacados',
-    };
+    /* Obtener la etiqueta del ordenamiento actual (incluyendo periodo para destacados) */
+    const obtenerEtiquetaOrden = useCallback((): string => {
+        if (ordenamiento === 'destacados') {
+            return periodoDestacados === 'mes' ? 'Top Mensual' : 'Top Semanal';
+        }
+        return ordenamiento === 'recientes' ? 'Recientes' : 'Inteligente';
+    }, [ordenamiento, periodoDestacados]);
 
     if (cargando) {
         return (
@@ -263,48 +317,39 @@ const FeedUnificado = (): JSX.Element => {
                             type="button"
                         >
                             <ArrowDownWideNarrow size={14} />
-                            {etiquetasOrden[ordenamiento]}
+                            {obtenerEtiquetaOrden()}
                             <ChevronDown size={12} />
                         </button>
 
                         {menuOrdenamiento && (
                             <div className="inicioOrdenamientoMenu">
-                                {(['inteligente', 'recientes', 'destacados'] as TipoOrdenamiento[]).map((tipo) => (
-                                    <button
-                                        key={tipo}
-                                        className={`${ordenamiento === tipo ? 'inicioOrdenamientoActivo' : ''}`}
-                                        onClick={() => {
-                                            setOrdenamiento(tipo);
-                                            setMenuOrdenamiento(false);
-                                            /* Si es destacados, abrir submenú de periodo */
-                                            if (tipo === 'destacados') {
-                                                setMenuDestacados(true);
-                                            } else {
-                                                setMenuDestacados(false);
-                                            }
-                                        }}
-                                        type="button"
-                                    >
-                                        {etiquetasOrden[tipo]}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Submenu de periodos para Destacados */}
-                        {ordenamiento === 'destacados' && menuDestacados && (
-                            <div className="inicioDestacadosMenu">
-                                <button onClick={() => manejarPeriodo('semana')} type="button"
-                                    className={periodoDestacados === 'semana' ? 'inicioDestacadosActivo' : ''}>
-                                    Esta semana
+                                <button
+                                    className={ordenamiento === 'inteligente' ? 'inicioOrdenamientoActivo' : ''}
+                                    onClick={() => { setOrdenamiento('inteligente'); setMenuOrdenamiento(false); }}
+                                    type="button"
+                                >
+                                    Inteligente
                                 </button>
-                                <button onClick={() => manejarPeriodo('mes')} type="button"
-                                    className={periodoDestacados === 'mes' ? 'inicioDestacadosActivo' : ''}>
-                                    Este mes
+                                <button
+                                    className={ordenamiento === 'recientes' ? 'inicioOrdenamientoActivo' : ''}
+                                    onClick={() => { setOrdenamiento('recientes'); setMenuOrdenamiento(false); }}
+                                    type="button"
+                                >
+                                    Recientes
                                 </button>
-                                <button onClick={() => manejarPeriodo('anio')} type="button"
-                                    className={periodoDestacados === 'anio' ? 'inicioDestacadosActivo' : ''}>
-                                    Este año
+                                <button
+                                    className={ordenamiento === 'destacados' && periodoDestacados === 'semana' ? 'inicioOrdenamientoActivo' : ''}
+                                    onClick={() => { setOrdenamiento('destacados'); setPeriodoDestacados('semana'); setMenuOrdenamiento(false); }}
+                                    type="button"
+                                >
+                                    Top Semanal
+                                </button>
+                                <button
+                                    className={ordenamiento === 'destacados' && periodoDestacados === 'mes' ? 'inicioOrdenamientoActivo' : ''}
+                                    onClick={() => { setOrdenamiento('destacados'); setPeriodoDestacados('mes'); setMenuOrdenamiento(false); }}
+                                    type="button"
+                                >
+                                    Top Mensual
                                 </button>
                             </div>
                         )}
@@ -430,7 +475,7 @@ const FeedUnificado = (): JSX.Element => {
                 )}
             </div>
 
-            {/* Lista de samples */}
+            {/* Lista de samples con virtualización */}
             {samplesFiltrados.length === 0 ? (
                 <div className="inicioVacio">
                     <Music size={48} className="inicioVacioIcono" />
@@ -441,17 +486,37 @@ const FeedUnificado = (): JSX.Element => {
                 </div>
             ) : (
                 <div className="inicioLista">
-                    {samplesFiltrados.map((s) => (
-                        <TarjetaSample
-                            key={s.id}
-                            sample={s}
-                            onLike={manejarLike}
-                            onMenu={menu.abrirMenu}
-                            onClickCreador={(u) => navegar(`/perfil/${u}`)}
+                    {/* Espaciador superior: compensa las tarjetas removidas del DOM */}
+                    {indiceInicio > 0 && (
+                        <div style={{ height: indiceInicio * ALTURA_TARJETA }} aria-hidden="true" />
+                    )}
+
+                    {samplesFiltrados
+                        .slice(indiceInicio, indiceInicio + MAX_RENDERIZADOS)
+                        .map((s) => (
+                            <TarjetaSample
+                                key={s.id}
+                                sample={s}
+                                onLike={manejarLike}
+                                onMenu={menu.abrirMenu}
+                                onClickCreador={(u) => navegar(`/perfil/${u}`)}
+                            />
+                        ))}
+
+                    {/* Espaciador inferior: compensa las tarjetas no renderizadas abajo */}
+                    {indiceInicio + MAX_RENDERIZADOS < samplesFiltrados.length && (
+                        <div
+                            style={{ height: (samplesFiltrados.length - indiceInicio - MAX_RENDERIZADOS) * ALTURA_TARJETA }}
+                            aria-hidden="true"
                         />
-                    ))}
+                    )}
                 </div>
             )}
+
+            {/* Centinela de scroll infinito: carga más samples al llegar al final */}
+            <div ref={sentinelaRef} className="inicioSentinela" aria-hidden="true">
+                {cargandoMas && <p className="inicioCargandoMas">Cargando más samples…</p>}
+            </div>
 
             <MenuContextual
                 abierto={menu.estado.abierto}

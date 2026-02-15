@@ -65,8 +65,9 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
             {
                 id: 'detalle',
                 etiqueta: 'Ver detalle',
+                href: estado.sample ? `/sample/${estado.sample.slug}/` : undefined,
                 onClick: () => {
-                    if (estado.sample) navegar(`/sample/${estado.sample.slug}`);
+                    if (estado.sample) navegar(`/sample/${estado.sample.slug}/`);
                 },
                 separadorDespues: true,
             },
@@ -88,8 +89,9 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
             {
                 id: 'creador',
                 etiqueta: `Ir a ${estado.sample.creador.nombreVisible || estado.sample.creador.username}`,
+                href: estado.sample ? `/perfil/${estado.sample.creador.username}/` : undefined,
                 onClick: () => {
-                    if (estado.sample) navegar(`/perfil/${estado.sample.creador.username}`);
+                    if (estado.sample) navegar(`/perfil/${estado.sample.creador.username}/`);
                 },
             },
             {

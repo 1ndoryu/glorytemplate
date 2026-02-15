@@ -11,7 +11,6 @@ import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { useNavigationStore } from '@/core/router';
-import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
@@ -134,7 +133,6 @@ const ComunidadBase = (): JSX.Element => {
     const [filtro, setFiltro] = useState<FiltroComunidad>('todos');
     const [cargando, setCargando] = useState(true);
     const { navegar } = useNavigationStore();
-    const { setSample, sampleActual, reproduciendo, progreso } = useReproductorStore();
     const { setTabs } = useTabsTopBarStore();
 
     /* Registrar tab "Comunidad" en TopBar */
@@ -247,10 +245,6 @@ const ComunidadBase = (): JSX.Element => {
                                         <TarjetaSample
                                             key={sample.id}
                                             sample={sample}
-                                            onPlay={(s) => setSample(s)}
-                                            activa={sampleActual?.id === sample.id}
-                                            reproduciendo={sampleActual?.id === sample.id && reproduciendo}
-                                            progreso={sampleActual?.id === sample.id ? progreso : 0}
                                             onClickCreador={(u) => navegar(`/perfil/${u}/`)}
                                         />
                                     ))}

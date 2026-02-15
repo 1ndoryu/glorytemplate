@@ -7,7 +7,7 @@
 import { useCallback } from 'react';
 import { Mail } from 'lucide-react';
 import { Avatar } from './Avatar';
-import { useNavigationStore } from '@/core/router';
+import { useChatFlotanteStore } from '@app/stores/chatFlotanteStore';
 import '../../styles/componentes/dropdownPanel.css';
 
 interface ConversacionResumen {
@@ -32,12 +32,17 @@ interface DropdownMensajesProps {
 }
 
 export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Element => {
-    const { navegar } = useNavigationStore();
+    const { abrirChat } = useChatFlotanteStore();
 
-    const irAMensajes = useCallback(() => {
-        navegar('/mensajes');
+    /* Abrir chat flotante en vez de navegar a /mensajes */
+    const abrirConversacion = useCallback((conv: ConversacionResumen) => {
+        abrirChat({
+            conversacionId: conv.id,
+            nombreParticipante: conv.usuario,
+            avatarUrl: conv.avatarUrl,
+        });
         onCerrar();
-    }, [navegar, onCerrar]);
+    }, [abrirChat, onCerrar]);
 
     const sinLeer = conversacionesMock.filter((c) => c.sinLeer).length;
 
@@ -49,9 +54,6 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
                     <span className="dropdownPanelTitulo">
                         Mensajes {sinLeer > 0 && `(${sinLeer})`}
                     </span>
-                    <button className="dropdownPanelEnlace" onClick={irAMensajes} type="button">
-                        Ver todos
-                    </button>
                 </div>
 
                 <div className="dropdownPanelLista">
@@ -65,10 +67,7 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
                             <div
                                 key={conv.id}
                                 className={`dropdownItem ${conv.sinLeer ? 'dropdownItemNoLeido' : ''}`}
-                                onClick={() => {
-                                    navegar('/mensajes');
-                                    onCerrar();
-                                }}
+                                onClick={() => abrirConversacion(conv)}
                             >
                                 <Avatar
                                     src={conv.avatarUrl}

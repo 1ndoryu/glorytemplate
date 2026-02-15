@@ -295,9 +295,9 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
     const imagenPortada = sample.imagenUrl || obtenerImagenColor(sample.id);
 
     return (
-        <div className={clases} onContextMenu={manejarMenu}>
+        <div className={clases} onContextMenu={manejarMenu} onClick={manejarPlayPause} role="button" tabIndex={0}>
             {/* Portada con overlay play/pause */}
-            <div className="tarjetaPortada" onClick={manejarPlayPause} role="button" tabIndex={0} aria-label={estaReproduciendo ? 'Pausar' : 'Reproducir'}>
+            <div className="tarjetaPortada" aria-label={estaReproduciendo ? 'Pausar' : 'Reproducir'}>
                 <img className="tarjetaPortadaImg" src={imagenPortada} alt={sample.titulo} loading="lazy" />
                 <div className={`tarjetaPortadaOverlay ${estaReproduciendo ? 'tarjetaPortadaOverlayActivo' : ''}`}>
                     {estaReproduciendo ? <Pause size={16} /> : <Play size={16} />}

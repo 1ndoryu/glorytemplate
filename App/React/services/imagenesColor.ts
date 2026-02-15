@@ -15,6 +15,10 @@ const TOTAL = IMAGENES_COLOR.length;
  * Siempre devuelve la misma imagen para el mismo ID.
  */
 export const obtenerImagenColor = (id: number): string => {
+    /* Guard: si id es NaN/undefined o no hay imágenes, devolver placeholder */
+    if (!Number.isFinite(id) || TOTAL === 0) {
+        return `${RUTA_BASE}${IMAGENES_COLOR[0] ?? 'placeholder.jpg'}`;
+    }
     const indice = ((id % TOTAL) + TOTAL) % TOTAL;
     return `${RUTA_BASE}${IMAGENES_COLOR[indice]}`;
 };

@@ -36,6 +36,7 @@
     border: none;
     font-family: var(--fuentePrincipal);
     text-align: left;
+    text-decoration: none;
 }
 
 .menuContextualItem:hover {

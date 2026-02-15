@@ -14,6 +14,7 @@ export interface MenuItemDef {
     icono?: ReactNode;
     peligro?: boolean;
     separadorDespues?: boolean;
+    href?: string;
     onClick: () => void;
 }
 
@@ -65,20 +66,43 @@ export const MenuContextual = ({
             >
                 {items.map((item) => (
                     <div key={item.id}>
-                        <button
-                            className={`menuContextualItem ${item.peligro ? 'itemPeligro' : ''}`}
-                            onClick={() => {
-                                item.onClick();
-                                onCerrar();
-                            }}
-                            role="menuitem"
-                            type="button"
-                        >
-                            {item.icono && (
-                                <span className="menuContextualItemIcono">{item.icono}</span>
-                            )}
-                            {item.etiqueta}
-                        </button>
+                        {item.href ? (
+                            /* Usar <a> para items con href: permite middle-click en nueva pestaña */
+                            <a
+                                className={`menuContextualItem ${item.peligro ? 'itemPeligro' : ''}`}
+                                href={item.href}
+                                onClick={(e) => {
+                                    /* Solo interceptar click izquierdo sin modificadores para SPA */
+                                    if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                                        e.preventDefault();
+                                        item.onClick();
+                                        onCerrar();
+                                    }
+                                }}
+                                onAuxClick={() => onCerrar()}
+                                role="menuitem"
+                            >
+                                {item.icono && (
+                                    <span className="menuContextualItemIcono">{item.icono}</span>
+                                )}
+                                {item.etiqueta}
+                            </a>
+                        ) : (
+                            <button
+                                className={`menuContextualItem ${item.peligro ? 'itemPeligro' : ''}`}
+                                onClick={() => {
+                                    item.onClick();
+                                    onCerrar();
+                                }}
+                                role="menuitem"
+                                type="button"
+                            >
+                                {item.icono && (
+                                    <span className="menuContextualItemIcono">{item.icono}</span>
+                                )}
+                                {item.etiqueta}
+                            </button>
+                        )}
                         {item.separadorDespues && <div className="menuContextualSeparador" />}
                     </div>
                 ))}

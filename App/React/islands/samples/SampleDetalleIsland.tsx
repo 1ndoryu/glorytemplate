@@ -79,23 +79,33 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
         const cargar = async () => {
             setCargando(true);
             setError('');
-            const respuesta = await obtenerSample(slug);
-            if (respuesta.ok && respuesta.data) {
-                setSample(respuesta.data);
+            try {
+                const respuesta = await obtenerSample(slug);
+                if (respuesta.ok && respuesta.data) {
+                    setSample(respuesta.data);
 
-                /* Cargar samples similares por tags/tipo */
-                const resSimilares = await listarSamples({
-                    tipo: respuesta.data.metadata.tipo,
-                    perPage: 5,
-                });
-                if (resSimilares.ok && resSimilares.data) {
-                    /* Excluir el sample actual de similares */
-                    setSimilares(
-                        resSimilares.data.data.filter((s) => s.id !== respuesta.data!.id)
-                    );
+                    /* Cargar samples similares por tags/tipo */
+                    const tipoSample = respuesta.data.metadata?.tipo;
+                    if (tipoSample) {
+                        const resSimilares = await listarSamples({
+                            tipo: tipoSample,
+                            perPage: 5,
+                        });
+                        if (resSimilares.ok && resSimilares.data) {
+                            /* data puede ser {data: [...]} o un array directo */
+                            const listaSimilares = Array.isArray(resSimilares.data)
+                                ? resSimilares.data
+                                : (resSimilares.data.data ?? []);
+                            setSimilares(
+                                listaSimilares.filter((s) => s.id !== respuesta.data!.id)
+                            );
+                        }
+                    }
+                } else {
+                    setError(respuesta.error ?? 'Error al cargar el sample.');
                 }
-            } else {
-                setError(respuesta.error ?? 'Error al cargar el sample.');
+            } catch (err) {
+                setError('Error al cargar el sample.');
             }
             setCargando(false);
         };
