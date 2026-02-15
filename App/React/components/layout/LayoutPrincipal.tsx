@@ -9,8 +9,7 @@ import { useMemo, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { ReproductorGlobal } from '../ui/ReproductorGlobal';
-import { SubirModal } from '../ui/SubirModal';
-import { ModalPublicar } from '../social/ModalPublicar';
+import { ModalCrear } from '../social/ModalCrear';
 import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
 import { useNavigationStore } from '@/core/router';
 import '../../styles/variables.css';
@@ -25,13 +24,10 @@ interface LayoutPrincipalProps {
 /* Mapeo de rutas a IDs de sidebar */
 const MAPA_RUTAS: Record<string, string> = {
     '/': 'inicio',
-    '/explorar': 'explorar',
-    '/descubrir': 'descubrir',
     '/perfil': 'perfil',
     '/libreria': 'libreria',
     '/reproductor': 'reproductor',
     '/notificaciones': 'notificaciones',
-    '/mensajes': 'mensajes',
     '/componentes': 'componentes',
     '/dev/componentes': 'componentes',
 };
@@ -83,11 +79,8 @@ export const LayoutPrincipal = ({
                 <ReproductorGlobal />
             </div>
 
-            {/* Modal de subida — se abre desde el sidebar */}
-            <SubirModal />
-
-            {/* Modal de publicación social */}
-            <ModalPublicar />
+            {/* Modal unificado de creación (subir sample + publicar) */}
+            <ModalCrear />
 
             {/* Modal selector de colección (menú contextual → añadir a colección) */}
             <ModalSeleccionColeccion />

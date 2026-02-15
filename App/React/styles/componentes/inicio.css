@@ -116,6 +116,46 @@
     gap: var(--espacioSm);
 }
 
+/* Sección de tags dinámicos */
+.inicioTags {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    flex-wrap: wrap;
+}
+
+.inicioTagsLista {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+/* Botón de filtros avanzados */
+.inicioFiltrosBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioXs);
+    background: none;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioXs) var(--espacioSm);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.inicioFiltrosBtn:hover {
+    color: var(--textoPrimario);
+    border-color: var(--textoPrimario);
+    background-color: var(--fondoElevado2);
+}
+
 /* Estado vacío */
 .inicioVacio {
     display: flex;

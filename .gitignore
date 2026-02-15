@@ -110,3 +110,5 @@ css-vars-validator/
 App1/
 .github/instructions/test.instructions.md
 .vitepress/
+temp_dl/
+colors/

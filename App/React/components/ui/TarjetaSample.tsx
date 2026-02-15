@@ -121,7 +121,7 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                 </div>
             </div>
 
-            {/* Acciones */}
+            {/* Acciones — contadores junto a cada botón */}
             <div className="tarjetaAcciones">
                 {/* Waveform mini solo en tarjeta activa */}
                 {activa && (
@@ -129,21 +129,15 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                         <WaveformPlayer picos={null} progreso={progreso} duracion={sample.duracion} onSeek={onSeek} tamano="sm" />
                     </div>
                 )}
-                <div className="tarjetaStats">
-                    <span className="tarjetaStatItem">
-                        <Heart size={10} /> {sample.totalLikes}
-                    </span>
-                    <span className="tarjetaStatItem">
-                        <Download size={10} /> {sample.totalDescargas}
-                    </span>
-                </div>
 
                 <button className={`tarjetaAccionBtn ${sample.liked ? 'tarjetaAccionLiked' : ''}`} onClick={manejarLike} type="button" aria-label={sample.liked ? 'Quitar like' : 'Dar like'}>
                     <Heart size={14} fill={sample.liked ? 'currentColor' : 'none'} />
+                    <span className="tarjetaAccionContador">{sample.totalLikes}</span>
                 </button>
 
                 <button className="tarjetaAccionBtn" onClick={manejarDescargar} type="button" aria-label="Descargar">
                     <Download size={14} />
+                    <span className="tarjetaAccionContador">{sample.totalDescargas}</span>
                 </button>
 
                 <button className="tarjetaAccionBtn" onClick={manejarMenu} type="button" aria-label="Más opciones">

@@ -120,14 +120,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
+    gap: 3px;
     height: 28px;
+    padding: 0 var(--espacioXs);
     border: none;
     background: none;
     color: var(--textoTerciario);
     border-radius: var(--radioSm);
     cursor: pointer;
     transition: color var(--transicionRapida), background-color var(--transicionRapida);
+    font-size: var(--fuenteXs);
+}
+
+.tarjetaAccionContador {
+    font-size: var(--fuenteXs);
+    font-variant-numeric: tabular-nums;
 }
 
 .tarjetaAccionBtn:hover {

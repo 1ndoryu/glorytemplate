@@ -5,12 +5,11 @@
  * Tabs: Samples | Publicaciones | Likes con contenido dinámico.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Music, FileText, Heart, Settings } from 'lucide-react';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
 import { BotonBase } from '../../components/ui/BotonBase';
-import { TabBar, type TabDefinicion } from '../../components/ui/TabBar';
 import { TarjetaSample } from '../../components/ui/TarjetaSample';
 import { MenuContextual } from '../../components/ui/MenuContextual';
 import { BotonFollow } from '../../components/social/BotonFollow';
@@ -19,6 +18,7 @@ import { listarSamples } from '../../services/apiSamples';
 import { darLike, quitarLike } from '../../services/apiSocial';
 import { useAuthStore } from '../../stores/authStore';
 import { useReproductorStore } from '../../stores/reproductorStore';
+import { useTabsTopBarStore } from '../../stores/tabsTopBarStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '../../hooks/useMenuContextualSample';
 import type { Usuario } from '../../types/usuario';
@@ -28,19 +28,18 @@ import '../../styles/componentes/perfil.css';
 
 const log = crearLogger('PerfilIsland');
 
-const tabsPerfil: TabDefinicion[] = [
-    { id: 'samples', etiqueta: 'Samples', icono: <Music size={14} /> },
-    { id: 'publicaciones', etiqueta: 'Publicaciones', icono: <FileText size={14} /> },
-    { id: 'likes', etiqueta: 'Likes', icono: <Heart size={14} /> },
+const TABS_PERFIL = [
+    { id: 'samples', etiqueta: 'Samples' },
+    { id: 'publicaciones', etiqueta: 'Publicaciones' },
+    { id: 'likes', etiqueta: 'Likes' },
 ];
 
 interface PerfilIslandProps {
     username?: string;
 }
 
-export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
+export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX.Element => {
     const [usuario, setUsuario] = useState<Usuario | null>(null);
-    const [tabActiva, setTabActiva] = useState('samples');
     const [cargando, setCargando] = useState(true);
     const [siguiendo, setSiguiendo] = useState(false);
 
@@ -51,10 +50,29 @@ export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
 
     const { usuario: usuarioAuth } = useAuthStore();
     const { sampleActual, reproduciendo, progreso, setSample, play, pause } = useReproductorStore();
+    const { activa: tabActiva, setTabs } = useTabsTopBarStore();
     const { navegar } = useNavigationStore();
     const menu = useMenuContextualSample();
 
+    /*
+     * Fix: si username viene vacío, es "perfil" o "editar", usar el del usuario autenticado.
+     * Esto resuelve el bug de que /perfil nunca carga.
+     */
+    const username = useMemo(() => {
+        const val = usernameProp?.trim();
+        if (!val || val === 'perfil' || val === 'editar') {
+            return usuarioAuth?.username ?? null;
+        }
+        return val;
+    }, [usernameProp, usuarioAuth?.username]);
+
     const esPropietario = usuarioAuth && usuario && usuarioAuth.username === usuario.username;
+
+    /* Registrar tabs en TopBar */
+    useEffect(() => {
+        setTabs(TABS_PERFIL, 'samples');
+        return () => { setTabs([]); };
+    }, [setTabs]);
 
     useEffect(() => {
         if (!username) return;
@@ -269,13 +287,7 @@ export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
                 </div>
             </div>
 
-            <div className="perfilTabs">
-                <TabBar
-                    tabs={tabsPerfil}
-                    activa={tabActiva}
-                    onChange={setTabActiva}
-                />
-            </div>
+            {/* Tabs se renderizan en el TopBar */}
 
             <div className="perfilContenidoTab">
                 {tabActiva === 'samples' &&

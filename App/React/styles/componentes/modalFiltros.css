@@ -1,0 +1,83 @@
+/*
+ * modalFiltros.css — Kamples
+ * Modal de filtros avanzados de samples.
+ */
+
+.filtrosContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+.filtrosTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.filtrosGrupo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.filtrosLabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filtrosSelect {
+    background-color: var(--fondoElevado2);
+    color: var(--textoPrimario);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteMd);
+    cursor: pointer;
+    outline: none;
+    width: 100%;
+    transition: border-color var(--transicionRapida);
+}
+
+.filtrosSelect:focus {
+    border-color: var(--bordeActivo);
+}
+
+.filtrosRango {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.filtrosRangoInput {
+    flex: 1;
+    background-color: var(--fondoElevado2);
+    color: var(--textoPrimario);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteMd);
+    text-align: center;
+    outline: none;
+}
+
+.filtrosRangoInput:focus {
+    border-color: var(--bordeActivo);
+}
+
+.filtrosRangoSeparador {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+}
+
+.filtrosAcciones {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--espacioMd);
+    padding-top: var(--espacioMd);
+    border-top: 1px solid var(--bordeSutil);
+}

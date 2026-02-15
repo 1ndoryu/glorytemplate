@@ -54,6 +54,44 @@
     background-color: var(--fondoElevado2);
 }
 
+/* Tab individual */
+.topbarTab {
+    background: none;
+    border: none;
+    padding: var(--espacioXs) var(--espacioMd);
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedium);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    border-radius: var(--radioMd);
+    transition: all var(--transicionRapida);
+    white-space: nowrap;
+}
+
+.topbarTab:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado2);
+}
+
+.topbarTabActiva {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado2);
+    font-weight: var(--pesoSemibold);
+}
+
+/* Wrapper del avatar — clickeable */
+.topbarAvatarWrapper {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border-radius: var(--radioFull);
+    transition: opacity var(--transicionRapida);
+}
+
+.topbarAvatarWrapper:hover {
+    opacity: 0.85;
+}
+
 /* Badge indicador en icono */
 .topbarBadge {
     position: absolute;

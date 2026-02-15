@@ -1116,6 +1116,28 @@ KAMPLES_PG_PASSWORD=root
 
 ---
 
+## Correcciones UI/UX Aplicadas (Iteración 2)
+
+> **Fecha:** Junio 2025
+
+- [x] **C1** Unificar Home/Explorar/Descubrir en una sola página: tabs (Todos/Trending/Recientes/Para ti) en TopBar, perfil corregido para cargar sin username en URL
+- [x] **C2** Modal de creación unificado (ModalCrear): 600px max, estilo red social (avatar+textarea+adjuntos), # para tags, DropZone solo al arrastrar
+- [x] **C3** Sidebar limpio: solo Inicio/Librería/Crear. Mensajes/notificaciones/perfil exclusivamente en TopBar. Avatar abre menú contextual
+- [x] **C4** SubirModal + ModalPublicar fusionados en ModalCrear. Sin header en modales. Avatar+username arriba, textarea auto-expandible 2-6 líneas
+- [x] **C5** Filtros avanzados en ModalFiltros. Tags dinámicos extraídos de samples reemplazan la zona de filtros anterior
+- [x] **C6** Contadores (likes, descargas) al lado de botones de acción en TarjetaSample, eliminando sección stats redundante
+
+**Archivos nuevos:**
+- `stores/tabsTopBarStore.ts` — tabs dinámicas por isla
+- `stores/crearModalStore.ts` — reemplaza subirModalStore + publicarModalStore
+- `components/social/ModalCrear.tsx` + `styles/componentes/modalCrear.css`
+- `components/ui/ModalFiltros.tsx` + `styles/componentes/modalFiltros.css`
+
+**Archivos reescritos:** TopBar.tsx, Sidebar.tsx, InicioIsland.tsx  
+**Archivos modificados:** LayoutPrincipal.tsx, PerfilIsland.tsx, TarjetaSample.tsx, modal.css, tarjetaSample.css, topbar.css, inicio.css
+
+---
+
 ## Notas y Decisiones Pendientes
 
 1. **Color de acento** — Definir paleta de acento (sugerencia: púrpura `#7c3aed` o cian `#06b6d4`) 
