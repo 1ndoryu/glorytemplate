@@ -21,7 +21,8 @@ import {LibreriaIsland} from './islands/libreria/LibreriaIsland';
 import {ReproductorIsland} from './islands/player/ReproductorIsland';
 import {DescubrirIsland} from './islands/discover/DescubrirIsland';
 import {NotificacionesIsland} from './islands/notificaciones/NotificacionesIsland';
-import {LayoutPrincipal} from './components/layout/LayoutPrincipal';
+import {LayoutPrincipal} from '@app/components/layout/LayoutPrincipal';
+import {InicializadorAuth} from '@app/components/auth/InicializadorAuth';
 
 // Register blocks
 registerAppBlocks();
@@ -30,9 +31,12 @@ registerAppBlocks();
  * AppProvider
  * Envuelve TODAS las islas en el layout base de Kamples (sidebar + topbar + reproductor).
  * Glory lo inyecta automáticamente via hydration.tsx → wrapWithProviders.
+ * InicializadorAuth verifica la sesión de WordPress al montar la app.
  */
 export const AppProvider: React.ComponentType<{children: React.ReactNode}> = ({ children }) => (
-    <LayoutPrincipal>{children}</LayoutPrincipal>
+    <InicializadorAuth>
+        <LayoutPrincipal>{children}</LayoutPrincipal>
+    </InicializadorAuth>
 );
 
 /**

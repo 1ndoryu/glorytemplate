@@ -9,10 +9,12 @@
     grid-template-columns: 40px 1fr auto;
     align-items: center;
     gap: var(--espacioMd);
-    padding: var(--espacioSm) var(--espacioMd);
+    padding: var(--espacioMd) var(--espacioMd);
     border-radius: var(--radioMd);
     transition: background-color var(--transicionRapida);
     cursor: pointer;
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
 }
 
 .tarjetaSample:hover {
@@ -20,7 +22,7 @@
 }
 
 .tarjetaSampleActiva {
-    background-color: var(--acentoMuted);
+    background-color: var(--fondoElevado2);
 }
 
 /* Botón play/pause */

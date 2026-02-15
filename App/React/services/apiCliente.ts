@@ -24,10 +24,10 @@ interface OpcionesPeticion {
 
 /*
  * Construye la URL base del API.
- * Glory inyecta el nonce y la URL base via gloryState en window.
+ * Glory inyecta el nonce y la URL base via GLORY_CONTEXT en window.
  */
 const obtenerBaseUrl = (): string => {
-    const glory = (window as unknown as Record<string, unknown>).gloryState as
+    const glory = (window as unknown as Record<string, unknown>).GLORY_CONTEXT as
         | { apiUrl?: string; restUrl?: string }
         | undefined;
 
@@ -39,7 +39,7 @@ const obtenerBaseUrl = (): string => {
 };
 
 const obtenerNonce = (): string => {
-    const glory = (window as unknown as Record<string, unknown>).gloryState as
+    const glory = (window as unknown as Record<string, unknown>).GLORY_CONTEXT as
         | { nonce?: string }
         | undefined;
     return glory?.nonce ?? '';

@@ -79,9 +79,9 @@ export const LayoutPrincipal = ({
                 </div>
             </main>
 
-            <footer className="areaReproductor">
+            <div className="areaReproductor">
                 <ReproductorGlobal />
-            </footer>
+            </div>
 
             {/* Modal de subida — se abre desde el sidebar */}
             <SubirModal />

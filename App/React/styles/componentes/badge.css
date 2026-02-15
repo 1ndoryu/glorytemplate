@@ -51,7 +51,7 @@
 
 /* Con borde */
 .badge.badgeBorde {
-    border: 1px solid currentColor;
+    border: 1px solid var(--bordeActivo);
     background-color: transparent;
 }
 

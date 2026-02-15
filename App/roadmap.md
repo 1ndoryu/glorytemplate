@@ -547,8 +547,13 @@ reproducciones (
 - [x] **1.7** Componentes: `Avatar`, `FormularioAuth`, `CampoTexto` — Avatar y CampoTexto creados en Fase 0
 - [x] **1.8** Middleware de autenticación para API Kamples — `AuthMiddleware.php` con requerirAuth, requerirCreador, requerirPlanPro
 - [x] **1.9** Guard de rutas (proteger páginas que requieren auth) — `ConAutenticacion.tsx` HOC con redirect a login y guardado de URL de retorno
-- [ ] **1.10** Home pública (`LandingPublicaIsland`) para usuarios no logeados + redirección a `/` autenticado cuando exista sesión
+- [x] **1.10** Home pública (`LandingPublicaIsland`) para usuarios no logeados + redirección a `/` autenticado cuando exista sesión
   - Implementado: LandingPublica.tsx con hero, features, trending preview, planes; InicioIsland condicional por auth
+- [x] **1.11** Fix crítico: Auth bridge PHP→React
+  - `apiCliente.ts` leía `window.gloryState` pero Glory inyecta `window.GLORY_CONTEXT` — nonce siempre vacío, API REST fallaba con 403
+  - `config.php`: añadido `add_filter('glory_react_context')` para inyectar `isLoggedIn`, `userId` y `currentUser` desde WP
+  - Creado `InicializadorAuth.tsx` en AppProvider: verifica sesión WP al montar la app, sincroniza authStore
+  - `InicioIsland.tsx`: ahora verifica `cargando` antes de decidir entre LandingPublica y FeedAutenticado (evita flash)
 
 **Entregable:** Usuario puede registrarse, loguearse con Google, y editar su perfil.
 
@@ -615,6 +620,12 @@ reproducciones (
 - [x] **2.9** Menú contextual en samples (click derecho):
   - Descargar, Añadir a colección, Compartir, Ir al creador, Reportar
   - Implementado: `useMenuContextualSample` hook + integración en InicioIsland y SamplesIsland
+- [x] **2.11** Fix: Reproductor flotante centrado
+  - Eliminado grid area fija para reproductor — ahora es `position: fixed` centrado en la parte inferior
+  - Ancho máximo 720px, bordes redondeados, animación de entrada, solo aparece al reproducir
+  - Cambiado `<footer>` a `<div>` (no es footer semántico)
+- [x] **2.12** Fix: Fallback a mock data cuando API retorna vacío
+  - `apiSamples.ts`: `obtenerFeed`, `listarSamples`, `obtenerSample` ahora usan mocks como fallback también cuando la API retorna datos vacíos (Postgres sin datos), no solo cuando falla
 - [x] **2.10** Sistema de descarga con límites:
   - Free: 5/día, calidad MP3
   - Pro: 50/día, calidad original

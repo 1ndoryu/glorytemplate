@@ -1,0 +1,259 @@
+/*
+ * Estilos: PlanesIsland — Kamples (Fase 6.2)
+ * Comparativa de planes con toggle mensual/anual
+ */
+
+.planesIsland {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 24px;
+}
+
+/* Header */
+.planesHeader {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.planesHeader h1 {
+    font-size: 28px;
+    font-weight: var(--pesoBold);
+    color: var(--textoBase);
+    margin-bottom: 8px;
+}
+
+.planesHeader p {
+    color: var(--textoSecundario);
+    font-size: var(--fuenteMd);
+    margin-bottom: 24px;
+}
+
+/* Toggle mensual/anual */
+.planesToggle {
+    display: inline-flex;
+    gap: 2px;
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: 2px;
+}
+
+.planesToggleBtn {
+    padding: 6px 16px;
+    font-size: var(--fuenteMd);
+    color: var(--textoSecundario);
+    background: transparent;
+    border: none;
+    border-radius: var(--radioMd);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.planesToggleBtnActivo {
+    background: var(--acento);
+    color: var(--textoBase);
+}
+
+/* Grid de planes */
+.planesGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 64px;
+}
+
+/* Tarjeta de plan */
+.planTarjeta {
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    transition: border-color 0.15s ease;
+}
+
+.planTarjeta:hover {
+    border-color: var(--textoSecundario);
+}
+
+.planTarjetaDestacada {
+    border-color: var(--acento);
+}
+
+.planTarjetaActual {
+    border-color: var(--textoSecundario);
+}
+
+/* Badges */
+.planBadgePopular,
+.planBadgeActual {
+    position: absolute;
+    top: -10px;
+}
+
+/* Icono */
+.planIcono {
+    color: var(--textoSecundario);
+    margin-bottom: 12px;
+}
+
+.planTarjetaDestacada .planIcono {
+    color: var(--textoBase);
+}
+
+/* Nombre */
+.planNombre {
+    font-size: 20px;
+    font-weight: var(--pesoBold);
+    color: var(--textoBase);
+    margin-bottom: 4px;
+}
+
+.planDescripcion {
+    font-size: var(--fuenteMd);
+    color: var(--textoSecundario);
+    margin-bottom: 24px;
+}
+
+/* Precio */
+.planPrecio {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.planPrecioCantidad {
+    font-size: 36px;
+    font-weight: var(--pesoBold);
+    color: var(--textoBase);
+    line-height: 1;
+}
+
+.planPrecioPeriodo {
+    font-size: 11px;
+    color: var(--textoSecundario);
+}
+
+.planAhorro {
+    font-size: 11px;
+    color: #22c55e;
+    margin-top: 4px;
+}
+
+/* Botón */
+.planBoton {
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+/* Características */
+.planCaracteristicas {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    text-align: left;
+}
+
+.planCaracteristica {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: var(--fuenteMd);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.planCaracteristicaIncluida {
+    color: var(--textoBase);
+}
+
+.planCaracteristicaIncluida svg {
+    color: #22c55e;
+    flex-shrink: 0;
+}
+
+.planCaracteristicaExcluida {
+    color: var(--textoSecundario);
+    opacity: 0.5;
+}
+
+.planCaracteristicaExcluida svg {
+    flex-shrink: 0;
+}
+
+/* FAQ */
+.planesFaq {
+    border-top: 1px solid var(--bordeSutil);
+    padding-top: 48px;
+}
+
+.planesFaq h2 {
+    font-size: 20px;
+    font-weight: var(--pesoBold);
+    color: var(--textoBase);
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.planesFaqGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.planesFaqItem {
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: 20px;
+}
+
+.planesFaqItem h3 {
+    font-size: 13px;
+    font-weight: var(--pesoBold);
+    color: var(--textoBase);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.planesFaqItem p {
+    font-size: var(--fuenteMd);
+    color: var(--textoSecundario);
+    line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .planesGrid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .planesFaqGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .planesIsland {
+        padding: 24px 16px;
+    }
+
+    .planesHeader h1 {
+        font-size: 22px;
+    }
+}

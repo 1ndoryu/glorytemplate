@@ -116,6 +116,7 @@
 .exploradorLista {
     display: flex;
     flex-direction: column;
+    gap: var(--espacioSm);
 }
 
 /* Info de resultados */

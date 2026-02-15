@@ -6,11 +6,10 @@
 .layoutPrincipal {
     display: grid;
     grid-template-columns: var(--anchoSidebar) 1fr;
-    grid-template-rows: var(--altoTopbar) 1fr var(--altoReproductor);
+    grid-template-rows: var(--altoTopbar) 1fr;
     grid-template-areas:
         "sidebar topbar"
-        "sidebar contenido"
-        "reproductor reproductor";
+        "sidebar contenido";
     height: 100vh;
     width: 100vw;
     overflow: hidden;
@@ -60,16 +59,14 @@
     width: 100%;
 }
 
-/* Reproductor global inferior */
+/* Reproductor global — ahora flotante, sin grid area */
 .areaReproductor {
-    grid-area: reproductor;
-    background-color: var(--fondoElevado2);
-    border-top: 1px solid var(--bordeSutil);
-    display: flex;
-    align-items: center;
-    padding: 0 var(--espacioXl);
-    gap: var(--espacioLg);
+    position: fixed;
+    bottom: var(--espacioLg);
+    left: 50%;
+    transform: translateX(-50%);
     z-index: var(--zReproductor);
+    pointer-events: none;
 }
 
 /* Responsive - ocultar sidebar en mobile */
@@ -78,8 +75,7 @@
         grid-template-columns: 1fr;
         grid-template-areas:
             "topbar"
-            "contenido"
-            "reproductor";
+            "contenido";
     }
 
     .areaSidebar {
@@ -88,5 +84,10 @@
 
     .areaContenido {
         padding: var(--espacioLg);
+    }
+
+    .areaReproductor {
+        left: 50%;
+        bottom: var(--espacioMd);
     }
 }

@@ -72,7 +72,7 @@ const filtrarMock = (filtros: FiltrosSamples): RespuestaListaSamples => {
 
 /*
  * Lista samples con filtros y paginación.
- * Fallback a mock data si la API falla.
+ * Fallback a mock data si la API falla o retorna vacío.
  */
 export const listarSamples = async (filtros: FiltrosSamples = {}): Promise<RespuestaApi<RespuestaListaSamples>> => {
     const resp = await apiGet<RespuestaListaSamples>('/samples', {
@@ -86,7 +86,11 @@ export const listarSamples = async (filtros: FiltrosSamples = {}): Promise<Respu
         tipo: filtros.tipo,
     });
 
-    if (!resp.ok) {
+    /* Si la API falla o retorna sin datos, usar mock */
+    const sinDatos = !resp.ok || !resp.data ||
+        (resp.data as RespuestaListaSamples)?.data?.length === 0;
+
+    if (sinDatos) {
         return { ok: true, data: filtrarMock(filtros), error: null, status: 200 };
     }
     return resp;
@@ -94,11 +98,12 @@ export const listarSamples = async (filtros: FiltrosSamples = {}): Promise<Respu
 
 /*
  * Obtiene un sample individual por slug.
+ * Fallback a mock si la API falla o no existe.
  */
 export const obtenerSample = async (slug: string): Promise<RespuestaApi<Sample>> => {
     const resp = await apiGet<Sample>(`/samples/${slug}`);
 
-    if (!resp.ok) {
+    if (!resp.ok || !resp.data) {
         /* Buscar en mock por slug */
         const encontrado = samplesMock.find((s) => s.slug === slug);
         if (encontrado) {
@@ -116,6 +121,7 @@ export const obtenerSample = async (slug: string): Promise<RespuestaApi<Sample>>
 
 /*
  * Obtiene el feed de descubrimiento.
+ * Usa mock data si la API falla o retorna vacío (backend sin datos aún).
  */
 export const obtenerFeed = async (
     tipo: 'descubrir' | 'trending' | 'recientes' = 'descubrir',
@@ -123,12 +129,14 @@ export const obtenerFeed = async (
 ): Promise<RespuestaApi<SampleResumen[]>> => {
     const resp = await apiGet<SampleResumen[]>('/feed', { tipo, page });
 
-    if (!resp.ok) {
-        const datos =
-            tipo === 'trending' ? trendingMock :
-            tipo === 'recientes' ? recientesMock :
-            descubrirMock;
-        return { ok: true, data: datos, error: null, status: 200 };
+    const datosMock =
+        tipo === 'trending' ? trendingMock :
+        tipo === 'recientes' ? recientesMock :
+        descubrirMock;
+
+    /* Fallback a mock si la API falla o retorna vacío */
+    if (!resp.ok || !resp.data || (Array.isArray(resp.data) && resp.data.length === 0)) {
+        return { ok: true, data: datosMock, error: null, status: 200 };
     }
     return resp;
 };

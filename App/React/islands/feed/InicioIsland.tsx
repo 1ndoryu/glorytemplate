@@ -25,7 +25,19 @@ import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/inicio.css';
 
 export const InicioIsland = (): JSX.Element => {
-    const { autenticado } = useAuthStore();
+    const { autenticado, cargando } = useAuthStore();
+
+    /* Esperar a que se verifique la sesión antes de decidir qué mostrar */
+    if (cargando) {
+        return (
+            <div className="inicioContenedor" id="seccionInicio">
+                <div className="inicioVacio">
+                    <Music size={40} className="inicioVacioIcono" />
+                    <p>Cargando…</p>
+                </div>
+            </div>
+        );
+    }
 
     /* Si no está autenticado, mostrar landing pública */
     if (!autenticado) {
