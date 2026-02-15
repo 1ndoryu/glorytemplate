@@ -131,17 +131,17 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                 )}
 
                 <button className={`tarjetaAccionBtn ${sample.liked ? 'tarjetaAccionLiked' : ''}`} onClick={manejarLike} type="button" aria-label={sample.liked ? 'Quitar like' : 'Dar like'}>
-                    <Heart size={14} fill={sample.liked ? 'currentColor' : 'none'} />
                     <span className="tarjetaAccionContador">{sample.totalLikes}</span>
+                    <Heart size={18} fill={sample.liked ? 'currentColor' : 'none'} />
                 </button>
 
                 <button className="tarjetaAccionBtn" onClick={manejarDescargar} type="button" aria-label="Descargar">
-                    <Download size={14} />
                     <span className="tarjetaAccionContador">{sample.totalDescargas}</span>
+                    <Download size={18} />
                 </button>
 
                 <button className="tarjetaAccionBtn" onClick={manejarMenu} type="button" aria-label="Más opciones">
-                    <MoreHorizontal size={14} />
+                    <MoreHorizontal size={18} />
                 </button>
             </div>
         </div>

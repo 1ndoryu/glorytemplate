@@ -5,3 +5,8 @@
 export { useAuth } from './useAuth';
 export { useReproductor } from './useReproductor';
 export { useFiltros } from './useFiltros';
+export { useSamples } from './useSamples';
+export { useDescargas } from './useDescargas';
+export { useAlgoritmo } from './useAlgoritmo';
+export { useWebSocket } from './useWebSocket';
+export { useMenuContextualSample } from './useMenuContextualSample';

@@ -120,9 +120,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: var(--espacioSm);
     height: 28px;
-    padding: 0 var(--espacioXs);
+    padding: 0 var(--espacioSm);
     border: none;
     background: none;
     color: var(--textoTerciario);

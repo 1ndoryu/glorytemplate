@@ -28,3 +28,6 @@ export { obtenerLimites, descargarSample, puedeDescargar } from './apiDescargas'
 export type { LimitesDescarga, ResultadoDescarga } from './apiDescargas';
 
 export { listarColecciones, crearColeccion, actualizarColeccion, eliminarColeccion } from './apiColecciones';
+
+export { wsService } from './wsService';
+export type { MensajeWS, EstadoConexion, HandlerMensaje } from './wsService';
