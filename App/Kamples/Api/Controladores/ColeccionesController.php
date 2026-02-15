@@ -212,11 +212,24 @@ class ColeccionesController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $id = (int) $request->get_param('id');
+        $esAdmin = UsuarioHelper::esAdmin();
 
-        $rows = PostgresService::ejecutar(
-            "DELETE FROM colecciones WHERE id = :id AND usuario_id = :userId",
-            ['id' => $id, 'userId' => $userId]
-        );
+        /* Admin puede borrar cualquier colección; usuario normal solo las suyas */
+        if ($esAdmin) {
+            $rows = PostgresService::ejecutar(
+                "DELETE FROM coleccion_samples WHERE coleccion_id = :id",
+                ['id' => $id]
+            );
+            $rows = PostgresService::ejecutar(
+                "DELETE FROM colecciones WHERE id = :id",
+                ['id' => $id]
+            );
+        } else {
+            $rows = PostgresService::ejecutar(
+                "DELETE FROM colecciones WHERE id = :id AND usuario_id = :userId",
+                ['id' => $id, 'userId' => $userId]
+            );
+        }
 
         return new \WP_REST_Response(['ok' => $rows > 0], $rows > 0 ? 200 : 404);
     }

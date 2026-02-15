@@ -61,4 +61,18 @@ class UsuarioHelper
     {
         return new \WP_REST_Response(['code' => 'usuario_no_encontrado'], 404);
     }
+
+    /**
+     * Verifica si el usuario WP actual tiene rol de administrador.
+     */
+    public static function esAdmin(): bool
+    {
+        $wpUserId = AuthMiddleware::obtenerWpUserId();
+        if (!$wpUserId) return false;
+
+        $usuario = get_userdata($wpUserId);
+        if (!$usuario) return false;
+
+        return in_array('administrator', $usuario->roles, true);
+    }
 }

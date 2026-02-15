@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Bell, Mail, User, Settings, LogOut, Plus } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Avatar } from '../ui/Avatar';
 import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
@@ -107,6 +107,22 @@ export const TopBar = (): JSX.Element => {
                         type="button"
                     >
                         <Plus size={20} />
+                    </button>
+
+                    {/* Badge de plan — click abre /planes */}
+                    <button
+                        className={`topbarPlanBadge topbarPlan${(usuario?.plan ?? 'free').charAt(0).toUpperCase() + (usuario?.plan ?? 'free').slice(1)}`}
+                        onClick={() => navegar('/planes/')}
+                        type="button"
+                        aria-label="Ver planes"
+                    >
+                        {usuario?.plan === 'premium' ? (
+                            <><Crown size={12} /> Premium</>
+                        ) : usuario?.plan === 'pro' ? (
+                            <><Sparkles size={12} /> Pro</>
+                        ) : (
+                            <>Free</>
+                        )}
                     </button>
 
                     <div className="topbarIconoWrapper">

@@ -4,10 +4,11 @@
  * SamplesController — CRUD de samples + feed + upload.
  *
  * Endpoints:
- *   GET  /samples          — Listado con filtros y paginación
- *   GET  /samples/{slug}   — Detalle por slug o id_corto
- *   GET  /feed             — Feed algorítmico
- *   POST /samples/upload   — Subida con pipeline async
+ *   GET    /samples          — Listado con filtros y paginación
+ *   GET    /samples/{slug}   — Detalle por slug o id_corto
+ *   GET    /feed             — Feed algorítmico
+ *   POST   /samples/upload   — Subida con pipeline async
+ *   DELETE /samples/{id}     — Eliminar sample (propietario o admin)
  *
  * @package Kamples
  */
@@ -63,6 +64,15 @@ class SamplesController
             'methods'             => 'POST',
             'callback'            => [self::class, 'subir'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        register_rest_route($namespace, '/samples/(?P<id>\d+)', [
+            'methods'             => 'DELETE',
+            'callback'            => [self::class, 'eliminar'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'id' => ['required' => true, 'type' => 'integer', 'sanitize_callback' => 'absint'],
+            ],
         ]);
     }
 
@@ -361,6 +371,85 @@ class SamplesController
             'ok' => true, 'sample_id' => $sampleId, 'id_corto' => $idCorto,
             'slug' => $slug, 'url' => $subido['url'], 'estado' => 'procesando',
         ], 201);
+    }
+
+    /**
+     * DELETE /samples/{id} — Eliminar sample.
+     * Solo el propietario o un admin pueden borrar.
+     * Elimina archivos físicos (original, mp3, preview, waveform) y registros relacionados.
+     */
+    public static function eliminar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $sampleId = (int) $request->get_param('id');
+        $usuarioId = UsuarioHelper::obtenerIdPg();
+        $esAdmin = UsuarioHelper::esAdmin();
+
+        if (!$usuarioId) {
+            return UsuarioHelper::respuestaNoEncontrado();
+        }
+
+        /* Verificar que el sample existe */
+        $sample = PostgresService::consultarUno(
+            "SELECT id, creador_id, ruta_archivo, ruta_mp3, ruta_preview, titulo FROM samples WHERE id = :id",
+            ['id' => $sampleId]
+        );
+
+        if (!$sample) {
+            return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
+        }
+
+        /* Solo el propietario o un admin pueden borrar */
+        if ((int) $sample['creador_id'] !== $usuarioId && !$esAdmin) {
+            return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'No tienes permiso para eliminar este sample'], 403);
+        }
+
+        /* Eliminar archivos físicos del disco */
+        $uploadDir = \wp_upload_dir();
+        $baseDir = $uploadDir['basedir'];
+        $rutasAEliminar = ['ruta_archivo', 'ruta_mp3', 'ruta_preview'];
+
+        foreach ($rutasAEliminar as $campo) {
+            if (!empty($sample[$campo])) {
+                /* La ruta puede ser absoluta o relativa a uploads */
+                $rutaCompleta = $sample[$campo];
+                if (!file_exists($rutaCompleta)) {
+                    $rutaCompleta = $baseDir . '/' . ltrim($sample[$campo], '/');
+                }
+                if (file_exists($rutaCompleta)) {
+                    @unlink($rutaCompleta);
+                }
+            }
+        }
+
+        /* Eliminar waveform JSON si existe */
+        $rutaBase = $sample['ruta_archivo'] ?? '';
+        if ($rutaBase) {
+            $rutaWaveform = preg_replace('/\.[^.]+$/', '.json', $rutaBase);
+            if ($rutaWaveform && file_exists($rutaWaveform)) {
+                @unlink($rutaWaveform);
+            }
+            $rutaAbsWaveform = $baseDir . '/' . ltrim($rutaWaveform, '/');
+            if (file_exists($rutaAbsWaveform)) {
+                @unlink($rutaAbsWaveform);
+            }
+        }
+
+        /* Eliminar registros relacionados en cascada */
+        PostgresService::ejecutar("DELETE FROM likes WHERE target_type = 'sample' AND target_id = :id", ['id' => $sampleId]);
+        PostgresService::ejecutar("DELETE FROM coleccion_samples WHERE sample_id = :id", ['id' => $sampleId]);
+        PostgresService::ejecutar("DELETE FROM reproducciones WHERE sample_id = :id", ['id' => $sampleId]);
+        PostgresService::ejecutar("DELETE FROM descargas WHERE sample_id = :id", ['id' => $sampleId]);
+
+        /* Eliminar el sample */
+        PostgresService::ejecutar("DELETE FROM samples WHERE id = :id", ['id' => $sampleId]);
+
+        KamplesLogger::info('Sample eliminado', [
+            'sampleId' => $sampleId,
+            'titulo'   => $sample['titulo'] ?? '',
+            'por'      => $esAdmin && (int) $sample['creador_id'] !== $usuarioId ? 'admin' : 'propietario',
+        ]);
+
+        return new \WP_REST_Response(['ok' => true, 'eliminado' => true], 200);
     }
 
     private static function argsListar(): array

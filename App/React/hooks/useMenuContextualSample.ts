@@ -4,12 +4,14 @@
  * Reutilizable en cualquier lista que muestre TarjetaSample.
  */
 
-import { useState, useCallback, type MouseEvent } from 'react';
+import { useState, useCallback, useMemo, type MouseEvent } from 'react';
 import type { SampleResumen } from '@app/types';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import { useNavigationStore } from '@/core/router';
 import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
+import { useAuthStore } from '@app/stores/authStore';
+import { eliminarSample } from '@app/services/apiSamples';
 
 interface EstadoMenuSample {
     abierto: boolean;
@@ -40,6 +42,15 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
     const { navegar } = useNavigationStore();
     const { setSample, agregarACola } = useReproductorStore();
     const { abrir: abrirColeccionPicker } = useColeccionPickerStore();
+    const { usuario } = useAuthStore();
+
+    /* El usuario puede eliminar si es propietario del sample o admin */
+    const puedeEliminar = useMemo(() => {
+        if (!usuario || !estado.sample) return false;
+        const esPropietario = usuario.id === estado.sample.creador.id;
+        const esAdmin = usuario.rol === 'admin';
+        return esPropietario || esAdmin;
+    }, [usuario, estado.sample]);
 
     const abrirMenu = useCallback((e: MouseEvent, sample: SampleResumen) => {
         e.preventDefault();
@@ -121,6 +132,28 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                     if (estado.sample) setSampleInspeccion(estado.sample);
                 },
             },
+            ...(puedeEliminar
+                ? [
+                    {
+                        id: 'eliminar',
+                        etiqueta: 'Eliminar sample',
+                        peligro: true,
+                        separadorAntes: true,
+                        onClick: async () => {
+                            if (!estado.sample) return;
+                            const confirmar = window.confirm(
+                                `¿Estás seguro de eliminar "${estado.sample.titulo}"? Esta acción no se puede deshacer.`
+                            );
+                            if (!confirmar) return;
+                            const resp = await eliminarSample(estado.sample.id);
+                            if (resp.ok) {
+                                /* Recargar la página para reflejar el cambio */
+                                window.location.reload();
+                            }
+                        },
+                    } as MenuItemDef,
+                ]
+                : []),
             {
                 id: 'reportar',
                 etiqueta: 'Reportar',

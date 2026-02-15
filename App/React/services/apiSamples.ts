@@ -4,7 +4,7 @@
  * Conecta directamente con la API real, sin fallback a mock.
  */
 
-import { apiGet, apiPostFormData } from './apiCliente';
+import { apiGet, apiPostFormData, apiDelete } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 import type { SampleResumen, Sample } from '../types';
 
@@ -102,4 +102,13 @@ export const subirSample = async (datos: DatosSubida): Promise<RespuestaApi<Resp
     formData.append('licencia_libre', String(datos.licenciaLibre ?? false));
 
     return apiPostFormData<RespuestaSubida>('/samples/upload', formData);
+};
+
+/*
+ * Eliminar un sample.
+ * Solo el propietario o un admin pueden borrar.
+ * Endpoint: DELETE /samples/{id}
+ */
+export const eliminarSample = async (sampleId: number): Promise<RespuestaApi<{ eliminado: boolean }>> => {
+    return apiDelete<{ eliminado: boolean }>(`/samples/${sampleId}`);
 };

@@ -126,3 +126,52 @@
     color: var(--blanco);
     border-color: var(--acento);
 }
+
+/* Badge de plan — junto al botón crear */
+.topbarPlanBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    font-size: 0.7rem;
+    font-weight: var(--pesoBold);
+    letter-spacing: 0.4px;
+    border-radius: var(--radioFull);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    line-height: 1;
+    white-space: nowrap;
+    text-transform: uppercase;
+}
+
+.topbarPlanFree {
+    background-color: var(--fondoElevado1);
+    color: var(--textoSecundario);
+    border-color: var(--bordeSutil);
+}
+
+.topbarPlanFree:hover {
+    background-color: var(--fondoHover);
+    color: var(--textoPrimario);
+}
+
+.topbarPlanPro {
+    background-color: color-mix(in srgb, var(--acento) 12%, transparent);
+    color: var(--acento);
+    border-color: color-mix(in srgb, var(--acento) 30%, transparent);
+}
+
+.topbarPlanPro:hover {
+    background-color: color-mix(in srgb, var(--acento) 22%, transparent);
+}
+
+.topbarPlanPremium {
+    background: linear-gradient(135deg, #f5c842 0%, #e6a817 100%);
+    color: #1a1a1a;
+    border-color: #d4a017;
+}
+
+.topbarPlanPremium:hover {
+    background: linear-gradient(135deg, #ffd54f 0%, #f5c842 100%);
+}

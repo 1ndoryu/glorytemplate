@@ -200,6 +200,19 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **ModalSeleccionColeccion.tsx**: mejorado con ranking por relevancia — carga colecciones + obtenerRelevantesParaSample() en paralelo, ordena relevantes primero.
 
+### Registro de cambios R4 — Delete samples/colecciones + Badge plan
+
+**Eliminación de samples (comentarios 18+19):**
+- `UsuarioHelper.php`: agregado `esAdmin()` — verifica rol WP administrator
+- `SamplesController.php`: ruta DELETE /samples/{id} + método `eliminar()` — verifica dueño/admin, borra archivos físicos (audio, mp3, preview, waveform), cascada BD (likes, coleccion_samples, reproducciones, descargas), logging
+- `ColeccionesController.php`: `eliminar()` actualizado — admin puede borrar cualquier colección (cascada coleccion_samples + coleccion)
+- `apiSamples.ts`: agregado `eliminarSample(sampleId)`
+- `useMenuContextualSample.ts`: opción "Eliminar sample" condicional (solo si es dueño o admin), confirm dialog, reload post-eliminación
+
+**Badge de plan en TopBar (comentario 16):**
+- `TopBar.tsx`: badge de plan (Free/Pro/Premium) entre botón crear (+) y notificaciones, con iconos Crown/Sparkles, navegación a /planes/
+- `topbar.css`: estilos `.topbarPlanBadge`, `.topbarPlanFree` (sutil), `.topbarPlanPro` (acento), `.topbarPlanPremium` (gradiente dorado)
+
 ---
 
 ## Pendientes por Fase
@@ -692,9 +705,89 @@ Entiendo que costo computacional de esto debe ser alto a medida que suban mas sa
 14.3 No se si esta planificado pero se debe tener en cuenta las reproduciones, si, cada vez que se reproduce un sample debe registrarse en el sample y el usuario, esta informacion es util, por ejemplo, evitar mostrar samples que el usuario ya ha escuchado varias veces, y tambien, ofrecerle un historial de reproducciones.
 
 15. A este punto compactar el este archivo con las tareas completadas, ordenarlo mejor sin borrar tareas pendientes ni perder información relevante. 
-16. El status de premiun - free debe verse en el nav arriba, al dar click aparecera el modal para suscribirse, agregaremos una prueba gratuita de 30 días con 20 descargas gratis al días. Las subidas en todos los planes debe ser ilimitada, a nosotros nos conviene que los usuarios suban sus samples para que la plataforma crezca, lo que si podemos limitar es la transferencia de datos de samples entre la aplicación y el escritorio, free 1gb, los premiun 10gb y 50gb al mes. 
+16. ~~El status de premiun - free debe verse en el nav arriba~~ ✅ COMPLETADO — Badge de plan (Free/Pro/Premium) añadido a TopBar con estilos dinámicos y navegación a /planes/. Prueba gratuita 30 días y límites de transferencia pendientes para Fase 7 (Stripe). 
 17. Me di cuenta que no sabes que la url del proyecto es http://glory.local/ , asi puedes testear las api, anota esa informacion en el roadmap bien clara para que estes informado.
-18. Debería poder borrar mis samples en el menu contextual de los smaples cuando son mios.
-19. Los usuarios admin deberían poder borrar cualquier sample y cualquier colección. 
+18. ~~Debería poder borrar mis samples en el menu contextual de los samples cuando son mios.~~ ✅ COMPLETADO — DELETE /samples/{id} + menú contextual condicional (solo dueño o admin). Borra archivos físicos + cascada BD.
+19. ~~Los usuarios admin deberían poder borrar cualquier sample y cualquier colección.~~ ✅ COMPLETADO — UsuarioHelper::esAdmin(), SamplesController::eliminar() y ColeccionesController::eliminar() permiten admin borrar cualquier contenido. 
+20. El diseño de las tags se ve mal como si no tuviera estilos, tal vez se borraron los estilos de los tags que estan arriba de la ista de sample o cambio la estructura 
+21. Aqui fallo una subida, pero, si fue porque la ia no hizo correctamente el json entonce podemos intentar groq para que arregle el json, no directamente reintentar con gemini (no se porque se detuvo hasta alli), para reparar el json podemos usar GPT OSS 20B 128k o GPT OSS 120B 128k o Kimi K2-0905 1T 256k, reintentar con cada uno en caso que falle el json, no pedirle a los modelos grok que lo generen porque no analicen audios, limitarlos a reparar json, tambien hay que reparar el porque se detuvo hasta ServicioIA: Intentando Gemini/gemini-2.5-pro sin mostrar error y cuando se detuvo el modal mostro Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[2026-02-15 22:19:11] [INFO] Pipeline: Iniciando procesamiento | sampleId=4, archivo=looperman-l-7509213-0393415-m45-ts-2.wav, idCorto=HiMnbqj, tagsCount=5
+[2026-02-15 22:19:11] [DEBUG] Binario ffmpeg encontrado via .env | ruta=C:\Users\Owner\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe
+[2026-02-15 22:19:11] [INFO] FFmpeg encontrado | ruta=C:\Users\Owner\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe
+[2026-02-15 22:19:11] [DEBUG] Binario ffprobe encontrado via .env | ruta=C:\Users\Owner\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffprobe.exe
+[2026-02-15 22:19:11] [DEBUG] FFprobe encontrado | ruta=C:\Users\Owner\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffprobe.exe
+[2026-02-15 22:19:12] [INFO] AnalizadorAudio: BPM=60 (46%), Key=G# menor (72%)
+[2026-02-15 22:19:12] [INFO] Pipeline: Análisis técnico completado | bpm=60, key=G#, escala=menor
+[2026-02-15 22:19:12] [INFO] ServicioIA: Intentando Gemini/gemini-2.5-flash
+[2026-02-15 22:19:48] [ERROR] ServicioIA: No se pudo extraer JSON de la respuesta IA | texto_raw={
+  "nombre_archivo_base": "dark evolving synth pad",
+  "tags": [
+    "dark",
+    "cinematic",
+    "synth",
+    "pad",
+    "evolving",
+    "atmospheric",
+    "drone",
+    "minor key",
+    "ambient",
+    "underscore"
+  ],
+  "tags_es": [
+    "oscuro",
+    "cinemático",
+    "sintetizador",
+    "pad",
+    "evolutivo",
+    "atmosférico",
+    "drone",
+    "tonalidad menor",
+    "ambiental",
+    "fondo"
+  ],
+  "tipo": "loop",
+  "genero": [
+    "cinematic",
+    "ambient",
+    "electronic",
+    "soundtrack",
+    "dark ambient",
+    "drone"
+  ],
+  "emocion": [
+    "dark",
+    "mysterious",
+    "melancholic",
+    "tense",
+    "somber",
+    "reflective",
+    "atmospheric"
+  ],
+  "emocion_es": [
+    "oscuro",
+    "misterioso",
+    "melancólico",
+    "tenso",
+    "sombrío",
+    "reflexivo",
+    "atmosférico"
+  ],
+  "instrumentos": [
+    "synth",
+    "pad",
+    "synth strings"
+  ],
+  "artista_vibes": [
+    "Hans Zimmer",
+    "Trent Reznor",
+    "Vangelis",
+    "Cliff Martinez",
+    "Disasterpeace"
+  ],
+  "descripcion_corta": "A dark, evolving synth pad creating a tense and atmospheric cinematic backdrop.",
+  "descripcion_corta_es": "Un pad de sintetizador oscuro y evolutivo que crea un telón de fondo cinemático tenso y atmosférico.",
+  "descripcion": "This loop features a deep, evolving synth pad with a dark and mysterious character. Its sustained, atmospheric texture builds a sense of tension and melancholy, perfect for cinematic scores, ambient tracks, or adding a somber underscore to any, json_error=Control character error, possibly incorrectly encoded
+[2026-02-15 22:19:48] [INFO] ServicioIA: Intentando Gemini/gemini-2.5-pro
+
 
 ---
