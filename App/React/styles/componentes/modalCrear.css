@@ -49,6 +49,23 @@
     gap: var(--espacioXs);
 }
 
+/* Contador de tags mínimos para samples */
+.crearTagsContador {
+    font-size: var(--fuenteXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    border-radius: var(--radioSm);
+    transition: all 0.2s ease;
+}
+
+.crearTagsInsuficientes {
+    color: var(--error);
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.crearTagsSuficientes {
+    color: var(--textoSecundario);
+}
+
 /* Audio adjunto (fila compacta) */
 .crearAdjunto {
     display: flex;

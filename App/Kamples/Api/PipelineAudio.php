@@ -42,9 +42,10 @@ class PipelineAudio
      * @param string $nombreOriginal Nombre original subido por el usuario
      * @param string $idCorto ID corto del sample (ej: "a3Kf9x2")
      * @param string $descripcionUsuario Descripción del usuario (para contexto IA)
+     * @param array $tagsUsuario Tags proporcionados por el usuario (#hashtags)
      * @throws \RuntimeException Si FFmpeg no está disponible
      */
-    public static function procesar(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario = ''): void
+    public static function procesar(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario = '', array $tagsUsuario = []): void
     {
         error_log("[Kamples] PipelineAudio: Iniciando procesamiento para sample #{$sampleId}");
 
@@ -84,8 +85,15 @@ class PipelineAudio
             $analisisTecnico['escala'] ?? ''
         ));
 
-        /* Paso 3: Análisis creativo — tags, emociones, etc. con IA (Gemini) */
-        $metadataIA = ServicioIA::analizarAudio($rutaArchivo, $nombreOriginal, $descripcionUsuario);
+        /* Paso 3: Análisis creativo — tags, emociones, etc. con IA (Gemini + Groq fallback) */
+        $contextoTecnico = [
+            'bpm'      => $analisisTecnico['bpm'],
+            'key'      => $analisisTecnico['key'],
+            'escala'   => $analisisTecnico['escala'],
+            'duracion' => $duracion ?? 0,
+            'tags'     => $tagsUsuario,
+        ];
+        $metadataIA = ServicioIA::analizarAudio($rutaArchivo, $nombreOriginal, $descripcionUsuario, $contextoTecnico);
 
         if ($metadataIA) {
             error_log("[Kamples] PipelineAudio: IA completada — tipo={$metadataIA['tipo']}");
@@ -310,14 +318,24 @@ class PipelineAudio
 
     /*
      * Busca un binario (ffmpeg o ffprobe) en el sistema.
-     * Primero intenta PATH del sistema, luego ubicaciones comunes.
+     * Prioridad: .env > PATH del sistema > ubicaciones comunes > winget.
+     *
+     * PHP bajo Apache/LocalWP no hereda el PATH del usuario de Windows,
+     * por eso es necesario buscar en rutas explícitas.
      */
     private static function buscarBinario(string $nombre): string
     {
         $esWindows = self::esWindows();
         $ejecutable = $esWindows ? "{$nombre}.exe" : $nombre;
 
-        /* 1. Intentar desde PATH del sistema */
+        /* 1. Variable de entorno del .env (prioridad máxima, siempre funciona) */
+        $envVar = strtoupper($nombre) . '_PATH';
+        $envRuta = $_ENV[$envVar] ?? getenv($envVar) ?: null;
+        if ($envRuta && file_exists($envRuta)) {
+            return $envRuta;
+        }
+
+        /* 2. Intentar desde PATH del sistema */
         if ($esWindows) {
             $output = shell_exec("where {$nombre} 2>nul");
         } else {
@@ -331,17 +349,37 @@ class PipelineAudio
             }
         }
 
-        /* 2. Buscar en ubicaciones comunes */
+        /* 3. Buscar en ubicaciones comunes */
         if ($esWindows) {
+            $localAppData = getenv('LOCALAPPDATA') ?: '';
+            $userProfile = getenv('USERPROFILE') ?: '';
+
             $rutas = [
                 "C:\\ffmpeg\\bin\\{$ejecutable}",
                 "C:\\Program Files\\ffmpeg\\bin\\{$ejecutable}",
                 "C:\\Program Files (x86)\\ffmpeg\\bin\\{$ejecutable}",
                 "C:\\tools\\ffmpeg\\bin\\{$ejecutable}",
-                getenv('LOCALAPPDATA') . "\\ffmpeg\\bin\\{$ejecutable}",
-                getenv('USERPROFILE') . "\\ffmpeg\\bin\\{$ejecutable}",
-                getenv('USERPROFILE') . "\\scoop\\shims\\{$ejecutable}",
             ];
+
+            /* Agregar rutas de usuario solo si se resolvió la variable */
+            if ($localAppData) {
+                $rutas[] = "{$localAppData}\\ffmpeg\\bin\\{$ejecutable}";
+            }
+            if ($userProfile) {
+                $rutas[] = "{$userProfile}\\ffmpeg\\bin\\{$ejecutable}";
+                $rutas[] = "{$userProfile}\\scoop\\shims\\{$ejecutable}";
+            }
+
+            /* Buscar en paquetes winget (glob para soportar versiones futuras) */
+            if ($localAppData) {
+                $globPatron = "{$localAppData}\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg*\\ffmpeg-*\\bin\\{$ejecutable}";
+                $encontrados = glob($globPatron);
+                if ($encontrados) {
+                    /* Última versión alfabéticamente = más reciente */
+                    sort($encontrados);
+                    $rutas[] = end($encontrados);
+                }
+            }
         } else {
             $rutas = [
                 "/usr/bin/{$nombre}",
@@ -355,13 +393,6 @@ class PipelineAudio
             if (!empty($ruta) && file_exists($ruta)) {
                 return $ruta;
             }
-        }
-
-        /* 3. Verificar variable de entorno personalizada */
-        $envVar = strtoupper($nombre) . '_PATH';
-        $envRuta = $_ENV[$envVar] ?? getenv($envVar) ?: null;
-        if ($envRuta && file_exists($envRuta)) {
-            return $envRuta;
         }
 
         return '';

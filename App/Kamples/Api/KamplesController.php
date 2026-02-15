@@ -525,13 +525,14 @@ class KamplesController
         /* Si no existe, crear registro en Postgres al primer acceso */
         if (!$ext) {
             $id = PostgresService::insertar(
-                "INSERT INTO usuarios_ext (wp_user_id, username, nombre_visible, avatar_url)
-                 VALUES (:wpId, :username, :nombre, :avatar)
+                "INSERT INTO usuarios_ext (wp_user_id, username, nombre_visible, email, avatar_url)
+                 VALUES (:wpId, :username, :nombre, :email, :avatar)
                  RETURNING id",
                 [
                     'wpId'     => $wpUser['wp_user_id'],
                     'username' => $wpUser['username'],
                     'nombre'   => $wpUser['display_name'],
+                    'email'    => $wpUser['email'],
                     'avatar'   => $wpUser['avatar_url'],
                 ]
             );
@@ -1453,15 +1454,20 @@ class KamplesController
             ], 400);
         }
 
+        /* Cargar funciones de administración necesarias para wp_handle_upload (no se cargan en contexto REST) */
+        if (!\function_exists('wp_handle_upload')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+
         /* Directorio personalizado: kamples/{user_id}/{Y}/{m}/ */
         $anio = date('Y');
         $mes = date('m');
         $subDir = "kamples/{$wpUserId}/{$anio}/{$mes}";
-        $uploadDir = wp_upload_dir();
+        $uploadDir = \wp_upload_dir();
         $directorioDestino = $uploadDir['basedir'] . '/' . $subDir;
 
         if (!file_exists($directorioDestino)) {
-            wp_mkdir_p($directorioDestino);
+            \wp_mkdir_p($directorioDestino);
         }
 
         /* Agregar filtro temporal para cambiar el directorio de upload */
@@ -1472,10 +1478,10 @@ class KamplesController
             return $paths;
         };
 
-        add_filter('upload_dir', $filtroDir);
+        \add_filter('upload_dir', $filtroDir);
 
         /* Usar wp_handle_upload para procesar el archivo */
-        $subido = wp_handle_upload($audio, [
+        $subido = \wp_handle_upload($audio, [
             'test_form' => false,
             'mimes'     => [
                 'wav'  => 'audio/wav',
@@ -1485,7 +1491,7 @@ class KamplesController
             ],
         ]);
 
-        remove_filter('upload_dir', $filtroDir);
+        \remove_filter('upload_dir', $filtroDir);
 
         if (isset($subido['error'])) {
             return new \WP_REST_Response([
@@ -1495,18 +1501,26 @@ class KamplesController
         }
 
         /* Datos adicionales del request (FormData fields) */
-        $titulo = sanitize_text_field($request->get_param('titulo') ?? $audio['name']);
-        $contenido = sanitize_textarea_field($request->get_param('contenido') ?? '');
+        $titulo = \sanitize_text_field($request->get_param('titulo') ?? $audio['name']);
+        $contenido = \sanitize_textarea_field($request->get_param('contenido') ?? '');
         $tagsRaw = $request->get_param('tags');
         $tags = is_string($tagsRaw) ? json_decode($tagsRaw, true) ?? [] : (array) ($tagsRaw ?? []);
         $permitirDescarga = filter_var($request->get_param('permitir_descarga') ?? true, FILTER_VALIDATE_BOOLEAN);
         $licenciaLibre = filter_var($request->get_param('licencia_libre') ?? false, FILTER_VALIDATE_BOOLEAN);
 
+        /* Validar mínimo 5 tags para que la IA tenga suficiente contexto */
+        if (count($tags) < 5) {
+            return new \WP_REST_Response([
+                'ok'    => false,
+                'error' => 'Se requieren al menos 5 tags para subir un sample. Agrega más hashtags (#) en tu descripción.',
+            ], 400);
+        }
+
         /* Generar ID corto único alfanumérico (7 chars, base62) */
         $idCorto = GeneradorIdCorto::generar();
 
         /* Generar slug con el ID corto para unicidad garantizada */
-        $slug = sanitize_title($titulo) . '-' . $idCorto;
+        $slug = \sanitize_title($titulo) . '-' . $idCorto;
 
         /* Registrar en PostgreSQL */
         $usuario = PostgresService::consultarUno(
@@ -1522,7 +1536,7 @@ class KamplesController
         }
 
         $sampleId = null;
-        $tagsPostgres = '{' . implode(',', array_map('sanitize_text_field', $tags)) . '}';
+        $tagsPostgres = '{' . implode(',', array_map('\sanitize_text_field', $tags)) . '}';
 
         try {
             $resultado = PostgresService::consultarUno(
@@ -1557,7 +1571,7 @@ class KamplesController
          */
         if ($sampleId) {
             try {
-                PipelineAudio::procesar($sampleId, $subido['file'], $audio['name'], $idCorto, $contenido);
+                PipelineAudio::procesar($sampleId, $subido['file'], $audio['name'], $idCorto, $contenido, $tags);
             } catch (\Exception $e) {
                 error_log('[Kamples] Pipeline error (no bloqueante): ' . $e->getMessage());
             }

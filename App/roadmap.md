@@ -434,18 +434,27 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
      - Key: algoritmo Goertzel para chroma + perfiles Krumhansl-Schmuckler (FFmpeg PCM → PHP)
    - El JSON final en campo `metadata` (JSONB) combina datos creativos de IA + confianza técnica.
 
-3. He colocado la "GROQ_API" en el .env, leer la documentacion "https://console.groq.com/docs/overview" y elegir los mejores modelos (momo, los de openIA y hacer el mismo sistema de cuotas gratis de probar uno y si falla pasar al otro modelo)
-4. Ya esta instalado FFMPEG
-PS C:\Users\Owner> $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User"); ffmpeg -version
-ffmpeg version 8.0.1-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
-built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
-configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-lcms2 --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libopenjpeg --enable-libquirc --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-liboapv --enable-libqrencode --enable-librav1e --enable-libsvtav1 --enable-libvvenc --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-openal --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-liblc3 --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint --enable-whisper
-libavutil      60.  8.100 / 60.  8.100
-libavcodec     62. 11.100 / 62. 11.100
-libavformat    62.  3.100 / 62.  3.100
-libavdevice    62.  1.100 / 62.  1.100
-libavfilter    11.  4.100 / 11.  4.100
-libswscale      9.  1.100 /  9.  1.100
-libswresample   6.  1.100 /  6.  1.100
+3. ~~He colocado la "GROQ_API" en el .env, leer la documentacion "https://console.groq.com/docs/overview" y elegir los mejores modelos (momo, los de openIA y hacer el mismo sistema de cuotas gratis de probar uno y si falla pasar al otro modelo)~~
+   - ✅ COMPLETADO: `ServicioIA.php` ahora soporta Gemini + Groq como providers con fallback automático.
+   - Cadena completa: Gemini (audio+texto) → Groq (solo texto).
+   - Gemini: `gemini-2.5-flash` → `gemini-2.5-pro` → `gemini-2.0-flash`
+   - Groq (OpenAI-compatible): `openai/gpt-oss-120b` → `llama-3.3-70b-versatile` → `openai/gpt-oss-20b`
+   - Groq no soporta audio directo, así que usa contexto enriquecido (BPM, key, duración, tags, descripción).
+   - Si Gemini agota cuota, el fallback a Groq es automático. Lee `GROQ_API` del .env.
+4. ~~Ya esta instalado FFMPEG~~
+   - ✅ Confirmado: FFmpeg 8.0.1 disponible en PATH. Sin cambios necesarios.
 
-5. No lo comente antes pero el $promptContext debe contener la descripcion del audio que puso el usuario y los tags, tambien, obligar al usuario a colocar al menos 5 tags para que la IA tenga mas contexto, y colocar un mensaje de error si no lo hace. El promptContext seria algo asi como "El usuario ha descrito el audio de esta manera: {descripcion} y ha colocado los siguientes tags: {tags}, el archivo se subio con este nombre, el archivo tiene este bpm y tonalidad, dura esto (esta informacion debe conseguirse antes para enviarselo a la IA)"
+5. ~~No lo comente antes pero el $promptContext debe contener la descripcion del audio que puso el usuario y los tags, tambien, obligar al usuario a colocar al menos 5 tags para que la IA tenga mas contexto, y colocar un mensaje de error si no lo hace.~~
+   - ✅ COMPLETADO: Prompt enriquecido con contexto completo.
+   - `construirPrompt()` ahora incluye: descripción del usuario, tags, nombre de archivo, BPM, tonalidad, duración.
+   - Los datos técnicos se calculan ANTES de llamar a la IA (AnalizadorAudio + FFprobe en PipelineAudio).
+   - Validación de 5 tags mínimos: frontend (botón deshabilitado + mensaje visual) y backend (HTTP 400).
+   - `PipelineAudio::procesar()` ahora recibe `$tagsUsuario` y los pasa como `$contextoTecnico` a ServicioIA.
+
+6. ~~En los logs aparece SQLSTATE[23502]: Not null violation email usuarios_ext~~
+   - ✅ CORREGIDO: INSERT en `/me` (auto-creación) ahora incluye `email` desde `$wpUser['email']`.
+
+7. ~~Cuando intento publicar un sample sale Unexpected token '<'... wp_handle_upload()~~
+   - ✅ CORREGIDO: `wp-admin/includes/file.php` no se carga en contexto REST API.
+   - Se agregó `require_once ABSPATH . 'wp-admin/includes/file.php'` antes de la llamada.
+   - Prefijo `\` añadido a funciones WP: `\wp_upload_dir`, `\wp_mkdir_p`, `\add_filter`, `\remove_filter`, `\wp_handle_upload`, `\sanitize_text_field`, `\sanitize_textarea_field`, `\sanitize_title`.

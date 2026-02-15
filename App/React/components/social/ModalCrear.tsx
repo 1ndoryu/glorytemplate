@@ -22,6 +22,7 @@ import '../../styles/componentes/modalCrear.css';
 
 const log = crearLogger('ModalCrear');
 const MAX_CARACTERES = 2000;
+const MIN_TAGS_AUDIO = 5;
 
 /* Extraer hashtags del texto */
 const extraerTags = (texto: string): string[] => {
@@ -160,6 +161,13 @@ export const ModalCrear = (): JSX.Element | null => {
         setExitoSubida(false);
         const tags = extraerTags(contenido);
 
+        /* Validar mínimo 5 tags cuando hay audio adjunto */
+        if (audioAdjunto?.archivo && tags.length < MIN_TAGS_AUDIO) {
+            setErrorSubida(`Se requieren al menos ${MIN_TAGS_AUDIO} tags (#hashtags) para subir un sample. Tienes ${tags.length}.`);
+            setPublicando(false);
+            return;
+        }
+
         log.info('Publicando', {
             tags,
             tieneAudio: !!audioAdjunto,
@@ -221,7 +229,8 @@ export const ModalCrear = (): JSX.Element | null => {
 
     const tags = extraerTags(contenido);
     const caracteresPendientes = MAX_CARACTERES - contenido.length;
-    const puedePublicar = (contenido.trim().length > 0 || !!audioAdjunto || imagenes.length > 0) && !publicando;
+    const tagsInsuficientes = !!audioAdjunto && tags.length < MIN_TAGS_AUDIO;
+    const puedePublicar = (contenido.trim().length > 0 || !!audioAdjunto || imagenes.length > 0) && !publicando && !tagsInsuficientes;
 
     return (
         <Modal abierto={abierto} onCerrar={manejarCerrar}>
@@ -243,6 +252,15 @@ export const ModalCrear = (): JSX.Element | null => {
                                 #{tag}
                             </Badge>
                         ))}
+                    </div>
+                )}
+
+                {/* Indicador de tags mínimos para samples con audio */}
+                {audioAdjunto && (
+                    <div className={`crearTagsContador ${tagsInsuficientes ? 'crearTagsInsuficientes' : 'crearTagsSuficientes'}`}>
+                        {tagsInsuficientes
+                            ? `Agrega al menos ${MIN_TAGS_AUDIO} tags (#hashtags) para subir tu sample (${tags.length}/${MIN_TAGS_AUDIO})`
+                            : `${tags.length} tags`}
                     </div>
                 )}
 
