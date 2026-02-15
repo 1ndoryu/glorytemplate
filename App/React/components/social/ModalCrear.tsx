@@ -8,7 +8,7 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type ChangeEvent, type KeyboardEvent} from 'react';
-import {Music, Image, X, Download, ShieldCheck} from 'lucide-react';
+import {Music, Image, X, Download, ShieldCheck, AlertCircle, CheckCircle} from 'lucide-react';
 import {Modal} from '@app/components/ui/Modal';
 import {Avatar} from '@app/components/ui/Avatar';
 import {Badge} from '@app/components/ui/Badge';
@@ -16,6 +16,7 @@ import {BotonBase} from '@app/components/ui/BotonBase';
 import {useCrearModalStore} from '@app/stores/crearModalStore';
 import {useAuthStore} from '@app/stores/authStore';
 import {useArchivosDragDrop} from '@app/hooks/useArchivosDragDrop';
+import {subirSample} from '@app/services/apiSamples';
 import {crearLogger} from '@app/services/logger';
 import '../../styles/componentes/modalCrear.css';
 
@@ -74,6 +75,8 @@ export const ModalCrear = (): JSX.Element | null => {
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [reproduciendoPreview, setReproduciendoPreview] = useState(false);
     const [progresoPreview, setProgresoPreview] = useState(0);
+    const [errorSubida, setErrorSubida] = useState<string | null>(null);
+    const [exitoSubida, setExitoSubida] = useState(false);
     const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
 
     const {audioAdjunto, imagenes, arrastrando, inputAudioRef, inputImagenRef, manejarInputAudio, manejarInputImagen, quitarImagen, quitarAudio, manejarDragEnter, manejarDragLeave, manejarDragOver, manejarDrop, resetear: resetearArchivos, formatosAudio, maxImagenes} = useArchivosDragDrop();
@@ -93,7 +96,7 @@ export const ModalCrear = (): JSX.Element | null => {
         setReproduciendoPreview(false);
         setProgresoPreview(0);
     }, [audioAdjunto]);
-    
+
     const togglePreview = useCallback(() => {
         const audio = audioPreviewRef.current;
         if (!audio || !audioUrl) return;
@@ -117,6 +120,8 @@ export const ModalCrear = (): JSX.Element | null => {
             setLicenciaLibre(false);
             setWaveformPeaks([]);
             setAudioUrl(null);
+            setErrorSubida(null);
+            setExitoSubida(false);
             setReproduciendoPreview(false);
             setProgresoPreview(0);
         }, 200);
@@ -144,14 +149,17 @@ export const ModalCrear = (): JSX.Element | null => {
         [ajustarAltura]
     );
 
-    /* Publicar */
+    /* Publicar — envía al backend con FormData real */
     const manejarPublicar = useCallback(async () => {
         if (publicando) return;
         const tieneContenido = contenido.trim().length > 0 || audioAdjunto || imagenes.length > 0;
         if (!tieneContenido) return;
 
         setPublicando(true);
+        setErrorSubida(null);
+        setExitoSubida(false);
         const tags = extraerTags(contenido);
+
         log.info('Publicando', {
             tags,
             tieneAudio: !!audioAdjunto,
@@ -160,11 +168,38 @@ export const ModalCrear = (): JSX.Element | null => {
             licenciaLibre
         });
 
-        /* TO-DO: enviar a POST /kamples/v1/samples con FormData */
-        await new Promise(r => setTimeout(r, 1000));
+        if (audioAdjunto?.archivo) {
+            /* Subida real de sample al endpoint */
+            const resp = await subirSample({
+                audio: audioAdjunto.archivo,
+                titulo: audioAdjunto.nombre.replace(/\.[^/.]+$/, ''),
+                contenido: contenido.trim(),
+                tags,
+                permitirDescarga,
+                licenciaLibre,
+            });
 
-        setPublicando(false);
-        manejarCerrar();
+            if (!resp.ok) {
+                setErrorSubida(resp.error ?? 'Error al subir el sample');
+                setPublicando(false);
+                log.error('Error subida', resp.error);
+                return;
+            }
+
+            log.info('Sample subido exitosamente', resp.data);
+            setExitoSubida(true);
+
+            /* Cerrar después de mostrar éxito brevemente */
+            setTimeout(() => {
+                setPublicando(false);
+                manejarCerrar();
+            }, 1500);
+        } else {
+            /* Publicación solo texto/imágenes (sin audio) — TO-DO: endpoint de publicaciones */
+            await new Promise(r => setTimeout(r, 500));
+            setPublicando(false);
+            manejarCerrar();
+        }
     }, [contenido, audioAdjunto, imagenes, publicando, manejarCerrar, permitirDescarga, licenciaLibre]);
 
     /* Ctrl+Enter para publicar */
@@ -298,6 +333,25 @@ export const ModalCrear = (): JSX.Element | null => {
                     </div>
                 )}
 
+                {/* Mensaje de error */}
+                {errorSubida && (
+                    <div className="crearMensajeError">
+                        <AlertCircle size={16} />
+                        <span>{errorSubida}</span>
+                        <button type="button" onClick={() => setErrorSubida(null)} className="crearMensajeCerrar">
+                            <X size={12} />
+                        </button>
+                    </div>
+                )}
+
+                {/* Mensaje de éxito */}
+                {exitoSubida && (
+                    <div className="crearMensajeExito">
+                        <CheckCircle size={16} />
+                        <span>Sample subido y procesado correctamente</span>
+                    </div>
+                )}
+
                 {/* Barra de acciones */}
                 <div className="crearAcciones">
                     <div className="crearAccionesIzquierda">
@@ -312,7 +366,7 @@ export const ModalCrear = (): JSX.Element | null => {
                     <div className="crearAccionesDerecha">
                         <span className={`crearContador ${caracteresPendientes < 100 ? 'crearContadorAlerta' : ''}`}>{caracteresPendientes}</span>
                         <BotonBase variante="primario" tamano="sm" onClick={manejarPublicar} disabled={!puedePublicar}>
-                            {publicando ? 'Publicando...' : 'Publicar'}
+                            {publicando ? (audioAdjunto ? 'Subiendo...' : 'Publicando...') : 'Publicar'}
                         </BotonBase>
                     </div>
                 </div>

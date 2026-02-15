@@ -109,6 +109,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **UI/UX (C60-C63):** Fix infinite scroll duplicados: paginación mock en `obtenerFeed` + deduplicación por id en `cargarSamples`. Fix `PUT /me` acepta `nombreVisible` (no solo `nombreDisplay`) + campo `portadaUrl`. ModalConfiguracion: portada editable (cover photo) con preview, `ImagePlus` botón, input file. SampleDetalleIsland rediseñado: hero con imagen de fondo + waveform overlay + botón play 56px, creador navegable con avatar/nombre/@username + BotonFollow, like con API real, similares con like/menú contextual/navegación, campo Tipo visible, estadísticas con texto.
 
+**Upload + IA (U1):** Upload real conectado end-to-end. `apiCliente.ts` soporta FormData (sin JSON.stringify ni Content-Type forzado). `apiSamples.ts` con `subirSample(DatosSubida)` tipado + FormData. ModalCrear conectado al endpoint real `POST /samples/upload`, con UI error/éxito. `GeneradorIdCorto.php`: IDs 7 chars base62 con validación de unicidad contra BD. Migración v003: columnas `id_corto` UNIQUE, `permitir_descarga`, `licencia_libre` en tabla samples. `ServicioIA.php`: análisis audio con Gemini (fallback Flash 2.5→Pro 2.5→Flash 2.0), prompt estructurado, parser JSON robusto, validación de metadata. `PipelineAudio.php`: procesamiento completo al subir (duración, waveform peaks PHP, MP3/preview con FFmpeg, análisis IA, renombrado estandarizado `kamples_{tipo}_{genero}_{bpm}_{key}_{id}.ext`). `KamplesController::subirSample()` reescrito con ID corto + pipeline + respuesta enriquecida. CSS: mensajes error/éxito en modalCrear.
+
 ---
 
 ## Pendientes por Fase
@@ -135,13 +137,14 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
     - Validación MIME (wav, mp3, flac, aiff, ogg, m4a) + max 50MB
     - INSERT en PostgreSQL con slug generado (MD5 suffix), estado 'procesando'
     - TO-DO: htaccess deny direct access, servir via PHP con validación de permisos
-- [ ] **0.3** Pipeline de procesamiento audio
-    - Al subir: guardar original WAV/FLAC
-    - Generar versión optimizada MP3 (ffmpeg o librería PHP)
-    - Generar preview corto (30s max, MP3 128kbps)
-    - Generar peaks/waveform JSON (Web Audio API server-side o ffmpeg)
-    - Todo esto debe ejecutarse en background (WP Cron o Action Scheduler)
-    - NO debe bloquear la UI de subida
+- [x] **0.3** Pipeline de procesamiento audio ✓ (IMPLEMENTADO)
+    - `PipelineAudio.php`: ejecuta sincrónicamente al subir (TO-DO: mover a background)
+    - Calcula duración real (FFprobe o estimación por tamaño)
+    - Genera waveform peaks JSON (120 barras) leyendo WAV crudo con PHP
+    - Genera MP3 optimizado 320kbps + preview 30s 128kbps con fade-out (si FFmpeg disponible)
+    - Renombra archivo con formato estandarizado de la IA
+    - Actualiza registro en PostgreSQL y cambia estado a 'activo'
+    - TO-DO: mover a wp_schedule_single_event() cuando el volumen crezca
 - [x] **0.4** Imágenes colors/ dinámicas ✓ (IMPLEMENTADO)
     - Endpoint `GET /kamples/v1/colors` — lee directorio `colors/` en runtime
     - Cache con WP transient (24h TTL), filtra extensiones imagen
@@ -172,21 +175,21 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 > Prioridad: ALTA — el core del producto
 
-- [ ] **2.1** Upload real de samples
-    - Conectar ModalCrear/SubirModal al endpoint POST /kamples/v1/samples
-    - Validar formato, tamaño, duración en frontend y backend
-    - Subir vía FormData (multipart), mostrar progreso real
-    - Guardar en WordPress uploads + registrar en PostgreSQL
-    - Al subir en ModalCrear: mostrar waveform del audio adjunto con reproducción
-- [ ] **2.2** Análisis de audio con IA (Gemini multi-modelo con fallback)
-    - **Cadena de fallback:** Gemini Flash 3.0 → Gemini Pro 2.5 → Gemini Flash 2.5 → Gemini Flash 2.0
-    - Si un modelo retorna error 429 (cuota), cambiar al siguiente automáticamente
-    - **Input para la IA:** archivo de audio + nombre del archivo + descripción del usuario
-    - **Output esperado (JSON):** tags[], instrumentos[], bpm (número), key, escala, genero[], sentimiento[], artistas_relevantes[], tipo (loop/oneshot/fx/vocal/stem), descripcion_generada
-    - Parser flexible: la IA a veces no retorna JSON válido → extraer con regex, limpiar, reintentar
-    - Proceso 100% en background: NO bloquear la subida ni la UI
-    - Endpoint PHP que recibe el audio, llama a Gemini API, parsea respuesta, guarda en PostgreSQL
-    - Usar GOOGLE_GEMINI_API key del .env
+- [x] **2.1** Upload real de samples ✓ (IMPLEMENTADO)
+    - ModalCrear conectado al endpoint `POST /kamples/v1/samples/upload` via FormData
+    - `apiCliente.ts` soporta FormData (no serializa a JSON, omite Content-Type)
+    - `apiSamples.ts`: `subirSample(DatosSubida)` construye FormData y envía
+    - UI: mensajes error/éxito (AlertCircle/CheckCircle), texto botón "Subiendo..."
+    - Tags extraídos con # del texto, enviados como JSON array
+    - Waveform preview del audio adjunto con reproducción inline (ya existía)
+- [x] **2.2** Análisis de audio con IA (Gemini multi-modelo con fallback) ✓ (IMPLEMENTADO)
+    - `ServicioIA.php`: cadena de fallback Gemini Flash 2.5 → Pro 2.5 → Flash 2.0
+    - Envía audio base64 + prompt estructurado, pide respuesta JSON directa (responseMimeType)
+    - Extrae: BPM, key, escala, tipo, género[], instrumentos[], sentimiento[], descripción, nombreSugerido
+    - Parser robusto: intenta JSON directo → bloque ```json``` → cualquier {}
+    - Validación estricta de metadata (rango BPM 20-300, notas/tipos válidos)
+    - Integrado en PipelineAudio: se ejecuta automáticamente al subir
+    - API key cargada desde .env (GOOGLE_GEMINI_API)
 - [ ] **2.3** Metadata de imágenes con Groq
     - Al subir imágenes en publicaciones, enviar a Groq API para generar metadata
     - Tags visuales, descripción, contenido relevante
@@ -201,17 +204,17 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
     - `bpmUtils.ts`: `CategoriaBpm`, `obtenerCategoriaBpm()`, `etiquetaBpm()`, `rangoBpm()`
     - TarjetaSample muestra categoría ("Lento", "Normal", etc.) en vez de BPM crudo
     - TO-DO: click en tag → filtrar por categoría
-- [ ] **2.6** Nombrado automático de archivos con IA
-    - Al subir audio, la IA genera un nombre estandarizado además de los metadatos
-    - Formato: `kamples_{tipo}_{genero}_{usuario}_{idCorto}.wav`
-    - Ejemplo: `kamples_kick_hip_hop_Wandorius_1FK4433.wav`
-    - El nombre generado se usa como slug y nombre de descarga
-    - El usuario puede editar el nombre antes de publicar, pero el formato sugerido es el estándar
-- [ ] **2.7** IDs únicos cortos para samples
-    - Cada sample recibe un ID corto alfanumérico (ej: `1FK4433`) generado al subir
-    - Las URLs deben encontrar samples por ID además de por slug: `/sample/1FK4433` o `/sample/{slug}`
-    - Lookup dual: primero buscar por slug, si no existe buscar por ID corto
-    - El ID se incluye en el nombre del archivo y en la URL como identificador primario
+- [x] **2.6** Nombrado automático de archivos con IA ✓ (IMPLEMENTADO)
+    - `PipelineAudio::construirNombreArchivo()` genera nombre estandarizado
+    - Formato: `kamples_{tipo}_{genero}_{bpm}_{key}{escala}_{idCorto}.{ext}`
+    - Ejemplo: `kamples_loop_trap_140_Cm_a3Kf9x2.wav`
+    - Renombra archivo físico en disco si la IA sugiere nombre
+    - TO-DO: permitir edición del nombre antes de publicar
+- [x] **2.7** IDs únicos cortos para samples ✓ (IMPLEMENTADO)
+    - `GeneradorIdCorto.php`: 7 chars base62 (a-z, A-Z, 0-9), validado contra BD
+    - Migración `v003_samples_id_corto.sql`: columna `id_corto` UNIQUE + índice
+    - El ID se incluye en el slug (`titulo-idCorto`) y en el nombre del archivo
+    - TO-DO: lookup dual por slug o id_corto en endpoint GET /samples/{slug}
 - [ ] **2.8** Deduplicación de audio por fingerprint
     - **Hash ligero diferido:** Al subir un audio, calcular un hash perceptual NO bloqueante
         - Extraer los primeros 4 segundos + últimos 4 segundos del audio
@@ -406,3 +409,31 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 11. **Naming IA:** Al subir audio, la IA genera nombre estandarizado: `kamples_{tipo}_{genero}_{usuario}_{idCorto}.wav`. IDs únicos cortos alfanuméricos para cada sample, URLs soportan lookup por ID o slug.
 12. **Explorar eliminado:** La búsqueda y descubrimiento se hace desde InicioIsland (feed principal). Página `/explorar` removida.
 13. **Deduplicación audio:** Hash perceptual ligero (primeros+últimos 4s) diferido en background. Duplicados del mismo usuario permitidos, entre usuarios distintos → supervisión. Sistema de reportes con disputa y pruebas. Tabla `reportes_duplicados` planificada.
+
+## Comentarios del usuario. (Marcar como completado cuando se cumpla con una tarea o dejar respuestas en caso de ser necesario)
+
+1. FFMPEG no puede ser opcional, debe funcionar para el entorno de windows y linux (detectar ambos entorno)
+2. El prompt de la IA debe ser
+        return <<<PROMPT
+Analiza este audio. {$promptContext}
+Tu tarea es generar ÚNICAMENTE un objeto JSON válido con la siguiente estructura. Sé creativo y preciso.
+NO incluyas en tu respuesta los campos puramente técnicos (bpm, tonalidad, escala), ya que esos se añadirán después. Tu respuesta DEBE ser solo el JSON.
+
+- "nombre_archivo_base": Un título corto y descriptivo para el sample, en inglés, en minúsculas y usando espacios. Ej: "deep kick 808", "sad guitar melody".
+- "tags": Array de strings con etiquetas descriptivas en INGLÉS (ej: "melodic", "dark", "808", "lo-fi").
+- "tags_es": Array de strings con las mismas etiquetas que 'tags' pero traducidas al ESPAÑOL.
+- "tipo": String, debe ser "one shot" o "loop".
+- "genero": Array de strings con géneros musicales en INGLÉS (ej: "hip hop", "trap", "electronic").
+- "emocion": Array de strings con emociones que evoca en INGLÉS (ej: "energetic", "sad", "chill").
+- "emocion_es": Array de strings con las mismas emociones que 'emocion' pero traducidas al ESPAÑOL.
+- "instrumentos": Array de strings con los instrumentos principales que detectes en INGLÉS (ej: "guitar", "piano", "synth", "drums").
+- "artista_vibes": Array de strings con nombres de artistas que tienen un estilo similar.
+- "descripcion_corta": Una descripción muy breve (10-15 palabras) en INGLÉS.
+- "descripcion_corta_es": La misma 'descripcion_corta' traducida al ESPAÑOL.
+- "descripcion": Una descripción detallada (30-50 palabras) en INGLÉS.
+- "descripcion_es": La misma 'descripcion' traducida al ESPAÑOL.
+PROMPT;
+
+Los bpm y la tonalidad y escala debe ser con herramientas especializadas para eso, no con ia. La estructura del json debe basarse en eso. 
+
+3. He colocado la "GROQ_API" en el .env, leer la documentacion "https://console.groq.com/docs/overview" y elegir los mejores modelos (momo, los de openIA y hacer el mismo sistema de cuotas gratis de probar uno y si falla pasar al otro modelo)

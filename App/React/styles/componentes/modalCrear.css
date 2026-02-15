@@ -318,3 +318,40 @@
 .crearContadorAlerta {
     color: var(--error);
 }
+
+/* Mensajes de error y éxito en subida */
+.crearMensajeError,
+.crearMensajeExito {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioMd);
+    font-size: var(--fuenteSm);
+}
+
+.crearMensajeError {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.crearMensajeExito {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: var(--exito, #22c55e);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.crearMensajeCerrar {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 2px;
+    opacity: 0.7;
+}
+
+.crearMensajeCerrar:hover {
+    opacity: 1;
+}

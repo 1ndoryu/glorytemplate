@@ -1410,8 +1410,9 @@ class KamplesController
     }
 
     /* =====================================================
-     * FASE 0.2 — Upload de samples
-     * Recibe audio via multipart/form-data, guarda en wp-content/uploads/kamples/.
+     * FASE 0.2 + 2.1 + 2.7 — Upload de samples con pipeline completo
+     * Recibe audio via multipart/form-data, genera ID corto,
+     * ejecuta pipeline (waveform, IA, renombrado) y activa el sample.
      * ===================================================== */
 
     private const FORMATOS_AUDIO_VALIDOS = ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/flac', 'audio/aiff', 'audio/x-wav', 'audio/x-aiff'];
@@ -1419,7 +1420,8 @@ class KamplesController
 
     /*
      * Endpoint: POST /kamples/v1/samples/upload
-     * Sube un archivo de audio + datos del sample.
+     * Sube un archivo de audio, genera ID corto, inserta en BD y ejecuta pipeline.
+     * El pipeline analiza con IA, genera waveform, MP3 y renombra el archivo.
      */
     public static function subirSample(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -1492,15 +1494,19 @@ class KamplesController
             ], 500);
         }
 
-        /* Datos adicionales del request */
+        /* Datos adicionales del request (FormData fields) */
         $titulo = sanitize_text_field($request->get_param('titulo') ?? $audio['name']);
         $contenido = sanitize_textarea_field($request->get_param('contenido') ?? '');
-        $tags = $request->get_param('tags') ?? [];
-        $permitirDescarga = (bool) ($request->get_param('permitir_descarga') ?? true);
-        $licenciaLibre = (bool) ($request->get_param('licencia_libre') ?? false);
+        $tagsRaw = $request->get_param('tags');
+        $tags = is_string($tagsRaw) ? json_decode($tagsRaw, true) ?? [] : (array) ($tagsRaw ?? []);
+        $permitirDescarga = filter_var($request->get_param('permitir_descarga') ?? true, FILTER_VALIDATE_BOOLEAN);
+        $licenciaLibre = filter_var($request->get_param('licencia_libre') ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        /* Generar slug */
-        $slug = sanitize_title($titulo) . '-' . substr(md5(uniqid()), 0, 6);
+        /* Generar ID corto único alfanumérico (7 chars, base62) */
+        $idCorto = GeneradorIdCorto::generar();
+
+        /* Generar slug con el ID corto para unicidad garantizada */
+        $slug = sanitize_title($titulo) . '-' . $idCorto;
 
         /* Registrar en PostgreSQL */
         $usuario = PostgresService::consultarUno(
@@ -1516,21 +1522,23 @@ class KamplesController
         }
 
         $sampleId = null;
+        $tagsPostgres = '{' . implode(',', array_map('sanitize_text_field', $tags)) . '}';
 
         try {
             $resultado = PostgresService::consultarUno(
-                "INSERT INTO samples (creador_id, titulo, slug, descripcion, formato, tamano, ruta_original, estado, es_premium, tags, permitir_descarga, licencia_libre, creado_at, actualizado_at)
-                VALUES (:creadorId, :titulo, :slug, :descripcion, :formato, :tamano, :rutaOriginal, 'procesando', false, :tags, :descarga, :licencia, NOW(), NOW())
+                "INSERT INTO samples (creador_id, titulo, slug, id_corto, descripcion, formato, tamano, ruta_original, estado, es_premium, tags, permitir_descarga, licencia_libre, created_at, updated_at)
+                VALUES (:creadorId, :titulo, :slug, :idCorto, :descripcion, :formato, :tamano, :rutaOriginal, 'procesando', false, :tags, :descarga, :licencia, NOW(), NOW())
                 RETURNING id",
                 [
                     'creadorId'    => $usuario['id'],
                     'titulo'       => $titulo,
                     'slug'         => $slug,
+                    'idCorto'      => $idCorto,
                     'descripcion'  => $contenido,
-                    'formato'      => pathinfo($audio['name'], PATHINFO_EXTENSION),
+                    'formato'      => strtolower(pathinfo($audio['name'], PATHINFO_EXTENSION)),
                     'tamano'       => $audio['size'],
                     'rutaOriginal' => $subido['file'],
-                    'tags'         => '{' . implode(',', array_map('sanitize_text_field', (array)$tags)) . '}',
+                    'tags'         => $tagsPostgres,
                     'descarga'     => $permitirDescarga ? 'true' : 'false',
                     'licencia'     => $licenciaLibre ? 'true' : 'false',
                 ]
@@ -1538,25 +1546,44 @@ class KamplesController
 
             $sampleId = $resultado['id'] ?? null;
         } catch (\Exception $e) {
-            /* Si falla Postgres, al menos el archivo se subió */
-            error_log('Kamples: Error al insertar sample en Postgres: ' . $e->getMessage());
+            error_log('[Kamples] Error al insertar sample en Postgres: ' . $e->getMessage());
         }
 
         /*
-         * TO-DO (FASE 0.3): Pipeline de procesamiento en background
-         * - Generar MP3 optimizado
-         * - Generar preview (30s max)
-         * - Generar waveform peaks JSON
-         * - Enviar a Gemini para análisis IA (FASE 2.2)
-         * Usar wp_schedule_single_event() o Action Scheduler
+         * Ejecutar pipeline de procesamiento.
+         * Incluye: duración, waveform, MP3/preview (FFmpeg), análisis IA (Gemini), renombrado.
+         * TO-DO: mover a background con wp_schedule_single_event() cuando el volumen crezca.
          */
+        if ($sampleId) {
+            try {
+                PipelineAudio::procesar($sampleId, $subido['file'], $audio['name'], $idCorto);
+            } catch (\Exception $e) {
+                error_log('[Kamples] Pipeline error (no bloqueante): ' . $e->getMessage());
+            }
+        }
+
+        /* Recuperar el sample actualizado para retornar datos completos */
+        $sampleFinal = null;
+        if ($sampleId) {
+            $sampleFinal = PostgresService::consultarUno(
+                "SELECT id, titulo, slug, id_corto, bpm, key, escala, tipo, estado, metadata, tags,
+                        ruta_original, ruta_optimizada, ruta_preview, ruta_waveform
+                 FROM samples WHERE id = :id",
+                ['id' => $sampleId]
+            );
+        }
 
         return new \WP_REST_Response([
-            'ok'       => true,
+            'ok'        => true,
             'sample_id' => $sampleId,
-            'url'      => $subido['url'],
-            'file'     => $subido['file'],
-            'slug'     => $slug,
+            'id_corto'  => $idCorto,
+            'slug'      => $sampleFinal['slug'] ?? $slug,
+            'url'       => $subido['url'],
+            'estado'    => $sampleFinal['estado'] ?? 'procesando',
+            'metadata'  => $sampleFinal['metadata'] ?? null,
+            'bpm'       => $sampleFinal['bpm'] ?? null,
+            'key'       => $sampleFinal['key'] ?? null,
+            'tipo'      => $sampleFinal['tipo'] ?? null,
         ], 201);
     }
 }

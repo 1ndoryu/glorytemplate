@@ -4,7 +4,7 @@
  * Usa mock data como fallback cuando la API no está disponible.
  */
 
-import { apiGet, apiPost } from './apiCliente';
+import { apiGet, apiPostFormData } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 import type { SampleResumen, Sample } from '../types';
 import {
@@ -146,8 +146,50 @@ export const obtenerFeed = async (
 };
 
 /*
- * Subir un sample (TO-DO: implementar con FormData cuando el pipeline esté listo).
+ * Respuesta del endpoint de subida.
  */
-export const subirSample = async (datos: FormData) => {
-    return apiPost<Sample>('/samples', datos);
+export interface RespuestaSubida {
+    ok: boolean;
+    sample_id: number | null;
+    id_corto: string;
+    slug: string;
+    url: string;
+    estado: string;
+    metadata: string | null;
+    bpm: number | null;
+    key: string | null;
+    tipo: string | null;
+}
+
+/*
+ * Datos para construir el FormData de subida.
+ */
+export interface DatosSubida {
+    audio: File;
+    titulo?: string;
+    contenido?: string;
+    tags?: string[];
+    permitirDescarga?: boolean;
+    licenciaLibre?: boolean;
+}
+
+/*
+ * Sube un sample al backend via multipart/form-data.
+ * Construye FormData internamente a partir de los datos estructurados.
+ * Endpoint: POST /kamples/v1/samples/upload
+ */
+export const subirSample = async (datos: DatosSubida): Promise<RespuestaApi<RespuestaSubida>> => {
+    const formData = new FormData();
+
+    formData.append('audio', datos.audio, datos.audio.name);
+
+    if (datos.titulo) formData.append('titulo', datos.titulo);
+    if (datos.contenido) formData.append('contenido', datos.contenido);
+    if (datos.tags && datos.tags.length > 0) {
+        formData.append('tags', JSON.stringify(datos.tags));
+    }
+    formData.append('permitir_descarga', String(datos.permitirDescarga ?? true));
+    formData.append('licencia_libre', String(datos.licenciaLibre ?? false));
+
+    return apiPostFormData<RespuestaSubida>('/samples/upload', formData);
 };

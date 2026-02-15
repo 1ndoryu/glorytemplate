@@ -70,10 +70,16 @@ export const apiPeticion = async <T>(
     const nonce = obtenerNonce();
     const url = `${baseUrl}/kamples/v1${endpoint}${construirParams(params)}`;
 
+    /*
+     * Si el body es FormData, no setear Content-Type (el navegador lo hace con boundary).
+     * Si es un objeto normal, serializar como JSON.
+     */
+    const esFormData = body instanceof FormData;
+
     const config: RequestInit = {
         method,
         headers: {
-            'Content-Type': 'application/json',
+            ...(esFormData ? {} : { 'Content-Type': 'application/json' }),
             ...(nonce ? { 'X-WP-Nonce': nonce } : {}),
             ...headers,
         },
@@ -81,7 +87,7 @@ export const apiPeticion = async <T>(
     };
 
     if (body && method !== 'GET') {
-        config.body = JSON.stringify(body);
+        config.body = esFormData ? body : JSON.stringify(body);
     }
 
     try {
@@ -131,3 +137,7 @@ export const apiPut = <T>(endpoint: string, body?: unknown) =>
 
 export const apiDelete = <T>(endpoint: string) =>
     apiPeticion<T>(endpoint, { method: 'DELETE' });
+
+/* POST con FormData (multipart/form-data) — para uploads de archivos */
+export const apiPostFormData = <T>(endpoint: string, formData: FormData) =>
+    apiPeticion<T>(endpoint, { method: 'POST', body: formData as unknown });
