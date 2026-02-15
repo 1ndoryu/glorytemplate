@@ -40,17 +40,14 @@ class PostgresService
         }
 
         try {
+            /* Intentar cargar .env manualmente si Dotenv no lo hizo */
+            self::cargarEnvSiNecesario();
+
             $host = self::env('KAMPLES_PG_HOST', '127.0.0.1');
             $port = self::env('KAMPLES_PG_PORT', '5432');
             $dbname = self::env('KAMPLES_PG_DBNAME', 'kamples');
-            $user = self::env('KAMPLES_PG_USER', 'kamples');
-            $password = self::env('KAMPLES_PG_PASSWORD', '');
-
-            if (empty($password)) {
-                error_log('[Kamples] PostgresService: falta KAMPLES_PG_PASSWORD en .env');
-                self::$intentoFallido = true;
-                return null;
-            }
+            $user = self::env('KAMPLES_PG_USER', 'postgres');
+            $password = self::env('KAMPLES_PG_PASSWORD', 'root');
 
             $dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";
 
@@ -65,7 +62,6 @@ class PostgresService
             self::$conexion->exec("SET search_path TO public");
 
             return self::$conexion;
-
         } catch (PDOException $e) {
             error_log('[Kamples] PostgresService: error de conexión — ' . $e->getMessage());
             self::$intentoFallido = true;
@@ -221,6 +217,44 @@ class PostgresService
     {
         $value = $_ENV[$key] ?? getenv($key);
         return ($value !== false && $value !== null && $value !== '') ? (string)$value : $default;
+    }
+
+    /*
+     * Carga el .env directamente si Dotenv no lo hizo.
+     * Fallback para contextos donde functions.php no se ejecutó primero.
+     */
+    private static function cargarEnvSiNecesario(): void
+    {
+        /* Si ya hay variables KAMPLES_PG_*, Dotenv ya las cargó */
+        if (!empty($_ENV['KAMPLES_PG_HOST']) || !empty(getenv('KAMPLES_PG_HOST'))) {
+            return;
+        }
+
+        /* Buscar .env en la raíz del tema */
+        $envPath = get_stylesheet_directory() . '/.env';
+        if (!file_exists($envPath)) {
+            return;
+        }
+
+        $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            /* Ignorar comentarios */
+            if (str_starts_with($line, '#')) {
+                continue;
+            }
+            /* Solo procesar KAMPLES_PG_* */
+            if (!str_starts_with($line, 'KAMPLES_PG_')) {
+                continue;
+            }
+            $parts = explode('=', $line, 2);
+            if (count($parts) === 2) {
+                $key = trim($parts[0]);
+                $val = trim($parts[1]);
+                $_ENV[$key] = $val;
+                putenv("{$key}={$val}");
+            }
+        }
     }
 
     /*

@@ -117,12 +117,18 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 > Prioridad: ALTA — desbloquea algoritmo, uploads, y IA
 
-- [ ] **0.1** Instalar pgvector en PostgreSQL local (ya tenemos PG en 127.0.0.1:5432)
-    - [x] Migración `v002_pgvector_setup.sql` creada (extensión + verificación + test coseno)
-    - [x] `VerificarPgvector.php` — clase de diagnóstico (5 checks automáticos)
-    - [x] Endpoint `GET /kamples/v1/debug/pgvector` registrado para verificar desde navegador
-    - [x] Schema v001 ya incluye `embedding vector(1536)` en `samples` + índice HNSW
-    - [ ] **PENDIENTE MANUAL:** Instalar DLL pgvector en PostgreSQL Windows + ejecutar `v002_pgvector_setup.sql`
+- [x] **0.1a** Conexión PHP → PostgreSQL ✓ (IMPLEMENTADO)
+    - [x] Extensiones `pdo_pgsql` y `pgsql` habilitadas en php.ini (Local)
+    - [x] `PostgresService.php` singleton PDO funcional
+    - [x] Endpoint `GET /kamples/v1/health` verifica conexión
+    - [x] Schema base `v001_schema_base.sql` creado (14 tablas, sin dependencia pgvector)
+    - [x] Endpoint `GET /kamples/v1/debug/pgvector` para verificación futura
+- [ ] **0.1b** Instalar pgvector (POSPUESTO — requiere Visual Studio Build Tools ~6GB)
+    - Migración `v002_pgvector_setup.sql` lista para ejecutar cuando se instale
+    - `VerificarPgvector.php` listo para diagnosticar
+    - Schema v001 original incluye columna `embedding vector(1536)` + índice HNSW
+    - **Prerrequisito:** Instalar VS Build Tools + compilar pgvector, o esperar binario precompilado PG18
+    - **Impacto:** Sin pgvector el algoritmo de similitud no funciona, pero todo lo demás sí
 - [x] **0.2** Almacenamiento audio en WordPress ✓ (IMPLEMENTADO)
     - Endpoint `POST /kamples/v1/samples/upload` con `wp_handle_upload()`
     - Estructura: `kamples/{user_id}/{Y}/{m}/{archivo}`
