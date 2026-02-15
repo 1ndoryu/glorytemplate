@@ -124,7 +124,7 @@
 .coleccionTabs {
     display: flex;
     gap: var(--espacioXs);
-    border-bottom: 1px solid var(--bordeClaro);
+    border-bottom: 1px solid var(--bordeSutil);
     padding-bottom: 0;
 }
 

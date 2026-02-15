@@ -14,17 +14,14 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Services\StripeService;
 
 class DescargasController
 {
-    /* Límites de descargas por día según plan */
-    private const LIMITES_PLAN = [
-        'free'    => 5,
-        'pro'     => 50,
-        'premium' => -1, /* ilimitado */
-    ];
-
-    /* Calidad de descarga por plan */
+    /*
+     * Calidad de descarga por plan.
+     * Los límites de descargas/día se obtienen de StripeService::obtenerConfigPlan() (fuente única).
+     */
     private const CALIDAD_PLAN = [
         'free'    => 'mp3',
         'pro'     => 'wav',
@@ -60,8 +57,9 @@ class DescargasController
         $usuario = UsuarioHelper::obtenerPorId($userId);
         $plan = $usuario['plan'] ?? 'free';
 
-        /* Verificar límite de descargas diarias */
-        $limite = self::LIMITES_PLAN[$plan] ?? 5;
+        /* Verificar límite de descargas diarias (fuente única: StripeService) */
+        $configPlan = StripeService::obtenerConfigPlan($plan);
+        $limite = $configPlan['descargas_dia'] ?? 5;
         if ($limite > 0) {
             $descargasHoy = PostgresService::consultarUno(
                 "SELECT COUNT(*) as total FROM descargas
@@ -105,10 +103,36 @@ class DescargasController
             ? ($sample['ruta_original'] ?? $sample['ruta_optimizada'])
             : ($sample['ruta_optimizada'] ?? $sample['ruta_original']);
 
-        /* Registrar descarga */
+        /* Verificar límite de transferencia mensual (GB) */
+        $limiteGb = $configPlan['transferencia_gb'] ?? 1;
+        if ($limiteGb > 0 && $rutaArchivo) {
+            $tamanoArchivo = @filesize($rutaArchivo) ?: 0;
+            $transferidoMes = PostgresService::consultarUno(
+                "SELECT COALESCE(SUM(tamano_bytes), 0) as total FROM descargas
+                 WHERE usuario_id = :userId
+                   AND created_at >= date_trunc('month', CURRENT_DATE)",
+                ['userId' => $userId]
+            );
+            $totalBytes = (int) ($transferidoMes['total'] ?? 0);
+            $limiteBytes = $limiteGb * 1073741824; /* 1 GB = 1024^3 */
+            if (($totalBytes + $tamanoArchivo) > $limiteBytes) {
+                $usadoGb = round($totalBytes / 1073741824, 2);
+                return new \WP_REST_Response([
+                    'ok' => false,
+                    'error' => "Has alcanzado el límite de {$limiteGb} GB de transferencia mensual ({$usadoGb} GB usados). Mejora tu plan para más.",
+                    'limiteGb' => $limiteGb,
+                    'usadoGb' => $usadoGb,
+                ], 429);
+            }
+        }
+
+        /* Obtener tamaño del archivo para registrar en la descarga */
+        $tamanoBytes = ($rutaArchivo && file_exists($rutaArchivo)) ? filesize($rutaArchivo) : 0;
+
+        /* Registrar descarga con tamaño para tracking de transferencia */
         PostgresService::ejecutar(
-            "INSERT INTO descargas (usuario_id, sample_id, calidad) VALUES (:userId, :sampleId, :calidad)",
-            ['userId' => $userId, 'sampleId' => $sampleId, 'calidad' => $calidad]
+            "INSERT INTO descargas (usuario_id, sample_id, calidad, tamano_bytes) VALUES (:userId, :sampleId, :calidad, :tamano)",
+            ['userId' => $userId, 'sampleId' => $sampleId, 'calidad' => $calidad, 'tamano' => $tamanoBytes]
         );
 
         /* Actualizar contador en samples */
@@ -140,19 +164,33 @@ class DescargasController
 
         $usuario = UsuarioHelper::obtenerPorId($userId);
         $plan = $usuario['plan'] ?? 'free';
-        $limite = self::LIMITES_PLAN[$plan] ?? 5;
+        $configPlan = StripeService::obtenerConfigPlan($plan);
+        $limite = $configPlan['descargas_dia'] ?? 5;
 
         $descargasHoy = PostgresService::consultarUno(
             "SELECT COUNT(*) as total FROM descargas WHERE usuario_id = :userId AND created_at >= CURRENT_DATE",
             ['userId' => $userId]
         );
 
+        /* Transferencia mensual */
+        $transferidoMes = PostgresService::consultarUno(
+            "SELECT COALESCE(SUM(tamano_bytes), 0) as total FROM descargas
+             WHERE usuario_id = :userId
+               AND created_at >= date_trunc('month', CURRENT_DATE)",
+            ['userId' => $userId]
+        );
+        $limiteGb = $configPlan['transferencia_gb'] ?? 1;
+        $usadoGb = round((int) ($transferidoMes['total'] ?? 0) / 1073741824, 2);
+
         return new \WP_REST_Response([
-            'plan'     => $plan,
-            'limite'   => $limite,
-            'usadas'   => (int) ($descargasHoy['total'] ?? 0),
-            'calidad'  => self::CALIDAD_PLAN[$plan] ?? 'mp3',
-            'ilimitado' => $limite === -1,
+            'plan'          => $plan,
+            'limite'        => $limite,
+            'usadas'        => (int) ($descargasHoy['total'] ?? 0),
+            'calidad'       => self::CALIDAD_PLAN[$plan] ?? 'mp3',
+            'ilimitado'     => $limite === -1,
+            'transferenciaGb'      => $limiteGb,
+            'transferenciaUsadaGb' => $usadoGb,
+            'transferenciaIlimitada' => $limiteGb <= 0,
         ], 200);
     }
 }

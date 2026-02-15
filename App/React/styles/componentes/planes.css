@@ -242,7 +242,7 @@
     padding: var(--espacioMd);
     border-radius: var(--radioMd);
     background-color: color-mix(in srgb, #22c55e 12%, transparent);
-    color: #22c55e;
+    color: var(--exito);
     border: 1px solid color-mix(in srgb, #22c55e 30%, transparent);
     margin-bottom: var(--espacioLg);
     font-size: var(--fuenteMd);
@@ -256,7 +256,7 @@
     padding: var(--espacioSm) var(--espacioMd);
     border-radius: var(--radioMd);
     background-color: color-mix(in srgb, #ef4444 12%, transparent);
-    color: #ef4444;
+    color: var(--error);
     border: 1px solid color-mix(in srgb, #ef4444 30%, transparent);
     margin-bottom: var(--espacioLg);
     font-size: var(--fuenteMd);
@@ -267,7 +267,7 @@
     background: none;
     border: none;
     color: inherit;
-    font-size: 1.2rem;
+    font-size: var(--fuenteLg);
     cursor: pointer;
     padding: 0 4px;
 }
@@ -285,8 +285,12 @@
 }
 
 @keyframes girarSpinner {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Responsive */

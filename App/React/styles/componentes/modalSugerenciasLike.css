@@ -51,12 +51,14 @@
     cursor: pointer;
     padding: var(--espacioXs);
     border-radius: var(--radioSm);
-    transition: color var(--transicionRapida), background var(--transicionRapida);
+    transition:
+        color var(--transicionRapida),
+        background var(--transicionRapida);
 }
 
 .sugerenciasLikeCerrar:hover {
     color: var(--textoPrimario);
-    background: var(--fondoHover);
+    background: var(--fondoElevado2);
 }
 
 .sugerenciasLikeLista {
@@ -71,7 +73,7 @@
 }
 
 .sugerenciasLikeTarjeta:hover {
-    background: var(--fondoHover);
+    background: var(--fondoElevado2);
 }
 
 .sugerenciasLikeCargando,

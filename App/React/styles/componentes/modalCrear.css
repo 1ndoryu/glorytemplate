@@ -59,7 +59,7 @@
 
 .crearTagsInsuficientes {
     color: var(--error);
-    background-color: rgba(239, 68, 68, 0.1);
+    background-color: var(--errorMuted);
 }
 
 .crearTagsSuficientes {
@@ -348,14 +348,14 @@
 }
 
 .crearMensajeError {
-    background-color: rgba(239, 68, 68, 0.1);
+    background-color: var(--errorMuted);
     color: var(--error);
     border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .crearMensajeExito {
-    background-color: rgba(34, 197, 94, 0.1);
-    color: var(--exito, #22c55e);
+    background-color: var(--exitoMuted);
+    color: var(--exito);
     border: 1px solid rgba(34, 197, 94, 0.2);
 }
 

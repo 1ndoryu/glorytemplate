@@ -19,6 +19,7 @@ use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\ServicioImagenIA;
+use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\KamplesLogger;
 
 class PublicacionesController
@@ -86,7 +87,8 @@ class PublicacionesController
             "SELECT p.*, u.username, u.nombre_visible, u.avatar_url, u.verificado
              FROM publicaciones p
              JOIN usuarios_ext u ON p.autor_id = u.id
-             WHERE 1=1 {$donde}
+             WHERE (p.moderacion_estado IS NULL OR p.moderacion_estado IN ('pendiente', 'aprobado'))
+             {$donde}
              {$orderBy} LIMIT :limit OFFSET :offset",
             $params
         );
@@ -128,33 +130,49 @@ class PublicacionesController
             ['autor' => $userId, 'contenido' => $contenido, 'imagenes' => $imagenes, 'samples' => $samplesAdjuntos]
         );
 
-        /* Análisis async de imágenes con IA (no bloquea la respuesta) */
+        /* Análisis async de imágenes con IA + moderación (no bloquea la respuesta) */
         $urlsImagenes = $body['imagenes'] ?? [];
-        if (!empty($urlsImagenes) && is_array($urlsImagenes) && $id) {
+        if ($id) {
             $pubId = $id;
-            \add_action('shutdown', function () use ($pubId, $urlsImagenes) {
+            $textoMod = $contenido;
+            $imgsMod = is_array($urlsImagenes) ? $urlsImagenes : [];
+            \add_action('shutdown', function () use ($pubId, $textoMod, $imgsMod) {
                 if (function_exists('fastcgi_finish_request')) {
                     \fastcgi_finish_request();
                 }
+
+                /* Moderación IA de la publicación */
                 try {
-                    $metadata = ServicioImagenIA::analizarMultiples($urlsImagenes);
-                    $metadataLimpia = array_filter($metadata, fn($m) => $m !== null);
-                    if (!empty($metadataLimpia)) {
-                        PostgresService::ejecutar(
-                            "UPDATE publicaciones SET imagenes_metadata = :meta WHERE id = :id",
-                            ['meta' => json_encode($metadataLimpia), 'id' => $pubId]
-                        );
-                        KamplesLogger::info('Imágenes analizadas para publicación', [
-                            'publicacionId' => $pubId,
-                            'totalImagenes' => count($urlsImagenes),
-                            'analizadas' => count($metadataLimpia),
-                        ]);
-                    }
+                    ServicioModeracionIA::moderarPublicacion($pubId, $textoMod, $imgsMod);
                 } catch (\Throwable $e) {
-                    KamplesLogger::error('Error analizando imágenes de publicación', [
+                    KamplesLogger::error('Error en moderación de publicación', [
                         'publicacionId' => $pubId,
                         'error' => $e->getMessage(),
                     ]);
+                }
+
+                /* Análisis de imágenes para metadata */
+                if (!empty($imgsMod)) {
+                    try {
+                        $metadata = ServicioImagenIA::analizarMultiples($imgsMod);
+                        $metadataLimpia = array_filter($metadata, fn($m) => $m !== null);
+                        if (!empty($metadataLimpia)) {
+                            PostgresService::ejecutar(
+                                "UPDATE publicaciones SET imagenes_metadata = :meta WHERE id = :id",
+                                ['meta' => json_encode($metadataLimpia), 'id' => $pubId]
+                            );
+                            KamplesLogger::info('Imágenes analizadas para publicación', [
+                                'publicacionId' => $pubId,
+                                'totalImagenes' => count($imgsMod),
+                                'analizadas' => count($metadataLimpia),
+                            ]);
+                        }
+                    } catch (\Throwable $e) {
+                        KamplesLogger::error('Error analizando imágenes de publicación', [
+                            'publicacionId' => $pubId,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 }
             }, 0);
         }

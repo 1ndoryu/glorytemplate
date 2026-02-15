@@ -96,49 +96,54 @@
 
 .feedTagItem {
     display: flex;
+    padding: 1px var(--espacioMd);
     align-items: center;
     gap: 0;
-    background: var(--superficieElevada);
-    border: 1px solid var(--bordeDefault);
-    border-radius: var(--radioCompleto);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioFull);
     font-size: var(--fuenteXs);
     transition: all 0.15s ease;
     overflow: hidden;
 }
 
 .feedTagItem:hover {
-    border-color: var(--bordeHover);
+    border-color: var(--bordeActivo);
+    padding: 1px var(--espacioXs);
 }
 
 .feedTagItemIncluido {
-    background: var(--acentoPrimario);
-    border-color: var(--acentoPrimario);
+    background: var(--acento);
+    border-color: var(--acento);
     color: var(--textoInverso);
 }
 
 .feedTagItemExcluido {
-    background: var(--superficieError);
+    background: var(--errorMuted);
     border-color: var(--error);
     color: var(--error);
     text-decoration: line-through;
 }
 
 .feedTagBoton {
+    
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
+    width: 0;
     height: 24px;
     background: transparent;
     border: none;
     cursor: pointer;
     color: inherit;
     opacity: 0;
-    transition: opacity 0.15s;
+    overflow: hidden;
+    transition: all 0.2s ease;
     padding: 0;
 }
 
 .feedTagItem:hover .feedTagBoton {
+    width: 20px;
     opacity: 0.7;
 }
 
@@ -155,23 +160,28 @@
 }
 
 .feedTagTexto {
-    padding: var(--espacioXxs) var(--espacioXs);
     background: transparent;
     border: none;
     cursor: pointer;
     color: inherit;
     font-size: var(--fuenteXs);
+    font-family: inherit;
+    font-weight: var(--pesoMedio);
+    line-height: 1.4;
     white-space: nowrap;
+    user-select: none;
+    letter-spacing: 0.01em;
+    outline: none;
 }
 
 .feedTagExpandirBtn {
     display: flex;
     align-items: center;
-    gap: var(--espacioXxs);
-    padding: var(--espacioXxs) var(--espacioSm);
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
     background: transparent;
-    border: 1px solid var(--bordeDefault);
-    border-radius: var(--radioCompleto);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioFull);
     color: var(--textoSecundario);
     font-size: var(--fuenteXs);
     cursor: pointer;
@@ -180,7 +190,7 @@
 }
 
 .feedTagExpandirBtn:hover {
-    border-color: var(--bordeHover);
+    border-color: var(--bordeActivo);
     color: var(--textoPrimario);
 }
 

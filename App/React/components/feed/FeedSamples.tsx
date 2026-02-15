@@ -332,13 +332,14 @@ export const FeedSamples = ({
             >
                 <Minus size={10} />
             </button>
-            <button type="button" className="feedTagTexto"
+            <span className="feedTagTexto" role="button" tabIndex={0}
                 aria-label={`Incluir tag ${tag}`}
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); manejarIncluirTag(tag); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); manejarIncluirTag(tag); } }}
             >
                 {tag}
-            </button>
+            </span>
             <button type="button" className="feedTagBoton feedTagBotonSumar"
                 aria-label={`Incluir tag ${tag}`}
                 onMouseDown={(e) => e.stopPropagation()}

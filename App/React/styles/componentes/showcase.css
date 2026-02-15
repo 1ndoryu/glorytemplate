@@ -111,11 +111,12 @@
 }
 
 .showcaseEspaciadoBloque {
+    /* --tamano se define inline en el HTML para la demo */
     background-color: var(--acentoMuted);
     border: 1px solid var(--acento);
     border-radius: var(--radioSm);
-    width: var(--tamano);
-    height: var(--tamano);
+    width: var(--tamano, var(--espacioMd));
+    height: var(--tamano, var(--espacioMd));
 }
 
 /* Tipografía */
@@ -181,5 +182,6 @@
 
 /* Texto de tipografía con tamaño dinámico via custom property */
 .showcaseTextoTipografia {
-    font-size: var(--tamanoFuente);
+    /* --tamanoFuente se define inline en el HTML */
+    font-size: var(--tamanoFuente, var(--fuenteMd));
 }

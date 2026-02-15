@@ -133,13 +133,16 @@
     align-items: center;
     gap: 4px;
     padding: 2px 10px;
-    font-size: 0.7rem;
+    font-size: var(--fuenteSm);
     font-weight: var(--pesoBold);
     letter-spacing: 0.4px;
     border-radius: var(--radioFull);
     cursor: pointer;
     border: 1px solid transparent;
-    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    transition:
+        background-color 0.2s,
+        color 0.2s,
+        border-color 0.2s;
     line-height: 1;
     white-space: nowrap;
     text-transform: uppercase;
@@ -152,7 +155,7 @@
 }
 
 .topbarPlanFree:hover {
-    background-color: var(--fondoHover);
+    background-color: var(--fondoElevado2);
     color: var(--textoPrimario);
 }
 
@@ -168,8 +171,8 @@
 
 .topbarPlanPremium {
     background: linear-gradient(135deg, #f5c842 0%, #e6a817 100%);
-    color: #1a1a1a;
-    border-color: #d4a017;
+    color: var(--textoInverso);
+    border-color: var(--advertencia);
 }
 
 .topbarPlanPremium:hover {

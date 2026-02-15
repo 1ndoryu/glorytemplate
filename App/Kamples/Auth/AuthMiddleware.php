@@ -27,6 +27,7 @@ class AuthMiddleware
 
     /**
      * Permission callback para endpoints que requieren ser creador.
+     * Verifica que el usuario tenga rol 'creador' o 'admin' en usuarios_ext.
      */
     public static function requerirCreador(): bool
     {
@@ -34,12 +35,16 @@ class AuthMiddleware
             return false;
         }
 
-        /* TO-DO: verificar es_creador en usuarios_ext de Postgres */
-        return true;
+        $usuario = \App\Kamples\Api\Helpers\UsuarioHelper::obtenerPorWpId(get_current_user_id());
+        if (!$usuario) return false;
+
+        $rol = $usuario['rol'] ?? 'usuario';
+        return in_array($rol, ['creador', 'admin'], true);
     }
 
     /**
      * Permission callback para endpoints que requieren plan pro o premium.
+     * Verifica el campo plan en usuarios_ext.
      */
     public static function requerirPlanPro(): bool
     {
@@ -47,8 +52,11 @@ class AuthMiddleware
             return false;
         }
 
-        /* TO-DO: verificar plan_actual en usuarios_ext */
-        return true;
+        $usuario = \App\Kamples\Api\Helpers\UsuarioHelper::obtenerPorWpId(get_current_user_id());
+        if (!$usuario) return false;
+
+        $plan = $usuario['plan'] ?? 'free';
+        return in_array($plan, ['pro', 'premium'], true);
     }
 
     /**
