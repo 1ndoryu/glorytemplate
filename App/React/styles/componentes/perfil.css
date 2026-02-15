@@ -109,6 +109,13 @@
     min-height: 200px;
 }
 
+/* Lista de samples dentro del perfil */
+.perfilListaSamples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
 /* Estado vacío */
 .perfilVacio {
     display: flex;

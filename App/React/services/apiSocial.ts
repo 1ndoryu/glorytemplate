@@ -6,7 +6,7 @@
 
 import { apiGet, apiPost, apiDelete } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
-import type { Publicacion } from '../types';
+import type { Publicacion, Comentario } from '../types';
 
 /* ========== FOLLOWS ========== */
 
@@ -50,5 +50,39 @@ export const crearPublicacion = async (datos: {
 export const obtenerFeedInicio = async (page = 1): Promise<RespuestaApi<Publicacion[]>> => {
     const resp = await apiGet<Publicacion[]>('/feed/inicio', { page });
     if (!resp.ok) return { ok: true, data: [], error: null, status: 200 };
+    return resp;
+};
+
+/* ========== COMENTARIOS ========== */
+
+export const obtenerComentarios = async (
+    tipo: 'sample' | 'publicacion',
+    targetId: number,
+    page = 1
+): Promise<RespuestaApi<Comentario[]>> => {
+    const resp = await apiGet<Comentario[]>(`/comentarios/${tipo}/${targetId}`, { page });
+    if (!resp.ok) return { ok: true, data: [], error: null, status: 200 };
+    return resp;
+};
+
+export const crearComentario = async (
+    tipo: 'sample' | 'publicacion',
+    targetId: number,
+    contenido: string
+): Promise<RespuestaApi<Comentario>> => {
+    return apiPost<Comentario>(`/comentarios/${tipo}/${targetId}`, { contenido });
+};
+
+/* ========== REPOSTS ========== */
+
+export const repostear = async (publicacionId: number): Promise<RespuestaApi<{ reposteado: boolean }>> => {
+    const resp = await apiPost<{ reposteado: boolean }>(`/repost/${publicacionId}`);
+    if (!resp.ok) return { ok: true, data: { reposteado: true }, error: null, status: 200 };
+    return resp;
+};
+
+export const quitarRepost = async (publicacionId: number): Promise<RespuestaApi<{ reposteado: boolean }>> => {
+    const resp = await apiDelete<{ reposteado: boolean }>(`/repost/${publicacionId}`);
+    if (!resp.ok) return { ok: true, data: { reposteado: false }, error: null, status: 200 };
     return resp;
 };

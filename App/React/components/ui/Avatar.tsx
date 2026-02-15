@@ -6,7 +6,7 @@
 
 import '../../styles/componentes/avatar.css';
 
-type TamanoAvatar = 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+type TamanoAvatar = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 type EstadoAvatar = 'online' | 'offline' | 'ninguno';
 
 interface AvatarProps {
@@ -20,6 +20,7 @@ interface AvatarProps {
 }
 
 const mapaTamano: Record<TamanoAvatar, string> = {
+    xs: 'avatarXs',
     sm: 'avatarSm',
     md: 'avatarMd',
     lg: 'avatarLg',

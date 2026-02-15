@@ -670,23 +670,27 @@ reproducciones (
   - Like en samples y publicaciones
   - Animación heart (optimistic UI)
   - Implementado: `BotonLike.tsx` con animación @keyframes latido + `apiSocial.ts`
-- [ ] **4.3** Publicaciones sociales:
+- [x] **4.3** Publicaciones sociales:
   - `ModalPublicar` con modo dual: sample / social
   - Modo social: texto + imágenes (múltiples)
   - Modo sample: texto + múltiples samples adjuntos
   - Preview de archivos antes de publicar
+  - Implementado: ModalPublicar.tsx, publicarModalStore.ts, TarjetaPublicacion.tsx
 - [x] **4.4** Isla `InicioIsland` (feed principal):
   - Mezcla de publicaciones de seguidos + samples trending
   - Algoritmo de feed (señal 5: grafo social)
   - Like, comentar, repostear
   - Paginación infinita
   - Secciones: Trending, Recientes, Para ti — conectadas a `obtenerFeed`
-- [ ] **4.5** Comentarios en publicaciones y samples
-- [ ] **4.6** Reposts (compartir publicación de otro)
-- [ ] **4.7** Actualizar `PerfilIsland`:
-  - Tabs: Samples | Publicaciones | Likes
+- [x] **4.5** Comentarios en publicaciones y samples
+  - Implementado: ListaComentarios.tsx + endpoints en apiSocial.ts
+- [x] **4.6** Reposts (compartir publicación de otro)
+  - Implementado: TarjetaPublicacion con botón repost + endpoints repostear/quitarRepost en apiSocial.ts
+- [x] **4.7** Actualizar `PerfilIsland`:
+  - Tabs: Samples | Publicaciones | Likes con contenido dinámico
   - Stats: seguidores, seguidos, total samples, total descargas
-  - Botón follow
+  - Botón follow condicional (Editar si es propio perfil)
+  - Menú contextual y likes en samples del perfil
 - [ ] **4.8** Actualizar algoritmo:
   - Integrar señal de grafo social (peso 0.10)
   - Feed "Inicio" prioriza contenido de seguidos

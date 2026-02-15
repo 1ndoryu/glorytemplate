@@ -1,16 +1,28 @@
 /*
  * Isla: PerfilIsland
  * Vista pública de perfil: avatar, bio, nombre, stats, tabs con samples.
+ * Condicional: si es el propio perfil muestra "Editar", si no muestra "Seguir".
+ * Tabs: Samples | Publicaciones | Likes con contenido dinámico.
  */
 
-import { useState, useEffect } from 'react';
-import { Music, FileText, Heart } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Music, FileText, Heart, Settings } from 'lucide-react';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { TabBar, type TabDefinicion } from '../../components/ui/TabBar';
+import { TarjetaSample } from '../../components/ui/TarjetaSample';
+import { MenuContextual } from '../../components/ui/MenuContextual';
+import { BotonFollow } from '../../components/social/BotonFollow';
 import { obtenerPerfil } from '../../services/apiAuth';
+import { listarSamples } from '../../services/apiSamples';
+import { darLike, quitarLike } from '../../services/apiSocial';
+import { useAuthStore } from '../../stores/authStore';
+import { useReproductorStore } from '../../stores/reproductorStore';
+import { useNavigationStore } from '@/core/router';
+import { useMenuContextualSample } from '../../hooks/useMenuContextualSample';
 import type { Usuario } from '../../types/usuario';
+import type { SampleResumen } from '../../types/sample';
 import { crearLogger } from '../../services/logger';
 import '../../styles/componentes/perfil.css';
 
@@ -30,6 +42,19 @@ export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
     const [usuario, setUsuario] = useState<Usuario | null>(null);
     const [tabActiva, setTabActiva] = useState('samples');
     const [cargando, setCargando] = useState(true);
+    const [siguiendo, setSiguiendo] = useState(false);
+
+    /* Contenido de tabs */
+    const [samplesPerfil, setSamplesPerfil] = useState<SampleResumen[]>([]);
+    const [likesPerfil, setLikesPerfil] = useState<SampleResumen[]>([]);
+    const [cargandoTab, setCargandoTab] = useState(false);
+
+    const { usuario: usuarioAuth } = useAuthStore();
+    const { sampleActual, reproduciendo, progreso, setSample, play, pause } = useReproductorStore();
+    const { navegar } = useNavigationStore();
+    const menu = useMenuContextualSample();
+
+    const esPropietario = usuarioAuth && usuario && usuarioAuth.username === usuario.username;
 
     useEffect(() => {
         if (!username) return;
@@ -51,6 +76,66 @@ export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
         cargar();
     }, [username]);
 
+    /* Cargar contenido de tabs */
+    useEffect(() => {
+        if (!usuario) return;
+
+        const cargarTab = async () => {
+            setCargandoTab(true);
+            try {
+                if (tabActiva === 'samples') {
+                    /* TO-DO: cuando el backend soporte filtro por creador, añadir busqueda por username */
+                    const resp = await listarSamples({ page: 1, perPage: 20 });
+                    if (resp.ok && resp.data) {
+                        setSamplesPerfil(resp.data.data ?? []);
+                    }
+                } else if (tabActiva === 'likes') {
+                    /* TO-DO: endpoint de likes del usuario, por ahora usa samples genéricos */
+                    const resp = await listarSamples({ page: 1, perPage: 10 });
+                    if (resp.ok && resp.data) {
+                        setLikesPerfil(resp.data.data ?? []);
+                    }
+                }
+            } catch (err) {
+                log.error('Error cargando tab', err);
+            } finally {
+                setCargandoTab(false);
+            }
+        };
+
+        cargarTab();
+    }, [usuario, tabActiva]);
+
+    /* Reproducción */
+    const manejarPlay = useCallback((sample: SampleResumen) => {
+        setSample(sample);
+        play();
+    }, [setSample, play]);
+
+    /* Like con optimistic UI */
+    const manejarLike = useCallback(async (sampleId: number) => {
+        const actualizar = (lista: SampleResumen[]) =>
+            lista.map((s) =>
+                s.id === sampleId
+                    ? { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) }
+                    : s
+            );
+        setSamplesPerfil(actualizar);
+        setLikesPerfil(actualizar);
+
+        const sample = [...samplesPerfil, ...likesPerfil].find((s) => s.id === sampleId);
+        if (sample?.liked) {
+            await quitarLike('sample', sampleId);
+        } else {
+            await darLike('sample', sampleId);
+        }
+    }, [samplesPerfil, likesPerfil]);
+
+    /* Navegación al creador */
+    const manejarClickCreador = useCallback((usr: string) => {
+        navegar(`/perfil/${usr}/`);
+    }, [navegar]);
+
     if (cargando) {
         return (
             <div className="perfilContenedor">
@@ -69,6 +154,39 @@ export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
             </div>
         );
     }
+
+    /* Renderizar lista de samples para la tab activa */
+    const renderizarListaSamples = (lista: SampleResumen[], mensajeVacio: string, iconoVacio: JSX.Element) => {
+        if (cargandoTab) {
+            return <div className="perfilVacio"><p>Cargando...</p></div>;
+        }
+        if (lista.length === 0) {
+            return (
+                <div className="perfilVacio">
+                    {iconoVacio}
+                    <p>{mensajeVacio}</p>
+                </div>
+            );
+        }
+        return (
+            <div className="perfilListaSamples">
+                {lista.map((sample) => (
+                    <TarjetaSample
+                        key={sample.id}
+                        sample={sample}
+                        activa={sampleActual?.id === sample.id}
+                        reproduciendo={sampleActual?.id === sample.id && reproduciendo}
+                        progreso={sampleActual?.id === sample.id ? progreso : 0}
+                        onPlay={manejarPlay}
+                        onPause={pause}
+                        onLike={manejarLike}
+                        onMenu={menu.abrirMenu}
+                        onClickCreador={manejarClickCreador}
+                    />
+                ))}
+            </div>
+        );
+    };
 
     return (
         <div className="perfilContenedor">
@@ -123,9 +241,31 @@ export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
                 </div>
 
                 <div className="perfilAcciones">
-                    {/* TO-DO: condicional si es el propio perfil → "Editar", si no → "Seguir" */}
-                    <BotonBase variante="primario">Seguir</BotonBase>
-                    <BotonBase variante="secundario">Mensaje</BotonBase>
+                    {esPropietario ? (
+                        <BotonBase
+                            variante="secundario"
+                            onClick={() => navegar('/perfil/editar/')}
+                        >
+                            <Settings size={14} />
+                            Editar perfil
+                        </BotonBase>
+                    ) : (
+                        <>
+                            <BotonFollow
+                                usuarioId={usuario.id}
+                                siguiendo={siguiendo}
+                            />
+                            <BotonBase
+                                variante="secundario"
+                                onClick={() => {
+                                    /* TO-DO: navegar a mensajes con este usuario */
+                                    log.info('Mensaje a', usuario.username);
+                                }}
+                            >
+                                Mensaje
+                            </BotonBase>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -138,25 +278,26 @@ export const PerfilIsland = ({ username }: PerfilIslandProps): JSX.Element => {
             </div>
 
             <div className="perfilContenidoTab">
-                {tabActiva === 'samples' && (
-                    <div className="perfilVacio">
-                        <Music size={40} />
-                        <p>Los samples aparecerán aquí</p>
-                    </div>
-                )}
+                {tabActiva === 'samples' &&
+                    renderizarListaSamples(samplesPerfil, 'No ha subido samples aún', <Music size={40} />)}
                 {tabActiva === 'publicaciones' && (
                     <div className="perfilVacio">
                         <FileText size={40} />
                         <p>Las publicaciones aparecerán aquí</p>
                     </div>
                 )}
-                {tabActiva === 'likes' && (
-                    <div className="perfilVacio">
-                        <Heart size={40} />
-                        <p>Los likes aparecerán aquí</p>
-                    </div>
-                )}
+                {tabActiva === 'likes' &&
+                    renderizarListaSamples(likesPerfil, 'No ha dado likes aún', <Heart size={40} />)}
             </div>
+
+            {/* Menú contextual */}
+            <MenuContextual
+                abierto={menu.estado.abierto}
+                x={menu.estado.x}
+                y={menu.estado.y}
+                items={menu.items}
+                onCerrar={menu.cerrarMenu}
+            />
         </div>
     );
 };

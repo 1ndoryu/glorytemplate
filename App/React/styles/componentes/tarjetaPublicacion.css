@@ -1,0 +1,173 @@
+/*
+ * tarjetaPublicacion.css — Kamples
+ * Estilos para las tarjetas de publicación social en el feed.
+ */
+
+.tarjetaPublicacion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    padding: var(--espacioLg);
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    transition: border-color var(--transicionRapida);
+}
+
+.tarjetaPublicacion:hover {
+    border-color: var(--bordeActivo);
+}
+
+/* Cabecera */
+.tarjetaPubCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tarjetaPubAutor {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    cursor: pointer;
+}
+
+.tarjetaPubAutor:hover .tarjetaPubNombre {
+    text-decoration: underline;
+}
+
+.tarjetaPubAutorInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.tarjetaPubNombre {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.tarjetaPubVerificado {
+    color: var(--acento);
+    font-size: var(--fuenteXs);
+}
+
+.tarjetaPubUsername {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.tarjetaPubTiempo {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+/* Contenido textual */
+.tarjetaPubContenido {
+    font-size: var(--fuenteMd);
+    color: var(--textoPrimario);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Grid de imágenes */
+.tarjetaPubImagenes {
+    display: grid;
+    gap: 2px;
+    border-radius: var(--radioMd);
+    overflow: hidden;
+}
+
+.tarjetaPubImagenes1 {
+    grid-template-columns: 1fr;
+}
+
+.tarjetaPubImagenes2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.tarjetaPubImagenes3 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+
+.tarjetaPubImagenes3 .tarjetaPubImagenItem:first-child {
+    grid-row: span 2;
+}
+
+.tarjetaPubImagenes4 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+
+.tarjetaPubImagenItem {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+}
+
+.tarjetaPubImagenItem img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transicionNormal);
+}
+
+.tarjetaPubImagenItem:hover img {
+    transform: scale(1.02);
+}
+
+/* Samples adjuntos */
+.tarjetaPubSamples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+/* Acciones */
+.tarjetaPubAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXl);
+    padding-top: var(--espacioSm);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.tarjetaPubAccionBtn {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    color: var(--textoTerciario);
+    background: none;
+    border: none;
+    border-radius: var(--radioSm);
+    cursor: pointer;
+    font-size: var(--fuenteSm);
+    transition: all var(--transicionRapida);
+}
+
+.tarjetaPubAccionBtn:hover {
+    color: var(--textoSecundario);
+    background-color: var(--fondoElevado2);
+}
+
+.tarjetaPubAccionLiked {
+    color: var(--error);
+}
+
+.tarjetaPubAccionLiked:hover {
+    color: var(--error);
+}
+
+.tarjetaPubAccionReposteado {
+    color: var(--exito);
+}
+
+.tarjetaPubAccionReposteado:hover {
+    color: var(--exito);
+}

@@ -13,9 +13,11 @@ import {
     Upload,
     MessageCircle,
     AudioLines,
+    PenSquare,
 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
 import { useSubirModalStore } from '@app/stores/subirModalStore';
+import { usePublicarModalStore } from '@app/stores/publicarModalStore';
 import '../../styles/componentes/sidebar.css';
 
 export interface SidebarItemDef {
@@ -23,8 +25,8 @@ export interface SidebarItemDef {
     etiqueta: string;
     icono: React.ReactNode;
     ruta: string;
-    /* Si true, abre modal en vez de navegar */
-    accion?: 'modal-subir';
+    /* Si tiene valor, ejecuta acción en vez de navegar */
+    accion?: 'modal-subir' | 'modal-publicar';
     badge?: boolean;
 }
 
@@ -34,6 +36,7 @@ const itemsDefault: SidebarItemDef[] = [
     { id: 'perfil', etiqueta: 'Perfil', icono: <User size={20} />, ruta: '/perfil' },
     { id: 'libreria', etiqueta: 'Librería', icono: <FolderOpen size={20} />, ruta: '/libreria' },
     { id: 'subir', etiqueta: 'Subir', icono: <Upload size={20} />, ruta: '', accion: 'modal-subir' },
+    { id: 'publicar', etiqueta: 'Publicar', icono: <PenSquare size={20} />, ruta: '', accion: 'modal-publicar' },
     { id: 'mensajes', etiqueta: 'Mensajes', icono: <MessageCircle size={20} />, ruta: '/mensajes' },
 ];
 
@@ -54,11 +57,16 @@ export const Sidebar = ({
 }: SidebarProps): JSX.Element => {
     const { navegar } = useNavigationStore();
     const { abrir: abrirSubirModal } = useSubirModalStore();
+    const { abrir: abrirPublicarModal } = usePublicarModalStore();
 
     const manejarClick = (item: SidebarItemDef) => {
-        /* Acciones especiales (ej: abrir modal de subida) */
+        /* Acciones especiales (ej: abrir modal de subida o publicación) */
         if (item.accion === 'modal-subir') {
             abrirSubirModal();
+            return;
+        }
+        if (item.accion === 'modal-publicar') {
+            abrirPublicarModal('social');
             return;
         }
 

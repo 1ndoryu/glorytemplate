@@ -1,0 +1,149 @@
+/*
+ * listaComentarios.css — Kamples
+ * Estilos para la lista de comentarios y el input de nuevo comentario.
+ */
+
+.listaComentarios {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.comentariosLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+/* Cada comentario */
+.comentarioItem {
+    display: flex;
+    gap: var(--espacioSm);
+    align-items: flex-start;
+}
+
+.comentarioAutor {
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.comentarioCuerpo {
+    flex: 1;
+    min-width: 0;
+}
+
+.comentarioCabeceraLinea {
+    display: flex;
+    align-items: baseline;
+    gap: var(--espacioSm);
+    margin-bottom: 2px;
+}
+
+.comentarioNombre {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    cursor: pointer;
+}
+
+.comentarioNombre:hover {
+    text-decoration: underline;
+}
+
+.comentarioTiempo {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.comentarioTexto {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+/* Ver más */
+.comentariosVerMas {
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+    cursor: pointer;
+    padding: var(--espacioXs) 0;
+    text-align: left;
+}
+
+.comentariosVerMas:hover {
+    color: var(--textoSecundario);
+    text-decoration: underline;
+}
+
+/* Input nuevo comentario */
+.comentarioNuevo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding-top: var(--espacioSm);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.comentarioNuevoInput {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    background-color: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioFull);
+    padding: var(--espacioXs) var(--espacioSm);
+    transition: border-color var(--transicionRapida);
+}
+
+.comentarioNuevoInput:focus-within {
+    border-color: var(--bordeActivo);
+}
+
+.comentarioNuevoInput input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--textoPrimario);
+    font-family: var(--fuentePrincipal);
+    font-size: var(--fuenteSm);
+}
+
+.comentarioNuevoInput input::placeholder {
+    color: var(--textoTerciario);
+}
+
+.comentarioEnviarBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: var(--radioFull);
+    transition: all var(--transicionRapida);
+}
+
+.comentarioEnviarBtn:hover:not(:disabled) {
+    color: var(--textoPrimario);
+}
+
+.comentarioEnviarBtn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Vacío */
+.comentariosVacio {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-align: center;
+    padding: var(--espacioSm) 0;
+}

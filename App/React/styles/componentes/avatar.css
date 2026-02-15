@@ -28,6 +28,15 @@
 }
 
 /* Tamaños */
+.avatar.avatarXs {
+    width: 22px;
+    height: 22px;
+}
+
+.avatar.avatarXs .avatarIniciales {
+    font-size: 8px;
+}
+
 .avatar.avatarSm {
     width: 28px;
     height: 28px;
