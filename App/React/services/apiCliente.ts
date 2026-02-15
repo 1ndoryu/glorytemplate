@@ -31,11 +31,9 @@ const obtenerBaseUrl = (): string => {
         | { apiUrl?: string; restUrl?: string }
         | undefined;
 
-    if (glory?.apiUrl) return glory.apiUrl;
-    if (glory?.restUrl) return glory.restUrl;
-
-    /* Fallback: construcción manual */
-    return '/wp-json';
+    const raw = glory?.apiUrl ?? glory?.restUrl ?? '/wp-json';
+    /* Elimina slash final para evitar doble barra al concatenar /kamples/v1 */
+    return raw.replace(/\/+$/, '');
 };
 
 const obtenerNonce = (): string => {
