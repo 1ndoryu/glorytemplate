@@ -1,0 +1,151 @@
+/*
+ * dropdownPanel.css — Kamples
+ * Estilos compartidos para paneles dropdown (notificaciones, mensajes).
+ */
+
+.dropdownPanel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 360px;
+    max-height: 440px;
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+    box-shadow: var(--sombra);
+    z-index: var(--zModal);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: dropdownEntrar 0.15s ease-out;
+}
+
+@keyframes dropdownEntrar {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdownPanelCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioMd) var(--espacioLg);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.dropdownPanelTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.dropdownPanelEnlace {
+    font-size: var(--fuenteXs);
+    color: var(--acento);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.dropdownPanelEnlace:hover {
+    text-decoration: underline;
+}
+
+.dropdownPanelLista {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+/* Item genérico de dropdown */
+.dropdownItem {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioLg);
+    cursor: pointer;
+    transition: background-color var(--transicionRapida);
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.dropdownItem:hover {
+    background-color: var(--fondoElevado2);
+}
+
+.dropdownItemNoLeido {
+    background-color: var(--fondoElevado2);
+}
+
+.dropdownItemIcono {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radioFull);
+    background-color: var(--fondoElevado3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--textoSecundario);
+}
+
+.dropdownItemContenido {
+    flex: 1;
+    min-width: 0;
+}
+
+.dropdownItemTexto {
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.dropdownItemTiempo {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    margin-top: 2px;
+}
+
+.dropdownItemPunto {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radioFull);
+    background-color: var(--acento);
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+/* Estado vacío */
+.dropdownPanelVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    padding: var(--espacio2xl);
+    color: var(--textoTerciario);
+}
+
+.dropdownPanelVacio p {
+    font-size: var(--fuenteSm);
+}
+
+/* Overlay para cerrar al hacer click fuera */
+.dropdownOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--zModal) - 1);
+}

@@ -9,6 +9,7 @@ import {Play, Pause, Heart, Download, MoreHorizontal} from 'lucide-react';
 import type {SampleResumen} from '../../types';
 import {WaveformPlayer} from './WaveformPlayer';
 import {Badge} from './Badge';
+import {obtenerImagenColor} from '../../services/imagenesColor';
 import '../../styles/componentes/tarjetaSample.css';
 
 interface TarjetaSampleProps {
@@ -287,12 +288,18 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
 
     const clases = ['tarjetaSample', estaActiva ? 'tarjetaSampleActiva' : '', className].filter(Boolean).join(' ');
 
+    /* Imagen de portada: usa imagenUrl del sample o fallback a colors/ */
+    const imagenPortada = sample.imagenUrl || obtenerImagenColor(sample.id);
+
     return (
         <div className={clases} onContextMenu={manejarMenu}>
-            {/* Play/Pause */}
-            <button className={`tarjetaPlayBtn ${estaReproduciendo ? 'tarjetaPlayBtnActivo' : ''}`} onClick={manejarPlayPause} type="button" aria-label={estaReproduciendo ? 'Pausar' : 'Reproducir'}>
-                {estaReproduciendo ? <Pause size={16} /> : <Play size={16} />}
-            </button>
+            {/* Portada con overlay play/pause */}
+            <div className="tarjetaPortada" onClick={manejarPlayPause} role="button" tabIndex={0} aria-label={estaReproduciendo ? 'Pausar' : 'Reproducir'}>
+                <img className="tarjetaPortadaImg" src={imagenPortada} alt={sample.titulo} loading="lazy" />
+                <div className={`tarjetaPortadaOverlay ${estaReproduciendo ? 'tarjetaPortadaOverlayActivo' : ''}`}>
+                    {estaReproduciendo ? <Pause size={16} /> : <Play size={16} />}
+                </div>
+            </div>
 
             {/* Contenido central */}
             <div className="tarjetaContenido">
@@ -344,7 +351,7 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                     <Download size={18} />
                 </button>
 
-                <button className="tarjetaAccionBtn" onClick={manejarMenu} type="button" aria-label="Más opciones">
+                <button className="tarjetaAccionBtn paddingExtraAccion" onClick={manejarMenu} type="button" aria-label="Más opciones">
                     <MoreHorizontal size={18} />
                 </button>
             </div>

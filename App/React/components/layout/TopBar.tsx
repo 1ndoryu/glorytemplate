@@ -10,6 +10,8 @@ import { Bell, Mail, User, Settings, LogOut } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Avatar } from '../ui/Avatar';
 import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
+import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
+import { DropdownMensajes } from '../ui/DropdownMensajes';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
@@ -24,6 +26,8 @@ export const TopBar = (): JSX.Element => {
 
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
+    const [notificacionesAbiertas, setNotificacionesAbiertas] = useState(false);
+    const [mensajesAbiertos, setMensajesAbiertos] = useState(false);
 
     const manejarBusqueda = useCallback((valor: string) => {
         setBusqueda(valor);
@@ -92,23 +96,39 @@ export const TopBar = (): JSX.Element => {
 
             {autenticado && (
                 <div className="topbarAcciones">
-                    <button
-                        className="topbarIconoBtn"
-                        onClick={() => navegar('/notificaciones')}
-                        aria-label="Notificaciones"
-                        type="button"
-                    >
-                        <Bell size={18} />
-                    </button>
+                    <div className="topbarIconoWrapper">
+                        <button
+                            className="topbarIconoBtn"
+                            onClick={() => {
+                                setMensajesAbiertos(false);
+                                setNotificacionesAbiertas((prev) => !prev);
+                            }}
+                            aria-label="Notificaciones"
+                            type="button"
+                        >
+                            <Bell size={18} />
+                        </button>
+                        {notificacionesAbiertas && (
+                            <DropdownNotificaciones onCerrar={() => setNotificacionesAbiertas(false)} />
+                        )}
+                    </div>
 
-                    <button
-                        className="topbarIconoBtn"
-                        onClick={() => navegar('/mensajes')}
-                        aria-label="Mensajes"
-                        type="button"
-                    >
-                        <Mail size={18} />
-                    </button>
+                    <div className="topbarIconoWrapper">
+                        <button
+                            className="topbarIconoBtn"
+                            onClick={() => {
+                                setNotificacionesAbiertas(false);
+                                setMensajesAbiertos((prev) => !prev);
+                            }}
+                            aria-label="Mensajes"
+                            type="button"
+                        >
+                            <Mail size={18} />
+                        </button>
+                        {mensajesAbiertos && (
+                            <DropdownMensajes onCerrar={() => setMensajesAbiertos(false)} />
+                        )}
+                    </div>
 
                     <div
                         className="topbarAvatarWrapper"

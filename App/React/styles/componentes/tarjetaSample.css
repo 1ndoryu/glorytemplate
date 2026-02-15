@@ -25,30 +25,40 @@
     background-color: var(--fondoElevado2);
 }
 
-/* Botón play/pause */
-.tarjetaPlayBtn {
+/* Portada con imagen de color */
+.tarjetaPortada {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radioSm);
+    overflow: hidden;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.tarjetaPortadaImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Overlay play/pause sobre la imagen */
+.tarjetaPortadaOverlay {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radioFull);
-    background-color: var(--fondoElevado3);
-    border: none;
-    color: var(--textoPrimario);
-    cursor: pointer;
-    transition: background-color var(--transicionRapida), color var(--transicionRapida);
-    flex-shrink: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    color: var(--blanco);
+    opacity: 0;
+    transition: opacity var(--transicionRapida);
 }
 
-.tarjetaPlayBtn:hover {
-    background-color: var(--acento);
-    color: var(--blanco);
-}
-
-.tarjetaPlayBtnActivo {
-    background-color: var(--acento);
-    color: var(--blanco);
+.tarjetaPortada:hover .tarjetaPortadaOverlay,
+.tarjetaPortadaOverlayActivo {
+    opacity: 1;
 }
 
 /* Contenido central */
@@ -118,6 +128,11 @@
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
+    padding: 0 var(--espacioSm);
+}
+
+.paddingExtraAccion {
+    padding: 0 var(--espacioSm);
 }
 
 .tarjetaAccionBtn {
@@ -126,13 +141,15 @@
     justify-content: center;
     gap: var(--espacioSm);
     height: 28px;
-    padding: 0 var(--espacioSm);
+    /* padding: 0 var(--espacioSm);*/
     border: none;
     background: none;
     color: var(--textoTerciario);
     border-radius: var(--radioSm);
     cursor: pointer;
-    transition: color var(--transicionRapida), background-color var(--transicionRapida);
+    transition:
+        color var(--transicionRapida),
+        background-color var(--transicionRapida);
     font-size: var(--fuenteXs);
 }
 

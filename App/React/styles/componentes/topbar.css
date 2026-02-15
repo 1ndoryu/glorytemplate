@@ -54,6 +54,11 @@
     background-color: var(--fondoElevado2);
 }
 
+/* Wrapper para posicionar dropdown relativo al botón */
+.topbarIconoWrapper {
+    position: relative;
+}
+
 /* Tab individual */
 .topbarTab {
     background: none;

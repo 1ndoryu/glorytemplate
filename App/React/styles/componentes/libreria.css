@@ -1,24 +1,28 @@
 /*
  * libreria.css — Kamples
  * Estilos de la isla LibreriaIsland.
+ * Estructura consistente con inicio.css (tabs en TopBar, mismo gap).
  */
 
 .libreriaContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXl);
     padding: var(--espacioLg);
-    max-width: 900px;
+    max-width: var(--anchoMaximoContenido);
+    margin: 0 auto;
 }
 
-.libreriaCabecera {
+/* Barra de búsqueda + acciones contextuales */
+.libreriaBarraAcciones {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--espacioLg);
+    gap: var(--espacioMd);
 }
 
-.libreriaTitulo {
-    font-size: var(--fuenteXl);
-    font-weight: var(--pesoBold);
-    color: var(--textoPrimario);
+.libreriaBusqueda {
+    flex: 1;
+    max-width: 400px;
 }
 
 .libreriaAcciones {
@@ -26,22 +30,18 @@
     gap: var(--espacioSm);
 }
 
-.libreriaBusqueda {
-    margin: var(--espacioMd) 0;
-    max-width: 400px;
-}
-
+/* Lista de samples — mismo gap que inicioLista */
 .libreriaLista {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--espacioSm);
 }
 
-/* Grid de colecciones */
-.libreriaListaColecciones {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioXs);
+/* Grid de colecciones — tarjetas visuales en cuadrícula */
+.libreriaGridColecciones {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--espacioMd);
 }
 
 /* Estado vacío */

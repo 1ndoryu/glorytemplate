@@ -1,25 +1,24 @@
 /*
- * LibreriaIsland — Kamples (Fase 5.1-5.4)
- * Librería personal: descargas, favoritos, colecciones y subidos.
- * Tab colecciones integra CRUD completo con ModalColeccion y TarjetaColeccion.
+ * LibreriaIsland — Kamples (Fase 5)
+ * Librería personal: explorar colecciones públicas, descargas, favoritos, colecciones propias y subidos.
+ * Tabs se renderizan en el TopBar via tabsTopBarStore (misma estructura que InicioIsland).
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { Download, Heart, FolderOpen, Upload, Music, Plus } from 'lucide-react';
+import { Download, Heart, FolderOpen, Upload, Music, Plus, Globe } from 'lucide-react';
 import {
-    TabBar,
     BotonBase,
     InputBusqueda,
 } from '@app/components/ui';
-import type { TabDefinicion } from '@app/components/ui';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
-import { listarColecciones, eliminarColeccion } from '@app/services/apiColecciones';
+import { listarColecciones, listarColeccionesPublicas, eliminarColeccion } from '@app/services/apiColecciones';
 import { useSubirModalStore } from '@app/stores/subirModalStore';
+import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
@@ -27,27 +26,20 @@ import type { SampleResumen, Coleccion } from '@app/types';
 import { crearLogger } from '@app/services/logger';
 import '../../styles/componentes/libreria.css';
 
-const TABS_LIBRERIA: TabDefinicion[] = [
+const TABS_LIBRERIA = [
+    { id: 'explorar', etiqueta: 'Explorar' },
     { id: 'descargas', etiqueta: 'Descargas' },
     { id: 'favoritos', etiqueta: 'Favoritos' },
     { id: 'colecciones', etiqueta: 'Colecciones' },
     { id: 'subidos', etiqueta: 'Subidos' },
 ];
 
-/* Iconos para cada tab */
-const ICONOS_TAB: Record<string, JSX.Element> = {
-    descargas: <Download size={16} />,
-    favoritos: <Heart size={16} />,
-    colecciones: <FolderOpen size={16} />,
-    subidos: <Upload size={16} />,
-};
-
 const log = crearLogger('LibreriaIsland');
 
 export const LibreriaIsland = (): JSX.Element => {
-    const [tabActiva, setTabActiva] = useState('descargas');
     const [samples, setSamples] = useState<SampleResumen[]>([]);
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
+    const [coleccionesPublicas, setColeccionesPublicas] = useState<Coleccion[]>([]);
     const [cargando, setCargando] = useState(true);
     const [busqueda, setBusqueda] = useState('');
 
@@ -57,13 +49,27 @@ export const LibreriaIsland = (): JSX.Element => {
 
     const { navegar } = useNavigationStore();
     const { abrir: abrirSubirModal } = useSubirModalStore();
+    const { activa: tabActiva, setTabs } = useTabsTopBarStore();
     const menu = useMenuContextualSample();
+
+    /* Registrar tabs en el TopBar al montar */
+    useEffect(() => {
+        setTabs(TABS_LIBRERIA, 'explorar');
+        return () => { setTabs([]); };
+    }, [setTabs]);
 
     /* Cargar datos según tab activa */
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
-            if (tabActiva === 'colecciones') {
+            if (tabActiva === 'explorar') {
+                const resp = await listarColeccionesPublicas();
+                if (resp.ok && resp.data) {
+                    setColeccionesPublicas(resp.data);
+                } else {
+                    setColeccionesPublicas([]);
+                }
+            } else if (tabActiva === 'colecciones') {
                 const resp = await listarColecciones();
                 if (resp.ok && resp.data) {
                     setColecciones(resp.data);
@@ -71,7 +77,6 @@ export const LibreriaIsland = (): JSX.Element => {
                     setColecciones([]);
                 }
             } else {
-                /* TO-DO: endpoints dedicados para cada tab */
                 const resp = await listarSamples({
                     busqueda: busqueda || undefined,
                     perPage: 20,
@@ -104,7 +109,6 @@ export const LibreriaIsland = (): JSX.Element => {
     }, [samples]);
 
     const manejarTab = useCallback((tabId: string) => {
-        setTabActiva(tabId);
         setBusqueda('');
     }, []);
 
@@ -145,10 +149,25 @@ export const LibreriaIsland = (): JSX.Element => {
         subidos: { titulo: 'Sin samples subidos', texto: 'Sube tu primer sample para compartirlo.' },
     };
 
+    /* Iconos para estado vacío por tab */
+    const ICONOS_TAB: Record<string, JSX.Element> = {
+        explorar: <Globe size={16} />,
+        descargas: <Download size={16} />,
+        favoritos: <Heart size={16} />,
+        colecciones: <FolderOpen size={16} />,
+        subidos: <Upload size={16} />,
+    };
+
     return (
         <div className="libreriaContenedor" id="seccionLibreria">
-            <div className="libreriaCabecera">
-                <h1 className="libreriaTitulo">Tu Librería</h1>
+            {/* Barra de búsqueda + acciones contextuales */}
+            <div className="libreriaBarraAcciones">
+                <div className="libreriaBusqueda">
+                    <InputBusqueda
+                        onChange={setBusqueda}
+                        placeholder={`Buscar en ${tabActiva || 'librería'}...`}
+                    />
+                </div>
                 <div className="libreriaAcciones">
                     {tabActiva === 'colecciones' && (
                         <BotonBase variante="ghost" tamano="sm" onClick={abrirNuevaColeccion}>
@@ -163,22 +182,30 @@ export const LibreriaIsland = (): JSX.Element => {
                 </div>
             </div>
 
-            <TabBar tabs={TABS_LIBRERIA} activa={tabActiva} onChange={manejarTab} />
-
-            <div className="libreriaBusqueda">
-                <InputBusqueda
-                    onChange={setBusqueda}
-                    placeholder={`Buscar en ${tabActiva}...`}
-                />
-            </div>
-
             {cargando ? (
                 <div className="libreriaVacio">
                     <Music size={32} className="libreriaVacioIcono" />
                     <p>Cargando...</p>
                 </div>
+            ) : tabActiva === 'explorar' ? (
+                /* Colecciones públicas de otros usuarios */
+                coleccionesPublicas.length === 0 ? (
+                    <div className="libreriaVacio">
+                        <Globe size={32} />
+                        <h3 className="libreriaVacioTitulo">Sin colecciones públicas</h3>
+                        <p className="libreriaVacioTexto">Aún no hay colecciones compartidas por otros usuarios.</p>
+                    </div>
+                ) : (
+                    <div className="libreriaGridColecciones">
+                        {coleccionesPublicas.map((col) => (
+                            <TarjetaColeccion
+                                key={col.id}
+                                coleccion={col}
+                            />
+                        ))}
+                    </div>
+                )
             ) : tabActiva === 'colecciones' ? (
-                /* Renderizar colecciones */
                 colecciones.length === 0 ? (
                     <div className="libreriaVacio">
                         <FolderOpen size={32} />
@@ -189,7 +216,7 @@ export const LibreriaIsland = (): JSX.Element => {
                         </BotonBase>
                     </div>
                 ) : (
-                    <div className="libreriaListaColecciones">
+                    <div className="libreriaGridColecciones">
                         {colecciones.map((col) => (
                             <TarjetaColeccion
                                 key={col.id}

@@ -1,11 +1,13 @@
 /*
  * Componente: TarjetaColeccion — Kamples
- * Tarjeta visual para mostrar una colección en la biblioteca o explorador.
+ * Tarjeta visual tipo card para mostrar una colección.
+ * Usa imagen de portada (imagenUrl o fallback de colors/).
  */
 
 import { useCallback, type MouseEvent } from 'react';
-import { FolderOpen, Globe, Lock, MoreHorizontal, Trash2, Edit3 } from 'lucide-react';
+import { Globe, Lock, MoreHorizontal, Trash2, Edit3 } from 'lucide-react';
 import type { Coleccion } from '@app/types';
+import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import '../../styles/componentes/tarjetaColeccion.css';
 
 interface TarjetaColeccionProps {
@@ -38,16 +40,15 @@ export const TarjetaColeccion = ({
         onEliminar?.(coleccion);
     }, [onEliminar, coleccion]);
 
+    /* Imagen de portada: usa imagenUrl o fallback determinista de colors/ */
+    const imagenPortada = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
+
     const clases = ['tarjetaColeccion', className].filter(Boolean).join(' ');
 
     return (
         <div className={clases} onClick={manejarClick} role="button" tabIndex={0}>
             <div className="tarjetaColeccionPortada">
-                {coleccion.imagenUrl ? (
-                    <img src={coleccion.imagenUrl} alt={coleccion.nombre} />
-                ) : (
-                    <FolderOpen size={28} />
-                )}
+                <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
             </div>
 
             <div className="tarjetaColeccionInfo">
@@ -59,6 +60,7 @@ export const TarjetaColeccion = ({
                 </div>
                 <span className="tarjetaColeccionMeta">
                     {coleccion.totalSamples} sample{coleccion.totalSamples !== 1 ? 's' : ''}
+                    {coleccion.usuario && ` · @${coleccion.usuario.username}`}
                 </span>
             </div>
 

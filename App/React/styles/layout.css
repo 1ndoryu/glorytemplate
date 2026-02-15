@@ -61,6 +61,7 @@
     max-width: var(--anchoMaximoContenido);
     margin: 0 auto;
     width: 100%;
+    max-width: 1000px;
 }
 
 /* Reproductor global — ahora flotante, sin grid area */
