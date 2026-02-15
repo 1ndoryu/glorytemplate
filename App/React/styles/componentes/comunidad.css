@@ -1,0 +1,185 @@
+/*
+ * comunidad.css — Kamples
+ * Feed de comunidad: posts sociales con diseño diferenciado.
+ */
+
+.comunidadIsland {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+/* Filtros: Todos, Siguiendo, Populares */
+.comunidadFiltros {
+    display: flex;
+    gap: var(--espacioSm);
+}
+
+.comunidadFiltroBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioMd);
+    background: none;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioFull);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.comunidadFiltroBtn:hover {
+    border-color: var(--bordeActivo);
+    color: var(--textoPrimario);
+}
+
+.comunidadFiltroBtnActivo {
+    background-color: var(--fondoElevado3);
+    border-color: var(--acento-blanco);
+    color: var(--acento-blanco);
+}
+
+/* Feed de posts */
+.comunidadFeed {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.comunidadCargando,
+.comunidadVacio {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+}
+
+/* Post individual */
+.comunidadPost {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    padding: var(--espacioLg);
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    transition: border-color var(--transicionRapida);
+}
+
+.comunidadPost:hover {
+    border-color: var(--bordeActivo);
+}
+
+/* Header del post: avatar + nombre + tiempo */
+.comunidadPostHeader {
+    display: flex;
+    align-items: flex-start;
+}
+
+.comunidadPostAutor {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: inherit;
+}
+
+.comunidadPostAutorInfo {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.comunidadPostNombre {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+}
+
+.comunidadPostTiempo {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+/* Texto del post */
+.comunidadPostTexto {
+    font-size: var(--fuenteMd);
+    color: var(--textoPrimario);
+    line-height: 1.6;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Imágenes del post */
+.comunidadPostImagenes {
+    display: grid;
+    gap: var(--espacioXs);
+    border-radius: var(--radioMd);
+    overflow: hidden;
+}
+
+.comunidadPostImagenes1 {
+    grid-template-columns: 1fr;
+}
+
+.comunidadPostImagenes2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.comunidadPostImg {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: var(--radioSm);
+}
+
+/* Samples adjuntos al post */
+.comunidadPostSamples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm);
+    background-color: var(--fondoElevado2);
+    border-radius: var(--radioMd);
+}
+
+/* Acciones del post */
+.comunidadPostAcciones {
+    display: flex;
+    gap: var(--espacioLg);
+    padding-top: var(--espacioSm);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.comunidadPostAccionBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    padding: var(--espacioXs);
+    border-radius: var(--radioSm);
+    transition: all var(--transicionRapida);
+}
+
+.comunidadPostAccionBtn:hover {
+    color: var(--textoSecundario);
+    background-color: var(--fondoElevado2);
+}
+
+.comunidadPostAccionActiva {
+    color: var(--acento-blanco);
+}

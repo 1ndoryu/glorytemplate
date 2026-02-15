@@ -121,7 +121,96 @@
     display: flex;
     align-items: stretch;
     flex-direction: column;
-    gap: var(--espacioXl);
+    gap: var(--espacioSm);
+}
+
+/* Barra de ordenamientos + filtros */
+.inicioBarraControl {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacioMd);
+}
+
+.inicioOrdenamientos {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.inicioOrdenWrapper {
+    position: relative;
+}
+
+.inicioOrdenBtn {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioMd);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radioFull);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    white-space: nowrap;
+}
+
+.inicioOrdenBtn:hover {
+    color: var(--textoPrimario);
+    background: var(--fondoElevado2);
+}
+
+.inicioOrdenBtnActivo {
+    color: var(--textoPrimario);
+    background: var(--fondoElevado3);
+    border-color: var(--bordeSutil);
+}
+
+/* Submenu Destacados */
+.inicioDestacadosMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: var(--espacioXs);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioXs);
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    min-width: 120px;
+}
+
+.inicioDestacadosMenu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--espacioXs) var(--espacioSm);
+    background: none;
+    border: none;
+    border-radius: var(--radioSm);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.inicioDestacadosMenu button:hover {
+    background: var(--fondoElevado3);
+    color: var(--textoPrimario);
+}
+
+.inicioDestacadosActivo {
+    color: var(--acento) !important;
+}
+
+.inicioControlesDerecha {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
 }
 
 .inicioTagsLista {

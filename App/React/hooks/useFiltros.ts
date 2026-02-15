@@ -1,16 +1,16 @@
 /*
  * Hook: useFiltros
- * Interfaz para los filtros de búsqueda de samples.
- * Conecta filtrosStore con la API.
+ * Puente entre filtrosStore (toggles globales) y la API de samples.
+ * Los filtros toggle (yaReproducidos, likeados, deSeguidos, descargados)
+ * se envían como parámetros de la API cuando esté lista; por ahora
+ * se usa solo busqueda + pagina + ordenamiento.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useFiltrosStore } from '../stores/filtrosStore';
 import type { SampleResumen } from '../types/sample';
 import { listarSamples } from '../services/apiSamples';
-import type { FiltrosSamples } from '../services/apiSamples';
 import { crearLogger } from '../services/logger';
-import { useState } from 'react';
 
 const log = crearLogger('useFiltros');
 
@@ -23,16 +23,11 @@ export const useFiltros = () => {
     const buscar = useCallback(async () => {
         setCargando(true);
         try {
-            const params: FiltrosSamples = {
+            const resp = await listarSamples({
                 busqueda: filtros.busqueda || undefined,
-                genero: filtros.genero || undefined,
-                bpmMin: filtros.bpmMin,
-                bpmMax: filtros.bpmMax,
-                key: filtros.key || undefined,
-                tipo: filtros.tipo || undefined,
                 page: filtros.pagina,
-            };
-            const resp = await listarSamples(params);
+                /* TO-DO: enviar filtros toggle al backend cuando los endpoints los soporten */
+            });
 
             if (resp.ok && resp.data) {
                 const datos = resp.data;
@@ -44,7 +39,7 @@ export const useFiltros = () => {
         } finally {
             setCargando(false);
         }
-    }, [filtros.busqueda, filtros.genero, filtros.bpmMin, filtros.bpmMax, filtros.key, filtros.tipo, filtros.ordenar, filtros.pagina]);
+    }, [filtros.busqueda, filtros.pagina, filtros.ordenamiento]);
 
     return {
         ...filtros,

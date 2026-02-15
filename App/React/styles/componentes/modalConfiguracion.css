@@ -1,0 +1,182 @@
+/*
+ * modalConfiguracion.css — Kamples
+ * Modal de configuración de perfil.
+ */
+
+.configContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+    min-width: 380px;
+}
+
+.configTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+/* Secciones */
+.configSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.configSeccionHorizontal {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.configSeccionInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.configLabel {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoSecundario);
+}
+
+.configSubtexto {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+/* Foto de perfil */
+.configFotoContenedor {
+    position: relative;
+    display: inline-flex;
+    align-self: center;
+}
+
+.configFotoBtn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--fondoElevado3);
+    border: 2px solid var(--fondoBase);
+    border-radius: var(--radioFull);
+    color: var(--textoPrimario);
+    cursor: pointer;
+    transition: background-color var(--transicionRapida);
+}
+
+.configFotoBtn:hover {
+    background-color: var(--acento-blanco);
+}
+
+/* Input genérico */
+.configInput {
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioMd);
+    background-color: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    outline: none;
+    transition: border-color var(--transicionRapida);
+}
+
+.configInput:focus {
+    border-color: var(--bordeActivo);
+}
+
+/* Input con prefijo @ */
+.configInputConPrefijo {
+    display: flex;
+    align-items: center;
+    background-color: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    overflow: hidden;
+}
+
+.configInputConPrefijo:focus-within {
+    border-color: var(--bordeActivo);
+}
+
+.configPrefijo {
+    padding: var(--espacioSm);
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+    background-color: var(--fondoElevado3);
+    border-right: 1px solid var(--bordeSutil);
+}
+
+.configInputConPrefijo .configInput {
+    border: none;
+    border-radius: 0;
+}
+
+/* Textarea */
+.configTextarea {
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioMd);
+    background-color: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    font-family: var(--fuentePrincipal);
+    resize: vertical;
+    outline: none;
+    min-height: 60px;
+    transition: border-color var(--transicionRapida);
+}
+
+.configTextarea:focus {
+    border-color: var(--bordeActivo);
+}
+
+.configContador {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Toggle de notificaciones */
+.configToggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.configToggle:hover {
+    border-color: var(--bordeActivo);
+    color: var(--textoSecundario);
+}
+
+.configToggleActivo {
+    background-color: var(--fondoElevado3);
+    border-color: var(--acento-blanco);
+    color: var(--acento-blanco);
+}
+
+/* Acciones */
+.configAcciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--espacioSm);
+    padding-top: var(--espacioSm);
+    border-top: 1px solid var(--bordeSutil);
+}

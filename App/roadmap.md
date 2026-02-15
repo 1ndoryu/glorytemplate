@@ -1,7 +1,7 @@
 # Kamples — Roadmap Integral de Producto
 
 > **Versión:** 2.0  
-> **Última actualización:** 15/02/2026  
+> **Última actualización:** 15/02/2026 (iteración v2.1)  
 > **Stack base:** Glory Framework (WordPress + React Islands + TypeScript)  
 > **Competencia directa:** Splice  
 
@@ -111,12 +111,12 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
   - Crear extensión `vector` en BD `kamples`
   - Crear tabla de embeddings (sample_id, embedding vector(1536))
   - Verificar que PostgresService.php conecta correctamente
-- [ ] **0.2** Almacenamiento audio en WordPress
-  - Usar `wp_handle_upload()` + custom directory (`/wp-content/uploads/kamples/`)
-  - Estructura: `kamples/{user_id}/{año}/{mes}/{archivo}.wav`
-  - Restricciones: formatos permitidos (wav, mp3, flac, aiff), tamaño máximo por plan
-  - Seguridad: htaccess deny direct access, servir via PHP con validación de permisos
-  - Guardar referencia en PostgreSQL (attachment_id, ruta, metadata)
+- [x] **0.2** Almacenamiento audio en WordPress ✓ (IMPLEMENTADO)
+  - Endpoint `POST /kamples/v1/samples/upload` con `wp_handle_upload()`
+  - Estructura: `kamples/{user_id}/{Y}/{m}/{archivo}`
+  - Validación MIME (wav, mp3, flac, aiff, ogg, m4a) + max 50MB
+  - INSERT en PostgreSQL con slug generado (MD5 suffix), estado 'procesando'
+  - TO-DO: htaccess deny direct access, servir via PHP con validación de permisos
 - [ ] **0.3** Pipeline de procesamiento audio
   - Al subir: guardar original WAV/FLAC
   - Generar versión optimizada MP3 (ffmpeg o librería PHP)
@@ -124,25 +124,24 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
   - Generar peaks/waveform JSON (Web Audio API server-side o ffmpeg)
   - Todo esto debe ejecutarse en background (WP Cron o Action Scheduler)
   - NO debe bloquear la UI de subida
-- [ ] **0.4** Imágenes colors/ dinámicas
-  - Leer directorio `colors/` en runtime vía endpoint PHP
-  - Cachear la lista (transient WP, 24h TTL)
-  - Servir imágenes optimizadas: WebP conversion, lazy loading, srcset por tamaño
-  - Eliminar array hardcodeado de imagenesColorLista.ts
+- [x] **0.4** Imágenes colors/ dinámicas ✓ (IMPLEMENTADO)
+  - Endpoint `GET /kamples/v1/colors` — lee directorio `colors/` en runtime
+  - Cache con WP transient (24h TTL), filtra extensiones imagen
+  - TO-DO: WebP conversion, lazy loading, srcset, migrar frontend a usar endpoint
 
 ### FASE 1 — Auth y Perfil
 > Prioridad: ALTA — fix bugs actuales + configuración
 
-- [ ] **1.1** Fix "Usuario no encontrado" en PerfilIsland
-  - Race condition: useEffect se dispara antes de que authStore cargue
-  - Si username es null y usuario está logueado → esperar a que authStore termine de cargar
-  - Si authStore terminó de cargar y sigue sin username → mostrar perfil propio
-  - Verificar que la API `obtenerPerfil()` responde OK con datos reales del usuario WP
-- [ ] **1.2** ModalConfiguracion (reemplaza EditarPerfilIsland)
-  - Botón de configuración en TopBar/sidebar abre modal
-  - Secciones: foto de perfil (upload + crop), nombre visible, username, descripción/bio
-  - Redes sociales, preferencias de notificación
-  - Guardar vía API PUT /kamples/v1/perfil
+- [x] **1.1** Fix "Usuario no encontrado" en PerfilIsland ✓ (IMPLEMENTADO)
+  - Guard `authCargando` antes de mostrar "no encontrado"
+  - Fix stale closure en `manejarLike` con setState callback
+  - Botón "Editar perfil" ahora abre ModalConfiguracion
+- [x] **1.2** ModalConfiguracion (reemplaza EditarPerfilIsland) ✓ (IMPLEMENTADO)
+  - `ModalConfiguracion.tsx` + `configuracionModalStore.ts` + `modalConfiguracion.css`
+  - Avatar upload con overlay Camera, nombre visible, username con @, bio (300 chars)
+  - Toggle notificaciones (Bell/BellOff)
+  - Integrado en LayoutPrincipal, abierto desde PerfilIsland
+  - TO-DO: conectar a PUT /kamples/v1/perfil
 - [ ] **1.3** Auto-creación `usuarios_ext` en Postgres
   - Al hacer login por primera vez, crear registro automático en tabla Postgres
   - Sincronizar datos base de WP → Postgres (id, username, email, avatar)
@@ -171,16 +170,16 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
   - Al subir imágenes en publicaciones, enviar a Groq API para generar metadata
   - Tags visuales, descripción, contenido relevante
   - Proceso en background, no bloquear subida
-- [ ] **2.4** Remover campos manuales de ModalCrear
-  - Eliminar selectores de BPM, Key, Tipo del ModalCrear
-  - La IA los define automáticamente
-  - Agregar waveform preview del audio adjunto con reproducción inline
-  - Agregar iconos de condiciones: permitir descarga sí/no, licencia, etc. (arriba del botón crear)
-- [ ] **2.5** Normalización de tags BPM
-  - Mantener BPM numérico en la BD (no borrar la info)
-  - Agregar campo categoría velocidad: "muy lento" (<70), "lento" (70-99), "normal" (100-119), "rápido" (120-149), "muy rápido" (≥150)
-  - Al hacer click en tag de velocidad → filtrar todos los samples de esa categoría
-  - Los tags de BPM en TarjetaSample muestran la categoría, no el número crudo
+- [x] **2.4** Remover campos manuales de ModalCrear ✓ (IMPLEMENTADO)
+  - Eliminados selectores BPM, Key, Tipo, MetadataAudio interface, Sliders import
+  - Waveform preview con Web Audio API (`generarPeaks`) + play/pause inline
+  - Condiciones toggle: permitirDescarga (Download), licenciaLibre (ShieldCheck)
+  - Banner IA: "BPM, tonalidad y tipo se detectarán automáticamente con IA"
+  - Ctrl+Enter para publicar
+- [x] **2.5** Normalización de tags BPM ✓ (IMPLEMENTADO)
+  - `bpmUtils.ts`: `CategoriaBpm`, `obtenerCategoriaBpm()`, `etiquetaBpm()`, `rangoBpm()`
+  - TarjetaSample muestra categoría ("Lento", "Normal", etc.) en vez de BPM crudo
+  - TO-DO: click en tag → filtrar por categoría
 
 ### FASE 3 — Algoritmo v1 (pgvector local)
 > Prioridad: ALTA — diferenciador clave del producto
@@ -211,33 +210,27 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 ### FASE 4 — Filtros y Ordenamiento (InicioIsland)
 > Prioridad: ALTA — UX diaria del usuario
 
-- [ ] **4.1** Rediseñar ModalFiltros
-  - Eliminar los filtros actuales (select de tipo, key, rango BPM numérico)
-  - Nuevos filtros toggle (on/off):
-    - **Ya reproducidos** — samples que el usuario ya escuchó
-    - **Likeados** — samples que el usuario dio like
-    - **De personas que sigo** — samples de usuarios seguidos
-    - **Descargados** — samples ya descargados por el usuario
-  - Cada filtro es un simple checkbox/switch, no selects complejos
-- [ ] **4.2** Eliminar tabs de InicioIsland
-  - Quitar las tabs actuales del feed
-  - Al lado del botón de filtrar, agregar 3 ordenamientos:
-    - **Inteligente** — algoritmo de recomendación (default)
-    - **Recientes** — ordenar por fecha de publicación
-    - **Destacados** — abre menú contextual con sub-opciones: semana, mensual, año
-- [ ] **4.3** Conectar filtros y ordenamientos al store/API
-  - Actualizar useFiltrosStore con los nuevos tipos de filtro
-  - Los ordenamientos envían parámetro `sort` al endpoint de feed
+- [x] **4.1** Rediseñar ModalFiltros ✓ (IMPLEMENTADO)
+  - Toggle switches con iconos (Play/Heart/Users/Download)
+  - Filtros: yaReproducidos, likeados, deSeguidos, descargados
+  - CSS reescrito para UI de toggles
+- [x] **4.2** Eliminar tabs de InicioIsland ✓ (IMPLEMENTADO)
+  - Tabs eliminadas, barra de ordenamiento: Inteligente/Recientes/Destacados
+  - Destacados con menú desplegable: Semana/Mes/Año
+  - ~95 líneas de CSS nuevas en inicio.css
+- [x] **4.3** Conectar filtros y ordenamientos al store/API ✓ (IMPLEMENTADO)
+  - `filtrosStore.ts` reescrito: toggles + TipoOrdenamiento + PeriodoDestacados
+  - `useFiltros.ts` actualizado para nuevos campos
+  - TO-DO: enviar filtros toggle al backend cuando endpoints los soporten
 
 ### FASE 5 — Chat Flotante tipo Messenger
 > Prioridad: MEDIA — mejora social importante
 
-- [ ] **5.1** Componente ChatFlotante
-  - Posición: esquina inferior derecha, encima del reproductor global
-  - Se abre al hacer click en una conversación desde el dropdown de mensajes en TopBar
-  - Se puede abrir también desde /mensajes (al seleccionar una conversación)
-  - Minimizable (solo barra de título), cerrable, draggable (opcional)
-  - Múltiples chats abiertos simultáneamente (stack horizontal)
+- [x] **5.1** Componente ChatFlotante ✓ (IMPLEMENTADO)
+  - `ChatFlotante.tsx` + `chatFlotanteStore.ts` + `chatFlotante.css`
+  - Fixed bottom-right encima del reproductor, max 3 chats abiertos
+  - Minimizable/cerrable, VentanaChat con burbujas, input con Enter
+  - Integrado en LayoutPrincipal
 - [ ] **5.2** Soporte multimedia en chat
   - Enviar imágenes (upload + preview + zoom)
   - Enviar audio (grabación inline o adjuntar archivo)
@@ -268,22 +261,21 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
   - Waveform XL interactivo
   - Metadata completa generada por IA (tags, instrumentos, sentimiento, artistas relevantes)
   - Samples similares navegables (click → ir a su detalle sin recarga)
-- [ ] **6.3** ColeccionDetalleIsland (NUEVA)
-  - Registrar ruta `/coleccion/{slug}` en pages.php
-  - Page header: nombre, creador, descripción, imagen, fecha, total samples
-  - Grid de samples de la colección (mismo componente TarjetaSample)
-  - Botón: "Añadir a librería" / "Seguir colección"
-- [ ] **6.4** ComunidadIsland (NUEVA)
-  - Ruta `/comunidad` con feed de posts sociales
-  - Diseño diferente al feed de samples: tarjetas más grandes, énfasis en texto/imágenes
-  - Posts pueden incluir samples adjuntos (tarjeta mini reproducible)
-  - Mock data: 10-15 posts variados (texto solo, texto+imagen, texto+sample, repost)
-  - Filtrar por: todos, siguiendo, populares
-- [ ] **6.5** LandingPublica para deslogueados
-  - Eliminar sidebar y topbar cuando el usuario NO está logueado
-  - Nav flotante fijo arriba con fondo difuminado (backdrop-filter: blur)
-  - Logo a la izquierda, botones Login/Registro a la derecha
-  - El usuario se encarga del diseño del contenido del landing
+- [x] **6.3** ColeccionDetalleIsland (NUEVA) ✓ (IMPLEMENTADO)
+  - `ColeccionDetalleIsland.tsx` + `coleccionDetalle.css`
+  - Ruta `/coleccion/{slug}` registrada en pages.php con slug dinámico
+  - Header: imagen 200px + info + badge público/privado + stats
+  - Grid TarjetaSample + botón guardar + loading/error states
+- [x] **6.4** ComunidadIsland (NUEVA) ✓ (IMPLEMENTADO)
+  - `ComunidadIsland.tsx` + `comunidad.css`
+  - Ruta `/comunidad` registrada en pages.php + appIslands.tsx
+  - 5 mock posts variados (texto, imágenes, sample adjunto, tutorial)
+  - Filtros: Todos/Siguiendo/Populares + like/repost optimista
+- [x] **6.5** LandingPublica para deslogueados ✓ (IMPLEMENTADO)
+  - LayoutPrincipal: condicional auth → sin sidebar/topbar/reproductor para no autenticados
+  - Nav flotante con backdrop-filter: blur(12px), AudioLines logo + "Kamples"
+  - Botones Login/Registro a la derecha
+  - CSS: `.layoutPublico`, `.landingNav`, padding-top compensado
 
 ### FASE 7 — Monetización (Stripe)
 > Prioridad: MEDIA — keys live ya disponibles en .env

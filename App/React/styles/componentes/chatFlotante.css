@@ -1,0 +1,192 @@
+/*
+ * chatFlotante.css — Kamples
+ * Chats flotantes tipo Messenger en esquina inferior derecha.
+ * Se posicionan encima del reproductor global.
+ */
+
+/* Contenedor principal: stack horizontal en esquina inferior derecha */
+.chatFlotanteContenedor {
+    position: fixed;
+    bottom: 100px; /* encima del reproductor global */
+    right: var(--espacioLg);
+    display: flex;
+    flex-direction: row-reverse;
+    gap: var(--espacioSm);
+    z-index: var(--zModal);
+    pointer-events: none;
+}
+
+/* Ventana individual de chat */
+.chatFlotanteVentana {
+    width: 320px;
+    max-height: 420px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    pointer-events: auto;
+}
+
+/* Chat minimizado: solo header */
+.chatFlotanteMinimizado {
+    max-height: unset;
+    width: 240px;
+}
+
+/* Header del chat */
+.chatFlotanteHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    background-color: var(--fondoElevado2);
+    border-bottom: 1px solid var(--bordeSutil);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.chatFlotanteNombre {
+    flex: 1;
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chatFlotanteHeaderAcciones {
+    display: flex;
+    gap: 2px;
+}
+
+.chatFlotanteHeaderBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    transition: all var(--transicionRapida);
+}
+
+.chatFlotanteHeaderBtn:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado3);
+}
+
+/* Area de mensajes */
+.chatFlotanteMensajes {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--espacioSm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    min-height: 200px;
+    max-height: 300px;
+}
+
+.chatFlotanteVacio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+}
+
+/* Burbujas de mensaje */
+.chatFlotanteBurbuja {
+    max-width: 80%;
+    padding: var(--espacioXs) var(--espacioSm);
+    border-radius: var(--radioMd);
+    font-size: var(--fuenteSm);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.chatFlotanteBurbuja p {
+    margin: 0;
+}
+
+.chatFlotanteBurbujaMia {
+    align-self: flex-end;
+    background-color: var(--acento-blanco);
+    color: var(--fondoBase);
+}
+
+.chatFlotanteBurbujaOtra {
+    align-self: flex-start;
+    background-color: var(--fondoElevado3);
+    color: var(--textoPrimario);
+}
+
+/* Input de mensaje */
+.chatFlotanteInput {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioSm);
+    border-top: 1px solid var(--bordeSutil);
+    flex-shrink: 0;
+}
+
+.chatFlotanteInput input {
+    flex: 1;
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioFull);
+    padding: var(--espacioXs) var(--espacioSm);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    outline: none;
+}
+
+.chatFlotanteInput input:focus {
+    border-color: var(--bordeActivo);
+}
+
+.chatFlotanteEnviar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: var(--radioFull);
+    transition: all var(--transicionRapida);
+}
+
+.chatFlotanteEnviarActivo {
+    color: var(--acento-blanco);
+}
+
+.chatFlotanteEnviar:hover:not(:disabled) {
+    background-color: var(--fondoElevado3);
+}
+
+.chatFlotanteEnviar:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .chatFlotanteContenedor {
+        right: var(--espacioSm);
+        bottom: 80px;
+    }
+    .chatFlotanteVentana {
+        width: 280px;
+    }
+}

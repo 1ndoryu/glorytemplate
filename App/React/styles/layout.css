@@ -92,3 +92,16 @@
         bottom: var(--espacioMd);
     }
 }
+
+/* Layout público — para usuarios no autenticados (landing, login, registro) */
+.layoutPublico {
+    min-height: 100vh;
+    width: 100vw;
+    background-color: var(--fondoBase);
+    overflow-x: hidden;
+}
+
+.areaContenidoPublico {
+    width: 100%;
+    min-height: 100vh;
+}

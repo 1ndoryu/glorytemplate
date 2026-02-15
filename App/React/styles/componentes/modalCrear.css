@@ -109,39 +109,92 @@
     color: var(--error);
 }
 
-/* Metadata de audio (grid 3 cols) */
-.crearMetadata {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: var(--espacioSm);
-}
-
-.crearMetadataGrupo {
+/* Waveform preview del audio adjunto */
+.crearWaveform {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioSm) var(--espacioMd);
+    background-color: var(--fondoElevado2);
+    border-radius: var(--radioMd);
+    cursor: pointer;
+    transition: background-color var(--transicionRapida);
 }
 
-.crearMetadataGrupo label {
+.crearWaveform:hover {
+    background-color: var(--fondoElevado3);
+}
+
+.crearWaveformBarras {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    width: 100%;
+    height: 40px;
+}
+
+.crearWaveformBarra {
+    flex: 1;
+    min-width: 2px;
+    background-color: var(--acento-blanco);
+    border-radius: 1px;
+    opacity: 0.6;
+    transition: opacity var(--transicionRapida);
+}
+
+.crearWaveform:hover .crearWaveformBarra {
+    opacity: 1;
+}
+
+.crearWaveformLabel {
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
-    text-transform: uppercase;
 }
 
-.crearMetadataGrupo input,
-.crearMetadataGrupo select {
+/* Info de IA automática */
+.crearIaInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
     background-color: var(--fondoElevado2);
-    color: var(--textoPrimario);
+    border-radius: var(--radioSm);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    font-style: italic;
+}
+
+/* Condiciones del sample (descarga, licencia) */
+.crearCondiciones {
+    display: flex;
+    gap: var(--espacioSm);
+    flex-wrap: wrap;
+}
+
+.crearCondicionBtn {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioSm);
-    padding: var(--espacioXs) var(--espacioSm);
-    font-size: var(--fuenteSm);
-    outline: none;
+    background: none;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
 }
 
-.crearMetadataGrupo input:focus,
-.crearMetadataGrupo select:focus {
+.crearCondicionBtn:hover {
     border-color: var(--bordeActivo);
+    color: var(--textoSecundario);
+}
+
+.crearCondicionActiva {
+    border-color: var(--acento-blanco);
+    color: var(--acento-blanco);
+    background-color: var(--fondoElevado3);
 }
 
 /* Grid de imágenes */

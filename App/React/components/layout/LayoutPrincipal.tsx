@@ -3,6 +3,8 @@
  * Wrapper del layout completo: sidebar + topbar + contenido + reproductor + modal subida.
  * Envuelve cada isla para proporcionar la estructura base de Kamples.
  * Detecta la página activa de forma reactiva vía el navigationStore de Glory.
+ * Si el usuario NO está autenticado, oculta sidebar/topbar/reproductor
+ * y muestra el contenido a pantalla completa (ideal para LandingPublica).
  */
 
 import { useMemo, type ReactNode } from 'react';
@@ -11,7 +13,10 @@ import { TopBar } from './TopBar';
 import { ReproductorGlobal } from '../ui/ReproductorGlobal';
 import { ModalCrear } from '../social/ModalCrear';
 import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
+import { ModalConfiguracion } from '../social/ModalConfiguracion';
+import { ChatFlotante } from '../social/ChatFlotante';
 import { useNavigationStore } from '@/core/router';
+import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/variables.css';
 import '../../styles/reset.css';
 import '../../styles/layout.css';
@@ -53,11 +58,23 @@ export const LayoutPrincipal = ({
 }: LayoutPrincipalProps): JSX.Element => {
     /* Se suscribe al store SPA para reaccionar a cambios de ruta sin recarga */
     const rutaActual = useNavigationStore((s) => s.rutaActual);
+    const { autenticado } = useAuthStore();
 
     const activa = useMemo(
         () => paginaActiva ?? detectarPaginaActiva(rutaActual),
         [paginaActiva, rutaActual]
     );
+
+    /* Si no está autenticado, mostrar contenido a pantalla completa (landing) */
+    if (!autenticado) {
+        return (
+            <div className="layoutPublico">
+                <main className="areaContenidoPublico">
+                    {children}
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className="layoutPrincipal">
@@ -84,6 +101,12 @@ export const LayoutPrincipal = ({
 
             {/* Modal selector de colección (menú contextual → añadir a colección) */}
             <ModalSeleccionColeccion />
+
+            {/* Modal de configuración de perfil */}
+            <ModalConfiguracion />
+
+            {/* Chats flotantes tipo Messenger */}
+            <ChatFlotante />
         </div>
     );
 };

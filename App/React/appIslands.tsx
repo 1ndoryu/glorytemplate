@@ -25,6 +25,8 @@ import {MensajesIsland} from './islands/mensajes/MensajesIsland';
 import {ChatIsland} from './islands/mensajes/ChatIsland';
 import {DashboardCreadorIsland} from './islands/admin/DashboardCreadorIsland';
 import {PlanesIsland} from './islands/planes/PlanesIsland';
+import {ColeccionDetalleIsland} from './islands/colecciones/ColeccionDetalleIsland';
+import {ComunidadIsland} from './islands/comunidad/ComunidadIsland';
 import {LayoutPrincipal} from '@app/components/layout/LayoutPrincipal';
 import {InicializadorAuth} from '@app/components/auth/InicializadorAuth';
 
@@ -66,6 +68,8 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     ChatIsland: ChatIsland as React.ComponentType<Record<string, unknown>>,
     DashboardCreadorIsland: DashboardCreadorIsland as React.ComponentType<Record<string, unknown>>,
     PlanesIsland: PlanesIsland as React.ComponentType<Record<string, unknown>>,
+    ColeccionDetalleIsland: ColeccionDetalleIsland as React.ComponentType<Record<string, unknown>>,
+    ComunidadIsland: ComunidadIsland as React.ComponentType<Record<string, unknown>>,
 };
 
 export default appIslands;

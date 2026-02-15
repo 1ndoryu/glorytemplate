@@ -1,52 +1,62 @@
 /*
  * Store: filtrosStore — Kamples
- * Estado global de filtros para el explorador de samples.
+ * Estado global de filtros y ordenamientos para el feed de samples.
+ * Filtros: toggles simples on/off (yaReproducidos, likeados, deSeguidos, descargados).
+ * Ordenamientos: inteligente (default), recientes, destacados (con sub-periodo).
  */
 
 import { create } from 'zustand';
-import type { TipoSample, NotaMusical } from '../types';
+
+export type TipoOrdenamiento = 'inteligente' | 'recientes' | 'destacados';
+export type PeriodoDestacados = 'semana' | 'mes' | 'anio';
 
 interface EstadoFiltros {
     busqueda: string;
-    genero: string;
-    bpmMin: number | undefined;
-    bpmMax: number | undefined;
-    key: NotaMusical | undefined;
-    tipo: TipoSample | undefined;
-    ordenar: 'relevancia' | 'recientes' | 'popular' | 'duracion';
     pagina: number;
+
+    /* Filtros toggle */
+    yaReproducidos: boolean;
+    likeados: boolean;
+    deSeguidos: boolean;
+    descargados: boolean;
+
+    /* Ordenamiento */
+    ordenamiento: TipoOrdenamiento;
+    periodoDestacados: PeriodoDestacados;
 
     /* Acciones */
     setBusqueda: (busqueda: string) => void;
-    setGenero: (genero: string) => void;
-    setBpmRango: (min?: number, max?: number) => void;
-    setKey: (key: NotaMusical | undefined) => void;
-    setTipo: (tipo: TipoSample | undefined) => void;
-    setOrdenar: (ordenar: EstadoFiltros['ordenar']) => void;
     setPagina: (pagina: number) => void;
+    toggleYaReproducidos: () => void;
+    toggleLikeados: () => void;
+    toggleDeSeguidos: () => void;
+    toggleDescargados: () => void;
+    setOrdenamiento: (tipo: TipoOrdenamiento) => void;
+    setPeriodoDestacados: (periodo: PeriodoDestacados) => void;
     resetearFiltros: () => void;
 }
 
 const filtrosIniciales = {
     busqueda: '',
-    genero: '',
-    bpmMin: undefined as number | undefined,
-    bpmMax: undefined as number | undefined,
-    key: undefined as NotaMusical | undefined,
-    tipo: undefined as TipoSample | undefined,
-    ordenar: 'relevancia' as const,
     pagina: 1,
+    yaReproducidos: false,
+    likeados: false,
+    deSeguidos: false,
+    descargados: false,
+    ordenamiento: 'inteligente' as TipoOrdenamiento,
+    periodoDestacados: 'semana' as PeriodoDestacados,
 };
 
 export const useFiltrosStore = create<EstadoFiltros>((set) => ({
     ...filtrosIniciales,
 
     setBusqueda: (busqueda) => set({ busqueda, pagina: 1 }),
-    setGenero: (genero) => set({ genero, pagina: 1 }),
-    setBpmRango: (min, max) => set({ bpmMin: min, bpmMax: max, pagina: 1 }),
-    setKey: (key) => set({ key, pagina: 1 }),
-    setTipo: (tipo) => set({ tipo, pagina: 1 }),
-    setOrdenar: (ordenar) => set({ ordenar, pagina: 1 }),
     setPagina: (pagina) => set({ pagina }),
+    toggleYaReproducidos: () => set((s) => ({ yaReproducidos: !s.yaReproducidos, pagina: 1 })),
+    toggleLikeados: () => set((s) => ({ likeados: !s.likeados, pagina: 1 })),
+    toggleDeSeguidos: () => set((s) => ({ deSeguidos: !s.deSeguidos, pagina: 1 })),
+    toggleDescargados: () => set((s) => ({ descargados: !s.descargados, pagina: 1 })),
+    setOrdenamiento: (ordenamiento) => set({ ordenamiento, pagina: 1 }),
+    setPeriodoDestacados: (periodo) => set({ periodoDestacados: periodo, pagina: 1 }),
     resetearFiltros: () => set({ ...filtrosIniciales }),
 }));

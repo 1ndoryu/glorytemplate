@@ -10,6 +10,7 @@ import type {SampleResumen} from '../../types';
 import {WaveformPlayer} from './WaveformPlayer';
 import {Badge} from './Badge';
 import {obtenerImagenColor} from '../../services/imagenesColor';
+import {etiquetaBpm} from '../../services/bpmUtils';
 import '../../styles/componentes/tarjetaSample.css';
 
 interface TarjetaSampleProps {
@@ -311,7 +312,7 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                 <div className="tarjetaMeta">
                     {sample.bpm && (
                         <Badge variante="neutro">
-                            {sample.bpm} BPM
+                            {etiquetaBpm(sample.bpm)}
                         </Badge>
                     )}
                     {sample.key && (

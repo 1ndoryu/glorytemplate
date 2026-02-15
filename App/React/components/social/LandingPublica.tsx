@@ -1,7 +1,8 @@
 /*
- * Componente: LandingPublica — Kamples (Fase 1.10)
+ * Componente: LandingPublica — Kamples
  * Página de bienvenida para usuarios no autenticados.
  * Muestra el valor de la plataforma, CTA de registro y samples trending.
+ * Nav flotante fijo arriba con backdrop-filter: blur.
  */
 
 import { useEffect, useState } from 'react';
@@ -25,7 +26,7 @@ import '../../styles/componentes/landingPublica.css';
 export const LandingPublica = (): JSX.Element => {
     const [trending, setTrending] = useState<SampleResumen[]>([]);
     const { navegar } = useNavigationStore();
-    const { setSample, sampleActual, reproduciendo, progreso, play, pause } =
+    const { setSample, sampleActual, reproduciendo, progreso } =
         useReproductorStore();
 
     useEffect(() => {
@@ -38,6 +39,29 @@ export const LandingPublica = (): JSX.Element => {
 
     return (
         <div className="landingPublica" id="landingPublica">
+            {/* Nav flotante con blur */}
+            <nav className="landingNav">
+                <div className="landingNavIzquierda">
+                    <AudioLines size={24} />
+                    <span className="landingNavLogo">Kamples</span>
+                </div>
+                <div className="landingNavDerecha">
+                    <BotonBase
+                        variante="ghost"
+                        tamano="sm"
+                        onClick={() => navegar('/auth/login/')}
+                    >
+                        Iniciar sesión
+                    </BotonBase>
+                    <BotonBase
+                        variante="primario"
+                        tamano="sm"
+                        onClick={() => navegar('/auth/registro/')}
+                    >
+                        Crear cuenta
+                    </BotonBase>
+                </div>
+            </nav>
             {/* Hero */}
             <section className="landingHero">
                 <div className="landingHeroIcono">

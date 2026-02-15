@@ -257,6 +257,24 @@ class KamplesController
             'callback'            => [self::class, 'marcarTodasNotificacionesLeidas'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        /* =====================================================
+         * COLORES — Lista dinámica de imágenes (FASE 0.4)
+         * ===================================================== */
+        register_rest_route(self::NAMESPACE, '/colors', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'listarColores'],
+            'permission_callback' => '__return_true',
+        ]);
+
+        /* =====================================================
+         * UPLOAD DE SAMPLES (FASE 0.2)
+         * ===================================================== */
+        register_rest_route(self::NAMESPACE, '/samples/upload', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'subirSample'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     /* 
@@ -1296,5 +1314,208 @@ class KamplesController
         );
 
         return new \WP_REST_Response(['ok' => true], 200);
+    }
+
+    /* =====================================================
+     * FASE 0.4 — Imágenes colors/ dinámicas
+     * Lee el directorio colors/ del tema, cachea la lista 24h (transient WP).
+     * ===================================================== */
+
+    /*
+     * Endpoint: GET /kamples/v1/colors
+     * Retorna la lista de nombres de archivo de imágenes en colors/.
+     */
+    public static function listarColores(): \WP_REST_Response
+    {
+        $cacheKey = 'kamples_colors_list';
+        $cached = get_transient($cacheKey);
+
+        if ($cached !== false) {
+            return new \WP_REST_Response([
+                'ok'       => true,
+                'imagenes' => $cached,
+                'total'    => count($cached),
+                'cache'    => true,
+            ], 200);
+        }
+
+        $directorio = get_template_directory() . '/colors/';
+        $imagenes = [];
+
+        if (is_dir($directorio)) {
+            $extensiones = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+            $archivos = scandir($directorio);
+
+            foreach ($archivos as $archivo) {
+                if ($archivo === '.' || $archivo === '..') continue;
+                $ext = strtolower(pathinfo($archivo, PATHINFO_EXTENSION));
+                if (in_array($ext, $extensiones, true)) {
+                    $imagenes[] = $archivo;
+                }
+            }
+
+            sort($imagenes);
+        }
+
+        /* Cachear 24 horas */
+        set_transient($cacheKey, $imagenes, DAY_IN_SECONDS);
+
+        return new \WP_REST_Response([
+            'ok'       => true,
+            'imagenes' => $imagenes,
+            'total'    => count($imagenes),
+            'cache'    => false,
+        ], 200);
+    }
+
+    /* =====================================================
+     * FASE 0.2 — Upload de samples
+     * Recibe audio via multipart/form-data, guarda en wp-content/uploads/kamples/.
+     * ===================================================== */
+
+    private const FORMATOS_AUDIO_VALIDOS = ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/flac', 'audio/aiff', 'audio/x-wav', 'audio/x-aiff'];
+    private const MAX_TAMANO_AUDIO = 50 * 1024 * 1024; /* 50 MB */
+
+    /*
+     * Endpoint: POST /kamples/v1/samples/upload
+     * Sube un archivo de audio + datos del sample.
+     */
+    public static function subirSample(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $wpUserId = AuthMiddleware::obtenerWpUserId();
+        $archivos = $request->get_file_params();
+
+        if (empty($archivos['audio'])) {
+            return new \WP_REST_Response([
+                'ok'    => false,
+                'error' => 'No se recibió archivo de audio',
+            ], 400);
+        }
+
+        $audio = $archivos['audio'];
+
+        /* Validar tipo MIME */
+        if (!in_array($audio['type'], self::FORMATOS_AUDIO_VALIDOS, true)) {
+            return new \WP_REST_Response([
+                'ok'    => false,
+                'error' => 'Formato de audio no válido. Formatos aceptados: WAV, MP3, FLAC, AIFF',
+            ], 400);
+        }
+
+        /* Validar tamaño */
+        if ($audio['size'] > self::MAX_TAMANO_AUDIO) {
+            return new \WP_REST_Response([
+                'ok'    => false,
+                'error' => 'El archivo excede el tamaño máximo de 50 MB',
+            ], 400);
+        }
+
+        /* Directorio personalizado: kamples/{user_id}/{Y}/{m}/ */
+        $anio = date('Y');
+        $mes = date('m');
+        $subDir = "kamples/{$wpUserId}/{$anio}/{$mes}";
+        $uploadDir = wp_upload_dir();
+        $directorioDestino = $uploadDir['basedir'] . '/' . $subDir;
+
+        if (!file_exists($directorioDestino)) {
+            wp_mkdir_p($directorioDestino);
+        }
+
+        /* Agregar filtro temporal para cambiar el directorio de upload */
+        $filtroDir = function ($paths) use ($subDir) {
+            $paths['subdir'] = '/' . $subDir;
+            $paths['path'] = $paths['basedir'] . '/' . $subDir;
+            $paths['url'] = $paths['baseurl'] . '/' . $subDir;
+            return $paths;
+        };
+
+        add_filter('upload_dir', $filtroDir);
+
+        /* Usar wp_handle_upload para procesar el archivo */
+        $subido = wp_handle_upload($audio, [
+            'test_form' => false,
+            'mimes'     => [
+                'wav'  => 'audio/wav',
+                'mp3'  => 'audio/mpeg',
+                'flac' => 'audio/flac',
+                'aiff' => 'audio/aiff',
+            ],
+        ]);
+
+        remove_filter('upload_dir', $filtroDir);
+
+        if (isset($subido['error'])) {
+            return new \WP_REST_Response([
+                'ok'    => false,
+                'error' => 'Error al subir archivo: ' . $subido['error'],
+            ], 500);
+        }
+
+        /* Datos adicionales del request */
+        $titulo = sanitize_text_field($request->get_param('titulo') ?? $audio['name']);
+        $contenido = sanitize_textarea_field($request->get_param('contenido') ?? '');
+        $tags = $request->get_param('tags') ?? [];
+        $permitirDescarga = (bool) ($request->get_param('permitir_descarga') ?? true);
+        $licenciaLibre = (bool) ($request->get_param('licencia_libre') ?? false);
+
+        /* Generar slug */
+        $slug = sanitize_title($titulo) . '-' . substr(md5(uniqid()), 0, 6);
+
+        /* Registrar en PostgreSQL */
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+
+        if (!$usuario) {
+            return new \WP_REST_Response([
+                'ok'    => false,
+                'error' => 'Usuario no encontrado en la base de datos',
+            ], 404);
+        }
+
+        $sampleId = null;
+
+        try {
+            $resultado = PostgresService::consultarUno(
+                "INSERT INTO samples (creador_id, titulo, slug, descripcion, formato, tamano, ruta_original, estado, es_premium, tags, permitir_descarga, licencia_libre, creado_at, actualizado_at)
+                VALUES (:creadorId, :titulo, :slug, :descripcion, :formato, :tamano, :rutaOriginal, 'procesando', false, :tags, :descarga, :licencia, NOW(), NOW())
+                RETURNING id",
+                [
+                    'creadorId'    => $usuario['id'],
+                    'titulo'       => $titulo,
+                    'slug'         => $slug,
+                    'descripcion'  => $contenido,
+                    'formato'      => pathinfo($audio['name'], PATHINFO_EXTENSION),
+                    'tamano'       => $audio['size'],
+                    'rutaOriginal' => $subido['file'],
+                    'tags'         => '{' . implode(',', array_map('sanitize_text_field', (array)$tags)) . '}',
+                    'descarga'     => $permitirDescarga ? 'true' : 'false',
+                    'licencia'     => $licenciaLibre ? 'true' : 'false',
+                ]
+            );
+
+            $sampleId = $resultado['id'] ?? null;
+        } catch (\Exception $e) {
+            /* Si falla Postgres, al menos el archivo se subió */
+            error_log('Kamples: Error al insertar sample en Postgres: ' . $e->getMessage());
+        }
+
+        /*
+         * TO-DO (FASE 0.3): Pipeline de procesamiento en background
+         * - Generar MP3 optimizado
+         * - Generar preview (30s max)
+         * - Generar waveform peaks JSON
+         * - Enviar a Gemini para análisis IA (FASE 2.2)
+         * Usar wp_schedule_single_event() o Action Scheduler
+         */
+
+        return new \WP_REST_Response([
+            'ok'       => true,
+            'sample_id' => $sampleId,
+            'url'      => $subido['url'],
+            'file'     => $subido['file'],
+            'slug'     => $slug,
+        ], 201);
     }
 }

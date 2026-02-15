@@ -1,17 +1,24 @@
 /*
  * Componente: ModalFiltros — Kamples
- * Modal con filtros avanzados de samples (tipo, key, BPM, escala).
- * Reemplaza los filtros inline que estaban en SamplesIsland.
+ * Modal con filtros toggle on/off para el feed de samples.
+ * Filtros: Ya reproducidos, Likeados, De personas que sigo, Descargados.
+ * Cada filtro es un switch simple, sin selects complejos.
  */
 
-import { useCallback, type ChangeEvent } from 'react';
+import { useCallback } from 'react';
+import { Play, Heart, Users, Download } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import '../../styles/componentes/modalFiltros.css';
 
-const NOTAS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-const TIPOS = ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro'];
+interface FiltroToggleDef {
+    id: string;
+    etiqueta: string;
+    icono: React.ReactNode;
+    activo: boolean;
+    onToggle: () => void;
+}
 
 interface ModalFiltrosProps {
     abierto: boolean;
@@ -19,25 +26,26 @@ interface ModalFiltrosProps {
 }
 
 export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Element | null => {
-    const { tipo, key, bpmMin, bpmMax, setTipo, setKey, setBpmRango, resetearFiltros } = useFiltrosStore();
+    const {
+        yaReproducidos,
+        likeados,
+        deSeguidos,
+        descargados,
+        toggleYaReproducidos,
+        toggleLikeados,
+        toggleDeSeguidos,
+        toggleDescargados,
+        resetearFiltros,
+    } = useFiltrosStore();
 
-    const manejarTipo = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-        setTipo(e.target.value as never || undefined);
-    }, [setTipo]);
+    const filtros: FiltroToggleDef[] = [
+        { id: 'yaReproducidos', etiqueta: 'Ya reproducidos', icono: <Play size={16} />, activo: yaReproducidos, onToggle: toggleYaReproducidos },
+        { id: 'likeados', etiqueta: 'Likeados', icono: <Heart size={16} />, activo: likeados, onToggle: toggleLikeados },
+        { id: 'deSeguidos', etiqueta: 'De personas que sigo', icono: <Users size={16} />, activo: deSeguidos, onToggle: toggleDeSeguidos },
+        { id: 'descargados', etiqueta: 'Descargados', icono: <Download size={16} />, activo: descargados, onToggle: toggleDescargados },
+    ];
 
-    const manejarKey = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-        setKey(e.target.value as never || undefined);
-    }, [setKey]);
-
-    const manejarBpmMin = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        const val = parseInt(e.target.value) || undefined;
-        setBpmRango(val, bpmMax);
-    }, [setBpmRango, bpmMax]);
-
-    const manejarBpmMax = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        const val = parseInt(e.target.value) || undefined;
-        setBpmRango(bpmMin, val);
-    }, [setBpmRango, bpmMin]);
+    const hayFiltrosActivos = yaReproducidos || likeados || deSeguidos || descargados;
 
     const manejarReset = useCallback(() => {
         resetearFiltros();
@@ -46,63 +54,31 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
     return (
         <Modal abierto={abierto} onCerrar={onCerrar}>
             <div className="filtrosContenido">
-                <div className="filtrosGrupo">
-                    <label className="filtrosLabel">Tipo</label>
-                    <select
-                        className="filtrosSelect"
-                        value={tipo ?? ''}
-                        onChange={manejarTipo}
-                    >
-                        <option value="">Todos</option>
-                        {TIPOS.map((t) => (
-                            <option key={t} value={t}>{t}</option>
-                        ))}
-                    </select>
-                </div>
+                <h3 className="filtrosTitulo">Filtros</h3>
 
-                <div className="filtrosGrupo">
-                    <label className="filtrosLabel">Key</label>
-                    <select
-                        className="filtrosSelect"
-                        value={key ?? ''}
-                        onChange={manejarKey}
-                    >
-                        <option value="">Todas</option>
-                        {NOTAS.map((n) => (
-                            <option key={n} value={n}>{n}</option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="filtrosGrupo">
-                    <label className="filtrosLabel">BPM</label>
-                    <div className="filtrosRango">
-                        <input
-                            className="filtrosRangoInput"
-                            type="number"
-                            placeholder="Min"
-                            min={40}
-                            max={300}
-                            value={bpmMin ?? ''}
-                            onChange={manejarBpmMin}
-                        />
-                        <span className="filtrosRangoSeparador">—</span>
-                        <input
-                            className="filtrosRangoInput"
-                            type="number"
-                            placeholder="Max"
-                            min={40}
-                            max={300}
-                            value={bpmMax ?? ''}
-                            onChange={manejarBpmMax}
-                        />
-                    </div>
+                <div className="filtrosToggles">
+                    {filtros.map((f) => (
+                        <button
+                            key={f.id}
+                            className={`filtroToggle ${f.activo ? 'filtroToggleActivo' : ''}`}
+                            onClick={f.onToggle}
+                            type="button"
+                        >
+                            <span className="filtroToggleIcono">{f.icono}</span>
+                            <span className="filtroToggleTexto">{f.etiqueta}</span>
+                            <span className={`filtroToggleSwitch ${f.activo ? 'filtroToggleSwitchOn' : ''}`}>
+                                <span className="filtroToggleSwitchDot" />
+                            </span>
+                        </button>
+                    ))}
                 </div>
 
                 <div className="filtrosAcciones">
-                    <BotonBase variante="ghost" onClick={manejarReset}>
-                        Limpiar filtros
-                    </BotonBase>
+                    {hayFiltrosActivos && (
+                        <BotonBase variante="ghost" onClick={manejarReset}>
+                            Limpiar filtros
+                        </BotonBase>
+                    )}
                     <BotonBase variante="primario" onClick={onCerrar}>
                         Aplicar
                     </BotonBase>

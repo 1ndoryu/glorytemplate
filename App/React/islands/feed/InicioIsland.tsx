@@ -1,14 +1,14 @@
 /*
  * InicioIsland — Kamples
- * Feed principal unificado: Todos, Trending, Recientes, Para ti.
- * Las tabs se renderizan en el TopBar via tabsTopBarStore.
+ * Feed principal con ordenamientos (Inteligente/Recientes/Destacados).
+ * Sin tabs: los ordenamientos están al lado del botón de filtros.
  * La búsqueda se conecta al filtrosStore (escrita desde TopBar).
- * Los tags dinámicos reemplazan la zona de filtros anterior.
+ * Los tags dinámicos permiten filtrar por inclusión/exclusión.
  * Si el usuario no está autenticado, muestra LandingPublica.
  */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { Music, SlidersHorizontal, Plus, Minus } from 'lucide-react';
+import { Music, SlidersHorizontal, Plus, Minus, ChevronDown } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -17,20 +17,13 @@ import { obtenerFeed, listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useAuthStore } from '@app/stores/authStore';
-import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
 import type { SampleResumen } from '@app/types';
+import type { TipoOrdenamiento, PeriodoDestacados } from '@app/stores/filtrosStore';
 import '../../styles/componentes/inicio.css';
-
-const TABS_INICIO = [
-    { id: 'todos', etiqueta: 'Todos' },
-    { id: 'trending', etiqueta: 'Trending' },
-    { id: 'recientes', etiqueta: 'Recientes' },
-    { id: 'parati', etiqueta: 'Para ti' },
-];
 
 export const InicioIsland = (): JSX.Element => {
     const { autenticado, cargando } = useAuthStore();
@@ -53,13 +46,14 @@ export const InicioIsland = (): JSX.Element => {
     return <FeedUnificado />;
 };
 
-/* Feed unificado: una sola lista controlada por la tab activa y la búsqueda */
+/* Feed unificado controlado por ordenamiento y filtros toggle */
 const FeedUnificado = (): JSX.Element => {
     const [samples, setSamples] = useState<SampleResumen[]>([]);
     const [cargando, setCargando] = useState(true);
     const [tagsIncluidos, setTagsIncluidos] = useState<string[]>([]);
     const [tagsExcluidos, setTagsExcluidos] = useState<string[]>([]);
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
+    const [menuDestacados, setMenuDestacados] = useState(false);
     const [arrastrandoTags, setArrastrandoTags] = useState(false);
     const inicioXArrastreRef = useRef(0);
     const scrollInicialRef = useRef(0);
@@ -67,43 +61,34 @@ const FeedUnificado = (): JSX.Element => {
 
     const { navegar } = useNavigationStore();
     const { abrir: abrirCrear } = useCrearModalStore();
-    const { activa: tabActiva, setTabs } = useTabsTopBarStore();
-    const { busqueda } = useFiltrosStore();
+    const { busqueda, ordenamiento, periodoDestacados, setOrdenamiento, setPeriodoDestacados } = useFiltrosStore();
     const menu = useMenuContextualSample();
 
-    /* Registrar tabs en el TopBar al montar */
-    useEffect(() => {
-        setTabs(TABS_INICIO, 'todos');
-        return () => { setTabs([]); };
-    }, [setTabs]);
-
-    /* Cargar samples según la tab activa */
+    /* Cargar samples según el ordenamiento activo */
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
 
-            if (tabActiva === 'todos' || !tabActiva) {
+            if (ordenamiento === 'recientes') {
+                const resp = await obtenerFeed('recientes');
+                if (resp.ok && resp.data) setSamples(resp.data);
+            } else if (ordenamiento === 'destacados') {
+                const resp = await obtenerFeed('trending');
+                if (resp.ok && resp.data) setSamples(resp.data);
+            } else {
+                /* Inteligente: usa listarSamples con búsqueda */
                 const resp = await listarSamples({
                     page: 1,
                     perPage: 30,
                     busqueda: busqueda || undefined,
                 });
-                if (resp.ok && resp.data) {
-                    setSamples(resp.data.data ?? []);
-                }
-            } else {
-                const tipo = tabActiva === 'parati' ? 'descubrir' : tabActiva as 'trending' | 'recientes';
-                const resp = await obtenerFeed(tipo);
-                if (resp.ok && resp.data) {
-                    setSamples(resp.data);
-                }
+                if (resp.ok && resp.data) setSamples(resp.data.data ?? []);
             }
 
             setCargando(false);
         };
-
         cargar();
-    }, [tabActiva, busqueda]);
+    }, [ordenamiento, busqueda, periodoDestacados]);
 
     /* Tags dinámicos extraídos de todos los samples cargados */
     const todosLosTags = useMemo(() => {
@@ -112,13 +97,9 @@ const FeedUnificado = (): JSX.Element => {
         return Array.from(tagSet).slice(0, 28);
     }, [samples]);
 
-    /* Filtrar por lógica de suma/resta de tags:
-     * - incluidos: el sample debe contener TODOS
-     * - excluidos: el sample no debe contener NINGUNO
-     */
+    /* Filtrar por tags incluidos/excluidos */
     const samplesFiltrados = useMemo(() => {
         if (tagsIncluidos.length === 0 && tagsExcluidos.length === 0) return samples;
-
         return samples.filter((sample) => {
             const tagsSample = sample.tags ?? [];
             const cumpleIncluidos = tagsIncluidos.every((tag) => tagsSample.includes(tag));
@@ -158,22 +139,36 @@ const FeedUnificado = (): JSX.Element => {
         setArrastrandoTags(false);
     }, []);
 
-    /* Like con optimistic UI */
+    /* Like con optimistic UI — usa callback de setState para evitar stale closure */
     const manejarLike = useCallback(async (sampleId: number) => {
+        let estabaLiked = false;
         setSamples((prev) =>
-            prev.map((s) =>
-                s.id === sampleId
-                    ? { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) }
-                    : s
-            )
+            prev.map((s) => {
+                if (s.id === sampleId) {
+                    estabaLiked = s.liked ?? false;
+                    return { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) };
+                }
+                return s;
+            })
         );
-        const sample = samples.find((s) => s.id === sampleId);
-        if (sample?.liked) {
+        if (estabaLiked) {
             await quitarLike('sample', sampleId);
         } else {
             await darLike('sample', sampleId);
         }
-    }, [samples]);
+    }, []);
+
+    /* Manejar selección de periodo en submenu Destacados */
+    const manejarPeriodo = useCallback((periodo: PeriodoDestacados) => {
+        setPeriodoDestacados(periodo);
+        setMenuDestacados(false);
+    }, [setPeriodoDestacados]);
+
+    const etiquetasOrden: Record<TipoOrdenamiento, string> = {
+        inteligente: 'Inteligente',
+        recientes: 'Recientes',
+        destacados: 'Destacados',
+    };
 
     if (cargando) {
         return (
@@ -188,7 +183,62 @@ const FeedUnificado = (): JSX.Element => {
 
     return (
         <div className="inicioContenedor" id="seccionInicio">
-            {/* Tags dinámicos + botón filtros avanzados */}
+            {/* Barra de ordenamientos + filtros */}
+            <div className="inicioBarraControl">
+                <div className="inicioOrdenamientos">
+                    {(['inteligente', 'recientes', 'destacados'] as TipoOrdenamiento[]).map((tipo) => (
+                        <div key={tipo} className="inicioOrdenWrapper">
+                            <button
+                                className={`inicioOrdenBtn ${ordenamiento === tipo ? 'inicioOrdenBtnActivo' : ''}`}
+                                onClick={() => {
+                                    if (tipo === 'destacados' && ordenamiento === 'destacados') {
+                                        setMenuDestacados((prev) => !prev);
+                                    } else {
+                                        setOrdenamiento(tipo);
+                                        setMenuDestacados(false);
+                                    }
+                                }}
+                                type="button"
+                            >
+                                {etiquetasOrden[tipo]}
+                                {tipo === 'destacados' && <ChevronDown size={12} />}
+                            </button>
+
+                            {/* Submenu de periodos para Destacados */}
+                            {tipo === 'destacados' && menuDestacados && (
+                                <div className="inicioDestacadosMenu">
+                                    <button onClick={() => manejarPeriodo('semana')} type="button"
+                                        className={periodoDestacados === 'semana' ? 'inicioDestacadosActivo' : ''}>
+                                        Esta semana
+                                    </button>
+                                    <button onClick={() => manejarPeriodo('mes')} type="button"
+                                        className={periodoDestacados === 'mes' ? 'inicioDestacadosActivo' : ''}>
+                                        Este mes
+                                    </button>
+                                    <button onClick={() => manejarPeriodo('anio')} type="button"
+                                        className={periodoDestacados === 'anio' ? 'inicioDestacadosActivo' : ''}>
+                                        Este año
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="inicioControlesDerecha">
+                    <span className="inicioTagsContador">{samplesFiltrados.length} samples</span>
+                    <button
+                        className="inicioFiltrosBtn"
+                        onClick={() => setFiltrosAbierto(true)}
+                        type="button"
+                        aria-label="Filtros"
+                    >
+                        <SlidersHorizontal size={16} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Tags dinámicos */}
             <div className="inicioTags">
                 <div
                     ref={listaTagsRef}
@@ -206,58 +256,29 @@ const FeedUnificado = (): JSX.Element => {
                             key={tag}
                             className={`inicioTagItem ${tagsIncluidos.includes(tag) ? 'inicioTagItemIncluido' : ''} ${tagsExcluidos.includes(tag) ? 'inicioTagItemExcluido' : ''}`}
                         >
-                            <button
-                                type="button"
-                                className="inicioTagBoton inicioTagBotonRestar"
+                            <button type="button" className="inicioTagBoton inicioTagBotonRestar"
                                 aria-label={`Excluir tag ${tag}`}
                                 onMouseDown={(e) => e.stopPropagation()}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    manejarExcluirTag(tag);
-                                }}
+                                onClick={(e) => { e.stopPropagation(); manejarExcluirTag(tag); }}
                             >
                                 <Minus size={10} />
                             </button>
-
-                            <button
-                                type="button"
-                                className="inicioTagTexto"
+                            <button type="button" className="inicioTagTexto"
                                 aria-label={`Incluir tag ${tag}`}
                                 onMouseDown={(e) => e.stopPropagation()}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    manejarIncluirTag(tag);
-                                }}
+                                onClick={(e) => { e.stopPropagation(); manejarIncluirTag(tag); }}
                             >
                                 {tag}
                             </button>
-
-                            <button
-                                type="button"
-                                className="inicioTagBoton inicioTagBotonSumar"
+                            <button type="button" className="inicioTagBoton inicioTagBotonSumar"
                                 aria-label={`Incluir tag ${tag}`}
                                 onMouseDown={(e) => e.stopPropagation()}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    manejarIncluirTag(tag);
-                                }}
+                                onClick={(e) => { e.stopPropagation(); manejarIncluirTag(tag); }}
                             >
                                 <Plus size={10} />
                             </button>
                         </div>
                     ))}
-                </div>
-
-                <div className="inicioTagsPie">
-                    <span className="inicioTagsContador">{samplesFiltrados.length} samples</span>
-                <button
-                    className="inicioFiltrosBtn"
-                    onClick={() => setFiltrosAbierto(true)}
-                    type="button"
-                    aria-label="Filtros avanzados"
-                >
-                    <SlidersHorizontal size={16} />
-                </button>
                 </div>
             </div>
 
@@ -284,7 +305,6 @@ const FeedUnificado = (): JSX.Element => {
                 </div>
             )}
 
-            {/* Menú contextual de sample */}
             <MenuContextual
                 abierto={menu.estado.abierto}
                 onCerrar={menu.cerrarMenu}
@@ -293,7 +313,6 @@ const FeedUnificado = (): JSX.Element => {
                 y={menu.estado.y}
             />
 
-            {/* Modal de filtros avanzados */}
             <ModalFiltros
                 abierto={filtrosAbierto}
                 onCerrar={() => setFiltrosAbierto(false)}

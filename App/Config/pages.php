@@ -87,6 +87,21 @@ PageManager::reactPage('reproductor', 'ReproductorIsland');
 PageManager::reactPage('descubrir', 'DescubrirIsland');
 PageManager::reactPage('notificaciones', 'NotificacionesIsland');
 PageManager::reactPage('planes', 'PlanesIsland');
+PageManager::reactPage('comunidad', 'ComunidadIsland');
+
+/*
+ * Colección detalle — recibe coleccionId como segmento dinámico
+ */
+PageManager::reactPage('coleccion', 'ColeccionDetalleIsland', function($pageId) {
+    $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+    $partes = explode('/', $path);
+    $idx = array_search('coleccion', $partes);
+    $coleccionId = ($idx !== false && isset($partes[$idx + 1])) ? $partes[$idx + 1] : '';
+    return ['coleccionId' => sanitize_text_field($coleccionId)];
+});
+
+/* Ruta dinámica: /coleccion/{slug} */
+PageManager::registrarRutaDinamica('coleccion');
 
 /*
  * =====================================================

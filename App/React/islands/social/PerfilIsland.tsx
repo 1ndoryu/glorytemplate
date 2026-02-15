@@ -18,6 +18,7 @@ import { listarSamples } from '../../services/apiSamples';
 import { darLike, quitarLike } from '../../services/apiSocial';
 import { useAuthStore } from '../../stores/authStore';
 import { useTabsTopBarStore } from '../../stores/tabsTopBarStore';
+import { useConfiguracionModalStore } from '../../stores/configuracionModalStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '../../hooks/useMenuContextualSample';
 import type { Usuario } from '../../types/usuario';
@@ -47,14 +48,15 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
     const [likesPerfil, setLikesPerfil] = useState<SampleResumen[]>([]);
     const [cargandoTab, setCargandoTab] = useState(false);
 
-    const { usuario: usuarioAuth } = useAuthStore();
+    const { usuario: usuarioAuth, cargando: authCargando } = useAuthStore();
     const { activa: tabActiva, setTabs } = useTabsTopBarStore();
     const { navegar } = useNavigationStore();
+    const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
     const menu = useMenuContextualSample();
 
     /*
-     * Fix: si username viene vacío, es "perfil" o "editar", usar el del usuario autenticado.
-     * Esto resuelve el bug de que /perfil nunca carga.
+     * Fix race condition: si username viene vacío y authStore aún está cargando,
+     * esperamos a que termine. Si termina y no hay username → perfil propio.
      */
     const username = useMemo(() => {
         const val = usernameProp?.trim();
@@ -73,6 +75,8 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
     }, [setTabs]);
 
     useEffect(() => {
+        /* Si authStore sigue cargando y no tenemos username explícito, esperar */
+        if (!username && authCargando) return;
         if (!username) return;
 
         const cargar = async () => {
@@ -90,7 +94,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
         };
 
         cargar();
-    }, [username]);
+    }, [username, authCargando]);
 
     /* Cargar contenido de tabs */
     useEffect(() => {
@@ -122,31 +126,34 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
         cargarTab();
     }, [usuario, tabActiva]);
 
-    /* Like con optimistic UI */
+    /* Like con optimistic UI — usa callback de setState para evitar stale closure */
     const manejarLike = useCallback(async (sampleId: number) => {
+        let estabaLiked = false;
+
         const actualizar = (lista: SampleResumen[]) =>
-            lista.map((s) =>
-                s.id === sampleId
-                    ? { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) }
-                    : s
-            );
+            lista.map((s) => {
+                if (s.id === sampleId) {
+                    estabaLiked = s.liked ?? false;
+                    return { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) };
+                }
+                return s;
+            });
         setSamplesPerfil(actualizar);
         setLikesPerfil(actualizar);
 
-        const sample = [...samplesPerfil, ...likesPerfil].find((s) => s.id === sampleId);
-        if (sample?.liked) {
+        if (estabaLiked) {
             await quitarLike('sample', sampleId);
         } else {
             await darLike('sample', sampleId);
         }
-    }, [samplesPerfil, likesPerfil]);
+    }, []);
 
     /* Navegación al creador */
     const manejarClickCreador = useCallback((usr: string) => {
         navegar(`/perfil/${usr}/`);
     }, [navegar]);
 
-    if (cargando) {
+    if (cargando || (authCargando && !username)) {
         return (
             <div className="perfilContenedor">
                 <div className="perfilVacio">Cargando perfil...</div>
@@ -249,7 +256,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                     {esPropietario ? (
                         <BotonBase
                             variante="secundario"
-                            onClick={() => navegar('/perfil/editar/')}
+                            onClick={() => abrirConfiguracion()}
                         >
                             <Settings size={14} />
                             Editar perfil

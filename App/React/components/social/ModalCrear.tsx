@@ -3,11 +3,12 @@
  * Modal unificado para crear publicaciones y subir samples.
  * Estilo red social: avatar + texto + adjuntos.
  * Soporta # en texto para tags, drag & drop de audio/imagenes.
- * TO-DO: conectar con endpoints reales de subida.
+ * Sin campos manuales de BPM/Key/Tipo: la IA los genera automáticamente.
+ * Incluye waveform preview del audio adjunto y toggles de condiciones.
  */
 
 import { useState, useCallback, useRef, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
-import { Music, Image, X, Sliders } from 'lucide-react';
+import { Music, Image, X, Download, ShieldCheck } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
@@ -21,12 +22,6 @@ import '../../styles/componentes/modalCrear.css';
 const log = crearLogger('ModalCrear');
 const MAX_CARACTERES = 2000;
 
-interface MetadataAudio {
-    bpm: string;
-    key: string;
-    tipo: string;
-}
-
 /* Extraer hashtags del texto */
 const extraerTags = (texto: string): string[] => {
     const regex = /#(\w+)/g;
@@ -38,14 +33,47 @@ const extraerTags = (texto: string): string[] => {
     return [...new Set(tags)];
 };
 
+/*
+ * Genera peaks simplificados de un archivo de audio para waveform preview.
+ * Usa Web Audio API para decodificar y reducir a N barras.
+ */
+const generarPeaks = async (archivo: File, barras = 60): Promise<number[]> => {
+    try {
+        const buffer = await archivo.arrayBuffer();
+        const contexto = new AudioContext();
+        const audioBuffer = await contexto.decodeAudioData(buffer);
+        const datos = audioBuffer.getChannelData(0);
+        const pasoTamano = Math.floor(datos.length / barras);
+        const peaks: number[] = [];
+
+        for (let i = 0; i < barras; i++) {
+            let max = 0;
+            for (let j = 0; j < pasoTamano; j++) {
+                const abs = Math.abs(datos[i * pasoTamano + j] || 0);
+                if (abs > max) max = abs;
+            }
+            peaks.push(max);
+        }
+
+        await contexto.close();
+        return peaks;
+    } catch {
+        return Array(barras).fill(0.3);
+    }
+};
+
 export const ModalCrear = (): JSX.Element | null => {
     const { abierto, cerrar } = useCrearModalStore();
     const { usuario, autenticado } = useAuthStore();
 
     const [contenido, setContenido] = useState('');
-    const [metadata, setMetadata] = useState<MetadataAudio>({ bpm: '', key: '', tipo: 'loop' });
-    const [mostrarMetadata, setMostrarMetadata] = useState(false);
     const [publicando, setPublicando] = useState(false);
+    const [permitirDescarga, setPermitirDescarga] = useState(true);
+    const [licenciaLibre, setLicenciaLibre] = useState(false);
+    const [waveformPeaks, setWaveformPeaks] = useState<number[]>([]);
+    const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const [reproduciendoPreview, setReproduciendoPreview] = useState(false);
+    const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
 
     const {
         audioAdjunto,
@@ -68,6 +96,32 @@ export const ModalCrear = (): JSX.Element | null => {
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+    /* Generar waveform al adjuntar audio */
+    useEffect(() => {
+        if (audioAdjunto?.archivo) {
+            generarPeaks(audioAdjunto.archivo).then(setWaveformPeaks);
+            const url = URL.createObjectURL(audioAdjunto.archivo);
+            setAudioUrl(url);
+            return () => URL.revokeObjectURL(url);
+        }
+        setWaveformPeaks([]);
+        setAudioUrl(null);
+        setReproduciendoPreview(false);
+    }, [audioAdjunto]);
+
+    /* Toggle play/pause del preview */
+    const togglePreview = useCallback(() => {
+        const audio = audioPreviewRef.current;
+        if (!audio || !audioUrl) return;
+        if (reproduciendoPreview) {
+            audio.pause();
+            setReproduciendoPreview(false);
+        } else {
+            audio.play();
+            setReproduciendoPreview(true);
+        }
+    }, [audioUrl, reproduciendoPreview]);
+
     /* Resetear al cerrar */
     const manejarCerrar = useCallback(() => {
         if (publicando) return;
@@ -75,12 +129,15 @@ export const ModalCrear = (): JSX.Element | null => {
         setTimeout(() => {
             setContenido('');
             resetearArchivos();
-            setMetadata({ bpm: '', key: '', tipo: 'loop' });
-            setMostrarMetadata(false);
+            setPermitirDescarga(true);
+            setLicenciaLibre(false);
+            setWaveformPeaks([]);
+            setAudioUrl(null);
+            setReproduciendoPreview(false);
         }, 200);
     }, [cerrar, publicando, resetearArchivos]);
 
-    /* Auto-resize textarea (2 a 6 líneas, ~20px por línea) */
+    /* Auto-resize textarea */
     const ajustarAltura = useCallback(() => {
         const el = textareaRef.current;
         if (!el) return;
@@ -99,13 +156,6 @@ export const ModalCrear = (): JSX.Element | null => {
         ajustarAltura();
     }, [ajustarAltura]);
 
-    /* Ctrl+Enter para publicar */
-    const manejarKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-        }
-    }, []);
-
     /* Publicar */
     const manejarPublicar = useCallback(async () => {
         if (publicando) return;
@@ -114,14 +164,28 @@ export const ModalCrear = (): JSX.Element | null => {
 
         setPublicando(true);
         const tags = extraerTags(contenido);
-        log.info('Publicando', { tags, tieneAudio: !!audioAdjunto, imagenes: imagenes.length });
+        log.info('Publicando', {
+            tags,
+            tieneAudio: !!audioAdjunto,
+            imagenes: imagenes.length,
+            permitirDescarga,
+            licenciaLibre,
+        });
 
-        /* TO-DO: llamar a API real de subida */
+        /* TO-DO: enviar a POST /kamples/v1/samples con FormData */
         await new Promise((r) => setTimeout(r, 1000));
 
         setPublicando(false);
         manejarCerrar();
-    }, [contenido, audioAdjunto, imagenes, publicando, manejarCerrar]);
+    }, [contenido, audioAdjunto, imagenes, publicando, manejarCerrar, permitirDescarga, licenciaLibre]);
+
+    /* Ctrl+Enter para publicar */
+    const manejarKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            manejarPublicar();
+        }
+    }, [manejarPublicar]);
 
     useEffect(() => {
         if (abierto) ajustarAltura();
@@ -177,7 +241,7 @@ export const ModalCrear = (): JSX.Element | null => {
                     </div>
                 )}
 
-                {/* Audio adjunto */}
+                {/* Audio adjunto con waveform preview */}
                 {audioAdjunto && (
                     <div className="crearAdjunto">
                         <div className="crearAdjuntoIcono"><Music size={18} /></div>
@@ -188,16 +252,8 @@ export const ModalCrear = (): JSX.Element | null => {
                             </span>
                         </div>
                         <button
-                            className="crearAdjuntoBtn"
-                            onClick={() => setMostrarMetadata(!mostrarMetadata)}
-                            type="button"
-                            aria-label="Configurar metadata"
-                        >
-                            <Sliders size={14} />
-                        </button>
-                        <button
                             className="crearAdjuntoBtn crearAdjuntoBtnQuitar"
-                            onClick={() => { quitarAudio(); setMostrarMetadata(false); }}
+                            onClick={() => { quitarAudio(); }}
                             type="button"
                             aria-label="Quitar audio"
                         >
@@ -206,41 +262,35 @@ export const ModalCrear = (): JSX.Element | null => {
                     </div>
                 )}
 
-                {/* Metadata de audio (expandible) */}
-                {audioAdjunto && mostrarMetadata && (
-                    <div className="crearMetadata">
-                        <div className="crearMetadataGrupo">
-                            <label>BPM</label>
-                            <input
-                                type="number"
-                                placeholder="120"
-                                value={metadata.bpm}
-                                onChange={(e) => setMetadata((p) => ({ ...p, bpm: e.target.value }))}
+                {/* Waveform preview del audio */}
+                {audioAdjunto && waveformPeaks.length > 0 && (
+                    <div className="crearWaveform" onClick={togglePreview} role="button" tabIndex={0}>
+                        <div className="crearWaveformBarras">
+                            {waveformPeaks.map((peak, i) => (
+                                <div
+                                    key={i}
+                                    className="crearWaveformBarra"
+                                    style={{ height: `${Math.max(peak * 100, 4)}%` }}
+                                />
+                            ))}
+                        </div>
+                        <span className="crearWaveformLabel">
+                            {reproduciendoPreview ? 'Reproduciendo...' : 'Click para previsualizar'}
+                        </span>
+                        {audioUrl && (
+                            <audio
+                                ref={audioPreviewRef}
+                                src={audioUrl}
+                                onEnded={() => setReproduciendoPreview(false)}
                             />
-                        </div>
-                        <div className="crearMetadataGrupo">
-                            <label>Key</label>
-                            <select
-                                value={metadata.key}
-                                onChange={(e) => setMetadata((p) => ({ ...p, key: e.target.value }))}
-                            >
-                                <option value="">Auto</option>
-                                {['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].map((n) => (
-                                    <option key={n} value={n}>{n}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="crearMetadataGrupo">
-                            <label>Tipo</label>
-                            <select
-                                value={metadata.tipo}
-                                onChange={(e) => setMetadata((p) => ({ ...p, tipo: e.target.value }))}
-                            >
-                                {['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro'].map((t) => (
-                                    <option key={t} value={t}>{t}</option>
-                                ))}
-                            </select>
-                        </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Nota: la IA generará BPM, Key y Tipo automáticamente */}
+                {audioAdjunto && (
+                    <div className="crearIaInfo">
+                        <span>BPM, tonalidad y tipo se detectarán automáticamente con IA</span>
                     </div>
                 )}
 
@@ -263,11 +313,35 @@ export const ModalCrear = (): JSX.Element | null => {
                     </div>
                 )}
 
-                {/* Overlay drag & drop (solo visible al arrastrar) */}
+                {/* Overlay drag & drop */}
                 {arrastrando && (
                     <div className="crearDropOverlay">
                         <Music size={32} />
                         <span>Suelta archivos aquí</span>
+                    </div>
+                )}
+
+                {/* Condiciones del sample (iconos sobre botón crear) */}
+                {audioAdjunto && (
+                    <div className="crearCondiciones">
+                        <button
+                            className={`crearCondicionBtn ${permitirDescarga ? 'crearCondicionActiva' : ''}`}
+                            onClick={() => setPermitirDescarga(!permitirDescarga)}
+                            type="button"
+                            title={permitirDescarga ? 'Descarga permitida' : 'Descarga no permitida'}
+                        >
+                            <Download size={14} />
+                            <span>{permitirDescarga ? 'Descarga sí' : 'Descarga no'}</span>
+                        </button>
+                        <button
+                            className={`crearCondicionBtn ${licenciaLibre ? 'crearCondicionActiva' : ''}`}
+                            onClick={() => setLicenciaLibre(!licenciaLibre)}
+                            type="button"
+                            title={licenciaLibre ? 'Licencia libre' : 'Licencia estándar'}
+                        >
+                            <ShieldCheck size={14} />
+                            <span>{licenciaLibre ? 'Libre' : 'Estándar'}</span>
+                        </button>
                     </div>
                 )}
 

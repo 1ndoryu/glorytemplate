@@ -1,6 +1,6 @@
 /*
  * modalFiltros.css — Kamples
- * Modal de filtros avanzados de samples.
+ * Modal de filtros toggle on/off para samples.
  */
 
 .filtrosContenido {
@@ -16,61 +16,77 @@
     margin: 0;
 }
 
-.filtrosGrupo {
+.filtrosToggles {
     display: flex;
     flex-direction: column;
-    gap: var(--espacioXs);
-}
-
-.filtrosLabel {
-    font-size: var(--fuenteSm);
-    color: var(--textoSecundario);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.filtrosSelect {
-    background-color: var(--fondoElevado2);
-    color: var(--textoPrimario);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioSm);
-    padding: var(--espacioSm) var(--espacioMd);
-    font-size: var(--fuenteMd);
-    cursor: pointer;
-    outline: none;
-    width: 100%;
-    transition: border-color var(--transicionRapida);
-}
-
-.filtrosSelect:focus {
-    border-color: var(--bordeActivo);
-}
-
-.filtrosRango {
-    display: flex;
-    align-items: center;
     gap: var(--espacioSm);
 }
 
-.filtrosRangoInput {
-    flex: 1;
-    background-color: var(--fondoElevado2);
-    color: var(--textoPrimario);
+.filtroToggle {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioMd);
+    background: var(--fondoElevado2);
     border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioSm);
-    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioMd);
+    cursor: pointer;
+    transition: background var(--transicionRapida), border-color var(--transicionRapida);
+}
+
+.filtroToggle:hover {
+    background: var(--fondoElevado3);
+}
+
+.filtroToggleActivo {
+    border-color: var(--acento);
+    background: var(--acentoFondo, rgba(139, 92, 246, 0.08));
+}
+
+.filtroToggleIcono {
+    display: flex;
+    align-items: center;
+    color: var(--textoSecundario);
+}
+
+.filtroToggleActivo .filtroToggleIcono {
+    color: var(--acento);
+}
+
+.filtroToggleTexto {
+    flex: 1;
+    text-align: left;
     font-size: var(--fuenteMd);
-    text-align: center;
-    outline: none;
+    color: var(--textoPrimario);
 }
 
-.filtrosRangoInput:focus {
-    border-color: var(--bordeActivo);
+.filtroToggleSwitch {
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--fondoElevado3);
+    position: relative;
+    transition: background var(--transicionRapida);
 }
 
-.filtrosRangoSeparador {
-    font-size: var(--fuenteSm);
-    color: var(--textoTerciario);
+.filtroToggleSwitchOn {
+    background: var(--acento);
+}
+
+.filtroToggleSwitchDot {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--textoPrimario);
+    transition: transform var(--transicionRapida);
+}
+
+.filtroToggleSwitchOn .filtroToggleSwitchDot {
+    transform: translateX(16px);
+    background: white;
 }
 
 .filtrosAcciones {
@@ -79,5 +95,4 @@
     justify-content: flex-end;
     gap: var(--espacioMd);
     padding-top: var(--espacioMd);
-    border-top: 1px solid var(--bordeSutil);
 }
