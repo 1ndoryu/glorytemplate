@@ -6,7 +6,7 @@
 
 import { apiGet, apiPost, apiPut, apiDelete } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
-import type { Coleccion, ColeccionResumen } from '../types';
+import type { Coleccion, ColeccionResumen, SampleResumen } from '../types';
 
 /* Listar colecciones del usuario (o de otro si se pasa usuarioId) */
 export const listarColecciones = async (usuarioId?: number): Promise<RespuestaApi<Coleccion[]>> => {
@@ -64,9 +64,10 @@ export const quitarSampleDeColeccion = async (
 /* Sugerencias "Más Ideas" — samples similares no incluidos en la colección */
 export const obtenerSugerencias = async (
     coleccionId: number,
+    pagina = 1,
     limite = 20
-): Promise<RespuestaApi<ColeccionResumen[]>> => {
-    return apiGet<ColeccionResumen[]>(`/colecciones/${coleccionId}/sugerencias`, { limite });
+): Promise<RespuestaApi<SampleResumen[]>> => {
+    return apiGet<SampleResumen[]>(`/colecciones/${coleccionId}/sugerencias`, { pagina, limite });
 };
 
 /* Colecciones más relevantes para un sample (para modal "Guardar en colección") */

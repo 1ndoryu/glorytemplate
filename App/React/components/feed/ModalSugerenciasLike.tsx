@@ -1,0 +1,76 @@
+/*
+ * ModalSugerenciasLike — Kamples
+ * Modal "También te podría gustar": aparece después de dar like a un sample.
+ * Muestra 3-5 samples similares por tags/BPM/key.
+ * Diseño: overlay suave, tarjetas compactas, cierre por click fuera o botón.
+ */
+
+import { useCallback } from 'react';
+import { X, Sparkles } from 'lucide-react';
+import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { Modal } from '@app/components/ui/Modal';
+import { useSugerenciasLikeStore } from '@app/stores/sugerenciasLikeStore';
+import { useNavigationStore } from '@/core/router';
+import { darLike } from '@app/services/apiSocial';
+import '../../styles/componentes/modalSugerenciasLike.css';
+
+export const ModalSugerenciasLike = (): JSX.Element | null => {
+    const { abierto, sampleOrigen, sugerencias, cargando, cerrar } = useSugerenciasLikeStore();
+    const { navegar } = useNavigationStore();
+
+    const manejarLikeSugerencia = useCallback(async (sampleId: number) => {
+        await darLike('sample', sampleId);
+    }, []);
+
+    if (!abierto) return null;
+
+    return (
+        <Modal abierto={abierto} onCerrar={cerrar} titulo="" tamano="pequeno">
+            <div className="sugerenciasLikeContenedor">
+                <div className="sugerenciasLikeHeader">
+                    <div className="sugerenciasLikeIcono">
+                        <Sparkles size={20} />
+                    </div>
+                    <h3 className="sugerenciasLikeTitulo">También te podría gustar</h3>
+                    {sampleOrigen && (
+                        <p className="sugerenciasLikeSubtitulo">
+                            Basado en tu like a &ldquo;{sampleOrigen.titulo}&rdquo;
+                        </p>
+                    )}
+                    <button
+                        className="sugerenciasLikeCerrar"
+                        onClick={cerrar}
+                        type="button"
+                        aria-label="Cerrar sugerencias"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+
+                <div className="sugerenciasLikeLista">
+                    {cargando ? (
+                        <div className="sugerenciasLikeCargando">
+                            <p>Buscando samples similares…</p>
+                        </div>
+                    ) : sugerencias.length === 0 ? (
+                        <div className="sugerenciasLikeVacio">
+                            <p>No se encontraron samples similares.</p>
+                        </div>
+                    ) : (
+                        sugerencias.map((s) => (
+                            <TarjetaSample
+                                key={s.id}
+                                sample={s}
+                                onLike={manejarLikeSugerencia}
+                                onClickCreador={(u) => { cerrar(); navegar(`/perfil/${u}`); }}
+                                className="sugerenciasLikeTarjeta"
+                            />
+                        ))
+                    )}
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
+export default ModalSugerenciasLike;

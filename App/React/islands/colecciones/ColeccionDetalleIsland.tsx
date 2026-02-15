@@ -5,19 +5,17 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe } from 'lucide-react';
-import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Lightbulb } from 'lucide-react';
+import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
-import { obtenerColeccion } from '@app/services/apiColecciones';
+import { obtenerColeccion, obtenerSugerencias } from '@app/services/apiColecciones';
 import { useNavigationStore } from '@/core/router';
-import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
-import type { Coleccion } from '@app/types';
-import type { SampleResumen } from '@app/types';
+import type { Coleccion, SampleResumen } from '@app/types';
 import '../../styles/componentes/coleccionDetalle.css';
 
 interface ColeccionDetalleIslandProps {
@@ -28,15 +26,21 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     const [coleccion, setColeccion] = useState<Coleccion | null>(null);
     const [cargando, setCargando] = useState(true);
     const [guardada, setGuardada] = useState(false);
+    const [tabActiva, setTabActiva] = useState<'samples' | 'ideas'>('samples');
     const { navegar } = useNavigationStore();
     const { setTabs } = useTabsTopBarStore();
 
-    /* Registrar tab "Colección" en TopBar */
+    /* Registrar tabs "Samples" y "Más Ideas" en TopBar */
     useEffect(() => {
-        setTabs([{ id: 'coleccion', etiqueta: 'Colección' }], 'coleccion');
+        setTabs(
+            [
+                { id: 'samples', etiqueta: 'Samples' },
+                { id: 'ideas', etiqueta: 'Más Ideas' },
+            ],
+            tabActiva
+        );
         return () => { setTabs([]); };
-    }, [setTabs]);
-    const { setSample, sampleActual, reproduciendo, progreso } = useReproductorStore();
+    }, [setTabs, tabActiva]);
 
     /* Obtener ID de la URL si no viene por props */
     const id = propId ? parseInt(propId, 10) : (() => {
@@ -61,10 +65,10 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
         setGuardada((prev) => !prev);
     }, []);
 
-    const manejarLike = useCallback((sampleId: number) => {
-        if (!coleccion?.samples) return;
+    /* Sync like desde FeedSamples al estado local de la colección */
+    const manejarLikeSamples = useCallback((sampleId: number) => {
         setColeccion((prev) => {
-            if (!prev || !prev.samples) return prev;
+            if (!prev?.samples) return prev;
             return {
                 ...prev,
                 samples: prev.samples.map((s) =>
@@ -74,7 +78,14 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                 ),
             };
         });
-    }, [coleccion]);
+    }, []);
+
+    /* Proveedor para tab "Más Ideas" — sugerencias paginadas */
+    const proveedorSugerencias = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
+        if (!id) return [];
+        const resp = await obtenerSugerencias(id, pagina);
+        return resp.ok && resp.data ? resp.data : [];
+    }, [id]);
 
     if (cargando) {
         return (
@@ -153,27 +164,47 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                 </div>
             </div>
 
-            {/* Grid de samples */}
-            <div className="coleccionSamples">
-                {samples.length === 0 ? (
-                    <div className="coleccionVacia">
-                        <p>Esta colección aún no tiene samples</p>
-                    </div>
-                ) : (
-                    samples.map((sample: SampleResumen) => (
-                        <TarjetaSample
-                            key={sample.id}
-                            sample={sample}
-                            onPlay={(s) => setSample(s)}
-                            activa={sampleActual?.id === sample.id}
-                            reproduciendo={sampleActual?.id === sample.id && reproduciendo}
-                            progreso={sampleActual?.id === sample.id ? progreso : 0}
-                            onLike={manejarLike}
-                            onClickCreador={(u) => navegar(`/perfil/${u}/`)}
-                        />
-                    ))
-                )}
+            {/* Tabs de contenido */}
+            <div className="coleccionTabs">
+                <button
+                    className={`coleccionTab ${tabActiva === 'samples' ? 'coleccionTabActiva' : ''}`}
+                    onClick={() => setTabActiva('samples')}
+                    type="button"
+                >
+                    Samples ({coleccion.totalSamples})
+                </button>
+                <button
+                    className={`coleccionTab ${tabActiva === 'ideas' ? 'coleccionTabActiva' : ''}`}
+                    onClick={() => setTabActiva('ideas')}
+                    type="button"
+                >
+                    <Lightbulb size={14} />
+                    Más Ideas
+                </button>
             </div>
+
+            {/* Contenido según tab activa */}
+            {tabActiva === 'samples' ? (
+                <FeedSamples
+                    samplesIniciales={samples}
+                    proveedor={async () => []}
+                    claveCache={`coleccion_${coleccion.id}`}
+                    infiniteScroll={false}
+                    virtualizar={false}
+                    mostrarTags={false}
+                    mensajeVacio="Esta colección aún no tiene samples."
+                    onLike={manejarLikeSamples}
+                />
+            ) : (
+                <FeedSamples
+                    proveedor={proveedorSugerencias}
+                    claveCache={`sugerencias_${coleccion.id}`}
+                    mostrarTags
+                    infiniteScroll
+                    virtualizar={false}
+                    mensajeVacio="No hay sugerencias disponibles para esta colección."
+                />
+            )}
         </div>
     );
 };

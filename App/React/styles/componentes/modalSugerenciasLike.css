@@ -1,0 +1,85 @@
+/*
+ * modalSugerenciasLike.css — Kamples
+ * Estilos para el modal "También te podría gustar".
+ */
+
+.sugerenciasLikeContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    padding: var(--espacioSm) 0;
+}
+
+.sugerenciasLikeHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXs);
+    text-align: center;
+    position: relative;
+}
+
+.sugerenciasLikeIcono {
+    color: var(--acento);
+    margin-bottom: var(--espacioXs);
+}
+
+.sugerenciasLikeTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: 600;
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.sugerenciasLikeSubtitulo {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    margin: 0;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sugerenciasLikeCerrar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: none;
+    border: none;
+    color: var(--textoSecundario);
+    cursor: pointer;
+    padding: var(--espacioXs);
+    border-radius: var(--radioSm);
+    transition: color var(--transicionRapida), background var(--transicionRapida);
+}
+
+.sugerenciasLikeCerrar:hover {
+    color: var(--textoPrimario);
+    background: var(--fondoHover);
+}
+
+.sugerenciasLikeLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.sugerenciasLikeTarjeta {
+    border-radius: var(--radioMd);
+    transition: background var(--transicionRapida);
+}
+
+.sugerenciasLikeTarjeta:hover {
+    background: var(--fondoHover);
+}
+
+.sugerenciasLikeCargando,
+.sugerenciasLikeVacio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espacioLg);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+}

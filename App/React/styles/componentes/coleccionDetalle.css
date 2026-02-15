@@ -120,6 +120,38 @@
     color: var(--textoSecundario);
 }
 
+/* Tabs: Samples / Más Ideas */
+.coleccionTabs {
+    display: flex;
+    gap: var(--espacioXs);
+    border-bottom: 1px solid var(--bordeClaro);
+    padding-bottom: 0;
+}
+
+.coleccionTab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: color var(--transicionRapida), border-color var(--transicionRapida);
+}
+
+.coleccionTab:hover {
+    color: var(--textoPrimario);
+}
+
+.coleccionTabActiva {
+    color: var(--acento);
+    border-bottom-color: var(--acento);
+}
+
 @media (max-width: 640px) {
     .coleccionHeader {
         grid-template-columns: 1fr;

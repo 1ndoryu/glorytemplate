@@ -1,7 +1,7 @@
 # Kamples — Roadmap Integral de Producto
 
 > **Versión:** 2.0  
-> **Última actualización:** 15/02/2026 (iteración v2.1)  
+> **Última actualización:** 16/02/2026 (iteración v2.2)  
 > **Stack base:** Glory Framework (WordPress + React Islands + TypeScript)  
 > **Competencia directa:** Splice
 
@@ -166,6 +166,39 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - Creado apiReproduciones.ts (registrar, historial, similares)
 - Agregados sugerencias + relevantesParaSample a apiColecciones.ts
 - Showcase: 8 inline styles → clases CSS (6 estáticos + 2 custom properties)
+
+### Registro de cambios R3 — FeedSamples centralizado + Features C14
+
+**FeedSamples.tsx** (NUEVO, ~470 líneas, `App/React/components/feed/`):
+- Componente centralizado reutilizable para listas de samples
+- Props genéricas: ProveedorSamples (función async), samplesIniciales, claveCache, mostrarTags, infiniteScroll, virtualizar, maxRenderizados, alturaTarjeta, mensajeVacio, accionVacia, idsExcluidos, onLike
+- Features: IntersectionObserver, virtualización DOM, tags ± con drag-scroll y agrupación por categoría, optimistic like UI, cache por clave, MenuContextual + ModalInspectorSample + ModalSugerenciasLike integrados
+
+**feedSamples.css** (NUEVO): estilos completos para FeedSamples.
+
+**InicioIsland.tsx** refactorizado: 550 → 180 líneas. FeedUnificado delega toda la renderización a FeedSamples. Solo mantiene barra de ordenamiento + ModalFiltros.
+
+**ColeccionDetalleIsland.tsx** refactorizado: eliminados TarjetaSample directo + useReproductorStore. Añadidas tabs "Samples" / "Más Ideas" con FeedSamples. Tab "Más Ideas" usa obtenerSugerencias() paginado.
+
+**coleccionDetalle.css**: añadidos estilos para tabs (.coleccionTabs, .coleccionTab, .coleccionTabActiva).
+
+**ModalSugerenciasLike.tsx** (NUEVO, `App/React/components/feed/`):
+- Modal "También te podría gustar" — se abre automáticamente al dar like a un sample
+- Muestra 3-5 samples similares via obtenerSimilares()
+- UI: Sparkles icon, subtítulo con nombre del sample, tarjetas compactas
+
+**sugerenciasLikeStore.ts** (NUEVO): store Zustand para controlar el modal de sugerencias post-like.
+
+**modalSugerenciasLike.css** (NUEVO): estilos del modal de sugerencias.
+
+**useHistorialIds.ts** (NUEVO, `App/React/hooks/`):
+- Hook que carga y cachea completo el historial de reproducciones como Set<number>
+- Solo activa la carga cuando el filtro "Ya reproducidos" está encendido
+- Cache en ref para evitar re-fetch
+
+**apiColecciones.ts**: fix tipo retorno de obtenerSugerencias (ColeccionResumen[] → SampleResumen[]), agregado parámetro pagina.
+
+**ModalSeleccionColeccion.tsx**: mejorado con ranking por relevancia — carga colecciones + obtenerRelevantesParaSample() en paralelo, ordena relevantes primero.
 
 ---
 
@@ -470,16 +503,26 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [x] Tabla `coleccion_samples` (coleccion_id, sample_id, orden, added_at)
 - [x] CRUD API: crear, listar, editar, eliminar colecciones — ColeccionesController.php (339 líneas)
 - [x] Modal "Guardar en coleccion" tipo Pinterest: endpoint `GET /colecciones/relevantes/{sampleId}` ordena por relevancia
+- [x] ModalSeleccionColeccion mejorado con ranking por relevancia (obtenerRelevantesParaSample)
 - [x] Pagina individual de coleccion con listado de samples (mismo formato que home, filtros y tags centralizados)
     - ✅ Backend completo. Frontend apiColecciones.ts actualizado con sugerencias y relevantes.
-    - TO-DO: Componente frontend ModalGuardarEnColeccion con ranking por relevancia.
+    - ✅ ModalSeleccionColeccion carga colecciones ordenadas por relevancia usando Promise.all.
 
 #### Fase B: Tab "Mas Ideas" en Colecciones
 
 - [x] Algoritmo de similitud basado en metadata (tags, genero, BPM range, key, sentimiento) — MotorRecomendacion.php
 - [x] Endpoint GET /colecciones/{id}/sugerencias — devuelve samples similares NO incluidos en la coleccion
-- [ ] Tab "Mas Ideas" en la pagina de la coleccion (frontend)
-- [ ] Centralizar componente de lista de samples (FeedSamples) para reutilizar en home, coleccion, mas ideas, perfil
+- [x] Tab "Mas Ideas" en la pagina de la coleccion (frontend) ✔ (IMPLEMENTADO)
+    - ColeccionDetalleIsland con tabs "Samples" / "Más Ideas" usando FeedSamples centralizado
+    - Tab Samples: FeedSamples con samplesIniciales, sin scroll infinito
+    - Tab Más Ideas: FeedSamples con proveedorSugerencias paginado, tags e infinite scroll
+    - CSS: .coleccionTabs, .coleccionTab, .coleccionTabActiva
+- [x] Centralizar componente de lista de samples (FeedSamples) para reutilizar en home, coleccion, mas ideas, perfil ✔ (IMPLEMENTADO)
+    - FeedSamples.tsx (~470 lín): componente genérico con ProveedorSamples, tags ±, infinite scroll,
+      virtualización DOM, cache, optimistic likes, menú contextual, inspector, idsExcluidos
+    - feedSamples.css: estilos completos del componente
+    - InicioIsland refactorizado: 550 → 180 líneas (delega a FeedSamples)
+    - ColeccionDetalleIsland refactorizado: usa FeedSamples para ambas tabs
 
 #### Fase C: Algoritmo Centralizado de Recomendacion (14.1 + 14.2)
 
@@ -490,7 +533,11 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
     - Usado por: feed home, "mas ideas", "tambien te podria gustar", "samples similares"
     - Entrada: sample(s) de referencia + contexto usuario + pesos
     - Salida: lista rankeada con score
-- [ ] Modal "Tambien te podria gustar" al dar like (muestra 3-5 samples similares) (frontend)
+- [x] Modal "Tambien te podria gustar" al dar like (muestra 3-5 samples similares) ✔ (IMPLEMENTADO)
+    - ModalSugerenciasLike.tsx: modal con Sparkles + TarjetaSample compactas
+    - sugerenciasLikeStore.ts: Zustand store que carga similares via obtenerSimilares()
+    - modalSugerenciasLike.css: estilos del modal
+    - Integrado en FeedSamples: al dar like (nuevo), se abre automáticamente
 - [x] Seccion "Samples similares" en pagina individual de sample — endpoint `GET /samples/{id}/similares`
 
 #### Fase D: Tracking de Reproducciones (14.3)
@@ -498,7 +545,10 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [x] Tabla `reproducciones` (id, user_id, sample_id, duracion_escuchada, completada, created_at)
 - [x] Endpoint POST /samples/{id}/reproduccion — registra play (debounce 3s minimo) — ReproduccionesController.php
 - [x] Historial de reproducciones en perfil del usuario — endpoint GET /reproducciones/historial
-- [ ] Filtro "Ya reproducidos" usa datos reales (actualmente mock) (frontend)
+- [x] Filtro "Ya reproducidos" usa datos reales ✔ (IMPLEMENTADO)
+    - useHistorialIds.ts: hook que carga y cachea Set de IDs reproducidos
+    - FeedSamples prop idsExcluidos: filtra samples ya escuchados del feed
+    - InicioIsland: conecta filtrosStore.yaReproducidos con useHistorialIds
 - [x] Algoritmo penaliza samples escuchados muchas veces para promover descubrimiento — MotorRecomendacion.php
     - ✅ Backend completo. Servicio frontend apiReproduciones.ts creado.
 
@@ -639,6 +689,12 @@ Entiendo que costo computacional de esto debe ser alto a medida que suban mas sa
 
 14.1 Esto son extras que se me ocurren para aprovechar el algoritmo, por ejemplo a dar like a un sample, debe aparecer un modal al lado mostrando otros samples similares, es decir un modal de "Tambien te podría gustar", estos samples tambien podrían aparecer las paginas individuales mas abajo como "samples similares"
 14.2 Como todo esto va a escalar, tambien hay que planificar tener centralizado todos los valores en un archivo, nada de harcode, 100% dinamico, entendible para el ser humano de como va funcionar el algoritmo, en ese archivo se controlara el peso de todo, los like, las interacciones, el peso de seguimiento, gustos del usuario, etc.
-14.3 No se si esta planificado pero se debe tener en cuenta las reproduciones, si, cada vez que se reproduce un sample debe registrarse en el sample y el usuario, esta informacion es util, por ejemplo, evitar mostrar samples que el usuario ya ha escuchado varias veces, y tambien, ofrecerle un historial de reproducciones,
+14.3 No se si esta planificado pero se debe tener en cuenta las reproduciones, si, cada vez que se reproduce un sample debe registrarse en el sample y el usuario, esta informacion es util, por ejemplo, evitar mostrar samples que el usuario ya ha escuchado varias veces, y tambien, ofrecerle un historial de reproducciones.
+
+15. A este punto compactar el este archivo con las tareas completadas, ordenarlo mejor sin borrar tareas pendientes ni perder información relevante. 
+16. El status de premiun - free debe verse en el nav arriba, al dar click aparecera el modal para suscribirse, agregaremos una prueba gratuita de 30 días con 20 descargas gratis al días. Las subidas en todos los planes debe ser ilimitada, a nosotros nos conviene que los usuarios suban sus samples para que la plataforma crezca, lo que si podemos limitar es la transferencia de datos de samples entre la aplicación y el escritorio, free 1gb, los premiun 10gb y 50gb al mes. 
+17. Me di cuenta que no sabes que la url del proyecto es http://glory.local/ , asi puedes testear las api, anota esa informacion en el roadmap bien clara para que estes informado.
+18. Debería poder borrar mis samples en el menu contextual de los smaples cuando son mios.
+19. Los usuarios admin deberían poder borrar cualquier sample y cualquier colección. 
 
 ---

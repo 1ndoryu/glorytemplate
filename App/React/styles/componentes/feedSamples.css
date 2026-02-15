@@ -1,0 +1,189 @@
+/*
+ * feedSamples.css — Kamples
+ * Estilos del componente centralizado FeedSamples.
+ * Reutilizado en: InicioIsland, ColeccionDetalleIsland, Tab "Más Ideas", etc.
+ */
+
+.feedSamplesContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    width: 100%;
+}
+
+.feedSamplesLista {
+    display: flex;
+    flex-direction: column;
+}
+
+.feedSamplesVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    padding: var(--espacio3xl) var(--espacioLg);
+    color: var(--textoSecundario);
+    text-align: center;
+}
+
+.feedSamplesVacioIcono {
+    color: var(--textoTerciario);
+    opacity: 0.5;
+}
+
+.feedSamplesSentinela {
+    min-height: 1px;
+}
+
+.feedSamplesCargandoMas {
+    text-align: center;
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    padding: var(--espacioMd);
+}
+
+/* Tags dinámicos */
+.feedTags {
+    padding: 0;
+}
+
+.feedTagsLista {
+    display: flex;
+    gap: var(--espacioXs);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    user-select: none;
+    cursor: grab;
+    padding: var(--espacioXs) 0;
+}
+
+.feedTagsLista::-webkit-scrollbar {
+    display: none;
+}
+
+.feedTagsListaArrastrando {
+    cursor: grabbing;
+}
+
+.feedTagsAgrupados {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    padding: var(--espacioSm) 0;
+}
+
+.feedTagGrupo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.feedTagGrupoTitulo {
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.feedTagGrupoLista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioXs);
+}
+
+.feedTagItem {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--superficieElevada);
+    border: 1px solid var(--bordeDefault);
+    border-radius: var(--radioCompleto);
+    font-size: var(--fuenteXs);
+    transition: all 0.15s ease;
+    overflow: hidden;
+}
+
+.feedTagItem:hover {
+    border-color: var(--bordeHover);
+}
+
+.feedTagItemIncluido {
+    background: var(--acentoPrimario);
+    border-color: var(--acentoPrimario);
+    color: var(--textoInverso);
+}
+
+.feedTagItemExcluido {
+    background: var(--superficieError);
+    border-color: var(--error);
+    color: var(--error);
+    text-decoration: line-through;
+}
+
+.feedTagBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0;
+    transition: opacity 0.15s;
+    padding: 0;
+}
+
+.feedTagItem:hover .feedTagBoton {
+    opacity: 0.7;
+}
+
+.feedTagBoton:hover {
+    opacity: 1 !important;
+}
+
+.feedTagBotonRestar:hover {
+    color: var(--error);
+}
+
+.feedTagBotonSumar:hover {
+    color: var(--exito);
+}
+
+.feedTagTexto {
+    padding: var(--espacioXxs) var(--espacioXs);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    font-size: var(--fuenteXs);
+    white-space: nowrap;
+}
+
+.feedTagExpandirBtn {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXxs);
+    padding: var(--espacioXxs) var(--espacioSm);
+    background: transparent;
+    border: 1px solid var(--bordeDefault);
+    border-radius: var(--radioCompleto);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteXs);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+
+.feedTagExpandirBtn:hover {
+    border-color: var(--bordeHover);
+    color: var(--textoPrimario);
+}
+
+.feedTagExpandirIconoRotado {
+    transform: rotate(90deg);
+}

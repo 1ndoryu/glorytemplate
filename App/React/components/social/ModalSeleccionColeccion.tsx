@@ -13,6 +13,7 @@ import {
     listarColecciones,
     crearColeccion,
     agregarSampleAColeccion,
+    obtenerRelevantesParaSample,
 } from '@app/services/apiColecciones';
 import { crearLogger } from '@app/services/logger';
 import type { Coleccion } from '@app/types';
@@ -32,7 +33,7 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
     const [creando, setCreando] = useState(false);
     const [nuevoNombre, setNuevoNombre] = useState('');
 
-    /* Cargar colecciones al abrir */
+    /* Cargar colecciones al abrir — rankeadas por relevancia si es posible */
     useEffect(() => {
         if (!abierto) {
             setAgregados(new Set());
@@ -44,9 +45,24 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
         const cargar = async () => {
             setCargando(true);
             try {
-                const resp = await listarColecciones();
-                if (resp.ok && resp.data) {
-                    setColecciones(resp.data);
+                /* Intentar cargar colecciones ordenadas por relevancia */
+                const [respTodas, respRelevantes] = await Promise.all([
+                    listarColecciones(),
+                    sample ? obtenerRelevantesParaSample(sample.id) : Promise.resolve(null),
+                ]);
+
+                if (respTodas.ok && respTodas.data) {
+                    let ordenadas = respTodas.data;
+
+                    /* Si hay relevantes, poner primero las relevantes y luego el resto */
+                    if (respRelevantes?.ok && respRelevantes.data?.length) {
+                        const idsRelevantes = new Set(respRelevantes.data.map((c) => c.id));
+                        const relevantes = ordenadas.filter((c) => idsRelevantes.has(c.id));
+                        const resto = ordenadas.filter((c) => !idsRelevantes.has(c.id));
+                        ordenadas = [...relevantes, ...resto];
+                    }
+
+                    setColecciones(ordenadas);
                 }
             } catch (err) {
                 log.error('Error cargando colecciones', err);
@@ -55,7 +71,7 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
             }
         };
         cargar();
-    }, [abierto]);
+    }, [abierto, sample]);
 
     /* Añadir sample a una colección */
     const manejarAgregar = useCallback(
