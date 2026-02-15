@@ -1,6 +1,6 @@
 # Kamples — Roadmap Integral de Producto
 
-> **Versión:** 1.1  
+> **Versión:** 2.0  
 > **Última actualización:** 15/02/2026  
 > **Stack base:** Glory Framework (WordPress + React Islands + TypeScript)  
 > **Competencia directa:** Splice  
@@ -23,10 +23,11 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ## Decisiones Arquitectónicas
 
-- **PostgreSQL + pgvector** paralelo a WordPress MySQL — JSONB para metadata, embeddings para similitud
-- **Almacenamiento VPS** — Pipeline: original(.wav) → optimizado(.mp3) → waveform(.json) → preview(.mp3), Nginx X-Accel-Redirect
-- **Bun WebSocket** — Canales: mensajes, notificaciones, sync, feed
-- **Desktop:** Tauri 2.0 | **Móvil:** Capacitor | **Pagos:** Stripe Connect + Billing
+- **PostgreSQL + pgvector** local (127.0.0.1:5432/kamples) — JSONB para metadata, embeddings para similitud
+- **Almacenamiento WordPress** — Usar WP uploads + attachment API para audio. Pipeline: original(.wav) → optimizado(.mp3) → waveform(.json) → preview(.mp3). Seguridad via htaccess/permisos. Preparado para migrar a VPS luego.
+- **WebSocket local** — Servidor WebSocket Node/Bun local para desarrollo. Canales: mensajes, notificaciones, sync, feed. Preparar para activar en VPS después.
+- **IA multi-modelo** — Gemini Flash 3.0 → Gemini Pro 2.5 → Gemini Flash 2.5 → Gemini Flash 2.0 (fallback por cuota). Groq para metadata de imágenes.
+- **Desktop:** Tauri 2.0 | **Móvil:** Capacitor | **Pagos:** Stripe Connect + Billing (keys live disponibles)
 
 ---
 
@@ -44,18 +45,23 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 | Ruta | Isla | Descripción |
 |------|------|-------------|
-| `/` | `InicioIsland` | Feed tabs + tags + filtros |
-| `/sample/{slug}` | `SampleDetalleIsland` | Waveform, metadata, similares |
+| `/` | `InicioIsland` | Feed con filtros toggle + ordenamientos |
+| `/` (deslogueado) | `LandingPublica` | Landing page con nav flotante (sin sidebar/topbar) |
+| `/sample/{slug}` | `SampleDetalleIsland` | Tarjeta grande + waveform + metadata + similares |
+| `/coleccion/{slug}` | `ColeccionDetalleIsland` | Info colección + grid de samples (NUEVA) |
+| `/comunidad` | `ComunidadIsland` | Feed posts sociales con diseño diferenciado (NUEVA) |
 | `/descubrir` | `DescubrirIsland` | Algoritmo personalizado |
 | `/perfil/{username}` | `PerfilIsland` | Perfil público |
-| `/perfil/editar` | `EditarPerfilIsland` | Config perfil |
 | `/libreria` | `LibreriaIsland` | Colecciones, descargas, favoritos |
-| `/mensajes` | `MensajesIsland` | Conversaciones |
+| `/mensajes` | `MensajesIsland` | Vista completa de conversaciones |
 | `/planes` | `PlanesIsland` | Checkout Stripe |
 | `/reproductor` | `ReproductorIsland` | Player completo |
 | `/auth/login` | `LoginIsland` | Login |
 | `/auth/registro` | `RegistroIsland` | Registro |
 | `/admin/dashboard` | `DashboardCreadorIsland` | Stats creador |
+
+**Eliminadas:** `/perfil/editar` (ahora ModalConfiguracion), tabs de InicioIsland (reemplazadas por ordenamientos).  
+**Chat flotante:** tipo Messenger en esquina inferior derecha, se abre desde modales de TopBar o /mensajes.
 
 ---
 
@@ -76,7 +82,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **Fase 1 — Auth:** LoginIsland, RegistroIsland (Google OAuth UI + credenciales), PerfilIsland (tabs/stats/badges), EditarPerfilIsland, AuthMiddleware.php, ConAutenticacion HOC, LandingPublica, auth bridge PHP→React (GLORY_CONTEXT fix).
 
-**Fase 2 — Samples:** SubirIsland (DropZone+metadata+progreso), SamplesIsland (filtros+paginación), SampleDetalleIsland (waveform+metadata+similares), WaveformPlayer (Canvas, seek, simétrico), ReproductorGlobal (floating persistente, cola), ReproductorIsland (pantalla completa, drag reorder). Reproducción local por tarjeta con waveform real (Web Audio API), exclusiva entre tarjetas. Sistema descargas UI+mock. Menú contextual samples.
+**Fase 2 — Samples:** SamplesIsland (filtros+paginación), SampleDetalleIsland (waveform+metadata+similares), WaveformPlayer (Canvas, seek, simétrico), ReproductorGlobal (floating persistente, cola), ReproductorIsland (pantalla completa, drag reorder). Reproducción local por tarjeta con waveform real (Web Audio API), exclusiva entre tarjetas. Sistema descargas UI+mock. Menú contextual samples.
 
 **Fase 3 — Algoritmo (parcial):** DescubrirIsland (3 secciones, likes, menú contextual, mock). Endpoints feed/notificaciones/mensajes/dashboard.
 
@@ -92,68 +98,249 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **UI/UX (C26-C31):** Fix GloryLogger::debug→info, imágenes aleatorias colors/ en TarjetaSample (portada con overlay play/pause), dropdowns modales en TopBar para notificaciones y mensajes (ya no navegan a páginas), LibreriaIsland reestructurada con tabs en TopBar via tabsTopBarStore + gap consistente con InicioIsland, TarjetaColeccion rediseñada como card vertical con imagen (grid-friendly, fallback colors/), tab "Explorar" colecciones públicas de otros usuarios con mock data.
 
-**Refactoring (R1):** Bug fix wsService.ts handler comodín (globales.forEach no invocaba handler). ShowcaseIsland dividido en 4 sub-componentes (Espaciados, Botones, Formularios, Overlays). ModalCrear: lógica drag&drop extraída a hook useArchivosDragDrop. SubirModal dividido en PasoMetadata + PasoSubida. useWebSocket simplificado como wrapper de wsService (eliminada lógica duplicada de heartbeat/reconexión). imagenesColor.ts: array 259 imágenes extraído a datos/imagenesColorLista.ts. mockSamples.ts: datos base extraídos a datos/mockSamplesData.ts. SubirIsland.tsx eliminado (dead code). BienvenidaIsland convertido en flujo onboarding 3 pasos.
+**Refactoring (R1):** Bug fix wsService.ts handler comodín. ShowcaseIsland dividido en 4 sub-componentes. ModalCrear: lógica drag&drop extraída a hook useArchivosDragDrop. SubirModal dividido en PasoMetadata + PasoSubida. useWebSocket simplificado como wrapper de wsService. imagenesColor y mockSamples datos separados. SubirIsland.tsx eliminado (dead code). BienvenidaIsland convertido en flujo onboarding 3 pasos. Fix doble slash apiCliente.
 
 ---
 
 ## Pendientes por Fase
 
-### FASE 0 — Infraestructura
-- [ ] **0.1** PostgreSQL en VPS + pgvector
-- [ ] **0.5** Almacenamiento audio VPS (directorios + permisos)
-- [ ] **0.6** Pipeline procesamiento audio (upload → optimize → waveform → preview)
-- [ ] **0.7** Nginx X-Accel-Redirect
+### FASE 0 — Infraestructura y Base
+> Prioridad: ALTA — desbloquea algoritmo, uploads, y IA
 
-### FASE 1 — Auth
-- [ ] **1.1** Google OAuth real (WordPress)
-- [ ] **1.2** Registro backend completo
+- [ ] **0.1** Instalar pgvector en PostgreSQL local (ya tenemos PG en 127.0.0.1:5432)
+  - Crear extensión `vector` en BD `kamples`
+  - Crear tabla de embeddings (sample_id, embedding vector(1536))
+  - Verificar que PostgresService.php conecta correctamente
+- [ ] **0.2** Almacenamiento audio en WordPress
+  - Usar `wp_handle_upload()` + custom directory (`/wp-content/uploads/kamples/`)
+  - Estructura: `kamples/{user_id}/{año}/{mes}/{archivo}.wav`
+  - Restricciones: formatos permitidos (wav, mp3, flac, aiff), tamaño máximo por plan
+  - Seguridad: htaccess deny direct access, servir via PHP con validación de permisos
+  - Guardar referencia en PostgreSQL (attachment_id, ruta, metadata)
+- [ ] **0.3** Pipeline de procesamiento audio
+  - Al subir: guardar original WAV/FLAC
+  - Generar versión optimizada MP3 (ffmpeg o librería PHP)
+  - Generar preview corto (30s max, MP3 128kbps)
+  - Generar peaks/waveform JSON (Web Audio API server-side o ffmpeg)
+  - Todo esto debe ejecutarse en background (WP Cron o Action Scheduler)
+  - NO debe bloquear la UI de subida
+- [ ] **0.4** Imágenes colors/ dinámicas
+  - Leer directorio `colors/` en runtime vía endpoint PHP
+  - Cachear la lista (transient WP, 24h TTL)
+  - Servir imágenes optimizadas: WebP conversion, lazy loading, srcset por tamaño
+  - Eliminar array hardcodeado de imagenesColorLista.ts
+
+### FASE 1 — Auth y Perfil
+> Prioridad: ALTA — fix bugs actuales + configuración
+
+- [ ] **1.1** Fix "Usuario no encontrado" en PerfilIsland
+  - Race condition: useEffect se dispara antes de que authStore cargue
+  - Si username es null y usuario está logueado → esperar a que authStore termine de cargar
+  - Si authStore terminó de cargar y sigue sin username → mostrar perfil propio
+  - Verificar que la API `obtenerPerfil()` responde OK con datos reales del usuario WP
+- [ ] **1.2** ModalConfiguracion (reemplaza EditarPerfilIsland)
+  - Botón de configuración en TopBar/sidebar abre modal
+  - Secciones: foto de perfil (upload + crop), nombre visible, username, descripción/bio
+  - Redes sociales, preferencias de notificación
+  - Guardar vía API PUT /kamples/v1/perfil
 - [ ] **1.3** Auto-creación `usuarios_ext` en Postgres
+  - Al hacer login por primera vez, crear registro automático en tabla Postgres
+  - Sincronizar datos base de WP → Postgres (id, username, email, avatar)
+- [ ] **1.4** Google OAuth (cuando las keys estén listas)
+  - Variables en .env están vacías, preparar la integración para activarla cuando se tengan
 
-### FASE 2 — Samples
-- [ ] **2.1** Pipeline upload (validación, compresión, peaks server-side)
-- [ ] **2.2** Gemini Flash (metadata, BPM, key, embedding, descripción IA)
+### FASE 2 — Pipeline de Subida de Audio + IA
+> Prioridad: ALTA — el core del producto
 
-### FASE 3 — Algoritmo v1
-- [ ] **3.1** pgvector similitud (HNSW)
-- [ ] **3.2** Señal comportamiento
-- [ ] **3.3** Señal tendencias (time-windowed)
-- [ ] **3.4** Señal novedad
-- [ ] **3.5** Función SQL scoring combinado (< 100ms / 100k)
-- [ ] **3.7** Redis cache feeds
-- [ ] **3.8** Señal grafo social en algoritmo
+- [ ] **2.1** Upload real de samples
+  - Conectar ModalCrear/SubirModal al endpoint POST /kamples/v1/samples
+  - Validar formato, tamaño, duración en frontend y backend
+  - Subir vía FormData (multipart), mostrar progreso real
+  - Guardar en WordPress uploads + registrar en PostgreSQL
+  - Al subir en ModalCrear: mostrar waveform del audio adjunto con reproducción
+- [ ] **2.2** Análisis de audio con IA (Gemini multi-modelo con fallback)
+  - **Cadena de fallback:** Gemini Flash 3.0 → Gemini Pro 2.5 → Gemini Flash 2.5 → Gemini Flash 2.0
+  - Si un modelo retorna error 429 (cuota), cambiar al siguiente automáticamente
+  - **Input para la IA:** archivo de audio + nombre del archivo + descripción del usuario
+  - **Output esperado (JSON):** tags[], instrumentos[], bpm (número), key, escala, genero[], sentimiento[], artistas_relevantes[], tipo (loop/oneshot/fx/vocal/stem), descripcion_generada
+  - Parser flexible: la IA a veces no retorna JSON válido → extraer con regex, limpiar, reintentar
+  - Proceso 100% en background: NO bloquear la subida ni la UI
+  - Endpoint PHP que recibe el audio, llama a Gemini API, parsea respuesta, guarda en PostgreSQL
+  - Usar GOOGLE_GEMINI_API key del .env
+- [ ] **2.3** Metadata de imágenes con Groq
+  - Al subir imágenes en publicaciones, enviar a Groq API para generar metadata
+  - Tags visuales, descripción, contenido relevante
+  - Proceso en background, no bloquear subida
+- [ ] **2.4** Remover campos manuales de ModalCrear
+  - Eliminar selectores de BPM, Key, Tipo del ModalCrear
+  - La IA los define automáticamente
+  - Agregar waveform preview del audio adjunto con reproducción inline
+  - Agregar iconos de condiciones: permitir descarga sí/no, licencia, etc. (arriba del botón crear)
+- [ ] **2.5** Normalización de tags BPM
+  - Mantener BPM numérico en la BD (no borrar la info)
+  - Agregar campo categoría velocidad: "muy lento" (<70), "lento" (70-99), "normal" (100-119), "rápido" (120-149), "muy rápido" (≥150)
+  - Al hacer click en tag de velocidad → filtrar todos los samples de esa categoría
+  - Los tags de BPM en TarjetaSample muestran la categoría, no el número crudo
 
-### FASE 6 — Monetización
-- [ ] **6.1** Stripe Billing (checkout, webhooks, portal)
-- [ ] **6.2** PlanesIsland (comparativa + CTA)
-- [ ] **6.3** Stripe Connect (onboarding, revenue share)
-- [ ] **6.4** Samples premium (compra + plan)
-- [ ] **6.6** Límites por plan
+### FASE 3 — Algoritmo v1 (pgvector local)
+> Prioridad: ALTA — diferenciador clave del producto
 
-### FASE 7 — Tiempo Real
-- [ ] **7.1** Bun WebSocket (auth JWT, canales, heartbeat)
-- [ ] **7.4** Notificaciones en tiempo real (push, bell counter)
-- [ ] **7.6** Sync reproductor entre tabs
+- [ ] **3.1** pgvector: tabla de embeddings + función de similitud
+  - Índice HNSW para búsqueda eficiente
+  - Función `buscar_similares(sample_id, limite)` usando cosine distance
+- [ ] **3.2** Señal de comportamiento
+  - Rastrear: plays, likes, descargas, tiempo de escucha por usuario
+  - Guardar en tabla `interacciones_usuario` en Postgres
+  - Peso en algoritmo: 0.25
+- [ ] **3.3** Señal de tendencias (time-windowed)
+  - Engagement velocity: likes/plays en últimas 24h, 7d, 30d
+  - Peso: 0.15
+- [ ] **3.4** Señal de novedad
+  - Boost logarítmico por fecha de publicación
+  - Peso: 0.10
+- [ ] **3.5** Función SQL scoring combinado
+  - Combinar las 6 señales con pesos configurables
+  - Target: < 100ms para 100k samples
+- [ ] **3.6** Señal de grafo social
+  - Samples de usuarios seguidos, likes de usuarios seguidos
+  - Peso: 0.10
+- [ ] **3.7** Cache de feeds
+  - Redis o transient WP como fallback
+  - Invalidar al publicar/interactuar
 
-### FASE 8 — Desktop (Tauri 2.0)
+### FASE 4 — Filtros y Ordenamiento (InicioIsland)
+> Prioridad: ALTA — UX diaria del usuario
+
+- [ ] **4.1** Rediseñar ModalFiltros
+  - Eliminar los filtros actuales (select de tipo, key, rango BPM numérico)
+  - Nuevos filtros toggle (on/off):
+    - **Ya reproducidos** — samples que el usuario ya escuchó
+    - **Likeados** — samples que el usuario dio like
+    - **De personas que sigo** — samples de usuarios seguidos
+    - **Descargados** — samples ya descargados por el usuario
+  - Cada filtro es un simple checkbox/switch, no selects complejos
+- [ ] **4.2** Eliminar tabs de InicioIsland
+  - Quitar las tabs actuales del feed
+  - Al lado del botón de filtrar, agregar 3 ordenamientos:
+    - **Inteligente** — algoritmo de recomendación (default)
+    - **Recientes** — ordenar por fecha de publicación
+    - **Destacados** — abre menú contextual con sub-opciones: semana, mensual, año
+- [ ] **4.3** Conectar filtros y ordenamientos al store/API
+  - Actualizar useFiltrosStore con los nuevos tipos de filtro
+  - Los ordenamientos envían parámetro `sort` al endpoint de feed
+
+### FASE 5 — Chat Flotante tipo Messenger
+> Prioridad: MEDIA — mejora social importante
+
+- [ ] **5.1** Componente ChatFlotante
+  - Posición: esquina inferior derecha, encima del reproductor global
+  - Se abre al hacer click en una conversación desde el dropdown de mensajes en TopBar
+  - Se puede abrir también desde /mensajes (al seleccionar una conversación)
+  - Minimizable (solo barra de título), cerrable, draggable (opcional)
+  - Múltiples chats abiertos simultáneamente (stack horizontal)
+- [ ] **5.2** Soporte multimedia en chat
+  - Enviar imágenes (upload + preview + zoom)
+  - Enviar audio (grabación inline o adjuntar archivo)
+  - Compartir samples publicados (tarjeta mini con play inline)
+  - Almacenamiento organizado: `kamples/mensajes/{conversacion_id}/`
+  - Validación de tipos y tamaños, compresión de imágenes
+- [ ] **5.3** WebSocket local para tiempo real
+  - Servidor WebSocket Node.js local para desarrollo
+  - Conectar wsService.configurar() desde el auth flow
+  - Canales: `chat:{conversacion_id}`, `notificaciones:{user_id}`
+  - Typing indicators, online status, read receipts
+- [ ] **5.4** Optimización del chat
+  - Virtualización de mensajes largos (solo renderizar visibles)
+  - Lazy load de imágenes/audio en burbujas
+  - Caché local de conversaciones recientes
+
+### FASE 6 — Navegación y Páginas
+> Prioridad: MEDIA
+
+- [ ] **6.1** Navegación SPA fluida
+  - Click en nombre de sample → navegar a /sample/{slug} sin recargar
+  - Click en nombre de colección → navegar a /coleccion/{slug} sin recargar
+  - Usar sistema de rutas existente de Glory (navegar())
+  - Agregar onClick a TarjetaSample para nombre del sample
+  - Verificar que back/forward del navegador funciona
+- [ ] **6.2** SampleDetalleIsland mejorado
+  - Tarjeta más grande y detallada en la página individual
+  - Waveform XL interactivo
+  - Metadata completa generada por IA (tags, instrumentos, sentimiento, artistas relevantes)
+  - Samples similares navegables (click → ir a su detalle sin recarga)
+- [ ] **6.3** ColeccionDetalleIsland (NUEVA)
+  - Registrar ruta `/coleccion/{slug}` en pages.php
+  - Page header: nombre, creador, descripción, imagen, fecha, total samples
+  - Grid de samples de la colección (mismo componente TarjetaSample)
+  - Botón: "Añadir a librería" / "Seguir colección"
+- [ ] **6.4** ComunidadIsland (NUEVA)
+  - Ruta `/comunidad` con feed de posts sociales
+  - Diseño diferente al feed de samples: tarjetas más grandes, énfasis en texto/imágenes
+  - Posts pueden incluir samples adjuntos (tarjeta mini reproducible)
+  - Mock data: 10-15 posts variados (texto solo, texto+imagen, texto+sample, repost)
+  - Filtrar por: todos, siguiendo, populares
+- [ ] **6.5** LandingPublica para deslogueados
+  - Eliminar sidebar y topbar cuando el usuario NO está logueado
+  - Nav flotante fijo arriba con fondo difuminado (backdrop-filter: blur)
+  - Logo a la izquierda, botones Login/Registro a la derecha
+  - El usuario se encarga del diseño del contenido del landing
+
+### FASE 7 — Monetización (Stripe)
+> Prioridad: MEDIA — keys live ya disponibles en .env
+
+- [ ] **7.1** Stripe Billing
+  - Checkout session para suscripciones Pro/Premium
+  - Webhooks: customer.subscription.created, updated, deleted
+  - Customer portal para gestionar suscripción
+- [ ] **7.2** PlanesIsland funcional
+  - Conectar botones CTA a Stripe Checkout real
+  - Mostrar plan actual del usuario
+- [ ] **7.3** Stripe Connect
+  - Onboarding de creadores para recibir pagos
+  - Revenue share configurable por plan (70/30, 80/20)
+- [ ] **7.4** Samples premium
+  - Lógica de compra individual + acceso por plan
+  - Bloquear descarga de premium sin plan/compra
+- [ ] **7.5** Límites por plan
+  - Enforcer: descargas/día, subidas/mes, calidad audio
+
+### FASE 8 — Tiempo Real (WebSocket producción)
+> Prioridad: BAJA — se usa WS local mientras tanto
+
+- [ ] **8.1** Servidor Bun WebSocket para producción (VPS)
+- [ ] **8.2** Auth JWT en WebSocket
+- [ ] **8.3** Notificaciones push en tiempo real
+- [ ] **8.4** Sync reproductor entre tabs
+
+### FASE 9 — Desktop (Tauri 2.0)
 - [ ] Setup monorepo, auth OAuth, sync librería, drag-to-DAW, piano virtual, offline, tray icon
 
-### FASE 9 — Móvil (Capacitor)
+### FASE 10 — Móvil (Capacitor)
 - [ ] UI móvil, push notifications, background playback, offline cache
 
-### FASE 10 — Algoritmo v2
+### FASE 11 — Algoritmo v2
 - [ ] Contexto DAW, collaborative filtering, user embeddings, A/B testing, spectrograma mel
 
-### FASE 11 — SEO/Performance/Hardening
+### FASE 12 — SEO/Performance/Hardening
 - [ ] Meta/OG/JSON-LD, code splitting, brotli, rate limiting, CSP, tests
 
 ---
 
-## Notas Pendientes
+## Showcase y Dev Tools (#9)
+- [ ] Eliminar inline styles del ShowcaseIsland (ShowcaseEspaciados, ShowcaseFormularios, ShowcaseOverlays)
+- [ ] Convertir todos los style={{ }} a clases CSS reales (excepto los dinámicos de Espaciados que muestran tamaño real)
 
-1. Color acento: confirmar púrpura `#7c3aed` o cian
-2. Nombre definitivo: "Kamples"
-3. Dominio y hosting/VPS
-4. Política visibilidad (público vs semi-privado)
-5. Moderación contenido / licencia royalty-free
-6. Flujo onboarding primer uso
-7. pgvector en PostgreSQL local/VPS
+---
+
+## Notas y Decisiones
+
+1. **Almacenamiento:** WordPress uploads para local y VPS. Sin Nginx por ahora, servir con PHP.
+2. **IA:** Google Gemini API key lista en .env. Cadena de fallback por cuota: Flash 3.0 → Pro 2.5 → Flash 2.5 → Flash 2.0. Groq para imágenes.
+3. **Stripe:** Keys live en .env (PRECAUCIÓN — usar test keys para desarrollo, mover live a producción).
+4. **Google OAuth:** Keys vacías, preparar integración lista para activar.
+5. **WebSocket:** Implementar servidor local primero, migrar a Bun en VPS después.
+6. **Chat:** Flotante tipo Messenger + /mensajes como vista completa. Soporta: texto, imágenes, audio, samples compartidos.
+7. **Filtros:** Toggle on/off simples, no selects complejos. Ordenamientos: Inteligente, Recientes, Destacados.
+8. **BPM:** Mantener número crudo en BD + campo normalizado (muy lento/lento/normal/rápido/muy rápido).
+9. **ModalCrear:** SIN campos manuales de BPM/Key/Tipo — la IA los genera automáticamente. Mostrar waveform + reproducción. Iconos de condiciones (descarga sí/no, etc.).
+10. **Colors/:** Lectura dinámica del directorio, no hardcodeado. Optimización de imágenes.
