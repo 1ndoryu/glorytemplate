@@ -79,8 +79,7 @@ PageManager::reactPage('perfil/editar', 'EditarPerfilIsland');
  * PAGINAS KAMPLES — Core de Samples (Fase 2)
  * =====================================================
  */
-PageManager::reactPage('explorar', 'SamplesIsland');
-/* Subir es ahora un modal global, no una página separada */
+/* Explorar eliminado: la búsqueda se hace desde el feed principal */
 
 PageManager::reactPage('libreria', 'LibreriaIsland');
 PageManager::reactPage('reproductor', 'ReproductorIsland');

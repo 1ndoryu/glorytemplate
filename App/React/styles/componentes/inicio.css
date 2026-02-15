@@ -132,6 +132,12 @@
     gap: var(--espacioMd);
 }
 
+.inicioControlesIzquierda {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+}
+
 .inicioOrdenamientos {
     display: flex;
     align-items: center;
@@ -168,11 +174,50 @@
     border-color: var(--bordeSutil);
 }
 
+/* Menu dropdown de ordenamiento */
+.inicioOrdenamientoMenu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: var(--espacioXs);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioXs);
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    min-width: 140px;
+}
+
+.inicioOrdenamientoMenu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--espacioXs) var(--espacioSm);
+    background: none;
+    border: none;
+    border-radius: var(--radioSm);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.inicioOrdenamientoMenu button:hover {
+    background: var(--fondoElevado3);
+    color: var(--textoPrimario);
+}
+
+.inicioOrdenamientoActivo {
+    color: var(--acento) !important;
+}
+
 /* Submenu Destacados */
 .inicioDestacadosMenu {
     position: absolute;
     top: 100%;
-    left: 0;
+    right: 0;
     margin-top: var(--espacioXs);
     background: var(--fondoElevado2);
     border: 1px solid var(--bordeSutil);
@@ -232,6 +277,33 @@
     flex-wrap: wrap;
     overflow-x: visible;
     cursor: default;
+}
+
+/* Tags agrupados por categoría (vista expandida) */
+.inicioTagsAgrupados {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.inicioTagGrupo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.inicioTagGrupoTitulo {
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.inicioTagGrupoLista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioXs);
 }
 
 .inicioTagsLista::-webkit-scrollbar {

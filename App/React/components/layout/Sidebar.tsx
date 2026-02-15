@@ -7,7 +7,6 @@
 
 import {
     Home,
-    Compass,
     Users,
     FolderOpen,
     PenSquare,
@@ -27,7 +26,6 @@ export interface SidebarItemDef {
 
 const itemsDefault: SidebarItemDef[] = [
     { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
-    { id: 'explorar', etiqueta: 'Explorar', icono: <Compass size={20} />, ruta: '/explorar' },
     { id: 'comunidad', etiqueta: 'Comunidad', icono: <Users size={20} />, ruta: '/comunidad' },
     { id: 'libreria', etiqueta: 'Librería', icono: <FolderOpen size={20} />, ruta: '/libreria' },
     { id: 'crear', etiqueta: 'Crear', icono: <PenSquare size={20} />, ruta: '', accion: 'modal-crear' },
@@ -67,18 +65,42 @@ export const Sidebar = ({
             </div>
 
             <nav className="sidebarNav">
-                {items.map((item) => (
-                    <button
-                        key={item.id}
-                        className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
-                        data-tooltip={item.etiqueta}
-                        onClick={() => manejarClick(item)}
-                        type="button"
-                        aria-label={item.etiqueta}
-                    >
-                        {item.icono}
-                    </button>
-                ))}
+                {items.map((item) => {
+                    /* Crear como modal: usar button */
+                    if (item.accion === 'modal-crear') {
+                        return (
+                            <button
+                                key={item.id}
+                                className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
+                                data-tooltip={item.etiqueta}
+                                onClick={() => manejarClick(item)}
+                                type="button"
+                                aria-label={item.etiqueta}
+                            >
+                                {item.icono}
+                            </button>
+                        );
+                    }
+
+                    /* Navegación SPA: usar <a> para soporte de middle-click */
+                    return (
+                        <a
+                            key={item.id}
+                            href={item.ruta || '/'}
+                            className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
+                            data-tooltip={item.etiqueta}
+                            onClick={(e) => {
+                                if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                                    e.preventDefault();
+                                    manejarClick(item);
+                                }
+                            }}
+                            aria-label={item.etiqueta}
+                        >
+                            {item.icono}
+                        </a>
+                    );
+                })}
             </nav>
 
             <div className="sidebarFooter" />

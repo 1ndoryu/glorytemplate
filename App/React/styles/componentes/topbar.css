@@ -18,10 +18,10 @@
     flex: 1;
 }
 
-/* Zona de búsqueda */
+/* Zona de búsqueda — centrada en la pantalla */
 .topbarBusqueda {
-    flex: 0 1 420px;
-    margin-left: auto;
+    flex: 0 1 360px;
+    margin: 0 auto;
 }
 
 /* Acciones derecha */
@@ -29,7 +29,6 @@
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
-    margin-left: auto;
     flex-shrink: 0;
 }
 
@@ -113,4 +112,17 @@
     align-items: center;
     justify-content: center;
     border: 2px solid var(--fondoElevado1);
+}
+
+/* Botón crear (+) — destacado sutil */
+.topbarCrearBtn {
+    color: var(--acento);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+}
+
+.topbarCrearBtn:hover {
+    background-color: var(--acento);
+    color: var(--blanco);
+    border-color: var(--acento);
 }

@@ -307,13 +307,20 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
             {/* Contenido central */}
             <div className="tarjetaContenido">
                 <div className="tarjetaCabecera">
-                    <button
-                        type="button"
+                    <a
+                        href={`/sample/${sample.slug}/`}
                         className="tarjetaTitulo tarjetaTituloClickeable"
-                        onClick={(e) => { e.stopPropagation(); navegar(`/sample/${sample.slug}/`); }}
+                        onClick={(e) => {
+                            /* Solo interceptar click izquierdo sin modificadores para SPA */
+                            if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                navegar(`/sample/${sample.slug}/`);
+                            }
+                        }}
                     >
                         {sample.titulo}
-                    </button>
+                    </a>
                     {sample.esPremium && <span className="tarjetaPremium">PRO</span>}
                 </div>
 

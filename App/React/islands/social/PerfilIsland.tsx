@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Music, FileText, Heart, Settings } from 'lucide-react';
+import { Music, FileText, Heart, Settings, MapPin, Calendar, Link as LinkIcon } from 'lucide-react';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
 import { BotonBase } from '../../components/ui/BotonBase';
@@ -21,6 +21,7 @@ import { useTabsTopBarStore } from '../../stores/tabsTopBarStore';
 import { useConfiguracionModalStore } from '../../stores/configuracionModalStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '../../hooks/useMenuContextualSample';
+import { obtenerImagenColor } from '../../services/imagenesColor';
 import type { Usuario } from '../../types/usuario';
 import type { SampleResumen } from '../../types/sample';
 import { crearLogger } from '../../services/logger';
@@ -51,20 +52,31 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
     const { usuario: usuarioAuth, cargando: authCargando } = useAuthStore();
     const { activa: tabActiva, setTabs } = useTabsTopBarStore();
     const { navegar } = useNavigationStore();
+    const rutaActual = useNavigationStore((s) => s.rutaActual);
     const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
     const menu = useMenuContextualSample();
 
     /*
-     * Fix race condition: si username viene vacío y authStore aún está cargando,
-     * esperamos a que termine. Si termina y no hay username → perfil propio.
+     * Extraer username de la URL SPA (rutaActual) o del prop.
+     * SPA: /perfil/john/ → john
+     * Fallback a authStore si no hay username (perfil propio).
      */
     const username = useMemo(() => {
-        const val = usernameProp?.trim();
-        if (!val || val === 'perfil' || val === 'editar') {
-            return usuarioAuth?.username ?? null;
+        /* Primero intentar de la ruta SPA */
+        const segmentos = rutaActual.replace(/\/$/, '').split('/');
+        const idxPerfil = segmentos.indexOf('perfil');
+        if (idxPerfil !== -1 && segmentos[idxPerfil + 1] && segmentos[idxPerfil + 1] !== 'perfil' && segmentos[idxPerfil + 1] !== 'editar') {
+            return segmentos[idxPerfil + 1];
         }
-        return val;
-    }, [usernameProp, usuarioAuth?.username]);
+
+        /* Luego intentar del prop */
+        const val = usernameProp?.trim();
+        if (val && val !== 'perfil' && val !== 'editar') {
+            return val;
+        }
+
+        return usuarioAuth?.username ?? null;
+    }, [rutaActual, usernameProp, usuarioAuth?.username]);
 
     const esPropietario = usuarioAuth && usuario && usuarioAuth.username === usuario.username;
 
@@ -224,9 +236,12 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
     return (
         <div className="perfilContenedor">
             <div className="perfilPortada">
-                {usuario.portadaUrl && (
-                    <img src={usuario.portadaUrl} alt="Portada" />
-                )}
+                {/* Portada mockup: usa portadaUrl o fallback a imagen de colors/ */}
+                <img
+                    src={usuario.portadaUrl || obtenerImagenColor(usuario.id + 100)}
+                    alt="Portada"
+                    className="perfilPortadaImg"
+                />
                 <div className="perfilAvatarWrapper">
                     <Avatar
                         src={usuario.avatarUrl}
@@ -250,6 +265,22 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                     </h1>
                     <p className="perfilUsername">@{usuario.username}</p>
                     {usuario.bio && <p className="perfilBio">{usuario.bio}</p>}
+
+                    {/* Metadata del perfil */}
+                    <div className="perfilMetadata">
+                        <span className="perfilMetaItem">
+                            <MapPin size={14} />
+                            Colombia
+                        </span>
+                        <span className="perfilMetaItem">
+                            <Calendar size={14} />
+                            Se unió en 2024
+                        </span>
+                        <a className="perfilMetaItem perfilMetaLink" href="#" target="_blank" rel="noopener">
+                            <LinkIcon size={14} />
+                            kamples.com
+                        </a>
+                    </div>
 
                     <div className="perfilStats">
                         <div className="perfilStat">
@@ -291,7 +322,6 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                             <BotonBase
                                 variante="secundario"
                                 onClick={() => {
-                                    /* TO-DO: navegar a mensajes con este usuario */
                                     log.info('Mensaje a', usuario.username);
                                 }}
                             >
@@ -308,9 +338,32 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                 {tabActiva === 'samples' &&
                     renderizarListaSamples(samplesPerfil, 'No ha subido samples aún', <Music size={40} />)}
                 {tabActiva === 'publicaciones' && (
-                    <div className="perfilVacio">
-                        <FileText size={40} />
-                        <p>Las publicaciones aparecerán aquí</p>
+                    <div className="perfilPublicaciones">
+                        {/* Mockup: publicaciones de ejemplo */}
+                        <div className="perfilPublicacion">
+                            <div className="perfilPublicacionHeader">
+                                <Avatar src={usuario.avatarUrl} nombre={usuario.nombreVisible} tamano="sm" />
+                                <div className="perfilPublicacionMeta">
+                                    <span className="perfilPublicacionAutor">{usuario.nombreVisible}</span>
+                                    <span className="perfilPublicacionFecha">Hace 2 días</span>
+                                </div>
+                            </div>
+                            <p className="perfilPublicacionTexto">
+                                Acabo de subir un nuevo pack de loops lo-fi. Espero que les guste!
+                            </p>
+                        </div>
+                        <div className="perfilPublicacion">
+                            <div className="perfilPublicacionHeader">
+                                <Avatar src={usuario.avatarUrl} nombre={usuario.nombreVisible} tamano="sm" />
+                                <div className="perfilPublicacionMeta">
+                                    <span className="perfilPublicacionAutor">{usuario.nombreVisible}</span>
+                                    <span className="perfilPublicacionFecha">Hace 1 semana</span>
+                                </div>
+                            </div>
+                            <p className="perfilPublicacionTexto">
+                                Trabajando en nuevos samples de percussion. Pronto disponibles.
+                            </p>
+                        </div>
                     </div>
                 )}
                 {tabActiva === 'likes' &&

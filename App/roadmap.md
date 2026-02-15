@@ -102,6 +102,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **UI/UX (C32-C41):** Fix "Usuario no encontrado" en /perfil/ (fallback authStore si API falla para perfil propio). ModalFiltros tamano="pequeno" (400px). Todas las islas registran tabs en TopBar (Inicio, Comunidad, Colección, Sample, Explorar). ModalCrear: eliminado texto IA y "Click para previsualizar", waveform con progreso animado (crearWaveformBarraActiva). Avatar: normalización src vacío→null, fallback a iniciales con onError. InicializadorAuth: normalización avatarUrl vacío→null. FeedUnificado: caché por tipo de ordenamiento (ref), invalidación en like. Tags: ordenados por frecuencia, expansibles (12 colapsados → expandir todos), botón +N. tagUtils.ts: normalización tags (sinónimos en/es, plural→singular, categorización, similitud Jaccard). SampleDetalleIsland: slug dinámico desde URL SPA (no solo prop PHP). TarjetaSample: título clickeable→navegar a /sample/{slug}/. Sidebar: agregados Explorar (Compass) y Comunidad (Users). MAPA_RUTAS: agregadas rutas /comunidad, /explorar, /descubrir, /sample, /coleccion, /mensajes, /planes. ModalConfiguracion: fix campos vacíos — useEffect sincroniza al abrir.
 
+**UI/UX (C42-C52):** Fix SPA navigation ROOT CAUSE — `buscarRutaEnMapa()` prefix matching en navigationStore (rutas dinámicas como `/perfil/john/` → match `/perfil/`). Ordering UI: dropdown desplegable con ArrowDownWideNarrow + menú contextual (ya no 3 botones separados), contador izquierda + botones derecha. Botón crear (+) en TopBar junto a notificaciones. Input búsqueda centrado (flex 0 1 360px, margin auto). PerfilIsland: mockup content (portada, metadata Colombia/2024/link, publicaciones mock), username extraído de rutaActual en SPA. ModalConfiguracion: redesign completo con panel lateral (Perfil/Cuenta/Notificaciones/Apariencia), overlay propio (sin componente Modal), 720px. Middle-click: TarjetaSample título + Sidebar items convertidos de `<button>` a `<a href>` para soporte nativo de nueva pestaña. Explorar eliminado (Sidebar, LayoutPrincipal, pages.php, appIslands). Colecciones: onClick en LibreriaIsland para navegar a `/coleccion/{id}/`. Tags: responsivos (TAGS_COLAPSADOS según viewport), agrupados por categoría cuando expandidos (Tipo/Género/Instrumento/Sentimiento/Tags) con títulos y listas wrap.
+
 ---
 
 ## Pendientes por Fase
@@ -182,6 +184,17 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
   - `bpmUtils.ts`: `CategoriaBpm`, `obtenerCategoriaBpm()`, `etiquetaBpm()`, `rangoBpm()`
   - TarjetaSample muestra categoría ("Lento", "Normal", etc.) en vez de BPM crudo
   - TO-DO: click en tag → filtrar por categoría
+- [ ] **2.6** Nombrado automático de archivos con IA
+  - Al subir audio, la IA genera un nombre estandarizado además de los metadatos
+  - Formato: `kamples_{tipo}_{genero}_{usuario}_{idCorto}.wav`
+  - Ejemplo: `kamples_kick_hip_hop_Wandorius_1FK4433.wav`
+  - El nombre generado se usa como slug y nombre de descarga
+  - El usuario puede editar el nombre antes de publicar, pero el formato sugerido es el estándar
+- [ ] **2.7** IDs únicos cortos para samples
+  - Cada sample recibe un ID corto alfanumérico (ej: `1FK4433`) generado al subir
+  - Las URLs deben encontrar samples por ID además de por slug: `/sample/1FK4433` o `/sample/{slug}`
+  - Lookup dual: primero buscar por slug, si no existe buscar por ID corto
+  - El ID se incluye en el nombre del archivo y en la URL como identificador primario
 
 ### FASE 3 — Algoritmo v1 (pgvector local)
 > Prioridad: ALTA — diferenciador clave del producto
@@ -252,12 +265,12 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 ### FASE 6 — Navegación y Páginas
 > Prioridad: MEDIA
 
-- [ ] **6.1** Navegación SPA fluida
+- [x] **6.1** Navegación SPA fluida ✓ (IMPLEMENTADO)
+  - Fix root cause: `buscarRutaEnMapa()` en navigationStore.ts con prefix matching
   - Click en nombre de sample → navegar a /sample/{slug} sin recargar
-  - Click en nombre de colección → navegar a /coleccion/{slug} sin recargar
-  - Usar sistema de rutas existente de Glory (navegar())
-  - Agregar onClick a TarjetaSample para nombre del sample
-  - Verificar que back/forward del navegador funciona
+  - Click en nombre de colección → navegar a /coleccion/{id}/ sin recargar
+  - Back/forward del navegador funciona correctamente con popstate
+  - Middle-click / Ctrl+click abre en nueva pestaña (elementos convertidos a `<a href>`)
 - [ ] **6.2** SampleDetalleIsland mejorado
   - Tarjeta más grande y detallada en la página individual
   - Waveform XL interactivo
@@ -338,3 +351,5 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 8. **BPM:** Mantener número crudo en BD + campo normalizado (muy lento/lento/normal/rápido/muy rápido).
 9. **ModalCrear:** SIN campos manuales de BPM/Key/Tipo — la IA los genera automáticamente. Mostrar waveform + reproducción. Iconos de condiciones (descarga sí/no, etc.).
 10. **Colors/:** Lectura dinámica del directorio, no hardcodeado. Optimización de imágenes.
+11. **Naming IA:** Al subir audio, la IA genera nombre estandarizado: `kamples_{tipo}_{genero}_{usuario}_{idCorto}.wav`. IDs únicos cortos alfanuméricos para cada sample, URLs soportan lookup por ID o slug.
+12. **Explorar eliminado:** La búsqueda y descubrimiento se hace desde InicioIsland (feed principal). Página `/explorar` removida.

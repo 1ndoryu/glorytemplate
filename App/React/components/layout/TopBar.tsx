@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Bell, Mail, User, Settings, LogOut } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Avatar } from '../ui/Avatar';
 import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
@@ -15,14 +15,18 @@ import { DropdownMensajes } from '../ui/DropdownMensajes';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
+import { useCrearModalStore } from '@app/stores/crearModalStore';
+import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { useNavigationStore } from '@/core/router';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
     const { tabs, activa, setActiva } = useTabsTopBarStore();
     const { usuario, autenticado } = useAuthStore();
-    const { setBusqueda } = useFiltrosStore();
+    const { busqueda, setBusqueda } = useFiltrosStore();
     const { navegar } = useNavigationStore();
+    const { abrir: abrirCrear } = useCrearModalStore();
+    const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
 
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
@@ -56,7 +60,7 @@ export const TopBar = (): JSX.Element => {
             icono: <Settings size={14} />,
             separadorDespues: true,
             onClick: () => {
-                /* TO-DO: abrir modal de configuración */
+                abrirConfiguracion();
                 setMenuAbierto(false);
             },
         },
@@ -96,6 +100,15 @@ export const TopBar = (): JSX.Element => {
 
             {autenticado && (
                 <div className="topbarAcciones">
+                    <button
+                        className="topbarIconoBtn topbarCrearBtn"
+                        onClick={abrirCrear}
+                        aria-label="Crear"
+                        type="button"
+                    >
+                        <Plus size={20} />
+                    </button>
+
                     <div className="topbarIconoWrapper">
                         <button
                             className="topbarIconoBtn"

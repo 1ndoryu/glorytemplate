@@ -1,16 +1,129 @@
 /*
  * modalConfiguracion.css — Kamples
- * Modal de configuración de perfil.
+ * Modal de configuración con panel lateral de navegación.
  */
 
+/* Overlay fullscreen */
+.configOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+/* Modal principal — layout horizontal con nav lateral */
+.configModal {
+    display: flex;
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+    width: 90vw;
+    max-width: 720px;
+    height: 80vh;
+    max-height: 560px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* Panel lateral de navegación */
+.configNavLateral {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    min-width: 200px;
+    background-color: var(--fondoElevado2);
+    border-right: 1px solid var(--bordeSutil);
+    padding: var(--espacioLg) 0;
+}
+
+.configNavTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    padding: 0 var(--espacioLg);
+    margin: 0 0 var(--espacioLg) 0;
+}
+
+.configNavLista {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 var(--espacioSm);
+}
+
+.configNavItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: none;
+    border: none;
+    border-radius: var(--radioSm);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    text-align: left;
+    width: 100%;
+}
+
+.configNavItem:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado3);
+}
+
+.configNavItemActivo {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado3);
+    font-weight: var(--pesoSemibold);
+}
+
+/* Contenido principal (derecha) */
 .configContenido {
     display: flex;
     flex-direction: column;
-    gap: var(--espacioLg);
-    min-width: 380px;
+    flex: 1;
+    min-width: 0;
+    position: relative;
 }
 
-.configTitulo {
+.configCerrarBtn {
+    position: absolute;
+    top: var(--espacioMd);
+    right: var(--espacioMd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radioSm);
+    background: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    z-index: 1;
+}
+
+.configCerrarBtn:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado2);
+}
+
+.configSeccionContenido {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--espacioLg) var(--espacioXl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+.configSeccionTitulo {
     font-size: var(--fuenteLg);
     font-weight: var(--pesoBold);
     color: var(--textoPrimario);
@@ -40,6 +153,10 @@
     font-size: var(--fuenteSm);
     font-weight: var(--pesoMedio);
     color: var(--textoSecundario);
+}
+
+.configLabelPeligro {
+    color: var(--error);
 }
 
 .configSubtexto {
@@ -90,6 +207,11 @@
 
 .configInput:focus {
     border-color: var(--bordeActivo);
+}
+
+.configInput:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Input con prefijo @ */
@@ -159,6 +281,7 @@
     color: var(--textoTerciario);
     cursor: pointer;
     transition: all var(--transicionRapida);
+    flex-shrink: 0;
 }
 
 .configToggle:hover {
@@ -172,11 +295,46 @@
     color: var(--acento-blanco);
 }
 
-/* Acciones */
+/* Acciones — footer fijo */
 .configAcciones {
     display: flex;
     justify-content: flex-end;
     gap: var(--espacioSm);
-    padding-top: var(--espacioSm);
+    padding: var(--espacioMd) var(--espacioXl);
     border-top: 1px solid var(--bordeSutil);
+}
+
+/* Responsive: en pantallas pequeñas, nav lateral se convierte en tabs horizontales */
+@media (max-width: 600px) {
+    .configModal {
+        flex-direction: column;
+        width: 95vw;
+        height: 90vh;
+        max-height: none;
+    }
+
+    .configNavLateral {
+        width: 100%;
+        min-width: 0;
+        flex-direction: row;
+        border-right: none;
+        border-bottom: 1px solid var(--bordeSutil);
+        padding: var(--espacioSm);
+        overflow-x: auto;
+    }
+
+    .configNavTitulo {
+        display: none;
+    }
+
+    .configNavLista {
+        flex-direction: row;
+        gap: var(--espacioXs);
+        padding: 0;
+    }
+
+    .configNavItem {
+        white-space: nowrap;
+        padding: var(--espacioXs) var(--espacioSm);
+    }
 }

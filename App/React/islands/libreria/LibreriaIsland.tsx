@@ -201,6 +201,7 @@ export const LibreriaIsland = (): JSX.Element => {
                             <TarjetaColeccion
                                 key={col.id}
                                 coleccion={col}
+                                onClick={(c) => navegar(`/coleccion/${c.id}/`)}
                             />
                         ))}
                     </div>
@@ -221,6 +222,7 @@ export const LibreriaIsland = (): JSX.Element => {
                             <TarjetaColeccion
                                 key={col.id}
                                 coleccion={col}
+                                onClick={(c) => navegar(`/coleccion/${c.id}/`)}
                                 onEditar={manejarEditarColeccion}
                                 onEliminar={manejarEliminarColeccion}
                             />

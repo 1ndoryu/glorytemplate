@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { Music, SlidersHorizontal, Plus, Minus, ChevronDown, ChevronRight } from 'lucide-react';
+import { Music, SlidersHorizontal, Plus, Minus, ChevronDown, ChevronRight, ArrowDownWideNarrow } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -21,6 +21,7 @@ import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
+import { agruparTagsPorCategoria, type CategoriaTag } from '@app/services/tagUtils';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
 import type { SampleResumen } from '@app/types';
 import type { TipoOrdenamiento, PeriodoDestacados } from '@app/stores/filtrosStore';
@@ -55,6 +56,7 @@ const FeedUnificado = (): JSX.Element => {
     const [tagsExcluidos, setTagsExcluidos] = useState<string[]>([]);
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
     const [menuDestacados, setMenuDestacados] = useState(false);
+    const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
     const [arrastrandoTags, setArrastrandoTags] = useState(false);
     const [tagsExpandidos, setTagsExpandidos] = useState(false);
     const inicioXArrastreRef = useRef(0);
@@ -128,10 +130,35 @@ const FeedUnificado = (): JSX.Element => {
             .map(([tag]) => tag);
     }, [samples]);
 
-    /* Cantidad de tags visibles según estado de expansión */
-    const TAGS_COLAPSADOS = 12;
+    /* Cantidad visible dinámica según ancho de pantalla */
+    const TAGS_COLAPSADOS = useMemo(() => {
+        if (typeof window === 'undefined') return 12;
+        const ancho = window.innerWidth;
+        if (ancho > 1400) return 20;
+        if (ancho > 1024) return 16;
+        if (ancho > 768) return 12;
+        return 8;
+    }, []);
+
     const tagsVisibles = tagsExpandidos ? todosLosTags : todosLosTags.slice(0, TAGS_COLAPSADOS);
     const hayMasTags = todosLosTags.length > TAGS_COLAPSADOS;
+
+    /* Tags agrupados por categoría para la vista expandida */
+    const tagsAgrupados = useMemo(() => {
+        if (!tagsExpandidos) return null;
+        return agruparTagsPorCategoria(todosLosTags);
+    }, [tagsExpandidos, todosLosTags]);
+
+    const ETIQUETAS_CATEGORIA: Record<CategoriaTag, string> = {
+        tipo: 'Tipo',
+        genero: 'Género',
+        instrumento: 'Instrumento',
+        sentimiento: 'Sentimiento',
+        otro: 'Tags',
+    };
+
+    /* Orden de categorías para la vista expandida */
+    const ORDEN_CATEGORIAS: CategoriaTag[] = ['tipo', 'genero', 'instrumento', 'sentimiento', 'otro'];
 
     /* Filtrar por tags incluidos/excluidos */
     const samplesFiltrados = useMemo(() => {
@@ -223,48 +250,66 @@ const FeedUnificado = (): JSX.Element => {
         <div className="inicioContenedor" id="seccionInicio">
             {/* Barra de ordenamientos + filtros */}
             <div className="inicioBarraControl">
-                <div className="inicioOrdenamientos">
-                    {(['inteligente', 'recientes', 'destacados'] as TipoOrdenamiento[]).map((tipo) => (
-                        <div key={tipo} className="inicioOrdenWrapper">
-                            <button
-                                className={`inicioOrdenBtn ${ordenamiento === tipo ? 'inicioOrdenBtnActivo' : ''}`}
-                                onClick={() => {
-                                    if (tipo === 'destacados' && ordenamiento === 'destacados') {
-                                        setMenuDestacados((prev) => !prev);
-                                    } else {
-                                        setOrdenamiento(tipo);
-                                        setMenuDestacados(false);
-                                    }
-                                }}
-                                type="button"
-                            >
-                                {etiquetasOrden[tipo]}
-                                {tipo === 'destacados' && <ChevronDown size={12} />}
-                            </button>
-
-                            {/* Submenu de periodos para Destacados */}
-                            {tipo === 'destacados' && menuDestacados && (
-                                <div className="inicioDestacadosMenu">
-                                    <button onClick={() => manejarPeriodo('semana')} type="button"
-                                        className={periodoDestacados === 'semana' ? 'inicioDestacadosActivo' : ''}>
-                                        Esta semana
-                                    </button>
-                                    <button onClick={() => manejarPeriodo('mes')} type="button"
-                                        className={periodoDestacados === 'mes' ? 'inicioDestacadosActivo' : ''}>
-                                        Este mes
-                                    </button>
-                                    <button onClick={() => manejarPeriodo('anio')} type="button"
-                                        className={periodoDestacados === 'anio' ? 'inicioDestacadosActivo' : ''}>
-                                        Este año
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                <div className="inicioControlesIzquierda">
+                    <span className="inicioTagsContador">{samplesFiltrados.length} samples</span>
                 </div>
 
                 <div className="inicioControlesDerecha">
-                    <span className="inicioTagsContador">{samplesFiltrados.length} samples</span>
+                    {/* Dropdown de ordenamiento unificado */}
+                    <div className="inicioOrdenWrapper">
+                        <button
+                            className="inicioOrdenBtn inicioOrdenBtnActivo"
+                            onClick={() => setMenuOrdenamiento((prev) => !prev)}
+                            type="button"
+                        >
+                            <ArrowDownWideNarrow size={14} />
+                            {etiquetasOrden[ordenamiento]}
+                            <ChevronDown size={12} />
+                        </button>
+
+                        {menuOrdenamiento && (
+                            <div className="inicioOrdenamientoMenu">
+                                {(['inteligente', 'recientes', 'destacados'] as TipoOrdenamiento[]).map((tipo) => (
+                                    <button
+                                        key={tipo}
+                                        className={`${ordenamiento === tipo ? 'inicioOrdenamientoActivo' : ''}`}
+                                        onClick={() => {
+                                            setOrdenamiento(tipo);
+                                            setMenuOrdenamiento(false);
+                                            /* Si es destacados, abrir submenú de periodo */
+                                            if (tipo === 'destacados') {
+                                                setMenuDestacados(true);
+                                            } else {
+                                                setMenuDestacados(false);
+                                            }
+                                        }}
+                                        type="button"
+                                    >
+                                        {etiquetasOrden[tipo]}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Submenu de periodos para Destacados */}
+                        {ordenamiento === 'destacados' && menuDestacados && (
+                            <div className="inicioDestacadosMenu">
+                                <button onClick={() => manejarPeriodo('semana')} type="button"
+                                    className={periodoDestacados === 'semana' ? 'inicioDestacadosActivo' : ''}>
+                                    Esta semana
+                                </button>
+                                <button onClick={() => manejarPeriodo('mes')} type="button"
+                                    className={periodoDestacados === 'mes' ? 'inicioDestacadosActivo' : ''}>
+                                    Este mes
+                                </button>
+                                <button onClick={() => manejarPeriodo('anio')} type="button"
+                                    className={periodoDestacados === 'anio' ? 'inicioDestacadosActivo' : ''}>
+                                    Este año
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                     <button
                         className="inicioFiltrosBtn"
                         onClick={() => setFiltrosAbierto(true)}
@@ -278,59 +323,111 @@ const FeedUnificado = (): JSX.Element => {
 
             {/* Tags dinámicos con expansión */}
             <div className="inicioTags">
-                <div
-                    ref={listaTagsRef}
-                    className={`inicioTagsLista ${arrastrandoTags ? 'inicioTagsListaArrastrando' : ''} ${tagsExpandidos ? 'inicioTagsListaExpandida' : ''}`}
-                    onMouseDown={(e) => !tagsExpandidos && iniciarArrastreTags(e.clientX)}
-                    onMouseMove={(e) => !tagsExpandidos && moverArrastreTags(e.clientX)}
-                    onMouseUp={finalizarArrastreTags}
-                    onMouseLeave={finalizarArrastreTags}
-                    onTouchStart={(e) => !tagsExpandidos && iniciarArrastreTags(e.touches[0].clientX)}
-                    onTouchMove={(e) => !tagsExpandidos && moverArrastreTags(e.touches[0].clientX)}
-                    onTouchEnd={finalizarArrastreTags}
-                >
-                    {tagsVisibles.map((tag) => (
-                        <div
-                            key={tag}
-                            className={`inicioTagItem ${tagsIncluidos.includes(tag) ? 'inicioTagItemIncluido' : ''} ${tagsExcluidos.includes(tag) ? 'inicioTagItemExcluido' : ''}`}
-                        >
-                            <button type="button" className="inicioTagBoton inicioTagBotonRestar"
-                                aria-label={`Excluir tag ${tag}`}
-                                onMouseDown={(e) => e.stopPropagation()}
-                                onClick={(e) => { e.stopPropagation(); manejarExcluirTag(tag); }}
-                            >
-                                <Minus size={10} />
-                            </button>
-                            <button type="button" className="inicioTagTexto"
-                                aria-label={`Incluir tag ${tag}`}
-                                onMouseDown={(e) => e.stopPropagation()}
-                                onClick={(e) => { e.stopPropagation(); manejarIncluirTag(tag); }}
-                            >
-                                {tag}
-                            </button>
-                            <button type="button" className="inicioTagBoton inicioTagBotonSumar"
-                                aria-label={`Incluir tag ${tag}`}
-                                onMouseDown={(e) => e.stopPropagation()}
-                                onClick={(e) => { e.stopPropagation(); manejarIncluirTag(tag); }}
-                            >
-                                <Plus size={10} />
-                            </button>
-                        </div>
-                    ))}
-
-                    {/* Botón expandir/colapsar tags */}
-                    {hayMasTags && (
+                {tagsExpandidos && tagsAgrupados ? (
+                    /* Vista expandida: tags agrupados por categoría */
+                    <div className="inicioTagsAgrupados">
+                        {ORDEN_CATEGORIAS.map((categoria) => {
+                            const tagsCategoria = tagsAgrupados[categoria];
+                            if (tagsCategoria.length === 0) return null;
+                            return (
+                                <div key={categoria} className="inicioTagGrupo">
+                                    <span className="inicioTagGrupoTitulo">{ETIQUETAS_CATEGORIA[categoria]}</span>
+                                    <div className="inicioTagGrupoLista">
+                                        {tagsCategoria.map((tag) => (
+                                            <div
+                                                key={tag}
+                                                className={`inicioTagItem ${tagsIncluidos.includes(tag) ? 'inicioTagItemIncluido' : ''} ${tagsExcluidos.includes(tag) ? 'inicioTagItemExcluido' : ''}`}
+                                            >
+                                                <button type="button" className="inicioTagBoton inicioTagBotonRestar"
+                                                    aria-label={`Excluir tag ${tag}`}
+                                                    onClick={(e) => { e.stopPropagation(); manejarExcluirTag(tag); }}
+                                                >
+                                                    <Minus size={10} />
+                                                </button>
+                                                <button type="button" className="inicioTagTexto"
+                                                    aria-label={`Incluir tag ${tag}`}
+                                                    onClick={(e) => { e.stopPropagation(); manejarIncluirTag(tag); }}
+                                                >
+                                                    {tag}
+                                                </button>
+                                                <button type="button" className="inicioTagBoton inicioTagBotonSumar"
+                                                    aria-label={`Incluir tag ${tag}`}
+                                                    onClick={(e) => { e.stopPropagation(); manejarIncluirTag(tag); }}
+                                                >
+                                                    <Plus size={10} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
                         <button
                             type="button"
                             className="inicioTagExpandirBtn"
-                            onClick={() => setTagsExpandidos((prev) => !prev)}
-                            aria-label={tagsExpandidos ? 'Ver menos tags' : 'Ver más tags'}
+                            onClick={() => setTagsExpandidos(false)}
+                            aria-label="Ver menos tags"
                         >
-                            <ChevronRight size={12} className={tagsExpandidos ? 'inicioTagExpandirIconoRotado' : ''} />
-                            {tagsExpandidos ? 'Menos' : `+${todosLosTags.length - TAGS_COLAPSADOS}`}
+                            <ChevronRight size={12} className="inicioTagExpandirIconoRotado" />
+                            Menos
                         </button>
-                    )}
-                </div>
+                    </div>
+                ) : (
+                    /* Vista colapsada: fila horizontal con scroll */
+                    <div
+                        ref={listaTagsRef}
+                        className={`inicioTagsLista ${arrastrandoTags ? 'inicioTagsListaArrastrando' : ''}`}
+                        onMouseDown={(e) => iniciarArrastreTags(e.clientX)}
+                        onMouseMove={(e) => moverArrastreTags(e.clientX)}
+                        onMouseUp={finalizarArrastreTags}
+                        onMouseLeave={finalizarArrastreTags}
+                        onTouchStart={(e) => iniciarArrastreTags(e.touches[0].clientX)}
+                        onTouchMove={(e) => moverArrastreTags(e.touches[0].clientX)}
+                        onTouchEnd={finalizarArrastreTags}
+                    >
+                        {tagsVisibles.map((tag) => (
+                            <div
+                                key={tag}
+                                className={`inicioTagItem ${tagsIncluidos.includes(tag) ? 'inicioTagItemIncluido' : ''} ${tagsExcluidos.includes(tag) ? 'inicioTagItemExcluido' : ''}`}
+                            >
+                                <button type="button" className="inicioTagBoton inicioTagBotonRestar"
+                                    aria-label={`Excluir tag ${tag}`}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => { e.stopPropagation(); manejarExcluirTag(tag); }}
+                                >
+                                    <Minus size={10} />
+                                </button>
+                                <button type="button" className="inicioTagTexto"
+                                    aria-label={`Incluir tag ${tag}`}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => { e.stopPropagation(); manejarIncluirTag(tag); }}
+                                >
+                                    {tag}
+                                </button>
+                                <button type="button" className="inicioTagBoton inicioTagBotonSumar"
+                                    aria-label={`Incluir tag ${tag}`}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => { e.stopPropagation(); manejarIncluirTag(tag); }}
+                                >
+                                    <Plus size={10} />
+                                </button>
+                            </div>
+                        ))}
+
+                        {/* Botón expandir tags */}
+                        {hayMasTags && (
+                            <button
+                                type="button"
+                                className="inicioTagExpandirBtn"
+                                onClick={() => setTagsExpandidos(true)}
+                                aria-label="Ver más tags"
+                            >
+                                <ChevronRight size={12} />
+                                +{todosLosTags.length - TAGS_COLAPSADOS}
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Lista de samples */}
