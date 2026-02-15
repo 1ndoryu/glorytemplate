@@ -62,11 +62,15 @@ PageManager::reactPage('perfil', 'PerfilIsland', function($pageId) {
     $partes = explode('/', $path);
     /* /perfil/{username} → username es el último segmento */
     $username = end($partes);
-    if ($username === 'editar') {
+    if ($username === 'perfil' || $username === 'editar') {
         return ['username' => ''];
     }
     return ['username' => sanitize_text_field($username)];
 });
+
+/* Rutas dinámicas: /perfil/{username} y /sample/{slug} resuelven a su página padre */
+PageManager::registrarRutaDinamica('perfil');
+PageManager::registrarRutaDinamica('sample');
 
 PageManager::reactPage('perfil/editar', 'EditarPerfilIsland');
 
