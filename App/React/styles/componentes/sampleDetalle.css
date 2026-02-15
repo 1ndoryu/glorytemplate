@@ -17,8 +17,8 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--espacioLg);
-    background: var(--superficieElevada);
-    border: 1px solid var(--bordeClaro);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
     border-radius: var(--radioLg);
     padding: var(--espacioLg);
 }
@@ -47,7 +47,7 @@
     align-items: center;
     gap: var(--espacioSm);
     cursor: pointer;
-    transition: opacity var(--transicionBase);
+    transition: opacity var(--transicionNormal);
 }
 
 .detalleCreador:hover {
@@ -65,7 +65,7 @@
 }
 
 .detalleDescripcion {
-    font-size: var(--fuenteBase);
+    font-size: var(--fuenteMd);
     color: var(--textoSecundario);
     line-height: 1.6;
     white-space: pre-wrap;
@@ -83,8 +83,8 @@
     flex-direction: column;
     align-items: center;
     gap: var(--espacioXs);
-    background: var(--superficieSutil);
-    border: 1px solid var(--bordeClaro);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
     padding: var(--espacioSm) var(--espacioMd);
     min-width: 80px;
@@ -98,7 +98,7 @@
 }
 
 .detalleMetaValor {
-    font-size: var(--fuenteBase);
+    font-size: var(--fuenteMd);
     font-weight: var(--pesoSemibold);
     color: var(--textoPrimario);
 }
