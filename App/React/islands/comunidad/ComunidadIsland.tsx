@@ -12,6 +12,7 @@ import { Badge } from '@app/components/ui/Badge';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { useNavigationStore } from '@/core/router';
 import { useReproductorStore } from '@app/stores/reproductorStore';
+import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import type { Publicacion } from '@app/types';
@@ -134,6 +135,13 @@ const ComunidadBase = (): JSX.Element => {
     const [cargando, setCargando] = useState(true);
     const { navegar } = useNavigationStore();
     const { setSample, sampleActual, reproduciendo, progreso } = useReproductorStore();
+    const { setTabs } = useTabsTopBarStore();
+
+    /* Registrar tab "Comunidad" en TopBar */
+    useEffect(() => {
+        setTabs([{ id: 'comunidad', etiqueta: 'Comunidad' }], 'comunidad');
+        return () => { setTabs([]); };
+    }, [setTabs]);
 
     useEffect(() => {
         /* TO-DO: conectar a API real GET /kamples/v1/publicaciones?filtro= */

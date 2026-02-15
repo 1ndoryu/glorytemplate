@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { Music, SlidersHorizontal, Plus, Minus, ChevronDown } from 'lucide-react';
+import { Music, SlidersHorizontal, Plus, Minus, ChevronDown, ChevronRight } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -18,6 +18,7 @@ import { darLike, quitarLike } from '@app/services/apiSocial';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
+import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
@@ -55,26 +56,48 @@ const FeedUnificado = (): JSX.Element => {
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
     const [menuDestacados, setMenuDestacados] = useState(false);
     const [arrastrandoTags, setArrastrandoTags] = useState(false);
+    const [tagsExpandidos, setTagsExpandidos] = useState(false);
     const inicioXArrastreRef = useRef(0);
     const scrollInicialRef = useRef(0);
     const listaTagsRef = useRef<HTMLDivElement | null>(null);
 
+    /* Cache por tipo de ordenamiento para evitar re-fetch innecesarios */
+    const cacheFeedRef = useRef<Record<string, SampleResumen[]>>({});
+
     const { navegar } = useNavigationStore();
     const { abrir: abrirCrear } = useCrearModalStore();
     const { busqueda, ordenamiento, periodoDestacados, setOrdenamiento, setPeriodoDestacados } = useFiltrosStore();
+    const { setTabs } = useTabsTopBarStore();
     const menu = useMenuContextualSample();
 
-    /* Cargar samples según el ordenamiento activo */
+    /* Registrar tab "Inicio" en TopBar */
     useEffect(() => {
+        setTabs([{ id: 'inicio', etiqueta: 'Inicio' }], 'inicio');
+        return () => { setTabs([]); };
+    }, [setTabs]);
+
+    /* Cargar samples según el ordenamiento activo — con cache por tipo */
+    useEffect(() => {
+        const claveCache = `${ordenamiento}_${busqueda || ''}_${periodoDestacados}`;
+
+        /* Si ya tenemos datos en cache para esta combinación, usarlos instantáneo */
+        if (cacheFeedRef.current[claveCache]) {
+            setSamples(cacheFeedRef.current[claveCache]);
+            setCargando(false);
+            return;
+        }
+
         const cargar = async () => {
             setCargando(true);
 
+            let resultado: SampleResumen[] = [];
+
             if (ordenamiento === 'recientes') {
                 const resp = await obtenerFeed('recientes');
-                if (resp.ok && resp.data) setSamples(resp.data);
+                if (resp.ok && resp.data) resultado = resp.data;
             } else if (ordenamiento === 'destacados') {
                 const resp = await obtenerFeed('trending');
-                if (resp.ok && resp.data) setSamples(resp.data);
+                if (resp.ok && resp.data) resultado = resp.data;
             } else {
                 /* Inteligente: usa listarSamples con búsqueda */
                 const resp = await listarSamples({
@@ -82,20 +105,33 @@ const FeedUnificado = (): JSX.Element => {
                     perPage: 30,
                     busqueda: busqueda || undefined,
                 });
-                if (resp.ok && resp.data) setSamples(resp.data.data ?? []);
+                if (resp.ok && resp.data) resultado = resp.data.data ?? [];
             }
 
+            /* Guardar en cache y actualizar estado */
+            cacheFeedRef.current[claveCache] = resultado;
+            setSamples(resultado);
             setCargando(false);
         };
         cargar();
     }, [ordenamiento, busqueda, periodoDestacados]);
 
-    /* Tags dinámicos extraídos de todos los samples cargados */
+    /* Tags dinámicos ordenados por frecuencia de aparición */
     const todosLosTags = useMemo(() => {
-        const tagSet = new Set<string>();
-        samples.forEach((s) => s.tags?.forEach((t) => tagSet.add(t)));
-        return Array.from(tagSet).slice(0, 28);
+        const conteoTags = new Map<string, number>();
+        samples.forEach((s) => s.tags?.forEach((t) => {
+            conteoTags.set(t, (conteoTags.get(t) ?? 0) + 1);
+        }));
+        /* Ordenar por frecuencia descendente */
+        return Array.from(conteoTags.entries())
+            .sort((a, b) => b[1] - a[1])
+            .map(([tag]) => tag);
     }, [samples]);
+
+    /* Cantidad de tags visibles según estado de expansión */
+    const TAGS_COLAPSADOS = 12;
+    const tagsVisibles = tagsExpandidos ? todosLosTags : todosLosTags.slice(0, TAGS_COLAPSADOS);
+    const hayMasTags = todosLosTags.length > TAGS_COLAPSADOS;
 
     /* Filtrar por tags incluidos/excluidos */
     const samplesFiltrados = useMemo(() => {
@@ -151,6 +187,8 @@ const FeedUnificado = (): JSX.Element => {
                 return s;
             })
         );
+        /* Invalidar cache para que re-fetch futuro refleje el cambio */
+        cacheFeedRef.current = {};
         if (estabaLiked) {
             await quitarLike('sample', sampleId);
         } else {
@@ -238,20 +276,20 @@ const FeedUnificado = (): JSX.Element => {
                 </div>
             </div>
 
-            {/* Tags dinámicos */}
+            {/* Tags dinámicos con expansión */}
             <div className="inicioTags">
                 <div
                     ref={listaTagsRef}
-                    className={`inicioTagsLista ${arrastrandoTags ? 'inicioTagsListaArrastrando' : ''}`}
-                    onMouseDown={(e) => iniciarArrastreTags(e.clientX)}
-                    onMouseMove={(e) => moverArrastreTags(e.clientX)}
+                    className={`inicioTagsLista ${arrastrandoTags ? 'inicioTagsListaArrastrando' : ''} ${tagsExpandidos ? 'inicioTagsListaExpandida' : ''}`}
+                    onMouseDown={(e) => !tagsExpandidos && iniciarArrastreTags(e.clientX)}
+                    onMouseMove={(e) => !tagsExpandidos && moverArrastreTags(e.clientX)}
                     onMouseUp={finalizarArrastreTags}
                     onMouseLeave={finalizarArrastreTags}
-                    onTouchStart={(e) => iniciarArrastreTags(e.touches[0].clientX)}
-                    onTouchMove={(e) => moverArrastreTags(e.touches[0].clientX)}
+                    onTouchStart={(e) => !tagsExpandidos && iniciarArrastreTags(e.touches[0].clientX)}
+                    onTouchMove={(e) => !tagsExpandidos && moverArrastreTags(e.touches[0].clientX)}
                     onTouchEnd={finalizarArrastreTags}
                 >
-                    {todosLosTags.map((tag) => (
+                    {tagsVisibles.map((tag) => (
                         <div
                             key={tag}
                             className={`inicioTagItem ${tagsIncluidos.includes(tag) ? 'inicioTagItemIncluido' : ''} ${tagsExcluidos.includes(tag) ? 'inicioTagItemExcluido' : ''}`}
@@ -279,6 +317,19 @@ const FeedUnificado = (): JSX.Element => {
                             </button>
                         </div>
                     ))}
+
+                    {/* Botón expandir/colapsar tags */}
+                    {hayMasTags && (
+                        <button
+                            type="button"
+                            className="inicioTagExpandirBtn"
+                            onClick={() => setTagsExpandidos((prev) => !prev)}
+                            aria-label={tagsExpandidos ? 'Ver menos tags' : 'Ver más tags'}
+                        >
+                            <ChevronRight size={12} className={tagsExpandidos ? 'inicioTagExpandirIconoRotado' : ''} />
+                            {tagsExpandidos ? 'Menos' : `+${todosLosTags.length - TAGS_COLAPSADOS}`}
+                        </button>
+                    )}
                 </div>
             </div>
 

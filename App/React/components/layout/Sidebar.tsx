@@ -1,12 +1,14 @@
 /*
  * Componente: Sidebar
  * Navegación lateral mínima con iconos y tooltips.
- * Solo incluye: Inicio, Librería, Crear (modal).
+ * Incluye: Inicio, Explorar, Comunidad, Librería, Crear (modal).
  * Mensajes, notificaciones y perfil se manejan desde el TopBar.
  */
 
 import {
     Home,
+    Compass,
+    Users,
     FolderOpen,
     PenSquare,
     AudioLines,
@@ -25,6 +27,8 @@ export interface SidebarItemDef {
 
 const itemsDefault: SidebarItemDef[] = [
     { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
+    { id: 'explorar', etiqueta: 'Explorar', icono: <Compass size={20} />, ruta: '/explorar' },
+    { id: 'comunidad', etiqueta: 'Comunidad', icono: <Users size={20} />, ruta: '/comunidad' },
     { id: 'libreria', etiqueta: 'Librería', icono: <FolderOpen size={20} />, ruta: '/libreria' },
     { id: 'crear', etiqueta: 'Crear', icono: <PenSquare size={20} />, ruta: '', accion: 'modal-crear' },
 ];

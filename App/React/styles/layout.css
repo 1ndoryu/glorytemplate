@@ -48,18 +48,16 @@
     grid-area: contenido;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: var(--espacio2xl);
+    /* padding: var(--espacio2xl); */
     background-color: var(--fondoBase);
 }
 
 /* Limitador de ancho para contenido */
 .contenedorContenido {
-    max-width: var(--anchoMaximoContenido);
-    margin: 0 auto;
+    /* max-width: var(--anchoMaximoContenido); */
+    /* margin: 0 auto; */
     width: 100%;
-    max-width: 1000px;
 }
-
 /* Reproductor global — ahora flotante, sin grid area */
 .areaReproductor {
     position: fixed;

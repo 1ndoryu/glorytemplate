@@ -85,16 +85,37 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                 const respuesta = await obtenerPerfil(username);
                 if (respuesta.ok && respuesta.data) {
                     setUsuario(respuesta.data as unknown as Usuario);
+                    setCargando(false);
+                    return;
                 }
             } catch (err) {
-                log.error('Error cargando perfil', err);
-            } finally {
-                setCargando(false);
+                log.debug('API perfil no disponible, intentando fallback', err);
             }
+
+            /*
+             * Fallback: si la API falla (ej. usuario sin registro PG aún)
+             * y es perfil propio, usar datos del authStore como fuente.
+             */
+            if (usuarioAuth && (username === usuarioAuth.username || username === '')) {
+                setUsuario({
+                    id: usuarioAuth.id,
+                    username: usuarioAuth.username,
+                    nombreVisible: usuarioAuth.nombreVisible ?? usuarioAuth.username,
+                    avatarUrl: usuarioAuth.avatarUrl ?? null,
+                    bio: '',
+                    portadaUrl: null,
+                    plan: (usuarioAuth as unknown as { plan?: string }).plan ?? 'free',
+                    verificado: false,
+                    totalSamples: 0,
+                    totalSeguidores: 0,
+                    totalSeguidos: 0,
+                } as Usuario);
+            }
+            setCargando(false);
         };
 
         cargar();
-    }, [username, authCargando]);
+    }, [username, authCargando, usuarioAuth]);
 
     /* Cargar contenido de tabs */
     useEffect(() => {

@@ -11,6 +11,7 @@ import {WaveformPlayer} from './WaveformPlayer';
 import {Badge} from './Badge';
 import {obtenerImagenColor} from '../../services/imagenesColor';
 import {etiquetaBpm} from '../../services/bpmUtils';
+import {useNavigationStore} from '@/core/router';
 import '../../styles/componentes/tarjetaSample.css';
 
 interface TarjetaSampleProps {
@@ -84,6 +85,7 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
     const [picosAudio, setPicosAudio] = useState<number[] | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const rutaPreviewRef = useRef(sample.rutaPreview);
+    const { navegar } = useNavigationStore();
 
     useEffect(() => {
         let activo = true;
@@ -305,7 +307,13 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
             {/* Contenido central */}
             <div className="tarjetaContenido">
                 <div className="tarjetaCabecera">
-                    <span className="tarjetaTitulo">{sample.titulo}</span>
+                    <button
+                        type="button"
+                        className="tarjetaTitulo tarjetaTituloClickeable"
+                        onClick={(e) => { e.stopPropagation(); navegar(`/sample/${sample.slug}/`); }}
+                    >
+                        {sample.titulo}
+                    </button>
                     {sample.esPremium && <span className="tarjetaPremium">PRO</span>}
                 </div>
 

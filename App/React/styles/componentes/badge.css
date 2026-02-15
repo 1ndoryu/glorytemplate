@@ -18,6 +18,13 @@
     letter-spacing: 0.02em;
 }
 
+/* Tamaños */
+.badge.badgeXs {
+    font-size: var(--fuenteXs);
+    padding: 2px var(--espacioSm);
+    height: auto;
+}
+
 /* Variantes de color */
 .badge.badgeNeutro {
     background-color: var(--fondoElevado3);

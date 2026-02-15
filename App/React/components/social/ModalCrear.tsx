@@ -7,16 +7,16 @@
  * Incluye waveform preview del audio adjunto y toggles de condiciones.
  */
 
-import { useState, useCallback, useRef, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
-import { Music, Image, X, Download, ShieldCheck } from 'lucide-react';
-import { Modal } from '@app/components/ui/Modal';
-import { Avatar } from '@app/components/ui/Avatar';
-import { Badge } from '@app/components/ui/Badge';
-import { BotonBase } from '@app/components/ui/BotonBase';
-import { useCrearModalStore } from '@app/stores/crearModalStore';
-import { useAuthStore } from '@app/stores/authStore';
-import { useArchivosDragDrop } from '@app/hooks/useArchivosDragDrop';
-import { crearLogger } from '@app/services/logger';
+import {useState, useCallback, useRef, useEffect, type ChangeEvent, type KeyboardEvent} from 'react';
+import {Music, Image, X, Download, ShieldCheck} from 'lucide-react';
+import {Modal} from '@app/components/ui/Modal';
+import {Avatar} from '@app/components/ui/Avatar';
+import {Badge} from '@app/components/ui/Badge';
+import {BotonBase} from '@app/components/ui/BotonBase';
+import {useCrearModalStore} from '@app/stores/crearModalStore';
+import {useAuthStore} from '@app/stores/authStore';
+import {useArchivosDragDrop} from '@app/hooks/useArchivosDragDrop';
+import {crearLogger} from '@app/services/logger';
 import '../../styles/componentes/modalCrear.css';
 
 const log = crearLogger('ModalCrear');
@@ -63,8 +63,8 @@ const generarPeaks = async (archivo: File, barras = 60): Promise<number[]> => {
 };
 
 export const ModalCrear = (): JSX.Element | null => {
-    const { abierto, cerrar } = useCrearModalStore();
-    const { usuario, autenticado } = useAuthStore();
+    const {abierto, cerrar} = useCrearModalStore();
+    const {usuario, autenticado} = useAuthStore();
 
     const [contenido, setContenido] = useState('');
     const [publicando, setPublicando] = useState(false);
@@ -73,26 +73,10 @@ export const ModalCrear = (): JSX.Element | null => {
     const [waveformPeaks, setWaveformPeaks] = useState<number[]>([]);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [reproduciendoPreview, setReproduciendoPreview] = useState(false);
+    const [progresoPreview, setProgresoPreview] = useState(0);
     const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
 
-    const {
-        audioAdjunto,
-        imagenes,
-        arrastrando,
-        inputAudioRef,
-        inputImagenRef,
-        manejarInputAudio,
-        manejarInputImagen,
-        quitarImagen,
-        quitarAudio,
-        manejarDragEnter,
-        manejarDragLeave,
-        manejarDragOver,
-        manejarDrop,
-        resetear: resetearArchivos,
-        formatosAudio,
-        maxImagenes,
-    } = useArchivosDragDrop();
+    const {audioAdjunto, imagenes, arrastrando, inputAudioRef, inputImagenRef, manejarInputAudio, manejarInputImagen, quitarImagen, quitarAudio, manejarDragEnter, manejarDragLeave, manejarDragOver, manejarDrop, resetear: resetearArchivos, formatosAudio, maxImagenes} = useArchivosDragDrop();
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -107,9 +91,9 @@ export const ModalCrear = (): JSX.Element | null => {
         setWaveformPeaks([]);
         setAudioUrl(null);
         setReproduciendoPreview(false);
+        setProgresoPreview(0);
     }, [audioAdjunto]);
-
-    /* Toggle play/pause del preview */
+    
     const togglePreview = useCallback(() => {
         const audio = audioPreviewRef.current;
         if (!audio || !audioUrl) return;
@@ -134,6 +118,7 @@ export const ModalCrear = (): JSX.Element | null => {
             setWaveformPeaks([]);
             setAudioUrl(null);
             setReproduciendoPreview(false);
+            setProgresoPreview(0);
         }, 200);
     }, [cerrar, publicando, resetearArchivos]);
 
@@ -149,12 +134,15 @@ export const ModalCrear = (): JSX.Element | null => {
         el.style.height = `${nueva}px`;
     }, []);
 
-    const manejarCambioTexto = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
-        if (e.target.value.length <= MAX_CARACTERES) {
-            setContenido(e.target.value);
-        }
-        ajustarAltura();
-    }, [ajustarAltura]);
+    const manejarCambioTexto = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement>) => {
+            if (e.target.value.length <= MAX_CARACTERES) {
+                setContenido(e.target.value);
+            }
+            ajustarAltura();
+        },
+        [ajustarAltura]
+    );
 
     /* Publicar */
     const manejarPublicar = useCallback(async () => {
@@ -169,23 +157,26 @@ export const ModalCrear = (): JSX.Element | null => {
             tieneAudio: !!audioAdjunto,
             imagenes: imagenes.length,
             permitirDescarga,
-            licenciaLibre,
+            licenciaLibre
         });
 
         /* TO-DO: enviar a POST /kamples/v1/samples con FormData */
-        await new Promise((r) => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1000));
 
         setPublicando(false);
         manejarCerrar();
     }, [contenido, audioAdjunto, imagenes, publicando, manejarCerrar, permitirDescarga, licenciaLibre]);
 
     /* Ctrl+Enter para publicar */
-    const manejarKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            manejarPublicar();
-        }
-    }, [manejarPublicar]);
+    const manejarKeyDown = useCallback(
+        (e: KeyboardEvent<HTMLTextAreaElement>) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                manejarPublicar();
+            }
+        },
+        [manejarPublicar]
+    );
 
     useEffect(() => {
         if (abierto) ajustarAltura();
@@ -199,41 +190,20 @@ export const ModalCrear = (): JSX.Element | null => {
 
     return (
         <Modal abierto={abierto} onCerrar={manejarCerrar}>
-            <div
-                className="crearContenido"
-                onDragEnter={manejarDragEnter}
-                onDragLeave={manejarDragLeave}
-                onDragOver={manejarDragOver}
-                onDrop={manejarDrop}
-            >
+            <div className="crearContenido" onDragEnter={manejarDragEnter} onDragLeave={manejarDragLeave} onDragOver={manejarDragOver} onDrop={manejarDrop}>
                 {/* Avatar + nombre */}
                 <div className="crearCabecera">
-                    <Avatar
-                        src={usuario?.avatarUrl ?? null}
-                        nombre={usuario?.nombreVisible ?? ''}
-                        tamano="sm"
-                    />
-                    <span className="crearUsuario">
-                        {usuario?.nombreVisible ?? usuario?.username}
-                    </span>
+                    <Avatar src={usuario?.avatarUrl ?? null} nombre={usuario?.nombreVisible ?? ''} tamano="sm" />
+                    <span className="crearUsuario">{usuario?.nombreVisible ?? usuario?.username}</span>
                 </div>
 
                 {/* Textarea con soporte de # tags */}
-                <textarea
-                    ref={textareaRef}
-                    className="crearTextarea"
-                    placeholder="¿Qué estás creando? Usa # para agregar tags"
-                    value={contenido}
-                    onChange={manejarCambioTexto}
-                    onKeyDown={manejarKeyDown}
-                    rows={1}
-                    autoFocus
-                />
+                <textarea ref={textareaRef} className="crearTextarea" placeholder="¿Qué estás creando? Usa # para agregar tags" value={contenido} onChange={manejarCambioTexto} onKeyDown={manejarKeyDown} rows={1} autoFocus />
 
                 {/* Tags extraídos del texto */}
                 {tags.length > 0 && (
                     <div className="crearTags">
-                        {tags.map((tag) => (
+                        {tags.map(tag => (
                             <Badge key={tag} variante="acento" estilo="borde">
                                 #{tag}
                             </Badge>
@@ -244,7 +214,9 @@ export const ModalCrear = (): JSX.Element | null => {
                 {/* Audio adjunto con waveform preview */}
                 {audioAdjunto && (
                     <div className="crearAdjunto">
-                        <div className="crearAdjuntoIcono"><Music size={18} /></div>
+                        <div className="crearAdjuntoIcono">
+                            <Music size={18} />
+                        </div>
                         <div className="crearAdjuntoInfo">
                             <span className="crearAdjuntoNombre">{audioAdjunto.nombre}</span>
                             <span className="crearAdjuntoMeta">
@@ -253,44 +225,40 @@ export const ModalCrear = (): JSX.Element | null => {
                         </div>
                         <button
                             className="crearAdjuntoBtn crearAdjuntoBtnQuitar"
-                            onClick={() => { quitarAudio(); }}
+                            onClick={() => {
+                                quitarAudio();
+                            }}
                             type="button"
-                            aria-label="Quitar audio"
-                        >
+                            aria-label="Quitar audio">
                             <X size={14} />
                         </button>
                     </div>
                 )}
 
-                {/* Waveform preview del audio */}
+                {/* Waveform preview del audio con indicador de progreso */}
                 {audioAdjunto && waveformPeaks.length > 0 && (
                     <div className="crearWaveform" onClick={togglePreview} role="button" tabIndex={0}>
                         <div className="crearWaveformBarras">
-                            {waveformPeaks.map((peak, i) => (
-                                <div
-                                    key={i}
-                                    className="crearWaveformBarra"
-                                    style={{ height: `${Math.max(peak * 100, 4)}%` }}
-                                />
-                            ))}
+                            {waveformPeaks.map((peak, i) => {
+                                const porcentajeBarra = (i + 1) / waveformPeaks.length;
+                                const reproducida = reproduciendoPreview && porcentajeBarra <= progresoPreview;
+                                return <div key={i} className={`crearWaveformBarra ${reproducida ? 'crearWaveformBarraActiva' : ''}`} style={{height: `${Math.max(peak * 100, 4)}%`}} />;
+                            })}
                         </div>
-                        <span className="crearWaveformLabel">
-                            {reproduciendoPreview ? 'Reproduciendo...' : 'Click para previsualizar'}
-                        </span>
                         {audioUrl && (
                             <audio
                                 ref={audioPreviewRef}
                                 src={audioUrl}
-                                onEnded={() => setReproduciendoPreview(false)}
+                                onTimeUpdate={() => {
+                                    const a = audioPreviewRef.current;
+                                    if (a && a.duration) setProgresoPreview(a.currentTime / a.duration);
+                                }}
+                                onEnded={() => {
+                                    setReproduciendoPreview(false);
+                                    setProgresoPreview(0);
+                                }}
                             />
                         )}
-                    </div>
-                )}
-
-                {/* Nota: la IA generará BPM, Key y Tipo automáticamente */}
-                {audioAdjunto && (
-                    <div className="crearIaInfo">
-                        <span>BPM, tonalidad y tipo se detectarán automáticamente con IA</span>
                     </div>
                 )}
 
@@ -300,12 +268,7 @@ export const ModalCrear = (): JSX.Element | null => {
                         {imagenes.map((img, i) => (
                             <div className="crearImagenItem" key={img.url}>
                                 <img src={img.url} alt={`Imagen ${i + 1}`} />
-                                <button
-                                    className="crearImagenQuitar"
-                                    onClick={() => quitarImagen(i)}
-                                    type="button"
-                                    aria-label="Quitar imagen"
-                                >
+                                <button className="crearImagenQuitar" onClick={() => quitarImagen(i)} type="button" aria-label="Quitar imagen">
                                     <X size={12} />
                                 </button>
                             </div>
@@ -324,21 +287,11 @@ export const ModalCrear = (): JSX.Element | null => {
                 {/* Condiciones del sample (iconos sobre botón crear) */}
                 {audioAdjunto && (
                     <div className="crearCondiciones">
-                        <button
-                            className={`crearCondicionBtn ${permitirDescarga ? 'crearCondicionActiva' : ''}`}
-                            onClick={() => setPermitirDescarga(!permitirDescarga)}
-                            type="button"
-                            title={permitirDescarga ? 'Descarga permitida' : 'Descarga no permitida'}
-                        >
+                        <button className={`crearCondicionBtn ${permitirDescarga ? 'crearCondicionActiva' : ''}`} onClick={() => setPermitirDescarga(!permitirDescarga)} type="button" title={permitirDescarga ? 'Descarga permitida' : 'Descarga no permitida'}>
                             <Download size={14} />
                             <span>{permitirDescarga ? 'Descarga sí' : 'Descarga no'}</span>
                         </button>
-                        <button
-                            className={`crearCondicionBtn ${licenciaLibre ? 'crearCondicionActiva' : ''}`}
-                            onClick={() => setLicenciaLibre(!licenciaLibre)}
-                            type="button"
-                            title={licenciaLibre ? 'Licencia libre' : 'Licencia estándar'}
-                        >
+                        <button className={`crearCondicionBtn ${licenciaLibre ? 'crearCondicionActiva' : ''}`} onClick={() => setLicenciaLibre(!licenciaLibre)} type="button" title={licenciaLibre ? 'Licencia libre' : 'Licencia estándar'}>
                             <ShieldCheck size={14} />
                             <span>{licenciaLibre ? 'Libre' : 'Estándar'}</span>
                         </button>
@@ -348,36 +301,17 @@ export const ModalCrear = (): JSX.Element | null => {
                 {/* Barra de acciones */}
                 <div className="crearAcciones">
                     <div className="crearAccionesIzquierda">
-                        <button
-                            className="crearAccionBtn"
-                            onClick={() => inputAudioRef.current?.click()}
-                            type="button"
-                            aria-label="Adjuntar audio"
-                            disabled={!!audioAdjunto}
-                        >
+                        <button className="crearAccionBtn" onClick={() => inputAudioRef.current?.click()} type="button" aria-label="Adjuntar audio" disabled={!!audioAdjunto}>
                             <Music size={18} />
                         </button>
-                        <button
-                            className="crearAccionBtn"
-                            onClick={() => inputImagenRef.current?.click()}
-                            type="button"
-                            aria-label="Adjuntar imagen"
-                            disabled={imagenes.length >= maxImagenes}
-                        >
+                        <button className="crearAccionBtn" onClick={() => inputImagenRef.current?.click()} type="button" aria-label="Adjuntar imagen" disabled={imagenes.length >= maxImagenes}>
                             <Image size={18} />
                         </button>
                     </div>
 
                     <div className="crearAccionesDerecha">
-                        <span className={`crearContador ${caracteresPendientes < 100 ? 'crearContadorAlerta' : ''}`}>
-                            {caracteresPendientes}
-                        </span>
-                        <BotonBase
-                            variante="primario"
-                            tamano="sm"
-                            onClick={manejarPublicar}
-                            disabled={!puedePublicar}
-                        >
+                        <span className={`crearContador ${caracteresPendientes < 100 ? 'crearContadorAlerta' : ''}`}>{caracteresPendientes}</span>
+                        <BotonBase variante="primario" tamano="sm" onClick={manejarPublicar} disabled={!puedePublicar}>
                             {publicando ? 'Publicando...' : 'Publicar'}
                         </BotonBase>
                     </div>

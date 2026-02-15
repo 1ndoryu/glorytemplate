@@ -50,7 +50,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(0, 0, 0, 0.45);
+    background-color: var(--overlaySuave);
     color: var(--blanco);
     opacity: 0;
     transition: opacity var(--transicionRapida);
@@ -83,6 +83,22 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Título clickeable: navega al detalle del sample */
+.tarjetaTituloClickeable {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    transition: color var(--transicionRapida);
+}
+
+.tarjetaTituloClickeable:hover {
+    color: var(--acento);
 }
 
 .tarjetaCreador {

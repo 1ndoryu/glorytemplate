@@ -19,6 +19,7 @@ import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { FiltrosSamples, RespuestaListaSamples } from '@app/services/apiSamples';
 import type { SampleResumen } from '@app/types';
 import { useNavigationStore } from '@/core/router';
+import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import '../../styles/componentes/samples.css';
 
@@ -40,7 +41,14 @@ export const SamplesIsland = (): JSX.Element => {
     const [tabActiva, setTabActiva] = useState('todos');
 
     const { navegar } = useNavigationStore();
+    const { setTabs } = useTabsTopBarStore();
     const menu = useMenuContextualSample();
+
+    /* Registrar tab "Explorar" en TopBar */
+    useEffect(() => {
+        setTabs([{ id: 'explorar', etiqueta: 'Explorar' }], 'explorar');
+        return () => { setTabs([]); };
+    }, [setTabs]);
 
     /* Like con optimistic UI */
     const manejarLike = useCallback(async (sampleId: number) => {

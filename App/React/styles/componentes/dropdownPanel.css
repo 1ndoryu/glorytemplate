@@ -12,7 +12,7 @@
     background-color: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioLg);
-    box-shadow: var(--sombra);
+    box-shadow: var(--sombraElevada);
     z-index: var(--zModal);
     display: flex;
     flex-direction: column;
@@ -109,6 +109,7 @@
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

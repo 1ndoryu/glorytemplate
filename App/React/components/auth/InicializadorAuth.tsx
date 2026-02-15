@@ -64,13 +64,15 @@ export const InicializadorAuth = ({ children }: Props): JSX.Element => {
 
             /* Fallback: usar datos inyectados por PHP */
             if (ctx.currentUser) {
+                /* Normalizar avatarUrl: cadena vacía → null para que Avatar muestre iniciales */
+                const avatarNormalizado = ctx.currentUser.avatarUrl?.trim() || null;
                 setUsuario({
                     id: ctx.currentUser.id,
                     wpUserId: ctx.currentUser.id,
                     username: ctx.currentUser.username,
                     email: ctx.currentUser.email,
                     nombreVisible: ctx.currentUser.nombreVisible,
-                    avatarUrl: ctx.currentUser.avatarUrl,
+                    avatarUrl: avatarNormalizado,
                     plan: 'free',
                     verificado: false,
                 } as never);

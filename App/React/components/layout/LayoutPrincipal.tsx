@@ -33,6 +33,13 @@ const MAPA_RUTAS: Record<string, string> = {
     '/libreria': 'libreria',
     '/reproductor': 'reproductor',
     '/notificaciones': 'notificaciones',
+    '/comunidad': 'comunidad',
+    '/explorar': 'explorar',
+    '/descubrir': 'explorar',
+    '/sample': 'explorar',
+    '/coleccion': 'libreria',
+    '/mensajes': 'inicio',
+    '/planes': 'inicio',
     '/componentes': 'componentes',
     '/dev/componentes': 'componentes',
 };
@@ -46,8 +53,6 @@ function detectarPaginaActiva(ruta: string): string {
     for (const [rutaKey, id] of Object.entries(MAPA_RUTAS)) {
         if (rutaKey !== '/' && path.startsWith(rutaKey)) return id;
     }
-
-    if (path.startsWith('/sample')) return 'explorar';
 
     return 'inicio';
 }

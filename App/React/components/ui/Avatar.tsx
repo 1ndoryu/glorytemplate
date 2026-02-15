@@ -57,16 +57,26 @@ export const Avatar = ({
         .filter(Boolean)
         .join(' ');
 
+    /* Normalizar: string vacío, URL inválida → null (muestra iniciales) */
+    const srcNormalizado = src && src.trim() !== '' ? src : null;
+
     return (
         <div className={clases} onClick={onClick} title={nombre} role={onClick ? 'button' : undefined}>
-            {src ? (
+            {srcNormalizado ? (
                 <img
                     className="avatarImagen"
-                    src={src}
+                    src={srcNormalizado}
                     alt={nombre}
                     loading="lazy"
+                    onError={(e) => {
+                        /* Si la imagen falla, ocultar y mostrar iniciales */
+                        (e.target as HTMLImageElement).style.display = 'none';
+                        const iniciales = e.currentTarget.parentElement?.querySelector('.avatarIniciales');
+                        if (iniciales) (iniciales as HTMLElement).style.display = 'flex';
+                    }}
                 />
-            ) : (
+            ) : null}
+            {!srcNormalizado && (
                 <span className="avatarIniciales">{obtenerIniciales(nombre)}</span>
             )}
             {estado !== 'ninguno' && (

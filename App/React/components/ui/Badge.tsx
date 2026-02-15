@@ -3,15 +3,17 @@
  * Etiquetas visuales para metadata: género, BPM, key, tipo, etc.
  */
 
-import { type ReactNode } from 'react';
+import {type ReactNode} from 'react';
 import '../../styles/componentes/badge.css';
 
 type VarianteBadge = 'neutro' | 'acento' | 'exito' | 'error' | 'advertencia' | 'info' | 'premium';
 type EstiloBadge = 'relleno' | 'borde';
+type TamanoBadge = 'xs' | 'sm' | 'md';
 
 interface BadgeProps {
     variante?: VarianteBadge;
     estilo?: EstiloBadge;
+    tamano?: TamanoBadge;
     interactivo?: boolean;
     onClick?: () => void;
     children: ReactNode;
@@ -25,28 +27,19 @@ const mapaVariante: Record<VarianteBadge, string> = {
     error: 'badgeError',
     advertencia: 'badgeAdvertencia',
     info: 'badgeInfo',
-    premium: 'badgePremium',
+    premium: 'badgePremium'
 };
 
-export const Badge = ({
-    variante = 'neutro',
-    estilo = 'relleno',
-    interactivo = false,
-    onClick,
-    children,
-    className = '',
-}: BadgeProps): JSX.Element => {
-    const clases = [
-        'badge',
-        mapaVariante[variante],
-        estilo === 'borde' ? 'badgeBorde' : '',
-        interactivo ? 'badgeInteractivo' : '',
-        className,
-    ]
-        .filter(Boolean)
-        .join(' ');
+const mapaTamano: Record<TamanoBadge, string> = {
+    xs: 'badgeXs',
+    sm: '',
+    md: 'badgeMd'
+};
 
-    const Tag = interactivo ? 'button' : 'span';
+export const Badge = ({variante = 'neutro', estilo = 'relleno', tamano = 'sm', interactivo = false, onClick, children, className = ''}: BadgeProps): JSX.Element => {
+    const clases = ['badge', mapaVariante[variante], mapaTamano[tamano], estilo === 'borde' ? 'badgeBorde' : '', interactivo ? 'badgeInteractivo' : '', className].filter(Boolean).join(' ');
+
+    const Tag: React.ElementType = interactivo ? 'button' : 'span';
 
     return (
         <Tag className={clases} onClick={onClick} type={interactivo ? 'button' : undefined}>

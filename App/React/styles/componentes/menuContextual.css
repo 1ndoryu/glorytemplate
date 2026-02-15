@@ -22,7 +22,6 @@
     animation: fadeInMenu var(--transicionRapida) ease;
 }
 
-
 .menuContextualItem {
     display: flex;
     align-items: center;
@@ -45,10 +44,6 @@
 
 .menuContextualItem.itemPeligro {
     color: var(--error);
-}
-
-.menuContextualItem.itemPeligro:hover {
-
 }
 
 .menuContextualSeparador {

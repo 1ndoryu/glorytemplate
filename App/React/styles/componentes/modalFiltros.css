@@ -31,7 +31,9 @@
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
     cursor: pointer;
-    transition: background var(--transicionRapida), border-color var(--transicionRapida);
+    transition:
+        background var(--transicionRapida),
+        border-color var(--transicionRapida);
 }
 
 .filtroToggle:hover {
@@ -40,7 +42,7 @@
 
 .filtroToggleActivo {
     border-color: var(--acento);
-    background: var(--acentoFondo, rgba(139, 92, 246, 0.08));
+    background: var(--acentoMuted);
 }
 
 .filtroToggleIcono {
@@ -86,7 +88,7 @@
 
 .filtroToggleSwitchOn .filtroToggleSwitchDot {
     transform: translateX(16px);
-    background: white;
+    background: var(--blanco);
 }
 
 .filtrosAcciones {

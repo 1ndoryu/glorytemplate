@@ -13,6 +13,7 @@ import { Badge } from '@app/components/ui/Badge';
 import { obtenerColeccion } from '@app/services/apiColecciones';
 import { useNavigationStore } from '@/core/router';
 import { useReproductorStore } from '@app/stores/reproductorStore';
+import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import type { Coleccion } from '@app/types';
@@ -28,6 +29,13 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     const [cargando, setCargando] = useState(true);
     const [guardada, setGuardada] = useState(false);
     const { navegar } = useNavigationStore();
+    const { setTabs } = useTabsTopBarStore();
+
+    /* Registrar tab "Colección" en TopBar */
+    useEffect(() => {
+        setTabs([{ id: 'coleccion', etiqueta: 'Colección' }], 'coleccion');
+        return () => { setTabs([]); };
+    }, [setTabs]);
     const { setSample, sampleActual, reproduciendo, progreso } = useReproductorStore();
 
     /* Obtener ID de la URL si no viene por props */

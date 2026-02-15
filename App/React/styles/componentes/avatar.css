@@ -34,7 +34,7 @@
 }
 
 .avatar.avatarXs .avatarIniciales {
-    font-size: 8px;
+    font-size: calc(var(--fuenteXs) - 2px);
 }
 
 .avatar.avatarSm {

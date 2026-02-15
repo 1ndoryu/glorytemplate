@@ -14,7 +14,7 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--espacioSm) var(--espacioXl);
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--overlaySuave);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--bordeSutil);

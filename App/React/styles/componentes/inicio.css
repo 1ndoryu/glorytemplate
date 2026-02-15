@@ -8,7 +8,7 @@
     flex-direction: column;
     gap: var(--espacioXl);
     padding: var(--espacioLg);
-    max-width: var(--anchoMaximoContenido);
+    /* max-width: var(--anchoMaximoContenido); */
     margin: 0 auto;
 }
 
@@ -227,12 +227,45 @@
     -webkit-user-select: none;
 }
 
+/* Cuando se expanden, los tags hacen wrap en múltiples filas */
+.inicioTagsListaExpandida {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    cursor: default;
+}
+
 .inicioTagsLista::-webkit-scrollbar {
     display: none;
 }
 
 .inicioTagsListaArrastrando {
     cursor: grabbing;
+}
+
+/* Botón de expandir/colapsar tags */
+.inicioTagExpandirBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px var(--espacioSm);
+    border: 1px dashed var(--bordeSutil);
+    border-radius: var(--radioFull);
+    background: none;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all var(--transicionRapida);
+}
+
+.inicioTagExpandirBtn:hover {
+    color: var(--acento);
+    border-color: var(--acento);
+}
+
+.inicioTagExpandirIconoRotado {
+    transform: rotate(90deg);
 }
 
 .inicioTagItem {

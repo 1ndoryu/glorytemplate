@@ -52,7 +52,7 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
     }, [resetearFiltros]);
 
     return (
-        <Modal abierto={abierto} onCerrar={onCerrar}>
+        <Modal abierto={abierto} onCerrar={onCerrar} tamano="pequeno">
             <div className="filtrosContenido">
                 <h3 className="filtrosTitulo">Filtros</h3>
 

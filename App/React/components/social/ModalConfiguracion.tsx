@@ -5,7 +5,7 @@
  * Se abre desde TopBar/sidebar o desde el botón "Editar perfil" en PerfilIsland.
  */
 
-import { useState, useCallback, useRef, type ChangeEvent } from 'react';
+import { useState, useCallback, useRef, useEffect, type ChangeEvent } from 'react';
 import { Camera, Save, Bell, BellOff, User } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { Avatar } from '@app/components/ui/Avatar';
@@ -29,14 +29,14 @@ export const ModalConfiguracion = (): JSX.Element | null => {
     const [guardando, setGuardando] = useState(false);
     const inputFotoRef = useRef<HTMLInputElement>(null);
 
-    /* Actualizar campos cuando se abre con datos frescos */
-    const manejarAbrir = useCallback(() => {
-        if (usuario) {
+    /* Sincronizar campos cuando el modal se abre o los datos del usuario cambian */
+    useEffect(() => {
+        if (abierto && usuario) {
             setNombreVisible(usuario.nombreVisible ?? '');
             setUsername(usuario.username ?? '');
             setAvatarPreview(null);
         }
-    }, [usuario]);
+    }, [abierto, usuario]);
 
     /* Preview de foto nueva */
     const manejarCambioFoto = useCallback((e: ChangeEvent<HTMLInputElement>) => {

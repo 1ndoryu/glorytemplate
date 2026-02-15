@@ -100,6 +100,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **Refactoring (R1):** Bug fix wsService.ts handler comodín. ShowcaseIsland dividido en 4 sub-componentes. ModalCrear: lógica drag&drop extraída a hook useArchivosDragDrop. SubirModal dividido en PasoMetadata + PasoSubida. useWebSocket simplificado como wrapper de wsService. imagenesColor y mockSamples datos separados. SubirIsland.tsx eliminado (dead code). BienvenidaIsland convertido en flujo onboarding 3 pasos. Fix doble slash apiCliente.
 
+**UI/UX (C32-C41):** Fix "Usuario no encontrado" en /perfil/ (fallback authStore si API falla para perfil propio). ModalFiltros tamano="pequeno" (400px). Todas las islas registran tabs en TopBar (Inicio, Comunidad, Colección, Sample, Explorar). ModalCrear: eliminado texto IA y "Click para previsualizar", waveform con progreso animado (crearWaveformBarraActiva). Avatar: normalización src vacío→null, fallback a iniciales con onError. InicializadorAuth: normalización avatarUrl vacío→null. FeedUnificado: caché por tipo de ordenamiento (ref), invalidación en like. Tags: ordenados por frecuencia, expansibles (12 colapsados → expandir todos), botón +N. tagUtils.ts: normalización tags (sinónimos en/es, plural→singular, categorización, similitud Jaccard). SampleDetalleIsland: slug dinámico desde URL SPA (no solo prop PHP). TarjetaSample: título clickeable→navegar a /sample/{slug}/. Sidebar: agregados Explorar (Compass) y Comunidad (Users). MAPA_RUTAS: agregadas rutas /comunidad, /explorar, /descubrir, /sample, /coleccion, /mensajes, /planes. ModalConfiguracion: fix campos vacíos — useEffect sincroniza al abrir.
+
 ---
 
 ## Pendientes por Fase

@@ -27,7 +27,7 @@
     --acento: #101010;
     --acento-blanco: #e5e5e5;
     --acentoHover: #070707;
-    --acentoMuted: unset;
+    --acentoMuted: rgba(229, 229, 229, 0.08);
     --acentoTexto: #ffffff;
 
     /* Estados */

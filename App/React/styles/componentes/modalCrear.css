@@ -147,22 +147,10 @@
     opacity: 1;
 }
 
-.crearWaveformLabel {
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
-}
-
-/* Info de IA automática */
-.crearIaInfo {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    padding: var(--espacioXs) var(--espacioSm);
-    background-color: var(--fondoElevado2);
-    border-radius: var(--radioSm);
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
-    font-style: italic;
+/* Barra activa durante reproducción de preview */
+.crearWaveformBarraActiva {
+    background-color: var(--acento);
+    opacity: 1;
 }
 
 /* Condiciones del sample (descarga, licencia) */

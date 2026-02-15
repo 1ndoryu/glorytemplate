@@ -4,7 +4,7 @@
  * Muestra waveform grande, metadata, acciones y samples similares.
  */
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import {
     Play,
     Pause,
@@ -22,6 +22,8 @@ import {
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { obtenerSample, listarSamples } from '@app/services/apiSamples';
+import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useNavigationStore } from '@/core/router';
 import type { Sample, SampleResumen } from '@app/types';
 import '../../styles/componentes/sampleDetalle.css';
 
@@ -30,7 +32,7 @@ interface SampleDetalleProps {
     slug?: string;
 }
 
-export const SampleDetalleIsland = ({ slug }: SampleDetalleProps): JSX.Element => {
+export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX.Element => {
     const [sample, setSample] = useState<Sample | null>(null);
     const [similares, setSimilares] = useState<SampleResumen[]>([]);
     const [cargando, setCargando] = useState(true);
@@ -40,6 +42,29 @@ export const SampleDetalleIsland = ({ slug }: SampleDetalleProps): JSX.Element =
     const [progreso, setProgreso] = useState(0);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const rutaPreviewRef = useRef('');
+    const { setTabs } = useTabsTopBarStore();
+    const rutaActual = useNavigationStore((s) => s.rutaActual);
+
+    /*
+     * Resolver slug: priorizar la URL actual (SPA) sobre el prop de PHP.
+     * En navegación SPA, el prop de PHP queda stale tras el primer render.
+     */
+    const slug = useMemo(() => {
+        /* Intentar extraer slug de la ruta SPA actual */
+        const segmentos = rutaActual.replace(/\/$/, '').split('/');
+        const idxSample = segmentos.indexOf('sample');
+        if (idxSample !== -1 && segmentos[idxSample + 1] && segmentos[idxSample + 1] !== 'sample') {
+            return segmentos[idxSample + 1];
+        }
+        /* Fallback: usar prop de PHP si la ruta no contiene /sample/{slug} */
+        return slugProp && slugProp !== 'sample' ? slugProp : null;
+    }, [rutaActual, slugProp]);
+
+    /* Registrar tab "Sample" en TopBar */
+    useEffect(() => {
+        setTabs([{ id: 'sample', etiqueta: 'Sample' }], 'sample');
+        return () => { setTabs([]); };
+    }, [setTabs]);
 
     const estaReproduciendo = reproduciendo;
 

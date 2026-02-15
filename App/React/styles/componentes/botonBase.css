@@ -77,7 +77,6 @@
 .botonBase.variantePeligro {
     background-color: var(--error);
     color: var(--blanco);
-    
 }
 
 .botonBase.variantePeligro:hover {
@@ -110,7 +109,7 @@
 .botonBase.cargando {
     pointer-events: none;
     position: relative;
-    color: #00000000;
+    color: transparent;
     background: unset;
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioLg);
