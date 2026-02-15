@@ -1,20 +1,99 @@
-/**
- * Componente: Pagina de Bienvenida
- * Muestra un mensaje simple centrado en pantalla.
- * Caso de uso: Primera pagina de prueba.
+/*
+ * BienvenidaIsland — Kamples
+ * Flujo de onboarding para nuevos usuarios.
+ * Muestra pasos de introducción a la plataforma y redirige al inicio.
+ * Nota del roadmap: "Flujo onboarding primer uso" (#6 ideas pendientes).
  */
 
+import { useState } from 'react';
+import { useAuthStore } from '../stores';
 import '../styles/variables.css';
 import '../styles/bienvenida.css';
 
-interface BienvenidaIslandProps {
-    titulo?: string;
+interface PasoOnboarding {
+    icono: string;
+    titulo: string;
+    descripcion: string;
 }
 
-export const BienvenidaIsland = ({titulo = 'Bienvenido a Glory React'}: BienvenidaIslandProps): JSX.Element => {
+const PASOS: PasoOnboarding[] = [
+    {
+        icono: '🎵',
+        titulo: 'Descubre samples',
+        descripcion: 'Explora miles de loops, one-shots, vocales y FX de creadores de todo el mundo. Filtra por BPM, tonalidad y genero.',
+    },
+    {
+        icono: '📤',
+        titulo: 'Sube tu musica',
+        descripcion: 'Comparte tus samples con la comunidad. Agrega metadata, tags y deja que otros productores los encuentren.',
+    },
+    {
+        icono: '📚',
+        titulo: 'Crea tu libreria',
+        descripcion: 'Guarda tus samples favoritos en colecciones organizadas. Accede a ellos cuando los necesites.',
+    },
+];
+
+export const BienvenidaIsland = (): JSX.Element => {
+    const [pasoActual, setPasoActual] = useState(0);
+    const usuario = useAuthStore((s) => s.usuario);
+    const nombre = usuario?.nombreVisible ?? usuario?.username ?? 'Productor';
+
+    const esUltimoPaso = pasoActual === PASOS.length - 1;
+    const paso = PASOS[pasoActual];
+
+    const avanzar = () => {
+        if (esUltimoPaso) {
+            /* Redirige al feed principal al terminar onboarding */
+            window.location.href = '/';
+            return;
+        }
+        setPasoActual((prev) => prev + 1);
+    };
+
+    const saltar = () => {
+        window.location.href = '/';
+    };
+
     return (
         <div className="contenedorBienvenida">
-            <h1 className="tituloBienvenida">{titulo}</h1>
+            <div className="onboardingCard">
+                <h1 className="tituloBienvenida">
+                    Bienvenido, {nombre}
+                </h1>
+
+                <div className="onboardingPaso" key={pasoActual}>
+                    <span className="onboardingIcono">{paso.icono}</span>
+                    <h2 className="onboardingPasoTitulo">{paso.titulo}</h2>
+                    <p className="onboardingPasoDesc">{paso.descripcion}</p>
+                </div>
+
+                <div className="onboardingIndicadores">
+                    {PASOS.map((_, i) => (
+                        <span
+                            key={i}
+                            className={`onboardingDot ${i === pasoActual ? 'onboardingDotActivo' : ''}`}
+                        />
+                    ))}
+                </div>
+
+                <div className="onboardingAcciones">
+                    <button
+                        className="onboardingBotonSaltar"
+                        onClick={saltar}
+                        type="button"
+                    >
+                        Saltar
+                    </button>
+                    <button
+                        className="onboardingBotonSiguiente"
+                        onClick={avanzar}
+                        type="button"
+                    >
+                        {esUltimoPaso ? 'Empezar' : 'Siguiente'}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };

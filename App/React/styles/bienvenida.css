@@ -1,5 +1,5 @@
 /*
- * Estilos para la pagina de bienvenida
+ * Estilos para el flujo de onboarding (BienvenidaIsland)
  * Centrado absoluto usando Flexbox — adapta variables Kamples
  */
 
@@ -14,6 +14,17 @@
     font-family: var(--fuentePrincipal);
 }
 
+.onboardingCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espaciado-lg);
+    max-width: 480px;
+    width: 90%;
+    padding: var(--espaciado-2xl);
+    text-align: center;
+}
+
 .tituloBienvenida {
     font-size: var(--fuente3xl);
     font-weight: var(--pesoBold);
@@ -22,7 +33,96 @@
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: fadeIn 1s ease-in;
+    animation: fadeIn 0.6s ease-out;
+    margin: 0;
+}
+
+.onboardingPaso {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espaciado-sm);
+    animation: fadeIn 0.4s ease-out;
+}
+
+.onboardingIcono {
+    font-size: 3rem;
+    line-height: 1;
+}
+
+.onboardingPasoTitulo {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.onboardingPasoDesc {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 360px;
+}
+
+/* Indicadores de paso (dots) */
+.onboardingIndicadores {
+    display: flex;
+    gap: var(--espaciado-xs);
+}
+
+.onboardingDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--bordeDefault);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.onboardingDotActivo {
+    background-color: var(--acento);
+    transform: scale(1.3);
+}
+
+/* Botones de acción */
+.onboardingAcciones {
+    display: flex;
+    gap: var(--espaciado-md);
+    width: 100%;
+    justify-content: center;
+}
+
+.onboardingBotonSaltar {
+    padding: var(--espaciado-sm) var(--espaciado-lg);
+    background: transparent;
+    border: 1px solid var(--bordeDefault);
+    border-radius: var(--radioMd);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.onboardingBotonSaltar:hover {
+    border-color: var(--textoPrimario);
+    color: var(--textoPrimario);
+}
+
+.onboardingBotonSiguiente {
+    padding: var(--espaciado-sm) var(--espaciado-xl);
+    background: var(--acento);
+    border: none;
+    border-radius: var(--radioMd);
+    color: var(--fondoBase);
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.onboardingBotonSiguiente:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
 @keyframes fadeIn {

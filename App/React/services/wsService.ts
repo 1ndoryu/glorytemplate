@@ -168,10 +168,10 @@ class WSService {
             handlers.forEach(h => h(datos));
         }
 
-        /* Handler comodín */
+        /* Handler comodín — recibe tipo y datos */
         const globales = this.handlers.get('*');
         if (globales) {
-            globales.forEach(h => ({ tipo, datos }));
+            globales.forEach(h => h({ tipo, datos }));
         }
     }
 

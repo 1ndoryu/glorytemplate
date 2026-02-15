@@ -92,6 +92,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **UI/UX (C26-C31):** Fix GloryLogger::debug→info, imágenes aleatorias colors/ en TarjetaSample (portada con overlay play/pause), dropdowns modales en TopBar para notificaciones y mensajes (ya no navegan a páginas), LibreriaIsland reestructurada con tabs en TopBar via tabsTopBarStore + gap consistente con InicioIsland, TarjetaColeccion rediseñada como card vertical con imagen (grid-friendly, fallback colors/), tab "Explorar" colecciones públicas de otros usuarios con mock data.
 
+**Refactoring (R1):** Bug fix wsService.ts handler comodín (globales.forEach no invocaba handler). ShowcaseIsland dividido en 4 sub-componentes (Espaciados, Botones, Formularios, Overlays). ModalCrear: lógica drag&drop extraída a hook useArchivosDragDrop. SubirModal dividido en PasoMetadata + PasoSubida. useWebSocket simplificado como wrapper de wsService (eliminada lógica duplicada de heartbeat/reconexión). imagenesColor.ts: array 259 imágenes extraído a datos/imagenesColorLista.ts. mockSamples.ts: datos base extraídos a datos/mockSamplesData.ts. SubirIsland.tsx eliminado (dead code). BienvenidaIsland convertido en flujo onboarding 3 pasos.
+
 ---
 
 ## Pendientes por Fase

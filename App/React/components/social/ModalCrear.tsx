@@ -6,34 +6,20 @@
  * TO-DO: conectar con endpoints reales de subida.
  */
 
-import { useState, useCallback, useRef, useEffect, type ChangeEvent, type DragEvent, type KeyboardEvent } from 'react';
-import { Music, Image, X, Send, Sliders } from 'lucide-react';
+import { useState, useCallback, useRef, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
+import { Music, Image, X, Sliders } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useAuthStore } from '@app/stores/authStore';
+import { useArchivosDragDrop } from '@app/hooks/useArchivosDragDrop';
 import { crearLogger } from '@app/services/logger';
 import '../../styles/componentes/modalCrear.css';
 
 const log = crearLogger('ModalCrear');
 const MAX_CARACTERES = 2000;
-const FORMATOS_AUDIO = ['.wav', '.mp3', '.flac', '.aiff', '.aif'];
-const MAX_IMAGENES = 4;
-const MAX_MB = 100;
-
-interface ArchivoAudio {
-    archivo: File;
-    nombre: string;
-    tamano: string;
-    formato: string;
-}
-
-interface ImagenPreview {
-    archivo: File;
-    url: string;
-}
 
 interface MetadataAudio {
     bpm: string;
@@ -52,28 +38,35 @@ const extraerTags = (texto: string): string[] => {
     return [...new Set(tags)];
 };
 
-const formatearTamano = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
-
 export const ModalCrear = (): JSX.Element | null => {
     const { abierto, cerrar } = useCrearModalStore();
     const { usuario, autenticado } = useAuthStore();
 
     const [contenido, setContenido] = useState('');
-    const [audioAdjunto, setAudioAdjunto] = useState<ArchivoAudio | null>(null);
-    const [imagenes, setImagenes] = useState<ImagenPreview[]>([]);
     const [metadata, setMetadata] = useState<MetadataAudio>({ bpm: '', key: '', tipo: 'loop' });
     const [mostrarMetadata, setMostrarMetadata] = useState(false);
-    const [arrastrando, setArrastrando] = useState(false);
     const [publicando, setPublicando] = useState(false);
 
+    const {
+        audioAdjunto,
+        imagenes,
+        arrastrando,
+        inputAudioRef,
+        inputImagenRef,
+        manejarInputAudio,
+        manejarInputImagen,
+        quitarImagen,
+        quitarAudio,
+        manejarDragEnter,
+        manejarDragLeave,
+        manejarDragOver,
+        manejarDrop,
+        resetear: resetearArchivos,
+        formatosAudio,
+        maxImagenes,
+    } = useArchivosDragDrop();
+
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const inputAudioRef = useRef<HTMLInputElement>(null);
-    const inputImagenRef = useRef<HTMLInputElement>(null);
-    const contadorDrag = useRef(0);
 
     /* Resetear al cerrar */
     const manejarCerrar = useCallback(() => {
@@ -81,12 +74,11 @@ export const ModalCrear = (): JSX.Element | null => {
         cerrar();
         setTimeout(() => {
             setContenido('');
-            setAudioAdjunto(null);
-            setImagenes([]);
+            resetearArchivos();
             setMetadata({ bpm: '', key: '', tipo: 'loop' });
             setMostrarMetadata(false);
         }, 200);
-    }, [cerrar, publicando]);
+    }, [cerrar, publicando, resetearArchivos]);
 
     /* Auto-resize textarea (2 a 6 líneas, ~20px por línea) */
     const ajustarAltura = useCallback(() => {
@@ -113,84 +105,6 @@ export const ModalCrear = (): JSX.Element | null => {
             e.preventDefault();
         }
     }, []);
-
-    /* Adjuntar audio */
-    const manejarAudio = useCallback((archivos: File[]) => {
-        const audio = archivos.find((f) => {
-            const ext = '.' + f.name.split('.').pop()?.toLowerCase();
-            return FORMATOS_AUDIO.includes(ext) && f.size <= MAX_MB * 1024 * 1024;
-        });
-        if (audio) {
-            setAudioAdjunto({
-                archivo: audio,
-                nombre: audio.name,
-                tamano: formatearTamano(audio.size),
-                formato: audio.name.split('.').pop()?.toUpperCase() ?? '',
-            });
-        }
-    }, []);
-
-    const manejarInputAudio = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) manejarAudio(Array.from(e.target.files));
-        e.target.value = '';
-    }, [manejarAudio]);
-
-    /* Adjuntar imágenes */
-    const manejarInputImagen = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        const archivos = Array.from(e.target.files ?? []);
-        const disponibles = MAX_IMAGENES - imagenes.length;
-        const nuevas = archivos.slice(0, disponibles).map((f) => ({
-            archivo: f,
-            url: URL.createObjectURL(f),
-        }));
-        setImagenes((prev) => [...prev, ...nuevas]);
-        if (inputImagenRef.current) inputImagenRef.current.value = '';
-    }, [imagenes.length]);
-
-    const quitarImagen = useCallback((i: number) => {
-        setImagenes((prev) => {
-            const copia = [...prev];
-            URL.revokeObjectURL(copia[i].url);
-            copia.splice(i, 1);
-            return copia;
-        });
-    }, []);
-
-    /* Drag & drop en el modal */
-    const manejarDragEnter = useCallback((e: DragEvent) => {
-        e.preventDefault();
-        contadorDrag.current++;
-        setArrastrando(true);
-    }, []);
-
-    const manejarDragLeave = useCallback((e: DragEvent) => {
-        e.preventDefault();
-        contadorDrag.current--;
-        if (contadorDrag.current === 0) setArrastrando(false);
-    }, []);
-
-    const manejarDragOver = useCallback((e: DragEvent) => { e.preventDefault(); }, []);
-
-    const manejarDrop = useCallback((e: DragEvent) => {
-        e.preventDefault();
-        contadorDrag.current = 0;
-        setArrastrando(false);
-        const archivos = Array.from(e.dataTransfer.files);
-        const audios = archivos.filter((f) => {
-            const ext = '.' + f.name.split('.').pop()?.toLowerCase();
-            return FORMATOS_AUDIO.includes(ext);
-        });
-        const imgs = archivos.filter((f) => f.type.startsWith('image/'));
-        if (audios.length > 0) manejarAudio(audios);
-        if (imgs.length > 0) {
-            const disponibles = MAX_IMAGENES - imagenes.length;
-            const nuevas = imgs.slice(0, disponibles).map((f) => ({
-                archivo: f,
-                url: URL.createObjectURL(f),
-            }));
-            setImagenes((prev) => [...prev, ...nuevas]);
-        }
-    }, [manejarAudio, imagenes.length]);
 
     /* Publicar */
     const manejarPublicar = useCallback(async () => {
@@ -283,7 +197,7 @@ export const ModalCrear = (): JSX.Element | null => {
                         </button>
                         <button
                             className="crearAdjuntoBtn crearAdjuntoBtnQuitar"
-                            onClick={() => { setAudioAdjunto(null); setMostrarMetadata(false); }}
+                            onClick={() => { quitarAudio(); setMostrarMetadata(false); }}
                             type="button"
                             aria-label="Quitar audio"
                         >
@@ -374,7 +288,7 @@ export const ModalCrear = (): JSX.Element | null => {
                             onClick={() => inputImagenRef.current?.click()}
                             type="button"
                             aria-label="Adjuntar imagen"
-                            disabled={imagenes.length >= MAX_IMAGENES}
+                            disabled={imagenes.length >= maxImagenes}
                         >
                             <Image size={18} />
                         </button>
@@ -396,7 +310,7 @@ export const ModalCrear = (): JSX.Element | null => {
                 </div>
 
                 {/* Inputs ocultos */}
-                <input ref={inputAudioRef} type="file" accept={FORMATOS_AUDIO.join(',')} hidden onChange={manejarInputAudio} />
+                <input ref={inputAudioRef} type="file" accept={formatosAudio.join(',')} hidden onChange={manejarInputAudio} />
                 <input ref={inputImagenRef} type="file" accept="image/*" multiple hidden onChange={manejarInputImagen} />
             </div>
         </Modal>

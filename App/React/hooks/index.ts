@@ -10,3 +10,4 @@ export { useDescargas } from './useDescargas';
 export { useAlgoritmo } from './useAlgoritmo';
 export { useWebSocket } from './useWebSocket';
 export { useMenuContextualSample } from './useMenuContextualSample';
+export { useArchivosDragDrop } from './useArchivosDragDrop';

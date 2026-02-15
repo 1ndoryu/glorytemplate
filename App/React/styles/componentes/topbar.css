@@ -15,7 +15,6 @@
 .topbarTabs {
     display: flex;
     align-items: center;
-    gap: var(--espacioMd);
     flex: 1;
 }
 
