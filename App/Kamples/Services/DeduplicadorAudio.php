@@ -1,0 +1,242 @@
+<?php
+
+/**
+ * DeduplicadorAudio — Detección de duplicados por fingerprint perceptual.
+ *
+ * Genera un hash ligero a partir de los primeros y últimos 4 segundos
+ * del audio. Resistente a cambios de formato/calidad.
+ * Se ejecuta en background (wp_schedule_single_event).
+ *
+ * Flujo:
+ * 1. Al subir, se programa el cálculo del hash (no bloquea al usuario).
+ * 2. Al completar, se busca coincidencias en BD.
+ * 3. Si coincide con otro creador → estado 'en_supervision'.
+ * 4. Si coincide con el mismo creador → se permite (duplicado propio).
+ *
+ * @package Kamples
+ */
+
+namespace App\Kamples\Services;
+
+use App\Kamples\Database\PostgresService;
+use App\Kamples\KamplesLogger;
+
+class DeduplicadorAudio
+{
+    /* Segundos a extraer del inicio y final del audio */
+    private const SEGMENTOS_SEGUNDOS = 4;
+
+    /* Formato de salida para hashing: PCM raw 8kHz mono 16-bit */
+    private const SAMPLE_RATE = 8000;
+
+    /**
+     * Programa el cálculo del hash en background.
+     * Llamar después de que el pipeline de audio termine.
+     */
+    public static function programarCalculo(int $sampleId): void
+    {
+        if (function_exists('wp_schedule_single_event')) {
+            \wp_schedule_single_event(time() + 5, 'kamples_calcular_hash_audio', [$sampleId]);
+        } else {
+            /* Fallback: ejecutar inline si no hay scheduler */
+            self::calcularYVerificar($sampleId);
+        }
+    }
+
+    /**
+     * Registra el hook de WordPress para el evento programado.
+     */
+    public static function registrarHook(): void
+    {
+        add_action('kamples_calcular_hash_audio', [self::class, 'calcularYVerificar']);
+    }
+
+    /**
+     * Calcula el hash perceptual del audio y verifica duplicados.
+     */
+    public static function calcularYVerificar(int $sampleId): void
+    {
+        $sample = PostgresService::consultarUno(
+            "SELECT id, creador_id, ruta_original, duracion FROM samples WHERE id = :id",
+            ['id' => $sampleId]
+        );
+
+        if (!$sample || empty($sample['ruta_original'])) {
+            KamplesLogger::warning('DeduplicadorAudio: sample no encontrado o sin ruta', ['sampleId' => $sampleId]);
+            return;
+        }
+
+        $rutaArchivo = $sample['ruta_original'];
+        if (!file_exists($rutaArchivo)) {
+            KamplesLogger::warning('DeduplicadorAudio: archivo no existe', ['ruta' => $rutaArchivo]);
+            return;
+        }
+
+        /* Calcular hash perceptual */
+        $hash = self::calcularHash($rutaArchivo, (float) ($sample['duracion'] ?? 0));
+        if (!$hash) {
+            KamplesLogger::warning('DeduplicadorAudio: no se pudo calcular hash', ['sampleId' => $sampleId]);
+            return;
+        }
+
+        /* Guardar hash en BD */
+        PostgresService::ejecutar(
+            "UPDATE samples SET audio_hash = :hash WHERE id = :id",
+            ['hash' => $hash, 'id' => $sampleId]
+        );
+
+        KamplesLogger::info('DeduplicadorAudio: hash calculado', ['sampleId' => $sampleId, 'hash' => $hash]);
+
+        /* Buscar duplicados (de otros creadores) */
+        $duplicados = PostgresService::consultar(
+            "SELECT id, creador_id, titulo FROM samples
+             WHERE audio_hash = :hash AND id != :id AND estado = 'activo'",
+            ['hash' => $hash, 'id' => $sampleId]
+        );
+
+        if (empty($duplicados)) return;
+
+        $creadorId = (int) $sample['creador_id'];
+
+        foreach ($duplicados as $dup) {
+            $dupCreadorId = (int) $dup['creador_id'];
+
+            /* Duplicados del mismo creador se permiten */
+            if ($dupCreadorId === $creadorId) continue;
+
+            /* Duplicado de otro creador: marcar para supervisión */
+            PostgresService::ejecutar(
+                "UPDATE samples SET estado = 'en_supervision' WHERE id = :id",
+                ['id' => $sampleId]
+            );
+
+            /* Notificar al dueño original */
+            PostgresService::ejecutar(
+                "INSERT INTO notificaciones (usuario_id, tipo, datos)
+                 VALUES (:userId, 'duplicado_detectado', :datos)",
+                [
+                    'userId' => $dupCreadorId,
+                    'datos'  => json_encode([
+                        'sampleOriginalId'   => (int) $dup['id'],
+                        'sampleDuplicadoId'  => $sampleId,
+                        'tituloOriginal'     => $dup['titulo'],
+                    ]),
+                ]
+            );
+
+            KamplesLogger::warning('DeduplicadorAudio: duplicado detectado', [
+                'sampleNuevo'    => $sampleId,
+                'sampleOriginal' => $dup['id'],
+                'creadorNuevo'   => $creadorId,
+                'creadorOriginal' => $dupCreadorId,
+            ]);
+
+            break; /* Solo marcar una vez */
+        }
+    }
+
+    /**
+     * Calcula el hash perceptual del audio.
+     * Extrae PCM raw de los primeros y últimos N segundos, luego genera SHA-256.
+     */
+    private static function calcularHash(string $rutaArchivo, float $duracion): ?string
+    {
+        $ffmpeg = self::buscarFFmpeg();
+        if (!$ffmpeg) return null;
+
+        $seg = self::SEGMENTOS_SEGUNDOS;
+        $sr = self::SAMPLE_RATE;
+
+        /* Extraer primeros N segundos como PCM raw */
+        $tempInicio = tempnam(sys_get_temp_dir(), 'kmp_hash_ini_');
+        $cmd = sprintf(
+            '"%s" -y -i "%s" -t %d -ar %d -ac 1 -f s16le "%s" 2>&1',
+            $ffmpeg, $rutaArchivo, $seg, $sr, $tempInicio
+        );
+        exec($cmd, $output, $exitCode);
+
+        if ($exitCode !== 0 || !file_exists($tempInicio)) {
+            @unlink($tempInicio);
+            return null;
+        }
+
+        $pcmInicio = file_get_contents($tempInicio);
+        @unlink($tempInicio);
+
+        /* Extraer últimos N segundos */
+        $pcmFinal = '';
+        if ($duracion > $seg * 2) {
+            $offset = max(0, $duracion - $seg);
+            $tempFinal = tempnam(sys_get_temp_dir(), 'kmp_hash_fin_');
+            $cmd = sprintf(
+                '"%s" -y -i "%s" -ss %.2f -t %d -ar %d -ac 1 -f s16le "%s" 2>&1',
+                $ffmpeg, $rutaArchivo, $offset, $seg, $sr, $tempFinal
+            );
+            exec($cmd);
+            if (file_exists($tempFinal)) {
+                $pcmFinal = file_get_contents($tempFinal);
+                @unlink($tempFinal);
+            }
+        }
+
+        if (empty($pcmInicio)) return null;
+
+        /* Combinar y hashear.
+         * Se normaliza a 8-bit para resistir cambios de volumen menores. */
+        $combinado = self::normalizarPCM($pcmInicio) . self::normalizarPCM($pcmFinal);
+
+        return hash('sha256', $combinado);
+    }
+
+    /**
+     * Normaliza PCM 16-bit a bandas de energía reducidas.
+     * Resistente a diferencias de volumen/formato menor.
+     */
+    private static function normalizarPCM(string $pcmData): string
+    {
+        if (empty($pcmData)) return '';
+
+        $samples = unpack('v*', $pcmData);
+        if (!$samples) return '';
+
+        /* Reducir a bloques de energía: cada bloque = 256 muestras */
+        $blockSize = 256;
+        $bloques = [];
+        $buffer = [];
+
+        foreach ($samples as $sample) {
+            /* Convertir unsigned 16-bit a signed */
+            if ($sample > 32767) $sample -= 65536;
+            $buffer[] = abs($sample);
+
+            if (count($buffer) >= $blockSize) {
+                /* Energía promedio del bloque, cuantizada a 8 niveles */
+                $energia = array_sum($buffer) / count($buffer);
+                $bloques[] = chr((int) min(7, floor($energia / 4096)));
+                $buffer = [];
+            }
+        }
+
+        return implode('', $bloques);
+    }
+
+    /**
+     * Busca FFmpeg en el sistema.
+     */
+    private static function buscarFFmpeg(): ?string
+    {
+        /* Variable de entorno tiene prioridad */
+        $envPath = $_ENV['FFMPEG_PATH'] ?? getenv('FFMPEG_PATH') ?: null;
+        if ($envPath && file_exists($envPath)) return $envPath;
+
+        /* Buscar en PATH del sistema */
+        $cmd = PHP_OS_FAMILY === 'Windows' ? 'where ffmpeg 2>nul' : 'which ffmpeg 2>/dev/null';
+        exec($cmd, $output, $exitCode);
+
+        if ($exitCode === 0 && !empty($output[0]) && file_exists(trim($output[0]))) {
+            return trim($output[0]);
+        }
+
+        return null;
+    }
+}

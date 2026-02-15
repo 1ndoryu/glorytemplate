@@ -37,7 +37,7 @@ export const obtenerNotificaciones = async (
     pagina = 1
 ): Promise<RespuestaApi<Notificacion[]>> => {
     try {
-        return await apiGet<Notificacion[]>(`/kamples/v1/notificaciones?page=${pagina}`);
+        return await apiGet<Notificacion[]>('/notificaciones', { page: pagina });
     } catch (err) {
         log.error('Error obteniendo notificaciones', err);
         return { ok: true, data: [], error: null, status: 200 };
@@ -49,7 +49,7 @@ export const marcarLeida = async (
     id: number
 ): Promise<RespuestaApi<void>> => {
     try {
-        return await apiPost<void>(`/kamples/v1/notificaciones/${id}/leer`);
+        return await apiPost<void>(`/notificaciones/${id}/leer`);
     } catch (err) {
         log.error('Error marcando notificación leída', err);
         return { ok: false, data: undefined, error: 'Error de red', status: 500 };
@@ -59,7 +59,7 @@ export const marcarLeida = async (
 /* Marcar todas como leídas */
 export const marcarTodasLeidas = async (): Promise<RespuestaApi<void>> => {
     try {
-        return await apiPost<void>('/kamples/v1/notificaciones/leer-todas');
+        return await apiPost<void>('/notificaciones/leer-todas');
     } catch (err) {
         log.error('Error marcando todas leídas', err);
         return { ok: false, data: undefined, error: 'Error de red', status: 500 };
@@ -69,7 +69,7 @@ export const marcarTodasLeidas = async (): Promise<RespuestaApi<void>> => {
 /* Obtener conteo de no leídas */
 export const obtenerConteoNoLeidas = async (): Promise<number> => {
     try {
-        const resp = await apiGet<{ count: number }>('/kamples/v1/notificaciones/count');
+        const resp = await apiGet<{ count: number }>('/notificaciones/count');
         return resp.ok && resp.data ? resp.data.count : 0;
     } catch {
         return 0;

@@ -114,6 +114,8 @@
     background-color: var(--acentoMuted);
     border: 1px solid var(--acento);
     border-radius: var(--radioSm);
+    width: var(--tamano);
+    height: var(--tamano);
 }
 
 /* Tipografía */
@@ -146,4 +148,38 @@
     padding: var(--espacioLg);
     background-color: var(--fondoElevado1);
     border-radius: var(--radioLg);
+}
+
+/* Texto secundario para descripciones dentro de demos */
+.showcaseTextoSecundario {
+    color: var(--textoSecundario);
+}
+
+/* Espacio superior para separar elementos dentro de secciones */
+.showcaseMargenSuperior {
+    margin-top: var(--espacioLg);
+}
+
+/* Zona de click derecho para menu contextual */
+.showcaseZonaMenuContextual {
+    cursor: context-menu;
+    text-align: center;
+}
+
+/* Texto de ayuda debajo de inputs */
+.showcaseTextoAyuda {
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+}
+
+/* Texto de ayuda con margen superior (ej: debajo de TabBar) */
+.showcaseTextoAyudaConMargen {
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    margin-top: var(--espacioSm);
+}
+
+/* Texto de tipografía con tamaño dinámico via custom property */
+.showcaseTextoTipografia {
+    font-size: var(--tamanoFuente);
 }

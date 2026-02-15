@@ -92,7 +92,7 @@ export const ShowcaseFormularios = ({ onToast }: Props): JSX.Element => {
                             placeholder="Búsqueda compacta"
                         />
                         {busqueda && (
-                            <p style={{ color: 'var(--textoSecundario)', fontSize: 'var(--fuenteSm)' }}>
+                            <p className="showcaseTextoAyuda">
                                 Buscando: &ldquo;{busqueda}&rdquo;
                             </p>
                         )}
@@ -110,7 +110,7 @@ export const ShowcaseFormularios = ({ onToast }: Props): JSX.Element => {
                     activa={tabActiva}
                     onChange={setTabActiva}
                 />
-                <p style={{ color: 'var(--textoSecundario)', fontSize: 'var(--fuenteSm)', marginTop: 'var(--espacioSm)' }}>
+                <p className="showcaseTextoAyudaConMargen">
                     Tab activa: {tabActiva}
                 </p>
             </section>

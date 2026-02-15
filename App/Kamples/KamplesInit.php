@@ -14,6 +14,7 @@
 namespace App\Kamples;
 
 use App\Kamples\Api\KamplesController;
+use App\Kamples\Services\DeduplicadorAudio;
 
 class KamplesInit
 {
@@ -33,6 +34,9 @@ class KamplesInit
 
         /* Registrar API REST */
         KamplesController::registrar();
+
+        /* Hook para deduplicación de audio en background */
+        DeduplicadorAudio::registrarHook();
     }
 }
 

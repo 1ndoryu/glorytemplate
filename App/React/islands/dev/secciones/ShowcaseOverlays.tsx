@@ -68,11 +68,11 @@ export const ShowcaseOverlays = ({ onToast }: Props): JSX.Element => {
                         </div>
                     }
                 >
-                    <p style={{ color: 'var(--textoSecundario)' }}>
+                    <p className="showcaseTextoSecundario">
                         Este es el contenido del modal. Soporta cualquier JSX como hijos.
                         Presiona Escape o haz click fuera para cerrar.
                     </p>
-                    <div style={{ marginTop: 'var(--espacioLg)' }}>
+                    <div className="showcaseMargenSuperior">
                         <CampoTexto etiqueta="Nombre del pack" placeholder="Mi pack de samples" />
                     </div>
                 </Modal>
@@ -84,11 +84,10 @@ export const ShowcaseOverlays = ({ onToast }: Props): JSX.Element => {
                 <p className="showcaseSeccionDesc">Menú posicionado por coordenadas. Click derecho para probar.</p>
 
                 <div
-                    className="showcaseModalPreview"
+                    className="showcaseModalPreview showcaseZonaMenuContextual"
                     onContextMenu={abrirMenuContextual}
-                    style={{ cursor: 'context-menu', textAlign: 'center' }}
                 >
-                    <p style={{ color: 'var(--textoSecundario)' }}>
+                    <p className="showcaseTextoSecundario">
                         Click derecho aquí para ver el menú contextual
                     </p>
                 </div>

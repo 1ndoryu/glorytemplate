@@ -29,7 +29,7 @@ export interface ResultadoDescarga {
 /* Obtener límites actuales del usuario */
 export const obtenerLimites = async (): Promise<RespuestaApi<LimitesDescarga>> => {
     try {
-        return await apiGet<LimitesDescarga>('/kamples/v1/descargas/limites');
+        return await apiGet<LimitesDescarga>('/descargas/limites');
     } catch (err) {
         log.error('Error obteniendo límites de descarga', err);
         return { ok: false, data: null, error: 'Error de red', status: 500 };
@@ -41,7 +41,7 @@ export const descargarSample = async (
     sampleId: number
 ): Promise<RespuestaApi<ResultadoDescarga>> => {
     try {
-        return await apiPost<ResultadoDescarga>(`/kamples/v1/descargas/${sampleId}`);
+        return await apiPost<ResultadoDescarga>(`/descargas/${sampleId}`);
     } catch (err) {
         log.error('Error descargando sample', err);
         return { ok: false, data: null, error: 'Error de red', status: 500 };

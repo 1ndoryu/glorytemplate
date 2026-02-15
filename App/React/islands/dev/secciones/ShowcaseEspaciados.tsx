@@ -33,7 +33,7 @@ export const ShowcaseEspaciados = (): JSX.Element => (
                     <div className="showcaseEspaciadoItem" key={e.variable}>
                         <div
                             className="showcaseEspaciadoBloque"
-                            style={{ width: e.px, height: e.px }}
+                            style={{ '--tamano': `${e.px}px` } as React.CSSProperties}
                         />
                         <span className="showcaseColorNombre">{e.nombre} ({e.px}px)</span>
                     </div>
@@ -47,7 +47,7 @@ export const ShowcaseEspaciados = (): JSX.Element => (
                 {FUENTES.map((f) => (
                     <div className="showcaseTipoItem" key={f.variable}>
                         <span className="showcaseTipoLabel">{f.nombre} ({f.px}px)</span>
-                        <span style={{ fontSize: f.px }}>Kamples Audio Platform</span>
+                        <span style={{ '--tamanoFuente': `${f.px}px` } as React.CSSProperties} className="showcaseTextoTipografia">Kamples Audio Platform</span>
                     </div>
                 ))}
             </div>

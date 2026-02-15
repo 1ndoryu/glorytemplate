@@ -60,3 +60,18 @@ export const quitarSampleDeColeccion = async (
 ): Promise<RespuestaApi<{ eliminado: boolean }>> => {
     return apiDelete<{ eliminado: boolean }>(`/colecciones/${coleccionId}/samples/${sampleId}`);
 };
+
+/* Sugerencias "Más Ideas" — samples similares no incluidos en la colección */
+export const obtenerSugerencias = async (
+    coleccionId: number,
+    limite = 20
+): Promise<RespuestaApi<ColeccionResumen[]>> => {
+    return apiGet<ColeccionResumen[]>(`/colecciones/${coleccionId}/sugerencias`, { limite });
+};
+
+/* Colecciones más relevantes para un sample (para modal "Guardar en colección") */
+export const obtenerRelevantesParaSample = async (
+    sampleId: number
+): Promise<RespuestaApi<Coleccion[]>> => {
+    return apiGet<Coleccion[]>(`/colecciones/relevantes/${sampleId}`);
+};
