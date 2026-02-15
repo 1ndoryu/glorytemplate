@@ -104,6 +104,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **UI/UX (C42-C52):** Fix SPA navigation ROOT CAUSE — `buscarRutaEnMapa()` prefix matching en navigationStore (rutas dinámicas como `/perfil/john/` → match `/perfil/`). Ordering UI: dropdown desplegable con ArrowDownWideNarrow + menú contextual (ya no 3 botones separados), contador izquierda + botones derecha. Botón crear (+) en TopBar junto a notificaciones. Input búsqueda centrado (flex 0 1 360px, margin auto). PerfilIsland: mockup content (portada, metadata Colombia/2024/link, publicaciones mock), username extraído de rutaActual en SPA. ModalConfiguracion: redesign completo con panel lateral (Perfil/Cuenta/Notificaciones/Apariencia), overlay propio (sin componente Modal), 720px. Middle-click: TarjetaSample título + Sidebar items convertidos de `<button>` a `<a href>` para soporte nativo de nueva pestaña. Explorar eliminado (Sidebar, LayoutPrincipal, pages.php, appIslands). Colecciones: onClick en LibreriaIsland para navegar a `/coleccion/{id}/`. Tags: responsivos (TAGS_COLAPSADOS según viewport), agrupados por categoría cuando expandidos (Tipo/Género/Instrumento/Sentimiento/Tags) con títulos y listas wrap.
 
+**UI/UX (C53-C59):** Dropdown ordenamiento plano: 4 opciones (Inteligente, Recientes, Top Semanal, Top Mensual) sin sub-menú. Infinite scroll con IntersectionObserver (rootMargin 200px) + virtualización DOM (MAX_RENDERIZADOS=50, spacer divs). Fix imagenesColor guard `Number.isFinite(id)` para evitar `colors/undefined`. Fix SampleDetalleIsland filter crash con try/catch + `Array.isArray` check. ModalConfiguracion conectado a `PUT /kamples/v1/me` + persist authStore. MenuContextual renderiza `<a href>` para items con URL (middle-click abre nueva pestaña nativo). DropdownMensajes abre ChatFlotante con `abrirChat()` en vez de navegar a /mensajes. TarjetaSample onClick en div externo reproduce audio. ComunidadIsland sin reproductor global (solo audio local).
+
 ---
 
 ## Pendientes por Fase
@@ -145,7 +147,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
   - Avatar upload con overlay Camera, nombre visible, username con @, bio (300 chars)
   - Toggle notificaciones (Bell/BellOff)
   - Integrado en LayoutPrincipal, abierto desde PerfilIsland
-  - TO-DO: conectar a PUT /kamples/v1/perfil
+  - Conectado a `PUT /kamples/v1/me` para guardar cambios + persist en authStore
+  - TO-DO: subida real de archivo avatar con FormData (endpoint no soporta multipart aún)
 - [ ] **1.3** Auto-creación `usuarios_ext` en Postgres
   - Al hacer login por primera vez, crear registro automático en tabla Postgres
   - Sincronizar datos base de WP → Postgres (id, username, email, avatar)
@@ -230,8 +233,9 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
   - Filtros: yaReproducidos, likeados, deSeguidos, descargados
   - CSS reescrito para UI de toggles
 - [x] **4.2** Eliminar tabs de InicioIsland ✓ (IMPLEMENTADO)
-  - Tabs eliminadas, barra de ordenamiento: Inteligente/Recientes/Destacados
-  - Destacados con menú desplegable: Semana/Mes/Año
+  - Tabs eliminadas, barra de ordenamiento: Inteligente/Recientes/Top Semanal/Top Mensual
+  - Dropdown plano con 4 opciones directas (sin sub-menú contextual de Destacados)
+  - Infinite scroll con IntersectionObserver + virtualización DOM (max 50 tarjetas renderizadas)
   - ~95 líneas de CSS nuevas en inicio.css
 - [x] **4.3** Conectar filtros y ordenamientos al store/API ✓ (IMPLEMENTADO)
   - `filtrosStore.ts` reescrito: toggles + TipoOrdenamiento + PeriodoDestacados
@@ -347,7 +351,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 4. **Google OAuth:** Keys vacías, preparar integración lista para activar.
 5. **WebSocket:** Implementar servidor local primero, migrar a Bun en VPS después.
 6. **Chat:** Flotante tipo Messenger + /mensajes como vista completa. Soporta: texto, imágenes, audio, samples compartidos.
-7. **Filtros:** Toggle on/off simples, no selects complejos. Ordenamientos: Inteligente, Recientes, Destacados.
+7. **Filtros:** Toggle on/off simples, no selects complejos. Ordenamientos: Inteligente, Recientes, Top Semanal, Top Mensual (dropdown plano, sin sub-menús).
 8. **BPM:** Mantener número crudo en BD + campo normalizado (muy lento/lento/normal/rápido/muy rápido).
 9. **ModalCrear:** SIN campos manuales de BPM/Key/Tipo — la IA los genera automáticamente. Mostrar waveform + reproducción. Iconos de condiciones (descarga sí/no, etc.).
 10. **Colors/:** Lectura dinámica del directorio, no hardcodeado. Optimización de imágenes.
