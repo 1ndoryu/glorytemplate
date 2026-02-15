@@ -1,16 +1,15 @@
 /*
  * ConAutenticacion — Kamples (Guard de rutas, Fase 1.9)
  * HOC que protege páginas que requieren usuario autenticado.
- * Si el usuario no está autenticado, muestra un mensaje y redirige a login.
+ * Si el usuario no está autenticado, redirige a login vía SPA.
  */
 
 import { useEffect, type ComponentType, type JSX } from 'react';
 import { useAuthStore } from '@app/stores/authStore';
+import { useNavigationStore } from '@/core/router';
 
 interface OpcionesGuard {
-    /* URL a la que redirigir si no está autenticado (default: /auth/login) */
     redirigirA?: string;
-    /* Texto personalizado del mensaje de carga */
     mensajeCarga?: string;
 }
 
@@ -29,16 +28,16 @@ export function conAutenticacion<P extends Record<string, unknown>>(
 
     const ComponenteProtegido = (props: P): JSX.Element | null => {
         const { autenticado, cargando } = useAuthStore();
+        const { navegar } = useNavigationStore();
 
         useEffect(() => {
             if (!cargando && !autenticado) {
                 /* Guardar la URL actual para redirigir de vuelta después del login */
                 const urlActual = window.location.pathname + window.location.search;
-                window.location.href = `${redirigirA}?redirect=${encodeURIComponent(urlActual)}`;
+                navegar(`${redirigirA}?redirect=${encodeURIComponent(urlActual)}`);
             }
-        }, [cargando, autenticado]);
+        }, [cargando, autenticado, navegar]);
 
-        /* Mientras verifica la sesión */
         if (cargando) {
             return (
                 <div style={{
@@ -53,7 +52,6 @@ export function conAutenticacion<P extends Record<string, unknown>>(
             );
         }
 
-        /* Si no autenticado, no renderizar (se redirige en useEffect) */
         if (!autenticado) return null;
 
         return <Componente {...props} />;

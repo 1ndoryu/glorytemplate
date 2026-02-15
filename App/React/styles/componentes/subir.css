@@ -3,10 +3,41 @@
  * Estilos de la isla SubirIsland (subida de samples).
  */
 
+/* Contenedor original (fallback si se usa como página) */
 .subirContenedor {
     max-width: 700px;
     margin: 0 auto;
     padding: var(--espacio2xl);
+}
+
+/* Contenido dentro del modal — sin padding extra, el modal ya lo maneja */
+.subirModalContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+/* Aviso de no autenticado */
+.subirAuthAviso {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioLg);
+    padding: var(--espacio2xl) 0;
+    color: var(--textoSecundario);
+    text-align: center;
+}
+
+/* Wrapper para cada paso en modo modal */
+.subirPasoWrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    flex: 1;
+}
+
+.subirPasoWrapper:last-child {
+    flex: none;
 }
 
 .subirTitulo {

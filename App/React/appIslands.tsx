@@ -15,7 +15,6 @@ import {PerfilIsland} from './islands/social/PerfilIsland';
 import {EditarPerfilIsland} from './islands/social/EditarPerfilIsland';
 import {ShowcaseIsland} from './islands/dev/ShowcaseIsland';
 import {SamplesIsland} from './islands/samples/SamplesIsland';
-import {SubirIsland} from './islands/samples/SubirIsland';
 import {SampleDetalleIsland} from './islands/samples/SampleDetalleIsland';
 import {InicioIsland} from './islands/feed/InicioIsland';
 import {LayoutPrincipal} from './components/layout/LayoutPrincipal';
@@ -45,7 +44,6 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     EditarPerfilIsland: EditarPerfilIsland as React.ComponentType<Record<string, unknown>>,
     ShowcaseIsland: ShowcaseIsland as React.ComponentType<Record<string, unknown>>,
     SamplesIsland: SamplesIsland as React.ComponentType<Record<string, unknown>>,
-    SubirIsland: SubirIsland as React.ComponentType<Record<string, unknown>>,
     SampleDetalleIsland: SampleDetalleIsland as React.ComponentType<Record<string, unknown>>,
     InicioIsland: InicioIsland as React.ComponentType<Record<string, unknown>>,
 };

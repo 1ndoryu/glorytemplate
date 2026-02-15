@@ -1,6 +1,8 @@
 /*
  * Componente: Sidebar
  * Navegación lateral con iconos y tooltips.
+ * Usa navegación SPA via Glory navigationStore.
+ * El botón "Subir" abre un modal en vez de navegar.
  */
 
 import {
@@ -12,6 +14,8 @@ import {
     MessageCircle,
     AudioLines,
 } from 'lucide-react';
+import { useNavigationStore } from '@/core/router';
+import { useSubirModalStore } from '@app/stores/subirModalStore';
 import '../../styles/componentes/sidebar.css';
 
 export interface SidebarItemDef {
@@ -19,6 +23,8 @@ export interface SidebarItemDef {
     etiqueta: string;
     icono: React.ReactNode;
     ruta: string;
+    /* Si true, abre modal en vez de navegar */
+    accion?: 'modal-subir';
     badge?: boolean;
 }
 
@@ -27,7 +33,7 @@ const itemsDefault: SidebarItemDef[] = [
     { id: 'explorar', etiqueta: 'Explorar', icono: <Compass size={20} />, ruta: '/explorar' },
     { id: 'perfil', etiqueta: 'Perfil', icono: <User size={20} />, ruta: '/perfil' },
     { id: 'libreria', etiqueta: 'Librería', icono: <FolderOpen size={20} />, ruta: '/libreria' },
-    { id: 'subir', etiqueta: 'Subir', icono: <Upload size={20} />, ruta: '/subir' },
+    { id: 'subir', etiqueta: 'Subir', icono: <Upload size={20} />, ruta: '', accion: 'modal-subir' },
     { id: 'mensajes', etiqueta: 'Mensajes', icono: <MessageCircle size={20} />, ruta: '/mensajes' },
 ];
 
@@ -46,11 +52,21 @@ export const Sidebar = ({
     tieneNotificaciones = false,
     tieneMensajes = false,
 }: SidebarProps): JSX.Element => {
-    const manejarClick = (ruta: string) => {
+    const { navegar } = useNavigationStore();
+    const { abrir: abrirSubirModal } = useSubirModalStore();
+
+    const manejarClick = (item: SidebarItemDef) => {
+        /* Acciones especiales (ej: abrir modal de subida) */
+        if (item.accion === 'modal-subir') {
+            abrirSubirModal();
+            return;
+        }
+
         if (onNavegar) {
-            onNavegar(ruta);
+            onNavegar(item.ruta);
         } else {
-            window.location.href = ruta;
+            /* Navegación SPA — el store decide si es interna o recarga */
+            navegar(item.ruta);
         }
     };
 
@@ -66,7 +82,7 @@ export const Sidebar = ({
                         key={item.id}
                         className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
                         data-tooltip={item.etiqueta}
-                        onClick={() => manejarClick(item.ruta)}
+                        onClick={() => manejarClick(item)}
                         type="button"
                         aria-label={item.etiqueta}
                     >

@@ -9,7 +9,6 @@
     align-items: center;
     width: 100%;
     height: 100%;
-    padding: var(--espacioLg) 0;
     gap: var(--espacioXs);
 }
 
@@ -19,14 +18,13 @@
     justify-content: center;
     width: 36px;
     height: 36px;
-    margin-bottom: var(--espacioLg);
     flex-shrink: 0;
 }
 
 .sidebarLogo svg {
     width: 24px;
     height: 24px;
-    color: var(--acento);
+    color: var(--acento-blanco);
 }
 
 .sidebarNav {
@@ -36,6 +34,7 @@
     gap: var(--espacioXs);
     width: 100%;
     flex: 1;
+    justify-content: center;
 }
 
 .sidebarItem {
@@ -53,13 +52,16 @@
     border: none;
 }
 
+.sidebarItem svg {
+    height: 28px;
+}
+
 .sidebarItem:hover {
     color: var(--textoPrimario);
-    background-color: var(--fondoElevado2);
 }
 
 .sidebarItem.sidebarItemActivo {
-    color: var(--acento);
+    color: var(--acento-blanco);
     background-color: var(--acentoMuted);
 }
 

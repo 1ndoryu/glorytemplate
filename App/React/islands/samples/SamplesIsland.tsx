@@ -12,7 +12,6 @@ import {
     TabBar,
 } from '@app/components/ui';
 import type { TabDefinicion } from '@app/components/ui';
-import { ReproductorGlobal } from '@app/components/ui/ReproductorGlobal';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { listarSamples } from '@app/services/apiSamples';
 import type { FiltrosSamples, RespuestaListaSamples } from '@app/services/apiSamples';
@@ -246,8 +245,6 @@ export const SamplesIsland = (): JSX.Element => {
                 </div>
             )}
 
-            {/* Reproductor global persistente */}
-            <ReproductorGlobal />
         </div>
     );
 };

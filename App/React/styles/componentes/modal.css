@@ -43,8 +43,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--espacioLg) var(--espacioXl);
-    border-bottom: 1px solid var(--bordeSutil);
+    padding: var(--espacioMd) var(--espacioXl);
+    /* border-bottom: 1px solid var(--bordeSutil); */
     flex-shrink: 0;
 }
 

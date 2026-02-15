@@ -76,7 +76,7 @@ PageManager::reactPage('perfil/editar', 'EditarPerfilIsland');
  * =====================================================
  */
 PageManager::reactPage('explorar', 'SamplesIsland');
-PageManager::reactPage('subir', 'SubirIsland');
+/* Subir es ahora un modal global, no una página separada */
 
 /* Detalle de sample — recibe slug dinámico */
 PageManager::reactPage('sample', 'SampleDetalleIsland', function($pageId) {

@@ -2,6 +2,7 @@
  * InicioIsland — Kamples
  * Feed principal: trending, recientes y recomendaciones.
  * Conecta con apiSamples.obtenerFeed para cada sección.
+ * Usa navegación SPA via Glory router.
  */
 
 import { useEffect, useState, useCallback } from 'react';
@@ -12,6 +13,8 @@ import {
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { obtenerFeed } from '@app/services/apiSamples';
 import { useReproductorStore } from '@app/stores/reproductorStore';
+import { useSubirModalStore } from '@app/stores/subirModalStore';
+import { useNavigationStore } from '@/core/router';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/inicio.css';
 
@@ -29,6 +32,9 @@ export const InicioIsland = (): JSX.Element => {
         play,
         pause,
     } = useReproductorStore();
+
+    const { navegar } = useNavigationStore();
+    const { abrir: abrirSubirModal } = useSubirModalStore();
 
     /* Cargar las 3 secciones del feed */
     useEffect(() => {
@@ -89,7 +95,7 @@ export const InicioIsland = (): JSX.Element => {
                 <div className="inicioVacio">
                     <Music size={48} className="inicioVacioIcono" />
                     <p>Aún no hay samples publicados.</p>
-                    <BotonBase variante="primario" onClick={() => { window.location.href = '/subir'; }}>
+                    <BotonBase variante="primario" onClick={abrirSubirModal}>
                         Sube el primero
                     </BotonBase>
                 </div>
@@ -103,7 +109,7 @@ export const InicioIsland = (): JSX.Element => {
                             <Flame size={18} style={{ verticalAlign: 'middle', marginRight: 6 }} />
                             Trending
                         </span>
-                        <button className="inicioSeccionLink" onClick={() => { window.location.href = '/explorar'; }}>
+                        <button className="inicioSeccionLink" onClick={() => navegar('/explorar')}>
                             Ver todos
                         </button>
                     </div>
@@ -131,7 +137,7 @@ export const InicioIsland = (): JSX.Element => {
                             <Clock size={18} style={{ verticalAlign: 'middle', marginRight: 6 }} />
                             Recientes
                         </span>
-                        <button className="inicioSeccionLink" onClick={() => { window.location.href = '/explorar'; }}>
+                        <button className="inicioSeccionLink" onClick={() => navegar('/explorar')}>
                             Ver todos
                         </button>
                     </div>
@@ -175,8 +181,6 @@ export const InicioIsland = (): JSX.Element => {
                     </div>
                 </div>
             )}
-
-            {/* Reproductor global vive en LayoutPrincipal */}
         </div>
     );
 };
