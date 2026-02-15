@@ -12,6 +12,7 @@
 namespace App\Kamples\Api;
 
 use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\VerificarPgvector;
 use App\Kamples\Auth\AuthMiddleware;
 
 class KamplesController
@@ -275,6 +276,13 @@ class KamplesController
             'callback'            => [self::class, 'subirSample'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        /* Verificación pgvector — solo para debug/desarrollo */
+        register_rest_route(self::NAMESPACE, '/debug/pgvector', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'verificarPgvector'],
+            'permission_callback' => '__return_true',
+        ]);
     }
 
     /* 
@@ -291,6 +299,31 @@ class KamplesController
             'version'  => '1.0.0',
             'time'     => current_time('mysql'),
         ], $conectado ? 200 : 503);
+    }
+
+    /*
+     * Endpoint: GET /kamples/v1/debug/pgvector
+     * Ejecuta las verificaciones de pgvector y retorna reporte.
+     */
+    public static function verificarPgvector(): \WP_REST_Response
+    {
+        $resultados = VerificarPgvector::ejecutar();
+        $todosOk = true;
+
+        foreach ($resultados as $check) {
+            if (!$check['ok']) {
+                $todosOk = false;
+                break;
+            }
+        }
+
+        return new \WP_REST_Response([
+            'status'  => $todosOk ? 'ok' : 'error',
+            'checks'  => $resultados,
+            'resumen' => $todosOk
+                ? 'pgvector funcional — conexión, extensión, tabla e índice OK'
+                : 'Hay errores en la configuración de pgvector',
+        ], $todosOk ? 200 : 503);
     }
 
     /*
