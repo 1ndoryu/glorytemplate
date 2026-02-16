@@ -40,12 +40,28 @@ class SamplesController
             'args'                => self::argsListar(),
         ]);
 
+        /*
+         * GET + DELETE en la misma ruta para evitar conflicto de regex
+         * WP evalúa la primera ruta que coincide con la URL; si GET y DELETE
+         * están separados, la ruta slug ([a-zA-Z0-9_-]+) captura los IDs numéricos
+         * primero y devuelve 404 para DELETE.
+         */
         register_rest_route($namespace, '/samples/(?P<slug>[a-zA-Z0-9_-]+)', [
-            'methods'             => 'GET',
-            'callback'            => [self::class, 'obtener'],
-            'permission_callback' => '__return_true',
-            'args'                => [
-                'slug' => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
+            [
+                'methods'             => 'GET',
+                'callback'            => [self::class, 'obtener'],
+                'permission_callback' => '__return_true',
+                'args'                => [
+                    'slug' => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
+                ],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [self::class, 'eliminar'],
+                'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+                'args'                => [
+                    'slug' => ['required' => true, 'type' => 'string'],
+                ],
             ],
         ]);
 
@@ -66,14 +82,7 @@ class SamplesController
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
-        register_rest_route($namespace, '/samples/(?P<id>\d+)', [
-            'methods'             => 'DELETE',
-            'callback'            => [self::class, 'eliminar'],
-            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
-            'args'                => [
-                'id' => ['required' => true, 'type' => 'integer', 'sanitize_callback' => 'absint'],
-            ],
-        ]);
+        /* DELETE ahora registrado junto con GET en la ruta slug (arriba) */
     }
 
     /**
@@ -156,13 +165,20 @@ class SamplesController
 
         $samples = PostgresService::consultar($sql, $params);
 
+        /*
+         * Envolver data + pagination bajo una clave 'data' para que
+         * apiPeticion (que extrae json.data) entregue el objeto completo
+         * al frontend como RespuestaListaSamples { data, pagination }.
+         */
         return new \WP_REST_Response([
-            'data'       => NormalizadorSample::normalizarLista($samples),
-            'pagination' => [
-                'page'     => $page,
-                'per_page' => $perPage,
-                'total'    => $total,
-                'pages'    => $total > 0 ? (int) ceil($total / $perPage) : 0,
+            'data' => [
+                'data'       => NormalizadorSample::normalizarLista($samples),
+                'pagination' => [
+                    'page'     => $page,
+                    'per_page' => $perPage,
+                    'total'    => $total,
+                    'pages'    => $total > 0 ? (int) ceil($total / $perPage) : 0,
+                ],
             ],
         ], 200);
     }
@@ -437,7 +453,8 @@ class SamplesController
      */
     public static function eliminar(\WP_REST_Request $request): \WP_REST_Response
     {
-        $sampleId = (int) $request->get_param('id');
+        /* El param llega como 'slug' porque comparte ruta con obtener() */
+        $sampleId = (int) $request->get_param('slug');
         $usuarioId = UsuarioHelper::obtenerIdPg();
         $esAdmin = UsuarioHelper::esAdmin();
 
@@ -445,9 +462,9 @@ class SamplesController
             return UsuarioHelper::respuestaNoEncontrado();
         }
 
-        /* Verificar que el sample existe */
+        /* Verificar que el sample existe — columnas reales: ruta_original, ruta_optimizada, ruta_preview */
         $sample = PostgresService::consultarUno(
-            "SELECT id, creador_id, ruta_archivo, ruta_mp3, ruta_preview, titulo FROM samples WHERE id = :id",
+            "SELECT id, creador_id, ruta_original, ruta_optimizada, ruta_preview, ruta_waveform, titulo FROM samples WHERE id = :id",
             ['id' => $sampleId]
         );
 
@@ -463,11 +480,10 @@ class SamplesController
         /* Eliminar archivos físicos del disco */
         $uploadDir = \wp_upload_dir();
         $baseDir = $uploadDir['basedir'];
-        $rutasAEliminar = ['ruta_archivo', 'ruta_mp3', 'ruta_preview'];
+        $rutasAEliminar = ['ruta_original', 'ruta_optimizada', 'ruta_preview', 'ruta_waveform'];
 
         foreach ($rutasAEliminar as $campo) {
             if (!empty($sample[$campo])) {
-                /* La ruta puede ser absoluta o relativa a uploads */
                 $rutaCompleta = $sample[$campo];
                 if (!file_exists($rutaCompleta)) {
                     $rutaCompleta = $baseDir . '/' . ltrim($sample[$campo], '/');
@@ -478,8 +494,8 @@ class SamplesController
             }
         }
 
-        /* Eliminar waveform JSON si existe */
-        $rutaBase = $sample['ruta_archivo'] ?? '';
+        /* Eliminar waveform JSON derivado si no estaba en ruta_waveform */
+        $rutaBase = $sample['ruta_original'] ?? '';
         if ($rutaBase) {
             $rutaWaveform = preg_replace('/\.[^.]+$/', '.json', $rutaBase);
             if ($rutaWaveform && file_exists($rutaWaveform)) {
@@ -491,8 +507,8 @@ class SamplesController
             }
         }
 
-        /* Eliminar registros relacionados en cascada */
-        PostgresService::ejecutar("DELETE FROM likes WHERE target_type = 'sample' AND target_id = :id", ['id' => $sampleId]);
+        /* Eliminar registros relacionados en cascada — columna correcta: tipo (no target_type) */
+        PostgresService::ejecutar("DELETE FROM likes WHERE tipo = 'sample' AND target_id = :id", ['id' => $sampleId]);
         PostgresService::ejecutar("DELETE FROM coleccion_samples WHERE sample_id = :id", ['id' => $sampleId]);
         PostgresService::ejecutar("DELETE FROM reproducciones WHERE sample_id = :id", ['id' => $sampleId]);
         PostgresService::ejecutar("DELETE FROM descargas WHERE sample_id = :id", ['id' => $sampleId]);

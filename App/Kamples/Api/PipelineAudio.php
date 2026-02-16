@@ -104,7 +104,10 @@ class PipelineAudio
         if ($metadataIA) {
             KamplesLogger::info('Pipeline: IA completada', ['tipo' => $metadataIA['tipo']]);
 
-            $actualizaciones['tipo'] = $metadataIA['tipo'];
+            /* Normalizar tipo para cumplir CHECK constraint (loop|oneshot|fx|vocal|stem|otro) */
+            $tipoRaw = strtolower(str_replace([' ', '-'], '', $metadataIA['tipo'] ?? ''));
+            $tiposValidos = ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro'];
+            $actualizaciones['tipo'] = in_array($tipoRaw, $tiposValidos, true) ? $tipoRaw : 'otro';
 
             /* Guardar toda la metadata creativa + confianza técnica en JSONB */
             $actualizaciones['metadata'] = json_encode([

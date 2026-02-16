@@ -161,10 +161,27 @@ class DescargasController
             );
         }
 
+        /*
+         * Convertir ruta absoluta del filesystem a URL pública.
+         * El frontend espera { url, nombre, formato, tamano }.
+         */
+        $uploadDir = \wp_upload_dir();
+        $urlDescarga = '';
+        if ($rutaArchivo && file_exists($rutaArchivo)) {
+            $rutaRelativa = str_replace(
+                wp_normalize_path($uploadDir['basedir']),
+                '',
+                wp_normalize_path($rutaArchivo)
+            );
+            $urlDescarga = $uploadDir['baseurl'] . $rutaRelativa;
+        }
+
         return new \WP_REST_Response([
-            'ok' => true,
-            'calidad' => $calidad,
-            'archivo' => $rutaArchivo,
+            'ok'      => true,
+            'url'     => $urlDescarga,
+            'nombre'  => $sample['titulo'] ?? 'sample',
+            'formato' => $calidad,
+            'tamano'  => $tamanoBytes,
         ], 200);
     }
 

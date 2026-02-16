@@ -11,6 +11,7 @@ import {WaveformPlayer} from './WaveformPlayer';
 import {Badge} from './Badge';
 import {obtenerImagenColor} from '../../services/imagenesColor';
 import {etiquetaBpm} from '../../services/bpmUtils';
+import {descargarSample} from '../../services/apiDescargas';
 import {useNavigationStore} from '@/core/router';
 import '../../styles/componentes/tarjetaSample.css';
 
@@ -230,11 +231,24 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
     );
 
     const manejarDescargar = useCallback(
-        (e: MouseEvent) => {
+        async (e: MouseEvent) => {
             e.stopPropagation();
-            onDescargar?.(sample.id);
+            if (onDescargar) {
+                onDescargar(sample.id);
+                return;
+            }
+            /* Fallback: llamar API directamente y disparar descarga en navegador */
+            const resp = await descargarSample(sample.id);
+            if (resp.ok && resp.data?.url) {
+                const a = document.createElement('a');
+                a.href = resp.data.url;
+                a.download = resp.data.nombre || sample.titulo || 'sample';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
         },
-        [onDescargar, sample.id]
+        [onDescargar, sample.id, sample.titulo]
     );
 
     const manejarMenu = useCallback(

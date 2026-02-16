@@ -21,11 +21,13 @@ export const dejarDeSeguir = async (usuarioId: number): Promise<RespuestaApi<{ s
 /* Likes */
 
 export const darLike = async (tipo: 'sample' | 'publicacion', targetId: number): Promise<RespuestaApi<{ liked: boolean }>> => {
-    return apiPost<{ liked: boolean }>(`/like`, { tipo, targetId });
+    /* Backend espera snake_case: target_id */
+    return apiPost<{ liked: boolean }>(`/like`, { tipo, target_id: targetId });
 };
 
 export const quitarLike = async (tipo: 'sample' | 'publicacion', targetId: number): Promise<RespuestaApi<{ liked: boolean }>> => {
-    return apiDelete<{ liked: boolean }>(`/like/${tipo}/${targetId}`);
+    /* DELETE /like espera body con tipo y target_id (snake_case) */
+    return apiDelete<{ liked: boolean }>('/like', { tipo, target_id: targetId });
 };
 
 /* Publicaciones */

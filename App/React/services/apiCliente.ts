@@ -168,8 +168,8 @@ export const apiPost = <T>(endpoint: string, body?: unknown) =>
 export const apiPut = <T>(endpoint: string, body?: unknown) =>
     apiPeticion<T>(endpoint, { method: 'PUT', body });
 
-export const apiDelete = <T>(endpoint: string) =>
-    apiPeticion<T>(endpoint, { method: 'DELETE' });
+export const apiDelete = <T>(endpoint: string, body?: unknown) =>
+    apiPeticion<T>(endpoint, { method: 'DELETE', body });
 
 /* POST con FormData (multipart/form-data) — para uploads de archivos */
 export const apiPostFormData = <T>(endpoint: string, formData: FormData) =>

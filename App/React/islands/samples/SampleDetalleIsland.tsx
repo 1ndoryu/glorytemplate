@@ -27,6 +27,7 @@ import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonFollow } from '@app/components/social/BotonFollow';
 import { obtenerSample, listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
+import { descargarSample } from '@app/services/apiDescargas';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useAuthStore } from '@app/stores/authStore';
@@ -395,7 +396,17 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                         <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
                         {sample.totalLikes > 0 && ` ${sample.totalLikes}`}
                     </BotonBase>
-                    <BotonBase variante="ghost">
+                    <BotonBase variante="ghost" onClick={async () => {
+                        const resp = await descargarSample(sample.id);
+                        if (resp.ok && resp.data?.url) {
+                            const a = document.createElement('a');
+                            a.href = resp.data.url;
+                            a.download = resp.data.nombre || sample.titulo || 'sample';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        }
+                    }}>
                         <Download size={14} /> Descargar
                     </BotonBase>
                     <BotonBase variante="ghost">
