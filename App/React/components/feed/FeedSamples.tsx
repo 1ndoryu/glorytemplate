@@ -20,7 +20,7 @@ import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
 import { useNavigationStore } from '@/core/router';
-import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO } from '@app/hooks/useMenuContextualSample';
+import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { agruparTagsPorCategoria, type CategoriaTag } from '@app/services/tagUtils';
 import { useSugerenciasLikeStore } from '@app/stores/sugerenciasLikeStore';
@@ -228,8 +228,24 @@ export const FeedSamples = ({
                 cacheFeedRef.current = {};
             }
         };
+
+        const manejarRestauracion = (event: Event) => {
+            const detalle = (event as CustomEvent<{ sample?: SampleResumen }>).detail;
+            if (detalle?.sample) {
+                setSamples((prev) => {
+                    if (prev.some((s) => s.id === detalle.sample!.id)) return prev;
+                    return [detalle.sample!, ...prev];
+                });
+                cacheFeedRef.current = {};
+            }
+        };
+
         window.addEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
-        return () => window.removeEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
+        window.addEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
+        return () => {
+            window.removeEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
+            window.removeEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
+        };
     }, []);
 
     /* Tags dinámicos ordenados por frecuencia */

@@ -16,6 +16,7 @@ import { toast } from '@app/stores/toastStore';
 
 /* Evento global para notificar eliminación de sample sin recargar la página */
 export const EVENTO_SAMPLE_ELIMINADO = 'kamples:sample-eliminado';
+export const EVENTO_SAMPLE_RESTAURADO = 'kamples:sample-restaurado';
 
 interface EstadoMenuSample {
     abierto: boolean;
@@ -149,16 +150,23 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                             toast.confirmar(
                                 `¿Eliminar "${sampleAEliminar.titulo}"?`,
                                 async () => {
+                                    /* Optimista: remover en tiempo real antes de la respuesta API */
+                                    window.dispatchEvent(
+                                        new CustomEvent(EVENTO_SAMPLE_ELIMINADO, {
+                                            detail: { sampleId: sampleAEliminar.id },
+                                        })
+                                    );
+
                                     const resp = await eliminarSample(sampleAEliminar.id);
                                     if (resp.ok) {
-                                        /* Notificar a FeedSamples y otros listeners para remover sin recargar */
-                                        window.dispatchEvent(
-                                            new CustomEvent(EVENTO_SAMPLE_ELIMINADO, {
-                                                detail: { sampleId: sampleAEliminar.id },
-                                            })
-                                        );
                                         toast.exito('Sample eliminado');
                                     } else {
+                                        /* Rollback si falla en backend */
+                                        window.dispatchEvent(
+                                            new CustomEvent(EVENTO_SAMPLE_RESTAURADO, {
+                                                detail: { sample: sampleAEliminar },
+                                            })
+                                        );
                                         toast.error('Error al eliminar el sample');
                                     }
                                 }

@@ -15,6 +15,7 @@ interface ModalProps {
     onCerrar: () => void;
     titulo?: string;
     tamano?: TamanoModal;
+    className?: string;
     pie?: ReactNode;
     children: ReactNode;
 }
@@ -30,6 +31,7 @@ export const Modal = ({
     onCerrar,
     titulo,
     tamano = 'normal',
+    className = '',
     pie,
     children,
 }: ModalProps): JSX.Element | null => {
@@ -73,7 +75,7 @@ export const Modal = ({
         }
     };
 
-    const clasesContenedor = ['modalContenedor', mapaTamano[tamano]]
+    const clasesContenedor = ['modalContenedor', mapaTamano[tamano], className]
         .filter(Boolean)
         .join(' ');
 

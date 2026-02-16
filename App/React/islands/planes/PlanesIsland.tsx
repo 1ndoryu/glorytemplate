@@ -3,25 +3,15 @@
  * Comparativa de planes, checkout, portal de facturación, estados post-checkout.
  */
 
-import { useState, useEffect } from 'react';
-import {
-    Check,
-    X,
-    Zap,
-    Crown,
-    Sparkles,
-    ArrowRight,
-    CreditCard,
-    Loader2,
-    Settings,
-    PartyPopper,
-} from 'lucide-react';
-import { BotonBase } from '@app/components/ui/BotonBase';
-import { Badge } from '@app/components/ui/Badge';
-import { useAuthStore } from '@app/stores/authStore';
-import { useNavigationStore } from '@/core/router';
-import { crearSesionCheckout, abrirPortalFacturacion } from '@app/services/apiPagos';
-import type { PeriodoPlan } from '@app/services/apiPagos';
+import {useState, useEffect} from 'react';
+import {Check, X, Zap, Crown, Sparkles, ArrowRight, Loader2, Settings, PartyPopper} from 'lucide-react';
+import {BotonBase} from '@app/components/ui/BotonBase';
+import {Badge} from '@app/components/ui/Badge';
+import {Modal} from '@app/components/ui/Modal';
+import {useAuthStore} from '@app/stores/authStore';
+import {useNavigationStore} from '@/core/router';
+import {crearSesionCheckout, abrirPortalFacturacion} from '@app/services/apiPagos';
+import type {PeriodoPlan} from '@app/services/apiPagos';
 import '../../styles/componentes/planes.css';
 
 type PlanId = 'free' | 'pro' | 'premium';
@@ -34,7 +24,7 @@ interface PlanInfo {
     descripcion: string;
     icono: JSX.Element;
     destacado: boolean;
-    caracteristicas: { texto: string; incluido: boolean }[];
+    caracteristicas: {texto: string; incluido: boolean}[];
 }
 
 const PLANES: PlanInfo[] = [
@@ -47,38 +37,38 @@ const PLANES: PlanInfo[] = [
         icono: <Sparkles size={24} />,
         destacado: false,
         caracteristicas: [
-            { texto: '5 descargas por día', incluido: true },
-            { texto: 'Calidad WAV original', incluido: true },
-            { texto: 'Subidas ilimitadas', incluido: true },
-            { texto: '1 GB transferencia/mes', incluido: true },
-            { texto: 'Explorar y descubrir', incluido: true },
-            { texto: 'Perfil público', incluido: true },
-            { texto: 'Prueba gratuita 30 días', incluido: true },
-            { texto: 'Monetizar samples', incluido: false },
-            { texto: 'Analytics avanzados', incluido: false },
-            { texto: 'Revenue share', incluido: false },
-        ],
+            {texto: '5 descargas por día', incluido: true},
+            {texto: 'Calidad WAV original', incluido: true},
+            {texto: 'Subidas ilimitadas', incluido: true},
+            {texto: '1 GB transferencia/mes', incluido: true},
+            {texto: 'Explorar y descubrir', incluido: true},
+            {texto: 'Perfil público', incluido: true},
+            {texto: 'Prueba gratuita 30 días', incluido: true},
+            {texto: 'Monetizar samples', incluido: false},
+            {texto: 'Analytics avanzados', incluido: false},
+            {texto: 'Revenue share', incluido: false}
+        ]
     },
     {
         id: 'pro',
         nombre: 'Pro',
-        precio: 9.99,
+        precio: 5,
         periodo: '/mes',
         descripcion: 'Para productores serios',
         icono: <Zap size={24} />,
         destacado: true,
         caracteristicas: [
-            { texto: '50 descargas por día', incluido: true },
-            { texto: 'Calidad WAV original', incluido: true },
-            { texto: 'Subidas ilimitadas', incluido: true },
-            { texto: '10 GB transferencia/mes', incluido: true },
-            { texto: 'Perfil verificado', incluido: true },
-            { texto: 'Monetizar samples', incluido: true },
-            { texto: 'Analytics avanzados', incluido: true },
-            { texto: 'Revenue share 70/30', incluido: true },
-            { texto: 'Soporte prioritario', incluido: false },
-            { texto: 'Revenue share 80/20', incluido: false },
-        ],
+            {texto: '50 descargas por día', incluido: true},
+            {texto: 'Calidad WAV original', incluido: true},
+            {texto: 'Subidas ilimitadas', incluido: true},
+            {texto: '10 GB transferencia/mes', incluido: true},
+            {texto: 'Perfil verificado', incluido: true},
+            {texto: 'Monetizar samples', incluido: true},
+            {texto: 'Analytics avanzados', incluido: true},
+            {texto: 'Revenue share 70/30', incluido: true},
+            {texto: 'Soporte prioritario', incluido: false},
+            {texto: 'Revenue share 80/20', incluido: false}
+        ]
     },
     {
         id: 'premium',
@@ -89,18 +79,18 @@ const PLANES: PlanInfo[] = [
         icono: <Crown size={24} />,
         destacado: false,
         caracteristicas: [
-            { texto: 'Descargas ilimitadas', incluido: true },
-            { texto: 'Calidad WAV original', incluido: true },
-            { texto: 'Subidas ilimitadas', incluido: true },
-            { texto: '50 GB transferencia/mes', incluido: true },
-            { texto: 'Perfil verificado', incluido: true },
-            { texto: 'Monetizar samples', incluido: true },
-            { texto: 'Analytics avanzados', incluido: true },
-            { texto: 'Revenue share 80/20', incluido: true },
-            { texto: 'Soporte dedicado 24/7', incluido: true },
-            { texto: 'Acceso anticipado', incluido: true },
-        ],
-    },
+            {texto: 'Descargas ilimitadas', incluido: true},
+            {texto: 'Calidad WAV original', incluido: true},
+            {texto: 'Subidas ilimitadas', incluido: true},
+            {texto: '50 GB transferencia/mes', incluido: true},
+            {texto: 'Perfil verificado', incluido: true},
+            {texto: 'Monetizar samples', incluido: true},
+            {texto: 'Analytics avanzados', incluido: true},
+            {texto: 'Revenue share 80/20', incluido: true},
+            {texto: 'Soporte dedicado 24/7', incluido: true},
+            {texto: 'Acceso anticipado', incluido: true}
+        ]
+    }
 ];
 
 /* Facturación anual con descuento */
@@ -113,7 +103,7 @@ interface PrecioAnual {
 const calcularAnual = (mensual: number): PrecioAnual => ({
     mensual,
     anual: Math.round(mensual * 10 * 100) / 100,
-    ahorro: Math.round(mensual * 2 * 100) / 100,
+    ahorro: Math.round(mensual * 2 * 100) / 100
 });
 
 export const PlanesIsland = (): JSX.Element => {
@@ -121,10 +111,13 @@ export const PlanesIsland = (): JSX.Element => {
     const [cargando, setCargando] = useState<PlanId | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [checkoutExito, setCheckoutExito] = useState(false);
-    const { usuario, autenticado } = useAuthStore();
-    const { navegar } = useNavigationStore();
+    const {usuario, autenticado} = useAuthStore();
+    const {navegar} = useNavigationStore();
 
-    const planActual: PlanId = (usuario as { plan?: PlanId } | null)?.plan ?? 'free';
+    const planActual: PlanId = (usuario as {plan?: PlanId} | null)?.plan ?? 'free';
+    const imagenPlanes = '/wp-content/themes/glorytemplate/App/Assets/images/1.jpg';
+    const planVisible = PLANES.find(plan => plan.id === 'pro');
+    const esActualVisible = Boolean(autenticado && planVisible && planVisible.id === planActual);
 
     /* Detectar retorno de Stripe Checkout */
     useEffect(() => {
@@ -196,184 +189,133 @@ export const PlanesIsland = (): JSX.Element => {
         }
     };
 
+    const cerrarModalPlanes = () => {
+        if (window.history.length > 1) {
+            window.history.back();
+            return;
+        }
+        navegar('/');
+    };
+
     return (
-        <div className="planesIsland" id="planesIsland">
-            {/* Banner post-checkout exitoso */}
-            {checkoutExito && (
-                <div className="planesAlertaExito">
-                    <PartyPopper size={20} />
-                    <span>¡Suscripción activada! Tu plan se actualizará en unos segundos.</span>
-                </div>
-            )}
+        <Modal abierto onCerrar={cerrarModalPlanes} tamano="grande" className="modalPlanesEspecial">
+            <div className="planesIsland planesIslandModal" id="planesIsland">
+                <div className="planesLayoutEspecial">
+                    <aside className="planesPanelImagen" id="planesPanelImagen">
+                        <img src={imagenPlanes} alt="Visual de planes Kamples" className="planesImagen" loading="lazy" />
+                    </aside>
 
-            {/* Banner de error */}
-            {error && (
-                <div className="planesAlertaError">
-                    <X size={16} />
-                    <span>{error}</span>
-                    <button onClick={() => setError(null)} className="planesAlertaCerrar">×</button>
-                </div>
-            )}
-
-            {/* Header */}
-            <header className="planesHeader">
-                <h1>Elige tu plan</h1>
-                <p>Desbloquea todo el potencial de Kamples</p>
-
-                {/* Toggle mensual/anual */}
-                <div className="planesToggle">
-                    <button
-                        className={`planesToggleBtn ${!periodoAnual ? 'planesToggleBtnActivo' : ''}`}
-                        onClick={() => setPeriodoAnual(false)}
-                    >
-                        Mensual
-                    </button>
-                    <button
-                        className={`planesToggleBtn ${periodoAnual ? 'planesToggleBtnActivo' : ''}`}
-                        onClick={() => setPeriodoAnual(true)}
-                    >
-                        Anual
-                        <Badge>-17%</Badge>
-                    </button>
-                </div>
-            </header>
-
-            {/* Grid de planes */}
-            <div className="planesGrid">
-                {PLANES.map((plan) => {
-                    const esActual = autenticado && plan.id === planActual;
-
-                    return (
-                        <div
-                            key={plan.id}
-                            className={`planTarjeta ${plan.destacado ? 'planTarjetaDestacada' : ''} ${esActual ? 'planTarjetaActual' : ''}`}
-                        >
-                            {plan.destacado && (
-                                <div className="planBadgePopular">
-                                    <Badge>Más popular</Badge>
-                                </div>
-                            )}
-                            {esActual && (
-                                <div className="planBadgeActual">
-                                    <Badge>Tu plan</Badge>
-                                </div>
-                            )}
-
-                            <div className="planIcono">{plan.icono}</div>
-                            <h2 className="planNombre">{plan.nombre}</h2>
-                            <p className="planDescripcion">{plan.descripcion}</p>
-
-                            <div className="planPrecio">
-                                <span className="planPrecioCantidad">
-                                    {obtenerPrecio(plan)}
-                                </span>
-                                {plan.precio > 0 && (
-                                    <span className="planPrecioPeriodo">
-                                        {periodoAnual ? '/mes (facturado anual)' : '/mes'}
-                                    </span>
-                                )}
-                                {periodoAnual && plan.precio > 0 && (
-                                    <span className="planAhorro">
-                                        Ahorras ${calcularAnual(plan.precio).ahorro}/año
-                                    </span>
-                                )}
+                    <section className="planesPanelContenido" id="planesPanelContenido">
+                        {/* Banner post-checkout exitoso */}
+                        {checkoutExito && (
+                            <div className="planesAlertaExito">
+                                <PartyPopper size={20} />
+                                <span>¡Suscripción activada! Tu plan se actualizará en unos segundos.</span>
                             </div>
+                        )}
 
+                        {/* Banner de error */}
+                        {error && (
+                            <div className="planesAlertaError">
+                                <X size={16} />
+                                <span>{error}</span>
+                                <button onClick={() => setError(null)} className="planesAlertaCerrar">
+                                    ×
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Toggle mensual/anual */}
+                        <div className="planesToggleWrap">
+                            <div className="planesToggle">
+                                <button className={`planesToggleBtn ${!periodoAnual ? 'planesToggleBtnActivo' : ''}`} onClick={() => setPeriodoAnual(false)}>
+                                    Mensual
+                                </button>
+                                <button className={`planesToggleBtn ${periodoAnual ? 'planesToggleBtnActivo' : ''}`} onClick={() => setPeriodoAnual(true)}>
+                                    Anual
+                                    <Badge>-17%</Badge>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Grid de planes */}
+                        <div className="planesGrid">
+                            {PLANES.filter(plan => plan.id === 'pro').map(plan => {
+                                const esActual = autenticado && plan.id === planActual;
+
+                                return (
+                                    <div key={plan.id} className={`planTarjeta ${plan.destacado ? 'planTarjetaDestacada' : ''} ${esActual ? 'planTarjetaActual' : ''}`}>
+                                        {plan.destacado && (
+                                            <div className="planBadgePopular">
+                                            </div>
+                                        )}
+                                        {esActual && (
+                                            <div className="planBadgeActual">
+                                                <Badge>Tu plan</Badge>
+                                            </div>
+                                        )}
+
+                                        <div className="planPrecio">
+                                            <span className="planPrecioCantidad">{obtenerPrecio(plan)}</span>
+                                            {plan.precio > 0 && <span className="planPrecioPeriodo">{periodoAnual ? '/mes (facturado anual)' : '/mes'}</span>}
+                                            {periodoAnual && plan.precio > 0 && <span className="planAhorro">Ahorras ${calcularAnual(plan.precio).ahorro}/año</span>}
+                                        </div>
+
+                                        <ul className="planCaracteristicas">
+                                            {plan.caracteristicas
+                                                .filter(c => c.incluido)
+                                                .slice(0, 5)
+                                                .map((c, i) => (
+                                                    <li key={i} className={`planCaracteristica ${c.incluido ? 'planCaracteristicaIncluida' : 'planCaracteristicaExcluida'}`}>
+                                                        {c.incluido ? <Check size={14} /> : <X size={14} />}
+                                                        {c.texto}
+                                                    </li>
+                                                ))}
+                                        </ul>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Botón gestionar suscripción (solo para usuarios con plan de pago) */}
+                        {autenticado && planActual !== 'free' && (
+                            <div className="planesPortal">
+                                <BotonBase variante="secundario" onClick={manejarPortal} disabled={cargando !== null}>
+                                    <Settings size={16} />
+                                    Gestionar suscripción
+                                </BotonBase>
+                            </div>
+                        )}
+
+                        {planVisible && (
                             <BotonBase
-                                variante={plan.destacado ? 'primario' : 'secundario'}
-                                onClick={() => manejarSeleccion(plan.id)}
-                                disabled={esActual || cargando !== null}
+                                variante={planVisible.destacado ? 'primario' : 'secundario'}
+                                onClick={() => manejarSeleccion(planVisible.id)}
+                                disabled={esActualVisible || cargando !== null}
                                 className="planBoton"
                             >
-                                {cargando === plan.id ? (
-                                    <>
-                                        <Loader2 size={16} className="planBotonCargando" />
-                                        Redirigiendo...
-                                    </>
-                                ) : esActual ? (
-                                    <>
-                                        <Check size={16} />
-                                        {obtenerEtiquetaBoton(plan.id)}
-                                    </>
-                                ) : (
-                                    <>
-                                        {obtenerEtiquetaBoton(plan.id)}
-                                        <ArrowRight size={16} />
-                                    </>
+                                {cargando === planVisible.id ? (
+                                <>
+                                    <Loader2 size={16} className="planBotonCargando" />
+                                    Redirigiendo...
+                                </>
+                                ) : esActualVisible ? (
+                                <>
+                                    <Check size={16} />
+                                    {obtenerEtiquetaBoton(planVisible.id)}
+                                </>
+                            ) : (
+                                <>
+                                    {obtenerEtiquetaBoton(planVisible.id)}
+                                    <ArrowRight size={16} />
+                                </>
                                 )}
                             </BotonBase>
-
-                            <ul className="planCaracteristicas">
-                                {plan.caracteristicas.map((c, i) => (
-                                    <li
-                                        key={i}
-                                        className={`planCaracteristica ${c.incluido ? 'planCaracteristicaIncluida' : 'planCaracteristicaExcluida'}`}
-                                    >
-                                        {c.incluido ? (
-                                            <Check size={14} />
-                                        ) : (
-                                            <X size={14} />
-                                        )}
-                                        {c.texto}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    );
-                })}
+                        )}
+                    </section>
+                </div>
             </div>
-
-            {/* Botón gestionar suscripción (solo para usuarios con plan de pago) */}
-            {autenticado && planActual !== 'free' && (
-                <div className="planesPortal">
-                    <BotonBase
-                        variante="secundario"
-                        onClick={manejarPortal}
-                        disabled={cargando !== null}
-                    >
-                        <Settings size={16} />
-                        Gestionar suscripción
-                    </BotonBase>
-                </div>
-            )}
-
-            {/* FAQ / Info adicional */}
-            <section className="planesFaq">
-                <h2>Preguntas frecuentes</h2>
-                <div className="planesFaqGrid">
-                    <div className="planesFaqItem">
-                        <h3>¿Puedo cambiar de plan en cualquier momento?</h3>
-                        <p>
-                            Sí, puedes mejorar o bajar tu plan cuando quieras. Los cambios se
-                            aplican inmediatamente y se prorratea el cobro.
-                        </p>
-                    </div>
-                    <div className="planesFaqItem">
-                        <h3>¿Qué pasa con mis samples si bajo de plan?</h3>
-                        <p>
-                            Tus samples permanecen publicados. Solo se ajustan los límites de
-                            descarga y subida según el nuevo plan.
-                        </p>
-                    </div>
-                    <div className="planesFaqItem">
-                        <h3>¿Cómo funciona el revenue share?</h3>
-                        <p>
-                            Los creadores Pro reciben 70% de cada venta, Premium 80%. Los pagos
-                            se procesan semanalmente vía Stripe Connect.
-                        </p>
-                    </div>
-                    <div className="planesFaqItem">
-                        <h3>
-                            <CreditCard size={16} /> ¿Es seguro el pago?
-                        </h3>
-                        <p>
-                            Todos los pagos se procesan con Stripe, certificado PCI DSS nivel 1.
-                            No almacenamos datos de tarjeta.
-                        </p>
-                    </div>
-                </div>
-            </section>
-        </div>
+        </Modal>
     );
 };
 

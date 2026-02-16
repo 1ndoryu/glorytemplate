@@ -5,33 +5,24 @@
  */
 
 :root {
-    /* Fondos y superficies */
     --fondoBase: #050505;
     --fondoElevado1: #070707;
     --fondoElevado2: #070707;
     --fondoElevado3: #070707;
-
-    /* Bordes */
     --bordeSutil: #161616;
-    --bordeActivo: #161616;
-
-    /* Texto */
-    --textoPrimario: #e5e5e5;
+    --bordeActivo: #4a665b;
+    --textoPrimario: #e8e1c9;
     --textoSecundario: #888888;
     --textoTerciario: #555555;
     --textoInverso: #050505;
-    --blanco: #ffffff;
+    --blanco: #e5dfc7;
     --negro: #000000;
-
-    /* Acento — */
-    --acento: #101010;
-    --acento-blanco: #e5e5e5;
+    --acento: #4a665b;
+    --acento-blanco: #e5dfc7;
     --acentoHover: #070707;
     --acentoMuted: rgba(229, 229, 229, 0.08);
-    --acentoTexto: #ffffff;
-
-    /* Estados */
-    --exito: #22c55e;
+    --acentoTexto: #eae4cc;
+    --exito: #5da98b;
     --exitoMuted: rgba(34, 197, 94, 0.15);
     --error: #ef4444;
     --errorMuted: rgba(239, 68, 68, 0.15);
@@ -39,8 +30,6 @@
     --advertenciaMuted: rgba(245, 158, 11, 0.15);
     --info: #3b82f6;
     --infoMuted: rgba(59, 130, 246, 0.15);
-
-    /* Espaciados */
     --espacioXs: 4px;
     --espacioSm: 8px;
     --espacioMd: 12px;
@@ -49,8 +38,6 @@
     --espacio2xl: 32px;
     --espacio3xl: 48px;
     --espacio4xl: 64px;
-
-    /* Tipografía — tamaños */
     --fuenteXs: 10px;
     --fuenteSm: 11px;
     --fuenteMd: 12px;
@@ -58,45 +45,32 @@
     --fuenteXl: 24px;
     --fuente2xl: 32px;
     --fuente3xl: 40px;
-
-    /* Tipografía — familias */
+    --fuente4xl: 58px;
     --fuentePrincipal: 'Source Sans Variable', system-ui, -apple-system, sans-serif;
     --fuenteMono: 'Fira Code', 'JetBrains Mono', monospace;
-
-    /* Tipografía — pesos */
     --pesoNormal: 400;
     --pesoMedio: 400;
     --pesoMedium: 400;
     --pesoSemibold: 500;
     --pesoBold: 500;
-
-    /* Radios */
     --radioSm: 4px;
     --radioMd: 4px;
     --radioLg: 4px;
     --radioFull: 9999px;
-
-    /* Sombras */
     --sombraElevada: unset;
     --sombraModal: unset;
     --sombraSutil: unset;
     --overlayOscuro: rgba(0, 0, 0, 0.7);
     --overlaySuave: rgba(0, 0, 0, 0.4);
-
-    /* Transiciones */
     --transicionRapida: 150ms ease;
     --transicionNormal: 250ms ease;
     --transicionLenta: 400ms ease;
-
-    /* Z-index por capas */
     --zBase: 1;
     --zElevado: 10;
     --zMenu: 100;
     --zModal: 1000;
     --zNotificacion: 2000;
     --zReproductor: 500;
-
-    /* Dimensiones del layout */
     --anchoSidebar: 56px;
     --anchoSidebarExpandido: 220px;
     --altoTopbar: 52px;

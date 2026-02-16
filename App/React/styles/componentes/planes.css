@@ -9,10 +9,82 @@
     padding: 48px 24px;
 }
 
+.planesIsland.planesIslandModal {
+    max-width: 100%;
+    padding: 0;
+}
+
+.modalContenedor.modalGrande.modalPlanesEspecial {
+    max-width: 1180px;
+}
+
+.modalContenedor.modalGrande.modalPlanesEspecial .modalCuerpo {
+    padding: 0;
+    overflow: hidden;
+}
+
+.planesLayoutEspecial {
+    display: grid;
+    grid-template-columns: 65% 35%;
+    gap: 0;
+    min-height: 620px;
+    max-height: 80dvh;
+}
+
+.planesPanelImagen {
+    position: relative;
+    border-right: 1px solid var(--bordeSutil);
+    overflow: hidden;
+    background: var(--fondoElevado1);
+}
+
+.planesImagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.planesPanelImagenOverlay {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: var(--espacioLg);
+    background: linear-gradient(to top, var(--overlayOscuro), transparent);
+}
+
+.planesPanelImagenOverlay h3 {
+    font-size: var(--fuenteLg);
+    color: var(--textoPrimario);
+    margin: 0 0 6px;
+}
+
+.planesPanelImagenOverlay p {
+    font-size: var(--fuenteMd);
+    color: var(--textoSecundario);
+    margin: 0;
+}
+
+.planesPanelContenido {
+    min-width: 0;
+    padding: var(--espacioLg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: auto;
+    gap: var(--espacioLg);
+    height: 100%;
+}
+
+.planesToggleWrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
 /* Header */
 .planesHeader {
     text-align: center;
-    margin-bottom: 48px;
+    margin-bottom: 14px;
 }
 
 .planesHeader h1 {
@@ -25,7 +97,7 @@
 .planesHeader p {
     color: var(--textoSecundario);
     font-size: var(--fuenteMd);
-    margin-bottom: 24px;
+    margin-bottom: 14px;
 }
 
 /* Toggle mensual/anual */
@@ -60,27 +132,34 @@
 /* Grid de planes */
 .planesGrid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 64px;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.planesIslandModal .planesGrid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
 }
 
 /* Tarjeta de plan */
 .planTarjeta {
     background: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
+    /* border: 1px solid var(--bordeSutil); */
     border-radius: var(--radioMd);
-    padding: 32px 24px;
+    padding: 14px 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     position: relative;
     transition: border-color 0.15s ease;
+    min-width: 300px;
 }
 
-.planTarjeta:hover {
-    border-color: var(--textoSecundario);
+.planesIslandModal .planTarjeta {
+    padding: unset;
 }
 
 .planTarjetaDestacada {
@@ -101,7 +180,7 @@
 /* Icono */
 .planIcono {
     color: var(--textoSecundario);
-    margin-bottom: 12px;
+    margin-bottom: 6px;
 }
 
 .planTarjetaDestacada .planIcono {
@@ -110,21 +189,21 @@
 
 /* Nombre */
 .planNombre {
-    font-size: var(--fuenteLg);
+    font-size: var(--fuenteMd);
     font-weight: var(--pesoBold);
     color: var(--textoPrimario);
     margin-bottom: 4px;
 }
 
 .planDescripcion {
-    font-size: var(--fuenteMd);
+    font-size: var(--fuenteSm);
     color: var(--textoSecundario);
-    margin-bottom: 24px;
+    margin-bottom: 8px;
 }
 
 /* Precio */
 .planPrecio {
-    margin-bottom: 24px;
+    margin-bottom: var(--fuente2xl);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -132,7 +211,7 @@
 }
 
 .planPrecioCantidad {
-    font-size: var(--fuente2xl);
+    font-size: var(--fuente3xl);
     font-weight: var(--pesoBold);
     color: var(--textoPrimario);
     line-height: 1;
@@ -152,7 +231,7 @@
 /* Botón */
 .planBoton {
     width: 100%;
-    margin-bottom: 24px;
+    margin-bottom: 8px;
 }
 
 /* Características */
@@ -168,9 +247,11 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 0;
+    padding: 4px 0;
     font-size: var(--fuenteMd);
-    border-top: 1px solid var(--bordeSutil);
+    /* border-top: 1px solid var(--bordeSutil); */
+    text-align: center;
+    justify-content: center;
 }
 
 .planCaracteristicaIncluida {
@@ -195,6 +276,10 @@
 .planesFaq {
     border-top: 1px solid var(--bordeSutil);
     padding-top: 48px;
+}
+
+.planesIslandModal .planesFaq {
+    padding-top: 20px;
 }
 
 .planesFaq h2 {
@@ -295,6 +380,19 @@
 
 /* Responsive */
 @media (max-width: 900px) {
+    .modalContenedor.modalGrande.modalPlanesEspecial {
+        max-width: 96vw;
+    }
+
+    .planesLayoutEspecial {
+        grid-template-columns: 1fr;
+        min-height: unset;
+    }
+
+    .planesPanelImagen {
+        min-height: 180px;
+    }
+
     .planesGrid {
         grid-template-columns: 1fr;
         max-width: 400px;
@@ -312,7 +410,7 @@
         padding: 24px 16px;
     }
 
-    .planesHeader h1 {
-        font-size: var(--fuenteXl);
+    .planesIslandModal .planesGrid {
+        grid-template-columns: 1fr;
     }
 }

@@ -17,11 +17,11 @@
 
 .toastItem {
     pointer-events: auto;
-    background: var(--color-superficie-elevada, #1e1e2e);
-    border: 1px solid var(--color-borde, #333);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
     border-radius: 10px;
     padding: 12px 14px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--sombraElevada);
     animation: toastEntrar 0.3s ease-out;
     transition: opacity 0.3s, transform 0.3s;
 }
@@ -32,19 +32,19 @@
 }
 
 .toastItemExito {
-    border-left: 3px solid var(--color-exito, #22c55e);
+    border-left: 3px solid var(--exito);
 }
 
 .toastItemError {
-    border-left: 3px solid var(--color-error, #ef4444);
+    border-left: 3px solid var(--error);
 }
 
 .toastItemInfo {
-    border-left: 3px solid var(--color-acento, #7c3aed);
+    border-left: 3px solid var(--info);
 }
 
 .toastItemConfirmacion {
-    border-left: 3px solid var(--color-advertencia, #f59e0b);
+    border-left: 3px solid var(--advertencia);
 }
 
 .toastContenido {
@@ -58,25 +58,25 @@
 }
 
 .toastItemExito .toastIcono {
-    color: var(--color-exito, #22c55e);
+    color: var(--exito);
 }
 
 .toastItemError .toastIcono {
-    color: var(--color-error, #ef4444);
+    color: var(--error);
 }
 
 .toastItemInfo .toastIcono {
-    color: var(--color-acento, #7c3aed);
+    color: var(--info);
 }
 
 .toastItemConfirmacion .toastIcono {
-    color: var(--color-advertencia, #f59e0b);
+    color: var(--advertencia);
 }
 
 .toastMensaje {
     flex: 1;
-    font-size: 13px;
-    color: var(--color-texto, #e0e0e0);
+    font-size: var(--fuenteMd);
+    color: var(--textoPrimario);
     line-height: 1.4;
 }
 
@@ -84,7 +84,7 @@
     flex-shrink: 0;
     background: none;
     border: none;
-    color: var(--color-texto-secundario, #888);
+    color: var(--textoSecundario);
     cursor: pointer;
     padding: 2px;
     border-radius: 4px;
@@ -95,7 +95,7 @@
 }
 
 .toastCerrar:hover {
-    color: var(--color-texto, #e0e0e0);
+    color: var(--textoPrimario);
 }
 
 .toastAcciones {
@@ -104,43 +104,43 @@
     gap: 8px;
     margin-top: 10px;
     padding-top: 8px;
-    border-top: 1px solid var(--color-borde, #333);
+    border-top: 1px solid var(--bordeSutil);
 }
 
 .toastAccionBtn {
     padding: 5px 14px;
     border-radius: 6px;
-    border: 1px solid var(--color-borde, #333);
+    border: 1px solid var(--bordeSutil);
     background: transparent;
-    color: var(--color-texto, #e0e0e0);
-    font-size: 12px;
+    color: var(--textoPrimario);
+    font-size: var(--fuenteMd);
     font-weight: 500;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 }
 
 .toastAccionBtn:hover {
-    background: var(--color-superficie-hover, #2a2a3e);
+    background: var(--fondoElevado3);
 }
 
 .toastAccionBtnPeligro {
-    background: var(--color-error, #ef4444);
-    border-color: var(--color-error, #ef4444);
-    color: #fff;
+    background: var(--error);
+    border-color: var(--error);
+    color: var(--blanco);
 }
 
 .toastAccionBtnPeligro:hover {
-    background: #dc2626;
+    background: color-mix(in srgb, var(--error) 90%, var(--negro));
 }
 
 .toastAccionBtnPrimario {
-    background: var(--color-acento, #7c3aed);
-    border-color: var(--color-acento, #7c3aed);
-    color: #fff;
+    background: var(--acento);
+    border-color: var(--acento);
+    color: var(--textoPrimario);
 }
 
 .toastAccionBtnPrimario:hover {
-    background: #6d28d9;
+    background: color-mix(in srgb, var(--acento) 85%, var(--negro));
 }
 
 @keyframes toastEntrar {
