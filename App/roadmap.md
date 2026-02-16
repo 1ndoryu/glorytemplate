@@ -1,7 +1,7 @@
 # Kamples — Roadmap Integral de Producto
 
 > **Versión:** 2.0  
-> **Última actualización:** 16/02/2026 (iteración v2.5)  
+> **Última actualización:** 16/02/2026 (iteración v2.6)  
 > **Stack base:** Glory Framework (WordPress + React Islands + TypeScript)  
 > **Competencia directa:** Splice
 
@@ -115,6 +115,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R19:** Ajustes TopBar UX (16/02/2026): botón `+` unificado visualmente con botones icono estándar en `topbarAcciones`; badge de plan (`Free/Pro/Premium`) movido a primera posición izquierda; búsqueda centrada respecto al viewport en desktop y convertida a botón icono en pantallas pequeñas, abriendo modal funcional de búsqueda reutilizando `Modal` + `InputBusqueda` sincronizados con `filtrosStore`.
 **R20:** Batch C66-C76. Toast system (toastStore+ContenedorToasts+toast.css) reemplaza window.confirm/alert (C66-C67). Borrar sample sin recargar vía custom event `EVENTO_SAMPLE_ELIMINADO` + FeedSamples listener (C66). Waveform: TarjetaSample+SampleDetalleIsland cargan picos desde `rutaWaveform` JSON del servidor, fallback AudioContext (C68). Mockups eliminados de PerfilIsland (Colombia/2024/kamples.com → campos dinámicos) y DescubrirIsland (C69). ModalPublicar en ComunidadIsland+LayoutPrincipal (C70). ComunidadIsland conectada a API real GET /publicaciones (C71). PipelineAudio ahora llama DeduplicadorAudio.programarCalculo() para generar hash perceptual (C71). NormalizadorSample incluye `audio_hash` en SQL+output (C71). PublicacionesController: admin posts auto-approve, visibilidad por moderacion_estado (C71). DescargasController: CALIDAD_PLAN wav para todos los planes (C72). TarjetaSample+SampleDetalleIsland llaman `registrarReproduccion()` al reproducir (C73). MotorRecomendacion: `WHERE rn<=N` eliminado, diversidad por creador ahora es penalización suave que nunca excluye samples (C74). Documentación algoritmo en `App/docs/algoritmo.md` con diagramas y tablas (C75). TarjetaMeta: muestra instrumento→género→emoción→velocidad→tag desde metadata IA, fallback a badges clásicos; SampleResumen type ampliado con metadata+totalReproducciones+audioHash (C76).
 **R21:** Normalización de diseño por componentes (16/02/2026): `TopBar` migrado a `Badge`/`BotonBase` sin clases visuales ad-hoc; botón de búsqueda móvil movido a contenedor de layout. `SampleDetalleIsland` usa `Badge` premium en lugar de `detallePremiumBadge`. `MensajesIsland`/`NotificacionesIsland` migran contadores a `Badge`. `ModalCrear` y `ModalPublicar` migran acciones laterales a `BotonBase` (y contador de imágenes a `Badge`). Limpieza de CSS redundante eliminando reglas específicas: `topbarPlan*`, `topbarIconoBtn`, `detallePremiumBadge`, `mensajes*Badge`, `notificacionesBadge`, `crearAccionBtn`, `publicarAccionBtn*`, `perfilBadgePlan`.
+**R22:** Configuración estricta de `cssVarsValidator` a nivel workspace para evitar hardcode CSS: severidad en `error`, escaneo completo (`scanAllFiles`), detección activa en propiedades de tipografía/espaciado/color/layout y archivo de variables principal apuntando a `App/React/styles/variables.css`.
 
 ---
 
