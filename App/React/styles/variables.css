@@ -77,3 +77,33 @@
     --altoReproductor: 56px;
     --anchoMaximoContenido: 1200px;
 }
+
+:root[data-theme='light'] {
+    --fondoBase: #efede3;
+    --fondoElevado1: #e7e2d4;
+    --fondoElevado2: #e7e2d4;
+    --fondoElevado3: #e7e2d4;
+    --bordeSutil: #d2c8a7;
+    --bordeActivo: #4a665b;
+    --textoPrimario: #171717;
+    --textoSecundario: #4f4f4f;
+    --textoTerciario: #6e6e6e;
+    --textoPrimarioInverso: #f8f3df;
+    --blanco: #e5dfc7;
+    --negro: #0f0f0f;
+    --acento: #4a665b;
+    --acento-blanco: #4a665b;
+    --acentoHover: #3e564c;
+    --acentoMuted: rgba(74, 102, 91, 0.14);
+    --acentoTexto: #f8f3df;
+    --exito: #2f8a68;
+    --exitoMuted: rgba(47, 138, 104, 0.14);
+    --error: #b4232f;
+    --errorMuted: rgba(180, 35, 47, 0.14);
+    --advertencia: #a46700;
+    --advertenciaMuted: rgba(164, 103, 0, 0.14);
+    --info: #1d64d6;
+    --infoMuted: rgba(29, 100, 214, 0.14);
+    --overlayOscuro: rgba(0, 0, 0, 0.24);
+    --overlaySuave: rgba(0, 0, 0, 0.14);
+}

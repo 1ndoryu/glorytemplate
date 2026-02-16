@@ -14,6 +14,7 @@ import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore'
 import { useAuthStore } from '@app/stores/authStore';
 import { actualizarPerfil, subirAvatar } from '@app/services/apiAuth';
 import { crearLogger } from '@app/services/logger';
+import { aplicarTemaApp, guardarTemaApp, obtenerTemaAppActual, type TemaApp } from '@app/services/tema';
 import '../../styles/componentes/modalConfiguracion.css';
 
 const log = crearLogger('ModalConfiguracion');
@@ -42,6 +43,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
     const [username, setUsername] = useState(usuario?.username ?? '');
     const [bio, setBio] = useState('');
     const [notificaciones, setNotificaciones] = useState(true);
+    const [temaSeleccionado, setTemaSeleccionado] = useState<TemaApp>('dark');
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [avatarArchivo, setAvatarArchivo] = useState<File | null>(null);
     const [portadaPreview, setPortadaPreview] = useState<string | null>(null);
@@ -54,12 +56,20 @@ export const ModalConfiguracion = (): JSX.Element | null => {
         if (abierto && usuario) {
             setNombreVisible(usuario.nombreVisible ?? '');
             setUsername(usuario.username ?? '');
+            setTemaSeleccionado(obtenerTemaAppActual());
             setAvatarPreview(null);
             setAvatarArchivo(null);
             setPortadaPreview(null);
             setSeccionActiva('perfil');
         }
     }, [abierto, usuario]);
+
+    const manejarCambioTema = useCallback((tema: TemaApp) => {
+        setTemaSeleccionado(tema);
+        aplicarTemaApp(tema);
+        guardarTemaApp(tema);
+        log.info('Tema actualizado', { tema });
+    }, []);
 
     /* Preview de foto de perfil nueva — guarda también la referencia al archivo */
     const manejarCambioFoto = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -316,7 +326,25 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                         <h2 className="configSeccionTitulo">Apariencia</h2>
                         <div className="configSeccion">
                             <label className="configLabel">Tema</label>
-                            <span className="configSubtexto">Próximamente: modo claro / oscuro / auto.</span>
+                            <span className="configSubtexto">Elige cómo quieres ver la interfaz.</span>
+                            <div className="configTemaOpciones" role="group" aria-label="Selector de tema">
+                                <BotonBase
+                                    variante={temaSeleccionado === 'dark' ? 'primario' : 'secundario'}
+                                    tamano="sm"
+                                    onClick={() => manejarCambioTema('dark')}
+                                    type="button"
+                                >
+                                    Oscuro
+                                </BotonBase>
+                                <BotonBase
+                                    variante={temaSeleccionado === 'light' ? 'primario' : 'secundario'}
+                                    tamano="sm"
+                                    onClick={() => manejarCambioTema('light')}
+                                    type="button"
+                                >
+                                    Claro
+                                </BotonBase>
+                            </div>
                         </div>
                     </>
                 );

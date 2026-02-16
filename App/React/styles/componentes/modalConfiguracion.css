@@ -164,6 +164,12 @@
     color: var(--textoTerciario);
 }
 
+.configTemaOpciones {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
 /* Foto de perfil */
 .configFotoContenedor {
     position: relative;

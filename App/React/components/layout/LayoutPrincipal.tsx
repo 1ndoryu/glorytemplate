@@ -7,7 +7,7 @@
  * y muestra el contenido a pantalla completa (ideal para LandingPublica).
  */
 
-import { useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { ReproductorGlobal } from '../ui/ReproductorGlobal';
@@ -21,6 +21,7 @@ import { ContenedorToasts } from '../ui/ContenedorToasts';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
 import { useDevToolsStore } from '@app/stores/devToolsStore';
+import { inicializarTemaApp } from '@app/services/tema';
 import '../../styles/variables.css';
 import '../../styles/reset.css';
 import '../../styles/layout.css';
@@ -63,6 +64,10 @@ export const LayoutPrincipal = ({
     children,
     paginaActiva,
 }: LayoutPrincipalProps): JSX.Element => {
+    useEffect(() => {
+        inicializarTemaApp();
+    }, []);
+
     /* Se suscribe al store SPA para reaccionar a cambios de ruta sin recarga */
     const rutaActual = useNavigationStore((s) => s.rutaActual);
     const { autenticado } = useAuthStore();
