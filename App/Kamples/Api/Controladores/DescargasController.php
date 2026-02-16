@@ -20,11 +20,11 @@ use App\Kamples\Services\StripeService;
 class DescargasController
 {
     /*
-     * Calidad de descarga por plan.
+     * C72: Todas las descargas sirven el archivo original WAV.
      * Los límites de descargas/día se obtienen de StripeService::obtenerConfigPlan() (fuente única).
      */
     private const CALIDAD_PLAN = [
-        'free'    => 'mp3',
+        'free'    => 'wav',
         'pro'     => 'wav',
         'premium' => 'wav',
     ];

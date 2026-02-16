@@ -344,30 +344,6 @@
     gap: var(--espacioMd);
 }
 
-.crearAccionBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: none;
-    color: var(--textoSecundario);
-    border-radius: var(--radioSm);
-    cursor: pointer;
-    transition: all var(--transicionRapida);
-}
-
-.crearAccionBtn:hover:not(:disabled) {
-    color: var(--textoPrimario);
-    background-color: var(--fondoElevado3);
-}
-
-.crearAccionBtn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
 .crearContador {
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);

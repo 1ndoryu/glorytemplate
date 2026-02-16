@@ -6,6 +6,7 @@
 .topbar {
     display: flex;
     align-items: center;
+    position: relative;
     width: 100%;
     height: 100%;
     gap: var(--espacioLg);
@@ -20,8 +21,11 @@
 
 /* Zona de búsqueda — centrada en la pantalla */
 .topbarBusqueda {
-    flex: 0 1 360px;
-    margin: 0 auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(420px, calc(100vw - 520px));
+    min-width: 220px;
 }
 
 /* Acciones derecha */
@@ -30,26 +34,7 @@
     align-items: center;
     gap: var(--espacioSm);
     flex-shrink: 0;
-}
-
-.topbarIconoBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radioMd);
-    color: var(--textoSecundario);
-    cursor: pointer;
-    transition: all var(--transicionRapida);
-    background: none;
-    border: none;
-    position: relative;
-}
-
-.topbarIconoBtn:hover {
-    color: var(--textoPrimario);
-    background-color: var(--fondoElevado2);
+    margin-left: auto;
 }
 
 /* Wrapper para posicionar dropdown relativo al botón */
@@ -89,92 +74,26 @@
     align-items: center;
     border-radius: var(--radioFull);
     transition: opacity var(--transicionRapida);
+    padding-left: var(--espacioMd)
 }
 
 .topbarAvatarWrapper:hover {
     opacity: 0.85;
 }
-
-/* Badge indicador en icono */
-.topbarBadge {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
-    border-radius: var(--radioFull);
-    background-color: var(--error);
-    color: var(--blanco);
-    font-size: var(--fuenteXs);
-    font-weight: var(--pesoBold);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--fondoElevado1);
+.topbarBusquedaMovil {
+    display: none;
 }
 
-/* Botón crear (+) — destacado sutil */
-.topbarCrearBtn {
-    color: var(--acento);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioMd);
+.topbarBusquedaModalContenido {
+    padding-top: var(--espacioXs);
 }
 
-.topbarCrearBtn:hover {
-    background-color: var(--acento);
-    color: var(--blanco);
-    border-color: var(--acento);
-}
+@media (max-width: 980px) {
+    .topbarBusqueda {
+        display: none;
+    }
 
-/* Badge de plan — junto al botón crear */
-.topbarPlanBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 10px;
-    font-size: var(--fuenteSm);
-    font-weight: var(--pesoBold);
-    letter-spacing: 0.4px;
-    border-radius: var(--radioFull);
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition:
-        background-color 0.2s,
-        color 0.2s,
-        border-color 0.2s;
-    line-height: 1;
-    white-space: nowrap;
-    text-transform: uppercase;
-}
-
-.topbarPlanFree {
-    background-color: var(--fondoElevado1);
-    color: var(--textoSecundario);
-    border-color: var(--bordeSutil);
-}
-
-.topbarPlanFree:hover {
-    background-color: var(--fondoElevado2);
-    color: var(--textoPrimario);
-}
-
-.topbarPlanPro {
-    background-color: color-mix(in srgb, var(--acento) 12%, transparent);
-    color: var(--acento);
-    border-color: color-mix(in srgb, var(--acento) 30%, transparent);
-}
-
-.topbarPlanPro:hover {
-    background-color: color-mix(in srgb, var(--acento) 22%, transparent);
-}
-
-.topbarPlanPremium {
-    background: linear-gradient(135deg, #f5c842 0%, #e6a817 100%);
-    color: var(--textoInverso);
-    border-color: var(--advertencia);
-}
-
-.topbarPlanPremium:hover {
-    background: linear-gradient(135deg, #ffd54f 0%, #f5c842 100%);
+    .topbarBusquedaMovil {
+        display: flex;
+    }
 }

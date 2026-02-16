@@ -213,9 +213,15 @@ class MotorRecomendacion
 
         $scoreTotal = "{$scoreAditivo} * {$penalizacion}";
 
-        /* Construir query completa con diversidad por creador */
+        /* Construir query completa con diversidad por creador como penalización suave */
         $maxPorCreador = $params['max_por_creador'] ?? 3;
 
+        /*
+         * C74: No omitir ningún sample. En vez de filtrar con WHERE rn <= N,
+         * se aplica una penalización suave a partir del Nº sample por creador.
+         * Así los primeros del mismo creador rankean alto, los siguientes bajan
+         * pero NUNCA se excluyen del feed.
+         */
         $sql = "WITH scored AS (
                     SELECT s.*, u.username, u.nombre_visible, u.avatar_url, u.verificado,
                            u.id as creador_id,
@@ -227,8 +233,7 @@ class MotorRecomendacion
                     WHERE s.estado = 'activo'
                 )
                 SELECT * FROM scored
-                WHERE rn <= {$maxPorCreador}
-                ORDER BY score DESC
+                ORDER BY (score * CASE WHEN rn <= {$maxPorCreador} THEN 1 ELSE GREATEST(0.3, 1.0 - (rn - {$maxPorCreador}) * 0.15) END) DESC
                 LIMIT :limit OFFSET :offset";
 
         $resultado = PostgresService::consultar($sql, $queryParams);

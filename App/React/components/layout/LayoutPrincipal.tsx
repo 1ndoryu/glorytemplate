@@ -12,10 +12,12 @@ import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { ReproductorGlobal } from '../ui/ReproductorGlobal';
 import { ModalCrear } from '../social/ModalCrear';
+import { ModalPublicar } from '../social/ModalPublicar';
 import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
 import { ModalConfiguracion } from '../social/ModalConfiguracion';
 import { ChatFlotante } from '../social/ChatFlotante';
 import { BotonDevTools } from '../ui/BotonDevTools';
+import { ContenedorToasts } from '../ui/ContenedorToasts';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
 import { useDevToolsStore } from '@app/stores/devToolsStore';
@@ -82,6 +84,7 @@ export const LayoutPrincipal = ({
                     {children}
                 </main>
                 {/* Dev tools siempre visible para admin real */}
+                <ContenedorToasts />
                 <BotonDevTools />
             </div>
         );
@@ -110,6 +113,9 @@ export const LayoutPrincipal = ({
             {/* Modal unificado de creación (subir sample + publicar) */}
             <ModalCrear />
 
+            {/* Modal de publicación social (posts comunidad) */}
+            <ModalPublicar />
+
             {/* Modal selector de colección (menú contextual → añadir a colección) */}
             <ModalSeleccionColeccion />
 
@@ -118,6 +124,9 @@ export const LayoutPrincipal = ({
 
             {/* Chats flotantes tipo Messenger */}
             <ChatFlotante />
+
+            {/* Toast notifications — esquina inferior derecha */}
+            <ContenedorToasts />
 
             {/* Dev tools: cambio de modo (solo admin) */}
             <BotonDevTools />

@@ -2,7 +2,6 @@
  * Isla: DescubrirIsland — Kamples (Fase 3.6)
  * Feed personalizado "Para Ti" con carruseles temáticos.
  * Trending, nuevos, similares a tus gustos — conecta al algoritmo.
- * Por ahora usa mock data; el backend inyectará el scoring real.
  */
 
 import { useEffect, useState, useCallback } from 'react';

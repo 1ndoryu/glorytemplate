@@ -9,11 +9,11 @@ import {
     Home,
     Users,
     FolderOpen,
-    PenSquare,
+    Settings,
     AudioLines,
 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
-import { useCrearModalStore } from '@app/stores/crearModalStore';
+import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import '../../styles/componentes/sidebar.css';
 
 export interface SidebarItemDef {
@@ -28,7 +28,6 @@ const itemsDefault: SidebarItemDef[] = [
     { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
     { id: 'comunidad', etiqueta: 'Comunidad', icono: <Users size={20} />, ruta: '/comunidad' },
     { id: 'libreria', etiqueta: 'Librería', icono: <FolderOpen size={20} />, ruta: '/libreria' },
-    { id: 'crear', etiqueta: 'Crear', icono: <PenSquare size={20} />, ruta: '', accion: 'modal-crear' },
 ];
 
 interface SidebarProps {
@@ -43,11 +42,10 @@ export const Sidebar = ({
     onNavegar,
 }: SidebarProps): JSX.Element => {
     const { navegar } = useNavigationStore();
-    const { abrir: abrirCrearModal } = useCrearModalStore();
+    const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
 
     const manejarClick = (item: SidebarItemDef) => {
         if (item.accion === 'modal-crear') {
-            abrirCrearModal();
             return;
         }
 
@@ -103,7 +101,18 @@ export const Sidebar = ({
                 })}
             </nav>
 
-            <div className="sidebarFooter" />
+            <div className="sidebarFooter">
+                <div className="sidebarSeparador" />
+                <button
+                    className="sidebarItem"
+                    data-tooltip="Configuración"
+                    onClick={() => abrirConfiguracion()}
+                    type="button"
+                    aria-label="Configuración"
+                >
+                    <Settings size={20} />
+                </button>
+            </div>
         </div>
     );
 };

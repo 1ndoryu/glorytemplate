@@ -6,19 +6,20 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { Heart, MessageCircle, Repeat2, Users, TrendingUp, Clock } from 'lucide-react';
+import { Heart, MessageCircle, Repeat2, Users, TrendingUp, Clock, PenSquare } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
+import { BotonBase } from '@app/components/ui/BotonBase';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { usePublicarModalStore } from '@app/stores/publicarModalStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
+import { apiGet } from '@app/services/apiCliente';
 import type { Publicacion } from '@app/types';
 import '../../styles/componentes/comunidad.css';
 
 type FiltroComunidad = 'todos' | 'siguiendo' | 'populares';
-
-/* TO-DO: conectar a GET /kamples/v1/publicaciones cuando exista el endpoint */
 
 const formatearTiempoRelativo = (fecha: string): string => {
     const ahora = Date.now();
@@ -38,6 +39,7 @@ const ComunidadBase = (): JSX.Element => {
     const [cargando, setCargando] = useState(true);
     const { navegar } = useNavigationStore();
     const { setTabs } = useTabsTopBarStore();
+    const { abrir: abrirPublicar } = usePublicarModalStore();
 
     /* Registrar tab "Comunidad" en TopBar */
     useEffect(() => {
@@ -46,12 +48,24 @@ const ComunidadBase = (): JSX.Element => {
     }, [setTabs]);
 
     useEffect(() => {
-        /* TO-DO: GET /kamples/v1/publicaciones?filtro=${filtro} cuando el endpoint exista */
+        let activo = true;
         setCargando(true);
-        setTimeout(() => {
-            setPublicaciones([]);
-            setCargando(false);
-        }, 300);
+
+        const cargarPublicaciones = async () => {
+            try {
+                const resp = await apiGet<{ data: Publicacion[] }>('/publicaciones', { filtro });
+                if (!activo) return;
+                const lista = resp.data?.data ?? resp.data ?? [];
+                setPublicaciones(Array.isArray(lista) ? lista : []);
+            } catch {
+                if (activo) setPublicaciones([]);
+            } finally {
+                if (activo) setCargando(false);
+            }
+        };
+
+        cargarPublicaciones();
+        return () => { activo = false; };
     }, [filtro]);
 
     const manejarLikePost = useCallback((postId: number) => {
@@ -82,8 +96,19 @@ const ComunidadBase = (): JSX.Element => {
 
     return (
         <div className="comunidadIsland" id="comunidadIsland">
-            {/* Barra de filtros */}
-            <div className="comunidadFiltros">
+            {/* Botón publicar + filtros */}
+            <div className="comunidadBarraSuperior">
+                <BotonBase
+                    variante="primario"
+                    tamano="sm"
+                    onClick={() => abrirPublicar('social')}
+                >
+                    <PenSquare size={14} />
+                    Publicar
+                </BotonBase>
+
+                {/* Barra de filtros */}
+                <div className="comunidadFiltros">
                 {filtros.map(({ valor, icono: Icono, label }) => (
                     <button
                         key={valor}
@@ -95,6 +120,7 @@ const ComunidadBase = (): JSX.Element => {
                         {label}
                     </button>
                 ))}
+                </div>
             </div>
 
             {/* Feed de publicaciones */}

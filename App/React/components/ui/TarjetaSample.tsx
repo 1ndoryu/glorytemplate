@@ -12,6 +12,7 @@ import {Badge} from './Badge';
 import {obtenerImagenColor} from '../../services/imagenesColor';
 import {etiquetaBpm} from '../../services/bpmUtils';
 import {descargarSample} from '../../services/apiDescargas';
+import {registrarReproduccion} from '../../services/apiReproduciones';
 import {useNavigationStore} from '@/core/router';
 import '../../styles/componentes/tarjetaSample.css';
 
@@ -73,13 +74,6 @@ const formatearKey = (key: string | null, escala: string | null): string => {
     return `${key}${esc}`;
 };
 
-const formatearContador = (valor: number): string => {
-    if (valor >= 1000) {
-        return `${Math.floor(valor / 1000)}k`;
-    }
-    return `${valor}`;
-};
-
 export const TarjetaSample = ({sample, activa = false, reproduciendo = false, progreso = 0, onPlay, onPause, onSeek, onLike, onDescargar, onMenu, onClickCreador: _onClickCreador, className = ''}: TarjetaSampleProps): JSX.Element => {
     const [reproduciendoLocal, setReproduciendoLocal] = useState(false);
     const [progresoLocal, setProgresoLocal] = useState(0);
@@ -91,14 +85,46 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
     useEffect(() => {
         let activo = true;
 
-        const generarWaveform = async () => {
+        const cargarWaveform = async () => {
+            /*
+             * C68: Priorizar picos guardados en rutaWaveform (JSON del servidor).
+             * Si no existe o falla, generar client-side con AudioContext como fallback.
+             */
+
+            /* Intentar cargar picos del servidor primero */
+            if (sample.rutaWaveform) {
+                try {
+                    const respWf = await fetch(sample.rutaWaveform);
+                    if (respWf.ok) {
+                        const json = await respWf.json();
+                        if (!activo) return;
+                        /* El JSON puede ser un array directo o tener propiedad 'picos' / 'data' */
+                        const picosServidor = Array.isArray(json)
+                            ? json
+                            : (json.picos ?? json.data ?? null);
+                        if (Array.isArray(picosServidor) && picosServidor.length > 0) {
+                            /* Normalizar a rango 0-1 si no lo están */
+                            const maximo = Math.max(...picosServidor, 0.001);
+                            const normalizados = maximo > 1
+                                ? picosServidor.map((p: number) => Math.max(0.03, p / maximo))
+                                : picosServidor;
+                            setPicosAudio(normalizados);
+                            return;
+                        }
+                    }
+                } catch {
+                    /* Fallo silencioso, se usa fallback AudioContext */
+                }
+            }
+
+            /* Fallback: generar picos client-side desde el preview MP3 */
             if (!sample.rutaPreview) {
-                setPicosAudio(null);
+                if (activo) setPicosAudio(null);
                 return;
             }
 
             if (typeof window === 'undefined' || !window.AudioContext) {
-                setPicosAudio(null);
+                if (activo) setPicosAudio(null);
                 return;
             }
 
@@ -122,12 +148,12 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
             }
         };
 
-        generarWaveform();
+        cargarWaveform();
 
         return () => {
             activo = false;
         };
-    }, [sample.rutaPreview]);
+    }, [sample.rutaWaveform, sample.rutaPreview]);
 
     const inicializarAudio = useCallback((): HTMLAudioElement => {
         if (audioRef.current) return audioRef.current;
@@ -218,6 +244,9 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                 setReproduciendoLocal(false);
             });
             onPlay?.(sample);
+
+            /* C73: Registrar reproducción en backend para tracking y algoritmo */
+            registrarReproduccion(sample.id).catch(() => { /* silencioso */ });
         },
         [inicializarAudio, onPlay, onPause, sample]
     );
@@ -339,21 +368,62 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                 </div>
 
                 <div className="tarjetaMeta">
-                    {sample.bpm && (
-                        <Badge variante="neutro">
-                            {etiquetaBpm(sample.bpm)}
-                        </Badge>
-                    )}
-                    {sample.key && (
-                        <Badge variante="neutro">
-                            {formatearKey(sample.key, sample.escala)}
-                        </Badge>
-                    )}
-                    <Badge variante="neutro">{sample.tipo}</Badge>
+                    {(() => {
+                        /*
+                         * C76: Mostrar metadata enriquecida del sample.
+                         * Orden: instrumento, género, emoción, velocidad, tag.
+                         * Usa metadata de la IA cuando está disponible.
+                         */
+                        const meta = sample.metadata;
+                        const badges: { texto: string; clave: string }[] = [];
+
+                        /* Primer instrumento */
+                        const instrumentos = meta?.instrumentos ?? meta?.['instrumentos'];
+                        if (instrumentos) {
+                            const primerInst = Array.isArray(instrumentos) ? instrumentos[0] : instrumentos;
+                            if (primerInst) badges.push({ texto: primerInst, clave: 'inst' });
+                        }
+
+                        /* Primer género */
+                        const genero = meta?.genero ?? meta?.['genero'];
+                        if (genero) {
+                            const primerGen = Array.isArray(genero) ? genero[0] : genero;
+                            if (primerGen) badges.push({ texto: primerGen, clave: 'gen' });
+                        }
+
+                        /* Primera emoción (con fallback a español) */
+                        const emocion = meta?.emocion_es ?? meta?.emocionEs ?? meta?.emocion;
+                        if (emocion) {
+                            const primeraEmo = Array.isArray(emocion) ? emocion[0] : emocion;
+                            if (primeraEmo) badges.push({ texto: primeraEmo, clave: 'emo' });
+                        }
+
+                        /* Velocidad normalizada (del BPM) */
+                        if (sample.bpm) {
+                            badges.push({ texto: etiquetaBpm(sample.bpm), clave: 'vel' });
+                        }
+
+                        /* Primera tag */
+                        const tagsMeta = meta?.tags_es ?? meta?.tagsEs ?? meta?.tags ?? sample.tags;
+                        if (tagsMeta && Array.isArray(tagsMeta) && tagsMeta.length > 0) {
+                            badges.push({ texto: tagsMeta[0], clave: 'tag' });
+                        }
+
+                        /* Si no hay metadata IA, mostrar badges clásicos */
+                        if (badges.length === 0) {
+                            if (sample.bpm) badges.push({ texto: etiquetaBpm(sample.bpm), clave: 'bpm' });
+                            if (sample.key) badges.push({ texto: formatearKey(sample.key, sample.escala), clave: 'key' });
+                            badges.push({ texto: sample.tipo, clave: 'tipo' });
+                        }
+
+                        return badges.map(({ texto, clave }) => (
+                            <Badge key={clave} variante="neutro">{texto}</Badge>
+                        ));
+                    })()}
                 </div>
             </div>
 
-            {/* Acciones — contadores junto a cada botón */}
+            {/* Acciones de tarjeta */}
             <div className="tarjetaAcciones">
                 {/* Waveform mini solo en tarjeta activa */}
                 <div className="tarjetaWaveform">
@@ -372,12 +442,10 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                 </div>
 
                 <button className={`tarjetaAccionBtn ${sample.liked ? 'tarjetaAccionLiked' : ''}`} onClick={manejarLike} type="button" aria-label={sample.liked ? 'Quitar like' : 'Dar like'}>
-                    <span className="tarjetaAccionContador">{formatearContador(sample.totalLikes)}</span>
                     <Heart size={18} fill={sample.liked ? 'currentColor' : 'none'} />
                 </button>
 
                 <button className="tarjetaAccionBtn" onClick={manejarDescargar} type="button" aria-label="Descargar">
-                    <span className="tarjetaAccionContador">{formatearContador(sample.totalDescargas)}</span>
                     <Download size={18} />
                 </button>
 

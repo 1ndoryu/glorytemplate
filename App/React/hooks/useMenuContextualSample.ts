@@ -12,6 +12,10 @@ import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { eliminarSample } from '@app/services/apiSamples';
+import { toast } from '@app/stores/toastStore';
+
+/* Evento global para notificar eliminación de sample sin recargar la página */
+export const EVENTO_SAMPLE_ELIMINADO = 'kamples:sample-eliminado';
 
 interface EstadoMenuSample {
     abierto: boolean;
@@ -139,17 +143,26 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                         etiqueta: 'Eliminar sample',
                         peligro: true,
                         separadorAntes: true,
-                        onClick: async () => {
+                        onClick: () => {
                             if (!estado.sample) return;
-                            const confirmar = window.confirm(
-                                `¿Estás seguro de eliminar "${estado.sample.titulo}"? Esta acción no se puede deshacer.`
+                            const sampleAEliminar = estado.sample;
+                            toast.confirmar(
+                                `¿Eliminar "${sampleAEliminar.titulo}"?`,
+                                async () => {
+                                    const resp = await eliminarSample(sampleAEliminar.id);
+                                    if (resp.ok) {
+                                        /* Notificar a FeedSamples y otros listeners para remover sin recargar */
+                                        window.dispatchEvent(
+                                            new CustomEvent(EVENTO_SAMPLE_ELIMINADO, {
+                                                detail: { sampleId: sampleAEliminar.id },
+                                            })
+                                        );
+                                        toast.exito('Sample eliminado');
+                                    } else {
+                                        toast.error('Error al eliminar el sample');
+                                    }
+                                }
                             );
-                            if (!confirmar) return;
-                            const resp = await eliminarSample(estado.sample.id);
-                            if (resp.ok) {
-                                /* Recargar la página para reflejar el cambio */
-                                window.location.reload();
-                            }
                         },
                     } as MenuItemDef,
                 ]

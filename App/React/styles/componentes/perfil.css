@@ -138,12 +138,6 @@
     opacity: 0.5;
 }
 
-/* Badges de plan */
-.perfilBadgePlan {
-    margin-left: var(--espacioSm);
-    vertical-align: middle;
-}
-
 /* Responsive */
 @media (max-width: 600px) {
     .perfilInfo {

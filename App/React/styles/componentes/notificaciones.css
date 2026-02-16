@@ -31,15 +31,6 @@
     margin: 0;
 }
 
-.notificacionesBadge {
-    font-size: var(--fuenteXs);
-    background-color: var(--acento);
-    color: var(--blanco);
-    padding: 1px 6px;
-    border-radius: var(--radioFull);
-    font-weight: var(--pesoMedio);
-}
-
 /* Filtros */
 .notificacionesFiltros {
     display: flex;

@@ -207,6 +207,16 @@ class PipelineAudio
         /* Invalidar cache de feeds globalmente al publicar nuevo sample */
         \App\Kamples\Services\MotorRecomendacion::invalidarCacheGlobal();
 
+        /* Paso 10: Programar cálculo de hash perceptual para deduplicación (background) */
+        try {
+            \App\Kamples\Services\DeduplicadorAudio::programarCalculo($sampleId);
+            KamplesLogger::info('Pipeline: Hash perceptual programado', ['sampleId' => $sampleId]);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Pipeline: Error programando hash', [
+                'sampleId' => $sampleId, 'error' => $e->getMessage()
+            ]);
+        }
+
         KamplesLogger::info('Pipeline: Procesamiento completado', ['sampleId' => $sampleId, 'estado' => 'activo']);
     }
 

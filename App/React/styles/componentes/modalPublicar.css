@@ -134,40 +134,6 @@
     gap: var(--espacioMd);
 }
 
-/* Botones de acción (imagen, sample) */
-.publicarAccionBtn {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    padding: var(--espacioXs) var(--espacioSm);
-    color: var(--textoSecundario);
-    background: none;
-    border: none;
-    border-radius: var(--radioSm);
-    cursor: pointer;
-    font-size: var(--fuenteSm);
-    transition: all var(--transicionRapida);
-}
-
-.publicarAccionBtn:hover:not(:disabled) {
-    color: var(--textoPrimario);
-    background-color: var(--fondoElevado3);
-}
-
-.publicarAccionBtn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-.publicarAccionContador {
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
-}
-
-.publicarAccionLabel {
-    font-size: var(--fuenteSm);
-}
-
 /* Contador de caracteres */
 .publicarContador {
     font-size: var(--fuenteXs);

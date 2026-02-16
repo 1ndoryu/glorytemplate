@@ -403,12 +403,12 @@ export const ModalCrear = (): JSX.Element | null => {
                 {/* Barra de acciones */}
                 <div className="crearAcciones">
                     <div className="crearAccionesIzquierda">
-                        <button className="crearAccionBtn" onClick={() => inputAudioRef.current?.click()} type="button" aria-label="Adjuntar audio" disabled={!!audioAdjunto}>
+                        <BotonBase variante="ghost" tamano="sm" soloIcono onClick={() => inputAudioRef.current?.click()} type="button" aria-label="Adjuntar audio" disabled={!!audioAdjunto}>
                             <Music size={18} />
-                        </button>
-                        <button className="crearAccionBtn" onClick={() => inputImagenRef.current?.click()} type="button" aria-label="Adjuntar imagen" disabled={imagenes.length >= maxImagenes}>
+                        </BotonBase>
+                        <BotonBase variante="ghost" tamano="sm" soloIcono onClick={() => inputImagenRef.current?.click()} type="button" aria-label="Adjuntar imagen" disabled={imagenes.length >= maxImagenes}>
                             <Image size={18} />
-                        </button>
+                        </BotonBase>
                     </div>
 
                     <div className="crearAccionesDerecha">

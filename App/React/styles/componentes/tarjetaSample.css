@@ -14,7 +14,7 @@
     transition: background-color var(--transicionRapida);
     cursor: pointer;
     background: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
+    /* border: 1px solid var(--bordeSutil); */
 }
 
 .tarjetaSample:hover {
@@ -143,7 +143,7 @@
 .tarjetaAcciones {
     display: flex;
     align-items: center;
-    gap: var(--espacioSm);
+    gap: var(--espacioXl);
     padding: 0 var(--espacioSm);
 }
 

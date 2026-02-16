@@ -20,7 +20,7 @@ import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
 import { useNavigationStore } from '@/core/router';
-import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
+import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO } from '@app/hooks/useMenuContextualSample';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { agruparTagsPorCategoria, type CategoriaTag } from '@app/services/tagUtils';
 import { useSugerenciasLikeStore } from '@app/stores/sugerenciasLikeStore';
@@ -218,6 +218,19 @@ export const FeedSamples = ({
         window.addEventListener('scroll', manejarScroll, { passive: true });
         return () => window.removeEventListener('scroll', manejarScroll);
     }, [virtualizar, alturaTarjeta]);
+
+    /* Escuchar eliminación de samples para remover sin recargar (C66) */
+    useEffect(() => {
+        const manejarEliminacion = (event: Event) => {
+            const detalle = (event as CustomEvent<{ sampleId?: number }>).detail;
+            if (detalle?.sampleId) {
+                setSamples((prev) => prev.filter((s) => s.id !== detalle.sampleId));
+                cacheFeedRef.current = {};
+            }
+        };
+        window.addEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
+        return () => window.removeEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
+    }, []);
 
     /* Tags dinámicos ordenados por frecuencia */
     const todosLosTags = useMemo(() => {

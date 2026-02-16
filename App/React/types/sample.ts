@@ -95,6 +95,9 @@ export interface SampleResumen {
     imagenUrl: string | null;
     totalDescargas: number;
     totalLikes: number;
+    totalReproducciones: number;
+    metadata: MetadataSample | null;
+    audioHash?: string | null;
     creador: UsuarioResumen;
     liked?: boolean;
 }

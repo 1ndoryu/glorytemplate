@@ -72,10 +72,21 @@ class PublicacionesController
         $donde = '';
         $params = ['limit' => 20, 'offset' => $offset];
 
+        /*
+         * C71: Moderación — solo mostrar posts aprobados o pendientes (sin moderar aún).
+         * Posts en supervisión solo visibles para su autor.
+         */
+        $userId = UsuarioHelper::obtenerIdPg();
+        if ($userId) {
+            $donde .= " AND (p.moderacion_estado IS NULL OR p.moderacion_estado = 'aprobado' OR (p.moderacion_estado = 'revision' AND p.autor_id = :currentUser))";
+            $params['currentUser'] = $userId;
+        } else {
+            $donde .= " AND (p.moderacion_estado IS NULL OR p.moderacion_estado = 'aprobado')";
+        }
+
         if ($filtro === 'siguiendo') {
-            $userId = UsuarioHelper::obtenerIdPg();
             if ($userId) {
-                $donde = "AND p.autor_id IN (SELECT seguido_id FROM follows WHERE seguidor_id = :userId)";
+                $donde .= " AND p.autor_id IN (SELECT seguido_id FROM follows WHERE seguidor_id = :userId)";
                 $params['userId'] = $userId;
             }
         }
@@ -88,7 +99,7 @@ class PublicacionesController
             "SELECT p.*, u.username, u.nombre_visible, u.avatar_url, u.verificado
              FROM publicaciones p
              JOIN usuarios_ext u ON p.autor_id = u.id
-             WHERE (p.moderacion_estado IS NULL OR p.moderacion_estado IN ('pendiente', 'aprobado'))
+             WHERE 1=1
              {$donde}
              {$orderBy} LIMIT :limit OFFSET :offset",
             $params
@@ -133,23 +144,48 @@ class PublicacionesController
 
         /* Análisis async de imágenes con IA + moderación (no bloquea la respuesta) */
         $urlsImagenes = $body['imagenes'] ?? [];
+        $esAdmin = UsuarioHelper::esAdmin();
+
         if ($id) {
             $pubId = $id;
             $textoMod = $contenido;
             $imgsMod = is_array($urlsImagenes) ? $urlsImagenes : [];
-            \add_action('shutdown', function () use ($pubId, $textoMod, $imgsMod) {
+            $adminFlag = $esAdmin;
+
+            \add_action('shutdown', function () use ($pubId, $textoMod, $imgsMod, $adminFlag) {
                 if (function_exists('fastcgi_finish_request')) {
                     \fastcgi_finish_request();
                 }
 
-                /* Moderación IA de la publicación */
+                /*
+                 * C71: Posts de admin siempre se aprueban automáticamente.
+                 * La IA igualmente supervisa (para testing), pero no bloquea.
+                 */
                 try {
-                    ServicioModeracionIA::moderarPublicacion($pubId, $textoMod, $imgsMod);
+                    $resultado = ServicioModeracionIA::moderarPublicacion($pubId, $textoMod, $imgsMod);
+
+                    if ($adminFlag && ($resultado['nivel'] ?? '') !== 'aprobado') {
+                        KamplesLogger::info('ModeracionIA: Post admin forzado a aprobado', [
+                            'publicacionId' => $pubId,
+                            'nivelOriginal' => $resultado['nivel'] ?? 'desconocido',
+                        ]);
+                        PostgresService::ejecutar(
+                            "UPDATE publicaciones SET moderacion_estado = 'aprobado', moderacion_razon = 'admin_auto' WHERE id = :id",
+                            ['id' => $pubId]
+                        );
+                    }
                 } catch (\Throwable $e) {
                     KamplesLogger::error('Error en moderación de publicación', [
                         'publicacionId' => $pubId,
                         'error' => $e->getMessage(),
                     ]);
+                    /* Si falla la moderación y es admin, aprobar de todas formas */
+                    if ($adminFlag) {
+                        PostgresService::ejecutar(
+                            "UPDATE publicaciones SET moderacion_estado = 'aprobado' WHERE id = :id",
+                            ['id' => $pubId]
+                        );
+                    }
                 }
 
                 /* Análisis de imágenes para metadata */

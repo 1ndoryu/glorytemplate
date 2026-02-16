@@ -92,23 +92,6 @@
     flex-wrap: wrap;
 }
 
-/* Badge premium inline con título */
-.detallePremiumBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px var(--espacioSm);
-    /* Gradiente premium dorado/naranja */
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: var(--blanco);
-    font-size: var(--fuenteXs);
-    font-weight: var(--pesoSemibold);
-    border-radius: var(--radioFull);
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
 /* Precio del sample premium */
 .detallePrecio {
     display: block;

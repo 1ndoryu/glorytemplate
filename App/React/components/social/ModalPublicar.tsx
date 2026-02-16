@@ -185,8 +185,9 @@ export const ModalPublicar = (): JSX.Element | null => {
                         <div className="publicarAcciones">
                             <div className="publicarAccionesIzquierda">
                                 {modo === 'social' && (
-                                    <button
-                                        className="publicarAccionBtn"
+                                    <BotonBase
+                                        variante="ghost"
+                                        tamano="sm"
                                         onClick={() => inputImagenRef.current?.click()}
                                         type="button"
                                         aria-label="Añadir imagen"
@@ -194,21 +195,22 @@ export const ModalPublicar = (): JSX.Element | null => {
                                     >
                                         <Image size={18} />
                                         {imagenes.length > 0 && (
-                                            <span className="publicarAccionContador">
+                                            <Badge variante="neutro" tamano="xs">
                                                 {imagenes.length}/{MAX_IMAGENES}
-                                            </span>
+                                            </Badge>
                                         )}
-                                    </button>
+                                    </BotonBase>
                                 )}
                                 {modo === 'sample' && (
-                                    <button
-                                        className="publicarAccionBtn"
+                                    <BotonBase
+                                        variante="ghost"
+                                        tamano="sm"
                                         type="button"
                                         aria-label="Adjuntar sample"
                                     >
                                         <Music size={18} />
-                                        <span className="publicarAccionLabel">Adjuntar sample</span>
-                                    </button>
+                                        Adjuntar sample
+                                    </BotonBase>
                                 )}
                             </div>
 

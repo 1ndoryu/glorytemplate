@@ -28,6 +28,7 @@ import { BotonFollow } from '@app/components/social/BotonFollow';
 import { obtenerSample, listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { descargarSample } from '@app/services/apiDescargas';
+import { registrarReproduccion } from '@app/services/apiReproduciones';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useAuthStore } from '@app/stores/authStore';
@@ -49,6 +50,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     const [liked, setLiked] = useState(false);
     const [reproduciendo, setReproduciendo] = useState(false);
     const [progreso, setProgreso] = useState(0);
+    const [picosWaveform, setPicosWaveform] = useState<number[] | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const rutaPreviewRef = useRef('');
     const { setTabs } = useTabsTopBarStore();
@@ -156,6 +158,33 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
         cargar();
     }, [slug]);
 
+    /* Cargar picos de waveform del servidor (C68) */
+    useEffect(() => {
+        if (!sample?.rutaWaveform) {
+            setPicosWaveform(null);
+            return;
+        }
+
+        let activo = true;
+        const cargar = async () => {
+            try {
+                const resp = await fetch(sample.rutaWaveform);
+                if (!resp.ok || !activo) return;
+                const json = await resp.json();
+                if (!activo) return;
+                const datos = Array.isArray(json) ? json : (json.picos ?? json.data ?? null);
+                if (Array.isArray(datos) && datos.length > 0) {
+                    const maximo = Math.max(...datos, 0.001);
+                    setPicosWaveform(maximo > 1 ? datos.map((p: number) => Math.max(0.03, p / maximo)) : datos);
+                }
+            } catch {
+                /* Fallo silencioso, WaveformPlayer usará placeholder */
+            }
+        };
+        cargar();
+        return () => { activo = false; };
+    }, [sample?.rutaWaveform]);
+
     /* Inicializar/actualizar audio local */
     useEffect(() => {
         if (!sample) return;
@@ -218,6 +247,10 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
             audio.play().catch(() => {
                 setReproduciendo(false);
             });
+            /* C73: Registrar reproducción en backend */
+            if (sample) {
+                registrarReproduccion(sample.id).catch(() => { /* silencioso */ });
+            }
             return;
         }
 
@@ -273,7 +306,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                 <div className="detalleHeroOverlay">
                     <div className="detalleHeroWaveform">
                         <WaveformPlayer
-                            picos={null}
+                            picos={picosWaveform}
                             progreso={progreso}
                             duracion={sample.duracion}
                             tamano="xl"
@@ -304,9 +337,9 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                     <h1 className="detalleTitulo">
                         {sample.titulo}
                         {sample.esPremium && (
-                            <span className="detallePremiumBadge">
+                            <Badge variante="premium" tamano="xs">
                                 <Crown size={14} /> PRO
-                            </span>
+                            </Badge>
                         )}
                     </h1>
                     {sample.esPremium && sample.precio != null && sample.precio > 0 && (

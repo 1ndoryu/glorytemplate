@@ -16,6 +16,7 @@ import {
     CheckCheck,
 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { Badge } from '@app/components/ui/Badge';
 import { Avatar } from '@app/components/ui/Avatar';
 import {
     obtenerNotificaciones,
@@ -122,7 +123,7 @@ export const NotificacionesIsland = (): JSX.Element => {
                     <Bell size={20} />
                     <h1>Notificaciones</h1>
                     {noLeidas > 0 && (
-                        <span className="notificacionesBadge">{noLeidas}</span>
+                        <Badge variante="acento" tamano="xs">{noLeidas}</Badge>
                     )}
                 </div>
                 {noLeidas > 0 && (

@@ -142,7 +142,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                         setSamplesPerfil(resp.data.data ?? []);
                     }
                 } else if (tabActiva === 'likes') {
-                    /* TO-DO: endpoint de likes del usuario, por ahora usa samples genéricos */
+                    /* TO-DO: endpoint GET /usuarios/{id}/likes para obtener samples likeados */
                     const resp = await listarSamples({ page: 1, perPage: 10 });
                     if (resp.ok && resp.data) {
                         setLikesPerfil(resp.data.data ?? []);
@@ -235,7 +235,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
     return (
         <div className="perfilContenedor">
             <div className="perfilPortada">
-                {/* Portada mockup: usa portadaUrl o fallback a imagen de colors/ */}
+                {/* Portada: usa portadaUrl o fallback a imagen de colors/ */}
                 <img
                     src={usuario.portadaUrl || obtenerImagenColor(usuario.id + 100)}
                     alt="Portada"
@@ -255,30 +255,34 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                     <h1 className="perfilNombre">
                         {usuario.nombreVisible}
                         {usuario.plan !== 'free' && (
-                            <span className="perfilBadgePlan">
-                                <Badge variante={usuario.plan === 'premium' ? 'premium' : 'acento'}>
-                                    {usuario.plan}
-                                </Badge>
-                            </span>
+                            <Badge variante={usuario.plan === 'premium' ? 'premium' : 'acento'}>
+                                {usuario.plan}
+                            </Badge>
                         )}
                     </h1>
                     <p className="perfilUsername">@{usuario.username}</p>
                     {usuario.bio && <p className="perfilBio">{usuario.bio}</p>}
 
-                    {/* Metadata del perfil */}
+                    {/* Metadata dinámica del perfil — datos reales del backend */}
                     <div className="perfilMetadata">
-                        <span className="perfilMetaItem">
-                            <MapPin size={14} />
-                            Colombia
-                        </span>
-                        <span className="perfilMetaItem">
-                            <Calendar size={14} />
-                            Se unió en 2024
-                        </span>
-                        <a className="perfilMetaItem perfilMetaLink" href="#" target="_blank" rel="noopener">
-                            <LinkIcon size={14} />
-                            kamples.com
-                        </a>
+                        {usuario.ubicacion && (
+                            <span className="perfilMetaItem">
+                                <MapPin size={14} />
+                                {usuario.ubicacion}
+                            </span>
+                        )}
+                        {usuario.creadoAt && (
+                            <span className="perfilMetaItem">
+                                <Calendar size={14} />
+                                Se unió en {new Date(usuario.creadoAt).getFullYear()}
+                            </span>
+                        )}
+                        {usuario.sitioWeb && (
+                            <a className="perfilMetaItem perfilMetaLink" href={usuario.sitioWeb} target="_blank" rel="noopener">
+                                <LinkIcon size={14} />
+                                {usuario.sitioWeb.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                            </a>
+                        )}
                     </div>
 
                     <div className="perfilStats">
@@ -338,30 +342,8 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                     renderizarListaSamples(samplesPerfil, 'No ha subido samples aún', <Music size={40} />)}
                 {tabActiva === 'publicaciones' && (
                     <div className="perfilPublicaciones">
-                        {/* Mockup: publicaciones de ejemplo */}
-                        <div className="perfilPublicacion">
-                            <div className="perfilPublicacionHeader">
-                                <Avatar src={usuario.avatarUrl} nombre={usuario.nombreVisible} tamano="sm" />
-                                <div className="perfilPublicacionMeta">
-                                    <span className="perfilPublicacionAutor">{usuario.nombreVisible}</span>
-                                    <span className="perfilPublicacionFecha">Hace 2 días</span>
-                                </div>
-                            </div>
-                            <p className="perfilPublicacionTexto">
-                                Acabo de subir un nuevo pack de loops lo-fi. Espero que les guste!
-                            </p>
-                        </div>
-                        <div className="perfilPublicacion">
-                            <div className="perfilPublicacionHeader">
-                                <Avatar src={usuario.avatarUrl} nombre={usuario.nombreVisible} tamano="sm" />
-                                <div className="perfilPublicacionMeta">
-                                    <span className="perfilPublicacionAutor">{usuario.nombreVisible}</span>
-                                    <span className="perfilPublicacionFecha">Hace 1 semana</span>
-                                </div>
-                            </div>
-                            <p className="perfilPublicacionTexto">
-                                Trabajando en nuevos samples de percussion. Pronto disponibles.
-                            </p>
+                        <div className="perfilVacio">
+                            <p>No hay publicaciones aún</p>
                         </div>
                     </div>
                 )}

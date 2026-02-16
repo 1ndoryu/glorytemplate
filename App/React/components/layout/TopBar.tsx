@@ -6,13 +6,16 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
+import { Badge } from '../ui/Badge';
+import { BotonBase } from '../ui/BotonBase';
 import { Avatar } from '../ui/Avatar';
 import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
 import { BotonExperimentos } from '../ui/BotonExperimentos';
+import { Modal } from '../ui/Modal';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
@@ -24,7 +27,7 @@ import '../../styles/componentes/topbar.css';
 export const TopBar = (): JSX.Element => {
     const { tabs, activa, setActiva } = useTabsTopBarStore();
     const { usuario, autenticado } = useAuthStore();
-    const { setBusqueda } = useFiltrosStore();
+    const { busqueda, setBusqueda } = useFiltrosStore();
     const { navegar } = useNavigationStore();
     const { abrir: abrirCrear } = useCrearModalStore();
     const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
@@ -33,6 +36,7 @@ export const TopBar = (): JSX.Element => {
     const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
     const [notificacionesAbiertas, setNotificacionesAbiertas] = useState(false);
     const [mensajesAbiertos, setMensajesAbiertos] = useState(false);
+    const [busquedaModalAbierta, setBusquedaModalAbierta] = useState(false);
 
     const manejarBusqueda = useCallback((valor: string) => {
         setBusqueda(valor);
@@ -96,27 +100,18 @@ export const TopBar = (): JSX.Element => {
             <div className="topbarBusqueda">
                 <InputBusqueda
                     placeholder="Buscar samples..."
+                    valor={busqueda}
                     onChange={manejarBusqueda}
                 />
             </div>
 
             {autenticado && (
                 <div className="topbarAcciones">
-                    <button
-                        className="topbarIconoBtn topbarCrearBtn"
-                        onClick={abrirCrear}
-                        aria-label="Crear"
-                        type="button"
-                    >
-                        <Plus size={20} />
-                    </button>
-
-                    {/* Badge de plan — click abre /planes */}
-                    <button
-                        className={`topbarPlanBadge topbarPlan${(usuario?.plan ?? 'free').charAt(0).toUpperCase() + (usuario?.plan ?? 'free').slice(1)}`}
+                    {/* Badge de plan — primero a la izquierda */}
+                    <Badge
+                        variante={usuario?.plan === 'premium' ? 'premium' : usuario?.plan === 'pro' ? 'acento' : 'neutro'}
+                        interactivo
                         onClick={() => navegar('/planes/')}
-                        type="button"
-                        aria-label="Ver planes"
                     >
                         {usuario?.plan === 'premium' ? (
                             <><Crown size={12} /> Premium</>
@@ -125,40 +120,64 @@ export const TopBar = (): JSX.Element => {
                         ) : (
                             <>Free</>
                         )}
-                    </button>
+                    </Badge>
+
+                    <div className="topbarBusquedaMovil">
+                        <BotonBase
+                            variante="ghost"
+                            tamano="md"
+                            soloIcono
+                            onClick={() => setBusquedaModalAbierta(true)}
+                            aria-label="Buscar"
+                        >
+                            <Search size={18} />
+                        </BotonBase>
+                    </div>
+
+                    <BotonBase
+                        variante="ghost"
+                        tamano="md"
+                        soloIcono
+                        onClick={abrirCrear}
+                        aria-label="Crear"
+                    >
+                        <Plus size={20} />
+                    </BotonBase>
 
                     {/* Botón experimentos — solo visible para admin */}
                     <BotonExperimentos />
 
                     <div className="topbarIconoWrapper">
-                        <button
-                            className="topbarIconoBtn"
+                        <BotonBase
+                            variante="ghost"
+                            tamano="md"
+                            soloIcono
                             onClick={() => {
                                 setMensajesAbiertos(false);
                                 setNotificacionesAbiertas((prev) => !prev);
                             }}
                             aria-label="Notificaciones"
-                            type="button"
                         >
                             <Bell size={18} />
-                        </button>
+                        </BotonBase>
                         {notificacionesAbiertas && (
                             <DropdownNotificaciones onCerrar={() => setNotificacionesAbiertas(false)} />
                         )}
                     </div>
 
                     <div className="topbarIconoWrapper">
-                        <button
-                            className="topbarIconoBtn"
+                        <BotonBase
+                            variante="ghost"
+                            tamano="md"
+                            soloIcono
                             onClick={() => {
                                 setNotificacionesAbiertas(false);
                                 setMensajesAbiertos((prev) => !prev);
                             }}
                             aria-label="Mensajes"
-                            type="button"
                         >
                             <Mail size={18} />
-                        </button>
+                        </BotonBase>
                         {mensajesAbiertos && (
                             <DropdownMensajes onCerrar={() => setMensajesAbiertos(false)} />
                         )}
@@ -184,6 +203,22 @@ export const TopBar = (): JSX.Element => {
                         x={menuPos.x}
                         y={menuPos.y}
                     />
+
+                    <Modal
+                        abierto={busquedaModalAbierta}
+                        onCerrar={() => setBusquedaModalAbierta(false)}
+                        titulo="Buscar"
+                        tamano="pequeno"
+                    >
+                        <div className="topbarBusquedaModalContenido">
+                            <InputBusqueda
+                                placeholder="Buscar samples..."
+                                valor={busqueda}
+                                onChange={manejarBusqueda}
+                                autoFocus
+                            />
+                        </div>
+                    </Modal>
                 </div>
             )}
         </div>

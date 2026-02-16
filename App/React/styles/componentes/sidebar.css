@@ -34,7 +34,6 @@
     gap: var(--espacioXs);
     width: 100%;
     flex: 1;
-    justify-content: center;
 }
 
 .sidebarItem {
@@ -115,4 +114,5 @@
     align-items: center;
     gap: var(--espacioXs);
     margin-top: auto;
+    padding: var(--espacioMd) 0;
 }

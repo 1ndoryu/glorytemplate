@@ -122,6 +122,7 @@ class NormalizadorSample
             'totalDescargas'   => (int) ($row['total_descargas'] ?? 0),
             'totalLikes'       => (int) ($row['total_likes'] ?? 0),
             'totalReproducciones' => (int) ($row['total_reproducciones'] ?? 0),
+            'audioHash'        => $row['audio_hash'] ?? null,
             'creador'          => $creador,
             'liked'            => (bool) ($row['liked'] ?? false),
         ];
@@ -154,6 +155,7 @@ class NormalizadorSample
                        s.tags, s.tipo, s.estado, s.es_premium, s.precio, s.metadata,
                        s.ruta_preview, s.ruta_waveform, s.ruta_original, s.ruta_optimizada,
                        s.imagen_url, s.total_descargas, s.total_likes, s.total_reproducciones,
+                       s.audio_hash,
                        u.id as creador_id, u.username, u.nombre_visible,
                        u.avatar_url, u.verificado,
                        {$likedExpr} AS liked

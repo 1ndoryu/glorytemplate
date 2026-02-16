@@ -9,6 +9,7 @@ import { useEffect, useCallback, useState } from 'react';
 import {
     MessageCircle,
 } from 'lucide-react';
+import { Badge } from '@app/components/ui/Badge';
 import { Avatar } from '@app/components/ui/Avatar';
 import { InputBusqueda } from '@app/components/ui/InputBusqueda';
 import { obtenerConversaciones, marcarConversacionLeida } from '@app/services/apiMensajes';
@@ -86,7 +87,7 @@ const MensajesIslandBase = (): JSX.Element => {
                     <MessageCircle size={20} />
                     <h1>Mensajes</h1>
                     {totalNoLeidos > 0 && (
-                        <span className="mensajesBadgeNoLeidos">{totalNoLeidos}</span>
+                        <Badge variante="acento" tamano="xs">{totalNoLeidos}</Badge>
                     )}
                 </div>
             </div>
@@ -142,9 +143,9 @@ const MensajesIslandBase = (): JSX.Element => {
                                         {conv.ultimoMensaje}
                                     </span>
                                     {conv.noLeidos > 0 && (
-                                        <span className="mensajesItemBadge">
+                                        <Badge variante="acento" tamano="xs">
                                             {conv.noLeidos}
-                                        </span>
+                                        </Badge>
                                     )}
                                 </div>
                             </div>
