@@ -302,4 +302,41 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 # Comentarios nuevos (Cuando los comentarios se resuelvan, mover a "## Comentarios del usuario (resueltos) compactados")
 
-(Sin comentarios pendientes)
+47. Sigue saliendo "El servidor devolvió una respuesta inesperada (HTML en vez de JSON)" Y no hay logs claros. Por cierto me di cuenta que primero debería intentar con gemini-flash 3.0
+48. El algoritmo tiene que estar con logs para poder comprobar que funciona, que genere sus propios archivos como los logs de la api de IA.
+49. Los samples que publique yo misma siguen sin aparecer en mi perfil.
+50. El boton de experimento sigue sin funcionar, no recibo ningun mensaje ni ninguna notificación.
+51. Despues de cierto tiempo aparecen estos errores
+Avatar.tsx:34 
+ Uncaught TypeError: Cannot read properties of undefined (reading 'split')
+    at obtenerIniciales (Avatar.tsx:34:10)
+    at Avatar (Avatar.tsx:80:52)
+Avatar.tsx:34 
+ Uncaught TypeError: Cannot read properties of undefined (reading 'split')
+    at obtenerIniciales (Avatar.tsx:34:10)
+    at Avatar (Avatar.tsx:80:52)
+react-dom.development.js:18704 
+ The above error occurred in the <Avatar> component:
+
+    at Avatar (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/components/ui/Avatar.tsx:30:3)
+    at div
+    at div
+    at div
+    at DropdownMensajes (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…emplate/App/React/components/ui/DropdownMensajes.tsx?t=1771211087897:33:36)
+    at div
+    at div
+    at div
+    at TopBar (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…glorytemplate/App/React/components/layout/TopBar.tsx?t=1771211087897:35:39)
+    at header
+    at div
+    at LayoutPrincipal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…plate/App/React/components/layout/LayoutPrincipal.tsx?t=1771211087898:56:3)
+    at InicializadorAuth (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…late/App/React/components/auth/InicializadorAuth.tsx?t=1771211087897:26:37)
+    at AppProvider (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…ontent/themes/glorytemplate/App/React/appIslands.tsx?t=1771211087898:39:31)
+    at GloryProvider (http://localhost:5173/src/core/GloryProvider.tsx:20:33)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+react-dom.development.js:26962 
+ Uncaught TypeError: Cannot read properties of undefined (reading 'split')
+    at obtenerIniciales (Avatar.tsx:34:10)
+    at Avatar (Avatar.tsx:80:52)
