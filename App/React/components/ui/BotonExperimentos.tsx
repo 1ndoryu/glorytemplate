@@ -24,21 +24,28 @@ export const BotonExperimentos = (): JSX.Element | null => {
 
         try {
             const resp = await generarExperimento(acciones);
+            console.log('[Experimentos] Respuesta completa:', resp);
 
             if (resp.ok && resp.data) {
                 setEstado('exito');
-                const data = (resp.data as Record<string, unknown>).data ?? resp.data;
+                /*
+                 * apiPeticion extrae json.data, así que resp.data puede ser:
+                 * - { ok, data: { usuario, notificacion, mensaje } }
+                 * - { usuario, notificacion, mensaje } (si el backend no envuelve en data)
+                 */
+                const raw = resp.data as Record<string, unknown>;
+                const d = (raw.data ?? raw) as Record<string, Record<string, unknown>>;
                 const partes: string[] = [];
 
-                const d = data as Record<string, Record<string, unknown>>;
-                if (d.usuario) partes.push(`Usuario: ${d.usuario.username}`);
+                if (d.usuario) partes.push(`Usuario: ${d.usuario.username ?? d.usuario.pgId}`);
                 if (d.notificacion) partes.push(`Notif: ${d.notificacion.tipo}`);
-                if (d.mensaje) partes.push(`Msg: "${String(d.mensaje.contenido ?? '').slice(0, 40)}..."`);
+                if (d.mensaje) partes.push(`Msg: "${String(d.mensaje.contenido ?? d.mensaje.mensaje ?? '').slice(0, 40)}"`);
 
-                setUltimoResultado(partes.join(' | '));
+                setUltimoResultado(partes.length > 0 ? partes.join(' | ') : 'Ejecutado correctamente');
             } else {
                 setEstado('error');
                 setUltimoResultado(resp.error ?? 'Error desconocido');
+                console.error('[Experimentos] Error:', resp.error, resp);
             }
         } catch {
             setEstado('error');

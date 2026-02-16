@@ -84,8 +84,8 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
                                 onClick={() => abrirConversacion(conv)}
                             >
                                 <Avatar
-                                    src={conv.participante.avatarUrl}
-                                    nombre={conv.participante.nombreVisible}
+                                    src={conv.participante?.avatarUrl}
+                                    nombre={conv.participante?.nombreVisible || conv.participante?.username || '?'}
                                     tamano="sm"
                                 />
                                 <div className="dropdownItemContenido">

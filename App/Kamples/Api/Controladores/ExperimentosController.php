@@ -14,6 +14,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\KamplesLogger;
 
 class ExperimentosController
 {
@@ -44,8 +45,15 @@ class ExperimentosController
      */
     public static function generar(\WP_REST_Request $request): \WP_REST_Response
     {
+        KamplesLogger::info('Experimentos: Solicitud recibida', [
+            'wpUserId' => \get_current_user_id(),
+        ]);
+
         /* Solo admin */
         if (!UsuarioHelper::esAdmin()) {
+            KamplesLogger::warning('Experimentos: Acceso denegado, no es admin', [
+                'wpUserId' => \get_current_user_id(),
+            ]);
             return new \WP_REST_Response([
                 'code' => 'sin_permisos',
                 'message' => 'Solo administradores pueden generar experimentos.',
@@ -85,12 +93,14 @@ class ExperimentosController
         if (in_array('notificacion', $acciones, true) && $testUserId) {
             $notifResult = self::generarNotificacion($adminPgId, $testUserId);
             $resumen['notificacion'] = $notifResult;
+            KamplesLogger::info('Experimentos: Notificación generada', $notifResult);
         }
 
         /* 3. Generar mensaje del test user al admin */
         if (in_array('mensaje', $acciones, true) && $testUserId) {
             $msgResult = self::generarMensaje($adminPgId, $testUserId);
             $resumen['mensaje'] = $msgResult;
+            KamplesLogger::info('Experimentos: Mensaje generado', $msgResult);
         }
 
         return new \WP_REST_Response([

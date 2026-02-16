@@ -11,7 +11,7 @@ type EstadoAvatar = 'online' | 'offline' | 'ninguno';
 
 interface AvatarProps {
     src?: string | null;
-    nombre: string;
+    nombre?: string;
     tamano?: TamanoAvatar;
     estado?: EstadoAvatar;
     borde?: boolean;
@@ -29,8 +29,10 @@ const mapaTamano: Record<TamanoAvatar, string> = {
 };
 
 /* Extrae las primeras 2 iniciales del nombre */
-const obtenerIniciales = (nombre: string): string => {
+const obtenerIniciales = (nombre?: string): string => {
+    if (!nombre || nombre.trim() === '') return '?';
     return nombre
+        .trim()
         .split(' ')
         .slice(0, 2)
         .map((p) => p.charAt(0))
@@ -40,13 +42,15 @@ const obtenerIniciales = (nombre: string): string => {
 
 export const Avatar = ({
     src,
-    nombre,
+    nombre = '',
     tamano = 'md',
     estado = 'ninguno',
     borde = false,
     className = '',
     onClick,
 }: AvatarProps): JSX.Element => {
+    /* Normalizar nombre defensivamente */
+    const nombreSeguro = nombre || '?';
     const clases = [
         'avatar',
         mapaTamano[tamano],
@@ -61,12 +65,12 @@ export const Avatar = ({
     const srcNormalizado = src && src.trim() !== '' ? src : null;
 
     return (
-        <div className={clases} onClick={onClick} title={nombre} role={onClick ? 'button' : undefined}>
+        <div className={clases} onClick={onClick} title={nombreSeguro} role={onClick ? 'button' : undefined}>
             {srcNormalizado ? (
                 <img
                     className="avatarImagen"
                     src={srcNormalizado}
-                    alt={nombre}
+                    alt={nombreSeguro}
                     loading="lazy"
                     onError={(e) => {
                         /* Si la imagen falla, ocultar y mostrar iniciales */
@@ -77,7 +81,7 @@ export const Avatar = ({
                 />
             ) : null}
             {!srcNormalizado && (
-                <span className="avatarIniciales">{obtenerIniciales(nombre)}</span>
+                <span className="avatarIniciales">{obtenerIniciales(nombreSeguro)}</span>
             )}
             {estado !== 'ninguno' && (
                 <span

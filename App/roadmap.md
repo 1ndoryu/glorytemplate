@@ -104,6 +104,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R8:** Chat multimedia full-stack (5.2, BurbujaMensaje+backend upload+FormData), MotorRecomendacion v1 (3.2-3.7, 6 señales + cache transient), bug fixes C23-C33, BotonDevTools mode switcher (C29), BotonExperimentos admin test content (C31), perfil camelCase fix (C30), JSONB cast fix (C28), PerfilIsland guard (C29), DashboardCreadorIsland BotonBase prop fix, npm type-check 29→0 errores (C32), migración v008.
 **R9:** pgvector compilado (master branch, PG18 compatible) e instalado (vector.dll + extension + HNSW). GeneradorEmbeddings.php (128d: BPM+key+escala+tipo+duración+tags hasheados). MotorRecomendacion v3 (6ta señal similitud coseno integrada, samplesSimilares con fallback). EmbeddingsController (batch/regenerar/estado). PipelineAudio genera embedding automático. Migración v009 (columna embedding + funciones SQL buscar_similares + buscar_por_vector). Avatar upload fix (C34: POST /me/avatar + ModalConfiguracion). Admin role detection fix (C35: WP roles → PG sync). BotonExperimentos ahora incluye embeddings batch.
 **R10:** PlanificadorAlgoritmo (C45): sistema dual rápido/preciso con triggers por interacciones + recálculos temporales. Configuración centralizada en algoritmoPesos.php['frecuencia']. Tabla algoritmo_estado (v010). WP Cron cada 5min. Integrado en SocialController (like/follow), ReproduccionesController, DescargasController, PublicacionesController (comentario). Endpoints admin: GET /admin/algoritmo/estado, POST /admin/algoritmo/recalcular, POST /admin/algoritmo/procesar-temporales. Bug fixes C37-C46: samples en perfil, experimentos notificaciones, sample detalle 404, apiCliente HTML detection, DevTools posición, hooks order React, colecciones/publicas→explorar, tabs duplicadas + race condition colecciones.
+**R11:** Gemini Flash 3.0 como primer modelo IA (C47). Detección HTML ampliada en apiCliente con error descriptivo+status (C47). Logging completo en MotorRecomendacion (señales, cache, perfil, resultados) + fix namespace PlanificadorAlgoritmo (C48). Parámetro `creador` añadido a argsListar() — WP descartaba el filtro (C49). Logging+fix parsing en ExperimentosController/BotonExperimentos (C50). Avatar.tsx defensivo contra nombre undefined — prop opcional+fallback (C51). InicioIsland filtro "Inteligente" ahora usa obtenerFeed('descubrir') con MotorRecomendacion en vez de listarSamples (C52).
 
 ---
 
@@ -297,6 +298,12 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 44  | Tabs duplicadas en colecciones                        | ✅ Eliminadas tabs inline de ColeccionDetalleIsland, usar `activa` de tabsTopBarStore                                |
 | 45  | Frecuencia recálculo algoritmo                        | ✅ PlanificadorAlgoritmo dual (rápido/preciso), triggers + temporales, v010, cron 5min                               |
 | 46  | Race condition tabs colecciones                       | ✅ FeedSamples: `key` prop + `requestIdRef` guard stale requests, CSS tabs removido                                  |
+| 47  | HTML en vez de JSON + Gemini Flash 3.0                | ✅ Detección HTML ampliada (`<br`, `<b>`), error con status+URL. Gemini Flash 3.0 (`gemini-2.5-flash-preview-05-20`) como primer modelo |
+| 48  | Logs del algoritmo                                    | ✅ MotorRecomendacion con KamplesLogger (señales, cache, perfil, resultados). Fix namespace PlanificadorAlgoritmo    |
+| 49  | Samples no aparecen en perfil (persistente)           | ✅ Parámetro `creador` faltaba en `argsListar()` de SamplesController — WP REST descartaba el filtro                 |
+| 50  | Botón experimentos no funciona                        | ✅ Logging en ExperimentosController + console.log respuesta + fix parsing doble-wrap en BotonExperimentos           |
+| 51  | Avatar.tsx crash split undefined                      | ✅ `nombre` ahora es prop opcional con default ''. `obtenerIniciales` defensivo. DropdownMensajes usa optional chaining |
+| 52  | Filtro inteligente sin samples                        | ✅ InicioIsland: ordenamiento 'inteligente' ahora usa `obtenerFeed('descubrir')` (MotorRecomendacion) en vez de `listarSamples()` |
 
 ---
 
@@ -340,3 +347,14 @@ react-dom.development.js:26962
  Uncaught TypeError: Cannot read properties of undefined (reading 'split')
     at obtenerIniciales (Avatar.tsx:34:10)
     at Avatar (Avatar.tsx:80:52)
+52. No aparece ningun sample en el filtro de inteligente donde se espera que funcione el algoritmo. (TRABAJA EN LAS SIGUIENTES TAREAS AL LEER ESTO)
+53. Hay logs que aparecen en debug y otros en kamples.log, no me gusta esto, no quiero logs en debug.log, quiero logs ordenados, quieres todos los logs relacionados con la ia y subida y pipeline en un solo archivo. Todos los que tengan que ver con algoritmo, en un solo archivo. Autoborrado logs, borrar archivos logs viejos de 7 dias.
+54. [2026-02-16 03:10:59] [INFO] ServicioIA: Intentando Gemini/gemini-2.5-flash
+[2026-02-16 03:11:38] [WARNING] ServicioIA: JSON irrecuperable localmente, intentando reparación con Groq | json_error=Control character error, possibly incorrectly encoded
+[2026-02-16 03:11:38] [INFO] ServicioIA: Intentando reparación JSON con Groq/openai/gpt-oss-20b
+[2026-02-16 03:11:39] [ERROR] ServicioIA: HTTP 401 (Groq-Reparar/openai/gpt-oss-20b) | respuesta={"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+
+[2026-02-16 03:11:39] [INFO] ServicioIA: Intentando reparación JSON con Groq/openai/gpt-oss-120b
+[2026-02-16 03:11:39] [ERROR] ServicioIA: HTTP 401 (Groq-Reparar/openai/gpt-oss-120b) | respuesta={"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
+probablemente se te usando mal la api del ENV "GROQ_API" la api funciona bien en otros lugares.
+55. Cuando voy a la pagina de un sample sigue diciendo "No se encontró el sample."

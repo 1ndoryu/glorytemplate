@@ -207,11 +207,17 @@ class SamplesController
         /* Intentar usar el motor de recomendación para 'descubrir' */
         if ($tipo === 'descubrir') {
             $userId = UsuarioHelper::obtenerIdPg();
+            KamplesLogger::info('Feed descubrir solicitado', [
+                'userId' => $userId, 'page' => $page, 'perPage' => $perPage,
+            ]);
             if ($userId) {
                 try {
                     $recomendados = \App\Kamples\Services\MotorRecomendacion::feedPersonalizado(
                         $userId, $perPage, $offset
                     );
+                    KamplesLogger::info('Feed descubrir: MotorRecomendacion retornó', [
+                        'resultados' => count($recomendados),
+                    ]);
                     if (!empty($recomendados)) {
                         return new \WP_REST_Response([
                             'data' => NormalizadorSample::normalizarLista($recomendados),
@@ -223,9 +229,12 @@ class SamplesController
                 } catch (\Throwable $e) {
                     /* Fallback al ORDER BY simple si el motor falla */
                     KamplesLogger::warning('Motor de recomendación falló, usando fallback', [
-                        'error' => $e->getMessage()
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
                     ]);
                 }
+            } else {
+                KamplesLogger::debug('Feed descubrir: Sin userId PG, usando fallback');
             }
         }
 
@@ -486,6 +495,7 @@ class SamplesController
             'bpm_max'  => ['required' => false, 'type' => 'integer', 'minimum' => 1, 'maximum' => 999],
             'key'      => ['required' => false, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
             'tipo'     => ['required' => false, 'type' => 'string', 'enum' => ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro']],
+            'creador'  => ['required' => false, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
         ];
     }
 }

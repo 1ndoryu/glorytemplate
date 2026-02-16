@@ -20,7 +20,7 @@
 namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
-use App\Kamples\Helpers\KamplesLogger;
+use App\Kamples\KamplesLogger;
 
 class PlanificadorAlgoritmo
 {
@@ -160,7 +160,7 @@ class PlanificadorAlgoritmo
             ['userId' => $userId]
         );
 
-        KamplesLogger::debug('Planificador', "Recálculo rápido disparado para usuario #{$userId}");
+        KamplesLogger::debug("Planificador: Recálculo rápido disparado para usuario #{$userId}");
     }
 
     /**
@@ -176,10 +176,10 @@ class PlanificadorAlgoritmo
         try {
             $perfil = GeneradorEmbeddings::perfilUsuario($userId);
             if ($perfil) {
-                KamplesLogger::debug('Planificador', "Perfil embeddings regenerado para usuario #{$userId}");
+                KamplesLogger::debug("Planificador: Perfil embeddings regenerado para usuario #{$userId}");
             }
         } catch (\Throwable $e) {
-            KamplesLogger::error('Planificador', "Error regenerando perfil: {$e->getMessage()}");
+            KamplesLogger::error("Planificador: Error regenerando perfil: {$e->getMessage()}");
         }
 
         /* Resetear contadores precisos + incrementar versión del perfil */
@@ -194,7 +194,7 @@ class PlanificadorAlgoritmo
             ['userId' => $userId]
         );
 
-        KamplesLogger::debug('Planificador', "Recálculo preciso disparado para usuario #{$userId}");
+        KamplesLogger::debug("Planificador: Recálculo preciso disparado para usuario #{$userId}");
     }
 
     /**
@@ -252,8 +252,7 @@ class PlanificadorAlgoritmo
 
         if ($contadores['rapidos'] > 0 || $contadores['precisos'] > 0) {
             KamplesLogger::info(
-                'Planificador',
-                "Recálculos temporales: {$contadores['rapidos']} rápidos, {$contadores['precisos']} precisos"
+                "Planificador: Recálculos temporales: {$contadores['rapidos']} rápidos, {$contadores['precisos']} precisos"
             );
         }
 
@@ -292,7 +291,7 @@ class PlanificadorAlgoritmo
             $count++;
         }
 
-        KamplesLogger::info('Planificador', "Recálculo global forzado: {$count} usuarios");
+        KamplesLogger::info("Planificador: Recálculo global forzado: {$count} usuarios");
         return $count;
     }
 }

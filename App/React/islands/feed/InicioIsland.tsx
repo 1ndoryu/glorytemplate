@@ -10,7 +10,7 @@ import { Music, SlidersHorizontal, ChevronDown, ArrowDownWideNarrow } from 'luci
 import { BotonBase } from '@app/components/ui';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { LandingPublica } from '@app/components/social/LandingPublica';
-import { obtenerFeed, listarSamples } from '@app/services/apiSamples';
+import { obtenerFeed } from '@app/services/apiSamples';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
@@ -69,10 +69,10 @@ const FeedUnificado = (): JSX.Element => {
             const resp = await obtenerFeed('trending', pagina);
             return resp.ok && resp.data ? resp.data : [];
         }
-        /* Inteligente */
-        const resp = await listarSamples({ page: pagina, perPage: 30, busqueda: busqueda || undefined });
-        return resp.ok && resp.data ? resp.data.data ?? [] : [];
-    }, [ordenamiento, busqueda]);
+        /* Inteligente — usa el endpoint /feed con tipo 'descubrir' que activa MotorRecomendacion */
+        const resp = await obtenerFeed('descubrir', pagina);
+        return resp.ok && resp.data ? resp.data : [];
+    }, [ordenamiento]);
 
     /* Clave de cache para invalidar al cambiar filtros */
     const claveCache = `${ordenamiento}_${busqueda || ''}_${periodoDestacados}`;

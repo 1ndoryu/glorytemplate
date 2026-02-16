@@ -27,8 +27,9 @@ class ServicioIA
 {
     /* Modelos Gemini en orden de preferencia (fallback por cuota/error) */
     private const MODELOS_GEMINI = [
-        'gemini-2.5-flash',
+        'gemini-3-0-flash',
         'gemini-2.5-pro',
+        'gemini-2.5-flash',
         'gemini-2.0-flash',
     ];
 
@@ -540,6 +541,7 @@ PROMPT;
         if ($httpCode !== 200) {
             KamplesLogger::error("ServicioIA: HTTP {$httpCode} ({$etiqueta})", [
                 'respuesta' => mb_substr($respuesta, 0, 1000),
+                'url' => preg_replace('/key=[^&]+/', 'key=***', $url),
             ]);
             return null;
         }

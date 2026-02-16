@@ -28,6 +28,7 @@ namespace App\Kamples\Services;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Services\GeneradorEmbeddings;
+use App\Kamples\KamplesLogger;
 
 class MotorRecomendacion
 {
@@ -104,11 +105,18 @@ class MotorRecomendacion
      */
     public static function feedPersonalizado(int $userId, int $limite = 20, int $offset = 0): array
     {
+        KamplesLogger::info('Algoritmo: feedPersonalizado iniciado', [
+            'userId' => $userId, 'limite' => $limite, 'offset' => $offset,
+        ]);
+
         /* Intentar leer de cache solo para la primera página */
         if ($offset === 0) {
             $cacheKey = self::CACHE_PREFIX . $userId . '_' . $limite;
             $cached = \get_transient($cacheKey);
             if ($cached !== false && is_array($cached)) {
+                KamplesLogger::debug('Algoritmo: Sirviendo desde cache', [
+                    'cacheKey' => $cacheKey, 'resultados' => count($cached),
+                ]);
                 return $cached;
             }
         }
@@ -121,6 +129,9 @@ class MotorRecomendacion
         $perfilUsuario = self::construirPerfilUsuario($userId);
 
         if (empty($perfilUsuario['interacciones']) && ($params['min_interacciones'] ?? 5) > 0) {
+            KamplesLogger::info('Algoritmo: Usuario nuevo sin interacciones, usando feed de tendencias', [
+                'userId' => $userId, 'interacciones' => $perfilUsuario['interacciones'] ?? 0,
+            ]);
             $resultado = self::feedNuevoUsuario($limite, $offset);
             if ($offset === 0) {
                 \set_transient($cacheKey ?? '', $resultado, self::CACHE_TTL);
@@ -169,7 +180,9 @@ class MotorRecomendacion
         }
 
         /* Señal 6: Similitud de contenido — pgvector coseno (se activa automáticamente) */
-        if (self::pgvectorActivo()) {
+        $pgvActivo = self::pgvectorActivo();
+        KamplesLogger::debug('Algoritmo: pgvector activo', ['activo' => $pgvActivo]);
+        if ($pgvActivo) {
             $pesoSimilitud = $pesos['similitud_contenido'] ?? 0.25;
             if ($pesoSimilitud > 0) {
                 $sqlSim = self::sqlSimilitudContenido($userId, $pesoSimilitud, $queryParams);
@@ -181,6 +194,15 @@ class MotorRecomendacion
 
         /* Sumar todas las señales aditivas */
         $scoreAditivo = !empty($additiveParts) ? '(' . implode(' + ', $additiveParts) . ')' : '1';
+
+        KamplesLogger::info('Algoritmo: Señales construidas', [
+            'userId' => $userId,
+            'numSenales' => count($additiveParts),
+            'perfilInteracciones' => $perfilUsuario['interacciones'] ?? 0,
+            'bpmProm' => $perfilUsuario['bpmProm'] ?? 0,
+            'keyFav' => $perfilUsuario['keyFav'] ?? null,
+            'tipoFav' => $perfilUsuario['tipoFav'] ?? null,
+        ]);
 
         /* Multiplicador de penalización por ya escuchado */
         $penConfig = $params['penalizacion_ya_escuchado'] ?? [];
@@ -208,6 +230,11 @@ class MotorRecomendacion
                 LIMIT :limit OFFSET :offset";
 
         $resultado = PostgresService::consultar($sql, $queryParams);
+
+        KamplesLogger::info('Algoritmo: Resultados obtenidos', [
+            'userId' => $userId, 'totalResultados' => count($resultado),
+            'primerScore' => !empty($resultado) ? ($resultado[0]['score'] ?? 'N/A') : 'vacío',
+        ]);
 
         /* Guardar en cache (solo primera página) */
         if ($offset === 0 && !empty($resultado)) {
@@ -527,6 +554,7 @@ class MotorRecomendacion
      */
     public static function invalidarCacheGlobal(): void
     {
+        KamplesLogger::debug('Algoritmo: Invalidando cache global de feeds');
         /* WP no tiene wildcard delete para transients. Borrar directamente en BD */
         global $wpdb;
         $wpdb->query(

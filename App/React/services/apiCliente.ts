@@ -101,12 +101,17 @@ export const apiPeticion = async <T>(
          */
         const texto = await response.text();
 
-        if (texto.startsWith('<!DOCTYPE') || texto.startsWith('<html') || texto.startsWith('<?xml')) {
-            log.warn(`${method} ${endpoint} → respuesta HTML inesperada`, texto.slice(0, 200));
+        const textoTrimmed = texto.trimStart();
+        if (textoTrimmed.startsWith('<!DOCTYPE') || textoTrimmed.startsWith('<html') || textoTrimmed.startsWith('<?xml') || textoTrimmed.startsWith('<br') || textoTrimmed.startsWith('<b>')) {
+            log.error(`${method} ${endpoint} → respuesta HTML inesperada (status ${response.status})`, {
+                preview: texto.slice(0, 300),
+                url,
+                status: response.status,
+            });
             return {
                 ok: false,
                 data: null,
-                error: 'El servidor devolvió una respuesta inesperada (HTML en vez de JSON)',
+                error: `Error del servidor (${response.status}). Revisa los logs de PHP.`,
                 status: response.status,
             };
         }
