@@ -132,8 +132,9 @@ class MotorRecomendacion
             KamplesLogger::info('Algoritmo: Usuario nuevo sin interacciones, usando feed de tendencias', [
                 'userId' => $userId, 'interacciones' => $perfilUsuario['interacciones'] ?? 0,
             ]);
-            $resultado = self::feedNuevoUsuario($limite, $offset);
-            if ($offset === 0) {
+            $resultado = self::feedNuevoUsuario($limite, $offset, $userId);
+            /* Solo cachear si hay resultados — evita servir arrays vacíos durante 5min */
+            if ($offset === 0 && !empty($resultado)) {
                 \set_transient($cacheKey ?? '', $resultado, self::CACHE_TTL);
             }
             return $resultado;
@@ -218,6 +219,7 @@ class MotorRecomendacion
         $sql = "WITH scored AS (
                     SELECT s.*, u.username, u.nombre_visible, u.avatar_url, u.verificado,
                            u.id as creador_id,
+                           EXISTS(SELECT 1 FROM likes WHERE usuario_id = :userId AND tipo = 'sample' AND target_id = s.id) AS liked,
                            ({$scoreTotal}) as score,
                            ROW_NUMBER() OVER (PARTITION BY s.creador_id ORDER BY ({$scoreTotal}) DESC) as rn
                     FROM samples s
@@ -248,9 +250,9 @@ class MotorRecomendacion
      * Feed para usuarios nuevos sin historial de interacciones.
      * Mezcla trending reciente + samples nuevos.
      */
-    private static function feedNuevoUsuario(int $limite, int $offset): array
+    private static function feedNuevoUsuario(int $limite, int $offset, ?int $userId = null): array
     {
-        $sql = NormalizadorSample::sqlSelectSamples()
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s.estado = 'activo'"
              . " ORDER BY (s.total_likes * 2 + s.total_reproducciones + s.total_descargas * 3)"
              . "   * GREATEST(0.1, 1 - EXTRACT(EPOCH FROM NOW() - s.publicado_at) / (86400 * 30)) DESC"

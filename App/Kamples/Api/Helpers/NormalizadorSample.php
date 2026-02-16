@@ -139,15 +139,24 @@ class NormalizadorSample
      * SQL SELECT base para samples con join a usuario creador.
      * Evita duplicar esta query en cada controlador.
      */
-    public static function sqlSelectSamples(): string
+    public static function sqlSelectSamples(?int $userId = null): string
     {
+        /*
+         * Si se pasa userId, incluimos subquery EXISTS para liked.
+         * Es seguro inyectar directamente porque $userId es int (sin riesgo de SQL injection).
+         */
+        $likedExpr = $userId !== null
+            ? "EXISTS(SELECT 1 FROM likes WHERE usuario_id = {$userId} AND tipo = 'sample' AND target_id = s.id)"
+            : "FALSE";
+
         return "SELECT s.id, s.titulo, s.slug, s.id_corto, s.descripcion,
                        s.bpm, s.key, s.escala, s.duracion, s.formato, s.tamano,
                        s.tags, s.tipo, s.estado, s.es_premium, s.precio, s.metadata,
                        s.ruta_preview, s.ruta_waveform, s.ruta_original, s.ruta_optimizada,
                        s.imagen_url, s.total_descargas, s.total_likes, s.total_reproducciones,
                        u.id as creador_id, u.username, u.nombre_visible,
-                       u.avatar_url, u.verificado
+                       u.avatar_url, u.verificado,
+                       {$likedExpr} AS liked
                 FROM samples s
                 LEFT JOIN usuarios_ext u ON s.creador_id = u.id";
     }

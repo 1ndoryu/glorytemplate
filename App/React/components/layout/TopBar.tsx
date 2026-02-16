@@ -50,6 +50,7 @@ export const TopBar = (): JSX.Element => {
             id: 'perfil',
             etiqueta: 'Ver perfil',
             icono: <User size={14} />,
+            href: `/perfil/${usuario?.username}/`,
             onClick: () => {
                 navegar(`/perfil/${usuario?.username}/`);
                 setMenuAbierto(false);

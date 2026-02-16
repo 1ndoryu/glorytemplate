@@ -3,9 +3,9 @@
 /**
  * Kamples — Servicio de análisis creativo de audio con IA
  *
- * Cadena de fallback: Gemini (audio+texto) → Groq (texto)
- * Gemini: gemini-2.5-flash → gemini-2.5-pro → gemini-2.0-flash
- * Groq: openai/gpt-oss-120b → llama-3.3-70b-versatile → openai/gpt-oss-20b
+ * Cadena de fallback: Groq Whisper (audio→texto) → Groq LLM (texto→JSON)
+ * Whisper: whisper-large-v3 → whisper-large-v3-turbo
+ * LLM Groq: openai/gpt-oss-120b → qwen/qwen3-32b → openai/gpt-oss-20b
  *
  * Analiza archivos de audio para extraer metadata CREATIVA:
  * tags, emociones, instrumentos, géneros, descripción, artistas similares.
@@ -25,34 +25,36 @@ use App\Kamples\LogIA as KamplesLogger;
 
 class ServicioIA
 {
-    /* Modelos Gemini en orden de preferencia (fallback por cuota/error) */
-    private const MODELOS_GEMINI = [
-        'gemini-3.0-flash',
-        'gemini-2.5-pro',
-        'gemini-2.5-flash',
-        'gemini-2.0-flash',
+    /* Modelos Whisper para análisis de audio (Groq Speech-to-Text) */
+    private const MODELOS_WHISPER = [
+        'whisper-large-v3',
+        'whisper-large-v3-turbo',
     ];
 
     /* Modelos Groq en orden de preferencia (fallback por cuota/error) */
     private const MODELOS_GROQ = [
         'openai/gpt-oss-120b',
-        'llama-3.3-70b-versatile',
+        'qwen/qwen3-32b',
         'openai/gpt-oss-20b',
     ];
 
     /* Modelos para reparación de JSON roto (contexto largo, sin audio) */
     private const MODELOS_REPARACION_JSON = [
-        'openai/gpt-oss-20b',
         'openai/gpt-oss-120b',
+        'moonshotai/kimi-k2-instruct-0905',
+        'qwen/qwen3-32b',
+        'openai/gpt-oss-20b',
     ];
 
     private const TIMEOUT = 30;
+    private const TIMEOUT_AUDIO = 45;
     private const TIMEOUT_REPARACION = 15;
-    private const MAX_TAMANO_AUDIO = 20 * 1024 * 1024; /* 20 MB para API */
+    private const MAX_TAMANO_AUDIO = 25 * 1024 * 1024; /* 25 MB free tier Groq STT */
+    private const CONNECT_TIMEOUT = 8;
 
     /*
-     * Analiza un archivo de audio y retorna metadata creativa.
-     * Intenta primero con Gemini (envía audio + texto), luego Groq (solo texto con contexto).
+    * Analiza un archivo de audio y retorna metadata creativa.
+    * Flujo solo Groq: Whisper (audio->texto) + LLM (texto->JSON).
      * NO incluye campos técnicos (BPM, key, escala) — esos vienen de AnalizadorAudio.
      *
      * @param string $rutaArchivo Ruta absoluta al archivo de audio
@@ -70,114 +72,117 @@ class ServicioIA
 
         $prompt = self::construirPrompt($nombreOriginal, $descripcionUsuario, $contextoTecnico);
 
-        /* === Intento 1: Gemini (audio + texto) === */
-        $resultadoGemini = self::intentarGemini($rutaArchivo, $prompt);
-        if ($resultadoGemini !== null) {
-            return $resultadoGemini;
-        }
-
-        /* === Intento 2: Groq (solo texto con contexto enriquecido) === */
-        KamplesLogger::warning('ServicioIA: Gemini agotado, intentando Groq como fallback');
-        $resultadoGroq = self::intentarGroq($prompt);
+        /* === Flujo Groq único: STT Whisper + metadata con LLM === */
+        $resultadoGroq = self::intentarGroqDesdeAudio($rutaArchivo, $prompt);
         if ($resultadoGroq !== null) {
             return $resultadoGroq;
         }
 
-        KamplesLogger::critical('ServicioIA: Todos los proveedores fallaron (Gemini + Groq)');
+        KamplesLogger::critical('ServicioIA: Flujo Groq falló (Whisper + LLM)');
         return null;
     }
 
-    /* ===================== GEMINI ===================== */
+    /* ===================== GROQ AUDIO ===================== */
 
     /*
-     * Intenta analizar con todos los modelos Gemini disponibles.
-     * Envía el audio en base64 junto con el prompt de texto.
+     * Ejecuta el flujo Groq para audio:
+     * 1) Whisper transcribe audio
+     * 2) LLM genera metadata creativa JSON
      */
-    private static function intentarGemini(string $rutaArchivo, string $prompt): ?array
+    private static function intentarGroqDesdeAudio(string $rutaArchivo, string $promptBase): ?array
     {
-        $apiKey = self::obtenerApiKey('GOOGLE_GEMINI_API');
+        $apiKey = self::obtenerApiKey('GROQ_API');
         if (!$apiKey) {
-            KamplesLogger::warning('ServicioIA: API key de Gemini no configurada');
+            KamplesLogger::warning('ServicioIA: API key de Groq no configurada');
             return null;
         }
 
         $tamano = filesize($rutaArchivo);
         if ($tamano > self::MAX_TAMANO_AUDIO) {
-            KamplesLogger::warning('ServicioIA: Archivo demasiado grande para Gemini', ['tamano' => $tamano, 'max' => self::MAX_TAMANO_AUDIO]);
+            KamplesLogger::warning('ServicioIA: Archivo demasiado grande para Groq STT', ['tamano' => $tamano, 'max' => self::MAX_TAMANO_AUDIO]);
             return null;
         }
 
-        $audioBytes = file_get_contents($rutaArchivo);
-        if ($audioBytes === false) {
-            KamplesLogger::error('ServicioIA: No se pudo leer el archivo', ['ruta' => $rutaArchivo]);
+        $transcripcion = self::transcribirAudioConWhisper($rutaArchivo, $apiKey);
+        if ($transcripcion === null) {
+            KamplesLogger::warning('ServicioIA: No se obtuvo transcripción de audio con Whisper');
             return null;
         }
 
-        $audioBase64 = base64_encode($audioBytes);
+        $promptAnalisis = self::construirPromptDesdeTranscripcion($promptBase, $transcripcion);
+        return self::intentarGroq($promptAnalisis, $apiKey);
+    }
+
+    /*
+     * Transcribe audio con endpoint oficial Groq:
+     * POST /openai/v1/audio/transcriptions (multipart/form-data)
+     */
+    private static function transcribirAudioConWhisper(string $rutaArchivo, string $apiKey): ?string
+    {
+        if (!file_exists($rutaArchivo)) {
+            return null;
+        }
+
+        $url = 'https://api.groq.com/openai/v1/audio/transcriptions';
         $mimeType = self::detectarMime($rutaArchivo);
 
-        foreach (self::MODELOS_GEMINI as $modelo) {
-            KamplesLogger::info('ServicioIA: Intentando Gemini/' . $modelo);
-            $resultado = self::llamarGemini($modelo, $apiKey, $audioBase64, $mimeType, $prompt);
-            if ($resultado !== null) {
-                KamplesLogger::info('ServicioIA: Análisis exitoso con Gemini/' . $modelo);
-                return $resultado;
+        foreach (self::MODELOS_WHISPER as $modelo) {
+            KamplesLogger::info('ServicioIA: Transcribiendo audio con Groq/' . $modelo);
+
+            $campos = [
+                'model' => $modelo,
+                'response_format' => 'verbose_json',
+                'temperature' => '0',
+            ];
+
+            $archivo = new \CURLFile($rutaArchivo, $mimeType, basename($rutaArchivo));
+            $respuestaRaw = self::peticionCurlMultipart(
+                $url,
+                $campos,
+                'file',
+                $archivo,
+                ['Authorization: Bearer ' . $apiKey],
+                "Groq-STT/{$modelo}",
+                self::TIMEOUT_AUDIO
+            );
+
+            if ($respuestaRaw === null) {
+                continue;
             }
+
+            $respuesta = json_decode($respuestaRaw, true);
+            if (!is_array($respuesta)) {
+                KamplesLogger::error('ServicioIA: STT devolvió JSON inválido', [
+                    'modelo' => $modelo,
+                    'respuesta' => mb_substr($respuestaRaw, 0, 800),
+                ]);
+                continue;
+            }
+
+            $texto = trim((string) ($respuesta['text'] ?? ''));
+            if ($texto !== '') {
+                KamplesLogger::info('ServicioIA: Transcripción obtenida con Groq/' . $modelo, [
+                    'chars' => mb_strlen($texto),
+                ]);
+                return $texto;
+            }
+
+            KamplesLogger::warning('ServicioIA: STT sin texto útil', ['modelo' => $modelo]);
         }
 
-        KamplesLogger::warning('ServicioIA: Todos los modelos Gemini fallaron');
+        KamplesLogger::warning('ServicioIA: Todos los modelos Whisper fallaron en STT');
         return null;
     }
 
-    /*
-     * Llama a la API de Gemini con un modelo específico.
-     */
-    private static function llamarGemini(
-        string $modelo,
-        string $apiKey,
-        string $audioBase64,
-        string $mimeType,
-        string $prompt
-    ): ?array {
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$modelo}:generateContent?key={$apiKey}";
-
-        $payload = [
-            'contents' => [
-                [
-                    'parts' => [
-                        [
-                            'inline_data' => [
-                                'mime_type' => $mimeType,
-                                'data'      => $audioBase64,
-                            ],
-                        ],
-                        ['text' => $prompt],
-                    ],
-                ],
-            ],
-            'generationConfig' => [
-                'temperature'      => 0.2,
-                'maxOutputTokens'  => 1500,
-                'responseMimeType' => 'application/json',
-            ],
-        ];
-
-        $respuesta = self::peticionCurl($url, $payload, ['Content-Type: application/json'], "Gemini/{$modelo}");
-        if ($respuesta === null) return null;
-
-        return self::parsearRespuestaGemini($respuesta);
-    }
-
-    /* ===================== GROQ ===================== */
+    /* ===================== GROQ LLM ===================== */
 
     /*
-     * Intenta analizar con todos los modelos Groq disponibles.
-     * Solo envía texto (no soporta audio directo). El contexto enriquecido
-     * compensa: BPM, key, duración, tags y descripción del usuario.
+    * Intenta analizar con todos los modelos LLM Groq disponibles.
+    * Este paso consume texto (prompt base + contexto transcrito por Whisper).
      */
-    private static function intentarGroq(string $prompt): ?array
+    private static function intentarGroq(string $prompt, ?string $apiKey = null): ?array
     {
-        $apiKey = self::obtenerApiKey('GROQ_API');
+        $apiKey = $apiKey ?: self::obtenerApiKey('GROQ_API');
         if (!$apiKey) {
             KamplesLogger::warning('ServicioIA: API key de Groq no configurada');
             return null;
@@ -194,6 +199,24 @@ class ServicioIA
 
         KamplesLogger::warning('ServicioIA: Todos los modelos Groq fallaron');
         return null;
+    }
+
+    /*
+     * Crea prompt final para metadata incluyendo contexto transcrito por Whisper.
+     */
+    private static function construirPromptDesdeTranscripcion(string $promptBase, string $transcripcion): string
+    {
+        $textoTranscripcion = mb_substr(trim($transcripcion), 0, 3000);
+
+        return <<<PROMPT
+{$promptBase}
+
+Contexto adicional obtenido por transcripción de audio (Whisper):
+"{$textoTranscripcion}"
+
+Debes considerar ese contexto para inferir mejor emoción, género, instrumentos y artista_vibes.
+Si hay poco contenido verbal, responde igual con un JSON válido apoyándote en el resto del contexto.
+PROMPT;
     }
 
     /*
@@ -294,32 +317,6 @@ PROMPT;
     }
 
     /* ===================== PARSERS ===================== */
-
-    /*
-     * Parsea la respuesta de Gemini y extrae el JSON de metadata.
-     */
-    private static function parsearRespuestaGemini(string $respuestaRaw): ?array
-    {
-        $respuesta = json_decode($respuestaRaw, true);
-        if (!$respuesta) {
-            KamplesLogger::error('ServicioIA: Respuesta Gemini no es JSON válido', [
-                'respuesta_raw' => mb_substr($respuestaRaw, 0, 1000),
-            ]);
-            return null;
-        }
-
-        $texto = $respuesta['candidates'][0]['content']['parts'][0]['text'] ?? null;
-        if (!$texto) {
-            KamplesLogger::error('ServicioIA: Sin texto en respuesta Gemini', [
-                'estructura' => array_keys($respuesta),
-                'candidates' => isset($respuesta['candidates']) ? count($respuesta['candidates']) : 0,
-                'error_api' => $respuesta['error'] ?? null,
-            ]);
-            return null;
-        }
-
-        return self::extraerJsonDeTexto($texto);
-    }
 
     /*
      * Parsea la respuesta de Groq (formato OpenAI) y extrae el JSON de metadata.
@@ -512,10 +509,19 @@ PROMPT;
     /* ===================== HTTP ===================== */
 
     /*
-     * Ejecuta una petición cURL POST con JSON. Compartida por Gemini y Groq.
+    * Ejecuta una petición cURL POST con JSON.
      * Retorna el body de la respuesta o null si falla.
      */
-    private static function peticionCurl(string $url, array $payload, array $headers, string $etiqueta, int $timeout = 0): ?string
+    private static function peticionCurl(
+        string $url,
+        array $payload,
+        array $headers,
+        string $etiqueta,
+        int $timeout = 0,
+        ?int &$httpCodeOut = null,
+        ?float &$retryAfterOut = null,
+        ?string &$curlErrorOut = null
+    ): ?string
     {
         $json = json_encode($payload);
 
@@ -525,7 +531,62 @@ PROMPT;
             CURLOPT_POSTFIELDS     => $json,
             CURLOPT_HTTPHEADER     => $headers,
             CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
             CURLOPT_TIMEOUT        => $timeout > 0 ? $timeout : self::TIMEOUT,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+
+        $respuesta = curl_exec($ch);
+        $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        $httpCodeOut = $httpCode;
+        $retryAfterOut = 0.0;
+        $curlErrorOut = $curlError;
+
+        if ($curlError) {
+            KamplesLogger::error("ServicioIA: cURL error ({$etiqueta})", ['error' => $curlError]);
+            return null;
+        }
+
+        if ($httpCode !== 200) {
+            $respuestaTexto = is_string($respuesta) ? $respuesta : '';
+            $retryAfterOut = self::extraerRetryAfter($respuestaTexto);
+            KamplesLogger::error("ServicioIA: HTTP {$httpCode} ({$etiqueta})", [
+                'respuesta' => mb_substr($respuestaTexto, 0, 1000),
+                'retryAfterSugerido' => $retryAfterOut,
+                'url' => preg_replace('/key=[^&]+/', 'key=***', $url),
+            ]);
+            return null;
+        }
+
+        return $respuesta;
+    }
+
+    /*
+     * Ejecuta POST multipart/form-data para endpoints de audio de Groq.
+     */
+    private static function peticionCurlMultipart(
+        string $url,
+        array $campos,
+        string $campoArchivo,
+        \CURLFile $archivo,
+        array $headers,
+        string $etiqueta,
+        int $timeout = 0
+    ): ?string {
+        $payload = $campos;
+        $payload[$campoArchivo] = $archivo;
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
+            CURLOPT_TIMEOUT => $timeout > 0 ? $timeout : self::TIMEOUT,
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
 
@@ -540,14 +601,32 @@ PROMPT;
         }
 
         if ($httpCode !== 200) {
+            $respuestaTexto = is_string($respuesta) ? $respuesta : '';
             KamplesLogger::error("ServicioIA: HTTP {$httpCode} ({$etiqueta})", [
-                'respuesta' => mb_substr($respuesta, 0, 1000),
-                'url' => preg_replace('/key=[^&]+/', 'key=***', $url),
+                'respuesta' => mb_substr($respuestaTexto, 0, 1000),
+                'url' => $url,
             ]);
             return null;
         }
 
-        return $respuesta;
+        return is_string($respuesta) ? $respuesta : null;
+    }
+
+    /*
+     * Extrae segundos sugeridos de reintento desde mensaje de error API.
+     * Ejemplo esperado: "Please retry in 23.71s.".
+     */
+    private static function extraerRetryAfter(string $respuestaRaw): float
+    {
+        if ($respuestaRaw === '') {
+            return 0.0;
+        }
+
+        if (preg_match('/Please retry in\s*([0-9]+(?:\.[0-9]+)?)s\.?/i', $respuestaRaw, $match)) {
+            return (float) $match[1];
+        }
+
+        return 0.0;
     }
 
     /* ===================== VALIDACIÓN ===================== */
@@ -625,8 +704,8 @@ PROMPT;
 
     /*
      * Obtiene una API key desde variables de entorno.
-     * Soporta GOOGLE_GEMINI_API y GROQ_API.
-     * Valida formato de keys conocidas y logea advertencias.
+    * Soporta GROQ_API.
+    * Valida formato de key conocida y logea advertencias.
      */
     private static function obtenerApiKey(string $nombre): ?string
     {

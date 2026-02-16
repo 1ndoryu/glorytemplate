@@ -95,7 +95,7 @@ class SamplesController
         $creador = $request->get_param('creador');
         if (!empty($creador)) {
             $where  = ["s.estado NOT IN ('eliminado')"];
-            $where[]  = "u.username = :creador";
+            $where[]  = "LOWER(u.username) = LOWER(:creador)";
             $params['creador'] = $creador;
         }
 
@@ -148,7 +148,10 @@ class SamplesController
         $params['limit']  = $perPage;
         $params['offset'] = $offset;
 
-        $sql = NormalizadorSample::sqlSelectSamples()
+        /* Obtener userId para subquery liked — null si no autenticado */
+        $userId = UsuarioHelper::obtenerIdPg();
+
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE {$whereSQL} ORDER BY s.publicado_at DESC NULLS LAST LIMIT :limit OFFSET :offset";
 
         $samples = PostgresService::consultar($sql, $params);
@@ -176,8 +179,9 @@ class SamplesController
          * No filtra por estado para permitir ver samples en procesamiento.
          * El frontend muestra badge de estado si no es 'activo'.
          */
+        $userId = UsuarioHelper::obtenerIdPg();
         $sample = PostgresService::consultarUno(
-            NormalizadorSample::sqlSelectSamples()
+            NormalizadorSample::sqlSelectSamples($userId)
             . " WHERE (LOWER(s.slug) = LOWER(:slug) OR s.id_corto = :slug)"
             . " AND s.estado NOT IN ('eliminado')",
             ['slug' => $slug]
@@ -245,7 +249,10 @@ class SamplesController
             default     => 'ORDER BY s.publicado_at DESC NULLS LAST',
         };
 
-        $sql = NormalizadorSample::sqlSelectSamples()
+        /* Obtener userId para subquery liked en fallback */
+        $userIdFallback = UsuarioHelper::obtenerIdPg();
+
+        $sql = NormalizadorSample::sqlSelectSamples($userIdFallback)
              . " WHERE s.estado = 'activo' {$orderBy} LIMIT :limit OFFSET :offset";
 
         $samples = PostgresService::consultar($sql, ['limit' => $perPage, 'offset' => $offset]);
@@ -349,9 +356,9 @@ class SamplesController
         try {
             $resultado = PostgresService::consultarUno(
                 "INSERT INTO samples (creador_id, titulo, slug, id_corto, descripcion, formato, tamano,
-                 ruta_original, estado, es_premium, precio, tags, permitir_descarga, licencia_libre, created_at, updated_at)
+                 ruta_original, estado, es_premium, precio, tags, permitir_descarga, licencia_libre, publicado_at, created_at, updated_at)
                  VALUES (:creadorId, :titulo, :slug, :idCorto, :descripcion, :formato, :tamano,
-                 :rutaOriginal, 'procesando', :esPremium, :precio, :tags, :descarga, :licencia, NOW(), NOW())
+                 :rutaOriginal, 'procesando', :esPremium, :precio, :tags, :descarga, :licencia, NOW(), NOW(), NOW())
                  RETURNING id",
                 [
                     'creadorId' => $userId, 'titulo' => $titulo, 'slug' => $slug,

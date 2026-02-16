@@ -16,7 +16,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - Algoritmo de recomendación multi-señal (6 factores) vs. búsqueda básica
 - Red social nativa (feed, follows, mensajes, publicaciones)
 - Marketplace híbrido (suscripción + venta directa + revenue share)
-- Análisis de audio con IA (Gemini Flash) para metadatos automáticos
+- Análisis de audio con IA (Groq Whisper + LLM) para metadatos automáticos
 - App desktop con integración DAW (drag-to-DAW, piano one-shot)
 - Waveforms interactivos y reproductor avanzado
 
@@ -27,7 +27,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - **PostgreSQL + pgvector** local (127.0.0.1:5432/kamples) — JSONB para metadata, embeddings para similitud
 - **Almacenamiento WordPress** — Usar WP uploads + attachment API para audio. Pipeline: original(.wav) → optimizado(.mp3) → waveform(.json) → preview(.mp3). Seguridad via htaccess/permisos. Preparado para migrar a VPS luego.
 - **WebSocket local** — Servidor WebSocket Node/Bun local para desarrollo. Canales: mensajes, notificaciones, sync, feed. Preparar para activar en VPS después.
-- **IA multi-modelo** — Gemini Flash 3.0 → Gemini Pro 2.5 → Gemini Flash 2.5 → Gemini Flash 2.0 (fallback por cuota). Groq para metadata de imágenes.
+- **IA multi-modelo** — Groq Whisper (`whisper-large-v3` → `whisper-large-v3-turbo`) para audio + Groq LLM (`openai/gpt-oss-120b` → `qwen/qwen3-32b` → `openai/gpt-oss-20b`) para JSON creativo. Reparación JSON: `moonshotai/kimi-k2-instruct-0905` → `qwen/qwen3-32b`.
 - **Desktop:** Tauri 2.0 | **Móvil:** Capacitor | **Pagos:** Stripe Connect + Billing (keys live disponibles)
 
 ---
@@ -81,7 +81,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **Fase 0:** Schema BD 14 tablas, PostgresService.php, API REST, CSS system, colors/ dinámicos, FFmpeg cross-platform (ruta .env para PHP/Apache), VS Build Tools 2026 instalado.
 **Fase 1:** Login/Registro, PerfilIsland, ModalConfiguracion (PUT /me), AuthMiddleware, LandingPublica, auto-creación usuarios_ext.
-**Fase 2:** Upload real (FormData+pipeline+IA), WaveformPlayer, ReproductorGlobal/Island, GeneradorIdCorto, AnalizadorAudio (BPM/key), ServicioIA (Gemini+Groq fallback), PipelineAudio (FFmpeg), ServicioImagenIA (Groq visión), tags normalization, deduplicación audio.
+**Fase 2:** Upload real (FormData+pipeline+IA), WaveformPlayer, ReproductorGlobal/Island, GeneradorIdCorto, AnalizadorAudio (BPM/key), ServicioIA (Groq Whisper+LLM), PipelineAudio (FFmpeg), ServicioImagenIA (Groq visión), tags normalization, deduplicación audio.
 **Fase 3 (parcial):** DescubrirIsland, endpoints feed/notificaciones/mensajes/dashboard.
 **Fase 4:** BotonFollow/Like, ModalPublicar, InicioIsland (feed+tags±+ordenamientos), ModalFiltros, infinite scroll+virtualización.
 **Fase 5:** LibreriaIsland, ColeccionesController CRUD+sugerencias+relevantes, ModalSeleccionColeccion (ranking relevancia).
@@ -90,7 +90,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **Arquitectura:** KamplesController 1713→60 lín (12 sub-controladores + 2 helpers + 3 servicios + 1 config). FeedSamples centralizado (~470 lín). ModalSugerenciasLike post-like. KamplesLogger. Pipeline async (shutdown hook). 5 migraciones SQL ejecutadas.
 **UI/UX (C1-C63):** TopBar (búsqueda, crear, notif, mensajes, plan badge), Sidebar, tags ± agrupados, waveform real, middle-click, avatar normalización, colecciones grid, SPA routing, menú contextual, infinite scroll+virtualización, portada editable, eliminar samples/colecciones.
-**IA/Logs:** JSON repair 5 estrategias (control chars + Groq), imagen metadata Groq (Llama 4), audio IA Gemini multi-modelo, pipeline async con KamplesLogger.
+**IA/Logs:** JSON repair 5 estrategias (control chars + Groq), imagen metadata Groq (Llama 4), audio IA Groq Whisper+LLM, pipeline async con KamplesLogger.
 
 ### Registros de cambios (R1–R8 compactos)
 
@@ -106,6 +106,9 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R10:** PlanificadorAlgoritmo (C45): sistema dual rápido/preciso con triggers por interacciones + recálculos temporales. Configuración centralizada en algoritmoPesos.php['frecuencia']. Tabla algoritmo_estado (v010). WP Cron cada 5min. Integrado en SocialController (like/follow), ReproduccionesController, DescargasController, PublicacionesController (comentario). Endpoints admin: GET /admin/algoritmo/estado, POST /admin/algoritmo/recalcular, POST /admin/algoritmo/procesar-temporales. Bug fixes C37-C46: samples en perfil, experimentos notificaciones, sample detalle 404, apiCliente HTML detection, DevTools posición, hooks order React, colecciones/publicas→explorar, tabs duplicadas + race condition colecciones.
 **R11:** Gemini Flash 3.0 como primer modelo IA (C47). Detección HTML ampliada en apiCliente con error descriptivo+status (C47). Logging completo en MotorRecomendacion (señales, cache, perfil, resultados) + fix namespace PlanificadorAlgoritmo (C48). Parámetro `creador` añadido a argsListar() — WP descartaba el filtro (C49). Logging+fix parsing en ExperimentosController/BotonExperimentos (C50). Avatar.tsx defensivo contra nombre undefined — prop opcional+fallback (C51). InicioIsland filtro "Inteligente" ahora usa obtenerFeed('descubrir') con MotorRecomendacion en vez de listarSamples (C52).
 **R12:** Sistema de logs reorganizado por canales (C53): `kamples-ia-*.log` (IA+pipeline+upload), `kamples-algoritmo-*.log` (recomendación+planificador), `kamples-*.log` (general). LogIA/LogAlgoritmo wrappers para alias imports. error_log eliminado de PipelineAudio (7) y PostgresService (5) — migrados a KamplesLogger. Auto-limpieza de logs >7 días. GROQ_API key: validación de formato `gsk_*` con warning (C54). Sample detalle 404: `sanitize_callback` cambiado de `sanitize_title` a `sanitize_text_field`, SQL con `LOWER()` para comparación case-insensitive, regex ampliado a `[a-zA-Z0-9_-]+` (C55). Pipeline shutdown: flush forzado para Apache/mod_php (`ignore_user_abort`+`ob_end_flush`+`flush`+`Connection: close`), curl timeout reducido 60→30s, timeout reparación JSON 15s (C57).
+**R13:** Ajuste fallback IA Gemini (C58): removidos modelos 2.5 del pipeline por incompatibilidad/cupo en free tier. Cadena actual: `gemini-3-flash-preview` → `gemini-2.0-flash` → `gemini-1.5-flash`. Manejo de HTTP 429 mejorado con extracción de `retryAfter`, límite de espera corta (máx 3s), máximo 1 reintento y corte temprano de cadena Gemini para pasar a Groq sin bloquear el pipeline.
+**R14:** Migración completa a Groq para audio (C59): eliminación de Gemini del flujo de `ServicioIA`. Nuevo pipeline: STT con `whisper-large-v3` → `whisper-large-v3-turbo` (endpoint `/openai/v1/audio/transcriptions`) y generación de metadata JSON con modelos de chat Groq. Reparación JSON actualizada sin Llama: `moonshotai/kimi-k2-instruct-0905` + `qwen/qwen3-32b` (+ `openai/gpt-oss-20b` fallback).
+**R15:** Like persistente (C60): `sqlSelectSamples(?int $userId)` con subquery `EXISTS(likes)` — liked real en listar/obtener/feed/motor. Samples en perfil (C58): `LOWER()` en filtro username + `publicado_at=NOW()` en INSERT para que samples nuevos aparezcan inmediatamente. Middle-click perfil (C61): `href` añadido a "Ver perfil" en TopBar (MenuContextual renderiza `<a>`). Inteligentes vacío (C62): `feedNuevoUsuario` ya no cachea arrays vacíos + liked subquery en CTE del motor.
 
 ---
 
@@ -136,7 +139,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 ### FASE 2 — Pipeline de Subida de Audio + IA
 
 - [x] **2.1** Upload real — ModalCrear→FormData→endpoint, waveform preview, tags #
-- [x] **2.2** Análisis audio — técnico (AnalizadorAudio: BPM onsets+key Goertzel) + creativo (ServicioIA: Gemini multi-modelo bilingüe)
+- [x] **2.2** Análisis audio — técnico (AnalizadorAudio: BPM onsets+key Goertzel) + creativo (ServicioIA: Groq Whisper + LLM bilingüe)
 - [x] **2.3** Metadata imágenes — ServicioImagenIA (Groq Llama 4), async shutdown hook, v005
 - [x] **2.4** ModalCrear simplificado — sin campos manuales BPM/Key/Tipo, banner IA, Ctrl+Enter
 - [x] **2.5** Tags BPM normalizados — bpmUtils.ts (categorías Lento/Normal/Rápido)
@@ -234,7 +237,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 ## Notas y Decisiones
 
 1. **Almacenamiento:** WordPress uploads para local y VPS. Sin Nginx por ahora, servir con PHP.
-2. **IA:** Google Gemini API key lista en .env. Cadena de fallback por cuota: Flash 3.0 → Pro 2.5 → Flash 2.5 → Flash 2.0. Groq para imágenes.
+2. **IA:** Cadena principal 100% Groq. Audio con Whisper (`whisper-large-v3` → `whisper-large-v3-turbo`) y metadata JSON con LLM Groq. Groq también para imágenes.
 3. **Stripe:** Keys live en .env (PRECAUCIÓN — usar test keys para desarrollo, mover live a producción).
 4. **Google OAuth:** Keys vacías, preparar integración lista para activar.
 5. **WebSocket:** Implementar servidor local primero, migrar a Bun en VPS después.
@@ -255,13 +258,13 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | --- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | 1   | FFmpeg obligatorio Win+Linux                        | ✅ `buscarBinario()` cross-platform. Prioriza .env > PATH > rutas comunes > winget glob                              |
 | 2   | Prompt IA bilingüe, sin BPM/key                     | ✅ ServicioIA prompt creativo bilingüe. BPM/key vía AnalizadorAudio (Goertzel+autocorrelación)                       |
-| 3   | Groq API + fallback multi-modelo                    | ✅ Gemini (audio) → Groq (texto). Cadena: Flash 3→Pro 2.5→Flash 2.5→Flash 2.0 / gpt-oss-120b→llama-70b→gpt-oss-20b   |
+| 3   | Groq API + fallback multi-modelo                    | ✅ Flujo 100% Groq: Whisper para audio (`whisper-large-v3`→`whisper-large-v3-turbo`) + LLM (`gpt-oss-120b`→`qwen3-32b`→`gpt-oss-20b`) |
 | 4   | FFmpeg instalado                                    | ✅ v8.0.1 via winget. Fix: PHP/Apache no hereda PATH → `FFMPEG_PATH` en .env                                         |
 | 5   | Prompt con descripción+tags del usuario, mín 5 tags | ✅ `construirPrompt()` con contexto completo. Validación 5 tags frontend+backend                                     |
 | 6   | Not null violation email usuarios_ext               | ✅ INSERT incluye email desde `$wpUser['email']`                                                                     |
 | 7   | Unexpected token '<' al subir sample                | ✅ `require_once file.php` + prefijo `\` en funciones WP                                                             |
 | 8   | Refactorizar KamplesController (SOLID)              | ✅ 1713→60 lín. 12 sub-controladores, 2 helpers, 3 servicios, algoritmoPesos.php                                     |
-| 9   | Groq no procesa audio/imágenes                      | ✅ Correcto: Gemini=audio, Groq=solo texto. TO-DO: Llama 4 Maverick para imágenes                                    |
+| 9   | Groq no procesa audio/imágenes                      | ✅ Actualizado: Groq Speech-to-Text (Whisper) procesa audio y Groq visión procesa imágenes.                            |
 | 10  | Moderación IA con Groq                              | ✅ ServicioModeracionIA 3 capas: Guard 4 + Scout visión + gpt-oss contextual. Migración v007. Feed filtra rechazados |
 | 11  | tags?.forEach is not a function                     | ✅ `pgArrayToPhp()` convierte string PG a array PHP                                                                  |
 | 12  | Quitar todos los mocks                              | ✅ Eliminados mocks de 7 archivos API + 2 dropdowns + ComunidadIsland + mockSamples.ts                               |
@@ -310,6 +313,11 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 55  | Sample detalle "No se encontró"                       | ✅ `sanitize_title` lowercaseaba el slug (idCorto tiene mayúsculas). Fix: `sanitize_text_field` + SQL `LOWER()` |
 | 56  | Gemini 3.0 Flash model name                           | ✅ Corregido por usuario: `gemini-3.0-flash` (con punto) |
 | 57  | Upload 500 por timeout pipeline                       | ✅ Flush forzado para mod_php (`ignore_user_abort`+`ob_end_flush`), curl timeout 60→30s, set_time_limit 600s |
+| 58  | Samples no aparecen en perfil (tercera vez)           | ✅ `LOWER()` en filtro username, `publicado_at=NOW()` en INSERT (samples procesando ya no van al final)              |
+| 59  | Sample publicado no sale en feed                      | ✅ Parte del fix C58 — `publicado_at` se establece desde el INSERT inicial                                           |
+| 60  | Like no persiste al recargar                          | ✅ `sqlSelectSamples(?int $userId)` con subquery `EXISTS(likes)`. Aplicado en listar/obtener/feed/motor              |
+| 61  | Middle-click perfil no abre nueva pestaña             | ✅ `href` añadido a item "Ver perfil" en TopBar. MenuContextual ya renderiza `<a>` con href                         |
+| 62  | Inteligentes "No se encontraron samples"              | ✅ `feedNuevoUsuario` ya no cachea resultados vacíos. Liked subquery en CTE del motor                                |
 
 ---
 
