@@ -1,132 +1,184 @@
 /*
  * ModalInspector — Kamples
  * Estilos para el modal de inspección técnica de samples.
- * Muestra metadata, análisis IA, estadísticas y datos crudos.
+ * Diseño premium utilizadando variables del sistema.
  */
 
 .inspectorContenido {
     display: flex;
     flex-direction: column;
     gap: var(--espacioLg);
-    padding: var(--espacioMd);
-    overflow-y: auto;
-    max-height: 70vh;
+    /* El scroll y padding son manejados por .modalCuerpo en el componente Modal */
 }
 
 .inspectorSeccion {
     display: flex;
     flex-direction: column;
-    gap: var(--espacioSm);
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioMd);
+    transition: var(--transicionNormal);
+}
+
+.inspectorSeccion:hover {
+    border-color: var(--bordeActivo);
 }
 
 .inspectorSeccionTitulo {
-    font-size: var(--textoSm);
-    font-weight: 600;
-    color: var(--textoSecundario);
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding-bottom: var(--espacioXs);
+    padding-bottom: var(--espacioSm);
     border-bottom: 1px solid var(--bordeSutil);
+    margin-bottom: var(--espacioMd);
+    width: 100%;
+}
+
+/* Botón toggle del JSON reutiliza estilos de título pero añade cursor */
+button.inspectorSeccionTitulo {
+    cursor: pointer;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--bordeSutil);
+    padding: 0 0 var(--espacioSm) 0;
+    width: 100%;
+    text-align: left;
+    transition: var(--transicionRapida);
+}
+
+button.inspectorSeccionTitulo:hover {
+    color: var(--blanco);
+    border-color: var(--textoTerciario);
 }
 
 .inspectorGrid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--espacioSm) var(--espacioMd);
+    /* Columnas responsivas y uniformes */
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: var(--espacioSm) var(--espacioLg);
 }
 
 .inspectorCampo {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px; /* Un poco más de aire que 2px */
+}
+
+/* Campos que necesitan ocupar todo el ancho disponible */
+.inspectorCampoAncho {
+    grid-column: 1 / -1;
 }
 
 .inspectorCampoEtiqueta {
-    font-size: var(--textoXs);
+    font-size: var(--fuenteXs);
     color: var(--textoTerciario);
-    font-weight: 500;
+    font-weight: var(--pesoMedio);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
 
 .inspectorCampoValor {
-    font-size: var(--textoSm);
+    font-size: var(--fuenteSm);
     color: var(--textoPrimario);
-    word-break: break-word;
+    word-break: break-all; /* Evita desbordes en hashes o rutas largas */
+    line-height: 1.4;
 }
 
 .inspectorCampoValor.inspectorNumerico {
     font-family: var(--fuenteMono);
-    color: var(--acento);
+    color: var(--blanco); /* Destacar números ligeramente */
+    background-color: var(--fondoElevado2);
+    padding: 2px 6px;
+    border-radius: var(--radioSm);
+    width: fit-content;
+    font-size: var(--fuenteXs);
 }
 
 .inspectorTags {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--espacioXs);
+    gap: var(--espacioSm);
 }
 
 .inspectorTag {
-    font-size: var(--textoXs);
-    background-color: var(--fondoElevado3);
+    font-size: var(--fuenteXs);
+    background-color: var(--fondoElevado2);
     color: var(--textoSecundario);
-    padding: 2px 8px;
-    border-radius: var(--radioSm);
+    padding: 4px 10px;
+    border-radius: var(--radioFull);
     border: 1px solid var(--bordeSutil);
+    transition: var(--transicionRapida);
+}
+
+.inspectorTag:hover {
+    color: var(--textoPrimario);
+    border-color: var(--textoTerciario);
+    background-color: var(--fondoElevado3);
 }
 
 .inspectorMetadataIA {
-    font-size: var(--textoSm);
+    font-size: var(--fuenteSm);
     color: var(--textoSecundario);
-    line-height: 1.5;
-    background-color: var(--fondoElevado1);
-    padding: var(--espacioSm);
+    line-height: 1.6;
+    background-color: var(--fondoBase);
+    padding: var(--espacioMd);
     border-radius: var(--radioSm);
     border: 1px solid var(--bordeSutil);
     white-space: pre-wrap;
+    margin-top: var(--espacioSm);
 }
 
 .inspectorCreador {
     display: flex;
     align-items: center;
-    gap: var(--espacioSm);
+    gap: var(--espacioMd);
+    background-color: var(--fondoBase);
+    padding: var(--espacioSm);
+    border-radius: var(--radioSm);
+    border: 1px solid var(--bordeSutil);
 }
 
 .inspectorCreadorInfo {
     display: flex;
     flex-direction: column;
+    gap: 2px;
 }
 
 .inspectorCreadorNombre {
-    font-size: var(--textoSm);
-    font-weight: 600;
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoBold);
     color: var(--textoPrimario);
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .inspectorCreadorUsername {
-    font-size: var(--textoXs);
+    font-size: var(--fuenteXs);
     color: var(--textoTerciario);
+    font-family: var(--fuenteMono);
 }
 
 .inspectorJsonCrudo {
     font-family: var(--fuenteMono);
-    font-size: var(--textoXs);
+    font-size: var(--fuenteXs);
     background-color: var(--fondoBase);
     color: var(--textoSecundario);
-    padding: var(--espacioSm);
+    padding: var(--espacioMd);
     border-radius: var(--radioSm);
     border: 1px solid var(--bordeSutil);
     overflow-x: auto;
     white-space: pre-wrap;
-    max-height: 200px;
+    max-height: 300px;
     overflow-y: auto;
-}
-
-/* Ancho completo en campos que lo necesiten */
-.inspectorCampoAncho {
-    grid-column: 1 / -1;
-}
-
-@media (max-width: 600px) {
-    .inspectorGrid {
-        grid-template-columns: 1fr;
-    }
+    margin-top: var(--espacioSm);
+    /* Scrollbar sutil */
+    scrollbar-width: thin;
+    scrollbar-color: var(--bordeSutil) transparent;
 }

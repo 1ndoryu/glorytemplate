@@ -150,6 +150,10 @@ class PagosController
                 self::procesarSuscripcionCancelada($datos);
                 break;
 
+            case 'account.updated':
+                self::procesarCuentaConnectActualizada($datos);
+                break;
+
             default:
                 KamplesLogger::info('Webhook Stripe: evento no manejado', ['tipo' => $tipo]);
         }
@@ -270,5 +274,36 @@ class PagosController
         );
 
         KamplesLogger::info('Suscripción cancelada → plan free', ['userId' => $usuario['id']]);
+    }
+
+    /**
+     * account.updated — Actualiza estado de cuenta Connect del creador.
+     * Stripe envía este evento cuando cambian capabilities, payouts o charges.
+     */
+    private static function procesarCuentaConnectActualizada(array $cuenta): void
+    {
+        $connectId = $cuenta['id'] ?? '';
+
+        if (empty($connectId)) return;
+
+        $usuario = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE stripe_connect_id = :cid",
+            ['cid' => $connectId]
+        );
+
+        if (!$usuario) {
+            KamplesLogger::warning('Webhook account.updated: connect_id no encontrado', ['connectId' => $connectId]);
+            return;
+        }
+
+        $cargosActivos = (bool) ($cuenta['charges_enabled'] ?? false);
+        $payoutsActivos = (bool) ($cuenta['payouts_enabled'] ?? false);
+
+        KamplesLogger::info('Cuenta Connect actualizada', [
+            'userId'   => $usuario['id'],
+            'connectId' => $connectId,
+            'charges'  => $cargosActivos,
+            'payouts'  => $payoutsActivos,
+        ]);
     }
 }

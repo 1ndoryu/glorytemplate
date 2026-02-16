@@ -202,6 +202,48 @@
     background-color: var(--fondoElevado3);
 }
 
+/* Toggle premium con estilo dorado (usando advertencia como base) */
+.crearCondicionPremium {
+    border-color: var(--advertencia);
+    color: var(--advertencia);
+    background-color: color-mix(in srgb, var(--advertencia) 10%, transparent);
+}
+
+/* Campo precio para samples premium */
+.crearPrecioContenedor {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: 0 var(--espacioSm);
+}
+
+.crearPrecioLabel {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    white-space: nowrap;
+}
+
+.crearPrecioInput {
+    width: 100px;
+    padding: var(--espacioXs) var(--espacioSm);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: var(--fondoElevado2);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    font-family: inherit;
+    outline: none;
+    transition: border-color var(--transicionRapida);
+}
+
+.crearPrecioInput:focus {
+    border-color: var(--acento);
+}
+
+.crearPrecioInput::placeholder {
+    color: var(--textoTerciario);
+}
+
 /* Grid de imágenes */
 .crearImagenes {
     display: grid;

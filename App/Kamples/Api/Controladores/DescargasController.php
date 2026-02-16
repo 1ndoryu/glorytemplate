@@ -147,6 +147,16 @@ class DescargasController
             ['id' => $sample['creador_id']]
         );
 
+        /* Revenue share: registrar transacción si el descargador tiene plan de pago */
+        if ($plan !== 'free' && (int) $sample['creador_id'] !== $userId) {
+            self::registrarTransaccionRevenueShare(
+                $userId,
+                (int) $sample['creador_id'],
+                $sampleId,
+                $plan
+            );
+        }
+
         return new \WP_REST_Response([
             'ok' => true,
             'calidad' => $calidad,
@@ -192,5 +202,46 @@ class DescargasController
             'transferenciaUsadaGb' => $usadoGb,
             'transferenciaIlimitada' => $limiteGb <= 0,
         ], 200);
+    }
+
+    /**
+     * Registra una transacción de revenue share al descargar un sample.
+     * El monto por descarga se calcula dividiendo el precio mensual del plan
+     * entre las descargas estimadas del mes, aplicando el % de revenue share.
+     */
+    private static function registrarTransaccionRevenueShare(
+        int $compradorId,
+        int $creadorId,
+        int $sampleId,
+        string $plan
+    ): void {
+        $configPlan = StripeService::obtenerConfigPlan($plan);
+        $precioMensual = $configPlan['precio_mensual'] ?? 0;
+        $revenueShare = $configPlan['revenue_share'] ?? 0;
+
+        if ($precioMensual <= 0 || $revenueShare <= 0) return;
+
+        /*
+         * Modelo de reparto: cada descarga genera una fracción del precio mensual.
+         * Estimamos 200 descargas/mes como base para dividir el pool de ingresos.
+         * El creador recibe su % de revenue share sobre esa fracción.
+         */
+        $descargasBaseEstimadas = 200;
+        $montoPorDescarga = $precioMensual / $descargasBaseEstimadas;
+        $pagoCreador = round($montoPorDescarga * $revenueShare, 4);
+        $comisionPlataforma = round($montoPorDescarga * (1 - $revenueShare), 4);
+
+        PostgresService::ejecutar(
+            "INSERT INTO transacciones (comprador_id, creador_id, sample_id, tipo, monto, pago_creador, comision_plataforma, estado)
+             VALUES (:comprador, :creador, :sample, 'descarga', :monto, :pago, :comision, 'completed')",
+            [
+                'comprador' => $compradorId,
+                'creador'   => $creadorId,
+                'sample'    => $sampleId,
+                'monto'     => round($montoPorDescarga, 4),
+                'pago'      => $pagoCreador,
+                'comision'  => $comisionPlataforma,
+            ]
+        );
     }
 }

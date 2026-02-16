@@ -86,6 +86,35 @@
     font-weight: var(--pesoBold);
     color: var(--textoPrimario);
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    flex-wrap: wrap;
+}
+
+/* Badge premium inline con título */
+.detallePremiumBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px var(--espacioSm);
+    background: linear-gradient(135deg, var(--acentoDorado, #f59e0b), var(--acentoDoradoOscuro, #d97706));
+    color: #fff;
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoSemibold);
+    border-radius: var(--radioFull);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Precio del sample premium */
+.detallePrecio {
+    display: block;
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoSemibold);
+    color: var(--acento);
+    margin-top: var(--espacioXs);
 }
 
 /* Creador: clickeable, con avatar, nombre y username */

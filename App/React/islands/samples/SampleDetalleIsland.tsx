@@ -13,6 +13,8 @@ import {
     Share2,
     Eye,
     AlertCircle,
+    Crown,
+    Lock,
 } from 'lucide-react';
 import {
     Badge,
@@ -298,7 +300,17 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
             {/* Info principal */}
             <div className="detalleInfo">
                 <div className="detalleInfoPrincipal">
-                    <h1 className="detalleTitulo">{sample.titulo}</h1>
+                    <h1 className="detalleTitulo">
+                        {sample.titulo}
+                        {sample.esPremium && (
+                            <span className="detallePremiumBadge">
+                                <Crown size={14} /> PRO
+                            </span>
+                        )}
+                    </h1>
+                    {sample.esPremium && sample.precio != null && sample.precio > 0 && (
+                        <span className="detallePrecio">${sample.precio.toFixed(2)}</span>
+                    )}
 
                     {sample.creador && (
                         <button
@@ -389,6 +401,16 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                     <BotonBase variante="ghost">
                         <Share2 size={14} />
                     </BotonBase>
+
+                    {/* Indicador premium bloqueado para free */}
+                    {sample.esPremium && usuarioAuth?.plan === 'free' && !esPropietario && (
+                        <BotonBase
+                            variante="secundario"
+                            onClick={() => navegar('/planes/')}
+                        >
+                            <Lock size={14} /> Requiere Pro
+                        </BotonBase>
+                    )}
                 </div>
 
                 {/* Estadísticas */}

@@ -296,6 +296,9 @@ class SamplesController
         $tags = is_string($tagsRaw) ? json_decode($tagsRaw, true) ?? [] : (array) ($tagsRaw ?? []);
         $permitirDescarga = \filter_var($request->get_param('permitir_descarga') ?? true, \FILTER_VALIDATE_BOOLEAN);
         $licenciaLibre = \filter_var($request->get_param('licencia_libre') ?? false, \FILTER_VALIDATE_BOOLEAN);
+        $esPremium = \filter_var($request->get_param('es_premium') ?? false, \FILTER_VALIDATE_BOOLEAN);
+        $precio = $request->get_param('precio');
+        $precio = $precio !== null ? (float) $precio : null;
 
         if (count($tags) < 5) {
             return new \WP_REST_Response([
@@ -318,9 +321,9 @@ class SamplesController
         try {
             $resultado = PostgresService::consultarUno(
                 "INSERT INTO samples (creador_id, titulo, slug, id_corto, descripcion, formato, tamano,
-                 ruta_original, estado, es_premium, tags, permitir_descarga, licencia_libre, created_at, updated_at)
+                 ruta_original, estado, es_premium, precio, tags, permitir_descarga, licencia_libre, created_at, updated_at)
                  VALUES (:creadorId, :titulo, :slug, :idCorto, :descripcion, :formato, :tamano,
-                 :rutaOriginal, 'procesando', false, :tags, :descarga, :licencia, NOW(), NOW())
+                 :rutaOriginal, 'procesando', :esPremium, :precio, :tags, :descarga, :licencia, NOW(), NOW())
                  RETURNING id",
                 [
                     'creadorId' => $userId, 'titulo' => $titulo, 'slug' => $slug,
@@ -328,6 +331,8 @@ class SamplesController
                     'formato' => strtolower(pathinfo($audio['name'], PATHINFO_EXTENSION)),
                     'tamano' => $audio['size'], 'rutaOriginal' => $subido['file'],
                     'tags' => $tagsPostgres,
+                    'esPremium' => $esPremium ? 'true' : 'false',
+                    'precio' => $precio,
                     'descarga' => $permitirDescarga ? 'true' : 'false',
                     'licencia' => $licenciaLibre ? 'true' : 'false',
                 ]

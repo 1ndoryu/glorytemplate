@@ -82,6 +82,8 @@ export interface DatosSubida {
     tags?: string[];
     permitirDescarga?: boolean;
     licenciaLibre?: boolean;
+    esPremium?: boolean;
+    precio?: number;
 }
 
 /*
@@ -100,6 +102,10 @@ export const subirSample = async (datos: DatosSubida): Promise<RespuestaApi<Resp
     }
     formData.append('permitir_descarga', String(datos.permitirDescarga ?? true));
     formData.append('licencia_libre', String(datos.licenciaLibre ?? false));
+    formData.append('es_premium', String(datos.esPremium ?? false));
+    if (datos.precio != null && datos.precio > 0) {
+        formData.append('precio', String(datos.precio));
+    }
 
     return apiPostFormData<RespuestaSubida>('/samples/upload', formData);
 };

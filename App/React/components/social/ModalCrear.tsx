@@ -8,7 +8,7 @@
  */
 
 import {useState, useCallback, useRef, useEffect, type ChangeEvent, type KeyboardEvent} from 'react';
-import {Music, Image, X, Download, ShieldCheck, AlertCircle, CheckCircle} from 'lucide-react';
+import {Music, Image, X, Download, ShieldCheck, AlertCircle, CheckCircle, Crown} from 'lucide-react';
 import {Modal} from '@app/components/ui/Modal';
 import {Avatar} from '@app/components/ui/Avatar';
 import {Badge} from '@app/components/ui/Badge';
@@ -72,6 +72,8 @@ export const ModalCrear = (): JSX.Element | null => {
     const [publicando, setPublicando] = useState(false);
     const [permitirDescarga, setPermitirDescarga] = useState(true);
     const [licenciaLibre, setLicenciaLibre] = useState(false);
+    const [esPremium, setEsPremium] = useState(false);
+    const [precio, setPrecio] = useState<string>('');
     const [waveformPeaks, setWaveformPeaks] = useState<number[]>([]);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [reproduciendoPreview, setReproduciendoPreview] = useState(false);
@@ -119,6 +121,8 @@ export const ModalCrear = (): JSX.Element | null => {
             resetearArchivos();
             setPermitirDescarga(true);
             setLicenciaLibre(false);
+            setEsPremium(false);
+            setPrecio('');
             setWaveformPeaks([]);
             setAudioUrl(null);
             setErrorSubida(null);
@@ -185,6 +189,8 @@ export const ModalCrear = (): JSX.Element | null => {
                 tags,
                 permitirDescarga,
                 licenciaLibre,
+                esPremium,
+                precio: esPremium ? parseFloat(precio) || undefined : undefined,
             });
 
             if (!resp.ok) {
@@ -208,7 +214,7 @@ export const ModalCrear = (): JSX.Element | null => {
             setPublicando(false);
             manejarCerrar();
         }
-    }, [contenido, audioAdjunto, imagenes, publicando, manejarCerrar, permitirDescarga, licenciaLibre]);
+    }, [contenido, audioAdjunto, imagenes, publicando, manejarCerrar, permitirDescarga, licenciaLibre, esPremium, precio]);
 
     /* Ctrl+Enter para publicar */
     const manejarKeyDown = useCallback(
@@ -348,6 +354,30 @@ export const ModalCrear = (): JSX.Element | null => {
                             <ShieldCheck size={14} />
                             <span>{licenciaLibre ? 'Libre' : 'Estándar'}</span>
                         </button>
+                        <button className={`crearCondicionBtn ${esPremium ? 'crearCondicionPremium' : ''}`} onClick={() => setEsPremium(!esPremium)} type="button" title={esPremium ? 'Sample premium (requiere Pro)' : 'Sample gratuito'}>
+                            <Crown size={14} />
+                            <span>{esPremium ? 'Premium' : 'Gratis'}</span>
+                        </button>
+                    </div>
+                )}
+
+                {/* Campo precio para samples premium */}
+                {audioAdjunto && esPremium && (
+                    <div className="crearPrecioContenedor">
+                        <label className="crearPrecioLabel" htmlFor="crearPrecioInput">
+                            Precio (USD)
+                        </label>
+                        <input
+                            id="crearPrecioInput"
+                            className="crearPrecioInput"
+                            type="number"
+                            min="0.50"
+                            max="99.99"
+                            step="0.01"
+                            placeholder="2.99"
+                            value={precio}
+                            onChange={(e) => setPrecio(e.target.value)}
+                        />
                     </div>
                 )}
 

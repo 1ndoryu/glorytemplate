@@ -1,6 +1,6 @@
 /*
- * Estilos: DashboardCreadorIsland — Kamples (Fase 6.5)
- * Panel de estadísticas del creador.
+ * Estilos: DashboardCreadorIsland — Kamples (Fase 7.3)
+ * Panel de estadísticas del creador + Stripe Connect.
  */
 
 .dashboardIsland {
@@ -248,6 +248,122 @@
     font-size: var(--fuenteMd);
 }
 
+/* ======================== STRIPE CONNECT ======================== */
+
+.dashboardConnect {
+    margin-top: var(--espacioMd);
+}
+
+/* Banners de estado Connect */
+.dashboardConnectBanner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--espacioMd);
+    padding: var(--espacioMd);
+    border-radius: var(--radioMd);
+    border: 1px solid var(--bordeSutil);
+}
+
+.dashboardConnectBannerInfo {
+    background: var(--fondoElevado2);
+    border-color: var(--acento);
+}
+
+.dashboardConnectBannerInfo > svg {
+    color: var(--acento);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.dashboardConnectBannerExito {
+    background: color-mix(in srgb, var(--exito) 8%, transparent);
+    border-color: color-mix(in srgb, var(--exito) 30%, transparent);
+}
+
+.dashboardConnectBannerExito > svg {
+    color: var(--exito);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.dashboardConnectBannerAdvertencia {
+    background: color-mix(in srgb, var(--advertencia) 8%, transparent);
+    border-color: color-mix(in srgb, var(--advertencia) 30%, transparent);
+}
+
+.dashboardConnectBannerAdvertencia > svg {
+    color: var(--advertencia);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.dashboardConnectBannerTexto {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    flex: 1;
+}
+
+.dashboardConnectBannerTexto strong {
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+}
+
+.dashboardConnectBannerTexto span {
+    color: var(--textoSecundario);
+    font-size: var(--fuenteXs);
+    line-height: 1.5;
+}
+
+/* Balance Connect */
+.dashboardConnectBalance {
+    display: flex;
+    gap: var(--espacioLg);
+    margin-top: var(--espacioMd);
+    padding: var(--espacioMd);
+    background: var(--fondoElevado2);
+    border-radius: var(--radioMd);
+    border: 1px solid var(--bordeSutil);
+}
+
+.dashboardConnectBalanceItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+}
+
+.dashboardConnectBalanceLabel {
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+}
+
+.dashboardConnectBalanceMonto {
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteMd);
+}
+
+.dashboardConnectBalancePendiente {
+    color: var(--textoSecundario);
+}
+
+/* Spinner animación */
+.dashboardSpinner {
+    animation: dashboardSpin 1s linear infinite;
+}
+
+@keyframes dashboardSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     .dashboardStatsGrid {
@@ -265,5 +381,14 @@
     .dashboardTablaFila span:nth-child(3),
     .dashboardTablaFila span:nth-child(4) {
         display: none;
+    }
+
+    .dashboardConnectBanner {
+        flex-direction: column;
+    }
+
+    .dashboardConnectBalance {
+        flex-direction: column;
+        gap: var(--espacioMd);
     }
 }

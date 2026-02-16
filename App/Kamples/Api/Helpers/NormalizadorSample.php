@@ -76,6 +76,7 @@ class NormalizadorSample
             'tipo'             => $row['tipo'] ?? 'one shot',
             'estado'           => $row['estado'] ?? 'procesando',
             'esPremium'        => (bool) ($row['es_premium'] ?? false),
+            'precio'           => isset($row['precio']) ? (float) $row['precio'] : null,
             'metadata'         => $metadata,
             'rutaPreview'      => $row['ruta_preview'] ?? '',
             'rutaWaveform'     => $row['ruta_waveform'] ?? '',
@@ -106,7 +107,7 @@ class NormalizadorSample
     {
         return "SELECT s.id, s.titulo, s.slug, s.id_corto, s.descripcion,
                        s.bpm, s.key, s.escala, s.duracion, s.formato, s.tamano,
-                       s.tags, s.tipo, s.estado, s.es_premium, s.metadata,
+                       s.tags, s.tipo, s.estado, s.es_premium, s.precio, s.metadata,
                        s.ruta_preview, s.ruta_waveform, s.ruta_original, s.ruta_optimizada,
                        s.imagen_url, s.total_descargas, s.total_likes, s.total_reproducciones,
                        u.id as creador_id, u.username, u.nombre_visible,

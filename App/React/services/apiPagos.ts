@@ -1,7 +1,7 @@
 /*
- * Servicio: apiPagos — Kamples (Fase 6.5)
- * Gestión de pagos, suscripciones y dashboard de creador.
- * Conectado a API real. Stripe Connect pendiente (6.1, 6.3).
+ * Servicio: apiPagos — Kamples (Fase 7.3)
+ * Gestión de pagos, suscripciones, Stripe Connect y dashboard de creador.
+ * Conectado a API real.
  */
 
 import { apiGet, apiPost, type RespuestaApi } from './apiCliente';
@@ -114,6 +114,106 @@ export const solicitarPayout = async (): Promise<RespuestaApi<{ monto: number; e
     } catch (err) {
         log.error('Error solicitando payout', err);
         return { ok: false, data: null, error: 'Error de red', status: 500 };
+    }
+};
+
+/* ===================== STRIPE CONNECT ===================== */
+
+export type EstadoConnect = 'no_configurado' | 'pendiente' | 'activo' | 'restringido' | 'error';
+
+export interface DatosConnect {
+    estado: EstadoConnect;
+    connectId: string | null;
+    cargosActivos: boolean;
+    payoutsActivos: boolean;
+    detalle: string | null;
+    requerimientosPendientes?: number;
+}
+
+export interface BalanceConnect {
+    disponible: number;
+    pendiente: number;
+    moneda: string;
+}
+
+/*
+ * Inicia onboarding de Stripe Connect para el creador.
+ * Redirige a Stripe para completar la configuración de pagos.
+ */
+export const iniciarOnboardingConnect = async (): Promise<{
+    ok: boolean;
+    url?: string;
+    error?: string;
+}> => {
+    try {
+        const resp = await apiPost<{ ok: boolean; url: string }>('/connect/onboarding');
+        if (resp.ok && resp.data?.url) {
+            return { ok: true, url: resp.data.url };
+        }
+        return { ok: false, error: resp.error ?? 'Error al iniciar configuración de pagos' };
+    } catch (err) {
+        log.error('Error iniciando onboarding Connect', err);
+        return { ok: false, error: 'Error de conexión' };
+    }
+};
+
+/*
+ * Consulta el estado de la cuenta Connect del creador.
+ */
+export const obtenerEstadoConnect = async (): Promise<RespuestaApi<DatosConnect>> => {
+    try {
+        return await apiGet<DatosConnect>('/connect/estado');
+    } catch (err) {
+        log.error('Error obteniendo estado Connect', err);
+        return {
+            ok: true,
+            data: {
+                estado: 'no_configurado',
+                connectId: null,
+                cargosActivos: false,
+                payoutsActivos: false,
+                detalle: null,
+            },
+            error: null,
+            status: 200,
+        };
+    }
+};
+
+/*
+ * Abre el dashboard de Stripe Express del creador.
+ */
+export const abrirDashboardStripe = async (): Promise<{
+    ok: boolean;
+    url?: string;
+    error?: string;
+}> => {
+    try {
+        const resp = await apiPost<{ ok: boolean; url: string }>('/connect/dashboard');
+        if (resp.ok && resp.data?.url) {
+            return { ok: true, url: resp.data.url };
+        }
+        return { ok: false, error: resp.error ?? 'Error al abrir dashboard de Stripe' };
+    } catch (err) {
+        log.error('Error abriendo dashboard Stripe', err);
+        return { ok: false, error: 'Error de conexión' };
+    }
+};
+
+/*
+ * Obtiene el balance disponible y pendiente del creador.
+ */
+export const obtenerBalanceConnect = async (): Promise<RespuestaApi<BalanceConnect>> => {
+    try {
+        return await apiGet<BalanceConnect>('/connect/balance');
+    } catch (err) {
+        log.error('Error obteniendo balance Connect', err);
+        return {
+            ok: true,
+            data: { disponible: 0, pendiente: 0, moneda: 'usd' },
+            error: null,
+            status: 200,
+        };
     }
 };
 

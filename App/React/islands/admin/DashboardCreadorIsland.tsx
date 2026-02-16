@@ -1,7 +1,8 @@
 /*
- * Isla: DashboardCreadorIsland — Kamples (Fase 6.5)
+ * Isla: DashboardCreadorIsland — Kamples (Fase 7.3)
  * Panel de estadísticas del creador: ingresos, descargas,
  * reproducciones, top samples, transacciones recientes.
+ * Incluye sección Stripe Connect (onboarding + balance + dashboard).
  * Requiere auth + rol creador.
  */
 
@@ -16,6 +17,12 @@ import {
     TrendingDown,
     ArrowUpRight,
     BarChart3,
+    CreditCard,
+    ExternalLink,
+    AlertCircle,
+    CheckCircle,
+    Loader2,
+    Wallet,
 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
@@ -26,10 +33,16 @@ import {
     obtenerTopSamples,
     obtenerTransacciones,
     obtenerIngresosPorPeriodo,
+    iniciarOnboardingConnect,
+    obtenerEstadoConnect,
+    abrirDashboardStripe,
+    obtenerBalanceConnect,
     type EstadisticasCreador,
     type SampleStats,
     type TransaccionCreador,
     type IngresosPorPeriodo,
+    type DatosConnect,
+    type BalanceConnect,
 } from '@app/services/apiPagos';
 import { useNavigationStore } from '@/core/router';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
@@ -122,6 +135,132 @@ const GraficaIngresos = ({ datos }: { datos: IngresosPorPeriodo[] }): JSX.Elemen
     );
 };
 
+/* Componente: sección de Stripe Connect */
+const SeccionConnect = ({
+    estadoConnect,
+    balanceConnect,
+    conectando,
+    onIniciarOnboarding,
+    onAbrirDashboard,
+}: {
+    estadoConnect: DatosConnect | null;
+    balanceConnect: BalanceConnect | null;
+    conectando: boolean;
+    onIniciarOnboarding: () => void;
+    onAbrirDashboard: () => void;
+}): JSX.Element => {
+    if (!estadoConnect) return <></>;
+
+    const { estado, cargosActivos, payoutsActivos, detalle, requerimientosPendientes } = estadoConnect;
+
+    return (
+        <div className="dashboardSeccion dashboardConnect">
+            <h2 className="dashboardSeccionTitulo">
+                <CreditCard size={16} />
+                Configuración de pagos
+            </h2>
+
+            <div className="dashboardConnectEstado">
+                {estado === 'no_configurado' && (
+                    <div className="dashboardConnectBanner dashboardConnectBannerInfo">
+                        <AlertCircle size={16} />
+                        <div className="dashboardConnectBannerTexto">
+                            <strong>Configura Stripe para recibir pagos</strong>
+                            <span>Conecta tu cuenta de Stripe para empezar a ganar dinero con tus samples.</span>
+                        </div>
+                        <BotonBase
+                            variante="primario"
+                            tamano="sm"
+                            onClick={onIniciarOnboarding}
+                            deshabilitado={conectando}
+                        >
+                            {conectando ? (
+                                <><Loader2 size={14} className="dashboardSpinner" /> Conectando...</>
+                            ) : (
+                                <><CreditCard size={14} /> Configurar Stripe</>
+                            )}
+                        </BotonBase>
+                    </div>
+                )}
+
+                {estado === 'pendiente' && (
+                    <div className="dashboardConnectBanner dashboardConnectBannerAdvertencia">
+                        <AlertCircle size={16} />
+                        <div className="dashboardConnectBannerTexto">
+                            <strong>Onboarding incompleto</strong>
+                            <span>
+                                Tienes {requerimientosPendientes ?? 0} dato(s) pendiente(s) por completar en Stripe.
+                            </span>
+                        </div>
+                        <BotonBase
+                            variante="secundario"
+                            tamano="sm"
+                            onClick={onIniciarOnboarding}
+                            deshabilitado={conectando}
+                        >
+                            {conectando ? (
+                                <><Loader2 size={14} className="dashboardSpinner" /> Cargando...</>
+                            ) : (
+                                <>Completar configuración</>
+                            )}
+                        </BotonBase>
+                    </div>
+                )}
+
+                {estado === 'activo' && (
+                    <div className="dashboardConnectBanner dashboardConnectBannerExito">
+                        <CheckCircle size={16} />
+                        <div className="dashboardConnectBannerTexto">
+                            <strong>Stripe conectado</strong>
+                            <span>
+                                {cargosActivos && payoutsActivos
+                                    ? 'Tu cuenta está activa y recibiendo pagos.'
+                                    : 'Tu cuenta está configurada.'}
+                            </span>
+                        </div>
+                        <BotonBase variante="fantasma" tamano="sm" onClick={onAbrirDashboard}>
+                            <ExternalLink size={14} /> Ver dashboard Stripe
+                        </BotonBase>
+                    </div>
+                )}
+
+                {estado === 'restringido' && (
+                    <div className="dashboardConnectBanner dashboardConnectBannerAdvertencia">
+                        <AlertCircle size={16} />
+                        <div className="dashboardConnectBannerTexto">
+                            <strong>Cuenta restringida</strong>
+                            <span>{detalle ?? 'Stripe requiere información adicional para activar los pagos.'}</span>
+                        </div>
+                        <BotonBase variante="secundario" tamano="sm" onClick={onIniciarOnboarding}>
+                            Actualizar información
+                        </BotonBase>
+                    </div>
+                )}
+            </div>
+
+            {/* Balance cuando la cuenta está activa */}
+            {estado === 'activo' && balanceConnect && (
+                <div className="dashboardConnectBalance">
+                    <div className="dashboardConnectBalanceItem">
+                        <Wallet size={14} />
+                        <span className="dashboardConnectBalanceLabel">Disponible</span>
+                        <span className="dashboardConnectBalanceMonto">
+                            ${balanceConnect.disponible.toFixed(2)}
+                        </span>
+                    </div>
+                    <div className="dashboardConnectBalanceItem">
+                        <DollarSign size={14} />
+                        <span className="dashboardConnectBalanceLabel">Pendiente</span>
+                        <span className="dashboardConnectBalanceMonto dashboardConnectBalancePendiente">
+                            ${balanceConnect.pendiente.toFixed(2)}
+                        </span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const DashboardIslandBase = (): JSX.Element => {
     const [tabActiva, setTabActiva] = useState('resumen');
     const [stats, setStats] = useState<EstadisticasCreador | null>(null);
@@ -131,15 +270,21 @@ const DashboardIslandBase = (): JSX.Element => {
     const [cargando, setCargando] = useState(true);
     const { navegar } = useNavigationStore();
 
+    /* Estado Connect */
+    const [estadoConnect, setEstadoConnect] = useState<DatosConnect | null>(null);
+    const [balanceConnect, setBalanceConnect] = useState<BalanceConnect | null>(null);
+    const [conectando, setConectando] = useState(false);
+
     /* Cargar datos */
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
-            const [resStats, resTop, resTrans, resIngresos] = await Promise.all([
+            const [resStats, resTop, resTrans, resIngresos, resConnect] = await Promise.all([
                 obtenerEstadisticasCreador(),
                 obtenerTopSamples(),
                 obtenerTransacciones(),
                 obtenerIngresosPorPeriodo('mes'),
+                obtenerEstadoConnect(),
             ]);
 
             if (resStats.ok && resStats.data) setStats(resStats.data);
@@ -147,9 +292,37 @@ const DashboardIslandBase = (): JSX.Element => {
             if (resTrans.ok && resTrans.data) setTransacciones(resTrans.data);
             if (resIngresos.ok && resIngresos.data) setIngresos(resIngresos.data);
 
+            if (resConnect.ok && resConnect.data) {
+                setEstadoConnect(resConnect.data);
+                /* Solo cargar balance si la cuenta está activa */
+                if (resConnect.data.estado === 'activo') {
+                    const resBalance = await obtenerBalanceConnect();
+                    if (resBalance.ok && resBalance.data) setBalanceConnect(resBalance.data);
+                }
+            }
+
             setCargando(false);
         };
         cargar();
+    }, []);
+
+    /* Iniciar onboarding Connect */
+    const manejarOnboarding = useCallback(async () => {
+        setConectando(true);
+        const resultado = await iniciarOnboardingConnect();
+        if (resultado.ok && resultado.url) {
+            window.location.href = resultado.url;
+        } else {
+            setConectando(false);
+        }
+    }, []);
+
+    /* Abrir dashboard Stripe */
+    const manejarDashboardStripe = useCallback(async () => {
+        const resultado = await abrirDashboardStripe();
+        if (resultado.ok && resultado.url) {
+            window.open(resultado.url, '_blank');
+        }
     }, []);
 
     const cambioIngresos = stats
@@ -197,6 +370,15 @@ const DashboardIslandBase = (): JSX.Element => {
                             icono={<Users size={16} />}
                         />
                     </div>
+
+                    {/* Sección Stripe Connect */}
+                    <SeccionConnect
+                        estadoConnect={estadoConnect}
+                        balanceConnect={balanceConnect}
+                        conectando={conectando}
+                        onIniciarOnboarding={manejarOnboarding}
+                        onAbrirDashboard={manejarDashboardStripe}
+                    />
 
                     {/* Gráfica de ingresos */}
                     {ingresos.length > 0 && (

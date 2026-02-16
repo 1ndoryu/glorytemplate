@@ -61,6 +61,7 @@ export interface SampleResumen {
     tags: string[];
     tipo: TipoSample;
     esPremium: boolean;
+    precio: number | null;
     rutaPreview: string;
     rutaWaveform: string;
     imagenUrl: string | null;

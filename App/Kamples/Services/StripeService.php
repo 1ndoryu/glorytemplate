@@ -214,6 +214,31 @@ class StripeService
     }
 
     /**
+     * Obtiene la cuenta Connect de un creador.
+     */
+    public static function obtenerCuentaConnect(string $accountId): array
+    {
+        return self::request('GET', '/accounts/' . $accountId);
+    }
+
+    /**
+     * Genera un login_link al Stripe Express Dashboard para el creador.
+     */
+    public static function crearLoginLink(string $accountId): array
+    {
+        return self::request('POST', '/accounts/' . $accountId . '/login_links');
+    }
+
+    /**
+     * Obtiene el balance de una cuenta Connect (disponible + pendiente).
+     * Usa el header Stripe-Account para consultar la cuenta conectada.
+     */
+    public static function obtenerBalanceConnect(string $accountId): array
+    {
+        return self::requestConCuenta('GET', '/balance', [], $accountId);
+    }
+
+    /**
      * Obtiene la configuración del plan.
      */
     public static function obtenerConfigPlan(string $plan): array
@@ -245,6 +270,56 @@ class StripeService
     }
 
     /* Helpers privados */
+
+    /**
+     * Realiza petición HTTP a Stripe en nombre de una cuenta conectada (header Stripe-Account).
+     */
+    private static function requestConCuenta(string $method, string $endpoint, array $params, string $accountId): array
+    {
+        $secretKey = self::obtenerSecretKey();
+        if (!$secretKey) {
+            return ['error' => 'Stripe no configurado'];
+        }
+
+        $url = self::API_BASE . $endpoint;
+
+        $headers = [
+            'Authorization: Bearer ' . $secretKey,
+            'Content-Type: application/x-www-form-urlencoded',
+            'Stripe-Account: ' . $accountId,
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+        if ($method === 'POST') {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+        } elseif ($method === 'GET' && !empty($params)) {
+            $url .= '?' . http_build_query($params);
+        }
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $data = json_decode($response, true) ?? [];
+
+        if ($httpCode >= 400) {
+            KamplesLogger::error('Stripe Connect API error', [
+                'endpoint'  => $endpoint,
+                'httpCode'  => $httpCode,
+                'accountId' => $accountId,
+                'error'     => $data['error']['message'] ?? 'desconocido',
+            ]);
+        }
+
+        return $data;
+    }
 
     private static function obtenerPriceId(string $plan): ?string
     {
