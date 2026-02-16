@@ -18,6 +18,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Api\ServicioImagenIA;
 use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\KamplesLogger;
@@ -247,6 +248,9 @@ class PublicacionesController
             "UPDATE publicaciones SET total_comentarios = (SELECT COUNT(*) FROM comentarios WHERE tipo = 'publicacion' AND target_id = :id) WHERE id = :id",
             ['id' => $pubId]
         );
+
+        /* C45: registrar interacción para el planificador del algoritmo */
+        PlanificadorAlgoritmo::registrarInteraccion($userId, 'comentario');
 
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
     }

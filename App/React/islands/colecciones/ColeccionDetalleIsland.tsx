@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Lightbulb } from 'lucide-react';
+import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -26,9 +26,8 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     const [coleccion, setColeccion] = useState<Coleccion | null>(null);
     const [cargando, setCargando] = useState(true);
     const [guardada, setGuardada] = useState(false);
-    const [tabActiva, setTabActiva] = useState<'samples' | 'ideas'>('samples');
     const { navegar } = useNavigationStore();
-    const { setTabs } = useTabsTopBarStore();
+    const { activa: tabActiva, setTabs } = useTabsTopBarStore();
 
     /* Registrar tabs "Samples" y "Más Ideas" en TopBar */
     useEffect(() => {
@@ -37,10 +36,10 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                 { id: 'samples', etiqueta: 'Samples' },
                 { id: 'ideas', etiqueta: 'Más Ideas' },
             ],
-            tabActiva
+            'samples'
         );
         return () => { setTabs([]); };
-    }, [setTabs, tabActiva]);
+    }, [setTabs]);
 
     /* Obtener ID de la URL si no viene por props */
     const id = propId ? parseInt(propId, 10) : (() => {
@@ -164,28 +163,10 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                 </div>
             </div>
 
-            {/* Tabs de contenido */}
-            <div className="coleccionTabs">
-                <button
-                    className={`coleccionTab ${tabActiva === 'samples' ? 'coleccionTabActiva' : ''}`}
-                    onClick={() => setTabActiva('samples')}
-                    type="button"
-                >
-                    Samples ({coleccion.totalSamples})
-                </button>
-                <button
-                    className={`coleccionTab ${tabActiva === 'ideas' ? 'coleccionTabActiva' : ''}`}
-                    onClick={() => setTabActiva('ideas')}
-                    type="button"
-                >
-                    <Lightbulb size={14} />
-                    Más Ideas
-                </button>
-            </div>
-
-            {/* Contenido según tab activa */}
+            {/* Contenido según tab activa — key distinta fuerza desmontaje para evitar race conditions (C46) */}
             {tabActiva === 'samples' ? (
                 <FeedSamples
+                    key="coleccion-samples"
                     samplesIniciales={samples}
                     proveedor={async () => []}
                     claveCache={`coleccion_${coleccion.id}`}
@@ -197,6 +178,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                 />
             ) : (
                 <FeedSamples
+                    key="coleccion-ideas"
                     proveedor={proveedorSugerencias}
                     claveCache={`sugerencias_${coleccion.id}`}
                     mostrarTags

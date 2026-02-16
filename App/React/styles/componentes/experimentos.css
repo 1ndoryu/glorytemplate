@@ -1,0 +1,140 @@
+/*
+ * Estilos: Botón de experimentos admin.
+ * Botón minimalista en TopBar para generar contenido de test.
+ */
+
+.experimentosContenedor {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.experimentosBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    background: var(--superficie);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.experimentosBtn:hover {
+    background: var(--superficieHover);
+    color: var(--acento);
+    border-color: var(--acento);
+}
+
+.experimentosBtn--cargando {
+    border-color: var(--acento);
+    color: var(--acento);
+}
+
+.experimentosBtn--exito {
+    border-color: var(--exito, #22c55e);
+    color: var(--exito, #22c55e);
+    background: rgba(34, 197, 94, 0.08);
+}
+
+.experimentosBtn--error {
+    border-color: var(--error, #ef4444);
+    color: var(--error, #ef4444);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.experimentosIconoGirando {
+    animation: experimentosSpin 1s linear infinite;
+}
+
+@keyframes experimentosSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Panel desplegable */
+.experimentosPanel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 220px;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.experimentosTitulo {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 4px 6px;
+    border-bottom: 1px solid var(--borde);
+    margin-bottom: 2px;
+}
+
+.experimentosAccion {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--texto);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    text-align: left;
+}
+
+.experimentosAccion:hover:not(:disabled) {
+    background: var(--superficieHover);
+}
+
+.experimentosAccion:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.experimentosResultado {
+    font-size: 10px;
+    padding: 5px 6px;
+    border-radius: 4px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.experimentosResultado--exito {
+    color: var(--exito, #22c55e);
+    background: rgba(34, 197, 94, 0.06);
+}
+
+.experimentosResultado--error {
+    color: var(--error, #ef4444);
+    background: rgba(239, 68, 68, 0.06);
+}
+
+.experimentosInfo {
+    font-size: 10px;
+    color: var(--textoTerciario, var(--textoSecundario));
+    padding: 4px 4px 0;
+    opacity: 0.7;
+}
+
+.experimentosSeparador {
+    height: 1px;
+    background: var(--borde, rgba(255, 255, 255, 0.08));
+    margin: 4px 0;
+}

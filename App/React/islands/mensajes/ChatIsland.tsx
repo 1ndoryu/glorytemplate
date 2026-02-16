@@ -1,8 +1,8 @@
 /*
- * Isla: ChatIsland — Kamples (Fase 7.3)
- * Conversación individual en tiempo real.
+ * Isla: ChatIsland — Kamples (Fase 5.2)
+ * Conversación individual con soporte multimedia.
  * Indicador "escribiendo...", scroll infinito, marcar leído.
- * TO-DO: conectar WebSocket para tiempo real (7.1).
+ * TO-DO: conectar WebSocket para tiempo real (5.3).
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -10,12 +10,15 @@ import {
     ArrowLeft,
     Send,
     Circle,
+    Paperclip,
 } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
+import { BurbujaMensaje } from '@app/components/social/BurbujaMensaje';
 import {
     obtenerMensajes,
     obtenerConversaciones,
     enviarMensaje,
+    enviarMensajeMultimedia,
     marcarConversacionLeida,
 } from '@app/services/apiMensajes';
 import { useMensajesStore } from '@app/stores/mensajesStore';
@@ -25,13 +28,7 @@ import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import type { Conversacion, Mensaje } from '@app/types';
 import '../../styles/componentes/chat.css';
 
-/* Formatear hora del mensaje */
-const formatearHora = (fecha: string): string => {
-    return new Date(fecha).toLocaleTimeString('es', {
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-};
+
 
 /* Formatear fecha para agrupación */
 const formatearFechaGrupo = (fecha: string): string => {
@@ -71,7 +68,6 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
         setMensajes,
         agregarMensaje,
         setConversaciones,
-        setCargandoMensajes,
         actualizarUltimoMensaje,
     } = useMensajesStore();
 
@@ -85,6 +81,7 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
 
     const mensajesRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const archivoRef = useRef<HTMLInputElement>(null);
 
     /* Obtener ID de conversación de la URL si no viene por props */
     const conversacionId = propId
@@ -155,6 +152,7 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
             conversacionId,
             remitenteId: usuario?.id ?? 1,
             contenido,
+            tipo: 'texto',
             leido: false,
             creadoAt: new Date().toISOString(),
         };
@@ -167,6 +165,37 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
         /* Enfocar input de nuevo */
         inputRef.current?.focus();
     }, [textoMensaje, conversacionId, enviando, usuario, agregarMensaje, actualizarUltimoMensaje]);
+
+    /* Subir archivo multimedia (imagen/audio) */
+    const manejarArchivo = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const archivo = e.target.files?.[0];
+        if (!archivo || !conversacionId) return;
+
+        const esImagen = archivo.type.startsWith('image/');
+        const esAudio = archivo.type.startsWith('audio/');
+        if (!esImagen && !esAudio) return;
+
+        setEnviando(true);
+        const tipo = esImagen ? 'imagen' as const : 'audio' as const;
+
+        /* Optimistic multimedia */
+        const msgOptimista: Mensaje = {
+            id: Date.now(),
+            conversacionId,
+            remitenteId: usuario?.id ?? 1,
+            contenido: esImagen ? '[Imagen]' : '[Audio]',
+            tipo,
+            mediaUrl: URL.createObjectURL(archivo),
+            leido: false,
+            creadoAt: new Date().toISOString(),
+        };
+        agregarMensaje(msgOptimista);
+        actualizarUltimoMensaje(conversacionId, esImagen ? '[Imagen]' : '[Audio]');
+
+        await enviarMensajeMultimedia(conversacionId, tipo, archivo);
+        setEnviando(false);
+        if (archivoRef.current) archivoRef.current.value = '';
+    }, [conversacionId, usuario, agregarMensaje, actualizarUltimoMensaje]);
 
     /* Enviar con Enter (Shift+Enter para nueva línea) */
     const manejarKeyDown = useCallback(
@@ -235,29 +264,39 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
                             <div className="chatFechaSeparador">
                                 <span>{grupo.fecha}</span>
                             </div>
-                            {grupo.mensajes.map((msg) => {
-                                const esMio = msg.remitenteId === miId;
-                                return (
-                                    <div
-                                        key={msg.id}
-                                        className={`chatBurbuja ${esMio ? 'chatBurbujaMia' : 'chatBurbujaOtra'}`}
-                                    >
-                                        <div className="chatBurbujaContenido">
-                                            <p>{msg.contenido}</p>
-                                            <span className="chatBurbujaHora">
-                                                {formatearHora(msg.creadoAt)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            {grupo.mensajes.map((msg) => (
+                                <BurbujaMensaje
+                                    key={msg.id}
+                                    mensaje={msg}
+                                    esMio={msg.remitenteId === miId}
+                                />
+                            ))}
                         </div>
                     ))
                 )}
             </div>
 
-            {/* Input de mensaje */}
+            {/* Input de mensaje con adjuntar */}
             <div className="chatInputArea">
+                {/* Input oculto para archivos */}
+                <input
+                    ref={archivoRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp,audio/mpeg,audio/wav,audio/ogg"
+                    onChange={manejarArchivo}
+                    style={{ display: 'none' }}
+                />
+
+                <button
+                    className="chatAdjuntarBtn"
+                    onClick={() => archivoRef.current?.click()}
+                    type="button"
+                    aria-label="Adjuntar archivo"
+                    disabled={enviando}
+                >
+                    <Paperclip size={18} />
+                </button>
+
                 <textarea
                     ref={inputRef}
                     className="chatInput"

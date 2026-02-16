@@ -129,8 +129,12 @@ export const FeedSamples = ({
         }
     }, [claveCache]);
 
+    /* Guard contra race conditions: descarta respuestas de requests anteriores (C46) */
+    const requestIdRef = useRef(0);
+
     /* Carga de datos paginada */
     const cargarPagina = useCallback(async (pagina: number, esNuevo: boolean) => {
+        const thisRequest = ++requestIdRef.current;
         const key = `${claveCache}_p${pagina}`;
 
         if (esNuevo) {
@@ -146,6 +150,8 @@ export const FeedSamples = ({
             resultado = cacheFeedRef.current[key];
         } else {
             resultado = await proveedor(pagina);
+            /* Si llegó una request más nueva, descartar esta respuesta */
+            if (requestIdRef.current !== thisRequest) return;
             cacheFeedRef.current[key] = resultado;
         }
 

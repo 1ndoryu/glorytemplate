@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useEffect, type ChangeEvent } from 'react';
-import { Search, Music } from 'lucide-react';
+import { Search } from 'lucide-react';
 import {
     InputBusqueda,
     BotonBase,

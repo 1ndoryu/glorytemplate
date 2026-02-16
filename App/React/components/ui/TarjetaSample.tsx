@@ -79,7 +79,7 @@ const formatearContador = (valor: number): string => {
     return `${valor}`;
 };
 
-export const TarjetaSample = ({sample, activa = false, reproduciendo = false, progreso = 0, onPlay, onPause, onSeek, onLike, onDescargar, onMenu, onClickCreador, className = ''}: TarjetaSampleProps): JSX.Element => {
+export const TarjetaSample = ({sample, activa = false, reproduciendo = false, progreso = 0, onPlay, onPause, onSeek, onLike, onDescargar, onMenu, onClickCreador: _onClickCreador, className = ''}: TarjetaSampleProps): JSX.Element => {
     const [reproduciendoLocal, setReproduciendoLocal] = useState(false);
     const [progresoLocal, setProgresoLocal] = useState(0);
     const [picosAudio, setPicosAudio] = useState<number[] | null>(null);

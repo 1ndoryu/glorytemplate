@@ -27,6 +27,7 @@ export interface FiltrosSamples {
     bpmMax?: number;
     key?: string;
     tipo?: string;
+    creador?: string;
     page?: number;
     perPage?: number;
 }
@@ -44,6 +45,7 @@ export const listarSamples = async (filtros: FiltrosSamples = {}): Promise<Respu
         bpm_max: filtros.bpmMax,
         key: filtros.key,
         tipo: filtros.tipo,
+        creador: filtros.creador,
     });
 };
 

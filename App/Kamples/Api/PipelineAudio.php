@@ -133,7 +133,7 @@ class PipelineAudio
             ]);
         }
 
-        /* Paso 4: Renombrar archivo con formato estandarizado */
+        /* Paso 4: Renombrar archivo con formato estandarizado + actualizar titulo y slug */
         $nuevoNombre = self::construirNombreArchivo(
             $metadataIA,
             $analisisTecnico,
@@ -150,6 +150,29 @@ class PipelineAudio
                     error_log("[Kamples] PipelineAudio: Archivo renombrado a {$nuevoNombre}");
                     KamplesLogger::info('Pipeline: Archivo renombrado', ['nombre' => $nuevoNombre]);
                 }
+            }
+
+            /*
+             * Actualizar titulo y slug con el nombre generado por la IA.
+             * El titulo se construye legible: "Sad Guitar Melody 90bpm Am"
+             * El slug se genera con sanitize_title + idCorto.
+             */
+            if ($metadataIA && !empty($metadataIA['nombre_archivo_base'])) {
+                $tituloIA = ucwords($metadataIA['nombre_archivo_base']);
+                if ($analisisTecnico['bpm']) {
+                    $tituloIA .= ' ' . $analisisTecnico['bpm'] . 'bpm';
+                }
+                if ($analisisTecnico['key']) {
+                    $keyStr = $analisisTecnico['key'];
+                    if ($analisisTecnico['escala'] === 'menor') $keyStr .= 'm';
+                    $tituloIA .= ' ' . $keyStr;
+                }
+                $actualizaciones['titulo'] = $tituloIA;
+                $actualizaciones['slug'] = \sanitize_title($tituloIA) . '-' . $idCorto;
+                KamplesLogger::info('Pipeline: Titulo/slug actualizados por IA', [
+                    'titulo' => $tituloIA,
+                    'slug' => $actualizaciones['slug'],
+                ]);
             }
         }
 
@@ -177,6 +200,18 @@ class PipelineAudio
         $actualizaciones['publicado_at'] = date('Y-m-d H:i:s');
 
         self::actualizarSample($sampleId, $actualizaciones);
+
+        /* Paso 9: Generar embedding para el sistema de recomendación */
+        try {
+            \App\Kamples\Services\GeneradorEmbeddings::guardarEmbedding($sampleId);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Pipeline: Error al generar embedding', [
+                'sampleId' => $sampleId, 'error' => $e->getMessage()
+            ]);
+        }
+
+        /* Invalidar cache de feeds globalmente al publicar nuevo sample */
+        \App\Kamples\Services\MotorRecomendacion::invalidarCacheGlobal();
 
         error_log("[Kamples] PipelineAudio: Procesamiento completado para sample #{$sampleId}");
         KamplesLogger::info('Pipeline: Procesamiento completado', ['sampleId' => $sampleId, 'estado' => 'activo']);
@@ -541,14 +576,21 @@ class PipelineAudio
 
     /*
      * Actualiza el registro de un sample en PostgreSQL con los datos procesados.
+     * Detecta columnas JSONB para aplicar cast explícito.
      */
     private static function actualizarSample(int $sampleId, array $datos): void
     {
+        $columnasJsonb = ['metadata', 'media_metadata', 'tags_ia'];
         $setClauses = [];
         $params = ['id' => $sampleId];
 
         foreach ($datos as $campo => $valor) {
-            $setClauses[] = "{$campo} = :{$campo}";
+            /* Cast explícito para JSONB — PDO native prepares envía como text sin esto */
+            if (in_array($campo, $columnasJsonb, true)) {
+                $setClauses[] = "{$campo} = :{$campo}::jsonb";
+            } else {
+                $setClauses[] = "{$campo} = :{$campo}";
+            }
             $params[$campo] = $valor;
         }
 
@@ -563,6 +605,7 @@ class PipelineAudio
             KamplesLogger::error('Pipeline: Error actualizando sample en DB', [
                 'sampleId' => $sampleId,
                 'error' => $e->getMessage(),
+                'sql' => $sql,
             ]);
         }
     }

@@ -11,6 +11,8 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Services\MotorRecomendacion;
+use App\Kamples\Services\PlanificadorAlgoritmo;
 
 class SocialController
 {
@@ -77,6 +79,9 @@ class SocialController
             ]
         );
 
+        /* C45: registrar interacción para el planificador del algoritmo */
+        PlanificadorAlgoritmo::registrarInteraccion($seguidorId, 'follow');
+
         return new \WP_REST_Response(['ok' => true], 200);
     }
 
@@ -126,6 +131,12 @@ class SocialController
             }
         }
 
+        /* Invalidar cache del feed para que el algoritmo recalcule */
+        MotorRecomendacion::invalidarCache($userId);
+
+        /* C45: registrar interacción para el planificador del algoritmo */
+        PlanificadorAlgoritmo::registrarInteraccion($userId, 'like');
+
         return new \WP_REST_Response(['ok' => true, 'liked' => true], 200);
     }
 
@@ -148,6 +159,9 @@ class SocialController
                 ['id' => $targetId]
             );
         }
+
+        /* Invalidar cache del feed para que el algoritmo recalcule */
+        MotorRecomendacion::invalidarCache($userId);
 
         return new \WP_REST_Response(['ok' => true, 'liked' => false], 200);
     }

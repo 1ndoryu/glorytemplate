@@ -19,7 +19,7 @@ const formatearTiempo = (segundos: number): string => {
 };
 
 export const ReproductorGlobal = (): JSX.Element | null => {
-    const {sampleActual, reproduciendo, volumen, progreso, duracion, muted, repetir, aleatorio, play, pause, togglePlay, setVolumen, toggleMute, setProgreso, setDuracion, toggleRepetir, toggleAleatorio, siguiente, anterior, cerrar} = useReproductorStore();
+    const {sampleActual, reproduciendo, volumen, progreso, duracion, muted, repetir, aleatorio, pause, togglePlay, setVolumen, toggleMute, setProgreso, setDuracion, toggleRepetir, toggleAleatorio, siguiente, anterior, cerrar} = useReproductorStore();
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const progresoBarraRef = useRef<HTMLDivElement>(null);

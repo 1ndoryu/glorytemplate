@@ -1,7 +1,7 @@
 # Kamples — Roadmap Integral de Producto
 
 > **Versión:** 2.0  
-> **Última actualización:** 15/02/2026 (iteración v2.4)  
+> **Última actualización:** 16/02/2026 (iteración v2.5)  
 > **Stack base:** Glory Framework (WordPress + React Islands + TypeScript)  
 > **Competencia directa:** Splice
 
@@ -92,7 +92,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **UI/UX (C1-C63):** TopBar (búsqueda, crear, notif, mensajes, plan badge), Sidebar, tags ± agrupados, waveform real, middle-click, avatar normalización, colecciones grid, SPA routing, menú contextual, infinite scroll+virtualización, portada editable, eliminar samples/colecciones.
 **IA/Logs:** JSON repair 5 estrategias (control chars + Groq), imagen metadata Groq (Llama 4), audio IA Gemini multi-modelo, pipeline async con KamplesLogger.
 
-### Registros de cambios (R1–R5 compactos)
+### Registros de cambios (R1–R8 compactos)
 
 **R1:** wsService fix, ShowcaseIsland split, useArchivosDragDrop, BienvenidaIsland onboarding, fix doble slash.
 **R2:** SOLID refactor — 12 controladores, 2 helpers, 3 servicios, 1 config. Migraciones v003-v004.
@@ -101,6 +101,9 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R5:** JSON repair 5 estrategias, ServicioImagenIA (Groq visión), Stripe Checkout/Portal/Webhook, PlanesIsland funcional, apiPagos checkout+portal.
 **R6:** Límites plan (DescargasController→StripeService DRY, transferencia GB), moderación IA 3 capas (ServicioModeracionIA), tags badge (<span>), AuthMiddleware stubs, migraciones v006-v007, roadmap compactado.
 **R7:** Stripe Connect completo (ConnectController 4 endpoints + DashboardCreadorIsland sección Connect + revenue share descargas), samples premium (toggle ModalCrear + badge SampleDetalle + precio + bloqueo free).
+**R8:** Chat multimedia full-stack (5.2, BurbujaMensaje+backend upload+FormData), MotorRecomendacion v1 (3.2-3.7, 6 señales + cache transient), bug fixes C23-C33, BotonDevTools mode switcher (C29), BotonExperimentos admin test content (C31), perfil camelCase fix (C30), JSONB cast fix (C28), PerfilIsland guard (C29), DashboardCreadorIsland BotonBase prop fix, npm type-check 29→0 errores (C32), migración v008.
+**R9:** pgvector compilado (master branch, PG18 compatible) e instalado (vector.dll + extension + HNSW). GeneradorEmbeddings.php (128d: BPM+key+escala+tipo+duración+tags hasheados). MotorRecomendacion v3 (6ta señal similitud coseno integrada, samplesSimilares con fallback). EmbeddingsController (batch/regenerar/estado). PipelineAudio genera embedding automático. Migración v009 (columna embedding + funciones SQL buscar_similares + buscar_por_vector). Avatar upload fix (C34: POST /me/avatar + ModalConfiguracion). Admin role detection fix (C35: WP roles → PG sync). BotonExperimentos ahora incluye embeddings batch.
+**R10:** PlanificadorAlgoritmo (C45): sistema dual rápido/preciso con triggers por interacciones + recálculos temporales. Configuración centralizada en algoritmoPesos.php['frecuencia']. Tabla algoritmo_estado (v010). WP Cron cada 5min. Integrado en SocialController (like/follow), ReproduccionesController, DescargasController, PublicacionesController (comentario). Endpoints admin: GET /admin/algoritmo/estado, POST /admin/algoritmo/recalcular, POST /admin/algoritmo/procesar-temporales. Bug fixes C37-C46: samples en perfil, experimentos notificaciones, sample detalle 404, apiCliente HTML detection, DevTools posición, hooks order React, colecciones/publicas→explorar, tabs duplicadas + race condition colecciones.
 
 ---
 
@@ -111,11 +114,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 > Prioridad: ALTA — desbloquea algoritmo, uploads, y IA
 
 - [x] **0.1a** Conexión PHP → PostgreSQL — PDO singleton, health endpoint, schema 14 tablas
-- [ ] **0.1b** Instalar pgvector (EN PROGRESO — VS Build Tools ya instalado, falta compilar)
-    - Migración `v002_pgvector_setup.sql` lista, `VerificarPgvector.php` listo
-    - [x] Prerrequisito cumplido: VS Build Tools 2026 v18 (cl.exe 19.50, CMake 4.1.2)
-    - **Siguiente paso:** Compilar pgvector con CMake + MSVC contra PostgreSQL local
-    - **Impacto:** Sin pgvector el algoritmo de similitud no funciona, pero todo lo demás sí
+- [x] **0.1b** pgvector compilado e instalado (master branch PG18, HNSW, CREATE EXTENSION vector)
+    - v009_embeddings_pgvector.sql ejecutada, GeneradorEmbeddings.php (128d), VerificarPgvector.php
 - [x] **0.2** Almacenamiento audio en WP — upload+MIME validation+ID corto+slug
     - TO-DO: htaccess deny direct access, servir via PHP con validación de permisos
 - [x] **0.3** Pipeline audio — FFmpeg cross-platform (.env>PATH>winget), BPM/key+IA+waveform+MP3+preview+renombrado
@@ -127,7 +127,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 - [x] **1.1** Fix PerfilIsland — guard authCargando, fix stale closure, botón editar→modal
 - [x] **1.2** ModalConfiguracion — avatar, nombre, bio, notificaciones, PUT /me
-    - TO-DO: subida real de avatar con FormData (endpoint no soporta multipart aún)
+    - Subida real de avatar implementada: POST /me/avatar + FormData (R9)
 - [x] **1.3** Auto-creación usuarios_ext — GET /me sincroniza WP→Postgres
 - [ ] **1.4** Google OAuth (cuando las keys estén listas)
 
@@ -149,28 +149,13 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 > Prioridad: ALTA — diferenciador clave del producto
 
-- [ ] **3.1** pgvector: tabla de embeddings + función de similitud
-    - Índice HNSW para búsqueda eficiente
-    - Función `buscar_similares(sample_id, limite)` usando cosine distance
-- [ ] **3.2** Señal de comportamiento
-    - Rastrear: plays, likes, descargas, tiempo de escucha por usuario
-    - Guardar en tabla `interacciones_usuario` en Postgres
-    - Peso en algoritmo: 0.25
-- [ ] **3.3** Señal de tendencias (time-windowed)
-    - Engagement velocity: likes/plays en últimas 24h, 7d, 30d
-    - Peso: 0.15
-- [ ] **3.4** Señal de novedad
-    - Boost logarítmico por fecha de publicación
-    - Peso: 0.10
-- [ ] **3.5** Función SQL scoring combinado
-    - Combinar las 6 señales con pesos configurables
-    - Target: < 100ms para 100k samples
-- [ ] **3.6** Señal de grafo social
-    - Samples de usuarios seguidos, likes de usuarios seguidos
-    - Peso: 0.10
-- [ ] **3.7** Cache de feeds
-    - Redis o transient WP como fallback
-    - Invalidar al publicar/interactuar
+- [x] **3.1** pgvector: embedding vector(128) en samples + buscar_similares() SQL + HNSW index
+- [x] **3.2** Señal de comportamiento (0.25) — 5 sub-factores: likes, reproducciones, tiempo, descargas, completadas
+- [x] **3.3** Señal de tendencias (0.15) — velocity 24h/7d + normalización por horas publicado
+- [x] **3.4** Señal de novedad (0.10) — boost logarítmico configurable
+- [x] **3.5** Scoring SQL combinado — 6 señales + penalización + diversidad creador
+- [x] **3.6** Señal de grafo social (0.10) — seguidos directos + likes de seguidos
+- [x] **3.7** Cache de feeds — WP transients 5min + invalidación global/individual
 
 ### FASE 4 — Filtros y Ordenamiento (InicioIsland)
 
@@ -182,7 +167,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 ### FASE 5 — Chat Flotante tipo Messenger
 
 - [x] **5.1** ChatFlotante — fixed bottom-right, max 3 chats, minimizable, burbujas
-- [ ] **5.2** Soporte multimedia en chat (imágenes, audio, samples compartidos)
+- [x] **5.2** Soporte multimedia en chat (imágenes, audio, samples compartidos)
 - [ ] **5.3** WebSocket local (canales chat/notif, typing, online, read receipts)
 - [ ] **5.4** Optimización chat (virtualización, lazy load, caché local)
 
@@ -199,8 +184,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 - [x] **7.1** Stripe Billing — PagosController (checkout/portal/webhook), StripeService, webhooks
 - [x] **7.2** PlanesIsland — Checkout real, portal, estados UI, prueba 30 días
-- [ ] **7.3** Stripe Connect (onboarding creadores, revenue share 70/30, 80/20)
-- [ ] **7.4** Samples premium (compra individual + bloqueo sin plan)
+- [x] **7.3** Stripe Connect (onboarding creadores, revenue share 70/30, 80/20)
+- [x] **7.4** Samples premium (compra individual + bloqueo sin plan)
 - [x] **7.5** Límites por plan — StripeService::obtenerConfigPlan(), transferencia GB, v006, AuthMiddleware
 
 ### FASE 8 — Tiempo Real (WebSocket producción)
@@ -288,15 +273,33 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 20  | Tags sin estilos                                    | ✅ Faltaba import de feedSamples.css                                                                                 |
 | 21  | JSON roto de IA al subir                            | ✅ 5 estrategias de extracción JSON + reparación con Groq. Fix: control chars                                        |
 | 22  | feedTagItem eran badge, no botón                    | ✅ `<span role="button">` con accesibilidad + CSS reforzado                                                          |
+| 23  | Precio en crearCondiciones                           | ✅ Toggle precio + campo en ModalCrear, samples premium con badge + bloqueo                                          |
+| 24  | Sample no se reproduce (file:// URL)                 | ✅ Fix: URLs relativas en vez de absolutas del filesystem                                                            |
+| 25  | URL sample usa nombre original                       | ✅ Naming IA: `kamples_{tipo}_{genero}_{bpm}_{key}_{idCorto}.ext`                                                   |
+| 26  | Foto perfil no aparece                               | ✅ Fix normalizarUsuario() snake→camelCase (parte de C30)                                                            |
+| 27  | Inspector sin JSON IA                                | ✅ ModalInspectorSample sección JSON crudo + metadata IA                                                             |
+| 28  | JSON crudo IA no se guardaba                         | ✅ PipelineAudio ::jsonb cast para PDO native prepares + sección JSON IA en inspector                                |
+| 29  | Botón cambio de modo + PerfilIsland split crash      | ✅ BotonDevTools (devToolsStore + useUsuarioEfectivo) + guard `(rutaActual ?? '')`                                    |
+| 30  | Datos perfil no persisten al recargar                | ✅ normalizarUsuario() en PerfilController (GET/PUT /me), PUT retorna perfil completo                                |
+| 31  | Botón experimentos admin                             | ✅ ExperimentosController (usuario test WP+PG, notif, mensaje real), BotonExperimentos en TopBar                     |
+| 32  | npm run type-check errores                           | ✅ 29→0 errores: imports no usados, props incorrectas (deshabilitado→disabled, fantasma→ghost)                       |
+| 33  | Re-ejecutar migración v008                           | ✅ Ejecutada contra PostgreSQL 18 (ALTER TABLE ×3 + CREATE INDEX)                                                    |
+| 34  | Foto de perfil no se guarda                          | ✅ POST /me/avatar (FormData, MIME validation), ModalConfiguracion guarda File→upload→PUT                            |
+| 35  | Botón experimento no visible                         | ✅ GET /me ahora detecta rol WP administrator y fuerza rol='admin' en PG                                             |
+| 36  | Compilar pgvector + construir algoritmo              | ✅ pgvector master compilado PG18, embedding 128d, MotorRecomendacion v3, buscar_similares SQL                       |
+| 37  | Samples no aparecen en perfil                        | ✅ Filtro `creador` en SamplesController, PerfilIsland envía `creador: usuario.username`                              |
+| 38  | Experimentos no generan notificaciones               | ✅ Fix `usuario_id`→`creador_id` en samples query, `::jsonb` cast notificaciones INSERT                              |
+| 39  | Sample detalle dice "no existe"                      | ✅ Cambiar filtro `estado='activo'` por `NOT IN ('eliminado')` en obtener()                                          |
+| 40  | Unexpected token '<' en pipeline IA                   | ✅ apiCliente.ts: detectar HTML antes de JSON.parse, devolver error legible                                          |
+| 41  | Botón DevTools posición molesta                       | ✅ CSS: `top:12px` → `bottom:50%; transform:translateY(50%)`, panel desde nueva posición                            |
+| 42  | Error hooks React al cambiar foto perfil              | ✅ Early return antes de useCallback en BotonExperimentos/BotonDevTools → movido después de hooks                    |
+| 43  | 404 colecciones/publicas                              | ✅ Frontend llamaba `/publicas`, backend tiene `/explorar`. Corregido apiColecciones.ts                              |
+| 44  | Tabs duplicadas en colecciones                        | ✅ Eliminadas tabs inline de ColeccionDetalleIsland, usar `activa` de tabsTopBarStore                                |
+| 45  | Frecuencia recálculo algoritmo                        | ✅ PlanificadorAlgoritmo dual (rápido/preciso), triggers + temporales, v010, cron 5min                               |
+| 46  | Race condition tabs colecciones                       | ✅ FeedSamples: `key` prop + `requestIdRef` guard stale requests, CSS tabs removido                                  |
 
 ---
 
-# Comentarios nuevos 
+# Comentarios nuevos (Cuando los comentarios se resuelvan, mover a "## Comentarios del usuario (resueltos) compactados")
 
-23. Cuando se esta publicando un sample, en "crearCondiciones" Debe estar disponible la opcion para poner precio al sample, alli mismo se coloca el precio si se activa, planificar todo lo que esto implica para poder vender samples.
-24. Publique un sample y no se puede reproducir
-TarjetaSample.tsx:107  Not allowed to load local resource: file:///C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/uploads/kamples/1/2026/02/QChGFiA_preview.mp3
-(index):1  Not allowed to load local resource: file:///C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/uploads/kamples/1/2026/02/niXnYC5_preview.mp3
-25. tambien vi que cuando publique un sample se publico asi la url http://glory.local/sample/looperman-l-2796720-0319840-ascend-bladee-type-loop-niXnYC5 cuando debería ser el nombre corto que genera la ia (Tambien debe ser el nombre que aparece en la tarjeta), por cierto, tampoco carga el sample cuando voy a su pagina individual
-26. Volvio a fallar la foto perfil, habia guardado una foto y otra vez no aparece.
-27. En "Inspector de Sample" no aparece el json que genera la IA ni tampoco veo que realmente se este usando esa informacion porque en "JSON Crudo" no veo que se este usando la data que genera la IA si es que esa es toda la metadata del sample
+(Sin comentarios pendientes)

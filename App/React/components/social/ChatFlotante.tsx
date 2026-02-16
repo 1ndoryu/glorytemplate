@@ -1,15 +1,17 @@
 /*
- * Componente: ChatFlotante — Kamples (FASE 5.1)
+ * Componente: ChatFlotante — Kamples (FASE 5.2)
  * Chats flotantes tipo Messenger en esquina inferior derecha.
  * Se apilan horizontalmente, encima del reproductor global.
- * Minimizables, cerrables, múltiples simultáneos.
+ * Soporta mensajes multimedia: texto, imagen, audio.
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { X, Minus, Send, Maximize2 } from 'lucide-react';
+import { X, Minus, Send, Maximize2, Paperclip } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
+import { BurbujaMensaje } from '@app/components/social/BurbujaMensaje';
 import { useChatFlotanteStore, type ChatFlotanteInfo } from '@app/stores/chatFlotanteStore';
-import { obtenerMensajes, enviarMensaje } from '@app/services/apiMensajes';
+import { enviarMensaje, enviarMensajeMultimedia } from '@app/services/apiMensajes';
+import { obtenerMensajes } from '@app/services/apiMensajes';
 import { useAuthStore } from '@app/stores/authStore';
 import type { Mensaje } from '@app/types';
 import '../../styles/componentes/chatFlotante.css';
@@ -21,8 +23,10 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
     const [mensajes, setMensajes] = useState<Mensaje[]>([]);
     const [texto, setTexto] = useState('');
     const [enviando, setEnviando] = useState(false);
+
     const mensajesRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const archivoRef = useRef<HTMLInputElement>(null);
 
     /* Cargar mensajes al abrir */
     useEffect(() => {
@@ -59,6 +63,7 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
             conversacionId: chat.conversacionId,
             remitenteId: usuario?.id ?? 1,
             contenido,
+            tipo: 'texto',
             leido: false,
             creadoAt: new Date().toISOString(),
         };
@@ -68,6 +73,38 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
         setEnviando(false);
         inputRef.current?.focus();
     }, [texto, enviando, chat.conversacionId, usuario]);
+
+    /* Subir archivo multimedia */
+    const manejarArchivo = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const archivo = e.target.files?.[0];
+        if (!archivo) return;
+
+        const esImagen = archivo.type.startsWith('image/');
+        const esAudio = archivo.type.startsWith('audio/');
+        if (!esImagen && !esAudio) return;
+
+        setEnviando(true);
+        const tipo = esImagen ? 'imagen' as const : 'audio' as const;
+
+        /* Mensaje optimista multimedia */
+        const msgOptimista: Mensaje = {
+            id: Date.now(),
+            conversacionId: chat.conversacionId,
+            remitenteId: usuario?.id ?? 1,
+            contenido: esImagen ? '[Imagen]' : '[Audio]',
+            tipo,
+            mediaUrl: URL.createObjectURL(archivo),
+            leido: false,
+            creadoAt: new Date().toISOString(),
+        };
+        setMensajes((prev) => [...prev, msgOptimista]);
+
+        await enviarMensajeMultimedia(chat.conversacionId, tipo, archivo);
+        setEnviando(false);
+
+        /* Limpiar input file */
+        if (archivoRef.current) archivoRef.current.value = '';
+    }, [chat.conversacionId, usuario]);
 
     const manejarKeyDown = useCallback(
         (e: React.KeyboardEvent) => {
@@ -156,18 +193,36 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
                     <div className="chatFlotanteVacio">Inicia la conversación</div>
                 ) : (
                     mensajes.map((msg) => (
-                        <div
+                        <BurbujaMensaje
                             key={msg.id}
-                            className={`chatFlotanteBurbuja ${msg.remitenteId === miId ? 'chatFlotanteBurbujaMia' : 'chatFlotanteBurbujaOtra'}`}
-                        >
-                            <p>{msg.contenido}</p>
-                        </div>
+                            mensaje={msg}
+                            esMio={msg.remitenteId === miId}
+                            compacto
+                        />
                     ))
                 )}
             </div>
 
-            {/* Input */}
+            {/* Input con adjuntar */}
             <div className="chatFlotanteInput">
+                {/* Input oculto para archivos */}
+                <input
+                    ref={archivoRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp,audio/mpeg,audio/wav,audio/ogg"
+                    onChange={manejarArchivo}
+                    style={{ display: 'none' }}
+                />
+
+                <button
+                    className="chatFlotanteAdjuntarBtn"
+                    onClick={() => archivoRef.current?.click()}
+                    type="button"
+                    aria-label="Adjuntar archivo"
+                    disabled={enviando}
+                >
+                    <Paperclip size={14} />
+                </button>
                 <input
                     ref={inputRef}
                     type="text"

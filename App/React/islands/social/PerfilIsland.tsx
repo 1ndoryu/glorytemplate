@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Music, FileText, Heart, Settings, MapPin, Calendar, Link as LinkIcon } from 'lucide-react';
+import { Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon } from 'lucide-react';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
 import { BotonBase } from '../../components/ui/BotonBase';
@@ -42,7 +42,7 @@ interface PerfilIslandProps {
 export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX.Element => {
     const [usuario, setUsuario] = useState<Usuario | null>(null);
     const [cargando, setCargando] = useState(true);
-    const [siguiendo, setSiguiendo] = useState(false);
+    const [siguiendo] = useState(false);
 
     /* Contenido de tabs */
     const [samplesPerfil, setSamplesPerfil] = useState<SampleResumen[]>([]);
@@ -63,7 +63,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
      */
     const username = useMemo(() => {
         /* Primero intentar de la ruta SPA */
-        const segmentos = rutaActual.replace(/\/$/, '').split('/');
+        const segmentos = (rutaActual ?? '').replace(/\/$/, '').split('/');
         const idxPerfil = segmentos.indexOf('perfil');
         if (idxPerfil !== -1 && segmentos[idxPerfil + 1] && segmentos[idxPerfil + 1] !== 'perfil' && segmentos[idxPerfil + 1] !== 'editar') {
             return segmentos[idxPerfil + 1];
@@ -137,8 +137,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
             setCargandoTab(true);
             try {
                 if (tabActiva === 'samples') {
-                    /* TO-DO: cuando el backend soporte filtro por creador, añadir busqueda por username */
-                    const resp = await listarSamples({ page: 1, perPage: 20 });
+                    const resp = await listarSamples({ page: 1, perPage: 20, creador: usuario.username });
                     if (resp.ok && resp.data) {
                         setSamplesPerfil(resp.data.data ?? []);
                     }

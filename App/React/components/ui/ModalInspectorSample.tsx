@@ -49,11 +49,15 @@ const Campo = ({etiqueta, valor, numerico, ancho}: {etiqueta: string; valor: str
 
 export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspectorSampleProps): JSX.Element | null => {
     const [jsonVisible, setJsonVisible] = useState(false);
+    const [jsonIaVisible, setJsonIaVisible] = useState(false);
 
     if (!sample) return null;
 
     const completo = esSampleCompleto(sample);
     const metadata = completo ? sample.metadata : null;
+
+    /* Helper para acceder a campos IA (snake_case o camelCase) */
+    const m = (metadata ?? {}) as Record<string, unknown>;
 
     return (
         <Modal abierto={abierto} onCerrar={onCerrar} titulo="Inspector de Sample" tamano="grande">
@@ -113,12 +117,44 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                             <Brain size={14} /> Metadata IA
                         </div>
                         <div className="inspectorGrid">
-                            <Campo etiqueta="Generos" valor={metadata.genero?.join(', ')} ancho />
-                            <Campo etiqueta="Instrumentos" valor={metadata.instrumentos?.join(', ')} ancho />
-                            <Campo etiqueta="Sentimiento" valor={metadata.sentimiento?.join(', ')} ancho />
-                            <Campo etiqueta="Tipo IA" valor={metadata.tipo} />
+                            <Campo etiqueta="Nombre Base" valor={String(m.nombreArchivoBase || m.nombre_archivo_base || '—')} ancho />
+                            <Campo etiqueta="Generos" valor={
+                                Array.isArray(m.genero) ? m.genero.join(', ') :
+                                typeof m.genero === 'string' ? m.genero : null
+                            } ancho />
+                            <Campo etiqueta="Instrumentos" valor={
+                                Array.isArray(m.instrumentos) ? m.instrumentos.join(', ') :
+                                typeof m.instrumentos === 'string' ? m.instrumentos : null
+                            } ancho />
+                            <Campo etiqueta="Emocion" valor={String(m.emocion || m.emocion_es || (Array.isArray(m.sentimiento) ? m.sentimiento.join(', ') : '') || '—')} ancho />
+                            <Campo etiqueta="Artista Vibes" valor={
+                                Array.isArray(m.artista_vibes || m.artistaVibes)
+                                    ? (m.artista_vibes as string[] || m.artistaVibes as string[]).join(', ')
+                                    : String(m.artista_vibes || m.artistaVibes || '—')
+                            } ancho />
+                            <Campo etiqueta="Tags IA" valor={
+                                Array.isArray(m.tags) ? m.tags.join(', ') : null
+                            } ancho />
+                            <Campo etiqueta="Tags IA (ES)" valor={
+                                Array.isArray(m.tags_es || m.tagsEs)
+                                    ? (m.tags_es as string[] || m.tagsEs as string[]).join(', ')
+                                    : null
+                            } ancho />
+                            <Campo etiqueta="BPM Confianza" valor={m.bpmConfianza as number ?? m.bpm_confianza as number ?? null} numerico />
+                            <Campo etiqueta="Key Confianza" valor={m.keyConfianza as number ?? m.key_confianza as number ?? null} numerico />
                         </div>
-                        {metadata.descripcionIA && <div className="inspectorMetadataIA">{metadata.descripcionIA}</div>}
+                        {Boolean(m.descripcion || m.descripcionEs || m.descripcion_es || m.descripcionIA) && (
+                            <div className="inspectorMetadataIA">
+                                <strong>Descripcion IA:</strong>{' '}
+                                {String(m.descripcion_es || m.descripcionEs || m.descripcion || m.descripcionIA)}
+                            </div>
+                        )}
+                        {Boolean(m.descripcionCorta || m.descripcion_corta || m.descripcionCortaEs || m.descripcion_corta_es) && (
+                            <div className="inspectorMetadataIA">
+                                <strong>Descripcion Corta:</strong>{' '}
+                                {String(m.descripcion_corta_es || m.descripcionCortaEs || m.descripcion_corta || m.descripcionCorta)}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -159,13 +195,33 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                     </div>
                 )}
 
-                {/* Sección: JSON Crudo (toggle) */}
+                {/* Sección: JSON Crudo del Sample (toggle) */}
                 <div className="inspectorSeccion">
                     <button className="inspectorSeccionTitulo" onClick={() => setJsonVisible(!jsonVisible)} type="button">
-                        <Code size={14} /> JSON Crudo
+                        <Code size={14} /> JSON Crudo (Sample)
                         {jsonVisible ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
                     {jsonVisible && <pre className="inspectorJsonCrudo">{JSON.stringify(sample, null, 2)}</pre>}
+                </div>
+
+                {/* Sección: JSON Crudo de la IA (toggle separado) */}
+                <div className="inspectorSeccion">
+                    <button
+                        className="inspectorSeccionTitulo"
+                        onClick={() => setJsonIaVisible(!jsonIaVisible)}
+                        type="button"
+                    >
+                        <Code size={14} /> JSON Crudo (Metadata IA)
+                        {jsonIaVisible ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </button>
+                    {jsonIaVisible && (
+                        <pre className="inspectorJsonCrudo">
+                            {metadata
+                                ? JSON.stringify(metadata, null, 2)
+                                : '// La metadata IA no está disponible para este sample.\n// Los samples subidos después de este fix ya la incluirán.'
+                            }
+                        </pre>
+                    )}
                 </div>
             </div>
         </Modal>

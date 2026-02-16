@@ -76,7 +76,7 @@ class MensajesController
             );
 
             $ultimoMsg = PostgresService::consultarUno(
-                "SELECT contenido, created_at FROM mensajes WHERE conversacion_id = :convId ORDER BY created_at DESC LIMIT 1",
+                "SELECT contenido, tipo, created_at FROM mensajes WHERE conversacion_id = :convId ORDER BY created_at DESC LIMIT 1",
                 ['convId' => $conv['id']]
             );
 
@@ -85,10 +85,18 @@ class MensajesController
                 ['convId' => $conv['id'], 'userId' => $userId]
             );
 
+            /* Preview del último mensaje según tipo */
+            $previewMsg = $ultimoMsg['contenido'] ?? '';
+            $tipoUltimo = $ultimoMsg['tipo'] ?? 'texto';
+            if ($tipoUltimo === 'imagen') $previewMsg = '[Imagen]';
+            elseif ($tipoUltimo === 'audio') $previewMsg = '[Audio]';
+            elseif ($tipoUltimo === 'sample') $previewMsg = '[Sample] ' . ($ultimoMsg['contenido'] ?? '');
+
             $resultado[] = [
                 'id'              => (int) $conv['id'],
                 'participante'    => $otro,
-                'ultimoMensaje'   => $ultimoMsg['contenido'] ?? '',
+                'ultimoMensaje'   => $previewMsg,
+                'ultimoMensajeTipo' => $tipoUltimo,
                 'ultimoMensajeAt' => $ultimoMsg['created_at'] ?? $conv['created_at'],
                 'noLeidos'        => $noLeidos ? (int) $noLeidos['total'] : 0,
                 'enLinea'         => false,
@@ -119,11 +127,20 @@ class MensajesController
 
         $mensajes = PostgresService::consultar(
             "SELECT id, conversacion_id as \"conversacionId\", autor_id as \"remitenteId\",
-                    contenido, leido, created_at as \"creadoAt\"
+                    contenido, tipo, media_url as \"mediaUrl\", media_metadata as \"mediaMetadata\",
+                    leido, created_at as \"creadoAt\"
              FROM mensajes WHERE conversacion_id = :convId
              ORDER BY created_at ASC LIMIT :limit OFFSET :offset",
             ['convId' => $conversacionId, 'limit' => $perPage, 'offset' => $offset]
         );
+
+        /* Parsear mediaMetadata JSONB en cada mensaje */
+        foreach ($mensajes as &$msg) {
+            if (isset($msg['mediaMetadata']) && is_string($msg['mediaMetadata'])) {
+                $msg['mediaMetadata'] = json_decode($msg['mediaMetadata'], true);
+            }
+        }
+        unset($msg);
 
         return new \WP_REST_Response(['data' => $mensajes], 200);
     }
@@ -134,13 +151,116 @@ class MensajesController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $conversacionId = (int) $request->get_param('conversacionId');
-        $body = $request->get_json_params();
-        $contenido = sanitize_textarea_field($body['contenido'] ?? '');
 
-        if (empty($contenido)) {
-            return new \WP_REST_Response(['code' => 'mensaje_vacio', 'message' => 'El mensaje no puede estar vacío'], 400);
+        /* Soporta JSON body para texto o FormData para multimedia */
+        $contentType = $request->get_content_type();
+        $esFormData = $contentType && str_contains($contentType['value'] ?? '', 'multipart');
+
+        if ($esFormData) {
+            $contenido = \sanitize_textarea_field($request->get_param('contenido') ?? '');
+            $tipo = \sanitize_text_field($request->get_param('tipo') ?? 'texto');
+        } else {
+            $body = $request->get_json_params();
+            $contenido = \sanitize_textarea_field($body['contenido'] ?? '');
+            $tipo = \sanitize_text_field($body['tipo'] ?? 'texto');
         }
 
+        /* Validar tipos permitidos */
+        $tiposPermitidos = ['texto', 'imagen', 'audio', 'sample'];
+        if (!in_array($tipo, $tiposPermitidos, true)) {
+            $tipo = 'texto';
+        }
+
+        $mediaUrl = null;
+        $mediaMetadata = null;
+
+        /* Procesamiento según tipo de mensaje */
+        if ($tipo === 'imagen' || $tipo === 'audio') {
+            $archivos = $request->get_file_params();
+            $archivo = $archivos['media'] ?? null;
+
+            if (!$archivo || $archivo['error'] !== UPLOAD_ERR_OK) {
+                return new \WP_REST_Response(['code' => 'archivo_invalido', 'message' => 'No se recibió archivo válido'], 400);
+            }
+
+            /* Validar MIME según tipo */
+            $mimesPermitidos = $tipo === 'imagen'
+                ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+                : ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4'];
+
+            $mimeReal = \mime_content_type($archivo['tmp_name']);
+            if (!in_array($mimeReal, $mimesPermitidos, true)) {
+                return new \WP_REST_Response(['code' => 'tipo_no_permitido', 'message' => "Tipo de archivo no permitido: {$mimeReal}"], 400);
+            }
+
+            /* Límite de tamaño: 10MB imágenes, 25MB audio */
+            $maxBytes = $tipo === 'imagen' ? 10 * 1024 * 1024 : 25 * 1024 * 1024;
+            if ($archivo['size'] > $maxBytes) {
+                $maxMB = $maxBytes / 1024 / 1024;
+                return new \WP_REST_Response(['code' => 'archivo_grande', 'message' => "El archivo excede el límite de {$maxMB}MB"], 400);
+            }
+
+            /* Subir a WP uploads en subcarpeta mensajes */
+            $subDir = "kamples/mensajes/{$userId}/" . date('Y/m');
+            $filtroDir = function ($paths) use ($subDir) {
+                $paths['subdir'] = '/' . $subDir;
+                $paths['path'] = $paths['basedir'] . '/' . $subDir;
+                $paths['url'] = $paths['baseurl'] . '/' . $subDir;
+                return $paths;
+            };
+
+            \add_filter('upload_dir', $filtroDir);
+            $subido = \wp_handle_upload($archivo, ['test_form' => false]);
+            \remove_filter('upload_dir', $filtroDir);
+
+            if (isset($subido['error'])) {
+                return new \WP_REST_Response(['code' => 'error_subida', 'message' => $subido['error']], 500);
+            }
+
+            $mediaUrl = $subido['url'];
+            $mediaMetadata = json_encode([
+                'formato' => pathinfo($archivo['name'], PATHINFO_EXTENSION),
+                'tamano'  => $archivo['size'],
+                'mimeType' => $mimeReal,
+            ]);
+
+        } elseif ($tipo === 'sample') {
+            /* Compartir un sample existente por ID */
+            $body = $esFormData ? [] : $request->get_json_params();
+            $sampleId = (int) ($body['sampleId'] ?? $request->get_param('sampleId') ?? 0);
+
+            if ($sampleId <= 0) {
+                return new \WP_REST_Response(['code' => 'sample_invalido', 'message' => 'ID de sample inválido'], 400);
+            }
+
+            $sample = PostgresService::consultarUno(
+                "SELECT id, titulo, id_corto, slug, tipo, bpm, key FROM samples WHERE id = :id AND estado = 'activo'",
+                ['id' => $sampleId]
+            );
+
+            if (!$sample) {
+                return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
+            }
+
+            $mediaMetadata = json_encode([
+                'sampleId' => (int) $sample['id'],
+                'titulo'   => $sample['titulo'],
+                'idCorto'  => $sample['id_corto'],
+                'slug'     => $sample['slug'],
+                'tipo'     => $sample['tipo'],
+                'bpm'      => $sample['bpm'],
+                'key'      => $sample['key'],
+            ]);
+            $contenido = $contenido ?: $sample['titulo'];
+
+        } else {
+            /* Tipo texto: validar que no esté vacío */
+            if (empty($contenido)) {
+                return new \WP_REST_Response(['code' => 'mensaje_vacio', 'message' => 'El mensaje no puede estar vacío'], 400);
+            }
+        }
+
+        /* Verificar participación en la conversación */
         $conv = PostgresService::consultarUno(
             "SELECT id FROM conversaciones WHERE id = :convId AND (participante_1 = :userId OR participante_2 = :userId)",
             ['convId' => $conversacionId, 'userId' => $userId]
@@ -150,9 +270,16 @@ class MensajesController
             return new \WP_REST_Response(['code' => 'conversacion_no_encontrada'], 404);
         }
 
+        /* Insertar mensaje con soporte multimedia */
         $msgId = PostgresService::insertar(
-            "INSERT INTO mensajes (conversacion_id, autor_id, contenido) VALUES (:convId, :autorId, :contenido) RETURNING id",
-            ['convId' => $conversacionId, 'autorId' => $userId, 'contenido' => $contenido]
+            "INSERT INTO mensajes (conversacion_id, autor_id, contenido, tipo, media_url, media_metadata)
+             VALUES (:convId, :autorId, :contenido, :tipo, :mediaUrl, :mediaMetadata)
+             RETURNING id",
+            [
+                'convId' => $conversacionId, 'autorId' => $userId,
+                'contenido' => $contenido, 'tipo' => $tipo,
+                'mediaUrl' => $mediaUrl, 'mediaMetadata' => $mediaMetadata,
+            ]
         );
 
         PostgresService::ejecutar(
@@ -162,10 +289,16 @@ class MensajesController
 
         $mensaje = PostgresService::consultarUno(
             "SELECT id, conversacion_id as \"conversacionId\", autor_id as \"remitenteId\",
-                    contenido, leido, created_at as \"creadoAt\"
+                    contenido, tipo, media_url as \"mediaUrl\", media_metadata as \"mediaMetadata\",
+                    leido, created_at as \"creadoAt\"
              FROM mensajes WHERE id = :id",
             ['id' => $msgId]
         );
+
+        /* Parsear mediaMetadata de string JSONB a objeto */
+        if (isset($mensaje['mediaMetadata']) && is_string($mensaje['mediaMetadata'])) {
+            $mensaje['mediaMetadata'] = json_decode($mensaje['mediaMetadata'], true);
+        }
 
         return new \WP_REST_Response(['data' => $mensaje], 201);
     }

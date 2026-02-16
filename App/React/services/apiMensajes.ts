@@ -1,10 +1,10 @@
 /*
- * Servicio: apiMensajes — Kamples (Fase 7.2-7.3)
+ * Servicio: apiMensajes — Kamples (Fase 5.2)
  * Gestión de conversaciones y mensajes del chat.
- * Conectado a API real. Backend WebSocket pendiente (Fase 7.1).
+ * Soporta mensajes multimedia: texto, imagen, audio, sample.
  */
 
-import { apiGet, apiPost, type RespuestaApi } from './apiCliente';
+import { apiGet, apiPost, apiPostFormData, type RespuestaApi } from './apiCliente';
 import { crearLogger } from './logger';
 import type { Conversacion, Mensaje } from '../types';
 
@@ -33,15 +33,59 @@ export const obtenerMensajes = async (
     }
 };
 
-/* Enviar mensaje en una conversación */
-export const enviarMensaje = async (
+/* Enviar mensaje de texto */
+export const enviarMensajeTexto = async (
     conversacionId: number,
     contenido: string
 ): Promise<RespuestaApi<Mensaje>> => {
     try {
-        return await apiPost<Mensaje>(`/mensajes/${conversacionId}`, { contenido });
+        return await apiPost<Mensaje>(`/mensajes/${conversacionId}`, {
+            contenido,
+            tipo: 'texto',
+        });
     } catch (err) {
-        log.error('Error enviando mensaje', err);
+        log.error('Error enviando mensaje texto', err);
+        return { ok: false, data: null, error: 'Error de red', status: 500 };
+    }
+};
+
+/* Alias de compatibilidad */
+export const enviarMensaje = enviarMensajeTexto;
+
+/* Enviar mensaje con archivo multimedia (imagen o audio) */
+export const enviarMensajeMultimedia = async (
+    conversacionId: number,
+    tipo: 'imagen' | 'audio',
+    archivo: File,
+    contenido?: string
+): Promise<RespuestaApi<Mensaje>> => {
+    try {
+        const formData = new FormData();
+        formData.append('tipo', tipo);
+        formData.append('media', archivo);
+        if (contenido) formData.append('contenido', contenido);
+
+        return await apiPostFormData<Mensaje>(`/mensajes/${conversacionId}`, formData);
+    } catch (err) {
+        log.error(`Error enviando mensaje ${tipo}`, err);
+        return { ok: false, data: null, error: 'Error de red', status: 500 };
+    }
+};
+
+/* Compartir un sample en la conversación */
+export const enviarMensajeSample = async (
+    conversacionId: number,
+    sampleId: number,
+    contenido?: string
+): Promise<RespuestaApi<Mensaje>> => {
+    try {
+        return await apiPost<Mensaje>(`/mensajes/${conversacionId}`, {
+            tipo: 'sample',
+            sampleId,
+            contenido: contenido ?? '',
+        });
+    } catch (err) {
+        log.error('Error enviando sample por chat', err);
         return { ok: false, data: null, error: 'Error de red', status: 500 };
     }
 };

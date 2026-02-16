@@ -25,6 +25,8 @@ use App\Kamples\Api\Controladores\DescargasController;
 use App\Kamples\Api\Controladores\ColoresController;
 use App\Kamples\Api\Controladores\PagosController;
 use App\Kamples\Api\Controladores\ConnectController;
+use App\Kamples\Api\Controladores\ExperimentosController;
+use App\Kamples\Api\Controladores\EmbeddingsController;
 
 class KamplesController
 {
@@ -61,5 +63,7 @@ class KamplesController
         ColoresController::registrarRutas($ns);
         PagosController::registrarRutas($ns);
         ConnectController::registrarRutas($ns);
+        ExperimentosController::registrarRutas($ns);
+        EmbeddingsController::registrarRutas($ns);
     }
 }

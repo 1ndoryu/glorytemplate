@@ -3,7 +3,7 @@
  * Funciones de autenticación y perfil de usuario.
  */
 
-import { apiGet, apiPost, apiPut } from './apiCliente';
+import { apiGet, apiPost, apiPut, apiPostFormData } from './apiCliente';
 import type { Usuario, UsuarioAutenticado } from '../types';
 
 /*
@@ -27,6 +27,16 @@ export const obtenerPerfil = async (username: string) => {
  */
 export const actualizarPerfil = async (datos: Partial<Usuario>) => {
     return apiPut<Usuario>('/me', datos);
+};
+
+/*
+ * Sube una imagen de perfil (avatar).
+ * Usa FormData para enviar el archivo binario al servidor.
+ */
+export const subirAvatar = async (archivo: File) => {
+    const formData = new FormData();
+    formData.append('avatar', archivo);
+    return apiPostFormData<{ ok: boolean; data: UsuarioAutenticado; avatarUrl: string }>('/me/avatar', formData);
 };
 
 /*

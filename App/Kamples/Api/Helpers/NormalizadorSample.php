@@ -26,6 +26,42 @@ class NormalizadorSample
     }
 
     /**
+     * Convierte una ruta absoluta de filesystem a URL HTTP.
+     * Ejemplo: C:\...\wp-content\uploads\kamples\1\... → http://glory.local/wp-content/uploads/kamples/1/...
+     * Necesario porque PipelineAudio guarda rutas absolutas en BD.
+     */
+    public static function rutaAUrl(?string $rutaAbsoluta): string
+    {
+        if (!$rutaAbsoluta || $rutaAbsoluta === '') return '';
+
+        /* Si ya es una URL HTTP, devolver tal cual */
+        if (str_starts_with($rutaAbsoluta, 'http://') || str_starts_with($rutaAbsoluta, 'https://')) {
+            return $rutaAbsoluta;
+        }
+
+        $uploadDir = \wp_upload_dir();
+        $basedir = wp_normalize_path($uploadDir['basedir']);
+        $baseurl = $uploadDir['baseurl'];
+        $rutaNormalizada = wp_normalize_path($rutaAbsoluta);
+
+        /* Reemplazar la parte del filesystem con la URL base */
+        if (str_starts_with($rutaNormalizada, $basedir)) {
+            $relativa = substr($rutaNormalizada, strlen($basedir));
+            return $baseurl . $relativa;
+        }
+
+        /* Fallback: buscar wp-content/uploads en la ruta */
+        $marcador = 'wp-content/uploads';
+        $pos = strpos($rutaNormalizada, $marcador);
+        if ($pos !== false) {
+            $relativa = substr($rutaNormalizada, $pos + strlen($marcador));
+            return $baseurl . $relativa;
+        }
+
+        return $rutaAbsoluta;
+    }
+
+    /**
      * Normaliza un sample para la respuesta JSON.
      * Convierte snake_case PG a camelCase, agrupa datos del creador como sub-objeto,
      * convierte tags text[] a array PHP y metadata JSONB a objeto.
@@ -78,10 +114,10 @@ class NormalizadorSample
             'esPremium'        => (bool) ($row['es_premium'] ?? false),
             'precio'           => isset($row['precio']) ? (float) $row['precio'] : null,
             'metadata'         => $metadata,
-            'rutaPreview'      => $row['ruta_preview'] ?? '',
-            'rutaWaveform'     => $row['ruta_waveform'] ?? '',
-            'rutaOriginal'     => $row['ruta_original'] ?? '',
-            'rutaOptimizada'   => $row['ruta_optimizada'] ?? '',
+            'rutaPreview'      => self::rutaAUrl($row['ruta_preview'] ?? ''),
+            'rutaWaveform'     => self::rutaAUrl($row['ruta_waveform'] ?? ''),
+            'rutaOriginal'     => self::rutaAUrl($row['ruta_original'] ?? ''),
+            'rutaOptimizada'   => self::rutaAUrl($row['ruta_optimizada'] ?? ''),
             'imagenUrl'        => $row['imagen_url'] ?? null,
             'totalDescargas'   => (int) ($row['total_descargas'] ?? 0),
             'totalLikes'       => (int) ($row['total_likes'] ?? 0),

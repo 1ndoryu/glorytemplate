@@ -315,7 +315,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                     {sample.creador && (
                         <button
                             className="detalleCreador"
-                            onClick={() => navegar(`/perfil/${sample.creador.username}/`)}
+                            onClick={() => navegar(`/perfil/${sample.creador?.username}/`)}
                             type="button"
                         >
                             <Avatar

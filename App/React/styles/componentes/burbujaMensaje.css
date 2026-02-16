@@ -1,0 +1,211 @@
+/*
+ * burbujaMensaje.css — Kamples (Fase 5.2)
+ * Estilos para burbujas de chat multimedia.
+ * Soporta: texto, imagen, audio, sample compartido.
+ */
+
+/* Burbuja multimedia: override de padding para contenido visual */
+.burbujaTipoMedia .chatBurbujaContenido,
+.burbujaTipoMedia.chatFlotanteBurbuja {
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Contenedor base media */
+.burbujaMensajeMedia {
+    border-radius: var(--radioMd);
+    overflow: hidden;
+}
+
+/* -- Imagen -- */
+.burbujaImagen {
+    cursor: pointer;
+    max-width: 240px;
+}
+
+.burbujaImagenImg {
+    display: block;
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+    border-radius: var(--radioMd);
+    transition: opacity var(--transicionRapida);
+}
+
+.burbujaImagenImg:hover {
+    opacity: 0.9;
+}
+
+.burbujaImagenTexto {
+    padding: var(--espacioXs) var(--espacioSm);
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+/* -- Audio -- */
+.burbujaAudio {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    min-width: 180px;
+    background: var(--fondoElevado2);
+    border-radius: var(--radioFull);
+}
+
+.burbujaAudioBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radioFull);
+    background: var(--acento);
+    color: var(--acentoTexto);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity var(--transicionRapida);
+}
+
+.burbujaAudioBtn:hover {
+    opacity: 0.85;
+}
+
+.burbujaAudioProgreso {
+    flex: 1;
+    height: 4px;
+    background: var(--bordeSutil);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+
+.burbujaAudioBarra {
+    height: 100%;
+    background: var(--acento);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+}
+
+.burbujaAudioTexto {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    white-space: nowrap;
+}
+
+/* -- Sample compartido -- */
+.burbujaSample {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    cursor: pointer;
+    transition: background var(--transicionRapida), border-color var(--transicionRapida);
+    min-width: 200px;
+    max-width: 280px;
+}
+
+.burbujaSample:hover {
+    background: var(--fondoElevado3);
+    border-color: var(--bordeActivo);
+}
+
+.burbujaSampleIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radioMd);
+    background: var(--acento);
+    color: var(--acentoTexto);
+    flex-shrink: 0;
+}
+
+.burbujaSampleInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.burbujaSampleTitulo {
+    font-size: var(--fuenteSm);
+    font-weight: 600;
+    color: var(--textoPrimario);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.burbujaSampleDetalles {
+    display: flex;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.burbujaSampleTipo {
+    text-transform: capitalize;
+    color: var(--acento);
+}
+
+.burbujaSampleLink {
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+/* Botones de adjuntar en el input area */
+.chatAdjuntarBtn,
+.chatFlotanteAdjuntarBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: var(--radioMd);
+    transition: color var(--transicionRapida), background var(--transicionRapida);
+    flex-shrink: 0;
+}
+
+.chatAdjuntarBtn {
+    width: 36px;
+    height: 36px;
+}
+
+.chatFlotanteAdjuntarBtn {
+    width: 28px;
+    height: 28px;
+    padding: 2px;
+}
+
+.chatAdjuntarBtn:hover,
+.chatFlotanteAdjuntarBtn:hover {
+    color: var(--acento);
+    background: var(--fondoElevado2);
+}
+
+.chatAdjuntarBtn:disabled,
+.chatFlotanteAdjuntarBtn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .burbujaImagen {
+        max-width: 200px;
+    }
+    .burbujaSample {
+        max-width: 220px;
+        min-width: 160px;
+    }
+}

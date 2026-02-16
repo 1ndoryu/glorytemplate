@@ -94,10 +94,38 @@ export const apiPeticion = async <T>(
         log.debug(`${method} ${endpoint}`, params);
 
         const response = await fetch(url, config);
-        const json = await response.json();
+
+        /*
+         * Leer como texto primero para detectar respuestas HTML (errores WP/proxy).
+         * Si el body empieza con '<', lo reporta como error en vez de crashear json().
+         */
+        const texto = await response.text();
+
+        if (texto.startsWith('<!DOCTYPE') || texto.startsWith('<html') || texto.startsWith('<?xml')) {
+            log.warn(`${method} ${endpoint} → respuesta HTML inesperada`, texto.slice(0, 200));
+            return {
+                ok: false,
+                data: null,
+                error: 'El servidor devolvió una respuesta inesperada (HTML en vez de JSON)',
+                status: response.status,
+            };
+        }
+
+        let json: Record<string, unknown>;
+        try {
+            json = JSON.parse(texto);
+        } catch {
+            log.warn(`${method} ${endpoint} → JSON inválido`, texto.slice(0, 200));
+            return {
+                ok: false,
+                data: null,
+                error: 'Respuesta del servidor no es JSON válido',
+                status: response.status,
+            };
+        }
 
         if (!response.ok) {
-            const mensaje = json?.message ?? `Error ${response.status}`;
+            const mensaje = (json?.message as string) ?? `Error ${response.status}`;
             log.warn(`${method} ${endpoint} → ${response.status}`, mensaje);
             return {
                 ok: false,
@@ -109,7 +137,7 @@ export const apiPeticion = async <T>(
 
         return {
             ok: true,
-            data: json.data ?? json,
+            data: (json.data ?? json) as T,
             error: null,
             status: response.status,
         };

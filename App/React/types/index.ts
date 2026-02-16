@@ -30,6 +30,11 @@ export type {
 export type {
     Conversacion,
     Mensaje,
+    TipoMensaje,
+    MediaMetadata,
+    MediaMetadataImagen,
+    MediaMetadataAudio,
+    MediaMetadataSample,
 } from './mensaje';
 
 export type {

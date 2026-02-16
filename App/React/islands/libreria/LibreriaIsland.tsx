@@ -108,10 +108,6 @@ export const LibreriaIsland = (): JSX.Element => {
         }
     }, [samples]);
 
-    const manejarTab = useCallback((tabId: string) => {
-        setBusqueda('');
-    }, []);
-
     /* Colecciones: crear/editar/eliminar */
     const abrirNuevaColeccion = useCallback(() => {
         setColeccionEditando(null);

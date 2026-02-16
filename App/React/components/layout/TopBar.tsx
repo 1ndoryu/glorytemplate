@@ -12,6 +12,7 @@ import { Avatar } from '../ui/Avatar';
 import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
+import { BotonExperimentos } from '../ui/BotonExperimentos';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
@@ -23,7 +24,7 @@ import '../../styles/componentes/topbar.css';
 export const TopBar = (): JSX.Element => {
     const { tabs, activa, setActiva } = useTabsTopBarStore();
     const { usuario, autenticado } = useAuthStore();
-    const { busqueda, setBusqueda } = useFiltrosStore();
+    const { setBusqueda } = useFiltrosStore();
     const { navegar } = useNavigationStore();
     const { abrir: abrirCrear } = useCrearModalStore();
     const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
@@ -124,6 +125,9 @@ export const TopBar = (): JSX.Element => {
                             <>Free</>
                         )}
                     </button>
+
+                    {/* Botón experimentos — solo visible para admin */}
+                    <BotonExperimentos />
 
                     <div className="topbarIconoWrapper">
                         <button

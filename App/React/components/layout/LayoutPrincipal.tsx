@@ -15,8 +15,10 @@ import { ModalCrear } from '../social/ModalCrear';
 import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
 import { ModalConfiguracion } from '../social/ModalConfiguracion';
 import { ChatFlotante } from '../social/ChatFlotante';
+import { BotonDevTools } from '../ui/BotonDevTools';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
+import { useDevToolsStore } from '@app/stores/devToolsStore';
 import '../../styles/variables.css';
 import '../../styles/reset.css';
 import '../../styles/layout.css';
@@ -62,6 +64,10 @@ export const LayoutPrincipal = ({
     /* Se suscribe al store SPA para reaccionar a cambios de ruta sin recarga */
     const rutaActual = useNavigationStore((s) => s.rutaActual);
     const { autenticado } = useAuthStore();
+    const override = useDevToolsStore((s) => s.override);
+
+    /* Modo de autenticación efectivo: real o simulado */
+    const autenticadoEfectivo = override?.simulaDeslogueado ? false : autenticado;
 
     const activa = useMemo(
         () => paginaActiva ?? detectarPaginaActiva(rutaActual),
@@ -69,12 +75,14 @@ export const LayoutPrincipal = ({
     );
 
     /* Si no está autenticado, mostrar contenido a pantalla completa (landing) */
-    if (!autenticado) {
+    if (!autenticadoEfectivo) {
         return (
             <div className="layoutPublico">
                 <main className="areaContenidoPublico">
                     {children}
                 </main>
+                {/* Dev tools siempre visible para admin real */}
+                <BotonDevTools />
             </div>
         );
     }
@@ -110,6 +118,9 @@ export const LayoutPrincipal = ({
 
             {/* Chats flotantes tipo Messenger */}
             <ChatFlotante />
+
+            {/* Dev tools: cambio de modo (solo admin) */}
+            <BotonDevTools />
         </div>
     );
 };

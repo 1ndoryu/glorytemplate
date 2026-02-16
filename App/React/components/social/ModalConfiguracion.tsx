@@ -12,7 +12,7 @@ import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { useAuthStore } from '@app/stores/authStore';
-import { actualizarPerfil } from '@app/services/apiAuth';
+import { actualizarPerfil, subirAvatar } from '@app/services/apiAuth';
 import { crearLogger } from '@app/services/logger';
 import '../../styles/componentes/modalConfiguracion.css';
 
@@ -43,6 +43,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
     const [bio, setBio] = useState('');
     const [notificaciones, setNotificaciones] = useState(true);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [avatarArchivo, setAvatarArchivo] = useState<File | null>(null);
     const [portadaPreview, setPortadaPreview] = useState<string | null>(null);
     const [guardando, setGuardando] = useState(false);
     const inputFotoRef = useRef<HTMLInputElement>(null);
@@ -54,17 +55,19 @@ export const ModalConfiguracion = (): JSX.Element | null => {
             setNombreVisible(usuario.nombreVisible ?? '');
             setUsername(usuario.username ?? '');
             setAvatarPreview(null);
+            setAvatarArchivo(null);
             setPortadaPreview(null);
             setSeccionActiva('perfil');
         }
     }, [abierto, usuario]);
 
-    /* Preview de foto de perfil nueva */
+    /* Preview de foto de perfil nueva — guarda también la referencia al archivo */
     const manejarCambioFoto = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         const archivo = e.target.files?.[0];
         if (!archivo) return;
         const url = URL.createObjectURL(archivo);
         setAvatarPreview(url);
+        setAvatarArchivo(archivo);
     }, []);
 
     /* Preview de portada nueva */
@@ -75,32 +78,34 @@ export const ModalConfiguracion = (): JSX.Element | null => {
         setPortadaPreview(url);
     }, []);
 
-    /* Guardar cambios — envía al backend y persiste en authStore */
+    /* Guardar cambios — sube avatar si hay y envía datos de texto al backend */
     const manejarGuardar = useCallback(async () => {
         if (guardando || !usuario) return;
         setGuardando(true);
 
         try {
-            /* Enviar campos de texto al backend */
-            await actualizarPerfil({
+            /* 1. Subir avatar si el usuario seleccionó uno nuevo */
+            if (avatarArchivo) {
+                const respAvatar = await subirAvatar(avatarArchivo);
+                if (respAvatar.ok && respAvatar.data) {
+                    /* El endpoint devuelve perfil completo actualizado */
+                    const datos = (respAvatar.data as Record<string, unknown>).data ?? respAvatar.data;
+                    setUsuario(datos as any);
+                    log.info('Avatar subido correctamente');
+                }
+            }
+
+            /* 2. Enviar campos de texto al backend */
+            const resp = await actualizarPerfil({
                 nombreVisible: nombreVisible,
                 username: username,
                 bio: bio,
             } as any);
 
-            /* Persistir cambios locales en el store (real upload TO-DO: FormData con archivo) */
-            const nuevosDatos = {
-                ...usuario,
-                nombreVisible,
-                username,
-            };
-            if (avatarPreview) {
-                nuevosDatos.avatarUrl = avatarPreview;
+            /* Usar datos del servidor si la respuesta es exitosa */
+            if (resp.ok && resp.data) {
+                setUsuario(resp.data as any);
             }
-            if (portadaPreview) {
-                nuevosDatos.portadaUrl = portadaPreview;
-            }
-            setUsuario(nuevosDatos);
 
             log.info('Configuración guardada', { nombreVisible, username });
         } catch (err) {
@@ -109,7 +114,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
 
         setGuardando(false);
         cerrar();
-    }, [guardando, usuario, nombreVisible, username, bio, avatarPreview, portadaPreview, setUsuario, cerrar]);
+    }, [guardando, usuario, nombreVisible, username, bio, avatarArchivo, setUsuario, cerrar]);
 
     /* Cerrar sin guardar */
     const manejarCerrar = useCallback(() => {

@@ -39,6 +39,12 @@ class PerfilController
             'callback'            => [self::class, 'actualizarPerfil'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        register_rest_route($namespace, '/me/avatar', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'subirAvatar'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     /**
@@ -60,7 +66,24 @@ class PerfilController
             return new \WP_REST_Response(['code' => 'perfil_no_encontrado', 'message' => 'El usuario no existe.'], 404);
         }
 
-        return new \WP_REST_Response(['data' => $perfil], 200);
+        /* Normalizar a camelCase */
+        $normalizado = [
+            'id'              => (int) $perfil['id'],
+            'username'        => $perfil['username'],
+            'nombreVisible'   => $perfil['nombre_visible'] ?? '',
+            'bio'             => $perfil['bio'] ?? '',
+            'avatarUrl'       => $perfil['avatar_url'] ?? null,
+            'portadaUrl'      => $perfil['portada_url'] ?? null,
+            'plan'            => $perfil['plan'] ?? 'free',
+            'verificado'      => (bool) ($perfil['verificado'] ?? false),
+            'totalSeguidores' => (int) ($perfil['total_seguidores'] ?? 0),
+            'totalSeguidos'   => (int) ($perfil['total_seguidos'] ?? 0),
+            'totalSamples'    => (int) ($perfil['total_samples'] ?? 0),
+            'totalDescargas'  => (int) ($perfil['total_descargas'] ?? 0),
+            'creadoAt'        => $perfil['created_at'] ?? '',
+        ];
+
+        return new \WP_REST_Response(['data' => $normalizado], 200);
     }
 
     /**
@@ -77,6 +100,22 @@ class PerfilController
             "SELECT * FROM usuarios_ext WHERE wp_user_id = :wpId",
             ['wpId' => $wpUser['wp_user_id']]
         );
+
+        /*
+         * Sincronizar avatar_url desde WP solo si el usuario no tiene un avatar custom.
+         * Un avatar custom es cualquier URL que apunte a wp-content/uploads/kamples/avatars/.
+         */
+        $tieneAvatarCustom = $ext && !empty($ext['avatar_url'])
+            && str_contains($ext['avatar_url'], 'kamples/avatars/');
+
+        if ($ext && !$tieneAvatarCustom && !empty($wpUser['avatar_url'])
+            && ($ext['avatar_url'] ?? '') !== $wpUser['avatar_url']) {
+            PostgresService::ejecutar(
+                "UPDATE usuarios_ext SET avatar_url = :avatar, updated_at = NOW() WHERE wp_user_id = :wpId",
+                ['avatar' => $wpUser['avatar_url'], 'wpId' => $wpUser['wp_user_id']]
+            );
+            $ext['avatar_url'] = $wpUser['avatar_url'];
+        }
 
         /* Auto-crear registro si no existe en Postgres */
         if (!$ext) {
@@ -99,7 +138,56 @@ class PerfilController
             );
         }
 
-        return new \WP_REST_Response(['data' => array_merge($wpUser, $ext ?? [])], 200);
+        /* Normalizar a camelCase para el frontend */
+        $datos = array_merge($wpUser, $ext ?? []);
+
+        /*
+         * Si el usuario WP tiene rol 'administrator', forzar rol='admin'
+         * aunque en la BD esté como 'usuario'. Esto asegura que el frontend
+         * vea herramientas admin como BotonExperimentos y BotonDevTools.
+         */
+        $wpUserObj = \get_userdata($wpUser['wp_user_id']);
+        if ($wpUserObj && \in_array('administrator', $wpUserObj->roles, true)) {
+            $datos['rol'] = 'admin';
+        }
+
+        $normalizado = self::normalizarUsuario($datos);
+
+        return new \WP_REST_Response(['data' => $normalizado], 200);
+    }
+
+    /**
+     * Convierte las keys snake_case de BD a camelCase esperado por el frontend.
+     */
+    private static function normalizarUsuario(array $datos): array
+    {
+        return [
+            'id'               => (int) ($datos['id'] ?? 0),
+            'wpUserId'         => (int) ($datos['wp_user_id'] ?? 0),
+            'username'         => $datos['username'] ?? '',
+            'email'            => $datos['email'] ?? '',
+            'nombreVisible'    => $datos['nombre_visible'] ?? $datos['display_name'] ?? '',
+            'bio'              => $datos['bio'] ?? '',
+            'avatarUrl'        => $datos['avatar_url'] ?? null,
+            'portadaUrl'       => $datos['portada_url'] ?? null,
+            'plan'             => $datos['plan'] ?? 'free',
+            'rol'              => $datos['rol'] ?? 'usuario',
+            'verificado'       => (bool) ($datos['verificado'] ?? false),
+            'totalSeguidores'  => (int) ($datos['total_seguidores'] ?? 0),
+            'totalSeguidos'    => (int) ($datos['total_seguidos'] ?? 0),
+            'totalSamples'     => (int) ($datos['total_samples'] ?? 0),
+            'totalDescargas'   => (int) ($datos['total_descargas'] ?? 0),
+            'stripeCustomerId' => $datos['stripe_customer_id'] ?? null,
+            'stripeConnectId'  => $datos['stripe_connect_id'] ?? null,
+            'creadoAt'         => $datos['created_at'] ?? '',
+            'actualizadoAt'    => $datos['updated_at'] ?? '',
+            'descargasHoy'     => (int) ($datos['descargas_hoy'] ?? 0),
+            'limiteDescargas'  => (int) ($datos['limite_descargas'] ?? 5),
+            'subidasEsteMes'   => (int) ($datos['subidas_este_mes'] ?? 0),
+            'limiteSubidas'    => (int) ($datos['limite_subidas'] ?? -1),
+            'mensajesHoy'      => (int) ($datos['mensajes_hoy'] ?? 0),
+            'limiteMensajes'   => (int) ($datos['limite_mensajes'] ?? -1),
+        ];
     }
 
     /**
@@ -146,6 +234,95 @@ class PerfilController
             $params
         );
 
-        return new \WP_REST_Response(['ok' => true, 'message' => 'Perfil actualizado'], 200);
+        /* Devolver el perfil actualizado completo */
+        $wpUser = AuthMiddleware::obtenerUsuarioActual();
+        $ext = PostgresService::consultarUno(
+            "SELECT * FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+        $normalizado = self::normalizarUsuario(array_merge($wpUser ?? [], $ext ?? []));
+
+        return new \WP_REST_Response(['data' => $normalizado, 'ok' => true, 'message' => 'Perfil actualizado'], 200);
+    }
+
+    /**
+     * POST /me/avatar — Subir imagen de perfil.
+     * Acepta FormData con campo 'avatar' (imagen).
+     * Guarda en wp-content/uploads/kamples/avatars/{userId}/
+     */
+    public static function subirAvatar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $wpUserId = AuthMiddleware::obtenerWpUserId();
+        $files = $request->get_file_params();
+
+        if (empty($files['avatar'])) {
+            return new \WP_REST_Response([
+                'code' => 'sin_archivo',
+                'message' => 'No se recibió ninguna imagen.',
+            ], 400);
+        }
+
+        $uploaded = $files['avatar'];
+
+        /* Validar tipo MIME */
+        $tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        $mimeReal = \mime_content_type($uploaded['tmp_name']);
+        if (!in_array($mimeReal, $tiposPermitidos, true)) {
+            return new \WP_REST_Response([
+                'code' => 'tipo_invalido',
+                'message' => 'Solo se permiten imágenes (JPEG, PNG, WebP, GIF).',
+            ], 400);
+        }
+
+        /* Validar tamaño (máx 5MB) */
+        if ($uploaded['size'] > 5 * 1024 * 1024) {
+            return new \WP_REST_Response([
+                'code' => 'archivo_muy_grande',
+                'message' => 'La imagen no puede superar 5 MB.',
+            ], 400);
+        }
+
+        /* Directorio de destino */
+        $uploadDir = \wp_upload_dir();
+        $avatarDir = $uploadDir['basedir'] . '/kamples/avatars/' . $wpUserId;
+        if (!\file_exists($avatarDir)) {
+            \wp_mkdir_p($avatarDir);
+        }
+
+        /* Generar nombre único */
+        $ext = \pathinfo($uploaded['name'], PATHINFO_EXTENSION) ?: 'jpg';
+        $nombre = 'avatar_' . time() . '.' . $ext;
+        $rutaFinal = $avatarDir . '/' . $nombre;
+
+        /* Mover archivo */
+        if (!\move_uploaded_file($uploaded['tmp_name'], $rutaFinal)) {
+            return new \WP_REST_Response([
+                'code' => 'error_subida',
+                'message' => 'No se pudo guardar la imagen.',
+            ], 500);
+        }
+
+        /* Construir URL pública */
+        $avatarUrl = $uploadDir['baseurl'] . '/kamples/avatars/' . $wpUserId . '/' . $nombre;
+
+        /* Actualizar en BD */
+        PostgresService::ejecutar(
+            "UPDATE usuarios_ext SET avatar_url = :avatar, updated_at = NOW() WHERE wp_user_id = :wpId",
+            ['avatar' => $avatarUrl, 'wpId' => $wpUserId]
+        );
+
+        /* Devolver perfil completo actualizado */
+        $wpUser = AuthMiddleware::obtenerUsuarioActual();
+        $extData = PostgresService::consultarUno(
+            "SELECT * FROM usuarios_ext WHERE wp_user_id = :wpId",
+            ['wpId' => $wpUserId]
+        );
+        $normalizado = self::normalizarUsuario(array_merge($wpUser ?? [], $extData ?? []));
+
+        return new \WP_REST_Response([
+            'ok'   => true,
+            'data' => $normalizado,
+            'avatarUrl' => $avatarUrl,
+        ], 200);
     }
 }

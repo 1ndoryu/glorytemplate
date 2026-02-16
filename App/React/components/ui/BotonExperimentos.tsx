@@ -1,0 +1,168 @@
+/*
+ * Componente: BotonExperimentos
+ * Botón admin-only en TopBar para generar contenido de test realista.
+ * Crea usuario test + notificación + mensaje con un solo click.
+ */
+
+import { useState, useCallback } from 'react';
+import { FlaskConical, Check, Loader2, AlertTriangle } from 'lucide-react';
+import { useAuthStore } from '@app/stores/authStore';
+import { generarExperimento, generarEmbeddings, regenerarEmbeddings } from '@app/services/apiExperimentos';
+import '../../styles/componentes/experimentos.css';
+
+type EstadoBoton = 'idle' | 'cargando' | 'exito' | 'error';
+
+export const BotonExperimentos = (): JSX.Element | null => {
+    const { usuario } = useAuthStore();
+    const [estado, setEstado] = useState<EstadoBoton>('idle');
+    const [panelVisible, setPanelVisible] = useState(false);
+    const [ultimoResultado, setUltimoResultado] = useState<string | null>(null);
+
+    const ejecutar = useCallback(async (acciones?: ('usuario' | 'notificacion' | 'mensaje')[]) => {
+        setEstado('cargando');
+        setUltimoResultado(null);
+
+        try {
+            const resp = await generarExperimento(acciones);
+
+            if (resp.ok && resp.data) {
+                setEstado('exito');
+                const data = (resp.data as Record<string, unknown>).data ?? resp.data;
+                const partes: string[] = [];
+
+                const d = data as Record<string, Record<string, unknown>>;
+                if (d.usuario) partes.push(`Usuario: ${d.usuario.username}`);
+                if (d.notificacion) partes.push(`Notif: ${d.notificacion.tipo}`);
+                if (d.mensaje) partes.push(`Msg: "${String(d.mensaje.contenido ?? '').slice(0, 40)}..."`);
+
+                setUltimoResultado(partes.join(' | '));
+            } else {
+                setEstado('error');
+                setUltimoResultado(resp.error ?? 'Error desconocido');
+            }
+        } catch {
+            setEstado('error');
+            setUltimoResultado('Error de red');
+        }
+
+        /* Resetear estado visual tras 3 segundos */
+        setTimeout(() => setEstado('idle'), 3000);
+    }, []);
+
+    const ejecutarEmbeddings = useCallback(async (regenerar = false) => {
+        setEstado('cargando');
+        setUltimoResultado(null);
+        try {
+            const resp = regenerar ? await regenerarEmbeddings() : await generarEmbeddings();
+            if (resp.ok && resp.data) {
+                setEstado('exito');
+                const d = resp.data;
+                setUltimoResultado(`Embeddings: ${d.actualizados ?? 0} en ${d.tiempoMs ?? 0}ms`);
+            } else {
+                setEstado('error');
+                setUltimoResultado(resp.error ?? 'Error embeddings');
+            }
+        } catch {
+            setEstado('error');
+            setUltimoResultado('Error de red');
+        }
+        setTimeout(() => setEstado('idle'), 3000);
+    }, []);
+
+    /* Solo visible para admin real (no override) — después de todos los hooks */
+    const esAdmin = usuario?.rol === 'admin';
+    if (!esAdmin) return null;
+
+    const iconoEstado = () => {
+        switch (estado) {
+            case 'cargando':
+                return <Loader2 size={14} className="experimentosIconoGirando" />;
+            case 'exito':
+                return <Check size={14} />;
+            case 'error':
+                return <AlertTriangle size={14} />;
+            default:
+                return <FlaskConical size={14} />;
+        }
+    };
+
+    return (
+        <div className="experimentosContenedor">
+            <button
+                className={`experimentosBtn experimentosBtn--${estado}`}
+                onClick={() => setPanelVisible((v) => !v)}
+                aria-label="Experimentos de test"
+                type="button"
+                title="Generar contenido de test"
+            >
+                {iconoEstado()}
+            </button>
+
+            {panelVisible && (
+                <div className="experimentosPanel">
+                    <div className="experimentosTitulo">Experimentos</div>
+
+                    <button
+                        className="experimentosAccion"
+                        onClick={() => ejecutar()}
+                        disabled={estado === 'cargando'}
+                        type="button"
+                    >
+                        <FlaskConical size={13} />
+                        Generar todo
+                    </button>
+
+                    <button
+                        className="experimentosAccion"
+                        onClick={() => ejecutar(['notificacion'])}
+                        disabled={estado === 'cargando'}
+                        type="button"
+                    >
+                        Notificación
+                    </button>
+
+                    <button
+                        className="experimentosAccion"
+                        onClick={() => ejecutar(['mensaje'])}
+                        disabled={estado === 'cargando'}
+                        type="button"
+                    >
+                        Mensaje
+                    </button>
+
+                    <div className="experimentosSeparador" />
+
+                    <button
+                        className="experimentosAccion"
+                        onClick={() => ejecutarEmbeddings(false)}
+                        disabled={estado === 'cargando'}
+                        type="button"
+                    >
+                        Generar embeddings
+                    </button>
+
+                    <button
+                        className="experimentosAccion"
+                        onClick={() => ejecutarEmbeddings(true)}
+                        disabled={estado === 'cargando'}
+                        type="button"
+                    >
+                        Regenerar todos
+                    </button>
+
+                    {ultimoResultado && (
+                        <div className={`experimentosResultado experimentosResultado--${estado}`}>
+                            {ultimoResultado}
+                        </div>
+                    )}
+
+                    <div className="experimentosInfo">
+                        Crea usuario test + contenido real
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default BotonExperimentos;

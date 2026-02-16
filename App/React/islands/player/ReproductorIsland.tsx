@@ -5,7 +5,7 @@
  */
 
 import {useCallback} from 'react';
-import {Play, Pause, SkipBack, SkipForward, Repeat, Shuffle, Volume2, VolumeX, Music, ListMusic, Trash2, ChevronUp, ChevronDown, Heart, X} from 'lucide-react';
+import {Play, Pause, SkipBack, SkipForward, Repeat, Shuffle, Volume2, VolumeX, Music, ListMusic, Trash2, ChevronUp, ChevronDown, X} from 'lucide-react';
 import {useReproductorStore} from '@app/stores/reproductorStore';
 import {WaveformPlayer} from '@app/components/ui/WaveformPlayer';
 import {Badge} from '@app/components/ui/Badge';

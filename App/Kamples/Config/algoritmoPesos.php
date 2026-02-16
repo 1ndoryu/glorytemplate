@@ -127,4 +127,53 @@ return [
         'tendencias'          => 0.15,
         'novedad'             => 0.15,
     ],
+
+    /*
+     * Frecuencia de recálculo del algoritmo (C45).
+     *
+     * Dos modos: rápido (light, menos señales) y preciso (full, todas las señales).
+     *
+     * El algoritmo rápido invalida el cache del feed y fuerza un recálculo ligero.
+     * El algoritmo preciso regenera embeddings actualizados, recalcula perfiles de
+     * usuario y ejecuta el scoring completo con las 6 señales.
+     *
+     * Triggers = cantidad de interacciones acumuladas que disparan el recálculo.
+     * Temporales = recálculos periódicos independientes de la actividad.
+     */
+    'frecuencia' => [
+        /* Algoritmo rápido: scoring ligero (sin pgvector/embeddings) */
+        'rapido' => [
+            /* Triggers por interacciones — al acumular N interacciones, invalidar cache */
+            'triggers' => [
+                'likes'                  => 5,   /* Cada 5 likes */
+                'reproducciones'         => 10,  /* Cada 10 reproducciones */
+                'reproducciones_completas' => 5, /* Cada 5 reproducciones completas */
+                'descargas'              => 3,   /* Cada 3 descargas */
+                'follows'                => 2,   /* Cada 2 follows */
+                'comentarios'            => 3,   /* Cada 3 comentarios */
+            ],
+            /* Recálculo temporal: minutos entre recálculos automáticos */
+            'intervalo_activo_min'   => 30,  /* Mientras el usuario está conectado */
+            'intervalo_inactivo_min' => 480, /* 8 horas sin actividad */
+        ],
+
+        /* Algoritmo preciso: scoring completo (con pgvector + embeddings) */
+        'preciso' => [
+            /* Triggers por interacciones — el doble que el rápido */
+            'triggers' => [
+                'likes'                  => 10,
+                'reproducciones'         => 20,
+                'reproducciones_completas' => 10,
+                'descargas'              => 6,
+                'follows'                => 4,
+                'comentarios'            => 6,
+            ],
+            /* Recálculo temporal: el doble de tiempo que el rápido */
+            'intervalo_activo_min'   => 60,   /* 1 hora mientras conectado */
+            'intervalo_inactivo_min' => 960,  /* 16 horas sin actividad */
+        ],
+
+        /* Tiempo (segundos) sin actividad para considerar al usuario "inactivo" */
+        'umbral_inactividad_seg'    => 600, /* 10 minutos */
+    ],
 ];

@@ -15,6 +15,8 @@ use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\Services\MotorRecomendacion;
+use App\Kamples\Services\PlanificadorAlgoritmo;
 
 class ReproduccionesController
 {
@@ -90,6 +92,15 @@ class ReproduccionesController
             "UPDATE samples SET total_reproducciones = total_reproducciones + 1 WHERE id = :id",
             ['id' => $sampleId]
         );
+
+        /* Invalidar cache del feed para que el algoritmo recalcule */
+        MotorRecomendacion::invalidarCache($userId);
+
+        /* C45: registrar interacción para el planificador del algoritmo */
+        PlanificadorAlgoritmo::registrarInteraccion($userId, 'reproduccion');
+        if ($completada) {
+            PlanificadorAlgoritmo::registrarInteraccion($userId, 'completa');
+        }
 
         return new \WP_REST_Response(['ok' => true], 201);
     }

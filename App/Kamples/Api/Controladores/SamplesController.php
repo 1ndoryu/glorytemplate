@@ -88,6 +88,17 @@ class SamplesController
         $where  = ["s.estado = 'activo'"];
         $params = [];
 
+        /*
+         * Si se filtra por creador, mostrar también samples en procesamiento.
+         * Solo excluir eliminados. Así el creador puede ver su propio contenido.
+         */
+        $creador = $request->get_param('creador');
+        if (!empty($creador)) {
+            $where  = ["s.estado NOT IN ('eliminado')"];
+            $where[]  = "u.username = :creador";
+            $params['creador'] = $creador;
+        }
+
         $busqueda = $request->get_param('busqueda');
         if (!empty($busqueda)) {
             $where[]  = "(s.titulo ILIKE :busqueda OR s.descripcion ILIKE :busqueda)";
@@ -127,7 +138,9 @@ class SamplesController
         $whereSQL = implode(' AND ', $where);
 
         $totalRow = PostgresService::consultarUno(
-            "SELECT COUNT(*) as total FROM samples s WHERE {$whereSQL}",
+            "SELECT COUNT(*) as total FROM samples s
+             LEFT JOIN usuarios_ext u ON s.creador_id = u.id
+             WHERE {$whereSQL}",
             $params
         );
         $total = $totalRow ? (int) $totalRow['total'] : 0;
@@ -158,10 +171,15 @@ class SamplesController
     {
         $slug = $request->get_param('slug');
 
-        /* Lookup dual: intenta por slug primero, luego por id_corto */
+        /*
+         * Lookup dual: intenta por slug primero, luego por id_corto.
+         * No filtra por estado para permitir ver samples en procesamiento.
+         * El frontend muestra badge de estado si no es 'activo'.
+         */
         $sample = PostgresService::consultarUno(
             NormalizadorSample::sqlSelectSamples()
-            . " WHERE (s.slug = :slug OR s.id_corto = :slug) AND s.estado = 'activo'",
+            . " WHERE (s.slug = :slug OR s.id_corto = :slug)"
+            . " AND s.estado NOT IN ('eliminado')",
             ['slug' => $slug]
         );
 

@@ -5,7 +5,7 @@
  */
 
 import { useCallback, type MouseEvent } from 'react';
-import { Globe, Lock, MoreHorizontal, Trash2, Edit3 } from 'lucide-react';
+import { Globe, Lock, Trash2, Edit3 } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import '../../styles/componentes/tarjetaColeccion.css';

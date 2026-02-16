@@ -13,6 +13,7 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
+use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\StripeService;
 
@@ -146,6 +147,9 @@ class DescargasController
             "UPDATE usuarios_ext SET total_descargas = total_descargas + 1 WHERE id = :id",
             ['id' => $sample['creador_id']]
         );
+
+        /* C45: registrar interacción para el planificador del algoritmo */
+        PlanificadorAlgoritmo::registrarInteraccion($userId, 'descarga');
 
         /* Revenue share: registrar transacción si el descargador tiene plan de pago */
         if ($plan !== 'free' && (int) $sample['creador_id'] !== $userId) {

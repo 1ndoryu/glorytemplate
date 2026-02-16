@@ -98,8 +98,9 @@
     align-items: center;
     gap: 4px;
     padding: 2px var(--espacioSm);
-    background: linear-gradient(135deg, var(--acentoDorado, #f59e0b), var(--acentoDoradoOscuro, #d97706));
-    color: #fff;
+    /* Gradiente premium dorado/naranja */
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: var(--blanco);
     font-size: var(--fuenteXs);
     font-weight: var(--pesoSemibold);
     border-radius: var(--radioFull);

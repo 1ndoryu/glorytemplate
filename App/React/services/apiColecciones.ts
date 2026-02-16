@@ -6,7 +6,7 @@
 
 import { apiGet, apiPost, apiPut, apiDelete } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
-import type { Coleccion, ColeccionResumen, SampleResumen } from '../types';
+import type { Coleccion, SampleResumen } from '../types';
 
 /* Listar colecciones del usuario (o de otro si se pasa usuarioId) */
 export const listarColecciones = async (usuarioId?: number): Promise<RespuestaApi<Coleccion[]>> => {
@@ -15,7 +15,7 @@ export const listarColecciones = async (usuarioId?: number): Promise<RespuestaAp
 
 /* Colecciones públicas para explorar */
 export const listarColeccionesPublicas = async (): Promise<RespuestaApi<Coleccion[]>> => {
-    return apiGet<Coleccion[]>('/colecciones/publicas');
+    return apiGet<Coleccion[]>('/colecciones/explorar');
 };
 
 /* Detalle de una colección */

@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
-import { Image, Music, X, Send, Plus } from 'lucide-react';
+import { Image, Music, X } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Avatar } from '@app/components/ui/Avatar';

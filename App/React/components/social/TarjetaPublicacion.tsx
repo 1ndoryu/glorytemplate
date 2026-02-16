@@ -5,7 +5,7 @@
  */
 
 import { useCallback, type MouseEvent } from 'react';
-import { Heart, MessageCircle, Repeat2, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Repeat2 } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import type { Publicacion, SampleResumen } from '@app/types';

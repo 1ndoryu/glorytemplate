@@ -8,8 +8,6 @@
 import { useEffect, useCallback, useState } from 'react';
 import {
     MessageCircle,
-    Search,
-    Circle,
 } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { InputBusqueda } from '@app/components/ui/InputBusqueda';

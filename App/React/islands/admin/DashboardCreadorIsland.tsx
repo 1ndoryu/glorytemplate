@@ -172,7 +172,7 @@ const SeccionConnect = ({
                             variante="primario"
                             tamano="sm"
                             onClick={onIniciarOnboarding}
-                            deshabilitado={conectando}
+                            disabled={conectando}
                         >
                             {conectando ? (
                                 <><Loader2 size={14} className="dashboardSpinner" /> Conectando...</>
@@ -196,7 +196,7 @@ const SeccionConnect = ({
                             variante="secundario"
                             tamano="sm"
                             onClick={onIniciarOnboarding}
-                            deshabilitado={conectando}
+                            disabled={conectando}
                         >
                             {conectando ? (
                                 <><Loader2 size={14} className="dashboardSpinner" /> Cargando...</>
@@ -218,7 +218,7 @@ const SeccionConnect = ({
                                     : 'Tu cuenta está configurada.'}
                             </span>
                         </div>
-                        <BotonBase variante="fantasma" tamano="sm" onClick={onAbrirDashboard}>
+                        <BotonBase variante="ghost" tamano="sm" onClick={onAbrirDashboard}>
                             <ExternalLink size={14} /> Ver dashboard Stripe
                         </BotonBase>
                     </div>

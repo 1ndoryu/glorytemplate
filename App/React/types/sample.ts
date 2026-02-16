@@ -9,11 +9,37 @@ export type NotaMusical = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#
 export type EscalaMusical = 'mayor' | 'menor';
 
 export interface MetadataSample {
-    genero: string[];
-    instrumentos: string[];
-    sentimiento: string[];
-    tipo: TipoSample;
-    descripcionIA: string;
+    /* Campos de la IA (camelCase en frontend) */
+    nombreArchivoBase?: string;
+    tags?: string[];
+    tagsEs?: string[];
+    genero?: string[] | string;
+    emocion?: string;
+    emocionEs?: string;
+    instrumentos?: string[] | string;
+    artistaVibes?: string[] | string;
+    descripcionCorta?: string;
+    descripcionCortaEs?: string;
+    descripcion?: string;
+    descripcionEs?: string;
+    bpmConfianza?: number;
+    keyConfianza?: number;
+    /* Variantes snake_case (vienen directo del JSONB de Postgres) */
+    nombre_archivo_base?: string;
+    tags_es?: string[];
+    emocion_es?: string;
+    artista_vibes?: string[] | string;
+    descripcion_corta?: string;
+    descripcion_corta_es?: string;
+    descripcion_es?: string;
+    bpm_confianza?: number;
+    key_confianza?: number;
+    /* Campos legacy por compatibilidad */
+    sentimiento?: string[];
+    tipo?: TipoSample;
+    descripcionIA?: string;
+    /* Indexado libre para otros campos IA futuros */
+    [key: string]: unknown;
 }
 
 export interface Sample {
@@ -28,11 +54,13 @@ export interface Sample {
     duracion: number;
     formato: string;
     tamano: number;
-    metadata: MetadataSample;
+    metadata: MetadataSample | null;
     tags: string[];
+    tipo: TipoSample;
     estado: EstadoSample;
     esPremium: boolean;
     precio: number | null;
+    liked?: boolean;
     rutaOriginal: string;
     rutaOptimizada: string;
     rutaPreview: string;
