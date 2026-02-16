@@ -26,7 +26,7 @@
     height: 80vh;
     max-height: 560px;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 var(--espacioXl) calc(var(--espacioXs) * 15) rgba(0, 0, 0, 0.4);
 }
 
 /* Panel lateral de navegación */
@@ -51,7 +51,7 @@
 .configNavLista {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
     padding: 0 var(--espacioSm);
 }
 
@@ -146,7 +146,7 @@
 .configSeccionInfo {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
 }
 
 .configLabel {

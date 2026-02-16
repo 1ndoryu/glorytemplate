@@ -59,7 +59,7 @@
 .chatHeaderEstado {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--espacioXs);
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
 }
@@ -104,7 +104,7 @@
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
     background: var(--fondoElevado2);
-    padding: 2px var(--espacioSm);
+    padding: calc(var(--espacioXs) / 2) var(--espacioSm);
     border-radius: var(--radioFull);
 }
 
@@ -150,7 +150,7 @@
     display: block;
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
-    margin-top: 2px;
+    margin-top: calc(var(--espacioXs) / 2);
     text-align: right;
 }
 

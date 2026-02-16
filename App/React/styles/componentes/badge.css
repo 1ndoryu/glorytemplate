@@ -10,7 +10,7 @@
     font-family: var(--fuentePrincipal);
     font-size: var(--fuenteSm);
     font-weight: var(--pesoMedio);
-    padding: 4px var(--espacioMd);
+    padding: var(--espacioXs) var(--espacioMd);
     border-radius: var(--radioFull);
     white-space: nowrap;
     user-select: none;
@@ -21,7 +21,7 @@
 /* Tamaños */
 .badge.badgeXs {
     font-size: var(--fuenteXs);
-    padding: 2px var(--espacioSm);
+    padding: calc(var(--espacioXs) / 2) var(--espacioSm);
     height: auto;
 }
 

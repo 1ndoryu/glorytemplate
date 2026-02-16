@@ -23,7 +23,7 @@
 }
 
 .botonFollow-sm {
-    padding: 2px var(--espacioSm);
+    padding: calc(var(--espacioXs) / 2) var(--espacioSm);
     font-size: var(--fuenteXs);
 }
 

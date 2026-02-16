@@ -209,7 +209,7 @@
 .tarjetaStatItem {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
 }
 
 /* Badge premium */
@@ -218,6 +218,6 @@
     font-weight: var(--pesoSemibold);
     color: var(--advertencia);
     background-color: var(--advertenciaMuted);
-    padding: 1px 6px;
+    padding: calc(var(--espacioXs) / 4) calc(var(--espacioXs) * 1.5);
     border-radius: var(--radioFull);
 }

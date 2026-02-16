@@ -34,7 +34,7 @@
     color: var(--textoPrimario);
     font-family: var(--fuentePrincipal);
     font-size: var(--fuenteMd);
-    line-height: 20px;
+    line-height: var(--espacioXl);
     padding: 0;
 }
 
@@ -146,7 +146,7 @@
 .crearWaveformBarras {
     display: flex;
     align-items: flex-end;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
     width: 100%;
     height: 40px;
 }
@@ -155,7 +155,7 @@
     flex: 1;
     min-width: 2px;
     background-color: var(--acento-blanco);
-    border-radius: 1px;
+    border-radius: calc(var(--espacioXs) / 4);
     opacity: 0.6;
     transition: opacity var(--transicionRapida);
 }
@@ -383,7 +383,7 @@
     border: none;
     color: inherit;
     cursor: pointer;
-    padding: 2px;
+    padding: calc(var(--espacioXs) / 2);
     opacity: 0.7;
 }
 

@@ -74,7 +74,7 @@
 .dashboardStatCambio {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--espacioXs);
     font-size: var(--fuenteXs);
 }
 
@@ -123,14 +123,14 @@
 .dashboardGraficaBarras {
     display: flex;
     align-items: flex-end;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
     height: 120px;
 }
 
 .dashboardGraficaBarra {
     flex: 1;
     background: var(--fondoElevado3);
-    border-radius: 2px 2px 0 0;
+    border-radius: calc(var(--espacioXs) / 2) calc(var(--espacioXs) / 2) 0 0;
     min-height: 2px;
     transition: background var(--transicionRapida);
 }
@@ -272,7 +272,7 @@
 .dashboardConnectBannerInfo > svg {
     color: var(--acento);
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: calc(var(--espacioXs) / 2);
 }
 
 .dashboardConnectBannerExito {
@@ -283,7 +283,7 @@
 .dashboardConnectBannerExito > svg {
     color: var(--exito);
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: calc(var(--espacioXs) / 2);
 }
 
 .dashboardConnectBannerAdvertencia {
@@ -294,7 +294,7 @@
 .dashboardConnectBannerAdvertencia > svg {
     color: var(--advertencia);
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: calc(var(--espacioXs) / 2);
 }
 
 .dashboardConnectBannerTexto {

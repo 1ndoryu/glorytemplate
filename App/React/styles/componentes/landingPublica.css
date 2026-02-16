@@ -45,7 +45,7 @@
     flex-direction: column;
     gap: var(--espacio2xl);
     padding: var(--espacio2xl) var(--espacioXl);
-    padding-top: calc(var(--espacio2xl) + 60px); /* compensar nav fijo */
+    padding-top: calc(var(--espacio2xl) + calc(var(--espacioXs) * 15)); /* compensar nav fijo */
     max-width: 900px;
     margin: 0 auto;
 }
@@ -148,7 +148,7 @@
 .landingTrendingLista {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
 }
 
 .landingTrendingCta {

@@ -61,7 +61,7 @@
 
 .detalleHeroPlayBtn:hover {
     transform: scale(1.08);
-    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 var(--espacioXs) var(--espacioXl) rgba(255, 255, 255, 0.2);
 }
 
 .detalleHeroPlayBtnActivo {
@@ -121,7 +121,7 @@
 .detalleCreadorTexto {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: calc(var(--espacioXs) / 4);
 }
 
 .detalleCreadorTexto strong {

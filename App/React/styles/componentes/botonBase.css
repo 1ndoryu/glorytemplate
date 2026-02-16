@@ -37,7 +37,7 @@
 /* Variante primario */
 .botonBase.variantePrimario {
     background-color: var(--acento-blanco);
-    color: var(--textoInverso);
+    color: var(--textoPrimarioInverso);
 }
 
 .botonBase.variantePrimario:hover {
@@ -122,7 +122,7 @@
     height: 16px;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-top-color: #ffffff;
-    border-radius: 50%;
+    border-radius: var(--radioFull);
     animation: spinBoton 0.6s linear infinite;
 }
 

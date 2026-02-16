@@ -98,7 +98,7 @@
 
 .feedTagItem {
     display: flex;
-    padding: 1px var(--espacioMd);
+    padding: calc(var(--espacioXs) / 4) var(--espacioMd);
     align-items: center;
     gap: 0;
     background: var(--fondoElevado1);
@@ -111,13 +111,13 @@
 
 .feedTagItem:hover {
     border-color: var(--bordeActivo);
-    padding: 1px var(--espacioXs);
+    padding: calc(var(--espacioXs) / 4) var(--espacioXs);
 }
 
 .feedTagItemIncluido {
     background: var(--acento);
     border-color: var(--acento);
-    color: var(--textoInverso);
+    color: var(--textoPrimarioInverso);
 }
 
 .feedTagItemExcluido {

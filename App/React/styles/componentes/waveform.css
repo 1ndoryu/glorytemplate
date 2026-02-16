@@ -48,7 +48,7 @@
     background-color: var(--fondoElevado3);
     color: var(--textoPrimario);
     font-size: var(--fuenteXs);
-    padding: 2px 6px;
+    padding: calc(var(--espacioXs) / 2) calc(var(--espacioXs) * 1.5);
     border-radius: var(--radioSm);
     pointer-events: none;
     white-space: nowrap;

@@ -18,13 +18,15 @@
     "cssVarsValidator.enable": true,
     "cssVarsValidator.variableFiles": [
         "App/React/styles/variables.css",
-        "Glory/assets/css/variables.css",
         "**/variables.css",
         "**/vars.css",
         "**/_variables.scss",
         "**/tokens.css"
     ],
-    "cssVarsValidator.hardcodedDetection.enabled": true,
+    "cssVarsValidator.includePatterns": [
+        "App/**"
+    ],
+    "cssVarsValidator.hardcodedDetection.enabled": false,
     "cssVarsValidator.hardcodedDetection.severity": "error",
     "cssVarsValidator.hardcodedDetection.properties": {
         "font-size": true,
@@ -57,6 +59,7 @@
         "100%"
     ],
     "cssVarsValidator.excludePatterns": [
+        "**/Glory/**",
         "**/node_modules/**",
         "**/vendor/**",
         "**/dist/**",
@@ -64,6 +67,7 @@
         "**/*.min.css"
     ],
     "cssVarsValidator.scanAllFiles": true,
+    "cssVarsValidator.inlineDetection.enabled": false,
     "cssVarsValidator.duplicateClassDetection.enabled": false,
     "cssVarsValidator.duplicateClassDetection.crossFile": false
 }

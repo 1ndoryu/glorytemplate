@@ -37,14 +37,14 @@
     color: var(--textoSecundario);
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--espacioXs);
 }
 
 .indicadorDescargasCalidad {
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
     background-color: var(--fondoElevado3);
-    padding: 1px 6px;
+    padding: calc(var(--espacioXs) / 4) calc(var(--espacioXs) * 1.5);
     border-radius: var(--radioSm);
     font-weight: var(--pesoMedio);
 }

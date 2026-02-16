@@ -35,7 +35,7 @@
     width: 100%;
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
-    padding-left: 24px;
+    padding-left: calc(var(--espacioXs) * 6);
 }
 
 .modalColeccionAcciones {

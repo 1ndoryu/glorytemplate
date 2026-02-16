@@ -10,7 +10,7 @@
     z-index: 9999;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--espacioSm);
     max-width: 380px;
     pointer-events: none;
 }
@@ -19,8 +19,8 @@
     pointer-events: auto;
     background: var(--fondoElevado2);
     border: 1px solid var(--bordeSutil);
-    border-radius: 10px;
-    padding: 12px 14px;
+    border-radius: calc(var(--espacioXs) * 2.5);
+    padding: 12px calc(var(--espacioXs) * 3.5);
     box-shadow: var(--sombraElevada);
     animation: toastEntrar 0.3s ease-out;
     transition: opacity 0.3s, transform 0.3s;
@@ -50,7 +50,7 @@
 .toastContenido {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: calc(var(--espacioXs) * 2.5);
 }
 
 .toastIcono {
@@ -86,8 +86,8 @@
     border: none;
     color: var(--textoSecundario);
     cursor: pointer;
-    padding: 2px;
-    border-radius: 4px;
+    padding: calc(var(--espacioXs) / 2);
+    border-radius: var(--espacioXs);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -101,15 +101,15 @@
 .toastAcciones {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
-    margin-top: 10px;
-    padding-top: 8px;
+    gap: var(--espacioSm);
+    margin-top: calc(var(--espacioXs) * 2.5);
+    padding-top: var(--espacioSm);
     border-top: 1px solid var(--bordeSutil);
 }
 
 .toastAccionBtn {
-    padding: 5px 14px;
-    border-radius: 6px;
+    padding: 5px calc(var(--espacioXs) * 3.5);
+    border-radius: calc(var(--espacioXs) * 1.5);
     border: 1px solid var(--bordeSutil);
     background: transparent;
     color: var(--textoPrimario);

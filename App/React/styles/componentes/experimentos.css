@@ -15,16 +15,16 @@
     justify-content: center;
     width: 30px;
     height: 30px;
-    border: 1px solid var(--borde);
-    border-radius: 6px;
-    background: var(--superficie);
+    border: 1px solid var(--bordeSutil);
+    border-radius: calc(var(--espacioXs) * 1.5);
+    background: var(--fondoElevado1);
     color: var(--textoSecundario);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .experimentosBtn:hover {
-    background: var(--superficieHover);
+    background: var(--fondoElevado2);
     color: var(--acento);
     border-color: var(--acento);
 }
@@ -35,15 +35,15 @@
 }
 
 .experimentosBtn--exito {
-    border-color: var(--exito, #22c55e);
-    color: var(--exito, #22c55e);
-    background: rgba(34, 197, 94, 0.08);
+    border-color: var(--exito);
+    color: var(--exito);
+    background: var(--exitoMuted);
 }
 
 .experimentosBtn--error {
-    border-color: var(--error, #ef4444);
-    color: var(--error, #ef4444);
-    background: rgba(239, 68, 68, 0.08);
+    border-color: var(--error);
+    color: var(--error);
+    background: var(--errorMuted);
 }
 
 .experimentosIconoGirando {
@@ -61,15 +61,15 @@
     top: calc(100% + 6px);
     right: 0;
     width: 220px;
-    background: var(--superficie);
-    border: 1px solid var(--borde);
-    border-radius: 8px;
-    padding: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--espacioSm);
+    padding: var(--espacioSm);
+    box-shadow: 0 var(--espacioXs) 16px rgba(0, 0, 0, 0.2);
     z-index: 100;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--espacioXs);
 }
 
 .experimentosTitulo {
@@ -78,21 +78,21 @@
     color: var(--textoSecundario);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 2px 4px 6px;
-    border-bottom: 1px solid var(--borde);
-    margin-bottom: 2px;
+    padding: calc(var(--espacioXs) / 2) var(--espacioXs) calc(var(--espacioXs) * 1.5);
+    border-bottom: 1px solid var(--bordeSutil);
+    margin-bottom: calc(var(--espacioXs) / 2);
 }
 
 .experimentosAccion {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: calc(var(--espacioXs) * 1.5);
     width: 100%;
-    padding: 6px 8px;
+    padding: calc(var(--espacioXs) * 1.5) var(--espacioSm);
     border: none;
     border-radius: 5px;
     background: transparent;
-    color: var(--texto);
+    color: var(--textoPrimario);
     font-size: 12px;
     cursor: pointer;
     transition: background 0.15s ease;
@@ -100,7 +100,7 @@
 }
 
 .experimentosAccion:hover:not(:disabled) {
-    background: var(--superficieHover);
+    background: var(--fondoElevado2);
 }
 
 .experimentosAccion:disabled {
@@ -109,32 +109,32 @@
 }
 
 .experimentosResultado {
-    font-size: 10px;
-    padding: 5px 6px;
-    border-radius: 4px;
+    font-size: calc(var(--espacioXs) * 2.5);
+    padding: 5px calc(var(--espacioXs) * 1.5);
+    border-radius: var(--espacioXs);
     line-height: 1.4;
     word-break: break-word;
 }
 
 .experimentosResultado--exito {
-    color: var(--exito, #22c55e);
-    background: rgba(34, 197, 94, 0.06);
+    color: var(--exito);
+    background: var(--exitoMuted);
 }
 
 .experimentosResultado--error {
-    color: var(--error, #ef4444);
-    background: rgba(239, 68, 68, 0.06);
+    color: var(--error);
+    background: var(--errorMuted);
 }
 
 .experimentosInfo {
-    font-size: 10px;
+    font-size: calc(var(--espacioXs) * 2.5);
     color: var(--textoTerciario, var(--textoSecundario));
-    padding: 4px 4px 0;
+    padding: var(--espacioXs) var(--espacioXs) 0;
     opacity: 0.7;
 }
 
 .experimentosSeparador {
     height: 1px;
-    background: var(--borde, rgba(255, 255, 255, 0.08));
-    margin: 4px 0;
+    background: var(--bordeSutil);
+    margin: var(--espacioXs) 0;
 }

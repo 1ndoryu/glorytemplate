@@ -53,7 +53,7 @@
 
 .notificacionIcono {
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: calc(var(--espacioXs) / 2);
 }
 
 .notificacionExito .notificacionIcono {
@@ -81,7 +81,7 @@
     font-size: var(--fuenteMd);
     font-weight: var(--pesoMedio);
     color: var(--textoPrimario);
-    margin-bottom: 2px;
+    margin-bottom: calc(var(--espacioXs) / 2);
 }
 
 .notificacionMensaje {

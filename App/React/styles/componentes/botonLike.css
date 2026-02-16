@@ -6,7 +6,7 @@
 .botonLike {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: calc(var(--espacioXs) * 0.75);
     border: none;
     background: transparent;
     color: var(--textoTerciario);
@@ -21,7 +21,7 @@
 }
 
 .botonLike-sm {
-    padding: 2px;
+    padding: calc(var(--espacioXs) / 2);
 }
 
 .botonLike:hover {

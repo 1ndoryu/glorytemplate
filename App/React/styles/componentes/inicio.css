@@ -331,8 +331,8 @@
 .inicioTagExpandirBtn {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    padding: 2px var(--espacioSm);
+    gap: calc(var(--espacioXs) / 2);
+    padding: calc(var(--espacioXs) / 2) var(--espacioSm);
     border: 1px dashed var(--bordeSutil);
     border-radius: var(--radioFull);
     background: none;
@@ -362,7 +362,7 @@
     color: var(--textoSecundario);
     background-color: var(--fondoElevado3);
     font-size: var(--fuenteSm);
-    padding: 2px var(--espacioMd);
+    padding: calc(var(--espacioXs) / 2) var(--espacioMd);
     white-space: nowrap;
     flex-shrink: 0;
     position: relative;
@@ -426,12 +426,12 @@
 
 .inicioTagItem:hover .inicioTagBotonRestar,
 .inicioTagItem:focus-within .inicioTagBotonRestar {
-    margin-right: 2px;
+    margin-right: calc(var(--espacioXs) / 2);
 }
 
 .inicioTagItem:hover .inicioTagBotonSumar,
 .inicioTagItem:focus-within .inicioTagBotonSumar {
-    margin-left: 2px;
+    margin-left: calc(var(--espacioXs) / 2);
 }
 
 .inicioTagBoton:hover {

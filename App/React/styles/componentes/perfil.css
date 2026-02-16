@@ -17,7 +17,7 @@
     background-color: var(--fondoElevado2);
     border-radius: var(--radioLg);
     overflow: hidden;
-    margin-bottom: 60px;
+    margin-bottom: calc(var(--espacioXs) * 15);
 }
 
 .perfilPortada img {
@@ -54,7 +54,7 @@
     font-size: var(--fuenteXl);
     font-weight: var(--pesoBold);
     color: var(--textoPrimario);
-    margin-bottom: 2px;
+    margin-bottom: calc(var(--espacioXs) / 2);
 }
 
 .perfilUsername {

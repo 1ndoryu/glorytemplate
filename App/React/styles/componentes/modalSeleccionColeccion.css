@@ -13,7 +13,7 @@
 .seleccionColeccionSample {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
     padding: var(--espacioSm) var(--espacioMd);
     background-color: var(--fondoElevado2);
     border-radius: var(--radioSm);
@@ -61,7 +61,7 @@
 .seleccionColeccionLista {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
     max-height: 240px;
     overflow-y: auto;
 }

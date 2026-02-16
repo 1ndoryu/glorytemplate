@@ -78,7 +78,7 @@
 /* Grid de imágenes */
 .tarjetaPubImagenes {
     display: grid;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
     border-radius: var(--radioMd);
     overflow: hidden;
 }

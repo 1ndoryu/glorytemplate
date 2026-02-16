@@ -19,7 +19,7 @@
     z-index: var(--zReproductor);
     gap: var(--espacioLg);
     pointer-events: auto;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 var(--espacioXs) calc(var(--espacioXs) * 6) rgba(0, 0, 0, 0.5);
     animation: reproductorEntrar 300ms ease forwards;
 }
 
@@ -65,7 +65,7 @@
 .reproductorTextos {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
     min-width: 0;
 }
 

@@ -65,7 +65,7 @@
 .filtroToggleSwitch {
     width: 36px;
     height: 20px;
-    border-radius: 10px;
+    border-radius: calc(var(--espacioXs) * 2.5);
     background: var(--fondoElevado3);
     position: relative;
     transition: background var(--transicionRapida);
@@ -81,7 +81,7 @@
     left: 2px;
     width: 16px;
     height: 16px;
-    border-radius: 50%;
+    border-radius: var(--radioFull);
     background: var(--textoPrimario);
     transition: transform var(--transicionRapida);
 }

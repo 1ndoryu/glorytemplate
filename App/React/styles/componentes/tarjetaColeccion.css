@@ -71,7 +71,7 @@
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
     display: block;
-    margin-top: 2px;
+    margin-top: calc(var(--espacioXs) / 2);
 }
 
 /* Acciones — se muestran en hover */

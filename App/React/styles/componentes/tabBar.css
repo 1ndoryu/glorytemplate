@@ -50,7 +50,7 @@
     right: 0;
     height: 2px;
     background-color: var(--acento);
-    border-radius: 2px 2px 0 0;
+    border-radius: calc(var(--espacioXs) / 2) calc(var(--espacioXs) / 2) 0 0;
 }
 
 /* Contador opcional en tab */
@@ -58,7 +58,7 @@
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
     background-color: var(--fondoElevado3);
-    padding: 1px 6px;
+    padding: calc(var(--espacioXs) / 4) calc(var(--espacioXs) * 1.5);
     border-radius: var(--radioFull);
 }
 

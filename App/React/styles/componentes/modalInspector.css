@@ -67,7 +67,7 @@ button.inspectorSeccionTitulo:hover {
 .inspectorCampo {
     display: flex;
     flex-direction: column;
-    gap: 4px; /* Un poco más de aire que 2px */
+    gap: var(--espacioXs); /* Un poco más de aire que 2px */
 }
 
 /* Campos que necesitan ocupar todo el ancho disponible */
@@ -94,7 +94,7 @@ button.inspectorSeccionTitulo:hover {
     font-family: var(--fuenteMono);
     color: var(--blanco); /* Destacar números ligeramente */
     background-color: var(--fondoElevado2);
-    padding: 2px 6px;
+    padding: calc(var(--espacioXs) / 2) calc(var(--espacioXs) * 1.5);
     border-radius: var(--radioSm);
     width: fit-content;
     font-size: var(--fuenteXs);
@@ -110,7 +110,7 @@ button.inspectorSeccionTitulo:hover {
     font-size: var(--fuenteXs);
     background-color: var(--fondoElevado2);
     color: var(--textoSecundario);
-    padding: 4px 10px;
+    padding: var(--espacioXs) calc(var(--espacioXs) * 2.5);
     border-radius: var(--radioFull);
     border: 1px solid var(--bordeSutil);
     transition: var(--transicionRapida);
@@ -147,7 +147,7 @@ button.inspectorSeccionTitulo:hover {
 .inspectorCreadorInfo {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
 }
 
 .inspectorCreadorNombre {
@@ -156,7 +156,7 @@ button.inspectorSeccionTitulo:hover {
     color: var(--textoPrimario);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: calc(var(--espacioXs) * 1.5);
 }
 
 .inspectorCreadorUsername {

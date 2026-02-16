@@ -253,7 +253,7 @@
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
     background-color: var(--fondoElevado3);
-    padding: 2px 6px;
+    padding: calc(var(--espacioXs) / 2) calc(var(--espacioXs) * 1.5);
     border-radius: var(--radioFull);
 }
 
@@ -336,7 +336,7 @@
 .reproductorIslandColaInfo {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: calc(var(--espacioXs) / 4);
     min-width: 0;
     text-align: left;
 }
@@ -361,7 +361,7 @@
 .reproductorIslandColaAcciones {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
     opacity: 0;
     transition: opacity var(--transicionRapida);
 }

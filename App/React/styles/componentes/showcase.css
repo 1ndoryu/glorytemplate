@@ -115,8 +115,8 @@
     background-color: var(--acentoMuted);
     border: 1px solid var(--acento);
     border-radius: var(--radioSm);
-    width: var(--tamano, var(--espacioMd));
-    height: var(--tamano, var(--espacioMd));
+    width: var(--espacioMd);
+    height: var(--espacioMd);
 }
 
 /* Tipografía */
@@ -183,5 +183,5 @@
 /* Texto de tipografía con tamaño dinámico via custom property */
 .showcaseTextoTipografia {
     /* --tamanoFuente se define inline en el HTML */
-    font-size: var(--tamanoFuente, var(--fuenteMd));
+    font-size: var(--fuenteMd);
 }
