@@ -11,15 +11,36 @@ import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { usePublicarModalStore } from '@app/stores/publicarModalStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
+import { useComentarios } from '@app/hooks/useComentarios';
 import { apiGet } from '@app/services/apiCliente';
 import type { Publicacion } from '@app/types';
 import '../../styles/componentes/comunidad.css';
 
 type FiltroComunidad = 'todos' | 'siguiendo' | 'populares';
+
+/* Sección de comentarios por post: encapsula el hook useComentarios */
+const SeccionComentariosPost = ({ postId, navegar }: { postId: number; navegar: (ruta: string) => void }): JSX.Element => {
+    const { comentarios, cargando, enviar } = useComentarios({
+        tipo: 'publicacion',
+        targetId: postId,
+        cargarAlAbrir: true,
+    });
+
+    return (
+        <ListaComentarios
+            comentarios={comentarios}
+            cargando={cargando}
+            onEnviar={enviar}
+            onClickAutor={(username) => navegar(`/perfil/${username}/`)}
+            maxVisibles={3}
+        />
+    );
+};
 
 const formatearTiempoRelativo = (fecha: string): string => {
     const ahora = Date.now();
@@ -37,6 +58,7 @@ const ComunidadBase = (): JSX.Element => {
     const [publicaciones, setPublicaciones] = useState<Publicacion[]>([]);
     const [filtro, setFiltro] = useState<FiltroComunidad>('todos');
     const [cargando, setCargando] = useState(true);
+    const [comentariosAbiertos, setComentariosAbiertos] = useState<Set<number>>(new Set());
     const { navegar } = useNavigationStore();
     const { setTabs } = useTabsTopBarStore();
     const { abrir: abrirPublicar } = usePublicarModalStore();
@@ -86,6 +108,18 @@ const ComunidadBase = (): JSX.Element => {
                     : p
             )
         );
+    }, []);
+
+    const alternarComentarios = useCallback((postId: number) => {
+        setComentariosAbiertos((prev) => {
+            const siguiente = new Set(prev);
+            if (siguiente.has(postId)) {
+                siguiente.delete(postId);
+            } else {
+                siguiente.add(postId);
+            }
+            return siguiente;
+        });
     }, []);
 
     const filtros: { valor: FiltroComunidad; icono: typeof Users; label: string }[] = [
@@ -191,7 +225,7 @@ const ComunidadBase = (): JSX.Element => {
                                     <Heart size={16} fill={post.liked ? 'currentColor' : 'none'} />
                                     <span>{post.totalLikes}</span>
                                 </button>
-                                <button className="comunidadPostAccionBtn" type="button">
+                                <button className="comunidadPostAccionBtn" type="button" onClick={() => alternarComentarios(post.id)}>
                                     <MessageCircle size={16} />
                                     <span>{post.totalComentarios}</span>
                                 </button>
@@ -204,6 +238,11 @@ const ComunidadBase = (): JSX.Element => {
                                     <span>{post.totalReposts}</span>
                                 </button>
                             </div>
+
+                            {/* Comentarios expandibles */}
+                            {comentariosAbiertos.has(post.id) && (
+                                <SeccionComentariosPost postId={post.id} navegar={navegar} />
+                            )}
                         </article>
                     ))
                 )}

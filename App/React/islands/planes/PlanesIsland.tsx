@@ -9,6 +9,7 @@ import {BotonBase} from '@app/components/ui/BotonBase';
 import {Badge} from '@app/components/ui/Badge';
 import {Modal} from '@app/components/ui/Modal';
 import {useAuthStore} from '@app/stores/authStore';
+import {usePlanesModalStore} from '@app/stores/planesModalStore';
 import {useNavigationStore} from '@/core/router';
 import {crearSesionCheckout, abrirPortalFacturacion} from '@app/services/apiPagos';
 import type {PeriodoPlan} from '@app/services/apiPagos';
@@ -113,6 +114,7 @@ export const PlanesIsland = (): JSX.Element => {
     const [checkoutExito, setCheckoutExito] = useState(false);
     const {usuario, autenticado} = useAuthStore();
     const {navegar} = useNavigationStore();
+    const { abierto, cerrar: cerrarPlanes } = usePlanesModalStore();
 
     const planActual: PlanId = (usuario as {plan?: PlanId} | null)?.plan ?? 'free';
     const imagenPlanes = '/wp-content/themes/glorytemplate/App/Assets/images/1.jpg';
@@ -190,12 +192,11 @@ export const PlanesIsland = (): JSX.Element => {
     };
 
     const cerrarModalPlanes = () => {
-        if (window.history.length > 1) {
-            window.history.back();
-            return;
-        }
-        navegar('/');
+        cerrarPlanes();
     };
+
+    /* No renderizar si el modal está cerrado */
+    if (!abierto) return <></>;
 
     return (
         <Modal abierto onCerrar={cerrarModalPlanes} tamano="grande" className="modalPlanesEspecial">

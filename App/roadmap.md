@@ -119,6 +119,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R23:** Activado light mode global (16/02/2026): la paleta base en `App/React/styles/variables.css` cambia a esquema claro usando el blanco de marca `#e5dfc7` como `--fondoBase`. Se ajustan fondos elevados, texto, bordes, hover/acento y overlays para mantener contraste sin tocar componentes individuales.
 **R24:** Corrección de temas (16/02/2026): restaurado el modo oscuro como base en `:root` y creado modo claro separado en `:root[data-theme='light']`, reutilizando el blanco de marca `#e5dfc7` sin reemplazar el dark mode.
 **R25:** Selector de tema operativo (16/02/2026): `ModalConfiguracion` ahora permite cambiar entre `Oscuro` y `Claro`; la selección se aplica en tiempo real (`data-theme`) y se persiste en `localStorage` mediante `services/tema.ts`. `LayoutPrincipal` inicializa el tema guardado al montar.
+**R26:** Ajuste UX SampleDetalle (16/02/2026): layout simplificado a una sola tarjeta XL con portada lateral 1:1, cabecera tipo post (usuario arriba), título y descripción fuera de la tarjeta en tamaño reducido, reproducción sin botón dedicado (click en portada/waveform), ocultación temporal de métricas y meta extendida (reproducciones/likes/descargas + BPM/Key/Tipo/Duración/Formato/Tamaño), y tags unificados al mismo criterio visual/semántico usado en `TarjetaSample` del home.
+**R27:** Ajuste fino SampleDetalle (16/02/2026): cabecera de usuario + título + texto movidos dentro de la tarjeta y por encima de la waveform; tags ubicados debajo de la waveform; acciones movidas a esquina inferior derecha con estilo plano (sin borde/fondo); botón de compartir eliminado.
 
 ---
 
@@ -342,10 +344,43 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 74  | Algoritmo omite samples                             | ✅ `WHERE rn <= max_por_creador` eliminado. Diversidad por creador ahora es penalización suave (nunca excluye)                                                                                                                    |
 | 75  | Crear MD del algoritmo                              | ✅ `App/docs/algoritmo.md` — 6 señales, pesos, diagramas, flujo completo, cache, recálculo, configuración                                                                                                                        |
 | 76  | TarjetaMeta formato con metadata IA                 | ✅ TarjetaMeta muestra instrumento→género→emoción→velocidad→tag desde metadata IA. SampleResumen ampliado con metadata+totalReproducciones+audioHash                                                                             |
+| 77  | URL directa sample no carga                         | ✅ `forzarResolucionDinamica()` en PageTemplateInterceptor: reconstruye $wp_query cuando 404 coincide con ruta dinámica React                                                                                                   |
+| 78  | Modal suscripción recarga lista samples              | ✅ PlanesIsland convertido a modal overlay via planesModalStore (no cambia ruta, no desmonta InicioIsland)                                                                                                                       |
+| 79  | Botón seguir aparece en perfil propio (detalle)      | ✅ Comparación esPropietario usa String() para evitar mismatch string/number                                                                                                                                                     |
+| 80  | Waveforms todas iguales                              | ✅ Frontend ahora busca json.peaks además de json.picos. remuestrearPicos() adapta resolución al ancho del contenedor                                                                                                           |
+| 81  | Hover corazón likeado debe ser blanco                | ✅ tarjetaSample.css, tarjetaPublicacion.css, sampleDetalle.css: .liked:hover → var(--blanco)                                                                                                                                    |
+| 82  | Funcionalidad de comentarios                         | ✅ ComentariosController genérico (GET/POST /comentarios/{tipo}/{targetId}), hook useComentarios, ListaComentarios integrado en ComunidadIsland y SampleDetalleIsland, botón MessageCircle en TarjetaSample                       |
+| 83  | Posts solo texto no aparecen                         | ✅ Moderación WHERE incluye 'pendiente' para autor. ModalCrear llama crearPublicacion(). json_encode→formato PG TEXT[]. pgArrayAPhp() parsea arrays PostgreSQL en listar/obtener. samplesAdjuntos acepta camelCase del frontend   |
+| 84  | Borde amarillo confirmación + margen fantasma        | ✅ toastItemConfirmacion border-left cambiado a bordeSutil. Toasts/chats usan bottom dinámico con :has(.reproductorGlobal) — sin reproductor bottom:16px, con reproductor bottom:80/100px         
+
+# Comentarios nuevos (Cuando los comentarios se resuelvan, mover a "## Comentarios del usuario (resueltos) compactados")
+                               |
+---
+
+# Comentarios nuevos (Cuando los comentarios se resuelvan, mover a tabla anterior)
+
+85. No se estan usando los componentes, hay un boton de botones en todos lados que no usan el componente boton, por favor, inspesionar todo el codigo para encontrar todos los botones y cualqueir otra cosa que puede centralizarse con componentes, CENTRALIZAR Y NORMALIZAR ESTILOS; LOS COMPONENTES DEBEN SER LA FUENTE DEL VERDAD DE LOS ESTILOS
+86. Lo de "También te podría gustar" pasa que no debería ser un modal, debería aparecer al lado de los samples, dentro de InicioIsland, es decir, InicioIsland tendria 2 columnas, esta columa de "También te podría..." alli apareceran mas cosas en el futuro, no debe ocupar tanto, con el 30% del espacio es suficiente.
+87. En descargas, favoritos, y tal vez en subido (no puedo comprobar porque no hay mas usuarios), me aparecen todos los samples en vez de solos los que corresponden en esas secciones. Y en libreriaBarraAcciones no debería ir el input de busqueda, alli se agregaran filtros, se hara un componente de filtro avanzado mas adelante, el input de busqueda de nav superior debería adaptarse y funcionar para todas las paginas en tiempo real, asi evitamos duplicar busquedas
+88. los estilos de feedSamplesContenedor deben centralizarse a "listaDeSamples", asi perfilListaSamples tienen los mismos estilos y tambien libreriaLista y todas las listas de sample.
+89. No me refería a agregar un boton de publicar comunidadBarraSuperior, me refería a agregar el modal actual de publicar, pero sin ser un modal, o sea una seccion de publicar, como una red social, igual en el perfil. 
+90. En las publicaciones que hago en comunidad, aparece @admin · Invalid Date
+91. El "publicarModos" no va, las publicaciones de comunidad se deciden si se estan haciendo una pregunta, si su post es solo texto (la ia supervisa), y si cuando esta intentando publicar un audio en crearCondiciones activa la opción de comunidad. 
+92. Bajar los "Agrega al menos 5 tags (#hashtags) para subir tu sample (0/5)" bajar los tags necesarios a 2
+93. Las publicaciones de comunidad de los usuarios debería aparecer en la tab de comunidad de sus perfiles.
+94. Cuando elimino un sample, sigue sin eliminarse visualmente. 
+95. En la segunda columna que habia comentado antes en 86, en ese espacio al dar click a un titulo de un sample debe aparecer su informacion detallada resumida, en vez de redirigir a la pagina del sample.
+96. La sección de comentarios no debería aparecer dentro de detallePieFlex sino debajo. 
 
 ---
 
-# Comentarios nuevos (Cuando los comentarios se resuelvan, mover a "## Comentarios del usuario (resueltos) compactados")
+## Lecciones Aprendidas (sesión actual)
 
-77. Cuando voy a un sample ejemplo (sin recargar) http://glory.local/sample/melancholy-jazz-loop-89bpm-gm-fWwCkjN/ directamente carga, pero si voy a la url directamente no carga.
-78. Cuando abro el modal de Suscripcion, la lista de samples se recarga, porque? no debería.
+- [PG Arrays]: PostgreSQL TEXT[] espera formato `'{val1,val2}'`, no `json_encode(['val1','val2'])` que produce `'["val1","val2"]'`. Usar helper `pgArrayAPhp()` para parsear en PHP.
+- [PDO+PG]: PDO PostgreSQL devuelve TEXT[] como string literal `"{}"` — siempre parsear antes de enviar al frontend.
+- [Moderación]: Posts con `moderacion_estado='pendiente'` eran invisibles incluso para su autor. El filtro WHERE debe incluir 'pendiente' para el autor.
+- [camelCase/snake_case]: Frontend envía `samplesAdjuntos` pero backend buscaba `samples_adjuntos`. Aceptar ambos con `??`.
+- [CSS :has()]: Usar `.layoutPrincipal:has(.reproductorGlobal)` para ajustar posición de toasts/chats dinámicamente según si el reproductor está activo.
+- [Tipos JS]: Comparaciones entre IDs del backend (string) y frontend (number) fallan silenciosamente. Usar `String()` en ambos lados.
+- [Comentarios]: Backend endpoint genérico `/comentarios/{tipo}/{targetId}` es más flexible que endpoints por entidad. Hook `useComentarios` encapsula toda la lógica.
+- [ModalCrear]: Tenía un TO-DO para posts sin audio que solo hacía `setTimeout(500)` sin llamar al backend.

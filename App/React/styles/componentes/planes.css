@@ -27,8 +27,8 @@
     display: grid;
     grid-template-columns: 65% 35%;
     gap: 0;
-    min-height: 620px;
-    max-height: 80dvh;
+    height: 80dvh;
+    min-height: 600px;
 }
 
 .planesPanelImagen {

@@ -58,8 +58,14 @@
 
 /* Con borde */
 .badge.badgeBorde {
-    border: 1px solid var(--bordeActivo);
+    border: 1px solid var(--bordeSutil);
     background-color: transparent;
+    transition: border-color var(--transicionRapida), background-color var(--transicionRapida);
+}
+
+.badge.badgeBorde:hover {
+    border-color: var(--bordeActivo);
+    background-color: var(--fondoElevado2);
 }
 
 /* Interactivo (clickeable, para filtros) */

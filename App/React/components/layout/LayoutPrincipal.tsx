@@ -16,6 +16,7 @@ import { ModalPublicar } from '../social/ModalPublicar';
 import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
 import { ModalConfiguracion } from '../social/ModalConfiguracion';
 import { ChatFlotante } from '../social/ChatFlotante';
+import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
 import { BotonDevTools } from '../ui/BotonDevTools';
 import { ContenedorToasts } from '../ui/ContenedorToasts';
 import { useNavigationStore } from '@/core/router';
@@ -126,6 +127,9 @@ export const LayoutPrincipal = ({
 
             {/* Modal de configuración de perfil */}
             <ModalConfiguracion />
+
+            {/* Modal de planes (overlay, sin cambiar de isla) */}
+            <PlanesIsland />
 
             {/* Chats flotantes tipo Messenger */}
             <ChatFlotante />

@@ -7,6 +7,7 @@
 .contenedorWaveform {
     position: relative;
     width: 100%;
+    max-width: 100%;
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
@@ -15,6 +16,8 @@
 .waveformCanvas {
     display: block;
     width: 100%;
+    max-width: 100%;
+    height: auto;
     border-radius: var(--radioSm);
 }
 

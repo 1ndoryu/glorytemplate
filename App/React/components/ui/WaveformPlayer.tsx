@@ -19,6 +19,8 @@ interface WaveformPlayerProps {
     duracion?: number;
     /* Callback al hacer click (posición 0..1) */
     onSeek?: (posicion: number) => void;
+    /* Callback al hacer click en cualquier parte de la waveform */
+    onClick?: () => void;
     tamano?: TamanoWaveform;
     colorNoReproducido?: string;
     colorReproducido?: string;
@@ -56,6 +58,30 @@ const generarPlaceholder = (cantidad: number): number[] => {
     return picos;
 };
 
+/*
+ * Remuestrear picos para adaptar la resolución al ancho disponible.
+ * Más ancho = más barras. Menos ancho = menos barras.
+ */
+const remuestrearPicos = (datos: number[], barrasDeseadas: number): number[] => {
+    const len = datos.length;
+    if (len === 0) return [];
+    if (barrasDeseadas >= len) return datos;
+    
+    const resultado: number[] = [];
+    const factorGrupo = len / barrasDeseadas;
+    
+    for (let i = 0; i < barrasDeseadas; i++) {
+        const inicio = Math.floor(i * factorGrupo);
+        const fin = Math.floor((i + 1) * factorGrupo);
+        let maximo = 0;
+        for (let j = inicio; j < fin && j < len; j++) {
+            if (datos[j] > maximo) maximo = datos[j];
+        }
+        resultado.push(maximo);
+    }
+    return resultado;
+};
+
 /* Formatear segundos a mm:ss */
 const formatearTiempo = (segundos: number): string => {
     const min = Math.floor(segundos / 60);
@@ -68,6 +94,7 @@ export const WaveformPlayer = ({
     progreso = 0,
     duracion = 0,
     onSeek,
+    onClick,
     tamano = 'md',
     colorNoReproducido = '#555555',
     colorReproducido = '#7c3aed',
@@ -116,32 +143,45 @@ export const WaveformPlayer = ({
             ctx.fillRect(0, 0, anchoLogico, altoLogico);
         }
 
-        const datos = datosPicos.current;
-        const numBarras = datos.length;
-        const anchoBarraBase = anchoBarra ?? Math.max(1.5, anchoLogico / numBarras - 1);
-        const gap = espacioBarra ?? Math.max(1, (anchoLogico / numBarras) * 0.2);
-        const paso = anchoBarraBase + gap;
-        const anchoDibujo = numBarras * paso - gap;
-        const offsetX = Math.max(0, (anchoLogico - anchoDibujo) / 2);
+        const datosOriginales = datosPicos.current;
+        
+        /*
+         * Calcular número óptimo de barras según ancho del canvas.
+         * Se usa anchoBarra + espacioBarra para determinar cuántas caben.
+         */
+        const anchoBarraProp = anchoBarra ?? 2;
+        const gapProp = espacioBarra ?? 1;
+        const barrasOptimas = Math.floor(anchoLogico / (anchoBarraProp + gapProp));
+        const numBarras = Math.max(10, Math.min(barrasOptimas, datosOriginales.length));
+        
+        /* Remuestrear si hay más datos que barras para resolución adaptativa */
+        const datos = remuestrearPicos(datosOriginales, numBarras);
+        
+        /* Escalar barras para ocupar exactamente el 100% del ancho */
+        const factorEscala = anchoLogico / (numBarras * (anchoBarraProp + gapProp));
+        const anchoBarraFinal = anchoBarraProp * factorEscala;
+        const gapFinal = gapProp * factorEscala;
+        const paso = anchoBarraFinal + gapFinal;
+        
         const mitad = altoLogico / 2;
         const puntoProgreso = progreso * anchoLogico;
 
         for (let i = 0; i < numBarras; i++) {
-            const x = offsetX + i * paso;
+            const x = i * paso;
             const altoPico = datos[i] * mitad * 0.9;
 
-            /* Color según si ya se reprodujo */
             ctx.fillStyle = x < puntoProgreso ? colorReproducido : colorNoReproducido;
 
             if (simetrico) {
-                /* Barra superior (espejo) */
-                ctx.fillRect(x, mitad - altoPico, anchoBarraBase, altoPico);
-
-                /* Barra inferior (espejo exacto) */
-                ctx.fillRect(x, mitad, anchoBarraBase, altoPico);
+                /*
+                 * Dibujar un solo rectángulo centrado (de arriba a abajo)
+                 * para eliminar cualquier línea/seam en el medio.
+                 */
+                const altoMinimo = Math.max(1, altoPico);
+                ctx.fillRect(x, mitad - altoMinimo, anchoBarraFinal, altoMinimo * 2);
             } else {
                 const altoClasico = Math.max(2, datos[i] * (altoLogico - 2));
-                ctx.fillRect(x, altoLogico - altoClasico, anchoBarraBase, altoClasico);
+                ctx.fillRect(x, altoLogico - altoClasico, anchoBarraFinal, altoClasico);
             }
         }
 
@@ -178,8 +218,17 @@ export const WaveformPlayer = ({
     };
 
     const manejarClick = (e: MouseEvent) => {
-        if (!interactivo || !onSeek) return;
-        onSeek(calcularPosicion(e));
+        if (!interactivo) return;
+        
+        /* Si hay onClick, llamarlo (para play/pause) */
+        if (onClick) {
+            onClick();
+        }
+        
+        /* Si hay onSeek, usarlo para cambiar posición */
+        if (onSeek) {
+            onSeek(calcularPosicion(e));
+        }
     };
 
     const manejarMouseMove = (e: MouseEvent) => {

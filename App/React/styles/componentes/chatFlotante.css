@@ -7,13 +7,18 @@
 /* Contenedor principal: stack horizontal en esquina inferior derecha */
 .chatFlotanteContenedor {
     position: fixed;
-    bottom: 100px; /* encima del reproductor global */
+    bottom: var(--espacioLg);
     right: var(--espacioLg);
     display: flex;
     flex-direction: row-reverse;
     gap: var(--espacioSm);
     z-index: var(--zModal);
     pointer-events: none;
+}
+
+/* Subir chats cuando el reproductor global está activo */
+.layoutPrincipal:has(.reproductorGlobal) .chatFlotanteContenedor {
+    bottom: 100px;
 }
 
 /* Ventana individual de chat */
@@ -184,7 +189,6 @@
 @media (max-width: 768px) {
     .chatFlotanteContenedor {
         right: var(--espacioSm);
-        bottom: 80px;
     }
     .chatFlotanteVentana {
         width: 280px;

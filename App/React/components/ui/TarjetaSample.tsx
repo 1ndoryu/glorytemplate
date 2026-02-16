@@ -5,7 +5,7 @@
  */
 
 import {useCallback, useEffect, useRef, useState, type MouseEvent} from 'react';
-import {Play, Pause, Heart, Download, MoreHorizontal} from 'lucide-react';
+import {Play, Pause, Heart, MessageCircle, Download, MoreHorizontal} from 'lucide-react';
 import type {SampleResumen} from '../../types';
 import {WaveformPlayer} from './WaveformPlayer';
 import {Badge} from './Badge';
@@ -28,6 +28,7 @@ interface TarjetaSampleProps {
     onDescargar?: (sampleId: number) => void;
     onMenu?: (e: MouseEvent, sample: SampleResumen) => void;
     onClickCreador?: (username: string) => void;
+    onComentar?: (sampleId: number) => void;
     className?: string;
 }
 
@@ -74,7 +75,7 @@ const formatearKey = (key: string | null, escala: string | null): string => {
     return `${key}${esc}`;
 };
 
-export const TarjetaSample = ({sample, activa = false, reproduciendo = false, progreso = 0, onPlay, onPause, onSeek, onLike, onDescargar, onMenu, onClickCreador: _onClickCreador, className = ''}: TarjetaSampleProps): JSX.Element => {
+export const TarjetaSample = ({sample, activa = false, reproduciendo = false, progreso = 0, onPlay, onPause, onSeek, onLike, onDescargar, onMenu, onClickCreador: _onClickCreador, onComentar, className = ''}: TarjetaSampleProps): JSX.Element => {
     const [reproduciendoLocal, setReproduciendoLocal] = useState(false);
     const [progresoLocal, setProgresoLocal] = useState(0);
     const [picosAudio, setPicosAudio] = useState<number[] | null>(null);
@@ -101,7 +102,7 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                         /* El JSON puede ser un array directo o tener propiedad 'picos' / 'data' */
                         const picosServidor = Array.isArray(json)
                             ? json
-                            : (json.picos ?? json.data ?? null);
+                            : (json.peaks ?? json.picos ?? json.data ?? null);
                         if (Array.isArray(picosServidor) && picosServidor.length > 0) {
                             /* Normalizar a rango 0-1 si no lo están */
                             const maximo = Math.max(...picosServidor, 0.001);
@@ -433,8 +434,8 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                         duracion={sample.duracion}
                         onSeek={manejarSeek}
                         tamano="sm"
-                        colorNoReproducido="#848484"
-                        colorReproducido="#d43333"
+                        colorNoReproducido="#d2c8a7"
+                        colorReproducido="#4a665b"
                         anchoBarra={2}
                         espacioBarra={1}
                         simetrico
@@ -443,6 +444,10 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
 
                 <button className={`tarjetaAccionBtn ${sample.liked ? 'tarjetaAccionLiked' : ''}`} onClick={manejarLike} type="button" aria-label={sample.liked ? 'Quitar like' : 'Dar like'}>
                     <Heart size={18} fill={sample.liked ? 'currentColor' : 'none'} />
+                </button>
+
+                <button className="tarjetaAccionBtn" onClick={() => onComentar?.(sample.id)} type="button" aria-label="Comentar">
+                    <MessageCircle size={18} />
                 </button>
 
                 <button className="tarjetaAccionBtn" onClick={manejarDescargar} type="button" aria-label="Descargar">

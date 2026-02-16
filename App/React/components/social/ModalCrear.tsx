@@ -17,6 +17,7 @@ import {useCrearModalStore} from '@app/stores/crearModalStore';
 import {useAuthStore} from '@app/stores/authStore';
 import {useArchivosDragDrop} from '@app/hooks/useArchivosDragDrop';
 import {subirSample} from '@app/services/apiSamples';
+import {crearPublicacion} from '@app/services/apiSocial';
 import {crearLogger} from '@app/services/logger';
 import '../../styles/componentes/modalCrear.css';
 
@@ -209,10 +210,26 @@ export const ModalCrear = (): JSX.Element | null => {
                 manejarCerrar();
             }, 1500);
         } else {
-            /* Publicación solo texto/imágenes (sin audio) — TO-DO: endpoint de publicaciones */
-            await new Promise(r => setTimeout(r, 500));
-            setPublicando(false);
-            manejarCerrar();
+            /* Publicación solo texto/imágenes (sin audio) */
+            const resp = await crearPublicacion({
+                tipo: 'social',
+                contenido: contenido.trim(),
+                imagenes: imagenes.length > 0 ? imagenes.map(img => img.url) : undefined,
+            });
+
+            if (!resp.ok) {
+                setErrorSubida(resp.error ?? 'Error al publicar');
+                setPublicando(false);
+                log.error('Error al publicar texto', resp.error);
+                return;
+            }
+
+            log.info('Publicación de texto creada', resp.data);
+            setExitoSubida(true);
+            setTimeout(() => {
+                setPublicando(false);
+                manejarCerrar();
+            }, 1500);
         }
     }, [contenido, audioAdjunto, imagenes, publicando, manejarCerrar, permitirDescarga, licenciaLibre, esPremium, precio]);
 

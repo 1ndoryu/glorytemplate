@@ -21,6 +21,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
+import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { useNavigationStore } from '@/core/router';
 import '../../styles/componentes/topbar.css';
 
@@ -31,6 +32,7 @@ export const TopBar = (): JSX.Element => {
     const { navegar } = useNavigationStore();
     const { abrir: abrirCrear } = useCrearModalStore();
     const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
+    const { abrir: abrirPlanes } = usePlanesModalStore();
 
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
@@ -111,7 +113,7 @@ export const TopBar = (): JSX.Element => {
                     <Badge
                         variante={usuario?.plan === 'premium' ? 'premium' : usuario?.plan === 'pro' ? 'acento' : 'neutro'}
                         interactivo
-                        onClick={() => navegar('/planes/')}
+                        onClick={abrirPlanes}
                     >
                         {usuario?.plan === 'premium' ? (
                             <><Crown size={12} /> Premium</>

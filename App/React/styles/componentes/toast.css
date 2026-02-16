@@ -5,7 +5,7 @@
 
 .contenedorToasts {
     position: fixed;
-    bottom: 80px;
+    bottom: var(--espacioLg);
     right: 20px;
     z-index: 9999;
     display: flex;
@@ -13,6 +13,11 @@
     gap: var(--espacioSm);
     max-width: 380px;
     pointer-events: none;
+}
+
+/* Subir toasts cuando el reproductor global está activo */
+.layoutPrincipal:has(.reproductorGlobal) .contenedorToasts {
+    bottom: 80px;
 }
 
 .toastItem {
@@ -43,9 +48,7 @@
     border-left: 3px solid var(--info);
 }
 
-.toastItemConfirmacion {
-    border-left: 3px solid var(--advertencia);
-}
+
 
 .toastContenido {
     display: flex;
@@ -70,12 +73,12 @@
 }
 
 .toastItemConfirmacion .toastIcono {
-    color: var(--advertencia);
+    color: var(--textoSecundario);
 }
 
 .toastMensaje {
     flex: 1;
-    font-size: var(--fuenteMd);
+    font-size: var(--fuenteXs);
     color: var(--textoPrimario);
     line-height: 1.4;
 }
@@ -104,17 +107,15 @@
     gap: var(--espacioSm);
     margin-top: calc(var(--espacioXs) * 2.5);
     padding-top: var(--espacioSm);
-    border-top: 1px solid var(--bordeSutil);
 }
 
 .toastAccionBtn {
     padding: 5px calc(var(--espacioXs) * 3.5);
-    border-radius: calc(var(--espacioXs) * 1.5);
+    border-radius: var(--radioSm);
     border: 1px solid var(--bordeSutil);
     background: transparent;
     color: var(--textoPrimario);
-    font-size: var(--fuenteMd);
-    font-weight: 500;
+    font-size: var(--fuenteXs);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 }

@@ -161,7 +161,7 @@
 }
 
 .tarjetaPubAccionLiked:hover {
-    color: var(--error);
+    color: var(--blanco);
 }
 
 .tarjetaPubAccionReposteado {

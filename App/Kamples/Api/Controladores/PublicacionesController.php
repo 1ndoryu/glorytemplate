@@ -74,11 +74,11 @@ class PublicacionesController
 
         /*
          * C71: Moderación — solo mostrar posts aprobados o pendientes (sin moderar aún).
-         * Posts en supervisión solo visibles para su autor.
+         * Posts en supervisión o pendientes solo visibles para su autor.
          */
         $userId = UsuarioHelper::obtenerIdPg();
         if ($userId) {
-            $donde .= " AND (p.moderacion_estado IS NULL OR p.moderacion_estado = 'aprobado' OR (p.moderacion_estado = 'revision' AND p.autor_id = :currentUser))";
+            $donde .= " AND (p.moderacion_estado IS NULL OR p.moderacion_estado = 'aprobado' OR ((p.moderacion_estado = 'revision' OR p.moderacion_estado = 'pendiente') AND p.autor_id = :currentUser))";
             $params['currentUser'] = $userId;
         } else {
             $donde .= " AND (p.moderacion_estado IS NULL OR p.moderacion_estado = 'aprobado')";
@@ -105,10 +105,12 @@ class PublicacionesController
             $params
         );
 
-        /* Enriquecer con contadores */
+        /* Enriquecer con contadores y parsear arrays PostgreSQL */
         foreach ($publicaciones as &$pub) {
             $pub['totalComentarios'] = (int) ($pub['total_comentarios'] ?? 0);
             $pub['totalLikes'] = (int) ($pub['total_likes'] ?? 0);
+            $pub['imagenes'] = self::pgArrayAPhp($pub['imagenes'] ?? null);
+            $pub['samplesAdjuntos'] = array_map('intval', self::pgArrayAPhp($pub['samples_adjuntos'] ?? null));
             $pub['autor'] = [
                 'id' => (int) $pub['autor_id'],
                 'username' => $pub['username'],
@@ -133,8 +135,14 @@ class PublicacionesController
             return new \WP_REST_Response(['code' => 'contenido_vacio', 'message' => 'La publicación necesita contenido'], 400);
         }
 
-        $imagenes = isset($body['imagenes']) ? json_encode($body['imagenes']) : null;
-        $samplesAdjuntos = isset($body['samples_adjuntos']) ? json_encode($body['samples_adjuntos']) : null;
+        $imagenes = !empty($body['imagenes'])
+            ? '{' . implode(',', array_map(fn($v) => '"' . addslashes($v) . '"', $body['imagenes'])) . '}'
+            : '{}';
+        /* samplesAdjuntos viene en camelCase del frontend */
+        $adjuntosRaw = $body['samples_adjuntos'] ?? $body['samplesAdjuntos'] ?? [];
+        $samplesAdjuntos = !empty($adjuntosRaw)
+            ? '{' . implode(',', array_map('intval', $adjuntosRaw)) . '}'
+            : '{}';
 
         $id = PostgresService::insertar(
             "INSERT INTO publicaciones (autor_id, contenido, imagenes, samples_adjuntos)
@@ -238,6 +246,10 @@ class PublicacionesController
             'avatarUrl' => $pub['avatar_url'],
             'verificado' => (bool) $pub['verificado'],
         ];
+        $pub['imagenes'] = self::pgArrayAPhp($pub['imagenes'] ?? null);
+        $pub['samplesAdjuntos'] = array_map('intval', self::pgArrayAPhp($pub['samples_adjuntos'] ?? null));
+        $pub['totalComentarios'] = (int) ($pub['total_comentarios'] ?? 0);
+        $pub['totalLikes'] = (int) ($pub['total_likes'] ?? 0);
 
         return new \WP_REST_Response(['data' => $pub], 200);
     }
@@ -305,5 +317,17 @@ class PublicacionesController
         );
 
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
+    }
+
+    /**
+     * Parsear TEXT[] de PostgreSQL a array PHP.
+     * PDO devuelve TEXT[] como string literal ej: '{"url1","url2"}' o '{}'.
+     */
+    private static function pgArrayAPhp(?string $pgArray): array
+    {
+        if ($pgArray === null || $pgArray === '{}' || $pgArray === '') return [];
+        $inner = trim($pgArray, '{}');
+        if ($inner === '') return [];
+        return str_getcsv($inner, ',', '"');
     }
 }
