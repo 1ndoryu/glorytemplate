@@ -28,7 +28,7 @@ namespace App\Kamples\Services;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Services\GeneradorEmbeddings;
-use App\Kamples\KamplesLogger;
+use App\Kamples\LogAlgoritmo as KamplesLogger;
 
 class MotorRecomendacion
 {

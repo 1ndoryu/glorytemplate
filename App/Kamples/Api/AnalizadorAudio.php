@@ -16,7 +16,7 @@
 
 namespace App\Kamples\Api;
 
-use App\Kamples\KamplesLogger;
+use App\Kamples\LogIA as KamplesLogger;
 
 class AnalizadorAudio
 {

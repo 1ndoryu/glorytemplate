@@ -105,6 +105,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R9:** pgvector compilado (master branch, PG18 compatible) e instalado (vector.dll + extension + HNSW). GeneradorEmbeddings.php (128d: BPM+key+escala+tipo+duración+tags hasheados). MotorRecomendacion v3 (6ta señal similitud coseno integrada, samplesSimilares con fallback). EmbeddingsController (batch/regenerar/estado). PipelineAudio genera embedding automático. Migración v009 (columna embedding + funciones SQL buscar_similares + buscar_por_vector). Avatar upload fix (C34: POST /me/avatar + ModalConfiguracion). Admin role detection fix (C35: WP roles → PG sync). BotonExperimentos ahora incluye embeddings batch.
 **R10:** PlanificadorAlgoritmo (C45): sistema dual rápido/preciso con triggers por interacciones + recálculos temporales. Configuración centralizada en algoritmoPesos.php['frecuencia']. Tabla algoritmo_estado (v010). WP Cron cada 5min. Integrado en SocialController (like/follow), ReproduccionesController, DescargasController, PublicacionesController (comentario). Endpoints admin: GET /admin/algoritmo/estado, POST /admin/algoritmo/recalcular, POST /admin/algoritmo/procesar-temporales. Bug fixes C37-C46: samples en perfil, experimentos notificaciones, sample detalle 404, apiCliente HTML detection, DevTools posición, hooks order React, colecciones/publicas→explorar, tabs duplicadas + race condition colecciones.
 **R11:** Gemini Flash 3.0 como primer modelo IA (C47). Detección HTML ampliada en apiCliente con error descriptivo+status (C47). Logging completo en MotorRecomendacion (señales, cache, perfil, resultados) + fix namespace PlanificadorAlgoritmo (C48). Parámetro `creador` añadido a argsListar() — WP descartaba el filtro (C49). Logging+fix parsing en ExperimentosController/BotonExperimentos (C50). Avatar.tsx defensivo contra nombre undefined — prop opcional+fallback (C51). InicioIsland filtro "Inteligente" ahora usa obtenerFeed('descubrir') con MotorRecomendacion en vez de listarSamples (C52).
+**R12:** Sistema de logs reorganizado por canales (C53): `kamples-ia-*.log` (IA+pipeline+upload), `kamples-algoritmo-*.log` (recomendación+planificador), `kamples-*.log` (general). LogIA/LogAlgoritmo wrappers para alias imports. error_log eliminado de PipelineAudio (7) y PostgresService (5) — migrados a KamplesLogger. Auto-limpieza de logs >7 días. GROQ_API key: validación de formato `gsk_*` con warning (C54). Sample detalle 404: `sanitize_callback` cambiado de `sanitize_title` a `sanitize_text_field`, SQL con `LOWER()` para comparación case-insensitive, regex ampliado a `[a-zA-Z0-9_-]+` (C55). Pipeline shutdown: flush forzado para Apache/mod_php (`ignore_user_abort`+`ob_end_flush`+`flush`+`Connection: close`), curl timeout reducido 60→30s, timeout reparación JSON 15s (C57).
 
 ---
 
@@ -304,57 +305,14 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 50  | Botón experimentos no funciona                        | ✅ Logging en ExperimentosController + console.log respuesta + fix parsing doble-wrap en BotonExperimentos           |
 | 51  | Avatar.tsx crash split undefined                      | ✅ `nombre` ahora es prop opcional con default ''. `obtenerIniciales` defensivo. DropdownMensajes usa optional chaining |
 | 52  | Filtro inteligente sin samples                        | ✅ InicioIsland: ordenamiento 'inteligente' ahora usa `obtenerFeed('descubrir')` (MotorRecomendacion) en vez de `listarSamples()` |
+| 53  | Logs desordenados (debug.log + kamples.log)           | ✅ 3 canales: `kamples-ia-*.log`, `kamples-algoritmo-*.log`, `kamples-*.log`. Eliminados 12 error_log() de Pipeline+Postgres. Auto-limpieza 7 días |
+| 54  | GROQ_API Invalid API Key                              | ✅ Validación formato `gsk_*` con warning en logs. La key del .env no es válida — obtener nueva en console.groq.com/keys |
+| 55  | Sample detalle "No se encontró"                       | ✅ `sanitize_title` lowercaseaba el slug (idCorto tiene mayúsculas). Fix: `sanitize_text_field` + SQL `LOWER()` |
+| 56  | Gemini 3.0 Flash model name                           | ✅ Corregido por usuario: `gemini-3.0-flash` (con punto) |
+| 57  | Upload 500 por timeout pipeline                       | ✅ Flush forzado para mod_php (`ignore_user_abort`+`ob_end_flush`), curl timeout 60→30s, set_time_limit 600s |
 
 ---
 
 # Comentarios nuevos (Cuando los comentarios se resuelvan, mover a "## Comentarios del usuario (resueltos) compactados")
 
-47. Sigue saliendo "El servidor devolvió una respuesta inesperada (HTML en vez de JSON)" Y no hay logs claros. Por cierto me di cuenta que primero debería intentar con gemini-flash 3.0
-48. El algoritmo tiene que estar con logs para poder comprobar que funciona, que genere sus propios archivos como los logs de la api de IA.
-49. Los samples que publique yo misma siguen sin aparecer en mi perfil.
-50. El boton de experimento sigue sin funcionar, no recibo ningun mensaje ni ninguna notificación.
-51. Despues de cierto tiempo aparecen estos errores
-Avatar.tsx:34 
- Uncaught TypeError: Cannot read properties of undefined (reading 'split')
-    at obtenerIniciales (Avatar.tsx:34:10)
-    at Avatar (Avatar.tsx:80:52)
-Avatar.tsx:34 
- Uncaught TypeError: Cannot read properties of undefined (reading 'split')
-    at obtenerIniciales (Avatar.tsx:34:10)
-    at Avatar (Avatar.tsx:80:52)
-react-dom.development.js:18704 
- The above error occurred in the <Avatar> component:
-
-    at Avatar (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/components/ui/Avatar.tsx:30:3)
-    at div
-    at div
-    at div
-    at DropdownMensajes (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…emplate/App/React/components/ui/DropdownMensajes.tsx?t=1771211087897:33:36)
-    at div
-    at div
-    at div
-    at TopBar (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…glorytemplate/App/React/components/layout/TopBar.tsx?t=1771211087897:35:39)
-    at header
-    at div
-    at LayoutPrincipal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…plate/App/React/components/layout/LayoutPrincipal.tsx?t=1771211087898:56:3)
-    at InicializadorAuth (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…late/App/React/components/auth/InicializadorAuth.tsx?t=1771211087897:26:37)
-    at AppProvider (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/…ontent/themes/glorytemplate/App/React/appIslands.tsx?t=1771211087898:39:31)
-    at GloryProvider (http://localhost:5173/src/core/GloryProvider.tsx:20:33)
-
-Consider adding an error boundary to your tree to customize error handling behavior.
-Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
-react-dom.development.js:26962 
- Uncaught TypeError: Cannot read properties of undefined (reading 'split')
-    at obtenerIniciales (Avatar.tsx:34:10)
-    at Avatar (Avatar.tsx:80:52)
-52. No aparece ningun sample en el filtro de inteligente donde se espera que funcione el algoritmo. (TRABAJA EN LAS SIGUIENTES TAREAS AL LEER ESTO)
-53. Hay logs que aparecen en debug y otros en kamples.log, no me gusta esto, no quiero logs en debug.log, quiero logs ordenados, quieres todos los logs relacionados con la ia y subida y pipeline en un solo archivo. Todos los que tengan que ver con algoritmo, en un solo archivo. Autoborrado logs, borrar archivos logs viejos de 7 dias.
-54. [2026-02-16 03:10:59] [INFO] ServicioIA: Intentando Gemini/gemini-2.5-flash
-[2026-02-16 03:11:38] [WARNING] ServicioIA: JSON irrecuperable localmente, intentando reparación con Groq | json_error=Control character error, possibly incorrectly encoded
-[2026-02-16 03:11:38] [INFO] ServicioIA: Intentando reparación JSON con Groq/openai/gpt-oss-20b
-[2026-02-16 03:11:39] [ERROR] ServicioIA: HTTP 401 (Groq-Reparar/openai/gpt-oss-20b) | respuesta={"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
-
-[2026-02-16 03:11:39] [INFO] ServicioIA: Intentando reparación JSON con Groq/openai/gpt-oss-120b
-[2026-02-16 03:11:39] [ERROR] ServicioIA: HTTP 401 (Groq-Reparar/openai/gpt-oss-120b) | respuesta={"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}
-probablemente se te usando mal la api del ENV "GROQ_API" la api funciona bien en otros lugares.
-55. Cuando voy a la pagina de un sample sigue diciendo "No se encontró el sample."
+(Sin comentarios pendientes)

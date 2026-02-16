@@ -24,7 +24,7 @@
 namespace App\Kamples\Api;
 
 use App\Kamples\Database\PostgresService;
-use App\Kamples\KamplesLogger;
+use App\Kamples\LogIA as KamplesLogger;
 
 class PipelineAudio
 {
@@ -48,7 +48,6 @@ class PipelineAudio
      */
     public static function procesar(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario = '', array $tagsUsuario = []): void
     {
-        error_log("[Kamples] PipelineAudio: Iniciando procesamiento para sample #{$sampleId}");
         KamplesLogger::info("Pipeline: Iniciando procesamiento", [
             'sampleId' => $sampleId,
             'archivo' => basename($rutaArchivo),
@@ -61,12 +60,12 @@ class PipelineAudio
         $ffprobe = self::obtenerFFprobe();
 
         if (!$ffmpeg) {
-            $msg = '[Kamples] PipelineAudio: FFmpeg NO encontrado. Es OBLIGATORIO. ';
-            $msg .= self::esWindows()
-                ? 'Descargar de https://ffmpeg.org/download.html y agregar al PATH o colocar en C:\\ffmpeg\\bin\\'
-                : 'Instalar con: sudo apt install ffmpeg (o equivalente)';
-            error_log($msg);
-            KamplesLogger::critical('Pipeline: FFmpeg NO encontrado', ['os' => PHP_OS]);
+            KamplesLogger::critical('Pipeline: FFmpeg NO encontrado', [
+                'os' => PHP_OS,
+                'instruccion' => self::esWindows()
+                    ? 'Descargar de https://ffmpeg.org/download.html y agregar al PATH'
+                    : 'Instalar con: sudo apt install ffmpeg',
+            ]);
             throw new \RuntimeException('FFmpeg es obligatorio para procesar audio. No se encontró en el sistema.');
         }
 
@@ -86,12 +85,6 @@ class PipelineAudio
         $actualizaciones['key'] = $analisisTecnico['key'];
         $actualizaciones['escala'] = $analisisTecnico['escala'];
 
-        error_log(sprintf(
-            '[Kamples] PipelineAudio: Análisis técnico — BPM=%s, Key=%s %s',
-            $analisisTecnico['bpm'] ?? 'N/A',
-            $analisisTecnico['key'] ?? 'N/A',
-            $analisisTecnico['escala'] ?? ''
-        ));
         KamplesLogger::info('Pipeline: Análisis técnico completado', [
             'bpm' => $analisisTecnico['bpm'],
             'key' => $analisisTecnico['key'],
@@ -109,7 +102,6 @@ class PipelineAudio
         $metadataIA = ServicioIA::analizarAudio($rutaArchivo, $nombreOriginal, $descripcionUsuario, $contextoTecnico);
 
         if ($metadataIA) {
-            error_log("[Kamples] PipelineAudio: IA completada — tipo={$metadataIA['tipo']}");
             KamplesLogger::info('Pipeline: IA completada', ['tipo' => $metadataIA['tipo']]);
 
             $actualizaciones['tipo'] = $metadataIA['tipo'];
@@ -147,7 +139,6 @@ class PipelineAudio
                 if (rename($rutaArchivo, $nuevaRuta)) {
                     $rutaArchivo = $nuevaRuta;
                     $actualizaciones['ruta_original'] = $nuevaRuta;
-                    error_log("[Kamples] PipelineAudio: Archivo renombrado a {$nuevoNombre}");
                     KamplesLogger::info('Pipeline: Archivo renombrado', ['nombre' => $nuevoNombre]);
                 }
             }
@@ -213,7 +204,6 @@ class PipelineAudio
         /* Invalidar cache de feeds globalmente al publicar nuevo sample */
         \App\Kamples\Services\MotorRecomendacion::invalidarCacheGlobal();
 
-        error_log("[Kamples] PipelineAudio: Procesamiento completado para sample #{$sampleId}");
         KamplesLogger::info('Pipeline: Procesamiento completado', ['sampleId' => $sampleId, 'estado' => 'activo']);
     }
 
@@ -601,7 +591,6 @@ class PipelineAudio
         try {
             PostgresService::ejecutar($sql, $params);
         } catch (\Exception $e) {
-            error_log('[Kamples] PipelineAudio: Error actualizando sample — ' . $e->getMessage());
             KamplesLogger::error('Pipeline: Error actualizando sample en DB', [
                 'sampleId' => $sampleId,
                 'error' => $e->getMessage(),

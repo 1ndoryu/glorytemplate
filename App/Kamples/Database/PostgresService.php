@@ -16,6 +16,7 @@
 
 namespace App\Kamples\Database;
 
+use App\Kamples\KamplesLogger;
 use PDO;
 use PDOException;
 
@@ -63,7 +64,9 @@ class PostgresService
 
             return self::$conexion;
         } catch (PDOException $e) {
-            error_log('[Kamples] PostgresService: error de conexión — ' . $e->getMessage());
+            KamplesLogger::error('PostgresService: Error de conexión', [
+                'error' => $e->getMessage(),
+            ]);
             self::$intentoFallido = true;
             return null;
         }
@@ -103,7 +106,10 @@ class PostgresService
             $stmt->execute($params);
             return $stmt->fetchAll();
         } catch (PDOException $e) {
-            error_log('[Kamples] PostgresService::consultar error — ' . $e->getMessage());
+            KamplesLogger::error('PostgresService::consultar error', [
+                'error' => $e->getMessage(),
+                'sql' => mb_substr($sql, 0, 200),
+            ]);
             return [];
         }
     }
@@ -124,7 +130,10 @@ class PostgresService
             $result = $stmt->fetch();
             return $result !== false ? $result : null;
         } catch (PDOException $e) {
-            error_log('[Kamples] PostgresService::consultarUno error — ' . $e->getMessage());
+            KamplesLogger::error('PostgresService::consultarUno error', [
+                'error' => $e->getMessage(),
+                'sql' => mb_substr($sql, 0, 200),
+            ]);
             return null;
         }
     }
@@ -145,7 +154,10 @@ class PostgresService
             $stmt->execute($params);
             return $stmt->rowCount();
         } catch (PDOException $e) {
-            error_log('[Kamples] PostgresService::ejecutar error — ' . $e->getMessage());
+            KamplesLogger::error('PostgresService::ejecutar error', [
+                'error' => $e->getMessage(),
+                'sql' => mb_substr($sql, 0, 200),
+            ]);
             return -1;
         }
     }
@@ -166,7 +178,10 @@ class PostgresService
             $stmt->execute($params);
             return (int) $pdo->lastInsertId();
         } catch (PDOException $e) {
-            error_log('[Kamples] PostgresService::insertar error — ' . $e->getMessage());
+            KamplesLogger::error('PostgresService::insertar error', [
+                'error' => $e->getMessage(),
+                'sql' => mb_substr($sql, 0, 200),
+            ]);
             return null;
         }
     }

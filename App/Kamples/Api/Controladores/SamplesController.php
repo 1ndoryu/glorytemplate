@@ -40,12 +40,12 @@ class SamplesController
             'args'                => self::argsListar(),
         ]);
 
-        register_rest_route($namespace, '/samples/(?P<slug>[a-zA-Z0-9-]+)', [
+        register_rest_route($namespace, '/samples/(?P<slug>[a-zA-Z0-9_-]+)', [
             'methods'             => 'GET',
             'callback'            => [self::class, 'obtener'],
             'permission_callback' => '__return_true',
             'args'                => [
-                'slug' => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_title'],
+                'slug' => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
             ],
         ]);
 
@@ -178,12 +178,13 @@ class SamplesController
          */
         $sample = PostgresService::consultarUno(
             NormalizadorSample::sqlSelectSamples()
-            . " WHERE (s.slug = :slug OR s.id_corto = :slug)"
+            . " WHERE (LOWER(s.slug) = LOWER(:slug) OR s.id_corto = :slug)"
             . " AND s.estado NOT IN ('eliminado')",
             ['slug' => $slug]
         );
 
         if ($sample === null) {
+            KamplesLogger::debug('Sample no encontrado', ['slug' => $slug]);
             return new \WP_REST_Response([
                 'code'    => 'sample_no_encontrado',
                 'message' => 'El sample no existe o no está disponible.',
@@ -209,7 +210,7 @@ class SamplesController
             $userId = UsuarioHelper::obtenerIdPg();
             KamplesLogger::info('Feed descubrir solicitado', [
                 'userId' => $userId, 'page' => $page, 'perPage' => $perPage,
-            ]);
+            ], 'algoritmo');
             if ($userId) {
                 try {
                     $recomendados = \App\Kamples\Services\MotorRecomendacion::feedPersonalizado(
@@ -217,7 +218,7 @@ class SamplesController
                     );
                     KamplesLogger::info('Feed descubrir: MotorRecomendacion retornó', [
                         'resultados' => count($recomendados),
-                    ]);
+                    ], 'algoritmo');
                     if (!empty($recomendados)) {
                         return new \WP_REST_Response([
                             'data' => NormalizadorSample::normalizarLista($recomendados),
@@ -231,10 +232,10 @@ class SamplesController
                     KamplesLogger::warning('Motor de recomendación falló, usando fallback', [
                         'error' => $e->getMessage(),
                         'trace' => $e->getTraceAsString(),
-                    ]);
+                    ], 'algoritmo');
                 }
             } else {
-                KamplesLogger::debug('Feed descubrir: Sin userId PG, usando fallback');
+                KamplesLogger::debug('Feed descubrir: Sin userId PG, usando fallback', [], 'algoritmo');
             }
         }
 
@@ -378,10 +379,27 @@ class SamplesController
             ];
 
             \add_action('shutdown', function () use ($datosPipeline) {
+                /*
+                 * Cerrar la conexión con el cliente ANTES de ejecutar el pipeline.
+                 * Sin esto, Apache/mod_php espera a que PHP termine completamente,
+                 * causando timeout 500 en subidas cuando la IA tarda mucho.
+                 */
                 if (function_exists('fastcgi_finish_request')) {
                     \fastcgi_finish_request();
+                } else {
+                    /* Fallback para Apache/mod_php */
+                    ignore_user_abort(true);
+                    if (session_id()) session_write_close();
+                    if (!headers_sent()) {
+                        header('Connection: close');
+                    }
+                    while (ob_get_level() > 0) {
+                        ob_end_flush();
+                    }
+                    flush();
                 }
-                @set_time_limit(300);
+
+                @set_time_limit(600);
                 @ini_set('memory_limit', '256M');
 
                 try {

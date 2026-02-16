@@ -7,10 +7,13 @@
  * Rotación automática por fecha (un archivo por día).
  * Formato: [YYYY-MM-DD HH:MM:SS] [NIVEL] Mensaje
  *
- * Uso:
- *   KamplesLogger::info('Sample procesado correctamente');
- *   KamplesLogger::error('Fallo al conectar con Gemini', ['httpCode' => 429]);
- *   KamplesLogger::debug('Respuesta raw de la API', ['body' => $respuesta]);
+ * Canales disponibles:
+ *   - '' (default): kamples-YYYY-MM-DD.log → General (BD, auth, controladores)
+ *   - 'ia': kamples-ia-YYYY-MM-DD.log → IA, pipeline de audio, subida
+ *   - 'algoritmo': kamples-algoritmo-YYYY-MM-DD.log → Motor de recomendación, planificador
+ *
+ * Auto-limpieza: elimina archivos de log con más de 7 días de antigüedad.
+ * Usar LogIA o LogAlgoritmo como alias para enrutar automáticamente al canal.
  *
  * @package Kamples
  */
@@ -22,6 +25,10 @@ class KamplesLogger
     private const DIRECTORIO_LOGS = 'App/logs';
     private const PREFIJO_ARCHIVO = 'kamples';
     private const MAX_CONTEXTO_CHARS = 2000;
+    private const DIAS_RETENCION = 7;
+
+    /* Canales válidos — cada uno escribe a su propio archivo */
+    private const CANALES_VALIDOS = ['ia', 'algoritmo'];
 
     /* Niveles de log */
     private const NIVEL_DEBUG    = 'DEBUG';
@@ -33,63 +40,71 @@ class KamplesLogger
     /* Cache del directorio de logs ya verificado */
     private static bool $directorioVerificado = false;
 
+    /* Flag para ejecutar limpieza solo una vez por request */
+    private static bool $limpiezaEjecutada = false;
+
     /*
      * Log de nivel DEBUG — detalles internos para depuración.
-     * Incluye respuestas de API, payloads, rutas probadas, etc.
+     * @param string $canal Canal opcional: 'ia', 'algoritmo' o '' (default)
      */
-    public static function debug(string $mensaje, array $contexto = []): void
+    public static function debug(string $mensaje, array $contexto = [], string $canal = ''): void
     {
-        self::escribir(self::NIVEL_DEBUG, $mensaje, $contexto);
+        self::escribir(self::NIVEL_DEBUG, $mensaje, $contexto, $canal);
     }
 
     /*
      * Log de nivel INFO — operaciones normales.
-     * Pipeline iniciado, FFmpeg encontrado, IA completada, etc.
+     * @param string $canal Canal opcional: 'ia', 'algoritmo' o '' (default)
      */
-    public static function info(string $mensaje, array $contexto = []): void
+    public static function info(string $mensaje, array $contexto = [], string $canal = ''): void
     {
-        self::escribir(self::NIVEL_INFO, $mensaje, $contexto);
+        self::escribir(self::NIVEL_INFO, $mensaje, $contexto, $canal);
     }
 
     /*
      * Log de nivel WARNING — situaciones recuperables.
-     * Modelo de IA no disponible (fallback activado), cache miss, etc.
+     * @param string $canal Canal opcional: 'ia', 'algoritmo' o '' (default)
      */
-    public static function warning(string $mensaje, array $contexto = []): void
+    public static function warning(string $mensaje, array $contexto = [], string $canal = ''): void
     {
-        self::escribir(self::NIVEL_WARNING, $mensaje, $contexto);
+        self::escribir(self::NIVEL_WARNING, $mensaje, $contexto, $canal);
     }
 
     /*
      * Log de nivel ERROR — fallos que afectan funcionalidad.
-     * Pipeline falla, API retorna error, DB error, etc.
+     * @param string $canal Canal opcional: 'ia', 'algoritmo' o '' (default)
      */
-    public static function error(string $mensaje, array $contexto = []): void
+    public static function error(string $mensaje, array $contexto = [], string $canal = ''): void
     {
-        self::escribir(self::NIVEL_ERROR, $mensaje, $contexto);
+        self::escribir(self::NIVEL_ERROR, $mensaje, $contexto, $canal);
     }
 
     /*
      * Log de nivel CRITICAL — fallos graves del sistema.
-     * FFmpeg no encontrado, ninguna IA disponible, DB inaccesible, etc.
+     * @param string $canal Canal opcional: 'ia', 'algoritmo' o '' (default)
      */
-    public static function critical(string $mensaje, array $contexto = []): void
+    public static function critical(string $mensaje, array $contexto = [], string $canal = ''): void
     {
-        self::escribir(self::NIVEL_CRITICAL, $mensaje, $contexto);
+        self::escribir(self::NIVEL_CRITICAL, $mensaje, $contexto, $canal);
     }
 
     /*
      * Escribe una entrada de log al archivo del día.
-     * Crea el directorio si no existe. Incluye contexto serializado si se proporciona.
+     * Canal válido → archivo separado (kamples-{canal}-fecha.log).
+     * Canal vacío → archivo default (kamples-fecha.log).
      */
-    private static function escribir(string $nivel, string $mensaje, array $contexto): void
+    private static function escribir(string $nivel, string $mensaje, array $contexto, string $canal = ''): void
     {
         try {
             $directorio = self::obtenerDirectorioLogs();
             self::asegurarDirectorio($directorio);
 
+            /* Limpieza periódica de logs viejos (una vez por request) */
+            self::limpiarSiCorresponde($directorio);
+
             $fecha = date('Y-m-d');
-            $archivo = $directorio . '/' . self::PREFIJO_ARCHIVO . '-' . $fecha . '.log';
+            $sufijo = in_array($canal, self::CANALES_VALIDOS, true) ? "-{$canal}" : '';
+            $archivo = $directorio . '/' . self::PREFIJO_ARCHIVO . $sufijo . '-' . $fecha . '.log';
 
             $timestamp = date('Y-m-d H:i:s');
             $linea = "[{$timestamp}] [{$nivel}] {$mensaje}";
@@ -103,12 +118,61 @@ class KamplesLogger
 
             file_put_contents($archivo, $linea, FILE_APPEND | LOCK_EX);
         } catch (\Throwable $e) {
-            /* Fallback a error_log si falla la escritura al archivo propio */
+            /* Fallback a error_log SOLO si falla la escritura al archivo propio */
             error_log("[Kamples] {$nivel}: {$mensaje}");
             if (!empty($contexto)) {
                 error_log("[Kamples] Contexto: " . json_encode($contexto, JSON_UNESCAPED_UNICODE));
             }
         }
+    }
+
+    /*
+     * Evalúa si corresponde ejecutar la limpieza de logs (máx 1 vez al día).
+     * Usa un archivo marker para no repetir la operación.
+     */
+    private static function limpiarSiCorresponde(string $directorio): void
+    {
+        if (self::$limpiezaEjecutada) return;
+        self::$limpiezaEjecutada = true;
+
+        $marker = $directorio . '/.last_cleanup';
+        if (file_exists($marker)) {
+            $ultimaLimpieza = (int) file_get_contents($marker);
+            if (time() - $ultimaLimpieza < 86400) return;
+        }
+
+        self::limpiarLogsViejos($directorio);
+        file_put_contents($marker, (string) time());
+    }
+
+    /*
+     * Elimina archivos de log con más de DIAS_RETENCION días.
+     * Se puede invocar manualmente o se ejecuta automáticamente una vez al día.
+     *
+     * @return int Cantidad de archivos eliminados
+     */
+    public static function limpiarLogsViejos(?string $directorio = null): int
+    {
+        $directorio = $directorio ?? self::obtenerDirectorioLogs();
+        $eliminados = 0;
+        $umbral = time() - (self::DIAS_RETENCION * 86400);
+
+        $archivos = glob($directorio . '/' . self::PREFIJO_ARCHIVO . '*.log');
+        if (!$archivos) return 0;
+
+        foreach ($archivos as $archivo) {
+            if (filemtime($archivo) < $umbral) {
+                if (@unlink($archivo)) {
+                    $eliminados++;
+                }
+            }
+        }
+
+        if ($eliminados > 0) {
+            self::info("Logs: Limpieza automática — {$eliminados} archivo(s) eliminado(s)");
+        }
+
+        return $eliminados;
     }
 
     /*

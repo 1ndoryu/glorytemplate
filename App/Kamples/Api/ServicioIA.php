@@ -21,13 +21,13 @@
 
 namespace App\Kamples\Api;
 
-use App\Kamples\KamplesLogger;
+use App\Kamples\LogIA as KamplesLogger;
 
 class ServicioIA
 {
     /* Modelos Gemini en orden de preferencia (fallback por cuota/error) */
     private const MODELOS_GEMINI = [
-        'gemini-3-0-flash',
+        'gemini-3.0-flash',
         'gemini-2.5-pro',
         'gemini-2.5-flash',
         'gemini-2.0-flash',
@@ -46,7 +46,8 @@ class ServicioIA
         'openai/gpt-oss-120b',
     ];
 
-    private const TIMEOUT = 60;
+    private const TIMEOUT = 30;
+    private const TIMEOUT_REPARACION = 15;
     private const MAX_TAMANO_AUDIO = 20 * 1024 * 1024; /* 20 MB para API */
 
     /*
@@ -481,7 +482,7 @@ PROMPT;
                 'Authorization: Bearer ' . $apiKey,
             ];
 
-            $respuesta = self::peticionCurl($url, $payload, $headers, "Groq-Reparar/{$modelo}");
+            $respuesta = self::peticionCurl($url, $payload, $headers, "Groq-Reparar/{$modelo}", self::TIMEOUT_REPARACION);
             if ($respuesta === null) continue;
 
             $decodificado = json_decode($respuesta, true);
@@ -514,7 +515,7 @@ PROMPT;
      * Ejecuta una petición cURL POST con JSON. Compartida por Gemini y Groq.
      * Retorna el body de la respuesta o null si falla.
      */
-    private static function peticionCurl(string $url, array $payload, array $headers, string $etiqueta): ?string
+    private static function peticionCurl(string $url, array $payload, array $headers, string $etiqueta, int $timeout = 0): ?string
     {
         $json = json_encode($payload);
 
@@ -524,7 +525,7 @@ PROMPT;
             CURLOPT_POSTFIELDS     => $json,
             CURLOPT_HTTPHEADER     => $headers,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => self::TIMEOUT,
+            CURLOPT_TIMEOUT        => $timeout > 0 ? $timeout : self::TIMEOUT,
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
 
@@ -625,13 +626,23 @@ PROMPT;
     /*
      * Obtiene una API key desde variables de entorno.
      * Soporta GOOGLE_GEMINI_API y GROQ_API.
+     * Valida formato de keys conocidas y logea advertencias.
      */
     private static function obtenerApiKey(string $nombre): ?string
     {
         $key = $_ENV[$nombre] ?? getenv($nombre) ?: null;
         if (!$key || $key === '') {
+            KamplesLogger::warning("ServicioIA: API key '{$nombre}' no configurada en .env");
             return null;
         }
+
+        /* Validar formato de keys conocidas */
+        if ($nombre === 'GROQ_API' && !str_starts_with($key, 'gsk_')) {
+            KamplesLogger::warning("ServicioIA: GROQ_API no tiene formato válido (debe empezar con 'gsk_')", [
+                'keyPreview' => substr($key, 0, 8) . '***',
+            ]);
+        }
+
         return $key;
     }
 }
