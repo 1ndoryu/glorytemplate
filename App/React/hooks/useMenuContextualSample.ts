@@ -13,12 +13,13 @@ import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useEditarModalStore } from '@app/stores/editarModalStore';
-import { eliminarSample } from '@app/services/apiSamples';
+import { eliminarSample, actualizarSample } from '@app/services/apiSamples';
 import { toast } from '@app/stores/toastStore';
 
 /* Evento global para notificar eliminación de sample sin recargar la página */
 export const EVENTO_SAMPLE_ELIMINADO = 'kamples:sample-eliminado';
 export const EVENTO_SAMPLE_RESTAURADO = 'kamples:sample-restaurado';
+export const EVENTO_SAMPLE_ACTUALIZADO = 'kamples:sample-actualizado';
 
 interface EstadoMenuSample {
     abierto: boolean;
@@ -67,6 +68,11 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
         const esAdmin = usuario.rol === 'admin';
         return esPropietario || esAdmin;
     }, [usuario, estado.sample]);
+
+    /* C178: Solo admin puede verificar/desverificar */
+    const esAdmin = useMemo(() => {
+        return usuario?.rol === 'admin';
+    }, [usuario]);
 
     const abrirMenu = useCallback((e: MouseEvent, sample: SampleResumen) => {
         e.preventDefault();
@@ -141,6 +147,32 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                         etiqueta: 'Editar sample',
                         onClick: () => {
                             if (estado.sample) abrirEditarSample(estado.sample);
+                        },
+                    } as MenuItemDef,
+                ]
+                : []),
+            /* C178: verificar/desverificar sample (admin only) */
+            ...(esAdmin && estado.sample
+                ? [
+                    {
+                        id: 'verificar',
+                        etiqueta: estado.sample.verificado ? 'Quitar verificación' : 'Verificar sample',
+                        onClick: () => {
+                            if (!estado.sample) return;
+                            const s = estado.sample;
+                            const nuevoEstado = !s.verificado;
+                            actualizarSample(s.id, { verificado: nuevoEstado }).then((resp) => {
+                                if (resp.ok) {
+                                    toast.exito(nuevoEstado ? 'Sample verificado' : 'Verificación removida');
+                                    window.dispatchEvent(
+                                        new CustomEvent(EVENTO_SAMPLE_ACTUALIZADO, {
+                                            detail: { sampleId: s.id, cambios: { verificado: nuevoEstado } },
+                                        })
+                                    );
+                                } else {
+                                    toast.error('Error al actualizar verificación');
+                                }
+                            });
                         },
                     } as MenuItemDef,
                 ]

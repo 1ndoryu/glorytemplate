@@ -75,6 +75,7 @@ export interface Sample {
 
     /* Relacion opcional cargada via API */
     creador?: UsuarioResumen;
+    verificado?: boolean;
 }
 
 /* Tipos de reaccion posibles */
@@ -104,6 +105,7 @@ export interface SampleResumen {
     creador: UsuarioResumen;
     liked?: boolean;
     reaccion?: TipoReaccion | null;
+    verificado?: boolean;
 }
 
 /* Importamos referencia para evitar circular */

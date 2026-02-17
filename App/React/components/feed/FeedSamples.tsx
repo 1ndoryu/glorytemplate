@@ -22,7 +22,7 @@ import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
 import { SelectFiltro } from '@app/components/ui/SelectFiltro';
 import { SelectorBPM } from '@app/components/ui/SelectorBPM';
 import { useNavigationStore } from '@/core/router';
-import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
+import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO, EVENTO_SAMPLE_ACTUALIZADO } from '@app/hooks/useMenuContextualSample';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { extraerTagsMetadata, extraerTagsAgrupadosMetadata, type CategoriaTag } from '@app/services/tagUtils';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
@@ -263,11 +263,23 @@ export const FeedSamples = ({
             }
         };
 
+        /* C178: Actualizar propiedades de un sample en la lista (ej: verificado) */
+        const manejarActualizacion = (event: Event) => {
+            const detalle = (event as CustomEvent<{ sampleId?: number; cambios?: Partial<SampleResumen> }>).detail;
+            if (detalle?.sampleId && detalle?.cambios) {
+                setSamples((prev) => prev.map((s) =>
+                    s.id === detalle.sampleId ? { ...s, ...detalle.cambios } : s
+                ));
+            }
+        };
+
         window.addEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
         window.addEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
+        window.addEventListener(EVENTO_SAMPLE_ACTUALIZADO, manejarActualizacion as EventListener);
         return () => {
             window.removeEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
             window.removeEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
+            window.removeEventListener(EVENTO_SAMPLE_ACTUALIZADO, manejarActualizacion as EventListener);
         };
     }, []);
 

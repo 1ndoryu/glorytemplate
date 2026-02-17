@@ -226,3 +226,9 @@
     padding: calc(var(--espacioXs) / 4) calc(var(--espacioXs) * 1.5);
     border-radius: var(--radioFull);
 }
+
+/* C178: Icono verificado junto al titulo */
+.tarjetaVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
+}

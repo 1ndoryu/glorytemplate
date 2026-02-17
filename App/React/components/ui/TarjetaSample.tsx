@@ -5,7 +5,7 @@
  */
 
 import {useCallback, useEffect, useRef, useState, type MouseEvent} from 'react';
-import {Play, Pause, Heart, MessageCircle, Download, MoreHorizontal} from 'lucide-react';
+import {Play, Pause, Heart, MessageCircle, Download, MoreHorizontal, BadgeCheck} from 'lucide-react';
 import type {SampleResumen, TipoReaccion} from '../../types';
 import {WaveformPlayer} from './WaveformPlayer';
 import {Badge} from './Badge';
@@ -389,6 +389,7 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                     >
                         {sample.titulo}
                     </a>
+                    {sample.verificado && <BadgeCheck size={14} className="tarjetaVerificado" />}
                     {sample.esPremium && <span className="tarjetaPremium">PRO</span>}
                 </div>
 

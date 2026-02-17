@@ -94,49 +94,15 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **UI/UX (C1-C63):** TopBar (búsqueda, crear, notif, mensajes, plan badge), Sidebar, tags ± agrupados, waveform real, middle-click, avatar normalización, colecciones grid, SPA routing, menú contextual, infinite scroll+virtualización, portada editable, eliminar samples/colecciones.
 **IA/Logs:** JSON repair 5 estrategias (control chars + Groq), imagen metadata Groq (Llama 4), audio IA Groq Whisper+LLM, pipeline async con KamplesLogger.
 
-### Registros de cambios (R1–R29 compactos)
+### Registros de cambios (compacto)
 
-**R1:** wsService fix, ShowcaseIsland split, useArchivosDragDrop, BienvenidaIsland onboarding, fix doble slash.
-**R2:** SOLID refactor — 12 controladores, 2 helpers, 3 servicios, 1 config. Migraciones v003-v004.
-**R3:** FeedSamples centralizado, InicioIsland 550→180 lín, ColeccionDetalleIsland tabs, ModalSugerenciasLike, useHistorialIds, sugerenciasLikeStore.
-**R4:** Delete samples/colecciones (admin+dueño), plan badge TopBar, fix CSS import FeedSamples.
-**R5:** JSON repair 5 estrategias, ServicioImagenIA (Groq visión), Stripe Checkout/Portal/Webhook, PlanesIsland funcional, apiPagos checkout+portal.
-**R6:** Límites plan (DescargasController→StripeService DRY, transferencia GB), moderación IA 3 capas (ServicioModeracionIA), tags badge (<span>), AuthMiddleware stubs, migraciones v006-v007, roadmap compactado.
-**R7:** Stripe Connect completo (ConnectController 4 endpoints + DashboardCreadorIsland sección Connect + revenue share descargas), samples premium (toggle ModalCrear + badge SampleDetalle + precio + bloqueo free).
-**R8:** Chat multimedia full-stack (5.2, BurbujaMensaje+backend upload+FormData), MotorRecomendacion v1 (3.2-3.7, 6 señales + cache transient), bug fixes C23-C33, BotonDevTools mode switcher (C29), BotonExperimentos admin test content (C31), perfil camelCase fix (C30), JSONB cast fix (C28), PerfilIsland guard (C29), DashboardCreadorIsland BotonBase prop fix, npm type-check 29→0 errores (C32), migración v008.
-**R9:** pgvector PG18 + GeneradorEmbeddings 128d + MotorRecomendacion v3 (similitud coseno) + EmbeddingsController + avatar upload (C34) + admin role fix (C35). v009.
-**R10:** PlanificadorAlgoritmo dual rápido/preciso (C45) + WP Cron 5min + v010. Bugfixes C37-C46: perfil samples, sample 404, apiCliente HTML, hooks React, tabs race condition.
-**R11:** Gemini Flash 3.0 (C47), apiCliente HTML, MotorRecomendacion logging (C48), creador en argsListar (C49), ExperimentosController fix (C50), Avatar defensivo (C51), filtro Inteligente→MotorRecomendacion (C52).
-**R12:** Logs por canales ia/algoritmo/general + auto-limpieza 7d (C53). GROQ_API validación gsk_* (C54). Sample detalle sanitize_text_field+LOWER (C55). Pipeline flush mod_php + curl 30s (C57).
-**R13:** Fallback IA Gemini (C58): cadena gemini-3→2.0→1.5-flash, HTTP 429 retryAfter + máx 1 reintento.
-**R14:** Migración completa a Groq audio (C59): Whisper STT + Groq LLM chat. Reparación JSON: kimi-k2 + qwen3-32b + gpt-oss-20b.
-**R15:** Compactación del roadmap.
-**R16:** Bugfixes C58-C65: apiPeticion data wrapping (C58), darLike snake_case (C60), ruta_archivo→ruta_original (C63), descargas ruta (C64), DELETE regex (C65).
-**R17:** Ocultados contadores likes/descargas TarjetaSample (reducir ruido visual).
-**R18:** Sidebar: removido "Crear", añadido "Configuración" en sidebarFooter.
-**R19:** TopBar UX: botón + unificado, badge plan izquierda, búsqueda centrada desktop + modal móvil.
-**R20:** Batch C66-C76: toasts (C66-67), borrar sin recargar (C66), waveform servidor (C68), mockups eliminados (C69), ModalPublicar global (C70), ComunidadIsland API real+hash+auto-approve (C71), descargas WAV (C72), reproducciones (C73), diversidad suave (C74), docs algoritmo (C75), TarjetaMeta metadata IA (C76).
-**R21:** Normalización diseño: TopBar/SampleDetalle/Mensajes/Notificaciones/ModalCrear/ModalPublicar migrados a Badge/BotonBase. CSS redundante eliminado.
-**R22:** cssVarsValidator estricto: severidad error, scanAllFiles, detección hardcode.
-**R23:** Light mode: paleta clara con #e5dfc7 como fondoBase.
-**R24:** Fix temas: dark mode base en :root, light mode en data-theme='light'.
-**R25:** Selector tema ModalConfiguracion: Oscuro/Claro, persistencia localStorage, tema.ts.
-**R26:** SampleDetalle XL: portada 1:1, cabecera post, click=reproducir, métricas ocultas, tags unificados.
-**R27:** SampleDetalle fino: cabecera+título dentro tarjeta, tags bajo waveform, acciones sin borde, compartir eliminado.
-**R28:** SeccionPublicar inline C89, feedTags colecciones C114, panel lateral C86/C95/C111, sqlSelectSamples liked real, fixes C58/C61/C62.
-**R29:** Créditos+ZIP colecciones (C110), tags metadata IA (C134), búsqueda↔tags sync (C115), SelectFiltro+SelectorBPM (C116).
-**R30:** Compactación roadmap — C85-C134 resueltos a tabla, R9-R29 compactos, comentarios pendientes limpiados.
-**R31:** C125 texto botones colección, C135 panel lateral sugerencias (no modal), C124 SeccionPublicar=ModalCrear refactor (useCrearContenido+ContenidoCrear compartido).
-**R32:** C137 ocultar guardar colección propia, C139 normalizador snake→camelCase colecciones, C141 TarjetaColeccion menú 3 puntos, C142 fix sugerencias double-unwrap (apiGet ya desenvuelve json.data).
-**R33:** C143 CSS seccionPublicar rebuild, C146 créditos NaN/undefined fix (TopBar+useDescargas+apiDescargas), C138 descargas propias gratis (DescargasController: samples propios o ya descargados no consumen crédito), C144+C145 sistema de reacciones completo: migración v012 (columna reaccion VARCHAR(20) DEFAULT 'like'), SocialController UPSERT, NormalizadorSample+PublicacionesController reaccion_usuario, MotorRecomendacion 7 queries (encanta=2x, dislike=-1 en trends, excluido en perfil/behavior), TooltipReacciones.tsx+CSS (hover tooltip con 3 iconos), BotonLike rewrite, 8 islands actualizadas con 3-branch manejarLike, TipoReaccion type.
-**R34:** C149 feedTags fix (busqueda fuera de claveCache, limpiarTags removido de efecto cache), C148 algoritmo metadata+creator (sqlTagsEnriquecidos combina tags+metadata JSONB, obtenerCreadoresFavoritos afinidad implícita, pesos contexto rebalanceados: creador=0.35 nuevo, genero↑0.30, BPM↓0.15, key↓0.10), C127 menú 3 puntos unificado (SampleDetalleIsland hero, ComunidadIsland posts+samples, ColeccionDetalleIsland header), C128 similares fuera de article + comentarios expandidos por defecto.
-**R35:** C150 fix hover tooltip reacciones (::before bridge CSS), C151 panel lateral waveform reproducible (audio local+picos servidor/fallback), C152 badges con borde en panelDetalleTags, C153 panelDetalleTarjetaMini simplificado (solo nombre+tags), C154 botones panelDetalle secundario (no ghost), C155 preferencia sugerenciasAlDarLike en panelLateralStore+ModalConfiguracion, C156 similares ocultos por defecto (toggle via menú 3 puntos + auto-show on like), C157 botón descarga color acento (tarjetaAccionDescargado+detalleAccionPlanoDescargado), C158 PanelRightClose en vez de X.
-**R36:** C160 fix filtro reproducidos (double-unwrap apiGet: resp.data ya es SampleResumen[] directo), C161 botón 3 puntos en colecciones públicas (copiar enlace siempre visible), C162 tags concatenados en badges (split por separadores+filtro >30 chars), C163 menú chat header (ver perfil/reportar/bloquear con participanteId+username en store), C165 quitar botón cola del menú contextual.
-**R37:** C133 keep-alive PageRenderer (max 5 islas cacheadas con display:none/block, preserva estado local al navegar entre páginas), C129 paginación infinita comentarios (IntersectionObserver+sentinela, conectado a useComentarios.cargarMas en 3 consumidores). C103+C104 ya implementados (modal auth 3 campos + layout imagen).
-**R38:** C126 modal edición unificado (ModalEditar.tsx+useEditar.ts+editarModalStore.ts+modalEditar.css, backend PUT /samples/{id}+PUT/DELETE /publicaciones/{id}, menú contextual "Editar", montaje global LayoutPrincipal). C164 security hardening completo: RateLimiter.php (transients WP, por usuario/IP) + Validador.php (constantes centralizadas). Rate limits aplicados a 8 controladores: Auth login 5/15min IP + registro 3/h IP + username/password validation, Comentarios 10/min + 2000 chars, Publicaciones 5/min + 5000 chars + esc_url_raw imágenes, Mensajes 30/min + 5000 chars + 10 conversaciones/h, Social follows 20/min + likes 30/min, Samples upload 10/h, Perfil 10/h + bio 500/nombre 100/username validación, Colecciones crear 10/h + nombre 100/desc 500 + agregar 30/min, Reproducciones 60/min.
-**R39:** C85 centralización componentes: BarraAccionesPost.tsx (like/comment/repost unificado, TooltipReacciones integrado, formatearConteo K/M) + EnlaceCreador.tsx (avatar+nombre clickable con navegación a perfil). CSS: accionesPost.css + enlaceCreador.css. Integrado en 6 consumidores: ComunidadIsland (ambos), PerfilIsland (BarraAccionesPost), TarjetaPublicacion (BarraAccionesPost), SampleDetalleIsland (EnlaceCreador), ColeccionDetalleIsland (EnlaceCreador), PanelDetalleSample (EnlaceCreador). Eliminados imports Avatar sin uso en 3 archivos. ~120 líneas de JSX duplicado eliminadas.
-**R40:** C130 comentarios multimedia full-stack: v013 migración (tipo_contenido/media_url/media_metadata en comentarios, contenido nullable). ComentariosController soporta FormData+MIME validation+wp_handle_upload (imagen 10MB, audio 25MB, subcarpeta kamples/comentarios/). Tipo Comentario extendido (tipoContenido/mediaUrl/mediaMetadata). apiSocial.ts crearComentarioMultimedia (FormData). useComentarios.enviarMultimedia. ListaComentarios: renderizado imagen (click→nueva pestaña) + mini reproductor audio (play/pause+barra progreso) + botones adjuntar (Image/Mic) + preview archivo + caption opcional. CSS: comentarioImagen, comentarioAudio, comentarioPreview, comentarioAdjuntarBtn. Conectado en 3 consumidores: ComunidadIsland, SampleDetalleIsland, PanelDetalleSample.
-**R42:** C140 separación descargas/favoritos: DescargasIsland.tsx + FavoritosIsland.tsx (páginas independientes con tabs Mis X/Más Ideas), useDescargasPagina.ts + useFavoritosPagina.ts (hooks SRP), apiSugerencias.ts (frontend), descargasFavoritos.css (compartido). Backend: SamplesController.calcularSugerencias() genérico (scoring tags+BPM+key, excluye ya vistos), 2 endpoints /me/descargas|favoritos/sugerencias. Sidebar +2 items (Download+Heart). MAPA_RUTAS actualizado. LibreriaIsland limpiada (3 tabs: Explorar, Mis Colecciones, Subidos). pages.php +2 rutas. appIslands.tsx +2 islands. Type-check 0 errores.
+**R1-R10:** wsService, ShowcaseIsland, useArchivosDragDrop, BienvenidaIsland, SOLID refactor (12 controladores), FeedSamples centralizado, delete samples/colecciones, JSON repair+Stripe, Groq audio migration, pgvector+embeddings+algoritmo.
+**R11-R20:** Gemini Flash, Groq fallback, logs canales, JSON repair kimi/qwen, roadmap compactado, bugfixes C58-C65, contadores ocultos, Sidebar config, TopBar UX, batch C66-C76 (toasts, waveform, ModalPublicar, ComunidadIsland API, descargas WAV, reproducciones, diversidad, docs, TarjetaMeta).
+**R21-R30:** Normalización diseño, cssVarsValidator, light/dark mode, selector tema, SampleDetalle XL+fino, SeccionPublicar inline+panel lateral+sqlSelectSamples, créditos+ZIP+tags+búsqueda+SelectFiltro, compactación roadmap.
+**R31-R40:** C125+C135+C124, C137-C145 (reacciones completas, CSS rebuild, créditos fix, descargas propias), C149+C148+C127+C128, C150-C158, C160-C165, C133 keep-alive+C129 paginación comentarios, C126 modal edición+C164 seguridad, C85 centralización componentes, C130 comentarios multimedia.
+**R41-R44:** C131/C132 moderación+bans, C140 descargas/favoritos separados, C171+C175+cleanup, C176+C173+C174 (clipboard fallback, badge moderación, tabs fix).
+**R43:** C171 licenciaLibre auto-derivada de permitirDescarga (4 archivos simplificados, ~134 lín eliminadas) + C175 descargas/favoritos rediseño ColeccionDetalle-style + CSS descargasFavoritos.css eliminado.
+**R44:** C176 copiarAlPortapapeles fallback execCommand (clipboard.ts, 4 consumidores), C173 BadgeModeracion siempre visible + admin aprobar posts (ComunidadIsland), C174 useTabsIsla hook keep-alive tabs fix (8 islas migradas) + PageRenderer updater funcional (fix pantalla negra).
 **R41:** C131/C132 moderación IA comentarios + bans: ServicioAntiSpam.php (heurístico pre-IA: URLs, caps, spam patterns, duplicados), ServicioBan.php (violaciones progresivas: 3→24h, 5→7d, 8→30d, notificaciones automáticas). ServicioModeracionIA.moderarComentario() (Guard texto + Vision imagen, tolerante con toxicidad/insultos, solo rechaza spam/pornografía/ilegal, contexto musical para álbumes). v014 migración (moderacion_estado/detalle en comentarios, violaciones/ban en usuarios_ext, tabla reportes genérica). ComentariosController integra anti-spam sincrónico + moderación IA async (shutdown hook) + filtrado rechazados en listar(). AuthMiddleware.verificarBanActivo() helper centralizado. TipoNotificacion += 'moderacion'. C167: PageRenderer refactorizado (patrón render-time state update, elimina cascading renders y pantalla negra). Type-check 23→0 errores (imports muertos en 6 archivos, IndicadorDescargas campos LimitesDescarga). C168: fix \n literal en ComentariosController.
 
 ---
@@ -334,256 +300,88 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 15. **Deduplicación audio:** Hash perceptual ligero (primeros+últimos 4s) diferido en background. Duplicados del mismo usuario permitidos, entre usuarios distintos → supervisión. Sistema de reportes con disputa y pruebas. Tabla `reportes_duplicados` planificada.
 16. **Análisis C117 — JSON bilingüe vs Algoritmo:** El JSON bilingüe (tags/tags_es, emocion/emocion_es, descripcion/descripcion_es) **NO impacta** el rendimiento del algoritmo ni los embeddings. Los embeddings 128d solo usan: BPM, key, escala, tipo, duración, premium, y `tags` (inglés). Las 6 señales del MotorRecomendacion operan sobre datos estructurales + tags EN. Los campos `_es` son puramente de display para UI hispanohablante. Costo extra: ~200 tokens/request en Groq (~$0.01/1000 samples) + ~40% más storage en metadata JSONB. **Decisión: mantener bilingüe** — el ahorro de eliminarlos es marginal vs. la complejidad de implementar traducción lazy después.
 
-## Comentarios del usuario (resueltos)
+## Comentarios del usuario (resueltos — compacto)
 
-| #   | Solicitud                                           | Estado                                                                                                                                                                                                                           |
-| --- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | FFmpeg obligatorio Win+Linux                        | ✅ `buscarBinario()` cross-platform. Prioriza .env > PATH > rutas comunes > winget glob                                                                                                                                          |
-| 2   | Prompt IA bilingüe, sin BPM/key                     | ✅ ServicioIA prompt creativo bilingüe. BPM/key vía AnalizadorAudio (Goertzel+autocorrelación)                                                                                                                                   |
-| 3   | Groq API + fallback multi-modelo                    | ✅ Flujo 100% Groq: Whisper para audio (`whisper-large-v3`→`whisper-large-v3-turbo`) + LLM (`gpt-oss-120b`→`qwen3-32b`→`gpt-oss-20b`)                                                                                            |
-| 4   | FFmpeg instalado                                    | ✅ v8.0.1 via winget. Fix: PHP/Apache no hereda PATH → `FFMPEG_PATH` en .env                                                                                                                                                     |
-| 5   | Prompt con descripción+tags del usuario, mín 5 tags | ✅ `construirPrompt()` con contexto completo. Validación 5 tags frontend+backend                                                                                                                                                 |
-| 6   | Not null violation email usuarios_ext               | ✅ INSERT incluye email desde `$wpUser['email']`                                                                                                                                                                                 |
-| 7   | Unexpected token '<' al subir sample                | ✅ `require_once file.php` + prefijo `\` en funciones WP                                                                                                                                                                         |
-| 8   | Refactorizar KamplesController (SOLID)              | ✅ 1713→60 lín. 12 sub-controladores, 2 helpers, 3 servicios, algoritmoPesos.php                                                                                                                                                 |
-| 9   | Groq no procesa audio/imágenes                      | ✅ Actualizado: Groq Speech-to-Text (Whisper) procesa audio y Groq visión procesa imágenes.                                                                                                                                      |
-| 10  | Moderación IA con Groq                              | ✅ ServicioModeracionIA 3 capas: Guard 4 + Scout visión + gpt-oss contextual. Migración v007. Feed filtra rechazados                                                                                                             |
-| 11  | tags?.forEach is not a function                     | ✅ `pgArrayToPhp()` convierte string PG a array PHP                                                                                                                                                                              |
-| 12  | Quitar todos los mocks                              | ✅ Eliminados mocks de 7 archivos API + 2 dropdowns + ComunidadIsland + mockSamples.ts                                                                                                                                           |
-| 13  | nombreVisible/likes undefined                       | ✅ `normalizarSample()` reescrita: snake→camelCase, sub-objeto creador, cast tipos. ModalInspectorSample creado                                                                                                                  |
-| 14  | Colecciones tipo Pinterest + algoritmo              | ✅ IMPLEMENTADO: Fases A-D completas (ver sección "Plan: Colecciones + Algoritmo")                                                                                                                                               |
-| 15  | Compactar roadmap                                   | ✅ Hecho                                                                                                                                                                                                                         |
-| 16  | Badge plan en TopBar                                | ✅ Free/Pro/Premium con estilos dinámicos + nav a /planes/                                                                                                                                                                       |
-| 17  | URL del proyecto: `http://glory.local/`             | ANOTADO (ver Notas)                                                                                                                                                                                                              |
-| 18  | Borrar mis samples desde menú contextual            | ✅ DELETE /samples/{id} condicional (dueño o admin)                                                                                                                                                                              |
-| 19  | Admin borra cualquier sample/colección              | ✅ `UsuarioHelper::esAdmin()` + permisos en SamplesController y ColeccionesController                                                                                                                                            |
-| 20  | Tags sin estilos                                    | ✅ Faltaba import de feedSamples.css                                                                                                                                                                                             |
-| 21  | JSON roto de IA al subir                            | ✅ 5 estrategias de extracción JSON + reparación con Groq. Fix: control chars                                                                                                                                                    |
-| 22  | feedTagItem eran badge, no botón                    | ✅ `<span role="button">` con accesibilidad + CSS reforzado                                                                                                                                                                      |
-| 23  | Precio en crearCondiciones                          | ✅ Toggle precio + campo en ModalCrear, samples premium con badge + bloqueo                                                                                                                                                      |
-| 24  | Sample no se reproduce (file:// URL)                | ✅ Fix: URLs relativas en vez de absolutas del filesystem                                                                                                                                                                        |
-| 25  | URL sample usa nombre original                      | ✅ Naming IA: `kamples_{tipo}_{genero}_{bpm}_{key}_{idCorto}.ext`                                                                                                                                                                |
-| 26  | Foto perfil no aparece                              | ✅ Fix normalizarUsuario() snake→camelCase (parte de C30)                                                                                                                                                                        |
-| 27  | Inspector sin JSON IA                               | ✅ ModalInspectorSample sección JSON crudo + metadata IA                                                                                                                                                                         |
-| 28  | JSON crudo IA no se guardaba                        | ✅ PipelineAudio ::jsonb cast para PDO native prepares + sección JSON IA en inspector                                                                                                                                            |
-| 29  | Botón cambio de modo + PerfilIsland split crash     | ✅ BotonDevTools (devToolsStore + useUsuarioEfectivo) + guard `(rutaActual ?? '')`                                                                                                                                               |
-| 30  | Datos perfil no persisten al recargar               | ✅ normalizarUsuario() en PerfilController (GET/PUT /me), PUT retorna perfil completo                                                                                                                                            |
-| 31  | Botón experimentos admin                            | ✅ ExperimentosController (usuario test WP+PG, notif, mensaje real), BotonExperimentos en TopBar                                                                                                                                 |
-| 32  | npm run type-check errores                          | ✅ 29→0 errores: imports no usados, props incorrectas (deshabilitado→disabled, fantasma→ghost)                                                                                                                                   |
-| 33  | Re-ejecutar migración v008                          | ✅ Ejecutada contra PostgreSQL 18 (ALTER TABLE ×3 + CREATE INDEX)                                                                                                                                                                |
-| 34  | Foto de perfil no se guarda                         | ✅ POST /me/avatar (FormData, MIME validation), ModalConfiguracion guarda File→upload→PUT                                                                                                                                        |
-| 35  | Botón experimento no visible                        | ✅ GET /me ahora detecta rol WP administrator y fuerza rol='admin' en PG                                                                                                                                                         |
-| 36  | Compilar pgvector + construir algoritmo             | ✅ pgvector master compilado PG18, embedding 128d, MotorRecomendacion v3, buscar_similares SQL                                                                                                                                   |
-| 37  | Samples no aparecen en perfil                       | ✅ Filtro `creador` en SamplesController, PerfilIsland envía `creador: usuario.username`                                                                                                                                         |
-| 38  | Experimentos no generan notificaciones              | ✅ Fix `usuario_id`→`creador_id` en samples query, `::jsonb` cast notificaciones INSERT                                                                                                                                          |
-| 39  | Sample detalle dice "no existe"                     | ✅ Cambiar filtro `estado='activo'` por `NOT IN ('eliminado')` en obtener()                                                                                                                                                      |
-| 40  | Unexpected token '<' en pipeline IA                 | ✅ apiCliente.ts: detectar HTML antes de JSON.parse, devolver error legible                                                                                                                                                      |
-| 41  | Botón DevTools posición molesta                     | ✅ CSS: `top:12px` → `bottom:50%; transform:translateY(50%)`, panel desde nueva posición                                                                                                                                         |
-| 42  | Error hooks React al cambiar foto perfil            | ✅ Early return antes de useCallback en BotonExperimentos/BotonDevTools → movido después de hooks                                                                                                                                |
-| 43  | 404 colecciones/publicas                            | ✅ Frontend llamaba `/publicas`, backend tiene `/explorar`. Corregido apiColecciones.ts                                                                                                                                          |
-| 44  | Tabs duplicadas en colecciones                      | ✅ Eliminadas tabs inline de ColeccionDetalleIsland, usar `activa` de tabsTopBarStore                                                                                                                                            |
-| 45  | Frecuencia recálculo algoritmo                      | ✅ PlanificadorAlgoritmo dual (rápido/preciso), triggers + temporales, v010, cron 5min                                                                                                                                           |
-| 46  | Race condition tabs colecciones                     | ✅ FeedSamples: `key` prop + `requestIdRef` guard stale requests, CSS tabs removido                                                                                                                                              |
-| 47  | HTML en vez de JSON + Gemini Flash 3.0              | ✅ Detección HTML ampliada (`<br`, `<b>`), error con status+URL. Gemini Flash 3.0 (`gemini-2.5-flash-preview-05-20`) como primer modelo                                                                                          |
-| 48  | Logs del algoritmo                                  | ✅ MotorRecomendacion con KamplesLogger (señales, cache, perfil, resultados). Fix namespace PlanificadorAlgoritmo                                                                                                                |
-| 49  | Samples no aparecen en perfil (persistente)         | ✅ Parámetro `creador` faltaba en `argsListar()` de SamplesController — WP REST descartaba el filtro                                                                                                                             |
-| 50  | Botón experimentos no funciona                      | ✅ Logging en ExperimentosController + console.log respuesta + fix parsing doble-wrap en BotonExperimentos                                                                                                                       |
-| 51  | Avatar.tsx crash split undefined                    | ✅ `nombre` ahora es prop opcional con default ''. `obtenerIniciales` defensivo. DropdownMensajes usa optional chaining                                                                                                          |
-| 52  | Filtro inteligente sin samples                      | ✅ InicioIsland: ordenamiento 'inteligente' ahora usa `obtenerFeed('descubrir')` (MotorRecomendacion) en vez de `listarSamples()`                                                                                                |
-| 53  | Logs desordenados (debug.log + kamples.log)         | ✅ 3 canales: `kamples-ia-*.log`, `kamples-algoritmo-*.log`, `kamples-*.log`. Eliminados 12 error_log() de Pipeline+Postgres. Auto-limpieza 7 días                                                                               |
-| 54  | GROQ_API Invalid API Key                            | ✅ Validación formato `gsk_*` con warning en logs. La key del .env no es válida — obtener nueva en console.groq.com/keys                                                                                                         |
-| 55  | Sample detalle "No se encontró"                     | ✅ `sanitize_title` lowercaseaba el slug (idCorto tiene mayúsculas). Fix: `sanitize_text_field` + SQL `LOWER()`                                                                                                                  |
-| 56  | Gemini 3.0 Flash model name                         | ✅ Corregido por usuario: `gemini-3.0-flash` (con punto)                                                                                                                                                                         |
-| 57  | Upload 500 por timeout pipeline                     | ✅ Flush forzado para mod_php (`ignore_user_abort`+`ob_end_flush`), curl timeout 60→30s, set_time_limit 600s                                                                                                                     |
-| 58  | Samples no aparecen en perfil (tercera vez)         | ✅ Causa raíz: `apiPeticion` extrae `json.data` → PHP devolvía data/pagination al mismo nivel → `resp.data.data = undefined`. Fix: PHP envuelve bajo clave `data`.                                                               |
-| 59  | Sample publicado no sale en feed                    | ✅ Parte del fix C58 — `publicado_at` se establece desde el INSERT inicial                                                                                                                                                       |
-| 60  | Like no persiste al recargar                        | ✅ Causa raíz: `apiSocial.ts` enviaba `targetId` (camelCase) pero backend espera `target_id`; `quitarLike` URL incorrecta `/like/{tipo}/{id}` → ahora usa body. `apiDelete` acepta body opcional                                 |
-| 61  | Middle-click perfil no abre nueva pestaña           | ✅ `href` añadido a item "Ver perfil" en TopBar. MenuContextual ya renderiza `<a>` con href                                                                                                                                      |
-| 62  | Inteligentes "No se encontraron samples"            | ✅ `feedNuevoUsuario` ya no cachea resultados vacíos. Liked subquery en CTE del motor                                                                                                                                            |
-| 63  | Columna `ruta_archivo` inexistente + tipo check     | ✅ Columnas corregidas a `ruta_original`/`ruta_optimizada`/`ruta_waveform`. `target_type`→`tipo` en DELETE cascade. PipelineAudio normaliza tipo ('one shot'→'oneshot') contra CHECK constraint. Sample 16 actualizado a activo. |
-| 64  | Descargar samples no funciona                       | ✅ Frontend llamaba `/descargas/${id}` pero ruta es `/samples/${id}/descargar`. Respuesta ahora retorna URL pública. Botones descarga conectados en TarjetaSample (fallback API) y SampleDetalleIsland (onClick).                |
-| 65  | Eliminar samples 404                                | ✅ GET slug regex `[a-zA-Z0-9_-]+` capturaba IDs numéricos antes que DELETE `\d+` separado. Fix: GET+DELETE registrados en misma ruta con array de handlers. `eliminar()` lee param `slug` en vez de `id`.                       |
-| 66  | Borrar sample recarga la página                     | ✅ Custom event `EVENTO_SAMPLE_ELIMINADO` + FeedSamples listener elimina del estado local sin recargar                                                                                                                           |
-| 67  | Alerta genérica al borrar                           | ✅ Sistema de toasts (toastStore+ContenedorToasts+toast.css) con confirmar/info/exito/error, en esquina inferior derecha                                                                                                          |
-| 68  | Waveform no aparece correcta                        | ✅ TarjetaSample+SampleDetalleIsland cargan picos desde `rutaWaveform` JSON servidor (fallback AudioContext)                                                                                                                      |
-| 69  | Mockups en perfil                                   | ✅ Eliminados datos hardcodeados (Colombia/2024/kamples.com) y publicaciones mock de PerfilIsland. Campos dinámicos del backend                                                                                                   |
-| 70  | Modal publicaciones en comunidad/perfil             | ✅ ModalPublicar añadido a ComunidadIsland (botón publicar) y LayoutPrincipal (instancia global)                                                                                                                                  |
-| 71  | Posts comunidad + IA moderación + hash              | ✅ ComunidadIsland conectada a API real GET /publicaciones. Admin auto-aprobado. Moderación filtra visibilidad. PipelineAudio llama DeduplicadorAudio.programarCalculo(). audioHash en NormalizadorSample+SQL                     |
-| 72  | Descargas deben ser WAV original                    | ✅ `CALIDAD_PLAN` ahora es wav para todos los planes (free/pro/premium)                                                                                                                                                           |
-| 73  | Reproducciones siempre 0 en inspector               | ✅ TarjetaSample+SampleDetalleIsland ahora llaman `registrarReproduccion()` al reproducir. Backend ya contaba correctamente                                                                                                       |
-| 74  | Algoritmo omite samples                             | ✅ `WHERE rn <= max_por_creador` eliminado. Diversidad por creador ahora es penalización suave (nunca excluye)                                                                                                                    |
-| 75  | Crear MD del algoritmo                              | ✅ `App/docs/algoritmo.md` — 6 señales, pesos, diagramas, flujo completo, cache, recálculo, configuración                                                                                                                        |
-| 76  | TarjetaMeta formato con metadata IA                 | ✅ TarjetaMeta muestra instrumento→género→emoción→velocidad→tag desde metadata IA. SampleResumen ampliado con metadata+totalReproducciones+audioHash                                                                             |
-| 77  | URL directa sample no carga                         | ✅ `forzarResolucionDinamica()` en PageTemplateInterceptor: reconstruye $wp_query cuando 404 coincide con ruta dinámica React                                                                                                   |
-| 78  | Modal suscripción recarga lista samples              | ✅ PlanesIsland convertido a modal overlay via planesModalStore (no cambia ruta, no desmonta InicioIsland)                                                                                                                       |
-| 79  | Botón seguir aparece en perfil propio (detalle)      | ✅ Comparación esPropietario usa String() para evitar mismatch string/number                                                                                                                                                     |
-| 80  | Waveforms todas iguales                              | ✅ Frontend ahora busca json.peaks además de json.picos. remuestrearPicos() adapta resolución al ancho del contenedor                                                                                                           |
-| 81  | Hover corazón likeado debe ser blanco                | ✅ tarjetaSample.css, tarjetaPublicacion.css, sampleDetalle.css: .liked:hover → var(--blanco)                                                                                                                                    |
-| 82  | Funcionalidad de comentarios                         | ✅ ComentariosController genérico (GET/POST /comentarios/{tipo}/{targetId}), hook useComentarios, ListaComentarios integrado en ComunidadIsland y SampleDetalleIsland, botón MessageCircle en TarjetaSample                       |
-| 83  | Posts solo texto no aparecen                         | ✅ Moderación WHERE incluye 'pendiente' para autor. ModalCrear llama crearPublicacion(). json_encode→formato PG TEXT[]. pgArrayAPhp() parsea arrays PostgreSQL en listar/obtener. samplesAdjuntos acepta camelCase del frontend   |
-| 84  | Borde amarillo confirmación + margen fantasma        | ✅ toastItemConfirmacion border-left cambiado a bordeSutil. Toasts/chats usan bottom dinámico con :has(.reproductorGlobal) — sin reproductor bottom:16px, con reproductor bottom:80/100px         
-| 86  | Panel lateral sugerencias (no modal)                 | ✅ PanelLateral 340px + PanelSugerencias + PanelDetalleSample. panelLateralStore Zustand |
-| 87  | Librería tabs API + quitar input búsqueda            | ✅ Cada tab llama API distinta. Input búsqueda eliminado de libreriaBarraAcciones |
-| 88  | Estilos feedSamples centralizados                    | ✅ listaDeSamples unificado para feed/perfil/librería |
-| 89  | SeccionPublicar inline (no modal)                    | ✅ SeccionPublicar + usePublicar hook compartido. ComunidadIsland + PerfilIsland |
-| 90  | @admin · Invalid Date publicaciones                  | ✅ formatearTiempo() parsea fechas. Formato relativo |
-| 91  | Eliminar publicarModos                               | ✅ publicarModos eliminado del JSX de ModalPublicar |
-| 92  | Tags mínimos 5→2                                     | ✅ MIN_TAGS_AUDIO=2 en frontend y backend |
-| 93  | Posts usuario en tab comunidad perfil                 | ✅ PerfilIsland tab comunidad muestra publicaciones del usuario |
-| 94  | Sample eliminado sigue visible                       | ✅ EVENTO_SAMPLE_ELIMINADO + listener en FeedSamples y LibreriaIsland |
-| 95  | Panel lateral: detalle sample + comentarios          | ✅ PanelDetalleSample (metadata, waveform, like, comentarios). TarjetaSample.onClickTitulo |
-| 96  | Comentarios fuera de detallePieFlex                  | ✅ Renderizados como sección hermana |
-| 97  | Waveform no muestra hasta reproducir                 | ✅ Confirmado resuelto por usuario |
-| 98  | Imagen publicación blob URL                          | ✅ Imágenes se suben al servidor con URLs reales |
-| 99  | Likes comunidad no perduran                          | ✅ Confirmado resuelto por usuario |
-| 100 | Filtros samples incorrectos                          | ✅ 4 filtros toggle: ocultar reproducidos/likeados/descargados, solo seguidos |
-| 101 | MenuContextual posición perfil                       | ✅ Confirmado resuelto por usuario |
-| 102 | Eliminar separador menuContextual                    | ✅ Clase y renderizado eliminados |
-| 105 | Follow no perdura + botón mensaje                    | ✅ GET /perfil/{username} devuelve siguiendo. BotonFollow sync. Mensaje abre chatFlotanteStore |
-| 106 | Modal guardar colección sin cabecera                 | ✅ Panel sin cabecera, items: imagen+nombre+check |
-| 107 | Buscador colecciones + crear nueva                   | ✅ Filtrado en tiempo real + botón crear si no existe. Alerta duplicado |
-| 108 | coleccionMeta 5 metas comunes                        | ✅ useMemo 5 metas más comunes, separadas por • |
-| 109 | Botones colección iconos + descargar + preview       | ✅ Guardar icono 32x32, Download y Play como botones icono |
-| 110 | Créditos descarga + ZIP colecciones                  | ✅ POST /colecciones/{id}/descargar-zip, créditos verificados, TopBar créditos |
-| 111 | Panel lateral todas listas excepto perfil/comunidad  | ✅ Habilitado en Inicio/Colecciones/Librería. FeedSamples pasa onClickTitulo |
-| 112 | Menú contextual posts + AdminPanel                   | ✅ PLANIFICADO FASE 13 (5 tabs: Resumen/Usuarios/Moderación/Reportes/Monetización) |
-| 113 | inicioTagsContador no cuenta                         | ✅ Query SQL COUNT directa |
-| 114 | feedTags en colecciones                              | ✅ mostrarTags activado en ColeccionDetalleIsland |
-| 115 | Búsqueda↔tags sync bidireccional                     | ✅ filtrosStore tagsIncluidos/tagsExcluidos, parsearBusquedaATags bidireccional |
-| 116 | SelectFiltro + SelectorBPM dropdowns                 | ✅ Dropdowns estilo MenuContextual, BPM rango, tags draggable |
-| 117 | Análisis JSON bilingüe vs algoritmo                  | ✅ ANALIZADO: bilingüe NO impacta algoritmo/embeddings |
-| 118 | Inspector rutas archivo                              | ✅ Muestra nombre/ruta de original, optimizado, preview, waveform |
-| 119 | Errores PerfilIsland                                 | ✅ Tipos: ubicacion/sitioWeb string/null, siguiendo boolean opcional |
-| 120 | Badge moderación esquina superior derecha            | ✅ BadgeModeracion componente. Visible para autor/admin |
-| 121 | Error subir sample MIN_TAGS                          | ✅ Frontend MIN_TAGS=2 alineado con backend |
-| 122 | Verificar comentarios resueltos                      | ✅ Verificación completada |
-| 123 | Hooks render order ColeccionDetalleIsland             | ✅ useMemo antes de early returns + typeof checks JSONB |
-| 134 | Tags metadata IA en feedTags                         | ✅ extraerTagsMetadata() combina metadata IA con normalización/deduplicación |
-| 124 | SeccionPublicar = ModalCrear + audio                 | ✅ Refactor: useCrearContenido hook + ContenidoCrear compartido. SeccionPublicar y ModalCrear usan misma UI |
-| 125 | coleccionAcciones texto botones                      | ✅ Añadido <span> con texto (Guardar/Descargar/Preview) + CSS gap+padding |
-| 135 | Panel lateral sugerencias (no modal)                 | ✅ FeedSamples usa panelLateralStore.abrirSugerencias en vez de sugerenciasLikeStore modal |
-| 136 | todosLosTags undefined error                         | ✅ Build viejo cacheado. Variable no existe en código fuente actual |
-| 137 | Guardar en colección propia no mostrarlo             | ✅ ColeccionDetalleIsland: oculta botón guardar si coleccion.usuarioId === usuario.id |
-| 138 | Descargas sin crédito samples propios                | ✅ DescargasController: skip crédito si esPropietario o yaDescargado |
-| 139 | Contador samples colecciones                         | ✅ normalizarColeccion() snake→camelCase en apiColecciones.ts (total_items→totalSamples) |
-| 140 | Separar descargas/favoritos en páginas propias       | ✅ DescargasIsland + FavoritosIsland: páginas independientes con tabs (lista + Más Ideas). Sidebar actualizado (5 items). Backend sugerencias genérico. LibreriaIsland limpiada (3 tabs) |
-| 141 | TarjetaColeccion menú 3 puntos                       | ✅ Botón MoreVertical esquina superior derecha + dropdown Editar/Eliminar. Auto-contraste rgba+blur |
-| 142 | Sugerencias siempre vacías                           | ✅ Double-unwrap: apiGet ya extrae json.data, tipo era RespuestaApi<{data:T}> → corregido a RespuestaApi<T>. Corregido en apiReproduciones+PanelSugerencias+sugerenciasLikeStore+PanelDetalleSample |
-| 143 | crearContenido CSS roto                              | ✅ seccionPublicar.css rebuild — solo wrapper `.seccionPublicar` (13 líneas) |
-| 144 | Dislike + algoritmo publicaciones                    | ✅ Sistema reacciones completo: v012 migración, SocialController UPSERT, MotorRecomendacion 7 queries, TooltipReacciones hover 3 iconos |
-| 145 | Me encanta + dislike en samples                      | ✅ BotonLike rewrite, TipoReaccion type, 8 islands con 3-branch manejarLike, TooltipReacciones.tsx+CSS |
-| 146 | Créditos NaN/undefined                               | ✅ apiDescargas LimitesDescarga match backend (usadas/limite), TopBar+useDescargas actualizados |
-| 147 | v012 mensaje visible                                 | ✅ Arreglado por usuario |
+**C1-C10:** FFmpeg cross-platform, IA bilingüe Groq, auto-creación usuarios_ext, pipeline audio, moderación IA 3 capas.
+**C11-C20:** pgArrayToPhp, mocks eliminados, normalizarSample snake→camelCase, colecciones Pinterest, roadmap compactado, plan badge TopBar, delete samples admin/dueño, tags estilos.
+**C21-C30:** JSON repair 5 estrategias, feedTagItem accesible, precio samples premium, URLs relativas audio, naming IA, avatar normalización, inspector JSON IA, PipelineAudio::jsonb, BotonDevTools, perfil persistente.
+**C31-C40:** ExperimentosController, type-check 29→0, migración v008, avatar upload, admin role fix, pgvector+algoritmo, perfil samples filtro, experimentos notificaciones, sample 404 fix, apiCliente HTML.
+**C41-C50:** DevTools posición, hooks render order, colecciones API fix, tabs duplicadas, PlanificadorAlgoritmo, race condition tabs, Gemini Flash 3.0, logs algoritmo, perfil samples persistente, ExperimentosController parsing.
+**C51-C60:** Avatar defensivo, filtro inteligente MotorRecomendacion, logs canales+limpieza, GROQ_API validación, sanitize_text_field slug, Gemini model name, pipeline timeout flush, apiPeticion data wrapping, publicado_at INSERT, likes snake_case.
+**C61-C70:** Middle-click perfil, feed nuevo usuario cache, ruta_archivo columnas, descargas ruta, DELETE regex, borrar sin recargar, toasts sistema, waveform servidor, mockups perfil eliminados, ModalPublicar global.
+**C71-C84:** ComunidadIsland API real, descargas WAV, reproducciones tracking, diversidad suave, docs algoritmo, TarjetaMeta IA, URL directa sample, modal suscripción overlay, seguir perfil propio, waveforms remuestreo, hover corazón, comentarios controller, posts texto, borde toast.
+**C85-C100:** BarraAccionesPost+EnlaceCreador centralizados, panel lateral sugerencias, librería tabs API, estilos feedSamples, SeccionPublicar inline, @admin Invalid Date, publicarModos eliminado, tags mínimos 2, posts perfil tab, EVENTO_SAMPLE_ELIMINADO, panel detalle sample+comentarios, comentarios fuera pieFlex, waveform pre-play, imagen blob, likes comunidad, filtros samples.
+**C101-C120:** MenuContextual posición, separador eliminado, auth 3 campos+modal imagen, follow+mensaje, modal colección UI, buscador colecciones, coleccionMeta, botones colección, créditos+ZIP, panel lateral listas, menú contextual posts+AdminPanel plan, inicioTagsContador, feedTags colecciones, búsqueda↔tags sync, SelectFiltro+SelectorBPM, JSON bilingüe análisis, inspector rutas, errores PerfilIsland, badge moderación.
+**C121-C145:** MIN_TAGS alineado, verificación comentarios, hooks render order, SeccionPublicar=ModalCrear refactor, botones colección texto, modal edición unificado, menú 3 puntos unificado, similares+comentarios expandidos, paginación infinita comentarios, comentarios multimedia, automod IA, bans+moderación, keep-alive PageRenderer, tags metadata IA, panel lateral sugerencias fix, todosLosTags, guardar colección propia, descargas propias gratis, normalizador colecciones, separación descargas/favoritos, TarjetaColeccion menú, sugerencias double-unwrap, CSS seccionPublicar, reacciones completas (dislike+encanta), créditos NaN fix.
+**C146-C168:** v012 mensaje, algoritmo tags+creador, feedTags fix, hover tooltip, panel waveform, badge borde, TarjetaMini, botones panelDetalle, config preferencia panel, similares toggle, botón descarga acento, PanelRightClose, WebSocket (pendiente), filtro reproducidos fix, colecciones 3 puntos, tags concatenados, menú chat, seguridad hardening, cola eliminada, compactación, PageRenderer render-time update+type-check, syntax error ComentariosController.
+**C171-C176:** Licencia libre auto-derivada (R43), compactar registros (R44), BadgeModeracion+admin approve (R44), tabs freeze+pantalla negra fix (R44), descargas/favoritos rediseño (R43), copiar enlace fallback (R44).
 
 ---
 
 # Comentarios pendientes
 
-| 85 | Centralizar botones/componentes | ✅ BarraAccionesPost.tsx + EnlaceCreador.tsx. Integrado en 6+ consumidores. ~120 líneas duplicadas eliminadas |
-| 103 | Registro sencillo (3 campos) | ✅ Ya implementado: username, email, 1 contraseña. ModalAuth con FormularioRegistro |
-| 104 | Auth modal con imagen (no páginas) | ✅ ModalAuth con authLayoutEspecial (55%/45% grid), ConAutenticacion abre modal |
-| 126 | Modal edición samples/posts/colecciones | ✅ ModalEditar.tsx unificado + useEditar.ts + editarModalStore.ts. Backend PUT /samples/{id} + PUT/DELETE /publicaciones/{id} |
-| 127 | Menú 3 puntos unificado | ✅ SampleDetalleIsland hero, ComunidadIsland, ColeccionDetalleIsland — todos con MenuContextual |
-| 128 | Similares + comentarios expandidos | ✅ Similares fuera de article, comentarios expandidos por defecto |
-| 129 | Paginación infinita comentarios | ✅ IntersectionObserver+sentinela en ListaComentarios, 3 consumidores |
-| 130 | Comentarios multimedia (imagen+audio) | ✅ v013 migración. ComentariosController FormData+upload. ListaComentarios imagen+audio player. 3 consumidores |
-| 131 | Automod IA comentarios | ✅ ServicioAntiSpam.php + ServicioModeracionIA.moderarComentario() (Guard+Vision async). Anti-spam + moderación IA post-INSERT |
-| 132 | Sistema bans + moderación mejorada | ✅ ServicioBan.php (escalación 3→24h/5→7d/8→30d). Guard permite toxicidad. Vision contexto musical. v014 migración |
-| 133 | Cache SPA keep-alive | ✅ PageRenderer max 5 islas display:none/block |
-| 140 | Separar descargas/favoritos en páginas propias | ✅ DescargasIsland + FavoritosIsland páginas independientes. Sidebar 5 items. Backend sugerencias genérico. LibreriaIsland 3 tabs |
-| 148 | Algoritmo tags metadata + creador implícito | ✅ sqlTagsEnriquecidos() + obtenerCreadoresFavoritos() |
-| 149 | feedTags roto | ✅ busqueda fuera de claveCache |
-| 150 | Hover tooltip reacciones | ✅ ::before puente CSS |
-| 151 | Panel lateral waveform | ✅ Audio local + picos servidor/fallback |
-| 152 | Badge variante borde | ✅ estilo="borde" |
-| 153 | TarjetaMini simplificada | ✅ CSS oculta acciones+waveform |
-| 154 | Botones panelDetalle | ✅ variante="secundario" |
-| 155 | Config preferencia panel | ✅ sugerenciasAlDarLike localStorage |
-| 156 | Similares solo en like/menú | ✅ mostrarSimilares=false por defecto |
-| 157 | Botón descarga color acento | ✅ Estado local descargado |
-| 158 | Icono cerrar panel | ✅ PanelRightClose |
-| 159 | WebSocket comunicación tiempo real | Pendiente |
-| 160 | Filtro reproducido | ✅ Double-unwrap apiGet fix |
-| 161 | Colecciones botón 3 puntos | ✅ Siempre visible con copiar enlace |
-| 162 | Tags pegados en badges | ✅ Split por separadores + filtro >30 chars |
-| 163 | Menú chat flotante | ✅ Avatar+menú 3 puntos, store extendido |
-| 164 | Seguridad/hardening | ✅ RateLimiter.php + Validador.php, 8 controladores protegidos |
-| 165 | Quitar botón cola | ✅ Item eliminado del menú contextual |
-| 166 | Compactar roadmap | ✅ Hecho |
-| 167 | PageRenderer cascading + type-check | ✅ Render-time state update, 23→0 errores TS |
-| 168 | Syntax error ComentariosController | ✅ Fix \n literal |
+**Resueltos (compacto):** C85 BarraAccionesPost+EnlaceCreador, C103/104 auth modal 3 campos+imagen, C126 modal edición unificado, C127 menú 3 puntos, C128 similares+comentarios expandidos, C129 paginación infinita comentarios, C130 comentarios multimedia, C131 automod IA, C132 bans progresivos, C133 keep-alive, C140 descargas/favoritos separados, C148 algoritmo tags+creador, C149-C168 fixes varios (tooltip, panel waveform, badges, config panel, seguridad hardening, PageRenderer render-time), C171-C176 sesión actual.
+
+**Pendientes:**
 169. La busqueda debería funcionar para la pagina de colecciones.
 170. La tarea de 126 si se hizo pero la descripcion aparece en el input de tags. Las tags deben ser las que genero la IA, y los tags que escribio el usuario, es la descripción, se que los samples tienen mucha data, pero hay que intentar hacer algo compacto y con muy buena ui ux para poder modificar la matadata. 
-171. Simplificar lo de "Licencia libre (dominio público)" a que cuando se permite la descarga, automaticamente ya es "Licencia libre (dominio público)", cuando no se permita no sera de dominio publico. Quitar esa opcion del modal de publicacion y de editar.
-172. Compactar registros de cambios y comentarios viejos. 
-173. Antes habiamos comentado lo de los status de moderacion de un, habia indicado una tarea de que al lado de 3 puntos, para el admin y el dueño del post sera visible un icono de status que indicará el status del post, no importa que estuviera validado en cualquier estado, siempre aparece, solo un icono sin texto. Pero no lo veo. Que el admin pueda aprobar, los post pendiente en el menu contextual.
-174. Las tabs a veces se quedan congeladas a cambiar de pagina rapido y las paginas a veces se quedan en negro.
-175. Las paginas de descarga y favorito debe tener la misma estructura y diseño que las paginas individuales de las colecciones, actualmente se ve muy diferente.
-176. Los copiar enlace en todos los lugares en donde aparecen, no funcionan.
+171. ✅ Licencia libre auto-derivada de permitirDescarga. Eliminada de ModalCrear y ModalEditar (R43).
+172. ✅ Compactado (R44).
+173. ✅ BadgeModeracion siempre visible (icono sin texto). Admin puede aprobar posts pendientes desde menú contextual ComunidadIsland (R44).
+174. ✅ useTabsIsla hook re-registra tabs en keep-alive. PageRenderer updater funcional previene pantalla negra. 8 islas migradas (R44).
+175. ✅ Descargas/Favoritos rediseñados con estructura ColeccionDetalle (R43).
+176. ✅ copiarAlPortapapeles() con fallback execCommand para contextos no-HTTPS. 4 consumidores actualizados (R44).
 177. En descargar quitar lo de 0/5 usadas hoy WAV y el badge de free
 178. Estatus de verificación de los samples, esto es diferente del status de moderación, sabemos que cuando se sube un sample, la informacion es generada por IA, si bien es una forma rapida de organizar la información, requiere verificación humana posterior, no significa que los samples no van a aparecer pero, los samples verificados deberían tener mas valor para el algoritmo. Para verificar un sample se debería poder desde el menu contextual, se podra verificar o desverificar, y cuando un sample este verificado aparera un circulo con check en el nombre del sample.
 179. Empezar a trabajar en FASE 13 — Panel de Administración (C112 — Planificación).
 180. Arriba de inicioBarraControl mostrar una fila de colecciones, maximas 8, scroll hacia los lados sin que se vea el scroll.
 181. Respecto a la tarea anterior me da la duda de que si las colecciones tienen algoritmo, pues, las colecciones deberían de alguna forma tambien ordenarse según el usuario, sus tags mas comunes, etc, para mostrar las colecciones mas relevantes para el usuario.
 182. El modal de buscar colección esta muy bonito, pero debería aparecer justo donde se dio click. Ahora agregar un nuevo icono de guardar para abrir ese modal al lado del boton de like en la lista de samples.
+183. Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+logger.ts:82  [Kamples] 12:43:17 [ERROR] ApiCliente: POST /comentarios/sample/15 → respuesta HTML inesperada (status 500) 
+184. Esta es una tarea complicada, no es para hacer ahora, es para planificar con detalle.
+
+Una versión mejorada de "Create (Stacks)" de splice
+
 
 
 ---
 
-## Lecciones Aprendidas (sesión actual)
+## Lecciones Aprendidas (compactas)
 
-- [PG Arrays]: PostgreSQL TEXT[] espera formato `'{val1,val2}'`, no `json_encode(['val1','val2'])` que produce `'["val1","val2"]'`. Usar helper `pgArrayAPhp()` para parsear en PHP.
-- [PDO+PG]: PDO PostgreSQL devuelve TEXT[] como string literal `"{}"` — siempre parsear antes de enviar al frontend.
-- [Moderación]: Posts con `moderacion_estado='pendiente'` eran invisibles incluso para su autor. El filtro WHERE debe incluir 'pendiente' para el autor.
-- [camelCase/snake_case]: Frontend envía `samplesAdjuntos` pero backend buscaba `samples_adjuntos`. Aceptar ambos con `??`.
-- [CSS :has()]: Usar `.layoutPrincipal:has(.reproductorGlobal)` para ajustar posición de toasts/chats dinámicamente según si el reproductor está activo.
-- [Tipos JS]: Comparaciones entre IDs del backend (string) y frontend (number) fallan silenciosamente. Usar `String()` en ambos lados.
-- [Comentarios]: Backend endpoint genérico `/comentarios/{tipo}/{targetId}` es más flexible que endpoints por entidad. Hook `useComentarios` encapsula toda la lógica.
-- [ModalCrear]: Tenía un TO-DO para posts sin audio que solo hacía `setTimeout(500)` sin llamar al backend.
-- [Auth]: No existía AuthController.php — causaba 404 en /auth/registro y /auth/login. Creado con wp_authenticate + wp_create_user + auto-sync PG.
-- [Auth Modal]: ConAutenticacion ahora abre modal auth en vez de navegar a /auth/login. LandingPublica y PlanesIsland usan authModalStore.abrir() en vez de navegar().
-- [Tags Upload]: Frontend MIN_TAGS_AUDIO=2 (C92) pero backend SamplesController tenía count($tags)<5. Siempre alinear validaciones frontend/backend al cambiar límites.
-- [Hooks React]: NUNCA poner useMemo/useCallback/useState después de un early return condicional. Todos los hooks deben ejecutarse antes de cualquier return.
-- [Metadata JSONB]: Los campos del JSONB pueden ser string, number, array u object. Siempre usar typeof checks antes de .trim() u operaciones de string.
-- [Panel Lateral]: WaveformPlayer no acepta rutaAudio/rutaWaveform — usa `picos: number[]|null`. Props del componente siempre verificar antes de usar.
-- [Panel Lateral]: MetadataSample tiene `instrumentos` (plural, string[]|string) no `instrumento`. `genero` es string[]|string. Siempre hacer Array.isArray check.
-- [Panel Lateral]: Store Zustand tiene `habilitar`/`deshabilitar` pero islands usan alias `habilitarPanel`/`deshabilitarPanel` via destructuring. Mantener consistencia.
-- [Hooks Compartidos]: usePublicar extrae lógica publicación de ModalPublicar — ambos componentes (SeccionPublicar y ModalPublicar) usan el mismo hook.
-- [Tags C134]: FeedSamples usaba `s.tags` (tags del usuario) en vez de metadata IA. `extraerTagsMetadata()` combina metadata.tags/genero/instrumentos/emocion/artista_vibes con normalización.
-- [Tags Store C115]: Tags en local useState sin conexión a búsqueda global. Migrar a store Zustand con sync bidireccional (parsearBusquedaATags ↔ generarBusquedaDesdeTags).
-- [SelectFiltro C116]: No usar select HTML nativo — crear dropdown propio con estilo MenuContextual para consistencia visual. Cerrar con click outside + Escape.
-- [CSS feedTags C116]: feedTagExpandirBtn (+N) y compresión de tags producían UI fea. Reemplazado por fila de SelectFiltro dropdowns + tags sueltos draggable sin límite visual.
-- [C124 Refactor]: ModalCrear tenía 459 líneas con lógica inline. Extraído a useCrearContenido (hook) + ContenidoCrear (UI compartida). Ambos ModalCrear y SeccionPublicar ahora usan la misma base.
-- [C135 Sugerencias]: FeedSamples usaba sugerenciasLikeStore (modal) en vez de panelLateralStore.abrirSugerencias (panel lateral). PanelSugerencias.tsx y PanelLateral.tsx ya existían, solo faltaba conectar el trigger.
-- [useArchivosDragDrop]: Spread `...archivos` en return del hook colisiona con `resetear` propio. Listar props explícitamente para evitar override silencioso.
-- [C142 apiCliente]: `apiGet` ya hace `json.data ?? json` → si backend envía `{data: [...]}`, `resp.data` ya es el array. Tipear como `RespuestaApi<T[]>`, NO `RespuestaApi<{data: T[]}>`. Error: double-unwrap silencioso donde `resp.data?.data` era siempre `undefined`.
-- [C144/C145 Reacciones]: UPSERT con ON CONFLICT DO UPDATE SET reaccion. total_likes solo cuenta 'like'+'encanta' (no dislike). Algoritmo: encanta=2x, like=1x, dislike=-1 solo en trends, excluido en profile/behavior. Frontend: TooltipReacciones hover con 3 iconos, 3-branch manejarLike (reaccion/quitar/simple). Delta calc: solo like+encanta suman a totalLikes.
-- [C146 Créditos]: Backend devuelve `usadas`/`limite`, frontend esperaba `credits_used`/`credits_limit`. Siempre verificar nombres de campos entre backend y frontend.
-- [C138 Descargas]: DescargasController necesita 3 checks: esPropietario (creador_id), yaDescargado (EXISTS en descargas), consumeCredito (solo si no es propietario ni ya descargado).
-- [C150 Tooltip hover gap]: `pointer-events` NO es animable — cambia instantáneamente. Un gap CSS entre trigger y tooltip (bottom: calc(100%+N)) causa zona muerta donde el mouse pierde hover y `pointer-events:none` bloquea el tooltip. Fix: `::before` pseudo-element en el contenedor que extiende el área hover para cubrir el gap.
-- [C160 apiGet double-unwrap]: apiGet hace `json.data ?? json` → si backend envía `{data:[...],page:N}`, `resp.data` ya es el array. Usar `resp.data` directo, NUNCA `resp.data.data`. Patrón correcto: `RespuestaApi<SampleResumen[]>` + `Array.isArray(resp.data) ? resp.data : []`.
-- [C126 Modal Editar]: CampoTexto onChange da HTMLInputElement pero textarea necesita HTMLTextAreaElement. Cast: `(e.target as unknown as HTMLTextAreaElement).value`. Modal unificado para 3 tipos de entidad con formularios condicionales.
-- [C164 RateLimiter]: WP transients con md5 keys para rate limiting. `set_transient` NO actualiza TTL si la key ya existe — hay que recalcular con `get_transient` primero. Cloudflare IP: HTTP_CF_CONNECTING_IP > HTTP_X_FORWARDED_FOR > REMOTE_ADDR.
-- [C164 Validador]: Centralizar constantes de validación evita drift entre controladores. Siempre validar longitud ANTES de sanitizar (sanitize_text_field trunca silenciosamente).
-- [C164 esc_url_raw]: Para URLs almacenadas en DB, usar `esc_url_raw()` (sin entidades HTML). `esc_url()` es para output HTML. `addslashes()` NO es sanitización de URLs.
-- [C164 Auth brute force]: Rate limit login por IP (no por usuario) porque el usuario aún no está autenticado. Registro también por IP para prevenir spam de cuentas.
-- [PHP Namespace]: `filter_var`, `$_SERVER`, `session_id` etc. son funciones/variables globales que el linter PHP no reconoce dentro de namespaces. Prefijo `\` las resuelve (ej: `\filter_var()`).
-- [C85 Centralización]: Patrón BarraAccionesPost: recibe objeto con shape mínimo (`id`, `liked`, `reaccion`, `totalLikes`, `totalComentarios`, `reposteado`) + callbacks opcionales. Si no hay callback, se renderiza decorativo (sin TooltipReacciones, sin onClick).
-- [C85 EnlaceCreador]: Componente recibe username+nombreVisible+avatarUrl y usa `useNavigationStore` para navegar. Acepta `className` para heredar estilos del contenedor padre. Elimina necesidad de import Avatar+useNavigationStore en cada consumidor.
-- [C85 Imports muertos]: Al reemplazar JSX con componentes centralizados, revisar si imports como `Avatar` quedaron sin uso. El linter TS no siempre marca imports no usados como error.
-- [C130 Multimedia]: Patrón reutilizable de MensajesController: detectar multipart Content-Type → get_file_params() → mime_content_type validation → wp_handle_upload con upload_dir filter. Siempre limpiar el filter después con remove_filter.
-- [C130 Contenido nullable]: Al añadir multimedia, `contenido` debe ser nullable (imagen sin caption). Actualizar tanto BD (DROP NOT NULL) como frontend (renderizado condicional `{comentario.contenido && ...}`).
-- [C162 Metadata emocion]: El campo `emocion` de metadata IA puede llegar como string concatenado sin separadores (ej: "dreamyetherealmelancholic"). Siempre splitear por `,|; ` y filtrar strings >30 chars.
-- [C163 ChatFlotanteStore]: El store solo tenía `nombreParticipante` y `avatarUrl` — faltaban `participanteId` y `participanteUsername` para poder navegar al perfil o hacer acciones sobre el usuario.
-- [C131 AntiSpam PDO]: `INTERVAL ':ventana seconds'` con PDO param dentro de string literal NO funciona en PostgreSQL. Usar concatenación directa o multiplicar intervalo.
-- [C131 Moderación comentarios]: Guard texto para comentarios debe ser más permisivo que para publicaciones: toxicidad e insultos permitidos (C132), solo rechazar spam/sexual/ilegal/doxxing.
-- [C132 Vision musical]: Las portadas de álbumes usan imagenería provocativa frecuentemente. El prompt Vision debe especificar "music production platform" y tolerar "suggestive/artistic images that could be album covers".
-- [C132 Bans progresivos]: Escalación 3→24h, 5→7d, 8+→30d cubre la mayoría de casos. Ban auto-limpia al verificar (UPDATE SET NULL WHERE baneado_hasta < NOW()).
-- [C167 React Compiler]: `setPaginasCache` dentro de `useEffect` causa error del React Compiler "Calling setState synchronously within an effect". Fix: usar patrón render-time state update con guard `if (islaActual !== islaAnterior)`.
-- [C167 PageRenderer negro]: La pantalla quedaba en negro porque `useEffect` → `setPaginasCache` dejaba 1 frame donde la isla nueva NO estaba en el array. Con render-time update, el state se actualiza ANTES del render, eliminando el frame vacío.
-- [C167 Date.now() en render]: React Compiler rechaza `Date.now()` en useMemo/render porque es "impure function". Usar un contador module-level (`let contadorOrden = 0`) para ordenar LRU.
-- [C167 useRef en render]: React Compiler prohíbe acceder a `.current` de useRef durante render. No funciona como alternativa a useState para datos de render.
-- [C167 Type-check]: Tras refactors como C85 (centralizar componentes), siempre ejecutar `npm run type-check` para detectar imports muertos en archivos consumidores.
-- [C140 Sugerencias genérico]: `calcularSugerencias()` acepta SQL de contexto y SQL de exclusión como parámetros genéricos, reutilizable para cualquier lista del usuario (descargas, favoritos, colecciones, historial).
-- [C140 Sidebar items]: Al añadir items al sidebar, actualizar MAPA_RUTAS en LayoutPrincipal.tsx para que la detección de página activa funcione con las nuevas rutas.
-- [C140 FeedSamples dual]: Patrón tab dual: tab principal con TarjetaSample manual (datos precargados) + tab "Más Ideas" con FeedSamples+proveedor (infinite scroll). Usar `key` distinto para forzar desmontaje limpio entre tabs.
+**API/Backend:**
+- `apiGet` hace `json.data ?? json` → NUNCA hacer `resp.data.data` (double-unwrap). Tipear `RespuestaApi<T[]>`.
+- PG TEXT[] requiere formato `'{val1,val2}'`, usar `pgArrayAPhp()` para parsear.
+- PDO+PG: TEXT[] devuelto como string `"{}"` — siempre parsear.
+- Backend snake_case, frontend camelCase — normalizadores obligatorios.
+- IDs backend (string) vs frontend (number) — usar `String()` en comparaciones.
+- Validar longitud ANTES de sanitizar (sanitize_text_field trunca silenciosamente).
+- `esc_url_raw()` para DB, `esc_url()` para output HTML.
+- Rate limit login por IP (no usuario), registro también por IP.
+- PDO: `INTERVAL ':param seconds'` NO funciona en PG — concatenar directamente.
+- `\filter_var`, `\session_id` etc. dentro de namespaces PHP requieren prefijo `\`.
+
+**React/TypeScript:**
+- NUNCA hooks despues de early return condicional — todos los hooks antes de cualquier return.
+- React Compiler: no `Date.now()` en render/useMemo, no refs `.current` en render, no `setState` en useEffect.
+- PageRenderer negro: useEffect→setState deja 1 frame vacío. Fix: render-time state update.
+- `setPaginasCache(prev => ...)` funcional para evitar stale closures en rápida navegación.
+- Tras refactors, `npm run type-check` para detectar imports muertos.
+- CampoTexto onChange: HTMLInputElement vs HTMLTextAreaElement — cast con `as unknown as`.
+- Spread `...archivos` en return colisiona con `resetear` — listar props explícitamente.
+
+**CSS/UI:**
+- `:has(.reproductorGlobal)` para bottom dinámico de toasts/chats.
+- `pointer-events` NO es animable — usar `::before` bridge para cubrir gaps en tooltips.
+- No usar select HTML nativo — dropdown propio con estilo MenuContextual.
+- Metadata `emocion` puede ser string sin separadores — splitear y filtrar >30 chars.
+
+**Patrones:**
+- useTabsIsla(islaId, tabs, activaInicial) — re-registra tabs cuando isla se activa en keep-alive.
+- copiarAlPortapapeles(texto, mensaje) — fallback execCommand para http://.
+- BarraAccionesPost: shape mínimo + callbacks opcionales. Sin callback = decorativo.
+- EnlaceCreador: avatar+nombre+navegación. Elimina imports duplicados.
+- calcularSugerencias(): SQL genérico reutilizable para cualquier lista del usuario.
+- FeedSamples dual: tab principal (datos precargados) + tab sugerencias (infinite scroll via FeedSamples+proveedor).
+- MAPA_RUTAS en LayoutPrincipal.tsx debe actualizarse al añadir items al sidebar.
+- extraerTagsMetadata() combina metadata IA (tags/genero/instrumentos/emocion/artista_vibes).

@@ -133,6 +133,7 @@ export interface DatosActualizarSample {
     licenciaLibre?: boolean;
     imagenUrl?: string;
     estado?: string; /* solo admin */
+    verificado?: boolean; /* solo admin — C178 */
 }
 
 /*

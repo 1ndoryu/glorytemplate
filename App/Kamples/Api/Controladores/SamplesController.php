@@ -597,6 +597,12 @@ class SamplesController
             $params['imagenUrl'] = \esc_url_raw($body['imagenUrl']);
         }
 
+        /* Solo admin puede verificar/desverificar */
+        if (isset($body['verificado']) && $esAdmin) {
+            $campos[] = 'verificado = :verificado';
+            $params['verificado'] = ((bool) $body['verificado']) ? 'true' : 'false';
+        }
+
         /* Solo admin puede cambiar el estado */
         if (isset($body['estado']) && $esAdmin) {
             $estadosValidos = ['activo', 'inactivo', 'procesando'];

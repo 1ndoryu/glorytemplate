@@ -43,6 +43,11 @@
     color: var(--textoPrimario);
 }
 
+.detalleVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
+}
+
 .detalleDescripcionInterna {
     margin: 0;
     font-size: var(--fuenteSm);

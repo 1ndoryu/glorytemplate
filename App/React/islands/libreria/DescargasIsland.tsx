@@ -5,10 +5,9 @@
  */
 
 import { useEffect, useCallback } from 'react';
-import { Download, ArrowLeft, Crown } from 'lucide-react';
+import { Download, ArrowLeft } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
-import { Badge } from '@app/components/ui/Badge';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { useDescargasPagina } from '@app/hooks/useDescargasPagina';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
@@ -26,7 +25,7 @@ const TABS_DESCARGAS = [
 ];
 
 const DescargasBase = (): JSX.Element => {
-    const { samples, limites, cargando, proveedorSugerencias, manejarLike } = useDescargasPagina();
+    const { samples, cargando, proveedorSugerencias, manejarLike } = useDescargasPagina();
     const { navegar } = useNavigationStore();
     const { activa: tabActiva } = useTabsTopBarStore();
     const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel, abrirDetalle, abrirComentarios } = usePanelLateralStore();
@@ -60,13 +59,6 @@ const DescargasBase = (): JSX.Element => {
         );
     }
 
-    /* Texto de límites para mostrar en el header */
-    const textoLimites = limites
-        ? limites.ilimitado
-            ? 'Descargas ilimitadas'
-            : `${limites.usadas}/${limites.limite} usadas hoy`
-        : '';
-
     return (
         <div className="coleccionDetalle" id="seccionDescargas">
             {/* Botón volver — misma clase que ColeccionDetalle */}
@@ -83,28 +75,11 @@ const DescargasBase = (): JSX.Element => {
                     alt="Mis Descargas"
                 />
                 <div className="coleccionHeaderInfo">
-                    <div className="coleccionHeaderTipo">
-                        {limites && (
-                            <Badge variante={limites.plan === 'free' ? 'neutro' : 'acento'}>
-                                {limites.plan === 'free' ? 'Free' : <><Crown size={12} /> {limites.plan.charAt(0).toUpperCase() + limites.plan.slice(1)}</>}
-                            </Badge>
-                        )}
-                    </div>
                     <h1 className="coleccionNombre">Mis Descargas</h1>
                     <div className="coleccionMeta">
                         <span className="coleccionStats">
                             {samples.length} sample{samples.length !== 1 ? 's' : ''}
                         </span>
-                        {textoLimites && (
-                            <span className="coleccionStats">
-                                <Download size={12} /> {textoLimites}
-                            </span>
-                        )}
-                        {limites && (
-                            <span className="coleccionStats">
-                                {limites.calidad.toUpperCase()}
-                            </span>
-                        )}
                     </div>
                 </div>
             </div>

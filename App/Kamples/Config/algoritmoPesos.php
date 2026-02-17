@@ -78,6 +78,9 @@ return [
             'factor_penalizacion'   => 0.3, /* Multiplicador (1 = sin penalización) */
         ],
 
+        /* C178: Boost multiplicativo para samples verificados por humano */
+        'verificado_boost'     => 1.15,
+
         /* Diversidad: máximo de samples del mismo creador en un feed */
         'max_por_creador'      => 3,
 

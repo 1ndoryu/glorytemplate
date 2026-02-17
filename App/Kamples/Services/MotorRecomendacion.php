@@ -250,7 +250,11 @@ class MotorRecomendacion
         $factorPen = $penConfig['factor_penalizacion'] ?? 0.3;
         $penalizacion = "(CASE WHEN (SELECT COUNT(*) FROM reproducciones WHERE usuario_id = :userId AND sample_id = s.id) >= {$umbralRepro} THEN {$factorPen} ELSE 1 END)";
 
-        $scoreTotal = "{$scoreAditivo} * {$penalizacion}";
+        /* C178: Boost para samples verificados por humano */
+        $boostVerificado = $params['verificado_boost'] ?? 1.15;
+        $multiplicadorVerificado = "(CASE WHEN s.verificado = true THEN {$boostVerificado} ELSE 1 END)";
+
+        $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$multiplicadorVerificado}";
 
         /* Construir query completa con diversidad por creador como penalización suave */
         $maxPorCreador = $params['max_por_creador'] ?? 3;

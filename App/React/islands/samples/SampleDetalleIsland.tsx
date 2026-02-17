@@ -15,6 +15,7 @@ import {
     Lock,
     MoreHorizontal,
     Sparkles,
+    BadgeCheck,
 } from 'lucide-react';
 import {
     Badge,
@@ -447,6 +448,9 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                     <div className="detallePanelPrincipal">
                         <h1 className="detalleTituloInterno">
                             {sample.titulo}
+                            {sample.verificado && (
+                                <BadgeCheck size={16} className="detalleVerificado" />
+                            )}
                             {sample.esPremium && (
                                 <Badge variante="premium" tamano="xs">
                                     <Crown size={14} /> PRO

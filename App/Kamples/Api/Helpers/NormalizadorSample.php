@@ -127,6 +127,8 @@ class NormalizadorSample
             /* C144/C145: reaccion_usuario puede ser 'like', 'dislike', 'encanta' o null */
             'liked'            => !empty($row['reaccion_usuario']) && in_array($row['reaccion_usuario'], ['like', 'encanta'], true),
             'reaccion'         => $row['reaccion_usuario'] ?? null,
+            /* C178: verificacion de metadata por humano */
+            'verificado'       => (bool) ($row['verificado_sample'] ?? false),
         ];
     }
 
@@ -158,7 +160,7 @@ class NormalizadorSample
                        s.tags, s.tipo, s.estado, s.es_premium, s.precio, s.metadata,
                        s.ruta_preview, s.ruta_waveform, s.ruta_original, s.ruta_optimizada,
                        s.imagen_url, s.total_descargas, s.total_likes, s.total_reproducciones,
-                       s.audio_hash,
+                       s.audio_hash, s.verificado AS verificado_sample,
                        u.id as creador_id, u.username, u.nombre_visible,
                        u.avatar_url, u.verificado,
                        {$reaccionExpr} AS reaccion_usuario
