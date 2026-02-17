@@ -900,6 +900,29 @@
     font-weight: 600;
 }
 
+/* C239: Botón restablecer propiedades */
+.modalConfigRestablecer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    padding: 6px;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--textoSecundario);
+    background: none;
+    border: 1px dashed var(--bordeSutil);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.modalConfigRestablecer:hover {
+    color: var(--advertencia, #f59e0b);
+    border-color: var(--advertencia, #f59e0b);
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .mezcladorPanel {

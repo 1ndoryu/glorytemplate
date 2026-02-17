@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { X, RotateCcw } from 'lucide-react';
+import { X, RotateCcw, RefreshCw } from 'lucide-react';
 import type { BloqueMezclador, ConfigBloque } from '../types/mezclador';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 
@@ -82,6 +82,37 @@ export const ModalConfigBloque = ({
         setPlaybackRate(clamped);
         /* Recalcular duración en compases */
         const nuevaDuracion = duracionBuffer / (clamped * durCompas);
+        setDuracionBloque(bloque.id, Math.max(0.25, nuevaDuracion));
+    };
+
+    /*
+     * C239: Restablecer todas las propiedades del bloque a valores por defecto.
+     * playbackRate vuelve al ratio original (BPM sample / BPM proyecto).
+     */
+    const restablecer = () => {
+        const rateOriginal = bloque.sample.bpm
+            ? bloque.sample.bpm / bpmProyecto
+            : 1;
+        const rateClamped = Math.max(0.25, Math.min(4, rateOriginal));
+
+        setVolumen(1);
+        setPlaybackRate(rateClamped);
+        setFadeIn(0);
+        setFadeOut(0);
+        setInvertido(false);
+        setNormalizado(false);
+
+        aplicar({
+            volumen: 1,
+            playbackRate: rateClamped,
+            fadeIn: 0,
+            fadeOut: 0,
+            invertido: false,
+            normalizado: false,
+        });
+
+        /* Recalcular duración con rate original */
+        const nuevaDuracion = duracionBuffer / (rateClamped * durCompas);
         setDuracionBloque(bloque.id, Math.max(0.25, nuevaDuracion));
     };
 
@@ -204,6 +235,16 @@ export const ModalConfigBloque = ({
                             <span>Normalizar</span>
                         </button>
                     </div>
+
+                    {/* C239: Botón restablecer valores por defecto */}
+                    <button
+                        className="modalConfigRestablecer"
+                        onClick={restablecer}
+                        title="Restablecer todas las propiedades a valores originales"
+                    >
+                        <RefreshCw size={12} />
+                        <span>Restablecer</span>
+                    </button>
                 </div>
             </div>
         </div>

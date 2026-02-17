@@ -49,6 +49,10 @@ interface PanelLateralState {
     /* C184: Abrir modo mezclador */
     abrirMezclador: () => void;
 
+    /* C241: Expandir panel a ancho completo (toggle) */
+    expandido: boolean;
+    toggleExpandido: () => void;
+
     /* Cerrar panel */
     cerrar: () => void;
 }
@@ -97,5 +101,9 @@ export const usePanelLateralStore = create<PanelLateralState>((set, get) => ({
     /* C184: Abrir modo mezclador — no necesita sample */
     abrirMezclador: () => set({ modo: 'mezclador', sampleId: null, sampleSlug: null, sample: null, habilitado: true }),
 
-    cerrar: () => set({ modo: null, sampleId: null, sampleSlug: null, sample: null }),
+    /* C241: Expandir panel a ancho completo */
+    expandido: false,
+    toggleExpandido: () => set((s) => ({ expandido: !s.expandido })),
+
+    cerrar: () => set({ modo: null, sampleId: null, sampleSlug: null, sample: null, expandido: false }),
 }));

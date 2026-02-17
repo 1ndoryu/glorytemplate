@@ -27,7 +27,7 @@ const leerAnchoGuardado = (): number => {
 };
 
 export const PanelLateral = (): JSX.Element | null => {
-    const { modo, sample, habilitado } = usePanelLateralStore();
+    const { modo, sample, habilitado, expandido } = usePanelLateralStore();
     const [ancho, setAncho] = useState(leerAnchoGuardado);
     const resizingRef = useRef(false);
     const panelRef = useRef<HTMLElement>(null);
@@ -68,22 +68,27 @@ export const PanelLateral = (): JSX.Element | null => {
 
     /* Aplicar ancho inicial al CSS */
     useEffect(() => {
-        document.documentElement.style.setProperty('--anchoPanelLateral', `${ancho}px`);
-    }, [ancho]);
+        /* C241: si está expandido, la variable CSS no importa (width: 100%) */
+        if (!expandido) {
+            document.documentElement.style.setProperty('--anchoPanelLateral', `${ancho}px`);
+        }
+    }, [ancho, expandido]);
 
     if (!mostrar) return null;
 
     return (
         <aside
-            className="panelLateral"
+            className={`panelLateral${expandido ? ' panelLateralExpandido' : ''}`}
             ref={panelRef}
-            style={{ width: `${ancho}px` }}
+            style={expandido ? { width: '100%' } : { width: `${ancho}px` }}
         >
-            {/* Handle de resize — borde izquierdo */}
-            <div
-                className="panelLateralResizeHandle"
-                onMouseDown={iniciarResize}
-            />
+            {/* Handle de resize — borde izquierdo (oculto cuando expandido) */}
+            {!expandido && (
+                <div
+                    className="panelLateralResizeHandle"
+                    onMouseDown={iniciarResize}
+                />
+            )}
 
             <div className={`panelLateralInterno ${esMezclador ? 'panelLateralSinPadding' : ''}`}>
                 {(modo === 'detalle' || modo === 'comentarios') && sample && (

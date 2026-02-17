@@ -152,7 +152,7 @@ class AdminController
 
         $usuarios = PostgresService::consultar(
             "SELECT u.id, u.username, u.nombre_visible, u.email, u.avatar_url, u.wp_user_id,
-                    u.plan, u.rol, u.verificado, u.ban_hasta,
+                    u.plan, u.rol, u.verificado, u.baneado_hasta AS ban_hasta,
                     u.created_at, u.updated_at,
                     (SELECT COUNT(*) FROM samples s WHERE s.creador_id = u.id AND s.estado = 'activo') as total_samples,
                     (SELECT COUNT(*) FROM descargas d WHERE d.usuario_id = u.id) as total_descargas
@@ -220,9 +220,9 @@ class AdminController
 
         if (isset($body['ban_hasta'])) {
             if ($body['ban_hasta'] === null) {
-                $camposPermitidos[] = 'ban_hasta = NULL';
+                $camposPermitidos[] = 'baneado_hasta = NULL';
             } else {
-                $camposPermitidos[] = 'ban_hasta = :ban_hasta';
+                $camposPermitidos[] = 'baneado_hasta = :ban_hasta';
                 $params['ban_hasta'] = $body['ban_hasta'];
             }
         }
@@ -256,7 +256,7 @@ class AdminController
                     p.created_at, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id,
                     'publicacion' as tipo_contenido
              FROM publicaciones p
-             JOIN usuarios_ext u ON p.usuario_id = u.id
+             JOIN usuarios_ext u ON p.autor_id = u.id
              WHERE p.moderacion_estado IN ('pendiente', 'revision')
              ORDER BY p.created_at DESC
              LIMIT 20 OFFSET :offset",

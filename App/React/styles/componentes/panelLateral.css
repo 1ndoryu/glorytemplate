@@ -205,6 +205,12 @@
     opacity: 0.5;
 }
 
+/* C241: Panel expandido a ancho completo */
+.panelLateralExpandido {
+    width: 100% !important;
+    border-left: none;
+}
+
 /* Responsive — ocultar panel en pantallas pequeñas */
 @media (max-width: 1024px) {
     .panelLateral {

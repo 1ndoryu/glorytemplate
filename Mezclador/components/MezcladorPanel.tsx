@@ -4,7 +4,7 @@
  * Aislado de la app principal via ErrorBoundary.
  */
 
-import { X, Download, Upload, FolderUp, Trash2, Loader, Music2 } from 'lucide-react';
+import { PanelRightClose, Download, Upload, FolderUp, Trash2, Loader, Music2, Maximize2, Minimize2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useMezclador } from '../hooks/useMezclador';
 import { ControlesMezclador } from './ControlesMezclador';
@@ -49,6 +49,10 @@ const MezcladorContenido = (): JSX.Element => {
     const cerrarPanel = usePanelLateralStore(s => s.cerrar);
     const agregarAudioLocal = useMezcladorStore(s => s.agregarAudioLocal);
     const limpiarProyecto = useMezcladorStore(s => s.limpiarProyecto);
+
+    /* C241: Estado de expansión del panel */
+    const expandido = usePanelLateralStore(s => s.expandido);
+    const toggleExpandido = usePanelLateralStore(s => s.toggleExpandido);
 
     /* C208: Referencia al input de archivo oculto */
     const inputArchivoRef = useRef<HTMLInputElement>(null);
@@ -131,9 +135,19 @@ const MezcladorContenido = (): JSX.Element => {
                         <Trash2 size={14} />
                     </button>
                 </div>
-                <button className="mezcladorCerrar" onClick={cerrar}>
-                    <X size={16} />
-                </button>
+                {/* C241: Botón expandir/contraer + cerrar */}
+                <div className="mezcladorCabeceraAcciones">
+                    <button
+                        className="mezcladorBotonCabecera"
+                        onClick={toggleExpandido}
+                        title={expandido ? 'Contraer panel' : 'Expandir panel'}
+                    >
+                        {expandido ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                    </button>
+                    <button className="mezcladorCerrar" onClick={cerrar}>
+                        <PanelRightClose size={16} />
+                    </button>
+                </div>
             </div>
 
             {/* Controles: play, BPM, compases, snap, zoom, cortar */}
