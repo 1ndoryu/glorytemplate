@@ -83,6 +83,24 @@ export const crearComentario = async (
     return apiPost<Comentario>(`/comentarios/${tipo}/${targetId}`, { contenido });
 };
 
+/*
+ * C130: Crear comentario multimedia (imagen o audio).
+ * Envía FormData con el archivo + contenido opcional (caption).
+ */
+export const crearComentarioMultimedia = async (
+    tipo: 'sample' | 'publicacion',
+    targetId: number,
+    tipoContenido: 'imagen' | 'audio',
+    archivo: File,
+    contenido?: string
+): Promise<RespuestaApi<Comentario>> => {
+    const formData = new FormData();
+    formData.append('tipoContenido', tipoContenido);
+    formData.append('media', archivo);
+    if (contenido) formData.append('contenido', contenido);
+    return apiPostFormData<Comentario>(`/comentarios/${tipo}/${targetId}`, formData);
+};
+
 /* Reposts */
 
 export const repostear = async (publicacionId: number): Promise<RespuestaApi<{ reposteado: boolean }>> => {

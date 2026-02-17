@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { obtenerComentarios, crearComentario } from '@app/services/apiSocial';
+import { obtenerComentarios, crearComentario, crearComentarioMultimedia } from '@app/services/apiSocial';
 import { crearLogger } from '@app/services/logger';
 import type { Comentario } from '@app/types';
 
@@ -59,6 +59,25 @@ export const useComentarios = ({ tipo, targetId, cargarAlAbrir = false }: UseCom
         }
     }, [tipo, targetId]);
 
+    /* C130: Enviar comentario multimedia (imagen o audio) */
+    const enviarMultimedia = useCallback(async (
+        tipoContenido: 'imagen' | 'audio',
+        archivo: File,
+        contenido?: string
+    ) => {
+        try {
+            const resp = await crearComentarioMultimedia(tipo, targetId, tipoContenido, archivo, contenido);
+            if (resp.ok && resp.data) {
+                setComentarios(prev => [...prev, resp.data as Comentario]);
+                return true;
+            }
+            return false;
+        } catch (err) {
+            log.error('Error enviando comentario multimedia', err);
+            return false;
+        }
+    }, [tipo, targetId]);
+
     const cargarMas = useCallback(() => {
         if (!cargando && hayMas) {
             cargar(pagina + 1);
@@ -88,6 +107,7 @@ export const useComentarios = ({ tipo, targetId, cargarAlAbrir = false }: UseCom
         hayMas,
         alternar,
         enviar,
+        enviarMultimedia,
         cargarMas,
         cargar,
     };

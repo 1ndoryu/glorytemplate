@@ -34,7 +34,7 @@ type FiltroComunidad = 'todos' | 'siguiendo' | 'populares';
 /* Sección de comentarios por post: encapsula el hook useComentarios */
 const SeccionComentariosPost = ({ postId, navegar }: { postId: number; navegar: (ruta: string) => void }): JSX.Element => {
     const {
-        comentarios, cargando, enviar, cargarMas, hayMas,
+        comentarios, cargando, enviar, enviarMultimedia, cargarMas, hayMas,
     } = useComentarios({
         tipo: 'publicacion',
         targetId: postId,
@@ -46,6 +46,7 @@ const SeccionComentariosPost = ({ postId, navegar }: { postId: number; navegar: 
             comentarios={comentarios}
             cargando={cargando}
             onEnviar={enviar}
+            onEnviarMultimedia={enviarMultimedia}
             onClickAutor={(username) => navegar(`/perfil/${username}/`)}
             maxVisibles={3}
             onCargarMas={cargarMas}

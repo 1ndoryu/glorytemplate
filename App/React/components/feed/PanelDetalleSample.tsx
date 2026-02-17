@@ -47,6 +47,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
 
     const {
         comentarios, cargando: cargandoComentarios, enviar: enviarComentario,
+        enviarMultimedia: enviarComentarioMultimedia,
         cargarMas: cargarMasComentarios, hayMas: hayMasComentarios,
     } = useComentarios({
         tipo: 'sample',
@@ -332,6 +333,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                         comentarios={comentarios}
                         cargando={cargandoComentarios}
                         onEnviar={enviarComentario}
+                        onEnviarMultimedia={enviarComentarioMultimedia}
                         onClickAutor={(username) => navegar(`/perfil/${username}/`)}
                         maxVisibles={5}
                         onCargarMas={cargarMasComentarios}

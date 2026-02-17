@@ -55,6 +55,7 @@ class ComentariosController
 
         $comentarios = PostgresService::consultar(
             "SELECT c.id, c.contenido, c.created_at,
+                    c.tipo_contenido, c.media_url, c.media_metadata,
                     u.id as autor_id, u.username, u.nombre_visible, u.avatar_url
              FROM comentarios c
              JOIN usuarios_ext u ON c.autor_id = u.id
@@ -67,6 +68,9 @@ class ComentariosController
         foreach ($comentarios as &$c) {
             $c['autorId'] = (int) $c['autor_id'];
             $c['creadoAt'] = $c['created_at'];
+            $c['tipoContenido'] = $c['tipo_contenido'] ?? 'texto';
+            $c['mediaUrl'] = $c['media_url'] ?? null;
+            $c['mediaMetadata'] = $c['media_metadata'] ? json_decode($c['media_metadata'], true) : null;
             $c['autor'] = [
                 'id' => (int) $c['autor_id'],
                 'username' => $c['username'],
@@ -85,31 +89,121 @@ class ComentariosController
 
         $tipo = $request->get_param('tipo');
         $targetId = (int) $request->get_param('targetId');
-        $body = $request->get_json_params();
-        $contenido = sanitize_textarea_field($body['contenido'] ?? '');
 
         if (!in_array($tipo, self::TIPOS_VALIDOS, true)) {
             return new \WP_REST_Response(['code' => 'tipo_invalido'], 400);
         }
 
-        if (empty($contenido)) {
-            return new \WP_REST_Response(['code' => 'contenido_vacio', 'message' => 'El comentario necesita contenido'], 400);
+        /* C130: Soporta JSON (texto) o FormData (multimedia) */
+        $contentType = $request->get_content_type();
+        $esFormData = $contentType && str_contains($contentType['value'] ?? '', 'multipart');
+
+        if ($esFormData) {
+            $contenido = sanitize_textarea_field($request->get_param('contenido') ?? '');
+            $tipoContenido = sanitize_text_field($request->get_param('tipoContenido') ?? 'texto');
+        } else {
+            $body = $request->get_json_params();
+            $contenido = sanitize_textarea_field($body['contenido'] ?? '');
+            $tipoContenido = 'texto';
         }
 
-        /* C164: Limite de longitud */
-        $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_COMENTARIO, 'El comentario');
-        if ($errorLongitud) {
-            return Validador::respuestaError($errorLongitud);
+        /* Validar tipo de contenido */
+        $tiposContenidoPermitidos = ['texto', 'imagen', 'audio'];
+        if (!in_array($tipoContenido, $tiposContenidoPermitidos, true)) {
+            $tipoContenido = 'texto';
         }
 
         /* C164: Rate limiting — 10 comentarios por minuto */
         $limitResp = RateLimiter::verificarUsuario($userId, 'comentar', 10, 60);
         if ($limitResp) return $limitResp;
 
+        /* Validar contenido: requerido para texto, opcional para multimedia */
+        if ($tipoContenido === 'texto') {
+            if (empty($contenido)) {
+                return new \WP_REST_Response(['code' => 'contenido_vacio', 'message' => 'El comentario necesita contenido'], 400);
+            }
+        }
+
+        /* C164: Limite de longitud (aplica si hay texto) */
+        if (!empty($contenido)) {
+            $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_COMENTARIO, 'El comentario');
+            if ($errorLongitud) {
+                return Validador::respuestaError($errorLongitud);
+            }
+        }
+
+        $mediaUrl = null;
+        $mediaMetadata = null;
+
+        /* C130: Procesamiento de archivos multimedia */
+        if ($tipoContenido === 'imagen' || $tipoContenido === 'audio') {
+            $archivos = $request->get_file_params();
+            $archivo = $archivos['media'] ?? null;
+
+            if (!$archivo || $archivo['error'] !== UPLOAD_ERR_OK) {
+                return new \WP_REST_Response(['code' => 'archivo_invalido', 'message' => 'No se recibió archivo válido'], 400);
+            }
+
+            /* Validar MIME segun tipo */
+            $mimesPermitidos = $tipoContenido === 'imagen'
+                ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+                : ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4'];
+
+            $mimeReal = \mime_content_type($archivo['tmp_name']);
+            if (!in_array($mimeReal, $mimesPermitidos, true)) {
+                return new \WP_REST_Response(['code' => 'tipo_no_permitido', 'message' => "Tipo de archivo no permitido: {$mimeReal}"], 400);
+            }
+
+            /* Limite de tamano: 10MB imagenes, 25MB audio */
+            $maxBytes = $tipoContenido === 'imagen' ? 10 * 1024 * 1024 : 25 * 1024 * 1024;
+            if ($archivo['size'] > $maxBytes) {
+                $maxMB = $maxBytes / 1024 / 1024;
+                return new \WP_REST_Response(['code' => 'archivo_grande', 'message' => "El archivo excede el limite de {$maxMB}MB"], 400);
+            }
+
+            /* Subir a WP uploads en subcarpeta comentarios */
+            $subDir = "kamples/comentarios/{$userId}/" . date('Y/m');
+            $filtroDir = function ($paths) use ($subDir) {
+                $paths['subdir'] = '/' . $subDir;
+                $paths['path'] = $paths['basedir'] . '/' . $subDir;
+                $paths['url'] = $paths['baseurl'] . '/' . $subDir;
+                return $paths;
+            };
+
+            \add_filter('upload_dir', $filtroDir);
+            $subido = \wp_handle_upload($archivo, ['test_form' => false]);
+            \remove_filter('upload_dir', $filtroDir);
+
+            if (isset($subido['error'])) {
+                return new \WP_REST_Response(['code' => 'error_subida', 'message' => $subido['error']], 500);
+            }
+
+            $mediaUrl = $subido['url'];
+            $mediaMetadata = json_encode([
+                'formato' => pathinfo($archivo['name'], PATHINFO_EXTENSION),
+                'tamano'  => $archivo['size'],
+                'mimeType' => $mimeReal,
+            ]);
+
+            /* Si no hay texto, la imagen/audio es el comentario completo */
+            if (empty($contenido)) {
+                $contenido = null;
+            }
+        }
+
         $id = PostgresService::insertar(
-            "INSERT INTO comentarios (autor_id, tipo, target_id, contenido)
-             VALUES (:autor, :tipo, :target, :contenido) RETURNING id",
-            ['autor' => $userId, 'tipo' => $tipo, 'target' => $targetId, 'contenido' => $contenido]
+            "INSERT INTO comentarios (autor_id, tipo, target_id, contenido, tipo_contenido, media_url, media_metadata)
+             VALUES (:autor, :tipo, :target, :contenido, :tipoContenido, :mediaUrl, :mediaMetadata::jsonb)
+             RETURNING id",
+            [
+                'autor' => $userId,
+                'tipo' => $tipo,
+                'target' => $targetId,
+                'contenido' => $contenido,
+                'tipoContenido' => $tipoContenido,
+                'mediaUrl' => $mediaUrl,
+                'mediaMetadata' => $mediaMetadata,
+            ]
         );
 
         /* Actualizar contador en la tabla correspondiente */
@@ -121,7 +215,7 @@ class ComentariosController
             ['tipo' => $tipo, 'targetId' => $targetId]
         );
 
-        /* Registrar interacción para el algoritmo */
+        /* Registrar interaccion para el algoritmo */
         PlanificadorAlgoritmo::registrarInteraccion($userId, 'comentario');
 
         /* Obtener datos del autor para devolver el comentario completo */
@@ -135,7 +229,10 @@ class ComentariosController
             'data' => [
                 'id' => $id,
                 'autorId' => $userId,
-                'contenido' => $contenido,
+                'contenido' => $contenido ?? '',
+                'tipoContenido' => $tipoContenido,
+                'mediaUrl' => $mediaUrl,
+                'mediaMetadata' => $mediaMetadata ? json_decode($mediaMetadata, true) : null,
                 'creadoAt' => date('c'),
                 'autor' => [
                     'id' => $userId,

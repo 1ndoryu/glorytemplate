@@ -83,8 +83,6 @@
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
-    padding-top: var(--espacioSm);
-    border-top: 1px solid var(--bordeSutil);
 }
 
 .comentarioNuevoInput {
@@ -159,4 +157,150 @@
 .comentariosCargando {
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
+}
+
+/* C130: Imagen en comentario */
+.comentarioImagen {
+    display: block;
+    max-width: 280px;
+    margin: var(--espacioXs) 0;
+    border-radius: var(--radioMd);
+    overflow: hidden;
+}
+
+.comentarioImagen img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    max-height: 200px;
+    border-radius: var(--radioMd);
+}
+
+/* C130: Mini reproductor de audio en comentarios */
+.comentarioAudio {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    background-color: var(--fondoElevado2);
+    border-radius: var(--radioFull);
+    padding: var(--espacioXs) var(--espacioSm);
+    margin: var(--espacioXs) 0;
+    max-width: 220px;
+}
+
+.comentarioAudioBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background-color: var(--acento);
+    color: var(--blanco);
+    border: none;
+    border-radius: var(--radioFull);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity var(--transicionRapida);
+}
+
+.comentarioAudioBtn:hover {
+    opacity: 0.85;
+}
+
+.comentarioAudioBarra {
+    flex: 1;
+    height: 3px;
+    background-color: var(--bordeSutil);
+    border-radius: var(--radioFull);
+    overflow: hidden;
+}
+
+.comentarioAudioProgreso {
+    height: 100%;
+    background-color: var(--acento);
+    border-radius: var(--radioFull);
+    transition: width 0.1s linear;
+}
+
+/* C130: Contenedor del input con preview */
+.comentarioNuevoContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    padding-top: var(--espacioSm);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+/* C130: Preview de archivo adjunto */
+.comentarioPreview {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioXs) var(--espacioSm);
+    background-color: var(--fondoElevado2);
+    border-radius: var(--radioMd);
+    position: relative;
+}
+
+.comentarioPreviewImagen {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: var(--radioSm);
+}
+
+.comentarioPreviewAudio {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.comentarioPreviewCerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: var(--fondoElevado3);
+    border: none;
+    border-radius: var(--radioFull);
+    color: var(--textoTerciario);
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.comentarioPreviewCerrar:hover {
+    color: var(--textoPrimario);
+}
+
+/* C130: Botones adjuntar imagen/audio */
+.comentarioAdjuntarBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: var(--radioFull);
+    transition: color var(--transicionRapida);
+    flex-shrink: 0;
+}
+
+.comentarioAdjuntarBtn:hover {
+    color: var(--textoPrimario);
+}
+
+/* Input de archivo oculto */
+.comentarioInputOculto {
+    display: none;
 }

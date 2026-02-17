@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect, type KeyboardEvent } from 'react';
-import { Send } from 'lucide-react';
+import { Send, Image, Mic, X, Play, Pause } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { useAuthStore } from '@app/stores/authStore';
 import type { Comentario } from '@app/types/publicacion';
@@ -14,11 +14,12 @@ import '../../styles/componentes/listaComentarios.css';
 interface ListaComentariosProps {
     comentarios: Comentario[];
     onEnviar?: (contenido: string) => void;
+    onEnviarMultimedia?: (tipo: 'imagen' | 'audio', archivo: File, contenido?: string) => void;
     cargando?: boolean;
     onClickAutor?: (username: string) => void;
     maxVisibles?: number;
     className?: string;
-    /* C129: Paginación infinita */
+    /* C129: Paginacion infinita */
     onCargarMas?: () => void;
     hayMasPaginas?: boolean;
 }
@@ -36,9 +37,57 @@ const formatearTiempoComentario = (fecha: string): string => {
     return new Date(fecha).toLocaleDateString('es', { day: 'numeric', month: 'short' });
 };
 
+/* C130: Mini reproductor de audio para comentarios */
+const ComentarioAudio = ({ src }: { src: string }): JSX.Element => {
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const [reproduciendo, setReproduciendo] = useState(false);
+    const [progreso, setProgreso] = useState(0);
+
+    const alternarPlay = useCallback(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+        if (reproduciendo) {
+            audio.pause();
+        } else {
+            audio.play();
+        }
+        setReproduciendo(!reproduciendo);
+    }, [reproduciendo]);
+
+    const manejarProgreso = useCallback(() => {
+        const audio = audioRef.current;
+        if (!audio || !audio.duration) return;
+        setProgreso((audio.currentTime / audio.duration) * 100);
+    }, []);
+
+    return (
+        <div className="comentarioAudio">
+            <audio
+                ref={audioRef}
+                src={src}
+                onTimeUpdate={manejarProgreso}
+                onEnded={() => { setReproduciendo(false); setProgreso(0); }}
+                preload="metadata"
+            />
+            <button
+                className="comentarioAudioBtn"
+                onClick={alternarPlay}
+                type="button"
+                aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}
+            >
+                {reproduciendo ? <Pause size={12} /> : <Play size={12} />}
+            </button>
+            <div className="comentarioAudioBarra">
+                <div className="comentarioAudioProgreso" style={{ width: `${progreso}%` }} />
+            </div>
+        </div>
+    );
+};
+
 export const ListaComentarios = ({
     comentarios,
     onEnviar,
+    onEnviarMultimedia,
     cargando = false,
     onClickAutor,
     maxVisibles = 5,
@@ -49,16 +98,55 @@ export const ListaComentarios = ({
     const { usuario, autenticado } = useAuthStore();
     const [textoNuevo, setTextoNuevo] = useState('');
     const [mostrarTodos, setMostrarTodos] = useState(false);
+    const [archivoAdjunto, setArchivoAdjunto] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [tipoAdjunto, setTipoAdjunto] = useState<'imagen' | 'audio' | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const inputImagenRef = useRef<HTMLInputElement>(null);
+    const inputAudioRef = useRef<HTMLInputElement>(null);
     const sentinelaRef = useRef<HTMLDivElement>(null);
 
+    /* C130: Limpiar preview URL al desmontar o cambiar archivo */
+    useEffect(() => {
+        return () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        };
+    }, [previewUrl]);
+
+    const limpiarAdjunto = useCallback(() => {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setArchivoAdjunto(null);
+        setPreviewUrl(null);
+        setTipoAdjunto(null);
+    }, [previewUrl]);
+
+    const manejarArchivoSeleccionado = useCallback((archivo: File, tipo: 'imagen' | 'audio') => {
+        limpiarAdjunto();
+        setArchivoAdjunto(archivo);
+        setTipoAdjunto(tipo);
+        if (tipo === 'imagen') {
+            setPreviewUrl(URL.createObjectURL(archivo));
+        }
+    }, [limpiarAdjunto]);
+
     const manejarEnviar = useCallback(() => {
+        /* Enviar multimedia si hay archivo adjunto */
+        if (archivoAdjunto && tipoAdjunto && onEnviarMultimedia) {
+            const texto = textoNuevo.trim() || undefined;
+            onEnviarMultimedia(tipoAdjunto, archivoAdjunto, texto);
+            setTextoNuevo('');
+            limpiarAdjunto();
+            inputRef.current?.focus();
+            return;
+        }
+
+        /* Enviar texto plano */
         const texto = textoNuevo.trim();
         if (!texto || !onEnviar) return;
         onEnviar(texto);
         setTextoNuevo('');
         inputRef.current?.focus();
-    }, [textoNuevo, onEnviar]);
+    }, [textoNuevo, onEnviar, onEnviarMultimedia, archivoAdjunto, tipoAdjunto, limpiarAdjunto]);
 
     const manejarKeyDown = useCallback(
         (e: KeyboardEvent<HTMLInputElement>) => {
@@ -73,6 +161,7 @@ export const ListaComentarios = ({
     const visibles = mostrarTodos ? comentarios : comentarios.slice(0, maxVisibles);
     const hayMasLocales = comentarios.length > maxVisibles && !mostrarTodos;
     const clases = ['listaComentarios', className].filter(Boolean).join(' ');
+    const puedeEnviar = (textoNuevo.trim().length > 0) || (archivoAdjunto !== null);
 
     /* C129: IntersectionObserver para cargar más al llegar al fondo */
     useEffect(() => {
@@ -123,7 +212,23 @@ export const ListaComentarios = ({
                                         {formatearTiempoComentario(comentario.creadoAt)}
                                     </span>
                                 </div>
-                                <p className="comentarioTexto">{comentario.contenido}</p>
+                                {/* C130: Renderizar multimedia segun tipo */}
+                                {comentario.tipoContenido === 'imagen' && comentario.mediaUrl && (
+                                    <a
+                                        href={comentario.mediaUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="comentarioImagen"
+                                    >
+                                        <img src={comentario.mediaUrl} alt="Imagen adjunta" loading="lazy" />
+                                    </a>
+                                )}
+                                {comentario.tipoContenido === 'audio' && comentario.mediaUrl && (
+                                    <ComentarioAudio src={comentario.mediaUrl} />
+                                )}
+                                {comentario.contenido && (
+                                    <p className="comentarioTexto">{comentario.contenido}</p>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -149,32 +254,100 @@ export const ListaComentarios = ({
             )}
 
             {/* Input para nuevo comentario */}
-            {autenticado && onEnviar && (
-                <div className="comentarioNuevo">
-                    <Avatar
-                        src={usuario?.avatarUrl ?? null}
-                        nombre={usuario?.nombreVisible ?? ''}
-                        tamano="xs"
-                    />
-                    <div className="comentarioNuevoInput">
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            placeholder="Escribe un comentario..."
-                            value={textoNuevo}
-                            onChange={(e) => setTextoNuevo(e.target.value)}
-                            onKeyDown={manejarKeyDown}
-                            maxLength={300}
+            {autenticado && (onEnviar || onEnviarMultimedia) && (
+                <div className="comentarioNuevoContenedor">
+                    {/* C130: Preview de archivo adjunto */}
+                    {archivoAdjunto && (
+                        <div className="comentarioPreview">
+                            {tipoAdjunto === 'imagen' && previewUrl && (
+                                <img src={previewUrl} alt="Preview" className="comentarioPreviewImagen" />
+                            )}
+                            {tipoAdjunto === 'audio' && (
+                                <span className="comentarioPreviewAudio">
+                                    <Mic size={12} /> {archivoAdjunto.name}
+                                </span>
+                            )}
+                            <button
+                                className="comentarioPreviewCerrar"
+                                onClick={limpiarAdjunto}
+                                type="button"
+                                aria-label="Quitar archivo"
+                            >
+                                <X size={12} />
+                            </button>
+                        </div>
+                    )}
+                    <div className="comentarioNuevo">
+                        <Avatar
+                            src={usuario?.avatarUrl ?? null}
+                            nombre={usuario?.nombreVisible ?? ''}
+                            tamano="xs"
                         />
-                        <button
-                            className="comentarioEnviarBtn"
-                            onClick={manejarEnviar}
-                            type="button"
-                            disabled={!textoNuevo.trim()}
-                            aria-label="Enviar comentario"
-                        >
-                            <Send size={14} />
-                        </button>
+                        <div className="comentarioNuevoInput">
+                            {/* C130: Botones adjuntar imagen/audio */}
+                            {onEnviarMultimedia && (
+                                <>
+                                    <button
+                                        className="comentarioAdjuntarBtn"
+                                        onClick={() => inputImagenRef.current?.click()}
+                                        type="button"
+                                        aria-label="Adjuntar imagen"
+                                        title="Adjuntar imagen"
+                                    >
+                                        <Image size={14} />
+                                    </button>
+                                    <button
+                                        className="comentarioAdjuntarBtn"
+                                        onClick={() => inputAudioRef.current?.click()}
+                                        type="button"
+                                        aria-label="Adjuntar audio"
+                                        title="Adjuntar audio"
+                                    >
+                                        <Mic size={14} />
+                                    </button>
+                                    <input
+                                        ref={inputImagenRef}
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/gif,image/webp"
+                                        className="comentarioInputOculto"
+                                        onChange={(e) => {
+                                            const f = e.target.files?.[0];
+                                            if (f) manejarArchivoSeleccionado(f, 'imagen');
+                                            e.target.value = '';
+                                        }}
+                                    />
+                                    <input
+                                        ref={inputAudioRef}
+                                        type="file"
+                                        accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4"
+                                        className="comentarioInputOculto"
+                                        onChange={(e) => {
+                                            const f = e.target.files?.[0];
+                                            if (f) manejarArchivoSeleccionado(f, 'audio');
+                                            e.target.value = '';
+                                        }}
+                                    />
+                                </>
+                            )}
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                placeholder={archivoAdjunto ? 'Escribe un caption (opcional)...' : 'Escribe un comentario...'}
+                                value={textoNuevo}
+                                onChange={(e) => setTextoNuevo(e.target.value)}
+                                onKeyDown={manejarKeyDown}
+                                maxLength={300}
+                            />
+                            <button
+                                className="comentarioEnviarBtn"
+                                onClick={manejarEnviar}
+                                type="button"
+                                disabled={!puedeEnviar}
+                                aria-label="Enviar comentario"
+                            >
+                                <Send size={14} />
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

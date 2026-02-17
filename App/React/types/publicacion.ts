@@ -34,4 +34,8 @@ export interface Comentario {
     contenido: string;
     creadoAt: string;
     autor: UsuarioResumen;
+    /* C130: Soporte multimedia */
+    tipoContenido?: 'texto' | 'imagen' | 'audio';
+    mediaUrl?: string | null;
+    mediaMetadata?: { formato?: string; tamano?: number; mimeType?: string } | null;
 }

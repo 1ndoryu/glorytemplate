@@ -578,6 +578,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                             comentarios={seccionComentarios.comentarios}
                             cargando={seccionComentarios.cargando}
                             onEnviar={seccionComentarios.enviar}
+                            onEnviarMultimedia={seccionComentarios.enviarMultimedia}
                             onClickAutor={(u) => navegar(`/perfil/${u}/`)}
                             maxVisibles={5}
                             onCargarMas={seccionComentarios.cargarMas}
