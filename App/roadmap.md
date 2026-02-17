@@ -129,6 +129,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R33:** C143 CSS seccionPublicar rebuild, C146 créditos NaN/undefined fix (TopBar+useDescargas+apiDescargas), C138 descargas propias gratis (DescargasController: samples propios o ya descargados no consumen crédito), C144+C145 sistema de reacciones completo: migración v012 (columna reaccion VARCHAR(20) DEFAULT 'like'), SocialController UPSERT, NormalizadorSample+PublicacionesController reaccion_usuario, MotorRecomendacion 7 queries (encanta=2x, dislike=-1 en trends, excluido en perfil/behavior), TooltipReacciones.tsx+CSS (hover tooltip con 3 iconos), BotonLike rewrite, 8 islands actualizadas con 3-branch manejarLike, TipoReaccion type.
 **R34:** C149 feedTags fix (busqueda fuera de claveCache, limpiarTags removido de efecto cache), C148 algoritmo metadata+creator (sqlTagsEnriquecidos combina tags+metadata JSONB, obtenerCreadoresFavoritos afinidad implícita, pesos contexto rebalanceados: creador=0.35 nuevo, genero↑0.30, BPM↓0.15, key↓0.10), C127 menú 3 puntos unificado (SampleDetalleIsland hero, ComunidadIsland posts+samples, ColeccionDetalleIsland header), C128 similares fuera de article + comentarios expandidos por defecto.
 **R35:** C150 fix hover tooltip reacciones (::before bridge CSS), C151 panel lateral waveform reproducible (audio local+picos servidor/fallback), C152 badges con borde en panelDetalleTags, C153 panelDetalleTarjetaMini simplificado (solo nombre+tags), C154 botones panelDetalle secundario (no ghost), C155 preferencia sugerenciasAlDarLike en panelLateralStore+ModalConfiguracion, C156 similares ocultos por defecto (toggle via menú 3 puntos + auto-show on like), C157 botón descarga color acento (tarjetaAccionDescargado+detalleAccionPlanoDescargado), C158 PanelRightClose en vez de X.
+**R36:** C160 fix filtro reproducidos (double-unwrap apiGet: resp.data ya es SampleResumen[] directo), C161 botón 3 puntos en colecciones públicas (copiar enlace siempre visible), C162 tags concatenados en badges (split por separadores+filtro >30 chars), C163 menú chat header (ver perfil/reportar/bloquear con participanteId+username en store), C165 quitar botón cola del menú contextual.
 
 ---
 
@@ -481,7 +482,6 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 131. Planificar la automoderación de contenido con IA, cada vez que se publica un comentario, la IA tiene que decidir si es spam, si es valido, etc.
 132. Mejora el sistema de moderación con IA, planificar mejor este sistema, la IA tiene que ser capaz de bloquear usuarios si tienen actividad sospechosa, spam, la toxicidad no es baneable, los usuarios son libres de discutir e insultarse, pero el spam, no es permitido, cuando un usuario hace comentarios con spam, le debe llegar una notificación de que su comentario fue eliminado automaticamente por x razón, el desnudo o contenido para adulto tambien esta prohibido, en ningun lugar, tampoco de portada para ningún audio, poca ropa si esta permitido, no estan estricto pero contenido en si totalmente pornxgrafico o actividades sexuales, o partes intimas prohibida, hay que tener cuidado porque sabemos que los albunes suelen usar imagenes explicitas que no son problemas generalmente, no queremos falsos positivos.
 133. Las paginas no deberían volver a cargarse cuando cambio de pagina, o sea si la pagian ya estaba cargada, despues vuelvo abrirla, no debe recargarse, ni la lista samples ni nada, todo debe cargarse una sola vez.
-138. Asegurarse de que las descargas no cobren creditos para cuando se descargue un sample propio que se subio o que se descargo antes.
 140. Separar descargas y favoritos en paginas propias, tambien hay ponerles coleccionHeader, y que tengan sus tab de "mas ideas", deben funcionar como colecciones especiales, el algoritmo de más ideas debe funcionar par recomendar samples basados en las descargas y los favoritos, esto significa las tabs descargas y favoritos porque ahora son paginas individuales. La tab de "Colecciones" debería ser "mis colecciones"
 | 148 | Algoritmo tags metadata + creador implícito          | ✅ sqlTagsEnriquecidos() combina tags+metadata JSONB; obtenerCreadoresFavoritos() afinidad implícita; pesos contexto rebalanceados |
 | 149 | feedTags roto (busqueda en claveCache)                | ✅ busqueda fuera de claveCache, limpiarTags removido de efecto cache en FeedSamples |
@@ -494,13 +494,13 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 156 | Similares solo en like/menú contextual | ✅ mostrarSimilares=false por defecto, toggle via menú + auto-show on like. (SE CANCELÓ quitar de detalles) |
 | 157 | Botón descarga color acento | ✅ Estado local descargado + CSS tarjetaAccionDescargado / detalleAccionPlanoDescargado |
 | 158 | Icono cerrar panel lateral | ✅ PanelRightClose reemplaza X en panelDetalleCerrar |
+| 160 | Filtro ocultar ya reproducido no funciona | ✅ Double-unwrap apiGet: resp.data ya es SampleResumen[] directo, no {data:[...]} |
+| 161 | Colecciones sin botón 3 puntos | ✅ Botón siempre visible con "Copiar enlace" + acciones propietario condicionales |
+| 162 | Tags pegados en badges (sin separador) | ✅ Split por comas/espacios/pipes + filtro >30 chars en PanelDetalleSample y SampleDetalleIsland |
+| 163 | Foto perfil + menú chat flotante | ✅ Avatar ya existía. Agregado menú 3 puntos: ver perfil/reportar/bloquear. Store extendido con participanteId+username |
+| 165 | Quitar botón cola + verificar perfil/enlace | ✅ Item 'cola' eliminado del menú contextual. 'Ir al perfil' y 'Copiar enlace' ya existían |
 159. Trabajar en la comunicación en tiempo real, no se si se puede hacer un websocket compatible con linux y windows, al menos hacerlo funcionar aca en local windows, para pulir de una vez la opciones chat.
-160. El filtro de ocultar ya reproducido no funciona. 
-161. En libreriaGridColecciones las colecciones no tienen el boton 3 puntos o no se ven.
-162. Hay algunos tags que se ven asi <span class="badge badgeNeutro badgeXs badgeBorde">dreamyetherealmelancholicatmosphericreflective</span> todo pegado, bueno, en todos los samples en el panel lateral se ven asi algunos badge.
-163. La foto de perfil no aparece en chatFlotanteHeader, agregar un boton de 3 puntos para la funcionalidades de bloquear, reportar, ver perfil. 
 164. Pulir la seguridad de los chats, comentarios, publicaciones (lime rate, sanaemiento, limite de caracteres o contenido, limite de pesos de archivos, revisiones de seguridad generales, anti spam etc.)
-165. quitar el boton de poner en cola, ir al perfil y copiar enlace de los menu contextuales de los samples.
 166. Compactar y ordenar tareas completadas del roadmap (dejar para el final)
 
 ---
@@ -536,3 +536,6 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [C146 Créditos]: Backend devuelve `usadas`/`limite`, frontend esperaba `credits_used`/`credits_limit`. Siempre verificar nombres de campos entre backend y frontend.
 - [C138 Descargas]: DescargasController necesita 3 checks: esPropietario (creador_id), yaDescargado (EXISTS en descargas), consumeCredito (solo si no es propietario ni ya descargado).
 - [C150 Tooltip hover gap]: `pointer-events` NO es animable — cambia instantáneamente. Un gap CSS entre trigger y tooltip (bottom: calc(100%+N)) causa zona muerta donde el mouse pierde hover y `pointer-events:none` bloquea el tooltip. Fix: `::before` pseudo-element en el contenedor que extiende el área hover para cubrir el gap.
+- [C160 apiGet double-unwrap]: apiGet hace `json.data ?? json` → si backend envía `{data:[...],page:N}`, `resp.data` ya es el array. Usar `resp.data` directo, NUNCA `resp.data.data`. Patrón correcto: `RespuestaApi<SampleResumen[]>` + `Array.isArray(resp.data) ? resp.data : []`.
+- [C162 Metadata emocion]: El campo `emocion` de metadata IA puede llegar como string concatenado sin separadores (ej: "dreamyetherealmelancholic"). Siempre splitear por `,|; ` y filtrar strings >30 chars.
+- [C163 ChatFlotanteStore]: El store solo tenía `nombreParticipante` y `avatarUrl` — faltaban `participanteId` y `participanteUsername` para poder navegar al perfil o hacer acciones sobre el usuario.
