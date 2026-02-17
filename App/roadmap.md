@@ -323,6 +323,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **C179:** Panel Administración FASE 13 (R47).
 **R49:** C193 fix avatares "?" — UsuarioHelper::resolverAvatarUrl() centralizado, 12 controllers/services con fallback WP Gravatar, EditarPerfilIsland wired subirAvatar+authStore sync, PerfilController corrupción reparada, MotorRecomendacion+ColeccionesController+AdminController+ReproduccionesController wp_user_id en SQL.
 **R50:** C246+C247+C248+C249+C250+C251+C253+C256+C257 — Duplicar evita colisión (finMax), selección múltiple Ctrl+click (Set+batch move), 20 pistas iniciales, Shift+drag duplica, placeholder eliminado, cerrar estilo uniforme, ModalConfigDaw (snap+stretch/clip global), admin cambiar plan (select UI).
+**R51:** C258+C259+C260+C261+C267+C258.1+C259.1 — Fix detune (compensación anulaba efecto), CSS admin verificado, dropZoneVacia eliminada, modal colecciones viewport clamp, selección visual glow, multi-drag ghosts, resize btn fuera de modal.
 
 ### Lecciones Aprendidas (R49)
 - [Avatar]: La BD (usuarios_ext.avatar_url) puede ser NULL incluso si el usuario tiene Gravatar. Siempre usar `UsuarioHelper::resolverAvatarUrl()` como fallback a `get_avatar_url($wpUserId)`.
@@ -396,7 +397,6 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 222.1 ✅ [AG-DAW] Cursor click posición — resuelto con fix B de C222 (calc-based positioning). Commit 35c8488.
 222.2 ✅ [AG-DAW] playbackRate no recalculaba duracionCompases — actualizarConfigBloque ahora recalcula cuando cambia playbackRate. Commit 35c8488.
 223. ✅ [AG-DAW] Refresh lista tras publicar — EVENTO_SAMPLE_CREADO dispatched desde useCrearContenido, FeedSamples escucha y limpia cache + recarga página 1. Ref de cargarPagina evita stale closure.
-222.2 Creo que es por los bpm tal vez.
 224. ✅ [AG-DAW] Undo/Redo — Historial 30 snapshots (pistas+totalCompases), _guardarSnapshot antes de cada mutación (agregarPista/eliminarPista/moverBloque/eliminarBloque/duplicarBloque/dividirBloque/agregarSample/agregarAudioLocal/limpiarProyecto/resize), botones Undo2/Redo2 en ControlesMezclador, atajos Ctrl+Z/Ctrl+Y/Ctrl+Shift+Z. Commit e8de6ee.
 225. ✅ [AG-DAW] Fix context menu no cierra — Guard !modalConfigAbierto en onContextMenu, overlay con preventDefault+stopPropagation en onContextMenu y onMouseDown. Commit e8de6ee.
 226. ✅ [AG-DAW] Fix botones activan drag — onMouseDown verifica target.closest('.mezcladorBloqueBotones') para no iniciar drag en botones. Commit e8de6ee.
@@ -430,23 +430,30 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 253. ✅ [AG-DAW] ModalConfigDaw — botón Settings en cabecera, modal con selector snap (bar/beat/1-2/1-4/1-6/off). Snap removido de ControlesMezclador. Commit 183fc55.
 254. EL boton de publicar mezcla no funciona, puede esto no este planificado, pero realmente requiere pasos extra con la detección de duplicados, porque supongamos que hago una mezcla de un audio exactamente igual, el sistema debería detectar esos casos en que se intenta publicar un sample igual aunque sea una mezcla y pasarlo a moderación. 
 254.1 Veo que en el menu contextual de la foto de perfil hay un limitador de creditos, ejemplo usuario free tiene 5 creditos y aparece 5, si bien, al reiniciar el dia debe volver a 5, hay que quitar el limite, o sea si tengo 5 creditos y publico un sample, debería tener 6, si pasa un dia y todavía tengo 6, no debe restar y dejarme en esos 6, pero si tengo menos (4, 3, etc) reiniciar a 5 o a lo que corresponde, asi con los otros planes. Permitir que los usuarios ganen creditos por mezclar o publicar samples.
-242.2 Aclaración porque siento que no entiende bien 254, lo que se busca es debería permitirse mezcla siempre y cuando no sean tan parecidas, a los samples ya publicados. 
+252.2 Aclaración porque siento que no entiende bien 254, lo que se busca es debería permitirse mezcla siempre y cuando no sean tan parecidas, a los samples ya publicados. 
 255. los archivos del mezclador como mezcladorStore, se estan haciendo muy grandes, refactorizar y aplicar solid con cuidado. 
 256. ✅ [AG-DAW] Stretch/clip global — modoResizeGlobal en store (default stretch), toggle en ModalConfigDaw. setDuracionBloque lee modo global. Removido toggle individual de ModalConfigBloque. Commit 183fc55.
 257. ✅ [AG-DAW] Admin cambiar plan — select free/pro/premium en acciones de TabUsuariosAdmin. Backend ya soportaba plan en actualizarUsuario. CSS adminSelectPlan. Commit 115589a.
-258. Cambiar la tonalidad de los audios no funciona.
-259. Revisar el css del panel para verificar que este usando las variables.
-260. Quitar mezcladorDropZoneVacia, no es necesario. 
-261. El modal de colecciones a veces se sale de la pantalla.
+258. ✅ [AG-DAW] Fix detune — La compensación playbackRate/2^(cents/1200) anulaba algebraicamente el efecto. Removida compensación, detune puro (estilo vinilo). Ajustado duration de start() con tasa efectiva. Commit c41560d.
+259. ✅ [AG-DAW] CSS admin panel verificado — ya usa variables camelCase (corregido en C195). Sin colores hardcoded. Commit c41560d. (Ya verifique, todo bien)
+260. ✅ [AG-DAW] Eliminado mezcladorDropZoneVacia — JSX, CSS (19 líneas), import Music2, totalBloques removidos de MezcladorPanel. Commit c41560d. 
+261. ✅ [AG-DAW] Fix modal colecciones viewport — Clamp bidireccional Math.max(8, Math.min(pos, viewportSize - panelSize - 8)). Dimensiones corregidas a 320x420 reales. Commit c41560d.
 262. Planificar adaptación de .agent\coolify-manager para correr postgres automaticamente y instalar todo lo que necesita este proyecto para que funcione en el vps linux. 
 263. Sigo sin poder ver la iamgen de perfil del otro usuario en chatFlotanteHeader.
 264. Los comentarios necesitan opciones de 3 puntos, un menu contextual donde aparezca la opcion de editar, reportar y eliminar, los admin pueden borrar cualquier comentarios y los usuarios eliminar sus propios comentarios.
 265. Poder dar like a los comentarios, y responder otros comentarios, que los comentarios se aniden cuando sean una respuesta, las respuestas ocultas por defecto.
 266. Recibir notificaciones cuando se recibe like en un sample, cuando se responde un comentario, o se da like a un comentario, no recibir notificaciones de auto like o autorespuesta. Notificaciones de publicaciones eliminadas, en moderación, de sample verificado, de pago procesado de stripe con exito y accendido a pro o premium, etc, recibir que todo lo que deba generar una notificación, lo genere.
-267. Cuando seleciono varias tarjetas, no se nota que estan selecionadas, el efecto de seleccion no es notabl visualmente, es problematico visualmente.
-258. Cuando arrastro tareas seleccionadas, ambas se mueven al mismo lugar, tienen que mantener sus distancias iniciales y no ponerse todas en el mismo lugar.
-259. La opción de resize no tiene que estar dentro del modal de configuración sino fuera al lado de la opcion recorte y activarse asi como se activa la opcion de recorte. 
+267. ✅ [AG-DAW] Selección visual mejorada — outline 3px, fondo tintado 18% acento, box-shadow glow 8px. Commit c41560d.
+258.1 ✅ [AG-DAW] Multi-drag ghosts — La lógica de moverBloquesSeleccionados preservaba distancias (delta uniforme). Agregados ghost previews para TODOS los bloques seleccionados en PistaTimeline. Commit c41560d.
+259.1 ✅ [AG-DAW] Resize fuera del modal — Botón toggle MoveHorizontal/Crop en ControlesMezclador al lado de Scissors. Removido de ModalConfigDaw. Commit c41560d.
+271. La tonalidad casi funciona bien, lo que pasa es que si cambia, pero, cuando se cambia la tonalidad directamente, el audio debe mantener su duración. O sea, no contraerse o estirarse, esto es mas profundo porque implica varias cosas, te explico como funciona en fl studio.
 
+en fl studio los audios pueden ponerse en modo resample y stretch (estos son los modos de time streching), en resample significa el pitch esta determinado por cuanto se estire, es decir, si estira el audio, su pitch cambia, esto es logico, mas rapido, mayor pitch, mas lento, menor picht.
+
+luego esta el modo stretch, aqui no importa que tanto se estire el audio, si se hace mas corto o largo, su pitch no cambia y se define desde su configuracion, separando estos 2 modos, el picht va a funcionar correcta.
+
+Para que funcione bien, tiene que poder cambiarse entre strech y resample para saber como se va a configurar el tono, por defecto debe ser resample. Cuando esto se aplique, probablemente el pitch empiece a funcionar bien. Estos modos oson
+272. Cuando hay bloques de audio selecionado, dar click en cualquier otro lugar deberia deselecionar todo.
 
 ---
 
@@ -538,8 +545,11 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 - [C253]: Al mover controles a un modal, verificar que imports (tipos, stores) se limpien del componente origen.
 - [C256]: Modo resize global vs individual: cuando un comportamiento aplica a todos los bloques, moverlo de la entidad (BloqueMezclador) al store global. setDuracionBloque lee `get().modoResizeGlobal`.
 - [C257]: Backend actualizarUsuario ya soportaba `plan` — solo faltaba UI. Antes de crear backend, verificar si ya existe la funcionalidad.
+- [C258]: Web Audio: `detune` y `playbackRate` se combinan en `computedPlaybackRate = rate * 2^(detune/1200)`. La compensación `rate / 2^(cents/1200)` resulta en `computedRate = rate` (cancelación algebraica). Para detune audible, NO compensar. Ajustar `duration` de `start()` con tasa efectiva.
+- [C261]: Modal contextual con fixed position: SIEMPRE usar Math.max(margen, Math.min(pos, viewportSize - panelSize - margen)) en ambos ejes. Verificar dimensiones reales del CSS (320x420, no 290x360).
+- [C259.1]: Para toggles globales tipo herramienta (corte, stretch/clip), ponerlos en la barra de controles visible, no escondidos en modales de configuración.
 - [C201]: FFmpeg waveform: `-f f32le -acodec pcm_f32le -ac 1 -ar 8000` genera PCM raw, luego leer con `unpack('g*')` y extraer picos por chunks. 60 barras es suficiente para un mini player.
-- [C240]: Web Audio `detune` en BufferSourceNode cambia pitch PERO también velocidad. Para pitch-sin-cambio-de-velocidad: compensar playbackRate con `rate / Math.pow(2, cents / 1200)`. Aplicar en real-time Y offline render.
+- [C240]: Web Audio `detune` en BufferSourceNode cambia pitch Y velocidad (vinilo). La compensación playbackRate anterior fue eliminada en C258 porque se cancelaba algebraicamente (no producía cambio audible).
 - [C243]: Drift en resize se acumula por floating-point en cada operación. Solución: guardar `duracionOriginalCompases` y `playbackRateOriginal` inmutables al crear bloque, siempre recalcular desde originales, nunca desde valores ya redondeados.
 - [C244]: Clip mode: mantener playbackRate fijo, ajustar solo recorteFin. Calcular duración máxima en compases: `(buffer.duration / playbackRate) / durCompas`. Stretch mode: ajustar playbackRate como siempre.
 - [C241]: panelLateralStore.expandido: resetear a false en cerrar() para evitar que el panel reaparezca expandido al abrirlo de nuevo.
