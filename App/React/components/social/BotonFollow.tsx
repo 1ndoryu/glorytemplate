@@ -3,7 +3,7 @@
  * Toggle de follow/unfollow con optimistic UI.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { UserPlus, UserCheck } from 'lucide-react';
 import { seguirUsuario, dejarDeSeguir } from '@app/services/apiSocial';
 import '../../styles/componentes/botonFollow.css';
@@ -23,6 +23,11 @@ export const BotonFollow = ({
 }: BotonFollowProps): JSX.Element => {
     const [siguiendo, setSiguiendo] = useState(siguiendoInicial);
     const [cargando, setCargando] = useState(false);
+
+    /* Sincronizar estado interno cuando el prop cambia (ej: recarga de API) */
+    useEffect(() => {
+        setSiguiendo(siguiendoInicial);
+    }, [siguiendoInicial]);
 
     const manejarClick = useCallback(async () => {
         if (cargando) return;

@@ -16,9 +16,11 @@ import {BotonFollow} from '../../components/social/BotonFollow';
 import {obtenerPerfil} from '../../services/apiAuth';
 import {listarSamples} from '../../services/apiSamples';
 import {darLike, quitarLike, listarPublicacionesUsuario} from '../../services/apiSocial';
+import {iniciarConversacion} from '../../services/apiMensajes';
 import {useAuthStore} from '../../stores/authStore';
 import {useTabsTopBarStore} from '../../stores/tabsTopBarStore';
 import {useConfiguracionModalStore} from '../../stores/configuracionModalStore';
+import {useChatFlotanteStore} from '../../stores/chatFlotanteStore';
 import {useNavigationStore} from '@/core/router';
 import {useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO} from '../../hooks/useMenuContextualSample';
 import {obtenerImagenColor} from '../../services/imagenesColor';
@@ -43,7 +45,6 @@ interface PerfilIslandProps {
 export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.Element => {
     const [usuario, setUsuario] = useState<Usuario | null>(null);
     const [cargando, setCargando] = useState(true);
-    const [siguiendo] = useState(false);
 
     /* Contenido de tabs */
     const [samplesPerfil, setSamplesPerfil] = useState<SampleResumen[]>([]);
@@ -82,6 +83,7 @@ export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.E
     const {navegar} = useNavigationStore();
     const rutaActual = useNavigationStore(s => s.rutaActual);
     const {abrir: abrirConfiguracion} = useConfiguracionModalStore();
+    const {abrirChat} = useChatFlotanteStore();
     const menu = useMenuContextualSample();
 
     /*
@@ -335,11 +337,21 @@ export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.E
                             </BotonBase>
                         ) : (
                             <>
-                                <BotonFollow usuarioId={usuario.id} siguiendo={siguiendo} />
+                                <BotonFollow usuarioId={usuario.id} siguiendo={usuario.siguiendo ?? false} />
                                 <BotonBase
                                     variante="secundario"
-                                    onClick={() => {
-                                        log.info('Mensaje a', usuario.username);
+                                    onClick={async () => {
+                                        /* Iniciar o reabrir conversación con este usuario */
+                                        const resp = await iniciarConversacion(usuario.id);
+                                        if (resp.ok && resp.data) {
+                                            abrirChat({
+                                                conversacionId: resp.data.id,
+                                                nombreParticipante: usuario.nombreVisible || usuario.username,
+                                                avatarUrl: usuario.avatarUrl ?? null,
+                                            });
+                                        } else {
+                                            log.error('Error al iniciar conversación', resp.error);
+                                        }
                                     }}>
                                     Mensaje
                                 </BotonBase>

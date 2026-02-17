@@ -25,6 +25,7 @@ export interface Usuario {
     totalSeguidos: number;
     totalSamples: number;
     totalDescargas: number;
+    siguiendo?: boolean;
     stripeCustomerId: string | null;
     stripeConnectId: string | null;
     creadoAt: string;

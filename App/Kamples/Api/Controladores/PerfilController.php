@@ -83,6 +83,22 @@ class PerfilController
             'creadoAt'        => $perfil['created_at'] ?? '',
         ];
 
+        /* Verificar si el usuario autenticado sigue a este perfil */
+        $currentWp = AuthMiddleware::obtenerUsuarioActual();
+        if ($currentWp) {
+            $currentPg = PostgresService::consultarUno(
+                "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
+                ['wpId' => $currentWp['wp_user_id']]
+            );
+            if ($currentPg && (int) $currentPg['id'] !== $normalizado['id']) {
+                $seguimiento = PostgresService::consultarUno(
+                    "SELECT 1 FROM follows WHERE seguidor_id = :seguidorId AND seguido_id = :seguidoId",
+                    ['seguidorId' => (int) $currentPg['id'], 'seguidoId' => $normalizado['id']]
+                );
+                $normalizado['siguiendo'] = $seguimiento !== null;
+            }
+        }
+
         return new \WP_REST_Response(['data' => $normalizado], 200);
     }
 
