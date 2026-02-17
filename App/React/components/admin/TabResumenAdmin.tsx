@@ -46,19 +46,23 @@ const TarjetaKpi = ({
 
 /* Gráfica de barras de actividad (registros, uploads, descargas) */
 const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => {
+    const registros = datos?.registros ?? [];
+    const uploads = datos?.uploads ?? [];
+    const descargas = datos?.descargas ?? [];
+
     /* Calcular máximo para escalar */
     const todosLosTotales = [
-        ...datos.registros.map(d => d.total),
-        ...datos.uploads.map(d => d.total),
-        ...datos.descargas.map(d => d.total),
+        ...registros.map(d => d.total),
+        ...uploads.map(d => d.total),
+        ...descargas.map(d => d.total),
     ];
     const maximo = Math.max(...todosLosTotales, 1);
 
     /* Unificar fechas */
     const fechas = new Set([
-        ...datos.registros.map(d => d.fecha),
-        ...datos.uploads.map(d => d.fecha),
-        ...datos.descargas.map(d => d.fecha),
+        ...registros.map(d => d.fecha),
+        ...uploads.map(d => d.fecha),
+        ...descargas.map(d => d.fecha),
     ]);
     const fechasOrdenadas = [...fechas].sort();
 
@@ -73,9 +77,9 @@ const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => 
             </div>
             <div className="adminGraficaBarras">
                 {fechasOrdenadas.map(fecha => {
-                    const reg = buscar(datos.registros, fecha);
-                    const upl = buscar(datos.uploads, fecha);
-                    const desc = buscar(datos.descargas, fecha);
+                    const reg = buscar(registros, fecha);
+                    const upl = buscar(uploads, fecha);
+                    const desc = buscar(descargas, fecha);
 
                     return (
                         <div key={fecha} style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '2px', alignItems: 'stretch', justifyContent: 'flex-end', height: '100%' }}>
@@ -100,15 +104,15 @@ const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => 
             </div>
             <div className="adminGraficaLeyenda">
                 <span className="adminGraficaLeyendaItem">
-                    <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--acento-primario)' }} />
+                    <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--acento)' }} />
                     Registros
                 </span>
                 <span className="adminGraficaLeyendaItem">
-                    <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--acento-exito)' }} />
+                    <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--exito)' }} />
                     Uploads
                 </span>
                 <span className="adminGraficaLeyendaItem">
-                    <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--acento-advertencia)' }} />
+                    <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--advertencia)' }} />
                     Descargas
                 </span>
             </div>

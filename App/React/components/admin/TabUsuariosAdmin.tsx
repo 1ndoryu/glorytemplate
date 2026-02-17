@@ -68,7 +68,7 @@ export const TabUsuariosAdmin = ({
             {/* Controles búsqueda + filtro */}
             <div className="adminUsuariosControles">
                 <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
-                    <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--texto-terciario)' }} />
+                    <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--textoTerciario)' }} />
                     <input
                         className="adminUsuariosBusqueda"
                         type="text"
@@ -123,7 +123,7 @@ export const TabUsuariosAdmin = ({
                                     <div className="adminUsuarioInfo">
                                         <span className="adminUsuarioNombre">
                                             {u.nombre_visible || u.username}
-                                            {u.verificado && <BadgeCheck size={12} style={{ marginLeft: '4px', color: 'var(--acento-primario)' }} />}
+                                            {u.verificado && <BadgeCheck size={12} style={{ marginLeft: '4px', color: 'var(--acento)' }} />}
                                         </span>
                                         <span className="adminUsuarioUsername">@{u.username}</span>
                                     </div>
@@ -187,7 +187,7 @@ export const TabUsuariosAdmin = ({
                     >
                         <ChevronLeft size={14} />
                     </button>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--texto-secundario)', padding: '0.4rem' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--textoSecundario)', padding: '0.4rem' }}>
                         {pagina} / {totalPaginas} ({totalUsuarios} total)
                     </span>
                     <button

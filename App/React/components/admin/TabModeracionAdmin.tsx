@@ -32,7 +32,8 @@ export const TabModeracionAdmin = ({
         return <div className="adminVacio">Cargando moderación...</div>;
     }
 
-    const { publicaciones, reportes } = moderacion;
+    const publicaciones = moderacion?.publicaciones ?? [];
+    const reportes = moderacion?.reportes ?? [];
     const sinContenido = publicaciones.length === 0 && reportes.length === 0;
 
     if (sinContenido) {
