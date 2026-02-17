@@ -357,13 +357,14 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 194. Error en isla "AdminPanelIsland"
 Cannot read properties of undefined (reading 'length')
 195. Verificar que los css del AdminPanelIsland esten bien, tengo las sospecha que no se estan usando las variables correctas, igual para el modal de guardar colecciones.
-196. Cuando abro el mini daw, no sale nada. (De esto se debe encargar solo el agente que trabaja en el minidaw)
+196. ✅ Fix Mezclador panel vacío: MezcladorPanel no verificaba abierto duplicado, sincroniza estado panelLateralStore↔mezcladorStore al montarse, cerrar cierra ambos stores, resize handle CSS movido a panelLateral.css para disponibilidad global.
 198. Sumar un credito cada vez que un usuario publica un sample.
 199. Asegurarse de que cuando alguien intente descargar un sample y no tiene credito, se abra el modal de suscribirse.
 200. Veo inconsistencias a la informacion de las suscripciones entre el modal y la configuracion de stripe, la del modal es la info actualizad.
 201. apiCliente.ts:96   POST http://glory.local/wp-json/kamples/v1/comentarios/sample/18 400 (Bad Request) cuando intento subir un audio en los comentarios, los audios en los comentarios por cierto tienen que ser ligeros mp3 y verse en forma de waveform
 202. Auditar la seguridad de los audios, que sea dificil descargar los audios originales adivinando url, y que sea dificil descargar los mp3 ligeros tambien, rate limits, auditorias, etc, sin bloquear o dañar la reproducción de audios
 203. Tarea para el agente del minidaw: Cuando el mezclador se abra, quitar el padding de panelLateralInterno, y abarcar el ancho completo.
+204. Tarea para el agente del minidaw: poder estirar los audios (cambiar el pitch y duración o sea contraer y extirar)
 
 ---
 
