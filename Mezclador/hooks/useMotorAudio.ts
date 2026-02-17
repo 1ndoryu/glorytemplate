@@ -95,13 +95,29 @@ export const useMotorAudio = () => {
      * porque este callback se auto-referencia via requestAnimationFrame.
      */
     const actualizarCursor = useCallback(() => {
-        const { totalCompases, bpmProyecto, compasProyecto } = useMezcladorStore.getState();
+        const { pistas, bpmProyecto, compasProyecto } = useMezcladorStore.getState();
         const ctx = motorAudio.obtenerContexto();
         const tiempoTranscurrido = ctx.currentTime - tiempoInicioRef.current;
-        const duracionTotal = compasesASegundos(totalCompases, bpmProyecto, compasProyecto);
 
-        if (tiempoTranscurrido >= duracionTotal) {
-            /* Fin de la reproducción */
+        /*
+         * C218: Calcular el fin del último bloque real (no totalCompases).
+         * La reproducción vuelve al inicio cuando ya no hay audio adelante.
+         */
+        let finUltimoBloque = 0;
+        for (const pista of pistas) {
+            for (const bloque of pista.bloques) {
+                const finBloque = bloque.compasInicio + bloque.duracionCompases;
+                if (finBloque > finUltimoBloque) finUltimoBloque = finBloque;
+            }
+        }
+
+        /* Si no hay bloques, usar 0 para detener inmediatamente */
+        const duracionReal = finUltimoBloque > 0
+            ? compasesASegundos(finUltimoBloque, bpmProyecto, compasProyecto)
+            : 0;
+
+        if (tiempoTranscurrido >= duracionReal) {
+            /* Fin de la reproducción — C218: volver al inicio */
             useMezcladorStore.getState().setReproduciendo(false);
             useMezcladorStore.getState().setPosicionCursor(0);
             useMezcladorStore.getState().setTiempoActual(0);

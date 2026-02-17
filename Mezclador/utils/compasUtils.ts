@@ -3,7 +3,7 @@
  * Calcula cuántos compases ocupa un sample y sugiere el compás apropiado
  */
 
-import type { Compas, InfoCompas } from '../types/mezclador';
+import type { Compas, InfoCompas, SnapResolucion } from '../types/mezclador';
 
 /* Duración de un compás en segundos dado BPM y compás */
 export const duracionCompas = (bpm: number, compas: Compas): number => {
@@ -79,6 +79,79 @@ export const snapABeat = (
 ): number => {
     const beatFraccion = 1 / compas.numerador;
     return Math.round(posicionCompases / beatFraccion) * beatFraccion;
+};
+
+/*
+ * C216: Snap con resolución configurable.
+ * Si 'off' retorna la posición sin mutar.
+ */
+export const snapConResolucion = (
+    posicion: number,
+    compas: Compas,
+    resolucion: SnapResolucion
+): number => {
+    if (resolucion === 'off') return posicion;
+
+    let fraccion: number;
+    const beatsPerBar = compas.numerador;
+    const beatFrac = 1 / beatsPerBar;
+
+    switch (resolucion) {
+        case 'bar':   fraccion = 1; break;
+        case 'beat':  fraccion = beatFrac; break;
+        case '1/2':   fraccion = beatFrac / 2; break;
+        case '1/4':   fraccion = beatFrac / 4; break;
+        case '1/6':   fraccion = beatFrac / 6; break;
+        default:      fraccion = beatFrac; break;
+    }
+
+    return Math.round(posicion / fraccion) * fraccion;
+};
+
+/*
+ * C216: Calcular las posiciones de las líneas de cuadrícula para la UI.
+ * Retorna un array de { posicion, esCompas } para renderizar líneas.
+ */
+export const calcularLineasCuadricula = (
+    totalCompases: number,
+    compas: Compas,
+    resolucion: SnapResolucion
+): Array<{ posicion: number; esPrincipal: boolean }> => {
+    if (resolucion === 'off') {
+        /* Solo líneas de compás */
+        return Array.from({ length: totalCompases + 1 }, (_, i) => ({
+            posicion: i,
+            esPrincipal: true,
+        }));
+    }
+
+    const beatsPerBar = compas.numerador;
+    const beatFrac = 1 / beatsPerBar;
+    let fraccion: number;
+
+    switch (resolucion) {
+        case 'bar':   fraccion = 1; break;
+        case 'beat':  fraccion = beatFrac; break;
+        case '1/2':   fraccion = beatFrac / 2; break;
+        case '1/4':   fraccion = beatFrac / 4; break;
+        case '1/6':   fraccion = beatFrac / 6; break;
+        default:      fraccion = beatFrac; break;
+    }
+
+    const resultado: Array<{ posicion: number; esPrincipal: boolean }> = [];
+    const pasos = Math.round(totalCompases / fraccion);
+
+    for (let i = 0; i <= pasos; i++) {
+        const pos = i * fraccion;
+        if (pos > totalCompases) break;
+        resultado.push({
+            posicion: pos,
+            /* Una línea es principal si cae justo en un compás entero */
+            esPrincipal: Math.abs(pos - Math.round(pos)) < 0.001 && pos === Math.round(pos),
+        });
+    }
+
+    return resultado;
 };
 
 /* Convertir posición en compases a segundos */

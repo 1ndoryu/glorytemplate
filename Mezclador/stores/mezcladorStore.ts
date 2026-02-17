@@ -5,8 +5,8 @@
 
 import { create } from 'zustand';
 import type { SampleResumen } from '@app/types';
-import type { BloqueMezclador, PistaMezclador, Compas, ConfigBloque } from '../types/mezclador';
-import { CONSTANTES_MEZCLADOR, COLORES_BLOQUE, EVENTO_REPROGRAMAR_AUDIO } from '../types/mezclador';
+import type { BloqueMezclador, PistaMezclador, Compas, ConfigBloque, SnapResolucion } from '../types/mezclador';
+import { CONSTANTES_MEZCLADOR, COLORES_BLOQUE, EVENTO_REPROGRAMAR_AUDIO, NIVELES_ZOOM } from '../types/mezclador';
 import { inferirCompas, compasesASegundos } from '../utils/compasUtils';
 import { generarIdBloque, generarIdPista, extraerPeaks } from '../utils/audioBufferUtils';
 import { motorAudio } from '../services/motorAudioService';
@@ -32,6 +32,8 @@ interface MezcladorState {
     exportando: boolean;
     cargandoBuffers: Set<string>;
     modoCortarActivo: boolean;
+    snapResolucion: SnapResolucion;
+    nivelZoom: number;
 
     abrir: () => void;
     cerrar: () => void;
@@ -62,6 +64,11 @@ interface MezcladorState {
     setPosicionCursor: (posicion: number) => void;
     setExportando: (valor: boolean) => void;
     toggleModoCortar: () => void;
+    setSnapResolucion: (snap: SnapResolucion) => void;
+    setNivelZoom: (zoom: number) => void;
+    zoomIn: () => void;
+    zoomOut: () => void;
+    obtenerSnapCompas: () => number | null;
 
     limpiarProyecto: () => void;
     obtenerDuracionTotal: () => number;
@@ -88,6 +95,8 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     exportando: false,
     cargandoBuffers: new Set<string>(),
     modoCortarActivo: false,
+    snapResolucion: 'beat' as SnapResolucion,
+    nivelZoom: 1,
 
     abrir: () => set({ abierto: true }),
     cerrar: () => {
@@ -567,6 +576,45 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     setPosicionCursor: (posicion) => set({ posicionCursor: posicion }),
     setExportando: (valor) => set({ exportando: valor }),
     toggleModoCortar: () => set(prev => ({ modoCortarActivo: !prev.modoCortarActivo })),
+
+    /* C216: Snap setting */
+    setSnapResolucion: (snap) => set({ snapResolucion: snap }),
+
+    /*
+     * C216: Obtener fracción de compás según la resolución de snap actual.
+     * Retorna null si snap='off' (libre, sin cuadrícula).
+     */
+    obtenerSnapCompas: () => {
+        const { snapResolucion, compasProyecto } = get();
+        if (snapResolucion === 'off') return null;
+        if (snapResolucion === 'bar') return 1;
+        const beatsPerBar = compasProyecto.numerador;
+        const beatFraccion = 1 / beatsPerBar;
+        if (snapResolucion === 'beat') return beatFraccion;
+        if (snapResolucion === '1/2') return beatFraccion / 2;
+        if (snapResolucion === '1/4') return beatFraccion / 4;
+        if (snapResolucion === '1/6') return beatFraccion / 6;
+        return beatFraccion;
+    },
+
+    /* C217: Zoom */
+    setNivelZoom: (zoom) => set({ nivelZoom: Math.max(0.25, Math.min(4, zoom)) }),
+    zoomIn: () => {
+        const { nivelZoom } = get();
+        const idx = NIVELES_ZOOM.findIndex(z => z >= nivelZoom);
+        const siguiente = idx >= 0 && idx < NIVELES_ZOOM.length - 1
+            ? NIVELES_ZOOM[idx + 1]
+            : NIVELES_ZOOM[NIVELES_ZOOM.length - 1];
+        set({ nivelZoom: siguiente });
+    },
+    zoomOut: () => {
+        const { nivelZoom } = get();
+        const idx = NIVELES_ZOOM.findIndex(z => z >= nivelZoom);
+        const anterior = idx > 0
+            ? NIVELES_ZOOM[idx - 1]
+            : NIVELES_ZOOM[0];
+        set({ nivelZoom: anterior });
+    },
 
     limpiarProyecto: () => {
         motorAudio.detenerTodo();

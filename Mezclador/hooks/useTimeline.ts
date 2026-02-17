@@ -5,7 +5,7 @@
 
 import { useCallback, useRef, useState, useEffect } from 'react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
-import { snapABeat } from '../utils/compasUtils';
+import { snapConResolucion } from '../utils/compasUtils';
 import type { SampleResumen } from '@app/types';
 
 interface DragState {
@@ -40,6 +40,7 @@ export const useTimeline = () => {
 
     const totalCompases = useMezcladorStore(s => s.totalCompases);
     const compasProyecto = useMezcladorStore(s => s.compasProyecto);
+    const snapResolucion = useMezcladorStore(s => s.snapResolucion);
     const moverBloque = useMezcladorStore(s => s.moverBloque);
 
     /* Convertir posición X del mouse a compás */
@@ -114,7 +115,8 @@ export const useTimeline = () => {
         const mover = (ev: MouseEvent) => {
             const compas = xACompas(ev.clientX);
             const ajustado = compas - dragRef.current.offsetCompas;
-            const snapped = snapABeat(Math.max(0, ajustado), compasProyecto);
+            /* C216: Usar snap con resolución configurable del store */
+            const snapped = snapConResolucion(Math.max(0, ajustado), compasProyecto, snapResolucion);
             setPosicionDragFantasma(snapped);
 
             const pistaId = detectarPista(ev.clientY);
@@ -145,7 +147,7 @@ export const useTimeline = () => {
             document.removeEventListener('mousemove', mover);
             document.removeEventListener('mouseup', soltar);
         };
-    }, [dragState.activo, xACompas, compasProyecto, moverBloque, detectarPista]);
+    }, [dragState.activo, xACompas, compasProyecto, snapResolucion, moverBloque, detectarPista]);
 
     /* Drop externo — recibir sample desde el feed */
     const alDropExterno = useCallback((evento: React.DragEvent, pistaId?: string) => {

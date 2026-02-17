@@ -133,6 +133,11 @@ export const BloqueSample = ({
                 onIniciarDrag(bloque.id, bloque.pistaId, e);
             }}
             onClick={alClickBloque}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setModalConfigAbierto(true);
+            }}
             title={`${bloque.sample.titulo} (x${bloque.playbackRate.toFixed(2)}${bloque.invertido ? ' REV' : ''})`}
         >
             <div className="mezcladorBloqueCabecera">
@@ -149,7 +154,7 @@ export const BloqueSample = ({
                         }}
                         title="Duplicar bloque"
                     >
-                        <Copy size={9} />
+                        <Copy size={11} />
                     </button>
                     {/* C215: Botón de 3 puntos — abre modal config */}
                     <button
@@ -160,7 +165,7 @@ export const BloqueSample = ({
                         }}
                         title="Configuración de audio"
                     >
-                        <MoreHorizontal size={10} />
+                        <MoreHorizontal size={12} />
                     </button>
                     {/* Botón eliminar */}
                     <button
@@ -171,7 +176,7 @@ export const BloqueSample = ({
                         }}
                         title="Eliminar"
                     >
-                        <X size={10} />
+                        <X size={11} />
                     </button>
                 </div>
             </div>

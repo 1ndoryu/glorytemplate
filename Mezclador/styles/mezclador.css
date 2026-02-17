@@ -167,6 +167,49 @@
     text-align: center;
 }
 
+/* C216: Separador vertical entre grupos de controles */
+.mezcladorSeparadorVertical {
+    width: 1px;
+    height: 16px;
+    background: var(--bordeSutil);
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+
+/* C216: Label y select de snap */
+.mezcladorSnapLabel {
+    font-size: 10px;
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+}
+
+.mezcladorSnapSelect {
+    padding: 2px 4px;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: var(--fondoElevado1);
+    color: var(--textoPrimario);
+    font-size: 10px;
+    outline: none;
+    cursor: pointer;
+    min-width: 44px;
+}
+
+.mezcladorSnapSelect:focus {
+    border-color: var(--acento);
+}
+
+/* C217: Label de nivel de zoom */
+.mezcladorZoomLabel {
+    font-size: 10px;
+    color: var(--textoTerciario);
+    min-width: 32px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
 .mezcladorSpinner {
     animation: mezcladorGirar 1s linear infinite;
     color: var(--textoTerciario);
@@ -176,6 +219,12 @@
 .mezcladorTimeline {
     flex: 1;
     overflow: auto;
+    position: relative;
+}
+
+/* C217: Contenedor de zoom — controla el ancho escalado */
+.mezcladorTimelineZoom {
+    min-width: 100%;
     position: relative;
 }
 
@@ -325,6 +374,17 @@
     pointer-events: none;
 }
 
+/* C216: Líneas principales (compases) más visibles */
+.mezcladorDivisionPrincipal {
+    background: var(--bordeDefault, #444);
+}
+
+/* C216: Líneas secundarias (sub-beats) más sutiles */
+.mezcladorDivisionSecundaria {
+    background: var(--bordeSutil);
+    opacity: 0.4;
+}
+
 /* Bloque de sample en la timeline */
 .mezcladorBloque {
     position: absolute;
@@ -427,7 +487,7 @@
 .mezcladorBloqueBotones {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
     opacity: 0;
     transition: opacity var(--transicionRapida);
     flex-shrink: 0;
@@ -441,20 +501,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
     background: none;
     border: none;
     color: var(--textoTerciario);
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: 3px;
     padding: 0;
     flex-shrink: 0;
-    transition: color var(--transicionRapida);
+    transition: color var(--transicionRapida), background var(--transicionRapida);
 }
 
 .mezcladorBloqueBoton:hover {
     color: var(--textoSecundario);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .mezcladorBloqueBoton.mezcladorBloqueEliminar:hover {

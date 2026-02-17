@@ -4,8 +4,9 @@
  */
 
 import { useRef } from 'react';
-import { Play, Square, Plus, Minus, Download, Upload, FolderUp, Trash2, Loader, Scissors } from 'lucide-react';
+import { Play, Square, Plus, Minus, Download, Upload, FolderUp, Trash2, Loader, Scissors, ZoomIn, ZoomOut } from 'lucide-react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
+import type { SnapResolucion } from '../types/mezclador';
 
 interface ControlesMezcladorProps {
     onToggleReproduccion: () => void;
@@ -33,6 +34,21 @@ export const ControlesMezclador = ({
     const agregarAudioLocal = useMezcladorStore(s => s.agregarAudioLocal);
     const modoCortarActivo = useMezcladorStore(s => s.modoCortarActivo);
     const toggleModoCortar = useMezcladorStore(s => s.toggleModoCortar);
+    const snapResolucion = useMezcladorStore(s => s.snapResolucion);
+    const setSnapResolucion = useMezcladorStore(s => s.setSnapResolucion);
+    const nivelZoom = useMezcladorStore(s => s.nivelZoom);
+    const zoomIn = useMezcladorStore(s => s.zoomIn);
+    const zoomOut = useMezcladorStore(s => s.zoomOut);
+
+    /* C216: Opciones de snap disponibles */
+    const opcionesSnap: { valor: SnapResolucion; label: string }[] = [
+        { valor: 'bar', label: 'Bar' },
+        { valor: 'beat', label: 'Beat' },
+        { valor: '1/2', label: '1/2' },
+        { valor: '1/4', label: '1/4' },
+        { valor: '1/6', label: '1/6' },
+        { valor: 'off', label: 'Off' },
+    ];
 
     /* C208: Referencia al input de archivo oculto */
     const inputArchivoRef = useRef<HTMLInputElement>(null);
@@ -82,7 +98,7 @@ export const ControlesMezclador = ({
                 </div>
             </div>
 
-            {/* Grupo centro: compases */}
+            {/* Grupo centro: compases + snap + zoom */}
             <div className="mezcladorControlesGrupo">
                 <button
                     className="mezcladorBotonCompas"
@@ -100,6 +116,40 @@ export const ControlesMezclador = ({
                     title="Añadir compás"
                 >
                     <Plus size={12} />
+                </button>
+
+                <span className="mezcladorSeparadorVertical" />
+
+                {/* C216: Snap selector */}
+                <span className="mezcladorSnapLabel">Snap</span>
+                <select
+                    className="mezcladorSnapSelect"
+                    value={snapResolucion}
+                    onChange={(e) => setSnapResolucion(e.target.value as SnapResolucion)}
+                    title="Resolución de snap (cuadrícula)"
+                >
+                    {opcionesSnap.map(op => (
+                        <option key={op.valor} value={op.valor}>{op.label}</option>
+                    ))}
+                </select>
+
+                <span className="mezcladorSeparadorVertical" />
+
+                {/* C217: Zoom */}
+                <button
+                    className="mezcladorBotonCompas"
+                    onClick={zoomOut}
+                    title="Alejar"
+                >
+                    <ZoomOut size={12} />
+                </button>
+                <span className="mezcladorZoomLabel">{Math.round(nivelZoom * 100)}%</span>
+                <button
+                    className="mezcladorBotonCompas"
+                    onClick={zoomIn}
+                    title="Acercar"
+                >
+                    <ZoomIn size={12} />
                 </button>
             </div>
 

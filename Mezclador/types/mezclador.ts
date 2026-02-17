@@ -92,6 +92,25 @@ export const EVENTO_AGREGAR_MEZCLADOR = 'kamples:agregar-mezclador';
 /* C213: Evento para reprogramar audio en tiempo real */
 export const EVENTO_REPROGRAMAR_AUDIO = 'kamples:reprogramar-audio';
 
+/*
+ * C216: Resoluciones de snap disponibles.
+ * 'bar' = compás completo, 'beat' = 1 beat, '1/2' = medio beat, '1/4' = cuarto, '1/6' = sexto, 'off' = libre
+ */
+export type SnapResolucion = 'bar' | 'beat' | '1/2' | '1/4' | '1/6' | 'off';
+
+/* C216: Fracciones de compás para cada resolución de snap */
+export const SNAP_FRACCIONES: Record<SnapResolucion, number | null> = {
+    bar: 1,
+    beat: null,    /* calculado dinámicamente: 1 / compas.numerador */
+    '1/2': null,   /* 1 / (numerador * 2) */
+    '1/4': null,   /* 1 / (numerador * 4) */
+    '1/6': null,   /* 1 / (numerador * 6) */
+    off: null,
+};
+
+/* C217: Niveles de zoom predefinidos */
+export const NIVELES_ZOOM = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4] as const;
+
 /* Constantes del mezclador */
 export const CONSTANTES_MEZCLADOR = {
     BPM_DEFAULT: 120,

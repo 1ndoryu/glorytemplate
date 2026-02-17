@@ -381,13 +381,23 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 210. ✅ [AG-DAW] Verificado — sugerencias funcionan correctamente. El fallo era causado por C212 (parse error PHP rompía carga React). PanelLateral+panelLateralStore intactos.
 211. ✅ [AG-DAW] Eliminado BotonExperimentos de TopBar.tsx (import + JSX).
 212. ✅ Fix DescargasController parse error L120 — comillas escapadas incorrectamente (`\"`) en SQL del advisory lock (O14). Causado por el Sprint 3 de auditoría.
-213. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: Cuando comprimo o estiro un audio, no se actualiza en tiempo el audio mientra se reproduce (debería). **Estado:** tipos, store (EVENTO_REPROGRAMAR_AUDIO + dispatch en setDuracionBloque), useMotorAudio (listener reprogramar), motorAudioService (fades+reverse en programarReproduccion) ya implementados.
-214. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: Agregar una herramienta de recorte que permita dividir, cortar un audio como se quiera. **Estado:** dividirBloque() implementado en store.
-215. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: agregar un pequeño boton de 3 puntos al lado de la x en los audios, para las opciones avanzados en el audio, esto abrira un modal de configuraciones de audio: picth, duración, nota, soportar los direntes tipos de estiramiento: (resample y strach), deje una referencia en App\Assets\ref\Captura de pantalla 2026-02-17 153007.png, no se si puedes ver la imagen pero la describo. No debe ser asi tan complejo sino mas sencillo. Una opcion de normalización, reverse, lenght (para cortar la duracion final ) y spm start que haria lo mismo con el comienzo, in y out haría intuye es es para suavizar el volumen del comienzo y final y crossfade y trim.
-[EN CURSO — AG-DAW] Tarea para el agente del minidaw: al lado del boton de x, agregar un boton de duplicar, que se pueda duplicar audios en la linea de tiempo. **Estado:** duplicarBloque() y actualizarConfigBloque() implementados en store, tipos extendidos (invertido, fadeIn, fadeOut, recorteInicio, recorteFin, normalizado), audioBufferUtils con invertirBuffer/normalizarBuffer. Falta: componentes UI (ModalConfigBloque, botones en BloqueSample), CSS, dividir visual en timeline.
-216. Tarea para el agente del minidaw: opciones de snap setting, y que el movimiento, recortes, se adapten, y se refleje visualmente con lineas, similar a fl studio, con que se pueda configurar en bar, beat, 1/2 beat, 1/4 beat, y 1/6, creo que suficiente. esto lleva a la siguiente tarea. 
-217. Tarea para el agente del minidaw: poder hacer zoom, incluir iconos de zoom lara acercar y alejar.
-218. Tarea para el agente del minidaw: la reproduccion tiene que volver al comienzo cuando llegue al final de todos los audios y no haya mas audios adelantes que reproducir.
+213. ✅ [AG-DAW] Reprogramación audio en tiempo real al estirar/comprimir — EVENTO_REPROGRAMAR_AUDIO en store, listener en useMotorAudio que detiene y reprograma desde posición actual. Commit 24879db.
+214. ✅ [AG-DAW] Herramienta cortar — dividirBloque() en store, botón Scissors en controles, modo cortar con cursor crosshair, click en bloque calcula compás y divide. Commit 24879db.
+215. ✅ [AG-DAW] Modal config bloque (ModalConfigBloque.tsx) — 3 puntos abre modal con: volumen, velocidad/pitch, fade in/out (sliders), reverse y normalizar (toggles). Indicadores REV/IN/OUT visibles en bloque. Commit 24879db.
+215.1 ✅ [AG-DAW] Botón duplicar en cabecera de bloque + duplicarBloque() en store. Tipos extendidos con invertido/fadeIn/fadeOut/recorteInicio/recorteFin/normalizado. audioBufferUtils con invertirBuffer/normalizarBuffer. Commit 24879db.
+216. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: opciones de snap setting, y que el movimiento, recortes, se adapten, y se refleje visualmente con lineas, similar a fl studio, con que se pueda configurar en bar, beat, 1/2 beat, 1/4 beat, y 1/6, creo que suficiente. esto lleva a la siguiente tarea. 
+217. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: poder hacer zoom, incluir iconos de zoom lara acercar y alejar.
+218. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: la reproduccion tiene que volver al comienzo cuando llegue al final de todos los audios y no haya mas audios adelantes que reproducir.
+219. [EN CURSO — AG-DAW] Las botones de mezcladorBloqueBotones estan muy pegados, y creo que necesitan ser un poco mas grande. No se si ya lo ocmente antes pero el menu contextual de los bloques de audios deberia abrirse con el click derecho tambien.
+220. En crearCondiciones debería aparecer para que cuando publico un sample, aparezca o no en comunidad. En tarjetaMeta aparecen.
+221. En tarjetaMeta aparecen tags iguales, no debería, si hay 2 tags de 2 categorías iguales, mostrar el siguiente hasta que ninguno sea igual.
+222. La linea de tiemp orealmente no es precisa o las tarjetas no muestra la duración real, hay inconsistencia entre lo que realmente dura el audio sonando y lo que la linea de tiempo muestra, la linea de tiempo termina de pasar por toda la tarjeta pero el audio termina unos segundos despues, dando entender una inconsistencia visual que no se si es por la liena de tiempo las tarjetas de audio.
+223. Cuando publico un sample la lista de sample debería actualizarse.
+224. Boton de deshacer y rehacer en el mini daw.
+225. Bug: cuando abro el menu contextual en las tarjetas de audio con el click derecho, no se puede cerrar, intento cerrarlo y se vuelve a abrir. 
+226. Los botones de mezcladorBloqueBotones no funciona, a dar click sobre cualquiera se activa el arrastre de inmediato.
+227. La herramienta de recorte debería desactivarse despues del primer recorte.
+228. Cuando se recorta un audio en el mini daw, la waveform tambien debería recortarse.
 
 ---
 

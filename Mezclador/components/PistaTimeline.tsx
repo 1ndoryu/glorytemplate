@@ -4,9 +4,10 @@
  */
 
 import { Volume2, VolumeX, Trash2 } from 'lucide-react';
-import type { PistaMezclador } from '../types/mezclador';
+import type { PistaMezclador, SnapResolucion } from '../types/mezclador';
 import { BloqueSample } from './BloqueSample';
 import { useMezcladorStore } from '../stores/mezcladorStore';
+import { calcularLineasCuadricula } from '../utils/compasUtils';
 
 interface PistaTimelineProps {
     pista: PistaMezclador;
@@ -36,10 +37,12 @@ export const PistaTimeline = ({
     const toggleSilenciarPista = useMezcladorStore(s => s.toggleSilenciarPista);
     const eliminarPista = useMezcladorStore(s => s.eliminarPista);
     const pistas = useMezcladorStore(s => s.pistas);
+    const compasProyecto = useMezcladorStore(s => s.compasProyecto);
+    const snapResolucion = useMezcladorStore(s => s.snapResolucion);
     const puedeBorrar = pistas.length > 1;
 
-    /* Divisiones de compás */
-    const divisiones = Array.from({ length: totalCompases }, (_, i) => i);
+    /* C216: Líneas de cuadrícula según resolución de snap */
+    const lineasCuadricula = calcularLineasCuadricula(totalCompases, compasProyecto, snapResolucion);
 
     /* Resaltar pista activa durante drag */
     const esHover = dragActivo && pistaIdHover === pista.id;
@@ -78,12 +81,12 @@ export const PistaTimeline = ({
                 onDragOver={onDragOver}
                 onDrop={(e) => onDrop(e, pista.id)}
             >
-                {/* Líneas de división de compás */}
-                {divisiones.map(i => (
+                {/* C216: Líneas de cuadrícula según snap */}
+                {lineasCuadricula.map((linea, i) => (
                     <div
                         key={i}
-                        className="mezcladorDivisionCompas"
-                        style={{ left: `${(i / totalCompases) * 100}%` }}
+                        className={`mezcladorDivisionCompas ${linea.esPrincipal ? 'mezcladorDivisionPrincipal' : 'mezcladorDivisionSecundaria'}`}
+                        style={{ left: `${(linea.posicion / totalCompases) * 100}%` }}
                     />
                 ))}
 
