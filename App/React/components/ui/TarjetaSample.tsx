@@ -368,10 +368,34 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
     /* Imagen de portada: usa imagenUrl del sample o fallback a colors/ */
     const imagenPortada = sample.imagenUrl || obtenerImagenColor(sample.id);
 
-    /* C184: Drag support para el mezclador */
+    /* C184+C209: Drag support para el mezclador con preview personalizado */
     const manejarDragStart = useCallback((e: React.DragEvent) => {
         e.dataTransfer.setData('application/kamples-sample', JSON.stringify(sample));
         e.dataTransfer.effectAllowed = 'copy';
+
+        /* C209: Crear preview visual personalizado para el drag */
+        const preview = document.createElement('div');
+        preview.className = 'dragPreviewSample';
+        preview.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18V5l12-2v13"/>
+                <circle cx="6" cy="18" r="3"/>
+                <circle cx="18" cy="16" r="3"/>
+            </svg>
+            <span>${sample.titulo.length > 25 ? sample.titulo.slice(0, 25) + '...' : sample.titulo}</span>
+        `;
+        document.body.appendChild(preview);
+        /* Posicionar fuera de vista para evitar flash */
+        preview.style.position = 'fixed';
+        preview.style.top = '-200px';
+        preview.style.left = '-200px';
+
+        e.dataTransfer.setDragImage(preview, 20, 16);
+
+        /* Limpiar después de que el browser capture la imagen */
+        requestAnimationFrame(() => {
+            document.body.removeChild(preview);
+        });
     }, [sample]);
 
     return (

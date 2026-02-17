@@ -184,7 +184,7 @@ class AuthController
 
         /* Verificar si ya existe en PG */
         $existing = PostgresService::consultarUno(
-            "SELECT id, username, nombre_visible, bio, avatar_url, portada_url,
+            "SELECT id, wp_user_id, username, nombre_visible, bio, avatar_url, portada_url,
                     plan, verificado, total_seguidores, total_seguidos,
                     total_samples, total_descargas, rol, created_at
              FROM usuarios_ext WHERE wp_user_id = :wpId",
@@ -210,7 +210,7 @@ class AuthController
         );
 
         $nuevo = PostgresService::consultarUno(
-            "SELECT id, username, nombre_visible, bio, avatar_url, portada_url,
+            "SELECT id, wp_user_id, username, nombre_visible, bio, avatar_url, portada_url,
                     plan, verificado, total_seguidores, total_seguidos,
                     total_samples, total_descargas, rol, created_at
              FROM usuarios_ext WHERE wp_user_id = :wpId",

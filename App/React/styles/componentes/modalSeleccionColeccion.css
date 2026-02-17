@@ -11,7 +11,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--overlay);
+    background-color: var(--overlayOscuro);
 }
 
 /* C182: Modo contextual — overlay transparente, panel posicionado por JS */
@@ -25,10 +25,10 @@
     max-height: 420px;
     display: flex;
     flex-direction: column;
-    background-color: var(--fondoElevado);
+    background-color: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
-    box-shadow: var(--sombraLg);
+    box-shadow: var(--sombraElevada);
     overflow: hidden;
 }
 
@@ -68,7 +68,7 @@
     color: var(--textoTerciario);
     cursor: pointer;
     padding: 2px;
-    border-radius: var(--radioXs);
+    border-radius: var(--radioSm);
 }
 
 .seleccionColeccionLimpiar:hover {
@@ -124,7 +124,7 @@
 .seleccionColeccionItemImg {
     width: 32px;
     height: 32px;
-    border-radius: var(--radioXs);
+    border-radius: var(--radioSm);
     object-fit: cover;
     flex-shrink: 0;
 }

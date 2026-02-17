@@ -382,6 +382,9 @@ Cannot read properties of undefined (reading 'length')
 210. Dejaron de aparecer sugerencias cuando doy like, no se por qué. (no se si es por 212 y estaba cargando react con el error de fondo, creo que si)
 211. Borrar el boton de experimentosContenedor
 212. ✅ Fix DescargasController parse error L120 — comillas escapadas incorrectamente (`\"`) en SQL del advisory lock (O14). Causado por el Sprint 3 de auditoría.
+213. Tarea para el agente del minidaw: Cuando comprimo o estiro un audio, no se actualiza en tiempo el audio mientra se reproduce (debería).
+214. Tarea para el agente del minidaw: Agregar una herramienta de recorte que permita dividir, cortar un audio como se quiera.
+215. Tarea para el agente del minidaw: agregar un pequeño boton de 3 puntos al lado de la x en los audios, para las opciones de 
 
 ---
 

@@ -494,11 +494,17 @@
     border: 2px dashed var(--bordeSutil);
     border-radius: var(--radioMd);
     margin: var(--espacioMd);
-    transition: border-color var(--transicionRapida);
+    transition: border-color var(--transicionRapida), background var(--transicionRapida);
 }
 
 .mezcladorDropZoneVacia:hover {
     border-color: var(--acento);
+    background: color-mix(in srgb, var(--acento) 5%, transparent);
+}
+
+/* C209: Animar pista cuando se arrastra un sample externo sobre ella */
+.mezcladorPistaContenido:has(.mezcladorPistaVacia) {
+    transition: background var(--transicionRapida);
 }
 
 /* Error boundary */
