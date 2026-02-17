@@ -78,6 +78,7 @@
 }
 
 /* GrÃ¡fica de actividad */
+/* C236: Gráfica de actividad reescrita — barras agrupadas, eje X/Y, colores distinguibles */
 .adminGraficaContenedor {
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
@@ -96,37 +97,114 @@
     gap: 0.5rem;
 }
 
+/* Contenedor principal: eje Y + área de barras */
+.adminGraficaArea {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Eje Y — números de referencia */
+.adminGraficaEjeY {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    height: 180px;
+    padding-bottom: 20px;
+    min-width: 28px;
+}
+
+.adminGraficaEjeYLabel {
+    font-size: 0.6rem;
+    color: var(--textoTerciario);
+    line-height: 1;
+}
+
+/* Área de barras con grid lines de fondo */
+.adminGraficaBarrasArea {
+    flex: 1;
+    position: relative;
+    height: 200px;
+}
+
+/* Grid lines horizontales sutiles */
+.adminGraficaGridLines {
+    position: absolute;
+    inset: 0;
+    bottom: 20px;
+    pointer-events: none;
+}
+
+.adminGraficaGridLinea {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--bordeSutil);
+    opacity: 0.5;
+}
+
+/* Contenedor flex de barras */
 .adminGraficaBarras {
     display: flex;
     align-items: flex-end;
-    gap: 3px;
-    height: 120px;
+    gap: 4px;
+    height: 180px;
 }
 
+/* Grupo de un día: barras + etiqueta fecha */
+.adminGraficaDia {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+/* 3 barras lado a lado dentro del día */
+.adminGraficaDiaBarras {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    flex: 1;
+    width: 100%;
+}
+
+/* Barra individual */
 .adminGraficaBarra {
     flex: 1;
-    border-radius: 3px 3px 0 0;
+    border-radius: 2px 2px 0 0;
     min-height: 2px;
     transition: opacity 0.15s;
     cursor: pointer;
 }
 
 .adminGraficaBarra:hover {
-    opacity: 0.8;
+    opacity: 0.75;
 }
 
+/* Colores distinguibles: verde, azul, naranja */
 .adminGraficaBarraRegistros {
     background: var(--acento);
 }
 
 .adminGraficaBarraUploads {
-    background: var(--exito);
+    background: var(--info);
 }
 
 .adminGraficaBarraDescargas {
     background: var(--advertencia);
 }
 
+/* Etiqueta de fecha (eje X) */
+.adminGraficaFecha {
+    font-size: 0.55rem;
+    color: var(--textoTerciario);
+    margin-top: 4px;
+    white-space: nowrap;
+}
+
+/* Leyenda con totales */
 .adminGraficaLeyenda {
     display: flex;
     gap: 1rem;

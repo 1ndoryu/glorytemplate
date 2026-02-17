@@ -44,21 +44,16 @@ const TarjetaKpi = ({
     </div>
 );
 
-/* Gráfica de barras de actividad (registros, uploads, descargas) */
+/*
+ * C236: Gráfica de barras agrupadas — registros, uploads, descargas por día.
+ * Barras lado a lado (no apiladas). Eje X con fechas. Colores distinguibles.
+ */
 const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => {
     const registros = datos?.registros ?? [];
     const uploads = datos?.uploads ?? [];
     const descargas = datos?.descargas ?? [];
 
-    /* Calcular máximo para escalar */
-    const todosLosTotales = [
-        ...registros.map(d => d.total),
-        ...uploads.map(d => d.total),
-        ...descargas.map(d => d.total),
-    ];
-    const maximo = Math.max(...todosLosTotales, 1);
-
-    /* Unificar fechas */
+    /* Unificar y ordenar fechas */
     const fechas = new Set([
         ...registros.map(d => d.fecha),
         ...uploads.map(d => d.fecha),
@@ -69,51 +64,110 @@ const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => 
     const buscar = (arr: { fecha: string; total: number }[], fecha: string) =>
         arr.find(d => d.fecha === fecha)?.total ?? 0;
 
+    /* Calcular máximo para escalar barras */
+    const maximo = Math.max(
+        ...fechasOrdenadas.flatMap(f => [
+            buscar(registros, f),
+            buscar(uploads, f),
+            buscar(descargas, f),
+        ]),
+        1
+    );
+
+    /* Totales del periodo para mostrar resumen */
+    const totalReg = registros.reduce((s, d) => s + d.total, 0);
+    const totalUpl = uploads.reduce((s, d) => s + d.total, 0);
+    const totalDesc = descargas.reduce((s, d) => s + d.total, 0);
+
+    /* Formatear fecha corta: "17/02" */
+    const formatearFecha = (f: string) => {
+        const partes = f.split('-');
+        return `${partes[2]}/${partes[1]}`;
+    };
+
+    /* Calcular escalones del eje Y (4 líneas) */
+    const lineasY = [0.25, 0.5, 0.75, 1].map(p => Math.round(maximo * p));
+
     return (
         <div className="adminGraficaContenedor">
             <div className="adminGraficaTitulo">
                 <BarChart3 size={16} />
                 Actividad últimos 14 días
             </div>
-            <div className="adminGraficaBarras">
-                {fechasOrdenadas.map(fecha => {
-                    const reg = buscar(registros, fecha);
-                    const upl = buscar(uploads, fecha);
-                    const desc = buscar(descargas, fecha);
 
-                    return (
-                        <div key={fecha} style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '2px', alignItems: 'stretch', justifyContent: 'flex-end', height: '100%' }}>
+            {/* Área de la gráfica con eje Y */}
+            <div className="adminGraficaArea">
+                {/* Líneas de referencia horizontales */}
+                <div className="adminGraficaEjeY">
+                    {lineasY.reverse().map(val => (
+                        <span key={val} className="adminGraficaEjeYLabel">{val}</span>
+                    ))}
+                </div>
+
+                <div className="adminGraficaBarrasArea">
+                    {/* Grid lines horizontales */}
+                    <div className="adminGraficaGridLines">
+                        {[0.25, 0.5, 0.75, 1].map(p => (
                             <div
-                                className="adminGraficaBarra adminGraficaBarraDescargas"
-                                style={{ height: `${(desc / maximo) * 100}%` }}
-                                title={`${fecha} — Descargas: ${desc}`}
+                                key={p}
+                                className="adminGraficaGridLinea"
+                                style={{ bottom: `${p * 100}%` }}
                             />
-                            <div
-                                className="adminGraficaBarra adminGraficaBarraUploads"
-                                style={{ height: `${(upl / maximo) * 100}%` }}
-                                title={`${fecha} — Uploads: ${upl}`}
-                            />
-                            <div
-                                className="adminGraficaBarra adminGraficaBarraRegistros"
-                                style={{ height: `${(reg / maximo) * 100}%` }}
-                                title={`${fecha} — Registros: ${reg}`}
-                            />
-                        </div>
-                    );
-                })}
+                        ))}
+                    </div>
+
+                    {/* Barras agrupadas por fecha */}
+                    <div className="adminGraficaBarras">
+                        {fechasOrdenadas.map((fecha, i) => {
+                            const reg = buscar(registros, fecha);
+                            const upl = buscar(uploads, fecha);
+                            const desc = buscar(descargas, fecha);
+
+                            return (
+                                <div key={fecha} className="adminGraficaDia">
+                                    <div className="adminGraficaDiaBarras">
+                                        <div
+                                            className="adminGraficaBarra adminGraficaBarraRegistros"
+                                            style={{ height: `${(reg / maximo) * 100}%` }}
+                                            title={`Registros: ${reg}`}
+                                        />
+                                        <div
+                                            className="adminGraficaBarra adminGraficaBarraUploads"
+                                            style={{ height: `${(upl / maximo) * 100}%` }}
+                                            title={`Uploads: ${upl}`}
+                                        />
+                                        <div
+                                            className="adminGraficaBarra adminGraficaBarraDescargas"
+                                            style={{ height: `${(desc / maximo) * 100}%` }}
+                                            title={`Descargas: ${desc}`}
+                                        />
+                                    </div>
+                                    {/* Mostrar fecha cada 2 días o si es el último */}
+                                    {(i % 2 === 0 || i === fechasOrdenadas.length - 1) && (
+                                        <span className="adminGraficaFecha">
+                                            {formatearFecha(fecha)}
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
+
+            {/* Leyenda con totales del periodo */}
             <div className="adminGraficaLeyenda">
                 <span className="adminGraficaLeyendaItem">
                     <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--acento)' }} />
-                    Registros
+                    Registros ({totalReg})
                 </span>
                 <span className="adminGraficaLeyendaItem">
-                    <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--exito)' }} />
-                    Uploads
+                    <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--info)' }} />
+                    Uploads ({totalUpl})
                 </span>
                 <span className="adminGraficaLeyendaItem">
                     <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--advertencia)' }} />
-                    Descargas
+                    Descargas ({totalDesc})
                 </span>
             </div>
         </div>

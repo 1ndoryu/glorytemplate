@@ -163,9 +163,14 @@ class AdminController
             $params
         );
 
+        /*
+         * C235 fix: la query COUNT no usa :offset, pero $params lo incluye.
+         * PDO nativo lanza excepción con parámetros sobrantes → query fallaba silenciosamente.
+         */
+        $paramsCount = array_diff_key($params, ['offset' => true]);
         $total = PostgresService::consultarUno(
             "SELECT COUNT(*) as total FROM usuarios_ext u WHERE {$where}",
-            $params
+            $paramsCount
         );
 
         /* C193: Fallback avatar a WP Gravatar */

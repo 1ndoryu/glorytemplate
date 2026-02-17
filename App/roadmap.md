@@ -391,9 +391,9 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 219. ✅ [AG-DAW] Botones bloque más grandes (18px, gap 4px, hover background) + click derecho abre modal config (onContextMenu). Commit b7123b2.
 220. En crearCondiciones debería aparecer para que cuando publico un sample, aparezca o no en comunidad. En tarjetaMeta aparecen.
 221. En tarjetaMeta aparecen tags iguales, no debería, si hay 2 tags de 2 categorías iguales, mostrar el siguiente hasta que ninguno sea igual.
-222. La linea de tiempo realmente no es precisa o las tarjetas no muestra la duración real, hay inconsistencia entre lo que realmente dura el audio sonando y lo que la linea de tiempo muestra, la linea de tiempo termina de pasar por toda la tarjeta pero el audio termina unos segundos despues, dando entender una inconsistencia visual que no se si es por la liena de tiempo las tarjetas de audio.
-222.1 Tambien pasa que dar clic para mover la linea de tiempo, no se quedaen el lugar donde se dio click realmente sino un poco mas adelante, dando entender que todo esto tiene que ver con 222.
-222.2 Este problema tambien se refleja con 230, cuando cambio la velocidad, el bloque y la linea de tiempo la diferencia entre lo que dura, y el ancho de bloque se vuelve mas grande.
+222. ✅ [AG-DAW] Fix sync timeline/audio — 2 bugs: (A) fuente.start() duration en buffer-time no wall-clock → multiplicar por playbackRate, (B) cursor usaba left% relativo a contenedor completo pero bloques relativo a area contenido (W-80px) → calc(80px + (100%-80px)*frac). Commit 35c8488.
+222.1 ✅ [AG-DAW] Cursor click posición — resuelto con fix B de C222 (calc-based positioning). Commit 35c8488.
+222.2 ✅ [AG-DAW] playbackRate no recalculaba duracionCompases — actualizarConfigBloque ahora recalcula cuando cambia playbackRate. Commit 35c8488.
 223. Cuando publico un sample la lista de sample debería actualizarse.
 222.2 Creo que es por los bpm tal vez.
 224. ✅ [AG-DAW] Undo/Redo — Historial 30 snapshots (pistas+totalCompases), _guardarSnapshot antes de cada mutación (agregarPista/eliminarPista/moverBloque/eliminarBloque/duplicarBloque/dividirBloque/agregarSample/agregarAudioLocal/limpiarProyecto/resize), botones Undo2/Redo2 en ControlesMezclador, atajos Ctrl+Z/Ctrl+Y/Ctrl+Shift+Z. Commit e8de6ee.
@@ -401,10 +401,21 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 226. ✅ [AG-DAW] Fix botones activan drag — onMouseDown verifica target.closest('.mezcladorBloqueBotones') para no iniciar drag en botones. Commit e8de6ee.
 227. ✅ [AG-DAW] Corte auto-desactiva — toggleModoCortar() llamado después de dividirBloque() en alCortar callback. Commit e8de6ee.
 228. ✅ [AG-DAW] Waveform se divide con corte — dividirBloque calcula ratioPeaks y hace slice proporcional de waveformPeaks para bloqueA y bloqueB. Commit e8de6ee.
-229. Si sirve hacer zoom pero acercar nada mas, y los intervalos deberían de ser de 5 en 5.
-230. (probablemente muy relacionado con 222) Cuando se cambia la velocidad de un bloque en el mini idea, no le importa si hay mas audios adelante y los sobre pasa, en ese caso para evitar el choque lo mejor sería crear una linea de tiempo nueva arriba cuando 2 audios choquen porque sus velocidades cambian.
-231. Los tagas en mezcladorBloqueBotones deberían funcionar igual como los tags de feedtags, tener la misma funcionalidad y algun efecto hover ()
-
+229. ✅ [AG-DAW] Zoom min 100%, paso 5%, aritmético con ZOOM_MIN/ZOOM_MAX/ZOOM_PASO (reemplaza array NIVELES_ZOOM). Commit 35c8488.
+230. ✅ [AG-DAW] Colisión bloques — actualizarConfigBloque ordena bloques por compasInicio tras update, empuja bloques posteriores si hay solapamiento, expande totalCompases si necesario. Commit 35c8488.
+231. ✅ [AG-DAW] Revertido — tags en bloques de audio fue malinterpretación (ver C234). Commit 35c8488.
+232. ✅ [AG-DAW] Línea preview de corte con snap — lineaCortePorc state, alMoverMouse calcula posición snapped como % dentro del bloque, línea roja con glow. alClickBloque usa snapConResolucion. Commit f6e48db.
+233. ✅ [AG-DAW] Reorganizar controles — export/import/limpiar movidos a mezcladorCabecera (mezcladorCabeceraAcciones), eliminado icono+nombre+contador. Scissors en grupo derecho. Commit f6e48db.
+233.1 ✅ [AG-DAW] Altura uniforme 28px en todos los botones (play, acción, compás, cabecera). Commit f6e48db.
+234. ✅ [AG-DAW] Tags en bloques de audio revertidos (C231). Tags en lista de samples es tarea separada (feed, no mezclador).
+235. ✅ [AG-DAW] Fix admin panel sin usuarios — query COUNT recibía parámetro :offset sin placeholder en SQL, PDO nativo lanzaba excepción silenciosa. Fix: array_diff_key para excluir offset de paramsCount.
+236. ✅ [AG-DAW] Gráfica actividad 14 días reescrita — barras agrupadas lado a lado (no apiladas), eje Y con líneas de referencia, eje X con fechas dd/mm, colores distinguibles (verde/azul/naranja), altura 180px, totales del periodo en leyenda.
+237. ✅ [AG-DAW] Fix Music2 not defined — re-agregado import Music2 en MezcladorPanel.tsx (se había eliminado en C233). Commit f6e48db..
+238. Cuando modifico los bmp mientras se reproduce, la linea de tiempo se vuelve imprecisa, se arregla al volver a reproducir, este no es un problema grave pero arreglarlo puliría bien el sistema.
+239. las propiedades de velocidad, volumen etc, todas deberian tener un boton de restablecer al estaod inicial o default.
+240. una opcion para cambiar la tonalidad de los audios en sus propiedades en su mini daw.
+241. una opcion para expandir completamente el mini daw, es decir, que el panel lateral se pueda expandir completamente, el icono de "panelDetalleCerrar" del panel normal, deberia tambien estar en donde esta la X del panel de mini daw, o sea, remplazar la X del mini daw por un icono mejor.
+242. si bien los movimientos de la tarjeta de audio funcionan bien con el snap, debería moverse mientras se arrastra para en feedback visual en tiempo real, para los tipos de movimientos que existe, como contraer, estirar, mover verticalmente, etc
 
 ---
 
@@ -481,4 +492,11 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 - [C199]: apiCliente.ts leía solo `json?.message` en errores pero backend envía `json?.error` → los mensajes de error del backend no llegaban al usuario. Corregido con fallback `json?.error`.
 - [C199]: Para abrir modal desde fuera de React (ej. hook callbacks): `usePlanesModalStore.getState().abrir()` usa el estado global Zustand sin necesidad de hook.
 - [C200]: Precios de planes deben estar sincronizados en: StripeService::PLANES (backend), PlanesIsland (frontend modal), LandingPublica (landing), roadmap (docs). El modal es la fuente de verdad.
+- [C222]: Web Audio `fuente.start(when, offset, duration)` — el param `duration` es en buffer-time, no wall-clock. Si playbackRate=0.5, pasar `duracion * playbackRate` para que el audio no suene más largo de lo visual.
+- [C222]: Cursor + bloques en timeline: bloques usan left% relativo a contenido (W-80px controles), cursor debe usar `calc(80px + (100%-80px)*fraction)` para alinearse.
+- [C230]: Resolución colisiones: ordenar bloques por compasInicio tras actualizar, push forward con `Math.max(bloque.compasInicio, prevFin)`, expandir totalCompases si excede.
+- [C232]: Preview de corte: calcular posición snapped con `snapConResolucion`, convertir a porcentaje dentro del bloque `(snapped - compasInicio) / duracionCompases * 100`.
+- [C233]: Al mover botones entre componentes, verificar que los imports de lucide-react se actualicen en AMBOS componentes (origen y destino). Music2 quedó referenciado sin import.
+- [C235]: PDO con ATTR_EMULATE_PREPARES=false lanza excepción si $params tiene claves sin placeholder en el SQL. Para queries COUNT sin LIMIT/OFFSET, usar array_diff_key($params, ['offset' => true]).
+- [C236]: Gráficas CSS puras: barras agrupadas (flex-direction row) son más legibles que apiladas (column). Usar colores lejanos en el espectro (verde/azul/naranja, no verde/verde claro/naranja). Siempre incluir eje de referencia.
 - [C201]: FFmpeg waveform: `-f f32le -acodec pcm_f32le -ac 1 -ar 8000` genera PCM raw, luego leer con `unpack('g*')` y extraer picos por chunks. 60 barras es suficiente para un mini player.
