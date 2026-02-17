@@ -20,10 +20,11 @@ import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { TipoReaccion } from '@app/types';
 import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
+import { useReproductorStore } from '@app/stores/reproductorStore';
 import type { Sample, SampleResumen } from '@app/types';
 
-/* Evento para pausar otros audios locales */
-const EVENTO_PANEL_PLAY = 'kamples:panel-audio-play';
+/* Evento compartido para coordinar reproducción entre todos los audios (TarjetaSample, PanelDetalle, etc.) */
+const EVENTO_REPRODUCCION_SAMPLE = 'kamples:reproduccion-sample';
 
 interface PanelDetalleSampleProps {
     sample: SampleResumen;
@@ -171,26 +172,32 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
         };
     }, []);
 
-    /* C151: Play/pause al hacer click en waveform */
+    /* C151: Play/pause al hacer click en waveform — unificado con seek (C187/C188) */
     const manejarClickWaveform = useCallback(() => {
         const audio = inicializarAudio();
         if (reproduciendo) {
             audio.pause();
         } else {
-            window.dispatchEvent(new CustomEvent(EVENTO_PANEL_PLAY));
+            /* Pausar reproductor global y notificar a otros audios */
+            useReproductorStore.getState().pause();
+            window.dispatchEvent(new CustomEvent(EVENTO_REPRODUCCION_SAMPLE, {
+                detail: { sampleId: sample.id },
+            }));
             audio.play().catch(() => setReproduciendo(false));
         }
-    }, [inicializarAudio, reproduciendo]);
+    }, [inicializarAudio, reproduciendo, sample.id]);
 
-    /* C151: Seek al hacer click en posicion de waveform */
+    /* C151: Seek al hacer click en posicion de waveform (C188: solo seek si ya esta reproduciendo) */
     const manejarSeek = useCallback((posicion: number) => {
         const audio = inicializarAudio();
+
+        /* Si no está reproduciendo, no hacer seek automático — usar onClick para toggle */
+        if (!reproduciendo) return;
+
         const aplicar = () => {
             if (!audio.duration) return;
             audio.currentTime = posicion * audio.duration;
             setProgresoAudio(posicion);
-            window.dispatchEvent(new CustomEvent(EVENTO_PANEL_PLAY));
-            audio.play().catch(() => setReproduciendo(false));
         };
         if (audio.duration && Number.isFinite(audio.duration)) {
             aplicar();
@@ -199,7 +206,20 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
             audio.addEventListener('loadedmetadata', h);
             audio.load();
         }
-    }, [inicializarAudio]);
+    }, [inicializarAudio, reproduciendo]);
+
+    /* C187: Escuchar evento de reproducción global para pausar si es otro sample */
+    useEffect(() => {
+        const pausarSiEsOtro = (e: CustomEvent) => {
+            if (e.detail?.sampleId !== sample.id && audioRef.current) {
+                audioRef.current.pause();
+            }
+        };
+        window.addEventListener(EVENTO_REPRODUCCION_SAMPLE, pausarSiEsOtro as EventListener);
+        return () => {
+            window.removeEventListener(EVENTO_REPRODUCCION_SAMPLE, pausarSiEsOtro as EventListener);
+        };
+    }, [sample.id]);
 
     const manejarLike = useCallback(async () => {
         if (liked || reaccion) {
