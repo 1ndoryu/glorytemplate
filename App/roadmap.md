@@ -134,6 +134,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R38:** C126 modal edición unificado (ModalEditar.tsx+useEditar.ts+editarModalStore.ts+modalEditar.css, backend PUT /samples/{id}+PUT/DELETE /publicaciones/{id}, menú contextual "Editar", montaje global LayoutPrincipal). C164 security hardening completo: RateLimiter.php (transients WP, por usuario/IP) + Validador.php (constantes centralizadas). Rate limits aplicados a 8 controladores: Auth login 5/15min IP + registro 3/h IP + username/password validation, Comentarios 10/min + 2000 chars, Publicaciones 5/min + 5000 chars + esc_url_raw imágenes, Mensajes 30/min + 5000 chars + 10 conversaciones/h, Social follows 20/min + likes 30/min, Samples upload 10/h, Perfil 10/h + bio 500/nombre 100/username validación, Colecciones crear 10/h + nombre 100/desc 500 + agregar 30/min, Reproducciones 60/min.
 **R39:** C85 centralización componentes: BarraAccionesPost.tsx (like/comment/repost unificado, TooltipReacciones integrado, formatearConteo K/M) + EnlaceCreador.tsx (avatar+nombre clickable con navegación a perfil). CSS: accionesPost.css + enlaceCreador.css. Integrado en 6 consumidores: ComunidadIsland (ambos), PerfilIsland (BarraAccionesPost), TarjetaPublicacion (BarraAccionesPost), SampleDetalleIsland (EnlaceCreador), ColeccionDetalleIsland (EnlaceCreador), PanelDetalleSample (EnlaceCreador). Eliminados imports Avatar sin uso en 3 archivos. ~120 líneas de JSX duplicado eliminadas.
 **R40:** C130 comentarios multimedia full-stack: v013 migración (tipo_contenido/media_url/media_metadata en comentarios, contenido nullable). ComentariosController soporta FormData+MIME validation+wp_handle_upload (imagen 10MB, audio 25MB, subcarpeta kamples/comentarios/). Tipo Comentario extendido (tipoContenido/mediaUrl/mediaMetadata). apiSocial.ts crearComentarioMultimedia (FormData). useComentarios.enviarMultimedia. ListaComentarios: renderizado imagen (click→nueva pestaña) + mini reproductor audio (play/pause+barra progreso) + botones adjuntar (Image/Mic) + preview archivo + caption opcional. CSS: comentarioImagen, comentarioAudio, comentarioPreview, comentarioAdjuntarBtn. Conectado en 3 consumidores: ComunidadIsland, SampleDetalleIsland, PanelDetalleSample.
+**R41:** C131/C132 moderación IA comentarios + bans: ServicioAntiSpam.php (heurístico pre-IA: URLs, caps, spam patterns, duplicados), ServicioBan.php (violaciones progresivas: 3→24h, 5→7d, 8→30d, notificaciones automáticas). ServicioModeracionIA.moderarComentario() (Guard texto + Vision imagen, tolerante con toxicidad/insultos, solo rechaza spam/pornografía/ilegal, contexto musical para álbumes). v014 migración (moderacion_estado/detalle en comentarios, violaciones/ban en usuarios_ext, tabla reportes genérica). ComentariosController integra anti-spam sincrónico + moderación IA async (shutdown hook) + filtrado rechazados en listar(). AuthMiddleware.verificarBanActivo() helper centralizado. TipoNotificacion += 'moderacion'. C167: PageRenderer refactorizado (patrón render-time state update, elimina cascading renders y pantalla negra). Type-check 23→0 errores (imports muertos en 6 archivos, IndicadorDescargas campos LimitesDescarga). C168: fix \n literal en ComentariosController.
 
 ---
 
@@ -475,40 +476,40 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 # Comentarios pendientes
 
-85. No se estan usando los componentes, hay un boton de botones en todos lados que no usan el componente boton, por favor, inspesionar todo el codigo para encontrar todos los botones y cualqueir otra cosa que puede centralizarse con componentes, CENTRALIZAR Y NORMALIZAR ESTILOS; LOS COMPONENTES DEBEN SER LA FUENTE DEL VERDAD DE LOS ESTILOS
-| 85 | Centralizar botones/componentes | ✅ BarraAccionesPost.tsx (like/comment/repost unificado) + EnlaceCreador.tsx (avatar+nombre→perfil). Integrado en 6 consumidores: ComunidadIsland, PerfilIsland, TarjetaPublicacion, SampleDetalleIsland, ColeccionDetalleIsland, PanelDetalleSample. ~120 líneas duplicadas eliminadas |
+| 85 | Centralizar botones/componentes | ✅ BarraAccionesPost.tsx + EnlaceCreador.tsx. Integrado en 6+ consumidores. ~120 líneas duplicadas eliminadas |
 | 103 | Registro sencillo (3 campos) | ✅ Ya implementado: username, email, 1 contraseña. ModalAuth con FormularioRegistro |
-| 104 | Auth modal con imagen (no páginas) | ✅ Ya implementado: ModalAuth con authLayoutEspecial (55%/45% grid), ConAutenticacion abre modal |
-126. Modal de configuración de samples, publicaciones, y colecciones: poder cambiar todo lo modificable, los admin pueden cambiar todo, y los usuarios sus cosas. De los samples, poder cambiar por ejemplo, la imagen, el titulo, los tags.
-| 126 | Modal edición samples/posts/colecciones | ✅ ModalEditar.tsx unificado + useEditar.ts + editarModalStore.ts. Backend: PUT /samples/{id} (SamplesController.actualizar) + PUT/DELETE /publicaciones/{id}. Menú contextual con opción "Editar". Montado globalmente en LayoutPrincipal |
-| 127 | Menú 3 puntos unificado samples/colecciones/posts | ✅ SampleDetalleIsland hero, ComunidadIsland posts+samples, ColeccionDetalleIsland header — todos con MenuContextual |
-| 128 | Similares + comentarios expandidos | ✅ Similares fuera de article (detalleSimilaresSeccion), comentarios expandidos por defecto (comentariosVisibles=true, cargarAlAbrir=true) |
-| 129 | Paginación infinita comentarios | ✅ IntersectionObserver+sentinela en ListaComentarios, conectado a useComentarios.cargarMas en 3 consumidores |
-130. Se debería poder comentar imagenes y audios.
-| 130 | Comentarios multimedia (imagen+audio) | ✅ v013 migración. ComentariosController FormData+upload. ListaComentarios renderiza imagen (click fullscreen) + mini reproductor audio. Botones adjuntar Image/Mic + preview. Conectado en 3 consumidores |
-131. Planificar la automoderación de contenido con IA, cada vez que se publica un comentario, la IA tiene que decidir si es spam, si es valido, etc.
-132. Mejora el sistema de moderación con IA, planificar mejor este sistema, la IA tiene que ser capaz de bloquear usuarios si tienen actividad sospechosa, spam, la toxicidad no es baneable, los usuarios son libres de discutir e insultarse, pero el spam, no es permitido, cuando un usuario hace comentarios con spam, le debe llegar una notificación de que su comentario fue eliminado automaticamente por x razón, el desnudo o contenido para adulto tambien esta prohibido, en ningun lugar, tampoco de portada para ningún audio, poca ropa si esta permitido, no estan estricto pero contenido en si totalmente pornxgrafico o actividades sexuales, o partes intimas prohibida, hay que tener cuidado porque sabemos que los albunes suelen usar imagenes explicitas que no son problemas generalmente, no queremos falsos positivos.
-| 133 | Cache SPA keep-alive | ✅ PageRenderer mantiene hasta 5 islas montadas con display:none/block. Estado local se preserva al navegar |
-140. Separar descargas y favoritos en paginas propias, tambien hay ponerles coleccionHeader, y que tengan sus tab de "mas ideas", deben funcionar como colecciones especiales, el algoritmo de más ideas debe funcionar par recomendar samples basados en las descargas y los favoritos, esto significa las tabs descargas y favoritos porque ahora son paginas individuales. La tab de "Colecciones" debería ser "mis colecciones"
-| 148 | Algoritmo tags metadata + creador implícito          | ✅ sqlTagsEnriquecidos() combina tags+metadata JSONB; obtenerCreadoresFavoritos() afinidad implícita; pesos contexto rebalanceados |
-| 149 | feedTags roto (busqueda en claveCache)                | ✅ busqueda fuera de claveCache, limpiarTags removido de efecto cache en FeedSamples |
-| 150 | Hover tooltip reacciones se desactiva | ✅ `::before` puente invisible en `.contenedorReacciones:hover` cubre gap 8px entre botón y tooltip |
-| 151 | Panel lateral waveform no reproduce | ✅ Audio local + carga picos servidor/fallback AudioContext + seek + play/pause en PanelDetalleSample |
-| 152 | Badge variante con borde en panelDetalleTags | ✅ estilo="borde" aplicado a badges de metadata del panel detalle |
-| 153 | TarjetaMini panelDetalle simplificada | ✅ CSS oculta .tarjetaAcciones y .tarjetaWaveform en .panelDetalleTarjetaMini |
-| 154 | Botones panelDetalle con bordes (no ghost) | ✅ variante="secundario" + comentarios toggle con MessageCircle |
-| 155 | Config preferencia panel lateral on like | ✅ sugerenciasAlDarLike en panelLateralStore (localStorage) + toggle en ModalConfiguracion |
-| 156 | Similares solo en like/menú contextual | ✅ mostrarSimilares=false por defecto, toggle via menú + auto-show on like. (SE CANCELÓ quitar de detalles) |
-| 157 | Botón descarga color acento | ✅ Estado local descargado + CSS tarjetaAccionDescargado / detalleAccionPlanoDescargado |
-| 158 | Icono cerrar panel lateral | ✅ PanelRightClose reemplaza X en panelDetalleCerrar |
-| 160 | Filtro ocultar ya reproducido no funciona | ✅ Double-unwrap apiGet: resp.data ya es SampleResumen[] directo, no {data:[...]} |
-| 161 | Colecciones sin botón 3 puntos | ✅ Botón siempre visible con "Copiar enlace" + acciones propietario condicionales |
-| 162 | Tags pegados en badges (sin separador) | ✅ Split por comas/espacios/pipes + filtro >30 chars en PanelDetalleSample y SampleDetalleIsland |
-| 163 | Foto perfil + menú chat flotante | ✅ Avatar ya existía. Agregado menú 3 puntos: ver perfil/reportar/bloquear. Store extendido con participanteId+username |
-| 165 | Quitar botón cola + verificar perfil/enlace | ✅ Item 'cola' eliminado del menú contextual. 'Ir al perfil' y 'Copiar enlace' ya existían |
-159. Trabajar en la comunicación en tiempo real, no se si se puede hacer un websocket compatible con linux y windows, al menos hacerlo funcionar aca en local windows, para pulir de una vez la opciones chat.
-| 164 | Seguridad/hardening rate limit+validación | ✅ RateLimiter.php (transients WP) + Validador.php (constantes centralizadas). 8 controladores protegidos: Auth, Comentarios, Publicaciones, Mensajes, Social, Samples, Perfil, Colecciones, Reproducciones. Sanitización URLs con esc_url_raw |
-166. Compactar y ordenar tareas completadas del roadmap (dejar para el final)
+| 104 | Auth modal con imagen (no páginas) | ✅ ModalAuth con authLayoutEspecial (55%/45% grid), ConAutenticacion abre modal |
+| 126 | Modal edición samples/posts/colecciones | ✅ ModalEditar.tsx unificado + useEditar.ts + editarModalStore.ts. Backend PUT /samples/{id} + PUT/DELETE /publicaciones/{id} |
+| 127 | Menú 3 puntos unificado | ✅ SampleDetalleIsland hero, ComunidadIsland, ColeccionDetalleIsland — todos con MenuContextual |
+| 128 | Similares + comentarios expandidos | ✅ Similares fuera de article, comentarios expandidos por defecto |
+| 129 | Paginación infinita comentarios | ✅ IntersectionObserver+sentinela en ListaComentarios, 3 consumidores |
+| 130 | Comentarios multimedia (imagen+audio) | ✅ v013 migración. ComentariosController FormData+upload. ListaComentarios imagen+audio player. 3 consumidores |
+| 131 | Automod IA comentarios | ✅ ServicioAntiSpam.php + ServicioModeracionIA.moderarComentario() (Guard+Vision async). Anti-spam + moderación IA post-INSERT |
+| 132 | Sistema bans + moderación mejorada | ✅ ServicioBan.php (escalación 3→24h/5→7d/8→30d). Guard permite toxicidad. Vision contexto musical. v014 migración |
+| 133 | Cache SPA keep-alive | ✅ PageRenderer max 5 islas display:none/block |
+| 140 | Separar descargas/favoritos en páginas propias | Pendiente |
+| 148 | Algoritmo tags metadata + creador implícito | ✅ sqlTagsEnriquecidos() + obtenerCreadoresFavoritos() |
+| 149 | feedTags roto | ✅ busqueda fuera de claveCache |
+| 150 | Hover tooltip reacciones | ✅ ::before puente CSS |
+| 151 | Panel lateral waveform | ✅ Audio local + picos servidor/fallback |
+| 152 | Badge variante borde | ✅ estilo="borde" |
+| 153 | TarjetaMini simplificada | ✅ CSS oculta acciones+waveform |
+| 154 | Botones panelDetalle | ✅ variante="secundario" |
+| 155 | Config preferencia panel | ✅ sugerenciasAlDarLike localStorage |
+| 156 | Similares solo en like/menú | ✅ mostrarSimilares=false por defecto |
+| 157 | Botón descarga color acento | ✅ Estado local descargado |
+| 158 | Icono cerrar panel | ✅ PanelRightClose |
+| 159 | WebSocket comunicación tiempo real | Pendiente |
+| 160 | Filtro reproducido | ✅ Double-unwrap apiGet fix |
+| 161 | Colecciones botón 3 puntos | ✅ Siempre visible con copiar enlace |
+| 162 | Tags pegados en badges | ✅ Split por separadores + filtro >30 chars |
+| 163 | Menú chat flotante | ✅ Avatar+menú 3 puntos, store extendido |
+| 164 | Seguridad/hardening | ✅ RateLimiter.php + Validador.php, 8 controladores protegidos |
+| 165 | Quitar botón cola | ✅ Item eliminado del menú contextual |
+| 166 | Compactar roadmap | ✅ Hecho |
+| 167 | PageRenderer cascading + type-check | ✅ Render-time state update, 23→0 errores TS |
+| 168 | Syntax error ComentariosController | ✅ Fix \n literal |
+169. La busqueda debería funcionar para la pagina de colecciones.
 
 ---
 
@@ -557,3 +558,12 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [C130 Contenido nullable]: Al añadir multimedia, `contenido` debe ser nullable (imagen sin caption). Actualizar tanto BD (DROP NOT NULL) como frontend (renderizado condicional `{comentario.contenido && ...}`).
 - [C162 Metadata emocion]: El campo `emocion` de metadata IA puede llegar como string concatenado sin separadores (ej: "dreamyetherealmelancholic"). Siempre splitear por `,|; ` y filtrar strings >30 chars.
 - [C163 ChatFlotanteStore]: El store solo tenía `nombreParticipante` y `avatarUrl` — faltaban `participanteId` y `participanteUsername` para poder navegar al perfil o hacer acciones sobre el usuario.
+- [C131 AntiSpam PDO]: `INTERVAL ':ventana seconds'` con PDO param dentro de string literal NO funciona en PostgreSQL. Usar concatenación directa o multiplicar intervalo.
+- [C131 Moderación comentarios]: Guard texto para comentarios debe ser más permisivo que para publicaciones: toxicidad e insultos permitidos (C132), solo rechazar spam/sexual/ilegal/doxxing.
+- [C132 Vision musical]: Las portadas de álbumes usan imagenería provocativa frecuentemente. El prompt Vision debe especificar "music production platform" y tolerar "suggestive/artistic images that could be album covers".
+- [C132 Bans progresivos]: Escalación 3→24h, 5→7d, 8+→30d cubre la mayoría de casos. Ban auto-limpia al verificar (UPDATE SET NULL WHERE baneado_hasta < NOW()).
+- [C167 React Compiler]: `setPaginasCache` dentro de `useEffect` causa error del React Compiler "Calling setState synchronously within an effect". Fix: usar patrón render-time state update con guard `if (islaActual !== islaAnterior)`.
+- [C167 PageRenderer negro]: La pantalla quedaba en negro porque `useEffect` → `setPaginasCache` dejaba 1 frame donde la isla nueva NO estaba en el array. Con render-time update, el state se actualiza ANTES del render, eliminando el frame vacío.
+- [C167 Date.now() en render]: React Compiler rechaza `Date.now()` en useMemo/render porque es "impure function". Usar un contador module-level (`let contadorOrden = 0`) para ordenar LRU.
+- [C167 useRef en render]: React Compiler prohíbe acceder a `.current` de useRef durante render. No funciona como alternativa a useState para datos de render.
+- [C167 Type-check]: Tras refactors como C85 (centralizar componentes), siempre ejecutar `npm run type-check` para detectar imports muertos en archivos consumidores.

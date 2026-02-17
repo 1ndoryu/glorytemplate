@@ -6,11 +6,8 @@
  */
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { Heart, MessageCircle, Repeat2, Users, TrendingUp, Clock, MoreHorizontal, Link2, Trash2, Flag, User } from 'lucide-react';
-import { Avatar } from '@app/components/ui/Avatar';
-import { Badge } from '@app/components/ui/Badge';
+import { Users, TrendingUp, Clock, MoreHorizontal, Link2, Trash2, Flag, User } from 'lucide-react';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
-import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';

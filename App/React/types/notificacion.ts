@@ -12,7 +12,8 @@ export type TipoNotificacion =
     | 'descarga'
     | 'mensaje'
     | 'pago'
-    | 'sistema';
+    | 'sistema'
+    | 'moderacion';
 
 export interface Notificacion {
     id: number;

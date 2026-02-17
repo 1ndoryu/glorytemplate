@@ -9,7 +9,7 @@ import { Music, Image, X, Download, ShieldCheck, AlertCircle, CheckCircle, Crown
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
-import { useCrearContenido, type UseCrearContenidoOpciones } from '@app/hooks/useCrearContenido';
+import { useCrearContenido } from '@app/hooks/useCrearContenido';
 import { useAuthStore } from '@app/stores/authStore';
 import '@app/styles/componentes/modalCrear.css';
 

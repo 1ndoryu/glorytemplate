@@ -24,11 +24,11 @@ export const IndicadorDescargas = ({
 }: IndicadorDescargasProps): JSX.Element => {
     const restantes = limites.ilimitado
         ? Infinity
-        : limites.limitesDiarios - limites.descargasHoy;
+        : limites.limite - limites.usadas;
 
     const porcentaje = limites.ilimitado
         ? 100
-        : (limites.descargasHoy / limites.limitesDiarios) * 100;
+        : (limites.usadas / limites.limite) * 100;
 
     return (
         <div className="indicadorDescargas">
@@ -57,7 +57,7 @@ export const IndicadorDescargas = ({
                     </span>
                 )}
                 <span className="indicadorDescargasCalidad">
-                    {limites.calidadDisponible.toUpperCase()}
+                    {limites.calidad.toUpperCase()}
                 </span>
             </div>
 

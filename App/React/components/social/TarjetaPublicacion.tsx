@@ -5,7 +5,6 @@
  */
 
 import { useCallback, type MouseEvent } from 'react';
-import { Heart, MessageCircle, Repeat2 } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
@@ -44,13 +43,6 @@ const formatearTiempo = (fecha: string): string => {
     return new Date(fecha).toLocaleDateString('es', { day: 'numeric', month: 'short' });
 };
 
-/* Formatear número abreviado */
-const formatearNumero = (n: number): string => {
-    if (n < 1000) return `${n}`;
-    if (n < 1000000) return `${(n / 1000).toFixed(1).replace('.0', '')}K`;
-    return `${(n / 1000000).toFixed(1).replace('.0', '')}M`;
-};
-
 export const TarjetaPublicacion = ({
     publicacion,
     onLike,
@@ -63,44 +55,6 @@ export const TarjetaPublicacion = ({
     reproduciendo = false,
     className = '',
 }: TarjetaPublicacionProps): JSX.Element => {
-    const manejarLike = useCallback(
-        (e: MouseEvent) => {
-            e.stopPropagation();
-            onLike?.(publicacion.id);
-        },
-        [onLike, publicacion.id]
-    );
-
-    const manejarReaccion = useCallback(
-        (reaccion: TipoReaccion) => {
-            onLike?.(publicacion.id, reaccion);
-        },
-        [onLike, publicacion.id]
-    );
-
-    const manejarQuitarReaccion = useCallback(
-        () => {
-            onLike?.(publicacion.id);
-        },
-        [onLike, publicacion.id]
-    );
-
-    const manejarComentar = useCallback(
-        (e: MouseEvent) => {
-            e.stopPropagation();
-            onComentar?.(publicacion.id);
-        },
-        [onComentar, publicacion.id]
-    );
-
-    const manejarRepost = useCallback(
-        (e: MouseEvent) => {
-            e.stopPropagation();
-            onRepost?.(publicacion.id);
-        },
-        [onRepost, publicacion.id]
-    );
-
     const manejarClickAutor = useCallback(
         (e: MouseEvent) => {
             e.stopPropagation();

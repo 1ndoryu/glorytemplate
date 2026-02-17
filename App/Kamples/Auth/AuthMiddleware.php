@@ -99,4 +99,23 @@ class AuthMiddleware
             'avatar_url' => get_avatar_url($userId, ['size' => 256]),
         ];
     }
+
+    /**
+     * C132: Verifica si el usuario PG está baneado y retorna WP_REST_Response 403 si lo está.
+     * Retorna null si no hay ban activo. Los controllers llaman esto al inicio de acciones de escritura.
+     */
+    public static function verificarBanActivo(int $pgUserId): ?\WP_REST_Response
+    {
+        $infoBan = \App\Kamples\Services\ServicioBan::verificarBan($pgUserId);
+        if (!$infoBan) {
+            return null;
+        }
+
+        return new \WP_REST_Response([
+            'code' => 'usuario_baneado',
+            'message' => 'Tu cuenta está temporalmente restringida',
+            'baneadoHasta' => $infoBan['baneadoHasta'],
+            'razon' => $infoBan['razon'],
+        ], 403);
+    }
 }

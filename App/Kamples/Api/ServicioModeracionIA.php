@@ -3,13 +3,13 @@
 /**
  * ServicioModeracionIA — Moderación de contenido con IA (Groq)
  *
- * Sistema async de moderación de publicaciones de la comunidad:
- * - Llama Prompt Guard 2 22M: detecta toxicidad en textos
- * - Llama 4 Scout 17B 16E: modera imágenes adjuntas
- * - openai/gpt-oss-120b: moderación contextual combinada
+ * Sistema async de moderación con 3 capas:
+ * - Llama Guard 4: detecta toxicidad en textos
+ * - Llama 4 Scout: modera imágenes adjuntas
+ * - gpt-oss-120b: moderación contextual combinada
  *
- * Niveles de resultado: 'aprobado', 'revision', 'rechazado'
- * Cada publicación pasa primero por moderación antes de ser visible.
+ * Niveles: 'aprobado', 'revision', 'rechazado'
+ * Soporta publicaciones y comentarios (C131).
  *
  * @package Kamples
  */
@@ -18,6 +18,7 @@ namespace App\Kamples\Api;
 
 use App\Kamples\KamplesLogger;
 use App\Kamples\Database\PostgresService;
+use App\Kamples\Services\ServicioBan;
 
 class ServicioModeracionIA
 {
@@ -114,6 +115,162 @@ class ServicioModeracionIA
         }
 
         return $veredicto;
+    }
+
+    /**
+     * C131: Modera un comentario (texto + opcional imagen/audio).
+     * Más ligero que moderarPublicacion: solo Guard para texto, Vision para imágenes.
+     * Spam y desnudo explícito = rechazado. Toxicidad = permitida (C132: insultos no son baneables).
+     *
+     * @param int $comentarioId ID del comentario
+     * @param int $autorId ID del autor
+     * @param string $texto Contenido textual
+     * @param string|null $mediaUrl URL del archivo multimedia adjunto
+     * @param string $tipoContenido 'texto', 'imagen', 'audio'
+     * @return array { nivel, razon, detalles }
+     */
+    public static function moderarComentario(int $comentarioId, int $autorId, string $texto, ?string $mediaUrl = null, string $tipoContenido = 'texto'): array
+    {
+        $apiKey = self::obtenerApiKey();
+        if (!$apiKey) {
+            return ['nivel' => 'aprobado', 'razon' => 'sin_api_key', 'detalles' => []];
+        }
+
+        $resultados = [];
+
+        /* Capa Guard: solo si hay texto, y solo detecta spam/contenido sexual/ilegal */
+        if (!empty(trim($texto))) {
+            $guardResult = self::analizarTextoComentario($apiKey, $texto);
+            $resultados['guard_texto'] = $guardResult;
+        }
+
+        /* Capa Vision: solo si el comentario tiene imagen */
+        if ($tipoContenido === 'imagen' && !empty($mediaUrl)) {
+            $visionResult = self::analizarImagenComentario($apiKey, $mediaUrl);
+            $resultados['guard_imagen'] = $visionResult;
+        }
+
+        $veredicto = self::determinarVeredicto($resultados);
+
+        KamplesLogger::info('ModeracionIA: Veredicto comentario', [
+            'comentarioId' => $comentarioId,
+            'nivel' => $veredicto['nivel'],
+            'razon' => $veredicto['razon'],
+        ]);
+
+        /* Guardar estado en BD */
+        try {
+            PostgresService::ejecutar(
+                "UPDATE comentarios SET moderacion_estado = :estado, moderacion_detalle = :detalle::jsonb WHERE id = :id",
+                [
+                    'estado' => $veredicto['nivel'],
+                    'detalle' => json_encode($veredicto),
+                    'id' => $comentarioId,
+                ]
+            );
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ModeracionIA: Error guardando veredicto comentario', [
+                'comentarioId' => $comentarioId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        /* C132: Si rechazado, registrar violación y posible ban */
+        if ($veredicto['nivel'] === 'rechazado') {
+            ServicioBan::registrarViolacion($autorId, $veredicto['razon'], 'comentario');
+        }
+
+        return $veredicto;
+    }
+
+    /**
+     * Guard de texto para comentarios: detecta SOLO spam y contenido sexual/ilegal.
+     * C132: La toxicidad e insultos NO son baneables — debates libres permitidos.
+     */
+    private static function analizarTextoComentario(string $apiKey, string $texto): array
+    {
+        $prompt = "You are moderating a comment on Kamples, a music production platform.\n"
+            . "IMPORTANT: Toxicity, arguments, and insults between users are ALLOWED. Do NOT flag these.\n"
+            . "Only flag as unsafe if the content is:\n"
+            . "- Spam or phishing (promotional links, crypto scams, repetitive ads)\n"
+            . "- Explicit sexual content or pornography\n"
+            . "- Illegal activity promotion (drugs, weapons trafficking)\n"
+            . "- Harassment with personal info (doxxing)\n\n"
+            . "Respond with EXACTLY one word: 'safe' or 'unsafe'.\n"
+            . "If unsafe, add a comma and the category: spam, sexual, illegal, doxxing.\n\n"
+            . "Comment: " . mb_substr($texto, 0, 2000);
+
+        $respuesta = self::llamarGroq($apiKey, self::MODELO_GUARD, $prompt);
+
+        if ($respuesta === null) {
+            return ['nivel' => 'aprobado', 'modelo' => self::MODELO_GUARD, 'error' => 'timeout'];
+        }
+
+        $respuestaLimpia = strtolower(trim($respuesta));
+
+        if (str_starts_with($respuestaLimpia, 'unsafe')) {
+            $partes = explode(',', $respuestaLimpia, 2);
+            $categoria = isset($partes[1]) ? trim($partes[1]) : 'spam';
+            return [
+                'nivel' => 'rechazado',
+                'modelo' => self::MODELO_GUARD,
+                'categoria' => $categoria,
+                'raw' => $respuestaLimpia,
+            ];
+        }
+
+        return ['nivel' => 'aprobado', 'modelo' => self::MODELO_GUARD];
+    }
+
+    /**
+     * Moderación de imagen en comentario.
+     * C132: Contexto musical — portadas de álbumes con algo de piel son OK.
+     * Solo rechazar pornografía explícita (partes íntimas, actividades sexuales).
+     */
+    private static function analizarImagenComentario(string $apiKey, string $url): array
+    {
+        $mensajes = [
+            [
+                'role' => 'user',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'text' => "You are moderating an image on Kamples, a music production platform.\n"
+                            . "CONTEXT: This is a music community. Album covers and artistic images with some skin/revealing clothing are NORMAL and ALLOWED.\n"
+                            . "Only flag as unsafe if the image contains:\n"
+                            . "- Explicit pornography (visible genitalia, sexual acts)\n"
+                            . "- Extreme graphic violence\n"
+                            . "- Illegal content\n\n"
+                            . "Suggestive, artistic, or provocative images that could be album covers are SAFE.\n"
+                            . "Respond with EXACTLY one word: 'safe' or 'unsafe'. If unsafe, add comma and reason: sexual, violence, illegal."
+                    ],
+                    [
+                        'type' => 'image_url',
+                        'image_url' => ['url' => $url],
+                    ],
+                ],
+            ],
+        ];
+
+        $respuesta = self::llamarGroqVision($apiKey, self::MODELO_VISION, $mensajes);
+
+        if ($respuesta === null) {
+            return ['nivel' => 'aprobado', 'modelo' => self::MODELO_VISION, 'error' => 'timeout'];
+        }
+
+        $respuestaLimpia = strtolower(trim($respuesta));
+
+        if (str_starts_with($respuestaLimpia, 'unsafe')) {
+            $partes = explode(',', $respuestaLimpia, 2);
+            $categoria = isset($partes[1]) ? trim($partes[1]) : 'sexual';
+            return [
+                'nivel' => 'rechazado',
+                'modelo' => self::MODELO_VISION,
+                'categoria' => $categoria,
+            ];
+        }
+
+        return ['nivel' => 'aprobado', 'modelo' => self::MODELO_VISION];
     }
 
     /**

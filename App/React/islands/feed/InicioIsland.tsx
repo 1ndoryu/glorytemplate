@@ -50,7 +50,7 @@ const FeedUnificado = (): JSX.Element => {
     const [totalSamples, setTotalSamples] = useState(0);
 
     const { abrir: abrirCrear } = useCrearModalStore();
-    const { busqueda, ordenamiento, periodoDestacados, yaReproducidos, likeados, deSeguidos, descargados, setOrdenamiento, setPeriodoDestacados } = useFiltrosStore();
+    const { ordenamiento, periodoDestacados, yaReproducidos, likeados, deSeguidos, descargados, setOrdenamiento, setPeriodoDestacados } = useFiltrosStore();
     const { setTabs } = useTabsTopBarStore();
     const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel } = usePanelLateralStore();
 

@@ -6,7 +6,7 @@
  */
 
 import {useState, useEffect, useCallback, useMemo} from 'react';
-import {Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon, MessageCircle, Repeat2} from 'lucide-react';
+import {Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon} from 'lucide-react';
 import {Avatar} from '../../components/ui/Avatar';
 import {Badge} from '../../components/ui/Badge';
 import {BotonBase} from '../../components/ui/BotonBase';

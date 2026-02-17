@@ -19,6 +19,9 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Kamples\Services\PlanificadorAlgoritmo;
+use App\Kamples\Services\ServicioAntiSpam;
+use App\Kamples\Services\ServicioBan;
+use App\Kamples\Api\ServicioModeracionIA;
 
 class ComentariosController
 {
@@ -53,13 +56,20 @@ class ComentariosController
             return new \WP_REST_Response(['code' => 'tipo_invalido'], 400);
         }
 
+        /*
+         * C131: Filtrar rechazados por moderación.
+         * Comentarios 'pendiente' se muestran normalmente (fail-open).
+         * Solo se ocultan los explícitamente rechazados.
+         */
         $comentarios = PostgresService::consultar(
             "SELECT c.id, c.contenido, c.created_at,
                     c.tipo_contenido, c.media_url, c.media_metadata,
+                    c.moderacion_estado,
                     u.id as autor_id, u.username, u.nombre_visible, u.avatar_url
              FROM comentarios c
              JOIN usuarios_ext u ON c.autor_id = u.id
              WHERE c.tipo = :tipo AND c.target_id = :targetId
+               AND (c.moderacion_estado IS NULL OR c.moderacion_estado != 'rechazado')
              ORDER BY c.created_at ASC LIMIT 20 OFFSET :offset",
             ['tipo' => $tipo, 'targetId' => $targetId, 'offset' => $offset]
         );
@@ -131,6 +141,19 @@ class ComentariosController
                 return Validador::respuestaError($errorLongitud);
             }
         }
+
+        /* C131: Anti-spam heurístico — se evalúa ANTES del INSERT para rechazar inmediatamente */
+        if (!empty($contenido)) {
+            $razonSpam = ServicioAntiSpam::evaluar($contenido, $userId);
+            if ($razonSpam) {
+                ServicioBan::registrarViolacion($userId, $razonSpam, 'comentario');
+                return new \WP_REST_Response(['code' => 'contenido_spam', 'message' => 'El comentario fue rechazado por spam'], 403);
+            }
+        }
+
+        /* C132: Verificar si el usuario está baneado */
+        $banResp = AuthMiddleware::verificarBanActivo($userId);
+        if ($banResp) return $banResp;
 
         $mediaUrl = null;
         $mediaMetadata = null;
@@ -217,6 +240,31 @@ class ComentariosController
 
         /* Registrar interaccion para el algoritmo */
         PlanificadorAlgoritmo::registrarInteraccion($userId, 'comentario');
+
+        /*
+         * C131: Moderación IA asíncrona post-INSERT.
+         * Se ejecuta después de enviar la respuesta al cliente (fail-open).
+         * El comentario se muestra inmediatamente; si IA lo rechaza, desaparece.
+         */
+        $comentarioIdMod = $id;
+        $textoMod = $contenido ?? '';
+        $mediaUrlMod = $mediaUrl;
+        $tipoContenidoMod = $tipoContenido;
+        $autorIdMod = $userId;
+
+        register_shutdown_function(function () use ($comentarioIdMod, $autorIdMod, $textoMod, $mediaUrlMod, $tipoContenidoMod) {
+            try {
+                ServicioModeracionIA::moderarComentario(
+                    $comentarioIdMod,
+                    $autorIdMod,
+                    $textoMod,
+                    $mediaUrlMod,
+                    $tipoContenidoMod
+                );
+            } catch (\Throwable $e) {
+                /* Fallo silencioso — moderación fail-open */
+            }
+        });
 
         /* Obtener datos del autor para devolver el comentario completo */
         $usuario = PostgresService::consultarUno(
