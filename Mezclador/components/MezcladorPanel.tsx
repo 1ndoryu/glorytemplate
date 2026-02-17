@@ -5,22 +5,28 @@
  */
 
 import { X, Music2 } from 'lucide-react';
+import { useEffect } from 'react';
 import { useMezclador } from '../hooks/useMezclador';
 import { ControlesMezclador } from './ControlesMezclador';
 import { Timeline } from './Timeline';
 import { useMezcladorStore } from '../stores/mezcladorStore';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import '../styles/mezclador.css';
 
-export const MezcladorPanel = (): JSX.Element | null => {
-    const abierto = useMezcladorStore(s => s.abierto);
-
-    if (!abierto) return null;
-
+export const MezcladorPanel = (): JSX.Element => {
+    /*
+     * La visibilidad la controla PanelLateral.tsx via panelLateralStore.modo === 'mezclador'.
+     * No verificamos mezcladorStore.abierto aquí para evitar estado duplicado.
+     */
     return <MezcladorContenido />;
 };
 
 /* Contenido separado para que hooks solo se ejecuten cuando está abierto */
 const MezcladorContenido = (): JSX.Element => {
+    /* Sincronizar estado del mezcladorStore al montarse */
+    const abrir = useMezcladorStore(s => s.abrir);
+    useEffect(() => { abrir(); }, [abrir]);
+
     const {
         totalBloques,
         estaCargando,
@@ -37,7 +43,14 @@ const MezcladorContenido = (): JSX.Element => {
         puedeExportar,
     } = useMezclador();
 
-    const cerrar = useMezcladorStore(s => s.cerrar);
+    const cerrarMezclador = useMezcladorStore(s => s.cerrar);
+    const cerrarPanel = usePanelLateralStore(s => s.cerrar);
+
+    /* Cerrar el mezclador Y el panel lateral */
+    const cerrar = () => {
+        cerrarMezclador();
+        cerrarPanel();
+    };
 
     const alPublicar = async () => {
         const archivo = await obtenerArchivoParaPublicar();

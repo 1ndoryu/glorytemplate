@@ -214,10 +214,18 @@ class PagosController
             return;
         }
 
-        PostgresService::ejecutar(
+        $affected = PostgresService::ejecutar(
             "UPDATE usuarios_ext SET plan = :plan, stripe_subscription_id = :subId WHERE id = :id",
             ['plan' => $plan, 'subId' => $subscriptionId, 'id' => $userId]
         );
+
+        /* O07: Verificar que el UPDATE afectó al menos 1 fila */
+        if ($affected === 0) {
+            KamplesLogger::error('Webhook checkout: UPDATE no afectó ninguna fila (userId inexistente?)', [
+                'userId' => $userId, 'plan' => $plan, 'subscriptionId' => $subscriptionId,
+            ]);
+            return;
+        }
 
         KamplesLogger::info('Suscripción activada vía checkout', [
             'userId' => $userId,
@@ -243,9 +251,28 @@ class PagosController
             return;
         }
 
-        /* Si la suscripción está activa o en trial, mantener plan. Si no, degradar a free. */
+        /* Si la suscripción está activa o en trial, extraer y actualizar plan en BD */
         if (in_array($estado, ['active', 'trialing'], true)) {
-            KamplesLogger::info('Suscripción activa/trial', ['userId' => $usuario['id'], 'estado' => $estado]);
+            /* O08: Extraer plan actual de Stripe para sincronizar BD */
+            $planStripe = null;
+            $items = $suscripcion['items']['data'] ?? [];
+            if (!empty($items)) {
+                $lookupKey = $items[0]['price']['lookup_key'] ?? '';
+                $planStripe = match (true) {
+                    str_contains($lookupKey, 'premium') => 'premium',
+                    str_contains($lookupKey, 'pro') => 'pro',
+                    default => null,
+                };
+            }
+            if ($planStripe) {
+                PostgresService::ejecutar(
+                    "UPDATE usuarios_ext SET plan = :plan WHERE id = :id",
+                    ['plan' => $planStripe, 'id' => $usuario['id']]
+                );
+                KamplesLogger::info('Plan actualizado vía webhook', ['userId' => $usuario['id'], 'plan' => $planStripe]);
+            } else {
+                KamplesLogger::info('Suscripción activa/trial (plan no extraído)', ['userId' => $usuario['id'], 'estado' => $estado]);
+            }
         } else {
             PostgresService::ejecutar(
                 "UPDATE usuarios_ext SET plan = 'free' WHERE id = :id",

@@ -77,4 +77,27 @@ class UsuarioHelper
 
         return in_array('administrator', $usuario->roles, true);
     }
+
+    /**
+     * C193: Obtiene la URL del avatar con fallback a WP Gravatar.
+     * Si el registro en usuarios_ext tiene avatar_url, lo devuelve.
+     * Si no, genera la URL de Gravatar via get_avatar_url() con el wp_user_id.
+     *
+     * @param string|null $avatarUrl   valor de avatar_url en la BD
+     * @param int|null    $wpUserId    valor de wp_user_id para fallback
+     * @return string|null
+     */
+    public static function resolverAvatarUrl(?string $avatarUrl, ?int $wpUserId = null): ?string
+    {
+        if ($avatarUrl && trim($avatarUrl) !== '') {
+            return $avatarUrl;
+        }
+
+        if ($wpUserId && $wpUserId > 0) {
+            $url = get_avatar_url($wpUserId, ['size' => 256]);
+            return $url ? (string) $url : null;
+        }
+
+        return null;
+    }
 }

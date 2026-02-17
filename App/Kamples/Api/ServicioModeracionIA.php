@@ -60,8 +60,10 @@ class ServicioModeracionIA
     {
         $apiKey = self::obtenerApiKey();
         if (!$apiKey) {
-            /* Sin API key → aprobar por defecto (modo desarrollo) */
-            KamplesLogger::warning('ModeracionIA: API key de Groq no configurada, aprobando por defecto');
+            /* O10: Sin API key la moderación aprueba TODO — log crítico para detectar si key expira en prod */
+            KamplesLogger::error('ModeracionIA: API key de Groq NO configurada — TODO EL CONTENIDO SE APRUEBA SIN REVISIÓN', [
+                'publicacionId' => $publicacionId,
+            ]);
             return ['nivel' => 'aprobado', 'razon' => 'sin_api_key', 'detalles' => []];
         }
 
@@ -133,6 +135,9 @@ class ServicioModeracionIA
     {
         $apiKey = self::obtenerApiKey();
         if (!$apiKey) {
+            KamplesLogger::error('ModeracionIA: API key NO configurada — comentario aprobado sin revisión', [
+                'comentarioId' => $comentarioId,
+            ]);
             return ['nivel' => 'aprobado', 'razon' => 'sin_api_key', 'detalles' => []];
         }
 

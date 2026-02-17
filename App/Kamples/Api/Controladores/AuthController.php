@@ -195,15 +195,17 @@ class AuthController
             return self::normalizarUsuario($existing);
         }
 
-        /* Crear registro nuevo */
+        /* Crear registro nuevo — C193: incluir avatar_url de WP */
+        $avatarWp = get_avatar_url($wpId, ['size' => 256]) ?: null;
         PostgresService::ejecutar(
-            "INSERT INTO usuarios_ext (wp_user_id, username, email, nombre_visible, plan, rol, created_at)
-             VALUES (:wpId, :username, :email, :nombre, 'free', 'user', NOW())",
+            "INSERT INTO usuarios_ext (wp_user_id, username, email, nombre_visible, avatar_url, plan, rol, created_at)
+             VALUES (:wpId, :username, :email, :nombre, :avatar, 'free', 'user', NOW())",
             [
                 'wpId'    => $wpId,
                 'username' => $username,
                 'email'    => $email,
                 'nombre'   => $displayName,
+                'avatar'   => $avatarWp,
             ]
         );
 
@@ -220,15 +222,21 @@ class AuthController
 
     /**
      * Convierte snake_case de PG a camelCase para el frontend.
+     * C193: fallback a WP Gravatar si avatar_url es null.
      */
     private static function normalizarUsuario(array $row): array
     {
+        $avatarUrl = $row['avatar_url'] ?? null;
+        if (!$avatarUrl && !empty($row['wp_user_id'])) {
+            $avatarUrl = get_avatar_url((int) $row['wp_user_id'], ['size' => 256]) ?: null;
+        }
+
         return [
             'id'              => (int) $row['id'],
             'username'        => $row['username'],
             'nombreVisible'   => $row['nombre_visible'] ?? $row['username'],
             'bio'             => $row['bio'] ?? '',
-            'avatarUrl'       => $row['avatar_url'] ?? null,
+            'avatarUrl'       => $avatarUrl,
             'portadaUrl'      => $row['portada_url'] ?? null,
             'plan'            => $row['plan'] ?? 'free',
             'verificado'      => (bool) ($row['verificado'] ?? false),

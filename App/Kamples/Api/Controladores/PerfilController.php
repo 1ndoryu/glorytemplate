@@ -176,9 +176,15 @@ class PerfilController
 
     /**
      * Convierte las keys snake_case de BD a camelCase esperado por el frontend.
+     * C193: fallback a WP Gravatar si avatar_url es null en BD.
      */
     private static function normalizarUsuario(array $datos): array
     {
+        $avatarUrl = $datos['avatar_url'] ?? null;
+        if (!$avatarUrl && !empty($datos['wp_user_id'])) {
+            $avatarUrl = get_avatar_url((int) $datos['wp_user_id'], ['size' => 256]) ?: null;
+        }
+
         return [
             'id'               => (int) ($datos['id'] ?? 0),
             'wpUserId'         => (int) ($datos['wp_user_id'] ?? 0),
@@ -186,7 +192,7 @@ class PerfilController
             'email'            => $datos['email'] ?? '',
             'nombreVisible'    => $datos['nombre_visible'] ?? $datos['display_name'] ?? '',
             'bio'              => $datos['bio'] ?? '',
-            'avatarUrl'        => $datos['avatar_url'] ?? null,
+            'avatarUrl'        => $avatarUrl,
             'portadaUrl'       => $datos['portada_url'] ?? null,
             'plan'             => $datos['plan'] ?? 'free',
             'rol'              => $datos['rol'] ?? 'usuario',
@@ -294,7 +300,15 @@ class PerfilController
         if (empty($files['avatar'])) {
             return new \WP_REST_Response([
                 'code' => 'sin_archivo',
-                'message' => 'No se recibió ninguna imagen.',
+           O12: Verificar que PHP no reportó error en la subida */
+        if (($uploaded['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+            return new \WP_REST_Response([
+                'code' => 'error_subida',
+                'message' => 'Error al recibir el archivo. Código: ' . ($uploaded['error'] ?? 'desconocido'),
+            ], 400);
+        }
+
+        /*      'message' => 'No se recibió ninguna imagen.',
             ], 400);
         }
 
