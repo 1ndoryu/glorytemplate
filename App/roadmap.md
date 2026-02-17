@@ -378,13 +378,13 @@ Cannot read properties of undefined (reading 'length')
 206. ✅ Drag entre pistas: detectarPista(clientY) identifica pista destino por Y. moverBloque() ya soportaba cross-track. Visual: pistaIdHover con clase mezcladorPistaDragHover.
 207. ✅ Fix audio incompleto: inferirCompas usaba duracionSample cruda sin ajustar por playbackRate. Con samples de BPM < proyecto, el bloque visual era más largo que el audio real. Fix: usar `duracionSample / playbackRate` para calcular compasesSample.
 208. ✅ Subir audios desde PC: botón FolderUp en ControlesMezclador, input[type=file] oculto, FileReader→ArrayBuffer→decodeAudioData. motorAudioService.decodificarBufferLocal() + agregarAudioLocal() en store crea pseudo-SampleResumen.
-209. Tarea para el agente del minidaw: Mejorar el arrastre de samples al minidaw, se ve feo, tiene que ser especial, no generico del explorador.
+209. ✅ Drag preview personalizado: setDragImage con div custom (icono música + título truncado, fondo acento, sombra). Drop zone con background glow. Elimina drag genérico del navegador.
 210. Dejaron de aparecer sugerencias cuando doy like, no se por qué. (no se si es por 212 y estaba cargando react con el error de fondo, creo que si)
 211. Borrar el boton de experimentosContenedor
 212. ✅ Fix DescargasController parse error L120 — comillas escapadas incorrectamente (`\"`) en SQL del advisory lock (O14). Causado por el Sprint 3 de auditoría.
 213. Tarea para el agente del minidaw: Cuando comprimo o estiro un audio, no se actualiza en tiempo el audio mientra se reproduce (debería).
 214. Tarea para el agente del minidaw: Agregar una herramienta de recorte que permita dividir, cortar un audio como se quiera.
-215. Tarea para el agente del minidaw: agregar un pequeño boton de 3 puntos al lado de la x en los audios, para las opciones de 
+215. Tarea para el agente del minidaw: agregar un pequeño boton de 3 puntos al lado de la x en los audios, para las opciones avanzados en el audio: picth, duración
 
 ---
 
