@@ -17,7 +17,8 @@
         "noFallthroughCasesInSwitch": true,
         "paths": {
             "@/*": ["../../Glory/assets/react/src/*"],
-            "@app/*": ["./*"]
+            "@app/*": ["./*"],
+            "@mezclador/*": ["../../Mezclador/*"]
         }
     },
     "include": ["./**/*.ts", "./**/*.tsx"]

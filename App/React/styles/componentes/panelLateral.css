@@ -13,6 +13,7 @@
     border-left: 1px solid var(--bordeSutil);
     background-color: var(--fondoElevado1);
     flex-shrink: 0;
+    position: relative;
 }
 
 .panelLateralInterno {

@@ -10,8 +10,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { PanelDetalleSample } from '@app/components/feed/PanelDetalleSample';
 import { PanelSugerencias } from '@app/components/feed/PanelSugerencias';
-import { ErrorBoundaryMezclador } from '../../../Mezclador/components/ErrorBoundaryMezclador';
-import { MezcladorPanel } from '../../../Mezclador/components/MezcladorPanel';
+import { ErrorBoundaryMezclador } from '@mezclador/components/ErrorBoundaryMezclador';
+import { MezcladorPanel } from '@mezclador/components/MezcladorPanel';
 import '@app/styles/componentes/panelLateral.css';
 
 const LS_KEY_ANCHO = 'kamples:anchoPanelLateral';

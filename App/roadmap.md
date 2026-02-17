@@ -104,6 +104,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R45:** C172 compactar roadmap + C177 remover créditos descargas + C178 sistema verificación samples (migración v015, controller PUT admin, normalizer, BadgeCheck tarjeta+detalle, menú contextual verificar, evento actualización, boost algoritmo 1.15x).
 **R46:** C169+C170+C180+C181+C182+C183: búsqueda colecciones (ILIKE backend+filtrosStore frontend+placeholder dinámico), editor metadata fix (descripción real+chips IA), FilaColecciones horizontal (max 8, scroll invisible), algoritmo colecciones CTE (tags 0.60+frescura 0.20+volumen 0.20+follow 1.3x), Bookmark guardar contextual, fix reproducciones completada.
 **R47:** C179 Panel de Administración (FASE 13): AdminController.php (6 endpoints admin-only), apiAdmin.ts (tipos completos), useAdminPanel.ts (hook lógica), AdminPanelIsland (tabs Resumen+Usuarios+Moderación), TabResumenAdmin (KPIs+gráfica actividad), TabUsuariosAdmin (tabla+búsqueda+filtro+acciones), TabModeracionAdmin (aprobar/rechazar+reportes), adminPanel.css, Sidebar admin condicional, pages.php+MAPA_RUTAS.
+**R48:** C184 Mezclador (Mini DAW): Sistema aislado en /Mezclador/ (18 archivos). Arquitectura: types, stores (Zustand), services (motorAudio singleton), hooks (useMotorAudio, useTimeline, useExportarMezcla, useMezclador), components (MezcladorPanel, Timeline, PistaTimeline, BloqueSample, BarraCompases, CursorReproduccion, ControlesMezclador, ErrorBoundary). Integración: panelLateralStore (+mezclador mode), PanelLateral (resize handle), TopBar (botón Music2), TarjetaSample (draggable). Config: vite.config.ts (@mezclador alias + fs.allow), tsconfig.json (Mezclador propio + Glory paths). Backend: PipelineAudio.php (MP3 temporal 20s para IA Groq).
 **R43:** C171 licenciaLibre auto-derivada de permitirDescarga (4 archivos simplificados, ~134 lín eliminadas) + C175 descargas/favoritos rediseño ColeccionDetalle-style + CSS descargasFavoritos.css eliminado.
 **R44:** C176 copiarAlPortapapeles fallback execCommand (clipboard.ts, 4 consumidores), C173 BadgeModeracion siempre visible + admin aprobar posts (ComunidadIsland), C174 useTabsIsla hook keep-alive tabs fix (8 islas migradas) + PageRenderer updater funcional (fix pantalla negra).
 **R41:** C131/C132 moderación IA comentarios + bans: ServicioAntiSpam.php (heurístico pre-IA: URLs, caps, spam patterns, duplicados), ServicioBan.php (violaciones progresivas: 3→24h, 5→7d, 8→30d, notificaciones automáticas). ServicioModeracionIA.moderarComentario() (Guard texto + Vision imagen, tolerante con toxicidad/insultos, solo rechaza spam/pornografía/ilegal, contexto musical para álbumes). v014 migración (moderacion_estado/detalle en comentarios, violaciones/ban en usuarios_ext, tabla reportes genérica). ComentariosController integra anti-spam sincrónico + moderación IA async (shutdown hook) + filtrado rechazados en listar(). AuthMiddleware.verificarBanActivo() helper centralizado. TipoNotificacion += 'moderacion'. C167: PageRenderer refactorizado (patrón render-time state update, elimina cascading renders y pantalla negra). Type-check 23→0 errores (imports muertos en 6 archivos, IndicadorDescargas campos LimitesDescarga). C168: fix \n literal en ComentariosController.
@@ -343,17 +344,23 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 181. ✅ Algoritmo colecciones: explorar() con CTE user_tags+coleccion_tags, score afinidad tags 0.60 + frescura 0.20 + volumen 0.20 + follow boost 1.3x, fallback updated_at para no-auth. sqlTagsEnriquecidos ahora public (R46).
 182. ✅ Guardar sample: botón Bookmark en TarjetaSample al lado de like, coleccionPickerStore con posición contextual (x,y del click), overlay transparente en modo contextual (R46).
 183. ✅ Fix reproducciones: columna completa renombrada a completada (v016). El guard wp_handle_upload ya existía de C168 (R46).
-184. (Tarea delegada a otro agente)
+184. ✅ Mezclador (Mini DAW) — Sistema aislado en `/Mezclador/` con ErrorBoundary. Incluye: botón TopBar, panel lateral redimensionable (280-700px), timeline multi-pista con drag&drop desde feed, detección de compás (3/4, 4/4, 5/4, 6/8, 7/8), barras expandibles (default 4, max 32), cursor de reproducción, bloques visuales con waveform mini + título, export WAV via OfflineAudioContext, publicación vía ModalCrear (CustomEvent), optimización IA (MP3 20s recortado para Groq Whisper). 18 archivos nuevos + 6 modificados + tsconfig/vite config.
 186. ✅ Fix "Pagina React no configurada" en admin/panel: se registró `PageManager::reactPage('admin/panel', 'AdminPanelIsland')` en pages.php. La página WP se auto-crea en la próxima carga. Resuelto como parte de C179 (R47).
 187. Cuando reproduzco la waveform en el panel lateral, debe pausarse la otra waveform que se esta reproduciendo.
 188. Volver a dar click a la waveform en el panel lateral debería poder pausar la reproducción de esa waveform.
 189. Cuando doy click a cualquier boton a un sample en la lista de sample, se reproduce automaticamente, no debería reproducir si el click fue en un boton.
 190. Cuando el sample esta guardado en una colección, no hay indicación visual en el modal de de guardar en colección de que ese sample esta guardado alli.
-191. Sigue saliendo para la pagina de admin: Pagina React no configurada
+191. ✅ Fix C191 "Pagina React no configurada" en admin/panel: CAUSA RAIZ — `reactPage('admin/panel')` no auto-creaba la pagina padre 'admin' en WP. Sin padre, 'panel' quedaba en raíz, `PageTemplateInterceptor` no podía encontrar key 'admin/panel'. FIX: auto-registrar paginas padre stub en `PageDefinition::reactPage()` + safety net `asegurarPaginaPadre()` en `PageProcessor`. Afectaba TODAS las paginas jerárquicas (admin/*, auth/*, mensajes/chat, perfil/editar, dev/componentes).
 Funcion esperada: Asegurate de que la funcion exista y este cargada.
-192. Trabajar en el ws local, cuando
-
-
+192. Trabajar en el ws local, no se si hacer eso necesario para resolver problemas como por ejemplo cuando abro el modal de mensajes aparece "Cargando..." luego "No hay mensajes..." y luego aparecen los mensajes, tambien es molesto que tengan que cargar los mensajes cada vez que abro ese modal.
+193. La foto de perfil sigue viendose asi. <div class="avatar avatarXs" title="?"><span class="avatarIniciales">?</span></div> No se ve la foto de perfil de los usuarios. Incluso de despues de colocarme una en las configuraciones.
+194. Error en isla "AdminPanelIsland"
+Cannot read properties of undefined (reading 'length')
+195. Verificar que los css del AdminPanelIsland esten bien, tengo las sospecha que no se estan usando las variables correctas, igual para el modal de guardar colecciones.
+196. Cuando abro el mini daw, no sale nada. (De esto se debe encargar solo el agente que trabaja en el minidaw)
+167. Sumar un credito cada vez que un usuario publica un sample.
+168. Asegurarse de que cuando alguien intente descargar un sample y no tiene credito, se abra el modal de suscribirse.
+169. Veo inconsistencias a la informacion de las suscripciones entre el modal y la configuracion de stripe, la del modal es la info actualizad.
 
 ---
 
@@ -370,6 +377,7 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 - Rate limit login por IP (no usuario), registro también por IP.
 - PDO: `INTERVAL ':param seconds'` NO funciona en PG — concatenar directamente.
 - `\filter_var`, `\session_id` etc. dentro de namespaces PHP requieren prefijo `\`.
+- [PageManager]: `reactPage('padre/hijo')` NO auto-creaba la página WP padre. Sin 'admin' en WP, 'panel' queda en raíz y `get_page_uri()` retorna 'panel' en vez de 'admin/panel' → lookup falla en interceptor.
 
 **React/TypeScript:**
 - NUNCA hooks despues de early return condicional — todos los hooks antes de cualquier return.
@@ -406,4 +414,9 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 - [C179]: AdminController: todos los endpoints admin usan `AuthMiddleware::requerirAdmin()` como permission_callback. Las queries admin pueden usar subqueries en SELECT para contar relaciones (total_samples, total_descargas por usuario).
 - [C179]: Sidebar condicional: `const itemsFinales: SidebarItemDef[] = esAdmin ? [...items, adminItem] : items` — tipar explícitamente para evitar TS2339 en propiedades opcionales.
 - [C179]: Badge variantes son 'neutro|acento|exito|error|advertencia|info|premium', NO 'default|secondary|destructive|outline'.
+- [C184]: Mezclador aislado en `/Mezclador/` con tsconfig propio (baseUrl apunta a Glory/assets/react para resolver react/lucide-react/zustand). ErrorBoundary class component obliga a importar React explícitamente.
+- [C184]: Web Audio: AudioContext singleton, GainNode por pista, OfflineAudioContext para export. `playbackRate` para time-stretch simple (bpmProyecto/bpmSample).
+- [C184]: Drag-to-mixer: usar `dataTransfer.setData('application/kamples-sample', JSON.stringify(sample))` + CustomEvent como fallback.
+- [C184]: PipelineAudio IA: FFmpeg `-t 20 -codec:a libmp3lame -b:a 128k -ac 1 -ar 22050` genera MP3 ~10x más pequeño que WAV original para enviar a Groq.
+- [C184]: `KamplesLogger` usa `::warning()` no `::warn()`. Verificar métodos antes de usar.
 - [WP API]: `wp_handle_upload()` vive en `wp-admin/includes/file.php` — NO se carga en contexto REST API. Siempre hacer `if (!function_exists('wp_handle_upload')) require_once ABSPATH.'wp-admin/includes/file.php'` antes de usarlo. SamplesController lo tenía, Comentarios y Mensajes no.

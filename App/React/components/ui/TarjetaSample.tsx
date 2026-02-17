@@ -368,8 +368,14 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
     /* Imagen de portada: usa imagenUrl del sample o fallback a colors/ */
     const imagenPortada = sample.imagenUrl || obtenerImagenColor(sample.id);
 
+    /* C184: Drag support para el mezclador */
+    const manejarDragStart = useCallback((e: React.DragEvent) => {
+        e.dataTransfer.setData('application/kamples-sample', JSON.stringify(sample));
+        e.dataTransfer.effectAllowed = 'copy';
+    }, [sample]);
+
     return (
-        <div className={clases} onContextMenu={manejarMenu} onClick={manejarPlayPause} role="button" tabIndex={0}>
+        <div className={clases} onContextMenu={manejarMenu} onClick={manejarPlayPause} role="button" tabIndex={0} draggable onDragStart={manejarDragStart}>
             {/* Portada con overlay play/pause */}
             <div className="tarjetaPortada" aria-label={estaReproduciendo ? 'Pausar' : 'Reproducir'}>
                 <img className="tarjetaPortadaImg" src={imagenPortada} alt={sample.titulo} loading="lazy" />
@@ -502,7 +508,7 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                     <Bookmark size={18} />
                 </button>
 
-                <button className="tarjetaAccionBtn" onClick={() => onComentar?.(sample.id)} type="button" aria-label="Comentar">
+                <button className="tarjetaAccionBtn" onClick={(e) => { e.stopPropagation(); onComentar?.(sample.id); }} type="button" aria-label="Comentar">
                     <MessageCircle size={18} />
                 </button>
 

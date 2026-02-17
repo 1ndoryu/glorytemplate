@@ -97,3 +97,9 @@
         display: flex;
     }
 }
+
+/* C184: Botón activo (mezclador abierto) */
+.topbarBotonActivo {
+    color: var(--acento) !important;
+    background: var(--acentoMuted) !important;
+}

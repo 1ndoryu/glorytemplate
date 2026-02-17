@@ -99,7 +99,62 @@ class PipelineAudio
             'duracion' => $duracion ?? 0,
             'tags'     => $tagsUsuario,
         ];
-        $metadataIA = ServicioIA::analizarAudio($rutaArchivo, $nombreOriginal, $descripcionUsuario, $contextoTecnico);
+
+        /*
+         * C184.10: Optimización IA — enviar MP3 recortado a 20s en vez del WAV original.
+         * Ahorra ~90% de tokens para audios largos.
+         */
+        $rutaAudioParaIA = $rutaArchivo;
+        $audioRecortado = false;
+        $mp3TemporalIA = null;
+
+        if ($ffmpeg) {
+            $limiteSegundosIA = 20;
+            $mp3TemporalIA = $directorio . '/tmp_ia_' . $idCorto . '.mp3';
+
+            /* Generar MP3 optimizado de los primeros 20s para IA */
+            $cmdIA = sprintf(
+                '%s -y -i %s -t %d -codec:a libmp3lame -b:a 128k -ac 1 -ar 22050 %s 2>&1',
+                escapeshellarg($ffmpeg),
+                escapeshellarg($rutaArchivo),
+                $limiteSegundosIA,
+                escapeshellarg($mp3TemporalIA)
+            );
+
+            exec($cmdIA, $outputIA, $exitCodeIA);
+
+            if ($exitCodeIA === 0 && file_exists($mp3TemporalIA)) {
+                $rutaAudioParaIA = $mp3TemporalIA;
+                $audioRecortado = ($duracion ?? 0) > $limiteSegundosIA;
+                KamplesLogger::info('Pipeline: MP3 temporal para IA generado', [
+                    'recortado' => $audioRecortado,
+                    'tamano_original' => filesize($rutaArchivo),
+                    'tamano_mp3' => filesize($mp3TemporalIA),
+                ]);
+            } else {
+                /* Fallback al archivo original si falla la conversión */
+                KamplesLogger::warning('Pipeline: No se pudo generar MP3 temporal para IA, usando original', [
+                    'exitCode' => $exitCodeIA,
+                ]);
+                $mp3TemporalIA = null;
+            }
+        }
+
+        /* Avisar a la IA si el audio fue recortado */
+        if ($audioRecortado) {
+            $contextoTecnico['nota_recorte'] = sprintf(
+                'Audio recortado a %ds para análisis (duración real: %.1fs)',
+                $limiteSegundosIA ?? 20,
+                $duracion ?? 0
+            );
+        }
+
+        $metadataIA = ServicioIA::analizarAudio($rutaAudioParaIA, $nombreOriginal, $descripcionUsuario, $contextoTecnico);
+
+        /* Limpiar MP3 temporal */
+        if ($mp3TemporalIA && file_exists($mp3TemporalIA)) {
+            @unlink($mp3TemporalIA);
+        }
 
         if ($metadataIA) {
             KamplesLogger::info('Pipeline: IA completada', ['tipo' => $metadataIA['tipo']]);
