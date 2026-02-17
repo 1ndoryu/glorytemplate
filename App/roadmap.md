@@ -355,10 +355,10 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 183. ✅ Fix reproducciones: columna completa renombrada a completada (v016). El guard wp_handle_upload ya existía de C168 (R46).
 184. ✅ Mezclador (Mini DAW) — Sistema aislado en `/Mezclador/` con ErrorBoundary. Incluye: botón TopBar, panel lateral redimensionable (280-700px), timeline multi-pista con drag&drop desde feed, detección de compás (3/4, 4/4, 5/4, 6/8, 7/8), barras expandibles (default 4, max 32), cursor de reproducción, bloques visuales con waveform mini + título, export WAV via OfflineAudioContext, publicación vía ModalCrear (CustomEvent), optimización IA (MP3 20s recortado para Groq Whisper). 18 archivos nuevos + 6 modificados + tsconfig/vite config.
 186. ✅ Fix "Pagina React no configurada" en admin/panel: se registró `PageManager::reactPage('admin/panel', 'AdminPanelIsland')` en pages.php. La página WP se auto-crea en la próxima carga. Resuelto como parte de C179 (R47).
-187. Cuando reproduzco la waveform en el panel lateral, debe pausarse la otra waveform que se esta reproduciendo.
-188. Volver a dar click a la waveform en el panel lateral debería poder pausar la reproducción de esa waveform.
-189. Cuando doy click a cualquier boton a un sample en la lista de sample, se reproduce automaticamente, no debería reproducir si el click fue en un boton.
-190. Cuando el sample esta guardado en una colección, no hay indicación visual en el modal de de guardar en colección de que ese sample esta guardado alli.
+187. ✅ Fix coordinación waveform panel lateral — pausar waveform anterior al reproducir nueva (2652c79).
+188. ✅ Fix toggle play/pause en waveform panel lateral (2652c79).
+189. ✅ stopPropagation en todos los botones de TarjetaSample para evitar play accidental.
+190. ✅ Indicación visual contieneElSample en ModalSeleccionColeccion — normalizer+tipo+detección backend.
 191. ✅ Fix C191 "Pagina React no configurada" en admin/panel: CAUSA RAIZ — `reactPage('admin/panel')` no auto-creaba la pagina padre 'admin' en WP. Sin padre, 'panel' quedaba en raíz, `PageTemplateInterceptor` no podía encontrar key 'admin/panel'. FIX: auto-registrar paginas padre stub en `PageDefinition::reactPage()` + safety net `asegurarPaginaPadre()` en `PageProcessor`. Afectaba TODAS las paginas jerárquicas (admin/*, auth/*, mensajes/chat, perfil/editar, dev/componentes).
 Funcion esperada: Asegurate de que la funcion exista y este cargada.
 192. Trabajar en el ws local, no se si hacer eso necesario para resolver problemas como por ejemplo cuando abro el modal de mensajes aparece "Cargando..." luego "No hay mensajes..." y luego aparecen los mensajes, tambien es molesto que tengan que cargar los mensajes cada vez que abro ese modal.
@@ -366,10 +366,10 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 194. ✅ [AG-DAW] Fix AdminPanelIsland crash — respuesta PHP reestructurada `{ data: { data, total, page } }` + guards defensivos `?? []` / `?? 0` en useAdminPanel.
 195. ✅ [AG-DAW] Fix variables CSS AdminPanel+ColeccionPicker — 11 vars kebab→camelCase en adminPanel.css, 4 en modalSeleccionColeccion.css, 1 en coleccionDetalle.css, 1 en filaColecciones.css.
 196. ✅ Fix Mezclador panel vacío: MezcladorPanel no verificaba abierto duplicado, sincroniza estado panelLateralStore↔mezcladorStore al montarse, cerrar cierra ambos stores, resize handle CSS movido a panelLateral.css para disponibilidad global.
-198. Sumar un credito cada vez que un usuario publica un sample.
-199. Asegurarse de que cuando alguien intente descargar un sample y no tiene credito, se abra el modal de suscribirse.
-200. Veo inconsistencias a la informacion de las suscripciones entre el modal y la configuracion de stripe, la del modal es la info actualizad.
-201. apiCliente.ts:96   POST http://glory.local/wp-json/kamples/v1/comentarios/sample/18 400 (Bad Request) cuando intento subir un audio en los comentarios, los audios en los comentarios por cierto tienen que ser ligeros mp3 y verse en forma de waveform
+198. [EN CURSO — AG-FIX] Sumar un credito cada vez que un usuario publica un sample.
+199. [EN CURSO — AG-FIX] Asegurarse de que cuando alguien intente descargar un sample y no tiene credito, se abra el modal de suscribirse.
+200. [EN CURSO — AG-FIX] Veo inconsistencias a la informacion de las suscripciones entre el modal y la configuracion de stripe, la del modal es la info actualizad.
+201. [EN CURSO — AG-FIX] apiCliente.ts:96   POST http://glory.local/wp-json/kamples/v1/comentarios/sample/18 400 (Bad Request) cuando intento subir un audio en los comentarios, los audios en los comentarios por cierto tienen que ser ligeros mp3 y verse en forma de waveform
 202. Auditar la seguridad de los audios, que sea dificil descargar los audios originales adivinando url, y que sea dificil descargar los mp3 ligeros tambien, rate limits, auditorias, etc, sin bloquear o dañar la reproducción de audios
 203. ✅ Padding eliminado en panelLateralInterno cuando mezclador abierto — clase condicional `panelLateralSinPadding`.
 204. ✅ Stretch/pitch: handle de resize derecho en BloqueSample con document-level listeners. Al estirar, recalcula playbackRate automáticamente. setDuracionBloque() en store.
