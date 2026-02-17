@@ -1,11 +1,11 @@
 /*
- * Componente: TarjetaColeccion — Kamples
+ * Componente: TarjetaColeccion — Kamples (C141)
  * Tarjeta visual tipo card para mostrar una colección.
- * Usa imagen de portada (imagenUrl o fallback de colors/).
+ * Botón 3 puntos en esquina superior derecha con menú contextual.
  */
 
-import { useCallback, type MouseEvent } from 'react';
-import { Globe, Lock, Trash2, Edit3 } from 'lucide-react';
+import { useCallback, useState, useRef, type MouseEvent } from 'react';
+import { Globe, Lock, MoreVertical, Edit3, Trash2 } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import '../../styles/componentes/tarjetaColeccion.css';
@@ -25,6 +25,8 @@ export const TarjetaColeccion = ({
     onEliminar,
     className = '',
 }: TarjetaColeccionProps): JSX.Element => {
+    const [menuAbierto, setMenuAbierto] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
 
     const manejarClick = useCallback(() => {
         onClick?.(coleccion);
@@ -32,23 +34,61 @@ export const TarjetaColeccion = ({
 
     const manejarEditar = useCallback((e: MouseEvent) => {
         e.stopPropagation();
+        setMenuAbierto(false);
         onEditar?.(coleccion);
     }, [onEditar, coleccion]);
 
     const manejarEliminar = useCallback((e: MouseEvent) => {
         e.stopPropagation();
+        setMenuAbierto(false);
         onEliminar?.(coleccion);
     }, [onEliminar, coleccion]);
 
-    /* Imagen de portada: usa imagenUrl o fallback determinista de colors/ */
-    const imagenPortada = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
+    const toggleMenu = useCallback((e: MouseEvent) => {
+        e.stopPropagation();
+        setMenuAbierto(prev => !prev);
+    }, []);
 
+    /* Cerrar menú al hacer click fuera */
+    const cerrarMenu = useCallback(() => setMenuAbierto(false), []);
+
+    const tieneAcciones = !!onEditar || !!onEliminar;
+    const imagenPortada = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
     const clases = ['tarjetaColeccion', className].filter(Boolean).join(' ');
 
     return (
-        <div className={clases} onClick={manejarClick} role="button" tabIndex={0}>
+        <div className={clases} onClick={manejarClick} role="button" tabIndex={0} onBlur={cerrarMenu}>
             <div className="tarjetaColeccionPortada">
                 <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
+                {/* C141: Botón 3 puntos sobre la imagen con contraste */}
+                {tieneAcciones && (
+                    <div className="tarjetaColeccionMenuContenedor" ref={menuRef}>
+                        <button
+                            className="tarjetaColeccionMenuBtn"
+                            onClick={toggleMenu}
+                            type="button"
+                            aria-label="Opciones de colección"
+                        >
+                            <MoreVertical size={16} />
+                        </button>
+                        {menuAbierto && (
+                            <div className="tarjetaColeccionMenu">
+                                {onEditar && (
+                                    <button className="tarjetaColeccionMenuItem" onClick={manejarEditar} type="button">
+                                        <Edit3 size={14} />
+                                        <span>Editar</span>
+                                    </button>
+                                )}
+                                {onEliminar && (
+                                    <button className="tarjetaColeccionMenuItem tarjetaColeccionMenuItemPeligro" onClick={manejarEliminar} type="button">
+                                        <Trash2 size={14} />
+                                        <span>Eliminar</span>
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="tarjetaColeccionInfo">
@@ -62,29 +102,6 @@ export const TarjetaColeccion = ({
                     {coleccion.totalSamples} sample{coleccion.totalSamples !== 1 ? 's' : ''}
                     {coleccion.usuario && ` · @${coleccion.usuario.username}`}
                 </span>
-            </div>
-
-            <div className="tarjetaColeccionAcciones">
-                {onEditar && (
-                    <button
-                        className="tarjetaColeccionBtn"
-                        onClick={manejarEditar}
-                        type="button"
-                        aria-label="Editar colección"
-                    >
-                        <Edit3 size={14} />
-                    </button>
-                )}
-                {onEliminar && (
-                    <button
-                        className="tarjetaColeccionBtn tarjetaColeccionBtnPeligro"
-                        onClick={manejarEliminar}
-                        type="button"
-                        aria-label="Eliminar colección"
-                    >
-                        <Trash2 size={14} />
-                    </button>
-                )}
             </div>
         </div>
     );

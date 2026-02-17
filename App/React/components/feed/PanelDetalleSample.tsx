@@ -52,8 +52,8 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
             if (respDetalle.ok && respDetalle.data) {
                 setDetalle(respDetalle.data);
             }
-            if (respSimilares.ok && respSimilares.data?.data) {
-                setSimilares(respSimilares.data.data);
+            if (respSimilares.ok && respSimilares.data) {
+                setSimilares(respSimilares.data);
             }
         };
 

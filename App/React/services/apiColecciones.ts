@@ -1,26 +1,62 @@
 /*
- * Service: apiColecciones — Kamples
+ * Service: apiColecciones — Kamples (C139/C137)
  * CRUD de colecciones de samples del usuario.
- * Conecta directamente con la API sin fallback a mock.
+ * Incluye normalizador snake_case → camelCase para datos de PostgreSQL.
  */
 
 import { apiGet, apiPost, apiPut, apiDelete } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 import type { Coleccion, SampleResumen } from '../types';
 
+/*
+ * Normalizador: convierte respuesta raw de PostgreSQL (snake_case)
+ * a la interfaz Coleccion (camelCase).
+ * Acepta ambos formatos para robustez.
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const normalizarColeccion = (raw: any): Coleccion => ({
+    id: raw.id,
+    usuarioId: raw.usuario_id ?? raw.usuarioId ?? 0,
+    nombre: raw.nombre ?? '',
+    descripcion: raw.descripcion ?? '',
+    esPublica: raw.publica ?? raw.esPublica ?? true,
+    imagenUrl: raw.imagen_url ?? raw.imagenUrl ?? null,
+    totalSamples: raw.total_items ?? raw.total_samples ?? raw.totalSamples ?? 0,
+    creadoAt: raw.created_at ?? raw.creadoAt ?? '',
+    actualizadoAt: raw.updated_at ?? raw.actualizadoAt ?? '',
+    usuario: raw.username ? {
+        id: raw.usuario_id ?? raw.usuarioId ?? 0,
+        username: raw.username,
+        nombreVisible: raw.nombre_visible ?? raw.nombreVisible ?? raw.username,
+        avatarUrl: raw.avatar_url ?? raw.avatarUrl ?? null,
+    } : raw.usuario,
+    samples: raw.samples,
+});
+
+/* Normalizar array de colecciones */
+const normalizarLista = (data: any[]): Coleccion[] =>
+    Array.isArray(data) ? data.map(normalizarColeccion) : [];
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 /* Listar colecciones del usuario (o de otro si se pasa usuarioId) */
 export const listarColecciones = async (usuarioId?: number): Promise<RespuestaApi<Coleccion[]>> => {
-    return apiGet<Coleccion[]>('/colecciones', usuarioId ? { usuario_id: usuarioId } : {});
+    const resp = await apiGet<Coleccion[]>('/colecciones', usuarioId ? { usuario_id: usuarioId } : {});
+    if (resp.ok && resp.data) resp.data = normalizarLista(resp.data);
+    return resp;
 };
 
 /* Colecciones públicas para explorar */
 export const listarColeccionesPublicas = async (): Promise<RespuestaApi<Coleccion[]>> => {
-    return apiGet<Coleccion[]>('/colecciones/explorar');
+    const resp = await apiGet<Coleccion[]>('/colecciones/explorar');
+    if (resp.ok && resp.data) resp.data = normalizarLista(resp.data);
+    return resp;
 };
 
 /* Detalle de una colección */
 export const obtenerColeccion = async (id: number): Promise<RespuestaApi<Coleccion>> => {
-    return apiGet<Coleccion>(`/colecciones/${id}`);
+    const resp = await apiGet<Coleccion>(`/colecciones/${id}`);
+    if (resp.ok && resp.data) resp.data = normalizarColeccion(resp.data);
+    return resp;
 };
 
 /* Crear colección */
@@ -74,7 +110,9 @@ export const obtenerSugerencias = async (
 export const obtenerRelevantesParaSample = async (
     sampleId: number
 ): Promise<RespuestaApi<Coleccion[]>> => {
-    return apiGet<Coleccion[]>(`/colecciones/relevantes/${sampleId}`);
+    const resp = await apiGet<Coleccion[]>(`/colecciones/relevantes/${sampleId}`);
+    if (resp.ok && resp.data) resp.data = normalizarLista(resp.data);
+    return resp;
 };
 
 /* Resultado de descarga ZIP de colección */

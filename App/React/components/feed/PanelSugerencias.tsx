@@ -29,7 +29,7 @@ export const PanelSugerencias = ({ sample }: PanelSugerenciasProps): JSX.Element
         const cargar = async () => {
             const resp = await obtenerSimilares(sample.id, 6);
             if (!activo) return;
-            setSugerencias(resp.ok && resp.data?.data ? resp.data.data : []);
+            setSugerencias(resp.ok && resp.data ? resp.data : []);
             setCargando(false);
         };
 

@@ -125,6 +125,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R29:** Créditos+ZIP colecciones (C110), tags metadata IA (C134), búsqueda↔tags sync (C115), SelectFiltro+SelectorBPM (C116).
 **R30:** Compactación roadmap — C85-C134 resueltos a tabla, R9-R29 compactos, comentarios pendientes limpiados.
 **R31:** C125 texto botones colección, C135 panel lateral sugerencias (no modal), C124 SeccionPublicar=ModalCrear refactor (useCrearContenido+ContenidoCrear compartido).
+**R32:** C137 ocultar guardar colección propia, C139 normalizador snake→camelCase colecciones, C141 TarjetaColeccion menú 3 puntos, C142 fix sugerencias double-unwrap (apiGet ya desenvuelve json.data).
 
 ---
 
@@ -449,6 +450,13 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 124 | SeccionPublicar = ModalCrear + audio                 | ✅ Refactor: useCrearContenido hook + ContenidoCrear compartido. SeccionPublicar y ModalCrear usan misma UI |
 | 125 | coleccionAcciones texto botones                      | ✅ Añadido <span> con texto (Guardar/Descargar/Preview) + CSS gap+padding |
 | 135 | Panel lateral sugerencias (no modal)                 | ✅ FeedSamples usa panelLateralStore.abrirSugerencias en vez de sugerenciasLikeStore modal |
+| 136 | todosLosTags undefined error                         | ✅ Build viejo cacheado. Variable no existe en código fuente actual |
+| 137 | Guardar en colección propia no mostrarlo             | ✅ ColeccionDetalleIsland: oculta botón guardar si coleccion.usuarioId === usuario.id |
+| 138 | Descargas sin crédito samples propios                | Pendiente |
+| 139 | Contador samples colecciones                         | ✅ normalizarColeccion() snake→camelCase en apiColecciones.ts (total_items→totalSamples) |
+| 140 | Separar descargas/favoritos en páginas propias       | Pendiente |
+| 141 | TarjetaColeccion menú 3 puntos                       | ✅ Botón MoreVertical esquina superior derecha + dropdown Editar/Eliminar. Auto-contraste rgba+blur |
+| 142 | Sugerencias siempre vacías                           | ✅ Double-unwrap: apiGet ya extrae json.data, tipo era RespuestaApi<{data:T}> → corregido a RespuestaApi<T>. Corregido en apiReproduciones+PanelSugerencias+sugerenciasLikeStore+PanelDetalleSample |
 
 ---
 
@@ -465,15 +473,12 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 131. Planificar la automoderación de contenido con IA, cada vez que se publica un comentario, la IA tiene que decidir si es spam, si es valido, etc.
 132. Mejora el sistema de moderación con IA, planificar mejor este sistema, la IA tiene que ser capaz de bloquear usuarios si tienen actividad sospechosa, spam, la toxicidad no es baneable, los usuarios son libres de discutir e insultarse, pero el spam, no es permitido, cuando un usuario hace comentarios con spam, le debe llegar una notificación de que su comentario fue eliminado automaticamente por x razón, el desnudo o contenido para adulto tambien esta prohibido, en ningun lugar, tampoco de portada para ningún audio, poca ropa si esta permitido, no estan estricto pero contenido en si totalmente pornxgrafico o actividades sexuales, o partes intimas prohibida, hay que tener cuidado porque sabemos que los albunes suelen usar imagenes explicitas que no son problemas generalmente, no queremos falsos positivos.
 133. Las paginas no deberían volver a cargarse cuando cambio de pagina, o sea si la pagian ya estaba cargada, despues vuelvo abrirla, no debe recargarse, ni la lista samples ni nada, todo debe cargarse una sola vez.
-136. Los tags no funcionan bien, probablemente por esto ErrorBoundary.tsx:28  [Glory] Error en isla "InicioIsland": ReferenceError: todosLosTags is not defined
-    at FeedSamples (FeedSamples.tsx?t=1771299567512:399:20)
-137. EL boton de Guardar para las colecciones propias no tiene sentido, no mostrarlo para los usuarios cuando ven sus propias colecciones.
 138. Asegurarse de que las descargas no cobren creditos para cuando se descargue un sample propio que se subio o que se descargo antes.
-139. El contaodr de samples en las colecciones no funciona.
 140. Separar descargas y favoritos en paginas propias, tambien hay ponerles coleccionHeader, y que tengan sus tab de "mas ideas", deben funcionar como colecciones especiales, el algoritmo de más ideas debe funcionar par recomendar samples basados en las descargas y los favoritos, esto significa las tabs descargas y favoritos porque ahora son paginas individuales. La tab de "Colecciones" debería ser "mis colecciones"
-141. No me gusta como se ve tarjetaColeccionAcciones, debe ser un boton en la esquina superior a la derecha que haga constraste automatico con la imagen, y que agrupe las acciones en un menu contextual.
-142. No se porque siempre dice "No hay sugerencias disponibles" nunca hay sugerencias para "También te podría gustar"
-143. crearContenido se ve mal como si lo estilos no cargaran, restaure los css que borraste por si acaso, pero 
+143. crearContenido se ve mal como si lo estilos no cargaran, restaure los css que borraste por si acaso, pero se ve mal simplemente.
+144 (primero 146). Se que el algoritmo no esta preparado para las publicaciones de comunidad, pero, las publicaciones alli deberían tambien tener un algoritmo eficiente y bueno como el de facebook o twitter, no tengo idea de como funcionan o que los hace adictivo, he visto que el reddit es bueno, asi que para parecernos mas a reddit, agreguemos el boton de dislike, pero los dislike no deben tener contador ni su contador debe ser publico.
+145. Los dislike ahora deberían tambien funcionar en los samples, y un nuevo boton de "Me encanta" en la lista de sample, esta forma debe de verse, los botones de me encanta y dislike, deben aparecer como un tooltip al hacer hover sobre el boton like, en donde sea que haya un boton de like, debe ser asi, ahora que existe el boton de dislike y me encanta, el algoritmo debe tenerlos en cuenta porque es información util para pulir las recomendaciones.
+146. Los creditos en el menu contextual salen asi Créditos: NaN/undefined
 
 ---
 
@@ -503,3 +508,4 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [C124 Refactor]: ModalCrear tenía 459 líneas con lógica inline. Extraído a useCrearContenido (hook) + ContenidoCrear (UI compartida). Ambos ModalCrear y SeccionPublicar ahora usan la misma base.
 - [C135 Sugerencias]: FeedSamples usaba sugerenciasLikeStore (modal) en vez de panelLateralStore.abrirSugerencias (panel lateral). PanelSugerencias.tsx y PanelLateral.tsx ya existían, solo faltaba conectar el trigger.
 - [useArchivosDragDrop]: Spread `...archivos` en return del hook colisiona con `resetear` propio. Listar props explícitamente para evitar override silencioso.
+- [C142 apiCliente]: `apiGet` ya hace `json.data ?? json` → si backend envía `{data: [...]}`, `resp.data` ya es el array. Tipear como `RespuestaApi<T[]>`, NO `RespuestaApi<{data: T[]}>`. Error: double-unwrap silencioso donde `resp.data?.data` era siempre `undefined`.

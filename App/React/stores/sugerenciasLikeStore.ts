@@ -29,7 +29,7 @@ export const useSugerenciasLikeStore = create<SugerenciasLikeState>((set) => ({
         set({ abierto: true, sampleOrigen: sample, sugerencias: [], cargando: true });
 
         const resp = await obtenerSimilares(sample.id, 5);
-        const lista = resp.ok && resp.data?.data ? resp.data.data : [];
+        const lista = resp.ok && resp.data ? resp.data : [];
         set({ sugerencias: lista, cargando: false });
     },
 

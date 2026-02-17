@@ -1,6 +1,7 @@
 /*
- * tarjetaColeccion.css — Kamples
- * Tarjeta visual tipo card para colecciones (grid-friendly).
+ * tarjetaColeccion.css — Kamples (C141)
+ * Tarjeta visual tipo card para colecciones.
+ * Botón 3 puntos en esquina superior derecha con menú contextual.
  */
 
 .tarjetaColeccion {
@@ -23,7 +24,7 @@
 .tarjetaColeccionPortada {
     width: 100%;
     aspect-ratio: 16 / 10;
-    overflow: hidden;
+    overflow: visible;
     background-color: var(--fondoElevado2);
     position: relative;
 }
@@ -38,6 +39,75 @@
 
 .tarjetaColeccion:hover .tarjetaColeccionPortada img {
     transform: scale(1.05);
+}
+
+/* C141: Botón 3 puntos — esquina superior derecha sobre la imagen */
+.tarjetaColeccionMenuContenedor {
+    position: absolute;
+    top: var(--espacioXs);
+    right: var(--espacioXs);
+    z-index: 5;
+}
+
+.tarjetaColeccionMenuBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radioFull);
+    border: none;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity var(--transicionRapida), background var(--transicionRapida);
+}
+
+.tarjetaColeccion:hover .tarjetaColeccionMenuBtn {
+    opacity: 1;
+}
+
+.tarjetaColeccionMenuBtn:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* Menú contextual dropdown */
+.tarjetaColeccionMenu {
+    position: absolute;
+    top: calc(100% + var(--espacioXs));
+    right: 0;
+    min-width: 140px;
+    background-color: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    box-shadow: var(--sombraMd);
+    padding: var(--espacioXs) 0;
+    z-index: 20;
+}
+
+.tarjetaColeccionMenuItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    width: 100%;
+    padding: var(--espacioXs) var(--espacioMd);
+    border: none;
+    background: none;
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: background var(--transicionRapida), color var(--transicionRapida);
+}
+
+.tarjetaColeccionMenuItem:hover {
+    background-color: var(--fondoElevado3);
+    color: var(--textoPrimario);
+}
+
+.tarjetaColeccionMenuItemPeligro:hover {
+    color: var(--error);
 }
 
 /* Info debajo de la imagen */
@@ -72,42 +142,4 @@
     color: var(--textoTerciario);
     display: block;
     margin-top: calc(var(--espacioXs) / 2);
-}
-
-/* Acciones — se muestran en hover */
-.tarjetaColeccionAcciones {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--espacioXs);
-    padding: 0 var(--espacioMd) var(--espacioSm);
-    opacity: 0;
-    transition: opacity var(--transicionRapida);
-}
-
-.tarjetaColeccion:hover .tarjetaColeccionAcciones {
-    opacity: 1;
-}
-
-.tarjetaColeccionBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: var(--radioSm);
-    background: none;
-    border: none;
-    color: var(--textoSecundario);
-    cursor: pointer;
-    transition: all var(--transicionRapida);
-}
-
-.tarjetaColeccionBtn:hover {
-    background-color: var(--fondoElevado3);
-    color: var(--textoPrimario);
-}
-
-.tarjetaColeccionBtnPeligro:hover {
-    color: var(--error);
 }

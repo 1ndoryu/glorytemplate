@@ -63,20 +63,20 @@ export const obtenerHistorial = async (
 
 /*
  * Samples similares por metadata (tags, BPM, key, tipo).
- * Usado en SampleDetalleIsland y modal "También te podría gustar".
+ * C142: Corregido tipo — apiCliente ya desenvuelve json.data, no hace falta { data: ... }.
  * Endpoint: GET /samples/{id}/similares
  */
 export const obtenerSimilares = async (
     sampleId: number,
     limite = 5
-): Promise<RespuestaApi<{ data: SampleResumen[] }>> => {
+): Promise<RespuestaApi<SampleResumen[]>> => {
     try {
-        return await apiGet<{ data: SampleResumen[] }>(
+        return await apiGet<SampleResumen[]>(
             `/samples/${sampleId}/similares`,
             { limite }
         );
     } catch (err) {
         log.error('Error obteniendo samples similares', err);
-        return { ok: true, data: { data: [] }, error: null, status: 200 };
+        return { ok: true, data: [], error: null, status: 200 };
     }
 };

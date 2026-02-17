@@ -15,6 +15,7 @@ import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
+import { useAuthStore } from '@app/stores/authStore';
 import { toast } from '@app/stores/toastStore';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import type { Coleccion, SampleResumen } from '@app/types';
@@ -31,6 +32,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     const { navegar } = useNavigationStore();
     const { activa: tabActiva, setTabs } = useTabsTopBarStore();
     const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel } = usePanelLateralStore();
+    const { usuario } = useAuthStore();
 
     /* Registrar tabs "Samples" y "Más Ideas" en TopBar + habilitar panel lateral */
     useEffect(() => {
@@ -227,17 +229,20 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                             </span>
                         )}
                     </div>
-                    {/* C109+C125: Botones con texto — guardar, descargar, preview */}
+                    {/* C109+C125+C137: Botones con texto — guardar (solo ajena), descargar, preview */}
                     <div className="coleccionAcciones">
-                        <button
-                            className={`coleccionAccionBtn ${guardada ? 'coleccionAccionActivo' : ''}`}
-                            onClick={manejarGuardar}
-                            type="button"
-                            title={guardada ? 'Guardada' : 'Guardar colección'}
-                        >
-                            {guardada ? <BookmarkCheck size={16} /> : <BookmarkPlus size={16} />}
-                            <span>{guardada ? 'Guardada' : 'Guardar'}</span>
-                        </button>
+                        {/* C137: Ocultar guardar en colecciones propias */}
+                        {coleccion.usuarioId !== usuario?.id && (
+                            <button
+                                className={`coleccionAccionBtn ${guardada ? 'coleccionAccionActivo' : ''}`}
+                                onClick={manejarGuardar}
+                                type="button"
+                                title={guardada ? 'Guardada' : 'Guardar colección'}
+                            >
+                                {guardada ? <BookmarkCheck size={16} /> : <BookmarkPlus size={16} />}
+                                <span>{guardada ? 'Guardada' : 'Guardar'}</span>
+                            </button>
+                        )}
                         <button
                             className="coleccionAccionBtn"
                             type="button"
