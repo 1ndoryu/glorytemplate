@@ -51,6 +51,8 @@ const MAPA_RUTAS: Record<string, string> = {
     '/planes': 'inicio',
     '/componentes': 'componentes',
     '/dev/componentes': 'componentes',
+    '/admin/panel': 'admin',
+    '/admin/dashboard': 'admin',
 };
 
 /* Detectar página activa desde la ruta (SPA o URL) */

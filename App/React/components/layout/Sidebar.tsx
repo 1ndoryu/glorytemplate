@@ -13,9 +13,11 @@ import {
     Heart,
     Settings,
     AudioLines,
+    ShieldCheck,
 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
+import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/componentes/sidebar.css';
 
 export interface SidebarItemDef {
@@ -47,6 +49,13 @@ export const Sidebar = ({
 }: SidebarProps): JSX.Element => {
     const { navegar } = useNavigationStore();
     const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
+    const { usuario } = useAuthStore();
+    const esAdmin = usuario?.rol === 'admin';
+
+    /* Agregar enlace admin condicionalmente */
+    const itemsFinales: SidebarItemDef[] = esAdmin
+        ? [...items, { id: 'admin', etiqueta: 'Admin', icono: <ShieldCheck size={20} />, ruta: '/admin/panel' }]
+        : items;
 
     const manejarClick = (item: SidebarItemDef) => {
         if (item.accion === 'modal-crear') {
@@ -67,7 +76,7 @@ export const Sidebar = ({
             </div>
 
             <nav className="sidebarNav">
-                {items.map((item) => {
+                {itemsFinales.map((item) => {
                     /* Crear como modal: usar button */
                     if (item.accion === 'modal-crear') {
                         return (

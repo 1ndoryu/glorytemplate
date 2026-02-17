@@ -126,6 +126,7 @@ PageManager::reactPage('mensajes/chat', 'ChatIsland', function($pageId) {
  * =====================================================
  */
 PageManager::reactPage('admin/dashboard', 'DashboardCreadorIsland');
+PageManager::reactPage('admin/panel', 'AdminPanelIsland');
 
 /* Detalle de sample — recibe slug dinámico */
 PageManager::reactPage('sample', 'SampleDetalleIsland', function($pageId) {

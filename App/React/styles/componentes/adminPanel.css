@@ -1,0 +1,428 @@
+/*
+ * Estilos: Panel de Administración (FASE 13)
+ * Layout, tarjetas KPI, gráfica de actividad, tabla usuarios, moderación.
+ */
+
+/* Contenedor principal */
+.adminPanel {
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.adminPanelTitulo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: var(--texto-primario);
+}
+
+.adminPanelSubtitulo {
+    font-size: 0.85rem;
+    color: var(--texto-secundario);
+    margin-bottom: 1.5rem;
+}
+
+/* Tabs */
+.adminPanelTabs {
+    margin-bottom: 1.5rem;
+}
+
+/* Grid de KPIs */
+.adminKpisGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.adminKpiTarjeta {
+    background: var(--superficie-elevada);
+    border: 1px solid var(--borde-sutil);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.adminKpiCabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.adminKpiEtiqueta {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--texto-secundario);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.adminKpiIcono {
+    color: var(--acento-primario);
+    opacity: 0.7;
+}
+
+.adminKpiValor {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--texto-primario);
+    line-height: 1;
+}
+
+.adminKpiDetalle {
+    font-size: 0.75rem;
+    color: var(--texto-terciario);
+}
+
+/* Gráfica de actividad */
+.adminGraficaContenedor {
+    background: var(--superficie-elevada);
+    border: 1px solid var(--borde-sutil);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.adminGraficaTitulo {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--texto-primario);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.adminGraficaBarras {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 120px;
+}
+
+.adminGraficaBarra {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    min-height: 2px;
+    transition: opacity 0.15s;
+    cursor: pointer;
+}
+
+.adminGraficaBarra:hover {
+    opacity: 0.8;
+}
+
+.adminGraficaBarraRegistros {
+    background: var(--acento-primario);
+}
+
+.adminGraficaBarraUploads {
+    background: var(--acento-exito);
+}
+
+.adminGraficaBarraDescargas {
+    background: var(--acento-advertencia);
+}
+
+.adminGraficaLeyenda {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+
+.adminGraficaLeyendaItem {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    color: var(--texto-secundario);
+}
+
+.adminGraficaLeyendaPunto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+/* Tabla de usuarios */
+.adminUsuariosControles {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.adminUsuariosBusqueda {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--borde-sutil);
+    background: var(--superficie-base);
+    color: var(--texto-primario);
+    font-size: 0.85rem;
+}
+
+.adminUsuariosBusqueda:focus {
+    outline: none;
+    border-color: var(--acento-primario);
+}
+
+.adminUsuariosFiltro {
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--borde-sutil);
+    background: var(--superficie-base);
+    color: var(--texto-primario);
+    font-size: 0.85rem;
+}
+
+.adminTablaUsuarios {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.adminTablaUsuarios th {
+    text-align: left;
+    padding: 0.75rem;
+    font-weight: 600;
+    color: var(--texto-secundario);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--borde-sutil);
+}
+
+.adminTablaUsuarios td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--borde-sutil);
+    color: var(--texto-primario);
+}
+
+.adminTablaUsuarios tr:hover td {
+    background: var(--superficie-hover);
+}
+
+.adminUsuarioFila {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.adminUsuarioAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--superficie-elevada);
+}
+
+.adminUsuarioInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.adminUsuarioNombre {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.adminUsuarioUsername {
+    font-size: 0.7rem;
+    color: var(--texto-terciario);
+}
+
+.adminUsuarioAcciones {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.adminBotonAccion {
+    padding: 0.3rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--borde-sutil);
+    background: transparent;
+    color: var(--texto-secundario);
+    cursor: pointer;
+    font-size: 0.7rem;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.adminBotonAccion:hover {
+    background: var(--superficie-hover);
+    color: var(--texto-primario);
+}
+
+.adminBotonAccionPeligro:hover {
+    background: var(--acento-error);
+    color: white;
+    border-color: var(--acento-error);
+}
+
+/* Paginación */
+.adminPaginacion {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.adminPaginacionBoton {
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--borde-sutil);
+    background: var(--superficie-base);
+    color: var(--texto-primario);
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.adminPaginacionBoton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Moderación */
+.adminModeracionLista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.adminModeracionTarjeta {
+    background: var(--superficie-elevada);
+    border: 1px solid var(--borde-sutil);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.adminModeracionCabecera {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.adminModeracionAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.adminModeracionAutor {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--texto-primario);
+}
+
+.adminModeracionFecha {
+    font-size: 0.7rem;
+    color: var(--texto-terciario);
+    margin-left: auto;
+}
+
+.adminModeracionContenido {
+    font-size: 0.85rem;
+    color: var(--texto-secundario);
+    line-height: 1.5;
+    max-height: 100px;
+    overflow: hidden;
+}
+
+.adminModeracionAcciones {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.adminModeracionBotonAprobar {
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    border: none;
+    background: var(--acento-exito);
+    color: white;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.adminModeracionBotonRechazar {
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    border: none;
+    background: var(--acento-error);
+    color: white;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Sección de reportes */
+.adminSeccionTitulo {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--texto-primario);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Estado vacío */
+.adminVacio {
+    text-align: center;
+    padding: 2rem;
+    color: var(--texto-terciario);
+    font-size: 0.85rem;
+}
+
+/* Cargando */
+.adminCargando {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+    color: var(--texto-terciario);
+}
+
+.adminSpinner {
+    animation: adminGiro 1s linear infinite;
+}
+
+@keyframes adminGiro {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .adminPanel {
+        padding: 1rem;
+    }
+
+    .adminKpisGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .adminTablaUsuarios {
+        font-size: 0.75rem;
+    }
+
+    .adminTablaUsuarios th:nth-child(n+4),
+    .adminTablaUsuarios td:nth-child(n+4) {
+        display: none;
+    }
+}
