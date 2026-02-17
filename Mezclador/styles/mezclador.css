@@ -238,6 +238,16 @@
     opacity: 0.5;
 }
 
+/* Resaltado visual cuando se arrastra un bloque sobre esta pista */
+.mezcladorPistaDragHover {
+    background: color-mix(in srgb, var(--acento) 8%, transparent);
+}
+
+.mezcladorPistaDragHover .mezcladorPistaContenido {
+    outline: 1px dashed var(--acento);
+    outline-offset: -1px;
+}
+
 .mezcladorPistaControles {
     width: 80px;
     flex-shrink: 0;
@@ -337,6 +347,38 @@
 
 .mezcladorBloque:active {
     cursor: grabbing;
+}
+
+/* Reducir opacidad del bloque siendo arrastrado */
+.mezcladorBloque.mezcladorBloqueDragging {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Bloque en proceso de resize (C204) */
+.mezcladorBloque.mezcladorBloqueResizing {
+    z-index: 5;
+    box-shadow: 0 0 0 2px var(--colorBloque, var(--acento));
+}
+
+/* Handle derecho para stretch/pitch (C204) */
+.mezcladorBloqueResizeHandle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 6px;
+    height: 100%;
+    cursor: ew-resize;
+    z-index: 2;
+    background: transparent;
+    transition: background var(--transicionRapida);
+    border-radius: 0 3px 3px 0;
+}
+
+.mezcladorBloqueResizeHandle:hover,
+.mezcladorBloqueResizing .mezcladorBloqueResizeHandle {
+    background: var(--colorBloque, var(--acento));
+    opacity: 0.7;
 }
 
 .mezcladorBloqueCabecera {

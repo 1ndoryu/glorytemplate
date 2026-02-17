@@ -48,11 +48,17 @@ export const useMotorAudio = () => {
 
                 if (duracionEfectiva <= 0) continue;
 
-                /* Limitar duración al buffer real ajustado por playbackRate */
+                /*
+                 * Limitar duración al buffer real ajustado por playbackRate.
+                 * duracionBufferAjustada = tiempo real que dura el buffer a este playbackRate.
+                 * C207: el offset en esta resta es en tiempo de proyecto (wall-clock),
+                 * al igual que duracionBufferAjustada.
+                 */
                 const duracionBufferAjustada = bloque.audioBuffer.duration / bloque.playbackRate;
-                const duracionFinal = Math.min(duracionEfectiva, duracionBufferAjustada - offset);
+                const duracionDisponible = duracionBufferAjustada - offset;
+                const duracionFinal = Math.min(duracionEfectiva, duracionDisponible);
 
-                if (duracionFinal <= 0) continue;
+                if (duracionFinal <= 0.001) continue;
 
                 motorAudio.programarReproduccion(
                     bloque.audioBuffer,

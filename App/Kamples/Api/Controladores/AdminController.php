@@ -179,9 +179,11 @@ class AdminController
         unset($usr);
 
         return new \WP_REST_Response([
-            'data' => $usuarios,
-            'total' => (int) ($total['total'] ?? 0),
-            'page' => $page,
+            'data' => [
+                'data' => $usuarios,
+                'total' => (int) ($total['total'] ?? 0),
+                'page' => $page,
+            ],
         ], 200);
     }
 

@@ -56,8 +56,8 @@ export function useAdminPanel() {
             'fecha'
         );
         if (res.ok && res.data) {
-            setUsuarios(res.data.data);
-            setTotalUsuarios(res.data.total);
+            setUsuarios(res.data.data ?? []);
+            setTotalUsuarios(res.data.total ?? 0);
         }
     }, [paginaUsuarios, busquedaUsuarios, filtroPlannUsuarios]);
 

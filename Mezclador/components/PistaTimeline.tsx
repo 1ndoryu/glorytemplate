@@ -14,6 +14,9 @@ interface PistaTimelineProps {
     onIniciarDrag: (bloqueId: string, pistaId: string, e: React.MouseEvent) => void;
     onDragOver: (e: React.DragEvent) => void;
     onDrop: (e: React.DragEvent, pistaId: string) => void;
+    pistaIdHover?: string | null;
+    dragActivo?: boolean;
+    bloqueIdDrag?: string | null;
 }
 
 export const PistaTimeline = ({
@@ -22,6 +25,9 @@ export const PistaTimeline = ({
     onIniciarDrag,
     onDragOver,
     onDrop,
+    pistaIdHover,
+    dragActivo,
+    bloqueIdDrag,
 }: PistaTimelineProps): JSX.Element => {
     const toggleSilenciarPista = useMezcladorStore(s => s.toggleSilenciarPista);
     const eliminarPista = useMezcladorStore(s => s.eliminarPista);
@@ -31,8 +37,14 @@ export const PistaTimeline = ({
     /* Divisiones de compás */
     const divisiones = Array.from({ length: totalCompases }, (_, i) => i);
 
+    /* Resaltar pista activa durante drag */
+    const esHover = dragActivo && pistaIdHover === pista.id;
+
     return (
-        <div className={`mezcladorPista ${pista.silenciada ? 'mezcladorPistaSilenciada' : ''}`}>
+        <div
+            className={`mezcladorPista ${pista.silenciada ? 'mezcladorPistaSilenciada' : ''} ${esHover ? 'mezcladorPistaDragHover' : ''}`}
+            data-pista-id={pista.id}
+        >
             {/* Controles laterales de la pista */}
             <div className="mezcladorPistaControles">
                 <span className="mezcladorPistaNombre">{pista.nombre}</span>
@@ -78,6 +90,7 @@ export const PistaTimeline = ({
                         bloque={bloque}
                         totalCompases={totalCompases}
                         onIniciarDrag={onIniciarDrag}
+                        estaSiendoArrastrado={dragActivo && bloqueIdDrag === bloque.id}
                     />
                 ))}
 

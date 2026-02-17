@@ -20,6 +20,9 @@ export interface Coleccion {
     /* Relaciones opcionales (pobladas en detalle) */
     usuario?: UsuarioResumen;
     samples?: SampleResumen[];
+
+    /* Campo calculado: indica si un sample específico ya está en esta colección */
+    contieneElSample?: boolean;
 }
 
 export interface ColeccionResumen {

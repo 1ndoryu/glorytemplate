@@ -50,18 +50,24 @@ export const inferirCompas = (
         }
     }
 
-    /* Cuántos compases del proyecto ocupa este sample */
-    const duracionCompasProyecto = duracionCompas(bpmProyecto, compasProyecto);
-    const compasesSample = Math.max(1, Math.round(duracionSample / duracionCompasProyecto));
-
     /* Playback rate para adaptar al BPM del proyecto */
     const playbackRate = bpmSample > 0 ? bpmProyecto / bpmSample : 1;
+    const playbackRateClamped = Math.max(0.5, Math.min(2.0, playbackRate));
+
+    /*
+     * Cuántos compases del proyecto ocupa — usar duración ajustada por playbackRate.
+     * C207 fix: sin este ajuste, el audio se cortaba antes de terminar
+     * porque el bloque visual era más largo que la duración real del buffer.
+     */
+    const duracionAjustada = duracionSample / playbackRateClamped;
+    const duracionCompasProyecto = duracionCompas(bpmProyecto, compasProyecto);
+    const compasesSample = Math.max(1, Math.round(duracionAjustada / duracionCompasProyecto));
 
     return {
         beats: beatsRedondeados,
         compas,
         duracionCompases: compasesSample,
-        playbackRate: Math.max(0.5, Math.min(2.0, playbackRate)),
+        playbackRate: playbackRateClamped,
         confianza,
     };
 };

@@ -15,6 +15,9 @@ interface TimelineProps {
     onIniciarDrag: (bloqueId: string, pistaId: string, e: React.MouseEvent) => void;
     onDragOver: (e: React.DragEvent) => void;
     onDrop: (e: React.DragEvent, pistaId?: string) => void;
+    pistaIdHover?: string | null;
+    dragActivo?: boolean;
+    bloqueIdDrag?: string | null;
 }
 
 export const Timeline = ({
@@ -23,6 +26,9 @@ export const Timeline = ({
     onIniciarDrag,
     onDragOver,
     onDrop,
+    pistaIdHover,
+    dragActivo,
+    bloqueIdDrag,
 }: TimelineProps): JSX.Element => {
     const pistas = useMezcladorStore(s => s.pistas);
     const totalCompases = useMezcladorStore(s => s.totalCompases);
@@ -48,6 +54,9 @@ export const Timeline = ({
                         onIniciarDrag={onIniciarDrag}
                         onDragOver={onDragOver}
                         onDrop={(e, pistaId) => onDrop(e, pistaId)}
+                        pistaIdHover={pistaIdHover}
+                        dragActivo={dragActivo}
+                        bloqueIdDrag={bloqueIdDrag}
                     />
                 ))}
 

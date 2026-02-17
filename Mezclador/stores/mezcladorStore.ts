@@ -48,8 +48,10 @@ interface MezcladorState {
     toggleSilenciarPista: (pistaId: string) => void;
 
     agregarSample: (sample: SampleResumen, pistaId?: string) => Promise<void>;
+    agregarAudioLocal: (archivo: File, pistaId?: string) => Promise<void>;
     moverBloque: (bloqueId: string, pistaIdDestino: string, compasInicio: number) => void;
     eliminarBloque: (bloqueId: string) => void;
+    setDuracionBloque: (bloqueId: string, nuevaDuracion: number) => void;
 
     setReproduciendo: (valor: boolean) => void;
     setTiempoActual: (tiempo: number) => void;
@@ -237,6 +239,117 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
         }
     },
 
+    /*
+     * C208: Agregar un audio local subido desde PC.
+     * Crea un pseudo-SampleResumen con datos mínimos del archivo.
+     */
+    agregarAudioLocal: async (archivo, pistaId) => {
+        const { pistas, bpmProyecto, compasProyecto, cargandoBuffers } = get();
+
+        /* Determinar pista destino */
+        let pistaDestinoId = pistaId
+            ?? pistas.find(p => p.bloques.length === 0)?.id
+            ?? pistas[0]?.id;
+
+        if (!pistaDestinoId) {
+            const nuevaPista = crearPistaVacia(`Pista ${pistas.length + 1}`);
+            pistaDestinoId = nuevaPista.id;
+            set(prev => ({ pistas: [...prev.pistas, nuevaPista] }));
+        }
+
+        const bloqueId = generarIdBloque();
+        const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+        /* Marcar como cargando */
+        const nuevoCargando = new Set(cargandoBuffers);
+        nuevoCargando.add(bloqueId);
+        set({ cargandoBuffers: nuevoCargando });
+
+        try {
+            /* Leer archivo como ArrayBuffer */
+            const arrayBuffer = await archivo.arrayBuffer();
+            const buffer = await motorAudio.decodificarBufferLocal(arrayBuffer, localId);
+
+            /* Pseudo-SampleResumen para archivos locales */
+            const nombreLimpio = archivo.name.replace(/\.[^.]+$/, '');
+            const pseudoSample: SampleResumen = {
+                id: -Date.now(),
+                titulo: nombreLimpio,
+                slug: nombreLimpio.toLowerCase().replace(/\s+/g, '-'),
+                bpm: bpmProyecto,
+                key: null,
+                escala: null,
+                duracion: buffer.duration,
+                tags: ['local'],
+                tipo: 'loop' as SampleResumen['tipo'],
+                esPremium: false,
+                precio: null,
+                rutaPreview: '',
+                rutaWaveform: '',
+                imagenUrl: null,
+                totalDescargas: 0,
+                totalLikes: 0,
+                totalReproducciones: 0,
+                metadata: null,
+                creador: {
+                    id: 0,
+                    username: 'local',
+                    nombreVisible: 'Archivo local',
+                    avatarUrl: null,
+                    verificado: false,
+                },
+            };
+
+            const info = inferirCompas(buffer.duration, bpmProyecto, bpmProyecto, compasProyecto);
+
+            /* Re-leer pistas actuales */
+            const pistasActuales = get().pistas;
+            const pistaActual = pistasActuales.find(p => p.id === pistaDestinoId);
+            const bloquesPista = pistaActual?.bloques ?? [];
+
+            let compasInicio = 0;
+            for (const b of bloquesPista) {
+                const fin = b.compasInicio + b.duracionCompases;
+                if (fin > compasInicio) compasInicio = fin;
+            }
+
+            const waveformPeaks = extraerPeaks(buffer, Math.max(30, info.duracionCompases * 20));
+
+            const nuevoBloque: BloqueMezclador = {
+                id: bloqueId,
+                pistaId: pistaDestinoId,
+                sample: pseudoSample,
+                audioBuffer: buffer,
+                compasInicio,
+                duracionCompases: info.duracionCompases,
+                volumen: 1,
+                playbackRate: info.playbackRate,
+                silenciado: false,
+                color: COLORES_BLOQUE.default,
+                waveformPeaks,
+            };
+
+            const finBloque = compasInicio + info.duracionCompases;
+
+            set(prev => ({
+                pistas: prev.pistas.map(p =>
+                    p.id === pistaDestinoId
+                        ? { ...p, bloques: [...p.bloques, nuevoBloque] }
+                        : p
+                ),
+                totalCompases: Math.max(prev.totalCompases, finBloque),
+            }));
+        } catch (error) {
+            console.error('[Mezclador] Error cargando audio local:', error);
+        } finally {
+            set(prev => {
+                const nuevo = new Set(prev.cargandoBuffers);
+                nuevo.delete(bloqueId);
+                return { cargandoBuffers: nuevo };
+            });
+        }
+    },
+
     moverBloque: (bloqueId, pistaIdDestino, compasInicio) => {
         set(prev => {
             let bloque: BloqueMezclador | null = null;
@@ -272,6 +385,32 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
             pistas: prev.pistas.map(p => ({
                 ...p,
                 bloques: p.bloques.filter(b => b.id !== bloqueId),
+            })),
+        }));
+    },
+
+    /*
+     * C204: Cambiar duración de un bloque (stretch/pitch).
+     * Al cambiar duracionCompases, recalcular playbackRate para
+     * que el buffer encaje en la nueva duración visual.
+     */
+    setDuracionBloque: (bloqueId, nuevaDuracion) => {
+        const { bpmProyecto, compasProyecto } = get();
+        set(prev => ({
+            pistas: prev.pistas.map(p => ({
+                ...p,
+                bloques: p.bloques.map(b => {
+                    if (b.id !== bloqueId || !b.audioBuffer) return b;
+                    const durClamped = Math.max(0.25, nuevaDuracion);
+                    /*
+                     * playbackRate = buffer.duration / duracionWallClock
+                     * duracionWallClock = durClamped * duracionCompas
+                     */
+                    const durCompas = (60 / bpmProyecto) * compasProyecto.numerador;
+                    const durWall = durClamped * durCompas;
+                    const nuevoRate = Math.max(0.25, Math.min(4, b.audioBuffer.duration / durWall));
+                    return { ...b, duracionCompases: durClamped, playbackRate: nuevoRate };
+                }),
             })),
         }));
     },

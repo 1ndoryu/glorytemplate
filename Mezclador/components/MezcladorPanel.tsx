@@ -41,6 +41,8 @@ const MezcladorContenido = (): JSX.Element => {
         descargarMezcla,
         obtenerArchivoParaPublicar,
         puedeExportar,
+        pistaIdHover,
+        dragState,
     } = useMezclador();
 
     const cerrarMezclador = useMezcladorStore(s => s.cerrar);
@@ -101,6 +103,9 @@ const MezcladorContenido = (): JSX.Element => {
                 onIniciarDrag={iniciarDragBloque}
                 onDragOver={alDragOver}
                 onDrop={alDropExterno}
+                pistaIdHover={pistaIdHover}
+                dragActivo={dragState.activo}
+                bloqueIdDrag={dragState.bloqueId}
             />
 
             {/* Área de drop vacía cuando no hay bloques */}

@@ -1,9 +1,10 @@
 /*
- * ControlesMezclador — Play/Stop, BPM, compases, exportar
+ * ControlesMezclador — Play/Stop, BPM, compases, exportar, subir audio
  * Barra superior del mezclador con todas las acciones
  */
 
-import { Play, Square, Plus, Minus, Download, Upload, Trash2, Loader } from 'lucide-react';
+import { useRef } from 'react';
+import { Play, Square, Plus, Minus, Download, Upload, FolderUp, Trash2, Loader } from 'lucide-react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 
 interface ControlesMezcladorProps {
@@ -29,10 +30,29 @@ export const ControlesMezclador = ({
     const agregarCompas = useMezcladorStore(s => s.agregarCompas);
     const quitarCompas = useMezcladorStore(s => s.quitarCompas);
     const limpiarProyecto = useMezcladorStore(s => s.limpiarProyecto);
+    const agregarAudioLocal = useMezcladorStore(s => s.agregarAudioLocal);
+
+    /* C208: Referencia al input de archivo oculto */
+    const inputArchivoRef = useRef<HTMLInputElement>(null);
 
     const alCambiarBpm = (e: React.ChangeEvent<HTMLInputElement>) => {
         const valor = parseInt(e.target.value, 10);
         if (!isNaN(valor)) setBpm(valor);
+    };
+
+    /* C208: Handler para subir archivos de audio desde PC */
+    const alSeleccionarArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const archivos = e.target.files;
+        if (!archivos || archivos.length === 0) return;
+        for (const archivo of archivos) {
+            if (!archivo.type.startsWith('audio/')) {
+                console.warn(`[Mezclador] Archivo ignorado (no es audio): ${archivo.name}`);
+                continue;
+            }
+            agregarAudioLocal(archivo);
+        }
+        /* Resetear input para poder subir el mismo archivo otra vez */
+        e.target.value = '';
     };
 
     return (
@@ -81,8 +101,24 @@ export const ControlesMezclador = ({
                 </button>
             </div>
 
-            {/* Grupo derecho: exportar + limpiar */}
+            {/* Grupo derecho: subir + exportar + limpiar */}
             <div className="mezcladorControlesGrupo">
+                {/* C208: Botón subir audio desde PC */}
+                <button
+                    className="mezcladorBotonAccion"
+                    onClick={() => inputArchivoRef.current?.click()}
+                    title="Subir audio desde PC"
+                >
+                    <FolderUp size={13} />
+                </button>
+                <input
+                    ref={inputArchivoRef}
+                    type="file"
+                    accept="audio/*"
+                    multiple
+                    onChange={alSeleccionarArchivo}
+                    style={{ display: 'none' }}
+                />
                 {exportando && <Loader size={14} className="mezcladorSpinner" />}
                 <button
                     className="mezcladorBotonAccion"

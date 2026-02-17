@@ -64,13 +64,11 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
 
                     setColecciones(ordenadas);
 
-                    /* Detectar colecciones donde el sample ya está guardado */
-                    if (sample) {
+                    /* C190: Detectar colecciones donde el sample ya está guardado */
+                    if (sample && respRelevantes?.ok && respRelevantes.data) {
                         const guardados = new Set<number>();
-                        for (const col of ordenadas) {
-                            if (col.samples?.some((s) => s.id === sample.id)) {
-                                guardados.add(col.id);
-                            }
+                        for (const col of respRelevantes.data) {
+                            if (col.contieneElSample) guardados.add(col.id);
                         }
                         setYaGuardadoEn(guardados);
                     }

@@ -379,8 +379,9 @@ Cannot read properties of undefined (reading 'length')
 207. Tarea para el agente del minidaw: el audio en la linea de tiempo no se reproduce completo, no se por qué.
 208. Tarea para el agente del minidaw: Poder subir audios desde la pc.
 209. Tarea para el agente del minidaw: Mejorar el arrastre de samples al minidaw, se ve feo, tiene que ser especial, no generico del explorador.
-210. Dejaron de aparecer sugerencias cuando doy like, no se por qué.
+210. Dejaron de aparecer sugerencias cuando doy like, no se por qué. (no se si es por 212 y estaba cargando react con el error de fondo, creo que si)
 211. Borrar el boton de experimentosContenedor
+212. ✅ Fix DescargasController parse error L120 — comillas escapadas incorrectamente (`\"`) en SQL del advisory lock (O14). Causado por el Sprint 3 de auditoría.
 
 ---
 

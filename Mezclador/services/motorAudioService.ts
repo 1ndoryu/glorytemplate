@@ -60,6 +60,17 @@ class MotorAudio {
         return this.cacheBuffers.get(id) ?? null;
     }
 
+    /*
+     * C208: Decodificar un ArrayBuffer local (desde archivo subido).
+     * Cachea con el id proporcionado.
+     */
+    async decodificarBufferLocal(arrayBuffer: ArrayBuffer, id: string): Promise<AudioBuffer> {
+        const ctx = this.obtenerContexto();
+        const audioBuffer = await decodificarAudio(ctx, arrayBuffer);
+        this.cacheBuffers.set(id, audioBuffer);
+        return audioBuffer;
+    }
+
     /* Crear o reutilizar GainNode para una pista */
     obtenerGainPista(pistaId: string): GainNode {
         const existente = this.gainsCanales.get(pistaId);

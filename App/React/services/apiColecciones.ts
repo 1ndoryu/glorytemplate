@@ -31,6 +31,7 @@ const normalizarColeccion = (raw: any): Coleccion => ({
         avatarUrl: raw.avatar_url ?? raw.avatarUrl ?? null,
     } : raw.usuario,
     samples: raw.samples,
+    contieneElSample: raw.contieneElSample ?? raw.contiene_el_sample,
 });
 
 /* Normalizar array de colecciones */
