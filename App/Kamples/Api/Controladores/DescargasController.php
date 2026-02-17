@@ -120,18 +120,31 @@ class DescargasController
                     "SELECT pg_advisory_xact_lock(:lockId)",
                     ['lockId' => $userId]
                 );
+
+                /*
+                 * C198: Sumar creditos_bonus al límite diario.
+                 * Los créditos bonus se ganan publicando samples (+1 cada publicación).
+                 */
+                $datosUsuario = PostgresService::consultarUno(
+                    "SELECT creditos_bonus FROM usuarios_ext WHERE id = :userId",
+                    ['userId' => $userId]
+                );
+                $creditosBonus = (int) ($datosUsuario['creditos_bonus'] ?? 0);
+                $limiteEfectivo = $limite + $creditosBonus;
+
                 $descargasHoy = PostgresService::consultarUno(
                     "SELECT COUNT(*) as total FROM descargas
                      WHERE usuario_id = :userId AND created_at >= CURRENT_DATE",
                     ['userId' => $userId]
                 );
 
-                if ((int) ($descargasHoy['total'] ?? 0) >= $limite) {
+                if ((int) ($descargasHoy['total'] ?? 0) >= $limiteEfectivo) {
                     return new \WP_REST_Response([
                         'ok' => false,
-                        'error' => "Has alcanzado el límite de {$limite} descargas diarias. Mejora tu plan para más.",
-                        'limite' => $limite,
+                        'error' => "Has alcanzado el límite de {$limiteEfectivo} descargas diarias. Mejora tu plan o publica samples para más créditos.",
+                        'limite' => $limiteEfectivo,
                         'usadas' => (int) $descargasHoy['total'],
+                        'sinCredito' => true,
                     ], 429);
                 }
             }
@@ -233,6 +246,10 @@ class DescargasController
         $configPlan = StripeService::obtenerConfigPlan($plan);
         $limite = $configPlan['descargas_dia'] ?? 5;
 
+        /* C198: Incluir créditos bonus por publicar samples */
+        $creditosBonus = (int) ($usuario['creditos_bonus'] ?? 0);
+        $limiteEfectivo = ($limite > 0) ? $limite + $creditosBonus : $limite;
+
         $descargasHoy = PostgresService::consultarUno(
             "SELECT COUNT(*) as total FROM descargas WHERE usuario_id = :userId AND created_at >= CURRENT_DATE",
             ['userId' => $userId]
@@ -250,7 +267,9 @@ class DescargasController
 
         return new \WP_REST_Response([
             'plan'          => $plan,
-            'limite'        => $limite,
+            'limite'        => $limiteEfectivo,
+            'limiteBase'    => $limite,
+            'creditosBonus' => $creditosBonus,
             'usadas'        => (int) ($descargasHoy['total'] ?? 0),
             'calidad'       => self::CALIDAD_PLAN[$plan] ?? 'mp3',
             'ilimitado'     => $limite === -1,
@@ -342,13 +361,17 @@ class DescargasController
         $limite = $configPlan['descargas_dia'] ?? 5;
 
         if ($limite > 0) {
+            /* C198: Incluir créditos bonus */
+            $creditosBonus = (int) ($usuario['creditos_bonus'] ?? 0);
+            $limiteEfectivo = $limite + $creditosBonus;
+
             $descargasHoy = PostgresService::consultarUno(
                 "SELECT COUNT(*) as total FROM descargas
                  WHERE usuario_id = :userId AND created_at >= CURRENT_DATE",
                 ['userId' => $userId]
             );
             $usadas = (int) ($descargasHoy['total'] ?? 0);
-            $disponibles = $limite - $usadas;
+            $disponibles = $limiteEfectivo - $usadas;
 
             if ($creditosNecesarios > $disponibles) {
                 return new \WP_REST_Response([
@@ -358,6 +381,7 @@ class DescargasController
                     'creditosDisponibles' => $disponibles,
                     'totalSamples' => count($samples),
                     'yaDescargados' => count($idsYaDescargados),
+                    'sinCredito' => true,
                 ], 429);
             }
         }

@@ -18,6 +18,10 @@ export interface LimitesDescarga {
     plan: 'free' | 'pro' | 'premium';
     usadas: number;
     limite: number;
+    /** Límite base del plan sin créditos bonus */
+    limiteBase?: number;
+    /** Créditos extra ganados por publicar samples */
+    creditosBonus?: number;
     ilimitado: boolean;
     calidad: 'mp3' | 'wav';
     transferenciaGb: number;

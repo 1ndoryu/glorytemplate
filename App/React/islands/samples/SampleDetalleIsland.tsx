@@ -43,6 +43,7 @@ import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
+import { toast } from '@app/stores/toastStore';
 import type { Sample, SampleResumen } from '@app/types';
 import '../../styles/componentes/sampleDetalle.css';
 
@@ -541,6 +542,15 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                                     document.body.appendChild(a);
                                     a.click();
                                     document.body.removeChild(a);
+                                } else if (resp.status === 429) {
+                                    /* C199: Sin créditos — abrir modal de suscripción */
+                                    toast.error(resp.error ?? 'Has alcanzado el límite de descargas diarias');
+                                    abrirPlanes();
+                                } else if (resp.status === 403) {
+                                    toast.error(resp.error ?? 'Se requiere plan Pro o Premium');
+                                    abrirPlanes();
+                                } else if (!resp.ok) {
+                                    toast.error(resp.error ?? 'Error al descargar');
                                 }
                             }}
                             type="button"

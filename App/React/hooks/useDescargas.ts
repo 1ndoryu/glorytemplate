@@ -11,6 +11,8 @@ import {
     type LimitesDescarga,
 } from '@app/services/apiDescargas';
 import { useAuthStore } from '@app/stores/authStore';
+import { usePlanesModalStore } from '@app/stores/planesModalStore';
+import { toast } from '@app/stores/toastStore';
 import { crearLogger } from '@app/services/logger';
 
 const log = crearLogger('useDescargas');
@@ -70,6 +72,15 @@ export const useDescargas = (): RetornoDescargas => {
 
                     return true;
                 }
+
+                /* C199: Sin créditos — abrir modal de suscripción */
+                if (resp.status === 429 || resp.status === 403) {
+                    toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
+                    usePlanesModalStore.getState().abrir();
+                } else {
+                    toast.error(resp.error ?? 'Error al descargar');
+                }
+
                 log.warn('Descarga rechazada', { sampleId, status: resp.status });
                 return false;
             } catch (err) {

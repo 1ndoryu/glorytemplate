@@ -453,6 +453,18 @@ class SamplesController
             KamplesLogger::error('Error al insertar sample en Postgres', ['error' => $e->getMessage()]);
         }
 
+        /* C198: Sumar 1 crédito bonus por publicar sample */
+        if ($sampleId) {
+            try {
+                PostgresService::ejecutar(
+                    "UPDATE usuarios_ext SET creditos_bonus = creditos_bonus + 1 WHERE id = :userId",
+                    ['userId' => $userId]
+                );
+            } catch (\Exception $e) {
+                KamplesLogger::warning('No se pudo sumar crédito bonus al publicar sample', ['error' => $e->getMessage()]);
+            }
+        }
+
         /* Pipeline asíncrono post-respuesta */
         if ($sampleId) {
             $datosPipeline = [

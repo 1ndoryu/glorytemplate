@@ -19,6 +19,7 @@ import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useAuthStore } from '@app/stores/authStore';
 import { toast } from '@app/stores/toastStore';
+import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import type { Coleccion, SampleResumen } from '@app/types';
@@ -98,6 +99,10 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                     : `Descargando ${resp.data.totalSamples} samples (ya descargados previamente)`;
                 toast.exito(msg);
             } else {
+                /* C199: Si es 429 (sin créditos) o 403 (requiere plan), abrir modal planes */
+                if (resp.status === 429 || resp.status === 403) {
+                    usePlanesModalStore.getState().abrir();
+                }
                 toast.error(resp.error ?? 'Error al descargar la colección');
             }
         } catch {

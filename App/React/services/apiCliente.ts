@@ -130,7 +130,7 @@ export const apiPeticion = async <T>(
         }
 
         if (!response.ok) {
-            const mensaje = (json?.message as string) ?? `Error ${response.status}`;
+            const mensaje = (json?.message as string) ?? (json?.error as string) ?? `Error ${response.status}`;
             log.warn(`${method} ${endpoint} → ${response.status}`, mensaje);
             return {
                 ok: false,

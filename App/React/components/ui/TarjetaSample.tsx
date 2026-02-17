@@ -16,6 +16,8 @@ import {registrarReproduccion} from '../../services/apiReproduciones';
 import {TooltipReacciones} from './TooltipReacciones';
 import {useNavigationStore} from '@/core/router';
 import {useColeccionPickerStore} from '@app/stores/coleccionPickerStore';
+import {usePlanesModalStore} from '@app/stores/planesModalStore';
+import {toast} from '@app/stores/toastStore';
 import '../../styles/componentes/tarjetaSample.css';
 
 interface TarjetaSampleProps {
@@ -296,6 +298,10 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+            } else if (resp.status === 429 || resp.status === 403) {
+                /* C199: Sin créditos — abrir modal de suscripción */
+                toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
+                usePlanesModalStore.getState().abrir();
             }
         },
         [onDescargar, sample.id, sample.titulo]
