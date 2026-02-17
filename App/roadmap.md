@@ -127,6 +127,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R31:** C125 texto botones colección, C135 panel lateral sugerencias (no modal), C124 SeccionPublicar=ModalCrear refactor (useCrearContenido+ContenidoCrear compartido).
 **R32:** C137 ocultar guardar colección propia, C139 normalizador snake→camelCase colecciones, C141 TarjetaColeccion menú 3 puntos, C142 fix sugerencias double-unwrap (apiGet ya desenvuelve json.data).
 **R33:** C143 CSS seccionPublicar rebuild, C146 créditos NaN/undefined fix (TopBar+useDescargas+apiDescargas), C138 descargas propias gratis (DescargasController: samples propios o ya descargados no consumen crédito), C144+C145 sistema de reacciones completo: migración v012 (columna reaccion VARCHAR(20) DEFAULT 'like'), SocialController UPSERT, NormalizadorSample+PublicacionesController reaccion_usuario, MotorRecomendacion 7 queries (encanta=2x, dislike=-1 en trends, excluido en perfil/behavior), TooltipReacciones.tsx+CSS (hover tooltip con 3 iconos), BotonLike rewrite, 8 islands actualizadas con 3-branch manejarLike, TipoReaccion type.
+**R34:** C149 feedTags fix (busqueda fuera de claveCache, limpiarTags removido de efecto cache), C148 algoritmo metadata+creator (sqlTagsEnriquecidos combina tags+metadata JSONB, obtenerCreadoresFavoritos afinidad implícita, pesos contexto rebalanceados: creador=0.35 nuevo, genero↑0.30, BPM↓0.15, key↓0.10), C127 menú 3 puntos unificado (SampleDetalleIsland hero, ComunidadIsland posts+samples, ColeccionDetalleIsland header), C128 similares fuera de article + comentarios expandidos por defecto.
 
 ---
 
@@ -472,8 +473,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 103. El registro debe ser más sencillo, solo el nombre de usuario, correo, y contraseña una sola vez. Y cuando me intento registrar dice "No se ha encontrado ninguna ruta que coincida con la URL y el método de la solicitud." Failed to load resource: the server responded with a status of 404 (Not Found)
 104. Lo de registro debe ser un modal tambien el inicio de seccion, no paginas, y el modal debe ser con una imagen (la misma estructura de .planesLayoutEspecial)
 126. Modal de configuración de samples, publicaciones, y colecciones: poder cambiar todo lo modificable, los admin pueden cambiar todo, y los usuarios sus cosas. De los samples, poder cambiar por ejemplo, la imagen, el titulo, los tags.
-127. No se si lo planifique antes pero, los samples necesita un boton de 3 puntos para su configuracion, igual que los samples en la lista, la menu contextual debe ser el mismo, igualmente las colecciones tanto en su lista y su pagina individual y los post de publicaciones de comunidad tambien.
-128. No se si lo planifique antes, debajo de detalleTarjetaUnica, en otra sección debe aparecer una lista de samples similares, basada en el algoritmo, claro, esto tiene que estar bien optimizado y cheado. Los comentarios tienen que aparecer ya expandidos, 
+| 127 | Menú 3 puntos unificado samples/colecciones/posts | ✅ SampleDetalleIsland hero, ComunidadIsland posts+samples, ColeccionDetalleIsland header — todos con MenuContextual |
+| 128 | Similares + comentarios expandidos | ✅ Similares fuera de article (detalleSimilaresSeccion), comentarios expandidos por defecto (comentariosVisibles=true, cargarAlAbrir=true) |
 129. Por cierto, no se si la sección de comentarios tiene paginación pero si debería tener, una de infita con scroll, (optimizado para mantener un numero maximo de comentarios renderizados)
 130. Se debería poder comentar imagenes y audios.
 131. Planificar la automoderación de contenido con IA, cada vez que se publica un comentario, la IA tiene que decidir si es spam, si es valido, etc.
@@ -481,9 +482,9 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 133. Las paginas no deberían volver a cargarse cuando cambio de pagina, o sea si la pagian ya estaba cargada, despues vuelvo abrirla, no debe recargarse, ni la lista samples ni nada, todo debe cargarse una sola vez.
 138. Asegurarse de que las descargas no cobren creditos para cuando se descargue un sample propio que se subio o que se descargo antes.
 140. Separar descargas y favoritos en paginas propias, tambien hay ponerles coleccionHeader, y que tengan sus tab de "mas ideas", deben funcionar como colecciones especiales, el algoritmo de más ideas debe funcionar par recomendar samples basados en las descargas y los favoritos, esto significa las tabs descargas y favoritos porque ahora son paginas individuales. La tab de "Colecciones" debería ser "mis colecciones"
-148. Revisar el algoritmo, que este tomando en cuenta los tags de instrumento, sentimiento, genero, etc, los aspecto tecnicos como bpm o tono no importan tanto, que este tomando en cuenta el usuario que lo publico, si un usuario siempre le gusta los samples de un creador especifico entonces probablemente le guste los demas.
-149. Los feedTags dejaron de funcionar, ahora simplemente recargan la lista de sample en vez filtrar o actualizar el input de busqueda como lo habiamos planificado, la busqueda tampoco funciona, ingreso algo, recarga la lista y se borra la busqueda.
-150. Cuando intento dar me encanta o dislike el hover se desactiva impidiendendo la acción.
+| 148 | Algoritmo tags metadata + creador implícito          | ✅ sqlTagsEnriquecidos() combina tags+metadata JSONB; obtenerCreadoresFavoritos() afinidad implícita; pesos contexto rebalanceados |
+| 149 | feedTags roto (busqueda en claveCache)                | ✅ busqueda fuera de claveCache, limpiarTags removido de efecto cache en FeedSamples |
+| 150 | Hover tooltip reacciones se desactiva | ✅ `::before` puente invisible en `.contenedorReacciones:hover` cubre gap 8px entre botón y tooltip. Sin esto, `pointer-events:none` (no animable) se aplica antes de que el mouse alcance el tooltip |
 151. El sample en panelLateral no se reproduce, la waveform alli debería funcionar también.
 152. Haz una variante de badge con borde, y que los badge de panelDetalleTags tengan borde (--bordeSutil)
 153. En tarjetaSample panelDetalleTarjetaMini Hay que dejar solo el nombre, y abajo los tagas, quitar la wave, y el icono de 3 puntos. Por cierto en panelDetalleTarjetaMini no funcionan los 3 puntos. Seguir poder reproduciendo a dar click a la portada.
@@ -492,6 +493,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 156. Quita "También te podría gustar" debajo de los detalles del sample, solo ver "También te podría gustar" cuando se da like si la opcion esta activa. Tambien, poder abrir "También te podría gustar" con un boton el menu contextual de 3 puntos.
 157. Cuando un sample ya este descargado, el boton de descarga tiene que estar de color acento.
 158. remplazar la X de panelDetalleCerrar por un icono mas acorde.
+1
 
 
 ---
@@ -526,3 +528,4 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [C144/C145 Reacciones]: UPSERT con ON CONFLICT DO UPDATE SET reaccion. total_likes solo cuenta 'like'+'encanta' (no dislike). Algoritmo: encanta=2x, like=1x, dislike=-1 solo en trends, excluido en profile/behavior. Frontend: TooltipReacciones hover con 3 iconos, 3-branch manejarLike (reaccion/quitar/simple). Delta calc: solo like+encanta suman a totalLikes.
 - [C146 Créditos]: Backend devuelve `usadas`/`limite`, frontend esperaba `credits_used`/`credits_limit`. Siempre verificar nombres de campos entre backend y frontend.
 - [C138 Descargas]: DescargasController necesita 3 checks: esPropietario (creador_id), yaDescargado (EXISTS en descargas), consumeCredito (solo si no es propietario ni ya descargado).
+- [C150 Tooltip hover gap]: `pointer-events` NO es animable — cambia instantáneamente. Un gap CSS entre trigger y tooltip (bottom: calc(100%+N)) causa zona muerta donde el mouse pierde hover y `pointer-events:none` bloquea el tooltip. Fix: `::before` pseudo-element en el contenedor que extiende el área hover para cubrir el gap.

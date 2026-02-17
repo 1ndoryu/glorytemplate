@@ -9,6 +9,21 @@
     display: inline-flex;
 }
 
+/*
+ * Puente invisible: extiende el area hover del contenedor
+ * para cubrir el gap de 8px entre el boton y el tooltip.
+ * Sin esto, pointer-events:none se aplica al tooltip antes
+ * de que el mouse lo alcance (C150 fix).
+ */
+.contenedorReacciones:hover::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: -4px;
+    right: -4px;
+    height: 12px;
+}
+
 .tooltipReacciones {
     position: absolute;
     bottom: calc(100% + 8px);
