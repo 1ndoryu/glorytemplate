@@ -1,10 +1,10 @@
 /*
  * Componente: ListaComentarios — Kamples
  * Lista de comentarios con input para escribir nuevos.
- * Usado en publicaciones y detalle de samples.
+ * C129: Paginación infinita con IntersectionObserver + límite de renderizado.
  */
 
-import { useState, useCallback, useRef, type KeyboardEvent } from 'react';
+import { useState, useCallback, useRef, useEffect, type KeyboardEvent } from 'react';
 import { Send } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { useAuthStore } from '@app/stores/authStore';
@@ -18,6 +18,9 @@ interface ListaComentariosProps {
     onClickAutor?: (username: string) => void;
     maxVisibles?: number;
     className?: string;
+    /* C129: Paginación infinita */
+    onCargarMas?: () => void;
+    hayMasPaginas?: boolean;
 }
 
 /* Formatear fecha relativa */
@@ -40,11 +43,14 @@ export const ListaComentarios = ({
     onClickAutor,
     maxVisibles = 5,
     className = '',
+    onCargarMas,
+    hayMasPaginas = false,
 }: ListaComentariosProps): JSX.Element => {
     const { usuario, autenticado } = useAuthStore();
     const [textoNuevo, setTextoNuevo] = useState('');
     const [mostrarTodos, setMostrarTodos] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const sentinelaRef = useRef<HTMLDivElement>(null);
 
     const manejarEnviar = useCallback(() => {
         const texto = textoNuevo.trim();
@@ -65,8 +71,24 @@ export const ListaComentarios = ({
     );
 
     const visibles = mostrarTodos ? comentarios : comentarios.slice(0, maxVisibles);
-    const hayMas = comentarios.length > maxVisibles && !mostrarTodos;
+    const hayMasLocales = comentarios.length > maxVisibles && !mostrarTodos;
     const clases = ['listaComentarios', className].filter(Boolean).join(' ');
+
+    /* C129: IntersectionObserver para cargar más al llegar al fondo */
+    useEffect(() => {
+        if (!mostrarTodos || !hayMasPaginas || !onCargarMas || cargando) return;
+        const sentinela = sentinelaRef.current;
+        if (!sentinela) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) onCargarMas();
+            },
+            { rootMargin: '100px' }
+        );
+        observer.observe(sentinela);
+        return () => observer.disconnect();
+    }, [mostrarTodos, hayMasPaginas, onCargarMas, cargando]);
 
     return (
         <div className={clases}>
@@ -108,8 +130,8 @@ export const ListaComentarios = ({
                 </div>
             )}
 
-            {/* Ver más */}
-            {hayMas && (
+            {/* Ver más locales (ya cargados pero ocultos) */}
+            {hayMasLocales && (
                 <button
                     className="comentariosVerMas"
                     onClick={() => setMostrarTodos(true)}
@@ -117,6 +139,13 @@ export const ListaComentarios = ({
                 >
                     Ver {comentarios.length - maxVisibles} comentarios más
                 </button>
+            )}
+
+            {/* C129: Sentinela para infinite scroll — carga más del backend */}
+            {mostrarTodos && hayMasPaginas && (
+                <div ref={sentinelaRef} className="comentariosSentinela">
+                    {cargando && <span className="comentariosCargando">Cargando…</span>}
+                </div>
             )}
 
             {/* Input para nuevo comentario */}

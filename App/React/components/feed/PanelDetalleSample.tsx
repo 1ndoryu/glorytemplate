@@ -45,7 +45,10 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
     const [progresoAudio, setProgresoAudio] = useState(0);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const { comentarios, cargando: cargandoComentarios, enviar: enviarComentario } = useComentarios({
+    const {
+        comentarios, cargando: cargandoComentarios, enviar: enviarComentario,
+        cargarMas: cargarMasComentarios, hayMas: hayMasComentarios,
+    } = useComentarios({
         tipo: 'sample',
         targetId: sample.id,
         cargarAlAbrir: comentariosVisibles,
@@ -337,6 +340,8 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                         onEnviar={enviarComentario}
                         onClickAutor={(username) => navegar(`/perfil/${username}/`)}
                         maxVisibles={5}
+                        onCargarMas={cargarMasComentarios}
+                        hayMasPaginas={hayMasComentarios}
                     />
                 </div>
             )}
