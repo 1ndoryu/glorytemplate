@@ -372,12 +372,12 @@ Cannot read properties of undefined (reading 'length')
 200. Veo inconsistencias a la informacion de las suscripciones entre el modal y la configuracion de stripe, la del modal es la info actualizad.
 201. apiCliente.ts:96   POST http://glory.local/wp-json/kamples/v1/comentarios/sample/18 400 (Bad Request) cuando intento subir un audio en los comentarios, los audios en los comentarios por cierto tienen que ser ligeros mp3 y verse en forma de waveform
 202. Auditar la seguridad de los audios, que sea dificil descargar los audios originales adivinando url, y que sea dificil descargar los mp3 ligeros tambien, rate limits, auditorias, etc, sin bloquear o dañar la reproducción de audios
-203. Tarea para el agente del minidaw: Cuando el mezclador se abra, quitar el padding de panelLateralInterno, y abarcar el ancho completo.
-204. Tarea para el agente del minidaw: poder estirar los audios (cambiar el pitch y duración o sea contraer y extirar)
-205. Tarea para el agente del minidaw: poder mover los audios arrastrados verticalmente, no se pueden mover o es dificil, por ejemplo poder mover del compas 1 para que comience el 2.
-206. Tarea para el agente del minidaw: poder mover los audios entre las lineas de tiempo.
-207. Tarea para el agente del minidaw: el audio en la linea de tiempo no se reproduce completo, no se por qué.
-208. Tarea para el agente del minidaw: Poder subir audios desde la pc.
+203. ✅ Padding eliminado en panelLateralInterno cuando mezclador abierto — clase condicional `panelLateralSinPadding`.
+204. ✅ Stretch/pitch: handle de resize derecho en BloqueSample con document-level listeners. Al estirar, recalcula playbackRate automáticamente. setDuracionBloque() en store.
+205. ✅ Drag horizontal robusto con document.addEventListener('mousemove'/'mouseup'). Offset de click calculado para mover preciso. Snap a beat.
+206. ✅ Drag entre pistas: detectarPista(clientY) identifica pista destino por Y. moverBloque() ya soportaba cross-track. Visual: pistaIdHover con clase mezcladorPistaDragHover.
+207. ✅ Fix audio incompleto: inferirCompas usaba duracionSample cruda sin ajustar por playbackRate. Con samples de BPM < proyecto, el bloque visual era más largo que el audio real. Fix: usar `duracionSample / playbackRate` para calcular compasesSample.
+208. ✅ Subir audios desde PC: botón FolderUp en ControlesMezclador, input[type=file] oculto, FileReader→ArrayBuffer→decodeAudioData. motorAudioService.decodificarBufferLocal() + agregarAudioLocal() en store crea pseudo-SampleResumen.
 209. Tarea para el agente del minidaw: Mejorar el arrastre de samples al minidaw, se ve feo, tiene que ser especial, no generico del explorador.
 210. Dejaron de aparecer sugerencias cuando doy like, no se por qué. (no se si es por 212 y estaba cargando react con el error de fondo, creo que si)
 211. Borrar el boton de experimentosContenedor
@@ -440,4 +440,8 @@ Cannot read properties of undefined (reading 'length')
 - [C184]: Drag-to-mixer: usar `dataTransfer.setData('application/kamples-sample', JSON.stringify(sample))` + CustomEvent como fallback.
 - [C184]: PipelineAudio IA: FFmpeg `-t 20 -codec:a libmp3lame -b:a 128k -ac 1 -ar 22050` genera MP3 ~10x más pequeño que WAV original para enviar a Groq.
 - [C184]: `KamplesLogger` usa `::warning()` no `::warn()`. Verificar métodos antes de usar.
+- [C205]: Drag en timeline: React onMouseMove/onMouseUp solo funciona dentro del componente. Para drag libre, usar document.addEventListener en useEffect limpiado por return. Refs para leer estado actual en closures de event listeners.
+- [C207]: inferirCompas debe calcular compasesSample con duración ajustada (duracionSample/playbackRate), no duración cruda. Sin esto, bloques con playbackRate>1 se cortan antes de terminar.
+- [C204]: Stretch = cambiar duracionCompases del bloque. playbackRate = buffer.duration / (durCompases * durCompas). Clamped [0.25, 4.0].
+- [C208]: Para audio local: File.arrayBuffer() + AudioContext.decodeAudioData(). Crear pseudo-SampleResumen con id negativo (-Date.now()) para distinguir de samples del servidor.
 - [WP API]: `wp_handle_upload()` vive en `wp-admin/includes/file.php` — NO se carga en contexto REST API. Siempre hacer `if (!function_exists('wp_handle_upload')) require_once ABSPATH.'wp-admin/includes/file.php'` antes de usarlo. SamplesController lo tenía, Comentarios y Mensajes no.
