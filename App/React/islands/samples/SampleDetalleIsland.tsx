@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import {
     Badge,
-    Avatar,
     BotonBase,
 } from '@app/components/ui';
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
@@ -28,6 +27,7 @@ import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonFollow } from '@app/components/social/BotonFollow';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
+import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { obtenerSample, listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { TipoReaccion } from '@app/types';
@@ -401,21 +401,14 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
             <article className="detalleTarjetaUnica">
                 {sample.creador && (
                     <div className="detalleCabeceraInterna">
-                        <button
+                        <EnlaceCreador
+                            username={sample.creador.username}
+                            nombreVisible={sample.creador.nombreVisible}
+                            avatarUrl={sample.creador.avatarUrl}
+                            tamanoAvatar="md"
+                            mostrarUsername
                             className="detalleCabeceraPost"
-                            onClick={() => navegar(`/perfil/${sample.creador?.username}/`)}
-                            type="button"
-                        >
-                            <Avatar
-                                src={sample.creador.avatarUrl}
-                                nombre={sample.creador.nombreVisible}
-                                tamano="md"
-                            />
-                            <div className="detalleCreadorTexto">
-                                <strong>{sample.creador.nombreVisible}</strong>
-                                <span>@{sample.creador.username}</span>
-                            </div>
-                        </button>
+                        />
                         {!esPropietario && sample.creador && (
                             <BotonFollow
                                 usuarioId={sample.creador.id}

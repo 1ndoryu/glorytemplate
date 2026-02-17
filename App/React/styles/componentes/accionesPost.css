@@ -1,0 +1,63 @@
+/*
+ * accionesPost.css — Estilos compartidos para barra de acciones de publicaciones.
+ * Unifica comunidadPostAccionBtn y tarjetaPubAccionBtn en una sola fuente de verdad.
+ */
+
+.accionesPostBarra {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioLg);
+    padding-top: var(--espacioSm);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.accionesPostBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    transition: all var(--transicionRapida);
+}
+
+.accionesPostBtn:hover {
+    color: var(--textoSecundario);
+    background-color: var(--fondoElevado2);
+}
+
+/* Like activo */
+.accionesPostLiked {
+    color: var(--error);
+}
+
+.accionesPostLiked:hover {
+    color: var(--blanco);
+}
+
+/* Repost activo */
+.accionesPostReposteado {
+    color: var(--exito);
+}
+
+.accionesPostReposteado:hover {
+    color: var(--exito);
+}
+
+/* Reacciones especiales (heredadas del sistema 3 reacciones) */
+.reaccionPrincipalEncanta {
+    color: var(--error);
+}
+
+.reaccionPrincipalDislike {
+    color: var(--textoTerciario);
+    opacity: 0.7;
+}
+
+.reaccionPrincipalLike {
+    color: var(--acento-blanco);
+}

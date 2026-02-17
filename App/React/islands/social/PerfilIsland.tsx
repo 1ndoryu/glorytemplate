@@ -13,6 +13,7 @@ import {BotonBase} from '../../components/ui/BotonBase';
 import {TarjetaSample} from '../../components/ui/TarjetaSample';
 import {MenuContextual} from '../../components/ui/MenuContextual';
 import {BotonFollow} from '../../components/social/BotonFollow';
+import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
 import {SeccionPublicar} from '../../components/social/SeccionPublicar';
 import {obtenerPerfil} from '../../services/apiAuth';
 import {listarSamples} from '../../services/apiSamples';
@@ -439,20 +440,7 @@ export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.E
                                                 ))}
                                             </div>
                                         )}
-                                        <div className="comunidadPostAcciones">
-                                            <button className={`comunidadPostAccionBtn ${post.liked ? 'comunidadPostAccionActiva' : ''}`} type="button">
-                                                <Heart size={16} fill={post.liked ? 'currentColor' : 'none'} />
-                                                <span>{post.totalLikes}</span>
-                                            </button>
-                                            <button className="comunidadPostAccionBtn" type="button">
-                                                <MessageCircle size={16} />
-                                                <span>{post.totalComentarios}</span>
-                                            </button>
-                                            <button className="comunidadPostAccionBtn" type="button">
-                                                <Repeat2 size={16} />
-                                                <span>{post.totalReposts}</span>
-                                            </button>
-                                        </div>
+                                        <BarraAccionesPost publicacion={post} mostrarCeroConteo />
                                     </article>
                                 ))}
                             </div>

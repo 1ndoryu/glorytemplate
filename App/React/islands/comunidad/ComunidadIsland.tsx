@@ -14,6 +14,8 @@ import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
+import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
+import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useAuthStore } from '@app/stores/authStore';
@@ -290,26 +292,15 @@ const ComunidadBase = (): JSX.Element => {
                         <article key={post.id} className="comunidadPost">
                             {/* Header del post */}
                             <div className="comunidadPostHeader">
-                                <button
-                                    className="comunidadPostAutor"
-                                    onClick={() => navegar(`/perfil/${post.autor.username}/`)}
-                                    type="button"
-                                >
-                                    <Avatar
-                                        nombre={post.autor.nombreVisible}
-                                        src={post.autor.avatarUrl ?? undefined}
-                                        tamano="sm"
-                                    />
-                                    <div className="comunidadPostAutorInfo">
-                                        <span className="comunidadPostNombre">
-                                            {post.autor.nombreVisible}
-                                            {post.autor.verificado && <Badge variante="acento" tamano="xs">✓</Badge>}
-                                        </span>
-                                        <span className="comunidadPostTiempo">
-                                            @{post.autor.username} · {formatearTiempoRelativo(post.creadoAt)}
-                                        </span>
-                                    </div>
-                                </button>
+                                <EnlaceCreador
+                                    username={post.autor.username}
+                                    nombreVisible={post.autor.nombreVisible}
+                                    avatarUrl={post.autor.avatarUrl}
+                                    tamanoAvatar="sm"
+                                    mostrarUsername
+                                    verificado={post.autor.verificado}
+                                    meta={formatearTiempoRelativo(post.creadoAt)}
+                                />
                                 {/* C127: Botón menú 3 puntos */}
                                 <button
                                     className="comunidadPostMenuBtn"
@@ -347,39 +338,15 @@ const ComunidadBase = (): JSX.Element => {
                                 </div>
                             )}
 
-                            {/* Acciones del post */}
-                            <div className="comunidadPostAcciones">
-                                <TooltipReacciones
-                                    reaccionActual={post.reaccion}
-                                    onReaccionar={(reaccion) => manejarLikePost(post.id, reaccion)}
-                                    onQuitar={() => manejarLikePost(post.id)}
-                                >
-                                    <button
-                                        className={`comunidadPostAccionBtn ${post.liked ? 'comunidadPostAccionActiva' : ''} ${
-                                            post.reaccion === 'encanta' ? 'reaccionPrincipalEncanta' :
-                                            post.reaccion === 'dislike' ? 'reaccionPrincipalDislike' :
-                                            post.reaccion === 'like' ? 'reaccionPrincipalLike' : ''
-                                        }`}
-                                        onClick={() => manejarLikePost(post.id)}
-                                        type="button"
-                                    >
-                                        <Heart size={16} fill={post.liked ? 'currentColor' : 'none'} />
-                                        <span>{post.totalLikes}</span>
-                                    </button>
-                                </TooltipReacciones>
-                                <button className="comunidadPostAccionBtn" type="button" onClick={() => alternarComentarios(post.id)}>
-                                    <MessageCircle size={16} />
-                                    <span>{post.totalComentarios}</span>
-                                </button>
-                                <button
-                                    className={`comunidadPostAccionBtn ${post.reposteado ? 'comunidadPostAccionActiva' : ''}`}
-                                    onClick={() => manejarRepost(post.id)}
-                                    type="button"
-                                >
-                                    <Repeat2 size={16} />
-                                    <span>{post.totalReposts}</span>
-                                </button>
-                            </div>
+                            {/* C85: Acciones del post (componente centralizado) */}
+                            <BarraAccionesPost
+                                publicacion={post}
+                                onLike={(id, reaccion) => manejarLikePost(id, reaccion)}
+                                onQuitarLike={(id) => manejarLikePost(id)}
+                                onComentar={(id) => alternarComentarios(id)}
+                                onRepost={(id) => manejarRepost(id)}
+                                mostrarCeroConteo
+                            />
 
                             {/* Comentarios expandibles */}
                             {comentariosAbiertos.has(post.id) && (

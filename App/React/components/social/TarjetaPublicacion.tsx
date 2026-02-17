@@ -9,7 +9,7 @@ import { Heart, MessageCircle, Repeat2 } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
-import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
+import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
 import { useAuthStore } from '@app/stores/authStore';
 import type { Publicacion, SampleResumen, TipoReaccion } from '@app/types';
 import '../../styles/componentes/tarjetaPublicacion.css';
@@ -180,54 +180,14 @@ export const TarjetaPublicacion = ({
                 </div>
             )}
 
-            {/* Acciones: like, comentar, repost */}
-            <div className="tarjetaPubAcciones">
-                <TooltipReacciones
-                    reaccionActual={publicacion.reaccion}
-                    onReaccionar={manejarReaccion}
-                    onQuitar={manejarQuitarReaccion}
-                >
-                    <button
-                        className={`tarjetaPubAccionBtn ${publicacion.liked ? 'tarjetaPubAccionLiked' : ''} ${
-                            publicacion.reaccion === 'encanta' ? 'reaccionPrincipalEncanta' :
-                            publicacion.reaccion === 'dislike' ? 'reaccionPrincipalDislike' :
-                            publicacion.reaccion === 'like' ? 'reaccionPrincipalLike' : ''
-                        }`}
-                        onClick={manejarLike}
-                        type="button"
-                        aria-label={publicacion.liked ? 'Quitar like' : 'Dar like'}
-                    >
-                        <Heart size={16} fill={publicacion.liked ? 'currentColor' : 'none'} />
-                        {publicacion.totalLikes > 0 && (
-                            <span>{formatearNumero(publicacion.totalLikes)}</span>
-                        )}
-                    </button>
-                </TooltipReacciones>
-
-                <button
-                    className="tarjetaPubAccionBtn"
-                    onClick={manejarComentar}
-                    type="button"
-                    aria-label="Comentar"
-                >
-                    <MessageCircle size={16} />
-                    {publicacion.totalComentarios > 0 && (
-                        <span>{formatearNumero(publicacion.totalComentarios)}</span>
-                    )}
-                </button>
-
-                <button
-                    className={`tarjetaPubAccionBtn ${publicacion.reposteado ? 'tarjetaPubAccionReposteado' : ''}`}
-                    onClick={manejarRepost}
-                    type="button"
-                    aria-label={publicacion.reposteado ? 'Quitar repost' : 'Repostear'}
-                >
-                    <Repeat2 size={16} />
-                    {publicacion.totalReposts > 0 && (
-                        <span>{formatearNumero(publicacion.totalReposts)}</span>
-                    )}
-                </button>
-            </div>
+            {/* C85: Acciones centralizadas */}
+            <BarraAccionesPost
+                publicacion={publicacion}
+                onLike={onLike ? (id, reaccion) => onLike(id, reaccion) : undefined}
+                onQuitarLike={onLike ? (id) => onLike(id) : undefined}
+                onComentar={onComentar}
+                onRepost={onRepost}
+            />
         </article>
     );
 };

@@ -7,7 +7,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, MoreHorizontal, Link2, Trash2, Flag } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
-import { Avatar } from '@app/components/ui/Avatar';
+import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -269,18 +269,13 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                     )}
                     <div className="coleccionMeta">
                         {coleccion.usuario && (
-                            <button
+                            <EnlaceCreador
+                                username={coleccion.usuario.username}
+                                nombreVisible={coleccion.usuario.nombreVisible}
+                                avatarUrl={coleccion.usuario.avatarUrl ?? undefined}
+                                tamanoAvatar="xs"
                                 className="coleccionCreador"
-                                onClick={() => navegar(`/perfil/${coleccion.usuario!.username}/`)}
-                                type="button"
-                            >
-                                <Avatar
-                                    nombre={coleccion.usuario.nombreVisible}
-                                    src={coleccion.usuario.avatarUrl ?? undefined}
-                                    tamano="xs"
-                                />
-                                <span>{coleccion.usuario.nombreVisible}</span>
-                            </button>
+                            />
                         )}
                         <span className="coleccionStats">
                             {coleccion.totalSamples} samples

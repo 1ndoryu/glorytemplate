@@ -7,7 +7,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Heart, Download, Lock, PanelRightClose, MessageCircle } from 'lucide-react';
-import { Avatar } from '@app/components/ui/Avatar';
+import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
@@ -241,18 +241,12 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
         <div className="panelDetalle">
             {/* Cabecera con boton cerrar — C158: PanelRightClose en vez de X */}
             <div className="panelDetalleCabecera">
-                <button
+                <EnlaceCreador
+                    username={sample.creador.username}
+                    nombreVisible={sample.creador.nombreVisible}
+                    avatarUrl={sample.creador.avatarUrl}
                     className="panelDetalleAutor"
-                    onClick={() => navegar(`/perfil/${sample.creador.username}/`)}
-                    type="button"
-                >
-                    <Avatar
-                        src={sample.creador.avatarUrl}
-                        nombre={sample.creador.nombreVisible}
-                        tamano="sm"
-                    />
-                    <span>{sample.creador.nombreVisible}</span>
-                </button>
+                />
                 <button className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label="Cerrar panel">
                     <PanelRightClose size={16} />
                 </button>
