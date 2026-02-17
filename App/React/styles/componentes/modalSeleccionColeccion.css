@@ -14,6 +14,11 @@
     background-color: var(--overlay);
 }
 
+/* C182: Modo contextual — overlay transparente, panel posicionado por JS */
+.seleccionColeccionOverlayContextual {
+    background-color: transparent;
+}
+
 /* Panel sin cabecera */
 .seleccionColeccionPanel {
     width: 320px;

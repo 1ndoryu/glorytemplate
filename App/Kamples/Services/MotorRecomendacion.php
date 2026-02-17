@@ -42,7 +42,8 @@ class MotorRecomendacion
      * Uso: reemplazar `s.tags` por `({alias}_enriquecido)` y `UNNEST(s.tags)` por `UNNEST({alias}_enriquecido)`.
      * Alias del sample debe ser el proporcionado (ej: 's', 's2').
      */
-    private static function sqlTagsEnriquecidos(string $alias): string
+    /* C181: Hecho público para reutilizar en ColeccionesController */
+    public static function sqlTagsEnriquecidos(string $alias): string
     {
         return "(
             COALESCE({$alias}.tags, ARRAY[]::text[])

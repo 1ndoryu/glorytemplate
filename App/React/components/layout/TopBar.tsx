@@ -64,6 +64,10 @@ export const TopBar = (): JSX.Element => {
         setBusqueda(valor);
     }, [setBusqueda]);
 
+    /* C169: Placeholder dinámico según la isla actual */
+    const islaActual = useNavigationStore(s => s.islaActual);
+    const placeholderBusqueda = islaActual === 'LibreriaIsland' ? 'Buscar en librería...' : 'Buscar samples...';
+
     const manejarClickAvatar = useCallback((e?: React.MouseEvent) => {
         if (!e) return;
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -139,7 +143,7 @@ export const TopBar = (): JSX.Element => {
 
             <div className="topbarBusqueda">
                 <InputBusqueda
-                    placeholder="Buscar samples..."
+                    placeholder={placeholderBusqueda}
                     valor={busqueda}
                     onChange={manejarBusqueda}
                 />
@@ -253,7 +257,7 @@ export const TopBar = (): JSX.Element => {
                     >
                         <div className="topbarBusquedaModalContenido">
                             <InputBusqueda
-                                placeholder="Buscar samples..."
+                                placeholder={placeholderBusqueda}
                                 valor={busqueda}
                                 onChange={manejarBusqueda}
                                 autoFocus

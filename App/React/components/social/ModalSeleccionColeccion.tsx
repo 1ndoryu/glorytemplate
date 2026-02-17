@@ -22,7 +22,7 @@ import '../../styles/componentes/modalSeleccionColeccion.css';
 const log = crearLogger('ModalSeleccionColeccion');
 
 export const ModalSeleccionColeccion = (): JSX.Element | null => {
-    const { abierto, sample, cerrar } = useColeccionPickerStore();
+    const { abierto, sample, posicion, cerrar } = useColeccionPickerStore();
 
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
     const [cargando, setCargando] = useState(false);
@@ -144,9 +144,28 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
 
     if (!abierto || !sample) return null;
 
+    /*
+     * C182: Si hay posición, calcular top/left ajustados al viewport.
+     * El panel ocupa ~280px ancho y ~350px alto max.
+     */
+    const estiloPanel: React.CSSProperties | undefined = posicion
+        ? {
+            position: 'fixed',
+            top: Math.min(posicion.y, window.innerHeight - 360),
+            left: Math.min(posicion.x, window.innerWidth - 290),
+        }
+        : undefined;
+
     return (
-        <div className="seleccionColeccionOverlay" onClick={cerrar}>
-            <div className="seleccionColeccionPanel" onClick={(e) => e.stopPropagation()}>
+        <div
+            className={`seleccionColeccionOverlay ${posicion ? 'seleccionColeccionOverlayContextual' : ''}`}
+            onClick={cerrar}
+        >
+            <div
+                className="seleccionColeccionPanel"
+                style={estiloPanel}
+                onClick={(e) => e.stopPropagation()}
+            >
                 {/* Buscador arriba (C107) */}
                 <div className="seleccionColeccionBuscador">
                     <Search size={14} className="seleccionColeccionBuscadorIcono" />

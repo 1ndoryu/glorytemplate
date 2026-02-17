@@ -78,6 +78,26 @@
     color: var(--textoTerciario);
 }
 
+/* C170: Chips de metadata IA */
+.editarMetadataChips {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.editarMetadataLabel {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.editarChipsFila {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioXs);
+}
+
 /* Responsive */
 @media (max-width: 480px) {
     .editarFilaDoble {

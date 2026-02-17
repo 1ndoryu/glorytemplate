@@ -81,12 +81,19 @@ export const useEditar = (
     const [formularioColeccion, setFormularioColeccion] = useState<FormularioColeccion>(coleccionInicial);
     const [guardando, setGuardando] = useState(false);
 
-    /* Pre-rellenar formularios con datos actuales */
+    /* Pre-rellenar formularios con datos actuales — C170: cargar descripcion real */
     useEffect(() => {
         if (tipo === 'sample' && sample) {
+            /* C170: Extraer descripcion limpia (sin hashtags que ya son tags) */
+            const descBruta = sample.descripcion || '';
+            const descLimpia = descBruta
+                .replace(/#\w+/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+
             setFormularioSample({
                 titulo: sample.titulo || '',
-                descripcion: '', /* SampleResumen no tiene descripcion, se edita lo disponible */
+                descripcion: descLimpia,
                 tags: Array.isArray(sample.tags) ? sample.tags.join(', ') : '',
                 tipo: sample.tipo || 'loop',
                 esPremium: sample.esPremium || false,

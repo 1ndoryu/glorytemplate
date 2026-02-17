@@ -1,0 +1,60 @@
+/*
+ * filaColecciones.css — Kamples (C180)
+ * Fila horizontal de colecciones con scroll invisible.
+ */
+
+.filaColecciones {
+    display: flex;
+    gap: var(--espacioSm);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: var(--espacioXs);
+}
+
+.filaColecciones::-webkit-scrollbar {
+    display: none;
+}
+
+.filaColeccionChip {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    background-color: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background-color var(--transicionRapida), border-color var(--transicionRapida);
+    color: var(--textoPrimario);
+    font-family: var(--fuentePrincipal);
+    font-size: var(--fuenteSm);
+}
+
+.filaColeccionChip:hover {
+    background-color: var(--fondoHover);
+    border-color: var(--bordeActivo);
+}
+
+.filaColeccionImg {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radioSm);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.filaColeccionNombre {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: var(--pesoMedio);
+}
+
+.filaColeccionMeta {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}

@@ -38,16 +38,21 @@ const normalizarLista = (data: any[]): Coleccion[] =>
     Array.isArray(data) ? data.map(normalizarColeccion) : [];
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-/* Listar colecciones del usuario (o de otro si se pasa usuarioId) */
-export const listarColecciones = async (usuarioId?: number): Promise<RespuestaApi<Coleccion[]>> => {
-    const resp = await apiGet<Coleccion[]>('/colecciones', usuarioId ? { usuario_id: usuarioId } : {});
+/* Listar colecciones del usuario (o de otro si se pasa usuarioId) — C169: con búsqueda */
+export const listarColecciones = async (usuarioId?: number, busqueda?: string): Promise<RespuestaApi<Coleccion[]>> => {
+    const params: Record<string, string | number | boolean | undefined> = {};
+    if (usuarioId) params.usuario_id = usuarioId;
+    if (busqueda) params.busqueda = busqueda;
+    const resp = await apiGet<Coleccion[]>('/colecciones', params);
     if (resp.ok && resp.data) resp.data = normalizarLista(resp.data);
     return resp;
 };
 
-/* Colecciones públicas para explorar */
-export const listarColeccionesPublicas = async (): Promise<RespuestaApi<Coleccion[]>> => {
-    const resp = await apiGet<Coleccion[]>('/colecciones/explorar');
+/* Colecciones públicas para explorar — C169: con búsqueda */
+export const listarColeccionesPublicas = async (busqueda?: string): Promise<RespuestaApi<Coleccion[]>> => {
+    const params: Record<string, string | number | boolean | undefined> = {};
+    if (busqueda) params.busqueda = busqueda;
+    const resp = await apiGet<Coleccion[]>('/colecciones/explorar', params);
     if (resp.ok && resp.data) resp.data = normalizarLista(resp.data);
     return resp;
 };

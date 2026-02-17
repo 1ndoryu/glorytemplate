@@ -25,6 +25,7 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
+use App\Kamples\Services\MotorRecomendacion;
 
 class ColeccionesController
 {
@@ -87,34 +88,126 @@ class ColeccionesController
         ]);
     }
 
-    public static function listar(): \WP_REST_Response
+    /* C169: Soporte busqueda en mis colecciones */
+    public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
+        $busqueda = sanitize_text_field($request->get_param('busqueda') ?? '');
+        $params = ['userId' => $userId];
+        $where = 'c.usuario_id = :userId';
+
+        if (!empty($busqueda)) {
+            $where .= ' AND (c.nombre ILIKE :busqueda OR c.descripcion ILIKE :busqueda)';
+            $params['busqueda'] = '%' . $busqueda . '%';
+        }
+
         $colecciones = PostgresService::consultar(
             "SELECT c.*, (SELECT COUNT(*) FROM coleccion_samples cs WHERE cs.coleccion_id = c.id) as total_items
-             FROM colecciones c WHERE c.usuario_id = :userId ORDER BY c.updated_at DESC",
-            ['userId' => $userId]
+             FROM colecciones c WHERE {$where} ORDER BY c.updated_at DESC",
+            $params
         );
 
         return new \WP_REST_Response(['data' => $colecciones], 200);
     }
 
+    /*
+     * C169: Soporte busqueda + C181: Algoritmo de relevancia personalizada.
+     * Si el usuario está autenticado, ordena por afinidad de tags.
+     * Sino, ordena por updated_at DESC (fallback).
+     */
     public static function explorar(\WP_REST_Request $request): \WP_REST_Response
     {
         $page = (int) $request->get_param('page');
         $offset = ($page - 1) * 20;
+        $busqueda = sanitize_text_field($request->get_param('busqueda') ?? '');
+        $userId = UsuarioHelper::obtenerIdPg();
 
-        $colecciones = PostgresService::consultar(
-            "SELECT c.*, u.username, u.nombre_visible, u.avatar_url,
-                    (SELECT COUNT(*) FROM coleccion_samples cs WHERE cs.coleccion_id = c.id) as total_items
-             FROM colecciones c
-             JOIN usuarios_ext u ON c.usuario_id = u.id
-             WHERE c.publica = true AND (SELECT COUNT(*) FROM coleccion_samples cs WHERE cs.coleccion_id = c.id) > 0
-             ORDER BY c.updated_at DESC LIMIT 20 OFFSET :offset",
-            ['offset' => $offset]
-        );
+        $params = ['offset' => $offset];
+        $whereBusqueda = '';
+
+        if (!empty($busqueda)) {
+            $whereBusqueda = ' AND (c.nombre ILIKE :busqueda OR c.descripcion ILIKE :busqueda)';
+            $params['busqueda'] = '%' . $busqueda . '%';
+        }
+
+        /*
+         * C181: Si hay usuario autenticado, score por afinidad de tags.
+         * CTE user_tags: top 15 tags del usuario (likes ponderados).
+         * CTE coleccion_tags: tags agregados de cada coleccion.
+         * Score: interseccion de tags normalizada + follow boost + frescura.
+         */
+        if ($userId) {
+            $params['userId'] = $userId;
+            $tagsLiked = MotorRecomendacion::sqlTagsEnriquecidos('s_l');
+
+            $sql = "
+                WITH user_tags AS (
+                    SELECT tag, SUM(peso) as afinidad
+                    FROM (
+                        SELECT UNNEST({$tagsLiked}) as tag,
+                               CASE WHEN l.reaccion = 'encanta' THEN 2.0 ELSE 1.0 END as peso
+                        FROM likes l
+                        JOIN samples s_l ON l.target_id = s_l.id
+                        WHERE l.usuario_id = :userId AND l.tipo = 'sample'
+                          AND l.reaccion IN ('like','encanta')
+                        LIMIT 200
+                    ) liked_tags
+                    GROUP BY tag ORDER BY afinidad DESC LIMIT 15
+                ),
+                coleccion_tags AS (
+                    SELECT cs.coleccion_id,
+                           array_agg(DISTINCT tag_val) as todos_tags,
+                           COUNT(DISTINCT cs.sample_id) as items
+                    FROM coleccion_samples cs
+                    JOIN samples s_c ON cs.sample_id = s_c.id
+                    CROSS JOIN LATERAL UNNEST(s_c.tags) as tag_val
+                    WHERE s_c.estado = 'activo'
+                    GROUP BY cs.coleccion_id
+                )
+                SELECT c.*, u.username, u.nombre_visible, u.avatar_url,
+                       COALESCE(ct.items, 0) as total_items,
+                       COALESCE((
+                           SELECT SUM(ut.afinidad)
+                           FROM user_tags ut
+                           WHERE ut.tag = ANY(ct.todos_tags)
+                       ), 0) / GREATEST(1.0, array_length(ct.todos_tags, 1)::float) as tag_score,
+                       CASE WHEN EXISTS(
+                           SELECT 1 FROM follows WHERE seguidor_id = :userId AND seguido_id = c.usuario_id
+                       ) THEN 1.3 ELSE 1.0 END as follow_boost,
+                       1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - c.updated_at) / 86400.0) as frescura
+                FROM colecciones c
+                JOIN usuarios_ext u ON c.usuario_id = u.id
+                LEFT JOIN coleccion_tags ct ON ct.coleccion_id = c.id
+                WHERE c.publica = true
+                  AND COALESCE(ct.items, (SELECT COUNT(*) FROM coleccion_samples cs2 WHERE cs2.coleccion_id = c.id)) > 0
+                  {$whereBusqueda}
+                ORDER BY (
+                    COALESCE(tag_score, 0) * 0.60
+                    * follow_boost
+                    + frescura * 0.20
+                    + LEAST(COALESCE(ct.items, 0)::float / 20.0, 1.0) * 0.20
+                ) DESC,
+                c.updated_at DESC
+                LIMIT 20 OFFSET :offset
+            ";
+        } else {
+            /* Sin usuario: orden por actualización */
+            $sql = "
+                SELECT c.*, u.username, u.nombre_visible, u.avatar_url,
+                       (SELECT COUNT(*) FROM coleccion_samples cs WHERE cs.coleccion_id = c.id) as total_items
+                FROM colecciones c
+                JOIN usuarios_ext u ON c.usuario_id = u.id
+                WHERE c.publica = true
+                  AND (SELECT COUNT(*) FROM coleccion_samples cs WHERE cs.coleccion_id = c.id) > 0
+                  {$whereBusqueda}
+                ORDER BY c.updated_at DESC
+                LIMIT 20 OFFSET :offset
+            ";
+        }
+
+        $colecciones = PostgresService::consultar($sql, $params);
 
         return new \WP_REST_Response(['data' => $colecciones], 200);
     }

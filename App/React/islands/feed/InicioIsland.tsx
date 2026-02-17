@@ -20,6 +20,7 @@ import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useHistorialIds } from '@app/hooks/useHistorialIds';
 import { useFiltroIds } from '@app/hooks/useFiltroIds';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
+import { FilaColecciones } from '@app/components/social/FilaColecciones';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/inicio.css';
 
@@ -110,6 +111,9 @@ const FeedUnificado = (): JSX.Element => {
 
     return (
         <div className="inicioContenedor" id="seccionInicio">
+            {/* C180: Fila horizontal de colecciones */}
+            <FilaColecciones />
+
             {/* Barra de ordenamientos + filtros */}
             <div className="inicioBarraControl">
                 <div className="inicioControlesIzquierda">

@@ -25,6 +25,7 @@ import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
+import { useFiltrosStore } from '@app/stores/filtrosStore';
 import type { SampleResumen, Coleccion } from '@app/types';
 import { crearLogger } from '@app/services/logger';
 import '../../styles/componentes/libreria.css';
@@ -92,30 +93,34 @@ export const LibreriaIsland = (): JSX.Element => {
         };
     }, []);
 
-    /* Cargar datos según tab activa — C140: sin descargas/favoritos */
+    /* C169: Suscribirse a la búsqueda del TopBar */
+    const busqueda = useFiltrosStore(s => s.busqueda);
+
+    /* Cargar datos según tab activa — C140: sin descargas/favoritos — C169: con búsqueda */
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
             if (tabActiva === 'explorar') {
-                const resp = await listarColeccionesPublicas();
+                const resp = await listarColeccionesPublicas(busqueda || undefined);
                 if (resp.ok && resp.data) {
                     setColeccionesPublicas(resp.data);
                 } else {
                     setColeccionesPublicas([]);
                 }
             } else if (tabActiva === 'colecciones') {
-                const resp = await listarColecciones();
+                const resp = await listarColecciones(undefined, busqueda || undefined);
                 if (resp.ok && resp.data) {
                     setColecciones(resp.data);
                 } else {
                     setColecciones([]);
                 }
             } else if (tabActiva === 'subidos') {
-                /* subidos: usar filtro creador con username del auth store */
+                /* subidos: usar filtro creador con username del auth store — C169: con búsqueda */
                 const { useAuthStore } = await import('@app/stores/authStore');
                 const username = useAuthStore.getState().usuario?.username;
                 const resp = await listarSamples({
                     creador: username || undefined,
+                    busqueda: busqueda || undefined,
                     perPage: 20,
                 });
                 if (resp.ok && resp.data) {
@@ -127,7 +132,7 @@ export const LibreriaIsland = (): JSX.Element => {
             setCargando(false);
         };
         cargar();
-    }, [tabActiva]);
+    }, [tabActiva, busqueda]);
 
     /* Handlers para panel lateral */
     const manejarClickTitulo = useCallback((sample: SampleResumen) => {

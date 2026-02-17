@@ -7,9 +7,10 @@
 import { Modal } from '@app/components/ui/Modal';
 import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { Badge } from '@app/components/ui/Badge';
 import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { useEditar } from '@app/hooks/useEditar';
-import type { TipoSample } from '@app/types';
+import type { TipoSample, SampleResumen } from '@app/types';
 import '../../styles/componentes/modalEditar.css';
 
 const tiposSample: { valor: TipoSample; etiqueta: string }[] = [
@@ -23,6 +24,31 @@ const tiposSample: { valor: TipoSample; etiqueta: string }[] = [
 
 /* Evento para notificar actualizaciones de entidades */
 export const EVENTO_ENTIDAD_ACTUALIZADA = 'kamples:entidad-actualizada';
+
+/* C170: Chips informativos de metadata IA (solo lectura) */
+const MetadataChips = ({ sample }: { sample: SampleResumen }): JSX.Element | null => {
+    const chips: string[] = [];
+    if (sample.bpm) chips.push(`${sample.bpm} BPM`);
+    if (sample.key) chips.push(`${sample.key}${sample.escala === 'menor' ? 'm' : ''}`);
+    if (sample.metadata?.genero) {
+        const generos = Array.isArray(sample.metadata.genero)
+            ? sample.metadata.genero
+            : [sample.metadata.genero];
+        chips.push(...generos.slice(0, 3));
+    }
+    if (sample.metadata?.emocionEs) chips.push(sample.metadata.emocionEs);
+    if (!chips.length) return null;
+    return (
+        <div className="editarMetadataChips">
+            <span className="editarMetadataLabel">Detectado por IA</span>
+            <div className="editarChipsFila">
+                {chips.map((c) => (
+                    <Badge key={c} variante="neutro" tamano="xs">{c}</Badge>
+                ))}
+            </div>
+        </div>
+    );
+};
 
 export const ModalEditar = (): JSX.Element | null => {
     const { abierto, tipo, sample, publicacion, coleccion, cerrar } = useEditarModalStore();
@@ -66,6 +92,9 @@ export const ModalEditar = (): JSX.Element | null => {
             <div className="editarFormulario">
                 {tipo === 'sample' && (
                     <>
+                        {/* C170: Chips de metadata IA para contexto */}
+                        {sample && <MetadataChips sample={sample} />}
+
                         <CampoTexto
                             etiqueta="Título"
                             value={formularioSample.titulo}

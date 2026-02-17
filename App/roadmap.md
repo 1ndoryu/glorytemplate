@@ -339,20 +339,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 181. Respecto a la tarea anterior me da la duda de que si las colecciones tienen algoritmo, pues, las colecciones deberían de alguna forma tambien ordenarse según el usuario, sus tags mas comunes, etc, para mostrar las colecciones mas relevantes para el usuario.
 182. El modal de buscar colección esta muy bonito, pero debería aparecer justo donde se dio click. Ahora agregar un nuevo icono de guardar para abrir ese modal al lado del boton de like en la lista de samples.
 183. ✅ Fix 500 en POST /comentarios: `wp_handle_upload()` no disponible en contexto REST API (solo admin). Añadido `require_once ABSPATH.'wp-admin/includes/file.php'` en ComentariosController y MensajesController (mismo bug preventivo).
-184. (en planificación). Esta es una tarea complicada, no es para hacer ahora, es para planificar con detalle. Las mejoras son obligatorias independientemente de lo complicado que sean, trabajar en ellas, si algo es imposible, buscar alternativas. Los detalles son extremadamente importantes. Como esta tarea es complicada, lo mejor será que esto este aislado en su propio sistema fuera de la carpeta /App porque va a escalar demasiado. El diseño sera muy minimalista
-
-Una versión mejorada de "Create (Stacks)" de splice, he dejado una captura de pantalla en App\Assets\ref\Captura de pantalla 2026-02-17 130443.png, no se si puedes verla para comprender mejo.
-
-184.1 Habrá un boton en topbarAcciones que abra esta funcionalidad. Aparecera en el panel lateral.
-184.2 Ahora el panel lateral puede cambiar de ancho con el cursor.
-184.3 Nuestra funcionalidad se llamar mezclador, basicamente, se podran arrastrar los samples en la lista de sample y se podran reproducir todos juntos, es decir, es literalmente un mini DAW. 
-184.4 Mejora para ganarle a splice: cualquier audio o sample puede mezclarse, en splice no se puede porque los audios o samples necesitan el patron 4/4, aca, debemos poder detectar el patron ritmo o compas, pero, si un sample dura un compas y no tiene 4/4 pues, asi como en un daw, ese audio puede moverse a cualquiera de los 4 compas, en una lista de tiempo, con samples que duran un 1 compas, entonces, puedo agregar 4 samples eun patron de 4/4. ¿Se entiende?  
-184.5 Por defecto al abrir habrá 4 compas pero e puede añadir mas compas, los audios se adaptan automaticamente a los compas, si un sample tiene 4 compas, se debe adaptar automaticamente a linea de tiempo.
-184.6 Obviamente poder añadir varias lineas de tiempo, una linea atraviesa las lineas de tiempo indicado por donde va la reprodución puede moverse. 
-184.7 La visualización de los samples en el mini DAW, un cuadro con la onda y el titulo arriba con letras pequeñas, es todo.
-
-
-
+184. (Tarea delegada a otro agente)
+185. Despues de completar 179. trabajar en 184 si aún no se ha realizado.
 
 ---
 

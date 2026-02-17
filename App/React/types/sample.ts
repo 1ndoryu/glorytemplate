@@ -86,6 +86,7 @@ export interface SampleResumen {
     id: number;
     titulo: string;
     slug: string;
+    descripcion?: string;
     bpm: number | null;
     key: NotaMusical | null;
     escala: EscalaMusical | null;

@@ -5,7 +5,7 @@
  */
 
 import {useCallback, useEffect, useRef, useState, type MouseEvent} from 'react';
-import {Play, Pause, Heart, MessageCircle, Download, MoreHorizontal, BadgeCheck} from 'lucide-react';
+import {Play, Pause, Heart, MessageCircle, Download, MoreHorizontal, BadgeCheck, Bookmark} from 'lucide-react';
 import type {SampleResumen, TipoReaccion} from '../../types';
 import {WaveformPlayer} from './WaveformPlayer';
 import {Badge} from './Badge';
@@ -15,6 +15,7 @@ import {descargarSample} from '../../services/apiDescargas';
 import {registrarReproduccion} from '../../services/apiReproduciones';
 import {TooltipReacciones} from './TooltipReacciones';
 import {useNavigationStore} from '@/core/router';
+import {useColeccionPickerStore} from '@app/stores/coleccionPickerStore';
 import '../../styles/componentes/tarjetaSample.css';
 
 interface TarjetaSampleProps {
@@ -309,6 +310,16 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
         [onMenu, sample]
     );
 
+    /* C182: Abrir modal de colección posicionado donde se hizo click */
+    const abrirPicker = useColeccionPickerStore(s => s.abrir);
+    const manejarGuardar = useCallback(
+        (e: MouseEvent) => {
+            e.stopPropagation();
+            abrirPicker(sample, { x: e.clientX, y: e.clientY });
+        },
+        [abrirPicker, sample]
+    );
+
     const manejarSeek = useCallback(
         (posicion: number) => {
             const audio = inicializarAudio();
@@ -485,6 +496,11 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                         <Heart size={18} fill={sample.liked ? 'currentColor' : 'none'} />
                     </button>
                 </TooltipReacciones>
+
+                {/* C182: Guardar en colección */}
+                <button className="tarjetaAccionBtn" onClick={manejarGuardar} type="button" aria-label="Guardar en colección">
+                    <Bookmark size={18} />
+                </button>
 
                 <button className="tarjetaAccionBtn" onClick={() => onComentar?.(sample.id)} type="button" aria-label="Comentar">
                     <MessageCircle size={18} />
