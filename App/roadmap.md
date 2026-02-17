@@ -363,9 +363,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 Funcion esperada: Asegurate de que la funcion exista y este cargada.
 192. Trabajar en el ws local, no se si hacer eso necesario para resolver problemas como por ejemplo cuando abro el modal de mensajes aparece "Cargando..." luego "No hay mensajes..." y luego aparecen los mensajes, tambien es molesto que tengan que cargar los mensajes cada vez que abro ese modal.
 193. ✅ Fix C193 avatares mostrando "?" — 4 causas raíz: (1) EditarPerfilIsland nunca subía avatar (TO-DO sin implementar) + typo nombreDisplay→nombreVisible, (2) AuthController INSERT usuarios_ext sin avatar_url, (3) normalizarUsuario sin fallback a WP Gravatar, (4) todos los controllers devolvían avatar_url directo de BD sin fallback. FIX: UsuarioHelper::resolverAvatarUrl() centralizado, aplicado en 12 controladores/servicios, EditarPerfilIsland wired con subirAvatar+authStore sync, PerfilController.subirAvatar corrupción de edición reparada.
-194. Error en isla "AdminPanelIsland"
-Cannot read properties of undefined (reading 'length')
-195. Verificar que los css del AdminPanelIsland esten bien, tengo las sospecha que no se estan usando las variables correctas, igual para el modal de guardar colecciones.
+194. ✅ [AG-DAW] Fix AdminPanelIsland crash — respuesta PHP reestructurada `{ data: { data, total, page } }` + guards defensivos `?? []` / `?? 0` en useAdminPanel.
+195. ✅ [AG-DAW] Fix variables CSS AdminPanel+ColeccionPicker — 11 vars kebab→camelCase en adminPanel.css, 4 en modalSeleccionColeccion.css, 1 en coleccionDetalle.css, 1 en filaColecciones.css.
 196. ✅ Fix Mezclador panel vacío: MezcladorPanel no verificaba abierto duplicado, sincroniza estado panelLateralStore↔mezcladorStore al montarse, cerrar cierra ambos stores, resize handle CSS movido a panelLateral.css para disponibilidad global.
 198. Sumar un credito cada vez que un usuario publica un sample.
 199. Asegurarse de que cuando alguien intente descargar un sample y no tiene credito, se abra el modal de suscribirse.
@@ -379,14 +378,16 @@ Cannot read properties of undefined (reading 'length')
 207. ✅ Fix audio incompleto: inferirCompas usaba duracionSample cruda sin ajustar por playbackRate. Con samples de BPM < proyecto, el bloque visual era más largo que el audio real. Fix: usar `duracionSample / playbackRate` para calcular compasesSample.
 208. ✅ Subir audios desde PC: botón FolderUp en ControlesMezclador, input[type=file] oculto, FileReader→ArrayBuffer→decodeAudioData. motorAudioService.decodificarBufferLocal() + agregarAudioLocal() en store crea pseudo-SampleResumen.
 209. ✅ Drag preview personalizado: setDragImage con div custom (icono música + título truncado, fondo acento, sombra). Drop zone con background glow. Elimina drag genérico del navegador.
-210. Dejaron de aparecer sugerencias cuando doy like, no se por qué. (no se si es por 212 y estaba cargando react con el error de fondo, creo que si)
-211. Borrar el boton de experimentosContenedor
+210. ✅ [AG-DAW] Verificado — sugerencias funcionan correctamente. El fallo era causado por C212 (parse error PHP rompía carga React). PanelLateral+panelLateralStore intactos.
+211. ✅ [AG-DAW] Eliminado BotonExperimentos de TopBar.tsx (import + JSX).
 212. ✅ Fix DescargasController parse error L120 — comillas escapadas incorrectamente (`\"`) en SQL del advisory lock (O14). Causado por el Sprint 3 de auditoría.
-213. Tarea para el agente del minidaw: Cuando comprimo o estiro un audio, no se actualiza en tiempo el audio mientra se reproduce (debería).
-214. Tarea para el agente del minidaw: Agregar una herramienta de recorte que permita dividir, cortar un audio como se quiera.
-215. Tarea para el agente del minidaw: agregar un pequeño boton de 3 puntos al lado de la x en los audios, para las opciones avanzados en el audio, esto abrira un modal de configuraciones de audio: picth, duración, nota, soportar los direntes tipos de estiramiento: (resample y strach), deje una referencia en App\Assets\ref\Captura de pantalla 2026-02-17 153007.png, no se si puedes ver la imagen pero la describo. No debe ser asi tan complejo sino mas sencillo. Una opcion de normalización, reverse, lenght (para cortar la duracion final ) y spm start que haria lo mismo con el comienzo, in y out haría intuye es es para suavizar el volumen del comienzo y final y crossfade y trim.
-Tarea para el agente del minidaw: al lado del boton de x, agregar un boton de duplicar, que se pueda duplicar audios en la linea de tiempo.
-216.
+213. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: Cuando comprimo o estiro un audio, no se actualiza en tiempo el audio mientra se reproduce (debería). **Estado:** tipos, store (EVENTO_REPROGRAMAR_AUDIO + dispatch en setDuracionBloque), useMotorAudio (listener reprogramar), motorAudioService (fades+reverse en programarReproduccion) ya implementados.
+214. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: Agregar una herramienta de recorte que permita dividir, cortar un audio como se quiera. **Estado:** dividirBloque() implementado en store.
+215. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: agregar un pequeño boton de 3 puntos al lado de la x en los audios, para las opciones avanzados en el audio, esto abrira un modal de configuraciones de audio: picth, duración, nota, soportar los direntes tipos de estiramiento: (resample y strach), deje una referencia en App\Assets\ref\Captura de pantalla 2026-02-17 153007.png, no se si puedes ver la imagen pero la describo. No debe ser asi tan complejo sino mas sencillo. Una opcion de normalización, reverse, lenght (para cortar la duracion final ) y spm start que haria lo mismo con el comienzo, in y out haría intuye es es para suavizar el volumen del comienzo y final y crossfade y trim.
+[EN CURSO — AG-DAW] Tarea para el agente del minidaw: al lado del boton de x, agregar un boton de duplicar, que se pueda duplicar audios en la linea de tiempo. **Estado:** duplicarBloque() y actualizarConfigBloque() implementados en store, tipos extendidos (invertido, fadeIn, fadeOut, recorteInicio, recorteFin, normalizado), audioBufferUtils con invertirBuffer/normalizarBuffer. Falta: componentes UI (ModalConfigBloque, botones en BloqueSample), CSS, dividir visual en timeline.
+216. Tarea para el agente del minidaw: opciones de snap setting, y que el movimiento, recortes, se adapten, y se refleje visualmente con lineas, similar a fl studio, con que se pueda configurar en bar, beat, 1/2 beat, 1/4 beat, y 1/6, creo que suficiente. esto lleva a la siguiente tarea. 
+217. Tarea para el agente del minidaw: poder hacer zoom, incluir iconos de zoom lara acercar y alejar.
+218. Tarea para el agente del minidaw: la reproduccion tiene que volver al comienzo cuando llegue al final de todos los audios y no haya mas audios adelantes que reproducir.
 
 ---
 
