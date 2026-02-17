@@ -471,6 +471,10 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 - [C205]: Drag en timeline: React onMouseMove/onMouseUp solo funciona dentro del componente. Para drag libre, usar document.addEventListener en useEffect limpiado por return. Refs para leer estado actual en closures de event listeners.
 - [C207]: inferirCompas debe calcular compasesSample con duración ajustada (duracionSample/playbackRate), no duración cruda. Sin esto, bloques con playbackRate>1 se cortan antes de terminar.
 - [C204]: Stretch = cambiar duracionCompases del bloque. playbackRate = buffer.duration / (durCompases * durCompas). Clamped [0.25, 4.0].
+- [C224]: Undo/redo pattern: SnapshotMezclador guarda solo {pistas, totalCompases} (sin audioBuffers — refs se mantienen). _guardarSnapshot() trunca historial forward antes de guardar. MAX_HISTORIAL=30 previene memory leak.
+- [C225]: Para evitar re-apertura de modal contextual: guard con `!modalConfigAbierto` en handler, overlay consume contextmenu y mousedown con stopPropagation.
+- [C226]: Drag en bloque: verificar `target.closest('.mezcladorBloqueBotones')` en onMouseDown para evitar que clicks en botones internos inicien drag.
+- [C228]: Dividir waveformPeaks proporcionalmente: `ratioPeaks = posRelativa / duracionCompases`, cortePeaks = Math.round(peaks.length * ratio).
 - [C208]: Para audio local: File.arrayBuffer() + AudioContext.decodeAudioData(). Crear pseudo-SampleResumen con id negativo (-Date.now()) para distinguir de samples del servidor.
 - [WP API]: `wp_handle_upload()` vive en `wp-admin/includes/file.php` — NO se carga en contexto REST API. Siempre hacer `if (!function_exists('wp_handle_upload')) require_once ABSPATH.'wp-admin/includes/file.php'` antes de usarlo. SamplesController lo tenía, Comentarios y Mensajes no.
 - [C198]: Sistema de créditos es cupo diario (COUNT descargas hoy vs límite plan), NO saldo persistente. Para bonus, agregar columna `creditos_bonus` a usuarios\_ext y sumarla al límite en la verificación.
