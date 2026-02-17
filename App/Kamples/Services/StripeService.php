@@ -24,7 +24,7 @@ class StripeService
     /* Configuración de planes — subidas ilimitadas en todos, varía transferencia y descargas */
     private const PLANES = [
         'pro' => [
-            'precio_mensual'    => 9.99,
+            'precio_mensual'    => 5.00,
             'descargas_dia'     => 50,
             'subidas_mes'       => -1, /* ilimitadas */
             'transferencia_gb'  => 10,

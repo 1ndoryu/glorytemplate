@@ -172,7 +172,7 @@ export const LandingPublica = (): JSX.Element => {
                         <span className="landingPlanPrecio">$0</span>
                         <ul>
                             <li>5 descargas/día</li>
-                            <li>Calidad MP3</li>
+                            <li>Calidad WAV original</li>
                             <li>Explora y descubre</li>
                         </ul>
                         <BotonBase
@@ -186,7 +186,7 @@ export const LandingPublica = (): JSX.Element => {
                         <Badge>Popular</Badge>
                         <h3>Pro</h3>
                         <span className="landingPlanPrecio">
-                            $9.99<small>/mes</small>
+                            $5<small>/mes</small>
                         </span>
                         <ul>
                             <li>50 descargas/día</li>
