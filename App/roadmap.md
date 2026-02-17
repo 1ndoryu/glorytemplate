@@ -490,11 +490,14 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 153. En tarjetaSample panelDetalleTarjetaMini Hay que dejar solo el nombre, y abajo los tagas, quitar la wave, y el icono de 3 puntos. Por cierto en panelDetalleTarjetaMini no funcionan los 3 puntos. Seguir poder reproduciendo a dar click a la portada.
 154. No usar botones de variante ghost en panelDetalleAcciones, mejor con bordes (--bordeSutil), mejor los comentarios por defecto oculto al menos que se haya abierto el panel dando directamente el boton de comentar.
 155. Agregar una configuracion de preferencia el modal de configuracion para desactivar que el panel lateral no se abra cuando se da like a un sample, por defecto encendido.
-156. Quita "También te podría gustar" debajo de los detalles del sample, solo ver "También te podría gustar" cuando se da like si la opcion esta activa. Tambien, poder abrir "También te podría gustar" con un boton el menu contextual de 3 puntos.
+156. Quita "También te podría gustar" debajo de los detalles del sample, solo ver "También te podría gustar" cuando se da like si la opcion esta activa. Tambien, poder abrir "También te podría gustar" con un boton el menu contextual de 3 puntos. (SE CANCELA QUITARLOS DEBAJO DE LOS DETALLES)
 157. Cuando un sample ya este descargado, el boton de descarga tiene que estar de color acento.
 158. remplazar la X de panelDetalleCerrar por un icono mas acorde.
-1
-
+159. Trabajar en la comunicación en tiempo real, no se si se puede hacer un websocket compatible con linux y windows, al menos hacerlo funcionar aca en local windows, para pulir de una vez la opciones chat.
+160. El filtro de ocultar ya reproducido no funciona. 
+161. En libreriaGridColecciones las colecciones no tienen el boton 3 puntos o no se ven.
+162. Hay algunos tags que se ven asi <span class="badge badgeNeutro badgeXs badgeBorde">dreamyetherealmelancholicatmosphericreflective</span> todo pegado, bueno, en todos los samples en el panel lateral se ven asi algunos badge.
+163. La foto de perfil no aparece en chatFlotanteHeader, agregar un boton de 3 puntos para la funcionalidad
 
 ---
 

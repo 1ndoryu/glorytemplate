@@ -14,6 +14,7 @@ import {
     Crown,
     Lock,
     MoreHorizontal,
+    Sparkles,
 } from 'lucide-react';
 import {
     Badge,
@@ -40,6 +41,7 @@ import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import type { Sample, SampleResumen } from '@app/types';
 import '../../styles/componentes/sampleDetalle.css';
 
@@ -51,6 +53,7 @@ interface SampleDetalleProps {
 export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX.Element => {
     const [sample, setSample] = useState<Sample | null>(null);
     const [similares, setSimilares] = useState<SampleResumen[]>([]);
+    const [mostrarSimilares, setMostrarSimilares] = useState(false);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
     const [liked, setLiked] = useState(false);
@@ -58,6 +61,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     const [reproduciendo, setReproduciendo] = useState(false);
     const [progreso, setProgreso] = useState(0);
     const [picosWaveform, setPicosWaveform] = useState<number[] | null>(null);
+    const [descargado, setDescargado] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const rutaPreviewRef = useRef('');
     const { setTabs } = useTabsTopBarStore();
@@ -103,6 +107,8 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     );
 
     /* Like con llamada a API */
+    const { sugerenciasAlDarLike } = usePanelLateralStore();
+
     const manejarLike = useCallback(async () => {
         if (!sample) return;
         if (liked || reaccionActual) {
@@ -112,17 +118,21 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
         } else {
             setLiked(true);
             setReaccionActual('like');
+            /* C156: mostrar similares al dar like si preferencia activa */
+            if (sugerenciasAlDarLike) setMostrarSimilares(true);
             await darLike('sample', sample.id, 'like');
         }
-    }, [liked, reaccionActual, sample]);
+    }, [liked, reaccionActual, sample, sugerenciasAlDarLike]);
 
     /* Reaccion especifica desde tooltip */
     const manejarReaccionDetalle = useCallback(async (reaccion: TipoReaccion) => {
         if (!sample) return;
         setLiked(reaccion !== 'dislike');
         setReaccionActual(reaccion);
+        /* C156: mostrar similares en reaccion positiva si preferencia activa */
+        if (reaccion !== 'dislike' && sugerenciasAlDarLike) setMostrarSimilares(true);
         await darLike('sample', sample.id, reaccion);
-    }, [sample]);
+    }, [sample, sugerenciasAlDarLike]);
 
     const manejarQuitarReaccionDetalle = useCallback(async () => {
         if (!sample) return;
@@ -521,10 +531,11 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                             <MessageCircle size={18} />
                         </button>
                         <button
-                            className="detalleAccionPlano"
+                            className={`detalleAccionPlano ${descargado ? 'detalleAccionPlanoDescargado' : ''}`}
                             onClick={async () => {
                                 const resp = await descargarSample(sample.id);
                                 if (resp.ok && resp.data?.url) {
+                                    setDescargado(true);
                                     const a = document.createElement('a');
                                     a.href = resp.data.url;
                                     a.download = resp.data.nombre || sample.titulo || 'sample';
@@ -553,7 +564,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                         {/* C127: Menú de 3 puntos para el sample principal */}
                         <button
                             className="detalleAccionPlano"
-                            onClick={(e) => menu.abrirMenu(e as unknown as MouseEvent, sample as unknown as SampleResumen)}
+                            onClick={(e) => menu.abrirMenu(e as React.MouseEvent, sample as unknown as SampleResumen)}
                             type="button"
                             aria-label="Más opciones"
                         >
@@ -578,10 +589,10 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
 
             </article>
 
-            {/* C128: Samples similares en sección separada fuera de la tarjeta principal */}
-            {similares.length > 0 && (
+            {/* C156: Samples similares ocultos por defecto, toggled via menu 3 puntos */}
+            {mostrarSimilares && similares.length > 0 && (
                 <div className="detalleSeccion detalleSimilaresSeccion">
-                    <h2 className="detalleSeccionTitulo">Samples similares</h2>
+                    <h2 className="detalleSeccionTitulo">También te podría gustar</h2>
                     <div className="detalleSimilares">
                         {similares.map((s) => (
                             <TarjetaSample
@@ -599,7 +610,16 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
             <MenuContextual
                 abierto={menu.estado.abierto}
                 onCerrar={menu.cerrarMenu}
-                items={menu.items}
+                items={[
+                    ...menu.items,
+                    /* C156: Item para mostrar/ocultar similares */
+                    ...(similares.length > 0 ? [{
+                        id: 'similares',
+                        etiqueta: mostrarSimilares ? 'Ocultar recomendaciones' : 'También te podría gustar',
+                        icono: <Sparkles size={16} />,
+                        onClick: () => setMostrarSimilares(prev => !prev),
+                    }] : []),
+                ]}
                 x={menu.estado.x}
                 y={menu.estado.y}
             />

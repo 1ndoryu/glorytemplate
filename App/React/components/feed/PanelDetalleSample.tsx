@@ -1,12 +1,12 @@
 /*
- * Componente: PanelDetalleSample — Kamples (C95)
+ * Componente: PanelDetalleSample — Kamples (C95+C151+C152+C154+C158)
  * Vista condensada de un sample para el panel lateral.
- * Muestra: creador, título, waveform mini, tags, acciones, descripción.
+ * Muestra: creador, título, waveform reproducible, tags con borde, acciones.
  * Reutiliza datos de SampleResumen + carga detalle completo via API.
  */
 
-import { useEffect, useState, useCallback } from 'react';
-import { Heart, Download, Lock, X } from 'lucide-react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Heart, Download, Lock, PanelRightClose, MessageCircle } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -22,6 +22,9 @@ import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import type { Sample, SampleResumen } from '@app/types';
 
+/* Evento para pausar otros audios locales */
+const EVENTO_PANEL_PLAY = 'kamples:panel-audio-play';
+
 interface PanelDetalleSampleProps {
     sample: SampleResumen;
 }
@@ -32,13 +35,20 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
     const [reaccion, setReaccion] = useState<TipoReaccion | null>(sample.reaccion ?? null);
     const [totalLikes, setTotalLikes] = useState(sample.totalLikes);
     const [similares, setSimilares] = useState<SampleResumen[]>([]);
+    const [comentariosVisibles, setComentariosVisibles] = useState(false);
     const { navegar } = useNavigationStore();
     const { cerrar } = usePanelLateralStore();
+
+    /* C151: Audio local para reproduccion en panel lateral */
+    const [picosAudio, setPicosAudio] = useState<number[] | null>(null);
+    const [reproduciendo, setReproduciendo] = useState(false);
+    const [progresoAudio, setProgresoAudio] = useState(0);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const { comentarios, cargando: cargandoComentarios, enviar: enviarComentario } = useComentarios({
         tipo: 'sample',
         targetId: sample.id,
-        cargarAlAbrir: true,
+        cargarAlAbrir: comentariosVisibles,
     });
 
     /* Cargar detalle completo y similares */
@@ -62,6 +72,130 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
         cargar();
         return () => { activo = false; };
     }, [sample.id, sample.slug]);
+
+    /* C151: Cargar picos del waveform (servidor o fallback AudioContext) */
+    useEffect(() => {
+        let activo = true;
+
+        const cargarPicos = async () => {
+            if (sample.rutaWaveform) {
+                try {
+                    const resp = await fetch(sample.rutaWaveform);
+                    if (resp.ok) {
+                        const json = await resp.json();
+                        if (!activo) return;
+                        const datos = Array.isArray(json)
+                            ? json
+                            : (json.peaks ?? json.picos ?? json.data ?? null);
+                        if (Array.isArray(datos) && datos.length > 0) {
+                            const maximo = Math.max(...datos, 0.001);
+                            setPicosAudio(maximo > 1
+                                ? datos.map((p: number) => Math.max(0.03, p / maximo))
+                                : datos
+                            );
+                            return;
+                        }
+                    }
+                } catch { /* Fallback silencioso */ }
+            }
+
+            /* Fallback: generar desde preview con AudioContext */
+            if (!sample.rutaPreview || typeof window === 'undefined' || !window.AudioContext) {
+                if (activo) setPicosAudio(null);
+                return;
+            }
+            const ctx = new AudioContext();
+            try {
+                const resp = await fetch(sample.rutaPreview);
+                if (!resp.ok) throw new Error();
+                const buf = await resp.arrayBuffer();
+                const decoded = await ctx.decodeAudioData(buf.slice(0));
+                if (!activo) return;
+                const raw = decoded.getChannelData(0);
+                const barras = 96;
+                const grupo = Math.floor(raw.length / barras);
+                const picos: number[] = [];
+                for (let i = 0; i < barras; i++) {
+                    let max = 0;
+                    for (let j = 0; j < grupo; j++) {
+                        const abs = Math.abs(raw[i * grupo + j] || 0);
+                        if (abs > max) max = abs;
+                    }
+                    picos.push(max);
+                }
+                const picoMax = Math.max(...picos, 0.001);
+                setPicosAudio(picos.map(p => Math.max(0.03, p / picoMax)));
+            } catch {
+                if (activo) setPicosAudio(null);
+            } finally {
+                ctx.close().catch(() => undefined);
+            }
+        };
+
+        cargarPicos();
+        return () => { activo = false; };
+    }, [sample.rutaWaveform, sample.rutaPreview]);
+
+    /* C151: Inicializar elemento de audio */
+    const inicializarAudio = useCallback((): HTMLAudioElement => {
+        if (audioRef.current) return audioRef.current;
+        const audio = new Audio(sample.rutaPreview);
+        audio.preload = 'metadata';
+
+        audio.addEventListener('timeupdate', () => {
+            if (audio.duration) setProgresoAudio(audio.currentTime / audio.duration);
+        });
+        audio.addEventListener('ended', () => {
+            setReproduciendo(false);
+            setProgresoAudio(0);
+        });
+        audio.addEventListener('pause', () => setReproduciendo(false));
+        audio.addEventListener('play', () => setReproduciendo(true));
+
+        audioRef.current = audio;
+        return audio;
+    }, [sample.rutaPreview]);
+
+    /* Limpiar audio al desmontar */
+    useEffect(() => {
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.src = '';
+                audioRef.current = null;
+            }
+        };
+    }, []);
+
+    /* C151: Play/pause al hacer click en waveform */
+    const manejarClickWaveform = useCallback(() => {
+        const audio = inicializarAudio();
+        if (reproduciendo) {
+            audio.pause();
+        } else {
+            window.dispatchEvent(new CustomEvent(EVENTO_PANEL_PLAY));
+            audio.play().catch(() => setReproduciendo(false));
+        }
+    }, [inicializarAudio, reproduciendo]);
+
+    /* C151: Seek al hacer click en posicion de waveform */
+    const manejarSeek = useCallback((posicion: number) => {
+        const audio = inicializarAudio();
+        const aplicar = () => {
+            if (!audio.duration) return;
+            audio.currentTime = posicion * audio.duration;
+            setProgresoAudio(posicion);
+            window.dispatchEvent(new CustomEvent(EVENTO_PANEL_PLAY));
+            audio.play().catch(() => setReproduciendo(false));
+        };
+        if (audio.duration && Number.isFinite(audio.duration)) {
+            aplicar();
+        } else {
+            const h = () => { aplicar(); audio.removeEventListener('loadedmetadata', h); };
+            audio.addEventListener('loadedmetadata', h);
+            audio.load();
+        }
+    }, [inicializarAudio]);
 
     const manejarLike = useCallback(async () => {
         if (liked || reaccion) {
@@ -94,7 +228,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
 
     return (
         <div className="panelDetalle">
-            {/* Cabecera con botón cerrar */}
+            {/* Cabecera con boton cerrar — C158: PanelRightClose en vez de X */}
             <div className="panelDetalleCabecera">
                 <button
                     className="panelDetalleAutor"
@@ -108,43 +242,48 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                     />
                     <span>{sample.creador.nombreVisible}</span>
                 </button>
-                <button className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label="Cerrar">
-                    <X size={16} />
+                <button className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label="Cerrar panel">
+                    <PanelRightClose size={16} />
                 </button>
             </div>
 
-            {/* Título */}
+            {/* Titulo */}
             <h3 className="panelDetalleTitulo">
                 {sample.titulo}
                 {sample.esPremium && <Badge variante="premium" tamano="xs">PRO</Badge>}
             </h3>
 
-            {/* Descripción */}
+            {/* Descripcion */}
             {detalle?.descripcion && (
                 <p className="panelDetalleDescripcion">{detalle.descripcion}</p>
             )}
 
-            {/* Waveform */}
+            {/* C151: Waveform reproducible */}
             <div className="panelDetalleWaveform">
                 <WaveformPlayer
-                    picos={null}
+                    picos={picosAudio}
+                    progreso={progresoAudio}
+                    duracion={sample.duracion}
+                    onSeek={manejarSeek}
+                    onClick={manejarClickWaveform}
                     tamano="md"
+                    interactivo
                 />
             </div>
 
-            {/* Tags/Badges de metadata */}
+            {/* C152: Tags/Badges de metadata con borde */}
             {badges.length > 0 && (
                 <div className="panelDetalleTags">
                     {badges.map(b => (
-                        <Badge key={b} variante="neutro" tamano="xs" className=''>{b}</Badge>
+                        <Badge key={b} variante="neutro" estilo="borde" tamano="xs">{b}</Badge>
                     ))}
                 </div>
             )}
 
-            {/* Acciones */}
+            {/* C154: Acciones con bordes en vez de ghost */}
             <div className="panelDetalleAcciones">
                 <BotonBase
-                    variante={liked ? 'primario' : 'ghost'}
+                    variante={liked ? 'primario' : 'secundario'}
                     tamano="sm"
                     onClick={manejarLike}
                 >
@@ -153,18 +292,26 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                 </BotonBase>
 
                 {sample.esPremium ? (
-                    <BotonBase variante="ghost" tamano="sm" disabled>
+                    <BotonBase variante="secundario" tamano="sm" disabled>
                         <Lock size={14} />
                         PRO
                     </BotonBase>
                 ) : (
-                    <BotonBase variante="ghost" tamano="sm">
+                    <BotonBase variante="secundario" tamano="sm">
                         <Download size={14} />
                     </BotonBase>
                 )}
 
                 <BotonBase
-                    variante="ghost"
+                    variante="secundario"
+                    tamano="sm"
+                    onClick={() => setComentariosVisibles(prev => !prev)}
+                >
+                    <MessageCircle size={14} />
+                </BotonBase>
+
+                <BotonBase
+                    variante="secundario"
                     tamano="sm"
                     onClick={() => navegar(`/sample/${sample.slug}/`)}
                 >
@@ -172,17 +319,19 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                 </BotonBase>
             </div>
 
-            {/* Comentarios */}
-            <div className="panelDetalleComentarios">
-                <h4 className="panelDetalleSubtitulo">Comentarios</h4>
-                <ListaComentarios
-                    comentarios={comentarios}
-                    cargando={cargandoComentarios}
-                    onEnviar={enviarComentario}
-                    onClickAutor={(username) => navegar(`/perfil/${username}/`)}
-                    maxVisibles={5}
-                />
-            </div>
+            {/* C154: Comentarios ocultos por defecto, se abren con boton */}
+            {comentariosVisibles && (
+                <div className="panelDetalleComentarios">
+                    <h4 className="panelDetalleSubtitulo">Comentarios</h4>
+                    <ListaComentarios
+                        comentarios={comentarios}
+                        cargando={cargandoComentarios}
+                        onEnviar={enviarComentario}
+                        onClickAutor={(username) => navegar(`/perfil/${username}/`)}
+                        maxVisibles={5}
+                    />
+                </div>
+            )}
 
             {/* Similares */}
             {similares.length > 0 && (

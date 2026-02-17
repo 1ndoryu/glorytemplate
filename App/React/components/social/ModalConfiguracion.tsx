@@ -6,18 +6,56 @@
  */
 
 import { useState, useCallback, useRef, useEffect, type ChangeEvent } from 'react';
-import { Camera, ImagePlus, Save, Bell, BellOff, User, Shield, Palette, X } from 'lucide-react';
+import { Camera, ImagePlus, Save, Bell, BellOff, User, Shield, Palette, X, PanelRight } from 'lucide-react';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { useAuthStore } from '@app/stores/authStore';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { actualizarPerfil, subirAvatar } from '@app/services/apiAuth';
 import { crearLogger } from '@app/services/logger';
 import { aplicarTemaApp, guardarTemaApp, obtenerTemaAppActual, type TemaApp } from '@app/services/tema';
 import '../../styles/componentes/modalConfiguracion.css';
 
 const log = crearLogger('ModalConfiguracion');
+
+/*
+ * C155: Sub-componente para la preferencia de panel lateral al dar like.
+ * Separado para evitar re-renders del modal completo al togglear.
+ */
+const PanelLateralPreferencia = (): JSX.Element => {
+    const { sugerenciasAlDarLike, setSugerenciasAlDarLike } = usePanelLateralStore();
+    return (
+        <div className="configSeccion">
+            <label className="configLabel">
+                <PanelRight size={16} />
+                Panel lateral
+            </label>
+            <span className="configSubtexto">
+                Mostrar sugerencias en el panel lateral al dar like a un sample.
+            </span>
+            <div className="configTemaOpciones" role="group" aria-label="Panel lateral al dar like">
+                <BotonBase
+                    variante={sugerenciasAlDarLike ? 'primario' : 'secundario'}
+                    tamano="sm"
+                    onClick={() => setSugerenciasAlDarLike(true)}
+                    type="button"
+                >
+                    Activado
+                </BotonBase>
+                <BotonBase
+                    variante={!sugerenciasAlDarLike ? 'primario' : 'secundario'}
+                    tamano="sm"
+                    onClick={() => setSugerenciasAlDarLike(false)}
+                    type="button"
+                >
+                    Desactivado
+                </BotonBase>
+            </div>
+        </div>
+    );
+};
 
 type SeccionConfig = 'perfil' | 'cuenta' | 'notificaciones' | 'apariencia';
 
@@ -346,6 +384,9 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                                 </BotonBase>
                             </div>
                         </div>
+
+                        {/* C155: Preferencia panel lateral al dar like */}
+                        <PanelLateralPreferencia />
                     </>
                 );
 

@@ -237,6 +237,11 @@
     color: var(--blanco);
 }
 
+/* C157: Boton descarga con color acento cuando ya se descargo */
+.detalleAccionPlanoDescargado {
+    color: var(--acento);
+}
+
 .detalleEstadisticas {
     display: flex;
     align-items: center;

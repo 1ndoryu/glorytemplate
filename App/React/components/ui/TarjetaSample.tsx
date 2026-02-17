@@ -81,6 +81,7 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
     const [reproduciendoLocal, setReproduciendoLocal] = useState(false);
     const [progresoLocal, setProgresoLocal] = useState(0);
     const [picosAudio, setPicosAudio] = useState<number[] | null>(null);
+    const [descargado, setDescargado] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const rutaPreviewRef = useRef(sample.rutaPreview);
     const { navegar } = useNavigationStore();
@@ -281,11 +282,13 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
             e.stopPropagation();
             if (onDescargar) {
                 onDescargar(sample.id);
+                setDescargado(true);
                 return;
             }
             /* Fallback: llamar API directamente y disparar descarga en navegador */
             const resp = await descargarSample(sample.id);
             if (resp.ok && resp.data?.url) {
+                setDescargado(true);
                 const a = document.createElement('a');
                 a.href = resp.data.url;
                 a.download = resp.data.nombre || sample.titulo || 'sample';
@@ -486,7 +489,7 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                     <MessageCircle size={18} />
                 </button>
 
-                <button className="tarjetaAccionBtn" onClick={manejarDescargar} type="button" aria-label="Descargar">
+                <button className={`tarjetaAccionBtn ${descargado ? 'tarjetaAccionDescargado' : ''}`} onClick={manejarDescargar} type="button" aria-label="Descargar">
                     <Download size={18} />
                 </button>
 

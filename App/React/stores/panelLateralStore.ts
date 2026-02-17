@@ -1,5 +1,5 @@
 /*
- * Store: panelLateralStore — Kamples (C86+C95+C111)
+ * Store: panelLateralStore — Kamples (C86+C95+C111+C155)
  * Controla el panel lateral derecho (~30%) que muestra:
  * - Sugerencias "También te podría gustar"
  * - Detalle condensado de sample (click en título)
@@ -12,6 +12,16 @@ import type { SampleResumen } from '@app/types';
 
 type ModoPanelLateral = 'sugerencias' | 'detalle' | 'comentarios' | null;
 
+/* C155: Clave localStorage para persistir preferencia */
+const LS_KEY_SUGERENCIAS = 'kamples:sugerenciasAlDarLike';
+
+const leerPreferenciaSugerencias = (): boolean => {
+    try {
+        const val = localStorage.getItem(LS_KEY_SUGERENCIAS);
+        return val === null ? true : val === '1';
+    } catch { return true; }
+};
+
 interface PanelLateralState {
     modo: ModoPanelLateral;
     sampleId: number | null;
@@ -19,7 +29,11 @@ interface PanelLateralState {
     sample: SampleResumen | null;
     habilitado: boolean;
 
-    /* Activar/desactivar el panel según la isla actual */
+    /* C155: Preferencia para abrir sugerencias al dar like (persistida en localStorage) */
+    sugerenciasAlDarLike: boolean;
+    setSugerenciasAlDarLike: (valor: boolean) => void;
+
+    /* Activar/desactivar el panel segun la isla actual */
     habilitar: () => void;
     deshabilitar: () => void;
 
@@ -36,12 +50,18 @@ interface PanelLateralState {
     cerrar: () => void;
 }
 
-export const usePanelLateralStore = create<PanelLateralState>((set) => ({
+export const usePanelLateralStore = create<PanelLateralState>((set, get) => ({
     modo: null,
     sampleId: null,
     sampleSlug: null,
     sample: null,
     habilitado: false,
+    sugerenciasAlDarLike: leerPreferenciaSugerencias(),
+
+    setSugerenciasAlDarLike: (valor) => {
+        try { localStorage.setItem(LS_KEY_SUGERENCIAS, valor ? '1' : '0'); } catch { /* noop */ }
+        set({ sugerenciasAlDarLike: valor });
+    },
 
     habilitar: () => set({ habilitado: true }),
     deshabilitar: () => set({ habilitado: false, modo: null, sampleId: null, sampleSlug: null, sample: null }),
@@ -60,12 +80,16 @@ export const usePanelLateralStore = create<PanelLateralState>((set) => ({
         sample,
     }),
 
-    abrirSugerencias: (sample) => set({
-        modo: 'sugerencias',
-        sampleId: sample.id,
-        sampleSlug: sample.slug,
-        sample,
-    }),
+    abrirSugerencias: (sample) => {
+        /* C155: Solo abrir si la preferencia esta activa */
+        if (!get().sugerenciasAlDarLike) return;
+        set({
+            modo: 'sugerencias',
+            sampleId: sample.id,
+            sampleSlug: sample.slug,
+            sample,
+        });
+    },
 
     cerrar: () => set({ modo: null, sampleId: null, sampleSlug: null, sample: null }),
 }));

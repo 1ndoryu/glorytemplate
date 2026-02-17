@@ -127,10 +127,18 @@
     gap: var(--espacioSm);
 }
 
-/* tarjeta compacta dentro del panel */
+/* C153: tarjeta compacta dentro del panel — solo nombre + tags, sin wave ni acciones */
 .panelDetalleTarjetaMini {
     font-size: var(--fuenteXs);
-    padding: unset;
+    padding: var(--espacioXs) var(--espacioSm);
+}
+
+.panelDetalleTarjetaMini .tarjetaAcciones {
+    display: none;
+}
+
+.panelDetalleTarjetaMini .tarjetaWaveform {
+    display: none;
 }
 
 /* --- PanelSugerencias --- */
