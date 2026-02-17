@@ -14,7 +14,6 @@ import { Avatar } from '../ui/Avatar';
 import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
-import { BotonExperimentos } from '../ui/BotonExperimentos';
 import { Modal } from '../ui/Modal';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useAuthStore } from '@app/stores/authStore';
@@ -207,9 +206,6 @@ export const TopBar = (): JSX.Element => {
                     >
                         <Music2 size={18} />
                     </BotonBase>
-
-                    {/* Botón experimentos — solo visible para admin */}
-                    <BotonExperimentos />
 
                     <div className="topbarIconoWrapper">
                         <BotonBase

@@ -384,7 +384,9 @@ Cannot read properties of undefined (reading 'length')
 212. ✅ Fix DescargasController parse error L120 — comillas escapadas incorrectamente (`\"`) en SQL del advisory lock (O14). Causado por el Sprint 3 de auditoría.
 213. Tarea para el agente del minidaw: Cuando comprimo o estiro un audio, no se actualiza en tiempo el audio mientra se reproduce (debería).
 214. Tarea para el agente del minidaw: Agregar una herramienta de recorte que permita dividir, cortar un audio como se quiera.
-215. Tarea para el agente del minidaw: agregar un pequeño boton de 3 puntos al lado de la x en los audios, para las opciones avanzados en el audio: picth, duración
+215. Tarea para el agente del minidaw: agregar un pequeño boton de 3 puntos al lado de la x en los audios, para las opciones avanzados en el audio, esto abrira un modal de configuraciones de audio: picth, duración, nota, soportar los direntes tipos de estiramiento: (resample y strach), deje una referencia en App\Assets\ref\Captura de pantalla 2026-02-17 153007.png, no se si puedes ver la imagen pero la describo. No debe ser asi tan complejo sino mas sencillo. Una opcion de normalización, reverse, lenght (para cortar la duracion final ) y spm start que haria lo mismo con el comienzo, in y out haría intuye es es para suavizar el volumen del comienzo y final y crossfade y trim.
+Tarea para el agente del minidaw: al lado del boton de x, agregar un boton de duplicar, que se pueda duplicar audios en la linea de tiempo.
+216.
 
 ---
 

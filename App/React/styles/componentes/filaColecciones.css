@@ -34,7 +34,7 @@
 }
 
 .filaColeccionChip:hover {
-    background-color: var(--fondoHover);
+    background-color: var(--fondoElevado2);
     border-color: var(--bordeActivo);
 }
 

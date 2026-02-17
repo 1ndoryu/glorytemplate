@@ -122,7 +122,7 @@
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioSm);
     color: var(--textoSecundario);
-    font-size: var(--textoSm);
+    font-size: var(--fuenteSm);
     cursor: pointer;
     transition: color var(--transicionRapida), border-color var(--transicionRapida);
 }
