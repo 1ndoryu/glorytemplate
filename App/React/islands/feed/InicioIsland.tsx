@@ -5,7 +5,7 @@
  * Si el usuario no está autenticado, muestra LandingPublica.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Music, SlidersHorizontal, ChevronDown, ArrowDownWideNarrow } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
@@ -16,6 +16,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useHistorialIds } from '@app/hooks/useHistorialIds';
+import { useFiltroIds } from '@app/hooks/useFiltroIds';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/inicio.css';
@@ -45,13 +46,26 @@ export const InicioIsland = (): JSX.Element => {
 const FeedUnificado = (): JSX.Element => {
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
     const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
+    const [totalSamples, setTotalSamples] = useState(0);
 
     const { abrir: abrirCrear } = useCrearModalStore();
-    const { busqueda, ordenamiento, periodoDestacados, yaReproducidos, setOrdenamiento, setPeriodoDestacados } = useFiltrosStore();
+    const { busqueda, ordenamiento, periodoDestacados, yaReproducidos, likeados, deSeguidos, descargados, setOrdenamiento, setPeriodoDestacados } = useFiltrosStore();
     const { setTabs } = useTabsTopBarStore();
 
     /* Cargar historial para filtro "Ya reproducidos" */
     const { idsReproducidos } = useHistorialIds(yaReproducidos);
+
+    /* Cargar IDs para filtros de likeados, descargados y seguidos */
+    const { idsLikeados, idsDescargados, idsSeguidos } = useFiltroIds(likeados, descargados, deSeguidos);
+
+    /* Combinar IDs de exclusión: reproducidos + likeados + descargados */
+    const idsExcluidosCombinados = useMemo(() => {
+        const set = new Set<number>();
+        if (yaReproducidos) idsReproducidos.forEach((id) => set.add(id));
+        if (likeados) idsLikeados.forEach((id) => set.add(id));
+        if (descargados) idsDescargados.forEach((id) => set.add(id));
+        return set.size > 0 ? set : undefined;
+    }, [yaReproducidos, idsReproducidos, likeados, idsLikeados, descargados, idsDescargados]);
 
     /* Registrar tab "Inicio" en TopBar */
     useEffect(() => {
@@ -89,7 +103,7 @@ const FeedUnificado = (): JSX.Element => {
             {/* Barra de ordenamientos + filtros */}
             <div className="inicioBarraControl">
                 <div className="inicioControlesIzquierda">
-                    <span className="inicioTagsContador">Samples</span>
+                    <span className="inicioTagsContador">{totalSamples} samples</span>
                 </div>
 
                 <div className="inicioControlesDerecha">
@@ -157,7 +171,9 @@ const FeedUnificado = (): JSX.Element => {
                 infiniteScroll
                 virtualizar
                 mensajeVacio="No se encontraron samples."
-                idsExcluidos={yaReproducidos ? idsReproducidos : undefined}
+                idsExcluidos={idsExcluidosCombinados}
+                idsCreadoresIncluidos={deSeguidos && idsSeguidos.size > 0 ? idsSeguidos : undefined}
+                onConteoChange={setTotalSamples}
                 accionVacia={
                     <BotonBase variante="primario" onClick={abrirCrear}>
                         Sube el primero

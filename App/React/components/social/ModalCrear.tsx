@@ -17,13 +17,13 @@ import {useCrearModalStore} from '@app/stores/crearModalStore';
 import {useAuthStore} from '@app/stores/authStore';
 import {useArchivosDragDrop} from '@app/hooks/useArchivosDragDrop';
 import {subirSample} from '@app/services/apiSamples';
-import {crearPublicacion} from '@app/services/apiSocial';
+import {crearPublicacion, subirImagenPublicacion} from '@app/services/apiSocial';
 import {crearLogger} from '@app/services/logger';
 import '../../styles/componentes/modalCrear.css';
 
 const log = crearLogger('ModalCrear');
 const MAX_CARACTERES = 2000;
-const MIN_TAGS_AUDIO = 5;
+const MIN_TAGS_AUDIO = 2;
 
 /* Extraer hashtags del texto */
 const extraerTags = (texto: string): string[] => {
@@ -211,10 +211,21 @@ export const ModalCrear = (): JSX.Element | null => {
             }, 1500);
         } else {
             /* Publicación solo texto/imágenes (sin audio) */
+            /* Subir imágenes al servidor primero para evitar blob:// URLs */
+            const urlsReales: string[] = [];
+            for (const img of imagenes) {
+                const respImg = await subirImagenPublicacion(img.archivo);
+                if (respImg.ok && respImg.data?.url) {
+                    urlsReales.push(respImg.data.url);
+                } else {
+                    log.error('Error subiendo imagen', respImg);
+                }
+            }
+
             const resp = await crearPublicacion({
                 tipo: 'social',
                 contenido: contenido.trim(),
-                imagenes: imagenes.length > 0 ? imagenes.map(img => img.url) : undefined,
+                imagenes: urlsReales.length > 0 ? urlsReales : undefined,
             });
 
             if (!resp.ok) {

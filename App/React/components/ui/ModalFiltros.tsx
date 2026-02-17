@@ -39,10 +39,10 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
     } = useFiltrosStore();
 
     const filtros: FiltroToggleDef[] = [
-        { id: 'yaReproducidos', etiqueta: 'Ya reproducidos', icono: <Play size={16} />, activo: yaReproducidos, onToggle: toggleYaReproducidos },
-        { id: 'likeados', etiqueta: 'Likeados', icono: <Heart size={16} />, activo: likeados, onToggle: toggleLikeados },
-        { id: 'deSeguidos', etiqueta: 'De personas que sigo', icono: <Users size={16} />, activo: deSeguidos, onToggle: toggleDeSeguidos },
-        { id: 'descargados', etiqueta: 'Descargados', icono: <Download size={16} />, activo: descargados, onToggle: toggleDescargados },
+        { id: 'yaReproducidos', etiqueta: 'Ocultar ya reproducidos', icono: <Play size={16} />, activo: yaReproducidos, onToggle: toggleYaReproducidos },
+        { id: 'likeados', etiqueta: 'Ocultar ya likeados', icono: <Heart size={16} />, activo: likeados, onToggle: toggleLikeados },
+        { id: 'deSeguidos', etiqueta: 'Mostrar solo los de personas que sigo', icono: <Users size={16} />, activo: deSeguidos, onToggle: toggleDeSeguidos },
+        { id: 'descargados', etiqueta: 'Ocultar ya descargados', icono: <Download size={16} />, activo: descargados, onToggle: toggleDescargados },
     ];
 
     const hayFiltrosActivos = yaReproducidos || likeados || deSeguidos || descargados;

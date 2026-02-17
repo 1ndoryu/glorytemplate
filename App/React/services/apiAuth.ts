@@ -52,7 +52,7 @@ export const login = async (email: string, password: string) => {
 
 /*
  * Registro de nuevo usuario.
- * TO-DO: implementar endpoint POST /kamples/v1/auth/registro
+ * Endpoint: POST /kamples/v1/auth/registro
  */
 export const registrar = async (datos: {
     username: string;

@@ -92,6 +92,8 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         <Campo etiqueta="Duracion" valor={sample.duracion ? formatearDuracion(sample.duracion) : null} />
                         <Campo etiqueta="Ruta Preview" valor={sample.rutaPreview} ancho />
                         <Campo etiqueta="Ruta Waveform" valor={sample.rutaWaveform} ancho />
+                        {completo && <Campo etiqueta="Archivo Original" valor={sample.rutaOriginal} ancho />}
+                        {completo && <Campo etiqueta="Audio Optimizado" valor={sample.rutaOptimizada} ancho />}
                         {sample.imagenUrl && <Campo etiqueta="Imagen URL" valor={sample.imagenUrl} ancho />}
                     </div>
                 </div>

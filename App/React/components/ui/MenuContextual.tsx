@@ -51,7 +51,7 @@ export const MenuContextual = ({
     if (!abierto) return null;
 
     /* Ajustar posición para que no se salga de pantalla */
-    const menuAncho = 200;
+    const menuAncho = 160;
     const menuAlto = items.length * 36 + 8;
     const ajusteX = x + menuAncho > window.innerWidth ? window.innerWidth - menuAncho - 8 : x;
     const ajusteY = y + menuAlto > window.innerHeight ? window.innerHeight - menuAlto - 8 : y;
@@ -103,7 +103,7 @@ export const MenuContextual = ({
                                 {item.etiqueta}
                             </button>
                         )}
-                        {item.separadorDespues && <div className="menuContextualSeparador" />}
+                        {/* Separador eliminado por C102 */}
                     </div>
                 ))}
             </div>

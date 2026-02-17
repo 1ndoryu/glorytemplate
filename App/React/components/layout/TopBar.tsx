@@ -47,7 +47,8 @@ export const TopBar = (): JSX.Element => {
     const manejarClickAvatar = useCallback((e?: React.MouseEvent) => {
         if (!e) return;
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        setMenuPos({ x: rect.right - 160, y: rect.bottom + 4 });
+        /* Alinear borde derecho del menú con borde derecho del avatar */
+        setMenuPos({ x: rect.right, y: rect.bottom + 4 });
         setMenuAbierto(true);
     }, []);
 
@@ -204,6 +205,7 @@ export const TopBar = (): JSX.Element => {
                         items={menuItems}
                         x={menuPos.x}
                         y={menuPos.y}
+                        alinearDerecha
                     />
 
                     <Modal

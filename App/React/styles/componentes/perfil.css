@@ -7,6 +7,9 @@
     max-width: 800px;
     margin: 0 auto;
     padding: var(--espacioXl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXl);
 }
 
 /* Cabecera con portada */
@@ -16,7 +19,6 @@
     height: 200px;
     background-color: var(--fondoElevado2);
     border-radius: var(--radioLg);
-    overflow: hidden;
     margin-bottom: calc(var(--espacioXs) * 15);
 }
 
@@ -43,7 +45,6 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: var(--espacioXl);
 }
 
 .perfilInfoTexto {
@@ -115,12 +116,7 @@
     min-height: 200px;
 }
 
-/* Lista de samples dentro del perfil */
-.perfilListaSamples {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioXs);
-}
+/* Lista de samples — usa clase centralizada .listaDeSamples de feedSamples.css */
 
 /* Estado vacío */
 .perfilVacio {
@@ -222,4 +218,11 @@
     font-size: var(--fuenteMd);
     color: var(--textoSecundario);
     line-height: 1.5;
+}
+
+.perfilContenedorInterno {
+    background: var(--fondoElevado1);
+    padding: var(--espacioXl);
+    border-radius: var(--radioSm);
+    border: 1px solid var(--bordeSutil);
 }

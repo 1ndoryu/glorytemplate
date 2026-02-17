@@ -11,6 +11,8 @@
     width: 100%;
 }
 
+/* Clase centralizada para cualquier lista de samples */
+.listaDeSamples,
 .feedSamplesLista {
     display: flex;
     flex-direction: column;

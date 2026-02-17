@@ -28,6 +28,7 @@ use App\Kamples\Api\Controladores\ConnectController;
 use App\Kamples\Api\Controladores\ExperimentosController;
 use App\Kamples\Api\Controladores\EmbeddingsController;
 use App\Kamples\Api\Controladores\ComentariosController;
+use App\Kamples\Api\Controladores\AuthController;
 
 class KamplesController
 {
@@ -67,5 +68,6 @@ class KamplesController
         ExperimentosController::registrarRutas($ns);
         EmbeddingsController::registrarRutas($ns);
         ComentariosController::registrarRutas($ns);
+        AuthController::registrarRutas($ns);
     }
 }

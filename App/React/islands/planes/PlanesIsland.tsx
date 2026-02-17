@@ -11,6 +11,7 @@ import {Modal} from '@app/components/ui/Modal';
 import {useAuthStore} from '@app/stores/authStore';
 import {usePlanesModalStore} from '@app/stores/planesModalStore';
 import {useNavigationStore} from '@/core/router';
+import {useAuthModalStore} from '@app/stores/authModalStore';
 import {crearSesionCheckout, abrirPortalFacturacion} from '@app/services/apiPagos';
 import type {PeriodoPlan} from '@app/services/apiPagos';
 import '../../styles/componentes/planes.css';
@@ -148,9 +149,11 @@ export const PlanesIsland = (): JSX.Element => {
         return orden.indexOf(planId) > orden.indexOf(planActual) ? 'Mejorar plan' : 'Cambiar plan';
     };
 
+    const abrirAuth = useAuthModalStore((s) => s.abrir);
+
     const manejarSeleccion = async (planId: PlanId) => {
         if (!autenticado) {
-            navegar('/auth/registro/');
+            abrirAuth('registro');
             return;
         }
         if (planId === planActual || planId === 'free') return;

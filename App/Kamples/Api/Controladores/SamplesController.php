@@ -83,6 +83,27 @@ class SamplesController
         ]);
 
         /* DELETE ahora registrado junto con GET en la ruta slug (arriba) */
+
+        /* C87: Endpoints para librería personal del usuario */
+        register_rest_route($namespace, '/me/favoritos', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'favoritos'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'page'     => ['required' => false, 'type' => 'integer', 'default' => 1],
+                'per_page' => ['required' => false, 'type' => 'integer', 'default' => 20],
+            ],
+        ]);
+
+        register_rest_route($namespace, '/me/descargas', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'misDescargas'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'page'     => ['required' => false, 'type' => 'integer', 'default' => 1],
+                'per_page' => ['required' => false, 'type' => 'integer', 'default' => 20],
+            ],
+        ]);
     }
 
     /**
@@ -538,5 +559,91 @@ class SamplesController
             'tipo'     => ['required' => false, 'type' => 'string', 'enum' => ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro']],
             'creador'  => ['required' => false, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
         ];
+    }
+
+    /**
+     * GET /me/favoritos — Samples que el usuario ha dado like.
+     */
+    public static function favoritos(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $page    = (int) $request->get_param('page');
+        $perPage = (int) $request->get_param('per_page');
+        $offset  = ($page - 1) * $perPage;
+
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
+            . " JOIN likes l ON l.target_id = s.id AND l.tipo = 'sample' AND l.usuario_id = :favUser"
+            . " WHERE s.estado = 'activo'"
+            . " ORDER BY l.created_at DESC LIMIT :limit OFFSET :offset";
+
+        $rows = PostgresService::consultar($sql, [
+            'favUser' => $userId,
+            'limit'   => $perPage,
+            'offset'  => $offset,
+        ]);
+
+        $samples = NormalizadorSample::normalizarLista($rows);
+
+        $total = PostgresService::consultarUno(
+            "SELECT COUNT(*) as total FROM likes l JOIN samples s ON l.target_id = s.id WHERE l.tipo = 'sample' AND l.usuario_id = :uid AND s.estado = 'activo'",
+            ['uid' => $userId]
+        );
+
+        return new \WP_REST_Response([
+            'data' => [
+                'data' => $samples,
+                'pagination' => [
+                    'page'     => $page,
+                    'per_page' => $perPage,
+                    'total'    => (int) ($total['total'] ?? 0),
+                    'pages'    => max(1, (int) ceil(($total['total'] ?? 0) / $perPage)),
+                ],
+            ],
+        ], 200);
+    }
+
+    /**
+     * GET /me/descargas — Samples que el usuario ha descargado.
+     */
+    public static function misDescargas(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $page    = (int) $request->get_param('page');
+        $perPage = (int) $request->get_param('per_page');
+        $offset  = ($page - 1) * $perPage;
+
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
+            . " JOIN descargas d ON d.sample_id = s.id AND d.usuario_id = :dlUser"
+            . " WHERE s.estado = 'activo'"
+            . " ORDER BY d.created_at DESC LIMIT :limit OFFSET :offset";
+
+        $rows = PostgresService::consultar($sql, [
+            'dlUser' => $userId,
+            'limit'  => $perPage,
+            'offset' => $offset,
+        ]);
+
+        $samples = NormalizadorSample::normalizarLista($rows);
+
+        $total = PostgresService::consultarUno(
+            "SELECT COUNT(*) as total FROM descargas d JOIN samples s ON d.sample_id = s.id WHERE d.usuario_id = :uid AND s.estado = 'activo'",
+            ['uid' => $userId]
+        );
+
+        return new \WP_REST_Response([
+            'data' => [
+                'data' => $samples,
+                'pagination' => [
+                    'page'     => $page,
+                    'per_page' => $perPage,
+                    'total'    => (int) ($total['total'] ?? 0),
+                    'pages'    => max(1, (int) ceil(($total['total'] ?? 0) / $perPage)),
+                ],
+            ],
+        ], 200);
     }
 }

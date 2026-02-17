@@ -12,7 +12,7 @@ import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { usePublicarModalStore } from '@app/stores/publicarModalStore';
 import { useAuthStore } from '@app/stores/authStore';
-import { crearPublicacion } from '@app/services/apiSocial';
+import { crearPublicacion, subirImagenPublicacion } from '@app/services/apiSocial';
 import { crearLogger } from '@app/services/logger';
 import '../../styles/componentes/modalPublicar.css';
 
@@ -91,18 +91,29 @@ export const ModalPublicar = (): JSX.Element | null => {
         });
     }, []);
 
-    /* Publicar */
+    /* Publicar: subir imágenes al servidor antes de enviar URLs */
     const manejarPublicar = useCallback(async () => {
         if (!contenido.trim() || publicando) return;
 
         setPublicando(true);
         try {
+            /* Subir cada imagen al servidor y obtener URLs reales */
+            const urlsReales: string[] = [];
+            for (const img of imagenes) {
+                const resp = await subirImagenPublicacion(img.archivo);
+                if (resp.ok && resp.data?.url) {
+                    urlsReales.push(resp.data.url);
+                } else {
+                    log.error('Error subiendo imagen', resp);
+                }
+            }
+
             await crearPublicacion({
                 tipo: modo,
                 contenido: contenido.trim(),
-                imagenes: imagenes.map((img) => img.url),
+                imagenes: urlsReales,
             });
-            log.info('Publicación creada', { modo, largo: contenido.length });
+            log.info('Publicación creada', { modo, largo: contenido.length, imagenes: urlsReales.length });
             manejarCerrar();
         } catch (err) {
             log.error('Error al publicar', err);
@@ -125,25 +136,14 @@ export const ModalPublicar = (): JSX.Element | null => {
                     </div>
                 ) : (
                     <>
-                        {/* Header con avatar y selector de modo */}
+                        {/* Header con avatar */}
                         <div className="publicarCabecera">
                             <Avatar
                                 src={usuario?.avatarUrl ?? null}
                                 nombre={usuario?.nombreVisible ?? ''}
                                 tamano="md"
                             />
-                            <div className="publicarModos">
-                                <Badge
-                                    variante={modo === 'social' ? 'acento' : 'neutro'}
-                                >
-                                    Social
-                                </Badge>
-                                <Badge
-                                    variante={modo === 'sample' ? 'acento' : 'neutro'}
-                                >
-                                    Sample
-                                </Badge>
-                            </div>
+                            <span className="publicarUsuarioNombre">{usuario?.nombreVisible ?? usuario?.username}</span>
                         </div>
 
                         {/* Textarea */}

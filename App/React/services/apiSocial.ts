@@ -4,7 +4,7 @@
  * Conecta directamente con la API sin fallback a mock.
  */
 
-import { apiGet, apiPost, apiDelete } from './apiCliente';
+import { apiGet, apiPost, apiDelete, apiPostFormData } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 import type { Publicacion, Comentario } from '../types';
 
@@ -16,6 +16,11 @@ export const seguirUsuario = async (usuarioId: number): Promise<RespuestaApi<{ s
 
 export const dejarDeSeguir = async (usuarioId: number): Promise<RespuestaApi<{ seguido: boolean }>> => {
     return apiDelete<{ seguido: boolean }>(`/follow/${usuarioId}`);
+};
+
+/* Lista de IDs de usuarios seguidos (para filtro "solo seguidos") */
+export const obtenerMisSeguidos = async (): Promise<RespuestaApi<{ id: number }[]>> => {
+    return apiGet<{ id: number }[]>('/me/seguidos');
 };
 
 /* Likes */
@@ -39,6 +44,14 @@ export const crearPublicacion = async (datos: {
     samplesAdjuntos?: number[];
 }): Promise<RespuestaApi<Publicacion>> => {
     return apiPost<Publicacion>('/publicaciones', datos);
+};
+
+/* Listar publicaciones de un usuario específico (para tab perfil) */
+export const listarPublicacionesUsuario = async (
+    username: string,
+    page = 1
+): Promise<RespuestaApi<{ data: Publicacion[]; page: number }>> => {
+    return apiGet<{ data: Publicacion[]; page: number }>('/publicaciones', { autor: username, page });
 };
 
 export const obtenerFeedInicio = async (page = 1): Promise<RespuestaApi<Publicacion[]>> => {
@@ -71,4 +84,11 @@ export const repostear = async (publicacionId: number): Promise<RespuestaApi<{ r
 
 export const quitarRepost = async (publicacionId: number): Promise<RespuestaApi<{ reposteado: boolean }>> => {
     return apiDelete<{ reposteado: boolean }>(`/repost/${publicacionId}`);
+};
+
+/* Subir imagen para publicación al servidor (evita blob:// URLs) */
+export const subirImagenPublicacion = async (archivo: File): Promise<RespuestaApi<{ url: string }>> => {
+    const formData = new FormData();
+    formData.append('imagen', archivo);
+    return apiPostFormData<{ url: string }>('/publicaciones/imagenes', formData);
 };

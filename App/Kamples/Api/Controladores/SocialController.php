@@ -49,6 +49,30 @@ class SocialController
                 'target_id' => ['required' => true, 'type' => 'integer'],
             ],
         ]);
+
+        register_rest_route($namespace, '/me/seguidos', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'misSeguidos'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+    }
+
+    /**
+     * Lista de usuarios que el usuario actual sigue.
+     * Devuelve IDs de usuarios para filtrado en el feed.
+     */
+    public static function misSeguidos(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $seguidos = PostgresService::consultar(
+            "SELECT seguido_id AS id FROM follows WHERE seguidor_id = :userId",
+            ['userId' => $userId]
+        );
+
+        $ids = array_map(fn($row) => ['id' => (int) $row['id']], $seguidos);
+        return new \WP_REST_Response(['data' => $ids], 200);
     }
 
     public static function seguir(\WP_REST_Request $request): \WP_REST_Response
@@ -129,6 +153,11 @@ class SocialController
                     ['userId' => $sample['creador_id'], 'datos' => json_encode(['liker_id' => $userId, 'sample_id' => $targetId])]
                 );
             }
+        } elseif ($tipo === 'publicacion') {
+            PostgresService::ejecutar(
+                "UPDATE publicaciones SET total_likes = (SELECT COUNT(*) FROM likes WHERE tipo = 'publicacion' AND target_id = :id) WHERE id = :id",
+                ['id' => $targetId]
+            );
         }
 
         /* Invalidar cache del feed para que el algoritmo recalcule */
@@ -156,6 +185,11 @@ class SocialController
         if ($tipo === 'sample') {
             PostgresService::ejecutar(
                 "UPDATE samples SET total_likes = (SELECT COUNT(*) FROM likes WHERE tipo = 'sample' AND target_id = :id) WHERE id = :id",
+                ['id' => $targetId]
+            );
+        } elseif ($tipo === 'publicacion') {
+            PostgresService::ejecutar(
+                "UPDATE publicaciones SET total_likes = (SELECT COUNT(*) FROM likes WHERE tipo = 'publicacion' AND target_id = :id) WHERE id = :id",
                 ['id' => $targetId]
             );
         }

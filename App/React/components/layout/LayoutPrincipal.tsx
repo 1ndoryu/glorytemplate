@@ -18,6 +18,7 @@ import { ModalConfiguracion } from '../social/ModalConfiguracion';
 import { ChatFlotante } from '../social/ChatFlotante';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
 import { BotonDevTools } from '../ui/BotonDevTools';
+import { ModalAuth } from '../auth/ModalAuth';
 import { ContenedorToasts } from '../ui/ContenedorToasts';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
@@ -90,6 +91,7 @@ export const LayoutPrincipal = ({
                     {children}
                 </main>
                 {/* Dev tools siempre visible para admin real */}
+                <ModalAuth />
                 <ContenedorToasts />
                 <BotonDevTools />
             </div>
@@ -133,6 +135,9 @@ export const LayoutPrincipal = ({
 
             {/* Chats flotantes tipo Messenger */}
             <ChatFlotante />
+
+            {/* Modal de auth (login/registro) */}
+            <ModalAuth />
 
             {/* Toast notifications — esquina inferior derecha */}
             <ContenedorToasts />

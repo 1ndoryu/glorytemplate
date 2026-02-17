@@ -8,19 +8,18 @@ import { useState, useCallback, useEffect } from 'react';
 import { Download, Heart, FolderOpen, Upload, Music, Plus, Globe } from 'lucide-react';
 import {
     BotonBase,
-    InputBusqueda,
 } from '@app/components/ui';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
-import { listarSamples } from '@app/services/apiSamples';
+import { listarSamples, obtenerMisFavoritos, obtenerMisDescargas } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { listarColecciones, listarColeccionesPublicas, eliminarColeccion } from '@app/services/apiColecciones';
 import { useSubirModalStore } from '@app/stores/subirModalStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useNavigationStore } from '@/core/router';
-import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
+import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import type { SampleResumen, Coleccion } from '@app/types';
 import { crearLogger } from '@app/services/logger';
@@ -41,7 +40,6 @@ export const LibreriaIsland = (): JSX.Element => {
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
     const [coleccionesPublicas, setColeccionesPublicas] = useState<Coleccion[]>([]);
     const [cargando, setCargando] = useState(true);
-    const [busqueda, setBusqueda] = useState('');
 
     /* Modal de colección */
     const [modalColeccionAbierto, setModalColeccionAbierto] = useState(false);
@@ -57,6 +55,31 @@ export const LibreriaIsland = (): JSX.Element => {
         setTabs(TABS_LIBRERIA, 'explorar');
         return () => { setTabs([]); };
     }, [setTabs]);
+
+    /* Listener para eliminación optimista de samples */
+    useEffect(() => {
+        const manejarEliminacion = (event: Event) => {
+            const detalle = (event as CustomEvent<{ sampleId?: number }>).detail;
+            if (detalle?.sampleId) {
+                setSamples((prev) => prev.filter((s) => s.id !== detalle.sampleId));
+            }
+        };
+        const manejarRestauracion = (event: Event) => {
+            const detalle = (event as CustomEvent<{ sample?: SampleResumen }>).detail;
+            if (detalle?.sample) {
+                setSamples((prev) => {
+                    if (prev.some((s) => s.id === detalle.sample!.id)) return prev;
+                    return [detalle.sample!, ...prev];
+                });
+            }
+        };
+        window.addEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
+        window.addEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
+        return () => {
+            window.removeEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
+            window.removeEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
+        };
+    }, []);
 
     /* Cargar datos según tab activa */
     useEffect(() => {
@@ -76,9 +99,26 @@ export const LibreriaIsland = (): JSX.Element => {
                 } else {
                     setColecciones([]);
                 }
-            } else {
+            } else if (tabActiva === 'favoritos') {
+                const resp = await obtenerMisFavoritos(1, 20);
+                if (resp.ok && resp.data) {
+                    setSamples(resp.data.data ?? []);
+                } else {
+                    setSamples([]);
+                }
+            } else if (tabActiva === 'descargas') {
+                const resp = await obtenerMisDescargas(1, 20);
+                if (resp.ok && resp.data) {
+                    setSamples(resp.data.data ?? []);
+                } else {
+                    setSamples([]);
+                }
+            } else if (tabActiva === 'subidos') {
+                /* subidos: usar filtro creador con username del auth store */
+                const { useAuthStore } = await import('@app/stores/authStore');
+                const username = useAuthStore.getState().usuario?.username;
                 const resp = await listarSamples({
-                    busqueda: busqueda || undefined,
+                    creador: username || undefined,
                     perPage: 20,
                 });
                 if (resp.ok && resp.data) {
@@ -90,7 +130,7 @@ export const LibreriaIsland = (): JSX.Element => {
             setCargando(false);
         };
         cargar();
-    }, [tabActiva, busqueda]);
+    }, [tabActiva]);
 
     const manejarLike = useCallback(async (sampleId: number) => {
         setSamples((prev) =>
@@ -156,14 +196,8 @@ export const LibreriaIsland = (): JSX.Element => {
 
     return (
         <div className="libreriaContenedor" id="seccionLibreria">
-            {/* Barra de búsqueda + acciones contextuales */}
+            {/* Acciones contextuales por tab */}
             <div className="libreriaBarraAcciones">
-                <div className="libreriaBusqueda">
-                    <InputBusqueda
-                        onChange={setBusqueda}
-                        placeholder={`Buscar en ${tabActiva || 'librería'}...`}
-                    />
-                </div>
                 <div className="libreriaAcciones">
                     {tabActiva === 'colecciones' && (
                         <BotonBase variante="ghost" tamano="sm" onClick={abrirNuevaColeccion}>
@@ -237,7 +271,7 @@ export const LibreriaIsland = (): JSX.Element => {
                     )}
                 </div>
             ) : (
-                <div className="libreriaLista">
+                <div className="listaDeSamples">
                     {samples.map((sample) => (
                         <TarjetaSample
                             key={sample.id}

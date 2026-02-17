@@ -194,7 +194,7 @@ export const WaveformPlayer = ({
             ctx.lineTo(hoverX, altoLogico);
             ctx.stroke();
         }
-    }, [progreso, tamano, colorReproducido, colorNoReproducido, colorFondo, hoverX, interactivo, anchoBarra, espacioBarra, simetrico]);
+    }, [picos, progreso, tamano, colorReproducido, colorNoReproducido, colorFondo, hoverX, interactivo, anchoBarra, espacioBarra, simetrico]);
 
     /* Redibujar cuando cambian las dependencias */
     useEffect(() => {

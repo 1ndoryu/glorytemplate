@@ -33,6 +33,7 @@ class PublicacionesController
             'args' => [
                 'page' => ['required' => false, 'type' => 'integer', 'default' => 1],
                 'filtro' => ['required' => false, 'type' => 'string', 'default' => 'todos', 'enum' => ['todos', 'siguiendo', 'populares']],
+                'autor' => ['required' => false, 'type' => 'string'],
             ],
         ]);
 
@@ -61,12 +62,18 @@ class PublicacionesController
             'methods' => 'POST', 'callback' => [self::class, 'repostear'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        register_rest_route($namespace, '/publicaciones/imagenes', [
+            'methods' => 'POST', 'callback' => [self::class, 'subirImagen'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
         $page = (int) $request->get_param('page');
         $filtro = $request->get_param('filtro');
+        $autor = $request->get_param('autor');
         $offset = ($page - 1) * 20;
 
         $donde = '';
@@ -91,12 +98,30 @@ class PublicacionesController
             }
         }
 
+        /* C93: Filtrar por autor (username) para tab de publicaciones en perfil */
+        if (!empty($autor)) {
+            $donde .= " AND u.username = :autor";
+            $params['autor'] = sanitize_text_field($autor);
+        }
+
         $orderBy = $filtro === 'populares'
             ? 'ORDER BY p.total_likes DESC, p.created_at DESC'
             : 'ORDER BY p.created_at DESC';
 
+        /* Obtener userId actual para campo liked */
+        $currentUserId = UsuarioHelper::obtenerIdPg();
+
+        $likedSubquery = $currentUserId
+            ? ", EXISTS(SELECT 1 FROM likes l WHERE l.tipo = 'publicacion' AND l.target_id = p.id AND l.usuario_id = :current_user) AS liked"
+            : ", FALSE AS liked";
+
+        if ($currentUserId) {
+            $params['current_user'] = $currentUserId;
+        }
+
         $publicaciones = PostgresService::consultar(
             "SELECT p.*, u.username, u.nombre_visible, u.avatar_url, u.verificado
+             {$likedSubquery}
              FROM publicaciones p
              JOIN usuarios_ext u ON p.autor_id = u.id
              WHERE 1=1
@@ -109,6 +134,9 @@ class PublicacionesController
         foreach ($publicaciones as &$pub) {
             $pub['totalComentarios'] = (int) ($pub['total_comentarios'] ?? 0);
             $pub['totalLikes'] = (int) ($pub['total_likes'] ?? 0);
+            $pub['totalReposts'] = (int) ($pub['total_reposts'] ?? 0);
+            $pub['creadoAt'] = $pub['created_at'] ?? '';
+            $pub['liked'] = (bool) ($pub['liked'] ?? false);
             $pub['imagenes'] = self::pgArrayAPhp($pub['imagenes'] ?? null);
             $pub['samplesAdjuntos'] = array_map('intval', self::pgArrayAPhp($pub['samples_adjuntos'] ?? null));
             $pub['autor'] = [
@@ -329,5 +357,61 @@ class PublicacionesController
         $inner = trim($pgArray, '{}');
         if ($inner === '') return [];
         return str_getcsv($inner, ',', '"');
+    }
+
+    /**
+     * Subir imagen para publicación.
+     * Guarda en wp-content/uploads/kamples/publicaciones/{userId}/.
+     * Devuelve la URL real del servidor.
+     */
+    public static function subirImagen(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $files = $request->get_file_params();
+        if (empty($files['imagen'])) {
+            return new \WP_REST_Response(['code' => 'sin_imagen', 'message' => 'No se recibió ninguna imagen'], 400);
+        }
+
+        $archivo = $files['imagen'];
+        $tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $tipoReal = finfo_file($finfo, $archivo['tmp_name']);
+        finfo_close($finfo);
+
+        if (!in_array($tipoReal, $tiposPermitidos, true)) {
+            return new \WP_REST_Response(['code' => 'tipo_invalido', 'message' => 'Tipo de imagen no permitido'], 400);
+        }
+
+        /* Limite 5MB */
+        if ($archivo['size'] > 5 * 1024 * 1024) {
+            return new \WP_REST_Response(['code' => 'muy_grande', 'message' => 'La imagen excede 5MB'], 400);
+        }
+
+        $uploadDir = wp_upload_dir();
+        $carpeta = $uploadDir['basedir'] . '/kamples/publicaciones/' . $userId;
+        if (!file_exists($carpeta)) {
+            wp_mkdir_p($carpeta);
+        }
+
+        $ext = match ($tipoReal) {
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/webp' => 'webp',
+            'image/gif'  => 'gif',
+            default      => 'jpg',
+        };
+
+        $nombreArchivo = 'pub_' . bin2hex(random_bytes(8)) . '.' . $ext;
+        $rutaDestino = $carpeta . '/' . $nombreArchivo;
+
+        if (!move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
+            return new \WP_REST_Response(['code' => 'error_guardado', 'message' => 'Error al guardar la imagen'], 500);
+        }
+
+        $url = $uploadDir['baseurl'] . '/kamples/publicaciones/' . $userId . '/' . $nombreArchivo;
+
+        return new \WP_REST_Response(['ok' => true, 'url' => $url], 200);
     }
 }

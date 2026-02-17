@@ -18,6 +18,7 @@ import { usePublicarModalStore } from '@app/stores/publicarModalStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { apiGet } from '@app/services/apiCliente';
+import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { Publicacion } from '@app/types';
 import '../../styles/componentes/comunidad.css';
 
@@ -43,8 +44,11 @@ const SeccionComentariosPost = ({ postId, navegar }: { postId: number; navegar: 
 };
 
 const formatearTiempoRelativo = (fecha: string): string => {
+    if (!fecha) return '';
+    const timestamp = new Date(fecha).getTime();
+    if (isNaN(timestamp)) return '';
     const ahora = Date.now();
-    const diff = ahora - new Date(fecha).getTime();
+    const diff = ahora - timestamp;
     const minutos = Math.floor(diff / 60000);
     if (minutos < 60) return `${minutos}m`;
     const horas = Math.floor(minutos / 60);
@@ -90,7 +94,8 @@ const ComunidadBase = (): JSX.Element => {
         return () => { activo = false; };
     }, [filtro]);
 
-    const manejarLikePost = useCallback((postId: number) => {
+    const manejarLikePost = useCallback(async (postId: number) => {
+        /* UI optimista */
         setPublicaciones((prev) =>
             prev.map((p) =>
                 p.id === postId
@@ -98,7 +103,14 @@ const ComunidadBase = (): JSX.Element => {
                     : p
             )
         );
-    }, []);
+        /* Persistir en backend */
+        const post = publicaciones.find((p) => p.id === postId);
+        if (post?.liked) {
+            await quitarLike('publicacion', postId);
+        } else {
+            await darLike('publicacion', postId);
+        }
+    }, [publicaciones]);
 
     const manejarRepost = useCallback((postId: number) => {
         setPublicaciones((prev) =>

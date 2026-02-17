@@ -1,15 +1,14 @@
 /*
- * ConAutenticacion — Kamples (Guard de rutas, Fase 1.9)
+ * ConAutenticacion — Kamples
  * HOC que protege páginas que requieren usuario autenticado.
- * Si el usuario no está autenticado, redirige a login vía SPA.
+ * Si el usuario no está autenticado, abre el modal de login.
  */
 
 import { useEffect, type ComponentType, type JSX } from 'react';
 import { useAuthStore } from '@app/stores/authStore';
-import { useNavigationStore } from '@/core/router';
+import { useAuthModalStore } from '@app/stores/authModalStore';
 
 interface OpcionesGuard {
-    redirigirA?: string;
     mensajeCarga?: string;
 }
 
@@ -22,21 +21,19 @@ export function conAutenticacion<P extends Record<string, unknown>>(
     opciones: OpcionesGuard = {}
 ): ComponentType<P> {
     const {
-        redirigirA = '/auth/login',
         mensajeCarga = 'Verificando sesión…',
     } = opciones;
 
     const ComponenteProtegido = (props: P): JSX.Element | null => {
         const { autenticado, cargando } = useAuthStore();
-        const { navegar } = useNavigationStore();
+        const abrirAuth = useAuthModalStore((s) => s.abrir);
 
         useEffect(() => {
             if (!cargando && !autenticado) {
-                /* Guardar la URL actual para redirigir de vuelta después del login */
-                const urlActual = window.location.pathname + window.location.search;
-                navegar(`${redirigirA}?redirect=${encodeURIComponent(urlActual)}`);
+                /* Abrir modal de login en vez de redirigir */
+                abrirAuth('login');
             }
-        }, [cargando, autenticado, navegar]);
+        }, [cargando, autenticado, abrirAuth]);
 
         if (cargando) {
             return (

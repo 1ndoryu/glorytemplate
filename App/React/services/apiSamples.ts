@@ -120,3 +120,17 @@ export const subirSample = async (datos: DatosSubida): Promise<RespuestaApi<Resp
 export const eliminarSample = async (sampleId: number): Promise<RespuestaApi<{ eliminado: boolean }>> => {
     return apiDelete<{ eliminado: boolean }>(`/samples/${sampleId}`);
 };
+
+/*
+ * C87: Obtiene los samples favoritos (liked) del usuario autenticado.
+ */
+export const obtenerMisFavoritos = async (page = 1, perPage = 20): Promise<RespuestaApi<RespuestaListaSamples>> => {
+    return apiGet<RespuestaListaSamples>('/me/favoritos', { page, per_page: perPage });
+};
+
+/*
+ * C87: Obtiene los samples descargados por el usuario autenticado.
+ */
+export const obtenerMisDescargas = async (page = 1, perPage = 20): Promise<RespuestaApi<RespuestaListaSamples>> => {
+    return apiGet<RespuestaListaSamples>('/me/descargas', { page, per_page: perPage });
+};

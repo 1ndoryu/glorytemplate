@@ -1,0 +1,135 @@
+/*
+ * Estilos: ModalAuth
+ * Layout con imagen lateral + formulario, similar a planes.
+ */
+
+/* Override modal para quitar padding interno */
+.modalAuthEspecial {
+    max-width: 900px;
+}
+
+.modalAuthEspecial .modalCuerpo {
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Grid imagen + contenido */
+.authLayoutEspecial {
+    display: grid;
+    grid-template-columns: 55% 45%;
+    min-height: 520px;
+    max-height: 80dvh;
+}
+
+/* Panel imagen lateral */
+.authPanelImagen {
+    position: relative;
+    overflow: hidden;
+    background: var(--fondoSecundario);
+}
+
+.authImagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Panel formulario */
+.authPanelContenido {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espacioXl);
+    overflow-y: auto;
+}
+
+.authFormContenedor {
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+/* Logo */
+.authLogo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    color: var(--textoPrimario);
+    margin-bottom: var(--espacioSm);
+}
+
+.authLogoTexto {
+    font-size: var(--fuenteLg);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* Titulo y subtitulo */
+.authTitulo {
+    font-size: var(--fuenteXl);
+    font-weight: 700;
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.authSubtitulo {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    margin: 0;
+}
+
+/* Formulario */
+.authFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+/* Error */
+.authError {
+    padding: var(--espacioSm) var(--espacioMd);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radioSm);
+    color: #ef4444;
+    font-size: var(--fuenteSm);
+}
+
+/* Footer con enlace */
+.authFooter {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    text-align: center;
+    margin: 0;
+}
+
+.authEnlace {
+    background: none;
+    border: none;
+    color: var(--acento);
+    cursor: pointer;
+    font-size: inherit;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.authEnlace:hover {
+    color: var(--acentoHover);
+}
+
+/* Responsive: ocultar imagen en pantallas pequenas */
+@media (max-width: 700px) {
+    .authLayoutEspecial {
+        grid-template-columns: 1fr;
+    }
+
+    .authPanelImagen {
+        display: none;
+    }
+
+    .authPanelContenido {
+        padding: var(--espacioLg);
+    }
+}

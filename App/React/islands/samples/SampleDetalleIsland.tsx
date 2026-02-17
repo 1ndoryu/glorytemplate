@@ -497,19 +497,20 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                         )}
                     </div>
 
-                    {/* Sección de comentarios expandible */}
-                    {comentariosVisibles && (
-                        <div className="detalleSeccion">
-                            <ListaComentarios
-                                comentarios={seccionComentarios.comentarios}
-                                cargando={seccionComentarios.cargando}
-                                onEnviar={seccionComentarios.enviar}
-                                onClickAutor={(u) => navegar(`/perfil/${u}/`)}
-                                maxVisibles={5}
-                            />
-                        </div>
-                    )}
                 </div>
+
+                {/* Sección de comentarios debajo de detallePieFlex */}
+                {comentariosVisibles && (
+                    <div className="detalleSeccion detalleComentariosSeccion">
+                        <ListaComentarios
+                            comentarios={seccionComentarios.comentarios}
+                            cargando={seccionComentarios.cargando}
+                            onEnviar={seccionComentarios.enviar}
+                            onClickAutor={(u) => navegar(`/perfil/${u}/`)}
+                            maxVisibles={5}
+                        />
+                    </div>
+                )}
 
                 <div className="detalleInfo">
                     {similares.length > 0 && (

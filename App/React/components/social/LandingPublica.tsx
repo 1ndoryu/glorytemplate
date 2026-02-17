@@ -20,6 +20,7 @@ import { Badge } from '@app/components/ui/Badge';
 import { obtenerFeed } from '@app/services/apiSamples';
 import { useNavigationStore } from '@/core/router';
 import { useReproductorStore } from '@app/stores/reproductorStore';
+import { useAuthModalStore } from '@app/stores/authModalStore';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/landingPublica.css';
 
@@ -28,6 +29,7 @@ export const LandingPublica = (): JSX.Element => {
     const { navegar } = useNavigationStore();
     const { setSample, sampleActual, reproduciendo, progreso } =
         useReproductorStore();
+    const abrirAuth = useAuthModalStore((s) => s.abrir);
 
     useEffect(() => {
         const cargar = async () => {
@@ -49,14 +51,14 @@ export const LandingPublica = (): JSX.Element => {
                     <BotonBase
                         variante="ghost"
                         tamano="sm"
-                        onClick={() => navegar('/auth/login/')}
+                        onClick={() => abrirAuth('login')}
                     >
                         Iniciar sesión
                     </BotonBase>
                     <BotonBase
                         variante="primario"
                         tamano="sm"
-                        onClick={() => navegar('/auth/registro/')}
+                        onClick={() => abrirAuth('registro')}
                     >
                         Crear cuenta
                     </BotonBase>
@@ -78,7 +80,7 @@ export const LandingPublica = (): JSX.Element => {
                 <div className="landingHeroAcciones">
                     <BotonBase
                         variante="primario"
-                        onClick={() => navegar('/auth/registro/')}
+                        onClick={() => abrirAuth('registro')}
                     >
                         Crear cuenta gratis
                         <ArrowRight size={16} />
@@ -175,7 +177,7 @@ export const LandingPublica = (): JSX.Element => {
                         </ul>
                         <BotonBase
                             variante="ghost"
-                            onClick={() => navegar('/auth/registro/')}
+                            onClick={() => abrirAuth('registro')}
                         >
                             Empezar
                         </BotonBase>
@@ -194,7 +196,7 @@ export const LandingPublica = (): JSX.Element => {
                         </ul>
                         <BotonBase
                             variante="primario"
-                            onClick={() => navegar('/auth/registro/')}
+                            onClick={() => abrirAuth('registro')}
                         >
                             Elegir Pro
                         </BotonBase>
@@ -212,7 +214,7 @@ export const LandingPublica = (): JSX.Element => {
                         </ul>
                         <BotonBase
                             variante="ghost"
-                            onClick={() => navegar('/auth/registro/')}
+                            onClick={() => abrirAuth('registro')}
                         >
                             Elegir Premium
                         </BotonBase>
@@ -225,7 +227,7 @@ export const LandingPublica = (): JSX.Element => {
                 <h2>Únete a la comunidad de productores</h2>
                 <BotonBase
                     variante="primario"
-                    onClick={() => navegar('/auth/registro/')}
+                    onClick={() => abrirAuth('registro')}
                 >
                     Crear cuenta gratis
                     <ArrowRight size={16} />

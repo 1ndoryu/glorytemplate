@@ -59,6 +59,10 @@ export interface FeedSamplesProps {
     onLike?: (sampleId: number, nuevoEstado: boolean) => void;
     /* IDs a excluir de la lista (ej: filtro "Ya reproducidos") */
     idsExcluidos?: Set<number>;
+    /* IDs de creadores para incluir exclusivamente (filtro "solo seguidos") */
+    idsCreadoresIncluidos?: Set<number>;
+    /* Callback con total de samples filtrados (para contadores externos) */
+    onConteoChange?: (total: number) => void;
 }
 
 const ETIQUETAS_CATEGORIA: Record<CategoriaTag, string> = {
@@ -86,6 +90,8 @@ export const FeedSamples = ({
     id,
     onLike,
     idsExcluidos,
+    idsCreadoresIncluidos,
+    onConteoChange,
 }: FeedSamplesProps): JSX.Element => {
     const [samples, setSamples] = useState<SampleResumen[]>(samplesIniciales ?? []);
     const [cargando, setCargando] = useState(!samplesIniciales);
@@ -276,13 +282,21 @@ export const FeedSamples = ({
         return agruparTagsPorCategoria(todosLosTags);
     }, [tagsExpandidos, todosLosTags]);
 
-    /* Filtrar por tags y por IDs excluidos */
+    /* Filtrar por tags, por IDs excluidos y por creadores incluídos */
     const samplesFiltrados = useMemo(() => {
         let resultado = samples;
 
-        /* Exclusión por IDs (ej: "Ya reproducidos") */
+        /* Exclusión por IDs (ej: "Ya reproducidos", "Ya likeados", "Ya descargados") */
         if (idsExcluidos && idsExcluidos.size > 0) {
             resultado = resultado.filter((s) => !idsExcluidos.has(s.id));
+        }
+
+        /* Inclusión por creador (filtro "solo seguidos") */
+        if (idsCreadoresIncluidos && idsCreadoresIncluidos.size > 0) {
+            resultado = resultado.filter((s) => {
+                const creadorId = s.creador?.id ?? (s as Record<string, unknown>).creadorId;
+                return typeof creadorId === 'number' && idsCreadoresIncluidos.has(creadorId);
+            });
         }
 
         /* Inclusión/exclusión por tags */
@@ -292,7 +306,12 @@ export const FeedSamples = ({
             return tagsIncluidos.every((t) => tagsSample.includes(t))
                 && tagsExcluidos.every((t) => !tagsSample.includes(t));
         });
-    }, [samples, tagsIncluidos, tagsExcluidos, idsExcluidos]);
+    }, [samples, tagsIncluidos, tagsExcluidos, idsExcluidos, idsCreadoresIncluidos]);
+
+    /* Notificar conteo al padre (ultra-eficiente: solo lee .length) */
+    useEffect(() => {
+        onConteoChange?.(samplesFiltrados.length);
+    }, [samplesFiltrados.length, onConteoChange]);
 
     /* Handlers de tags */
     const manejarIncluirTag = useCallback((tag: string) => {
