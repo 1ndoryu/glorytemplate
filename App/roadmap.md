@@ -322,6 +322,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **C169-C183:** Búsqueda colecciones (R46), editor metadata fix descripcion+chips IA (R46), fila colecciones inicio (R46), algoritmo colecciones CTE (R46), modal guardar contextual+Bookmark (R46), fix reproducciones completada (R46).
 **C179:** Panel Administración FASE 13 (R47).
 **R49:** C193 fix avatares "?" — UsuarioHelper::resolverAvatarUrl() centralizado, 12 controllers/services con fallback WP Gravatar, EditarPerfilIsland wired subirAvatar+authStore sync, PerfilController corrupción reparada, MotorRecomendacion+ColeccionesController+AdminController+ReproduccionesController wp_user_id en SQL.
+**R50:** C246+C247+C248+C249+C250+C251+C253+C256+C257 — Duplicar evita colisión (finMax), selección múltiple Ctrl+click (Set+batch move), 20 pistas iniciales, Shift+drag duplica, placeholder eliminado, cerrar estilo uniforme, ModalConfigDaw (snap+stretch/clip global), admin cambiar plan (select UI).
 
 ### Lecciones Aprendidas (R49)
 - [Avatar]: La BD (usuarios_ext.avatar_url) puede ser NULL incluso si el usuario tiene Gravatar. Siempre usar `UsuarioHelper::resolverAvatarUrl()` como fallback a `get_avatar_url($wpUserId)`.
@@ -419,21 +420,32 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 243. ✅ [AG-DAW] Fix drift stretch/contract — causa raíz: sin duracionOriginal inmutable, cada resize acumulaba error de redondeo. Fix: duracionOriginalCompases + playbackRateOriginal como anclas inmutables, playbackRate redondeado a 6 decimales (Math.round * 1e6 / 1e6). Commit 96f3c0c.
 244. ✅ [AG-DAW] Toggle stretch vs clip (like FL Studio) — modoResize: 'stretch'|'clip' en BloqueMezclador. Stretch: recalcula playbackRate. Clip: mantiene playbackRate, ajusta recorteFin, limita a duración máxima del audio. Toggle button en ModalConfigBloque. Tag "CLIP" visible en BloqueSample. Commit 96f3c0c.
 245. ✅ [AG-DAW] Fix admin usuarios (segunda pasada) — queries usaban columnas incorrectas: u.ban_hasta→u.baneado_hasta, ban_hasta=→baneado_hasta=, p.usuario_id→p.autor_id. Commit c9eef52.
-246. Cuando se duplica un audio, este se pone delante, bien, pero si ya hay un audio delante, se pone encima, debe evitar la colición y ponerse al final donde no colicione con algo.
-247. poder selecionar tarjetas de audios presionado control en el daw, asi puedo mover varias tarjetas, hacia los lados o hacia otras pistas
-248. que inicialmente haya 20 pistas en el mini daw
-249. que presionando shilf sobre una tarjeta de audio esta se duplique al arrastrarla un poco hacia afuera.
-250. Quita el texto de "arrastra un sample aqui"
-251. Que el boton de mezcladorCerrar tenga el mismo estilo que el resto de botones.
+246. ✅ [AG-DAW] Duplicar evita colisión — hayColision() verifica solapamiento, si colisiona coloca copia al final de la pista (finMax). Commit 183fc55.
+247. ✅ [AG-DAW] Selección múltiple Ctrl+click — bloquesSeleccionados Set<string>, toggleSeleccionBloque, moverBloquesSeleccionados (preserva offsets relativos), outline acento visual. Commit 183fc55.
+248. ✅ [AG-DAW] 20 pistas iniciales — Array.from length:20 en estado inicial y limpiarProyecto(). Commit 183fc55.
+249. ✅ [AG-DAW] Shift+drag duplica — onMouseDown detecta e.shiftKey, llama duplicarBloque antes de iniciar drag del original. Commit 183fc55.
+250. ✅ [AG-DAW] Eliminado texto placeholder "arrastra un sample aquí" de PistaTimeline y MezcladorPanel. Commit 183fc55.
+251. ✅ [AG-DAW] mezcladorCerrar con estilo uniforme — 28px, border 1px solid bordeSutil, hover bordeActivo (igual que mezcladorBotonCabecera). Commit 183fc55.
 252. Antes de continuar con 253, es necesario comprimir las tareas, comentarios o registros o lecciones viejas.
-253. Poner un boton de configuracion de mini daw al lado de expandir panel, en ese modal de configuración, se van a mover las opciones de snap.
+253. ✅ [AG-DAW] ModalConfigDaw — botón Settings en cabecera, modal con selector snap (bar/beat/1-2/1-4/1-6/off). Snap removido de ControlesMezclador. Commit 183fc55.
 254. EL boton de publicar mezcla no funciona, puede esto no este planificado, pero realmente requiere pasos extra con la detección de duplicados, porque supongamos que hago una mezcla de un audio exactamente igual, el sistema debería detectar esos casos en que se intenta publicar un sample igual aunque sea una mezcla y pasarlo a moderación. 
 254.1 Veo que en el menu contextual de la foto de perfil hay un limitador de creditos, ejemplo usuario free tiene 5 creditos y aparece 5, si bien, al reiniciar el dia debe volver a 5, hay que quitar el limite, o sea si tengo 5 creditos y publico un sample, debería tener 6, si pasa un dia y todavía tengo 6, no debe restar y dejarme en esos 6, pero si tengo menos (4, 3, etc) reiniciar a 5 o a lo que corresponde, asi con los otros planes. Permitir que los usuarios ganen creditos por mezclar o publicar samples.
 242.2 Aclaración porque siento que no entiende bien 254, lo que se busca es debería permitirse mezcla siempre y cuando no sean tan parecidas, a los samples ya publicados. 
 255. los archivos del mezclador como mezcladorStore, se estan haciendo muy grandes, refactorizar y aplicar solid con cuidado. 
-256. La opcion de strech rezice audio when rezising audio clip que comente en 244, debe ser general, y estar al lado de la opcion de recorte, y funcionar generalmente, no individualmente por cada tarjeta, se debe aplicar en tiempo real dependiendo se si se esta activa o desactivada, aplicara una opcion o otra.
-257. Las acciones en el panel de administración: falta una opcion para cambiar el plan de usuario a pro, o premiun, tal vez agrupar en un boton 3 puntos.
+256. ✅ [AG-DAW] Stretch/clip global — modoResizeGlobal en store (default stretch), toggle en ModalConfigDaw. setDuracionBloque lee modo global. Removido toggle individual de ModalConfigBloque. Commit 183fc55.
+257. ✅ [AG-DAW] Admin cambiar plan — select free/pro/premium en acciones de TabUsuariosAdmin. Backend ya soportaba plan en actualizarUsuario. CSS adminSelectPlan. Commit 115589a.
 258. Cambiar la tonalidad de los audios no funciona.
+259. Revisar el css del panel para verificar que este usando las variables.
+260. Quitar mezcladorDropZoneVacia, no es necesario. 
+261. El modal de colecciones a veces se sale de la pantalla.
+262. Planificar adaptación de .agent\coolify-manager para correr postgres automaticamente y instalar todo lo que necesita este proyecto para que funcione en el vps linux. 
+263. Sigo sin poder ver la iamgen de perfil del otro usuario en chatFlotanteHeader.
+264. Los comentarios necesitan opciones de 3 puntos, un menu contextual donde aparezca la opcion de editar, reportar y eliminar, los admin pueden borrar cualquier comentarios y los usuarios eliminar sus propios comentarios.
+265. Poder dar like a los comentarios, y responder otros comentarios, que los comentarios se aniden cuando sean una respuesta, las respuestas ocultas por defecto.
+266. Recibir notificaciones cuando se recibe like en un sample, cuando se responde un comentario, o se da like a un comentario, no recibir notificaciones de auto like o autorespuesta. Notificaciones de publicaciones eliminadas, en moderación, de sample verificado, de pago procesado de stripe con exito y accendido a pro o premium, etc, recibir que todo lo que deba generar una notificación, lo genere.
+267. Cuando seleciono varias tarjetas, no se nota que estan selecionadas, el efecto de seleccion no es notabl visualmente, es problematico visualmente.
+258. Cuando arrastro tareas seleccionadas, ambas se mueven al mismo lugar, tienen que mantener sus distancias iniciales y no ponerse todas en el mismo lugar.
+259. La opción de resize no tiene que estar dentro del modal de configuración sino fuera al lado de la opcion recorte y activarse asi como se activa la opcion de recorte. 
 
 
 ---
@@ -520,6 +532,12 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 - [C236]: Gráficas CSS puras: barras agrupadas (flex-direction row) son más legibles que apiladas (column). Usar colores lejanos en el espectro (verde/azul/naranja, no verde/verde claro/naranja). Siempre incluir eje de referencia.
 - [C221]: Metadata IA puede generar valores repetidos entre categorías (ej: "hip-hop" en genero Y en tags). Siempre deduplicar con Set normalizado (lowercase+trim) al mostrar badges.
 - [C223]: Para refrescar feeds desde hooks externos (fuera del componente), usar CustomEvent + listener. Para evitar stale closures en listeners con `[]` deps, guardar la función en un ref (`cargarPaginaRef.current = cargarPagina`).
+- [C246]: Colisión al duplicar: iterar bloques de la pista buscando overlap (inicio < finCopia && fin > inicioCopia). Si colisiona, Math.max de todos los fines como posición alternativa.
+- [C247]: Selección múltiple: Set<string> en store, Ctrl+click toggle, mover en batch preservando offsets relativos (delta = destino - min(inicios seleccionados)).
+- [C249]: Shift+drag: duplicar ANTES de iniciar drag. El drag mueve el original, la copia queda en su lugar.
+- [C253]: Al mover controles a un modal, verificar que imports (tipos, stores) se limpien del componente origen.
+- [C256]: Modo resize global vs individual: cuando un comportamiento aplica a todos los bloques, moverlo de la entidad (BloqueMezclador) al store global. setDuracionBloque lee `get().modoResizeGlobal`.
+- [C257]: Backend actualizarUsuario ya soportaba `plan` — solo faltaba UI. Antes de crear backend, verificar si ya existe la funcionalidad.
 - [C201]: FFmpeg waveform: `-f f32le -acodec pcm_f32le -ac 1 -ar 8000` genera PCM raw, luego leer con `unpack('g*')` y extraer picos por chunks. 60 barras es suficiente para un mini player.
 - [C240]: Web Audio `detune` en BufferSourceNode cambia pitch PERO también velocidad. Para pitch-sin-cambio-de-velocidad: compensar playbackRate con `rate / Math.pow(2, cents / 1200)`. Aplicar en real-time Y offline render.
 - [C243]: Drift en resize se acumula por floating-point en cada operación. Solución: guardar `duracionOriginalCompases` y `playbackRateOriginal` inmutables al crear bloque, siempre recalcular desde originales, nunca desde valores ya redondeados.
