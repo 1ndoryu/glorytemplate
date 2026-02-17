@@ -4,7 +4,7 @@
  * Conecta directamente con la API sin fallback a mock.
  */
 
-import { apiGet, apiPost, apiDelete, apiPostFormData } from './apiCliente';
+import { apiGet, apiPost, apiDelete, apiPostFormData, apiPut } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 import type { Publicacion, Comentario, TipoReaccion } from '../types';
 
@@ -98,4 +98,32 @@ export const subirImagenPublicacion = async (archivo: File): Promise<RespuestaAp
     const formData = new FormData();
     formData.append('imagen', archivo);
     return apiPostFormData<{ url: string }>('/publicaciones/imagenes', formData);
+};
+
+/* C126: Datos editables de una publicación */
+export interface DatosActualizarPublicacion {
+    contenido?: string;
+    imagenes?: string[];
+    moderacionEstado?: string; /* solo admin */
+}
+
+/*
+ * C126: Actualizar publicación.
+ * Solo el autor o admin pueden editar.
+ */
+export const actualizarPublicacion = async (
+    publicacionId: number,
+    datos: DatosActualizarPublicacion
+): Promise<RespuestaApi<{ ok: boolean }>> => {
+    return apiPut<{ ok: boolean }>(`/publicaciones/${publicacionId}`, datos);
+};
+
+/*
+ * C126: Eliminar publicación.
+ * Solo el autor o admin pueden eliminar.
+ */
+export const eliminarPublicacion = async (
+    publicacionId: number
+): Promise<RespuestaApi<{ eliminado: boolean }>> => {
+    return apiDelete<{ eliminado: boolean }>(`/publicaciones/${publicacionId}`);
 };

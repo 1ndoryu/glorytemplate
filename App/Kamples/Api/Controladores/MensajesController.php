@@ -11,6 +11,8 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\RateLimiter;
+use App\Kamples\Api\Helpers\Validador;
 
 class MensajesController
 {
@@ -171,6 +173,16 @@ class MensajesController
             $tipo = 'texto';
         }
 
+        /* C164: Rate limiting — 30 mensajes por minuto */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'mensaje', 30, 60);
+        if ($limitResp) return $limitResp;
+
+        /* C164: Limite de longitud para mensajes de texto */
+        if ($tipo === 'texto' && !empty($contenido)) {
+            $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_MENSAJE, 'El mensaje');
+            if ($errorLongitud) return Validador::respuestaError($errorLongitud);
+        }
+
         $mediaUrl = null;
         $mediaMetadata = null;
 
@@ -322,6 +334,10 @@ class MensajesController
     {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /* C164: Rate limiting — 10 conversaciones nuevas por hora */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'nueva_conversacion', 10, 3600);
+        if ($limitResp) return $limitResp;
 
         $body  = $request->get_json_params();
         $otroId = (int) ($body['usuarioId'] ?? 0);

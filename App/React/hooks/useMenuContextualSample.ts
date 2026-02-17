@@ -11,6 +11,7 @@ import { useNavigationStore } from '@/core/router';
 import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { useAuthStore } from '@app/stores/authStore';
+import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { eliminarSample } from '@app/services/apiSamples';
 import { toast } from '@app/stores/toastStore';
 
@@ -48,6 +49,15 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
     const { setSample } = useReproductorStore();
     const { abrir: abrirColeccionPicker } = useColeccionPickerStore();
     const { usuario } = useAuthStore();
+    const { abrirSample: abrirEditarSample } = useEditarModalStore();
+
+    /* El usuario puede editar/eliminar si es propietario del sample o admin */
+    const puedeEditar = useMemo(() => {
+        if (!usuario || !estado.sample) return false;
+        const esPropietario = usuario.id === estado.sample.creador.id;
+        const esAdmin = usuario.rol === 'admin';
+        return esPropietario || esAdmin;
+    }, [usuario, estado.sample]);
 
     /* El usuario puede eliminar si es propietario del sample o admin */
     const puedeEliminar = useMemo(() => {
@@ -123,6 +133,17 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                 },
                 separadorDespues: true,
             },
+            ...(puedeEditar
+                ? [
+                    {
+                        id: 'editar',
+                        etiqueta: 'Editar sample',
+                        onClick: () => {
+                            if (estado.sample) abrirEditarSample(estado.sample);
+                        },
+                    } as MenuItemDef,
+                ]
+                : []),
             {
                 id: 'inspeccionar',
                 etiqueta: 'Inspeccionar datos',

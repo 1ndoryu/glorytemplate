@@ -11,6 +11,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Services\MotorRecomendacion;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 
@@ -81,6 +82,10 @@ class SocialController
         $seguidorId = UsuarioHelper::obtenerIdPg();
         if (!$seguidorId) return UsuarioHelper::respuestaNoEncontrado();
 
+        /* C164: Rate limit — 20 follows por minuto */
+        $limitResp = RateLimiter::verificarUsuario($seguidorId, 'follow', 20, 60);
+        if ($limitResp) return $limitResp;
+
         $targetId = (int) $request->get_param('userId');
 
         if ($seguidorId === $targetId) {
@@ -131,6 +136,10 @@ class SocialController
     {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /* C164: Rate limit — 30 likes por minuto */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'like', 30, 60);
+        if ($limitResp) return $limitResp;
 
         $tipo     = sanitize_text_field($request->get_param('tipo'));
         $targetId = (int) $request->get_param('target_id');

@@ -15,6 +15,7 @@ use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Services\MotorRecomendacion;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 
@@ -58,6 +59,10 @@ class ReproduccionesController
     {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /* C164: Rate limit — 60 reproducciones por minuto (anti-bot) */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'reproduccion', 60, 60);
+        if ($limitResp) return $limitResp;
 
         $sampleId = (int) $request->get_param('id');
         $duracion = (float) $request->get_param('duracion_escuchada');

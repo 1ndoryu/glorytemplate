@@ -1,0 +1,86 @@
+/*
+ * modalEditar.css — Kamples (C126)
+ * Estilos para el modal de edición unificado de samples/publicaciones/colecciones.
+ */
+
+.editarFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+.editarGrupo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.editarGrupoLabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    font-weight: var(--pesoSemibold);
+}
+
+.editarFilaDoble {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--espacioMd);
+}
+
+.editarCheckbox {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    cursor: pointer;
+}
+
+.editarCheckbox input[type="checkbox"] {
+    accent-color: var(--acento);
+    width: 16px;
+    height: 16px;
+}
+
+.editarSelectContenedor {
+    position: relative;
+}
+
+.editarSelect {
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioMd);
+    background-color: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    font-family: var(--fuentePrincipal);
+    cursor: pointer;
+    appearance: none;
+    outline: none;
+    transition: border-color var(--transicionRapida);
+}
+
+.editarSelect:focus {
+    border-color: var(--bordeActivo);
+}
+
+.editarAcciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--espacioSm);
+    padding-top: var(--espacioSm);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.editarTagsHint {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .editarFilaDoble {
+        grid-template-columns: 1fr;
+    }
+}

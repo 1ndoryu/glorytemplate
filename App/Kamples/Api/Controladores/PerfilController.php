@@ -14,6 +14,8 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
+use App\Kamples\Api\Helpers\RateLimiter;
+use App\Kamples\Api\Helpers\Validador;
 
 class PerfilController
 {
@@ -214,11 +216,29 @@ class PerfilController
         $wpUserId = AuthMiddleware::obtenerWpUserId();
         $body = $request->get_json_params();
 
+        /* C164: Rate limit — 10 actualizaciones de perfil por hora */
+        $limitResp = RateLimiter::verificarIp('actualizar_perfil', 10, 3600);
+        if ($limitResp) return $limitResp;
+
+        /* C164: Validaciones de longitud antes de procesar */
+        $nombre = $body['nombreVisible'] ?? $body['nombreDisplay'] ?? null;
+        if ($nombre !== null) {
+            $errorNombre = Validador::validarLongitud($nombre, Validador::MAX_NOMBRE_VISIBLE, 'El nombre');
+            if ($errorNombre) return Validador::respuestaError($errorNombre);
+        }
+        if (isset($body['username'])) {
+            $errorUsername = Validador::validarUsername($body['username']);
+            if ($errorUsername) return new \WP_REST_Response(['ok' => false, 'error' => $errorUsername], 400);
+        }
+        if (isset($body['bio'])) {
+            $errorBio = Validador::validarLongitud($body['bio'], Validador::MAX_BIO, 'La bio');
+            if ($errorBio) return Validador::respuestaError($errorBio);
+        }
+
         $campos = [];
         $params = ['wpId' => $wpUserId];
 
         /* Acepta nombreVisible o nombreDisplay (compatibilidad) */
-        $nombre = $body['nombreVisible'] ?? $body['nombreDisplay'] ?? null;
         if ($nombre !== null) {
             $campos[] = 'nombre_visible = :nombre';
             $params['nombre'] = sanitize_text_field($nombre);

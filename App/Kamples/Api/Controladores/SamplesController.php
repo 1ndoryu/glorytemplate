@@ -19,6 +19,8 @@ use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\RateLimiter;
+use App\Kamples\Api\Helpers\Validador;
 use App\Kamples\Api\GeneradorIdCorto;
 use App\Kamples\Api\PipelineAudio;
 use App\Kamples\KamplesLogger;
@@ -41,7 +43,7 @@ class SamplesController
         ]);
 
         /*
-         * GET + DELETE en la misma ruta para evitar conflicto de regex
+         * GET + DELETE + PUT en la misma ruta para evitar conflicto de regex
          * WP evalúa la primera ruta que coincide con la URL; si GET y DELETE
          * están separados, la ruta slug ([a-zA-Z0-9_-]+) captura los IDs numéricos
          * primero y devuelve 404 para DELETE.
@@ -58,6 +60,14 @@ class SamplesController
             [
                 'methods'             => 'DELETE',
                 'callback'            => [self::class, 'eliminar'],
+                'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+                'args'                => [
+                    'slug' => ['required' => true, 'type' => 'string'],
+                ],
+            ],
+            [
+                'methods'             => 'PUT',
+                'callback'            => [self::class, 'actualizar'],
                 'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
                 'args'                => [
                     'slug' => ['required' => true, 'type' => 'string'],
@@ -307,6 +317,14 @@ class SamplesController
     public static function subir(\WP_REST_Request $request): \WP_REST_Response
     {
         $wpUserId = AuthMiddleware::obtenerWpUserId();
+
+        /* C164: Rate limit — 10 uploads por hora */
+        $pgId = UsuarioHelper::obtenerIdPg();
+        if ($pgId) {
+            $limitResp = RateLimiter::verificarUsuario($pgId, 'subir_sample', 10, 3600);
+            if ($limitResp) return $limitResp;
+        }
+
         $archivos = $request->get_file_params();
 
         if (empty($archivos['audio'])) {
@@ -465,6 +483,135 @@ class SamplesController
             'ok' => true, 'sample_id' => $sampleId, 'id_corto' => $idCorto,
             'slug' => $slug, 'url' => $subido['url'], 'estado' => 'procesando',
         ], 201);
+    }
+
+    /**
+     * PUT /samples/{id} — Actualizar metadatos de un sample.
+     * Solo el propietario o un admin pueden editar.
+     * Campos editables: titulo, descripcion, tags, tipo, esPremium, precio, permitirDescarga, licenciaLibre, imagenUrl.
+     */
+    public static function actualizar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $sampleId = (int) $request->get_param('slug');
+        $usuarioId = UsuarioHelper::obtenerIdPg();
+        $esAdmin = UsuarioHelper::esAdmin();
+
+        if (!$usuarioId) {
+            return UsuarioHelper::respuestaNoEncontrado();
+        }
+
+        $sample = PostgresService::consultarUno(
+            "SELECT id, creador_id FROM samples WHERE id = :id AND estado != 'eliminado'",
+            ['id' => $sampleId]
+        );
+
+        if (!$sample) {
+            return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
+        }
+
+        /* Solo el propietario o un admin pueden editar */
+        if ((int) $sample['creador_id'] !== $usuarioId && !$esAdmin) {
+            return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'No tienes permiso para editar este sample'], 403);
+        }
+
+        $body = $request->get_json_params();
+        $campos = [];
+        $params = ['id' => $sampleId];
+
+        if (isset($body['titulo'])) {
+            $titulo = \sanitize_text_field($body['titulo']);
+            if (strlen($titulo) < 1 || strlen($titulo) > 200) {
+                return new \WP_REST_Response(['code' => 'titulo_invalido', 'message' => 'El título debe tener entre 1 y 200 caracteres'], 400);
+            }
+            $campos[] = 'titulo = :titulo';
+            $params['titulo'] = $titulo;
+        }
+
+        if (isset($body['descripcion'])) {
+            $campos[] = 'descripcion = :descripcion';
+            $params['descripcion'] = \sanitize_textarea_field($body['descripcion']);
+        }
+
+        if (isset($body['tags'])) {
+            $tags = is_array($body['tags']) ? $body['tags'] : [];
+            $tags = array_map('\sanitize_text_field', $tags);
+            if (count($tags) < 2) {
+                return new \WP_REST_Response(['code' => 'tags_insuficientes', 'message' => 'Se requieren al menos 2 tags'], 400);
+            }
+            $campos[] = 'tags = :tags';
+            $params['tags'] = '{' . implode(',', $tags) . '}';
+        }
+
+        if (isset($body['tipo'])) {
+            $tiposValidos = ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro'];
+            if (!in_array($body['tipo'], $tiposValidos, true)) {
+                return new \WP_REST_Response(['code' => 'tipo_invalido'], 400);
+            }
+            $campos[] = 'tipo = :tipo';
+            $params['tipo'] = $body['tipo'];
+        }
+
+        if (isset($body['esPremium'])) {
+            $campos[] = 'es_premium = :esPremium';
+            $params['esPremium'] = ((bool) $body['esPremium']) ? 'true' : 'false';
+        }
+
+        if (isset($body['precio'])) {
+            $campos[] = 'precio = :precio';
+            $params['precio'] = $body['precio'] !== null ? (float) $body['precio'] : null;
+        }
+
+        if (isset($body['permitirDescarga'])) {
+            $campos[] = 'permitir_descarga = :descarga';
+            $params['descarga'] = ((bool) $body['permitirDescarga']) ? 'true' : 'false';
+        }
+
+        if (isset($body['licenciaLibre'])) {
+            $campos[] = 'licencia_libre = :licencia';
+            $params['licencia'] = ((bool) $body['licenciaLibre']) ? 'true' : 'false';
+        }
+
+        if (isset($body['imagenUrl'])) {
+            $campos[] = 'imagen_url = :imagenUrl';
+            $params['imagenUrl'] = \esc_url_raw($body['imagenUrl']);
+        }
+
+        /* Solo admin puede cambiar el estado */
+        if (isset($body['estado']) && $esAdmin) {
+            $estadosValidos = ['activo', 'inactivo', 'procesando'];
+            if (in_array($body['estado'], $estadosValidos, true)) {
+                $campos[] = 'estado = :estado';
+                $params['estado'] = $body['estado'];
+            }
+        }
+
+        if (empty($campos)) {
+            return new \WP_REST_Response(['code' => 'sin_cambios', 'message' => 'No se recibieron campos para actualizar'], 400);
+        }
+
+        PostgresService::ejecutar(
+            "UPDATE samples SET " . implode(', ', $campos) . ", updated_at = NOW() WHERE id = :id",
+            $params
+        );
+
+        KamplesLogger::info('Sample actualizado', [
+            'sampleId' => $sampleId,
+            'campos' => array_keys(array_diff_key($params, ['id' => 1])),
+            'por' => $esAdmin && (int) $sample['creador_id'] !== $usuarioId ? 'admin' : 'propietario',
+        ]);
+
+        /* Devolver sample actualizado */
+        $sampleActualizado = PostgresService::consultarUno(
+            NormalizadorSample::sqlSelectSamples($usuarioId)
+            . " WHERE s.id = :id",
+            ['id' => $sampleId]
+        );
+
+        if ($sampleActualizado) {
+            return new \WP_REST_Response(['data' => NormalizadorSample::normalizar($sampleActualizado)], 200);
+        }
+
+        return new \WP_REST_Response(['ok' => true], 200);
     }
 
     /**

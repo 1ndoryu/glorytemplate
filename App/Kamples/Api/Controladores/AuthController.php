@@ -14,6 +14,8 @@
 namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\PostgresService;
+use App\Kamples\Api\Helpers\RateLimiter;
+use App\Kamples\Api\Helpers\Validador;
 
 class AuthController
 {
@@ -38,6 +40,10 @@ class AuthController
      */
     public static function login(\WP_REST_Request $request): \WP_REST_Response
     {
+        /* C164: Rate limiting — 5 intentos por 15 minutos por IP */
+        $limitResp = RateLimiter::verificarIp('login', 5, 900);
+        if ($limitResp) return $limitResp;
+
         $body     = $request->get_json_params();
         $login    = sanitize_text_field($body['email'] ?? '');
         $password = $body['password'] ?? '';
@@ -79,6 +85,10 @@ class AuthController
      */
     public static function registro(\WP_REST_Request $request): \WP_REST_Response
     {
+        /* C164: Rate limiting — 3 registros por hora por IP */
+        $limitResp = RateLimiter::verificarIp('registro', 3, 3600);
+        if ($limitResp) return $limitResp;
+
         $body     = $request->get_json_params();
         $username = sanitize_user($body['username'] ?? '');
         $email    = sanitize_email($body['email'] ?? '');
@@ -92,11 +102,16 @@ class AuthController
             ], 400);
         }
 
-        if (strlen($password) < 6) {
-            return new \WP_REST_Response([
-                'ok'    => false,
-                'error' => 'La contraseña debe tener al menos 6 caracteres.',
-            ], 400);
+        /* C164: Validar username con reglas centralizadas */
+        $errorUsername = Validador::validarUsername($username);
+        if ($errorUsername) {
+            return new \WP_REST_Response(['ok' => false, 'error' => $errorUsername], 400);
+        }
+
+        /* C164: Validar password con limites */
+        $errorPass = Validador::validarTextoRequerido($password, Validador::MIN_PASSWORD, Validador::MAX_PASSWORD, 'La contraseña');
+        if ($errorPass) {
+            return new \WP_REST_Response(['ok' => false, 'error' => $errorPass], 400);
         }
 
         if (!is_email($email)) {

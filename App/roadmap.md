@@ -1,7 +1,7 @@
 # Kamples — Roadmap Integral de Producto
 
 > **Versión:** 2.0  
-> **Última actualización:** 16/02/2026 (iteración v2.6)  
+> **Última actualización:** 17/02/2026 (iteración v2.7)  
 > **Stack base:** Glory Framework (WordPress + React Islands + TypeScript)  
 > **Competencia directa:** Splice
 
@@ -130,6 +130,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R34:** C149 feedTags fix (busqueda fuera de claveCache, limpiarTags removido de efecto cache), C148 algoritmo metadata+creator (sqlTagsEnriquecidos combina tags+metadata JSONB, obtenerCreadoresFavoritos afinidad implícita, pesos contexto rebalanceados: creador=0.35 nuevo, genero↑0.30, BPM↓0.15, key↓0.10), C127 menú 3 puntos unificado (SampleDetalleIsland hero, ComunidadIsland posts+samples, ColeccionDetalleIsland header), C128 similares fuera de article + comentarios expandidos por defecto.
 **R35:** C150 fix hover tooltip reacciones (::before bridge CSS), C151 panel lateral waveform reproducible (audio local+picos servidor/fallback), C152 badges con borde en panelDetalleTags, C153 panelDetalleTarjetaMini simplificado (solo nombre+tags), C154 botones panelDetalle secundario (no ghost), C155 preferencia sugerenciasAlDarLike en panelLateralStore+ModalConfiguracion, C156 similares ocultos por defecto (toggle via menú 3 puntos + auto-show on like), C157 botón descarga color acento (tarjetaAccionDescargado+detalleAccionPlanoDescargado), C158 PanelRightClose en vez de X.
 **R36:** C160 fix filtro reproducidos (double-unwrap apiGet: resp.data ya es SampleResumen[] directo), C161 botón 3 puntos en colecciones públicas (copiar enlace siempre visible), C162 tags concatenados en badges (split por separadores+filtro >30 chars), C163 menú chat header (ver perfil/reportar/bloquear con participanteId+username en store), C165 quitar botón cola del menú contextual.
+**R37:** C133 keep-alive PageRenderer (max 5 islas cacheadas con display:none/block, preserva estado local al navegar entre páginas), C129 paginación infinita comentarios (IntersectionObserver+sentinela, conectado a useComentarios.cargarMas en 3 consumidores). C103+C104 ya implementados (modal auth 3 campos + layout imagen).
+**R38:** C126 modal edición unificado (ModalEditar.tsx+useEditar.ts+editarModalStore.ts+modalEditar.css, backend PUT /samples/{id}+PUT/DELETE /publicaciones/{id}, menú contextual "Editar", montaje global LayoutPrincipal). C164 security hardening completo: RateLimiter.php (transients WP, por usuario/IP) + Validador.php (constantes centralizadas). Rate limits aplicados a 8 controladores: Auth login 5/15min IP + registro 3/h IP + username/password validation, Comentarios 10/min + 2000 chars, Publicaciones 5/min + 5000 chars + esc_url_raw imágenes, Mensajes 30/min + 5000 chars + 10 conversaciones/h, Social follows 20/min + likes 30/min, Samples upload 10/h, Perfil 10/h + bio 500/nombre 100/username validación, Colecciones crear 10/h + nombre 100/desc 500 + agregar 30/min, Reproducciones 60/min.
 
 ---
 
@@ -472,16 +474,17 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 # Comentarios pendientes
 
 85. No se estan usando los componentes, hay un boton de botones en todos lados que no usan el componente boton, por favor, inspesionar todo el codigo para encontrar todos los botones y cualqueir otra cosa que puede centralizarse con componentes, CENTRALIZAR Y NORMALIZAR ESTILOS; LOS COMPONENTES DEBEN SER LA FUENTE DEL VERDAD DE LOS ESTILOS
-103. El registro debe ser más sencillo, solo el nombre de usuario, correo, y contraseña una sola vez. Y cuando me intento registrar dice "No se ha encontrado ninguna ruta que coincida con la URL y el método de la solicitud." Failed to load resource: the server responded with a status of 404 (Not Found)
-104. Lo de registro debe ser un modal tambien el inicio de seccion, no paginas, y el modal debe ser con una imagen (la misma estructura de .planesLayoutEspecial)
+| 103 | Registro sencillo (3 campos) | ✅ Ya implementado: username, email, 1 contraseña. ModalAuth con FormularioRegistro |
+| 104 | Auth modal con imagen (no páginas) | ✅ Ya implementado: ModalAuth con authLayoutEspecial (55%/45% grid), ConAutenticacion abre modal |
 126. Modal de configuración de samples, publicaciones, y colecciones: poder cambiar todo lo modificable, los admin pueden cambiar todo, y los usuarios sus cosas. De los samples, poder cambiar por ejemplo, la imagen, el titulo, los tags.
+| 126 | Modal edición samples/posts/colecciones | ✅ ModalEditar.tsx unificado + useEditar.ts + editarModalStore.ts. Backend: PUT /samples/{id} (SamplesController.actualizar) + PUT/DELETE /publicaciones/{id}. Menú contextual con opción "Editar". Montado globalmente en LayoutPrincipal |
 | 127 | Menú 3 puntos unificado samples/colecciones/posts | ✅ SampleDetalleIsland hero, ComunidadIsland posts+samples, ColeccionDetalleIsland header — todos con MenuContextual |
 | 128 | Similares + comentarios expandidos | ✅ Similares fuera de article (detalleSimilaresSeccion), comentarios expandidos por defecto (comentariosVisibles=true, cargarAlAbrir=true) |
-129. Por cierto, no se si la sección de comentarios tiene paginación pero si debería tener, una de infita con scroll, (optimizado para mantener un numero maximo de comentarios renderizados)
+| 129 | Paginación infinita comentarios | ✅ IntersectionObserver+sentinela en ListaComentarios, conectado a useComentarios.cargarMas en 3 consumidores |
 130. Se debería poder comentar imagenes y audios.
 131. Planificar la automoderación de contenido con IA, cada vez que se publica un comentario, la IA tiene que decidir si es spam, si es valido, etc.
 132. Mejora el sistema de moderación con IA, planificar mejor este sistema, la IA tiene que ser capaz de bloquear usuarios si tienen actividad sospechosa, spam, la toxicidad no es baneable, los usuarios son libres de discutir e insultarse, pero el spam, no es permitido, cuando un usuario hace comentarios con spam, le debe llegar una notificación de que su comentario fue eliminado automaticamente por x razón, el desnudo o contenido para adulto tambien esta prohibido, en ningun lugar, tampoco de portada para ningún audio, poca ropa si esta permitido, no estan estricto pero contenido en si totalmente pornxgrafico o actividades sexuales, o partes intimas prohibida, hay que tener cuidado porque sabemos que los albunes suelen usar imagenes explicitas que no son problemas generalmente, no queremos falsos positivos.
-133. Las paginas no deberían volver a cargarse cuando cambio de pagina, o sea si la pagian ya estaba cargada, despues vuelvo abrirla, no debe recargarse, ni la lista samples ni nada, todo debe cargarse una sola vez.
+| 133 | Cache SPA keep-alive | ✅ PageRenderer mantiene hasta 5 islas montadas con display:none/block. Estado local se preserva al navegar |
 140. Separar descargas y favoritos en paginas propias, tambien hay ponerles coleccionHeader, y que tengan sus tab de "mas ideas", deben funcionar como colecciones especiales, el algoritmo de más ideas debe funcionar par recomendar samples basados en las descargas y los favoritos, esto significa las tabs descargas y favoritos porque ahora son paginas individuales. La tab de "Colecciones" debería ser "mis colecciones"
 | 148 | Algoritmo tags metadata + creador implícito          | ✅ sqlTagsEnriquecidos() combina tags+metadata JSONB; obtenerCreadoresFavoritos() afinidad implícita; pesos contexto rebalanceados |
 | 149 | feedTags roto (busqueda en claveCache)                | ✅ busqueda fuera de claveCache, limpiarTags removido de efecto cache en FeedSamples |
@@ -500,7 +503,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 163 | Foto perfil + menú chat flotante | ✅ Avatar ya existía. Agregado menú 3 puntos: ver perfil/reportar/bloquear. Store extendido con participanteId+username |
 | 165 | Quitar botón cola + verificar perfil/enlace | ✅ Item 'cola' eliminado del menú contextual. 'Ir al perfil' y 'Copiar enlace' ya existían |
 159. Trabajar en la comunicación en tiempo real, no se si se puede hacer un websocket compatible con linux y windows, al menos hacerlo funcionar aca en local windows, para pulir de una vez la opciones chat.
-164. Pulir la seguridad de los chats, comentarios, publicaciones (lime rate, sanaemiento, limite de caracteres o contenido, limite de pesos de archivos, revisiones de seguridad generales, anti spam etc.)
+| 164 | Seguridad/hardening rate limit+validación | ✅ RateLimiter.php (transients WP) + Validador.php (constantes centralizadas). 8 controladores protegidos: Auth, Comentarios, Publicaciones, Mensajes, Social, Samples, Perfil, Colecciones, Reproducciones. Sanitización URLs con esc_url_raw |
 166. Compactar y ordenar tareas completadas del roadmap (dejar para el final)
 
 ---
@@ -537,5 +540,11 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [C138 Descargas]: DescargasController necesita 3 checks: esPropietario (creador_id), yaDescargado (EXISTS en descargas), consumeCredito (solo si no es propietario ni ya descargado).
 - [C150 Tooltip hover gap]: `pointer-events` NO es animable — cambia instantáneamente. Un gap CSS entre trigger y tooltip (bottom: calc(100%+N)) causa zona muerta donde el mouse pierde hover y `pointer-events:none` bloquea el tooltip. Fix: `::before` pseudo-element en el contenedor que extiende el área hover para cubrir el gap.
 - [C160 apiGet double-unwrap]: apiGet hace `json.data ?? json` → si backend envía `{data:[...],page:N}`, `resp.data` ya es el array. Usar `resp.data` directo, NUNCA `resp.data.data`. Patrón correcto: `RespuestaApi<SampleResumen[]>` + `Array.isArray(resp.data) ? resp.data : []`.
+- [C126 Modal Editar]: CampoTexto onChange da HTMLInputElement pero textarea necesita HTMLTextAreaElement. Cast: `(e.target as unknown as HTMLTextAreaElement).value`. Modal unificado para 3 tipos de entidad con formularios condicionales.
+- [C164 RateLimiter]: WP transients con md5 keys para rate limiting. `set_transient` NO actualiza TTL si la key ya existe — hay que recalcular con `get_transient` primero. Cloudflare IP: HTTP_CF_CONNECTING_IP > HTTP_X_FORWARDED_FOR > REMOTE_ADDR.
+- [C164 Validador]: Centralizar constantes de validación evita drift entre controladores. Siempre validar longitud ANTES de sanitizar (sanitize_text_field trunca silenciosamente).
+- [C164 esc_url_raw]: Para URLs almacenadas en DB, usar `esc_url_raw()` (sin entidades HTML). `esc_url()` es para output HTML. `addslashes()` NO es sanitización de URLs.
+- [C164 Auth brute force]: Rate limit login por IP (no por usuario) porque el usuario aún no está autenticado. Registro también por IP para prevenir spam de cuentas.
+- [PHP Namespace]: `filter_var`, `$_SERVER`, `session_id` etc. son funciones/variables globales que el linter PHP no reconoce dentro de namespaces. Prefijo `\` las resuelve (ej: `\filter_var()`).
 - [C162 Metadata emocion]: El campo `emocion` de metadata IA puede llegar como string concatenado sin separadores (ej: "dreamyetherealmelancholic"). Siempre splitear por `,|; ` y filtrar strings >30 chars.
 - [C163 ChatFlotanteStore]: El store solo tenía `nombreParticipante` y `avatarUrl` — faltaban `participanteId` y `participanteUsername` para poder navegar al perfil o hacer acciones sobre el usuario.

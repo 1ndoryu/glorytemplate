@@ -18,6 +18,8 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\RateLimiter;
+use App\Kamples\Api\Helpers\Validador;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Api\ServicioImagenIA;
 use App\Kamples\Api\ServicioModeracionIA;
@@ -43,8 +45,18 @@ class PublicacionesController
         ]);
 
         register_rest_route($namespace, '/publicaciones/(?P<id>\d+)', [
-            'methods' => 'GET', 'callback' => [self::class, 'obtener'],
-            'permission_callback' => '__return_true',
+            [
+                'methods' => 'GET', 'callback' => [self::class, 'obtener'],
+                'permission_callback' => '__return_true',
+            ],
+            [
+                'methods' => 'PUT', 'callback' => [self::class, 'actualizar'],
+                'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            ],
+            [
+                'methods' => 'DELETE', 'callback' => [self::class, 'eliminar'],
+                'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            ],
         ]);
 
         register_rest_route($namespace, '/publicaciones/(?P<id>\d+)/comentarios', [
@@ -166,8 +178,25 @@ class PublicacionesController
             return new \WP_REST_Response(['code' => 'contenido_vacio', 'message' => 'La publicación necesita contenido'], 400);
         }
 
+        /* C164: Limite de longitud */
+        $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_PUBLICACION, 'La publicación');
+        if ($errorLongitud) {
+            return Validador::respuestaError($errorLongitud);
+        }
+
+        /* C164: Rate limiting — 5 publicaciones por minuto */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'publicar', 5, 60);
+        if ($limitResp) return $limitResp;
+
+        /* C164: Validar imagenes (limite y URLs) */
+        $imagenesRaw = $body['imagenes'] ?? [];
+        if (is_array($imagenesRaw) && !empty($imagenesRaw)) {
+            $errorImgs = Validador::validarImagenesUrls($imagenesRaw);
+            if ($errorImgs) return Validador::respuestaError($errorImgs);
+        }
+
         $imagenes = !empty($body['imagenes'])
-            ? '{' . implode(',', array_map(fn($v) => '"' . addslashes($v) . '"', $body['imagenes'])) . '}'
+            ? '{' . implode(',', array_map(fn($v) => '"' . addslashes(\esc_url_raw($v)) . '"', $body['imagenes'])) . '}'
             : '{}';
         /* samplesAdjuntos viene en camelCase del frontend */
         $adjuntosRaw = $body['samples_adjuntos'] ?? $body['samplesAdjuntos'] ?? [];
@@ -256,6 +285,122 @@ class PublicacionesController
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
     }
 
+    /**
+     * PUT /publicaciones/{id} — Actualizar contenido de una publicación.
+     * Solo el autor o admin pueden editar.
+     */
+    public static function actualizar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $id = (int) $request->get_param('id');
+        $esAdmin = UsuarioHelper::esAdmin();
+
+        $pub = PostgresService::consultarUno(
+            "SELECT id, autor_id FROM publicaciones WHERE id = :id",
+            ['id' => $id]
+        );
+
+        if (!$pub) {
+            return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
+        }
+
+        if ((int) $pub['autor_id'] !== $userId && !$esAdmin) {
+            return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'No tienes permiso para editar esta publicación'], 403);
+        }
+
+        $body = $request->get_json_params();
+        $campos = [];
+        $params = ['id' => $id];
+
+        if (isset($body['contenido'])) {
+            $contenido = sanitize_textarea_field($body['contenido']);
+            if (empty($contenido)) {
+                return new \WP_REST_Response(['code' => 'contenido_vacio', 'message' => 'La publicación necesita contenido'], 400);
+            }
+            /* C164: Limite de longitud */
+            $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_PUBLICACION, 'La publicación');
+            if ($errorLongitud) return Validador::respuestaError($errorLongitud);
+
+            $campos[] = 'contenido = :contenido';
+            $params['contenido'] = $contenido;
+        }
+
+        if (isset($body['imagenes'])) {
+            /* C164: Validar URLs y cantidad */
+            $imagenesArr = is_array($body['imagenes']) ? $body['imagenes'] : [];
+            $errorImgs = Validador::validarImagenesUrls($imagenesArr);
+            if ($errorImgs) return Validador::respuestaError($errorImgs);
+
+            $imagenes = !empty($imagenesArr)
+                ? '{' . implode(',', array_map(fn($v) => '"' . addslashes(\esc_url_raw($v)) . '"', $imagenesArr)) . '}'
+                : '{}';
+            $campos[] = 'imagenes = :imagenes';
+            $params['imagenes'] = $imagenes;
+        }
+
+        /* Solo admin puede cambiar estado de moderación */
+        if (isset($body['moderacionEstado']) && $esAdmin) {
+            $estadosValidos = ['pendiente', 'aprobado', 'revision', 'rechazado'];
+            if (in_array($body['moderacionEstado'], $estadosValidos, true)) {
+                $campos[] = 'moderacion_estado = :modEstado';
+                $params['modEstado'] = $body['moderacionEstado'];
+            }
+        }
+
+        if (empty($campos)) {
+            return new \WP_REST_Response(['code' => 'sin_cambios', 'message' => 'No se recibieron campos para actualizar'], 400);
+        }
+
+        PostgresService::ejecutar(
+            "UPDATE publicaciones SET " . implode(', ', $campos) . ", updated_at = NOW() WHERE id = :id",
+            $params
+        );
+
+        KamplesLogger::info('Publicación actualizada', [
+            'publicacionId' => $id,
+            'por' => $esAdmin && (int) $pub['autor_id'] !== $userId ? 'admin' : 'autor',
+        ]);
+
+        return new \WP_REST_Response(['ok' => true], 200);
+    }
+
+    /**
+     * DELETE /publicaciones/{id} — Eliminar publicación.
+     * Solo el autor o admin pueden eliminar.
+     */
+    public static function eliminar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $id = (int) $request->get_param('id');
+        $esAdmin = UsuarioHelper::esAdmin();
+
+        $pub = PostgresService::consultarUno(
+            "SELECT id, autor_id FROM publicaciones WHERE id = :id",
+            ['id' => $id]
+        );
+
+        if (!$pub) {
+            return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
+        }
+
+        if ((int) $pub['autor_id'] !== $userId && !$esAdmin) {
+            return new \WP_REST_Response(['code' => 'sin_permisos'], 403);
+        }
+
+        /* Cascade manual: likes, comentarios */
+        PostgresService::ejecutar("DELETE FROM likes WHERE tipo = 'publicacion' AND target_id = :id", ['id' => $id]);
+        PostgresService::ejecutar("DELETE FROM comentarios WHERE tipo = 'publicacion' AND target_id = :id", ['id' => $id]);
+        PostgresService::ejecutar("DELETE FROM publicaciones WHERE id = :id", ['id' => $id]);
+
+        KamplesLogger::info('Publicación eliminada', ['publicacionId' => $id]);
+
+        return new \WP_REST_Response(['ok' => true, 'eliminado' => true], 200);
+    }
+
     public static function obtener(\WP_REST_Request $request): \WP_REST_Response
     {
         $id = (int) $request->get_param('id');
@@ -316,6 +461,13 @@ class PublicacionesController
         if (empty($contenido)) {
             return new \WP_REST_Response(['code' => 'contenido_vacio'], 400);
         }
+
+        /* C164: Limite de longitud y rate limiting */
+        $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_COMENTARIO, 'El comentario');
+        if ($errorLongitud) return Validador::respuestaError($errorLongitud);
+
+        $limitResp = RateLimiter::verificarUsuario($userId, 'comentar', 10, 60);
+        if ($limitResp) return $limitResp;
 
         $id = PostgresService::insertar(
             "INSERT INTO comentarios (autor_id, tipo, target_id, contenido) VALUES (:autor, 'publicacion', :target, :contenido) RETURNING id",

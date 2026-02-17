@@ -23,6 +23,8 @@ use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\Api\Helpers\RateLimiter;
+use App\Kamples\Api\Helpers\Validador;
 
 class ColeccionesController
 {
@@ -122,6 +124,10 @@ class ColeccionesController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
+        /* C164: Rate limit — 10 colecciones por hora */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'crear_coleccion', 10, 3600);
+        if ($limitResp) return $limitResp;
+
         $body = $request->get_json_params();
         $nombre = sanitize_text_field($body['nombre'] ?? '');
         $descripcion = sanitize_textarea_field($body['descripcion'] ?? '');
@@ -129,6 +135,14 @@ class ColeccionesController
 
         if (empty($nombre)) {
             return new \WP_REST_Response(['code' => 'nombre_requerido', 'message' => 'El nombre es obligatorio'], 400);
+        }
+
+        /* C164: Validar longitudes */
+        $errorNombre = Validador::validarLongitud($nombre, Validador::MAX_NOMBRE_COLECCION, 'El nombre');
+        if ($errorNombre) return Validador::respuestaError($errorNombre);
+        if (!empty($descripcion)) {
+            $errorDesc = Validador::validarLongitud($descripcion, Validador::MAX_DESCRIPCION_COLECCION, 'La descripción');
+            if ($errorDesc) return Validador::respuestaError($errorDesc);
         }
 
         $id = PostgresService::insertar(
@@ -189,8 +203,18 @@ class ColeccionesController
         $campos = [];
         $params = ['id' => $id];
 
-        if (isset($body['nombre'])) { $campos[] = 'nombre = :nombre'; $params['nombre'] = sanitize_text_field($body['nombre']); }
-        if (isset($body['descripcion'])) { $campos[] = 'descripcion = :desc'; $params['desc'] = sanitize_textarea_field($body['descripcion']); }
+        if (isset($body['nombre'])) {
+            /* C164: Validar longitud nombre */
+            $errorNombre = Validador::validarLongitud($body['nombre'], Validador::MAX_NOMBRE_COLECCION, 'El nombre');
+            if ($errorNombre) return Validador::respuestaError($errorNombre);
+            $campos[] = 'nombre = :nombre'; $params['nombre'] = sanitize_text_field($body['nombre']);
+        }
+        if (isset($body['descripcion'])) {
+            /* C164: Validar longitud descripcion */
+            $errorDesc = Validador::validarLongitud($body['descripcion'], Validador::MAX_DESCRIPCION_COLECCION, 'La descripción');
+            if ($errorDesc) return Validador::respuestaError($errorDesc);
+            $campos[] = 'descripcion = :desc'; $params['desc'] = sanitize_textarea_field($body['descripcion']);
+        }
         if (isset($body['publica'])) { $campos[] = 'publica = :publica'; $params['publica'] = ((bool) $body['publica']) ? 'true' : 'false'; }
         if (isset($body['portadaUrl'])) { $campos[] = 'portada_url = :portada'; $params['portada'] = esc_url_raw($body['portadaUrl']); }
 
@@ -238,6 +262,10 @@ class ColeccionesController
     {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /* C164: Rate limit — 30 adiciones a colección por minuto */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'agregar_sample_col', 30, 60);
+        if ($limitResp) return $limitResp;
 
         $colId = (int) $request->get_param('id');
         $body = $request->get_json_params();

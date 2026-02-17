@@ -4,7 +4,7 @@
  * Conecta directamente con la API real, sin fallback a mock.
  */
 
-import { apiGet, apiPostFormData, apiDelete } from './apiCliente';
+import { apiGet, apiPostFormData, apiDelete, apiPut } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 import type { SampleResumen, Sample } from '../types';
 
@@ -119,6 +119,32 @@ export const subirSample = async (datos: DatosSubida): Promise<RespuestaApi<Resp
  */
 export const eliminarSample = async (sampleId: number): Promise<RespuestaApi<{ eliminado: boolean }>> => {
     return apiDelete<{ eliminado: boolean }>(`/samples/${sampleId}`);
+};
+
+/* C126: Datos editables de un sample */
+export interface DatosActualizarSample {
+    titulo?: string;
+    descripcion?: string;
+    tags?: string[];
+    tipo?: string;
+    esPremium?: boolean;
+    precio?: number | null;
+    permitirDescarga?: boolean;
+    licenciaLibre?: boolean;
+    imagenUrl?: string;
+    estado?: string; /* solo admin */
+}
+
+/*
+ * C126: Actualizar metadatos de un sample.
+ * Solo el propietario o admin pueden editar.
+ * Endpoint: PUT /samples/{id}
+ */
+export const actualizarSample = async (
+    sampleId: number,
+    datos: DatosActualizarSample
+): Promise<RespuestaApi<Sample>> => {
+    return apiPut<Sample>(`/samples/${sampleId}`, datos);
 };
 
 /*

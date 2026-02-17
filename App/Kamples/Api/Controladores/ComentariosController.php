@@ -16,6 +16,8 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\RateLimiter;
+use App\Kamples\Api\Helpers\Validador;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 
 class ComentariosController
@@ -93,6 +95,16 @@ class ComentariosController
         if (empty($contenido)) {
             return new \WP_REST_Response(['code' => 'contenido_vacio', 'message' => 'El comentario necesita contenido'], 400);
         }
+
+        /* C164: Limite de longitud */
+        $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_COMENTARIO, 'El comentario');
+        if ($errorLongitud) {
+            return Validador::respuestaError($errorLongitud);
+        }
+
+        /* C164: Rate limiting — 10 comentarios por minuto */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'comentar', 10, 60);
+        if ($limitResp) return $limitResp;
 
         $id = PostgresService::insertar(
             "INSERT INTO comentarios (autor_id, tipo, target_id, contenido)
