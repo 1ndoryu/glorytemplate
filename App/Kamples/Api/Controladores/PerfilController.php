@@ -16,6 +16,7 @@ use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
+use App\Kamples\Api\Helpers\UsuarioHelper;
 
 class PerfilController
 {
@@ -57,7 +58,7 @@ class PerfilController
         $username = $request->get_param('username');
 
         $perfil = PostgresService::consultarUno(
-            "SELECT id, username, nombre_visible, bio, avatar_url, portada_url,
+            "SELECT id, wp_user_id, username, nombre_visible, bio, avatar_url, portada_url,
                     plan, verificado, total_seguidores, total_seguidos,
                     total_samples, total_descargas, created_at
              FROM usuarios_ext WHERE username = :username",
@@ -68,13 +69,13 @@ class PerfilController
             return new \WP_REST_Response(['code' => 'perfil_no_encontrado', 'message' => 'El usuario no existe.'], 404);
         }
 
-        /* Normalizar a camelCase */
+        /* Normalizar a camelCase — C193: fallback avatar via WP */
         $normalizado = [
             'id'              => (int) $perfil['id'],
             'username'        => $perfil['username'],
             'nombreVisible'   => $perfil['nombre_visible'] ?? '',
             'bio'             => $perfil['bio'] ?? '',
-            'avatarUrl'       => $perfil['avatar_url'] ?? null,
+            'avatarUrl'       => UsuarioHelper::resolverAvatarUrl($perfil['avatar_url'] ?? null, (int) ($perfil['wp_user_id'] ?? 0)),
             'portadaUrl'      => $perfil['portada_url'] ?? null,
             'plan'            => $perfil['plan'] ?? 'free',
             'verificado'      => (bool) ($perfil['verificado'] ?? false),
@@ -300,19 +301,19 @@ class PerfilController
         if (empty($files['avatar'])) {
             return new \WP_REST_Response([
                 'code' => 'sin_archivo',
-           O12: Verificar que PHP no reportó error en la subida */
+                'message' => 'No se recibió ninguna imagen.',
+            ], 400);
+        }
+
+        $uploaded = $files['avatar'];
+
+        /* Verificar que PHP no reportó error en la subida */
         if (($uploaded['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
             return new \WP_REST_Response([
                 'code' => 'error_subida',
                 'message' => 'Error al recibir el archivo. Código: ' . ($uploaded['error'] ?? 'desconocido'),
             ], 400);
         }
-
-        /*      'message' => 'No se recibió ninguna imagen.',
-            ], 400);
-        }
-
-        $uploaded = $files['avatar'];
 
         /* Validar tipo MIME */
         $tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];

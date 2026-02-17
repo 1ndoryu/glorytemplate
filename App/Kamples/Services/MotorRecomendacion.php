@@ -274,6 +274,7 @@ class MotorRecomendacion
          */
         $sql = "WITH scored AS (
                     SELECT s.*, u.username, u.nombre_visible, u.avatar_url, u.verificado,
+                           u.wp_user_id AS creador_wp_user_id,
                            u.id as creador_id,
                            (SELECT reaccion FROM likes WHERE usuario_id = :userId AND tipo = 'sample' AND target_id = s.id LIMIT 1) AS reaccion_usuario,
                            ({$scoreTotal}) as score,

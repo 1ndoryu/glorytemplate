@@ -1,6 +1,7 @@
 /*
  * useMotorAudio — Hook para controlar la reproducción del mezclador
- * Maneja scheduling preciso con Web Audio API (lookahead pattern)
+ * Maneja scheduling preciso con Web Audio API (lookahead pattern).
+ * Lee estado desde getState() para evitar stale closures en rAF.
  */
 
 import { useRef, useCallback, useEffect } from 'react';
@@ -10,17 +11,16 @@ import { compasesASegundos } from '../utils/compasUtils';
 
 export const useMotorAudio = () => {
     const tiempoInicioRef = useRef<number>(0);
-    const schedulerRef = useRef<number | null>(null);
     const animFrameRef = useRef<number | null>(null);
     const reproduciendo = useMezcladorStore(s => s.reproduciendo);
-    const pistas = useMezcladorStore(s => s.pistas);
-    const bpmProyecto = useMezcladorStore(s => s.bpmProyecto);
-    const compasProyecto = useMezcladorStore(s => s.compasProyecto);
-    const totalCompases = useMezcladorStore(s => s.totalCompases);
-    const posicionCursor = useMezcladorStore(s => s.posicionCursor);
 
-    /* Programar todos los bloques desde una posición dada */
+    /*
+     * Programar todos los bloques desde una posición dada.
+     * Lee pistas/bpm/compás desde getState() para evitar recrear este callback
+     * cada vez que cambia el array de pistas (causa cascading effect).
+     */
     const programarBloques = useCallback((desdeSegundo: number) => {
+        const { pistas, bpmProyecto, compasProyecto } = useMezcladorStore.getState();
         const ctx = motorAudio.obtenerContexto();
         const ahora = ctx.currentTime;
         tiempoInicioRef.current = ahora - desdeSegundo;
@@ -65,10 +65,15 @@ export const useMotorAudio = () => {
                 );
             }
         }
-    }, [pistas, bpmProyecto, compasProyecto]);
+    }, []);
 
-    /* Actualizar cursor de reproducción (visual) */
+    /*
+     * Actualizar cursor de reproducción (visual).
+     * Lee totalCompases/bpm/compás desde getState() — evita stale closure
+     * porque este callback se auto-referencia via requestAnimationFrame.
+     */
     const actualizarCursor = useCallback(() => {
+        const { totalCompases, bpmProyecto, compasProyecto } = useMezcladorStore.getState();
         const ctx = motorAudio.obtenerContexto();
         const tiempoTranscurrido = ctx.currentTime - tiempoInicioRef.current;
         const duracionTotal = compasesASegundos(totalCompases, bpmProyecto, compasProyecto);
@@ -84,19 +89,20 @@ export const useMotorAudio = () => {
 
         useMezcladorStore.getState().setTiempoActual(tiempoTranscurrido);
         animFrameRef.current = requestAnimationFrame(actualizarCursor);
-    }, [totalCompases, bpmProyecto, compasProyecto]);
+    }, []);
 
     /* Play */
     const reproducir = useCallback(() => {
         motorAudio.iniciar();
         motorAudio.detenerTodo();
 
+        const { posicionCursor, bpmProyecto, compasProyecto } = useMezcladorStore.getState();
         const posInicio = compasesASegundos(posicionCursor, bpmProyecto, compasProyecto);
         programarBloques(posInicio);
 
         useMezcladorStore.getState().setReproduciendo(true);
         animFrameRef.current = requestAnimationFrame(actualizarCursor);
-    }, [posicionCursor, bpmProyecto, compasProyecto, programarBloques, actualizarCursor]);
+    }, [programarBloques, actualizarCursor]);
 
     /* Stop */
     const detener = useCallback(() => {
@@ -111,35 +117,33 @@ export const useMotorAudio = () => {
 
     /* Toggle play/stop */
     const toggleReproduccion = useCallback(() => {
-        if (reproduciendo) {
+        if (useMezcladorStore.getState().reproduciendo) {
             detener();
         } else {
             reproducir();
         }
-    }, [reproduciendo, reproducir, detener]);
+    }, [reproducir, detener]);
 
     /* Seek a posición */
     const seek = useCallback((compas: number) => {
+        const { bpmProyecto, compasProyecto, reproduciendo: enReproduccion } = useMezcladorStore.getState();
         useMezcladorStore.getState().setPosicionCursor(compas);
         const tiempo = compasesASegundos(compas, bpmProyecto, compasProyecto);
         useMezcladorStore.getState().setTiempoActual(tiempo);
 
-        if (reproduciendo) {
+        if (enReproduccion) {
             motorAudio.detenerTodo();
             programarBloques(tiempo);
             const ctx = motorAudio.obtenerContexto();
             tiempoInicioRef.current = ctx.currentTime - tiempo;
         }
-    }, [bpmProyecto, compasProyecto, reproduciendo, programarBloques]);
+    }, [programarBloques]);
 
     /* Limpiar al desmontar */
     useEffect(() => {
         return () => {
             if (animFrameRef.current) {
                 cancelAnimationFrame(animFrameRef.current);
-            }
-            if (schedulerRef.current) {
-                clearInterval(schedulerRef.current);
             }
             motorAudio.detenerTodo();
         };

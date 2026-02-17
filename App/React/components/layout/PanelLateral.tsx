@@ -85,7 +85,7 @@ export const PanelLateral = (): JSX.Element | null => {
                 onMouseDown={iniciarResize}
             />
 
-            <div className="panelLateralInterno">
+            <div className={`panelLateralInterno ${esMezclador ? 'panelLateralSinPadding' : ''}`}>
                 {(modo === 'detalle' || modo === 'comentarios') && sample && (
                     <PanelDetalleSample sample={sample} />
                 )}

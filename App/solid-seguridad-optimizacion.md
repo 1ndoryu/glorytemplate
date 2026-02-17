@@ -2,7 +2,7 @@
 
 > **Rol:** Agente autónomo de inspección continua del codebase Kamples.  
 > **Misión:** Detectar y corregir vulnerabilidades de seguridad, violaciones SOLID, fallos silenciosos y oportunidades de optimización.  
-> **Última ejecución:** 17/02/2026 (Iteración 2)
+> **Última ejecución:** 18/02/2026 (Iteración 3)
 
 ---
 
@@ -79,16 +79,68 @@
 
 | # | Archivo | Problema | Estado |
 |---|---------|----------|--------|
-| O07 | PagosController L218 | procesarCheckoutCompletado no verifica rows affected. Suscripción "activa" a usuario inexistente. | PENDIENTE |
-| O08 | PagosController L245 | procesarSuscripcionActualizada no actualiza plan en BD al cambiar plan. | PENDIENTE |
+| O07 | PagosController L218 | procesarCheckoutCompletado no verifica rows affected. Suscripción "activa" a usuario inexistente. | CORREGIDO |
+| O08 | PagosController L245 | procesarSuscripcionActualizada no actualiza plan en BD al cambiar plan. | CORREGIDO |
 | O09 | NotificacionesController L55 | JOIN depende de JSON `(datos::jsonb->>'seguidor_id')` — frágil si estructura cambia. | PENDIENTE |
-| O10 | ServicioModeracionIA L65 | Fail-open sin API key: todo contenido aprueba si Groq key expira. | PENDIENTE |
+| O10 | ServicioModeracionIA L65 | Fail-open sin API key: todo contenido aprueba si Groq key expira. | CORREGIDO (error log prominente) |
 | O11 | ExperimentosController L26 | TEST_PASS hardcoded 'GloryTest2026!' | PENDIENTE (low risk, admin-only) |
-| O12 | PerfilController L300 | subirAvatar no verifica UPLOAD_ERR_OK antes de procesar. | PENDIENTE |
-| O13 | ReproduccionesController L70 | Race condition debounce: requests paralelos crean duplicados. | PENDIENTE |
-| O14 | DescargasController L108 | Race condition límite diario TOCTOU. | PENDIENTE |
+| O12 | PerfilController L300 | subirAvatar no verifica UPLOAD_ERR_OK antes de procesar. | CORREGIDO |
+| O13 | ReproduccionesController L70 | Race condition debounce: requests paralelos crean duplicados. | CORREGIDO (FOR UPDATE) |
+| O14 | DescargasController L108 | Race condition límite diario TOCTOU. | CORREGIDO (pg_advisory_xact_lock) |
 | O15 | Namespace `\` prefix | 9+ archivos con funciones globales sin `\` prefix — performance + seguridad. | PENDIENTE (masivo) |
 | O16 | DashboardController L45 | stats() hace 7 queries secuenciales. Combinar con CTE. | PENDIENTE |
+
+---
+
+## Completado — Sprint 3
+
+### PHP Fixes
+
+| # | Archivo | Fix | Detalles |
+|---|---------|-----|----------|
+| O07 | PagosController | rows affected check | `procesarCheckoutCompletado` ahora verifica `$affected === 0` y logea critical |
+| O08 | PagosController | plan sync webhook | `procesarSuscripcionActualizada` extrae plan de Stripe `lookup_key`, actualiza BD |
+| O10 | ServicioModeracionIA | fail-open logging | `moderarPublicacion` y `moderarComentario` logean error prominente sin API key |
+| O12 | PerfilController | UPLOAD_ERR_OK | Avatar upload valida error code antes de procesar |
+| O13 | ReproduccionesController | FOR UPDATE debounce | Debounce query usa `FOR UPDATE` para serializar requests |
+| O14 | DescargasController | advisory lock | `pg_advisory_xact_lock(:lockId)` previene bypass TOCTOU del límite diario |
+
+### Mezclador — Auditoría Completa (19 archivos, 28 hallazgos)
+
+#### P0 — Críticos (Audio Leaks / Correctness)
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| MA1 | motorAudioService destruir() | AudioContext nunca se cierra → leak de threads de audio del navegador | CORREGIDO (async destruir + close) |
+| MA2 | motorAudioService obtenerContexto() | `resume()` no awaited, estado `closed` no manejado → errores silenciosos | CORREGIDO (void resume, reinicio si closed) |
+| MA3 | motorAudioService programarReproduccion() | GainNode zombies: `gainNodo` nunca se desconecta en `onended` | CORREGIDO (disconnect en onended) |
+| MA5 | motorAudioService onended | `nodosActivos.splice()` muta array durante iteración potencial | CORREGIDO (filter inmutable) |
+| MA6 | motorAudioService obtenerGainPista() | `masterGain!` non-null assertion insegura | CORREGIDO (throw explícito si null) |
+
+#### P1 — Altos (Stale State / Logic)
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| ML1 | useMotorAudio actualizarCursor | Stale closure: captura bpm/compás/totalCompases en closure del useCallback, rAF auto-referenciado lee valores viejos | CORREGIDO (getState()) |
+| ML2 | useMotorAudio schedulerRef | Ref declarada y limpiada pero nunca asignada — dead code que confunde | CORREGIDO (eliminado) |
+| MR1 | useMotorAudio programarBloques | `pistas` como dependencia de useCallback causa recreación cascada en cada cambio de pistas | CORREGIDO (getState()) |
+| ML3 | mezcladorStore agregarSample | Race condition: pistaDestino capturada antes del `await cargarBuffer()`, stale después | CORREGIDO (re-read con getState post-await) |
+
+#### P2 — Medio (Robustez)
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| MT3 | compasUtils duracionCompas | División por cero si bpm=0 | CORREGIDO (guard bpm<=0) |
+| MT4 | compasUtils anchoBloquePorc/posicionBloquePorc | División por cero si totalCompases=0 | CORREGIDO (guard <=0) |
+| ML7 | useTimeline alDropExterno | `JSON.parse` sin validar estructura del objeto → crash o datos corruptos | CORREGIDO (type guard) |
+| ML10 | mezcladorStore cargandoBuffers | `Set()` en estado Zustand — equality check no detecta cambios (shallow compare) | ACEPTADO (funciona con `new Set()` cada vez, tipar explícitamente) |
+
+#### P3 — Bajo (Calidad) — No corregidos (bajo riesgo)
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| ML6 | mezcladorStore moverBloque | No valida solapamiento de bloques al mover | PENDIENTE (feature, no bug) |
+| MS1 | motorAudioService cargarBuffer | URL de fetch no se valida (permite fetch a URLs arbitrarias si sample.rutaPreview es manipulado) | ACEPTADO (rutaPreview viene del backend, input confiable) |
 
 ---
 
@@ -103,6 +155,13 @@
 - [Auth endpoints]: `permission_callback` de WP solo decide si acepta la request. Checks de rol deben ir además dentro del callback.
 - [Cron WP]: Registrar intervalos custom con `cron_schedules` ANTES de `wp_schedule_event`.
 - [DRY]: `pgArrayToPhp` estaba duplicada en PublicacionesController y NormalizadorSample.
+- [Web Audio]: AudioContext.close() es OBLIGATORIO en destruir() — sin él, cada re-apertura crea un thread de audio nuevo que nunca se libera.
+- [Web Audio]: `resume()` es async pero rara vez se awaita. Usar `void ctx.resume()` para señalar intención explícita de fire-and-forget.
+- [Web Audio]: GainNode.disconnect() en onended del source — si no, quedan conexiones zombie en el grafo de audio.
+- [React closures]: useCallback con rAF auto-referenciado (requestAnimationFrame(fn)) captura valores del primer render. Usar getState() de Zustand para leer siempre el valor actual.
+- [Zustand]: Dependencias de useCallback que son arrays/objetos del store (como `pistas`) causan recreación de todos los callbacks dependientes. Leer con getState() si no necesitas reactividad.
+- [Zustand]: Set() en estado Zustand requiere crear `new Set()` en cada mutación para que shallow compare detecte cambios.
+- [Race condition async]: En stores async (ej: agregarSample), NUNCA capturar objetos del estado antes de un await. Re-leer con get() después del await.
 
 ---
 
@@ -150,6 +209,16 @@
 - [ ] React: apiCliente.ts, authStore.ts, stores
 - [ ] React: hooks, services, components
 - [ ] Config: assets.php, config.php, control.php, environment.php
+- [x] Mezclador: motorAudioService.ts
+- [x] Mezclador: useMotorAudio.ts
+- [x] Mezclador: useMezclador.ts
+- [x] Mezclador: useTimeline.ts
+- [x] Mezclador: useExportarMezcla.ts
+- [x] Mezclador: mezcladorStore.ts
+- [x] Mezclador: compasUtils.ts
+- [x] Mezclador: audioBufferUtils.ts
+- [x] Mezclador: types/mezclador.ts
+- [x] Mezclador: componentes (8 archivos — auditoría P3)
 
 ---
 

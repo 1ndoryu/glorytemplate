@@ -49,7 +49,7 @@ class NotificacionesController
         $notificaciones = PostgresService::consultar(
             "SELECT n.id, n.tipo, n.datos, n.leida, n.created_at as \"creadaAt\",
                     u.username as \"actorUsername\", u.nombre_visible as \"actorNombre\",
-                    u.avatar_url as \"actorAvatar\"
+                    u.avatar_url as \"actorAvatar\", u.wp_user_id as \"actorWpUserId\"
              FROM notificaciones n
              LEFT JOIN usuarios_ext u ON (n.datos::jsonb->>'seguidor_id')::int = u.id
                 OR (n.datos::jsonb->>'liker_id')::int = u.id
@@ -57,6 +57,15 @@ class NotificacionesController
              ORDER BY n.created_at DESC LIMIT 30 OFFSET :offset",
             ['userId' => $userId, 'offset' => $offset]
         );
+
+        /* C193: fallback avatar para actores de notificaciones */
+        foreach ($notificaciones as &$n) {
+            $n['actorAvatar'] = UsuarioHelper::resolverAvatarUrl(
+                $n['actorAvatar'] ?? null,
+                isset($n['actorWpUserId']) ? (int) $n['actorWpUserId'] : null
+            );
+            unset($n['actorWpUserId']);
+        }
 
         return new \WP_REST_Response(['data' => $notificaciones], 200);
     }

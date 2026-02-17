@@ -20,6 +20,13 @@
     padding: var(--espacioLg);
 }
 
+/* C203: Sin padding cuando el mezclador está abierto — ocupa ancho completo */
+.panelLateralSinPadding {
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
 /* --- PanelDetalleSample --- */
 
 .panelDetalle {

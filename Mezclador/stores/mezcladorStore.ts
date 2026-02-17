@@ -79,7 +79,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     tiempoActual: 0,
     posicionCursor: 0,
     exportando: false,
-    cargandoBuffers: new Set(),
+    cargandoBuffers: new Set<string>(),
 
     abrir: () => set({ abierto: true }),
     cerrar: () => {
@@ -151,13 +151,14 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
         const { pistas, bpmProyecto, compasProyecto, cargandoBuffers } = get();
 
         /* Determinar pista destino (primera con espacio o crear nueva) */
-        let pistaDestino = pistaId
-            ? pistas.find(p => p.id === pistaId)
-            : pistas.find(p => p.bloques.length === 0) ?? pistas[0];
+        let pistaDestinoId = pistaId
+            ?? pistas.find(p => p.bloques.length === 0)?.id
+            ?? pistas[0]?.id;
 
-        if (!pistaDestino) {
-            pistaDestino = crearPistaVacia(`Pista ${pistas.length + 1}`);
-            set(prev => ({ pistas: [...prev.pistas, pistaDestino!] }));
+        if (!pistaDestinoId) {
+            const nuevaPista = crearPistaVacia(`Pista ${pistas.length + 1}`);
+            pistaDestinoId = nuevaPista.id;
+            set(prev => ({ pistas: [...prev.pistas, nuevaPista] }));
         }
 
         const bloqueId = generarIdBloque();
@@ -177,8 +178,15 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
             const bpmSample = sample.bpm ?? bpmProyecto;
             const info = inferirCompas(buffer.duration, bpmSample, bpmProyecto, compasProyecto);
 
+            /*
+             * Re-leer pistas desde estado actual (puede haber cambiado durante await).
+             * Esto evita la race condition si el usuario agrega otro sample en paralelo.
+             */
+            const pistasActuales = get().pistas;
+            const pistaActual = pistasActuales.find(p => p.id === pistaDestinoId);
+            const bloquesPista = pistaActual?.bloques ?? [];
+
             /* Encontrar primera posición libre en la pista */
-            const bloquesPista = get().pistas.find(p => p.id === pistaDestino!.id)?.bloques ?? [];
             let compasInicio = 0;
             for (const b of bloquesPista) {
                 const fin = b.compasInicio + b.duracionCompases;
@@ -194,7 +202,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
 
             const nuevoBloque: BloqueMezclador = {
                 id: bloqueId,
-                pistaId: pistaDestino.id,
+                pistaId: pistaDestinoId,
                 sample,
                 audioBuffer: buffer,
                 compasInicio,
@@ -208,15 +216,14 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
 
             /* Expandir totalCompases si es necesario */
             const finBloque = compasInicio + info.duracionCompases;
-            const { totalCompases } = get();
 
             set(prev => ({
                 pistas: prev.pistas.map(p =>
-                    p.id === pistaDestino!.id
+                    p.id === pistaDestinoId
                         ? { ...p, bloques: [...p.bloques, nuevoBloque] }
                         : p
                 ),
-                totalCompases: Math.max(totalCompases, finBloque),
+                totalCompases: Math.max(prev.totalCompases, finBloque),
             }));
         } catch (error) {
             console.error('[Mezclador] Error cargando sample:', error);

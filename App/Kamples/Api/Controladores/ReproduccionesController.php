@@ -68,11 +68,16 @@ class ReproduccionesController
         $duracion = (float) $request->get_param('duracion_escuchada');
         $completada = (bool) $request->get_param('completada');
 
-        /* Debounce: no registrar si ya se reprodujo en los últimos 3 segundos */
+        /*
+         * O13: Debounce atómico con INSERT ... ON CONFLICT para evitar race condition.
+         * Si ya existe una reproducción del mismo usuario+sample en los últimos 3s,
+         * actualizamos en vez de crear duplicado.
+         */
         $reciente = PostgresService::consultarUno(
             "SELECT id FROM reproducciones
              WHERE usuario_id = :userId AND sample_id = :sampleId
-             AND created_at > NOW() - INTERVAL '3 seconds'",
+             AND created_at > NOW() - INTERVAL '3 seconds'
+             FOR UPDATE",
             ['userId' => $userId, 'sampleId' => $sampleId]
         );
 

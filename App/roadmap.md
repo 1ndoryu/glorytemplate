@@ -365,6 +365,12 @@ Cannot read properties of undefined (reading 'length')
 202. Auditar la seguridad de los audios, que sea dificil descargar los audios originales adivinando url, y que sea dificil descargar los mp3 ligeros tambien, rate limits, auditorias, etc, sin bloquear o dañar la reproducción de audios
 203. Tarea para el agente del minidaw: Cuando el mezclador se abra, quitar el padding de panelLateralInterno, y abarcar el ancho completo.
 204. Tarea para el agente del minidaw: poder estirar los audios (cambiar el pitch y duración o sea contraer y extirar)
+205. Tarea para el agente del minidaw: poder mover los audios arrastrados verticalmente, no se pueden mover o es dificil, por ejemplo poder mover del compas 1 para que comience el 2.
+206. Tarea para el agente del minidaw: poder mover los audios entre las lineas de tiempo.
+207. Tarea para el agente del minidaw: el audio en la linea de tiempo no se reproduce completo, no se por qué.
+208. Tarea para el agente del minidaw: Poder subir audios desde la pc.
+209. Tarea para el agente del minidaw: Mejorar el arrastre de samples al minidaw, se ve feo, tiene que ser especial, no generico del explorador.
+210. Dejaron de aparecer sugerencias cuando doy like, no se por qué.
 
 ---
 

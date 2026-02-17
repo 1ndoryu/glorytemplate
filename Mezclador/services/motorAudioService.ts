@@ -29,13 +29,13 @@ class MotorAudio {
         return this.contexto;
     }
 
-    /* Obtener o crear el contexto */
+    /* Obtener o crear el contexto — reinicia si fue cerrado */
     obtenerContexto(): AudioContext {
-        if (!this.contexto || !this.iniciado) {
+        if (!this.contexto || !this.iniciado || this.contexto.state === 'closed') {
             return this.iniciar();
         }
         if (this.contexto.state === 'suspended') {
-            this.contexto.resume();
+            void this.contexto.resume();
         }
         return this.contexto;
     }
@@ -67,7 +67,10 @@ class MotorAudio {
 
         const ctx = this.obtenerContexto();
         const gain = ctx.createGain();
-        gain.connect(this.masterGain!);
+        if (!this.masterGain) {
+            throw new Error('[MotorAudio] masterGain no inicializado');
+        }
+        gain.connect(this.masterGain);
         this.gainsCanales.set(pistaId, gain);
         return gain;
     }
@@ -98,8 +101,8 @@ class MotorAudio {
         this.nodosActivos.push(fuente);
 
         fuente.onended = () => {
-            const idx = this.nodosActivos.indexOf(fuente);
-            if (idx !== -1) this.nodosActivos.splice(idx, 1);
+            gainNodo.disconnect();
+            this.nodosActivos = this.nodosActivos.filter(n => n !== fuente);
         };
 
         return fuente;
@@ -178,11 +181,20 @@ class MotorAudio {
         return offlineCtx.startRendering();
     }
 
-    /* Limpiar todo al cerrar el mezclador */
-    destruir(): void {
+    /* Limpiar todo al cerrar el mezclador — libera AudioContext */
+    async destruir(): Promise<void> {
         this.detenerTodo();
+        for (const gain of this.gainsCanales.values()) {
+            try { gain.disconnect(); } catch { /* ya desconectado */ }
+        }
         this.gainsCanales.clear();
-        /* No destruir cacheBuffers — pueden reutilizarse si se reabre */
+        if (this.contexto && this.contexto.state !== 'closed') {
+            await this.contexto.close();
+        }
+        this.contexto = null;
+        this.masterGain = null;
+        this.iniciado = false;
+        /* cacheBuffers se conservan — reutilizables si se reabre */
     }
 
     /* Limpiar caché de buffers (liberar memoria) */

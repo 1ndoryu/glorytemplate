@@ -73,7 +73,7 @@ class MensajesController
             $otroId = (int) $conv['otro_id'];
 
             $otro = PostgresService::consultarUno(
-                "SELECT id, username, nombre_visible, avatar_url, verificado FROM usuarios_ext WHERE id = :id",
+                "SELECT id, username, nombre_visible, avatar_url, verificado, wp_user_id FROM usuarios_ext WHERE id = :id",
                 ['id' => $otroId]
             );
 
@@ -86,6 +86,11 @@ class MensajesController
                 "SELECT COUNT(*) as total FROM mensajes WHERE conversacion_id = :convId AND autor_id != :userId AND leido = false",
                 ['convId' => $conv['id'], 'userId' => $userId]
             );
+
+            /* C193: fallback avatar */
+            if ($otro) {
+                $otro['avatar_url'] = UsuarioHelper::resolverAvatarUrl($otro['avatar_url'] ?? null, (int) ($otro['wp_user_id'] ?? 0));
+            }
 
             /* Preview del último mensaje según tipo */
             $previewMsg = $ultimoMsg['contenido'] ?? '';
@@ -376,9 +381,14 @@ class MensajesController
         );
 
         $otro = PostgresService::consultarUno(
-            "SELECT id, username, nombre_visible, avatar_url, verificado FROM usuarios_ext WHERE id = :id",
+            "SELECT id, username, nombre_visible, avatar_url, verificado, wp_user_id FROM usuarios_ext WHERE id = :id",
             ['id' => $otroId]
         );
+
+        /* C193: fallback avatar */
+        if ($otro) {
+            $otro['avatar_url'] = UsuarioHelper::resolverAvatarUrl($otro['avatar_url'] ?? null, (int) ($otro['wp_user_id'] ?? 0));
+        }
 
         return new \WP_REST_Response([
             'data' => [

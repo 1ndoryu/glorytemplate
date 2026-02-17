@@ -7,12 +7,13 @@ import type { Compas, InfoCompas } from '../types/mezclador';
 
 /* Duración de un compás en segundos dado BPM y compás */
 export const duracionCompas = (bpm: number, compas: Compas): number => {
+    if (bpm <= 0) return 0;
     const beatDuration = 60 / bpm;
     return beatDuration * compas.numerador;
 };
 
 /* Duración de un beat en segundos */
-export const duracionBeat = (bpm: number): number => 60 / bpm;
+export const duracionBeat = (bpm: number): number => bpm > 0 ? 60 / bpm : 0;
 
 /* Calcular cuántos beats tiene un audio */
 export const calcularBeats = (duracion: number, bpm: number): number => {
@@ -92,10 +93,12 @@ export const generarLabelsCompases = (totalCompases: number): string[] => {
 
 /* Calcular ancho de un bloque en porcentaje respecto al total */
 export const anchoBloquePorc = (duracionCompases: number, totalCompases: number): number => {
+    if (totalCompases <= 0) return 0;
     return (duracionCompases / totalCompases) * 100;
 };
 
 /* Calcular posición izquierda de un bloque en porcentaje */
 export const posicionBloquePorc = (compasInicio: number, totalCompases: number): number => {
+    if (totalCompases <= 0) return 0;
     return (compasInicio / totalCompases) * 100;
 };

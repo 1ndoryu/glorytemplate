@@ -133,7 +133,7 @@ class PublicacionesController
         }
 
         $publicaciones = PostgresService::consultar(
-            "SELECT p.*, u.username, u.nombre_visible, u.avatar_url, u.verificado
+            "SELECT p.*, u.username, u.nombre_visible, u.avatar_url, u.verificado, u.wp_user_id
              {$likedSubquery}
              FROM publicaciones p
              JOIN usuarios_ext u ON p.autor_id = u.id
@@ -159,7 +159,7 @@ class PublicacionesController
                 'id' => (int) $pub['autor_id'],
                 'username' => $pub['username'],
                 'nombreVisible' => $pub['nombre_visible'],
-                'avatarUrl' => $pub['avatar_url'],
+                'avatarUrl' => UsuarioHelper::resolverAvatarUrl($pub['avatar_url'] ?? null, (int) ($pub['wp_user_id'] ?? 0)),
                 'verificado' => (bool) $pub['verificado'],
             ];
         }

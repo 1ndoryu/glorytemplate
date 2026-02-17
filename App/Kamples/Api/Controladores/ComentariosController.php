@@ -65,7 +65,7 @@ class ComentariosController
             "SELECT c.id, c.contenido, c.created_at,
                     c.tipo_contenido, c.media_url, c.media_metadata,
                     c.moderacion_estado,
-                    u.id as autor_id, u.username, u.nombre_visible, u.avatar_url
+                    u.id as autor_id, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id
              FROM comentarios c
              JOIN usuarios_ext u ON c.autor_id = u.id
              WHERE c.tipo = :tipo AND c.target_id = :targetId
@@ -85,7 +85,7 @@ class ComentariosController
                 'id' => (int) $c['autor_id'],
                 'username' => $c['username'],
                 'nombreVisible' => $c['nombre_visible'],
-                'avatarUrl' => $c['avatar_url'],
+                'avatarUrl' => UsuarioHelper::resolverAvatarUrl($c['avatar_url'] ?? null, (int) ($c['wp_user_id'] ?? 0)),
             ];
         }
 
@@ -277,7 +277,7 @@ class ComentariosController
 
         /* Obtener datos del autor para devolver el comentario completo */
         $usuario = PostgresService::consultarUno(
-            "SELECT id, username, nombre_visible, avatar_url FROM usuarios_ext WHERE id = :id",
+            "SELECT id, username, nombre_visible, avatar_url, wp_user_id FROM usuarios_ext WHERE id = :id",
             ['id' => $userId]
         );
 
@@ -295,7 +295,10 @@ class ComentariosController
                     'id' => $userId,
                     'username' => $usuario['username'] ?? '',
                     'nombreVisible' => $usuario['nombre_visible'] ?? '',
-                    'avatarUrl' => $usuario['avatar_url'] ?? null,
+                    'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
+                        $usuario['avatar_url'] ?? null,
+                        (int) ($usuario['wp_user_id'] ?? 0)
+                    ),
                 ],
             ],
         ], 201);

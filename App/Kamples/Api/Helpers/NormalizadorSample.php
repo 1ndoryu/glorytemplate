@@ -106,7 +106,10 @@ class NormalizadorSample
                 'id'             => (int) ($row['creador_id'] ?? 0),
                 'username'       => $row['username'] ?? '',
                 'nombreVisible'  => $row['nombre_visible'] ?? $row['username'] ?? '',
-                'avatarUrl'      => $row['avatar_url'] ?? null,
+                'avatarUrl'      => UsuarioHelper::resolverAvatarUrl(
+                    $row['avatar_url'] ?? null,
+                    isset($row['creador_wp_user_id']) ? (int) $row['creador_wp_user_id'] : null
+                ),
                 'verificado'     => (bool) ($row['verificado'] ?? false),
             ];
         }
@@ -182,7 +185,7 @@ class NormalizadorSample
                        s.imagen_url, s.total_descargas, s.total_likes, s.total_reproducciones,
                        s.audio_hash, s.verificado AS verificado_sample,
                        u.id as creador_id, u.username, u.nombre_visible,
-                       u.avatar_url, u.verificado,
+                       u.avatar_url, u.verificado, u.wp_user_id AS creador_wp_user_id,
                        {$reaccionExpr} AS reaccion_usuario
                 FROM samples s
                 LEFT JOIN usuarios_ext u ON s.creador_id = u.id";

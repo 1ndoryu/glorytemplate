@@ -166,7 +166,7 @@ class ColeccionesController
                     WHERE s_c.estado = 'activo'
                     GROUP BY cs.coleccion_id
                 )
-                SELECT c.*, u.username, u.nombre_visible, u.avatar_url,
+                SELECT c.*, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id,
                        COALESCE(ct.items, 0) as total_items,
                        COALESCE((
                            SELECT SUM(ut.afinidad)
@@ -195,7 +195,7 @@ class ColeccionesController
         } else {
             /* Sin usuario: orden por actualización */
             $sql = "
-                SELECT c.*, u.username, u.nombre_visible, u.avatar_url,
+                SELECT c.*, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id,
                        (SELECT COUNT(*) FROM coleccion_samples cs WHERE cs.coleccion_id = c.id) as total_items
                 FROM colecciones c
                 JOIN usuarios_ext u ON c.usuario_id = u.id
@@ -208,6 +208,16 @@ class ColeccionesController
         }
 
         $colecciones = PostgresService::consultar($sql, $params);
+
+        /* C193: Fallback avatar a WP Gravatar */
+        foreach ($colecciones as &$col) {
+            $col['avatar_url'] = UsuarioHelper::resolverAvatarUrl(
+                $col['avatar_url'] ?? null,
+                isset($col['wp_user_id']) ? (int) $col['wp_user_id'] : null
+            );
+            unset($col['wp_user_id']);
+        }
+        unset($col);
 
         return new \WP_REST_Response(['data' => $colecciones], 200);
     }
@@ -252,7 +262,7 @@ class ColeccionesController
         $id = (int) $request->get_param('id');
 
         $coleccion = PostgresService::consultarUno(
-            "SELECT c.*, u.username, u.nombre_visible, u.avatar_url
+            "SELECT c.*, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id
              FROM colecciones c JOIN usuarios_ext u ON c.usuario_id = u.id WHERE c.id = :id",
             ['id' => $id]
         );

@@ -93,8 +93,18 @@ export const useTimeline = () => {
         if (!data) return;
 
         try {
-            const sample: SampleResumen = JSON.parse(data);
-            useMezcladorStore.getState().agregarSample(sample, pistaId);
+            const parsed: unknown = JSON.parse(data);
+            /* Validar estructura mínima del sample antes de usarlo */
+            if (
+                !parsed ||
+                typeof parsed !== 'object' ||
+                !('id' in parsed) ||
+                !('rutaPreview' in parsed)
+            ) {
+                console.error('[Mezclador] Sample inválido en drag data');
+                return;
+            }
+            useMezcladorStore.getState().agregarSample(parsed as SampleResumen, pistaId);
         } catch {
             console.error('[Mezclador] Error parseando sample del drag');
         }
