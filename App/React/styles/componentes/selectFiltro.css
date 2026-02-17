@@ -16,7 +16,7 @@
     display: flex;
     align-items: center;
     gap: var(--espacioXs);
-    padding: calc(var(--espacioXs) / 2) var(--espacioSm);
+    padding: var(--espacioXs) var(--espacioSm);
     background: transparent;
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioFull);

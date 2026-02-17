@@ -227,7 +227,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                             </span>
                         )}
                     </div>
-                    {/* C109: Botones icono — guardar, descargar, preview */}
+                    {/* C109+C125: Botones con texto — guardar, descargar, preview */}
                     <div className="coleccionAcciones">
                         <button
                             className={`coleccionAccionBtn ${guardada ? 'coleccionAccionActivo' : ''}`}
@@ -236,6 +236,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                             title={guardada ? 'Guardada' : 'Guardar colección'}
                         >
                             {guardada ? <BookmarkCheck size={16} /> : <BookmarkPlus size={16} />}
+                            <span>{guardada ? 'Guardada' : 'Guardar'}</span>
                         </button>
                         <button
                             className="coleccionAccionBtn"
@@ -245,6 +246,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                             disabled={descargando}
                         >
                             <Download size={16} />
+                            <span>{descargando ? 'Descargando...' : 'Descargar'}</span>
                         </button>
                         <button
                             className="coleccionAccionBtn"
@@ -253,6 +255,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                             onClick={() => { /* TO-DO: reproducir preview de la colección */ }}
                         >
                             <Play size={16} />
+                            <span>Preview</span>
                         </button>
                     </div>
                 </div>

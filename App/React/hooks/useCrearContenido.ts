@@ -1,0 +1,232 @@
+/*
+ * Hook: useCrearContenido — Kamples (C124)
+ * Lógica unificada para creación de contenido (samples + publicaciones).
+ * Extraído de ModalCrear para reutilizar en SeccionPublicar (inline).
+ * Gestiona: texto, audio, imágenes, waveform, condiciones, publicación.
+ */
+
+import { useState, useCallback, useRef, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useArchivosDragDrop } from '@app/hooks/useArchivosDragDrop';
+import { subirSample } from '@app/services/apiSamples';
+import { crearPublicacion, subirImagenPublicacion } from '@app/services/apiSocial';
+import { crearLogger } from '@app/services/logger';
+
+const log = crearLogger('useCrearContenido');
+
+export const MAX_CARACTERES = 2000;
+export const MIN_TAGS_AUDIO = 2;
+
+/* Extraer hashtags del texto */
+export const extraerTags = (texto: string): string[] => {
+    const regex = /#(\w+)/g;
+    const tags: string[] = [];
+    let match;
+    while ((match = regex.exec(texto)) !== null) {
+        tags.push(match[1].toLowerCase());
+    }
+    return [...new Set(tags)];
+};
+
+/* Genera waveform peaks de un archivo de audio via Web Audio API */
+export const generarPeaks = async (archivo: File, barras = 60): Promise<number[]> => {
+    try {
+        const buffer = await archivo.arrayBuffer();
+        const contexto = new AudioContext();
+        const audioBuffer = await contexto.decodeAudioData(buffer);
+        const datos = audioBuffer.getChannelData(0);
+        const pasoTamano = Math.floor(datos.length / barras);
+        const peaks: number[] = [];
+        for (let i = 0; i < barras; i++) {
+            let max = 0;
+            for (let j = 0; j < pasoTamano; j++) {
+                const abs = Math.abs(datos[i * pasoTamano + j] || 0);
+                if (abs > max) max = abs;
+            }
+            peaks.push(max);
+        }
+        await contexto.close();
+        return peaks;
+    } catch {
+        return Array(barras).fill(0.3);
+    }
+};
+
+export interface UseCrearContenidoOpciones {
+    alCompletarPublicacion?: () => void;
+}
+
+export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
+    const { alCompletarPublicacion } = opciones;
+
+    const [contenido, setContenido] = useState('');
+    const [publicando, setPublicando] = useState(false);
+    const [permitirDescarga, setPermitirDescarga] = useState(true);
+    const [licenciaLibre, setLicenciaLibre] = useState(false);
+    const [esPremium, setEsPremium] = useState(false);
+    const [precio, setPrecio] = useState('');
+    const [waveformPeaks, setWaveformPeaks] = useState<number[]>([]);
+    const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const [reproduciendoPreview, setReproduciendoPreview] = useState(false);
+    const [progresoPreview, setProgresoPreview] = useState(0);
+    const [errorSubida, setErrorSubida] = useState<string | null>(null);
+    const [exitoSubida, setExitoSubida] = useState(false);
+    const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const archivos = useArchivosDragDrop();
+    const { audioAdjunto, imagenes, resetear: resetearArchivos } = archivos;
+
+    /* Generar waveform al adjuntar audio */
+    useEffect(() => {
+        if (audioAdjunto?.archivo) {
+            generarPeaks(audioAdjunto.archivo).then(setWaveformPeaks);
+            const url = URL.createObjectURL(audioAdjunto.archivo);
+            setAudioUrl(url);
+            return () => URL.revokeObjectURL(url);
+        }
+        setWaveformPeaks([]);
+        setAudioUrl(null);
+        setReproduciendoPreview(false);
+        setProgresoPreview(0);
+    }, [audioAdjunto]);
+
+    const togglePreview = useCallback(() => {
+        const audio = audioPreviewRef.current;
+        if (!audio || !audioUrl) return;
+        if (reproduciendoPreview) { audio.pause(); setReproduciendoPreview(false); }
+        else { audio.play(); setReproduciendoPreview(true); }
+    }, [audioUrl, reproduciendoPreview]);
+
+    /* Resetear todo el formulario */
+    const resetear = useCallback(() => {
+        setContenido('');
+        resetearArchivos();
+        setPermitirDescarga(true);
+        setLicenciaLibre(false);
+        setEsPremium(false);
+        setPrecio('');
+        setWaveformPeaks([]);
+        setAudioUrl(null);
+        setErrorSubida(null);
+        setExitoSubida(false);
+        setReproduciendoPreview(false);
+        setProgresoPreview(0);
+        if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    }, [resetearArchivos]);
+
+    /* Auto-resize textarea */
+    const ajustarAltura = useCallback(() => {
+        const el = textareaRef.current;
+        if (!el) return;
+        el.style.height = 'auto';
+        const linea = 20, min = linea * 2, max = linea * 6;
+        el.style.height = `${Math.min(Math.max(el.scrollHeight, min), max)}px`;
+    }, []);
+
+    const manejarCambioTexto = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
+        if (e.target.value.length <= MAX_CARACTERES) setContenido(e.target.value);
+        ajustarAltura();
+    }, [ajustarAltura]);
+
+    /* Publicar contenido (sample con audio o publicación texto/imágenes) */
+    const manejarPublicar = useCallback(async () => {
+        if (publicando) return;
+        const tieneContenido = contenido.trim().length > 0 || audioAdjunto || imagenes.length > 0;
+        if (!tieneContenido) return;
+
+        setPublicando(true);
+        setErrorSubida(null);
+        setExitoSubida(false);
+        const tags = extraerTags(contenido);
+
+        if (audioAdjunto?.archivo && tags.length < MIN_TAGS_AUDIO) {
+            setErrorSubida(`Se requieren al menos ${MIN_TAGS_AUDIO} tags (#hashtags) para subir un sample (${tags.length}/${MIN_TAGS_AUDIO}).`);
+            setPublicando(false);
+            return;
+        }
+
+        log.info('Publicando', { tags, tieneAudio: !!audioAdjunto, imagenes: imagenes.length });
+
+        if (audioAdjunto?.archivo) {
+            const resp = await subirSample({
+                audio: audioAdjunto.archivo,
+                titulo: audioAdjunto.nombre.replace(/\.[^/.]+$/, ''),
+                contenido: contenido.trim(),
+                tags,
+                permitirDescarga,
+                licenciaLibre,
+                esPremium,
+                precio: esPremium ? parseFloat(precio) || undefined : undefined,
+            });
+            if (!resp.ok) {
+                setErrorSubida(resp.error ?? 'Error al subir el sample');
+                setPublicando(false);
+                return;
+            }
+            log.info('Sample subido exitosamente', resp.data);
+        } else {
+            const urlsReales: string[] = [];
+            for (const img of imagenes) {
+                const respImg = await subirImagenPublicacion(img.archivo);
+                if (respImg.ok && respImg.data?.url) urlsReales.push(respImg.data.url);
+                else log.error('Error subiendo imagen', respImg);
+            }
+            const resp = await crearPublicacion({
+                tipo: 'social',
+                contenido: contenido.trim(),
+                imagenes: urlsReales.length > 0 ? urlsReales : undefined,
+            });
+            if (!resp.ok) {
+                setErrorSubida(resp.error ?? 'Error al publicar');
+                setPublicando(false);
+                return;
+            }
+            log.info('Publicacion creada', resp.data);
+        }
+
+        setExitoSubida(true);
+        setTimeout(() => {
+            setPublicando(false);
+            resetear();
+            alCompletarPublicacion?.();
+        }, 1500);
+    }, [contenido, audioAdjunto, imagenes, publicando, permitirDescarga, licenciaLibre, esPremium, precio, resetear, alCompletarPublicacion]);
+
+    /* Ctrl+Enter para publicar */
+    const manejarKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); manejarPublicar(); }
+    }, [manejarPublicar]);
+
+    /* Valores computados */
+    const tags = extraerTags(contenido);
+    const caracteresPendientes = MAX_CARACTERES - contenido.length;
+    const tagsInsuficientes = !!audioAdjunto && tags.length < MIN_TAGS_AUDIO;
+    const puedePublicar = (contenido.trim().length > 0 || !!audioAdjunto || imagenes.length > 0) && !publicando && !tagsInsuficientes;
+
+    return {
+        contenido, publicando, permitirDescarga, setPermitirDescarga,
+        licenciaLibre, setLicenciaLibre, esPremium, setEsPremium,
+        precio, setPrecio, waveformPeaks, audioUrl,
+        reproduciendoPreview, progresoPreview, setProgresoPreview,
+        errorSubida, setErrorSubida, exitoSubida,
+        audioPreviewRef, textareaRef,
+        tags, caracteresPendientes, tagsInsuficientes, puedePublicar,
+        togglePreview, manejarCambioTexto, manejarKeyDown, manejarPublicar, resetear,
+        /* Delegados de useArchivosDragDrop (sin resetear, usamos el propio) */
+        audioAdjunto: archivos.audioAdjunto,
+        imagenes: archivos.imagenes,
+        arrastrando: archivos.arrastrando,
+        inputAudioRef: archivos.inputAudioRef,
+        inputImagenRef: archivos.inputImagenRef,
+        manejarInputAudio: archivos.manejarInputAudio,
+        manejarInputImagen: archivos.manejarInputImagen,
+        quitarImagen: archivos.quitarImagen,
+        quitarAudio: archivos.quitarAudio,
+        manejarDragEnter: archivos.manejarDragEnter,
+        manejarDragLeave: archivos.manejarDragLeave,
+        manejarDragOver: archivos.manejarDragOver,
+        manejarDrop: archivos.manejarDrop,
+        formatosAudio: archivos.formatosAudio,
+        maxImagenes: archivos.maxImagenes,
+    };
+};

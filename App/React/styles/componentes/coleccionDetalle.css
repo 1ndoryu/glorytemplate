@@ -115,12 +115,14 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
     height: 32px;
     background: none;
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioSm);
     color: var(--textoSecundario);
+    font-size: var(--textoSm);
     cursor: pointer;
     transition: color var(--transicionRapida), border-color var(--transicionRapida);
 }

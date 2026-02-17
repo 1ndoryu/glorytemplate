@@ -123,6 +123,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R27:** SampleDetalle fino: cabecera+título dentro tarjeta, tags bajo waveform, acciones sin borde, compartir eliminado.
 **R28:** SeccionPublicar inline C89, feedTags colecciones C114, panel lateral C86/C95/C111, sqlSelectSamples liked real, fixes C58/C61/C62.
 **R29:** Créditos+ZIP colecciones (C110), tags metadata IA (C134), búsqueda↔tags sync (C115), SelectFiltro+SelectorBPM (C116).
+**R30:** Compactación roadmap — C85-C134 resueltos a tabla, R9-R29 compactos, comentarios pendientes limpiados.
+**R31:** C125 texto botones colección, C135 panel lateral sugerencias (no modal), C124 SeccionPublicar=ModalCrear refactor (useCrearContenido+ContenidoCrear compartido).
 
 ---
 
@@ -444,6 +446,9 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 122 | Verificar comentarios resueltos                      | ✅ Verificación completada |
 | 123 | Hooks render order ColeccionDetalleIsland             | ✅ useMemo antes de early returns + typeof checks JSONB |
 | 134 | Tags metadata IA en feedTags                         | ✅ extraerTagsMetadata() combina metadata IA con normalización/deduplicación |
+| 124 | SeccionPublicar = ModalCrear + audio                 | ✅ Refactor: useCrearContenido hook + ContenidoCrear compartido. SeccionPublicar y ModalCrear usan misma UI |
+| 125 | coleccionAcciones texto botones                      | ✅ Añadido <span> con texto (Guardar/Descargar/Preview) + CSS gap+padding |
+| 135 | Panel lateral sugerencias (no modal)                 | ✅ FeedSamples usa panelLateralStore.abrirSugerencias en vez de sugerenciasLikeStore modal |
 
 ---
 
@@ -452,8 +457,6 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 85. No se estan usando los componentes, hay un boton de botones en todos lados que no usan el componente boton, por favor, inspesionar todo el codigo para encontrar todos los botones y cualqueir otra cosa que puede centralizarse con componentes, CENTRALIZAR Y NORMALIZAR ESTILOS; LOS COMPONENTES DEBEN SER LA FUENTE DEL VERDAD DE LOS ESTILOS
 103. El registro debe ser más sencillo, solo el nombre de usuario, correo, y contraseña una sola vez. Y cuando me intento registrar dice "No se ha encontrado ninguna ruta que coincida con la URL y el método de la solicitud." Failed to load resource: the server responded with a status of 404 (Not Found)
 104. Lo de registro debe ser un modal tambien el inicio de seccion, no paginas, y el modal debe ser con una imagen (la misma estructura de .planesLayoutEspecial)
-124. seccionPublicar deberia tener la misma estructura y verse exactamente igual al modal crearContenido, tambien debería permitir publicar audios.
-125. coleccionAcciones si debería mostrar el texto de los botones.
 126. Modal de configuración de samples, publicaciones, y colecciones: poder cambiar todo lo modificable, los admin pueden cambiar todo, y los usuarios sus cosas. De los samples, poder cambiar por ejemplo, la imagen, el titulo, los tags.
 127. No se si lo planifique antes pero, los samples necesita un boton de 3 puntos para su configuracion, igual que los samples en la lista, la menu contextual debe ser el mismo, igualmente las colecciones tanto en su lista y su pagina individual y los post de publicaciones de comunidad tambien.
 128. No se si lo planifique antes, debajo de detalleTarjetaUnica, en otra sección debe aparecer una lista de samples similares, basada en el algoritmo, claro, esto tiene que estar bien optimizado y cheado. Los comentarios tienen que aparecer ya expandidos, 
@@ -462,7 +465,15 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 131. Planificar la automoderación de contenido con IA, cada vez que se publica un comentario, la IA tiene que decidir si es spam, si es valido, etc.
 132. Mejora el sistema de moderación con IA, planificar mejor este sistema, la IA tiene que ser capaz de bloquear usuarios si tienen actividad sospechosa, spam, la toxicidad no es baneable, los usuarios son libres de discutir e insultarse, pero el spam, no es permitido, cuando un usuario hace comentarios con spam, le debe llegar una notificación de que su comentario fue eliminado automaticamente por x razón, el desnudo o contenido para adulto tambien esta prohibido, en ningun lugar, tampoco de portada para ningún audio, poca ropa si esta permitido, no estan estricto pero contenido en si totalmente pornxgrafico o actividades sexuales, o partes intimas prohibida, hay que tener cuidado porque sabemos que los albunes suelen usar imagenes explicitas que no son problemas generalmente, no queremos falsos positivos.
 133. Las paginas no deberían volver a cargarse cuando cambio de pagina, o sea si la pagian ya estaba cargada, despues vuelvo abrirla, no debe recargarse, ni la lista samples ni nada, todo debe cargarse una sola vez.
-135. C86 en realidad no se realizo, "También te podría gustar" sigue apareciendo como modal en vez de aparecer en el menu lateral, aparte no funciona ni muestra ninguna recomendacion nuca.
+136. Los tags no funcionan bien, probablemente por esto ErrorBoundary.tsx:28  [Glory] Error en isla "InicioIsland": ReferenceError: todosLosTags is not defined
+    at FeedSamples (FeedSamples.tsx?t=1771299567512:399:20)
+137. EL boton de Guardar para las colecciones propias no tiene sentido, no mostrarlo para los usuarios cuando ven sus propias colecciones.
+138. Asegurarse de que las descargas no cobren creditos para cuando se descargue un sample propio que se subio o que se descargo antes.
+139. El contaodr de samples en las colecciones no funciona.
+140. Separar descargas y favoritos en paginas propias, tambien hay ponerles coleccionHeader, y que tengan sus tab de "mas ideas", deben funcionar como colecciones especiales, el algoritmo de más ideas debe funcionar par recomendar samples basados en las descargas y los favoritos, esto significa las tabs descargas y favoritos porque ahora son paginas individuales. La tab de "Colecciones" debería ser "mis colecciones"
+141. No me gusta como se ve tarjetaColeccionAcciones, debe ser un boton en la esquina superior a la derecha que haga constraste automatico con la imagen, y que agrupe las acciones en un menu contextual.
+142. No se porque siempre dice "No hay sugerencias disponibles" nunca hay sugerencias para "También te podría gustar"
+143. crearContenido se ve mal como si lo estilos no cargaran, restaure los css que borraste por si acaso, pero 
 
 ---
 
@@ -489,3 +500,6 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [Tags Store C115]: Tags en local useState sin conexión a búsqueda global. Migrar a store Zustand con sync bidireccional (parsearBusquedaATags ↔ generarBusquedaDesdeTags).
 - [SelectFiltro C116]: No usar select HTML nativo — crear dropdown propio con estilo MenuContextual para consistencia visual. Cerrar con click outside + Escape.
 - [CSS feedTags C116]: feedTagExpandirBtn (+N) y compresión de tags producían UI fea. Reemplazado por fila de SelectFiltro dropdowns + tags sueltos draggable sin límite visual.
+- [C124 Refactor]: ModalCrear tenía 459 líneas con lógica inline. Extraído a useCrearContenido (hook) + ContenidoCrear (UI compartida). Ambos ModalCrear y SeccionPublicar ahora usan la misma base.
+- [C135 Sugerencias]: FeedSamples usaba sugerenciasLikeStore (modal) en vez de panelLateralStore.abrirSugerencias (panel lateral). PanelSugerencias.tsx y PanelLateral.tsx ya existían, solo faltaba conectar el trigger.
+- [useArchivosDragDrop]: Spread `...archivos` en return del hook colisiona con `resetear` propio. Listar props explícitamente para evitar override silencioso.

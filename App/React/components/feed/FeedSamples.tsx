@@ -25,10 +25,8 @@ import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { extraerTagsMetadata, extraerTagsAgrupadosMetadata, type CategoriaTag } from '@app/services/tagUtils';
-import { useSugerenciasLikeStore } from '@app/stores/sugerenciasLikeStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
-import { ModalSugerenciasLike } from '@app/components/feed/ModalSugerenciasLike';
 import type { SampleResumen } from '@app/types';
 
 /* Tipo del proveedor de datos: recibe página, devuelve samples */
@@ -358,9 +356,9 @@ export const FeedSamples = ({
 
     const finalizarArrastre = useCallback(() => setArrastrandoTags(false), []);
 
-    const { mostrar: mostrarSugerencias } = useSugerenciasLikeStore();
+    const { abrirSugerencias } = usePanelLateralStore();
 
-    /* Like optimistic UI — si es nuevo like, muestra modal de sugerencias */
+    /* Like optimistic UI — si es nuevo like, abre panel lateral de sugerencias */
     const manejarLike = useCallback(async (sampleId: number) => {
         let estabaLiked = false;
         let sampleRef: SampleResumen | null = null;
@@ -381,12 +379,12 @@ export const FeedSamples = ({
             await quitarLike('sample', sampleId);
         } else {
             await darLike('sample', sampleId);
-            /* Mostrar modal "También te podría gustar" al dar like */
-            if (sampleRef) mostrarSugerencias(sampleRef);
+            /* C135: Abrir panel lateral "También te podría gustar" al dar like */
+            if (sampleRef) abrirSugerencias(sampleRef);
         }
 
         onLike?.(sampleId, nuevoEstado);
-    }, [onLike, mostrarSugerencias]);
+    }, [onLike, abrirSugerencias]);
 
     /* Renderizar tags (un item con +/-/texto) */
     const renderizarTag = useCallback((tag: string) => (
@@ -540,8 +538,7 @@ export const FeedSamples = ({
                 sample={menu.sampleInspeccion}
             />
 
-            {/* Modal "También te podría gustar" — se abre tras dar like */}
-            <ModalSugerenciasLike />
+            {/* C135: Sugerencias ahora se muestran en PanelLateral (modo 'sugerencias') */}
         </div>
     );
 };
