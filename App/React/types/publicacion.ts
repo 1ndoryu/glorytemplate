@@ -21,6 +21,7 @@ export interface Publicacion {
     liked?: boolean;
     reposteado?: boolean;
     creadoAt: string;
+    moderacionEstado?: 'pendiente' | 'aprobado' | 'revision' | 'rechazado' | null;
 
     /* Relacion */
     autor: UsuarioResumen;

@@ -7,7 +7,9 @@
 import { useCallback, type MouseEvent } from 'react';
 import { Heart, MessageCircle, Repeat2 } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
+import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { useAuthStore } from '@app/stores/authStore';
 import type { Publicacion, SampleResumen } from '@app/types';
 import '../../styles/componentes/tarjetaPublicacion.css';
 
@@ -94,6 +96,12 @@ export const TarjetaPublicacion = ({
 
     const clases = ['tarjetaPublicacion', className].filter(Boolean).join(' ');
 
+    /* Moderación: visible solo para el autor o admin */
+    const { usuario } = useAuthStore();
+    const esAutor = usuario?.id === publicacion.autorId || String(usuario?.id) === String(publicacion.autorId);
+    const esAdmin = usuario?.rol === 'admin';
+    const mostrarModeracion = (esAutor || esAdmin) && publicacion.moderacionEstado;
+
     return (
         <article className={clases}>
             {/* Cabecera: avatar + nombre + tiempo */}
@@ -120,6 +128,9 @@ export const TarjetaPublicacion = ({
                     </div>
                 </div>
                 <span className="tarjetaPubTiempo">{formatearTiempo(publicacion.creadoAt)}</span>
+                {mostrarModeracion && (
+                    <BadgeModeracion moderacionEstado={publicacion.moderacionEstado} />
+                )}
             </div>
 
             {/* Contenido textual */}

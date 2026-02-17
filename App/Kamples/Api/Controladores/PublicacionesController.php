@@ -137,6 +137,7 @@ class PublicacionesController
             $pub['totalReposts'] = (int) ($pub['total_reposts'] ?? 0);
             $pub['creadoAt'] = $pub['created_at'] ?? '';
             $pub['liked'] = (bool) ($pub['liked'] ?? false);
+            $pub['moderacionEstado'] = $pub['moderacion_estado'] ?? null;
             $pub['imagenes'] = self::pgArrayAPhp($pub['imagenes'] ?? null);
             $pub['samplesAdjuntos'] = array_map('intval', self::pgArrayAPhp($pub['samples_adjuntos'] ?? null));
             $pub['autor'] = [

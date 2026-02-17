@@ -1,0 +1,49 @@
+/*
+ * BadgeModeracion — estilos del indicador de moderación
+ * Icono pequeño en esquina superior derecha, solo para dueño/admin.
+ */
+
+.badgeModeracion {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    opacity: 0.85;
+    transition: opacity 0.15s ease;
+    cursor: default;
+    flex-shrink: 0;
+}
+
+.badgeModeracion:hover {
+    opacity: 1;
+}
+
+/* Estados de moderación (publicaciones) */
+.moderacionPendiente {
+    color: var(--textoSecundario);
+}
+
+.moderacionAprobado {
+    color: var(--exito);
+}
+
+.moderacionRevision {
+    color: var(--advertencia);
+}
+
+.moderacionRechazado {
+    color: var(--error);
+}
+
+/* Estado de procesamiento (samples) */
+.moderacionProcesando {
+    color: var(--textoSecundario);
+    animation: girar 1.5s linear infinite;
+}
+
+@keyframes girar {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

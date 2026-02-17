@@ -24,6 +24,7 @@ import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonFollow } from '@app/components/social/BotonFollow';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
+import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { obtenerSample, listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { descargarSample } from '@app/services/apiDescargas';
@@ -366,6 +367,10 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                                 usuarioId={sample.creador.id}
                                 siguiendo={false}
                             />
+                        )}
+                        {/* Estado moderación: solo visible para dueño o admin */}
+                        {(esPropietario || usuarioAuth?.rol === 'admin') && sample.estado !== 'activo' && (
+                            <BadgeModeracion estadoSample={sample.estado} />
                         )}
                     </div>
                 )}
