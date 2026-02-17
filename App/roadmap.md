@@ -518,7 +518,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 172. Compactar registros de cambios y comentarios viejos. 
 173. Antes habiamos comentado lo de los status de moderacion de un, habia indicado una tarea de que al lado de 3 puntos, para el admin y el dueño del post sera visible un icono de status que indicará el status del post, no importa que estuviera validado en cualquier estado, siempre aparece, solo un icono sin texto. Pero no lo veo. Que el admin pueda aprobar, los post pendiente en el menu contextual.
 174. Las tabs a veces se quedan congeladas a cambiar de pagina rapido y las paginas a veces se quedan en negro.
-175. Las paginas de descarga y favorito debe tener la misma estructura y diseño que las paginas individuales de las colecciones, actualmente se ve muy diferente
+175. Las paginas de descarga y favorito debe tener la misma estructura y diseño que las paginas individuales de las colecciones, actualmente se ve muy diferente.
+176. Los copiar enlace en todos los lugares en donde aparecen, no funcionan.
 
 ---
 

@@ -61,7 +61,6 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
     const [contenido, setContenido] = useState('');
     const [publicando, setPublicando] = useState(false);
     const [permitirDescarga, setPermitirDescarga] = useState(true);
-    const [licenciaLibre, setLicenciaLibre] = useState(false);
     const [esPremium, setEsPremium] = useState(false);
     const [precio, setPrecio] = useState('');
     const [waveformPeaks, setWaveformPeaks] = useState<number[]>([]);
@@ -102,7 +101,6 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         setContenido('');
         resetearArchivos();
         setPermitirDescarga(true);
-        setLicenciaLibre(false);
         setEsPremium(false);
         setPrecio('');
         setWaveformPeaks([]);
@@ -154,7 +152,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
                 contenido: contenido.trim(),
                 tags,
                 permitirDescarga,
-                licenciaLibre,
+                licenciaLibre: permitirDescarga,
                 esPremium,
                 precio: esPremium ? parseFloat(precio) || undefined : undefined,
             });
@@ -190,7 +188,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
             resetear();
             alCompletarPublicacion?.();
         }, 1500);
-    }, [contenido, audioAdjunto, imagenes, publicando, permitirDescarga, licenciaLibre, esPremium, precio, resetear, alCompletarPublicacion]);
+    }, [contenido, audioAdjunto, imagenes, publicando, permitirDescarga, esPremium, precio, resetear, alCompletarPublicacion]);
 
     /* Ctrl+Enter para publicar */
     const manejarKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -205,7 +203,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
 
     return {
         contenido, publicando, permitirDescarga, setPermitirDescarga,
-        licenciaLibre, setLicenciaLibre, esPremium, setEsPremium,
+        esPremium, setEsPremium,
         precio, setPrecio, waveformPeaks, audioUrl,
         reproduciendoPreview, progresoPreview, setProgresoPreview,
         errorSubida, setErrorSubida, exitoSubida,

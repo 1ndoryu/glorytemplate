@@ -1,23 +1,23 @@
 /*
- * DescargasIsland — Kamples (C140)
- * Página independiente /descargas: muestra descargas del usuario + sugerencias.
- * Tabs: "Mis Descargas" y "Más Ideas" (sugerencias basadas en historial).
- * Header con indicador de límites de descarga.
+ * DescargasIsland — Kamples (C140+C175)
+ * Página independiente /descargas con diseño idéntico a ColeccionDetalleIsland.
+ * Header con imagen + info + acciones. Tabs: "Mis Descargas" y "Más Ideas".
  */
 
 import { useEffect, useCallback } from 'react';
-import { Download, Music, ArrowLeft } from 'lucide-react';
+import { Download, ArrowLeft, Crown } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { Badge } from '@app/components/ui/Badge';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
-import { IndicadorDescargas } from '@app/components/audio/IndicadorDescargas';
 import { useDescargasPagina } from '@app/hooks/useDescargasPagina';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
-import '../../styles/componentes/descargasFavoritos.css';
+import { obtenerImagenColor } from '@app/services/imagenesColor';
+import '../../styles/componentes/coleccionDetalle.css';
 
 const TABS_DESCARGAS = [
     { id: 'descargas', etiqueta: 'Mis Descargas' },
@@ -31,7 +31,6 @@ const DescargasBase = (): JSX.Element => {
     const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel, abrirDetalle, abrirComentarios } = usePanelLateralStore();
     const menu = useMenuContextualSample();
 
-    /* Registrar tabs en TopBar al montar */
     useEffect(() => {
         setTabs(TABS_DESCARGAS, 'descargas');
         habilitarPanel();
@@ -50,47 +49,69 @@ const DescargasBase = (): JSX.Element => {
         if (sample) abrirComentarios(sample);
     }, [samples, abrirComentarios]);
 
+    if (cargando) {
+        return (
+            <div className="coleccionDetalle" id="seccionDescargas">
+                <div className="coleccionCargando">Cargando descargas...</div>
+            </div>
+        );
+    }
+
+    /* Texto de límites para mostrar en el header */
+    const textoLimites = limites
+        ? limites.ilimitado
+            ? 'Descargas ilimitadas'
+            : `${limites.usadas}/${limites.limite} usadas hoy`
+        : '';
+
     return (
-        <div className="descargasFavoritosContenedor" id="seccionDescargas">
-            {/* Botón volver */}
-            <button className="descargasFavoritosVolver" onClick={() => navegar('/libreria/')} type="button">
+        <div className="coleccionDetalle" id="seccionDescargas">
+            {/* Botón volver — misma clase que ColeccionDetalle */}
+            <button className="coleccionVolver" onClick={() => navegar('/libreria/')} type="button">
                 <ArrowLeft size={18} />
                 <span>Librería</span>
             </button>
 
-            {/* Header con información de límites */}
-            <div className="descargasFavoritosHeader">
-                <div className="descargasFavoritosHeaderIcono descargasIcono">
-                    <Download size={28} />
-                </div>
-                <div className="descargasFavoritosHeaderInfo">
-                    <h1 className="descargasFavoritosTitulo">Mis Descargas</h1>
-                    <p className="descargasFavoritosSubtitulo">
-                        {samples.length} sample{samples.length !== 1 ? 's' : ''} descargado{samples.length !== 1 ? 's' : ''}
-                    </p>
-                </div>
-                {/* Indicador de límites a la derecha */}
-                {limites && (
-                    <div className="descargasLimites">
-                        <IndicadorDescargas limites={limites} />
+            {/* Header idéntico a ColeccionDetalle */}
+            <div className="coleccionHeader">
+                <img
+                    className="coleccionHeaderImg"
+                    src={obtenerImagenColor(1001)}
+                    alt="Mis Descargas"
+                />
+                <div className="coleccionHeaderInfo">
+                    <div className="coleccionHeaderTipo">
+                        {limites && (
+                            <Badge variante={limites.plan === 'free' ? 'neutro' : 'acento'}>
+                                {limites.plan === 'free' ? 'Free' : <><Crown size={12} /> {limites.plan.charAt(0).toUpperCase() + limites.plan.slice(1)}</>}
+                            </Badge>
+                        )}
                     </div>
-                )}
+                    <h1 className="coleccionNombre">Mis Descargas</h1>
+                    <div className="coleccionMeta">
+                        <span className="coleccionStats">
+                            {samples.length} sample{samples.length !== 1 ? 's' : ''}
+                        </span>
+                        {textoLimites && (
+                            <span className="coleccionStats">
+                                <Download size={12} /> {textoLimites}
+                            </span>
+                        )}
+                        {limites && (
+                            <span className="coleccionStats">
+                                {limites.calidad.toUpperCase()}
+                            </span>
+                        )}
+                    </div>
+                </div>
             </div>
 
-            {/* Contenido según tab activa */}
-            {cargando ? (
-                <div className="descargasFavoritosVacio">
-                    <Music size={32} className="descargasFavoritosVacioIcono" />
-                    <p>Cargando descargas...</p>
-                </div>
-            ) : tabActiva === 'descargas' ? (
+            {/* Contenido según tab activa — key distinta fuerza desmontaje (C46) */}
+            {tabActiva === 'descargas' ? (
                 samples.length === 0 ? (
-                    <div className="descargasFavoritosVacio">
+                    <div className="coleccionVacia" style={{ flexDirection: 'column', gap: 'var(--espacioMd)' }}>
                         <Download size={32} />
-                        <h3 className="descargasFavoritosVacioTitulo">Sin descargas</h3>
-                        <p className="descargasFavoritosVacioTexto">
-                            Los samples que descargues aparecerán aquí.
-                        </p>
+                        <p>Los samples que descargues aparecerán aquí.</p>
                     </div>
                 ) : (
                     <div className="listaDeSamples">

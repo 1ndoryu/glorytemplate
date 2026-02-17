@@ -1,11 +1,11 @@
 /*
- * FavoritosIsland — Kamples (C140)
- * Página independiente /favoritos: muestra favoritos del usuario + sugerencias.
- * Tabs: "Mis Favoritos" y "Más Ideas" (sugerencias basadas en gustos).
+ * FavoritosIsland — Kamples (C140+C175)
+ * Página independiente /favoritos con diseño idéntico a ColeccionDetalleIsland.
+ * Header con imagen + info. Tabs: "Mis Favoritos" y "Más Ideas".
  */
 
 import { useEffect, useCallback } from 'react';
-import { Heart, Music, ArrowLeft } from 'lucide-react';
+import { Heart, ArrowLeft } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -15,7 +15,8 @@ import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
-import '../../styles/componentes/descargasFavoritos.css';
+import { obtenerImagenColor } from '@app/services/imagenesColor';
+import '../../styles/componentes/coleccionDetalle.css';
 
 const TABS_FAVORITOS = [
     { id: 'favoritos', etiqueta: 'Mis Favoritos' },
@@ -29,7 +30,6 @@ const FavoritosBase = (): JSX.Element => {
     const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel, abrirDetalle, abrirComentarios } = usePanelLateralStore();
     const menu = useMenuContextualSample();
 
-    /* Registrar tabs en TopBar al montar */
     useEffect(() => {
         setTabs(TABS_FAVORITOS, 'favoritos');
         habilitarPanel();
@@ -48,41 +48,45 @@ const FavoritosBase = (): JSX.Element => {
         if (sample) abrirComentarios(sample);
     }, [samples, abrirComentarios]);
 
+    if (cargando) {
+        return (
+            <div className="coleccionDetalle" id="seccionFavoritos">
+                <div className="coleccionCargando">Cargando favoritos...</div>
+            </div>
+        );
+    }
+
     return (
-        <div className="descargasFavoritosContenedor" id="seccionFavoritos">
-            {/* Botón volver */}
-            <button className="descargasFavoritosVolver" onClick={() => navegar('/libreria/')} type="button">
+        <div className="coleccionDetalle" id="seccionFavoritos">
+            {/* Botón volver — misma clase que ColeccionDetalle */}
+            <button className="coleccionVolver" onClick={() => navegar('/libreria/')} type="button">
                 <ArrowLeft size={18} />
                 <span>Librería</span>
             </button>
 
-            {/* Header */}
-            <div className="descargasFavoritosHeader">
-                <div className="descargasFavoritosHeaderIcono favoritosIcono">
-                    <Heart size={28} />
-                </div>
-                <div className="descargasFavoritosHeaderInfo">
-                    <h1 className="descargasFavoritosTitulo">Mis Favoritos</h1>
-                    <p className="descargasFavoritosSubtitulo">
-                        {totalFavoritos} sample{totalFavoritos !== 1 ? 's' : ''} guardado{totalFavoritos !== 1 ? 's' : ''}
-                    </p>
+            {/* Header idéntico a ColeccionDetalle */}
+            <div className="coleccionHeader">
+                <img
+                    className="coleccionHeaderImg"
+                    src={obtenerImagenColor(1002)}
+                    alt="Mis Favoritos"
+                />
+                <div className="coleccionHeaderInfo">
+                    <h1 className="coleccionNombre">Mis Favoritos</h1>
+                    <div className="coleccionMeta">
+                        <span className="coleccionStats">
+                            {totalFavoritos} sample{totalFavoritos !== 1 ? 's' : ''}
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            {/* Contenido según tab activa */}
-            {cargando ? (
-                <div className="descargasFavoritosVacio">
-                    <Music size={32} className="descargasFavoritosVacioIcono" />
-                    <p>Cargando favoritos...</p>
-                </div>
-            ) : tabActiva === 'favoritos' ? (
+            {/* Contenido según tab activa — key distinta fuerza desmontaje (C46) */}
+            {tabActiva === 'favoritos' ? (
                 samples.length === 0 ? (
-                    <div className="descargasFavoritosVacio">
+                    <div className="coleccionVacia" style={{ flexDirection: 'column', gap: 'var(--espacioMd)' }}>
                         <Heart size={32} />
-                        <h3 className="descargasFavoritosVacioTitulo">Sin favoritos</h3>
-                        <p className="descargasFavoritosVacioTexto">
-                            Dale like a un sample para guardarlo aquí.
-                        </p>
+                        <p>Dale like a un sample para guardarlo aquí.</p>
                     </div>
                 ) : (
                     <div className="listaDeSamples">

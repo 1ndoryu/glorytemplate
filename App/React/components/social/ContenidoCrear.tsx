@@ -5,7 +5,7 @@
  * Toda la lógica reside en useCrearContenido.
  */
 
-import { Music, Image, X, Download, ShieldCheck, AlertCircle, CheckCircle, Crown } from 'lucide-react';
+import { Music, Image, X, Download, AlertCircle, CheckCircle, Crown } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -24,7 +24,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
 
     const {
         contenido, publicando, permitirDescarga, setPermitirDescarga,
-        licenciaLibre, setLicenciaLibre, esPremium, setEsPremium,
+        esPremium, setEsPremium,
         precio, setPrecio, waveformPeaks, audioUrl,
         reproduciendoPreview, progresoPreview, setProgresoPreview,
         errorSubida, setErrorSubida, exitoSubida,
@@ -160,15 +160,6 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                     >
                         <Download size={14} />
                         <span>{permitirDescarga ? 'Descarga sí' : 'Descarga no'}</span>
-                    </button>
-                    <button
-                        className={`crearCondicionBtn ${licenciaLibre ? 'crearCondicionActiva' : ''}`}
-                        onClick={() => setLicenciaLibre(!licenciaLibre)}
-                        type="button"
-                        title={licenciaLibre ? 'Licencia libre' : 'Licencia estándar'}
-                    >
-                        <ShieldCheck size={14} />
-                        <span>{licenciaLibre ? 'Libre' : 'Estándar'}</span>
                     </button>
                     <button
                         className={`crearCondicionBtn ${esPremium ? 'crearCondicionPremium' : ''}`}

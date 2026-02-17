@@ -24,7 +24,6 @@ export interface FormularioSample {
     esPremium: boolean;
     precio: string;
     permitirDescarga: boolean;
-    licenciaLibre: boolean;
 }
 
 /* Estado interno del formulario de publicación */
@@ -58,7 +57,6 @@ const sampleInicial: FormularioSample = {
     esPremium: false,
     precio: '',
     permitirDescarga: true,
-    licenciaLibre: false,
 };
 
 const publicacionInicial: FormularioPublicacion = {
@@ -94,7 +92,6 @@ export const useEditar = (
                 esPremium: sample.esPremium || false,
                 precio: sample.precio ? String(sample.precio) : '',
                 permitirDescarga: true,
-                licenciaLibre: false,
             });
         } else if (tipo === 'publicacion' && publicacion) {
             setFormularioPublicacion({
@@ -128,7 +125,7 @@ export const useEditar = (
                     esPremium: formularioSample.esPremium,
                     precio: formularioSample.precio ? parseFloat(formularioSample.precio) : null,
                     permitirDescarga: formularioSample.permitirDescarga,
-                    licenciaLibre: formularioSample.licenciaLibre,
+                    licenciaLibre: formularioSample.permitirDescarga,
                 });
 
                 if (resp.ok) {

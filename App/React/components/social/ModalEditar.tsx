@@ -178,19 +178,7 @@ export const ModalEditar = (): JSX.Element | null => {
                             </label>
                         </div>
 
-                        <label className="editarCheckbox">
-                            <input
-                                type="checkbox"
-                                checked={formularioSample.licenciaLibre}
-                                onChange={(e) =>
-                                    setFormularioSample((prev) => ({
-                                        ...prev,
-                                        licenciaLibre: e.target.checked,
-                                    }))
-                                }
-                            />
-                            <span>Licencia libre (dominio público)</span>
-                        </label>
+
                     </>
                 )}
 
