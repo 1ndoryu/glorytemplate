@@ -11,9 +11,8 @@
     width: 100%;
 }
 
-/* Clase centralizada para cualquier lista de samples */
-.listaDeSamples,
-.feedSamplesLista {
+/* Clase centralizada para cualquier lista de samples (FeedSamples, LibreriaIsland, PerfilIsland, etc.) */
+.listaDeSamples {
     display: flex;
     flex-direction: column;
     border: 1px solid var(--bordeSutil);

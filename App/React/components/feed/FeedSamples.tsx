@@ -294,7 +294,7 @@ export const FeedSamples = ({
         /* Inclusión por creador (filtro "solo seguidos") */
         if (idsCreadoresIncluidos && idsCreadoresIncluidos.size > 0) {
             resultado = resultado.filter((s) => {
-                const creadorId = s.creador?.id ?? (s as Record<string, unknown>).creadorId;
+                const creadorId = s.creador?.id ?? (s as unknown as Record<string, unknown>).creadorId;
                 return typeof creadorId === 'number' && idsCreadoresIncluidos.has(creadorId);
             });
         }
@@ -476,7 +476,7 @@ export const FeedSamples = ({
                     {accionVacia}
                 </div>
             ) : (
-                <div className="feedSamplesLista">
+                <div className="listaDeSamples">
                     {/* Espaciador superior para virtualización */}
                     {virtualizar && indiceInicio > 0 && (
                         <div style={{ height: indiceInicio * alturaTarjeta }} aria-hidden="true" />

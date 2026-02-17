@@ -135,12 +135,7 @@
     border-color: var(--acento);
 }
 
-/* Grid de samples */
-.coleccionSamples {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioSm);
-}
+/* Grid de samples: usa .listaDeSamples centralizado en feedSamples.css */
 
 .coleccionVacia {
     display: flex;

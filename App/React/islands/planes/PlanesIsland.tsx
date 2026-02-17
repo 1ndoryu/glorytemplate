@@ -10,7 +10,6 @@ import {Badge} from '@app/components/ui/Badge';
 import {Modal} from '@app/components/ui/Modal';
 import {useAuthStore} from '@app/stores/authStore';
 import {usePlanesModalStore} from '@app/stores/planesModalStore';
-import {useNavigationStore} from '@/core/router';
 import {useAuthModalStore} from '@app/stores/authModalStore';
 import {crearSesionCheckout, abrirPortalFacturacion} from '@app/services/apiPagos';
 import type {PeriodoPlan} from '@app/services/apiPagos';
@@ -114,7 +113,6 @@ export const PlanesIsland = (): JSX.Element => {
     const [error, setError] = useState<string | null>(null);
     const [checkoutExito, setCheckoutExito] = useState(false);
     const {usuario, autenticado} = useAuthStore();
-    const {navegar} = useNavigationStore();
     const { abierto, cerrar: cerrarPlanes } = usePlanesModalStore();
 
     const planActual: PlanId = (usuario as {plan?: PlanId} | null)?.plan ?? 'free';

@@ -86,6 +86,42 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
         return resp.ok && resp.data ? resp.data : [];
     }, [id]);
 
+    const samples = coleccion?.samples ?? [];
+
+    /*
+     * C108: Extraer las 5 metas más comunes de los samples
+     * (género, emoción, instrumento, tipo, artista vibe)
+     * IMPORTANTE: debe estar antes de cualquier early return para evitar
+     * "Rendered more hooks than during the previous render"
+     */
+    const metasComunes = useMemo(() => {
+        if (!samples.length) return [];
+        const conteo = new Map<string, number>();
+        for (const s of samples) {
+            const m = s.metadata;
+            if (!m) continue;
+            const valores: string[] = [];
+            const genero = m.genero;
+            if (Array.isArray(genero)) valores.push(...genero.filter((g): g is string => typeof g === 'string'));
+            else if (typeof genero === 'string' && genero) valores.push(genero);
+            if (typeof m.emocion === 'string' && m.emocion) valores.push(m.emocion);
+            if (typeof m.emocionEs === 'string' && m.emocionEs && m.emocionEs !== m.emocion) valores.push(m.emocionEs);
+            const instrumentos = m.instrumentos;
+            if (Array.isArray(instrumentos)) valores.push(...instrumentos.filter((i): i is string => typeof i === 'string'));
+            else if (typeof instrumentos === 'string' && instrumentos) valores.push(instrumentos);
+            if (typeof m.tipo === 'string' && m.tipo) valores.push(m.tipo);
+            for (const v of valores) {
+                if (typeof v !== 'string') continue;
+                const limpio = v.trim().toLowerCase();
+                if (limpio) conteo.set(limpio, (conteo.get(limpio) ?? 0) + 1);
+            }
+        }
+        return [...conteo.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([tag]) => tag.charAt(0).toUpperCase() + tag.slice(1));
+    }, [samples]);
+
     if (cargando) {
         return (
             <div className="coleccionDetalle" id="coleccionDetalle">
@@ -108,38 +144,6 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     }
 
     const imagenHeader = coleccion.imagenUrl || obtenerImagenColor(coleccion.id);
-    const samples = coleccion.samples ?? [];
-
-    /*
-     * C108: Extraer las 5 metas más comunes de los samples
-     * (género, emoción, instrumento, tipo, artista vibe)
-     */
-    const metasComunes = useMemo(() => {
-        if (!samples.length) return [];
-        const conteo = new Map<string, number>();
-        for (const s of samples) {
-            const m = s.metadata;
-            if (!m) continue;
-            const valores: string[] = [];
-            const genero = m.genero ?? m.genero;
-            if (Array.isArray(genero)) valores.push(...genero);
-            else if (typeof genero === 'string' && genero) valores.push(genero);
-            if (m.emocion) valores.push(m.emocion);
-            if (m.emocionEs && m.emocionEs !== m.emocion) valores.push(m.emocionEs);
-            const instrumentos = m.instrumentos;
-            if (Array.isArray(instrumentos)) valores.push(...instrumentos);
-            else if (typeof instrumentos === 'string' && instrumentos) valores.push(instrumentos);
-            if (m.tipo) valores.push(m.tipo);
-            for (const v of valores) {
-                const limpio = v.trim().toLowerCase();
-                if (limpio) conteo.set(limpio, (conteo.get(limpio) ?? 0) + 1);
-            }
-        }
-        return [...conteo.entries()]
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([tag]) => tag.charAt(0).toUpperCase() + tag.slice(1));
-    }, [samples]);
 
     return (
         <div className="coleccionDetalle" id="coleccionDetalle">

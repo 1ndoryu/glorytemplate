@@ -24,6 +24,7 @@ interface MenuContextualProps {
     items: MenuItemDef[];
     x: number;
     y: number;
+    alinearDerecha?: boolean;
 }
 
 export const MenuContextual = ({
@@ -32,6 +33,7 @@ export const MenuContextual = ({
     items,
     x,
     y,
+    alinearDerecha = false,
 }: MenuContextualProps): JSX.Element | null => {
     const manejarKeyDown = useCallback(
         (e: KeyboardEvent) => {
@@ -53,7 +55,10 @@ export const MenuContextual = ({
     /* Ajustar posición para que no se salga de pantalla */
     const menuAncho = 160;
     const menuAlto = items.length * 36 + 8;
-    const ajusteX = x + menuAncho > window.innerWidth ? window.innerWidth - menuAncho - 8 : x;
+    const posX = alinearDerecha ? x - menuAncho : x;
+    const ajusteX = posX + menuAncho > window.innerWidth
+        ? window.innerWidth - menuAncho - 8
+        : Math.max(8, posX);
     const ajusteY = y + menuAlto > window.innerHeight ? window.innerHeight - menuAlto - 8 : y;
 
     return createPortal(

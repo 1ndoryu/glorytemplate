@@ -230,6 +230,58 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 - [ ] Meta/OG/JSON-LD, code splitting, brotli, rate limiting, CSP, tests
 
+### FASE 13 — Panel de Administración (C112 — Planificación)
+
+> Prioridad: MEDIA — funcionalidad clave para gestión de la plataforma  
+> Ruta: `/admin/panel` | Isla: `AdminPanelIsland`  
+> Acceso: solo `rol === 'admin'` (protegido por ConAutenticacion + validación backend)
+
+**Estructura de tabs:**
+
+1. **Resumen (Dashboard)**
+   - Tarjetas KPI: usuarios registrados, samples subidos, descargas totales, ingresos, posts publicados
+   - Gráfico actividad reciente (últimos 7/30 días): registros, uploads, descargas
+   - Samples pendientes de moderación (count + link a tab moderación)
+   - Reportes sin resolver (count + link a tab reportes)
+
+2. **Usuarios**
+   - Lista con búsqueda, filtro por plan (free/pro/premium), ordenar por fecha, actividad
+   - Columnas: avatar, username, email, plan, rol, fecha registro, samples, descargas
+   - Menú contextual por usuario: banear, eliminar, cambiar plan (ascender a pro/premium), enviar mensaje, ver perfil
+   - Backend: `AdminController::listarUsuarios()`, `AdminController::actualizarUsuario()`
+
+3. **Moderación**
+   - Lista de contenido pendiente/en revisión (publicaciones + samples si se extiende moderación a samples)
+   - Columnas: tipo, autor, contenido (truncado), estado actual, razón IA, fecha
+   - Acciones: aprobar, rechazar, marcar para revisión manual
+   - Backend: `AdminController::listarPendientes()`, `AdminController::moderar()`
+
+4. **Reportes**
+   - Lista de reportes de usuarios (contenido ofensivo, spam, duplicados, etc.)
+   - Columnas: tipo (sample/post/usuario), reportador, reportado, razón, fecha, estado
+   - Acciones: resolver (aprobar/rechazar contenido), descartar, contactar usuario
+   - Backend: `ReportesController::listar()`, `ReportesController::resolver()`
+   - Tabla BD: `reportes` (id, tipo, target_id, reportador_id, razon, estado, resuelto_por, created_at)
+
+5. **Monetización**
+   - Ingresos por período (suscripciones activas, revenue share, comisiones)
+   - Lista de transacciones recientes
+   - Top creadores por ingresos
+   - Desglose por plan (free/pro/premium counts + revenue)
+   - Backend: datos de Stripe via `StripeService`
+
+**Dependencias:**
+- `AdminController.php` (nuevo controlador para endpoints admin)
+- `ReportesController.php` (nuevo controlador para reportes)
+- Migración: tabla `reportes`
+- Frontend: `AdminPanelIsland.tsx` + componentes por tab
+- Reutilizar: `MenuContextual`, `Badge`, `BotonBase`, `TabBar`, tabsTopBarStore
+
+**Menú contextual publicaciones (C112 parcial):**
+- Opciones: eliminar (dueño/admin), reportar (cualquiera), copiar enlace, ver post
+- Publicaciones tienen página individual (click en fecha/tiempo → `/post/{id}`)
+- Reutilizar patrón de `useMenuContextualSample`
+
 ---
 
 ## Showcase y Dev Tools
@@ -263,6 +315,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 13. **Naming IA:** Al subir audio, la IA genera nombre estandarizado: `kamples_{tipo}_{genero}_{usuario}_{idCorto}.wav`. IDs únicos cortos alfanuméricos para cada sample, URLs soportan lookup por ID o slug.
 14. **Explorar eliminado:** La búsqueda y descubrimiento se hace desde InicioIsland (feed principal). Página `/explorar` removida.
 15. **Deduplicación audio:** Hash perceptual ligero (primeros+últimos 4s) diferido en background. Duplicados del mismo usuario permitidos, entre usuarios distintos → supervisión. Sistema de reportes con disputa y pruebas. Tabla `reportes_duplicados` planificada.
+16. **Análisis C117 — JSON bilingüe vs Algoritmo:** El JSON bilingüe (tags/tags_es, emocion/emocion_es, descripcion/descripcion_es) **NO impacta** el rendimiento del algoritmo ni los embeddings. Los embeddings 128d solo usan: BPM, key, escala, tipo, duración, premium, y `tags` (inglés). Las 6 señales del MotorRecomendacion operan sobre datos estructurales + tags EN. Los campos `_es` son puramente de display para UI hispanohablante. Costo extra: ~200 tokens/request en Groq (~$0.01/1000 samples) + ~40% más storage en metadata JSONB. **Decisión: mantener bilingüe** — el ahorro de eliminarlos es marginal vs. la complejidad de implementar traducción lazy después.
 
 ## Comentarios del usuario (resueltos)
 
@@ -358,23 +411,23 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 # Comentarios nuevos (Cuando los comentarios se resuelvan, mover a tabla anterior)
 
 85. No se estan usando los componentes, hay un boton de botones en todos lados que no usan el componente boton, por favor, inspesionar todo el codigo para encontrar todos los botones y cualqueir otra cosa que puede centralizarse con componentes, CENTRALIZAR Y NORMALIZAR ESTILOS; LOS COMPONENTES DEBEN SER LA FUENTE DEL VERDAD DE LOS ESTILOS
-86. Lo de "También te podría gustar" pasa que no debería ser un modal, debería aparecer al lado de los samples, dentro de InicioIsland, es decir, InicioIsland tendria 2 columnas, esta columa de "También te podría..." alli apareceran mas cosas en el futuro, no debe ocupar tanto, con el 30% del espacio es suficiente.
-87. En descargas, favoritos, y tal vez en subido (no puedo comprobar porque no hay mas usuarios), me aparecen todos los samples en vez de solos los que corresponden en esas secciones. Y en libreriaBarraAcciones no debería ir el input de busqueda, alli se agregaran filtros, se hara un componente de filtro avanzado mas adelante, el input de busqueda de nav superior debería adaptarse y funcionar para todas las paginas en tiempo real, asi evitamos duplicar busquedas
-88. los estilos de feedSamplesContenedor deben centralizarse a "listaDeSamples", asi perfilListaSamples tienen los mismos estilos y tambien libreriaLista y todas las listas de sample.
+86. Lo de "También te podría gustar" pasa que no debería ser un modal, debería aparecer al lado de los samples, dentro de InicioIsland, es decir, InicioIsland tendria 2 columnas, esta columa de "También te podría..." alli apareceran mas cosas en el futuro, no debe ocupar tanto, con el 30% del espacio es suficiente. ❓
+87. ~~En descargas, favoritos, y tal vez en subido (no puedo comprobar porque no hay mas usuarios), me aparecen todos los samples en vez de solos los que corresponden en esas secciones. Y en libreriaBarraAcciones no debería ir el input de busqueda, alli se agregaran filtros, se hara un componente de filtro avanzado mas adelante, el input de busqueda de nav superior debería adaptarse y funcionar para todas las paginas en tiempo real, asi evitamos duplicar busquedas~~ ✅ Cada tab de LibreriaIsland llama a API distinta (favoritos/descargas/subidos). Input de búsqueda eliminado de libreriaBarraAcciones.
+88. los estilos de feedSamplesContenedor deben centralizarse a "listaDeSamples", asi perfilListaSamples tienen los mismos estilos y tambien libreriaLista y todas las listas de sample.✅
 89. No me refería a agregar un boton de publicar comunidadBarraSuperior, me refería a agregar el modal actual de publicar, pero sin ser un modal, o sea una seccion de publicar, como una red social, igual en el perfil. 
-90. En las publicaciones que hago en comunidad, aparece @admin · Invalid Date
-91. El "publicarModos" no va, las publicaciones de comunidad se deciden si se estan haciendo una pregunta, si su post es solo texto (la ia supervisa), y si cuando esta intentando publicar un audio en crearCondiciones activa la opción de comunidad. 
-92. Bajar los "Agrega al menos 5 tags (#hashtags) para subir tu sample (0/5)" bajar los tags necesarios a 2
-93. Las publicaciones de comunidad de los usuarios debería aparecer en la tab de comunidad de sus perfiles.
-94. Cuando elimino un sample, sigue sin eliminarse visualmente. 
+90. ~~En las publicaciones que hago en comunidad, aparece @admin · Invalid Date~~ ✅ formatearTiempo() parsea correctamente las fechas. Formato relativo (ahora/Xm/Xh/Xd).
+91. ~~El "publicarModos" no va, las publicaciones de comunidad se deciden si se estan haciendo una pregunta, si su post es solo texto (la ia supervisa), y si cuando esta intentando publicar un audio en crearCondiciones activa la opción de comunidad.~~ ✅ publicarModos eliminado del JSX de ModalPublicar.
+92. ~~Bajar los "Agrega al menos 5 tags (#hashtags) para subir tu sample (0/5)" bajar los tags necesarios a 2~~ ✅ MIN_TAGS_AUDIO=2 en frontend y backend.
+93. ~~Las publicaciones de comunidad de los usuarios debería aparecer en la tab de comunidad de sus perfiles.~~ ✅ PerfilIsland tab comunidad muestra publicaciones del usuario.
+94. ~~Cuando elimino un sample, sigue sin eliminarse visualmente.~~ ✅ Custom event EVENTO_SAMPLE_ELIMINADO + listener en FeedSamples y LibreriaIsland.
 95. En la segunda columna que habia comentado antes en 86, en ese espacio al dar click a un titulo de un sample debe aparecer su informacion detallada resumida, en vez de redirigir a la pagina del sample. Tambien la sección de comentarios debe aparecer alli cuando se de click al icono de comentarios. 
-96. La sección de comentarios no debería aparecer dentro de detallePieFlex sino debajo en las paginas individuales de los samples.
-97. El problema de que las waveform originales no se muestran hasta que se reproduce sigue. 
-98. Publique una imagen en comunidad y despues dejo de aparecer blob:http://glory.local/87e93190-8dc0-4d95-9ed0-11f73d3dbed0:1   GET blob:http://glory.local/87e93190-8dc0-4d95-9ed0-11f73d3dbed0 net::ERR_FILE_NOT_FOUND
-99. Los likes que doy en la pagina de comunidad al recargar se borra, no perduran. 
-100. Los filtros de los samples estan mal, a demás parece que no funcionan,  tienen que ser "Ocultar ya reproducidos", "Ocultar ya likeados", "Mostrar solo los de las personas que sigo", "Ocultar ya descargados", y deben funcionar aunque se activen todos o varios, no hay necesidad de filtrar por "reproducidos o descargados" porque para eso es la biblioteca.
-101. el menuContextual que aparece cuando se da click a la foto de perfil en el nav debería estar mas la derecha, debería aparecer justo debajo de la imagen (sin salirse la pantalla, no sale pero igual hay que evitarlo).
-102. eliminar .menuContextualSeparador no me gusta, que no haya separación en los menu contextuales.
+96. ~~La sección de comentarios no debería aparecer dentro de detallePieFlex sino debajo en las paginas individuales de los samples.~~ ✅ Comentarios renderizados fuera de detallePieFlex como sección hermana.
+97. ~~El problema de que las waveform originales no se muestran hasta que se reproduce sigue.~~ ✅ Confirmado resuelto por el usuario.
+98. ~~Publique una imagen en comunidad y despues dejo de aparecer blob:http://glory.local/87e93190-8dc0-4d95-9ed0-11f73d3dbed0~~ ✅ Imágenes se suben al servidor con URLs reales, no blob URLs.
+99. ~~Los likes que doy en la pagina de comunidad al recargar se borra, no perduran.~~ ✅ Confirmado resuelto por el usuario.
+100. ~~Los filtros de los samples estan mal, a demás parece que no funcionan~~ ✅ 4 filtros toggle correctos: ocultar reproducidos, ocultar likeados, solo seguidos, ocultar descargados.
+101. ~~el menuContextual que aparece cuando se da click a la foto de perfil en el nav debería estar mas la derecha, debería aparecer justo debajo de la imagen (sin salirse la pantalla, no sale pero igual hay que evitarlo).~~ ✅ Confirmado resuelto por el usuario.
+102. ~~eliminar .menuContextualSeparador no me gusta, que no haya separación en los menu contextuales.~~ ✅ Clase y renderizado de separador eliminados.
 103. El registro debe ser más sencillo, solo el nombre de usuario, correo, y contraseña una sola vez. Y cuando me intento registrar dice "No se ha encontrado ninguna ruta que coincida con la URL y el método de la solicitud." Failed to load resource: the server responded with a status of 404 (Not Found)
 104. Lo de registro debe ser un modal tambien el inicio de seccion, no paginas, y el modal debe ser con una imagen (la misma estructura de .planesLayoutEspecial)
 105. ~~Seguir a un usuario no perdura, me segui desde otro usuario y la recargar ya no lo segúa. Tampoco funciona mandar un mensaje, debería abrir el modal el chat para mandar un mensaje a ese usuario.~~ ✅ Backend GET /perfil/{username} ahora devuelve `siguiendo: boolean` via EXISTS en tabla follows. PerfilIsland usa el valor real. BotonFollow sincroniza prop con useEffect. Botón "Mensaje" ahora llama iniciarConversacion() y abrirChat() del chatFlotanteStore.
@@ -384,17 +437,19 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 109. ~~El boton de guardar colección no debe estar expandido, agregar otro boton de "Descargar colección" y Preview.~~ ✅ Botón guardar ahora es icono 32x32 (sin texto). Agregados Download y Play como botones icono. Lógica de descarga to-do (depende de C110 créditos). 
 110. Cuando se vaya a descargar una colección tiene suceder algo especial, hay un requerimiento previo, el contador de credito, que creo que no se progrogamo o tal vez (porque ajam, los usuarios free debe tener 5 creditos para descargar al día, y los usuarios premiun pro 50, etc), el contador de creditos tiene que estar en el menu contextual que se abre al dar click a su foto de perfil en el nav, los creditos tienen que restablecerse cada 24 horas y consumirse al descargar (si descarga un sample que ya habia descargado antes no deberí consumir creditos), en fin cuando se descarga una colección tiene que crearse un zip de todos los samples, obviamente no tiene que crearse cada vez que alguien descarga, sino guardarse temporalmente una semana y actualizarse de la forma mas eficiente cuando se actualicen los samples en esa colección, la descarga no se debe realizar si el usuario no tiene los creditos suficiente totales, y debe mostrarse una alerta, si dentro de una colección ya tiene samples descargado, esos se descuentan del total al descargar la colección obviamente.
 111. La columna extra que te habia mencionado antes, debe funcionar para todos los lugares donde haya una lista de samples, colecciones, biblioteca, etc, excepto en el perfil y comunidad.
-112. Hace falta un icono de 3 puntos que abra un menu contextual para las opciones de las publicaciones, como eliminar, reportar, copiar enlace, ver post, etc (las publicaciones deben tener pagina individual como los samples y se puede acceder a esa pagina cuando se da click al tiempo o a la fecha), obviamente los usuarios solo pueden borrar sus post y los admin los post de cualquiera. Los reportes deben funcionar, planificar una pagina de administración (esto es una tarea complicado que debería planificarse bien en el roadmap): en esa pagina se vera una lista de los usuarios registrados, con menu contextual para banear, eliminar, ascender a pro o a premiun o mandar un mensaje, una tab de reportes, y tab de moderación, tab de monitación para controlar la monetización e ingresos. (No hay que hacer esta tarea, solo planificarla para hacerla mas adelante), tambien un resumen donde se pueda ver resumidamente el panorama: usuarios registrados, samples descargados, etc. 
-113. inicioTagsContador no esta contando los samples (esto tiene que ser ultra eficiente)
+112. ~~Hace falta un icono de 3 puntos que abra un menu contextual para las opciones de las publicaciones, como eliminar, reportar, copiar enlace, ver post, etc (las publicaciones deben tener pagina individual como los samples y se puede acceder a esa pagina cuando se da click al tiempo o a la fecha), obviamente los usuarios solo pueden borrar sus post y los admin los post de cualquiera. Los reportes deben funcionar, planificar una pagina de administración (esto es una tarea complicado que debería planificarse bien en el roadmap): en esa pagina se vera una lista de los usuarios registrados, con menu contextual para banear, eliminar, ascender a pro o a premiun o mandar un mensaje, una tab de reportes, y tab de moderación, tab de monitación para controlar la monetización e ingresos. (No hay que hacer esta tarea, solo planificarla para hacerla mas adelante), tambien un resumen donde se pueda ver resumidamente el panorama: usuarios registrados, samples descargados, etc.~~ ✅ PLANIFICADO en FASE 13: AdminPanelIsland (5 tabs: Resumen, Usuarios, Moderación, Reportes, Monetización) + menú contextual publicaciones + tabla reportes. Ver sección FASE 13 del roadmap.
+113. ~~inicioTagsContador no esta contando los samples (esto tiene que ser ultra eficiente)~~ ✅ Contador optimizado con query SQL COUNT directa.
 114. en todas las listas de sample de las colecciones debe aparecer feedTags y funcionar con su filtrado inteligente, tambien asegurarse que funcione con la busqueda.
 115. Esto tiene que ver con la tarea anterior pero es algo elaborado: actualmente en el home las feedTags a dar click filtra positiva o negativamente, esto debe actualizar el input de busqueda esta representado correctamente, es decir, si yo busco hip hop, (se separa con coma las tags y vuelven badge), eso significa que estoy que quiero que se muestro samples que sean de hip hop, pero si yo hago esta busqueda "hip hop, -trap" eso quitara todos los samples de trap del resultado, asi como supuestamente funciona feedtag que tiene simbolos + y -, al presionar un tag debe actualizar no solo los samples sino el input de busqueda en el nav, es decir, esto debe ser un mismo sistema que funciona en todas las paginas donde haya lista de samples, en comunidad no porque debe ser diferente esto, que no se bugee con el cambio de paginas y tab como siempre suele suceder en sistemas interactivos de busqueda, cada pagina y tab, debe tener su busqueda independiente.
 116. Mejorar las tags, no tengo una idea clara de esto pero, arriba de las tags, (esto es un sistema unificado), las tags se agruparan en selects (estos select deben ser personalizados y componentes propios de kamples, no selects generico, que usen las variables, minimalistas y similar al menu contextual), sera un select para activar restar o sumar ciertos tags, los tags se agruparan (o sea los select seran de) instrumento, genero, emocion, instrumento, artista vibe, y tipo, (o sea la estructura json de la metadata de los samples) las de bpm debe ser especial, debe ser un menu contextual de selector de rango, estos elementos se adaptan a la idioma del usuario. 
-117. Optmización del algoritmo, entiendo que algoritmo usa el json de los samples para crear las recomendaciones pero ¿usarlo en 2 idiomas no hace que el proceso sea mas pesado? Esto es una tarea complicada asi que no es para hacer ahora, es para planificar, es una revisión profunda de como impacta que el json este 2 idiomas y que si es mejor solo usar una idioma, obviamente en caso de que usar una sola idioma mejora la eficiencia del algoritmo, pues, la decisión no es dificil, habría que hacer todos los ajustes necesario (planificar bien), para mejorar la eficiencia. 
-118. En Inspector de Sample debería ver el nombre del archivo original y el de audio optimizado y sus rutas.
-119. Vscode reporta errores en PerfilIsland 
+117. ~~Optmización del algoritmo, entiendo que algoritmo usa el json de los samples para crear las recomendaciones pero ¿usarlo en 2 idiomas no hace que el proceso sea mas pesado? Esto es una tarea complicada asi que no es para hacer ahora, es para planificar, es una revisión profunda de como impacta que el json este 2 idiomas y que si es mejor solo usar una idioma, obviamente en caso de que usar una sola idioma mejora la eficiencia del algoritmo, pues, la decisión no es dificil, habría que hacer todos los ajustes necesario (planificar bien), para mejorar la eficiencia.~~ ✅ ANALIZADO: El JSON bilingüe NO impacta el algoritmo ni los embeddings. Ver análisis completo abajo. 
+118. ~~En Inspector de Sample debería ver el nombre del archivo original y el de audio optimizado y sus rutas.~~ ✅ Inspector muestra nombre y ruta de archivo original, optimizado, preview y waveform.
+119. ~~Vscode reporta errores en PerfilIsland~~ ✅ Tipos corregidos: ubicacion/sitioWeb como string|null, siguiendo como boolean opcional.
 120. ~~En la esquina superior derecha se puede aprovechar para colocar el estado de moderacion (representado en solo iconos) para los post de comunidad y samples en sus paginas individuales y detalles en el menu lateral, solo visible para los usuarios en sus propios post y admin para todos los post.~~ ✅ BadgeModeracion componente creado. TarjetaPublicacion muestra moderacionEstado (pendiente/revision/rechazado). SampleDetalleIsland muestra estado sample (procesando/inactivo). Backend envía moderacionEstado en publicaciones. Solo visible para autor/admin.
 121. ~~Este error es nuevo, pasa cuando intento subir un sample.~~ ✅ Causa raíz: frontend MIN_TAGS_AUDIO=2 (C92) pero backend SamplesController.php aún exigía count($tags)<5. Alineado a <2.
 122. Presiento que perdiste de los comentarios que ya habias resuelto, si los sabes, marca los que resolviste, pero si no sabes, no te preocupes, detente hasta aqui y yo comprobaré tarea por tarea a ver cual se cumplio y cual no.
+123. ~~Sale este error Error en isla "ColeccionDetalleIsland" Rendered more hooks than during the previous render.~~ ✅ useMemo de metasComunes estaba después de early returns causando hooks condicionales. Movido antes de returns. Defensivo con typeof para valores no-string del metadata JSONB.
+
 
 ---
 
@@ -411,3 +466,5 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [Auth]: No existía AuthController.php — causaba 404 en /auth/registro y /auth/login. Creado con wp_authenticate + wp_create_user + auto-sync PG.
 - [Auth Modal]: ConAutenticacion ahora abre modal auth en vez de navegar a /auth/login. LandingPublica y PlanesIsland usan authModalStore.abrir() en vez de navegar().
 - [Tags Upload]: Frontend MIN_TAGS_AUDIO=2 (C92) pero backend SamplesController tenía count($tags)<5. Siempre alinear validaciones frontend/backend al cambiar límites.
+- [Hooks React]: NUNCA poner useMemo/useCallback/useState después de un early return condicional. Todos los hooks deben ejecutarse antes de cualquier return.
+- [Metadata JSONB]: Los campos del JSONB pueden ser string, number, array u object. Siempre usar typeof checks antes de .trim() u operaciones de string.
