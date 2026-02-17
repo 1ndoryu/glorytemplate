@@ -76,3 +76,20 @@ export const obtenerRelevantesParaSample = async (
 ): Promise<RespuestaApi<Coleccion[]>> => {
     return apiGet<Coleccion[]>(`/colecciones/relevantes/${sampleId}`);
 };
+
+/* Resultado de descarga ZIP de colección */
+export interface ResultadoDescargaZip {
+    url: string;
+    nombre: string;
+    tamano: number;
+    totalSamples: number;
+    creditosUsados: number;
+    yaDescargados: number;
+}
+
+/* Descargar colección como ZIP (consume créditos por samples no descargados previamente) */
+export const descargarColeccionZip = async (
+    coleccionId: number
+): Promise<RespuestaApi<ResultadoDescargaZip>> => {
+    return apiPost<ResultadoDescargaZip>(`/colecciones/${coleccionId}/descargar-zip`);
+};

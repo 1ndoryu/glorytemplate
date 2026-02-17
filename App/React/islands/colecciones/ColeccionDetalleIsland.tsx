@@ -10,11 +10,12 @@ import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
-import { obtenerColeccion, obtenerSugerencias } from '@app/services/apiColecciones';
+import { obtenerColeccion, obtenerSugerencias, descargarColeccionZip } from '@app/services/apiColecciones';
 import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
+import { toast } from '@app/stores/toastStore';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import type { Coleccion, SampleResumen } from '@app/types';
 import '../../styles/componentes/coleccionDetalle.css';
@@ -66,6 +67,36 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     const manejarGuardar = useCallback(() => {
         setGuardada((prev) => !prev);
     }, []);
+
+    /* C110: Descargar colección como ZIP con verificación de créditos */
+    const [descargando, setDescargando] = useState(false);
+    const manejarDescargarZip = useCallback(async () => {
+        if (!id || descargando) return;
+        setDescargando(true);
+        try {
+            const resp = await descargarColeccionZip(id);
+            if (resp.ok && resp.data) {
+                /* Iniciar descarga del ZIP */
+                const a = document.createElement('a');
+                a.href = resp.data.url;
+                a.download = resp.data.nombre;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                const msg = resp.data.creditosUsados > 0
+                    ? `Descargando ${resp.data.totalSamples} samples (${resp.data.creditosUsados} créditos usados)`
+                    : `Descargando ${resp.data.totalSamples} samples (ya descargados previamente)`;
+                toast.exito(msg);
+            } else {
+                toast.error(resp.error ?? 'Error al descargar la colección');
+            }
+        } catch {
+            toast.error('Error de conexión al descargar');
+        } finally {
+            setDescargando(false);
+        }
+    }, [id, descargando]);
 
     /* Sync like desde FeedSamples al estado local de la colección */
     const manejarLikeSamples = useCallback((sampleId: number) => {
@@ -210,7 +241,8 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                             className="coleccionAccionBtn"
                             type="button"
                             title="Descargar colección"
-                            onClick={() => { /* TO-DO C110: lógica de descarga con créditos */ }}
+                            onClick={manejarDescargarZip}
+                            disabled={descargando}
                         >
                             <Download size={16} />
                         </button>

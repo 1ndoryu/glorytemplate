@@ -5,8 +5,8 @@
  * El avatar abre un menú contextual (perfil, config, cerrar sesión).
  */
 
-import { useState, useCallback } from 'react';
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
@@ -23,6 +23,7 @@ import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { useNavigationStore } from '@/core/router';
+import { obtenerLimites } from '@app/services/apiDescargas';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
@@ -39,6 +40,25 @@ export const TopBar = (): JSX.Element => {
     const [notificacionesAbiertas, setNotificacionesAbiertas] = useState(false);
     const [mensajesAbiertos, setMensajesAbiertos] = useState(false);
     const [busquedaModalAbierta, setBusquedaModalAbierta] = useState(false);
+    const [creditosInfo, setCreditosInfo] = useState<{ usadas: number; limite: number; ilimitado: boolean } | null>(null);
+
+    /* Cargar créditos de descarga al montar y cada 60s */
+    useEffect(() => {
+        if (!autenticado) return;
+        const cargar = async () => {
+            const resp = await obtenerLimites();
+            if (resp.ok && resp.data) {
+                setCreditosInfo({
+                    usadas: resp.data.descargasHoy,
+                    limite: resp.data.limitesDiarios,
+                    ilimitado: resp.data.ilimitado,
+                });
+            }
+        };
+        cargar();
+        const intervalo = setInterval(cargar, 60000);
+        return () => clearInterval(intervalo);
+    }, [autenticado]);
 
     const manejarBusqueda = useCallback((valor: string) => {
         setBusqueda(valor);
@@ -52,7 +72,24 @@ export const TopBar = (): JSX.Element => {
         setMenuAbierto(true);
     }, []);
 
+    const etiquetaCreditos = creditosInfo
+        ? creditosInfo.ilimitado
+            ? 'Créditos: ∞'
+            : `Créditos: ${creditosInfo.limite - creditosInfo.usadas}/${creditosInfo.limite}`
+        : 'Créditos: ...';
+
     const menuItems: MenuItemDef[] = [
+        {
+            id: 'creditos',
+            etiqueta: etiquetaCreditos,
+            icono: <Download size={14} />,
+            separadorDespues: true,
+            onClick: () => {
+                /* Navegar a planes si quiere más créditos */
+                abrirPlanes();
+                setMenuAbierto(false);
+            },
+        },
         {
             id: 'perfil',
             etiqueta: 'Ver perfil',

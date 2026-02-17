@@ -42,6 +42,12 @@ class DescargasController
             'callback'            => [self::class, 'limites'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        register_rest_route($namespace, '/colecciones/(?P<id>\d+)/descargar-zip', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'descargarZipColeccion'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     /**
@@ -222,6 +228,209 @@ class DescargasController
             'transferenciaGb'      => $limiteGb,
             'transferenciaUsadaGb' => $usadoGb,
             'transferenciaIlimitada' => $limiteGb <= 0,
+        ], 200);
+    }
+
+    /**
+     * POST /colecciones/{id}/descargar-zip — Descarga todos los samples de una colección como ZIP.
+     *
+     * Lógica de créditos:
+     * - Cada sample cuenta como 1 crédito de descarga.
+     * - Samples que el usuario ya descargó antes no consumen créditos adicionales.
+     * - Si créditos insuficientes, retorna error con desglose.
+     * - El ZIP se cachea 7 días y se invalida si la colección cambia.
+     */
+    public static function descargarZipColeccion(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $coleccionId = (int) $request->get_param('id');
+
+        /* Verificar que la colección existe */
+        $coleccion = PostgresService::consultarUno(
+            "SELECT id, nombre, usuario_id, updated_at FROM colecciones WHERE id = :id",
+            ['id' => $coleccionId]
+        );
+
+        if (!$coleccion) {
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Colección no encontrada'], 404);
+        }
+
+        /* Obtener samples de la colección */
+        $samples = PostgresService::consultar(
+            "SELECT s.id, s.titulo, s.ruta_original, s.ruta_optimizada, s.es_premium, s.creador_id
+             FROM samples s
+             INNER JOIN coleccion_samples cs ON cs.sample_id = s.id
+             WHERE cs.coleccion_id = :coleccionId AND s.estado = 'activo'
+             ORDER BY cs.created_at ASC",
+            ['coleccionId' => $coleccionId]
+        );
+
+        if (empty($samples)) {
+            return new \WP_REST_Response(['ok' => false, 'error' => 'La colección no tiene samples'], 400);
+        }
+
+        /* Verificar créditos: descontar samples ya descargados previamente */
+        $sampleIds = array_map(fn($s) => (int) $s['id'], $samples);
+        $placeholders = implode(',', array_fill(0, count($sampleIds), '?'));
+        $params = array_merge([$userId], $sampleIds);
+
+        /* Bind manual para IN clause */
+        $paramStr = implode(',', array_map(fn($id) => (int) $id, $sampleIds));
+        $yaDescargados = PostgresService::consultar(
+            "SELECT DISTINCT sample_id FROM descargas
+             WHERE usuario_id = :userId AND sample_id IN ({$paramStr})",
+            ['userId' => $userId]
+        );
+        $idsYaDescargados = array_map(fn($d) => (int) $d['sample_id'], $yaDescargados);
+        $samplesNuevos = array_filter($samples, fn($s) => !in_array((int) $s['id'], $idsYaDescargados));
+        $creditosNecesarios = count($samplesNuevos);
+
+        /* Verificar plan y límites */
+        $usuario = UsuarioHelper::obtenerPorId($userId);
+        $plan = $usuario['plan'] ?? 'free';
+        $configPlan = StripeService::obtenerConfigPlan($plan);
+        $limite = $configPlan['descargas_dia'] ?? 5;
+
+        if ($limite > 0) {
+            $descargasHoy = PostgresService::consultarUno(
+                "SELECT COUNT(*) as total FROM descargas
+                 WHERE usuario_id = :userId AND created_at >= CURRENT_DATE",
+                ['userId' => $userId]
+            );
+            $usadas = (int) ($descargasHoy['total'] ?? 0);
+            $disponibles = $limite - $usadas;
+
+            if ($creditosNecesarios > $disponibles) {
+                return new \WP_REST_Response([
+                    'ok' => false,
+                    'error' => "Créditos insuficientes. Necesitas {$creditosNecesarios} créditos pero solo tienes {$disponibles} disponibles hoy.",
+                    'creditosNecesarios' => $creditosNecesarios,
+                    'creditosDisponibles' => $disponibles,
+                    'totalSamples' => count($samples),
+                    'yaDescargados' => count($idsYaDescargados),
+                ], 429);
+            }
+        }
+
+        /* Verificar samples premium */
+        if ($plan === 'free') {
+            $tienePremium = array_filter($samplesNuevos, fn($s) => (bool) $s['es_premium']);
+            if (!empty($tienePremium)) {
+                return new \WP_REST_Response([
+                    'ok' => false,
+                    'error' => 'La colección contiene samples premium. Se requiere plan Pro o Premium.',
+                ], 403);
+            }
+        }
+
+        /* Generar o servir ZIP cacheado */
+        $uploadDir = \wp_upload_dir();
+        $carpetaZips = $uploadDir['basedir'] . '/kamples-zips';
+        if (!file_exists($carpetaZips)) {
+            \wp_mkdir_p($carpetaZips);
+        }
+
+        /*
+         * Nombre del ZIP incluye colección ID + hash de updated_at para invalidar cache
+         * cuando la colección cambie.
+         */
+        $hashColeccion = md5($coleccion['updated_at'] . count($samples));
+        $nombreZip = "coleccion_{$coleccionId}_{$hashColeccion}.zip";
+        $rutaZip = $carpetaZips . '/' . $nombreZip;
+
+        /* Limpiar ZIPs viejos de esta colección (cache invalidado) */
+        $zipsViejos = glob($carpetaZips . "/coleccion_{$coleccionId}_*.zip");
+        foreach ($zipsViejos as $zipViejo) {
+            if (basename($zipViejo) !== $nombreZip) {
+                @unlink($zipViejo);
+            }
+        }
+
+        /* Generar ZIP si no existe en cache o tiene más de 7 días */
+        if (!file_exists($rutaZip) || (time() - filemtime($rutaZip) > 604800)) {
+            $zip = new \ZipArchive();
+            if ($zip->open($rutaZip, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                return new \WP_REST_Response([
+                    'ok' => false,
+                    'error' => 'Error al generar el archivo ZIP',
+                ], 500);
+            }
+
+            $nombresUsados = [];
+            foreach ($samples as $sample) {
+                $rutaArchivo = $sample['ruta_original'] ?? $sample['ruta_optimizada'];
+                if (!$rutaArchivo || !file_exists($rutaArchivo)) continue;
+
+                /* Evitar nombres duplicados en el ZIP */
+                $extension = pathinfo($rutaArchivo, PATHINFO_EXTENSION);
+                $nombreBase = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $sample['titulo'] ?? 'sample');
+                $nombreFinal = "{$nombreBase}.{$extension}";
+                $contador = 1;
+                while (in_array($nombreFinal, $nombresUsados)) {
+                    $nombreFinal = "{$nombreBase}_{$contador}.{$extension}";
+                    $contador++;
+                }
+                $nombresUsados[] = $nombreFinal;
+
+                $zip->addFile($rutaArchivo, $nombreFinal);
+            }
+
+            $zip->close();
+        }
+
+        if (!file_exists($rutaZip)) {
+            return new \WP_REST_Response([
+                'ok' => false,
+                'error' => 'Error al generar el archivo ZIP',
+            ], 500);
+        }
+
+        /* Registrar descargas solo de samples nuevos (no descargados previamente) */
+        $calidad = self::CALIDAD_PLAN[$plan] ?? 'wav';
+        foreach ($samplesNuevos as $sample) {
+            $rutaArchivo = $sample['ruta_original'] ?? $sample['ruta_optimizada'];
+            $tamanoBytes = ($rutaArchivo && file_exists($rutaArchivo)) ? filesize($rutaArchivo) : 0;
+
+            PostgresService::ejecutar(
+                "INSERT INTO descargas (usuario_id, sample_id, calidad, tamano_bytes) VALUES (:userId, :sampleId, :calidad, :tamano)",
+                ['userId' => $userId, 'sampleId' => $sample['id'], 'calidad' => $calidad, 'tamano' => $tamanoBytes]
+            );
+
+            PostgresService::ejecutar(
+                "UPDATE samples SET total_descargas = total_descargas + 1 WHERE id = :id",
+                ['id' => $sample['id']]
+            );
+
+            /* Revenue share por cada sample de otro creador */
+            if ($plan !== 'free' && (int) $sample['creador_id'] !== $userId) {
+                self::registrarTransaccionRevenueShare($userId, (int) $sample['creador_id'], (int) $sample['id'], $plan);
+            }
+        }
+
+        /* Registrar interacción para el algoritmo */
+        PlanificadorAlgoritmo::registrarInteraccion($userId, 'descarga');
+
+        /* URL pública del ZIP */
+        $rutaRelativa = str_replace(
+            wp_normalize_path($uploadDir['basedir']),
+            '',
+            wp_normalize_path($rutaZip)
+        );
+        $urlZip = $uploadDir['baseurl'] . $rutaRelativa;
+
+        $tamanoZip = filesize($rutaZip);
+        $nombreColeccion = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $coleccion['nombre'] ?? 'coleccion');
+
+        return new \WP_REST_Response([
+            'ok' => true,
+            'url' => $urlZip,
+            'nombre' => "{$nombreColeccion}.zip",
+            'tamano' => $tamanoZip,
+            'totalSamples' => count($samples),
+            'creditosUsados' => $creditosNecesarios,
+            'yaDescargados' => count($idsYaDescargados),
         ], 200);
     }
 
