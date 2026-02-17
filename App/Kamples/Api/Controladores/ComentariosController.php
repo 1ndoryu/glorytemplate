@@ -193,6 +193,11 @@ class ComentariosController
                 return $paths;
             };
 
+            /* wp_handle_upload no está disponible en contexto REST (solo en admin) */
+            if (!function_exists('wp_handle_upload')) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+            }
+
             \add_filter('upload_dir', $filtroDir);
             $subido = \wp_handle_upload($archivo, ['test_form' => false]);
             \remove_filter('upload_dir', $filtroDir);

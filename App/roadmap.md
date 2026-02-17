@@ -101,6 +101,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R21-R30:** Normalización diseño, cssVarsValidator, light/dark mode, selector tema, SampleDetalle XL+fino, SeccionPublicar inline+panel lateral+sqlSelectSamples, créditos+ZIP+tags+búsqueda+SelectFiltro, compactación roadmap.
 **R31-R40:** C125+C135+C124, C137-C145 (reacciones completas, CSS rebuild, créditos fix, descargas propias), C149+C148+C127+C128, C150-C158, C160-C165, C133 keep-alive+C129 paginación comentarios, C126 modal edición+C164 seguridad, C85 centralización componentes, C130 comentarios multimedia.
 **R41-R44:** C131/C132 moderación+bans, C140 descargas/favoritos separados, C171+C175+cleanup, C176+C173+C174 (clipboard fallback, badge moderación, tabs fix).
+**R45:** C172 compactar roadmap + C177 remover créditos descargas + C178 sistema verificación samples (migración v015, controller PUT admin, normalizer, BadgeCheck tarjeta+detalle, menú contextual verificar, evento actualización, boost algoritmo 1.15x).
 **R43:** C171 licenciaLibre auto-derivada de permitirDescarga (4 archivos simplificados, ~134 lín eliminadas) + C175 descargas/favoritos rediseño ColeccionDetalle-style + CSS descargasFavoritos.css eliminado.
 **R44:** C176 copiarAlPortapapeles fallback execCommand (clipboard.ts, 4 consumidores), C173 BadgeModeracion siempre visible + admin aprobar posts (ComunidadIsland), C174 useTabsIsla hook keep-alive tabs fix (8 islas migradas) + PageRenderer updater funcional (fix pantalla negra).
 **R41:** C131/C132 moderación IA comentarios + bans: ServicioAntiSpam.php (heurístico pre-IA: URLs, caps, spam patterns, duplicados), ServicioBan.php (violaciones progresivas: 3→24h, 5→7d, 8→30d, notificaciones automáticas). ServicioModeracionIA.moderarComentario() (Guard texto + Vision imagen, tolerante con toxicidad/insultos, solo rechaza spam/pornografía/ilegal, contexto musical para álbumes). v014 migración (moderacion_estado/detalle en comentarios, violaciones/ban en usuarios_ext, tabla reportes genérica). ComentariosController integra anti-spam sincrónico + moderación IA async (shutdown hook) + filtrado rechazados en listar(). AuthMiddleware.verificarBanActivo() helper centralizado. TipoNotificacion += 'moderacion'. C167: PageRenderer refactorizado (patrón render-time state update, elimina cascading renders y pantalla negra). Type-check 23→0 errores (imports muertos en 6 archivos, IndicadorDescargas campos LimitesDescarga). C168: fix \n literal en ComentariosController.
@@ -314,7 +315,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **C101-C120:** MenuContextual posición, separador eliminado, auth 3 campos+modal imagen, follow+mensaje, modal colección UI, buscador colecciones, coleccionMeta, botones colección, créditos+ZIP, panel lateral listas, menú contextual posts+AdminPanel plan, inicioTagsContador, feedTags colecciones, búsqueda↔tags sync, SelectFiltro+SelectorBPM, JSON bilingüe análisis, inspector rutas, errores PerfilIsland, badge moderación.
 **C121-C145:** MIN_TAGS alineado, verificación comentarios, hooks render order, SeccionPublicar=ModalCrear refactor, botones colección texto, modal edición unificado, menú 3 puntos unificado, similares+comentarios expandidos, paginación infinita comentarios, comentarios multimedia, automod IA, bans+moderación, keep-alive PageRenderer, tags metadata IA, panel lateral sugerencias fix, todosLosTags, guardar colección propia, descargas propias gratis, normalizador colecciones, separación descargas/favoritos, TarjetaColeccion menú, sugerencias double-unwrap, CSS seccionPublicar, reacciones completas (dislike+encanta), créditos NaN fix.
 **C146-C168:** v012 mensaje, algoritmo tags+creador, feedTags fix, hover tooltip, panel waveform, badge borde, TarjetaMini, botones panelDetalle, config preferencia panel, similares toggle, botón descarga acento, PanelRightClose, WebSocket (pendiente), filtro reproducidos fix, colecciones 3 puntos, tags concatenados, menú chat, seguridad hardening, cola eliminada, compactación, PageRenderer render-time update+type-check, syntax error ComentariosController.
-**C171-C176:** Licencia libre auto-derivada (R43), compactar registros (R44), BadgeModeracion+admin approve (R44), tabs freeze+pantalla negra fix (R44), descargas/favoritos rediseño (R43), copiar enlace fallback (R44).
+**C171-C178:** Licencia libre auto-derivada (R43), compactar registros (R44), BadgeModeracion+admin approve (R44), tabs freeze+pantalla negra fix (R44), descargas/favoritos rediseño (R43), copiar enlace fallback (R44), remover créditos descargas (R45), sistema verificación samples (R45).
 
 ---
 
@@ -331,17 +332,25 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 174. ✅ useTabsIsla hook re-registra tabs en keep-alive. PageRenderer updater funcional previene pantalla negra. 8 islas migradas (R44).
 175. ✅ Descargas/Favoritos rediseñados con estructura ColeccionDetalle (R43).
 176. ✅ copiarAlPortapapeles() con fallback execCommand para contextos no-HTTPS. 4 consumidores actualizados (R44).
-177. En descargar quitar lo de 0/5 usadas hoy WAV y el badge de free
-178. Estatus de verificación de los samples, esto es diferente del status de moderación, sabemos que cuando se sube un sample, la informacion es generada por IA, si bien es una forma rapida de organizar la información, requiere verificación humana posterior, no significa que los samples no van a aparecer pero, los samples verificados deberían tener mas valor para el algoritmo. Para verificar un sample se debería poder desde el menu contextual, se podra verificar o desverificar, y cuando un sample este verificado aparera un circulo con check en el nombre del sample.
+177. ✅ Eliminado badge plan, textoLimites y calidad WAV de DescargasIsland (R45).
+178. ✅ Sistema verificación samples completo: migración v015 (columna+índice), PUT admin, normalizer, BadgeCheck en tarjeta+detalle, menú contextual verificar/desverificar, EVENTO_SAMPLE_ACTUALIZADO, boost algoritmo 1.15x (R45).
 179. Empezar a trabajar en FASE 13 — Panel de Administración (C112 — Planificación).
 180. Arriba de inicioBarraControl mostrar una fila de colecciones, maximas 8, scroll hacia los lados sin que se vea el scroll.
 181. Respecto a la tarea anterior me da la duda de que si las colecciones tienen algoritmo, pues, las colecciones deberían de alguna forma tambien ordenarse según el usuario, sus tags mas comunes, etc, para mostrar las colecciones mas relevantes para el usuario.
 182. El modal de buscar colección esta muy bonito, pero debería aparecer justo donde se dio click. Ahora agregar un nuevo icono de guardar para abrir ese modal al lado del boton de like en la lista de samples.
-183. Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-logger.ts:82  [Kamples] 12:43:17 [ERROR] ApiCliente: POST /comentarios/sample/15 → respuesta HTML inesperada (status 500) 
-184. Esta es una tarea complicada, no es para hacer ahora, es para planificar con detalle.
+183. ✅ Fix 500 en POST /comentarios: `wp_handle_upload()` no disponible en contexto REST API (solo admin). Añadido `require_once ABSPATH.'wp-admin/includes/file.php'` en ComentariosController y MensajesController (mismo bug preventivo).
+184. (en planificación). Esta es una tarea complicada, no es para hacer ahora, es para planificar con detalle. Las mejoras son obligatorias independientemente de lo complicado que sean, trabajar en ellas, si algo es imposible, buscar alternativas. Los detalles son extremadamente importantes. Como esta tarea es complicada, lo mejor será que esto este aislado en su propio sistema fuera de la carpeta /App porque va a escalar demasiado. El diseño sera muy minimalista
 
-Una versión mejorada de "Create (Stacks)" de splice
+Una versión mejorada de "Create (Stacks)" de splice, he dejado una captura de pantalla en App\Assets\ref\Captura de pantalla 2026-02-17 130443.png, no se si puedes verla para comprender mejo.
+
+184.1 Habrá un boton en topbarAcciones que abra esta funcionalidad. Aparecera en el panel lateral.
+184.2 Ahora el panel lateral puede cambiar de ancho con el cursor.
+184.3 Nuestra funcionalidad se llamar mezclador, basicamente, se podran arrastrar los samples en la lista de sample y se podran reproducir todos juntos, es decir, es literalmente un mini DAW. 
+184.4 Mejora para ganarle a splice: cualquier audio o sample puede mezclarse, en splice no se puede porque los audios o samples necesitan el patron 4/4, aca, debemos poder detectar el patron ritmo o compas, pero, si un sample dura un compas y no tiene 4/4 pues, asi como en un daw, ese audio puede moverse a cualquiera de los 4 compas, en una lista de tiempo, con samples que duran un 1 compas, entonces, puedo agregar 4 samples eun patron de 4/4. ¿Se entiende?  
+184.5 Por defecto al abrir habrá 4 compas pero e puede añadir mas compas, los audios se adaptan automaticamente a los compas, si un sample tiene 4 compas, se debe adaptar automaticamente a linea de tiempo.
+184.6 Obviamente poder añadir varias lineas de tiempo, una linea atraviesa las lineas de tiempo indicado por donde va la reprodución puede moverse. 
+184.7 La visualización de los samples en el mini DAW, un cuadro con la onda y el titulo arriba con letras pequeñas, es todo.
+
 
 
 
@@ -379,9 +388,13 @@ Una versión mejorada de "Create (Stacks)" de splice
 **Patrones:**
 - useTabsIsla(islaId, tabs, activaInicial) — re-registra tabs cuando isla se activa en keep-alive.
 - copiarAlPortapapeles(texto, mensaje) — fallback execCommand para http://.
+- EVENTO_SAMPLE_ACTUALIZADO — evento custom para actualizar propiedades de samples in-place en FeedSamples (verificado, etc.).
+- NormalizadorSample: alias SQL necesario cuando tabla samples y usuarios tienen columna con mismo nombre (s.verificado AS verificado_sample vs u.verificado).
+- verificado_boost en algoritmoPesos.php: multiplicador configurable (default 1.15) aplicado post-penalización.
 - BarraAccionesPost: shape mínimo + callbacks opcionales. Sin callback = decorativo.
 - EnlaceCreador: avatar+nombre+navegación. Elimina imports duplicados.
 - calcularSugerencias(): SQL genérico reutilizable para cualquier lista del usuario.
 - FeedSamples dual: tab principal (datos precargados) + tab sugerencias (infinite scroll via FeedSamples+proveedor).
 - MAPA_RUTAS en LayoutPrincipal.tsx debe actualizarse al añadir items al sidebar.
 - extraerTagsMetadata() combina metadata IA (tags/genero/instrumentos/emocion/artista_vibes).
+- [WP API]: `wp_handle_upload()` vive en `wp-admin/includes/file.php` — NO se carga en contexto REST API. Siempre hacer `if (!function_exists('wp_handle_upload')) require_once ABSPATH.'wp-admin/includes/file.php'` antes de usarlo. SamplesController lo tenía, Comentarios y Mensajes no.
