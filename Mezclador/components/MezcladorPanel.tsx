@@ -43,6 +43,8 @@ const MezcladorContenido = (): JSX.Element => {
         puedeExportar,
         pistaIdHover,
         dragState,
+        posicionDragFantasma,
+        duracionBloqueDrag,
     } = useMezclador();
 
     const cerrarMezclador = useMezcladorStore(s => s.cerrar);
@@ -166,6 +168,8 @@ const MezcladorContenido = (): JSX.Element => {
                 pistaIdHover={pistaIdHover}
                 dragActivo={dragState.activo}
                 bloqueIdDrag={dragState.bloqueId}
+                posicionDragFantasma={posicionDragFantasma}
+                duracionBloqueDrag={duracionBloqueDrag}
             />
 
             {/* Área de drop vacía cuando no hay bloques */}

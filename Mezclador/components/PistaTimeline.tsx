@@ -4,10 +4,10 @@
  */
 
 import { Volume2, VolumeX, Trash2 } from 'lucide-react';
-import type { PistaMezclador, SnapResolucion } from '../types/mezclador';
+import type { PistaMezclador } from '../types/mezclador';
 import { BloqueSample } from './BloqueSample';
 import { useMezcladorStore } from '../stores/mezcladorStore';
-import { calcularLineasCuadricula } from '../utils/compasUtils';
+import { calcularLineasCuadricula, anchoBloquePorc, posicionBloquePorc } from '../utils/compasUtils';
 
 interface PistaTimelineProps {
     pista: PistaMezclador;
@@ -20,6 +20,9 @@ interface PistaTimelineProps {
     bloqueIdDrag?: string | null;
     modoCortarActivo?: boolean;
     onCortar?: (bloqueId: string, compas: number) => void;
+    /* C242: Ghost preview durante drag */
+    posicionDragFantasma?: number | null;
+    duracionBloqueDrag?: number;
 }
 
 export const PistaTimeline = ({
@@ -33,6 +36,8 @@ export const PistaTimeline = ({
     bloqueIdDrag,
     modoCortarActivo,
     onCortar,
+    posicionDragFantasma,
+    duracionBloqueDrag,
 }: PistaTimelineProps): JSX.Element => {
     const toggleSilenciarPista = useMezcladorStore(s => s.toggleSilenciarPista);
     const eliminarPista = useMezcladorStore(s => s.eliminarPista);
@@ -46,6 +51,11 @@ export const PistaTimeline = ({
 
     /* Resaltar pista activa durante drag */
     const esHover = dragActivo && pistaIdHover === pista.id;
+
+    /* C242: Calcular posición y ancho del ghost preview */
+    const mostrarGhost = esHover && posicionDragFantasma !== null && duracionBloqueDrag && duracionBloqueDrag > 0;
+    const ghostIzquierda = mostrarGhost ? posicionBloquePorc(posicionDragFantasma!, totalCompases) : 0;
+    const ghostAncho = mostrarGhost ? anchoBloquePorc(duracionBloqueDrag!, totalCompases) : 0;
 
     return (
         <div
@@ -102,6 +112,17 @@ export const PistaTimeline = ({
                         onCortar={onCortar}
                     />
                 ))}
+
+                {/* C242: Ghost preview — muestra dónde aterrizará el bloque */}
+                {mostrarGhost && (
+                    <div
+                        className="mezcladorBloqueGhost"
+                        style={{
+                            left: `${ghostIzquierda}%`,
+                            width: `${ghostAncho}%`,
+                        }}
+                    />
+                )}
 
                 {/* Placeholder cuando está vacío */}
                 {pista.bloques.length === 0 && (

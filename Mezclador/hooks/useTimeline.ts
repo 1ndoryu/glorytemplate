@@ -29,6 +29,8 @@ export const useTimeline = () => {
     const [dragState, setDragState] = useState<DragState>({ ...DRAG_INICIAL });
     const [posicionDragFantasma, setPosicionDragFantasma] = useState<number | null>(null);
     const [pistaIdHover, setPistaIdHover] = useState<string | null>(null);
+    /* C242: Duración del bloque arrastrado, para el ghost preview */
+    const [duracionBloqueDrag, setDuracionBloqueDrag] = useState<number>(0);
 
     /* Refs para acceder al estado actual dentro de document listeners */
     const dragRef = useRef(dragState);
@@ -99,6 +101,8 @@ export const useTimeline = () => {
             offsetCompas: Math.max(0, offsetCompas),
             activo: true,
         });
+        /* C242: Guardar duración del bloque para renderizar ghost */
+        setDuracionBloqueDrag(bloque?.duracionCompases ?? 0);
         setPistaIdHover(pistaId);
 
         document.body.style.cursor = 'grabbing';
@@ -136,6 +140,7 @@ export const useTimeline = () => {
             setDragState({ ...DRAG_INICIAL });
             setPosicionDragFantasma(null);
             setPistaIdHover(null);
+            setDuracionBloqueDrag(0);
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
         };
@@ -184,6 +189,7 @@ export const useTimeline = () => {
         timelineRef,
         dragState,
         posicionDragFantasma,
+        duracionBloqueDrag,
         pistaIdHover,
         iniciarDragBloque,
         alDropExterno,

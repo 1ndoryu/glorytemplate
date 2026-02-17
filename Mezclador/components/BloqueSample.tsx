@@ -217,11 +217,12 @@ export const BloqueSample = ({
             </div>
 
             {/* Indicadores visuales de config activa */}
-            {(bloque.invertido || bloque.fadeIn > 0 || bloque.fadeOut > 0) && (
+            {(bloque.invertido || bloque.fadeIn > 0 || bloque.fadeOut > 0 || bloque.modoResize === 'clip') && (
                 <div className="mezcladorBloqueIndicadores">
                     {bloque.invertido && <span className="mezcladorBloqueTag">REV</span>}
                     {bloque.fadeIn > 0 && <span className="mezcladorBloqueTag">IN</span>}
                     {bloque.fadeOut > 0 && <span className="mezcladorBloqueTag">OUT</span>}
+                    {bloque.modoResize === 'clip' && <span className="mezcladorBloqueTag">CLIP</span>}
                 </div>
             )}
 

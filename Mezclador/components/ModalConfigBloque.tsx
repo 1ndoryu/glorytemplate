@@ -30,6 +30,8 @@ export const ModalConfigBloque = ({
     const [fadeOut, setFadeOut] = useState(bloque.fadeOut);
     const [volumen, setVolumen] = useState(bloque.volumen);
     const [playbackRate, setPlaybackRate] = useState(bloque.playbackRate);
+    /* C244: Modo resize local */
+    const [modoResize, setModoResize] = useState(bloque.modoResize ?? 'stretch');
 
     /* Duración total del buffer en segundos */
     const duracionBuffer = bloque.audioBuffer?.duration ?? 0;
@@ -53,6 +55,13 @@ export const ModalConfigBloque = ({
         const nuevo = !normalizado;
         setNormalizado(nuevo);
         aplicar({ normalizado: nuevo });
+    };
+
+    /* C244: Cambiar modo resize (stretch vs clip) */
+    const toggleModoResize = () => {
+        const nuevo = modoResize === 'stretch' ? 'clip' : 'stretch';
+        setModoResize(nuevo);
+        aplicar({ modoResize: nuevo });
     };
 
     /* Cambiar fade in */
@@ -101,6 +110,7 @@ export const ModalConfigBloque = ({
         setFadeOut(0);
         setInvertido(false);
         setNormalizado(false);
+        setModoResize('stretch');
 
         aplicar({
             volumen: 1,
@@ -109,6 +119,7 @@ export const ModalConfigBloque = ({
             fadeOut: 0,
             invertido: false,
             normalizado: false,
+            modoResize: 'stretch',
         });
 
         /* Recalcular duración con rate original */
@@ -233,6 +244,16 @@ export const ModalConfigBloque = ({
                             title="Normalizar volumen al máximo"
                         >
                             <span>Normalizar</span>
+                        </button>
+                        {/* C244: Toggle stretch vs clip resize */}
+                        <button
+                            className={`modalConfigToggle ${modoResize === 'clip' ? 'activo' : ''}`}
+                            onClick={toggleModoResize}
+                            title={modoResize === 'stretch'
+                                ? 'Modo Stretch: resize cambia pitch/velocidad'
+                                : 'Modo Clip: resize recorta sin cambiar velocidad'}
+                        >
+                            <span>{modoResize === 'stretch' ? 'Stretch' : 'Clip'}</span>
                         </button>
                     </div>
 

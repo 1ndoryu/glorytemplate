@@ -305,7 +305,8 @@
 
 /* Resaltado visual cuando se arrastra un bloque sobre esta pista */
 .mezcladorPistaDragHover {
-    background: color-mix(in srgb, var(--acento) 8%, transparent);
+    background: color-mix(in srgb, var(--acento) 12%, transparent);
+    transition: background 100ms ease;
 }
 
 .mezcladorPistaDragHover .mezcladorPistaContenido {
@@ -427,8 +428,23 @@
 
 /* Reducir opacidad del bloque siendo arrastrado */
 .mezcladorBloque.mezcladorBloqueDragging {
-    opacity: 0.4;
+    opacity: 0.3;
     pointer-events: none;
+    filter: grayscale(0.5);
+}
+
+/* C242: Ghost preview — indica dónde aterrizará el bloque al soltar */
+.mezcladorBloqueGhost {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    background: color-mix(in srgb, var(--acento) 12%, transparent);
+    border: 2px dashed var(--acento);
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.6;
+    transition: left 50ms ease-out;
 }
 
 /* Bloque en proceso de resize (C204) */

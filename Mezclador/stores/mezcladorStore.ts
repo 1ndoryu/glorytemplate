@@ -303,6 +303,10 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 recorteInicio: 0,
                 recorteFin: null,
                 normalizado: false,
+                /* C243+C244: Ancla inmutable y modo resize */
+                duracionOriginalCompases: info.duracionCompases,
+                playbackRateOriginal: info.playbackRate,
+                modoResize: 'stretch',
             };
 
             /* Expandir totalCompases si es necesario */
@@ -423,6 +427,10 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 recorteInicio: 0,
                 recorteFin: null,
                 normalizado: false,
+                /* C243+C244: Ancla inmutable y modo resize */
+                duracionOriginalCompases: info.duracionCompases,
+                playbackRateOriginal: info.playbackRate,
+                modoResize: 'stretch',
             };
 
             const finBloque = compasInicio + info.duracionCompases;
@@ -501,14 +509,28 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 ...p,
                 bloques: p.bloques.map(b => {
                     if (b.id !== bloqueId || !b.audioBuffer) return b;
-                    const durClamped = Math.max(0.25, nuevaDuracion);
-                    /*
-                     * playbackRate = buffer.duration / duracionWallClock
-                     * duracionWallClock = durClamped * duracionCompas
-                     */
                     const durCompas = (60 / bpmProyecto) * compasProyecto.numerador;
+
+                    if (b.modoResize === 'clip') {
+                        /*
+                         * C244: Modo clip — mantener playbackRate sin cambio.
+                         * Solo recortar: no puede exceder la duración original escalada.
+                         */
+                        const durMaxCompases = b.audioBuffer.duration / (durCompas * b.playbackRate);
+                        const durClamped = Math.max(0.25, Math.min(nuevaDuracion, durMaxCompases));
+                        const recorteFin = durClamped * durCompas * b.playbackRate;
+                        return { ...b, duracionCompases: durClamped, recorteFin };
+                    }
+
+                    /*
+                     * Modo stretch (default) — recalcular playbackRate.
+                     * C243: Redondear a 6 decimales para evitar drift flotante acumulativo.
+                     */
+                    const durClamped = Math.max(0.25, nuevaDuracion);
                     const durWall = durClamped * durCompas;
-                    const nuevoRate = Math.max(0.25, Math.min(4, b.audioBuffer.duration / durWall));
+                    const nuevoRate = Math.round(
+                        Math.max(0.25, Math.min(4, b.audioBuffer.duration / durWall)) * 1e6
+                    ) / 1e6;
                     return { ...b, duracionCompases: durClamped, playbackRate: nuevoRate };
                 }),
             })),
@@ -605,15 +627,23 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 ...bloqueOriginal,
                 duracionCompases: posRelativa,
                 waveformPeaks: bloqueOriginal.waveformPeaks.slice(0, cortePeaks),
+                /* C244: Sub-bloques heredan modo y ajustan duración original proporcionalmente */
+                duracionOriginalCompases: bloqueOriginal.duracionOriginalCompases
+                    ? posRelativa * (bloqueOriginal.duracionOriginalCompases / bloqueOriginal.duracionCompases)
+                    : posRelativa,
             };
 
+            const durSegundaParte = bloqueOriginal.duracionCompases - posRelativa;
             const bloqueB: BloqueMezclador = {
                 ...bloqueOriginal,
                 id: generarIdBloque(),
                 compasInicio: posicionCompas,
-                duracionCompases: bloqueOriginal.duracionCompases - posRelativa,
+                duracionCompases: durSegundaParte,
                 recorteInicio: recorteInicioOriginal + tiempoCorte,
                 waveformPeaks: bloqueOriginal.waveformPeaks.slice(cortePeaks),
+                duracionOriginalCompases: bloqueOriginal.duracionOriginalCompases
+                    ? durSegundaParte * (bloqueOriginal.duracionOriginalCompases / bloqueOriginal.duracionCompases)
+                    : durSegundaParte,
             };
 
             return {

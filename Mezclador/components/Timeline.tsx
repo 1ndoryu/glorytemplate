@@ -19,6 +19,9 @@ interface TimelineProps {
     pistaIdHover?: string | null;
     dragActivo?: boolean;
     bloqueIdDrag?: string | null;
+    /* C242: Ghost preview durante drag */
+    posicionDragFantasma?: number | null;
+    duracionBloqueDrag?: number;
 }
 
 export const Timeline = ({
@@ -30,6 +33,8 @@ export const Timeline = ({
     pistaIdHover,
     dragActivo,
     bloqueIdDrag,
+    posicionDragFantasma,
+    duracionBloqueDrag,
 }: TimelineProps): JSX.Element => {
     const pistas = useMezcladorStore(s => s.pistas);
     const totalCompases = useMezcladorStore(s => s.totalCompases);
@@ -77,6 +82,8 @@ export const Timeline = ({
                             bloqueIdDrag={bloqueIdDrag}
                             modoCortarActivo={modoCortarActivo}
                             onCortar={alCortar}
+                            posicionDragFantasma={posicionDragFantasma}
+                            duracionBloqueDrag={duracionBloqueDrag}
                         />
                     ))}
 

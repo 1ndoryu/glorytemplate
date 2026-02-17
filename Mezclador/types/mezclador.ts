@@ -31,6 +31,10 @@ export interface BloqueMezclador {
     recorteInicio: number;
     recorteFin: number | null;
     normalizado: boolean;
+    /* C243+C244: Ancla inmutable para evitar drift y modo resize */
+    duracionOriginalCompases: number;
+    playbackRateOriginal: number;
+    modoResize: 'stretch' | 'clip';
 }
 
 /* C215: Configuración parcial para actualizar un bloque */
@@ -43,6 +47,8 @@ export interface ConfigBloque {
     recorteInicio?: number;
     recorteFin?: number | null;
     normalizado?: boolean;
+    /* C244: Modo de resize */
+    modoResize?: 'stretch' | 'clip';
 }
 
 /* Una pista en la timeline */
