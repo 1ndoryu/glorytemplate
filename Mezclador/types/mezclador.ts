@@ -109,7 +109,10 @@ export const SNAP_FRACCIONES: Record<SnapResolucion, number | null> = {
 };
 
 /* C217: Niveles de zoom predefinidos */
-export const NIVELES_ZOOM = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4] as const;
+/* C229: Zoom — mínimo 100%, máximo 400%, incrementos de 5% */
+export const ZOOM_MIN = 1;
+export const ZOOM_MAX = 4;
+export const ZOOM_PASO = 0.05;
 
 /* Constantes del mezclador */
 export const CONSTANTES_MEZCLADOR = {

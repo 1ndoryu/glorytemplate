@@ -158,7 +158,11 @@ class MotorAudio {
             }
         }
 
-        fuente.start(cuando, offset, duracion);
+        /*
+         * C222: El parámetro duration de start() es en buffer-time (no wall-clock).
+         * La duración wall-clock pasada se convierte multiplicando por playbackRate.
+         */
+        fuente.start(cuando, offset, duracion * playbackRate);
         this.nodosActivos.push(fuente);
 
         fuente.onended = () => {
@@ -280,7 +284,8 @@ class MotorAudio {
                 ? Math.max(0, bloque.buffer.duration - bloque.offset - (bloque.duracion * bloque.playbackRate))
                 : bloque.offset;
 
-            fuente.start(bloque.cuando, offset, bloque.duracion);
+            /* C222: duration en buffer-time */
+            fuente.start(bloque.cuando, offset, bloque.duracion * bloque.playbackRate);
         }
 
         return offlineCtx.startRendering();

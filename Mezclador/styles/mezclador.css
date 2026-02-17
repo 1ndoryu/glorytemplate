@@ -569,8 +569,10 @@
     width: 2px;
     z-index: 10;
     pointer-events: none;
-    /* Offset por el ancho de controles de pista (80px) + posición en timeline */
-    margin-left: 80px;
+    /*
+     * C222: Calcular left alineado al área de contenido (después de 80px de controles).
+     * Se usa --cursorPorcentaje via inline style.
+     */
 }
 
 .mezcladorCursorLinea {

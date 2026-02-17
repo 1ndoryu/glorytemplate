@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import type { SampleResumen } from '@app/types';
 import type { BloqueMezclador, PistaMezclador, Compas, ConfigBloque, SnapResolucion } from '../types/mezclador';
-import { CONSTANTES_MEZCLADOR, COLORES_BLOQUE, EVENTO_REPROGRAMAR_AUDIO, NIVELES_ZOOM } from '../types/mezclador';
+import { CONSTANTES_MEZCLADOR, COLORES_BLOQUE, EVENTO_REPROGRAMAR_AUDIO, ZOOM_MIN, ZOOM_MAX, ZOOM_PASO } from '../types/mezclador';
 import { inferirCompas, compasesASegundos } from '../utils/compasUtils';
 import { generarIdBloque, generarIdPista, extraerPeaks } from '../utils/audioBufferUtils';
 import { motorAudio } from '../services/motorAudioService';
@@ -640,15 +640,59 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
      * Permite cambiar propiedades como invertido, fade, recorte, etc.
      */
     actualizarConfigBloque: (bloqueId, config) => {
-        set(prev => ({
-            pistas: prev.pistas.map(p => ({
-                ...p,
-                bloques: p.bloques.map(b => {
+        const { bpmProyecto, compasProyecto } = get();
+
+        set(prev => {
+            let totalCompases = prev.totalCompases;
+
+            const pistas = prev.pistas.map(p => {
+                const idxBloque = p.bloques.findIndex(b => b.id === bloqueId);
+                if (idxBloque === -1) return p;
+
+                const bloques = p.bloques.map(b => {
                     if (b.id !== bloqueId) return b;
-                    return { ...b, ...config };
-                }),
-            })),
-        }));
+
+                    const actualizado = { ...b, ...config };
+
+                    /*
+                     * C222: Si se cambió playbackRate, recalcular duracionCompases
+                     * para que el ancho visual del bloque refleje la duración real del audio.
+                     */
+                    if (config.playbackRate !== undefined && b.audioBuffer) {
+                        const recorteInicio = actualizado.recorteInicio ?? 0;
+                        const finRecorte = actualizado.recorteFin ?? b.audioBuffer.duration;
+                        const duracionUtil = finRecorte - recorteInicio;
+                        const durCompasSegundos = (60 / bpmProyecto) * compasProyecto.numerador;
+                        const nuevosDurCompases = duracionUtil / (config.playbackRate * durCompasSegundos);
+                        actualizado.duracionCompases = Math.max(0.25, Math.round(nuevosDurCompases * 4) / 4);
+                    }
+
+                    return actualizado;
+                });
+
+                /*
+                 * C230: Resolver colisiones — empujar bloques siguientes si hay solapamiento.
+                 * Ordenar por compasInicio y desplazar los que colisionen.
+                 */
+                bloques.sort((a, b2) => a.compasInicio - b2.compasInicio);
+                for (let i = 0; i < bloques.length - 1; i++) {
+                    const finActual = bloques[i].compasInicio + bloques[i].duracionCompases;
+                    if (finActual > bloques[i + 1].compasInicio) {
+                        bloques[i + 1] = { ...bloques[i + 1], compasInicio: finActual };
+                    }
+                }
+
+                /* Expandir totalCompases si algún bloque se sale */
+                const finUltimo = bloques.length > 0
+                    ? bloques[bloques.length - 1].compasInicio + bloques[bloques.length - 1].duracionCompases
+                    : 0;
+                if (finUltimo > totalCompases) totalCompases = Math.ceil(finUltimo);
+
+                return { ...p, bloques };
+            });
+
+            return { pistas, totalCompases };
+        });
 
         if (get().reproduciendo) {
             window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO));
@@ -681,22 +725,16 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
         return beatFraccion;
     },
 
-    /* C217: Zoom */
-    setNivelZoom: (zoom) => set({ nivelZoom: Math.max(0.25, Math.min(4, zoom)) }),
+    /* C217+C229: Zoom — solo acercar (min 100%), incrementos de 5% */
+    setNivelZoom: (zoom) => set({ nivelZoom: Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom)) }),
     zoomIn: () => {
         const { nivelZoom } = get();
-        const idx = NIVELES_ZOOM.findIndex(z => z >= nivelZoom);
-        const siguiente = idx >= 0 && idx < NIVELES_ZOOM.length - 1
-            ? NIVELES_ZOOM[idx + 1]
-            : NIVELES_ZOOM[NIVELES_ZOOM.length - 1];
+        const siguiente = Math.min(ZOOM_MAX, Math.round((nivelZoom + ZOOM_PASO) * 100) / 100);
         set({ nivelZoom: siguiente });
     },
     zoomOut: () => {
         const { nivelZoom } = get();
-        const idx = NIVELES_ZOOM.findIndex(z => z >= nivelZoom);
-        const anterior = idx > 0
-            ? NIVELES_ZOOM[idx - 1]
-            : NIVELES_ZOOM[0];
+        const anterior = Math.max(ZOOM_MIN, Math.round((nivelZoom - ZOOM_PASO) * 100) / 100);
         set({ nivelZoom: anterior });
     },
 

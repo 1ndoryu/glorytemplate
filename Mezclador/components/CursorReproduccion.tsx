@@ -13,15 +13,19 @@ export const CursorReproduccion = (): JSX.Element => {
     const totalCompases = useMezcladorStore(s => s.totalCompases);
 
     const posicionCompases = segundosACompases(tiempoActual, bpmProyecto, compasProyecto);
-    const porcentaje = (posicionCompases / totalCompases) * 100;
-    const visible = porcentaje >= 0 && porcentaje <= 100;
+    /*
+     * C222: Calcular left alineado al área de contenido (después de 80px de controles).
+     * Los bloques usan left:X% relativo a mezcladorPistaContenido (ancho total - 80px).
+     * El cursor debe alinearse al mismo espacio.
+     */
+    const fraccion = posicionCompases / totalCompases;
 
-    if (!visible) return <></>;
+    if (fraccion < 0 || fraccion > 1) return <></>;
 
     return (
         <div
             className="mezcladorCursorReproduccion"
-            style={{ left: `${porcentaje}%` }}
+            style={{ left: `calc(80px + (100% - 80px) * ${fraccion})` }}
         >
             <div className="mezcladorCursorLinea" />
             <div className="mezcladorCursorCabeza" />
