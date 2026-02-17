@@ -113,11 +113,11 @@ class DescargasController
         if ($consumeCredito) {
             /* Verificar límite de descargas diarias */
             $limite = $configPlan['descargas_dia'] ?? 5;
-            /* O14: Verificar l\u00edmite con advisory lock para evitar race condition TOCTOU */
+            /* O14: Verificar límite con advisory lock para evitar race condition TOCTOU */
             if ($limite > 0) {
                 /* Advisory lock basado en userId para serializar descargas del mismo usuario */
                 PostgresService::ejecutar(
-                    \"SELECT pg_advisory_xact_lock(:lockId)\",
+                    "SELECT pg_advisory_xact_lock(:lockId)",
                     ['lockId' => $userId]
                 );
                 $descargasHoy = PostgresService::consultarUno(
