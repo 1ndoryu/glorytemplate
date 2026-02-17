@@ -83,7 +83,8 @@ export const useMotorAudio = () => {
                     bloque.volumen * pista.volumen,
                     bloque.invertido,
                     bloque.fadeIn,
-                    bloque.fadeOut
+                    bloque.fadeOut,
+                    bloque.detune ?? 0
                 );
             }
         }

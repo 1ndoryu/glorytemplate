@@ -32,6 +32,8 @@ export const ModalConfigBloque = ({
     const [playbackRate, setPlaybackRate] = useState(bloque.playbackRate);
     /* C244: Modo resize local */
     const [modoResize, setModoResize] = useState(bloque.modoResize ?? 'stretch');
+    /* C240: Tonalidad en semitonos */
+    const [detune, setDetune] = useState(bloque.detune ?? 0);
 
     /* Duración total del buffer en segundos */
     const duracionBuffer = bloque.audioBuffer?.duration ?? 0;
@@ -94,6 +96,13 @@ export const ModalConfigBloque = ({
         setDuracionBloque(bloque.id, Math.max(0.25, nuevaDuracion));
     };
 
+    /* C240: Cambiar tonalidad en semitonos */
+    const alCambiarDetune = (valor: number) => {
+        const clamped = Math.max(-12, Math.min(12, Math.round(valor)));
+        setDetune(clamped);
+        aplicar({ detune: clamped });
+    };
+
     /*
      * C239: Restablecer todas las propiedades del bloque a valores por defecto.
      * playbackRate vuelve al ratio original (BPM sample / BPM proyecto).
@@ -111,6 +120,7 @@ export const ModalConfigBloque = ({
         setInvertido(false);
         setNormalizado(false);
         setModoResize('stretch');
+        setDetune(0);
 
         aplicar({
             volumen: 1,
@@ -120,6 +130,7 @@ export const ModalConfigBloque = ({
             invertido: false,
             normalizado: false,
             modoResize: 'stretch',
+            detune: 0,
         });
 
         /* Recalcular duración con rate original */
@@ -226,6 +237,23 @@ export const ModalConfigBloque = ({
                             className="modalConfigSlider"
                         />
                         <span className="modalConfigValor">{fadeOut.toFixed(2)}s</span>
+                    </div>
+
+                    {/* C240: Tonalidad (detune en semitonos) */}
+                    <div className="modalConfigFila">
+                        <label className="modalConfigLabel">Tonalidad</label>
+                        <input
+                            type="range"
+                            min={-12}
+                            max={12}
+                            step={1}
+                            value={detune}
+                            onChange={(e) => alCambiarDetune(parseFloat(e.target.value))}
+                            className="modalConfigSlider"
+                        />
+                        <span className="modalConfigValor">
+                            {detune > 0 ? `+${detune}` : detune} st
+                        </span>
                     </div>
 
                     {/* Toggles: Reverse + Normalizar */}

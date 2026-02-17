@@ -35,6 +35,8 @@ export interface BloqueMezclador {
     duracionOriginalCompases: number;
     playbackRateOriginal: number;
     modoResize: 'stretch' | 'clip';
+    /* C240: Desplazamiento de tonalidad en semitonos (-12 a +12) */
+    detune: number;
 }
 
 /* C215: Configuración parcial para actualizar un bloque */
@@ -49,6 +51,8 @@ export interface ConfigBloque {
     normalizado?: boolean;
     /* C244: Modo de resize */
     modoResize?: 'stretch' | 'clip';
+    /* C240: Desplazamiento de tonalidad en semitonos */
+    detune?: number;
 }
 
 /* Una pista en la timeline */

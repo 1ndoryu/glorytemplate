@@ -60,6 +60,8 @@ export const useExportarMezcla = () => {
                     invertido: bloque.invertido,
                     fadeIn: bloque.fadeIn,
                     fadeOut: bloque.fadeOut,
+                    /* C240: Tonalidad para export */
+                    detune: bloque.detune ?? 0,
                 });
             }
         }

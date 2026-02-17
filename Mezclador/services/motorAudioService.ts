@@ -100,7 +100,9 @@ class MotorAudio {
         volumen: number,
         invertido = false,
         fadeIn = 0,
-        fadeOut = 0
+        fadeOut = 0,
+        /* C240: Desplazamiento en semitonos (-12 a +12) */
+        detune = 0
     ): AudioBufferSourceNode {
         const ctx = this.obtenerContexto();
         const fuente = ctx.createBufferSource();
@@ -131,6 +133,17 @@ class MotorAudio {
         }
 
         fuente.playbackRate.value = playbackRate;
+
+        /*
+         * C240: Desplazamiento de tonalidad sin cambiar velocidad.
+         * detune en semitonos → cents (x100). Compensar playbackRate para que
+         * la duración no cambie: rate_compensado = rate / 2^(detune/1200).
+         */
+        if (detune !== 0) {
+            const cents = detune * 100;
+            fuente.detune.value = cents;
+            fuente.playbackRate.value = playbackRate / Math.pow(2, cents / 1200);
+        }
 
         const gainNodo = ctx.createGain();
         fuente.connect(gainNodo);
@@ -226,6 +239,8 @@ class MotorAudio {
             invertido?: boolean;
             fadeIn?: number;
             fadeOut?: number;
+            /* C240: Tonalidad en semitonos */
+            detune?: number;
         }>,
         duracionTotal: number
     ): Promise<AudioBuffer> {
@@ -256,6 +271,14 @@ class MotorAudio {
             }
 
             fuente.playbackRate.value = bloque.playbackRate;
+
+            /* C240: Aplicar detune con compensación de velocidad en renderizado offline */
+            const detuneVal = bloque.detune ?? 0;
+            if (detuneVal !== 0) {
+                const cents = detuneVal * 100;
+                fuente.detune.value = cents;
+                fuente.playbackRate.value = bloque.playbackRate / Math.pow(2, cents / 1200);
+            }
 
             const gainNodo = offlineCtx.createGain();
             fuente.connect(gainNodo);

@@ -320,6 +320,8 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 duracionOriginalCompases: info.duracionCompases,
                 playbackRateOriginal: info.playbackRate,
                 modoResize: 'stretch',
+                /* C240: Tonalidad por defecto sin desplazamiento */
+                detune: 0,
             };
 
             /* Expandir totalCompases si es necesario */
@@ -444,6 +446,8 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 duracionOriginalCompases: info.duracionCompases,
                 playbackRateOriginal: info.playbackRate,
                 modoResize: 'stretch',
+                /* C240: Tonalidad por defecto sin desplazamiento */
+                detune: 0,
             };
 
             const finBloque = compasInicio + info.duracionCompases;
