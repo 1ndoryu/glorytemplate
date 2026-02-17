@@ -801,6 +801,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
      * Permite cambiar propiedades como invertido, fade, recorte, etc.
      */
     actualizarConfigBloque: (bloqueId, config) => {
+        get()._guardarSnapshot();
         const { bpmProyecto, compasProyecto } = get();
 
         set(prev => {

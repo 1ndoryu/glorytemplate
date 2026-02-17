@@ -58,6 +58,29 @@ export const PistaTimeline = ({
     const ghostIzquierda = mostrarGhost ? posicionBloquePorc(posicionDragFantasma!, totalCompases) : 0;
     const ghostAncho = mostrarGhost ? anchoBloquePorc(duracionBloqueDrag!, totalCompases) : 0;
 
+    /*
+     * C258(2): Calcular ghosts para TODOS los bloques seleccionados durante multi-drag.
+     * Cada ghost se posiciona con el delta relativo al bloque principal arrastrado.
+     */
+    const ghostsMultiSelect: Array<{ izquierda: number; ancho: number }> = [];
+    if (mostrarGhost && bloquesSeleccionados.size > 1 && bloqueIdDrag && bloquesSeleccionados.has(bloqueIdDrag)) {
+        const bloqueDrag = pista.bloques.find(b => b.id === bloqueIdDrag)
+            ?? pistas.flatMap(p => p.bloques).find(b => b.id === bloqueIdDrag);
+        if (bloqueDrag) {
+            const delta = posicionDragFantasma! - bloqueDrag.compasInicio;
+            for (const sel of bloquesSeleccionados) {
+                if (sel === bloqueIdDrag) continue;
+                const bloqueOtro = pistas.flatMap(p => p.bloques).find(b => b.id === sel);
+                if (!bloqueOtro) continue;
+                const nuevaPosicion = Math.max(0, bloqueOtro.compasInicio + delta);
+                ghostsMultiSelect.push({
+                    izquierda: posicionBloquePorc(nuevaPosicion, totalCompases),
+                    ancho: anchoBloquePorc(bloqueOtro.duracionCompases, totalCompases),
+                });
+            }
+        }
+    }
+
     return (
         <div
             className={`mezcladorPista ${pista.silenciada ? 'mezcladorPistaSilenciada' : ''} ${esHover ? 'mezcladorPistaDragHover' : ''}`}
@@ -125,6 +148,18 @@ export const PistaTimeline = ({
                         }}
                     />
                 )}
+
+                {/* C258(2): Ghosts adicionales para bloques seleccionados */}
+                {ghostsMultiSelect.map((g, i) => (
+                    <div
+                        key={`ghost-sel-${i}`}
+                        className="mezcladorBloqueGhost"
+                        style={{
+                            left: `${g.izquierda}%`,
+                            width: `${g.ancho}%`,
+                        }}
+                    />
+                ))}
 
                 {/* Placeholder cuando está vacío — C250: sin texto */}
             </div>

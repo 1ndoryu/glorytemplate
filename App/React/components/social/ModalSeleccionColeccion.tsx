@@ -149,8 +149,9 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
     const estiloPanel: React.CSSProperties | undefined = posicion
         ? {
             position: 'fixed',
-            top: Math.min(posicion.y, window.innerHeight - 360),
-            left: Math.min(posicion.x, window.innerWidth - 290),
+            /* C261: Clamp bidireccional — panel 320x420 + 8px margen */
+            top: Math.max(8, Math.min(posicion.y, window.innerHeight - 428)),
+            left: Math.max(8, Math.min(posicion.x, window.innerWidth - 328)),
         }
         : undefined;
 

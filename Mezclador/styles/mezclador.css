@@ -435,11 +435,13 @@
     filter: grayscale(0.5);
 }
 
-/* C247: Borde visual para bloques seleccionados con Ctrl+click */
+/* C267: Selección más visible — glow + borde grueso + fondo tintado */
 .mezcladorBloque.mezcladorBloqueSeleccionado {
-    outline: 2px solid var(--acento);
+    outline: 3px solid var(--acento);
     outline-offset: -1px;
     z-index: 3;
+    background: color-mix(in srgb, var(--acento) 18%, var(--fondoElevado2));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--acento) 40%, transparent);
 }
 
 /* C242: Ghost preview — indica dónde aterrizará el bloque al soltar */
@@ -667,27 +669,6 @@
 
 .mezcladorAgregarPista:hover {
     color: var(--acento);
-}
-
-/* Drop zone vacía */
-.mezcladorDropZoneVacia {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--espacioSm);
-    padding: var(--espacio2xl);
-    color: var(--textoTerciario);
-    font-size: var(--fuenteSm);
-    border: 2px dashed var(--bordeSutil);
-    border-radius: var(--radioMd);
-    margin: var(--espacioMd);
-    transition: border-color var(--transicionRapida), background var(--transicionRapida);
-}
-
-.mezcladorDropZoneVacia:hover {
-    border-color: var(--acento);
-    background: color-mix(in srgb, var(--acento) 5%, transparent);
 }
 
 /* C209: Animar pista cuando se arrastra un sample externo sobre ella */

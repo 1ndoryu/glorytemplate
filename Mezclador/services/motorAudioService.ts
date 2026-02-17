@@ -135,14 +135,13 @@ class MotorAudio {
         fuente.playbackRate.value = playbackRate;
 
         /*
-         * C240: Desplazamiento de tonalidad sin cambiar velocidad.
-         * detune en semitonos → cents (x100). Compensar playbackRate para que
-         * la duración no cambie: rate_compensado = rate / 2^(detune/1200).
+         * C258 fix: Detune puro sin compensación de playbackRate.
+         * La compensación anterior (rate / 2^(cents/1200)) anulaba algebraicamente
+         * el efecto del detune. Ahora detune cambia pitch+speed (estilo vinilo).
+         * El duration de start() se ajusta con la tasa efectiva real.
          */
         if (detune !== 0) {
-            const cents = detune * 100;
-            fuente.detune.value = cents;
-            fuente.playbackRate.value = playbackRate / Math.pow(2, cents / 1200);
+            fuente.detune.value = detune * 100;
         }
 
         const gainNodo = ctx.createGain();
@@ -172,10 +171,11 @@ class MotorAudio {
         }
 
         /*
-         * C222: El parámetro duration de start() es en buffer-time (no wall-clock).
-         * La duración wall-clock pasada se convierte multiplicando por playbackRate.
+         * C222+C258: duration en buffer-time.
+         * La tasa efectiva combina playbackRate + detune.
          */
-        fuente.start(cuando, offset, duracion * playbackRate);
+        const tasaEfectiva = playbackRate * Math.pow(2, ((detune ?? 0) * 100) / 1200);
+        fuente.start(cuando, offset, duracion * tasaEfectiva);
         this.nodosActivos.push(fuente);
 
         fuente.onended = () => {
@@ -272,12 +272,10 @@ class MotorAudio {
 
             fuente.playbackRate.value = bloque.playbackRate;
 
-            /* C240: Aplicar detune con compensación de velocidad en renderizado offline */
+            /* C258 fix: Detune puro sin compensación (estilo vinilo) */
             const detuneVal = bloque.detune ?? 0;
             if (detuneVal !== 0) {
-                const cents = detuneVal * 100;
-                fuente.detune.value = cents;
-                fuente.playbackRate.value = bloque.playbackRate / Math.pow(2, cents / 1200);
+                fuente.detune.value = detuneVal * 100;
             }
 
             const gainNodo = offlineCtx.createGain();
@@ -307,8 +305,9 @@ class MotorAudio {
                 ? Math.max(0, bloque.buffer.duration - bloque.offset - (bloque.duracion * bloque.playbackRate))
                 : bloque.offset;
 
-            /* C222: duration en buffer-time */
-            fuente.start(bloque.cuando, offset, bloque.duracion * bloque.playbackRate);
+            /* C222+C258: duration en buffer-time con tasa efectiva */
+            const tasaEfectivaOffline = bloque.playbackRate * Math.pow(2, (detuneVal * 100) / 1200);
+            fuente.start(bloque.cuando, offset, bloque.duracion * tasaEfectivaOffline);
         }
 
         return offlineCtx.startRendering();

@@ -4,7 +4,7 @@
  * Aislado de la app principal via ErrorBoundary.
  */
 
-import { PanelRightClose, Download, Upload, FolderUp, Trash2, Loader, Music2, Maximize2, Minimize2, Settings } from 'lucide-react';
+import { PanelRightClose, Download, Upload, FolderUp, Trash2, Loader, Maximize2, Minimize2, Settings } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useMezclador } from '../hooks/useMezclador';
 import { ControlesMezclador } from './ControlesMezclador';
@@ -29,7 +29,6 @@ const MezcladorContenido = (): JSX.Element => {
     useEffect(() => { abrir(); }, [abrir]);
 
     const {
-        totalBloques,
         estaCargando,
         exportando,
         toggleReproduccion,
@@ -182,17 +181,6 @@ const MezcladorContenido = (): JSX.Element => {
                 posicionDragFantasma={posicionDragFantasma}
                 duracionBloqueDrag={duracionBloqueDrag}
             />
-
-            {/* Área de drop vacía cuando no hay bloques */}
-            {totalBloques === 0 && (
-                <div
-                    className="mezcladorDropZoneVacia"
-                    onDragOver={alDragOver}
-                    onDrop={(e) => alDropExterno(e)}
-                >
-                    <Music2 size={24} />
-                </div>
-            )}
 
             {/* C253: Modal de configuración global del DAW */}
             <ModalConfigDaw

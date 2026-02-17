@@ -3,7 +3,7 @@
  * Barra superior del mezclador con todas las acciones
  */
 
-import { Play, Square, Plus, Minus, Scissors, ZoomIn, ZoomOut, Undo2, Redo2 } from 'lucide-react';
+import { Play, Square, Plus, Minus, Scissors, ZoomIn, ZoomOut, Undo2, Redo2, MoveHorizontal, Crop } from 'lucide-react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 
 interface ControlesMezcladorProps {
@@ -29,6 +29,8 @@ export const ControlesMezclador = ({
     const rehacer = useMezcladorStore(s => s.rehacer);
     const puedeDeshacer = useMezcladorStore(s => s.puedeDeshacer);
     const puedeRehacer = useMezcladorStore(s => s.puedeRehacer);
+    const modoResizeGlobal = useMezcladorStore(s => s.modoResizeGlobal);
+    const setModoResizeGlobal = useMezcladorStore(s => s.setModoResizeGlobal);
 
     const alCambiarBpm = (e: React.ChangeEvent<HTMLInputElement>) => {
         const valor = parseInt(e.target.value, 10);
@@ -118,7 +120,7 @@ export const ControlesMezclador = ({
                 </button>
             </div>
 
-            {/* Grupo derecho: herramienta de corte */}
+            {/* Grupo derecho: herramienta de corte + modo resize */}
             <div className="mezcladorControlesGrupo">
                 {/* C214: Botón herramienta de corte */}
                 <button
@@ -127,6 +129,15 @@ export const ControlesMezclador = ({
                     title={modoCortarActivo ? 'Desactivar corte' : 'Activar herramienta de corte'}
                 >
                     <Scissors size={13} />
+                </button>
+
+                {/* C259(2): Toggle stretch/clip al lado del corte */}
+                <button
+                    className={`mezcladorBotonAccion ${modoResizeGlobal === 'stretch' ? 'mezcladorBotonActivo' : ''}`}
+                    onClick={() => setModoResizeGlobal(modoResizeGlobal === 'stretch' ? 'clip' : 'stretch')}
+                    title={modoResizeGlobal === 'stretch' ? 'Modo: Stretch (cambia velocidad al redimensionar) — Click para cambiar a Clip' : 'Modo: Clip (recorta al redimensionar) — Click para cambiar a Stretch'}
+                >
+                    {modoResizeGlobal === 'stretch' ? <MoveHorizontal size={13} /> : <Crop size={13} />}
                 </button>
             </div>
         </div>

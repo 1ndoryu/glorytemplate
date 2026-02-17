@@ -26,8 +26,6 @@ const OPCIONES_SNAP: { valor: SnapResolucion; label: string; desc: string }[] = 
 export const ModalConfigDaw = ({ abierto, onCerrar }: ModalConfigDawProps): JSX.Element | null => {
     const snapResolucion = useMezcladorStore(s => s.snapResolucion);
     const setSnapResolucion = useMezcladorStore(s => s.setSnapResolucion);
-    const modoResizeGlobal = useMezcladorStore(s => s.modoResizeGlobal);
-    const setModoResizeGlobal = useMezcladorStore(s => s.setModoResizeGlobal);
 
     if (!abierto) return null;
 
@@ -60,27 +58,6 @@ export const ModalConfigDaw = ({ abierto, onCerrar }: ModalConfigDawProps): JSX.
                                     {op.label}
                                 </button>
                             ))}
-                        </div>
-                    </div>
-
-                    {/* C256: Modo resize global (stretch vs clip) */}
-                    <div className="modalConfigFila">
-                        <label className="modalConfigLabel">Resize</label>
-                        <div className="modalConfigSnapOpciones">
-                            <button
-                                className={`modalConfigSnapBtn ${modoResizeGlobal === 'stretch' ? 'modalConfigSnapBtnActivo' : ''}`}
-                                onClick={() => setModoResizeGlobal('stretch')}
-                                title="Estirar audio al redimensionar (cambia velocidad)"
-                            >
-                                Stretch
-                            </button>
-                            <button
-                                className={`modalConfigSnapBtn ${modoResizeGlobal === 'clip' ? 'modalConfigSnapBtnActivo' : ''}`}
-                                onClick={() => setModoResizeGlobal('clip')}
-                                title="Recortar audio al redimensionar (mantiene velocidad)"
-                            >
-                                Clip
-                            </button>
                         </div>
                     </div>
                 </div>
