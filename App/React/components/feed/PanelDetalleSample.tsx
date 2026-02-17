@@ -215,14 +215,22 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
     const meta = sample.metadata;
     const badges: string[] = [];
     if (meta?.instrumentos) {
-        const inst = Array.isArray(meta.instrumentos) ? meta.instrumentos[0] : meta.instrumentos;
-        if (inst) badges.push(inst);
+        const inst = Array.isArray(meta.instrumentos) ? meta.instrumentos : [meta.instrumentos];
+        inst.forEach(i => { if (i) badges.push(i); });
     }
     if (meta?.genero) {
-        const gen = Array.isArray(meta.genero) ? meta.genero[0] : meta.genero;
-        if (gen) badges.push(gen);
+        const gen = Array.isArray(meta.genero) ? meta.genero : [meta.genero];
+        gen.forEach(g => { if (g) badges.push(g); });
     }
-    if (meta?.emocion) badges.push(meta.emocion);
+    /* C162: emocion puede venir como string concatenado sin separador (ej: "dreamyetherealmelancholic").
+     * Intentar separar por comas, espacios o pipes. Si sigue siendo 1 string largo (>25 chars),
+     * lo truncamos para no romper visualmente el badge. */
+    if (meta?.emocion) {
+        const emociones = Array.isArray(meta.emocion)
+            ? meta.emocion
+            : String(meta.emocion).split(/[,|;]\s*|\s+/).filter(Boolean);
+        emociones.forEach(e => { if (e && e.length <= 30) badges.push(e); });
+    }
     if (sample.bpm) badges.push(`${sample.bpm} BPM`);
     if (sample.key) badges.push(sample.key);
 

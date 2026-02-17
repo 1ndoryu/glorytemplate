@@ -31,12 +31,14 @@ export const useHistorialIds = (activo: boolean): UseHistorialIdsResult => {
             let pagina = 1;
             let continuar = true;
 
-            /* Cargar todas las páginas del historial */
+            /* Cargar todas las páginas del historial
+             * apiGet auto-unwrap: json.data ya es SampleResumen[] directamente */
             while (continuar) {
                 const resp = await obtenerHistorial(pagina, 100);
-                if (resp.ok && resp.data?.data?.length) {
-                    resp.data.data.forEach((s) => ids.add(s.id));
-                    if (resp.data.data.length < 100) {
+                const lista = resp.ok && Array.isArray(resp.data) ? resp.data : [];
+                if (lista.length > 0) {
+                    lista.forEach((s) => ids.add(s.id));
+                    if (lista.length < 100) {
                         continuar = false;
                     } else {
                         pagina++;

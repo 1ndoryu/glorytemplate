@@ -342,9 +342,13 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
             if (primerGenero) badges.push({ texto: primerGenero, clave: 'gen' });
         }
 
+        /* C162: emocion puede venir concatenada sin separador. Splitear por comas/espacios/pipes */
         const emocion = meta?.emocion_es ?? meta?.emocionEs ?? meta?.emocion;
         if (emocion) {
-            const primeraEmocion = Array.isArray(emocion) ? emocion[0] : emocion;
+            const emociones = Array.isArray(emocion)
+                ? emocion
+                : String(emocion).split(/[,|;]\s*|\s+/).filter(Boolean);
+            const primeraEmocion = emociones.find(e => e.length <= 30);
             if (primeraEmocion) badges.push({ texto: primeraEmocion, clave: 'emo' });
         }
 

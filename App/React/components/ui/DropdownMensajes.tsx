@@ -47,6 +47,8 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
     const abrirConversacion = useCallback((conv: Conversacion) => {
         abrirChat({
             conversacionId: conv.id,
+            participanteId: conv.participante.id,
+            participanteUsername: conv.participante.username,
             nombreParticipante: conv.participante.nombreVisible,
             avatarUrl: conv.participante.avatarUrl,
         });

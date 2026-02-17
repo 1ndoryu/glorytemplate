@@ -15,11 +15,6 @@ export interface DatosReproduccion {
     completada?: boolean;
 }
 
-export interface RespuestaHistorial {
-    data: SampleResumen[];
-    page: number;
-}
-
 /*
  * Registra una reproducción con debounce en backend (3s).
  * Endpoint: POST /samples/{id}/reproduccion
@@ -49,15 +44,16 @@ export const registrarReproduccion = async (
 export const obtenerHistorial = async (
     pagina = 1,
     porPagina = 20
-): Promise<RespuestaApi<RespuestaHistorial>> => {
+): Promise<RespuestaApi<SampleResumen[]>> => {
     try {
-        return await apiGet<RespuestaHistorial>('/reproducciones/historial', {
+        /* apiGet auto-unwrap: backend {data:[...],page} → resp.data = [...] */
+        return await apiGet<SampleResumen[]>('/reproducciones/historial', {
             page: pagina,
             per_page: porPagina,
         });
     } catch (err) {
         log.error('Error obteniendo historial', err);
-        return { ok: true, data: { data: [], page: pagina }, error: null, status: 200 };
+        return { ok: false, data: [], error: 'Error cargando historial', status: 0 };
     }
 };
 

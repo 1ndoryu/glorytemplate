@@ -8,6 +8,8 @@ import { create } from 'zustand';
 
 export interface ChatFlotanteInfo {
     conversacionId: number;
+    participanteId: number;
+    participanteUsername: string;
     nombreParticipante: string;
     avatarUrl: string | null;
     minimizado: boolean;

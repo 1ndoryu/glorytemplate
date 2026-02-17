@@ -382,6 +382,8 @@ export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.E
                                         if (resp.ok && resp.data) {
                                             abrirChat({
                                                 conversacionId: resp.data.id,
+                                                participanteId: usuario.id,
+                                                participanteUsername: usuario.username,
                                                 nombreParticipante: usuario.nombreVisible || usuario.username,
                                                 avatarUrl: usuario.avatarUrl ?? null,
                                             });

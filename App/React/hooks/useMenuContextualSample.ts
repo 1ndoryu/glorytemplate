@@ -45,7 +45,7 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
     const [sampleInspeccion, setSampleInspeccion] = useState<SampleResumen | null>(null);
 
     const { navegar } = useNavigationStore();
-    const { setSample, agregarACola } = useReproductorStore();
+    const { setSample } = useReproductorStore();
     const { abrir: abrirColeccionPicker } = useColeccionPickerStore();
     const { usuario } = useAuthStore();
 
@@ -100,13 +100,6 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                 etiqueta: 'Añadir a colección',
                 onClick: () => {
                     if (estado.sample) abrirColeccionPicker(estado.sample);
-                },
-            },
-            {
-                id: 'cola',
-                etiqueta: 'Añadir a la cola',
-                onClick: () => {
-                    if (estado.sample) agregarACola(estado.sample);
                 },
                 separadorDespues: true,
             },

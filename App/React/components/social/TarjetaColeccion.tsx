@@ -5,9 +5,10 @@
  */
 
 import { useCallback, useState, useRef, type MouseEvent } from 'react';
-import { Globe, Lock, MoreVertical, Edit3, Trash2 } from 'lucide-react';
+import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2 } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
+import { toast } from '@app/stores/toastStore';
 import '../../styles/componentes/tarjetaColeccion.css';
 
 interface TarjetaColeccionProps {
@@ -44,6 +45,16 @@ export const TarjetaColeccion = ({
         onEliminar?.(coleccion);
     }, [onEliminar, coleccion]);
 
+    /* C161: Copiar enlace siempre disponible para todas las colecciones */
+    const manejarCopiarEnlace = useCallback((e: MouseEvent) => {
+        e.stopPropagation();
+        setMenuAbierto(false);
+        const url = `${window.location.origin}/coleccion/${coleccion.id}/`;
+        navigator.clipboard.writeText(url).then(() => {
+            toast.exito('Enlace copiado');
+        });
+    }, [coleccion.id]);
+
     const toggleMenu = useCallback((e: MouseEvent) => {
         e.stopPropagation();
         setMenuAbierto(prev => !prev);
@@ -52,7 +63,6 @@ export const TarjetaColeccion = ({
     /* Cerrar menú al hacer click fuera */
     const cerrarMenu = useCallback(() => setMenuAbierto(false), []);
 
-    const tieneAcciones = !!onEditar || !!onEliminar;
     const imagenPortada = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
     const clases = ['tarjetaColeccion', className].filter(Boolean).join(' ');
 
@@ -60,35 +70,37 @@ export const TarjetaColeccion = ({
         <div className={clases} onClick={manejarClick} role="button" tabIndex={0} onBlur={cerrarMenu}>
             <div className="tarjetaColeccionPortada">
                 <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
-                {/* C141: Botón 3 puntos sobre la imagen con contraste */}
-                {tieneAcciones && (
-                    <div className="tarjetaColeccionMenuContenedor" ref={menuRef}>
-                        <button
-                            className="tarjetaColeccionMenuBtn"
-                            onClick={toggleMenu}
-                            type="button"
-                            aria-label="Opciones de colección"
-                        >
-                            <MoreVertical size={16} />
-                        </button>
-                        {menuAbierto && (
-                            <div className="tarjetaColeccionMenu">
-                                {onEditar && (
-                                    <button className="tarjetaColeccionMenuItem" onClick={manejarEditar} type="button">
-                                        <Edit3 size={14} />
-                                        <span>Editar</span>
-                                    </button>
-                                )}
-                                {onEliminar && (
-                                    <button className="tarjetaColeccionMenuItem tarjetaColeccionMenuItemPeligro" onClick={manejarEliminar} type="button">
-                                        <Trash2 size={14} />
-                                        <span>Eliminar</span>
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                )}
+                {/* C161: Botón 3 puntos siempre visible — copiar enlace + acciones propietario */}
+                <div className="tarjetaColeccionMenuContenedor" ref={menuRef}>
+                    <button
+                        className="tarjetaColeccionMenuBtn"
+                        onClick={toggleMenu}
+                        type="button"
+                        aria-label="Opciones de colección"
+                    >
+                        <MoreVertical size={16} />
+                    </button>
+                    {menuAbierto && (
+                        <div className="tarjetaColeccionMenu">
+                            <button className="tarjetaColeccionMenuItem" onClick={manejarCopiarEnlace} type="button">
+                                <Link2 size={14} />
+                                <span>Copiar enlace</span>
+                            </button>
+                            {onEditar && (
+                                <button className="tarjetaColeccionMenuItem" onClick={manejarEditar} type="button">
+                                    <Edit3 size={14} />
+                                    <span>Editar</span>
+                                </button>
+                            )}
+                            {onEliminar && (
+                                <button className="tarjetaColeccionMenuItem tarjetaColeccionMenuItemPeligro" onClick={manejarEliminar} type="button">
+                                    <Trash2 size={14} />
+                                    <span>Eliminar</span>
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="tarjetaColeccionInfo">

@@ -6,13 +6,15 @@
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { X, Minus, Send, Maximize2, Paperclip } from 'lucide-react';
+import { X, Minus, Send, Maximize2, Paperclip, MoreVertical, User, ShieldAlert, Flag } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BurbujaMensaje } from '@app/components/social/BurbujaMensaje';
 import { useChatFlotanteStore, type ChatFlotanteInfo } from '@app/stores/chatFlotanteStore';
 import { enviarMensaje, enviarMensajeMultimedia } from '@app/services/apiMensajes';
 import { obtenerMensajes } from '@app/services/apiMensajes';
 import { useAuthStore } from '@app/stores/authStore';
+import { useNavigationStore } from '@/core/router';
+import { toast } from '@app/stores/toastStore';
 import type { Mensaje } from '@app/types';
 import '../../styles/componentes/chatFlotante.css';
 
@@ -20,9 +22,11 @@ import '../../styles/componentes/chatFlotante.css';
 const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
     const { cerrarChat, minimizarChat, restaurarChat } = useChatFlotanteStore();
     const { usuario } = useAuthStore();
+    const { navegar } = useNavigationStore();
     const [mensajes, setMensajes] = useState<Mensaje[]>([]);
     const [texto, setTexto] = useState('');
     const [enviando, setEnviando] = useState(false);
+    const [menuAbierto, setMenuAbierto] = useState(false);
 
     const mensajesRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -168,6 +172,56 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
                 />
                 <span className="chatFlotanteNombre">{chat.nombreParticipante}</span>
                 <div className="chatFlotanteHeaderAcciones">
+                    {/* C163: Menú 3 puntos con ver perfil / reportar / bloquear */}
+                    <div className="chatFlotanteMenuContenedor">
+                        <button
+                            onClick={() => setMenuAbierto(prev => !prev)}
+                            type="button"
+                            className="chatFlotanteHeaderBtn"
+                            aria-label="Opciones"
+                        >
+                            <MoreVertical size={12} />
+                        </button>
+                        {menuAbierto && (
+                            <div className="chatFlotanteMenu">
+                                <button
+                                    className="chatFlotanteMenuItem"
+                                    onClick={() => {
+                                        setMenuAbierto(false);
+                                        navegar(`/perfil/${chat.participanteUsername}/`);
+                                    }}
+                                    type="button"
+                                >
+                                    <User size={14} />
+                                    <span>Ver perfil</span>
+                                </button>
+                                <button
+                                    className="chatFlotanteMenuItem"
+                                    onClick={() => {
+                                        setMenuAbierto(false);
+                                        /* TO-DO: sistema de reportes */
+                                        toast.info('Reporte enviado');
+                                    }}
+                                    type="button"
+                                >
+                                    <Flag size={14} />
+                                    <span>Reportar</span>
+                                </button>
+                                <button
+                                    className="chatFlotanteMenuItem chatFlotanteMenuItemPeligro"
+                                    onClick={() => {
+                                        setMenuAbierto(false);
+                                        /* TO-DO: API de bloqueo */
+                                        toast.info('Usuario bloqueado');
+                                    }}
+                                    type="button"
+                                >
+                                    <ShieldAlert size={14} />
+                                    <span>Bloquear</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     <button
                         onClick={() => minimizarChat(chat.conversacionId)}
                         type="button"
