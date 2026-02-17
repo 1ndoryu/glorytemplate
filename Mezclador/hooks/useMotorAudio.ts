@@ -2,12 +2,14 @@
  * useMotorAudio — Hook para controlar la reproducción del mezclador
  * Maneja scheduling preciso con Web Audio API (lookahead pattern).
  * Lee estado desde getState() para evitar stale closures en rAF.
+ * C213: Soporta reprogramación en tiempo real durante stretch/config changes.
  */
 
 import { useRef, useCallback, useEffect } from 'react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { motorAudio } from '../services/motorAudioService';
 import { compasesASegundos } from '../utils/compasUtils';
+import { EVENTO_REPROGRAMAR_AUDIO } from '../types/mezclador';
 
 export const useMotorAudio = () => {
     const tiempoInicioRef = useRef<number>(0);
@@ -18,6 +20,7 @@ export const useMotorAudio = () => {
      * Programar todos los bloques desde una posición dada.
      * Lee pistas/bpm/compás desde getState() para evitar recrear este callback
      * cada vez que cambia el array de pistas (causa cascading effect).
+     * C215: Soporta recorteInicio, invertido, fadeIn/fadeOut.
      */
     const programarBloques = useCallback((desdeSegundo: number) => {
         const { pistas, bpmProyecto, compasProyecto } = useMezcladorStore.getState();
@@ -54,20 +57,33 @@ export const useMotorAudio = () => {
                  * C207: el offset en esta resta es en tiempo de proyecto (wall-clock),
                  * al igual que duracionBufferAjustada.
                  */
-                const duracionBufferAjustada = bloque.audioBuffer.duration / bloque.playbackRate;
+                const recorteInicio = bloque.recorteInicio ?? 0;
+                const duracionBufferTotal = bloque.audioBuffer.duration;
+                const finRecorte = bloque.recorteFin ?? duracionBufferTotal;
+                const duracionUtilBuffer = finRecorte - recorteInicio;
+                const duracionBufferAjustada = duracionUtilBuffer / bloque.playbackRate;
                 const duracionDisponible = duracionBufferAjustada - offset;
                 const duracionFinal = Math.min(duracionEfectiva, duracionDisponible);
 
                 if (duracionFinal <= 0.001) continue;
 
+                /*
+                 * C215: El offset en el buffer incluye recorteInicio.
+                 * offset * playbackRate convierte wall-clock a buffer-time.
+                 */
+                const offsetBuffer = recorteInicio + (offset * bloque.playbackRate);
+
                 motorAudio.programarReproduccion(
                     bloque.audioBuffer,
                     pista.id,
                     Math.max(cuando, ahora),
-                    offset * bloque.playbackRate,
+                    offsetBuffer,
                     duracionFinal,
                     bloque.playbackRate,
-                    bloque.volumen * pista.volumen
+                    bloque.volumen * pista.volumen,
+                    bloque.invertido,
+                    bloque.fadeIn,
+                    bloque.fadeOut
                 );
             }
         }
@@ -154,6 +170,24 @@ export const useMotorAudio = () => {
             motorAudio.detenerTodo();
         };
     }, []);
+
+    /*
+     * C213: Escuchar evento de reprogramación en tiempo real.
+     * Se dispara cuando el store cambia parámetros de un bloque (stretch, config, split)
+     * durante la reproducción activa.
+     */
+    useEffect(() => {
+        const reprogramar = () => {
+            if (!useMezcladorStore.getState().reproduciendo) return;
+            const ctx = motorAudio.obtenerContexto();
+            const tiempoActual = ctx.currentTime - tiempoInicioRef.current;
+            motorAudio.detenerTodo();
+            programarBloques(tiempoActual);
+        };
+
+        window.addEventListener(EVENTO_REPROGRAMAR_AUDIO, reprogramar);
+        return () => window.removeEventListener(EVENTO_REPROGRAMAR_AUDIO, reprogramar);
+    }, [programarBloques]);
 
     return {
         reproducir,

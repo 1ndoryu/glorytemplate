@@ -1,19 +1,24 @@
 /*
  * BloqueSample — Bloque visual de un sample en la timeline
- * Muestra mini waveform + título. Draggeable + resize handles (C204 stretch/pitch).
+ * Muestra mini waveform + titulo. Draggeable + resize handles (C204 stretch/pitch).
+ * C215: Botones de 3 puntos (config), duplicar y eliminar en cabecera.
+ * C214: Click derecho o herramienta de corte para dividir el bloque.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
+import { X, MoreHorizontal, Copy } from 'lucide-react';
 import type { BloqueMezclador } from '../types/mezclador';
 import { anchoBloquePorc, posicionBloquePorc, snapABeat } from '../utils/compasUtils';
 import { useMezcladorStore } from '../stores/mezcladorStore';
+import { ModalConfigBloque } from './ModalConfigBloque';
 
 interface BloqueSampleProps {
     bloque: BloqueMezclador;
     totalCompases: number;
     onIniciarDrag: (bloqueId: string, pistaId: string, e: React.MouseEvent) => void;
     estaSiendoArrastrado?: boolean;
+    modoCortarActivo?: boolean;
+    onCortar?: (bloqueId: string, compas: number) => void;
 }
 
 export const BloqueSample = ({
@@ -21,15 +26,19 @@ export const BloqueSample = ({
     totalCompases,
     onIniciarDrag,
     estaSiendoArrastrado,
+    modoCortarActivo,
+    onCortar,
 }: BloqueSampleProps): JSX.Element => {
     const eliminarBloque = useMezcladorStore(s => s.eliminarBloque);
+    const duplicarBloque = useMezcladorStore(s => s.duplicarBloque);
     const setDuracionBloque = useMezcladorStore(s => s.setDuracionBloque);
     const compasProyecto = useMezcladorStore(s => s.compasProyecto);
     const ancho = anchoBloquePorc(bloque.duracionCompases, totalCompases);
     const izquierda = posicionBloquePorc(bloque.compasInicio, totalCompases);
 
-    /* Estado local para resize */
+    /* Estado local para resize y modal config */
     const [resizing, setResizing] = useState(false);
+    const [modalConfigAbierto, setModalConfigAbierto] = useState(false);
     const resizingRef = useRef(false);
     const datosResizeRef = useRef({ duracionInicial: 0, xInicial: 0, anchoContenedor: 0 });
 
@@ -96,35 +105,86 @@ export const BloqueSample = ({
         }).join(' ')
         : '';
 
+    /* C214: Manejar click para cortar si el modo cortar está activo */
+    const alClickBloque = useCallback((e: React.MouseEvent) => {
+        if (!modoCortarActivo || !onCortar) return;
+        e.stopPropagation();
+        e.preventDefault();
+
+        const contenedor = (e.target as HTMLElement).closest('.mezcladorPistaContenido');
+        if (!contenedor) return;
+        const rect = contenedor.getBoundingClientRect();
+        const relX = e.clientX - rect.left;
+        const porcentaje = relX / rect.width;
+        const compasClick = snapABeat(porcentaje * totalCompases, compasProyecto);
+        onCortar(bloque.id, compasClick);
+    }, [modoCortarActivo, onCortar, totalCompases, compasProyecto, bloque.id]);
+
     return (
         <div
-            className={`mezcladorBloque ${estaSiendoArrastrado ? 'mezcladorBloqueDragging' : ''} ${resizing ? 'mezcladorBloqueResizing' : ''}`}
+            className={`mezcladorBloque ${estaSiendoArrastrado ? 'mezcladorBloqueDragging' : ''} ${resizing ? 'mezcladorBloqueResizing' : ''} ${modoCortarActivo ? 'mezcladorBloqueCortando' : ''}`}
             style={{
                 left: `${izquierda}%`,
                 width: `${ancho}%`,
                 '--colorBloque': bloque.color,
             } as React.CSSProperties}
             onMouseDown={(e) => {
-                /* No iniciar drag si estamos resizing */
-                if (resizing) return;
+                if (resizing || modoCortarActivo) return;
                 onIniciarDrag(bloque.id, bloque.pistaId, e);
             }}
-            title={`${bloque.sample.titulo} (×${bloque.playbackRate.toFixed(2)})`}
+            onClick={alClickBloque}
+            title={`${bloque.sample.titulo} (x${bloque.playbackRate.toFixed(2)}${bloque.invertido ? ' REV' : ''})`}
         >
             <div className="mezcladorBloqueCabecera">
                 <span className="mezcladorBloqueTitulo">
                     {bloque.sample.titulo}
                 </span>
-                <button
-                    className="mezcladorBloqueEliminar"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        eliminarBloque(bloque.id);
-                    }}
-                >
-                    <X size={10} />
-                </button>
+                <div className="mezcladorBloqueBotones">
+                    {/* C215: Botón de duplicar */}
+                    <button
+                        className="mezcladorBloqueBoton"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            duplicarBloque(bloque.id);
+                        }}
+                        title="Duplicar bloque"
+                    >
+                        <Copy size={9} />
+                    </button>
+                    {/* C215: Botón de 3 puntos — abre modal config */}
+                    <button
+                        className="mezcladorBloqueBoton"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setModalConfigAbierto(true);
+                        }}
+                        title="Configuración de audio"
+                    >
+                        <MoreHorizontal size={10} />
+                    </button>
+                    {/* Botón eliminar */}
+                    <button
+                        className="mezcladorBloqueBoton mezcladorBloqueEliminar"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            eliminarBloque(bloque.id);
+                        }}
+                        title="Eliminar"
+                    >
+                        <X size={10} />
+                    </button>
+                </div>
             </div>
+
+            {/* Indicadores visuales de config activa */}
+            {(bloque.invertido || bloque.fadeIn > 0 || bloque.fadeOut > 0) && (
+                <div className="mezcladorBloqueIndicadores">
+                    {bloque.invertido && <span className="mezcladorBloqueTag">REV</span>}
+                    {bloque.fadeIn > 0 && <span className="mezcladorBloqueTag">IN</span>}
+                    {bloque.fadeOut > 0 && <span className="mezcladorBloqueTag">OUT</span>}
+                </div>
+            )}
+
             {bloque.waveformPeaks.length > 0 && (
                 <svg className="mezcladorBloqueWaveform" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <path d={waveformPath} stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.7" />
@@ -136,6 +196,14 @@ export const BloqueSample = ({
                 className="mezcladorBloqueResizeHandle"
                 onMouseDown={iniciarResize}
             />
+
+            {/* C215: Modal de configuración avanzada */}
+            {modalConfigAbierto && (
+                <ModalConfigBloque
+                    bloque={bloque}
+                    onCerrar={() => setModalConfigAbierto(false)}
+                />
+            )}
         </div>
     );
 };

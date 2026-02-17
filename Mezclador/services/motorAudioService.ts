@@ -86,7 +86,10 @@ class MotorAudio {
         return gain;
     }
 
-    /* Programar un buffer para reproducirse en un momento específico */
+    /*
+     * Programar un buffer para reproducirse en un momento específico.
+     * C215: Soporta invertido (reverse), fadeIn y fadeOut via GainNode ramps.
+     */
     programarReproduccion(
         buffer: AudioBuffer,
         pistaId: string,
@@ -94,19 +97,66 @@ class MotorAudio {
         offset: number,
         duracion: number,
         playbackRate: number,
-        volumen: number
+        volumen: number,
+        invertido = false,
+        fadeIn = 0,
+        fadeOut = 0
     ): AudioBufferSourceNode {
         const ctx = this.obtenerContexto();
         const fuente = ctx.createBufferSource();
-        fuente.buffer = buffer;
+
+        /*
+         * C215: Si el bloque está invertido, usar un buffer invertido.
+         * Crear copia invertida en el momento (cacheado sería mejor pero
+         * para simplificar lo hacemos inline; el buffer ya está en memoria).
+         */
+        if (invertido) {
+            const bufferInvertido = ctx.createBuffer(
+                buffer.numberOfChannels,
+                buffer.length,
+                buffer.sampleRate
+            );
+            for (let c = 0; c < buffer.numberOfChannels; c++) {
+                const orig = buffer.getChannelData(c);
+                const dest = bufferInvertido.getChannelData(c);
+                for (let i = 0; i < orig.length; i++) {
+                    dest[i] = orig[orig.length - 1 - i];
+                }
+            }
+            fuente.buffer = bufferInvertido;
+            /* Invertir el offset: apuntar al espejo */
+            offset = Math.max(0, buffer.duration - offset - (duracion * playbackRate));
+        } else {
+            fuente.buffer = buffer;
+        }
+
         fuente.playbackRate.value = playbackRate;
 
         const gainNodo = ctx.createGain();
-        gainNodo.gain.value = volumen;
         fuente.connect(gainNodo);
 
         const gainPista = this.obtenerGainPista(pistaId);
         gainNodo.connect(gainPista);
+
+        /*
+         * C215: Aplicar fade in/out vía rampas de ganancia.
+         * fadeIn/fadeOut son en segundos wall-clock (no buffer-time).
+         */
+        if (fadeIn > 0 && fadeIn < duracion) {
+            gainNodo.gain.setValueAtTime(0, cuando);
+            gainNodo.gain.linearRampToValueAtTime(volumen, cuando + fadeIn);
+        } else {
+            gainNodo.gain.setValueAtTime(volumen, cuando);
+        }
+
+        if (fadeOut > 0 && fadeOut < duracion) {
+            const inicioFadeOut = cuando + duracion - fadeOut;
+            /* Solo aplicar si no se superpone con fadeIn */
+            if (inicioFadeOut > cuando + fadeIn) {
+                gainNodo.gain.setValueAtTime(volumen, inicioFadeOut);
+                gainNodo.gain.linearRampToValueAtTime(0, cuando + duracion);
+            }
+        }
 
         fuente.start(cuando, offset, duracion);
         this.nodosActivos.push(fuente);
@@ -169,6 +219,9 @@ class MotorAudio {
             duracion: number;
             playbackRate: number;
             volumen: number;
+            invertido?: boolean;
+            fadeIn?: number;
+            fadeOut?: number;
         }>,
         duracionTotal: number
     ): Promise<AudioBuffer> {
@@ -178,15 +231,56 @@ class MotorAudio {
 
         for (const bloque of bloques) {
             const fuente = offlineCtx.createBufferSource();
-            fuente.buffer = bloque.buffer;
+
+            /* C215: Invertir buffer si es necesario */
+            if (bloque.invertido) {
+                const bufInv = offlineCtx.createBuffer(
+                    bloque.buffer.numberOfChannels,
+                    bloque.buffer.length,
+                    bloque.buffer.sampleRate
+                );
+                for (let c = 0; c < bloque.buffer.numberOfChannels; c++) {
+                    const orig = bloque.buffer.getChannelData(c);
+                    const dest = bufInv.getChannelData(c);
+                    for (let i = 0; i < orig.length; i++) {
+                        dest[i] = orig[orig.length - 1 - i];
+                    }
+                }
+                fuente.buffer = bufInv;
+            } else {
+                fuente.buffer = bloque.buffer;
+            }
+
             fuente.playbackRate.value = bloque.playbackRate;
 
             const gainNodo = offlineCtx.createGain();
-            gainNodo.gain.value = bloque.volumen;
             fuente.connect(gainNodo);
             gainNodo.connect(masterGain);
 
-            fuente.start(bloque.cuando, bloque.offset, bloque.duracion);
+            /* C215: Aplicar fades */
+            const fadeIn = bloque.fadeIn ?? 0;
+            const fadeOut = bloque.fadeOut ?? 0;
+
+            if (fadeIn > 0 && fadeIn < bloque.duracion) {
+                gainNodo.gain.setValueAtTime(0, bloque.cuando);
+                gainNodo.gain.linearRampToValueAtTime(bloque.volumen, bloque.cuando + fadeIn);
+            } else {
+                gainNodo.gain.setValueAtTime(bloque.volumen, bloque.cuando);
+            }
+
+            if (fadeOut > 0 && fadeOut < bloque.duracion) {
+                const inicioFade = bloque.cuando + bloque.duracion - fadeOut;
+                if (inicioFade > bloque.cuando + fadeIn) {
+                    gainNodo.gain.setValueAtTime(bloque.volumen, inicioFade);
+                    gainNodo.gain.linearRampToValueAtTime(0, bloque.cuando + bloque.duracion);
+                }
+            }
+
+            const offset = bloque.invertido
+                ? Math.max(0, bloque.buffer.duration - bloque.offset - (bloque.duracion * bloque.playbackRate))
+                : bloque.offset;
+
+            fuente.start(bloque.cuando, offset, bloque.duracion);
         }
 
         return offlineCtx.startRendering();

@@ -24,6 +24,25 @@ export interface BloqueMezclador {
     silenciado: boolean;
     color: string;
     waveformPeaks: number[];
+    /* C215: Configuración avanzada del bloque */
+    invertido: boolean;
+    fadeIn: number;
+    fadeOut: number;
+    recorteInicio: number;
+    recorteFin: number | null;
+    normalizado: boolean;
+}
+
+/* C215: Configuración parcial para actualizar un bloque */
+export interface ConfigBloque {
+    playbackRate?: number;
+    volumen?: number;
+    invertido?: boolean;
+    fadeIn?: number;
+    fadeOut?: number;
+    recorteInicio?: number;
+    recorteFin?: number | null;
+    normalizado?: boolean;
 }
 
 /* Una pista en la timeline */
@@ -69,6 +88,9 @@ export interface InfoCompas {
 
 /* Evento para agregar sample al mezclador desde fuera */
 export const EVENTO_AGREGAR_MEZCLADOR = 'kamples:agregar-mezclador';
+
+/* C213: Evento para reprogramar audio en tiempo real */
+export const EVENTO_REPROGRAMAR_AUDIO = 'kamples:reprogramar-audio';
 
 /* Constantes del mezclador */
 export const CONSTANTES_MEZCLADOR = {

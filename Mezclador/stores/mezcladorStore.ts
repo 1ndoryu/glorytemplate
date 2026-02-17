@@ -5,8 +5,8 @@
 
 import { create } from 'zustand';
 import type { SampleResumen } from '@app/types';
-import type { BloqueMezclador, PistaMezclador, Compas } from '../types/mezclador';
-import { CONSTANTES_MEZCLADOR, COLORES_BLOQUE } from '../types/mezclador';
+import type { BloqueMezclador, PistaMezclador, Compas, ConfigBloque } from '../types/mezclador';
+import { CONSTANTES_MEZCLADOR, COLORES_BLOQUE, EVENTO_REPROGRAMAR_AUDIO } from '../types/mezclador';
 import { inferirCompas, compasesASegundos } from '../utils/compasUtils';
 import { generarIdBloque, generarIdPista, extraerPeaks } from '../utils/audioBufferUtils';
 import { motorAudio } from '../services/motorAudioService';
@@ -31,6 +31,7 @@ interface MezcladorState {
     posicionCursor: number;
     exportando: boolean;
     cargandoBuffers: Set<string>;
+    modoCortarActivo: boolean;
 
     abrir: () => void;
     cerrar: () => void;
@@ -52,11 +53,15 @@ interface MezcladorState {
     moverBloque: (bloqueId: string, pistaIdDestino: string, compasInicio: number) => void;
     eliminarBloque: (bloqueId: string) => void;
     setDuracionBloque: (bloqueId: string, nuevaDuracion: number) => void;
+    duplicarBloque: (bloqueId: string) => void;
+    dividirBloque: (bloqueId: string, posicionCompas: number) => void;
+    actualizarConfigBloque: (bloqueId: string, config: ConfigBloque) => void;
 
     setReproduciendo: (valor: boolean) => void;
     setTiempoActual: (tiempo: number) => void;
     setPosicionCursor: (posicion: number) => void;
     setExportando: (valor: boolean) => void;
+    toggleModoCortar: () => void;
 
     limpiarProyecto: () => void;
     obtenerDuracionTotal: () => number;
@@ -82,6 +87,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     posicionCursor: 0,
     exportando: false,
     cargandoBuffers: new Set<string>(),
+    modoCortarActivo: false,
 
     abrir: () => set({ abierto: true }),
     cerrar: () => {
@@ -214,6 +220,12 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 silenciado: false,
                 color,
                 waveformPeaks,
+                invertido: false,
+                fadeIn: 0,
+                fadeOut: 0,
+                recorteInicio: 0,
+                recorteFin: null,
+                normalizado: false,
             };
 
             /* Expandir totalCompases si es necesario */
@@ -327,6 +339,12 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 silenciado: false,
                 color: COLORES_BLOQUE.default,
                 waveformPeaks,
+                invertido: false,
+                fadeIn: 0,
+                fadeOut: 0,
+                recorteInicio: 0,
+                recorteFin: null,
+                normalizado: false,
             };
 
             const finBloque = compasInicio + info.duracionCompases;
@@ -393,6 +411,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
      * C204: Cambiar duración de un bloque (stretch/pitch).
      * Al cambiar duracionCompases, recalcular playbackRate para
      * que el buffer encaje en la nueva duración visual.
+     * C213: Reprogramar audio en tiempo real si está reproduciendo.
      */
     setDuracionBloque: (bloqueId, nuevaDuracion) => {
         const { bpmProyecto, compasProyecto } = get();
@@ -413,12 +432,141 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 }),
             })),
         }));
+        /* C213: Notificar al motor de audio para reprogramar si está sonando */
+        if (get().reproduciendo) {
+            window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO));
+        }
+    },
+
+    /*
+     * C215: Duplicar un bloque existente.
+     * Crea una copia idéntica justo después del bloque original.
+     */
+    duplicarBloque: (bloqueId) => {
+        set(prev => {
+            let bloqueOriginal: BloqueMezclador | null = null;
+            let pistaId = '';
+
+            for (const pista of prev.pistas) {
+                const encontrado = pista.bloques.find(b => b.id === bloqueId);
+                if (encontrado) {
+                    bloqueOriginal = encontrado;
+                    pistaId = pista.id;
+                    break;
+                }
+            }
+
+            if (!bloqueOriginal) return prev;
+
+            const nuevaPosicion = bloqueOriginal.compasInicio + bloqueOriginal.duracionCompases;
+            const copia: BloqueMezclador = {
+                ...bloqueOriginal,
+                id: generarIdBloque(),
+                compasInicio: nuevaPosicion,
+            };
+
+            const finBloque = nuevaPosicion + copia.duracionCompases;
+
+            return {
+                pistas: prev.pistas.map(p =>
+                    p.id === pistaId
+                        ? { ...p, bloques: [...p.bloques, copia] }
+                        : p
+                ),
+                totalCompases: Math.max(prev.totalCompases, finBloque),
+            };
+        });
+    },
+
+    /*
+     * C214: Dividir un bloque en dos en una posición dada (en compases).
+     * El primer bloque conserva el inicio, el segundo arranca desde la posición de corte.
+     */
+    dividirBloque: (bloqueId, posicionCompas) => {
+        const { bpmProyecto, compasProyecto } = get();
+        set(prev => {
+            let bloqueOriginal: BloqueMezclador | null = null;
+            let pistaId = '';
+
+            for (const pista of prev.pistas) {
+                const encontrado = pista.bloques.find(b => b.id === bloqueId);
+                if (encontrado) {
+                    bloqueOriginal = encontrado;
+                    pistaId = pista.id;
+                    break;
+                }
+            }
+
+            if (!bloqueOriginal || !bloqueOriginal.audioBuffer) return prev;
+
+            /* La posición debe estar dentro del bloque */
+            const posRelativa = posicionCompas - bloqueOriginal.compasInicio;
+            if (posRelativa <= 0.1 || posRelativa >= bloqueOriginal.duracionCompases - 0.1) {
+                return prev;
+            }
+
+            /* Calcular recorte en segundos para el segundo bloque */
+            const durCompas = (60 / bpmProyecto) * compasProyecto.numerador;
+            const tiempoCorte = posRelativa * durCompas * bloqueOriginal.playbackRate;
+            const recorteInicioOriginal = bloqueOriginal.recorteInicio ?? 0;
+
+            const bloqueA: BloqueMezclador = {
+                ...bloqueOriginal,
+                duracionCompases: posRelativa,
+            };
+
+            const bloqueB: BloqueMezclador = {
+                ...bloqueOriginal,
+                id: generarIdBloque(),
+                compasInicio: posicionCompas,
+                duracionCompases: bloqueOriginal.duracionCompases - posRelativa,
+                recorteInicio: recorteInicioOriginal + tiempoCorte,
+            };
+
+            return {
+                pistas: prev.pistas.map(p =>
+                    p.id === pistaId
+                        ? {
+                            ...p,
+                            bloques: p.bloques.map(b =>
+                                b.id === bloqueId ? bloqueA : b
+                            ).concat(bloqueB),
+                        }
+                        : p
+                ),
+            };
+        });
+
+        if (get().reproduciendo) {
+            window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO));
+        }
+    },
+
+    /*
+     * C215: Actualizar configuración avanzada de un bloque.
+     * Permite cambiar propiedades como invertido, fade, recorte, etc.
+     */
+    actualizarConfigBloque: (bloqueId, config) => {
+        set(prev => ({
+            pistas: prev.pistas.map(p => ({
+                ...p,
+                bloques: p.bloques.map(b => {
+                    if (b.id !== bloqueId) return b;
+                    return { ...b, ...config };
+                }),
+            })),
+        }));
+
+        if (get().reproduciendo) {
+            window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO));
+        }
     },
 
     setReproduciendo: (valor) => set({ reproduciendo: valor }),
     setTiempoActual: (tiempo) => set({ tiempoActual: tiempo }),
     setPosicionCursor: (posicion) => set({ posicionCursor: posicion }),
     setExportando: (valor) => set({ exportando: valor }),
+    toggleModoCortar: () => set(prev => ({ modoCortarActivo: !prev.modoCortarActivo })),
 
     limpiarProyecto: () => {
         motorAudio.detenerTodo();

@@ -3,6 +3,7 @@
  * Contenedor scrollable que agrupa pistas, barra de compases y cursor
  */
 
+import { useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { BarraCompases } from './BarraCompases';
 import { CursorReproduccion } from './CursorReproduccion';
@@ -33,6 +34,12 @@ export const Timeline = ({
     const pistas = useMezcladorStore(s => s.pistas);
     const totalCompases = useMezcladorStore(s => s.totalCompases);
     const agregarPista = useMezcladorStore(s => s.agregarPista);
+    const modoCortarActivo = useMezcladorStore(s => s.modoCortarActivo);
+    const dividirBloque = useMezcladorStore(s => s.dividirBloque);
+
+    const alCortar = useCallback((bloqueId: string, compas: number) => {
+        dividirBloque(bloqueId, compas);
+    }, [dividirBloque]);
 
     return (
         <div className="mezcladorTimeline" ref={timelineRef}>
@@ -57,6 +64,8 @@ export const Timeline = ({
                         pistaIdHover={pistaIdHover}
                         dragActivo={dragActivo}
                         bloqueIdDrag={bloqueIdDrag}
+                        modoCortarActivo={modoCortarActivo}
+                        onCortar={alCortar}
                     />
                 ))}
 

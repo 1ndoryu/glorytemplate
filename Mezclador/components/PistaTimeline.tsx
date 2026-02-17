@@ -17,6 +17,8 @@ interface PistaTimelineProps {
     pistaIdHover?: string | null;
     dragActivo?: boolean;
     bloqueIdDrag?: string | null;
+    modoCortarActivo?: boolean;
+    onCortar?: (bloqueId: string, compas: number) => void;
 }
 
 export const PistaTimeline = ({
@@ -28,6 +30,8 @@ export const PistaTimeline = ({
     pistaIdHover,
     dragActivo,
     bloqueIdDrag,
+    modoCortarActivo,
+    onCortar,
 }: PistaTimelineProps): JSX.Element => {
     const toggleSilenciarPista = useMezcladorStore(s => s.toggleSilenciarPista);
     const eliminarPista = useMezcladorStore(s => s.eliminarPista);
@@ -91,6 +95,8 @@ export const PistaTimeline = ({
                         totalCompases={totalCompases}
                         onIniciarDrag={onIniciarDrag}
                         estaSiendoArrastrado={dragActivo && bloqueIdDrag === bloque.id}
+                        modoCortarActivo={modoCortarActivo}
+                        onCortar={onCortar}
                     />
                 ))}
 

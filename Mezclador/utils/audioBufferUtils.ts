@@ -101,3 +101,69 @@ export const generarIdBloque = (): string => {
 export const generarIdPista = (): string => {
     return `pista_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 };
+
+/*
+ * C215: Invertir un AudioBuffer (reproducción inversa).
+ * Crea un buffer nuevo con las muestras en orden inverso.
+ */
+export const invertirBuffer = (
+    contexto: AudioContext | OfflineAudioContext,
+    buffer: AudioBuffer
+): AudioBuffer => {
+    const nuevoBuffer = contexto.createBuffer(
+        buffer.numberOfChannels,
+        buffer.length,
+        buffer.sampleRate
+    );
+
+    for (let canal = 0; canal < buffer.numberOfChannels; canal++) {
+        const datosOrigen = buffer.getChannelData(canal);
+        const datosDestino = nuevoBuffer.getChannelData(canal);
+        for (let i = 0; i < datosOrigen.length; i++) {
+            datosDestino[i] = datosOrigen[datosOrigen.length - 1 - i];
+        }
+    }
+
+    return nuevoBuffer;
+};
+
+/*
+ * C215: Normalizar un AudioBuffer (escalar a pico 1.0).
+ * Crea un buffer nuevo con las muestras normalizadas.
+ */
+export const normalizarBuffer = (
+    contexto: AudioContext | OfflineAudioContext,
+    buffer: AudioBuffer
+): AudioBuffer => {
+    /* Encontrar el pico máximo en todos los canales */
+    let picoMax = 0;
+    for (let canal = 0; canal < buffer.numberOfChannels; canal++) {
+        const datos = buffer.getChannelData(canal);
+        for (let i = 0; i < datos.length; i++) {
+            const abs = Math.abs(datos[i]);
+            if (abs > picoMax) picoMax = abs;
+        }
+    }
+
+    /* Si ya está normalizado o es silencio, devolver copia sin cambios */
+    if (picoMax <= 0 || picoMax >= 0.999) {
+        return buffer;
+    }
+
+    const factor = 1.0 / picoMax;
+    const nuevoBuffer = contexto.createBuffer(
+        buffer.numberOfChannels,
+        buffer.length,
+        buffer.sampleRate
+    );
+
+    for (let canal = 0; canal < buffer.numberOfChannels; canal++) {
+        const datosOrigen = buffer.getChannelData(canal);
+        const datosDestino = nuevoBuffer.getChannelData(canal);
+        for (let i = 0; i < datosOrigen.length; i++) {
+            datosDestino[i] = datosOrigen[i] * factor;
+        }
+    }
+
+    return nuevoBuffer;
+};

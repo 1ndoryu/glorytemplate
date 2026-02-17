@@ -4,7 +4,7 @@
  */
 
 import { useRef } from 'react';
-import { Play, Square, Plus, Minus, Download, Upload, FolderUp, Trash2, Loader } from 'lucide-react';
+import { Play, Square, Plus, Minus, Download, Upload, FolderUp, Trash2, Loader, Scissors } from 'lucide-react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 
 interface ControlesMezcladorProps {
@@ -31,6 +31,8 @@ export const ControlesMezclador = ({
     const quitarCompas = useMezcladorStore(s => s.quitarCompas);
     const limpiarProyecto = useMezcladorStore(s => s.limpiarProyecto);
     const agregarAudioLocal = useMezcladorStore(s => s.agregarAudioLocal);
+    const modoCortarActivo = useMezcladorStore(s => s.modoCortarActivo);
+    const toggleModoCortar = useMezcladorStore(s => s.toggleModoCortar);
 
     /* C208: Referencia al input de archivo oculto */
     const inputArchivoRef = useRef<HTMLInputElement>(null);
@@ -101,8 +103,16 @@ export const ControlesMezclador = ({
                 </button>
             </div>
 
-            {/* Grupo derecho: subir + exportar + limpiar */}
+            {/* Grupo derecho: cortar + subir + exportar + limpiar */}
             <div className="mezcladorControlesGrupo">
+                {/* C214: Botón herramienta de corte */}
+                <button
+                    className={`mezcladorBotonAccion ${modoCortarActivo ? 'mezcladorBotonActivo' : ''}`}
+                    onClick={toggleModoCortar}
+                    title={modoCortarActivo ? 'Desactivar corte' : 'Activar herramienta de corte'}
+                >
+                    <Scissors size={13} />
+                </button>
                 {/* C208: Botón subir audio desde PC */}
                 <button
                     className="mezcladorBotonAccion"

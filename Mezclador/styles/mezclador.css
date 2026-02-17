@@ -423,6 +423,76 @@
     color: var(--error, #ef4444);
 }
 
+/* C215: Grupo de botones en cabecera del bloque */
+.mezcladorBloqueBotones {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity var(--transicionRapida);
+    flex-shrink: 0;
+}
+
+.mezcladorBloque:hover .mezcladorBloqueBotones {
+    opacity: 1;
+}
+
+.mezcladorBloqueBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: 2px;
+    padding: 0;
+    flex-shrink: 0;
+    transition: color var(--transicionRapida);
+}
+
+.mezcladorBloqueBoton:hover {
+    color: var(--textoSecundario);
+}
+
+.mezcladorBloqueBoton.mezcladorBloqueEliminar:hover {
+    color: var(--error, #ef4444);
+}
+
+/* C215: Indicadores visuales de config (REV, IN, OUT) */
+.mezcladorBloqueIndicadores {
+    display: flex;
+    gap: 2px;
+    padding: 0 3px;
+    flex-wrap: wrap;
+}
+
+.mezcladorBloqueTag {
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 0 2px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--textoSecundario);
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+/* C214: Modo cortar — cursor tijera sobre bloques */
+.mezcladorBloqueCortando {
+    cursor: crosshair;
+}
+
+/* C214: Botón activo (ej. Scissors en controles) */
+.mezcladorBotonActivo {
+    background: var(--acento) !important;
+    color: var(--fondoBase) !important;
+    border-color: var(--acento) !important;
+}
+
 .mezcladorBloqueWaveform {
     flex: 1;
     width: 100%;
@@ -569,6 +639,172 @@
 @keyframes mezcladorGirar {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+/* C215: Modal de configuración de bloque */
+.modalConfigOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+}
+
+.modalConfigBloque {
+    background: var(--fondoElevado1, #1e1e2e);
+    border: 1px solid var(--bordeDefault, #333);
+    border-radius: 8px;
+    padding: 16px;
+    min-width: 300px;
+    max-width: 380px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.modalConfigCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.modalConfigTitulo {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    margin-right: 8px;
+}
+
+.modalConfigCerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background var(--transicionRapida), color var(--transicionRapida);
+    flex-shrink: 0;
+}
+
+.modalConfigCerrar:hover {
+    background: var(--fondoElevado2, #2a2a3e);
+    color: var(--textoPrimario);
+}
+
+.modalConfigInfo {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    font-size: 10px;
+    color: var(--textoTerciario);
+}
+
+.modalConfigInfo span {
+    background: var(--fondoElevado2, #2a2a3e);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.modalConfigControles {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modalConfigFila {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modalConfigLabel {
+    font-size: 11px;
+    color: var(--textoSecundario);
+    min-width: 60px;
+    flex-shrink: 0;
+}
+
+.modalConfigSlider {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--fondoElevado2, #2a2a3e);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+
+.modalConfigSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--acento);
+    cursor: pointer;
+    border: none;
+}
+
+.modalConfigSlider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--acento);
+    cursor: pointer;
+    border: none;
+}
+
+.modalConfigValor {
+    font-size: 10px;
+    color: var(--textoTerciario);
+    min-width: 36px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.modalConfigToggles {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.modalConfigToggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: var(--textoSecundario);
+    background: var(--fondoElevado2, #2a2a3e);
+    border: 1px solid var(--bordeDefault, #333);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background var(--transicionRapida), border-color var(--transicionRapida), color var(--transicionRapida);
+}
+
+.modalConfigToggle:hover {
+    border-color: var(--acento);
+}
+
+.modalConfigToggle.activo {
+    background: var(--acento);
+    color: var(--fondoBase, #121212);
+    border-color: var(--acento);
+    font-weight: 600;
 }
 
 /* Responsive */

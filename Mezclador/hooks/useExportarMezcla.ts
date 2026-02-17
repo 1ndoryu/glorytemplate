@@ -43,17 +43,23 @@ export const useExportarMezcla = () => {
                     bloque.duracionCompases, bpmProyecto, compasProyecto
                 );
 
-                /* Limitar al buffer real */
-                const duracionBufferAjustada = bloque.audioBuffer.duration / bloque.playbackRate;
+                /* C215: Respetar recorte y config avanzada en export */
+                const recorteInicio = bloque.recorteInicio ?? 0;
+                const finRecorte = bloque.recorteFin ?? bloque.audioBuffer.duration;
+                const duracionUtilBuffer = finRecorte - recorteInicio;
+                const duracionBufferAjustada = duracionUtilBuffer / bloque.playbackRate;
                 const duracionFinal = Math.min(duracionSegundos, duracionBufferAjustada);
 
                 bloquesParaRenderizar.push({
                     buffer: bloque.audioBuffer,
                     cuando: inicioSegundos,
-                    offset: 0,
+                    offset: recorteInicio,
                     duracion: duracionFinal,
                     playbackRate: bloque.playbackRate,
                     volumen: bloque.volumen * pista.volumen,
+                    invertido: bloque.invertido,
+                    fadeIn: bloque.fadeIn,
+                    fadeOut: bloque.fadeOut,
                 });
             }
         }
