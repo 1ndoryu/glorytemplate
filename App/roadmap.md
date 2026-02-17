@@ -61,7 +61,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | `/reproductor`       | `ReproductorIsland`      | Player completo                                     |
 | `/auth/login`        | `LoginIsland`            | Login                                               |
 | `/auth/registro`     | `RegistroIsland`         | Registro                                            |
-| `/admin/dashboard`   | `DashboardCreadorIsland` | Stats creador                                       |
+| `/admin/dashboard`   | `DashboardCreadorIsland` | Stats creador                                       |\n| `/admin/panel`       | `AdminPanelIsland`       | Panel admin (KPIs, usuarios, moderación)            |
 
 **Eliminadas:** `/perfil/editar` (ahora ModalConfiguracion), tabs de InicioIsland (reemplazadas por ordenamientos).  
 **Chat flotante:** tipo Messenger en esquina inferior derecha, se abre desde modales de TopBar o /mensajes.
@@ -103,6 +103,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R41-R44:** C131/C132 moderación+bans, C140 descargas/favoritos separados, C171+C175+cleanup, C176+C173+C174 (clipboard fallback, badge moderación, tabs fix).
 **R45:** C172 compactar roadmap + C177 remover créditos descargas + C178 sistema verificación samples (migración v015, controller PUT admin, normalizer, BadgeCheck tarjeta+detalle, menú contextual verificar, evento actualización, boost algoritmo 1.15x).
 **R46:** C169+C170+C180+C181+C182+C183: búsqueda colecciones (ILIKE backend+filtrosStore frontend+placeholder dinámico), editor metadata fix (descripción real+chips IA), FilaColecciones horizontal (max 8, scroll invisible), algoritmo colecciones CTE (tags 0.60+frescura 0.20+volumen 0.20+follow 1.3x), Bookmark guardar contextual, fix reproducciones completada.
+**R47:** C179 Panel de Administración (FASE 13): AdminController.php (6 endpoints admin-only), apiAdmin.ts (tipos completos), useAdminPanel.ts (hook lógica), AdminPanelIsland (tabs Resumen+Usuarios+Moderación), TabResumenAdmin (KPIs+gráfica actividad), TabUsuariosAdmin (tabla+búsqueda+filtro+acciones), TabModeracionAdmin (aprobar/rechazar+reportes), adminPanel.css, Sidebar admin condicional, pages.php+MAPA_RUTAS.
 **R43:** C171 licenciaLibre auto-derivada de permitirDescarga (4 archivos simplificados, ~134 lín eliminadas) + C175 descargas/favoritos rediseño ColeccionDetalle-style + CSS descargasFavoritos.css eliminado.
 **R44:** C176 copiarAlPortapapeles fallback execCommand (clipboard.ts, 4 consumidores), C173 BadgeModeracion siempre visible + admin aprobar posts (ComunidadIsland), C174 useTabsIsla hook keep-alive tabs fix (8 islas migradas) + PageRenderer updater funcional (fix pantalla negra).
 **R41:** C131/C132 moderación IA comentarios + bans: ServicioAntiSpam.php (heurístico pre-IA: URLs, caps, spam patterns, duplicados), ServicioBan.php (violaciones progresivas: 3→24h, 5→7d, 8→30d, notificaciones automáticas). ServicioModeracionIA.moderarComentario() (Guard texto + Vision imagen, tolerante con toxicidad/insultos, solo rechaza spam/pornografía/ilegal, contexto musical para álbumes). v014 migración (moderacion_estado/detalle en comentarios, violaciones/ban en usuarios_ext, tabla reportes genérica). ComentariosController integra anti-spam sincrónico + moderación IA async (shutdown hook) + filtrado rechazados en listar(). AuthMiddleware.verificarBanActivo() helper centralizado. TipoNotificacion += 'moderacion'. C167: PageRenderer refactorizado (patrón render-time state update, elimina cascading renders y pantalla negra). Type-check 23→0 errores (imports muertos en 6 archivos, IndicadorDescargas campos LimitesDescarga). C168: fix \n literal en ComentariosController.
@@ -318,6 +319,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **C146-C168:** v012 mensaje, algoritmo tags+creador, feedTags fix, hover tooltip, panel waveform, badge borde, TarjetaMini, botones panelDetalle, config preferencia panel, similares toggle, botón descarga acento, PanelRightClose, WebSocket (pendiente), filtro reproducidos fix, colecciones 3 puntos, tags concatenados, menú chat, seguridad hardening, cola eliminada, compactación, PageRenderer render-time update+type-check, syntax error ComentariosController.
 **C171-C178:** Licencia libre auto-derivada (R43), compactar registros (R44), BadgeModeracion+admin approve (R44), tabs freeze+pantalla negra fix (R44), descargas/favoritos rediseño (R43), copiar enlace fallback (R44), remover créditos descargas (R45), sistema verificación samples (R45).
 **C169-C183:** Búsqueda colecciones (R46), editor metadata fix descripcion+chips IA (R46), fila colecciones inicio (R46), algoritmo colecciones CTE (R46), modal guardar contextual+Bookmark (R46), fix reproducciones completada (R46).
+**C179:** Panel Administración FASE 13 (R47).
 
 ---
 
@@ -336,14 +338,15 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 176. ✅ copiarAlPortapapeles() con fallback execCommand para contextos no-HTTPS. 4 consumidores actualizados (R44).
 177. ✅ Eliminado badge plan, textoLimites y calidad WAV de DescargasIsland (R45).
 178. ✅ Sistema verificación samples completo: migración v015 (columna+índice), PUT admin, normalizer, BadgeCheck en tarjeta+detalle, menú contextual verificar/desverificar, EVENTO_SAMPLE_ACTUALIZADO, boost algoritmo 1.15x (R45).
-179. Empezar a trabajar en FASE 13 — Panel de Administración (C112 — Planificación).
+179. ✅ FASE 13 Panel de Administración completo: AdminController.php con 6 endpoints (resumen, actividad, usuarios CRUD, moderación, moderar), AdminPanelIsland con 3 tabs (Resumen KPIs+gráfica, Usuarios tabla+acciones, Moderación aprobar/rechazar), Sidebar enlace condicional admin, CSS responsive completo (R47).
 180. ✅ FilaColecciones horizontal: max 8 chips con imagen+nombre, scroll invisible, arriba de inicioBarraControl en InicioIsland (R46).
 181. ✅ Algoritmo colecciones: explorar() con CTE user_tags+coleccion_tags, score afinidad tags 0.60 + frescura 0.20 + volumen 0.20 + follow boost 1.3x, fallback updated_at para no-auth. sqlTagsEnriquecidos ahora public (R46).
 182. ✅ Guardar sample: botón Bookmark en TarjetaSample al lado de like, coleccionPickerStore con posición contextual (x,y del click), overlay transparente en modo contextual (R46).
 183. ✅ Fix reproducciones: columna completa renombrada a completada (v016). El guard wp_handle_upload ya existía de C168 (R46).
 184. (Tarea delegada a otro agente)
-185. Despues de completar 179. trabajar en 184 si aún no se ha realizado.
-
+186. ✅ Fix "Pagina React no configurada" en admin/panel: se registró `PageManager::reactPage('admin/panel', 'AdminPanelIsland')` en pages.php. La página WP se auto-crea en la próxima carga. Resuelto como parte de C179 (R47).
+187. Cuando reproduzco la waveform en el panel lateral, debe pausarse la otra waveform que se esta reproduciendo.
+188. Cuando
 ---
 
 ## Lecciones Aprendidas (compactas)
@@ -392,4 +395,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [C181]: Algoritmo colecciones con CTE es eficiente — `user_tags LIMIT 15` + `coleccion_tags` agrupados. `sqlTagsEnriquecidos` debe ser public para reutilizar.
 - [C182]: Posicionar modal contextual: pasar `{ x: e.clientX, y: e.clientY }` al store, ajustar con `Math.min()` para no salir del viewport.
 - [BD]: Columna reproducciones era `completa` no `completada` — renombrada con v016. Siempre verificar nombres exactos de columnas con psql.
+- [C179]: AdminController: todos los endpoints admin usan `AuthMiddleware::requerirAdmin()` como permission_callback. Las queries admin pueden usar subqueries en SELECT para contar relaciones (total_samples, total_descargas por usuario).
+- [C179]: Sidebar condicional: `const itemsFinales: SidebarItemDef[] = esAdmin ? [...items, adminItem] : items` — tipar explícitamente para evitar TS2339 en propiedades opcionales.
+- [C179]: Badge variantes son 'neutro|acento|exito|error|advertencia|info|premium', NO 'default|secondary|destructive|outline'.
 - [WP API]: `wp_handle_upload()` vive en `wp-admin/includes/file.php` — NO se carga en contexto REST API. Siempre hacer `if (!function_exists('wp_handle_upload')) require_once ABSPATH.'wp-admin/includes/file.php'` antes de usarlo. SamplesController lo tenía, Comentarios y Mensajes no.
