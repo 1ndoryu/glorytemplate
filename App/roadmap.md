@@ -70,7 +70,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ## Planes de Suscripción
 
-|               | Free      | Pro ($9.99) | Premium ($19.99) |
+|               | Free      | Pro ($5)    | Premium ($19.99) |
 | ------------- | --------- | ----------- | ---------------- |
 | Descargas/día | 5         | 50          | Ilimitadas       |
 | Calidad       | WAV       | WAV         | WAV              |
@@ -366,10 +366,10 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 194. ✅ [AG-DAW] Fix AdminPanelIsland crash — respuesta PHP reestructurada `{ data: { data, total, page } }` + guards defensivos `?? []` / `?? 0` en useAdminPanel.
 195. ✅ [AG-DAW] Fix variables CSS AdminPanel+ColeccionPicker — 11 vars kebab→camelCase en adminPanel.css, 4 en modalSeleccionColeccion.css, 1 en coleccionDetalle.css, 1 en filaColecciones.css.
 196. ✅ Fix Mezclador panel vacío: MezcladorPanel no verificaba abierto duplicado, sincroniza estado panelLateralStore↔mezcladorStore al montarse, cerrar cierra ambos stores, resize handle CSS movido a panelLateral.css para disponibilidad global.
-198. [EN CURSO — AG-FIX] Sumar un credito cada vez que un usuario publica un sample.
-199. [EN CURSO — AG-FIX] Asegurarse de que cuando alguien intente descargar un sample y no tiene credito, se abra el modal de suscribirse.
-200. [EN CURSO — AG-FIX] Veo inconsistencias a la informacion de las suscripciones entre el modal y la configuracion de stripe, la del modal es la info actualizad.
-201. [EN CURSO — AG-FIX] apiCliente.ts:96   POST http://glory.local/wp-json/kamples/v1/comentarios/sample/18 400 (Bad Request) cuando intento subir un audio en los comentarios, los audios en los comentarios por cierto tienen que ser ligeros mp3 y verse en forma de waveform
+198. ✅ [AG-FIX] Créditos bonus por publicar sample: migración v017 (creditos_bonus en usuarios_ext), SamplesController +1 tras INSERT, DescargasController suma bonus al límite diario, endpoint /limites devuelve limiteBase+creditosBonus, ZIP colección con créditos bonus.
+199. ✅ [AG-FIX] Modal suscripción al agotar créditos: SampleDetalleIsland+TarjetaSample+useDescargas+ColeccionDetalleIsland detectan 429/403 → toast.error + usePlanesModalStore.abrir(). Fix apiCliente leer json.error (antes solo json.message).
+200. ✅ [AG-FIX] Precios alineados: Pro de $9.99 → $5/mes en StripeService.php + LandingPublica.tsx. Free sin calidad MP3 (WAV para todos). Roadmap actualizado.
+201. ✅ [AG-FIX] Audio comentarios: Backend — conversión MP3 FFmpeg (128k/mono/44.1kHz) + waveform 60 picos JSON. Frontend — ComentarioAudio reescrito con WaveformPlayer, fallback client-side AudioContext si no hay picos backend. CSS actualizado max-width 280px + waveform 28px height. Tipo Comentario extendido con picos/waveformUrl.
 202. Auditar la seguridad de los audios, que sea dificil descargar los audios originales adivinando url, y que sea dificil descargar los mp3 ligeros tambien, rate limits, auditorias, etc, sin bloquear o dañar la reproducción de audios
 203. ✅ Padding eliminado en panelLateralInterno cuando mezclador abierto — clase condicional `panelLateralSinPadding`.
 204. ✅ Stretch/pitch: handle de resize derecho en BloqueSample con document-level listeners. Al estirar, recalcula playbackRate automáticamente. setDuracionBloque() en store.
@@ -385,19 +385,26 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 214. ✅ [AG-DAW] Herramienta cortar — dividirBloque() en store, botón Scissors en controles, modo cortar con cursor crosshair, click en bloque calcula compás y divide. Commit 24879db.
 215. ✅ [AG-DAW] Modal config bloque (ModalConfigBloque.tsx) — 3 puntos abre modal con: volumen, velocidad/pitch, fade in/out (sliders), reverse y normalizar (toggles). Indicadores REV/IN/OUT visibles en bloque. Commit 24879db.
 215.1 ✅ [AG-DAW] Botón duplicar en cabecera de bloque + duplicarBloque() en store. Tipos extendidos con invertido/fadeIn/fadeOut/recorteInicio/recorteFin/normalizado. audioBufferUtils con invertirBuffer/normalizarBuffer. Commit 24879db.
-216. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: opciones de snap setting, y que el movimiento, recortes, se adapten, y se refleje visualmente con lineas, similar a fl studio, con que se pueda configurar en bar, beat, 1/2 beat, 1/4 beat, y 1/6, creo que suficiente. esto lleva a la siguiente tarea. 
-217. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: poder hacer zoom, incluir iconos de zoom lara acercar y alejar.
-218. [EN CURSO — AG-DAW] Tarea para el agente del minidaw: la reproduccion tiene que volver al comienzo cuando llegue al final de todos los audios y no haya mas audios adelantes que reproducir.
-219. [EN CURSO — AG-DAW] Las botones de mezcladorBloqueBotones estan muy pegados, y creo que necesitan ser un poco mas grande. No se si ya lo ocmente antes pero el menu contextual de los bloques de audios deberia abrirse con el click derecho tambien.
+216. ✅ [AG-DAW] Snap setting configurable — resoluciones bar/beat/1-2/1-4/1-6/off. Líneas de cuadrícula visual en PistaTimeline. snapConResolucion() en compasUtils. Selector en controles. Commit b7123b2.
+217. ✅ [AG-DAW] Zoom timeline — NIVELES_ZOOM (0.25x-4x), zoomIn/zoomOut en store, botones ZoomIn/ZoomOut en controles, contenedor .mezcladorTimelineZoom escala ancho. Commit b7123b2.
+218. ✅ [AG-DAW] Playback vuelve al inicio — actualizarCursor calcula fin del último bloque real (no totalCompases), detiene y resetea cursor a 0. Commit b7123b2.
+219. ✅ [AG-DAW] Botones bloque más grandes (18px, gap 4px, hover background) + click derecho abre modal config (onContextMenu). Commit b7123b2.
 220. En crearCondiciones debería aparecer para que cuando publico un sample, aparezca o no en comunidad. En tarjetaMeta aparecen.
 221. En tarjetaMeta aparecen tags iguales, no debería, si hay 2 tags de 2 categorías iguales, mostrar el siguiente hasta que ninguno sea igual.
-222. La linea de tiemp orealmente no es precisa o las tarjetas no muestra la duración real, hay inconsistencia entre lo que realmente dura el audio sonando y lo que la linea de tiempo muestra, la linea de tiempo termina de pasar por toda la tarjeta pero el audio termina unos segundos despues, dando entender una inconsistencia visual que no se si es por la liena de tiempo las tarjetas de audio.
+222. La linea de tiempo realmente no es precisa o las tarjetas no muestra la duración real, hay inconsistencia entre lo que realmente dura el audio sonando y lo que la linea de tiempo muestra, la linea de tiempo termina de pasar por toda la tarjeta pero el audio termina unos segundos despues, dando entender una inconsistencia visual que no se si es por la liena de tiempo las tarjetas de audio.
+222.1 Tambien pasa que dar clic para mover la linea de tiempo, no se quedaen el lugar donde se dio click realmente sino un poco mas adelante, dando entender que todo esto tiene que ver con 222.
+222.2 Este problema tambien se refleja con 230, cuando cambio la velocidad, el bloque y la linea de tiempo la diferencia entre lo que dura, y el ancho de bloque se vuelve mas grande.
 223. Cuando publico un sample la lista de sample debería actualizarse.
-224. Boton de deshacer y rehacer en el mini daw.
-225. Bug: cuando abro el menu contextual en las tarjetas de audio con el click derecho, no se puede cerrar, intento cerrarlo y se vuelve a abrir. 
-226. Los botones de mezcladorBloqueBotones no funciona, a dar click sobre cualquiera se activa el arrastre de inmediato.
-227. La herramienta de recorte debería desactivarse despues del primer recorte.
-228. Cuando se recorta un audio en el mini daw, la waveform tambien debería recortarse.
+222.2 Creo que es por los bpm tal vez.
+224. ✅ [AG-DAW] Undo/Redo — Historial 30 snapshots (pistas+totalCompases), _guardarSnapshot antes de cada mutación (agregarPista/eliminarPista/moverBloque/eliminarBloque/duplicarBloque/dividirBloque/agregarSample/agregarAudioLocal/limpiarProyecto/resize), botones Undo2/Redo2 en ControlesMezclador, atajos Ctrl+Z/Ctrl+Y/Ctrl+Shift+Z. Commit e8de6ee.
+225. ✅ [AG-DAW] Fix context menu no cierra — Guard !modalConfigAbierto en onContextMenu, overlay con preventDefault+stopPropagation en onContextMenu y onMouseDown. Commit e8de6ee.
+226. ✅ [AG-DAW] Fix botones activan drag — onMouseDown verifica target.closest('.mezcladorBloqueBotones') para no iniciar drag en botones. Commit e8de6ee.
+227. ✅ [AG-DAW] Corte auto-desactiva — toggleModoCortar() llamado después de dividirBloque() en alCortar callback. Commit e8de6ee.
+228. ✅ [AG-DAW] Waveform se divide con corte — dividirBloque calcula ratioPeaks y hace slice proporcional de waveformPeaks para bloqueA y bloqueB. Commit e8de6ee.
+229. Si sirve hacer zoom pero acercar nada mas, y los intervalos deberían de ser de 5 en 5.
+230. (probablemente muy relacionado con 222) Cuando se cambia la velocidad de un bloque en el mini idea, no le importa si hay mas audios adelante y los sobre pasa, en ese caso para evitar el choque lo mejor sería crear una linea de tiempo nueva arriba cuando 2 audios choquen porque sus velocidades cambian.
+231. Los tagas en mezcladorBloqueBotones deberían funcionar igual como los tags de feedtags, tener la misma funcionalidad y algun efecto hover ()
+
 
 ---
 
@@ -454,6 +461,11 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 - [C184]: Mezclador aislado en `/Mezclador/` con tsconfig propio (baseUrl apunta a Glory/assets/react para resolver react/lucide-react/zustand). ErrorBoundary class component obliga a importar React explícitamente.
 - [C184]: Web Audio: AudioContext singleton, GainNode por pista, OfflineAudioContext para export. `playbackRate` para time-stretch simple (bpmProyecto/bpmSample).
 - [C184]: Drag-to-mixer: usar `dataTransfer.setData('application/kamples-sample', JSON.stringify(sample))` + CustomEvent como fallback.
+- [C213]: EVENTO_REPROGRAMAR_AUDIO — dispatch custom event desde store, listener en useMotorAudio detiene y reprograma desde posición actual. Patrón reusable para sync store→audio.
+- [C216]: snapConResolucion() en compasUtils es la función central de snap — recibe posición, compás y resolución, retorna posición snapped. calcularLineasCuadricula() genera las líneas de la grilla visual.
+- [C217]: Zoom implementado con div wrapper .mezcladorTimelineZoom que escala width por %. El .mezcladorTimeline hace overflow:auto para scroll horizontal.
+- [C218]: Para detectar fin real de audio, iterar todos los bloques de todas las pistas buscando max(compasInicio + duracionCompases), no usar totalCompases (que puede ser mayor).
+- [C219]: Los botones en cabecera de bloque necesitan e.stopPropagation() en onClick para evitar que el drag se active. Si se sigue activando, revisar onMouseDown del bloque padre.
 - [C184]: PipelineAudio IA: FFmpeg `-t 20 -codec:a libmp3lame -b:a 128k -ac 1 -ar 22050` genera MP3 ~10x más pequeño que WAV original para enviar a Groq.
 - [C184]: `KamplesLogger` usa `::warning()` no `::warn()`. Verificar métodos antes de usar.
 - [C205]: Drag en timeline: React onMouseMove/onMouseUp solo funciona dentro del componente. Para drag libre, usar document.addEventListener en useEffect limpiado por return. Refs para leer estado actual en closures de event listeners.
@@ -461,3 +473,8 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 - [C204]: Stretch = cambiar duracionCompases del bloque. playbackRate = buffer.duration / (durCompases * durCompas). Clamped [0.25, 4.0].
 - [C208]: Para audio local: File.arrayBuffer() + AudioContext.decodeAudioData(). Crear pseudo-SampleResumen con id negativo (-Date.now()) para distinguir de samples del servidor.
 - [WP API]: `wp_handle_upload()` vive en `wp-admin/includes/file.php` — NO se carga en contexto REST API. Siempre hacer `if (!function_exists('wp_handle_upload')) require_once ABSPATH.'wp-admin/includes/file.php'` antes de usarlo. SamplesController lo tenía, Comentarios y Mensajes no.
+- [C198]: Sistema de créditos es cupo diario (COUNT descargas hoy vs límite plan), NO saldo persistente. Para bonus, agregar columna `creditos_bonus` a usuarios\_ext y sumarla al límite en la verificación.
+- [C199]: apiCliente.ts leía solo `json?.message` en errores pero backend envía `json?.error` → los mensajes de error del backend no llegaban al usuario. Corregido con fallback `json?.error`.
+- [C199]: Para abrir modal desde fuera de React (ej. hook callbacks): `usePlanesModalStore.getState().abrir()` usa el estado global Zustand sin necesidad de hook.
+- [C200]: Precios de planes deben estar sincronizados en: StripeService::PLANES (backend), PlanesIsland (frontend modal), LandingPublica (landing), roadmap (docs). El modal es la fuente de verdad.
+- [C201]: FFmpeg waveform: `-f f32le -acodec pcm_f32le -ac 1 -ar 8000` genera PCM raw, luego leer con `unpack('g*')` y extraer picos por chunks. 60 barras es suficiente para un mini player.
