@@ -5,8 +5,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
-import { snapABeat, segundosACompases } from '../utils/compasUtils';
-import { EVENTO_AGREGAR_MEZCLADOR } from '../types/mezclador';
+import { snapABeat } from '../utils/compasUtils';
 import type { SampleResumen } from '@app/types';
 
 interface DragState {

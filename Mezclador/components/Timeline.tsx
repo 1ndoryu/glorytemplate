@@ -10,7 +10,7 @@ import { PistaTimeline } from './PistaTimeline';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 
 interface TimelineProps {
-    timelineRef: React.RefObject<HTMLDivElement | null>;
+    timelineRef: React.RefObject<HTMLDivElement>;
     onSeek: (compas: number) => void;
     onIniciarDrag: (bloqueId: string, pistaId: string, e: React.MouseEvent) => void;
     onDragOver: (e: React.DragEvent) => void;

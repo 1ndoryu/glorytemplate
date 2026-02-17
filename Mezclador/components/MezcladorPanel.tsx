@@ -22,7 +22,6 @@ export const MezcladorPanel = (): JSX.Element | null => {
 /* Contenido separado para que hooks solo se ejecuten cuando está abierto */
 const MezcladorContenido = (): JSX.Element => {
     const {
-        pistas,
         totalBloques,
         estaCargando,
         exportando,

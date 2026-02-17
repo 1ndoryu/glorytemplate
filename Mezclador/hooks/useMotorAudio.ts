@@ -7,7 +7,6 @@ import { useRef, useCallback, useEffect } from 'react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { motorAudio } from '../services/motorAudioService';
 import { compasesASegundos } from '../utils/compasUtils';
-import { CONSTANTES_MEZCLADOR } from '../types/mezclador';
 
 export const useMotorAudio = () => {
     const tiempoInicioRef = useRef<number>(0);

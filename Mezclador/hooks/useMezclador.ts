@@ -3,7 +3,7 @@
  * Combina motor audio, timeline, y exportación. Escucha eventos externos.
  */
 
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { useMotorAudio } from './useMotorAudio';
 import { useTimeline } from './useTimeline';
