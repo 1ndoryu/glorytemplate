@@ -22,6 +22,7 @@ import type {TipoReaccion} from '../../types';
 import {iniciarConversacion} from '../../services/apiMensajes';
 import {useAuthStore} from '../../stores/authStore';
 import {useTabsTopBarStore} from '../../stores/tabsTopBarStore';
+import {useTabsIsla} from '../../hooks/useTabsIsla';
 import {useConfiguracionModalStore} from '../../stores/configuracionModalStore';
 import {useChatFlotanteStore} from '../../stores/chatFlotanteStore';
 import {useNavigationStore} from '@/core/router';
@@ -82,7 +83,8 @@ export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.E
     }, []);
 
     const {usuario: usuarioAuth, cargando: authCargando} = useAuthStore();
-    const {activa: tabActiva, setTabs} = useTabsTopBarStore();
+    const {activa: tabActiva} = useTabsTopBarStore();
+    useTabsIsla('PerfilIsland', TABS_PERFIL, 'samples');
     const {navegar} = useNavigationStore();
     const rutaActual = useNavigationStore(s => s.rutaActual);
     const {abrir: abrirConfiguracion} = useConfiguracionModalStore();
@@ -112,14 +114,6 @@ export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.E
     }, [rutaActual, usernameProp, usuarioAuth?.username]);
 
     const esPropietario = usuarioAuth && usuario && usuarioAuth.username === usuario.username;
-
-    /* Registrar tabs en TopBar */
-    useEffect(() => {
-        setTabs(TABS_PERFIL, 'samples');
-        return () => {
-            setTabs([]);
-        };
-    }, [setTabs]);
 
     useEffect(() => {
         /* Si authStore sigue cargando y no tenemos username explícito, esperar */

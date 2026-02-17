@@ -14,13 +14,16 @@ import { obtenerFeed } from '@app/services/apiSamples';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
-import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useTabsIsla } from '@app/hooks/useTabsIsla';
+import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useHistorialIds } from '@app/hooks/useHistorialIds';
 import { useFiltroIds } from '@app/hooks/useFiltroIds';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/inicio.css';
+
+const TABS_INICIO = [{ id: 'inicio', etiqueta: 'Inicio' }];
 
 export const InicioIsland = (): JSX.Element => {
     const { autenticado, cargando } = useAuthStore();
@@ -51,7 +54,6 @@ const FeedUnificado = (): JSX.Element => {
 
     const { abrir: abrirCrear } = useCrearModalStore();
     const { ordenamiento, periodoDestacados, yaReproducidos, likeados, deSeguidos, descargados, setOrdenamiento, setPeriodoDestacados } = useFiltrosStore();
-    const { setTabs } = useTabsTopBarStore();
     const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel } = usePanelLateralStore();
 
     /* Cargar historial para filtro "Ya reproducidos" */
@@ -69,12 +71,17 @@ const FeedUnificado = (): JSX.Element => {
         return set.size > 0 ? set : undefined;
     }, [yaReproducidos, idsReproducidos, likeados, idsLikeados, descargados, idsDescargados]);
 
-    /* Registrar tab "Inicio" en TopBar + habilitar panel lateral */
+    /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
+    useTabsIsla('InicioIsland', TABS_INICIO, 'inicio');
+
+    /* Habilitar panel lateral al estar en esta isla */
+    const islaActual = useNavigationStore(s => s.islaActual);
     useEffect(() => {
-        setTabs([{ id: 'inicio', etiqueta: 'Inicio' }], 'inicio');
-        habilitarPanel();
-        return () => { setTabs([]); deshabilitarPanel(); };
-    }, [setTabs, habilitarPanel, deshabilitarPanel]);
+        if (islaActual === 'InicioIsland') habilitarPanel();
+    }, [islaActual, habilitarPanel]);
+    useEffect(() => {
+        return () => deshabilitarPanel();
+    }, [deshabilitarPanel]);
 
     /* Proveedor de datos para FeedSamples — cambia según ordenamiento */
     const proveedor = useCallback(async (pagina: number): Promise<SampleResumen[]> => {

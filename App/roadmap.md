@@ -520,6 +520,13 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 174. Las tabs a veces se quedan congeladas a cambiar de pagina rapido y las paginas a veces se quedan en negro.
 175. Las paginas de descarga y favorito debe tener la misma estructura y diseño que las paginas individuales de las colecciones, actualmente se ve muy diferente.
 176. Los copiar enlace en todos los lugares en donde aparecen, no funcionan.
+177. En descargar quitar lo de 0/5 usadas hoy WAV y el badge de free
+178. Estatus de verificación de los samples, esto es diferente del status de moderación, sabemos que cuando se sube un sample, la informacion es generada por IA, si bien es una forma rapida de organizar la información, requiere verificación humana posterior, no significa que los samples no van a aparecer pero, los samples verificados deberían tener mas valor para el algoritmo. Para verificar un sample se debería poder desde el menu contextual, se podra verificar o desverificar, y cuando un sample este verificado aparera un circulo con check en el nombre del sample.
+179. Empezar a trabajar en FASE 13 — Panel de Administración (C112 — Planificación).
+180. Arriba de inicioBarraControl mostrar una fila de colecciones, maximas 8, scroll hacia los lados sin que se vea el scroll.
+181. Respecto a la tarea anterior me da la duda de que si las colecciones tienen algoritmo, pues, las colecciones deberían de alguna forma tambien ordenarse según el usuario, sus tags mas comunes, etc, para mostrar las colecciones mas relevantes para el usuario.
+182. El modal de buscar colección esta muy bonito, pero debería aparecer justo donde se dio click. Ahora agregar un nuevo icono de guardar para abrir ese modal al lado del boton de like en la lista de samples.
+
 
 ---
 

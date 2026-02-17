@@ -6,27 +6,31 @@
  */
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { Users, TrendingUp, Clock, MoreHorizontal, Link2, Trash2, Flag, User } from 'lucide-react';
+import { Users, TrendingUp, Clock, MoreHorizontal, Link2, Trash2, Flag, User, CheckCircle } from 'lucide-react';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { copiarAlPortapapeles } from '@app/services/clipboard';
+import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
 import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { useNavigationStore } from '@/core/router';
-import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useAuthStore } from '@app/stores/authStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { apiGet, apiDelete } from '@app/services/apiCliente';
-import { darLike, quitarLike } from '@app/services/apiSocial';
+import { darLike, quitarLike, actualizarPublicacion } from '@app/services/apiSocial';
 import type { TipoReaccion } from '@app/types';
 import type { Publicacion } from '@app/types';
 import { toast } from '@app/stores/toastStore';
 import '../../styles/componentes/comunidad.css';
 
 type FiltroComunidad = 'todos' | 'siguiendo' | 'populares';
+
+const TABS_COMUNIDAD = [{ id: 'comunidad', etiqueta: 'Comunidad' }];
 
 /* Sección de comentarios por post: encapsula el hook useComentarios */
 const SeccionComentariosPost = ({ postId, navegar }: { postId: number; navegar: (ruta: string) => void }): JSX.Element => {
@@ -73,7 +77,6 @@ const ComunidadBase = (): JSX.Element => {
     const [cargando, setCargando] = useState(true);
     const [comentariosAbiertos, setComentariosAbiertos] = useState<Set<number>>(new Set());
     const { navegar } = useNavigationStore();
-    const { setTabs } = useTabsTopBarStore();
     const { usuario } = useAuthStore();
 
     /* C127: Menú contextual de samples adjuntos */
@@ -116,13 +119,30 @@ const ComunidadBase = (): JSX.Element => {
             icono: <Link2 size={16} />,
             separadorDespues: true,
             onClick: () => {
-                navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}/`);
-                toast.exito('Enlace copiado');
+                copiarAlPortapapeles(`${window.location.origin}/post/${post.id}/`);
                 cerrarMenuPost();
             }
         });
 
         if (esPropietario || esAdmin) {
+            /* C173: Admin puede aprobar posts pendientes */
+            if (esAdmin && post.moderacionEstado && post.moderacionEstado !== 'aprobado') {
+                items.push({
+                    id: 'aprobar',
+                    etiqueta: 'Aprobar publicación',
+                    icono: <CheckCircle size={16} />,
+                    onClick: async () => {
+                        const resp = await actualizarPublicacion(post.id, { moderacionEstado: 'aprobado' });
+                        if (resp.ok) {
+                            setPublicaciones(prev => prev.map(p =>
+                                p.id === post.id ? { ...p, moderacionEstado: 'aprobado' } : p
+                            ));
+                            toast.exito('Publicación aprobada');
+                        }
+                        cerrarMenuPost();
+                    }
+                });
+            }
             items.push({
                 id: 'eliminar',
                 etiqueta: 'Eliminar publicación',
@@ -151,11 +171,8 @@ const ComunidadBase = (): JSX.Element => {
         return items;
     }, [menuPost.post, usuario, navegar, cerrarMenuPost]);
 
-    /* Registrar tab "Comunidad" en TopBar */
-    useEffect(() => {
-        setTabs([{ id: 'comunidad', etiqueta: 'Comunidad' }], 'comunidad');
-        return () => { setTabs([]); };
-    }, [setTabs]);
+    /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
+    useTabsIsla('ComunidadIsland', TABS_COMUNIDAD, 'comunidad');
 
     useEffect(() => {
         let activo = true;
@@ -299,6 +316,10 @@ const ComunidadBase = (): JSX.Element => {
                                     verificado={post.autor.verificado}
                                     meta={formatearTiempoRelativo(post.creadoAt)}
                                 />
+                                {/* C173: Icono estado moderación — visible para autor y admin */}
+                                {(String(post.autor.id) === String(usuario?.id) || usuario?.rol === 'admin') && post.moderacionEstado && (
+                                    <BadgeModeracion moderacionEstado={post.moderacionEstado} />
+                                )}
                                 {/* C127: Botón menú 3 puntos */}
                                 <button
                                     className="comunidadPostMenuBtn"

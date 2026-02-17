@@ -8,7 +8,7 @@ import { useCallback, useState, useRef, type MouseEvent } from 'react';
 import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2 } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
-import { toast } from '@app/stores/toastStore';
+import { copiarAlPortapapeles } from '@app/services/clipboard';
 import '../../styles/componentes/tarjetaColeccion.css';
 
 interface TarjetaColeccionProps {
@@ -50,9 +50,7 @@ export const TarjetaColeccion = ({
         e.stopPropagation();
         setMenuAbierto(false);
         const url = `${window.location.origin}/coleccion/${coleccion.id}/`;
-        navigator.clipboard.writeText(url).then(() => {
-            toast.exito('Enlace copiado');
-        });
+        copiarAlPortapapeles(url);
     }, [coleccion.id]);
 
     const toggleMenu = useCallback((e: MouseEvent) => {

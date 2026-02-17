@@ -35,7 +35,7 @@ import { descargarSample } from '@app/services/apiDescargas';
 import { registrarReproduccion } from '@app/services/apiReproduciones';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { etiquetaBpm } from '@app/services/bpmUtils';
-import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useAuthStore } from '@app/stores/authStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
@@ -46,6 +46,8 @@ import type { Sample, SampleResumen } from '@app/types';
 import '../../styles/componentes/sampleDetalle.css';
 
 /* Props inyectadas desde PHP (pages.php) */
+const TABS_SAMPLE_DETALLE = [{ id: 'sample', etiqueta: 'Sample' }];
+
 interface SampleDetalleProps {
     slug?: string;
 }
@@ -64,7 +66,6 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     const [descargado, setDescargado] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const rutaPreviewRef = useRef('');
-    const { setTabs } = useTabsTopBarStore();
     const { navegar } = useNavigationStore();
     const { usuario: usuarioAuth } = useAuthStore();
     const rutaActual = useNavigationStore((s) => s.rutaActual);
@@ -92,11 +93,8 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
         return slugProp && slugProp !== 'sample' ? slugProp : null;
     }, [rutaActual, slugProp]);
 
-    /* Registrar tab "Sample" en TopBar */
-    useEffect(() => {
-        setTabs([{ id: 'sample', etiqueta: 'Sample' }], 'sample');
-        return () => { setTabs([]); };
-    }, [setTabs]);
+    /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
+    useTabsIsla('SampleDetalleIsland', TABS_SAMPLE_DETALLE, 'sample');
 
     /* Verificar propiedad: comparar con == para evitar mismatch string/number */
     const esPropietario = Boolean(

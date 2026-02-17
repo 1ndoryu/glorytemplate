@@ -12,6 +12,7 @@ import { Badge } from '@app/components/ui/Badge';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { useDescargasPagina } from '@app/hooks/useDescargasPagina';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
@@ -27,18 +28,20 @@ const TABS_DESCARGAS = [
 const DescargasBase = (): JSX.Element => {
     const { samples, limites, cargando, proveedorSugerencias, manejarLike } = useDescargasPagina();
     const { navegar } = useNavigationStore();
-    const { activa: tabActiva, setTabs } = useTabsTopBarStore();
+    const { activa: tabActiva } = useTabsTopBarStore();
     const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel, abrirDetalle, abrirComentarios } = usePanelLateralStore();
     const menu = useMenuContextualSample();
 
+    /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
+    useTabsIsla('DescargasIsland', TABS_DESCARGAS, 'descargas');
+
+    const islaActual = useNavigationStore(s => s.islaActual);
     useEffect(() => {
-        setTabs(TABS_DESCARGAS, 'descargas');
-        habilitarPanel();
-        return () => {
-            setTabs([]);
-            deshabilitarPanel();
-        };
-    }, [setTabs, habilitarPanel, deshabilitarPanel]);
+        if (islaActual === 'DescargasIsland') habilitarPanel();
+    }, [islaActual, habilitarPanel]);
+    useEffect(() => {
+        return () => deshabilitarPanel();
+    }, [deshabilitarPanel]);
 
     const manejarClickTitulo = useCallback((sample: import('@app/types').SampleResumen) => {
         abrirDetalle(sample);

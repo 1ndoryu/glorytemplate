@@ -14,13 +14,20 @@ import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { obtenerColeccion, obtenerSugerencias, descargarColeccionZip } from '@app/services/apiColecciones';
 import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useAuthStore } from '@app/stores/authStore';
 import { toast } from '@app/stores/toastStore';
+import { copiarAlPortapapeles } from '@app/services/clipboard';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import type { Coleccion, SampleResumen } from '@app/types';
 import '../../styles/componentes/coleccionDetalle.css';
+
+const TABS_COLECCION_DETALLE = [
+    { id: 'samples', etiqueta: 'Samples' },
+    { id: 'ideas', etiqueta: 'Más Ideas' },
+];
 
 interface ColeccionDetalleIslandProps {
     coleccionId?: string;
@@ -31,22 +38,21 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     const [cargando, setCargando] = useState(true);
     const [guardada, setGuardada] = useState(false);
     const { navegar } = useNavigationStore();
-    const { activa: tabActiva, setTabs } = useTabsTopBarStore();
+    const { activa: tabActiva } = useTabsTopBarStore();
     const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel } = usePanelLateralStore();
     const { usuario } = useAuthStore();
 
-    /* Registrar tabs "Samples" y "Más Ideas" en TopBar + habilitar panel lateral */
+    /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
+    useTabsIsla('ColeccionDetalleIsland', TABS_COLECCION_DETALLE, 'samples');
+
+    /* Habilitar panel lateral al estar en esta isla */
+    const islaActual = useNavigationStore(s => s.islaActual);
     useEffect(() => {
-        setTabs(
-            [
-                { id: 'samples', etiqueta: 'Samples' },
-                { id: 'ideas', etiqueta: 'Más Ideas' },
-            ],
-            'samples'
-        );
-        habilitarPanel();
-        return () => { setTabs([]); deshabilitarPanel(); };
-    }, [setTabs, habilitarPanel, deshabilitarPanel]);
+        if (islaActual === 'ColeccionDetalleIsland') habilitarPanel();
+    }, [islaActual, habilitarPanel]);
+    useEffect(() => {
+        return () => deshabilitarPanel();
+    }, [deshabilitarPanel]);
 
     /* Obtener ID de la URL si no viene por props */
     const id = propId ? parseInt(propId, 10) : (() => {
@@ -185,8 +191,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
             icono: <Link2 size={16} />,
             separadorDespues: true,
             onClick: () => {
-                navigator.clipboard.writeText(`${window.location.origin}/coleccion/${coleccion.id}/`);
-                toast.exito('Enlace copiado');
+                copiarAlPortapapeles(`${window.location.origin}/coleccion/${coleccion.id}/`);
                 cerrarMenuColeccion();
             }
         });

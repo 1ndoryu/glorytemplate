@@ -11,6 +11,7 @@ import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { useFavoritosPagina } from '@app/hooks/useFavoritosPagina';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
@@ -26,18 +27,20 @@ const TABS_FAVORITOS = [
 const FavoritosBase = (): JSX.Element => {
     const { samples, totalFavoritos, cargando, proveedorSugerencias, manejarLike } = useFavoritosPagina();
     const { navegar } = useNavigationStore();
-    const { activa: tabActiva, setTabs } = useTabsTopBarStore();
+    const { activa: tabActiva } = useTabsTopBarStore();
     const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel, abrirDetalle, abrirComentarios } = usePanelLateralStore();
     const menu = useMenuContextualSample();
 
+    /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
+    useTabsIsla('FavoritosIsland', TABS_FAVORITOS, 'favoritos');
+
+    const islaActual = useNavigationStore(s => s.islaActual);
     useEffect(() => {
-        setTabs(TABS_FAVORITOS, 'favoritos');
-        habilitarPanel();
-        return () => {
-            setTabs([]);
-            deshabilitarPanel();
-        };
-    }, [setTabs, habilitarPanel, deshabilitarPanel]);
+        if (islaActual === 'FavoritosIsland') habilitarPanel();
+    }, [islaActual, habilitarPanel]);
+    useEffect(() => {
+        return () => deshabilitarPanel();
+    }, [deshabilitarPanel]);
 
     const manejarClickTitulo = useCallback((sample: import('@app/types').SampleResumen) => {
         abrirDetalle(sample);

@@ -39,7 +39,7 @@ export const BadgeModeracion = ({
     /* Determinar config según tipo */
     let config: { icono: typeof Clock; titulo: string; clase: string } | null = null;
 
-    if (moderacionEstado && moderacionEstado !== 'aprobado') {
+    if (moderacionEstado) {
         config = configModeracion[moderacionEstado] ?? null;
     } else if (estadoSample && estadoSample !== 'activo' && estadoSample !== 'eliminado') {
         config = configSample[estadoSample] ?? null;

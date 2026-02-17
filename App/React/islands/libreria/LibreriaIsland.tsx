@@ -20,6 +20,7 @@ import type { TipoReaccion } from '@app/types';
 import { listarColecciones, listarColeccionesPublicas, eliminarColeccion } from '@app/services/apiColecciones';
 import { useSubirModalStore } from '@app/stores/subirModalStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
@@ -49,21 +50,22 @@ export const LibreriaIsland = (): JSX.Element => {
 
     const { navegar } = useNavigationStore();
     const { abrir: abrirSubirModal } = useSubirModalStore();
-    const { activa: tabActiva, setTabs } = useTabsTopBarStore();
+    const { activa: tabActiva } = useTabsTopBarStore();
     const menu = useMenuContextualSample();
 
     /* Panel lateral: habilitar para esta island */
     const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel, abrirDetalle, abrirComentarios } = usePanelLateralStore();
 
-    /* Registrar tabs en el TopBar al montar */
+    /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
+    useTabsIsla('LibreriaIsland', TABS_LIBRERIA, 'explorar');
+
+    const islaActual = useNavigationStore(s => s.islaActual);
     useEffect(() => {
-        setTabs(TABS_LIBRERIA, 'explorar');
-        habilitarPanel();
-        return () => {
-            setTabs([]);
-            deshabilitarPanel();
-        };
-    }, [setTabs, habilitarPanel, deshabilitarPanel]);
+        if (islaActual === 'LibreriaIsland') habilitarPanel();
+    }, [islaActual, habilitarPanel]);
+    useEffect(() => {
+        return () => deshabilitarPanel();
+    }, [deshabilitarPanel]);
 
     /* Listener para eliminación optimista de samples */
     useEffect(() => {
