@@ -1,0 +1,180 @@
+/*
+ * panelLateral.css — Kamples (C86+C95+C111)
+ * Estilos para el panel lateral derecho (~30%).
+ * Muestra detalle de sample, comentarios o sugerencias.
+ */
+
+/* Panel contenedor — empuja del layout grid */
+.panelLateral {
+    width: var(--anchoPanelLateral);
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-left: 1px solid var(--bordeSutil);
+    background-color: var(--fondoElevado1);
+    flex-shrink: 0;
+}
+
+.panelLateralInterno {
+    padding: var(--espacioLg);
+}
+
+/* --- PanelDetalleSample --- */
+
+.panelDetalle {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.panelDetalleCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.panelDetalleAutor {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    background: none;
+    border: none;
+    color: var(--textoPrimario);
+    cursor: pointer;
+    padding: 0;
+    font-size: var(--fuenteSm);
+}
+
+.panelDetalleAutor:hover {
+    color: var(--acento);
+}
+
+.panelDetalleCerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: none;
+    color: var(--textoSecundario);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    transition: color var(--transicionRapida);
+}
+
+.panelDetalleCerrar:hover {
+    color: var(--textoPrimario);
+}
+
+.panelDetalleTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    line-height: 1.3;
+}
+
+.panelDetalleDescripcion {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.panelDetalleWaveform {
+    width: 100%;
+    border-radius: var(--radioMd);
+    overflow: hidden;
+}
+
+.panelDetalleTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioXs);
+}
+
+.panelDetalleAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding-top: var(--espacioXs);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.panelDetalleSubtitulo {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoSecundario);
+    margin: 0 0 var(--espacioSm) 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.panelDetalleComentarios {
+    padding-top: var(--espacioMd);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.panelDetalleSimilares {
+    padding-top: var(--espacioMd);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.panelDetalleSimilaresLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+/* tarjeta compacta dentro del panel */
+.panelDetalleTarjetaMini {
+    font-size: var(--fuenteXs);
+}
+
+/* --- PanelSugerencias --- */
+
+.panelSugerencias {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.panelSugerenciasCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.panelSugerenciasTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.panelSugerenciasCargando,
+.panelSugerenciasVacio {
+    text-align: center;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+    padding: var(--espacio2xl) 0;
+}
+
+.panelSugerenciasLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+/* Responsive — ocultar panel en pantallas pequeñas */
+@media (max-width: 1024px) {
+    .panelLateral {
+        display: none;
+    }
+}

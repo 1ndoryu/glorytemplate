@@ -24,6 +24,7 @@ import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAUR
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { agruparTagsPorCategoria, type CategoriaTag } from '@app/services/tagUtils';
 import { useSugerenciasLikeStore } from '@app/stores/sugerenciasLikeStore';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { ModalSugerenciasLike } from '@app/components/feed/ModalSugerenciasLike';
 import type { SampleResumen } from '@app/types';
 
@@ -120,6 +121,20 @@ export const FeedSamples = ({
 
     const { navegar } = useNavigationStore();
     const menu = useMenuContextualSample();
+
+    /* Panel lateral: si está habilitado, interceptar clicks de título y comentar (C86+C95) */
+    const panelHabilitado = usePanelLateralStore(s => s.habilitado);
+    const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
+    const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
+
+    const manejarClickTitulo = useCallback((sample: SampleResumen) => {
+        abrirDetalle(sample);
+    }, [abrirDetalle]);
+
+    const manejarComentar = useCallback((sampleId: number) => {
+        const sample = samples.find(s => s.id === sampleId);
+        if (sample) abrirComentarios(sample);
+    }, [abrirComentarios, samples]);
 
     /* Reset al cambiar claveCache (cambio de filtros/contexto) */
     useEffect(() => {
@@ -492,6 +507,8 @@ export const FeedSamples = ({
                             onLike={manejarLike}
                             onMenu={menu.abrirMenu}
                             onClickCreador={(u) => navegar(`/perfil/${u}`)}
+                            onClickTitulo={panelHabilitado ? manejarClickTitulo : undefined}
+                            onComentar={panelHabilitado ? manejarComentar : undefined}
                         />
                     ))}
 

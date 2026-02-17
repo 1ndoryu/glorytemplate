@@ -6,15 +6,14 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { Heart, MessageCircle, Repeat2, Users, TrendingUp, Clock, PenSquare } from 'lucide-react';
+import { Heart, MessageCircle, Repeat2, Users, TrendingUp, Clock } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
-import { BotonBase } from '@app/components/ui/BotonBase';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
+import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
-import { usePublicarModalStore } from '@app/stores/publicarModalStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { apiGet } from '@app/services/apiCliente';
@@ -65,7 +64,6 @@ const ComunidadBase = (): JSX.Element => {
     const [comentariosAbiertos, setComentariosAbiertos] = useState<Set<number>>(new Set());
     const { navegar } = useNavigationStore();
     const { setTabs } = useTabsTopBarStore();
-    const { abrir: abrirPublicar } = usePublicarModalStore();
 
     /* Registrar tab "Comunidad" en TopBar */
     useEffect(() => {
@@ -77,7 +75,7 @@ const ComunidadBase = (): JSX.Element => {
         let activo = true;
         setCargando(true);
 
-        const cargarPublicaciones = async () => {
+        const cargar = async () => {
             try {
                 const resp = await apiGet<{ data: Publicacion[] }>('/publicaciones', { filtro });
                 if (!activo) return;
@@ -90,8 +88,17 @@ const ComunidadBase = (): JSX.Element => {
             }
         };
 
-        cargarPublicaciones();
+        cargar();
         return () => { activo = false; };
+    }, [filtro]);
+
+    /* Callback para recargar feed tras publicar (SeccionPublicar inline) */
+    const recargarFeed = useCallback(async () => {
+        try {
+            const resp = await apiGet<{ data: Publicacion[] }>('/publicaciones', { filtro });
+            const lista = resp.data?.data ?? resp.data ?? [];
+            setPublicaciones(Array.isArray(lista) ? lista : []);
+        } catch { /* sin-op */ }
     }, [filtro]);
 
     const manejarLikePost = useCallback(async (postId: number) => {
@@ -142,18 +149,14 @@ const ComunidadBase = (): JSX.Element => {
 
     return (
         <div className="comunidadIsland" id="comunidadIsland">
-            {/* Botón publicar + filtros */}
-            <div className="comunidadBarraSuperior">
-                <BotonBase
-                    variante="primario"
-                    tamano="sm"
-                    onClick={() => abrirPublicar('social')}
-                >
-                    <PenSquare size={14} />
-                    Publicar
-                </BotonBase>
+            {/* Sección inline para publicar — estilo red social (C89) */}
+            <SeccionPublicar
+                alPublicar={recargarFeed}
+                placeholder="¿Qué estás creando?"
+            />
 
-                {/* Barra de filtros */}
+            {/* Barra de filtros */}
+            <div className="comunidadBarraSuperior">
                 <div className="comunidadFiltros">
                 {filtros.map(({ valor, icono: Icono, label }) => (
                     <button

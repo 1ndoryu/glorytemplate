@@ -13,6 +13,7 @@ import { Badge } from '@app/components/ui/Badge';
 import { obtenerColeccion, obtenerSugerencias } from '@app/services/apiColecciones';
 import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import type { Coleccion, SampleResumen } from '@app/types';
@@ -28,8 +29,9 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     const [guardada, setGuardada] = useState(false);
     const { navegar } = useNavigationStore();
     const { activa: tabActiva, setTabs } = useTabsTopBarStore();
+    const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel } = usePanelLateralStore();
 
-    /* Registrar tabs "Samples" y "Más Ideas" en TopBar */
+    /* Registrar tabs "Samples" y "Más Ideas" en TopBar + habilitar panel lateral */
     useEffect(() => {
         setTabs(
             [
@@ -38,8 +40,9 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
             ],
             'samples'
         );
-        return () => { setTabs([]); };
-    }, [setTabs]);
+        habilitarPanel();
+        return () => { setTabs([]); deshabilitarPanel(); };
+    }, [setTabs, habilitarPanel, deshabilitarPanel]);
 
     /* Obtener ID de la URL si no viene por props */
     const id = propId ? parseInt(propId, 10) : (() => {
@@ -232,7 +235,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                     claveCache={`coleccion_${coleccion.id}`}
                     infiniteScroll={false}
                     virtualizar={false}
-                    mostrarTags={false}
+                    mostrarTags
                     mensajeVacio="Esta colección aún no tiene samples."
                     onLike={manejarLikeSamples}
                 />

@@ -76,6 +76,7 @@
     --altoTopbar: 52px;
     --altoReproductor: 56px;
     --anchoMaximoContenido: 1200px;
+    --anchoPanelLateral: 340px;
 }
 
 :root[data-theme='light'] {

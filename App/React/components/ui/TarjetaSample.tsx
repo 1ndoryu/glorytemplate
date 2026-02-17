@@ -29,6 +29,7 @@ interface TarjetaSampleProps {
     onMenu?: (e: MouseEvent, sample: SampleResumen) => void;
     onClickCreador?: (username: string) => void;
     onComentar?: (sampleId: number) => void;
+    onClickTitulo?: (sample: SampleResumen) => void;
     className?: string;
 }
 
@@ -75,7 +76,7 @@ const formatearKey = (key: string | null, escala: string | null): string => {
     return `${key}${esc}`;
 };
 
-export const TarjetaSample = ({sample, activa = false, reproduciendo = false, progreso = 0, onPlay, onPause, onSeek, onLike, onDescargar, onMenu, onClickCreador: _onClickCreador, onComentar, className = ''}: TarjetaSampleProps): JSX.Element => {
+export const TarjetaSample = ({sample, activa = false, reproduciendo = false, progreso = 0, onPlay, onPause, onSeek, onLike, onDescargar, onMenu, onClickCreador: _onClickCreador, onComentar, onClickTitulo, className = ''}: TarjetaSampleProps): JSX.Element => {
     const [reproduciendoLocal, setReproduciendoLocal] = useState(false);
     const [progresoLocal, setProgresoLocal] = useState(0);
     const [picosAudio, setPicosAudio] = useState<number[] | null>(null);
@@ -359,7 +360,12 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                             if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                navegar(`/sample/${sample.slug}/`);
+                                /* Si hay handler de titulo (panel lateral), usarlo en vez de navegar */
+                                if (onClickTitulo) {
+                                    onClickTitulo(sample);
+                                } else {
+                                    navegar(`/sample/${sample.slug}/`);
+                                }
                             }
                         }}
                     >

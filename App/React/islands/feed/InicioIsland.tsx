@@ -15,6 +15,7 @@ import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useHistorialIds } from '@app/hooks/useHistorialIds';
 import { useFiltroIds } from '@app/hooks/useFiltroIds';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
@@ -51,6 +52,7 @@ const FeedUnificado = (): JSX.Element => {
     const { abrir: abrirCrear } = useCrearModalStore();
     const { busqueda, ordenamiento, periodoDestacados, yaReproducidos, likeados, deSeguidos, descargados, setOrdenamiento, setPeriodoDestacados } = useFiltrosStore();
     const { setTabs } = useTabsTopBarStore();
+    const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel } = usePanelLateralStore();
 
     /* Cargar historial para filtro "Ya reproducidos" */
     const { idsReproducidos } = useHistorialIds(yaReproducidos);
@@ -67,11 +69,12 @@ const FeedUnificado = (): JSX.Element => {
         return set.size > 0 ? set : undefined;
     }, [yaReproducidos, idsReproducidos, likeados, idsLikeados, descargados, idsDescargados]);
 
-    /* Registrar tab "Inicio" en TopBar */
+    /* Registrar tab "Inicio" en TopBar + habilitar panel lateral */
     useEffect(() => {
         setTabs([{ id: 'inicio', etiqueta: 'Inicio' }], 'inicio');
-        return () => { setTabs([]); };
-    }, [setTabs]);
+        habilitarPanel();
+        return () => { setTabs([]); deshabilitarPanel(); };
+    }, [setTabs, habilitarPanel, deshabilitarPanel]);
 
     /* Proveedor de datos para FeedSamples — cambia según ordenamiento */
     const proveedor = useCallback(async (pagina: number): Promise<SampleResumen[]> => {

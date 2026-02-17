@@ -440,7 +440,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 112. ~~Hace falta un icono de 3 puntos que abra un menu contextual para las opciones de las publicaciones, como eliminar, reportar, copiar enlace, ver post, etc (las publicaciones deben tener pagina individual como los samples y se puede acceder a esa pagina cuando se da click al tiempo o a la fecha), obviamente los usuarios solo pueden borrar sus post y los admin los post de cualquiera. Los reportes deben funcionar, planificar una pagina de administración (esto es una tarea complicado que debería planificarse bien en el roadmap): en esa pagina se vera una lista de los usuarios registrados, con menu contextual para banear, eliminar, ascender a pro o a premiun o mandar un mensaje, una tab de reportes, y tab de moderación, tab de monitación para controlar la monetización e ingresos. (No hay que hacer esta tarea, solo planificarla para hacerla mas adelante), tambien un resumen donde se pueda ver resumidamente el panorama: usuarios registrados, samples descargados, etc.~~ ✅ PLANIFICADO en FASE 13: AdminPanelIsland (5 tabs: Resumen, Usuarios, Moderación, Reportes, Monetización) + menú contextual publicaciones + tabla reportes. Ver sección FASE 13 del roadmap.
 113. ~~inicioTagsContador no esta contando los samples (esto tiene que ser ultra eficiente)~~ ✅ Contador optimizado con query SQL COUNT directa.
 114. en todas las listas de sample de las colecciones debe aparecer feedTags y funcionar con su filtrado inteligente, tambien asegurarse que funcione con la busqueda.
-115. Esto tiene que ver con la tarea anterior pero es algo elaborado: actualmente en el home las feedTags a dar click filtra positiva o negativamente, esto debe actualizar el input de busqueda esta representado correctamente, es decir, si yo busco hip hop, (se separa con coma las tags y vuelven badge), eso significa que estoy que quiero que se muestro samples que sean de hip hop, pero si yo hago esta busqueda "hip hop, -trap" eso quitara todos los samples de trap del resultado, asi como supuestamente funciona feedtag que tiene simbolos + y -, al presionar un tag debe actualizar no solo los samples sino el input de busqueda en el nav, es decir, esto debe ser un mismo sistema que funciona en todas las paginas donde haya lista de samples, en comunidad no porque debe ser diferente esto, que no se bugee con el cambio de paginas y tab como siempre suele suceder en sistemas interactivos de busqueda, cada pagina y tab, debe tener su busqueda independiente.
+.115 (primero 134 para que pueda funcionar la agrupación). Esto tiene que ver con la tarea anterior pero es algo elaborado: actualmente en el home las feedTags a dar click filtra positiva o negativamente, esto debe actualizar el input de busqueda esta representado correctamente, es decir, si yo busco hip hop, (se separa con coma las tags y vuelven badge), eso significa que estoy que quiero que se muestro samples que sean de hip hop, pero si yo hago esta busqueda "hip hop, -trap" eso quitara todos los samples de trap del resultado, asi como supuestamente funciona feedtag que tiene simbolos + y -, al presionar un tag debe actualizar no solo los samples sino el input de busqueda en el nav, es decir, esto debe ser un mismo sistema que funciona en todas las paginas donde haya lista de samples, en comunidad no porque debe ser diferente esto, que no se bugee con el cambio de paginas y tab como siempre suele suceder en sistemas interactivos de busqueda, cada pagina y tab, debe tener su busqueda independiente.
 116. Mejorar las tags, no tengo una idea clara de esto pero, arriba de las tags, (esto es un sistema unificado), las tags se agruparan en selects (estos select deben ser personalizados y componentes propios de kamples, no selects generico, que usen las variables, minimalistas y similar al menu contextual), sera un select para activar restar o sumar ciertos tags, los tags se agruparan (o sea los select seran de) instrumento, genero, emocion, instrumento, artista vibe, y tipo, (o sea la estructura json de la metadata de los samples) las de bpm debe ser especial, debe ser un menu contextual de selector de rango, estos elementos se adaptan a la idioma del usuario. 
 117. ~~Optmización del algoritmo, entiendo que algoritmo usa el json de los samples para crear las recomendaciones pero ¿usarlo en 2 idiomas no hace que el proceso sea mas pesado? Esto es una tarea complicada asi que no es para hacer ahora, es para planificar, es una revisión profunda de como impacta que el json este 2 idiomas y que si es mejor solo usar una idioma, obviamente en caso de que usar una sola idioma mejora la eficiencia del algoritmo, pues, la decisión no es dificil, habría que hacer todos los ajustes necesario (planificar bien), para mejorar la eficiencia.~~ ✅ ANALIZADO: El JSON bilingüe NO impacta el algoritmo ni los embeddings. Ver análisis completo abajo. 
 118. ~~En Inspector de Sample debería ver el nombre del archivo original y el de audio optimizado y sus rutas.~~ ✅ Inspector muestra nombre y ruta de archivo original, optimizado, preview y waveform.
@@ -449,6 +449,72 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 121. ~~Este error es nuevo, pasa cuando intento subir un sample.~~ ✅ Causa raíz: frontend MIN_TAGS_AUDIO=2 (C92) pero backend SamplesController.php aún exigía count($tags)<5. Alineado a <2.
 122. Presiento que perdiste de los comentarios que ya habias resuelto, si los sabes, marca los que resolviste, pero si no sabes, no te preocupes, detente hasta aqui y yo comprobaré tarea por tarea a ver cual se cumplio y cual no.
 123. ~~Sale este error Error en isla "ColeccionDetalleIsland" Rendered more hooks than during the previous render.~~ ✅ useMemo de metasComunes estaba después de early returns causando hooks condicionales. Movido antes de returns. Defensivo con typeof para valores no-string del metadata JSONB.
+
+(En este punto las tareas completadas anteriores a 124 deberían simplificarse en la tabla de ## Comentarios del usuario (resueltos), esto es necesario antes de continuar con 124)
+
+124. seccionPublicar deberia tener la misma estructura y verse exactamente igual al modal crearContenido, tambien debería permitir publicar audios.
+125. coleccionAcciones si debería mostrar el texto de los botones.
+126. Modal de configuración de samples, publicaciones, y colecciones: poder cambiar todo lo modificable, los admin pueden cambiar todo, y los usuarios sus cosas. De los samples, poder cambiar por ejemplo, la imagen, el titulo, los tags.
+127. No se si lo planifique antes pero, los samples necesita un boton de 3 puntos para su configuracion, igual que los samples en la lista, la menu contextual debe ser el mismo, igualmente las colecciones tanto en su lista y su pagina individual y los post de publicaciones de comunidad tambien.
+128. No se si lo planifique antes, debajo de detalleTarjetaUnica, en otra sección debe aparecer una lista de samples similares, basada en el algoritmo, claro, esto tiene que estar bien optimizado y cheado. Los comentarios tienen que aparecer ya expandidos, 
+129. Por cierto, no se si la sección de comentarios tiene paginación pero si debería tener, una de infita con scroll, (optimizado para mantener un numero maximo de comentarios renderizados)
+130. Se debería poder comentar imagenes y audios.
+131. Planificar la automoderación de contenido con IA, cada vez que se publica un comentario, la IA tiene que decidir si es spam, si es valido, etc.
+132. Mejora el sistema de moderación con IA, planificar mejor este sistema, la IA tiene que ser capaz de bloquear usuarios si tienen actividad sospechosa, spam, la toxicidad no es baneable, los usuarios son libres de discutir e insultarse, pero el spam, no es permitido, cuando un usuario hace comentarios con spam, le debe llegar una notificación de que su comentario fue eliminado automaticamente por x razón, el desnudo o contenido para adulto tambien esta prohibido, en ningun lugar, tampoco de portada para ningún audio, poca ropa si esta permitido, no estan estricto pero contenido en si totalmente pornxgrafico o actividades sexuales, o partes intimas prohibida, hay que tener cuidado porque sabemos que los albunes suelen usar imagenes explicitas que no son problemas generalmente, no queremos falsos positivos.
+133. Las paginas no deberían volver a cargarse cuando cambio de pagina, o sea si la pagian ya estaba cargada, despues vuelvo abrirla, no debe recargarse, ni la lista samples ni nada, todo debe cargarse una sola vez.
+134. Me di cuenta que feedTagsLista esta tomando los tags de   "tags": [
+    "test1",
+    "test2",
+    "test3",
+    "test4",
+    "test5"
+  ], (los tags que escribe el usuario en la descripcion al subir)
+  pero deberían ser los tags de la matadata de la ia y la demas info, dejo detalladamente la que importa, no debe repetirlos por cierto, y asegurarse de que esten normalizados guitars = guitar
+
+   "metadata": {
+    "tags": [
+      "jazz",
+      "melancholy",
+      "smooth",
+      "instrumental",
+      "sample"
+    ],
+    "genero": [
+      "jazz",
+      "lo-fi",
+      "chillhop"
+    ],
+    "emocion": [
+      "sad",
+      "melancholic",
+      "relaxed",
+      "introspective"
+    ],
+    "tags_es": [
+      "jazz",
+      "melancólico",
+      "suave",
+      "instrumental",
+      "muestra"
+    ],
+    "emocion_es": [
+      "triste",
+      "melancólico",
+      "relajado",
+      "introspectivo"
+    ],
+    "instrumentos": [
+      "piano",
+      "saxophone",
+      "double bass",
+      "drums"
+    ],
+    "artista_vibes": [
+      "Miles Davis",
+      "Chet Baker",
+      "Bill Evans",
+      "John Coltrane"
+    ],
 
 
 ---

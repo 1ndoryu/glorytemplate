@@ -18,6 +18,7 @@ import { darLike, quitarLike } from '@app/services/apiSocial';
 import { listarColecciones, listarColeccionesPublicas, eliminarColeccion } from '@app/services/apiColecciones';
 import { useSubirModalStore } from '@app/stores/subirModalStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
@@ -50,11 +51,18 @@ export const LibreriaIsland = (): JSX.Element => {
     const { activa: tabActiva, setTabs } = useTabsTopBarStore();
     const menu = useMenuContextualSample();
 
+    /* Panel lateral: habilitar para esta island */
+    const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel, abrirDetalle, abrirComentarios } = usePanelLateralStore();
+
     /* Registrar tabs en el TopBar al montar */
     useEffect(() => {
         setTabs(TABS_LIBRERIA, 'explorar');
-        return () => { setTabs([]); };
-    }, [setTabs]);
+        habilitarPanel();
+        return () => {
+            setTabs([]);
+            deshabilitarPanel();
+        };
+    }, [setTabs, habilitarPanel, deshabilitarPanel]);
 
     /* Listener para eliminación optimista de samples */
     useEffect(() => {
@@ -131,6 +139,16 @@ export const LibreriaIsland = (): JSX.Element => {
         };
         cargar();
     }, [tabActiva]);
+
+    /* Handlers para panel lateral */
+    const manejarClickTitulo = useCallback((sample: SampleResumen) => {
+        abrirDetalle(sample);
+    }, [abrirDetalle]);
+
+    const manejarComentar = useCallback((sampleId: number) => {
+        const sample = samples.find((s) => s.id === sampleId);
+        if (sample) abrirComentarios(sample);
+    }, [samples, abrirComentarios]);
 
     const manejarLike = useCallback(async (sampleId: number) => {
         setSamples((prev) =>
@@ -279,6 +297,8 @@ export const LibreriaIsland = (): JSX.Element => {
                             onLike={manejarLike}
                             onMenu={menu.abrirMenu}
                             onClickCreador={(u) => navegar(`/perfil/${u}`)}
+                            onClickTitulo={manejarClickTitulo}
+                            onComentar={manejarComentar}
                         />
                     ))}
                 </div>

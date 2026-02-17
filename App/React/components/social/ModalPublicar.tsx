@@ -2,130 +2,46 @@
  * Componente: ModalPublicar — Kamples
  * Modal para crear publicaciones sociales o compartir samples.
  * Modo dual: 'social' (texto + imágenes) o 'sample' (texto + samples adjuntos).
+ * Nota: En ComunidadIsland y PerfilIsland se usa SeccionPublicar (inline) en su lugar (C89).
+ * Este modal se mantiene para uso global desde LayoutPrincipal.
  */
 
-import { useState, useCallback, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
 import { Image, Music, X } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
+import { usePublicar, MAX_IMAGENES } from '@app/hooks/usePublicar';
 import { usePublicarModalStore } from '@app/stores/publicarModalStore';
 import { useAuthStore } from '@app/stores/authStore';
-import { crearPublicacion, subirImagenPublicacion } from '@app/services/apiSocial';
-import { crearLogger } from '@app/services/logger';
 import '../../styles/componentes/modalPublicar.css';
-
-const log = crearLogger('ModalPublicar');
-
-const MAX_CARACTERES = 500;
-const MAX_IMAGENES = 4;
-
-interface ImagenPreview {
-    archivo: File;
-    url: string;
-}
 
 export const ModalPublicar = (): JSX.Element | null => {
     const { abierto, modo, cerrar } = usePublicarModalStore();
     const { usuario, autenticado } = useAuthStore();
 
-    const [contenido, setContenido] = useState('');
-    const [imagenes, setImagenes] = useState<ImagenPreview[]>([]);
-    const [publicando, setPublicando] = useState(false);
-    const inputImagenRef = useRef<HTMLInputElement>(null);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const {
+        contenido,
+        imagenes,
+        publicando,
+        caracteresPendientes,
+        puedePublicar,
+        inputImagenRef,
+        textareaRef,
+        manejarCambioTexto,
+        manejarKeyDown,
+        manejarSeleccionImagenes,
+        quitarImagen,
+        publicar,
+        limpiar,
+    } = usePublicar({ modo, alPublicar: cerrar });
 
-    /* Limpiar estado al cerrar */
-    const manejarCerrar = useCallback(() => {
-        setContenido('');
-        setImagenes([]);
-        setPublicando(false);
+    const manejarCerrar = () => {
+        limpiar();
         cerrar();
-    }, [cerrar]);
-
-    /* Auto-resize del textarea */
-    const manejarCambioTexto = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
-        const valor = e.target.value;
-        if (valor.length <= MAX_CARACTERES) {
-            setContenido(valor);
-        }
-        /* Auto-resize */
-        const textarea = e.target;
-        textarea.style.height = 'auto';
-        textarea.style.height = `${textarea.scrollHeight}px`;
-    }, []);
-
-    /* Detectar Ctrl+Enter para publicar */
-    const manejarKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            manejarPublicar();
-        }
-    }, [contenido]);
-
-    /* Seleccionar imágenes */
-    const manejarSeleccionImagenes = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        const archivos = Array.from(e.target.files ?? []);
-        const disponibles = MAX_IMAGENES - imagenes.length;
-        const nuevas: ImagenPreview[] = archivos.slice(0, disponibles).map((archivo) => ({
-            archivo,
-            url: URL.createObjectURL(archivo),
-        }));
-
-        setImagenes((prev) => [...prev, ...nuevas]);
-
-        /* Resetear input para permitir seleccionar la misma imagen */
-        if (inputImagenRef.current) {
-            inputImagenRef.current.value = '';
-        }
-    }, [imagenes.length]);
-
-    /* Quitar imagen */
-    const quitarImagen = useCallback((indice: number) => {
-        setImagenes((prev) => {
-            const copia = [...prev];
-            URL.revokeObjectURL(copia[indice].url);
-            copia.splice(indice, 1);
-            return copia;
-        });
-    }, []);
-
-    /* Publicar: subir imágenes al servidor antes de enviar URLs */
-    const manejarPublicar = useCallback(async () => {
-        if (!contenido.trim() || publicando) return;
-
-        setPublicando(true);
-        try {
-            /* Subir cada imagen al servidor y obtener URLs reales */
-            const urlsReales: string[] = [];
-            for (const img of imagenes) {
-                const resp = await subirImagenPublicacion(img.archivo);
-                if (resp.ok && resp.data?.url) {
-                    urlsReales.push(resp.data.url);
-                } else {
-                    log.error('Error subiendo imagen', resp);
-                }
-            }
-
-            await crearPublicacion({
-                tipo: modo,
-                contenido: contenido.trim(),
-                imagenes: urlsReales,
-            });
-            log.info('Publicación creada', { modo, largo: contenido.length, imagenes: urlsReales.length });
-            manejarCerrar();
-        } catch (err) {
-            log.error('Error al publicar', err);
-        } finally {
-            setPublicando(false);
-        }
-    }, [contenido, modo, imagenes, publicando, manejarCerrar]);
+    };
 
     if (!abierto) return null;
-
-    const caracteresPendientes = MAX_CARACTERES - contenido.length;
-    const puedePublicar = contenido.trim().length > 0 && !publicando;
 
     return (
         <Modal abierto={abierto} onCerrar={manejarCerrar} titulo="Crear publicación" tamano="normal">
@@ -223,7 +139,7 @@ export const ModalPublicar = (): JSX.Element | null => {
                                 <BotonBase
                                     variante="primario"
                                     tamano="sm"
-                                    onClick={manejarPublicar}
+                                    onClick={publicar}
                                     disabled={!puedePublicar}
                                 >
                                     {publicando ? 'Publicando...' : 'Publicar'}

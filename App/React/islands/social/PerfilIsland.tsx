@@ -13,6 +13,7 @@ import {BotonBase} from '../../components/ui/BotonBase';
 import {TarjetaSample} from '../../components/ui/TarjetaSample';
 import {MenuContextual} from '../../components/ui/MenuContextual';
 import {BotonFollow} from '../../components/social/BotonFollow';
+import {SeccionPublicar} from '../../components/social/SeccionPublicar';
 import {obtenerPerfil} from '../../services/apiAuth';
 import {listarSamples} from '../../services/apiSamples';
 import {darLike, quitarLike, listarPublicacionesUsuario} from '../../services/apiSocial';
@@ -196,6 +197,18 @@ export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.E
         cargarTab();
     }, [usuario, tabActiva]);
 
+    /* Recargar publicaciones tras publicar inline (C89) */
+    const recargarPublicaciones = useCallback(async () => {
+        if (!usuario) return;
+        try {
+            const resp = await listarPublicacionesUsuario(usuario.username, 1);
+            if (resp.ok && resp.data) {
+                const lista = resp.data.data ?? resp.data ?? [];
+                setPublicacionesPerfil(Array.isArray(lista) ? lista : []);
+            }
+        } catch { /* sin-op */ }
+    }, [usuario]);
+
     /* Like con optimistic UI — usa callback de setState para evitar stale closure */
     const manejarLike = useCallback(async (sampleId: number) => {
         let estabaLiked = false;
@@ -366,6 +379,13 @@ export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.E
                 {tabActiva === 'samples' && renderizarListaSamples(samplesPerfil, 'No ha subido samples aún', <Music size={40} />)}
                 {tabActiva === 'publicaciones' && (
                     <div className="perfilPublicaciones">
+                        {/* Sección inline para publicar en perfil propio (C89) */}
+                        {esPropietario && (
+                            <SeccionPublicar
+                                alPublicar={recargarPublicaciones}
+                                placeholder="Comparte algo con tu comunidad..."
+                            />
+                        )}
                         {cargandoTab ? (
                             <div className="perfilVacio">
                                 <p>Cargando...</p>

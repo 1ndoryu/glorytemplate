@@ -10,6 +10,7 @@
 import { useEffect, useMemo, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
+import { PanelLateral } from './PanelLateral';
 import { ReproductorGlobal } from '../ui/ReproductorGlobal';
 import { ModalCrear } from '../social/ModalCrear';
 import { ModalPublicar } from '../social/ModalPublicar';
@@ -109,8 +110,11 @@ export const LayoutPrincipal = ({
             </header>
 
             <main className="areaContenido">
-                <div className="contenedorContenido">
-                    {children}
+                <div className="contenedorContenidoConPanel">
+                    <div className="contenedorContenido">
+                        {children}
+                    </div>
+                    <PanelLateral />
                 </div>
             </main>
 
