@@ -4,8 +4,8 @@
  * Aislado de la app principal via ErrorBoundary.
  */
 
-import { X, Music2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { X, Download, Upload, FolderUp, Trash2, Loader, Music2 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useMezclador } from '../hooks/useMezclador';
 import { ControlesMezclador } from './ControlesMezclador';
 import { Timeline } from './Timeline';
@@ -47,11 +47,27 @@ const MezcladorContenido = (): JSX.Element => {
 
     const cerrarMezclador = useMezcladorStore(s => s.cerrar);
     const cerrarPanel = usePanelLateralStore(s => s.cerrar);
+    const agregarAudioLocal = useMezcladorStore(s => s.agregarAudioLocal);
+    const limpiarProyecto = useMezcladorStore(s => s.limpiarProyecto);
+
+    /* C208: Referencia al input de archivo oculto */
+    const inputArchivoRef = useRef<HTMLInputElement>(null);
 
     /* Cerrar el mezclador Y el panel lateral */
     const cerrar = () => {
         cerrarMezclador();
         cerrarPanel();
+    };
+
+    /* C208: Handler para subir archivos de audio desde PC */
+    const alSeleccionarArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const archivos = e.target.files;
+        if (!archivos || archivos.length === 0) return;
+        for (const archivo of archivos) {
+            if (!archivo.type.startsWith('audio/')) continue;
+            agregarAudioLocal(archivo);
+        }
+        e.target.value = '';
     };
 
     const alPublicar = async () => {
@@ -69,31 +85,61 @@ const MezcladorContenido = (): JSX.Element => {
 
     return (
         <div className="mezcladorPanel">
-            {/* Cabecera */}
+            {/* C233: Cabecera simplificada — acciones de proyecto + cerrar */}
             <div className="mezcladorCabecera">
-                <div className="mezcladorCabeceraTitulo">
-                    <Music2 size={16} />
-                    <span>Mezclador</span>
-                    {totalBloques > 0 && (
-                        <span className="mezcladorContadorBloques">{totalBloques}</span>
-                    )}
+                <div className="mezcladorCabeceraAcciones">
                     {estaCargando && (
                         <span className="mezcladorCargando">Cargando...</span>
                     )}
+                    <button
+                        className="mezcladorBotonCabecera"
+                        onClick={() => inputArchivoRef.current?.click()}
+                        title="Subir audio desde PC"
+                    >
+                        <FolderUp size={14} />
+                    </button>
+                    <input
+                        ref={inputArchivoRef}
+                        type="file"
+                        accept="audio/*"
+                        multiple
+                        onChange={alSeleccionarArchivo}
+                        style={{ display: 'none' }}
+                    />
+                    {exportando && <Loader size={14} className="mezcladorSpinner" />}
+                    <button
+                        className="mezcladorBotonCabecera"
+                        onClick={descargarMezcla}
+                        disabled={!puedeExportar || exportando}
+                        title="Descargar mezcla (1 crédito)"
+                    >
+                        <Download size={14} />
+                    </button>
+                    <button
+                        className="mezcladorBotonCabecera"
+                        onClick={alPublicar}
+                        disabled={!puedeExportar || exportando}
+                        title="Publicar mezcla"
+                    >
+                        <Upload size={14} />
+                    </button>
+                    <button
+                        className="mezcladorBotonCabecera mezcladorBotonLimpiar"
+                        onClick={limpiarProyecto}
+                        title="Limpiar proyecto"
+                    >
+                        <Trash2 size={14} />
+                    </button>
                 </div>
                 <button className="mezcladorCerrar" onClick={cerrar}>
                     <X size={16} />
                 </button>
             </div>
 
-            {/* Controles: play, BPM, compases, export */}
+            {/* Controles: play, BPM, compases, snap, zoom, cortar */}
             <ControlesMezclador
                 onToggleReproduccion={toggleReproduccion}
-                onDescargar={descargarMezcla}
-                onPublicar={alPublicar}
                 reproduciendo={reproduciendo}
-                puedeExportar={puedeExportar}
-                exportando={exportando}
             />
 
             {/* Timeline con pistas */}

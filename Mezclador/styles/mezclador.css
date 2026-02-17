@@ -21,21 +21,36 @@
     border-bottom: 1px solid var(--bordeSutil);
 }
 
-.mezcladorCabeceraTitulo {
+/* C233: Acciones de proyecto en cabecera (subir, descargar, publicar, limpiar) */
+.mezcladorCabeceraAcciones {
     display: flex;
     align-items: center;
-    gap: var(--espacioSm);
-    font-size: var(--fuenteSm);
-    font-weight: var(--pesoSemibold);
-    color: var(--textoPrimario);
+    gap: var(--espacioXs);
 }
 
-.mezcladorContadorBloques {
-    font-size: var(--fuenteXs);
-    background: var(--acentoMuted);
-    color: var(--acento);
-    padding: 1px 6px;
-    border-radius: var(--radioFull);
+/* C233: Botón de cabecera — mismo estilo que botonAccion */
+.mezcladorBotonCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: 1px solid var(--bordeSutil);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    transition: all var(--transicionRapida);
+}
+
+.mezcladorBotonCabecera:hover {
+    color: var(--textoPrimario);
+    border-color: var(--bordeActivo);
+}
+
+.mezcladorBotonCabecera:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 .mezcladorCargando {
@@ -129,13 +144,14 @@
     text-transform: uppercase;
 }
 
+/* C233.1: Altura uniforme 28px en todos los botones del mezclador */
 .mezcladorBotonCompas,
 .mezcladorBotonAccion {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     background: none;
     border: 1px solid var(--bordeSutil);
     color: var(--textoSecundario);
@@ -545,6 +561,20 @@
 /* C214: Modo cortar — cursor tijera sobre bloques */
 .mezcladorBloqueCortando {
     cursor: crosshair;
+}
+
+/* C232: Línea preview de corte — se muestra al mover mouse con herramienta cortar */
+.mezcladorBloqueLineaCorte {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--error, #ef4444);
+    opacity: 0.7;
+    z-index: 5;
+    pointer-events: none;
+    border-radius: 1px;
+    box-shadow: 0 0 4px var(--error, #ef4444);
 }
 
 /* C214: Botón activo (ej. Scissors en controles) */

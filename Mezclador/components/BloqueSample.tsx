@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { X, MoreHorizontal, Copy } from 'lucide-react';
 import type { BloqueMezclador } from '../types/mezclador';
-import { anchoBloquePorc, posicionBloquePorc, snapABeat } from '../utils/compasUtils';
+import { anchoBloquePorc, posicionBloquePorc, snapABeat, snapConResolucion } from '../utils/compasUtils';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { ModalConfigBloque } from './ModalConfigBloque';
 
@@ -34,12 +34,14 @@ export const BloqueSample = ({
     const setDuracionBloque = useMezcladorStore(s => s.setDuracionBloque);
     const compasProyecto = useMezcladorStore(s => s.compasProyecto);
     const guardarSnapshot = useMezcladorStore(s => s._guardarSnapshot);
+    const snapResolucion = useMezcladorStore(s => s.snapResolucion);
     const ancho = anchoBloquePorc(bloque.duracionCompases, totalCompases);
     const izquierda = posicionBloquePorc(bloque.compasInicio, totalCompases);
 
-    /* Estado local para resize y modal config */
+    /* Estado local para resize, modal config y línea preview de corte */
     const [resizing, setResizing] = useState(false);
     const [modalConfigAbierto, setModalConfigAbierto] = useState(false);
+    const [lineaCortePorc, setLineaCortePorc] = useState<number | null>(null);
     const resizingRef = useRef(false);
     const datosResizeRef = useRef({ duracionInicial: 0, xInicial: 0, anchoContenedor: 0 });
 
@@ -109,6 +111,29 @@ export const BloqueSample = ({
         }).join(' ')
         : '';
 
+    /* C232: Preview de línea de corte cuando el modo cortar está activo */
+    const alMoverMouse = useCallback((e: React.MouseEvent) => {
+        if (!modoCortarActivo) {
+            if (lineaCortePorc !== null) setLineaCortePorc(null);
+            return;
+        }
+        const bloqueEl = e.currentTarget as HTMLElement;
+        const rect = bloqueEl.getBoundingClientRect();
+        const relX = e.clientX - rect.left;
+        const porcDentroBloque = relX / rect.width;
+
+        /* Convertir a compás absoluto, snap, y volver a porcentaje del bloque */
+        const compasAbsoluto = bloque.compasInicio + porcDentroBloque * bloque.duracionCompases;
+        const compasSnapped = snapConResolucion(compasAbsoluto, compasProyecto, snapResolucion);
+        const porcSnapped = (compasSnapped - bloque.compasInicio) / bloque.duracionCompases;
+        const porcClamped = Math.max(0.02, Math.min(0.98, porcSnapped));
+        setLineaCortePorc(porcClamped * 100);
+    }, [modoCortarActivo, bloque.compasInicio, bloque.duracionCompases, compasProyecto, snapResolucion, lineaCortePorc]);
+
+    const alSalirMouse = useCallback(() => {
+        if (lineaCortePorc !== null) setLineaCortePorc(null);
+    }, [lineaCortePorc]);
+
     /* C214: Manejar click para cortar si el modo cortar está activo */
     const alClickBloque = useCallback((e: React.MouseEvent) => {
         if (!modoCortarActivo || !onCortar) return;
@@ -120,9 +145,9 @@ export const BloqueSample = ({
         const rect = contenedor.getBoundingClientRect();
         const relX = e.clientX - rect.left;
         const porcentaje = relX / rect.width;
-        const compasClick = snapABeat(porcentaje * totalCompases, compasProyecto);
+        const compasClick = snapConResolucion(porcentaje * totalCompases, compasProyecto, snapResolucion);
         onCortar(bloque.id, compasClick);
-    }, [modoCortarActivo, onCortar, totalCompases, compasProyecto, bloque.id]);
+    }, [modoCortarActivo, onCortar, totalCompases, compasProyecto, bloque.id, snapResolucion]);
 
     return (
         <div
@@ -140,6 +165,8 @@ export const BloqueSample = ({
                 onIniciarDrag(bloque.id, bloque.pistaId, e);
             }}
             onClick={alClickBloque}
+            onMouseMove={alMoverMouse}
+            onMouseLeave={alSalirMouse}
             onContextMenu={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -202,6 +229,14 @@ export const BloqueSample = ({
                 <svg className="mezcladorBloqueWaveform" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <path d={waveformPath} stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.7" />
                 </svg>
+            )}
+
+            {/* C232: Línea preview de corte */}
+            {modoCortarActivo && lineaCortePorc !== null && (
+                <div
+                    className="mezcladorBloqueLineaCorte"
+                    style={{ left: `${lineaCortePorc}%` }}
+                />
             )}
 
             {/* Handle derecho para resize — C204 stretch/pitch */}
