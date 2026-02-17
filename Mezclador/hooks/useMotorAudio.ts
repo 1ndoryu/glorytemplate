@@ -193,12 +193,29 @@ export const useMotorAudio = () => {
      * durante la reproducción activa.
      */
     useEffect(() => {
-        const reprogramar = () => {
+        const reprogramar = (e: Event) => {
             if (!useMezcladorStore.getState().reproduciendo) return;
             const ctx = motorAudio.obtenerContexto();
-            const tiempoActual = ctx.currentTime - tiempoInicioRef.current;
+            const { bpmProyecto, compasProyecto } = useMezcladorStore.getState();
+
+            /*
+             * C238: Si el evento trae posición musical (cambio de BPM),
+             * convertir a segundos con el BPM nuevo para mantener la posición.
+             * Sin detail = otros cambios (stretch, config) → usar wall-clock elapsed.
+             */
+            const customEvent = e as CustomEvent;
+            let desdeSegundo: number;
+
+            if (customEvent.detail?.posicionCompases !== undefined) {
+                desdeSegundo = compasesASegundos(
+                    customEvent.detail.posicionCompases, bpmProyecto, compasProyecto
+                );
+            } else {
+                desdeSegundo = ctx.currentTime - tiempoInicioRef.current;
+            }
+
             motorAudio.detenerTodo();
-            programarBloques(tiempoActual);
+            programarBloques(desdeSegundo);
         };
 
         window.addEventListener(EVENTO_REPROGRAMAR_AUDIO, reprogramar);

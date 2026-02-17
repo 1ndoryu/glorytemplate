@@ -411,13 +411,29 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 235. ✅ [AG-DAW] Fix admin panel sin usuarios — query COUNT recibía parámetro :offset sin placeholder en SQL, PDO nativo lanzaba excepción silenciosa. Fix: array_diff_key para excluir offset de paramsCount.
 236. ✅ [AG-DAW] Gráfica actividad 14 días reescrita — barras agrupadas lado a lado (no apiladas), eje Y con líneas de referencia, eje X con fechas dd/mm, colores distinguibles (verde/azul/naranja), altura 180px, totales del periodo en leyenda.
 237. ✅ [AG-DAW] Fix Music2 not defined — re-agregado import Music2 en MezcladorPanel.tsx (se había eliminado en C233). Commit f6e48db..
-238. Cuando modifico los bmp mientras se reproduce, la linea de tiempo se vuelve imprecisa, se arregla al volver a reproducir, este no es un problema grave pero arreglarlo puliría bien el sistema.
+238. ✅ [AG-BPM] Fix BPM durante reproducción — setBpm ahora calcula posición musical (compases) con BPM anterior, despacha EVENTO_REPROGRAMAR_AUDIO con posicionCompases. Handler en useMotorAudio convierte posición a segundos con BPM nuevo, corrige tiempoInicioRef y reprograma audio. Retrocompatible con otros dispatches sin detail.
 239. las propiedades de velocidad, volumen etc, todas deberian tener un boton de restablecer al estaod inicial o default.
 240. una opcion para cambiar la tonalidad de los audios en sus propiedades en su mini daw.
 241. una opcion para expandir completamente el mini daw, es decir, que el panel lateral se pueda expandir completamente, el icono de "panelDetalleCerrar" del panel normal, deberia tambien estar en donde esta la X del panel de mini daw, o sea, remplazar la X del mini daw por un icono mejor.
 242. si bien los movimientos de la tarjeta de audio funcionan bien con el snap, debería moverse mientras se arrastra para en feedback visual en tiempo real, para los tipos de movimientos que existe, como contraer, estirar, mover verticalmente, etc.
 243. A veces cuando contraigo un tarjeta de audio, si bien la velocidad cambia, a veces se bugea, no se como explicarlo, supongo que tengo 4 compas, y un audio dura esos 4 compas, lo contraigo a 2, y luego lo vuelvo a expandir a 4, pasa en ese caso que a veces se queda durando 2 compas pero visualmente se ve de 4, y no hay forma de arreglarlo aunque lo contraiga y expanda de nuevo. Hay que evitar esto, a veces no precisamente dura lo que se habia contraido, sino que la misma inconsistencia de antes del comentario 222 vuelve, hay que pulir.
 244. En Fl studio hay una opción de strech rezice audio when rezising audio clip, cuando esta activa, el audio se estira, cuando esta apagada, el audio simplemente se recorta o la tarjeta aumenta el largo sin estirarse el audio, la waveform se queda exactamente hasta donde dura, en cambio cuando el estarimanete esta activado, la waveform se estira representando la duración en la tarjeta, necesito un sistema igual para este mini daw.
+245. (Despues de que supuetamente se arreglara 235), los usuarios realmente siguen sin aparecer en el panel de administración.
+246. Cuando se duplica un audio, este se pone delante, bien, pero si ya hay un audio delante, se pone encima, debe evitar la colición y ponerse al final donde no colicione con algo.
+247. poder selecionar tarjetas de audios presionado control en el daw, asi puedo mover varias tarjetas, hacia los lados o hacia otras pistas
+248. que inicialmente haya 20 pistas en el mini daw
+249. que presionando shilf sobre una tarjeta de audio esta se duplique al arrastrarla un poco hacia afuera.
+250. Quita el texto de "arrastra un sample aqui"
+251. Que el boton de mezcladorCerrar tenga el mismo estilo que el resto de botones.
+252. Antes de continuar con 253, es necesario comprimir las tareas, comentarios o registros o lecciones viejas.
+253. Poner un boton de configuracion de mini daw al lado de expandir panel, en ese modal de configuración, se van a mover las opciones de snap.
+254. EL boton de publicar mezcla no funciona, puede esto no este planificado, pero realmente requiere pasos extra con la detección de duplicados, porque supongamos que hago una mezcla de un audio exactamente igual, el sistema debería detectar esos casos en que se intenta publicar un sample igual aunque sea una mezcla y pasarlo a moderación. 
+254.1 Veo que en el menu contextual de la foto de perfil hay un limitador de creditos, ejemplo usuario free tiene 5 creditos y aparece 5, si bien, al reiniciar el dia debe volver a 5, hay que quitar el limite, o sea si tengo 5 creditos y publico un sample, debería tener 6, si pasa un dia y todavía tengo 6, no debe restar y dejarme en esos 6, pero si tengo menos (4, 3, etc) reiniciar a 5 o a lo que corresponde, asi con los otros planes. Permitir que los usuarios ganen creditos por mezclar o publicar samples.
+242.2 Aclaración porque siento que no entiende bien 254, lo que se busca es debería permitirse mezcla siempre y cuando no sean tan parecidas, a los samples ya publicados. 
+255. los archivos del mezclador como mezcladorStore, se estan haciendo muy grandes, refactorizar y aplicar solid con cuidado. 
+256. La opcion de strech rezice audio when rezising audio clip que comente en 244, debe ser general, y estar al lado de la opcion de recorte, y funcionar generalmente, no individualmente por cada tarjeta, dependiendo se si se esta activa o desactivada, aplicara una opcion otra
+
+
 ---
 
 ## Lecciones Aprendidas (compactas)

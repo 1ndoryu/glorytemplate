@@ -7,7 +7,7 @@ import { create } from 'zustand';
 import type { SampleResumen } from '@app/types';
 import type { BloqueMezclador, PistaMezclador, Compas, ConfigBloque, SnapResolucion } from '../types/mezclador';
 import { CONSTANTES_MEZCLADOR, COLORES_BLOQUE, EVENTO_REPROGRAMAR_AUDIO, ZOOM_MIN, ZOOM_MAX, ZOOM_PASO } from '../types/mezclador';
-import { inferirCompas, compasesASegundos } from '../utils/compasUtils';
+import { inferirCompas, compasesASegundos, segundosACompases } from '../utils/compasUtils';
 import { generarIdBloque, generarIdPista, extraerPeaks } from '../utils/audioBufferUtils';
 import { motorAudio } from '../services/motorAudioService';
 
@@ -182,7 +182,20 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     setBpm: (bpm) => {
         const clamp = Math.max(40, Math.min(300, bpm));
         try { localStorage.setItem(LS_KEY_BPM, String(clamp)); } catch {}
+
+        const { reproduciendo, tiempoActual, bpmProyecto: bpmAnterior, compasProyecto } = get();
         set({ bpmProyecto: clamp });
+
+        /*
+         * C238: Si está reproduciendo, calcular posición musical con BPM anterior
+         * y reprogramar audio con BPM nuevo para mantener la posición correcta.
+         */
+        if (reproduciendo) {
+            const posicionCompases = segundosACompases(tiempoActual, bpmAnterior, compasProyecto);
+            window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO, {
+                detail: { posicionCompases }
+            }));
+        }
     },
     setCompas: (compas) => set({ compasProyecto: compas }),
     setTotalCompases: (total) => set({ totalCompases: Math.max(1, Math.min(CONSTANTES_MEZCLADOR.COMPASES_MAX, total)) }),
