@@ -9,6 +9,7 @@ import { useState, useCallback, useRef, useEffect, type ChangeEvent, type Keyboa
 import { useArchivosDragDrop } from '@app/hooks/useArchivosDragDrop';
 import { subirSample } from '@app/services/apiSamples';
 import { crearPublicacion, subirImagenPublicacion } from '@app/services/apiSocial';
+import { EVENTO_SAMPLE_CREADO } from '@app/hooks/useMenuContextualSample';
 import { crearLogger } from '@app/services/logger';
 
 const log = crearLogger('useCrearContenido');
@@ -183,6 +184,12 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         }
 
         setExitoSubida(true);
+
+        /* C223: Notificar al feed para que refresque la lista de samples */
+        if (audioAdjunto?.archivo) {
+            window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_CREADO));
+        }
+
         setTimeout(() => {
             setPublicando(false);
             resetear();

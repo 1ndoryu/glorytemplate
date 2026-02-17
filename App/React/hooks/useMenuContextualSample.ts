@@ -16,10 +16,11 @@ import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { eliminarSample, actualizarSample } from '@app/services/apiSamples';
 import { toast } from '@app/stores/toastStore';
 
-/* Evento global para notificar eliminación de sample sin recargar la página */
+/* Eventos globales para notificar cambios de samples sin recargar la página */
 export const EVENTO_SAMPLE_ELIMINADO = 'kamples:sample-eliminado';
 export const EVENTO_SAMPLE_RESTAURADO = 'kamples:sample-restaurado';
 export const EVENTO_SAMPLE_ACTUALIZADO = 'kamples:sample-actualizado';
+export const EVENTO_SAMPLE_CREADO = 'kamples:sample-creado';
 
 interface EstadoMenuSample {
     abierto: boolean;

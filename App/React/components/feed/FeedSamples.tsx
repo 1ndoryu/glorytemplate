@@ -22,7 +22,7 @@ import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
 import { SelectFiltro } from '@app/components/ui/SelectFiltro';
 import { SelectorBPM } from '@app/components/ui/SelectorBPM';
 import { useNavigationStore } from '@/core/router';
-import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO, EVENTO_SAMPLE_ACTUALIZADO } from '@app/hooks/useMenuContextualSample';
+import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO, EVENTO_SAMPLE_ACTUALIZADO, EVENTO_SAMPLE_CREADO } from '@app/hooks/useMenuContextualSample';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { extraerTagsMetadata, extraerTagsAgrupadosMetadata, type CategoriaTag } from '@app/services/tagUtils';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
@@ -243,6 +243,10 @@ export const FeedSamples = ({
     }, [virtualizar, alturaTarjeta]);
 
     /* Escuchar eliminación de samples para remover sin recargar (C66) */
+    /* C223: Ref para cargarPagina accesible dentro del listener de eventos (evita stale closure) */
+    const cargarPaginaRef = useRef(cargarPagina);
+    cargarPaginaRef.current = cargarPagina;
+
     useEffect(() => {
         const manejarEliminacion = (event: Event) => {
             const detalle = (event as CustomEvent<{ sampleId?: number }>).detail;
@@ -273,13 +277,23 @@ export const FeedSamples = ({
             }
         };
 
+        /* C223: Refrescar lista de samples al publicar uno nuevo */
+        const manejarCreacion = () => {
+            cacheFeedRef.current = {};
+            setPaginaActual(1);
+            setHayMasPaginas(true);
+            cargarPaginaRef.current(1, true);
+        };
+
         window.addEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
         window.addEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
         window.addEventListener(EVENTO_SAMPLE_ACTUALIZADO, manejarActualizacion as EventListener);
+        window.addEventListener(EVENTO_SAMPLE_CREADO, manejarCreacion);
         return () => {
             window.removeEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
             window.removeEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
             window.removeEventListener(EVENTO_SAMPLE_ACTUALIZADO, manejarActualizacion as EventListener);
+            window.removeEventListener(EVENTO_SAMPLE_CREADO, manejarCreacion);
         };
     }, []);
 

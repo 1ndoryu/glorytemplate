@@ -445,42 +445,42 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                         /*
                          * C76: Mostrar metadata enriquecida del sample.
                          * Orden: instrumento, género, emoción, velocidad, tag.
-                         * Usa metadata de la IA cuando está disponible.
+                         * C221: Se deduplicam tags para evitar repeticiones entre categorías.
                          */
                         const meta = sample.metadata;
                         const badges: { texto: string; clave: string }[] = [];
 
-                        /* Primer instrumento */
-                        const instrumentos = meta?.instrumentos ?? meta?.['instrumentos'];
-                        if (instrumentos) {
-                            const primerInst = Array.isArray(instrumentos) ? instrumentos[0] : instrumentos;
-                            if (primerInst) badges.push({ texto: primerInst, clave: 'inst' });
-                        }
+                        /* C221: Set de textos normalizados ya usados para evitar duplicados */
+                        const usados = new Set<string>();
 
-                        /* Primer género */
-                        const genero = meta?.genero ?? meta?.['genero'];
-                        if (genero) {
-                            const primerGen = Array.isArray(genero) ? genero[0] : genero;
-                            if (primerGen) badges.push({ texto: primerGen, clave: 'gen' });
-                        }
+                        /*
+                         * C221: Busca el primer valor no duplicado de un array de metadata.
+                         * Itera hasta encontrar uno que no esté en el Set de usados.
+                         */
+                        const agregarBadge = (valores: unknown, clave: string) => {
+                            const arr = Array.isArray(valores) ? valores : valores ? [valores] : [];
+                            for (const v of arr) {
+                                if (typeof v === 'string' && v.trim()) {
+                                    const normalizado = v.toLowerCase().trim();
+                                    if (!usados.has(normalizado)) {
+                                        usados.add(normalizado);
+                                        badges.push({ texto: v, clave });
+                                        return;
+                                    }
+                                }
+                            }
+                        };
 
-                        /* Primera emoción (con fallback a español) */
-                        const emocion = meta?.emocion_es ?? meta?.emocionEs ?? meta?.emocion;
-                        if (emocion) {
-                            const primeraEmo = Array.isArray(emocion) ? emocion[0] : emocion;
-                            if (primeraEmo) badges.push({ texto: primeraEmo, clave: 'emo' });
-                        }
+                        agregarBadge(meta?.instrumentos ?? meta?.['instrumentos'], 'inst');
+                        agregarBadge(meta?.genero ?? meta?.['genero'], 'gen');
+                        agregarBadge(meta?.emocion_es ?? meta?.emocionEs ?? meta?.emocion, 'emo');
 
-                        /* Velocidad normalizada (del BPM) */
+                        /* Velocidad normalizada (calculada, no duplicable) */
                         if (sample.bpm) {
                             badges.push({ texto: etiquetaBpm(sample.bpm), clave: 'vel' });
                         }
 
-                        /* Primera tag */
-                        const tagsMeta = meta?.tags_es ?? meta?.tagsEs ?? meta?.tags ?? sample.tags;
-                        if (tagsMeta && Array.isArray(tagsMeta) && tagsMeta.length > 0) {
-                            badges.push({ texto: tagsMeta[0], clave: 'tag' });
-                        }
+                        agregarBadge(meta?.tags_es ?? meta?.tagsEs ?? meta?.tags ?? sample.tags, 'tag');
 
                         /* Si no hay metadata IA, mostrar badges clásicos */
                         if (badges.length === 0) {

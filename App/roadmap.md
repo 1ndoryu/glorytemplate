@@ -390,11 +390,11 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 218. ✅ [AG-DAW] Playback vuelve al inicio — actualizarCursor calcula fin del último bloque real (no totalCompases), detiene y resetea cursor a 0. Commit b7123b2.
 219. ✅ [AG-DAW] Botones bloque más grandes (18px, gap 4px, hover background) + click derecho abre modal config (onContextMenu). Commit b7123b2.
 220. En crearCondiciones debería aparecer para que cuando publico un sample, aparezca o no en comunidad. En tarjetaMeta aparecen.
-221. En tarjetaMeta aparecen tags iguales, no debería, si hay 2 tags de 2 categorías iguales, mostrar el siguiente hasta que ninguno sea igual.
+221. ✅ [AG-DAW] Dedup tags tarjetaMeta — Set<string> de textos normalizados (lowercase+trim) para evitar repeticiones entre categorías (instrumento/género/emoción/tag). Si primer valor ya existe, itera al siguiente del array.
 222. ✅ [AG-DAW] Fix sync timeline/audio — 2 bugs: (A) fuente.start() duration en buffer-time no wall-clock → multiplicar por playbackRate, (B) cursor usaba left% relativo a contenedor completo pero bloques relativo a area contenido (W-80px) → calc(80px + (100%-80px)*frac). Commit 35c8488.
 222.1 ✅ [AG-DAW] Cursor click posición — resuelto con fix B de C222 (calc-based positioning). Commit 35c8488.
 222.2 ✅ [AG-DAW] playbackRate no recalculaba duracionCompases — actualizarConfigBloque ahora recalcula cuando cambia playbackRate. Commit 35c8488.
-223. Cuando publico un sample la lista de sample debería actualizarse.
+223. ✅ [AG-DAW] Refresh lista tras publicar — EVENTO_SAMPLE_CREADO dispatched desde useCrearContenido, FeedSamples escucha y limpia cache + recarga página 1. Ref de cargarPagina evita stale closure.
 222.2 Creo que es por los bpm tal vez.
 224. ✅ [AG-DAW] Undo/Redo — Historial 30 snapshots (pistas+totalCompases), _guardarSnapshot antes de cada mutación (agregarPista/eliminarPista/moverBloque/eliminarBloque/duplicarBloque/dividirBloque/agregarSample/agregarAudioLocal/limpiarProyecto/resize), botones Undo2/Redo2 en ControlesMezclador, atajos Ctrl+Z/Ctrl+Y/Ctrl+Shift+Z. Commit e8de6ee.
 225. ✅ [AG-DAW] Fix context menu no cierra — Guard !modalConfigAbierto en onContextMenu, overlay con preventDefault+stopPropagation en onContextMenu y onMouseDown. Commit e8de6ee.
@@ -415,8 +415,9 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 239. las propiedades de velocidad, volumen etc, todas deberian tener un boton de restablecer al estaod inicial o default.
 240. una opcion para cambiar la tonalidad de los audios en sus propiedades en su mini daw.
 241. una opcion para expandir completamente el mini daw, es decir, que el panel lateral se pueda expandir completamente, el icono de "panelDetalleCerrar" del panel normal, deberia tambien estar en donde esta la X del panel de mini daw, o sea, remplazar la X del mini daw por un icono mejor.
-242. si bien los movimientos de la tarjeta de audio funcionan bien con el snap, debería moverse mientras se arrastra para en feedback visual en tiempo real, para los tipos de movimientos que existe, como contraer, estirar, mover verticalmente, etc
-
+242. si bien los movimientos de la tarjeta de audio funcionan bien con el snap, debería moverse mientras se arrastra para en feedback visual en tiempo real, para los tipos de movimientos que existe, como contraer, estirar, mover verticalmente, etc.
+243. A veces cuando contraigo un tarjeta de audio, si bien la velocidad cambia, a veces se bugea, no se como explicarlo, supongo que tengo 4 compas, y un audio dura esos 4 compas, lo contraigo a 2, y luego lo vuelvo a expandir a 4, pasa en ese caso que a veces se queda durando 2 compas pero visualmente se ve de 4, y no hay forma de arreglarlo aunque lo contraiga y expanda de nuevo. Hay que evitar esto, a veces no precisamente dura lo que se habia contraido, sino que la misma inconsistencia de antes del comentario 222 vuelve, hay que pulir.
+244. En Fl studio hay una opción de strech rezice audio when rezising audio clip, cuando esta activa, el audio se estira, cuando esta apagada, el audio simplemente se recorta o la tarjeta aumenta el largo sin estirarse el audio, la waveform se queda exactamente hasta donde dura, en cambio cuando el estarimanete esta activado, la waveform se estira representando la duración en la tarjeta, necesito un sistema igual para este mini daw.
 ---
 
 ## Lecciones Aprendidas (compactas)
@@ -499,4 +500,6 @@ Funcion esperada: Asegurate de que la funcion exista y este cargada.
 - [C233]: Al mover botones entre componentes, verificar que los imports de lucide-react se actualicen en AMBOS componentes (origen y destino). Music2 quedó referenciado sin import.
 - [C235]: PDO con ATTR_EMULATE_PREPARES=false lanza excepción si $params tiene claves sin placeholder en el SQL. Para queries COUNT sin LIMIT/OFFSET, usar array_diff_key($params, ['offset' => true]).
 - [C236]: Gráficas CSS puras: barras agrupadas (flex-direction row) son más legibles que apiladas (column). Usar colores lejanos en el espectro (verde/azul/naranja, no verde/verde claro/naranja). Siempre incluir eje de referencia.
+- [C221]: Metadata IA puede generar valores repetidos entre categorías (ej: "hip-hop" en genero Y en tags). Siempre deduplicar con Set normalizado (lowercase+trim) al mostrar badges.
+- [C223]: Para refrescar feeds desde hooks externos (fuera del componente), usar CustomEvent + listener. Para evitar stale closures en listeners con `[]` deps, guardar la función en un ref (`cargarPaginaRef.current = cargarPagina`).
 - [C201]: FFmpeg waveform: `-f f32le -acodec pcm_f32le -ac 1 -ar 8000` genera PCM raw, luego leer con `unpack('g*')` y extraer picos por chunks. 60 barras es suficiente para un mini player.
