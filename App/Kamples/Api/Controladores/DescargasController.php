@@ -280,6 +280,18 @@ class DescargasController
             return new \WP_REST_Response(['ok' => false, 'error' => 'Colección no encontrada'], 404);
         }
 
+        /* S11: Verificar que la colección pertenezca al usuario o sea pública para evitar IDOR */
+        $esPropietario = (int) ($coleccion['usuario_id'] ?? 0) === $userId;
+        if (!$esPropietario) {
+            $esPub = PostgresService::consultarUno(
+                "SELECT 1 FROM colecciones WHERE id = :id AND publica = true",
+                ['id' => $coleccionId]
+            );
+            if (!$esPub) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'No tienes acceso a esta colección'], 403);
+            }
+        }
+
         /* Obtener samples de la colección */
         $samples = PostgresService::consultar(
             "SELECT s.id, s.titulo, s.ruta_original, s.ruta_optimizada, s.es_premium, s.creador_id
@@ -299,12 +311,19 @@ class DescargasController
         $placeholders = implode(',', array_fill(0, count($sampleIds), '?'));
         $params = array_merge([$userId], $sampleIds);
 
-        /* Bind manual para IN clause */
-        $paramStr = implode(',', array_map(fn($id) => (int) $id, $sampleIds));
+        /* S12: Parametrizar IN clause en lugar de interpolar IDs directamente */
+        $downloadParams = ['userId' => $userId];
+        $dlPlaceholders = [];
+        foreach ($sampleIds as $idx => $sid) {
+            $key = "dlSid{$idx}";
+            $dlPlaceholders[] = ":{$key}";
+            $downloadParams[$key] = $sid;
+        }
+        $dlIn = implode(',', $dlPlaceholders);
         $yaDescargados = PostgresService::consultar(
             "SELECT DISTINCT sample_id FROM descargas
-             WHERE usuario_id = :userId AND sample_id IN ({$paramStr})",
-            ['userId' => $userId]
+             WHERE usuario_id = :userId AND sample_id IN ({$dlIn})",
+            $downloadParams
         );
         $idsYaDescargados = array_map(fn($d) => (int) $d['sample_id'], $yaDescargados);
         $samplesNuevos = array_filter($samples, fn($s) => !in_array((int) $s['id'], $idsYaDescargados));

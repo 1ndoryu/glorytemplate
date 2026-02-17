@@ -260,14 +260,15 @@ class ConnectController
         $balance = StripeService::obtenerBalanceConnect($connectId);
 
         if (isset($balance['error'])) {
+            KamplesLogger::error('Error obteniendo balance Connect', [
+                'userId'    => $userId,
+                'connectId' => $connectId,
+                'error'     => $balance['error'],
+            ]);
             return new \WP_REST_Response([
-                'ok' => true,
-                'data' => [
-                    'disponible' => 0,
-                    'pendiente'  => 0,
-                    'moneda'     => 'usd',
-                ],
-            ], 200);
+                'ok' => false,
+                'error' => 'No se pudo obtener el balance. Intenta de nuevo más tarde.',
+            ], 502);
         }
 
         /* Stripe devuelve amounts en centavos, convertir a dólares */

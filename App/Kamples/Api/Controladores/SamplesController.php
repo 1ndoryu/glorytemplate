@@ -427,7 +427,7 @@ class SamplesController
         }
 
         $sampleId = null;
-        $tagsPostgres = '{' . implode(',', array_map('\sanitize_text_field', $tags)) . '}';
+        $tagsPostgres = NormalizadorSample::phpArrayToPg(array_map('\sanitize_text_field', $tags));
 
         try {
             $resultado = PostgresService::consultarUno(
@@ -560,7 +560,7 @@ class SamplesController
                 return new \WP_REST_Response(['code' => 'tags_insuficientes', 'message' => 'Se requieren al menos 2 tags'], 400);
             }
             $campos[] = 'tags = :tags';
-            $params['tags'] = '{' . implode(',', $tags) . '}';
+            $params['tags'] = NormalizadorSample::phpArrayToPg($tags);
         }
 
         if (isset($body['tipo'])) {
@@ -892,10 +892,21 @@ class SamplesController
         arsort($tagCounts);
         $topTags = array_slice(array_keys($tagCounts), 0, 10);
 
-        /* IDs a excluir (ya descargados/favoritos) */
+        /* IDs a excluir (ya descargados/favoritos) — parametrizados para prevenir SQL injection */
         $idsExistentes = PostgresService::consultar($sqlExcluir, ['uid' => $userId]);
         $idsExcluir = array_map(fn($r) => (int) $r['sample_id'], $idsExistentes);
-        $idsExcluirStr = !empty($idsExcluir) ? implode(',', $idsExcluir) : '0';
+
+        $excludePlaceholders = '';
+        if (!empty($idsExcluir)) {
+            $excludeParts = [];
+            foreach ($idsExcluir as $idx => $exId) {
+                $key = "excl{$idx}";
+                $excludeParts[] = ":{$key}";
+                $params[$key] = $exId;
+            }
+            $excludePlaceholders = implode(',', $excludeParts);
+        }
+        $excludeClause = !empty($excludePlaceholders) ? "AND s.id NOT IN ({$excludePlaceholders})" : '';
 
         /* Scoring: tags + key + BPM proximity */
         $avgBpm = !empty($allBpms) ? (int) (array_sum($allBpms) / count($allBpms)) : 120;
@@ -915,7 +926,7 @@ class SamplesController
         if ($dominantKey) $params['domKey'] = $dominantKey;
 
         $sql = NormalizadorSample::sqlSelectSamples()
-             . " WHERE s.estado = 'activo' AND s.id NOT IN ({$idsExcluirStr})"
+             . " WHERE s.estado = 'activo' {$excludeClause}"
              . " ORDER BY ({$tagScore} + {$keyScore} + CASE WHEN s.bpm IS NOT NULL THEN GREATEST(0, 5 - ABS(s.bpm - :avgBpm) / 10) ELSE 0 END) DESC,"
              . " s.total_likes DESC, s.publicado_at DESC"
              . " LIMIT :limit OFFSET :offset";

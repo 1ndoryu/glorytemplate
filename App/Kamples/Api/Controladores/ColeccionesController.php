@@ -261,6 +261,18 @@ class ColeccionesController
             return new \WP_REST_Response(['code' => 'coleccion_no_encontrada'], 404);
         }
 
+        /*
+         * Seguridad: solo mostrar colecciones privadas al propietario.
+         * Las colecciones publicas son accesibles para todos.
+         */
+        $esPublica = (bool) ($coleccion['publica'] ?? true);
+        if (!$esPublica) {
+            $usuarioActual = UsuarioHelper::obtenerIdPg();
+            if (!$usuarioActual || $usuarioActual !== (int) $coleccion['usuario_id']) {
+                return new \WP_REST_Response(['code' => 'coleccion_no_encontrada'], 404);
+            }
+        }
+
         /* Samples de la colección */
         $samples = PostgresService::consultar(
             NormalizadorSample::sqlSelectSamples()
@@ -460,13 +472,24 @@ class ColeccionesController
         arsort($tagCounts);
         $topTags = array_slice(array_keys($tagCounts), 0, 10);
 
-        /* IDs de samples ya en la colección (excluirlos) */
+        /* IDs de samples ya en la colección (excluirlos) — parametrizados para prevenir SQL injection */
         $idsExistentes = PostgresService::consultar(
             "SELECT sample_id FROM coleccion_samples WHERE coleccion_id = :colId",
             ['colId' => $colId]
         );
         $idsExcluir = array_map(fn($r) => (int) $r['sample_id'], $idsExistentes);
-        $idsExcluirStr = !empty($idsExcluir) ? implode(',', $idsExcluir) : '0';
+
+        $excludePlaceholders = '';
+        if (!empty($idsExcluir)) {
+            $excludeParts = [];
+            foreach ($idsExcluir as $idx => $exId) {
+                $key = "excl{$idx}";
+                $excludeParts[] = ":{$key}";
+                $params["excl{$idx}"] = $exId;
+            }
+            $excludePlaceholders = implode(',', $excludeParts);
+        }
+        $excludeClause = !empty($excludePlaceholders) ? "AND s.id NOT IN ({$excludePlaceholders})" : '';
 
         /* Scoring por similitud de tags + proximidad BPM + match de key */
         $avgBpm = !empty($allBpms) ? (int) (array_sum($allBpms) / count($allBpms)) : 120;
@@ -490,7 +513,7 @@ class ColeccionesController
         if ($dominantKey) $params['domKey'] = $dominantKey;
 
         $sql = NormalizadorSample::sqlSelectSamples()
-             . " WHERE s.estado = 'activo' AND s.id NOT IN ({$idsExcluirStr})"
+             . " WHERE s.estado = 'activo' {$excludeClause}"
              . " ORDER BY ({$tagScore} + {$keyScore} + CASE WHEN s.bpm IS NOT NULL THEN GREATEST(0, 5 - ABS(s.bpm - :avgBpm) / 10) ELSE 0 END) DESC,"
              . " s.total_likes DESC, s.publicado_at DESC"
              . " LIMIT :limit OFFSET :offset";

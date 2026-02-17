@@ -177,6 +177,10 @@ class MensajesController
         $limitResp = RateLimiter::verificarUsuario($userId, 'mensaje', 30, 60);
         if ($limitResp) return $limitResp;
 
+        /* Verificar si el usuario está baneado */
+        $banResp = AuthMiddleware::verificarBanActivo($userId);
+        if ($banResp) return $banResp;
+
         /* C164: Limite de longitud para mensajes de texto */
         if ($tipo === 'texto' && !empty($contenido)) {
             $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_MENSAJE, 'El mensaje');

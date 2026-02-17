@@ -10,6 +10,8 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Database\VerificarPgvector;
+use App\Kamples\Auth\AuthMiddleware;
+use App\Kamples\Api\Helpers\UsuarioHelper;
 
 class DiagnosticoController
 {
@@ -24,10 +26,11 @@ class DiagnosticoController
             'permission_callback' => '__return_true',
         ]);
 
+        /* S13: Solo admin puede ver info de BD (prevenir info disclosure) */
         register_rest_route($namespace, '/debug/pgvector', [
             'methods'             => 'GET',
             'callback'            => [self::class, 'verificarPgvector'],
-            'permission_callback' => '__return_true',
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
     }
 
@@ -51,6 +54,11 @@ class DiagnosticoController
      */
     public static function verificarPgvector(): \WP_REST_Response
     {
+        /* S13: Solo admin puede ver info interna de BD */
+        if (!UsuarioHelper::esAdmin()) {
+            return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'Solo administradores.'], 403);
+        }
+
         $resultados = VerificarPgvector::ejecutar();
         $todosOk = true;
 

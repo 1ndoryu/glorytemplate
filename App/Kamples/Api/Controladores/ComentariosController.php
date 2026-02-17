@@ -267,7 +267,11 @@ class ComentariosController
                     $tipoContenidoMod
                 );
             } catch (\Throwable $e) {
-                /* Fallo silencioso — moderación fail-open */
+                /* Moderación fail-open pero con logging para detectar fallos recurrentes */
+                KamplesLogger::warning('Moderación async de comentario falló', [
+                    'comentarioId' => $comentarioIdMod,
+                    'error' => $e->getMessage(),
+                ]);
             }
         });
 

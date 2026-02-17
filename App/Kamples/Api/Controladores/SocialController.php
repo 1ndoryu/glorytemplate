@@ -92,6 +92,15 @@ class SocialController
             return new \WP_REST_Response(['code' => 'no_self_follow', 'message' => 'No puedes seguirte a ti mismo'], 400);
         }
 
+        /* Verificar que el usuario target existe */
+        $targetExiste = PostgresService::consultarUno(
+            "SELECT id FROM usuarios_ext WHERE id = :id",
+            ['id' => $targetId]
+        );
+        if (!$targetExiste) {
+            return new \WP_REST_Response(['code' => 'usuario_no_encontrado', 'message' => 'El usuario no existe'], 404);
+        }
+
         PostgresService::ejecutar(
             "INSERT INTO follows (seguidor_id, seguido_id) VALUES (:seguidor, :seguido) ON CONFLICT DO NOTHING",
             ['seguidor' => $seguidorId, 'seguido' => $targetId]
@@ -148,6 +157,16 @@ class SocialController
         /* Validar reacción */
         if (!in_array($reaccion, ['like', 'dislike', 'encanta'], true)) {
             $reaccion = 'like';
+        }
+
+        /* Verificar que el target existe antes de crear la reacción */
+        $tablaTarget = $tipo === 'publicacion' ? 'publicaciones' : 'samples';
+        $targetExiste = PostgresService::consultarUno(
+            "SELECT id FROM {$tablaTarget} WHERE id = :id",
+            ['id' => $targetId]
+        );
+        if (!$targetExiste) {
+            return new \WP_REST_Response(['code' => 'target_no_encontrado', 'message' => 'El contenido no existe'], 404);
         }
 
         /*

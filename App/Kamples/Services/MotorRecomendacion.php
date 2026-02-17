@@ -45,6 +45,11 @@ class MotorRecomendacion
     /* C181: Hecho público para reutilizar en ColeccionesController */
     public static function sqlTagsEnriquecidos(string $alias): string
     {
+        /* P0-fix: Validar alias para prevenir SQL injection */
+        if (!preg_match('/^[a-z_][a-z0-9_]*$/i', $alias)) {
+            throw new \InvalidArgumentException("Alias SQL inválido: {$alias}");
+        }
+
         return "(
             COALESCE({$alias}.tags, ARRAY[]::text[])
             || COALESCE(
@@ -210,7 +215,7 @@ class MotorRecomendacion
         /* Señal 4: Novedad — boost logarítmico */
         $pesoNovedad = $pesos['novedad'] ?? 0.10;
         if ($pesoNovedad > 0) {
-            $diasBoost = $params['novedad_dias_boost'] ?? 14;
+            $diasBoost = (int) ($params['novedad_dias_boost'] ?? 14);
             $additiveParts[] = "({$pesoNovedad} * GREATEST(0, 1 - LN(GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.publicado_at) / 86400)) / LN({$diasBoost})))";
         }
 
@@ -247,18 +252,19 @@ class MotorRecomendacion
 
         /* Multiplicador de penalización por ya escuchado */
         $penConfig = $params['penalizacion_ya_escuchado'] ?? [];
-        $umbralRepro = $penConfig['umbral_reproducciones'] ?? 3;
-        $factorPen = $penConfig['factor_penalizacion'] ?? 0.3;
+        /* P0-fix: Cast explícito de valores de config usados en SQL para prevenir inyección */
+        $umbralRepro = (int) ($penConfig['umbral_reproducciones'] ?? 3);
+        $factorPen = (float) ($penConfig['factor_penalizacion'] ?? 0.3);
         $penalizacion = "(CASE WHEN (SELECT COUNT(*) FROM reproducciones WHERE usuario_id = :userId AND sample_id = s.id) >= {$umbralRepro} THEN {$factorPen} ELSE 1 END)";
 
         /* C178: Boost para samples verificados por humano */
-        $boostVerificado = $params['verificado_boost'] ?? 1.15;
+        $boostVerificado = (float) ($params['verificado_boost'] ?? 1.15);
         $multiplicadorVerificado = "(CASE WHEN s.verificado = true THEN {$boostVerificado} ELSE 1 END)";
 
         $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$multiplicadorVerificado}";
 
         /* Construir query completa con diversidad por creador como penalización suave */
-        $maxPorCreador = $params['max_por_creador'] ?? 3;
+        $maxPorCreador = (int) ($params['max_por_creador'] ?? 3);
 
         /*
          * C74: No omitir ningún sample. En vez de filtrar con WHERE rn <= N,
@@ -613,6 +619,11 @@ class MotorRecomendacion
 
         $ventanaCorta = $ventanas['corta'] ?? '24 hours';
         $ventanaMedia = $ventanas['media'] ?? '7 days';
+
+        /* P0-fix: Validar que las ventanas son intervalos PG válidos (whitelist) */
+        $ventanasValidas = ['1 hour','6 hours','12 hours','24 hours','48 hours','3 days','7 days','14 days','30 days','90 days','365 days'];
+        if (!in_array($ventanaCorta, $ventanasValidas, true)) $ventanaCorta = '24 hours';
+        if (!in_array($ventanaMedia, $ventanasValidas, true)) $ventanaMedia = '7 days';
 
         /* Reacciones en ultimas 24h: encanta=2, like=1, dislike=-1 */
         $likes24h = "COALESCE((SELECT SUM(CASE WHEN reaccion = 'encanta' THEN 2 WHEN reaccion = 'like' THEN 1 WHEN reaccion = 'dislike' THEN -1 ELSE 0 END) FROM likes WHERE tipo = 'sample' AND target_id = s.id AND created_at > NOW() - INTERVAL '{$ventanaCorta}'), 0)";

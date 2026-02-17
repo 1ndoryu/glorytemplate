@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2 } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
@@ -22,6 +22,7 @@ import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { obtenerLimites } from '@app/services/apiDescargas';
 import '../../styles/componentes/topbar.css';
@@ -34,6 +35,7 @@ export const TopBar = (): JSX.Element => {
     const { abrir: abrirCrear } = useCrearModalStore();
     const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
     const { abrir: abrirPlanes } = usePlanesModalStore();
+    const { modo: modoPanelLateral, abrirMezclador, cerrar: cerrarPanel } = usePanelLateralStore();
 
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
@@ -186,6 +188,24 @@ export const TopBar = (): JSX.Element => {
                         aria-label="Crear"
                     >
                         <Plus size={20} />
+                    </BotonBase>
+
+                    {/* C184: Botón mezclador */}
+                    <BotonBase
+                        variante="ghost"
+                        tamano="md"
+                        soloIcono
+                        onClick={() => {
+                            if (modoPanelLateral === 'mezclador') {
+                                cerrarPanel();
+                            } else {
+                                abrirMezclador();
+                            }
+                        }}
+                        aria-label="Mezclador"
+                        className={modoPanelLateral === 'mezclador' ? 'topbarBotonActivo' : ''}
+                    >
+                        <Music2 size={18} />
                     </BotonBase>
 
                     {/* Botón experimentos — solo visible para admin */}

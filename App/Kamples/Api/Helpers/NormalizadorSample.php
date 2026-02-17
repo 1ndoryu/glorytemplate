@@ -26,6 +26,21 @@ class NormalizadorSample
     }
 
     /**
+     * Convierte un array PHP a formato PostgreSQL text[] seguro.
+     * Escapa correctamente comillas, comas y llaves dentro de cada elemento.
+     */
+    public static function phpArrayToPg(array $items): string
+    {
+        if (empty($items)) return '{}';
+        $escaped = array_map(function ($item) {
+            $item = str_replace('\\', '\\\\', (string) $item);
+            $item = str_replace('"', '\\"', $item);
+            return '"' . $item . '"';
+        }, $items);
+        return '{' . implode(',', $escaped) . '}';
+    }
+
+    /**
      * Convierte una ruta absoluta de filesystem a URL HTTP.
      * Ejemplo: C:\...\wp-content\uploads\kamples\1\... → http://glory.local/wp-content/uploads/kamples/1/...
      * Necesario porque PipelineAudio guarda rutas absolutas en BD.
@@ -143,6 +158,10 @@ class NormalizadorSample
     /**
      * SQL SELECT base para samples con join a usuario creador.
      * Evita duplicar esta query en cada controlador.
+     *
+     * El userId se interpola como entero validado para la subquery correlacionada.
+     * PDO no puede parametrizar dentro de subqueries correlacionadas con la query principal,
+     * pero validamos el tipo estrictamente para prevenir inyección.
      */
     public static function sqlSelectSamples(?int $userId = null): string
     {
@@ -150,9 +169,10 @@ class NormalizadorSample
          * Si se pasa userId, incluimos subquery para la reacción del usuario.
          * Devuelve la reacción ('like', 'dislike', 'encanta') o NULL si no reaccionó.
          * C144/C145: Ahora el campo se llama 'reaccion_usuario' y retorna el tipo exacto.
+         * Seguridad: $userId es ?int (tipado estricto), se castea a int para garantizar que es numérico.
          */
         $reaccionExpr = $userId !== null
-            ? "(SELECT reaccion FROM likes WHERE usuario_id = {$userId} AND tipo = 'sample' AND target_id = s.id LIMIT 1)"
+            ? "(SELECT reaccion FROM likes WHERE usuario_id = " . (int) $userId . " AND tipo = 'sample' AND target_id = s.id LIMIT 1)"
             : "NULL";
 
         return "SELECT s.id, s.titulo, s.slug, s.id_corto, s.descripcion,

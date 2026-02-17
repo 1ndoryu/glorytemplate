@@ -56,12 +56,7 @@ class KamplesInit
             }
         });
 
-        /* Programar si no existe ya */
-        if (!wp_next_scheduled('kamples_algoritmo_cron')) {
-            wp_schedule_event(time(), 'kamples_5min', 'kamples_algoritmo_cron');
-        }
-
-        /* Registrar intervalo personalizado de 5 minutos */
+        /* P1-fix: Registrar intervalo ANTES de programar el evento (WP necesita conocer el intervalo) */
         add_filter('cron_schedules', function (array $schedules): array {
             if (!isset($schedules['kamples_5min'])) {
                 $schedules['kamples_5min'] = [
@@ -71,6 +66,11 @@ class KamplesInit
             }
             return $schedules;
         });
+
+        /* Programar si no existe ya (ahora el intervalo ya está registrado) */
+        if (!wp_next_scheduled('kamples_algoritmo_cron')) {
+            wp_schedule_event(time(), 'kamples_5min', 'kamples_algoritmo_cron');
+        }
     }
 }
 

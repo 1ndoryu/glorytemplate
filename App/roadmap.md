@@ -346,7 +346,15 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 184. (Tarea delegada a otro agente)
 186. ✅ Fix "Pagina React no configurada" en admin/panel: se registró `PageManager::reactPage('admin/panel', 'AdminPanelIsland')` en pages.php. La página WP se auto-crea en la próxima carga. Resuelto como parte de C179 (R47).
 187. Cuando reproduzco la waveform en el panel lateral, debe pausarse la otra waveform que se esta reproduciendo.
-188. Cuando
+188. Volver a dar click a la waveform en el panel lateral debería poder pausar la reproducción de esa waveform.
+189. Cuando doy click a cualquier boton a un sample en la lista de sample, se reproduce automaticamente, no debería reproducir si el click fue en un boton.
+190. Cuando el sample esta guardado en una colección, no hay indicación visual en el modal de de guardar en colección de que ese sample esta guardado alli.
+191. Sigue saliendo para la pagina de admin: Pagina React no configurada
+Funcion esperada: Asegurate de que la funcion exista y este cargada.
+192. Trabajar en el ws local, cuando
+
+
+
 ---
 
 ## Lecciones Aprendidas (compactas)

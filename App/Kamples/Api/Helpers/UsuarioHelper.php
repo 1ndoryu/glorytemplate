@@ -23,6 +23,8 @@ class UsuarioHelper
     public static function obtenerIdPg(): ?int
     {
         $wpUserId = AuthMiddleware::obtenerWpUserId();
+        if (!$wpUserId) return null;
+
         $row = PostgresService::consultarUno(
             "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
             ['wpId' => $wpUserId]

@@ -64,8 +64,9 @@ class StripeService
 
     /**
      * Realiza una petición HTTP a la API de Stripe.
+     * @param string $accountId ID de cuenta Connect (header Stripe-Account) — null para cuenta principal.
      */
-    private static function request(string $method, string $endpoint, array $params = []): array
+    private static function request(string $method, string $endpoint, array $params = [], ?string $accountId = null): array
     {
         $secretKey = self::obtenerSecretKey();
         if (!$secretKey) {
@@ -78,6 +79,10 @@ class StripeService
             'Authorization: Bearer ' . $secretKey,
             'Content-Type: application/x-www-form-urlencoded',
         ];
+
+        if ($accountId) {
+            $headers[] = 'Stripe-Account: ' . $accountId;
+        }
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -95,16 +100,29 @@ class StripeService
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
+
+        /* Verificar error de red/curl antes de decodificar */
+        if ($response === false) {
+            KamplesLogger::error('Stripe API: error de red (curl)', [
+                'endpoint' => $endpoint,
+                'error' => $curlError,
+                'accountId' => $accountId,
+            ]);
+            return ['error' => 'Error de conexión con Stripe: ' . $curlError];
+        }
 
         $data = json_decode($response, true) ?? [];
 
         if ($httpCode >= 400) {
-            KamplesLogger::error('Stripe API error', [
+            $contexto = [
                 'endpoint' => $endpoint,
                 'httpCode' => $httpCode,
                 'error'    => $data['error']['message'] ?? 'desconocido',
-            ]);
+            ];
+            if ($accountId) $contexto['accountId'] = $accountId;
+            KamplesLogger::error('Stripe API error', $contexto);
         }
 
         return $data;
@@ -235,7 +253,7 @@ class StripeService
      */
     public static function obtenerBalanceConnect(string $accountId): array
     {
-        return self::requestConCuenta('GET', '/balance', [], $accountId);
+        return self::request('GET', '/balance', [], $accountId);
     }
 
     /**
@@ -248,6 +266,7 @@ class StripeService
 
     /**
      * Verifica si un webhook es válido.
+     * Comprueba firma HMAC y que el timestamp no exceda 5 minutos (replay attack).
      */
     public static function verificarWebhook(string $payload, string $signature): bool
     {
@@ -257,69 +276,35 @@ class StripeService
 
         $elementos = [];
         foreach (explode(',', $signature) as $parte) {
-            [$clave, $valor] = explode('=', $parte, 2);
-            $elementos[$clave] = $valor;
+            $partes = explode('=', $parte, 2);
+            if (count($partes) !== 2) continue;
+            $elementos[$partes[0]] = $partes[1];
         }
 
         $timestamp = $elementos['t'] ?? '';
         $sig = $elementos['v1'] ?? '';
 
-        $expectedSig = hash_hmac('sha256', "{$timestamp}.{$payload}", $secret);
+        if (empty($timestamp) || empty($sig)) {
+            KamplesLogger::warning('Webhook Stripe: firma incompleta (falta t o v1)');
+            return false;
+        }
 
-        return hash_equals($expectedSig, $sig);
+        /* Protección contra replay attack: rechazar webhooks con más de 5 minutos */
+        $tolerancia = 300;
+        if (abs(time() - (int) $timestamp) > $tolerancia) {
+            KamplesLogger::warning('Webhook Stripe: timestamp fuera de tolerancia (posible replay)', [
+                'timestamp' => $timestamp,
+                'diferencia' => abs(time() - (int) $timestamp),
+            ]);
+            return false;
+        }
+
+        $expectedSig = \hash_hmac('sha256', "{$timestamp}.{$payload}", $secret);
+
+        return \hash_equals($expectedSig, $sig);
     }
 
     /* Helpers privados */
-
-    /**
-     * Realiza petición HTTP a Stripe en nombre de una cuenta conectada (header Stripe-Account).
-     */
-    private static function requestConCuenta(string $method, string $endpoint, array $params, string $accountId): array
-    {
-        $secretKey = self::obtenerSecretKey();
-        if (!$secretKey) {
-            return ['error' => 'Stripe no configurado'];
-        }
-
-        $url = self::API_BASE . $endpoint;
-
-        $headers = [
-            'Authorization: Bearer ' . $secretKey,
-            'Content-Type: application/x-www-form-urlencoded',
-            'Stripe-Account: ' . $accountId,
-        ];
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-
-        if ($method === 'POST') {
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
-        } elseif ($method === 'GET' && !empty($params)) {
-            $url .= '?' . http_build_query($params);
-        }
-
-        curl_setopt($ch, CURLOPT_URL, $url);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $data = json_decode($response, true) ?? [];
-
-        if ($httpCode >= 400) {
-            KamplesLogger::error('Stripe Connect API error', [
-                'endpoint'  => $endpoint,
-                'httpCode'  => $httpCode,
-                'accountId' => $accountId,
-                'error'     => $data['error']['message'] ?? 'desconocido',
-            ]);
-        }
-
-        return $data;
-    }
 
     private static function obtenerPriceId(string $plan): ?string
     {

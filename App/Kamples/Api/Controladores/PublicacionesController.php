@@ -24,6 +24,7 @@ use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Api\ServicioImagenIA;
 use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Api\Helpers\NormalizadorSample;
 
 class PublicacionesController
 {
@@ -152,8 +153,8 @@ class PublicacionesController
             $pub['reaccion'] = $pub['reaccion_usuario'] ?? null;
             unset($pub['reaccion_usuario']);
             $pub['moderacionEstado'] = $pub['moderacion_estado'] ?? null;
-            $pub['imagenes'] = self::pgArrayAPhp($pub['imagenes'] ?? null);
-            $pub['samplesAdjuntos'] = array_map('intval', self::pgArrayAPhp($pub['samples_adjuntos'] ?? null));
+            $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub['imagenes'] ?? null);
+            $pub['samplesAdjuntos'] = array_map('intval', NormalizadorSample::pgArrayToPhp($pub['samples_adjuntos'] ?? null));
             $pub['autor'] = [
                 'id' => (int) $pub['autor_id'],
                 'username' => $pub['username'],
@@ -415,6 +416,18 @@ class PublicacionesController
             return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
         }
 
+        /*
+         * Seguridad: no exponer publicaciones rechazadas a terceros.
+         * Solo el autor puede ver sus propias publicaciones rechazadas.
+         */
+        $estado = $pub['moderacion_estado'] ?? null;
+        if ($estado === 'rechazado') {
+            $usuarioActual = UsuarioHelper::obtenerIdPg();
+            if (!$usuarioActual || $usuarioActual !== (int) $pub['autor_id']) {
+                return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
+            }
+        }
+
         $pub['autor'] = [
             'id' => (int) $pub['autor_id'],
             'username' => $pub['username'],
@@ -422,8 +435,8 @@ class PublicacionesController
             'avatarUrl' => $pub['avatar_url'],
             'verificado' => (bool) $pub['verificado'],
         ];
-        $pub['imagenes'] = self::pgArrayAPhp($pub['imagenes'] ?? null);
-        $pub['samplesAdjuntos'] = array_map('intval', self::pgArrayAPhp($pub['samples_adjuntos'] ?? null));
+        $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub['imagenes'] ?? null);
+        $pub['samplesAdjuntos'] = array_map('intval', NormalizadorSample::pgArrayToPhp($pub['samples_adjuntos'] ?? null));
         $pub['totalComentarios'] = (int) ($pub['total_comentarios'] ?? 0);
         $pub['totalLikes'] = (int) ($pub['total_likes'] ?? 0);
 
@@ -502,17 +515,7 @@ class PublicacionesController
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
     }
 
-    /**
-     * Parsear TEXT[] de PostgreSQL a array PHP.
-     * PDO devuelve TEXT[] como string literal ej: '{"url1","url2"}' o '{}'.
-     */
-    private static function pgArrayAPhp(?string $pgArray): array
-    {
-        if ($pgArray === null || $pgArray === '{}' || $pgArray === '') return [];
-        $inner = trim($pgArray, '{}');
-        if ($inner === '') return [];
-        return str_getcsv($inner, ',', '"');
-    }
+    /* pgArrayAPhp eliminado — usar NormalizadorSample::pgArrayToPhp (DRY) */
 
     /**
      * Subir imagen para publicación.

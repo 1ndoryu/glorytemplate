@@ -17,6 +17,7 @@
 namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
+use App\Kamples\KamplesLogger;
 
 class ServicioBan
 {
@@ -33,18 +34,31 @@ class ServicioBan
      */
     public static function registrarViolacion(int $userId, string $razon, string $tipoContenido = 'comentario'): bool
     {
-        /* Incrementar contador de violaciones */
-        PostgresService::ejecutar(
-            "UPDATE usuarios_ext SET violaciones_moderacion = COALESCE(violaciones_moderacion, 0) + 1 WHERE id = :id",
+        /*
+         * Incremento atómico + lectura en un solo statement para evitar race condition.
+         * Dos requests concurrentes no pueden leer el mismo valor.
+         */
+        $resultado = PostgresService::consultarUno(
+            "UPDATE usuarios_ext SET violaciones_moderacion = COALESCE(violaciones_moderacion, 0) + 1
+             WHERE id = :id RETURNING violaciones_moderacion",
             ['id' => $userId]
         );
 
-        $usuario = PostgresService::consultarUno(
-            "SELECT violaciones_moderacion FROM usuarios_ext WHERE id = :id",
-            ['id' => $userId]
-        );
+        $violaciones = (int) ($resultado['violaciones_moderacion'] ?? 0);
 
-        $violaciones = (int) ($usuario['violaciones_moderacion'] ?? 0);
+        if ($violaciones === 0) {
+            KamplesLogger::warning('ServicioBan: no se pudo incrementar violaciones', [
+                'userId' => $userId,
+            ], 'moderacion');
+            return false;
+        }
+
+        KamplesLogger::info('Violación registrada', [
+            'userId' => $userId,
+            'razon' => $razon,
+            'tipo' => $tipoContenido,
+            'totalViolaciones' => $violaciones,
+        ], 'moderacion');
 
         /* Determinar si aplica ban según escala */
         $horasBan = 0;
@@ -65,6 +79,13 @@ class ServicioBan
                 "UPDATE usuarios_ext SET baneado_hasta = :hasta, ban_razon = :razon WHERE id = :id",
                 ['hasta' => $banHasta, 'razon' => $banRazon, 'id' => $userId]
             );
+
+            KamplesLogger::warning('Ban aplicado', [
+                'userId' => $userId,
+                'horas' => $horasBan,
+                'violaciones' => $violaciones,
+                'hasta' => $banHasta,
+            ], 'moderacion');
 
             return true;
         }

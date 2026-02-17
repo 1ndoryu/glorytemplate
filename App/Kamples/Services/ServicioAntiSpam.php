@@ -16,6 +16,7 @@
 namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
+use App\Kamples\KamplesLogger;
 
 class ServicioAntiSpam
 {
@@ -68,18 +69,22 @@ class ServicioAntiSpam
         }
 
         /* 5. Texto duplicado del mismo usuario en ventana reciente */
+        $ventanaSeg = (int) self::VENTANA_DUPLICADOS_SEG;
         $duplicado = PostgresService::consultarUno(
             "SELECT id FROM comentarios
              WHERE autor_id = :autor AND contenido = :contenido
-             AND created_at > NOW() - INTERVAL ':ventana seconds'
+             AND created_at > NOW() - INTERVAL '{$ventanaSeg} seconds'
              LIMIT 1",
             [
                 'autor' => $autorId,
                 'contenido' => $texto,
-                'ventana' => self::VENTANA_DUPLICADOS_SEG,
             ]
         );
         if ($duplicado) {
+            KamplesLogger::info('AntiSpam: duplicado detectado', [
+                'autorId' => $autorId,
+                'duplicadoId' => $duplicado['id'],
+            ], 'moderacion');
             return 'Comentario duplicado';
         }
 
