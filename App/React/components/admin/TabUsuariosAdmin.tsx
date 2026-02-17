@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Search, Shield, BadgeCheck, Ban, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Shield, BadgeCheck, Ban, ChevronLeft, ChevronRight, Crown } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import type { UsuarioAdmin } from '../../services/apiAdmin';
 
@@ -169,6 +169,18 @@ export const TabUsuariosAdmin = ({
                                     >
                                         <Ban size={14} />
                                     </button>
+                                    {/* C257: Selector de plan */}
+                                    <select
+                                        className="adminSelectPlan"
+                                        value={u.plan}
+                                        onChange={(e) => manejarAccion(u.id, { plan: e.target.value })}
+                                        disabled={procesando === u.id}
+                                        title="Cambiar plan"
+                                    >
+                                        <option value="free">Free</option>
+                                        <option value="pro">Pro</option>
+                                        <option value="premium">Premium</option>
+                                    </select>
                                 </div>
                             </td>
                         </tr>

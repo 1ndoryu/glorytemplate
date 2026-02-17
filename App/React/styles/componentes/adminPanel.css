@@ -341,7 +341,26 @@
     border-color: var(--error);
 }
 
-/* PaginaciÃ³n */
+/* C257: Select de plan en acciones */
+.adminSelectPlan {
+    padding: 0.25rem 0.4rem;
+    border-radius: 6px;
+    border: 1px solid var(--bordeSutil);
+    background: var(--fondoElevado1);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    font-size: 0.7rem;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.adminSelectPlan:hover,
+.adminSelectPlan:focus {
+    border-color: var(--bordeActivo);
+    color: var(--textoPrimario);
+    outline: none;
+}
+
+/* Paginación */
 .adminPaginacion {
     display: flex;
     justify-content: center;
