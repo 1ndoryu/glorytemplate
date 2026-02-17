@@ -114,6 +114,185 @@ export const normalizarTags = (tags: string[]): string[] => {
 };
 
 /*
+ * C134: Extrae todos los tags relevantes del metadata IA de un sample.
+ * Fuentes: metadata.tags, metadata.genero, metadata.instrumentos,
+ *          metadata.emocion, metadata.artistaVibes, sample.tipo.
+ * Normaliza, deduplica  y retorna array de strings único.
+ */
+export const extraerTagsMetadata = (sample: {
+    tags?: string[];
+    tipo?: string;
+    metadata?: Record<string, unknown> | null;
+}): string[] => {
+    const resultado = new Set<string>();
+    const meta = sample.metadata;
+
+    if (!meta) {
+        /* Fallback a tags del usuario si no hay metadata */
+        sample.tags?.forEach((t) => {
+            const n = normalizarTag(t);
+            if (n) resultado.add(n);
+        });
+        return Array.from(resultado);
+    }
+
+    /* Tags IA (inglés) */
+    const metaTags = meta.tags ?? meta.tags_es;
+    if (Array.isArray(metaTags)) {
+        metaTags.forEach((t) => {
+            if (typeof t === 'string') {
+                const n = normalizarTag(t);
+                if (n) resultado.add(n);
+            }
+        });
+    }
+
+    /* Género */
+    const genero = meta.genero;
+    if (genero) {
+        const arr = Array.isArray(genero) ? genero : [genero];
+        arr.forEach((g) => {
+            if (typeof g === 'string') {
+                const n = normalizarTag(g);
+                if (n) resultado.add(n);
+            }
+        });
+    }
+
+    /* Instrumentos */
+    const instr = meta.instrumentos;
+    if (instr) {
+        const arr = Array.isArray(instr) ? instr : [instr];
+        arr.forEach((i) => {
+            if (typeof i === 'string') {
+                const n = normalizarTag(i);
+                if (n) resultado.add(n);
+            }
+        });
+    }
+
+    /* Emoción */
+    const emocion = meta.emocion;
+    if (typeof emocion === 'string') {
+        const n = normalizarTag(emocion);
+        if (n) resultado.add(n);
+    }
+
+    /* Artista vibes */
+    const vibes = meta.artista_vibes ?? meta.artistaVibes;
+    if (vibes) {
+        const arr = Array.isArray(vibes) ? vibes : [vibes];
+        arr.forEach((v) => {
+            if (typeof v === 'string') {
+                const n = normalizarTag(v);
+                if (n) resultado.add(n);
+            }
+        });
+    }
+
+    /* Tipo del sample */
+    if (sample.tipo) {
+        const n = normalizarTag(sample.tipo);
+        if (n) resultado.add(n);
+    }
+
+    return Array.from(resultado);
+};
+
+/*
+ * C134: Extrae tags agrupados por categoría directamente del metadata IA.
+ * Retorna un map de categoría → tags[], con datos directos del metadata
+ * (sin depender de la categorización de sets hardcodeados).
+ */
+export const extraerTagsAgrupadosMetadata = (samples: Array<{
+    tags?: string[];
+    tipo?: string;
+    metadata?: Record<string, unknown> | null;
+}>): Record<CategoriaTag, string[]> => {
+    const conteo: Record<CategoriaTag, Map<string, number>> = {
+        genero: new Map(),
+        instrumento: new Map(),
+        sentimiento: new Map(),
+        tipo: new Map(),
+        otro: new Map(),
+    };
+
+    for (const sample of samples) {
+        const meta = sample.metadata;
+        if (!meta) continue;
+
+        /* Género → directo a categoría genero */
+        const genero = meta.genero;
+        if (genero) {
+            const arr = Array.isArray(genero) ? genero : [genero];
+            arr.forEach((g) => {
+                if (typeof g === 'string') {
+                    const n = normalizarTag(g);
+                    if (n) conteo.genero.set(n, (conteo.genero.get(n) ?? 0) + 1);
+                }
+            });
+        }
+
+        /* Instrumentos → directo a categoría instrumento */
+        const instr = meta.instrumentos;
+        if (instr) {
+            const arr = Array.isArray(instr) ? instr : [instr];
+            arr.forEach((i) => {
+                if (typeof i === 'string') {
+                    const n = normalizarTag(i);
+                    if (n) conteo.instrumento.set(n, (conteo.instrumento.get(n) ?? 0) + 1);
+                }
+            });
+        }
+
+        /* Emoción → directo a categoría sentimiento */
+        const emocion = meta.emocion;
+        if (typeof emocion === 'string') {
+            const n = normalizarTag(emocion);
+            if (n) conteo.sentimiento.set(n, (conteo.sentimiento.get(n) ?? 0) + 1);
+        }
+
+        /* Tipo del sample */
+        if (sample.tipo) {
+            const n = normalizarTag(sample.tipo);
+            if (n) conteo.tipo.set(n, (conteo.tipo.get(n) ?? 0) + 1);
+        }
+
+        /* Tags IA → categorizados por sets */
+        const metaTags = meta.tags;
+        if (Array.isArray(metaTags)) {
+            metaTags.forEach((t) => {
+                if (typeof t === 'string') {
+                    const n = normalizarTag(t);
+                    if (!n) return;
+                    /* Evitar duplicar si ya está en otra categoría */
+                    const yaExiste = Object.values(conteo).some((m) => m.has(n));
+                    if (!yaExiste) {
+                        const cat = categorizarTag(n);
+                        conteo[cat].set(n, (conteo[cat].get(n) ?? 0) + 1);
+                    }
+                }
+            });
+        }
+    }
+
+    /* Convertir Maps a arrays ordenados por frecuencia */
+    const resultado: Record<CategoriaTag, string[]> = {
+        genero: [],
+        instrumento: [],
+        sentimiento: [],
+        tipo: [],
+        otro: [],
+    };
+    for (const [cat, mapa] of Object.entries(conteo)) {
+        resultado[cat as CategoriaTag] = Array.from(mapa.entries())
+            .sort((a, b) => b[1] - a[1])
+            .map(([tag]) => tag);
+    }
+    return resultado;
+};
+
+/*
  * Categorías de tags para agrupación visual.
  * Útil para la vista expandida de tags en el feed.
  */

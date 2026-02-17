@@ -48,18 +48,30 @@
 
 /* Tags dinámicos */
 .feedTags {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
     padding: 0;
+}
+
+/* C116: Fila de selects de categoría + BPM */
+.feedFiltrosSelects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioXs);
+    align-items: center;
 }
 
 .feedTagsLista {
     display: flex;
-    gap: var(--espacioMd);
+    gap: var(--espacioXs);
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
     user-select: none;
     cursor: grab;
     padding: var(--espacioXs) 0;
+    flex-wrap: nowrap;
 }
 
 .feedTagsLista::-webkit-scrollbar {
@@ -70,32 +82,7 @@
     cursor: grabbing;
 }
 
-.feedTagsAgrupados {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioMd);
-    padding: var(--espacioSm) 0;
-}
-
-.feedTagGrupo {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioXs);
-}
-
-.feedTagGrupoTitulo {
-    font-size: var(--fuenteXs);
-    font-weight: var(--pesoSemibold);
-    color: var(--textoTerciario);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.feedTagGrupoLista {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--espacioXs);
-}
+/* feedTagsAgrupados eliminado en C116 — ahora se usan SelectFiltro dropdowns */
 
 .feedTagItem {
     display: flex;
@@ -177,26 +164,4 @@
     outline: none;
 }
 
-.feedTagExpandirBtn {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    padding: var(--espacioXs) var(--espacioSm);
-    background: transparent;
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioFull);
-    color: var(--textoSecundario);
-    font-size: var(--fuenteXs);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.15s;
-}
-
-.feedTagExpandirBtn:hover {
-    border-color: var(--bordeActivo);
-    color: var(--textoPrimario);
-}
-
-.feedTagExpandirIconoRotado {
-    transform: rotate(90deg);
-}
+/* feedTagExpandirBtn eliminado en C116 — ya no se comprimen/expanden tags */

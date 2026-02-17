@@ -1,0 +1,251 @@
+/*
+ * selectFiltro.css — Kamples (C116)
+ * Dropdown personalizado para filtros de tags por categoría.
+ * Estilo minimalista que combina con MenuContextual.
+ * También incluye estilos para SelectorBPM.
+ */
+
+/* Contenedor del select */
+.selectFiltro {
+    position: relative;
+    display: inline-flex;
+}
+
+/* Botón trigger */
+.selectFiltroBoton {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: calc(var(--espacioXs) / 2) var(--espacioSm);
+    background: transparent;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioFull);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteXs);
+    font-family: var(--fuentePrincipal);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--transicionRapida);
+    line-height: 1.4;
+}
+
+.selectFiltroBoton:hover {
+    border-color: var(--bordeActivo);
+    color: var(--textoPrimario);
+}
+
+.selectFiltroBotonActivo {
+    background: var(--acento);
+    border-color: var(--acento);
+    color: var(--textoPrimarioInverso);
+}
+
+.selectFiltroBotonActivo:hover {
+    opacity: 0.9;
+}
+
+/* Etiqueta y contador */
+.selectFiltroEtiqueta {
+    font-weight: var(--pesoMedio);
+}
+
+.selectFiltroContador {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 14px;
+    height: 14px;
+    border-radius: var(--radioFull);
+    background: var(--textoPrimarioInverso);
+    color: var(--acento);
+    font-size: 9px;
+    font-weight: var(--pesoSemibold);
+    line-height: 1;
+    padding: 0 3px;
+}
+
+/* Flecha */
+.selectFiltroFlecha {
+    transition: transform var(--transicionRapida);
+    flex-shrink: 0;
+}
+
+.selectFiltroFlechaAbierta {
+    transform: rotate(180deg);
+}
+
+/* Menu desplegable — inspired by MenuContextual */
+.selectFiltroMenu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 180px;
+    max-width: 260px;
+    max-height: 280px;
+    overflow-y: auto;
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioXs) 0;
+    z-index: var(--zMenu);
+    animation: fadeInSelectFiltro var(--transicionRapida) ease;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bordeSutil) transparent;
+}
+
+/* Cada opción */
+.selectFiltroOpcion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioXs) var(--espacioMd);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    transition: color var(--transicionRapida);
+    gap: var(--espacioSm);
+}
+
+.selectFiltroOpcion:hover {
+    color: var(--textoPrimario);
+}
+
+.selectFiltroOpcionIncluida {
+    color: var(--acento);
+    font-weight: var(--pesoSemibold);
+}
+
+.selectFiltroOpcionExcluida {
+    color: var(--error);
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.selectFiltroOpcionTexto {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Botones +/- en cada opción */
+.selectFiltroOpcionAcciones {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity var(--transicionRapida);
+}
+
+.selectFiltroOpcion:hover .selectFiltroOpcionAcciones {
+    opacity: 1;
+}
+
+.selectFiltroOpcionIncluida .selectFiltroOpcionAcciones,
+.selectFiltroOpcionExcluida .selectFiltroOpcionAcciones {
+    opacity: 1;
+}
+
+.selectFiltroOpcionBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    border-radius: var(--radioSm);
+    padding: 0;
+    transition: color var(--transicionRapida);
+}
+
+.selectFiltroOpcionBtnExcluir:hover {
+    color: var(--error);
+}
+
+.selectFiltroOpcionBtnIncluir:hover {
+    color: var(--exito);
+}
+
+/* SelectorBPM menu (reusa selectFiltroMenu pero con layout especial) */
+.selectorBPMMenu {
+    min-width: 200px;
+    padding: var(--espacioMd);
+}
+
+.selectorBPMCampos {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--espacioSm);
+}
+
+.selectorBPMLabel {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    flex: 1;
+}
+
+.selectorBPMInput {
+    width: 100%;
+    padding: var(--espacioXs) var(--espacioSm);
+    background: var(--fondoBase);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    font-family: var(--fuentePrincipal);
+    outline: none;
+    transition: border-color var(--transicionRapida);
+    -moz-appearance: textfield;
+}
+
+.selectorBPMInput::-webkit-inner-spin-button,
+.selectorBPMInput::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.selectorBPMInput:focus {
+    border-color: var(--bordeActivo);
+}
+
+.selectorBPMSeparador {
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+    padding-bottom: var(--espacioXs);
+}
+
+.selectorBPMAplicar {
+    width: 100%;
+    margin-top: var(--espacioSm);
+    padding: var(--espacioXs) var(--espacioMd);
+    background: var(--acento);
+    border: none;
+    border-radius: var(--radioSm);
+    color: var(--textoPrimarioInverso);
+    font-size: var(--fuenteXs);
+    font-family: var(--fuentePrincipal);
+    font-weight: var(--pesoSemibold);
+    cursor: pointer;
+    transition: opacity var(--transicionRapida);
+}
+
+.selectorBPMAplicar:hover {
+    opacity: 0.85;
+}
+
+@keyframes fadeInSelectFiltro {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

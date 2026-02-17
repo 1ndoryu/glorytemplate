@@ -3,6 +3,7 @@
  * Estado global de filtros y ordenamientos para el feed de samples.
  * Filtros: toggles simples on/off (yaReproducidos, likeados, deSeguidos, descargados).
  * Ordenamientos: inteligente (default), recientes, destacados (con sub-periodo).
+ * C115: Tags incluidos/excluidos globales, sincronizados con búsqueda.
  */
 
 import { create } from 'zustand';
@@ -24,6 +25,14 @@ interface EstadoFiltros {
     ordenamiento: TipoOrdenamiento;
     periodoDestacados: PeriodoDestacados;
 
+    /* C115: Tags globales incluidos/excluidos */
+    tagsIncluidos: string[];
+    tagsExcluidos: string[];
+
+    /* C116: Rango BPM */
+    bpmMin: number | null;
+    bpmMax: number | null;
+
     /* Acciones */
     setBusqueda: (busqueda: string) => void;
     setPagina: (pagina: number) => void;
@@ -33,6 +42,16 @@ interface EstadoFiltros {
     toggleDescargados: () => void;
     setOrdenamiento: (tipo: TipoOrdenamiento) => void;
     setPeriodoDestacados: (periodo: PeriodoDestacados) => void;
+
+    /* C115: Acciones de tags */
+    incluirTag: (tag: string) => void;
+    excluirTag: (tag: string) => void;
+    quitarTag: (tag: string) => void;
+    limpiarTags: () => void;
+
+    /* C116: Acciones BPM */
+    setBpmRango: (min: number | null, max: number | null) => void;
+
     resetearFiltros: () => void;
 }
 
@@ -45,12 +64,53 @@ const filtrosIniciales = {
     descargados: false,
     ordenamiento: 'inteligente' as TipoOrdenamiento,
     periodoDestacados: 'semana' as PeriodoDestacados,
+    tagsIncluidos: [] as string[],
+    tagsExcluidos: [] as string[],
+    bpmMin: null as number | null,
+    bpmMax: null as number | null,
+};
+
+/*
+ * C115: Sincroniza tags → busqueda (genera representación textual).
+ * Tags incluidos se muestran como "tag1, tag2", excluidos como "-tag".
+ */
+const generarBusquedaDesdeTags = (incluidos: string[], excluidos: string[]): string => {
+    const partes: string[] = [];
+    incluidos.forEach((t) => partes.push(t));
+    excluidos.forEach((t) => partes.push(`-${t}`));
+    return partes.join(', ');
+};
+
+/*
+ * C115: Parsea string de búsqueda a tags incluidos/excluidos.
+ * Formato: "hip hop, -trap, lofi" → incluidos: [hip hop, lofi], excluidos: [trap]
+ */
+export const parsearBusquedaATags = (busqueda: string): { incluidos: string[]; excluidos: string[] } => {
+    const incluidos: string[] = [];
+    const excluidos: string[] = [];
+    if (!busqueda.trim()) return { incluidos, excluidos };
+
+    busqueda.split(',').forEach((parte) => {
+        const limpio = parte.trim();
+        if (!limpio) return;
+        if (limpio.startsWith('-')) {
+            const tag = limpio.slice(1).trim();
+            if (tag) excluidos.push(tag.toLowerCase());
+        } else {
+            incluidos.push(limpio.toLowerCase());
+        }
+    });
+    return { incluidos, excluidos };
 };
 
 export const useFiltrosStore = create<EstadoFiltros>((set) => ({
     ...filtrosIniciales,
 
-    setBusqueda: (busqueda) => set({ busqueda, pagina: 1 }),
+    setBusqueda: (busqueda) => {
+        /* C115: Al escribir en búsqueda, parsear tags automáticamente */
+        const { incluidos, excluidos } = parsearBusquedaATags(busqueda);
+        set({ busqueda, tagsIncluidos: incluidos, tagsExcluidos: excluidos, pagina: 1 });
+    },
     setPagina: (pagina) => set({ pagina }),
     toggleYaReproducidos: () => set((s) => ({ yaReproducidos: !s.yaReproducidos, pagina: 1 })),
     toggleLikeados: () => set((s) => ({ likeados: !s.likeados, pagina: 1 })),
@@ -58,5 +118,46 @@ export const useFiltrosStore = create<EstadoFiltros>((set) => ({
     toggleDescargados: () => set((s) => ({ descargados: !s.descargados, pagina: 1 })),
     setOrdenamiento: (ordenamiento) => set({ ordenamiento, pagina: 1 }),
     setPeriodoDestacados: (periodo) => set({ periodoDestacados: periodo, pagina: 1 }),
+
+    /* C115: Tags — toggle incluir/excluir con sync a búsqueda */
+    incluirTag: (tag) => set((s) => {
+        const excluidos = s.tagsExcluidos.filter((t) => t !== tag);
+        const incluidos = s.tagsIncluidos.includes(tag)
+            ? s.tagsIncluidos.filter((t) => t !== tag)
+            : [...s.tagsIncluidos, tag];
+        return {
+            tagsIncluidos: incluidos,
+            tagsExcluidos: excluidos,
+            busqueda: generarBusquedaDesdeTags(incluidos, excluidos),
+            pagina: 1,
+        };
+    }),
+    excluirTag: (tag) => set((s) => {
+        const incluidos = s.tagsIncluidos.filter((t) => t !== tag);
+        const excluidos = s.tagsExcluidos.includes(tag)
+            ? s.tagsExcluidos.filter((t) => t !== tag)
+            : [...s.tagsExcluidos, tag];
+        return {
+            tagsIncluidos: incluidos,
+            tagsExcluidos: excluidos,
+            busqueda: generarBusquedaDesdeTags(incluidos, excluidos),
+            pagina: 1,
+        };
+    }),
+    quitarTag: (tag) => set((s) => {
+        const incluidos = s.tagsIncluidos.filter((t) => t !== tag);
+        const excluidos = s.tagsExcluidos.filter((t) => t !== tag);
+        return {
+            tagsIncluidos: incluidos,
+            tagsExcluidos: excluidos,
+            busqueda: generarBusquedaDesdeTags(incluidos, excluidos),
+            pagina: 1,
+        };
+    }),
+    limpiarTags: () => set({ tagsIncluidos: [], tagsExcluidos: [], busqueda: '', pagina: 1 }),
+
+    /* C116: BPM rango */
+    setBpmRango: (min, max) => set({ bpmMin: min, bpmMax: max, pagina: 1 }),
+
     resetearFiltros: () => set({ ...filtrosIniciales }),
 }));

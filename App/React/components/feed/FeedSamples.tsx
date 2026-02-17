@@ -14,17 +14,20 @@
  */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { Music, Plus, Minus, ChevronRight } from 'lucide-react';
+import { Music, Plus, Minus } from 'lucide-react';
 import '../../styles/componentes/feedSamples.css';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
+import { SelectFiltro } from '@app/components/ui/SelectFiltro';
+import { SelectorBPM } from '@app/components/ui/SelectorBPM';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
 import { darLike, quitarLike } from '@app/services/apiSocial';
-import { agruparTagsPorCategoria, type CategoriaTag } from '@app/services/tagUtils';
+import { extraerTagsMetadata, extraerTagsAgrupadosMetadata, type CategoriaTag } from '@app/services/tagUtils';
 import { useSugerenciasLikeStore } from '@app/stores/sugerenciasLikeStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
+import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { ModalSugerenciasLike } from '@app/components/feed/ModalSugerenciasLike';
 import type { SampleResumen } from '@app/types';
 
@@ -74,8 +77,6 @@ const ETIQUETAS_CATEGORIA: Record<CategoriaTag, string> = {
     otro: 'Tags',
 };
 
-const ORDEN_CATEGORIAS: CategoriaTag[] = ['tipo', 'genero', 'instrumento', 'sentimiento', 'otro'];
-
 export const FeedSamples = ({
     proveedor,
     samplesIniciales,
@@ -100,10 +101,16 @@ export const FeedSamples = ({
     const [paginaActual, setPaginaActual] = useState(1);
     const [hayMasPaginas, setHayMasPaginas] = useState(true);
 
-    /* Tags inclusión/exclusión */
-    const [tagsIncluidos, setTagsIncluidos] = useState<string[]>([]);
-    const [tagsExcluidos, setTagsExcluidos] = useState<string[]>([]);
-    const [tagsExpandidos, setTagsExpandidos] = useState(false);
+    /* C115: Tags del store global (sincronizados con búsqueda del TopBar) */
+    const tagsIncluidos = useFiltrosStore(s => s.tagsIncluidos);
+    const tagsExcluidos = useFiltrosStore(s => s.tagsExcluidos);
+    const bpmMin = useFiltrosStore(s => s.bpmMin);
+    const bpmMax = useFiltrosStore(s => s.bpmMax);
+    const incluirTag = useFiltrosStore(s => s.incluirTag);
+    const excluirTag = useFiltrosStore(s => s.excluirTag);
+    const quitarTag = useFiltrosStore(s => s.quitarTag);
+    const limpiarTags = useFiltrosStore(s => s.limpiarTags);
+    const setBpmRango = useFiltrosStore(s => s.setBpmRango);
 
     /* Arrastre horizontal de tags */
     const [arrastrandoTags, setArrastrandoTags] = useState(false);
@@ -144,11 +151,9 @@ export const FeedSamples = ({
             setPaginaActual(1);
             setHayMasPaginas(true);
             setIndiceInicio(0);
-            setTagsIncluidos([]);
-            setTagsExcluidos([]);
-            setTagsExpandidos(false);
+            limpiarTags();
         }
-    }, [claveCache]);
+    }, [claveCache, limpiarTags]);
 
     /* Guard contra race conditions: descarta respuestas de requests anteriores (C46) */
     const requestIdRef = useRef(0);
@@ -269,33 +274,23 @@ export const FeedSamples = ({
         };
     }, []);
 
-    /* Tags dinámicos ordenados por frecuencia */
-    const todosLosTags = useMemo(() => {
-        const conteo = new Map<string, number>();
-        samples.forEach((s) => s.tags?.forEach((t) => {
-            conteo.set(t, (conteo.get(t) ?? 0) + 1);
-        }));
-        return Array.from(conteo.entries())
-            .sort((a, b) => b[1] - a[1])
-            .map(([tag]) => tag);
+    /*
+     * C116: Tags agrupados por categoría (selects) + tags sueltos ("otro").
+     * Los selects comprimen géneros, instrumentos, etc.
+     * Los tags "otro" se muestran en fila horizontal draggable.
+     */
+    const tagsAgrupados = useMemo(() => {
+        return extraerTagsAgrupadosMetadata(samples);
     }, [samples]);
 
-    const TAGS_COLAPSADOS = useMemo(() => {
-        if (typeof window === 'undefined') return 12;
-        const ancho = window.innerWidth;
-        if (ancho > 1400) return 20;
-        if (ancho > 1024) return 16;
-        if (ancho > 768) return 12;
-        return 8;
-    }, []);
+    /* Máximo de tags sueltos ("otro") visibles — sin compresión, con scroll */
+    const MAX_TAGS_SUELTOS = 30;
+    const tagsSueltos = useMemo(() => {
+        return (tagsAgrupados.otro ?? []).slice(0, MAX_TAGS_SUELTOS);
+    }, [tagsAgrupados]);
 
-    const tagsVisibles = tagsExpandidos ? todosLosTags : todosLosTags.slice(0, TAGS_COLAPSADOS);
-    const hayMasTags = todosLosTags.length > TAGS_COLAPSADOS;
-
-    const tagsAgrupados = useMemo(() => {
-        if (!tagsExpandidos) return null;
-        return agruparTagsPorCategoria(todosLosTags);
-    }, [tagsExpandidos, todosLosTags]);
+    /* Categorías que van en selects (excluye "otro") */
+    const CATEGORIAS_SELECT: CategoriaTag[] = ['genero', 'instrumento', 'sentimiento', 'tipo'];
 
     /* Filtrar por tags, por IDs excluidos y por creadores incluídos */
     const samplesFiltrados = useMemo(() => {
@@ -314,34 +309,39 @@ export const FeedSamples = ({
             });
         }
 
-        /* Inclusión/exclusión por tags */
+        /* C116: Filtro por rango BPM */
+        if (bpmMin !== null || bpmMax !== null) {
+            resultado = resultado.filter((s) => {
+                const bpm = (s as unknown as Record<string, unknown>).bpm as number | undefined;
+                if (bpm === undefined || bpm === null) return true;
+                if (bpmMin !== null && bpm < bpmMin) return false;
+                if (bpmMax !== null && bpm > bpmMax) return false;
+                return true;
+            });
+        }
+
+        /* Inclusión/exclusión por tags (C134: usa tags del metadata IA) */
         if (tagsIncluidos.length === 0 && tagsExcluidos.length === 0) return resultado;
         return resultado.filter((s) => {
-            const tagsSample = s.tags ?? [];
+            const tagsSample = extraerTagsMetadata(s);
             return tagsIncluidos.every((t) => tagsSample.includes(t))
                 && tagsExcluidos.every((t) => !tagsSample.includes(t));
         });
-    }, [samples, tagsIncluidos, tagsExcluidos, idsExcluidos, idsCreadoresIncluidos]);
+    }, [samples, tagsIncluidos, tagsExcluidos, bpmMin, bpmMax, idsExcluidos, idsCreadoresIncluidos]);
 
     /* Notificar conteo al padre (ultra-eficiente: solo lee .length) */
     useEffect(() => {
         onConteoChange?.(samplesFiltrados.length);
     }, [samplesFiltrados.length, onConteoChange]);
 
-    /* Handlers de tags */
+    /* C115: Handlers de tags usan store global (sync con búsqueda) */
     const manejarIncluirTag = useCallback((tag: string) => {
-        setTagsExcluidos((prev) => prev.filter((i) => i !== tag));
-        setTagsIncluidos((prev) =>
-            prev.includes(tag) ? prev.filter((i) => i !== tag) : [...prev, tag]
-        );
-    }, []);
+        incluirTag(tag);
+    }, [incluirTag]);
 
     const manejarExcluirTag = useCallback((tag: string) => {
-        setTagsIncluidos((prev) => prev.filter((i) => i !== tag));
-        setTagsExcluidos((prev) =>
-            prev.includes(tag) ? prev.filter((i) => i !== tag) : [...prev, tag]
-        );
-    }, []);
+        excluirTag(tag);
+    }, [excluirTag]);
 
     /* Arrastre horizontal de tags */
     const iniciarArrastre = useCallback((clientX: number) => {
@@ -433,31 +433,36 @@ export const FeedSamples = ({
 
     return (
         <div className={`feedSamplesContenedor ${className}`} id={id}>
-            {/* Tags dinámicos con inclusión/exclusión */}
-            {mostrarTags && todosLosTags.length > 0 && (
+            {/* C116: Fila de selects por categoría + tags sueltos draggable */}
+            {mostrarTags && (
                 <div className="feedTags">
-                    {tagsExpandidos && tagsAgrupados ? (
-                        <div className="feedTagsAgrupados">
-                            {ORDEN_CATEGORIAS.map((cat) => {
-                                const arr = tagsAgrupados[cat];
-                                if (arr.length === 0) return null;
-                                return (
-                                    <div key={cat} className="feedTagGrupo">
-                                        <span className="feedTagGrupoTitulo">{ETIQUETAS_CATEGORIA[cat]}</span>
-                                        <div className="feedTagGrupoLista">
-                                            {arr.map(renderizarTag)}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            <button type="button" className="feedTagExpandirBtn"
-                                onClick={() => setTagsExpandidos(false)} aria-label="Ver menos tags"
-                            >
-                                <ChevronRight size={12} className="feedTagExpandirIconoRotado" />
-                                Menos
-                            </button>
-                        </div>
-                    ) : (
+                    {/* Fila 1: Selects de categorías + BPM */}
+                    <div className="feedFiltrosSelects">
+                        {CATEGORIAS_SELECT.map((cat) => {
+                            const opciones = tagsAgrupados[cat] ?? [];
+                            if (opciones.length === 0) return null;
+                            return (
+                                <SelectFiltro
+                                    key={cat}
+                                    etiqueta={ETIQUETAS_CATEGORIA[cat]}
+                                    opciones={opciones}
+                                    tagsIncluidos={tagsIncluidos}
+                                    tagsExcluidos={tagsExcluidos}
+                                    onIncluir={incluirTag}
+                                    onExcluir={excluirTag}
+                                    onQuitar={quitarTag}
+                                />
+                            );
+                        })}
+                        <SelectorBPM
+                            bpmMin={bpmMin}
+                            bpmMax={bpmMax}
+                            onCambiar={setBpmRango}
+                        />
+                    </div>
+
+                    {/* Fila 2: Tags sueltos ("otro") — draggable horizontal, sin compresión */}
+                    {tagsSueltos.length > 0 && (
                         <div
                             ref={listaTagsRef}
                             className={`feedTagsLista ${arrastrandoTags ? 'feedTagsListaArrastrando' : ''}`}
@@ -469,15 +474,7 @@ export const FeedSamples = ({
                             onTouchMove={(e) => moverArrastre(e.touches[0].clientX)}
                             onTouchEnd={finalizarArrastre}
                         >
-                            {tagsVisibles.map(renderizarTag)}
-                            {hayMasTags && (
-                                <button type="button" className="feedTagExpandirBtn"
-                                    onClick={() => setTagsExpandidos(true)} aria-label="Ver más tags"
-                                >
-                                    <ChevronRight size={12} />
-                                    +{todosLosTags.length - TAGS_COLAPSADOS}
-                                </button>
-                            )}
+                            {tagsSueltos.map(renderizarTag)}
                         </div>
                     )}
                 </div>
