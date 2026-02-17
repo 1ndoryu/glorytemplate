@@ -18,6 +18,8 @@ import {ShowcaseIsland} from './islands/dev/ShowcaseIsland';
 import {SampleDetalleIsland} from './islands/samples/SampleDetalleIsland';
 import {InicioIsland} from './islands/feed/InicioIsland';
 import {LibreriaIsland} from './islands/libreria/LibreriaIsland';
+import {DescargasIsland} from './islands/libreria/DescargasIsland';
+import {FavoritosIsland} from './islands/libreria/FavoritosIsland';
 import {ReproductorIsland} from './islands/player/ReproductorIsland';
 import {DescubrirIsland} from './islands/discover/DescubrirIsland';
 import {NotificacionesIsland} from './islands/notificaciones/NotificacionesIsland';
@@ -60,6 +62,8 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     SampleDetalleIsland: SampleDetalleIsland as React.ComponentType<Record<string, unknown>>,
     InicioIsland: InicioIsland as React.ComponentType<Record<string, unknown>>,
     LibreriaIsland: LibreriaIsland as React.ComponentType<Record<string, unknown>>,
+    DescargasIsland: DescargasIsland as React.ComponentType<Record<string, unknown>>,
+    FavoritosIsland: FavoritosIsland as React.ComponentType<Record<string, unknown>>,
     ReproductorIsland: ReproductorIsland as React.ComponentType<Record<string, unknown>>,
     DescubrirIsland: DescubrirIsland as React.ComponentType<Record<string, unknown>>,
     NotificacionesIsland: NotificacionesIsland as React.ComponentType<Record<string, unknown>>,

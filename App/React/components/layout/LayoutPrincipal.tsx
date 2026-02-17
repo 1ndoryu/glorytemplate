@@ -45,6 +45,8 @@ const MAPA_RUTAS: Record<string, string> = {
     '/comunidad': 'comunidad',
     '/sample': 'inicio',
     '/coleccion': 'libreria',
+    '/descargas': 'descargas',
+    '/favoritos': 'favoritos',
     '/mensajes': 'inicio',
     '/planes': 'inicio',
     '/componentes': 'componentes',

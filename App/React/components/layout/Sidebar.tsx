@@ -9,6 +9,8 @@ import {
     Home,
     Users,
     FolderOpen,
+    Download,
+    Heart,
     Settings,
     AudioLines,
 } from 'lucide-react';
@@ -28,6 +30,8 @@ const itemsDefault: SidebarItemDef[] = [
     { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
     { id: 'comunidad', etiqueta: 'Comunidad', icono: <Users size={20} />, ruta: '/comunidad' },
     { id: 'libreria', etiqueta: 'Librería', icono: <FolderOpen size={20} />, ruta: '/libreria' },
+    { id: 'descargas', etiqueta: 'Descargas', icono: <Download size={20} />, ruta: '/descargas' },
+    { id: 'favoritos', etiqueta: 'Favoritos', icono: <Heart size={20} />, ruta: '/favoritos' },
 ];
 
 interface SidebarProps {

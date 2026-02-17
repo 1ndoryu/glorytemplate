@@ -82,6 +82,8 @@ PageManager::reactPage('perfil/editar', 'EditarPerfilIsland');
 /* Explorar eliminado: la búsqueda se hace desde el feed principal */
 
 PageManager::reactPage('libreria', 'LibreriaIsland');
+PageManager::reactPage('descargas', 'DescargasIsland');
+PageManager::reactPage('favoritos', 'FavoritosIsland');
 PageManager::reactPage('reproductor', 'ReproductorIsland');
 PageManager::reactPage('descubrir', 'DescubrirIsland');
 PageManager::reactPage('notificaciones', 'NotificacionesIsland');

@@ -1,11 +1,12 @@
 /*
- * LibreriaIsland — Kamples (Fase 5)
- * Librería personal: explorar colecciones públicas, descargas, favoritos, colecciones propias y subidos.
- * Tabs se renderizan en el TopBar via tabsTopBarStore (misma estructura que InicioIsland).
+ * LibreriaIsland — Kamples (Fase 5, C140)
+ * Librería personal: explorar colecciones públicas, mis colecciones y subidos.
+ * Descargas y Favoritos se movieron a páginas independientes (C140).
+ * Tabs se renderizan en el TopBar via tabsTopBarStore.
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { Download, Heart, FolderOpen, Upload, Music, Plus, Globe } from 'lucide-react';
+import { FolderOpen, Upload, Music, Plus, Globe } from 'lucide-react';
 import {
     BotonBase,
 } from '@app/components/ui';
@@ -13,7 +14,7 @@ import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
-import { listarSamples, obtenerMisFavoritos, obtenerMisDescargas } from '@app/services/apiSamples';
+import { listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { TipoReaccion } from '@app/types';
 import { listarColecciones, listarColeccionesPublicas, eliminarColeccion } from '@app/services/apiColecciones';
@@ -27,11 +28,10 @@ import type { SampleResumen, Coleccion } from '@app/types';
 import { crearLogger } from '@app/services/logger';
 import '../../styles/componentes/libreria.css';
 
+/* C140: Tabs reducidas — descargas y favoritos ahora son páginas propias */
 const TABS_LIBRERIA = [
     { id: 'explorar', etiqueta: 'Explorar' },
-    { id: 'descargas', etiqueta: 'Descargas' },
-    { id: 'favoritos', etiqueta: 'Favoritos' },
-    { id: 'colecciones', etiqueta: 'Colecciones' },
+    { id: 'colecciones', etiqueta: 'Mis Colecciones' },
     { id: 'subidos', etiqueta: 'Subidos' },
 ];
 
@@ -90,7 +90,7 @@ export const LibreriaIsland = (): JSX.Element => {
         };
     }, []);
 
-    /* Cargar datos según tab activa */
+    /* Cargar datos según tab activa — C140: sin descargas/favoritos */
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
@@ -107,20 +107,6 @@ export const LibreriaIsland = (): JSX.Element => {
                     setColecciones(resp.data);
                 } else {
                     setColecciones([]);
-                }
-            } else if (tabActiva === 'favoritos') {
-                const resp = await obtenerMisFavoritos(1, 20);
-                if (resp.ok && resp.data) {
-                    setSamples(resp.data.data ?? []);
-                } else {
-                    setSamples([]);
-                }
-            } else if (tabActiva === 'descargas') {
-                const resp = await obtenerMisDescargas(1, 20);
-                if (resp.ok && resp.data) {
-                    setSamples(resp.data.data ?? []);
-                } else {
-                    setSamples([]);
                 }
             } else if (tabActiva === 'subidos') {
                 /* subidos: usar filtro creador con username del auth store */
@@ -216,10 +202,8 @@ export const LibreriaIsland = (): JSX.Element => {
         });
     }, []);
 
-    /* Mensajes vacíos por tab */
+    /* Mensajes vacíos por tab — C140: sin descargas/favoritos */
     const mensajeVacio: Record<string, { titulo: string; texto: string }> = {
-        descargas: { titulo: 'Sin descargas', texto: 'Los samples que descargues aparecerán aquí.' },
-        favoritos: { titulo: 'Sin favoritos', texto: 'Dale like a un sample para guardarlo aquí.' },
         colecciones: { titulo: 'Sin colecciones', texto: 'Crea tu primera colección para organizar samples.' },
         subidos: { titulo: 'Sin samples subidos', texto: 'Sube tu primer sample para compartirlo.' },
     };
@@ -227,8 +211,6 @@ export const LibreriaIsland = (): JSX.Element => {
     /* Iconos para estado vacío por tab */
     const ICONOS_TAB: Record<string, JSX.Element> = {
         explorar: <Globe size={16} />,
-        descargas: <Download size={16} />,
-        favoritos: <Heart size={16} />,
         colecciones: <FolderOpen size={16} />,
         subidos: <Upload size={16} />,
     };

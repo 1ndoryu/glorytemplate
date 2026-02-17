@@ -114,6 +114,27 @@ class SamplesController
                 'per_page' => ['required' => false, 'type' => 'integer', 'default' => 20],
             ],
         ]);
+
+        /* C140: Sugerencias "Más Ideas" para descargas y favoritos */
+        register_rest_route($namespace, '/me/descargas/sugerencias', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'sugerenciasDescargas'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'pagina' => ['required' => false, 'type' => 'integer', 'default' => 1],
+                'limite' => ['required' => false, 'type' => 'integer', 'default' => 20],
+            ],
+        ]);
+
+        register_rest_route($namespace, '/me/favoritos/sugerencias', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'sugerenciasFavoritos'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'pagina' => ['required' => false, 'type' => 'integer', 'default' => 1],
+                'limite' => ['required' => false, 'type' => 'integer', 'default' => 20],
+            ],
+        ]);
     }
 
     /**
@@ -791,6 +812,112 @@ class SamplesController
                     'pages'    => max(1, (int) ceil(($total['total'] ?? 0) / $perPage)),
                 ],
             ],
+        ], 200);
+    }
+
+    /*
+     * C140: Sugerencias basadas en historial del usuario.
+     * Patrón idéntico a ColeccionesController::sugerencias() — scoring por tags + BPM + key.
+     */
+
+    /**
+     * GET /me/descargas/sugerencias — "Más Ideas" basadas en descargas.
+     */
+    public static function sugerenciasDescargas(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+        return self::calcularSugerencias(
+            "SELECT s.tags, s.bpm, s.key FROM samples s JOIN descargas d ON d.sample_id = s.id WHERE d.usuario_id = :uid AND s.estado = 'activo'",
+            "SELECT sample_id FROM descargas WHERE usuario_id = :uid",
+            $userId,
+            $request
+        );
+    }
+
+    /**
+     * GET /me/favoritos/sugerencias — "Más Ideas" basadas en favoritos.
+     */
+    public static function sugerenciasFavoritos(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+        return self::calcularSugerencias(
+            "SELECT s.tags, s.bpm, s.key FROM samples s JOIN likes l ON l.target_id = s.id AND l.tipo = 'sample' WHERE l.usuario_id = :uid AND s.estado = 'activo'",
+            "SELECT target_id AS sample_id FROM likes WHERE tipo = 'sample' AND usuario_id = :uid",
+            $userId,
+            $request
+        );
+    }
+
+    /**
+     * Motor de sugerencias genérico: analiza tags/BPM/key del contexto del usuario
+     * y devuelve samples similares excluyendo los ya vistos.
+     */
+    private static function calcularSugerencias(
+        string $sqlContexto,
+        string $sqlExcluir,
+        int $userId,
+        \WP_REST_Request $request
+    ): \WP_REST_Response {
+        $pagina = max(1, (int) $request->get_param('pagina'));
+        $limite = min(50, max(1, (int) $request->get_param('limite')));
+        $offset = ($pagina - 1) * $limite;
+
+        /* Obtener contexto: tags, BPM, keys del usuario */
+        $contexto = PostgresService::consultar($sqlContexto, ['uid' => $userId]);
+
+        if (empty($contexto)) {
+            return new \WP_REST_Response(['data' => []], 200);
+        }
+
+        $allTags = [];
+        $allBpms = [];
+        $allKeys = [];
+        foreach ($contexto as $row) {
+            $tags = NormalizadorSample::pgArrayToPhp($row['tags'] ?? '');
+            $allTags = array_merge($allTags, $tags);
+            if (!empty($row['bpm'])) $allBpms[] = (int) $row['bpm'];
+            if (!empty($row['key'])) $allKeys[] = $row['key'];
+        }
+
+        /* Top 10 tags más frecuentes */
+        $tagCounts = array_count_values($allTags);
+        arsort($tagCounts);
+        $topTags = array_slice(array_keys($tagCounts), 0, 10);
+
+        /* IDs a excluir (ya descargados/favoritos) */
+        $idsExistentes = PostgresService::consultar($sqlExcluir, ['uid' => $userId]);
+        $idsExcluir = array_map(fn($r) => (int) $r['sample_id'], $idsExistentes);
+        $idsExcluirStr = !empty($idsExcluir) ? implode(',', $idsExcluir) : '0';
+
+        /* Scoring: tags + key + BPM proximity */
+        $avgBpm = !empty($allBpms) ? (int) (array_sum($allBpms) / count($allBpms)) : 120;
+        $topKey = !empty($allKeys) ? array_count_values($allKeys) : [];
+        arsort($topKey);
+        $dominantKey = !empty($topKey) ? array_key_first($topKey) : null;
+
+        $tagConditions = [];
+        $params = ['limit' => $limite, 'offset' => $offset, 'avgBpm' => $avgBpm];
+        foreach ($topTags as $i => $tag) {
+            $tagConditions[] = "CASE WHEN :tag{$i} = ANY(s.tags) THEN 1 ELSE 0 END";
+            $params["tag{$i}"] = $tag;
+        }
+        $tagScore = !empty($tagConditions) ? '(' . implode(' + ', $tagConditions) . ')' : '0';
+
+        $keyScore = $dominantKey ? "CASE WHEN s.key = :domKey THEN 3 ELSE 0 END" : "0";
+        if ($dominantKey) $params['domKey'] = $dominantKey;
+
+        $sql = NormalizadorSample::sqlSelectSamples()
+             . " WHERE s.estado = 'activo' AND s.id NOT IN ({$idsExcluirStr})"
+             . " ORDER BY ({$tagScore} + {$keyScore} + CASE WHEN s.bpm IS NOT NULL THEN GREATEST(0, 5 - ABS(s.bpm - :avgBpm) / 10) ELSE 0 END) DESC,"
+             . " s.total_likes DESC, s.publicado_at DESC"
+             . " LIMIT :limit OFFSET :offset";
+
+        $samples = PostgresService::consultar($sql, $params);
+
+        return new \WP_REST_Response([
+            'data' => NormalizadorSample::normalizarLista($samples),
         ], 200);
     }
 }

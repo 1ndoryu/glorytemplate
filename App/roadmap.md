@@ -53,7 +53,9 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | `/comunidad`         | `ComunidadIsland`        | Feed posts sociales con diseño diferenciado (NUEVA) |
 | `/descubrir`         | `DescubrirIsland`        | Algoritmo personalizado                             |
 | `/perfil/{username}` | `PerfilIsland`           | Perfil público                                      |
-| `/libreria`          | `LibreriaIsland`         | Colecciones, descargas, favoritos                   |
+| `/libreria`          | `LibreriaIsland`         | Explorar colecciones, mis colecciones, subidos        |
+| `/descargas`          | `DescargasIsland`        | Mis descargas + sugerencias "Más Ideas" (C140)        |
+| `/favoritos`          | `FavoritosIsland`        | Mis favoritos + sugerencias "Más Ideas" (C140)        |
 | `/mensajes`          | `MensajesIsland`         | Vista completa de conversaciones                    |
 | `/planes`            | `PlanesIsland`           | Checkout Stripe                                     |
 | `/reproductor`       | `ReproductorIsland`      | Player completo                                     |
@@ -134,6 +136,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R38:** C126 modal edición unificado (ModalEditar.tsx+useEditar.ts+editarModalStore.ts+modalEditar.css, backend PUT /samples/{id}+PUT/DELETE /publicaciones/{id}, menú contextual "Editar", montaje global LayoutPrincipal). C164 security hardening completo: RateLimiter.php (transients WP, por usuario/IP) + Validador.php (constantes centralizadas). Rate limits aplicados a 8 controladores: Auth login 5/15min IP + registro 3/h IP + username/password validation, Comentarios 10/min + 2000 chars, Publicaciones 5/min + 5000 chars + esc_url_raw imágenes, Mensajes 30/min + 5000 chars + 10 conversaciones/h, Social follows 20/min + likes 30/min, Samples upload 10/h, Perfil 10/h + bio 500/nombre 100/username validación, Colecciones crear 10/h + nombre 100/desc 500 + agregar 30/min, Reproducciones 60/min.
 **R39:** C85 centralización componentes: BarraAccionesPost.tsx (like/comment/repost unificado, TooltipReacciones integrado, formatearConteo K/M) + EnlaceCreador.tsx (avatar+nombre clickable con navegación a perfil). CSS: accionesPost.css + enlaceCreador.css. Integrado en 6 consumidores: ComunidadIsland (ambos), PerfilIsland (BarraAccionesPost), TarjetaPublicacion (BarraAccionesPost), SampleDetalleIsland (EnlaceCreador), ColeccionDetalleIsland (EnlaceCreador), PanelDetalleSample (EnlaceCreador). Eliminados imports Avatar sin uso en 3 archivos. ~120 líneas de JSX duplicado eliminadas.
 **R40:** C130 comentarios multimedia full-stack: v013 migración (tipo_contenido/media_url/media_metadata en comentarios, contenido nullable). ComentariosController soporta FormData+MIME validation+wp_handle_upload (imagen 10MB, audio 25MB, subcarpeta kamples/comentarios/). Tipo Comentario extendido (tipoContenido/mediaUrl/mediaMetadata). apiSocial.ts crearComentarioMultimedia (FormData). useComentarios.enviarMultimedia. ListaComentarios: renderizado imagen (click→nueva pestaña) + mini reproductor audio (play/pause+barra progreso) + botones adjuntar (Image/Mic) + preview archivo + caption opcional. CSS: comentarioImagen, comentarioAudio, comentarioPreview, comentarioAdjuntarBtn. Conectado en 3 consumidores: ComunidadIsland, SampleDetalleIsland, PanelDetalleSample.
+**R42:** C140 separación descargas/favoritos: DescargasIsland.tsx + FavoritosIsland.tsx (páginas independientes con tabs Mis X/Más Ideas), useDescargasPagina.ts + useFavoritosPagina.ts (hooks SRP), apiSugerencias.ts (frontend), descargasFavoritos.css (compartido). Backend: SamplesController.calcularSugerencias() genérico (scoring tags+BPM+key, excluye ya vistos), 2 endpoints /me/descargas|favoritos/sugerencias. Sidebar +2 items (Download+Heart). MAPA_RUTAS actualizado. LibreriaIsland limpiada (3 tabs: Explorar, Mis Colecciones, Subidos). pages.php +2 rutas. appIslands.tsx +2 islands. Type-check 0 errores.
 **R41:** C131/C132 moderación IA comentarios + bans: ServicioAntiSpam.php (heurístico pre-IA: URLs, caps, spam patterns, duplicados), ServicioBan.php (violaciones progresivas: 3→24h, 5→7d, 8→30d, notificaciones automáticas). ServicioModeracionIA.moderarComentario() (Guard texto + Vision imagen, tolerante con toxicidad/insultos, solo rechaza spam/pornografía/ilegal, contexto musical para álbumes). v014 migración (moderacion_estado/detalle en comentarios, violaciones/ban en usuarios_ext, tabla reportes genérica). ComentariosController integra anti-spam sincrónico + moderación IA async (shutdown hook) + filtrado rechazados en listar(). AuthMiddleware.verificarBanActivo() helper centralizado. TipoNotificacion += 'moderacion'. C167: PageRenderer refactorizado (patrón render-time state update, elimina cascading renders y pantalla negra). Type-check 23→0 errores (imports muertos en 6 archivos, IndicadorDescargas campos LimitesDescarga). C168: fix \n literal en ComentariosController.
 
 ---
@@ -463,7 +466,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 137 | Guardar en colección propia no mostrarlo             | ✅ ColeccionDetalleIsland: oculta botón guardar si coleccion.usuarioId === usuario.id |
 | 138 | Descargas sin crédito samples propios                | ✅ DescargasController: skip crédito si esPropietario o yaDescargado |
 | 139 | Contador samples colecciones                         | ✅ normalizarColeccion() snake→camelCase en apiColecciones.ts (total_items→totalSamples) |
-| 140 | Separar descargas/favoritos en páginas propias       | Pendiente                                                                                                                                                                                                               |
+| 140 | Separar descargas/favoritos en páginas propias       | ✅ DescargasIsland + FavoritosIsland: páginas independientes con tabs (lista + Más Ideas). Sidebar actualizado (5 items). Backend sugerencias genérico. LibreriaIsland limpiada (3 tabs) |
 | 141 | TarjetaColeccion menú 3 puntos                       | ✅ Botón MoreVertical esquina superior derecha + dropdown Editar/Eliminar. Auto-contraste rgba+blur |
 | 142 | Sugerencias siempre vacías                           | ✅ Double-unwrap: apiGet ya extrae json.data, tipo era RespuestaApi<{data:T}> → corregido a RespuestaApi<T>. Corregido en apiReproduciones+PanelSugerencias+sugerenciasLikeStore+PanelDetalleSample |
 | 143 | crearContenido CSS roto                              | ✅ seccionPublicar.css rebuild — solo wrapper `.seccionPublicar` (13 líneas) |
@@ -487,7 +490,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 131 | Automod IA comentarios | ✅ ServicioAntiSpam.php + ServicioModeracionIA.moderarComentario() (Guard+Vision async). Anti-spam + moderación IA post-INSERT |
 | 132 | Sistema bans + moderación mejorada | ✅ ServicioBan.php (escalación 3→24h/5→7d/8→30d). Guard permite toxicidad. Vision contexto musical. v014 migración |
 | 133 | Cache SPA keep-alive | ✅ PageRenderer max 5 islas display:none/block |
-| 140 | Separar descargas/favoritos en páginas propias | Pendiente |
+| 140 | Separar descargas/favoritos en páginas propias | ✅ DescargasIsland + FavoritosIsland páginas independientes. Sidebar 5 items. Backend sugerencias genérico. LibreriaIsland 3 tabs |
 | 148 | Algoritmo tags metadata + creador implícito | ✅ sqlTagsEnriquecidos() + obtenerCreadoresFavoritos() |
 | 149 | feedTags roto | ✅ busqueda fuera de claveCache |
 | 150 | Hover tooltip reacciones | ✅ ::before puente CSS |
@@ -510,6 +513,12 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 167 | PageRenderer cascading + type-check | ✅ Render-time state update, 23→0 errores TS |
 | 168 | Syntax error ComentariosController | ✅ Fix \n literal |
 169. La busqueda debería funcionar para la pagina de colecciones.
+170. La tarea de 126 si se hizo pero la descripcion aparece en el input de tags. Las tags deben ser las que genero la IA, y los tags que escribio el usuario, es la descripción, se que los samples tienen mucha data, pero hay que intentar hacer algo compacto y con muy buena ui ux para poder modificar la matadata. 
+171. Simplificar lo de "Licencia libre (dominio público)" a que cuando se permite la descarga, automaticamente ya es "Licencia libre (dominio público)", cuando no se permita no sera de dominio publico. Quitar esa opcion del modal de publicacion y de editar.
+172. Compactar registros de cambios y comentarios viejos. 
+173. Antes habiamos comentado lo de los status de moderacion de un, habia indicado una tarea de que al lado de 3 puntos, para el admin y el dueño del post sera visible un icono de status que indicará el status del post, no importa que estuviera validado en cualquier estado, siempre aparece, solo un icono sin texto. Pero no lo veo. Que el admin pueda aprobar, los post pendiente en el menu contextual.
+174. Las tabs a veces se quedan congeladas a cambiar de pagina rapido y las paginas a veces se quedan en negro.
+175. Las paginas de descarga y favorito debe tener la misma estructura y diseño que las paginas individuales de las colecciones, actualmente se ve muy diferente
 
 ---
 
@@ -567,3 +576,6 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [C167 Date.now() en render]: React Compiler rechaza `Date.now()` en useMemo/render porque es "impure function". Usar un contador module-level (`let contadorOrden = 0`) para ordenar LRU.
 - [C167 useRef en render]: React Compiler prohíbe acceder a `.current` de useRef durante render. No funciona como alternativa a useState para datos de render.
 - [C167 Type-check]: Tras refactors como C85 (centralizar componentes), siempre ejecutar `npm run type-check` para detectar imports muertos en archivos consumidores.
+- [C140 Sugerencias genérico]: `calcularSugerencias()` acepta SQL de contexto y SQL de exclusión como parámetros genéricos, reutilizable para cualquier lista del usuario (descargas, favoritos, colecciones, historial).
+- [C140 Sidebar items]: Al añadir items al sidebar, actualizar MAPA_RUTAS en LayoutPrincipal.tsx para que la detección de página activa funcione con las nuevas rutas.
+- [C140 FeedSamples dual]: Patrón tab dual: tab principal con TarjetaSample manual (datos precargados) + tab "Más Ideas" con FeedSamples+proveedor (infinite scroll). Usar `key` distinto para forzar desmontaje limpio entre tabs.
