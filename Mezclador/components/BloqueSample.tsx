@@ -17,6 +17,7 @@ interface BloqueSampleProps {
     totalCompases: number;
     onIniciarDrag: (bloqueId: string, pistaId: string, e: React.MouseEvent) => void;
     estaSiendoArrastrado?: boolean;
+    estaSeleccionado?: boolean;
     modoCortarActivo?: boolean;
     onCortar?: (bloqueId: string, compas: number) => void;
 }
@@ -26,6 +27,7 @@ export const BloqueSample = ({
     totalCompases,
     onIniciarDrag,
     estaSiendoArrastrado,
+    estaSeleccionado,
     modoCortarActivo,
     onCortar,
 }: BloqueSampleProps): JSX.Element => {
@@ -35,6 +37,7 @@ export const BloqueSample = ({
     const compasProyecto = useMezcladorStore(s => s.compasProyecto);
     const guardarSnapshot = useMezcladorStore(s => s._guardarSnapshot);
     const snapResolucion = useMezcladorStore(s => s.snapResolucion);
+    const toggleSeleccionBloque = useMezcladorStore(s => s.toggleSeleccionBloque);
     const ancho = anchoBloquePorc(bloque.duracionCompases, totalCompases);
     const izquierda = posicionBloquePorc(bloque.compasInicio, totalCompases);
 
@@ -151,7 +154,7 @@ export const BloqueSample = ({
 
     return (
         <div
-            className={`mezcladorBloque ${estaSiendoArrastrado ? 'mezcladorBloqueDragging' : ''} ${resizing ? 'mezcladorBloqueResizing' : ''} ${modoCortarActivo ? 'mezcladorBloqueCortando' : ''}`}
+            className={`mezcladorBloque ${estaSiendoArrastrado ? 'mezcladorBloqueDragging' : ''} ${estaSeleccionado ? 'mezcladorBloqueSeleccionado' : ''} ${resizing ? 'mezcladorBloqueResizing' : ''} ${modoCortarActivo ? 'mezcladorBloqueCortando' : ''}`}
             style={{
                 left: `${izquierda}%`,
                 width: `${ancho}%`,
@@ -162,6 +165,19 @@ export const BloqueSample = ({
                 /* C226: No iniciar drag si el click es sobre un botón de acción */
                 const target = e.target as HTMLElement;
                 if (target.closest('.mezcladorBloqueBotones') || target.closest('.mezcladorBloqueResizeHandle')) return;
+
+                /* C247: Ctrl+click togglea selección sin iniciar drag */
+                if (e.ctrlKey || e.metaKey) {
+                    toggleSeleccionBloque(bloque.id, true);
+                    return;
+                }
+
+                /* C249: Shift+drag duplica el bloque y arrastra la copia */
+                if (e.shiftKey) {
+                    duplicarBloque(bloque.id);
+                    /* El duplicado se posiciona al final, el usuario sigue arrastrando el original */
+                }
+
                 onIniciarDrag(bloque.id, bloque.pistaId, e);
             }}
             onClick={alClickBloque}

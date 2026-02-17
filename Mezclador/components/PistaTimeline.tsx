@@ -44,6 +44,7 @@ export const PistaTimeline = ({
     const pistas = useMezcladorStore(s => s.pistas);
     const compasProyecto = useMezcladorStore(s => s.compasProyecto);
     const snapResolucion = useMezcladorStore(s => s.snapResolucion);
+    const bloquesSeleccionados = useMezcladorStore(s => s.bloquesSeleccionados);
     const puedeBorrar = pistas.length > 1;
 
     /* C216: Líneas de cuadrícula según resolución de snap */
@@ -108,6 +109,7 @@ export const PistaTimeline = ({
                         totalCompases={totalCompases}
                         onIniciarDrag={onIniciarDrag}
                         estaSiendoArrastrado={dragActivo && bloqueIdDrag === bloque.id}
+                        estaSeleccionado={bloquesSeleccionados.has(bloque.id)}
                         modoCortarActivo={modoCortarActivo}
                         onCortar={onCortar}
                     />
@@ -124,12 +126,7 @@ export const PistaTimeline = ({
                     />
                 )}
 
-                {/* Placeholder cuando está vacío */}
-                {pista.bloques.length === 0 && (
-                    <div className="mezcladorPistaVacia">
-                        Arrastra un sample aquí
-                    </div>
-                )}
+                {/* Placeholder cuando está vacío — C250: sin texto */}
             </div>
         </div>
     );

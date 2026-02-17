@@ -4,10 +4,11 @@
  * Aislado de la app principal via ErrorBoundary.
  */
 
-import { PanelRightClose, Download, Upload, FolderUp, Trash2, Loader, Music2, Maximize2, Minimize2 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { PanelRightClose, Download, Upload, FolderUp, Trash2, Loader, Music2, Maximize2, Minimize2, Settings } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useMezclador } from '../hooks/useMezclador';
 import { ControlesMezclador } from './ControlesMezclador';
+import { ModalConfigDaw } from './ModalConfigDaw';
 import { Timeline } from './Timeline';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
@@ -58,6 +59,9 @@ const MezcladorContenido = (): JSX.Element => {
 
     /* C208: Referencia al input de archivo oculto */
     const inputArchivoRef = useRef<HTMLInputElement>(null);
+
+    /* C253: Modal de configuración del DAW */
+    const [modalConfigDawAbierto, setModalConfigDawAbierto] = useState(false);
 
     /* Cerrar el mezclador Y el panel lateral */
     const cerrar = () => {
@@ -137,8 +141,15 @@ const MezcladorContenido = (): JSX.Element => {
                         <Trash2 size={14} />
                     </button>
                 </div>
-                {/* C241: Botón expandir/contraer + cerrar */}
+                {/* C241+C253: Botón config + expandir/contraer + cerrar */}
                 <div className="mezcladorCabeceraAcciones">
+                    <button
+                        className="mezcladorBotonCabecera"
+                        onClick={() => setModalConfigDawAbierto(true)}
+                        title="Configuración del DAW"
+                    >
+                        <Settings size={14} />
+                    </button>
                     <button
                         className="mezcladorBotonCabecera"
                         onClick={toggleExpandido}
@@ -180,9 +191,14 @@ const MezcladorContenido = (): JSX.Element => {
                     onDrop={(e) => alDropExterno(e)}
                 >
                     <Music2 size={24} />
-                    <p>Arrastra samples desde el feed para empezar a mezclar</p>
                 </div>
             )}
+
+            {/* C253: Modal de configuración global del DAW */}
+            <ModalConfigDaw
+                abierto={modalConfigDawAbierto}
+                onCerrar={() => setModalConfigDawAbierto(false)}
+            />
         </div>
     );
 };

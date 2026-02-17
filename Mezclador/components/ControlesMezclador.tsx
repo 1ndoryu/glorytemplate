@@ -5,7 +5,6 @@
 
 import { Play, Square, Plus, Minus, Scissors, ZoomIn, ZoomOut, Undo2, Redo2 } from 'lucide-react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
-import type { SnapResolucion } from '../types/mezclador';
 
 interface ControlesMezcladorProps {
     onToggleReproduccion: () => void;
@@ -23,8 +22,6 @@ export const ControlesMezclador = ({
     const quitarCompas = useMezcladorStore(s => s.quitarCompas);
     const modoCortarActivo = useMezcladorStore(s => s.modoCortarActivo);
     const toggleModoCortar = useMezcladorStore(s => s.toggleModoCortar);
-    const snapResolucion = useMezcladorStore(s => s.snapResolucion);
-    const setSnapResolucion = useMezcladorStore(s => s.setSnapResolucion);
     const nivelZoom = useMezcladorStore(s => s.nivelZoom);
     const zoomIn = useMezcladorStore(s => s.zoomIn);
     const zoomOut = useMezcladorStore(s => s.zoomOut);
@@ -32,16 +29,6 @@ export const ControlesMezclador = ({
     const rehacer = useMezcladorStore(s => s.rehacer);
     const puedeDeshacer = useMezcladorStore(s => s.puedeDeshacer);
     const puedeRehacer = useMezcladorStore(s => s.puedeRehacer);
-
-    /* C216: Opciones de snap disponibles */
-    const opcionesSnap: { valor: SnapResolucion; label: string }[] = [
-        { valor: 'bar', label: 'Bar' },
-        { valor: 'beat', label: 'Beat' },
-        { valor: '1/2', label: '1/2' },
-        { valor: '1/4', label: '1/4' },
-        { valor: '1/6', label: '1/6' },
-        { valor: 'off', label: 'Off' },
-    ];
 
     const alCambiarBpm = (e: React.ChangeEvent<HTMLInputElement>) => {
         const valor = parseInt(e.target.value, 10);
@@ -110,21 +97,6 @@ export const ControlesMezclador = ({
                 >
                     <Plus size={12} />
                 </button>
-
-                <span className="mezcladorSeparadorVertical" />
-
-                {/* C216: Snap selector */}
-                <span className="mezcladorSnapLabel">Snap</span>
-                <select
-                    className="mezcladorSnapSelect"
-                    value={snapResolucion}
-                    onChange={(e) => setSnapResolucion(e.target.value as SnapResolucion)}
-                    title="Resolución de snap (cuadrícula)"
-                >
-                    {opcionesSnap.map(op => (
-                        <option key={op.valor} value={op.valor}>{op.label}</option>
-                    ))}
-                </select>
 
                 <span className="mezcladorSeparadorVertical" />
 

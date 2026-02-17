@@ -30,8 +30,7 @@ export const ModalConfigBloque = ({
     const [fadeOut, setFadeOut] = useState(bloque.fadeOut);
     const [volumen, setVolumen] = useState(bloque.volumen);
     const [playbackRate, setPlaybackRate] = useState(bloque.playbackRate);
-    /* C244: Modo resize local */
-    const [modoResize, setModoResize] = useState(bloque.modoResize ?? 'stretch');
+    /* C244: Modo resize local — C256: ahora global, se mantiene referencia */
     /* C240: Tonalidad en semitonos */
     const [detune, setDetune] = useState(bloque.detune ?? 0);
 
@@ -59,12 +58,7 @@ export const ModalConfigBloque = ({
         aplicar({ normalizado: nuevo });
     };
 
-    /* C244: Cambiar modo resize (stretch vs clip) */
-    const toggleModoResize = () => {
-        const nuevo = modoResize === 'stretch' ? 'clip' : 'stretch';
-        setModoResize(nuevo);
-        aplicar({ modoResize: nuevo });
-    };
+    /* C256: toggleModoResize eliminado — ahora es global en ModalConfigDaw */
 
     /* Cambiar fade in */
     const alCambiarFadeIn = (valor: number) => {
@@ -119,7 +113,6 @@ export const ModalConfigBloque = ({
         setFadeOut(0);
         setInvertido(false);
         setNormalizado(false);
-        setModoResize('stretch');
         setDetune(0);
 
         aplicar({
@@ -129,7 +122,6 @@ export const ModalConfigBloque = ({
             fadeOut: 0,
             invertido: false,
             normalizado: false,
-            modoResize: 'stretch',
             detune: 0,
         });
 
@@ -273,16 +265,7 @@ export const ModalConfigBloque = ({
                         >
                             <span>Normalizar</span>
                         </button>
-                        {/* C244: Toggle stretch vs clip resize */}
-                        <button
-                            className={`modalConfigToggle ${modoResize === 'clip' ? 'activo' : ''}`}
-                            onClick={toggleModoResize}
-                            title={modoResize === 'stretch'
-                                ? 'Modo Stretch: resize cambia pitch/velocidad'
-                                : 'Modo Clip: resize recorta sin cambiar velocidad'}
-                        >
-                            <span>{modoResize === 'stretch' ? 'Stretch' : 'Clip'}</span>
-                        </button>
+                        {/* C256: Toggle stretch vs clip movido a ModalConfigDaw (global) */}
                     </div>
 
                     {/* C239: Botón restablecer valores por defecto */}

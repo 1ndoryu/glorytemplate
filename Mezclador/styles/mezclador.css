@@ -59,22 +59,24 @@
     animation: mezcladorPulsar 1s ease-in-out infinite;
 }
 
+/* C251: Mismo estilo que mezcladorBotonCabecera */
 .mezcladorCerrar {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     background: none;
-    border: none;
+    border: 1px solid var(--bordeSutil);
     color: var(--textoSecundario);
     cursor: pointer;
     border-radius: var(--radioSm);
-    transition: color var(--transicionRapida);
+    transition: all var(--transicionRapida);
 }
 
 .mezcladorCerrar:hover {
     color: var(--textoPrimario);
+    border-color: var(--bordeActivo);
 }
 
 /* Controles superiores */
@@ -431,6 +433,13 @@
     opacity: 0.3;
     pointer-events: none;
     filter: grayscale(0.5);
+}
+
+/* C247: Borde visual para bloques seleccionados con Ctrl+click */
+.mezcladorBloque.mezcladorBloqueSeleccionado {
+    outline: 2px solid var(--acento);
+    outline-offset: -1px;
+    z-index: 3;
 }
 
 /* C242: Ghost preview — indica dónde aterrizará el bloque al soltar */
@@ -937,6 +946,35 @@
 .modalConfigRestablecer:hover {
     color: var(--advertencia, #f59e0b);
     border-color: var(--advertencia, #f59e0b);
+}
+
+/* C253: Botones de snap en ModalConfigDaw */
+.modalConfigSnapOpciones {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.modalConfigSnapBtn {
+    padding: 4px 10px;
+    font-size: 11px;
+    background: var(--fondoElevado2, #2a2a3e);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.modalConfigSnapBtn:hover {
+    border-color: var(--bordeActivo);
+    color: var(--textoPrimario);
+}
+
+.modalConfigSnapBtn.modalConfigSnapBtnActivo {
+    background: var(--acento);
+    border-color: var(--acento);
+    color: #fff;
 }
 
 /* Responsive */

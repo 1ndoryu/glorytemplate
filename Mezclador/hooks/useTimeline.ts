@@ -44,6 +44,8 @@ export const useTimeline = () => {
     const compasProyecto = useMezcladorStore(s => s.compasProyecto);
     const snapResolucion = useMezcladorStore(s => s.snapResolucion);
     const moverBloque = useMezcladorStore(s => s.moverBloque);
+    const moverBloquesSeleccionados = useMezcladorStore(s => s.moverBloquesSeleccionados);
+    const bloquesSeleccionados = useMezcladorStore(s => s.bloquesSeleccionados);
 
     /* Convertir posición X del mouse a compás */
     const xACompas = useCallback((clientX: number): number => {
@@ -134,7 +136,15 @@ export const useTimeline = () => {
 
             if (dragging.activo && dragging.bloqueId && fantasma !== null) {
                 const destino = pistaDestino ?? dragging.pistaIdOrigen ?? '';
-                moverBloque(dragging.bloqueId, destino, Math.max(0, fantasma));
+                const seleccionados = useMezcladorStore.getState().bloquesSeleccionados;
+
+                /* C247: Si hay varios bloques seleccionados, mover todos con delta relativo */
+                if (seleccionados.size > 1 && seleccionados.has(dragging.bloqueId)) {
+                    const deltaCompas = Math.max(0, fantasma) - dragging.compasOrigen;
+                    moverBloquesSeleccionados(destino, deltaCompas);
+                } else {
+                    moverBloque(dragging.bloqueId, destino, Math.max(0, fantasma));
+                }
             }
 
             setDragState({ ...DRAG_INICIAL });
