@@ -130,7 +130,7 @@ class ReproduccionesController
         $sql = NormalizadorSample::sqlSelectSamples()
              . " JOIN reproducciones r ON r.sample_id = s.id"
              . " WHERE r.usuario_id = :userId AND s.estado = 'activo'"
-             . " GROUP BY s.id, u.id, u.username, u.nombre_visible, u.avatar_url, u.verificado"
+             . " GROUP BY s.id, u.id, u.username, u.nombre_visible, u.avatar_url, u.verificado, u.wp_user_id"
              . " ORDER BY MAX(r.created_at) DESC LIMIT :limit OFFSET :offset";
 
         $samples = PostgresService::consultar($sql, ['userId' => $userId, 'limit' => $perPage, 'offset' => $offset]);

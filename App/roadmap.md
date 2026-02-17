@@ -321,6 +321,15 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **C171-C178:** Licencia libre auto-derivada (R43), compactar registros (R44), BadgeModeracion+admin approve (R44), tabs freeze+pantalla negra fix (R44), descargas/favoritos rediseño (R43), copiar enlace fallback (R44), remover créditos descargas (R45), sistema verificación samples (R45).
 **C169-C183:** Búsqueda colecciones (R46), editor metadata fix descripcion+chips IA (R46), fila colecciones inicio (R46), algoritmo colecciones CTE (R46), modal guardar contextual+Bookmark (R46), fix reproducciones completada (R46).
 **C179:** Panel Administración FASE 13 (R47).
+**R49:** C193 fix avatares "?" — UsuarioHelper::resolverAvatarUrl() centralizado, 12 controllers/services con fallback WP Gravatar, EditarPerfilIsland wired subirAvatar+authStore sync, PerfilController corrupción reparada, MotorRecomendacion+ColeccionesController+AdminController+ReproduccionesController wp_user_id en SQL.
+
+### Lecciones Aprendidas (R49)
+- [Avatar]: La BD (usuarios_ext.avatar_url) puede ser NULL incluso si el usuario tiene Gravatar. Siempre usar `UsuarioHelper::resolverAvatarUrl()` como fallback a `get_avatar_url($wpUserId)`.
+- [EditarPerfilIsland]: Existía en paralelo con ModalConfiguracion para editar perfil. ModalConfiguracion YA subía avatares correctamente; EditarPerfilIsland no.
+- [NormalizadorSample]: El SQL centralizado sqlSelectSamples() necesita `u.wp_user_id AS creador_wp_user_id` para que normalizarFila() pueda resolver avatares.
+- [MotorRecomendacion]: Construye su propio SQL (no usa sqlSelectSamples) pero el resultado pasa por normalizarLista() — necesita incluir creador_wp_user_id.
+- [PerfilController]: La función subirAvatar() tenía corrupción de edición previa (secciones desordenadas, bloques if/else fracturados).
+- [AuthController]: INSERT de registro NO incluía avatar_url, dejando NULL para todos los nuevos usuarios. Ahora usa get_avatar_url($wpId).
 
 ---
 
@@ -353,7 +362,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 191. ✅ Fix C191 "Pagina React no configurada" en admin/panel: CAUSA RAIZ — `reactPage('admin/panel')` no auto-creaba la pagina padre 'admin' en WP. Sin padre, 'panel' quedaba en raíz, `PageTemplateInterceptor` no podía encontrar key 'admin/panel'. FIX: auto-registrar paginas padre stub en `PageDefinition::reactPage()` + safety net `asegurarPaginaPadre()` en `PageProcessor`. Afectaba TODAS las paginas jerárquicas (admin/*, auth/*, mensajes/chat, perfil/editar, dev/componentes).
 Funcion esperada: Asegurate de que la funcion exista y este cargada.
 192. Trabajar en el ws local, no se si hacer eso necesario para resolver problemas como por ejemplo cuando abro el modal de mensajes aparece "Cargando..." luego "No hay mensajes..." y luego aparecen los mensajes, tambien es molesto que tengan que cargar los mensajes cada vez que abro ese modal.
-193. La foto de perfil sigue viendose asi. <div class="avatar avatarXs" title="?"><span class="avatarIniciales">?</span></div> No se ve la foto de perfil de los usuarios. Incluso de despues de colocarme una en las configuraciones.
+193. ✅ Fix C193 avatares mostrando "?" — 4 causas raíz: (1) EditarPerfilIsland nunca subía avatar (TO-DO sin implementar) + typo nombreDisplay→nombreVisible, (2) AuthController INSERT usuarios_ext sin avatar_url, (3) normalizarUsuario sin fallback a WP Gravatar, (4) todos los controllers devolvían avatar_url directo de BD sin fallback. FIX: UsuarioHelper::resolverAvatarUrl() centralizado, aplicado en 12 controladores/servicios, EditarPerfilIsland wired con subirAvatar+authStore sync, PerfilController.subirAvatar corrupción de edición reparada.
 194. Error en isla "AdminPanelIsland"
 Cannot read properties of undefined (reading 'length')
 195. Verificar que los css del AdminPanelIsland esten bien, tengo las sospecha que no se estan usando las variables correctas, igual para el modal de guardar colecciones.
@@ -371,6 +380,7 @@ Cannot read properties of undefined (reading 'length')
 208. Tarea para el agente del minidaw: Poder subir audios desde la pc.
 209. Tarea para el agente del minidaw: Mejorar el arrastre de samples al minidaw, se ve feo, tiene que ser especial, no generico del explorador.
 210. Dejaron de aparecer sugerencias cuando doy like, no se por qué.
+211. Borrar el boton de experimentosContenedor
 
 ---
 

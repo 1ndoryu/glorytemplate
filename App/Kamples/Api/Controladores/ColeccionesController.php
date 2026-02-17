@@ -295,6 +295,13 @@ class ColeccionesController
         $coleccion['samples'] = NormalizadorSample::normalizarLista($samples);
         $coleccion['total_items'] = count($samples);
 
+        /* C193: Fallback avatar propietario */
+        $coleccion['avatar_url'] = UsuarioHelper::resolverAvatarUrl(
+            $coleccion['avatar_url'] ?? null,
+            isset($coleccion['wp_user_id']) ? (int) $coleccion['wp_user_id'] : null
+        );
+        unset($coleccion['wp_user_id']);
+
         return new \WP_REST_Response(['data' => $coleccion], 200);
     }
 

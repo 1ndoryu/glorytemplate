@@ -18,6 +18,7 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
+use App\Kamples\Api\Helpers\UsuarioHelper;
 
 class AdminController
 {
@@ -150,7 +151,7 @@ class AdminController
         };
 
         $usuarios = PostgresService::consultar(
-            "SELECT u.id, u.username, u.nombre_visible, u.email, u.avatar_url,
+            "SELECT u.id, u.username, u.nombre_visible, u.email, u.avatar_url, u.wp_user_id,
                     u.plan, u.rol, u.verificado, u.ban_hasta,
                     u.created_at, u.updated_at,
                     (SELECT COUNT(*) FROM samples s WHERE s.creador_id = u.id AND s.estado = 'activo') as total_samples,
@@ -166,6 +167,16 @@ class AdminController
             "SELECT COUNT(*) as total FROM usuarios_ext u WHERE {$where}",
             $params
         );
+
+        /* C193: Fallback avatar a WP Gravatar */
+        foreach ($usuarios as &$usr) {
+            $usr['avatar_url'] = UsuarioHelper::resolverAvatarUrl(
+                $usr['avatar_url'] ?? null,
+                isset($usr['wp_user_id']) ? (int) $usr['wp_user_id'] : null
+            );
+            unset($usr['wp_user_id']);
+        }
+        unset($usr);
 
         return new \WP_REST_Response([
             'data' => $usuarios,
@@ -235,7 +246,7 @@ class AdminController
         /* Publicaciones pendientes de moderación */
         $publicaciones = PostgresService::consultar(
             "SELECT p.id, p.contenido, p.moderacion_estado, p.moderacion_detalle,
-                    p.created_at, u.username, u.nombre_visible, u.avatar_url,
+                    p.created_at, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id,
                     'publicacion' as tipo_contenido
              FROM publicaciones p
              JOIN usuarios_ext u ON p.usuario_id = u.id
@@ -254,6 +265,16 @@ class AdminController
              ORDER BY r.created_at DESC
              LIMIT 10"
         );
+
+        /* C193: Fallback avatar moderación */
+        foreach ($publicaciones as &$pub) {
+            $pub['avatar_url'] = UsuarioHelper::resolverAvatarUrl(
+                $pub['avatar_url'] ?? null,
+                isset($pub['wp_user_id']) ? (int) $pub['wp_user_id'] : null
+            );
+            unset($pub['wp_user_id']);
+        }
+        unset($pub);
 
         return new \WP_REST_Response([
             'data' => [

@@ -407,7 +407,7 @@ class PublicacionesController
         $id = (int) $request->get_param('id');
 
         $pub = PostgresService::consultarUno(
-            "SELECT p.*, u.username, u.nombre_visible, u.avatar_url, u.verificado
+            "SELECT p.*, u.username, u.nombre_visible, u.avatar_url, u.verificado, u.wp_user_id
              FROM publicaciones p JOIN usuarios_ext u ON p.autor_id = u.id WHERE p.id = :id",
             ['id' => $id]
         );
@@ -432,7 +432,10 @@ class PublicacionesController
             'id' => (int) $pub['autor_id'],
             'username' => $pub['username'],
             'nombreVisible' => $pub['nombre_visible'],
-            'avatarUrl' => $pub['avatar_url'],
+            'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
+                $pub['avatar_url'] ?? null,
+                isset($pub['wp_user_id']) ? (int) $pub['wp_user_id'] : null
+            ),
             'verificado' => (bool) $pub['verificado'],
         ];
         $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub['imagenes'] ?? null);
@@ -451,13 +454,23 @@ class PublicacionesController
 
         $comentarios = PostgresService::consultar(
             "SELECT c.id, c.contenido, c.created_at, c.total_likes,
-                    u.id as autor_id, u.username, u.nombre_visible, u.avatar_url
+                    u.id as autor_id, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id
              FROM comentarios c
              JOIN usuarios_ext u ON c.autor_id = u.id
              WHERE c.tipo = 'publicacion' AND c.target_id = :pubId
              ORDER BY c.created_at ASC LIMIT 20 OFFSET :offset",
             ['pubId' => $pubId, 'offset' => $offset]
         );
+
+        /* C193: Fallback avatar a WP Gravatar */
+        foreach ($comentarios as &$com) {
+            $com['avatar_url'] = UsuarioHelper::resolverAvatarUrl(
+                $com['avatar_url'] ?? null,
+                isset($com['wp_user_id']) ? (int) $com['wp_user_id'] : null
+            );
+            unset($com['wp_user_id']);
+        }
+        unset($com);
 
         return new \WP_REST_Response(['data' => $comentarios], 200);
     }
