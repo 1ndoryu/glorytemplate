@@ -94,6 +94,47 @@
     color: var(--textoTerciario);
 }
 
+/* C108: Metas comunes separadas por • */
+.coleccionMetasComunes {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* C109: Acciones icono (guardar, descargar, preview) */
+.coleccionAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    margin-top: var(--espacioXs);
+}
+
+.coleccionAccionBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    transition: color var(--transicionRapida), border-color var(--transicionRapida);
+}
+
+.coleccionAccionBtn:hover {
+    color: var(--textoPrimario);
+    border-color: var(--bordeActivo);
+}
+
+.coleccionAccionActivo {
+    color: var(--acento);
+    border-color: var(--acento);
+}
+
 /* Grid de samples */
 .coleccionSamples {
     display: flex;

@@ -1,36 +1,73 @@
 /*
  * modalSeleccionColeccion.css — Kamples
- * Estilos del modal para seleccionar colección y añadir un sample.
+ * Panel sin cabecera para seleccionar/crear colección (C106+C107).
  */
 
-.seleccionColeccionContenido {
+/* Overlay */
+.seleccionColeccionOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
     display: flex;
-    flex-direction: column;
-    gap: var(--espacioMd);
+    align-items: center;
+    justify-content: center;
+    background-color: var(--overlay);
 }
 
-/* Info del sample a añadir */
-.seleccionColeccionSample {
+/* Panel sin cabecera */
+.seleccionColeccionPanel {
+    width: 320px;
+    max-height: 420px;
     display: flex;
     flex-direction: column;
-    gap: calc(var(--espacioXs) / 2);
-    padding: var(--espacioSm) var(--espacioMd);
-    background-color: var(--fondoElevado2);
-    border-radius: var(--radioSm);
-}
-
-.seleccionColeccionSampleTitulo {
-    font-size: var(--fuenteSm);
-    font-weight: var(--pesoMedio);
-    color: var(--textoPrimario);
-    white-space: nowrap;
+    background-color: var(--fondoElevado);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    box-shadow: var(--sombraLg);
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-.seleccionColeccionSampleCreador {
-    font-size: var(--fuenteXs);
+/* Buscador arriba (C107) */
+.seleccionColeccionBuscador {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.seleccionColeccionBuscadorIcono {
     color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+.seleccionColeccionInput {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    outline: none;
+}
+
+.seleccionColeccionInput::placeholder {
+    color: var(--textoTerciario);
+}
+
+.seleccionColeccionLimpiar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: var(--radioXs);
+}
+
+.seleccionColeccionLimpiar:hover {
+    color: var(--textoPrimario);
 }
 
 /* Estado cargando */
@@ -38,42 +75,36 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--espacioSm);
     padding: var(--espacioXl) 0;
     color: var(--textoTerciario);
-    font-size: var(--fuenteSm);
 }
 
 .seleccionColeccionSpinner {
-    animation: girarSpinner 1s linear infinite;
+    animation: girarSpinnerCol 1s linear infinite;
 }
 
-@keyframes girarSpinner {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+@keyframes girarSpinnerCol {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 /* Lista de colecciones */
 .seleccionColeccionLista {
     display: flex;
     flex-direction: column;
-    gap: calc(var(--espacioXs) / 2);
-    max-height: 240px;
     overflow-y: auto;
+    max-height: 300px;
+    padding: var(--espacioXs) 0;
 }
 
+/* Item colección: imagen + nombre (sin icono, sin contador — C106) */
 .seleccionColeccionItem {
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
     padding: var(--espacioSm) var(--espacioMd);
     background: none;
-    border: 1px solid transparent;
-    border-radius: var(--radioSm);
+    border: none;
     cursor: pointer;
     color: var(--textoPrimario);
     transition: background-color var(--transicionRapida);
@@ -84,9 +115,13 @@
     background-color: var(--fondoElevado2);
 }
 
-.seleccionColeccionItemAgregado {
-    opacity: 0.6;
-    cursor: default;
+/* Imagen miniatura de la colección */
+.seleccionColeccionItemImg {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radioXs);
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
 .seleccionColeccionItemNombre {
@@ -97,55 +132,61 @@
     text-overflow: ellipsis;
 }
 
-.seleccionColeccionItemCount {
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
+/* Indicador "ya guardado" (C106) */
+.seleccionColeccionItemGuardado {
+    opacity: 0.5;
+    cursor: default;
 }
 
-.seleccionColeccionCheck {
+.seleccionColeccionYaGuardado {
     color: var(--exito);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
-/* Botón nueva colección */
-.seleccionColeccionNueva {
+/* Vacío */
+.seleccionColeccionVacio {
+    padding: var(--espacioMd);
+    text-align: center;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+}
+
+/* Botón crear colección (C107) */
+.seleccionColeccionCrearBtn {
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
     padding: var(--espacioSm) var(--espacioMd);
     background: none;
-    border: 1px dashed var(--bordeSutil);
-    border-radius: var(--radioSm);
-    color: var(--textoSecundario);
+    border: none;
+    border-top: 1px solid var(--bordeSutil);
+    color: var(--acento);
     cursor: pointer;
     font-size: var(--fuenteSm);
-    transition:
-        color var(--transicionRapida),
-        border-color var(--transicionRapida);
+    transition: background-color var(--transicionRapida);
 }
 
-.seleccionColeccionNueva:hover {
-    color: var(--textoPrimario);
-    border-color: var(--bordeActivo);
-}
-
-/* Crear colección inline */
-.seleccionColeccionCrear {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioSm);
-}
-
-.seleccionColeccionInput {
-    flex: 1;
-    padding: var(--espacioSm) var(--espacioMd);
+.seleccionColeccionCrearBtn:hover:not(:disabled) {
     background-color: var(--fondoElevado2);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioSm);
-    color: var(--textoPrimario);
-    font-size: var(--fuenteSm);
-    outline: none;
 }
 
-.seleccionColeccionInput:focus {
-    border-color: var(--bordeActivo);
+.seleccionColeccionCrearBtn:disabled {
+    opacity: 0.5;
+    cursor: wait;
+}
+
+/* Alerta nombre duplicado */
+.seleccionColeccionAlerta {
+    padding: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteXs);
+    color: var(--advertencia);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+@media (max-width: 400px) {
+    .seleccionColeccionPanel {
+        width: calc(100vw - 32px);
+    }
 }

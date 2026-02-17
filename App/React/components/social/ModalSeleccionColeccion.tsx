@@ -1,13 +1,12 @@
 /*
- * Componente: ModalSeleccionColeccion — Kamples (Fase 5.4)
- * Modal que muestra las colecciones del usuario para añadir un sample.
- * Incluye opción de crear colección nueva inline.
+ * Componente: ModalSeleccionColeccion — Kamples
+ * Modal sin cabecera para seleccionar colección y añadir un sample.
+ * C106: Sin cabeza, sin contador/icono, solo imagen+nombre, indicador "ya guardado".
+ * C107: Buscador arriba con filtrado en tiempo real y creación de colección inline.
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { FolderPlus, Check, Plus, Loader } from 'lucide-react';
-import { Modal } from '@app/components/ui/Modal';
-import { BotonBase } from '@app/components/ui/BotonBase';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Check, Loader, Plus, Search, X } from 'lucide-react';
 import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import {
     listarColecciones,
@@ -15,6 +14,7 @@ import {
     agregarSampleAColeccion,
     obtenerRelevantesParaSample,
 } from '@app/services/apiColecciones';
+import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { crearLogger } from '@app/services/logger';
 import type { Coleccion } from '@app/types';
 import '../../styles/componentes/modalSeleccionColeccion.css';
@@ -27,25 +27,26 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
     const [cargando, setCargando] = useState(false);
     const [agregando, setAgregando] = useState<number | null>(null);
+    /* Set de colecciones donde el sample ya ha sido añadido (esta sesión) */
     const [agregados, setAgregados] = useState<Set<number>>(new Set());
+    /* Set de colecciones donde ya estaba guardado (viene del backend) */
+    const [yaGuardadoEn, setYaGuardadoEn] = useState<Set<number>>(new Set());
 
-    /* Modo crear inline */
-    const [creando, setCreando] = useState(false);
-    const [nuevoNombre, setNuevoNombre] = useState('');
+    /* Buscador */
+    const [busqueda, setBusqueda] = useState('');
 
-    /* Cargar colecciones al abrir — rankeadas por relevancia si es posible */
+    /* Cargar colecciones al abrir */
     useEffect(() => {
         if (!abierto) {
             setAgregados(new Set());
-            setCreando(false);
-            setNuevoNombre('');
+            setYaGuardadoEn(new Set());
+            setBusqueda('');
             return;
         }
 
         const cargar = async () => {
             setCargando(true);
             try {
-                /* Intentar cargar colecciones ordenadas por relevancia */
                 const [respTodas, respRelevantes] = await Promise.all([
                     listarColecciones(),
                     sample ? obtenerRelevantesParaSample(sample.id) : Promise.resolve(null),
@@ -54,7 +55,6 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
                 if (respTodas.ok && respTodas.data) {
                     let ordenadas = respTodas.data;
 
-                    /* Si hay relevantes, poner primero las relevantes y luego el resto */
                     if (respRelevantes?.ok && respRelevantes.data?.length) {
                         const idsRelevantes = new Set(respRelevantes.data.map((c) => c.id));
                         const relevantes = ordenadas.filter((c) => idsRelevantes.has(c.id));
@@ -63,6 +63,17 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
                     }
 
                     setColecciones(ordenadas);
+
+                    /* Detectar colecciones donde el sample ya está guardado */
+                    if (sample) {
+                        const guardados = new Set<number>();
+                        for (const col of ordenadas) {
+                            if (col.samples?.some((s) => s.id === sample.id)) {
+                                guardados.add(col.id);
+                            }
+                        }
+                        setYaGuardadoEn(guardados);
+                    }
                 }
             } catch (err) {
                 log.error('Error cargando colecciones', err);
@@ -73,6 +84,19 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
         cargar();
     }, [abierto, sample]);
 
+    /* Filtrar colecciones por búsqueda */
+    const coleccionesFiltradas = useMemo(() => {
+        if (!busqueda.trim()) return colecciones;
+        const termino = busqueda.toLowerCase().trim();
+        return colecciones.filter((c) => c.nombre.toLowerCase().includes(termino));
+    }, [colecciones, busqueda]);
+
+    /* Verificar si existe una colección con el nombre buscado (para crear) */
+    const existeConNombre = useMemo(() => {
+        if (!busqueda.trim()) return false;
+        return colecciones.some((c) => c.nombre.toLowerCase() === busqueda.trim().toLowerCase());
+    }, [colecciones, busqueda]);
+
     /* Añadir sample a una colección */
     const manejarAgregar = useCallback(
         async (coleccionId: number) => {
@@ -82,10 +106,10 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
                 const resp = await agregarSampleAColeccion(coleccionId, sample.id);
                 if (resp.ok) {
                     setAgregados((prev) => new Set(prev).add(coleccionId));
-                    log.info('Sample añadido a colección', { coleccionId, sampleId: sample.id });
+                    log.info('Sample anadido a coleccion', { coleccionId, sampleId: sample.id });
                 }
             } catch (err) {
-                log.error('Error añadiendo a colección', err);
+                log.error('Error anadiendo a coleccion', err);
             } finally {
                 setAgregando(null);
             }
@@ -93,113 +117,130 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
         [sample, agregando]
     );
 
-    /* Crear colección nueva y añadir sample */
+    /* Crear colección nueva con el nombre de la búsqueda */
     const manejarCrear = useCallback(async () => {
-        if (!nuevoNombre.trim() || !sample) return;
+        if (!busqueda.trim() || !sample || existeConNombre) return;
 
         setAgregando(-1);
         try {
             const resp = await crearColeccion({
-                nombre: nuevoNombre.trim(),
+                nombre: busqueda.trim(),
                 descripcion: '',
                 esPublica: false,
             });
             if (resp.ok && resp.data) {
-                /* Añadir sample a la nueva colección */
                 await agregarSampleAColeccion(resp.data.id, sample.id);
                 setColecciones((prev) => [resp.data!, ...prev]);
                 setAgregados((prev) => new Set(prev).add(resp.data!.id));
-                setCreando(false);
-                setNuevoNombre('');
-                log.info('Colección creada y sample añadido', { id: resp.data.id });
+                setBusqueda('');
+                log.info('Coleccion creada y sample anadido', { id: resp.data.id });
             }
         } catch (err) {
-            log.error('Error creando colección', err);
+            log.error('Error creando coleccion', err);
         } finally {
             setAgregando(null);
         }
-    }, [nuevoNombre, sample]);
+    }, [busqueda, sample, existeConNombre]);
 
     if (!abierto || !sample) return null;
 
     return (
-        <Modal abierto={abierto} onCerrar={cerrar} titulo="Añadir a colección" tamano="pequeno">
-            <div className="seleccionColeccionContenido">
-                {/* Sample que se va a añadir */}
-                <div className="seleccionColeccionSample">
-                    <span className="seleccionColeccionSampleTitulo">{sample.titulo}</span>
-                    <span className="seleccionColeccionSampleCreador">
-                        {sample.creador.nombreVisible || sample.creador.username}
-                    </span>
+        <div className="seleccionColeccionOverlay" onClick={cerrar}>
+            <div className="seleccionColeccionPanel" onClick={(e) => e.stopPropagation()}>
+                {/* Buscador arriba (C107) */}
+                <div className="seleccionColeccionBuscador">
+                    <Search size={14} className="seleccionColeccionBuscadorIcono" />
+                    <input
+                        type="text"
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        placeholder="Buscar o crear colección..."
+                        className="seleccionColeccionInput"
+                        maxLength={100}
+                        autoFocus
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && busqueda.trim() && !existeConNombre) {
+                                manejarCrear();
+                            }
+                            if (e.key === 'Escape') cerrar();
+                        }}
+                    />
+                    {busqueda && (
+                        <button
+                            className="seleccionColeccionLimpiar"
+                            onClick={() => setBusqueda('')}
+                            type="button"
+                        >
+                            <X size={12} />
+                        </button>
+                    )}
                 </div>
 
                 {/* Lista de colecciones */}
                 {cargando ? (
                     <div className="seleccionColeccionCargando">
-                        <Loader size={20} className="seleccionColeccionSpinner" />
-                        <span>Cargando colecciones...</span>
+                        <Loader size={18} className="seleccionColeccionSpinner" />
                     </div>
                 ) : (
                     <div className="seleccionColeccionLista">
-                        {colecciones.map((col) => {
-                            const yaAgregado = agregados.has(col.id);
+                        {coleccionesFiltradas.map((col) => {
+                            const yaGuardado = yaGuardadoEn.has(col.id) || agregados.has(col.id);
                             const agregandoEste = agregando === col.id;
 
                             return (
                                 <button
                                     key={col.id}
-                                    className={`seleccionColeccionItem ${yaAgregado ? 'seleccionColeccionItemAgregado' : ''}`}
-                                    onClick={() => !yaAgregado && manejarAgregar(col.id)}
-                                    disabled={yaAgregado || agregandoEste}
+                                    className={`seleccionColeccionItem ${yaGuardado ? 'seleccionColeccionItemGuardado' : ''}`}
+                                    onClick={() => !yaGuardado && manejarAgregar(col.id)}
+                                    disabled={yaGuardado || agregandoEste}
                                     type="button"
                                 >
-                                    <FolderPlus size={16} />
+                                    <img
+                                        className="seleccionColeccionItemImg"
+                                        src={col.imagenUrl || obtenerImagenColor(col.id)}
+                                        alt=""
+                                    />
                                     <span className="seleccionColeccionItemNombre">{col.nombre}</span>
-                                    <span className="seleccionColeccionItemCount">
-                                        {col.totalSamples} samples
-                                    </span>
-                                    {yaAgregado && <Check size={14} className="seleccionColeccionCheck" />}
+                                    {yaGuardado && (
+                                        <span className="seleccionColeccionYaGuardado">
+                                            <Check size={12} />
+                                        </span>
+                                    )}
                                     {agregandoEste && <Loader size={14} className="seleccionColeccionSpinner" />}
                                 </button>
                             );
                         })}
+
+                        {coleccionesFiltradas.length === 0 && !cargando && (
+                            <div className="seleccionColeccionVacio">
+                                {busqueda.trim() ? 'Sin resultados' : 'No tienes colecciones'}
+                            </div>
+                        )}
                     </div>
                 )}
 
-                {/* Crear nueva colección inline */}
-                {creando ? (
-                    <div className="seleccionColeccionCrear">
-                        <input
-                            type="text"
-                            value={nuevoNombre}
-                            onChange={(e) => setNuevoNombre(e.target.value)}
-                            placeholder="Nombre de la colección..."
-                            className="seleccionColeccionInput"
-                            maxLength={100}
-                            autoFocus
-                            onKeyDown={(e) => e.key === 'Enter' && manejarCrear()}
-                        />
-                        <BotonBase
-                            variante="primario"
-                            tamano="sm"
-                            onClick={manejarCrear}
-                            disabled={!nuevoNombre.trim() || agregando === -1}
-                        >
-                            {agregando === -1 ? 'Creando...' : 'Crear'}
-                        </BotonBase>
-                    </div>
-                ) : (
+                {/* Botón crear colección (visible solo si hay texto y no existe) */}
+                {busqueda.trim() && !existeConNombre && (
                     <button
-                        className="seleccionColeccionNueva"
-                        onClick={() => setCreando(true)}
+                        className="seleccionColeccionCrearBtn"
+                        onClick={manejarCrear}
+                        disabled={agregando === -1}
                         type="button"
                     >
-                        <Plus size={16} />
-                        <span>Nueva colección</span>
+                        <Plus size={14} />
+                        <span>Crear "{busqueda.trim()}"</span>
+                        {agregando === -1 && <Loader size={12} className="seleccionColeccionSpinner" />}
                     </button>
                 )}
+
+                {/* Alerta si ya existe */}
+                {busqueda.trim() && existeConNombre && (
+                    <div className="seleccionColeccionAlerta">
+                        Ya tienes una colección con ese nombre
+                    </div>
+                )}
             </div>
-        </Modal>
+        </div>
     );
 };
 
