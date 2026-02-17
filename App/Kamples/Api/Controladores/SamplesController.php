@@ -372,10 +372,10 @@ class SamplesController
         $precio = $request->get_param('precio');
         $precio = $precio !== null ? (float) $precio : null;
 
-        if (count($tags) < 5) {
+        if (count($tags) < 2) {
             return new \WP_REST_Response([
                 'ok' => false,
-                'error' => 'Se requieren al menos 5 tags para subir un sample. Agrega más hashtags (#) en tu descripción.',
+                'error' => 'Se requieren al menos 2 tags para subir un sample. Agrega hashtags (#) en tu descripción.',
             ], 400);
         }
 

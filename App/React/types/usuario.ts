@@ -1,6 +1,7 @@
 /*
  * Tipos base — Usuario
  * Representa el perfil extendido de un usuario en Kamples.
+ * Incluye ubicacion y sitioWeb opcionales (C119).
  */
 
 export type TipoPlan = 'free' | 'pro' | 'premium';
@@ -15,6 +16,8 @@ export interface Usuario {
     bio: string;
     avatarUrl: string | null;
     portadaUrl: string | null;
+    ubicacion: string | null;
+    sitioWeb: string | null;
     plan: TipoPlan;
     rol: RolUsuario;
     verificado: boolean;

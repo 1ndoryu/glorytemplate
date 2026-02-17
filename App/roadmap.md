@@ -393,9 +393,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 118. En Inspector de Sample debería ver el nombre del archivo original y el de audio optimizado y sus rutas.
 119. Vscode reporta errores en PerfilIsland 
 120. En la esquina superior derecha se puede aprovechar para colocar el estado de moderacion (representado en solo iconos) para los post de comunidad y samples en sus paginas individuales y detalles en el menu lateral, solo visible para los usuarios en sus propios post y admin para todos los post.
-121. Este error es nuevo, pasa cuando intento subir un sample. 
-apiCliente.ts:96   POST http://glory.local/wp-json/kamples/v1/samples/upload 400 (Bad Request)
-logger.ts:82  [Kamples] 21:09:44 [ERROR] ModalCrear: Error subida Error 400
+121. ~~Este error es nuevo, pasa cuando intento subir un sample.~~ ✅ Causa raíz: frontend MIN_TAGS_AUDIO=2 (C92) pero backend SamplesController.php aún exigía count($tags)<5. Alineado a <2.
 
 ---
 
@@ -409,3 +407,6 @@ logger.ts:82  [Kamples] 21:09:44 [ERROR] ModalCrear: Error subida Error 400
 - [Tipos JS]: Comparaciones entre IDs del backend (string) y frontend (number) fallan silenciosamente. Usar `String()` en ambos lados.
 - [Comentarios]: Backend endpoint genérico `/comentarios/{tipo}/{targetId}` es más flexible que endpoints por entidad. Hook `useComentarios` encapsula toda la lógica.
 - [ModalCrear]: Tenía un TO-DO para posts sin audio que solo hacía `setTimeout(500)` sin llamar al backend.
+- [Auth]: No existía AuthController.php — causaba 404 en /auth/registro y /auth/login. Creado con wp_authenticate + wp_create_user + auto-sync PG.
+- [Auth Modal]: ConAutenticacion ahora abre modal auth en vez de navegar a /auth/login. LandingPublica y PlanesIsland usan authModalStore.abrir() en vez de navegar().
+- [Tags Upload]: Frontend MIN_TAGS_AUDIO=2 (C92) pero backend SamplesController tenía count($tags)<5. Siempre alinear validaciones frontend/backend al cambiar límites.
