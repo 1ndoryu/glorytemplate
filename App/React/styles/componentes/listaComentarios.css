@@ -177,7 +177,7 @@
     border-radius: var(--radioMd);
 }
 
-/* C130: Mini reproductor de audio en comentarios */
+/* C130+C201: Mini reproductor de audio en comentarios con waveform */
 .comentarioAudio {
     display: flex;
     align-items: center;
@@ -186,7 +186,7 @@
     border-radius: var(--radioFull);
     padding: var(--espacioXs) var(--espacioSm);
     margin: var(--espacioXs) 0;
-    max-width: 220px;
+    max-width: 280px;
 }
 
 .comentarioAudioBtn {
@@ -208,19 +208,13 @@
     opacity: 0.85;
 }
 
-.comentarioAudioBarra {
+/* C201: Contenedor del waveform en comentarios */
+.comentarioAudioWaveform {
     flex: 1;
-    height: 3px;
-    background-color: var(--bordeSutil);
-    border-radius: var(--radioFull);
-    overflow: hidden;
-}
-
-.comentarioAudioProgreso {
-    height: 100%;
-    background-color: var(--acento);
-    border-radius: var(--radioFull);
-    transition: width 0.1s linear;
+    min-width: 0;
+    height: 28px;
+    display: flex;
+    align-items: center;
 }
 
 /* C130: Contenedor del input con preview */

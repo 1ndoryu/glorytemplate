@@ -22,6 +22,7 @@ use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ServicioAntiSpam;
 use App\Kamples\Services\ServicioBan;
 use App\Kamples\Api\ServicioModeracionIA;
+use App\Kamples\LogIA as KamplesLogger;
 
 class ComentariosController
 {
@@ -227,6 +228,44 @@ class ComentariosController
                 'mimeType' => $mimeReal,
             ]);
 
+            /*
+             * C201: Convertir audio de comentarios a MP3 ligero (128kbps, mono, 44100Hz).
+             * Los audios en comentarios deben ser livianos para carga rápida.
+             * Genera waveform JSON para renderizado en frontend.
+             */
+            if ($tipoContenido === 'audio') {
+                $rutaOriginal = $subido['file'];
+                $extension = strtolower(pathinfo($rutaOriginal, PATHINFO_EXTENSION));
+
+                /* Solo convertir si no es ya MP3 */
+                if ($extension !== 'mp3') {
+                    $rutaMp3 = preg_replace('/\.[^.]+$/', '.mp3', $rutaOriginal);
+                    $convertido = self::convertirAudioComentario($rutaOriginal, $rutaMp3);
+                    if ($convertido && file_exists($rutaMp3)) {
+                        /* Borrar el original y usar el MP3 */
+                        @unlink($rutaOriginal);
+                        $mediaUrl = preg_replace('/\.[^.]+$/', '.mp3', $subido['url']);
+                        $mediaMetadata = json_encode([
+                            'formato' => 'mp3',
+                            'tamano'  => filesize($rutaMp3),
+                            'mimeType' => 'audio/mpeg',
+                        ]);
+                    }
+                }
+
+                /* Generar waveform JSON para el audio del comentario */
+                $rutaAudioFinal = $extension !== 'mp3' && isset($rutaMp3) && file_exists($rutaMp3) ? $rutaMp3 : $rutaOriginal;
+                $rutaWaveform = preg_replace('/\.[^.]+$/', '_waveform.json', $rutaAudioFinal);
+                $picos = self::generarWaveformComentario($rutaAudioFinal, $rutaWaveform);
+
+                if ($picos) {
+                    $meta = json_decode($mediaMetadata, true);
+                    $meta['waveformUrl'] = preg_replace('/\.[^.]+$/', '_waveform.json', $mediaUrl);
+                    $meta['picos'] = $picos;
+                    $mediaMetadata = json_encode($meta);
+                }
+            }
+
             /* Si no hay texto, la imagen/audio es el comentario completo */
             if (empty($contenido)) {
                 $contenido = null;
@@ -316,5 +355,112 @@ class ComentariosController
                 ],
             ],
         ], 201);
+    }
+
+    /*
+     * C201: Convierte audio de comentario a MP3 ligero (128kbps, mono, 44100Hz).
+     * Reutiliza la detección de FFmpeg de PipelineAudio vía .env o PATH.
+     */
+    private static function convertirAudioComentario(string $entrada, string $salida): bool
+    {
+        $ffmpeg = self::obtenerFFmpegBin();
+        if (!$ffmpeg) {
+            KamplesLogger::warning('ComentariosController: FFmpeg no disponible para conversion de audio');
+            return false;
+        }
+
+        $cmd = sprintf(
+            '%s -y -i %s -codec:a libmp3lame -b:a 128k -ac 1 -ar 44100 %s 2>&1',
+            escapeshellarg($ffmpeg),
+            escapeshellarg($entrada),
+            escapeshellarg($salida)
+        );
+
+        exec($cmd, $output, $returnCode);
+        return $returnCode === 0 && file_exists($salida);
+    }
+
+    /*
+     * C201: Genera peaks waveform (60 barras) para audio de comentario.
+     * Similar a PipelineAudio pero con menos resolución (audio corto).
+     */
+    private static function generarWaveformComentario(string $rutaAudio, string $rutaSalida): ?array
+    {
+        $ffmpeg = self::obtenerFFmpegBin();
+        if (!$ffmpeg) return null;
+
+        $barras = 60;
+
+        /* Decodificar audio a PCM raw con FFmpeg */
+        $tmpPcm = sys_get_temp_dir() . '/kamples_comment_pcm_' . uniqid() . '.raw';
+        $cmd = sprintf(
+            '%s -y -i %s -f f32le -acodec pcm_f32le -ac 1 -ar 8000 %s 2>&1',
+            escapeshellarg($ffmpeg),
+            escapeshellarg($rutaAudio),
+            escapeshellarg($tmpPcm)
+        );
+
+        exec($cmd, $output, $returnCode);
+        if ($returnCode !== 0 || !file_exists($tmpPcm)) {
+            @unlink($tmpPcm);
+            return null;
+        }
+
+        $raw = file_get_contents($tmpPcm);
+        @unlink($tmpPcm);
+
+        if (!$raw || strlen($raw) < 4) return null;
+
+        $samples = unpack('f*', $raw);
+        if (!$samples) return null;
+
+        $total = count($samples);
+        $porBarra = max(1, (int) floor($total / $barras));
+        $picos = [];
+
+        for ($i = 0; $i < $barras; $i++) {
+            $inicio = $i * $porBarra + 1;
+            $max = 0;
+            for ($j = 0; $j < $porBarra; $j++) {
+                $idx = $inicio + $j;
+                if (isset($samples[$idx])) {
+                    $val = abs($samples[$idx]);
+                    if ($val > $max) $max = $val;
+                }
+            }
+            $picos[] = round($max, 4);
+        }
+
+        /* Normalizar entre 0 y 1 */
+        $maximo = max($picos) ?: 1;
+        $picos = array_map(fn($p) => round(max(0.03, $p / $maximo), 3), $picos);
+
+        /* Guardar como JSON */
+        file_put_contents($rutaSalida, json_encode($picos));
+
+        return $picos;
+    }
+
+    /*
+     * Obtiene la ruta al binario FFmpeg (desde .env o PATH).
+     */
+    private static function obtenerFFmpegBin(): ?string
+    {
+        /* Intentar desde .env */
+        $envPath = defined('FFMPEG_PATH') ? FFMPEG_PATH : (\getenv('FFMPEG_PATH') ?: null);
+        if ($envPath && is_executable($envPath)) return $envPath;
+
+        /* Intentar desde PATH del sistema */
+        $esWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+        $cmd = $esWindows ? 'where ffmpeg 2>nul' : 'which ffmpeg 2>/dev/null';
+        $resultado = trim(shell_exec($cmd) ?? '');
+
+        if ($resultado) {
+            $lineas = explode("\n", $resultado);
+            $ruta = trim($lineas[0]);
+            if (is_executable($ruta)) return $ruta;
+        }
+
+        return null;
     }
 }

@@ -37,5 +37,12 @@ export interface Comentario {
     /* C130: Soporte multimedia */
     tipoContenido?: 'texto' | 'imagen' | 'audio';
     mediaUrl?: string | null;
-    mediaMetadata?: { formato?: string; tamano?: number; mimeType?: string } | null;
+    mediaMetadata?: {
+        formato?: string;
+        tamano?: number;
+        mimeType?: string;
+        /* C201: Picos waveform generados por backend (FFmpeg) */
+        picos?: number[];
+        waveformUrl?: string;
+    } | null;
 }
