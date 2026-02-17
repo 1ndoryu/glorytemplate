@@ -17,6 +17,7 @@ import { useComentarios } from '@app/hooks/useComentarios';
 import { obtenerSample } from '@app/services/apiSamples';
 import { obtenerSimilares } from '@app/services/apiReproduciones';
 import { darLike, quitarLike } from '@app/services/apiSocial';
+import type { TipoReaccion } from '@app/types';
 import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import type { Sample, SampleResumen } from '@app/types';
@@ -28,6 +29,7 @@ interface PanelDetalleSampleProps {
 export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Element => {
     const [detalle, setDetalle] = useState<Sample | null>(null);
     const [liked, setLiked] = useState(sample.liked ?? false);
+    const [reaccion, setReaccion] = useState<TipoReaccion | null>(sample.reaccion ?? null);
     const [totalLikes, setTotalLikes] = useState(sample.totalLikes);
     const [similares, setSimilares] = useState<SampleResumen[]>([]);
     const { navegar } = useNavigationStore();
@@ -62,16 +64,19 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
     }, [sample.id, sample.slug]);
 
     const manejarLike = useCallback(async () => {
-        const nuevoLiked = !liked;
-        setLiked(nuevoLiked);
-        setTotalLikes(prev => prev + (nuevoLiked ? 1 : -1));
-
-        if (nuevoLiked) {
-            await darLike('sample', sample.id);
-        } else {
+        if (liked || reaccion) {
+            const eraPositivo = reaccion === 'like' || reaccion === 'encanta';
+            setLiked(false);
+            setReaccion(null);
+            setTotalLikes(prev => Math.max(0, prev - (eraPositivo ? 1 : 0)));
             await quitarLike('sample', sample.id);
+        } else {
+            setLiked(true);
+            setReaccion('like');
+            setTotalLikes(prev => prev + 1);
+            await darLike('sample', sample.id, 'like');
         }
-    }, [liked, sample.id]);
+    }, [liked, reaccion, sample.id]);
 
     const meta = sample.metadata;
     const badges: string[] = [];

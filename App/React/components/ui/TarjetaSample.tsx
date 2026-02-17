@@ -6,13 +6,14 @@
 
 import {useCallback, useEffect, useRef, useState, type MouseEvent} from 'react';
 import {Play, Pause, Heart, MessageCircle, Download, MoreHorizontal} from 'lucide-react';
-import type {SampleResumen} from '../../types';
+import type {SampleResumen, TipoReaccion} from '../../types';
 import {WaveformPlayer} from './WaveformPlayer';
 import {Badge} from './Badge';
 import {obtenerImagenColor} from '../../services/imagenesColor';
 import {etiquetaBpm} from '../../services/bpmUtils';
 import {descargarSample} from '../../services/apiDescargas';
 import {registrarReproduccion} from '../../services/apiReproduciones';
+import {TooltipReacciones} from './TooltipReacciones';
 import {useNavigationStore} from '@/core/router';
 import '../../styles/componentes/tarjetaSample.css';
 
@@ -24,7 +25,7 @@ interface TarjetaSampleProps {
     onPlay?: (sample: SampleResumen) => void;
     onPause?: () => void;
     onSeek?: (posicion: number) => void;
-    onLike?: (sampleId: number) => void;
+    onLike?: (sampleId: number, reaccion?: TipoReaccion) => void;
     onDescargar?: (sampleId: number) => void;
     onMenu?: (e: MouseEvent, sample: SampleResumen) => void;
     onClickCreador?: (username: string) => void;
@@ -261,6 +262,20 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
         [onLike, sample.id]
     );
 
+    const manejarReaccion = useCallback(
+        (reaccion: TipoReaccion) => {
+            onLike?.(sample.id, reaccion);
+        },
+        [onLike, sample.id]
+    );
+
+    const manejarQuitarReaccion = useCallback(
+        () => {
+            onLike?.(sample.id);
+        },
+        [onLike, sample.id]
+    );
+
     const manejarDescargar = useCallback(
         async (e: MouseEvent) => {
             e.stopPropagation();
@@ -448,9 +463,24 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                     />
                 </div>
 
-                <button className={`tarjetaAccionBtn ${sample.liked ? 'tarjetaAccionLiked' : ''}`} onClick={manejarLike} type="button" aria-label={sample.liked ? 'Quitar like' : 'Dar like'}>
-                    <Heart size={18} fill={sample.liked ? 'currentColor' : 'none'} />
-                </button>
+                <TooltipReacciones
+                    reaccionActual={sample.reaccion}
+                    onReaccionar={manejarReaccion}
+                    onQuitar={manejarQuitarReaccion}
+                >
+                    <button
+                        className={`tarjetaAccionBtn ${sample.liked ? 'tarjetaAccionLiked' : ''} ${
+                            sample.reaccion === 'encanta' ? 'reaccionPrincipalEncanta' :
+                            sample.reaccion === 'dislike' ? 'reaccionPrincipalDislike' :
+                            sample.reaccion === 'like' ? 'reaccionPrincipalLike' : ''
+                        }`}
+                        onClick={manejarLike}
+                        type="button"
+                        aria-label={sample.liked ? 'Quitar like' : 'Dar like'}
+                    >
+                        <Heart size={18} fill={sample.liked ? 'currentColor' : 'none'} />
+                    </button>
+                </TooltipReacciones>
 
                 <button className="tarjetaAccionBtn" onClick={() => onComentar?.(sample.id)} type="button" aria-label="Comentar">
                     <MessageCircle size={18} />

@@ -77,6 +77,9 @@ export interface Sample {
     creador?: UsuarioResumen;
 }
 
+/* Tipos de reaccion posibles */
+export type TipoReaccion = 'like' | 'dislike' | 'encanta';
+
 /* Version resumida para listas y tarjetas */
 export interface SampleResumen {
     id: number;
@@ -100,6 +103,7 @@ export interface SampleResumen {
     audioHash?: string | null;
     creador: UsuarioResumen;
     liked?: boolean;
+    reaccion?: TipoReaccion | null;
 }
 
 /* Importamos referencia para evitar circular */

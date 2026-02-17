@@ -10,6 +10,7 @@ import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { obtenerFeed } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
+import type { TipoReaccion } from '@app/types';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import type { SampleResumen } from '@app/types';
@@ -31,24 +32,31 @@ export const DescubrirIsland = (): JSX.Element => {
 
     /* Like con optimistic UI sobre todas las secciones */
     const manejarLike = useCallback(
-        async (sampleId: number) => {
-            setSecciones((prev) =>
-                prev.map((sec) => ({
-                    ...sec,
-                    samples: sec.samples.map((s) =>
-                        s.id === sampleId
-                            ? { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) }
-                            : s
-                    ),
-                }))
-            );
-
+        async (sampleId: number, reaccion?: TipoReaccion) => {
             const todas = secciones.flatMap((s) => s.samples);
             const sample = todas.find((s) => s.id === sampleId);
-            if (sample?.liked) {
+
+            const actualizarSecciones = (transformar: (s: SampleResumen) => SampleResumen) =>
+                setSecciones((prev) =>
+                    prev.map((sec) => ({
+                        ...sec,
+                        samples: sec.samples.map((s) => (s.id === sampleId ? transformar(s) : s)),
+                    }))
+                );
+
+            if (reaccion) {
+                const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
+                const esPositivo = reaccion !== 'dislike';
+                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                actualizarSecciones((s) => ({ ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }));
+                await darLike('sample', sampleId, reaccion);
+            } else if (sample?.liked || sample?.reaccion) {
+                const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
+                actualizarSecciones((s) => ({ ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }));
                 await quitarLike('sample', sampleId);
             } else {
-                await darLike('sample', sampleId);
+                actualizarSecciones((s) => ({ ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }));
+                await darLike('sample', sampleId, 'like');
             }
         },
         [secciones]

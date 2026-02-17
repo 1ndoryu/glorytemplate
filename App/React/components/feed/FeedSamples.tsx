@@ -27,7 +27,7 @@ import { darLike, quitarLike } from '@app/services/apiSocial';
 import { extraerTagsMetadata, extraerTagsAgrupadosMetadata, type CategoriaTag } from '@app/services/tagUtils';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
-import type { SampleResumen } from '@app/types';
+import type { SampleResumen, TipoReaccion } from '@app/types';
 
 /* Tipo del proveedor de datos: recibe página, devuelve samples */
 export type ProveedorSamples = (pagina: number) => Promise<SampleResumen[]>;
@@ -358,33 +358,55 @@ export const FeedSamples = ({
 
     const { abrirSugerencias } = usePanelLateralStore();
 
-    /* Like optimistic UI — si es nuevo like, abre panel lateral de sugerencias */
-    const manejarLike = useCallback(async (sampleId: number) => {
-        let estabaLiked = false;
-        let sampleRef: SampleResumen | null = null;
-        setSamples((prev) =>
-            prev.map((s) => {
-                if (s.id === sampleId) {
-                    estabaLiked = s.liked ?? false;
-                    sampleRef = s;
-                    return { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) };
-                }
-                return s;
-            })
-        );
-        cacheFeedRef.current = {};
+    /* Like optimistic UI con soporte de reacciones */
+    const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
+        const sampleRef = samples.find((s) => s.id === sampleId) ?? null;
 
-        const nuevoEstado = !estabaLiked;
-        if (estabaLiked) {
+        if (reaccion) {
+            /* Reaccion especifica desde tooltip */
+            const eraPositivo = sampleRef?.reaccion === 'like' || sampleRef?.reaccion === 'encanta';
+            const esPositivo = reaccion !== 'dislike';
+            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+            setSamples((prev) =>
+                prev.map((s) =>
+                    s.id === sampleId
+                        ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
+                        : s
+                )
+            );
+            cacheFeedRef.current = {};
+            await darLike('sample', sampleId, reaccion);
+            /* C135: Abrir sugerencias en reacciones positivas */
+            if (esPositivo && sampleRef) abrirSugerencias(sampleRef);
+            onLike?.(sampleId, true);
+        } else if (sampleRef?.liked || sampleRef?.reaccion) {
+            /* Quitar reaccion */
+            const eraPositivo = sampleRef?.reaccion === 'like' || sampleRef?.reaccion === 'encanta';
+            setSamples((prev) =>
+                prev.map((s) =>
+                    s.id === sampleId
+                        ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
+                        : s
+                )
+            );
+            cacheFeedRef.current = {};
             await quitarLike('sample', sampleId);
+            onLike?.(sampleId, false);
         } else {
-            await darLike('sample', sampleId);
-            /* C135: Abrir panel lateral "También te podría gustar" al dar like */
+            /* Like simple */
+            setSamples((prev) =>
+                prev.map((s) =>
+                    s.id === sampleId
+                        ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
+                        : s
+                )
+            );
+            cacheFeedRef.current = {};
+            await darLike('sample', sampleId, 'like');
             if (sampleRef) abrirSugerencias(sampleRef);
+            onLike?.(sampleId, true);
         }
-
-        onLike?.(sampleId, nuevoEstado);
-    }, [onLike, abrirSugerencias]);
+    }, [samples, onLike, abrirSugerencias]);
 
     /* Renderizar tags (un item con +/-/texto) */
     const renderizarTag = useCallback((tag: string) => (

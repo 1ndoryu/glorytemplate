@@ -21,12 +21,14 @@ import {
 } from '@app/components/ui';
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonFollow } from '@app/components/social/BotonFollow';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { obtenerSample, listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
+import type { TipoReaccion } from '@app/types';
 import { descargarSample } from '@app/services/apiDescargas';
 import { registrarReproduccion } from '@app/services/apiReproduciones';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
@@ -51,6 +53,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
     const [liked, setLiked] = useState(false);
+    const [reaccionActual, setReaccionActual] = useState<TipoReaccion | null>(null);
     const [reproduciendo, setReproduciendo] = useState(false);
     const [progreso, setProgreso] = useState(0);
     const [picosWaveform, setPicosWaveform] = useState<number[] | null>(null);
@@ -101,33 +104,68 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     /* Like con llamada a API */
     const manejarLike = useCallback(async () => {
         if (!sample) return;
-        const nuevoLiked = !liked;
-        setLiked(nuevoLiked);
-        if (nuevoLiked) {
-            await darLike('sample', sample.id);
-        } else {
+        if (liked || reaccionActual) {
+            setLiked(false);
+            setReaccionActual(null);
             await quitarLike('sample', sample.id);
+        } else {
+            setLiked(true);
+            setReaccionActual('like');
+            await darLike('sample', sample.id, 'like');
         }
-    }, [liked, sample]);
+    }, [liked, reaccionActual, sample]);
 
-    /* Like en samples similares (optimistic UI) */
-    const manejarLikeSimilar = useCallback(async (sampleId: number) => {
-        let estabaLiked = false;
-        setSimilares((prev) =>
-            prev.map((s) => {
-                if (s.id === sampleId) {
-                    estabaLiked = s.liked ?? false;
-                    return { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) };
-                }
-                return s;
-            })
-        );
-        if (estabaLiked) {
+    /* Reaccion especifica desde tooltip */
+    const manejarReaccionDetalle = useCallback(async (reaccion: TipoReaccion) => {
+        if (!sample) return;
+        setLiked(reaccion !== 'dislike');
+        setReaccionActual(reaccion);
+        await darLike('sample', sample.id, reaccion);
+    }, [sample]);
+
+    const manejarQuitarReaccionDetalle = useCallback(async () => {
+        if (!sample) return;
+        setLiked(false);
+        setReaccionActual(null);
+        await quitarLike('sample', sample.id);
+    }, [sample]);
+
+    /* Like en samples similares (optimistic UI con reacciones) */
+    const manejarLikeSimilar = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
+        const sim = similares.find((s) => s.id === sampleId);
+        if (reaccion) {
+            const eraPositivo = sim?.reaccion === 'like' || sim?.reaccion === 'encanta';
+            const esPositivo = reaccion !== 'dislike';
+            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+            setSimilares((prev) =>
+                prev.map((s) =>
+                    s.id === sampleId
+                        ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
+                        : s
+                )
+            );
+            await darLike('sample', sampleId, reaccion);
+        } else if (sim?.liked || sim?.reaccion) {
+            const eraPositivo = sim?.reaccion === 'like' || sim?.reaccion === 'encanta';
+            setSimilares((prev) =>
+                prev.map((s) =>
+                    s.id === sampleId
+                        ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
+                        : s
+                )
+            );
             await quitarLike('sample', sampleId);
         } else {
-            await darLike('sample', sampleId);
+            setSimilares((prev) =>
+                prev.map((s) =>
+                    s.id === sampleId
+                        ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
+                        : s
+                )
+            );
+            await darLike('sample', sampleId, 'like');
         }
-    }, []);
+    }, [similares]);
 
     /* Cargar sample al montar */
     useEffect(() => {
@@ -145,6 +183,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                 if (respuesta.ok && respuesta.data) {
                     setSample(respuesta.data);
                     setLiked(Boolean(respuesta.data.liked));
+                    setReaccionActual((respuesta.data as any).reaccion ?? null);
 
                     /* Cargar samples similares por tags/tipo */
                     const tipoSample = respuesta.data.metadata?.tipo;
@@ -450,14 +489,23 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                     )}
 
                     <div className="detalleAcciones">
-                        <button
-                            className={`detalleAccionPlano ${liked ? 'detalleAccionPlanoActivo' : ''}`}
-                            onClick={manejarLike}
-                            type="button"
-                            aria-label={liked ? 'Quitar like' : 'Dar like'}
+                        <TooltipReacciones
+                            reaccionActual={reaccionActual}
+                            onReaccionar={manejarReaccionDetalle}
+                            onQuitar={manejarQuitarReaccionDetalle}
                         >
-                            <Heart size={18} fill={liked ? 'currentColor' : 'none'} />
-                        </button>
+                            <button
+                                className={`detalleAccionPlano ${liked ? 'detalleAccionPlanoActivo' : ''} ${
+                                    reaccionActual === 'encanta' ? 'reaccionPrincipalEncanta' :
+                                    reaccionActual === 'dislike' ? 'reaccionPrincipalDislike' : ''
+                                }`}
+                                onClick={manejarLike}
+                                type="button"
+                                aria-label={liked ? 'Quitar like' : 'Dar like'}
+                            >
+                                <Heart size={18} fill={liked ? 'currentColor' : 'none'} />
+                            </button>
+                        </TooltipReacciones>
                         <button
                             className="detalleAccionPlano"
                             onClick={() => {

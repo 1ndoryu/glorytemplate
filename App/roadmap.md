@@ -479,6 +479,10 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 144 (primero 146). Se que el algoritmo no esta preparado para las publicaciones de comunidad, pero, las publicaciones alli deberían tambien tener un algoritmo eficiente y bueno como el de facebook o twitter, no tengo idea de como funcionan o que los hace adictivo, he visto que el reddit es bueno, asi que para parecernos mas a reddit, agreguemos el boton de dislike, pero los dislike no deben tener contador ni su contador debe ser publico.
 145. Los dislike ahora deberían tambien funcionar en los samples, y un nuevo boton de "Me encanta" en la lista de sample, esta forma debe de verse, los botones de me encanta y dislike, deben aparecer como un tooltip al hacer hover sobre el boton like, en donde sea que haya un boton de like, debe ser asi, ahora que existe el boton de dislike y me encanta, el algoritmo debe tenerlos en cuenta porque es información util para pulir las recomendaciones.
 146. Los creditos en el menu contextual salen asi Créditos: NaN/undefined
+147. Arriba del header aparece "v012 ejecutada correctamente", no deberia. (ya lo arregle por mi cuenta)
+148. Revisar el algoritmo, que este tomando en cuenta los tags de instrumento, sentimiento, genero, etc, los aspecto tecnicos como bpm o tono no importan tanto, que este tomando en cuenta el usuario que lo publico, si un usuario siempre le gusta los samples de un creador especifico entonces probablemente le guste los demas.
+149. Los feedTags dejaron de funcionar, ahora simplemente recargan la lista de sample en vez filtrar o actualizar el input de busqueda como lo habiamos planificado, la busqueda tampoco funciona, ingreso algo, recarga la lista y se borra la busqueda.
+
 
 ---
 

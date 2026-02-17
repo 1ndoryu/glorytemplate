@@ -1,0 +1,98 @@
+/*
+ * Estilos: TooltipReacciones
+ * Tooltip flotante con opciones de reaccion (like, encanta, dislike).
+ * Aparece al hacer hover sobre el boton de like.
+ */
+
+.contenedorReacciones {
+    position: relative;
+    display: inline-flex;
+}
+
+.tooltipReacciones {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.85);
+    display: flex;
+    gap: 4px;
+    padding: 6px 8px;
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 50;
+    white-space: nowrap;
+}
+
+.contenedorReacciones:hover .tooltipReacciones,
+.tooltipReacciones:hover {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) scale(1);
+}
+
+.tooltipReaccionBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--textoSecundario);
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.tooltipReaccionBtn:hover {
+    transform: scale(1.25);
+    background: var(--fondoElevado2);
+}
+
+/* Like */
+.tooltipReaccionBtn[data-reaccion="like"] {
+    color: var(--textoSecundario);
+}
+
+.tooltipReaccionBtn[data-reaccion="like"]:hover,
+.tooltipReaccionBtn[data-reaccion="like"].tooltipReaccionActiva {
+    color: #ef4444;
+}
+
+/* Encanta */
+.tooltipReaccionBtn[data-reaccion="encanta"] {
+    color: var(--textoSecundario);
+}
+
+.tooltipReaccionBtn[data-reaccion="encanta"]:hover,
+.tooltipReaccionBtn[data-reaccion="encanta"].tooltipReaccionActiva {
+    color: #f59e0b;
+}
+
+/* Dislike */
+.tooltipReaccionBtn[data-reaccion="dislike"] {
+    color: var(--textoSecundario);
+}
+
+.tooltipReaccionBtn[data-reaccion="dislike"]:hover,
+.tooltipReaccionBtn[data-reaccion="dislike"].tooltipReaccionActiva {
+    color: #6b7280;
+}
+
+/* Estado activo del boton principal segun reaccion */
+.contenedorReacciones .reaccionPrincipalLike {
+    color: #ef4444;
+}
+
+.contenedorReacciones .reaccionPrincipalEncanta {
+    color: #f59e0b;
+}
+
+.contenedorReacciones .reaccionPrincipalDislike {
+    color: #6b7280;
+}

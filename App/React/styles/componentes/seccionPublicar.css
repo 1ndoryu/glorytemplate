@@ -1,7 +1,7 @@
 /*
- * seccionPublicar.css — Kamples (C89)
- * Estilos para la sección inline de publicación estilo red social.
- * Reutiliza clases de modalPublicar.css para preview de imágenes.
+ * seccionPublicar.css — Kamples (C89/C124)
+ * Wrapper inline de la sección de publicación.
+ * La UI interna usa clases de modalCrear.css via ContenidoCrear.
  */
 
 .seccionPublicar {
@@ -10,63 +10,4 @@
     border-radius: var(--radioLg);
     padding: var(--espacioMd);
     margin-bottom: var(--espacioMd);
-}
-
-.seccionPublicarInterna {
-    display: flex;
-    gap: var(--espacioSm);
-    align-items: flex-start;
-}
-
-.seccionPublicarAvatar {
-    flex-shrink: 0;
-    padding-top: var(--espacioXs);
-}
-
-.seccionPublicarCuerpo {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioSm);
-}
-
-.seccionPublicarTextarea {
-    width: 100%;
-    min-height: 40px;
-    max-height: 180px;
-    resize: none;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--textoPrimario);
-    font-family: var(--fuentePrincipal);
-    font-size: var(--fuenteMd);
-    line-height: 1.5;
-    padding: var(--espacioXs) 0;
-}
-
-.seccionPublicarTextarea::placeholder {
-    color: var(--textoTerciario);
-}
-
-/* Barra de acciones */
-.seccionPublicarAcciones {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: var(--espacioXs);
-    border-top: 1px solid var(--bordeSutil);
-}
-
-.seccionPublicarAccionesIzq {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioSm);
-}
-
-.seccionPublicarAccionesDer {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioMd);
 }

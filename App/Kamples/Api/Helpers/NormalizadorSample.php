@@ -124,7 +124,9 @@ class NormalizadorSample
             'totalReproducciones' => (int) ($row['total_reproducciones'] ?? 0),
             'audioHash'        => $row['audio_hash'] ?? null,
             'creador'          => $creador,
-            'liked'            => (bool) ($row['liked'] ?? false),
+            /* C144/C145: reaccion_usuario puede ser 'like', 'dislike', 'encanta' o null */
+            'liked'            => !empty($row['reaccion_usuario']) && in_array($row['reaccion_usuario'], ['like', 'encanta'], true),
+            'reaccion'         => $row['reaccion_usuario'] ?? null,
         ];
     }
 
@@ -143,12 +145,13 @@ class NormalizadorSample
     public static function sqlSelectSamples(?int $userId = null): string
     {
         /*
-         * Si se pasa userId, incluimos subquery EXISTS para liked.
-         * Es seguro inyectar directamente porque $userId es int (sin riesgo de SQL injection).
+         * Si se pasa userId, incluimos subquery para la reacción del usuario.
+         * Devuelve la reacción ('like', 'dislike', 'encanta') o NULL si no reaccionó.
+         * C144/C145: Ahora el campo se llama 'reaccion_usuario' y retorna el tipo exacto.
          */
-        $likedExpr = $userId !== null
-            ? "EXISTS(SELECT 1 FROM likes WHERE usuario_id = {$userId} AND tipo = 'sample' AND target_id = s.id)"
-            : "FALSE";
+        $reaccionExpr = $userId !== null
+            ? "(SELECT reaccion FROM likes WHERE usuario_id = {$userId} AND tipo = 'sample' AND target_id = s.id LIMIT 1)"
+            : "NULL";
 
         return "SELECT s.id, s.titulo, s.slug, s.id_corto, s.descripcion,
                        s.bpm, s.key, s.escala, s.duracion, s.formato, s.tamano,
@@ -158,7 +161,7 @@ class NormalizadorSample
                        s.audio_hash,
                        u.id as creador_id, u.username, u.nombre_visible,
                        u.avatar_url, u.verificado,
-                       {$likedExpr} AS liked
+                       {$reaccionExpr} AS reaccion_usuario
                 FROM samples s
                 LEFT JOIN usuarios_ext u ON s.creador_id = u.id";
     }

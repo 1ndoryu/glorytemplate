@@ -12,14 +12,15 @@ import { Modal } from '@app/components/ui/Modal';
 import { useSugerenciasLikeStore } from '@app/stores/sugerenciasLikeStore';
 import { useNavigationStore } from '@/core/router';
 import { darLike } from '@app/services/apiSocial';
+import type { TipoReaccion } from '@app/types';
 import '../../styles/componentes/modalSugerenciasLike.css';
 
 export const ModalSugerenciasLike = (): JSX.Element | null => {
     const { abierto, sampleOrigen, sugerencias, cargando, cerrar } = useSugerenciasLikeStore();
     const { navegar } = useNavigationStore();
 
-    const manejarLikeSugerencia = useCallback(async (sampleId: number) => {
-        await darLike('sample', sampleId);
+    const manejarLikeSugerencia = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
+        await darLike('sample', sampleId, reaccion ?? 'like');
     }, []);
 
     if (!abierto) return null;

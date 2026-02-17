@@ -9,13 +9,14 @@ import { Heart, MessageCircle, Repeat2 } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
 import { useAuthStore } from '@app/stores/authStore';
-import type { Publicacion, SampleResumen } from '@app/types';
+import type { Publicacion, SampleResumen, TipoReaccion } from '@app/types';
 import '../../styles/componentes/tarjetaPublicacion.css';
 
 interface TarjetaPublicacionProps {
     publicacion: Publicacion;
-    onLike?: (pubId: number) => void;
+    onLike?: (pubId: number, reaccion?: TipoReaccion) => void;
     onComentar?: (pubId: number) => void;
     onRepost?: (pubId: number) => void;
     onClickAutor?: (username: string) => void;
@@ -65,6 +66,20 @@ export const TarjetaPublicacion = ({
     const manejarLike = useCallback(
         (e: MouseEvent) => {
             e.stopPropagation();
+            onLike?.(publicacion.id);
+        },
+        [onLike, publicacion.id]
+    );
+
+    const manejarReaccion = useCallback(
+        (reaccion: TipoReaccion) => {
+            onLike?.(publicacion.id, reaccion);
+        },
+        [onLike, publicacion.id]
+    );
+
+    const manejarQuitarReaccion = useCallback(
+        () => {
             onLike?.(publicacion.id);
         },
         [onLike, publicacion.id]
@@ -167,17 +182,27 @@ export const TarjetaPublicacion = ({
 
             {/* Acciones: like, comentar, repost */}
             <div className="tarjetaPubAcciones">
-                <button
-                    className={`tarjetaPubAccionBtn ${publicacion.liked ? 'tarjetaPubAccionLiked' : ''}`}
-                    onClick={manejarLike}
-                    type="button"
-                    aria-label={publicacion.liked ? 'Quitar like' : 'Dar like'}
+                <TooltipReacciones
+                    reaccionActual={publicacion.reaccion}
+                    onReaccionar={manejarReaccion}
+                    onQuitar={manejarQuitarReaccion}
                 >
-                    <Heart size={16} fill={publicacion.liked ? 'currentColor' : 'none'} />
-                    {publicacion.totalLikes > 0 && (
-                        <span>{formatearNumero(publicacion.totalLikes)}</span>
-                    )}
-                </button>
+                    <button
+                        className={`tarjetaPubAccionBtn ${publicacion.liked ? 'tarjetaPubAccionLiked' : ''} ${
+                            publicacion.reaccion === 'encanta' ? 'reaccionPrincipalEncanta' :
+                            publicacion.reaccion === 'dislike' ? 'reaccionPrincipalDislike' :
+                            publicacion.reaccion === 'like' ? 'reaccionPrincipalLike' : ''
+                        }`}
+                        onClick={manejarLike}
+                        type="button"
+                        aria-label={publicacion.liked ? 'Quitar like' : 'Dar like'}
+                    >
+                        <Heart size={16} fill={publicacion.liked ? 'currentColor' : 'none'} />
+                        {publicacion.totalLikes > 0 && (
+                            <span>{formatearNumero(publicacion.totalLikes)}</span>
+                        )}
+                    </button>
+                </TooltipReacciones>
 
                 <button
                     className="tarjetaPubAccionBtn"

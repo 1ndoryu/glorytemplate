@@ -49,8 +49,8 @@ export const TopBar = (): JSX.Element => {
             const resp = await obtenerLimites();
             if (resp.ok && resp.data) {
                 setCreditosInfo({
-                    usadas: resp.data.descargasHoy,
-                    limite: resp.data.limitesDiarios,
+                    usadas: resp.data.usadas,
+                    limite: resp.data.limite,
                     ilimitado: resp.data.ilimitado,
                 });
             }

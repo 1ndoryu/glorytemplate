@@ -37,6 +37,7 @@ class SocialController
             'args'                => [
                 'tipo'      => ['required' => true, 'type' => 'string', 'enum' => ['sample', 'publicacion']],
                 'target_id' => ['required' => true, 'type' => 'integer'],
+                'reaccion'  => ['required' => false, 'type' => 'string', 'enum' => ['like', 'dislike', 'encanta'], 'default' => 'like'],
             ],
         ]);
 
@@ -133,29 +134,52 @@ class SocialController
 
         $tipo     = sanitize_text_field($request->get_param('tipo'));
         $targetId = (int) $request->get_param('target_id');
+        $reaccion = sanitize_text_field($request->get_param('reaccion') ?? 'like');
 
+        /* Validar reacción */
+        if (!in_array($reaccion, ['like', 'dislike', 'encanta'], true)) {
+            $reaccion = 'like';
+        }
+
+        /*
+         * C144/C145: UPSERT — si ya existe una reacción, la actualiza.
+         * Un usuario solo puede tener UNA reacción por target.
+         */
         PostgresService::ejecutar(
-            "INSERT INTO likes (usuario_id, tipo, target_id) VALUES (:usuario, :tipo, :target) ON CONFLICT DO NOTHING",
-            ['usuario' => $userId, 'tipo' => $tipo, 'target' => $targetId]
+            "INSERT INTO likes (usuario_id, tipo, target_id, reaccion)
+             VALUES (:usuario, :tipo, :target, :reaccion)
+             ON CONFLICT (usuario_id, tipo, target_id) DO UPDATE SET reaccion = :reaccion2, created_at = NOW()",
+            ['usuario' => $userId, 'tipo' => $tipo, 'target' => $targetId, 'reaccion' => $reaccion, 'reaccion2' => $reaccion]
         );
 
+        /*
+         * Recalcular total_likes: solo cuenta 'like' y 'encanta', NO 'dislike'.
+         * Los dislikes no tienen contador público (C144).
+         */
         if ($tipo === 'sample') {
             PostgresService::ejecutar(
-                "UPDATE samples SET total_likes = (SELECT COUNT(*) FROM likes WHERE tipo = 'sample' AND target_id = :id) WHERE id = :id",
+                "UPDATE samples SET total_likes = (
+                    SELECT COUNT(*) FROM likes WHERE tipo = 'sample' AND target_id = :id AND reaccion IN ('like', 'encanta')
+                ) WHERE id = :id",
                 ['id' => $targetId]
             );
 
-            /* Notificación al creador */
-            $sample = PostgresService::consultarUno("SELECT creador_id FROM samples WHERE id = :id", ['id' => $targetId]);
-            if ($sample && (int) $sample['creador_id'] !== $userId) {
-                PostgresService::ejecutar(
-                    "INSERT INTO notificaciones (usuario_id, tipo, datos) VALUES (:userId, 'like', :datos)",
-                    ['userId' => $sample['creador_id'], 'datos' => json_encode(['liker_id' => $userId, 'sample_id' => $targetId])]
-                );
+            /* Notificación al creador (solo para like/encanta, no dislike) */
+            if ($reaccion !== 'dislike') {
+                $sample = PostgresService::consultarUno("SELECT creador_id FROM samples WHERE id = :id", ['id' => $targetId]);
+                if ($sample && (int) $sample['creador_id'] !== $userId) {
+                    $tipoNotif = $reaccion === 'encanta' ? 'encanta' : 'like';
+                    PostgresService::ejecutar(
+                        "INSERT INTO notificaciones (usuario_id, tipo, datos) VALUES (:userId, :tipoNotif, :datos)",
+                        ['userId' => $sample['creador_id'], 'tipoNotif' => $tipoNotif, 'datos' => json_encode(['liker_id' => $userId, 'sample_id' => $targetId])]
+                    );
+                }
             }
         } elseif ($tipo === 'publicacion') {
             PostgresService::ejecutar(
-                "UPDATE publicaciones SET total_likes = (SELECT COUNT(*) FROM likes WHERE tipo = 'publicacion' AND target_id = :id) WHERE id = :id",
+                "UPDATE publicaciones SET total_likes = (
+                    SELECT COUNT(*) FROM likes WHERE tipo = 'publicacion' AND target_id = :id AND reaccion IN ('like', 'encanta')
+                ) WHERE id = :id",
                 ['id' => $targetId]
             );
         }
@@ -164,9 +188,9 @@ class SocialController
         MotorRecomendacion::invalidarCache($userId);
 
         /* C45: registrar interacción para el planificador del algoritmo */
-        PlanificadorAlgoritmo::registrarInteraccion($userId, 'like');
+        PlanificadorAlgoritmo::registrarInteraccion($userId, $reaccion === 'dislike' ? 'dislike' : 'like');
 
-        return new \WP_REST_Response(['ok' => true, 'liked' => true], 200);
+        return new \WP_REST_Response(['ok' => true, 'reaccion' => $reaccion], 200);
     }
 
     public static function quitarLike(\WP_REST_Request $request): \WP_REST_Response
@@ -182,14 +206,19 @@ class SocialController
             ['usuario' => $userId, 'tipo' => $tipo, 'target' => $targetId]
         );
 
+        /* Recalcular total_likes (solo like+encanta, sin dislikes) */
         if ($tipo === 'sample') {
             PostgresService::ejecutar(
-                "UPDATE samples SET total_likes = (SELECT COUNT(*) FROM likes WHERE tipo = 'sample' AND target_id = :id) WHERE id = :id",
+                "UPDATE samples SET total_likes = (
+                    SELECT COUNT(*) FROM likes WHERE tipo = 'sample' AND target_id = :id AND reaccion IN ('like', 'encanta')
+                ) WHERE id = :id",
                 ['id' => $targetId]
             );
         } elseif ($tipo === 'publicacion') {
             PostgresService::ejecutar(
-                "UPDATE publicaciones SET total_likes = (SELECT COUNT(*) FROM likes WHERE tipo = 'publicacion' AND target_id = :id) WHERE id = :id",
+                "UPDATE publicaciones SET total_likes = (
+                    SELECT COUNT(*) FROM likes WHERE tipo = 'publicacion' AND target_id = :id AND reaccion IN ('like', 'encanta')
+                ) WHERE id = :id",
                 ['id' => $targetId]
             );
         }
@@ -197,7 +226,7 @@ class SocialController
         /* Invalidar cache del feed para que el algoritmo recalcule */
         MotorRecomendacion::invalidarCache($userId);
 
-        return new \WP_REST_Response(['ok' => true, 'liked' => false], 200);
+        return new \WP_REST_Response(['ok' => true, 'reaccion' => null], 200);
     }
 
     private static function actualizarContadoresFollow(int $seguidorId, int $seguidoId): void

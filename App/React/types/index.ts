@@ -9,6 +9,7 @@ export type {
     MetadataSample,
     EstadoSample,
     TipoSample,
+    TipoReaccion,
     NotaMusical,
     EscalaMusical,
 } from './sample';

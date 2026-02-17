@@ -112,8 +112,8 @@ class PublicacionesController
         $currentUserId = UsuarioHelper::obtenerIdPg();
 
         $likedSubquery = $currentUserId
-            ? ", EXISTS(SELECT 1 FROM likes l WHERE l.tipo = 'publicacion' AND l.target_id = p.id AND l.usuario_id = :current_user) AS liked"
-            : ", FALSE AS liked";
+            ? ", (SELECT l.reaccion FROM likes l WHERE l.tipo = 'publicacion' AND l.target_id = p.id AND l.usuario_id = :current_user LIMIT 1) AS reaccion_usuario"
+            : ", NULL AS reaccion_usuario";
 
         if ($currentUserId) {
             $params['current_user'] = $currentUserId;
@@ -136,7 +136,9 @@ class PublicacionesController
             $pub['totalLikes'] = (int) ($pub['total_likes'] ?? 0);
             $pub['totalReposts'] = (int) ($pub['total_reposts'] ?? 0);
             $pub['creadoAt'] = $pub['created_at'] ?? '';
-            $pub['liked'] = (bool) ($pub['liked'] ?? false);
+            $pub['liked'] = in_array($pub['reaccion_usuario'] ?? null, ['like', 'encanta'], true);
+            $pub['reaccion'] = $pub['reaccion_usuario'] ?? null;
+            unset($pub['reaccion_usuario']);
             $pub['moderacionEstado'] = $pub['moderacion_estado'] ?? null;
             $pub['imagenes'] = self::pgArrayAPhp($pub['imagenes'] ?? null);
             $pub['samplesAdjuntos'] = array_map('intval', self::pgArrayAPhp($pub['samples_adjuntos'] ?? null));

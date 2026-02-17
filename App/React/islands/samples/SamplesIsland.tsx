@@ -16,6 +16,7 @@ import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
+import type { TipoReaccion } from '@app/types';
 import type { FiltrosSamples, RespuestaListaSamples } from '@app/services/apiSamples';
 import type { SampleResumen } from '@app/types';
 import { useNavigationStore } from '@/core/router';
@@ -50,20 +51,43 @@ export const SamplesIsland = (): JSX.Element => {
         return () => { setTabs([]); };
     }, [setTabs]);
 
-    /* Like con optimistic UI */
-    const manejarLike = useCallback(async (sampleId: number) => {
-        setSamples((prev) =>
-            prev.map((s) =>
-                s.id === sampleId
-                    ? { ...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1) }
-                    : s
-            )
-        );
+    /* Like con optimistic UI y soporte de reacciones */
+    const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
         const sample = samples.find((s) => s.id === sampleId);
-        if (sample?.liked) {
+        if (reaccion) {
+            /* Reaccion seleccionada desde tooltip */
+            const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
+            const esPositivo = reaccion !== 'dislike';
+            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+            setSamples((prev) =>
+                prev.map((s) =>
+                    s.id === sampleId
+                        ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
+                        : s
+                )
+            );
+            await darLike('sample', sampleId, reaccion);
+        } else if (sample?.liked || sample?.reaccion) {
+            /* Quitar reaccion */
+            const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
+            setSamples((prev) =>
+                prev.map((s) =>
+                    s.id === sampleId
+                        ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
+                        : s
+                )
+            );
             await quitarLike('sample', sampleId);
         } else {
-            await darLike('sample', sampleId);
+            /* Like simple */
+            setSamples((prev) =>
+                prev.map((s) =>
+                    s.id === sampleId
+                        ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
+                        : s
+                )
+            );
+            await darLike('sample', sampleId, 'like');
         }
     }, [samples]);
 

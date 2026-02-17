@@ -44,7 +44,7 @@ export const useDescargas = (): RetornoDescargas => {
     const puedeDescargar =
         autenticado &&
         limites !== null &&
-        (limites.ilimitado || limites.descargasHoy < limites.limitesDiarios);
+        (limites.ilimitado || limites.usadas < limites.limite);
 
     const descargar = useCallback(
         async (sampleId: number): Promise<boolean> => {
@@ -57,7 +57,7 @@ export const useDescargas = (): RetornoDescargas => {
                     /* Actualizar contador local */
                     setLimites((prev) =>
                         prev
-                            ? { ...prev, descargasHoy: prev.descargasHoy + 1 }
+                            ? { ...prev, usadas: prev.usadas + 1 }
                             : prev
                     );
                     log.info('Sample descargado', { sampleId });

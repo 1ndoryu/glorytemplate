@@ -4,7 +4,7 @@
  */
 
 import type { UsuarioResumen } from './usuario';
-import type { SampleResumen } from './sample';
+import type { SampleResumen, TipoReaccion } from './sample';
 
 export type TipoPublicacion = 'social' | 'sample';
 
@@ -19,6 +19,7 @@ export interface Publicacion {
     totalComentarios: number;
     totalReposts: number;
     liked?: boolean;
+    reaccion?: TipoReaccion | null;
     reposteado?: boolean;
     creadoAt: string;
     moderacionEstado?: 'pendiente' | 'aprobado' | 'revision' | 'rechazado' | null;

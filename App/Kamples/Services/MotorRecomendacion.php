@@ -225,7 +225,7 @@ class MotorRecomendacion
         $sql = "WITH scored AS (
                     SELECT s.*, u.username, u.nombre_visible, u.avatar_url, u.verificado,
                            u.id as creador_id,
-                           EXISTS(SELECT 1 FROM likes WHERE usuario_id = :userId AND tipo = 'sample' AND target_id = s.id) AS liked,
+                           (SELECT reaccion FROM likes WHERE usuario_id = :userId AND tipo = 'sample' AND target_id = s.id LIMIT 1) AS reaccion_usuario,
                            ({$scoreTotal}) as score,
                            ROW_NUMBER() OVER (PARTITION BY s.creador_id ORDER BY ({$scoreTotal}) DESC) as rn
                     FROM samples s
@@ -286,24 +286,24 @@ class MotorRecomendacion
             return ['interacciones' => 0, 'userId' => $userId];
         }
 
-        /* BPM promedio de samples likeados/reproducidos */
+        /* BPM promedio de samples likeados/reproducidos (excluye dislikes) */
         $bpmPref = PostgresService::consultarUno(
             "SELECT AVG(s.bpm)::int as bpm_prom
              FROM samples s
              WHERE s.bpm IS NOT NULL AND s.id IN (
-                 SELECT target_id FROM likes WHERE usuario_id = :userId AND tipo = 'sample'
+                 SELECT target_id FROM likes WHERE usuario_id = :userId AND tipo = 'sample' AND reaccion IN ('like', 'encanta')
                  UNION
                  SELECT sample_id FROM reproducciones WHERE usuario_id = :userId
              )",
             ['userId' => $userId]
         );
 
-        /* Key más frecuente */
+        /* Key mas frecuente (excluye dislikes) */
         $keyPref = PostgresService::consultarUno(
             "SELECT s.key as key_fav, COUNT(*) as cnt
              FROM samples s
              WHERE s.key IS NOT NULL AND s.id IN (
-                 SELECT target_id FROM likes WHERE usuario_id = :userId AND tipo = 'sample'
+                 SELECT target_id FROM likes WHERE usuario_id = :userId AND tipo = 'sample' AND reaccion IN ('like', 'encanta')
                  UNION
                  SELECT sample_id FROM reproducciones WHERE usuario_id = :userId
              )
@@ -311,12 +311,12 @@ class MotorRecomendacion
             ['userId' => $userId]
         );
 
-        /* Tipo más frecuente */
+        /* Tipo mas frecuente (excluye dislikes) */
         $tipoPref = PostgresService::consultarUno(
             "SELECT s.tipo as tipo_fav, COUNT(*) as cnt
              FROM samples s
              WHERE s.id IN (
-                 SELECT target_id FROM likes WHERE usuario_id = :userId AND tipo = 'sample'
+                 SELECT target_id FROM likes WHERE usuario_id = :userId AND tipo = 'sample' AND reaccion IN ('like', 'encanta')
                  UNION
                  SELECT sample_id FROM reproducciones WHERE usuario_id = :userId
              )
@@ -349,15 +349,16 @@ class MotorRecomendacion
 
         /*
          * Sub-factor 1: Afinidad por tags de samples likeados (0.30)
-         * Cuenta tags en común entre el sample candidato y los likeados.
+         * Cuenta tags en comun ponderados: encanta=2, like=1, dislike excluido.
          */
         $likesTag = "COALESCE((
-            SELECT COUNT(*)::float / GREATEST(1, array_length(s.tags, 1))
+            SELECT SUM(liked_tags.peso)::float / GREATEST(1, array_length(s.tags, 1))
             FROM (
-                SELECT UNNEST(s2.tags) as tag
+                SELECT UNNEST(s2.tags) as tag,
+                       CASE WHEN l.reaccion = 'encanta' THEN 2 ELSE 1 END as peso
                 FROM likes l
                 JOIN samples s2 ON l.target_id = s2.id
-                WHERE l.usuario_id = :userId AND l.tipo = 'sample'
+                WHERE l.usuario_id = :userId AND l.tipo = 'sample' AND l.reaccion IN ('like', 'encanta')
             ) liked_tags
             WHERE liked_tags.tag = ANY(s.tags)
         ), 0)";
@@ -456,7 +457,7 @@ class MotorRecomendacion
             $keyScore = "0.5";
         }
 
-        /* Género match: tags del sample coinciden con los tags más frecuentes del usuario */
+        /* Genero match: tags del sample coinciden con los tags mas frecuentes del usuario (excluye dislikes) */
         $generoScore = "COALESCE((
             SELECT COUNT(*)::float / GREATEST(1, array_length(s.tags, 1))
             FROM (
@@ -464,7 +465,7 @@ class MotorRecomendacion
                     SELECT UNNEST(s_inner.tags) as tag
                     FROM likes l_inner
                     JOIN samples s_inner ON l_inner.target_id = s_inner.id
-                    WHERE l_inner.usuario_id = :userId AND l_inner.tipo = 'sample'
+                    WHERE l_inner.usuario_id = :userId AND l_inner.tipo = 'sample' AND l_inner.reaccion IN ('like', 'encanta')
                 ) t GROUP BY tag ORDER BY freq DESC LIMIT 5
             ) top_tags
             WHERE top_tags.tag = ANY(s.tags)
@@ -502,8 +503,8 @@ class MotorRecomendacion
         $ventanaCorta = $ventanas['corta'] ?? '24 hours';
         $ventanaMedia = $ventanas['media'] ?? '7 days';
 
-        /* Likes en últimas 24h */
-        $likes24h = "COALESCE((SELECT COUNT(*) FROM likes WHERE tipo = 'sample' AND target_id = s.id AND created_at > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
+        /* Reacciones en ultimas 24h: encanta=2, like=1, dislike=-1 */
+        $likes24h = "COALESCE((SELECT SUM(CASE WHEN reaccion = 'encanta' THEN 2 WHEN reaccion = 'like' THEN 1 WHEN reaccion = 'dislike' THEN -1 ELSE 0 END) FROM likes WHERE tipo = 'sample' AND target_id = s.id AND created_at > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
 
         /* Reproducciones en últimas 24h */
         $repro24h = "COALESCE((SELECT COUNT(*) FROM reproducciones WHERE sample_id = s.id AND created_at > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
@@ -534,13 +535,14 @@ class MotorRecomendacion
         /* Sub-factor 1: el creador del sample es un usuario seguido (60% del peso social) */
         $seguidoDirecto = "CASE WHEN s.creador_id IN (SELECT seguido_id FROM follows WHERE seguidor_id = :userId) THEN 1 ELSE 0 END";
 
-        /* Sub-factor 2: usuarios seguidos han likeado este sample (40% del peso social) */
+        /* Sub-factor 2: seguidos han reaccionado positivamente a este sample (40% peso social) */
         $likeadoPorSeguidos = "LEAST(1, COALESCE((
-            SELECT COUNT(*)::float
+            SELECT SUM(CASE WHEN l.reaccion = 'encanta' THEN 2 ELSE 1 END)::float
             FROM likes l
             WHERE l.tipo = 'sample' AND l.target_id = s.id
+            AND l.reaccion IN ('like', 'encanta')
             AND l.usuario_id IN (SELECT seguido_id FROM follows WHERE seguidor_id = :userId)
-        ), 0) / 3)"; /* Normalizado: 3+ likes de seguidos = factor 1.0 */
+        ), 0) / 4)"; /* Normalizado: 4+ puntos de seguidos = factor 1.0 */
 
         return "({$peso} * (0.6 * {$seguidoDirecto} + 0.4 * {$likeadoPorSeguidos}))";
     }

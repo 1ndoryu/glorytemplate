@@ -10,6 +10,7 @@ import { Heart, MessageCircle, Repeat2, Users, TrendingUp, Clock } from 'lucide-
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import { useNavigationStore } from '@/core/router';
@@ -18,6 +19,7 @@ import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { apiGet } from '@app/services/apiCliente';
 import { darLike, quitarLike } from '@app/services/apiSocial';
+import type { TipoReaccion } from '@app/types';
 import type { Publicacion } from '@app/types';
 import '../../styles/componentes/comunidad.css';
 
@@ -101,21 +103,42 @@ const ComunidadBase = (): JSX.Element => {
         } catch { /* sin-op */ }
     }, [filtro]);
 
-    const manejarLikePost = useCallback(async (postId: number) => {
-        /* UI optimista */
-        setPublicaciones((prev) =>
-            prev.map((p) =>
-                p.id === postId
-                    ? { ...p, liked: !p.liked, totalLikes: p.liked ? p.totalLikes - 1 : p.totalLikes + 1 }
-                    : p
-            )
-        );
-        /* Persistir en backend */
+    const manejarLikePost = useCallback(async (postId: number, reaccion?: TipoReaccion) => {
         const post = publicaciones.find((p) => p.id === postId);
-        if (post?.liked) {
+        if (reaccion) {
+            /* Reaccion especifica desde tooltip */
+            const eraPositivo = post?.reaccion === 'like' || post?.reaccion === 'encanta';
+            const esPositivo = reaccion !== 'dislike';
+            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+            setPublicaciones((prev) =>
+                prev.map((p) =>
+                    p.id === postId
+                        ? { ...p, liked: esPositivo, reaccion, totalLikes: Math.max(0, p.totalLikes + delta) }
+                        : p
+                )
+            );
+            await darLike('publicacion', postId, reaccion);
+        } else if (post?.liked || post?.reaccion) {
+            /* Quitar reaccion */
+            const eraPositivo = post?.reaccion === 'like' || post?.reaccion === 'encanta';
+            setPublicaciones((prev) =>
+                prev.map((p) =>
+                    p.id === postId
+                        ? { ...p, liked: false, reaccion: null, totalLikes: Math.max(0, p.totalLikes - (eraPositivo ? 1 : 0)) }
+                        : p
+                )
+            );
             await quitarLike('publicacion', postId);
         } else {
-            await darLike('publicacion', postId);
+            /* Like simple */
+            setPublicaciones((prev) =>
+                prev.map((p) =>
+                    p.id === postId
+                        ? { ...p, liked: true, reaccion: 'like' as const, totalLikes: p.totalLikes + 1 }
+                        : p
+                )
+            );
+            await darLike('publicacion', postId, 'like');
         }
     }, [publicaciones]);
 
@@ -232,14 +255,24 @@ const ComunidadBase = (): JSX.Element => {
 
                             {/* Acciones del post */}
                             <div className="comunidadPostAcciones">
-                                <button
-                                    className={`comunidadPostAccionBtn ${post.liked ? 'comunidadPostAccionActiva' : ''}`}
-                                    onClick={() => manejarLikePost(post.id)}
-                                    type="button"
+                                <TooltipReacciones
+                                    reaccionActual={post.reaccion}
+                                    onReaccionar={(reaccion) => manejarLikePost(post.id, reaccion)}
+                                    onQuitar={() => manejarLikePost(post.id)}
                                 >
-                                    <Heart size={16} fill={post.liked ? 'currentColor' : 'none'} />
-                                    <span>{post.totalLikes}</span>
-                                </button>
+                                    <button
+                                        className={`comunidadPostAccionBtn ${post.liked ? 'comunidadPostAccionActiva' : ''} ${
+                                            post.reaccion === 'encanta' ? 'reaccionPrincipalEncanta' :
+                                            post.reaccion === 'dislike' ? 'reaccionPrincipalDislike' :
+                                            post.reaccion === 'like' ? 'reaccionPrincipalLike' : ''
+                                        }`}
+                                        onClick={() => manejarLikePost(post.id)}
+                                        type="button"
+                                    >
+                                        <Heart size={16} fill={post.liked ? 'currentColor' : 'none'} />
+                                        <span>{post.totalLikes}</span>
+                                    </button>
+                                </TooltipReacciones>
                                 <button className="comunidadPostAccionBtn" type="button" onClick={() => alternarComentarios(post.id)}>
                                     <MessageCircle size={16} />
                                     <span>{post.totalComentarios}</span>

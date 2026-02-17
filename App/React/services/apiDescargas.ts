@@ -10,13 +10,19 @@ import type { RespuestaApi } from './apiCliente';
 
 const log = crearLogger('apiDescargas');
 
+/*
+ * C146: Campos alineados con backend DescargasController::limites()
+ * Backend envía: plan, limite, usadas, calidad, ilimitado, transferenciaGb, etc.
+ */
 export interface LimitesDescarga {
     plan: 'free' | 'pro' | 'premium';
-    descargasHoy: number;
-    limitesDiarios: number;
+    usadas: number;
+    limite: number;
     ilimitado: boolean;
-    calidadDisponible: 'mp3' | 'wav';
-    resetEn: string;
+    calidad: 'mp3' | 'wav';
+    transferenciaGb: number;
+    transferenciaUsadaGb: number;
+    transferenciaIlimitada: boolean;
 }
 
 export interface ResultadoDescarga {
@@ -53,5 +59,5 @@ export const descargarSample = async (
 export const puedeDescargar = async (): Promise<boolean> => {
     const resp = await obtenerLimites();
     if (!resp.ok || !resp.data) return false;
-    return resp.data.ilimitado || resp.data.descargasHoy < resp.data.limitesDiarios;
+    return resp.data.ilimitado || resp.data.usadas < resp.data.limite;
 };

@@ -17,6 +17,7 @@ import {SeccionPublicar} from '../../components/social/SeccionPublicar';
 import {obtenerPerfil} from '../../services/apiAuth';
 import {listarSamples} from '../../services/apiSamples';
 import {darLike, quitarLike, listarPublicacionesUsuario} from '../../services/apiSocial';
+import type {TipoReaccion} from '../../types';
 import {iniciarConversacion} from '../../services/apiMensajes';
 import {useAuthStore} from '../../stores/authStore';
 import {useTabsTopBarStore} from '../../stores/tabsTopBarStore';
@@ -209,27 +210,49 @@ export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.E
         } catch { /* sin-op */ }
     }, [usuario]);
 
-    /* Like con optimistic UI — usa callback de setState para evitar stale closure */
-    const manejarLike = useCallback(async (sampleId: number) => {
+    /* Like con optimistic UI y soporte de reacciones */
+    const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
         let estabaLiked = false;
+        let reaccionAnterior: string | null = null;
 
-        const actualizar = (lista: SampleResumen[]) =>
-            lista.map(s => {
-                if (s.id === sampleId) {
-                    estabaLiked = s.liked ?? false;
-                    return {...s, liked: !s.liked, totalLikes: s.totalLikes + (s.liked ? -1 : 1)};
-                }
-                return s;
-            });
-        setSamplesPerfil(actualizar);
-        setLikesPerfil(actualizar);
+        const encontrar = (lista: SampleResumen[]) => lista.find(s => s.id === sampleId);
+        const sampleEncontrado = encontrar(samplesPerfil) || encontrar(likesPerfil);
+        estabaLiked = sampleEncontrado?.liked ?? false;
+        reaccionAnterior = sampleEncontrado?.reaccion ?? null;
 
-        if (estabaLiked) {
+        if (reaccion) {
+            const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';
+            const esPositivo = reaccion !== 'dislike';
+            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+            const actualizar = (lista: SampleResumen[]) =>
+                lista.map(s => s.id === sampleId
+                    ? {...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta)}
+                    : s
+                );
+            setSamplesPerfil(actualizar);
+            setLikesPerfil(actualizar);
+            await darLike('sample', sampleId, reaccion);
+        } else if (estabaLiked || reaccionAnterior) {
+            const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';
+            const actualizar = (lista: SampleResumen[]) =>
+                lista.map(s => s.id === sampleId
+                    ? {...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0))}
+                    : s
+                );
+            setSamplesPerfil(actualizar);
+            setLikesPerfil(actualizar);
             await quitarLike('sample', sampleId);
         } else {
-            await darLike('sample', sampleId);
+            const actualizar = (lista: SampleResumen[]) =>
+                lista.map(s => s.id === sampleId
+                    ? {...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1}
+                    : s
+                );
+            setSamplesPerfil(actualizar);
+            setLikesPerfil(actualizar);
+            await darLike('sample', sampleId, 'like');
         }
-    }, []);
+    }, [samplesPerfil, likesPerfil]);
 
     /* Navegación al creador */
     const manejarClickCreador = useCallback(

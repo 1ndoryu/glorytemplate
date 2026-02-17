@@ -6,7 +6,7 @@
 
 import { apiGet, apiPost, apiDelete, apiPostFormData } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
-import type { Publicacion, Comentario } from '../types';
+import type { Publicacion, Comentario, TipoReaccion } from '../types';
 
 /* Follows */
 
@@ -23,16 +23,23 @@ export const obtenerMisSeguidos = async (): Promise<RespuestaApi<{ id: number }[
     return apiGet<{ id: number }[]>('/me/seguidos');
 };
 
-/* Likes */
+/* Likes / Reacciones */
 
-export const darLike = async (tipo: 'sample' | 'publicacion', targetId: number): Promise<RespuestaApi<{ liked: boolean }>> => {
+export const darLike = async (
+    tipo: 'sample' | 'publicacion',
+    targetId: number,
+    reaccion: TipoReaccion = 'like'
+): Promise<RespuestaApi<{ liked: boolean; reaccion: TipoReaccion }>> => {
     /* Backend espera snake_case: target_id */
-    return apiPost<{ liked: boolean }>(`/like`, { tipo, target_id: targetId });
+    return apiPost<{ liked: boolean; reaccion: TipoReaccion }>(`/like`, { tipo, target_id: targetId, reaccion });
 };
 
-export const quitarLike = async (tipo: 'sample' | 'publicacion', targetId: number): Promise<RespuestaApi<{ liked: boolean }>> => {
+export const quitarLike = async (
+    tipo: 'sample' | 'publicacion',
+    targetId: number
+): Promise<RespuestaApi<{ liked: boolean; reaccion: null }>> => {
     /* DELETE /like espera body con tipo y target_id (snake_case) */
-    return apiDelete<{ liked: boolean }>('/like', { tipo, target_id: targetId });
+    return apiDelete<{ liked: boolean; reaccion: null }>('/like', { tipo, target_id: targetId });
 };
 
 /* Publicaciones */
