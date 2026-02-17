@@ -107,7 +107,6 @@ export const FeedSamples = ({
     const incluirTag = useFiltrosStore(s => s.incluirTag);
     const excluirTag = useFiltrosStore(s => s.excluirTag);
     const quitarTag = useFiltrosStore(s => s.quitarTag);
-    const limpiarTags = useFiltrosStore(s => s.limpiarTags);
     const setBpmRango = useFiltrosStore(s => s.setBpmRango);
 
     /* Arrastre horizontal de tags */
@@ -141,7 +140,7 @@ export const FeedSamples = ({
         if (sample) abrirComentarios(sample);
     }, [abrirComentarios, samples]);
 
-    /* Reset al cambiar claveCache (cambio de filtros/contexto) */
+    /* Reset al cambiar claveCache (cambio de contexto: ordenamiento/periodo, NO filtros client-side) */
     useEffect(() => {
         if (claveCacheAnteriorRef.current !== claveCache) {
             claveCacheAnteriorRef.current = claveCache;
@@ -149,9 +148,9 @@ export const FeedSamples = ({
             setPaginaActual(1);
             setHayMasPaginas(true);
             setIndiceInicio(0);
-            limpiarTags();
+            /* No limpiar tags/búsqueda — son filtros client-side independientes del cache */
         }
-    }, [claveCache, limpiarTags]);
+    }, [claveCache]);
 
     /* Guard contra race conditions: descarta respuestas de requests anteriores (C46) */
     const requestIdRef = useRef(0);

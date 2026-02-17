@@ -7,7 +7,7 @@
  * 1. Similitud de contenido (0.25) — pgvector coseno sobre embeddings 128d
  * 2. Comportamiento (0.25) — 5 sub-factores ponderados: likes, reproducciones,
  *    tiempo_escucha, descargas, completadas
- * 3. Contexto (0.15) — BPM proximidad, key match, género match, tipo match
+ * 3. Contexto (0.15) — BPM proximidad, key match, género/metadata match, tipo match, creador afín
  * 4. Tendencias (0.15) — engagement velocity multi-ventana (24h/7d/30d)
  * 5. Grafo social (0.10) — samples de seguidos + likes de seguidos
  * 6. Novedad (0.10) — boost logarítmico
@@ -36,6 +36,45 @@ class MotorRecomendacion
     private static ?bool $pgvectorDisponible = null;
     private const CACHE_TTL = 300; /* 5 minutos */
     private const CACHE_PREFIX = 'kamples_feed_';
+
+    /**
+     * SQL que genera un array enriquecido con tags + metadata IA (genero, instrumentos, emocion).
+     * Uso: reemplazar `s.tags` por `({alias}_enriquecido)` y `UNNEST(s.tags)` por `UNNEST({alias}_enriquecido)`.
+     * Alias del sample debe ser el proporcionado (ej: 's', 's2').
+     */
+    private static function sqlTagsEnriquecidos(string $alias): string
+    {
+        return "(
+            COALESCE({$alias}.tags, ARRAY[]::text[])
+            || COALESCE(
+                CASE
+                    WHEN jsonb_typeof({$alias}.metadata->'genero') = 'array'
+                    THEN ARRAY(SELECT jsonb_array_elements_text({$alias}.metadata->'genero'))
+                    WHEN {$alias}.metadata->>'genero' IS NOT NULL AND {$alias}.metadata->>'genero' != ''
+                    THEN ARRAY[{$alias}.metadata->>'genero']
+                    ELSE ARRAY[]::text[]
+                END, ARRAY[]::text[]
+            )
+            || COALESCE(
+                CASE
+                    WHEN jsonb_typeof({$alias}.metadata->'instrumentos') = 'array'
+                    THEN ARRAY(SELECT jsonb_array_elements_text({$alias}.metadata->'instrumentos'))
+                    WHEN {$alias}.metadata->>'instrumentos' IS NOT NULL AND {$alias}.metadata->>'instrumentos' != ''
+                    THEN ARRAY[{$alias}.metadata->>'instrumentos']
+                    ELSE ARRAY[]::text[]
+                END, ARRAY[]::text[]
+            )
+            || COALESCE(
+                CASE
+                    WHEN jsonb_typeof({$alias}.metadata->'emocion') = 'array'
+                    THEN ARRAY(SELECT jsonb_array_elements_text({$alias}.metadata->'emocion'))
+                    WHEN {$alias}.metadata->>'emocion' IS NOT NULL AND {$alias}.metadata->>'emocion' != ''
+                    THEN ARRAY[{$alias}.metadata->>'emocion']
+                    ELSE ARRAY[]::text[]
+                END, ARRAY[]::text[]
+            )
+        )";
+    }
 
     /**
      * Carga los pesos desde el archivo de configuración.
@@ -330,13 +369,50 @@ class MotorRecomendacion
             'bpmProm' => (int) ($bpmPref['bpm_prom'] ?? 0),
             'keyFav' => $keyPref['key_fav'] ?? null,
             'tipoFav' => $tipoPref['tipo_fav'] ?? null,
+            'creadoresFav' => self::obtenerCreadoresFavoritos($userId),
         ];
+    }
+
+    /**
+     * Obtiene los top 5 creadores con más interacciones positivas del usuario.
+     * Combina likes (encanta=2, like=1) + reproducciones + descargas.
+     */
+    private static function obtenerCreadoresFavoritos(int $userId): array
+    {
+        $resultado = PostgresService::consultar(
+            "SELECT creador_id, SUM(score) as afinidad FROM (
+                SELECT s.creador_id,
+                       CASE WHEN l.reaccion = 'encanta' THEN 2.0 ELSE 1.0 END as score
+                FROM likes l
+                JOIN samples s ON l.target_id = s.id
+                WHERE l.usuario_id = :userId AND l.tipo = 'sample' AND l.reaccion IN ('like', 'encanta')
+                UNION ALL
+                SELECT s.creador_id, 0.5 as score
+                FROM reproducciones r
+                JOIN samples s ON r.sample_id = s.id
+                WHERE r.usuario_id = :userId
+                UNION ALL
+                SELECT s.creador_id, 1.5 as score
+                FROM descargas d
+                JOIN samples s ON d.sample_id = s.id
+                WHERE d.usuario_id = :userId
+            ) interacciones
+            WHERE creador_id != :userId
+            GROUP BY creador_id
+            HAVING SUM(score) >= 2
+            ORDER BY afinidad DESC
+            LIMIT 5",
+            ['userId' => $userId]
+        );
+
+        return array_column($resultado, 'creador_id');
     }
 
     /**
      * Señal de Comportamiento (0.25) — 5 sub-factores ponderados.
      * likes_dados (0.30), reproducciones (0.25), tiempo_escucha (0.20),
      * descargas (0.15), completadas (0.10).
+     * C148: Usa tags enriquecidos (tags + metadata IA: genero, instrumentos, emocion).
      */
     private static function sqlComportamiento(int $userId, float $peso, array $config, array &$params): string
     {
@@ -347,77 +423,84 @@ class MotorRecomendacion
         $pesoDescargas = $detalle['descargas'] ?? 0.15;
         $pesoCompletadas = $detalle['completadas'] ?? 0.10;
 
+        /* Tags enriquecidos: tags del usuario + metadata IA (genero, instrumentos, emocion) */
+        $tagsCandidato = self::sqlTagsEnriquecidos('s');
+        $tagsLiked = self::sqlTagsEnriquecidos('s2');
+        $tagsRepro = self::sqlTagsEnriquecidos('s3');
+        $tagsTiempo = self::sqlTagsEnriquecidos('s4');
+        $tagsDescargas = self::sqlTagsEnriquecidos('s5');
+        $tagsCompletadas = self::sqlTagsEnriquecidos('s6');
+
         /*
          * Sub-factor 1: Afinidad por tags de samples likeados (0.30)
          * Cuenta tags en comun ponderados: encanta=2, like=1, dislike excluido.
          */
         $likesTag = "COALESCE((
-            SELECT SUM(liked_tags.peso)::float / GREATEST(1, array_length(s.tags, 1))
+            SELECT SUM(liked_tags.peso)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
-                SELECT UNNEST(s2.tags) as tag,
+                SELECT UNNEST({$tagsLiked}) as tag,
                        CASE WHEN l.reaccion = 'encanta' THEN 2 ELSE 1 END as peso
                 FROM likes l
                 JOIN samples s2 ON l.target_id = s2.id
                 WHERE l.usuario_id = :userId AND l.tipo = 'sample' AND l.reaccion IN ('like', 'encanta')
             ) liked_tags
-            WHERE liked_tags.tag = ANY(s.tags)
+            WHERE liked_tags.tag = ANY({$tagsCandidato})
         ), 0)";
 
         /*
          * Sub-factor 2: Afinidad por tags de samples reproducidos (0.25)
          */
         $reproTag = "COALESCE((
-            SELECT COUNT(*)::float / GREATEST(1, array_length(s.tags, 1))
+            SELECT COUNT(*)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
-                SELECT UNNEST(s3.tags) as tag
+                SELECT UNNEST({$tagsRepro}) as tag
                 FROM reproducciones r
                 JOIN samples s3 ON r.sample_id = s3.id
                 WHERE r.usuario_id = :userId
             ) repro_tags
-            WHERE repro_tags.tag = ANY(s.tags)
+            WHERE repro_tags.tag = ANY({$tagsCandidato})
         ), 0)";
 
         /*
          * Sub-factor 3: Afinidad calculada por tiempo total escuchado (0.20)
-         * Normalizado: si escuchó mucho tiempo samples con tags similares.
          */
         $tiempoTag = "COALESCE((
-            SELECT COUNT(*)::float / GREATEST(1, array_length(s.tags, 1))
+            SELECT COUNT(*)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
-                SELECT UNNEST(s4.tags) as tag
+                SELECT UNNEST({$tagsTiempo}) as tag
                 FROM reproducciones r2
                 JOIN samples s4 ON r2.sample_id = s4.id
                 WHERE r2.usuario_id = :userId AND r2.duracion_escuchada > 10
             ) tiempo_tags
-            WHERE tiempo_tags.tag = ANY(s.tags)
+            WHERE tiempo_tags.tag = ANY({$tagsCandidato})
         ), 0)";
 
         /*
          * Sub-factor 4: Afinidad por tags de samples descargados (0.15)
          */
         $descargaTag = "COALESCE((
-            SELECT COUNT(*)::float / GREATEST(1, array_length(s.tags, 1))
+            SELECT COUNT(*)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
-                SELECT UNNEST(s5.tags) as tag
+                SELECT UNNEST({$tagsDescargas}) as tag
                 FROM descargas d
                 JOIN samples s5 ON d.sample_id = s5.id
                 WHERE d.usuario_id = :userId
             ) desc_tags
-            WHERE desc_tags.tag = ANY(s.tags)
+            WHERE desc_tags.tag = ANY({$tagsCandidato})
         ), 0)";
 
         /*
          * Sub-factor 5: Afinidad por reproducciones completadas (0.10)
          */
         $completadasTag = "COALESCE((
-            SELECT COUNT(*)::float / GREATEST(1, array_length(s.tags, 1))
+            SELECT COUNT(*)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
-                SELECT UNNEST(s6.tags) as tag
+                SELECT UNNEST({$tagsCompletadas}) as tag
                 FROM reproducciones r3
                 JOIN samples s6 ON r3.sample_id = s6.id
                 WHERE r3.usuario_id = :userId AND r3.completa = true
             ) comp_tags
-            WHERE comp_tags.tag = ANY(s.tags)
+            WHERE comp_tags.tag = ANY({$tagsCandidato})
         ), 0)";
 
         return "({$peso} * (
@@ -430,17 +513,24 @@ class MotorRecomendacion
     }
 
     /**
-     * Señal de Contexto (0.15) — BPM proximidad, key match, género match, tipo match.
-     * Compara las preferencias del usuario con los atributos del sample candidato.
+     * Señal de Contexto (0.15) — BPM, key, metadata match, tipo, afinidad creador.
+     * C148: Pesos rebalanceados: metadata/creador > BPM/key.
+     * Compara preferencias del usuario con atributos del candidato.
      */
     private static function sqlContexto(int $userId, float $peso, array $perfilUsuario, array $config, array &$params): string
     {
         $detalle = $config['contexto_detalle'] ?? [];
-        $pesoBpm = $detalle['bpm_proximidad'] ?? 0.35;
-        $pesoKey = $detalle['key_match'] ?? 0.30;
-        $pesoGenero = $detalle['genero_match'] ?? 0.20;
-        $pesoTipo = $detalle['tipo_match'] ?? 0.15;
+        /* C148: BPM/key reducidos, metadata y creador aumentados */
+        $pesoBpm = $detalle['bpm_proximidad'] ?? 0.15;
+        $pesoKey = $detalle['key_match'] ?? 0.10;
+        $pesoGenero = $detalle['genero_match'] ?? 0.30;
+        $pesoTipo = $detalle['tipo_match'] ?? 0.10;
+        $pesoCreador = $detalle['creador_afin'] ?? 0.35;
         $toleranciaBpm = $config['parametros']['bpm_tolerancia'] ?? 15;
+
+        /* Tags enriquecidos del candidato */
+        $tagsCandidato = self::sqlTagsEnriquecidos('s');
+        $tagsInner = self::sqlTagsEnriquecidos('s_inner');
 
         /* BPM proximidad al promedio del usuario */
         $bpmProm = $perfilUsuario['bpmProm'] ?? 0;
@@ -457,18 +547,18 @@ class MotorRecomendacion
             $keyScore = "0.5";
         }
 
-        /* Genero match: tags del sample coinciden con los tags mas frecuentes del usuario (excluye dislikes) */
+        /* Genero/metadata match: tags enriquecidos del candidato vs top tags enriquecidos del usuario (excluye dislikes) */
         $generoScore = "COALESCE((
-            SELECT COUNT(*)::float / GREATEST(1, array_length(s.tags, 1))
+            SELECT COUNT(*)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
                 SELECT tag, COUNT(*) as freq FROM (
-                    SELECT UNNEST(s_inner.tags) as tag
+                    SELECT UNNEST({$tagsInner}) as tag
                     FROM likes l_inner
                     JOIN samples s_inner ON l_inner.target_id = s_inner.id
                     WHERE l_inner.usuario_id = :userId AND l_inner.tipo = 'sample' AND l_inner.reaccion IN ('like', 'encanta')
-                ) t GROUP BY tag ORDER BY freq DESC LIMIT 5
+                ) t GROUP BY tag ORDER BY freq DESC LIMIT 8
             ) top_tags
-            WHERE top_tags.tag = ANY(s.tags)
+            WHERE top_tags.tag = ANY({$tagsCandidato})
         ), 0)";
 
         /* Tipo match: coincide con el tipo favorito del usuario */
@@ -480,11 +570,27 @@ class MotorRecomendacion
             $tipoScore = "0.5";
         }
 
+        /* C148: Afinidad de creador — boost si el creador es uno de los favoritos del usuario */
+        $creadoresFav = $perfilUsuario['creadoresFav'] ?? [];
+        if (!empty($creadoresFav)) {
+            $placeholders = [];
+            foreach ($creadoresFav as $i => $cId) {
+                $key = "creadorFav{$i}";
+                $params[$key] = $cId;
+                $placeholders[] = ":{$key}";
+            }
+            $listaCreadores = implode(', ', $placeholders);
+            $creadorScore = "CASE WHEN s.creador_id IN ({$listaCreadores}) THEN 1 ELSE 0 END";
+        } else {
+            $creadorScore = "0";
+        }
+
         return "({$peso} * (
             {$pesoBpm} * {$bpmScore} +
             {$pesoKey} * {$keyScore} +
             {$pesoGenero} * {$generoScore} +
-            {$pesoTipo} * {$tipoScore}
+            {$pesoTipo} * {$tipoScore} +
+            {$pesoCreador} * {$creadorScore}
         ))";
     }
 

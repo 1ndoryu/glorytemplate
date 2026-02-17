@@ -136,7 +136,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
             {badges.length > 0 && (
                 <div className="panelDetalleTags">
                     {badges.map(b => (
-                        <Badge key={b} variante="neutro" tamano="xs">{b}</Badge>
+                        <Badge key={b} variante="neutro" tamano="xs" className=''>{b}</Badge>
                     ))}
                 </div>
             )}

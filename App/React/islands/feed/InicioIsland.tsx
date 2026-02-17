@@ -91,8 +91,8 @@ const FeedUnificado = (): JSX.Element => {
         return resp.ok && resp.data ? resp.data : [];
     }, [ordenamiento]);
 
-    /* Clave de cache para invalidar al cambiar filtros */
-    const claveCache = `${ordenamiento}_${busqueda || ''}_${periodoDestacados}`;
+    /* Clave de cache para invalidar al cambiar contexto (NO incluir busqueda — es filtro client-side) */
+    const claveCache = `${ordenamiento}_${periodoDestacados}`;
 
     const obtenerEtiquetaOrden = useCallback((): string => {
         if (ordenamiento === 'destacados') {

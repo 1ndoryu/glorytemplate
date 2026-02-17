@@ -5,11 +5,12 @@
  */
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play } from 'lucide-react';
+import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, MoreHorizontal, Link2, Trash2, Flag } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
+import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { obtenerColeccion, obtenerSugerencias, descargarColeccionZip } from '@app/services/apiColecciones';
 import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
@@ -158,6 +159,68 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
             .map(([tag]) => tag.charAt(0).toUpperCase() + tag.slice(1));
     }, [samples]);
 
+    /* C127: Menú contextual de la colección */
+    const [menuColeccion, setMenuColeccion] = useState<{ abierto: boolean; x: number; y: number }>({
+        abierto: false, x: 0, y: 0
+    });
+
+    const abrirMenuColeccion = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setMenuColeccion({ abierto: true, x: e.clientX, y: e.clientY });
+    }, []);
+
+    const cerrarMenuColeccion = useCallback(() => {
+        setMenuColeccion(prev => ({ ...prev, abierto: false }));
+    }, []);
+
+    const itemsMenuColeccion = useMemo(() => {
+        if (!coleccion) return [];
+        const esPropietario = usuario?.id !== undefined && String(coleccion.usuarioId) === String(usuario.id);
+        const esAdmin = usuario?.rol === 'admin';
+        const items: { id: string; etiqueta: string; icono: JSX.Element; onClick: () => void; peligro?: boolean; separadorDespues?: boolean }[] = [];
+
+        items.push({
+            id: 'copiar-enlace',
+            etiqueta: 'Copiar enlace',
+            icono: <Link2 size={16} />,
+            separadorDespues: true,
+            onClick: () => {
+                navigator.clipboard.writeText(`${window.location.origin}/coleccion/${coleccion.id}/`);
+                toast.exito('Enlace copiado');
+                cerrarMenuColeccion();
+            }
+        });
+
+        if (esPropietario || esAdmin) {
+            items.push({
+                id: 'eliminar',
+                etiqueta: 'Eliminar colección',
+                icono: <Trash2 size={16} />,
+                peligro: true,
+                onClick: () => {
+                    toast.confirmar('¿Eliminar esta colección?', async () => {
+                        const { apiDelete } = await import('@app/services/apiCliente');
+                        const resp = await apiDelete(`/colecciones/${coleccion.id}`);
+                        if (resp.ok) {
+                            toast.exito('Colección eliminada');
+                            navegar('/libreria/');
+                        }
+                    });
+                    cerrarMenuColeccion();
+                }
+            });
+        }
+
+        items.push({
+            id: 'reportar',
+            etiqueta: 'Reportar',
+            icono: <Flag size={16} />,
+            onClick: () => { cerrarMenuColeccion(); }
+        });
+
+        return items;
+    }, [coleccion, usuario, navegar, cerrarMenuColeccion]);
+
     if (cargando) {
         return (
             <div className="coleccionDetalle" id="coleccionDetalle">
@@ -262,6 +325,15 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                             <Play size={16} />
                             <span>Preview</span>
                         </button>
+                        {/* C127: Menú 3 puntos */}
+                        <button
+                            className="coleccionAccionBtn"
+                            type="button"
+                            title="Más opciones"
+                            onClick={abrirMenuColeccion}
+                        >
+                            <MoreHorizontal size={16} />
+                        </button>
                     </div>
                 </div>
             </div>
@@ -290,6 +362,15 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                     mensajeVacio="No hay sugerencias disponibles para esta colección."
                 />
             )}
+
+            {/* C127: MenuContextual de la colección */}
+            <MenuContextual
+                abierto={menuColeccion.abierto}
+                onCerrar={cerrarMenuColeccion}
+                items={itemsMenuColeccion}
+                x={menuColeccion.x}
+                y={menuColeccion.y}
+            />
         </div>
     );
 };

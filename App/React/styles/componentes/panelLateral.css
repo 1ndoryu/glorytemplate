@@ -102,7 +102,6 @@
     align-items: center;
     gap: var(--espacioSm);
     padding-top: var(--espacioXs);
-    border-top: 1px solid var(--bordeSutil);
 }
 
 .panelDetalleSubtitulo {
@@ -116,12 +115,10 @@
 
 .panelDetalleComentarios {
     padding-top: var(--espacioMd);
-    border-top: 1px solid var(--bordeSutil);
 }
 
 .panelDetalleSimilares {
     padding-top: var(--espacioMd);
-    border-top: 1px solid var(--bordeSutil);
 }
 
 .panelDetalleSimilaresLista {
@@ -133,6 +130,7 @@
 /* tarjeta compacta dentro del panel */
 .panelDetalleTarjetaMini {
     font-size: var(--fuenteXs);
+    padding: unset;
 }
 
 /* --- PanelSugerencias --- */

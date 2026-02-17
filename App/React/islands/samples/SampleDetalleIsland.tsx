@@ -13,6 +13,7 @@ import {
     AlertCircle,
     Crown,
     Lock,
+    MoreHorizontal,
 } from 'lucide-react';
 import {
     Badge,
@@ -65,11 +66,11 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     const rutaActual = useNavigationStore((s) => s.rutaActual);
     const menu = useMenuContextualSample();
     const { abrir: abrirPlanes } = usePlanesModalStore();
-    const [comentariosVisibles, setComentariosVisibles] = useState(false);
+    const [comentariosVisibles, setComentariosVisibles] = useState(true);
     const seccionComentarios = useComentarios({
         tipo: 'sample',
         targetId: sample?.id ?? 0,
-        cargarAlAbrir: false,
+        cargarAlAbrir: true,
     });
 
     /*
@@ -548,11 +549,21 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                                 <Lock size={18} />
                             </button>
                         )}
+
+                        {/* C127: Menú de 3 puntos para el sample principal */}
+                        <button
+                            className="detalleAccionPlano"
+                            onClick={(e) => menu.abrirMenu(e as unknown as MouseEvent, sample as unknown as SampleResumen)}
+                            type="button"
+                            aria-label="Más opciones"
+                        >
+                            <MoreHorizontal size={18} />
+                        </button>
                     </div>
 
                 </div>
 
-                {/* Sección de comentarios debajo de detallePieFlex */}
+                {/* Sección de comentarios — expandidos por defecto (C128) */}
                 {comentariosVisibles && (
                     <div className="detalleSeccion detalleComentariosSeccion">
                         <ListaComentarios
@@ -565,25 +576,25 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                     </div>
                 )}
 
-                <div className="detalleInfo">
-                    {similares.length > 0 && (
-                        <div className="detalleSeccion">
-                            <h2 className="detalleSeccionTitulo">Samples similares</h2>
-                            <div className="detalleSimilares">
-                                {similares.map((s) => (
-                                    <TarjetaSample
-                                        key={s.id}
-                                        sample={s}
-                                        onLike={manejarLikeSimilar}
-                                        onMenu={menu.abrirMenu}
-                                        onClickCreador={(u) => navegar(`/perfil/${u}/`)}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
             </article>
+
+            {/* C128: Samples similares en sección separada fuera de la tarjeta principal */}
+            {similares.length > 0 && (
+                <div className="detalleSeccion detalleSimilaresSeccion">
+                    <h2 className="detalleSeccionTitulo">Samples similares</h2>
+                    <div className="detalleSimilares">
+                        {similares.map((s) => (
+                            <TarjetaSample
+                                key={s.id}
+                                sample={s}
+                                onLike={manejarLikeSimilar}
+                                onMenu={menu.abrirMenu}
+                                onClickCreador={(u) => navegar(`/perfil/${u}/`)}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <MenuContextual
                 abierto={menu.estado.abierto}

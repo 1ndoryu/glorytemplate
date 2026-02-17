@@ -76,10 +76,32 @@
     border-color: var(--bordeActivo);
 }
 
-/* Header del post: avatar + nombre + tiempo */
+/* Header del post: avatar + nombre + tiempo + menú */
 .comunidadPostHeader {
     display: flex;
     align-items: flex-start;
+    justify-content: space-between;
+}
+
+/* C127: Botón menú 3 puntos en post */
+.comunidadPostMenuBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--textoSecundario);
+    padding: var(--espacioXs);
+    border-radius: var(--radioSm);
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+}
+
+.comunidadPost:hover .comunidadPostMenuBtn {
+    opacity: 1;
+}
+
+.comunidadPostMenuBtn:hover {
+    color: var(--textoBase);
+    background: var(--fondoHover);
 }
 
 .comunidadPostAutor {

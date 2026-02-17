@@ -126,6 +126,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R30:** Compactación roadmap — C85-C134 resueltos a tabla, R9-R29 compactos, comentarios pendientes limpiados.
 **R31:** C125 texto botones colección, C135 panel lateral sugerencias (no modal), C124 SeccionPublicar=ModalCrear refactor (useCrearContenido+ContenidoCrear compartido).
 **R32:** C137 ocultar guardar colección propia, C139 normalizador snake→camelCase colecciones, C141 TarjetaColeccion menú 3 puntos, C142 fix sugerencias double-unwrap (apiGet ya desenvuelve json.data).
+**R33:** C143 CSS seccionPublicar rebuild, C146 créditos NaN/undefined fix (TopBar+useDescargas+apiDescargas), C138 descargas propias gratis (DescargasController: samples propios o ya descargados no consumen crédito), C144+C145 sistema de reacciones completo: migración v012 (columna reaccion VARCHAR(20) DEFAULT 'like'), SocialController UPSERT, NormalizadorSample+PublicacionesController reaccion_usuario, MotorRecomendacion 7 queries (encanta=2x, dislike=-1 en trends, excluido en perfil/behavior), TooltipReacciones.tsx+CSS (hover tooltip con 3 iconos), BotonLike rewrite, 8 islands actualizadas con 3-branch manejarLike, TipoReaccion type.
 
 ---
 
@@ -452,11 +453,16 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | 135 | Panel lateral sugerencias (no modal)                 | ✅ FeedSamples usa panelLateralStore.abrirSugerencias en vez de sugerenciasLikeStore modal |
 | 136 | todosLosTags undefined error                         | ✅ Build viejo cacheado. Variable no existe en código fuente actual |
 | 137 | Guardar en colección propia no mostrarlo             | ✅ ColeccionDetalleIsland: oculta botón guardar si coleccion.usuarioId === usuario.id |
-| 138 | Descargas sin crédito samples propios                | Pendiente |
+| 138 | Descargas sin crédito samples propios                | ✅ DescargasController: skip crédito si esPropietario o yaDescargado |
 | 139 | Contador samples colecciones                         | ✅ normalizarColeccion() snake→camelCase en apiColecciones.ts (total_items→totalSamples) |
-| 140 | Separar descargas/favoritos en páginas propias       | Pendiente |
+| 140 | Separar descargas/favoritos en páginas propias       | Pendiente                                                                                                                                                                                                               |
 | 141 | TarjetaColeccion menú 3 puntos                       | ✅ Botón MoreVertical esquina superior derecha + dropdown Editar/Eliminar. Auto-contraste rgba+blur |
 | 142 | Sugerencias siempre vacías                           | ✅ Double-unwrap: apiGet ya extrae json.data, tipo era RespuestaApi<{data:T}> → corregido a RespuestaApi<T>. Corregido en apiReproduciones+PanelSugerencias+sugerenciasLikeStore+PanelDetalleSample |
+| 143 | crearContenido CSS roto                              | ✅ seccionPublicar.css rebuild — solo wrapper `.seccionPublicar` (13 líneas) |
+| 144 | Dislike + algoritmo publicaciones                    | ✅ Sistema reacciones completo: v012 migración, SocialController UPSERT, MotorRecomendacion 7 queries, TooltipReacciones hover 3 iconos |
+| 145 | Me encanta + dislike en samples                      | ✅ BotonLike rewrite, TipoReaccion type, 8 islands con 3-branch manejarLike, TooltipReacciones.tsx+CSS |
+| 146 | Créditos NaN/undefined                               | ✅ apiDescargas LimitesDescarga match backend (usadas/limite), TopBar+useDescargas actualizados |
+| 147 | v012 mensaje visible                                 | ✅ Arreglado por usuario |
 
 ---
 
@@ -475,13 +481,17 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 133. Las paginas no deberían volver a cargarse cuando cambio de pagina, o sea si la pagian ya estaba cargada, despues vuelvo abrirla, no debe recargarse, ni la lista samples ni nada, todo debe cargarse una sola vez.
 138. Asegurarse de que las descargas no cobren creditos para cuando se descargue un sample propio que se subio o que se descargo antes.
 140. Separar descargas y favoritos en paginas propias, tambien hay ponerles coleccionHeader, y que tengan sus tab de "mas ideas", deben funcionar como colecciones especiales, el algoritmo de más ideas debe funcionar par recomendar samples basados en las descargas y los favoritos, esto significa las tabs descargas y favoritos porque ahora son paginas individuales. La tab de "Colecciones" debería ser "mis colecciones"
-143. crearContenido se ve mal como si lo estilos no cargaran, restaure los css que borraste por si acaso, pero se ve mal simplemente.
-144 (primero 146). Se que el algoritmo no esta preparado para las publicaciones de comunidad, pero, las publicaciones alli deberían tambien tener un algoritmo eficiente y bueno como el de facebook o twitter, no tengo idea de como funcionan o que los hace adictivo, he visto que el reddit es bueno, asi que para parecernos mas a reddit, agreguemos el boton de dislike, pero los dislike no deben tener contador ni su contador debe ser publico.
-145. Los dislike ahora deberían tambien funcionar en los samples, y un nuevo boton de "Me encanta" en la lista de sample, esta forma debe de verse, los botones de me encanta y dislike, deben aparecer como un tooltip al hacer hover sobre el boton like, en donde sea que haya un boton de like, debe ser asi, ahora que existe el boton de dislike y me encanta, el algoritmo debe tenerlos en cuenta porque es información util para pulir las recomendaciones.
-146. Los creditos en el menu contextual salen asi Créditos: NaN/undefined
-147. Arriba del header aparece "v012 ejecutada correctamente", no deberia. (ya lo arregle por mi cuenta)
 148. Revisar el algoritmo, que este tomando en cuenta los tags de instrumento, sentimiento, genero, etc, los aspecto tecnicos como bpm o tono no importan tanto, que este tomando en cuenta el usuario que lo publico, si un usuario siempre le gusta los samples de un creador especifico entonces probablemente le guste los demas.
 149. Los feedTags dejaron de funcionar, ahora simplemente recargan la lista de sample en vez filtrar o actualizar el input de busqueda como lo habiamos planificado, la busqueda tampoco funciona, ingreso algo, recarga la lista y se borra la busqueda.
+150. Cuando intento dar me encanta o dislike el hover se desactiva impidiendendo la acción.
+151. El sample en panelLateral no se reproduce, la waveform alli debería funcionar también.
+152. Haz una variante de badge con borde, y que los badge de panelDetalleTags tengan borde (--bordeSutil)
+153. En tarjetaSample panelDetalleTarjetaMini Hay que dejar solo el nombre, y abajo los tagas, quitar la wave, y el icono de 3 puntos. Por cierto en panelDetalleTarjetaMini no funcionan los 3 puntos. Seguir poder reproduciendo a dar click a la portada.
+154. No usar botones de variante ghost en panelDetalleAcciones, mejor con bordes (--bordeSutil), mejor los comentarios por defecto oculto al menos que se haya abierto el panel dando directamente el boton de comentar.
+155. Agregar una configuracion de preferencia el modal de configuracion para desactivar que el panel lateral no se abra cuando se da like a un sample, por defecto encendido.
+156. Quita "También te podría gustar" debajo de los detalles del sample, solo ver "También te podría gustar" cuando se da like si la opcion esta activa. Tambien, poder abrir "También te podría gustar" con un boton el menu contextual de 3 puntos.
+157. Cuando un sample ya este descargado, el boton de descarga tiene que estar de color acento.
+158. remplazar la X de panelDetalleCerrar por un icono mas acorde.
 
 
 ---
@@ -513,3 +523,6 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [C135 Sugerencias]: FeedSamples usaba sugerenciasLikeStore (modal) en vez de panelLateralStore.abrirSugerencias (panel lateral). PanelSugerencias.tsx y PanelLateral.tsx ya existían, solo faltaba conectar el trigger.
 - [useArchivosDragDrop]: Spread `...archivos` en return del hook colisiona con `resetear` propio. Listar props explícitamente para evitar override silencioso.
 - [C142 apiCliente]: `apiGet` ya hace `json.data ?? json` → si backend envía `{data: [...]}`, `resp.data` ya es el array. Tipear como `RespuestaApi<T[]>`, NO `RespuestaApi<{data: T[]}>`. Error: double-unwrap silencioso donde `resp.data?.data` era siempre `undefined`.
+- [C144/C145 Reacciones]: UPSERT con ON CONFLICT DO UPDATE SET reaccion. total_likes solo cuenta 'like'+'encanta' (no dislike). Algoritmo: encanta=2x, like=1x, dislike=-1 solo en trends, excluido en profile/behavior. Frontend: TooltipReacciones hover con 3 iconos, 3-branch manejarLike (reaccion/quitar/simple). Delta calc: solo like+encanta suman a totalLikes.
+- [C146 Créditos]: Backend devuelve `usadas`/`limite`, frontend esperaba `credits_used`/`credits_limit`. Siempre verificar nombres de campos entre backend y frontend.
+- [C138 Descargas]: DescargasController necesita 3 checks: esPropietario (creador_id), yaDescargado (EXISTS en descargas), consumeCredito (solo si no es propietario ni ya descargado).

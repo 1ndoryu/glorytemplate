@@ -5,22 +5,26 @@
  * Ruta: /comunidad
  */
 
-import { useEffect, useState, useCallback } from 'react';
-import { Heart, MessageCircle, Repeat2, Users, TrendingUp, Clock } from 'lucide-react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Heart, MessageCircle, Repeat2, Users, TrendingUp, Clock, MoreHorizontal, Link2, Trash2, Flag, User } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
+import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useAuthStore } from '@app/stores/authStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useComentarios } from '@app/hooks/useComentarios';
-import { apiGet } from '@app/services/apiCliente';
+import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
+import { apiGet, apiDelete } from '@app/services/apiCliente';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { TipoReaccion } from '@app/types';
 import type { Publicacion } from '@app/types';
+import { toast } from '@app/stores/toastStore';
 import '../../styles/componentes/comunidad.css';
 
 type FiltroComunidad = 'todos' | 'siguiendo' | 'populares';
@@ -66,6 +70,82 @@ const ComunidadBase = (): JSX.Element => {
     const [comentariosAbiertos, setComentariosAbiertos] = useState<Set<number>>(new Set());
     const { navegar } = useNavigationStore();
     const { setTabs } = useTabsTopBarStore();
+    const { usuario } = useAuthStore();
+
+    /* C127: Menú contextual de samples adjuntos */
+    const menuSample = useMenuContextualSample();
+
+    /* C127: Menú contextual de publicaciones */
+    const [menuPost, setMenuPost] = useState<{ abierto: boolean; x: number; y: number; post: Publicacion | null }>({
+        abierto: false, x: 0, y: 0, post: null
+    });
+
+    const abrirMenuPost = useCallback((e: React.MouseEvent, post: Publicacion) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setMenuPost({ abierto: true, x: e.clientX, y: e.clientY, post });
+    }, []);
+
+    const cerrarMenuPost = useCallback(() => {
+        setMenuPost(prev => ({ ...prev, abierto: false }));
+    }, []);
+
+    const itemsMenuPost = useMemo(() => {
+        const post = menuPost.post;
+        if (!post) return [];
+
+        const esPropietario = usuario?.id !== undefined && String(post.autor.id) === String(usuario.id);
+        const esAdmin = usuario?.rol === 'admin';
+        const items: { id: string; etiqueta: string; icono: JSX.Element; onClick: () => void; peligro?: boolean; separadorDespues?: boolean; href?: string }[] = [];
+
+        items.push({
+            id: 'ver-perfil',
+            etiqueta: `Ir a @${post.autor.username}`,
+            icono: <User size={16} />,
+            href: `/perfil/${post.autor.username}/`,
+            onClick: () => { navegar(`/perfil/${post.autor.username}/`); cerrarMenuPost(); }
+        });
+
+        items.push({
+            id: 'copiar-enlace',
+            etiqueta: 'Copiar enlace',
+            icono: <Link2 size={16} />,
+            separadorDespues: true,
+            onClick: () => {
+                navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}/`);
+                toast.exito('Enlace copiado');
+                cerrarMenuPost();
+            }
+        });
+
+        if (esPropietario || esAdmin) {
+            items.push({
+                id: 'eliminar',
+                etiqueta: 'Eliminar publicación',
+                icono: <Trash2 size={16} />,
+                peligro: true,
+                onClick: () => {
+                    toast.confirmar(`¿Eliminar esta publicación?`, async () => {
+                        const resp = await apiDelete(`/publicaciones/${post.id}`);
+                        if (resp.ok) {
+                            setPublicaciones(prev => prev.filter(p => p.id !== post.id));
+                            toast.exito('Publicación eliminada');
+                        }
+                    });
+                    cerrarMenuPost();
+                }
+            });
+        }
+
+        items.push({
+            id: 'reportar',
+            etiqueta: 'Reportar',
+            icono: <Flag size={16} />,
+            onClick: () => { cerrarMenuPost(); /* TO-DO: sistema de reportes */ }
+        });
+
+        return items;
+    }, [menuPost.post, usuario, navegar, cerrarMenuPost]);
 
     /* Registrar tab "Comunidad" en TopBar */
     useEffect(() => {
@@ -226,6 +306,15 @@ const ComunidadBase = (): JSX.Element => {
                                         </span>
                                     </div>
                                 </button>
+                                {/* C127: Botón menú 3 puntos */}
+                                <button
+                                    className="comunidadPostMenuBtn"
+                                    onClick={(e) => abrirMenuPost(e, post)}
+                                    type="button"
+                                    aria-label="Más opciones"
+                                >
+                                    <MoreHorizontal size={18} />
+                                </button>
                             </div>
 
                             {/* Contenido del post */}
@@ -248,6 +337,7 @@ const ComunidadBase = (): JSX.Element => {
                                             key={sample.id}
                                             sample={sample}
                                             onClickCreador={(u) => navegar(`/perfil/${u}/`)}
+                                            onMenu={menuSample.abrirMenu}
                                         />
                                     ))}
                                 </div>
@@ -295,6 +385,24 @@ const ComunidadBase = (): JSX.Element => {
                     ))
                 )}
             </div>
+
+            {/* C127: Menú contextual de publicaciones */}
+            <MenuContextual
+                abierto={menuPost.abierto}
+                onCerrar={cerrarMenuPost}
+                items={itemsMenuPost}
+                x={menuPost.x}
+                y={menuPost.y}
+            />
+
+            {/* C127: Menú contextual de samples adjuntos */}
+            <MenuContextual
+                abierto={menuSample.estado.abierto}
+                onCerrar={menuSample.cerrarMenu}
+                items={menuSample.items}
+                x={menuSample.estado.x}
+                y={menuSample.estado.y}
+            />
         </div>
     );
 };
