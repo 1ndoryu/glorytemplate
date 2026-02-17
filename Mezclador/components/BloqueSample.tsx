@@ -33,6 +33,7 @@ export const BloqueSample = ({
     const duplicarBloque = useMezcladorStore(s => s.duplicarBloque);
     const setDuracionBloque = useMezcladorStore(s => s.setDuracionBloque);
     const compasProyecto = useMezcladorStore(s => s.compasProyecto);
+    const guardarSnapshot = useMezcladorStore(s => s._guardarSnapshot);
     const ancho = anchoBloquePorc(bloque.duracionCompases, totalCompases);
     const izquierda = posicionBloquePorc(bloque.compasInicio, totalCompases);
 
@@ -46,6 +47,9 @@ export const BloqueSample = ({
     const iniciarResize = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        /* C224: Guardar snapshot antes del resize para undo */
+        guardarSnapshot();
 
         /* Encontrar el contenedor de la pista para calcular ancho */
         const contenedor = (e.target as HTMLElement).closest('.mezcladorPistaContenido');
@@ -61,7 +65,7 @@ export const BloqueSample = ({
 
         document.body.style.cursor = 'ew-resize';
         document.body.style.userSelect = 'none';
-    }, [bloque.duracionCompases]);
+    }, [bloque.duracionCompases, guardarSnapshot]);
 
     /* Document listeners para resize */
     useEffect(() => {
@@ -130,13 +134,17 @@ export const BloqueSample = ({
             } as React.CSSProperties}
             onMouseDown={(e) => {
                 if (resizing || modoCortarActivo) return;
+                /* C226: No iniciar drag si el click es sobre un botón de acción */
+                const target = e.target as HTMLElement;
+                if (target.closest('.mezcladorBloqueBotones') || target.closest('.mezcladorBloqueResizeHandle')) return;
                 onIniciarDrag(bloque.id, bloque.pistaId, e);
             }}
             onClick={alClickBloque}
             onContextMenu={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setModalConfigAbierto(true);
+                /* C225: Solo abrir si no está ya abierto */
+                if (!modalConfigAbierto) setModalConfigAbierto(true);
             }}
             title={`${bloque.sample.titulo} (x${bloque.playbackRate.toFixed(2)}${bloque.invertido ? ' REV' : ''})`}
         >

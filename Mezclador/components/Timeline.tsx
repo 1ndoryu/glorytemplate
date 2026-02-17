@@ -36,11 +36,14 @@ export const Timeline = ({
     const agregarPista = useMezcladorStore(s => s.agregarPista);
     const modoCortarActivo = useMezcladorStore(s => s.modoCortarActivo);
     const dividirBloque = useMezcladorStore(s => s.dividirBloque);
+    const toggleModoCortar = useMezcladorStore(s => s.toggleModoCortar);
     const nivelZoom = useMezcladorStore(s => s.nivelZoom);
 
+    /* C227: Desactivar modo cortar después del primer uso */
     const alCortar = useCallback((bloqueId: string, compas: number) => {
         dividirBloque(bloqueId, compas);
-    }, [dividirBloque]);
+        toggleModoCortar();
+    }, [dividirBloque, toggleModoCortar]);
 
     /* C217: El ancho del contenido se escala por nivelZoom */
     const estiloZoom = nivelZoom !== 1

@@ -20,6 +20,14 @@ const leerBpmGuardado = (): number => {
     } catch { return CONSTANTES_MEZCLADOR.BPM_DEFAULT; }
 };
 
+/* C224: Snapshot para historial de undo/redo */
+interface SnapshotMezclador {
+    pistas: PistaMezclador[];
+    totalCompases: number;
+}
+
+const MAX_HISTORIAL = 30;
+
 interface MezcladorState {
     abierto: boolean;
     pistas: PistaMezclador[];
@@ -34,6 +42,15 @@ interface MezcladorState {
     modoCortarActivo: boolean;
     snapResolucion: SnapResolucion;
     nivelZoom: number;
+
+    /* C224: Historial undo/redo */
+    _historial: SnapshotMezclador[];
+    _posicionHistorial: number;
+    _guardarSnapshot: () => void;
+    deshacer: () => void;
+    rehacer: () => void;
+    puedeDeshacer: () => boolean;
+    puedeRehacer: () => boolean;
 
     abrir: () => void;
     cerrar: () => void;
@@ -98,6 +115,55 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     snapResolucion: 'beat' as SnapResolucion,
     nivelZoom: 1,
 
+    /* C224: Historial undo/redo */
+    _historial: [],
+    _posicionHistorial: -1,
+
+    _guardarSnapshot: () => {
+        const { pistas, totalCompases, _historial, _posicionHistorial } = get();
+        /* Descartar historial futuro si hicimos undo y luego una acción nueva */
+        const histRecortado = _historial.slice(0, _posicionHistorial + 1);
+        const nuevoSnapshot: SnapshotMezclador = { pistas, totalCompases };
+        const nuevoHistorial = [...histRecortado, nuevoSnapshot].slice(-MAX_HISTORIAL);
+        set({
+            _historial: nuevoHistorial,
+            _posicionHistorial: nuevoHistorial.length - 1,
+        });
+    },
+
+    deshacer: () => {
+        const { _historial, _posicionHistorial } = get();
+        if (_posicionHistorial <= 0) return;
+        const anterior = _historial[_posicionHistorial - 1];
+        if (!anterior) return;
+        set({
+            pistas: anterior.pistas,
+            totalCompases: anterior.totalCompases,
+            _posicionHistorial: _posicionHistorial - 1,
+        });
+        if (get().reproduciendo) {
+            window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO));
+        }
+    },
+
+    rehacer: () => {
+        const { _historial, _posicionHistorial } = get();
+        if (_posicionHistorial >= _historial.length - 1) return;
+        const siguiente = _historial[_posicionHistorial + 1];
+        if (!siguiente) return;
+        set({
+            pistas: siguiente.pistas,
+            totalCompases: siguiente.totalCompases,
+            _posicionHistorial: _posicionHistorial + 1,
+        });
+        if (get().reproduciendo) {
+            window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO));
+        }
+    },
+
+    puedeDeshacer: () => get()._posicionHistorial > 0,
+    puedeRehacer: () => get()._posicionHistorial < get()._historial.length - 1,
+
     abrir: () => set({ abierto: true }),
     cerrar: () => {
         motorAudio.detenerTodo();
@@ -134,12 +200,14 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     },
 
     agregarPista: () => {
+        get()._guardarSnapshot();
         const { pistas } = get();
         if (pistas.length >= CONSTANTES_MEZCLADOR.PISTAS_MAX) return;
         const nuevaPista = crearPistaVacia(`Pista ${pistas.length + 1}`);
         set({ pistas: [...pistas, nuevaPista] });
     },
     eliminarPista: (pistaId) => {
+        get()._guardarSnapshot();
         set(prev => ({
             pistas: prev.pistas.filter(p => p.id !== pistaId),
         }));
@@ -240,6 +308,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
             /* Expandir totalCompases si es necesario */
             const finBloque = compasInicio + info.duracionCompases;
 
+            get()._guardarSnapshot();
             set(prev => ({
                 pistas: prev.pistas.map(p =>
                     p.id === pistaDestinoId
@@ -358,6 +427,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
 
             const finBloque = compasInicio + info.duracionCompases;
 
+            get()._guardarSnapshot();
             set(prev => ({
                 pistas: prev.pistas.map(p =>
                     p.id === pistaDestinoId
@@ -378,6 +448,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     },
 
     moverBloque: (bloqueId, pistaIdDestino, compasInicio) => {
+        get()._guardarSnapshot();
         set(prev => {
             let bloque: BloqueMezclador | null = null;
 
@@ -408,6 +479,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     },
 
     eliminarBloque: (bloqueId) => {
+        get()._guardarSnapshot();
         set(prev => ({
             pistas: prev.pistas.map(p => ({
                 ...p,
@@ -452,6 +524,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
      * Crea una copia idéntica justo después del bloque original.
      */
     duplicarBloque: (bloqueId) => {
+        get()._guardarSnapshot();
         set(prev => {
             let bloqueOriginal: BloqueMezclador | null = null;
             let pistaId = '';
@@ -492,6 +565,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
      * El primer bloque conserva el inicio, el segundo arranca desde la posición de corte.
      */
     dividirBloque: (bloqueId, posicionCompas) => {
+        get()._guardarSnapshot();
         const { bpmProyecto, compasProyecto } = get();
         set(prev => {
             let bloqueOriginal: BloqueMezclador | null = null;
@@ -519,9 +593,18 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
             const tiempoCorte = posRelativa * durCompas * bloqueOriginal.playbackRate;
             const recorteInicioOriginal = bloqueOriginal.recorteInicio ?? 0;
 
+            /*
+             * C228: Dividir waveformPeaks proporcionalmente.
+             * El ratio de corte es la posición relativa dividida entre la duración total.
+             */
+            const ratioPeaks = posRelativa / bloqueOriginal.duracionCompases;
+            const totalPeaks = bloqueOriginal.waveformPeaks.length;
+            const cortePeaks = Math.round(totalPeaks * ratioPeaks);
+
             const bloqueA: BloqueMezclador = {
                 ...bloqueOriginal,
                 duracionCompases: posRelativa,
+                waveformPeaks: bloqueOriginal.waveformPeaks.slice(0, cortePeaks),
             };
 
             const bloqueB: BloqueMezclador = {
@@ -530,6 +613,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 compasInicio: posicionCompas,
                 duracionCompases: bloqueOriginal.duracionCompases - posRelativa,
                 recorteInicio: recorteInicioOriginal + tiempoCorte,
+                waveformPeaks: bloqueOriginal.waveformPeaks.slice(cortePeaks),
             };
 
             return {
@@ -617,6 +701,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     },
 
     limpiarProyecto: () => {
+        get()._guardarSnapshot();
         motorAudio.detenerTodo();
         set({
             pistas: [crearPistaVacia('Pista 1')],

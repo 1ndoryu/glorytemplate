@@ -65,6 +65,18 @@ export const useMezclador = () => {
                 e.preventDefault();
                 motor.toggleReproduccion();
             }
+
+            /* C224: Undo/Redo con Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z */
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z' && !e.shiftKey) {
+                    e.preventDefault();
+                    useMezcladorStore.getState().deshacer();
+                }
+                if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+                    e.preventDefault();
+                    useMezcladorStore.getState().rehacer();
+                }
+            }
         };
 
         window.addEventListener('keydown', handler);

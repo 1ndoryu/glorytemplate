@@ -4,7 +4,7 @@
  */
 
 import { useRef } from 'react';
-import { Play, Square, Plus, Minus, Download, Upload, FolderUp, Trash2, Loader, Scissors, ZoomIn, ZoomOut } from 'lucide-react';
+import { Play, Square, Plus, Minus, Download, Upload, FolderUp, Trash2, Loader, Scissors, ZoomIn, ZoomOut, Undo2, Redo2 } from 'lucide-react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import type { SnapResolucion } from '../types/mezclador';
 
@@ -39,6 +39,10 @@ export const ControlesMezclador = ({
     const nivelZoom = useMezcladorStore(s => s.nivelZoom);
     const zoomIn = useMezcladorStore(s => s.zoomIn);
     const zoomOut = useMezcladorStore(s => s.zoomOut);
+    const deshacer = useMezcladorStore(s => s.deshacer);
+    const rehacer = useMezcladorStore(s => s.rehacer);
+    const puedeDeshacer = useMezcladorStore(s => s.puedeDeshacer);
+    const puedeRehacer = useMezcladorStore(s => s.puedeRehacer);
 
     /* C216: Opciones de snap disponibles */
     const opcionesSnap: { valor: SnapResolucion; label: string }[] = [
@@ -83,6 +87,24 @@ export const ControlesMezclador = ({
                     title={reproduciendo ? 'Detener' : 'Reproducir'}
                 >
                     {reproduciendo ? <Square size={14} /> : <Play size={14} />}
+                </button>
+
+                {/* C224: Undo/Redo */}
+                <button
+                    className="mezcladorBotonAccion"
+                    onClick={deshacer}
+                    disabled={!puedeDeshacer()}
+                    title="Deshacer (Ctrl+Z)"
+                >
+                    <Undo2 size={13} />
+                </button>
+                <button
+                    className="mezcladorBotonAccion"
+                    onClick={rehacer}
+                    disabled={!puedeRehacer()}
+                    title="Rehacer (Ctrl+Y)"
+                >
+                    <Redo2 size={13} />
                 </button>
 
                 <div className="mezcladorBpmControl">

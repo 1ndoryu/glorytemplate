@@ -100,8 +100,13 @@ export const ModalConfigBloque = ({
     };
 
     return (
-        <div className="modalConfigOverlay" onClick={onCerrar}>
-            <div className="modalConfigBloque" onClick={detenerPropagacion}>
+        <div
+            className="modalConfigOverlay"
+            onClick={onCerrar}
+            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onMouseDown={detenerPropagacion}
+        >
+            <div className="modalConfigBloque" onClick={detenerPropagacion} onMouseDown={detenerPropagacion}>
                 {/* Cabecera */}
                 <div className="modalConfigCabecera">
                     <span className="modalConfigTitulo">
