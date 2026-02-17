@@ -319,7 +319,7 @@ export const ListaComentarios = ({
                                     <input
                                         ref={inputAudioRef}
                                         type="file"
-                                        accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4"
+                                        accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/aac,audio/webm,audio/flac,.mp3,.wav,.ogg,.m4a,.aac,.webm,.flac"
                                         className="comentarioInputOculto"
                                         onChange={(e) => {
                                             const f = e.target.files?.[0];

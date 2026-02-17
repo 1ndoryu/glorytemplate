@@ -204,10 +204,14 @@ class MensajesController
                 return new \WP_REST_Response(['code' => 'archivo_invalido', 'message' => 'No se recibió archivo válido'], 400);
             }
 
-            /* Validar MIME según tipo */
+            /* Validar MIME según tipo — incluir variantes x- que mime_content_type() devuelve */
             $mimesPermitidos = $tipo === 'imagen'
                 ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-                : ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4'];
+                : [
+                    'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav',
+                    'audio/ogg', 'application/ogg', 'audio/mp4', 'audio/x-m4a',
+                    'audio/aac', 'audio/webm', 'audio/flac',
+                ];
 
             $mimeReal = \mime_content_type($archivo['tmp_name']);
             if (!in_array($mimeReal, $mimesPermitidos, true)) {
@@ -236,7 +240,17 @@ class MensajesController
             }
 
             \add_filter('upload_dir', $filtroDir);
-            $subido = \wp_handle_upload($archivo, ['test_form' => false]);
+            $mimesUpload = $tipo === 'audio'
+                ? [
+                    'mp3' => 'audio/mpeg', 'wav' => 'audio/wav', 'ogg' => 'audio/ogg',
+                    'm4a' => 'audio/mp4', 'aac' => 'audio/aac', 'webm' => 'audio/webm',
+                    'flac' => 'audio/flac',
+                ]
+                : [
+                    'jpg|jpeg' => 'image/jpeg', 'png' => 'image/png',
+                    'gif' => 'image/gif', 'webp' => 'image/webp',
+                ];
+            $subido = \wp_handle_upload($archivo, ['test_form' => false, 'mimes' => $mimesUpload]);
             \remove_filter('upload_dir', $filtroDir);
 
             if (isset($subido['error'])) {
