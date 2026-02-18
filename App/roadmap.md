@@ -104,93 +104,46 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R45:** C172 compactar roadmap + C177 remover créditos descargas + C178 sistema verificación samples (migración v015, controller PUT admin, normalizer, BadgeCheck tarjeta+detalle, menú contextual verificar, evento actualización, boost algoritmo 1.15x).
 **R46:** C169+C170+C180+C181+C182+C183: búsqueda colecciones (ILIKE backend+filtrosStore frontend+placeholder dinámico), editor metadata fix (descripción real+chips IA), FilaColecciones horizontal (max 8, scroll invisible), algoritmo colecciones CTE (tags 0.60+frescura 0.20+volumen 0.20+follow 1.3x), Bookmark guardar contextual, fix reproducciones completada.
 **R47:** C179 Panel de Administración (FASE 13): AdminController.php (6 endpoints admin-only), apiAdmin.ts (tipos completos), useAdminPanel.ts (hook lógica), AdminPanelIsland (tabs Resumen+Usuarios+Moderación), TabResumenAdmin (KPIs+gráfica actividad), TabUsuariosAdmin (tabla+búsqueda+filtro+acciones), TabModeracionAdmin (aprobar/rechazar+reportes), adminPanel.css, Sidebar admin condicional, pages.php+MAPA_RUTAS.
-**R48:** C184 Mezclador (Mini DAW): Sistema aislado en /Mezclador/ (18 archivos). Arquitectura: types, stores (Zustand), services (motorAudio singleton), hooks (useMotorAudio, useTimeline, useExportarMezcla, useMezclador), components (MezcladorPanel, Timeline, PistaTimeline, BloqueSample, BarraCompases, CursorReproduccion, ControlesMezclador, ErrorBoundary). Integración: panelLateralStore (+mezclador mode), PanelLateral (resize handle), TopBar (botón Music2), TarjetaSample (draggable). Config: vite.config.ts (@mezclador alias + fs.allow), tsconfig.json (Mezclador propio + Glory paths). Backend: PipelineAudio.php (MP3 temporal 20s para IA Groq).
-**R43:** C171 licenciaLibre auto-derivada de permitirDescarga (4 archivos simplificados, ~134 lín eliminadas) + C175 descargas/favoritos rediseño ColeccionDetalle-style + CSS descargasFavoritos.css eliminado.
-**R44:** C176 copiarAlPortapapeles fallback execCommand (clipboard.ts, 4 consumidores), C173 BadgeModeracion siempre visible + admin aprobar posts (ComunidadIsland), C174 useTabsIsla hook keep-alive tabs fix (8 islas migradas) + PageRenderer updater funcional (fix pantalla negra).
-**R41:** C131/C132 moderación IA comentarios + bans: ServicioAntiSpam.php (heurístico pre-IA: URLs, caps, spam patterns, duplicados), ServicioBan.php (violaciones progresivas: 3→24h, 5→7d, 8→30d, notificaciones automáticas). ServicioModeracionIA.moderarComentario() (Guard texto + Vision imagen, tolerante con toxicidad/insultos, solo rechaza spam/pornografía/ilegal, contexto musical para álbumes). v014 migración (moderacion_estado/detalle en comentarios, violaciones/ban en usuarios_ext, tabla reportes genérica). ComentariosController integra anti-spam sincrónico + moderación IA async (shutdown hook) + filtrado rechazados en listar(). AuthMiddleware.verificarBanActivo() helper centralizado. TipoNotificacion += 'moderacion'. C167: PageRenderer refactorizado (patrón render-time state update, elimina cascading renders y pantalla negra). Type-check 23→0 errores (imports muertos en 6 archivos, IndicadorDescargas campos LimitesDescarga). C168: fix \n literal en ComentariosController.
+**R48:** C184 Mezclador DAW aislado en /Mezclador/ (18 archivos): types+stores(Zustand)+services(motorAudio singleton)+hooks+components. Integración panelLateral+TopBar+TarjetaSample draggable. Config vite.config.ts+tsconfig.json propio.
+**R49-R51:** Avatares fix (UsuarioHelper centralizado), AdminPanel CSS+vacío, créditos/suscripción/precios/audio-comentarios, Mezclador DAW completo (stretch/drag/snap/zoom/undo/redo/corte/ghost/drift/clip/detune/selección múltiple/20 pistas/Shift+drag/ModalConfigDaw/resize).
+**R52:** Explorador page (/explorador) con árbol carpetas+coleccionados backend, sidebar librería, metadata carpetas IA, nombre archivo reestructurado.
+**R53:** Cache SWR mensajes (TTL 2min), seguridad audio (.htaccess+HMAC), toggle comunidad, publicar mezcla, mezcladorStore SOLID (931→150 lín, 5 módulos), plan VPS coolify-manager, pitch-independent stretch SoundTouchJS.
+**R54-R58:** Schema System completo — 18 declaraciones+36 generados (Cols+DTO)+schema.ts, CLI, SchemaRegistry enforcement, 29 archivos PHP migrados a Cols constants (~270 accesos), union types TS derivados, runtime fixes, parser nivel-0, documentación completa.
+**R59:** Schema System Enums — `generarEnums()` en CLI: genera `{Tabla}Enums.php` y constantes TS desde arrays `check` de cada schema. 8 tablas con enums (Samples, Likes, UsuariosExt, Suscripciones, Transacciones, Publicaciones, Comentarios, ReportesDuplicados). `LikesEnums::TIPO_SAMPLE`, `SamplesEnums::ESTADO_ACTIVO`, etc. Elimina strings literales de valores enum en controladores y servicios.
 
 ---
 
 ## Pendientes por Fase
 
-### FASE 0 — Infraestructura y Base
+### Fases 0-4 ✔ (completadas)
 
-> Prioridad: ALTA — desbloquea algoritmo, uploads, y IA
+**Fase 0:** PDO singleton+pgvector+uploads+FFmpeg cross-platform+colors dinámicos.
+**Fase 1:** Login/Registro+PerfilIsland+ModalConfiguracion+AuthMiddleware+LandingPublica+auto-sync.
+**Fase 2:** Upload real+análisis audio (BPM/key)+IA (Groq Whisper+LLM)+naming+dedup+tags.
+**Fase 3:** Algoritmo 6 señales (pgvector coseno+comportamiento+tendencias+novedad+grafo social)+cache transients.
+**Fase 4:** ModalFiltros+InicioIsland (ordenamientos+infinite scroll+virtualización)+filtrosStore.
 
-- [x] **0.1a** Conexión PHP → PostgreSQL — PDO singleton, health endpoint, schema 14 tablas
-- [x] **0.1b** pgvector compilado e instalado (master branch PG18, HNSW, CREATE EXTENSION vector)
-    - v009_embeddings_pgvector.sql ejecutada, GeneradorEmbeddings.php (128d), VerificarPgvector.php
-- [x] **0.2** Almacenamiento audio en WP — upload+MIME validation+ID corto+slug
-    - TO-DO: htaccess deny direct access, servir via PHP con validación de permisos
-- [x] **0.3** Pipeline audio — FFmpeg cross-platform (.env>PATH>winget), BPM/key+IA+waveform+MP3+preview+renombrado
-    - TO-DO: mover a wp_schedule_single_event() cuando el volumen crezca
-- [x] **0.4** Colors/ dinámicas — endpoint GET, transient cache 24h
-    - TO-DO: WebP conversion, lazy loading, srcset
+### FASE 5 — Chat Flotante (parcial)
 
-### FASE 1 — Auth y Perfil
-
-- [x] **1.1** Fix PerfilIsland — guard authCargando, fix stale closure, botón editar→modal
-- [x] **1.2** ModalConfiguracion — avatar, nombre, bio, notificaciones, PUT /me
-    - Subida real de avatar implementada: POST /me/avatar + FormData (R9)
-- [x] **1.3** Auto-creación usuarios_ext — GET /me sincroniza WP→Postgres
-- [ ] **1.4** Google OAuth (cuando las keys estén listas)
-
-### FASE 2 — Pipeline de Subida de Audio + IA
-
-- [x] **2.1** Upload real — ModalCrear→FormData→endpoint, waveform preview, tags #
-- [x] **2.2** Análisis audio — técnico (AnalizadorAudio: BPM onsets+key Goertzel) + creativo (ServicioIA: Groq Whisper + LLM bilingüe)
-- [x] **2.3** Metadata imágenes — ServicioImagenIA (Groq Llama 4), async shutdown hook, v005
-- [x] **2.4** ModalCrear simplificado — sin campos manuales BPM/Key/Tipo, banner IA, Ctrl+Enter
-- [x] **2.5** Tags BPM normalizados — bpmUtils.ts (categorías Lento/Normal/Rápido)
-    - TO-DO: click en tag → filtrar por categoría
-- [x] **2.6** Nombrado IA — `kamples_{tipo}_{genero}_{bpm}_{key}_{idCorto}.{ext}`
-    - TO-DO: permitir edición del nombre antes de publicar
-- [x] **2.7** IDs cortos — GeneradorIdCorto 7 chars base62, migración v003
-    - TO-DO: lookup dual por slug o id_corto
-- [x] **2.8** Deduplicación audio — DeduplicadorAudio.php hash perceptual background, supervisión entre usuarios, tabla reportes_duplicados planificada
-
-### FASE 3 — Algoritmo v1 (pgvector local)
-
-> Prioridad: ALTA — diferenciador clave del producto
-
-- [x] **3.1** pgvector: embedding vector(128) en samples + buscar_similares() SQL + HNSW index
-- [x] **3.2** Señal de comportamiento (0.25) — 5 sub-factores: likes, reproducciones, tiempo, descargas, completadas
-- [x] **3.3** Señal de tendencias (0.15) — velocity 24h/7d + normalización por horas publicado
-- [x] **3.4** Señal de novedad (0.10) — boost logarítmico configurable
-- [x] **3.5** Scoring SQL combinado — 6 señales + penalización + diversidad creador
-- [x] **3.6** Señal de grafo social (0.10) — seguidos directos + likes de seguidos
-- [x] **3.7** Cache de feeds — WP transients 5min + invalidación global/individual
-
-### FASE 4 — Filtros y Ordenamiento (InicioIsland)
-
-- [x] **4.1** ModalFiltros rediseñado — toggles con iconos
-- [x] **4.2** InicioIsland sin tabs — ordenamientos dropdown, infinite scroll+virtualización
-- [x] **4.3** Filtros conectados a store — filtrosStore.ts + useFiltros.ts
-    - TO-DO: enviar filtros toggle al backend cuando endpoints los soporten
-
-### FASE 5 — Chat Flotante tipo Messenger
-
-- [x] **5.1** ChatFlotante — fixed bottom-right, max 3 chats, minimizable, burbujas
-- [x] **5.2** Soporte multimedia en chat (imágenes, audio, samples compartidos)
+- [x] ChatFlotante + multimedia (imágenes, audio, samples)
 - [ ] **5.3** WebSocket local (canales chat/notif, typing, online, read receipts)
 - [ ] **5.4** Optimización chat (virtualización, lazy load, caché local)
 
-### FASE 6 — Navegación y Páginas
+### Fase 6-7 ✔ (completadas)
 
-- [x] **6.1** SPA fluida — prefix matching, popstate, middle-click→nueva pestaña
-- [x] **6.2** SampleDetalleIsland — hero+waveform XL, creador nav, like API, similares
-    - TO-DO: metadata generada por IA (instrumentos, sentimiento, artistas)
-- [x] **6.3** ColeccionDetalleIsland — header+grid+badge+stats
-- [x] **6.4** ComunidadIsland — feed posts, filtros Todos/Siguiendo/Populares
-- [x] **6.5** LandingPublica — nav flotante blur, sin sidebar/topbar para deslogueados
+**Fase 6:** SPA fluida+SampleDetalleIsland+ColeccionDetalleIsland+ComunidadIsland+LandingPublica.
+**Fase 7:** Stripe Billing+Connect+premium+límites por plan.
 
-### FASE 7 — Monetización (Stripe)
-
-- [x] **7.1** Stripe Billing — PagosController (checkout/portal/webhook), StripeService, webhooks
-- [x] **7.2** PlanesIsland — Checkout real, portal, estados UI, prueba 30 días
-- [x] **7.3** Stripe Connect (onboarding creadores, revenue share 70/30, 80/20)
-- [x] **7.4** Samples premium (compra individual + bloqueo sin plan)
-- [x] **7.5** Límites por plan — StripeService::obtenerConfigPlan(), transferencia GB, v006, AuthMiddleware
+**TO-DOs de fases completadas:**
+- htaccess deny direct access, servir via PHP con validación de permisos
+- Pipeline → wp_schedule_single_event() cuando volumen crezca
+- WebP conversion, lazy loading, srcset para colors/
+- Google OAuth cuando keys estén listas (1.4)
+- Click tag → filtrar por categoría BPM (2.5)
+- Edición nombre sample antes de publicar (2.6)
+- Lookup dual slug/id_corto (2.7)
+- Filtros toggle → backend (4.3)
+- Metadata IA (instrumentos, sentimiento, artistas) en SampleDetalle (6.2)
 
 ### FASE 8 — Tiempo Real (WebSocket producción)
 
@@ -217,73 +170,16 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 - [ ] Meta/OG/JSON-LD, code splitting, brotli, rate limiting, CSP, tests
 
-### FASE 13 — Panel de Administración (C112 — Planificación)
+### FASE 13 — Panel de Administración ✔ (parcial)
 
-> Prioridad: MEDIA — funcionalidad clave para gestión de la plataforma  
-> Ruta: `/admin/panel` | Isla: `AdminPanelIsland`  
-> Acceso: solo `rol === 'admin'` (protegido por ConAutenticacion + validación backend)
+> Implementado R47: AdminController.php (6 endpoints), 3 tabs funcionales (Resumen+Usuarios+Moderación).
 
-**Estructura de tabs:**
-
-1. **Resumen (Dashboard)**
-   - Tarjetas KPI: usuarios registrados, samples subidos, descargas totales, ingresos, posts publicados
-   - Gráfico actividad reciente (últimos 7/30 días): registros, uploads, descargas
-   - Samples pendientes de moderación (count + link a tab moderación)
-   - Reportes sin resolver (count + link a tab reportes)
-
-2. **Usuarios**
-   - Lista con búsqueda, filtro por plan (free/pro/premium), ordenar por fecha, actividad
-   - Columnas: avatar, username, email, plan, rol, fecha registro, samples, descargas
-   - Menú contextual por usuario: banear, eliminar, cambiar plan (ascender a pro/premium), enviar mensaje, ver perfil
-   - Backend: `AdminController::listarUsuarios()`, `AdminController::actualizarUsuario()`
-
-3. **Moderación**
-   - Lista de contenido pendiente/en revisión (publicaciones + samples si se extiende moderación a samples)
-   - Columnas: tipo, autor, contenido (truncado), estado actual, razón IA, fecha
-   - Acciones: aprobar, rechazar, marcar para revisión manual
-   - Backend: `AdminController::listarPendientes()`, `AdminController::moderar()`
-
-4. **Reportes**
-   - Lista de reportes de usuarios (contenido ofensivo, spam, duplicados, etc.)
-   - Columnas: tipo (sample/post/usuario), reportador, reportado, razón, fecha, estado
-   - Acciones: resolver (aprobar/rechazar contenido), descartar, contactar usuario
-   - Backend: `ReportesController::listar()`, `ReportesController::resolver()`
-   - Tabla BD: `reportes` (id, tipo, target_id, reportador_id, razon, estado, resuelto_por, created_at)
-
-5. **Monetización**
-   - Ingresos por período (suscripciones activas, revenue share, comisiones)
-   - Lista de transacciones recientes
-   - Top creadores por ingresos
-   - Desglose por plan (free/pro/premium counts + revenue)
-   - Backend: datos de Stripe via `StripeService`
-
-**Dependencias:**
-- `AdminController.php` (nuevo controlador para endpoints admin)
-- `ReportesController.php` (nuevo controlador para reportes)
-- Migración: tabla `reportes`
-- Frontend: `AdminPanelIsland.tsx` + componentes por tab
-- Reutilizar: `MenuContextual`, `Badge`, `BotonBase`, `TabBar`, tabsTopBarStore
-
-**Menú contextual publicaciones (C112 parcial):**
-- Opciones: eliminar (dueño/admin), reportar (cualquiera), copiar enlace, ver post
-- Publicaciones tienen página individual (click en fecha/tiempo → `/post/{id}`)
-- Reutilizar patrón de `useMenuContextualSample`
+**Pendiente:**
+- Tab Reportes: ReportesController::listar()/resolver(), tabla `reportes` (tipo, target_id, reportador_id, razon, estado)
+- Tab Monetización: ingresos Stripe por período, top creadores, desglose por plan
+- Menú contextual publicaciones (eliminar/reportar/copiar/ver post)
 
 ---
-
-## Showcase y Dev Tools
-
-- [x] ShowcaseIsland — inline styles→CSS clases+custom properties
-
----
-
-### Colecciones + Algoritmo de Recomendación (C14) ✔ COMPLETO
-
-- [x] **Fase A:** Colecciones CRUD, modal guardar tipo Pinterest con ranking relevancia, apiColecciones.ts
-- [x] **Fase B:** Tab "Más Ideas" con sugerencias, FeedSamples centralizado (~470 lín), InicioIsland 550→180 lín
-- [x] **Fase C:** algoritmoPesos.php (pesos dinámicos), MotorRecomendacion.php (scoring 6 señales), ModalSugerenciasLike post-like, similares en detalle
-- [x] **Fase D:** Tracking reproducciones, historial, filtro "Ya reproducidos" real, penalización repetidos
-- [x] **Fase E:** Moderación IA 3 capas (Guard 4 + Scout visión + gpt-oss contextual), async shutdown hook, v007
 
 ## Notas y Decisiones
 
@@ -306,49 +202,19 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ## Comentarios del usuario (resueltos — compacto)
 
-**C1-C10:** FFmpeg cross-platform, IA bilingüe Groq, auto-creación usuarios_ext, pipeline audio, moderación IA 3 capas.
-**C11-C20:** pgArrayToPhp, mocks eliminados, normalizarSample snake→camelCase, colecciones Pinterest, roadmap compactado, plan badge TopBar, delete samples admin/dueño, tags estilos.
-**C21-C30:** JSON repair 5 estrategias, feedTagItem accesible, precio samples premium, URLs relativas audio, naming IA, avatar normalización, inspector JSON IA, PipelineAudio::jsonb, BotonDevTools, perfil persistente.
-**C31-C40:** ExperimentosController, type-check 29→0, migración v008, avatar upload, admin role fix, pgvector+algoritmo, perfil samples filtro, experimentos notificaciones, sample 404 fix, apiCliente HTML.
-**C41-C50:** DevTools posición, hooks render order, colecciones API fix, tabs duplicadas, PlanificadorAlgoritmo, race condition tabs, Gemini Flash 3.0, logs algoritmo, perfil samples persistente, ExperimentosController parsing.
-**C51-C60:** Avatar defensivo, filtro inteligente MotorRecomendacion, logs canales+limpieza, GROQ_API validación, sanitize_text_field slug, Gemini model name, pipeline timeout flush, apiPeticion data wrapping, publicado_at INSERT, likes snake_case.
-**C61-C70:** Middle-click perfil, feed nuevo usuario cache, ruta_archivo columnas, descargas ruta, DELETE regex, borrar sin recargar, toasts sistema, waveform servidor, mockups perfil eliminados, ModalPublicar global.
-**C71-C84:** ComunidadIsland API real, descargas WAV, reproducciones tracking, diversidad suave, docs algoritmo, TarjetaMeta IA, URL directa sample, modal suscripción overlay, seguir perfil propio, waveforms remuestreo, hover corazón, comentarios controller, posts texto, borde toast.
-**C85-C100:** BarraAccionesPost+EnlaceCreador centralizados, panel lateral sugerencias, librería tabs API, estilos feedSamples, SeccionPublicar inline, @admin Invalid Date, publicarModos eliminado, tags mínimos 2, posts perfil tab, EVENTO_SAMPLE_ELIMINADO, panel detalle sample+comentarios, comentarios fuera pieFlex, waveform pre-play, imagen blob, likes comunidad, filtros samples.
-**C101-C120:** MenuContextual posición, separador eliminado, auth 3 campos+modal imagen, follow+mensaje, modal colección UI, buscador colecciones, coleccionMeta, botones colección, créditos+ZIP, panel lateral listas, menú contextual posts+AdminPanel plan, inicioTagsContador, feedTags colecciones, búsqueda↔tags sync, SelectFiltro+SelectorBPM, JSON bilingüe análisis, inspector rutas, errores PerfilIsland, badge moderación.
-**C121-C145:** MIN_TAGS alineado, verificación comentarios, hooks render order, SeccionPublicar=ModalCrear refactor, botones colección texto, modal edición unificado, menú 3 puntos unificado, similares+comentarios expandidos, paginación infinita comentarios, comentarios multimedia, automod IA, bans+moderación, keep-alive PageRenderer, tags metadata IA, panel lateral sugerencias fix, todosLosTags, guardar colección propia, descargas propias gratis, normalizador colecciones, separación descargas/favoritos, TarjetaColeccion menú, sugerencias double-unwrap, CSS seccionPublicar, reacciones completas (dislike+encanta), créditos NaN fix.
-**C146-C168:** v012 mensaje, algoritmo tags+creador, feedTags fix, hover tooltip, panel waveform, badge borde, TarjetaMini, botones panelDetalle, config preferencia panel, similares toggle, botón descarga acento, PanelRightClose, WebSocket (pendiente), filtro reproducidos fix, colecciones 3 puntos, tags concatenados, menú chat, seguridad hardening, cola eliminada, compactación, PageRenderer render-time update+type-check, syntax error ComentariosController.
-**C171-C178:** Licencia libre auto-derivada (R43), compactar registros (R44), BadgeModeracion+admin approve (R44), tabs freeze+pantalla negra fix (R44), descargas/favoritos rediseño (R43), copiar enlace fallback (R44), remover créditos descargas (R45), sistema verificación samples (R45).
-**C169-C183:** Búsqueda colecciones (R46), editor metadata fix descripcion+chips IA (R46), fila colecciones inicio (R46), algoritmo colecciones CTE (R46), modal guardar contextual+Bookmark (R46), fix reproducciones completada (R46).
-**C179:** Panel Administración FASE 13 (R47).
-**R49-R51:** C193 avatares fix (UsuarioHelper centralizado), C194-C196 AdminPanel+CSS+panel vacío, C198-C201 créditos/suscripción/precios/audio-comentarios, C203-C245 Mezclador DAW completo (stretch/drag/snap/zoom/undo/redo/corte/ghost/drift/clip/admin/gráfica/BPM/detune/expandir), C246-C261+C267 duplicar colisión/selección múltiple/20 pistas/Shift+drag/placeholder/ModalConfigDaw/stretch-clip global/admin plan/fix detune/dropZone/viewport/selección visual/multi-drag/resize fuera modal, C272 deselect click.
-**R52 (AG-DAW):** C252 compactación roadmap, C272 deselect timeline, C280 sidebar librería Box+nav normal, C281+281.1-281.3 Explorador page (/explorador) con árbol carpetas + coleccionados backend (endpoints /me/coleccionados + /carpetas) + botón Plus/Coleccionar + "Descargas"→"Coleccionados" + samples propios auto-incluidos, C282 metadata carpetas IA (prompt+pipeline+JSONB carpeta_primaria/secundaria), C283 nombre archivo restructurado (Instrumento-Genero-Tono-BPM-Nombre-kamples-id).
-275. ✅ [AG-DAW] Guard max(1,page) en 8 controladores para evitar OFFSET negativo. LogModeracion en ComentariosController.
-276. ✅ [AG-DAW] Ya corregido en código previo (completada + sub.tag_score). Requiere flush OPcache/Apache restart.
-277. ✅ [AG-DAW] Logs moderación: ServicioBan + ServicioAntiSpam + ComentariosController ahora usan LogModeracion.
-278. ✅ [AG-DAW] Waveform DAW: líneas se engruesan con tarjetas largas, necesita precisión.
-279. ✅ [AG-DAW] Colecciones públicas: causa raíz era OFFSET negativo (page=0→offset=-20). Corregido con max(1,page).
-281.4-281.7 Ordenamiento IA de carpetas (pro/premium), presets, instrucciones.
-284. Modo clip falla intermitentemente con loops comprimidos + chop.
-285. ✅ [AG-DAW] Fix SQL coleccionados: creador_id + uid2 placeholder. Compactación roadmap.
-**R53 (AG-KMP):** C192 cache mensajes SWR (mensajesStore global + DropdownMensajes + MensajesIsland: TTL 2min, show cache → refresh background), C202 seguridad audio (4 fixes: ocultar rutas API, .htaccess WAV/MP3, HMAC streaming, rate limiting), C220 toggle comunidad (ya implementado e2e: ContenidoCrear toggle + useCrearContenido + apiSamples + SamplesController), C254 publicar mezcla (crearModalStore archivoPreCargado + MezcladorPanel→abrir directo + useCrearContenido consume archivo al montar), C254.1 créditos mezcla (ya implementado: +1 creditos_bonus en SamplesController al publicar), C254.2 deduplicación (ya implementado: DeduplicadorAudio auto-ejecuta en PipelineAudio), C255 mezcladorStore SOLID (931→150 líneas: 5 módulos accionesBloques/Carga/Historial/Seleccion + tiposMezcladorStore), C262 plan VPS coolify-manager (documento completo en App/docs/plan-vps-kamples.md: stack YAML + Dockerfile + init-postgres + migraciones + checklist 3 fases), C264 menú 3 puntos comentarios (ya existía), C265 likes+respuestas anidadas (ya existía, migración v018), C266 notificaciones expandidas (agregado publicacionEliminada en PublicacionesController), C271 pitch-independent stretch SoundTouchJS (resample/stretch per-block, pitchShiftService con cache, ModalConfigBloque toggle, motorAudioService soporte dual mode).
-**R54 (AG-SCH):** Schema System completo (Fase 13.5): 18 SchemaDeclarations (App/Config/Schema/), 36 archivos generados (18 *Cols.php + 18 *DTO.php en _generated/), 1 schema.ts TS, CLI (schema:generate + schema:validate + table), SchemaRegistry + enforcement en PostgresService. Migración completa: 18 archivos PHP migrados de `$row['columna']` a `$row[XxxCols::COLUMNA]` (~220 accesos). Archivos migrados: NormalizadorSample, SocialController, DashboardController, PerfilController, SamplesController, PublicacionesController, ColeccionesController, AuthController, DescargasController, MensajesController, PagosController, ConnectController, ComentariosController, AdminController, ReproduccionesController, MotorRecomendacion, UsuarioHelper, ServicioNotificaciones.
-**R55 (AG-SCH):** Fix Schema System runtime: (1) SchemaRegistry lazy-init — init() nunca se invocaba, añadido self::init() en todos los métodos públicos. (2) ejecutar()/insertar() ahora validan schemas. (3) validarQueryContraSchema mejorado: excluye CTEs (WITH...AS), aliases cortos. (4) Columnas faltantes añadidas: stripe_subscription_id en UsuariosExt, moderacion_razon+updated_at en Publicaciones. Regenerados 36 Cols/DTO + schema.ts. Doc: App/docs/schema-revision.md.
-**R56 (AG-SCH):** Migración Cols completa — 11 archivos restantes migrados de `$row['columna']` a `$row[XxxCols::COLUMNA]` (~50 accesos). Archivos migrados: StripeService, ServicioBan, ServicioAntiSpam, GeneradorEmbeddings, PlanificadorAlgoritmo, DeduplicadorAudio, ExperimentosController. Residuos corregidos: ComentariosController (normalizarComentarios 18 accesos migrados a ComentariosCols+LikesCols), MensajesController (ConversacionesCols+MensajesCols), ColeccionesController (ColeccionSamplesCols), DescargasController (ColeccionesCols). SQL aliases preservados como strings (otro_id, total, seg_inactivo, peso). PlanificadorAlgoritmo: patrón dinámico `$estado[$columna.$sufijo]` preservado (runtime-constructed). 11/11 sin errores sintaxis PHP.
-**R57 (AG-SCH):** Auditoría profunda Schema System: (1) Fix crítico parser `extraerEntradasColumna` — reescrito con parser nivel-0 (evita `'check' => [...]` como columna → `$check` duplicado en DTOs). (2) Fix `NOW()` fallback → `date('Y-m-d H:i:s')`. (3) Nuevo `aArrayDB()` en todos los DTOs (claves snake_case para SQL). (4) Union types TS funcionales (`'loop' | 'oneshot'`). (5) AuthMiddleware migrado a UsuariosExtCols. (6) Documentación completa: Glory/readme.md, Glory/docs/php/schema-system.md, Glory/docs/cli/schema-generate.md, Glory/docs/cli/schema-validate.md, Glory/docs/cli/create-table.md. 18 DTOs + schema.ts regenerados.
-**R58 (AG-SCH):** Schema System protección TS/React: union types derivados del schema generado (TipoSample, EstadoSample, TipoReaccion, TipoPlan, RolUsuario, TipoPublicacion, NombrePlan, EstadoSuscripcion, TipoTransaccion, EstadoTransaccion). Interfaces schema + Cols constants re-exportados desde types/index.ts. BadgeModeracion.tsx corregido — detectado automáticamente: faltaba estado `en_supervision` (descubierto por el schema). Ahora si el schema cambia, TS rompe en compilación.
+**C1-C120:** FFmpeg, IA Groq, pipeline audio, moderación, pgvector, algoritmo, UI completa (TopBar/Sidebar/feeds/colecciones/SPA/chat/planes/admin), JSON repair, Stripe, reproductor, waveforms, reacciones, búsqueda, filtros, créditos, naming IA, deduplicación, verificación samples.
+**C121-C183:** SeccionPublicar refactor, modal edición unificado, menú 3 puntos, similares+comentarios expandidos, paginación infinita, multimedia, automod IA, bans+moderación, keep-alive tabs, tags metadata IA, Panel Admin FASE 13, búsqueda colecciones, algoritmo colecciones CTE, Bookmark contextual.
+**C184-C283:** Mezclador DAW completo (R48-R53), avatares fix, AdminPanel CSS, Explorador page+carpetas+coleccionados, metadata carpetas IA, nombre archivo reestructurado, guards max(1,page), logs moderación, cache SWR, seguridad audio, toggle comunidad, publicar mezcla, mezcladorStore SOLID, VPS plan, pitch-independent stretch SoundTouchJS.
 
 ---
 
 # Comentarios pendientes
 
-
-273. ✅ Actualizar plan-vps-kamples.md — sincronizado con Schema System (R54-R58), Mezclador DAW, Vite (no esbuild), variantes v001, WP_DEBUG, dependencias completas. 14 secciones.
-274. ✅ Implementar coolify-manager para Kamples — setup-kamples.ps1, CoolifyApi template selection, kamples-stack.yaml (WP+MariaDB+PG18+pgvector), Dockerfile.kamples, init-postgres.sh, env vars per-project en settings.json, Get-SiteEnvVars, Get-PostgresContainerId, deploy-theme post-deploy kamples, .env.example.
-273. Comprimir las tareas cumplidas del roadmap !TODAS! no solo los comentarios.
-273. El Explorador no funciona bien, lo explicaré mas adelante (pendiente de aclarar.)
-286. Auditoría seguridad PipelineAudio + ServicioIA completada (21 hallazgos: 1 HIGH, 6 MEDIUM, 10 LOW, 3 INFO). Prioridad: S1 prompt injection via descripcionUsuario, P5 SQL column whitelist, P7 memory exhaustion waveform, S2-S4 prompt injection (filename/tags/whisper), S8 rate limiting IA.
-287. Auditoría seguridad/calidad Mezclador DAW TypeScript (14 archivos, 2539 lín). 15 hallazgos: 1 P0, 4 P1, 7 P2, 3 P3. P0: `iniciar()` retorna AudioContext cerrado (no verifica state). P1: setSilenciarPista pierde volumen real, buffer invertido sin cache (GC pressure), inferirCompas div/0 si bpm=0, aplicarPitchShift div/0 si playbackRate=0. P2: destruir() no libera caches, limpiarProyecto no limpia buffers, cache pitch sin límite, race condition carga concurrente, doble exportación, rAF no cancelado en reproducir(), setTiempoActual 60fps re-renders. P3: motorAudioService 390 lín (>300), pseudoSample hardcoded, IDs Date.now(). Positivo: stale closures bien manejadas con getState(), refs en document listeners, cleanup en todos los effects, validación scheduling.
+273. Explorador no funciona bien (pendiente de aclarar por usuario).
+281.4-281.7 Ordenamiento IA de carpetas (pro/premium), presets, instrucciones.
+284. Modo clip falla intermitentemente con loops comprimidos + chop.
+286. Auditoría seguridad Sprint 4 completada — ver solid-seguridad-optimizacion.md.
+287. Auditoría Mezclador DAW Sprint 4 completada — ver solid-seguridad-optimizacion.md.
 
 ---
 
@@ -420,6 +286,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [Cache]: mensajesStore con SWR pattern — `conversacionesCargadas` bool + `ultimaCargaConversaciones` timestamp + `necesitaRefrescar()` TTL 2min.
 - [Seguridad]: .htaccess bloquea WAV+MP3 optimizado. HMAC streaming en DescargasController.php. API ya no expone rutaOriginal/rutaOptimizada.
 - [Schema]: Cols constants en `App\Config\Schema\_generated\`. Patrón: `$row[XxxCols::COLUMNA]` en vez de `$row['columna']`. SQL aliases (reaccion_usuario, total de COUNT, etc.) se dejan como strings o class constants. Datos WP (display_name, etc.) no se migran.
+- [Schema-Enums]: `{Tabla}Enums.php` generado desde arrays `check` del schema. `SamplesEnums::ESTADO_ACTIVO`, `LikesEnums::TIPO_SAMPLE`, `LikesEnums::REACCION_ENCANTA`, `UsuariosExtEnums::PLAN_FREE`, etc. Eliminar strings hardcodeados en filtrops SQL y parámetros PDO. Regenerar al añadir valor CHECK en schema.
 - [Schema-TS]: Union types (`TipoSample`, `EstadoSample`, etc.) ahora derivados de `ISamples['tipo']` del schema generado. Si se añade un valor CHECK en la DB y se regenera, TS rompe donde no se maneja. Interfaces manuales (Sample, Usuario) se mantienen porque la API normaliza a español (`creadoAt`, no `createdAt`). Cols + interfaces re-exportados desde `@app/types`.
 - [VPS]: Plan completo en App/docs/plan-vps-kamples.md. Stack: WP+MariaDB+PostgreSQL(pgvector). Dockerfile custom con pdo_pgsql+FFmpeg+Node. KAMPLES_PG_HOST='postgres' en Docker (no 127.0.0.1). Build=Vite (no esbuild). Schema System archivos commiteados — NO regenerar en VPS. WP_DEBUG=FALSE obligatorio (SchemaRegistry). Excluir v001_local_sin_pgvector y v001_schema_inicial en deploy. themeName='glorytemplate'.
 - [coolify-manager]: Variables de entorno per-project en settings.json field `env`. `Get-SiteEnvVars` expande `${VAR}` desde host. `New-CoolifyWordPressStack -Template kamples` selecciona template YAML alterno. setup-kamples.ps1 ejecuta: PG health→migraciones→env sync→composer→npm build→FFmpeg verify→Apache restart. deploy-theme.ps1 detecta `template=kamples` y ejecuta composer+build post-deploy automáticamente.

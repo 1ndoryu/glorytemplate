@@ -159,6 +159,8 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     limpiarProyecto: () => {
         get()._guardarSnapshot();
         motorAudio.detenerTodo();
+        /* Liberar caches de audio al limpiar proyecto */
+        motorAudio.limpiarCache();
         set({
             pistas: Array.from({ length: 20 }, (_, i) => crearPistaVacia(`Pista ${i + 1}`)),
             totalCompases: CONSTANTES_MEZCLADOR.COMPASES_DEFAULT,

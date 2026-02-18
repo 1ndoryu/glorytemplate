@@ -29,6 +29,9 @@ export const aplicarPitchShift = (
 ): AudioBuffer => {
     if (semitonos === 0 && playbackRate === 1) return buffer;
 
+    /* Guard div/0: playbackRate <= 0 produciria Infinity en muestrasEsperadas */
+    if (playbackRate <= 0) playbackRate = 0.01;
+
     const st = new SoundTouch();
 
     /*
@@ -99,6 +102,7 @@ export const aplicarPitchShift = (
  * Clave: `${bloqueId}:${semitonos}:${playbackRate}`
  */
 const cacheProcessed = new Map<string, AudioBuffer>();
+const MAX_CACHE_PITCH = 50;
 
 export const obtenerBufferProcesado = (
     ctx: BaseAudioContext,
@@ -112,6 +116,13 @@ export const obtenerBufferProcesado = (
     if (cachedo) return cachedo;
 
     const procesado = aplicarPitchShift(ctx, buffer, semitonos, playbackRate);
+
+    /* Evitar crecimiento ilimitado del cache */
+    if (cacheProcessed.size >= MAX_CACHE_PITCH) {
+        const primeraKey = cacheProcessed.keys().next().value;
+        if (primeraKey !== undefined) cacheProcessed.delete(primeraKey);
+    }
+
     cacheProcessed.set(clave, procesado);
     return procesado;
 };
@@ -128,4 +139,45 @@ export const invalidarCacheBloque = (bloqueId: string): void => {
 /* Limpiar todo el cache */
 export const limpiarCachePitch = (): void => {
     cacheProcessed.clear();
+};
+
+/*
+ * Cache de buffers invertidos — evita recrear en cada schedule.
+ * Clave: `inv:${bloqueId}:${bufferId}`
+ */
+const cacheInvertidos = new Map<string, AudioBuffer>();
+
+export const obtenerBufferInvertido = (
+    ctx: BaseAudioContext,
+    bloqueId: string,
+    buffer: AudioBuffer
+): AudioBuffer => {
+    const clave = `inv:${bloqueId}`;
+    const cachedo = cacheInvertidos.get(clave);
+    if (cachedo && cachedo.length === buffer.length) return cachedo;
+
+    const invertido = ctx.createBuffer(
+        buffer.numberOfChannels,
+        buffer.length,
+        buffer.sampleRate
+    );
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+        const orig = buffer.getChannelData(c);
+        const dest = invertido.getChannelData(c);
+        for (let i = 0; i < orig.length; i++) {
+            dest[i] = orig[orig.length - 1 - i];
+        }
+    }
+
+    if (cacheInvertidos.size >= MAX_CACHE_PITCH) {
+        const primeraKey = cacheInvertidos.keys().next().value;
+        if (primeraKey !== undefined) cacheInvertidos.delete(primeraKey);
+    }
+
+    cacheInvertidos.set(clave, invertido);
+    return invertido;
+};
+
+export const limpiarCacheInvertidos = (): void => {
+    cacheInvertidos.clear();
 };

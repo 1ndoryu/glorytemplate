@@ -1,12 +1,20 @@
 <?php
 
 /**
- * ComentariosController — Endpoints genéricos de comentarios.
+ * ComentariosController — Coordinador + lectura + edición + reportes de comentarios.
  *
- * Maneja comentarios para cualquier tipo de entidad (sample, publicacion).
+ * A11 SOLID split: la creación, eliminación, likes y procesamiento multimedia
+ * se delegaron a ComentariosEscrituraController y ComentariosInteraccionController.
  *
- * GET  /comentarios/{tipo}/{targetId}  — Listar comentarios
- * POST /comentarios/{tipo}/{targetId}  — Crear comentario
+ * Endpoints propios:
+ *   GET  /comentarios/{tipo}/{targetId}  — Listar comentarios raíz
+ *   PUT  /comentarios/{id}              — Editar contenido (solo autor)
+ *   POST /comentarios/{id}/reportar     — Reportar comentario
+ *   GET  /comentarios/{id}/respuestas   — Respuestas hijas
+ *
+ * Delega a:
+ *   ComentariosEscrituraController    — POST crear, DELETE eliminar
+ *   ComentariosInteraccionController  — POST/DELETE likes
  *
  * @package Kamples
  */
@@ -16,17 +24,10 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
-use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\LikesCols;
-use App\Kamples\Services\PlanificadorAlgoritmo;
-use App\Kamples\Services\ServicioAntiSpam;
-use App\Kamples\Services\ServicioBan;
-use App\Kamples\Services\ServicioNotificaciones;
-use App\Kamples\Api\ServicioModeracionIA;
-use App\Kamples\LogModeracion as KamplesLogger;
 
 class ComentariosController
 {
@@ -34,7 +35,7 @@ class ComentariosController
 
     public static function registrarRutas(string $namespace): void
     {
-        register_rest_route($namespace, '/comentarios/(?P<tipo>sample|publicacion)/(?P<targetId>\d+)', [
+        \register_rest_route($namespace, '/comentarios/(?P<tipo>sample|publicacion)/(?P<targetId>\d+)', [
             'methods' => 'GET',
             'callback' => [self::class, 'listar'],
             'permission_callback' => '__return_true',
@@ -43,47 +44,47 @@ class ComentariosController
             ],
         ]);
 
-        register_rest_route($namespace, '/comentarios/(?P<tipo>sample|publicacion)/(?P<targetId>\d+)', [
+        \register_rest_route($namespace, '/comentarios/(?P<tipo>sample|publicacion)/(?P<targetId>\d+)', [
             'methods' => 'POST',
-            'callback' => [self::class, 'crear'],
+            'callback' => [ComentariosEscrituraController::class, 'crear'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
         /* C264: Editar comentario (solo autor) */
-        register_rest_route($namespace, '/comentarios/(?P<id>\d+)', [
+        \register_rest_route($namespace, '/comentarios/(?P<id>\d+)', [
             'methods' => 'PUT',
             'callback' => [self::class, 'editar'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
         /* C264: Eliminar comentario (autor o admin) */
-        register_rest_route($namespace, '/comentarios/(?P<id>\d+)', [
+        \register_rest_route($namespace, '/comentarios/(?P<id>\d+)', [
             'methods' => 'DELETE',
-            'callback' => [self::class, 'eliminar'],
+            'callback' => [ComentariosEscrituraController::class, 'eliminar'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
         /* C264: Reportar comentario */
-        register_rest_route($namespace, '/comentarios/(?P<id>\d+)/reportar', [
+        \register_rest_route($namespace, '/comentarios/(?P<id>\d+)/reportar', [
             'methods' => 'POST',
             'callback' => [self::class, 'reportar'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
         /* C265: Like/unlike comentario */
-        register_rest_route($namespace, '/comentarios/(?P<id>\d+)/like', [
+        \register_rest_route($namespace, '/comentarios/(?P<id>\d+)/like', [
             'methods' => 'POST',
-            'callback' => [self::class, 'darLike'],
+            'callback' => [ComentariosInteraccionController::class, 'darLike'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
-        register_rest_route($namespace, '/comentarios/(?P<id>\d+)/like', [
+        \register_rest_route($namespace, '/comentarios/(?P<id>\d+)/like', [
             'methods' => 'DELETE',
-            'callback' => [self::class, 'quitarLike'],
+            'callback' => [ComentariosInteraccionController::class, 'quitarLike'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
         /* C265: Respuestas a un comentario */
-        register_rest_route($namespace, '/comentarios/(?P<id>\d+)/respuestas', [
+        \register_rest_route($namespace, '/comentarios/(?P<id>\d+)/respuestas', [
             'methods' => 'GET',
             'callback' => [self::class, 'listarRespuestas'],
             'permission_callback' => '__return_true',
@@ -128,363 +129,6 @@ class ComentariosController
         $resultado = self::normalizarComentarios($comentarios, $currentUserId);
 
         return new \WP_REST_Response(['data' => $resultado, 'page' => $page], 200);
-    }
-
-    public static function crear(\WP_REST_Request $request): \WP_REST_Response
-    {
-        $userId = UsuarioHelper::obtenerIdPg();
-        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
-
-        $tipo = $request->get_param('tipo');
-        $targetId = (int) $request->get_param('targetId');
-
-        if (!in_array($tipo, self::TIPOS_VALIDOS, true)) {
-            return new \WP_REST_Response(['code' => 'tipo_invalido'], 400);
-        }
-
-        /* S26 fix: verificar ban ANTES de cualquier otro procesamiento */
-        $banResp = AuthMiddleware::verificarBanActivo($userId);
-        if ($banResp) return $banResp;
-
-        /* C130: Soporta JSON (texto) o FormData (multimedia) */
-        $contentType = $request->get_content_type();
-        $esFormData = $contentType && str_contains($contentType['value'] ?? '', 'multipart');
-
-        if ($esFormData) {
-            $contenido = sanitize_textarea_field($request->get_param('contenido') ?? '');
-            $tipoContenido = sanitize_text_field($request->get_param('tipoContenido') ?? 'texto');
-            $parentId = $request->get_param('parentId') ? (int) $request->get_param('parentId') : null;
-        } else {
-            $body = $request->get_json_params();
-            $contenido = sanitize_textarea_field($body['contenido'] ?? '');
-            $tipoContenido = 'texto';
-            $parentId = isset($body['parentId']) ? (int) $body['parentId'] : null;
-        }
-
-        /* Validar tipo de contenido */
-        $tiposContenidoPermitidos = ['texto', 'imagen', 'audio'];
-        if (!in_array($tipoContenido, $tiposContenidoPermitidos, true)) {
-            $tipoContenido = 'texto';
-        }
-
-        /* C164: Rate limiting — 10 comentarios por minuto */
-        $limitResp = RateLimiter::verificarUsuario($userId, 'comentar', 10, 60);
-        if ($limitResp) return $limitResp;
-
-        /* Validar contenido: requerido para texto, opcional para multimedia */
-        if ($tipoContenido === 'texto') {
-            if (empty($contenido)) {
-                return new \WP_REST_Response(['code' => 'contenido_vacio', 'message' => 'El comentario necesita contenido'], 400);
-            }
-        }
-
-        /* C164: Limite de longitud (aplica si hay texto) */
-        if (!empty($contenido)) {
-            $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_COMENTARIO, 'El comentario');
-            if ($errorLongitud) {
-                return Validador::respuestaError($errorLongitud);
-            }
-        }
-
-        /* C131: Anti-spam heurístico — se evalúa ANTES del INSERT para rechazar inmediatamente */
-        if (!empty($contenido)) {
-            $razonSpam = ServicioAntiSpam::evaluar($contenido, $userId);
-            if ($razonSpam) {
-                ServicioBan::registrarViolacion($userId, $razonSpam, 'comentario');
-                return new \WP_REST_Response(['code' => 'contenido_spam', 'message' => 'El comentario fue rechazado por spam'], 403);
-            }
-        }
-
-        $mediaUrl = null;
-        $mediaMetadata = null;
-
-        /* C130: Procesamiento de archivos multimedia */
-        if ($tipoContenido === 'imagen' || $tipoContenido === 'audio') {
-            $archivos = $request->get_file_params();
-            $archivo = $archivos['media'] ?? null;
-
-            if (!$archivo || $archivo['error'] !== UPLOAD_ERR_OK) {
-                return new \WP_REST_Response(['code' => 'archivo_invalido', 'message' => 'No se recibió archivo válido'], 400);
-            }
-
-            /* Validar MIME segun tipo — incluir variantes x- que mime_content_type() devuelve */
-            $mimesPermitidos = $tipoContenido === 'imagen'
-                ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-                : [
-                    'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav',
-                    'audio/ogg', 'application/ogg', 'audio/mp4', 'audio/x-m4a',
-                    'audio/aac', 'audio/webm', 'audio/flac',
-                ];
-
-            $mimeReal = \mime_content_type($archivo['tmp_name']);
-            if (!in_array($mimeReal, $mimesPermitidos, true)) {
-                return new \WP_REST_Response(['code' => 'tipo_no_permitido', 'message' => "Tipo de archivo no permitido: {$mimeReal}"], 400);
-            }
-
-            /* Limite de tamano: 10MB imagenes, 25MB audio */
-            $maxBytes = $tipoContenido === 'imagen' ? 10 * 1024 * 1024 : 25 * 1024 * 1024;
-            if ($archivo['size'] > $maxBytes) {
-                $maxMB = $maxBytes / 1024 / 1024;
-                return new \WP_REST_Response(['code' => 'archivo_grande', 'message' => "El archivo excede el limite de {$maxMB}MB"], 400);
-            }
-
-            /* Subir a WP uploads en subcarpeta comentarios */
-            $subDir = "kamples/comentarios/{$userId}/" . date('Y/m');
-            $filtroDir = function ($paths) use ($subDir) {
-                $paths['subdir'] = '/' . $subDir;
-                $paths['path'] = $paths['basedir'] . '/' . $subDir;
-                $paths['url'] = $paths['baseurl'] . '/' . $subDir;
-                return $paths;
-            };
-
-            /* wp_handle_upload no está disponible en contexto REST (solo en admin) */
-            if (!function_exists('wp_handle_upload')) {
-                require_once ABSPATH . 'wp-admin/includes/file.php';
-            }
-
-            \add_filter('upload_dir', $filtroDir);
-            $mimesUpload = $tipoContenido === 'audio'
-                ? [
-                    'mp3' => 'audio/mpeg', 'wav' => 'audio/wav', 'ogg' => 'audio/ogg',
-                    'm4a' => 'audio/mp4', 'aac' => 'audio/aac', 'webm' => 'audio/webm',
-                    'flac' => 'audio/flac',
-                ]
-                : [
-                    'jpg|jpeg' => 'image/jpeg', 'png' => 'image/png',
-                    'gif' => 'image/gif', 'webp' => 'image/webp',
-                ];
-            $subido = \wp_handle_upload($archivo, ['test_form' => false, 'mimes' => $mimesUpload]);
-            \remove_filter('upload_dir', $filtroDir);
-
-            if (isset($subido['error'])) {
-                return new \WP_REST_Response(['code' => 'error_subida', 'message' => $subido['error']], 500);
-            }
-
-            $mediaUrl = $subido['url'];
-            $mediaMetadata = json_encode([
-                'formato' => pathinfo($archivo['name'], PATHINFO_EXTENSION),
-                'tamano'  => $archivo['size'],
-                'mimeType' => $mimeReal,
-            ]);
-
-            /*
-             * C201: Convertir audio de comentarios a MP3 ligero (128kbps, mono, 44100Hz).
-             * Los audios en comentarios deben ser livianos para carga rápida.
-             * Genera waveform JSON para renderizado en frontend.
-             */
-            if ($tipoContenido === 'audio') {
-                $rutaOriginal = $subido['file'];
-                $extension = strtolower(pathinfo($rutaOriginal, PATHINFO_EXTENSION));
-
-                /* Solo convertir si no es ya MP3 */
-                if ($extension !== 'mp3') {
-                    $rutaMp3 = preg_replace('/\.[^.]+$/', '.mp3', $rutaOriginal);
-                    $convertido = self::convertirAudioComentario($rutaOriginal, $rutaMp3);
-                    if ($convertido && file_exists($rutaMp3)) {
-                        /* Borrar el original y usar el MP3 */
-                        @unlink($rutaOriginal);
-                        $mediaUrl = preg_replace('/\.[^.]+$/', '.mp3', $subido['url']);
-                        $mediaMetadata = json_encode([
-                            'formato' => 'mp3',
-                            'tamano'  => filesize($rutaMp3),
-                            'mimeType' => 'audio/mpeg',
-                        ]);
-                    }
-                }
-
-                /* Generar waveform JSON para el audio del comentario */
-                $rutaAudioFinal = $extension !== 'mp3' && isset($rutaMp3) && file_exists($rutaMp3) ? $rutaMp3 : $rutaOriginal;
-                $rutaWaveform = preg_replace('/\.[^.]+$/', '_waveform.json', $rutaAudioFinal);
-                $picos = self::generarWaveformComentario($rutaAudioFinal, $rutaWaveform);
-
-                if ($picos) {
-                    $meta = json_decode($mediaMetadata, true);
-                    $meta['waveformUrl'] = preg_replace('/\.[^.]+$/', '_waveform.json', $mediaUrl);
-                    $meta['picos'] = $picos;
-                    $mediaMetadata = json_encode($meta);
-                }
-            }
-
-            /* Si no hay texto, la imagen/audio es el comentario completo */
-            if (empty($contenido)) {
-                $contenido = null;
-            }
-        }
-
-        /* S27 fix: validar que el padre pertenece al mismo tipo+targetId ANTES de insertar */
-        if ($parentId) {
-            $padreValido = PostgresService::consultarUno(
-                "SELECT id FROM comentarios WHERE id = :id AND tipo = :tipo AND target_id = :targetId",
-                ['id' => $parentId, 'tipo' => $tipo, 'targetId' => $targetId]
-            );
-            if (!$padreValido) {
-                return new \WP_REST_Response(['code' => 'parent_invalido', 'message' => 'Comentario padre no encontrado en este contexto'], 400);
-            }
-        }
-
-        $id = PostgresService::insertar(
-            "INSERT INTO comentarios (autor_id, tipo, target_id, contenido, tipo_contenido, media_url, media_metadata, parent_id)
-             VALUES (:autor, :tipo, :target, :contenido, :tipoContenido, :mediaUrl, :mediaMetadata::jsonb, :parentId)
-             RETURNING id",
-            [
-                'autor' => $userId,
-                'tipo' => $tipo,
-                'target' => $targetId,
-                'contenido' => $contenido,
-                'tipoContenido' => $tipoContenido,
-                'mediaUrl' => $mediaUrl,
-                'mediaMetadata' => $mediaMetadata,
-                'parentId' => $parentId,
-            ]
-        );
-
-        /* C265: Si es respuesta, incrementar total_respuestas del padre */
-        if ($parentId) {
-            PostgresService::ejecutar(
-                "UPDATE comentarios SET total_respuestas = COALESCE(total_respuestas, 0) + 1 WHERE id = :parentId",
-                ['parentId' => $parentId]
-            );
-        }
-
-        /* Actualizar contador en la tabla correspondiente */
-        $tabla = $tipo === 'publicacion' ? 'publicaciones' : 'samples';
-        PostgresService::ejecutar(
-            "UPDATE {$tabla} SET total_comentarios = (
-                SELECT COUNT(*) FROM comentarios WHERE tipo = :tipo AND target_id = :targetId
-            ) WHERE id = :targetId",
-            ['tipo' => $tipo, 'targetId' => $targetId]
-        );
-
-        /* Registrar interaccion para el algoritmo */
-        PlanificadorAlgoritmo::registrarInteraccion($userId, 'comentario');
-
-        /*
-         * C266: Notificaciones de comentario.
-         * - Nuevo comentario en sample: notificar al creador del sample
-         * - Respuesta a comentario: notificar al autor del comentario padre
-         */
-        if ($parentId) {
-            /* Respuesta a comentario: notificar al autor del padre */
-            $padre = PostgresService::consultarUno(
-                "SELECT autor_id FROM comentarios WHERE id = :id",
-                ['id' => $parentId]
-            );
-            /* O17 fix: no autonotificar */
-            if ($padre && (int) $padre['autor_id'] !== $userId) {
-                $sampleSlug = null;
-                if ($tipo === 'sample') {
-                    $sInfo = PostgresService::consultarUno("SELECT slug FROM samples WHERE id = :id", ['id' => $targetId]);
-                    $sampleSlug = $sInfo['slug'] ?? null;
-                }
-                ServicioNotificaciones::respuestaComentario(
-                    (int) $padre['autor_id'],
-                    $userId,
-                    $parentId,
-                    $tipo === 'sample' ? $targetId : null,
-                    $sampleSlug
-                );
-            }
-        } else {
-            /* Comentario directo en sample o publicacion: notificar al creador/autor */
-            if ($tipo === 'sample') {
-                $sampleInfo = PostgresService::consultarUno(
-                    "SELECT creador_id, titulo, slug FROM samples WHERE id = :id",
-                    ['id' => $targetId]
-                );
-                if ($sampleInfo) {
-                    /* O17 fix: no autonotificar */
-                    if ((int) $sampleInfo['creador_id'] !== $userId) {
-                    ServicioNotificaciones::nuevoComentario(
-                        (int) $sampleInfo['creador_id'],
-                        $userId,
-                        $targetId,
-                        $sampleInfo['titulo'] ?? '',
-                        $sampleInfo['slug'] ?? null
-                    );
-                    }
-                }
-            } elseif ($tipo === 'publicacion') {
-                $pubInfo = PostgresService::consultarUno(
-                    "SELECT autor_id FROM publicaciones WHERE id = :id",
-                    ['id' => $targetId]
-                );
-                if ($pubInfo) {
-                    /* O17 fix: no autonotificar */
-                    if ((int) $pubInfo['autor_id'] !== $userId) {
-                    ServicioNotificaciones::crear(
-                        (int) $pubInfo['autor_id'],
-                        'comentario',
-                        'Alguien comento en tu publicacion',
-                        ['commenter_id' => $userId, 'publicacion_id' => $targetId],
-                        $userId,
-                        '',
-                        "/post/{$targetId}/"
-                    );
-                    }
-                }
-            }
-        }
-
-        /*
-         * C131: Moderación IA asíncrona post-INSERT.
-         * Se ejecuta después de enviar la respuesta al cliente (fail-open).
-         * El comentario se muestra inmediatamente; si IA lo rechaza, desaparece.
-         */
-        $comentarioIdMod = $id;
-        $textoMod = $contenido ?? '';
-        $mediaUrlMod = $mediaUrl;
-        $tipoContenidoMod = $tipoContenido;
-        $autorIdMod = $userId;
-
-        register_shutdown_function(function () use ($comentarioIdMod, $autorIdMod, $textoMod, $mediaUrlMod, $tipoContenidoMod) {
-            try {
-                ServicioModeracionIA::moderarComentario(
-                    $comentarioIdMod,
-                    $autorIdMod,
-                    $textoMod,
-                    $mediaUrlMod,
-                    $tipoContenidoMod
-                );
-            } catch (\Throwable $e) {
-                /* Moderación fail-open pero con logging para detectar fallos recurrentes */
-                KamplesLogger::warning('Moderación async de comentario falló', [
-                    'comentarioId' => $comentarioIdMod,
-                    'error' => $e->getMessage(),
-                ], 'moderacion');
-            }
-        });
-
-        /* Obtener datos del autor para devolver el comentario completo */
-        $usuario = PostgresService::consultarUno(
-            "SELECT id, username, nombre_visible, avatar_url, wp_user_id FROM usuarios_ext WHERE id = :id",
-            ['id' => $userId]
-        );
-
-        return new \WP_REST_Response([
-            'ok' => true,
-            'data' => [
-                'id' => $id,
-                'autorId' => $userId,
-                'contenido' => $contenido ?? '',
-                'tipoContenido' => $tipoContenido,
-                'mediaUrl' => $mediaUrl,
-                'mediaMetadata' => $mediaMetadata ? json_decode($mediaMetadata, true) : null,
-                'creadoAt' => date('c'),
-                'parentId' => $parentId,
-                'totalLikes' => 0,
-                'totalRespuestas' => 0,
-                'liked' => false,
-                'autor' => [
-                    'id' => $userId,
-                    'username' => $usuario[UsuariosExtCols::USERNAME] ?? '',
-                    'nombreVisible' => $usuario[UsuariosExtCols::NOMBRE_VISIBLE] ?? $usuario[UsuariosExtCols::USERNAME] ?? '',
-                    'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
-                        $usuario[UsuariosExtCols::AVATAR_URL] ?? null,
-                        (int) ($usuario[UsuariosExtCols::WP_USER_ID] ?? 0)
-                    ),
-                ],
-            ],
-        ], 201);
     }
 
     /* C264: Editar comentario (solo autor) */
@@ -533,52 +177,7 @@ class ComentariosController
         ], 200);
     }
 
-    /* C264: Eliminar comentario (autor o admin) */
-    public static function eliminar(\WP_REST_Request $request): \WP_REST_Response
-    {
-        $userId = UsuarioHelper::obtenerIdPg();
-        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
-
-        $id = (int) $request->get_param('id');
-
-        $comentario = PostgresService::consultarUno(
-            "SELECT id, autor_id, parent_id, tipo, target_id FROM comentarios WHERE id = :id",
-            ['id' => $id]
-        );
-
-        if (!$comentario) {
-            return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
-        }
-
-        $esAutor = (int) $comentario['autor_id'] === $userId;
-        $esAdmin = current_user_can('manage_options');
-
-        if (!$esAutor && !$esAdmin) {
-            return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
-        }
-
-        /* Si tiene padre, decrementar total_respuestas */
-        if ($comentario['parent_id']) {
-            PostgresService::ejecutar(
-                "UPDATE comentarios SET total_respuestas = GREATEST(0, COALESCE(total_respuestas, 0) - 1) WHERE id = :parentId",
-                ['parentId' => (int) $comentario['parent_id']]
-            );
-        }
-
-        /* CASCADE borra respuestas hijas automaticamente */
-        PostgresService::ejecutar("DELETE FROM comentarios WHERE id = :id", ['id' => $id]);
-
-        /* Actualizar contador */
-        $tabla = $comentario['tipo'] === 'publicacion' ? 'publicaciones' : 'samples';
-        PostgresService::ejecutar(
-            "UPDATE {$tabla} SET total_comentarios = (
-                SELECT COUNT(*) FROM comentarios WHERE tipo = :tipo AND target_id = :targetId
-            ) WHERE id = :targetId",
-            ['tipo' => $comentario['tipo'], 'targetId' => (int) $comentario['target_id']]
-        );
-
-        return new \WP_REST_Response(['ok' => true], 200);
-    }
+    /* C264: Eliminar comentario — delegado a ComentariosEscrituraController */
 
     /* C264: Reportar comentario */
     public static function reportar(\WP_REST_Request $request): \WP_REST_Response
@@ -619,85 +218,7 @@ class ComentariosController
         return new \WP_REST_Response(['ok' => true, 'message' => 'Reporte enviado'], 201);
     }
 
-    /* C265: Dar like a un comentario */
-    public static function darLike(\WP_REST_Request $request): \WP_REST_Response
-    {
-        $userId = UsuarioHelper::obtenerIdPg();
-        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
-
-        $id = (int) $request->get_param('id');
-
-        /* Verificar existencia */
-        $existe = PostgresService::consultarUno("SELECT id FROM comentarios WHERE id = :id", ['id' => $id]);
-        if (!$existe) return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
-
-        /* Insertar o ignorar (ON CONFLICT) */
-        PostgresService::ejecutar(
-            "INSERT INTO likes (usuario_id, tipo, target_id)
-             VALUES (:userId, 'comentario', :targetId)
-             ON CONFLICT (usuario_id, tipo, target_id) DO NOTHING",
-            ['userId' => $userId, 'targetId' => $id]
-        );
-
-        /* Recalcular total */
-        $total = PostgresService::consultarUno(
-            "SELECT COUNT(*) as total FROM likes WHERE tipo = 'comentario' AND target_id = :id",
-            ['id' => $id]
-        );
-        $totalLikes = (int) ($total['total'] ?? 0);
-
-        PostgresService::ejecutar(
-            "UPDATE comentarios SET total_likes = :total WHERE id = :id",
-            ['total' => $totalLikes, 'id' => $id]
-        );
-
-        /* C266: Notificacion de like en comentario */
-        $comentario = PostgresService::consultarUno(
-            "SELECT autor_id FROM comentarios WHERE id = :id",
-            ['id' => $id]
-        );
-        /* O17 fix: no autonotificar likes propios */
-        if ($comentario && (int) $comentario['autor_id'] !== $userId) {
-            ServicioNotificaciones::likeComentario(
-                (int) $comentario['autor_id'],
-                $userId,
-                $id
-            );
-        }
-
-        return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => true]], 200);
-    }
-
-    /* C265: Quitar like de un comentario */
-    public static function quitarLike(\WP_REST_Request $request): \WP_REST_Response
-    {
-        $userId = UsuarioHelper::obtenerIdPg();
-        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
-
-        $id = (int) $request->get_param('id');
-
-        /* S42 fix: verificar que el comentario existe antes de operar */
-        $existe = PostgresService::consultarUno("SELECT id FROM comentarios WHERE id = :id", ['id' => $id]);
-        if (!$existe) return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
-
-        PostgresService::ejecutar(
-            "DELETE FROM likes WHERE usuario_id = :userId AND tipo = 'comentario' AND target_id = :targetId",
-            ['userId' => $userId, 'targetId' => $id]
-        );
-
-        $total = PostgresService::consultarUno(
-            "SELECT COUNT(*) as total FROM likes WHERE tipo = 'comentario' AND target_id = :id",
-            ['id' => $id]
-        );
-        $totalLikes = (int) ($total['total'] ?? 0);
-
-        PostgresService::ejecutar(
-            "UPDATE comentarios SET total_likes = :total WHERE id = :id",
-            ['total' => $totalLikes, 'id' => $id]
-        );
-
-        return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => false]], 200);
-    }
+    /* C265: Likes delegados a ComentariosInteraccionController */
 
     /* C265: Listar respuestas de un comentario */
     public static function listarRespuestas(\WP_REST_Request $request): \WP_REST_Response
@@ -783,111 +304,4 @@ class ComentariosController
         }, $filas);
     }
 
-    /*
-     * C201: Convierte audio de comentario a MP3 ligero (128kbps, mono, 44100Hz).
-     * Reutiliza la detección de FFmpeg de PipelineAudio vía .env o PATH.
-     */
-    private static function convertirAudioComentario(string $entrada, string $salida): bool
-    {
-        $ffmpeg = self::obtenerFFmpegBin();
-        if (!$ffmpeg) {
-            KamplesLogger::warning('ComentariosController: FFmpeg no disponible para conversion de audio');
-            return false;
-        }
-
-        $cmd = sprintf(
-            '%s -y -i %s -codec:a libmp3lame -b:a 128k -ac 1 -ar 44100 %s 2>&1',
-            escapeshellarg($ffmpeg),
-            escapeshellarg($entrada),
-            escapeshellarg($salida)
-        );
-
-        exec($cmd, $output, $returnCode);
-        return $returnCode === 0 && file_exists($salida);
-    }
-
-    /*
-     * C201: Genera peaks waveform (60 barras) para audio de comentario.
-     * Similar a PipelineAudio pero con menos resolución (audio corto).
-     */
-    private static function generarWaveformComentario(string $rutaAudio, string $rutaSalida): ?array
-    {
-        $ffmpeg = self::obtenerFFmpegBin();
-        if (!$ffmpeg) return null;
-
-        $barras = 60;
-
-        /* Decodificar audio a PCM raw con FFmpeg */
-        /* O18 fix: usar random_bytes en vez de uniqid predecible */
-        $tmpPcm = \sys_get_temp_dir() . '/kamples_comment_pcm_' . \bin2hex(\random_bytes(8)) . '.raw';
-        $cmd = sprintf(
-            '%s -y -i %s -f f32le -acodec pcm_f32le -ac 1 -ar 8000 %s 2>&1',
-            escapeshellarg($ffmpeg),
-            escapeshellarg($rutaAudio),
-            escapeshellarg($tmpPcm)
-        );
-
-        exec($cmd, $output, $returnCode);
-        if ($returnCode !== 0 || !file_exists($tmpPcm)) {
-            @unlink($tmpPcm);
-            return null;
-        }
-
-        $raw = file_get_contents($tmpPcm);
-        @unlink($tmpPcm);
-
-        if (!$raw || strlen($raw) < 4) return null;
-
-        $samples = unpack('f*', $raw);
-        if (!$samples) return null;
-
-        $total = count($samples);
-        $porBarra = max(1, (int) floor($total / $barras));
-        $picos = [];
-
-        for ($i = 0; $i < $barras; $i++) {
-            $inicio = $i * $porBarra + 1;
-            $max = 0;
-            for ($j = 0; $j < $porBarra; $j++) {
-                $idx = $inicio + $j;
-                if (isset($samples[$idx])) {
-                    $val = abs($samples[$idx]);
-                    if ($val > $max) $max = $val;
-                }
-            }
-            $picos[] = round($max, 4);
-        }
-
-        /* Normalizar entre 0 y 1 */
-        $maximo = max($picos) ?: 1;
-        $picos = array_map(fn($p) => round(max(0.03, $p / $maximo), 3), $picos);
-
-        /* Guardar como JSON */
-        file_put_contents($rutaSalida, json_encode($picos));
-
-        return $picos;
-    }
-
-    /*
-     * Obtiene la ruta al binario FFmpeg (desde .env o PATH).
-     */
-    private static function obtenerFFmpegBin(): ?string
-    {
-        /* Intentar desde .env */
-        $envPath = defined('FFMPEG_PATH') ? FFMPEG_PATH : (\getenv('FFMPEG_PATH') ?: null);
-        if ($envPath && is_executable($envPath)) return $envPath;
-
-        /* Intentar desde PATH del sistema */
-        $esWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
-        $cmd = $esWindows ? 'where ffmpeg 2>nul' : 'which ffmpeg 2>/dev/null';
-        $resultado = trim(shell_exec($cmd) ?? '');
-
-        if ($resultado) {
-            $lineas = explode("\n", $resultado);
-            $ruta = trim($lineas[0]);
-            if (is_executable($ruta)) return $ruta;
-        }
-
-        return null;
-    }
 }

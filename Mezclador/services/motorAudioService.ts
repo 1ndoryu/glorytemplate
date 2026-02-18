@@ -6,7 +6,7 @@
 
 import { CONSTANTES_MEZCLADOR } from '../types/mezclador';
 import { decodificarAudio } from '../utils/audioBufferUtils';
-import { obtenerBufferProcesado, limpiarCachePitch } from './pitchShiftService';
+import { obtenerBufferProcesado, limpiarCachePitch, obtenerBufferInvertido, limpiarCacheInvertidos } from './pitchShiftService';
 
 class MotorAudio {
     private contexto: AudioContext | null = null;
@@ -136,21 +136,10 @@ class MotorAudio {
         }
 
         /*
-         * C215: Si el bloque está invertido, usar un buffer invertido.
+         * C215: Si el bloque está invertido, usar buffer invertido cacheado.
          */
         if (invertido) {
-            const bufferInvertido = ctx.createBuffer(
-                bufferFinal.numberOfChannels,
-                bufferFinal.length,
-                bufferFinal.sampleRate
-            );
-            for (let c = 0; c < bufferFinal.numberOfChannels; c++) {
-                const orig = bufferFinal.getChannelData(c);
-                const dest = bufferInvertido.getChannelData(c);
-                for (let i = 0; i < orig.length; i++) {
-                    dest[i] = orig[orig.length - 1 - i];
-                }
-            }
+            const bufferInvertido = obtenerBufferInvertido(ctx, bloqueId, bufferFinal);
             fuente.buffer = bufferInvertido;
             offset = Math.max(0, bufferFinal.duration - offset - (duracion * rateParaFuente));
         } else {
@@ -303,21 +292,11 @@ class MotorAudio {
                 detuneParaFuente = detuneVal;
             }
 
-            /* C215: Invertir buffer si es necesario */
+            /* C215: Invertir buffer si es necesario (cacheado) */
             if (bloque.invertido) {
-                const bufInv = offlineCtx.createBuffer(
-                    bufferParaFuente.numberOfChannels,
-                    bufferParaFuente.length,
-                    bufferParaFuente.sampleRate
+                fuente.buffer = obtenerBufferInvertido(
+                    offlineCtx, bloque.bloqueId ?? '', bufferParaFuente
                 );
-                for (let c = 0; c < bufferParaFuente.numberOfChannels; c++) {
-                    const orig = bufferParaFuente.getChannelData(c);
-                    const dest = bufInv.getChannelData(c);
-                    for (let i = 0; i < orig.length; i++) {
-                        dest[i] = orig[orig.length - 1 - i];
-                    }
-                }
-                fuente.buffer = bufInv;
             } else {
                 fuente.buffer = bufferParaFuente;
             }
@@ -375,7 +354,8 @@ class MotorAudio {
         this.contexto = null;
         this.masterGain = null;
         this.iniciado = false;
-        /* cacheBuffers se conservan — reutilizables si se reabre */
+        /* Liberar caches de buffers al destruir */
+        this.limpiarCache();
     }
 
     /* Limpiar caché de buffers (liberar memoria) */
@@ -383,6 +363,8 @@ class MotorAudio {
         this.cacheBuffers.clear();
         /* C271: Limpiar cache de buffers SoundTouch procesados */
         limpiarCachePitch();
+        /* Limpiar cache de buffers invertidos */
+        limpiarCacheInvertidos();
     }
 }
 

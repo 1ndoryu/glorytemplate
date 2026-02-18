@@ -1,0 +1,316 @@
+<?php
+
+/**
+ * ComentariosInteraccionController — Likes y procesamiento multimedia de comentarios.
+ *
+ * Extraído de ComentariosController (A11 SOLID split).
+ *
+ * Métodos públicos:
+ *   darLike()         — POST /comentarios/{id}/like
+ *   quitarLike()      — DELETE /comentarios/{id}/like
+ *   procesarMedia()   — Subida, validación y conversión de multimedia (usado por crear)
+ *
+ * @package Kamples
+ */
+
+namespace App\Kamples\Api\Controladores;
+
+use App\Kamples\Database\PostgresService;
+use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Services\ServicioNotificaciones;
+use App\Kamples\LogModeracion as KamplesLogger;
+
+class ComentariosInteraccionController
+{
+    /* C265: Dar like a un comentario */
+    public static function darLike(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $id = (int) $request->get_param('id');
+
+        $existe = PostgresService::consultarUno("SELECT id FROM comentarios WHERE id = :id", ['id' => $id]);
+        if (!$existe) return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
+
+        PostgresService::ejecutar(
+            "INSERT INTO likes (usuario_id, tipo, target_id)
+             VALUES (:userId, 'comentario', :targetId)
+             ON CONFLICT (usuario_id, tipo, target_id) DO NOTHING",
+            ['userId' => $userId, 'targetId' => $id]
+        );
+
+        $total = PostgresService::consultarUno(
+            "SELECT COUNT(*) as total FROM likes WHERE tipo = 'comentario' AND target_id = :id",
+            ['id' => $id]
+        );
+        $totalLikes = (int) ($total['total'] ?? 0);
+
+        PostgresService::ejecutar(
+            "UPDATE comentarios SET total_likes = :total WHERE id = :id",
+            ['total' => $totalLikes, 'id' => $id]
+        );
+
+        /* C266: Notificacion de like en comentario */
+        $comentario = PostgresService::consultarUno(
+            "SELECT autor_id FROM comentarios WHERE id = :id",
+            ['id' => $id]
+        );
+        /* O17 fix: no autonotificar likes propios */
+        if ($comentario && (int) $comentario['autor_id'] !== $userId) {
+            ServicioNotificaciones::likeComentario(
+                (int) $comentario['autor_id'],
+                $userId,
+                $id
+            );
+        }
+
+        return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => true]], 200);
+    }
+
+    /* C265: Quitar like de un comentario */
+    public static function quitarLike(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $id = (int) $request->get_param('id');
+
+        /* S42 fix: verificar que el comentario existe antes de operar */
+        $existe = PostgresService::consultarUno("SELECT id FROM comentarios WHERE id = :id", ['id' => $id]);
+        if (!$existe) return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
+
+        PostgresService::ejecutar(
+            "DELETE FROM likes WHERE usuario_id = :userId AND tipo = 'comentario' AND target_id = :targetId",
+            ['userId' => $userId, 'targetId' => $id]
+        );
+
+        $total = PostgresService::consultarUno(
+            "SELECT COUNT(*) as total FROM likes WHERE tipo = 'comentario' AND target_id = :id",
+            ['id' => $id]
+        );
+        $totalLikes = (int) ($total['total'] ?? 0);
+
+        PostgresService::ejecutar(
+            "UPDATE comentarios SET total_likes = :total WHERE id = :id",
+            ['total' => $totalLikes, 'id' => $id]
+        );
+
+        return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => false]], 200);
+    }
+
+    /**
+     * Procesa subida multimedia para comentarios (imagen o audio).
+     * Extraído de ComentariosController::crear().
+     *
+     * @return array{0: string|null, 1: string|null, 2: string|null}|\WP_REST_Response
+     *   En éxito: [$mediaUrl, $mediaMetadata, $contenido].
+     *   En error: WP_REST_Response con código de error.
+     */
+    public static function procesarMedia(
+        \WP_REST_Request $request,
+        string $tipoContenido,
+        int $userId,
+        ?string $contenido
+    ): array|\WP_REST_Response {
+        $archivos = $request->get_file_params();
+        $archivo = $archivos['media'] ?? null;
+
+        if (!$archivo || $archivo['error'] !== UPLOAD_ERR_OK) {
+            return new \WP_REST_Response(['code' => 'archivo_invalido', 'message' => 'No se recibió archivo válido'], 400);
+        }
+
+        /* Validar MIME según tipo */
+        $mimesPermitidos = $tipoContenido === 'imagen'
+            ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+            : [
+                'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav',
+                'audio/ogg', 'application/ogg', 'audio/mp4', 'audio/x-m4a',
+                'audio/aac', 'audio/webm', 'audio/flac',
+            ];
+
+        $mimeReal = \mime_content_type($archivo['tmp_name']);
+        if (!\in_array($mimeReal, $mimesPermitidos, true)) {
+            return new \WP_REST_Response(['code' => 'tipo_no_permitido', 'message' => "Tipo de archivo no permitido: {$mimeReal}"], 400);
+        }
+
+        /* Limite de tamano: 10MB imagenes, 25MB audio */
+        $maxBytes = $tipoContenido === 'imagen' ? 10 * 1024 * 1024 : 25 * 1024 * 1024;
+        if ($archivo['size'] > $maxBytes) {
+            $maxMB = $maxBytes / 1024 / 1024;
+            return new \WP_REST_Response(['code' => 'archivo_grande', 'message' => "El archivo excede el limite de {$maxMB}MB"], 400);
+        }
+
+        /* Subir a WP uploads en subcarpeta comentarios */
+        $subDir = "kamples/comentarios/{$userId}/" . \date('Y/m');
+        $filtroDir = function ($paths) use ($subDir) {
+            $paths['subdir'] = '/' . $subDir;
+            $paths['path'] = $paths['basedir'] . '/' . $subDir;
+            $paths['url'] = $paths['baseurl'] . '/' . $subDir;
+            return $paths;
+        };
+
+        if (!\function_exists('wp_handle_upload')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+
+        \add_filter('upload_dir', $filtroDir);
+        $mimesUpload = $tipoContenido === 'audio'
+            ? [
+                'mp3' => 'audio/mpeg', 'wav' => 'audio/wav', 'ogg' => 'audio/ogg',
+                'm4a' => 'audio/mp4', 'aac' => 'audio/aac', 'webm' => 'audio/webm',
+                'flac' => 'audio/flac',
+            ]
+            : [
+                'jpg|jpeg' => 'image/jpeg', 'png' => 'image/png',
+                'gif' => 'image/gif', 'webp' => 'image/webp',
+            ];
+        $subido = \wp_handle_upload($archivo, ['test_form' => false, 'mimes' => $mimesUpload]);
+        \remove_filter('upload_dir', $filtroDir);
+
+        if (isset($subido['error'])) {
+            return new \WP_REST_Response(['code' => 'error_subida', 'message' => $subido['error']], 500);
+        }
+
+        $mediaUrl = $subido['url'];
+        $mediaMetadata = \json_encode([
+            'formato' => \pathinfo($archivo['name'], PATHINFO_EXTENSION),
+            'tamano'  => $archivo['size'],
+            'mimeType' => $mimeReal,
+        ]);
+
+        /* C201: Convertir audio a MP3 ligero + generar waveform */
+        if ($tipoContenido === 'audio') {
+            $rutaOriginal = $subido['file'];
+            $extension = \strtolower(\pathinfo($rutaOriginal, PATHINFO_EXTENSION));
+
+            if ($extension !== 'mp3') {
+                $rutaMp3 = \preg_replace('/\.[^.]+$/', '.mp3', $rutaOriginal);
+                $convertido = self::convertirAudioComentario($rutaOriginal, $rutaMp3);
+                if ($convertido && \file_exists($rutaMp3)) {
+                    @\unlink($rutaOriginal);
+                    $mediaUrl = \preg_replace('/\.[^.]+$/', '.mp3', $subido['url']);
+                    $mediaMetadata = \json_encode([
+                        'formato' => 'mp3',
+                        'tamano'  => \filesize($rutaMp3),
+                        'mimeType' => 'audio/mpeg',
+                    ]);
+                }
+            }
+
+            $rutaAudioFinal = ($extension !== 'mp3' && isset($rutaMp3) && \file_exists($rutaMp3)) ? $rutaMp3 : $rutaOriginal;
+            $rutaWaveform = \preg_replace('/\.[^.]+$/', '_waveform.json', $rutaAudioFinal);
+            $picos = self::generarWaveformComentario($rutaAudioFinal, $rutaWaveform);
+
+            if ($picos) {
+                $meta = \json_decode($mediaMetadata, true);
+                $meta['waveformUrl'] = \preg_replace('/\.[^.]+$/', '_waveform.json', $mediaUrl);
+                $meta['picos'] = $picos;
+                $mediaMetadata = \json_encode($meta);
+            }
+        }
+
+        /* Si no hay texto, imagen/audio es el comentario completo */
+        if (empty($contenido)) {
+            $contenido = null;
+        }
+
+        return [$mediaUrl, $mediaMetadata, $contenido];
+    }
+
+    /* C201: Convierte audio de comentario a MP3 ligero (128kbps, mono, 44100Hz) */
+    private static function convertirAudioComentario(string $entrada, string $salida): bool
+    {
+        $ffmpeg = self::obtenerFFmpegBin();
+        if (!$ffmpeg) {
+            KamplesLogger::warning('ComentariosController: FFmpeg no disponible para conversion de audio');
+            return false;
+        }
+
+        $cmd = \sprintf(
+            '%s -y -i %s -codec:a libmp3lame -b:a 128k -ac 1 -ar 44100 %s 2>&1',
+            \escapeshellarg($ffmpeg),
+            \escapeshellarg($entrada),
+            \escapeshellarg($salida)
+        );
+
+        \exec($cmd, $output, $returnCode);
+        return $returnCode === 0 && \file_exists($salida);
+    }
+
+    /* C201: Genera peaks waveform (60 barras) para audio de comentario */
+    private static function generarWaveformComentario(string $rutaAudio, string $rutaSalida): ?array
+    {
+        $ffmpeg = self::obtenerFFmpegBin();
+        if (!$ffmpeg) return null;
+
+        $barras = 60;
+
+        /* O18 fix: usar random_bytes en vez de uniqid predecible */
+        $tmpPcm = \sys_get_temp_dir() . '/kamples_comment_pcm_' . \bin2hex(\random_bytes(8)) . '.raw';
+        $cmd = \sprintf(
+            '%s -y -i %s -f f32le -acodec pcm_f32le -ac 1 -ar 8000 %s 2>&1',
+            \escapeshellarg($ffmpeg),
+            \escapeshellarg($rutaAudio),
+            \escapeshellarg($tmpPcm)
+        );
+
+        \exec($cmd, $output, $returnCode);
+        if ($returnCode !== 0 || !\file_exists($tmpPcm)) {
+            @\unlink($tmpPcm);
+            return null;
+        }
+
+        $raw = \file_get_contents($tmpPcm);
+        @\unlink($tmpPcm);
+
+        if (!$raw || \strlen($raw) < 4) return null;
+
+        $samples = \unpack('f*', $raw);
+        if (!$samples) return null;
+
+        $total = \count($samples);
+        $porBarra = \max(1, (int) \floor($total / $barras));
+        $picos = [];
+
+        for ($i = 0; $i < $barras; $i++) {
+            $inicio = $i * $porBarra + 1;
+            $max = 0;
+            for ($j = 0; $j < $porBarra; $j++) {
+                $idx = $inicio + $j;
+                if (isset($samples[$idx])) {
+                    $val = \abs($samples[$idx]);
+                    if ($val > $max) $max = $val;
+                }
+            }
+            $picos[] = \round($max, 4);
+        }
+
+        /* Normalizar entre 0 y 1 */
+        $maximo = \max($picos) ?: 1;
+        $picos = \array_map(fn($p) => \round(\max(0.03, $p / $maximo), 3), $picos);
+
+        \file_put_contents($rutaSalida, \json_encode($picos));
+
+        return $picos;
+    }
+
+    /* Localiza el binario FFmpeg desde .env o PATH del sistema */
+    private static function obtenerFFmpegBin(): ?string
+    {
+        $envPath = \defined('FFMPEG_PATH') ? FFMPEG_PATH : (\getenv('FFMPEG_PATH') ?: null);
+        if ($envPath && \is_executable($envPath)) return $envPath;
+
+        $esWindows = \strtoupper(\substr(PHP_OS, 0, 3)) === 'WIN';
+        $cmd = $esWindows ? 'where ffmpeg 2>nul' : 'which ffmpeg 2>/dev/null';
+        $resultado = \trim(\shell_exec($cmd) ?? '');
+
+        if ($resultado) {
+            $lineas = \explode("\n", $resultado);
+            $ruta = \trim($lineas[0]);
+            if (\is_executable($ruta)) return $ruta;
+        }
+
+        return null;
+    }
+}

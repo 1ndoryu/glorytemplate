@@ -533,3 +533,71 @@ export const UsuariosExtCols = {
   CREDITOS_BONUS: 'creditos_bonus',
   STRIPE_SUBSCRIPTION_ID: 'stripe_subscription_id'
 } as const
+
+/* Constantes de valores enum/check (mirror de PHP) */
+export const ComentariosEnums = {
+  TIPO_SAMPLE: 'sample',
+  TIPO_PUBLICACION: 'publicacion'
+} as const
+
+export const LikesEnums = {
+  TIPO_SAMPLE: 'sample',
+  TIPO_PUBLICACION: 'publicacion',
+  TIPO_COMENTARIO: 'comentario',
+  REACCION_LIKE: 'like',
+  REACCION_DISLIKE: 'dislike',
+  REACCION_ENCANTA: 'encanta'
+} as const
+
+export const PublicacionesEnums = {
+  TIPO_SOCIAL: 'social',
+  TIPO_SAMPLE: 'sample'
+} as const
+
+export const ReportesDuplicadosEnums = {
+  ESTADO_REPORTADO: 'reportado',
+  ESTADO_EN_REVISION: 'en_revision',
+  ESTADO_RESUELTO: 'resuelto',
+  ESTADO_RECHAZADO: 'rechazado'
+} as const
+
+export const SamplesEnums = {
+  ESTADO_PROCESANDO: 'procesando',
+  ESTADO_ACTIVO: 'activo',
+  ESTADO_INACTIVO: 'inactivo',
+  ESTADO_ELIMINADO: 'eliminado',
+  ESTADO_EN_SUPERVISION: 'en_supervision',
+  TIPO_LOOP: 'loop',
+  TIPO_ONESHOT: 'oneshot',
+  TIPO_FX: 'fx',
+  TIPO_VOCAL: 'vocal',
+  TIPO_STEM: 'stem',
+  TIPO_OTRO: 'otro'
+} as const
+
+export const SuscripcionesEnums = {
+  ESTADO_ACTIVA: 'activa',
+  ESTADO_CANCELADA: 'cancelada',
+  ESTADO_VENCIDA: 'vencida',
+  ESTADO_PERIODO_PRUEBA: 'periodo_prueba'
+} as const
+
+export const TransaccionesEnums = {
+  TIPO_SUSCRIPCION: 'suscripcion',
+  TIPO_COMPRA_SAMPLE: 'compra_sample',
+  TIPO_PAYOUT: 'payout',
+  ESTADO_COMPLETADA: 'completada',
+  ESTADO_COMPLETED: 'completed',
+  ESTADO_PENDIENTE: 'pendiente',
+  ESTADO_FALLIDA: 'fallida',
+  ESTADO_REEMBOLSADA: 'reembolsada'
+} as const
+
+export const UsuariosExtEnums = {
+  PLAN_FREE: 'free',
+  PLAN_PRO: 'pro',
+  PLAN_PREMIUM: 'premium',
+  ROL_USUARIO: 'usuario',
+  ROL_CREADOR: 'creador',
+  ROL_ADMIN: 'admin'
+} as const

@@ -25,6 +25,7 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
+use App\Kamples\Services\ConstructorSenales;
 use App\Kamples\Services\MotorRecomendacion;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
@@ -144,7 +145,7 @@ class ColeccionesController
          */
         if ($userId) {
             $params['userId'] = $userId;
-            $tagsLiked = MotorRecomendacion::sqlTagsEnriquecidos('s_l');
+            $tagsLiked = ConstructorSenales::sqlTagsEnriquecidos('s_l');
 
             $sql = "
                 WITH user_tags AS (
