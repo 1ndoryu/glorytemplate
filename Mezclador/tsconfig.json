@@ -25,7 +25,8 @@
             "react/jsx-runtime": ["node_modules/@types/react/jsx-runtime"],
             "lucide-react": ["node_modules/lucide-react"],
             "zustand": ["node_modules/zustand"],
-            "zustand/*": ["node_modules/zustand/*"]
+            "zustand/*": ["node_modules/zustand/*"],
+            "soundtouchjs": ["node_modules/soundtouchjs"]
         }
     },
     "include": ["./**/*.ts", "./**/*.tsx"],
