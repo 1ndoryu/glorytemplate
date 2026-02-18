@@ -20,6 +20,7 @@ use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\KamplesLogger;
 
 class AdminController
 {
@@ -89,27 +90,32 @@ class AdminController
      */
     public static function actividad(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $dias = min(90, max(7, (int) ($request->get_param('dias') ?? 7)));
 
+        /* S23 fix: parametrizar $dias con INTERVAL '1 day' * :dias */
         $registros = PostgresService::consultar(
             "SELECT DATE(created_at) as fecha, COUNT(*) as total
              FROM usuarios_ext
-             WHERE created_at > NOW() - INTERVAL '{$dias} days'
-             GROUP BY DATE(created_at) ORDER BY fecha"
+             WHERE created_at > NOW() - INTERVAL '1 day' * :dias
+             GROUP BY DATE(created_at) ORDER BY fecha",
+            ['dias' => $dias]
         );
 
         $uploads = PostgresService::consultar(
             "SELECT DATE(created_at) as fecha, COUNT(*) as total
              FROM samples
-             WHERE created_at > NOW() - INTERVAL '{$dias} days'
-             GROUP BY DATE(created_at) ORDER BY fecha"
+             WHERE created_at > NOW() - INTERVAL '1 day' * :dias
+             GROUP BY DATE(created_at) ORDER BY fecha",
+            ['dias' => $dias]
         );
 
         $descargas = PostgresService::consultar(
             "SELECT DATE(created_at) as fecha, COUNT(*) as total
              FROM descargas
-             WHERE created_at > NOW() - INTERVAL '{$dias} days'
-             GROUP BY DATE(created_at) ORDER BY fecha"
+             WHERE created_at > NOW() - INTERVAL '1 day' * :dias
+             GROUP BY DATE(created_at) ORDER BY fecha",
+            ['dias' => $dias]
         );
 
         return new \WP_REST_Response([
@@ -119,6 +125,10 @@ class AdminController
                 'descargas' => $descargas,
             ]
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminController::actividad fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
     }
 
     /*
@@ -198,8 +208,15 @@ class AdminController
      */
     public static function actualizarUsuario(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $id = (int) $request->get_param('id');
         $body = $request->get_json_params();
+
+        /* S33 fix: prevenir auto-modificación (admin no puede banearse/degradarse a sí mismo) */
+        $currentPgId = UsuarioHelper::obtenerIdPg();
+        if ($currentPgId && $id === $currentPgId) {
+            return new \WP_REST_Response(['code' => 'auto_modificacion', 'message' => 'No puedes modificar tu propia cuenta desde el panel'], 400);
+        }
 
         $camposPermitidos = [];
         $params = ['id' => $id];
@@ -223,8 +240,13 @@ class AdminController
             if ($body['ban_hasta'] === null) {
                 $camposPermitidos[] = 'baneado_hasta = NULL';
             } else {
+                /* S34 fix: validar formato fecha ISO */
+                $ts = \strtotime($body['ban_hasta']);
+                if ($ts === false) {
+                    return new \WP_REST_Response(['code' => 'fecha_invalida', 'message' => 'Formato de fecha inválido para ban_hasta'], 400);
+                }
                 $camposPermitidos[] = 'baneado_hasta = :ban_hasta';
-                $params['ban_hasta'] = $body['ban_hasta'];
+                $params['ban_hasta'] = date('Y-m-d H:i:s', $ts);
             }
         }
 
@@ -240,7 +262,17 @@ class AdminController
             $params
         );
 
+        /* S25 fix: verificar si el usuario existía */
+        $verificar = PostgresService::consultarUno("SELECT id FROM usuarios_ext WHERE id = :id", ['id' => $id]);
+        if (!$verificar) {
+            return new \WP_REST_Response(['code' => 'no_encontrado', 'message' => 'Usuario no encontrado'], 404);
+        }
+
         return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminController::actualizarUsuario fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
     }
 
     /*
@@ -264,9 +296,10 @@ class AdminController
             ['offset' => $offset]
         );
 
-        /* Reportes pendientes */
+        /* Reportes pendientes — S35 fix: columnas explícitas, no SELECT r.* */
         $reportes = PostgresService::consultar(
-            "SELECT r.*, u.username as reportador_username
+            "SELECT r.id, r.tipo, r.target_id, r.reportador_id, r.razon, r.estado, r.created_at,
+                    u.username as reportador_username
              FROM reportes r
              JOIN usuarios_ext u ON r.reportador_id = u.id
              WHERE r.estado = 'pendiente'
@@ -298,10 +331,11 @@ class AdminController
      */
     public static function moderar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $body = $request->get_json_params();
-        $tipo = sanitize_text_field($body['tipo'] ?? '');
+        $tipo = \sanitize_text_field($body['tipo'] ?? '');
         $id = (int) ($body['id'] ?? 0);
-        $accion = sanitize_text_field($body['accion'] ?? '');
+        $accion = \sanitize_text_field($body['accion'] ?? '');
 
         if (!in_array($tipo, ['publicacion', 'comentario']) || !$id || !in_array($accion, ['aprobar', 'rechazar'])) {
             return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'Parámetros inválidos'], 400);
@@ -315,6 +349,19 @@ class AdminController
             ['estado' => $estado, 'id' => $id]
         );
 
+        /* S24 fix: verificar que el contenido existía */
+        $existe = PostgresService::consultarUno(
+            "SELECT id FROM {$tabla} WHERE id = :id",
+            ['id' => $id]
+        );
+        if (!$existe) {
+            return new \WP_REST_Response(['code' => 'no_encontrado', 'message' => 'Contenido no encontrado'], 404);
+        }
+
         return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminController::moderar fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
     }
 }

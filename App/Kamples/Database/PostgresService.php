@@ -20,6 +20,7 @@ use App\Kamples\KamplesLogger;
 use Glory\Core\SchemaRegistry;
 use PDO;
 use PDOException;
+use RuntimeException;
 
 class PostgresService
 {
@@ -48,8 +49,15 @@ class PostgresService
             $host = self::env('KAMPLES_PG_HOST', '127.0.0.1');
             $port = self::env('KAMPLES_PG_PORT', '5432');
             $dbname = self::env('KAMPLES_PG_DBNAME', 'kamples');
-            $user = self::env('KAMPLES_PG_USER', 'postgres');
-            $password = self::env('KAMPLES_PG_PASSWORD', 'root');
+            $user = self::env('KAMPLES_PG_USER');
+            $password = self::env('KAMPLES_PG_PASSWORD');
+
+            /* S29: Credenciales obligatorias — no usar defaults inseguros */
+            if ($user === '' || $password === '') {
+                throw new RuntimeException(
+                    'PostgresService: KAMPLES_PG_USER y KAMPLES_PG_PASSWORD son obligatorios en .env'
+                );
+            }
 
             $dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";
 
@@ -110,10 +118,12 @@ class PostgresService
             $stmt->execute($params);
             return $stmt->fetchAll();
         } catch (PDOException $e) {
-            KamplesLogger::error('PostgresService::consultar error', [
-                'error' => $e->getMessage(),
-                'sql' => mb_substr($sql, 0, 200),
-            ]);
+            /* S37: SQL solo visible en logs cuando WP_DEBUG activo */
+            $contexto = ['error' => $e->getMessage()];
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                $contexto['sql'] = mb_substr($sql, 0, 200);
+            }
+            KamplesLogger::error('PostgresService::consultar error', $contexto);
             return [];
         }
     }
@@ -137,10 +147,11 @@ class PostgresService
             $result = $stmt->fetch();
             return $result !== false ? $result : null;
         } catch (PDOException $e) {
-            KamplesLogger::error('PostgresService::consultarUno error', [
-                'error' => $e->getMessage(),
-                'sql' => mb_substr($sql, 0, 200),
-            ]);
+            $contexto = ['error' => $e->getMessage()];
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                $contexto['sql'] = mb_substr($sql, 0, 200);
+            }
+            KamplesLogger::error('PostgresService::consultarUno error', $contexto);
             return null;
         }
     }
@@ -163,10 +174,11 @@ class PostgresService
             $stmt->execute($params);
             return $stmt->rowCount();
         } catch (PDOException $e) {
-            KamplesLogger::error('PostgresService::ejecutar error', [
-                'error' => $e->getMessage(),
-                'sql' => mb_substr($sql, 0, 200),
-            ]);
+            $contexto = ['error' => $e->getMessage()];
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                $contexto['sql'] = mb_substr($sql, 0, 200);
+            }
+            KamplesLogger::error('PostgresService::ejecutar error', $contexto);
             return -1;
         }
     }
@@ -189,10 +201,11 @@ class PostgresService
             $stmt->execute($params);
             return (int) $pdo->lastInsertId();
         } catch (PDOException $e) {
-            KamplesLogger::error('PostgresService::insertar error', [
-                'error' => $e->getMessage(),
-                'sql' => mb_substr($sql, 0, 200),
-            ]);
+            $contexto = ['error' => $e->getMessage()];
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                $contexto['sql'] = mb_substr($sql, 0, 200);
+            }
+            KamplesLogger::error('PostgresService::insertar error', $contexto);
             return null;
         }
     }

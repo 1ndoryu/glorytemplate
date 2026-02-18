@@ -122,7 +122,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 p.id === pistaId ? { ...p, silenciada: nuevoSil } : p
             ),
         }));
-        motorAudio.setSilenciarPista(pistaId, nuevoSil);
+        motorAudio.setSilenciarPista(pistaId, nuevoSil, pista.volumen);
     },
 
     /* Reproduccion */

@@ -230,10 +230,10 @@ class MotorAudio {
         if (gain) gain.gain.value = volumen;
     }
 
-    /* Silenciar/des-silenciar pista */
-    setSilenciarPista(pistaId: string, silenciada: boolean): void {
+    /* Silenciar/des-silenciar pista. volumenReal restaura el gain correcto al des-silenciar */
+    setSilenciarPista(pistaId: string, silenciada: boolean, volumenReal = 1): void {
         const gain = this.gainsCanales.get(pistaId);
-        if (gain) gain.gain.value = silenciada ? 0 : 1;
+        if (gain) gain.gain.value = silenciada ? 0 : volumenReal;
     }
 
     /* Obtener tiempo actual del contexto */

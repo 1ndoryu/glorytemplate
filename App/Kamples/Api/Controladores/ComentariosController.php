@@ -142,6 +142,10 @@ class ComentariosController
             return new \WP_REST_Response(['code' => 'tipo_invalido'], 400);
         }
 
+        /* S26 fix: verificar ban ANTES de cualquier otro procesamiento */
+        $banResp = AuthMiddleware::verificarBanActivo($userId);
+        if ($banResp) return $banResp;
+
         /* C130: Soporta JSON (texto) o FormData (multimedia) */
         $contentType = $request->get_content_type();
         $esFormData = $contentType && str_contains($contentType['value'] ?? '', 'multipart');
@@ -190,10 +194,6 @@ class ComentariosController
                 return new \WP_REST_Response(['code' => 'contenido_spam', 'message' => 'El comentario fue rechazado por spam'], 403);
             }
         }
-
-        /* C132: Verificar si el usuario está baneado */
-        $banResp = AuthMiddleware::verificarBanActivo($userId);
-        if ($banResp) return $banResp;
 
         $mediaUrl = null;
         $mediaMetadata = null;
@@ -311,6 +311,17 @@ class ComentariosController
             }
         }
 
+        /* S27 fix: validar que el padre pertenece al mismo tipo+targetId ANTES de insertar */
+        if ($parentId) {
+            $padreValido = PostgresService::consultarUno(
+                "SELECT id FROM comentarios WHERE id = :id AND tipo = :tipo AND target_id = :targetId",
+                ['id' => $parentId, 'tipo' => $tipo, 'targetId' => $targetId]
+            );
+            if (!$padreValido) {
+                return new \WP_REST_Response(['code' => 'parent_invalido', 'message' => 'Comentario padre no encontrado en este contexto'], 400);
+            }
+        }
+
         $id = PostgresService::insertar(
             "INSERT INTO comentarios (autor_id, tipo, target_id, contenido, tipo_contenido, media_url, media_metadata, parent_id)
              VALUES (:autor, :tipo, :target, :contenido, :tipoContenido, :mediaUrl, :mediaMetadata::jsonb, :parentId)
@@ -358,7 +369,8 @@ class ComentariosController
                 "SELECT autor_id FROM comentarios WHERE id = :id",
                 ['id' => $parentId]
             );
-            if ($padre) {
+            /* O17 fix: no autonotificar */
+            if ($padre && (int) $padre['autor_id'] !== $userId) {
                 $sampleSlug = null;
                 if ($tipo === 'sample') {
                     $sInfo = PostgresService::consultarUno("SELECT slug FROM samples WHERE id = :id", ['id' => $targetId]);
@@ -380,6 +392,8 @@ class ComentariosController
                     ['id' => $targetId]
                 );
                 if ($sampleInfo) {
+                    /* O17 fix: no autonotificar */
+                    if ((int) $sampleInfo['creador_id'] !== $userId) {
                     ServicioNotificaciones::nuevoComentario(
                         (int) $sampleInfo['creador_id'],
                         $userId,
@@ -387,6 +401,7 @@ class ComentariosController
                         $sampleInfo['titulo'] ?? '',
                         $sampleInfo['slug'] ?? null
                     );
+                    }
                 }
             } elseif ($tipo === 'publicacion') {
                 $pubInfo = PostgresService::consultarUno(
@@ -394,6 +409,8 @@ class ComentariosController
                     ['id' => $targetId]
                 );
                 if ($pubInfo) {
+                    /* O17 fix: no autonotificar */
+                    if ((int) $pubInfo['autor_id'] !== $userId) {
                     ServicioNotificaciones::crear(
                         (int) $pubInfo['autor_id'],
                         'comentario',
@@ -403,6 +420,7 @@ class ComentariosController
                         '',
                         "/post/{$targetId}/"
                     );
+                    }
                 }
             }
         }
@@ -570,7 +588,10 @@ class ComentariosController
 
         $id = (int) $request->get_param('id');
         $body = $request->get_json_params();
-        $razon = sanitize_textarea_field($body['razon'] ?? 'contenido inapropiado');
+        $razon = \sanitize_textarea_field($body['razon'] ?? 'contenido inapropiado');
+        /* S41 fix: limitar longitud de razón */
+        $errorRazon = Validador::validarLongitud($razon, 500, 'La razón del reporte');
+        if ($errorRazon) return Validador::respuestaError($errorRazon);
 
         /* Verificar que existe */
         $existe = PostgresService::consultarUno("SELECT id FROM comentarios WHERE id = :id", ['id' => $id]);
@@ -635,7 +656,8 @@ class ComentariosController
             "SELECT autor_id FROM comentarios WHERE id = :id",
             ['id' => $id]
         );
-        if ($comentario) {
+        /* O17 fix: no autonotificar likes propios */
+        if ($comentario && (int) $comentario['autor_id'] !== $userId) {
             ServicioNotificaciones::likeComentario(
                 (int) $comentario['autor_id'],
                 $userId,
@@ -653,6 +675,10 @@ class ComentariosController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $id = (int) $request->get_param('id');
+
+        /* S42 fix: verificar que el comentario existe antes de operar */
+        $existe = PostgresService::consultarUno("SELECT id FROM comentarios WHERE id = :id", ['id' => $id]);
+        if (!$existe) return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
 
         PostgresService::ejecutar(
             "DELETE FROM likes WHERE usuario_id = :userId AND tipo = 'comentario' AND target_id = :targetId",
@@ -792,7 +818,8 @@ class ComentariosController
         $barras = 60;
 
         /* Decodificar audio a PCM raw con FFmpeg */
-        $tmpPcm = sys_get_temp_dir() . '/kamples_comment_pcm_' . uniqid() . '.raw';
+        /* O18 fix: usar random_bytes en vez de uniqid predecible */
+        $tmpPcm = \sys_get_temp_dir() . '/kamples_comment_pcm_' . \bin2hex(\random_bytes(8)) . '.raw';
         $cmd = sprintf(
             '%s -y -i %s -f f32le -acodec pcm_f32le -ac 1 -ar 8000 %s 2>&1',
             escapeshellarg($ffmpeg),

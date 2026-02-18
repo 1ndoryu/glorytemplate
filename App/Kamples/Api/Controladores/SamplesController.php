@@ -394,6 +394,13 @@ class SamplesController
             ], 400);
         }
 
+        /* S30 fix: Verificar contenido real del archivo con magic bytes (no confiar en MIME del cliente) */
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $realMime = $finfo->file($audio['tmp_name']);
+        if (!in_array($realMime, self::FORMATOS_AUDIO_VALIDOS, true)) {
+            return new \WP_REST_Response(['ok' => false, 'error' => 'El contenido del archivo no coincide con un formato de audio válido'], 400);
+        }
+
         if ($audio['size'] > self::MAX_TAMANO_AUDIO) {
             return new \WP_REST_Response(['ok' => false, 'error' => 'El archivo excede el tamaño máximo de 50 MB'], 400);
         }
@@ -432,7 +439,9 @@ class SamplesController
         \remove_filter('upload_dir', $filtroDir);
 
         if (isset($subido['error'])) {
-            return new \WP_REST_Response(['ok' => false, 'error' => 'Error al subir archivo: ' . $subido['error']], 500);
+            /* S28 fix: no exponer rutas del servidor al cliente */
+            KamplesLogger::error('Error al subir archivo de audio', ['error' => $subido['error']]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error al procesar el archivo de audio'], 500);
         }
 
         $titulo = \sanitize_text_field($request->get_param('titulo') ?? $audio['name']);
@@ -446,6 +455,10 @@ class SamplesController
         $mostrarEnComunidad = \filter_var($request->get_param('mostrar_en_comunidad') ?? true, \FILTER_VALIDATE_BOOLEAN);
         $precio = $request->get_param('precio');
         $precio = $precio !== null ? (float) $precio : null;
+        /* S31 fix: Validar rango de precio */
+        if ($precio !== null && ($precio < 0 || $precio > 9999)) {
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Precio fuera de rango válido (0-9999)'], 400);
+        }
 
         if (count($tags) < 2) {
             return new \WP_REST_Response([
@@ -488,6 +501,11 @@ class SamplesController
             $sampleId = $resultado[SamplesCols::ID] ?? null;
         } catch (\Exception $e) {
             KamplesLogger::error('Error al insertar sample en Postgres', ['error' => $e->getMessage()]);
+            /* S22 fix: limpiar archivo huérfano y retornar error real */
+            if (\file_exists($subido['file'])) {
+                @\unlink($subido['file']);
+            }
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno al registrar el sample'], 500);
         }
 
         /* C198: Sumar 1 crédito bonus por publicar sample */
@@ -980,7 +998,10 @@ class SamplesController
         $dominantKey = !empty($topKey) ? array_key_first($topKey) : null;
 
         $tagConditions = [];
-        $params = ['limit' => $limite, 'offset' => $offset, 'avgBpm' => $avgBpm];
+        /* S21 fix: NO reinicializar $params — ya contiene los :excl* placeholders */
+        $params['limit'] = $limite;
+        $params['offset'] = $offset;
+        $params['avgBpm'] = $avgBpm;
         foreach ($topTags as $i => $tag) {
             $tagConditions[] = "CASE WHEN :tag{$i} = ANY(s.tags) THEN 1 ELSE 0 END";
             $params["tag{$i}"] = $tag;

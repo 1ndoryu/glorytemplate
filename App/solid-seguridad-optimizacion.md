@@ -2,7 +2,7 @@
 
 > **Rol:** Agente autónomo de inspección continua del codebase Kamples.  
 > **Misión:** Detectar y corregir vulnerabilidades de seguridad, violaciones SOLID, fallos silenciosos y oportunidades de optimización.  
-> **Última ejecución:** 18/02/2026 (Iteración 3)
+> **Última ejecución:** 18/02/2026 (Iteración 4)
 
 ---
 
@@ -144,91 +144,133 @@
 
 ---
 
+## Sprint 4 — Auditoría Completa Post-Schema/Mezclador/Admin (18/02/2026)
+
+**Contexto:** Re-auditoría completa del codebase tras agregar Schema System (R54-R58), AdminController (R47), Mezclador ampliado (R48-R52), cache SWR mensajes (R53), pitch-independent stretch (R53). 129 archivos PHP (~25,943 líneas), 14 archivos Mezclador TS.
+
+### P0 — CRÍTICOS
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| S21 | SamplesController calcularSugerencias L984 | **Bug crítico:** `$params` se reinicializa en L984 (`$params = ['limit'=>..., 'offset'=>..., 'avgBpm'=>...]`) borrando los placeholders `:excl0`, `:excl1`... que se añadieron en L960-970. PDO lanza excepción → endpoint crashea para usuarios con descargas/favoritos. | CORREGIDO |
+| S22 | SamplesController subir() L490 | **Silent failure:** Si INSERT falla, catch logea pero la ejecución continúa → retorna HTTP 201 con `sample_id: null` + archivo huérfano en disco + pipeline no ejecuta. | CORREGIDO |
+
+### P1 — ALTOS
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| S23 | AdminController actividad() L97 | **SQL interpolación:** `$dias` interpolado en `INTERVAL '{$dias} days'` en 3 queries. Cast `(int)` lo protege hoy, pero patrón frágil. | CORREGIDO (INTERVAL '1 day' * :dias) |
+| S24 | AdminController moderar() L272 | **Update ciego:** UPDATE moderación retorna ok=true incluso si el id no existe en BD (0 rows affected). | CORREGIDO (rowCount check) |
+| S25 | AdminController actualizarUsuario() L222 | **Update ciego:** Mismo bug — retorna ok=true con id inexistente. | CORREGIDO (rowCount check) |
+| S26 | ComentariosController crear() L192 | **Orden incorrecto:** Ban check ocurre DESPUÉS del rate limiter, validación y anti-spam. Usuario baneado ejecuta toda la lógica antes de ser rechazado. | CORREGIDO (ban check first) |
+| S27 | ComentariosController crear() L327 | **IDOR parentId:** `parentId` no se valida que pertenezca al mismo tipo+targetId. Permite incrementar `total_respuestas` de comentario ajeno. | CORREGIDO (validación padre) |
+| S28 | SamplesController subir() L437 | **Info disclosure:** Error de upload (`$subido['error']`) puede exponer rutas absolutas del servidor al cliente. | CORREGIDO (mensaje genérico) |
+| S29 | PostgresService L51-53 | **Credenciales hardcoded:** Fallbacks `'postgres'`/`'root'` si .env falla → conexión con superusuario y password trivial. | CORREGIDO (excepción si faltan) |
+
+### P2 — MEDIO
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| S30 | SamplesController subir() L389 | **MIME bypass:** `$audio['type']` viene del cliente (falsificable). wp_handle_upload solo valida extensión, no contenido real. | CORREGIDO (finfo magic bytes) |
+| S31 | SamplesController subir() precio L451 | **Sin rango:** `$precio` castea float pero acepta -99999 o 999999999. | CORREGIDO (0-9999 range) |
+| S32 | AdminController L197 | **Role escalation:** Admin puede asignar `rol='admin'` desde el panel. Riesgo bajo (requiere WP admin), pero permite crear admins arbitrarios. | ACEPTADO (bajo riesgo, WP manage_options requerido) |
+| S33 | AdminController L186-222 | **Self-modification:** Admin puede banearse o degradar su propio rol. | CORREGIDO (guard self-id) |
+| S34 | AdminController L210 | **ban_hasta sin formato:** Acepta cualquier string como fecha sin validación ISO. | CORREGIDO (strtotime validation) |
+| S35 | AdminController L248 | **Info disclosure:** `SELECT r.*` en reportes expone todas las columnas. | CORREGIDO (columnas explícitas) |
+| S36 | AdminController completo | **Sin try-catch:** Ningún método maneja excepciones → stack traces con WP_DEBUG=true. | CORREGIDO (try-catch global) |
+| S37 | PostgresService L109-156 | **SQL en logs:** Catch logea `mb_substr($sql, 0, 200)` que puede contener datos sensibles. | CORREGIDO (oculto en prod) |
+| S38 | PipelineAudio buscarBinario() L460 | **Shell sin escape:** `$nombre` interpolado en shell_exec sin escapeshellarg. Seguro hoy (hardcoded), patrón frágil. | CORREGIDO (escapeshellarg) |
+| S39 | PipelineAudio generarPreview() L577 | **FFmpeg params sin escape:** `$duracion` y `$fadeStart` sin escapeshellarg en sprintf. | CORREGIDO (escapeshellarg) |
+| S40 | PipelineAudio actualizarSample() L660 | **SQL columnas dinámicas:** `$campo` interpolado en SQL sin whitelist. Seguro hoy (caller interno), patrón frágil. | CORREGIDO (whitelist) |
+| S41 | ComentariosController reportar() L565 | **Sin límite longitud:** `razon` sanitizada pero sin límite → almacenamiento masivo posible. | CORREGIDO (max 500 chars) |
+| S42 | ComentariosController quitarLike() L635 | **Sin existencia check:** Opera sin verificar que el comentario existe. 3 queries desperdiciadas. | CORREGIDO (check existencia) |
+| S43 | motorAudioService setSilenciarPista() | **Des-silenciar pone gain=1:** Ignora el volumen real configurado de la pista. | CORREGIDO (leer volumen del store) |
+
+### P2 — SOLID / Arquitectura (actualizado líneas)
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| A01 | MotorRecomendacion.php (772 líneas) | Split en ConstructorSenales + PerfilUsuario + Orquestador. | PENDIENTE |
+| A02 | PublicacionesController.php (598 líneas) | Extraer ModeracionHandler. | PENDIENTE |
+| A03 | ColeccionesController.php (595 líneas) | Extraer ColeccionRecomendacion service. | PENDIENTE |
+| A04 | SamplesController.php (1128 líneas) | Demasiadas responsabilidades. Más crítico que antes. | PENDIENTE |
+| A06 | ServicioIA.php (730 líneas) | Extraer GroqHttpClient, JsonRepairer. | PENDIENTE |
+| A07 | ServicioModeracionIA.php (529 líneas) | Extraer ModerarTexto, ModerarImagen. | PENDIENTE |
+| A08 | AnalizadorAudio.php (429 líneas) | Extraer DetectorBpm. | PENDIENTE |
+| A09 | DescargasController.php (638 líneas) | Extraer GeneradorZip. | PENDIENTE |
+| A10 | ServicioIA + ServicioImagenIA + ServicioModeracionIA | Duplicación HTTP curl. Extraer GroqHttpClient. | PENDIENTE |
+| A11 | ComentariosController.php (867 líneas) | **NUEVO** — CRUD + likes + multimedia + moderación + waveform. | PENDIENTE |
+| A12 | PipelineAudio.php (688 líneas) | **NUEVO** — Pipeline + FFmpeg + IA + renombrado. | PENDIENTE |
+
+### P3 — BAJO (Calidad)
+
+| # | Archivo | Problema | Estado |
+|---|---------|----------|--------|
+| O09 | NotificacionesController L55 | JOIN depende de JSON `(datos::jsonb->>'seguidor_id')`. | PENDIENTE |
+| O11 | ExperimentosController L26 | TEST_PASS hardcoded. | PENDIENTE (admin-only) |
+| O15 | Namespace `\` prefix | 9+ archivos sin `\` prefix en funciones globales. | PENDIENTE (masivo) |
+| O16 | DashboardController L45 | stats() 7 queries secuenciales → CTE. | PENDIENTE |
+| O17 | ComentariosController autonotificación | No filtra `$userId !== $receptor` → autonotificaciones. | CORREGIDO |
+| O18 | ComentariosController L808 | `uniqid()` predecible para temp files. | CORREGIDO (random_bytes) |
+| O19 | AdminController reportes | LIMIT 10 fijo sin paginación. | PENDIENTE (funcional) |
+| O20 | SchemaRegistry L37-56 | `require_once` dinámico desde glob — si alguien escribe en Schema/ se auto-ejecuta. | ACEPTADO (dir fijo, no input usuario) |
+| O21 | PostgresService L233-241 | Parser .env no maneja comillas en valores. | PENDIENTE (bajo impacto) |
+
+---
+
 ## Lecciones Aprendidas
 
-- [PDO]: `INTERVAL ':param'` nunca funciona. PDO no interpola dentro de string literals SQL. Usar `INTERVAL '${constante}'` con valor validado.
+- [PDO]: `INTERVAL ':param'` nunca funciona. PDO no interpola dentro de string literals SQL. Usar `INTERVAL '1 day' * :dias` con parametrización.
 - [PG Arrays]: `'{tag1,tag2}'` se rompe con comas/comillas en valores. Usar `phpArrayToPg()` con escaping explícito.
 - [Stripe]: Validar timestamp de webhook además de firma HMAC. Tolerancia 300s.
 - [Race conditions]: UPDATE + SELECT separados = race. Usar `UPDATE ... RETURNING` atómico.
-- [Config SQL]: Cualquier valor de config interpolado en SQL debe tener cast explícito (int/float) o whitelist. Config files son vectores de ataque si se comprometen.
+- [Config SQL]: Cualquier valor de config interpolado en SQL debe tener cast explícito (int/float) o whitelist.
 - [IDOR]: Verificar propiedad = double check: (1) existe (2) es del usuario o público.
-- [Auth endpoints]: `permission_callback` de WP solo decide si acepta la request. Checks de rol deben ir además dentro del callback.
+- [Auth endpoints]: `permission_callback` de WP solo decide si acepta la request.
 - [Cron WP]: Registrar intervalos custom con `cron_schedules` ANTES de `wp_schedule_event`.
-- [DRY]: `pgArrayToPhp` estaba duplicada en PublicacionesController y NormalizadorSample.
-- [Web Audio]: AudioContext.close() es OBLIGATORIO en destruir() — sin él, cada re-apertura crea un thread de audio nuevo que nunca se libera.
-- [Web Audio]: `resume()` es async pero rara vez se awaita. Usar `void ctx.resume()` para señalar intención explícita de fire-and-forget.
-- [Web Audio]: GainNode.disconnect() en onended del source — si no, quedan conexiones zombie en el grafo de audio.
-- [React closures]: useCallback con rAF auto-referenciado (requestAnimationFrame(fn)) captura valores del primer render. Usar getState() de Zustand para leer siempre el valor actual.
-- [Zustand]: Dependencias de useCallback que son arrays/objetos del store (como `pistas`) causan recreación de todos los callbacks dependientes. Leer con getState() si no necesitas reactividad.
-- [Zustand]: Set() en estado Zustand requiere crear `new Set()` en cada mutación para que shallow compare detecte cambios.
-- [Race condition async]: En stores async (ej: agregarSample), NUNCA capturar objetos del estado antes de un await. Re-leer con get() después del await.
+- [Web Audio]: AudioContext.close() OBLIGATORIO en destruir(). GainNode.disconnect() en onended.
+- [React closures]: useCallback con rAF auto-referenciado captura valores del primer render → getState().
+- [Zustand]: Set() en estado Zustand requiere `new Set()` en cada mutación.
+- [Race condition async]: NUNCA capturar objetos del estado antes de await → re-leer con get().
+- [Upload PHP]: `$_FILES['type']` viene del cliente, es falsificable. Usar `finfo(FILEINFO_MIME_TYPE)` para validar contenido real.
+- [Admin]: Verificar `rowCount()` en UPDATE para detectar IDs inexistentes. Retornar 404 si 0 filas afectadas.
+- [Admin]: Prevenir auto-modificación (self-ban, self-degrade) comparando ID del request con ID del admin autenticado.
+- [Params reinicializados]: Al construir `$params` incrementalmente (excl0, tag0...), NUNCA reinicializar con `$params = [...]`. Usar merge o asignar campos individuales.
+- [Error messages]: NUNCA exponer `$subido['error']` ni `$e->getMessage()` al cliente. Loguear internamente, retornar mensaje genérico.
+- [Shell commands]: Escapar TODOS los argumentos con `escapeshellarg()`, incluso los que parecen numéricos. Defensa en profundidad.
+- [SQL columnas dinámicas]: Si `$campo` viene de las keys de un array en `actualizarSample`, usar whitelist explícita antes de interpolar en SQL.
 
 ---
 
 ## Archivos Revisados (tracking)
 
+### PHP Backend (47 archivos Kamples + 82 Glory/src = 129 total)
 - [x] AuthMiddleware.php
-- [x] RateLimiter.php
-- [x] Validador.php
-- [x] PostgresService.php
-- [x] AuthController.php
-- [x] SamplesController.php
-- [x] PagosController.php
-- [x] ComentariosController.php
-- [x] DescargasController.php
-- [x] MensajesController.php
-- [x] PerfilController.php
-- [x] StripeService.php
-- [x] MotorRecomendacion.php
-- [x] ServicioAntiSpam.php
-- [x] ServicioBan.php
-- [x] UsuarioHelper.php
-- [x] NormalizadorSample.php
-- [x] SocialController.php
-- [x] PublicacionesController.php
-- [x] ConnectController.php
-- [x] ColeccionesController.php
-- [x] KamplesInit.php
-- [x] KamplesLogger.php
-- [x] DiagnosticoController.php
-- [x] EmbeddingsController.php
-- [x] ExperimentosController.php
-- [x] ColoresController.php
-- [x] DashboardController.php
-- [x] NotificacionesController.php
-- [x] ReproduccionesController.php
-- [x] LogAlgoritmo.php
-- [x] LogIA.php
-- [x] ServicioIA.php
-- [x] ServicioImagenIA.php
-- [x] ServicioModeracionIA.php
-- [x] GeneradorEmbeddings.php
-- [x] DeduplicadorAudio.php
-- [x] PlanificadorAlgoritmo.php
-- [x] AnalizadorAudio.php
-- [ ] React: apiCliente.ts, authStore.ts, stores
-- [ ] React: hooks, services, components
-- [ ] Config: assets.php, config.php, control.php, environment.php
-- [x] Mezclador: motorAudioService.ts
-- [x] Mezclador: useMotorAudio.ts
-- [x] Mezclador: useMezclador.ts
-- [x] Mezclador: useTimeline.ts
-- [x] Mezclador: useExportarMezcla.ts
-- [x] Mezclador: mezcladorStore.ts
-- [x] Mezclador: compasUtils.ts
-- [x] Mezclador: audioBufferUtils.ts
-- [x] Mezclador: types/mezclador.ts
-- [x] Mezclador: componentes (8 archivos — auditoría P3)
+- [x] RateLimiter.php / Validador.php
+- [x] PostgresService.php / SchemaRegistry.php
+- [x] AuthController.php / AdminController.php
+- [x] SamplesController.php (1128 lín)
+- [x] ComentariosController.php (867 lín)
+- [x] DescargasController.php / PublicacionesController.php
+- [x] ColeccionesController.php / MensajesController.php
+- [x] PerfilController.php / PagosController.php
+- [x] ConnectController.php / SocialController.php
+- [x] DashboardController.php / NotificacionesController.php
+- [x] ReproduccionesController.php / DiagnosticoController.php
+- [x] EmbeddingsController.php / ExperimentosController.php / ColoresController.php
+- [x] ServicioIA.php / ServicioImagenIA.php / ServicioModeracionIA.php
+- [x] PipelineAudio.php / AnalizadorAudio.php
+- [x] StripeService.php / ServicioBan.php / ServicioAntiSpam.php
+- [x] MotorRecomendacion.php / PlanificadorAlgoritmo.php
+- [x] GeneradorEmbeddings.php / DeduplicadorAudio.php
+- [x] NormalizadorSample.php / UsuarioHelper.php
+- [x] KamplesInit.php / KamplesLogger.php / Log*.php
+- [ ] Config: assets.php, config.php, control.php, environment.php (bajo riesgo)
 
----
-
-## Lecciones Aprendidas
-
-- [SQL]: PDO placeholders NO funcionan dentro de string literals de PostgreSQL (ej: `INTERVAL ':param seconds'`). Concatenar o usar expresiones aritméticas.
-- [SQL]: Siempre parametrizar IDs en cláusulas IN(). Generar placeholders dinámicos, nunca interpolar directamente.
-- [SQL]: Para arrays PG, usar `pg_escape_literal` o quote individual de cada elemento. Nunca concatenar tags crudos.
-- [Stripe]: Validar timestamp de webhooks (máx 300s antigüedad) para prevenir replay attacks.
-- [Auth]: Verificar existencia del target en operaciones CRUD (follow, like, comentar) antes del INSERT.
-- [SOLID]: Controladores > 300 líneas indican múltiples responsabilidades. Planificar split pero no ejecutar en caliente si hay riesgo de regresión.
-- [Ban]: Verificar ban en TODAS las operaciones de escritura, no solo en comentarios.
-- [Race]: Usar `UPDATE ... RETURNING` para operaciones atómicas de increment + read.
+### TypeScript Frontend
+- [x] Mezclador: motorAudioService.ts (391 lín) / pitchShiftService.ts (132 lín)
+- [x] Mezclador: useMotorAudio.ts / useMezclador.ts / useTimeline.ts / useExportarMezcla.ts
+- [x] Mezclador: mezcladorStore.ts + módulos (accionesBloques/Carga/Historial/Seleccion)
+- [x] Mezclador: compasUtils.ts / audioBufferUtils.ts / types/mezclador.ts
+- [x] Mezclador: componentes (10 archivos)
+- [ ] React App: apiCliente.ts, authStore.ts, stores, hooks, services, components (pendiente)

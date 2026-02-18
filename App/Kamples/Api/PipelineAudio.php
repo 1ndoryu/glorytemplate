@@ -455,11 +455,11 @@ class PipelineAudio
             return $envRuta;
         }
 
-        /* 2. Intentar desde PATH del sistema */
+        /* 2. Intentar desde PATH del sistema — S38 fix: escapeshellarg */
         if ($esWindows) {
-            $output = shell_exec("where {$nombre} 2>nul");
+            $output = shell_exec(sprintf('where %s 2>nul', escapeshellarg($nombre)));
         } else {
-            $output = shell_exec("which {$nombre} 2>/dev/null");
+            $output = shell_exec(sprintf('which %s 2>/dev/null', escapeshellarg($nombre)));
         }
 
         if ($output) {
@@ -574,12 +574,13 @@ class PipelineAudio
     private static function generarPreview(string $entrada, string $salida, float $duracion, string $ffmpegBin): bool
     {
         $fadeStart = max(0, $duracion - 2);
+        /* S39 fix: escapeshellarg para duracion y fadeStart (defensa en profundidad) */
         $cmd = sprintf(
-            '%s -y -i %s -t %s -codec:a libmp3lame -b:a 128k -ar 44100 -af "afade=t=out:st=%s:d=2" %s 2>&1',
+            '%s -y -i %s -t %s -codec:a libmp3lame -b:a 128k -ar 44100 -af %s %s 2>&1',
             escapeshellarg($ffmpegBin),
             escapeshellarg($entrada),
-            $duracion,
-            $fadeStart,
+            escapeshellarg((string) round($duracion, 2)),
+            escapeshellarg('afade=t=out:st=' . round($fadeStart, 2) . ':d=2'),
             escapeshellarg($salida)
         );
 
@@ -656,11 +657,22 @@ class PipelineAudio
      */
     private static function actualizarSample(int $sampleId, array $datos): void
     {
+        /* S40 fix: whitelist de columnas permitidas (defensa contra SQL injection por keys dinámicas) */
+        $columnasPermitidas = [
+            'duracion', 'bpm', 'key', 'escala', 'tipo', 'metadata',
+            'ruta_original', 'ruta_waveform', 'ruta_optimizada', 'ruta_preview',
+            'estado', 'publicado_at', 'titulo', 'slug', 'tags',
+            'nombre_archivo', 'formato', 'waveform_peaks',
+        ];
         $columnasJsonb = ['metadata', 'media_metadata', 'tags_ia'];
         $setClauses = [];
         $params = ['id' => $sampleId];
 
         foreach ($datos as $campo => $valor) {
+            if (!in_array($campo, $columnasPermitidas, true) && !in_array($campo, $columnasJsonb, true)) {
+                KamplesLogger::warning('Pipeline: columna no permitida ignorada', ['campo' => $campo]);
+                continue;
+            }
             /* Cast explícito para JSONB — PDO native prepares envía como text sin esto */
             if (in_array($campo, $columnasJsonb, true)) {
                 $setClauses[] = "{$campo} = :{$campo}::jsonb";
