@@ -45,6 +45,7 @@ export const PistaTimeline = ({
     const compasProyecto = useMezcladorStore(s => s.compasProyecto);
     const snapResolucion = useMezcladorStore(s => s.snapResolucion);
     const bloquesSeleccionados = useMezcladorStore(s => s.bloquesSeleccionados);
+    const limpiarSeleccion = useMezcladorStore(s => s.limpiarSeleccion);
     const puedeBorrar = pistas.length > 1;
 
     /* C216: Líneas de cuadrícula según resolución de snap */
@@ -114,6 +115,13 @@ export const PistaTimeline = ({
                 className="mezcladorPistaContenido"
                 onDragOver={onDragOver}
                 onDrop={(e) => onDrop(e, pista.id)}
+                onClick={(e) => {
+                    /* C272: Deseleccionar bloques al hacer click en zona vacía */
+                    const target = e.target as HTMLElement;
+                    if (target.classList.contains('mezcladorPistaContenido') && bloquesSeleccionados.size > 0) {
+                        limpiarSeleccion();
+                    }
+                }}
             >
                 {/* C216: Líneas de cuadrícula según snap */}
                 {lineasCuadricula.map((linea, i) => (

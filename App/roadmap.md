@@ -321,238 +321,97 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **C171-C178:** Licencia libre auto-derivada (R43), compactar registros (R44), BadgeModeracion+admin approve (R44), tabs freeze+pantalla negra fix (R44), descargas/favoritos rediseño (R43), copiar enlace fallback (R44), remover créditos descargas (R45), sistema verificación samples (R45).
 **C169-C183:** Búsqueda colecciones (R46), editor metadata fix descripcion+chips IA (R46), fila colecciones inicio (R46), algoritmo colecciones CTE (R46), modal guardar contextual+Bookmark (R46), fix reproducciones completada (R46).
 **C179:** Panel Administración FASE 13 (R47).
-**R49:** C193 fix avatares "?" — UsuarioHelper::resolverAvatarUrl() centralizado, 12 controllers/services con fallback WP Gravatar, EditarPerfilIsland wired subirAvatar+authStore sync, PerfilController corrupción reparada, MotorRecomendacion+ColeccionesController+AdminController+ReproduccionesController wp_user_id en SQL.
-**R50:** C246+C247+C248+C249+C250+C251+C253+C256+C257 — Duplicar evita colisión (finMax), selección múltiple Ctrl+click (Set+batch move), 20 pistas iniciales, Shift+drag duplica, placeholder eliminado, cerrar estilo uniforme, ModalConfigDaw (snap+stretch/clip global), admin cambiar plan (select UI).
-**R51:** C258+C259+C260+C261+C267+C258.1+C259.1 — Fix detune (compensación anulaba efecto), CSS admin verificado, dropZoneVacia eliminada, modal colecciones viewport clamp, selección visual glow, multi-drag ghosts, resize btn fuera de modal.
-
-### Lecciones Aprendidas (R49)
-- [Avatar]: La BD (usuarios_ext.avatar_url) puede ser NULL incluso si el usuario tiene Gravatar. Siempre usar `UsuarioHelper::resolverAvatarUrl()` como fallback a `get_avatar_url($wpUserId)`.
-- [EditarPerfilIsland]: Existía en paralelo con ModalConfiguracion para editar perfil. ModalConfiguracion YA subía avatares correctamente; EditarPerfilIsland no.
-- [NormalizadorSample]: El SQL centralizado sqlSelectSamples() necesita `u.wp_user_id AS creador_wp_user_id` para que normalizarFila() pueda resolver avatares.
-- [MotorRecomendacion]: Construye su propio SQL (no usa sqlSelectSamples) pero el resultado pasa por normalizarLista() — necesita incluir creador_wp_user_id.
-- [PerfilController]: La función subirAvatar() tenía corrupción de edición previa (secciones desordenadas, bloques if/else fracturados).
-- [AuthController]: INSERT de registro NO incluía avatar_url, dejando NULL para todos los nuevos usuarios. Ahora usa get_avatar_url($wpId).
+**R49-R51:** C193 avatares fix (UsuarioHelper centralizado), C194-C196 AdminPanel+CSS+panel vacío, C198-C201 créditos/suscripción/precios/audio-comentarios, C203-C245 Mezclador DAW completo (stretch/drag/snap/zoom/undo/redo/corte/ghost/drift/clip/admin/gráfica/BPM/detune/expandir), C246-C261+C267 duplicar colisión/selección múltiple/20 pistas/Shift+drag/placeholder/ModalConfigDaw/stretch-clip global/admin plan/fix detune/dropZone/viewport/selección visual/multi-drag/resize fuera modal, C272 deselect click.
 
 ---
 
 # Comentarios pendientes
 
-**Resueltos (compacto):** C85 BarraAccionesPost+EnlaceCreador, C103/104 auth modal 3 campos+imagen, C126 modal edición unificado, C127 menú 3 puntos, C128 similares+comentarios expandidos, C129 paginación infinita comentarios, C130 comentarios multimedia, C131 automod IA, C132 bans progresivos, C133 keep-alive, C140 descargas/favoritos separados, C148 algoritmo tags+creador, C149-C168 fixes varios (tooltip, panel waveform, badges, config panel, seguridad hardening, PageRenderer render-time), C171-C176 sesión actual.
-
-**Pendientes:**
-169. ✅ Búsqueda en colecciones: ILIKE en listar()+explorar() backend, apiColecciones con parámetro busqueda, LibreriaIsland suscrito a filtrosStore, TopBar placeholder dinámico por isla (R46).
-170. ✅ Editor metadata fix: descripción real cargada (limpiando hashtags), SampleResumen con campo descripcion, chips IA readonly (BPM/key/género/emoción) en ModalEditar (R46).
-171. ✅ Licencia libre auto-derivada de permitirDescarga. Eliminada de ModalCrear y ModalEditar (R43).
-172. ✅ Compactado (R44).
-173. ✅ BadgeModeracion siempre visible (icono sin texto). Admin puede aprobar posts pendientes desde menú contextual ComunidadIsland (R44).
-174. ✅ useTabsIsla hook re-registra tabs en keep-alive. PageRenderer updater funcional previene pantalla negra. 8 islas migradas (R44).
-175. ✅ Descargas/Favoritos rediseñados con estructura ColeccionDetalle (R43).
-176. ✅ copiarAlPortapapeles() con fallback execCommand para contextos no-HTTPS. 4 consumidores actualizados (R44).
-177. ✅ Eliminado badge plan, textoLimites y calidad WAV de DescargasIsland (R45).
-178. ✅ Sistema verificación samples completo: migración v015 (columna+índice), PUT admin, normalizer, BadgeCheck en tarjeta+detalle, menú contextual verificar/desverificar, EVENTO_SAMPLE_ACTUALIZADO, boost algoritmo 1.15x (R45).
-179. ✅ FASE 13 Panel de Administración completo: AdminController.php con 6 endpoints (resumen, actividad, usuarios CRUD, moderación, moderar), AdminPanelIsland con 3 tabs (Resumen KPIs+gráfica, Usuarios tabla+acciones, Moderación aprobar/rechazar), Sidebar enlace condicional admin, CSS responsive completo (R47).
-180. ✅ FilaColecciones horizontal: max 8 chips con imagen+nombre, scroll invisible, arriba de inicioBarraControl en InicioIsland (R46).
-181. ✅ Algoritmo colecciones: explorar() con CTE user_tags+coleccion_tags, score afinidad tags 0.60 + frescura 0.20 + volumen 0.20 + follow boost 1.3x, fallback updated_at para no-auth. sqlTagsEnriquecidos ahora public (R46).
-182. ✅ Guardar sample: botón Bookmark en TarjetaSample al lado de like, coleccionPickerStore con posición contextual (x,y del click), overlay transparente en modo contextual (R46).
-183. ✅ Fix reproducciones: columna completa renombrada a completada (v016). El guard wp_handle_upload ya existía de C168 (R46).
-184. ✅ Mezclador (Mini DAW) — Sistema aislado en `/Mezclador/` con ErrorBoundary. Incluye: botón TopBar, panel lateral redimensionable (280-700px), timeline multi-pista con drag&drop desde feed, detección de compás (3/4, 4/4, 5/4, 6/8, 7/8), barras expandibles (default 4, max 32), cursor de reproducción, bloques visuales con waveform mini + título, export WAV via OfflineAudioContext, publicación vía ModalCrear (CustomEvent), optimización IA (MP3 20s recortado para Groq Whisper). 18 archivos nuevos + 6 modificados + tsconfig/vite config.
-186. ✅ Fix "Pagina React no configurada" en admin/panel: se registró `PageManager::reactPage('admin/panel', 'AdminPanelIsland')` en pages.php. La página WP se auto-crea en la próxima carga. Resuelto como parte de C179 (R47).
-187. ✅ Fix coordinación waveform panel lateral — pausar waveform anterior al reproducir nueva (2652c79).
-188. ✅ Fix toggle play/pause en waveform panel lateral (2652c79).
-189. ✅ stopPropagation en todos los botones de TarjetaSample para evitar play accidental.
-190. ✅ Indicación visual contieneElSample en ModalSeleccionColeccion — normalizer+tipo+detección backend.
-191. ✅ Fix C191 "Pagina React no configurada" en admin/panel: CAUSA RAIZ — `reactPage('admin/panel')` no auto-creaba la pagina padre 'admin' en WP. Sin padre, 'panel' quedaba en raíz, `PageTemplateInterceptor` no podía encontrar key 'admin/panel'. FIX: auto-registrar paginas padre stub en `PageDefinition::reactPage()` + safety net `asegurarPaginaPadre()` en `PageProcessor`. Afectaba TODAS las paginas jerárquicas (admin/*, auth/*, mensajes/chat, perfil/editar, dev/componentes).
-Funcion esperada: Asegurate de que la funcion exista y este cargada.
 192. Trabajar en el ws local, no se si hacer eso necesario para resolver problemas como por ejemplo cuando abro el modal de mensajes aparece "Cargando..." luego "No hay mensajes..." y luego aparecen los mensajes, tambien es molesto que tengan que cargar los mensajes cada vez que abro ese modal.
-193. ✅ Fix C193 avatares mostrando "?" — 4 causas raíz: (1) EditarPerfilIsland nunca subía avatar (TO-DO sin implementar) + typo nombreDisplay→nombreVisible, (2) AuthController INSERT usuarios_ext sin avatar_url, (3) normalizarUsuario sin fallback a WP Gravatar, (4) todos los controllers devolvían avatar_url directo de BD sin fallback. FIX: UsuarioHelper::resolverAvatarUrl() centralizado, aplicado en 12 controladores/servicios, EditarPerfilIsland wired con subirAvatar+authStore sync, PerfilController.subirAvatar corrupción de edición reparada.
-194. ✅ [AG-DAW] Fix AdminPanelIsland crash — respuesta PHP reestructurada `{ data: { data, total, page } }` + guards defensivos `?? []` / `?? 0` en useAdminPanel.
-195. ✅ [AG-DAW] Fix variables CSS AdminPanel+ColeccionPicker — 11 vars kebab→camelCase en adminPanel.css, 4 en modalSeleccionColeccion.css, 1 en coleccionDetalle.css, 1 en filaColecciones.css.
-196. ✅ Fix Mezclador panel vacío: MezcladorPanel no verificaba abierto duplicado, sincroniza estado panelLateralStore↔mezcladorStore al montarse, cerrar cierra ambos stores, resize handle CSS movido a panelLateral.css para disponibilidad global.
-198. ✅ [AG-FIX] Créditos bonus por publicar sample: migración v017 (creditos_bonus en usuarios_ext), SamplesController +1 tras INSERT, DescargasController suma bonus al límite diario, endpoint /limites devuelve limiteBase+creditosBonus, ZIP colección con créditos bonus.
-199. ✅ [AG-FIX] Modal suscripción al agotar créditos: SampleDetalleIsland+TarjetaSample+useDescargas+ColeccionDetalleIsland detectan 429/403 → toast.error + usePlanesModalStore.abrir(). Fix apiCliente leer json.error (antes solo json.message).
-200. ✅ [AG-FIX] Precios alineados: Pro de $9.99 → $5/mes en StripeService.php + LandingPublica.tsx. Free sin calidad MP3 (WAV para todos). Roadmap actualizado.
-201. ✅ [AG-FIX] Audio comentarios: Backend — conversión MP3 FFmpeg (128k/mono/44.1kHz) + waveform 60 picos JSON. Frontend — ComentarioAudio reescrito con WaveformPlayer, fallback client-side AudioContext si no hay picos backend. CSS actualizado max-width 280px + waveform 28px height. Tipo Comentario extendido con picos/waveformUrl.
 202. Auditar la seguridad de los audios, que sea dificil descargar los audios originales adivinando url, y que sea dificil descargar los mp3 ligeros tambien, rate limits, auditorias, etc, sin bloquear o dañar la reproducción de audios
-203. ✅ Padding eliminado en panelLateralInterno cuando mezclador abierto — clase condicional `panelLateralSinPadding`.
-204. ✅ Stretch/pitch: handle de resize derecho en BloqueSample con document-level listeners. Al estirar, recalcula playbackRate automáticamente. setDuracionBloque() en store.
-205. ✅ Drag horizontal robusto con document.addEventListener('mousemove'/'mouseup'). Offset de click calculado para mover preciso. Snap a beat.
-206. ✅ Drag entre pistas: detectarPista(clientY) identifica pista destino por Y. moverBloque() ya soportaba cross-track. Visual: pistaIdHover con clase mezcladorPistaDragHover.
-207. ✅ Fix audio incompleto: inferirCompas usaba duracionSample cruda sin ajustar por playbackRate. Con samples de BPM < proyecto, el bloque visual era más largo que el audio real. Fix: usar `duracionSample / playbackRate` para calcular compasesSample.
-208. ✅ Subir audios desde PC: botón FolderUp en ControlesMezclador, input[type=file] oculto, FileReader→ArrayBuffer→decodeAudioData. motorAudioService.decodificarBufferLocal() + agregarAudioLocal() en store crea pseudo-SampleResumen.
-209. ✅ Drag preview personalizado: setDragImage con div custom (icono música + título truncado, fondo acento, sombra). Drop zone con background glow. Elimina drag genérico del navegador.
-210. ✅ [AG-DAW] Verificado — sugerencias funcionan correctamente. El fallo era causado por C212 (parse error PHP rompía carga React). PanelLateral+panelLateralStore intactos.
-211. ✅ [AG-DAW] Eliminado BotonExperimentos de TopBar.tsx (import + JSX).
-212. ✅ Fix DescargasController parse error L120 — comillas escapadas incorrectamente (`\"`) en SQL del advisory lock (O14). Causado por el Sprint 3 de auditoría.
-213. ✅ [AG-DAW] Reprogramación audio en tiempo real al estirar/comprimir — EVENTO_REPROGRAMAR_AUDIO en store, listener en useMotorAudio que detiene y reprograma desde posición actual. Commit 24879db.
-214. ✅ [AG-DAW] Herramienta cortar — dividirBloque() en store, botón Scissors en controles, modo cortar con cursor crosshair, click en bloque calcula compás y divide. Commit 24879db.
-215. ✅ [AG-DAW] Modal config bloque (ModalConfigBloque.tsx) — 3 puntos abre modal con: volumen, velocidad/pitch, fade in/out (sliders), reverse y normalizar (toggles). Indicadores REV/IN/OUT visibles en bloque. Commit 24879db.
-215.1 ✅ [AG-DAW] Botón duplicar en cabecera de bloque + duplicarBloque() en store. Tipos extendidos con invertido/fadeIn/fadeOut/recorteInicio/recorteFin/normalizado. audioBufferUtils con invertirBuffer/normalizarBuffer. Commit 24879db.
-216. ✅ [AG-DAW] Snap setting configurable — resoluciones bar/beat/1-2/1-4/1-6/off. Líneas de cuadrícula visual en PistaTimeline. snapConResolucion() en compasUtils. Selector en controles. Commit b7123b2.
-217. ✅ [AG-DAW] Zoom timeline — NIVELES_ZOOM (0.25x-4x), zoomIn/zoomOut en store, botones ZoomIn/ZoomOut en controles, contenedor .mezcladorTimelineZoom escala ancho. Commit b7123b2.
-218. ✅ [AG-DAW] Playback vuelve al inicio — actualizarCursor calcula fin del último bloque real (no totalCompases), detiene y resetea cursor a 0. Commit b7123b2.
-219. ✅ [AG-DAW] Botones bloque más grandes (18px, gap 4px, hover background) + click derecho abre modal config (onContextMenu). Commit b7123b2.
 220. En crearCondiciones debería aparecer para que cuando publico un sample, aparezca o no en comunidad. En tarjetaMeta aparecen.
-221. ✅ [AG-DAW] Dedup tags tarjetaMeta — Set<string> de textos normalizados (lowercase+trim) para evitar repeticiones entre categorías (instrumento/género/emoción/tag). Si primer valor ya existe, itera al siguiente del array.
-222. ✅ [AG-DAW] Fix sync timeline/audio — 2 bugs: (A) fuente.start() duration en buffer-time no wall-clock → multiplicar por playbackRate, (B) cursor usaba left% relativo a contenedor completo pero bloques relativo a area contenido (W-80px) → calc(80px + (100%-80px)*frac). Commit 35c8488.
-222.1 ✅ [AG-DAW] Cursor click posición — resuelto con fix B de C222 (calc-based positioning). Commit 35c8488.
-222.2 ✅ [AG-DAW] playbackRate no recalculaba duracionCompases — actualizarConfigBloque ahora recalcula cuando cambia playbackRate. Commit 35c8488.
-223. ✅ [AG-DAW] Refresh lista tras publicar — EVENTO_SAMPLE_CREADO dispatched desde useCrearContenido, FeedSamples escucha y limpia cache + recarga página 1. Ref de cargarPagina evita stale closure.
-224. ✅ [AG-DAW] Undo/Redo — Historial 30 snapshots (pistas+totalCompases), _guardarSnapshot antes de cada mutación (agregarPista/eliminarPista/moverBloque/eliminarBloque/duplicarBloque/dividirBloque/agregarSample/agregarAudioLocal/limpiarProyecto/resize), botones Undo2/Redo2 en ControlesMezclador, atajos Ctrl+Z/Ctrl+Y/Ctrl+Shift+Z. Commit e8de6ee.
-225. ✅ [AG-DAW] Fix context menu no cierra — Guard !modalConfigAbierto en onContextMenu, overlay con preventDefault+stopPropagation en onContextMenu y onMouseDown. Commit e8de6ee.
-226. ✅ [AG-DAW] Fix botones activan drag — onMouseDown verifica target.closest('.mezcladorBloqueBotones') para no iniciar drag en botones. Commit e8de6ee.
-227. ✅ [AG-DAW] Corte auto-desactiva — toggleModoCortar() llamado después de dividirBloque() en alCortar callback. Commit e8de6ee.
-228. ✅ [AG-DAW] Waveform se divide con corte — dividirBloque calcula ratioPeaks y hace slice proporcional de waveformPeaks para bloqueA y bloqueB. Commit e8de6ee.
-229. ✅ [AG-DAW] Zoom min 100%, paso 5%, aritmético con ZOOM_MIN/ZOOM_MAX/ZOOM_PASO (reemplaza array NIVELES_ZOOM). Commit 35c8488.
-230. ✅ [AG-DAW] Colisión bloques — actualizarConfigBloque ordena bloques por compasInicio tras update, empuja bloques posteriores si hay solapamiento, expande totalCompases si necesario. Commit 35c8488.
-231. ✅ [AG-DAW] Revertido — tags en bloques de audio fue malinterpretación (ver C234). Commit 35c8488.
-232. ✅ [AG-DAW] Línea preview de corte con snap — lineaCortePorc state, alMoverMouse calcula posición snapped como % dentro del bloque, línea roja con glow. alClickBloque usa snapConResolucion. Commit f6e48db.
-233. ✅ [AG-DAW] Reorganizar controles — export/import/limpiar movidos a mezcladorCabecera (mezcladorCabeceraAcciones), eliminado icono+nombre+contador. Scissors en grupo derecho. Commit f6e48db.
-233.1 ✅ [AG-DAW] Altura uniforme 28px en todos los botones (play, acción, compás, cabecera). Commit f6e48db.
-234. ✅ [AG-DAW] Tags en bloques de audio revertidos (C231). Tags en lista de samples es tarea separada (feed, no mezclador).
-235. ✅ [AG-DAW] Fix admin panel sin usuarios — query COUNT recibía parámetro :offset sin placeholder en SQL, PDO nativo lanzaba excepción silenciosa. Fix: array_diff_key para excluir offset de paramsCount.
-236. ✅ [AG-DAW] Gráfica actividad 14 días reescrita — barras agrupadas lado a lado (no apiladas), eje Y con líneas de referencia, eje X con fechas dd/mm, colores distinguibles (verde/azul/naranja), altura 180px, totales del periodo en leyenda.
-237. ✅ [AG-DAW] Fix Music2 not defined — re-agregado import Music2 en MezcladorPanel.tsx (se había eliminado en C233). Commit f6e48db..
-238. ✅ [AG-BPM] Fix BPM durante reproducción — setBpm ahora calcula posición musical (compases) con BPM anterior, despacha EVENTO_REPROGRAMAR_AUDIO con posicionCompases. Handler en useMotorAudio convierte posición a segundos con BPM nuevo, corrige tiempoInicioRef y reprograma audio. Retrocompatible con otros dispatches sin detail.
-239. ✅ [AG-DAW] Botón restablecer en ModalConfigBloque — RefreshCw resetea volumen, velocidad, fadeIn/Out, reverse, normalizado, modoResize y detune a defaults. Commit c9eef52.
-240. ✅ [AG-DAW] Control de tonalidad (detune) — slider -12 a +12 semitonos en ModalConfigBloque. Web Audio detune.value en cents con compensación playbackRate (rate / 2^(cents/1200)) para mantener velocidad. Aplicado en reproducción real-time y export offline. Commit c129700.
-241. ✅ [AG-DAW] Expandir panel DAW completamente — expandido state en panelLateralStore, botón Maximize2/Minimize2 toggle, PanelRightClose reemplaza X, .panelLateralExpandido width:100%. Commit c9eef52.
-242. ✅ [AG-DAW] Ghost preview al arrastrar — posicionDragFantasma renderizado como div .mezcladorBloqueGhost (dashed border acento, 12% fondo) en PistaTimeline. duracionBloqueDrag preserva ancho original. Transition left 50ms. Dragging: opacity 0.3 + grayscale. Commit 96f3c0c.
-243. ✅ [AG-DAW] Fix drift stretch/contract — causa raíz: sin duracionOriginal inmutable, cada resize acumulaba error de redondeo. Fix: duracionOriginalCompases + playbackRateOriginal como anclas inmutables, playbackRate redondeado a 6 decimales (Math.round * 1e6 / 1e6). Commit 96f3c0c.
-244. ✅ [AG-DAW] Toggle stretch vs clip (like FL Studio) — modoResize: 'stretch'|'clip' en BloqueMezclador. Stretch: recalcula playbackRate. Clip: mantiene playbackRate, ajusta recorteFin, limita a duración máxima del audio. Toggle button en ModalConfigBloque. Tag "CLIP" visible en BloqueSample. Commit 96f3c0c.
-245. ✅ [AG-DAW] Fix admin usuarios (segunda pasada) — queries usaban columnas incorrectas: u.ban_hasta→u.baneado_hasta, ban_hasta=→baneado_hasta=, p.usuario_id→p.autor_id. Commit c9eef52.
-246. ✅ [AG-DAW] Duplicar evita colisión — hayColision() verifica solapamiento, si colisiona coloca copia al final de la pista (finMax). Commit 183fc55.
-247. ✅ [AG-DAW] Selección múltiple Ctrl+click — bloquesSeleccionados Set<string>, toggleSeleccionBloque, moverBloquesSeleccionados (preserva offsets relativos), outline acento visual. Commit 183fc55.
-248. ✅ [AG-DAW] 20 pistas iniciales — Array.from length:20 en estado inicial y limpiarProyecto(). Commit 183fc55.
-249. ✅ [AG-DAW] Shift+drag duplica — onMouseDown detecta e.shiftKey, llama duplicarBloque antes de iniciar drag del original. Commit 183fc55.
-250. ✅ [AG-DAW] Eliminado texto placeholder "arrastra un sample aquí" de PistaTimeline y MezcladorPanel. Commit 183fc55.
-251. ✅ [AG-DAW] mezcladorCerrar con estilo uniforme — 28px, border 1px solid bordeSutil, hover bordeActivo (igual que mezcladorBotonCabecera). Commit 183fc55.
-252. Antes de continuar con 253, es necesario comprimir las tareas, comentarios o registros o lecciones viejas.
-253. ✅ [AG-DAW] ModalConfigDaw — botón Settings en cabecera, modal con selector snap (bar/beat/1-2/1-4/1-6/off). Snap removido de ControlesMezclador. Commit 183fc55.
+252. ✅ [AG-DAW] Compactación roadmap — C169-C272 resumidos en bloques compactos, entradas individuales eliminadas.
 254. EL boton de publicar mezcla no funciona, puede esto no este planificado, pero realmente requiere pasos extra con la detección de duplicados, porque supongamos que hago una mezcla de un audio exactamente igual, el sistema debería detectar esos casos en que se intenta publicar un sample igual aunque sea una mezcla y pasarlo a moderación. 
 254.1 Veo que en el menu contextual de la foto de perfil hay un limitador de creditos, ejemplo usuario free tiene 5 creditos y aparece 5, si bien, al reiniciar el dia debe volver a 5, hay que quitar el limite, o sea si tengo 5 creditos y publico un sample, debería tener 6, si pasa un dia y todavía tengo 6, no debe restar y dejarme en esos 6, pero si tengo menos (4, 3, etc) reiniciar a 5 o a lo que corresponde, asi con los otros planes. Permitir que los usuarios ganen creditos por mezclar o publicar samples.
-252.2 Aclaración porque siento que no entiende bien 254, lo que se busca es debería permitirse mezcla siempre y cuando no sean tan parecidas, a los samples ya publicados. 
-255. los archivos del mezclador como mezcladorStore, se estan haciendo muy grandes, refactorizar y aplicar solid con cuidado. 
-256. ✅ [AG-DAW] Stretch/clip global — modoResizeGlobal en store (default stretch), toggle en ModalConfigDaw. setDuracionBloque lee modo global. Removido toggle individual de ModalConfigBloque. Commit 183fc55.
-257. ✅ [AG-DAW] Admin cambiar plan — select free/pro/premium en acciones de TabUsuariosAdmin. Backend ya soportaba plan en actualizarUsuario. CSS adminSelectPlan. Commit 115589a.
-258. ✅ [AG-DAW] Fix detune — La compensación playbackRate/2^(cents/1200) anulaba algebraicamente el efecto. Removida compensación, detune puro (estilo vinilo). Ajustado duration de start() con tasa efectiva. Commit c41560d.
-259. ✅ [AG-DAW] CSS admin panel verificado — ya usa variables camelCase (corregido en C195). Sin colores hardcoded. Commit c41560d. (Ya verifique, todo bien)
-260. ✅ [AG-DAW] Eliminado mezcladorDropZoneVacia — JSX, CSS (19 líneas), import Music2, totalBloques removidos de MezcladorPanel. Commit c41560d. 
-261. ✅ [AG-DAW] Fix modal colecciones viewport — Clamp bidireccional Math.max(8, Math.min(pos, viewportSize - panelSize - 8)). Dimensiones corregidas a 320x420 reales. Commit c41560d.
+254.2 Aclaración porque siento que no entiende bien 254, lo que se busca es debería permitirse mezcla siempre y cuando no sean tan parecidas, a los samples ya publicados. 
+255. los archivos del mezclador como mezcladorStore, se estan haciendo muy grandes, refactorizar y aplicar solid con cuidado.
 262. Planificar adaptación de .agent\coolify-manager para correr postgres automaticamente y instalar todo lo que necesita este proyecto para que funcione en el vps linux. 
-263. Sigo sin poder ver la iamgen de perfil del otro usuario en chatFlotanteHeader.
+263. Sigo sin poder ver la imagen de perfil del otro usuario en chatFlotanteHeader.
 264. Los comentarios necesitan opciones de 3 puntos, un menu contextual donde aparezca la opcion de editar, reportar y eliminar, los admin pueden borrar cualquier comentarios y los usuarios eliminar sus propios comentarios.
 265. Poder dar like a los comentarios, y responder otros comentarios, que los comentarios se aniden cuando sean una respuesta, las respuestas ocultas por defecto.
 266. Recibir notificaciones cuando se recibe like en un sample, cuando se responde un comentario, o se da like a un comentario, no recibir notificaciones de auto like o autorespuesta. Notificaciones de publicaciones eliminadas, en moderación, de sample verificado, de pago procesado de stripe con exito y accendido a pro o premium, etc, recibir que todo lo que deba generar una notificación, lo genere.
-267. ✅ [AG-DAW] Selección visual mejorada — outline 3px, fondo tintado 18% acento, box-shadow glow 8px. Commit c41560d.
-258.1 ✅ [AG-DAW] Multi-drag ghosts — La lógica de moverBloquesSeleccionados preservaba distancias (delta uniforme). Agregados ghost previews para TODOS los bloques seleccionados en PistaTimeline. Commit c41560d.
-259.1 ✅ [AG-DAW] Resize fuera del modal — Botón toggle MoveHorizontal/Crop en ControlesMezclador al lado de Scissors. Removido de ModalConfigDaw. Commit c41560d.
-271. La tonalidad casi funciona bien, lo que pasa es que si cambia, pero, cuando se cambia la tonalidad directamente, el audio debe mantener su duración. O sea, no contraerse o estirarse, esto es mas profundo porque implica varias cosas, te explico como funciona en fl studio.
-
-en fl studio los audios pueden ponerse en modo resample y stretch (estos son los modos de time streching), en resample significa el pitch esta determinado por cuanto se estire, es decir, si estira el audio, su pitch cambia, esto es logico, mas rapido, mayor pitch, mas lento, menor picht.
-
-luego esta el modo stretch, aqui no importa que tanto se estire el audio, si se hace mas corto o largo, su pitch no cambia y se define desde su configuracion, separando estos 2 modos, el picht va a funcionar correcta.
-
-Para que funcione bien, tiene que poder cambiarse entre strech y resample para saber como se va a configurar el tono, por defecto debe ser resample. Cuando esto se aplique, probablemente el pitch empiece a funcionar bien. Estos modos oson
-272. Cuando hay bloques de audio selecionado, dar click en cualquier otro lugar deberia deselecionar todo.
+271. La tonalidad casi funciona bien, lo que pasa es que si cambia, pero, cuando se cambia la tonalidad directamente, el audio debe mantener su duración. O sea, no contraerse o estirarse, esto es mas profundo porque implica varias cosas, te explico como funciona en fl studio. En resample el pitch esta determinado por cuanto se estire (mas rapido = mayor pitch). En stretch no importa que tanto se estire, el pitch no cambia y se define desde configuracion. Por defecto resample. Modos individuales por audio. Requiere phase vocoder o SoundTouchJS para true pitch-independent stretch.
+272. ✅ [AG-DAW] Deseleccionar al hacer click en área vacía de timeline. PistaTimeline onClick + limpiarSeleccion().
 
 ---
 
 ## Lecciones Aprendidas (compactas)
 
 **API/Backend:**
-- `apiGet` hace `json.data ?? json` → NUNCA hacer `resp.data.data` (double-unwrap). Tipear `RespuestaApi<T[]>`.
-- PG TEXT[] requiere formato `'{val1,val2}'`, usar `pgArrayAPhp()` para parsear.
-- PDO+PG: TEXT[] devuelto como string `"{}"` — siempre parsear.
-- Backend snake_case, frontend camelCase — normalizadores obligatorios.
-- IDs backend (string) vs frontend (number) — usar `String()` en comparaciones.
-- Validar longitud ANTES de sanitizar (sanitize_text_field trunca silenciosamente).
-- `esc_url_raw()` para DB, `esc_url()` para output HTML.
-- Rate limit login por IP (no usuario), registro también por IP.
-- PDO: `INTERVAL ':param seconds'` NO funciona en PG — concatenar directamente.
-- `\filter_var`, `\session_id` etc. dentro de namespaces PHP requieren prefijo `\`.
-- [PageManager]: `reactPage('padre/hijo')` NO auto-creaba la página WP padre. Sin 'admin' en WP, 'panel' queda en raíz y `get_page_uri()` retorna 'panel' en vez de 'admin/panel' → lookup falla en interceptor.
+- `apiGet` hace `json.data ?? json` → NUNCA `resp.data.data` (double-unwrap). Tipear `RespuestaApi<T[]>`.
+- PG TEXT[] requiere `'{val1,val2}'`, usar `pgArrayAPhp()`. PDO devuelve string `"{}"` — parsear.
+- Backend snake_case, frontend camelCase — normalizadores obligatorios. IDs: `String()` en comparaciones.
+- Validar longitud ANTES de sanitizar. `esc_url_raw()` DB, `esc_url()` HTML.
+- Rate limit login/registro por IP. PDO INTERVAL: concatenar, no bind.
+- `\filter_var`, `\session_id` en namespaces PHP requieren `\`.
+- PageManager: `reactPage('padre/hijo')` NO auto-creaba padre WP → lookup fallaba.
+- PDO ATTR_EMULATE_PREPARES=false: exception si params tiene keys sin placeholder. Usar `array_diff_key`.
+- AdminController: `AuthMiddleware::requerirAdmin()` como permission_callback. Subqueries SELECT para contar relaciones.
+- Columnas PG: verificar nombres exactos con psql (baneado_hasta, autor_id). Aliases SQL deben coincidir.
+- `wp_handle_upload()` solo en wp-admin — require `includes/file.php` en REST API.
+- Créditos = cupo diario (COUNT hoy vs límite). Bonus: columna `creditos_bonus` sumada al límite.
+- Precios sincronizados en: StripeService (backend), PlanesIsland, LandingPublica, roadmap.
+- Backend `actualizarUsuario` ya soportaba `plan` — verificar existencia antes de crear.
 
 **React/TypeScript:**
-- NUNCA hooks despues de early return condicional — todos los hooks antes de cualquier return.
-- React Compiler: no `Date.now()` en render/useMemo, no refs `.current` en render, no `setState` en useEffect.
-- PageRenderer negro: useEffect→setState deja 1 frame vacío. Fix: render-time state update.
-- `setPaginasCache(prev => ...)` funcional para evitar stale closures en rápida navegación.
-- Tras refactors, `npm run type-check` para detectar imports muertos.
-- CampoTexto onChange: HTMLInputElement vs HTMLTextAreaElement — cast con `as unknown as`.
-- Spread `...archivos` en return colisiona con `resetear` — listar props explícitamente.
+- NUNCA hooks después de early return. React Compiler: no `Date.now()` render/useMemo, no refs `.current` render.
+- PageRenderer fix: render-time state update (no useEffect→setState). `setPaginasCache(prev => ...)` funcional.
+- Tras refactors: `npm run type-check`. CampoTexto onChange: cast `as unknown as`.
+- Spread `...archivos` colisiona con `resetear` — listar props explícitamente.
+- useTabsIsla(islaId, tabs, activaInicial) — re-registra tabs en keep-alive.
+- copiarAlPortapapeles fallback execCommand para http://. `usePlanesModalStore.getState().abrir()` fuera de React.
+- CustomEvent + listener para refrescar feeds. Ref pattern para evitar stale closures en `[]` deps.
+- Sidebar: `itemsFinales: SidebarItemDef[]` tipar explícitamente. Badge variantes: neutro|acento|exito|error|advertencia|info|premium.
+- MAPA_RUTAS en LayoutPrincipal.tsx actualizar al añadir sidebar items.
 
 **CSS/UI:**
-- `:has(.reproductorGlobal)` para bottom dinámico de toasts/chats.
-- `pointer-events` NO es animable — usar `::before` bridge para cubrir gaps en tooltips.
-- No usar select HTML nativo — dropdown propio con estilo MenuContextual.
-- Metadata `emocion` puede ser string sin separadores — splitear y filtrar >30 chars.
+- `:has(.reproductorGlobal)` bottom dinámico. `pointer-events` NO animable — usar `::before` bridge.
+- No select nativo — dropdown con MenuContextual. Metadata emocion: splitear, filtrar >30 chars.
+- Gráficas CSS: barras agrupadas > apiladas. Colores lejanos en espectro. Eje referencia obligatorio.
 
-**Patrones:**
-- useTabsIsla(islaId, tabs, activaInicial) — re-registra tabs cuando isla se activa en keep-alive.
-- copiarAlPortapapeles(texto, mensaje) — fallback execCommand para http://.
-- EVENTO_SAMPLE_ACTUALIZADO — evento custom para actualizar propiedades de samples in-place en FeedSamples (verificado, etc.).
-- NormalizadorSample: alias SQL necesario cuando tabla samples y usuarios tienen columna con mismo nombre (s.verificado AS verificado_sample vs u.verificado).
-- verificado_boost en algoritmoPesos.php: multiplicador configurable (default 1.15) aplicado post-penalización.
-- BarraAccionesPost: shape mínimo + callbacks opcionales. Sin callback = decorativo.
-- EnlaceCreador: avatar+nombre+navegación. Elimina imports duplicados.
-- calcularSugerencias(): SQL genérico reutilizable para cualquier lista del usuario.
-- FeedSamples dual: tab principal (datos precargados) + tab sugerencias (infinite scroll via FeedSamples+proveedor).
-- MAPA_RUTAS en LayoutPrincipal.tsx debe actualizarse al añadir items al sidebar.
-- extraerTagsMetadata() combina metadata IA (tags/genero/instrumentos/emocion/artista_vibes).
-- [C169]: Para búsqueda cross-entity, extender cada endpoint con `ILIKE` + parámetro `busqueda`, no crear endpoint unificado — más simple.
-- [C170]: Descripciones de samples contienen hashtags del ModalCrear — limpiar con `replace(/#\w+/g, '')` al cargar en editor.
-- [C181]: Algoritmo colecciones con CTE es eficiente — `user_tags LIMIT 15` + `coleccion_tags` agrupados. `sqlTagsEnriquecidos` debe ser public para reutilizar.
-- [C182]: Posicionar modal contextual: pasar `{ x: e.clientX, y: e.clientY }` al store, ajustar con `Math.min()` para no salir del viewport.
-- [BD]: Columna reproducciones era `completa` no `completada` — renombrada con v016. Siempre verificar nombres exactos de columnas con psql.
-- [C179]: AdminController: todos los endpoints admin usan `AuthMiddleware::requerirAdmin()` como permission_callback. Las queries admin pueden usar subqueries en SELECT para contar relaciones (total_samples, total_descargas por usuario).
-- [C179]: Sidebar condicional: `const itemsFinales: SidebarItemDef[] = esAdmin ? [...items, adminItem] : items` — tipar explícitamente para evitar TS2339 en propiedades opcionales.
-- [C179]: Badge variantes son 'neutro|acento|exito|error|advertencia|info|premium', NO 'default|secondary|destructive|outline'.
-- [C184]: Mezclador aislado en `/Mezclador/` con tsconfig propio (baseUrl apunta a Glory/assets/react para resolver react/lucide-react/zustand). ErrorBoundary class component obliga a importar React explícitamente.
-- [C184]: Web Audio: AudioContext singleton, GainNode por pista, OfflineAudioContext para export. `playbackRate` para time-stretch simple (bpmProyecto/bpmSample).
-- [C184]: Drag-to-mixer: usar `dataTransfer.setData('application/kamples-sample', JSON.stringify(sample))` + CustomEvent como fallback.
-- [C213]: EVENTO_REPROGRAMAR_AUDIO — dispatch custom event desde store, listener en useMotorAudio detiene y reprograma desde posición actual. Patrón reusable para sync store→audio.
-- [C216]: snapConResolucion() en compasUtils es la función central de snap — recibe posición, compás y resolución, retorna posición snapped. calcularLineasCuadricula() genera las líneas de la grilla visual.
-- [C217]: Zoom implementado con div wrapper .mezcladorTimelineZoom que escala width por %. El .mezcladorTimeline hace overflow:auto para scroll horizontal.
-- [C218]: Para detectar fin real de audio, iterar todos los bloques de todas las pistas buscando max(compasInicio + duracionCompases), no usar totalCompases (que puede ser mayor).
-- [C219]: Los botones en cabecera de bloque necesitan e.stopPropagation() en onClick para evitar que el drag se active. Si se sigue activando, revisar onMouseDown del bloque padre.
-- [C184]: PipelineAudio IA: FFmpeg `-t 20 -codec:a libmp3lame -b:a 128k -ac 1 -ar 22050` genera MP3 ~10x más pequeño que WAV original para enviar a Groq.
-- [C184]: `KamplesLogger` usa `::warning()` no `::warn()`. Verificar métodos antes de usar.
-- [C205]: Drag en timeline: React onMouseMove/onMouseUp solo funciona dentro del componente. Para drag libre, usar document.addEventListener en useEffect limpiado por return. Refs para leer estado actual en closures de event listeners.
-- [C207]: inferirCompas debe calcular compasesSample con duración ajustada (duracionSample/playbackRate), no duración cruda. Sin esto, bloques con playbackRate>1 se cortan antes de terminar.
-- [C204]: Stretch = cambiar duracionCompases del bloque. playbackRate = buffer.duration / (durCompases * durCompas). Clamped [0.25, 4.0].
-- [C224]: Undo/redo pattern: SnapshotMezclador guarda solo {pistas, totalCompases} (sin audioBuffers — refs se mantienen). _guardarSnapshot() trunca historial forward antes de guardar. MAX_HISTORIAL=30 previene memory leak.
-- [C225]: Para evitar re-apertura de modal contextual: guard con `!modalConfigAbierto` en handler, overlay consume contextmenu y mousedown con stopPropagation.
-- [C226]: Drag en bloque: verificar `target.closest('.mezcladorBloqueBotones')` en onMouseDown para evitar que clicks en botones internos inicien drag.
-- [C228]: Dividir waveformPeaks proporcionalmente: `ratioPeaks = posRelativa / duracionCompases`, cortePeaks = Math.round(peaks.length * ratio).
-- [C208]: Para audio local: File.arrayBuffer() + AudioContext.decodeAudioData(). Crear pseudo-SampleResumen con id negativo (-Date.now()) para distinguir de samples del servidor.
-- [WP API]: `wp_handle_upload()` vive en `wp-admin/includes/file.php` — NO se carga en contexto REST API. Siempre hacer `if (!function_exists('wp_handle_upload')) require_once ABSPATH.'wp-admin/includes/file.php'` antes de usarlo. SamplesController lo tenía, Comentarios y Mensajes no.
-- [C198]: Sistema de créditos es cupo diario (COUNT descargas hoy vs límite plan), NO saldo persistente. Para bonus, agregar columna `creditos_bonus` a usuarios\_ext y sumarla al límite en la verificación.
-- [C199]: apiCliente.ts leía solo `json?.message` en errores pero backend envía `json?.error` → los mensajes de error del backend no llegaban al usuario. Corregido con fallback `json?.error`.
-- [C199]: Para abrir modal desde fuera de React (ej. hook callbacks): `usePlanesModalStore.getState().abrir()` usa el estado global Zustand sin necesidad de hook.
-- [C200]: Precios de planes deben estar sincronizados en: StripeService::PLANES (backend), PlanesIsland (frontend modal), LandingPublica (landing), roadmap (docs). El modal es la fuente de verdad.
-- [C222]: Web Audio `fuente.start(when, offset, duration)` — el param `duration` es en buffer-time, no wall-clock. Si playbackRate=0.5, pasar `duracion * playbackRate` para que el audio no suene más largo de lo visual.
-- [C222]: Cursor + bloques en timeline: bloques usan left% relativo a contenido (W-80px controles), cursor debe usar `calc(80px + (100%-80px)*fraction)` para alinearse.
-- [C230]: Resolución colisiones: ordenar bloques por compasInicio tras actualizar, push forward con `Math.max(bloque.compasInicio, prevFin)`, expandir totalCompases si excede.
-- [C232]: Preview de corte: calcular posición snapped con `snapConResolucion`, convertir a porcentaje dentro del bloque `(snapped - compasInicio) / duracionCompases * 100`.
-- [C233]: Al mover botones entre componentes, verificar que los imports de lucide-react se actualicen en AMBOS componentes (origen y destino). Music2 quedó referenciado sin import.
-- [C235]: PDO con ATTR_EMULATE_PREPARES=false lanza excepción si $params tiene claves sin placeholder en el SQL. Para queries COUNT sin LIMIT/OFFSET, usar array_diff_key($params, ['offset' => true]).
-- [C236]: Gráficas CSS puras: barras agrupadas (flex-direction row) son más legibles que apiladas (column). Usar colores lejanos en el espectro (verde/azul/naranja, no verde/verde claro/naranja). Siempre incluir eje de referencia.
-- [C221]: Metadata IA puede generar valores repetidos entre categorías (ej: "hip-hop" en genero Y en tags). Siempre deduplicar con Set normalizado (lowercase+trim) al mostrar badges.
-- [C223]: Para refrescar feeds desde hooks externos (fuera del componente), usar CustomEvent + listener. Para evitar stale closures en listeners con `[]` deps, guardar la función en un ref (`cargarPaginaRef.current = cargarPagina`).
-- [C246]: Colisión al duplicar: iterar bloques de la pista buscando overlap (inicio < finCopia && fin > inicioCopia). Si colisiona, Math.max de todos los fines como posición alternativa.
-- [C247]: Selección múltiple: Set<string> en store, Ctrl+click toggle, mover en batch preservando offsets relativos (delta = destino - min(inicios seleccionados)).
-- [C249]: Shift+drag: duplicar ANTES de iniciar drag. El drag mueve el original, la copia queda en su lugar.
-- [C253]: Al mover controles a un modal, verificar que imports (tipos, stores) se limpien del componente origen.
-- [C256]: Modo resize global vs individual: cuando un comportamiento aplica a todos los bloques, moverlo de la entidad (BloqueMezclador) al store global. setDuracionBloque lee `get().modoResizeGlobal`.
-- [C257]: Backend actualizarUsuario ya soportaba `plan` — solo faltaba UI. Antes de crear backend, verificar si ya existe la funcionalidad.
-- [C258]: Web Audio: `detune` y `playbackRate` se combinan en `computedPlaybackRate = rate * 2^(detune/1200)`. La compensación `rate / 2^(cents/1200)` resulta en `computedRate = rate` (cancelación algebraica). Para detune audible, NO compensar. Ajustar `duration` de `start()` con tasa efectiva.
-- [C261]: Modal contextual con fixed position: SIEMPRE usar Math.max(margen, Math.min(pos, viewportSize - panelSize - margen)) en ambos ejes. Verificar dimensiones reales del CSS (320x420, no 290x360).
-- [C259.1]: Para toggles globales tipo herramienta (corte, stretch/clip), ponerlos en la barra de controles visible, no escondidos en modales de configuración.
-- [C201]: FFmpeg waveform: `-f f32le -acodec pcm_f32le -ac 1 -ar 8000` genera PCM raw, luego leer con `unpack('g*')` y extraer picos por chunks. 60 barras es suficiente para un mini player.
-- [C240]: Web Audio `detune` en BufferSourceNode cambia pitch Y velocidad (vinilo). La compensación playbackRate anterior fue eliminada en C258 porque se cancelaba algebraicamente (no producía cambio audible).
-- [C243]: Drift en resize se acumula por floating-point en cada operación. Solución: guardar `duracionOriginalCompases` y `playbackRateOriginal` inmutables al crear bloque, siempre recalcular desde originales, nunca desde valores ya redondeados.
-- [C244]: Clip mode: mantener playbackRate fijo, ajustar solo recorteFin. Calcular duración máxima en compases: `(buffer.duration / playbackRate) / durCompas`. Stretch mode: ajustar playbackRate como siempre.
-- [C241]: panelLateralStore.expandido: resetear a false en cerrar() para evitar que el panel reaparezca expandido al abrirlo de nuevo.
-- [C242]: posicionDragFantasma se calculaba en useTimeline pero NUNCA se renderizaba. El ghost necesita pasar por MezcladorPanel→Timeline→PistaTimeline como props.
-- [C245]: Columnas PostgreSQL: verificar siempre nombres exactos con psql (baneado_hasta, no ban_hasta; autor_id, no usuario_id). Aliases SQL deben coincidir con nombre real de columna.
-- [C238]: BPM mid-playback: el problema era doble — audio ya scheduled con BPM viejo + tiempoInicioRef inválido. Fix: setBpm calcula posición musical (compases) con BPM anterior, pasa posicionCompases via detail del CustomEvent, handler convierte a segundos con BPM nuevo. Patrón: cuando un parámetro cambia la escala temporal, siempre convertir posición a unidad invariante (compases) antes de cambiar.
+**Mezclador DAW:**
+- Aislado en `/Mezclador/` con tsconfig propio (baseUrl → Glory/assets/react). ErrorBoundary requiere import React.
+- Web Audio: AudioContext singleton, GainNode/pista, OfflineAudioContext export. `playbackRate` para time-stretch simple.
+- `detune` + `playbackRate` → `computedRate = rate * 2^(detune/1200)`. Compensación se cancela algebraicamente — NO compensar.
+- `fuente.start(when, offset, duration)`: duration es buffer-time, multiplicar por playbackRate para wall-clock.
+- Drag-to-mixer: dataTransfer + CustomEvent fallback. Drag timeline: document.addEventListener + cleanup. Refs en closures.
+- inferirCompas: usar `duracionSample/playbackRate`, no duración cruda.
+- Stretch = cambiar duracionCompases. `playbackRate = buffer.duration / (durCompases * durCompas)`. Clamped [0.25,4.0].
+- Drift resize: `duracionOriginalCompases` + `playbackRateOriginal` inmutables. Recalcular desde originales.
+- Clip mode: playbackRate fijo, ajustar recorteFin. durMax = `(buffer.duration/playbackRate)/durCompas`.
+- Undo/redo: SnapshotMezclador {pistas, totalCompases} sin audioBuffers. Truncar historial forward. MAX=30.
+- snapConResolucion() central. calcularLineasCuadricula() visual. Zoom wrapper escala width%.
+- Fin real audio: max(compasInicio+duracionCompases) de todos los bloques, no totalCompases.
+- Botones bloque: stopPropagation onClick + verificar closest('.mezcladorBloqueBotones') onMouseDown.
+- Modal contextual: guard !modalConfigAbierto + overlay stopPropagation. Viewport: Math.max(8, Math.min(pos, viewportSize-panelSize-8)).
+- Corte: dividir waveformPeaks proporcionalmente. Preview: snapConResolucion → % dentro del bloque.
+- Selección múltiple: Set<string>, Ctrl+click toggle, batch move con delta uniforme (preserva offsets).
+- Shift+drag: duplicar ANTES de iniciar drag. Colisión duplicar: Math.max fines como alternativa.
+- Modo resize global vs individual: mover de entidad a store cuando aplica a todos.
+- BPM mid-playback: convertir a compases (invariante) antes de cambiar, reconvertir con BPM nuevo.
+- Ghost preview: posicionDragFantasma → MezcladorPanel → Timeline → PistaTimeline como props.
+- panelLateralStore.expandido: resetear false en cerrar(). PipelineAudio IA: FFmpeg -t 20 ~10x más pequeño.
+- Audio local: File.arrayBuffer() + decodeAudioData. Pseudo-SampleResumen con id negativo.
+- Mover controles entre componentes: verificar imports en AMBOS (origen+destino).
+- Toggles herramienta (corte, resize): barra visible, no escondidos en modales.
+- FFmpeg waveform: `-f f32le -ac 1 -ar 8000` + unpack('g*') + picos por chunks. 60 barras suficiente.
+
+**Patrones generales:**
+- NormalizadorSample: alias SQL para columnas homónimas. extraerTagsMetadata() combina campos IA.
+- BarraAccionesPost: shape mínimo + callbacks opcionales. EnlaceCreador: avatar+nombre+nav.
+- calcularSugerencias(): SQL genérico reutilizable. FeedSamples dual: precargado + infinite scroll.
+- Búsqueda cross-entity: ILIKE por endpoint, no endpoint unificado.
+- Descripciones contienen hashtags — limpiar con `replace(/#\w+/g, '')`.
+- Algoritmo colecciones CTE: user_tags LIMIT 15 + coleccion_tags. sqlTagsEnriquecidos public.
+- Modal contextual: `{ x: clientX, y: clientY }` al store + Math.min viewport.
+- verificado_boost: multiplicador 1.15 post-penalización en algoritmoPesos.
