@@ -28,6 +28,7 @@ use App\Kamples\Api\Helpers\Validador;
 use App\Kamples\Services\MotorRecomendacion;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\ColeccionesCols;
 
 class ColeccionesController
@@ -499,7 +500,7 @@ class ColeccionesController
             "SELECT sample_id FROM coleccion_samples WHERE coleccion_id = :colId",
             ['colId' => $colId]
         );
-        $idsExcluir = array_map(fn($r) => (int) $r['sample_id'], $idsExistentes);
+        $idsExcluir = array_map(fn($r) => (int) $r[ColeccionSamplesCols::SAMPLE_ID], $idsExistentes);
 
         $excludePlaceholders = '';
         if (!empty($idsExcluir)) {

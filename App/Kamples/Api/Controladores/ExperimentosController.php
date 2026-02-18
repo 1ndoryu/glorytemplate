@@ -15,6 +15,9 @@ use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\KamplesLogger;
+use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\ConversacionesCols;
 
 class ExperimentosController
 {
@@ -122,7 +125,7 @@ class ExperimentosController
         );
 
         if ($existente) {
-            return (int) $existente['id'];
+            return (int) $existente[UsuariosExtCols::ID];
         }
 
         /* Crear usuario WordPress */
@@ -162,7 +165,7 @@ class ExperimentosController
             ]
         );
 
-        return $row ? (int) $row['id'] : null;
+        return $row ? (int) $row[UsuariosExtCols::ID] : null;
     }
 
     /**
@@ -186,7 +189,7 @@ class ExperimentosController
                     "SELECT id FROM samples WHERE creador_id = :userId ORDER BY created_at DESC LIMIT 1",
                     ['userId' => $adminPgId]
                 );
-                $sampleId = $sample ? (int) $sample['id'] : 1;
+                $sampleId = $sample ? (int) $sample[SamplesCols::ID] : 1;
                 $datos = json_encode([
                     'liker_id'  => $testUserId,
                     'sample_id' => $sampleId,
@@ -249,7 +252,7 @@ class ExperimentosController
         );
 
         if ($conv) {
-            $convId = (int) $conv['id'];
+            $convId = (int) $conv[ConversacionesCols::ID];
         } else {
             $nuevaConv = PostgresService::consultarUno(
                 "INSERT INTO conversaciones (participante_1, participante_2)
@@ -257,7 +260,7 @@ class ExperimentosController
                  RETURNING id",
                 ['p1' => $p1, 'p2' => $p2]
             );
-            $convId = $nuevaConv ? (int) $nuevaConv['id'] : null;
+            $convId = $nuevaConv ? (int) $nuevaConv[ConversacionesCols::ID] : null;
 
             if (!$convId) {
                 return ['error' => 'No se pudo crear la conversación'];

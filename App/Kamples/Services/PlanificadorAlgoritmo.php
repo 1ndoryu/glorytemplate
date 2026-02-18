@@ -21,6 +21,7 @@ namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\LogAlgoritmo as KamplesLogger;
+use App\Config\Schema\_generated\AlgoritmoEstadoCols;
 
 class PlanificadorAlgoritmo
 {
@@ -227,7 +228,7 @@ class PlanificadorAlgoritmo
         );
 
         foreach ($usuarios as $u) {
-            $uid = (int) $u['usuario_id'];
+            $uid = (int) $u[AlgoritmoEstadoCols::USUARIO_ID];
             $segInactivo = (float) $u['seg_inactivo'];
             $esActivo = $segInactivo < $umbralInactividad;
 
@@ -287,7 +288,7 @@ class PlanificadorAlgoritmo
 
         $count = 0;
         foreach ($usuarios as $u) {
-            self::ejecutarPreciso((int) $u['usuario_id']);
+            self::ejecutarPreciso((int) $u[AlgoritmoEstadoCols::USUARIO_ID]);
             $count++;
         }
 

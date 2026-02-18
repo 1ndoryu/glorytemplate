@@ -20,6 +20,7 @@ namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\KamplesLogger;
+use App\Config\Schema\_generated\SamplesCols;
 
 class DeduplicadorAudio
 {
@@ -61,19 +62,19 @@ class DeduplicadorAudio
             ['id' => $sampleId]
         );
 
-        if (!$sample || empty($sample['ruta_original'])) {
+        if (!$sample || empty($sample[SamplesCols::RUTA_ORIGINAL])) {
             KamplesLogger::warning('DeduplicadorAudio: sample no encontrado o sin ruta', ['sampleId' => $sampleId]);
             return;
         }
 
-        $rutaArchivo = $sample['ruta_original'];
+        $rutaArchivo = $sample[SamplesCols::RUTA_ORIGINAL];
         if (!file_exists($rutaArchivo)) {
             KamplesLogger::warning('DeduplicadorAudio: archivo no existe', ['ruta' => $rutaArchivo]);
             return;
         }
 
         /* Calcular hash perceptual */
-        $hash = self::calcularHash($rutaArchivo, (float) ($sample['duracion'] ?? 0));
+        $hash = self::calcularHash($rutaArchivo, (float) ($sample[SamplesCols::DURACION] ?? 0));
         if (!$hash) {
             KamplesLogger::warning('DeduplicadorAudio: no se pudo calcular hash', ['sampleId' => $sampleId]);
             return;
@@ -96,10 +97,10 @@ class DeduplicadorAudio
 
         if (empty($duplicados)) return;
 
-        $creadorId = (int) $sample['creador_id'];
+        $creadorId = (int) $sample[SamplesCols::CREADOR_ID];
 
         foreach ($duplicados as $dup) {
-            $dupCreadorId = (int) $dup['creador_id'];
+            $dupCreadorId = (int) $dup[SamplesCols::CREADOR_ID];
 
             /* Duplicados del mismo creador se permiten */
             if ($dupCreadorId === $creadorId) continue;
@@ -114,11 +115,11 @@ class DeduplicadorAudio
             ServicioNotificaciones::crear(
                 $dupCreadorId,
                 'duplicado_detectado',
-                "Se detecto un posible duplicado de tu sample \"{$dup['titulo']}\"",
+                "Se detecto un posible duplicado de tu sample \"{$dup[SamplesCols::TITULO]}\"",
                 [
-                    'sampleOriginalId'   => (int) $dup['id'],
+                    'sampleOriginalId'   => (int) $dup[SamplesCols::ID],
                     'sampleDuplicadoId'  => $sampleId,
-                    'tituloOriginal'     => $dup['titulo'],
+                    'tituloOriginal'     => $dup[SamplesCols::TITULO],
                 ],
                 $creadorId,
                 'Duplicado detectado'
@@ -126,7 +127,7 @@ class DeduplicadorAudio
 
             KamplesLogger::warning('DeduplicadorAudio: duplicado detectado', [
                 'sampleNuevo'    => $sampleId,
-                'sampleOriginal' => $dup['id'],
+                'sampleOriginal' => $dup[SamplesCols::ID],
                 'creadorNuevo'   => $creadorId,
                 'creadorOriginal' => $dupCreadorId,
             ]);

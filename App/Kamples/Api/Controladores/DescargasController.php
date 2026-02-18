@@ -496,7 +496,7 @@ class DescargasController
          * Nombre del ZIP incluye colección ID + hash de updated_at para invalidar cache
          * cuando la colección cambie.
          */
-        $hashColeccion = md5($coleccion['updated_at'] . count($samples));
+        $hashColeccion = md5($coleccion[ColeccionesCols::UPDATED_AT] . count($samples));
         $nombreZip = "coleccion_{$coleccionId}_{$hashColeccion}.zip";
         $rutaZip = $carpetaZips . '/' . $nombreZip;
 

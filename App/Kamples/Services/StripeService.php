@@ -16,6 +16,7 @@ namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\KamplesLogger;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class StripeService
 {
@@ -219,14 +220,14 @@ class StripeService
             ['id' => $creadorId]
         );
 
-        if (!$connectId || empty($connectId['stripe_connect_id'])) {
+        if (!$connectId || empty($connectId[UsuariosExtCols::STRIPE_CONNECT_ID])) {
             return ['error' => 'Creador sin cuenta Connect configurada'];
         }
 
         return self::request('POST', '/transfers', [
             'amount'      => $monto,
             'currency'    => $moneda,
-            'destination' => $connectId['stripe_connect_id'],
+            'destination' => $connectId[UsuariosExtCols::STRIPE_CONNECT_ID],
             'description' => $descripcion,
         ]);
     }
@@ -320,7 +321,7 @@ class StripeService
             "SELECT stripe_customer_id FROM usuarios_ext WHERE id = :id",
             ['id' => $userId]
         );
-        return $row['stripe_customer_id'] ?? null;
+        return $row[UsuariosExtCols::STRIPE_CUSTOMER_ID] ?? null;
     }
 
     private static function obtenerOCrearCustomer(int $userId): ?string
@@ -336,8 +337,8 @@ class StripeService
         if (!$usuario) return null;
 
         $customer = self::request('POST', '/customers', [
-            'email'              => $usuario['email'],
-            'name'               => $usuario['nombre_visible'] ?? $usuario['username'],
+            'email'              => $usuario[UsuariosExtCols::EMAIL],
+            'name'               => $usuario[UsuariosExtCols::NOMBRE_VISIBLE] ?? $usuario[UsuariosExtCols::USERNAME],
             'metadata[user_id]'  => $userId,
         ]);
 

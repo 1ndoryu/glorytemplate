@@ -15,6 +15,8 @@ use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\ConversacionesCols;
+use App\Config\Schema\_generated\MensajesCols;
 
 class MensajesController
 {
@@ -93,32 +95,32 @@ class MensajesController
 
             $ultimoMsg = PostgresService::consultarUno(
                 "SELECT contenido, tipo, created_at FROM mensajes WHERE conversacion_id = :convId ORDER BY created_at DESC LIMIT 1",
-                ['convId' => $conv['id']]
+                ['convId' => $conv[ConversacionesCols::ID]]
             );
 
             $noLeidos = PostgresService::consultarUno(
                 "SELECT COUNT(*) as total FROM mensajes WHERE conversacion_id = :convId AND autor_id != :userId AND leido = false",
-                ['convId' => $conv['id'], 'userId' => $userId]
+                ['convId' => $conv[ConversacionesCols::ID], 'userId' => $userId]
             );
 
             /* C193: fallback avatar */
             if ($otro) {
-                $otro['avatar_url'] = UsuarioHelper::resolverAvatarUrl($otro['avatar_url'] ?? null, (int) ($otro['wp_user_id'] ?? 0));
+                $otro[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl($otro[UsuariosExtCols::AVATAR_URL] ?? null, (int) ($otro[UsuariosExtCols::WP_USER_ID] ?? 0));
             }
 
             /* Preview del último mensaje según tipo */
-            $previewMsg = $ultimoMsg['contenido'] ?? '';
-            $tipoUltimo = $ultimoMsg['tipo'] ?? 'texto';
+            $previewMsg = $ultimoMsg[MensajesCols::CONTENIDO] ?? '';
+            $tipoUltimo = $ultimoMsg[MensajesCols::TIPO] ?? 'texto';
             if ($tipoUltimo === 'imagen') $previewMsg = '[Imagen]';
             elseif ($tipoUltimo === 'audio') $previewMsg = '[Audio]';
-            elseif ($tipoUltimo === 'sample') $previewMsg = '[Sample] ' . ($ultimoMsg['contenido'] ?? '');
+            elseif ($tipoUltimo === 'sample') $previewMsg = '[Sample] ' . ($ultimoMsg[MensajesCols::CONTENIDO] ?? '');
 
             $resultado[] = [
-                'id'              => (int) $conv['id'],
+                'id'              => (int) $conv[ConversacionesCols::ID],
                 'participante'    => self::normalizarParticipante($otro),
                 'ultimoMensaje'   => $previewMsg,
                 'ultimoMensajeTipo' => $tipoUltimo,
-                'ultimoMensajeAt' => $ultimoMsg['created_at'] ?? $conv['created_at'],
+                'ultimoMensajeAt' => $ultimoMsg[MensajesCols::CREATED_AT] ?? $conv[ConversacionesCols::CREATED_AT],
                 'noLeidos'        => $noLeidos ? (int) $noLeidos['total'] : 0,
                 'enLinea'         => false,
             ];

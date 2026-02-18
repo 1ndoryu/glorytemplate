@@ -18,6 +18,7 @@ namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\LogModeracion as KamplesLogger;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class ServicioBan
 {
@@ -44,7 +45,7 @@ class ServicioBan
             ['id' => $userId]
         );
 
-        $violaciones = (int) ($resultado['violaciones_moderacion'] ?? 0);
+        $violaciones = (int) ($resultado[UsuariosExtCols::VIOLACIONES_MODERACION] ?? 0);
 
         if ($violaciones === 0) {
             KamplesLogger::warning('ServicioBan: no se pudo incrementar violaciones', [
@@ -104,13 +105,13 @@ class ServicioBan
             ['id' => $userId]
         );
 
-        if (!$usuario || !$usuario['baneado_hasta']) return null;
+        if (!$usuario || !$usuario[UsuariosExtCols::BANEADO_HASTA]) return null;
 
-        $banHasta = strtotime($usuario['baneado_hasta']);
+        $banHasta = strtotime($usuario[UsuariosExtCols::BANEADO_HASTA]);
         if ($banHasta && $banHasta > time()) {
             return [
-                'baneadoHasta' => $usuario['baneado_hasta'],
-                'razon' => $usuario['ban_razon'] ?? 'Violación de normas',
+                'baneadoHasta' => $usuario[UsuariosExtCols::BANEADO_HASTA],
+                'razon' => $usuario[UsuariosExtCols::BAN_RAZON] ?? 'Violación de normas',
             ];
         }
 

@@ -19,6 +19,8 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\ComentariosCols;
+use App\Config\Schema\_generated\LikesCols;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ServicioAntiSpam;
 use App\Kamples\Services\ServicioBan;
@@ -705,7 +707,7 @@ class ComentariosController
         if (empty($filas)) return [];
 
         /* Obtener likes del usuario actual en batch */
-        $idsComentarios = array_column($filas, 'id');
+        $idsComentarios = array_column($filas, ComentariosCols::ID);
         $likesUsuario = [];
 
         if ($currentUserId && !empty($idsComentarios)) {
@@ -716,39 +718,39 @@ class ComentariosController
                 $params
             );
             foreach ($likes as $like) {
-                $likesUsuario[(int) $like['target_id']] = true;
+                $likesUsuario[(int) $like[LikesCols::TARGET_ID]] = true;
             }
         }
 
         return array_map(function ($fila) use ($likesUsuario) {
-            $comentarioId = (int) $fila['id'];
+            $comentarioId = (int) $fila[ComentariosCols::ID];
             $meta = null;
-            if (!empty($fila['media_metadata'])) {
-                $meta = is_string($fila['media_metadata'])
-                    ? json_decode($fila['media_metadata'], true)
-                    : $fila['media_metadata'];
+            if (!empty($fila[ComentariosCols::MEDIA_METADATA])) {
+                $meta = is_string($fila[ComentariosCols::MEDIA_METADATA])
+                    ? json_decode($fila[ComentariosCols::MEDIA_METADATA], true)
+                    : $fila[ComentariosCols::MEDIA_METADATA];
             }
 
             return [
                 'id' => $comentarioId,
-                'autorId' => (int) $fila['autor_id'],
-                'contenido' => $fila['contenido'] ?? '',
-                'creadoAt' => $fila['created_at'] ?? '',
-                'editadoAt' => $fila['updated_at'] ?? null,
-                'tipoContenido' => $fila['tipo_contenido'] ?? 'texto',
-                'mediaUrl' => $fila['media_url'] ?? null,
+                'autorId' => (int) $fila[ComentariosCols::AUTOR_ID],
+                'contenido' => $fila[ComentariosCols::CONTENIDO] ?? '',
+                'creadoAt' => $fila[ComentariosCols::CREATED_AT] ?? '',
+                'editadoAt' => $fila[ComentariosCols::UPDATED_AT] ?? null,
+                'tipoContenido' => $fila[ComentariosCols::TIPO_CONTENIDO] ?? 'texto',
+                'mediaUrl' => $fila[ComentariosCols::MEDIA_URL] ?? null,
                 'mediaMetadata' => $meta,
-                'parentId' => $fila['parent_id'] ? (int) $fila['parent_id'] : null,
-                'totalLikes' => (int) ($fila['total_likes'] ?? 0),
-                'totalRespuestas' => (int) ($fila['total_respuestas'] ?? 0),
+                'parentId' => $fila[ComentariosCols::PARENT_ID] ? (int) $fila[ComentariosCols::PARENT_ID] : null,
+                'totalLikes' => (int) ($fila[ComentariosCols::TOTAL_LIKES] ?? 0),
+                'totalRespuestas' => (int) ($fila[ComentariosCols::TOTAL_RESPUESTAS] ?? 0),
                 'liked' => isset($likesUsuario[$comentarioId]),
                 'autor' => [
-                    'id' => (int) $fila['autor_id'],
-                    'username' => $fila['username'] ?? '',
-                    'nombreVisible' => $fila['nombre_visible'] ?? '',
+                    'id' => (int) $fila[ComentariosCols::AUTOR_ID],
+                    'username' => $fila[UsuariosExtCols::USERNAME] ?? '',
+                    'nombreVisible' => $fila[UsuariosExtCols::NOMBRE_VISIBLE] ?? '',
                     'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
-                        $fila['avatar_url'] ?? null,
-                        (int) ($fila['wp_user_id'] ?? 0)
+                        $fila[UsuariosExtCols::AVATAR_URL] ?? null,
+                        (int) ($fila[UsuariosExtCols::WP_USER_ID] ?? 0)
                     ),
                 ],
             ];

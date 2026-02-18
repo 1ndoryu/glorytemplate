@@ -17,6 +17,7 @@ namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\LogModeracion as KamplesLogger;
+use App\Config\Schema\_generated\ComentariosCols;
 
 class ServicioAntiSpam
 {
@@ -83,7 +84,7 @@ class ServicioAntiSpam
         if ($duplicado) {
             KamplesLogger::info('AntiSpam: duplicado detectado', [
                 'autorId' => $autorId,
-                'duplicadoId' => $duplicado['id'],
+                'duplicadoId' => $duplicado[ComentariosCols::ID],
             ], 'moderacion');
             return 'Comentario duplicado';
         }

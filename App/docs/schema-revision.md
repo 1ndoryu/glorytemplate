@@ -29,35 +29,39 @@
 
 ## Pendientes Menores (Migración de accesos hardcoded restantes)
 
-### Prioridad ALTA - Archivos sin Cols imports que deberían tenerlos
+> **COMPLETADO en R56** — Todos los archivos listados aquí fueron migrados a Cols constants.
 
-| Archivo | Cols necesarios | Accesos hardcoded estimados |
+### Archivos migrados en R56 (previamente sin Cols imports)
+
+| Archivo | Cols añadidos | Accesos migrados |
 |---|---|---|
-| `App/Kamples/Services/StripeService.php` | UsuariosExtCols | ~4 (`stripe_customer_id`, `email`, `nombre_visible`, `username`) |
-| `App/Kamples/Services/ServicioBan.php` | UsuariosExtCols | ~3 (`violaciones_moderacion`, `baneado_hasta`, `ban_razon`) |
-| `App/Kamples/Services/GeneradorEmbeddings.php` | SamplesCols, LikesCols, DescargasCols, ReproduccionesCols | ~5+ |
-| `App/Kamples/Services/PlanificadorAlgoritmo.php` | AlgoritmoEstadoCols | Usa `SELECT *`, acceso implícito |
-| `App/Kamples/Services/DeduplicadorAudio.php` | SamplesCols | ~3 |
-| `App/Kamples/Services/ServicioAntiSpam.php` | ComentariosCols | ~2 |
-| `App/Kamples/Api/Controladores/ExperimentosController.php` | UsuariosExtCols, NotificacionesCols, ConversacionesCols, MensajesCols | ~5 |
+| `StripeService.php` | UsuariosExtCols | 5 (`stripe_connect_id` x2, `stripe_customer_id`, `email`, `nombre_visible`, `username`) |
+| `ServicioBan.php` | UsuariosExtCols | 4 (`violaciones_moderacion`, `baneado_hasta` x2, `ban_razon`) |
+| `GeneradorEmbeddings.php` | SamplesCols | 8 (`bpm` x2, `key`, `escala`, `tipo`, `duracion` x2, `es_premium`, `tags`, `id`) |
+| `PlanificadorAlgoritmo.php` | AlgoritmoEstadoCols | 2 (`usuario_id` x2). Patrón dinámico `$estado[$columna.$sufijo]` preservado. |
+| `DeduplicadorAudio.php` | SamplesCols | 7 (`ruta_original` x2, `duracion`, `creador_id` x2, `titulo` x2, `id`) |
+| `ServicioAntiSpam.php` | ComentariosCols | 1 (`id`) |
+| `ExperimentosController.php` | UsuariosExtCols, SamplesCols, ConversacionesCols | 5 (`id` x4, `id` conv x2) |
 
-### Prioridad MEDIA - Archivos CON Cols pero con residuos hardcoded
+### Residuos corregidos en R56 (archivos que ya tenían algunas imports)
 
-| Archivo | Residuos |
-|---|---|
-| `ComentariosController.php` (L724-751) | ~15 accesos hardcoded en función de formateo, pese a tener ComentariosCols importado |
-| `MensajesController.php` (L89-100) | ~6 accesos hardcoded a colums de conversaciones/usuarios |
-| `ColeccionesController.php` (L502) | `$r['sample_id']` |
-| `SamplesController.php` (L962) | `$r['sample_id']`, `$row['primaria']`, `$row['secundaria']`, `$row['total']` |
-| `DescargasController.php` (L499) | `$coleccion['updated_at']` |
-| `SocialController.php` (L79) | `$row['id']` |
+| Archivo | Cols añadidos | Accesos migrados |
+|---|---|---|
+| `ComentariosController.php` | ComentariosCols, LikesCols | 18 en `normalizarComentarios()` |
+| `MensajesController.php` | ConversacionesCols, MensajesCols | 8 en `listarConversaciones()` |
+| `ColeccionesController.php` | ColeccionSamplesCols | 1 (`sample_id`) |
+| `DescargasController.php` | — (ya tenía ColeccionesCols) | 1 (`updated_at`) |
 
-### Prioridad BAJA - Observaciones
+### SQL aliases preservados como strings (no requieren Cols)
 
-- **`SELECT *` en varios lugares** — PlanificadorAlgoritmo, algunos helpers usan `SELECT *` que hace imposible rastrear qué columnas se acceden. Considerar migrar a `SELECT` explícito con Cols.
-- **2 schemas sin uso activo** — `suscripciones` y `reportes_duplicados` tienen schemas pero no se referencian en queries SQL activas. Pueden ser para uso futuro.
-- **Accesos a datos WP** — `$datos['display_name']` en PerfilController viene de WordPress, no de PostgreSQL. No requiere Cols.
-- **Accesos a retornos internos** — `$resultado['error']`, `$resultado['url']` (Stripe), `$resultado['rapido']` (Embeddings) son retornos de funciones, no columnas. No requieren Cols.
+- `otro_id` (alias en MensajesController), `total` (COUNT), `seg_inactivo`, `seg_desde_rapido`, `seg_desde_preciso` (EXTRACT), `peso` (literal en subquery), `primaria`, `secundaria` (CASE), `reaccion_usuario`.
+
+### Prioridad BAJA - Observaciones (sin cambios)
+
+- **`SELECT *`** — PlanificadorAlgoritmo usa `SELECT *`. Considerar migrar a SELECT explícito.
+- **2 schemas sin uso activo** — `suscripciones` y `reportes_duplicados`.
+- **Accesos WP** — `display_name` etc. no requieren Cols.
+- **Retornos internos** — `$resultado['error']`, `$resultado['url']` etc. no son columnas DB.
 
 ---
 
@@ -68,3 +72,6 @@
 - [CTEs/SQL]: El regex de extracción de tablas necesita excluir nombres definidos como CTEs (`WITH nombre AS`). 
 - [Schema completud]: Validar que TODAS las columnas usadas en queries SQL estén documentadas en el Schema correspondiente. Una columna que existe en la BD pero no en el Schema rompe el contrato de "fuente única de verdad".
 - [Generación]: Después de modificar cualquier Schema, ejecutar `npx glory schema:generate` para regenerar constantes.
+- [SQL aliases]: Columnas aliasadas (CASE WHEN, EXTRACT, COUNT, AS) no se migran a Cols. Son resultados calculados, no columnas de tabla. Preservar como strings.
+- [Patrones dinámicos]: Código que construye keys en runtime (`$estado[$columna . $sufijo]`) no se puede migrar a Cols. Dejar documentado como excepción consciente.
+- [JOINs mixtos]: Cuando una query hace JOIN de varias tablas, las columnas del resultado mezclan schemas. Usar el Cols de cada tabla según la columna (ej: `$fila[ComentariosCols::ID]` + `$fila[UsuariosExtCols::USERNAME]`).

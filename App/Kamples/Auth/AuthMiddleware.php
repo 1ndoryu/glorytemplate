@@ -8,6 +8,8 @@
 
 namespace App\Kamples\Auth;
 
+use App\Config\Schema\_generated\UsuariosExtCols;
+
 class AuthMiddleware
 {
     /**
@@ -38,7 +40,7 @@ class AuthMiddleware
         $usuario = \App\Kamples\Api\Helpers\UsuarioHelper::obtenerPorWpId(get_current_user_id());
         if (!$usuario) return false;
 
-        $rol = $usuario['rol'] ?? 'usuario';
+        $rol = $usuario[UsuariosExtCols::ROL] ?? 'usuario';
         return in_array($rol, ['creador', 'admin'], true);
     }
 
@@ -55,7 +57,7 @@ class AuthMiddleware
         $usuario = \App\Kamples\Api\Helpers\UsuarioHelper::obtenerPorWpId(get_current_user_id());
         if (!$usuario) return false;
 
-        $plan = $usuario['plan'] ?? 'free';
+        $plan = $usuario[UsuariosExtCols::PLAN] ?? 'free';
         return in_array($plan, ['pro', 'premium'], true);
     }
 

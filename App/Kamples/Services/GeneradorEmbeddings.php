@@ -26,6 +26,7 @@ namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Config\Schema\_generated\SamplesCols;
 
 class GeneradorEmbeddings
 {
@@ -68,17 +69,17 @@ class GeneradorEmbeddings
         $vector = array_fill(0, self::DIMENSION, 0.0);
 
         /* [0] BPM normalizado entre 0 y 1 */
-        $bpm = isset($sample['bpm']) ? (int) $sample['bpm'] : 0;
+        $bpm = isset($sample[SamplesCols::BPM]) ? (int) $sample[SamplesCols::BPM] : 0;
         $vector[0] = $bpm > 0 ? min(1.0, $bpm / self::BPM_MAX) : 0.0;
 
         /* [1-12] Key musical one-hot */
-        $key = strtoupper(trim($sample['key'] ?? ''));
+        $key = strtoupper(trim($sample[SamplesCols::KEY] ?? ''));
         if (isset(self::KEYS[$key])) {
             $vector[1 + self::KEYS[$key]] = 1.0;
         }
 
         /* [13-14] Escala: [major, minor] */
-        $escala = strtolower(trim($sample['escala'] ?? ''));
+        $escala = strtolower(trim($sample[SamplesCols::ESCALA] ?? ''));
         if ($escala === 'major' || $escala === 'mayor') {
             $vector[13] = 1.0;
         } elseif ($escala === 'minor' || $escala === 'menor') {
@@ -90,21 +91,21 @@ class GeneradorEmbeddings
         }
 
         /* [15-19] Tipo de sample one-hot */
-        $tipo = strtolower(trim($sample['tipo'] ?? 'loop'));
+        $tipo = strtolower(trim($sample[SamplesCols::TIPO] ?? 'loop'));
         $tipoIdx = self::TIPOS[$tipo] ?? 0;
         $vector[15 + $tipoIdx] = 1.0;
 
         /* [20] Duración normalizada (escala logarítmica) */
-        $duracion = isset($sample['duracion']) ? (float) $sample['duracion'] : 0;
+        $duracion = isset($sample[SamplesCols::DURACION]) ? (float) $sample[SamplesCols::DURACION] : 0;
         if ($duracion > 0) {
             $vector[20] = min(1.0, log(1 + $duracion) / log(1 + self::DURACION_MAX));
         }
 
         /* [21] Es premium */
-        $vector[21] = !empty($sample['es_premium']) ? 1.0 : 0.0;
+        $vector[21] = !empty($sample[SamplesCols::ES_PREMIUM]) ? 1.0 : 0.0;
 
         /* [22-127] Tags hasheados a posiciones fijas con pesos */
-        $tags = $sample['tags'] ?? [];
+        $tags = $sample[SamplesCols::TAGS] ?? [];
         if (is_string($tags)) {
             $tags = NormalizadorSample::pgArrayToPhp($tags);
         }
@@ -184,7 +185,7 @@ class GeneradorEmbeddings
             $vectorStr = self::generarString($sample);
             PostgresService::ejecutar(
                 "UPDATE samples SET embedding = :embedding::vector WHERE id = :id",
-                ['embedding' => $vectorStr, 'id' => (int) $sample['id']]
+                ['embedding' => $vectorStr, 'id' => (int) $sample[SamplesCols::ID]]
             );
             $actualizados++;
         }
@@ -229,7 +230,7 @@ class GeneradorEmbeddings
         $pesoTotal = 0.0;
 
         foreach ($rows as $row) {
-            $embStr = $row['embedding'] ?? '';
+            $embStr = $row[SamplesCols::EMBEDDING] ?? '';
             $peso = (float) ($row['peso'] ?? 1);
             $emb = self::parsearVectorPg($embStr);
             if ($emb === null) continue;
