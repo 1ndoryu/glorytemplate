@@ -1,10 +1,16 @@
 /*
  * Tipos base — Plan / Suscripcion
  * Tipos para planes de pago y transacciones.
+ * Union types derivados del Schema System (CHECK constraints de la DB).
  */
 
-export type NombrePlan = 'free' | 'pro' | 'premium';
-export type EstadoSuscripcion = 'activa' | 'cancelada' | 'vencida' | 'periodo_prueba';
+import type { IUsuariosExt, ISuscripciones, ITransacciones } from './_generated/schema';
+
+/* Derivados del schema — se actualizan automaticamente con npx glory schema:generate */
+export type NombrePlan = IUsuariosExt['plan'];
+export type EstadoSuscripcion = ISuscripciones['estado'];
+export type TipoTransaccion = ITransacciones['tipo'];
+export type EstadoTransaccion = ITransacciones['estado'];
 
 export interface Plan {
     id: NombrePlan;
@@ -38,10 +44,10 @@ export interface Transaccion {
     compradorId: number;
     vendedorId: number | null;
     sampleId: number | null;
-    tipo: 'suscripcion' | 'compra_sample' | 'payout';
+    tipo: TipoTransaccion;
     monto: number;
     moneda: string;
-    estado: 'completada' | 'pendiente' | 'fallida' | 'reembolsada';
+    estado: EstadoTransaccion;
     stripePaymentId: string;
     creadoAt: string;
 }

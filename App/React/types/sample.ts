@@ -1,10 +1,14 @@
 /*
  * Tipos base — Sample
  * Representa un sample de audio en la plataforma.
+ * Union types derivados del Schema System (CHECK constraints de la DB).
  */
 
-export type EstadoSample = 'procesando' | 'activo' | 'inactivo' | 'eliminado';
-export type TipoSample = 'loop' | 'oneshot' | 'fx' | 'vocal' | 'stem' | 'otro';
+import type { ISamples, ILikes } from './_generated/schema';
+
+/* Derivados del schema — se actualizan automaticamente con npx glory schema:generate */
+export type EstadoSample = ISamples['estado'];
+export type TipoSample = ISamples['tipo'];
 export type NotaMusical = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#' | 'A' | 'A#' | 'B';
 export type EscalaMusical = 'mayor' | 'menor';
 
@@ -86,8 +90,8 @@ export interface Sample {
     mostrarEnComunidad?: boolean;
 }
 
-/* Tipos de reaccion posibles */
-export type TipoReaccion = 'like' | 'dislike' | 'encanta';
+/* Tipos de reaccion — derivado del schema (CHECK en tabla likes) */
+export type TipoReaccion = ILikes['reaccion'];
 
 /* Version resumida para listas y tarjetas */
 export interface SampleResumen {

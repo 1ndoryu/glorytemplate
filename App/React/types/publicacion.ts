@@ -1,12 +1,15 @@
 /*
  * Tipos base — Publicacion
  * Representa una publicacion social del feed.
+ * Union types derivados del Schema System (CHECK constraints de la DB).
  */
 
 import type { UsuarioResumen } from './usuario';
 import type { SampleResumen, TipoReaccion } from './sample';
+import type { IPublicaciones } from './_generated/schema';
 
-export type TipoPublicacion = 'social' | 'sample';
+/* Derivado del schema — se actualiza automaticamente con npx glory schema:generate */
+export type TipoPublicacion = IPublicaciones['tipo'];
 
 export interface Publicacion {
     id: number;

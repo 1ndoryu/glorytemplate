@@ -4,11 +4,11 @@
  * Solo visible para el autor del contenido o admin.
  */
 
-import { Clock, CheckCircle, AlertTriangle, XCircle, Loader } from 'lucide-react';
+import { Clock, CheckCircle, AlertTriangle, XCircle, Loader, ShieldAlert } from 'lucide-react';
+import type { EstadoSample } from '../../types';
 import '../../styles/componentes/badgeModeracion.css';
 
 type EstadoModeracion = 'pendiente' | 'aprobado' | 'revision' | 'rechazado';
-type EstadoSample = 'procesando' | 'activo' | 'inactivo' | 'eliminado';
 
 interface BadgeModeracionProps {
     /* Para publicaciones */
@@ -29,6 +29,7 @@ const configModeracion: Record<EstadoModeracion, { icono: typeof Clock; titulo: 
 const configSample: Record<string, { icono: typeof Clock; titulo: string; clase: string }> = {
     procesando: { icono: Loader, titulo: 'Procesando audio', clase: 'moderacionProcesando' },
     inactivo: { icono: AlertTriangle, titulo: 'Sample inactivo', clase: 'moderacionRevision' },
+    en_supervision: { icono: ShieldAlert, titulo: 'En supervisi\u00f3n', clase: 'moderacionRevision' },
 };
 
 export const BadgeModeracion = ({

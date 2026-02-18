@@ -2,10 +2,14 @@
  * Tipos base — Usuario
  * Representa el perfil extendido de un usuario en Kamples.
  * Incluye ubicacion y sitioWeb opcionales (C119).
+ * Union types derivados del Schema System (CHECK constraints de la DB).
  */
 
-export type TipoPlan = 'free' | 'pro' | 'premium';
-export type RolUsuario = 'usuario' | 'creador' | 'admin';
+import type { IUsuariosExt } from './_generated/schema';
+
+/* Derivados del schema — se actualizan automaticamente con npx glory schema:generate */
+export type TipoPlan = IUsuariosExt['plan'];
+export type RolUsuario = IUsuariosExt['rol'];
 
 export interface Usuario {
     id: number;

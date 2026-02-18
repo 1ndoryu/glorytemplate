@@ -49,9 +49,54 @@ export type {
     Transaccion,
     NombrePlan,
     EstadoSuscripcion,
+    TipoTransaccion,
+    EstadoTransaccion,
 } from './plan';
 
 export type {
     Coleccion,
     ColeccionResumen,
 } from './coleccion';
+
+/* Schema generado — interfaces DB crudas y constantes de columna */
+export type {
+    IAlgoritmoEstado,
+    IColecciones,
+    IColeccionSamples,
+    IComentarios,
+    IConversaciones,
+    IDescargas,
+    IFollows,
+    ILikes,
+    IMensajes,
+    INotificaciones,
+    IPublicaciones,
+    IReportesDuplicados,
+    IReportes,
+    IReproducciones,
+    ISamples,
+    ISuscripciones,
+    ITransacciones,
+    IUsuariosExt,
+} from './_generated/schema';
+
+export {
+    SamplesCols,
+    UsuariosExtCols,
+    ColeccionesCols,
+    ColeccionSamplesCols,
+    ComentariosCols,
+    ConversacionesCols,
+    DescargasCols,
+    FollowsCols,
+    LikesCols,
+    MensajesCols,
+    NotificacionesCols,
+    PublicacionesCols,
+    ReportesDuplicadosCols,
+    ReportesCols,
+    ReproduccionesCols,
+    SuscripcionesCols,
+    TransaccionesCols,
+    AlgoritmoEstadoCols,
+} from './_generated/schema';
