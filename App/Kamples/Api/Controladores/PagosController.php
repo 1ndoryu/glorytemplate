@@ -13,13 +13,13 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\StripeService;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class PagosController
 {
@@ -216,10 +216,7 @@ class PagosController
             return;
         }
 
-        $affected = PostgresService::ejecutar(
-            "UPDATE usuarios_ext SET plan = :plan, stripe_subscription_id = :subId WHERE id = :id",
-            ['plan' => $plan, 'subId' => $subscriptionId, 'id' => $userId]
-        );
+        $affected = UsuariosExtRepository::actualizarPlanYSuscripcion($userId, $plan, $subscriptionId);
 
         /* O07: Verificar que el UPDATE afectó al menos 1 fila */
         if ($affected === 0) {
@@ -249,10 +246,7 @@ class PagosController
 
         if (empty($customerId)) return;
 
-        $usuario = PostgresService::consultarUno(
-            "SELECT id FROM usuarios_ext WHERE stripe_customer_id = :cid",
-            ['cid' => $customerId]
-        );
+        $usuario = UsuariosExtRepository::buscarPorStripeCustomerId($customerId);
 
         if (!$usuario) {
             KamplesLogger::warning('Webhook subscription.updated: customer no encontrado', ['customerId' => $customerId]);
@@ -274,16 +268,9 @@ class PagosController
             }
             if ($planStripe) {
                 /* C266: Leer plan anterior ANTES de actualizar para comparar */
-                $planAnterior = PostgresService::consultarUno(
-                    "SELECT plan FROM usuarios_ext WHERE id = :id",
-                    ['id' => $usuario[UsuariosExtCols::ID]]
-                );
-                $planViejo = $planAnterior[UsuariosExtCols::PLAN] ?? 'free';
+                $planViejo = $usuario[UsuariosExtCols::PLAN] ?? 'free';
 
-                PostgresService::ejecutar(
-                    "UPDATE usuarios_ext SET plan = :plan WHERE id = :id",
-                    ['plan' => $planStripe, 'id' => $usuario[UsuariosExtCols::ID]]
-                );
+                UsuariosExtRepository::actualizarPlanYSuscripcion((int) $usuario[UsuariosExtCols::ID], $planStripe);
                 KamplesLogger::info('Plan actualizado vía webhook', ['userId' => $usuario[UsuariosExtCols::ID], 'plan' => $planStripe]);
 
                 /* C266: Notificar cambio de plan si es diferente */
@@ -294,10 +281,7 @@ class PagosController
                 KamplesLogger::info('Suscripción activa/trial (plan no extraído)', ['userId' => $usuario[UsuariosExtCols::ID], 'estado' => $estado]);
             }
         } else {
-            PostgresService::ejecutar(
-                "UPDATE usuarios_ext SET plan = 'free' WHERE id = :id",
-                ['id' => $usuario[UsuariosExtCols::ID]]
-            );
+            UsuariosExtRepository::actualizarPlanYSuscripcion((int) $usuario[UsuariosExtCols::ID], 'free');
             KamplesLogger::info('Suscripción degradada a free', ['userId' => $usuario[UsuariosExtCols::ID], 'estado' => $estado]);
         }
     }
@@ -308,17 +292,11 @@ class PagosController
 
         if (empty($customerId)) return;
 
-        $usuario = PostgresService::consultarUno(
-            "SELECT id FROM usuarios_ext WHERE stripe_customer_id = :cid",
-            ['cid' => $customerId]
-        );
+        $usuario = UsuariosExtRepository::buscarPorStripeCustomerId($customerId);
 
         if (!$usuario) return;
 
-        PostgresService::ejecutar(
-            "UPDATE usuarios_ext SET plan = 'free', stripe_subscription_id = NULL WHERE id = :id",
-            ['id' => $usuario[UsuariosExtCols::ID]]
-        );
+        UsuariosExtRepository::cancelarSuscripcion((int) $usuario[UsuariosExtCols::ID]);
 
         KamplesLogger::info('Suscripción cancelada → plan free', ['userId' => $usuario[UsuariosExtCols::ID]]);
     }
@@ -333,10 +311,7 @@ class PagosController
 
         if (empty($connectId)) return;
 
-        $usuario = PostgresService::consultarUno(
-            "SELECT id FROM usuarios_ext WHERE stripe_connect_id = :cid",
-            ['cid' => $connectId]
-        );
+        $usuario = UsuariosExtRepository::buscarPorStripeConnectId($connectId);
 
         if (!$usuario) {
             KamplesLogger::warning('Webhook account.updated: connect_id no encontrado', ['connectId' => $connectId]);

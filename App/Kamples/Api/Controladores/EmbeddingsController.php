@@ -14,6 +14,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\GeneradorEmbeddings;
 use App\Kamples\Services\PlanificadorAlgoritmo;
+use App\Kamples\Database\Repositories\SamplesRepository;
 
 class EmbeddingsController
 {
@@ -89,9 +90,7 @@ class EmbeddingsController
         $inicio = microtime(true);
 
         /* Borrar todos los embeddings existentes */
-        \App\Kamples\Database\PostgresService::ejecutar(
-            "UPDATE samples SET embedding = NULL WHERE embedding IS NOT NULL"
-        );
+        SamplesRepository::limpiarEmbeddings();
 
         /* Regenerar todos */
         $actualizados = GeneradorEmbeddings::generarTodos();
@@ -110,17 +109,7 @@ class EmbeddingsController
      */
     public static function estado(\WP_REST_Request $req): \WP_REST_Response
     {
-        $stats = \App\Kamples\Database\PostgresService::consultarUno(
-            "SELECT
-                COUNT(*) as total_samples,
-                COUNT(embedding) as con_embedding,
-                COUNT(*) - COUNT(embedding) as sin_embedding,
-                CASE WHEN COUNT(*) > 0
-                    THEN ROUND(COUNT(embedding)::numeric / COUNT(*)::numeric * 100, 1)
-                    ELSE 0
-                END as porcentaje
-             FROM samples WHERE estado = 'activo'"
-        );
+        $stats = SamplesRepository::estadisticasEmbeddings();
 
         return new \WP_REST_Response([
             'ok' => true,

@@ -314,4 +314,43 @@ class ColeccionesRepository extends BaseRepository
             ['id' => $id]
         );
     }
+
+    /*
+     * Verificar si una colección es pública.
+     */
+    public static function esPublica(int $id): bool
+    {
+        $t = ColeccionesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT 1 FROM {$t} WHERE " . ColeccionesCols::ID . " = :id AND " . ColeccionesCols::PUBLICA . " = true",
+            ['id' => $id]
+        );
+
+        return $row !== null;
+    }
+
+    /*
+     * Obtener samples de una colección con datos para ZIP.
+     */
+    public static function samplesDeColeccion(int $coleccionId): array
+    {
+        $ts = SamplesCols::TABLA;
+        $tcs = ColeccionSamplesCols::TABLA;
+
+        return static::consultar(
+            "SELECT s." . SamplesCols::ID
+            . ", s." . SamplesCols::TITULO
+            . ", s." . SamplesCols::RUTA_ORIGINAL
+            . ", s." . SamplesCols::RUTA_OPTIMIZADA
+            . ", s." . SamplesCols::ES_PREMIUM
+            . ", s." . SamplesCols::CREADOR_ID
+            . " FROM {$ts} s"
+            . " INNER JOIN {$tcs} cs ON cs." . ColeccionSamplesCols::SAMPLE_ID . " = s." . SamplesCols::ID
+            . " WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = :coleccionId"
+            . " AND s." . SamplesCols::ESTADO . " = 'activo'"
+            . " ORDER BY cs." . ColeccionSamplesCols::CREATED_AT . " ASC",
+            ['coleccionId' => $coleccionId]
+        );
+    }
 }

@@ -15,10 +15,12 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Kamples\LogModeracion as KamplesLogger;
+use App\Config\Schema\_generated\ComentariosCols;
+use App\Kamples\Database\Repositories\ComentariosRepository;
+use App\Kamples\Database\Repositories\LikesRepository;
 
 class ComentariosInteraccionController
 {
@@ -30,39 +32,18 @@ class ComentariosInteraccionController
 
         $id = (int) $request->get_param('id');
 
-        $existe = PostgresService::consultarUno("SELECT id FROM comentarios WHERE id = :id", ['id' => $id]);
+        $existe = ComentariosRepository::existe([ComentariosCols::ID => $id]);
         if (!$existe) return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
 
-        PostgresService::ejecutar(
-            "INSERT INTO likes (usuario_id, tipo, target_id)
-             VALUES (:userId, 'comentario', :targetId)
-             ON CONFLICT (usuario_id, tipo, target_id) DO NOTHING",
-            ['userId' => $userId, 'targetId' => $id]
-        );
+        LikesRepository::darLikeComentario($userId, $id);
 
-        $total = PostgresService::consultarUno(
-            "SELECT COUNT(*) as total FROM likes WHERE tipo = 'comentario' AND target_id = :id",
-            ['id' => $id]
-        );
-        $totalLikes = (int) ($total['total'] ?? 0);
-
-        PostgresService::ejecutar(
-            "UPDATE comentarios SET total_likes = :total WHERE id = :id",
-            ['total' => $totalLikes, 'id' => $id]
-        );
+        $totalLikes = LikesRepository::recalcularTotalComentario($id);
 
         /* C266: Notificacion de like en comentario */
-        $comentario = PostgresService::consultarUno(
-            "SELECT autor_id FROM comentarios WHERE id = :id",
-            ['id' => $id]
-        );
+        $autorId = ComentariosRepository::buscarAutorId($id);
         /* O17 fix: no autonotificar likes propios */
-        if ($comentario && (int) $comentario['autor_id'] !== $userId) {
-            ServicioNotificaciones::likeComentario(
-                (int) $comentario['autor_id'],
-                $userId,
-                $id
-            );
+        if ($autorId && $autorId !== $userId) {
+            ServicioNotificaciones::likeComentario($autorId, $userId, $id);
         }
 
         return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => true]], 200);
@@ -77,24 +58,12 @@ class ComentariosInteraccionController
         $id = (int) $request->get_param('id');
 
         /* S42 fix: verificar que el comentario existe antes de operar */
-        $existe = PostgresService::consultarUno("SELECT id FROM comentarios WHERE id = :id", ['id' => $id]);
+        $existe = ComentariosRepository::existe([ComentariosCols::ID => $id]);
         if (!$existe) return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
 
-        PostgresService::ejecutar(
-            "DELETE FROM likes WHERE usuario_id = :userId AND tipo = 'comentario' AND target_id = :targetId",
-            ['userId' => $userId, 'targetId' => $id]
-        );
+        LikesRepository::quitarLikeComentario($userId, $id);
 
-        $total = PostgresService::consultarUno(
-            "SELECT COUNT(*) as total FROM likes WHERE tipo = 'comentario' AND target_id = :id",
-            ['id' => $id]
-        );
-        $totalLikes = (int) ($total['total'] ?? 0);
-
-        PostgresService::ejecutar(
-            "UPDATE comentarios SET total_likes = :total WHERE id = :id",
-            ['total' => $totalLikes, 'id' => $id]
-        );
+        $totalLikes = LikesRepository::recalcularTotalComentario($id);
 
         return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => false]], 200);
     }

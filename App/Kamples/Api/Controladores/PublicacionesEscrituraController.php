@@ -14,7 +14,6 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
@@ -24,6 +23,8 @@ use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Config\Schema\_generated\PublicacionesCols;
+use App\Kamples\Database\Repositories\PublicacionesRepository;
+use App\Kamples\Database\Repositories\ComentariosRepository;
 
 class PublicacionesEscrituraController
 {
@@ -61,11 +62,7 @@ class PublicacionesEscrituraController
             ? '{' . \implode(',', \array_map('intval', $adjuntosRaw)) . '}'
             : '{}';
 
-        $id = PostgresService::insertar(
-            "INSERT INTO publicaciones (autor_id, contenido, imagenes, samples_adjuntos)
-             VALUES (:autor, :contenido, :imagenes, :samples) RETURNING id",
-            ['autor' => $userId, 'contenido' => $contenido, 'imagenes' => $imagenes, 'samples' => $samplesAdjuntos]
-        );
+        $id = PublicacionesRepository::crearPublicacion($userId, $contenido, $imagenes, $samplesAdjuntos);
 
         /* Análisis async de imágenes con IA + moderación (no bloquea la respuesta) */
         $urlsImagenes = $body['imagenes'] ?? [];
@@ -91,10 +88,7 @@ class PublicacionesEscrituraController
                             'publicacionId' => $pubId,
                             'nivelOriginal' => $resultado['nivel'] ?? 'desconocido',
                         ], 'moderacion');
-                        PostgresService::ejecutar(
-                            "UPDATE publicaciones SET moderacion_estado = 'aprobado', moderacion_razon = 'admin_auto' WHERE id = :id",
-                            ['id' => $pubId]
-                        );
+                        PublicacionesRepository::forzarModeracion($pubId, 'aprobado', 'admin_auto');
                     }
                 } catch (\Throwable $e) {
                     KamplesLogger::error('Error en moderación de publicación', [
@@ -102,10 +96,7 @@ class PublicacionesEscrituraController
                         'error' => $e->getMessage(),
                     ], 'moderacion');
                     if ($adminFlag) {
-                        PostgresService::ejecutar(
-                            "UPDATE publicaciones SET moderacion_estado = 'aprobado' WHERE id = :id",
-                            ['id' => $pubId]
-                        );
+                        PublicacionesRepository::forzarModeracion($pubId, 'aprobado');
                     }
                 }
 
@@ -115,10 +106,7 @@ class PublicacionesEscrituraController
                         $metadata = ServicioImagenIA::analizarMultiples($imgsMod);
                         $metadataLimpia = \array_filter($metadata, fn($m) => $m !== null);
                         if (!empty($metadataLimpia)) {
-                            PostgresService::ejecutar(
-                                "UPDATE publicaciones SET imagenes_metadata = :meta WHERE id = :id",
-                                ['meta' => \json_encode($metadataLimpia), 'id' => $pubId]
-                            );
+                            PublicacionesRepository::guardarImagenesMetadata($pubId, \json_encode($metadataLimpia));
                             KamplesLogger::info('Imágenes analizadas para publicación', [
                                 'publicacionId' => $pubId,
                                 'totalImagenes' => \count($imgsMod),
@@ -150,10 +138,7 @@ class PublicacionesEscrituraController
         $id = (int) $request->get_param('id');
         $esAdmin = UsuarioHelper::esAdmin();
 
-        $pub = PostgresService::consultarUno(
-            "SELECT id, autor_id FROM publicaciones WHERE id = :id",
-            ['id' => $id]
-        );
+        $pub = PublicacionesRepository::buscarParaEdicion($id);
 
         if (!$pub) {
             return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
@@ -165,7 +150,7 @@ class PublicacionesEscrituraController
 
         $body = $request->get_json_params();
         $campos = [];
-        $params = ['id' => $id];
+        $params = [];
 
         if (isset($body['contenido'])) {
             $contenido = sanitize_textarea_field($body['contenido']);
@@ -204,10 +189,7 @@ class PublicacionesEscrituraController
             return new \WP_REST_Response(['code' => 'sin_cambios', 'message' => 'No se recibieron campos para actualizar'], 400);
         }
 
-        PostgresService::ejecutar(
-            "UPDATE publicaciones SET " . \implode(', ', $campos) . ", updated_at = NOW() WHERE id = :id",
-            $params
-        );
+        PublicacionesRepository::actualizarCampos($id, $campos, $params);
 
         KamplesLogger::info('Publicación actualizada', [
             'publicacionId' => $id,
@@ -229,10 +211,7 @@ class PublicacionesEscrituraController
         $id = (int) $request->get_param('id');
         $esAdmin = UsuarioHelper::esAdmin();
 
-        $pub = PostgresService::consultarUno(
-            "SELECT id, autor_id FROM publicaciones WHERE id = :id",
-            ['id' => $id]
-        );
+        $pub = PublicacionesRepository::buscarParaEdicion($id);
 
         if (!$pub) {
             return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
@@ -248,9 +227,7 @@ class PublicacionesEscrituraController
             ServicioNotificaciones::publicacionEliminada($autorId, $id, 'Eliminada por un administrador');
         }
 
-        PostgresService::ejecutar("DELETE FROM likes WHERE tipo = 'publicacion' AND target_id = :id", ['id' => $id]);
-        PostgresService::ejecutar("DELETE FROM comentarios WHERE tipo = 'publicacion' AND target_id = :id", ['id' => $id]);
-        PostgresService::ejecutar("DELETE FROM publicaciones WHERE id = :id", ['id' => $id]);
+        PublicacionesRepository::eliminarConCascada($id);
 
         KamplesLogger::info('Publicación eliminada', ['publicacionId' => $id]);
 
@@ -276,15 +253,18 @@ class PublicacionesEscrituraController
         $limitResp = RateLimiter::verificarUsuario($userId, 'comentar', 10, 60);
         if ($limitResp) return $limitResp;
 
-        $id = PostgresService::insertar(
-            "INSERT INTO comentarios (autor_id, tipo, target_id, contenido) VALUES (:autor, 'publicacion', :target, :contenido) RETURNING id",
-            ['autor' => $userId, 'target' => $pubId, 'contenido' => $contenido]
-        );
+        $id = ComentariosRepository::insertarComentario([
+            'autor' => $userId,
+            'tipo' => 'publicacion',
+            'target' => $pubId,
+            'contenido' => $contenido,
+            'tipoContenido' => 'texto',
+            'mediaUrl' => null,
+            'mediaMetadata' => null,
+            'parentId' => null,
+        ]);
 
-        PostgresService::ejecutar(
-            "UPDATE publicaciones SET total_comentarios = (SELECT COUNT(*) FROM comentarios WHERE tipo = 'publicacion' AND target_id = :id) WHERE id = :id",
-            ['id' => $pubId]
-        );
+        PublicacionesRepository::recalcularComentarios($pubId);
 
         PlanificadorAlgoritmo::registrarInteraccion($userId, 'comentario');
 
@@ -298,10 +278,7 @@ class PublicacionesEscrituraController
 
         $pubId = (int) $request->get_param('id');
 
-        $id = PostgresService::insertar(
-            "INSERT INTO publicaciones (autor_id, contenido, repost_id) VALUES (:autor, '', :repostId) RETURNING id",
-            ['autor' => $userId, 'repostId' => $pubId]
-        );
+        $id = PublicacionesRepository::crearRepost($userId, $pubId);
 
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
     }

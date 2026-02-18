@@ -16,10 +16,12 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\LikesRepository;
+use App\Kamples\Database\Repositories\DescargasRepository;
 
 class BibliotecaSamplesController
 {
@@ -76,23 +78,11 @@ class BibliotecaSamplesController
         $perPage = (int) $request->get_param('per_page');
         $offset  = ($page - 1) * $perPage;
 
-        $sql = NormalizadorSample::sqlSelectSamples($userId)
-            . " JOIN likes l ON l.target_id = s.id AND l.tipo = 'sample' AND l.usuario_id = :favUser"
-            . " WHERE s.estado = 'activo'"
-            . " ORDER BY l.created_at DESC LIMIT :limit OFFSET :offset";
-
-        $rows = PostgresService::consultar($sql, [
-            'favUser' => $userId,
-            'limit'   => $perPage,
-            'offset'  => $offset,
-        ]);
+        $rows = SamplesRepository::favoritosDeUsuario($userId, $perPage, $offset);
 
         $samples = NormalizadorSample::normalizarLista($rows);
 
-        $total = PostgresService::consultarUno(
-            "SELECT COUNT(*) as total FROM likes l JOIN samples s ON l.target_id = s.id WHERE l.tipo = 'sample' AND l.usuario_id = :uid AND s.estado = 'activo'",
-            ['uid' => $userId]
-        );
+        $total = LikesRepository::contarFavoritosSamples($userId);
 
         return new \WP_REST_Response([
             'data' => [
@@ -119,23 +109,11 @@ class BibliotecaSamplesController
         $perPage = (int) $request->get_param('per_page');
         $offset  = ($page - 1) * $perPage;
 
-        $sql = NormalizadorSample::sqlSelectSamples($userId)
-            . " JOIN descargas d ON d.sample_id = s.id AND d.usuario_id = :dlUser"
-            . " WHERE s.estado = 'activo'"
-            . " ORDER BY d.created_at DESC LIMIT :limit OFFSET :offset";
-
-        $rows = PostgresService::consultar($sql, [
-            'dlUser' => $userId,
-            'limit'  => $perPage,
-            'offset' => $offset,
-        ]);
+        $rows = SamplesRepository::descargadosDeUsuario($userId, $perPage, $offset);
 
         $samples = NormalizadorSample::normalizarLista($rows);
 
-        $total = PostgresService::consultarUno(
-            "SELECT COUNT(*) as total FROM descargas d JOIN samples s ON d.sample_id = s.id WHERE d.usuario_id = :uid AND s.estado = 'activo'",
-            ['uid' => $userId]
-        );
+        $total = DescargasRepository::contarSamplesDescargados($userId);
 
         return new \WP_REST_Response([
             'data' => [
@@ -143,8 +121,8 @@ class BibliotecaSamplesController
                 'pagination' => [
                     'page'     => $page,
                     'per_page' => $perPage,
-                    'total'    => (int) ($total['total'] ?? 0),
-                    'pages'    => \max(1, (int) \ceil(($total['total'] ?? 0) / $perPage)),
+                    'total'    => $total,
+                    'pages'    => \max(1, (int) \ceil($total / $perPage)),
                 ],
             ],
         ], 200);
@@ -164,35 +142,10 @@ class BibliotecaSamplesController
         $offset  = ($page - 1) * $perPage;
         $carpeta = \trim((string) $request->get_param('carpeta'));
 
-        $carpetaClause = '';
-        $params = ['uid' => $userId, 'uid2' => $userId, 'limit' => $perPage, 'offset' => $offset];
-        if ($carpeta !== '') {
-            $carpetaClause = " AND s.metadata->>'carpeta_primaria' = :carpeta";
-            $params['carpeta'] = $carpeta;
-        }
-
-        $sql = NormalizadorSample::sqlSelectSamples($userId)
-             . " LEFT JOIN descargas d ON d.sample_id = s.id AND d.usuario_id = :uid"
-             . " WHERE s.estado = 'activo'{$carpetaClause}"
-             . " AND (d.id IS NOT NULL OR s.creador_id = :uid2)"
-             . " ORDER BY GREATEST("
-             . "   COALESCE(d.created_at, '1970-01-01'::timestamp),"
-             . "   s.publicado_at"
-             . " ) DESC"
-             . " LIMIT :limit OFFSET :offset";
-
-        $rows = PostgresService::consultar($sql, $params);
+        $rows = SamplesRepository::coleccionadosDeUsuario($userId, $perPage, $offset, $carpeta);
         $samples = NormalizadorSample::normalizarLista($rows);
 
-        $sqlTotal = "SELECT COUNT(DISTINCT s.id) AS total"
-                  . " FROM samples s"
-                  . " LEFT JOIN descargas d ON d.sample_id = s.id AND d.usuario_id = :uid"
-                  . " WHERE s.estado = 'activo'{$carpetaClause}"
-                  . " AND (d.id IS NOT NULL OR s.creador_id = :uid2)";
-
-        $totalParams = ['uid' => $userId, 'uid2' => $userId];
-        if ($carpeta !== '') $totalParams['carpeta'] = $carpeta;
-        $total = PostgresService::consultarUno($sqlTotal, $totalParams);
+        $total = SamplesRepository::contarColeccionados($userId, $carpeta);
 
         return new \WP_REST_Response([
             'data' => [
@@ -200,8 +153,8 @@ class BibliotecaSamplesController
                 'pagination' => [
                     'page'     => $page,
                     'per_page' => $perPage,
-                    'total'    => (int) ($total['total'] ?? 0),
-                    'pages'    => \max(1, (int) \ceil(($total['total'] ?? 0) / $perPage)),
+                    'total'    => $total,
+                    'pages'    => \max(1, (int) \ceil($total / $perPage)),
                 ],
             ],
         ], 200);
@@ -215,22 +168,7 @@ class BibliotecaSamplesController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $sql = "SELECT"
-             . "  COALESCE(s.metadata->>'carpeta_primaria', 'Samples') AS primaria,"
-             . "  s.metadata->>'carpeta_secundaria' AS secundaria,"
-             . "  COUNT(*) AS total"
-             . " FROM ("
-             . "  SELECT s.id, s.metadata FROM samples s"
-             . "  JOIN descargas d ON d.sample_id = s.id AND d.usuario_id = :uid"
-             . "  WHERE s.estado = 'activo'"
-             . "  UNION"
-             . "  SELECT s.id, s.metadata FROM samples s"
-             . "  WHERE s.estado = 'activo' AND s.creador_id = :uid2"
-             . " ) s"
-             . " GROUP BY primaria, secundaria"
-             . " ORDER BY primaria, secundaria";
-
-        $rows = PostgresService::consultar($sql, ['uid' => $userId, 'uid2' => $userId]);
+        $rows = SamplesRepository::carpetasColeccionados($userId);
 
         /* Construir árbol jerárquico */
         $arbol = [];

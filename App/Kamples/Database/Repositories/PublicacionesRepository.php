@@ -149,4 +149,152 @@ class PublicacionesRepository extends BaseRepository
             ['id' => $id]
         );
     }
+
+    /*
+     * Buscar solo el autor_id de una publicación.
+     */
+    public static function buscarAutorId(int $id): ?int
+    {
+        $tabla = PublicacionesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT " . PublicacionesCols::AUTOR_ID . " FROM {$tabla} WHERE " . PublicacionesCols::ID . " = :id",
+            ['id' => $id]
+        );
+
+        return $row ? (int) $row[PublicacionesCols::AUTOR_ID] : null;
+    }
+
+    /*
+     * Crear publicación nueva. Retorna ID generado.
+     */
+    public static function crearPublicacion(int $autorId, string $contenido, string $imagenes, string $samplesAdjuntos): int
+    {
+        $tabla = PublicacionesCols::TABLA;
+
+        return static::insertar(
+            "INSERT INTO {$tabla} (" . PublicacionesCols::AUTOR_ID . ", " . PublicacionesCols::CONTENIDO
+            . ", " . PublicacionesCols::IMAGENES . ", " . PublicacionesCols::SAMPLES_ADJUNTOS
+            . ") VALUES (:autor, :contenido, :imagenes, :samples) RETURNING " . PublicacionesCols::ID,
+            ['autor' => $autorId, 'contenido' => $contenido, 'imagenes' => $imagenes, 'samples' => $samplesAdjuntos]
+        );
+    }
+
+    /*
+     * Buscar publicación para edición/eliminación (id, autor_id).
+     */
+    public static function buscarParaEdicion(int $id): ?array
+    {
+        $tabla = PublicacionesCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT " . PublicacionesCols::ID . ", " . PublicacionesCols::AUTOR_ID
+            . " FROM {$tabla} WHERE " . PublicacionesCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
+    /*
+     * Actualizar campos dinámicos de una publicación.
+     */
+    public static function actualizarCampos(int $id, array $clausulasSet, array $params): void
+    {
+        $tabla = PublicacionesCols::TABLA;
+        $set = implode(', ', $clausulasSet);
+        $params['id'] = $id;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET {$set}, " . PublicacionesCols::UPDATED_AT . " = NOW() WHERE " . PublicacionesCols::ID . " = :id",
+            $params
+        );
+    }
+
+    /*
+     * Forzar estado de moderación (para admin auto-approve).
+     */
+    public static function forzarModeracion(int $id, string $estado, string $razon = ''): void
+    {
+        $tabla = PublicacionesCols::TABLA;
+
+        $params = ['id' => $id, 'estado' => $estado];
+        $razonClause = '';
+        if ($razon !== '') {
+            $razonClause = ", " . PublicacionesCols::MODERACION_RAZON . " = :razon";
+            $params['razon'] = $razon;
+        }
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . PublicacionesCols::MODERACION_ESTADO . " = :estado{$razonClause} WHERE " . PublicacionesCols::ID . " = :id",
+            $params
+        );
+    }
+
+    /*
+     * Guardar metadata de imágenes analizadas por IA.
+     */
+    public static function guardarImagenesMetadata(int $id, string $metadataJson): void
+    {
+        $tabla = PublicacionesCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . PublicacionesCols::IMAGENES_METADATA . " = :meta WHERE " . PublicacionesCols::ID . " = :id",
+            ['meta' => $metadataJson, 'id' => $id]
+        );
+    }
+
+    /*
+     * Eliminar publicación con cascada manual (likes, comentarios).
+     */
+    public static function eliminarConCascada(int $id): void
+    {
+        $tl = \App\Config\Schema\_generated\LikesCols::TABLA;
+        $tc = \App\Config\Schema\_generated\ComentariosCols::TABLA;
+        $tabla = PublicacionesCols::TABLA;
+
+        static::ejecutar(
+            "DELETE FROM {$tl} WHERE " . \App\Config\Schema\_generated\LikesCols::TIPO . " = 'publicacion' AND "
+            . \App\Config\Schema\_generated\LikesCols::TARGET_ID . " = :id",
+            ['id' => $id]
+        );
+        static::ejecutar(
+            "DELETE FROM {$tc} WHERE " . \App\Config\Schema\_generated\ComentariosCols::TIPO . " = 'publicacion' AND "
+            . \App\Config\Schema\_generated\ComentariosCols::TARGET_ID . " = :id",
+            ['id' => $id]
+        );
+        static::ejecutar(
+            "DELETE FROM {$tabla} WHERE " . PublicacionesCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
+    /*
+     * Recalcular total_comentarios de una publicación.
+     */
+    public static function recalcularComentarios(int $id): void
+    {
+        $tabla = PublicacionesCols::TABLA;
+        $tc = \App\Config\Schema\_generated\ComentariosCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . PublicacionesCols::TOTAL_COMENTARIOS
+            . " = (SELECT COUNT(*) FROM {$tc} WHERE " . \App\Config\Schema\_generated\ComentariosCols::TIPO
+            . " = 'publicacion' AND " . \App\Config\Schema\_generated\ComentariosCols::TARGET_ID . " = :id)"
+            . " WHERE " . PublicacionesCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
+    /*
+     * Crear repost de una publicación.
+     */
+    public static function crearRepost(int $autorId, int $repostId): int
+    {
+        $tabla = PublicacionesCols::TABLA;
+
+        return static::insertar(
+            "INSERT INTO {$tabla} (" . PublicacionesCols::AUTOR_ID . ", " . PublicacionesCols::CONTENIDO
+            . ", " . PublicacionesCols::REPOST_ID . ") VALUES (:autor, '', :repostId) RETURNING " . PublicacionesCols::ID,
+            ['autor' => $autorId, 'repostId' => $repostId]
+        );
+    }
 }

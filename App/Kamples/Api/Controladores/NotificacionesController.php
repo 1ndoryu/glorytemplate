@@ -8,9 +8,9 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Database\Repositories\NotificacionesRepository;
 
 class NotificacionesController
 {
@@ -46,17 +46,7 @@ class NotificacionesController
         $page = max(1, (int) $request->get_param('page'));
         $offset = ($page - 1) * 30;
 
-        $notificaciones = PostgresService::consultar(
-            "SELECT n.id, n.tipo, n.titulo, n.mensaje, n.datos, n.leida, n.enlace,
-                    n.created_at as \"creadaAt\",
-                    u.username as \"actorUsername\", u.nombre_visible as \"actorNombre\",
-                    u.avatar_url as \"actorAvatar\", u.wp_user_id as \"actorWpUserId\"
-             FROM notificaciones n
-             LEFT JOIN usuarios_ext u ON u.id = n.actor_id
-             WHERE n.usuario_id = :userId
-             ORDER BY n.created_at DESC LIMIT 30 OFFSET :offset",
-            ['userId' => $userId, 'offset' => $offset]
-        );
+        $notificaciones = NotificacionesRepository::listarConActor($userId, $offset);
 
         /* C193: fallback avatar para actores de notificaciones */
         foreach ($notificaciones as &$n) {
@@ -76,10 +66,7 @@ class NotificacionesController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $notifId = (int) $request->get_param('id');
-        PostgresService::ejecutar(
-            "UPDATE notificaciones SET leida = true WHERE id = :id AND usuario_id = :userId",
-            ['id' => $notifId, 'userId' => $userId]
-        );
+        NotificacionesRepository::marcarLeida($notifId, $userId);
 
         return new \WP_REST_Response(['ok' => true], 200);
     }
@@ -89,10 +76,7 @@ class NotificacionesController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        PostgresService::ejecutar(
-            "UPDATE notificaciones SET leida = true WHERE usuario_id = :userId AND leida = false",
-            ['userId' => $userId]
-        );
+        NotificacionesRepository::marcarTodasLeidas($userId);
 
         return new \WP_REST_Response(['ok' => true], 200);
     }
@@ -105,11 +89,8 @@ class NotificacionesController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $row = PostgresService::consultarUno(
-            "SELECT COUNT(*) as total FROM notificaciones WHERE usuario_id = :userId AND leida = false",
-            ['userId' => $userId]
-        );
+        $total = NotificacionesRepository::contarNoLeidas($userId);
 
-        return new \WP_REST_Response(['total' => (int) ($row['total'] ?? 0)], 200);
+        return new \WP_REST_Response(['total' => $total], 200);
     }
 }

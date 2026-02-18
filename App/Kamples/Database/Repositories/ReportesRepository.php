@@ -64,4 +64,36 @@ class ReportesRepository extends BaseRepository
             ['limit' => $limit]
         );
     }
+
+    /*
+     * Verificar si un usuario ya reportó un target específico.
+     */
+    public static function yaReportado(string $tipo, int $targetId, int $userId): bool
+    {
+        $tabla = ReportesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT " . ReportesCols::ID . " FROM {$tabla}"
+            . " WHERE " . ReportesCols::TIPO . " = :tipo AND " . ReportesCols::TARGET_ID . " = :targetId"
+            . " AND " . ReportesCols::REPORTADOR_ID . " = :userId",
+            ['tipo' => $tipo, 'targetId' => $targetId, 'userId' => $userId]
+        );
+
+        return $row !== null;
+    }
+
+    /*
+     * Crear nuevo reporte. Retorna el ID generado.
+     */
+    public static function crearReporte(string $tipo, int $targetId, int $userId, string $razon): int
+    {
+        $tabla = ReportesCols::TABLA;
+
+        return static::insertar(
+            "INSERT INTO {$tabla} (" . ReportesCols::TIPO . ", " . ReportesCols::TARGET_ID
+            . ", " . ReportesCols::REPORTADOR_ID . ", " . ReportesCols::RAZON . ", " . ReportesCols::ESTADO . ")"
+            . " VALUES (:tipo, :targetId, :userId, :razon, 'pendiente') RETURNING " . ReportesCols::ID,
+            ['tipo' => $tipo, 'targetId' => $targetId, 'userId' => $userId, 'razon' => $razon]
+        );
+    }
 }

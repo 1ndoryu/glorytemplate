@@ -18,6 +18,7 @@ Centralizar **todo el SQL** del proyecto en clases Repository dedicadas por tabl
 ## Objetivos
 
 ### Primarios
+
 1. **Centralización:** SQL vive en 1 lugar por tabla (el Repository), no en 40 archivos.
 2. **Adopción forzada de Enums:** Los repos usan `SamplesEnums::ESTADO_ACTIVO` internamente — se eliminan los ~67 strings hardcodeados.
 3. **Adopción de Cols en SQL:** Los repos usan `SamplesCols::TITULO`, `SamplesCols::TABLA` donde sea legible.
@@ -25,6 +26,7 @@ Centralizar **todo el SQL** del proyecto en clases Repository dedicadas por tabl
 5. **Generador reutilizable:** `npx glory schema:generate` genera repos base junto con Cols/DTO/Enums.
 
 ### Secundarios
+
 6. **SRP real:** Controller = HTTP, Repository = datos, Service = lógica de dominio.
 7. **Reducción de líneas en controllers:** ColeccionesController 596→~200, AdminController similar.
 8. **Base para query caching:** El repo centralizado permite agregar cache por método sin tocar controllers.
@@ -34,6 +36,7 @@ Centralizar **todo el SQL** del proyecto en clases Repository dedicadas por tabl
 ## Arquitectura
 
 ### Flujo actual (problemático)
+
 ```
 Controller (SQL + HTTP + validación mezclados)
     → PostgresService::consultar("SELECT hardcodeado...")
@@ -41,6 +44,7 @@ Controller (SQL + HTTP + validación mezclados)
 ```
 
 ### Flujo objetivo
+
 ```
 Controller (solo HTTP + validación de request)
     → Repository::metodo($params)
@@ -88,13 +92,13 @@ abstract class BaseRepository
     protected static function consultarUno(string $sql, array $params = []): ?array;
     protected static function ejecutar(string $sql, array $params = []): int;
     protected static function insertar(string $sql, array $params = []): ?int;
-    
+
     /* Métodos CRUD base usando Cols */
     public static function buscarPorId(int $id): ?array;
     public static function buscarTodos(int $limit = 100, int $offset = 0): array;
     public static function eliminarPorId(int $id): bool;
     public static function contar(): int;
-    
+
     /* Clase abstracta: cada repo define su tabla y cols */
     abstract protected static function tabla(): string;
     abstract protected static function colId(): string;
@@ -124,6 +128,7 @@ class SamplesRepository extends BaseRepository
 ## Revisiones y Criterios de Aceptación
 
 ### R1: Infraestructura ✔
+
 - [x] BaseRepository.php creado y funcional (CRUD base + construirWhere + transacciones + estaConectado)
 - [x] Generador `repositoryGenerate.mjs` en CLI
 - [x] Comando `npx glory schema:generate` genera repos junto con Cols/DTO/Enums
@@ -131,6 +136,7 @@ class SamplesRepository extends BaseRepository
 - [x] Repos compilan sin errores PHP
 
 ### R2: Migración Tier 1 ✔
+
 - [x] ColeccionesController.php: 0 PostgresService
 - [x] AdminController.php: 0 PostgresService
 - [x] DescargasController.php: 0 PostgresService
@@ -138,6 +144,7 @@ class SamplesRepository extends BaseRepository
 - [x] SamplesModificacionController.php: 0 PostgresService
 
 ### R3: Migración Tier 2 + Tier 2.5 ✔ (27 controllers total)
+
 - [x] SocialController.php migrado
 - [x] MensajesController.php migrado
 - [x] ComentariosController.php migrado
@@ -164,6 +171,7 @@ class SamplesRepository extends BaseRepository
 > **Verificación final:** `grep -r "PostgresService" Controladores/` = 0 matches
 
 ### R4: Migración Tier 3 — Services
+
 - [ ] ConstructorSenales.php migrado (23 queries)
 - [ ] PerfilUsuario.php migrado (17 queries)
 - [ ] MotorRecomendacion.php migrado
@@ -173,6 +181,7 @@ class SamplesRepository extends BaseRepository
 - [ ] Otros servicios con SQL menor migrados
 
 ### R5: Documentación y CLI
+
 - [ ] Documentación Glory/docs/php/repository-pattern.md
 - [ ] README actualizado con sección Repository
 - [ ] Generador probado en proyecto limpio
@@ -185,6 +194,7 @@ class SamplesRepository extends BaseRepository
 ### FASE 1: Infraestructura (R1)
 
 #### T1.1 — Crear BaseRepository.php
+
 - Ubicación: `App/Kamples/Database/Repositories/BaseRepository.php`
 - Métodos: `consultar`, `consultarUno`, `ejecutar`, `insertar` (delegados a PostgresService)
 - Métodos CRUD: `buscarPorId`, `buscarTodos`, `eliminarPorId`, `contar`
@@ -192,6 +202,7 @@ class SamplesRepository extends BaseRepository
 - Helper: `construirWhere(array $condiciones)` para WHEREs dinámicos
 
 #### T1.2 — Crear generador repositoryGenerate.mjs
+
 - Ubicación: `Glory/cli/repositoryGenerate.mjs`
 - Input: lee schemas ya parseados (misma lógica que schemaGenerate)
 - Output: `App/Kamples/Database/Repositories/{Tabla}Repository.php`
@@ -200,10 +211,12 @@ class SamplesRepository extends BaseRepository
 - Integrar en `schemaGenerate.mjs` como paso adicional
 
 #### T1.3 — Integrar en glory.mjs
+
 - Agregar `schema:generate` ya genera repos (no se necesita comando separado)
 - Opcionalmente: `npx glory create repository <tabla>` para generar uno solo
 
 #### T1.4 — Generar 18 repos base
+
 - Ejecutar generador
 - Validar que todos compilan
 - Commit: "feat(schema): generador de Repositories + 18 repos base"
@@ -211,16 +224,19 @@ class SamplesRepository extends BaseRepository
 ### FASE 2: Migración Tier 1 (R2)
 
 #### T2.1 — Migrar ColeccionesController (35 queries → 0)
+
 - Extraer queries a ColeccionesRepository, ColeccionSamplesRepository, SamplesRepository
 - Queries complejas (CTE explorar, sugerencias) van como métodos custom en el repo
 - Controller solo llama repos + formatea respuesta HTTP
 - Eliminar todos los `'activo'` → `SamplesEnums::ESTADO_ACTIVO`
 
 #### T2.2 — Migrar AdminController (25 queries → 0)
+
 - Queries admin (KPIs, listados, moderación) → repos correspondientes
 - Strings enum `'pendiente'`, `'revision'` → Enums
 
 #### T2.3 — Migrar DescargasController (20 queries → 0)
+
 - `'completed'` → `TransaccionesEnums::ESTADO_COMPLETED` (o el nombre correcto)
 - `'activo'` → `SamplesEnums::ESTADO_ACTIVO`
 
@@ -229,10 +245,12 @@ class SamplesRepository extends BaseRepository
 #### T2.5 — Migrar SamplesModificacionController (9 queries → 0)
 
 ### FASE 3: Migración Tier 2 (R3)
+
 - 10 controllers restantes, misma mecánica
 - Priorizar los que tienen enum hardcodeado
 
 ### FASE 4: Migración Tier 3 — Services (R4)
+
 - Services con SQL complejo: ConstructorSenales, PerfilUsuario, MotorRecomendacion
 - Estos tienen queries muy específicas que probablemente no se reutilicen
 - Opción: métodos custom en el repo, o mantener queries en el service si es 100% específico
@@ -244,21 +262,25 @@ class SamplesRepository extends BaseRepository
 ## Decisiones Técnicas
 
 ### 1. Repos estáticos (no instanciados)
+
 - Mantener consistencia con PostgresService que ya es estático
 - `SamplesRepository::buscarActivos()` en vez de `(new SamplesRepository())->buscarActivos()`
 - Si se necesita inyección de dependencias en el futuro, se puede refactorizar
 
 ### 2. Sección CUSTOM protegida
+
 - El generador pone una marca `/* === MÉTODOS CUSTOM === */`
 - Al regenerar, solo reemplaza la sección auto-generada, preservando custom
 - Esto permite agregar queries complejas (JOINs, CTEs) sin perderlas al regenerar
 
 ### 3. Retorno: arrays tipados, no DTOs obligatorios
+
 - Los métodos CRUD base retornan `?array` para flexibilidad
 - Opcionalmente se puede retornar `SamplesDTO` si el caller lo necesita
 - Queries con JOINs retornan arrays custom (no encajan en un solo DTO)
 
 ### 4. SQL legible: Cols en tabla/WHERE/params, strings en SELECT alias
+
 - `FROM " . SamplesCols::TABLA . " s"` → sí, usar Cols
 - `WHERE s." . SamplesCols::ESTADO . " = :estado"` → sí, usar Cols
 - `'estado' => SamplesEnums::ESTADO_ACTIVO` → sí, usar Enums en params
@@ -266,6 +288,7 @@ class SamplesRepository extends BaseRepository
   (el beneficio de Cols en SELECT es bajo y hace el SQL ilegible)
 
 ### 5. Queries complejas (CTEs, subqueries)
+
 - Van como métodos custom nombrados descriptivamente
 - Ejemplo: `ColeccionesRepository::explorarConAfinidadTags($userId, $offset)`
 - El SQL complejo es legítimo en el repo — ahí es su lugar
@@ -274,26 +297,26 @@ class SamplesRepository extends BaseRepository
 
 ## Riesgos y Mitigaciones
 
-| Riesgo | Impacto | Mitigación |
-|---|---|---|
-| Repo generado no cubre caso específico | Bajo | Sección CUSTOM para métodos manuales |
-| Queries con JOINs entre 3+ tablas | Medio | El repo de la entidad "principal" lo maneja |
-| Regenerar sobreescribe custom | Alto | Parser que detecta marca CUSTOM y preserva |
-| Romper endpoints durante migración | Alto | Migrar 1 controller, testear, commit, siguiente |
-| Repos demasiado grandes | Medio | Máx 300 líneas (protocolo), dividir si excede |
+| Riesgo                                 | Impacto | Mitigación                                      |
+| -------------------------------------- | ------- | ----------------------------------------------- |
+| Repo generado no cubre caso específico | Bajo    | Sección CUSTOM para métodos manuales            |
+| Queries con JOINs entre 3+ tablas      | Medio   | El repo de la entidad "principal" lo maneja     |
+| Regenerar sobreescribe custom          | Alto    | Parser que detecta marca CUSTOM y preserva      |
+| Romper endpoints durante migración     | Alto    | Migrar 1 controller, testear, commit, siguiente |
+| Repos demasiado grandes                | Medio   | Máx 300 líneas (protocolo), dividir si excede   |
 
 ---
 
 ## Métricas de Éxito
 
-| Métrica | Antes | Objetivo | Actual |
-|---|---|---|---|
-| Archivos con SQL directo en controllers | 25 | 0 | **0** ✅ |
-| Archivos con SQL directo en services | 10 | 0-3 | ~10 (pendiente T4) |
-| Uso de `*Enums::` en codebase | 0 | 100% | Parcial |
-| Strings enum hardcodeados | 67+ | 0 | ~30 (repos usan Enums, controllers legacy aún no) |
-| Archivos sin ningún Cols | 6 | 0 | ~3 |
-| SQL duplicado entre archivos | ~15% | 0% | ~2% (solo services) |
+| Métrica                                 | Antes | Objetivo | Actual                                            |
+| --------------------------------------- | ----- | -------- | ------------------------------------------------- |
+| Archivos con SQL directo en controllers | 25    | 0        | **0** ✅                                          |
+| Archivos con SQL directo en services    | 10    | 0-3      | ~10 (pendiente T4)                                |
+| Uso de `*Enums::` en codebase           | 0     | 100%     | Parcial                                           |
+| Strings enum hardcodeados               | 67+   | 0        | ~30 (repos usan Enums, controllers legacy aún no) |
+| Archivos sin ningún Cols                | 6     | 0        | ~3                                                |
+| SQL duplicado entre archivos            | ~15%  | 0%       | ~2% (solo services)                               |
 
 ---
 

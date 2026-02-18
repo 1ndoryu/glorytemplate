@@ -10,8 +10,8 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Kamples\Database\Repositories\SamplesRepository;
 
 class DescargasStreamController
 {
@@ -63,10 +63,7 @@ class DescargasStreamController
         }
 
         /* Obtener ruta del archivo */
-        $sample = PostgresService::consultarUno(
-            "SELECT ruta_original, ruta_optimizada, titulo FROM samples WHERE id = :id",
-            ['id' => $sampleId]
-        );
+        $sample = SamplesRepository::buscarRutaDescarga($sampleId);
 
         if (!$sample) {
             return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);

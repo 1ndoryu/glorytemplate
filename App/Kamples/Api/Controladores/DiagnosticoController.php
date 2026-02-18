@@ -8,10 +8,10 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Database\VerificarPgvector;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Database\Repositories\SamplesRepository;
 
 class DiagnosticoController
 {
@@ -39,7 +39,7 @@ class DiagnosticoController
      */
     public static function health(): \WP_REST_Response
     {
-        $conectado = PostgresService::estaConectado();
+        $conectado = SamplesRepository::estaConectado();
 
         return new \WP_REST_Response([
             'status'   => $conectado ? 'ok' : 'error',

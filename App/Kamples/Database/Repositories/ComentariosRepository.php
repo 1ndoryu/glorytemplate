@@ -14,6 +14,9 @@ namespace App\Kamples\Database\Repositories;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\ComentariosDTO;
+use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\PublicacionesCols;
 
 class ComentariosRepository extends BaseRepository
 {
@@ -78,24 +81,230 @@ class ComentariosRepository extends BaseRepository
     public static function listarDePublicacion(int $pubId, int $offset, int $limit = 20): array
     {
         $tc = ComentariosCols::TABLA;
-        $tu = \App\Config\Schema\_generated\UsuariosExtCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
 
         return static::consultar(
             "SELECT c." . ComentariosCols::ID
             . ", c." . ComentariosCols::CONTENIDO
             . ", c." . ComentariosCols::CREATED_AT
             . ", c." . ComentariosCols::TOTAL_LIKES
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::ID . " as autor_id"
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::USERNAME
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::NOMBRE_VISIBLE
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::AVATAR_URL
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::WP_USER_ID
+            . ", u." . UsuariosExtCols::ID . " as autor_id"
+            . ", u." . UsuariosExtCols::USERNAME
+            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL
+            . ", u." . UsuariosExtCols::WP_USER_ID
             . " FROM {$tc} c JOIN {$tu} u ON c." . ComentariosCols::AUTOR_ID
-            . " = u." . \App\Config\Schema\_generated\UsuariosExtCols::ID
+            . " = u." . UsuariosExtCols::ID
             . " WHERE c." . ComentariosCols::TIPO . " = 'publicacion'"
             . " AND c." . ComentariosCols::TARGET_ID . " = :pubId"
             . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit OFFSET :offset",
             ['pubId' => $pubId, 'limit' => $limit, 'offset' => $offset]
         );
+    }
+
+    /*
+     * Listar comentarios raíz con datos del autor (JOIN usuarios_ext).
+     * Excluye rechazados y comentarios hijo (parent_id NULL).
+     */
+    public static function listarRaizConAutor(string $tipo, int $targetId, int $offset, int $limit = 20): array
+    {
+        $tc = ComentariosCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+
+        return static::consultar(
+            "SELECT c." . ComentariosCols::ID . ", c." . ComentariosCols::CONTENIDO
+            . ", c." . ComentariosCols::CREATED_AT . ", c." . ComentariosCols::UPDATED_AT
+            . ", c." . ComentariosCols::TIPO_CONTENIDO . ", c." . ComentariosCols::MEDIA_URL
+            . ", c." . ComentariosCols::MEDIA_METADATA . ", c." . ComentariosCols::MODERACION_ESTADO
+            . ", c." . ComentariosCols::PARENT_ID . ", c." . ComentariosCols::TOTAL_LIKES
+            . ", c." . ComentariosCols::TOTAL_RESPUESTAS
+            . ", u." . UsuariosExtCols::ID . " as " . ComentariosCols::AUTOR_ID
+            . ", u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID
+            . " FROM {$tc} c JOIN {$tu} u ON c." . ComentariosCols::AUTOR_ID . " = u." . UsuariosExtCols::ID
+            . " WHERE c." . ComentariosCols::TIPO . " = :tipo AND c." . ComentariosCols::TARGET_ID . " = :targetId"
+            . " AND c." . ComentariosCols::PARENT_ID . " IS NULL"
+            . " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != 'rechazado')"
+            . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit OFFSET :offset",
+            ['tipo' => $tipo, 'targetId' => $targetId, 'limit' => $limit, 'offset' => $offset]
+        );
+    }
+
+    /*
+     * Listar respuestas de un comentario padre con datos del autor.
+     */
+    public static function listarRespuestasConAutor(int $parentId, int $limit = 50): array
+    {
+        $tc = ComentariosCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+
+        return static::consultar(
+            "SELECT c." . ComentariosCols::ID . ", c." . ComentariosCols::CONTENIDO
+            . ", c." . ComentariosCols::CREATED_AT . ", c." . ComentariosCols::UPDATED_AT
+            . ", c." . ComentariosCols::TIPO_CONTENIDO . ", c." . ComentariosCols::MEDIA_URL
+            . ", c." . ComentariosCols::MEDIA_METADATA . ", c." . ComentariosCols::MODERACION_ESTADO
+            . ", c." . ComentariosCols::PARENT_ID . ", c." . ComentariosCols::TOTAL_LIKES
+            . ", c." . ComentariosCols::TOTAL_RESPUESTAS
+            . ", u." . UsuariosExtCols::ID . " as " . ComentariosCols::AUTOR_ID
+            . ", u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID
+            . " FROM {$tc} c JOIN {$tu} u ON c." . ComentariosCols::AUTOR_ID . " = u." . UsuariosExtCols::ID
+            . " WHERE c." . ComentariosCols::PARENT_ID . " = :parentId"
+            . " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != 'rechazado')"
+            . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit",
+            ['parentId' => $parentId, 'limit' => $limit]
+        );
+    }
+
+    /*
+     * Buscar un comentario para edición (solo id y autor_id).
+     */
+    public static function buscarParaEdicion(int $id): ?array
+    {
+        $tabla = ComentariosCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT " . ComentariosCols::ID . ", " . ComentariosCols::AUTOR_ID
+            . " FROM {$tabla} WHERE " . ComentariosCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
+    /*
+     * Actualizar contenido de un comentario.
+     */
+    public static function actualizarContenido(int $id, string $contenido): void
+    {
+        $tabla = ComentariosCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . ComentariosCols::CONTENIDO . " = :contenido, "
+            . ComentariosCols::UPDATED_AT . " = NOW() WHERE " . ComentariosCols::ID . " = :id",
+            ['contenido' => $contenido, 'id' => $id]
+        );
+    }
+
+    /*
+     * Buscar un comentario para eliminación (campos necesarios para cascade).
+     */
+    public static function buscarParaEliminar(int $id): ?array
+    {
+        $tabla = ComentariosCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT " . ComentariosCols::ID . ", " . ComentariosCols::AUTOR_ID
+            . ", " . ComentariosCols::PARENT_ID . ", " . ComentariosCols::TIPO
+            . ", " . ComentariosCols::TARGET_ID
+            . " FROM {$tabla} WHERE " . ComentariosCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
+    /*
+     * Validar que un comentario padre pertenece al mismo contexto (tipo + target).
+     */
+    public static function validarPadre(int $parentId, string $tipo, int $targetId): bool
+    {
+        $tabla = ComentariosCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT " . ComentariosCols::ID . " FROM {$tabla} WHERE " . ComentariosCols::ID . " = :id"
+            . " AND " . ComentariosCols::TIPO . " = :tipo AND " . ComentariosCols::TARGET_ID . " = :targetId",
+            ['id' => $parentId, 'tipo' => $tipo, 'targetId' => $targetId]
+        );
+
+        return $row !== null;
+    }
+
+    /*
+     * Insertar un comentario nuevo. Retorna el ID generado.
+     */
+    public static function insertarComentario(array $datos): int
+    {
+        $tabla = ComentariosCols::TABLA;
+
+        return static::insertar(
+            "INSERT INTO {$tabla} (" . ComentariosCols::AUTOR_ID . ", " . ComentariosCols::TIPO
+            . ", " . ComentariosCols::TARGET_ID . ", " . ComentariosCols::CONTENIDO
+            . ", " . ComentariosCols::TIPO_CONTENIDO . ", " . ComentariosCols::MEDIA_URL
+            . ", " . ComentariosCols::MEDIA_METADATA . ", " . ComentariosCols::PARENT_ID . ")"
+            . " VALUES (:autor, :tipo, :target, :contenido, :tipoContenido, :mediaUrl, :mediaMetadata::jsonb, :parentId)"
+            . " RETURNING " . ComentariosCols::ID,
+            $datos
+        );
+    }
+
+    /*
+     * Incrementar total_respuestas del padre.
+     */
+    public static function incrementarRespuestas(int $parentId): void
+    {
+        $tabla = ComentariosCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . ComentariosCols::TOTAL_RESPUESTAS
+            . " = COALESCE(" . ComentariosCols::TOTAL_RESPUESTAS . ", 0) + 1 WHERE " . ComentariosCols::ID . " = :parentId",
+            ['parentId' => $parentId]
+        );
+    }
+
+    /*
+     * Decrementar total_respuestas del padre.
+     */
+    public static function decrementarRespuestas(int $parentId): void
+    {
+        $tabla = ComentariosCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . ComentariosCols::TOTAL_RESPUESTAS
+            . " = GREATEST(0, COALESCE(" . ComentariosCols::TOTAL_RESPUESTAS . ", 0) - 1) WHERE " . ComentariosCols::ID . " = :parentId",
+            ['parentId' => $parentId]
+        );
+    }
+
+    /*
+     * Recalcular total_comentarios en la tabla destino (samples o publicaciones).
+     */
+    public static function recalcularTotalEnTarget(string $tipo, int $targetId): void
+    {
+        $tc = ComentariosCols::TABLA;
+        $tablaDestino = $tipo === 'publicacion' ? PublicacionesCols::TABLA : SamplesCols::TABLA;
+        $colId = $tipo === 'publicacion' ? PublicacionesCols::ID : SamplesCols::ID;
+        $colTotal = $tipo === 'publicacion' ? PublicacionesCols::TOTAL_COMENTARIOS : SamplesCols::TOTAL_COMENTARIOS;
+
+        static::ejecutar(
+            "UPDATE {$tablaDestino} SET {$colTotal} = ("
+            . "SELECT COUNT(*) FROM {$tc} WHERE " . ComentariosCols::TIPO . " = :tipo AND " . ComentariosCols::TARGET_ID . " = :targetId"
+            . ") WHERE {$colId} = :targetId2",
+            ['tipo' => $tipo, 'targetId' => $targetId, 'targetId2' => $targetId]
+        );
+    }
+
+    /*
+     * Eliminar un comentario por ID.
+     */
+    public static function eliminarComentario(int $id): void
+    {
+        $tabla = ComentariosCols::TABLA;
+
+        static::ejecutar(
+            "DELETE FROM {$tabla} WHERE " . ComentariosCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
+    /*
+     * Buscar solo el autor_id de un comentario.
+     */
+    public static function buscarAutorId(int $id): ?int
+    {
+        $tabla = ComentariosCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT " . ComentariosCols::AUTOR_ID . " FROM {$tabla} WHERE " . ComentariosCols::ID . " = :id",
+            ['id' => $id]
+        );
+
+        return $row ? (int) $row[ComentariosCols::AUTOR_ID] : null;
     }
 }

@@ -11,7 +11,6 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
@@ -19,6 +18,8 @@ use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Services\MotorRecomendacion;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Kamples\Database\Repositories\ReproduccionesRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
 
 class ReproduccionesController
 {
@@ -74,35 +75,18 @@ class ReproduccionesController
          * Si ya existe una reproducción del mismo usuario+sample en los últimos 3s,
          * actualizamos en vez de crear duplicado.
          */
-        $reciente = PostgresService::consultarUno(
-            "SELECT id FROM reproducciones
-             WHERE usuario_id = :userId AND sample_id = :sampleId
-             AND created_at > NOW() - INTERVAL '3 seconds'
-             FOR UPDATE",
-            ['userId' => $userId, 'sampleId' => $sampleId]
-        );
+        $reciente = ReproduccionesRepository::buscarRecientePorUsuario($userId, $sampleId, '3 seconds');
 
         if ($reciente) {
             /* Actualizar la reproducción existente en vez de crear otra */
-            PostgresService::ejecutar(
-                "UPDATE reproducciones SET duracion_escuchada = :duracion, completada = :completada
-                 WHERE id = :id",
-                ['id' => $reciente['id'], 'duracion' => $duracion, 'completada' => $completada ? 'true' : 'false']
-            );
+            ReproduccionesRepository::actualizarReproduccion((int) $reciente['id'], $duracion, $completada);
             return new \WP_REST_Response(['ok' => true, 'debounce' => true], 200);
         }
 
-        PostgresService::ejecutar(
-            "INSERT INTO reproducciones (usuario_id, sample_id, duracion_escuchada, completada)
-             VALUES (:userId, :sampleId, :duracion, :completada)",
-            ['userId' => $userId, 'sampleId' => $sampleId, 'duracion' => $duracion, 'completada' => $completada ? 'true' : 'false']
-        );
+        ReproduccionesRepository::registrar($userId, $sampleId, $duracion, $completada);
 
         /* Incrementar contador en la tabla samples */
-        PostgresService::ejecutar(
-            "UPDATE samples SET total_reproducciones = total_reproducciones + 1 WHERE id = :id",
-            ['id' => $sampleId]
-        );
+        SamplesRepository::incrementarReproducciones($sampleId);
 
         /* Invalidar cache del feed para que el algoritmo recalcule */
         MotorRecomendacion::invalidarCache($userId);
@@ -128,13 +112,7 @@ class ReproduccionesController
         $perPage = (int) $request->get_param('per_page');
         $offset = ($page - 1) * $perPage;
 
-        $sql = NormalizadorSample::sqlSelectSamples()
-             . " JOIN reproducciones r ON r.sample_id = s.id"
-             . " WHERE r.usuario_id = :userId AND s.estado = 'activo'"
-             . " GROUP BY s.id, u.id, u.username, u.nombre_visible, u.avatar_url, u.verificado, u.wp_user_id"
-             . " ORDER BY MAX(r.created_at) DESC LIMIT :limit OFFSET :offset";
-
-        $samples = PostgresService::consultar($sql, ['userId' => $userId, 'limit' => $perPage, 'offset' => $offset]);
+        $samples = ReproduccionesRepository::historialUsuario($userId, $perPage, $offset);
 
         return new \WP_REST_Response([
             'data' => NormalizadorSample::normalizarLista($samples),
@@ -151,10 +129,7 @@ class ReproduccionesController
         $sampleId = (int) $request->get_param('id');
         $limite = (int) $request->get_param('limite');
 
-        $sample = PostgresService::consultarUno(
-            "SELECT tags, bpm, key, tipo FROM samples WHERE id = :id",
-            ['id' => $sampleId]
-        );
+        $sample = SamplesRepository::buscarMetadataParaSimilares($sampleId);
 
         if (!$sample) {
             return new \WP_REST_Response(['data' => []], 200);
@@ -163,30 +138,9 @@ class ReproduccionesController
         $tags = NormalizadorSample::pgArrayToPhp($sample[SamplesCols::TAGS] ?? '');
         $bpm = $sample[SamplesCols::BPM] ? (int) $sample[SamplesCols::BPM] : 120;
         $key = $sample[SamplesCols::KEY] ?? null;
+        $tipo = $sample[SamplesCols::TIPO] ?? 'one shot';
 
-        /* Scoring por similitud de tags + proximidad BPM + match de key + mismo tipo */
-        $params = ['sampleId' => $sampleId, 'limit' => $limite, 'bpm' => $bpm];
-
-        $tagScoreParts = [];
-        foreach (array_slice($tags, 0, 8) as $i => $tag) {
-            $tagScoreParts[] = "CASE WHEN :stag{$i} = ANY(s.tags) THEN 2 ELSE 0 END";
-            $params["stag{$i}"] = $tag;
-        }
-        $tagScore = !empty($tagScoreParts) ? '(' . implode(' + ', $tagScoreParts) . ')' : '0';
-
-        $keyScore = $key ? "CASE WHEN s.key = :skey THEN 5 ELSE 0 END" : "0";
-        if ($key) $params['skey'] = $key;
-
-        $tipoScore = "CASE WHEN s.tipo = :stipo THEN 3 ELSE 0 END";
-        $params['stipo'] = $sample[SamplesCols::TIPO] ?? 'one shot';
-
-        $sql = NormalizadorSample::sqlSelectSamples()
-             . " WHERE s.estado = 'activo' AND s.id != :sampleId"
-             . " ORDER BY ({$tagScore} + {$keyScore} + {$tipoScore}"
-             . " + CASE WHEN s.bpm IS NOT NULL THEN GREATEST(0, 5 - ABS(s.bpm - :bpm) / 10) ELSE 0 END) DESC,"
-             . " s.total_likes DESC LIMIT :limit";
-
-        $similares = PostgresService::consultar($sql, $params);
+        $similares = SamplesRepository::buscarSimilares($sampleId, $tags, $bpm, $key, $tipo, $limite);
 
         return new \WP_REST_Response(['data' => NormalizadorSample::normalizarLista($similares)], 200);
     }

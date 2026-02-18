@@ -55,5 +55,81 @@ class NotificacionesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    /* Agregar metodos custom aqui (queries complejas, JOINs, CTEs, etc.) */
+    /*
+     * Listar notificaciones del usuario con datos del actor (JOIN usuarios_ext).
+     */
+    public static function listarConActor(int $userId, int $offset, int $limit = 30): array
+    {
+        $tabla = NotificacionesCols::TABLA;
+
+        return static::consultar(
+            "SELECT n." . NotificacionesCols::ID . ", n." . NotificacionesCols::TIPO
+            . ", n.titulo, n.mensaje, n.datos, n." . NotificacionesCols::LEIDA
+            . ", n.enlace, n." . NotificacionesCols::CREATED_AT . " as \"creadaAt\","
+            . " u.username as \"actorUsername\", u.nombre_visible as \"actorNombre\","
+            . " u.avatar_url as \"actorAvatar\", u.wp_user_id as \"actorWpUserId\""
+            . " FROM {$tabla} n LEFT JOIN usuarios_ext u ON u.id = n.actor_id"
+            . " WHERE n." . NotificacionesCols::USUARIO_ID . " = :userId"
+            . " ORDER BY n." . NotificacionesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
+            ['userId' => $userId, 'limit' => $limit, 'offset' => $offset]
+        );
+    }
+
+    /*
+     * Marcar una notificación como leída (solo si pertenece al usuario).
+     */
+    public static function marcarLeida(int $id, int $userId): void
+    {
+        $tabla = NotificacionesCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . NotificacionesCols::LEIDA . " = true"
+            . " WHERE " . NotificacionesCols::ID . " = :id AND " . NotificacionesCols::USUARIO_ID . " = :userId",
+            ['id' => $id, 'userId' => $userId]
+        );
+    }
+
+    /*
+     * Marcar todas las notificaciones no leídas del usuario como leídas.
+     */
+    public static function marcarTodasLeidas(int $userId): void
+    {
+        $tabla = NotificacionesCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . NotificacionesCols::LEIDA . " = true"
+            . " WHERE " . NotificacionesCols::USUARIO_ID . " = :userId AND " . NotificacionesCols::LEIDA . " = false",
+            ['userId' => $userId]
+        );
+    }
+
+    /*
+     * Contar notificaciones no leídas del usuario.
+     */
+    public static function contarNoLeidas(int $userId): int
+    {
+        $tabla = NotificacionesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$tabla}"
+            . " WHERE " . NotificacionesCols::USUARIO_ID . " = :userId AND " . NotificacionesCols::LEIDA . " = false",
+            ['userId' => $userId]
+        );
+
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /*
+     * Crear notificación (para experimentos/tests).
+     */
+    public static function crear(int $userId, string $tipo, string $datosJson): void
+    {
+        $tabla = NotificacionesCols::TABLA;
+
+        static::ejecutar(
+            "INSERT INTO {$tabla} (" . NotificacionesCols::USUARIO_ID . ", " . NotificacionesCols::TIPO . ", datos)"
+            . " VALUES (:userId, :tipo, :datos::jsonb)",
+            ['userId' => $userId, 'tipo' => $tipo, 'datos' => $datosJson]
+        );
+    }
 }

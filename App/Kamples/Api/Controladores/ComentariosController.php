@@ -21,13 +21,15 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\LikesCols;
+use App\Kamples\Database\Repositories\ComentariosRepository;
+use App\Kamples\Database\Repositories\LikesRepository;
+use App\Kamples\Database\Repositories\ReportesRepository;
 
 class ComentariosController
 {
@@ -111,20 +113,7 @@ class ComentariosController
         $currentUserId = UsuarioHelper::obtenerIdPg();
 
         /* C265: Solo comentarios raíz (sin parent_id), las respuestas se cargan aparte */
-        $comentarios = PostgresService::consultar(
-            "SELECT c.id, c.contenido, c.created_at, c.updated_at,
-                    c.tipo_contenido, c.media_url, c.media_metadata,
-                    c.moderacion_estado, c.parent_id,
-                    c.total_likes, c.total_respuestas,
-                    u.id as autor_id, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id
-             FROM comentarios c
-             JOIN usuarios_ext u ON c.autor_id = u.id
-             WHERE c.tipo = :tipo AND c.target_id = :targetId
-               AND c.parent_id IS NULL
-               AND (c.moderacion_estado IS NULL OR c.moderacion_estado != 'rechazado')
-             ORDER BY c.created_at ASC LIMIT 20 OFFSET :offset",
-            ['tipo' => $tipo, 'targetId' => $targetId, 'offset' => $offset]
-        );
+        $comentarios = ComentariosRepository::listarRaizConAutor($tipo, $targetId, $offset);
 
         $resultado = self::normalizarComentarios($comentarios, $currentUserId);
 
@@ -149,23 +138,17 @@ class ComentariosController
         if ($errorLongitud) return Validador::respuestaError($errorLongitud);
 
         /* Verificar que el comentario existe y es del autor */
-        $comentario = PostgresService::consultarUno(
-            "SELECT id, autor_id FROM comentarios WHERE id = :id",
-            ['id' => $id]
-        );
+        $comentario = ComentariosRepository::buscarParaEdicion($id);
 
         if (!$comentario) {
             return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
         }
 
-        if ((int) $comentario['autor_id'] !== $userId) {
+        if ((int) $comentario[ComentariosCols::AUTOR_ID] !== $userId) {
             return new \WP_REST_Response(['code' => 'no_autorizado', 'message' => 'Solo puedes editar tus comentarios'], 403);
         }
 
-        PostgresService::ejecutar(
-            "UPDATE comentarios SET contenido = :contenido, updated_at = NOW() WHERE id = :id",
-            ['contenido' => $contenido, 'id' => $id]
-        );
+        ComentariosRepository::actualizarContenido($id, $contenido);
 
         return new \WP_REST_Response([
             'ok' => true,
@@ -193,27 +176,16 @@ class ComentariosController
         if ($errorRazon) return Validador::respuestaError($errorRazon);
 
         /* Verificar que existe */
-        $existe = PostgresService::consultarUno("SELECT id FROM comentarios WHERE id = :id", ['id' => $id]);
-        if (!$existe) {
+        if (!ComentariosRepository::existe([ComentariosCols::ID => $id])) {
             return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
         }
 
         /* Evitar reportes duplicados */
-        $yaReportado = PostgresService::consultarUno(
-            "SELECT id FROM reportes WHERE tipo = 'comentario' AND target_id = :targetId AND reportador_id = :userId",
-            ['targetId' => $id, 'userId' => $userId]
-        );
-
-        if ($yaReportado) {
+        if (ReportesRepository::yaReportado('comentario', $id, $userId)) {
             return new \WP_REST_Response(['ok' => true, 'message' => 'Ya reportaste este comentario'], 200);
         }
 
-        PostgresService::insertar(
-            "INSERT INTO reportes (tipo, target_id, reportador_id, razon, estado)
-             VALUES ('comentario', :targetId, :userId, :razon, 'pendiente')
-             RETURNING id",
-            ['targetId' => $id, 'userId' => $userId, 'razon' => $razon]
-        );
+        ReportesRepository::crearReporte('comentario', $id, $userId, $razon);
 
         return new \WP_REST_Response(['ok' => true, 'message' => 'Reporte enviado'], 201);
     }
@@ -226,19 +198,7 @@ class ComentariosController
         $parentId = (int) $request->get_param('id');
         $currentUserId = UsuarioHelper::obtenerIdPg();
 
-        $respuestas = PostgresService::consultar(
-            "SELECT c.id, c.contenido, c.created_at, c.updated_at,
-                    c.tipo_contenido, c.media_url, c.media_metadata,
-                    c.moderacion_estado, c.parent_id,
-                    c.total_likes, c.total_respuestas,
-                    u.id as autor_id, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id
-             FROM comentarios c
-             JOIN usuarios_ext u ON c.autor_id = u.id
-             WHERE c.parent_id = :parentId
-               AND (c.moderacion_estado IS NULL OR c.moderacion_estado != 'rechazado')
-             ORDER BY c.created_at ASC LIMIT 50",
-            ['parentId' => $parentId]
-        );
+        $respuestas = ComentariosRepository::listarRespuestasConAutor($parentId);
 
         $resultado = self::normalizarComentarios($respuestas, $currentUserId);
 
@@ -258,15 +218,7 @@ class ComentariosController
         $likesUsuario = [];
 
         if ($currentUserId && !empty($idsComentarios)) {
-            $placeholders = \implode(',', \array_fill(0, \count($idsComentarios), '?'));
-            $params = \array_merge([$currentUserId], $idsComentarios);
-            $likes = PostgresService::consultar(
-                "SELECT target_id FROM likes WHERE usuario_id = ? AND tipo = 'comentario' AND target_id IN ({$placeholders})",
-                $params
-            );
-            foreach ($likes as $like) {
-                $likesUsuario[(int) $like[LikesCols::TARGET_ID]] = true;
-            }
+            $likesUsuario = LikesRepository::likesDeUsuarioEnComentarios($currentUserId, $idsComentarios);
         }
 
         return \array_map(function ($fila) use ($likesUsuario) {

@@ -11,13 +11,15 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\StripeService;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ColeccionesCols;
+use App\Kamples\Database\Repositories\ColeccionesRepository;
+use App\Kamples\Database\Repositories\DescargasRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
 
 class DescargasZipController
 {
@@ -37,10 +39,7 @@ class DescargasZipController
         $coleccionId = (int) $request->get_param('id');
 
         /* Verificar que la colección existe */
-        $coleccion = PostgresService::consultarUno(
-            "SELECT id, nombre, usuario_id, updated_at FROM colecciones WHERE id = :id",
-            ['id' => $coleccionId]
-        );
+        $coleccion = ColeccionesRepository::buscarPorId($coleccionId);
 
         if (!$coleccion) {
             return new \WP_REST_Response(['ok' => false, 'error' => 'Colección no encontrada'], 404);
@@ -49,24 +48,14 @@ class DescargasZipController
         /* S11: Verificar propiedad o acceso público para evitar IDOR */
         $esPropietario = (int) ($coleccion[ColeccionesCols::USUARIO_ID] ?? 0) === $userId;
         if (!$esPropietario) {
-            $esPub = PostgresService::consultarUno(
-                "SELECT 1 FROM colecciones WHERE id = :id AND publica = true",
-                ['id' => $coleccionId]
-            );
+            $esPub = ColeccionesRepository::esPublica($coleccionId);
             if (!$esPub) {
                 return new \WP_REST_Response(['ok' => false, 'error' => 'No tienes acceso a esta colección'], 403);
             }
         }
 
         /* Obtener samples de la colección */
-        $samples = PostgresService::consultar(
-            "SELECT s.id, s.titulo, s.ruta_original, s.ruta_optimizada, s.es_premium, s.creador_id
-             FROM samples s
-             INNER JOIN coleccion_samples cs ON cs.sample_id = s.id
-             WHERE cs.coleccion_id = :coleccionId AND s.estado = 'activo'
-             ORDER BY cs.created_at ASC",
-            ['coleccionId' => $coleccionId]
-        );
+        $samples = ColeccionesRepository::samplesDeColeccion($coleccionId);
 
         if (empty($samples)) {
             return new \WP_REST_Response(['ok' => false, 'error' => 'La colección no tiene samples'], 400);
@@ -75,21 +64,7 @@ class DescargasZipController
         /* Verificar créditos: descontar samples ya descargados previamente */
         $sampleIds = \array_map(fn($s) => (int) $s[SamplesCols::ID], $samples);
 
-        /* S12: Parametrizar IN clause en lugar de interpolar IDs */
-        $downloadParams = ['userId' => $userId];
-        $dlPlaceholders = [];
-        foreach ($sampleIds as $idx => $sid) {
-            $key = "dlSid{$idx}";
-            $dlPlaceholders[] = ":{$key}";
-            $downloadParams[$key] = $sid;
-        }
-        $dlIn = \implode(',', $dlPlaceholders);
-        $yaDescargados = PostgresService::consultar(
-            "SELECT DISTINCT sample_id FROM descargas
-             WHERE usuario_id = :userId AND sample_id IN ({$dlIn})",
-            $downloadParams
-        );
-        $idsYaDescargados = \array_map(fn($d) => (int) $d['sample_id'], $yaDescargados);
+        $idsYaDescargados = DescargasRepository::filtrarYaDescargados($userId, $sampleIds);
         $samplesNuevos = \array_filter($samples, fn($s) => !\in_array((int) $s['id'], $idsYaDescargados));
         $creditosNecesarios = \count($samplesNuevos);
 
@@ -104,12 +79,7 @@ class DescargasZipController
             $creditosBonus = (int) ($usuario[UsuariosExtCols::CREDITOS_BONUS] ?? 0);
             $limiteEfectivo = $limite + $creditosBonus;
 
-            $descargasHoy = PostgresService::consultarUno(
-                "SELECT COUNT(*) as total FROM descargas
-                 WHERE usuario_id = :userId AND created_at >= CURRENT_DATE",
-                ['userId' => $userId]
-            );
-            $usadas = (int) ($descargasHoy['total'] ?? 0);
+            $usadas = DescargasRepository::contarHoy($userId);
             $disponibles = $limiteEfectivo - $usadas;
 
             if ($creditosNecesarios > $disponibles) {
@@ -195,15 +165,9 @@ class DescargasZipController
             $rutaArchivo = $sample[SamplesCols::RUTA_ORIGINAL] ?? $sample[SamplesCols::RUTA_OPTIMIZADA];
             $tamanoBytes = ($rutaArchivo && \file_exists($rutaArchivo)) ? \filesize($rutaArchivo) : 0;
 
-            PostgresService::ejecutar(
-                "INSERT INTO descargas (usuario_id, sample_id, calidad, tamano_bytes) VALUES (:userId, :sampleId, :calidad, :tamano)",
-                ['userId' => $userId, 'sampleId' => $sample[SamplesCols::ID], 'calidad' => $calidad, 'tamano' => $tamanoBytes]
-            );
+            DescargasRepository::registrar($userId, (int) $sample[SamplesCols::ID], $calidad, $tamanoBytes);
 
-            PostgresService::ejecutar(
-                "UPDATE samples SET total_descargas = total_descargas + 1 WHERE id = :id",
-                ['id' => $sample[SamplesCols::ID]]
-            );
+            SamplesRepository::incrementarDescargas((int) $sample[SamplesCols::ID]);
 
             /* Revenue share por cada sample de otro creador */
             if ($plan !== 'free' && (int) $sample[SamplesCols::CREADOR_ID] !== $userId) {

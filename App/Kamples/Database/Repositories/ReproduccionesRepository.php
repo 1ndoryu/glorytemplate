@@ -68,4 +68,81 @@ class ReproduccionesRepository extends BaseRepository
             ['id' => $sampleId]
         );
     }
+
+    /*
+     * Contar reproducciones del mes actual para samples de un creador.
+     */
+    public static function contarDelCreadorMes(int $creadorId): int
+    {
+        $tr = ReproduccionesCols::TABLA;
+        $ts = \App\Config\Schema\_generated\SamplesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$tr} r JOIN {$ts} s ON r." . ReproduccionesCols::SAMPLE_ID . " = s." . \App\Config\Schema\_generated\SamplesCols::ID
+            . " WHERE s." . \App\Config\Schema\_generated\SamplesCols::CREADOR_ID . " = :userId"
+            . " AND r." . ReproduccionesCols::CREATED_AT . " >= date_trunc('month', NOW())",
+            ['userId' => $creadorId]
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /*
+     * Buscar reproducción reciente del mismo sample por usuario (anti-bot).
+     */
+    public static function buscarRecientePorUsuario(int $userId, int $sampleId, string $intervalo = '30 seconds'): ?array
+    {
+        $tabla = ReproduccionesCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT " . ReproduccionesCols::ID . " FROM {$tabla}"
+            . " WHERE " . ReproduccionesCols::USUARIO_ID . " = :userId"
+            . " AND " . ReproduccionesCols::SAMPLE_ID . " = :sampleId"
+            . " AND " . ReproduccionesCols::CREATED_AT . " >= NOW() - INTERVAL '{$intervalo}'",
+            ['userId' => $userId, 'sampleId' => $sampleId]
+        );
+    }
+
+    /*
+     * Registrar reproducción nueva con duración escuchada y flag de completada.
+     */
+    public static function registrar(int $userId, int $sampleId, float $duracion = 0, bool $completada = false): void
+    {
+        $tabla = ReproduccionesCols::TABLA;
+
+        static::ejecutar(
+            "INSERT INTO {$tabla} (" . ReproduccionesCols::USUARIO_ID . ", " . ReproduccionesCols::SAMPLE_ID
+            . ", " . ReproduccionesCols::DURACION_ESCUCHADA . ", " . ReproduccionesCols::COMPLETADA
+            . ") VALUES (:userId, :sampleId, :duracion, :completada)",
+            ['userId' => $userId, 'sampleId' => $sampleId, 'duracion' => $duracion, 'completada' => $completada ? 'true' : 'false']
+        );
+    }
+
+    /*
+     * Actualizar reproducción existente (para debounce).
+     */
+    public static function actualizarReproduccion(int $id, float $duracion, bool $completada): void
+    {
+        $tabla = ReproduccionesCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . ReproduccionesCols::DURACION_ESCUCHADA . " = :duracion, "
+            . ReproduccionesCols::COMPLETADA . " = :completada WHERE " . ReproduccionesCols::ID . " = :id",
+            ['id' => $id, 'duracion' => $duracion, 'completada' => $completada ? 'true' : 'false']
+        );
+    }
+
+    /*
+     * Listar historial de reproducciones de un usuario con datos completos del sample.
+     * Usa NormalizadorSample::sqlSelectSamples() para mantener consistencia de columnas.
+     */
+    public static function historialUsuario(int $userId, int $limit = 20, int $offset = 0): array
+    {
+        $sql = \App\Kamples\Api\Helpers\NormalizadorSample::sqlSelectSamples()
+             . " JOIN " . ReproduccionesCols::TABLA . " r ON r." . ReproduccionesCols::SAMPLE_ID . " = s.id"
+             . " WHERE r." . ReproduccionesCols::USUARIO_ID . " = :userId AND s.estado = 'activo'"
+             . " GROUP BY s.id, u.id, u.username, u.nombre_visible, u.avatar_url, u.verificado, u.wp_user_id"
+             . " ORDER BY MAX(r." . ReproduccionesCols::CREATED_AT . ") DESC LIMIT :limit OFFSET :offset";
+
+        return static::consultar($sql, ['userId' => $userId, 'limit' => $limit, 'offset' => $offset]);
+    }
 }

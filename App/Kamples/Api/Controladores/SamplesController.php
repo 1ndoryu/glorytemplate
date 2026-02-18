@@ -22,11 +22,11 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Database\Repositories\SamplesRepository;
 
 class SamplesController
 {
@@ -138,24 +138,12 @@ class SamplesController
 
         $whereSQL = \implode(' AND ', $where);
 
-        $totalRow = PostgresService::consultarUno(
-            "SELECT COUNT(*) as total FROM samples s
-             LEFT JOIN usuarios_ext u ON s.creador_id = u.id
-             WHERE {$whereSQL}",
-            $params
-        );
-        $total = $totalRow ? (int) $totalRow['total'] : 0;
-
-        $params['limit']  = $perPage;
-        $params['offset'] = $offset;
+        $total = SamplesRepository::contarConFiltros($whereSQL, $params);
 
         /* Obtener userId para subquery liked — null si no autenticado */
         $userId = UsuarioHelper::obtenerIdPg();
 
-        $sql = NormalizadorSample::sqlSelectSamples($userId)
-             . " WHERE {$whereSQL} ORDER BY s.publicado_at DESC NULLS LAST LIMIT :limit OFFSET :offset";
-
-        $samples = PostgresService::consultar($sql, $params);
+        $samples = SamplesRepository::listarConFiltros($userId, $whereSQL, $params, 'ORDER BY s.publicado_at DESC NULLS LAST', $perPage, $offset);
 
         /*
          * Envolver data + pagination bajo una clave 'data' para que
@@ -188,12 +176,7 @@ class SamplesController
          * El frontend muestra badge de estado si no es 'activo'.
          */
         $userId = UsuarioHelper::obtenerIdPg();
-        $sample = PostgresService::consultarUno(
-            NormalizadorSample::sqlSelectSamples($userId)
-            . " WHERE (LOWER(s.slug) = LOWER(:slug) OR s.id_corto = :slug)"
-            . " AND s.estado NOT IN ('eliminado')",
-            ['slug' => $slug]
-        );
+        $sample = SamplesRepository::obtenerPorSlugOIdCorto($slug, $userId);
 
         if ($sample === null) {
             KamplesLogger::debug('Sample no encontrado', ['slug' => $slug]);
@@ -266,10 +249,7 @@ class SamplesController
         /* Obtener userId para subquery liked en fallback */
         $userIdFallback = UsuarioHelper::obtenerIdPg();
 
-        $sql = NormalizadorSample::sqlSelectSamples($userIdFallback)
-             . " WHERE s.estado = 'activo' {$orderBy} LIMIT :limit OFFSET :offset";
-
-        $samples = PostgresService::consultar($sql, ['limit' => $perPage, 'offset' => $offset]);
+        $samples = SamplesRepository::listarFeed($userIdFallback, $orderBy, $perPage, $offset);
 
         return new \WP_REST_Response([
             'data' => NormalizadorSample::normalizarLista($samples),

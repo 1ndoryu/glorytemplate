@@ -12,12 +12,13 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\Database\Repositories\FollowsRepository;
 
 class PerfilController
 {
@@ -58,13 +59,7 @@ class PerfilController
     {
         $username = $request->get_param('username');
 
-        $perfil = PostgresService::consultarUno(
-            "SELECT id, wp_user_id, username, nombre_visible, bio, avatar_url, portada_url,
-                    plan, verificado, total_seguidores, total_seguidos,
-                    total_samples, total_descargas, created_at
-             FROM usuarios_ext WHERE username = :username",
-            ['username' => $username]
-        );
+        $perfil = UsuariosExtRepository::buscarPerfilPublico($username);
 
         if ($perfil === null) {
             return new \WP_REST_Response(['code' => 'perfil_no_encontrado', 'message' => 'El usuario no existe.'], 404);
@@ -90,16 +85,9 @@ class PerfilController
         /* Verificar si el usuario autenticado sigue a este perfil */
         $currentWp = AuthMiddleware::obtenerUsuarioActual();
         if ($currentWp) {
-            $currentPg = PostgresService::consultarUno(
-                "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
-                ['wpId' => $currentWp['wp_user_id']]
-            );
-            if ($currentPg && (int) $currentPg[UsuariosExtCols::ID] !== $normalizado['id']) {
-                $seguimiento = PostgresService::consultarUno(
-                    "SELECT 1 FROM follows WHERE seguidor_id = :seguidorId AND seguido_id = :seguidoId",
-                    ['seguidorId' => (int) $currentPg['id'], 'seguidoId' => $normalizado['id']]
-                );
-                $normalizado['siguiendo'] = $seguimiento !== null;
+            $currentPgId = UsuariosExtRepository::obtenerIdPorWpId($currentWp['wp_user_id']);
+            if ($currentPgId && $currentPgId !== $normalizado['id']) {
+                $normalizado['siguiendo'] = FollowsRepository::estaSiguiendo($currentPgId, $normalizado['id']);
             }
         }
 
@@ -116,10 +104,7 @@ class PerfilController
             return new \WP_REST_Response(['code' => 'no_auth', 'message' => 'No autenticado'], 401);
         }
 
-        $ext = PostgresService::consultarUno(
-            "SELECT * FROM usuarios_ext WHERE wp_user_id = :wpId",
-            ['wpId' => $wpUser['wp_user_id']]
-        );
+        $ext = UsuariosExtRepository::buscarPorWpId($wpUser['wp_user_id']);
 
         /*
          * Sincronizar avatar_url desde WP solo si el usuario no tiene un avatar custom.
@@ -130,32 +115,14 @@ class PerfilController
 
         if ($ext && !$tieneAvatarCustom && !empty($wpUser['avatar_url'])
             && ($ext[UsuariosExtCols::AVATAR_URL] ?? '') !== $wpUser['avatar_url']) {
-            PostgresService::ejecutar(
-                "UPDATE usuarios_ext SET avatar_url = :avatar, updated_at = NOW() WHERE wp_user_id = :wpId",
-                ['avatar' => $wpUser['avatar_url'], 'wpId' => $wpUser['wp_user_id']]
-            );
+            UsuariosExtRepository::actualizarAvatar($wpUser['wp_user_id'], $wpUser['avatar_url']);
             $ext[UsuariosExtCols::AVATAR_URL] = $wpUser['avatar_url'];
         }
 
         /* Auto-crear registro si no existe en Postgres */
         if (!$ext) {
-            $id = PostgresService::insertar(
-                "INSERT INTO usuarios_ext (wp_user_id, username, nombre_visible, email, avatar_url)
-                 VALUES (:wpId, :username, :nombre, :email, :avatar)
-                 RETURNING id",
-                [
-                    'wpId'     => $wpUser['wp_user_id'],
-                    'username' => $wpUser['username'],
-                    'nombre'   => $wpUser['display_name'],
-                    'email'    => $wpUser['email'],
-                    'avatar'   => $wpUser['avatar_url'],
-                ]
-            );
-
-            $ext = PostgresService::consultarUno(
-                "SELECT * FROM usuarios_ext WHERE id = :id",
-                ['id' => $id]
-            );
+            $id = UsuariosExtRepository::crearDesdeWP($wpUser);
+            $ext = UsuariosExtRepository::buscarPorId($id);
         }
 
         /* Normalizar a camelCase para el frontend */
@@ -272,18 +239,11 @@ class PerfilController
             return new \WP_REST_Response(['code' => 'sin_cambios', 'message' => 'No hay datos para actualizar'], 400);
         }
 
-        $setSQL = implode(', ', $campos);
-        PostgresService::ejecutar(
-            "UPDATE usuarios_ext SET {$setSQL}, updated_at = NOW() WHERE wp_user_id = :wpId",
-            $params
-        );
+        UsuariosExtRepository::actualizarPerfil($campos, $params);
 
         /* Devolver el perfil actualizado completo */
         $wpUser = AuthMiddleware::obtenerUsuarioActual();
-        $ext = PostgresService::consultarUno(
-            "SELECT * FROM usuarios_ext WHERE wp_user_id = :wpId",
-            ['wpId' => $wpUserId]
-        );
+        $ext = UsuariosExtRepository::buscarPorWpId($wpUserId);
         $normalizado = self::normalizarUsuario(array_merge($wpUser ?? [], $ext ?? []));
 
         return new \WP_REST_Response(['data' => $normalizado, 'ok' => true, 'message' => 'Perfil actualizado'], 200);
@@ -358,17 +318,11 @@ class PerfilController
         $avatarUrl = $uploadDir['baseurl'] . '/kamples/avatars/' . $wpUserId . '/' . $nombre;
 
         /* Actualizar en BD */
-        PostgresService::ejecutar(
-            "UPDATE usuarios_ext SET avatar_url = :avatar, updated_at = NOW() WHERE wp_user_id = :wpId",
-            ['avatar' => $avatarUrl, 'wpId' => $wpUserId]
-        );
+        UsuariosExtRepository::actualizarAvatar($wpUserId, $avatarUrl);
 
         /* Devolver perfil completo actualizado */
         $wpUser = AuthMiddleware::obtenerUsuarioActual();
-        $extData = PostgresService::consultarUno(
-            "SELECT * FROM usuarios_ext WHERE wp_user_id = :wpId",
-            ['wpId' => $wpUserId]
-        );
+        $extData = UsuariosExtRepository::buscarPorWpId($wpUserId);
         $normalizado = self::normalizarUsuario(array_merge($wpUser ?? [], $extData ?? []));
 
         return new \WP_REST_Response([

@@ -8,15 +8,19 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\ConversacionesCols;
 use App\Config\Schema\_generated\MensajesCols;
+use App\Kamples\Database\Repositories\ConversacionesRepository;
+use App\Kamples\Database\Repositories\MensajesRepository;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
 
 class MensajesController
 {
@@ -74,34 +78,17 @@ class MensajesController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $conversaciones = PostgresService::consultar(
-            "SELECT c.id,
-                    CASE WHEN c.participante_1 = :userId THEN c.participante_2 ELSE c.participante_1 END as otro_id,
-                    c.ultimo_mensaje_at, c.created_at
-             FROM conversaciones c
-             WHERE c.participante_1 = :userId OR c.participante_2 = :userId
-             ORDER BY c.ultimo_mensaje_at DESC NULLS LAST",
-            ['userId' => $userId]
-        );
+        $conversaciones = ConversacionesRepository::listarDeUsuario($userId);
 
         $resultado = [];
         foreach ($conversaciones as $conv) {
             $otroId = (int) $conv['otro_id'];
 
-            $otro = PostgresService::consultarUno(
-                "SELECT id, username, nombre_visible, avatar_url, verificado, wp_user_id FROM usuarios_ext WHERE id = :id",
-                ['id' => $otroId]
-            );
+            $otro = UsuariosExtRepository::buscarParticipante($otroId);
 
-            $ultimoMsg = PostgresService::consultarUno(
-                "SELECT contenido, tipo, created_at FROM mensajes WHERE conversacion_id = :convId ORDER BY created_at DESC LIMIT 1",
-                ['convId' => $conv[ConversacionesCols::ID]]
-            );
+            $ultimoMsg = MensajesRepository::ultimoDeConversacion((int) $conv[ConversacionesCols::ID]);
 
-            $noLeidos = PostgresService::consultarUno(
-                "SELECT COUNT(*) as total FROM mensajes WHERE conversacion_id = :convId AND autor_id != :userId AND leido = false",
-                ['convId' => $conv[ConversacionesCols::ID], 'userId' => $userId]
-            );
+            $noLeidos = MensajesRepository::contarNoLeidos((int) $conv[ConversacionesCols::ID], $userId);
 
             /* C193: fallback avatar */
             if ($otro) {
@@ -121,7 +108,7 @@ class MensajesController
                 'ultimoMensaje'   => $previewMsg,
                 'ultimoMensajeTipo' => $tipoUltimo,
                 'ultimoMensajeAt' => $ultimoMsg[MensajesCols::CREATED_AT] ?? $conv[ConversacionesCols::CREATED_AT],
-                'noLeidos'        => $noLeidos ? (int) $noLeidos['total'] : 0,
+                'noLeidos'        => $noLeidos,
                 'enLinea'         => false,
             ];
         }
@@ -139,23 +126,13 @@ class MensajesController
         $perPage = 50;
         $offset = ($page - 1) * $perPage;
 
-        $conv = PostgresService::consultarUno(
-            "SELECT id FROM conversaciones WHERE id = :convId AND (participante_1 = :userId OR participante_2 = :userId)",
-            ['convId' => $conversacionId, 'userId' => $userId]
-        );
+        $conv = ConversacionesRepository::verificarParticipacion($conversacionId, $userId);
 
         if (!$conv) {
             return new \WP_REST_Response(['code' => 'conversacion_no_encontrada'], 404);
         }
 
-        $mensajes = PostgresService::consultar(
-            "SELECT id, conversacion_id as \"conversacionId\", autor_id as \"remitenteId\",
-                    contenido, tipo, media_url as \"mediaUrl\", media_metadata as \"mediaMetadata\",
-                    leido, created_at as \"creadoAt\"
-             FROM mensajes WHERE conversacion_id = :convId
-             ORDER BY created_at ASC LIMIT :limit OFFSET :offset",
-            ['convId' => $conversacionId, 'limit' => $perPage, 'offset' => $offset]
-        );
+        $mensajes = MensajesRepository::listarDeConversacion($conversacionId, $perPage, $offset);
 
         /* Parsear mediaMetadata JSONB en cada mensaje */
         foreach ($mensajes as &$msg) {
@@ -289,10 +266,7 @@ class MensajesController
                 return new \WP_REST_Response(['code' => 'sample_invalido', 'message' => 'ID de sample inválido'], 400);
             }
 
-            $sample = PostgresService::consultarUno(
-                "SELECT id, titulo, id_corto, slug, tipo, bpm, key FROM samples WHERE id = :id AND estado = 'activo'",
-                ['id' => $sampleId]
-            );
+            $sample = SamplesRepository::buscarParaCompartir($sampleId);
 
             if (!$sample) {
                 return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
@@ -317,39 +291,20 @@ class MensajesController
         }
 
         /* Verificar participación en la conversación */
-        $conv = PostgresService::consultarUno(
-            "SELECT id FROM conversaciones WHERE id = :convId AND (participante_1 = :userId OR participante_2 = :userId)",
-            ['convId' => $conversacionId, 'userId' => $userId]
-        );
+        $conv = ConversacionesRepository::verificarParticipacion($conversacionId, $userId);
 
         if (!$conv) {
             return new \WP_REST_Response(['code' => 'conversacion_no_encontrada'], 404);
         }
 
         /* Insertar mensaje con soporte multimedia */
-        $msgId = PostgresService::insertar(
-            "INSERT INTO mensajes (conversacion_id, autor_id, contenido, tipo, media_url, media_metadata)
-             VALUES (:convId, :autorId, :contenido, :tipo, :mediaUrl, :mediaMetadata)
-             RETURNING id",
-            [
-                'convId' => $conversacionId, 'autorId' => $userId,
-                'contenido' => $contenido, 'tipo' => $tipo,
-                'mediaUrl' => $mediaUrl, 'mediaMetadata' => $mediaMetadata,
-            ]
+        $msgId = MensajesRepository::insertarMensaje(
+            $conversacionId, $userId, $contenido, $tipo, $mediaUrl, $mediaMetadata
         );
 
-        PostgresService::ejecutar(
-            "UPDATE conversaciones SET ultimo_mensaje_at = NOW() WHERE id = :convId",
-            ['convId' => $conversacionId]
-        );
+        ConversacionesRepository::actualizarUltimoMensaje($conversacionId);
 
-        $mensaje = PostgresService::consultarUno(
-            "SELECT id, conversacion_id as \"conversacionId\", autor_id as \"remitenteId\",
-                    contenido, tipo, media_url as \"mediaUrl\", media_metadata as \"mediaMetadata\",
-                    leido, created_at as \"creadoAt\"
-             FROM mensajes WHERE id = :id",
-            ['id' => $msgId]
-        );
+        $mensaje = MensajesRepository::obtenerNormalizado($msgId);
 
         /* Parsear mediaMetadata de string JSONB a objeto */
         if (isset($mensaje['mediaMetadata']) && is_string($mensaje['mediaMetadata'])) {
@@ -366,10 +321,7 @@ class MensajesController
 
         $conversacionId = (int) $request->get_param('conversacionId');
 
-        PostgresService::ejecutar(
-            "UPDATE mensajes SET leido = true WHERE conversacion_id = :convId AND autor_id != :userId AND leido = false",
-            ['convId' => $conversacionId, 'userId' => $userId]
-        );
+        MensajesRepository::marcarLeidos($conversacionId, $userId);
 
         return new \WP_REST_Response(['ok' => true], 200);
     }
@@ -396,28 +348,19 @@ class MensajesController
         $p1 = min($userId, $otroId);
         $p2 = max($userId, $otroId);
 
-        $existente = PostgresService::consultarUno(
-            "SELECT id FROM conversaciones WHERE participante_1 = :p1 AND participante_2 = :p2",
-            ['p1' => $p1, 'p2' => $p2]
-        );
+        $existente = ConversacionesRepository::buscarEntreUsuarios($p1, $p2);
 
         if ($existente) {
-            return new \WP_REST_Response(['data' => ['id' => (int) $existente['id']]], 200);
+            return new \WP_REST_Response(['data' => ['id' => (int) $existente[ConversacionesCols::ID]]], 200);
         }
 
-        $convId = PostgresService::insertar(
-            "INSERT INTO conversaciones (participante_1, participante_2) VALUES (:p1, :p2) RETURNING id",
-            ['p1' => $p1, 'p2' => $p2]
-        );
+        $convId = ConversacionesRepository::crear($p1, $p2);
 
-        $otro = PostgresService::consultarUno(
-            "SELECT id, username, nombre_visible, avatar_url, verificado, wp_user_id FROM usuarios_ext WHERE id = :id",
-            ['id' => $otroId]
-        );
+        $otro = UsuariosExtRepository::buscarParticipante($otroId);
 
         /* C193: fallback avatar */
         if ($otro) {
-            $otro['avatar_url'] = UsuarioHelper::resolverAvatarUrl($otro['avatar_url'] ?? null, (int) ($otro['wp_user_id'] ?? 0));
+            $otro[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl($otro[UsuariosExtCols::AVATAR_URL] ?? null, (int) ($otro[UsuariosExtCols::WP_USER_ID] ?? 0));
         }
 
         return new \WP_REST_Response([

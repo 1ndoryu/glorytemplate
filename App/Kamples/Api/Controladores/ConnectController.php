@@ -13,12 +13,12 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\StripeService;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class ConnectController
 {
@@ -93,10 +93,7 @@ class ConnectController
 
             /* Actualizar rol a creador si aún es 'usuario' */
             if (($usuario[UsuariosExtCols::ROL] ?? 'usuario') === 'usuario') {
-                PostgresService::ejecutar(
-                    "UPDATE usuarios_ext SET rol = 'creador' WHERE id = :id",
-                    ['id' => $userId]
-                );
+                UsuariosExtRepository::cambiarRol($userId, 'creador');
             }
         }
 

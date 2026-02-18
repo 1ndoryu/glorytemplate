@@ -8,7 +8,6 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
@@ -17,6 +16,12 @@ use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\PublicacionesCols;
+use App\Config\Schema\_generated\LikesEnums;
+use App\Kamples\Database\Repositories\FollowsRepository;
+use App\Kamples\Database\Repositories\LikesRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\PublicacionesRepository;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class SocialController
 {
@@ -71,10 +76,7 @@ class SocialController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $seguidos = PostgresService::consultar(
-            "SELECT seguido_id AS id FROM follows WHERE seguidor_id = :userId",
-            ['userId' => $userId]
-        );
+        $seguidos = FollowsRepository::idsSeguidos($userId);
 
         $ids = array_map(fn($row) => ['id' => (int) $row['id']], $seguidos);
         return new \WP_REST_Response(['data' => $ids], 200);
@@ -96,20 +98,12 @@ class SocialController
         }
 
         /* Verificar que el usuario target existe */
-        $targetExiste = PostgresService::consultarUno(
-            "SELECT id FROM usuarios_ext WHERE id = :id",
-            ['id' => $targetId]
-        );
-        if (!$targetExiste) {
+        if (!UsuariosExtRepository::existe(['id' => $targetId])) {
             return new \WP_REST_Response(['code' => 'usuario_no_encontrado', 'message' => 'El usuario no existe'], 404);
         }
 
-        PostgresService::ejecutar(
-            "INSERT INTO follows (seguidor_id, seguido_id) VALUES (:seguidor, :seguido) ON CONFLICT DO NOTHING",
-            ['seguidor' => $seguidorId, 'seguido' => $targetId]
-        );
-
-        self::actualizarContadoresFollow($seguidorId, $targetId);
+        FollowsRepository::seguir($seguidorId, $targetId);
+        FollowsRepository::actualizarContadores($seguidorId, $targetId);
 
         /* C266: Notificacion de nuevo seguidor (centralizada, excluye auto-follow) */
         ServicioNotificaciones::follow($targetId, $seguidorId);
@@ -127,12 +121,8 @@ class SocialController
 
         $targetId = (int) $request->get_param('userId');
 
-        PostgresService::ejecutar(
-            "DELETE FROM follows WHERE seguidor_id = :seguidor AND seguido_id = :seguido",
-            ['seguidor' => $seguidorId, 'seguido' => $targetId]
-        );
-
-        self::actualizarContadoresFollow($seguidorId, $targetId);
+        FollowsRepository::dejarDeSeguir($seguidorId, $targetId);
+        FollowsRepository::actualizarContadores($seguidorId, $targetId);
 
         return new \WP_REST_Response(['ok' => true], 200);
     }
@@ -151,16 +141,16 @@ class SocialController
         $reaccion = sanitize_text_field($request->get_param('reaccion') ?? 'like');
 
         /* Validar reacción */
-        if (!in_array($reaccion, ['like', 'dislike', 'encanta'], true)) {
-            $reaccion = 'like';
+        $reaccionesValidas = [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_DISLIKE, LikesEnums::REACCION_ENCANTA];
+        if (!in_array($reaccion, $reaccionesValidas, true)) {
+            $reaccion = LikesEnums::REACCION_LIKE;
         }
 
         /* Verificar que el target existe antes de crear la reacción */
-        $tablaTarget = $tipo === 'publicacion' ? 'publicaciones' : 'samples';
-        $targetExiste = PostgresService::consultarUno(
-            "SELECT id FROM {$tablaTarget} WHERE id = :id",
-            ['id' => $targetId]
-        );
+        $targetExiste = $tipo === LikesEnums::TIPO_PUBLICACION
+            ? PublicacionesRepository::existe(['id' => $targetId])
+            : SamplesRepository::existe(['id' => $targetId]);
+
         if (!$targetExiste) {
             return new \WP_REST_Response(['code' => 'target_no_encontrado', 'message' => 'El contenido no existe'], 404);
         }
@@ -169,31 +159,18 @@ class SocialController
          * C144/C145: UPSERT — si ya existe una reacción, la actualiza.
          * Un usuario solo puede tener UNA reacción por target.
          */
-        PostgresService::ejecutar(
-            "INSERT INTO likes (usuario_id, tipo, target_id, reaccion)
-             VALUES (:usuario, :tipo, :target, :reaccion)
-             ON CONFLICT (usuario_id, tipo, target_id) DO UPDATE SET reaccion = :reaccion2, created_at = NOW()",
-            ['usuario' => $userId, 'tipo' => $tipo, 'target' => $targetId, 'reaccion' => $reaccion, 'reaccion2' => $reaccion]
-        );
+        LikesRepository::upsertReaccion($userId, $tipo, $targetId, $reaccion);
 
         /*
          * Recalcular total_likes: solo cuenta 'like' y 'encanta', NO 'dislike'.
          * Los dislikes no tienen contador público (C144).
          */
-        if ($tipo === 'sample') {
-            PostgresService::ejecutar(
-                "UPDATE samples SET total_likes = (
-                    SELECT COUNT(*) FROM likes WHERE tipo = 'sample' AND target_id = :id AND reaccion IN ('like', 'encanta')
-                ) WHERE id = :id",
-                ['id' => $targetId]
-            );
+        if ($tipo === LikesEnums::TIPO_SAMPLE) {
+            LikesRepository::recalcularTotalSample($targetId);
 
             /* Notificacion al creador (solo para like/encanta, no dislike) — C266 centralizado */
-            if ($reaccion !== 'dislike') {
-                $sample = PostgresService::consultarUno(
-                    "SELECT creador_id, titulo, slug FROM samples WHERE id = :id",
-                    ['id' => $targetId]
-                );
+            if ($reaccion !== LikesEnums::REACCION_DISLIKE) {
+                $sample = SamplesRepository::buscarInfoNotificacion($targetId);
                 if ($sample) {
                     ServicioNotificaciones::likeSample(
                         (int) $sample[SamplesCols::CREADOR_ID],
@@ -205,20 +182,12 @@ class SocialController
                     );
                 }
             }
-        } elseif ($tipo === 'publicacion') {
-            PostgresService::ejecutar(
-                "UPDATE publicaciones SET total_likes = (
-                    SELECT COUNT(*) FROM likes WHERE tipo = 'publicacion' AND target_id = :id AND reaccion IN ('like', 'encanta')
-                ) WHERE id = :id",
-                ['id' => $targetId]
-            );
+        } elseif ($tipo === LikesEnums::TIPO_PUBLICACION) {
+            LikesRepository::recalcularTotalPublicacion($targetId);
 
             /* C266: Notificacion de like en publicacion */
-            if ($reaccion !== 'dislike') {
-                $pub = PostgresService::consultarUno(
-                    "SELECT autor_id FROM publicaciones WHERE id = :id",
-                    ['id' => $targetId]
-                );
+            if ($reaccion !== LikesEnums::REACCION_DISLIKE) {
+                $pub = PublicacionesRepository::buscarPorId($targetId);
                 if ($pub) {
                     ServicioNotificaciones::likePublicacion(
                         (int) $pub[PublicacionesCols::AUTOR_ID],
@@ -247,43 +216,18 @@ class SocialController
         $tipo     = sanitize_text_field($request->get_param('tipo'));
         $targetId = (int) $request->get_param('target_id');
 
-        PostgresService::ejecutar(
-            "DELETE FROM likes WHERE usuario_id = :usuario AND tipo = :tipo AND target_id = :target",
-            ['usuario' => $userId, 'tipo' => $tipo, 'target' => $targetId]
-        );
+        LikesRepository::eliminarReaccion($userId, $tipo, $targetId);
 
         /* Recalcular total_likes (solo like+encanta, sin dislikes) */
-        if ($tipo === 'sample') {
-            PostgresService::ejecutar(
-                "UPDATE samples SET total_likes = (
-                    SELECT COUNT(*) FROM likes WHERE tipo = 'sample' AND target_id = :id AND reaccion IN ('like', 'encanta')
-                ) WHERE id = :id",
-                ['id' => $targetId]
-            );
-        } elseif ($tipo === 'publicacion') {
-            PostgresService::ejecutar(
-                "UPDATE publicaciones SET total_likes = (
-                    SELECT COUNT(*) FROM likes WHERE tipo = 'publicacion' AND target_id = :id AND reaccion IN ('like', 'encanta')
-                ) WHERE id = :id",
-                ['id' => $targetId]
-            );
+        if ($tipo === LikesEnums::TIPO_SAMPLE) {
+            LikesRepository::recalcularTotalSample($targetId);
+        } elseif ($tipo === LikesEnums::TIPO_PUBLICACION) {
+            LikesRepository::recalcularTotalPublicacion($targetId);
         }
 
         /* Invalidar cache del feed para que el algoritmo recalcule */
         MotorRecomendacion::invalidarCache($userId);
 
         return new \WP_REST_Response(['ok' => true, 'reaccion' => null], 200);
-    }
-
-    private static function actualizarContadoresFollow(int $seguidorId, int $seguidoId): void
-    {
-        PostgresService::ejecutar(
-            "UPDATE usuarios_ext SET total_seguidores = (SELECT COUNT(*) FROM follows WHERE seguido_id = :id) WHERE id = :id",
-            ['id' => $seguidoId]
-        );
-        PostgresService::ejecutar(
-            "UPDATE usuarios_ext SET total_seguidos = (SELECT COUNT(*) FROM follows WHERE seguidor_id = :id) WHERE id = :id",
-            ['id' => $seguidorId]
-        );
     }
 }

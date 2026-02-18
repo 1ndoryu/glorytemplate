@@ -13,10 +13,10 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class AuthController
 {
@@ -184,13 +184,7 @@ class AuthController
         $displayName  = $wpData->display_name ?: $username;
 
         /* Verificar si ya existe en PG */
-        $existing = PostgresService::consultarUno(
-            "SELECT id, wp_user_id, username, nombre_visible, bio, avatar_url, portada_url,
-                    plan, verificado, total_seguidores, total_seguidos,
-                    total_samples, total_descargas, rol, created_at
-             FROM usuarios_ext WHERE wp_user_id = :wpId",
-            ['wpId' => $wpId]
-        );
+        $existing = UsuariosExtRepository::buscarPorWpId($wpId);
 
         if ($existing) {
             return self::normalizarUsuario($existing);
@@ -198,25 +192,15 @@ class AuthController
 
         /* Crear registro nuevo — C193: incluir avatar_url de WP */
         $avatarWp = get_avatar_url($wpId, ['size' => 256]) ?: null;
-        PostgresService::ejecutar(
-            "INSERT INTO usuarios_ext (wp_user_id, username, email, nombre_visible, avatar_url, plan, rol, created_at)
-             VALUES (:wpId, :username, :email, :nombre, :avatar, 'free', 'user', NOW())",
-            [
-                'wpId'    => $wpId,
-                'username' => $username,
-                'email'    => $email,
-                'nombre'   => $displayName,
-                'avatar'   => $avatarWp,
-            ]
-        );
+        UsuariosExtRepository::crearDesdeWP([
+            'wpId'    => $wpId,
+            'username' => $username,
+            'email'    => $email,
+            'nombre'   => $displayName,
+            'avatar'   => $avatarWp,
+        ]);
 
-        $nuevo = PostgresService::consultarUno(
-            "SELECT id, wp_user_id, username, nombre_visible, bio, avatar_url, portada_url,
-                    plan, verificado, total_seguidores, total_seguidos,
-                    total_samples, total_descargas, rol, created_at
-             FROM usuarios_ext WHERE wp_user_id = :wpId",
-            ['wpId' => $wpId]
-        );
+        $nuevo = UsuariosExtRepository::buscarPorWpId($wpId);
 
         return $nuevo ? self::normalizarUsuario($nuevo) : ['id' => 0, 'username' => $username];
     }

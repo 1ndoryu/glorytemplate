@@ -11,13 +11,17 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\ConversacionesCols;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\NotificacionesRepository;
+use App\Kamples\Database\Repositories\ConversacionesRepository;
+use App\Kamples\Database\Repositories\MensajesRepository;
 
 class ExperimentosController
 {
@@ -119,10 +123,7 @@ class ExperimentosController
     private static function obtenerOcrearUsuarioTest(): ?int
     {
         /* Buscar si ya existe en usuarios_ext */
-        $existente = PostgresService::consultarUno(
-            "SELECT id FROM usuarios_ext WHERE username = :username",
-            ['username' => self::TEST_USERNAME]
-        );
+        $existente = UsuariosExtRepository::buscarPorUsername(self::TEST_USERNAME);
 
         if ($existente) {
             return (int) $existente[UsuariosExtCols::ID];
@@ -150,22 +151,16 @@ class ExperimentosController
             . '&background=6366f1&color=fff&size=128&bold=true';
 
         /* Insertar en usuarios_ext */
-        $row = PostgresService::consultarUno(
-            "INSERT INTO usuarios_ext (wp_user_id, username, email, nombre_visible, bio, avatar_url, plan, rol)
-             VALUES (:wpId, :username, :email, :nombre, :bio, :avatar, 'free', 'usuario')
-             ON CONFLICT (wp_user_id) DO UPDATE SET username = EXCLUDED.username
-             RETURNING id",
-            [
-                'wpId'     => $wpUserId,
-                'username' => self::TEST_USERNAME,
-                'email'    => self::TEST_EMAIL,
-                'nombre'   => self::TEST_DISPLAY,
-                'bio'      => self::TEST_BIO,
-                'avatar'   => $avatarUrl,
-            ]
-        );
+        $id = UsuariosExtRepository::crearConConflict([
+            'wpId'     => $wpUserId,
+            'username' => self::TEST_USERNAME,
+            'email'    => self::TEST_EMAIL,
+            'nombre'   => self::TEST_DISPLAY,
+            'bio'      => self::TEST_BIO,
+            'avatar'   => $avatarUrl,
+        ]);
 
-        return $row ? (int) $row[UsuariosExtCols::ID] : null;
+        return $id;
     }
 
     /**
@@ -185,10 +180,7 @@ class ExperimentosController
 
             case 'like':
                 /* Buscar un sample del admin para simular like */
-                $sample = PostgresService::consultarUno(
-                    "SELECT id FROM samples WHERE creador_id = :userId ORDER BY created_at DESC LIMIT 1",
-                    ['userId' => $adminPgId]
-                );
+                $sample = SamplesRepository::obtenerUltimoDelCreador($adminPgId);
                 $sampleId = $sample ? (int) $sample[SamplesCols::ID] : 1;
                 $datos = json_encode([
                     'liker_id'  => $testUserId,
@@ -207,15 +199,7 @@ class ExperimentosController
                 $datos = json_encode(['actor_id' => $testUserId]);
         }
 
-        PostgresService::ejecutar(
-            "INSERT INTO notificaciones (usuario_id, tipo, datos)
-             VALUES (:userId, :tipo, :datos::jsonb)",
-            [
-                'userId' => $adminPgId,
-                'tipo'   => $tipo,
-                'datos'  => $datos,
-            ]
-        );
+        NotificacionesRepository::crear($adminPgId, $tipo, $datos);
 
         return [
             'tipo'    => $tipo,
@@ -246,21 +230,12 @@ class ExperimentosController
         $p1 = min($adminPgId, $testUserId);
         $p2 = max($adminPgId, $testUserId);
 
-        $conv = PostgresService::consultarUno(
-            "SELECT id FROM conversaciones WHERE participante_1 = :p1 AND participante_2 = :p2",
-            ['p1' => $p1, 'p2' => $p2]
-        );
+        $conv = ConversacionesRepository::buscarEntreUsuarios($p1, $p2);
 
         if ($conv) {
             $convId = (int) $conv[ConversacionesCols::ID];
         } else {
-            $nuevaConv = PostgresService::consultarUno(
-                "INSERT INTO conversaciones (participante_1, participante_2)
-                 VALUES (:p1, :p2)
-                 RETURNING id",
-                ['p1' => $p1, 'p2' => $p2]
-            );
-            $convId = $nuevaConv ? (int) $nuevaConv[ConversacionesCols::ID] : null;
+            $convId = ConversacionesRepository::crear($p1, $p2);
 
             if (!$convId) {
                 return ['error' => 'No se pudo crear la conversación'];
@@ -268,21 +243,10 @@ class ExperimentosController
         }
 
         /* Insertar mensaje del test user */
-        PostgresService::ejecutar(
-            "INSERT INTO mensajes (conversacion_id, autor_id, contenido, tipo)
-             VALUES (:conv, :autor, :contenido, 'texto')",
-            [
-                'conv'      => $convId,
-                'autor'     => $testUserId,
-                'contenido' => $contenido,
-            ]
-        );
+        MensajesRepository::insertarMensaje($convId, $testUserId, $contenido, 'texto', null, null);
 
         /* Actualizar timestamp de la conversación */
-        PostgresService::ejecutar(
-            "UPDATE conversaciones SET ultimo_mensaje_at = NOW() WHERE id = :id",
-            ['id' => $convId]
-        );
+        ConversacionesRepository::actualizarUltimoMensaje($convId);
 
         return [
             'conversacionId' => $convId,

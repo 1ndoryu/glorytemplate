@@ -17,18 +17,23 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\ComentariosCols;
+use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ServicioAntiSpam;
 use App\Kamples\Services\ServicioBan;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\LogModeracion as KamplesLogger;
+use App\Kamples\Database\Repositories\ComentariosRepository;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\PublicacionesRepository;
 
 class ComentariosEscrituraController
 {
@@ -107,47 +112,29 @@ class ComentariosEscrituraController
 
         /* S27 fix: validar que el padre pertenece al mismo tipo+targetId */
         if ($parentId) {
-            $padreValido = PostgresService::consultarUno(
-                "SELECT id FROM comentarios WHERE id = :id AND tipo = :tipo AND target_id = :targetId",
-                ['id' => $parentId, 'tipo' => $tipo, 'targetId' => $targetId]
-            );
-            if (!$padreValido) {
+            if (!ComentariosRepository::validarPadre($parentId, $tipo, $targetId)) {
                 return new \WP_REST_Response(['code' => 'parent_invalido', 'message' => 'Comentario padre no encontrado en este contexto'], 400);
             }
         }
 
-        $id = PostgresService::insertar(
-            "INSERT INTO comentarios (autor_id, tipo, target_id, contenido, tipo_contenido, media_url, media_metadata, parent_id)
-             VALUES (:autor, :tipo, :target, :contenido, :tipoContenido, :mediaUrl, :mediaMetadata::jsonb, :parentId)
-             RETURNING id",
-            [
-                'autor' => $userId,
-                'tipo' => $tipo,
-                'target' => $targetId,
-                'contenido' => $contenido,
-                'tipoContenido' => $tipoContenido,
-                'mediaUrl' => $mediaUrl,
-                'mediaMetadata' => $mediaMetadata,
-                'parentId' => $parentId,
-            ]
-        );
+        $id = ComentariosRepository::insertarComentario([
+            'autor' => $userId,
+            'tipo' => $tipo,
+            'target' => $targetId,
+            'contenido' => $contenido,
+            'tipoContenido' => $tipoContenido,
+            'mediaUrl' => $mediaUrl,
+            'mediaMetadata' => $mediaMetadata,
+            'parentId' => $parentId,
+        ]);
 
         /* C265: Si es respuesta, incrementar total_respuestas del padre */
         if ($parentId) {
-            PostgresService::ejecutar(
-                "UPDATE comentarios SET total_respuestas = COALESCE(total_respuestas, 0) + 1 WHERE id = :parentId",
-                ['parentId' => $parentId]
-            );
+            ComentariosRepository::incrementarRespuestas($parentId);
         }
 
         /* Actualizar contador en la tabla correspondiente */
-        $tabla = $tipo === 'publicacion' ? 'publicaciones' : 'samples';
-        PostgresService::ejecutar(
-            "UPDATE {$tabla} SET total_comentarios = (
-                SELECT COUNT(*) FROM comentarios WHERE tipo = :tipo AND target_id = :targetId
-            ) WHERE id = :targetId",
-            ['tipo' => $tipo, 'targetId' => $targetId]
-        );
+        ComentariosRepository::recalcularTotalEnTarget($tipo, $targetId);
 
         PlanificadorAlgoritmo::registrarInteraccion($userId, 'comentario');
 
@@ -175,10 +162,7 @@ class ComentariosEscrituraController
         });
 
         /* Datos del autor para respuesta completa */
-        $usuario = PostgresService::consultarUno(
-            "SELECT id, username, nombre_visible, avatar_url, wp_user_id FROM usuarios_ext WHERE id = :id",
-            ['id' => $userId]
-        );
+        $usuario = UsuariosExtRepository::buscarParticipante($userId);
 
         return new \WP_REST_Response([
             'ok' => true,
@@ -215,37 +199,28 @@ class ComentariosEscrituraController
 
         $id = (int) $request->get_param('id');
 
-        $comentario = PostgresService::consultarUno(
-            "SELECT id, autor_id, parent_id, tipo, target_id FROM comentarios WHERE id = :id",
-            ['id' => $id]
-        );
+        $comentario = ComentariosRepository::buscarParaEliminar($id);
 
         if (!$comentario) {
             return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
         }
 
-        $esAutor = (int) $comentario['autor_id'] === $userId;
+        $esAutor = (int) $comentario[ComentariosCols::AUTOR_ID] === $userId;
         $esAdmin = \current_user_can('manage_options');
 
         if (!$esAutor && !$esAdmin) {
             return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
         }
 
-        if ($comentario['parent_id']) {
-            PostgresService::ejecutar(
-                "UPDATE comentarios SET total_respuestas = GREATEST(0, COALESCE(total_respuestas, 0) - 1) WHERE id = :parentId",
-                ['parentId' => (int) $comentario['parent_id']]
-            );
+        if ($comentario[ComentariosCols::PARENT_ID]) {
+            ComentariosRepository::decrementarRespuestas((int) $comentario[ComentariosCols::PARENT_ID]);
         }
 
-        PostgresService::ejecutar("DELETE FROM comentarios WHERE id = :id", ['id' => $id]);
+        ComentariosRepository::eliminarComentario($id);
 
-        $tabla = $comentario['tipo'] === 'publicacion' ? 'publicaciones' : 'samples';
-        PostgresService::ejecutar(
-            "UPDATE {$tabla} SET total_comentarios = (
-                SELECT COUNT(*) FROM comentarios WHERE tipo = :tipo AND target_id = :targetId
-            ) WHERE id = :targetId",
-            ['tipo' => $comentario['tipo'], 'targetId' => (int) $comentario['target_id']]
+        ComentariosRepository::recalcularTotalEnTarget(
+            $comentario[ComentariosCols::TIPO],
+            (int) $comentario[ComentariosCols::TARGET_ID]
         );
 
         return new \WP_REST_Response(['ok' => true], 200);
@@ -258,15 +233,15 @@ class ComentariosEscrituraController
     private static function notificarComentario(string $tipo, int $targetId, ?int $parentId, int $userId): void
     {
         if ($parentId) {
-            $padre = PostgresService::consultarUno("SELECT autor_id FROM comentarios WHERE id = :id", ['id' => $parentId]);
-            if ($padre && (int) $padre['autor_id'] !== $userId) {
+            $padreAutorId = ComentariosRepository::buscarAutorId($parentId);
+            if ($padreAutorId && $padreAutorId !== $userId) {
                 $sampleSlug = null;
                 if ($tipo === 'sample') {
-                    $sInfo = PostgresService::consultarUno("SELECT slug FROM samples WHERE id = :id", ['id' => $targetId]);
-                    $sampleSlug = $sInfo['slug'] ?? null;
+                    $sInfo = SamplesRepository::buscarInfoNotificacion($targetId);
+                    $sampleSlug = $sInfo[SamplesCols::SLUG] ?? null;
                 }
                 ServicioNotificaciones::respuestaComentario(
-                    (int) $padre['autor_id'], $userId, $parentId,
+                    $padreAutorId, $userId, $parentId,
                     $tipo === 'sample' ? $targetId : null, $sampleSlug
                 );
             }
@@ -274,24 +249,18 @@ class ComentariosEscrituraController
         }
 
         if ($tipo === 'sample') {
-            $sampleInfo = PostgresService::consultarUno(
-                "SELECT creador_id, titulo, slug FROM samples WHERE id = :id",
-                ['id' => $targetId]
-            );
-            if ($sampleInfo && (int) $sampleInfo['creador_id'] !== $userId) {
+            $sampleInfo = SamplesRepository::buscarInfoNotificacion($targetId);
+            if ($sampleInfo && (int) $sampleInfo[SamplesCols::CREADOR_ID] !== $userId) {
                 ServicioNotificaciones::nuevoComentario(
-                    (int) $sampleInfo['creador_id'], $userId, $targetId,
-                    $sampleInfo['titulo'] ?? '', $sampleInfo['slug'] ?? null
+                    (int) $sampleInfo[SamplesCols::CREADOR_ID], $userId, $targetId,
+                    $sampleInfo[SamplesCols::TITULO] ?? '', $sampleInfo[SamplesCols::SLUG] ?? null
                 );
             }
         } elseif ($tipo === 'publicacion') {
-            $pubInfo = PostgresService::consultarUno(
-                "SELECT autor_id FROM publicaciones WHERE id = :id",
-                ['id' => $targetId]
-            );
-            if ($pubInfo && (int) $pubInfo['autor_id'] !== $userId) {
+            $pubAutorId = PublicacionesRepository::buscarAutorId($targetId);
+            if ($pubAutorId && $pubAutorId !== $userId) {
                 ServicioNotificaciones::crear(
-                    (int) $pubInfo['autor_id'], 'comentario',
+                    $pubAutorId, 'comentario',
                     'Alguien comento en tu publicacion',
                     ['commenter_id' => $userId, 'publicacion_id' => $targetId],
                     $userId, '', "/post/{$targetId}/"

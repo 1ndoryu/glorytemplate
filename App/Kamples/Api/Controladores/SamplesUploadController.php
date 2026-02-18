@@ -13,7 +13,6 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\UsuarioHelper;
@@ -22,6 +21,8 @@ use App\Kamples\Api\GeneradorIdCorto;
 use App\Kamples\Api\PipelineAudio;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class SamplesUploadController
 {
@@ -153,13 +154,7 @@ class SamplesUploadController
         $tagsPostgres = NormalizadorSample::phpArrayToPg(\array_map('\sanitize_text_field', $tags));
 
         try {
-            $resultado = PostgresService::consultarUno(
-                "INSERT INTO samples (creador_id, titulo, slug, id_corto, descripcion, formato, tamano,
-                 ruta_original, estado, es_premium, precio, tags, permitir_descarga, licencia_libre, mostrar_en_comunidad, publicado_at, created_at, updated_at)
-                 VALUES (:creadorId, :titulo, :slug, :idCorto, :descripcion, :formato, :tamano,
-                 :rutaOriginal, 'procesando', :esPremium, :precio, :tags, :descarga, :licencia, :comunidad, NOW(), NOW(), NOW())
-                 RETURNING id",
-                [
+            $sampleId = SamplesRepository::insertarSample([
                     'creadorId' => $userId, 'titulo' => $titulo, 'slug' => $slug,
                     'idCorto' => $idCorto, 'descripcion' => $contenido,
                     'formato' => \strtolower(\pathinfo($audio['name'], PATHINFO_EXTENSION)),
@@ -170,9 +165,7 @@ class SamplesUploadController
                     'descarga' => $permitirDescarga ? 'true' : 'false',
                     'licencia' => $licenciaLibre ? 'true' : 'false',
                     'comunidad' => $mostrarEnComunidad ? 'true' : 'false',
-                ]
-            );
-            $sampleId = $resultado[SamplesCols::ID] ?? null;
+            ]);
         } catch (\Exception $e) {
             KamplesLogger::error('Error al insertar sample en Postgres', ['error' => $e->getMessage()]);
             /* S22 fix: limpiar archivo huérfano y retornar error real */
@@ -185,10 +178,7 @@ class SamplesUploadController
         /* C198: Sumar 1 crédito bonus por publicar sample */
         if ($sampleId) {
             try {
-                PostgresService::ejecutar(
-                    "UPDATE usuarios_ext SET creditos_bonus = creditos_bonus + 1 WHERE id = :userId",
-                    ['userId' => $userId]
-                );
+                UsuariosExtRepository::incrementarCreditosBonus($userId);
             } catch (\Exception $e) {
                 KamplesLogger::warning('No se pudo sumar crédito bonus al publicar sample', ['error' => $e->getMessage()]);
             }

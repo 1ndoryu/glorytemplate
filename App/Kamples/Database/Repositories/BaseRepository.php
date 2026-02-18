@@ -233,4 +233,12 @@ abstract class BaseRepository
     {
         return PostgresService::revertir();
     }
+
+    /*
+     * Health check de conexión a base de datos.
+     */
+    public static function estaConectado(): bool
+    {
+        return PostgresService::estaConectado();
+    }
 }

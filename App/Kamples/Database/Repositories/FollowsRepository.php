@@ -13,6 +13,7 @@ namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\FollowsCols;
 use App\Config\Schema\_generated\FollowsDTO;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class FollowsRepository extends BaseRepository
 {
@@ -21,9 +22,10 @@ class FollowsRepository extends BaseRepository
         return FollowsCols::TABLA;
     }
 
+    /* PK compuesta (seguidor_id, seguido_id) */
     protected static function colId(): string
     {
-        return FollowsCols::ID;
+        return FollowsCols::SEGUIDOR_ID;
     }
 
     /*
@@ -41,5 +43,90 @@ class FollowsRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    /* Agregar metodos custom aqui (queries complejas, JOINs, CTEs, etc.) */
+    /*
+     * Obtener IDs de usuarios que el usuario sigue.
+     */
+    public static function idsSeguidos(int $seguidorId): array
+    {
+        $tabla = FollowsCols::TABLA;
+
+        return static::consultar(
+            "SELECT " . FollowsCols::SEGUIDO_ID . " AS id FROM {$tabla} WHERE " . FollowsCols::SEGUIDOR_ID . " = :userId",
+            ['userId' => $seguidorId]
+        );
+    }
+
+    /*
+     * Seguir a un usuario (ON CONFLICT DO NOTHING para idempotencia).
+     */
+    public static function seguir(int $seguidorId, int $seguidoId): void
+    {
+        $tabla = FollowsCols::TABLA;
+
+        static::ejecutar(
+            "INSERT INTO {$tabla} (" . FollowsCols::SEGUIDOR_ID . ", " . FollowsCols::SEGUIDO_ID . ") VALUES (:seguidor, :seguido) ON CONFLICT DO NOTHING",
+            ['seguidor' => $seguidorId, 'seguido' => $seguidoId]
+        );
+    }
+
+    /*
+     * Dejar de seguir a un usuario.
+     */
+    public static function dejarDeSeguir(int $seguidorId, int $seguidoId): void
+    {
+        $tabla = FollowsCols::TABLA;
+
+        static::ejecutar(
+            "DELETE FROM {$tabla} WHERE " . FollowsCols::SEGUIDOR_ID . " = :seguidor AND " . FollowsCols::SEGUIDO_ID . " = :seguido",
+            ['seguidor' => $seguidorId, 'seguido' => $seguidoId]
+        );
+    }
+
+    /*
+     * Recalcular contadores de seguidores/seguidos en usuarios_ext.
+     */
+    public static function actualizarContadores(int $seguidorId, int $seguidoId): void
+    {
+        $tf = FollowsCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tu} SET " . UsuariosExtCols::TOTAL_SEGUIDORES . " = (SELECT COUNT(*) FROM {$tf} WHERE " . FollowsCols::SEGUIDO_ID . " = :id) WHERE " . UsuariosExtCols::ID . " = :id",
+            ['id' => $seguidoId]
+        );
+        static::ejecutar(
+            "UPDATE {$tu} SET " . UsuariosExtCols::TOTAL_SEGUIDOS . " = (SELECT COUNT(*) FROM {$tf} WHERE " . FollowsCols::SEGUIDOR_ID . " = :id) WHERE " . UsuariosExtCols::ID . " = :id",
+            ['id' => $seguidorId]
+        );
+    }
+
+    /*
+     * Contar nuevos seguidores del mes actual para un usuario.
+     */
+    public static function seguidoresNuevosMes(int $userId): int
+    {
+        $tabla = FollowsCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$tabla} WHERE " . FollowsCols::SEGUIDO_ID . " = :userId"
+            . " AND " . FollowsCols::CREATED_AT . " >= date_trunc('month', NOW())",
+            ['userId' => $userId]
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /*
+     * Verificar si un usuario sigue a otro.
+     */
+    public static function estaSiguiendo(int $seguidorId, int $seguidoId): bool
+    {
+        $tabla = FollowsCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT " . FollowsCols::SEGUIDOR_ID . " FROM {$tabla}"
+            . " WHERE " . FollowsCols::SEGUIDOR_ID . " = :seguidor AND " . FollowsCols::SEGUIDO_ID . " = :seguido",
+            ['seguidor' => $seguidorId, 'seguido' => $seguidoId]
+        );
+        return $row !== null;
+    }
 }

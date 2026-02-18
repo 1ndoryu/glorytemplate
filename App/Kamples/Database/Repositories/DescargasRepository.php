@@ -134,4 +134,100 @@ class DescargasRepository extends BaseRepository
             ['id' => $sampleId]
         );
     }
+
+    /*
+     * Contar descargas del mes actual para samples de un creador.
+     */
+    public static function contarDelCreadorMes(int $creadorId): int
+    {
+        $td = DescargasCols::TABLA;
+        $ts = \App\Config\Schema\_generated\SamplesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$td} d JOIN {$ts} s ON d." . DescargasCols::SAMPLE_ID . " = s." . \App\Config\Schema\_generated\SamplesCols::ID
+            . " WHERE s." . \App\Config\Schema\_generated\SamplesCols::CREADOR_ID . " = :userId"
+            . " AND d." . DescargasCols::CREATED_AT . " >= date_trunc('month', NOW())",
+            ['userId' => $creadorId]
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /*
+     * Obtener tags/bpm/key de las descargas de un usuario (para sugerencias).
+     */
+    public static function contextoDescargas(int $userId): array
+    {
+        $td = DescargasCols::TABLA;
+        $ts = \App\Config\Schema\_generated\SamplesCols::TABLA;
+
+        return static::consultar(
+            "SELECT s." . \App\Config\Schema\_generated\SamplesCols::TAGS
+            . ", s." . \App\Config\Schema\_generated\SamplesCols::BPM
+            . ", s." . \App\Config\Schema\_generated\SamplesCols::KEY
+            . " FROM {$ts} s JOIN {$td} d ON d." . DescargasCols::SAMPLE_ID . " = s." . \App\Config\Schema\_generated\SamplesCols::ID
+            . " WHERE d." . DescargasCols::USUARIO_ID . " = :uid AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = 'activo'",
+            ['uid' => $userId]
+        );
+    }
+
+    /*
+     * IDs de samples descargados por un usuario (para exclusión en sugerencias).
+     */
+    public static function idsDescargados(int $userId): array
+    {
+        $tabla = DescargasCols::TABLA;
+
+        $rows = static::consultar(
+            "SELECT " . DescargasCols::SAMPLE_ID . " FROM {$tabla} WHERE " . DescargasCols::USUARIO_ID . " = :uid",
+            ['uid' => $userId]
+        );
+
+        return array_map(fn($r) => (int) $r[DescargasCols::SAMPLE_ID], $rows);
+    }
+
+    /*
+     * Contar samples descargados de un usuario (para paginación).
+     */
+    public static function contarSamplesDescargados(int $userId): int
+    {
+        $td = DescargasCols::TABLA;
+        $ts = \App\Config\Schema\_generated\SamplesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$td} d JOIN {$ts} s ON d." . DescargasCols::SAMPLE_ID . " = s."
+            . \App\Config\Schema\_generated\SamplesCols::ID
+            . " WHERE d." . DescargasCols::USUARIO_ID . " = :uid"
+            . " AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = 'activo'",
+            ['uid' => $userId]
+        );
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /*
+     * Filtrar qué sample IDs ya fueron descargados por un usuario.
+     * Retorna array de IDs ya descargados que están en la lista dada.
+     */
+    public static function filtrarYaDescargados(int $userId, array $sampleIds): array
+    {
+        if (empty($sampleIds)) return [];
+
+        $tabla = DescargasCols::TABLA;
+        $params = ['userId' => $userId];
+        $placeholders = [];
+        foreach ($sampleIds as $idx => $sid) {
+            $k = "sid{$idx}";
+            $placeholders[] = ":{$k}";
+            $params[$k] = $sid;
+        }
+        $in = implode(',', $placeholders);
+
+        $rows = static::consultar(
+            "SELECT DISTINCT " . DescargasCols::SAMPLE_ID . " FROM {$tabla}"
+            . " WHERE " . DescargasCols::USUARIO_ID . " = :userId"
+            . " AND " . DescargasCols::SAMPLE_ID . " IN ({$in})",
+            $params
+        );
+
+        return array_map(fn($r) => (int) $r[DescargasCols::SAMPLE_ID], $rows);
+    }
 }
