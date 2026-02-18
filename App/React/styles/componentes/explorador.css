@@ -1,0 +1,240 @@
+/*
+ * Estilos: explorador.css — Kamples (C281)
+ * Página Explorador: vista de carpetas + samples coleccionados.
+ * Diseño tipo file-explorer con árbol de carpetas a la izquierda.
+ */
+
+/* Contenedor principal del explorador */
+.explorador {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    padding: var(--espacioLg);
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* Header con título y stats */
+.exploradorHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioLg);
+    padding-bottom: var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.exploradorHeaderImg {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radioMd);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.exploradorHeaderInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.exploradorNombre {
+    font-size: var(--textoXl);
+    font-weight: 700;
+    color: var(--textoAlto);
+    margin: 0;
+}
+
+.exploradorMeta {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--textoSm);
+    color: var(--textoMedio);
+}
+
+/* Layout de dos columnas: carpetas | samples */
+.exploradorContenido {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: var(--espacioLg);
+    flex: 1;
+    min-height: 0;
+}
+
+/* Panel de carpetas (izquierda) */
+.exploradorCarpetas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    overflow-y: auto;
+    padding-right: var(--espacioSm);
+    border-right: 1px solid var(--bordeSutil);
+}
+
+.exploradorCarpetaTitulo {
+    font-size: var(--textoXs);
+    font-weight: 600;
+    color: var(--textoMedio);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: var(--espacioXs) var(--espacioSm);
+    margin: 0;
+}
+
+/* Item de carpeta */
+.exploradorCarpetaItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioXs) var(--espacioSm);
+    border-radius: var(--radioSm);
+    cursor: pointer;
+    font-size: var(--textoSm);
+    color: var(--textoMedio);
+    transition: background-color 0.15s ease, color 0.15s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.exploradorCarpetaItem:hover {
+    background-color: var(--fondoElevado1);
+    color: var(--textoAlto);
+}
+
+.exploradorCarpetaItem.carpetaActiva {
+    background-color: var(--acento);
+    color: var(--fondoBase);
+    font-weight: 600;
+}
+
+.exploradorCarpetaNombre {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.exploradorCarpetaConteo {
+    font-size: var(--textoXs);
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+/* Subcarpetas (indentadas) */
+.exploradorSubcarpetas {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding-left: var(--espacioMd);
+}
+
+.exploradorSubcarpetaItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: 2px var(--espacioSm);
+    border-radius: var(--radioSm);
+    cursor: pointer;
+    font-size: var(--textoXs);
+    color: var(--textoBajo);
+    transition: background-color 0.15s ease, color 0.15s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.exploradorSubcarpetaItem:hover {
+    background-color: var(--fondoElevado1);
+    color: var(--textoMedio);
+}
+
+/* Boton "Todas" para ver todos los samples */
+.exploradorCarpetaTodas {
+    font-weight: 600;
+    color: var(--textoAlto);
+    margin-bottom: var(--espacioXs);
+}
+
+/* Separador entre "Todas" y las carpetas */
+.exploradorCarpetaSeparador {
+    height: 1px;
+    background-color: var(--bordeSutil);
+    margin: var(--espacioXs) 0;
+}
+
+/* Panel de samples (derecha) */
+.exploradorSamples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* Estado vacío */
+.exploradorVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioXl);
+    color: var(--textoMedio);
+    text-align: center;
+    flex: 1;
+}
+
+.exploradorVacio p {
+    margin: 0;
+    max-width: 300px;
+    line-height: 1.5;
+}
+
+/* Estado de carga */
+.exploradorCargando {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espacioXl);
+    color: var(--textoMedio);
+    flex: 1;
+}
+
+/* Responsive: en móvil, carpetas arriba */
+@media (max-width: 768px) {
+    .exploradorContenido {
+        grid-template-columns: 1fr;
+    }
+
+    .exploradorCarpetas {
+        flex-direction: row;
+        flex-wrap: wrap;
+        overflow-x: auto;
+        overflow-y: visible;
+        border-right: none;
+        border-bottom: 1px solid var(--bordeSutil);
+        padding-right: 0;
+        padding-bottom: var(--espacioSm);
+        gap: var(--espacioXs);
+    }
+
+    .exploradorCarpetaTitulo {
+        display: none;
+    }
+
+    .exploradorSubcarpetas {
+        display: none;
+    }
+
+    .exploradorCarpetaItem {
+        width: auto;
+        white-space: nowrap;
+    }
+
+    .exploradorCarpetaSeparador {
+        display: none;
+    }
+}

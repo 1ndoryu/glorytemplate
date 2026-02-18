@@ -386,36 +386,144 @@ LINE 72:                     COALESCE(tag_score, 0) * 0.60
 277. Todo lo que tenga que ver con moderación los logs tienen que estar en App\logs en un archivo separado,
 278. Ya lo entiendo, la onda nos imprecisa al comienzo, sino que al medida que es mas larga la tarjeta de audio, por alguna extraña razon las lineas se vuelven mas gruesas haciendo que pierda calida, esta forma de onda o este comportamiento no es acto para un daw donde se necesita precisión para ver exactamente donde esta cada pico. Las demas ondas de los otros lugares esta bien, pero aca, necesitamos algo mejor.
 279. Tengo 2 colecciones, ambas aparecen que son publicas en su pagina individual, pero ne la pagina de explorar colecciones, no aparece ninguna colección. Dice "Sin colecciones públicas".
-280. La pagina de librería debe ser una caja en el panel lateral porque la siguiente pagina sera una carpeta. 
-281. La siguiente pagina nueva es "Explorador", el proposito va a ser una pagina especial, similar a google drive, pero donde estan todos los samples descargados o subidos. Similar a un explorador de archivo, en una columna izquierda se veran las carpetas en lista, y en la vista la carpeta abierta con sus samples. Para continuar con esta tarea tengo que explicar lo siguiente
-281.1 Cambiar el boton de descargar de los samples por un boton de suma, que significara guardar, (no confundir con guardar en colección, o sea), consumidará un credito, el boton de descargar ahora se desplazará al menu contextual. Obviamente esto esquivale a descargar, consume un credito lleva a otra cosa.
-282.2 Cambiarla pagina de descargados por "Coleccionados" o no se que otro nombre poner porque ajam. Ahora la acción principal no es descargar, es coleccionar, es equivalente y es lo mismo tecnicamente porque eso consume un credito y no vuelve a consumir un credito si se descarga o re-colecciona. Esto es simbolico porque ahora puedo "descoleccionar un sample" que suena mejor que "quitar de descargas", coleccionar significa que un sample es mío.
-282.3 Esto significa que los sample que yo misma suba, ya estan coleccionados, y aparecerán ahi, no necesito descargarlos para que vayan a "descargados" ahora que es "coleccionados"
-282.4 Vuelvo a la pagina de Explorador, aparecen mis samples coleccionados todos inicialmente en una carpeta de coleccionados, abro la carpeta y aparecen todos los samples sueltos, aqui viene la magia, en el explorador arriba, aparte de los botoenes de cambiar de vista, ordenar por nombre, titulo, peso, etc, habrá otro boton de ordenamiento inteligente, esto utilizará IA para ordenar los samples en carpetas, el usuario tendra una configuración para describir como quiere que se ordenen sus samples, habrá una instrucción inicial basica.
-282.5 De la forma mas eficiente posible, evitando multiple llamadas si es posible, la ia con la información de cada sample (resumir porque json y es muy grande), decidira, probablemente en lote de 10 samples (porque puede alucinar a medida suben los tokens), decidirá en base a la estructura de carpetas, en donde debe ir cada sample, si una carpeta no existe, entonces la crea, tiene que tomar esas decisiones y las carpetas crearse en base a esas decisiones, y moverse si es posible en tiempo real. Esta funcionalidad solo estará disponible para los usuarios pro y premiun. 
-282.6 la instruccion inicial debe ser 1 nivel maximo para ordenar samples en carpetas en base (voy a escribir un borrador, tu lo mejoras), por lo general los productores prefieren este tipo de orden, 
+280. ✅ [AG-DAW] Sidebar librería: icono Box, navegación normal a /libreria. PanelLibreria marcado SIN USO TEMPORAL para C281.
+281. ✅ [AG-DAW] Explorador: página /explorador con vista file-explorer. Backend: endpoints `/me/coleccionados` + `/me/coleccionados/carpetas`. Frontend: ExploradorIsland con árbol de carpetas (C282) + lista samples. Registrado en pages.php, appIslands, MAPA_RUTAS, Sidebar.
+281.1 ✅ [AG-DAW] Botón descargar → Plus/Coleccionar. Marca como coleccionado sin descargar archivo. Descargar movido al menú contextual.
+281.2 ✅ [AG-DAW] "Descargas" renombrado a "Coleccionados" en sidebar, tabs y textos de DescargasIsland.
+281.3 ✅ [AG-DAW] Samples subidos por el usuario aparecen automáticamente en coleccionados (endpoint `/me/coleccionados` usa UNION descargados + propios).
+281.4 Vuelvo a la pagina de Explorador, aparecen mis samples coleccionados todos inicialmente en una carpeta de coleccionados, abro la carpeta y aparecen todos los samples sueltos, aqui viene la magia, en el explorador arriba, aparte de los botoenes de cambiar de vista, ordenar por nombre, titulo, peso, etc, habrá otro boton de ordenamiento inteligente, esto utilizará IA para ordenar los samples en carpetas, el usuario tendra una configuración para describir como quiere que se ordenen sus samples, habrá una instrucción inicial basica.
+281.5 De la forma mas eficiente posible, evitando multiple llamadas si es posible, la ia con la información de cada sample (resumir porque json y es muy grande), decidira, probablemente en lote de 10 samples (porque puede alucinar a medida suben los tokens), decidirá en base a la estructura de carpetas, en donde debe ir cada sample, si una carpeta no existe, entonces la crea, tiene que tomar esas decisiones y las carpetas crearse en base a esas decisiones, y moverse si es posible en tiempo real. Esta funcionalidad solo estará disponible para los usuarios pro y premiun. 
+281.6 la instruccion inicial debe ser 1 nivel maximo para ordenar samples en carpetas en base (voy a escribir un borrador, tu lo mejoras), por lo general los productores prefieren este tipo de orden, 
 
-drums
+Drums (Se asume que todo aqui es one shot)
 ---Kick
 ---Snare
 ---Fx
----Etc todo lo que sea drum
+---Etc todo lo que sea drums
 One shot
 ---Instrument
 ------Piano
 ------Guitar
-Instrument loop
----Etc
-Sample loop
+------Etc
+Loops
+---Drums
+---Instruments
+Sample (se asume que son loops casi siempre)
 ---Hip hop
 ---Phonk
 ---Trap
 ---Etc
-Sample one one shot
+
+nota: samples por lo general son trozos de canciones asi que ordenarlos es subjetivo pero por lo general creo que por genero esta bien
+Este orden es mi preferiencia, esto es bastante subjetivo porque no hay uan forma correcta asi se me ocurre lo siguiente
+281.7 Presents de ordenamiento, hacer 3 present y presentar una estructura de ejemplo, asi cada quien elige.
+282. ✅ [AG-DAW] Metadata carpetas IA: prompt de ServicioIA actualizado con carpeta_primaria (Drums|Loops|Samples|FX|Instruments|Vocals) y carpeta_secundaria. PipelineAudio guarda en JSONB. Types TS actualizados.
+
+Lo clave es que se puede agregar una metadata nueva de carpeta primara, carpeta secundaria, preguntarle a la IA que en que carpeta iría generalmente este sample, y darle una instrución clara de como debe ser, porque esto puede generar un problema o varios
+
+lo primero que queremos es que no samples no se guarden en una carpeta llamada sample, y luego otra samples, tienen que ver un mecanismo de normalización ya sea mediante prompt, en el json o posterior, 
+tampoco queremos una especificación elevada como "samples de piano melancolicos", la posibilidad de que otro sample se guarde en una carpeta asi dado a la aleatoreadad de la es casi imposible.
+tampoco queremos una generalización entrema de que todos los samples van a guardar en una carpeta "sample", por esa razón hay que dejar claro los mecanimos que vamos a usar para impedir estos problema
+
+probablemente la mejor forma de no generalizar ni caer en la especificación es ya crear una estructura de carpeta por defecto y darselo a la ia para que elija una carpeta 
+
+consegui esta estructura de ejemplo, si puedes pulilar, mejor, pero por lo general a mi me gusta y prefiero esta
+
+Samples
+ ├─ Drums
+ │   ├─ Kicks
+ │   ├─ Snares
+ │   ├─ Claps
+ │   ├─ HiHats
+ │   ├─ Toms
+ │   └─ Percussion
+ ├─ Loops
+ │   ├─ Drum Loops
+ │   ├─ Perc Loops
+ │   ├─ Bass Loops
+ │   └─ Melodic Loops
+ ├─ Samples
+ │   ├─ Hip hop samples
+ │   ├─ Phonk Samples
+ │   ├─ Vintage Samples
+ ├─ FX
+ │   ├─ Impacts
+ │   ├─ Risers
+ │   ├─ Sweeps
+ │   └─ Atmos
+ ├─ Instruments (One‑shots)
+ │   ├─ Bass
+ │   ├─ Chords
+ │   ├─ Leads
+ │   └─ Pads
+ └─ Vocals
+     ├─ Phrases
+     └─ One‑shots
+
+
+````json
+"metadata": {
+"tags": [
+    "jazz",
+    "melancholy",
+    "smooth",
+    "instrumental",
+    "sample"
+],
+"genero": [
+    "jazz",
+    "lo-fi",
+    "chillhop"
+],
+"emocion": [
+    "sad",
+    "melancholic",
+    "relaxed",
+    "introspective"
+],
+"tags_es": [
+    "jazz",
+    "melancólico",
+    "suave",
+    "instrumental",
+    "muestra"
+],
+"emocion_es": [
+    "triste",
+    "melancólico",
+    "relajado",
+    "introspectivo"
+],
+"descripcion": "This 10.7-second jazz loop captures a somber mood with a delicate piano chord progression, warm saxophone melodies, subtle brush drums, and a walking bass line, perfect for lo-fi hip-hop or cinematic background.",
+"instrumentos": [
+    "piano",
+    "saxophone",
+    "double bass",
+    "drums"
+],
+"artista_vibes": [
+    "Miles Davis",
+    "Chet Baker",
+    "Bill Evans",
+    "John Coltrane"
+],
+"bpm_confianza": 1,
+"key_confianza": 0.75,
+"descripcion_es": "Este bucle de jazz de 10,7 segundos captura un ambiente melancólico con una delicada progresión de acordes de piano, cálidas melodías de saxofón, sutiles baterías con escobillas y una línea de bajo caminante, ideal para lo-fi hip-hop o fondos cinematográficos.",
+"descripcion_corta": "A melancholic jazz loop with soft piano and gentle saxophone lines.",
+"nombre_archivo_base": "melancholy jazz loop",
+"descripcion_corta_es": "Un bucle de jazz melancólico con piano suave y líneas delicadas de saxofón."
+},
+````
+283. Para pulir mas el ordenamiento, el nombre base del archivo que se crea tiene que ser algo asi Instrumento - Genero - Tono - BPM - Nombre (ejemplo melancholy jazz loop) - kamples - id.wav si, no se tiene instrumento o un tono, o algo simplemente se omite pero esta estructura ahora mejorara mejor la organización cuando se ordene por nombre
+284. El modo clip a veces falla,  no se si por el modo clip o que, pero, estos son los eventos. Supongamos que tengo un loop que suena cada compas, suena 8 veces asi que cada linea de compas coincida con cada golpe, si recorto con clip hasta a mitad, bien, las los golpes todavía coinciden, pero, si comprimo a la mitad logrando que el golpe suene 2 veces por compas, a ahora cada 2 golpes sigue coincidiendo, pero al momento de que use el clip se rompe el orden. Tengo que decir que esto no es preciso porque no siempre sucede y no se la causa exacta o las condiciones necesarias para replicarlo.
+
+
 
 ---
 
-nota: samples por lo general son trozos de canciones asi que ordenarlos es subjetivo pero por lo general creo que por genero esta bien
+
+ 
 ---
 
 ## Lecciones Aprendidas (compactas)

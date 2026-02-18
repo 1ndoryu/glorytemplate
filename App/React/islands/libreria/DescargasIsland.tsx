@@ -1,7 +1,7 @@
 /*
- * DescargasIsland — Kamples (C140+C175)
- * Página independiente /descargas con diseño idéntico a ColeccionDetalleIsland.
- * Header con imagen + info + acciones. Tabs: "Mis Descargas" y "Más Ideas".
+ * DescargasIsland — Kamples (C140+C175+C281.2)
+ * Página independiente /descargas ("Coleccionados") con diseño idéntico a ColeccionDetalleIsland.
+ * Header con imagen + info + acciones. Tabs: "Mis Coleccionados" y "Más Ideas".
  */
 
 import { useEffect, useCallback } from 'react';
@@ -20,7 +20,7 @@ import { obtenerImagenColor } from '@app/services/imagenesColor';
 import '../../styles/componentes/coleccionDetalle.css';
 
 const TABS_DESCARGAS = [
-    { id: 'descargas', etiqueta: 'Mis Descargas' },
+    { id: 'descargas', etiqueta: 'Mis Coleccionados' },
     { id: 'ideas', etiqueta: 'Más Ideas' },
 ];
 
@@ -54,7 +54,7 @@ const DescargasBase = (): JSX.Element => {
     if (cargando) {
         return (
             <div className="coleccionDetalle" id="seccionDescargas">
-                <div className="coleccionCargando">Cargando descargas...</div>
+                <div className="coleccionCargando">Cargando coleccionados...</div>
             </div>
         );
     }
@@ -72,10 +72,10 @@ const DescargasBase = (): JSX.Element => {
                 <img
                     className="coleccionHeaderImg"
                     src={obtenerImagenColor(1001)}
-                    alt="Mis Descargas"
+                    alt="Mis Coleccionados"
                 />
                 <div className="coleccionHeaderInfo">
-                    <h1 className="coleccionNombre">Mis Descargas</h1>
+                    <h1 className="coleccionNombre">Mis Coleccionados</h1>
                     <div className="coleccionMeta">
                         <span className="coleccionStats">
                             {samples.length} sample{samples.length !== 1 ? 's' : ''}
@@ -89,7 +89,7 @@ const DescargasBase = (): JSX.Element => {
                 samples.length === 0 ? (
                     <div className="coleccionVacia" style={{ flexDirection: 'column', gap: 'var(--espacioMd)' }}>
                         <Download size={32} />
-                        <p>Los samples que descargues aparecerán aquí.</p>
+                        <p>Los samples que colecciones aparecerán aquí.</p>
                     </div>
                 ) : (
                     <div className="listaDeSamples">

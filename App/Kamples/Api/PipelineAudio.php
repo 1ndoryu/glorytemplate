@@ -178,6 +178,8 @@ class PipelineAudio
                 'descripcion_corta_es' => $metadataIA['descripcion_corta_es'],
                 'descripcion'          => $metadataIA['descripcion'],
                 'descripcion_es'       => $metadataIA['descripcion_es'],
+                'carpeta_primaria'     => $metadataIA['carpeta_primaria'] ?? 'Samples',
+                'carpeta_secundaria'   => $metadataIA['carpeta_secundaria'] ?? null,
                 'bpm_confianza'        => $analisisTecnico['bpm_confianza'],
                 'key_confianza'        => $analisisTecnico['key_confianza'],
             ]);

@@ -297,22 +297,24 @@ PROMPT;
 
         return <<<PROMPT
 Analiza este audio. {$contexto}
-Tu tarea es generar ÚNICAMENTE un objeto JSON válido con la siguiente estructura. Sé creativo y preciso.
-NO incluyas en tu respuesta los campos puramente técnicos (bpm, tonalidad, escala), ya que esos se añadirán después. Tu respuesta DEBE ser solo el JSON.
+Tu tarea es generar UNICAMENTE un objeto JSON valido con la siguiente estructura. Se creativo y preciso.
+NO incluyas en tu respuesta los campos puramente tecnicos (bpm, tonalidad, escala), ya que esos se anadiran despues. Tu respuesta DEBE ser solo el JSON.
 
-- "nombre_archivo_base": Un título corto y descriptivo para el sample, en inglés, en minúsculas y usando espacios. Ej: "deep kick 808", "sad guitar melody".
-- "tags": Array de strings con etiquetas descriptivas en INGLÉS (ej: "melodic", "dark", "808", "lo-fi").
-- "tags_es": Array de strings con las mismas etiquetas que 'tags' pero traducidas al ESPAÑOL.
+- "nombre_archivo_base": Un titulo corto y descriptivo para el sample, en ingles, en minusculas y usando espacios. Ej: "deep kick 808", "sad guitar melody".
+- "tags": Array de strings con etiquetas descriptivas en INGLES (ej: "melodic", "dark", "808", "lo-fi").
+- "tags_es": Array de strings con las mismas etiquetas que 'tags' pero traducidas al ESPANOL.
 - "tipo": String, debe ser "one shot" o "loop".
-- "genero": Array de strings con géneros musicales en INGLÉS (ej: "hip hop", "trap", "electronic").
-- "emocion": Array de strings con emociones que evoca en INGLÉS (ej: "energetic", "sad", "chill").
-- "emocion_es": Array de strings con las mismas emociones que 'emocion' pero traducidas al ESPAÑOL.
-- "instrumentos": Array de strings con los instrumentos principales que detectes en INGLÉS (ej: "guitar", "piano", "synth", "drums").
+- "genero": Array de strings con generos musicales en INGLES (ej: "hip hop", "trap", "electronic").
+- "emocion": Array de strings con emociones que evoca en INGLES (ej: "energetic", "sad", "chill").
+- "emocion_es": Array de strings con las mismas emociones que 'emocion' pero traducidas al ESPANOL.
+- "instrumentos": Array de strings con los instrumentos principales que detectes en INGLES (ej: "guitar", "piano", "synth", "drums").
 - "artista_vibes": Array de strings con nombres de artistas que tienen un estilo similar.
-- "descripcion_corta": Una descripción muy breve (10-15 palabras) en INGLÉS.
-- "descripcion_corta_es": La misma 'descripcion_corta' traducida al ESPAÑOL.
-- "descripcion": Una descripción detallada (30-50 palabras) en INGLÉS.
-- "descripcion_es": La misma 'descripcion' traducida al ESPAÑOL.
+- "descripcion_corta": Una descripcion muy breve (10-15 palabras) en INGLES.
+- "descripcion_corta_es": La misma 'descripcion_corta' traducida al ESPANOL.
+- "descripcion": Una descripcion detallada (30-50 palabras) en INGLES.
+- "descripcion_es": La misma 'descripcion' traducida al ESPANOL.
+- "carpeta_primaria": Elige UNA de estas carpetas principales segun el tipo de audio: "Drums", "Loops", "Samples", "FX", "Instruments", "Vocals". Reglas: Si es un hit/golpe de bateria (kick, snare, hihat, clap, tom, perc) -> "Drums". Si es un patron ritmico o melodico que se repite -> "Loops". Si es un trozo de cancion o atmosfera con genero definido -> "Samples". Si es un efecto sonoro (riser, impact, sweep, atmos) -> "FX". Si es un one-shot de instrumento tonal (piano, guitarra, bajo, synth, pad) -> "Instruments". Si contiene voz humana -> "Vocals".
+- "carpeta_secundaria": Subcarpeta dentro de carpeta_primaria. Opciones por carpeta: Drums: "Kicks","Snares","Claps","HiHats","Toms","Percussion". Loops: "Drum Loops","Perc Loops","Bass Loops","Melodic Loops". Samples: usa el genero principal (ej: "Hip Hop","Phonk","Trap","Lo-Fi","Jazz","R&B"). FX: "Impacts","Risers","Sweeps","Atmos". Instruments: "Bass","Chords","Leads","Pads","Keys","Strings". Vocals: "Phrases","One Shots","Chops".
 PROMPT;
     }
 

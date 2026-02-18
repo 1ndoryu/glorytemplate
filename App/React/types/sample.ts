@@ -34,6 +34,11 @@ export interface MetadataSample {
     descripcion_es?: string;
     bpm_confianza?: number;
     key_confianza?: number;
+    /* C282: Clasificacion automatica en carpetas por IA */
+    carpeta_primaria?: string;
+    carpeta_secundaria?: string;
+    carpetaPrimaria?: string;
+    carpetaSecundaria?: string;
     /* Campos legacy por compatibilidad */
     sentimiento?: string[];
     tipo?: TipoSample;

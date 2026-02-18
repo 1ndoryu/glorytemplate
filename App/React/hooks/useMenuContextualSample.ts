@@ -14,6 +14,7 @@ import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { eliminarSample, actualizarSample } from '@app/services/apiSamples';
+import { descargarSample } from '@app/services/apiDescargas';
 import { toast } from '@app/stores/toastStore';
 
 /* Eventos globales para notificar cambios de samples sin recargar la página */
@@ -118,6 +119,25 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                 etiqueta: 'Añadir a colección',
                 onClick: () => {
                     if (estado.sample) abrirColeccionPicker(estado.sample);
+                },
+            },
+            /* C281.1: Descargar archivo — antes era botón directo, ahora en menú contextual */
+            {
+                id: 'descargar',
+                etiqueta: 'Descargar archivo',
+                onClick: async () => {
+                    if (!estado.sample) return;
+                    const resp = await descargarSample(estado.sample.id);
+                    if (resp.ok && resp.data?.url) {
+                        const a = document.createElement('a');
+                        a.href = resp.data.url;
+                        a.download = resp.data.nombre || estado.sample.titulo || 'sample';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    } else if (resp.status === 429 || resp.status === 403) {
+                        toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
+                    }
                 },
                 separadorDespues: true,
             },

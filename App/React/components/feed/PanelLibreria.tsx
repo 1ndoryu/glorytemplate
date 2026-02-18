@@ -1,8 +1,8 @@
 /*
  * Componente: PanelLibreria — Kamples (C280)
+ * SIN USO TEMPORAL — pendiente de integración con Explorador (C281).
  * Version compacta de la libreria para el panel lateral.
  * Tabs: Explorar colecciones, Mis colecciones, Subidos.
- * Se abre desde el sidebar sin navegar a otra pagina.
  */
 
 import { useState, useCallback, useEffect } from 'react';

@@ -136,6 +136,25 @@ class SamplesController
                 'limite' => ['required' => false, 'type' => 'integer', 'default' => 20],
             ],
         ]);
+
+        /* C281: Explorador — samples coleccionados (descargados + subidos) con carpetas IA */
+        register_rest_route($namespace, '/me/coleccionados', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'coleccionados'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'carpeta'  => ['required' => false, 'type' => 'string', 'default' => ''],
+                'page'     => ['required' => false, 'type' => 'integer', 'default' => 1],
+                'per_page' => ['required' => false, 'type' => 'integer', 'default' => 100],
+            ],
+        ]);
+
+        /* C281: Estructura de carpetas del usuario */
+        register_rest_route($namespace, '/me/coleccionados/carpetas', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'carpetasColeccionados'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     /**
@@ -968,5 +987,125 @@ class SamplesController
         return new \WP_REST_Response([
             'data' => NormalizadorSample::normalizarLista($samples),
         ], 200);
+    }
+
+    /*
+     * C281: Explorador — samples "coleccionados" = descargados + subidos por el usuario.
+     * Soporta filtro por carpeta_primaria extraída de metadata JSONB (C282).
+     */
+
+    /**
+     * GET /me/coleccionados — UNION de descargas + samples propios.
+     */
+    public static function coleccionados(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $page    = max(1, (int) $request->get_param('page'));
+        $perPage = min(200, max(1, (int) $request->get_param('per_page')));
+        $offset  = ($page - 1) * $perPage;
+        $carpeta = trim((string) $request->get_param('carpeta'));
+
+        /* Filtro opcional por carpeta_primaria (almacenada en metadata JSONB) */
+        $carpetaClause = '';
+        $params = ['uid' => $userId, 'limit' => $perPage, 'offset' => $offset];
+        if ($carpeta !== '') {
+            $carpetaClause = " AND s.metadata->>'carpeta_primaria' = :carpeta";
+            $params['carpeta'] = $carpeta;
+        }
+
+        /*
+         * Enfoque simple: SELECT normal con condición OR (descargado | subido por el usuario).
+         * Se ordena por la fecha relevante más reciente: descarga o publicación propia.
+         */
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
+             . " LEFT JOIN descargas d ON d.sample_id = s.id AND d.usuario_id = :uid"
+             . " WHERE s.estado = 'activo'{$carpetaClause}"
+             . " AND (d.id IS NOT NULL OR s.usuario_id = :uid)"
+             . " ORDER BY GREATEST("
+             . "   COALESCE(d.created_at, '1970-01-01'::timestamp),"
+             . "   s.publicado_at"
+             . " ) DESC"
+             . " LIMIT :limit OFFSET :offset";
+
+        $rows = PostgresService::consultar($sql, $params);
+        $samples = NormalizadorSample::normalizarLista($rows);
+
+        /* Total count */
+        $sqlTotal = "SELECT COUNT(DISTINCT s.id) AS total"
+                  . " FROM samples s"
+                  . " LEFT JOIN descargas d ON d.sample_id = s.id AND d.usuario_id = :uid"
+                  . " WHERE s.estado = 'activo'{$carpetaClause}"
+                  . " AND (d.id IS NOT NULL OR s.usuario_id = :uid)";
+
+        $totalParams = ['uid' => $userId];
+        if ($carpeta !== '') $totalParams['carpeta'] = $carpeta;
+        $total = PostgresService::consultarUno($sqlTotal, $totalParams);
+
+        return new \WP_REST_Response([
+            'data' => [
+                'data' => $samples,
+                'pagination' => [
+                    'page'     => $page,
+                    'per_page' => $perPage,
+                    'total'    => (int) ($total['total'] ?? 0),
+                    'pages'    => max(1, (int) ceil(($total['total'] ?? 0) / $perPage)),
+                ],
+            ],
+        ], 200);
+    }
+
+    /**
+     * GET /me/coleccionados/carpetas — Estructura de carpetas con conteos.
+     * Devuelve árbol: [ { primaria: 'Drums', total: 10, subcarpetas: [{ nombre: 'Kicks', total: 3 }, ...] }, ... ]
+     */
+    public static function carpetasColeccionados(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /*
+         * Agrupa por carpeta_primaria y carpeta_secundaria sobre el UNION
+         * de descargas + subidos por el usuario.
+         */
+        $sql = "SELECT"
+             . "  COALESCE(s.metadata->>'carpeta_primaria', 'Samples') AS primaria,"
+             . "  s.metadata->>'carpeta_secundaria' AS secundaria,"
+             . "  COUNT(*) AS total"
+             . " FROM ("
+             . "  SELECT s.id, s.metadata FROM samples s"
+             . "  JOIN descargas d ON d.sample_id = s.id AND d.usuario_id = :uid"
+             . "  WHERE s.estado = 'activo'"
+             . "  UNION"
+             . "  SELECT s.id, s.metadata FROM samples s"
+             . "  WHERE s.estado = 'activo' AND s.usuario_id = :uid"
+             . " ) s"
+             . " GROUP BY primaria, secundaria"
+             . " ORDER BY primaria, secundaria";
+
+        $rows = PostgresService::consultar($sql, ['uid' => $userId]);
+
+        /* Construir árbol jerárquico */
+        $arbol = [];
+        $indice = [];
+        foreach ($rows as $row) {
+            $pri = $row['primaria'] ?? 'Samples';
+            $sec = $row['secundaria'] ?? null;
+            $cnt = (int) ($row['total'] ?? 0);
+
+            if (!isset($indice[$pri])) {
+                $indice[$pri] = count($arbol);
+                $arbol[] = ['primaria' => $pri, 'total' => 0, 'subcarpetas' => []];
+            }
+
+            $arbol[$indice[$pri]]['total'] += $cnt;
+
+            if ($sec) {
+                $arbol[$indice[$pri]]['subcarpetas'][] = ['nombre' => $sec, 'total' => $cnt];
+            }
+        }
+
+        return new \WP_REST_Response(['data' => $arbol], 200);
     }
 }

@@ -90,6 +90,9 @@ PageManager::reactPage('notificaciones', 'NotificacionesIsland');
 PageManager::reactPage('planes', 'PlanesIsland');
 PageManager::reactPage('comunidad', 'ComunidadIsland');
 
+/* C281: Explorador — vista de carpetas para samples coleccionados */
+PageManager::reactPage('explorador', 'ExploradorIsland');
+
 /*
  * Colección detalle — recibe coleccionId como segmento dinámico
  */

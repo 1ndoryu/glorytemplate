@@ -10,7 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { PanelDetalleSample } from '@app/components/feed/PanelDetalleSample';
 import { PanelSugerencias } from '@app/components/feed/PanelSugerencias';
-import { PanelLibreria } from '@app/components/feed/PanelLibreria';
+/* PanelLibreria: sin uso temporal, pendiente reutilizacion en Explorador (C281) */
 import { ErrorBoundaryMezclador } from '@mezclador/components/ErrorBoundaryMezclador';
 import { MezcladorPanel } from '@mezclador/components/MezcladorPanel';
 import '@app/styles/componentes/panelLateral.css';
@@ -35,9 +35,8 @@ export const PanelLateral = (): JSX.Element | null => {
 
     /* Determinar si el panel debe mostrarse */
     const esMezclador = modo === 'mezclador';
-    const esLibreria = modo === 'libreria';
     const esModoConSample = (modo === 'detalle' || modo === 'comentarios' || modo === 'sugerencias') && sample;
-    const mostrar = habilitado && modo && (esMezclador || esLibreria || esModoConSample);
+    const mostrar = habilitado && modo && (esMezclador || esModoConSample);
 
     /* Inicio del resize con el handle */
     const iniciarResize = useCallback((e: React.MouseEvent) => {
@@ -98,9 +97,6 @@ export const PanelLateral = (): JSX.Element | null => {
                 )}
                 {modo === 'sugerencias' && sample && (
                     <PanelSugerencias sample={sample} />
-                )}
-                {esLibreria && (
-                    <PanelLibreria />
                 )}
                 {esMezclador && (
                     <ErrorBoundaryMezclador>

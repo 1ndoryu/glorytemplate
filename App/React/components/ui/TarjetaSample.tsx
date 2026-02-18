@@ -5,7 +5,7 @@
  */
 
 import {useCallback, useEffect, useRef, useState, type MouseEvent} from 'react';
-import {Play, Pause, Heart, MessageCircle, Download, MoreHorizontal, BadgeCheck, Bookmark} from 'lucide-react';
+import {Play, Pause, Heart, MessageCircle, Plus, Download, MoreHorizontal, BadgeCheck, Bookmark} from 'lucide-react';
 import type {SampleResumen, TipoReaccion} from '../../types';
 import {WaveformPlayer} from './WaveformPlayer';
 import {Badge} from './Badge';
@@ -280,31 +280,31 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
         [onLike, sample.id]
     );
 
-    const manejarDescargar = useCallback(
+    /*
+     * C281.1: "Coleccionar" reemplaza "Descargar" como acción principal.
+     * Consume un crédito y marca como coleccionado, pero NO dispara descarga de archivo.
+     * La descarga real se mueve al menú contextual.
+     */
+    const manejarColeccionar = useCallback(
         async (e: MouseEvent) => {
             e.stopPropagation();
+            if (descargado) return; /* Ya coleccionado */
             if (onDescargar) {
                 onDescargar(sample.id);
                 setDescargado(true);
                 return;
             }
-            /* Fallback: llamar API directamente y disparar descarga en navegador */
+            /* Llamar API para consumir crédito sin disparar descarga */
             const resp = await descargarSample(sample.id);
-            if (resp.ok && resp.data?.url) {
+            if (resp.ok) {
                 setDescargado(true);
-                const a = document.createElement('a');
-                a.href = resp.data.url;
-                a.download = resp.data.nombre || sample.titulo || 'sample';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                toast.exito('Sample coleccionado');
             } else if (resp.status === 429 || resp.status === 403) {
-                /* C199: Sin créditos — abrir modal de suscripción */
                 toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
                 usePlanesModalStore.getState().abrir();
             }
         },
-        [onDescargar, sample.id, sample.titulo]
+        [onDescargar, sample.id, descargado]
     );
 
     const manejarMenu = useCallback(
@@ -542,8 +542,9 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
                     <MessageCircle size={18} />
                 </button>
 
-                <button className={`tarjetaAccionBtn ${descargado ? 'tarjetaAccionDescargado' : ''}`} onClick={manejarDescargar} type="button" aria-label="Descargar">
-                    <Download size={18} />
+                {/* C281.1: Botón coleccionar (antes era descargar) */}
+                <button className={`tarjetaAccionBtn ${descargado ? 'tarjetaAccionDescargado' : ''}`} onClick={manejarColeccionar} type="button" aria-label="Coleccionar">
+                    <Plus size={18} />
                 </button>
 
                 <button className="tarjetaAccionBtn paddingExtraAccion" onClick={manejarMenu} type="button" aria-label="Más opciones">
