@@ -344,14 +344,14 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 273. Ondas pierden milisegundos iniciales al arrastrar al DAW (la onda debe ser precisa).
 273.1 En modo clip, recortar/estirar no debe contraer/estirar la onda. Solo en modo stretch.
 274. Inicialmente el mini daw debe aparecer con 20 pistas vacías.
-275. ComentariosController 500 error línea 124.
-276. SQL column `completa` → `completada`, `tag_score` undefined en algoritmo.
-277. Logs de moderación deben ir en App\logs en archivo separado.
+275. ✅ [AG-DAW] Guard max(1,page) en 8 controladores para evitar OFFSET negativo. LogModeracion en ComentariosController.
+276. ✅ [AG-DAW] Ya corregido en código previo (completada + sub.tag_score). Requiere flush OPcache/Apache restart.
+277. ✅ [AG-DAW] Logs moderación: ServicioBan + ServicioAntiSpam + ComentariosController ahora usan LogModeracion.
 278. Waveform DAW: líneas se engruesan con tarjetas largas, necesita precisión.
-279. Colecciones públicas no aparecen en explorar. Dice "Sin colecciones públicas".
+279. ✅ [AG-DAW] Colecciones públicas: causa raíz era OFFSET negativo (page=0→offset=-20). Corregido con max(1,page).
 281.4-281.7 Ordenamiento IA de carpetas (pro/premium), presets, instrucciones.
 284. Modo clip falla intermitentemente con loops comprimidos + chop.
-285. Explorador dice "Descarga o sube..." cuando hay samples (bug SQL corregido).
+285. ✅ [AG-DAW] Fix SQL coleccionados: creador_id + uid2 placeholder. Compactación roadmap.
 
 Drums (Se asume que todo aqui es one shot)
 ---Kick
@@ -539,3 +539,8 @@ Samples
 - Algoritmo colecciones CTE: user_tags LIMIT 15 + coleccion_tags. sqlTagsEnriquecidos public.
 - Modal contextual: `{ x: clientX, y: clientY }` al store + Math.min viewport.
 - verificado_boost: multiplicador 1.15 post-penalización en algoritmoPesos.
+- [PDO]: ATTR_EMULATE_PREPARES=false prohibe reusar placeholder (`:uid` x2). Usar `:uid` + `:uid2`.
+- [SQL]: tabla samples usa `creador_id`, NO `usuario_id`. Siempre verificar nombres de columna con psql.
+- [Offset]: `(int) $request->get_param('page')` devuelve 0 si no se envía → offset -20 → PG error. Siempre usar `max(1, (int) ...)`.
+- [Logs]: ServicioBan, ServicioAntiSpam y ComentariosController deben usar `LogModeracion as KamplesLogger`, no KamplesLogger ni LogIA.
+- [PG credenciales]: PostgresService usa `postgres`/`root` por defecto. psql: `"C:\Program Files\PostgreSQL\18\bin\psql.exe"`.
