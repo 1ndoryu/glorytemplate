@@ -408,6 +408,8 @@ class SamplesController
         $permitirDescarga = \filter_var($request->get_param('permitir_descarga') ?? true, \FILTER_VALIDATE_BOOLEAN);
         $licenciaLibre = \filter_var($request->get_param('licencia_libre') ?? false, \FILTER_VALIDATE_BOOLEAN);
         $esPremium = \filter_var($request->get_param('es_premium') ?? false, \FILTER_VALIDATE_BOOLEAN);
+        /* C220: Toggle de visibilidad en comunidad */
+        $mostrarEnComunidad = \filter_var($request->get_param('mostrar_en_comunidad') ?? true, \FILTER_VALIDATE_BOOLEAN);
         $precio = $request->get_param('precio');
         $precio = $precio !== null ? (float) $precio : null;
 
@@ -432,9 +434,9 @@ class SamplesController
         try {
             $resultado = PostgresService::consultarUno(
                 "INSERT INTO samples (creador_id, titulo, slug, id_corto, descripcion, formato, tamano,
-                 ruta_original, estado, es_premium, precio, tags, permitir_descarga, licencia_libre, publicado_at, created_at, updated_at)
+                 ruta_original, estado, es_premium, precio, tags, permitir_descarga, licencia_libre, mostrar_en_comunidad, publicado_at, created_at, updated_at)
                  VALUES (:creadorId, :titulo, :slug, :idCorto, :descripcion, :formato, :tamano,
-                 :rutaOriginal, 'procesando', :esPremium, :precio, :tags, :descarga, :licencia, NOW(), NOW(), NOW())
+                 :rutaOriginal, 'procesando', :esPremium, :precio, :tags, :descarga, :licencia, :comunidad, NOW(), NOW(), NOW())
                  RETURNING id",
                 [
                     'creadorId' => $userId, 'titulo' => $titulo, 'slug' => $slug,
@@ -446,6 +448,7 @@ class SamplesController
                     'precio' => $precio,
                     'descarga' => $permitirDescarga ? 'true' : 'false',
                     'licencia' => $licenciaLibre ? 'true' : 'false',
+                    'comunidad' => $mostrarEnComunidad ? 'true' : 'false',
                 ]
             );
             $sampleId = $resultado['id'] ?? null;
@@ -602,6 +605,12 @@ class SamplesController
         if (isset($body['licenciaLibre'])) {
             $campos[] = 'licencia_libre = :licencia';
             $params['licencia'] = ((bool) $body['licenciaLibre']) ? 'true' : 'false';
+        }
+
+        /* C220: Toggle de visibilidad en comunidad */
+        if (isset($body['mostrarEnComunidad'])) {
+            $campos[] = 'mostrar_en_comunidad = :comunidad';
+            $params['comunidad'] = ((bool) $body['mostrarEnComunidad']) ? 'true' : 'false';
         }
 
         if (isset($body['imagenUrl'])) {

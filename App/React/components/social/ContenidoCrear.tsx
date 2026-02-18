@@ -5,7 +5,7 @@
  * Toda la lógica reside en useCrearContenido.
  */
 
-import { Music, Image, X, Download, AlertCircle, CheckCircle, Crown } from 'lucide-react';
+import { Music, Image, X, Download, AlertCircle, CheckCircle, Crown, Users } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -25,6 +25,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
     const {
         contenido, publicando, permitirDescarga, setPermitirDescarga,
         esPremium, setEsPremium,
+        mostrarEnComunidad, setMostrarEnComunidad,
         precio, setPrecio, waveformPeaks, audioUrl,
         reproduciendoPreview, progresoPreview, setProgresoPreview,
         errorSubida, setErrorSubida, exitoSubida,
@@ -169,6 +170,16 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                     >
                         <Crown size={14} />
                         <span>{esPremium ? 'Premium' : 'Gratis'}</span>
+                    </button>
+                    {/* C220: Toggle visibilidad en comunidad */}
+                    <button
+                        className={`crearCondicionBtn ${mostrarEnComunidad ? 'crearCondicionActiva' : ''}`}
+                        onClick={() => setMostrarEnComunidad(!mostrarEnComunidad)}
+                        type="button"
+                        title={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'}
+                    >
+                        <Users size={14} />
+                        <span>{mostrarEnComunidad ? 'Comunidad sí' : 'Comunidad no'}</span>
                     </button>
                 </div>
             )}

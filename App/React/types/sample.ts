@@ -76,6 +76,8 @@ export interface Sample {
     /* Relacion opcional cargada via API */
     creador?: UsuarioResumen;
     verificado?: boolean;
+    /* C220: Toggle visibilidad en comunidad */
+    mostrarEnComunidad?: boolean;
 }
 
 /* Tipos de reaccion posibles */
@@ -107,6 +109,8 @@ export interface SampleResumen {
     liked?: boolean;
     reaccion?: TipoReaccion | null;
     verificado?: boolean;
+    /* C220: Toggle visibilidad en comunidad */
+    mostrarEnComunidad?: boolean;
 }
 
 /* Importamos referencia para evitar circular */

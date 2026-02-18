@@ -63,6 +63,8 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
     const [publicando, setPublicando] = useState(false);
     const [permitirDescarga, setPermitirDescarga] = useState(true);
     const [esPremium, setEsPremium] = useState(false);
+    /* C220: Toggle visibilidad en comunidad — por defecto sí */
+    const [mostrarEnComunidad, setMostrarEnComunidad] = useState(true);
     const [precio, setPrecio] = useState('');
     const [waveformPeaks, setWaveformPeaks] = useState<number[]>([]);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -156,6 +158,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
                 licenciaLibre: permitirDescarga,
                 esPremium,
                 precio: esPremium ? parseFloat(precio) || undefined : undefined,
+                mostrarEnComunidad,
             });
             if (!resp.ok) {
                 setErrorSubida(resp.error ?? 'Error al subir el sample');
@@ -211,6 +214,8 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
     return {
         contenido, publicando, permitirDescarga, setPermitirDescarga,
         esPremium, setEsPremium,
+        /* C220: Toggle comunidad */
+        mostrarEnComunidad, setMostrarEnComunidad,
         precio, setPrecio, waveformPeaks, audioUrl,
         reproduciendoPreview, progresoPreview, setProgresoPreview,
         errorSubida, setErrorSubida, exitoSubida,

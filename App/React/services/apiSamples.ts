@@ -86,6 +86,8 @@ export interface DatosSubida {
     licenciaLibre?: boolean;
     esPremium?: boolean;
     precio?: number;
+    /* C220: Toggle visibilidad en comunidad */
+    mostrarEnComunidad?: boolean;
 }
 
 /*
@@ -105,6 +107,7 @@ export const subirSample = async (datos: DatosSubida): Promise<RespuestaApi<Resp
     formData.append('permitir_descarga', String(datos.permitirDescarga ?? true));
     formData.append('licencia_libre', String(datos.licenciaLibre ?? false));
     formData.append('es_premium', String(datos.esPremium ?? false));
+    formData.append('mostrar_en_comunidad', String(datos.mostrarEnComunidad ?? true));
     if (datos.precio != null && datos.precio > 0) {
         formData.append('precio', String(datos.precio));
     }
@@ -134,6 +137,8 @@ export interface DatosActualizarSample {
     imagenUrl?: string;
     estado?: string; /* solo admin */
     verificado?: boolean; /* solo admin — C178 */
+    /* C220: Toggle visibilidad en comunidad */
+    mostrarEnComunidad?: boolean;
 }
 
 /*
