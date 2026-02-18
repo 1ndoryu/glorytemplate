@@ -16,6 +16,18 @@ use App\Kamples\Api\Helpers\Validador;
 
 class MensajesController
 {
+    /* Normaliza datos de participante a camelCase para el frontend */
+    private static function normalizarParticipante(?array $usuario): ?array
+    {
+        if (!$usuario) return null;
+        return [
+            'id'             => (int) $usuario['id'],
+            'username'       => $usuario['username'] ?? '',
+            'nombreVisible'  => $usuario['nombre_visible'] ?? $usuario['username'] ?? '',
+            'avatarUrl'      => $usuario['avatar_url'] ?? null,
+            'verificado'     => (bool) ($usuario['verificado'] ?? false),
+        ];
+    }
     public static function registrarRutas(string $namespace): void
     {
         register_rest_route($namespace, '/mensajes/conversaciones', [
@@ -101,7 +113,7 @@ class MensajesController
 
             $resultado[] = [
                 'id'              => (int) $conv['id'],
-                'participante'    => $otro,
+                'participante'    => self::normalizarParticipante($otro),
                 'ultimoMensaje'   => $previewMsg,
                 'ultimoMensajeTipo' => $tipoUltimo,
                 'ultimoMensajeAt' => $ultimoMsg['created_at'] ?? $conv['created_at'],
@@ -406,7 +418,7 @@ class MensajesController
 
         return new \WP_REST_Response([
             'data' => [
-                'id' => (int) $convId, 'participante' => $otro,
+                'id' => (int) $convId, 'participante' => self::normalizarParticipante($otro),
                 'ultimoMensaje' => '', 'ultimoMensajeAt' => (new \DateTime())->format('c'),
                 'noLeidos' => 0, 'enLinea' => false,
             ]

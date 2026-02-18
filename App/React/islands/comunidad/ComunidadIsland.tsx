@@ -36,6 +36,8 @@ const TABS_COMUNIDAD = [{ id: 'comunidad', etiqueta: 'Comunidad' }];
 const SeccionComentariosPost = ({ postId, navegar }: { postId: number; navegar: (ruta: string) => void }): JSX.Element => {
     const {
         comentarios, cargando, enviar, enviarMultimedia, cargarMas, hayMas,
+        editar, eliminar, reportar, toggleLike, cargarRespuestas,
+        editandoId, setEditandoId, respondendoAId, setRespondendoAId,
     } = useComentarios({
         tipo: 'publicacion',
         targetId: postId,
@@ -52,6 +54,15 @@ const SeccionComentariosPost = ({ postId, navegar }: { postId: number; navegar: 
             maxVisibles={3}
             onCargarMas={cargarMas}
             hayMasPaginas={hayMas}
+            onEditar={editar}
+            onEliminar={eliminar}
+            onReportar={reportar}
+            onToggleLike={toggleLike}
+            onCargarRespuestas={cargarRespuestas}
+            editandoId={editandoId}
+            setEditandoId={setEditandoId}
+            respondendoAId={respondendoAId}
+            setRespondendoAId={setRespondendoAId}
         />
     );
 };

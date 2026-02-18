@@ -595,6 +595,15 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                             maxVisibles={5}
                             onCargarMas={seccionComentarios.cargarMas}
                             hayMasPaginas={seccionComentarios.hayMas}
+                            onEditar={seccionComentarios.editar}
+                            onEliminar={seccionComentarios.eliminar}
+                            onReportar={seccionComentarios.reportar}
+                            onToggleLike={seccionComentarios.toggleLike}
+                            onCargarRespuestas={seccionComentarios.cargarRespuestas}
+                            editandoId={seccionComentarios.editandoId}
+                            setEditandoId={seccionComentarios.setEditandoId}
+                            respondendoAId={seccionComentarios.respondendoAId}
+                            setRespondendoAId={seccionComentarios.setRespondendoAId}
                         />
                     </div>
                 )}

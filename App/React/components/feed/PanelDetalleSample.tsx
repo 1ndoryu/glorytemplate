@@ -50,6 +50,10 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
         comentarios, cargando: cargandoComentarios, enviar: enviarComentario,
         enviarMultimedia: enviarComentarioMultimedia,
         cargarMas: cargarMasComentarios, hayMas: hayMasComentarios,
+        editar: editarComentario, eliminar: eliminarComentario,
+        reportar: reportarComentario, toggleLike: toggleLikeComentario,
+        cargarRespuestas: cargarRespuestasComentario,
+        editandoId, setEditandoId, respondendoAId, setRespondendoAId,
     } = useComentarios({
         tipo: 'sample',
         targetId: sample.id,
@@ -358,6 +362,15 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                         maxVisibles={5}
                         onCargarMas={cargarMasComentarios}
                         hayMasPaginas={hayMasComentarios}
+                        onEditar={editarComentario}
+                        onEliminar={eliminarComentario}
+                        onReportar={reportarComentario}
+                        onToggleLike={toggleLikeComentario}
+                        onCargarRespuestas={cargarRespuestasComentario}
+                        editandoId={editandoId}
+                        setEditandoId={setEditandoId}
+                        respondendoAId={respondendoAId}
+                        setRespondendoAId={setRespondendoAId}
                     />
                 </div>
             )}

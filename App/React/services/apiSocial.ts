@@ -78,9 +78,12 @@ export const obtenerComentarios = async (
 export const crearComentario = async (
     tipo: 'sample' | 'publicacion',
     targetId: number,
-    contenido: string
+    contenido: string,
+    parentId?: number
 ): Promise<RespuestaApi<Comentario>> => {
-    return apiPost<Comentario>(`/comentarios/${tipo}/${targetId}`, { contenido });
+    const body: Record<string, unknown> = { contenido };
+    if (parentId) body.parentId = parentId;
+    return apiPost<Comentario>(`/comentarios/${tipo}/${targetId}`, body);
 };
 
 /*
@@ -92,13 +95,56 @@ export const crearComentarioMultimedia = async (
     targetId: number,
     tipoContenido: 'imagen' | 'audio',
     archivo: File,
-    contenido?: string
+    contenido?: string,
+    parentId?: number
 ): Promise<RespuestaApi<Comentario>> => {
     const formData = new FormData();
     formData.append('tipoContenido', tipoContenido);
     formData.append('media', archivo);
     if (contenido) formData.append('contenido', contenido);
+    if (parentId) formData.append('parentId', String(parentId));
     return apiPostFormData<Comentario>(`/comentarios/${tipo}/${targetId}`, formData);
+};
+
+/* C264: Editar comentario (solo autor) */
+export const editarComentario = async (
+    id: number,
+    contenido: string
+): Promise<RespuestaApi<{ id: number; contenido: string; editadoAt: string }>> => {
+    return apiPut<{ id: number; contenido: string; editadoAt: string }>(`/comentarios/${id}`, { contenido });
+};
+
+/* C264: Eliminar comentario (autor o admin) */
+export const eliminarComentario = async (id: number): Promise<RespuestaApi<{ ok: boolean }>> => {
+    return apiDelete<{ ok: boolean }>(`/comentarios/${id}`);
+};
+
+/* C264: Reportar comentario */
+export const reportarComentario = async (
+    id: number,
+    razon: string
+): Promise<RespuestaApi<{ ok: boolean; message: string }>> => {
+    return apiPost<{ ok: boolean; message: string }>(`/comentarios/${id}/reportar`, { razon });
+};
+
+/* C265: Like/unlike comentario */
+export const darLikeComentario = async (
+    id: number
+): Promise<RespuestaApi<{ totalLikes: number; liked: boolean }>> => {
+    return apiPost<{ totalLikes: number; liked: boolean }>(`/comentarios/${id}/like`);
+};
+
+export const quitarLikeComentario = async (
+    id: number
+): Promise<RespuestaApi<{ totalLikes: number; liked: boolean }>> => {
+    return apiDelete<{ totalLikes: number; liked: boolean }>(`/comentarios/${id}/like`);
+};
+
+/* C265: Obtener respuestas de un comentario */
+export const obtenerRespuestas = async (
+    comentarioId: number
+): Promise<RespuestaApi<Comentario[]>> => {
+    return apiGet<Comentario[]>(`/comentarios/${comentarioId}/respuestas`);
 };
 
 /* Reposts */

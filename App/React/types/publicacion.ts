@@ -33,6 +33,7 @@ export interface Comentario {
     autorId: number;
     contenido: string;
     creadoAt: string;
+    editadoAt?: string | null;
     autor: UsuarioResumen;
     /* C130: Soporte multimedia */
     tipoContenido?: 'texto' | 'imagen' | 'audio';
@@ -45,4 +46,10 @@ export interface Comentario {
         picos?: number[];
         waveformUrl?: string;
     } | null;
+    /* C265: Respuestas y likes */
+    parentId?: number | null;
+    totalLikes?: number;
+    totalRespuestas?: number;
+    liked?: boolean;
+    respuestas?: Comentario[];
 }

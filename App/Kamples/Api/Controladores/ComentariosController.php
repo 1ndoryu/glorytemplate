@@ -44,6 +44,46 @@ class ComentariosController
             'callback' => [self::class, 'crear'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        /* C264: Editar comentario (solo autor) */
+        register_rest_route($namespace, '/comentarios/(?P<id>\d+)', [
+            'methods' => 'PUT',
+            'callback' => [self::class, 'editar'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* C264: Eliminar comentario (autor o admin) */
+        register_rest_route($namespace, '/comentarios/(?P<id>\d+)', [
+            'methods' => 'DELETE',
+            'callback' => [self::class, 'eliminar'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* C264: Reportar comentario */
+        register_rest_route($namespace, '/comentarios/(?P<id>\d+)/reportar', [
+            'methods' => 'POST',
+            'callback' => [self::class, 'reportar'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* C265: Like/unlike comentario */
+        register_rest_route($namespace, '/comentarios/(?P<id>\d+)/like', [
+            'methods' => 'POST',
+            'callback' => [self::class, 'darLike'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+        register_rest_route($namespace, '/comentarios/(?P<id>\d+)/like', [
+            'methods' => 'DELETE',
+            'callback' => [self::class, 'quitarLike'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* C265: Respuestas a un comentario */
+        register_rest_route($namespace, '/comentarios/(?P<id>\d+)/respuestas', [
+            'methods' => 'GET',
+            'callback' => [self::class, 'listarRespuestas'],
+            'permission_callback' => '__return_true',
+        ]);
     }
 
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
@@ -62,35 +102,28 @@ class ComentariosController
          * Comentarios 'pendiente' se muestran normalmente (fail-open).
          * Solo se ocultan los explícitamente rechazados.
          */
+        /* Obtener userId actual para saber si dio like (null si no autenticado) */
+        $currentUserId = UsuarioHelper::obtenerIdPg();
+
+        /* C265: Solo comentarios raíz (sin parent_id), las respuestas se cargan aparte */
         $comentarios = PostgresService::consultar(
-            "SELECT c.id, c.contenido, c.created_at,
+            "SELECT c.id, c.contenido, c.created_at, c.updated_at,
                     c.tipo_contenido, c.media_url, c.media_metadata,
-                    c.moderacion_estado,
+                    c.moderacion_estado, c.parent_id,
+                    c.total_likes, c.total_respuestas,
                     u.id as autor_id, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id
              FROM comentarios c
              JOIN usuarios_ext u ON c.autor_id = u.id
              WHERE c.tipo = :tipo AND c.target_id = :targetId
+               AND c.parent_id IS NULL
                AND (c.moderacion_estado IS NULL OR c.moderacion_estado != 'rechazado')
              ORDER BY c.created_at ASC LIMIT 20 OFFSET :offset",
             ['tipo' => $tipo, 'targetId' => $targetId, 'offset' => $offset]
         );
 
-        /* Enriquecer con formato camelCase para el frontend */
-        foreach ($comentarios as &$c) {
-            $c['autorId'] = (int) $c['autor_id'];
-            $c['creadoAt'] = $c['created_at'];
-            $c['tipoContenido'] = $c['tipo_contenido'] ?? 'texto';
-            $c['mediaUrl'] = $c['media_url'] ?? null;
-            $c['mediaMetadata'] = $c['media_metadata'] ? json_decode($c['media_metadata'], true) : null;
-            $c['autor'] = [
-                'id' => (int) $c['autor_id'],
-                'username' => $c['username'],
-                'nombreVisible' => $c['nombre_visible'],
-                'avatarUrl' => UsuarioHelper::resolverAvatarUrl($c['avatar_url'] ?? null, (int) ($c['wp_user_id'] ?? 0)),
-            ];
-        }
+        $resultado = self::normalizarComentarios($comentarios, $currentUserId);
 
-        return new \WP_REST_Response(['data' => $comentarios, 'page' => $page], 200);
+        return new \WP_REST_Response(['data' => $resultado, 'page' => $page], 200);
     }
 
     public static function crear(\WP_REST_Request $request): \WP_REST_Response
@@ -112,10 +145,12 @@ class ComentariosController
         if ($esFormData) {
             $contenido = sanitize_textarea_field($request->get_param('contenido') ?? '');
             $tipoContenido = sanitize_text_field($request->get_param('tipoContenido') ?? 'texto');
+            $parentId = $request->get_param('parentId') ? (int) $request->get_param('parentId') : null;
         } else {
             $body = $request->get_json_params();
             $contenido = sanitize_textarea_field($body['contenido'] ?? '');
             $tipoContenido = 'texto';
+            $parentId = isset($body['parentId']) ? (int) $body['parentId'] : null;
         }
 
         /* Validar tipo de contenido */
@@ -273,8 +308,8 @@ class ComentariosController
         }
 
         $id = PostgresService::insertar(
-            "INSERT INTO comentarios (autor_id, tipo, target_id, contenido, tipo_contenido, media_url, media_metadata)
-             VALUES (:autor, :tipo, :target, :contenido, :tipoContenido, :mediaUrl, :mediaMetadata::jsonb)
+            "INSERT INTO comentarios (autor_id, tipo, target_id, contenido, tipo_contenido, media_url, media_metadata, parent_id)
+             VALUES (:autor, :tipo, :target, :contenido, :tipoContenido, :mediaUrl, :mediaMetadata::jsonb, :parentId)
              RETURNING id",
             [
                 'autor' => $userId,
@@ -284,8 +319,17 @@ class ComentariosController
                 'tipoContenido' => $tipoContenido,
                 'mediaUrl' => $mediaUrl,
                 'mediaMetadata' => $mediaMetadata,
+                'parentId' => $parentId,
             ]
         );
+
+        /* C265: Si es respuesta, incrementar total_respuestas del padre */
+        if ($parentId) {
+            PostgresService::ejecutar(
+                "UPDATE comentarios SET total_respuestas = COALESCE(total_respuestas, 0) + 1 WHERE id = :parentId",
+                ['parentId' => $parentId]
+            );
+        }
 
         /* Actualizar contador en la tabla correspondiente */
         $tabla = $tipo === 'publicacion' ? 'publicaciones' : 'samples';
@@ -344,6 +388,10 @@ class ComentariosController
                 'mediaUrl' => $mediaUrl,
                 'mediaMetadata' => $mediaMetadata ? json_decode($mediaMetadata, true) : null,
                 'creadoAt' => date('c'),
+                'parentId' => $parentId,
+                'totalLikes' => 0,
+                'totalRespuestas' => 0,
+                'liked' => false,
                 'autor' => [
                     'id' => $userId,
                     'username' => $usuario['username'] ?? '',
@@ -355,6 +403,281 @@ class ComentariosController
                 ],
             ],
         ], 201);
+    }
+
+    /* C264: Editar comentario (solo autor) */
+    public static function editar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $id = (int) $request->get_param('id');
+        $body = $request->get_json_params();
+        $contenido = sanitize_textarea_field($body['contenido'] ?? '');
+
+        if (empty($contenido)) {
+            return new \WP_REST_Response(['code' => 'contenido_vacio'], 400);
+        }
+
+        $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_COMENTARIO, 'El comentario');
+        if ($errorLongitud) return Validador::respuestaError($errorLongitud);
+
+        /* Verificar que el comentario existe y es del autor */
+        $comentario = PostgresService::consultarUno(
+            "SELECT id, autor_id FROM comentarios WHERE id = :id",
+            ['id' => $id]
+        );
+
+        if (!$comentario) {
+            return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
+        }
+
+        if ((int) $comentario['autor_id'] !== $userId) {
+            return new \WP_REST_Response(['code' => 'no_autorizado', 'message' => 'Solo puedes editar tus comentarios'], 403);
+        }
+
+        PostgresService::ejecutar(
+            "UPDATE comentarios SET contenido = :contenido, updated_at = NOW() WHERE id = :id",
+            ['contenido' => $contenido, 'id' => $id]
+        );
+
+        return new \WP_REST_Response([
+            'ok' => true,
+            'data' => [
+                'id' => $id,
+                'contenido' => $contenido,
+                'editadoAt' => date('c'),
+            ],
+        ], 200);
+    }
+
+    /* C264: Eliminar comentario (autor o admin) */
+    public static function eliminar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $id = (int) $request->get_param('id');
+
+        $comentario = PostgresService::consultarUno(
+            "SELECT id, autor_id, parent_id, tipo, target_id FROM comentarios WHERE id = :id",
+            ['id' => $id]
+        );
+
+        if (!$comentario) {
+            return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
+        }
+
+        $esAutor = (int) $comentario['autor_id'] === $userId;
+        $esAdmin = current_user_can('manage_options');
+
+        if (!$esAutor && !$esAdmin) {
+            return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+        }
+
+        /* Si tiene padre, decrementar total_respuestas */
+        if ($comentario['parent_id']) {
+            PostgresService::ejecutar(
+                "UPDATE comentarios SET total_respuestas = GREATEST(0, COALESCE(total_respuestas, 0) - 1) WHERE id = :parentId",
+                ['parentId' => (int) $comentario['parent_id']]
+            );
+        }
+
+        /* CASCADE borra respuestas hijas automaticamente */
+        PostgresService::ejecutar("DELETE FROM comentarios WHERE id = :id", ['id' => $id]);
+
+        /* Actualizar contador */
+        $tabla = $comentario['tipo'] === 'publicacion' ? 'publicaciones' : 'samples';
+        PostgresService::ejecutar(
+            "UPDATE {$tabla} SET total_comentarios = (
+                SELECT COUNT(*) FROM comentarios WHERE tipo = :tipo AND target_id = :targetId
+            ) WHERE id = :targetId",
+            ['tipo' => $comentario['tipo'], 'targetId' => (int) $comentario['target_id']]
+        );
+
+        return new \WP_REST_Response(['ok' => true], 200);
+    }
+
+    /* C264: Reportar comentario */
+    public static function reportar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $id = (int) $request->get_param('id');
+        $body = $request->get_json_params();
+        $razon = sanitize_textarea_field($body['razon'] ?? 'contenido inapropiado');
+
+        /* Verificar que existe */
+        $existe = PostgresService::consultarUno("SELECT id FROM comentarios WHERE id = :id", ['id' => $id]);
+        if (!$existe) {
+            return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
+        }
+
+        /* Evitar reportes duplicados */
+        $yaReportado = PostgresService::consultarUno(
+            "SELECT id FROM reportes WHERE tipo = 'comentario' AND target_id = :targetId AND reportador_id = :userId",
+            ['targetId' => $id, 'userId' => $userId]
+        );
+
+        if ($yaReportado) {
+            return new \WP_REST_Response(['ok' => true, 'message' => 'Ya reportaste este comentario'], 200);
+        }
+
+        PostgresService::insertar(
+            "INSERT INTO reportes (tipo, target_id, reportador_id, razon, estado)
+             VALUES ('comentario', :targetId, :userId, :razon, 'pendiente')
+             RETURNING id",
+            ['targetId' => $id, 'userId' => $userId, 'razon' => $razon]
+        );
+
+        return new \WP_REST_Response(['ok' => true, 'message' => 'Reporte enviado'], 201);
+    }
+
+    /* C265: Dar like a un comentario */
+    public static function darLike(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $id = (int) $request->get_param('id');
+
+        /* Verificar existencia */
+        $existe = PostgresService::consultarUno("SELECT id FROM comentarios WHERE id = :id", ['id' => $id]);
+        if (!$existe) return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
+
+        /* Insertar o ignorar (ON CONFLICT) */
+        PostgresService::ejecutar(
+            "INSERT INTO likes (usuario_id, tipo, target_id)
+             VALUES (:userId, 'comentario', :targetId)
+             ON CONFLICT (usuario_id, tipo, target_id) DO NOTHING",
+            ['userId' => $userId, 'targetId' => $id]
+        );
+
+        /* Recalcular total */
+        $total = PostgresService::consultarUno(
+            "SELECT COUNT(*) as total FROM likes WHERE tipo = 'comentario' AND target_id = :id",
+            ['id' => $id]
+        );
+        $totalLikes = (int) ($total['total'] ?? 0);
+
+        PostgresService::ejecutar(
+            "UPDATE comentarios SET total_likes = :total WHERE id = :id",
+            ['total' => $totalLikes, 'id' => $id]
+        );
+
+        return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => true]], 200);
+    }
+
+    /* C265: Quitar like de un comentario */
+    public static function quitarLike(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $userId = UsuarioHelper::obtenerIdPg();
+        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        $id = (int) $request->get_param('id');
+
+        PostgresService::ejecutar(
+            "DELETE FROM likes WHERE usuario_id = :userId AND tipo = 'comentario' AND target_id = :targetId",
+            ['userId' => $userId, 'targetId' => $id]
+        );
+
+        $total = PostgresService::consultarUno(
+            "SELECT COUNT(*) as total FROM likes WHERE tipo = 'comentario' AND target_id = :id",
+            ['id' => $id]
+        );
+        $totalLikes = (int) ($total['total'] ?? 0);
+
+        PostgresService::ejecutar(
+            "UPDATE comentarios SET total_likes = :total WHERE id = :id",
+            ['total' => $totalLikes, 'id' => $id]
+        );
+
+        return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => false]], 200);
+    }
+
+    /* C265: Listar respuestas de un comentario */
+    public static function listarRespuestas(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $parentId = (int) $request->get_param('id');
+        $currentUserId = UsuarioHelper::obtenerIdPg();
+
+        $respuestas = PostgresService::consultar(
+            "SELECT c.id, c.contenido, c.created_at, c.updated_at,
+                    c.tipo_contenido, c.media_url, c.media_metadata,
+                    c.moderacion_estado, c.parent_id,
+                    c.total_likes, c.total_respuestas,
+                    u.id as autor_id, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id
+             FROM comentarios c
+             JOIN usuarios_ext u ON c.autor_id = u.id
+             WHERE c.parent_id = :parentId
+               AND (c.moderacion_estado IS NULL OR c.moderacion_estado != 'rechazado')
+             ORDER BY c.created_at ASC LIMIT 50",
+            ['parentId' => $parentId]
+        );
+
+        $resultado = self::normalizarComentarios($respuestas, $currentUserId);
+
+        return new \WP_REST_Response(['data' => $resultado], 200);
+    }
+
+    /*
+     * C264+C265: Normaliza filas SQL de comentarios a formato camelCase para frontend.
+     * Incluye detección de like por usuario actual.
+     */
+    private static function normalizarComentarios(array $filas, ?int $currentUserId): array
+    {
+        if (empty($filas)) return [];
+
+        /* Obtener likes del usuario actual en batch */
+        $idsComentarios = array_column($filas, 'id');
+        $likesUsuario = [];
+
+        if ($currentUserId && !empty($idsComentarios)) {
+            $placeholders = implode(',', array_fill(0, count($idsComentarios), '?'));
+            $params = array_merge([$currentUserId], $idsComentarios);
+            $likes = PostgresService::consultar(
+                "SELECT target_id FROM likes WHERE usuario_id = ? AND tipo = 'comentario' AND target_id IN ({$placeholders})",
+                $params
+            );
+            foreach ($likes as $like) {
+                $likesUsuario[(int) $like['target_id']] = true;
+            }
+        }
+
+        return array_map(function ($fila) use ($likesUsuario) {
+            $comentarioId = (int) $fila['id'];
+            $meta = null;
+            if (!empty($fila['media_metadata'])) {
+                $meta = is_string($fila['media_metadata'])
+                    ? json_decode($fila['media_metadata'], true)
+                    : $fila['media_metadata'];
+            }
+
+            return [
+                'id' => $comentarioId,
+                'autorId' => (int) $fila['autor_id'],
+                'contenido' => $fila['contenido'] ?? '',
+                'creadoAt' => $fila['created_at'] ?? '',
+                'editadoAt' => $fila['updated_at'] ?? null,
+                'tipoContenido' => $fila['tipo_contenido'] ?? 'texto',
+                'mediaUrl' => $fila['media_url'] ?? null,
+                'mediaMetadata' => $meta,
+                'parentId' => $fila['parent_id'] ? (int) $fila['parent_id'] : null,
+                'totalLikes' => (int) ($fila['total_likes'] ?? 0),
+                'totalRespuestas' => (int) ($fila['total_respuestas'] ?? 0),
+                'liked' => isset($likesUsuario[$comentarioId]),
+                'autor' => [
+                    'id' => (int) $fila['autor_id'],
+                    'username' => $fila['username'] ?? '',
+                    'nombreVisible' => $fila['nombre_visible'] ?? '',
+                    'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
+                        $fila['avatar_url'] ?? null,
+                        (int) ($fila['wp_user_id'] ?? 0)
+                    ),
+                ],
+            ];
+        }, $filas);
     }
 
     /*

@@ -1,11 +1,16 @@
 /*
  * Hook: useComentarios — Kamples
- * Gestiona fetch, paginación y creación de comentarios para cualquier entidad.
- * Separa la lógica de la vista según protocolo SRP.
+ * Gestiona fetch, paginación, creación y acciones de comentarios.
+ * C264: Editar, eliminar, reportar. C265: Likes, respuestas (threading).
+ * Excede 120 líneas por la cantidad de acciones compartidas; split no viable.
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { obtenerComentarios, crearComentario, crearComentarioMultimedia } from '@app/services/apiSocial';
+import {
+    obtenerComentarios, crearComentario, crearComentarioMultimedia,
+    editarComentario, eliminarComentario, reportarComentario,
+    darLikeComentario, quitarLikeComentario, obtenerRespuestas,
+} from '@app/services/apiSocial';
 import { crearLogger } from '@app/services/logger';
 import type { Comentario } from '@app/types';
 
@@ -17,12 +22,35 @@ interface UseComentariosOpciones {
     cargarAlAbrir?: boolean;
 }
 
+/* Helpers recursivos para actualizar comentarios anidados */
+const actualizarEnLista = (
+    lista: Comentario[],
+    id: number,
+    fn: (c: Comentario) => Comentario
+): Comentario[] =>
+    lista.map(c =>
+        c.id === id
+            ? fn(c)
+            : { ...c, respuestas: c.respuestas ? actualizarEnLista(c.respuestas, id, fn) : undefined }
+    );
+
+const filtrarDeLista = (lista: Comentario[], id: number): Comentario[] =>
+    lista.filter(c => c.id !== id).map(c => ({
+        ...c,
+        respuestas: c.respuestas ? filtrarDeLista(c.respuestas, id) : undefined,
+        totalRespuestas: c.respuestas?.some(r => r.id === id)
+            ? Math.max(0, (c.totalRespuestas ?? 0) - 1)
+            : c.totalRespuestas,
+    }));
+
 export const useComentarios = ({ tipo, targetId, cargarAlAbrir = false }: UseComentariosOpciones) => {
     const [comentarios, setComentarios] = useState<Comentario[]>([]);
     const [cargando, setCargando] = useState(false);
     const [pagina, setPagina] = useState(1);
     const [hayMas, setHayMas] = useState(true);
     const [abierto, setAbierto] = useState(false);
+    const [respondendoAId, setRespondendoAId] = useState<number | null>(null);
+    const [editandoId, setEditandoId] = useState<number | null>(null);
 
     const cargar = useCallback(async (pag = 1) => {
         setCargando(true);
@@ -30,11 +58,8 @@ export const useComentarios = ({ tipo, targetId, cargarAlAbrir = false }: UseCom
             const resp = await obtenerComentarios(tipo, targetId, pag);
             if (resp.ok && resp.data) {
                 const datos = Array.isArray(resp.data) ? resp.data : [];
-                if (pag === 1) {
-                    setComentarios(datos);
-                } else {
-                    setComentarios(prev => [...prev, ...datos]);
-                }
+                if (pag === 1) setComentarios(datos);
+                else setComentarios(prev => [...prev, ...datos]);
                 setHayMas(datos.length >= 20);
                 setPagina(pag);
             }
@@ -45,11 +70,22 @@ export const useComentarios = ({ tipo, targetId, cargarAlAbrir = false }: UseCom
         }
     }, [tipo, targetId]);
 
-    const enviar = useCallback(async (contenido: string) => {
+    /* Enviar nuevo comentario (o respuesta si se pasa parentId) */
+    const enviar = useCallback(async (contenido: string, parentId?: number) => {
         try {
-            const resp = await crearComentario(tipo, targetId, contenido);
+            const resp = await crearComentario(tipo, targetId, contenido, parentId);
             if (resp.ok && resp.data) {
-                setComentarios(prev => [...prev, resp.data as Comentario]);
+                const nuevo = resp.data as Comentario;
+                if (parentId) {
+                    setComentarios(prev => actualizarEnLista(prev, parentId, c => ({
+                        ...c,
+                        totalRespuestas: (c.totalRespuestas ?? 0) + 1,
+                        respuestas: [...(c.respuestas ?? []), nuevo],
+                    })));
+                } else {
+                    setComentarios(prev => [...prev, nuevo]);
+                }
+                setRespondendoAId(null);
                 return true;
             }
             return false;
@@ -59,16 +95,28 @@ export const useComentarios = ({ tipo, targetId, cargarAlAbrir = false }: UseCom
         }
     }, [tipo, targetId]);
 
-    /* C130: Enviar comentario multimedia (imagen o audio) */
+    /* C130: Enviar comentario multimedia */
     const enviarMultimedia = useCallback(async (
         tipoContenido: 'imagen' | 'audio',
         archivo: File,
-        contenido?: string
+        contenido?: string,
+        parentId?: number
     ) => {
         try {
-            const resp = await crearComentarioMultimedia(tipo, targetId, tipoContenido, archivo, contenido);
+            const resp = await crearComentarioMultimedia(
+                tipo, targetId, tipoContenido, archivo, contenido, parentId
+            );
             if (resp.ok && resp.data) {
-                setComentarios(prev => [...prev, resp.data as Comentario]);
+                const nuevo = resp.data as Comentario;
+                if (parentId) {
+                    setComentarios(prev => actualizarEnLista(prev, parentId, c => ({
+                        ...c,
+                        totalRespuestas: (c.totalRespuestas ?? 0) + 1,
+                        respuestas: [...(c.respuestas ?? []), nuevo],
+                    })));
+                } else {
+                    setComentarios(prev => [...prev, nuevo]);
+                }
                 return true;
             }
             return false;
@@ -78,26 +126,99 @@ export const useComentarios = ({ tipo, targetId, cargarAlAbrir = false }: UseCom
         }
     }, [tipo, targetId]);
 
-    const cargarMas = useCallback(() => {
-        if (!cargando && hayMas) {
-            cargar(pagina + 1);
+    /* C264: Editar comentario (solo autor) */
+    const editar = useCallback(async (id: number, contenido: string) => {
+        try {
+            const resp = await editarComentario(id, contenido);
+            if (resp.ok && resp.data) {
+                setComentarios(prev => actualizarEnLista(prev, id, c => ({
+                    ...c,
+                    contenido: resp.data!.contenido,
+                    editadoAt: resp.data!.editadoAt,
+                })));
+                setEditandoId(null);
+                return true;
+            }
+            return false;
+        } catch (err) {
+            log.error('Error editando comentario', err);
+            return false;
         }
+    }, []);
+
+    /* C264: Eliminar comentario (autor o admin) */
+    const eliminar = useCallback(async (id: number) => {
+        try {
+            const resp = await eliminarComentario(id);
+            if (resp.ok) {
+                setComentarios(prev => filtrarDeLista(prev, id));
+                return true;
+            }
+            return false;
+        } catch (err) {
+            log.error('Error eliminando comentario', err);
+            return false;
+        }
+    }, []);
+
+    /* C264: Reportar comentario */
+    const reportar = useCallback(async (id: number, razon: string) => {
+        try {
+            const resp = await reportarComentario(id, razon);
+            return resp.ok;
+        } catch (err) {
+            log.error('Error reportando comentario', err);
+            return false;
+        }
+    }, []);
+
+    /* C265: Toggle like en comentario */
+    const toggleLike = useCallback(async (id: number, liked: boolean) => {
+        try {
+            const resp = liked
+                ? await quitarLikeComentario(id)
+                : await darLikeComentario(id);
+            if (resp.ok && resp.data) {
+                setComentarios(prev => actualizarEnLista(prev, id, c => ({
+                    ...c,
+                    totalLikes: resp.data!.totalLikes,
+                    liked: resp.data!.liked,
+                })));
+            }
+        } catch (err) {
+            log.error('Error toggle like comentario', err);
+        }
+    }, []);
+
+    /* C265: Cargar respuestas de un comentario */
+    const cargarRespuestas = useCallback(async (comentarioId: number) => {
+        try {
+            const resp = await obtenerRespuestas(comentarioId);
+            if (resp.ok && resp.data) {
+                setComentarios(prev => actualizarEnLista(prev, comentarioId, c => ({
+                    ...c,
+                    respuestas: Array.isArray(resp.data) ? resp.data as Comentario[] : [],
+                })));
+            }
+        } catch (err) {
+            log.error('Error cargando respuestas', err);
+        }
+    }, []);
+
+    const cargarMas = useCallback(() => {
+        if (!cargando && hayMas) cargar(pagina + 1);
     }, [cargar, cargando, hayMas, pagina]);
 
     const alternar = useCallback(() => {
         setAbierto(prev => {
             const siguiente = !prev;
-            if (siguiente && comentarios.length === 0) {
-                cargar(1);
-            }
+            if (siguiente && comentarios.length === 0) cargar(1);
             return siguiente;
         });
     }, [cargar, comentarios.length]);
 
     useEffect(() => {
-        if (cargarAlAbrir) {
-            cargar(1);
-        }
+        if (cargarAlAbrir) cargar(1);
     }, [cargarAlAbrir, cargar]);
 
     return {
@@ -110,5 +231,16 @@ export const useComentarios = ({ tipo, targetId, cargarAlAbrir = false }: UseCom
         enviarMultimedia,
         cargarMas,
         cargar,
+        /* C264: Acciones de comentario */
+        editar,
+        eliminar,
+        reportar,
+        editandoId,
+        setEditandoId,
+        /* C265: Likes y respuestas */
+        toggleLike,
+        cargarRespuestas,
+        respondendoAId,
+        setRespondendoAId,
     };
 };

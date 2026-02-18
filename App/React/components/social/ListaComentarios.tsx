@@ -1,21 +1,23 @@
 /*
  * Componente: ListaComentarios — Kamples
  * Lista de comentarios con input para escribir nuevos.
- * C129: Paginación infinita con IntersectionObserver + límite de renderizado.
+ * C129: Paginación infinita con IntersectionObserver.
+ * C264+C265: Delegación de acciones a ComentarioItem.
  */
 
 import { useState, useCallback, useRef, useEffect, type KeyboardEvent } from 'react';
 import { Send, Image, Mic, X, Play, Pause } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
+import { ComentarioItem, type ComentarioAcciones } from '@app/components/social/ComentarioItem';
 import { useAuthStore } from '@app/stores/authStore';
 import type { Comentario } from '@app/types/publicacion';
 import '../../styles/componentes/listaComentarios.css';
 
 interface ListaComentariosProps {
     comentarios: Comentario[];
-    onEnviar?: (contenido: string) => void;
-    onEnviarMultimedia?: (tipo: 'imagen' | 'audio', archivo: File, contenido?: string) => void;
+    onEnviar?: (contenido: string, parentId?: number) => void;
+    onEnviarMultimedia?: (tipo: 'imagen' | 'audio', archivo: File, contenido?: string, parentId?: number) => void;
     cargando?: boolean;
     onClickAutor?: (username: string) => void;
     maxVisibles?: number;
@@ -23,6 +25,16 @@ interface ListaComentariosProps {
     /* C129: Paginacion infinita */
     onCargarMas?: () => void;
     hayMasPaginas?: boolean;
+    /* C264+C265: Acciones de comentario delegadas a ComentarioItem */
+    onEditar?: (id: number, contenido: string) => Promise<boolean>;
+    onEliminar?: (id: number) => Promise<boolean>;
+    onReportar?: (id: number, razon: string) => Promise<boolean>;
+    onToggleLike?: (id: number, liked: boolean) => Promise<void>;
+    onCargarRespuestas?: (id: number) => Promise<void>;
+    editandoId?: number | null;
+    setEditandoId?: (id: number | null) => void;
+    respondendoAId?: number | null;
+    setRespondendoAId?: (id: number | null) => void;
 }
 
 /* Formatear fecha relativa */
@@ -158,6 +170,15 @@ export const ListaComentarios = ({
     className = '',
     onCargarMas,
     hayMasPaginas = false,
+    onEditar,
+    onEliminar,
+    onReportar,
+    onToggleLike,
+    onCargarRespuestas,
+    editandoId,
+    setEditandoId,
+    respondendoAId,
+    setRespondendoAId,
 }: ListaComentariosProps): JSX.Element => {
     const { usuario, autenticado } = useAuthStore();
     const [textoNuevo, setTextoNuevo] = useState('');
@@ -243,61 +264,64 @@ export const ListaComentarios = ({
         return () => observer.disconnect();
     }, [mostrarTodos, hayMasPaginas, onCargarMas, cargando]);
 
+    /* C264+C265: Construir acciones para ComentarioItem */
+    const accionesComentario: ComentarioAcciones | undefined = (onEditar || onEliminar || onReportar || onToggleLike || onCargarRespuestas || onEnviar)
+        ? {
+            onEditar,
+            onEliminar,
+            onReportar,
+            onToggleLike,
+            onCargarRespuestas,
+            onResponder: onEnviar
+                ? async (contenido: string, parentId: number) => {
+                    onEnviar(contenido, parentId);
+                    return true;
+                }
+                : undefined,
+            editandoId: editandoId ?? null,
+            setEditandoId: setEditandoId ?? (() => {}),
+            respondendoAId: respondendoAId ?? null,
+            setRespondendoAId: setRespondendoAId ?? (() => {}),
+        }
+        : undefined;
+
+    /* Renderizar media dentro de ComentarioItem */
+    const renderMediaComentario = useCallback((comentario: Comentario) => {
+        return (
+            <>
+                {comentario.tipoContenido === 'imagen' && comentario.mediaUrl && (
+                    <a
+                        href={comentario.mediaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="comentarioImagen"
+                    >
+                        <img src={comentario.mediaUrl} alt="Imagen adjunta" loading="lazy" />
+                    </a>
+                )}
+                {comentario.tipoContenido === 'audio' && comentario.mediaUrl && (
+                    <ComentarioAudio
+                        src={comentario.mediaUrl}
+                        picos={comentario.mediaMetadata?.picos}
+                    />
+                )}
+            </>
+        );
+    }, []);
+
     return (
         <div className={clases}>
             {/* Lista de comentarios */}
             {visibles.length > 0 && (
                 <div className="comentariosLista">
                     {visibles.map((comentario) => (
-                        <div className="comentarioItem" key={comentario.id}>
-                            <div
-                                className="comentarioAutor"
-                                onClick={() => onClickAutor?.(comentario.autor.username)}
-                                role="link"
-                                tabIndex={0}
-                            >
-                                <Avatar
-                                    src={comentario.autor.avatarUrl}
-                                    nombre={comentario.autor.nombreVisible}
-                                    tamano="xs"
-                                />
-                            </div>
-                            <div className="comentarioCuerpo">
-                                <div className="comentarioCabeceraLinea">
-                                    <span
-                                        className="comentarioNombre"
-                                        onClick={() => onClickAutor?.(comentario.autor.username)}
-                                        role="link"
-                                        tabIndex={0}
-                                    >
-                                        {comentario.autor.nombreVisible}
-                                    </span>
-                                    <span className="comentarioTiempo">
-                                        {formatearTiempoComentario(comentario.creadoAt)}
-                                    </span>
-                                </div>
-                                {/* C130: Renderizar multimedia segun tipo */}
-                                {comentario.tipoContenido === 'imagen' && comentario.mediaUrl && (
-                                    <a
-                                        href={comentario.mediaUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="comentarioImagen"
-                                    >
-                                        <img src={comentario.mediaUrl} alt="Imagen adjunta" loading="lazy" />
-                                    </a>
-                                )}
-                                {comentario.tipoContenido === 'audio' && comentario.mediaUrl && (
-                                    <ComentarioAudio
-                                        src={comentario.mediaUrl}
-                                        picos={comentario.mediaMetadata?.picos}
-                                    />
-                                )}
-                                {comentario.contenido && (
-                                    <p className="comentarioTexto">{comentario.contenido}</p>
-                                )}
-                            </div>
-                        </div>
+                        <ComentarioItem
+                            key={comentario.id}
+                            comentario={comentario}
+                            acciones={accionesComentario}
+                            onClickAutor={onClickAutor}
+                            renderMediaComentario={renderMediaComentario}
+                        />
                     ))}
                 </div>
             )}
