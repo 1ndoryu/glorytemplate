@@ -6,6 +6,7 @@
 
 import { CONSTANTES_MEZCLADOR } from '../types/mezclador';
 import { decodificarAudio } from '../utils/audioBufferUtils';
+import { obtenerBufferProcesado, limpiarCachePitch } from './pitchShiftService';
 
 class MotorAudio {
     private contexto: AudioContext | null = null;
@@ -89,6 +90,7 @@ class MotorAudio {
     /*
      * Programar un buffer para reproducirse en un momento específico.
      * C215: Soporta invertido (reverse), fadeIn y fadeOut via GainNode ramps.
+     * C271: Soporta modo stretch (pitch independiente de velocidad).
      */
     programarReproduccion(
         buffer: AudioBuffer,
@@ -102,46 +104,68 @@ class MotorAudio {
         fadeIn = 0,
         fadeOut = 0,
         /* C240: Desplazamiento en semitonos (-12 a +12) */
-        detune = 0
+        detune = 0,
+        /* C271: Modo tonal — resample (vinilo) o stretch (SoundTouch) */
+        modoTonalidad: 'resample' | 'stretch' = 'resample',
+        /* C271: ID del bloque para cache SoundTouch */
+        bloqueId = ''
     ): AudioBufferSourceNode {
         const ctx = this.obtenerContexto();
         const fuente = ctx.createBufferSource();
 
         /*
+         * C271: En modo stretch, pre-procesar el buffer con SoundTouch.
+         * El pitch se controla via DSP, no via detune nativo.
+         * playbackRate se mantiene en 1 porque SoundTouch ya lo aplica.
+         */
+        let bufferFinal: AudioBuffer;
+        let rateParaFuente: number;
+        let detuneParaFuente: number;
+
+        if (modoTonalidad === 'stretch' && (detune !== 0 || playbackRate !== 1)) {
+            /* SoundTouch procesa tanto pitch como tempo */
+            bufferFinal = obtenerBufferProcesado(
+                ctx, bloqueId, buffer, detune, playbackRate
+            );
+            rateParaFuente = 1;
+            detuneParaFuente = 0;
+        } else {
+            bufferFinal = buffer;
+            rateParaFuente = playbackRate;
+            detuneParaFuente = detune;
+        }
+
+        /*
          * C215: Si el bloque está invertido, usar un buffer invertido.
-         * Crear copia invertida en el momento (cacheado sería mejor pero
-         * para simplificar lo hacemos inline; el buffer ya está en memoria).
          */
         if (invertido) {
             const bufferInvertido = ctx.createBuffer(
-                buffer.numberOfChannels,
-                buffer.length,
-                buffer.sampleRate
+                bufferFinal.numberOfChannels,
+                bufferFinal.length,
+                bufferFinal.sampleRate
             );
-            for (let c = 0; c < buffer.numberOfChannels; c++) {
-                const orig = buffer.getChannelData(c);
+            for (let c = 0; c < bufferFinal.numberOfChannels; c++) {
+                const orig = bufferFinal.getChannelData(c);
                 const dest = bufferInvertido.getChannelData(c);
                 for (let i = 0; i < orig.length; i++) {
                     dest[i] = orig[orig.length - 1 - i];
                 }
             }
             fuente.buffer = bufferInvertido;
-            /* Invertir el offset: apuntar al espejo */
-            offset = Math.max(0, buffer.duration - offset - (duracion * playbackRate));
+            offset = Math.max(0, bufferFinal.duration - offset - (duracion * rateParaFuente));
         } else {
-            fuente.buffer = buffer;
+            fuente.buffer = bufferFinal;
         }
 
-        fuente.playbackRate.value = playbackRate;
+        fuente.playbackRate.value = rateParaFuente;
 
         /*
          * C258 fix: Detune puro sin compensación de playbackRate.
-         * La compensación anterior (rate / 2^(cents/1200)) anulaba algebraicamente
-         * el efecto del detune. Ahora detune cambia pitch+speed (estilo vinilo).
-         * El duration de start() se ajusta con la tasa efectiva real.
+         * Solo aplica en modo resample (vinilo).
+         * En modo stretch, detune ya fue procesado por SoundTouch.
          */
-        if (detune !== 0) {
-            fuente.detune.value = detune * 100;
+        if (detuneParaFuente !== 0) {
+            fuente.detune.value = detuneParaFuente * 100;
         }
 
         const gainNodo = ctx.createGain();
@@ -152,7 +176,6 @@ class MotorAudio {
 
         /*
          * C215: Aplicar fade in/out vía rampas de ganancia.
-         * fadeIn/fadeOut son en segundos wall-clock (no buffer-time).
          */
         if (fadeIn > 0 && fadeIn < duracion) {
             gainNodo.gain.setValueAtTime(0, cuando);
@@ -163,7 +186,6 @@ class MotorAudio {
 
         if (fadeOut > 0 && fadeOut < duracion) {
             const inicioFadeOut = cuando + duracion - fadeOut;
-            /* Solo aplicar si no se superpone con fadeIn */
             if (inicioFadeOut > cuando + fadeIn) {
                 gainNodo.gain.setValueAtTime(volumen, inicioFadeOut);
                 gainNodo.gain.linearRampToValueAtTime(0, cuando + duracion);
@@ -172,9 +194,10 @@ class MotorAudio {
 
         /*
          * C222+C258: duration en buffer-time.
-         * La tasa efectiva combina playbackRate + detune.
+         * En modo stretch, rate=1 y detune=0 → tasaEfectiva=1 (duración no cambia).
+         * En modo resample, la tasa efectiva incluye detune nativo.
          */
-        const tasaEfectiva = playbackRate * Math.pow(2, ((detune ?? 0) * 100) / 1200);
+        const tasaEfectiva = rateParaFuente * Math.pow(2, (detuneParaFuente * 100) / 1200);
         fuente.start(cuando, offset, duracion * tasaEfectiva);
         this.nodosActivos.push(fuente);
 
@@ -241,6 +264,9 @@ class MotorAudio {
             fadeOut?: number;
             /* C240: Tonalidad en semitonos */
             detune?: number;
+            /* C271: Modo tonal */
+            modoTonalidad?: 'resample' | 'stretch';
+            bloqueId?: string;
         }>,
         duracionTotal: number
     ): Promise<AudioBuffer> {
@@ -250,16 +276,42 @@ class MotorAudio {
 
         for (const bloque of bloques) {
             const fuente = offlineCtx.createBufferSource();
+            const detuneVal = bloque.detune ?? 0;
+            const modo = bloque.modoTonalidad ?? 'resample';
+
+            /*
+             * C271: En modo stretch, pre-procesar buffer con SoundTouch.
+             * rate=1 y detune=0 para la fuente — ya aplicados por DSP.
+             */
+            let bufferParaFuente: AudioBuffer;
+            let rateParaFuente: number;
+            let detuneParaFuente: number;
+
+            if (modo === 'stretch' && (detuneVal !== 0 || bloque.playbackRate !== 1)) {
+                bufferParaFuente = obtenerBufferProcesado(
+                    offlineCtx,
+                    bloque.bloqueId ?? '',
+                    bloque.buffer,
+                    detuneVal,
+                    bloque.playbackRate
+                );
+                rateParaFuente = 1;
+                detuneParaFuente = 0;
+            } else {
+                bufferParaFuente = bloque.buffer;
+                rateParaFuente = bloque.playbackRate;
+                detuneParaFuente = detuneVal;
+            }
 
             /* C215: Invertir buffer si es necesario */
             if (bloque.invertido) {
                 const bufInv = offlineCtx.createBuffer(
-                    bloque.buffer.numberOfChannels,
-                    bloque.buffer.length,
-                    bloque.buffer.sampleRate
+                    bufferParaFuente.numberOfChannels,
+                    bufferParaFuente.length,
+                    bufferParaFuente.sampleRate
                 );
-                for (let c = 0; c < bloque.buffer.numberOfChannels; c++) {
-                    const orig = bloque.buffer.getChannelData(c);
+                for (let c = 0; c < bufferParaFuente.numberOfChannels; c++) {
+                    const orig = bufferParaFuente.getChannelData(c);
                     const dest = bufInv.getChannelData(c);
                     for (let i = 0; i < orig.length; i++) {
                         dest[i] = orig[orig.length - 1 - i];
@@ -267,15 +319,13 @@ class MotorAudio {
                 }
                 fuente.buffer = bufInv;
             } else {
-                fuente.buffer = bloque.buffer;
+                fuente.buffer = bufferParaFuente;
             }
 
-            fuente.playbackRate.value = bloque.playbackRate;
+            fuente.playbackRate.value = rateParaFuente;
 
-            /* C258 fix: Detune puro sin compensación (estilo vinilo) */
-            const detuneVal = bloque.detune ?? 0;
-            if (detuneVal !== 0) {
-                fuente.detune.value = detuneVal * 100;
+            if (detuneParaFuente !== 0) {
+                fuente.detune.value = detuneParaFuente * 100;
             }
 
             const gainNodo = offlineCtx.createGain();
@@ -302,11 +352,10 @@ class MotorAudio {
             }
 
             const offset = bloque.invertido
-                ? Math.max(0, bloque.buffer.duration - bloque.offset - (bloque.duracion * bloque.playbackRate))
+                ? Math.max(0, bufferParaFuente.duration - bloque.offset - (bloque.duracion * rateParaFuente))
                 : bloque.offset;
 
-            /* C222+C258: duration en buffer-time con tasa efectiva */
-            const tasaEfectivaOffline = bloque.playbackRate * Math.pow(2, (detuneVal * 100) / 1200);
+            const tasaEfectivaOffline = rateParaFuente * Math.pow(2, (detuneParaFuente * 100) / 1200);
             fuente.start(bloque.cuando, offset, bloque.duracion * tasaEfectivaOffline);
         }
 
@@ -332,6 +381,8 @@ class MotorAudio {
     /* Limpiar caché de buffers (liberar memoria) */
     limpiarCache(): void {
         this.cacheBuffers.clear();
+        /* C271: Limpiar cache de buffers SoundTouch procesados */
+        limpiarCachePitch();
     }
 }
 

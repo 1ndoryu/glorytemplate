@@ -37,24 +37,37 @@ const MensajesIslandBase = (): JSX.Element => {
     const {
         conversaciones,
         cargandoConversaciones,
+        conversacionesCargadas,
         setConversaciones,
         setCargandoConversaciones,
+        necesitaRefrescar,
     } = useMensajesStore();
 
     const { navegar } = useNavigationStore();
     const [busqueda, setBusqueda] = useState('');
 
-    /* Cargar conversaciones */
+    /*
+     * C192: Stale-while-revalidate.
+     * Solo muestra spinner si nunca se cargo. Si hay cache, muestra al instante
+     * y refresca en background si el TTL expiro.
+     */
     useEffect(() => {
-        const cargar = async () => {
+        let cancelado = false;
+        if (!necesitaRefrescar()) return;
+
+        /* Solo spinner si no hay datos previos */
+        if (!conversacionesCargadas) {
             setCargandoConversaciones(true);
-            const resp = await obtenerConversaciones();
-            if (resp.ok && resp.data) {
+        }
+
+        obtenerConversaciones().then((resp) => {
+            if (!cancelado && resp.ok && resp.data) {
                 setConversaciones(resp.data);
             }
-            setCargandoConversaciones(false);
-        };
-        cargar();
+            if (!cancelado) setCargandoConversaciones(false);
+        });
+
+        return () => { cancelado = true; };
     }, [setConversaciones, setCargandoConversaciones]);
 
     /* Abrir una conversación */
@@ -102,7 +115,7 @@ const MensajesIslandBase = (): JSX.Element => {
             </div>
 
             {/* Lista de conversaciones */}
-            {cargandoConversaciones ? (
+            {cargandoConversaciones && !conversacionesCargadas ? (
                 <div className="mensajesVacio">Cargando conversaciones...</div>
             ) : filtradas.length === 0 ? (
                 <div className="mensajesVacio">

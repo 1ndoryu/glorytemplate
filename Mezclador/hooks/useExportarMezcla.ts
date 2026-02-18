@@ -62,6 +62,9 @@ export const useExportarMezcla = () => {
                     fadeOut: bloque.fadeOut,
                     /* C240: Tonalidad para export */
                     detune: bloque.detune ?? 0,
+                    /* C271: Modo tonal para export */
+                    modoTonalidad: bloque.modoTonalidad ?? 'resample',
+                    bloqueId: bloque.id,
                 });
             }
         }

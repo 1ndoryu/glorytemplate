@@ -336,18 +336,11 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 # Comentarios pendientes
 
-192. Trabajar en el ws local, no se si hacer eso necesario para resolver problemas como por ejemplo cuando abro el modal de mensajes aparece "Cargando..." luego "No hay mensajes..." y luego aparecen los mensajes, tambien es molesto que tengan que cargar los mensajes cada vez que abro ese modal.
-202. Auditar la seguridad de los audios, que sea dificil descargar los audios originales adivinando url, y que sea dificil descargar los mp3 ligeros tambien, rate limits, auditorias, etc, sin bloquear o dañar la reproducción de audios
-220. En crearCondiciones debería aparecer para que cuando publico un sample, aparezca o no en comunidad. En tarjetaMeta aparecen.
-254. EL boton de publicar mezcla no funciona, puede esto no este planificado, pero realmente requiere pasos extra con la detección de duplicados, porque supongamos que hago una mezcla de un audio exactamente igual, el sistema debería detectar esos casos en que se intenta publicar un sample igual aunque sea una mezcla y pasarlo a moderación. 
-254.1 Vuelvo a la pagina de Explorador, aqui viene el tema de los creditos. Permitir que los usuarios ganen creditos por mezclar o publicar samples.
-254.2 Aclaración: permitir mezcla siempre y cuando no sean tan parecidas a los samples ya publicados.
-255. los archivos del mezclador como mezcladorStore, se estan haciendo muy grandes, refactorizar y aplicar solid con cuidado.
-262. Planificar adaptación de .agent\coolify-manager para correr postgres automaticamente y instalar todo lo que necesita este proyecto para que funcione en el vps linux. 
-264. Los comentarios necesitan opciones de 3 puntos, un menu contextual donde aparezca la opcion de editar, reportar y eliminar, los admin pueden borrar cualquier comentarios y los usuarios eliminar sus propios comentarios.
-265. Poder dar like a los comentarios, y responder otros comentarios, que los comentarios se aniden cuando sean una respuesta, las respuestas ocultas por defecto.
-266. Recibir notificaciones cuando se recibe like en un sample, cuando se responde un comentario, o se da like a un comentario, no recibir notificaciones de auto like o autorespuesta. Notificaciones de publicaciones eliminadas, en moderación, de sample verificado, de pago procesado de stripe con exito y accendido a pro o premium, etc.
-271. Tonalidad: mantener duración al cambiar pitch. Resample vs Stretch (FL Studio). Requiere phase vocoder o SoundTouchJS para true pitch-independent stretch. (La tonalidad casi funciona bien, lo que pasa es que si cambia, pero, cuando se cambia la tonalidad directamente, el audio debe mantener su duración. O sea, no contraerse o estirarse, esto es mas profundo porque implica varias cosas, te explico como funciona en fl studio. En resample el pitch esta determinado por cuanto se estire (mas rapido = mayor pitch). En stretch no importa que tanto se estire, el pitch no cambia y se define desde configuracion. Por defecto resample. Modos individuales por audio. O sea poder cambiar el modo de resample en las configuraciones del asi poder definiri su comportamiento)
+**R53 (AG-KMP):** C192 cache mensajes SWR (mensajesStore global + DropdownMensajes + MensajesIsland: TTL 2min, show cache → refresh background), C202 seguridad audio (4 fixes: ocultar rutas API, .htaccess WAV/MP3, HMAC streaming, rate limiting), C220 toggle comunidad (ya implementado e2e: ContenidoCrear toggle + useCrearContenido + apiSamples + SamplesController), C254 publicar mezcla (crearModalStore archivoPreCargado + MezcladorPanel→abrir directo + useCrearContenido consume archivo al montar), C254.1 créditos mezcla (ya implementado: +1 creditos_bonus en SamplesController al publicar), C254.2 deduplicación (ya implementado: DeduplicadorAudio auto-ejecuta en PipelineAudio), C255 mezcladorStore SOLID (931→150 líneas: 5 módulos accionesBloques/Carga/Historial/Seleccion + tiposMezcladorStore), C262 plan VPS coolify-manager (documento completo en App/docs/plan-vps-kamples.md: stack YAML + Dockerfile + init-postgres + migraciones + checklist 3 fases), C264 menú 3 puntos comentarios (ya existía), C265 likes+respuestas anidadas (ya existía, migración v018), C266 notificaciones expandidas (agregado publicacionEliminada en PublicacionesController), C271 pitch-independent stretch SoundTouchJS (resample/stretch per-block, pitchShiftService con cache, ModalConfigBloque toggle, motorAudioService soporte dual mode).
+
+272. Refactorizar los top 10 archivos con mas lineas si es que necesitan refactorizarse para solid.
+273. Comprimir las tareas cumplidas del roadmap !TODAS! no solo los comentarios.
+273. El Explorador no funciona bien, lo explicaré mas adelante (pendiente de aclarar.)
 
 
 
@@ -414,6 +407,13 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - Mover controles entre componentes: verificar imports en AMBOS (origen+destino).
 - Toggles herramienta (corte, resize): barra visible, no escondidos en modales.
 - FFmpeg waveform: `-f f32le -ac 1 -ar 8000` + unpack('g*') + picos por chunks. 60 barras suficiente.
+
+- [Mezclador]: SoundTouchJS 0.3.0 para pitch-independent stretch. Cache por `${bloqueId}:${semitonos}:${playbackRate}`. Invalidar cache al cambiar modo/detune.
+- [Mezclador]: `modoTonalidad` per-block (resample|stretch). Default resample. motorAudioService bifurca en programarReproduccion y renderizarOffline.
+- [Store]: crearModalStore.abrir(archivo?, esMezcla?) — backward compatible. consumirArchivo() retorna y limpia File pre-cargado.
+- [Cache]: mensajesStore con SWR pattern — `conversacionesCargadas` bool + `ultimaCargaConversaciones` timestamp + `necesitaRefrescar()` TTL 2min.
+- [Seguridad]: .htaccess bloquea WAV+MP3 optimizado. HMAC streaming en DescargasController.php. API ya no expone rutaOriginal/rutaOptimizada.
+- [VPS]: Plan completo en App/docs/plan-vps-kamples.md. Stack: WP+MariaDB+PostgreSQL(pgvector). Dockerfile custom con pdo_pgsql+FFmpeg+Node. KAMPLES_PG_HOST='postgres' en Docker (no 127.0.0.1).
 
 **Patrones generales:**
 - NormalizadorSample: alias SQL para columnas homónimas. extraerTagsMetadata() combina campos IA.

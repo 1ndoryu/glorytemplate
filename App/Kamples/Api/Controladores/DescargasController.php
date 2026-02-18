@@ -48,6 +48,92 @@ class DescargasController
             'callback'            => [self::class, 'descargarZipColeccion'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        /*
+         * C202: Endpoint de streaming seguro.
+         * Sirve archivos via PHP con token firmado temporal, evitando exponer URLs directas.
+         */
+        register_rest_route($namespace, '/descargas/stream', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'streamDescarga'],
+            'permission_callback' => '__return_true',
+        ]);
+    }
+
+    /**
+     * C202: Generar firma HMAC para tokens de descarga temporales.
+     */
+    private static function generarFirmaDescarga(int $sampleId, int $userId, int $expira): string
+    {
+        $secreto = defined('AUTH_SALT') ? AUTH_SALT : 'kamples-descarga-segura-2026';
+        return hash_hmac('sha256', "{$sampleId}:{$userId}:{$expira}", $secreto);
+    }
+
+    /**
+     * C202: GET /descargas/stream — Stream seguro de archivos via PHP.
+     * Valida token firmado, verifica expiración y sirve con readfile().
+     */
+    public static function streamDescarga(\WP_REST_Request $request): \WP_REST_Response
+    {
+        $token = $request->get_param('token');
+        if (!$token) {
+            return new \WP_REST_Response(['code' => 'token_requerido'], 400);
+        }
+
+        $decoded = base64_decode($token, true);
+        if (!$decoded) {
+            return new \WP_REST_Response(['code' => 'token_invalido'], 400);
+        }
+
+        $partes = explode(':', $decoded);
+        if (count($partes) !== 4) {
+            return new \WP_REST_Response(['code' => 'token_malformado'], 400);
+        }
+
+        [$sampleId, $userId, $expira, $firma] = $partes;
+        $sampleId = (int) $sampleId;
+        $userId = (int) $userId;
+        $expira = (int) $expira;
+
+        /* Verificar expiración */
+        if (time() > $expira) {
+            return new \WP_REST_Response(['code' => 'token_expirado'], 403);
+        }
+
+        /* Verificar firma HMAC */
+        $firmaEsperada = self::generarFirmaDescarga($sampleId, $userId, $expira);
+        if (!hash_equals($firmaEsperada, $firma)) {
+            return new \WP_REST_Response(['code' => 'firma_invalida'], 403);
+        }
+
+        /* Obtener ruta del archivo */
+        $sample = PostgresService::consultarUno(
+            "SELECT ruta_original, ruta_optimizada, titulo FROM samples WHERE id = :id",
+            ['id' => $sampleId]
+        );
+
+        if (!$sample) {
+            return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
+        }
+
+        $rutaArchivo = $sample['ruta_original'] ?? $sample['ruta_optimizada'] ?? '';
+        if (!$rutaArchivo || !file_exists($rutaArchivo)) {
+            return new \WP_REST_Response(['code' => 'archivo_no_encontrado'], 404);
+        }
+
+        /* Stream del archivo via PHP — nunca exponer ruta real */
+        $nombre = ($sample['titulo'] ?? 'sample') . '.' . pathinfo($rutaArchivo, PATHINFO_EXTENSION);
+        $mime = wp_check_filetype($rutaArchivo)['type'] ?? 'application/octet-stream';
+        $tamano = filesize($rutaArchivo);
+
+        header('Content-Type: ' . $mime);
+        header('Content-Disposition: attachment; filename="' . sanitize_file_name($nombre) . '"');
+        header('Content-Length: ' . $tamano);
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+        header('Pragma: no-cache');
+        header('X-Content-Type-Options: nosniff');
+        readfile($rutaArchivo);
+        exit;
     }
 
     /**
@@ -210,24 +296,23 @@ class DescargasController
         }
 
         /*
-         * Convertir ruta absoluta del filesystem a URL pública.
-         * El frontend espera { url, nombre, formato, tamano }.
+         * C202: Servir archivo via PHP streaming.
+         * NO exponer URL publica directa para evitar bypass de creditos.
+         * Genera un token temporal firmado que el frontend usa para descargar.
          */
-        $uploadDir = \wp_upload_dir();
-        $urlDescarga = '';
-        if ($rutaArchivo && file_exists($rutaArchivo)) {
-            $rutaRelativa = str_replace(
-                wp_normalize_path($uploadDir['basedir']),
-                '',
-                wp_normalize_path($rutaArchivo)
-            );
-            $urlDescarga = $uploadDir['baseurl'] . $rutaRelativa;
+        if (!$rutaArchivo || !file_exists($rutaArchivo)) {
+            return new \WP_REST_Response(['code' => 'archivo_no_encontrado'], 404);
         }
+
+        /* Generar token firmado temporal (30 minutos) */
+        $expira = time() + 1800;
+        $firma = self::generarFirmaDescarga($sampleId, $userId, $expira);
+        $tokenDescarga = base64_encode("{$sampleId}:{$userId}:{$expira}:{$firma}");
 
         return new \WP_REST_Response([
             'ok'      => true,
-            'url'     => $urlDescarga,
-            'nombre'  => $sample['titulo'] ?? 'sample',
+            'url'     => rest_url("kamples/v1/descargas/stream?token=" . urlencode($tokenDescarga)),
+            'nombre'  => ($sample['titulo'] ?? 'sample') . '.' . $calidad,
             'formato' => $calidad,
             'tamano'  => $tamanoBytes,
         ], 200);

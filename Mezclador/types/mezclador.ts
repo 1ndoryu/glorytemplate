@@ -37,6 +37,12 @@ export interface BloqueMezclador {
     modoResize: 'stretch' | 'clip';
     /* C240: Desplazamiento de tonalidad en semitonos (-12 a +12) */
     detune: number;
+    /*
+     * C271: Modo de procesamiento tonal.
+     * resample: pitch ligado a velocidad (vinilo, por defecto)
+     * stretch: pitch independiente via SoundTouch DSP
+     */
+    modoTonalidad: 'resample' | 'stretch';
 }
 
 /* C215: Configuración parcial para actualizar un bloque */
@@ -53,6 +59,8 @@ export interface ConfigBloque {
     modoResize?: 'stretch' | 'clip';
     /* C240: Desplazamiento de tonalidad en semitonos */
     detune?: number;
+    /* C271: Modo de procesamiento tonal */
+    modoTonalidad?: 'resample' | 'stretch';
 }
 
 /* Una pista en la timeline */

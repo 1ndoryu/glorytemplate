@@ -162,6 +162,12 @@ class SamplesController
      */
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
+        /* C202: Rate limit anti-scraping para usuarios anónimos (60 req/minuto por IP) */
+        if (!get_current_user_id()) {
+            $rl = RateLimiter::verificarIp('listar_samples', 60, 60);
+            if ($rl) return $rl;
+        }
+
         $page    = (int) $request->get_param('page');
         $perPage = (int) $request->get_param('per_page');
         $offset  = ($page - 1) * $perPage;
@@ -292,6 +298,12 @@ class SamplesController
      */
     public static function feed(\WP_REST_Request $request): \WP_REST_Response
     {
+        /* C202: Rate limit anti-scraping para usuarios anónimos (60 req/minuto por IP) */
+        if (!get_current_user_id()) {
+            $rl = RateLimiter::verificarIp('feed_samples', 60, 60);
+            if ($rl) return $rl;
+        }
+
         $tipo    = $request->get_param('tipo');
         $page    = (int) $request->get_param('page');
         $perPage = (int) $request->get_param('per_page');

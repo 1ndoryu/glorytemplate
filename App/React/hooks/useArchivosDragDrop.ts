@@ -83,6 +83,20 @@ export const useArchivosDragDrop = () => {
         setAudioAdjunto(null);
     }, []);
 
+    /*
+     * C254: Inyectar archivo de audio programáticamente (desde Mezclador).
+     * Usa mismo formato que manejarAudio pero sin filtrar extensiones
+     * ya que el File viene del export interno (siempre WAV válido).
+     */
+    const setAudioExterno = useCallback((archivo: File) => {
+        setAudioAdjunto({
+            archivo,
+            nombre: archivo.name,
+            tamano: formatearTamano(archivo.size),
+            formato: archivo.name.split('.').pop()?.toUpperCase() ?? 'WAV',
+        });
+    }, []);
+
     /* Eventos de drag & drop */
     const manejarDragEnter = useCallback((e: DragEvent) => {
         e.preventDefault();
@@ -138,6 +152,7 @@ export const useArchivosDragDrop = () => {
         manejarInputImagen,
         quitarImagen,
         quitarAudio,
+        setAudioExterno,
         manejarDragEnter,
         manejarDragLeave,
         manejarDragOver,

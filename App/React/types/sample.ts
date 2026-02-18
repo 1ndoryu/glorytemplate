@@ -66,8 +66,9 @@ export interface Sample {
     esPremium: boolean;
     precio: number | null;
     liked?: boolean;
-    rutaOriginal: string;
-    rutaOptimizada: string;
+    /* C202: Rutas originales ya no se envian en la API publica por seguridad */
+    rutaOriginal?: string;
+    rutaOptimizada?: string;
     rutaPreview: string;
     rutaWaveform: string;
     imagenUrl: string | null;

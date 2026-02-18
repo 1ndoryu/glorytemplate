@@ -1,17 +1,22 @@
 /*
- * mezcladorStore — Estado global del Mezclador (Mini DAW)
- * Gestiona pistas, bloques, reproducción y configuración.
+ * mezcladorStore — Estado global del Mezclador (Mini DAW).
+ * Orquestador delgado que combina slices de acciones especializadas.
+ * Refactorizado C255: 931→~150 líneas (lógica extraída a accionesHistorial,
+ * accionesSeleccion, accionesBloques, accionesCargaAudio).
  */
 
 import { create } from 'zustand';
-import type { SampleResumen } from '@app/types';
-import type { BloqueMezclador, PistaMezclador, Compas, ConfigBloque, SnapResolucion } from '../types/mezclador';
-import { CONSTANTES_MEZCLADOR, COLORES_BLOQUE, EVENTO_REPROGRAMAR_AUDIO, ZOOM_MIN, ZOOM_MAX, ZOOM_PASO } from '../types/mezclador';
-import { inferirCompas, compasesASegundos, segundosACompases } from '../utils/compasUtils';
-import { generarIdBloque, generarIdPista, extraerPeaks } from '../utils/audioBufferUtils';
+import type { SnapResolucion } from '../types/mezclador';
+import { CONSTANTES_MEZCLADOR, EVENTO_REPROGRAMAR_AUDIO, ZOOM_MIN, ZOOM_MAX, ZOOM_PASO } from '../types/mezclador';
+import { compasesASegundos, segundosACompases } from '../utils/compasUtils';
 import { motorAudio } from '../services/motorAudioService';
 
-const LS_KEY_BPM = 'kamples:mezclador:bpm';
+import type { MezcladorState } from './tiposMezcladorStore';
+import { LS_KEY_BPM } from './tiposMezcladorStore';
+import { crearAccionesHistorial } from './accionesHistorial';
+import { crearAccionesSeleccion } from './accionesSeleccion';
+import { crearAccionesBloques } from './accionesBloques';
+import { crearAccionesCargaAudio, crearPistaVacia } from './accionesCargaAudio';
 
 const leerBpmGuardado = (): number => {
     try {
@@ -20,99 +25,9 @@ const leerBpmGuardado = (): number => {
     } catch { return CONSTANTES_MEZCLADOR.BPM_DEFAULT; }
 };
 
-/* C224: Snapshot para historial de undo/redo */
-interface SnapshotMezclador {
-    pistas: PistaMezclador[];
-    totalCompases: number;
-}
-
-const MAX_HISTORIAL = 30;
-
-interface MezcladorState {
-    abierto: boolean;
-    pistas: PistaMezclador[];
-    bpmProyecto: number;
-    compasProyecto: Compas;
-    totalCompases: number;
-    reproduciendo: boolean;
-    tiempoActual: number;
-    posicionCursor: number;
-    exportando: boolean;
-    cargandoBuffers: Set<string>;
-    modoCortarActivo: boolean;
-    snapResolucion: SnapResolucion;
-    nivelZoom: number;
-
-    /* C247: Selección múltiple de bloques */
-    bloquesSeleccionados: Set<string>;
-    toggleSeleccionBloque: (bloqueId: string, ctrlKey: boolean) => void;
-    limpiarSeleccion: () => void;
-    moverBloquesSeleccionados: (pistaIdDestino: string, deltaCompas: number) => void;
-
-    /* C256: Modo resize global (stretch o clip) */
-    modoResizeGlobal: 'stretch' | 'clip';
-    setModoResizeGlobal: (modo: 'stretch' | 'clip') => void;
-
-    /* C224: Historial undo/redo */
-    _historial: SnapshotMezclador[];
-    _posicionHistorial: number;
-    _guardarSnapshot: () => void;
-    deshacer: () => void;
-    rehacer: () => void;
-    puedeDeshacer: () => boolean;
-    puedeRehacer: () => boolean;
-
-    abrir: () => void;
-    cerrar: () => void;
-    toggle: () => void;
-
-    setBpm: (bpm: number) => void;
-    setCompas: (compas: Compas) => void;
-    setTotalCompases: (total: number) => void;
-    agregarCompas: () => void;
-    quitarCompas: () => void;
-
-    agregarPista: () => void;
-    eliminarPista: (pistaId: string) => void;
-    setVolumenPista: (pistaId: string, volumen: number) => void;
-    toggleSilenciarPista: (pistaId: string) => void;
-
-    agregarSample: (sample: SampleResumen, pistaId?: string) => Promise<void>;
-    agregarAudioLocal: (archivo: File, pistaId?: string) => Promise<void>;
-    moverBloque: (bloqueId: string, pistaIdDestino: string, compasInicio: number) => void;
-    eliminarBloque: (bloqueId: string) => void;
-    setDuracionBloque: (bloqueId: string, nuevaDuracion: number) => void;
-    duplicarBloque: (bloqueId: string) => void;
-    dividirBloque: (bloqueId: string, posicionCompas: number) => void;
-    actualizarConfigBloque: (bloqueId: string, config: ConfigBloque) => void;
-
-    setReproduciendo: (valor: boolean) => void;
-    setTiempoActual: (tiempo: number) => void;
-    setPosicionCursor: (posicion: number) => void;
-    setExportando: (valor: boolean) => void;
-    toggleModoCortar: () => void;
-    setSnapResolucion: (snap: SnapResolucion) => void;
-    setNivelZoom: (zoom: number) => void;
-    zoomIn: () => void;
-    zoomOut: () => void;
-    obtenerSnapCompas: () => number | null;
-
-    limpiarProyecto: () => void;
-    obtenerDuracionTotal: () => number;
-    obtenerTodosBloques: () => BloqueMezclador[];
-}
-
-const crearPistaVacia = (nombre?: string): PistaMezclador => ({
-    id: generarIdPista(),
-    nombre: nombre ?? 'Pista',
-    volumen: 1,
-    silenciada: false,
-    bloques: [],
-});
-
 export const useMezcladorStore = create<MezcladorState>((set, get) => ({
+    /* Estado inicial */
     abierto: false,
-    /* C274: Iniciar con 20 pistas vacías para apariencia profesional */
     pistas: Array.from({ length: 20 }, (_, i) => crearPistaVacia(`Pista ${i + 1}`)),
     bpmProyecto: leerBpmGuardado(),
     compasProyecto: { ...CONSTANTES_MEZCLADOR.COMPAS_DEFAULT },
@@ -126,130 +41,13 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     snapResolucion: 'beat' as SnapResolucion,
     nivelZoom: 1,
 
-    /* C247: Selección múltiple de bloques */
-    bloquesSeleccionados: new Set<string>(),
+    /* Slices de acciones especializadas */
+    ...crearAccionesHistorial(set, get),
+    ...crearAccionesSeleccion(set, get),
+    ...crearAccionesBloques(set, get),
+    ...crearAccionesCargaAudio(set, get),
 
-    /* C256: Modo resize global */
-    modoResizeGlobal: 'stretch' as const,
-    setModoResizeGlobal: (modo) => set({ modoResizeGlobal: modo }),
-
-    toggleSeleccionBloque: (bloqueId, ctrlKey) => {
-        set(prev => {
-            const nuevaSeleccion = new Set(prev.bloquesSeleccionados);
-            if (ctrlKey) {
-                if (nuevaSeleccion.has(bloqueId)) {
-                    nuevaSeleccion.delete(bloqueId);
-                } else {
-                    nuevaSeleccion.add(bloqueId);
-                }
-            } else {
-                nuevaSeleccion.clear();
-                nuevaSeleccion.add(bloqueId);
-            }
-            return { bloquesSeleccionados: nuevaSeleccion };
-        });
-    },
-
-    limpiarSeleccion: () => {
-        set({ bloquesSeleccionados: new Set<string>() });
-    },
-
-    /*
-     * C247: Mover todos los bloques seleccionados manteniendo offsets relativos.
-     * deltaCompas = diferencia respecto a la posición original del bloque principal.
-     */
-    moverBloquesSeleccionados: (pistaIdDestino, deltaCompas) => {
-        get()._guardarSnapshot();
-        set(prev => {
-            const seleccionados = prev.bloquesSeleccionados;
-            if (seleccionados.size === 0) return prev;
-
-            const pistas = prev.pistas.map(p => ({
-                ...p,
-                bloques: p.bloques.map(b => {
-                    if (!seleccionados.has(b.id)) return b;
-                    return {
-                        ...b,
-                        pistaId: pistaIdDestino,
-                        compasInicio: Math.max(0, b.compasInicio + deltaCompas),
-                    };
-                }),
-            }));
-
-            /* Reagrupar: mover bloques seleccionados a pista destino */
-            const bloquesMovidos: BloqueMezclador[] = [];
-            const pistasLimpias = pistas.map(p => {
-                const enEsta: BloqueMezclador[] = [];
-                const noSel: BloqueMezclador[] = [];
-                for (const b of p.bloques) {
-                    if (seleccionados.has(b.id)) {
-                        bloquesMovidos.push(b);
-                    } else {
-                        noSel.push(b);
-                    }
-                }
-                return { ...p, bloques: noSel };
-            });
-
-            const pistasFinales = pistasLimpias.map(p =>
-                p.id === pistaIdDestino
-                    ? { ...p, bloques: [...p.bloques, ...bloquesMovidos] }
-                    : p
-            );
-
-            return { pistas: pistasFinales };
-        });
-    },
-
-    /* C224: Historial undo/redo */
-    _historial: [],
-    _posicionHistorial: -1,
-
-    _guardarSnapshot: () => {
-        const { pistas, totalCompases, _historial, _posicionHistorial } = get();
-        /* Descartar historial futuro si hicimos undo y luego una acción nueva */
-        const histRecortado = _historial.slice(0, _posicionHistorial + 1);
-        const nuevoSnapshot: SnapshotMezclador = { pistas, totalCompases };
-        const nuevoHistorial = [...histRecortado, nuevoSnapshot].slice(-MAX_HISTORIAL);
-        set({
-            _historial: nuevoHistorial,
-            _posicionHistorial: nuevoHistorial.length - 1,
-        });
-    },
-
-    deshacer: () => {
-        const { _historial, _posicionHistorial } = get();
-        if (_posicionHistorial <= 0) return;
-        const anterior = _historial[_posicionHistorial - 1];
-        if (!anterior) return;
-        set({
-            pistas: anterior.pistas,
-            totalCompases: anterior.totalCompases,
-            _posicionHistorial: _posicionHistorial - 1,
-        });
-        if (get().reproduciendo) {
-            window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO));
-        }
-    },
-
-    rehacer: () => {
-        const { _historial, _posicionHistorial } = get();
-        if (_posicionHistorial >= _historial.length - 1) return;
-        const siguiente = _historial[_posicionHistorial + 1];
-        if (!siguiente) return;
-        set({
-            pistas: siguiente.pistas,
-            totalCompases: siguiente.totalCompases,
-            _posicionHistorial: _posicionHistorial + 1,
-        });
-        if (get().reproduciendo) {
-            window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO));
-        }
-    },
-
-    puedeDeshacer: () => get()._posicionHistorial > 0,
-    puedeRehacer: () => get()._posicionHistorial < get()._historial.length - 1,
-
+    /* Lifecycle UI */
     abrir: () => set({ abierto: true }),
     cerrar: () => {
         motorAudio.detenerTodo();
@@ -265,6 +63,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
         }
     },
 
+    /* Proyecto — BPM con reprogramación en tiempo real */
     setBpm: (bpm) => {
         const clamp = Math.max(40, Math.min(300, bpm));
         try { localStorage.setItem(LS_KEY_BPM, String(clamp)); } catch {}
@@ -272,10 +71,6 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
         const { reproduciendo, tiempoActual, bpmProyecto: bpmAnterior, compasProyecto } = get();
         set({ bpmProyecto: clamp });
 
-        /*
-         * C238: Si está reproduciendo, calcular posición musical con BPM anterior
-         * y reprogramar audio con BPM nuevo para mantener la posición correcta.
-         */
         if (reproduciendo) {
             const posicionCompases = segundosACompases(tiempoActual, bpmAnterior, compasProyecto);
             window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO, {
@@ -284,7 +79,9 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
         }
     },
     setCompas: (compas) => set({ compasProyecto: compas }),
-    setTotalCompases: (total) => set({ totalCompases: Math.max(1, Math.min(CONSTANTES_MEZCLADOR.COMPASES_MAX, total)) }),
+    setTotalCompases: (total) => set({
+        totalCompases: Math.max(1, Math.min(CONSTANTES_MEZCLADOR.COMPASES_MAX, total))
+    }),
     agregarCompas: () => {
         const { totalCompases } = get();
         if (totalCompases < CONSTANTES_MEZCLADOR.COMPASES_MAX) {
@@ -293,11 +90,10 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     },
     quitarCompas: () => {
         const { totalCompases } = get();
-        if (totalCompases > 1) {
-            set({ totalCompases: totalCompases - 1 });
-        }
+        if (totalCompases > 1) set({ totalCompases: totalCompases - 1 });
     },
 
+    /* Pistas */
     agregarPista: () => {
         get()._guardarSnapshot();
         const { pistas } = get();
@@ -307,9 +103,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     },
     eliminarPista: (pistaId) => {
         get()._guardarSnapshot();
-        set(prev => ({
-            pistas: prev.pistas.filter(p => p.id !== pistaId),
-        }));
+        set(prev => ({ pistas: prev.pistas.filter(p => p.id !== pistaId) }));
     },
     setVolumenPista: (pistaId, volumen) => {
         set(prev => ({
@@ -331,562 +125,29 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
         motorAudio.setSilenciarPista(pistaId, nuevoSil);
     },
 
-    agregarSample: async (sample, pistaId) => {
-        const { pistas, bpmProyecto, compasProyecto, cargandoBuffers } = get();
-
-        /* Determinar pista destino (primera con espacio o crear nueva) */
-        let pistaDestinoId = pistaId
-            ?? pistas.find(p => p.bloques.length === 0)?.id
-            ?? pistas[0]?.id;
-
-        if (!pistaDestinoId) {
-            const nuevaPista = crearPistaVacia(`Pista ${pistas.length + 1}`);
-            pistaDestinoId = nuevaPista.id;
-            set(prev => ({ pistas: [...prev.pistas, nuevaPista] }));
-        }
-
-        const bloqueId = generarIdBloque();
-        const urlAudio = sample.rutaPreview;
-        if (!urlAudio) return;
-
-        /* Marcar como cargando */
-        const nuevoCargando = new Set(cargandoBuffers);
-        nuevoCargando.add(bloqueId);
-        set({ cargandoBuffers: nuevoCargando });
-
-        try {
-            /* Cargar audio buffer */
-            const buffer = await motorAudio.cargarBuffer(urlAudio, String(sample.id));
-
-            /* Inferir compás y playbackRate */
-            const bpmSample = sample.bpm ?? bpmProyecto;
-            const info = inferirCompas(buffer.duration, bpmSample, bpmProyecto, compasProyecto);
-
-            /*
-             * Re-leer pistas desde estado actual (puede haber cambiado durante await).
-             * Esto evita la race condition si el usuario agrega otro sample en paralelo.
-             */
-            const pistasActuales = get().pistas;
-            const pistaActual = pistasActuales.find(p => p.id === pistaDestinoId);
-            const bloquesPista = pistaActual?.bloques ?? [];
-
-            /* Encontrar primera posición libre en la pista */
-            let compasInicio = 0;
-            for (const b of bloquesPista) {
-                const fin = b.compasInicio + b.duracionCompases;
-                if (fin > compasInicio) compasInicio = fin;
-            }
-
-            /* Extraer peaks para mini waveform — C278: alta densidad para DAW */
-            const waveformPeaks = extraerPeaks(buffer, Math.max(60, Math.round(info.duracionCompases * 60)));
-
-            /* Color según tipo */
-            const tipoSample = sample.tipo?.toLowerCase() ?? 'default';
-            const color = COLORES_BLOQUE[tipoSample] ?? COLORES_BLOQUE.default;
-
-            const nuevoBloque: BloqueMezclador = {
-                id: bloqueId,
-                pistaId: pistaDestinoId,
-                sample,
-                audioBuffer: buffer,
-                compasInicio,
-                duracionCompases: info.duracionCompases,
-                volumen: 1,
-                playbackRate: info.playbackRate,
-                silenciado: false,
-                color,
-                waveformPeaks,
-                invertido: false,
-                fadeIn: 0,
-                fadeOut: 0,
-                recorteInicio: 0,
-                recorteFin: null,
-                normalizado: false,
-                /* C243+C244: Ancla inmutable y modo resize */
-                duracionOriginalCompases: info.duracionCompases,
-                playbackRateOriginal: info.playbackRate,
-                modoResize: 'stretch',
-                /* C240: Tonalidad por defecto sin desplazamiento */
-                detune: 0,
-            };
-
-            /* Expandir totalCompases si es necesario */
-            const finBloque = compasInicio + info.duracionCompases;
-
-            get()._guardarSnapshot();
-            set(prev => ({
-                pistas: prev.pistas.map(p =>
-                    p.id === pistaDestinoId
-                        ? { ...p, bloques: [...p.bloques, nuevoBloque] }
-                        : p
-                ),
-                totalCompases: Math.max(prev.totalCompases, finBloque),
-            }));
-        } catch (error) {
-            console.error('[Mezclador] Error cargando sample:', error);
-        } finally {
-            /* Quitar de cargando */
-            set(prev => {
-                const nuevo = new Set(prev.cargandoBuffers);
-                nuevo.delete(bloqueId);
-                return { cargandoBuffers: nuevo };
-            });
-        }
-    },
-
-    /*
-     * C208: Agregar un audio local subido desde PC.
-     * Crea un pseudo-SampleResumen con datos mínimos del archivo.
-     */
-    agregarAudioLocal: async (archivo, pistaId) => {
-        const { pistas, bpmProyecto, compasProyecto, cargandoBuffers } = get();
-
-        /* Determinar pista destino */
-        let pistaDestinoId = pistaId
-            ?? pistas.find(p => p.bloques.length === 0)?.id
-            ?? pistas[0]?.id;
-
-        if (!pistaDestinoId) {
-            const nuevaPista = crearPistaVacia(`Pista ${pistas.length + 1}`);
-            pistaDestinoId = nuevaPista.id;
-            set(prev => ({ pistas: [...prev.pistas, nuevaPista] }));
-        }
-
-        const bloqueId = generarIdBloque();
-        const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-
-        /* Marcar como cargando */
-        const nuevoCargando = new Set(cargandoBuffers);
-        nuevoCargando.add(bloqueId);
-        set({ cargandoBuffers: nuevoCargando });
-
-        try {
-            /* Leer archivo como ArrayBuffer */
-            const arrayBuffer = await archivo.arrayBuffer();
-            const buffer = await motorAudio.decodificarBufferLocal(arrayBuffer, localId);
-
-            /* Pseudo-SampleResumen para archivos locales */
-            const nombreLimpio = archivo.name.replace(/\.[^.]+$/, '');
-            const pseudoSample: SampleResumen = {
-                id: -Date.now(),
-                titulo: nombreLimpio,
-                slug: nombreLimpio.toLowerCase().replace(/\s+/g, '-'),
-                bpm: bpmProyecto,
-                key: null,
-                escala: null,
-                duracion: buffer.duration,
-                tags: ['local'],
-                tipo: 'loop' as SampleResumen['tipo'],
-                esPremium: false,
-                precio: null,
-                rutaPreview: '',
-                rutaWaveform: '',
-                imagenUrl: null,
-                totalDescargas: 0,
-                totalLikes: 0,
-                totalReproducciones: 0,
-                metadata: null,
-                creador: {
-                    id: 0,
-                    username: 'local',
-                    nombreVisible: 'Archivo local',
-                    avatarUrl: null,
-                    verificado: false,
-                },
-            };
-
-            const info = inferirCompas(buffer.duration, bpmProyecto, bpmProyecto, compasProyecto);
-
-            /* Re-leer pistas actuales */
-            const pistasActuales = get().pistas;
-            const pistaActual = pistasActuales.find(p => p.id === pistaDestinoId);
-            const bloquesPista = pistaActual?.bloques ?? [];
-
-            let compasInicio = 0;
-            for (const b of bloquesPista) {
-                const fin = b.compasInicio + b.duracionCompases;
-                if (fin > compasInicio) compasInicio = fin;
-            }
-
-            const waveformPeaks = extraerPeaks(buffer, Math.max(60, Math.round(info.duracionCompases * 60)));
-
-            const nuevoBloque: BloqueMezclador = {
-                id: bloqueId,
-                pistaId: pistaDestinoId,
-                sample: pseudoSample,
-                audioBuffer: buffer,
-                compasInicio,
-                duracionCompases: info.duracionCompases,
-                volumen: 1,
-                playbackRate: info.playbackRate,
-                silenciado: false,
-                color: COLORES_BLOQUE.default,
-                waveformPeaks,
-                invertido: false,
-                fadeIn: 0,
-                fadeOut: 0,
-                recorteInicio: 0,
-                recorteFin: null,
-                normalizado: false,
-                /* C243+C244: Ancla inmutable y modo resize */
-                duracionOriginalCompases: info.duracionCompases,
-                playbackRateOriginal: info.playbackRate,
-                modoResize: 'stretch',
-                /* C240: Tonalidad por defecto sin desplazamiento */
-                detune: 0,
-            };
-
-            const finBloque = compasInicio + info.duracionCompases;
-
-            get()._guardarSnapshot();
-            set(prev => ({
-                pistas: prev.pistas.map(p =>
-                    p.id === pistaDestinoId
-                        ? { ...p, bloques: [...p.bloques, nuevoBloque] }
-                        : p
-                ),
-                totalCompases: Math.max(prev.totalCompases, finBloque),
-            }));
-        } catch (error) {
-            console.error('[Mezclador] Error cargando audio local:', error);
-        } finally {
-            set(prev => {
-                const nuevo = new Set(prev.cargandoBuffers);
-                nuevo.delete(bloqueId);
-                return { cargandoBuffers: nuevo };
-            });
-        }
-    },
-
-    moverBloque: (bloqueId, pistaIdDestino, compasInicio) => {
-        get()._guardarSnapshot();
-        set(prev => {
-            let bloque: BloqueMezclador | null = null;
-
-            /* Encontrar y remover el bloque de su pista actual */
-            const pistasActualizadas = prev.pistas.map(p => {
-                const idx = p.bloques.findIndex(b => b.id === bloqueId);
-                if (idx !== -1) {
-                    bloque = { ...p.bloques[idx] };
-                    return { ...p, bloques: p.bloques.filter(b => b.id !== bloqueId) };
-                }
-                return p;
-            });
-
-            if (!bloque) return prev;
-
-            /* Colocar en la pista destino */
-            (bloque as BloqueMezclador).pistaId = pistaIdDestino;
-            (bloque as BloqueMezclador).compasInicio = Math.max(0, compasInicio);
-
-            return {
-                pistas: pistasActualizadas.map(p =>
-                    p.id === pistaIdDestino
-                        ? { ...p, bloques: [...p.bloques, bloque!] }
-                        : p
-                ),
-            };
-        });
-    },
-
-    eliminarBloque: (bloqueId) => {
-        get()._guardarSnapshot();
-        set(prev => ({
-            pistas: prev.pistas.map(p => ({
-                ...p,
-                bloques: p.bloques.filter(b => b.id !== bloqueId),
-            })),
-        }));
-    },
-
-    /*
-     * C204: Cambiar duración de un bloque (stretch/pitch).
-     * Al cambiar duracionCompases, recalcular playbackRate para
-     * que el buffer encaje en la nueva duración visual.
-     * C213: Reprogramar audio en tiempo real si está reproduciendo.
-     */
-    setDuracionBloque: (bloqueId, nuevaDuracion) => {
-        const { bpmProyecto, compasProyecto, modoResizeGlobal } = get();
-        set(prev => ({
-            pistas: prev.pistas.map(p => ({
-                ...p,
-                bloques: p.bloques.map(b => {
-                    if (b.id !== bloqueId || !b.audioBuffer) return b;
-                    const durCompas = (60 / bpmProyecto) * compasProyecto.numerador;
-
-                    if (modoResizeGlobal === 'clip') {
-                        /*
-                         * C244: Modo clip — mantener playbackRate sin cambio.
-                         * Solo recortar: no puede exceder la duración original escalada.
-                         * C273.1: Regenerar waveformPeaks para la porción visible del audio.
-                         */
-                        const durMaxCompases = b.audioBuffer.duration / (durCompas * b.playbackRate);
-                        const durClamped = Math.max(0.25, Math.min(nuevaDuracion, durMaxCompases));
-                        const recorteFin = durClamped * durCompas * b.playbackRate;
-                        const numPeaks = Math.max(60, Math.round(durClamped * 60));
-                        const waveformPeaks = extraerPeaks(
-                            b.audioBuffer, numPeaks,
-                            b.recorteInicio, recorteFin - b.recorteInicio
-                        );
-                        return { ...b, duracionCompases: durClamped, recorteFin, waveformPeaks };
-                    }
-
-                    /*
-                     * Modo stretch (default) — recalcular playbackRate.
-                     * C243: Redondear a 6 decimales para evitar drift flotante acumulativo.
-                     */
-                    const durClamped = Math.max(0.25, nuevaDuracion);
-                    const durWall = durClamped * durCompas;
-                    const nuevoRate = Math.round(
-                        Math.max(0.25, Math.min(4, b.audioBuffer.duration / durWall)) * 1e6
-                    ) / 1e6;
-                    return { ...b, duracionCompases: durClamped, playbackRate: nuevoRate };
-                }),
-            })),
-        }));
-        /* C213: Notificar al motor de audio para reprogramar si está sonando */
-        if (get().reproduciendo) {
-            window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO));
-        }
-    },
-
-    /*
-     * C215+C246: Duplicar un bloque existente.
-     * Crea una copia justo después del original. Si hay colisión,
-     * busca la primera posición libre al final de la pista.
-     */
-    duplicarBloque: (bloqueId) => {
-        get()._guardarSnapshot();
-        set(prev => {
-            let bloqueOriginal: BloqueMezclador | null = null;
-            let pistaId = '';
-
-            for (const pista of prev.pistas) {
-                const encontrado = pista.bloques.find(b => b.id === bloqueId);
-                if (encontrado) {
-                    bloqueOriginal = encontrado;
-                    pistaId = pista.id;
-                    break;
-                }
-            }
-
-            if (!bloqueOriginal) return prev;
-
-            const pistaActual = prev.pistas.find(p => p.id === pistaId);
-            if (!pistaActual) return prev;
-
-            /* Posición ideal: justo después del original */
-            let nuevaPosicion = bloqueOriginal.compasInicio + bloqueOriginal.duracionCompases;
-            const duracion = bloqueOriginal.duracionCompases;
-
-            /* C246: verificar colisión con otros bloques */
-            const bloquesOrdenados = [...pistaActual.bloques]
-                .filter(b => b.id !== bloqueId)
-                .sort((a, b2) => a.compasInicio - b2.compasInicio);
-
-            const hayColision = (pos: number) =>
-                bloquesOrdenados.some(b => {
-                    const inicioB = b.compasInicio;
-                    const finB = inicioB + b.duracionCompases;
-                    return pos < finB && (pos + duracion) > inicioB;
-                });
-
-            if (hayColision(nuevaPosicion)) {
-                /* Buscar el final más lejano de todos los bloques */
-                let finMax = 0;
-                for (const b of pistaActual.bloques) {
-                    const fin = b.compasInicio + b.duracionCompases;
-                    if (fin > finMax) finMax = fin;
-                }
-                nuevaPosicion = finMax;
-            }
-
-            const copia: BloqueMezclador = {
-                ...bloqueOriginal,
-                id: generarIdBloque(),
-                compasInicio: nuevaPosicion,
-            };
-
-            const finBloque = nuevaPosicion + duracion;
-
-            return {
-                pistas: prev.pistas.map(p =>
-                    p.id === pistaId
-                        ? { ...p, bloques: [...p.bloques, copia] }
-                        : p
-                ),
-                totalCompases: Math.max(prev.totalCompases, finBloque),
-            };
-        });
-    },
-
-    /*
-     * C214: Dividir un bloque en dos en una posición dada (en compases).
-     * El primer bloque conserva el inicio, el segundo arranca desde la posición de corte.
-     */
-    dividirBloque: (bloqueId, posicionCompas) => {
-        get()._guardarSnapshot();
-        const { bpmProyecto, compasProyecto } = get();
-        set(prev => {
-            let bloqueOriginal: BloqueMezclador | null = null;
-            let pistaId = '';
-
-            for (const pista of prev.pistas) {
-                const encontrado = pista.bloques.find(b => b.id === bloqueId);
-                if (encontrado) {
-                    bloqueOriginal = encontrado;
-                    pistaId = pista.id;
-                    break;
-                }
-            }
-
-            if (!bloqueOriginal || !bloqueOriginal.audioBuffer) return prev;
-
-            /* La posición debe estar dentro del bloque */
-            const posRelativa = posicionCompas - bloqueOriginal.compasInicio;
-            if (posRelativa <= 0.1 || posRelativa >= bloqueOriginal.duracionCompases - 0.1) {
-                return prev;
-            }
-
-            /* Calcular recorte en segundos para el segundo bloque */
-            const durCompas = (60 / bpmProyecto) * compasProyecto.numerador;
-            const tiempoCorte = posRelativa * durCompas * bloqueOriginal.playbackRate;
-            const recorteInicioOriginal = bloqueOriginal.recorteInicio ?? 0;
-
-            /*
-             * C228: Dividir waveformPeaks proporcionalmente.
-             * El ratio de corte es la posición relativa dividida entre la duración total.
-             */
-            const ratioPeaks = posRelativa / bloqueOriginal.duracionCompases;
-            const totalPeaks = bloqueOriginal.waveformPeaks.length;
-            const cortePeaks = Math.round(totalPeaks * ratioPeaks);
-
-            const bloqueA: BloqueMezclador = {
-                ...bloqueOriginal,
-                duracionCompases: posRelativa,
-                waveformPeaks: bloqueOriginal.waveformPeaks.slice(0, cortePeaks),
-                /* C244: Sub-bloques heredan modo y ajustan duración original proporcionalmente */
-                duracionOriginalCompases: bloqueOriginal.duracionOriginalCompases
-                    ? posRelativa * (bloqueOriginal.duracionOriginalCompases / bloqueOriginal.duracionCompases)
-                    : posRelativa,
-            };
-
-            const durSegundaParte = bloqueOriginal.duracionCompases - posRelativa;
-            const bloqueB: BloqueMezclador = {
-                ...bloqueOriginal,
-                id: generarIdBloque(),
-                compasInicio: posicionCompas,
-                duracionCompases: durSegundaParte,
-                recorteInicio: recorteInicioOriginal + tiempoCorte,
-                waveformPeaks: bloqueOriginal.waveformPeaks.slice(cortePeaks),
-                duracionOriginalCompases: bloqueOriginal.duracionOriginalCompases
-                    ? durSegundaParte * (bloqueOriginal.duracionOriginalCompases / bloqueOriginal.duracionCompases)
-                    : durSegundaParte,
-            };
-
-            return {
-                pistas: prev.pistas.map(p =>
-                    p.id === pistaId
-                        ? {
-                            ...p,
-                            bloques: p.bloques.map(b =>
-                                b.id === bloqueId ? bloqueA : b
-                            ).concat(bloqueB),
-                        }
-                        : p
-                ),
-            };
-        });
-
-        if (get().reproduciendo) {
-            window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO));
-        }
-    },
-
-    /*
-     * C215: Actualizar configuración avanzada de un bloque.
-     * Permite cambiar propiedades como invertido, fade, recorte, etc.
-     */
-    actualizarConfigBloque: (bloqueId, config) => {
-        get()._guardarSnapshot();
-        const { bpmProyecto, compasProyecto } = get();
-
-        set(prev => {
-            let totalCompases = prev.totalCompases;
-
-            const pistas = prev.pistas.map(p => {
-                const idxBloque = p.bloques.findIndex(b => b.id === bloqueId);
-                if (idxBloque === -1) return p;
-
-                const bloques = p.bloques.map(b => {
-                    if (b.id !== bloqueId) return b;
-
-                    const actualizado = { ...b, ...config };
-
-                    /*
-                     * C222: Si se cambió playbackRate, recalcular duracionCompases
-                     * para que el ancho visual del bloque refleje la duración real del audio.
-                     */
-                    if (config.playbackRate !== undefined && b.audioBuffer) {
-                        const recorteInicio = actualizado.recorteInicio ?? 0;
-                        const finRecorte = actualizado.recorteFin ?? b.audioBuffer.duration;
-                        const duracionUtil = finRecorte - recorteInicio;
-                        const durCompasSegundos = (60 / bpmProyecto) * compasProyecto.numerador;
-                        const nuevosDurCompases = duracionUtil / (config.playbackRate * durCompasSegundos);
-                        actualizado.duracionCompases = Math.max(0.25, Math.round(nuevosDurCompases * 4) / 4);
-                    }
-
-                    return actualizado;
-                });
-
-                /*
-                 * C230: Resolver colisiones — empujar bloques siguientes si hay solapamiento.
-                 * Ordenar por compasInicio y desplazar los que colisionen.
-                 */
-                bloques.sort((a, b2) => a.compasInicio - b2.compasInicio);
-                for (let i = 0; i < bloques.length - 1; i++) {
-                    const finActual = bloques[i].compasInicio + bloques[i].duracionCompases;
-                    if (finActual > bloques[i + 1].compasInicio) {
-                        bloques[i + 1] = { ...bloques[i + 1], compasInicio: finActual };
-                    }
-                }
-
-                /* Expandir totalCompases si algún bloque se sale */
-                const finUltimo = bloques.length > 0
-                    ? bloques[bloques.length - 1].compasInicio + bloques[bloques.length - 1].duracionCompases
-                    : 0;
-                if (finUltimo > totalCompases) totalCompases = Math.ceil(finUltimo);
-
-                return { ...p, bloques };
-            });
-
-            return { pistas, totalCompases };
-        });
-
-        if (get().reproduciendo) {
-            window.dispatchEvent(new CustomEvent(EVENTO_REPROGRAMAR_AUDIO));
-        }
-    },
-
+    /* Reproduccion */
     setReproduciendo: (valor) => set({ reproduciendo: valor }),
     setTiempoActual: (tiempo) => set({ tiempoActual: tiempo }),
     setPosicionCursor: (posicion) => set({ posicionCursor: posicion }),
     setExportando: (valor) => set({ exportando: valor }),
     toggleModoCortar: () => set(prev => ({ modoCortarActivo: !prev.modoCortarActivo })),
 
-    /* C216: Snap setting */
+    /* Zoom y snap */
     setSnapResolucion: (snap) => set({ snapResolucion: snap }),
-
-    /*
-     * C216: Obtener fracción de compás según la resolución de snap actual.
-     * Retorna null si snap='off' (libre, sin cuadrícula).
-     */
+    setNivelZoom: (zoom) => set({ nivelZoom: Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom)) }),
+    zoomIn: () => {
+        const { nivelZoom } = get();
+        set({ nivelZoom: Math.min(ZOOM_MAX, Math.round((nivelZoom + ZOOM_PASO) * 100) / 100) });
+    },
+    zoomOut: () => {
+        const { nivelZoom } = get();
+        set({ nivelZoom: Math.max(ZOOM_MIN, Math.round((nivelZoom - ZOOM_PASO) * 100) / 100) });
+    },
     obtenerSnapCompas: () => {
         const { snapResolucion, compasProyecto } = get();
         if (snapResolucion === 'off') return null;
         if (snapResolucion === 'bar') return 1;
-        const beatsPerBar = compasProyecto.numerador;
-        const beatFraccion = 1 / beatsPerBar;
+        const beatFraccion = 1 / compasProyecto.numerador;
         if (snapResolucion === 'beat') return beatFraccion;
         if (snapResolucion === '1/2') return beatFraccion / 2;
         if (snapResolucion === '1/4') return beatFraccion / 4;
@@ -894,19 +155,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
         return beatFraccion;
     },
 
-    /* C217+C229: Zoom — solo acercar (min 100%), incrementos de 5% */
-    setNivelZoom: (zoom) => set({ nivelZoom: Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom)) }),
-    zoomIn: () => {
-        const { nivelZoom } = get();
-        const siguiente = Math.min(ZOOM_MAX, Math.round((nivelZoom + ZOOM_PASO) * 100) / 100);
-        set({ nivelZoom: siguiente });
-    },
-    zoomOut: () => {
-        const { nivelZoom } = get();
-        const anterior = Math.max(ZOOM_MIN, Math.round((nivelZoom - ZOOM_PASO) * 100) / 100);
-        set({ nivelZoom: anterior });
-    },
-
+    /* Proyecto — limpieza y queries */
     limpiarProyecto: () => {
         get()._guardarSnapshot();
         motorAudio.detenerTodo();
@@ -918,13 +167,9 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
             posicionCursor: 0,
         });
     },
-
     obtenerDuracionTotal: () => {
         const { totalCompases, bpmProyecto, compasProyecto } = get();
         return compasesASegundos(totalCompases, bpmProyecto, compasProyecto);
     },
-
-    obtenerTodosBloques: () => {
-        return get().pistas.flatMap(p => p.bloques);
-    },
+    obtenerTodosBloques: () => get().pistas.flatMap(p => p.bloques),
 }));

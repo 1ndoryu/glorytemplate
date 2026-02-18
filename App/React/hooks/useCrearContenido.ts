@@ -7,6 +7,7 @@
 
 import { useState, useCallback, useRef, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
 import { useArchivosDragDrop } from '@app/hooks/useArchivosDragDrop';
+import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { subirSample } from '@app/services/apiSamples';
 import { crearPublicacion, subirImagenPublicacion } from '@app/services/apiSocial';
 import { EVENTO_SAMPLE_CREADO } from '@app/hooks/useMenuContextualSample';
@@ -76,7 +77,19 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const archivos = useArchivosDragDrop();
-    const { audioAdjunto, imagenes, resetear: resetearArchivos } = archivos;
+    const { audioAdjunto, imagenes, resetear: resetearArchivos, setAudioExterno } = archivos;
+
+    /*
+     * C254: Si el modal se abrió con un archivo pre-cargado (ej. desde el Mezclador),
+     * inyectarlo automáticamente en el formulario al montar.
+     */
+    useEffect(() => {
+        const archivo = useCrearModalStore.getState().consumirArchivo();
+        if (archivo) {
+            setAudioExterno(archivo);
+            log.info('Archivo pre-cargado inyectado desde Mezclador', { nombre: archivo.name });
+        }
+    }, [setAudioExterno]);
 
     /* Generar waveform al adjuntar audio */
     useEffect(() => {

@@ -2,13 +2,16 @@
  * Componente: DropdownMensajes — Kamples
  * Panel dropdown con la lista de conversaciones recientes.
  * Se muestra al hacer click en el icono de correo del TopBar.
- * Conectado a API real via obtenerConversaciones.
+ * C192: Usa mensajesStore como cache (stale-while-revalidate).
+ * Primera apertura muestra "Cargando...", aperturas siguientes muestran cache al instante
+ * y refrescan en background si el TTL expiro.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Mail, Loader2 } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { useChatFlotanteStore } from '@app/stores/chatFlotanteStore';
+import { useMensajesStore } from '@app/stores/mensajesStore';
 import { obtenerConversaciones } from '@app/services/apiMensajes';
 import type { Conversacion } from '@app/types';
 import '../../styles/componentes/dropdownPanel.css';
@@ -30,16 +33,35 @@ interface DropdownMensajesProps {
 
 export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Element => {
     const { abrirChat } = useChatFlotanteStore();
-    const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
-    const [cargando, setCargando] = useState(true);
+    const {
+        conversaciones,
+        cargandoConversaciones: cargando,
+        conversacionesCargadas,
+        setConversaciones,
+        setCargandoConversaciones,
+        necesitaRefrescar,
+    } = useMensajesStore();
 
+    /*
+     * C192: Stale-while-revalidate.
+     * - Primera vez: muestra Cargando, fetch, guardar en store.
+     * - Siguientes: muestra cache al instante. Si TTL expiro, refresca en background.
+     */
     useEffect(() => {
         let cancelado = false;
+        const debeRefrescar = necesitaRefrescar();
+        if (!debeRefrescar) return;
+
+        /* Solo mostrar spinner si no hay datos previos */
+        if (!conversacionesCargadas) {
+            setCargandoConversaciones(true);
+        }
+
         obtenerConversaciones().then((resp) => {
             if (!cancelado && resp.ok && resp.data) {
                 setConversaciones(resp.data);
             }
-            setCargando(false);
+            if (!cancelado) setCargandoConversaciones(false);
         });
         return () => { cancelado = true; };
     }, []);
@@ -68,7 +90,7 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
                 </div>
 
                 <div className="dropdownPanelLista">
-                    {cargando ? (
+                    {cargando && !conversacionesCargadas ? (
                         <div className="dropdownPanelVacio">
                             <Loader2 size={28} className="animacionGirar" />
                             <p>Cargando...</p>

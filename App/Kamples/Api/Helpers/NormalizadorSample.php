@@ -134,8 +134,11 @@ class NormalizadorSample
             'metadata'         => $metadata,
             'rutaPreview'      => self::rutaAUrl($row['ruta_preview'] ?? ''),
             'rutaWaveform'     => self::rutaAUrl($row['ruta_waveform'] ?? ''),
-            'rutaOriginal'     => self::rutaAUrl($row['ruta_original'] ?? ''),
-            'rutaOptimizada'   => self::rutaAUrl($row['ruta_optimizada'] ?? ''),
+            /*
+             * C202: rutaOriginal y rutaOptimizada NO se exponen en respuestas publicas.
+             * Los archivos originales solo se sirven via el endpoint /descargar autenticado.
+             * Evita que usuarios anonimos obtengan URLs directas a WAV/MP3 originales.
+             */
             'imagenUrl'        => $row['imagen_url'] ?? null,
             'totalDescargas'   => (int) ($row['total_descargas'] ?? 0),
             'totalLikes'       => (int) ($row['total_likes'] ?? 0),
@@ -180,10 +183,14 @@ class NormalizadorSample
             ? "(SELECT reaccion FROM likes WHERE usuario_id = " . (int) $userId . " AND tipo = 'sample' AND target_id = s.id LIMIT 1)"
             : "NULL";
 
+        /*
+         * C202: No incluir ruta_original / ruta_optimizada en queries publicos.
+         * Esto evita que la API exponga URLs directas a archivos sensibles.
+         */
         return "SELECT s.id, s.titulo, s.slug, s.id_corto, s.descripcion,
                        s.bpm, s.key, s.escala, s.duracion, s.formato, s.tamano,
                        s.tags, s.tipo, s.estado, s.es_premium, s.precio, s.metadata,
-                       s.ruta_preview, s.ruta_waveform, s.ruta_original, s.ruta_optimizada,
+                       s.ruta_preview, s.ruta_waveform,
                        s.imagen_url, s.total_descargas, s.total_likes, s.total_reproducciones,
                        s.audio_hash, s.verificado AS verificado_sample, s.mostrar_en_comunidad,
                        u.id as creador_id, u.username, u.nombre_visible,

@@ -12,6 +12,7 @@ import { ModalConfigDaw } from './ModalConfigDaw';
 import { Timeline } from './Timeline';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
+import { useCrearModalStore } from '@app/stores/crearModalStore';
 import '../styles/mezclador.css';
 
 export const MezcladorPanel = (): JSX.Element => {
@@ -84,12 +85,10 @@ const MezcladorContenido = (): JSX.Element => {
         if (!archivo) return;
 
         /*
-         * Disparar evento para que ModalCrear lo recoja.
-         * ModalCrear escucha este evento y carga el archivo.
+         * C254: Abrir ModalCrear con el archivo pre-cargado.
+         * El hook useCrearContenido consumirá el archivo del store al montar.
          */
-        window.dispatchEvent(new CustomEvent('kamples:publicar-mezcla', {
-            detail: { archivo, esMezcla: true },
-        }));
+        useCrearModalStore.getState().abrir(archivo, true);
     };
 
     return (

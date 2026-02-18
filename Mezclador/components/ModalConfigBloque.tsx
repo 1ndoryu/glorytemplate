@@ -8,6 +8,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { X, RotateCcw, RefreshCw } from 'lucide-react';
 import type { BloqueMezclador, ConfigBloque } from '../types/mezclador';
 import { useMezcladorStore } from '../stores/mezcladorStore';
+import { invalidarCacheBloque } from '../services/pitchShiftService';
 
 interface ModalConfigBloqueProps {
     bloque: BloqueMezclador;
@@ -33,6 +34,8 @@ export const ModalConfigBloque = ({
     /* C244: Modo resize local — C256: ahora global, se mantiene referencia */
     /* C240: Tonalidad en semitonos */
     const [detune, setDetune] = useState(bloque.detune ?? 0);
+    /* C271: Modo tonal — resample o stretch */
+    const [modoTonalidad, setModoTonalidad] = useState<'resample' | 'stretch'>(bloque.modoTonalidad ?? 'resample');
 
     /* Duración total del buffer en segundos */
     const duracionBuffer = bloque.audioBuffer?.duration ?? 0;
@@ -94,7 +97,16 @@ export const ModalConfigBloque = ({
     const alCambiarDetune = (valor: number) => {
         const clamped = Math.max(-12, Math.min(12, Math.round(valor)));
         setDetune(clamped);
+        /* C271: Invalidar cache SoundTouch si cambió pitch en modo stretch */
+        if (modoTonalidad === 'stretch') invalidarCacheBloque(bloque.id);
         aplicar({ detune: clamped });
+    };
+
+    /* C271: Cambiar modo de procesamiento tonal */
+    const alCambiarModoTonalidad = (modo: 'resample' | 'stretch') => {
+        setModoTonalidad(modo);
+        invalidarCacheBloque(bloque.id);
+        aplicar({ modoTonalidad: modo });
     };
 
     /*
@@ -114,6 +126,8 @@ export const ModalConfigBloque = ({
         setInvertido(false);
         setNormalizado(false);
         setDetune(0);
+        setModoTonalidad('resample');
+        invalidarCacheBloque(bloque.id);
 
         aplicar({
             volumen: 1,
@@ -123,6 +137,7 @@ export const ModalConfigBloque = ({
             invertido: false,
             normalizado: false,
             detune: 0,
+            modoTonalidad: 'resample',
         });
 
         /* Recalcular duración con rate original */
@@ -246,6 +261,29 @@ export const ModalConfigBloque = ({
                         <span className="modalConfigValor">
                             {detune > 0 ? `+${detune}` : detune} st
                         </span>
+                    </div>
+
+                    {/* C271: Modo de procesamiento tonal (resample vs stretch) */}
+                    <div className="modalConfigFila">
+                        <label className="modalConfigLabel">Modo tonal</label>
+                        <div className="modalConfigModoTonal">
+                            <button
+                                className={`modalConfigModoBtn ${modoTonalidad === 'resample' ? 'activo' : ''}`}
+                                onClick={() => alCambiarModoTonalidad('resample')}
+                                title="Resample: pitch ligado a velocidad (estilo vinilo)"
+                                type="button"
+                            >
+                                Resample
+                            </button>
+                            <button
+                                className={`modalConfigModoBtn ${modoTonalidad === 'stretch' ? 'activo' : ''}`}
+                                onClick={() => alCambiarModoTonalidad('stretch')}
+                                title="Stretch: pitch independiente de velocidad (SoundTouch)"
+                                type="button"
+                            >
+                                Stretch
+                            </button>
+                        </div>
                     </div>
 
                     {/* Toggles: Reverse + Normalizar */}

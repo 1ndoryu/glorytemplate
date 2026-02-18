@@ -1,11 +1,15 @@
 /*
  * Store: mensajesStore — Kamples (Fase 7.2-7.3)
  * Estado global de conversaciones y mensajes activos.
+ * C192: Cache de conversaciones para evitar re-fetch en cada apertura.
  * Prepara la integración con WebSocket (Fase 7.1).
  */
 
 import { create } from 'zustand';
 import type { Conversacion, Mensaje } from '../types';
+
+/* TTL del cache: 2 minutos. Refresca en background si expiro */
+const CACHE_TTL_MS = 2 * 60 * 1000;
 
 interface EstadoMensajes {
     conversaciones: Conversacion[];
@@ -14,6 +18,10 @@ interface EstadoMensajes {
     cargandoConversaciones: boolean;
     cargandoMensajes: boolean;
     escribiendo: boolean;
+
+    /* C192: Flags de cache */
+    conversacionesCargadas: boolean;
+    ultimaCargaConversaciones: number;
 
     /* Acciones */
     setConversaciones: (conversaciones: Conversacion[]) => void;
@@ -26,17 +34,27 @@ interface EstadoMensajes {
     marcarConversacionLeida: (conversacionId: number) => void;
     actualizarUltimoMensaje: (conversacionId: number, contenido: string) => void;
     totalNoLeidos: () => number;
+    necesitaRefrescar: () => boolean;
 }
 
 export const useMensajesStore = create<EstadoMensajes>((set, get) => ({
     conversaciones: [],
     conversacionActiva: null,
     mensajes: [],
-    cargandoConversaciones: true,
+    /* C192: false por defecto — no mostrar "cargando" si ya hay cache */
+    cargandoConversaciones: false,
     cargandoMensajes: false,
     escribiendo: false,
 
-    setConversaciones: (conversaciones) => set({ conversaciones }),
+    /* C192: Flags de cache */
+    conversacionesCargadas: false,
+    ultimaCargaConversaciones: 0,
+
+    setConversaciones: (conversaciones) => set({
+        conversaciones,
+        conversacionesCargadas: true,
+        ultimaCargaConversaciones: Date.now(),
+    }),
 
     setConversacionActiva: (id) => set({ conversacionActiva: id, mensajes: [] }),
 
@@ -71,5 +89,15 @@ export const useMensajesStore = create<EstadoMensajes>((set, get) => ({
 
     totalNoLeidos: () => {
         return get().conversaciones.reduce((acc, c) => acc + c.noLeidos, 0);
+    },
+
+    /*
+     * C192: Determina si necesita refrescar del backend.
+     * true si nunca se cargo o el cache expiro.
+     */
+    necesitaRefrescar: () => {
+        const { conversacionesCargadas, ultimaCargaConversaciones } = get();
+        if (!conversacionesCargadas) return true;
+        return Date.now() - ultimaCargaConversaciones > CACHE_TTL_MS;
     },
 }));

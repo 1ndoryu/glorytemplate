@@ -84,7 +84,10 @@ export const useMotorAudio = () => {
                     bloque.invertido,
                     bloque.fadeIn,
                     bloque.fadeOut,
-                    bloque.detune ?? 0
+                    bloque.detune ?? 0,
+                    /* C271: Modo tonal del bloque */
+                    bloque.modoTonalidad ?? 'resample',
+                    bloque.id
                 );
             }
         }

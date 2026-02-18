@@ -929,6 +929,39 @@
     border-color: var(--advertencia, #f59e0b);
 }
 
+/* C271: Selector modo tonal (resample/stretch) */
+.modalConfigModoTonal {
+    display: flex;
+    gap: 2px;
+    background: var(--fondoTerciario, rgba(255, 255, 255, 0.05));
+    border-radius: 4px;
+    padding: 2px;
+    flex: 1;
+}
+
+.modalConfigModoBtn {
+    flex: 1;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--textoSecundario);
+    background: none;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.modalConfigModoBtn:hover {
+    color: var(--textoPrimario);
+}
+
+.modalConfigModoBtn.activo {
+    background: var(--acento);
+    color: white;
+    font-weight: 600;
+}
+
 /* C253: Botones de snap en ModalConfigDaw */
 .modalConfigSnapOpciones {
     display: flex;

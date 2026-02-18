@@ -25,6 +25,7 @@ use App\Kamples\Api\ServicioImagenIA;
 use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\Services\ServicioNotificaciones;
 
 class PublicacionesController
 {
@@ -390,6 +391,12 @@ class PublicacionesController
 
         if ((int) $pub['autor_id'] !== $userId && !$esAdmin) {
             return new \WP_REST_Response(['code' => 'sin_permisos'], 403);
+        }
+
+        /* C266: Notificar al autor si un admin elimina su publicación */
+        $autorId = (int) $pub['autor_id'];
+        if ($esAdmin && $autorId !== $userId) {
+            ServicioNotificaciones::publicacionEliminada($autorId, $id, 'Eliminada por un administrador');
         }
 
         /* Cascade manual: likes, comentarios */
