@@ -34,17 +34,35 @@ final class ColeccionesDTO
             imagenUrl: isset($row['imagen_url']) ? $row['imagen_url'] : null,
             publica: (bool) ($row['publica'] ?? true),
             totalSamples: (int) ($row['total_samples'] ?? 0),
-            createdAt: ($row['created_at'] ?? 'NOW()'),
-            updatedAt: ($row['updated_at'] ?? 'NOW()'),
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
+            updatedAt: ($row['updated_at'] ?? date('Y-m-d H:i:s')),
             portadaUrl: isset($row['portada_url']) ? $row['portada_url'] : null
         );
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'id' => $this->id,
+            'usuario_id' => $this->usuarioId,
+            'nombre' => $this->nombre,
+            'descripcion' => $this->descripcion,
+            'imagen_url' => $this->imagenUrl,
+            'publica' => $this->publica,
+            'total_samples' => $this->totalSamples,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+            'portada_url' => $this->portadaUrl];
     }
 }

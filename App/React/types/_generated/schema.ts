@@ -44,7 +44,7 @@ export interface IColeccionSamples {
 export interface IComentarios {
   id: number
   autorId: number
-  tipo: string
+  tipo: 'sample' | 'publicacion'
   targetId: number
   contenido: string | null
   createdAt: string
@@ -82,10 +82,10 @@ export interface IFollows {
 
 export interface ILikes {
   usuarioId: number
-  tipo: string
+  tipo: 'sample' | 'publicacion' | 'comentario'
   targetId: number
   createdAt: string
-  reaccion: string
+  reaccion: 'like' | 'dislike' | 'encanta'
 }
 
 export interface IMensajes {
@@ -116,7 +116,7 @@ export interface INotificaciones {
 export interface IPublicaciones {
   id: number
   autorId: number
-  tipo: string
+  tipo: 'social' | 'sample'
   contenido: string
   imagenes: string[]
   samplesAdjuntos: string[]
@@ -137,7 +137,7 @@ export interface IReportesDuplicados {
   sampleOriginalId: number
   sampleDuplicadoId: number
   reportadorId: number
-  estado: string
+  estado: 'reportado' | 'en_revision' | 'resuelto' | 'rechazado'
   pruebasTexto: string
   resueltoAt: string | null
   createdAt: string
@@ -180,8 +180,8 @@ export interface ISamples {
   tamano: number
   metadata: Record<string, unknown>
   tags: string[]
-  estado: string
-  tipo: string
+  estado: 'procesando' | 'activo' | 'inactivo' | 'eliminado' | 'en_supervision'
+  tipo: 'loop' | 'oneshot' | 'fx' | 'vocal' | 'stem' | 'otro'
   esPremium: boolean
   precio: number | null
   rutaOriginal: string | null
@@ -209,7 +209,7 @@ export interface ISuscripciones {
   id: number
   usuarioId: number
   plan: string
-  estado: string
+  estado: 'activa' | 'cancelada' | 'vencida' | 'periodo_prueba'
   stripeSubscriptionId: string | null
   inicioAt: string | null
   finAt: string | null
@@ -221,10 +221,10 @@ export interface ITransacciones {
   compradorId: number
   creadorId: number | null
   sampleId: number | null
-  tipo: string
+  tipo: 'suscripcion' | 'compra_sample' | 'payout'
   monto: number
   moneda: string
-  estado: string
+  estado: 'completada' | 'completed' | 'pendiente' | 'fallida' | 'reembolsada'
   stripePaymentId: string | null
   createdAt: string
   pagoCreador: number
@@ -240,8 +240,8 @@ export interface IUsuariosExt {
   bio: string
   avatarUrl: string | null
   portadaUrl: string | null
-  plan: string
-  rol: string
+  plan: 'free' | 'pro' | 'premium'
+  rol: 'usuario' | 'creador' | 'admin'
   verificado: boolean
   totalSeguidores: number
   totalSeguidos: number

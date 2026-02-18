@@ -47,18 +47,43 @@ final class AlgoritmoEstadoDTO
             cntDescargasPreciso: (int) ($row['cnt_descargas_preciso'] ?? 0),
             cntFollowsPreciso: (int) ($row['cnt_follows_preciso'] ?? 0),
             cntComentariosPreciso: (int) ($row['cnt_comentarios_preciso'] ?? 0),
-            ultimoRapido: ($row['ultimo_rapido'] ?? 'NOW()'),
-            ultimoPreciso: ($row['ultimo_preciso'] ?? 'NOW()'),
-            ultimaActividad: ($row['ultima_actividad'] ?? 'NOW()'),
+            ultimoRapido: ($row['ultimo_rapido'] ?? date('Y-m-d H:i:s')),
+            ultimoPreciso: ($row['ultimo_preciso'] ?? date('Y-m-d H:i:s')),
+            ultimaActividad: ($row['ultima_actividad'] ?? date('Y-m-d H:i:s')),
             versionPerfil: (int) ($row['version_perfil'] ?? 0)
         );
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'usuario_id' => $this->usuarioId,
+            'cnt_likes' => $this->cntLikes,
+            'cnt_reproducciones' => $this->cntReproducciones,
+            'cnt_completas' => $this->cntCompletas,
+            'cnt_descargas' => $this->cntDescargas,
+            'cnt_follows' => $this->cntFollows,
+            'cnt_comentarios' => $this->cntComentarios,
+            'cnt_likes_preciso' => $this->cntLikesPreciso,
+            'cnt_reproducciones_preciso' => $this->cntReproduccionesPreciso,
+            'cnt_completas_preciso' => $this->cntCompletasPreciso,
+            'cnt_descargas_preciso' => $this->cntDescargasPreciso,
+            'cnt_follows_preciso' => $this->cntFollowsPreciso,
+            'cnt_comentarios_preciso' => $this->cntComentariosPreciso,
+            'ultimo_rapido' => $this->ultimoRapido,
+            'ultimo_preciso' => $this->ultimoPreciso,
+            'ultima_actividad' => $this->ultimaActividad,
+            'version_perfil' => $this->versionPerfil];
     }
 }

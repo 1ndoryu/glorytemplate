@@ -21,16 +21,27 @@ final class ConversacionesDTO
     {
         return new self(
             id: (int) ($row['id'] ?? throw new \Glory\Exception\SchemaException("Columna 'id' ausente en conversaciones", 'conversaciones', 'id')),
-            ultimoMensajeAt: ($row['ultimo_mensaje_at'] ?? 'NOW()'),
-            createdAt: ($row['created_at'] ?? 'NOW()')
+            ultimoMensajeAt: ($row['ultimo_mensaje_at'] ?? date('Y-m-d H:i:s')),
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s'))
         );
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'id' => $this->id,
+            'ultimo_mensaje_at' => $this->ultimoMensajeAt,
+            'created_at' => $this->createdAt];
     }
 }

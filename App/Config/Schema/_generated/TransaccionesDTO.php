@@ -38,17 +38,37 @@ final class TransaccionesDTO
             moneda: ($row['moneda'] ?? 'USD'),
             estado: ($row['estado'] ?? 'pendiente'),
             stripePaymentId: isset($row['stripe_payment_id']) ? $row['stripe_payment_id'] : null,
-            createdAt: ($row['created_at'] ?? 'NOW()'),
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
             pagoCreador: (float) ($row['pago_creador'] ?? 0),
             comisionPlataforma: (float) ($row['comision_plataforma'] ?? 0)
         );
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'id' => $this->id,
+            'comprador_id' => $this->compradorId,
+            'creador_id' => $this->creadorId,
+            'sample_id' => $this->sampleId,
+            'tipo' => $this->tipo,
+            'monto' => $this->monto,
+            'moneda' => $this->moneda,
+            'estado' => $this->estado,
+            'stripe_payment_id' => $this->stripePaymentId,
+            'created_at' => $this->createdAt,
+            'pago_creador' => $this->pagoCreador,
+            'comision_plataforma' => $this->comisionPlataforma];
     }
 }

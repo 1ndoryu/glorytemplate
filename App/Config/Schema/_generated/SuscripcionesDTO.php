@@ -32,15 +32,31 @@ final class SuscripcionesDTO
             stripeSubscriptionId: isset($row['stripe_subscription_id']) ? $row['stripe_subscription_id'] : null,
             inicioAt: isset($row['inicio_at']) ? $row['inicio_at'] : null,
             finAt: isset($row['fin_at']) ? $row['fin_at'] : null,
-            createdAt: ($row['created_at'] ?? 'NOW()')
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s'))
         );
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'id' => $this->id,
+            'usuario_id' => $this->usuarioId,
+            'plan' => $this->plan,
+            'estado' => $this->estado,
+            'stripe_subscription_id' => $this->stripeSubscriptionId,
+            'inicio_at' => $this->inicioAt,
+            'fin_at' => $this->finAt,
+            'created_at' => $this->createdAt];
     }
 }

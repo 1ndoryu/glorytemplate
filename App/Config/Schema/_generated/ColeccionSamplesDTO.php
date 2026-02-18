@@ -24,15 +24,27 @@ final class ColeccionSamplesDTO
             coleccionId: (int) ($row['coleccion_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'coleccion_id' ausente en coleccion_samples", 'coleccion_samples', 'coleccion_id')),
             sampleId: (int) ($row['sample_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'sample_id' ausente en coleccion_samples", 'coleccion_samples', 'sample_id')),
             posicion: (int) ($row['posicion'] ?? 0),
-            addedAt: ($row['added_at'] ?? 'NOW()')
+            addedAt: ($row['added_at'] ?? date('Y-m-d H:i:s'))
         );
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'coleccion_id' => $this->coleccionId,
+            'sample_id' => $this->sampleId,
+            'posicion' => $this->posicion,
+            'added_at' => $this->addedAt];
     }
 }

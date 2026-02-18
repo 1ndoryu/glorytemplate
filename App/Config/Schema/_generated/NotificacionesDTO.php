@@ -35,16 +35,34 @@ final class NotificacionesDTO
             leida: (bool) ($row['leida'] ?? false),
             enlace: isset($row['enlace']) ? $row['enlace'] : null,
             actorId: isset($row['actor_id']) ? (int) $row['actor_id'] : null,
-            createdAt: ($row['created_at'] ?? 'NOW()'),
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
             datos: isset($row['datos']) ? (is_string($row['datos']) ? json_decode($row['datos'], true) ?? [] : $row['datos']) : []
         );
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'id' => $this->id,
+            'usuario_id' => $this->usuarioId,
+            'tipo' => $this->tipo,
+            'titulo' => $this->titulo,
+            'mensaje' => $this->mensaje,
+            'leida' => $this->leida,
+            'enlace' => $this->enlace,
+            'actor_id' => $this->actorId,
+            'created_at' => $this->createdAt,
+            'datos' => $this->datos];
     }
 }

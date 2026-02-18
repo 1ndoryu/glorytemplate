@@ -58,8 +58,8 @@ final class UsuariosExtDTO
             totalDescargas: (int) ($row['total_descargas'] ?? 0),
             stripeCustomerId: isset($row['stripe_customer_id']) ? $row['stripe_customer_id'] : null,
             stripeConnectId: isset($row['stripe_connect_id']) ? $row['stripe_connect_id'] : null,
-            createdAt: ($row['created_at'] ?? 'NOW()'),
-            updatedAt: ($row['updated_at'] ?? 'NOW()'),
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
+            updatedAt: ($row['updated_at'] ?? date('Y-m-d H:i:s')),
             violacionesModeracion: (int) ($row['violaciones_moderacion'] ?? 0),
             baneadoHasta: isset($row['baneado_hasta']) ? $row['baneado_hasta'] : null,
             banRazon: isset($row['ban_razon']) ? $row['ban_razon'] : null,
@@ -69,10 +69,42 @@ final class UsuariosExtDTO
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'id' => $this->id,
+            'wp_user_id' => $this->wpUserId,
+            'username' => $this->username,
+            'email' => $this->email,
+            'nombre_visible' => $this->nombreVisible,
+            'bio' => $this->bio,
+            'avatar_url' => $this->avatarUrl,
+            'portada_url' => $this->portadaUrl,
+            'plan' => $this->plan,
+            'rol' => $this->rol,
+            'verificado' => $this->verificado,
+            'total_seguidores' => $this->totalSeguidores,
+            'total_seguidos' => $this->totalSeguidos,
+            'total_samples' => $this->totalSamples,
+            'total_descargas' => $this->totalDescargas,
+            'stripe_customer_id' => $this->stripeCustomerId,
+            'stripe_connect_id' => $this->stripeConnectId,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+            'violaciones_moderacion' => $this->violacionesModeracion,
+            'baneado_hasta' => $this->baneadoHasta,
+            'ban_razon' => $this->banRazon,
+            'creditos_bonus' => $this->creditosBonus,
+            'stripe_subscription_id' => $this->stripeSubscriptionId];
     }
 }

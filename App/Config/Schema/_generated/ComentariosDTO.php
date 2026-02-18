@@ -37,7 +37,7 @@ final class ComentariosDTO
             tipo: ($row['tipo'] ?? throw new \Glory\Exception\SchemaException("Columna 'tipo' ausente en comentarios", 'comentarios', 'tipo')),
             targetId: (int) ($row['target_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'target_id' ausente en comentarios", 'comentarios', 'target_id')),
             contenido: isset($row['contenido']) ? $row['contenido'] : null,
-            createdAt: ($row['created_at'] ?? 'NOW()'),
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
             tipoContenido: ($row['tipo_contenido'] ?? 'texto'),
             mediaUrl: isset($row['media_url']) ? $row['media_url'] : null,
             mediaMetadata: isset($row['media_metadata']) ? (is_string($row['media_metadata']) ? json_decode($row['media_metadata'], true) : $row['media_metadata']) : null,
@@ -51,10 +51,33 @@ final class ComentariosDTO
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'id' => $this->id,
+            'autor_id' => $this->autorId,
+            'tipo' => $this->tipo,
+            'target_id' => $this->targetId,
+            'contenido' => $this->contenido,
+            'created_at' => $this->createdAt,
+            'tipo_contenido' => $this->tipoContenido,
+            'media_url' => $this->mediaUrl,
+            'media_metadata' => $this->mediaMetadata,
+            'moderacion_estado' => $this->moderacionEstado,
+            'moderacion_detalle' => $this->moderacionDetalle,
+            'parent_id' => $this->parentId,
+            'total_respuestas' => $this->totalRespuestas,
+            'total_likes' => $this->totalLikes,
+            'updated_at' => $this->updatedAt];
     }
 }

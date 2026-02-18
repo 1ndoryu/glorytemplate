@@ -32,15 +32,31 @@ final class ReportesDuplicadosDTO
             estado: ($row['estado'] ?? 'reportado'),
             pruebasTexto: ($row['pruebas_texto'] ?? ''),
             resueltoAt: isset($row['resuelto_at']) ? $row['resuelto_at'] : null,
-            createdAt: ($row['created_at'] ?? 'NOW()')
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s'))
         );
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'id' => $this->id,
+            'sample_original_id' => $this->sampleOriginalId,
+            'sample_duplicado_id' => $this->sampleDuplicadoId,
+            'reportador_id' => $this->reportadorId,
+            'estado' => $this->estado,
+            'pruebas_texto' => $this->pruebasTexto,
+            'resuelto_at' => $this->resueltoAt,
+            'created_at' => $this->createdAt];
     }
 }

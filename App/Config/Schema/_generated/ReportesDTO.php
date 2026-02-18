@@ -38,15 +38,34 @@ final class ReportesDTO
             estado: ($row['estado'] ?? 'pendiente'),
             resueltoPor: isset($row['resuelto_por']) ? (int) $row['resuelto_por'] : null,
             resueltoAt: isset($row['resuelto_at']) ? $row['resuelto_at'] : null,
-            createdAt: ($row['created_at'] ?? 'NOW()')
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s'))
         );
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'id' => $this->id,
+            'tipo' => $this->tipo,
+            'target_id' => $this->targetId,
+            'reportador_id' => $this->reportadorId,
+            'reportado_id' => $this->reportadoId,
+            'razon' => $this->razon,
+            'detalles' => $this->detalles,
+            'estado' => $this->estado,
+            'resuelto_por' => $this->resueltoPor,
+            'resuelto_at' => $this->resueltoAt,
+            'created_at' => $this->createdAt];
     }
 }

@@ -31,7 +31,7 @@ final class MensajesDTO
             autorId: (int) ($row['autor_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'autor_id' ausente en mensajes", 'mensajes', 'autor_id')),
             contenido: ($row['contenido'] ?? throw new \Glory\Exception\SchemaException("Columna 'contenido' ausente en mensajes", 'mensajes', 'contenido')),
             leido: (bool) ($row['leido'] ?? false),
-            createdAt: ($row['created_at'] ?? 'NOW()'),
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
             tipo: ($row['tipo'] ?? 'texto'),
             mediaUrl: isset($row['media_url']) ? $row['media_url'] : null,
             mediaMetadata: isset($row['media_metadata']) ? (is_string($row['media_metadata']) ? json_decode($row['media_metadata'], true) : $row['media_metadata']) : null
@@ -39,10 +39,27 @@ final class MensajesDTO
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'id' => $this->id,
+            'conversacion_id' => $this->conversacionId,
+            'autor_id' => $this->autorId,
+            'contenido' => $this->contenido,
+            'leido' => $this->leido,
+            'created_at' => $this->createdAt,
+            'tipo' => $this->tipo,
+            'media_url' => $this->mediaUrl,
+            'media_metadata' => $this->mediaMetadata];
     }
 }

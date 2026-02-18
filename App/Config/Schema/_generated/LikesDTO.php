@@ -25,16 +25,29 @@ final class LikesDTO
             usuarioId: (int) ($row['usuario_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'usuario_id' ausente en likes", 'likes', 'usuario_id')),
             tipo: ($row['tipo'] ?? throw new \Glory\Exception\SchemaException("Columna 'tipo' ausente en likes", 'likes', 'tipo')),
             targetId: (int) ($row['target_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'target_id' ausente en likes", 'likes', 'target_id')),
-            createdAt: ($row['created_at'] ?? 'NOW()'),
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
             reaccion: ($row['reaccion'] ?? 'like')
         );
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'usuario_id' => $this->usuarioId,
+            'tipo' => $this->tipo,
+            'target_id' => $this->targetId,
+            'created_at' => $this->createdAt,
+            'reaccion' => $this->reaccion];
     }
 }

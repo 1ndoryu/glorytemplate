@@ -80,8 +80,8 @@ final class SamplesDTO
             totalLikes: (int) ($row['total_likes'] ?? 0),
             totalReproducciones: (int) ($row['total_reproducciones'] ?? 0),
             publicadoAt: isset($row['publicado_at']) ? $row['publicado_at'] : null,
-            createdAt: ($row['created_at'] ?? 'NOW()'),
-            updatedAt: ($row['updated_at'] ?? 'NOW()'),
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
+            updatedAt: ($row['updated_at'] ?? date('Y-m-d H:i:s')),
             idCorto: isset($row['id_corto']) ? $row['id_corto'] : null,
             permitirDescarga: (bool) ($row['permitir_descarga'] ?? true),
             licenciaLibre: (bool) ($row['licencia_libre'] ?? false),
@@ -93,10 +93,54 @@ final class SamplesDTO
     }
 
     /**
-     * Convertir a array asociativo (para serialización JSON).
+     * Convertir a array asociativo camelCase (para serialización JSON).
      */
     public function aArray(): array
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * Convertir a array con claves snake_case (para queries SQL).
+     */
+    public function aArrayDB(): array
+    {
+        return [
+            'id' => $this->id,
+            'creador_id' => $this->creadorId,
+            'titulo' => $this->titulo,
+            'slug' => $this->slug,
+            'descripcion' => $this->descripcion,
+            'bpm' => $this->bpm,
+            'key' => $this->key,
+            'escala' => $this->escala,
+            'duracion' => $this->duracion,
+            'formato' => $this->formato,
+            'tamano' => $this->tamano,
+            'metadata' => $this->metadata,
+            'tags' => $this->tags,
+            'estado' => $this->estado,
+            'tipo' => $this->tipo,
+            'es_premium' => $this->esPremium,
+            'precio' => $this->precio,
+            'ruta_original' => $this->rutaOriginal,
+            'ruta_optimizada' => $this->rutaOptimizada,
+            'ruta_preview' => $this->rutaPreview,
+            'ruta_waveform' => $this->rutaWaveform,
+            'imagen_url' => $this->imagenUrl,
+            'embedding' => $this->embedding,
+            'total_descargas' => $this->totalDescargas,
+            'total_likes' => $this->totalLikes,
+            'total_reproducciones' => $this->totalReproducciones,
+            'publicado_at' => $this->publicadoAt,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+            'id_corto' => $this->idCorto,
+            'permitir_descarga' => $this->permitirDescarga,
+            'licencia_libre' => $this->licenciaLibre,
+            'audio_hash' => $this->audioHash,
+            'total_comentarios' => $this->totalComentarios,
+            'verificado' => $this->verificado,
+            'mostrar_en_comunidad' => $this->mostrarEnComunidad];
     }
 }
