@@ -343,7 +343,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 # Comentarios pendientes
 
 
-273. Ejecutar App\docs\plan-vps-kamples.md
+273. ✅ Actualizar plan-vps-kamples.md — sincronizado con Schema System (R54-R58), Mezclador DAW, Vite (no esbuild), variantes v001, WP_DEBUG, dependencias completas. 14 secciones.
 273. Comprimir las tareas cumplidas del roadmap !TODAS! no solo los comentarios.
 273. El Explorador no funciona bien, lo explicaré mas adelante (pendiente de aclarar.)
 
@@ -420,7 +420,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [Seguridad]: .htaccess bloquea WAV+MP3 optimizado. HMAC streaming en DescargasController.php. API ya no expone rutaOriginal/rutaOptimizada.
 - [Schema]: Cols constants en `App\Config\Schema\_generated\`. Patrón: `$row[XxxCols::COLUMNA]` en vez de `$row['columna']`. SQL aliases (reaccion_usuario, total de COUNT, etc.) se dejan como strings o class constants. Datos WP (display_name, etc.) no se migran.
 - [Schema-TS]: Union types (`TipoSample`, `EstadoSample`, etc.) ahora derivados de `ISamples['tipo']` del schema generado. Si se añade un valor CHECK en la DB y se regenera, TS rompe donde no se maneja. Interfaces manuales (Sample, Usuario) se mantienen porque la API normaliza a español (`creadoAt`, no `createdAt`). Cols + interfaces re-exportados desde `@app/types`.
-- [VPS]: Plan completo en App/docs/plan-vps-kamples.md. Stack: WP+MariaDB+PostgreSQL(pgvector). Dockerfile custom con pdo_pgsql+FFmpeg+Node. KAMPLES_PG_HOST='postgres' en Docker (no 127.0.0.1).
+- [VPS]: Plan completo en App/docs/plan-vps-kamples.md. Stack: WP+MariaDB+PostgreSQL(pgvector). Dockerfile custom con pdo_pgsql+FFmpeg+Node. KAMPLES_PG_HOST='postgres' en Docker (no 127.0.0.1). Build=Vite (no esbuild). Schema System archivos commiteados — NO regenerar en VPS. WP_DEBUG=FALSE obligatorio (SchemaRegistry). Excluir v001_local_sin_pgvector y v001_schema_inicial en deploy. themeName='glorytemplate'.
 
 **Patrones generales:**
 - NormalizadorSample: alias SQL para columnas homónimas. extraerTagsMetadata() combina campos IA.
