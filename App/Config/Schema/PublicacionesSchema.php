@@ -28,6 +28,8 @@ class PublicacionesSchema extends TableSchema
             'imagenes_metadata'   => ['tipo' => 'json', 'default' => '{}'],
             'moderacion_estado'   => ['tipo' => 'string', 'max' => 20, 'default' => 'pendiente'],
             'moderacion_detalle'  => ['tipo' => 'json', 'default' => '{}'],
+            'moderacion_razon'    => ['tipo' => 'string', 'max' => 255, 'nullable' => true],
+            'updated_at'          => ['tipo' => 'datetime', 'default' => 'NOW()'],
         ];
     }
 }

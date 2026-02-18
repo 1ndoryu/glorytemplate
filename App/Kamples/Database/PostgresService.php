@@ -151,6 +151,8 @@ class PostgresService
      */
     public static function ejecutar(string $sql, array $params = []): int
     {
+        self::validarQueryContraSchema($sql);
+
         $pdo = self::obtenerConexion();
         if ($pdo === null) {
             return -1;
@@ -175,6 +177,8 @@ class PostgresService
      */
     public static function insertar(string $sql, array $params = []): ?int
     {
+        self::validarQueryContraSchema($sql);
+
         $pdo = self::obtenerConexion();
         if ($pdo === null) {
             return null;
@@ -299,13 +303,31 @@ class PostgresService
             return;
         }
 
+        /* Extraer nombres de CTEs definidos con WITH para ignorarlos como tablas */
+        $ctes = [];
+        if (preg_match_all('/\bWITH\s+([a-z_]+)\s+AS\s*\(/i', $sql, $cteMatches)) {
+            $ctes = array_map('strtolower', $cteMatches[1]);
+        }
+        /* Soporte para CTEs encadenados: WITH cte1 AS (...), cte2 AS (...) */
+        if (preg_match_all('/,\s*([a-z_]+)\s+AS\s*\(/i', $sql, $cteChain)) {
+            $ctes = array_merge($ctes, array_map('strtolower', $cteChain[1]));
+        }
+
         /* Extraer tablas de la query: FROM tabla, JOIN tabla, INTO tabla, UPDATE tabla */
         $patron = '/\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-z_]+)/i';
         if (preg_match_all($patron, $sql, $matches)) {
             foreach ($matches[1] as $tabla) {
                 $tabla = strtolower($tabla);
-                /* Ignorar tablas del sistema WP y aliases comunes */
-                if (in_array($tabla, ['information_schema', 'pg_extension', 'pg_indexes', 'pg_class', 'pg_attribute'])) {
+                /* Ignorar tablas del sistema PG, aliases cortos y CTEs */
+                if (in_array($tabla, ['information_schema', 'pg_extension', 'pg_indexes', 'pg_class', 'pg_attribute', 'lateral', 'select', 'set'])) {
+                    continue;
+                }
+                /* Ignorar CTEs definidos en WITH */
+                if (in_array($tabla, $ctes)) {
+                    continue;
+                }
+                /* Ignorar aliases cortos (1-2 chars) que no son tablas reales */
+                if (strlen($tabla) <= 2) {
                     continue;
                 }
                 SchemaRegistry::exigirTabla($tabla);

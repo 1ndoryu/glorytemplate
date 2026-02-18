@@ -128,6 +128,8 @@ export interface IPublicaciones {
   imagenesMetadata: Record<string, unknown>
   moderacionEstado: string
   moderacionDetalle: Record<string, unknown>
+  moderacionRazon: string | null
+  updatedAt: string
 }
 
 export interface IReportesDuplicados {
@@ -253,6 +255,7 @@ export interface IUsuariosExt {
   baneadoHasta: string | null
   banRazon: string | null
   creditosBonus: number
+  stripeSubscriptionId: string | null
 }
 
 /* Constantes de columna (mirror de PHP) */
@@ -393,7 +396,9 @@ export const PublicacionesCols = {
   REPOST_ID: 'repost_id',
   IMAGENES_METADATA: 'imagenes_metadata',
   MODERACION_ESTADO: 'moderacion_estado',
-  MODERACION_DETALLE: 'moderacion_detalle'
+  MODERACION_DETALLE: 'moderacion_detalle',
+  MODERACION_RAZON: 'moderacion_razon',
+  UPDATED_AT: 'updated_at'
 } as const
 
 export const ReportesDuplicadosCols = {
@@ -525,5 +530,6 @@ export const UsuariosExtCols = {
   VIOLACIONES_MODERACION: 'violaciones_moderacion',
   BANEADO_HASTA: 'baneado_hasta',
   BAN_RAZON: 'ban_razon',
-  CREDITOS_BONUS: 'creditos_bonus'
+  CREDITOS_BONUS: 'creditos_bonus',
+  STRIPE_SUBSCRIPTION_ID: 'stripe_subscription_id'
 } as const

@@ -37,6 +37,7 @@ class UsuariosExtSchema extends TableSchema
             'baneado_hasta'          => ['tipo' => 'datetime', 'nullable' => true],
             'ban_razon'              => ['tipo' => 'text', 'nullable' => true],
             'creditos_bonus'         => ['tipo' => 'int', 'default' => 0],
+            'stripe_subscription_id' => ['tipo' => 'string', 'max' => 100, 'nullable' => true],
         ];
     }
 }

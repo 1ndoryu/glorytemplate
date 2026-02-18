@@ -21,7 +21,9 @@ final class PublicacionesDTO
         public readonly ?int $repostId,
         public readonly array $imagenesMetadata,
         public readonly string $moderacionEstado,
-        public readonly array $moderacionDetalle
+        public readonly array $moderacionDetalle,
+        public readonly ?string $moderacionRazon,
+        public readonly string $updatedAt
     ) {}
 
     /**
@@ -44,7 +46,9 @@ final class PublicacionesDTO
             repostId: isset($row['repost_id']) ? (int) $row['repost_id'] : null,
             imagenesMetadata: isset($row['imagenes_metadata']) ? (is_string($row['imagenes_metadata']) ? json_decode($row['imagenes_metadata'], true) ?? [] : $row['imagenes_metadata']) : [],
             moderacionEstado: ($row['moderacion_estado'] ?? 'pendiente'),
-            moderacionDetalle: isset($row['moderacion_detalle']) ? (is_string($row['moderacion_detalle']) ? json_decode($row['moderacion_detalle'], true) ?? [] : $row['moderacion_detalle']) : []
+            moderacionDetalle: isset($row['moderacion_detalle']) ? (is_string($row['moderacion_detalle']) ? json_decode($row['moderacion_detalle'], true) ?? [] : $row['moderacion_detalle']) : [],
+            moderacionRazon: isset($row['moderacion_razon']) ? $row['moderacion_razon'] : null,
+            updatedAt: ($row['updated_at'] ?? 'NOW()')
         );
     }
 

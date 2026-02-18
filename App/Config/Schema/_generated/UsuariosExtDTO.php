@@ -30,7 +30,8 @@ final class UsuariosExtDTO
         public readonly int $violacionesModeracion,
         public readonly ?string $baneadoHasta,
         public readonly ?string $banRazon,
-        public readonly int $creditosBonus
+        public readonly int $creditosBonus,
+        public readonly ?string $stripeSubscriptionId
     ) {}
 
     /**
@@ -62,7 +63,8 @@ final class UsuariosExtDTO
             violacionesModeracion: (int) ($row['violaciones_moderacion'] ?? 0),
             baneadoHasta: isset($row['baneado_hasta']) ? $row['baneado_hasta'] : null,
             banRazon: isset($row['ban_razon']) ? $row['ban_razon'] : null,
-            creditosBonus: (int) ($row['creditos_bonus'] ?? 0)
+            creditosBonus: (int) ($row['creditos_bonus'] ?? 0),
+            stripeSubscriptionId: isset($row['stripe_subscription_id']) ? $row['stripe_subscription_id'] : null
         );
     }
 
