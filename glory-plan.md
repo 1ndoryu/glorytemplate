@@ -524,6 +524,7 @@ Las referencias a `App/` en `vite.config.ts`, `tsconfig.json`, `eslint.config.js
 | Fase 10: Hardening | Completada | Seguridad, desacoplamiento, rendimiento, SOLID, dead code. SOLID splits menores diferidos. |
 | Fase 11: Pulido Framework | Pausada (parcial) | SOLID splits, N+1 fixes, seguridad — completados parcialmente. Items restantes pausados para evaluar migración a TypeScript. |
 | Fase 12: Auditoría Integral | Completada | Auditoría PHP + React/TS. 38 hallazgos React + ~39 PHP. Fixes críticos aplicados. |
+| Fase 13: Schema System | Completada | Tipado end-to-end PG→PHP→TS. 18 tablas, Cols+DTOs+schema.ts generados. Auditoría: fix parser nivel-0, NOW() fallback, aArrayDB(), union types TS. Docs completas en Glory/docs/. Adopción parcial: Cols en 27 archivos, DTOs pendientes de migración en controllers. |
 
 ---
 
@@ -699,17 +700,39 @@ App/React/types/_generated/
 
 ### 8.5 Checklist de Implementacion
 
-- [ ] 8.5.1 `Glory/src/Contracts/TableSchema.php` — Clase base abstracta
-- [ ] 8.5.2 `Glory/src/Contracts/PostTypeSchema.php` — Clase base abstracta
-- [ ] 8.5.3 `Glory/src/Core/SchemaRegistry.php` — Registro central
-- [ ] 8.5.4 `Glory/src/Exception/SchemaException.php` — Excepción tipada
-- [ ] 8.5.5 Schemas para 18 tablas de Kamples (App/Config/Schema/)
-- [ ] 8.5.6 `Glory/cli/schemaGenerate.mjs` — Generador CLI
-- [ ] 8.5.7 Archivos `_generated/` para todas las tablas (PHP + TS)
-- [ ] 8.5.8 `Glory/cli/schemaValidate.mjs` — Scanner de código
-- [ ] 8.5.9 `Glory/cli/createTable.mjs` — Scaffolding de tablas
-- [ ] 8.5.10 Integración en `glory.mjs` (nuevos comandos)
-- [ ] 8.5.11 Enforcement en `PostgresService.php` (modo estricto)
-- [ ] 8.5.12 Migrar controllers de Kamples a usar constantes
-- [ ] 8.5.13 Integrar `schema:validate` en prebuild de package.json
+- [x] 8.5.1 `Glory/src/Contracts/TableSchema.php` — Clase base abstracta
+- [x] 8.5.2 `Glory/src/Contracts/PostTypeSchema.php` — Clase base abstracta
+- [x] 8.5.3 `Glory/src/Core/SchemaRegistry.php` — Registro central
+- [x] 8.5.4 `Glory/src/Exception/SchemaException.php` — Excepción tipada
+- [x] 8.5.5 Schemas para 18 tablas de Kamples (App/Config/Schema/)
+- [x] 8.5.6 `Glory/cli/schemaGenerate.mjs` — Generador CLI
+- [x] 8.5.7 Archivos `_generated/` para todas las tablas (PHP + TS)
+- [x] 8.5.8 `Glory/cli/schemaValidate.mjs` — Scanner de código
+- [x] 8.5.9 `Glory/cli/createTable.mjs` — Scaffolding de tablas
+- [x] 8.5.10 Integración en `glory.mjs` (nuevos comandos)
+- [x] 8.5.11 Enforcement en `PostgresService.php` (modo estricto)
+- [ ] 8.5.12 Migrar controllers de Kamples a usar constantes — Parcial: 3 strings migrados (AuthMiddleware, GeneradorEmbeddings). Quedan ~5 archivos con hardcoded.
+- [ ] 8.5.13 Integrar `schema:validate` en prebuild de package.json — Diferido
+
+### 8.6 Auditoría del Schema System (R57)
+
+**Bugs corregidos:**
+- Parser `extraerEntradasColumna`: reescrito para parsear solo a nivel 0 (evita que `'check' => [...]` dentro de columnas se interprete como entrada)
+- `NOW()` fallback en DTOs: cambiado de string literal `"'NOW()'"` a `date('Y-m-d H:i:s')`
+- Union types TS: ahora genera `'loop' | 'oneshot' | 'fx'` correctamente desde `check` constraints
+- `aArrayDB()`: nuevo método en DTOs para obtener array con claves snake_case para SQL
+- `GENERICAS` Set en schemaValidate.mjs movido fuera del loop
+
+**Adopción medida:**
+- Cols: usados en 27 archivos (4 clases de 18 tienen consumidores)
+- DTOs: 0% adopción (generados pero no llamados desde controllers)
+- schema.ts: 0% adopción en React/TS
+
+**Mejoras diferidas:**
+- Migrar controllers a DTOs (`desdeRow()`)
+- Usar schema.ts en componentes React
+- Comando `schema:check` para comparar schema vs DB real
+- Sistema de migraciones con tracking
+- Validación de `check` constraints en `desdeRow()`
+- `pkCompuesta()`/`uniqueCompuestos()` en código generado
 
