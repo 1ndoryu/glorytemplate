@@ -14,13 +14,14 @@
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
+use App\Kamples\Database\Repositories\SamplesRepository;
 
 class SamplesModificacionController
 {
@@ -64,10 +65,7 @@ class SamplesModificacionController
             return UsuarioHelper::respuestaNoEncontrado();
         }
 
-        $sample = PostgresService::consultarUno(
-            "SELECT id, creador_id FROM samples WHERE id = :id AND estado != 'eliminado'",
-            ['id' => $sampleId]
-        );
+        $sample = SamplesRepository::buscarParaModificacion($sampleId);
 
         if (!$sample) {
             return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
@@ -106,7 +104,14 @@ class SamplesModificacionController
         }
 
         if (isset($body['tipo'])) {
-            $tiposValidos = ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro'];
+            $tiposValidos = [
+                SamplesEnums::TIPO_LOOP,
+                SamplesEnums::TIPO_ONESHOT,
+                SamplesEnums::TIPO_FX,
+                SamplesEnums::TIPO_VOCAL,
+                SamplesEnums::TIPO_STEM,
+                SamplesEnums::TIPO_OTRO,
+            ];
             if (!\in_array($body['tipo'], $tiposValidos, true)) {
                 return new \WP_REST_Response(['code' => 'tipo_invalido'], 400);
             }
@@ -163,7 +168,11 @@ class SamplesModificacionController
 
         /* Solo admin puede cambiar el estado */
         if (isset($body['estado']) && $esAdmin) {
-            $estadosValidos = ['activo', 'inactivo', 'procesando'];
+            $estadosValidos = [
+                SamplesEnums::ESTADO_ACTIVO,
+                SamplesEnums::ESTADO_INACTIVO,
+                SamplesEnums::ESTADO_PROCESANDO,
+            ];
             if (\in_array($body['estado'], $estadosValidos, true)) {
                 $campos[] = 'estado = :estado';
                 $params['estado'] = $body['estado'];
@@ -174,23 +183,16 @@ class SamplesModificacionController
             return new \WP_REST_Response(['code' => 'sin_cambios', 'message' => 'No se recibieron campos para actualizar'], 400);
         }
 
-        PostgresService::ejecutar(
-            "UPDATE samples SET " . \implode(', ', $campos) . ", updated_at = NOW() WHERE id = :id",
-            $params
-        );
+        SamplesRepository::actualizarCampos($sampleId, $campos, $params);
 
         KamplesLogger::info('Sample actualizado', [
             'sampleId' => $sampleId,
             'campos' => \array_keys(\array_diff_key($params, ['id' => 1])),
-            'por' => $esAdmin && (int) $sample['creador_id'] !== $usuarioId ? 'admin' : 'propietario',
+            'por' => $esAdmin && (int) $sample[SamplesCols::CREADOR_ID] !== $usuarioId ? 'admin' : 'propietario',
         ]);
 
         /* Devolver sample actualizado */
-        $sampleActualizado = PostgresService::consultarUno(
-            NormalizadorSample::sqlSelectSamples($usuarioId)
-            . " WHERE s.id = :id",
-            ['id' => $sampleId]
-        );
+        $sampleActualizado = SamplesRepository::buscarNormalizadoPorId($sampleId, $usuarioId);
 
         if ($sampleActualizado) {
             return new \WP_REST_Response(['data' => NormalizadorSample::normalizar($sampleActualizado)], 200);
@@ -214,10 +216,7 @@ class SamplesModificacionController
             return UsuarioHelper::respuestaNoEncontrado();
         }
 
-        $sample = PostgresService::consultarUno(
-            "SELECT id, creador_id, ruta_original, ruta_optimizada, ruta_preview, ruta_waveform, titulo FROM samples WHERE id = :id",
-            ['id' => $sampleId]
-        );
+        $sample = SamplesRepository::buscarParaEliminar($sampleId);
 
         if (!$sample) {
             return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
@@ -257,13 +256,8 @@ class SamplesModificacionController
             }
         }
 
-        /* Eliminar registros relacionados en cascada */
-        PostgresService::ejecutar("DELETE FROM likes WHERE tipo = 'sample' AND target_id = :id", ['id' => $sampleId]);
-        PostgresService::ejecutar("DELETE FROM coleccion_samples WHERE sample_id = :id", ['id' => $sampleId]);
-        PostgresService::ejecutar("DELETE FROM reproducciones WHERE sample_id = :id", ['id' => $sampleId]);
-        PostgresService::ejecutar("DELETE FROM descargas WHERE sample_id = :id", ['id' => $sampleId]);
-
-        PostgresService::ejecutar("DELETE FROM samples WHERE id = :id", ['id' => $sampleId]);
+        /* Eliminar registros relacionados en cascada + sample */
+        SamplesRepository::eliminarConCascada($sampleId);
 
         KamplesLogger::info('Sample eliminado', [
             'sampleId' => $sampleId,

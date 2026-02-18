@@ -1,7 +1,7 @@
 # Kamples — Roadmap Integral de Producto
 
 > **Versión:** 2.0  
-> **Última actualización:** 17/02/2026 (iteración v2.7)  
+> **Última actualización:** 18/02/2026 (iteración v2.8)  
 > **Stack base:** Glory Framework (WordPress + React Islands + TypeScript)  
 > **Competencia directa:** Splice
 
@@ -110,6 +110,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R53:** Cache SWR mensajes (TTL 2min), seguridad audio (.htaccess+HMAC), toggle comunidad, publicar mezcla, mezcladorStore SOLID (931→150 lín, 5 módulos), plan VPS coolify-manager, pitch-independent stretch SoundTouchJS.
 **R54-R58:** Schema System completo — 18 declaraciones+36 generados (Cols+DTO)+schema.ts, CLI, SchemaRegistry enforcement, 29 archivos PHP migrados a Cols constants (~270 accesos), union types TS derivados, runtime fixes, parser nivel-0, documentación completa.
 **R59:** Schema System Enums — `generarEnums()` en CLI: genera `{Tabla}Enums.php` y constantes TS desde arrays `check` de cada schema. 8 tablas con enums (Samples, Likes, UsuariosExt, Suscripciones, Transacciones, Publicaciones, Comentarios, ReportesDuplicados). `LikesEnums::TIPO_SAMPLE`, `SamplesEnums::ESTADO_ACTIVO`, etc. Elimina strings literales de valores enum en controladores y servicios.
+**R60:** Sprint 5 SOLID Refactoring completo — 11 splits (A01-A12) + O15 namespace prefix. 15 archivos nuevos creados, 11 archivos reducidos bajo 300 líneas. GroqHttpClient compartido (3 servicios IA), JsonRepairer (5 estrategias), AnalizadoresModeracion, DetectorBpm, DetectorTonalidad, FFmpegDetector, ProcesadorFFmpeg, DescargasStream/ZipController, PublicacionesEscrituraController, ColeccionesCrudController. O15: 424 llamadas `\` prefix en 21 archivos (tokenizador PHP).
 
 ---
 

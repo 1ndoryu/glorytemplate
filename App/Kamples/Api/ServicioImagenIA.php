@@ -17,6 +17,7 @@
 namespace App\Kamples\Api;
 
 use App\Kamples\KamplesLogger;
+use App\Kamples\Api\GroqHttpClient;
 
 class ServicioImagenIA
 {
@@ -41,7 +42,7 @@ class ServicioImagenIA
             return null;
         }
 
-        $apiKey = self::obtenerApiKey();
+        $apiKey = GroqHttpClient::obtenerApiKey();
         if (!$apiKey) {
             KamplesLogger::warning('ServicioImagenIA: API key de Groq no configurada');
             return null;
@@ -117,7 +118,7 @@ class ServicioImagenIA
             'Authorization: Bearer ' . $apiKey,
         ];
 
-        $respuesta = self::peticionCurl($url, $payload, $headers, $modelo);
+        $respuesta = GroqHttpClient::peticionCurl($url, $payload, $headers, "ImagenIA/{$modelo}");
         if ($respuesta === null) return null;
 
         return self::parsearRespuesta($respuesta);
@@ -148,10 +149,10 @@ PROMPT;
      */
     private static function parsearRespuesta(string $respuestaRaw): ?array
     {
-        $respuesta = json_decode($respuestaRaw, true);
+        $respuesta = \json_decode($respuestaRaw, true);
         if (!$respuesta) {
             KamplesLogger::error('ServicioImagenIA: Respuesta no es JSON válido', [
-                'respuesta_raw' => mb_substr($respuestaRaw, 0, 500),
+                'respuesta_raw' => \mb_substr($respuestaRaw, 0, 500),
             ]);
             return null;
         }
@@ -164,17 +165,17 @@ PROMPT;
             return null;
         }
 
-        $metadata = json_decode($texto, true);
-        if (!$metadata || !is_array($metadata)) {
+        $metadata = \json_decode($texto, true);
+        if (!$metadata || !\is_array($metadata)) {
             /* Intentar extraer {} del texto */
-            if (preg_match('/\{.*\}/s', $texto, $matches)) {
-                $metadata = json_decode($matches[0], true);
+            if (\preg_match('/\{.*\}/s', $texto, $matches)) {
+                $metadata = \json_decode($matches[0], true);
             }
         }
 
-        if (!$metadata || !is_array($metadata)) {
+        if (!$metadata || !\is_array($metadata)) {
             KamplesLogger::error('ServicioImagenIA: No se pudo extraer JSON', [
-                'texto' => mb_substr($texto, 0, 500),
+                'texto' => \mb_substr($texto, 0, 500),
             ]);
             return null;
         }
@@ -194,11 +195,11 @@ PROMPT;
 
         $sentimientosValidos = ['positivo', 'neutral', 'negativo'];
 
-        $tipo = isset($data['tipo_contenido']) && in_array($data['tipo_contenido'], $tiposValidos, true)
+        $tipo = isset($data['tipo_contenido']) && \in_array($data['tipo_contenido'], $tiposValidos, true)
             ? $data['tipo_contenido']
             : 'otro';
 
-        $sentimiento = isset($data['sentimiento']) && in_array($data['sentimiento'], $sentimientosValidos, true)
+        $sentimiento = isset($data['sentimiento']) && \in_array($data['sentimiento'], $sentimientosValidos, true)
             ? $data['sentimiento']
             : 'neutral';
 
@@ -218,59 +219,19 @@ PROMPT;
 
     private static function sanitizarTexto(mixed $texto, int $maxLen): string
     {
-        if (!is_string($texto)) return '';
-        $limpio = \sanitize_text_field(trim($texto));
-        return mb_substr($limpio, 0, $maxLen);
+        if (!\is_string($texto)) return '';
+        $limpio = \sanitize_text_field(\trim($texto));
+        return \mb_substr($limpio, 0, $maxLen);
     }
 
     private static function validarArrayStrings(mixed $arr, int $max): array
     {
-        if (!is_array($arr)) return [];
-        return array_slice(
-            array_map(fn($s) => \sanitize_text_field(trim($s)), array_filter($arr, 'is_string')),
+        if (!\is_array($arr)) return [];
+        return \array_slice(
+            \array_map(fn($s) => \sanitize_text_field(\trim($s)), \array_filter($arr, 'is_string')),
             0,
             $max
         );
     }
 
-    private static function obtenerApiKey(): ?string
-    {
-        $key = $_ENV['GROQ_API'] ?? getenv('GROQ_API') ?: null;
-        if (!$key || $key === '') return null;
-        return $key;
-    }
-
-    private static function peticionCurl(string $url, array $payload, array $headers, string $etiqueta): ?string
-    {
-        $json = json_encode($payload);
-
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $json,
-            CURLOPT_HTTPHEADER     => $headers,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => self::TIMEOUT,
-            CURLOPT_SSL_VERIFYPEER => true,
-        ]);
-
-        $respuesta = curl_exec($ch);
-        $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        if ($curlError) {
-            KamplesLogger::error("ServicioImagenIA: cURL error ({$etiqueta})", ['error' => $curlError]);
-            return null;
-        }
-
-        if ($httpCode !== 200) {
-            KamplesLogger::error("ServicioImagenIA: HTTP {$httpCode} ({$etiqueta})", [
-                'respuesta' => mb_substr($respuesta, 0, 500),
-            ]);
-            return null;
-        }
-
-        return $respuesta;
-    }
 }

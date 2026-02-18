@@ -95,10 +95,10 @@ class ComentariosController
     {
         $tipo = $request->get_param('tipo');
         $targetId = (int) $request->get_param('targetId');
-        $page = max(1, (int) $request->get_param('page'));
+        $page = \max(1, (int) $request->get_param('page'));
         $offset = ($page - 1) * 20;
 
-        if (!in_array($tipo, self::TIPOS_VALIDOS, true)) {
+        if (!\in_array($tipo, self::TIPOS_VALIDOS, true)) {
             return new \WP_REST_Response(['code' => 'tipo_invalido'], 400);
         }
 
@@ -172,7 +172,7 @@ class ComentariosController
             'data' => [
                 'id' => $id,
                 'contenido' => $contenido,
-                'editadoAt' => date('c'),
+                'editadoAt' => \date('c'),
             ],
         ], 200);
     }
@@ -254,12 +254,12 @@ class ComentariosController
         if (empty($filas)) return [];
 
         /* Obtener likes del usuario actual en batch */
-        $idsComentarios = array_column($filas, ComentariosCols::ID);
+        $idsComentarios = \array_column($filas, ComentariosCols::ID);
         $likesUsuario = [];
 
         if ($currentUserId && !empty($idsComentarios)) {
-            $placeholders = implode(',', array_fill(0, count($idsComentarios), '?'));
-            $params = array_merge([$currentUserId], $idsComentarios);
+            $placeholders = \implode(',', \array_fill(0, \count($idsComentarios), '?'));
+            $params = \array_merge([$currentUserId], $idsComentarios);
             $likes = PostgresService::consultar(
                 "SELECT target_id FROM likes WHERE usuario_id = ? AND tipo = 'comentario' AND target_id IN ({$placeholders})",
                 $params
@@ -269,12 +269,12 @@ class ComentariosController
             }
         }
 
-        return array_map(function ($fila) use ($likesUsuario) {
+        return \array_map(function ($fila) use ($likesUsuario) {
             $comentarioId = (int) $fila[ComentariosCols::ID];
             $meta = null;
             if (!empty($fila[ComentariosCols::MEDIA_METADATA])) {
-                $meta = is_string($fila[ComentariosCols::MEDIA_METADATA])
-                    ? json_decode($fila[ComentariosCols::MEDIA_METADATA], true)
+                $meta = \is_string($fila[ComentariosCols::MEDIA_METADATA])
+                    ? \json_decode($fila[ComentariosCols::MEDIA_METADATA], true)
                     : $fila[ComentariosCols::MEDIA_METADATA];
             }
 

@@ -65,15 +65,15 @@
 
 | # | Archivo | Problema | Estado |
 |---|---------|----------|--------|
-| A01 | MotorRecomendacion.php (770 líneas) | Necesita split en ConstructorSenales + PerfilUsuario + Orquestador. | PENDIENTE (planificado) |
-| A02 | PublicacionesController.php (576 líneas) | Extraer ModeracionHandler + lógica duplicada. | PENDIENTE (planificado) |
-| A03 | ColeccionesController.php (561 líneas) | Extraer ColeccionRecomendacion service. | PENDIENTE (planificado) |
-| A04 | SamplesController.php (940 líneas) | Demasiadas responsabilidades (CRUD + feed + upload + sugerencias). | PENDIENTE (planificado) |
-| A06 | ServicioIA.php (728 líneas) | Extraer GroqHttpClient, JsonRepairer, PromptBuilder, MetadataValidator. | PENDIENTE (planificado) |
-| A07 | ServicioModeracionIA.php (524 líneas) | Extraer ModerarTexto, ModerarImagen, ModerarContexto. | PENDIENTE (planificado) |
-| A08 | AnalizadorAudio.php (429 líneas) | Extraer DetectorBpm y DetectorTonalidad. | PENDIENTE (planificado) |
-| A09 | DescargasController.php (510+ líneas) | Extraer GeneradorZip + DescargasCreditosService. | PENDIENTE (planificado) |
-| A10 | ServicioIA + ServicioImagenIA + ServicioModeracionIA | Duplicación HTTP curl + obtenerApiKey + validarMetadata. Extraer GroqHttpClient compartido. | PENDIENTE (planificado) |
+| A01 | MotorRecomendacion.php (772→292) | Split en ConstructorSenales (294) + PerfilUsuario (125) + Orquestador. | CORREGIDO |
+| A02 | PublicacionesController.php (598→252) | Split en PublicacionesEscrituraController (253). | CORREGIDO |
+| A03 | ColeccionesController.php (404→207) | Split en ColeccionesCrudController (132). | CORREGIDO |
+| A04 | SamplesController.php (1149→258) | Split en Upload (210) + Modificacion (235) + Biblioteca (220) + Sugerencias (145). | CORREGIDO |
+| A06 | ServicioIA.php (730→272) | Extraído JsonRepairer (233). | CORREGIDO |
+| A07 | ServicioModeracionIA.php (512→164) | Extraído AnalizadoresModeracion (256). | CORREGIDO |
+| A08 | AnalizadorAudio.php (429→55) | Extraído DetectorBpm (127) + DetectorTonalidad (191). | CORREGIDO |
+| A09 | DescargasController.php (638→266) | Split en DescargasStreamController (79) + DescargasZipController (209). | CORREGIDO |
+| A10 | ServicioIA + ServicioImagenIA + ServicioModeracionIA | Extraído GroqHttpClient (157) compartido. | CORREGIDO |
 
 ### P3 — BAJO (Calidad)
 
@@ -87,7 +87,7 @@
 | O12 | PerfilController L300 | subirAvatar no verifica UPLOAD_ERR_OK antes de procesar. | CORREGIDO |
 | O13 | ReproduccionesController L70 | Race condition debounce: requests paralelos crean duplicados. | CORREGIDO (FOR UPDATE) |
 | O14 | DescargasController L108 | Race condition límite diario TOCTOU. | CORREGIDO (pg_advisory_xact_lock) |
-| O15 | Namespace `\` prefix | 9+ archivos con funciones globales sin `\` prefix — performance + seguridad. | PENDIENTE (masivo) |
+| O15 | Namespace `\` prefix | 424 llamadas corregidas en 21 archivos con script tokenizador PHP. | CORREGIDO |
 | O16 | DashboardController L45 | stats() hace 7 queries secuenciales. Combinar con CTE. | PENDIENTE |
 
 ---
@@ -186,21 +186,21 @@
 | S42 | ComentariosController quitarLike() L635 | **Sin existencia check:** Opera sin verificar que el comentario existe. 3 queries desperdiciadas. | CORREGIDO (check existencia) |
 | S43 | motorAudioService setSilenciarPista() | **Des-silenciar pone gain=1:** Ignora el volumen real configurado de la pista. | CORREGIDO (leer volumen del store) |
 
-### P2 — SOLID / Arquitectura (actualizado líneas)
+### P2 — SOLID / Arquitectura (COMPLETADO Sprint 5)
 
-| # | Archivo | Problema | Estado |
-|---|---------|----------|--------|
-| A01 | MotorRecomendacion.php (772 líneas) | Split en ConstructorSenales + PerfilUsuario + Orquestador. | PENDIENTE |
-| A02 | PublicacionesController.php (598 líneas) | Extraer ModeracionHandler. | PENDIENTE |
-| A03 | ColeccionesController.php (595 líneas) | Extraer ColeccionRecomendacion service. | PENDIENTE |
-| A04 | SamplesController.php (1128 líneas) | Demasiadas responsabilidades. Más crítico que antes. | PENDIENTE |
-| A06 | ServicioIA.php (730 líneas) | Extraer GroqHttpClient, JsonRepairer. | PENDIENTE |
-| A07 | ServicioModeracionIA.php (529 líneas) | Extraer ModerarTexto, ModerarImagen. | PENDIENTE |
-| A08 | AnalizadorAudio.php (429 líneas) | Extraer DetectorBpm. | PENDIENTE |
-| A09 | DescargasController.php (638 líneas) | Extraer GeneradorZip. | PENDIENTE |
-| A10 | ServicioIA + ServicioImagenIA + ServicioModeracionIA | Duplicación HTTP curl. Extraer GroqHttpClient. | PENDIENTE |
-| A11 | ComentariosController.php (867 líneas) | **NUEVO** — CRUD + likes + multimedia + moderación + waveform. | PENDIENTE |
-| A12 | PipelineAudio.php (688 líneas) | **NUEVO** — Pipeline + FFmpeg + IA + renombrado. | PENDIENTE |
+| # | Archivo | Resultado | Estado |
+|---|---------|-----------|--------|
+| A01 | MotorRecomendacion.php (772→292) | + ConstructorSenales (294) + PerfilUsuario (125) | CORREGIDO |
+| A02 | PublicacionesController.php (598→252) | + PublicacionesEscrituraController (253) | CORREGIDO |
+| A03 | ColeccionesController.php (404→207) | + ColeccionesCrudController (132) | CORREGIDO |
+| A04 | SamplesController.php (1149→258) | + Upload (210) + Modificacion (235) + Biblioteca (220) + Sugerencias (145) | CORREGIDO |
+| A06 | ServicioIA.php (730→272) | + JsonRepairer (233) | CORREGIDO |
+| A07 | ServicioModeracionIA.php (512→164) | + AnalizadoresModeracion (256) | CORREGIDO |
+| A08 | AnalizadorAudio.php (429→55) | + DetectorBpm (127) + DetectorTonalidad (191) | CORREGIDO |
+| A09 | DescargasController.php (638→266) | + DescargasStreamController (79) + DescargasZipController (209) | CORREGIDO |
+| A10 | GroqHttpClient (157) compartido | ServicioIA + ServicioImagenIA + ServicioModeracionIA unificados | CORREGIDO |
+| A11 | ComentariosController.php (867→262) | + EscrituraController (263) + InteraccionController (263) | CORREGIDO |
+| A12 | PipelineAudio.php (700→330) | + FFmpegDetector (146) + ProcesadorFFmpeg (138) | CORREGIDO |
 
 ### P3 — BAJO (Calidad)
 
@@ -208,7 +208,7 @@
 |---|---------|----------|--------|
 | O09 | NotificacionesController L55 | JOIN depende de JSON `(datos::jsonb->>'seguidor_id')`. | PENDIENTE |
 | O11 | ExperimentosController L26 | TEST_PASS hardcoded. | PENDIENTE (admin-only) |
-| O15 | Namespace `\` prefix | 9+ archivos sin `\` prefix en funciones globales. | PENDIENTE (masivo) |
+| O15 | Namespace `\` prefix | 424 llamadas corregidas en 21 archivos (script tokenizador). | CORREGIDO |
 | O16 | DashboardController L45 | stats() 7 queries secuenciales → CTE. | PENDIENTE |
 | O17 | ComentariosController autonotificación | No filtra `$userId !== $receptor` → autonotificaciones. | CORREGIDO |
 | O18 | ComentariosController L808 | `uniqid()` predecible para temp files. | CORREGIDO (random_bytes) |
@@ -239,6 +239,17 @@
 - [Error messages]: NUNCA exponer `$subido['error']` ni `$e->getMessage()` al cliente. Loguear internamente, retornar mensaje genérico.
 - [Shell commands]: Escapar TODOS los argumentos con `escapeshellarg()`, incluso los que parecen numéricos. Defensa en profundidad.
 - [SQL columnas dinámicas]: Si `$campo` viene de las keys de un array en `actualizarSample`, usar whitelist explícita antes de interpolar en SQL.
+
+### Sprint 5 — SOLID Refactoring
+
+- [SOLID Split]: Patrón coordinator: `registrarRutas()` en archivo principal delega callbacks a sub-controllers. WP REST API merge handlers automáticamente.
+- [SOLID Split]: Al mover métodos private → public static en sub-controller, actualizar visibilidad de constantes y métodos helper que usa.
+- [Namespace `\`]: Script tokenizador PHP (`token_get_all`) para agregar `\` prefix masivamente sin modificar strings ni comentarios. 424 llamadas corregidas.
+- [GroqHttpClient]: Unifica HTTP+apiKey para 3 servicios IA. obtenerApiKey soporta $_ENV → getenv → defined() fallback.
+- [JsonRepairer]: 5 estrategias parsing JSON + repararJsonConGroq. Separado de ServicioIA porque solo necesita GroqHttpClient.
+- [AnalizadoresModeracion]: Prompts IA largos → archivo separado. Orquestador queda limpio con solo BD + veredicto.
+- [DetectorBpm/Tonalidad]: Split natural por dominio algorítmico. AnalizadorAudio queda como fachada de 55 líneas.
+- [PipelineAudio 330 lín]: Excepción aceptada — orquestador de 10 pasos secuenciales no se puede dividir sin romper cohesión.
 
 ---
 

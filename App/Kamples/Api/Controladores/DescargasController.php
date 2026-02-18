@@ -6,19 +6,24 @@
  * POST /samples/{id}/descargar — Descargar sample (registra + enforcer)
  * GET  /descargas/limites      — Límites actuales del usuario
  *
+ * Streaming delegado a DescargasStreamController, ZIP a DescargasZipController.
+ *
  * @package Kamples
  */
 
 namespace App\Kamples\Api\Controladores;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\DescargasRepository;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\Database\Repositories\TransaccionesRepository;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\StripeService;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
-use App\Config\Schema\_generated\ColeccionesCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 
 class DescargasController
 {
@@ -26,7 +31,7 @@ class DescargasController
      * C72: Todas las descargas sirven el archivo original WAV.
      * Los límites de descargas/día se obtienen de StripeService::obtenerConfigPlan() (fuente única).
      */
-    private const CALIDAD_PLAN = [
+    public const CALIDAD_PLAN = [
         'free'    => 'wav',
         'pro'     => 'wav',
         'premium' => 'wav',
@@ -48,95 +53,16 @@ class DescargasController
 
         register_rest_route($namespace, '/colecciones/(?P<id>\d+)/descargar-zip', [
             'methods'             => 'POST',
-            'callback'            => [self::class, 'descargarZipColeccion'],
+            'callback'            => [DescargasZipController::class, 'descargarZipColeccion'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
-        /*
-         * C202: Endpoint de streaming seguro.
-         * Sirve archivos via PHP con token firmado temporal, evitando exponer URLs directas.
-         */
+        /* C202: Endpoint de streaming seguro con token firmado temporal */
         register_rest_route($namespace, '/descargas/stream', [
             'methods'             => 'GET',
-            'callback'            => [self::class, 'streamDescarga'],
+            'callback'            => [DescargasStreamController::class, 'streamDescarga'],
             'permission_callback' => '__return_true',
         ]);
-    }
-
-    /**
-     * C202: Generar firma HMAC para tokens de descarga temporales.
-     */
-    private static function generarFirmaDescarga(int $sampleId, int $userId, int $expira): string
-    {
-        $secreto = defined('AUTH_SALT') ? AUTH_SALT : 'kamples-descarga-segura-2026';
-        return hash_hmac('sha256', "{$sampleId}:{$userId}:{$expira}", $secreto);
-    }
-
-    /**
-     * C202: GET /descargas/stream — Stream seguro de archivos via PHP.
-     * Valida token firmado, verifica expiración y sirve con readfile().
-     */
-    public static function streamDescarga(\WP_REST_Request $request): \WP_REST_Response
-    {
-        $token = $request->get_param('token');
-        if (!$token) {
-            return new \WP_REST_Response(['code' => 'token_requerido'], 400);
-        }
-
-        $decoded = base64_decode($token, true);
-        if (!$decoded) {
-            return new \WP_REST_Response(['code' => 'token_invalido'], 400);
-        }
-
-        $partes = explode(':', $decoded);
-        if (count($partes) !== 4) {
-            return new \WP_REST_Response(['code' => 'token_malformado'], 400);
-        }
-
-        [$sampleId, $userId, $expira, $firma] = $partes;
-        $sampleId = (int) $sampleId;
-        $userId = (int) $userId;
-        $expira = (int) $expira;
-
-        /* Verificar expiración */
-        if (time() > $expira) {
-            return new \WP_REST_Response(['code' => 'token_expirado'], 403);
-        }
-
-        /* Verificar firma HMAC */
-        $firmaEsperada = self::generarFirmaDescarga($sampleId, $userId, $expira);
-        if (!hash_equals($firmaEsperada, $firma)) {
-            return new \WP_REST_Response(['code' => 'firma_invalida'], 403);
-        }
-
-        /* Obtener ruta del archivo */
-        $sample = PostgresService::consultarUno(
-            "SELECT ruta_original, ruta_optimizada, titulo FROM samples WHERE id = :id",
-            ['id' => $sampleId]
-        );
-
-        if (!$sample) {
-            return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
-        }
-
-        $rutaArchivo = $sample[SamplesCols::RUTA_ORIGINAL] ?? $sample[SamplesCols::RUTA_OPTIMIZADA] ?? '';
-        if (!$rutaArchivo || !file_exists($rutaArchivo)) {
-            return new \WP_REST_Response(['code' => 'archivo_no_encontrado'], 404);
-        }
-
-        /* Stream del archivo via PHP — nunca exponer ruta real */
-        $nombre = ($sample[SamplesCols::TITULO] ?? 'sample') . '.' . pathinfo($rutaArchivo, PATHINFO_EXTENSION);
-        $mime = wp_check_filetype($rutaArchivo)['type'] ?? 'application/octet-stream';
-        $tamano = filesize($rutaArchivo);
-
-        header('Content-Type: ' . $mime);
-        header('Content-Disposition: attachment; filename="' . sanitize_file_name($nombre) . '"');
-        header('Content-Length: ' . $tamano);
-        header('Cache-Control: no-store, no-cache, must-revalidate');
-        header('Pragma: no-cache');
-        header('X-Content-Type-Options: nosniff');
-        readfile($rutaArchivo);
-        exit;
     }
 
     /**
@@ -151,15 +77,11 @@ class DescargasController
 
         /* Obtener plan del usuario */
         $usuario = UsuarioHelper::obtenerPorId($userId);
-        $plan = $usuario[UsuariosExtCols::PLAN] ?? 'free';
+        $plan = $usuario[UsuariosExtCols::PLAN] ?? UsuariosExtEnums::PLAN_FREE;
         $configPlan = StripeService::obtenerConfigPlan($plan);
 
         /* Verificar que el sample existe y permite descarga */
-        $sample = PostgresService::consultarUno(
-            "SELECT id, titulo, ruta_original, ruta_optimizada, permitir_descarga, es_premium, creador_id
-             FROM samples WHERE id = :id AND estado = 'activo'",
-            ['id' => $sampleId]
-        );
+        $sample = SamplesRepository::buscarParaDescarga($sampleId);
 
         if (!$sample) {
             return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
@@ -174,18 +96,11 @@ class DescargasController
          * Gratis si: el usuario es el creador, o ya lo descargó antes.
          */
         $esPropietario = (int) $sample[SamplesCols::CREADOR_ID] === $userId;
-        $yaDescargado = false;
-        if (!$esPropietario) {
-            $descargaPrevia = PostgresService::consultarUno(
-                "SELECT id FROM descargas WHERE usuario_id = :userId AND sample_id = :sampleId LIMIT 1",
-                ['userId' => $userId, 'sampleId' => $sampleId]
-            );
-            $yaDescargado = !empty($descargaPrevia);
-        }
+        $yaDescargado = !$esPropietario && DescargasRepository::yaDescargado($userId, $sampleId);
         $consumeCredito = !$esPropietario && !$yaDescargado;
 
         /* Samples premium requieren plan pro o superior (excepto para el creador) */
-        if ((bool) $sample[SamplesCols::ES_PREMIUM] && $plan === 'free' && !$esPropietario) {
+        if ((bool) $sample[SamplesCols::ES_PREMIUM] && $plan === UsuariosExtEnums::PLAN_FREE && !$esPropietario) {
             return new \WP_REST_Response(['ok' => false, 'error' => 'Se requiere plan Pro o Premium para descargar este sample'], 403);
         }
 
@@ -200,39 +115,23 @@ class DescargasController
          * Samples propios y re-descargas no consumen créditos.
          */
         if ($consumeCredito) {
-            /* Verificar límite de descargas diarias */
             $limite = $configPlan['descargas_dia'] ?? 5;
-            /* O14: Verificar límite con advisory lock para evitar race condition TOCTOU */
+            /* O14: Advisory lock para evitar race condition TOCTOU */
             if ($limite > 0) {
-                /* Advisory lock basado en userId para serializar descargas del mismo usuario */
-                PostgresService::ejecutar(
-                    "SELECT pg_advisory_xact_lock(:lockId)",
-                    ['lockId' => $userId]
-                );
+                UsuariosExtRepository::advisoryLock($userId);
 
-                /*
-                 * C198: Sumar creditos_bonus al límite diario.
-                 * Los créditos bonus se ganan publicando samples (+1 cada publicación).
-                 */
-                $datosUsuario = PostgresService::consultarUno(
-                    "SELECT creditos_bonus FROM usuarios_ext WHERE id = :userId",
-                    ['userId' => $userId]
-                );
-                $creditosBonus = (int) ($datosUsuario[UsuariosExtCols::CREDITOS_BONUS] ?? 0);
+                /* C198: Sumar creditos_bonus al límite diario */
+                $creditosBonus = UsuariosExtRepository::obtenerCreditosBonus($userId);
                 $limiteEfectivo = $limite + $creditosBonus;
 
-                $descargasHoy = PostgresService::consultarUno(
-                    "SELECT COUNT(*) as total FROM descargas
-                     WHERE usuario_id = :userId AND created_at >= CURRENT_DATE",
-                    ['userId' => $userId]
-                );
+                $descargasHoy = DescargasRepository::contarHoy($userId);
 
-                if ((int) ($descargasHoy['total'] ?? 0) >= $limiteEfectivo) {
+                if ($descargasHoy >= $limiteEfectivo) {
                     return new \WP_REST_Response([
                         'ok' => false,
-                        'error' => "Has alcanzado el límite de {$limiteEfectivo} descargas diarias. Mejora tu plan o publica samples para más créditos.",
+                        'error' => "Has alcanzado el límite de {$limiteEfectivo} descargas diarias.",
                         'limite' => $limiteEfectivo,
-                        'usadas' => (int) $descargasHoy['total'],
+                        'usadas' => $descargasHoy,
                         'sinCredito' => true,
                     ], 429);
                 }
@@ -241,20 +140,14 @@ class DescargasController
             /* Verificar límite de transferencia mensual (GB) */
             $limiteGb = $configPlan['transferencia_gb'] ?? 1;
             if ($limiteGb > 0 && $rutaArchivo) {
-                $tamanoArchivo = @filesize($rutaArchivo) ?: 0;
-                $transferidoMes = PostgresService::consultarUno(
-                    "SELECT COALESCE(SUM(tamano_bytes), 0) as total FROM descargas
-                     WHERE usuario_id = :userId
-                       AND created_at >= date_trunc('month', CURRENT_DATE)",
-                    ['userId' => $userId]
-                );
-                $totalBytes = (int) ($transferidoMes['total'] ?? 0);
+                $tamanoArchivo = @\filesize($rutaArchivo) ?: 0;
+                $totalBytes = DescargasRepository::transferidoMesBytes($userId);
                 $limiteBytes = $limiteGb * 1073741824;
                 if (($totalBytes + $tamanoArchivo) > $limiteBytes) {
-                    $usadoGb = round($totalBytes / 1073741824, 2);
+                    $usadoGb = \round($totalBytes / 1073741824, 2);
                     return new \WP_REST_Response([
                         'ok' => false,
-                        'error' => "Has alcanzado el límite de {$limiteGb} GB de transferencia mensual ({$usadoGb} GB usados). Mejora tu plan para más.",
+                        'error' => "Límite de {$limiteGb} GB de transferencia mensual alcanzado ({$usadoGb} GB usados).",
                         'limiteGb' => $limiteGb,
                         'usadoGb' => $usadoGb,
                     ], 429);
@@ -262,59 +155,34 @@ class DescargasController
             }
         }
 
-        /* Obtener tamaño del archivo para registrar en la descarga */
-        $tamanoBytes = ($rutaArchivo && file_exists($rutaArchivo)) ? filesize($rutaArchivo) : 0;
+        $tamanoBytes = ($rutaArchivo && \file_exists($rutaArchivo)) ? \filesize($rutaArchivo) : 0;
 
-        /* Registrar descarga (siempre, para historial; los contadores se actualizan solo si consume crédito) */
+        /* Registrar descarga si consume crédito */
         if ($consumeCredito) {
-            PostgresService::ejecutar(
-                "INSERT INTO descargas (usuario_id, sample_id, calidad, tamano_bytes) VALUES (:userId, :sampleId, :calidad, :tamano)",
-                ['userId' => $userId, 'sampleId' => $sampleId, 'calidad' => $calidad, 'tamano' => $tamanoBytes]
-            );
-
-            /* Actualizar contador en samples */
-            PostgresService::ejecutar(
-                "UPDATE samples SET total_descargas = total_descargas + 1 WHERE id = :id",
-                ['id' => $sampleId]
-            );
-
-            /* Actualizar contador en usuario creador */
-            PostgresService::ejecutar(
-                "UPDATE usuarios_ext SET total_descargas = total_descargas + 1 WHERE id = :id",
-                ['id' => $sample[SamplesCols::CREADOR_ID]]
-            );
+            DescargasRepository::registrar($userId, $sampleId, $calidad, $tamanoBytes);
+            SamplesRepository::incrementarDescargas($sampleId);
+            UsuariosExtRepository::incrementarDescargas((int) $sample[SamplesCols::CREADOR_ID]);
         }
 
-        /* C45: registrar interacción para el planificador del algoritmo */
         PlanificadorAlgoritmo::registrarInteraccion($userId, 'descarga');
 
-        /* Revenue share: registrar transacción si el descargador tiene plan de pago */
-        if ($plan !== 'free' && (int) $sample[SamplesCols::CREADOR_ID] !== $userId) {
-            self::registrarTransaccionRevenueShare(
-                $userId,
-                (int) $sample[SamplesCols::CREADOR_ID],
-                $sampleId,
-                $plan
-            );
+        /* Revenue share si descargador tiene plan de pago */
+        if ($plan !== UsuariosExtEnums::PLAN_FREE && (int) $sample[SamplesCols::CREADOR_ID] !== $userId) {
+            self::registrarTransaccionRevenueShare($userId, (int) $sample[SamplesCols::CREADOR_ID], $sampleId, $plan);
         }
 
-        /*
-         * C202: Servir archivo via PHP streaming.
-         * NO exponer URL publica directa para evitar bypass de creditos.
-         * Genera un token temporal firmado que el frontend usa para descargar.
-         */
-        if (!$rutaArchivo || !file_exists($rutaArchivo)) {
+        /* C202: Generar token firmado temporal (30 min) para streaming seguro */
+        if (!$rutaArchivo || !\file_exists($rutaArchivo)) {
             return new \WP_REST_Response(['code' => 'archivo_no_encontrado'], 404);
         }
 
-        /* Generar token firmado temporal (30 minutos) */
-        $expira = time() + 1800;
-        $firma = self::generarFirmaDescarga($sampleId, $userId, $expira);
-        $tokenDescarga = base64_encode("{$sampleId}:{$userId}:{$expira}:{$firma}");
+        $expira = \time() + 1800;
+        $firma = DescargasStreamController::generarFirmaDescarga($sampleId, $userId, $expira);
+        $tokenDescarga = \base64_encode("{$sampleId}:{$userId}:{$expira}:{$firma}");
 
         return new \WP_REST_Response([
             'ok'      => true,
-            'url'     => rest_url("kamples/v1/descargas/stream?token=" . urlencode($tokenDescarga)),
+            'url'     => rest_url("kamples/v1/descargas/stream?token=" . \urlencode($tokenDescarga)),
             'nombre'  => ($sample[SamplesCols::TITULO] ?? 'sample') . '.' . $calidad,
             'formato' => $calidad,
             'tamano'  => $tamanoBytes,
@@ -330,7 +198,7 @@ class DescargasController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $usuario = UsuarioHelper::obtenerPorId($userId);
-        $plan = $usuario[UsuariosExtCols::PLAN] ?? 'free';
+        $plan = $usuario[UsuariosExtCols::PLAN] ?? UsuariosExtEnums::PLAN_FREE;
         $configPlan = StripeService::obtenerConfigPlan($plan);
         $limite = $configPlan['descargas_dia'] ?? 5;
 
@@ -338,27 +206,18 @@ class DescargasController
         $creditosBonus = (int) ($usuario[UsuariosExtCols::CREDITOS_BONUS] ?? 0);
         $limiteEfectivo = ($limite > 0) ? $limite + $creditosBonus : $limite;
 
-        $descargasHoy = PostgresService::consultarUno(
-            "SELECT COUNT(*) as total FROM descargas WHERE usuario_id = :userId AND created_at >= CURRENT_DATE",
-            ['userId' => $userId]
-        );
+        $descargasHoy = DescargasRepository::contarHoy($userId);
+        $totalBytes = DescargasRepository::transferidoMesBytes($userId);
 
-        /* Transferencia mensual */
-        $transferidoMes = PostgresService::consultarUno(
-            "SELECT COALESCE(SUM(tamano_bytes), 0) as total FROM descargas
-             WHERE usuario_id = :userId
-               AND created_at >= date_trunc('month', CURRENT_DATE)",
-            ['userId' => $userId]
-        );
         $limiteGb = $configPlan['transferencia_gb'] ?? 1;
-        $usadoGb = round((int) ($transferidoMes['total'] ?? 0) / 1073741824, 2);
+        $usadoGb = \round($totalBytes / 1073741824, 2);
 
         return new \WP_REST_Response([
             'plan'          => $plan,
             'limite'        => $limiteEfectivo,
             'limiteBase'    => $limite,
             'creditosBonus' => $creditosBonus,
-            'usadas'        => (int) ($descargasHoy['total'] ?? 0),
+            'usadas'        => $descargasHoy,
             'calidad'       => self::CALIDAD_PLAN[$plan] ?? 'mp3',
             'ilimitado'     => $limite === -1,
             'transferenciaGb'      => $limiteGb,
@@ -368,238 +227,10 @@ class DescargasController
     }
 
     /**
-     * POST /colecciones/{id}/descargar-zip — Descarga todos los samples de una colección como ZIP.
-     *
-     * Lógica de créditos:
-     * - Cada sample cuenta como 1 crédito de descarga.
-     * - Samples que el usuario ya descargó antes no consumen créditos adicionales.
-     * - Si créditos insuficientes, retorna error con desglose.
-     * - El ZIP se cachea 7 días y se invalida si la colección cambia.
+     * Registra transacción de revenue share al descargar un sample.
+     * Usado también por DescargasZipController.
      */
-    public static function descargarZipColeccion(\WP_REST_Request $request): \WP_REST_Response
-    {
-        $userId = UsuarioHelper::obtenerIdPg();
-        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
-
-        $coleccionId = (int) $request->get_param('id');
-
-        /* Verificar que la colección existe */
-        $coleccion = PostgresService::consultarUno(
-            "SELECT id, nombre, usuario_id, updated_at FROM colecciones WHERE id = :id",
-            ['id' => $coleccionId]
-        );
-
-        if (!$coleccion) {
-            return new \WP_REST_Response(['ok' => false, 'error' => 'Colección no encontrada'], 404);
-        }
-
-        /* S11: Verificar que la colección pertenezca al usuario o sea pública para evitar IDOR */
-        $esPropietario = (int) ($coleccion[ColeccionesCols::USUARIO_ID] ?? 0) === $userId;
-        if (!$esPropietario) {
-            $esPub = PostgresService::consultarUno(
-                "SELECT 1 FROM colecciones WHERE id = :id AND publica = true",
-                ['id' => $coleccionId]
-            );
-            if (!$esPub) {
-                return new \WP_REST_Response(['ok' => false, 'error' => 'No tienes acceso a esta colección'], 403);
-            }
-        }
-
-        /* Obtener samples de la colección */
-        $samples = PostgresService::consultar(
-            "SELECT s.id, s.titulo, s.ruta_original, s.ruta_optimizada, s.es_premium, s.creador_id
-             FROM samples s
-             INNER JOIN coleccion_samples cs ON cs.sample_id = s.id
-             WHERE cs.coleccion_id = :coleccionId AND s.estado = 'activo'
-             ORDER BY cs.created_at ASC",
-            ['coleccionId' => $coleccionId]
-        );
-
-        if (empty($samples)) {
-            return new \WP_REST_Response(['ok' => false, 'error' => 'La colección no tiene samples'], 400);
-        }
-
-        /* Verificar créditos: descontar samples ya descargados previamente */
-        $sampleIds = array_map(fn($s) => (int) $s[SamplesCols::ID], $samples);
-        $placeholders = implode(',', array_fill(0, count($sampleIds), '?'));
-        $params = array_merge([$userId], $sampleIds);
-
-        /* S12: Parametrizar IN clause en lugar de interpolar IDs directamente */
-        $downloadParams = ['userId' => $userId];
-        $dlPlaceholders = [];
-        foreach ($sampleIds as $idx => $sid) {
-            $key = "dlSid{$idx}";
-            $dlPlaceholders[] = ":{$key}";
-            $downloadParams[$key] = $sid;
-        }
-        $dlIn = implode(',', $dlPlaceholders);
-        $yaDescargados = PostgresService::consultar(
-            "SELECT DISTINCT sample_id FROM descargas
-             WHERE usuario_id = :userId AND sample_id IN ({$dlIn})",
-            $downloadParams
-        );
-        $idsYaDescargados = array_map(fn($d) => (int) $d['sample_id'], $yaDescargados);
-        $samplesNuevos = array_filter($samples, fn($s) => !in_array((int) $s['id'], $idsYaDescargados));
-        $creditosNecesarios = count($samplesNuevos);
-
-        /* Verificar plan y límites */
-        $usuario = UsuarioHelper::obtenerPorId($userId);
-        $plan = $usuario[UsuariosExtCols::PLAN] ?? 'free';
-        $configPlan = StripeService::obtenerConfigPlan($plan);
-        $limite = $configPlan['descargas_dia'] ?? 5;
-
-        if ($limite > 0) {
-            /* C198: Incluir créditos bonus */
-            $creditosBonus = (int) ($usuario[UsuariosExtCols::CREDITOS_BONUS] ?? 0);
-            $limiteEfectivo = $limite + $creditosBonus;
-
-            $descargasHoy = PostgresService::consultarUno(
-                "SELECT COUNT(*) as total FROM descargas
-                 WHERE usuario_id = :userId AND created_at >= CURRENT_DATE",
-                ['userId' => $userId]
-            );
-            $usadas = (int) ($descargasHoy['total'] ?? 0);
-            $disponibles = $limiteEfectivo - $usadas;
-
-            if ($creditosNecesarios > $disponibles) {
-                return new \WP_REST_Response([
-                    'ok' => false,
-                    'error' => "Créditos insuficientes. Necesitas {$creditosNecesarios} créditos pero solo tienes {$disponibles} disponibles hoy.",
-                    'creditosNecesarios' => $creditosNecesarios,
-                    'creditosDisponibles' => $disponibles,
-                    'totalSamples' => count($samples),
-                    'yaDescargados' => count($idsYaDescargados),
-                    'sinCredito' => true,
-                ], 429);
-            }
-        }
-
-        /* Verificar samples premium */
-        if ($plan === 'free') {
-            $tienePremium = array_filter($samplesNuevos, fn($s) => (bool) $s['es_premium']);
-            if (!empty($tienePremium)) {
-                return new \WP_REST_Response([
-                    'ok' => false,
-                    'error' => 'La colección contiene samples premium. Se requiere plan Pro o Premium.',
-                ], 403);
-            }
-        }
-
-        /* Generar o servir ZIP cacheado */
-        $uploadDir = \wp_upload_dir();
-        $carpetaZips = $uploadDir['basedir'] . '/kamples-zips';
-        if (!file_exists($carpetaZips)) {
-            \wp_mkdir_p($carpetaZips);
-        }
-
-        /*
-         * Nombre del ZIP incluye colección ID + hash de updated_at para invalidar cache
-         * cuando la colección cambie.
-         */
-        $hashColeccion = md5($coleccion[ColeccionesCols::UPDATED_AT] . count($samples));
-        $nombreZip = "coleccion_{$coleccionId}_{$hashColeccion}.zip";
-        $rutaZip = $carpetaZips . '/' . $nombreZip;
-
-        /* Limpiar ZIPs viejos de esta colección (cache invalidado) */
-        $zipsViejos = glob($carpetaZips . "/coleccion_{$coleccionId}_*.zip");
-        foreach ($zipsViejos as $zipViejo) {
-            if (basename($zipViejo) !== $nombreZip) {
-                @unlink($zipViejo);
-            }
-        }
-
-        /* Generar ZIP si no existe en cache o tiene más de 7 días */
-        if (!file_exists($rutaZip) || (time() - filemtime($rutaZip) > 604800)) {
-            $zip = new \ZipArchive();
-            if ($zip->open($rutaZip, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-                return new \WP_REST_Response([
-                    'ok' => false,
-                    'error' => 'Error al generar el archivo ZIP',
-                ], 500);
-            }
-
-            $nombresUsados = [];
-            foreach ($samples as $sample) {
-                $rutaArchivo = $sample[SamplesCols::RUTA_ORIGINAL] ?? $sample[SamplesCols::RUTA_OPTIMIZADA];
-                if (!$rutaArchivo || !file_exists($rutaArchivo)) continue;
-
-                /* Evitar nombres duplicados en el ZIP */
-                $extension = pathinfo($rutaArchivo, PATHINFO_EXTENSION);
-                $nombreBase = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $sample[SamplesCols::TITULO] ?? 'sample');
-                $nombreFinal = "{$nombreBase}.{$extension}";
-                $contador = 1;
-                while (in_array($nombreFinal, $nombresUsados)) {
-                    $nombreFinal = "{$nombreBase}_{$contador}.{$extension}";
-                    $contador++;
-                }
-                $nombresUsados[] = $nombreFinal;
-
-                $zip->addFile($rutaArchivo, $nombreFinal);
-            }
-
-            $zip->close();
-        }
-
-        if (!file_exists($rutaZip)) {
-            return new \WP_REST_Response([
-                'ok' => false,
-                'error' => 'Error al generar el archivo ZIP',
-            ], 500);
-        }
-
-        /* Registrar descargas solo de samples nuevos (no descargados previamente) */
-        $calidad = self::CALIDAD_PLAN[$plan] ?? 'wav';
-        foreach ($samplesNuevos as $sample) {
-            $rutaArchivo = $sample[SamplesCols::RUTA_ORIGINAL] ?? $sample[SamplesCols::RUTA_OPTIMIZADA];
-            $tamanoBytes = ($rutaArchivo && file_exists($rutaArchivo)) ? filesize($rutaArchivo) : 0;
-
-            PostgresService::ejecutar(
-                "INSERT INTO descargas (usuario_id, sample_id, calidad, tamano_bytes) VALUES (:userId, :sampleId, :calidad, :tamano)",
-                ['userId' => $userId, 'sampleId' => $sample[SamplesCols::ID], 'calidad' => $calidad, 'tamano' => $tamanoBytes]
-            );
-
-            PostgresService::ejecutar(
-                "UPDATE samples SET total_descargas = total_descargas + 1 WHERE id = :id",
-                ['id' => $sample[SamplesCols::ID]]
-            );
-
-            /* Revenue share por cada sample de otro creador */
-            if ($plan !== 'free' && (int) $sample[SamplesCols::CREADOR_ID] !== $userId) {
-                self::registrarTransaccionRevenueShare($userId, (int) $sample[SamplesCols::CREADOR_ID], (int) $sample[SamplesCols::ID], $plan);
-            }
-        }
-
-        /* Registrar interacción para el algoritmo */
-        PlanificadorAlgoritmo::registrarInteraccion($userId, 'descarga');
-
-        /* URL pública del ZIP */
-        $rutaRelativa = str_replace(
-            wp_normalize_path($uploadDir['basedir']),
-            '',
-            wp_normalize_path($rutaZip)
-        );
-        $urlZip = $uploadDir['baseurl'] . $rutaRelativa;
-
-        $tamanoZip = filesize($rutaZip);
-        $nombreColeccion = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $coleccion['nombre'] ?? 'coleccion');
-
-        return new \WP_REST_Response([
-            'ok' => true,
-            'url' => $urlZip,
-            'nombre' => "{$nombreColeccion}.zip",
-            'tamano' => $tamanoZip,
-            'totalSamples' => count($samples),
-            'creditosUsados' => $creditosNecesarios,
-            'yaDescargados' => count($idsYaDescargados),
-        ], 200);
-    }
-
-    /**
-     * Registra una transacción de revenue share al descargar un sample.
-     * El monto por descarga se calcula dividiendo el precio mensual del plan
-     * entre las descargas estimadas del mes, aplicando el % de revenue share.
-     */
-    private static function registrarTransaccionRevenueShare(
+    public static function registrarTransaccionRevenueShare(
         int $compradorId,
         int $creadorId,
         int $sampleId,
@@ -611,27 +242,15 @@ class DescargasController
 
         if ($precioMensual <= 0 || $revenueShare <= 0) return;
 
-        /*
-         * Modelo de reparto: cada descarga genera una fracción del precio mensual.
-         * Estimamos 200 descargas/mes como base para dividir el pool de ingresos.
-         * El creador recibe su % de revenue share sobre esa fracción.
-         */
+        /* Modelo: fracción del precio mensual / 200 descargas estimadas × revenue share */
         $descargasBaseEstimadas = 200;
         $montoPorDescarga = $precioMensual / $descargasBaseEstimadas;
-        $pagoCreador = round($montoPorDescarga * $revenueShare, 4);
-        $comisionPlataforma = round($montoPorDescarga * (1 - $revenueShare), 4);
+        $pagoCreador = \round($montoPorDescarga * $revenueShare, 4);
+        $comisionPlataforma = \round($montoPorDescarga * (1 - $revenueShare), 4);
 
-        PostgresService::ejecutar(
-            "INSERT INTO transacciones (comprador_id, creador_id, sample_id, tipo, monto, pago_creador, comision_plataforma, estado)
-             VALUES (:comprador, :creador, :sample, 'descarga', :monto, :pago, :comision, 'completed')",
-            [
-                'comprador' => $compradorId,
-                'creador'   => $creadorId,
-                'sample'    => $sampleId,
-                'monto'     => round($montoPorDescarga, 4),
-                'pago'      => $pagoCreador,
-                'comision'  => $comisionPlataforma,
-            ]
+        TransaccionesRepository::registrarRevenueShare(
+            $compradorId, $creadorId, $sampleId,
+            \round($montoPorDescarga, 4), $pagoCreador, $comisionPlataforma
         );
     }
 }

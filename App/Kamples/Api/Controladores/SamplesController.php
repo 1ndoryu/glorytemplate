@@ -136,7 +136,7 @@ class SamplesController
             $params['tipo'] = $tipo;
         }
 
-        $whereSQL = implode(' AND ', $where);
+        $whereSQL = \implode(' AND ', $where);
 
         $totalRow = PostgresService::consultarUno(
             "SELECT COUNT(*) as total FROM samples s
@@ -169,7 +169,7 @@ class SamplesController
                     'page'     => $page,
                     'per_page' => $perPage,
                     'total'    => $total,
-                    'pages'    => $total > 0 ? (int) ceil($total / $perPage) : 0,
+                    'pages'    => $total > 0 ? (int) \ceil($total / $perPage) : 0,
                 ],
             ],
         ], 200);
@@ -235,7 +235,7 @@ class SamplesController
                         $userId, $perPage, $offset
                     );
                     KamplesLogger::info('Feed descubrir: MotorRecomendacion retornó', [
-                        'resultados' => count($recomendados),
+                        'resultados' => \count($recomendados),
                     ], 'algoritmo');
                     if (!empty($recomendados)) {
                         return new \WP_REST_Response([

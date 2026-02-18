@@ -31,7 +31,7 @@ class ConstructorSenales
     public static function sqlTagsEnriquecidos(string $alias): string
     {
         /* P0-fix: Validar alias para prevenir SQL injection */
-        if (!preg_match('/^[a-z_][a-z0-9_]*$/i', $alias)) {
+        if (!\preg_match('/^[a-z_][a-z0-9_]*$/i', $alias)) {
             throw new \InvalidArgumentException("Alias SQL inválido: {$alias}");
         }
 
@@ -252,7 +252,7 @@ class ConstructorSenales
                 $params[$key] = $cId;
                 $placeholders[] = ":{$key}";
             }
-            $listaCreadores = implode(', ', $placeholders);
+            $listaCreadores = \implode(', ', $placeholders);
             $creadorScore = "CASE WHEN s.creador_id IN ({$listaCreadores}) THEN 1 ELSE 0 END";
         } else {
             $creadorScore = "0";
