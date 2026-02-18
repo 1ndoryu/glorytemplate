@@ -1009,7 +1009,7 @@ class SamplesController
 
         /* Filtro opcional por carpeta_primaria (almacenada en metadata JSONB) */
         $carpetaClause = '';
-        $params = ['uid' => $userId, 'limit' => $perPage, 'offset' => $offset];
+        $params = ['uid' => $userId, 'uid2' => $userId, 'limit' => $perPage, 'offset' => $offset];
         if ($carpeta !== '') {
             $carpetaClause = " AND s.metadata->>'carpeta_primaria' = :carpeta";
             $params['carpeta'] = $carpeta;
@@ -1018,11 +1018,13 @@ class SamplesController
         /*
          * Enfoque simple: SELECT normal con condición OR (descargado | subido por el usuario).
          * Se ordena por la fecha relevante más reciente: descarga o publicación propia.
+         * Nota: PDO native prepares no permite reusar el mismo placeholder, por eso uid y uid2.
+         * La columna de propiedad es creador_id, no usuario_id.
          */
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " LEFT JOIN descargas d ON d.sample_id = s.id AND d.usuario_id = :uid"
              . " WHERE s.estado = 'activo'{$carpetaClause}"
-             . " AND (d.id IS NOT NULL OR s.usuario_id = :uid)"
+             . " AND (d.id IS NOT NULL OR s.creador_id = :uid2)"
              . " ORDER BY GREATEST("
              . "   COALESCE(d.created_at, '1970-01-01'::timestamp),"
              . "   s.publicado_at"
@@ -1037,9 +1039,9 @@ class SamplesController
                   . " FROM samples s"
                   . " LEFT JOIN descargas d ON d.sample_id = s.id AND d.usuario_id = :uid"
                   . " WHERE s.estado = 'activo'{$carpetaClause}"
-                  . " AND (d.id IS NOT NULL OR s.usuario_id = :uid)";
+                  . " AND (d.id IS NOT NULL OR s.creador_id = :uid2)";
 
-        $totalParams = ['uid' => $userId];
+        $totalParams = ['uid' => $userId, 'uid2' => $userId];
         if ($carpeta !== '') $totalParams['carpeta'] = $carpeta;
         $total = PostgresService::consultarUno($sqlTotal, $totalParams);
 
@@ -1079,12 +1081,12 @@ class SamplesController
              . "  WHERE s.estado = 'activo'"
              . "  UNION"
              . "  SELECT s.id, s.metadata FROM samples s"
-             . "  WHERE s.estado = 'activo' AND s.usuario_id = :uid"
+             . "  WHERE s.estado = 'activo' AND s.creador_id = :uid2"
              . " ) s"
              . " GROUP BY primaria, secundaria"
              . " ORDER BY primaria, secundaria";
 
-        $rows = PostgresService::consultar($sql, ['uid' => $userId]);
+        $rows = PostgresService::consultar($sql, ['uid' => $userId, 'uid2' => $userId]);
 
         /* Construir árbol jerárquico */
         $arbol = [];

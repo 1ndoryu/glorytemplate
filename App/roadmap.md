@@ -330,70 +330,28 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 192. Trabajar en el ws local, no se si hacer eso necesario para resolver problemas como por ejemplo cuando abro el modal de mensajes aparece "Cargando..." luego "No hay mensajes..." y luego aparecen los mensajes, tambien es molesto que tengan que cargar los mensajes cada vez que abro ese modal.
 202. Auditar la seguridad de los audios, que sea dificil descargar los audios originales adivinando url, y que sea dificil descargar los mp3 ligeros tambien, rate limits, auditorias, etc, sin bloquear o dañar la reproducción de audios
 220. En crearCondiciones debería aparecer para que cuando publico un sample, aparezca o no en comunidad. En tarjetaMeta aparecen.
-252. ✅ [AG-DAW] Compactación roadmap — C169-C272 resumidos en bloques compactos, entradas individuales eliminadas.
+**R52 (AG-DAW):** C252 compactación roadmap, C272 deselect timeline, C280 sidebar librería Box+nav normal, C281+281.1-281.3 Explorador page (/explorador) con árbol carpetas + coleccionados backend (endpoints /me/coleccionados + /carpetas) + botón Plus/Coleccionar + "Descargas"→"Coleccionados" + samples propios auto-incluidos, C282 metadata carpetas IA (prompt+pipeline+JSONB carpeta_primaria/secundaria), C283 nombre archivo restructurado (Instrumento-Genero-Tono-BPM-Nombre-kamples-id).
+
 254. EL boton de publicar mezcla no funciona, puede esto no este planificado, pero realmente requiere pasos extra con la detección de duplicados, porque supongamos que hago una mezcla de un audio exactamente igual, el sistema debería detectar esos casos en que se intenta publicar un sample igual aunque sea una mezcla y pasarlo a moderación. 
-254.1 Veo que en el menu contextual de la foto de perfil hay un limitador de creditos, ejemplo usuario free tiene 5 creditos y aparece 5, si bien, al reiniciar el dia debe volver a 5, hay que quitar el limite, o sea si tengo 5 creditos y publico un sample, debería tener 6, si pasa un dia y todavía tengo 6, no debe restar y dejarme en esos 6, pero si tengo menos (4, 3, etc) reiniciar a 5 o a lo que corresponde, asi con los otros planes. Permitir que los usuarios ganen creditos por mezclar o publicar samples.
-254.2 Aclaración porque siento que no entiende bien 254, lo que se busca es debería permitirse mezcla siempre y cuando no sean tan parecidas, a los samples ya publicados. 
+254.1 Vuelvo a la pagina de Explorador, aqui viene el tema de los creditos. Permitir que los usuarios ganen creditos por mezclar o publicar samples.
+254.2 Aclaración: permitir mezcla siempre y cuando no sean tan parecidas a los samples ya publicados.
 255. los archivos del mezclador como mezcladorStore, se estan haciendo muy grandes, refactorizar y aplicar solid con cuidado.
 262. Planificar adaptación de .agent\coolify-manager para correr postgres automaticamente y instalar todo lo que necesita este proyecto para que funcione en el vps linux. 
-263. Sigo sin poder ver la imagen de perfil del otro usuario en chatFlotanteHeader (ya se arreglo)
 264. Los comentarios necesitan opciones de 3 puntos, un menu contextual donde aparezca la opcion de editar, reportar y eliminar, los admin pueden borrar cualquier comentarios y los usuarios eliminar sus propios comentarios.
 265. Poder dar like a los comentarios, y responder otros comentarios, que los comentarios se aniden cuando sean una respuesta, las respuestas ocultas por defecto.
-266. Recibir notificaciones cuando se recibe like en un sample, cuando se responde un comentario, o se da like a un comentario, no recibir notificaciones de auto like o autorespuesta. Notificaciones de publicaciones eliminadas, en moderación, de sample verificado, de pago procesado de stripe con exito y accendido a pro o premium, etc, recibir que todo lo que deba generar una notificación, lo genere.
-271. La tonalidad casi funciona bien, lo que pasa es que si cambia, pero, cuando se cambia la tonalidad directamente, el audio debe mantener su duración. O sea, no contraerse o estirarse, esto es mas profundo porque implica varias cosas, te explico como funciona en fl studio. En resample el pitch esta determinado por cuanto se estire (mas rapido = mayor pitch). En stretch no importa que tanto se estire, el pitch no cambia y se define desde configuracion. Por defecto resample. Modos individuales por audio. Requiere phase vocoder o SoundTouchJS para true pitch-independent stretch.
-272. ✅ [AG-DAW] Deseleccionar al hacer click en área vacía de timeline. PistaTimeline onClick + limpiarSeleccion().
-273. Los audios al arrastrarse al mini daw, pierden unos milesegundos iniciales, cosa que esta mal porque tiene que ser preciso. (Corrijo, no es el audio, si no la onda, la onda tiene que ser precisa)
-273.1 Hay otro problema con la onda, y es que en modo clip, cuando se recorta o estira con el modo clip activado, la onda no debe contraerse ni estirarse. Solo en modo strech porque esa es el efecto coherente.
-274. Inicialmente el mini daw debe aparecer con coon 20 pistas vacías.
-275. [EN CURSO — AG-DAW] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\App\Kamples\Api\Controladores\ComentariosController.php:124
-#10 C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-blog-header.php(16): wp()
-#11 C:\Users\Owner\OneDrive\Documentos\WP\app\public\index.php(17): require('C:\\Users\\Owner\\...')
-#12 {main}
-  thrown in C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\App\Kamples\Api\Controladores\ComentariosController.php on line 124
-276. no puedo ver los post pendientes de moderación en, tal vez tenga que ver con esto 
-[2026-02-18 00:56:30] [ERROR] PostgresService::consultar error | error=SQLSTATE[42703]: Undefined column: 7 ERROR:  no existe la columna r3.completa
-LINE 460:                 WHERE r3.usuario_id = $1 AND r3.completa = t...
-                                                       ^
-HINT:  Probablemente quiera hacer referencia a la columna «r3.completada»., sql=WITH scored AS (
-                    SELECT s.*, u.username, u.nombre_visible, u.avatar_url, u.verificado,
-                           u.wp_user_id AS creador_wp_user_id,
-                           
-[2026-02-18 00:56:33] [ERROR] PostgresService::consultar error | error=SQLSTATE[42703]: Undefined column: 7 ERROR:  no existe la columna «completa»
-LINE 9:                            CASE WHEN completa THEN 'reproduc...
-                                             ^
-HINT:  Probablemente quiera hacer referencia a la columna «reproducciones.completada»., sql=SELECT s.embedding::text, tipo_interaccion, peso FROM (
-                    SELECT target_id as sample_id, 'like' as tipo_interaccion, 3 as peso
-                    FROM likes WHERE usuario_id = :us
-[2026-02-18 00:56:33] [ERROR] PostgresService::consultar error | error=SQLSTATE[42703]: Undefined column: 7 ERROR:  no existe la columna r3.completa
-LINE 460:                 WHERE r3.usuario_id = $1 AND r3.completa = t...
-                                                       ^
-HINT:  Probablemente quiera hacer referencia a la columna «r3.completada»., sql=WITH scored AS (
-                    SELECT s.*, u.username, u.nombre_visible, u.avatar_url, u.verificado,
-                           u.wp_user_id AS creador_wp_user_id,
-                           
-[2026-02-18 01:17:31] [INFO] ModeracionIA: Veredicto comentario | comentarioId=5, nivel=aprobado, razon=
-[2026-02-18 01:20:26] [INFO] ModeracionIA: Veredicto | publicacionId=4, nivel=rechazado, razon=desconocida
-[2026-02-18 01:20:36] [ERROR] PostgresService::consultar error | error=SQLSTATE[42703]: Undefined column: 7 ERROR:  no existe la columna «tag_score»
-LINE 72:                     COALESCE(tag_score, 0) * 0.60
-                                      ^, sql=
-                WITH user_tags AS (
-                    SELECT tag, SUM(peso) as afinidad
-                    FROM (
-                        SELECT UNNEST((
-            COALESCE(s_l.tags, ARRAY[
-[2026-02-18 01:21:29] [INFO] ModeracionIA: Veredicto | publicacionId=5, nivel=aprobado, razon=
-277. Todo lo que tenga que ver con moderación los logs tienen que estar en App\logs en un archivo separado,
-278. Ya lo entiendo, la onda nos imprecisa al comienzo, sino que al medida que es mas larga la tarjeta de audio, por alguna extraña razon las lineas se vuelven mas gruesas haciendo que pierda calida, esta forma de onda o este comportamiento no es acto para un daw donde se necesita precisión para ver exactamente donde esta cada pico. Las demas ondas de los otros lugares esta bien, pero aca, necesitamos algo mejor.
-279. Tengo 2 colecciones, ambas aparecen que son publicas en su pagina individual, pero ne la pagina de explorar colecciones, no aparece ninguna colección. Dice "Sin colecciones públicas".
-280. ✅ [AG-DAW] Sidebar librería: icono Box, navegación normal a /libreria. PanelLibreria marcado SIN USO TEMPORAL para C281.
-281. ✅ [AG-DAW] Explorador: página /explorador con vista file-explorer. Backend: endpoints `/me/coleccionados` + `/me/coleccionados/carpetas`. Frontend: ExploradorIsland con árbol de carpetas (C282) + lista samples. Registrado en pages.php, appIslands, MAPA_RUTAS, Sidebar.
-281.1 ✅ [AG-DAW] Botón descargar → Plus/Coleccionar. Marca como coleccionado sin descargar archivo. Descargar movido al menú contextual.
-281.2 ✅ [AG-DAW] "Descargas" renombrado a "Coleccionados" en sidebar, tabs y textos de DescargasIsland.
-281.3 ✅ [AG-DAW] Samples subidos por el usuario aparecen automáticamente en coleccionados (endpoint `/me/coleccionados` usa UNION descargados + propios).
-281.4 Vuelvo a la pagina de Explorador, aparecen mis samples coleccionados todos inicialmente en una carpeta de coleccionados, abro la carpeta y aparecen todos los samples sueltos, aqui viene la magia, en el explorador arriba, aparte de los botoenes de cambiar de vista, ordenar por nombre, titulo, peso, etc, habrá otro boton de ordenamiento inteligente, esto utilizará IA para ordenar los samples en carpetas, el usuario tendra una configuración para describir como quiere que se ordenen sus samples, habrá una instrucción inicial basica.
-281.5 De la forma mas eficiente posible, evitando multiple llamadas si es posible, la ia con la información de cada sample (resumir porque json y es muy grande), decidira, probablemente en lote de 10 samples (porque puede alucinar a medida suben los tokens), decidirá en base a la estructura de carpetas, en donde debe ir cada sample, si una carpeta no existe, entonces la crea, tiene que tomar esas decisiones y las carpetas crearse en base a esas decisiones, y moverse si es posible en tiempo real. Esta funcionalidad solo estará disponible para los usuarios pro y premiun. 
-281.6 la instruccion inicial debe ser 1 nivel maximo para ordenar samples en carpetas en base (voy a escribir un borrador, tu lo mejoras), por lo general los productores prefieren este tipo de orden, 
+266. Recibir notificaciones cuando se recibe like en un sample, cuando se responde un comentario, o se da like a un comentario, no recibir notificaciones de auto like o autorespuesta. Notificaciones de publicaciones eliminadas, en moderación, de sample verificado, de pago procesado de stripe con exito y accendido a pro o premium, etc.
+271. Tonalidad: mantener duración al cambiar pitch. Resample vs Stretch (FL Studio). Requiere phase vocoder o SoundTouchJS para true pitch-independent stretch.
+273. Ondas pierden milisegundos iniciales al arrastrar al DAW (la onda debe ser precisa).
+273.1 En modo clip, recortar/estirar no debe contraer/estirar la onda. Solo en modo stretch.
+274. Inicialmente el mini daw debe aparecer con 20 pistas vacías.
+275. ComentariosController 500 error línea 124.
+276. SQL column `completa` → `completada`, `tag_score` undefined en algoritmo.
+277. Logs de moderación deben ir en App\logs en archivo separado.
+278. Waveform DAW: líneas se engruesan con tarjetas largas, necesita precisión.
+279. Colecciones públicas no aparecen en explorar. Dice "Sin colecciones públicas".
+281.4-281.7 Ordenamiento IA de carpetas (pro/premium), presets, instrucciones.
+284. Modo clip falla intermitentemente con loops comprimidos + chop.
+285. Explorador dice "Descarga o sube..." cuando hay samples (bug SQL corregido).
 
 Drums (Se asume que todo aqui es one shot)
 ---Kick
@@ -416,18 +374,7 @@ Sample (se asume que son loops casi siempre)
 
 nota: samples por lo general son trozos de canciones asi que ordenarlos es subjetivo pero por lo general creo que por genero esta bien
 Este orden es mi preferiencia, esto es bastante subjetivo porque no hay uan forma correcta asi se me ocurre lo siguiente
-281.7 Presents de ordenamiento, hacer 3 present y presentar una estructura de ejemplo, asi cada quien elige.
-282. ✅ [AG-DAW] Metadata carpetas IA: prompt de ServicioIA actualizado con carpeta_primaria (Drums|Loops|Samples|FX|Instruments|Vocals) y carpeta_secundaria. PipelineAudio guarda en JSONB. Types TS actualizados.
-
-Lo clave es que se puede agregar una metadata nueva de carpeta primara, carpeta secundaria, preguntarle a la IA que en que carpeta iría generalmente este sample, y darle una instrución clara de como debe ser, porque esto puede generar un problema o varios
-
-lo primero que queremos es que no samples no se guarden en una carpeta llamada sample, y luego otra samples, tienen que ver un mecanismo de normalización ya sea mediante prompt, en el json o posterior, 
-tampoco queremos una especificación elevada como "samples de piano melancolicos", la posibilidad de que otro sample se guarde en una carpeta asi dado a la aleatoreadad de la es casi imposible.
-tampoco queremos una generalización entrema de que todos los samples van a guardar en una carpeta "sample", por esa razón hay que dejar claro los mecanimos que vamos a usar para impedir estos problema
-
-probablemente la mejor forma de no generalizar ni caer en la especificación es ya crear una estructura de carpeta por defecto y darselo a la ia para que elija una carpeta 
-
-consegui esta estructura de ejemplo, si puedes pulilar, mejor, pero por lo general a mi me gusta y prefiero esta
+281.7 Presets de ordenamiento, hacer 3 presets y presentar una estructura de ejemplo, asi cada quien elige.
 
 Samples
  ├─ Drums
@@ -515,10 +462,6 @@ Samples
 "descripcion_corta_es": "Un bucle de jazz melancólico con piano suave y líneas delicadas de saxofón."
 },
 ````
-283. ✅ [AG-DAW] Nombre archivo restructurado: Instrumento-Genero-Tono-BPM-Nombre-kamples-id.ext. Campos ausentes se omiten.
-284. El modo clip a veces falla,  no se si por el modo clip o que, pero, estos son los eventos. Supongamos que tengo un loop que suena cada compas, suena 8 veces asi que cada linea de compas coincida con cada golpe, si recorto con clip hasta a mitad, bien, las los golpes todavía coinciden, pero, si comprimo a la mitad logrando que el golpe suene 2 veces por compas, a ahora cada 2 golpes sigue coincidiendo, pero al momento de que use el clip se rompe el orden. Tengo que decir que esto no es preciso porque no siempre sucede y no se la causa exacta o las condiciones necesarias para replicarlo. De hecho, a veces no pierde el orden a veces simplemente al usar chop, cambia la duración a una mas corta.
-
-
 
 ---
 
