@@ -112,7 +112,8 @@ const crearPistaVacia = (nombre?: string): PistaMezclador => ({
 
 export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     abierto: false,
-    pistas: [crearPistaVacia('Pista 1')],
+    /* C274: Iniciar con 20 pistas vacías para apariencia profesional */
+    pistas: Array.from({ length: 20 }, (_, i) => crearPistaVacia(`Pista ${i + 1}`)),
     bpmProyecto: leerBpmGuardado(),
     compasProyecto: { ...CONSTANTES_MEZCLADOR.COMPAS_DEFAULT },
     totalCompases: CONSTANTES_MEZCLADOR.COMPASES_DEFAULT,
@@ -617,11 +618,17 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                         /*
                          * C244: Modo clip — mantener playbackRate sin cambio.
                          * Solo recortar: no puede exceder la duración original escalada.
+                         * C273.1: Regenerar waveformPeaks para la porción visible del audio.
                          */
                         const durMaxCompases = b.audioBuffer.duration / (durCompas * b.playbackRate);
                         const durClamped = Math.max(0.25, Math.min(nuevaDuracion, durMaxCompases));
                         const recorteFin = durClamped * durCompas * b.playbackRate;
-                        return { ...b, duracionCompases: durClamped, recorteFin };
+                        const numPeaks = Math.max(30, Math.round(durClamped * 20));
+                        const waveformPeaks = extraerPeaks(
+                            b.audioBuffer, numPeaks,
+                            b.recorteInicio, recorteFin - b.recorteInicio
+                        );
+                        return { ...b, duracionCompases: durClamped, recorteFin, waveformPeaks };
                     }
 
                     /*

@@ -104,10 +104,16 @@ export const BloqueSample = ({
         };
     }, [resizing, totalCompases, compasProyecto, bloque.id, setDuracionBloque]);
 
-    /* Mini waveform SVG */
+    /*
+     * Mini waveform SVG
+     * C273: Centrar cada peak en su segmento temporal para evitar clipping
+     * del primer stroke y gap al final. Cada barra se posiciona en el centro
+     * de su ventana de tiempo proporcional.
+     */
     const waveformPath = bloque.waveformPeaks.length > 0
         ? bloque.waveformPeaks.map((peak, i) => {
-            const x = (i / bloque.waveformPeaks.length) * 100;
+            const n = bloque.waveformPeaks.length;
+            const x = ((i + 0.5) / n) * 100;
             const y = 50 - peak * 40;
             const yEspejo = 50 + peak * 40;
             return `M${x},${y} L${x},${yEspejo}`;

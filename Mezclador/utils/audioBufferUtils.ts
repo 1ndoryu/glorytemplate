@@ -11,20 +11,36 @@ export const decodificarAudio = async (
     return contexto.decodeAudioData(arrayBuffer);
 };
 
-/* Extraer peaks de un AudioBuffer para mini waveform */
+/*
+ * Extraer peaks de un AudioBuffer para mini waveform.
+ * C273: Precisión mejorada — usa rango exacto de muestras para cada peak,
+ * evitando pérdida de muestras por truncamiento. Soporta offset y duración
+ * para generar peaks solo del rango visible (recorteInicio → recorteFin).
+ */
 export const extraerPeaks = (
     buffer: AudioBuffer,
-    numeroPeaks: number
+    numeroPeaks: number,
+    offsetSegundos = 0,
+    duracionSegundos?: number
 ): number[] => {
     const datos = buffer.getChannelData(0);
-    const tamanoBloque = Math.floor(datos.length / numeroPeaks);
+    const sampleRate = buffer.sampleRate;
+    const inicioMuestra = Math.round(offsetSegundos * sampleRate);
+    const finMuestra = duracionSegundos !== undefined
+        ? Math.min(datos.length, Math.round((offsetSegundos + duracionSegundos) * sampleRate))
+        : datos.length;
+
+    const totalMuestras = finMuestra - inicioMuestra;
+    if (totalMuestras <= 0 || numeroPeaks <= 0) return [];
+
     const peaks: number[] = [];
 
     for (let i = 0; i < numeroPeaks; i++) {
-        let max = 0;
-        const inicio = i * tamanoBloque;
-        const fin = Math.min(inicio + tamanoBloque, datos.length);
+        /* Rango exacto proporcional para cada peak — sin pérdida por Math.floor */
+        const inicio = inicioMuestra + Math.round((i / numeroPeaks) * totalMuestras);
+        const fin = inicioMuestra + Math.round(((i + 1) / numeroPeaks) * totalMuestras);
 
+        let max = 0;
         for (let j = inicio; j < fin; j++) {
             const abs = Math.abs(datos[j]);
             if (abs > max) max = abs;
