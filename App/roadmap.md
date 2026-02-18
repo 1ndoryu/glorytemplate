@@ -347,8 +347,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 274. ✅ Implementar coolify-manager para Kamples — setup-kamples.ps1, CoolifyApi template selection, kamples-stack.yaml (WP+MariaDB+PG18+pgvector), Dockerfile.kamples, init-postgres.sh, env vars per-project en settings.json, Get-SiteEnvVars, Get-PostgresContainerId, deploy-theme post-deploy kamples, .env.example.
 273. Comprimir las tareas cumplidas del roadmap !TODAS! no solo los comentarios.
 273. El Explorador no funciona bien, lo explicaré mas adelante (pendiente de aclarar.)
-
-
+286. Auditoría seguridad PipelineAudio + ServicioIA completada (21 hallazgos: 1 HIGH, 6 MEDIUM, 10 LOW, 3 INFO). Prioridad: S1 prompt injection via descripcionUsuario, P5 SQL column whitelist, P7 memory exhaustion waveform, S2-S4 prompt injection (filename/tags/whisper), S8 rate limiting IA.
+287. Auditoría seguridad/calidad Mezclador DAW TypeScript (14 archivos, 2539 lín). 15 hallazgos: 1 P0, 4 P1, 7 P2, 3 P3. P0: `iniciar()` retorna AudioContext cerrado (no verifica state). P1: setSilenciarPista pierde volumen real, buffer invertido sin cache (GC pressure), inferirCompas div/0 si bpm=0, aplicarPitchShift div/0 si playbackRate=0. P2: destruir() no libera caches, limpiarProyecto no limpia buffers, cache pitch sin límite, race condition carga concurrente, doble exportación, rAF no cancelado en reproducir(), setTiempoActual 60fps re-renders. P3: motorAudioService 390 lín (>300), pseudoSample hardcoded, IDs Date.now(). Positivo: stale closures bien manejadas con getState(), refs en document listeners, cleanup en todos los effects, validación scheduling.
 
 ---
 
@@ -437,4 +437,9 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [SQL]: tabla samples usa `creador_id`, NO `usuario_id`. Siempre verificar nombres de columna con psql.
 - [Offset]: `(int) $request->get_param('page')` devuelve 0 si no se envía → offset -20 → PG error. Siempre usar `max(1, (int) ...)`.
 - [Logs]: ServicioBan, ServicioAntiSpam y ComentariosController deben usar `LogModeracion as KamplesLogger`, no KamplesLogger ni LogIA.
-- [PG credenciales]: PostgresService usa `postgres`/`root` por defecto. psql: `"C:\Program Files\PostgreSQL\18\bin\psql.exe"`.
+- [PG credenciales]: PostgresService ahora EXIGE KAMPLES_PG_USER y KAMPLES_PG_PASSWORD en .env (sin defaults). psql: `"C:\Program Files\PostgreSQL\18\bin\psql.exe"`.
+- [Mezclador-Audit]: `iniciar()` en motorAudioService debe verificar `state !== 'closed'` — si no, retorna contexto cerrado irrecuperable.
+- [Mezclador-Audit]: `setSilenciarPista` ahora recibe `volumenReal` como 3er param — des-silenciar restaura el volumen configurado de la pista.
+- [Mezclador-Audit]: Buffers invertidos se recrean en cada schedule — cachear como pitchShift. `limpiarProyecto` y `destruir()` deben llamar `limpiarCache()`.
+- [Mezclador-Audit]: `inferirCompas` y `aplicarPitchShift` pueden dividir por 0 — guard bpm>0 y rate>0.
+- [Mezclador-Audit]: `setTiempoActual` en rAF causa 60fps re-renders — throttle o usar ref selectivo para cursor.
