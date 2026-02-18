@@ -217,3 +217,119 @@
         display: none;
     }
 }
+
+/* --- C280: PanelLibreria --- */
+
+.panelLibreria {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.panelLibreriaCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioSm) var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+    flex-shrink: 0;
+}
+
+.panelLibreriaTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--textoBase);
+    margin: 0;
+}
+
+.panelLibreriaCerrar {
+    background: none;
+    border: none;
+    color: var(--textoTenue);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--radioSm);
+    display: flex;
+    align-items: center;
+}
+
+.panelLibreriaCerrar:hover {
+    color: var(--textoBase);
+    background: var(--fondoElevado2);
+}
+
+.panelLibreriaTabs {
+    display: flex;
+    gap: 2px;
+    padding: var(--espacioXs) var(--espacioSm);
+    border-bottom: 1px solid var(--bordeSutil);
+    flex-shrink: 0;
+}
+
+.panelLibreriaTab {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    background: none;
+    border: none;
+    border-radius: var(--radioSm);
+    color: var(--textoTenue);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+}
+
+.panelLibreriaTab:hover {
+    background: var(--fondoElevado2);
+    color: var(--textoBase);
+}
+
+.panelLibreriaTabActiva {
+    background: var(--fondoElevado2);
+    color: var(--acento);
+    font-weight: 600;
+}
+
+.panelLibreriaAcciones {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--espacioXs) var(--espacioSm);
+    min-height: 28px;
+    flex-shrink: 0;
+}
+
+.panelLibreriaContenido {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--espacioSm);
+}
+
+.panelLibreriaGrid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.panelLibreriaLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.panelLibreriaVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioXl);
+    color: var(--textoTenue);
+    text-align: center;
+    font-size: 0.8125rem;
+}

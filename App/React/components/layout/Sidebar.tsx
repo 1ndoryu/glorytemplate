@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/componentes/sidebar.css';
 
@@ -25,13 +26,13 @@ export interface SidebarItemDef {
     etiqueta: string;
     icono: React.ReactNode;
     ruta: string;
-    accion?: 'modal-crear';
+    accion?: 'modal-crear' | 'panel-libreria';
 }
 
 const itemsDefault: SidebarItemDef[] = [
     { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
     { id: 'comunidad', etiqueta: 'Comunidad', icono: <Users size={20} />, ruta: '/comunidad' },
-    { id: 'libreria', etiqueta: 'Librería', icono: <FolderOpen size={20} />, ruta: '/libreria' },
+    { id: 'libreria', etiqueta: 'Librería', icono: <FolderOpen size={20} />, ruta: '/libreria', accion: 'panel-libreria' },
     { id: 'descargas', etiqueta: 'Descargas', icono: <Download size={20} />, ruta: '/descargas' },
     { id: 'favoritos', etiqueta: 'Favoritos', icono: <Heart size={20} />, ruta: '/favoritos' },
 ];
@@ -49,6 +50,7 @@ export const Sidebar = ({
 }: SidebarProps): JSX.Element => {
     const { navegar } = useNavigationStore();
     const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
+    const { modo: modoPanelLateral, abrirLibreria, cerrar: cerrarPanel } = usePanelLateralStore();
     const { usuario } = useAuthStore();
     const esAdmin = usuario?.rol === 'admin';
 
@@ -59,6 +61,16 @@ export const Sidebar = ({
 
     const manejarClick = (item: SidebarItemDef) => {
         if (item.accion === 'modal-crear') {
+            return;
+        }
+
+        /* C280: Toggle panel libreria desde sidebar */
+        if (item.accion === 'panel-libreria') {
+            if (modoPanelLateral === 'libreria') {
+                cerrarPanel();
+            } else {
+                abrirLibreria();
+            }
             return;
         }
 
@@ -77,12 +89,12 @@ export const Sidebar = ({
 
             <nav className="sidebarNav">
                 {itemsFinales.map((item) => {
-                    /* Crear como modal: usar button */
-                    if (item.accion === 'modal-crear') {
+                    /* Crear como modal o panel: usar button */
+                    if (item.accion) {
                         return (
                             <button
                                 key={item.id}
-                                className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
+                                className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}${item.accion === 'panel-libreria' && modoPanelLateral === 'libreria' ? ' sidebarItemActivo' : ''}`}
                                 data-tooltip={item.etiqueta}
                                 onClick={() => manejarClick(item)}
                                 type="button"

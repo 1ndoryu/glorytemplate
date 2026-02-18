@@ -10,7 +10,7 @@
 import { create } from 'zustand';
 import type { SampleResumen } from '@app/types';
 
-type ModoPanelLateral = 'sugerencias' | 'detalle' | 'comentarios' | 'mezclador' | null;
+type ModoPanelLateral = 'sugerencias' | 'detalle' | 'comentarios' | 'mezclador' | 'libreria' | null;
 
 /* C155: Clave localStorage para persistir preferencia */
 const LS_KEY_SUGERENCIAS = 'kamples:sugerenciasAlDarLike';
@@ -48,6 +48,9 @@ interface PanelLateralState {
 
     /* C184: Abrir modo mezclador */
     abrirMezclador: () => void;
+
+    /* C280: Abrir modo libreria */
+    abrirLibreria: () => void;
 
     /* C241: Expandir panel a ancho completo (toggle) */
     expandido: boolean;
@@ -100,6 +103,9 @@ export const usePanelLateralStore = create<PanelLateralState>((set, get) => ({
 
     /* C184: Abrir modo mezclador — no necesita sample */
     abrirMezclador: () => set({ modo: 'mezclador', sampleId: null, sampleSlug: null, sample: null, habilitado: true }),
+
+    /* C280: Abrir modo libreria — no necesita sample */
+    abrirLibreria: () => set({ modo: 'libreria', sampleId: null, sampleSlug: null, sample: null, habilitado: true }),
 
     /* C241: Expandir panel a ancho completo */
     expandido: false,
