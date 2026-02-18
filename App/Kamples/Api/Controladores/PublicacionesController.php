@@ -237,7 +237,7 @@ class PublicacionesController
                         KamplesLogger::info('ModeracionIA: Post admin forzado a aprobado', [
                             'publicacionId' => $pubId,
                             'nivelOriginal' => $resultado['nivel'] ?? 'desconocido',
-                        ]);
+                        ], 'moderacion');
                         PostgresService::ejecutar(
                             "UPDATE publicaciones SET moderacion_estado = 'aprobado', moderacion_razon = 'admin_auto' WHERE id = :id",
                             ['id' => $pubId]
@@ -247,7 +247,7 @@ class PublicacionesController
                     KamplesLogger::error('Error en moderación de publicación', [
                         'publicacionId' => $pubId,
                         'error' => $e->getMessage(),
-                    ]);
+                    ], 'moderacion');
                     /* Si falla la moderación y es admin, aprobar de todas formas */
                     if ($adminFlag) {
                         PostgresService::ejecutar(

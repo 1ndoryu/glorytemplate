@@ -510,7 +510,7 @@ class MotorRecomendacion
                 SELECT UNNEST({$tagsCompletadas}) as tag
                 FROM reproducciones r3
                 JOIN samples s6 ON r3.sample_id = s6.id
-                WHERE r3.usuario_id = :userId AND r3.completa = true
+                WHERE r3.usuario_id = :userId AND r3.completada = true
             ) comp_tags
             WHERE comp_tags.tag = ANY({$tagsCandidato})
         ), 0)";

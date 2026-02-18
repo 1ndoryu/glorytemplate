@@ -14,6 +14,7 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Services\MotorRecomendacion;
 use App\Kamples\Services\PlanificadorAlgoritmo;
+use App\Kamples\Services\ServicioNotificaciones;
 
 class SocialController
 {
@@ -108,15 +109,8 @@ class SocialController
 
         self::actualizarContadoresFollow($seguidorId, $targetId);
 
-        /* Crear notificación de nuevo seguidor */
-        PostgresService::ejecutar(
-            "INSERT INTO notificaciones (usuario_id, tipo, datos)
-             VALUES (:userId, 'follow', :datos)",
-            [
-                'userId' => $targetId,
-                'datos'  => json_encode(['seguidor_id' => $seguidorId]),
-            ]
-        );
+        /* C266: Notificacion de nuevo seguidor (centralizada, excluye auto-follow) */
+        ServicioNotificaciones::follow($targetId, $seguidorId);
 
         /* C45: registrar interacción para el planificador del algoritmo */
         PlanificadorAlgoritmo::registrarInteraccion($seguidorId, 'follow');
@@ -192,14 +186,20 @@ class SocialController
                 ['id' => $targetId]
             );
 
-            /* Notificación al creador (solo para like/encanta, no dislike) */
+            /* Notificacion al creador (solo para like/encanta, no dislike) — C266 centralizado */
             if ($reaccion !== 'dislike') {
-                $sample = PostgresService::consultarUno("SELECT creador_id FROM samples WHERE id = :id", ['id' => $targetId]);
-                if ($sample && (int) $sample['creador_id'] !== $userId) {
-                    $tipoNotif = $reaccion === 'encanta' ? 'encanta' : 'like';
-                    PostgresService::ejecutar(
-                        "INSERT INTO notificaciones (usuario_id, tipo, datos) VALUES (:userId, :tipoNotif, :datos)",
-                        ['userId' => $sample['creador_id'], 'tipoNotif' => $tipoNotif, 'datos' => json_encode(['liker_id' => $userId, 'sample_id' => $targetId])]
+                $sample = PostgresService::consultarUno(
+                    "SELECT creador_id, titulo, slug FROM samples WHERE id = :id",
+                    ['id' => $targetId]
+                );
+                if ($sample) {
+                    ServicioNotificaciones::likeSample(
+                        (int) $sample['creador_id'],
+                        $userId,
+                        $targetId,
+                        $sample['titulo'] ?? '',
+                        $sample['slug'] ?? null,
+                        $reaccion
                     );
                 }
             }
@@ -210,6 +210,22 @@ class SocialController
                 ) WHERE id = :id",
                 ['id' => $targetId]
             );
+
+            /* C266: Notificacion de like en publicacion */
+            if ($reaccion !== 'dislike') {
+                $pub = PostgresService::consultarUno(
+                    "SELECT autor_id FROM publicaciones WHERE id = :id",
+                    ['id' => $targetId]
+                );
+                if ($pub) {
+                    ServicioNotificaciones::likePublicacion(
+                        (int) $pub['autor_id'],
+                        $userId,
+                        $targetId,
+                        $reaccion
+                    );
+                }
+            }
         }
 
         /* Invalidar cache del feed para que el algoritmo recalcule */

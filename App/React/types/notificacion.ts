@@ -7,13 +7,15 @@ import type { UsuarioResumen } from './usuario';
 
 export type TipoNotificacion =
     | 'like'
+    | 'encanta'
     | 'follow'
     | 'comentario'
     | 'descarga'
     | 'mensaje'
     | 'pago'
     | 'sistema'
-    | 'moderacion';
+    | 'moderacion'
+    | 'duplicado_detectado';
 
 export interface Notificacion {
     id: number;

@@ -136,19 +136,18 @@ class ServicioBan
             $mensaje .= " Además, tu cuenta ha sido suspendida por {$dias} día(s) debido a violaciones repetidas.";
         }
 
-        PostgresService::insertar(
-            "INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, datos)
-             VALUES (:userId, 'moderacion', :titulo, :mensaje, :datos::jsonb)",
+        /* C266: Usa ServicioNotificaciones para notificaciones de moderacion */
+        ServicioNotificaciones::crear(
+            $userId,
+            'moderacion',
+            $mensaje,
             [
-                'userId' => $userId,
-                'titulo' => $titulo,
-                'mensaje' => $mensaje,
-                'datos' => json_encode([
-                    'tipoContenido' => $tipo,
-                    'razon' => $razon,
-                    'horasBan' => $horasBan,
-                ]),
-            ]
+                'tipoContenido' => $tipo,
+                'razon' => $razon,
+                'horasBan' => $horasBan,
+            ],
+            null,
+            $titulo
         );
     }
 }

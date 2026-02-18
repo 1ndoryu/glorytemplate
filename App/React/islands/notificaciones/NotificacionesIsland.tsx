@@ -14,6 +14,9 @@ import {
     CreditCard,
     Info,
     CheckCheck,
+    ShieldAlert,
+    AlertTriangle,
+    Sparkles,
 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
@@ -29,14 +32,17 @@ import { useNavigationStore } from '@/core/router';
 import '../../styles/componentes/notificaciones.css';
 
 /* Mapa de iconos por tipo */
-const ICONOS_TIPO: Record<TipoNotificacion, React.ReactNode> = {
+const ICONOS_TIPO: Record<string, React.ReactNode> = {
     like: <Heart size={14} />,
+    encanta: <Sparkles size={14} />,
     follow: <UserPlus size={14} />,
     comentario: <MessageCircle size={14} />,
     descarga: <Download size={14} />,
     mensaje: <MessageCircle size={14} />,
     pago: <CreditCard size={14} />,
     sistema: <Info size={14} />,
+    moderacion: <ShieldAlert size={14} />,
+    duplicado_detectado: <AlertTriangle size={14} />,
 };
 
 const FILTROS: { id: TipoNotificacion | 'todas'; etiqueta: string }[] = [
@@ -91,15 +97,22 @@ export const NotificacionesIsland = (): JSX.Element => {
         await marcarTodasLeidas();
     }, []);
 
-    /* Click en notificación → navegar al recurso */
+    /* Click en notificacion -> navegar al recurso via enlace o fallback */
     const manejarClick = useCallback(
         (notif: Notificacion) => {
             if (!notif.leida) manejarMarcarLeida(notif.id);
 
+            /* Priorizar campo enlace del backend */
+            if (notif.enlace) {
+                navegar(notif.enlace);
+                return;
+            }
+
+            /* Fallback para notificaciones antiguas sin enlace */
             if (notif.tipo === 'follow' && notif.actor) {
                 navegar(`/perfil/${notif.actor.username}/`);
             } else if (
-                (notif.tipo === 'like' || notif.tipo === 'comentario') &&
+                (notif.tipo === 'like' || notif.tipo === 'comentario' || notif.tipo === 'encanta') &&
                 notif.datos.sampleSlug
             ) {
                 navegar(`/sample/${notif.datos.sampleSlug}/`);
@@ -174,7 +187,7 @@ export const NotificacionesIsland = (): JSX.Element => {
                                     />
                                 ) : (
                                     <div className="notificacionItemIconoSistema">
-                                        {ICONOS_TIPO[notif.tipo]}
+                                        {ICONOS_TIPO[notif.tipo] ?? <Bell size={14} />}
                                     </div>
                                 )}
                             </div>
@@ -187,7 +200,7 @@ export const NotificacionesIsland = (): JSX.Element => {
                                 </span>
                             </div>
                             <div className="notificacionItemTipo">
-                                {ICONOS_TIPO[notif.tipo]}
+                                {ICONOS_TIPO[notif.tipo] ?? <Bell size={14} />}
                             </div>
                             {!notif.leida && <div className="notificacionItemPunto" />}
                         </button>

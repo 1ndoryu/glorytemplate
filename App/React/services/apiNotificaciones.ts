@@ -11,19 +11,24 @@ const log = crearLogger('apiNotificaciones');
 
 export type TipoNotificacion =
     | 'like'
+    | 'encanta'
     | 'follow'
     | 'comentario'
     | 'descarga'
     | 'mensaje'
     | 'pago'
-    | 'sistema';
+    | 'sistema'
+    | 'moderacion'
+    | 'duplicado_detectado';
 
 export interface Notificacion {
     id: number;
     tipo: TipoNotificacion;
+    titulo: string;
     mensaje: string;
     datos: Record<string, unknown>;
     leida: boolean;
+    enlace: string | null;
     creadaAt: string;
     actor?: {
         username: string;
@@ -69,8 +74,8 @@ export const marcarTodasLeidas = async (): Promise<RespuestaApi<void>> => {
 /* Obtener conteo de no leídas */
 export const obtenerConteoNoLeidas = async (): Promise<number> => {
     try {
-        const resp = await apiGet<{ count: number }>('/notificaciones/count');
-        return resp.ok && resp.data ? resp.data.count : 0;
+        const resp = await apiGet<{ total: number }>('/notificaciones/conteo');
+        return resp.ok && resp.data ? resp.data.total : 0;
     } catch {
         return 0;
     }

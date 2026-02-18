@@ -213,8 +213,8 @@ class GeneradorEmbeddings
                     FROM descargas WHERE usuario_id = :userId
                     UNION ALL
                     SELECT sample_id,
-                           CASE WHEN completa THEN 'reproduccion_completa' ELSE 'reproduccion' END,
-                           CASE WHEN completa THEN 2 ELSE 1 END
+                           CASE WHEN completada THEN 'reproduccion_completa' ELSE 'reproduccion' END,
+                           CASE WHEN completada THEN 2 ELSE 1 END
                     FROM reproducciones WHERE usuario_id = :userId
                 ) interacciones
                 JOIN samples s ON s.id = interacciones.sample_id

@@ -16,7 +16,7 @@
 
 namespace App\Kamples\Api;
 
-use App\Kamples\KamplesLogger;
+use App\Kamples\LogModeracion as KamplesLogger;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Services\ServicioBan;
 

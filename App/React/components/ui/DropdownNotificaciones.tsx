@@ -6,20 +6,23 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { Bell, Heart, Download, UserPlus, MessageCircle, Loader2 } from 'lucide-react';
+import { Bell, Heart, Download, UserPlus, MessageCircle, Loader2, ShieldAlert, AlertTriangle, Sparkles, CreditCard } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
 import { obtenerNotificaciones, type Notificacion } from '@app/services/apiNotificaciones';
 import '../../styles/componentes/dropdownPanel.css';
 
 const ICONOS_NOTIFICACION: Record<string, JSX.Element> = {
     like: <Heart size={16} />,
+    encanta: <Sparkles size={16} />,
     descarga: <Download size={16} />,
     follow: <UserPlus size={16} />,
     seguidor: <UserPlus size={16} />,
     comentario: <MessageCircle size={16} />,
     sistema: <Bell size={16} />,
     mensaje: <MessageCircle size={16} />,
-    pago: <Bell size={16} />,
+    pago: <CreditCard size={16} />,
+    moderacion: <ShieldAlert size={16} />,
+    duplicado_detectado: <AlertTriangle size={16} />,
 };
 
 /* Formatea fecha ISO a texto relativo */
@@ -58,6 +61,16 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
         onCerrar();
     }, [navegar, onCerrar]);
 
+    const manejarClickNotif = useCallback((noti: Notificacion) => {
+        if (noti.enlace) {
+            navegar(noti.enlace);
+            onCerrar();
+        } else if (noti.datos?.sampleSlug) {
+            navegar(`/sample/${noti.datos.sampleSlug}/`);
+            onCerrar();
+        }
+    }, [navegar, onCerrar]);
+
     const noLeidas = notificaciones.filter((n) => !n.leida).length;
 
     return (
@@ -86,9 +99,11 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                         </div>
                     ) : (
                         notificaciones.map((noti) => (
-                            <div
+                            <button
                                 key={noti.id}
                                 className={`dropdownItem ${!noti.leida ? 'dropdownItemNoLeido' : ''}`}
+                                onClick={() => manejarClickNotif(noti)}
+                                type="button"
                             >
                                 <div className="dropdownItemIcono">
                                     {ICONOS_NOTIFICACION[noti.tipo] ?? <Bell size={16} />}
@@ -100,7 +115,7 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                                     </span>
                                 </div>
                                 {!noti.leida && <div className="dropdownItemPunto" />}
-                            </div>
+                            </button>
                         ))
                     )}
                 </div>

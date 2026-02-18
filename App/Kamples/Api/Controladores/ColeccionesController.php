@@ -166,30 +166,32 @@ class ColeccionesController
                     WHERE s_c.estado = 'activo'
                     GROUP BY cs.coleccion_id
                 )
-                SELECT c.*, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id,
-                       COALESCE(ct.items, 0) as total_items,
-                       COALESCE((
-                           SELECT SUM(ut.afinidad)
-                           FROM user_tags ut
-                           WHERE ut.tag = ANY(ct.todos_tags)
-                       ), 0) / GREATEST(1.0, array_length(ct.todos_tags, 1)::float) as tag_score,
-                       CASE WHEN EXISTS(
-                           SELECT 1 FROM follows WHERE seguidor_id = :userId AND seguido_id = c.usuario_id
-                       ) THEN 1.3 ELSE 1.0 END as follow_boost,
-                       1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - c.updated_at) / 86400.0) as frescura
-                FROM colecciones c
-                JOIN usuarios_ext u ON c.usuario_id = u.id
-                LEFT JOIN coleccion_tags ct ON ct.coleccion_id = c.id
-                WHERE c.publica = true
-                  AND COALESCE(ct.items, (SELECT COUNT(*) FROM coleccion_samples cs2 WHERE cs2.coleccion_id = c.id)) > 0
-                  {$whereBusqueda}
+                SELECT sub.* FROM (
+                    SELECT c.*, u.username, u.nombre_visible, u.avatar_url, u.wp_user_id,
+                           COALESCE(ct.items, 0) as total_items,
+                           COALESCE((
+                               SELECT SUM(ut.afinidad)
+                               FROM user_tags ut
+                               WHERE ut.tag = ANY(ct.todos_tags)
+                           ), 0) / GREATEST(1.0, array_length(ct.todos_tags, 1)::float) as tag_score,
+                           CASE WHEN EXISTS(
+                               SELECT 1 FROM follows WHERE seguidor_id = :userId AND seguido_id = c.usuario_id
+                           ) THEN 1.3 ELSE 1.0 END as follow_boost,
+                           1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - c.updated_at) / 86400.0) as frescura
+                    FROM colecciones c
+                    JOIN usuarios_ext u ON c.usuario_id = u.id
+                    LEFT JOIN coleccion_tags ct ON ct.coleccion_id = c.id
+                    WHERE c.publica = true
+                      AND COALESCE(ct.items, (SELECT COUNT(*) FROM coleccion_samples cs2 WHERE cs2.coleccion_id = c.id)) > 0
+                      {$whereBusqueda}
+                ) sub
                 ORDER BY (
-                    COALESCE(tag_score, 0) * 0.60
-                    * follow_boost
-                    + frescura * 0.20
-                    + LEAST(COALESCE(ct.items, 0)::float / 20.0, 1.0) * 0.20
+                    COALESCE(sub.tag_score, 0) * 0.60
+                    * sub.follow_boost
+                    + sub.frescura * 0.20
+                    + LEAST(sub.total_items::float / 20.0, 1.0) * 0.20
                 ) DESC,
-                c.updated_at DESC
+                sub.updated_at DESC
                 LIMIT 20 OFFSET :offset
             ";
         } else {

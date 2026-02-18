@@ -18,6 +18,7 @@ use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\StripeService;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\ServicioNotificaciones;
 
 class PagosController
 {
@@ -232,6 +233,12 @@ class PagosController
             'plan'   => $plan,
             'subscriptionId' => $subscriptionId,
         ]);
+
+        /* C266: Notificar pago exitoso + ascenso de plan */
+        ServicioNotificaciones::pagoExitoso($userId, $plan, 'Suscripcion activada');
+        if (in_array($plan, ['pro', 'premium'], true)) {
+            ServicioNotificaciones::ascensoPlan($userId, 'free', $plan);
+        }
     }
 
     private static function procesarSuscripcionActualizada(array $suscripcion): void
@@ -265,11 +272,23 @@ class PagosController
                 };
             }
             if ($planStripe) {
+                /* C266: Leer plan anterior ANTES de actualizar para comparar */
+                $planAnterior = PostgresService::consultarUno(
+                    "SELECT plan FROM usuarios_ext WHERE id = :id",
+                    ['id' => $usuario['id']]
+                );
+                $planViejo = $planAnterior['plan'] ?? 'free';
+
                 PostgresService::ejecutar(
                     "UPDATE usuarios_ext SET plan = :plan WHERE id = :id",
                     ['plan' => $planStripe, 'id' => $usuario['id']]
                 );
                 KamplesLogger::info('Plan actualizado vía webhook', ['userId' => $usuario['id'], 'plan' => $planStripe]);
+
+                /* C266: Notificar cambio de plan si es diferente */
+                if ($planViejo !== $planStripe) {
+                    ServicioNotificaciones::ascensoPlan((int) $usuario['id'], $planViejo, $planStripe);
+                }
             } else {
                 KamplesLogger::info('Suscripción activa/trial (plan no extraído)', ['userId' => $usuario['id'], 'estado' => $estado]);
             }

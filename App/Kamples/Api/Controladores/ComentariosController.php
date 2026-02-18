@@ -21,6 +21,7 @@ use App\Kamples\Api\Helpers\Validador;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ServicioAntiSpam;
 use App\Kamples\Services\ServicioBan;
+use App\Kamples\Services\ServicioNotificaciones;
 use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\LogIA as KamplesLogger;
 
@@ -344,6 +345,66 @@ class ComentariosController
         PlanificadorAlgoritmo::registrarInteraccion($userId, 'comentario');
 
         /*
+         * C266: Notificaciones de comentario.
+         * - Nuevo comentario en sample: notificar al creador del sample
+         * - Respuesta a comentario: notificar al autor del comentario padre
+         */
+        if ($parentId) {
+            /* Respuesta a comentario: notificar al autor del padre */
+            $padre = PostgresService::consultarUno(
+                "SELECT autor_id FROM comentarios WHERE id = :id",
+                ['id' => $parentId]
+            );
+            if ($padre) {
+                $sampleSlug = null;
+                if ($tipo === 'sample') {
+                    $sInfo = PostgresService::consultarUno("SELECT slug FROM samples WHERE id = :id", ['id' => $targetId]);
+                    $sampleSlug = $sInfo['slug'] ?? null;
+                }
+                ServicioNotificaciones::respuestaComentario(
+                    (int) $padre['autor_id'],
+                    $userId,
+                    $parentId,
+                    $tipo === 'sample' ? $targetId : null,
+                    $sampleSlug
+                );
+            }
+        } else {
+            /* Comentario directo en sample o publicacion: notificar al creador/autor */
+            if ($tipo === 'sample') {
+                $sampleInfo = PostgresService::consultarUno(
+                    "SELECT creador_id, titulo, slug FROM samples WHERE id = :id",
+                    ['id' => $targetId]
+                );
+                if ($sampleInfo) {
+                    ServicioNotificaciones::nuevoComentario(
+                        (int) $sampleInfo['creador_id'],
+                        $userId,
+                        $targetId,
+                        $sampleInfo['titulo'] ?? '',
+                        $sampleInfo['slug'] ?? null
+                    );
+                }
+            } elseif ($tipo === 'publicacion') {
+                $pubInfo = PostgresService::consultarUno(
+                    "SELECT autor_id FROM publicaciones WHERE id = :id",
+                    ['id' => $targetId]
+                );
+                if ($pubInfo) {
+                    ServicioNotificaciones::crear(
+                        (int) $pubInfo['autor_id'],
+                        'comentario',
+                        'Alguien comento en tu publicacion',
+                        ['commenter_id' => $userId, 'publicacion_id' => $targetId],
+                        $userId,
+                        '',
+                        "/post/{$targetId}/"
+                    );
+                }
+            }
+        }
+
+        /*
          * C131: Moderación IA asíncrona post-INSERT.
          * Se ejecuta después de enviar la respuesta al cliente (fail-open).
          * El comentario se muestra inmediatamente; si IA lo rechaza, desaparece.
@@ -368,7 +429,7 @@ class ComentariosController
                 KamplesLogger::warning('Moderación async de comentario falló', [
                     'comentarioId' => $comentarioIdMod,
                     'error' => $e->getMessage(),
-                ]);
+                ], 'moderacion');
             }
         });
 
@@ -565,6 +626,19 @@ class ComentariosController
             "UPDATE comentarios SET total_likes = :total WHERE id = :id",
             ['total' => $totalLikes, 'id' => $id]
         );
+
+        /* C266: Notificacion de like en comentario */
+        $comentario = PostgresService::consultarUno(
+            "SELECT autor_id FROM comentarios WHERE id = :id",
+            ['id' => $id]
+        );
+        if ($comentario) {
+            ServicioNotificaciones::likeComentario(
+                (int) $comentario['autor_id'],
+                $userId,
+                $id
+            );
+        }
 
         return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => true]], 200);
     }

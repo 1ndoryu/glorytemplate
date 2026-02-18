@@ -110,18 +110,18 @@ class DeduplicadorAudio
                 ['id' => $sampleId]
             );
 
-            /* Notificar al dueño original */
-            PostgresService::ejecutar(
-                "INSERT INTO notificaciones (usuario_id, tipo, datos)
-                 VALUES (:userId, 'duplicado_detectado', :datos)",
+            /* C266: Notificar al dueño original via ServicioNotificaciones */
+            ServicioNotificaciones::crear(
+                $dupCreadorId,
+                'duplicado_detectado',
+                "Se detecto un posible duplicado de tu sample \"{$dup['titulo']}\"",
                 [
-                    'userId' => $dupCreadorId,
-                    'datos'  => json_encode([
-                        'sampleOriginalId'   => (int) $dup['id'],
-                        'sampleDuplicadoId'  => $sampleId,
-                        'tituloOriginal'     => $dup['titulo'],
-                    ]),
-                ]
+                    'sampleOriginalId'   => (int) $dup['id'],
+                    'sampleDuplicadoId'  => $sampleId,
+                    'tituloOriginal'     => $dup['titulo'],
+                ],
+                $creadorId,
+                'Duplicado detectado'
             );
 
             KamplesLogger::warning('DeduplicadorAudio: duplicado detectado', [

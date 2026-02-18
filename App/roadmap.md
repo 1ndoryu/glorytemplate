@@ -336,13 +336,86 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 254.2 Aclaración porque siento que no entiende bien 254, lo que se busca es debería permitirse mezcla siempre y cuando no sean tan parecidas, a los samples ya publicados. 
 255. los archivos del mezclador como mezcladorStore, se estan haciendo muy grandes, refactorizar y aplicar solid con cuidado.
 262. Planificar adaptación de .agent\coolify-manager para correr postgres automaticamente y instalar todo lo que necesita este proyecto para que funcione en el vps linux. 
-263. Sigo sin poder ver la imagen de perfil del otro usuario en chatFlotanteHeader.
+263. Sigo sin poder ver la imagen de perfil del otro usuario en chatFlotanteHeader (ya se arreglo)
 264. Los comentarios necesitan opciones de 3 puntos, un menu contextual donde aparezca la opcion de editar, reportar y eliminar, los admin pueden borrar cualquier comentarios y los usuarios eliminar sus propios comentarios.
 265. Poder dar like a los comentarios, y responder otros comentarios, que los comentarios se aniden cuando sean una respuesta, las respuestas ocultas por defecto.
 266. Recibir notificaciones cuando se recibe like en un sample, cuando se responde un comentario, o se da like a un comentario, no recibir notificaciones de auto like o autorespuesta. Notificaciones de publicaciones eliminadas, en moderación, de sample verificado, de pago procesado de stripe con exito y accendido a pro o premium, etc, recibir que todo lo que deba generar una notificación, lo genere.
 271. La tonalidad casi funciona bien, lo que pasa es que si cambia, pero, cuando se cambia la tonalidad directamente, el audio debe mantener su duración. O sea, no contraerse o estirarse, esto es mas profundo porque implica varias cosas, te explico como funciona en fl studio. En resample el pitch esta determinado por cuanto se estire (mas rapido = mayor pitch). En stretch no importa que tanto se estire, el pitch no cambia y se define desde configuracion. Por defecto resample. Modos individuales por audio. Requiere phase vocoder o SoundTouchJS para true pitch-independent stretch.
 272. ✅ [AG-DAW] Deseleccionar al hacer click en área vacía de timeline. PistaTimeline onClick + limpiarSeleccion().
+273. Los audios al arrastrarse al mini daw, pierden unos milesegundos iniciales, cosa que esta mal porque tiene que ser preciso. (Corrijo, no es el audio, si no la onda, la onda tiene que ser precisa)
+273.1 Hay otro problema con la onda, y es que en modo clip, cuando se recorta o estira con el modo clip activado, la onda no debe contraerse ni estirarse. Solo en modo strech porque esa es el efecto coherente.
+274. Inicialmente el mini daw debe aparecer con coon 20 pistas vacías.
+275. [EN CURSO — AG-DAW] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\App\Kamples\Api\Controladores\ComentariosController.php:124
+#10 C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-blog-header.php(16): wp()
+#11 C:\Users\Owner\OneDrive\Documentos\WP\app\public\index.php(17): require('C:\\Users\\Owner\\...')
+#12 {main}
+  thrown in C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\App\Kamples\Api\Controladores\ComentariosController.php on line 124
+276. no puedo ver los post pendientes de moderación en, tal vez tenga que ver con esto 
+[2026-02-18 00:56:30] [ERROR] PostgresService::consultar error | error=SQLSTATE[42703]: Undefined column: 7 ERROR:  no existe la columna r3.completa
+LINE 460:                 WHERE r3.usuario_id = $1 AND r3.completa = t...
+                                                       ^
+HINT:  Probablemente quiera hacer referencia a la columna «r3.completada»., sql=WITH scored AS (
+                    SELECT s.*, u.username, u.nombre_visible, u.avatar_url, u.verificado,
+                           u.wp_user_id AS creador_wp_user_id,
+                           
+[2026-02-18 00:56:33] [ERROR] PostgresService::consultar error | error=SQLSTATE[42703]: Undefined column: 7 ERROR:  no existe la columna «completa»
+LINE 9:                            CASE WHEN completa THEN 'reproduc...
+                                             ^
+HINT:  Probablemente quiera hacer referencia a la columna «reproducciones.completada»., sql=SELECT s.embedding::text, tipo_interaccion, peso FROM (
+                    SELECT target_id as sample_id, 'like' as tipo_interaccion, 3 as peso
+                    FROM likes WHERE usuario_id = :us
+[2026-02-18 00:56:33] [ERROR] PostgresService::consultar error | error=SQLSTATE[42703]: Undefined column: 7 ERROR:  no existe la columna r3.completa
+LINE 460:                 WHERE r3.usuario_id = $1 AND r3.completa = t...
+                                                       ^
+HINT:  Probablemente quiera hacer referencia a la columna «r3.completada»., sql=WITH scored AS (
+                    SELECT s.*, u.username, u.nombre_visible, u.avatar_url, u.verificado,
+                           u.wp_user_id AS creador_wp_user_id,
+                           
+[2026-02-18 01:17:31] [INFO] ModeracionIA: Veredicto comentario | comentarioId=5, nivel=aprobado, razon=
+[2026-02-18 01:20:26] [INFO] ModeracionIA: Veredicto | publicacionId=4, nivel=rechazado, razon=desconocida
+[2026-02-18 01:20:36] [ERROR] PostgresService::consultar error | error=SQLSTATE[42703]: Undefined column: 7 ERROR:  no existe la columna «tag_score»
+LINE 72:                     COALESCE(tag_score, 0) * 0.60
+                                      ^, sql=
+                WITH user_tags AS (
+                    SELECT tag, SUM(peso) as afinidad
+                    FROM (
+                        SELECT UNNEST((
+            COALESCE(s_l.tags, ARRAY[
+[2026-02-18 01:21:29] [INFO] ModeracionIA: Veredicto | publicacionId=5, nivel=aprobado, razon=
+277. Todo lo que tenga que ver con moderación los logs tienen que estar en App\logs en un archivo separado,
+278. Ya lo entiendo, la onda nos imprecisa al comienzo, sino que al medida que es mas larga la tarjeta de audio, por alguna extraña razon las lineas se vuelven mas gruesas haciendo que pierda calida, esta forma de onda o este comportamiento no es acto para un daw donde se necesita precisión para ver exactamente donde esta cada pico. Las demas ondas de los otros lugares esta bien, pero aca, necesitamos algo mejor.
+279. Tengo 2 colecciones, ambas aparecen que son publicas en su pagina individual, pero ne la pagina de explorar colecciones, no aparece ninguna colección. Dice "Sin colecciones públicas".
+280. La pagina de librería debe ser una caja en el panel lateral porque la siguiente pagina sera una carpeta. 
+281. La siguiente pagina nueva es "Explorador", el proposito va a ser una pagina especial, similar a google drive, pero donde estan todos los samples descargados o subidos. Similar a un explorador de archivo, en una columna izquierda se veran las carpetas en lista, y en la vista la carpeta abierta con sus samples. Para continuar con esta tarea tengo que explicar lo siguiente
+281.1 Cambiar el boton de descargar de los samples por un boton de suma, que significara guardar, (no confundir con guardar en colección, o sea), consumidará un credito, el boton de descargar ahora se desplazará al menu contextual. Obviamente esto esquivale a descargar, consume un credito lleva a otra cosa.
+282.2 Cambiarla pagina de descargados por "Coleccionados" o no se que otro nombre poner porque ajam. Ahora la acción principal no es descargar, es coleccionar, es equivalente y es lo mismo tecnicamente porque eso consume un credito y no vuelve a consumir un credito si se descarga o re-colecciona. Esto es simbolico porque ahora puedo "descoleccionar un sample" que suena mejor que "quitar de descargas", coleccionar significa que un sample es mío.
+282.3 Esto significa que los sample que yo misma suba, ya estan coleccionados, y aparecerán ahi, no necesito descargarlos para que vayan a "descargados" ahora que es "coleccionados"
+282.4 Vuelvo a la pagina de Explorador, aparecen mis samples coleccionados todos inicialmente en una carpeta de coleccionados, abro la carpeta y aparecen todos los samples sueltos, aqui viene la magia, en el explorador arriba, aparte de los botoenes de cambiar de vista, ordenar por nombre, titulo, peso, etc, habrá otro boton de ordenamiento inteligente, esto utilizará IA para ordenar los samples en carpetas, el usuario tendra una configuración para describir como quiere que se ordenen sus samples, habrá una instrucción inicial basica.
+282.5 De la forma mas eficiente posible, evitando multiple llamadas si es posible, la ia con la información de cada sample (resumir porque json y es muy grande), decidira, probablemente en lote de 10 samples (porque puede alucinar a medida suben los tokens), decidirá en base a la estructura de carpetas, en donde debe ir cada sample, si una carpeta no existe, entonces la crea, tiene que tomar esas decisiones y las carpetas crearse en base a esas decisiones, y moverse si es posible en tiempo real. Esta funcionalidad solo estará disponible para los usuarios pro y premiun. 
+282.6 la instruccion inicial debe ser 1 nivel maximo para ordenar samples en carpetas en base (voy a escribir un borrador, tu lo mejoras), por lo general los productores prefieren este tipo de orden, 
 
+drums
+---Kick
+---Snare
+---Fx
+---Etc todo lo que sea drum
+One shot
+---Instrument
+------Piano
+------Guitar
+Instrument loop
+---Etc
+Sample loop
+---Hip hop
+---Phonk
+---Trap
+---Etc
+Sample one one shot
+
+---
+
+nota: samples por lo general son trozos de canciones asi que ordenarlos es subjetivo pero por lo general creo que por genero esta bien
 ---
 
 ## Lecciones Aprendidas (compactas)

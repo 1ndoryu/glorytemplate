@@ -47,12 +47,12 @@ class NotificacionesController
         $offset = ($page - 1) * 30;
 
         $notificaciones = PostgresService::consultar(
-            "SELECT n.id, n.tipo, n.datos, n.leida, n.created_at as \"creadaAt\",
+            "SELECT n.id, n.tipo, n.titulo, n.mensaje, n.datos, n.leida, n.enlace,
+                    n.created_at as \"creadaAt\",
                     u.username as \"actorUsername\", u.nombre_visible as \"actorNombre\",
                     u.avatar_url as \"actorAvatar\", u.wp_user_id as \"actorWpUserId\"
              FROM notificaciones n
-             LEFT JOIN usuarios_ext u ON (n.datos::jsonb->>'seguidor_id')::int = u.id
-                OR (n.datos::jsonb->>'liker_id')::int = u.id
+             LEFT JOIN usuarios_ext u ON u.id = n.actor_id
              WHERE n.usuario_id = :userId
              ORDER BY n.created_at DESC LIMIT 30 OFFSET :offset",
             ['userId' => $userId, 'offset' => $offset]

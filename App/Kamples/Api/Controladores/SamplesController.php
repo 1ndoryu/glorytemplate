@@ -24,6 +24,7 @@ use App\Kamples\Api\Helpers\Validador;
 use App\Kamples\Api\GeneradorIdCorto;
 use App\Kamples\Api\PipelineAudio;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\ServicioNotificaciones;
 
 class SamplesController
 {
@@ -622,6 +623,16 @@ class SamplesController
         if (isset($body['verificado']) && $esAdmin) {
             $campos[] = 'verificado = :verificado';
             $params['verificado'] = ((bool) $body['verificado']) ? 'true' : 'false';
+
+            /* C266: Notificar al creador si se verifica el sample */
+            if ((bool) $body['verificado']) {
+                ServicioNotificaciones::sampleVerificado(
+                    (int) $sample['creador_id'],
+                    $sampleId,
+                    $sample['titulo'] ?? '',
+                    $sample['slug'] ?? null
+                );
+            }
         }
 
         /* Solo admin puede cambiar el estado */
