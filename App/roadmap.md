@@ -322,6 +322,15 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **C169-C183:** Búsqueda colecciones (R46), editor metadata fix descripcion+chips IA (R46), fila colecciones inicio (R46), algoritmo colecciones CTE (R46), modal guardar contextual+Bookmark (R46), fix reproducciones completada (R46).
 **C179:** Panel Administración FASE 13 (R47).
 **R49-R51:** C193 avatares fix (UsuarioHelper centralizado), C194-C196 AdminPanel+CSS+panel vacío, C198-C201 créditos/suscripción/precios/audio-comentarios, C203-C245 Mezclador DAW completo (stretch/drag/snap/zoom/undo/redo/corte/ghost/drift/clip/admin/gráfica/BPM/detune/expandir), C246-C261+C267 duplicar colisión/selección múltiple/20 pistas/Shift+drag/placeholder/ModalConfigDaw/stretch-clip global/admin plan/fix detune/dropZone/viewport/selección visual/multi-drag/resize fuera modal, C272 deselect click.
+**R52 (AG-DAW):** C252 compactación roadmap, C272 deselect timeline, C280 sidebar librería Box+nav normal, C281+281.1-281.3 Explorador page (/explorador) con árbol carpetas + coleccionados backend (endpoints /me/coleccionados + /carpetas) + botón Plus/Coleccionar + "Descargas"→"Coleccionados" + samples propios auto-incluidos, C282 metadata carpetas IA (prompt+pipeline+JSONB carpeta_primaria/secundaria), C283 nombre archivo restructurado (Instrumento-Genero-Tono-BPM-Nombre-kamples-id).
+275. ✅ [AG-DAW] Guard max(1,page) en 8 controladores para evitar OFFSET negativo. LogModeracion en ComentariosController.
+276. ✅ [AG-DAW] Ya corregido en código previo (completada + sub.tag_score). Requiere flush OPcache/Apache restart.
+277. ✅ [AG-DAW] Logs moderación: ServicioBan + ServicioAntiSpam + ComentariosController ahora usan LogModeracion.
+278. ✅ [AG-DAW] Waveform DAW: líneas se engruesan con tarjetas largas, necesita precisión.
+279. ✅ [AG-DAW] Colecciones públicas: causa raíz era OFFSET negativo (page=0→offset=-20). Corregido con max(1,page).
+281.4-281.7 Ordenamiento IA de carpetas (pro/premium), presets, instrucciones.
+284. Modo clip falla intermitentemente con loops comprimidos + chop.
+285. ✅ [AG-DAW] Fix SQL coleccionados: creador_id + uid2 placeholder. Compactación roadmap.
 
 ---
 
@@ -330,8 +339,6 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 192. Trabajar en el ws local, no se si hacer eso necesario para resolver problemas como por ejemplo cuando abro el modal de mensajes aparece "Cargando..." luego "No hay mensajes..." y luego aparecen los mensajes, tambien es molesto que tengan que cargar los mensajes cada vez que abro ese modal.
 202. Auditar la seguridad de los audios, que sea dificil descargar los audios originales adivinando url, y que sea dificil descargar los mp3 ligeros tambien, rate limits, auditorias, etc, sin bloquear o dañar la reproducción de audios
 220. En crearCondiciones debería aparecer para que cuando publico un sample, aparezca o no en comunidad. En tarjetaMeta aparecen.
-**R52 (AG-DAW):** C252 compactación roadmap, C272 deselect timeline, C280 sidebar librería Box+nav normal, C281+281.1-281.3 Explorador page (/explorador) con árbol carpetas + coleccionados backend (endpoints /me/coleccionados + /carpetas) + botón Plus/Coleccionar + "Descargas"→"Coleccionados" + samples propios auto-incluidos, C282 metadata carpetas IA (prompt+pipeline+JSONB carpeta_primaria/secundaria), C283 nombre archivo restructurado (Instrumento-Genero-Tono-BPM-Nombre-kamples-id).
-
 254. EL boton de publicar mezcla no funciona, puede esto no este planificado, pero realmente requiere pasos extra con la detección de duplicados, porque supongamos que hago una mezcla de un audio exactamente igual, el sistema debería detectar esos casos en que se intenta publicar un sample igual aunque sea una mezcla y pasarlo a moderación. 
 254.1 Vuelvo a la pagina de Explorador, aqui viene el tema de los creditos. Permitir que los usuarios ganen creditos por mezclar o publicar samples.
 254.2 Aclaración: permitir mezcla siempre y cuando no sean tan parecidas a los samples ya publicados.
@@ -340,134 +347,12 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 264. Los comentarios necesitan opciones de 3 puntos, un menu contextual donde aparezca la opcion de editar, reportar y eliminar, los admin pueden borrar cualquier comentarios y los usuarios eliminar sus propios comentarios.
 265. Poder dar like a los comentarios, y responder otros comentarios, que los comentarios se aniden cuando sean una respuesta, las respuestas ocultas por defecto.
 266. Recibir notificaciones cuando se recibe like en un sample, cuando se responde un comentario, o se da like a un comentario, no recibir notificaciones de auto like o autorespuesta. Notificaciones de publicaciones eliminadas, en moderación, de sample verificado, de pago procesado de stripe con exito y accendido a pro o premium, etc.
-271. Tonalidad: mantener duración al cambiar pitch. Resample vs Stretch (FL Studio). Requiere phase vocoder o SoundTouchJS para true pitch-independent stretch.
-273. Ondas pierden milisegundos iniciales al arrastrar al DAW (la onda debe ser precisa).
-273.1 En modo clip, recortar/estirar no debe contraer/estirar la onda. Solo en modo stretch.
-274. Inicialmente el mini daw debe aparecer con 20 pistas vacías.
-275. ✅ [AG-DAW] Guard max(1,page) en 8 controladores para evitar OFFSET negativo. LogModeracion en ComentariosController.
-276. ✅ [AG-DAW] Ya corregido en código previo (completada + sub.tag_score). Requiere flush OPcache/Apache restart.
-277. ✅ [AG-DAW] Logs moderación: ServicioBan + ServicioAntiSpam + ComentariosController ahora usan LogModeracion.
-278. Waveform DAW: líneas se engruesan con tarjetas largas, necesita precisión.
-279. ✅ [AG-DAW] Colecciones públicas: causa raíz era OFFSET negativo (page=0→offset=-20). Corregido con max(1,page).
-281.4-281.7 Ordenamiento IA de carpetas (pro/premium), presets, instrucciones.
-284. Modo clip falla intermitentemente con loops comprimidos + chop.
-285. ✅ [AG-DAW] Fix SQL coleccionados: creador_id + uid2 placeholder. Compactación roadmap.
-
-Drums (Se asume que todo aqui es one shot)
----Kick
----Snare
----Fx
----Etc todo lo que sea drums
-One shot
----Instrument
-------Piano
-------Guitar
-------Etc
-Loops
----Drums
----Instruments
-Sample (se asume que son loops casi siempre)
----Hip hop
----Phonk
----Trap
----Etc
-
-nota: samples por lo general son trozos de canciones asi que ordenarlos es subjetivo pero por lo general creo que por genero esta bien
-Este orden es mi preferiencia, esto es bastante subjetivo porque no hay uan forma correcta asi se me ocurre lo siguiente
-281.7 Presets de ordenamiento, hacer 3 presets y presentar una estructura de ejemplo, asi cada quien elige.
-
-Samples
- ├─ Drums
- │   ├─ Kicks
- │   ├─ Snares
- │   ├─ Claps
- │   ├─ HiHats
- │   ├─ Toms
- │   └─ Percussion
- ├─ Loops
- │   ├─ Drum Loops
- │   ├─ Perc Loops
- │   ├─ Bass Loops
- │   └─ Melodic Loops
- ├─ Samples
- │   ├─ Hip hop samples
- │   ├─ Phonk Samples
- │   ├─ Vintage Samples
- ├─ FX
- │   ├─ Impacts
- │   ├─ Risers
- │   ├─ Sweeps
- │   └─ Atmos
- ├─ Instruments (One‑shots)
- │   ├─ Bass
- │   ├─ Chords
- │   ├─ Leads
- │   └─ Pads
- └─ Vocals
-     ├─ Phrases
-     └─ One‑shots
+271. Tonalidad: mantener duración al cambiar pitch. Resample vs Stretch (FL Studio). Requiere phase vocoder o SoundTouchJS para true pitch-independent stretch. (La tonalidad casi funciona bien, lo que pasa es que si cambia, pero, cuando se cambia la tonalidad directamente, el audio debe mantener su duración. O sea, no contraerse o estirarse, esto es mas profundo porque implica varias cosas, te explico como funciona en fl studio. En resample el pitch esta determinado por cuanto se estire (mas rapido = mayor pitch). En stretch no importa que tanto se estire, el pitch no cambia y se define desde configuracion. Por defecto resample. Modos individuales por audio. O sea poder cambiar el modo de resample en las configuraciones del asi poder definiri su comportamiento)
 
 
-````json
-"metadata": {
-"tags": [
-    "jazz",
-    "melancholy",
-    "smooth",
-    "instrumental",
-    "sample"
-],
-"genero": [
-    "jazz",
-    "lo-fi",
-    "chillhop"
-],
-"emocion": [
-    "sad",
-    "melancholic",
-    "relaxed",
-    "introspective"
-],
-"tags_es": [
-    "jazz",
-    "melancólico",
-    "suave",
-    "instrumental",
-    "muestra"
-],
-"emocion_es": [
-    "triste",
-    "melancólico",
-    "relajado",
-    "introspectivo"
-],
-"descripcion": "This 10.7-second jazz loop captures a somber mood with a delicate piano chord progression, warm saxophone melodies, subtle brush drums, and a walking bass line, perfect for lo-fi hip-hop or cinematic background.",
-"instrumentos": [
-    "piano",
-    "saxophone",
-    "double bass",
-    "drums"
-],
-"artista_vibes": [
-    "Miles Davis",
-    "Chet Baker",
-    "Bill Evans",
-    "John Coltrane"
-],
-"bpm_confianza": 1,
-"key_confianza": 0.75,
-"descripcion_es": "Este bucle de jazz de 10,7 segundos captura un ambiente melancólico con una delicada progresión de acordes de piano, cálidas melodías de saxofón, sutiles baterías con escobillas y una línea de bajo caminante, ideal para lo-fi hip-hop o fondos cinematográficos.",
-"descripcion_corta": "A melancholic jazz loop with soft piano and gentle saxophone lines.",
-"nombre_archivo_base": "melancholy jazz loop",
-"descripcion_corta_es": "Un bucle de jazz melancólico con piano suave y líneas delicadas de saxofón."
-},
-````
 
 ---
 
-
- 
----
 
 ## Lecciones Aprendidas (compactas)
 

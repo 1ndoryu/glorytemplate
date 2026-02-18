@@ -4,6 +4,8 @@ applyTo: '**'
 
 # Protocolo de Desarrollo y Conducta (v3.5)
 
+## -2. EMPIEZA SIEMPRE CON LA TAREA MAS DIFICIL. 
+
 ## -1. REGLA DE CONCURRENCIA Y PROPIEDAD DE TAREAS (ABSOLUTAMENTE OBLIGATORIO)
 
 > **ESTA REGLA TIENE PRIORIDAD SOBRE TODAS LAS DEMÁS. VIOLARLA INVALIDA TODO EL TRABAJO.**
@@ -51,7 +53,7 @@ TAREA COMPLETADA:
 3. Elegir identificador AG-XXXX
 4. Marcar tareas en roadmap con [EN CURSO — AG-XXXX]
 5. Commitear roadmap (si posible)
-6. Empezar a trabajar
+6. Empezar a trabajar. (Al terminar revisar roadmap por nuevas instrucciones antes de cerrar)
 ```
 
 ## 0. INSTRUCCIÓN CRÍTICA DE FLUJO (VSCODE)
