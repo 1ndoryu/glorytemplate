@@ -314,12 +314,21 @@ class PostgresService
         }
 
         /* Extraer tablas de la query: FROM tabla, JOIN tabla, INTO tabla, UPDATE tabla */
-        $patron = '/\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-z_]+)/i';
+        /* Excluir funciones SQL: NOW(), GENERATE_SERIES(), etc. — captamos si hay "(" despues */
+        $patron = '/\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-z_]+)\s*(?!\s*\()/i';
         if (preg_match_all($patron, $sql, $matches)) {
+            /* Funciones/keywords SQL que pueden aparecer despues de FROM/JOIN pero no son tablas */
+            $ignorar = [
+                'information_schema', 'pg_extension', 'pg_indexes', 'pg_class', 'pg_attribute',
+                'lateral', 'select', 'set', 'now', 'generate_series', 'unnest',
+                'json_array_elements', 'jsonb_array_elements', 'json_each', 'jsonb_each',
+                'json_to_recordset', 'jsonb_to_recordset', 'regexp_split_to_table',
+                'string_to_array', 'values',
+            ];
             foreach ($matches[1] as $tabla) {
                 $tabla = strtolower($tabla);
-                /* Ignorar tablas del sistema PG, aliases cortos y CTEs */
-                if (in_array($tabla, ['information_schema', 'pg_extension', 'pg_indexes', 'pg_class', 'pg_attribute', 'lateral', 'select', 'set'])) {
+                /* Ignorar tablas del sistema PG, funciones SQL, aliases cortos y CTEs */
+                if (in_array($tabla, $ignorar)) {
                     continue;
                 }
                 /* Ignorar CTEs definidos en WITH */
