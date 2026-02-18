@@ -4,57 +4,6 @@ applyTo: '**'
 
 # Protocolo de Desarrollo y Conducta (v3.5)
 
-## -2. EMPIEZA SIEMPRE CON LA TAREA MAS DIFICIL. 
-
-## -1. REGLA DE CONCURRENCIA Y PROPIEDAD DE TAREAS (ABSOLUTAMENTE OBLIGATORIO)
-
-> **ESTA REGLA TIENE PRIORIDAD SOBRE TODAS LAS DEMÁS. VIOLARLA INVALIDA TODO EL TRABAJO.**
-
-### Identificación del Agente
-- Al iniciar una sesión, el agente **DEBE** elegir un identificador único de 2-4 caracteres en formato `AG-XXXX` (ej: `AG-DAW`, `AG-FIX`, `AG-UI`, `AG-SEC`). Este identificador se basa en el dominio principal de las tareas asignadas.
-- El identificador se usa para marcar propiedad de tareas en el roadmap y commits.
-
-### Antes de Tocar Cualquier Tarea
-1. **LEER el roadmap COMPLETO** antes de empezar cualquier trabajo.
-2. **VERIFICAR** que la tarea NO esté marcada con `[EN CURSO — AG-XXXX]` por otro agente. Si lo está, **NO TOCARLA** bajo ninguna circunstancia.
-3. **MARCAR** la tarea con `[EN CURSO — AG-TUIDENTIFICADOR]` en el roadmap **ANTES** de escribir una sola línea de código.
-4. **COMMITEAR** la marca del roadmap inmediatamente si es posible, para que otros agentes la vean.
-
-### Formato de Marcado en el Roadmap
-```
-TAREA LIBRE (disponible):
-213. Descripción de la tarea...
-
-TAREA TOMADA (prohibido tocar por otros):
-213. [EN CURSO — AG-DAW] Descripción de la tarea... **Estado:** breve progreso.
-
-TAREA COMPLETADA:
-213. ✅ [AG-DAW] Descripción del resultado...
-```
-
-### Control de Commits
-- **PROHIBIDO** hacer `git add .` o `git add --all`. Siempre agregar archivos explícitamente: `git add archivo1 archivo2`.
-- **ANTES de commitear**, ejecutar `git diff --stat HEAD` y `git status` para verificar que solo se incluyen archivos modificados por TI en esta sesión.
-- **Si detectas archivos modificados que NO son tuyos** (modificados por otro agente en paralelo), **NO los incluyas** en tu commit. Usa `git add` selectivo.
-- **Mensaje de commit** debe incluir tu identificador: `[AG-DAW] C213+C214: descripción`.
-- **Si hay conflictos** con cambios de otro agente, **DETENERTE** y notificar al usuario. No resolver conflictos de merge de otro agente.
-
-### Prohibiciones Absolutas
-- **PROHIBIDO** modificar archivos que otro agente marcó como en curso, incluso si crees que puedes "ayudar".
-- **PROHIBIDO** marcar como completada una tarea de otro agente.
-- **PROHIBIDO** revertir cambios de otro agente sin instrucción explícita del usuario.
-- **PROHIBIDO** hacer commits que incluyan archivos no relacionados con tus tareas asignadas.
-- **Si un archivo fue modificado por dos agentes**, se considera conflicto y requiere intervención del usuario.
-
-### Secuencia Obligatoria al Empezar
-```
-1. Leer roadmap completo
-2. Identificar tareas disponibles (sin marca [EN CURSO])
-3. Elegir identificador AG-XXXX
-4. Marcar tareas en roadmap con [EN CURSO — AG-XXXX]
-5. Commitear roadmap (si posible)
-6. Empezar a trabajar. (Al terminar revisar roadmap por nuevas instrucciones antes de cerrar)
-```
 
 ## 0. INSTRUCCIÓN CRÍTICA DE FLUJO (VSCODE)
 
