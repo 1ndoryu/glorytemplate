@@ -600,27 +600,29 @@ class PipelineAudio
             return null;
         }
 
-        $partes = ['kamples'];
+        /*
+         * C283: Estructura mejorada de nombre de archivo.
+         * Formato: Instrumento - Genero - Tono - BPM - Nombre - kamples - id.ext
+         * Campos ausentes se omiten. Mejora el ordenamiento alfabético.
+         */
+        $partes = [];
 
-        /* Tipo (de la IA) — normalizar espacios a guiones bajos */
-        $tipo = str_replace(' ', '_', $metadataIA['tipo'] ?? 'one_shot');
-        $partes[] = $tipo;
-
-        /* Nombre base descriptivo (de la IA) — espacios a guiones bajos, solo alfanuméricos */
-        $nombreBase = $metadataIA['nombre_archivo_base'];
-        $nombreBase = preg_replace('/[^a-zA-Z0-9\s]/', '', $nombreBase);
-        $nombreBase = str_replace(' ', '_', trim(strtolower($nombreBase)));
-        if (!empty($nombreBase)) {
-            $partes[] = $nombreBase;
+        /* Instrumento principal (primer elemento del array de instrumentos IA) */
+        $instrumentos = $metadataIA['instrumentos'] ?? [];
+        if (!empty($instrumentos) && is_array($instrumentos)) {
+            $inst = preg_replace('/[^a-zA-Z0-9]/', '', ucfirst(strtolower($instrumentos[0])));
+            if (!empty($inst)) $partes[] = $inst;
         }
 
-        /* BPM (del analizador técnico) */
-        if ($analisisTecnico['bpm']) {
-            $partes[] = (string) $analisisTecnico['bpm'];
+        /* Género principal (primer elemento del array de género IA) */
+        $generos = $metadataIA['genero'] ?? [];
+        if (!empty($generos) && is_array($generos)) {
+            $gen = preg_replace('/[^a-zA-Z0-9\-]/', '', ucfirst(strtolower($generos[0])));
+            if (!empty($gen)) $partes[] = $gen;
         }
 
-        /* Key + Escala (del analizador técnico) */
-        if ($analisisTecnico['key']) {
+        /* Tono: Key + Escala (del analizador técnico) */
+        if (!empty($analisisTecnico['key'])) {
             $keyStr = str_replace('#', 's', $analisisTecnico['key']);
             if ($analisisTecnico['escala'] === 'menor') {
                 $keyStr .= 'm';
@@ -628,10 +630,24 @@ class PipelineAudio
             $partes[] = $keyStr;
         }
 
-        /* ID corto al final */
+        /* BPM (del analizador técnico) */
+        if (!empty($analisisTecnico['bpm'])) {
+            $partes[] = (string) $analisisTecnico['bpm'] . 'bpm';
+        }
+
+        /* Nombre base descriptivo (de la IA) */
+        $nombreBase = $metadataIA['nombre_archivo_base'];
+        $nombreBase = preg_replace('/[^a-zA-Z0-9\s]/', '', $nombreBase);
+        $nombreBase = str_replace(' ', '-', trim(strtolower($nombreBase)));
+        if (!empty($nombreBase)) {
+            $partes[] = $nombreBase;
+        }
+
+        /* Sufijo: kamples + ID corto */
+        $partes[] = 'kamples';
         $partes[] = $idCorto;
 
-        return implode('_', $partes) . '.' . $ext;
+        return implode('-', $partes) . '.' . $ext;
     }
 
     /*

@@ -515,8 +515,8 @@ Samples
 "descripcion_corta_es": "Un bucle de jazz melancólico con piano suave y líneas delicadas de saxofón."
 },
 ````
-283. Para pulir mas el ordenamiento, el nombre base del archivo que se crea tiene que ser algo asi Instrumento - Genero - Tono - BPM - Nombre (ejemplo melancholy jazz loop) - kamples - id.wav si, no se tiene instrumento o un tono, o algo simplemente se omite pero esta estructura ahora mejorara mejor la organización cuando se ordene por nombre
-284. El modo clip a veces falla,  no se si por el modo clip o que, pero, estos son los eventos. Supongamos que tengo un loop que suena cada compas, suena 8 veces asi que cada linea de compas coincida con cada golpe, si recorto con clip hasta a mitad, bien, las los golpes todavía coinciden, pero, si comprimo a la mitad logrando que el golpe suene 2 veces por compas, a ahora cada 2 golpes sigue coincidiendo, pero al momento de que use el clip se rompe el orden. Tengo que decir que esto no es preciso porque no siempre sucede y no se la causa exacta o las condiciones necesarias para replicarlo.
+283. ✅ [AG-DAW] Nombre archivo restructurado: Instrumento-Genero-Tono-BPM-Nombre-kamples-id.ext. Campos ausentes se omiten.
+284. El modo clip a veces falla,  no se si por el modo clip o que, pero, estos son los eventos. Supongamos que tengo un loop que suena cada compas, suena 8 veces asi que cada linea de compas coincida con cada golpe, si recorto con clip hasta a mitad, bien, las los golpes todavía coinciden, pero, si comprimo a la mitad logrando que el golpe suene 2 veces por compas, a ahora cada 2 golpes sigue coincidiendo, pero al momento de que use el clip se rompe el orden. Tengo que decir que esto no es preciso porque no siempre sucede y no se la causa exacta o las condiciones necesarias para replicarlo. De hecho, a veces no pierde el orden a veces simplemente al usar chop, cambia la duración a una mas corta.
 
 
 
