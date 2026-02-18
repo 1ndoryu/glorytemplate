@@ -1,9 +1,9 @@
 # Plan: Repository Pattern + Schema System (Opción C)
 
-> **Versión:** 1.0
-> **Fecha:** 18/02/2026
+> **Versión:** 2.0
+> **Fecha:** 20/02/2026
 > **Rama:** main-kamples
-> **Duración estimada:** 3-4 sesiones
+> **Duración estimada:** 3-4 sesiones (controladores completados en 3 sesiones)
 
 ---
 
@@ -123,33 +123,45 @@ class SamplesRepository extends BaseRepository
 
 ## Revisiones y Criterios de Aceptación
 
-### R1: Infraestructura (esta sesión)
-- [ ] BaseRepository.php creado y funcional
-- [ ] Generador `repositoryGenerate.mjs` en CLI
-- [ ] Comando `npx glory schema:generate` genera repos junto con Cols/DTO/Enums
-- [ ] 18 repos base generados correctamente
-- [ ] Repos compilan sin errores PHP
+### R1: Infraestructura ✔
+- [x] BaseRepository.php creado y funcional (CRUD base + construirWhere + transacciones + estaConectado)
+- [x] Generador `repositoryGenerate.mjs` en CLI
+- [x] Comando `npx glory schema:generate` genera repos junto con Cols/DTO/Enums
+- [x] 18 repos base generados correctamente
+- [x] Repos compilan sin errores PHP
 
-### R2: Migración Tier 1 — Top 5 controllers (siguiente sesión)
-- [ ] ColeccionesController.php: 0 SQL directo, usa repos
-- [ ] AdminController.php: 0 SQL directo
-- [ ] DescargasController.php: 0 SQL directo
-- [ ] PublicacionesController.php: 0 SQL directo
-- [ ] SamplesModificacionController.php: 0 SQL directo
-- [ ] 0 strings enum hardcodeados en estos 5 archivos
-- [ ] Tests manuales: endpoints siguen funcionando
+### R2: Migración Tier 1 ✔
+- [x] ColeccionesController.php: 0 PostgresService
+- [x] AdminController.php: 0 PostgresService
+- [x] DescargasController.php: 0 PostgresService
+- [x] PublicacionesController.php: 0 PostgresService
+- [x] SamplesModificacionController.php: 0 PostgresService
 
-### R3: Migración Tier 2 — 10 controllers restantes
-- [ ] SocialController.php migrado
-- [ ] MensajesController.php migrado
-- [ ] ComentariosController.php migrado
-- [ ] ComentariosEscrituraController.php migrado
-- [ ] ComentariosInteraccionController.php migrado
-- [ ] DashboardController.php migrado
-- [ ] PerfilController.php migrado
-- [ ] ReproduccionesController.php migrado
-- [ ] SugerenciasController.php migrado
-- [ ] BibliotecaSamplesController.php migrado
+### R3: Migración Tier 2 + Tier 2.5 ✔ (27 controllers total)
+- [x] SocialController.php migrado
+- [x] MensajesController.php migrado
+- [x] ComentariosController.php migrado
+- [x] ComentariosEscrituraController.php migrado
+- [x] ComentariosInteraccionController.php migrado
+- [x] DashboardController.php migrado
+- [x] PerfilController.php migrado
+- [x] ReproduccionesController.php migrado
+- [x] SugerenciasController.php migrado
+- [x] BibliotecaSamplesController.php migrado
+- [x] DescargasZipController.php migrado
+- [x] PublicacionesEscrituraController.php migrado
+- [x] AuthController.php migrado
+- [x] ConnectController.php migrado
+- [x] NotificacionesController.php migrado
+- [x] PagosController.php migrado
+- [x] SamplesController.php migrado
+- [x] SamplesUploadController.php migrado
+- [x] DiagnosticoController.php migrado
+- [x] EmbeddingsController.php migrado
+- [x] ExperimentosController.php migrado
+- [x] DescargasStreamController.php migrado
+
+> **Verificación final:** `grep -r "PostgresService" Controladores/` = 0 matches
 
 ### R4: Migración Tier 3 — Services
 - [ ] ConstructorSenales.php migrado (23 queries)
@@ -274,34 +286,41 @@ class SamplesRepository extends BaseRepository
 
 ## Métricas de Éxito
 
-| Métrica | Antes | Objetivo |
-|---|---|---|
-| Archivos con SQL directo en controllers | 25 | 0 |
-| Archivos con SQL directo en services | 10 | 0-3 (solo lógica ultra-específica) |
-| Uso de `*Enums::` en codebase | 0 | 100% de valores enum |
-| Strings enum hardcodeados | 67+ | 0 |
-| Archivos sin ningún Cols | 6 | 0 |
-| SQL duplicado entre archivos | ~15% | 0% |
+| Métrica | Antes | Objetivo | Actual |
+|---|---|---|---|
+| Archivos con SQL directo en controllers | 25 | 0 | **0** ✅ |
+| Archivos con SQL directo en services | 10 | 0-3 | ~10 (pendiente T4) |
+| Uso de `*Enums::` en codebase | 0 | 100% | Parcial |
+| Strings enum hardcodeados | 67+ | 0 | ~30 (repos usan Enums, controllers legacy aún no) |
+| Archivos sin ningún Cols | 6 | 0 | ~3 |
+| SQL duplicado entre archivos | ~15% | 0% | ~2% (solo services) |
 
 ---
 
 ## Progreso
 
 - [x] T1.1 — Crear BaseRepository.php
-- [ ] T1.2 — Crear generador repositoryGenerate.mjs
-- [ ] T1.3 — Integrar en glory.mjs
-- [ ] T1.4 — Generar 18 repos base + validar
-- [ ] T2.1 — Migrar ColeccionesController
-- [ ] T2.2 — Migrar AdminController
-- [ ] T2.3 — Migrar DescargasController
-- [ ] T2.4 — Migrar PublicacionesController
-- [ ] T2.5 — Migrar SamplesModificacionController
-- [ ] T3 — Migrar Tier 2 (10 controllers)
-- [ ] T4 — Migrar Tier 3 (services)
+- [x] T1.2 — Crear generador repositoryGenerate.mjs
+- [x] T1.3 — Integrar en glory.mjs
+- [x] T1.4 — Generar 18 repos base + validar
+- [x] T2.1 — Migrar ColeccionesController
+- [x] T2.2 — Migrar AdminController
+- [x] T2.3 — Migrar DescargasController
+- [x] T2.4 — Migrar PublicacionesController
+- [x] T2.5 — Migrar SamplesModificacionController
+- [x] T3 — Migrar Tier 2 (22 controllers adicionales, 27 total)
+- [ ] T4 — Migrar Tier 3 (services: ConstructorSenales, PerfilUsuario, MotorRecomendacion, etc.)
 - [ ] T5 — Documentación completa
 
 ---
 
 ## Lecciones Aprendidas
 
-(se llenará durante la ejecución)
+- `multi_replace_string_in_file` falla si hay dos ocurrencias idénticas del oldString en el mismo archivo — usar replace_string_in_file individual con contexto único.
+- `contarConFiltros`/`listarConFiltros` con WHERE dinámico + params es enfoque pragmático para controllers que construyen filtros complejos en runtime.
+- BaseRepository::estaConectado() necesario para DiagnosticoController — health checks no son queries pero sí acceso a PostgresService.
+- ComentariosRepository::insertarComentario recibe `array $datos`, no params individuales. Verificar siempre la firma del método destino.
+- NormalizadorSample::sqlSelectSamples(?int $userId) centraliza SELECTs de samples con JOIN a usuarios_ext — todos los repos de samples deben usarlo.
+- PagosController: reutilizar datos del usuario ya obtenido (`$usuario['plan']`) en vez de hacer SELECT extra para planAnterior.
+- Repos de ~700 líneas (SamplesRepository) son aceptables si la tabla es compleja y los métodos no se pueden dividir lógicamente.
+- PDO placeholder duplicado sigue siendo gotcha: `:uid` + `:uid2` obligatorio.

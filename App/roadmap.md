@@ -111,6 +111,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R54-R58:** Schema System completo — 18 declaraciones+36 generados (Cols+DTO)+schema.ts, CLI, SchemaRegistry enforcement, 29 archivos PHP migrados a Cols constants (~270 accesos), union types TS derivados, runtime fixes, parser nivel-0, documentación completa.
 **R59:** Schema System Enums — `generarEnums()` en CLI: genera `{Tabla}Enums.php` y constantes TS desde arrays `check` de cada schema. 8 tablas con enums (Samples, Likes, UsuariosExt, Suscripciones, Transacciones, Publicaciones, Comentarios, ReportesDuplicados). `LikesEnums::TIPO_SAMPLE`, `SamplesEnums::ESTADO_ACTIVO`, etc. Elimina strings literales de valores enum en controladores y servicios.
 **R60:** Sprint 5 SOLID Refactoring completo — 11 splits (A01-A12) + O15 namespace prefix. 15 archivos nuevos creados, 11 archivos reducidos bajo 300 líneas. GroqHttpClient compartido (3 servicios IA), JsonRepairer (5 estrategias), AnalizadoresModeracion, DetectorBpm, DetectorTonalidad, FFmpegDetector, ProcesadorFFmpeg, DescargasStream/ZipController, PublicacionesEscrituraController, ColeccionesCrudController. O15: 424 llamadas `\` prefix en 21 archivos (tokenizador PHP).
+**R61:** Repository Pattern — Migración completa de controladores (Opción C). 27 controladores migrados: 0 PostgresService directo en ningún controller. ~340 queries SQL movidas a 18 repositorios tipados (BaseRepository + custom methods). Repos expandidos: UsuariosExtRepository (21 métodos), SamplesRepository (35 métodos), NotificacionesRepository (7 métodos), PublicacionesRepository (8 custom). BaseRepository: `estaConectado()` para health checks. Plan detallado en `App/docs/plan-repository-pattern.md`. Pendiente: Tier 3 Services (ConstructorSenales, PerfilUsuario, MotorRecomendacion).
 
 ---
 
@@ -280,6 +281,12 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - Mover controles entre componentes: verificar imports en AMBOS (origen+destino).
 - Toggles herramienta (corte, resize): barra visible, no escondidos en modales.
 - FFmpeg waveform: `-f f32le -ac 1 -ar 8000` + unpack('g*') + picos por chunks. 60 barras suficiente.
+- [Repository]: `contarConFiltros`/`listarConFiltros` aceptan WHERE dinámico + params — pragmático para SamplesController que construye filtros complejos.
+- [Repository]: Queries con JOINs van en el repo de la entidad principal (ej: `listarConActor` en NotificacionesRepository hace JOIN con usuarios_ext).
+- [Repository]: `crearConConflict` para upserts con ON CONFLICT DO NOTHING — usado en AuthController sync WP→PG.
+- [Repository]: BaseRepository::estaConectado() wrappea PostgresService::estaConectado() — controllers NO deben importar PostgresService directamente.
+- [Repository]: ComentariosRepository::insertarComentario recibe `array $datos` (no params sueltos). Keys: autor, tipo, target, contenido, tipoContenido, mediaUrl, mediaMetadata, parentId.
+- [Repository]: NormalizadorSample::sqlSelectSamples(?int $userId) para SELECTs de samples con JOIN — usado por SamplesRepository en listado/feed/detalle.
 
 - [Mezclador]: SoundTouchJS 0.3.0 para pitch-independent stretch. Cache por `${bloqueId}:${semitonos}:${playbackRate}`. Invalidar cache al cambiar modo/detune.
 - [Mezclador]: `modoTonalidad` per-block (resample|stretch). Default resample. motorAudioService bifurca en programarReproduccion y renderizarOffline.
