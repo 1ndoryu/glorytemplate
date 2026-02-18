@@ -11,6 +11,9 @@
 
 namespace App\Kamples\Api\Helpers;
 
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\UsuariosExtCols;
+
 class NormalizadorSample
 {
     /**
@@ -81,77 +84,85 @@ class NormalizadorSample
      * Convierte snake_case PG a camelCase, agrupa datos del creador como sub-objeto,
      * convierte tags text[] a array PHP y metadata JSONB a objeto.
      */
+    /**
+     * Aliases SQL usados en sqlSelectSamples (no son columnas reales).
+     * Definidos como constantes para que el validator no los marque como errores.
+     */
+    public const ALIAS_REACCION_USUARIO = 'reaccion_usuario';
+    public const ALIAS_VERIFICADO_SAMPLE = 'verificado_sample';
+    public const ALIAS_CREADOR_WP_USER_ID = 'creador_wp_user_id';
+
     public static function normalizar(array $row): array
     {
         /* tags: text[] PG -> array PHP */
         $tags = [];
-        if (isset($row['tags']) && is_string($row['tags'])) {
-            $tags = self::pgArrayToPhp($row['tags']);
-        } elseif (isset($row['tags']) && is_array($row['tags'])) {
-            $tags = $row['tags'];
+        if (isset($row[SamplesCols::TAGS]) && is_string($row[SamplesCols::TAGS])) {
+            $tags = self::pgArrayToPhp($row[SamplesCols::TAGS]);
+        } elseif (isset($row[SamplesCols::TAGS]) && is_array($row[SamplesCols::TAGS])) {
+            $tags = $row[SamplesCols::TAGS];
         }
 
         /* metadata: JSONB PG -> objeto PHP */
         $metadata = null;
-        if (isset($row['metadata']) && is_string($row['metadata'])) {
-            $metadata = json_decode($row['metadata'], true);
-        } elseif (isset($row['metadata']) && is_array($row['metadata'])) {
-            $metadata = $row['metadata'];
+        if (isset($row[SamplesCols::METADATA]) && is_string($row[SamplesCols::METADATA])) {
+            $metadata = json_decode($row[SamplesCols::METADATA], true);
+        } elseif (isset($row[SamplesCols::METADATA]) && is_array($row[SamplesCols::METADATA])) {
+            $metadata = $row[SamplesCols::METADATA];
         }
 
-        /* Construir objeto creador si los campos existen */
+        /* Construir objeto creador si los campos existen (vienen del JOIN con usuarios_ext) */
         $creador = null;
-        if (isset($row['creador_id']) || isset($row['username'])) {
+        if (isset($row[SamplesCols::CREADOR_ID]) || isset($row[UsuariosExtCols::USERNAME])) {
             $creador = [
-                'id'             => (int) ($row['creador_id'] ?? 0),
-                'username'       => $row['username'] ?? '',
-                'nombreVisible'  => $row['nombre_visible'] ?? $row['username'] ?? '',
+                'id'             => (int) ($row[SamplesCols::CREADOR_ID] ?? 0),
+                'username'       => $row[UsuariosExtCols::USERNAME] ?? '',
+                'nombreVisible'  => $row[UsuariosExtCols::NOMBRE_VISIBLE] ?? $row[UsuariosExtCols::USERNAME] ?? '',
                 'avatarUrl'      => UsuarioHelper::resolverAvatarUrl(
-                    $row['avatar_url'] ?? null,
-                    isset($row['creador_wp_user_id']) ? (int) $row['creador_wp_user_id'] : null
+                    $row[UsuariosExtCols::AVATAR_URL] ?? null,
+                    isset($row[self::ALIAS_CREADOR_WP_USER_ID]) ? (int) $row[self::ALIAS_CREADOR_WP_USER_ID] : null
                 ),
-                'verificado'     => (bool) ($row['verificado'] ?? false),
+                'verificado'     => (bool) ($row[UsuariosExtCols::VERIFICADO] ?? false),
             ];
         }
 
         return [
-            'id'               => (int) ($row['id'] ?? 0),
-            'titulo'           => $row['titulo'] ?? '',
-            'slug'             => $row['slug'] ?? '',
-            'idCorto'          => $row['id_corto'] ?? null,
-            'descripcion'      => $row['descripcion'] ?? '',
-            'bpm'              => isset($row['bpm']) ? (int) $row['bpm'] : null,
-            'key'              => $row['key'] ?? null,
-            'escala'           => $row['escala'] ?? null,
-            'duracion'         => isset($row['duracion']) ? (float) $row['duracion'] : 0,
-            'formato'          => $row['formato'] ?? null,
-            'tamano'           => isset($row['tamano']) ? (int) $row['tamano'] : 0,
+            'id'               => (int) ($row[SamplesCols::ID] ?? 0),
+            'titulo'           => $row[SamplesCols::TITULO] ?? '',
+            'slug'             => $row[SamplesCols::SLUG] ?? '',
+            'idCorto'          => $row[SamplesCols::ID_CORTO] ?? null,
+            'descripcion'      => $row[SamplesCols::DESCRIPCION] ?? '',
+            'bpm'              => isset($row[SamplesCols::BPM]) ? (int) $row[SamplesCols::BPM] : null,
+            'key'              => $row[SamplesCols::KEY] ?? null,
+            'escala'           => $row[SamplesCols::ESCALA] ?? null,
+            'duracion'         => isset($row[SamplesCols::DURACION]) ? (float) $row[SamplesCols::DURACION] : 0,
+            'formato'          => $row[SamplesCols::FORMATO] ?? null,
+            'tamano'           => isset($row[SamplesCols::TAMANO]) ? (int) $row[SamplesCols::TAMANO] : 0,
             'tags'             => $tags,
-            'tipo'             => $row['tipo'] ?? 'one shot',
-            'estado'           => $row['estado'] ?? 'procesando',
-            'esPremium'        => (bool) ($row['es_premium'] ?? false),
-            'precio'           => isset($row['precio']) ? (float) $row['precio'] : null,
+            'tipo'             => $row[SamplesCols::TIPO] ?? 'one shot',
+            'estado'           => $row[SamplesCols::ESTADO] ?? 'procesando',
+            'esPremium'        => (bool) ($row[SamplesCols::ES_PREMIUM] ?? false),
+            'precio'           => isset($row[SamplesCols::PRECIO]) ? (float) $row[SamplesCols::PRECIO] : null,
             'metadata'         => $metadata,
-            'rutaPreview'      => self::rutaAUrl($row['ruta_preview'] ?? ''),
-            'rutaWaveform'     => self::rutaAUrl($row['ruta_waveform'] ?? ''),
+            'rutaPreview'      => self::rutaAUrl($row[SamplesCols::RUTA_PREVIEW] ?? ''),
+            'rutaWaveform'     => self::rutaAUrl($row[SamplesCols::RUTA_WAVEFORM] ?? ''),
             /*
              * C202: rutaOriginal y rutaOptimizada NO se exponen en respuestas publicas.
              * Los archivos originales solo se sirven via el endpoint /descargar autenticado.
              * Evita que usuarios anonimos obtengan URLs directas a WAV/MP3 originales.
              */
-            'imagenUrl'        => $row['imagen_url'] ?? null,
-            'totalDescargas'   => (int) ($row['total_descargas'] ?? 0),
-            'totalLikes'       => (int) ($row['total_likes'] ?? 0),
-            'totalReproducciones' => (int) ($row['total_reproducciones'] ?? 0),
-            'audioHash'        => $row['audio_hash'] ?? null,
+            'imagenUrl'        => $row[SamplesCols::IMAGEN_URL] ?? null,
+            'totalDescargas'   => (int) ($row[SamplesCols::TOTAL_DESCARGAS] ?? 0),
+            'totalLikes'       => (int) ($row[SamplesCols::TOTAL_LIKES] ?? 0),
+            'totalReproducciones' => (int) ($row[SamplesCols::TOTAL_REPRODUCCIONES] ?? 0),
+            'audioHash'        => $row[SamplesCols::AUDIO_HASH] ?? null,
             'creador'          => $creador,
             /* C144/C145: reaccion_usuario puede ser 'like', 'dislike', 'encanta' o null */
-            'liked'            => !empty($row['reaccion_usuario']) && in_array($row['reaccion_usuario'], ['like', 'encanta'], true),
-            'reaccion'         => $row['reaccion_usuario'] ?? null,
+            'liked'            => !empty($row[self::ALIAS_REACCION_USUARIO]) && in_array($row[self::ALIAS_REACCION_USUARIO], ['like', 'encanta'], true),
+            'reaccion'         => $row[self::ALIAS_REACCION_USUARIO] ?? null,
             /* C178: verificacion de metadata por humano */
-            'verificado'       => (bool) ($row['verificado_sample'] ?? false),
+            'verificado'       => (bool) ($row[self::ALIAS_VERIFICADO_SAMPLE] ?? false),
             /* C220: Visibilidad en comunidad */
-            'mostrarEnComunidad' => (bool) ($row['mostrar_en_comunidad'] ?? true),
+            'mostrarEnComunidad' => (bool) ($row[SamplesCols::MOSTRAR_EN_COMUNIDAD] ?? true),
         ];
     }
 

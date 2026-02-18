@@ -19,6 +19,7 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\StripeService;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Services\ServicioNotificaciones;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class PagosController
 {
@@ -275,29 +276,29 @@ class PagosController
                 /* C266: Leer plan anterior ANTES de actualizar para comparar */
                 $planAnterior = PostgresService::consultarUno(
                     "SELECT plan FROM usuarios_ext WHERE id = :id",
-                    ['id' => $usuario['id']]
+                    ['id' => $usuario[UsuariosExtCols::ID]]
                 );
-                $planViejo = $planAnterior['plan'] ?? 'free';
+                $planViejo = $planAnterior[UsuariosExtCols::PLAN] ?? 'free';
 
                 PostgresService::ejecutar(
                     "UPDATE usuarios_ext SET plan = :plan WHERE id = :id",
-                    ['plan' => $planStripe, 'id' => $usuario['id']]
+                    ['plan' => $planStripe, 'id' => $usuario[UsuariosExtCols::ID]]
                 );
-                KamplesLogger::info('Plan actualizado vía webhook', ['userId' => $usuario['id'], 'plan' => $planStripe]);
+                KamplesLogger::info('Plan actualizado vía webhook', ['userId' => $usuario[UsuariosExtCols::ID], 'plan' => $planStripe]);
 
                 /* C266: Notificar cambio de plan si es diferente */
                 if ($planViejo !== $planStripe) {
-                    ServicioNotificaciones::ascensoPlan((int) $usuario['id'], $planViejo, $planStripe);
+                    ServicioNotificaciones::ascensoPlan((int) $usuario[UsuariosExtCols::ID], $planViejo, $planStripe);
                 }
             } else {
-                KamplesLogger::info('Suscripción activa/trial (plan no extraído)', ['userId' => $usuario['id'], 'estado' => $estado]);
+                KamplesLogger::info('Suscripción activa/trial (plan no extraído)', ['userId' => $usuario[UsuariosExtCols::ID], 'estado' => $estado]);
             }
         } else {
             PostgresService::ejecutar(
                 "UPDATE usuarios_ext SET plan = 'free' WHERE id = :id",
-                ['id' => $usuario['id']]
+                ['id' => $usuario[UsuariosExtCols::ID]]
             );
-            KamplesLogger::info('Suscripción degradada a free', ['userId' => $usuario['id'], 'estado' => $estado]);
+            KamplesLogger::info('Suscripción degradada a free', ['userId' => $usuario[UsuariosExtCols::ID], 'estado' => $estado]);
         }
     }
 
@@ -316,10 +317,10 @@ class PagosController
 
         PostgresService::ejecutar(
             "UPDATE usuarios_ext SET plan = 'free', stripe_subscription_id = NULL WHERE id = :id",
-            ['id' => $usuario['id']]
+            ['id' => $usuario[UsuariosExtCols::ID]]
         );
 
-        KamplesLogger::info('Suscripción cancelada → plan free', ['userId' => $usuario['id']]);
+        KamplesLogger::info('Suscripción cancelada → plan free', ['userId' => $usuario[UsuariosExtCols::ID]]);
     }
 
     /**
@@ -346,7 +347,7 @@ class PagosController
         $payoutsActivos = (bool) ($cuenta['payouts_enabled'] ?? false);
 
         KamplesLogger::info('Cuenta Connect actualizada', [
-            'userId'   => $usuario['id'],
+            'userId'   => $usuario[UsuariosExtCols::ID],
             'connectId' => $connectId,
             'charges'  => $cargosActivos,
             'payouts'  => $payoutsActivos,

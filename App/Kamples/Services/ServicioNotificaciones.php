@@ -15,6 +15,7 @@ namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\KamplesLogger;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class ServicioNotificaciones
 {
@@ -270,7 +271,7 @@ class ServicioNotificaciones
                 "SELECT username FROM usuarios_ext WHERE id = :id",
                 ['id' => $actorId]
             );
-            return $row['username'] ?? 'usuario';
+            return $row[UsuariosExtCols::USERNAME] ?? 'usuario';
         } catch (\Throwable $e) {
             return 'usuario';
         }

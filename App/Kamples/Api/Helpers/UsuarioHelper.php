@@ -13,6 +13,7 @@ namespace App\Kamples\Api\Helpers;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class UsuarioHelper
 {
@@ -30,7 +31,7 @@ class UsuarioHelper
             ['wpId' => $wpUserId]
         );
 
-        return $row ? (int) $row['id'] : null;
+        return $row ? (int) $row[UsuariosExtCols::ID] : null;
     }
 
     /**

@@ -15,6 +15,8 @@ use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Services\MotorRecomendacion;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ServicioNotificaciones;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\PublicacionesCols;
 
 class SocialController
 {
@@ -194,11 +196,11 @@ class SocialController
                 );
                 if ($sample) {
                     ServicioNotificaciones::likeSample(
-                        (int) $sample['creador_id'],
+                        (int) $sample[SamplesCols::CREADOR_ID],
                         $userId,
                         $targetId,
-                        $sample['titulo'] ?? '',
-                        $sample['slug'] ?? null,
+                        $sample[SamplesCols::TITULO] ?? '',
+                        $sample[SamplesCols::SLUG] ?? null,
                         $reaccion
                     );
                 }
@@ -219,7 +221,7 @@ class SocialController
                 );
                 if ($pub) {
                     ServicioNotificaciones::likePublicacion(
-                        (int) $pub['autor_id'],
+                        (int) $pub[PublicacionesCols::AUTOR_ID],
                         $userId,
                         $targetId,
                         $reaccion

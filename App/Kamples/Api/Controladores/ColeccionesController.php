@@ -26,6 +26,9 @@ use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Kamples\Services\MotorRecomendacion;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\ColeccionesCols;
 
 class ColeccionesController
 {
@@ -213,11 +216,11 @@ class ColeccionesController
 
         /* C193: Fallback avatar a WP Gravatar */
         foreach ($colecciones as &$col) {
-            $col['avatar_url'] = UsuarioHelper::resolverAvatarUrl(
-                $col['avatar_url'] ?? null,
-                isset($col['wp_user_id']) ? (int) $col['wp_user_id'] : null
+            $col[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(
+                $col[UsuariosExtCols::AVATAR_URL] ?? null,
+                isset($col[UsuariosExtCols::WP_USER_ID]) ? (int) $col[UsuariosExtCols::WP_USER_ID] : null
             );
-            unset($col['wp_user_id']);
+            unset($col[UsuariosExtCols::WP_USER_ID]);
         }
         unset($col);
 
@@ -277,10 +280,10 @@ class ColeccionesController
          * Seguridad: solo mostrar colecciones privadas al propietario.
          * Las colecciones publicas son accesibles para todos.
          */
-        $esPublica = (bool) ($coleccion['publica'] ?? true);
+        $esPublica = (bool) ($coleccion[ColeccionesCols::PUBLICA] ?? true);
         if (!$esPublica) {
             $usuarioActual = UsuarioHelper::obtenerIdPg();
-            if (!$usuarioActual || $usuarioActual !== (int) $coleccion['usuario_id']) {
+            if (!$usuarioActual || $usuarioActual !== (int) $coleccion[ColeccionesCols::USUARIO_ID]) {
                 return new \WP_REST_Response(['code' => 'coleccion_no_encontrada'], 404);
             }
         }
@@ -298,11 +301,11 @@ class ColeccionesController
         $coleccion['total_items'] = count($samples);
 
         /* C193: Fallback avatar propietario */
-        $coleccion['avatar_url'] = UsuarioHelper::resolverAvatarUrl(
-            $coleccion['avatar_url'] ?? null,
-            isset($coleccion['wp_user_id']) ? (int) $coleccion['wp_user_id'] : null
+        $coleccion[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(
+            $coleccion[UsuariosExtCols::AVATAR_URL] ?? null,
+            isset($coleccion[UsuariosExtCols::WP_USER_ID]) ? (int) $coleccion[UsuariosExtCols::WP_USER_ID] : null
         );
-        unset($coleccion['wp_user_id']);
+        unset($coleccion[UsuariosExtCols::WP_USER_ID]);
 
         return new \WP_REST_Response(['data' => $coleccion], 200);
     }
@@ -480,10 +483,10 @@ class ColeccionesController
         $allBpms = [];
         $allKeys = [];
         foreach ($contextoCols as $row) {
-            $tags = NormalizadorSample::pgArrayToPhp($row['tags'] ?? '');
+            $tags = NormalizadorSample::pgArrayToPhp($row[SamplesCols::TAGS] ?? '');
             $allTags = array_merge($allTags, $tags);
-            if (!empty($row['bpm'])) $allBpms[] = (int) $row['bpm'];
-            if (!empty($row['key'])) $allKeys[] = $row['key'];
+            if (!empty($row[SamplesCols::BPM])) $allBpms[] = (int) $row[SamplesCols::BPM];
+            if (!empty($row[SamplesCols::KEY])) $allKeys[] = $row[SamplesCols::KEY];
         }
 
         /* Tags más frecuentes de la colección */
@@ -561,7 +564,7 @@ class ColeccionesController
             "SELECT tags FROM samples WHERE id = :id", ['id' => $sampleId]
         );
 
-        $sampleTags = $sample ? NormalizadorSample::pgArrayToPhp($sample['tags'] ?? '') : [];
+        $sampleTags = $sample ? NormalizadorSample::pgArrayToPhp($sample[SamplesCols::TAGS] ?? '') : [];
 
         /* Obtener colecciones del usuario con scoring de relevancia */
         $colecciones = PostgresService::consultar(

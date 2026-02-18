@@ -18,6 +18,7 @@ use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
+use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ServicioAntiSpam;
 use App\Kamples\Services\ServicioBan;
@@ -455,11 +456,11 @@ class ComentariosController
                 'liked' => false,
                 'autor' => [
                     'id' => $userId,
-                    'username' => $usuario['username'] ?? '',
-                    'nombreVisible' => $usuario['nombre_visible'] ?? '',
+                    'username' => $usuario[UsuariosExtCols::USERNAME] ?? '',
+                    'nombreVisible' => $usuario[UsuariosExtCols::NOMBRE_VISIBLE] ?? $usuario[UsuariosExtCols::USERNAME] ?? '',
                     'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
-                        $usuario['avatar_url'] ?? null,
-                        (int) ($usuario['wp_user_id'] ?? 0)
+                        $usuario[UsuariosExtCols::AVATAR_URL] ?? null,
+                        (int) ($usuario[UsuariosExtCols::WP_USER_ID] ?? 0)
                     ),
                 ],
             ],

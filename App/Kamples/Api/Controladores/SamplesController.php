@@ -25,6 +25,8 @@ use App\Kamples\Api\GeneradorIdCorto;
 use App\Kamples\Api\PipelineAudio;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Services\ServicioNotificaciones;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class SamplesController
 {
@@ -483,7 +485,7 @@ class SamplesController
                     'comunidad' => $mostrarEnComunidad ? 'true' : 'false',
                 ]
             );
-            $sampleId = $resultado['id'] ?? null;
+            $sampleId = $resultado[SamplesCols::ID] ?? null;
         } catch (\Exception $e) {
             KamplesLogger::error('Error al insertar sample en Postgres', ['error' => $e->getMessage()]);
         }
@@ -578,7 +580,7 @@ class SamplesController
         }
 
         /* Solo el propietario o un admin pueden editar */
-        if ((int) $sample['creador_id'] !== $usuarioId && !$esAdmin) {
+        if ((int) $sample[SamplesCols::CREADOR_ID] !== $usuarioId && !$esAdmin) {
             return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'No tienes permiso para editar este sample'], 403);
         }
 
@@ -658,10 +660,10 @@ class SamplesController
             /* C266: Notificar al creador si se verifica el sample */
             if ((bool) $body['verificado']) {
                 ServicioNotificaciones::sampleVerificado(
-                    (int) $sample['creador_id'],
+                    (int) $sample[SamplesCols::CREADOR_ID],
                     $sampleId,
-                    $sample['titulo'] ?? '',
-                    $sample['slug'] ?? null
+                    $sample[SamplesCols::TITULO] ?? '',
+                    $sample[SamplesCols::SLUG] ?? null
                 );
             }
         }
@@ -731,14 +733,14 @@ class SamplesController
         }
 
         /* Solo el propietario o un admin pueden borrar */
-        if ((int) $sample['creador_id'] !== $usuarioId && !$esAdmin) {
+        if ((int) $sample[SamplesCols::CREADOR_ID] !== $usuarioId && !$esAdmin) {
             return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'No tienes permiso para eliminar este sample'], 403);
         }
 
         /* Eliminar archivos físicos del disco */
         $uploadDir = \wp_upload_dir();
         $baseDir = $uploadDir['basedir'];
-        $rutasAEliminar = ['ruta_original', 'ruta_optimizada', 'ruta_preview', 'ruta_waveform'];
+        $rutasAEliminar = [SamplesCols::RUTA_ORIGINAL, SamplesCols::RUTA_OPTIMIZADA, SamplesCols::RUTA_PREVIEW, SamplesCols::RUTA_WAVEFORM];
 
         foreach ($rutasAEliminar as $campo) {
             if (!empty($sample[$campo])) {
@@ -753,7 +755,7 @@ class SamplesController
         }
 
         /* Eliminar waveform JSON derivado si no estaba en ruta_waveform */
-        $rutaBase = $sample['ruta_original'] ?? '';
+        $rutaBase = $sample[SamplesCols::RUTA_ORIGINAL] ?? '';
         if ($rutaBase) {
             $rutaWaveform = preg_replace('/\.[^.]+$/', '.json', $rutaBase);
             if ($rutaWaveform && file_exists($rutaWaveform)) {
@@ -776,8 +778,8 @@ class SamplesController
 
         KamplesLogger::info('Sample eliminado', [
             'sampleId' => $sampleId,
-            'titulo'   => $sample['titulo'] ?? '',
-            'por'      => $esAdmin && (int) $sample['creador_id'] !== $usuarioId ? 'admin' : 'propietario',
+            'titulo'   => $sample[SamplesCols::TITULO] ?? '',
+            'por'      => $esAdmin && (int) $sample[SamplesCols::CREADOR_ID] !== $usuarioId ? 'admin' : 'propietario',
         ]);
 
         return new \WP_REST_Response(['ok' => true, 'eliminado' => true], 200);
@@ -944,10 +946,10 @@ class SamplesController
         $allBpms = [];
         $allKeys = [];
         foreach ($contexto as $row) {
-            $tags = NormalizadorSample::pgArrayToPhp($row['tags'] ?? '');
+            $tags = NormalizadorSample::pgArrayToPhp($row[SamplesCols::TAGS] ?? '');
             $allTags = array_merge($allTags, $tags);
-            if (!empty($row['bpm'])) $allBpms[] = (int) $row['bpm'];
-            if (!empty($row['key'])) $allKeys[] = $row['key'];
+            if (!empty($row[SamplesCols::BPM])) $allBpms[] = (int) $row[SamplesCols::BPM];
+            if (!empty($row[SamplesCols::KEY])) $allKeys[] = $row[SamplesCols::KEY];
         }
 
         /* Top 10 tags más frecuentes */

@@ -16,6 +16,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class AuthController
 {
@@ -226,26 +227,26 @@ class AuthController
      */
     private static function normalizarUsuario(array $row): array
     {
-        $avatarUrl = $row['avatar_url'] ?? null;
-        if (!$avatarUrl && !empty($row['wp_user_id'])) {
-            $avatarUrl = get_avatar_url((int) $row['wp_user_id'], ['size' => 256]) ?: null;
+        $avatarUrl = $row[UsuariosExtCols::AVATAR_URL] ?? null;
+        if (!$avatarUrl && !empty($row[UsuariosExtCols::WP_USER_ID])) {
+            $avatarUrl = get_avatar_url((int) $row[UsuariosExtCols::WP_USER_ID], ['size' => 256]) ?: null;
         }
 
         return [
-            'id'              => (int) $row['id'],
-            'username'        => $row['username'],
-            'nombreVisible'   => $row['nombre_visible'] ?? $row['username'],
-            'bio'             => $row['bio'] ?? '',
+            'id'              => (int) $row[UsuariosExtCols::ID],
+            'username'        => $row[UsuariosExtCols::USERNAME],
+            'nombreVisible'   => $row[UsuariosExtCols::NOMBRE_VISIBLE] ?? $row[UsuariosExtCols::USERNAME],
+            'bio'             => $row[UsuariosExtCols::BIO] ?? '',
             'avatarUrl'       => $avatarUrl,
-            'portadaUrl'      => $row['portada_url'] ?? null,
-            'plan'            => $row['plan'] ?? 'free',
-            'verificado'      => (bool) ($row['verificado'] ?? false),
-            'totalSeguidores' => (int) ($row['total_seguidores'] ?? 0),
-            'totalSeguidos'   => (int) ($row['total_seguidos'] ?? 0),
-            'totalSamples'    => (int) ($row['total_samples'] ?? 0),
-            'totalDescargas'  => (int) ($row['total_descargas'] ?? 0),
-            'rol'             => $row['rol'] ?? 'user',
-            'creadoEn'        => $row['created_at'] ?? null,
+            'portadaUrl'      => $row[UsuariosExtCols::PORTADA_URL] ?? null,
+            'plan'            => $row[UsuariosExtCols::PLAN] ?? 'free',
+            'verificado'      => (bool) ($row[UsuariosExtCols::VERIFICADO] ?? false),
+            'totalSeguidores' => (int) ($row[UsuariosExtCols::TOTAL_SEGUIDORES] ?? 0),
+            'totalSeguidos'   => (int) ($row[UsuariosExtCols::TOTAL_SEGUIDOS] ?? 0),
+            'totalSamples'    => (int) ($row[UsuariosExtCols::TOTAL_SAMPLES] ?? 0),
+            'totalDescargas'  => (int) ($row[UsuariosExtCols::TOTAL_DESCARGAS] ?? 0),
+            'rol'             => $row[UsuariosExtCols::ROL] ?? 'user',
+            'creadoEn'        => $row[UsuariosExtCols::CREATED_AT] ?? null,
         ];
     }
 }

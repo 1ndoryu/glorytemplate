@@ -26,6 +26,7 @@
 namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
+use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Services\GeneradorEmbeddings;
 use App\Kamples\LogAlgoritmo as KamplesLogger;
@@ -734,10 +735,10 @@ class MotorRecomendacion
 
         if (!$sample) return [];
 
-        $tags = NormalizadorSample::pgArrayToPhp($sample['tags'] ?? '');
-        $bpm = $sample['bpm'] ? (int) $sample['bpm'] : null;
-        $key = $sample['key'] ?? null;
-        $tipo = $sample['tipo'] ?? 'one shot';
+        $tags = NormalizadorSample::pgArrayToPhp($sample[SamplesCols::TAGS] ?? '');
+        $bpm = $sample[SamplesCols::BPM] ? (int) $sample[SamplesCols::BPM] : null;
+        $key = $sample[SamplesCols::KEY] ?? null;
+        $tipo = $sample[SamplesCols::TIPO] ?? 'one shot';
         $toleranciaBpm = $config['parametros']['bpm_tolerancia'] ?? 15;
 
         $params = ['sampleId' => $sampleId, 'limit' => $limite];

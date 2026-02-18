@@ -17,6 +17,7 @@ use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class PerfilController
 {
@@ -71,19 +72,19 @@ class PerfilController
 
         /* Normalizar a camelCase — C193: fallback avatar via WP */
         $normalizado = [
-            'id'              => (int) $perfil['id'],
-            'username'        => $perfil['username'],
-            'nombreVisible'   => $perfil['nombre_visible'] ?? '',
-            'bio'             => $perfil['bio'] ?? '',
-            'avatarUrl'       => UsuarioHelper::resolverAvatarUrl($perfil['avatar_url'] ?? null, (int) ($perfil['wp_user_id'] ?? 0)),
-            'portadaUrl'      => $perfil['portada_url'] ?? null,
-            'plan'            => $perfil['plan'] ?? 'free',
-            'verificado'      => (bool) ($perfil['verificado'] ?? false),
-            'totalSeguidores' => (int) ($perfil['total_seguidores'] ?? 0),
-            'totalSeguidos'   => (int) ($perfil['total_seguidos'] ?? 0),
-            'totalSamples'    => (int) ($perfil['total_samples'] ?? 0),
-            'totalDescargas'  => (int) ($perfil['total_descargas'] ?? 0),
-            'creadoAt'        => $perfil['created_at'] ?? '',
+            'id'              => (int) $perfil[UsuariosExtCols::ID],
+            'username'        => $perfil[UsuariosExtCols::USERNAME],
+            'nombreVisible'   => $perfil[UsuariosExtCols::NOMBRE_VISIBLE] ?? '',
+            'bio'             => $perfil[UsuariosExtCols::BIO] ?? '',
+            'avatarUrl'       => UsuarioHelper::resolverAvatarUrl($perfil[UsuariosExtCols::AVATAR_URL] ?? null, (int) ($perfil[UsuariosExtCols::WP_USER_ID] ?? 0)),
+            'portadaUrl'      => $perfil[UsuariosExtCols::PORTADA_URL] ?? null,
+            'plan'            => $perfil[UsuariosExtCols::PLAN] ?? 'free',
+            'verificado'      => (bool) ($perfil[UsuariosExtCols::VERIFICADO] ?? false),
+            'totalSeguidores' => (int) ($perfil[UsuariosExtCols::TOTAL_SEGUIDORES] ?? 0),
+            'totalSeguidos'   => (int) ($perfil[UsuariosExtCols::TOTAL_SEGUIDOS] ?? 0),
+            'totalSamples'    => (int) ($perfil[UsuariosExtCols::TOTAL_SAMPLES] ?? 0),
+            'totalDescargas'  => (int) ($perfil[UsuariosExtCols::TOTAL_DESCARGAS] ?? 0),
+            'creadoAt'        => $perfil[UsuariosExtCols::CREATED_AT] ?? '',
         ];
 
         /* Verificar si el usuario autenticado sigue a este perfil */
@@ -93,7 +94,7 @@ class PerfilController
                 "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
                 ['wpId' => $currentWp['wp_user_id']]
             );
-            if ($currentPg && (int) $currentPg['id'] !== $normalizado['id']) {
+            if ($currentPg && (int) $currentPg[UsuariosExtCols::ID] !== $normalizado['id']) {
                 $seguimiento = PostgresService::consultarUno(
                     "SELECT 1 FROM follows WHERE seguidor_id = :seguidorId AND seguido_id = :seguidoId",
                     ['seguidorId' => (int) $currentPg['id'], 'seguidoId' => $normalizado['id']]
@@ -124,16 +125,16 @@ class PerfilController
          * Sincronizar avatar_url desde WP solo si el usuario no tiene un avatar custom.
          * Un avatar custom es cualquier URL que apunte a wp-content/uploads/kamples/avatars/.
          */
-        $tieneAvatarCustom = $ext && !empty($ext['avatar_url'])
-            && str_contains($ext['avatar_url'], 'kamples/avatars/');
+        $tieneAvatarCustom = $ext && !empty($ext[UsuariosExtCols::AVATAR_URL])
+            && str_contains($ext[UsuariosExtCols::AVATAR_URL], 'kamples/avatars/');
 
         if ($ext && !$tieneAvatarCustom && !empty($wpUser['avatar_url'])
-            && ($ext['avatar_url'] ?? '') !== $wpUser['avatar_url']) {
+            && ($ext[UsuariosExtCols::AVATAR_URL] ?? '') !== $wpUser['avatar_url']) {
             PostgresService::ejecutar(
                 "UPDATE usuarios_ext SET avatar_url = :avatar, updated_at = NOW() WHERE wp_user_id = :wpId",
                 ['avatar' => $wpUser['avatar_url'], 'wpId' => $wpUser['wp_user_id']]
             );
-            $ext['avatar_url'] = $wpUser['avatar_url'];
+            $ext[UsuariosExtCols::AVATAR_URL] = $wpUser['avatar_url'];
         }
 
         /* Auto-crear registro si no existe en Postgres */
@@ -181,31 +182,31 @@ class PerfilController
      */
     private static function normalizarUsuario(array $datos): array
     {
-        $avatarUrl = $datos['avatar_url'] ?? null;
-        if (!$avatarUrl && !empty($datos['wp_user_id'])) {
-            $avatarUrl = get_avatar_url((int) $datos['wp_user_id'], ['size' => 256]) ?: null;
+        $avatarUrl = $datos[UsuariosExtCols::AVATAR_URL] ?? null;
+        if (!$avatarUrl && !empty($datos[UsuariosExtCols::WP_USER_ID])) {
+            $avatarUrl = get_avatar_url((int) $datos[UsuariosExtCols::WP_USER_ID], ['size' => 256]) ?: null;
         }
 
         return [
-            'id'               => (int) ($datos['id'] ?? 0),
-            'wpUserId'         => (int) ($datos['wp_user_id'] ?? 0),
-            'username'         => $datos['username'] ?? '',
-            'email'            => $datos['email'] ?? '',
-            'nombreVisible'    => $datos['nombre_visible'] ?? $datos['display_name'] ?? '',
-            'bio'              => $datos['bio'] ?? '',
+            'id'               => (int) ($datos[UsuariosExtCols::ID] ?? 0),
+            'wpUserId'         => (int) ($datos[UsuariosExtCols::WP_USER_ID] ?? 0),
+            'username'         => $datos[UsuariosExtCols::USERNAME] ?? '',
+            'email'            => $datos[UsuariosExtCols::EMAIL] ?? '',
+            'nombreVisible'    => $datos[UsuariosExtCols::NOMBRE_VISIBLE] ?? $datos['display_name'] ?? '',
+            'bio'              => $datos[UsuariosExtCols::BIO] ?? '',
             'avatarUrl'        => $avatarUrl,
-            'portadaUrl'       => $datos['portada_url'] ?? null,
-            'plan'             => $datos['plan'] ?? 'free',
-            'rol'              => $datos['rol'] ?? 'usuario',
-            'verificado'       => (bool) ($datos['verificado'] ?? false),
-            'totalSeguidores'  => (int) ($datos['total_seguidores'] ?? 0),
-            'totalSeguidos'    => (int) ($datos['total_seguidos'] ?? 0),
-            'totalSamples'     => (int) ($datos['total_samples'] ?? 0),
-            'totalDescargas'   => (int) ($datos['total_descargas'] ?? 0),
-            'stripeCustomerId' => $datos['stripe_customer_id'] ?? null,
-            'stripeConnectId'  => $datos['stripe_connect_id'] ?? null,
-            'creadoAt'         => $datos['created_at'] ?? '',
-            'actualizadoAt'    => $datos['updated_at'] ?? '',
+            'portadaUrl'       => $datos[UsuariosExtCols::PORTADA_URL] ?? null,
+            'plan'             => $datos[UsuariosExtCols::PLAN] ?? 'free',
+            'rol'              => $datos[UsuariosExtCols::ROL] ?? 'usuario',
+            'verificado'       => (bool) ($datos[UsuariosExtCols::VERIFICADO] ?? false),
+            'totalSeguidores'  => (int) ($datos[UsuariosExtCols::TOTAL_SEGUIDORES] ?? 0),
+            'totalSeguidos'    => (int) ($datos[UsuariosExtCols::TOTAL_SEGUIDOS] ?? 0),
+            'totalSamples'     => (int) ($datos[UsuariosExtCols::TOTAL_SAMPLES] ?? 0),
+            'totalDescargas'   => (int) ($datos[UsuariosExtCols::TOTAL_DESCARGAS] ?? 0),
+            'stripeCustomerId' => $datos[UsuariosExtCols::STRIPE_CUSTOMER_ID] ?? null,
+            'stripeConnectId'  => $datos[UsuariosExtCols::STRIPE_CONNECT_ID] ?? null,
+            'creadoAt'         => $datos[UsuariosExtCols::CREATED_AT] ?? '',
+            'actualizadoAt'    => $datos[UsuariosExtCols::UPDATED_AT] ?? '',
             'descargasHoy'     => (int) ($datos['descargas_hoy'] ?? 0),
             'limiteDescargas'  => (int) ($datos['limite_descargas'] ?? 5),
             'subidasEsteMes'   => (int) ($datos['subidas_este_mes'] ?? 0),

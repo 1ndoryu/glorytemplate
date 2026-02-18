@@ -18,6 +18,7 @@ use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Services\MotorRecomendacion;
 use App\Kamples\Services\PlanificadorAlgoritmo;
+use App\Config\Schema\_generated\SamplesCols;
 
 class ReproduccionesController
 {
@@ -159,9 +160,9 @@ class ReproduccionesController
             return new \WP_REST_Response(['data' => []], 200);
         }
 
-        $tags = NormalizadorSample::pgArrayToPhp($sample['tags'] ?? '');
-        $bpm = $sample['bpm'] ? (int) $sample['bpm'] : 120;
-        $key = $sample['key'] ?? null;
+        $tags = NormalizadorSample::pgArrayToPhp($sample[SamplesCols::TAGS] ?? '');
+        $bpm = $sample[SamplesCols::BPM] ? (int) $sample[SamplesCols::BPM] : 120;
+        $key = $sample[SamplesCols::KEY] ?? null;
 
         /* Scoring por similitud de tags + proximidad BPM + match de key + mismo tipo */
         $params = ['sampleId' => $sampleId, 'limit' => $limite, 'bpm' => $bpm];
@@ -177,7 +178,7 @@ class ReproduccionesController
         if ($key) $params['skey'] = $key;
 
         $tipoScore = "CASE WHEN s.tipo = :stipo THEN 3 ELSE 0 END";
-        $params['stipo'] = $sample['tipo'] ?? 'one shot';
+        $params['stipo'] = $sample[SamplesCols::TIPO] ?? 'one shot';
 
         $sql = NormalizadorSample::sqlSelectSamples()
              . " WHERE s.estado = 'activo' AND s.id != :sampleId"

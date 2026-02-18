@@ -11,6 +11,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class DashboardController
 {
@@ -91,13 +92,13 @@ class DashboardController
             'ingresosTotal'       => (float) ($ingresosTotal['total'] ?? 0),
             'ingresosMes'         => (float) ($ingresosMes['total'] ?? 0),
             'ingresosAnterior'    => (float) ($ingresosAnterior['total'] ?? 0),
-            'descargasTotal'      => (int) ($usuario['total_descargas'] ?? 0),
+            'descargasTotal'      => (int) ($usuario[UsuariosExtCols::TOTAL_DESCARGAS] ?? 0),
             'descargasMes'        => (int) ($descargasMes['total'] ?? 0),
             'reproduccionesTotal' => (int) ($reproduccionesTotal['total'] ?? 0),
             'reproduccionesMes'   => (int) ($reproduccionesMes['total'] ?? 0),
-            'seguidoresTotal'     => (int) ($usuario['total_seguidores'] ?? 0),
+            'seguidoresTotal'     => (int) ($usuario[UsuariosExtCols::TOTAL_SEGUIDORES] ?? 0),
             'seguidoresNuevosMes' => (int) ($seguidoresNuevos['total'] ?? 0),
-            'samplesPublicados'   => (int) ($usuario['total_samples'] ?? 0),
+            'samplesPublicados'   => (int) ($usuario[UsuariosExtCols::TOTAL_SAMPLES] ?? 0),
         ]], 200);
     }
 

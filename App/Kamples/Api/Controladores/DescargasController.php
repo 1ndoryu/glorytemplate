@@ -16,6 +16,9 @@ use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\StripeService;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\ColeccionesCols;
 
 class DescargasController
 {
@@ -116,13 +119,13 @@ class DescargasController
             return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
         }
 
-        $rutaArchivo = $sample['ruta_original'] ?? $sample['ruta_optimizada'] ?? '';
+        $rutaArchivo = $sample[SamplesCols::RUTA_ORIGINAL] ?? $sample[SamplesCols::RUTA_OPTIMIZADA] ?? '';
         if (!$rutaArchivo || !file_exists($rutaArchivo)) {
             return new \WP_REST_Response(['code' => 'archivo_no_encontrado'], 404);
         }
 
         /* Stream del archivo via PHP — nunca exponer ruta real */
-        $nombre = ($sample['titulo'] ?? 'sample') . '.' . pathinfo($rutaArchivo, PATHINFO_EXTENSION);
+        $nombre = ($sample[SamplesCols::TITULO] ?? 'sample') . '.' . pathinfo($rutaArchivo, PATHINFO_EXTENSION);
         $mime = wp_check_filetype($rutaArchivo)['type'] ?? 'application/octet-stream';
         $tamano = filesize($rutaArchivo);
 
@@ -148,7 +151,7 @@ class DescargasController
 
         /* Obtener plan del usuario */
         $usuario = UsuarioHelper::obtenerPorId($userId);
-        $plan = $usuario['plan'] ?? 'free';
+        $plan = $usuario[UsuariosExtCols::PLAN] ?? 'free';
         $configPlan = StripeService::obtenerConfigPlan($plan);
 
         /* Verificar que el sample existe y permite descarga */
@@ -162,7 +165,7 @@ class DescargasController
             return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
         }
 
-        if (!(bool) $sample['permitir_descarga'] && (int) $sample['creador_id'] !== $userId) {
+        if (!(bool) $sample[SamplesCols::PERMITIR_DESCARGA] && (int) $sample[SamplesCols::CREADOR_ID] !== $userId) {
             return new \WP_REST_Response(['ok' => false, 'error' => 'Este sample no permite descargas'], 403);
         }
 
@@ -170,7 +173,7 @@ class DescargasController
          * C138: Determinar si la descarga consume créditos.
          * Gratis si: el usuario es el creador, o ya lo descargó antes.
          */
-        $esPropietario = (int) $sample['creador_id'] === $userId;
+        $esPropietario = (int) $sample[SamplesCols::CREADOR_ID] === $userId;
         $yaDescargado = false;
         if (!$esPropietario) {
             $descargaPrevia = PostgresService::consultarUno(
@@ -182,15 +185,15 @@ class DescargasController
         $consumeCredito = !$esPropietario && !$yaDescargado;
 
         /* Samples premium requieren plan pro o superior (excepto para el creador) */
-        if ((bool) $sample['es_premium'] && $plan === 'free' && !$esPropietario) {
+        if ((bool) $sample[SamplesCols::ES_PREMIUM] && $plan === 'free' && !$esPropietario) {
             return new \WP_REST_Response(['ok' => false, 'error' => 'Se requiere plan Pro o Premium para descargar este sample'], 403);
         }
 
         /* Determinar calidad y archivo */
         $calidad = self::CALIDAD_PLAN[$plan] ?? 'mp3';
         $rutaArchivo = $calidad === 'wav'
-            ? ($sample['ruta_original'] ?? $sample['ruta_optimizada'])
-            : ($sample['ruta_optimizada'] ?? $sample['ruta_original']);
+            ? ($sample[SamplesCols::RUTA_ORIGINAL] ?? $sample[SamplesCols::RUTA_OPTIMIZADA])
+            : ($sample[SamplesCols::RUTA_OPTIMIZADA] ?? $sample[SamplesCols::RUTA_ORIGINAL]);
 
         /*
          * C138: Solo verificar límites y registrar descarga si consume crédito.
@@ -215,7 +218,7 @@ class DescargasController
                     "SELECT creditos_bonus FROM usuarios_ext WHERE id = :userId",
                     ['userId' => $userId]
                 );
-                $creditosBonus = (int) ($datosUsuario['creditos_bonus'] ?? 0);
+                $creditosBonus = (int) ($datosUsuario[UsuariosExtCols::CREDITOS_BONUS] ?? 0);
                 $limiteEfectivo = $limite + $creditosBonus;
 
                 $descargasHoy = PostgresService::consultarUno(
@@ -278,7 +281,7 @@ class DescargasController
             /* Actualizar contador en usuario creador */
             PostgresService::ejecutar(
                 "UPDATE usuarios_ext SET total_descargas = total_descargas + 1 WHERE id = :id",
-                ['id' => $sample['creador_id']]
+                ['id' => $sample[SamplesCols::CREADOR_ID]]
             );
         }
 
@@ -286,10 +289,10 @@ class DescargasController
         PlanificadorAlgoritmo::registrarInteraccion($userId, 'descarga');
 
         /* Revenue share: registrar transacción si el descargador tiene plan de pago */
-        if ($plan !== 'free' && (int) $sample['creador_id'] !== $userId) {
+        if ($plan !== 'free' && (int) $sample[SamplesCols::CREADOR_ID] !== $userId) {
             self::registrarTransaccionRevenueShare(
                 $userId,
-                (int) $sample['creador_id'],
+                (int) $sample[SamplesCols::CREADOR_ID],
                 $sampleId,
                 $plan
             );
@@ -312,7 +315,7 @@ class DescargasController
         return new \WP_REST_Response([
             'ok'      => true,
             'url'     => rest_url("kamples/v1/descargas/stream?token=" . urlencode($tokenDescarga)),
-            'nombre'  => ($sample['titulo'] ?? 'sample') . '.' . $calidad,
+            'nombre'  => ($sample[SamplesCols::TITULO] ?? 'sample') . '.' . $calidad,
             'formato' => $calidad,
             'tamano'  => $tamanoBytes,
         ], 200);
@@ -327,12 +330,12 @@ class DescargasController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $usuario = UsuarioHelper::obtenerPorId($userId);
-        $plan = $usuario['plan'] ?? 'free';
+        $plan = $usuario[UsuariosExtCols::PLAN] ?? 'free';
         $configPlan = StripeService::obtenerConfigPlan($plan);
         $limite = $configPlan['descargas_dia'] ?? 5;
 
         /* C198: Incluir créditos bonus por publicar samples */
-        $creditosBonus = (int) ($usuario['creditos_bonus'] ?? 0);
+        $creditosBonus = (int) ($usuario[UsuariosExtCols::CREDITOS_BONUS] ?? 0);
         $limiteEfectivo = ($limite > 0) ? $limite + $creditosBonus : $limite;
 
         $descargasHoy = PostgresService::consultarUno(
@@ -391,7 +394,7 @@ class DescargasController
         }
 
         /* S11: Verificar que la colección pertenezca al usuario o sea pública para evitar IDOR */
-        $esPropietario = (int) ($coleccion['usuario_id'] ?? 0) === $userId;
+        $esPropietario = (int) ($coleccion[ColeccionesCols::USUARIO_ID] ?? 0) === $userId;
         if (!$esPropietario) {
             $esPub = PostgresService::consultarUno(
                 "SELECT 1 FROM colecciones WHERE id = :id AND publica = true",
@@ -417,7 +420,7 @@ class DescargasController
         }
 
         /* Verificar créditos: descontar samples ya descargados previamente */
-        $sampleIds = array_map(fn($s) => (int) $s['id'], $samples);
+        $sampleIds = array_map(fn($s) => (int) $s[SamplesCols::ID], $samples);
         $placeholders = implode(',', array_fill(0, count($sampleIds), '?'));
         $params = array_merge([$userId], $sampleIds);
 
@@ -441,13 +444,13 @@ class DescargasController
 
         /* Verificar plan y límites */
         $usuario = UsuarioHelper::obtenerPorId($userId);
-        $plan = $usuario['plan'] ?? 'free';
+        $plan = $usuario[UsuariosExtCols::PLAN] ?? 'free';
         $configPlan = StripeService::obtenerConfigPlan($plan);
         $limite = $configPlan['descargas_dia'] ?? 5;
 
         if ($limite > 0) {
             /* C198: Incluir créditos bonus */
-            $creditosBonus = (int) ($usuario['creditos_bonus'] ?? 0);
+            $creditosBonus = (int) ($usuario[UsuariosExtCols::CREDITOS_BONUS] ?? 0);
             $limiteEfectivo = $limite + $creditosBonus;
 
             $descargasHoy = PostgresService::consultarUno(
@@ -517,12 +520,12 @@ class DescargasController
 
             $nombresUsados = [];
             foreach ($samples as $sample) {
-                $rutaArchivo = $sample['ruta_original'] ?? $sample['ruta_optimizada'];
+                $rutaArchivo = $sample[SamplesCols::RUTA_ORIGINAL] ?? $sample[SamplesCols::RUTA_OPTIMIZADA];
                 if (!$rutaArchivo || !file_exists($rutaArchivo)) continue;
 
                 /* Evitar nombres duplicados en el ZIP */
                 $extension = pathinfo($rutaArchivo, PATHINFO_EXTENSION);
-                $nombreBase = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $sample['titulo'] ?? 'sample');
+                $nombreBase = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $sample[SamplesCols::TITULO] ?? 'sample');
                 $nombreFinal = "{$nombreBase}.{$extension}";
                 $contador = 1;
                 while (in_array($nombreFinal, $nombresUsados)) {
@@ -547,22 +550,22 @@ class DescargasController
         /* Registrar descargas solo de samples nuevos (no descargados previamente) */
         $calidad = self::CALIDAD_PLAN[$plan] ?? 'wav';
         foreach ($samplesNuevos as $sample) {
-            $rutaArchivo = $sample['ruta_original'] ?? $sample['ruta_optimizada'];
+            $rutaArchivo = $sample[SamplesCols::RUTA_ORIGINAL] ?? $sample[SamplesCols::RUTA_OPTIMIZADA];
             $tamanoBytes = ($rutaArchivo && file_exists($rutaArchivo)) ? filesize($rutaArchivo) : 0;
 
             PostgresService::ejecutar(
                 "INSERT INTO descargas (usuario_id, sample_id, calidad, tamano_bytes) VALUES (:userId, :sampleId, :calidad, :tamano)",
-                ['userId' => $userId, 'sampleId' => $sample['id'], 'calidad' => $calidad, 'tamano' => $tamanoBytes]
+                ['userId' => $userId, 'sampleId' => $sample[SamplesCols::ID], 'calidad' => $calidad, 'tamano' => $tamanoBytes]
             );
 
             PostgresService::ejecutar(
                 "UPDATE samples SET total_descargas = total_descargas + 1 WHERE id = :id",
-                ['id' => $sample['id']]
+                ['id' => $sample[SamplesCols::ID]]
             );
 
             /* Revenue share por cada sample de otro creador */
-            if ($plan !== 'free' && (int) $sample['creador_id'] !== $userId) {
-                self::registrarTransaccionRevenueShare($userId, (int) $sample['creador_id'], (int) $sample['id'], $plan);
+            if ($plan !== 'free' && (int) $sample[SamplesCols::CREADOR_ID] !== $userId) {
+                self::registrarTransaccionRevenueShare($userId, (int) $sample[SamplesCols::CREADOR_ID], (int) $sample[SamplesCols::ID], $plan);
             }
         }
 

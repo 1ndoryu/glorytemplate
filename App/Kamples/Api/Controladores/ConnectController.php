@@ -18,6 +18,7 @@ use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\StripeService;
 use App\Kamples\KamplesLogger;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class ConnectController
 {
@@ -59,7 +60,7 @@ class ConnectController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $usuario = UsuarioHelper::obtenerPorId($userId);
-        $email = $usuario['email'] ?? '';
+        $email = $usuario[UsuariosExtCols::EMAIL] ?? '';
 
         if (empty($email)) {
             return new \WP_REST_Response([
@@ -68,7 +69,7 @@ class ConnectController
             ], 400);
         }
 
-        $connectId = $usuario['stripe_connect_id'] ?? null;
+        $connectId = $usuario[UsuariosExtCols::STRIPE_CONNECT_ID] ?? null;
 
         /* Si no tiene cuenta Connect, crearla */
         if (empty($connectId)) {
@@ -91,7 +92,7 @@ class ConnectController
             }
 
             /* Actualizar rol a creador si aún es 'usuario' */
-            if (($usuario['rol'] ?? 'usuario') === 'usuario') {
+            if (($usuario[UsuariosExtCols::ROL] ?? 'usuario') === 'usuario') {
                 PostgresService::ejecutar(
                     "UPDATE usuarios_ext SET rol = 'creador' WHERE id = :id",
                     ['id' => $userId]
@@ -141,7 +142,7 @@ class ConnectController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $usuario = UsuarioHelper::obtenerPorId($userId);
-        $connectId = $usuario['stripe_connect_id'] ?? null;
+        $connectId = $usuario[UsuariosExtCols::STRIPE_CONNECT_ID] ?? null;
 
         /* Sin cuenta Connect → estado: no_configurado */
         if (empty($connectId)) {
@@ -210,7 +211,7 @@ class ConnectController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $usuario = UsuarioHelper::obtenerPorId($userId);
-        $connectId = $usuario['stripe_connect_id'] ?? null;
+        $connectId = $usuario[UsuariosExtCols::STRIPE_CONNECT_ID] ?? null;
 
         if (empty($connectId)) {
             return new \WP_REST_Response([
@@ -244,7 +245,7 @@ class ConnectController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $usuario = UsuarioHelper::obtenerPorId($userId);
-        $connectId = $usuario['stripe_connect_id'] ?? null;
+        $connectId = $usuario[UsuariosExtCols::STRIPE_CONNECT_ID] ?? null;
 
         if (empty($connectId)) {
             return new \WP_REST_Response([

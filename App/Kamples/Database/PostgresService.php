@@ -17,6 +17,7 @@
 namespace App\Kamples\Database;
 
 use App\Kamples\KamplesLogger;
+use Glory\Core\SchemaRegistry;
 use PDO;
 use PDOException;
 
@@ -93,9 +94,12 @@ class PostgresService
     /*
      * Ejecuta una consulta preparada y retorna los resultados.
      * Retorna array vacío si la consulta falla.
+     * En modo estricto (WP_DEBUG), valida tablas contra SchemaRegistry.
      */
     public static function consultar(string $sql, array $params = []): array
     {
+        self::validarQueryContraSchema($sql);
+
         $pdo = self::obtenerConexion();
         if ($pdo === null) {
             return [];
@@ -116,9 +120,12 @@ class PostgresService
 
     /*
      * Ejecuta una consulta preparada y retorna una sola fila.
+     * En modo estricto (WP_DEBUG), valida tablas contra SchemaRegistry.
      */
     public static function consultarUno(string $sql, array $params = []): ?array
     {
+        self::validarQueryContraSchema($sql);
+
         $pdo = self::obtenerConexion();
         if ($pdo === null) {
             return null;
@@ -279,5 +286,30 @@ class PostgresService
     {
         self::$conexion = null;
         self::$intentoFallido = false;
+    }
+
+    /*
+     * Valida tablas referenciadas en una query SQL contra SchemaRegistry.
+     * Solo activo en modo estricto (WP_DEBUG).
+     * Extrae nombres de tabla de FROM/JOIN/INTO/UPDATE y verifica que tengan schema.
+     */
+    private static function validarQueryContraSchema(string $sql): void
+    {
+        if (!SchemaRegistry::modoEstricto()) {
+            return;
+        }
+
+        /* Extraer tablas de la query: FROM tabla, JOIN tabla, INTO tabla, UPDATE tabla */
+        $patron = '/\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-z_]+)/i';
+        if (preg_match_all($patron, $sql, $matches)) {
+            foreach ($matches[1] as $tabla) {
+                $tabla = strtolower($tabla);
+                /* Ignorar tablas del sistema WP y aliases comunes */
+                if (in_array($tabla, ['information_schema', 'pg_extension', 'pg_indexes', 'pg_class', 'pg_attribute'])) {
+                    continue;
+                }
+                SchemaRegistry::exigirTabla($tabla);
+            }
+        }
     }
 }

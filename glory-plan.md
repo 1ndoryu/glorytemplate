@@ -577,3 +577,139 @@ Las referencias a `App/` en `vite.config.ts`, `tsconfig.json`, `eslint.config.js
 | Duplicación `configurarFlags` entre setup.mjs e installer.mjs | Baja prioridad |
 | `editorjs.d.ts` tipos vagos `unknown` | Requiere investigar @types disponibles |
 
+---
+
+## 8. Glory Schema System — Fase 13 (18-02-2026)
+
+> Tipado end-to-end desde la base de datos hasta React. Eliminar strings hardcodeados de columnas/meta fields.
+> Resolver el problema de que PHP no detecta errores en claves de array hasta runtime.
+
+### 8.0 Problema
+
+El stack **PHP + SQL raw + arrays asociativos** no ofrece validación de nombres de columna:
+- `$row['username']` — si la columna real es `user_name`, falla silenciosamente (null)
+- `get_post_meta($id, 'precio')` — si el meta key real es `_precio`, null silencioso
+- Ya ocurrieron renombramientos reales (`completa`→`completada`, `vendedor_id`→`creador_id`) que requirieron búsqueda manual
+- ~15 archivos PHP con ~165 columnas hardcodeadas como strings en ~18 tablas
+- No hay constantes, DTOs, ni validación de ningún tipo
+
+**Objetivo:** Hacer que el camino correcto sea el camino fácil. No depender de disciplina sino de que el framework rechace el camino incorrecto.
+
+### 8.1 Paso 1 — Schema Declarations (Source of Truth)
+
+**Archivos clave:**
+- `Glory/src/Contracts/TableSchema.php` — Clase base abstracta para tablas custom (PostgreSQL, MySQL, cualquier DB)
+- `Glory/src/Contracts/PostTypeSchema.php` — Clase base abstracta para post types de WordPress
+- `Glory/src/Core/SchemaRegistry.php` — Registro central que carga y valida todos los schemas
+
+**Flujo:**
+1. Para cada tabla/post type, se crea una clase que extiende `TableSchema` o `PostTypeSchema`
+2. La clase declara nombre de tabla, columnas con tipos, constraints, defaults y nullability
+3. `SchemaRegistry` autocarga todos los schemas desde `App/Config/Schema/` al bootstrap
+4. Los schemas son la **unica fuente de verdad** — todo lo demas se genera desde ellos
+
+**Cubre ambos mundos:**
+- **DB custom** (Kamples/PostgreSQL): `TableSchema` con columnas tipadas
+- **WordPress genérico** (post types): `PostTypeSchema` con meta fields tipados
+
+### 8.2 Paso 2 — Generador Automatico (Schema → PHP + TypeScript)
+
+**Comando:** `npx glory schema:generate`
+
+**Genera desde cada Schema:**
+
+| Generado | Para qué | Ejemplo |
+|----------|----------|---------|
+| `{Tabla}Cols.php` | Constantes de columna (autocomplete, refactor-safe) | `UsuariosExtCols::USERNAME` |
+| `{Tabla}DTO.php` | Clase tipada con `desdeRow(array)` que valida claves | `UsuarioDTO::desdeRow($row)` |
+| `schema.ts` | Interfaces TypeScript equivalentes | `IUsuarioExt { username: string }` |
+| `{PostType}Meta.php` | Getters tipados para meta fields WP | `ProductoMeta::precio($postId)` |
+
+**Directorio de salida:** `App/Config/Schema/_generated/` (PHP) y `App/React/types/_generated/` (TS)
+
+**Regla:** Los archivos `_generated/` son **auto-generados y nunca se editan manualmente**. El generador los sobreescribe en cada ejecución.
+
+### 8.3 Paso 3 — Enforcement (Imposible Saltarlo)
+
+**3a. Validación en desarrollo (runtime):**
+- `SchemaRegistry::modoEstricto()` = true cuando `WP_DEBUG` está activo
+- En modo estricto, `PostgresService` valida que las tablas referenciadas en queries tengan Schema registrado
+- Si se accede a `$row['columna_inexistente']`, el DTO lanza `SchemaException`
+
+**3b. Validación en build (estática):**
+- `npx glory schema:validate` escanea todo el código PHP buscando:
+  - `$row['xxx']`, `$resultado['xxx']`, `$usuario['xxx']` → cruza contra schemas
+  - `get_post_meta($id, 'xxx')` → cruza contra PostTypeSchemas
+- Error si encuentra referencia a columna/meta que no existe en ningún schema
+- Se integra como `prebuild` en package.json
+
+**3c. CLI fuerza el patron:**
+- `npx glory create table <nombre>` genera el Schema + migración SQL automaticamente
+- `npx glory create posttype <nombre>` genera el Schema + registro PHP
+- No se puede crear una tabla sin su Schema
+
+### 8.4 Paso 4 — DX y Migracion
+
+**CLI commands:**
+| Comando | Qué hace |
+|---------|----------|
+| `npx glory schema:generate` | Lee Schemas → genera PHP constants + DTOs + TS types |
+| `npx glory schema:validate` | Escanea código PHP → busca strings sin Schema |
+| `npx glory create table <nombre>` | Crea Schema + migración SQL |
+
+**Migración del código existente:**
+1. Crear schemas para las 18 tablas de Kamples (leyendo migraciones SQL)
+2. Ejecutar `schema:generate` → genera constantes + DTOs + tipos TS
+3. Migrar controllers uno a uno: `$row['username']` → `UsuariosExtCols::USERNAME`
+4. Activar modo estricto → strings hardcodeados restantes generan error en dev
+
+**Estructura de archivos:**
+```
+Glory/src/
+├── Contracts/
+│   ├── TableSchema.php           # Base para tablas custom
+│   └── PostTypeSchema.php        # Base para post types WP
+├── Core/
+│   └── SchemaRegistry.php        # Registro central + validación
+├── Exception/
+│   └── SchemaException.php       # Excepción tipada
+└── Console/
+    └── (vacío — CLI vive en glory.mjs)
+
+Glory/cli/
+├── schemaGenerate.mjs            # Generador PHP + TS
+├── schemaValidate.mjs            # Scanner de código
+└── createTable.mjs               # Scaffolding tabla + schema
+
+App/Config/Schema/                # Schemas del proyecto
+├── UsuariosExtSchema.php
+├── SamplesSchema.php
+├── PublicacionesSchema.php
+├── ... (18 tablas)
+└── _generated/                   # Auto-generado
+    ├── UsuariosExtCols.php
+    ├── UsuarioExtDTO.php
+    ├── SamplesCols.php
+    ├── SampleDTO.php
+    └── ...
+
+App/React/types/_generated/
+└── schema.ts                     # Interfaces TS auto-generadas
+```
+
+### 8.5 Checklist de Implementacion
+
+- [ ] 8.5.1 `Glory/src/Contracts/TableSchema.php` — Clase base abstracta
+- [ ] 8.5.2 `Glory/src/Contracts/PostTypeSchema.php` — Clase base abstracta
+- [ ] 8.5.3 `Glory/src/Core/SchemaRegistry.php` — Registro central
+- [ ] 8.5.4 `Glory/src/Exception/SchemaException.php` — Excepción tipada
+- [ ] 8.5.5 Schemas para 18 tablas de Kamples (App/Config/Schema/)
+- [ ] 8.5.6 `Glory/cli/schemaGenerate.mjs` — Generador CLI
+- [ ] 8.5.7 Archivos `_generated/` para todas las tablas (PHP + TS)
+- [ ] 8.5.8 `Glory/cli/schemaValidate.mjs` — Scanner de código
+- [ ] 8.5.9 `Glory/cli/createTable.mjs` — Scaffolding de tablas
+- [ ] 8.5.10 Integración en `glory.mjs` (nuevos comandos)
+- [ ] 8.5.11 Enforcement en `PostgresService.php` (modo estricto)
+- [ ] 8.5.12 Migrar controllers de Kamples a usar constantes
+- [ ] 8.5.13 Integrar `schema:validate` en prebuild de package.json
+

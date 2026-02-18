@@ -18,6 +18,7 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\PostgresService;
 use App\Kamples\Auth\AuthMiddleware;
+use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 
 class AdminController
@@ -275,11 +276,11 @@ class AdminController
 
         /* C193: Fallback avatar moderación */
         foreach ($publicaciones as &$pub) {
-            $pub['avatar_url'] = UsuarioHelper::resolverAvatarUrl(
-                $pub['avatar_url'] ?? null,
-                isset($pub['wp_user_id']) ? (int) $pub['wp_user_id'] : null
+            $pub[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(
+                $pub[UsuariosExtCols::AVATAR_URL] ?? null,
+                isset($pub[UsuariosExtCols::WP_USER_ID]) ? (int) $pub[UsuariosExtCols::WP_USER_ID] : null
             );
-            unset($pub['wp_user_id']);
+            unset($pub[UsuariosExtCols::WP_USER_ID]);
         }
         unset($pub);
 

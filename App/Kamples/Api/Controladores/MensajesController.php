@@ -13,6 +13,8 @@ use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
+use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\SamplesCols;
 
 class MensajesController
 {
@@ -21,11 +23,11 @@ class MensajesController
     {
         if (!$usuario) return null;
         return [
-            'id'             => (int) $usuario['id'],
-            'username'       => $usuario['username'] ?? '',
-            'nombreVisible'  => $usuario['nombre_visible'] ?? $usuario['username'] ?? '',
-            'avatarUrl'      => $usuario['avatar_url'] ?? null,
-            'verificado'     => (bool) ($usuario['verificado'] ?? false),
+            'id'             => (int) $usuario[UsuariosExtCols::ID],
+            'username'       => $usuario[UsuariosExtCols::USERNAME] ?? '',
+            'nombreVisible'  => $usuario[UsuariosExtCols::NOMBRE_VISIBLE] ?? $usuario[UsuariosExtCols::USERNAME] ?? '',
+            'avatarUrl'      => $usuario[UsuariosExtCols::AVATAR_URL] ?? null,
+            'verificado'     => (bool) ($usuario[UsuariosExtCols::VERIFICADO] ?? false),
         ];
     }
     public static function registrarRutas(string $namespace): void
@@ -295,15 +297,15 @@ class MensajesController
             }
 
             $mediaMetadata = json_encode([
-                'sampleId' => (int) $sample['id'],
-                'titulo'   => $sample['titulo'],
-                'idCorto'  => $sample['id_corto'],
-                'slug'     => $sample['slug'],
-                'tipo'     => $sample['tipo'],
-                'bpm'      => $sample['bpm'],
-                'key'      => $sample['key'],
+                'sampleId' => (int) $sample[SamplesCols::ID],
+                'titulo'   => $sample[SamplesCols::TITULO],
+                'idCorto'  => $sample[SamplesCols::ID_CORTO],
+                'slug'     => $sample[SamplesCols::SLUG],
+                'tipo'     => $sample[SamplesCols::TIPO],
+                'bpm'      => $sample[SamplesCols::BPM],
+                'key'      => $sample[SamplesCols::KEY],
             ]);
-            $contenido = $contenido ?: $sample['titulo'];
+            $contenido = $contenido ?: $sample[SamplesCols::TITULO];
 
         } else {
             /* Tipo texto: validar que no esté vacío */

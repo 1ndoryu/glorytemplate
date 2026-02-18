@@ -26,6 +26,8 @@ use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Services\ServicioNotificaciones;
+use App\Config\Schema\_generated\PublicacionesCols;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class PublicacionesController
 {
@@ -146,22 +148,22 @@ class PublicacionesController
 
         /* Enriquecer con contadores y parsear arrays PostgreSQL */
         foreach ($publicaciones as &$pub) {
-            $pub['totalComentarios'] = (int) ($pub['total_comentarios'] ?? 0);
-            $pub['totalLikes'] = (int) ($pub['total_likes'] ?? 0);
-            $pub['totalReposts'] = (int) ($pub['total_reposts'] ?? 0);
-            $pub['creadoAt'] = $pub['created_at'] ?? '';
+            $pub['totalComentarios'] = (int) ($pub[PublicacionesCols::TOTAL_COMENTARIOS] ?? 0);
+            $pub['totalLikes'] = (int) ($pub[PublicacionesCols::TOTAL_LIKES] ?? 0);
+            $pub['totalReposts'] = (int) ($pub[PublicacionesCols::TOTAL_REPOSTS] ?? 0);
+            $pub['creadoAt'] = $pub[PublicacionesCols::CREATED_AT] ?? '';
             $pub['liked'] = in_array($pub['reaccion_usuario'] ?? null, ['like', 'encanta'], true);
             $pub['reaccion'] = $pub['reaccion_usuario'] ?? null;
             unset($pub['reaccion_usuario']);
-            $pub['moderacionEstado'] = $pub['moderacion_estado'] ?? null;
-            $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub['imagenes'] ?? null);
-            $pub['samplesAdjuntos'] = array_map('intval', NormalizadorSample::pgArrayToPhp($pub['samples_adjuntos'] ?? null));
+            $pub['moderacionEstado'] = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;
+            $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::IMAGENES] ?? null);
+            $pub['samplesAdjuntos'] = array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
             $pub['autor'] = [
-                'id' => (int) $pub['autor_id'],
-                'username' => $pub['username'],
-                'nombreVisible' => $pub['nombre_visible'],
-                'avatarUrl' => UsuarioHelper::resolverAvatarUrl($pub['avatar_url'] ?? null, (int) ($pub['wp_user_id'] ?? 0)),
-                'verificado' => (bool) $pub['verificado'],
+                'id' => (int) $pub[PublicacionesCols::AUTOR_ID],
+                'username' => $pub[UsuariosExtCols::USERNAME],
+                'nombreVisible' => $pub[UsuariosExtCols::NOMBRE_VISIBLE],
+                'avatarUrl' => UsuarioHelper::resolverAvatarUrl($pub[UsuariosExtCols::AVATAR_URL] ?? null, (int) ($pub[UsuariosExtCols::WP_USER_ID] ?? 0)),
+                'verificado' => (bool) $pub[UsuariosExtCols::VERIFICADO],
             ];
         }
 
@@ -308,7 +310,7 @@ class PublicacionesController
             return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
         }
 
-        if ((int) $pub['autor_id'] !== $userId && !$esAdmin) {
+        if ((int) $pub[PublicacionesCols::AUTOR_ID] !== $userId && !$esAdmin) {
             return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'No tienes permiso para editar esta publicación'], 403);
         }
 
@@ -362,7 +364,7 @@ class PublicacionesController
 
         KamplesLogger::info('Publicación actualizada', [
             'publicacionId' => $id,
-            'por' => $esAdmin && (int) $pub['autor_id'] !== $userId ? 'admin' : 'autor',
+            'por' => $esAdmin && (int) $pub[PublicacionesCols::AUTOR_ID] !== $userId ? 'admin' : 'autor',
         ]);
 
         return new \WP_REST_Response(['ok' => true], 200);
@@ -389,12 +391,12 @@ class PublicacionesController
             return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
         }
 
-        if ((int) $pub['autor_id'] !== $userId && !$esAdmin) {
+        if ((int) $pub[PublicacionesCols::AUTOR_ID] !== $userId && !$esAdmin) {
             return new \WP_REST_Response(['code' => 'sin_permisos'], 403);
         }
 
         /* C266: Notificar al autor si un admin elimina su publicación */
-        $autorId = (int) $pub['autor_id'];
+        $autorId = (int) $pub[PublicacionesCols::AUTOR_ID];
         if ($esAdmin && $autorId !== $userId) {
             ServicioNotificaciones::publicacionEliminada($autorId, $id, 'Eliminada por un administrador');
         }
@@ -427,28 +429,28 @@ class PublicacionesController
          * Seguridad: no exponer publicaciones rechazadas a terceros.
          * Solo el autor puede ver sus propias publicaciones rechazadas.
          */
-        $estado = $pub['moderacion_estado'] ?? null;
+        $estado = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;
         if ($estado === 'rechazado') {
             $usuarioActual = UsuarioHelper::obtenerIdPg();
-            if (!$usuarioActual || $usuarioActual !== (int) $pub['autor_id']) {
+            if (!$usuarioActual || $usuarioActual !== (int) $pub[PublicacionesCols::AUTOR_ID]) {
                 return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
             }
         }
 
         $pub['autor'] = [
-            'id' => (int) $pub['autor_id'],
-            'username' => $pub['username'],
-            'nombreVisible' => $pub['nombre_visible'],
+            'id' => (int) $pub[PublicacionesCols::AUTOR_ID],
+            'username' => $pub[UsuariosExtCols::USERNAME],
+            'nombreVisible' => $pub[UsuariosExtCols::NOMBRE_VISIBLE],
             'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
-                $pub['avatar_url'] ?? null,
-                isset($pub['wp_user_id']) ? (int) $pub['wp_user_id'] : null
+                $pub[UsuariosExtCols::AVATAR_URL] ?? null,
+                isset($pub[UsuariosExtCols::WP_USER_ID]) ? (int) $pub[UsuariosExtCols::WP_USER_ID] : null
             ),
-            'verificado' => (bool) $pub['verificado'],
+            'verificado' => (bool) $pub[UsuariosExtCols::VERIFICADO],
         ];
-        $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub['imagenes'] ?? null);
-        $pub['samplesAdjuntos'] = array_map('intval', NormalizadorSample::pgArrayToPhp($pub['samples_adjuntos'] ?? null));
-        $pub['totalComentarios'] = (int) ($pub['total_comentarios'] ?? 0);
-        $pub['totalLikes'] = (int) ($pub['total_likes'] ?? 0);
+        $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::IMAGENES] ?? null);
+        $pub['samplesAdjuntos'] = array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
+        $pub['totalComentarios'] = (int) ($pub[PublicacionesCols::TOTAL_COMENTARIOS] ?? 0);
+        $pub['totalLikes'] = (int) ($pub[PublicacionesCols::TOTAL_LIKES] ?? 0);
 
         return new \WP_REST_Response(['data' => $pub], 200);
     }
