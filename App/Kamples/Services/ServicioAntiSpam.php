@@ -16,7 +16,7 @@
 namespace App\Kamples\Services;
 
 use App\Kamples\Database\PostgresService;
-use App\Kamples\KamplesLogger;
+use App\Kamples\LogModeracion as KamplesLogger;
 
 class ServicioAntiSpam
 {

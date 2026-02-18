@@ -123,7 +123,7 @@ class ReproduccionesController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $page = (int) $request->get_param('page');
+        $page = max(1, (int) $request->get_param('page'));
         $perPage = (int) $request->get_param('per_page');
         $offset = ($page - 1) * $perPage;
 

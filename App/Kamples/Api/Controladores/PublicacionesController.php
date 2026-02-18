@@ -84,7 +84,7 @@ class PublicacionesController
 
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
-        $page = (int) $request->get_param('page');
+        $page = max(1, (int) $request->get_param('page'));
         $filtro = $request->get_param('filtro');
         $autor = $request->get_param('autor');
         $offset = ($page - 1) * 20;
@@ -449,7 +449,7 @@ class PublicacionesController
     public static function listarComentarios(\WP_REST_Request $request): \WP_REST_Response
     {
         $pubId = (int) $request->get_param('id');
-        $page = (int) $request->get_param('page');
+        $page = max(1, (int) $request->get_param('page'));
         $offset = ($page - 1) * 20;
 
         $comentarios = PostgresService::consultar(

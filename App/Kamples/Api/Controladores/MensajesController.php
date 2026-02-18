@@ -131,7 +131,7 @@ class MensajesController
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $conversacionId = (int) $request->get_param('conversacionId');
-        $page = (int) $request->get_param('page');
+        $page = max(1, (int) $request->get_param('page'));
         $perPage = 50;
         $offset = ($page - 1) * $perPage;
 

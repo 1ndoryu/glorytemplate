@@ -119,7 +119,7 @@ class ColeccionesController
      */
     public static function explorar(\WP_REST_Request $request): \WP_REST_Response
     {
-        $page = (int) $request->get_param('page');
+        $page = max(1, (int) $request->get_param('page'));
         $offset = ($page - 1) * 20;
         $busqueda = sanitize_text_field($request->get_param('busqueda') ?? '');
         $userId = UsuarioHelper::obtenerIdPg();
@@ -458,8 +458,8 @@ class ColeccionesController
     public static function sugerencias(\WP_REST_Request $request): \WP_REST_Response
     {
         $colId = (int) $request->get_param('id');
-        $page = (int) $request->get_param('page');
-        $perPage = (int) $request->get_param('per_page');
+        $page = max(1, (int) $request->get_param('page'));
+        $perPage = max(1, (int) $request->get_param('per_page'));
         $offset = ($page - 1) * $perPage;
 
         /* Obtener tags, BPM y keys de los samples en la colección para calcular similitud */

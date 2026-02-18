@@ -124,7 +124,7 @@ class DashboardController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $page = (int) $request->get_param('page');
+        $page = max(1, (int) $request->get_param('page'));
         $offset = ($page - 1) * 20;
 
         $transacciones = PostgresService::consultar(

@@ -23,7 +23,7 @@ use App\Kamples\Services\ServicioAntiSpam;
 use App\Kamples\Services\ServicioBan;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Kamples\Api\ServicioModeracionIA;
-use App\Kamples\LogIA as KamplesLogger;
+use App\Kamples\LogModeracion as KamplesLogger;
 
 class ComentariosController
 {
@@ -91,7 +91,7 @@ class ComentariosController
     {
         $tipo = $request->get_param('tipo');
         $targetId = (int) $request->get_param('targetId');
-        $page = (int) $request->get_param('page');
+        $page = max(1, (int) $request->get_param('page'));
         $offset = ($page - 1) * 20;
 
         if (!in_array($tipo, self::TIPOS_VALIDOS, true)) {
