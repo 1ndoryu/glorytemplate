@@ -377,8 +377,8 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 if (fin > compasInicio) compasInicio = fin;
             }
 
-            /* Extraer peaks para mini waveform */
-            const waveformPeaks = extraerPeaks(buffer, Math.max(30, info.duracionCompases * 20));
+            /* Extraer peaks para mini waveform — C278: alta densidad para DAW */
+            const waveformPeaks = extraerPeaks(buffer, Math.max(60, Math.round(info.duracionCompases * 60)));
 
             /* Color según tipo */
             const tipoSample = sample.tipo?.toLowerCase() ?? 'default';
@@ -508,7 +508,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 if (fin > compasInicio) compasInicio = fin;
             }
 
-            const waveformPeaks = extraerPeaks(buffer, Math.max(30, info.duracionCompases * 20));
+            const waveformPeaks = extraerPeaks(buffer, Math.max(60, Math.round(info.duracionCompases * 60)));
 
             const nuevoBloque: BloqueMezclador = {
                 id: bloqueId,
@@ -623,7 +623,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                         const durMaxCompases = b.audioBuffer.duration / (durCompas * b.playbackRate);
                         const durClamped = Math.max(0.25, Math.min(nuevaDuracion, durMaxCompases));
                         const recorteFin = durClamped * durCompas * b.playbackRate;
-                        const numPeaks = Math.max(30, Math.round(durClamped * 20));
+                        const numPeaks = Math.max(60, Math.round(durClamped * 60));
                         const waveformPeaks = extraerPeaks(
                             b.audioBuffer, numPeaks,
                             b.recorteInicio, recorteFin - b.recorteInicio

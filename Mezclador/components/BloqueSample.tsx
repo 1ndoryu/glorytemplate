@@ -250,7 +250,14 @@ export const BloqueSample = ({
 
             {bloque.waveformPeaks.length > 0 && (
                 <svg className="mezcladorBloqueWaveform" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <path d={waveformPath} stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.7" />
+                    <path
+                        d={waveformPath}
+                        stroke="currentColor"
+                        strokeWidth="1"
+                        fill="none"
+                        opacity="0.7"
+                        vectorEffect="non-scaling-stroke"
+                    />
                 </svg>
             )}
 
