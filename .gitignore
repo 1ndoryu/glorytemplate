@@ -84,3 +84,7 @@ glory_docs
 .agent/docs/*
 .agent/workflows/*
 android
+colors/
+.vitepress/
+.agent/ 
+.github/
