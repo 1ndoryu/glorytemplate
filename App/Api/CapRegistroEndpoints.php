@@ -177,7 +177,12 @@ class CapRegistroEndpoints
             $nombreCentro,
             $nombreUsuario
         );
-        wp_mail($email, $asunto, $mensaje);
+
+        /* Verificar retorno de wp_mail para diagnosticar problemas de envío */
+        $mailEnviado = wp_mail($email, $asunto, $mensaje);
+        if (!$mailEnviado) {
+            error_log("[CAP Registro] WARN: Fallo al enviar email de bienvenida a {$email}. El registro fue exitoso igualmente.");
+        }
 
         $respuesta = [
             'exito' => true,

@@ -33,7 +33,8 @@ class CalendarPersistenceService
         $fechaFin = $fechaBase ? (clone $fechaBase)->modify('+4 days')->format('Y-m-d') : $fechaInicioSemana;
         $fechaBorradoDesde = $fechaDesde ?? $fechaInicioSemana;
 
-        $wpdb->query($wpdb->prepare(
+        /* Eliminar clases existentes no bloqueadas del rango, verificar retorno */
+        $resultadoDelete = $wpdb->query($wpdb->prepare(
             "DELETE FROM {$tablaClases}
              WHERE centro_id = %d
              AND fecha BETWEEN %s AND %s
@@ -42,6 +43,11 @@ class CalendarPersistenceService
             $fechaBorradoDesde,
             $fechaFin
         ));
+
+        if ($resultadoDelete === false) {
+            error_log("[CAP Calendar] ERROR: Fallo al eliminar clases previas para centro {$centroId}. DB error: {$wpdb->last_error}");
+            return [];
+        }
 
         $clasesCreadas = [];
 
@@ -64,12 +70,16 @@ class CalendarPersistenceService
             $claseId = $wpdb->insert_id;
 
             foreach ($clase['alumnos'] as $alumnoId) {
-                $wpdb->insert($tablaAsistencia, [
+                $asistenciaInsertada = $wpdb->insert($tablaAsistencia, [
                     CapAsistenciaCols::CLASE_ID => $claseId,
                     CapAsistenciaCols::ALUMNO_ID => $alumnoId,
                     CapAsistenciaCols::ASISTIO => 0,
                     CapAsistenciaCols::CREATED_AT => current_time('mysql')
                 ]);
+
+                if ($asistenciaInsertada === false) {
+                    error_log("[CAP Calendar] ERROR: Fallo al insertar asistencia para clase_id={$claseId}, alumno_id={$alumnoId}. DB error: {$wpdb->last_error}");
+                }
             }
 
             $clasesCreadas[] = [

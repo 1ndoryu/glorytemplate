@@ -65,10 +65,10 @@ class CapService
                 $centroId = $this->configModel->crearCentro($userId, $nombreCentro);
 
                 if ($centroId) {
-                    /* Crear suscripción trial para el nuevo centro */
+                    /* Crear suscripción trial para el nuevo centro, verificar retorno */
                     global $wpdb;
                     $tablaSuscripciones = $wpdb->prefix . CapSuscripcionesCols::TABLA;
-                    $wpdb->insert($tablaSuscripciones, [
+                    $insertResult = $wpdb->insert($tablaSuscripciones, [
                         CapSuscripcionesCols::CENTRO_ID => $centroId,
                         CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_ACTIVA,
                         CapSuscripcionesCols::FECHA_INICIO => current_time('mysql'),
@@ -77,7 +77,11 @@ class CapService
                         CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
                     ]);
 
-                    error_log("[CAP] Centro creado automáticamente para user_id: {$userId}, centro_id: {$centroId}");
+                    if ($insertResult === false) {
+                        error_log("[CAP] ERROR: Fallo al crear suscripción para centro {$centroId}, user_id: {$userId}. DB error: {$wpdb->last_error}");
+                    } else {
+                        error_log("[CAP] Centro creado automáticamente para user_id: {$userId}, centro_id: {$centroId}");
+                    }
                 }
             }
         }

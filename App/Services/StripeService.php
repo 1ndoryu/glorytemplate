@@ -301,8 +301,9 @@ class StripeService
 
     /**
      * Procesa checkout completado - Activa la suscripción
+     * Verifica retorno de $wpdb para detectar fallos silenciosos en operaciones financieras.
      */
-    private function procesarCheckoutCompletado(object $session): void
+    private function procesarCheckoutCompletado(object $session): bool
     {
         global $wpdb;
         $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
@@ -310,7 +311,7 @@ class StripeService
         $centroId = $session->metadata->centro_id ?? null;
         if (!$centroId) {
             error_log('[CAP Stripe] Checkout sin centro_id en metadata');
-            return;
+            return false;
         }
 
         /* Verificar si ya existe una suscripción para este centro */
@@ -329,61 +330,88 @@ class StripeService
         ];
 
         if ($existente) {
-            $wpdb->update($tabla, $datos, [CapSuscripcionesCols::ID => $existente]);
+            $resultado = $wpdb->update($tabla, $datos, [CapSuscripcionesCols::ID => $existente]);
+            if ($resultado === false) {
+                error_log("[CAP Stripe] ERROR: Fallo al actualizar suscripción para centro {$centroId}. DB error: {$wpdb->last_error}");
+                return false;
+            }
         } else {
             $datos[CapSuscripcionesCols::CENTRO_ID] = $centroId;
             $datos[CapSuscripcionesCols::CREATED_AT] = current_time('mysql');
-            $wpdb->insert($tabla, $datos);
+            $resultado = $wpdb->insert($tabla, $datos);
+            if ($resultado === false) {
+                error_log("[CAP Stripe] ERROR: Fallo al insertar suscripción para centro {$centroId}. DB error: {$wpdb->last_error}");
+                return false;
+            }
         }
 
         error_log("[CAP Stripe] Suscripción activada para centro {$centroId}");
+        return true;
     }
 
     /**
      * Procesa pago exitoso de factura - Renueva suscripción
      */
-    private function procesarPagoExitoso(object $invoice): void
+    private function procesarPagoExitoso(object $invoice): bool
     {
         global $wpdb;
         $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
         $subscriptionId = $invoice->subscription;
-        if (!$subscriptionId) return;
+        if (!$subscriptionId) {
+            error_log('[CAP Stripe] Pago exitoso recibido sin subscription ID');
+            return false;
+        }
 
-        $wpdb->update($tabla, [
+        $resultado = $wpdb->update($tabla, [
             CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_ACTIVA,
             CapSuscripcionesCols::FECHA_FIN => date('Y-m-d H:i:s', strtotime('+1 month')),
             CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
         ], [CapSuscripcionesCols::STRIPE_SUBSCRIPTION_ID => $subscriptionId]);
 
+        if ($resultado === false) {
+            error_log("[CAP Stripe] ERROR: Fallo al renovar suscripción {$subscriptionId}. DB error: {$wpdb->last_error}");
+            return false;
+        }
+
         error_log("[CAP Stripe] Pago exitoso para suscripción {$subscriptionId}");
+        return true;
     }
 
     /**
      * Procesa pago fallido - Marca suscripción con gracia
      */
-    private function procesarPagoFallido(object $invoice): void
+    private function procesarPagoFallido(object $invoice): bool
     {
         global $wpdb;
         $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
         $subscriptionId = $invoice->subscription;
-        if (!$subscriptionId) return;
+        if (!$subscriptionId) {
+            error_log('[CAP Stripe] Pago fallido recibido sin subscription ID');
+            return false;
+        }
 
         /* Dar 3 días de gracia */
-        $wpdb->update($tabla, [
+        $resultado = $wpdb->update($tabla, [
             CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_PAGO_FALLIDO,
             CapSuscripcionesCols::FECHA_FIN => date('Y-m-d H:i:s', strtotime('+3 days')),
             CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
         ], [CapSuscripcionesCols::STRIPE_SUBSCRIPTION_ID => $subscriptionId]);
 
+        if ($resultado === false) {
+            error_log("[CAP Stripe] ERROR: Fallo al marcar pago fallido para suscripción {$subscriptionId}. DB error: {$wpdb->last_error}");
+            return false;
+        }
+
         error_log("[CAP Stripe] Pago fallido para suscripción {$subscriptionId}");
+        return true;
     }
 
     /**
      * Procesa actualización de suscripción
      */
-    private function procesarSuscripcionActualizada(object $subscription): void
+    private function procesarSuscripcionActualizada(object $subscription): bool
     {
         global $wpdb;
         $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
@@ -395,28 +423,40 @@ class StripeService
             $estado = CapSuscripcionesEnums::ESTADO_EXPIRADA;
         }
 
-        $wpdb->update($tabla, [
+        $resultado = $wpdb->update($tabla, [
             CapSuscripcionesCols::ESTADO => $estado,
             CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
         ], [CapSuscripcionesCols::STRIPE_SUBSCRIPTION_ID => $subscription->id]);
 
+        if ($resultado === false) {
+            error_log("[CAP Stripe] ERROR: Fallo al actualizar suscripción {$subscription->id}. DB error: {$wpdb->last_error}");
+            return false;
+        }
+
         error_log("[CAP Stripe] Suscripción {$subscription->id} actualizada a estado: {$estado}");
+        return true;
     }
 
     /**
      * Procesa cancelación de suscripción
      */
-    private function procesarSuscripcionCancelada(object $subscription): void
+    private function procesarSuscripcionCancelada(object $subscription): bool
     {
         global $wpdb;
         $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
-        $wpdb->update($tabla, [
+        $resultado = $wpdb->update($tabla, [
             CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_CANCELADA,
             CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
         ], [CapSuscripcionesCols::STRIPE_SUBSCRIPTION_ID => $subscription->id]);
 
+        if ($resultado === false) {
+            error_log("[CAP Stripe] ERROR: Fallo al cancelar suscripción {$subscription->id}. DB error: {$wpdb->last_error}");
+            return false;
+        }
+
         error_log("[CAP Stripe] Suscripción {$subscription->id} cancelada");
+        return true;
     }
 
     /**
@@ -457,6 +497,11 @@ class StripeService
         $iv = openssl_random_pseudo_bytes(16);
         $encrypted = openssl_encrypt($valor, 'AES-256-CBC', $key, 0, $iv);
 
+        if ($encrypted === false) {
+            error_log('[CAP Stripe] ERROR: openssl_encrypt falló. Posible problema con la clave de encriptación.');
+            return '';
+        }
+
         return base64_encode($iv . '::' . $encrypted);
     }
 
@@ -468,10 +513,11 @@ class StripeService
         if (empty($valor)) return '';
 
         $key = $this->obtenerClaveEncriptacion();
-        $data = base64_decode($valor);
+        $data = base64_decode($valor, true);
 
-        if (strpos($data, '::') === false) {
-            return ''; /* Formato inválido */
+        /* base64_decode puede retornar false con datos corruptos */
+        if ($data === false || strpos($data, '::') === false) {
+            return '';
         }
 
         list($iv, $encrypted) = explode('::', $data, 2);

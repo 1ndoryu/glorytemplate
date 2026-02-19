@@ -205,8 +205,12 @@ class Clase
             return false;
         }
 
-        /* Eliminar asistencias asociadas */
-        $wpdb->delete($this->tablaAsistencia, [CapAsistenciaCols::CLASE_ID => $id]);
+        /* Eliminar asistencias asociadas, verificar retorno */
+        $resultadoAsis = $wpdb->delete($this->tablaAsistencia, [CapAsistenciaCols::CLASE_ID => $id]);
+        if ($resultadoAsis === false) {
+            error_log("[CAP Clase] ERROR: Fallo al eliminar asistencias de la clase {$id}. DB error: {$wpdb->last_error}");
+            return false;
+        }
 
         /* Eliminar la clase */
         $eliminado = $wpdb->delete($this->tabla, [CapClasesCols::ID => $id]);

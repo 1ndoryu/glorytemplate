@@ -210,9 +210,13 @@ class CapSeeder
 
             $idsPlaceholder = implode(',', array_map('intval', $alumnosIds));
 
-            /* Eliminar asistencias de alumnos demo */
+            /* Eliminar asistencias de alumnos demo — usar $wpdb->prepare con placeholders */
             $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
-            $wpdb->query("DELETE FROM {$tablaAsistencia} WHERE alumno_id IN ({$idsPlaceholder})");
+            $placeholders = implode(',', array_fill(0, count($alumnosIds), '%d'));
+            $wpdb->query($wpdb->prepare(
+                "DELETE FROM {$tablaAsistencia} WHERE alumno_id IN ({$placeholders})",
+                ...$alumnosIds
+            ));
 
             /* Eliminar clases de la semana actual (las creadas por el seeder) */
             $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
@@ -237,12 +241,18 @@ class CapSeeder
                 $viernes->format('Y-m-d')
             ));
 
-            /* Eliminar disponibilidad de alumnos demo */
+            /* Eliminar disponibilidad de alumnos demo — usar $wpdb->prepare */
             $tablaDisponibilidad = $wpdb->prefix . CapDisponibilidadCols::TABLA;
-            $wpdb->query("DELETE FROM {$tablaDisponibilidad} WHERE alumno_id IN ({$idsPlaceholder})");
+            $wpdb->query($wpdb->prepare(
+                "DELETE FROM {$tablaDisponibilidad} WHERE alumno_id IN ({$placeholders})",
+                ...$alumnosIds
+            ));
 
-            /* Eliminar alumnos demo */
-            $wpdb->query("DELETE FROM {$tablaAlumnos} WHERE id IN ({$idsPlaceholder})");
+            /* Eliminar alumnos demo — usar $wpdb->prepare */
+            $wpdb->query($wpdb->prepare(
+                "DELETE FROM {$tablaAlumnos} WHERE id IN ({$placeholders})",
+                ...$alumnosIds
+            ));
 
             $this->registrarAccion('clean', count($alumnosIds));
 
@@ -281,7 +291,7 @@ class CapSeeder
                 $estado = CapAlumnosEnums::ESTADO_COMPLETADO;
             }
 
-            $wpdb->insert($tabla, [
+            $insertado = $wpdb->insert($tabla, [
                 CapAlumnosCols::CENTRO_ID => $this->centroId,
                 CapAlumnosCols::NOMBRE => $datos['nombre'],
                 CapAlumnosCols::EMAIL => $datos['email'],
@@ -292,6 +302,11 @@ class CapSeeder
                 CapAlumnosCols::CREATED_AT => current_time('mysql'),
                 CapAlumnosCols::UPDATED_AT => current_time('mysql'),
             ]);
+
+            if ($insertado === false) {
+                error_log("[CAP Seeder] ERROR: Fallo al insertar alumno '{$datos['nombre']}'. DB error: {$wpdb->last_error}");
+                continue;
+            }
 
             $alumnosCreados[] = [
                 'id' => $wpdb->insert_id,

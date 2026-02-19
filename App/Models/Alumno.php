@@ -283,7 +283,9 @@ class Alumno
     }
 
     /**
-     * Elimina un alumno
+     * Elimina un alumno y sus datos asociados.
+     * Elimina hijos primero (disponibilidad, asistencias) y luego el padre.
+     * Verifica cada operación para evitar fallos silenciosos.
      */
     public function eliminar(int $id): bool
     {
@@ -291,11 +293,19 @@ class Alumno
 
         /* Primero eliminar disponibilidad asociada */
         $tablaDisponibilidad = $wpdb->prefix . CapDisponibilidadCols::TABLA;
-        $wpdb->delete($tablaDisponibilidad, [CapDisponibilidadCols::ALUMNO_ID => $id]);
+        $resultadoDisp = $wpdb->delete($tablaDisponibilidad, [CapDisponibilidadCols::ALUMNO_ID => $id]);
+        if ($resultadoDisp === false) {
+            error_log("[CAP Alumno] ERROR: Fallo al eliminar disponibilidad del alumno {$id}. DB error: {$wpdb->last_error}");
+            return false;
+        }
 
         /* Luego eliminar asistencias */
         $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
-        $wpdb->delete($tablaAsistencia, [CapAsistenciaCols::ALUMNO_ID => $id]);
+        $resultadoAsis = $wpdb->delete($tablaAsistencia, [CapAsistenciaCols::ALUMNO_ID => $id]);
+        if ($resultadoAsis === false) {
+            error_log("[CAP Alumno] ERROR: Fallo al eliminar asistencias del alumno {$id}. DB error: {$wpdb->last_error}");
+            return false;
+        }
 
         /* Finalmente eliminar el alumno */
         $eliminado = $wpdb->delete($this->tabla, [CapAlumnosCols::ID => $id]);
@@ -445,12 +455,16 @@ class Alumno
             $alumnoId
         ));
 
-        /* Actualizar cache en tabla de alumnos */
-        $wpdb->update(
+        /* Actualizar cache en tabla de alumnos, verificar retorno */
+        $resultado = $wpdb->update(
             $this->tabla,
             [CapAlumnosCols::HORAS_COMPLETADAS => $horas, CapAlumnosCols::UPDATED_AT => current_time('mysql')],
             [CapAlumnosCols::ID => $alumnoId]
         );
+
+        if ($resultado === false) {
+            error_log("[CAP Alumno] ERROR: Fallo al actualizar horas_completadas del alumno {$alumnoId}. DB error: {$wpdb->last_error}");
+        }
 
         return $horas;
     }
@@ -458,8 +472,9 @@ class Alumno
     /**
      * Recalcula horas_completadas de todos los alumnos de un centro.
      * Útil tras generar o eliminar clases.
+     * @return bool true si la operación fue exitosa
      */
-    public function recalcularProgresoCentro(int $centroId): void
+    public function recalcularProgresoCentro(int $centroId): bool
     {
         global $wpdb;
 
@@ -468,24 +483,29 @@ class Alumno
             $centroId
         ));
 
-        $this->recalcularProgresoEnLote($alumnosIds);
+        return $this->recalcularProgresoEnLote($alumnosIds);
     }
 
     /**
      * Recalcula horas_completadas de un conjunto específico de alumnos.
      * Se usa tras generar calendario para actualizar solo los alumnos afectados.
+     * @return bool true si la operación fue exitosa
      */
-    public function recalcularProgresoAlumnos(array $alumnosIds): void
+    public function recalcularProgresoAlumnos(array $alumnosIds): bool
     {
-        $this->recalcularProgresoEnLote($alumnosIds);
+        return $this->recalcularProgresoEnLote($alumnosIds);
     }
 
-    private function recalcularProgresoEnLote(array $alumnosIds): void
+    /**
+     * Ejecuta UPDATE masivo para recalcular horas en lote.
+     * @return bool true si la operación fue exitosa, false si hubo error de BD
+     */
+    private function recalcularProgresoEnLote(array $alumnosIds): bool
     {
         global $wpdb;
         $ids = array_values(array_unique(array_filter(array_map('intval', $alumnosIds))));
         if (empty($ids)) {
-            return;
+            return true;
         }
 
         $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
@@ -508,7 +528,14 @@ class Alumno
         ";
 
         $params = array_merge($ids, [current_time('mysql')], $ids);
-        $wpdb->query($wpdb->prepare($query, ...$params));
+        $resultado = $wpdb->query($wpdb->prepare($query, ...$params));
+
+        if ($resultado === false) {
+            error_log('[CAP Alumno] ERROR: Fallo en recalcularProgresoEnLote para ' . count($ids) . " alumnos. DB error: {$wpdb->last_error}");
+            return false;
+        }
+
+        return true;
     }
 
     /**

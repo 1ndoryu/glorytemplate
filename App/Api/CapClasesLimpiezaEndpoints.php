@@ -88,8 +88,12 @@ class CapClasesLimpiezaEndpoints
             ]);
         }
 
-        $idsPlaceholder = implode(',', array_map('intval', $clasesIds));
-        $resultadoAsistencia = $wpdb->query("DELETE FROM {$tablaAsistencia} WHERE clase_id IN ({$idsPlaceholder})");
+        /* Usar $wpdb->prepare para DELETE IN() — defensa en profundidad */
+        $placeholders = implode(',', array_fill(0, count($clasesIds), '%d'));
+        $resultadoAsistencia = $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$tablaAsistencia} WHERE clase_id IN ({$placeholders})",
+            ...$clasesIds
+        ));
         if ($resultadoAsistencia === false) {
             return new \WP_REST_Response(['error' => 'No se pudieron eliminar asistencias'], 500);
         }
@@ -158,8 +162,12 @@ class CapClasesLimpiezaEndpoints
             ]);
         }
 
-        $idsPlaceholder = implode(',', array_map('intval', $clasesIds));
-        $resultadoAsistencia = $wpdb->query("DELETE FROM {$tablaAsistencia} WHERE clase_id IN ({$idsPlaceholder})");
+        /* Usar $wpdb->prepare para DELETE IN() — defensa en profundidad */
+        $placeholders = implode(',', array_fill(0, count($clasesIds), '%d'));
+        $resultadoAsistencia = $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$tablaAsistencia} WHERE clase_id IN ({$placeholders})",
+            ...$clasesIds
+        ));
         if ($resultadoAsistencia === false) {
             return new \WP_REST_Response(['error' => 'No se pudieron eliminar asistencias'], 500);
         }

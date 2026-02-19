@@ -191,12 +191,16 @@ class Configuracion
 
         $centroId = $wpdb->insert_id;
 
-        /* Crear configuración por defecto */
+        /* Crear configuración por defecto, verificar retorno */
         $configDefecto = $this->configuracionDefecto($centroId);
         $configDefecto[CapConfiguracionCols::CREATED_AT] = current_time('mysql');
         $configDefecto[CapConfiguracionCols::UPDATED_AT] = current_time('mysql');
 
-        $wpdb->insert($this->tablaConfig, $configDefecto);
+        $configInsertada = $wpdb->insert($this->tablaConfig, $configDefecto);
+        if ($configInsertada === false) {
+            error_log("[CAP Configuracion] ERROR: Fallo al crear configuración por defecto para centro {$centroId}. DB error: {$wpdb->last_error}");
+            /* El centro se creó pero sin config; retornar centroId para que el caller pueda actuar */
+        }
 
         return $centroId;
     }
@@ -256,6 +260,12 @@ class Configuracion
                 ? json_decode($datos[CapConfiguracionCols::HORARIOS_SEMANALES], true)
                 : $datos[CapConfiguracionCols::HORARIOS_SEMANALES];
 
+            /* Verificar json_last_error tras json_decode para detectar JSON corrupto */
+            if (is_string($datos[CapConfiguracionCols::HORARIOS_SEMANALES]) && json_last_error() !== JSON_ERROR_NONE) {
+                error_log('[CAP Configuracion] WARN: JSON inválido en horarios_semanales: ' . json_last_error_msg());
+                $horarios = null;
+            }
+
             if (is_array($horarios)) {
                 /* Sanitizar estructura: { lunes: [{inicio: '09:00', fin: '14:00'}], ... } */
                 $horariosLimpios = [];
@@ -278,8 +288,13 @@ class Configuracion
                         }
                     }
                 }
-                /* Guardar como JSON string */
-                $validados[CapConfiguracionCols::HORARIOS_SEMANALES] = json_encode($horariosLimpios);
+                /* Guardar como JSON string, verificar que json_encode no falle */
+                $jsonEncoded = json_encode($horariosLimpios);
+                if ($jsonEncoded === false) {
+                    error_log('[CAP Configuracion] ERROR: json_encode falló para horarios_semanales: ' . json_last_error_msg());
+                } else {
+                    $validados[CapConfiguracionCols::HORARIOS_SEMANALES] = $jsonEncoded;
+                }
             }
         }
 
@@ -302,22 +317,37 @@ class Configuracion
     }
 
     /**
-     * Método auxiliar para asegurar que las columnas existen (Migración on-the-fly)
+     * Método auxiliar para asegurar que las columnas existen (Migración on-the-fly).
+     * Usa $wpdb->prepare donde es posible y verifica retornos de ALTER TABLE.
      */
     public function asegurarColumnaFlexibilidad(): void
     {
         global $wpdb;
-        
+
         /* Verificar y crear columna horarios_semanales si no existe */
-        $row = $wpdb->get_results("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$this->tablaConfig}' AND COLUMN_NAME = 'horarios_semanales'");
+        $row = $wpdb->get_results($wpdb->prepare(
+            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+            $this->tablaConfig,
+            'horarios_semanales'
+        ));
         if (empty($row)) {
-            $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN horarios_semanales LONGTEXT NULL DEFAULT NULL");
+            $resultado = $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN horarios_semanales LONGTEXT NULL DEFAULT NULL");
+            if ($resultado === false) {
+                error_log("[CAP Configuracion] ERROR: Fallo al crear columna horarios_semanales. DB error: {$wpdb->last_error}");
+            }
         }
 
         /* Verificar y crear columna timezone si no existe */
-        $rowTz = $wpdb->get_results("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$this->tablaConfig}' AND COLUMN_NAME = 'timezone'");
+        $rowTz = $wpdb->get_results($wpdb->prepare(
+            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+            $this->tablaConfig,
+            'timezone'
+        ));
         if (empty($rowTz)) {
-            $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN timezone VARCHAR(100) DEFAULT 'Europe/Madrid'");
+            $resultado = $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN timezone VARCHAR(100) DEFAULT 'Europe/Madrid'");
+            if ($resultado === false) {
+                error_log("[CAP Configuracion] ERROR: Fallo al crear columna timezone. DB error: {$wpdb->last_error}");
+            }
         }
     }
 }

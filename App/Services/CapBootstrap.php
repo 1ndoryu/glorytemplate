@@ -50,24 +50,29 @@ class CapBootstrap
     }
 
     /**
-     * Crea toda la infraestructura de BD y roles
+     * Crea toda la infraestructura de BD y roles.
+     * Envuelto en try-catch para evitar que fallos en DDL rompan la activación del tema.
      */
     private static function crearInfraestructura(): void
     {
-        $schema = new CapSchema();
+        try {
+            $schema = new CapSchema();
 
-        /* Crear todas las tablas del módulo */
-        $schema->crearTablas();
+            /* Crear todas las tablas del módulo */
+            $schema->crearTablas();
 
-        /* Migraciones complementarias de configuración (versionadas) */
-        $configuracion = new Configuracion();
-        $configuracion->asegurarColumnaFlexibilidad();
+            /* Migraciones complementarias de configuración (versionadas) */
+            $configuracion = new Configuracion();
+            $configuracion->asegurarColumnaFlexibilidad();
 
-        /* Registrar rol personalizado */
-        CapSchema::registrarRol();
+            /* Registrar rol personalizado */
+            CapSchema::registrarRol();
 
-        /* Log para debugging */
-        error_log('[CAP] Infraestructura de base de datos creada/actualizada');
+            /* Log para debugging */
+            error_log('[CAP] Infraestructura de base de datos creada/actualizada');
+        } catch (\Throwable $e) {
+            error_log('[CAP] ERROR crítico al crear infraestructura: ' . $e->getMessage());
+        }
     }
 
     /**
