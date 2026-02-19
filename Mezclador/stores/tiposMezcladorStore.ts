@@ -108,4 +108,6 @@ export interface MezcladorState {
     limpiarProyecto: () => void;
     obtenerDuracionTotal: () => number;
     obtenerTodosBloques: () => BloqueMezclador[];
+    /* C285: Total de compases extendido (dinámico basado en contenido + padding) */
+    obtenerTotalExtendido: () => number;
 }

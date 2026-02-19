@@ -1,11 +1,13 @@
 /*
- * ModalConfigDaw — Modal de configuración general del mezclador DAW (C253)
+ * ModalConfigDaw — Configuración general del mezclador DAW (C253)
+ * C287: Migrado a VentanaFlotante (ventana draggable, minimizable).
  * Contiene opciones de snap y ajustes globales del proyecto.
- * Reutiliza clases CSS de modalConfig* del mezclador.
  */
 
-import { X } from 'lucide-react';
+import { useEffect } from 'react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
+import { useVentanasStore } from '../stores/ventanasStore';
+import { VentanaFlotante } from './VentanaFlotante';
 import type { SnapResolucion } from '../types/mezclador';
 
 interface ModalConfigDawProps {
@@ -23,35 +25,53 @@ const OPCIONES_SNAP: { valor: SnapResolucion; label: string; desc: string }[] = 
     { valor: 'off', label: 'Off', desc: 'Sin snap (movimiento libre)' },
 ];
 
+const VENTANA_ID = 'config-daw';
+
 export const ModalConfigDaw = ({ abierto, onCerrar }: ModalConfigDawProps): JSX.Element | null => {
     const snapResolucion = useMezcladorStore(s => s.snapResolucion);
     const setSnapResolucion = useMezcladorStore(s => s.setSnapResolucion);
+    const abrirVentana = useVentanasStore(s => s.abrirVentana);
+    const cerrarVentana = useVentanasStore(s => s.cerrarVentana);
+    const ventana = useVentanasStore(s => s.ventanas.find(v => v.id === VENTANA_ID));
+
+    /* Registrar/cerrar ventana según prop abierto */
+    useEffect(() => {
+        if (abierto) {
+            abrirVentana({
+                id: VENTANA_ID,
+                tipo: 'configDaw',
+                titulo: 'Configuración DAW',
+                posicion: {
+                    x: Math.max(20, Math.round(window.innerWidth / 2 - 175)),
+                    y: Math.max(20, Math.round(window.innerHeight / 2 - 120)),
+                },
+            });
+        } else {
+            cerrarVentana(VENTANA_ID);
+        }
+    }, [abierto]);
+
+    /* Si la ventana fue cerrada desde VentanaFlotante, propagar al padre */
+    useEffect(() => {
+        if (abierto && ventana === undefined) {
+            onCerrar();
+        }
+    }, [ventana, abierto, onCerrar]);
 
     if (!abierto) return null;
 
     return (
-        <div className="modalConfigOverlay" onMouseDown={onCerrar}>
-            <div
-                className="modalConfigBloque"
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="modalConfigCabecera">
-                    <span className="modalConfigTitulo">Configuración DAW</span>
-                    <button className="modalConfigCerrar" onClick={onCerrar}>
-                        <X size={14} />
-                    </button>
-                </div>
-
-                <div className="modalConfigControles">
-                    {/* Snap / Cuadrícula */}
-                    <div className="modalConfigFila">
-                        <label className="modalConfigLabel">Snap</label>
-                        <div className="modalConfigSnapOpciones">
+        <VentanaFlotante id={VENTANA_ID} titulo="Configuración DAW" ancho={360}>
+            <div className="configBloqueContenido">
+                <div className="configBloqueSeccion">
+                    <h4 className="configBloqueSeccionTitulo">Snap / Cuadrícula</h4>
+                    <div className="configBloqueFila">
+                        <label className="configBloqueLabel">Snap</label>
+                        <div className="configBloqueModoTonal">
                             {OPCIONES_SNAP.map(op => (
                                 <button
                                     key={op.valor}
-                                    className={`modalConfigSnapBtn ${snapResolucion === op.valor ? 'modalConfigSnapBtnActivo' : ''}`}
+                                    className={`configBloqueModoBtn ${snapResolucion === op.valor ? 'activo' : ''}`}
                                     onClick={() => setSnapResolucion(op.valor)}
                                     title={op.desc}
                                 >
@@ -62,6 +82,6 @@ export const ModalConfigDaw = ({ abierto, onCerrar }: ModalConfigDawProps): JSX.
                     </div>
                 </div>
             </div>
-        </div>
+        </VentanaFlotante>
     );
 };

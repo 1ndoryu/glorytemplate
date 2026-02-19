@@ -7,7 +7,7 @@
 
 import { create } from 'zustand';
 import type { SnapResolucion } from '../types/mezclador';
-import { CONSTANTES_MEZCLADOR, EVENTO_REPROGRAMAR_AUDIO, ZOOM_MIN, ZOOM_MAX, ZOOM_PASO } from '../types/mezclador';
+import { CONSTANTES_MEZCLADOR, EVENTO_REPROGRAMAR_AUDIO, ZOOM_MIN, ZOOM_MAX, ZOOM_PASO, RELLENO_COMPASES, COMPASES_VISIBLES_MIN } from '../types/mezclador';
 import { compasesASegundos, segundosACompases } from '../utils/compasUtils';
 import { motorAudio } from '../services/motorAudioService';
 
@@ -137,11 +137,16 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     setNivelZoom: (zoom) => set({ nivelZoom: Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom)) }),
     zoomIn: () => {
         const { nivelZoom } = get();
-        set({ nivelZoom: Math.min(ZOOM_MAX, Math.round((nivelZoom + ZOOM_PASO) * 100) / 100) });
+        /* C285: Paso proporcional — 10% del nivel actual para zoom natural */
+        const paso = Math.max(ZOOM_PASO, nivelZoom * 0.1);
+        const totalExt = get().obtenerTotalExtendido();
+        const maxZ = Math.max(4, totalExt / COMPASES_VISIBLES_MIN);
+        set({ nivelZoom: Math.min(maxZ, Math.round((nivelZoom + paso) * 100) / 100) });
     },
     zoomOut: () => {
         const { nivelZoom } = get();
-        set({ nivelZoom: Math.max(ZOOM_MIN, Math.round((nivelZoom - ZOOM_PASO) * 100) / 100) });
+        const paso = Math.max(ZOOM_PASO, nivelZoom * 0.1);
+        set({ nivelZoom: Math.max(ZOOM_MIN, Math.round((nivelZoom - paso) * 100) / 100) });
     },
     obtenerSnapCompas: () => {
         const { snapResolucion, compasProyecto } = get();
@@ -174,4 +179,17 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
         return compasesASegundos(totalCompases, bpmProyecto, compasProyecto);
     },
     obtenerTodosBloques: () => get().pistas.flatMap(p => p.bloques),
+
+    /* C285: Total extendido = max(totalCompases, último bloque + relleno) */
+    obtenerTotalExtendido: () => {
+        const { pistas, totalCompases } = get();
+        let ultimoFin = 0;
+        for (const pista of pistas) {
+            for (const bloque of pista.bloques) {
+                const fin = bloque.compasInicio + bloque.duracionCompases;
+                if (fin > ultimoFin) ultimoFin = fin;
+            }
+        }
+        return Math.max(totalCompases, Math.ceil(ultimoFin) + RELLENO_COMPASES);
+    },
 }));

@@ -40,7 +40,8 @@ export const useTimeline = () => {
     const pistaHoverRef = useRef(pistaIdHover);
     pistaHoverRef.current = pistaIdHover;
 
-    const totalCompases = useMezcladorStore(s => s.totalCompases);
+    /* C285: Usar totalExtendido para cálculos de posición */
+    const totalCompases = useMezcladorStore(s => s.obtenerTotalExtendido());
     const compasProyecto = useMezcladorStore(s => s.compasProyecto);
     const snapResolucion = useMezcladorStore(s => s.snapResolucion);
     const moverBloque = useMezcladorStore(s => s.moverBloque);

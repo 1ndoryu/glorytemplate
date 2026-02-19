@@ -233,6 +233,98 @@
     color: var(--textoTerciario);
 }
 
+/* C285: Wrapper del timeline — minimap + contenido scrollable */
+.mezcladorTimelineWrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* C285: Minimapa estilo FL Studio */
+.minimapaDaw {
+    position: relative;
+    height: 34px;
+    flex-shrink: 0;
+    background: var(--fondoElevado1, #1a1a2e);
+    border-bottom: 1px solid var(--bordeSutil);
+    cursor: pointer;
+    user-select: none;
+    overflow: hidden;
+}
+
+/* Representación simplificada de cada bloque en el minimapa */
+.minimapaBloque {
+    position: absolute;
+    border-radius: 1px;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Viewport — zona visible de la timeline */
+.minimapaViewport {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--acento);
+    border-radius: 2px;
+    cursor: grab;
+    z-index: 2;
+    min-width: 8px;
+    transition: background var(--transicionRapida);
+}
+
+.minimapaViewport:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.minimapaViewport:active {
+    cursor: grabbing;
+}
+
+/* Handles de resize en los bordes del viewport */
+.minimapaHandleIzq,
+.minimapaHandleDer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: ew-resize;
+    z-index: 3;
+    transition: background var(--transicionRapida);
+}
+
+.minimapaHandleIzq {
+    left: 0;
+    border-radius: 2px 0 0 2px;
+}
+
+.minimapaHandleDer {
+    right: 0;
+    border-radius: 0 2px 2px 0;
+}
+
+.minimapaHandleIzq:hover,
+.minimapaHandleDer:hover {
+    background: var(--acento);
+    opacity: 0.5;
+}
+
+/* Info de compases visibles (esquina derecha) */
+.minimapaZoomInfo {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 9px;
+    color: var(--textoTerciario);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 1;
+    font-variant-numeric: tabular-nums;
+}
+
 /* Timeline */
 .mezcladorTimeline {
     flex: 1;

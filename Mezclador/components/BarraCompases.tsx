@@ -11,7 +11,8 @@ interface BarraCompasesProps {
 }
 
 export const BarraCompases = ({ onSeek }: BarraCompasesProps): JSX.Element => {
-    const totalCompases = useMezcladorStore(s => s.totalCompases);
+    /* C285: Usar totalExtendido para renderizar la regla completa */
+    const totalCompases = useMezcladorStore(s => s.obtenerTotalExtendido());
     const labels = generarLabelsCompases(totalCompases);
 
     const alClick = (e: React.MouseEvent<HTMLDivElement>) => {

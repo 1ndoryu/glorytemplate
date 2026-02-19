@@ -115,6 +115,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R62:** Repository Pattern completo — Tier 3 Services + Api + Helpers migrados. 0 PostgresService fuera de infraestructura (`BaseRepository`, `PostgresService.php`, `VerificarPgvector.php`). Servicios migrados (10): PerfilUsuario, GeneradorEmbeddings, ServicioNotificaciones, DeduplicadorAudio, MotorRecomendacion, PlanificadorAlgoritmo, ServicioAntiSpam, ServicioBan, StripeService, ConstructorSenales. Api migrados: GeneradorIdCorto, PipelineAudio, ServicioModeracionIA, Helpers/UsuarioHelper. Repos expandidos: AlgoritmoEstadoRepository (+8 métodos), UsuariosExtRepository (+14 métodos totales sesión, ban+stripe), SamplesRepository (+10 métodos), NotificacionesRepository (+crearCompleta), ComentariosRepository (+buscarDuplicadoReciente+actualizarVeredictoModeracion), PublicacionesRepository (+actualizarVeredictoModeracion). BaseRepository: consultar/consultarUno/ejecutar/insertar cambiados de `protected` a `public`. Fixes: ColeccionesRepository CREATED_AT→ADDED_AT, AlgoritmoEstadoCols::ID→USUARIO_ID, LogModeracion 3er arg inválido removido, docblock array shape corregido.
 **R63:** Auditoría hardcode completa + bugfix regex PostgresService. Eliminados TODOS los strings hardcodeados de SQL en 20 repositorios: ORDER BY id/created_at → Cols::ID/CREATED_AT (15 repos), SamplesRepository (audio_hash, estados enum, JOINs, CTE interacciones, pgvector), ReproduccionesRepository (historialUsuario reescrito), NotificacionesRepository (listarConActor reescrito), UsuariosExtRepository (5 métodos analíticos con 6 imports nuevos), ColeccionesRepository (CTE explorar + FollowsCols), PublicacionesRepository (likedSubquery con LikesCols), BaseRepository (buscarTodos dinámico). Fix crítico: regex `validarQueryContraSchema()` usaba negative lookahead `(?!\s*\()` que causaba backtracking y truncaba nombres de tabla (reproducciones→reproduccione, likes→like). Solución: reemplazar por `\b` word boundary — la lista `$ignorar` ya filtra funciones SQL. Fix: ColeccionesRepository import LikesCols faltante.
 **R64:** Auditoría hardcode COMPLETA fuera de repositorios (14 archivos). SQL: MotorRecomendacion (3 métodos, CTE+subqueries+pgvector), ConstructorSenales (5 métodos, 6 señales), NormalizadorSample (sqlSelectSamples 35+ vars), SamplesController (filtros WHERE+ORDER BY), PublicacionesController (moderación+follows+ORDER BY), PipelineAudio ('activo'→SamplesEnums). Repos SQL residuales: DescargasRepository (2×'activo'), LikesRepository (3×'sample'+2×'activo'), SamplesRepository ('sample'+'like'). PHP Enums: SocialController (REST schema+defaults), ComentariosController/Escritura (TIPOS_VALIDOS→ComentariosEnums), ServicioNotificaciones (defaults+comparaciones→LikesEnums), PublicacionesController (liked→LikesEnums), NormalizadorSample (liked→LikesEnums). SamplesModificacionController: 11 SET clauses→SamplesCols constants. Bugfix verificado: `invalidarCacheGlobal()` al verificar/cambiar estado sample — transients servían datos stale sin verificado_sample. Fix: ComentariosEscrituraController LogModeracion warning() 3er arg inválido. AdminRepository: TODO 'pendiente' sin Enums generado.
+**R65:** [AG-ONE] C284+C285+C286+C287 Mezclador DAW mejoras. C284: fix clip mode tras stretch (recorteInicio). C286: doble click BloqueSample abre config. C287: ModalConfigBloque reescrito 700px VentanaFlotante profesional (cabecera LED+Pan+Vol+Pitch, Time Stretching, Sample Editing fades+declicking, Effects reverse+normalize+inv.polaridad+swap, File Info), VentanaFlotante.tsx+ventanasStore.ts+BarraVentanasMinimizadas.tsx nuevos, ModalConfigDaw convertido a VentanaFlotante. C285: MinimapaDaw.tsx (34px, viewport drag=scroll, edges=zoom, click-to-jump, wheel), obtenerTotalExtendido() con relleno 36 compases, ZOOM_MAX=200 dinámico proporcional, eliminados botones zoom/compás de ControlesMezclador, Timeline reestructurado con wrapper, BarraCompases+CursorReproduccion+useTimeline usan totalExtendido.
 
 ---
 
@@ -217,49 +218,10 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 # AGENTE ONE 
 
-284. Modo clip falla, cuando estiro un audio con el modo strech bien, pero supongamos un caso, contraigo un audio con strecth, y luego lo modifico con clip, la duración el audio, su tiempo o su velocidad (no se como describir exactamente) cambia, es decir, si el audio antes duraba 4 compases, pasa a 3,7, es un ejemplo, es un problema dificil de describir.
-285. Scroll del mini daw, el scroll del mini ahora ramplazara los botones del zoom por algo mejor.
-El scroll acostado aparecera arriba de mezcladorTimelineZoom con unos 34px de alto, y dentro habrá una vista previa de todas las pistas y dentro lineas simulando donde hay audios, pero o sea, esto es para que visualmente el usuario tenga una idea, esto es un minimapa, bueno en vscode el minimapa ese un scroll que muestra muy pequeño el audio, entonces, lo especial de este minimapa es que si lo estiras o sea, cambias su tamaño, hace zoom negativo o positivo segun su tamaño, algo asi funciona fl studio, igual con el scroll parado, en el fl studio para el scroll parado no cambia su tamaño de la misma forma que el scroll parado, tiene un especie cosa que no se como describirla que al manter presionado y mover hacia o abajo cambia el zoom vertical. 
-esto tambien implica eliminar las composiciones, ahora las composiciones son infinitas tenicamente, en base a cuanto se tira el scroll a la derecha, en fl studio a medida que tiras el scroll a la derecha llegas a un maximo de 36 compases vacíos porque el scroll termina por salirse y desaparecer hasta que agregas un audio, no se como explicar este sistema pero espero que me entiendas, es un mecanimos que basandose en el ultimo audio define la distancia maxima a la que se puede ir moviendo el scroll, el  zoom en fl studio maximo permite ver 18 compases (que tambien es afectado obviamente por la cantidad de audios, es decir, si hay audios compando de el compas 1 y luego el 100, puedes hacer zoom hasta verlo todos)y el mas cercano 0,5 compases, l
-tambien presionado con la rueda del mouse y tirando hacia arriba o abajo se llega a un maximo 1000 compases, pero vamos a limitar el zoom maximo a 30 para evitarnos problemas futuros. 
-286. Dar doble click a una tarjeta de audio en el mini daw debería poder abrir las configuraciones.
-287. Vamos a mejorar la interfaz de la configuracion de los audios, primero hacerlo un poco mas grande y ancha, que no se salga de la pantalla. unos 700 de ancho esta bien.
-la mejora radica en algo profesional, son varios puntos, pero le pedi una IA que me detallara la configuracion cuando se toca 2 veces en una tarjeta de audio, obviamente son muchas cosas, si algo no se puede se tiene que anotar, o si algo es muy dificil se debe dejar pendiente para planificar mejor.
-Controles Principales (Cabecera)
-On/Off (LED): Activa o silencia el canal.
-Pan (Knob): Controla el balance estéreo (izquierda/derecha).
-Vol (Knob): Ganancia o volumen principal del sample.
-Pitch (Knob): Cambia el tono (afinación) en centésimas.
-Range (Display): Define cuántos semitonos sube o baja el knob de Pitch (rango de acción).
-Track (Display numérico): Asigna el audio a un canal específico del Mixer.
-Content (Gestión del Archivo)
-File/Folder Icons: Abre el explorador para cargar el archivo .wav/.mp3.
-Keep on disk (Switch): Lee el audio directamente del disco duro (streaming) en vez de cargar todo en la RAM.
-Resample (Switch): Activa la interpolación de alta calidad al cambiar el tono.
-Load regions / Slice markers (Switch): Lee la metadata del archivo para importar marcadores de loop o cortes ya existentes.
-Declicking mode (Dropdown): Selecciona el algoritmo de suavizado (fade muy corto) al inicio/final para evitar "clicks" digitales.
-Time Stretching (Manipulación de Tiempo/Tono)
-Pitch (Knob): Cambia el tono independiente del tiempo (según el algoritmo).
-Mul (Knob): Multiplicador de tiempo (alarga o encoge el sample porcentualmente).
-Time (Knob): Ajusta la duración a un tiempo específico (ej. 4 beats exactos).
-Mode (Dropdown): Algoritmo usado (ej. Resample, Stretch, Auto).
-Precomputed Effects (Procesamiento Destructivo/Previo)
-Remove DC offset (Switch): Centra la onda en la línea cero (evita distorsión silenciosa).
-Reverse polarity (Switch): Invierte la fase de la onda (arriba es abajo).
-Normalize (Switch): Sube el volumen del pico más alto al máximo posible (0dB) sin distorsionar.
-Reverse (Switch): Invierte el audio para que suene al revés.
-Fade stereo / Swap stereo (Switch): Cruza o intercambia los canales L y R.
-Edición de Sample (Knobs inferiores)
-SMP Start (Knob): Recorta el inicio del sample (ignora los primeros milisegundos).
-Length (Knob): Recorta el final (reduce la duración total).
-In / Out (Knobs): Crea un Fade In (entrada gradual) o Fade Out (salida gradual) de volumen.
-Crossfade (Knob): Si el audio se repite (loop), suaviza la unión entre el final y el inicio mezclándolos.
-Trim (Knob): Umbral de puerta de ruido para silenciar partes bajas (gate).
-
-Algo quen se menciona es que ahora los modales del daw tienen que ser ventanas, bueno simular ventanas que se puede mover libremente y cerrar, cuando se minimizan se grupan en iconos en la parte inferior. 
-
-
-# AGENTE TWO (tareas libres)
+284. ✅ [AG-ONE] Fix modo clip tras stretch — recorteInicio se restaba correctamente al calcular durMax en clip mode.
+285. ✅ [AG-ONE] Minimapa DAW completo — MinimapaDaw.tsx (34px, viewport drag=scroll, edges=zoom, click-to-jump, wheel zoom), obtenerTotalExtendido() (relleno 36 compases), ZOOM_MAX=200 dinámico, eliminados botones zoom/compás de ControlesMezclador, Timeline reestructurado con wrapper.
+286. ✅ [AG-ONE] Doble click en BloqueSample abre ModalConfigBloque.
+287. ✅ [AG-ONE] Config audio profesional — ModalConfigBloque reescrito (700px VentanaFlotante): cabecera (On/Off LED+Pan+Vol+Pitch), Time Stretching (speed+modo), Sample Editing (fades+declicking+recorte), Effects (reverse+normalize+inv.polaridad+swap L/R), File Info. VentanaFlotante draggable+minimize. BarraVentanasMinimizadas. ModalConfigDaw convertido a VentanaFlotante. ventanasStore.ts nuevo.
 
 274. Que se pueda filtrar por samples free y de pagos en el feed samples 
 288. La pagina de explorar funciona casi bien. Primero, si los samples no tienen, por defecto deberían aparecer en en la carpeta samples, pero no aparecen a pesar de que el contador los cuenta.
@@ -274,7 +236,17 @@ la instrucción dice asi
 
 eligio samples pero no eligio la carpeta secundaria, creo que hay que ser mas detallado con las carpetas, y ver como se puede arreglar para evitar null, etc, y decirle que no diga null. 
 290. no se puede selecionar me encanta o dislike porque exploradorHeader se pone por encima en la lista de samples del explorador.
-291. En la pagina de explorador, si bien parece que los samples funciona bien, la forma en la que se ven los samples aunque no esta males la correcta, agregaremos otra forma de ordenas los samples, vistas 
+291. En la pagina de explorador, si bien parece que los samples funcionan bien, la forma en la que se ven los samples aunque no esta mal es la correcta, agregaremos otra forma de ordenas los samples, vistas que simulan a un explorador de archivo, se podra cambiar la vista entre cuadricula y lista,en lista se mantiene tal cual como esta ahora, y en cuadricula pues, solo se vera el nombre y la portada.
+292. Cuando intento arrastrar la ventana de  configuracion de un audio del mini daw, este desaparece y lo que se vuelve es la tarjeta de audio, (debería abrirse con doble click pero no se abre), y algunas cosas como la linea del tiempo se ponen por encima.
+293. El css del mezclador ya se ha hecho muy grande, hay que refactorizar el archivo.
+294. los botones que se indican como Knob de las configuraciones de audio, deben verse como Knob.
+295. Quitar el boton de restablacer, ahora todos los botones de configuracion de audio deben restablecerse individualmente si se da doble click en ellos.
+296. Es molesto que el zoom cambie o se mueva el scroll cuando cambio el tamaño o ancho de una tarjeta de audio.
+
+
+# AGENTE TWO (tareas libres)
+
+
 
 
 # AGENTE THRE
@@ -360,6 +332,14 @@ eligio samples pero no eligio la carpeta secundaria, creo que hay que ser mas de
 - [Schema-TS]: Union types (`TipoSample`, `EstadoSample`, etc.) ahora derivados de `ISamples['tipo']` del schema generado. Si se añade un valor CHECK en la DB y se regenera, TS rompe donde no se maneja. Interfaces manuales (Sample, Usuario) se mantienen porque la API normaliza a español (`creadoAt`, no `createdAt`). Cols + interfaces re-exportados desde `@app/types`.
 - [VPS]: Plan completo en App/docs/plan-vps-kamples.md. Stack: WP+MariaDB+PostgreSQL(pgvector). Dockerfile custom con pdo_pgsql+FFmpeg+Node. KAMPLES_PG_HOST='postgres' en Docker (no 127.0.0.1). Build=Vite (no esbuild). Schema System archivos commiteados — NO regenerar en VPS. WP_DEBUG=FALSE obligatorio (SchemaRegistry). Excluir v001_local_sin_pgvector y v001_schema_inicial en deploy. themeName='glorytemplate'.
 - [coolify-manager]: Variables de entorno per-project en settings.json field `env`. `Get-SiteEnvVars` expande `${VAR}` desde host. `New-CoolifyWordPressStack -Template kamples` selecciona template YAML alterno. setup-kamples.ps1 ejecuta: PG health→migraciones→env sync→composer→npm build→FFmpeg verify→Apache restart. deploy-theme.ps1 detecta `template=kamples` y ejecuta composer+build post-deploy automáticamente.
+
+- [Mezclador]: `obtenerTotalExtendido()` en store = max(totalCompases, ceil(ultimoFin) + RELLENO_COMPASES). Usar en lugar de `totalCompases` para cálculos de scroll/viewport/posición.
+- [Mezclador]: Zoom proporcional: step = max(0.05, nivelZoom * 0.1). maxZoom dinámico = totalExtendido / COMPASES_VISIBLES_MIN. Evita zoom fijo que no escala con proyectos grandes.
+- [Mezclador]: VentanaFlotante: drag por titlebar con mousedown→mousemove→mouseup en document. Clamping viewport obligatorio. z-index auto-incrementante por ventana.
+- [Mezclador]: ventanasStore gestiona multiple ventanas flotantes con Map<id>. enfocarVentana() sube z-index. minimizarVentana/restaurarVentana toggle.
+- [Mezclador]: MinimapaDaw 3 modos drag: 'mover' (scroll), 'izquierda' (zoom+reajuste scroll), 'derecha' (zoom). Edge handles de 6px. Porcentaje viewport = compasesVisibles/totalExtendido.
+- [Mezclador]: Pan implementado via StereoPannerNode en motorAudioService. Range -1 a 1. Nodo insertado entre GainNode y destination.
+- [Mezclador]: Declicking modes: none/corto(5ms)/medio(10ms)/largo(20ms). Micro-fades lineares en motorAudioService al inicio/fin de cada bloque.
 
 **Patrones generales:**
 - NormalizadorSample: alias SQL para columnas homónimas. extraerTagsMetadata() combina campos IA.

@@ -143,10 +143,15 @@ export const SNAP_FRACCIONES: Record<SnapResolucion, number | null> = {
 };
 
 /* C217: Niveles de zoom predefinidos */
-/* C229: Zoom — mínimo 100%, máximo 400%, incrementos de 5% */
+/* C285: Zoom dinámico controlado por minimapa. ZOOM_MAX se calcula en runtime. */
 export const ZOOM_MIN = 1;
-export const ZOOM_MAX = 4;
+export const ZOOM_MAX = 200;
 export const ZOOM_PASO = 0.05;
+
+/* C285: Límites de compases visibles para el minimapa */
+export const COMPASES_VISIBLES_MAX = 30;
+export const COMPASES_VISIBLES_MIN = 0.5;
+export const RELLENO_COMPASES = 36;
 
 /*
  * C287: Duración en segundos del declicking según modo.

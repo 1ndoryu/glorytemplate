@@ -1,9 +1,10 @@
 /*
- * ControlesMezclador — Play/Stop, BPM, compases, exportar, subir audio
- * Barra superior del mezclador con todas las acciones
+ * ControlesMezclador — Play/Stop, BPM, herramientas
+ * C285: Simplificado — zoom y compases controlados por MinimapaDaw.
+ * Barra superior del mezclador con acciones principales.
  */
 
-import { Play, Square, Plus, Minus, Scissors, ZoomIn, ZoomOut, Undo2, Redo2, MoveHorizontal, Crop } from 'lucide-react';
+import { Play, Square, Scissors, Undo2, Redo2, MoveHorizontal, Crop } from 'lucide-react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 
 interface ControlesMezcladorProps {
@@ -16,15 +17,9 @@ export const ControlesMezclador = ({
     reproduciendo,
 }: ControlesMezcladorProps): JSX.Element => {
     const bpmProyecto = useMezcladorStore(s => s.bpmProyecto);
-    const totalCompases = useMezcladorStore(s => s.totalCompases);
     const setBpm = useMezcladorStore(s => s.setBpm);
-    const agregarCompas = useMezcladorStore(s => s.agregarCompas);
-    const quitarCompas = useMezcladorStore(s => s.quitarCompas);
     const modoCortarActivo = useMezcladorStore(s => s.modoCortarActivo);
     const toggleModoCortar = useMezcladorStore(s => s.toggleModoCortar);
-    const nivelZoom = useMezcladorStore(s => s.nivelZoom);
-    const zoomIn = useMezcladorStore(s => s.zoomIn);
-    const zoomOut = useMezcladorStore(s => s.zoomOut);
     const deshacer = useMezcladorStore(s => s.deshacer);
     const rehacer = useMezcladorStore(s => s.rehacer);
     const puedeDeshacer = useMezcladorStore(s => s.puedeDeshacer);
@@ -39,7 +34,7 @@ export const ControlesMezclador = ({
 
     return (
         <div className="mezcladorControles">
-            {/* Grupo izquierdo: play + BPM */}
+            {/* Grupo izquierdo: play + undo/redo + BPM */}
             <div className="mezcladorControlesGrupo">
                 <button
                     className={`mezcladorBotonPlay ${reproduciendo ? 'activo' : ''}`}
@@ -80,45 +75,7 @@ export const ControlesMezclador = ({
                 </div>
             </div>
 
-            {/* Grupo centro: compases + snap + zoom */}
-            <div className="mezcladorControlesGrupo">
-                <button
-                    className="mezcladorBotonCompas"
-                    onClick={quitarCompas}
-                    title="Quitar compás"
-                >
-                    <Minus size={12} />
-                </button>
-                <span className="mezcladorCompasContador">
-                    {totalCompases} comp.
-                </span>
-                <button
-                    className="mezcladorBotonCompas"
-                    onClick={agregarCompas}
-                    title="Añadir compás"
-                >
-                    <Plus size={12} />
-                </button>
-
-                <span className="mezcladorSeparadorVertical" />
-
-                {/* C217: Zoom */}
-                <button
-                    className="mezcladorBotonCompas"
-                    onClick={zoomOut}
-                    title="Alejar"
-                >
-                    <ZoomOut size={12} />
-                </button>
-                <span className="mezcladorZoomLabel">{Math.round(nivelZoom * 100)}%</span>
-                <button
-                    className="mezcladorBotonCompas"
-                    onClick={zoomIn}
-                    title="Acercar"
-                >
-                    <ZoomIn size={12} />
-                </button>
-            </div>
+            {/* C285: Botones de compás y zoom eliminados — ahora en MinimapaDaw */}
 
             {/* Grupo derecho: herramienta de corte + modo resize */}
             <div className="mezcladorControlesGrupo">

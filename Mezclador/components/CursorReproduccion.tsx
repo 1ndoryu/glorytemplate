@@ -10,7 +10,8 @@ export const CursorReproduccion = (): JSX.Element => {
     const tiempoActual = useMezcladorStore(s => s.tiempoActual);
     const bpmProyecto = useMezcladorStore(s => s.bpmProyecto);
     const compasProyecto = useMezcladorStore(s => s.compasProyecto);
-    const totalCompases = useMezcladorStore(s => s.totalCompases);
+    /* C285: Usar totalExtendido para alinear con la timeline */
+    const totalCompases = useMezcladorStore(s => s.obtenerTotalExtendido());
 
     const posicionCompases = segundosACompases(tiempoActual, bpmProyecto, compasProyecto);
     /*
